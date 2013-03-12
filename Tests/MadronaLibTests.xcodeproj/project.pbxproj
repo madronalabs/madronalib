@@ -1,0 +1,636 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 45;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		8DD76F650486A84900D96B5E /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 08FB7796FE84155DC02AAC07 /* main.cpp */; settings = {ATTRIBUTES = (); }; };
+		B5A2F814124C2D46000CE4CD /* JuceLibraryCode1.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5A2F810124C2D46000CE4CD /* JuceLibraryCode1.mm */; };
+		B5A2F815124C2D46000CE4CD /* JuceLibraryCode2.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5A2F811124C2D46000CE4CD /* JuceLibraryCode2.mm */; };
+		B5A2F816124C2D46000CE4CD /* JuceLibraryCode3.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5A2F812124C2D46000CE4CD /* JuceLibraryCode3.mm */; };
+		B5A2F817124C2D46000CE4CD /* JuceLibraryCode4.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5A2F813124C2D46000CE4CD /* JuceLibraryCode4.mm */; };
+		B5A2F825124C2D9F000CE4CD /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F81A124C2D9F000CE4CD /* Cocoa.framework */; };
+		B5A2F826124C2D9F000CE4CD /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F81B124C2D9F000CE4CD /* Carbon.framework */; };
+		B5A2F827124C2D9F000CE4CD /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F81C124C2D9F000CE4CD /* IOKit.framework */; };
+		B5A2F828124C2D9F000CE4CD /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F81D124C2D9F000CE4CD /* CoreAudio.framework */; };
+		B5A2F829124C2D9F000CE4CD /* CoreMIDI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F81E124C2D9F000CE4CD /* CoreMIDI.framework */; };
+		B5A2F82A124C2D9F000CE4CD /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F81F124C2D9F000CE4CD /* QuartzCore.framework */; };
+		B5A2F82B124C2D9F000CE4CD /* QTKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F820124C2D9F000CE4CD /* QTKit.framework */; };
+		B5A2F82C124C2D9F000CE4CD /* QuickTime.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F821124C2D9F000CE4CD /* QuickTime.framework */; };
+		B5A2F82D124C2D9F000CE4CD /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F822124C2D9F000CE4CD /* AudioUnit.framework */; };
+		B5A2F82E124C2D9F000CE4CD /* CoreAudioKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F823124C2D9F000CE4CD /* CoreAudioKit.framework */; };
+		B5A2F82F124C2D9F000CE4CD /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5A2F824124C2D9F000CE4CD /* AudioToolbox.framework */; };
+		B5FCE2B0124BF71900CC4111 /* pa_ringbuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE226124BF71600CC4111 /* pa_ringbuffer.cpp */; };
+		B5FCE2B1124BF71900CC4111 /* MLDSP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE22A124BF71600CC4111 /* MLDSP.cpp */; };
+		B5FCE2B2124BF71900CC4111 /* MLDSPContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE22C124BF71600CC4111 /* MLDSPContext.cpp */; };
+		B5FCE2B3124BF71900CC4111 /* MLDSPEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE22E124BF71600CC4111 /* MLDSPEngine.cpp */; };
+		B5FCE2B4124BF71900CC4111 /* MLMultProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE230124BF71600CC4111 /* MLMultProxy.cpp */; };
+		B5FCE2B5124BF71900CC4111 /* MLParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE232124BF71600CC4111 /* MLParameter.cpp */; };
+		B5FCE2B6124BF71900CC4111 /* MLChangeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE234124BF71600CC4111 /* MLChangeList.cpp */; };
+		B5FCE2B7124BF71900CC4111 /* MLPipe.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE236124BF71600CC4111 /* MLPipe.cpp */; };
+		B5FCE2B8124BF71900CC4111 /* MLProc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE238124BF71600CC4111 /* MLProc.cpp */; };
+		B5FCE2B9124BF71900CC4111 /* MLProcAaltoDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE23A124BF71600CC4111 /* MLProcAaltoDelay.cpp */; };
+		B5FCE2BA124BF71900CC4111 /* MLProcAaltoFilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE23B124BF71600CC4111 /* MLProcAaltoFilter.cpp */; };
+		B5FCE2BB124BF71900CC4111 /* MLProcAbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE23C124BF71600CC4111 /* MLProcAbs.cpp */; };
+		B5FCE2BC124BF71900CC4111 /* MLProcAdd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE23D124BF71600CC4111 /* MLProcAdd.cpp */; };
+		B5FCE2BD124BF71900CC4111 /* MLProcAllpass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE23E124BF71600CC4111 /* MLProcAllpass.cpp */; };
+		B5FCE2BE124BF71900CC4111 /* MLProcBiquad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE23F124BF71600CC4111 /* MLProcBiquad.cpp */; };
+		B5FCE2BF124BF71900CC4111 /* MLProcClamp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE240124BF71600CC4111 /* MLProcClamp.cpp */; };
+		B5FCE2C0124BF71900CC4111 /* MLProcClampSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE241124BF71600CC4111 /* MLProcClampSignal.cpp */; };
+		B5FCE2C1124BF71900CC4111 /* MLProcContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE242124BF71600CC4111 /* MLProcContainer.cpp */; };
+		B5FCE2C2124BF71900CC4111 /* MLProcCubicDistort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE244124BF71600CC4111 /* MLProcCubicDistort.cpp */; };
+		B5FCE2C3124BF71900CC4111 /* MLProcDCBlocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE245124BF71600CC4111 /* MLProcDCBlocker.cpp */; };
+		B5FCE2C4124BF71900CC4111 /* MLProcDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE246124BF71600CC4111 /* MLProcDebug.cpp */; };
+		B5FCE2C5124BF71900CC4111 /* MLProcDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE247124BF71600CC4111 /* MLProcDelay.cpp */; };
+		B5FCE2C6124BF71900CC4111 /* MLProcDelayInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE248124BF71600CC4111 /* MLProcDelayInput.cpp */; };
+		B5FCE2C7124BF71900CC4111 /* MLProcDelayOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE24A124BF71600CC4111 /* MLProcDelayOutput.cpp */; };
+		B5FCE2C8124BF71900CC4111 /* MLProcDivide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE24B124BF71600CC4111 /* MLProcDivide.cpp */; };
+		B5FCE2C9124BF71900CC4111 /* MLProcDownsample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE24C124BF71600CC4111 /* MLProcDownsample.cpp */; };
+		B5FCE2CA124BF71900CC4111 /* MLProcDxDt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE24D124BF71600CC4111 /* MLProcDxDt.cpp */; };
+		B5FCE2CB124BF71900CC4111 /* MLProcEnvelope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE24E124BF71600CC4111 /* MLProcEnvelope.cpp */; };
+		B5FCE2CC124BF71900CC4111 /* MLProcExp2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE24F124BF71600CC4111 /* MLProcExp2.cpp */; };
+		B5FCE2CD124BF71900CC4111 /* MLProcFade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE250124BF71600CC4111 /* MLProcFade.cpp */; };
+		B5FCE2CE124BF71900CC4111 /* MLProcFadeBipolar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE251124BF71600CC4111 /* MLProcFadeBipolar.cpp */; };
+		B5FCE2CF124BF71900CC4111 /* MLProcFMBandwidth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE252124BF71600CC4111 /* MLProcFMBandwidth.cpp */; };
+		B5FCE2D0124BF71900CC4111 /* MLProcGlide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE253124BF71600CC4111 /* MLProcGlide.cpp */; };
+		B5FCE2D1124BF71900CC4111 /* MLProcLopassGate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE254124BF71600CC4111 /* MLProcLopassGate.cpp */; };
+		B5FCE2D2124BF71900CC4111 /* MLProcMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE255124BF71600CC4111 /* MLProcMatrix.cpp */; };
+		B5FCE2D3124BF71900CC4111 /* MLProcMIDIToSignals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE257124BF71600CC4111 /* MLProcMIDIToSignals.cpp */; };
+		B5FCE2D4124BF71900CC4111 /* MLProcMultiple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE259124BF71600CC4111 /* MLProcMultiple.cpp */; };
+		B5FCE2D5124BF71900CC4111 /* MLProcMultiply.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE25B124BF71600CC4111 /* MLProcMultiply.cpp */; };
+		B5FCE2D6124BF71900CC4111 /* MLProcMultiplyAdd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE25C124BF71600CC4111 /* MLProcMultiplyAdd.cpp */; };
+		B5FCE2D7124BF71900CC4111 /* MLProcNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE25D124BF71600CC4111 /* MLProcNoise.cpp */; };
+		B5FCE2D8124BF71900CC4111 /* MLProcOnepole.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE25E124BF71600CC4111 /* MLProcOnepole.cpp */; };
+		B5FCE2D9124BF71900CC4111 /* MLProcOneVectorDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE25F124BF71600CC4111 /* MLProcOneVectorDelay.cpp */; };
+		B5FCE2DA124BF71900CC4111 /* MLProcPan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE260124BF71600CC4111 /* MLProcPan.cpp */; };
+		B5FCE2DB124BF71900CC4111 /* MLProcParamToSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE261124BF71600CC4111 /* MLProcParamToSignal.cpp */; };
+		B5FCE2DC124BF71900CC4111 /* MLProcPeak.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE262124BF71600CC4111 /* MLProcPeak.cpp */; };
+		B5FCE2DD124BF71900CC4111 /* MLProcPhasor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE263124BF71600CC4111 /* MLProcPhasor.cpp */; };
+		B5FCE2DE124BF71900CC4111 /* MLProcPow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE264124BF71600CC4111 /* MLProcPow.cpp */; };
+		B5FCE2DF124BF71900CC4111 /* MLProcQuantize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE265124BF71600CC4111 /* MLProcQuantize.cpp */; };
+		B5FCE2E0124BF71900CC4111 /* MLProcRingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE266124BF71600CC4111 /* MLProcRingBuffer.cpp */; };
+		B5FCE2E1124BF71900CC4111 /* MLProcRMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE268124BF71600CC4111 /* MLProcRMS.cpp */; };
+		B5FCE2E2124BF71900CC4111 /* MLProcSampleRate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE26A124BF71600CC4111 /* MLProcSampleRate.cpp */; };
+		B5FCE2E3124BF71900CC4111 /* MLProcScope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE26B124BF71600CC4111 /* MLProcScope.cpp */; };
+		B5FCE2E4124BF71900CC4111 /* MLProcSineOsc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE26D124BF71600CC4111 /* MLProcSineOsc.cpp */; };
+		B5FCE2E5124BF71900CC4111 /* MLProcSquareShaper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE26E124BF71600CC4111 /* MLProcSquareShaper.cpp */; };
+		B5FCE2E6124BF71900CC4111 /* MLProcStepSequencer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE26F124BF71600CC4111 /* MLProcStepSequencer.cpp */; };
+		B5FCE2E7124BF71900CC4111 /* MLProcSubtract.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE270124BF71600CC4111 /* MLProcSubtract.cpp */; };
+		B5FCE2E8124BF71900CC4111 /* MLProcSum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE271124BF71600CC4111 /* MLProcSum.cpp */; };
+		B5FCE2E9124BF71900CC4111 /* MLProcSVF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE272124BF71600CC4111 /* MLProcSVF.cpp */; };
+		B5FCE2EA124BF71900CC4111 /* MLProcThru.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE273124BF71600CC4111 /* MLProcThru.cpp */; };
+		B5FCE2EB124BF71900CC4111 /* MLProcUpsample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE274124BF71600CC4111 /* MLProcUpsample.cpp */; };
+		B5FCE2EC124BF71900CC4111 /* MLProcVactrol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE275124BF71600CC4111 /* MLProcVactrol.cpp */; };
+		B5FCE2ED124BF71900CC4111 /* MLProcWarp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE276124BF71600CC4111 /* MLProcWarp.cpp */; };
+		B5FCE2EE124BF71900CC4111 /* MLRatio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE278124BF71600CC4111 /* MLRatio.cpp */; };
+		B5FCE2EF124BF71900CC4111 /* MLSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE27A124BF71600CC4111 /* MLSignal.cpp */; };
+		B5FCE2F0124BF71900CC4111 /* MLSymbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE27C124BF71600CC4111 /* MLSymbol.cpp */; };
+		B5FCE2F1124BF71900CC4111 /* MLPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5FCE27F124BF71600CC4111 /* MLPath.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		8DD76F690486A84900D96B5E /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 8;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		08FB7796FE84155DC02AAC07 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		8DD76F6C0486A84900D96B5E /* MadronaLibTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MadronaLibTests; sourceTree = BUILT_PRODUCTS_DIR; };
+		B5A2F810124C2D46000CE4CD /* JuceLibraryCode1.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = JuceLibraryCode1.mm; path = ../../Aalto/JuceLibraryCode/JuceLibraryCode1.mm; sourceTree = SOURCE_ROOT; };
+		B5A2F811124C2D46000CE4CD /* JuceLibraryCode2.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = JuceLibraryCode2.mm; path = ../../Aalto/JuceLibraryCode/JuceLibraryCode2.mm; sourceTree = SOURCE_ROOT; };
+		B5A2F812124C2D46000CE4CD /* JuceLibraryCode3.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = JuceLibraryCode3.mm; path = ../../Aalto/JuceLibraryCode/JuceLibraryCode3.mm; sourceTree = SOURCE_ROOT; };
+		B5A2F813124C2D46000CE4CD /* JuceLibraryCode4.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = JuceLibraryCode4.mm; path = ../../Aalto/JuceLibraryCode/JuceLibraryCode4.mm; sourceTree = SOURCE_ROOT; };
+		B5A2F81A124C2D9F000CE4CD /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
+		B5A2F81B124C2D9F000CE4CD /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		B5A2F81C124C2D9F000CE4CD /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = /System/Library/Frameworks/IOKit.framework; sourceTree = "<absolute>"; };
+		B5A2F81D124C2D9F000CE4CD /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = /System/Library/Frameworks/CoreAudio.framework; sourceTree = "<absolute>"; };
+		B5A2F81E124C2D9F000CE4CD /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = /System/Library/Frameworks/CoreMIDI.framework; sourceTree = "<absolute>"; };
+		B5A2F81F124C2D9F000CE4CD /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = /System/Library/Frameworks/QuartzCore.framework; sourceTree = "<absolute>"; };
+		B5A2F820124C2D9F000CE4CD /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = /System/Library/Frameworks/QTKit.framework; sourceTree = "<absolute>"; };
+		B5A2F821124C2D9F000CE4CD /* QuickTime.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuickTime.framework; path = /System/Library/Frameworks/QuickTime.framework; sourceTree = "<absolute>"; };
+		B5A2F822124C2D9F000CE4CD /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = /System/Library/Frameworks/AudioUnit.framework; sourceTree = "<absolute>"; };
+		B5A2F823124C2D9F000CE4CD /* CoreAudioKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudioKit.framework; path = /System/Library/Frameworks/CoreAudioKit.framework; sourceTree = "<absolute>"; };
+		B5A2F824124C2D9F000CE4CD /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
+		B5FCE225124BF71600CC4111 /* pa_memorybarrier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
+		B5FCE226124BF71600CC4111 /* pa_ringbuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa_ringbuffer.cpp; sourceTree = "<group>"; };
+		B5FCE227124BF71600CC4111 /* pa_ringbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pa_ringbuffer.h; sourceTree = "<group>"; };
+		B5FCE229124BF71600CC4111 /* MadronaLib.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MadronaLib.h; sourceTree = "<group>"; };
+		B5FCE22A124BF71600CC4111 /* MLDSP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSP.cpp; sourceTree = "<group>"; };
+		B5FCE22B124BF71600CC4111 /* MLDSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSP.h; sourceTree = "<group>"; };
+		B5FCE22C124BF71600CC4111 /* MLDSPContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSPContext.cpp; sourceTree = "<group>"; };
+		B5FCE22D124BF71600CC4111 /* MLDSPContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSPContext.h; sourceTree = "<group>"; };
+		B5FCE22E124BF71600CC4111 /* MLDSPEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSPEngine.cpp; sourceTree = "<group>"; };
+		B5FCE22F124BF71600CC4111 /* MLDSPEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSPEngine.h; sourceTree = "<group>"; };
+		B5FCE230124BF71600CC4111 /* MLMultProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultProxy.cpp; sourceTree = "<group>"; };
+		B5FCE231124BF71600CC4111 /* MLMultProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultProxy.h; sourceTree = "<group>"; };
+		B5FCE232124BF71600CC4111 /* MLParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLParameter.cpp; sourceTree = "<group>"; };
+		B5FCE233124BF71600CC4111 /* MLParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLParameter.h; sourceTree = "<group>"; };
+		B5FCE234124BF71600CC4111 /* MLChangeList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLChangeList.cpp; sourceTree = "<group>"; };
+		B5FCE235124BF71600CC4111 /* MLChangeList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLChangeList.h; sourceTree = "<group>"; };
+		B5FCE236124BF71600CC4111 /* MLPipe.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPipe.cpp; sourceTree = "<group>"; };
+		B5FCE237124BF71600CC4111 /* MLPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPipe.h; sourceTree = "<group>"; };
+		B5FCE238124BF71600CC4111 /* MLProc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProc.cpp; sourceTree = "<group>"; };
+		B5FCE239124BF71600CC4111 /* MLProc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProc.h; sourceTree = "<group>"; };
+		B5FCE23A124BF71600CC4111 /* MLProcAaltoDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAaltoDelay.cpp; sourceTree = "<group>"; };
+		B5FCE23B124BF71600CC4111 /* MLProcAaltoFilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAaltoFilter.cpp; sourceTree = "<group>"; };
+		B5FCE23C124BF71600CC4111 /* MLProcAbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAbs.cpp; sourceTree = "<group>"; };
+		B5FCE23D124BF71600CC4111 /* MLProcAdd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAdd.cpp; sourceTree = "<group>"; };
+		B5FCE23E124BF71600CC4111 /* MLProcAllpass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAllpass.cpp; sourceTree = "<group>"; };
+		B5FCE23F124BF71600CC4111 /* MLProcBiquad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcBiquad.cpp; sourceTree = "<group>"; };
+		B5FCE240124BF71600CC4111 /* MLProcClamp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcClamp.cpp; sourceTree = "<group>"; };
+		B5FCE241124BF71600CC4111 /* MLProcClampSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcClampSignal.cpp; sourceTree = "<group>"; };
+		B5FCE242124BF71600CC4111 /* MLProcContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcContainer.cpp; sourceTree = "<group>"; };
+		B5FCE243124BF71600CC4111 /* MLProcContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcContainer.h; sourceTree = "<group>"; };
+		B5FCE244124BF71600CC4111 /* MLProcCubicDistort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcCubicDistort.cpp; sourceTree = "<group>"; };
+		B5FCE245124BF71600CC4111 /* MLProcDCBlocker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDCBlocker.cpp; sourceTree = "<group>"; };
+		B5FCE246124BF71600CC4111 /* MLProcDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDebug.cpp; sourceTree = "<group>"; };
+		B5FCE247124BF71600CC4111 /* MLProcDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelay.cpp; sourceTree = "<group>"; };
+		B5FCE248124BF71600CC4111 /* MLProcDelayInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelayInput.cpp; sourceTree = "<group>"; };
+		B5FCE249124BF71600CC4111 /* MLProcDelayInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcDelayInput.h; sourceTree = "<group>"; };
+		B5FCE24A124BF71600CC4111 /* MLProcDelayOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelayOutput.cpp; sourceTree = "<group>"; };
+		B5FCE24B124BF71600CC4111 /* MLProcDivide.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDivide.cpp; sourceTree = "<group>"; };
+		B5FCE24C124BF71600CC4111 /* MLProcDownsample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDownsample.cpp; sourceTree = "<group>"; };
+		B5FCE24D124BF71600CC4111 /* MLProcDxDt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDxDt.cpp; sourceTree = "<group>"; };
+		B5FCE24E124BF71600CC4111 /* MLProcEnvelope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcEnvelope.cpp; sourceTree = "<group>"; };
+		B5FCE24F124BF71600CC4111 /* MLProcExp2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcExp2.cpp; sourceTree = "<group>"; };
+		B5FCE250124BF71600CC4111 /* MLProcFade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFade.cpp; sourceTree = "<group>"; };
+		B5FCE251124BF71600CC4111 /* MLProcFadeBipolar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFadeBipolar.cpp; sourceTree = "<group>"; };
+		B5FCE252124BF71600CC4111 /* MLProcFMBandwidth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFMBandwidth.cpp; sourceTree = "<group>"; };
+		B5FCE253124BF71600CC4111 /* MLProcGlide.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcGlide.cpp; sourceTree = "<group>"; };
+		B5FCE254124BF71600CC4111 /* MLProcLopassGate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcLopassGate.cpp; sourceTree = "<group>"; };
+		B5FCE255124BF71600CC4111 /* MLProcMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMatrix.cpp; sourceTree = "<group>"; };
+		B5FCE256124BF71600CC4111 /* MLProcMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMatrix.h; sourceTree = "<group>"; };
+		B5FCE257124BF71600CC4111 /* MLProcMIDIToSignals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMIDIToSignals.cpp; sourceTree = "<group>"; };
+		B5FCE258124BF71600CC4111 /* MLProcMIDIToSignals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMIDIToSignals.h; sourceTree = "<group>"; };
+		B5FCE259124BF71600CC4111 /* MLProcMultiple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiple.cpp; sourceTree = "<group>"; };
+		B5FCE25A124BF71600CC4111 /* MLProcMultiple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMultiple.h; sourceTree = "<group>"; };
+		B5FCE25B124BF71600CC4111 /* MLProcMultiply.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiply.cpp; sourceTree = "<group>"; };
+		B5FCE25C124BF71600CC4111 /* MLProcMultiplyAdd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiplyAdd.cpp; sourceTree = "<group>"; };
+		B5FCE25D124BF71600CC4111 /* MLProcNoise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcNoise.cpp; sourceTree = "<group>"; };
+		B5FCE25E124BF71600CC4111 /* MLProcOnepole.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcOnepole.cpp; sourceTree = "<group>"; };
+		B5FCE25F124BF71600CC4111 /* MLProcOneVectorDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcOneVectorDelay.cpp; sourceTree = "<group>"; };
+		B5FCE260124BF71600CC4111 /* MLProcPan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPan.cpp; sourceTree = "<group>"; };
+		B5FCE261124BF71600CC4111 /* MLProcParamToSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcParamToSignal.cpp; sourceTree = "<group>"; };
+		B5FCE262124BF71600CC4111 /* MLProcPeak.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPeak.cpp; sourceTree = "<group>"; };
+		B5FCE263124BF71600CC4111 /* MLProcPhasor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPhasor.cpp; sourceTree = "<group>"; };
+		B5FCE264124BF71600CC4111 /* MLProcPow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPow.cpp; sourceTree = "<group>"; };
+		B5FCE265124BF71600CC4111 /* MLProcQuantize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcQuantize.cpp; sourceTree = "<group>"; };
+		B5FCE266124BF71600CC4111 /* MLProcRingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRingBuffer.cpp; sourceTree = "<group>"; };
+		B5FCE267124BF71600CC4111 /* MLProcRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcRingBuffer.h; sourceTree = "<group>"; };
+		B5FCE268124BF71600CC4111 /* MLProcRMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRMS.cpp; sourceTree = "<group>"; };
+		B5FCE269124BF71600CC4111 /* MLProcRMS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcRMS.h; sourceTree = "<group>"; };
+		B5FCE26A124BF71600CC4111 /* MLProcSampleRate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSampleRate.cpp; sourceTree = "<group>"; };
+		B5FCE26B124BF71600CC4111 /* MLProcScope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcScope.cpp; sourceTree = "<group>"; };
+		B5FCE26C124BF71600CC4111 /* MLProcScope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcScope.h; sourceTree = "<group>"; };
+		B5FCE26D124BF71600CC4111 /* MLProcSineOsc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSineOsc.cpp; sourceTree = "<group>"; };
+		B5FCE26E124BF71600CC4111 /* MLProcSquareShaper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSquareShaper.cpp; sourceTree = "<group>"; };
+		B5FCE26F124BF71600CC4111 /* MLProcStepSequencer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcStepSequencer.cpp; sourceTree = "<group>"; };
+		B5FCE270124BF71600CC4111 /* MLProcSubtract.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSubtract.cpp; sourceTree = "<group>"; };
+		B5FCE271124BF71600CC4111 /* MLProcSum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSum.cpp; sourceTree = "<group>"; };
+		B5FCE272124BF71600CC4111 /* MLProcSVF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSVF.cpp; sourceTree = "<group>"; };
+		B5FCE273124BF71600CC4111 /* MLProcThru.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcThru.cpp; sourceTree = "<group>"; };
+		B5FCE274124BF71600CC4111 /* MLProcUpsample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcUpsample.cpp; sourceTree = "<group>"; };
+		B5FCE275124BF71600CC4111 /* MLProcVactrol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcVactrol.cpp; sourceTree = "<group>"; };
+		B5FCE276124BF71600CC4111 /* MLProcWarp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcWarp.cpp; sourceTree = "<group>"; };
+		B5FCE277124BF71600CC4111 /* MLProcWarp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcWarp.h; sourceTree = "<group>"; };
+		B5FCE278124BF71600CC4111 /* MLRatio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLRatio.cpp; sourceTree = "<group>"; };
+		B5FCE279124BF71600CC4111 /* MLRatio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLRatio.h; sourceTree = "<group>"; };
+		B5FCE27A124BF71600CC4111 /* MLSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignal.cpp; sourceTree = "<group>"; };
+		B5FCE27B124BF71600CC4111 /* MLSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignal.h; sourceTree = "<group>"; };
+		B5FCE27C124BF71600CC4111 /* MLSymbol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSymbol.cpp; sourceTree = "<group>"; };
+		B5FCE27D124BF71600CC4111 /* MLSymbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSymbol.h; sourceTree = "<group>"; };
+		B5FCE27E124BF71600CC4111 /* MLPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPath.h; sourceTree = "<group>"; };
+		B5FCE27F124BF71600CC4111 /* MLPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPath.cpp; sourceTree = "<group>"; };
+		B5FCE280124BF71600CC4111 /* MLSymbolMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSymbolMap.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8DD76F660486A84900D96B5E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B5A2F825124C2D9F000CE4CD /* Cocoa.framework in Frameworks */,
+				B5A2F826124C2D9F000CE4CD /* Carbon.framework in Frameworks */,
+				B5A2F827124C2D9F000CE4CD /* IOKit.framework in Frameworks */,
+				B5A2F828124C2D9F000CE4CD /* CoreAudio.framework in Frameworks */,
+				B5A2F829124C2D9F000CE4CD /* CoreMIDI.framework in Frameworks */,
+				B5A2F82A124C2D9F000CE4CD /* QuartzCore.framework in Frameworks */,
+				B5A2F82B124C2D9F000CE4CD /* QTKit.framework in Frameworks */,
+				B5A2F82C124C2D9F000CE4CD /* QuickTime.framework in Frameworks */,
+				B5A2F82D124C2D9F000CE4CD /* AudioUnit.framework in Frameworks */,
+				B5A2F82E124C2D9F000CE4CD /* CoreAudioKit.framework in Frameworks */,
+				B5A2F82F124C2D9F000CE4CD /* AudioToolbox.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		08FB7794FE84155DC02AAC07 /* MadronaLibTests */ = {
+			isa = PBXGroup;
+			children = (
+				08FB7795FE84155DC02AAC07 /* Source */,
+				B5FCE223124BF71600CC4111 /* MadronaLib */,
+				B5A2F819124C2D9F000CE4CD /* Frameworks */,
+				1AB674ADFE9D54B511CA2CBB /* Products */,
+			);
+			name = MadronaLibTests;
+			sourceTree = "<group>";
+		};
+		08FB7795FE84155DC02AAC07 /* Source */ = {
+			isa = PBXGroup;
+			children = (
+				08FB7796FE84155DC02AAC07 /* main.cpp */,
+			);
+			name = Source;
+			sourceTree = "<group>";
+		};
+		1AB674ADFE9D54B511CA2CBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				8DD76F6C0486A84900D96B5E /* MadronaLibTests */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		B5A2F7F6124C2D38000CE4CD /* JUCE */ = {
+			isa = PBXGroup;
+			children = (
+				B5A2F810124C2D46000CE4CD /* JuceLibraryCode1.mm */,
+				B5A2F811124C2D46000CE4CD /* JuceLibraryCode2.mm */,
+				B5A2F812124C2D46000CE4CD /* JuceLibraryCode3.mm */,
+				B5A2F813124C2D46000CE4CD /* JuceLibraryCode4.mm */,
+			);
+			name = JUCE;
+			sourceTree = "<group>";
+		};
+		B5A2F819124C2D9F000CE4CD /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				B5A2F81A124C2D9F000CE4CD /* Cocoa.framework */,
+				B5A2F81B124C2D9F000CE4CD /* Carbon.framework */,
+				B5A2F81C124C2D9F000CE4CD /* IOKit.framework */,
+				B5A2F81D124C2D9F000CE4CD /* CoreAudio.framework */,
+				B5A2F81E124C2D9F000CE4CD /* CoreMIDI.framework */,
+				B5A2F81F124C2D9F000CE4CD /* QuartzCore.framework */,
+				B5A2F820124C2D9F000CE4CD /* QTKit.framework */,
+				B5A2F821124C2D9F000CE4CD /* QuickTime.framework */,
+				B5A2F822124C2D9F000CE4CD /* AudioUnit.framework */,
+				B5A2F823124C2D9F000CE4CD /* CoreAudioKit.framework */,
+				B5A2F824124C2D9F000CE4CD /* AudioToolbox.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B5FCE223124BF71600CC4111 /* MadronaLib */ = {
+			isa = PBXGroup;
+			children = (
+				B5A2F7F6124C2D38000CE4CD /* JUCE */,
+				B5FCE224124BF71600CC4111 /* portaudio */,
+				B5FCE228124BF71600CC4111 /* DSP */,
+			);
+			name = MadronaLib;
+			sourceTree = "<group>";
+		};
+		B5FCE224124BF71600CC4111 /* portaudio */ = {
+			isa = PBXGroup;
+			children = (
+				B5FCE225124BF71600CC4111 /* pa_memorybarrier.h */,
+				B5FCE226124BF71600CC4111 /* pa_ringbuffer.cpp */,
+				B5FCE227124BF71600CC4111 /* pa_ringbuffer.h */,
+			);
+			name = portaudio;
+			path = ../portaudio;
+			sourceTree = "<group>";
+		};
+		B5FCE228124BF71600CC4111 /* DSP */ = {
+			isa = PBXGroup;
+			children = (
+				B5FCE229124BF71600CC4111 /* MadronaLib.h */,
+				B5FCE22A124BF71600CC4111 /* MLDSP.cpp */,
+				B5FCE22B124BF71600CC4111 /* MLDSP.h */,
+				B5FCE22C124BF71600CC4111 /* MLDSPContext.cpp */,
+				B5FCE22D124BF71600CC4111 /* MLDSPContext.h */,
+				B5FCE22E124BF71600CC4111 /* MLDSPEngine.cpp */,
+				B5FCE22F124BF71600CC4111 /* MLDSPEngine.h */,
+				B5FCE230124BF71600CC4111 /* MLMultProxy.cpp */,
+				B5FCE231124BF71600CC4111 /* MLMultProxy.h */,
+				B5FCE232124BF71600CC4111 /* MLParameter.cpp */,
+				B5FCE233124BF71600CC4111 /* MLParameter.h */,
+				B5FCE234124BF71600CC4111 /* MLChangeList.cpp */,
+				B5FCE235124BF71600CC4111 /* MLChangeList.h */,
+				B5FCE236124BF71600CC4111 /* MLPipe.cpp */,
+				B5FCE237124BF71600CC4111 /* MLPipe.h */,
+				B5FCE238124BF71600CC4111 /* MLProc.cpp */,
+				B5FCE239124BF71600CC4111 /* MLProc.h */,
+				B5FCE23A124BF71600CC4111 /* MLProcAaltoDelay.cpp */,
+				B5FCE23B124BF71600CC4111 /* MLProcAaltoFilter.cpp */,
+				B5FCE23C124BF71600CC4111 /* MLProcAbs.cpp */,
+				B5FCE23D124BF71600CC4111 /* MLProcAdd.cpp */,
+				B5FCE23E124BF71600CC4111 /* MLProcAllpass.cpp */,
+				B5FCE23F124BF71600CC4111 /* MLProcBiquad.cpp */,
+				B5FCE240124BF71600CC4111 /* MLProcClamp.cpp */,
+				B5FCE241124BF71600CC4111 /* MLProcClampSignal.cpp */,
+				B5FCE242124BF71600CC4111 /* MLProcContainer.cpp */,
+				B5FCE243124BF71600CC4111 /* MLProcContainer.h */,
+				B5FCE244124BF71600CC4111 /* MLProcCubicDistort.cpp */,
+				B5FCE245124BF71600CC4111 /* MLProcDCBlocker.cpp */,
+				B5FCE246124BF71600CC4111 /* MLProcDebug.cpp */,
+				B5FCE247124BF71600CC4111 /* MLProcDelay.cpp */,
+				B5FCE248124BF71600CC4111 /* MLProcDelayInput.cpp */,
+				B5FCE249124BF71600CC4111 /* MLProcDelayInput.h */,
+				B5FCE24A124BF71600CC4111 /* MLProcDelayOutput.cpp */,
+				B5FCE24B124BF71600CC4111 /* MLProcDivide.cpp */,
+				B5FCE24C124BF71600CC4111 /* MLProcDownsample.cpp */,
+				B5FCE24D124BF71600CC4111 /* MLProcDxDt.cpp */,
+				B5FCE24E124BF71600CC4111 /* MLProcEnvelope.cpp */,
+				B5FCE24F124BF71600CC4111 /* MLProcExp2.cpp */,
+				B5FCE250124BF71600CC4111 /* MLProcFade.cpp */,
+				B5FCE251124BF71600CC4111 /* MLProcFadeBipolar.cpp */,
+				B5FCE252124BF71600CC4111 /* MLProcFMBandwidth.cpp */,
+				B5FCE253124BF71600CC4111 /* MLProcGlide.cpp */,
+				B5FCE254124BF71600CC4111 /* MLProcLopassGate.cpp */,
+				B5FCE255124BF71600CC4111 /* MLProcMatrix.cpp */,
+				B5FCE256124BF71600CC4111 /* MLProcMatrix.h */,
+				B5FCE257124BF71600CC4111 /* MLProcMIDIToSignals.cpp */,
+				B5FCE258124BF71600CC4111 /* MLProcMIDIToSignals.h */,
+				B5FCE259124BF71600CC4111 /* MLProcMultiple.cpp */,
+				B5FCE25A124BF71600CC4111 /* MLProcMultiple.h */,
+				B5FCE25B124BF71600CC4111 /* MLProcMultiply.cpp */,
+				B5FCE25C124BF71600CC4111 /* MLProcMultiplyAdd.cpp */,
+				B5FCE25D124BF71600CC4111 /* MLProcNoise.cpp */,
+				B5FCE25E124BF71600CC4111 /* MLProcOnepole.cpp */,
+				B5FCE25F124BF71600CC4111 /* MLProcOneVectorDelay.cpp */,
+				B5FCE260124BF71600CC4111 /* MLProcPan.cpp */,
+				B5FCE261124BF71600CC4111 /* MLProcParamToSignal.cpp */,
+				B5FCE262124BF71600CC4111 /* MLProcPeak.cpp */,
+				B5FCE263124BF71600CC4111 /* MLProcPhasor.cpp */,
+				B5FCE264124BF71600CC4111 /* MLProcPow.cpp */,
+				B5FCE265124BF71600CC4111 /* MLProcQuantize.cpp */,
+				B5FCE266124BF71600CC4111 /* MLProcRingBuffer.cpp */,
+				B5FCE267124BF71600CC4111 /* MLProcRingBuffer.h */,
+				B5FCE268124BF71600CC4111 /* MLProcRMS.cpp */,
+				B5FCE269124BF71600CC4111 /* MLProcRMS.h */,
+				B5FCE26A124BF71600CC4111 /* MLProcSampleRate.cpp */,
+				B5FCE26B124BF71600CC4111 /* MLProcScope.cpp */,
+				B5FCE26C124BF71600CC4111 /* MLProcScope.h */,
+				B5FCE26D124BF71600CC4111 /* MLProcSineOsc.cpp */,
+				B5FCE26E124BF71600CC4111 /* MLProcSquareShaper.cpp */,
+				B5FCE26F124BF71600CC4111 /* MLProcStepSequencer.cpp */,
+				B5FCE270124BF71600CC4111 /* MLProcSubtract.cpp */,
+				B5FCE271124BF71600CC4111 /* MLProcSum.cpp */,
+				B5FCE272124BF71600CC4111 /* MLProcSVF.cpp */,
+				B5FCE273124BF71600CC4111 /* MLProcThru.cpp */,
+				B5FCE274124BF71600CC4111 /* MLProcUpsample.cpp */,
+				B5FCE275124BF71600CC4111 /* MLProcVactrol.cpp */,
+				B5FCE276124BF71600CC4111 /* MLProcWarp.cpp */,
+				B5FCE277124BF71600CC4111 /* MLProcWarp.h */,
+				B5FCE278124BF71600CC4111 /* MLRatio.cpp */,
+				B5FCE279124BF71600CC4111 /* MLRatio.h */,
+				B5FCE27A124BF71600CC4111 /* MLSignal.cpp */,
+				B5FCE27B124BF71600CC4111 /* MLSignal.h */,
+				B5FCE27C124BF71600CC4111 /* MLSymbol.cpp */,
+				B5FCE27D124BF71600CC4111 /* MLSymbol.h */,
+				B5FCE280124BF71600CC4111 /* MLSymbolMap.h */,
+				B5FCE27E124BF71600CC4111 /* MLPath.h */,
+				B5FCE27F124BF71600CC4111 /* MLPath.cpp */,
+			);
+			name = DSP;
+			path = ../DSP;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8DD76F620486A84900D96B5E /* MadronaLibTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1DEB923108733DC60010E9CD /* Build configuration list for PBXNativeTarget "MadronaLibTests" */;
+			buildPhases = (
+				8DD76F640486A84900D96B5E /* Sources */,
+				8DD76F660486A84900D96B5E /* Frameworks */,
+				8DD76F690486A84900D96B5E /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MadronaLibTests;
+			productInstallPath = "$(HOME)/bin";
+			productName = MadronaLibTests;
+			productReference = 8DD76F6C0486A84900D96B5E /* MadronaLibTests */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		08FB7793FE84155DC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			buildConfigurationList = 1DEB923508733DC60010E9CD /* Build configuration list for PBXProject "MadronaLibTests" */;
+			compatibilityVersion = "Xcode 3.1";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 08FB7794FE84155DC02AAC07 /* MadronaLibTests */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8DD76F620486A84900D96B5E /* MadronaLibTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		8DD76F640486A84900D96B5E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8DD76F650486A84900D96B5E /* main.cpp in Sources */,
+				B5FCE2B0124BF71900CC4111 /* pa_ringbuffer.cpp in Sources */,
+				B5FCE2B1124BF71900CC4111 /* MLDSP.cpp in Sources */,
+				B5FCE2B2124BF71900CC4111 /* MLDSPContext.cpp in Sources */,
+				B5FCE2B3124BF71900CC4111 /* MLDSPEngine.cpp in Sources */,
+				B5FCE2B4124BF71900CC4111 /* MLMultProxy.cpp in Sources */,
+				B5FCE2B5124BF71900CC4111 /* MLParameter.cpp in Sources */,
+				B5FCE2B6124BF71900CC4111 /* MLChangeList.cpp in Sources */,
+				B5FCE2B7124BF71900CC4111 /* MLPipe.cpp in Sources */,
+				B5FCE2B8124BF71900CC4111 /* MLProc.cpp in Sources */,
+				B5FCE2B9124BF71900CC4111 /* MLProcAaltoDelay.cpp in Sources */,
+				B5FCE2BA124BF71900CC4111 /* MLProcAaltoFilter.cpp in Sources */,
+				B5FCE2BB124BF71900CC4111 /* MLProcAbs.cpp in Sources */,
+				B5FCE2BC124BF71900CC4111 /* MLProcAdd.cpp in Sources */,
+				B5FCE2BD124BF71900CC4111 /* MLProcAllpass.cpp in Sources */,
+				B5FCE2BE124BF71900CC4111 /* MLProcBiquad.cpp in Sources */,
+				B5FCE2BF124BF71900CC4111 /* MLProcClamp.cpp in Sources */,
+				B5FCE2C0124BF71900CC4111 /* MLProcClampSignal.cpp in Sources */,
+				B5FCE2C1124BF71900CC4111 /* MLProcContainer.cpp in Sources */,
+				B5FCE2C2124BF71900CC4111 /* MLProcCubicDistort.cpp in Sources */,
+				B5FCE2C3124BF71900CC4111 /* MLProcDCBlocker.cpp in Sources */,
+				B5FCE2C4124BF71900CC4111 /* MLProcDebug.cpp in Sources */,
+				B5FCE2C5124BF71900CC4111 /* MLProcDelay.cpp in Sources */,
+				B5FCE2C6124BF71900CC4111 /* MLProcDelayInput.cpp in Sources */,
+				B5FCE2C7124BF71900CC4111 /* MLProcDelayOutput.cpp in Sources */,
+				B5FCE2C8124BF71900CC4111 /* MLProcDivide.cpp in Sources */,
+				B5FCE2C9124BF71900CC4111 /* MLProcDownsample.cpp in Sources */,
+				B5FCE2CA124BF71900CC4111 /* MLProcDxDt.cpp in Sources */,
+				B5FCE2CB124BF71900CC4111 /* MLProcEnvelope.cpp in Sources */,
+				B5FCE2CC124BF71900CC4111 /* MLProcExp2.cpp in Sources */,
+				B5FCE2CD124BF71900CC4111 /* MLProcFade.cpp in Sources */,
+				B5FCE2CE124BF71900CC4111 /* MLProcFadeBipolar.cpp in Sources */,
+				B5FCE2CF124BF71900CC4111 /* MLProcFMBandwidth.cpp in Sources */,
+				B5FCE2D0124BF71900CC4111 /* MLProcGlide.cpp in Sources */,
+				B5FCE2D1124BF71900CC4111 /* MLProcLopassGate.cpp in Sources */,
+				B5FCE2D2124BF71900CC4111 /* MLProcMatrix.cpp in Sources */,
+				B5FCE2D3124BF71900CC4111 /* MLProcMIDIToSignals.cpp in Sources */,
+				B5FCE2D4124BF71900CC4111 /* MLProcMultiple.cpp in Sources */,
+				B5FCE2D5124BF71900CC4111 /* MLProcMultiply.cpp in Sources */,
+				B5FCE2D6124BF71900CC4111 /* MLProcMultiplyAdd.cpp in Sources */,
+				B5FCE2D7124BF71900CC4111 /* MLProcNoise.cpp in Sources */,
+				B5FCE2D8124BF71900CC4111 /* MLProcOnepole.cpp in Sources */,
+				B5FCE2D9124BF71900CC4111 /* MLProcOneVectorDelay.cpp in Sources */,
+				B5FCE2DA124BF71900CC4111 /* MLProcPan.cpp in Sources */,
+				B5FCE2DB124BF71900CC4111 /* MLProcParamToSignal.cpp in Sources */,
+				B5FCE2DC124BF71900CC4111 /* MLProcPeak.cpp in Sources */,
+				B5FCE2DD124BF71900CC4111 /* MLProcPhasor.cpp in Sources */,
+				B5FCE2DE124BF71900CC4111 /* MLProcPow.cpp in Sources */,
+				B5FCE2DF124BF71900CC4111 /* MLProcQuantize.cpp in Sources */,
+				B5FCE2E0124BF71900CC4111 /* MLProcRingBuffer.cpp in Sources */,
+				B5FCE2E1124BF71900CC4111 /* MLProcRMS.cpp in Sources */,
+				B5FCE2E2124BF71900CC4111 /* MLProcSampleRate.cpp in Sources */,
+				B5FCE2E3124BF71900CC4111 /* MLProcScope.cpp in Sources */,
+				B5FCE2E4124BF71900CC4111 /* MLProcSineOsc.cpp in Sources */,
+				B5FCE2E5124BF71900CC4111 /* MLProcSquareShaper.cpp in Sources */,
+				B5FCE2E6124BF71900CC4111 /* MLProcStepSequencer.cpp in Sources */,
+				B5FCE2E7124BF71900CC4111 /* MLProcSubtract.cpp in Sources */,
+				B5FCE2E8124BF71900CC4111 /* MLProcSum.cpp in Sources */,
+				B5FCE2E9124BF71900CC4111 /* MLProcSVF.cpp in Sources */,
+				B5FCE2EA124BF71900CC4111 /* MLProcThru.cpp in Sources */,
+				B5FCE2EB124BF71900CC4111 /* MLProcUpsample.cpp in Sources */,
+				B5FCE2EC124BF71900CC4111 /* MLProcVactrol.cpp in Sources */,
+				B5FCE2ED124BF71900CC4111 /* MLProcWarp.cpp in Sources */,
+				B5FCE2EE124BF71900CC4111 /* MLRatio.cpp in Sources */,
+				B5FCE2EF124BF71900CC4111 /* MLSignal.cpp in Sources */,
+				B5FCE2F0124BF71900CC4111 /* MLSymbol.cpp in Sources */,
+				B5FCE2F1124BF71900CC4111 /* MLPath.cpp in Sources */,
+				B5A2F814124C2D46000CE4CD /* JuceLibraryCode1.mm in Sources */,
+				B5A2F815124C2D46000CE4CD /* JuceLibraryCode2.mm in Sources */,
+				B5A2F816124C2D46000CE4CD /* JuceLibraryCode3.mm in Sources */,
+				B5A2F817124C2D46000CE4CD /* JuceLibraryCode4.mm in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB923208733DC60010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				COPY_PHASE_STRIP = NO;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"_GLIBCXX_DEBUG=1",
+					"_GLIBCXX_DEBUG_PEDANTIC=1",
+				);
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = MadronaLibTests;
+				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
+			};
+			name = Debug;
+		};
+		1DEB923308733DC60010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_MODEL_TUNING = G5;
+				INSTALL_PATH = /usr/local/bin;
+				PRODUCT_NAME = MadronaLibTests;
+				STANDARD_C_PLUS_PLUS_LIBRARY_TYPE = static;
+			};
+			name = Release;
+		};
+		1DEB923608733DC60010E9CD /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					$ML_DSP_PATH,
+					$JUCE_PATH,
+				);
+				JUCE_PATH = /Users/rej/Dev/juce;
+				ML_DSP_PATH = /Users/rej/Dev/MadronaLib/DSP;
+				ONLY_ACTIVE_ARCH = YES;
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+				USER_HEADER_SEARCH_PATHS = $JUCE_PATH;
+			};
+			name = Debug;
+		};
+		1DEB923708733DC60010E9CD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = YES;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				GCC_C_LANGUAGE_STANDARD = c99;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					$ML_DSP_PATH,
+					$JUCE_PATH,
+				);
+				JUCE_PATH = /Users/rej/Dev/juce;
+				ML_DSP_PATH = /Users/rej/Dev/MadronaLib/DSP;
+				PREBINDING = NO;
+				SDKROOT = macosx10.5;
+				USER_HEADER_SEARCH_PATHS = $JUCE_PATH;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB923108733DC60010E9CD /* Build configuration list for PBXNativeTarget "MadronaLibTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB923208733DC60010E9CD /* Debug */,
+				1DEB923308733DC60010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1DEB923508733DC60010E9CD /* Build configuration list for PBXProject "MadronaLibTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB923608733DC60010E9CD /* Debug */,
+				1DEB923708733DC60010E9CD /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 08FB7793FE84155DC02AAC07 /* Project object */;
+}

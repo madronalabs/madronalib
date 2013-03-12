@@ -1,0 +1,1501 @@
+
+// MadronaLib: a C++ framework for DSP applications.
+// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+#include "MLPluginProcessor.h"
+
+MLPluginProcessor::MLPluginProcessor() : 
+	mpPatcherUI(0),	
+	MLListener(0),
+	mEditorNumbersOn(true),
+	mEditorAnimationsOn(true)
+{
+	mHasParametersSet = false;
+	mNumParameters = 0;
+	lastPosInfo.resetToDefault();
+
+	setCurrentPresetName("");	
+	setCurrentPresetDir("");	
+
+	// get data folder locations
+	mFactoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
+	mUserPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
+	mScalesFolder = getDefaultFileLocation(kScaleFiles);
+	if ((mFactoryPresetsFolder == File::nonexistent) ||
+		(mUserPresetsFolder == File::nonexistent) ||
+		(mScalesFolder == File::nonexistent))
+	{
+		debug() << "MLPluginProcessor: couldn't get data files!\n";
+	}
+	else
+	{
+		mFileLocationsOK = true;
+	}	
+	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
+
+//	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
+//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
+//	debug() << "processor scales: " << mScalesFolder.getFullPathName() << "\n";
+}
+
+MLPluginProcessor::~MLPluginProcessor()
+{
+//	debug() << "deleting MLPluginProcessor.\n";
+}
+
+void MLPluginProcessor::loadPluginDescription(const char* desc)
+{
+	mpPluginDoc = new XmlDocument(String(desc));
+	
+	if (mpPluginDoc.get())
+	{
+		ScopedPointer<XmlElement> doc (mpPluginDoc->getDocumentElement(true));
+		if (doc)	// true = quick scan header
+		{
+			mEngine.scanDoc(&*mpPluginDoc, &mNumParameters);
+			//debug() << "loaded " << JucePlugin_Name << " plugin description, " << mNumParameters << " parameters.\n";	
+		}
+		else
+		{
+			MLError() << "MLPluginProcessor: error loading plugin description!\n";
+		}   
+	}
+	else
+	{
+		MLError() << "MLPluginProcessor: couldn't load plugin description!\n";
+	}
+}
+
+// --------------------------------------------------------------------------------
+// editor creation function to be defined in (YourPluginEditor).cpp
+//
+extern MLPluginEditor* CreateMLPluginEditor (MLPluginProcessor* const ownerProcessor, const MLRect& bounds, bool num, bool anim);
+
+AudioProcessorEditor* MLPluginProcessor::createEditor()
+{
+	// creation function defined to return the plugin's flavor of plugin editor
+    MLPluginEditor* r = CreateMLPluginEditor(this, mEditorRect, mEditorNumbersOn, mEditorAnimationsOn);	
+	
+	return r;
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark initialize and cleanup
+//
+
+MLProc::err MLPluginProcessor::preflight()
+{
+	MLProc::err e = MLProc::OK;
+	if (!SystemStats::hasSSE2())
+		e = MLProc::SSE2RequiredErr;
+	return e;
+}
+
+void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
+{
+	MLProc::err prepareErr;
+	MLProc::err r = preflight();
+	
+	if (!mpPluginDoc.get()) return;
+	
+	if (r == MLProc::OK)
+	{
+		// get the Juce process lock  // TODO ???
+		const ScopedLock sl (getCallbackLock());
+
+		unsigned inChans = getNumInputChannels();
+		unsigned outChans = getNumOutputChannels();
+		mEngine.setInputChannels(inChans);
+		mEngine.setOutputChannels(outChans);
+
+		unsigned bufSize = 0;
+		unsigned vecSize = 0;
+
+		// choose new buffer size and vector size.
+		{
+			// bufSize is the smallest power of two greater than maxFramesPerBlock.
+			int maxFramesBits = bitsToContain(maxFramesPerBlock);
+			bufSize = 1 << maxFramesBits;
+			
+			// vector size is desired processing block size, set this to default size of signal.
+			vecSize = min((int)bufSize, (int)kMLDefaultSignalSize);
+		}	
+		
+		// dsp engine has one vecSize of latency in order to run constant block size.
+		setLatencySamples(vecSize);
+		
+		debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";	
+		
+		// build: turn XML description into graph of processors
+		if (mEngine.getGraphStatus() != MLProc::OK)
+		{
+			bool makeSignalInputs = inChans > 0;
+			// debug() << "building MLPluginProcessor graph... \n";
+			
+			r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI()); 
+			//debug() << getNumParameters() << " parameters in description.\n";
+		}
+		else
+		{
+			//debug() << "MLPluginProcessor graph OK.\n";
+		}
+
+		theSymbolTable().audit();
+		//theSymbolTable().dump();
+
+		// compile: schedule graph of processors , setup connections, allocate buffers
+		if (mEngine.getCompileStatus() != MLProc::OK)
+		{
+			//debug() << "MLPluginProcessor: compiling... \n";
+			mEngine.compileEngine();
+		}
+		else
+		{
+			//debug() << "compile OK.\n";
+		}
+
+		// prepare to play: resize and clear processors
+		prepareErr = mEngine.prepareToPlay(sr, bufSize, vecSize);
+		if (prepareErr != MLProc::OK)
+		{
+			debug() << "MLPluginProcessor: prepareToPlay error: \n";
+		}
+		
+		// mEngine.dump(); 
+			
+		// after prepare to play, set state from saved blob if one exists
+		const unsigned blobSize = mSavedParamBlob.getSize();
+		if (blobSize > 0)
+		{
+			setStateFromBlob (mSavedParamBlob.getData(), blobSize);
+			mSavedParamBlob.setSize(0);
+		}
+		else 
+		{
+			mEngine.clear();
+			if (!mHasParametersSet)
+			{
+				loadDefaultPreset();
+			}
+		}		
+		
+		mEngine.setEnabled(prepareErr == MLProc::OK);
+	}
+}
+
+void MLPluginProcessor::reset()
+{
+	const ScopedLock sl (getCallbackLock());
+	mEngine.clear();
+}
+
+void MLPluginProcessor::releaseResources()
+{
+    // When playback stops, you can use this as an opportunity to free up any
+    // spare memory, etc.
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark process
+//
+
+void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
+{
+	MidiBuffer::Iterator i (midiMessages);
+    juce::MidiMessage message (0xf4, 0.0);
+    int time;
+		
+	mEngine.clearMIDI();
+    while (i.getNextEvent(message, time)) 
+	{
+		if (message.isNoteOn())
+		{
+			int note = message.getNoteNumber();
+			int vel = message.getVelocity();
+			mEngine.addNoteOn(note, vel, time);
+		}		
+		else if(message.isNoteOff())
+		{
+			int note = message.getNoteNumber();
+			int vel = message.getVelocity();
+			mEngine.addNoteOff(note, vel, time);
+		}		
+		else if (message.isController())
+		{
+//debug() << "controller!\n";
+			int controller = message.getControllerNumber();
+			int value = message.getControllerValue();
+			mEngine.setController(controller, value, time);
+		}
+		else if (message.isAftertouch())
+		{
+			int note = message.getNoteNumber();
+			int value = message.getAfterTouchValue();
+//debug() << "aftertouch " << value << ", note " << note << "\n";
+			mEngine.setAfterTouch(note, value, time);
+		}
+		else if (message.isChannelPressure())
+		{
+			int value = message.getChannelPressureValue();
+debug() << "pressure " << value << "\n";
+			mEngine.setChannelAfterTouch(value, time);
+		}
+		else if (message.isPitchWheel())
+		{			
+			int value = message.getPitchWheelValue();
+			//debug() << "pitch bend " << value << ", " << time << "\n";
+			mEngine.setPitchWheel(value, time);
+		}
+		else if (message.isSustainPedalOn())
+		{			
+		debug() << "sustain ON\n";
+			mEngine.setSustainPedal(1, time);
+		}
+		else if (message.isSustainPedalOff())
+		{
+		debug() << "sustain OFF\n";
+			mEngine.setSustainPedal(0, time);
+		}
+		else if (message.isProgramChange())
+		{
+			int pgm = message.getProgramChangeNumber();
+			debug() << "program change " << pgm << "\n";
+			if(pgm == kMLPluginMIDIPrograms)	
+			{
+				// load most recent saved program
+				returnToLatestStateLoaded();
+			}
+			else
+			{		
+				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
+				setStateFromMIDIProgram(pgm);
+			}
+		}
+	}
+}
+
+void MLPluginProcessor::setCollectStats(bool k)
+{
+	mEngine.setCollectStats(k);
+}
+
+
+void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+{
+	if (mEngine.isEnabled())
+	{
+		unsigned samples = buffer.getNumSamples();
+		
+		// get current time from host.
+		// should refer to the start of the current block.
+		AudioPlayHead::CurrentPositionInfo newTime;
+		if (getPlayHead() != 0 && getPlayHead()->getCurrentPosition (newTime))
+		{
+			lastPosInfo = newTime;
+		}
+		else
+		{
+			lastPosInfo.resetToDefault();
+		}
+
+		// set host phasor 
+		double bpm = lastPosInfo.isPlaying ? lastPosInfo.bpm : 0.;
+		double ppqPosition = lastPosInfo.ppqPosition;
+		double secsPosition = lastPosInfo.timeInSeconds;
+		int64 samplesPosition = lastPosInfo.timeInSamples;
+		bool isPlaying = lastPosInfo.isPlaying;
+		
+		// TEST
+		if(0)
+		if(lastPosInfo.isPlaying)
+		{
+			debug() << "bpm:" << lastPosInfo.bpm 
+			<< " ppq:" << std::setprecision(5) << ppqPosition << std::setprecision(2) 
+			<< " secs:" << secsPosition << "\n";
+		}
+			
+		// set Engine I/O.  done here because JUCE may change pointers on us.  possibly.
+		MLDSPEngine::IOPtrs pIn = {{0}};
+		MLDSPEngine::IOPtrs pOut = {{0}};
+		for (int i=0; i<getNumInputChannels(); ++i)
+		{
+			pIn.channel[i] = buffer.getSampleData(i);	
+		}		
+		for (int i=0; i<getNumOutputChannels(); ++i)
+		{
+			pOut.channel[i] = buffer.getSampleData(i);	
+		}
+		mEngine.setIOPtrs(&pIn, &pOut);
+				
+		if(acceptsMidi()) processMIDI(midiMessages);
+		
+		// do everything
+		mEngine.processBlock(samples, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+		
+		// must clear the MIDI buffer otherwise messages will be passed back to the host
+		if(acceptsMidi()) midiMessages.clear();	
+	}
+	else
+	{
+		buffer.clear();
+	}
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark parameters
+//
+
+int MLPluginProcessor::getNumParameters()
+{
+	return mNumParameters;
+}
+
+int MLPluginProcessor::getParameterIndex (const MLSymbol name)
+{
+ 	return mEngine.getParamIndex(name);
+}
+
+float MLPluginProcessor::getParameter (int index)
+{
+  	if (index < 0) return(0);
+	return mEngine.getParamByIndex(index);
+}
+
+// called by the host wrapper.
+//
+void MLPluginProcessor::setParameter (int index, float newValue)
+{
+	if (index < 0) return;	
+
+	mEngine.setPublishedParam(index, newValue);	
+	mHasParametersSet = true;
+	
+	// set MLModel Parameter 
+	MLSymbol paramName = getParameterAlias(index);
+	setModelParam(paramName, newValue);
+}
+
+float MLPluginProcessor::getParameterAsLinearProportion (int index)
+{
+	float r = 0;
+  	if (index < 0) return(0);
+	MLPublishedParamPtr p = mEngine.getParamPtr(index);
+	if(p)
+	{	
+		r = p->getValueAsLinearProportion();
+	}
+	return r;
+}
+
+void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValue)
+{
+	if (index < 0) return;	
+	MLPublishedParamPtr p = mEngine.getParamPtr(index);
+	if(p)
+	{
+		p->setValueAsLinearProportion(newValue);	
+		mEngine.setPublishedParam(index, p->getValue());	
+		mHasParametersSet = true;
+		
+		// set MLModel Parameter 
+		MLSymbol paramName = getParameterAlias(index);
+		float realVal = mEngine.getParamByIndex(index);
+		setModelParam(paramName, realVal);
+	}
+}
+
+void MLPluginProcessor::MLSetParameterNotifyingHost (const int parameterIndex, const float newValue)
+{
+	// set in actual units
+    setParameter (parameterIndex, newValue);
+	
+	// convert to host units for VST	
+	float wrapperValue = newValue;
+	if (mWrapperFormat == MLPluginFormats::eVSTPlugin)
+	{
+		MLPublishedParamPtr p = mEngine.getParamPtr(parameterIndex);
+		if(p)
+		{	
+			wrapperValue = p->getValueAsLinearProportion();
+		}
+	}
+	
+//debug() << "MLSetParameterNotifyingHost : " << newValue << " wrapper: " << wrapperValue << "\n";
+	
+	// send to wrapper in host units
+    sendParamChangeMessageToListeners (parameterIndex, wrapperValue);
+}
+
+float MLPluginProcessor::getParameterMin (int index)
+{
+	if (index < 0) return(0);
+	return mEngine.getParamPtr(index)->getRangeLo();
+}
+
+float MLPluginProcessor::getParameterMax (int index)
+{
+	if (index < 0) return(0);
+	return mEngine.getParamPtr(index)->getRangeHi();
+}
+
+const String MLPluginProcessor::getParameterName (int index)
+{
+	MLSymbol nameSym;
+	const int p = mEngine.getPublishedParams(); 
+	if (index < mNumParameters)
+	{
+		if (p == 0) // doc has been scanned but not built
+		{
+			nameSym = MLSymbol("param").withFinalNumber(index);
+		}
+		else
+		{
+			// graph has been built
+			nameSym = mEngine.getParamPtr(index)->getAlias();	
+	//debug() << "getParameterName: " << index << " is " << nameSym.getString().c_str() << ".\n";
+		}
+	}
+ 	return (String(nameSym.getString().c_str()));
+}
+
+const String MLPluginProcessor::symbolToXMLAttr(const MLSymbol sym)
+{
+	std::string nameCopy = sym.getString();
+	
+	unsigned len = nameCopy.length();
+	for(unsigned c = 0; c < len; ++c)
+	{
+		unsigned char k = nameCopy[c];
+		if(k == '#')
+		{
+			nameCopy[c] = ':';
+		}
+		else if(k == '*')
+		{
+			nameCopy[c] = 0xB7;
+		}
+	}
+ 	return (String(nameCopy.c_str()));
+
+}
+
+const MLSymbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
+{
+	std::string strCopy(str.toUTF8());
+	
+	unsigned len = strCopy.length();
+	for(unsigned c = 0; c < len; ++c)
+	{
+		unsigned char k = strCopy[c];
+		if(k == ':')
+		{
+			strCopy[c] = '#';
+		}
+		else if(k == 0xB7)
+		{
+			strCopy[c] = '*';
+		}
+	}
+ 	return (MLSymbol(strCopy.c_str()));
+}
+
+const MLSymbol MLPluginProcessor::getParameterAlias (int index)
+{
+ 	return mEngine.getParamPtr(index)->getAlias();
+}
+
+const MLParamValue MLPluginProcessor::getParameterDefault (int index)
+{
+ 	return mEngine.getParamPtr(index)->getDefault();
+}
+
+MLPublishedParamPtr MLPluginProcessor::getParameterPtr (int index)
+{
+ 	return mEngine.getParamPtr(index);
+}
+
+MLPublishedParamPtr MLPluginProcessor::getParameterPtr (MLSymbol sym)
+{
+ 	return mEngine.getParamPtr(mEngine.getParamIndex(sym));
+}
+
+const String MLPluginProcessor::getParameterText (int index)
+{
+	// get -inf and indexed values here?
+	float val = mEngine.getParamByIndex(index);
+    return String (val, 2);
+}
+
+const std::string& MLPluginProcessor::getParameterGroupName (int index)
+{
+	return mEngine.getParamGroupName(index);
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark patcher TO REMOVE
+//
+
+MLProcList& MLPluginProcessor::getPatcherList()
+{
+ 	return mEngine.getPatcherList();
+}
+
+// patcher UI response TEMP
+
+
+void MLPluginProcessor::patcherClear (MLPatcher* )
+{
+	MLProcList& patchers = getPatcherList();
+	if(!patchers.empty())
+	{
+		MLProcListIterator p;
+		for (p = patchers.begin(); p != patchers.end(); p++)
+		{
+			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
+			patcher.clearConnections();
+		}
+		
+		MLProcMatrix& patcher1 = static_cast<MLProcMatrix&>(**patchers.begin());
+		patcher1.getConnectionData(&mMatrixData);
+	}
+}
+
+void MLPluginProcessor::patcherAddPatchCord (MLPatcher* , int inIdx, int outIdx)
+{	
+	MLProcList& patchers = getPatcherList();
+	if(!patchers.empty())
+	{
+		MLProcListIterator p;
+		for (p = patchers.begin(); p != patchers.end(); p++)
+		{
+			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
+			patcher.connect(inIdx, outIdx);
+		}
+		
+		MLProcMatrix& patcher1 = static_cast<MLProcMatrix&>(**patchers.begin());
+		patcher1.getConnectionData(&mMatrixData);
+	}
+}
+
+void MLPluginProcessor::patcherRemovePatchCord (MLPatcher* , int inIdx, int outIdx)
+{
+	MLProcList& patchers = getPatcherList();
+	if(!patchers.empty())
+	{
+		MLProcListIterator p;
+		for (p = patchers.begin(); p != patchers.end(); p++)
+		{
+			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
+			patcher.disconnect(inIdx, outIdx);
+		}
+		
+		MLProcMatrix& patcher1 = static_cast<MLProcMatrix&>(**patchers.begin());
+		patcher1.getConnectionData(&mMatrixData);
+	}
+}
+
+// TODO this will go away when patcher connections are parameters
+void MLPluginProcessor::pushPatcherData ()
+{
+	// broadcast data from first patcher in list, assuming they are all the same.
+	MLProcList patchers = getPatcherList();
+	int numPatchers = patchers.size();
+	if(!numPatchers) return;
+	MLProcPtr firstProc = *patchers.begin();
+	MLProcMatrix* pMatrix = static_cast<MLProcMatrix*>(&(*firstProc));
+	pMatrix->getConnectionData(&mMatrixData);
+	if (mpPatcherUI)
+	{			
+		mpPatcherUI->clear(); 
+		
+		for(unsigned n=0; n < mMatrixData.size; ++n)
+		{
+			unsigned char a = mMatrixData.data[n*2];
+			unsigned char b = mMatrixData.data[n*2 + 1];
+			mpPatcherUI->addPatchCord(a, b);
+		}
+	}
+	
+	// broadcast that patcher changed.  TODO broadcast each patch cord change in an automatable way
+	setModelParam("patcher", MLRand());
+}
+
+
+
+// --------------------------------------------------------------------------------
+#pragma mark signals
+//
+
+// count the number of published copies of the signal matching alias.
+int MLPluginProcessor::countSignals(const MLSymbol alias)
+{
+	int numSignals = mEngine.countPublishedSignals(alias);
+	return numSignals;
+}
+
+// fill the output signal with samples from the named published signal list.
+// returns the number of samples read.
+unsigned MLPluginProcessor::readSignal(const MLSymbol alias, MLSignal& outSig)
+{
+	unsigned samples = mEngine.readPublishedSignal(alias, outSig);
+	return samples;
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark state
+
+void MLPluginProcessor::getStateAsXML (XmlElement& xml)
+{
+	if( !(mEngine.getCompileStatus() == MLProc::OK)) return;
+	
+#if DEMO	
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
+    xml.setAttribute ("presetName", String("----"));	
+#else
+
+  	const unsigned numParams = getNumParameters();
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
+    xml.setAttribute ("presetName", mCurrentPresetName);	
+    xml.setAttribute ("presetDir", mCurrentPresetDir);	
+    xml.setAttribute ("scaleName", mCurrentScaleName);
+    xml.setAttribute ("scaleDir", mCurrentScaleDir);
+	// debug() << "saving with scale " << mCurrentScaleDir << "/" << mCurrentScaleName << "\n";
+	
+	// store parameter values to xml as a bunch of attributes.  
+	// not XML best practice in general but takes fewer characters.
+	for(unsigned i=0; i<numParams; ++i)
+	{
+		const String paramName = symbolToXMLAttr(getParameterAlias(i));
+		const float defaultVal = getParameterDefault(i);
+		const float paramVal = getParameter(i);
+		if (paramVal != defaultVal)
+		{
+			xml.setAttribute(paramName, paramVal);		
+//debug() << "setting XML param " << paramName << " to " << paramVal << "\n";
+		}
+	}
+
+	// store patcher info to xml
+	{			
+		MLProcList patchers = getPatcherList();
+		if (!patchers.empty())
+		{
+			MLProcMatrix& firstPatcher = static_cast<MLProcMatrix&>(**patchers.begin());
+			const unsigned inputs = firstPatcher.getNumInputs();
+			const unsigned outputs = firstPatcher.getNumOutputs();
+			String outStr;
+			String patcherInput = "patcher_input_";
+			
+			for(unsigned i=1; i<=inputs; ++i)
+			{
+				bool differentFromDefault = false;
+				outStr = "";
+				for(unsigned j=1; j<=outputs; ++j)
+				{
+					if (firstPatcher.getConnection(i, j))
+					{
+						outStr += "1";
+						differentFromDefault = true;
+					}
+					else
+					{
+						outStr += "0";
+					}
+				}
+				if(differentFromDefault)
+				{
+					String outNum (i); 
+					xml.setAttribute(patcherInput + outNum, outStr);	
+				}				
+			}
+		}
+	}	
+	
+	// store editor state to XML if one exists	
+	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
+	if(pEditor)
+	{
+		MLRect r = pEditor->getWindowBounds();
+
+		xml.setAttribute("editor_x", r.x());	
+		xml.setAttribute("editor_y", r.y());	
+		xml.setAttribute("editor_width", r.getWidth());	
+		xml.setAttribute("editor_height", r.getHeight());	
+		
+		xml.setAttribute("editor_num", getModelFloatParam("patch_num"));	
+		xml.setAttribute("editor_anim", getModelFloatParam("patch_anim"));	
+	}
+	
+	// save blob as most recently saved state
+	mpLatestStateLoaded = XmlElementPtr(new XmlElement(xml));
+	
+#endif
+
+}
+
+int MLPluginProcessor::saveStateAsVersion(const File& destDir)
+{
+	int version = 0;
+	std::string nameStr = getModelStringParam("preset_name");
+	std::string noVersionStr;
+	std::string versionStr;
+	int numberStart = 0;
+	int digits = 0;
+	
+	// get version number
+	int size = nameStr.size();
+	char c = nameStr[size - 1];
+	if(c == ']')
+	{
+		numberStart = size - 2;
+		while((numberStart > 0) && isdigit(nameStr[numberStart]))
+		{
+			numberStart--;
+			digits++;
+		}
+		numberStart++;
+		
+		noVersionStr = nameStr.substr(0, numberStart - 1);
+		versionStr = nameStr.substr(numberStart, digits);
+		version = atoi(versionStr.c_str());
+	}
+	else
+	{
+		noVersionStr = nameStr;
+		version = 0;
+	}
+	
+	version++;
+	version = clamp(version, 1, 9999);
+	char vBuf[16];
+	sprintf(vBuf, "[%d]", version);
+	nameStr = noVersionStr + vBuf;
+	
+	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
+	String shortName = saveFile.getFileNameWithoutExtension();
+	String ext = getExtensionForFormat(mWrapperFormat);
+	File saveWithExt = saveFile.getParentDirectory().getChildFile(shortName + ext);
+	
+	int r;
+	if(saveWithExt.exists())
+	{
+		setErrorMessage("Version " + shortName + " already exists!");
+		r = -1;
+	}
+	else
+	{
+		saveStateToFile(saveFile, mWrapperFormat);
+		r = 0;
+	}
+	return r;
+}
+
+int MLPluginProcessor::saveStateOverPrevious(const File& destDir)
+{
+	std::string nameStr = getModelStringParam("preset_name");	
+	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
+	saveStateToFile(saveFile, mWrapperFormat);
+	return 0;
+}
+
+void MLPluginProcessor::returnToLatestStateLoaded()
+{
+	if(mpLatestStateLoaded)
+	{
+		setStateFromXML(*mpLatestStateLoaded);
+	}
+	else
+	{
+		debug() << "MLPluginProcessor::returnToLatestStateLoaded: no saved state!\n";
+	}
+}
+
+void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
+{
+	if (!(xmlState.hasTagName (JucePlugin_Name))) return;
+	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // ? revisit need to compile first
+
+	// getCallbackLock() is in juce_AudioProcessor
+	// process lock is a quick fix.  it is here to prevent doParams() from getting called in 
+	// process() methods and thereby setting mParamsChanged to false before the real changes take place.
+	//
+	const ScopedLock sl (getCallbackLock()); 
+		
+	// only the differences between default parameters and the program state are saved in a program,
+	// so the first step is to set the default parameters. 
+	setDefaultParameters();
+	loadDefaultScale();
+	
+	// get program version of saved state
+	unsigned blobVersion = xmlState.getIntAttribute ("pluginVersion");
+	unsigned pluginVersion = JucePlugin_VersionCode;
+	
+	if (blobVersion > pluginVersion)
+	{
+		// TODO show error to user
+		MLError() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
+		return;
+	}
+	
+	// get name saved in blob.  when saving from AU host, name will also be set from RestoreState().
+	const String presetName = xmlState.getStringAttribute ("presetName");	
+	const String presetDir = xmlState.getStringAttribute ("presetDir");	
+	
+	/*
+	debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
+	MemoryOutputStream myStream;
+    xmlState->writeToStream (myStream, "");
+	debug() << myStream.toString();
+	*/
+	
+	setCurrentPresetName(presetName.toUTF8());
+	setCurrentPresetDir(presetDir.toUTF8());
+	
+	// try to load scale if a scale attribute exists
+	const String scaleName = xmlState.getStringAttribute ("scaleName");		
+	const String scaleDir = xmlState.getStringAttribute ("scaleDir");		
+	
+	if ((scaleName == String::empty) || (scaleName == "12-equal"))
+	{
+		setCurrentScaleName("12-equal");
+		loadDefaultScale();
+	}
+	else
+	{
+		File scale;
+
+//		scales = ("/Library/Audio/Presets/Madrona Labs/Scales/");
+		if (mScalesFolder.exists())
+		{
+			String scaleFileName = scaleDir + "/" + scaleName + ".scl";
+			scale = mScalesFolder.getChildFile(scaleFileName); 
+
+			if (scale.exists())
+			{
+				setCurrentScaleName(scaleName.toUTF8());
+				loadScale(scale);
+				mCurrentScaleDir = scaleDir;
+			}
+			else
+			{
+				MLError() << "MLPluginProcessor: scale " << scaleFileName << " not found!\n";
+			}
+		}
+		else
+		{
+			MLError() << "MLPluginProcessor: Scales directory not found!\n";
+		}
+	}
+	
+	// make translation tables based on program version. 
+	//
+	std::map<MLSymbol, MLSymbol> translationTable;
+	if (blobVersion <= 0x00010120)
+	{
+		// translate seq parameters
+		for(unsigned n=0; n<16; ++n)
+		{
+			std::stringstream pName;
+			std::stringstream pName2;
+			pName << "seq_value" << n;
+			pName2 << "seq_pulse" << n;
+			MLSymbol oldSym(pName.str());
+			MLSymbol newSym = MLSymbol("seq_value#").withFinalNumber(n);
+			MLSymbol oldSym2(pName2.str());
+			MLSymbol newSym2 = MLSymbol("seq_pulse#").withFinalNumber(n);
+			translationTable[oldSym] = newSym;
+			translationTable[oldSym2] = newSym2;	
+		}
+	}
+
+	if (blobVersion <= 0x00010200)
+	{
+		MLSymbol oldSym = MLSymbol("seq_value");
+		MLSymbol newSym = MLSymbol("seq_value").withFinalNumber(0);
+		MLSymbol oldSym2 = MLSymbol("seq_pulse");
+		MLSymbol newSym2 = MLSymbol("seq_pulse").withFinalNumber(0);
+		translationTable[oldSym] = newSym;
+		translationTable[oldSym2] = newSym2;	
+		// translate seq parameters
+		for(unsigned n=1; n<16; ++n)
+		{
+			oldSym = MLSymbol("seq_value#").withFinalNumber(n);
+			newSym = MLSymbol("seq_value").withFinalNumber(n);
+			oldSym2 = MLSymbol("seq_pulse#").withFinalNumber(n);
+			newSym2 = MLSymbol("seq_pulse").withFinalNumber(n);
+			translationTable[oldSym] = newSym;
+			translationTable[oldSym2] = newSym2;	
+		}		
+	}
+	
+	// set identity tables for patcher i/o
+
+	int patcherInTable[kMLPatcherMaxTableSize];
+	int patcherOutTable[kMLPatcherMaxTableSize];
+	for(int i=0; i<kMLPatcherMaxTableSize; ++i)
+	{
+		patcherInTable[i] = i;
+		patcherOutTable[i] = i;
+	}
+
+	//  set tables for new patcher inputs / outputs in 1.3
+	if (blobVersion < 0x00010300)
+	{
+		// inputs
+		int offset = 0;
+		for(int i=0; i<kMLPatcherMaxTableSize; ++i)
+		{
+			if(i == 6) { offset += 2; } // new key mod inputs
+			patcherInTable[i] = i + offset;
+		}
+		// outputs
+		offset = 0;
+		for(int i=0; i<kMLPatcherMaxTableSize; ++i)
+		{
+			if(i == 2) { offset += 1; } // seq steps
+			if(i == 3) { offset += 1; } // lfo level
+			if(i == 8) { offset += 2; } // env2 delay attack
+			patcherOutTable[i] = i + offset;
+		}
+	}
+	
+	// get params from xml
+	const unsigned numAttrs = xmlState.getNumAttributes();
+	String patcherInputStr ("patcher_input_");
+
+	for(unsigned i=0; i<numAttrs; ++i)
+	{
+		// get name / value pair.
+		const String& attrName = xmlState.getAttributeName(i);
+		const MLParamValue paramVal = xmlState.getDoubleAttribute(attrName);
+		
+		// if not a patcher input setting,
+		if (!attrName.contains(patcherInputStr))
+		{					
+			// see if we have this named parameter in our engine. 
+			MLSymbol paramSym = XMLAttrToSymbol(attrName);
+			const int pIdx = getParameterIndex(paramSym);
+
+//debug() << "<" << paramSym << " = " << paramVal << ">\n";
+			if (pIdx >= 0)
+			{
+				MLSetParameterNotifyingHost(pIdx, paramVal);
+			}
+			else // try finding a match through translation table. 
+			{
+	//debug() << "Looking for parameter " << paramSym << " in table...\n";
+				std::map<MLSymbol, MLSymbol>::iterator it;
+				it = translationTable.find(paramSym);
+				if (it != translationTable.end())
+				{
+					const MLSymbol newSym = translationTable[paramSym];
+					const int pNewIdx = getParameterIndex(newSym);
+					if (pNewIdx >= 0)
+					{
+	//debug() << "translated parameter to " << newSym << " .\n";
+						MLSetParameterNotifyingHost(pNewIdx, paramVal);
+					}
+					else
+					{
+						MLError() << "MLPluginProcessor::setStateFromXML: no such parameter! \n";
+					}
+				}
+				else
+				{
+					// fail silently on unfound params, because we have deprecated some but they may still 
+					// be around in old presets. 
+	//debug() << "MLPluginProcessor::setStateFromXML: parameter " << paramSym << " not found!\n";
+				}
+			}
+		}
+	}
+	
+	// get patcher connection info from xml to all patchers in list
+	MLProcList patchers = getPatcherList();
+//debug() << "MLPluginProcessor: setStateFromXML: " << patchers.size() << " patchers found.\n";
+	if (!patchers.empty())
+	{
+		MLProcListIterator p;
+		for (p = patchers.begin(); p != patchers.end(); p++)
+		{
+			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
+			patcher.clearConnections();
+			
+			const int inputs = patcher.getNumInputs();
+			const int outputs = patcher.getNumOutputs();
+			
+			for(int i=1; i<=inputs; ++i)
+			{
+				String inputNumStr(i);
+				String attrName = patcherInputStr + inputNumStr;
+				
+				String nullStr = "";
+				const String binaryStr = xmlState.getStringAttribute(attrName, nullStr);
+				const int len = binaryStr.length();
+				
+				if (len > 0)
+				{
+					int b = min(outputs, len);
+					for(int j=1; j<=b; ++j)
+					{
+						if (binaryStr[j-1] == '1')
+						{
+							patcher.connect(patcherInTable[i], patcherOutTable[j]);
+						}
+					}
+				}
+			}
+		}	
+	
+		pushPatcherData(); 
+	}
+	
+	// get editor state from XML
+	{
+		int x = xmlState.getIntAttribute("editor_x");
+		int y = xmlState.getIntAttribute("editor_y");
+		int width = xmlState.getIntAttribute("editor_width");
+		int height = xmlState.getIntAttribute("editor_height");
+		mEditorRect = MLRect(x, y, width, height);
+		mEditorNumbersOn = xmlState.getIntAttribute("editor_num", 1);
+		mEditorAnimationsOn = xmlState.getIntAttribute("editor_anim", 1);
+	}
+}
+
+void MLPluginProcessor::getStateAsText (String& destStr)
+{
+    // create an outer XML element.
+	ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
+	getStateAsXML(*xmlProgram);
+	
+	destStr = xmlProgram->createDocument (String::empty, true, false);
+}
+
+void MLPluginProcessor::setStateFromText (const String& stateStr)
+{
+	XmlDocument doc(stateStr);
+	XmlElementPtr xmlState (doc.getDocumentElement());
+	if (xmlState)
+	{
+		setStateFromXML(*xmlState);
+		mpLatestStateLoaded = xmlState;
+	}
+}
+
+void MLPluginProcessor::getStateInformation (MemoryBlock& destData)
+{
+    // create an outer XML element.
+    ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
+	getStateAsXML(*xmlProgram);
+    copyXmlToBinary (*xmlProgram, destData);
+}
+
+void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+	// if uninitialized, save blob for later.
+	if (mEngine.getCompileStatus() != MLProc::OK)
+	{
+		mSavedParamBlob.setSize(0);
+		mSavedParamBlob.append(data, sizeInBytes);
+	}
+	else
+	{
+		setStateFromBlob (data, sizeInBytes);
+	}
+}
+
+// save the current state to the native file for our plugin type.  
+//
+void MLPluginProcessor::saveStateToFile(File& saveFile, int format)
+{
+#if DEMO
+	String shortName = saveFile.getFileNameWithoutExtension();
+	debug() << "DEMO version. Saving is disabled.\n";
+#else
+
+	String shortName = saveFile.getFileNameWithoutExtension();
+	String dirName = saveFile.getParentDirectory().getFileNameWithoutExtension();
+	setCurrentPresetName(shortName.toUTF8());
+	setCurrentPresetDir(dirName.toUTF8());
+
+	String extension = getExtensionForFormat(format);
+		
+	// insure < 32 chars! (TODO needed if not AU?)
+	int maxlength = 32 - extension.length();
+	if (shortName.length() > maxlength)
+	{
+		shortName = shortName.substring(0, maxlength - 1);
+	}
+	
+	// TODO warn or ask or something if saveFile does not have the proper extension
+	
+	String newState;
+	switch(format)
+	{
+		case MLPluginFormats::eVSTPlugin:
+		case MLPluginFormats::eStandalone:
+			// get File with new name
+			saveFile = saveFile.getParentDirectory().getChildFile(shortName + extension);
+			
+			// create or save over file
+
+			getStateAsText(newState);
+			saveFile.replaceWithText(newState);
+		break;
+		case MLPluginFormats::eAUPlugin:
+			// tell AU wrapper to save, insuring extension is .aupreset
+			sendMessageToMLListener (MLAudioProcessorListener::kSave, saveFile.withFileExtension(extension));
+		break;
+		default:
+		break;
+	}
+	
+#endif
+}
+
+void MLPluginProcessor::loadStateFromFile(const File& loadFile)
+{
+	if (loadFile.exists())
+	{
+		String shortName = loadFile.getFileNameWithoutExtension();
+		String extension = loadFile.getFileExtension();
+		String dirName = loadFile.getParentDirectory().getFileNameWithoutExtension();
+		
+		debug() << "loading file: " << dirName << "/" << shortName << "\n";
+		
+		if (extension == ".mlpreset")
+		{
+			// load cross-platform mlpreset file.
+			ScopedPointer<XmlDocument> stateToLoad (new XmlDocument(loadFile));
+			if (stateToLoad != NULL)
+			{
+				XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
+				setStateFromXML(*pDocElem);
+				mpLatestStateLoaded = pDocElem;
+			}
+		}
+		else if (extension == ".aupreset")
+		{
+			// tell AU wrapper to load AU-compatible .aupreset file.
+			sendMessageToMLListener (MLAudioProcessorListener::kLoad, loadFile);				
+		}
+		
+		// override preset name in blob with saved file name.
+		setCurrentPresetName(shortName.toUTF8());
+		
+	}	
+}
+
+void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
+{
+	// debug() << "setStateFromBlob: " << sizeInBytes << "bytes of XML data.\n";
+	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
+	if (xmlState)
+	{
+		setStateFromXML(*xmlState);
+		mpLatestStateLoaded = xmlState;
+	}
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark MIDI programs
+
+void MLPluginProcessor::clearMIDIProgramFiles()
+{
+	mMIDIProgramFiles.clear();
+}
+
+void MLPluginProcessor::setMIDIProgramFile(int idx, File f)
+{
+	if(idx < kMLPluginMIDIPrograms)
+	{
+		mMIDIProgramFiles[idx] = f;
+	}
+}
+
+void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
+{
+	if(idx < kMLPluginMIDIPrograms)
+	{
+		if(mMIDIProgramFiles[idx].exists())
+		{
+			loadStateFromFile(mMIDIProgramFiles[idx]);
+		}
+	}
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark presets
+//
+
+const String MLPluginProcessor::getExtensionForFormat(int format)
+{
+	String ext;
+	switch(format)
+	{
+		case MLPluginFormats::eVSTPlugin:
+		case MLPluginFormats::eStandalone:
+			ext = ".mlpreset";
+		break;
+		case MLPluginFormats::eAUPlugin:
+			ext = ".aupreset";
+		break;
+		default:
+		break;
+	}
+	return ext;
+}
+
+const String& MLPluginProcessor::getCurrentPresetName()
+{ 
+	return mCurrentPresetName; 
+}
+
+const String& MLPluginProcessor::getCurrentPresetDir()
+{ 
+	return mCurrentPresetDir; 
+}
+
+void MLPluginProcessor::setCurrentPresetName(const char* name)
+{
+	mCurrentPresetName = name;	
+	setModelParam("preset_name", name);	
+}
+
+void MLPluginProcessor::setCurrentPresetDir(const char* name)
+{
+	mCurrentPresetDir = name;	
+	setModelParam("preset_dir", name);	
+}
+
+const String& MLPluginProcessor::getCurrentScaleName()
+{ 
+	return mCurrentScaleName; 
+}
+
+void MLPluginProcessor::setCurrentScaleName(const char* name)
+{
+	mCurrentScaleName = name;
+	setModelParam("scale_name", name);
+
+	/*
+	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
+	if(pEditor)
+	{
+		MLWidget* pW = pEditor->getWidget("key_scale");
+		if(pW)
+		{
+			pW->setStringAttribute("value", name);
+		}
+	}
+	*/
+}
+
+// set default value for each parameter.  needed before loading
+// patches, which are only required to store differences from these
+// default values.
+void MLPluginProcessor::setDefaultParameters()
+{
+	if (mEngine.getCompileStatus() == MLProc::OK)
+	{	
+		// set default for each parameter.
+		const unsigned numParams = getNumParameters();
+		for(unsigned i=0; i<numParams; ++i)
+		{
+			float defaultVal = getParameterDefault(i);
+			MLSetParameterNotifyingHost(i, defaultVal);
+		}
+	}
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark channels
+//
+
+const String MLPluginProcessor::getInputChannelName (const int channelIndex) const
+{
+    return String (channelIndex + 1);
+}
+
+const String MLPluginProcessor::getOutputChannelName (const int channelIndex) const
+{
+    return String (channelIndex + 1);
+}
+
+bool MLPluginProcessor::isInputChannelStereoPair (int ) const
+{
+    return true;
+}
+
+bool MLPluginProcessor::isOutputChannelStereoPair (int ) const
+{
+    return true;
+}
+
+bool MLPluginProcessor::acceptsMidi() const
+{
+#if JucePlugin_WantsMidiInput
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool MLPluginProcessor::producesMidi() const
+{
+#if JucePlugin_ProducesMidiOutput
+    return true;
+#else
+    return false;
+#endif
+}
+
+void MLPluginProcessor::setMLListener (MLAudioProcessorListener* const newListener) throw()
+{
+//    const ScopedLock sl (MLlistenerLock);
+	assert(newListener);
+    MLListener = newListener;
+}
+
+/*
+void MLPluginProcessor::removeMLListener (MLAudioProcessorListener* const listenerToRemove) throw()
+{
+    const ScopedLock sl (MLlistenerLock);
+    MLlisteners.removeValue (listenerToRemove);
+}
+*/
+
+MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File& f)
+{
+	MLProc::err err = MLProc::OK;
+	if(!MLListener) return MLProc::unknownErr;
+
+//	const ScopedLock sl (MLlistenerLock);
+
+	switch(msg)
+	{
+		case MLAudioProcessorListener::kLoad:
+			MLListener->loadFile (f);
+		break;
+		case MLAudioProcessorListener::kSave:
+			MLListener->saveToFile (f);
+		break;
+		default:
+		break;
+	}
+	return err;
+}
+
+
+void MLPluginProcessor::loadScale(const File& f) 
+{
+	MLScale* pScale = mEngine.getScale();
+	if (!pScale) return;
+
+	String scaleName = f.getFileNameWithoutExtension();
+	String scaleDir = f.getParentDirectory().getFileNameWithoutExtension();
+	String scaleStr = f.loadFileAsString();
+	const String delim = "\n\r";
+	int a, b;
+	int contentLines = 0;
+	int ratios = 0;
+
+	// debug() << "MLPluginProcessor: loading scale " << scaleDir << "/" << scaleName << "\n";		
+
+	a = b = 0;
+	while(b >= 0)
+	{
+		b = scaleStr.indexOfAnyOf(delim, a, false);
+		
+//		debug() << "[" << a << ", " << b << "] > " << scaleStr.substring(a, b) << "\n";
+		String inputLine = scaleStr.substring(a, b);
+		
+		if (inputLine[0] != '!')
+		{
+			contentLines++;
+			
+			switch(contentLines)
+			{
+				case 1:
+				{
+					const char* descStr = inputLine.toUTF8();
+					pScale->setDescription(descStr);
+					const char* nameStr = scaleName.toUTF8();
+					pScale->setName(nameStr);
+					mCurrentScaleName = scaleName;
+					mCurrentScaleDir = scaleDir;
+				}
+				break;
+				
+				case 2:
+				{
+//					int notes = inputLine.getIntValue(); // unused
+					pScale->clear();
+				}
+				break;
+				
+				default: // after 2nd line, add ratios.
+				{
+					// 
+					if (inputLine.contains("."))
+					{
+						double ratio = inputLine.getDoubleValue();
+						ratios++;
+						pScale->addRatio(ratio);
+					}
+					else
+					{
+						if (inputLine.containsChar('/'))
+						{
+							int s = inputLine.indexOfChar('/');
+							String numStr = inputLine.substring(0, s);
+							String denomStr = inputLine.substring(s + 1, inputLine.length());
+							int num = numStr.getIntValue();
+							int denom = denomStr.getIntValue();
+//	debug() << "n:" << num << " denom: " << denom << "\n";
+							if ((num > 0) && (denom > 0))
+							{
+								ratios++;
+								pScale->addRatio(num, denom);
+							}
+						}
+						else
+						{
+							int num = inputLine.getIntValue();
+							if (num > 0)
+							{
+								ratios++;
+								pScale->addRatio(num, 1);
+							}
+						}
+					}
+				}
+				break;			
+			}
+		}
+		
+		a = b + 2;	
+	}
+	
+	if (ratios > 0)
+	{
+		pScale->recalcRatios();
+		
+		// TODO load .kbm mapping file if one exists
+		pScale->setDefaultMapping();
+	}
+}
+
+
+void MLPluginProcessor::loadDefaultScale()
+{
+	MLScale* pScale = mEngine.getScale();
+	if (!pScale) return;
+	mCurrentScaleName = "12-equal";
+	mCurrentScaleDir = "";
+	pScale->setDefaultScale();
+	pScale->setDefaultMapping();
+} 
+
+
