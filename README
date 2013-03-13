@@ -1,6 +1,3 @@
-MadronaLib: a C++ framework for DSP applications.
-http://www.madronalabs.com
-Copyright (c) 2013 Madrona Labs LLC.
-
-See the file LICENSE for information about distributing and using this code.
-
+Soundplane: client application for the Madrona Labs Soundplane.
+Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+Distributed under the MIT license: http://madrona-labs.mit-license.org/
