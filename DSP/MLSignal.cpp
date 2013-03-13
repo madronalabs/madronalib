@@ -357,7 +357,6 @@ void MLSignal::write(MLSample *output, const int offset, const int n)
 	std::copy(mDataAligned, mDataAligned + n, output + offset);
 }
 
-
 // TODO SSE
 void MLSignal::sigClamp(const MLSignal& a, const MLSignal& b)
 {
