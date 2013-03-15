@@ -9,8 +9,6 @@
 #include "MLWidget.h"
 
 #include "MLProcContainer.h"
-#include "MLSignalImage.h"
-#include "MLProcScope.h"
 #include "MLSymbol.h"
 #include "MLPath.h"
 

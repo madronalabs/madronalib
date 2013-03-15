@@ -14,10 +14,6 @@
 #include "MLResponder.h"
 #include "MLDrawing.h"
 
-#include "MLStepDisplay.h"
-#include "MLScopeDial.h"
-#include "MLScope.h"
-
 // view for looking at changes of plugins. 
 //
 class MLPluginView : 
@@ -42,8 +38,6 @@ public:
 
 	MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol paramName, 
 		const Colour& color = defaultColor);	
-	MLScopeDial* addScopeDial(const char * displayName, const MLRect & r, 
-		const MLSymbol paramName, const Colour& color, const MLSymbol signalName = MLSymbol());
 	MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, int n, 
 		const Colour& color = defaultColor);
 	MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, int n, 
@@ -51,27 +45,19 @@ public:
 	MLButton* addToggleButton(const char * displayName, const MLRect & r, const char * name, 
 		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 
-	MLDial* addPatcherOutputDial(const MLSymbol paramName, const MLRect & r, bool bipolar, 
-		MLPatcher* pPatcher, int outIndex);
-
 	MLDial* addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color);
-	MLStepDisplay* addStepDisplay(const MLRect & r, const MLSymbol signalName, int steps, const Colour& color);
-	MLScope* addScope(const MLRect & r, const MLSymbol signalName, const Colour& color);
 
 	MLEnvelope* addEnvelope(const MLRect & r, const MLSymbol paramName);
 
-	MLOutlet* addOutlet(const char * displayName, const MLRect & r, const char * signalName, MLPatcher* pPatcher, int idx,
-		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
-
 protected:		
 	MLPluginProcessor* mpProcessor;
+	MLPluginController* mpController;
 
 private:
     // (prevent copy constructor and operator= being generated..)
     MLPluginView (const MLPluginView&);
     const MLPluginView& operator= (const MLPluginView&);
 
-	MLPluginController* mpController;
 	
 	int mWrapperFormat;
 	

@@ -6,7 +6,6 @@
 #include "MLPluginProcessor.h"
 
 MLPluginProcessor::MLPluginProcessor() : 
-	mpPatcherUI(0),	
 	MLListener(0),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true)
@@ -532,96 +531,6 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 	return mEngine.getParamGroupName(index);
 }
 
-// --------------------------------------------------------------------------------
-#pragma mark patcher TO REMOVE
-//
-
-MLProcList& MLPluginProcessor::getPatcherList()
-{
- 	return mEngine.getPatcherList();
-}
-
-// patcher UI response TEMP
-
-
-void MLPluginProcessor::patcherClear (MLPatcher* )
-{
-	MLProcList& patchers = getPatcherList();
-	if(!patchers.empty())
-	{
-		MLProcListIterator p;
-		for (p = patchers.begin(); p != patchers.end(); p++)
-		{
-			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
-			patcher.clearConnections();
-		}
-		
-		MLProcMatrix& patcher1 = static_cast<MLProcMatrix&>(**patchers.begin());
-		patcher1.getConnectionData(&mMatrixData);
-	}
-}
-
-void MLPluginProcessor::patcherAddPatchCord (MLPatcher* , int inIdx, int outIdx)
-{	
-	MLProcList& patchers = getPatcherList();
-	if(!patchers.empty())
-	{
-		MLProcListIterator p;
-		for (p = patchers.begin(); p != patchers.end(); p++)
-		{
-			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
-			patcher.connect(inIdx, outIdx);
-		}
-		
-		MLProcMatrix& patcher1 = static_cast<MLProcMatrix&>(**patchers.begin());
-		patcher1.getConnectionData(&mMatrixData);
-	}
-}
-
-void MLPluginProcessor::patcherRemovePatchCord (MLPatcher* , int inIdx, int outIdx)
-{
-	MLProcList& patchers = getPatcherList();
-	if(!patchers.empty())
-	{
-		MLProcListIterator p;
-		for (p = patchers.begin(); p != patchers.end(); p++)
-		{
-			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
-			patcher.disconnect(inIdx, outIdx);
-		}
-		
-		MLProcMatrix& patcher1 = static_cast<MLProcMatrix&>(**patchers.begin());
-		patcher1.getConnectionData(&mMatrixData);
-	}
-}
-
-// TODO this will go away when patcher connections are parameters
-void MLPluginProcessor::pushPatcherData ()
-{
-	// broadcast data from first patcher in list, assuming they are all the same.
-	MLProcList patchers = getPatcherList();
-	int numPatchers = patchers.size();
-	if(!numPatchers) return;
-	MLProcPtr firstProc = *patchers.begin();
-	MLProcMatrix* pMatrix = static_cast<MLProcMatrix*>(&(*firstProc));
-	pMatrix->getConnectionData(&mMatrixData);
-	if (mpPatcherUI)
-	{			
-		mpPatcherUI->clear(); 
-		
-		for(unsigned n=0; n < mMatrixData.size; ++n)
-		{
-			unsigned char a = mMatrixData.data[n*2];
-			unsigned char b = mMatrixData.data[n*2 + 1];
-			mpPatcherUI->addPatchCord(a, b);
-		}
-	}
-	
-	// broadcast that patcher changed.  TODO broadcast each patch cord change in an automatable way
-	setModelParam("patcher", MLRand());
-}
-
-
 
 // --------------------------------------------------------------------------------
 #pragma mark signals
@@ -640,6 +549,16 @@ unsigned MLPluginProcessor::readSignal(const MLSymbol alias, MLSignal& outSig)
 {
 	unsigned samples = mEngine.readPublishedSignal(alias, outSig);
 	return samples;
+}
+
+
+// --------------------------------------------------------------------------------
+#pragma mark patcher-specific TO REMOVE
+//
+
+MLProcList& MLPluginProcessor::getPatcherList()
+{
+ 	return mEngine.getPatcherList();
 }
 
 // --------------------------------------------------------------------------------
@@ -929,37 +848,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 		}		
 	}
 	
-	// set identity tables for patcher i/o
-
-	int patcherInTable[kMLPatcherMaxTableSize];
-	int patcherOutTable[kMLPatcherMaxTableSize];
-	for(int i=0; i<kMLPatcherMaxTableSize; ++i)
-	{
-		patcherInTable[i] = i;
-		patcherOutTable[i] = i;
-	}
-
-	//  set tables for new patcher inputs / outputs in 1.3
-	if (blobVersion < 0x00010300)
-	{
-		// inputs
-		int offset = 0;
-		for(int i=0; i<kMLPatcherMaxTableSize; ++i)
-		{
-			if(i == 6) { offset += 2; } // new key mod inputs
-			patcherInTable[i] = i + offset;
-		}
-		// outputs
-		offset = 0;
-		for(int i=0; i<kMLPatcherMaxTableSize; ++i)
-		{
-			if(i == 2) { offset += 1; } // seq steps
-			if(i == 3) { offset += 1; } // lfo level
-			if(i == 8) { offset += 2; } // env2 delay attack
-			patcherOutTable[i] = i + offset;
-		}
-	}
-	
 	// get params from xml
 	const unsigned numAttrs = xmlState.getNumAttributes();
 	String patcherInputStr ("patcher_input_");
@@ -1009,46 +897,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 				}
 			}
 		}
-	}
-	
-	// get patcher connection info from xml to all patchers in list
-	MLProcList patchers = getPatcherList();
-//debug() << "MLPluginProcessor: setStateFromXML: " << patchers.size() << " patchers found.\n";
-	if (!patchers.empty())
-	{
-		MLProcListIterator p;
-		for (p = patchers.begin(); p != patchers.end(); p++)
-		{
-			MLProcMatrix& patcher = static_cast<MLProcMatrix&>(**p);
-			patcher.clearConnections();
-			
-			const int inputs = patcher.getNumInputs();
-			const int outputs = patcher.getNumOutputs();
-			
-			for(int i=1; i<=inputs; ++i)
-			{
-				String inputNumStr(i);
-				String attrName = patcherInputStr + inputNumStr;
-				
-				String nullStr = "";
-				const String binaryStr = xmlState.getStringAttribute(attrName, nullStr);
-				const int len = binaryStr.length();
-				
-				if (len > 0)
-				{
-					int b = min(outputs, len);
-					for(int j=1; j<=b; ++j)
-					{
-						if (binaryStr[j-1] == '1')
-						{
-							patcher.connect(patcherInTable[i], patcherOutTable[j]);
-						}
-					}
-				}
-			}
-		}	
-	
-		pushPatcherData(); 
 	}
 	
 	// get editor state from XML

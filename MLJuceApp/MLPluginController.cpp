@@ -309,29 +309,6 @@ void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int id
 }
 
 // --------------------------------------------------------------------------------
-#pragma mark MLPatcher::Listener	
-
-// TEMP TODO set these as automatable parameters
-
-void MLPluginController::patcherClear (MLPatcher* p)
-{
-	MLPluginProcessor* const filter = getProcessor();
-	filter->patcherClear(p);
-}
-
-void MLPluginController::patcherAddPatchCord (MLPatcher* p, int inIdx, int outIdx)
-{	
-	MLPluginProcessor* const filter = getProcessor();
-	filter->patcherAddPatchCord(p, inIdx, outIdx);
-}
-
-void MLPluginController::patcherRemovePatchCord (MLPatcher* p, int inIdx, int outIdx)
-{
-	MLPluginProcessor* const filter = getProcessor();
-	filter->patcherRemovePatchCord(p, inIdx, outIdx);
-}
-
-// --------------------------------------------------------------------------------
 #pragma mark presets
 
 void MLPluginController::prevPreset()

@@ -1307,7 +1307,12 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 			{
 				// save resampler for use in process()
 				mInputResamplers.push_back(resamplerProc);
+				resamplerProc->setContext(this);
 				resamplerProc->createInput(resamplerInIndex);
+				
+				// set to a valid input in case graph ends up incomplete
+				resamplerProc->setInput(resamplerInIndex, getNullInput());
+				
 				// publish resampler input
 				p = MLPublishedInputPtr(new MLPublishedInput(resamplerProc, resamplerInIndex, inSize + 1));
 				

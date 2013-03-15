@@ -18,8 +18,7 @@
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
-	public MLSignalReporter,
-	public MLPatcher::Listener
+	public MLSignalReporter
 {
 public:
 	MLPluginController(MLPluginProcessor* const pProcessor);
@@ -51,11 +50,6 @@ public:
 	virtual void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
 	virtual void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
     virtual void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
-
-	// from MLPatcher::Listener
-	virtual void patcherClear (MLPatcher* );
-	virtual void patcherAddPatchCord (MLPatcher* , int , int );
-	virtual void patcherRemovePatchCord (MLPatcher* , int , int );
 
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string& name, const std::string& dir);

@@ -10,14 +10,12 @@
 #include "MLAudioProcessorListener.h"
 #include "MLDefaultFileLocations.h"
 #include "MLModel.h"
-#include "MLPatcher.h" // temp! 
 #include "MLPluginEditor.h"
 #include "MLPluginFormats.h"
 
 #include <vector>
 #include <map>
 
-const int kParamChangeListSize = 1024; // must be power of two
 const int kMLPatcherMaxTableSize = 64;
 
 // MLPluginProcessor wraps up an AudioProcessor in an MLModel interface. 
@@ -85,29 +83,19 @@ public:
 	MLPublishedParamPtr getParameterPtr (int index);
 	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
 	const std::string& getParameterGroupName (int index);
-	
-	// --------------------------------------------------------------------------------
-	// patcher // TEMP 
-
-	MLProcList& getPatcherList();
- 	// from MLPatcher::Listener, only not.  to go away
-	void patcherClear (MLPatcher* );
-	void patcherAddPatchCord (MLPatcher* , int , int );
-	void patcherRemovePatchCord (MLPatcher* , int , int );
-	void pushPatcherData ();
-	
-	// TEMP! rewrite in Reporter pattern
-	void setPatcherUI (MLPatcher* p) { mpPatcherUI = p; }	
-	
+		
 	// --------------------------------------------------------------------------------
 	// signals
 	int countSignals(const MLSymbol alias);
 	unsigned readSignal(const MLSymbol alias, MLSignal& outSig);
 
+	// temp
+	MLProcList& getPatcherList();
+
 	// --------------------------------------------------------------------------------
 	// state
 	void getStateAsXML (XmlElement& xml);
-	void setStateFromXML(const XmlElement& xmlState);
+	virtual void setStateFromXML(const XmlElement& xmlState);
 	int saveStateAsVersion(const File& f);
 	int saveStateOverPrevious(const File& f);
 	void returnToLatestStateLoaded();
@@ -196,8 +184,7 @@ protected:
 	
 	// patcher and other UI element ptrs TEMP
 	MLMatrixConnectionList mMatrixData;
-	MLPatcher* mpPatcherUI;
-	
+		
 private:
 
 	void setCurrentPresetDir(const char* name);
