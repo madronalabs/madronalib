@@ -10,7 +10,6 @@
 
 const MLSample kMLSignalEndSamples[4] = 
 {
-	//1024.f, -1.25f, 5.f, -1024.f
 	(MLSample)0x01234567, (MLSample)0x89abcdef, (MLSample)0xfedcba98, (MLSample)0x76543210 
 };
 
