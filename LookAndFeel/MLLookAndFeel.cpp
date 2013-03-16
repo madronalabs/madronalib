@@ -958,7 +958,7 @@ void MLLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, int x, int y, int w, 
 #pragma mark -
 
 //==============================================================================
-const Font MLLookAndFeel::getPopupMenuFont()
+Font MLLookAndFeel::getPopupMenuFont()
 {
 	return mTitleFont;
 }
@@ -1163,7 +1163,7 @@ void MLLookAndFeel::drawMenuBarBackground (Graphics& g, int width, int height,
     }
 }
 
-const Font MLLookAndFeel::getMenuBarFont (MenuBarComponent& menuBar, int /*itemIndex*/, const String& /*itemText*/)
+Font MLLookAndFeel::getMenuBarFont (MenuBarComponent& menuBar, int /*itemIndex*/, const String& /*itemText*/)
 {
     return Font (menuBar.getHeight() * 0.7f);
 }
@@ -1254,7 +1254,7 @@ void MLLookAndFeel::drawComboBox (Graphics& g, int width, int height,
     }
 }
 
-const Font MLLookAndFeel::getComboBoxFont (ComboBox& box)
+Font MLLookAndFeel::getComboBoxFont (ComboBox& box)
 {
      return Font (jmin (18.0f, (float)floor(box.getHeight() * 0.7f)+0.5f));
 }

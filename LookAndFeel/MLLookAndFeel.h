@@ -275,7 +275,7 @@ public:
 
 
     /** Returns the size and style of font to use in popup menus. */
-    virtual const Font getPopupMenuFont();
+    virtual Font getPopupMenuFont();
 
     virtual void drawPopupMenuUpDownArrow (Graphics& g,
                                            int width, int height,
@@ -296,7 +296,7 @@ public:
 
     virtual int getMenuBarItemWidth (MenuBarComponent& menuBar, int itemIndex, const String& itemText);
 
-    virtual const Font getMenuBarFont (MenuBarComponent& menuBar, int itemIndex, const String& itemText);
+    virtual Font getMenuBarFont (MenuBarComponent& menuBar, int itemIndex, const String& itemText);
 
     virtual void drawMenuBarItem (Graphics& g,
                                   int width, int height,
@@ -314,7 +314,7 @@ public:
                                int buttonW, int buttonH,
                                ComboBox& box);
 
-    virtual const Font getComboBoxFont (ComboBox& box);
+    virtual Font getComboBoxFont (ComboBox& box);
 
     virtual Label* createComboBoxTextBox (ComboBox& box);
 
