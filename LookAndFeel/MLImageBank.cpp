@@ -24,14 +24,12 @@ void MLImageBank::buildImages()
 	repaint();
 }
 
-
 void MLImageBank::setDims(int w, int h)
 {
 	mWidth = w;
 	mHeight = h;
 	buildImages();
 }
-
 
 void MLImageBank::setImages(unsigned n)
 {
@@ -50,7 +48,6 @@ Image& MLImageBank::getImage(unsigned imageIdx)
 		return mNullImage;
 	}	
 }
-
 
 // just mark all panels as dirty.
 void MLImageBank::repaint()
@@ -82,7 +79,6 @@ void MLImageBank::paint (Graphics& g)
 		}
 	}
 }
-
 
 void MLImageBank::addPanel(MLPoint p)
 {
@@ -139,5 +135,3 @@ int MLImageBank::valueToIndex(float v)
 	}
 	return idx;
 }
-
-
