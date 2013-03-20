@@ -56,30 +56,8 @@ void MLProcFade::process(const int frames)
 	
 	for (int n=0; n<frames; ++n)
 	{
-		MLSample a = in1[n];
-		MLSample b = in2[n];
+		const MLSample a = in1[n];
+		const MLSample b = in2[n];
 		out[n] = a + (b - a)*mix[n];
 	}
-	
-#ifdef DEBUG
-	// test output!
-	int count = 0;
-	for (int n=0; n<frames; ++n)
-	{
-		MLSample k = out[n];
-		if (k != k)
-		{
-			count++;
-		}
-	}
-	if (count > 0)
-	{
-		debug() << "MLProcFade " << getName() << ": " << count << " NaN samples!\n" ;
-		float a = in1[0]; float b = in2[0]; float c = mix[0];
-		if (a != a) debug() << "    in1 NaN!\n";
-		if (b != b) debug() << "    in2 NaN!\n";
-		if (c != c) debug() << "    mix NaN!\n";
-	}
-#endif
-
 }

@@ -137,7 +137,6 @@ void MLProcContainer::compile()
 	std::map<MLSymbol, compileSignal> signals;
 	MLNameMaker nameMaker;
 
-
 	// make compileOps from ops list.
 	// reads ops list, writes compils ops list, compile ops map. 
 	// for each proc in ops list, 
@@ -200,13 +199,11 @@ void MLProcContainer::compile()
 		}
 	}
 
-
 	// name internal signals and
 	// get lifetimes of all used signals:
 	// reads pipe list, compile ops map
 	// writes compile ops map, signals
-	// for each pipe	
-	
+	// for each pipe		
 	for (std::list<MLPipePtr>::iterator i = mPipeList.begin(); i != mPipeList.end(); ++i)
 	{
 		MLPipePtr pipe = (*i);
@@ -296,7 +293,6 @@ void MLProcContainer::compile()
 		compileOutputs.push_back(sigName);
 	}
 	
-
 	// ----------------------------------------------------------------
 	// recurse
 
@@ -497,7 +493,6 @@ void MLProcContainer::compile()
 		{
 	//		setEnabled(true); // WAT
 			debug() << "compile done: " << mOpsList.size() << " subprocs.\n";
-	//		debug() << conns << " connections.\n";
 		}
 		
 		// dump buffers
@@ -506,14 +501,11 @@ void MLProcContainer::compile()
 		for (std::list<sharedBuffer>::const_iterator it = sharedBuffers.begin(); it != sharedBuffers.end(); ++it)
 		{
 			const sharedBuffer& buf = (*it);
-			nBufs++;
-			
+			nBufs++;			
 			debug() << "buf " << nBufs << ": " << buf << "\n";
 		}
 	}
 }
-
-
 
 bool sharedBuffer::canFit(compileSignal* pSig)
 {
@@ -852,7 +844,6 @@ void MLProcContainer::process(const int extFrames)
 
 }
 
-
 void MLProcContainer::clearInput(const int idx)
 {	
 	MLProc::clearInput(idx);	
@@ -866,7 +857,6 @@ void MLProcContainer::clearInput(const int idx)
 		proc->clearInput(procIdx);
 	}
 }
-
 
 // overrides MLProc::setInput to look up published container inputs
 MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
@@ -882,12 +872,15 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 		// now set input of subproc.
 		// maps are made in publishInput.
 		
-		int ins = mPublishedInputs.size();  // 0 for voice!!
+		// TODO ins can be 0 here if graph is not well formed, 
+		// leading to possible crash. 
+		int ins = mPublishedInputs.size();  
+		
 		if (idx <= ins)
 		{
 			MLPublishedInputPtr input = mPublishedInputs[idx-1];
 			MLProcPtr proc = input->mProc;
-			const int procIdx = input->mProcInputIndex;			
+			const int procIdx = input->mProcInputIndex;		
 			e = proc->setInput(procIdx, sig);
 		}
 		else
@@ -897,8 +890,6 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 	}
 	return e;
 }
-
-
 
 // will be > 0 for valid aliases
 int MLProcContainer::getInputIndex(const MLSymbol alias) 
@@ -959,8 +950,7 @@ int MLProcContainer::getNumProcs()
 }
 
 // ----------------------------------------------------------------
-#pragma mark -- graph creation	
-
+#pragma mark graph creation	
 
 // test
 void MLProcContainer::dumpMap()
@@ -1238,12 +1228,15 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	// construct input pointer if needed
 	b->createInput(bi);
 	
-	e = b->setInput(bi, a->getOutput(ai));
+	// TODO fix crashing on ill-formed graphs
+	/*
+	debug() << "connecting " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+	debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+	debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+	debug() << "\n";
+	*/
 	
-	//debug() << "connected " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-	//debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-	//debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-	//debug() << "\n";
+	e = b->setInput(bi, a->getOutput(ai));
 	
 	if (e != OK)
 	{
@@ -1307,11 +1300,11 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 			{
 				// save resampler for use in process()
 				mInputResamplers.push_back(resamplerProc);
-				resamplerProc->setContext(this);
 				resamplerProc->createInput(resamplerInIndex);
 				
 				// set to a valid input in case graph ends up incomplete
-				resamplerProc->setInput(resamplerInIndex, getNullInput());
+//				resamplerProc->setContext(this);
+//				resamplerProc->setInput(resamplerInIndex, getNullInput());
 				
 				// publish resampler input
 				p = MLPublishedInputPtr(new MLPublishedInput(resamplerProc, resamplerInIndex, inSize + 1));
@@ -1704,11 +1697,8 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 	}
 }
 
-
-
 // ----------------------------------------------------------------
 #pragma mark parameters
-// 
 
 // return a new MLPublishedParamPtr that can be called upon to set the given param.
 // 
@@ -2115,8 +2105,6 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 	return e;
 }
 
-
-
 void MLProcContainer::setProcParams(const MLPath& procName, juce::XmlElement* parent)
 {
 	MLProcPtr p;
@@ -2154,8 +2142,6 @@ void MLProcContainer::setProcParams(const MLPath& procName, juce::XmlElement* pa
 		debug() << "MLProcContainer::setProcParams: getProc failed!\n";
 	}
 }
-
-
 
 // we don't recurse into param elements. 
 void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlElement* parent)

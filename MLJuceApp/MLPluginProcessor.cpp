@@ -1181,6 +1181,11 @@ bool MLPluginProcessor::isOutputChannelStereoPair (int ) const
     return true;
 }
 
+double MLPluginProcessor::getTailLengthSeconds() const
+{
+	return 1.f;
+}
+
 bool MLPluginProcessor::acceptsMidi() const
 {
 #if JucePlugin_WantsMidiInput

@@ -124,7 +124,8 @@ public:
     bool isInputChannelStereoPair (int index) const;
     bool isOutputChannelStereoPair (int index) const;
 
-    bool acceptsMidi() const;
+	double getTailLengthSeconds() const;
+	bool acceptsMidi() const;
     bool producesMidi() const;
 	
 	// --------------------------------------------------------------------------------
