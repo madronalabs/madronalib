@@ -24,7 +24,7 @@ MLDSPEngine::MLDSPEngine() :
 	mCPUTimeCount(0.)
 {
 #if defined(DEBUG) || defined(BETA) || (DEMO)
-	mCollectStats = true;
+	//mCollectStats = true;
 #endif
 	setName("dspengine");
 }

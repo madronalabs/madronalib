@@ -15,12 +15,7 @@
 #include "MLInputProtocols.h"
 #include "pa_ringbuffer.h"
 
-
 #include <stdexcept>
-
-const int kOSCToSignalsFrameWidth = 4;
-const int kOSCToSignalsFrameHeight = 16;
-const int kOSCToSignalsFrameBufferSize = 128;
 
 // states to mark an event's connection to one or more voices. 
 // states > 0 mean voices are active.
@@ -35,6 +30,10 @@ const int kNoteBufElements = 512;
 const float kControllerScale = 1.f/127.f;
 const float kDriftConstantsAmount = 0.004f;
 const float kDriftRandomAmount = 0.002f;
+
+const int kOSCToSignalsFrameWidth = 4;
+const int kOSCToSignalsFrameHeight = 16;
+const int kOSCToSignalsFrameBufferSize = 128;
 
 // a key that is down.
 class MLKeyEvent 

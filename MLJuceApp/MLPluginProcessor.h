@@ -38,9 +38,12 @@ public:
 	// plugin description and default preset
 	void loadPluginDescription(const char* desc);
 	virtual void loadDefaultPreset() = 0;
+	
+	// initialize is called after graph is created
+	virtual void initializeProcessor() = 0; 
 
 	// --------------------------------------------------------------------------------
-	// initialize and cleanup
+	// preflight and cleanup
 	MLProc::err preflight();
 	virtual bool wantsMIDI() {return true;}
     void prepareToPlay (double sampleRate, int samplesPerBlock);
@@ -223,6 +226,8 @@ private:
 	MLRect mEditorRect;
 	bool mEditorNumbersOn;
 	bool mEditorAnimationsOn;
+	
+	bool mInitialized;
 	
 	String mErrorMessage;
 };

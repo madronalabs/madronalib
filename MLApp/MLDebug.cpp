@@ -9,7 +9,8 @@ const int kMLDebugMaxChars = 32768;
 MLTextStream::MLTextStream(const char* name) : 
 	mName(name), 
 	mActive(true),
-	mpListener(0)
+	mpListener(0),
+	mItemCount(0)
 {
 
 }
@@ -22,6 +23,13 @@ MLTextStream::~MLTextStream()
 
 void MLTextStream::setListener(MLTextStreamListener* pL)
 {
+	// transfer any startup items
+	if(!mpListener)
+	{
+		std::string outStr = mLocalStream.str();
+		pL->getStream() << outStr;
+		pL->getStream() << "---------------\n";
+	}
 	mpListener = pL;
 }
 

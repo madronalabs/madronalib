@@ -28,7 +28,7 @@ protected:
 private:
 	CodeEditorComponent* mpComp;
 	CodeDocument mDoc;	
-	CriticalSection mStreamLock;
+	juce::CriticalSection mStreamLock;
 
 };
 

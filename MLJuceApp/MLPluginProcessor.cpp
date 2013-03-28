@@ -8,7 +8,8 @@
 MLPluginProcessor::MLPluginProcessor() : 
 	MLListener(0),
 	mEditorNumbersOn(true),
-	mEditorAnimationsOn(true)
+	mEditorAnimationsOn(true),
+	mInitialized(false)
 {
 	mHasParametersSet = false;
 	mNumParameters = 0;
@@ -80,7 +81,7 @@ AudioProcessorEditor* MLPluginProcessor::createEditor()
 }
 
 // --------------------------------------------------------------------------------
-#pragma mark initialize and cleanup
+#pragma mark preflight and cleanup
 //
 
 MLProc::err MLPluginProcessor::preflight()
@@ -130,10 +131,10 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		if (mEngine.getGraphStatus() != MLProc::OK)
 		{
 			bool makeSignalInputs = inChans > 0;
-			// debug() << "building MLPluginProcessor graph... \n";
+			debug() << "building MLPluginProcessor graph... \n";
 			
 			r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI()); 
-			//debug() << getNumParameters() << " parameters in description.\n";
+			debug() << getNumParameters() << " parameters in description.\n";
 		}
 		else
 		{
@@ -179,6 +180,12 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			}
 		}		
 		
+		if(!mInitialized)
+		{					
+			initializeProcessor();
+			mInitialized = true;
+		}		
+		
 		mEngine.setEnabled(prepareErr == MLProc::OK);
 	}
 }
@@ -213,26 +220,28 @@ void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 			int note = message.getNoteNumber();
 			int vel = message.getVelocity();
 			mEngine.addNoteOn(note, vel, time);
+debug() << "ON " << note << "\n";
 		}		
 		else if(message.isNoteOff())
 		{
 			int note = message.getNoteNumber();
 			int vel = message.getVelocity();
 			mEngine.addNoteOff(note, vel, time);
+debug() << "OFF " << note << "\n";
 		}		
 		else if (message.isController())
 		{
-//debug() << "controller!\n";
 			int controller = message.getControllerNumber();
 			int value = message.getControllerValue();
 			mEngine.setController(controller, value, time);
+debug() << "CTL " << controller << "  " << value << "\n";
 		}
 		else if (message.isAftertouch())
 		{
 			int note = message.getNoteNumber();
 			int value = message.getAfterTouchValue();
-//debug() << "aftertouch " << value << ", note " << note << "\n";
 			mEngine.setAfterTouch(note, value, time);
+debug() << "AFT " << note << " " << value << "\n";
 		}
 		else if (message.isChannelPressure())
 		{
@@ -248,18 +257,18 @@ debug() << "pressure " << value << "\n";
 		}
 		else if (message.isSustainPedalOn())
 		{			
-		debug() << "sustain ON\n";
+debug() << "sustain ON\n";
 			mEngine.setSustainPedal(1, time);
 		}
 		else if (message.isSustainPedalOff())
 		{
-		debug() << "sustain OFF\n";
+debug() << "sustain OFF\n";
 			mEngine.setSustainPedal(0, time);
 		}
 		else if (message.isProgramChange())
 		{
 			int pgm = message.getProgramChangeNumber();
-			debug() << "program change " << pgm << "\n";
+debug() << "program change " << pgm << "\n";
 			if(pgm == kMLPluginMIDIPrograms)	
 			{
 				// load most recent saved program
@@ -270,6 +279,19 @@ debug() << "pressure " << value << "\n";
 				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
 				setStateFromMIDIProgram(pgm);
 			}
+		}
+		else
+		// TEST
+		{
+			int msgSize = message.getRawDataSize();
+			const uint8* msgData = message.getRawData();
+			debug() << "@" << std::hex << (void*)this << ": " << msgSize << "bytes uncaught MIDI [" ;
+			
+			for(int b=0; b<message.getRawDataSize(); ++b)
+			{
+				debug() << std::hex << (unsigned int)(msgData[b]) << " ";
+			}	
+			debug() << std::dec << "]\n";
 		}
 	}
 }

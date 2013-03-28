@@ -313,7 +313,6 @@ void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int id
 
 void MLPluginController::prevPreset()
 {
-
 	int idx = mCurrentPresetIndex - 1;
 	if (idx < 0) idx = mMenuPresetFiles.size() - 1;	
 	loadPresetByIndex(idx);
@@ -321,7 +320,6 @@ void MLPluginController::prevPreset()
 
 void MLPluginController::nextPreset()
 {
-
 	int idx = mCurrentPresetIndex + 1;
 	if (idx >= mMenuPresetFiles.size()) idx = 0;
 	loadPresetByIndex(idx);

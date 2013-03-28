@@ -10,7 +10,6 @@
 	// TODO
 #else
 
-
 MLOSCListener::MLOSCListener() :
 	mpSocket(0),
 	mSocketActive(0),
@@ -56,25 +55,33 @@ void MLOSCListener::listenToOSC(int port)
 		catch( osc::Exception& e )
 		{
 			// TODO find another socket!  Integrate with zeroconf stuff.  
+			
+			// TODO MLError() should do what exactly?
 			mpSocket = 0;
-			MLError() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
-			MLError() << "error: " << e.what() << "\n";
+			debug() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
+			debug() << "error: " << e.what() << "\n";
 		}
 		catch(...)
 		{
 			mpSocket = 0;
-			MLError() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
+			debug() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
+			debug() << "Unknown error.\n";
 		}
 		
 		if(mpSocket)
 		{
+			debug() << "MLOSCListener::listenToOSC: listener OK on port " << port << ".\n";
 			mSocketActive = true;
 			mPort = port;
 			
 			int err;
 			pthread_attr_t attr;
+			
+			debug() << "initializing pthread attributes...\n";
 			err = pthread_attr_init(&attr);
-			err = pthread_create(&mListenerThread, &attr, &MLOSCListener::startThread, (void*)this);
+
+			debug() << "creating listener thread...\n";
+			err = pthread_create(&mListenerThread, &attr, &MLOSCListener::startThread, (void*)this);			
 		}
 	}
 	else

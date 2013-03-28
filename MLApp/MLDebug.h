@@ -11,6 +11,8 @@
 
 #include <iostream>
 
+const int kStartupItems = 1024;
+
 class MLTextStream
 {
 public:
@@ -30,6 +32,12 @@ public:
 			else
 			{
 				std::cout << item;
+				
+				// for catching initial messages before UI is made
+				if(mItemCount++ < kStartupItems)
+				{
+					mLocalStream << item;
+				}
 			}
 		}
 		return *this;
@@ -46,6 +54,9 @@ private:
 	std::string mName;
 	bool mActive;
 	MLTextStreamListener* mpListener;
+	
+	std::stringstream mLocalStream;
+	int mItemCount;
 };
 
 extern "C" MLTextStream& debug(void);
