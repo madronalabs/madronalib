@@ -1,0 +1,19 @@
+
+To compile the example projects, the following libraries will be needed:
+
+on Windows and MacOS:
+JUCE https://github.com/julianstorer/JUCE
+
+on Mac OS:
+oscpack https://code.google.com/p/oscpack/downloads/list
+osctools https://github.com/tap/osctools
+
+getting juce:
+git clone https://github.com/julianstorer/JUCE.git juce
+git reset --hard dc8f268143b102e64fbbcb48046dfb15c31dbd1b
+
+getting oscpack:
+download from https://code.google.com/p/oscpack/downloads/list
+
+getting osctools:
+git clone https://github.com/tap/osctools.git osctools
