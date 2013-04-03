@@ -29,157 +29,149 @@
 		B24CA5BEF488268AB502C0AC /* AUCarbonViewControl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 17ABF2F862D57C89FE85C307 /* AUCarbonViewControl.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
 		B580B2A416F7B07C00296E40 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B580B2A316F7B07C00296E40 /* Accelerate.framework */; };
 		B580B2CB16F7B08600296E40 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B580B2CA16F7B08600296E40 /* AudioToolbox.framework */; };
-		B592C24316F126A7001B578F /* MLExampleBinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B592C24116F126A7001B578F /* MLExampleBinaryData.cpp */; };
-		B592C25A16F12739001B578F /* MLExampleController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B592C25216F12739001B578F /* MLExampleController.cpp */; };
-		B592C25B16F12739001B578F /* MLExampleEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B592C25416F12739001B578F /* MLExampleEditor.cpp */; };
-		B592C25C16F12739001B578F /* MLExampleProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B592C25616F12739001B578F /* MLExampleProcessor.cpp */; };
-		B592C25D16F12739001B578F /* MLExampleView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B592C25816F12739001B578F /* MLExampleView.cpp */; };
-		B59EABDC133D6BB90097CBD9 /* MLExample.xml in Resources */ = {isa = PBXBuildFile; fileRef = B59EABDB133D6BB90097CBD9 /* MLExample.xml */; };
-		B5AB563316FA5BC4008ECFF2 /* MLChangeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55E216FA5BC4008ECFF2 /* MLChangeList.cpp */; };
-		B5AB563416FA5BC4008ECFF2 /* MLDSP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55E416FA5BC4008ECFF2 /* MLDSP.cpp */; };
-		B5AB563516FA5BC4008ECFF2 /* MLDSPContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55E616FA5BC4008ECFF2 /* MLDSPContext.cpp */; };
-		B5AB563616FA5BC4008ECFF2 /* MLDSPEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55E816FA5BC4008ECFF2 /* MLDSPEngine.cpp */; };
-		B5AB563716FA5BC4008ECFF2 /* MLMultProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55EA16FA5BC4008ECFF2 /* MLMultProxy.cpp */; };
-		B5AB563816FA5BC4008ECFF2 /* MLParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55EC16FA5BC4008ECFF2 /* MLParameter.cpp */; };
-		B5AB563916FA5BC4008ECFF2 /* MLProc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55EE16FA5BC4008ECFF2 /* MLProc.cpp */; };
-		B5AB563A16FA5BC4008ECFF2 /* MLProcAbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F016FA5BC4008ECFF2 /* MLProcAbs.cpp */; };
-		B5AB563B16FA5BC4008ECFF2 /* MLProcAdd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F116FA5BC4008ECFF2 /* MLProcAdd.cpp */; };
-		B5AB563C16FA5BC4008ECFF2 /* MLProcAllpass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F216FA5BC4008ECFF2 /* MLProcAllpass.cpp */; };
-		B5AB563D16FA5BC4008ECFF2 /* MLProcBiquad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F316FA5BC4008ECFF2 /* MLProcBiquad.cpp */; };
-		B5AB563E16FA5BC4008ECFF2 /* MLProcClamp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F416FA5BC4008ECFF2 /* MLProcClamp.cpp */; };
-		B5AB563F16FA5BC4008ECFF2 /* MLProcClampSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F516FA5BC4008ECFF2 /* MLProcClampSignal.cpp */; };
-		B5AB564016FA5BC4008ECFF2 /* MLProcContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F616FA5BC4008ECFF2 /* MLProcContainer.cpp */; };
-		B5AB564116FA5BC4008ECFF2 /* MLProcCubicDistort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F816FA5BC4008ECFF2 /* MLProcCubicDistort.cpp */; };
-		B5AB564216FA5BC4008ECFF2 /* MLProcDCBlocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55F916FA5BC4008ECFF2 /* MLProcDCBlocker.cpp */; };
-		B5AB564316FA5BC4008ECFF2 /* MLProcDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55FA16FA5BC4008ECFF2 /* MLProcDebug.cpp */; };
-		B5AB564416FA5BC4008ECFF2 /* MLProcDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55FB16FA5BC4008ECFF2 /* MLProcDelay.cpp */; };
-		B5AB564516FA5BC4008ECFF2 /* MLProcDelayInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55FC16FA5BC4008ECFF2 /* MLProcDelayInput.cpp */; };
-		B5AB564616FA5BC4008ECFF2 /* MLProcDelayOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55FE16FA5BC4008ECFF2 /* MLProcDelayOutput.cpp */; };
-		B5AB564716FA5BC4008ECFF2 /* MLProcDivide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB55FF16FA5BC4008ECFF2 /* MLProcDivide.cpp */; };
-		B5AB564816FA5BC4008ECFF2 /* MLProcDxDt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560016FA5BC4008ECFF2 /* MLProcDxDt.cpp */; };
-		B5AB564916FA5BC4008ECFF2 /* MLProcEnvelope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560116FA5BC4008ECFF2 /* MLProcEnvelope.cpp */; };
-		B5AB564A16FA5BC4008ECFF2 /* MLProcExp2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560216FA5BC4008ECFF2 /* MLProcExp2.cpp */; };
-		B5AB564B16FA5BC4008ECFF2 /* MLProcFade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560316FA5BC4008ECFF2 /* MLProcFade.cpp */; };
-		B5AB564C16FA5BC4008ECFF2 /* MLProcFadeBipolar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560416FA5BC4008ECFF2 /* MLProcFadeBipolar.cpp */; };
-		B5AB564D16FA5BC4008ECFF2 /* MLProcFMBandwidth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560516FA5BC4008ECFF2 /* MLProcFMBandwidth.cpp */; };
-		B5AB564E16FA5BC4008ECFF2 /* MLProcGlide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560616FA5BC4008ECFF2 /* MLProcGlide.cpp */; };
-		B5AB564F16FA5BC4008ECFF2 /* MLProcHostPhasor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560716FA5BC4008ECFF2 /* MLProcHostPhasor.cpp */; };
-		B5AB565016FA5BC4008ECFF2 /* MLProcInputToSignals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560916FA5BC4008ECFF2 /* MLProcInputToSignals.cpp */; };
-		B5AB565116FA5BC4008ECFF2 /* MLProcMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560B16FA5BC4008ECFF2 /* MLProcMatrix.cpp */; };
-		B5AB565216FA5BC4008ECFF2 /* MLProcMultiple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560D16FA5BC4008ECFF2 /* MLProcMultiple.cpp */; };
-		B5AB565316FA5BC4008ECFF2 /* MLProcMultiply.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB560F16FA5BC4008ECFF2 /* MLProcMultiply.cpp */; };
-		B5AB565416FA5BC4008ECFF2 /* MLProcMultiplyAdd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561016FA5BC4008ECFF2 /* MLProcMultiplyAdd.cpp */; };
-		B5AB565516FA5BC4008ECFF2 /* MLProcNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561116FA5BC4008ECFF2 /* MLProcNoise.cpp */; };
-		B5AB565616FA5BC4008ECFF2 /* MLProcOnepole.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561216FA5BC4008ECFF2 /* MLProcOnepole.cpp */; };
-		B5AB565716FA5BC4008ECFF2 /* MLProcOSCToSignals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561316FA5BC4008ECFF2 /* MLProcOSCToSignals.cpp */; };
-		B5AB565816FA5BC4008ECFF2 /* MLProcPan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561516FA5BC4008ECFF2 /* MLProcPan.cpp */; };
-		B5AB565916FA5BC4008ECFF2 /* MLProcParamToSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561616FA5BC4008ECFF2 /* MLProcParamToSignal.cpp */; };
-		B5AB565A16FA5BC4008ECFF2 /* MLProcPeak.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561716FA5BC4008ECFF2 /* MLProcPeak.cpp */; };
-		B5AB565B16FA5BC4008ECFF2 /* MLProcPhasor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561816FA5BC4008ECFF2 /* MLProcPhasor.cpp */; };
-		B5AB565C16FA5BC4008ECFF2 /* MLProcPow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561916FA5BC4008ECFF2 /* MLProcPow.cpp */; };
-		B5AB565D16FA5BC4008ECFF2 /* MLProcQuantize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561A16FA5BC4008ECFF2 /* MLProcQuantize.cpp */; };
-		B5AB565E16FA5BC4008ECFF2 /* MLProcRate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561B16FA5BC4008ECFF2 /* MLProcRate.cpp */; };
-		B5AB565F16FA5BC4008ECFF2 /* MLProcResample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561C16FA5BC4008ECFF2 /* MLProcResample.cpp */; };
-		B5AB566016FA5BC4008ECFF2 /* MLProcRingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561D16FA5BC4008ECFF2 /* MLProcRingBuffer.cpp */; };
-		B5AB566116FA5BC4008ECFF2 /* MLProcRMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB561F16FA5BC4008ECFF2 /* MLProcRMS.cpp */; };
-		B5AB566216FA5BC4008ECFF2 /* MLProcSampleRate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562016FA5BC4008ECFF2 /* MLProcSampleRate.cpp */; };
-		B5AB566316FA5BC4008ECFF2 /* MLProcSineOsc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562116FA5BC4008ECFF2 /* MLProcSineOsc.cpp */; };
-		B5AB566416FA5BC4008ECFF2 /* MLProcSinePhase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562216FA5BC4008ECFF2 /* MLProcSinePhase.cpp */; };
-		B5AB566516FA5BC4008ECFF2 /* MLProcSubtract.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562316FA5BC4008ECFF2 /* MLProcSubtract.cpp */; };
-		B5AB566616FA5BC4008ECFF2 /* MLProcSum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562416FA5BC4008ECFF2 /* MLProcSum.cpp */; };
-		B5AB566716FA5BC4008ECFF2 /* MLProcSVF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562516FA5BC4008ECFF2 /* MLProcSVF.cpp */; };
-		B5AB566816FA5BC4008ECFF2 /* MLProcThru.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562616FA5BC4008ECFF2 /* MLProcThru.cpp */; };
-		B5AB566916FA5BC4008ECFF2 /* MLRatio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562716FA5BC4008ECFF2 /* MLRatio.cpp */; };
-		B5AB566A16FA5BC4008ECFF2 /* MLRingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562916FA5BC4008ECFF2 /* MLRingBuffer.cpp */; };
-		B5AB566B16FA5BC4008ECFF2 /* MLScale.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562B16FA5BC4008ECFF2 /* MLScale.cpp */; };
-		B5AB566C16FA5BC4008ECFF2 /* MLSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562D16FA5BC4008ECFF2 /* MLSignal.cpp */; };
-		B5AB566D16FA5BC4008ECFF2 /* MLSignalViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB562F16FA5BC4008ECFF2 /* MLSignalViewer.cpp */; };
-		B5AB566E16FA5BC4008ECFF2 /* MLVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB563116FA5BC4008ECFF2 /* MLVector.cpp */; };
-		B5AB56B816FA5BE9008ECFF2 /* MLAppBorder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB568F16FA5BE9008ECFF2 /* MLAppBorder.cpp */; };
-		B5AB56B916FA5BE9008ECFF2 /* MLAppState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569116FA5BE9008ECFF2 /* MLAppState.cpp */; };
-		B5AB56BA16FA5BE9008ECFF2 /* MLAppView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569316FA5BE9008ECFF2 /* MLAppView.cpp */; };
-		B5AB56BB16FA5BE9008ECFF2 /* MLAppWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569516FA5BE9008ECFF2 /* MLAppWindow.cpp */; };
-		B5AB56BC16FA5BE9008ECFF2 /* MLDefaultFileLocations.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569816FA5BE9008ECFF2 /* MLDefaultFileLocations.cpp */; };
-		B5AB56BD16FA5BE9008ECFF2 /* MLjuce_AU_Wrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569A16FA5BE9008ECFF2 /* MLjuce_AU_Wrapper.mm */; };
-		B5AB56BE16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569C16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.cpp */; };
-		B5AB56BF16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569D16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.mm */; };
-		B5AB56C016FA5BE9008ECFF2 /* MLJuceFilesMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB569E16FA5BE9008ECFF2 /* MLJuceFilesMac.cpp */; };
-		B5AB56C116FA5BE9008ECFF2 /* MLMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56A116FA5BE9008ECFF2 /* MLMenu.cpp */; };
-		B5AB56C216FA5BE9008ECFF2 /* MLPageView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56A316FA5BE9008ECFF2 /* MLPageView.cpp */; };
-		B5AB56C316FA5BE9008ECFF2 /* MLParamSetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56A516FA5BE9008ECFF2 /* MLParamSetter.cpp */; };
-		B5AB56C416FA5BE9008ECFF2 /* MLPluginController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56A716FA5BE9008ECFF2 /* MLPluginController.cpp */; };
-		B5AB56C516FA5BE9008ECFF2 /* MLPluginEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56A916FA5BE9008ECFF2 /* MLPluginEditor.cpp */; };
-		B5AB56C616FA5BE9008ECFF2 /* MLPluginProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56AC16FA5BE9008ECFF2 /* MLPluginProcessor.cpp */; };
-		B5AB56C716FA5BE9008ECFF2 /* MLPluginView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56AE16FA5BE9008ECFF2 /* MLPluginView.cpp */; };
-		B5AB56C816FA5BE9008ECFF2 /* MLSignalReporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56B016FA5BE9008ECFF2 /* MLSignalReporter.cpp */; };
-		B5AB56C916FA5BE9008ECFF2 /* MLTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56B216FA5BE9008ECFF2 /* MLTime.cpp */; };
-		B5AB56CA16FA5BE9008ECFF2 /* MLWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56B416FA5BE9008ECFF2 /* MLWidget.cpp */; };
-		B5AB56CB16FA5BE9008ECFF2 /* MLWidgetContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56B616FA5BE9008ECFF2 /* MLWidgetContainer.cpp */; };
-		B5AB56E016FA5C0B008ECFF2 /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56D416FA5C0B008ECFF2 /* juce_audio_devices.mm */; };
-		B5AB56E116FA5C0B008ECFF2 /* juce_audio_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56D516FA5C0B008ECFF2 /* juce_audio_basics.mm */; };
-		B5AB56E216FA5C0B008ECFF2 /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56D616FA5C0B008ECFF2 /* juce_audio_formats.mm */; };
-		B5AB56E316FA5C0B008ECFF2 /* juce_core.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56D716FA5C0B008ECFF2 /* juce_core.mm */; };
-		B5AB56E416FA5C0B008ECFF2 /* juce_audio_processors.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56D816FA5C0B008ECFF2 /* juce_audio_processors.mm */; };
-		B5AB56E516FA5C0B008ECFF2 /* juce_audio_utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56D916FA5C0B008ECFF2 /* juce_audio_utils.mm */; };
-		B5AB56E616FA5C0B008ECFF2 /* juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56DA16FA5C0B008ECFF2 /* juce_data_structures.mm */; };
-		B5AB56E716FA5C0B008ECFF2 /* juce_events.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56DB16FA5C0B008ECFF2 /* juce_events.mm */; };
-		B5AB56E816FA5C0B008ECFF2 /* juce_graphics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56DC16FA5C0B008ECFF2 /* juce_graphics.mm */; };
-		B5AB56E916FA5C0B008ECFF2 /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56DD16FA5C0B008ECFF2 /* juce_gui_basics.mm */; };
-		B5AB56EA16FA5C0B008ECFF2 /* juce_gui_extra.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56DE16FA5C0B008ECFF2 /* juce_gui_extra.mm */; };
-		B5AB56EB16FA5C0B008ECFF2 /* juce_opengl.mm in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56DF16FA5C0B008ECFF2 /* juce_opengl.mm */; };
-		B5AB572316FA5C1D008ECFF2 /* MLButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56FB16FA5C1D008ECFF2 /* MLButton.cpp */; };
-		B5AB572416FA5C1D008ECFF2 /* MLDebugDisplay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56FD16FA5C1D008ECFF2 /* MLDebugDisplay.cpp */; };
-		B5AB572516FA5C1D008ECFF2 /* MLDial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB56FF16FA5C1D008ECFF2 /* MLDial.cpp */; };
-		B5AB572616FA5C1D008ECFF2 /* MLDrawableButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570116FA5C1D008ECFF2 /* MLDrawableButton.cpp */; };
-		B5AB572716FA5C1D008ECFF2 /* MLDrawing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570316FA5C1D008ECFF2 /* MLDrawing.cpp */; };
-		B5AB572816FA5C1D008ECFF2 /* MLEnvelope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570516FA5C1D008ECFF2 /* MLEnvelope.cpp */; };
-		B5AB572916FA5C1D008ECFF2 /* MLGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570716FA5C1D008ECFF2 /* MLGraph.cpp */; };
-		B5AB572A16FA5C1D008ECFF2 /* MLImageBank.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570916FA5C1D008ECFF2 /* MLImageBank.cpp */; };
-		B5AB572B16FA5C1D008ECFF2 /* MLLabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570B16FA5C1D008ECFF2 /* MLLabel.cpp */; };
-		B5AB572C16FA5C1D008ECFF2 /* MLLookAndFeel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570D16FA5C1D008ECFF2 /* MLLookAndFeel.cpp */; };
-		B5AB572D16FA5C1D008ECFF2 /* MLMenuButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB570F16FA5C1D008ECFF2 /* MLMenuButton.cpp */; };
-		B5AB572E16FA5C1D008ECFF2 /* MLMultiButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571116FA5C1D008ECFF2 /* MLMultiButton.cpp */; };
-		B5AB572F16FA5C1D008ECFF2 /* MLMultiSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571316FA5C1D008ECFF2 /* MLMultiSlider.cpp */; };
-		B5AB573016FA5C1D008ECFF2 /* MLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571516FA5C1D008ECFF2 /* MLPanel.cpp */; };
-		B5AB573116FA5C1D008ECFF2 /* MLPositioner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571716FA5C1D008ECFF2 /* MLPositioner.cpp */; };
-		B5AB573216FA5C1D008ECFF2 /* MLSeparator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571916FA5C1D008ECFF2 /* MLSeparator.cpp */; };
-		B5AB573316FA5C1D008ECFF2 /* MLTextButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571B16FA5C1D008ECFF2 /* MLTextButton.cpp */; };
-		B5AB573416FA5C1D008ECFF2 /* MLToggleButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571D16FA5C1D008ECFF2 /* MLToggleButton.cpp */; };
-		B5AB573516FA5C1D008ECFF2 /* MLUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB571F16FA5C1D008ECFF2 /* MLUI.cpp */; };
-		B5AB573616FA5C1D008ECFF2 /* MLUIBinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB572116FA5C1D008ECFF2 /* MLUIBinaryData.cpp */; };
-		B5AB573B16FA5C2D008ECFF2 /* pa_ringbuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB573916FA5C2D008ECFF2 /* pa_ringbuffer.cpp */; };
-		B5AB580416FA5C86008ECFF2 /* MLDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57EC16FA5C85008ECFF2 /* MLDebug.cpp */; };
-		B5AB580516FA5C86008ECFF2 /* MLGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57EE16FA5C85008ECFF2 /* MLGL.cpp */; };
-		B5AB580616FA5C86008ECFF2 /* MLModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57F016FA5C85008ECFF2 /* MLModel.cpp */; };
-		B5AB580716FA5C86008ECFF2 /* MLModelParam.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57F216FA5C85008ECFF2 /* MLModelParam.cpp */; };
-		B5AB580816FA5C86008ECFF2 /* MLNetServiceHub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57F416FA5C85008ECFF2 /* MLNetServiceHub.cpp */; };
-		B5AB580916FA5C86008ECFF2 /* MLOSCListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57F716FA5C85008ECFF2 /* MLOSCListener.cpp */; };
-		B5AB580A16FA5C86008ECFF2 /* MLPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57F816FA5C85008ECFF2 /* MLPath.cpp */; };
-		B5AB580B16FA5C86008ECFF2 /* MLReporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57FB16FA5C85008ECFF2 /* MLReporter.cpp */; };
-		B5AB580C16FA5C86008ECFF2 /* MLResponder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57FD16FA5C85008ECFF2 /* MLResponder.cpp */; };
-		B5AB580D16FA5C86008ECFF2 /* MLSymbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB57FF16FA5C85008ECFF2 /* MLSymbol.cpp */; };
-		B5AB583E16FA5CBF008ECFF2 /* IpEndpointName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB581D16FA5CBF008ECFF2 /* IpEndpointName.cpp */; };
-		B5AB583F16FA5CBF008ECFF2 /* NetworkingUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB582216FA5CBF008ECFF2 /* NetworkingUtils.cpp */; };
-		B5AB584016FA5CBF008ECFF2 /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB582316FA5CBF008ECFF2 /* UdpSocket.cpp */; };
-		B5AB584116FA5CBF008ECFF2 /* OscOutboundPacketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB582A16FA5CBF008ECFF2 /* OscOutboundPacketStream.cpp */; };
-		B5AB584216FA5CBF008ECFF2 /* OscPrintReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB582D16FA5CBF008ECFF2 /* OscPrintReceivedElements.cpp */; };
-		B5AB584316FA5CBF008ECFF2 /* OscReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB582F16FA5CBF008ECFF2 /* OscReceivedElements.cpp */; };
-		B5AB584416FA5CBF008ECFF2 /* OscTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB583116FA5CBF008ECFF2 /* OscTypes.cpp */; };
-		B5AB584516FA5CBF008ECFF2 /* CriticalSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB583416FA5CBF008ECFF2 /* CriticalSection.cpp */; };
-		B5AB584616FA5CBF008ECFF2 /* NetService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB583616FA5CBF008ECFF2 /* NetService.cpp */; };
-		B5AB584716FA5CBF008ECFF2 /* NetServiceBrowser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB583816FA5CBF008ECFF2 /* NetServiceBrowser.cpp */; };
-		B5AB584816FA5CBF008ECFF2 /* NetServiceThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB583A16FA5CBF008ECFF2 /* NetServiceThread.cpp */; };
-		B5AB584916FA5CBF008ECFF2 /* Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5AB583C16FA5CBF008ECFF2 /* Thread.cpp */; };
-		B5AB585916FA5CEE008ECFF2 /* cJSON.c in Sources */ = {isa = PBXBuildFile; fileRef = B5AB584F16FA5CEE008ECFF2 /* cJSON.c */; };
-		B5AB585A16FA5CEE008ECFF2 /* README in Resources */ = {isa = PBXBuildFile; fileRef = B5AB585116FA5CEE008ECFF2 /* README */; };
-		B5AB585B16FA5CEE008ECFF2 /* test.c in Sources */ = {isa = PBXBuildFile; fileRef = B5AB585216FA5CEE008ECFF2 /* test.c */; };
-		B5AB585C16FA5CEE008ECFF2 /* test1 in Resources */ = {isa = PBXBuildFile; fileRef = B5AB585416FA5CEE008ECFF2 /* test1 */; };
-		B5AB585D16FA5CEE008ECFF2 /* test2 in Resources */ = {isa = PBXBuildFile; fileRef = B5AB585516FA5CEE008ECFF2 /* test2 */; };
-		B5AB585E16FA5CEE008ECFF2 /* test3 in Resources */ = {isa = PBXBuildFile; fileRef = B5AB585616FA5CEE008ECFF2 /* test3 */; };
-		B5AB585F16FA5CEE008ECFF2 /* test4 in Resources */ = {isa = PBXBuildFile; fileRef = B5AB585716FA5CEE008ECFF2 /* test4 */; };
-		B5AB586016FA5CEE008ECFF2 /* test5 in Resources */ = {isa = PBXBuildFile; fileRef = B5AB585816FA5CEE008ECFF2 /* test5 */; };
+		B593507B170C9A6900DF47AD /* MLExampleController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935073170C9A6900DF47AD /* MLExampleController.cpp */; };
+		B593507C170C9A6900DF47AD /* MLExampleEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935075170C9A6900DF47AD /* MLExampleEditor.cpp */; };
+		B593507D170C9A6900DF47AD /* MLExampleProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935077170C9A6900DF47AD /* MLExampleProcessor.cpp */; };
+		B593507E170C9A6900DF47AD /* MLExampleView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935079170C9A6900DF47AD /* MLExampleView.cpp */; };
+		B5935080170C9A7900DF47AD /* MLExample.xml in Resources */ = {isa = PBXBuildFile; fileRef = B593507F170C9A7900DF47AD /* MLExample.xml */; };
+		B593508C170C9A8600DF47AD /* cJSON.c in Sources */ = {isa = PBXBuildFile; fileRef = B5935082170C9A8600DF47AD /* cJSON.c */; };
+		B59350E4170C9A9700DF47AD /* MLChangeList.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935095170C9A9700DF47AD /* MLChangeList.cpp */; };
+		B59350E5170C9A9700DF47AD /* MLDSP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935097170C9A9700DF47AD /* MLDSP.cpp */; };
+		B59350E6170C9A9700DF47AD /* MLDSPContext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935099170C9A9700DF47AD /* MLDSPContext.cpp */; };
+		B59350E7170C9A9700DF47AD /* MLDSPEngine.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593509B170C9A9700DF47AD /* MLDSPEngine.cpp */; };
+		B59350E8170C9A9700DF47AD /* MLMultProxy.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593509D170C9A9700DF47AD /* MLMultProxy.cpp */; };
+		B59350E9170C9A9700DF47AD /* MLParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593509F170C9A9700DF47AD /* MLParameter.cpp */; };
+		B59350EA170C9A9700DF47AD /* MLProc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A1170C9A9700DF47AD /* MLProc.cpp */; };
+		B59350EB170C9A9700DF47AD /* MLProcAbs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A3170C9A9700DF47AD /* MLProcAbs.cpp */; };
+		B59350EC170C9A9700DF47AD /* MLProcAdd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A4170C9A9700DF47AD /* MLProcAdd.cpp */; };
+		B59350ED170C9A9700DF47AD /* MLProcAllpass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A5170C9A9700DF47AD /* MLProcAllpass.cpp */; };
+		B59350EE170C9A9700DF47AD /* MLProcBiquad.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A6170C9A9700DF47AD /* MLProcBiquad.cpp */; };
+		B59350EF170C9A9700DF47AD /* MLProcClamp.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A7170C9A9700DF47AD /* MLProcClamp.cpp */; };
+		B59350F0170C9A9700DF47AD /* MLProcClampSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A8170C9A9700DF47AD /* MLProcClampSignal.cpp */; };
+		B59350F1170C9A9700DF47AD /* MLProcContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350A9170C9A9700DF47AD /* MLProcContainer.cpp */; };
+		B59350F2170C9A9700DF47AD /* MLProcCubicDistort.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350AB170C9A9700DF47AD /* MLProcCubicDistort.cpp */; };
+		B59350F3170C9A9700DF47AD /* MLProcDCBlocker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350AC170C9A9700DF47AD /* MLProcDCBlocker.cpp */; };
+		B59350F4170C9A9700DF47AD /* MLProcDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350AD170C9A9700DF47AD /* MLProcDebug.cpp */; };
+		B59350F5170C9A9700DF47AD /* MLProcDelay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350AE170C9A9700DF47AD /* MLProcDelay.cpp */; };
+		B59350F6170C9A9700DF47AD /* MLProcDelayInput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350AF170C9A9700DF47AD /* MLProcDelayInput.cpp */; };
+		B59350F7170C9A9700DF47AD /* MLProcDelayOutput.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B1170C9A9700DF47AD /* MLProcDelayOutput.cpp */; };
+		B59350F8170C9A9700DF47AD /* MLProcDivide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B2170C9A9700DF47AD /* MLProcDivide.cpp */; };
+		B59350F9170C9A9700DF47AD /* MLProcDxDt.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B3170C9A9700DF47AD /* MLProcDxDt.cpp */; };
+		B59350FA170C9A9700DF47AD /* MLProcEnvelope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B4170C9A9700DF47AD /* MLProcEnvelope.cpp */; };
+		B59350FB170C9A9700DF47AD /* MLProcExp2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B5170C9A9700DF47AD /* MLProcExp2.cpp */; };
+		B59350FC170C9A9700DF47AD /* MLProcFade.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B6170C9A9700DF47AD /* MLProcFade.cpp */; };
+		B59350FD170C9A9700DF47AD /* MLProcFadeBipolar.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B7170C9A9700DF47AD /* MLProcFadeBipolar.cpp */; };
+		B59350FE170C9A9700DF47AD /* MLProcFMBandwidth.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B8170C9A9700DF47AD /* MLProcFMBandwidth.cpp */; };
+		B59350FF170C9A9700DF47AD /* MLProcGlide.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350B9170C9A9700DF47AD /* MLProcGlide.cpp */; };
+		B5935100170C9A9700DF47AD /* MLProcHostPhasor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350BA170C9A9700DF47AD /* MLProcHostPhasor.cpp */; };
+		B5935101170C9A9700DF47AD /* MLProcInputToSignals.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350BC170C9A9700DF47AD /* MLProcInputToSignals.cpp */; };
+		B5935102170C9A9700DF47AD /* MLProcMatrix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350BE170C9A9700DF47AD /* MLProcMatrix.cpp */; };
+		B5935103170C9A9700DF47AD /* MLProcMultiple.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C0170C9A9700DF47AD /* MLProcMultiple.cpp */; };
+		B5935104170C9A9700DF47AD /* MLProcMultiply.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C2170C9A9700DF47AD /* MLProcMultiply.cpp */; };
+		B5935105170C9A9700DF47AD /* MLProcMultiplyAdd.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C3170C9A9700DF47AD /* MLProcMultiplyAdd.cpp */; };
+		B5935106170C9A9700DF47AD /* MLProcNoise.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C4170C9A9700DF47AD /* MLProcNoise.cpp */; };
+		B5935107170C9A9700DF47AD /* MLProcOnepole.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C5170C9A9700DF47AD /* MLProcOnepole.cpp */; };
+		B5935108170C9A9700DF47AD /* MLProcPan.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C6170C9A9700DF47AD /* MLProcPan.cpp */; };
+		B5935109170C9A9700DF47AD /* MLProcParamToSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C7170C9A9700DF47AD /* MLProcParamToSignal.cpp */; };
+		B593510A170C9A9700DF47AD /* MLProcPeak.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C8170C9A9700DF47AD /* MLProcPeak.cpp */; };
+		B593510B170C9A9700DF47AD /* MLProcPhasor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350C9170C9A9700DF47AD /* MLProcPhasor.cpp */; };
+		B593510C170C9A9700DF47AD /* MLProcPow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350CA170C9A9700DF47AD /* MLProcPow.cpp */; };
+		B593510D170C9A9700DF47AD /* MLProcQuantize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350CB170C9A9700DF47AD /* MLProcQuantize.cpp */; };
+		B593510E170C9A9700DF47AD /* MLProcRate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350CC170C9A9700DF47AD /* MLProcRate.cpp */; };
+		B593510F170C9A9700DF47AD /* MLProcResample.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350CD170C9A9700DF47AD /* MLProcResample.cpp */; };
+		B5935110170C9A9700DF47AD /* MLProcRingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350CE170C9A9700DF47AD /* MLProcRingBuffer.cpp */; };
+		B5935111170C9A9700DF47AD /* MLProcRMS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D0170C9A9700DF47AD /* MLProcRMS.cpp */; };
+		B5935112170C9A9700DF47AD /* MLProcSampleRate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D1170C9A9700DF47AD /* MLProcSampleRate.cpp */; };
+		B5935113170C9A9700DF47AD /* MLProcSineOsc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D2170C9A9700DF47AD /* MLProcSineOsc.cpp */; };
+		B5935114170C9A9700DF47AD /* MLProcSinePhase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D3170C9A9700DF47AD /* MLProcSinePhase.cpp */; };
+		B5935115170C9A9700DF47AD /* MLProcSubtract.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D4170C9A9700DF47AD /* MLProcSubtract.cpp */; };
+		B5935116170C9A9700DF47AD /* MLProcSum.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D5170C9A9700DF47AD /* MLProcSum.cpp */; };
+		B5935117170C9A9700DF47AD /* MLProcSVF.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D6170C9A9700DF47AD /* MLProcSVF.cpp */; };
+		B5935118170C9A9700DF47AD /* MLProcThru.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D7170C9A9700DF47AD /* MLProcThru.cpp */; };
+		B5935119170C9A9700DF47AD /* MLRatio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350D8170C9A9700DF47AD /* MLRatio.cpp */; };
+		B593511A170C9A9700DF47AD /* MLRingBuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350DA170C9A9700DF47AD /* MLRingBuffer.cpp */; };
+		B593511B170C9A9700DF47AD /* MLScale.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350DC170C9A9700DF47AD /* MLScale.cpp */; };
+		B593511C170C9A9700DF47AD /* MLSignal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350DE170C9A9700DF47AD /* MLSignal.cpp */; };
+		B593511D170C9A9700DF47AD /* MLSignalViewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350E0170C9A9700DF47AD /* MLSignalViewer.cpp */; };
+		B593511E170C9A9700DF47AD /* MLVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59350E2170C9A9700DF47AD /* MLVector.cpp */; };
+		B5935148170C9A9F00DF47AD /* MLButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935120170C9A9F00DF47AD /* MLButton.cpp */; };
+		B5935149170C9A9F00DF47AD /* MLDebugDisplay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935122170C9A9F00DF47AD /* MLDebugDisplay.cpp */; };
+		B593514A170C9A9F00DF47AD /* MLDial.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935124170C9A9F00DF47AD /* MLDial.cpp */; };
+		B593514B170C9A9F00DF47AD /* MLDrawableButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935126170C9A9F00DF47AD /* MLDrawableButton.cpp */; };
+		B593514C170C9A9F00DF47AD /* MLDrawing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935128170C9A9F00DF47AD /* MLDrawing.cpp */; };
+		B593514D170C9A9F00DF47AD /* MLEnvelope.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593512A170C9A9F00DF47AD /* MLEnvelope.cpp */; };
+		B593514E170C9A9F00DF47AD /* MLGraph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593512C170C9A9F00DF47AD /* MLGraph.cpp */; };
+		B593514F170C9A9F00DF47AD /* MLImageBank.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593512E170C9A9F00DF47AD /* MLImageBank.cpp */; };
+		B5935150170C9A9F00DF47AD /* MLLabel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935130170C9A9F00DF47AD /* MLLabel.cpp */; };
+		B5935151170C9A9F00DF47AD /* MLLookAndFeel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935132170C9A9F00DF47AD /* MLLookAndFeel.cpp */; };
+		B5935152170C9A9F00DF47AD /* MLMenuButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935134170C9A9F00DF47AD /* MLMenuButton.cpp */; };
+		B5935153170C9A9F00DF47AD /* MLMultiButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935136170C9A9F00DF47AD /* MLMultiButton.cpp */; };
+		B5935154170C9A9F00DF47AD /* MLMultiSlider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935138170C9A9F00DF47AD /* MLMultiSlider.cpp */; };
+		B5935155170C9A9F00DF47AD /* MLPanel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593513A170C9A9F00DF47AD /* MLPanel.cpp */; };
+		B5935156170C9A9F00DF47AD /* MLPositioner.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593513C170C9A9F00DF47AD /* MLPositioner.cpp */; };
+		B5935157170C9A9F00DF47AD /* MLSeparator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593513E170C9A9F00DF47AD /* MLSeparator.cpp */; };
+		B5935158170C9A9F00DF47AD /* MLTextButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935140170C9A9F00DF47AD /* MLTextButton.cpp */; };
+		B5935159170C9A9F00DF47AD /* MLToggleButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935142170C9A9F00DF47AD /* MLToggleButton.cpp */; };
+		B593515A170C9A9F00DF47AD /* MLUI.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935144170C9A9F00DF47AD /* MLUI.cpp */; };
+		B593515B170C9A9F00DF47AD /* MLUIBinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935146170C9A9F00DF47AD /* MLUIBinaryData.cpp */; };
+		B5935175170C9AA400DF47AD /* MLDebug.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593515D170C9AA400DF47AD /* MLDebug.cpp */; };
+		B5935176170C9AA400DF47AD /* MLGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593515F170C9AA400DF47AD /* MLGL.cpp */; };
+		B5935177170C9AA400DF47AD /* MLModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935162170C9AA400DF47AD /* MLModel.cpp */; };
+		B5935178170C9AA400DF47AD /* MLModelParam.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935164170C9AA400DF47AD /* MLModelParam.cpp */; };
+		B5935179170C9AA400DF47AD /* MLNetServiceHub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935166170C9AA400DF47AD /* MLNetServiceHub.cpp */; };
+		B593517A170C9AA400DF47AD /* MLOSCListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935168170C9AA400DF47AD /* MLOSCListener.cpp */; };
+		B593517B170C9AA400DF47AD /* MLPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593516A170C9AA400DF47AD /* MLPath.cpp */; };
+		B593517C170C9AA400DF47AD /* MLReporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593516D170C9AA400DF47AD /* MLReporter.cpp */; };
+		B593517D170C9AA400DF47AD /* MLResponder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593516F170C9AA400DF47AD /* MLResponder.cpp */; };
+		B593517E170C9AA400DF47AD /* MLSymbol.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935171170C9AA400DF47AD /* MLSymbol.cpp */; };
+		B59351AA170C9AA900DF47AD /* MLAppBorder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935180170C9AA900DF47AD /* MLAppBorder.cpp */; };
+		B59351AB170C9AA900DF47AD /* MLAppState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935182170C9AA900DF47AD /* MLAppState.cpp */; };
+		B59351AC170C9AA900DF47AD /* MLAppView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935184170C9AA900DF47AD /* MLAppView.cpp */; };
+		B59351AD170C9AA900DF47AD /* MLAppWindow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935186170C9AA900DF47AD /* MLAppWindow.cpp */; };
+		B59351AE170C9AA900DF47AD /* MLDefaultFileLocations.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935189170C9AA900DF47AD /* MLDefaultFileLocations.cpp */; };
+		B59351AF170C9AA900DF47AD /* MLjuce_AU_Resources.r in Rez */ = {isa = PBXBuildFile; fileRef = B593518B170C9AA900DF47AD /* MLjuce_AU_Resources.r */; };
+		B59351B0170C9AA900DF47AD /* MLjuce_AU_Wrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = B593518C170C9AA900DF47AD /* MLjuce_AU_Wrapper.mm */; };
+		B59351B1170C9AA900DF47AD /* MLjuce_VST_Wrapper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593518E170C9AA900DF47AD /* MLjuce_VST_Wrapper.cpp */; };
+		B59351B2170C9AA900DF47AD /* MLjuce_VST_Wrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = B593518F170C9AA900DF47AD /* MLjuce_VST_Wrapper.mm */; };
+		B59351B3170C9AA900DF47AD /* MLJuceFilesMac.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935190170C9AA900DF47AD /* MLJuceFilesMac.cpp */; };
+		B59351B4170C9AA900DF47AD /* MLMenu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935193170C9AA900DF47AD /* MLMenu.cpp */; };
+		B59351B5170C9AA900DF47AD /* MLPageView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935195170C9AA900DF47AD /* MLPageView.cpp */; };
+		B59351B6170C9AA900DF47AD /* MLParamSetter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935197170C9AA900DF47AD /* MLParamSetter.cpp */; };
+		B59351B7170C9AA900DF47AD /* MLPluginController.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935199170C9AA900DF47AD /* MLPluginController.cpp */; };
+		B59351B8170C9AA900DF47AD /* MLPluginEditor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593519B170C9AA900DF47AD /* MLPluginEditor.cpp */; };
+		B59351B9170C9AA900DF47AD /* MLPluginProcessor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593519E170C9AA900DF47AD /* MLPluginProcessor.cpp */; };
+		B59351BA170C9AA900DF47AD /* MLPluginView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59351A0170C9AA900DF47AD /* MLPluginView.cpp */; };
+		B59351BB170C9AA900DF47AD /* MLSignalReporter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59351A2170C9AA900DF47AD /* MLSignalReporter.cpp */; };
+		B59351BC170C9AA900DF47AD /* MLTime.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59351A4170C9AA900DF47AD /* MLTime.cpp */; };
+		B59351BD170C9AA900DF47AD /* MLWidget.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59351A6170C9AA900DF47AD /* MLWidget.cpp */; };
+		B59351BE170C9AA900DF47AD /* MLWidgetContainer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59351A8170C9AA900DF47AD /* MLWidgetContainer.cpp */; };
+		B59351C3170C9AB400DF47AD /* pa_ringbuffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B59351C1170C9AB400DF47AD /* pa_ringbuffer.cpp */; };
+		B59351DB170C9AD500DF47AD /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351CF170C9AD500DF47AD /* juce_audio_devices.mm */; };
+		B59351DC170C9AD500DF47AD /* juce_audio_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D0170C9AD500DF47AD /* juce_audio_basics.mm */; };
+		B59351DD170C9AD500DF47AD /* juce_audio_formats.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D1170C9AD500DF47AD /* juce_audio_formats.mm */; };
+		B59351DE170C9AD500DF47AD /* juce_core.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D2170C9AD500DF47AD /* juce_core.mm */; };
+		B59351DF170C9AD500DF47AD /* juce_audio_processors.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D3170C9AD500DF47AD /* juce_audio_processors.mm */; };
+		B59351E0170C9AD500DF47AD /* juce_audio_utils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D4170C9AD500DF47AD /* juce_audio_utils.mm */; };
+		B59351E1170C9AD500DF47AD /* juce_data_structures.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D5170C9AD500DF47AD /* juce_data_structures.mm */; };
+		B59351E2170C9AD500DF47AD /* juce_events.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D6170C9AD500DF47AD /* juce_events.mm */; };
+		B59351E3170C9AD500DF47AD /* juce_graphics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D7170C9AD500DF47AD /* juce_graphics.mm */; };
+		B59351E4170C9AD500DF47AD /* juce_gui_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D8170C9AD500DF47AD /* juce_gui_basics.mm */; };
+		B59351E5170C9AD500DF47AD /* juce_gui_extra.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351D9170C9AD500DF47AD /* juce_gui_extra.mm */; };
+		B59351E6170C9AD500DF47AD /* juce_opengl.mm in Sources */ = {isa = PBXBuildFile; fileRef = B59351DA170C9AD500DF47AD /* juce_opengl.mm */; };
+		B5935214170C9C6200DF47AD /* MLExampleBinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935212170C9C6200DF47AD /* MLExampleBinaryData.cpp */; };
+		B5935247170C9CA000DF47AD /* CriticalSection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935226170C9CA000DF47AD /* CriticalSection.cpp */; };
+		B5935248170C9CA000DF47AD /* NetService.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935228170C9CA000DF47AD /* NetService.cpp */; };
+		B5935249170C9CA000DF47AD /* NetServiceBrowser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593522A170C9CA000DF47AD /* NetServiceBrowser.cpp */; };
+		B593524A170C9CA000DF47AD /* NetServiceThread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593522C170C9CA000DF47AD /* NetServiceThread.cpp */; };
+		B593524B170C9CA000DF47AD /* Thread.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593522E170C9CA000DF47AD /* Thread.cpp */; };
+		B593524C170C9CA000DF47AD /* IpEndpointName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935231170C9CA000DF47AD /* IpEndpointName.cpp */; };
+		B593524D170C9CA000DF47AD /* NetworkingUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935236170C9CA000DF47AD /* NetworkingUtils.cpp */; };
+		B593524E170C9CA000DF47AD /* UdpSocket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935237170C9CA000DF47AD /* UdpSocket.cpp */; };
+		B593524F170C9CA000DF47AD /* OscOutboundPacketStream.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B593523E170C9CA000DF47AD /* OscOutboundPacketStream.cpp */; };
+		B5935250170C9CA000DF47AD /* OscPrintReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935241170C9CA000DF47AD /* OscPrintReceivedElements.cpp */; };
+		B5935251170C9CA000DF47AD /* OscReceivedElements.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935243170C9CA000DF47AD /* OscReceivedElements.cpp */; };
+		B5935252170C9CA000DF47AD /* OscTypes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5935245170C9CA000DF47AD /* OscTypes.cpp */; };
 		B5AB593E16FA5DC2008ECFF2 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5AB593D16FA5DC2008ECFF2 /* WebKit.framework */; };
-		B5AB596A16FA697F008ECFF2 /* MLjuce_AU_Resources.r in Rez */ = {isa = PBXBuildFile; fileRef = B5AB596916FA697F008ECFF2 /* MLjuce_AU_Resources.r */; };
 		B5BFF4051513A2AA007F87E0 /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B5BFF4041513A2AA007F87E0 /* OpenGL.framework */; };
 		B7D2D2868983939B35532885 /* CAAUParameter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6C254919C15224D13FE6D174 /* CAAUParameter.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
 		BAF7CD5DAFBAB29BEF0DCAE3 /* AUOutputElement.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4BA3B7415620D5A6A3DD6076 /* AUOutputElement.cpp */; settings = {COMPILER_FLAGS = "-w"; }; };
@@ -242,264 +234,255 @@
 		B050085463EEB5F8367314CB /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		B4F88060202011416CB3278B /* QTKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QTKit.framework; path = System/Library/Frameworks/QTKit.framework; sourceTree = SDKROOT; };
 		B50242715BF944E7711A5939 /* AUSilentTimeout.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = AUSilentTimeout.h; path = Extras/CoreAudio/AudioUnits/AUPublic/Utility/AUSilentTimeout.h; sourceTree = DEVELOPER_DIR; };
-		B5158B8C1630961C007E50A9 /* JucePluginCharacteristics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JucePluginCharacteristics.h; path = ../src/JucePluginCharacteristics.h; sourceTree = SOURCE_ROOT; };
-		B5159416163217B7007E50A9 /* AppConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppConfig.h; path = ../src/AppConfig.h; sourceTree = SOURCE_ROOT; };
 		B580B2A316F7B07C00296E40 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = /System/Library/Frameworks/Accelerate.framework; sourceTree = "<absolute>"; };
 		B580B2CA16F7B08600296E40 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = /System/Library/Frameworks/AudioToolbox.framework; sourceTree = "<absolute>"; };
-		B592C24116F126A7001B578F /* MLExampleBinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleBinaryData.cpp; path = ../PluginData/BinaryData/MLExampleBinaryData.cpp; sourceTree = SOURCE_ROOT; };
-		B592C24216F126A7001B578F /* MLExampleBinaryData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleBinaryData.h; path = ../PluginData/BinaryData/MLExampleBinaryData.h; sourceTree = SOURCE_ROOT; };
-		B592C25216F12739001B578F /* MLExampleController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleController.cpp; path = ../src/MLExampleController.cpp; sourceTree = SOURCE_ROOT; };
-		B592C25316F12739001B578F /* MLExampleController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleController.h; path = ../src/MLExampleController.h; sourceTree = SOURCE_ROOT; };
-		B592C25416F12739001B578F /* MLExampleEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleEditor.cpp; path = ../src/MLExampleEditor.cpp; sourceTree = SOURCE_ROOT; };
-		B592C25516F12739001B578F /* MLExampleEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleEditor.h; path = ../src/MLExampleEditor.h; sourceTree = SOURCE_ROOT; };
-		B592C25616F12739001B578F /* MLExampleProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleProcessor.cpp; path = ../src/MLExampleProcessor.cpp; sourceTree = SOURCE_ROOT; };
-		B592C25716F12739001B578F /* MLExampleProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleProcessor.h; path = ../src/MLExampleProcessor.h; sourceTree = SOURCE_ROOT; };
-		B592C25816F12739001B578F /* MLExampleView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleView.cpp; path = ../src/MLExampleView.cpp; sourceTree = SOURCE_ROOT; };
-		B592C25916F12739001B578F /* MLExampleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleView.h; path = ../src/MLExampleView.h; sourceTree = SOURCE_ROOT; };
-		B59EABDB133D6BB90097CBD9 /* MLExample.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = MLExample.xml; path = ../PluginData/BinarySrc/MLExample.xml; sourceTree = SOURCE_ROOT; };
-		B5AB55E216FA5BC4008ECFF2 /* MLChangeList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLChangeList.cpp; sourceTree = "<group>"; };
-		B5AB55E316FA5BC4008ECFF2 /* MLChangeList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLChangeList.h; sourceTree = "<group>"; };
-		B5AB55E416FA5BC4008ECFF2 /* MLDSP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSP.cpp; sourceTree = "<group>"; };
-		B5AB55E516FA5BC4008ECFF2 /* MLDSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSP.h; sourceTree = "<group>"; };
-		B5AB55E616FA5BC4008ECFF2 /* MLDSPContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSPContext.cpp; sourceTree = "<group>"; };
-		B5AB55E716FA5BC4008ECFF2 /* MLDSPContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSPContext.h; sourceTree = "<group>"; };
-		B5AB55E816FA5BC4008ECFF2 /* MLDSPEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSPEngine.cpp; sourceTree = "<group>"; };
-		B5AB55E916FA5BC4008ECFF2 /* MLDSPEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSPEngine.h; sourceTree = "<group>"; };
-		B5AB55EA16FA5BC4008ECFF2 /* MLMultProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultProxy.cpp; sourceTree = "<group>"; };
-		B5AB55EB16FA5BC4008ECFF2 /* MLMultProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultProxy.h; sourceTree = "<group>"; };
-		B5AB55EC16FA5BC4008ECFF2 /* MLParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLParameter.cpp; sourceTree = "<group>"; };
-		B5AB55ED16FA5BC4008ECFF2 /* MLParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLParameter.h; sourceTree = "<group>"; };
-		B5AB55EE16FA5BC4008ECFF2 /* MLProc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProc.cpp; sourceTree = "<group>"; };
-		B5AB55EF16FA5BC4008ECFF2 /* MLProc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProc.h; sourceTree = "<group>"; };
-		B5AB55F016FA5BC4008ECFF2 /* MLProcAbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAbs.cpp; sourceTree = "<group>"; };
-		B5AB55F116FA5BC4008ECFF2 /* MLProcAdd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAdd.cpp; sourceTree = "<group>"; };
-		B5AB55F216FA5BC4008ECFF2 /* MLProcAllpass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAllpass.cpp; sourceTree = "<group>"; };
-		B5AB55F316FA5BC4008ECFF2 /* MLProcBiquad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcBiquad.cpp; sourceTree = "<group>"; };
-		B5AB55F416FA5BC4008ECFF2 /* MLProcClamp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcClamp.cpp; sourceTree = "<group>"; };
-		B5AB55F516FA5BC4008ECFF2 /* MLProcClampSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcClampSignal.cpp; sourceTree = "<group>"; };
-		B5AB55F616FA5BC4008ECFF2 /* MLProcContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcContainer.cpp; sourceTree = "<group>"; };
-		B5AB55F716FA5BC4008ECFF2 /* MLProcContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcContainer.h; sourceTree = "<group>"; };
-		B5AB55F816FA5BC4008ECFF2 /* MLProcCubicDistort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcCubicDistort.cpp; sourceTree = "<group>"; };
-		B5AB55F916FA5BC4008ECFF2 /* MLProcDCBlocker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDCBlocker.cpp; sourceTree = "<group>"; };
-		B5AB55FA16FA5BC4008ECFF2 /* MLProcDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDebug.cpp; sourceTree = "<group>"; };
-		B5AB55FB16FA5BC4008ECFF2 /* MLProcDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelay.cpp; sourceTree = "<group>"; };
-		B5AB55FC16FA5BC4008ECFF2 /* MLProcDelayInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelayInput.cpp; sourceTree = "<group>"; };
-		B5AB55FD16FA5BC4008ECFF2 /* MLProcDelayInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcDelayInput.h; sourceTree = "<group>"; };
-		B5AB55FE16FA5BC4008ECFF2 /* MLProcDelayOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelayOutput.cpp; sourceTree = "<group>"; };
-		B5AB55FF16FA5BC4008ECFF2 /* MLProcDivide.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDivide.cpp; sourceTree = "<group>"; };
-		B5AB560016FA5BC4008ECFF2 /* MLProcDxDt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDxDt.cpp; sourceTree = "<group>"; };
-		B5AB560116FA5BC4008ECFF2 /* MLProcEnvelope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcEnvelope.cpp; sourceTree = "<group>"; };
-		B5AB560216FA5BC4008ECFF2 /* MLProcExp2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcExp2.cpp; sourceTree = "<group>"; };
-		B5AB560316FA5BC4008ECFF2 /* MLProcFade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFade.cpp; sourceTree = "<group>"; };
-		B5AB560416FA5BC4008ECFF2 /* MLProcFadeBipolar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFadeBipolar.cpp; sourceTree = "<group>"; };
-		B5AB560516FA5BC4008ECFF2 /* MLProcFMBandwidth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFMBandwidth.cpp; sourceTree = "<group>"; };
-		B5AB560616FA5BC4008ECFF2 /* MLProcGlide.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcGlide.cpp; sourceTree = "<group>"; };
-		B5AB560716FA5BC4008ECFF2 /* MLProcHostPhasor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcHostPhasor.cpp; sourceTree = "<group>"; };
-		B5AB560816FA5BC4008ECFF2 /* MLProcHostPhasor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcHostPhasor.h; sourceTree = "<group>"; };
-		B5AB560916FA5BC4008ECFF2 /* MLProcInputToSignals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcInputToSignals.cpp; sourceTree = "<group>"; };
-		B5AB560A16FA5BC4008ECFF2 /* MLProcInputToSignals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcInputToSignals.h; sourceTree = "<group>"; };
-		B5AB560B16FA5BC4008ECFF2 /* MLProcMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMatrix.cpp; sourceTree = "<group>"; };
-		B5AB560C16FA5BC4008ECFF2 /* MLProcMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMatrix.h; sourceTree = "<group>"; };
-		B5AB560D16FA5BC4008ECFF2 /* MLProcMultiple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiple.cpp; sourceTree = "<group>"; };
-		B5AB560E16FA5BC4008ECFF2 /* MLProcMultiple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMultiple.h; sourceTree = "<group>"; };
-		B5AB560F16FA5BC4008ECFF2 /* MLProcMultiply.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiply.cpp; sourceTree = "<group>"; };
-		B5AB561016FA5BC4008ECFF2 /* MLProcMultiplyAdd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiplyAdd.cpp; sourceTree = "<group>"; };
-		B5AB561116FA5BC4008ECFF2 /* MLProcNoise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcNoise.cpp; sourceTree = "<group>"; };
-		B5AB561216FA5BC4008ECFF2 /* MLProcOnepole.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcOnepole.cpp; sourceTree = "<group>"; };
-		B5AB561316FA5BC4008ECFF2 /* MLProcOSCToSignals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcOSCToSignals.cpp; sourceTree = "<group>"; };
-		B5AB561416FA5BC4008ECFF2 /* MLProcOSCToSignals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcOSCToSignals.h; sourceTree = "<group>"; };
-		B5AB561516FA5BC4008ECFF2 /* MLProcPan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPan.cpp; sourceTree = "<group>"; };
-		B5AB561616FA5BC4008ECFF2 /* MLProcParamToSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcParamToSignal.cpp; sourceTree = "<group>"; };
-		B5AB561716FA5BC4008ECFF2 /* MLProcPeak.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPeak.cpp; sourceTree = "<group>"; };
-		B5AB561816FA5BC4008ECFF2 /* MLProcPhasor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPhasor.cpp; sourceTree = "<group>"; };
-		B5AB561916FA5BC4008ECFF2 /* MLProcPow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPow.cpp; sourceTree = "<group>"; };
-		B5AB561A16FA5BC4008ECFF2 /* MLProcQuantize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcQuantize.cpp; sourceTree = "<group>"; };
-		B5AB561B16FA5BC4008ECFF2 /* MLProcRate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRate.cpp; sourceTree = "<group>"; };
-		B5AB561C16FA5BC4008ECFF2 /* MLProcResample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcResample.cpp; sourceTree = "<group>"; };
-		B5AB561D16FA5BC4008ECFF2 /* MLProcRingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRingBuffer.cpp; sourceTree = "<group>"; };
-		B5AB561E16FA5BC4008ECFF2 /* MLProcRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcRingBuffer.h; sourceTree = "<group>"; };
-		B5AB561F16FA5BC4008ECFF2 /* MLProcRMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRMS.cpp; sourceTree = "<group>"; };
-		B5AB562016FA5BC4008ECFF2 /* MLProcSampleRate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSampleRate.cpp; sourceTree = "<group>"; };
-		B5AB562116FA5BC4008ECFF2 /* MLProcSineOsc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSineOsc.cpp; sourceTree = "<group>"; };
-		B5AB562216FA5BC4008ECFF2 /* MLProcSinePhase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSinePhase.cpp; sourceTree = "<group>"; };
-		B5AB562316FA5BC4008ECFF2 /* MLProcSubtract.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSubtract.cpp; sourceTree = "<group>"; };
-		B5AB562416FA5BC4008ECFF2 /* MLProcSum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSum.cpp; sourceTree = "<group>"; };
-		B5AB562516FA5BC4008ECFF2 /* MLProcSVF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSVF.cpp; sourceTree = "<group>"; };
-		B5AB562616FA5BC4008ECFF2 /* MLProcThru.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcThru.cpp; sourceTree = "<group>"; };
-		B5AB562716FA5BC4008ECFF2 /* MLRatio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLRatio.cpp; sourceTree = "<group>"; };
-		B5AB562816FA5BC4008ECFF2 /* MLRatio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLRatio.h; sourceTree = "<group>"; };
-		B5AB562916FA5BC4008ECFF2 /* MLRingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLRingBuffer.cpp; sourceTree = "<group>"; };
-		B5AB562A16FA5BC4008ECFF2 /* MLRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLRingBuffer.h; sourceTree = "<group>"; };
-		B5AB562B16FA5BC4008ECFF2 /* MLScale.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLScale.cpp; sourceTree = "<group>"; };
-		B5AB562C16FA5BC4008ECFF2 /* MLScale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLScale.h; sourceTree = "<group>"; };
-		B5AB562D16FA5BC4008ECFF2 /* MLSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignal.cpp; sourceTree = "<group>"; };
-		B5AB562E16FA5BC4008ECFF2 /* MLSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignal.h; sourceTree = "<group>"; };
-		B5AB562F16FA5BC4008ECFF2 /* MLSignalViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignalViewer.cpp; sourceTree = "<group>"; };
-		B5AB563016FA5BC4008ECFF2 /* MLSignalViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignalViewer.h; sourceTree = "<group>"; };
-		B5AB563116FA5BC4008ECFF2 /* MLVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLVector.cpp; sourceTree = "<group>"; };
-		B5AB563216FA5BC4008ECFF2 /* MLVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLVector.h; sourceTree = "<group>"; };
-		B5AB568F16FA5BE9008ECFF2 /* MLAppBorder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppBorder.cpp; sourceTree = "<group>"; };
-		B5AB569016FA5BE9008ECFF2 /* MLAppBorder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppBorder.h; sourceTree = "<group>"; };
-		B5AB569116FA5BE9008ECFF2 /* MLAppState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppState.cpp; sourceTree = "<group>"; };
-		B5AB569216FA5BE9008ECFF2 /* MLAppState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppState.h; sourceTree = "<group>"; };
-		B5AB569316FA5BE9008ECFF2 /* MLAppView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppView.cpp; sourceTree = "<group>"; };
-		B5AB569416FA5BE9008ECFF2 /* MLAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppView.h; sourceTree = "<group>"; };
-		B5AB569516FA5BE9008ECFF2 /* MLAppWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppWindow.cpp; sourceTree = "<group>"; };
-		B5AB569616FA5BE9008ECFF2 /* MLAppWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppWindow.h; sourceTree = "<group>"; };
-		B5AB569716FA5BE9008ECFF2 /* MLAudioProcessorListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAudioProcessorListener.h; sourceTree = "<group>"; };
-		B5AB569816FA5BE9008ECFF2 /* MLDefaultFileLocations.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDefaultFileLocations.cpp; sourceTree = "<group>"; };
-		B5AB569916FA5BE9008ECFF2 /* MLDefaultFileLocations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDefaultFileLocations.h; sourceTree = "<group>"; };
-		B5AB569A16FA5BE9008ECFF2 /* MLjuce_AU_Wrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MLjuce_AU_Wrapper.mm; sourceTree = "<group>"; };
-		B5AB569B16FA5BE9008ECFF2 /* MLjuce_IncludeCharacteristics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLjuce_IncludeCharacteristics.h; sourceTree = "<group>"; };
-		B5AB569C16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLjuce_VST_Wrapper.cpp; sourceTree = "<group>"; };
-		B5AB569D16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MLjuce_VST_Wrapper.mm; sourceTree = "<group>"; };
-		B5AB569E16FA5BE9008ECFF2 /* MLJuceFilesMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLJuceFilesMac.cpp; sourceTree = "<group>"; };
-		B5AB569F16FA5BE9008ECFF2 /* MLJuceFilesMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJuceFilesMac.h; sourceTree = "<group>"; };
-		B5AB56A016FA5BE9008ECFF2 /* MLJuceInclude.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJuceInclude.h; sourceTree = "<group>"; };
-		B5AB56A116FA5BE9008ECFF2 /* MLMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMenu.cpp; sourceTree = "<group>"; };
-		B5AB56A216FA5BE9008ECFF2 /* MLMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMenu.h; sourceTree = "<group>"; };
-		B5AB56A316FA5BE9008ECFF2 /* MLPageView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPageView.cpp; sourceTree = "<group>"; };
-		B5AB56A416FA5BE9008ECFF2 /* MLPageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPageView.h; sourceTree = "<group>"; };
-		B5AB56A516FA5BE9008ECFF2 /* MLParamSetter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLParamSetter.cpp; sourceTree = "<group>"; };
-		B5AB56A616FA5BE9008ECFF2 /* MLParamSetter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLParamSetter.h; sourceTree = "<group>"; };
-		B5AB56A716FA5BE9008ECFF2 /* MLPluginController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginController.cpp; sourceTree = "<group>"; };
-		B5AB56A816FA5BE9008ECFF2 /* MLPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginController.h; sourceTree = "<group>"; };
-		B5AB56A916FA5BE9008ECFF2 /* MLPluginEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginEditor.cpp; sourceTree = "<group>"; };
-		B5AB56AA16FA5BE9008ECFF2 /* MLPluginEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginEditor.h; sourceTree = "<group>"; };
-		B5AB56AB16FA5BE9008ECFF2 /* MLPluginFormats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginFormats.h; sourceTree = "<group>"; };
-		B5AB56AC16FA5BE9008ECFF2 /* MLPluginProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginProcessor.cpp; sourceTree = "<group>"; };
-		B5AB56AD16FA5BE9008ECFF2 /* MLPluginProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginProcessor.h; sourceTree = "<group>"; };
-		B5AB56AE16FA5BE9008ECFF2 /* MLPluginView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginView.cpp; sourceTree = "<group>"; };
-		B5AB56AF16FA5BE9008ECFF2 /* MLPluginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginView.h; sourceTree = "<group>"; };
-		B5AB56B016FA5BE9008ECFF2 /* MLSignalReporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignalReporter.cpp; sourceTree = "<group>"; };
-		B5AB56B116FA5BE9008ECFF2 /* MLSignalReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignalReporter.h; sourceTree = "<group>"; };
-		B5AB56B216FA5BE9008ECFF2 /* MLTime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLTime.cpp; sourceTree = "<group>"; };
-		B5AB56B316FA5BE9008ECFF2 /* MLTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLTime.h; sourceTree = "<group>"; };
-		B5AB56B416FA5BE9008ECFF2 /* MLWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLWidget.cpp; sourceTree = "<group>"; };
-		B5AB56B516FA5BE9008ECFF2 /* MLWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLWidget.h; sourceTree = "<group>"; };
-		B5AB56B616FA5BE9008ECFF2 /* MLWidgetContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLWidgetContainer.cpp; sourceTree = "<group>"; };
-		B5AB56B716FA5BE9008ECFF2 /* MLWidgetContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLWidgetContainer.h; sourceTree = "<group>"; };
-		B5AB56D416FA5C0B008ECFF2 /* juce_audio_devices.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_devices.mm; path = ../../../juce/modules/juce_audio_devices/juce_audio_devices.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56D516FA5C0B008ECFF2 /* juce_audio_basics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_basics.mm; path = ../../../juce/modules/juce_audio_basics/juce_audio_basics.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56D616FA5C0B008ECFF2 /* juce_audio_formats.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_formats.mm; path = ../../../juce/modules/juce_audio_formats/juce_audio_formats.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56D716FA5C0B008ECFF2 /* juce_core.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_core.mm; path = ../../../juce/modules/juce_core/juce_core.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56D816FA5C0B008ECFF2 /* juce_audio_processors.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_processors.mm; path = ../../../juce/modules/juce_audio_processors/juce_audio_processors.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56D916FA5C0B008ECFF2 /* juce_audio_utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_utils.mm; path = ../../../juce/modules/juce_audio_utils/juce_audio_utils.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56DA16FA5C0B008ECFF2 /* juce_data_structures.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_data_structures.mm; path = ../../../juce/modules/juce_data_structures/juce_data_structures.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56DB16FA5C0B008ECFF2 /* juce_events.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_events.mm; path = ../../../juce/modules/juce_events/juce_events.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56DC16FA5C0B008ECFF2 /* juce_graphics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_graphics.mm; path = ../../../juce/modules/juce_graphics/juce_graphics.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56DD16FA5C0B008ECFF2 /* juce_gui_basics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_gui_basics.mm; path = ../../../juce/modules/juce_gui_basics/juce_gui_basics.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56DE16FA5C0B008ECFF2 /* juce_gui_extra.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_gui_extra.mm; path = ../../../juce/modules/juce_gui_extra/juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56DF16FA5C0B008ECFF2 /* juce_opengl.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_opengl.mm; path = ../../../juce/modules/juce_opengl/juce_opengl.mm; sourceTree = SOURCE_ROOT; };
-		B5AB56FB16FA5C1D008ECFF2 /* MLButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLButton.cpp; sourceTree = "<group>"; };
-		B5AB56FC16FA5C1D008ECFF2 /* MLButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLButton.h; sourceTree = "<group>"; };
-		B5AB56FD16FA5C1D008ECFF2 /* MLDebugDisplay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDebugDisplay.cpp; sourceTree = "<group>"; };
-		B5AB56FE16FA5C1D008ECFF2 /* MLDebugDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDebugDisplay.h; sourceTree = "<group>"; };
-		B5AB56FF16FA5C1D008ECFF2 /* MLDial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDial.cpp; sourceTree = "<group>"; };
-		B5AB570016FA5C1D008ECFF2 /* MLDial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDial.h; sourceTree = "<group>"; };
-		B5AB570116FA5C1D008ECFF2 /* MLDrawableButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDrawableButton.cpp; sourceTree = "<group>"; };
-		B5AB570216FA5C1D008ECFF2 /* MLDrawableButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDrawableButton.h; sourceTree = "<group>"; };
-		B5AB570316FA5C1D008ECFF2 /* MLDrawing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDrawing.cpp; sourceTree = "<group>"; };
-		B5AB570416FA5C1D008ECFF2 /* MLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDrawing.h; sourceTree = "<group>"; };
-		B5AB570516FA5C1D008ECFF2 /* MLEnvelope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLEnvelope.cpp; sourceTree = "<group>"; };
-		B5AB570616FA5C1D008ECFF2 /* MLEnvelope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLEnvelope.h; sourceTree = "<group>"; };
-		B5AB570716FA5C1D008ECFF2 /* MLGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLGraph.cpp; sourceTree = "<group>"; };
-		B5AB570816FA5C1D008ECFF2 /* MLGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLGraph.h; sourceTree = "<group>"; };
-		B5AB570916FA5C1D008ECFF2 /* MLImageBank.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLImageBank.cpp; sourceTree = "<group>"; };
-		B5AB570A16FA5C1D008ECFF2 /* MLImageBank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLImageBank.h; sourceTree = "<group>"; };
-		B5AB570B16FA5C1D008ECFF2 /* MLLabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLLabel.cpp; sourceTree = "<group>"; };
-		B5AB570C16FA5C1D008ECFF2 /* MLLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLLabel.h; sourceTree = "<group>"; };
-		B5AB570D16FA5C1D008ECFF2 /* MLLookAndFeel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLLookAndFeel.cpp; sourceTree = "<group>"; };
-		B5AB570E16FA5C1D008ECFF2 /* MLLookAndFeel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLLookAndFeel.h; sourceTree = "<group>"; };
-		B5AB570F16FA5C1D008ECFF2 /* MLMenuButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMenuButton.cpp; sourceTree = "<group>"; };
-		B5AB571016FA5C1D008ECFF2 /* MLMenuButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMenuButton.h; sourceTree = "<group>"; };
-		B5AB571116FA5C1D008ECFF2 /* MLMultiButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultiButton.cpp; sourceTree = "<group>"; };
-		B5AB571216FA5C1D008ECFF2 /* MLMultiButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultiButton.h; sourceTree = "<group>"; };
-		B5AB571316FA5C1D008ECFF2 /* MLMultiSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultiSlider.cpp; sourceTree = "<group>"; };
-		B5AB571416FA5C1D008ECFF2 /* MLMultiSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultiSlider.h; sourceTree = "<group>"; };
-		B5AB571516FA5C1D008ECFF2 /* MLPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPanel.cpp; sourceTree = "<group>"; };
-		B5AB571616FA5C1D008ECFF2 /* MLPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPanel.h; sourceTree = "<group>"; };
-		B5AB571716FA5C1D008ECFF2 /* MLPositioner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPositioner.cpp; sourceTree = "<group>"; };
-		B5AB571816FA5C1D008ECFF2 /* MLPositioner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPositioner.h; sourceTree = "<group>"; };
-		B5AB571916FA5C1D008ECFF2 /* MLSeparator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSeparator.cpp; sourceTree = "<group>"; };
-		B5AB571A16FA5C1D008ECFF2 /* MLSeparator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSeparator.h; sourceTree = "<group>"; };
-		B5AB571B16FA5C1D008ECFF2 /* MLTextButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLTextButton.cpp; sourceTree = "<group>"; };
-		B5AB571C16FA5C1D008ECFF2 /* MLTextButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLTextButton.h; sourceTree = "<group>"; };
-		B5AB571D16FA5C1D008ECFF2 /* MLToggleButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLToggleButton.cpp; sourceTree = "<group>"; };
-		B5AB571E16FA5C1D008ECFF2 /* MLToggleButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLToggleButton.h; sourceTree = "<group>"; };
-		B5AB571F16FA5C1D008ECFF2 /* MLUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLUI.cpp; sourceTree = "<group>"; };
-		B5AB572016FA5C1D008ECFF2 /* MLUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLUI.h; sourceTree = "<group>"; };
-		B5AB572116FA5C1D008ECFF2 /* MLUIBinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLUIBinaryData.cpp; sourceTree = "<group>"; };
-		B5AB572216FA5C1D008ECFF2 /* MLUIBinaryData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLUIBinaryData.h; sourceTree = "<group>"; };
-		B5AB573816FA5C2D008ECFF2 /* pa_memorybarrier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
-		B5AB573916FA5C2D008ECFF2 /* pa_ringbuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa_ringbuffer.cpp; sourceTree = "<group>"; };
-		B5AB573A16FA5C2D008ECFF2 /* pa_ringbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pa_ringbuffer.h; sourceTree = "<group>"; };
-		B5AB57EC16FA5C85008ECFF2 /* MLDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLDebug.cpp; path = ../../../MadronaLib/MLApp/MLDebug.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57ED16FA5C85008ECFF2 /* MLDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLDebug.h; path = ../../../MadronaLib/MLApp/MLDebug.h; sourceTree = SOURCE_ROOT; };
-		B5AB57EE16FA5C85008ECFF2 /* MLGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLGL.cpp; path = ../../../MadronaLib/MLApp/MLGL.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57EF16FA5C85008ECFF2 /* MLGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLGL.h; path = ../../../MadronaLib/MLApp/MLGL.h; sourceTree = SOURCE_ROOT; };
-		B5AB57F016FA5C85008ECFF2 /* MLModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLModel.cpp; path = ../../../MadronaLib/MLApp/MLModel.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57F116FA5C85008ECFF2 /* MLModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLModel.h; path = ../../../MadronaLib/MLApp/MLModel.h; sourceTree = SOURCE_ROOT; };
-		B5AB57F216FA5C85008ECFF2 /* MLModelParam.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLModelParam.cpp; path = ../../../MadronaLib/MLApp/MLModelParam.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57F316FA5C85008ECFF2 /* MLModelParam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLModelParam.h; path = ../../../MadronaLib/MLApp/MLModelParam.h; sourceTree = SOURCE_ROOT; };
-		B5AB57F416FA5C85008ECFF2 /* MLNetServiceHub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLNetServiceHub.cpp; path = ../../../MadronaLib/MLApp/MLNetServiceHub.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57F516FA5C85008ECFF2 /* MLNetServiceHub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLNetServiceHub.h; path = ../../../MadronaLib/MLApp/MLNetServiceHub.h; sourceTree = SOURCE_ROOT; };
-		B5AB57F616FA5C85008ECFF2 /* MLOSCListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLOSCListener.h; path = ../../../MadronaLib/MLApp/MLOSCListener.h; sourceTree = SOURCE_ROOT; };
-		B5AB57F716FA5C85008ECFF2 /* MLOSCListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLOSCListener.cpp; path = ../../../MadronaLib/MLApp/MLOSCListener.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57F816FA5C85008ECFF2 /* MLPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLPath.cpp; path = ../../../MadronaLib/MLApp/MLPath.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57F916FA5C85008ECFF2 /* MLPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLPath.h; path = ../../../MadronaLib/MLApp/MLPath.h; sourceTree = SOURCE_ROOT; };
-		B5AB57FA16FA5C85008ECFF2 /* MLPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLPlatform.h; path = ../../../MadronaLib/MLApp/MLPlatform.h; sourceTree = SOURCE_ROOT; };
-		B5AB57FB16FA5C85008ECFF2 /* MLReporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLReporter.cpp; path = ../../../MadronaLib/MLApp/MLReporter.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57FC16FA5C85008ECFF2 /* MLReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLReporter.h; path = ../../../MadronaLib/MLApp/MLReporter.h; sourceTree = SOURCE_ROOT; };
-		B5AB57FD16FA5C85008ECFF2 /* MLResponder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLResponder.cpp; path = ../../../MadronaLib/MLApp/MLResponder.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB57FE16FA5C85008ECFF2 /* MLResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLResponder.h; path = ../../../MadronaLib/MLApp/MLResponder.h; sourceTree = SOURCE_ROOT; };
-		B5AB57FF16FA5C85008ECFF2 /* MLSymbol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLSymbol.cpp; path = ../../../MadronaLib/MLApp/MLSymbol.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB580016FA5C85008ECFF2 /* MLSymbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLSymbol.h; path = ../../../MadronaLib/MLApp/MLSymbol.h; sourceTree = SOURCE_ROOT; };
-		B5AB580116FA5C85008ECFF2 /* MLSymbolMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLSymbolMap.h; path = ../../../MadronaLib/MLApp/MLSymbolMap.h; sourceTree = SOURCE_ROOT; };
-		B5AB580216FA5C85008ECFF2 /* MLTextStreamListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLTextStreamListener.h; path = ../../../MadronaLib/MLApp/MLTextStreamListener.h; sourceTree = SOURCE_ROOT; };
-		B5AB580316FA5C85008ECFF2 /* MLInputProtocols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLInputProtocols.h; path = ../../../MadronaLib/MLApp/MLInputProtocols.h; sourceTree = SOURCE_ROOT; };
-		B5AB581D16FA5CBF008ECFF2 /* IpEndpointName.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IpEndpointName.cpp; sourceTree = "<group>"; };
-		B5AB581E16FA5CBF008ECFF2 /* IpEndpointName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IpEndpointName.h; sourceTree = "<group>"; };
-		B5AB581F16FA5CBF008ECFF2 /* NetworkingUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkingUtils.h; sourceTree = "<group>"; };
-		B5AB582016FA5CBF008ECFF2 /* PacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketListener.h; sourceTree = "<group>"; };
-		B5AB582216FA5CBF008ECFF2 /* NetworkingUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkingUtils.cpp; sourceTree = "<group>"; };
-		B5AB582316FA5CBF008ECFF2 /* UdpSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UdpSocket.cpp; sourceTree = "<group>"; };
-		B5AB582416FA5CBF008ECFF2 /* TimerListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimerListener.h; sourceTree = "<group>"; };
-		B5AB582516FA5CBF008ECFF2 /* UdpSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UdpSocket.h; sourceTree = "<group>"; };
-		B5AB582716FA5CBF008ECFF2 /* MessageMappingOscPacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageMappingOscPacketListener.h; sourceTree = "<group>"; };
-		B5AB582816FA5CBF008ECFF2 /* OscException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscException.h; sourceTree = "<group>"; };
-		B5AB582916FA5CBF008ECFF2 /* OscHostEndianness.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscHostEndianness.h; sourceTree = "<group>"; };
-		B5AB582A16FA5CBF008ECFF2 /* OscOutboundPacketStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscOutboundPacketStream.cpp; sourceTree = "<group>"; };
-		B5AB582B16FA5CBF008ECFF2 /* OscOutboundPacketStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscOutboundPacketStream.h; sourceTree = "<group>"; };
-		B5AB582C16FA5CBF008ECFF2 /* OscPacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscPacketListener.h; sourceTree = "<group>"; };
-		B5AB582D16FA5CBF008ECFF2 /* OscPrintReceivedElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscPrintReceivedElements.cpp; sourceTree = "<group>"; };
-		B5AB582E16FA5CBF008ECFF2 /* OscPrintReceivedElements.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscPrintReceivedElements.h; sourceTree = "<group>"; };
-		B5AB582F16FA5CBF008ECFF2 /* OscReceivedElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscReceivedElements.cpp; sourceTree = "<group>"; };
-		B5AB583016FA5CBF008ECFF2 /* OscReceivedElements.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscReceivedElements.h; sourceTree = "<group>"; };
-		B5AB583116FA5CBF008ECFF2 /* OscTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscTypes.cpp; sourceTree = "<group>"; };
-		B5AB583216FA5CBF008ECFF2 /* OscTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscTypes.h; sourceTree = "<group>"; };
-		B5AB583416FA5CBF008ECFF2 /* CriticalSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CriticalSection.cpp; path = ../../../osctools/trunk/zeroconf/CriticalSection.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB583516FA5CBF008ECFF2 /* CriticalSection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CriticalSection.h; path = ../../../osctools/trunk/zeroconf/CriticalSection.h; sourceTree = SOURCE_ROOT; };
-		B5AB583616FA5CBF008ECFF2 /* NetService.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetService.cpp; path = ../../../osctools/trunk/zeroconf/NetService.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB583716FA5CBF008ECFF2 /* NetService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetService.h; path = ../../../osctools/trunk/zeroconf/NetService.h; sourceTree = SOURCE_ROOT; };
-		B5AB583816FA5CBF008ECFF2 /* NetServiceBrowser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetServiceBrowser.cpp; path = ../../../osctools/trunk/zeroconf/NetServiceBrowser.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB583916FA5CBF008ECFF2 /* NetServiceBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetServiceBrowser.h; path = ../../../osctools/trunk/zeroconf/NetServiceBrowser.h; sourceTree = SOURCE_ROOT; };
-		B5AB583A16FA5CBF008ECFF2 /* NetServiceThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetServiceThread.cpp; path = ../../../osctools/trunk/zeroconf/NetServiceThread.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB583B16FA5CBF008ECFF2 /* NetServiceThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetServiceThread.h; path = ../../../osctools/trunk/zeroconf/NetServiceThread.h; sourceTree = SOURCE_ROOT; };
-		B5AB583C16FA5CBF008ECFF2 /* Thread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread.cpp; path = ../../../osctools/trunk/zeroconf/Thread.cpp; sourceTree = SOURCE_ROOT; };
-		B5AB583D16FA5CBF008ECFF2 /* Thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread.h; path = ../../../osctools/trunk/zeroconf/Thread.h; sourceTree = SOURCE_ROOT; };
-		B5AB584F16FA5CEE008ECFF2 /* cJSON.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cJSON.c; sourceTree = "<group>"; };
-		B5AB585016FA5CEE008ECFF2 /* cJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cJSON.h; sourceTree = "<group>"; };
-		B5AB585116FA5CEE008ECFF2 /* README */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README; sourceTree = "<group>"; };
-		B5AB585216FA5CEE008ECFF2 /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = "<group>"; };
-		B5AB585416FA5CEE008ECFF2 /* test1 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test1; sourceTree = "<group>"; };
-		B5AB585516FA5CEE008ECFF2 /* test2 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test2; sourceTree = "<group>"; };
-		B5AB585616FA5CEE008ECFF2 /* test3 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test3; sourceTree = "<group>"; };
-		B5AB585716FA5CEE008ECFF2 /* test4 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test4; sourceTree = "<group>"; };
-		B5AB585816FA5CEE008ECFF2 /* test5 */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test5; sourceTree = "<group>"; };
+		B5935070170C9A6900DF47AD /* AppConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppConfig.h; path = ../../src/AppConfig.h; sourceTree = SOURCE_ROOT; };
+		B5935071170C9A6900DF47AD /* JuceHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JuceHeader.h; path = ../../src/JuceHeader.h; sourceTree = SOURCE_ROOT; };
+		B5935072170C9A6900DF47AD /* JucePluginCharacteristics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JucePluginCharacteristics.h; path = ../../src/JucePluginCharacteristics.h; sourceTree = SOURCE_ROOT; };
+		B5935073170C9A6900DF47AD /* MLExampleController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleController.cpp; path = ../../src/MLExampleController.cpp; sourceTree = SOURCE_ROOT; };
+		B5935074170C9A6900DF47AD /* MLExampleController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleController.h; path = ../../src/MLExampleController.h; sourceTree = SOURCE_ROOT; };
+		B5935075170C9A6900DF47AD /* MLExampleEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleEditor.cpp; path = ../../src/MLExampleEditor.cpp; sourceTree = SOURCE_ROOT; };
+		B5935076170C9A6900DF47AD /* MLExampleEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleEditor.h; path = ../../src/MLExampleEditor.h; sourceTree = SOURCE_ROOT; };
+		B5935077170C9A6900DF47AD /* MLExampleProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleProcessor.cpp; path = ../../src/MLExampleProcessor.cpp; sourceTree = SOURCE_ROOT; };
+		B5935078170C9A6900DF47AD /* MLExampleProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleProcessor.h; path = ../../src/MLExampleProcessor.h; sourceTree = SOURCE_ROOT; };
+		B5935079170C9A6900DF47AD /* MLExampleView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleView.cpp; path = ../../src/MLExampleView.cpp; sourceTree = SOURCE_ROOT; };
+		B593507A170C9A6900DF47AD /* MLExampleView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleView.h; path = ../../src/MLExampleView.h; sourceTree = SOURCE_ROOT; };
+		B593507F170C9A7900DF47AD /* MLExample.xml */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; name = MLExample.xml; path = ../../PluginData/BinarySrc/MLExample.xml; sourceTree = SOURCE_ROOT; };
+		B5935082170C9A8600DF47AD /* cJSON.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = cJSON.c; sourceTree = "<group>"; };
+		B5935083170C9A8600DF47AD /* cJSON.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = cJSON.h; sourceTree = "<group>"; };
+		B5935095170C9A9700DF47AD /* MLChangeList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLChangeList.cpp; sourceTree = "<group>"; };
+		B5935096170C9A9700DF47AD /* MLChangeList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLChangeList.h; sourceTree = "<group>"; };
+		B5935097170C9A9700DF47AD /* MLDSP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSP.cpp; sourceTree = "<group>"; };
+		B5935098170C9A9700DF47AD /* MLDSP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSP.h; sourceTree = "<group>"; };
+		B5935099170C9A9700DF47AD /* MLDSPContext.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSPContext.cpp; sourceTree = "<group>"; };
+		B593509A170C9A9700DF47AD /* MLDSPContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSPContext.h; sourceTree = "<group>"; };
+		B593509B170C9A9700DF47AD /* MLDSPEngine.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDSPEngine.cpp; sourceTree = "<group>"; };
+		B593509C170C9A9700DF47AD /* MLDSPEngine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDSPEngine.h; sourceTree = "<group>"; };
+		B593509D170C9A9700DF47AD /* MLMultProxy.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultProxy.cpp; sourceTree = "<group>"; };
+		B593509E170C9A9700DF47AD /* MLMultProxy.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultProxy.h; sourceTree = "<group>"; };
+		B593509F170C9A9700DF47AD /* MLParameter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLParameter.cpp; sourceTree = "<group>"; };
+		B59350A0170C9A9700DF47AD /* MLParameter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLParameter.h; sourceTree = "<group>"; };
+		B59350A1170C9A9700DF47AD /* MLProc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProc.cpp; sourceTree = "<group>"; };
+		B59350A2170C9A9700DF47AD /* MLProc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProc.h; sourceTree = "<group>"; };
+		B59350A3170C9A9700DF47AD /* MLProcAbs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAbs.cpp; sourceTree = "<group>"; };
+		B59350A4170C9A9700DF47AD /* MLProcAdd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAdd.cpp; sourceTree = "<group>"; };
+		B59350A5170C9A9700DF47AD /* MLProcAllpass.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcAllpass.cpp; sourceTree = "<group>"; };
+		B59350A6170C9A9700DF47AD /* MLProcBiquad.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcBiquad.cpp; sourceTree = "<group>"; };
+		B59350A7170C9A9700DF47AD /* MLProcClamp.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcClamp.cpp; sourceTree = "<group>"; };
+		B59350A8170C9A9700DF47AD /* MLProcClampSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcClampSignal.cpp; sourceTree = "<group>"; };
+		B59350A9170C9A9700DF47AD /* MLProcContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcContainer.cpp; sourceTree = "<group>"; };
+		B59350AA170C9A9700DF47AD /* MLProcContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcContainer.h; sourceTree = "<group>"; };
+		B59350AB170C9A9700DF47AD /* MLProcCubicDistort.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcCubicDistort.cpp; sourceTree = "<group>"; };
+		B59350AC170C9A9700DF47AD /* MLProcDCBlocker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDCBlocker.cpp; sourceTree = "<group>"; };
+		B59350AD170C9A9700DF47AD /* MLProcDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDebug.cpp; sourceTree = "<group>"; };
+		B59350AE170C9A9700DF47AD /* MLProcDelay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelay.cpp; sourceTree = "<group>"; };
+		B59350AF170C9A9700DF47AD /* MLProcDelayInput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelayInput.cpp; sourceTree = "<group>"; };
+		B59350B0170C9A9700DF47AD /* MLProcDelayInput.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcDelayInput.h; sourceTree = "<group>"; };
+		B59350B1170C9A9700DF47AD /* MLProcDelayOutput.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDelayOutput.cpp; sourceTree = "<group>"; };
+		B59350B2170C9A9700DF47AD /* MLProcDivide.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDivide.cpp; sourceTree = "<group>"; };
+		B59350B3170C9A9700DF47AD /* MLProcDxDt.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcDxDt.cpp; sourceTree = "<group>"; };
+		B59350B4170C9A9700DF47AD /* MLProcEnvelope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcEnvelope.cpp; sourceTree = "<group>"; };
+		B59350B5170C9A9700DF47AD /* MLProcExp2.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcExp2.cpp; sourceTree = "<group>"; };
+		B59350B6170C9A9700DF47AD /* MLProcFade.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFade.cpp; sourceTree = "<group>"; };
+		B59350B7170C9A9700DF47AD /* MLProcFadeBipolar.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFadeBipolar.cpp; sourceTree = "<group>"; };
+		B59350B8170C9A9700DF47AD /* MLProcFMBandwidth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcFMBandwidth.cpp; sourceTree = "<group>"; };
+		B59350B9170C9A9700DF47AD /* MLProcGlide.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcGlide.cpp; sourceTree = "<group>"; };
+		B59350BA170C9A9700DF47AD /* MLProcHostPhasor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcHostPhasor.cpp; sourceTree = "<group>"; };
+		B59350BB170C9A9700DF47AD /* MLProcHostPhasor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcHostPhasor.h; sourceTree = "<group>"; };
+		B59350BC170C9A9700DF47AD /* MLProcInputToSignals.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcInputToSignals.cpp; sourceTree = "<group>"; };
+		B59350BD170C9A9700DF47AD /* MLProcInputToSignals.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcInputToSignals.h; sourceTree = "<group>"; };
+		B59350BE170C9A9700DF47AD /* MLProcMatrix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMatrix.cpp; sourceTree = "<group>"; };
+		B59350BF170C9A9700DF47AD /* MLProcMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMatrix.h; sourceTree = "<group>"; };
+		B59350C0170C9A9700DF47AD /* MLProcMultiple.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiple.cpp; sourceTree = "<group>"; };
+		B59350C1170C9A9700DF47AD /* MLProcMultiple.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcMultiple.h; sourceTree = "<group>"; };
+		B59350C2170C9A9700DF47AD /* MLProcMultiply.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiply.cpp; sourceTree = "<group>"; };
+		B59350C3170C9A9700DF47AD /* MLProcMultiplyAdd.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcMultiplyAdd.cpp; sourceTree = "<group>"; };
+		B59350C4170C9A9700DF47AD /* MLProcNoise.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcNoise.cpp; sourceTree = "<group>"; };
+		B59350C5170C9A9700DF47AD /* MLProcOnepole.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcOnepole.cpp; sourceTree = "<group>"; };
+		B59350C6170C9A9700DF47AD /* MLProcPan.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPan.cpp; sourceTree = "<group>"; };
+		B59350C7170C9A9700DF47AD /* MLProcParamToSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcParamToSignal.cpp; sourceTree = "<group>"; };
+		B59350C8170C9A9700DF47AD /* MLProcPeak.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPeak.cpp; sourceTree = "<group>"; };
+		B59350C9170C9A9700DF47AD /* MLProcPhasor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPhasor.cpp; sourceTree = "<group>"; };
+		B59350CA170C9A9700DF47AD /* MLProcPow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcPow.cpp; sourceTree = "<group>"; };
+		B59350CB170C9A9700DF47AD /* MLProcQuantize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcQuantize.cpp; sourceTree = "<group>"; };
+		B59350CC170C9A9700DF47AD /* MLProcRate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRate.cpp; sourceTree = "<group>"; };
+		B59350CD170C9A9700DF47AD /* MLProcResample.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcResample.cpp; sourceTree = "<group>"; };
+		B59350CE170C9A9700DF47AD /* MLProcRingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRingBuffer.cpp; sourceTree = "<group>"; };
+		B59350CF170C9A9700DF47AD /* MLProcRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLProcRingBuffer.h; sourceTree = "<group>"; };
+		B59350D0170C9A9700DF47AD /* MLProcRMS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcRMS.cpp; sourceTree = "<group>"; };
+		B59350D1170C9A9700DF47AD /* MLProcSampleRate.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSampleRate.cpp; sourceTree = "<group>"; };
+		B59350D2170C9A9700DF47AD /* MLProcSineOsc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSineOsc.cpp; sourceTree = "<group>"; };
+		B59350D3170C9A9700DF47AD /* MLProcSinePhase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSinePhase.cpp; sourceTree = "<group>"; };
+		B59350D4170C9A9700DF47AD /* MLProcSubtract.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSubtract.cpp; sourceTree = "<group>"; };
+		B59350D5170C9A9700DF47AD /* MLProcSum.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSum.cpp; sourceTree = "<group>"; };
+		B59350D6170C9A9700DF47AD /* MLProcSVF.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcSVF.cpp; sourceTree = "<group>"; };
+		B59350D7170C9A9700DF47AD /* MLProcThru.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLProcThru.cpp; sourceTree = "<group>"; };
+		B59350D8170C9A9700DF47AD /* MLRatio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLRatio.cpp; sourceTree = "<group>"; };
+		B59350D9170C9A9700DF47AD /* MLRatio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLRatio.h; sourceTree = "<group>"; };
+		B59350DA170C9A9700DF47AD /* MLRingBuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLRingBuffer.cpp; sourceTree = "<group>"; };
+		B59350DB170C9A9700DF47AD /* MLRingBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLRingBuffer.h; sourceTree = "<group>"; };
+		B59350DC170C9A9700DF47AD /* MLScale.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLScale.cpp; sourceTree = "<group>"; };
+		B59350DD170C9A9700DF47AD /* MLScale.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLScale.h; sourceTree = "<group>"; };
+		B59350DE170C9A9700DF47AD /* MLSignal.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignal.cpp; sourceTree = "<group>"; };
+		B59350DF170C9A9700DF47AD /* MLSignal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignal.h; sourceTree = "<group>"; };
+		B59350E0170C9A9700DF47AD /* MLSignalViewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignalViewer.cpp; sourceTree = "<group>"; };
+		B59350E1170C9A9700DF47AD /* MLSignalViewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignalViewer.h; sourceTree = "<group>"; };
+		B59350E2170C9A9700DF47AD /* MLVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLVector.cpp; sourceTree = "<group>"; };
+		B59350E3170C9A9700DF47AD /* MLVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLVector.h; sourceTree = "<group>"; };
+		B5935120170C9A9F00DF47AD /* MLButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLButton.cpp; sourceTree = "<group>"; };
+		B5935121170C9A9F00DF47AD /* MLButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLButton.h; sourceTree = "<group>"; };
+		B5935122170C9A9F00DF47AD /* MLDebugDisplay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDebugDisplay.cpp; sourceTree = "<group>"; };
+		B5935123170C9A9F00DF47AD /* MLDebugDisplay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDebugDisplay.h; sourceTree = "<group>"; };
+		B5935124170C9A9F00DF47AD /* MLDial.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDial.cpp; sourceTree = "<group>"; };
+		B5935125170C9A9F00DF47AD /* MLDial.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDial.h; sourceTree = "<group>"; };
+		B5935126170C9A9F00DF47AD /* MLDrawableButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDrawableButton.cpp; sourceTree = "<group>"; };
+		B5935127170C9A9F00DF47AD /* MLDrawableButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDrawableButton.h; sourceTree = "<group>"; };
+		B5935128170C9A9F00DF47AD /* MLDrawing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDrawing.cpp; sourceTree = "<group>"; };
+		B5935129170C9A9F00DF47AD /* MLDrawing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDrawing.h; sourceTree = "<group>"; };
+		B593512A170C9A9F00DF47AD /* MLEnvelope.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLEnvelope.cpp; sourceTree = "<group>"; };
+		B593512B170C9A9F00DF47AD /* MLEnvelope.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLEnvelope.h; sourceTree = "<group>"; };
+		B593512C170C9A9F00DF47AD /* MLGraph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLGraph.cpp; sourceTree = "<group>"; };
+		B593512D170C9A9F00DF47AD /* MLGraph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLGraph.h; sourceTree = "<group>"; };
+		B593512E170C9A9F00DF47AD /* MLImageBank.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLImageBank.cpp; sourceTree = "<group>"; };
+		B593512F170C9A9F00DF47AD /* MLImageBank.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLImageBank.h; sourceTree = "<group>"; };
+		B5935130170C9A9F00DF47AD /* MLLabel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLLabel.cpp; sourceTree = "<group>"; };
+		B5935131170C9A9F00DF47AD /* MLLabel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLLabel.h; sourceTree = "<group>"; };
+		B5935132170C9A9F00DF47AD /* MLLookAndFeel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLLookAndFeel.cpp; sourceTree = "<group>"; };
+		B5935133170C9A9F00DF47AD /* MLLookAndFeel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLLookAndFeel.h; sourceTree = "<group>"; };
+		B5935134170C9A9F00DF47AD /* MLMenuButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMenuButton.cpp; sourceTree = "<group>"; };
+		B5935135170C9A9F00DF47AD /* MLMenuButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMenuButton.h; sourceTree = "<group>"; };
+		B5935136170C9A9F00DF47AD /* MLMultiButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultiButton.cpp; sourceTree = "<group>"; };
+		B5935137170C9A9F00DF47AD /* MLMultiButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultiButton.h; sourceTree = "<group>"; };
+		B5935138170C9A9F00DF47AD /* MLMultiSlider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMultiSlider.cpp; sourceTree = "<group>"; };
+		B5935139170C9A9F00DF47AD /* MLMultiSlider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMultiSlider.h; sourceTree = "<group>"; };
+		B593513A170C9A9F00DF47AD /* MLPanel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPanel.cpp; sourceTree = "<group>"; };
+		B593513B170C9A9F00DF47AD /* MLPanel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPanel.h; sourceTree = "<group>"; };
+		B593513C170C9A9F00DF47AD /* MLPositioner.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPositioner.cpp; sourceTree = "<group>"; };
+		B593513D170C9A9F00DF47AD /* MLPositioner.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPositioner.h; sourceTree = "<group>"; };
+		B593513E170C9A9F00DF47AD /* MLSeparator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSeparator.cpp; sourceTree = "<group>"; };
+		B593513F170C9A9F00DF47AD /* MLSeparator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSeparator.h; sourceTree = "<group>"; };
+		B5935140170C9A9F00DF47AD /* MLTextButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLTextButton.cpp; sourceTree = "<group>"; };
+		B5935141170C9A9F00DF47AD /* MLTextButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLTextButton.h; sourceTree = "<group>"; };
+		B5935142170C9A9F00DF47AD /* MLToggleButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLToggleButton.cpp; sourceTree = "<group>"; };
+		B5935143170C9A9F00DF47AD /* MLToggleButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLToggleButton.h; sourceTree = "<group>"; };
+		B5935144170C9A9F00DF47AD /* MLUI.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLUI.cpp; sourceTree = "<group>"; };
+		B5935145170C9A9F00DF47AD /* MLUI.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLUI.h; sourceTree = "<group>"; };
+		B5935146170C9A9F00DF47AD /* MLUIBinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLUIBinaryData.cpp; sourceTree = "<group>"; };
+		B5935147170C9A9F00DF47AD /* MLUIBinaryData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLUIBinaryData.h; sourceTree = "<group>"; };
+		B593515D170C9AA400DF47AD /* MLDebug.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDebug.cpp; sourceTree = "<group>"; };
+		B593515E170C9AA400DF47AD /* MLDebug.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDebug.h; sourceTree = "<group>"; };
+		B593515F170C9AA400DF47AD /* MLGL.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLGL.cpp; sourceTree = "<group>"; };
+		B5935160170C9AA400DF47AD /* MLGL.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLGL.h; sourceTree = "<group>"; };
+		B5935161170C9AA400DF47AD /* MLInputProtocols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLInputProtocols.h; sourceTree = "<group>"; };
+		B5935162170C9AA400DF47AD /* MLModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLModel.cpp; sourceTree = "<group>"; };
+		B5935163170C9AA400DF47AD /* MLModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLModel.h; sourceTree = "<group>"; };
+		B5935164170C9AA400DF47AD /* MLModelParam.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLModelParam.cpp; sourceTree = "<group>"; };
+		B5935165170C9AA400DF47AD /* MLModelParam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLModelParam.h; sourceTree = "<group>"; };
+		B5935166170C9AA400DF47AD /* MLNetServiceHub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLNetServiceHub.cpp; sourceTree = "<group>"; };
+		B5935167170C9AA400DF47AD /* MLNetServiceHub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLNetServiceHub.h; sourceTree = "<group>"; };
+		B5935168170C9AA400DF47AD /* MLOSCListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLOSCListener.cpp; sourceTree = "<group>"; };
+		B5935169170C9AA400DF47AD /* MLOSCListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLOSCListener.h; sourceTree = "<group>"; };
+		B593516A170C9AA400DF47AD /* MLPath.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPath.cpp; sourceTree = "<group>"; };
+		B593516B170C9AA400DF47AD /* MLPath.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPath.h; sourceTree = "<group>"; };
+		B593516C170C9AA400DF47AD /* MLPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPlatform.h; sourceTree = "<group>"; };
+		B593516D170C9AA400DF47AD /* MLReporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLReporter.cpp; sourceTree = "<group>"; };
+		B593516E170C9AA400DF47AD /* MLReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLReporter.h; sourceTree = "<group>"; };
+		B593516F170C9AA400DF47AD /* MLResponder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLResponder.cpp; sourceTree = "<group>"; };
+		B5935170170C9AA400DF47AD /* MLResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLResponder.h; sourceTree = "<group>"; };
+		B5935171170C9AA400DF47AD /* MLSymbol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSymbol.cpp; sourceTree = "<group>"; };
+		B5935172170C9AA400DF47AD /* MLSymbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSymbol.h; sourceTree = "<group>"; };
+		B5935173170C9AA400DF47AD /* MLSymbolMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSymbolMap.h; sourceTree = "<group>"; };
+		B5935174170C9AA400DF47AD /* MLTextStreamListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLTextStreamListener.h; sourceTree = "<group>"; };
+		B5935180170C9AA900DF47AD /* MLAppBorder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppBorder.cpp; sourceTree = "<group>"; };
+		B5935181170C9AA900DF47AD /* MLAppBorder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppBorder.h; sourceTree = "<group>"; };
+		B5935182170C9AA900DF47AD /* MLAppState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppState.cpp; sourceTree = "<group>"; };
+		B5935183170C9AA900DF47AD /* MLAppState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppState.h; sourceTree = "<group>"; };
+		B5935184170C9AA900DF47AD /* MLAppView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppView.cpp; sourceTree = "<group>"; };
+		B5935185170C9AA900DF47AD /* MLAppView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppView.h; sourceTree = "<group>"; };
+		B5935186170C9AA900DF47AD /* MLAppWindow.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLAppWindow.cpp; sourceTree = "<group>"; };
+		B5935187170C9AA900DF47AD /* MLAppWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAppWindow.h; sourceTree = "<group>"; };
+		B5935188170C9AA900DF47AD /* MLAudioProcessorListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLAudioProcessorListener.h; sourceTree = "<group>"; };
+		B5935189170C9AA900DF47AD /* MLDefaultFileLocations.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLDefaultFileLocations.cpp; sourceTree = "<group>"; };
+		B593518A170C9AA900DF47AD /* MLDefaultFileLocations.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLDefaultFileLocations.h; sourceTree = "<group>"; };
+		B593518B170C9AA900DF47AD /* MLjuce_AU_Resources.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = MLjuce_AU_Resources.r; sourceTree = "<group>"; };
+		B593518C170C9AA900DF47AD /* MLjuce_AU_Wrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MLjuce_AU_Wrapper.mm; sourceTree = "<group>"; };
+		B593518D170C9AA900DF47AD /* MLjuce_IncludeCharacteristics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLjuce_IncludeCharacteristics.h; sourceTree = "<group>"; };
+		B593518E170C9AA900DF47AD /* MLjuce_VST_Wrapper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLjuce_VST_Wrapper.cpp; sourceTree = "<group>"; };
+		B593518F170C9AA900DF47AD /* MLjuce_VST_Wrapper.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MLjuce_VST_Wrapper.mm; sourceTree = "<group>"; };
+		B5935190170C9AA900DF47AD /* MLJuceFilesMac.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLJuceFilesMac.cpp; sourceTree = "<group>"; };
+		B5935191170C9AA900DF47AD /* MLJuceFilesMac.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJuceFilesMac.h; sourceTree = "<group>"; };
+		B5935192170C9AA900DF47AD /* MLJuceInclude.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLJuceInclude.h; sourceTree = "<group>"; };
+		B5935193170C9AA900DF47AD /* MLMenu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLMenu.cpp; sourceTree = "<group>"; };
+		B5935194170C9AA900DF47AD /* MLMenu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLMenu.h; sourceTree = "<group>"; };
+		B5935195170C9AA900DF47AD /* MLPageView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPageView.cpp; sourceTree = "<group>"; };
+		B5935196170C9AA900DF47AD /* MLPageView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPageView.h; sourceTree = "<group>"; };
+		B5935197170C9AA900DF47AD /* MLParamSetter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLParamSetter.cpp; sourceTree = "<group>"; };
+		B5935198170C9AA900DF47AD /* MLParamSetter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLParamSetter.h; sourceTree = "<group>"; };
+		B5935199170C9AA900DF47AD /* MLPluginController.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginController.cpp; sourceTree = "<group>"; };
+		B593519A170C9AA900DF47AD /* MLPluginController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginController.h; sourceTree = "<group>"; };
+		B593519B170C9AA900DF47AD /* MLPluginEditor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginEditor.cpp; sourceTree = "<group>"; };
+		B593519C170C9AA900DF47AD /* MLPluginEditor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginEditor.h; sourceTree = "<group>"; };
+		B593519D170C9AA900DF47AD /* MLPluginFormats.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginFormats.h; sourceTree = "<group>"; };
+		B593519E170C9AA900DF47AD /* MLPluginProcessor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginProcessor.cpp; sourceTree = "<group>"; };
+		B593519F170C9AA900DF47AD /* MLPluginProcessor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginProcessor.h; sourceTree = "<group>"; };
+		B59351A0170C9AA900DF47AD /* MLPluginView.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLPluginView.cpp; sourceTree = "<group>"; };
+		B59351A1170C9AA900DF47AD /* MLPluginView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPluginView.h; sourceTree = "<group>"; };
+		B59351A2170C9AA900DF47AD /* MLSignalReporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSignalReporter.cpp; sourceTree = "<group>"; };
+		B59351A3170C9AA900DF47AD /* MLSignalReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSignalReporter.h; sourceTree = "<group>"; };
+		B59351A4170C9AA900DF47AD /* MLTime.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLTime.cpp; sourceTree = "<group>"; };
+		B59351A5170C9AA900DF47AD /* MLTime.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLTime.h; sourceTree = "<group>"; };
+		B59351A6170C9AA900DF47AD /* MLWidget.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLWidget.cpp; sourceTree = "<group>"; };
+		B59351A7170C9AA900DF47AD /* MLWidget.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLWidget.h; sourceTree = "<group>"; };
+		B59351A8170C9AA900DF47AD /* MLWidgetContainer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLWidgetContainer.cpp; sourceTree = "<group>"; };
+		B59351A9170C9AA900DF47AD /* MLWidgetContainer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLWidgetContainer.h; sourceTree = "<group>"; };
+		B59351C0170C9AB400DF47AD /* pa_memorybarrier.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pa_memorybarrier.h; sourceTree = "<group>"; };
+		B59351C1170C9AB400DF47AD /* pa_ringbuffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = pa_ringbuffer.cpp; sourceTree = "<group>"; };
+		B59351C2170C9AB400DF47AD /* pa_ringbuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = pa_ringbuffer.h; sourceTree = "<group>"; };
+		B59351CF170C9AD500DF47AD /* juce_audio_devices.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_devices.mm; path = ../../../../juce/modules/juce_audio_devices/juce_audio_devices.mm; sourceTree = SOURCE_ROOT; };
+		B59351D0170C9AD500DF47AD /* juce_audio_basics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_basics.mm; path = ../../../../juce/modules/juce_audio_basics/juce_audio_basics.mm; sourceTree = SOURCE_ROOT; };
+		B59351D1170C9AD500DF47AD /* juce_audio_formats.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_formats.mm; path = ../../../../juce/modules/juce_audio_formats/juce_audio_formats.mm; sourceTree = SOURCE_ROOT; };
+		B59351D2170C9AD500DF47AD /* juce_core.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_core.mm; path = ../../../../juce/modules/juce_core/juce_core.mm; sourceTree = SOURCE_ROOT; };
+		B59351D3170C9AD500DF47AD /* juce_audio_processors.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_processors.mm; path = ../../../../juce/modules/juce_audio_processors/juce_audio_processors.mm; sourceTree = SOURCE_ROOT; };
+		B59351D4170C9AD500DF47AD /* juce_audio_utils.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_audio_utils.mm; path = ../../../../juce/modules/juce_audio_utils/juce_audio_utils.mm; sourceTree = SOURCE_ROOT; };
+		B59351D5170C9AD500DF47AD /* juce_data_structures.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_data_structures.mm; path = ../../../../juce/modules/juce_data_structures/juce_data_structures.mm; sourceTree = SOURCE_ROOT; };
+		B59351D6170C9AD500DF47AD /* juce_events.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_events.mm; path = ../../../../juce/modules/juce_events/juce_events.mm; sourceTree = SOURCE_ROOT; };
+		B59351D7170C9AD500DF47AD /* juce_graphics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_graphics.mm; path = ../../../../juce/modules/juce_graphics/juce_graphics.mm; sourceTree = SOURCE_ROOT; };
+		B59351D8170C9AD500DF47AD /* juce_gui_basics.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_gui_basics.mm; path = ../../../../juce/modules/juce_gui_basics/juce_gui_basics.mm; sourceTree = SOURCE_ROOT; };
+		B59351D9170C9AD500DF47AD /* juce_gui_extra.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_gui_extra.mm; path = ../../../../juce/modules/juce_gui_extra/juce_gui_extra.mm; sourceTree = SOURCE_ROOT; };
+		B59351DA170C9AD500DF47AD /* juce_opengl.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = juce_opengl.mm; path = ../../../../juce/modules/juce_opengl/juce_opengl.mm; sourceTree = SOURCE_ROOT; };
+		B5935212170C9C6200DF47AD /* MLExampleBinaryData.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLExampleBinaryData.cpp; path = ../../PluginData/BinaryData/MLExampleBinaryData.cpp; sourceTree = SOURCE_ROOT; };
+		B5935213170C9C6200DF47AD /* MLExampleBinaryData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLExampleBinaryData.h; path = ../../PluginData/BinaryData/MLExampleBinaryData.h; sourceTree = SOURCE_ROOT; };
+		B5935226170C9CA000DF47AD /* CriticalSection.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CriticalSection.cpp; path = ../../../../osctools/trunk/zeroconf/CriticalSection.cpp; sourceTree = SOURCE_ROOT; };
+		B5935227170C9CA000DF47AD /* CriticalSection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CriticalSection.h; path = ../../../../osctools/trunk/zeroconf/CriticalSection.h; sourceTree = SOURCE_ROOT; };
+		B5935228170C9CA000DF47AD /* NetService.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetService.cpp; path = ../../../../osctools/trunk/zeroconf/NetService.cpp; sourceTree = SOURCE_ROOT; };
+		B5935229170C9CA000DF47AD /* NetService.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetService.h; path = ../../../../osctools/trunk/zeroconf/NetService.h; sourceTree = SOURCE_ROOT; };
+		B593522A170C9CA000DF47AD /* NetServiceBrowser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetServiceBrowser.cpp; path = ../../../../osctools/trunk/zeroconf/NetServiceBrowser.cpp; sourceTree = SOURCE_ROOT; };
+		B593522B170C9CA000DF47AD /* NetServiceBrowser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetServiceBrowser.h; path = ../../../../osctools/trunk/zeroconf/NetServiceBrowser.h; sourceTree = SOURCE_ROOT; };
+		B593522C170C9CA000DF47AD /* NetServiceThread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = NetServiceThread.cpp; path = ../../../../osctools/trunk/zeroconf/NetServiceThread.cpp; sourceTree = SOURCE_ROOT; };
+		B593522D170C9CA000DF47AD /* NetServiceThread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = NetServiceThread.h; path = ../../../../osctools/trunk/zeroconf/NetServiceThread.h; sourceTree = SOURCE_ROOT; };
+		B593522E170C9CA000DF47AD /* Thread.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Thread.cpp; path = ../../../../osctools/trunk/zeroconf/Thread.cpp; sourceTree = SOURCE_ROOT; };
+		B593522F170C9CA000DF47AD /* Thread.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Thread.h; path = ../../../../osctools/trunk/zeroconf/Thread.h; sourceTree = SOURCE_ROOT; };
+		B5935231170C9CA000DF47AD /* IpEndpointName.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = IpEndpointName.cpp; sourceTree = "<group>"; };
+		B5935232170C9CA000DF47AD /* IpEndpointName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IpEndpointName.h; sourceTree = "<group>"; };
+		B5935233170C9CA000DF47AD /* NetworkingUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetworkingUtils.h; sourceTree = "<group>"; };
+		B5935234170C9CA000DF47AD /* PacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PacketListener.h; sourceTree = "<group>"; };
+		B5935236170C9CA000DF47AD /* NetworkingUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = NetworkingUtils.cpp; sourceTree = "<group>"; };
+		B5935237170C9CA000DF47AD /* UdpSocket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = UdpSocket.cpp; sourceTree = "<group>"; };
+		B5935238170C9CA000DF47AD /* TimerListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimerListener.h; sourceTree = "<group>"; };
+		B5935239170C9CA000DF47AD /* UdpSocket.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = UdpSocket.h; sourceTree = "<group>"; };
+		B593523B170C9CA000DF47AD /* MessageMappingOscPacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MessageMappingOscPacketListener.h; sourceTree = "<group>"; };
+		B593523C170C9CA000DF47AD /* OscException.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscException.h; sourceTree = "<group>"; };
+		B593523D170C9CA000DF47AD /* OscHostEndianness.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscHostEndianness.h; sourceTree = "<group>"; };
+		B593523E170C9CA000DF47AD /* OscOutboundPacketStream.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscOutboundPacketStream.cpp; sourceTree = "<group>"; };
+		B593523F170C9CA000DF47AD /* OscOutboundPacketStream.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscOutboundPacketStream.h; sourceTree = "<group>"; };
+		B5935240170C9CA000DF47AD /* OscPacketListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscPacketListener.h; sourceTree = "<group>"; };
+		B5935241170C9CA000DF47AD /* OscPrintReceivedElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscPrintReceivedElements.cpp; sourceTree = "<group>"; };
+		B5935242170C9CA000DF47AD /* OscPrintReceivedElements.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscPrintReceivedElements.h; sourceTree = "<group>"; };
+		B5935243170C9CA000DF47AD /* OscReceivedElements.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscReceivedElements.cpp; sourceTree = "<group>"; };
+		B5935244170C9CA000DF47AD /* OscReceivedElements.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscReceivedElements.h; sourceTree = "<group>"; };
+		B5935245170C9CA000DF47AD /* OscTypes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OscTypes.cpp; sourceTree = "<group>"; };
+		B5935246170C9CA000DF47AD /* OscTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OscTypes.h; sourceTree = "<group>"; };
 		B5AB593D16FA5DC2008ECFF2 /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
-		B5AB596916FA697F008ECFF2 /* MLjuce_AU_Resources.r */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.rez; path = MLjuce_AU_Resources.r; sourceTree = "<group>"; };
-		B5BFF3EF1513A271007F87E0 /* JuceHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JuceHeader.h; path = ../src/JuceHeader.h; sourceTree = SOURCE_ROOT; };
 		B5BFF4041513A2AA007F87E0 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		B6B85F3F336EDA568CB53327 /* CAVectorUnit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CAVectorUnit.h; path = Extras/CoreAudio/PublicUtility/CAVectorUnit.h; sourceTree = DEVELOPER_DIR; };
 		BA712F15F8C80BF55297EA44 /* AUBase.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = AUBase.cpp; path = Extras/CoreAudio/AudioUnits/AUPublic/AUBase/AUBase.cpp; sourceTree = DEVELOPER_DIR; };
@@ -637,381 +620,373 @@
 		B584F0DF129AFD7000FB9202 /* MLExample */ = {
 			isa = PBXGroup;
 			children = (
-				B59EABDB133D6BB90097CBD9 /* MLExample.xml */,
-				B592C24116F126A7001B578F /* MLExampleBinaryData.cpp */,
-				B592C24216F126A7001B578F /* MLExampleBinaryData.h */,
-				B5159416163217B7007E50A9 /* AppConfig.h */,
-				B5BFF3EF1513A271007F87E0 /* JuceHeader.h */,
-				B5158B8C1630961C007E50A9 /* JucePluginCharacteristics.h */,
-				B592C25216F12739001B578F /* MLExampleController.cpp */,
-				B592C25316F12739001B578F /* MLExampleController.h */,
-				B592C25416F12739001B578F /* MLExampleEditor.cpp */,
-				B592C25516F12739001B578F /* MLExampleEditor.h */,
-				B592C25616F12739001B578F /* MLExampleProcessor.cpp */,
-				B592C25716F12739001B578F /* MLExampleProcessor.h */,
-				B592C25816F12739001B578F /* MLExampleView.cpp */,
-				B592C25916F12739001B578F /* MLExampleView.h */,
+				B5935212170C9C6200DF47AD /* MLExampleBinaryData.cpp */,
+				B5935213170C9C6200DF47AD /* MLExampleBinaryData.h */,
+				B593507F170C9A7900DF47AD /* MLExample.xml */,
+				B5935070170C9A6900DF47AD /* AppConfig.h */,
+				B5935071170C9A6900DF47AD /* JuceHeader.h */,
+				B5935072170C9A6900DF47AD /* JucePluginCharacteristics.h */,
+				B5935073170C9A6900DF47AD /* MLExampleController.cpp */,
+				B5935074170C9A6900DF47AD /* MLExampleController.h */,
+				B5935075170C9A6900DF47AD /* MLExampleEditor.cpp */,
+				B5935076170C9A6900DF47AD /* MLExampleEditor.h */,
+				B5935077170C9A6900DF47AD /* MLExampleProcessor.cpp */,
+				B5935078170C9A6900DF47AD /* MLExampleProcessor.h */,
+				B5935079170C9A6900DF47AD /* MLExampleView.cpp */,
+				B593507A170C9A6900DF47AD /* MLExampleView.h */,
 			);
 			name = MLExample;
 			sourceTree = "<group>";
 		};
-		B5AB55E116FA5BC4008ECFF2 /* DSP */ = {
+		B5934FC8170BC11200DF47AD /* MadronaLib */ = {
 			isa = PBXGroup;
 			children = (
-				B5AB55E216FA5BC4008ECFF2 /* MLChangeList.cpp */,
-				B5AB55E316FA5BC4008ECFF2 /* MLChangeList.h */,
-				B5AB55E416FA5BC4008ECFF2 /* MLDSP.cpp */,
-				B5AB55E516FA5BC4008ECFF2 /* MLDSP.h */,
-				B5AB55E616FA5BC4008ECFF2 /* MLDSPContext.cpp */,
-				B5AB55E716FA5BC4008ECFF2 /* MLDSPContext.h */,
-				B5AB55E816FA5BC4008ECFF2 /* MLDSPEngine.cpp */,
-				B5AB55E916FA5BC4008ECFF2 /* MLDSPEngine.h */,
-				B5AB55EA16FA5BC4008ECFF2 /* MLMultProxy.cpp */,
-				B5AB55EB16FA5BC4008ECFF2 /* MLMultProxy.h */,
-				B5AB55EC16FA5BC4008ECFF2 /* MLParameter.cpp */,
-				B5AB55ED16FA5BC4008ECFF2 /* MLParameter.h */,
-				B5AB55EE16FA5BC4008ECFF2 /* MLProc.cpp */,
-				B5AB55EF16FA5BC4008ECFF2 /* MLProc.h */,
-				B5AB55F016FA5BC4008ECFF2 /* MLProcAbs.cpp */,
-				B5AB55F116FA5BC4008ECFF2 /* MLProcAdd.cpp */,
-				B5AB55F216FA5BC4008ECFF2 /* MLProcAllpass.cpp */,
-				B5AB55F316FA5BC4008ECFF2 /* MLProcBiquad.cpp */,
-				B5AB55F416FA5BC4008ECFF2 /* MLProcClamp.cpp */,
-				B5AB55F516FA5BC4008ECFF2 /* MLProcClampSignal.cpp */,
-				B5AB55F616FA5BC4008ECFF2 /* MLProcContainer.cpp */,
-				B5AB55F716FA5BC4008ECFF2 /* MLProcContainer.h */,
-				B5AB55F816FA5BC4008ECFF2 /* MLProcCubicDistort.cpp */,
-				B5AB55F916FA5BC4008ECFF2 /* MLProcDCBlocker.cpp */,
-				B5AB55FA16FA5BC4008ECFF2 /* MLProcDebug.cpp */,
-				B5AB55FB16FA5BC4008ECFF2 /* MLProcDelay.cpp */,
-				B5AB55FC16FA5BC4008ECFF2 /* MLProcDelayInput.cpp */,
-				B5AB55FD16FA5BC4008ECFF2 /* MLProcDelayInput.h */,
-				B5AB55FE16FA5BC4008ECFF2 /* MLProcDelayOutput.cpp */,
-				B5AB55FF16FA5BC4008ECFF2 /* MLProcDivide.cpp */,
-				B5AB560016FA5BC4008ECFF2 /* MLProcDxDt.cpp */,
-				B5AB560116FA5BC4008ECFF2 /* MLProcEnvelope.cpp */,
-				B5AB560216FA5BC4008ECFF2 /* MLProcExp2.cpp */,
-				B5AB560316FA5BC4008ECFF2 /* MLProcFade.cpp */,
-				B5AB560416FA5BC4008ECFF2 /* MLProcFadeBipolar.cpp */,
-				B5AB560516FA5BC4008ECFF2 /* MLProcFMBandwidth.cpp */,
-				B5AB560616FA5BC4008ECFF2 /* MLProcGlide.cpp */,
-				B5AB560716FA5BC4008ECFF2 /* MLProcHostPhasor.cpp */,
-				B5AB560816FA5BC4008ECFF2 /* MLProcHostPhasor.h */,
-				B5AB560916FA5BC4008ECFF2 /* MLProcInputToSignals.cpp */,
-				B5AB560A16FA5BC4008ECFF2 /* MLProcInputToSignals.h */,
-				B5AB560B16FA5BC4008ECFF2 /* MLProcMatrix.cpp */,
-				B5AB560C16FA5BC4008ECFF2 /* MLProcMatrix.h */,
-				B5AB560D16FA5BC4008ECFF2 /* MLProcMultiple.cpp */,
-				B5AB560E16FA5BC4008ECFF2 /* MLProcMultiple.h */,
-				B5AB560F16FA5BC4008ECFF2 /* MLProcMultiply.cpp */,
-				B5AB561016FA5BC4008ECFF2 /* MLProcMultiplyAdd.cpp */,
-				B5AB561116FA5BC4008ECFF2 /* MLProcNoise.cpp */,
-				B5AB561216FA5BC4008ECFF2 /* MLProcOnepole.cpp */,
-				B5AB561316FA5BC4008ECFF2 /* MLProcOSCToSignals.cpp */,
-				B5AB561416FA5BC4008ECFF2 /* MLProcOSCToSignals.h */,
-				B5AB561516FA5BC4008ECFF2 /* MLProcPan.cpp */,
-				B5AB561616FA5BC4008ECFF2 /* MLProcParamToSignal.cpp */,
-				B5AB561716FA5BC4008ECFF2 /* MLProcPeak.cpp */,
-				B5AB561816FA5BC4008ECFF2 /* MLProcPhasor.cpp */,
-				B5AB561916FA5BC4008ECFF2 /* MLProcPow.cpp */,
-				B5AB561A16FA5BC4008ECFF2 /* MLProcQuantize.cpp */,
-				B5AB561B16FA5BC4008ECFF2 /* MLProcRate.cpp */,
-				B5AB561C16FA5BC4008ECFF2 /* MLProcResample.cpp */,
-				B5AB561D16FA5BC4008ECFF2 /* MLProcRingBuffer.cpp */,
-				B5AB561E16FA5BC4008ECFF2 /* MLProcRingBuffer.h */,
-				B5AB561F16FA5BC4008ECFF2 /* MLProcRMS.cpp */,
-				B5AB562016FA5BC4008ECFF2 /* MLProcSampleRate.cpp */,
-				B5AB562116FA5BC4008ECFF2 /* MLProcSineOsc.cpp */,
-				B5AB562216FA5BC4008ECFF2 /* MLProcSinePhase.cpp */,
-				B5AB562316FA5BC4008ECFF2 /* MLProcSubtract.cpp */,
-				B5AB562416FA5BC4008ECFF2 /* MLProcSum.cpp */,
-				B5AB562516FA5BC4008ECFF2 /* MLProcSVF.cpp */,
-				B5AB562616FA5BC4008ECFF2 /* MLProcThru.cpp */,
-				B5AB562716FA5BC4008ECFF2 /* MLRatio.cpp */,
-				B5AB562816FA5BC4008ECFF2 /* MLRatio.h */,
-				B5AB562916FA5BC4008ECFF2 /* MLRingBuffer.cpp */,
-				B5AB562A16FA5BC4008ECFF2 /* MLRingBuffer.h */,
-				B5AB562B16FA5BC4008ECFF2 /* MLScale.cpp */,
-				B5AB562C16FA5BC4008ECFF2 /* MLScale.h */,
-				B5AB562D16FA5BC4008ECFF2 /* MLSignal.cpp */,
-				B5AB562E16FA5BC4008ECFF2 /* MLSignal.h */,
-				B5AB562F16FA5BC4008ECFF2 /* MLSignalViewer.cpp */,
-				B5AB563016FA5BC4008ECFF2 /* MLSignalViewer.h */,
-				B5AB563116FA5BC4008ECFF2 /* MLVector.cpp */,
-				B5AB563216FA5BC4008ECFF2 /* MLVector.h */,
+				B59351BF170C9AB400DF47AD /* portaudio */,
+				B593517F170C9AA900DF47AD /* MLJuceApp */,
+				B593515C170C9AA400DF47AD /* MLApp */,
+				B593511F170C9A9F00DF47AD /* LookAndFeel */,
+				B5935094170C9A9700DF47AD /* DSP */,
+				B5935081170C9A8600DF47AD /* cJSON */,
 			);
-			name = DSP;
-			path = ../../DSP;
+			name = MadronaLib;
+			sourceTree = "<group>";
+		};
+		B5935081170C9A8600DF47AD /* cJSON */ = {
+			isa = PBXGroup;
+			children = (
+				B5935082170C9A8600DF47AD /* cJSON.c */,
+				B5935083170C9A8600DF47AD /* cJSON.h */,
+			);
+			name = cJSON;
+			path = ../../../cJSON;
 			sourceTree = SOURCE_ROOT;
 		};
-		B5AB568E16FA5BE9008ECFF2 /* MLJuceApp */ = {
+		B5935094170C9A9700DF47AD /* DSP */ = {
 			isa = PBXGroup;
 			children = (
-				B5AB568F16FA5BE9008ECFF2 /* MLAppBorder.cpp */,
-				B5AB569016FA5BE9008ECFF2 /* MLAppBorder.h */,
-				B5AB569116FA5BE9008ECFF2 /* MLAppState.cpp */,
-				B5AB569216FA5BE9008ECFF2 /* MLAppState.h */,
-				B5AB569316FA5BE9008ECFF2 /* MLAppView.cpp */,
-				B5AB569416FA5BE9008ECFF2 /* MLAppView.h */,
-				B5AB569516FA5BE9008ECFF2 /* MLAppWindow.cpp */,
-				B5AB569616FA5BE9008ECFF2 /* MLAppWindow.h */,
-				B5AB569716FA5BE9008ECFF2 /* MLAudioProcessorListener.h */,
-				B5AB569816FA5BE9008ECFF2 /* MLDefaultFileLocations.cpp */,
-				B5AB569916FA5BE9008ECFF2 /* MLDefaultFileLocations.h */,
-				B5AB596916FA697F008ECFF2 /* MLjuce_AU_Resources.r */,
-				B5AB569A16FA5BE9008ECFF2 /* MLjuce_AU_Wrapper.mm */,
-				B5AB569B16FA5BE9008ECFF2 /* MLjuce_IncludeCharacteristics.h */,
-				B5AB569C16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.cpp */,
-				B5AB569D16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.mm */,
-				B5AB569E16FA5BE9008ECFF2 /* MLJuceFilesMac.cpp */,
-				B5AB569F16FA5BE9008ECFF2 /* MLJuceFilesMac.h */,
-				B5AB56A016FA5BE9008ECFF2 /* MLJuceInclude.h */,
-				B5AB56A116FA5BE9008ECFF2 /* MLMenu.cpp */,
-				B5AB56A216FA5BE9008ECFF2 /* MLMenu.h */,
-				B5AB56A316FA5BE9008ECFF2 /* MLPageView.cpp */,
-				B5AB56A416FA5BE9008ECFF2 /* MLPageView.h */,
-				B5AB56A516FA5BE9008ECFF2 /* MLParamSetter.cpp */,
-				B5AB56A616FA5BE9008ECFF2 /* MLParamSetter.h */,
-				B5AB56A716FA5BE9008ECFF2 /* MLPluginController.cpp */,
-				B5AB56A816FA5BE9008ECFF2 /* MLPluginController.h */,
-				B5AB56A916FA5BE9008ECFF2 /* MLPluginEditor.cpp */,
-				B5AB56AA16FA5BE9008ECFF2 /* MLPluginEditor.h */,
-				B5AB56AB16FA5BE9008ECFF2 /* MLPluginFormats.h */,
-				B5AB56AC16FA5BE9008ECFF2 /* MLPluginProcessor.cpp */,
-				B5AB56AD16FA5BE9008ECFF2 /* MLPluginProcessor.h */,
-				B5AB56AE16FA5BE9008ECFF2 /* MLPluginView.cpp */,
-				B5AB56AF16FA5BE9008ECFF2 /* MLPluginView.h */,
-				B5AB56B016FA5BE9008ECFF2 /* MLSignalReporter.cpp */,
-				B5AB56B116FA5BE9008ECFF2 /* MLSignalReporter.h */,
-				B5AB56B216FA5BE9008ECFF2 /* MLTime.cpp */,
-				B5AB56B316FA5BE9008ECFF2 /* MLTime.h */,
-				B5AB56B416FA5BE9008ECFF2 /* MLWidget.cpp */,
-				B5AB56B516FA5BE9008ECFF2 /* MLWidget.h */,
-				B5AB56B616FA5BE9008ECFF2 /* MLWidgetContainer.cpp */,
-				B5AB56B716FA5BE9008ECFF2 /* MLWidgetContainer.h */,
+				B5935095170C9A9700DF47AD /* MLChangeList.cpp */,
+				B5935096170C9A9700DF47AD /* MLChangeList.h */,
+				B5935097170C9A9700DF47AD /* MLDSP.cpp */,
+				B5935098170C9A9700DF47AD /* MLDSP.h */,
+				B5935099170C9A9700DF47AD /* MLDSPContext.cpp */,
+				B593509A170C9A9700DF47AD /* MLDSPContext.h */,
+				B593509B170C9A9700DF47AD /* MLDSPEngine.cpp */,
+				B593509C170C9A9700DF47AD /* MLDSPEngine.h */,
+				B593509D170C9A9700DF47AD /* MLMultProxy.cpp */,
+				B593509E170C9A9700DF47AD /* MLMultProxy.h */,
+				B593509F170C9A9700DF47AD /* MLParameter.cpp */,
+				B59350A0170C9A9700DF47AD /* MLParameter.h */,
+				B59350A1170C9A9700DF47AD /* MLProc.cpp */,
+				B59350A2170C9A9700DF47AD /* MLProc.h */,
+				B59350A3170C9A9700DF47AD /* MLProcAbs.cpp */,
+				B59350A4170C9A9700DF47AD /* MLProcAdd.cpp */,
+				B59350A5170C9A9700DF47AD /* MLProcAllpass.cpp */,
+				B59350A6170C9A9700DF47AD /* MLProcBiquad.cpp */,
+				B59350A7170C9A9700DF47AD /* MLProcClamp.cpp */,
+				B59350A8170C9A9700DF47AD /* MLProcClampSignal.cpp */,
+				B59350A9170C9A9700DF47AD /* MLProcContainer.cpp */,
+				B59350AA170C9A9700DF47AD /* MLProcContainer.h */,
+				B59350AB170C9A9700DF47AD /* MLProcCubicDistort.cpp */,
+				B59350AC170C9A9700DF47AD /* MLProcDCBlocker.cpp */,
+				B59350AD170C9A9700DF47AD /* MLProcDebug.cpp */,
+				B59350AE170C9A9700DF47AD /* MLProcDelay.cpp */,
+				B59350AF170C9A9700DF47AD /* MLProcDelayInput.cpp */,
+				B59350B0170C9A9700DF47AD /* MLProcDelayInput.h */,
+				B59350B1170C9A9700DF47AD /* MLProcDelayOutput.cpp */,
+				B59350B2170C9A9700DF47AD /* MLProcDivide.cpp */,
+				B59350B3170C9A9700DF47AD /* MLProcDxDt.cpp */,
+				B59350B4170C9A9700DF47AD /* MLProcEnvelope.cpp */,
+				B59350B5170C9A9700DF47AD /* MLProcExp2.cpp */,
+				B59350B6170C9A9700DF47AD /* MLProcFade.cpp */,
+				B59350B7170C9A9700DF47AD /* MLProcFadeBipolar.cpp */,
+				B59350B8170C9A9700DF47AD /* MLProcFMBandwidth.cpp */,
+				B59350B9170C9A9700DF47AD /* MLProcGlide.cpp */,
+				B59350BA170C9A9700DF47AD /* MLProcHostPhasor.cpp */,
+				B59350BB170C9A9700DF47AD /* MLProcHostPhasor.h */,
+				B59350BC170C9A9700DF47AD /* MLProcInputToSignals.cpp */,
+				B59350BD170C9A9700DF47AD /* MLProcInputToSignals.h */,
+				B59350BE170C9A9700DF47AD /* MLProcMatrix.cpp */,
+				B59350BF170C9A9700DF47AD /* MLProcMatrix.h */,
+				B59350C0170C9A9700DF47AD /* MLProcMultiple.cpp */,
+				B59350C1170C9A9700DF47AD /* MLProcMultiple.h */,
+				B59350C2170C9A9700DF47AD /* MLProcMultiply.cpp */,
+				B59350C3170C9A9700DF47AD /* MLProcMultiplyAdd.cpp */,
+				B59350C4170C9A9700DF47AD /* MLProcNoise.cpp */,
+				B59350C5170C9A9700DF47AD /* MLProcOnepole.cpp */,
+				B59350C6170C9A9700DF47AD /* MLProcPan.cpp */,
+				B59350C7170C9A9700DF47AD /* MLProcParamToSignal.cpp */,
+				B59350C8170C9A9700DF47AD /* MLProcPeak.cpp */,
+				B59350C9170C9A9700DF47AD /* MLProcPhasor.cpp */,
+				B59350CA170C9A9700DF47AD /* MLProcPow.cpp */,
+				B59350CB170C9A9700DF47AD /* MLProcQuantize.cpp */,
+				B59350CC170C9A9700DF47AD /* MLProcRate.cpp */,
+				B59350CD170C9A9700DF47AD /* MLProcResample.cpp */,
+				B59350CE170C9A9700DF47AD /* MLProcRingBuffer.cpp */,
+				B59350CF170C9A9700DF47AD /* MLProcRingBuffer.h */,
+				B59350D0170C9A9700DF47AD /* MLProcRMS.cpp */,
+				B59350D1170C9A9700DF47AD /* MLProcSampleRate.cpp */,
+				B59350D2170C9A9700DF47AD /* MLProcSineOsc.cpp */,
+				B59350D3170C9A9700DF47AD /* MLProcSinePhase.cpp */,
+				B59350D4170C9A9700DF47AD /* MLProcSubtract.cpp */,
+				B59350D5170C9A9700DF47AD /* MLProcSum.cpp */,
+				B59350D6170C9A9700DF47AD /* MLProcSVF.cpp */,
+				B59350D7170C9A9700DF47AD /* MLProcThru.cpp */,
+				B59350D8170C9A9700DF47AD /* MLRatio.cpp */,
+				B59350D9170C9A9700DF47AD /* MLRatio.h */,
+				B59350DA170C9A9700DF47AD /* MLRingBuffer.cpp */,
+				B59350DB170C9A9700DF47AD /* MLRingBuffer.h */,
+				B59350DC170C9A9700DF47AD /* MLScale.cpp */,
+				B59350DD170C9A9700DF47AD /* MLScale.h */,
+				B59350DE170C9A9700DF47AD /* MLSignal.cpp */,
+				B59350DF170C9A9700DF47AD /* MLSignal.h */,
+				B59350E0170C9A9700DF47AD /* MLSignalViewer.cpp */,
+				B59350E1170C9A9700DF47AD /* MLSignalViewer.h */,
+				B59350E2170C9A9700DF47AD /* MLVector.cpp */,
+				B59350E3170C9A9700DF47AD /* MLVector.h */,
+			);
+			name = DSP;
+			path = ../../../DSP;
+			sourceTree = SOURCE_ROOT;
+		};
+		B593511F170C9A9F00DF47AD /* LookAndFeel */ = {
+			isa = PBXGroup;
+			children = (
+				B5935120170C9A9F00DF47AD /* MLButton.cpp */,
+				B5935121170C9A9F00DF47AD /* MLButton.h */,
+				B5935122170C9A9F00DF47AD /* MLDebugDisplay.cpp */,
+				B5935123170C9A9F00DF47AD /* MLDebugDisplay.h */,
+				B5935124170C9A9F00DF47AD /* MLDial.cpp */,
+				B5935125170C9A9F00DF47AD /* MLDial.h */,
+				B5935126170C9A9F00DF47AD /* MLDrawableButton.cpp */,
+				B5935127170C9A9F00DF47AD /* MLDrawableButton.h */,
+				B5935128170C9A9F00DF47AD /* MLDrawing.cpp */,
+				B5935129170C9A9F00DF47AD /* MLDrawing.h */,
+				B593512A170C9A9F00DF47AD /* MLEnvelope.cpp */,
+				B593512B170C9A9F00DF47AD /* MLEnvelope.h */,
+				B593512C170C9A9F00DF47AD /* MLGraph.cpp */,
+				B593512D170C9A9F00DF47AD /* MLGraph.h */,
+				B593512E170C9A9F00DF47AD /* MLImageBank.cpp */,
+				B593512F170C9A9F00DF47AD /* MLImageBank.h */,
+				B5935130170C9A9F00DF47AD /* MLLabel.cpp */,
+				B5935131170C9A9F00DF47AD /* MLLabel.h */,
+				B5935132170C9A9F00DF47AD /* MLLookAndFeel.cpp */,
+				B5935133170C9A9F00DF47AD /* MLLookAndFeel.h */,
+				B5935134170C9A9F00DF47AD /* MLMenuButton.cpp */,
+				B5935135170C9A9F00DF47AD /* MLMenuButton.h */,
+				B5935136170C9A9F00DF47AD /* MLMultiButton.cpp */,
+				B5935137170C9A9F00DF47AD /* MLMultiButton.h */,
+				B5935138170C9A9F00DF47AD /* MLMultiSlider.cpp */,
+				B5935139170C9A9F00DF47AD /* MLMultiSlider.h */,
+				B593513A170C9A9F00DF47AD /* MLPanel.cpp */,
+				B593513B170C9A9F00DF47AD /* MLPanel.h */,
+				B593513C170C9A9F00DF47AD /* MLPositioner.cpp */,
+				B593513D170C9A9F00DF47AD /* MLPositioner.h */,
+				B593513E170C9A9F00DF47AD /* MLSeparator.cpp */,
+				B593513F170C9A9F00DF47AD /* MLSeparator.h */,
+				B5935140170C9A9F00DF47AD /* MLTextButton.cpp */,
+				B5935141170C9A9F00DF47AD /* MLTextButton.h */,
+				B5935142170C9A9F00DF47AD /* MLToggleButton.cpp */,
+				B5935143170C9A9F00DF47AD /* MLToggleButton.h */,
+				B5935144170C9A9F00DF47AD /* MLUI.cpp */,
+				B5935145170C9A9F00DF47AD /* MLUI.h */,
+				B5935146170C9A9F00DF47AD /* MLUIBinaryData.cpp */,
+				B5935147170C9A9F00DF47AD /* MLUIBinaryData.h */,
+			);
+			name = LookAndFeel;
+			path = ../../../LookAndFeel;
+			sourceTree = SOURCE_ROOT;
+		};
+		B593515C170C9AA400DF47AD /* MLApp */ = {
+			isa = PBXGroup;
+			children = (
+				B593515D170C9AA400DF47AD /* MLDebug.cpp */,
+				B593515E170C9AA400DF47AD /* MLDebug.h */,
+				B593515F170C9AA400DF47AD /* MLGL.cpp */,
+				B5935160170C9AA400DF47AD /* MLGL.h */,
+				B5935161170C9AA400DF47AD /* MLInputProtocols.h */,
+				B5935162170C9AA400DF47AD /* MLModel.cpp */,
+				B5935163170C9AA400DF47AD /* MLModel.h */,
+				B5935164170C9AA400DF47AD /* MLModelParam.cpp */,
+				B5935165170C9AA400DF47AD /* MLModelParam.h */,
+				B5935166170C9AA400DF47AD /* MLNetServiceHub.cpp */,
+				B5935167170C9AA400DF47AD /* MLNetServiceHub.h */,
+				B5935168170C9AA400DF47AD /* MLOSCListener.cpp */,
+				B5935169170C9AA400DF47AD /* MLOSCListener.h */,
+				B593516A170C9AA400DF47AD /* MLPath.cpp */,
+				B593516B170C9AA400DF47AD /* MLPath.h */,
+				B593516C170C9AA400DF47AD /* MLPlatform.h */,
+				B593516D170C9AA400DF47AD /* MLReporter.cpp */,
+				B593516E170C9AA400DF47AD /* MLReporter.h */,
+				B593516F170C9AA400DF47AD /* MLResponder.cpp */,
+				B5935170170C9AA400DF47AD /* MLResponder.h */,
+				B5935171170C9AA400DF47AD /* MLSymbol.cpp */,
+				B5935172170C9AA400DF47AD /* MLSymbol.h */,
+				B5935173170C9AA400DF47AD /* MLSymbolMap.h */,
+				B5935174170C9AA400DF47AD /* MLTextStreamListener.h */,
+			);
+			name = MLApp;
+			path = ../../../MLApp;
+			sourceTree = SOURCE_ROOT;
+		};
+		B593517F170C9AA900DF47AD /* MLJuceApp */ = {
+			isa = PBXGroup;
+			children = (
+				B5935180170C9AA900DF47AD /* MLAppBorder.cpp */,
+				B5935181170C9AA900DF47AD /* MLAppBorder.h */,
+				B5935182170C9AA900DF47AD /* MLAppState.cpp */,
+				B5935183170C9AA900DF47AD /* MLAppState.h */,
+				B5935184170C9AA900DF47AD /* MLAppView.cpp */,
+				B5935185170C9AA900DF47AD /* MLAppView.h */,
+				B5935186170C9AA900DF47AD /* MLAppWindow.cpp */,
+				B5935187170C9AA900DF47AD /* MLAppWindow.h */,
+				B5935188170C9AA900DF47AD /* MLAudioProcessorListener.h */,
+				B5935189170C9AA900DF47AD /* MLDefaultFileLocations.cpp */,
+				B593518A170C9AA900DF47AD /* MLDefaultFileLocations.h */,
+				B593518B170C9AA900DF47AD /* MLjuce_AU_Resources.r */,
+				B593518C170C9AA900DF47AD /* MLjuce_AU_Wrapper.mm */,
+				B593518D170C9AA900DF47AD /* MLjuce_IncludeCharacteristics.h */,
+				B593518E170C9AA900DF47AD /* MLjuce_VST_Wrapper.cpp */,
+				B593518F170C9AA900DF47AD /* MLjuce_VST_Wrapper.mm */,
+				B5935190170C9AA900DF47AD /* MLJuceFilesMac.cpp */,
+				B5935191170C9AA900DF47AD /* MLJuceFilesMac.h */,
+				B5935192170C9AA900DF47AD /* MLJuceInclude.h */,
+				B5935193170C9AA900DF47AD /* MLMenu.cpp */,
+				B5935194170C9AA900DF47AD /* MLMenu.h */,
+				B5935195170C9AA900DF47AD /* MLPageView.cpp */,
+				B5935196170C9AA900DF47AD /* MLPageView.h */,
+				B5935197170C9AA900DF47AD /* MLParamSetter.cpp */,
+				B5935198170C9AA900DF47AD /* MLParamSetter.h */,
+				B5935199170C9AA900DF47AD /* MLPluginController.cpp */,
+				B593519A170C9AA900DF47AD /* MLPluginController.h */,
+				B593519B170C9AA900DF47AD /* MLPluginEditor.cpp */,
+				B593519C170C9AA900DF47AD /* MLPluginEditor.h */,
+				B593519D170C9AA900DF47AD /* MLPluginFormats.h */,
+				B593519E170C9AA900DF47AD /* MLPluginProcessor.cpp */,
+				B593519F170C9AA900DF47AD /* MLPluginProcessor.h */,
+				B59351A0170C9AA900DF47AD /* MLPluginView.cpp */,
+				B59351A1170C9AA900DF47AD /* MLPluginView.h */,
+				B59351A2170C9AA900DF47AD /* MLSignalReporter.cpp */,
+				B59351A3170C9AA900DF47AD /* MLSignalReporter.h */,
+				B59351A4170C9AA900DF47AD /* MLTime.cpp */,
+				B59351A5170C9AA900DF47AD /* MLTime.h */,
+				B59351A6170C9AA900DF47AD /* MLWidget.cpp */,
+				B59351A7170C9AA900DF47AD /* MLWidget.h */,
+				B59351A8170C9AA900DF47AD /* MLWidgetContainer.cpp */,
+				B59351A9170C9AA900DF47AD /* MLWidgetContainer.h */,
 			);
 			name = MLJuceApp;
-			path = ../../MLJuceApp;
+			path = ../../../MLJuceApp;
+			sourceTree = SOURCE_ROOT;
+		};
+		B59351BF170C9AB400DF47AD /* portaudio */ = {
+			isa = PBXGroup;
+			children = (
+				B59351C0170C9AB400DF47AD /* pa_memorybarrier.h */,
+				B59351C1170C9AB400DF47AD /* pa_ringbuffer.cpp */,
+				B59351C2170C9AB400DF47AD /* pa_ringbuffer.h */,
+			);
+			name = portaudio;
+			path = ../../../portaudio;
+			sourceTree = SOURCE_ROOT;
+		};
+		B5935224170C9CA000DF47AD /* osc */ = {
+			isa = PBXGroup;
+			children = (
+				B5935230170C9CA000DF47AD /* ip */,
+				B593523A170C9CA000DF47AD /* osc */,
+				B5935225170C9CA000DF47AD /* zeroconf */,
+			);
+			name = osc;
+			sourceTree = "<group>";
+		};
+		B5935225170C9CA000DF47AD /* zeroconf */ = {
+			isa = PBXGroup;
+			children = (
+				B5935226170C9CA000DF47AD /* CriticalSection.cpp */,
+				B5935227170C9CA000DF47AD /* CriticalSection.h */,
+				B5935228170C9CA000DF47AD /* NetService.cpp */,
+				B5935229170C9CA000DF47AD /* NetService.h */,
+				B593522A170C9CA000DF47AD /* NetServiceBrowser.cpp */,
+				B593522B170C9CA000DF47AD /* NetServiceBrowser.h */,
+				B593522C170C9CA000DF47AD /* NetServiceThread.cpp */,
+				B593522D170C9CA000DF47AD /* NetServiceThread.h */,
+				B593522E170C9CA000DF47AD /* Thread.cpp */,
+				B593522F170C9CA000DF47AD /* Thread.h */,
+			);
+			name = zeroconf;
+			sourceTree = "<group>";
+		};
+		B5935230170C9CA000DF47AD /* ip */ = {
+			isa = PBXGroup;
+			children = (
+				B5935231170C9CA000DF47AD /* IpEndpointName.cpp */,
+				B5935232170C9CA000DF47AD /* IpEndpointName.h */,
+				B5935233170C9CA000DF47AD /* NetworkingUtils.h */,
+				B5935234170C9CA000DF47AD /* PacketListener.h */,
+				B5935235170C9CA000DF47AD /* posix */,
+				B5935238170C9CA000DF47AD /* TimerListener.h */,
+				B5935239170C9CA000DF47AD /* UdpSocket.h */,
+			);
+			name = ip;
+			path = ../../../../oscpack/ip;
+			sourceTree = SOURCE_ROOT;
+		};
+		B5935235170C9CA000DF47AD /* posix */ = {
+			isa = PBXGroup;
+			children = (
+				B5935236170C9CA000DF47AD /* NetworkingUtils.cpp */,
+				B5935237170C9CA000DF47AD /* UdpSocket.cpp */,
+			);
+			path = posix;
+			sourceTree = "<group>";
+		};
+		B593523A170C9CA000DF47AD /* osc */ = {
+			isa = PBXGroup;
+			children = (
+				B593523B170C9CA000DF47AD /* MessageMappingOscPacketListener.h */,
+				B593523C170C9CA000DF47AD /* OscException.h */,
+				B593523D170C9CA000DF47AD /* OscHostEndianness.h */,
+				B593523E170C9CA000DF47AD /* OscOutboundPacketStream.cpp */,
+				B593523F170C9CA000DF47AD /* OscOutboundPacketStream.h */,
+				B5935240170C9CA000DF47AD /* OscPacketListener.h */,
+				B5935241170C9CA000DF47AD /* OscPrintReceivedElements.cpp */,
+				B5935242170C9CA000DF47AD /* OscPrintReceivedElements.h */,
+				B5935243170C9CA000DF47AD /* OscReceivedElements.cpp */,
+				B5935244170C9CA000DF47AD /* OscReceivedElements.h */,
+				B5935245170C9CA000DF47AD /* OscTypes.cpp */,
+				B5935246170C9CA000DF47AD /* OscTypes.h */,
+			);
+			name = osc;
+			path = ../../../../oscpack/osc;
 			sourceTree = SOURCE_ROOT;
 		};
 		B5AB56D316FA5C0B008ECFF2 /* Juce App */ = {
 			isa = PBXGroup;
 			children = (
-				B5AB56D416FA5C0B008ECFF2 /* juce_audio_devices.mm */,
-				B5AB56D516FA5C0B008ECFF2 /* juce_audio_basics.mm */,
-				B5AB56D616FA5C0B008ECFF2 /* juce_audio_formats.mm */,
-				B5AB56D716FA5C0B008ECFF2 /* juce_core.mm */,
-				B5AB56D816FA5C0B008ECFF2 /* juce_audio_processors.mm */,
-				B5AB56D916FA5C0B008ECFF2 /* juce_audio_utils.mm */,
-				B5AB56DA16FA5C0B008ECFF2 /* juce_data_structures.mm */,
-				B5AB56DB16FA5C0B008ECFF2 /* juce_events.mm */,
-				B5AB56DC16FA5C0B008ECFF2 /* juce_graphics.mm */,
-				B5AB56DD16FA5C0B008ECFF2 /* juce_gui_basics.mm */,
-				B5AB56DE16FA5C0B008ECFF2 /* juce_gui_extra.mm */,
-				B5AB56DF16FA5C0B008ECFF2 /* juce_opengl.mm */,
+				B59351CF170C9AD500DF47AD /* juce_audio_devices.mm */,
+				B59351D0170C9AD500DF47AD /* juce_audio_basics.mm */,
+				B59351D1170C9AD500DF47AD /* juce_audio_formats.mm */,
+				B59351D2170C9AD500DF47AD /* juce_core.mm */,
+				B59351D3170C9AD500DF47AD /* juce_audio_processors.mm */,
+				B59351D4170C9AD500DF47AD /* juce_audio_utils.mm */,
+				B59351D5170C9AD500DF47AD /* juce_data_structures.mm */,
+				B59351D6170C9AD500DF47AD /* juce_events.mm */,
+				B59351D7170C9AD500DF47AD /* juce_graphics.mm */,
+				B59351D8170C9AD500DF47AD /* juce_gui_basics.mm */,
+				B59351D9170C9AD500DF47AD /* juce_gui_extra.mm */,
+				B59351DA170C9AD500DF47AD /* juce_opengl.mm */,
 			);
 			name = "Juce App";
-			sourceTree = "<group>";
-		};
-		B5AB56FA16FA5C1D008ECFF2 /* LookAndFeel */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB56FB16FA5C1D008ECFF2 /* MLButton.cpp */,
-				B5AB56FC16FA5C1D008ECFF2 /* MLButton.h */,
-				B5AB56FD16FA5C1D008ECFF2 /* MLDebugDisplay.cpp */,
-				B5AB56FE16FA5C1D008ECFF2 /* MLDebugDisplay.h */,
-				B5AB56FF16FA5C1D008ECFF2 /* MLDial.cpp */,
-				B5AB570016FA5C1D008ECFF2 /* MLDial.h */,
-				B5AB570116FA5C1D008ECFF2 /* MLDrawableButton.cpp */,
-				B5AB570216FA5C1D008ECFF2 /* MLDrawableButton.h */,
-				B5AB570316FA5C1D008ECFF2 /* MLDrawing.cpp */,
-				B5AB570416FA5C1D008ECFF2 /* MLDrawing.h */,
-				B5AB570516FA5C1D008ECFF2 /* MLEnvelope.cpp */,
-				B5AB570616FA5C1D008ECFF2 /* MLEnvelope.h */,
-				B5AB570716FA5C1D008ECFF2 /* MLGraph.cpp */,
-				B5AB570816FA5C1D008ECFF2 /* MLGraph.h */,
-				B5AB570916FA5C1D008ECFF2 /* MLImageBank.cpp */,
-				B5AB570A16FA5C1D008ECFF2 /* MLImageBank.h */,
-				B5AB570B16FA5C1D008ECFF2 /* MLLabel.cpp */,
-				B5AB570C16FA5C1D008ECFF2 /* MLLabel.h */,
-				B5AB570D16FA5C1D008ECFF2 /* MLLookAndFeel.cpp */,
-				B5AB570E16FA5C1D008ECFF2 /* MLLookAndFeel.h */,
-				B5AB570F16FA5C1D008ECFF2 /* MLMenuButton.cpp */,
-				B5AB571016FA5C1D008ECFF2 /* MLMenuButton.h */,
-				B5AB571116FA5C1D008ECFF2 /* MLMultiButton.cpp */,
-				B5AB571216FA5C1D008ECFF2 /* MLMultiButton.h */,
-				B5AB571316FA5C1D008ECFF2 /* MLMultiSlider.cpp */,
-				B5AB571416FA5C1D008ECFF2 /* MLMultiSlider.h */,
-				B5AB571516FA5C1D008ECFF2 /* MLPanel.cpp */,
-				B5AB571616FA5C1D008ECFF2 /* MLPanel.h */,
-				B5AB571716FA5C1D008ECFF2 /* MLPositioner.cpp */,
-				B5AB571816FA5C1D008ECFF2 /* MLPositioner.h */,
-				B5AB571916FA5C1D008ECFF2 /* MLSeparator.cpp */,
-				B5AB571A16FA5C1D008ECFF2 /* MLSeparator.h */,
-				B5AB571B16FA5C1D008ECFF2 /* MLTextButton.cpp */,
-				B5AB571C16FA5C1D008ECFF2 /* MLTextButton.h */,
-				B5AB571D16FA5C1D008ECFF2 /* MLToggleButton.cpp */,
-				B5AB571E16FA5C1D008ECFF2 /* MLToggleButton.h */,
-				B5AB571F16FA5C1D008ECFF2 /* MLUI.cpp */,
-				B5AB572016FA5C1D008ECFF2 /* MLUI.h */,
-				B5AB572116FA5C1D008ECFF2 /* MLUIBinaryData.cpp */,
-				B5AB572216FA5C1D008ECFF2 /* MLUIBinaryData.h */,
-			);
-			name = LookAndFeel;
-			path = ../../LookAndFeel;
-			sourceTree = SOURCE_ROOT;
-		};
-		B5AB573716FA5C2D008ECFF2 /* portaudio */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB573816FA5C2D008ECFF2 /* pa_memorybarrier.h */,
-				B5AB573916FA5C2D008ECFF2 /* pa_ringbuffer.cpp */,
-				B5AB573A16FA5C2D008ECFF2 /* pa_ringbuffer.h */,
-			);
-			name = portaudio;
-			path = ../../../MadronaLib/portaudio;
-			sourceTree = SOURCE_ROOT;
-		};
-		B5AB57EB16FA5C85008ECFF2 /* MLApp */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB57EC16FA5C85008ECFF2 /* MLDebug.cpp */,
-				B5AB57ED16FA5C85008ECFF2 /* MLDebug.h */,
-				B5AB57EE16FA5C85008ECFF2 /* MLGL.cpp */,
-				B5AB57EF16FA5C85008ECFF2 /* MLGL.h */,
-				B5AB57F016FA5C85008ECFF2 /* MLModel.cpp */,
-				B5AB57F116FA5C85008ECFF2 /* MLModel.h */,
-				B5AB57F216FA5C85008ECFF2 /* MLModelParam.cpp */,
-				B5AB57F316FA5C85008ECFF2 /* MLModelParam.h */,
-				B5AB57F416FA5C85008ECFF2 /* MLNetServiceHub.cpp */,
-				B5AB57F516FA5C85008ECFF2 /* MLNetServiceHub.h */,
-				B5AB57F616FA5C85008ECFF2 /* MLOSCListener.h */,
-				B5AB57F716FA5C85008ECFF2 /* MLOSCListener.cpp */,
-				B5AB57F816FA5C85008ECFF2 /* MLPath.cpp */,
-				B5AB57F916FA5C85008ECFF2 /* MLPath.h */,
-				B5AB57FA16FA5C85008ECFF2 /* MLPlatform.h */,
-				B5AB57FB16FA5C85008ECFF2 /* MLReporter.cpp */,
-				B5AB57FC16FA5C85008ECFF2 /* MLReporter.h */,
-				B5AB57FD16FA5C85008ECFF2 /* MLResponder.cpp */,
-				B5AB57FE16FA5C85008ECFF2 /* MLResponder.h */,
-				B5AB57FF16FA5C85008ECFF2 /* MLSymbol.cpp */,
-				B5AB580016FA5C85008ECFF2 /* MLSymbol.h */,
-				B5AB580116FA5C85008ECFF2 /* MLSymbolMap.h */,
-				B5AB580216FA5C85008ECFF2 /* MLTextStreamListener.h */,
-				B5AB580316FA5C85008ECFF2 /* MLInputProtocols.h */,
-			);
-			name = MLApp;
-			sourceTree = "<group>";
-		};
-		B5AB581B16FA5CBF008ECFF2 /* osc */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB583316FA5CBF008ECFF2 /* zeroconf */,
-				B5AB581C16FA5CBF008ECFF2 /* ip */,
-				B5AB582616FA5CBF008ECFF2 /* osc */,
-			);
-			name = osc;
-			sourceTree = "<group>";
-		};
-		B5AB581C16FA5CBF008ECFF2 /* ip */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB581D16FA5CBF008ECFF2 /* IpEndpointName.cpp */,
-				B5AB581E16FA5CBF008ECFF2 /* IpEndpointName.h */,
-				B5AB581F16FA5CBF008ECFF2 /* NetworkingUtils.h */,
-				B5AB582016FA5CBF008ECFF2 /* PacketListener.h */,
-				B5AB582116FA5CBF008ECFF2 /* posix */,
-				B5AB582416FA5CBF008ECFF2 /* TimerListener.h */,
-				B5AB582516FA5CBF008ECFF2 /* UdpSocket.h */,
-			);
-			name = ip;
-			path = ../../../oscpack/ip;
-			sourceTree = SOURCE_ROOT;
-		};
-		B5AB582116FA5CBF008ECFF2 /* posix */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB582216FA5CBF008ECFF2 /* NetworkingUtils.cpp */,
-				B5AB582316FA5CBF008ECFF2 /* UdpSocket.cpp */,
-			);
-			path = posix;
-			sourceTree = "<group>";
-		};
-		B5AB582616FA5CBF008ECFF2 /* osc */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB582716FA5CBF008ECFF2 /* MessageMappingOscPacketListener.h */,
-				B5AB582816FA5CBF008ECFF2 /* OscException.h */,
-				B5AB582916FA5CBF008ECFF2 /* OscHostEndianness.h */,
-				B5AB582A16FA5CBF008ECFF2 /* OscOutboundPacketStream.cpp */,
-				B5AB582B16FA5CBF008ECFF2 /* OscOutboundPacketStream.h */,
-				B5AB582C16FA5CBF008ECFF2 /* OscPacketListener.h */,
-				B5AB582D16FA5CBF008ECFF2 /* OscPrintReceivedElements.cpp */,
-				B5AB582E16FA5CBF008ECFF2 /* OscPrintReceivedElements.h */,
-				B5AB582F16FA5CBF008ECFF2 /* OscReceivedElements.cpp */,
-				B5AB583016FA5CBF008ECFF2 /* OscReceivedElements.h */,
-				B5AB583116FA5CBF008ECFF2 /* OscTypes.cpp */,
-				B5AB583216FA5CBF008ECFF2 /* OscTypes.h */,
-			);
-			name = osc;
-			path = ../../../oscpack/osc;
-			sourceTree = SOURCE_ROOT;
-		};
-		B5AB583316FA5CBF008ECFF2 /* zeroconf */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB583416FA5CBF008ECFF2 /* CriticalSection.cpp */,
-				B5AB583516FA5CBF008ECFF2 /* CriticalSection.h */,
-				B5AB583616FA5CBF008ECFF2 /* NetService.cpp */,
-				B5AB583716FA5CBF008ECFF2 /* NetService.h */,
-				B5AB583816FA5CBF008ECFF2 /* NetServiceBrowser.cpp */,
-				B5AB583916FA5CBF008ECFF2 /* NetServiceBrowser.h */,
-				B5AB583A16FA5CBF008ECFF2 /* NetServiceThread.cpp */,
-				B5AB583B16FA5CBF008ECFF2 /* NetServiceThread.h */,
-				B5AB583C16FA5CBF008ECFF2 /* Thread.cpp */,
-				B5AB583D16FA5CBF008ECFF2 /* Thread.h */,
-			);
-			name = zeroconf;
-			sourceTree = "<group>";
-		};
-		B5AB584E16FA5CEE008ECFF2 /* cJSON */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB584F16FA5CEE008ECFF2 /* cJSON.c */,
-				B5AB585016FA5CEE008ECFF2 /* cJSON.h */,
-				B5AB585116FA5CEE008ECFF2 /* README */,
-				B5AB585216FA5CEE008ECFF2 /* test.c */,
-				B5AB585316FA5CEE008ECFF2 /* tests */,
-			);
-			name = cJSON;
-			path = ../../cJSON;
-			sourceTree = SOURCE_ROOT;
-		};
-		B5AB585316FA5CEE008ECFF2 /* tests */ = {
-			isa = PBXGroup;
-			children = (
-				B5AB585416FA5CEE008ECFF2 /* test1 */,
-				B5AB585516FA5CEE008ECFF2 /* test2 */,
-				B5AB585616FA5CEE008ECFF2 /* test3 */,
-				B5AB585716FA5CEE008ECFF2 /* test4 */,
-				B5AB585816FA5CEE008ECFF2 /* test5 */,
-			);
-			path = tests;
 			sourceTree = "<group>";
 		};
 		E1C5E3C67B4A2621AD2D3E05 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				B5934FC8170BC11200DF47AD /* MadronaLib */,
 				B584F0DF129AFD7000FB9202 /* MLExample */,
-				B5AB56FA16FA5C1D008ECFF2 /* LookAndFeel */,
 				B5AB56D316FA5C0B008ECFF2 /* Juce App */,
-				B5AB55E116FA5BC4008ECFF2 /* DSP */,
-				B5AB57EB16FA5C85008ECFF2 /* MLApp */,
-				B5AB568E16FA5BE9008ECFF2 /* MLJuceApp */,
+				B5935224170C9CA000DF47AD /* osc */,
 				17A9711DC035377B969B90C2 /* Apple AU Files */,
-				B5AB584E16FA5CEE008ECFF2 /* cJSON */,
-				B5AB581B16FA5CBF008ECFF2 /* osc */,
-				B5AB573716FA5C2D008ECFF2 /* portaudio */,
 				7756687B5FD0903C5F83BB9E /* Resources */,
 				9B041E4036493224CFD075FF /* Frameworks */,
 				A60AEBCC9579AD6BA9D5CA4B /* Products */,
@@ -1073,13 +1048,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B59EABDC133D6BB90097CBD9 /* MLExample.xml in Resources */,
-				B5AB585A16FA5CEE008ECFF2 /* README in Resources */,
-				B5AB585C16FA5CEE008ECFF2 /* test1 in Resources */,
-				B5AB585D16FA5CEE008ECFF2 /* test2 in Resources */,
-				B5AB585E16FA5CEE008ECFF2 /* test3 in Resources */,
-				B5AB585F16FA5CEE008ECFF2 /* test4 in Resources */,
-				B5AB586016FA5CEE008ECFF2 /* test5 in Resources */,
+				B5935080170C9A7900DF47AD /* MLExample.xml in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1090,7 +1059,7 @@
 			isa = PBXRezBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B5AB596A16FA697F008ECFF2 /* MLjuce_AU_Resources.r in Rez */,
+				B59351AF170C9AA900DF47AD /* MLjuce_AU_Resources.r in Rez */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1165,148 +1134,146 @@
 				4BB4B93E0E58FC0D5FE82292 /* AUEffectBase.cpp in Sources */,
 				EE224227E577BA498E98DC9A /* AUBuffer.cpp in Sources */,
 				F0BEF1392277DBDC409A06A3 /* AUDebugDispatcher.cpp in Sources */,
-				B592C24316F126A7001B578F /* MLExampleBinaryData.cpp in Sources */,
-				B592C25A16F12739001B578F /* MLExampleController.cpp in Sources */,
-				B592C25B16F12739001B578F /* MLExampleEditor.cpp in Sources */,
-				B592C25C16F12739001B578F /* MLExampleProcessor.cpp in Sources */,
-				B592C25D16F12739001B578F /* MLExampleView.cpp in Sources */,
-				B5AB563316FA5BC4008ECFF2 /* MLChangeList.cpp in Sources */,
-				B5AB563416FA5BC4008ECFF2 /* MLDSP.cpp in Sources */,
-				B5AB563516FA5BC4008ECFF2 /* MLDSPContext.cpp in Sources */,
-				B5AB563616FA5BC4008ECFF2 /* MLDSPEngine.cpp in Sources */,
-				B5AB563716FA5BC4008ECFF2 /* MLMultProxy.cpp in Sources */,
-				B5AB563816FA5BC4008ECFF2 /* MLParameter.cpp in Sources */,
-				B5AB563916FA5BC4008ECFF2 /* MLProc.cpp in Sources */,
-				B5AB563A16FA5BC4008ECFF2 /* MLProcAbs.cpp in Sources */,
-				B5AB563B16FA5BC4008ECFF2 /* MLProcAdd.cpp in Sources */,
-				B5AB563C16FA5BC4008ECFF2 /* MLProcAllpass.cpp in Sources */,
-				B5AB563D16FA5BC4008ECFF2 /* MLProcBiquad.cpp in Sources */,
-				B5AB563E16FA5BC4008ECFF2 /* MLProcClamp.cpp in Sources */,
-				B5AB563F16FA5BC4008ECFF2 /* MLProcClampSignal.cpp in Sources */,
-				B5AB564016FA5BC4008ECFF2 /* MLProcContainer.cpp in Sources */,
-				B5AB564116FA5BC4008ECFF2 /* MLProcCubicDistort.cpp in Sources */,
-				B5AB564216FA5BC4008ECFF2 /* MLProcDCBlocker.cpp in Sources */,
-				B5AB564316FA5BC4008ECFF2 /* MLProcDebug.cpp in Sources */,
-				B5AB564416FA5BC4008ECFF2 /* MLProcDelay.cpp in Sources */,
-				B5AB564516FA5BC4008ECFF2 /* MLProcDelayInput.cpp in Sources */,
-				B5AB564616FA5BC4008ECFF2 /* MLProcDelayOutput.cpp in Sources */,
-				B5AB564716FA5BC4008ECFF2 /* MLProcDivide.cpp in Sources */,
-				B5AB564816FA5BC4008ECFF2 /* MLProcDxDt.cpp in Sources */,
-				B5AB564916FA5BC4008ECFF2 /* MLProcEnvelope.cpp in Sources */,
-				B5AB564A16FA5BC4008ECFF2 /* MLProcExp2.cpp in Sources */,
-				B5AB564B16FA5BC4008ECFF2 /* MLProcFade.cpp in Sources */,
-				B5AB564C16FA5BC4008ECFF2 /* MLProcFadeBipolar.cpp in Sources */,
-				B5AB564D16FA5BC4008ECFF2 /* MLProcFMBandwidth.cpp in Sources */,
-				B5AB564E16FA5BC4008ECFF2 /* MLProcGlide.cpp in Sources */,
-				B5AB564F16FA5BC4008ECFF2 /* MLProcHostPhasor.cpp in Sources */,
-				B5AB565016FA5BC4008ECFF2 /* MLProcInputToSignals.cpp in Sources */,
-				B5AB565116FA5BC4008ECFF2 /* MLProcMatrix.cpp in Sources */,
-				B5AB565216FA5BC4008ECFF2 /* MLProcMultiple.cpp in Sources */,
-				B5AB565316FA5BC4008ECFF2 /* MLProcMultiply.cpp in Sources */,
-				B5AB565416FA5BC4008ECFF2 /* MLProcMultiplyAdd.cpp in Sources */,
-				B5AB565516FA5BC4008ECFF2 /* MLProcNoise.cpp in Sources */,
-				B5AB565616FA5BC4008ECFF2 /* MLProcOnepole.cpp in Sources */,
-				B5AB565716FA5BC4008ECFF2 /* MLProcOSCToSignals.cpp in Sources */,
-				B5AB565816FA5BC4008ECFF2 /* MLProcPan.cpp in Sources */,
-				B5AB565916FA5BC4008ECFF2 /* MLProcParamToSignal.cpp in Sources */,
-				B5AB565A16FA5BC4008ECFF2 /* MLProcPeak.cpp in Sources */,
-				B5AB565B16FA5BC4008ECFF2 /* MLProcPhasor.cpp in Sources */,
-				B5AB565C16FA5BC4008ECFF2 /* MLProcPow.cpp in Sources */,
-				B5AB565D16FA5BC4008ECFF2 /* MLProcQuantize.cpp in Sources */,
-				B5AB565E16FA5BC4008ECFF2 /* MLProcRate.cpp in Sources */,
-				B5AB565F16FA5BC4008ECFF2 /* MLProcResample.cpp in Sources */,
-				B5AB566016FA5BC4008ECFF2 /* MLProcRingBuffer.cpp in Sources */,
-				B5AB566116FA5BC4008ECFF2 /* MLProcRMS.cpp in Sources */,
-				B5AB566216FA5BC4008ECFF2 /* MLProcSampleRate.cpp in Sources */,
-				B5AB566316FA5BC4008ECFF2 /* MLProcSineOsc.cpp in Sources */,
-				B5AB566416FA5BC4008ECFF2 /* MLProcSinePhase.cpp in Sources */,
-				B5AB566516FA5BC4008ECFF2 /* MLProcSubtract.cpp in Sources */,
-				B5AB566616FA5BC4008ECFF2 /* MLProcSum.cpp in Sources */,
-				B5AB566716FA5BC4008ECFF2 /* MLProcSVF.cpp in Sources */,
-				B5AB566816FA5BC4008ECFF2 /* MLProcThru.cpp in Sources */,
-				B5AB566916FA5BC4008ECFF2 /* MLRatio.cpp in Sources */,
-				B5AB566A16FA5BC4008ECFF2 /* MLRingBuffer.cpp in Sources */,
-				B5AB566B16FA5BC4008ECFF2 /* MLScale.cpp in Sources */,
-				B5AB566C16FA5BC4008ECFF2 /* MLSignal.cpp in Sources */,
-				B5AB566D16FA5BC4008ECFF2 /* MLSignalViewer.cpp in Sources */,
-				B5AB566E16FA5BC4008ECFF2 /* MLVector.cpp in Sources */,
-				B5AB56B816FA5BE9008ECFF2 /* MLAppBorder.cpp in Sources */,
-				B5AB56B916FA5BE9008ECFF2 /* MLAppState.cpp in Sources */,
-				B5AB56BA16FA5BE9008ECFF2 /* MLAppView.cpp in Sources */,
-				B5AB56BB16FA5BE9008ECFF2 /* MLAppWindow.cpp in Sources */,
-				B5AB56BC16FA5BE9008ECFF2 /* MLDefaultFileLocations.cpp in Sources */,
-				B5AB56BD16FA5BE9008ECFF2 /* MLjuce_AU_Wrapper.mm in Sources */,
-				B5AB56BE16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.cpp in Sources */,
-				B5AB56BF16FA5BE9008ECFF2 /* MLjuce_VST_Wrapper.mm in Sources */,
-				B5AB56C016FA5BE9008ECFF2 /* MLJuceFilesMac.cpp in Sources */,
-				B5AB56C116FA5BE9008ECFF2 /* MLMenu.cpp in Sources */,
-				B5AB56C216FA5BE9008ECFF2 /* MLPageView.cpp in Sources */,
-				B5AB56C316FA5BE9008ECFF2 /* MLParamSetter.cpp in Sources */,
-				B5AB56C416FA5BE9008ECFF2 /* MLPluginController.cpp in Sources */,
-				B5AB56C516FA5BE9008ECFF2 /* MLPluginEditor.cpp in Sources */,
-				B5AB56C616FA5BE9008ECFF2 /* MLPluginProcessor.cpp in Sources */,
-				B5AB56C716FA5BE9008ECFF2 /* MLPluginView.cpp in Sources */,
-				B5AB56C816FA5BE9008ECFF2 /* MLSignalReporter.cpp in Sources */,
-				B5AB56C916FA5BE9008ECFF2 /* MLTime.cpp in Sources */,
-				B5AB56CA16FA5BE9008ECFF2 /* MLWidget.cpp in Sources */,
-				B5AB56CB16FA5BE9008ECFF2 /* MLWidgetContainer.cpp in Sources */,
-				B5AB56E016FA5C0B008ECFF2 /* juce_audio_devices.mm in Sources */,
-				B5AB56E116FA5C0B008ECFF2 /* juce_audio_basics.mm in Sources */,
-				B5AB56E216FA5C0B008ECFF2 /* juce_audio_formats.mm in Sources */,
-				B5AB56E316FA5C0B008ECFF2 /* juce_core.mm in Sources */,
-				B5AB56E416FA5C0B008ECFF2 /* juce_audio_processors.mm in Sources */,
-				B5AB56E516FA5C0B008ECFF2 /* juce_audio_utils.mm in Sources */,
-				B5AB56E616FA5C0B008ECFF2 /* juce_data_structures.mm in Sources */,
-				B5AB56E716FA5C0B008ECFF2 /* juce_events.mm in Sources */,
-				B5AB56E816FA5C0B008ECFF2 /* juce_graphics.mm in Sources */,
-				B5AB56E916FA5C0B008ECFF2 /* juce_gui_basics.mm in Sources */,
-				B5AB56EA16FA5C0B008ECFF2 /* juce_gui_extra.mm in Sources */,
-				B5AB56EB16FA5C0B008ECFF2 /* juce_opengl.mm in Sources */,
-				B5AB572316FA5C1D008ECFF2 /* MLButton.cpp in Sources */,
-				B5AB572416FA5C1D008ECFF2 /* MLDebugDisplay.cpp in Sources */,
-				B5AB572516FA5C1D008ECFF2 /* MLDial.cpp in Sources */,
-				B5AB572616FA5C1D008ECFF2 /* MLDrawableButton.cpp in Sources */,
-				B5AB572716FA5C1D008ECFF2 /* MLDrawing.cpp in Sources */,
-				B5AB572816FA5C1D008ECFF2 /* MLEnvelope.cpp in Sources */,
-				B5AB572916FA5C1D008ECFF2 /* MLGraph.cpp in Sources */,
-				B5AB572A16FA5C1D008ECFF2 /* MLImageBank.cpp in Sources */,
-				B5AB572B16FA5C1D008ECFF2 /* MLLabel.cpp in Sources */,
-				B5AB572C16FA5C1D008ECFF2 /* MLLookAndFeel.cpp in Sources */,
-				B5AB572D16FA5C1D008ECFF2 /* MLMenuButton.cpp in Sources */,
-				B5AB572E16FA5C1D008ECFF2 /* MLMultiButton.cpp in Sources */,
-				B5AB572F16FA5C1D008ECFF2 /* MLMultiSlider.cpp in Sources */,
-				B5AB573016FA5C1D008ECFF2 /* MLPanel.cpp in Sources */,
-				B5AB573116FA5C1D008ECFF2 /* MLPositioner.cpp in Sources */,
-				B5AB573216FA5C1D008ECFF2 /* MLSeparator.cpp in Sources */,
-				B5AB573316FA5C1D008ECFF2 /* MLTextButton.cpp in Sources */,
-				B5AB573416FA5C1D008ECFF2 /* MLToggleButton.cpp in Sources */,
-				B5AB573516FA5C1D008ECFF2 /* MLUI.cpp in Sources */,
-				B5AB573616FA5C1D008ECFF2 /* MLUIBinaryData.cpp in Sources */,
-				B5AB573B16FA5C2D008ECFF2 /* pa_ringbuffer.cpp in Sources */,
-				B5AB580416FA5C86008ECFF2 /* MLDebug.cpp in Sources */,
-				B5AB580516FA5C86008ECFF2 /* MLGL.cpp in Sources */,
-				B5AB580616FA5C86008ECFF2 /* MLModel.cpp in Sources */,
-				B5AB580716FA5C86008ECFF2 /* MLModelParam.cpp in Sources */,
-				B5AB580816FA5C86008ECFF2 /* MLNetServiceHub.cpp in Sources */,
-				B5AB580916FA5C86008ECFF2 /* MLOSCListener.cpp in Sources */,
-				B5AB580A16FA5C86008ECFF2 /* MLPath.cpp in Sources */,
-				B5AB580B16FA5C86008ECFF2 /* MLReporter.cpp in Sources */,
-				B5AB580C16FA5C86008ECFF2 /* MLResponder.cpp in Sources */,
-				B5AB580D16FA5C86008ECFF2 /* MLSymbol.cpp in Sources */,
-				B5AB583E16FA5CBF008ECFF2 /* IpEndpointName.cpp in Sources */,
-				B5AB583F16FA5CBF008ECFF2 /* NetworkingUtils.cpp in Sources */,
-				B5AB584016FA5CBF008ECFF2 /* UdpSocket.cpp in Sources */,
-				B5AB584116FA5CBF008ECFF2 /* OscOutboundPacketStream.cpp in Sources */,
-				B5AB584216FA5CBF008ECFF2 /* OscPrintReceivedElements.cpp in Sources */,
-				B5AB584316FA5CBF008ECFF2 /* OscReceivedElements.cpp in Sources */,
-				B5AB584416FA5CBF008ECFF2 /* OscTypes.cpp in Sources */,
-				B5AB584516FA5CBF008ECFF2 /* CriticalSection.cpp in Sources */,
-				B5AB584616FA5CBF008ECFF2 /* NetService.cpp in Sources */,
-				B5AB584716FA5CBF008ECFF2 /* NetServiceBrowser.cpp in Sources */,
-				B5AB584816FA5CBF008ECFF2 /* NetServiceThread.cpp in Sources */,
-				B5AB584916FA5CBF008ECFF2 /* Thread.cpp in Sources */,
-				B5AB585916FA5CEE008ECFF2 /* cJSON.c in Sources */,
-				B5AB585B16FA5CEE008ECFF2 /* test.c in Sources */,
+				B593507B170C9A6900DF47AD /* MLExampleController.cpp in Sources */,
+				B593507C170C9A6900DF47AD /* MLExampleEditor.cpp in Sources */,
+				B593507D170C9A6900DF47AD /* MLExampleProcessor.cpp in Sources */,
+				B593507E170C9A6900DF47AD /* MLExampleView.cpp in Sources */,
+				B593508C170C9A8600DF47AD /* cJSON.c in Sources */,
+				B59350E4170C9A9700DF47AD /* MLChangeList.cpp in Sources */,
+				B59350E5170C9A9700DF47AD /* MLDSP.cpp in Sources */,
+				B59350E6170C9A9700DF47AD /* MLDSPContext.cpp in Sources */,
+				B59350E7170C9A9700DF47AD /* MLDSPEngine.cpp in Sources */,
+				B59350E8170C9A9700DF47AD /* MLMultProxy.cpp in Sources */,
+				B59350E9170C9A9700DF47AD /* MLParameter.cpp in Sources */,
+				B59350EA170C9A9700DF47AD /* MLProc.cpp in Sources */,
+				B59350EB170C9A9700DF47AD /* MLProcAbs.cpp in Sources */,
+				B59350EC170C9A9700DF47AD /* MLProcAdd.cpp in Sources */,
+				B59350ED170C9A9700DF47AD /* MLProcAllpass.cpp in Sources */,
+				B59350EE170C9A9700DF47AD /* MLProcBiquad.cpp in Sources */,
+				B59350EF170C9A9700DF47AD /* MLProcClamp.cpp in Sources */,
+				B59350F0170C9A9700DF47AD /* MLProcClampSignal.cpp in Sources */,
+				B59350F1170C9A9700DF47AD /* MLProcContainer.cpp in Sources */,
+				B59350F2170C9A9700DF47AD /* MLProcCubicDistort.cpp in Sources */,
+				B59350F3170C9A9700DF47AD /* MLProcDCBlocker.cpp in Sources */,
+				B59350F4170C9A9700DF47AD /* MLProcDebug.cpp in Sources */,
+				B59350F5170C9A9700DF47AD /* MLProcDelay.cpp in Sources */,
+				B59350F6170C9A9700DF47AD /* MLProcDelayInput.cpp in Sources */,
+				B59350F7170C9A9700DF47AD /* MLProcDelayOutput.cpp in Sources */,
+				B59350F8170C9A9700DF47AD /* MLProcDivide.cpp in Sources */,
+				B59350F9170C9A9700DF47AD /* MLProcDxDt.cpp in Sources */,
+				B59350FA170C9A9700DF47AD /* MLProcEnvelope.cpp in Sources */,
+				B59350FB170C9A9700DF47AD /* MLProcExp2.cpp in Sources */,
+				B59350FC170C9A9700DF47AD /* MLProcFade.cpp in Sources */,
+				B59350FD170C9A9700DF47AD /* MLProcFadeBipolar.cpp in Sources */,
+				B59350FE170C9A9700DF47AD /* MLProcFMBandwidth.cpp in Sources */,
+				B59350FF170C9A9700DF47AD /* MLProcGlide.cpp in Sources */,
+				B5935100170C9A9700DF47AD /* MLProcHostPhasor.cpp in Sources */,
+				B5935101170C9A9700DF47AD /* MLProcInputToSignals.cpp in Sources */,
+				B5935102170C9A9700DF47AD /* MLProcMatrix.cpp in Sources */,
+				B5935103170C9A9700DF47AD /* MLProcMultiple.cpp in Sources */,
+				B5935104170C9A9700DF47AD /* MLProcMultiply.cpp in Sources */,
+				B5935105170C9A9700DF47AD /* MLProcMultiplyAdd.cpp in Sources */,
+				B5935106170C9A9700DF47AD /* MLProcNoise.cpp in Sources */,
+				B5935107170C9A9700DF47AD /* MLProcOnepole.cpp in Sources */,
+				B5935108170C9A9700DF47AD /* MLProcPan.cpp in Sources */,
+				B5935109170C9A9700DF47AD /* MLProcParamToSignal.cpp in Sources */,
+				B593510A170C9A9700DF47AD /* MLProcPeak.cpp in Sources */,
+				B593510B170C9A9700DF47AD /* MLProcPhasor.cpp in Sources */,
+				B593510C170C9A9700DF47AD /* MLProcPow.cpp in Sources */,
+				B593510D170C9A9700DF47AD /* MLProcQuantize.cpp in Sources */,
+				B593510E170C9A9700DF47AD /* MLProcRate.cpp in Sources */,
+				B593510F170C9A9700DF47AD /* MLProcResample.cpp in Sources */,
+				B5935110170C9A9700DF47AD /* MLProcRingBuffer.cpp in Sources */,
+				B5935111170C9A9700DF47AD /* MLProcRMS.cpp in Sources */,
+				B5935112170C9A9700DF47AD /* MLProcSampleRate.cpp in Sources */,
+				B5935113170C9A9700DF47AD /* MLProcSineOsc.cpp in Sources */,
+				B5935114170C9A9700DF47AD /* MLProcSinePhase.cpp in Sources */,
+				B5935115170C9A9700DF47AD /* MLProcSubtract.cpp in Sources */,
+				B5935116170C9A9700DF47AD /* MLProcSum.cpp in Sources */,
+				B5935117170C9A9700DF47AD /* MLProcSVF.cpp in Sources */,
+				B5935118170C9A9700DF47AD /* MLProcThru.cpp in Sources */,
+				B5935119170C9A9700DF47AD /* MLRatio.cpp in Sources */,
+				B593511A170C9A9700DF47AD /* MLRingBuffer.cpp in Sources */,
+				B593511B170C9A9700DF47AD /* MLScale.cpp in Sources */,
+				B593511C170C9A9700DF47AD /* MLSignal.cpp in Sources */,
+				B593511D170C9A9700DF47AD /* MLSignalViewer.cpp in Sources */,
+				B593511E170C9A9700DF47AD /* MLVector.cpp in Sources */,
+				B5935148170C9A9F00DF47AD /* MLButton.cpp in Sources */,
+				B5935149170C9A9F00DF47AD /* MLDebugDisplay.cpp in Sources */,
+				B593514A170C9A9F00DF47AD /* MLDial.cpp in Sources */,
+				B593514B170C9A9F00DF47AD /* MLDrawableButton.cpp in Sources */,
+				B593514C170C9A9F00DF47AD /* MLDrawing.cpp in Sources */,
+				B593514D170C9A9F00DF47AD /* MLEnvelope.cpp in Sources */,
+				B593514E170C9A9F00DF47AD /* MLGraph.cpp in Sources */,
+				B593514F170C9A9F00DF47AD /* MLImageBank.cpp in Sources */,
+				B5935150170C9A9F00DF47AD /* MLLabel.cpp in Sources */,
+				B5935151170C9A9F00DF47AD /* MLLookAndFeel.cpp in Sources */,
+				B5935152170C9A9F00DF47AD /* MLMenuButton.cpp in Sources */,
+				B5935153170C9A9F00DF47AD /* MLMultiButton.cpp in Sources */,
+				B5935154170C9A9F00DF47AD /* MLMultiSlider.cpp in Sources */,
+				B5935155170C9A9F00DF47AD /* MLPanel.cpp in Sources */,
+				B5935156170C9A9F00DF47AD /* MLPositioner.cpp in Sources */,
+				B5935157170C9A9F00DF47AD /* MLSeparator.cpp in Sources */,
+				B5935158170C9A9F00DF47AD /* MLTextButton.cpp in Sources */,
+				B5935159170C9A9F00DF47AD /* MLToggleButton.cpp in Sources */,
+				B593515A170C9A9F00DF47AD /* MLUI.cpp in Sources */,
+				B593515B170C9A9F00DF47AD /* MLUIBinaryData.cpp in Sources */,
+				B5935175170C9AA400DF47AD /* MLDebug.cpp in Sources */,
+				B5935176170C9AA400DF47AD /* MLGL.cpp in Sources */,
+				B5935177170C9AA400DF47AD /* MLModel.cpp in Sources */,
+				B5935178170C9AA400DF47AD /* MLModelParam.cpp in Sources */,
+				B5935179170C9AA400DF47AD /* MLNetServiceHub.cpp in Sources */,
+				B593517A170C9AA400DF47AD /* MLOSCListener.cpp in Sources */,
+				B593517B170C9AA400DF47AD /* MLPath.cpp in Sources */,
+				B593517C170C9AA400DF47AD /* MLReporter.cpp in Sources */,
+				B593517D170C9AA400DF47AD /* MLResponder.cpp in Sources */,
+				B593517E170C9AA400DF47AD /* MLSymbol.cpp in Sources */,
+				B59351AA170C9AA900DF47AD /* MLAppBorder.cpp in Sources */,
+				B59351AB170C9AA900DF47AD /* MLAppState.cpp in Sources */,
+				B59351AC170C9AA900DF47AD /* MLAppView.cpp in Sources */,
+				B59351AD170C9AA900DF47AD /* MLAppWindow.cpp in Sources */,
+				B59351AE170C9AA900DF47AD /* MLDefaultFileLocations.cpp in Sources */,
+				B59351B0170C9AA900DF47AD /* MLjuce_AU_Wrapper.mm in Sources */,
+				B59351B1170C9AA900DF47AD /* MLjuce_VST_Wrapper.cpp in Sources */,
+				B59351B2170C9AA900DF47AD /* MLjuce_VST_Wrapper.mm in Sources */,
+				B59351B3170C9AA900DF47AD /* MLJuceFilesMac.cpp in Sources */,
+				B59351B4170C9AA900DF47AD /* MLMenu.cpp in Sources */,
+				B59351B5170C9AA900DF47AD /* MLPageView.cpp in Sources */,
+				B59351B6170C9AA900DF47AD /* MLParamSetter.cpp in Sources */,
+				B59351B7170C9AA900DF47AD /* MLPluginController.cpp in Sources */,
+				B59351B8170C9AA900DF47AD /* MLPluginEditor.cpp in Sources */,
+				B59351B9170C9AA900DF47AD /* MLPluginProcessor.cpp in Sources */,
+				B59351BA170C9AA900DF47AD /* MLPluginView.cpp in Sources */,
+				B59351BB170C9AA900DF47AD /* MLSignalReporter.cpp in Sources */,
+				B59351BC170C9AA900DF47AD /* MLTime.cpp in Sources */,
+				B59351BD170C9AA900DF47AD /* MLWidget.cpp in Sources */,
+				B59351BE170C9AA900DF47AD /* MLWidgetContainer.cpp in Sources */,
+				B59351C3170C9AB400DF47AD /* pa_ringbuffer.cpp in Sources */,
+				B59351DB170C9AD500DF47AD /* juce_audio_devices.mm in Sources */,
+				B59351DC170C9AD500DF47AD /* juce_audio_basics.mm in Sources */,
+				B59351DD170C9AD500DF47AD /* juce_audio_formats.mm in Sources */,
+				B59351DE170C9AD500DF47AD /* juce_core.mm in Sources */,
+				B59351DF170C9AD500DF47AD /* juce_audio_processors.mm in Sources */,
+				B59351E0170C9AD500DF47AD /* juce_audio_utils.mm in Sources */,
+				B59351E1170C9AD500DF47AD /* juce_data_structures.mm in Sources */,
+				B59351E2170C9AD500DF47AD /* juce_events.mm in Sources */,
+				B59351E3170C9AD500DF47AD /* juce_graphics.mm in Sources */,
+				B59351E4170C9AD500DF47AD /* juce_gui_basics.mm in Sources */,
+				B59351E5170C9AD500DF47AD /* juce_gui_extra.mm in Sources */,
+				B59351E6170C9AD500DF47AD /* juce_opengl.mm in Sources */,
+				B5935214170C9C6200DF47AD /* MLExampleBinaryData.cpp in Sources */,
+				B5935247170C9CA000DF47AD /* CriticalSection.cpp in Sources */,
+				B5935248170C9CA000DF47AD /* NetService.cpp in Sources */,
+				B5935249170C9CA000DF47AD /* NetServiceBrowser.cpp in Sources */,
+				B593524A170C9CA000DF47AD /* NetServiceThread.cpp in Sources */,
+				B593524B170C9CA000DF47AD /* Thread.cpp in Sources */,
+				B593524C170C9CA000DF47AD /* IpEndpointName.cpp in Sources */,
+				B593524D170C9CA000DF47AD /* NetworkingUtils.cpp in Sources */,
+				B593524E170C9CA000DF47AD /* UdpSocket.cpp in Sources */,
+				B593524F170C9CA000DF47AD /* OscOutboundPacketStream.cpp in Sources */,
+				B5935250170C9CA000DF47AD /* OscPrintReceivedElements.cpp in Sources */,
+				B5935251170C9CA000DF47AD /* OscReceivedElements.cpp in Sources */,
+				B5935252170C9CA000DF47AD /* OscTypes.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -133,8 +133,8 @@ void MLLabel::paint (Graphics& g)
 	tbounds.addRectangle(boundsRect);
 	g.setColour(Colours::red);	
 	g.strokePath(tbounds, PathStrokeType(0.5f));
-	*/
 	
+	*/
 }
 
 void MLLabel::setText (const char* newText)
@@ -154,16 +154,14 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 	// mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
 	mFont.setExtraKerningFactor(0.);
 	mRichStr.setFont(mFont);
-	
+		
 	if (mResizeToText && !mpDrawable)
 	{	
 		// get text width by creating a text layout
 		TextLayout t;
 		t.createLayout(mRichStr, kInfWidth); 
-//		int len = mText.length();
 		float tw = t.getWidth();
-		// tw *= (1. + myLookAndFeel->getLabelTextKerning(size));
-		tw += size * 0.25f; // horiz padding needed for italics
+		tw *= 1.25f; // slop
 		tw = max(tw, size); // for very short texts
 		Component* pC = getComponent();
 		if(pC)

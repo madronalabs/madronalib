@@ -139,10 +139,8 @@
 #include "modules/juce_gui_basics/juce_gui_basics.h"
 #include "modules/juce_gui_extra/juce_gui_extra.h"
 #include "modules/juce_opengl/juce_opengl.h"
+
 #include "MLExampleBinaryData.h"
-
-
-//using namespace juce;
 
 namespace ProjectInfo
 {
