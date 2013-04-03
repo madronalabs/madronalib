@@ -23,6 +23,7 @@ public:
 	~MLExampleProcessor(){}
 	
 	void loadDefaultPreset();
+	void initializeProcessor(); 
 	bool wantsMIDI() {return true;}
 	bool silenceInProducesSilenceOut() const { return false; }
 };

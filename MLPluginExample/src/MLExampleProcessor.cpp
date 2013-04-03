@@ -43,3 +43,8 @@ void MLExampleProcessor::loadDefaultPreset()
 	//const String d((const char*) MLExampleBinaryData::default_xml);
 	//setStateFromText(d);
 }
+
+void MLExampleProcessor::initializeProcessor()
+{
+
+}

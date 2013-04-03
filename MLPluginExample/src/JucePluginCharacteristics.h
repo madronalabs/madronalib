@@ -37,7 +37,7 @@
 #define __JUCE_PLUGIN_CHARACTERISTICS_H__
 
 
-#undef JUCE_ObjCExtraSuffix MLPluginAU
+#undef JUCE_ObjCExtraSuffix
 #define JUCE_ObjCExtraSuffix MLPluginAU
 
 

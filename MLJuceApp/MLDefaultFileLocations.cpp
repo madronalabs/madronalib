@@ -35,15 +35,15 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 
 		if (whichFiles == kScaleFiles)
 		{
-			dest = String(kMLJuceAppMaker) + "/Scales";
+			dest = String("Madrona Labs") + "/Scales";
 		}
 		else if (whichFiles == kFactoryPresetFiles)
 		{
-			dest = String(kMLJuceAppMaker) + "/" + ProjectInfo::projectName + "/Presets";
+			dest = String("Madrona Labs") + "/" + ProjectInfo::projectName + "/Presets";
 		}
 		else if (whichFiles == kUserPresetFiles)
 		{
-			dest = String(kMLJuceAppMaker) + "/" + ProjectInfo::projectName + "/Presets";
+			dest = String("Madrona Labs") + "/" + ProjectInfo::projectName + "/Presets";
 		}
 
 #elif JUCE_LINUX
