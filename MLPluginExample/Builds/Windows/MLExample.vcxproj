@@ -269,7 +269,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;ML_BUILD_VST;JUCE_WINDOWS=1;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\rej\Dev\MadronaUIPrivate;C:\Users\rej\Dev\MadronaDSPPrivate;C:\Users\rej\Dev\oscpack\osc;C:\Users\rej\Dev\MadronaLib\portaudio;C:\Users\rej\Dev\madronalib\MLPluginExample\src;C:\Users\rej\Dev\madronalib\MLPluginExample\PluginData\BinaryData;C:\Users\rej\Dev\MadronaLib\MLApp;C:\Users\rej\Dev\MadronaLib\MLJuceApp;C:\Users\rej\Dev\MadronaLib\LookAndFeel;C:\Users\rej\Dev\madronalib\cJSON;C:\Users\rej\Dev\MadronaLib\DSP;C:\Users\rej\Dev\juce\modules\juce_audio_plugin_client\utility;C:\Users\rej\Dev\juce;C:\SDKs\vstsdk2.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\rej\Dev\oscpack\osc;C:\Users\rej\Dev\MadronaLib\portaudio;C:\Users\rej\Dev\madronalib\MLPluginExample\src;C:\Users\rej\Dev\madronalib\MLPluginExample\PluginData\BinaryData;C:\Users\rej\Dev\MadronaLib\MLApp;C:\Users\rej\Dev\MadronaLib\MLJuceApp;C:\Users\rej\Dev\MadronaLib\LookAndFeel;C:\Users\rej\Dev\madronalib\cJSON;C:\Users\rej\Dev\MadronaLib\DSP;C:\Users\rej\Dev\juce\modules\juce_audio_plugin_client\utility;C:\Users\rej\Dev\juce;C:\SDKs\vstsdk2.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -285,7 +285,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\rej\Dev\MadronaUIPrivate;C:\Users\rej\Dev\MadronaDSPPrivate;C:\Users\rej\Dev\oscpack\osc;C:\Users\rej\Dev\MadronaLib\portaudio;C:\Users\rej\Dev\madronalib\MLPluginExample\src;C:\Users\rej\Dev\madronalib\MLPluginExample\PluginData\BinaryData;C:\Users\rej\Dev\MadronaLib\MLApp;C:\Users\rej\Dev\MadronaLib\MLJuceApp;C:\Users\rej\Dev\MadronaLib\LookAndFeel;C:\Users\rej\Dev\madronalib\cJSON;C:\Users\rej\Dev\MadronaLib\DSP;C:\Users\rej\Dev\juce\modules\juce_audio_plugin_client\utility;C:\Users\rej\Dev\juce;C:\SDKs\vstsdk2.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\rej\Dev\oscpack\osc;C:\Users\rej\Dev\MadronaLib\portaudio;C:\Users\rej\Dev\madronalib\MLPluginExample\src;C:\Users\rej\Dev\madronalib\MLPluginExample\PluginData\BinaryData;C:\Users\rej\Dev\MadronaLib\MLApp;C:\Users\rej\Dev\MadronaLib\MLJuceApp;C:\Users\rej\Dev\MadronaLib\LookAndFeel;C:\Users\rej\Dev\madronalib\cJSON;C:\Users\rej\Dev\MadronaLib\DSP;C:\Users\rej\Dev\juce\modules\juce_audio_plugin_client\utility;C:\Users\rej\Dev\juce;C:\SDKs\vstsdk2.4;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

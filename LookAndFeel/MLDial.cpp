@@ -837,7 +837,6 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 	const Colour signal_color (mIndicatorColor.withAlpha (isEnabled() ? 1.f : 0.f));
 		
 	// get glows
-	
 	// DIMENSIONS
 	int glowTrack = false, glow1 = false, glow2 = false;
 	
