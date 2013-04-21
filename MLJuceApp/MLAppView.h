@@ -23,6 +23,7 @@
 #include "MLMultiSlider.h"
 #include "MLLookAndFeel.h"
 #include "MLEnvelope.h"
+#include "MLProgressBar.h"
 #include "MLGraph.h"
 #include "MLDebugDisplay.h"
 #include "MLDefaultFileLocations.h"
@@ -87,6 +88,8 @@ public:
 
 	MLDrawing* addDrawing(const MLRect & r);
 
+	MLProgressBar* addProgressBar(const MLRect & r);
+		
 	// animations
 	void setAnimationsActive(bool animState);
 

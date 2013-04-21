@@ -235,8 +235,8 @@ public:
 	
 	// 2D signal utils
 	void makeDuplicateBoundary2D();
-	void dx();
-	void dy();
+	void partialDiffX();
+	void partialDiffY();
 	// return highest value in signal
 	Vec3 findPeak() const;
 

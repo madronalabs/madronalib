@@ -1254,22 +1254,6 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 	//	float fz = dx*fx + dy*fy + 0.5f*(dxx*fx*fx + 2.f*dxy*fx*fy + dyy*fy*fy);
 	//	float z = in(x, y) + fz;
 			
-		// TEMP useful diagnostic code
-		if (0)
-		{
-			Vec2 pos(x - fx, y - fy);
-			Vec2 diffFromCenter (fx, fy);
-			float len = diffFromCenter.magnitude(); 
-			if (len > 10.0f)
-			{
-				debug() << "whoa! diff " << len << " from " << x << ", " << y << " to " << pos << "\n";
-				debug() << "1 / D: " << oneOverDiscriminant << "\n";
-				debug() << " here is the local matrix:\n";
-				MLSignal local(3, 3);
-				local.add2D(in, -(x - 1), -(y - 1));
-				local.dump(local.getBoundsRect());				
-			}	
-		}
 		pos -= Vec2(fx, fy);
 		pos = vclamp(pos, minPos, maxPos);
 	}
@@ -1301,7 +1285,7 @@ float rmsDifference2D(const MLSignal& a, const MLSignal& b)
 
 // centered partial derivative of 2D signal in x
 //
-void MLSignal::dx()
+void MLSignal::partialDiffX()
 {
 	register int i, j;
 	register float * pr; // input row ptr
@@ -1337,7 +1321,7 @@ void MLSignal::dx()
 
 // centered partial derivative of 2D signal in y
 //
-void MLSignal::dy()
+void MLSignal::partialDiffY()
 {
 	register int i, j;
 	register float * pr1, * pr2, * pr3; // input row ptrs
@@ -1385,7 +1369,6 @@ void MLSignal::dy()
 		}
 	}
 }
-
 
 std::ostream& operator<< (std::ostream& out, const MLSignal & s)
 {

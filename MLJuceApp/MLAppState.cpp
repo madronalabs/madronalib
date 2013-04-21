@@ -233,20 +233,15 @@ bool MLAppState::loadSavedState()
 		cJSON* root = cJSON_Parse(stateStr.toUTF8());
 		if(root)
 		{
-			if(0) // debug
-			{
-				char* temp= 0;
-				temp = cJSON_Print(root);
-				String stateStr(temp);
-				if(temp) delete temp;
-				debug() << "STATE:\n" << 	stateStr << "\n";
-			}
 			loadStateFromJSON(root);		
 			cJSON_Delete(root);
 		}
 		else
 		{
 			debug() << "MLAppState::loadSavedState: couldn't create JSON object!\n";
+#ifdef ML_DEBUG
+			debug() << "STATE:\n" << 	stateStr << "\n";
+#endif				
 		}
 	}
 	else

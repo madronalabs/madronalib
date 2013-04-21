@@ -50,7 +50,7 @@ MLProcSampleRate::~MLProcSampleRate()
 //	debug() << "MLProcSampleRate destructor\n";
 }
 
-void MLProcSampleRate::process(const int samples)
+void MLProcSampleRate::process(const int )
 {
 	MLSignal& y1 = getOutput();
 	MLSignal& y2 = getOutput(2);

@@ -290,6 +290,13 @@ MLDrawing* MLAppView::addDrawing(const MLRect & r)
 	return drawing;
 }
 
+MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
+{
+	MLProgressBar* pb = new MLProgressBar;
+	addWidgetToView(pb, r);
+	return pb;
+}
+
 void MLAppView::setAnimationsActive(bool animState)
 {
 //debug() << "animations: " << animState << "\n";
