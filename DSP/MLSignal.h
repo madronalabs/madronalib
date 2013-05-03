@@ -222,6 +222,7 @@ public:
 	// kc (center), ke (edge), and kk (corner).
 	//
 	void convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk);
+	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
 	void variance3x3();
 
 	Vec2 correctPeak(const int ix, const int iy) const;

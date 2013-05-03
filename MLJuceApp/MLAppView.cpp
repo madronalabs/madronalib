@@ -347,14 +347,16 @@ void MLAppView::setPeerBounds(int x, int y, int w, int h)
 	Desktop& d = Desktop::getInstance();
 	Rectangle<int> r = d.getDisplays().getTotalBounds(true);
 	
-	debug() << "DESKTOP BOUNDS: " << r.toString() << "\n";
+	// 
+	const int kMenuBarHeight = 20;
+	r.setTop(r.getY() + kMenuBarHeight);
 	
+			
 	Rectangle<int> b(x, y, w, h);
-	Rectangle<int> c = r.getIntersection(b);
-	debug() << "DESKTOP INTERSCTION: " << c.toString() << "\n";
-	
+	Rectangle<int> c = r.getIntersection(b);	
 	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
 	{
+debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
 		p->setBounds(x, y, w, h, false);
 	}
 	else

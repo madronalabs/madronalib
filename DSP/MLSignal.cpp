@@ -842,6 +842,117 @@ void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample
 	}
 }
 
+
+// an operator for 2D signals only
+// convolve signal with coefficients, duplicating samples at border. 
+void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk)
+{
+	register int i, j;
+	register float f;
+	register float * pr1, * pr2, * pr3; // input row ptrs
+	register float * prOut; 	
+	
+	MLSample* pIn = getCopy();
+	MLSample* pOut = mDataAligned;
+	int width = mWidth;
+	int height = mHeight;
+	
+	j = 0;	// top row
+	{
+		// row ptrs
+		pr2 = (pIn + row(j));
+		pr3 = (pIn + row(j + 1));
+		prOut = (pOut + row(j));
+		
+		i = 0; // top left corner
+		{
+			f = ke * (pr2[i+1] + pr3[i] + pr2[i] + pr2[i]);
+			f += kk * (pr3[i+1] + pr2[i+1] + pr3[i] + pr2[i]);
+			f += kc * pr2[i];
+			prOut[i] = f;		
+		}
+			
+		for(i = 1; i < width - 1; i++) // top side
+		{
+			f = ke * (pr2[i-1] + pr2[i+1] + pr3[i] + pr2[i]);
+			f += kk * (pr3[i-1] + pr3[i+1] + pr2[i-1] + pr2[i+1]);
+			f += kc * pr2[i];
+			prOut[i] = f;
+		}
+		
+		i = width - 1; // top right corner
+		{
+			f = ke * (pr2[i-1] + pr3[i] + pr2[i] + pr2[i]);
+			f += kk * (pr3[i-1] + pr2[i-1] + pr3[i] + pr2[i]);
+			f += kc * pr2[i];
+			prOut[i] = f;		
+		}
+	}
+	for(j = 1; j < height - 1; j++) // center rows
+	{
+		// row ptrs
+		pr1 = (pIn + row(j - 1));
+		pr2 = (pIn + row(j));
+		pr3 = (pIn + row(j + 1));
+		prOut = (pOut + row(j));
+		
+		i = 0; // left side
+		{
+			f = ke * (pr1[i] + pr2[i+1] + pr3[i] + pr2[i]);
+			f += kk * (pr1[i+1] + pr3[i+1] + pr1[i] + pr3[i]);
+			f += kc * pr2[i];
+			prOut[i] = f;		
+		}
+			
+		for(i = 1; i < width - 1; i++) // center
+		{
+			f = ke * (pr2[i-1] + pr1[i] + pr2[i+1] + pr3[i]);
+			f += kk * (pr1[i-1] + pr1[i+1] + pr3[i-1] + pr3[i+1]);
+			f += kc * pr2[i];
+			prOut[i] = f;
+		}
+		
+		i = width - 1; // right side
+		{
+			f = ke * (pr2[i-1] + pr1[i] + pr3[i] + pr2[i]);
+			f += kk * (pr1[i-1] + pr3[i-1] + pr1[i] + pr3[i]);
+			f += kc * pr2[i];
+			prOut[i] = f;		
+		}
+	}
+	j = height - 1;	// bottom row
+	{
+		// row ptrs
+		pr1 = (pIn + row(j - 1));
+		pr2 = (pIn + row(j));
+		prOut = (pOut + row(j));
+		
+		i = 0; // bottom left corner
+		{
+			f = ke * (pr1[i] + pr2[i+1] + pr2[i] + pr2[i]);
+			f += kk * (pr1[i+1] + pr1[i] + pr2[i+1] + pr2[i]);
+			f += kc * pr2[i];
+			prOut[i] = f;		
+		}
+			
+		for(i = 1; i < width - 1; i++) // bottom side
+		{
+			f = ke * (pr2[i-1] + pr1[i] + pr2[i+1] + pr2[i]);
+			f += kk * (pr1[i-1] + pr1[i+1] + pr2[i-1] + pr2[i+1]);
+			f += kc * pr2[i];
+			prOut[i] = f;
+		}
+		
+		i = width - 1; // bottom right corner
+		{
+			f = ke * (pr2[i-1] + pr1[i] + pr2[i] + pr2[i]);
+			f += kk * (pr1[i-1] + pr1[i] + pr2[i-1] + pr2[i]);
+			f += kc * pr2[i];
+			prOut[i] = f;		
+		}
+	}
+}
+
 // an operator for 2D signals only
 void MLSignal::variance3x3()
 {

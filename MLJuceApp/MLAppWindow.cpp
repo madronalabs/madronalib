@@ -5,20 +5,27 @@
 
 #include "MLAppWindow.h" 
 
+// --------------------------------------------------------------------------------
+#pragma mark MLAppWindow
 
 MLAppWindow::MLAppWindow()
 	: DocumentWindow (ProjectInfo::projectName,
 					  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
 					  DocumentWindow::allButtons,
 					  true),
-	mpBorder(0)
+	mpBorder(0),
+	mpConstrainer(0)
 {
-	// note: native title bar prevents resizing from border on Mac. 
-	// also enforces fixed title bar height.
-	setUsingNativeTitleBar (true);
-	setTitleBarHeight (kMLJuceTitleBarHeight);	
 	setResizable(true, false);
-	setConstrainer (&myConstrainer);
+	setResizeLimits (400, 300, 8192, 8192);
+	
+	// note: native title bar prevents resizing by dragging border on Mac. 
+	// also enforces fixed title bar height, and automatically includes a
+	// resizing rect in lower right. 
+	setUsingNativeTitleBar (true);
+	
+	mpConstrainer = new MLBoundsConstrainer();
+	setConstrainer (mpConstrainer);
 	setVisible (true);
 }
 
@@ -32,14 +39,28 @@ MLAppWindow::~MLAppWindow()
 	{
 		delete mpBorder;
 	}
+	if (mpConstrainer)
+	{
+		delete mpConstrainer;
+	}
+}
+
+void MLAppWindow::mouseDown (const MouseEvent& e)
+{
+	myDragger.startDraggingComponent (this, e);
+}
+
+void MLAppWindow::mouseDrag (const MouseEvent& e)
+{
+	myDragger.dragComponent (this, e, nullptr);
 }
 
 void MLAppWindow::setGridUnits(double gx, double gy)
 {
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
-	myConstrainer.setTitleBarHeight(kMLJuceTitleBarHeight);
-	myConstrainer.setFixedAspectRatio(gx/gy);	
+	mpConstrainer->setFixedAspectRatio(gx/gy);	
+	
 	if (mpBorder)
 	{
 		mpBorder->setGridUnits(gx, gy);
@@ -51,24 +72,9 @@ void MLAppWindow::setContent(MLAppView* contentView)
 	if (!mpBorder) 
 	{
 		mpBorder = new MLAppBorder();
+		mpBorder->setBounds(getBounds());
 	}
-	ResizableWindow::setContentNonOwned (mpBorder, false);
+	setContentNonOwned (mpBorder, false);
 	mpBorder->addMainView(contentView);
-}
 
-void MLAppWindow::closeButtonPressed()
-{
-	// When the user presses the close button, we'll tell the app to quit. This
-	// MLAppWindow object will be deleted by the MLJuceApp class.
-	JUCEApplication::quit();
-}
-
-void MLAppWindow::mouseDown (const MouseEvent& e)
-{
-	myDragger.startDraggingComponent (this, e);
-}
-
-void MLAppWindow::mouseDrag (const MouseEvent& e)
-{
-	myDragger.dragComponent (this, e, nullptr);
 }

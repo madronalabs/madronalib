@@ -5,52 +5,10 @@
 
 #include "MLAppBorder.h"
 
-MLBoundsConstrainer::MLBoundsConstrainer() : mTitleBarHeight(0)
-{
-	setMinimumSize(480, 360);
-}
-
-MLBoundsConstrainer::~MLBoundsConstrainer()
-{
-}
-
-/*
-void MLBoundsConstrainer::checkBounds (MLRect& bounds,
-	const MLRect&,
-	const MLRect&,
-	 bool ,
-	 bool ,
-	 bool ,
-	 bool ) 
-{
-	int minHeight = 300;
- 	int maxHeight = 2000;
-
-	double a = getFixedAspectRatio();
-
-debug() << "a: " << a << "\n";
-
-	// constrain the aspect ratio if one has been specified..
-    if (a > 0.0)
-    {
-		int h = bounds.getHeight();
-		h = clamp(h, minHeight, maxHeight);
-		bounds.setHeight(h);
-		
-		int w = ((double)(h - mTitleBarHeight))*a; //correct for title bar
-		bounds.setWidth(w);		
-		
-debug() << "out:" << w << " by " << h << "\n";
-	}
-}
-*/
-
-// --------------------------------------------------------------------------------
-#pragma mark MLAppBorder
-
 MLAppBorder::MLAppBorder() : 
 	mpResizer(0),
-	pMainView(0)
+	pMainView(0),
+	mZoomable(false)
 {
 	Component::setBounds(0, 0, 0, 0);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -69,7 +27,8 @@ void MLAppBorder::addMainView(MLAppView* pView)
 	addAndMakeVisible(pView);
 }
 
-// build the resizer for target components that need them
+// build the resizer for target components that need them.
+// Native Mac windows don't need resizers.
 //
 void MLAppBorder::makeResizer(Component* targetComp)
 {
@@ -82,45 +41,69 @@ void MLAppBorder::paint (Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->drawBackground(g, this);	
-	
-	/*
+		
+	/*	
 	// TEST outline border areas
-	g.setColour(Colours::red);
-	Path p;
+	Path p, p2;
 	int w = getWidth();
 	int h = getHeight();
 	p.addRectangle(0, 0, w, h);
+	
 	if (pMainView)
 	{
-		p.addRectangle(pMainView->getBounds());
+		p2.addRectangle(pMainView->getBounds());
 	}
 	else
 	{
-		p.startNewSubPath(0, 0);
-		p.lineTo(w, h);
-		p.startNewSubPath(w, 0);
-		p.lineTo(0, h);
+		// draw X
+		p2.startNewSubPath(0, 0);
+		p2.lineTo(w, h);
+		p2.startNewSubPath(w, 0);
+		p2.lineTo(0, h);
 	}
-	g.strokePath(p, PathStrokeType(0.5f));
+	g.setColour(Colours::blue);
+	g.strokePath(p, PathStrokeType(1.f));
+	g.setColour(Colours::red);
+	g.strokePath(p2, PathStrokeType(1.f));
 	*/
 }
 
 void MLAppBorder::centerMainViewInWindow()
 {
 	Rectangle<int> br = getBounds();
-	int u = (int)(getHeight() / mGridUnitsY);
+	int windowWidth = br.getWidth();
+	int windowHeight = br.getHeight();	
+	double windowRatio = (double)windowWidth/(double)windowHeight;
+	double viewRatio = (double)mGridUnitsX/(double)mGridUnitsY;
+	int u = (int)(windowHeight / mGridUnitsY);
+	int viewWidth, viewHeight;
+	
+	// TODO different modes: fit fixed scale, quantize only. 
+	// This is fit fixed scale, good for static layouts.
+	if(windowRatio > viewRatio)
+	{
+		// too wide
+		viewHeight = windowHeight;
+		viewWidth = (double)windowHeight*viewRatio;
+	}
+	else
+	{
+		// too tall
+		viewWidth = windowWidth;
+		viewHeight = (double)windowWidth/viewRatio;
+		u = viewWidth / mGridUnitsX;
+	}
+	
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->setGridUnitSize(u);	
-	int vw = br.getWidth();
-	int vh = br.getHeight();
+
+	if ((!viewWidth) || (!viewHeight) || !u) return;
+	int vwq = viewWidth / u * u;
+	int vhq = viewHeight / u * u;
+	int borderX = (windowWidth - vwq)/2;
+	int borderY = (windowHeight - vhq)/2;
 	
-	if ((!vw) || (!vh) || !u) return;
-	int vwq = vw / u * u;
-	int borderLR = (vw - vwq)/2;
-	
-	// move so mGridUnitsX * gridUnitSize is centered horizontally in window
-	if (pMainView)
-		pMainView->resizeWidget(MLRect(borderLR, 0, vwq, vh), u);
+	if (pMainView) pMainView->resizeWidget(MLRect(borderX, borderY, vwq, vhq), u);
 }
 
 void MLAppBorder::resized()
@@ -140,10 +123,9 @@ void MLAppBorder::setGridUnits(double gx, double gy)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->setGridUnits(gx, gy);	
+	myConstrainer.setFixedAspectRatio(gx/gy);	
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
-	myConstrainer.setTitleBarHeight(0);
-	myConstrainer.setFixedAspectRatio(gx/gy);	
 }
 
 void MLAppBorder::setContent(MLAppView* contentView)
@@ -152,4 +134,9 @@ void MLAppBorder::setContent(MLAppView* contentView)
 	addMainView(contentView);
 }
 
+void MLAppBorder::setZoomable(bool z)
+{ 
+	mZoomable = z;
+	myConstrainer.setZoomable(z); 
+}
 
