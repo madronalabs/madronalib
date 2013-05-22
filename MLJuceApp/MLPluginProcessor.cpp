@@ -829,9 +829,13 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 		}
 	}
 	
+	
+	std::map<MLSymbol, MLSymbol> translationTable;
+
+	// TODO move this into Aalto! 
+	/*
 	// make translation tables based on program version. 
 	//
-	std::map<MLSymbol, MLSymbol> translationTable;
 	if (blobVersion <= 0x00010120)
 	{
 		// translate seq parameters
@@ -869,6 +873,8 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 			translationTable[oldSym2] = newSym2;	
 		}		
 	}
+	*/
+	
 	
 	// get params from xml
 	const unsigned numAttrs = xmlState.getNumAttributes();

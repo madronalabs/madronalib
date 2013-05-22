@@ -10,12 +10,14 @@
 #include "MLResponder.h"
 #include "MLReporter.h"
 #include "MLSignalReporter.h"
+#include "MLPatcher.h"
 #include "MLAppView.h"
 
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
-	public MLSignalReporter
+	public MLSignalReporter,
+	public MLPatcher::Listener
 {
 public:
 	MLPluginController(MLPluginProcessor* const pProcessor);
@@ -26,8 +28,6 @@ public:
 	
 	// things to do after View is set
 	virtual void initialize() {}
-	
-	void updateParametersFromFilter();
 
 	// from MLButton::Listener
     virtual void buttonClicked (MLButton*);
@@ -48,6 +48,11 @@ public:
 	virtual void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
     virtual void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
 
+	// from MLPatcher::Listener
+	virtual void patcherClear (MLPatcher* ) = 0;
+	virtual void patcherAddPatchCord (MLPatcher* , int , int ) = 0;
+	virtual void patcherRemovePatchCord (MLPatcher* , int , int ) = 0;
+	
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string& name, const std::string& dir);
 	
@@ -92,7 +97,7 @@ private:
 //	ScopedPointer <DirectoryContentsList> mFactoryPresetsList;
 //	ScopedPointer <DirectoryContentsList> mUserPresetsList;
 //	ScopedPointer <DirectoryContentsList> mScalesList;
- //   TimeSliceThread mFactoryPresetsThread, mUserPresetsThread, mScalesThread;
+//   TimeSliceThread mFactoryPresetsThread, mUserPresetsThread, mScalesThread;
  
 	File mFactoryPresetsFolder, mUserPresetsFolder, mScalesFolder;
 	File mCurrentPresetFolder;

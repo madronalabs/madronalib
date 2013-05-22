@@ -4,11 +4,10 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 
-#include "MLPlatform.h"
+#ifndef __ML_OSC_LISTENER_H__
+#define __ML_OSC_LISTENER_H__
 
-#if ML_WINDOWS
-	// TODO
-#else
+#include "MLPlatform.h"
 
 #include "OscTypes.h"
 #include "OscException.h"
@@ -43,4 +42,4 @@ private:
 };
 
 
-#endif // ML_WINDOWS
+#endif // __ML_OSC_LISTENER_H__

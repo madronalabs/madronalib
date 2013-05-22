@@ -26,9 +26,9 @@ void MLProgressBar::paint (Graphics& g)
 	const Colour fc = findColour(MLLookAndFeel::labelColor);	
 	const float progress = getAttribute("progress");
 
-	Path bounds;
+	Path gbounds;
 	const Rectangle<int> & boundsRect (getLocalBounds());	
-	bounds.addRectangle(boundsRect);
+	gbounds.addRectangle(boundsRect);
 	MLRange xRange(0., 1., boundsRect.getX(), boundsRect.getRight());
 	MLRect progressRect = juceToMLRect(boundsRect);
 	progressRect.setRight(xRange(progress));
@@ -37,7 +37,7 @@ void MLProgressBar::paint (Graphics& g)
 	fullBounds.addRectangle(fullRect);
 	g.setColour(fc);	
 	g.fillPath(fullBounds);	
-	g.strokePath(bounds, PathStrokeType(1.0f));
+	g.strokePath(gbounds, PathStrokeType(1.0f));
 
 }
 

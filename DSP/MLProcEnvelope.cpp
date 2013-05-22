@@ -36,11 +36,9 @@ private:
 	int mState;
 	int mT;
 };
-
 	
 static const float kMinSegTime = 0.0002f;
 static const float kMaxSegTime = 20.000f;
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -86,9 +84,6 @@ void MLProcEnvelope::clear()
 	mMult = 1.f;
 	mT = 0;
 }
-
-// TODO vary times of each voice according to random DSP parameters, 
-// like oscillators. 
 
 // generate envelope output based on gate and control signal inputs.
 void MLProcEnvelope::process(const int samples)

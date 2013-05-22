@@ -4,11 +4,12 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPlatform.h"
-#include "MLOSCListener.h"
 
 #if ML_WINDOWS
 	// TODO
 #else
+	
+#include "MLOSCListener.h"
 
 MLOSCListener::MLOSCListener() :
 	mpSocket(0),

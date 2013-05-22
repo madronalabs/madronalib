@@ -11,7 +11,6 @@
 
 static const unsigned kMLMatrixMaxIns = 32;
 static const unsigned kMLMatrixMaxOuts = 32;
-extern const unsigned long MatrixConstants[16];
 
 // compact form representing connections in a matrix. 
 class MLMatrixConnectionList

@@ -103,10 +103,10 @@ float Vec4::magnitude() const
 //
 #pragma mark MLRect
 
-MLRect::MLRect(float x, float y, float w, float h) 
+MLRect::MLRect(float px, float py, float w, float h) 
 { 
-	val.f[0] = x; 
-	val.f[1] = y; 
+	val.f[0] = px; 
+	val.f[1] = py; 
 	val.f[2] = w; 
 	val.f[3] = h; 
 }
@@ -144,8 +144,8 @@ MLRect MLRect::intersect(const MLRect& b) const
 
 bool MLRect::intersects(const MLRect& b) const
 { 
-	MLRect x = intersect(b);
-	return (x.area() > 0);
+	MLRect rx = intersect(b);
+	return (rx.area() > 0);
 }
 
 MLRect MLRect::unionWith(const MLRect& b) const

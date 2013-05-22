@@ -90,7 +90,7 @@ void MLProcMatrix::connect(unsigned a, unsigned b)
 	const unsigned outputs = getNumOutputs();
 	if ((a <= inputs) && (b <= outputs))
 	{
-//debug() << "MLProcMatrix::connect:" << a << "->" << b << "\n";
+debug() << "MLProcMatrix::connect:" << a << "->" << b << "\n";
 
 		mGain[a][b] = 1.;
 	}
@@ -158,7 +158,7 @@ void MLProcMatrix::calcCoeffs()
 	const int use_out = (out > 0);
 	const int mode = (use_in << 1) + use_out;
 	
-// debug() << "Matrix: in = " << in << ", out = " << out << "\n";
+debug() << "Matrix: in = " << in << ", out = " << out << "\n";
 	switch(mode)
 	{
 		case 3:	// both 

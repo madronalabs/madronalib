@@ -187,7 +187,7 @@ protected:
 	String mDocLocationString;
 	
 	// patcher and other UI element ptrs TEMP
-	MLMatrixConnectionList mMatrixData;
+	// MLMatrixConnectionList mMatrixData;
 		
 private:
 

@@ -1178,11 +1178,11 @@ void MLProcContainer::addPipe(const MLPath& src, const MLSymbol out, const MLPat
 			MLError() << "MLProcContainer::addPipe failed";
 			if (!srcIdx)
 			{
-				MLError() << ": no src output "<< out;
+				MLError() << ": no src output "<< out << " of proc " << src << " in container " << getName();
 			}
 			if (!destIdx)
 			{
-				MLError() << ": no dest input "<< in;
+				MLError() << ": no dest input "<< in << " of proc " << dest << " in container " << getName();
 			}
 			MLError() << "\n";
 		}
@@ -1192,11 +1192,11 @@ void MLProcContainer::addPipe(const MLPath& src, const MLSymbol out, const MLPat
 		MLError() << "MLProcContainer::addPipe failed";
 		if (!srcProc)
 		{
-			MLError() << ": no src proc "<< src;
+			MLError() << ": no src proc "<< src << " in container " << getName();
 		}
 		if (!destProc)
 		{
-			MLError() << ": no dest proc "<< dest;
+			MLError() << ": no dest proc "<< dest << " in container " << getName();
 		}
 		MLError() << "\n";
 	}

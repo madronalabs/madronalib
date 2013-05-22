@@ -14,7 +14,7 @@ const float kDriftConstants[16] =
 };
 
 
-const int kNumVoiceSignals = 8;
+const int kNumVoiceSignals = 9;
 const char * voiceSignalNames[kNumVoiceSignals] = 
 {
 	"pitch",
@@ -24,7 +24,8 @@ const char * voiceSignalNames[kNumVoiceSignals] =
 	"after",
 	"moda",
 	"modb",
-	"modc"
+	"modc",
+	"position"
 };
 
 // ----------------------------------------------------------------
