@@ -18,10 +18,12 @@ MLDebugDisplay::MLDebugDisplay () :
 //	mpComp->setLineNumbersShown(false);
 	addAndMakeVisible(mpComp);
  	MLWidget::setComponent(this);
+	startTimer(250);
 }
 
 MLDebugDisplay::~MLDebugDisplay()
 {
+	stopTimer();
 	if(mpComp) delete mpComp;
 }
 
@@ -79,6 +81,10 @@ void MLDebugDisplay::resizeWidget(const MLRect& b, const int)
 	}
 }
 
+void MLDebugDisplay::timerCallback()
+{
+	display();
+}
 
 /*
 

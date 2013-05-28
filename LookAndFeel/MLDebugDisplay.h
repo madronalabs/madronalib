@@ -14,7 +14,8 @@
 class MLDebugDisplay : 
 	public Component,
 	public MLWidget,
-	public MLTextStreamListener
+	public MLTextStreamListener,
+	public Timer
 {
 public:
     MLDebugDisplay();
@@ -24,6 +25,7 @@ public:
 
 protected:
 	void resizeWidget(const MLRect& b, const int);
+	void timerCallback();
 
 private:
 	CodeEditorComponent* mpComp;
