@@ -1030,7 +1030,7 @@ MLProc::err MLProcContainer::addProcAfter(MLSymbol className, MLSymbol alias, ML
 	it = mProcMap.find(afterProc);
 	if (it == mProcMap.end())
 	{
-		debug() << "MLProcContainer::addProcAfter: " << afterProc << " not found!\n";
+		debug() << "MLProcContainer::addProcAfter: " << afterProc << " not found in container " << getName() << "!\n";
 		return unknownErr;
 	}
 	
@@ -1143,7 +1143,7 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 		}
 		else
 		{
-			debug() << "MLProcContainer: getProcList:" << pathI << "... not found.\n";
+			debug() << "MLProcContainer: getProcList:" << pathI << " not found in container " << getName() << "!\n";
 		}
 	}
 }
@@ -1303,6 +1303,7 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 				resamplerProc->createInput(resamplerInIndex);
 				
 				// set to a valid input in case graph ends up incomplete
+				// TODO investigate, why is this commented out?  
 //				resamplerProc->setContext(this);
 //				resamplerProc->setInput(resamplerInIndex, getNullInput());
 				
@@ -1338,7 +1339,7 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 	}
 	else
 	{
-		MLError() << "MLProcContainer::publishInput: proc " << procName << " not found!\n";
+		MLError() << "MLProcContainer::publishInput: proc " << procName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
@@ -1404,7 +1405,7 @@ void MLProcContainer::publishOutput(const MLPath & procName, const MLSymbol outp
 	}
 	else
 	{
-		MLError() << "MLProcContainer::publishOutput: proc " << procName << " not found!\n";
+		MLError() << "MLProcContainer::publishOutput: proc " << procName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
@@ -1422,7 +1423,7 @@ MLSymbol MLProcContainer::getOutputName(int index)
 	}
 	else
 	{
-		debug() << "MLProcContainer::getOutputName: output " << index << " not found!\n";	
+		debug() << "MLProcContainer::getOutputName: output " << index << " not found in container " << getName() << "!\n";
 	}
 	return MLSymbol();
 }
@@ -1534,7 +1535,7 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	}
 	else
 	{
-		debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found!\n";
+		debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found in container " << getName() << "!\n";
 	}
 	return samplesRead;
 }
@@ -1625,7 +1626,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 	}
 	else 
 	{
-		debug() << "MLProcContainer::addSignalBuffers: proc " << head << " not found! \n";
+		debug() << "MLProcContainer::addSignalBuffers: proc " << head << " not found in container " << getName() << "!\n";
 	}
 	return e;
 }
@@ -1693,7 +1694,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 	}
 	else 
 	{
-		debug() << "MLProcContainer::gatherSignalBuffers: proc " << head << " not found! \n";
+		debug() << "MLProcContainer::gatherSignalBuffers: proc " << head << " not found in container " << getName() << "!\n";
 	}
 }
 
@@ -1809,7 +1810,7 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 		}
 		else
 		{
-			debug() << "MLProcContainer::routeParam: proc " << head << " not found! \n";
+			debug() << "MLProcContainer::routeParam: proc " << head << " not found in container " << getName() << "!\n";
 		}
 	}
 }
@@ -1829,7 +1830,7 @@ MLSymbol MLProcContainer::getParamName(int index)
 	}
 	else
 	{
-		debug() << "MLProcContainer::getParamName: param " << index << " not found!\n";	
+		debug() << "MLProcContainer::getParamName: param " << index << " not found in container " << getName() << "!\n";
 	}
 	return MLSymbol();
 }
