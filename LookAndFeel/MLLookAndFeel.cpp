@@ -3,36 +3,12 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-/*
-  ==============================================================================
-
-   This file is part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-7 by Raw Material Software ltd.
-
-  ------------------------------------------------------------------------------
-
-   JUCE can be redistributed and/or modified under the terms of the
-   GNU General Public License, as published by the Free Software Foundation;
-   either version 2 of the License, or (at your option) any later version.
-
-   JUCE is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with JUCE; if not, visit www.gnu.org/licenses or write to the
-   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-   Boston, MA 02111-1307 USA
-
-  ------------------------------------------------------------------------------
-
-   If you'd like to release a closed-source product which uses JUCE, commercial
-   licenses are also available: visit www.rawmaterialsoftware.com/juce for
-   more information.
-
-  ==============================================================================
-*/
+// Portions of this software originate from JUCE, 
+// copyright 2004-2013 by Raw Material Software ltd.
+// JUCE is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #include "MLLookAndFeel.h"
 
@@ -55,11 +31,11 @@ MLLookAndFeel::MLLookAndFeel()
 	mGlobalTextScale = 1.0f;
 	
 	// default Madrona theme (B/W)
-	setColour(backgroundColorNeutral, Colour::fromHSV(0.58f, 0.0f, 0.20f, 1.f));
-	setColour(backgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.80f, 1.f));
-	setColour(buttonBackgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.85f, 1.f));
-	setColour(defaultDialFillColor, Colour::fromHSV(0.5f, 0.0f, 0.95f, 1.f));
-	setColour(backgroundColor2, Colour::fromHSV(0.5f, 0.0f, 0.70f, 1.f));
+	setColour(backgroundColorNeutral, Colour::fromHSV(0.58f, 0.0f, 0.20f, 1.f));	
+	setColour(backgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.75f, 1.f));
+	setColour(backgroundColor2, Colour::fromHSV(0.5f, 0.00f, 0.70f, 1.f)); // edges	
+	setColour(defaultFillColor, Colour::fromHSV(0.5f, 0.0f, 0.95f, 1.f));
+	
 	setColour(markColor, Colour::fromHSV(0.5f, 0.0f, 0.6f, 1.f));
     setColour(labelColor, Colour::fromHSV(0.5f, 0.5f, 0.0f, 1.f));
 	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.25f, 1.f));
@@ -68,12 +44,12 @@ MLLookAndFeel::MLLookAndFeel()
 	//
 	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.70f, 1.f));
 	setColour(radioOffColor, Colour(0xffc0c0bc));
-	setColour(radioOnColor, Colour::fromHSV(0.15f, 0.f, 0.90f, 1.f));
+	setColour(radioOnColor, Colour::fromHSV(0.15f, 0.f, 0.85f, 1.f));
 	setColour(buttonOffColor, Colour::fromHSV(0.5f, 0.5f, 0.80f, 1.f));
 	setColour(buttonOnColor, Colour::fromHSV(0.5f, 0.5f, 0.80f, 1.f));
 	//
 	setColour(lineColor, findColour(labelColor).overlaidWith(findColour(backgroundColor).withAlpha(0.5f)) );
-	setColour(darkFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.25f)));
+	setColour(darkFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.10f)));
 	setColour(darkerFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.5f)));
 	setColour(darkestFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.75f)));
 
@@ -104,8 +80,8 @@ MLLookAndFeel::MLLookAndFeel()
 	
     setColour (ListBox::outlineColourId,            Colour::fromHSV(0.5f, 0.0f, 0.20f, 1.f));
 	
-    setColour (ScrollBar::thumbColourId, findColour(buttonBackgroundColor));
-    setColour (ScrollBar::backgroundColourId, findColour(darkFillColor));
+    setColour (ScrollBar::thumbColourId, findColour(darkFillColor));
+    setColour (ScrollBar::backgroundColourId, findColour(darkerFillColor));
 	
     setColour (ProgressBar::backgroundColourId,     Colours::white.withAlpha (0.6f));
     setColour (ProgressBar::foregroundColourId,     Colours::green.withAlpha (0.7f));

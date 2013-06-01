@@ -6,9 +6,6 @@
 #include "MLButton.h"
 #include "MLLookAndFeel.h"
 
-//==============================================================================
-
-
 MLButton::MLButton (const String& label)
     : Button (label),
 	mLabelOffset(MLPoint(0, 0)),
@@ -32,7 +29,6 @@ MLButton::MLButton (const String& label)
 	setColour ((const int)textColourId, Colours::black);
 	mImageOffset = Vec2(0, 0);
 }
-
 
 MLButton::MLButton ()
     : Button (""),
@@ -144,7 +140,6 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 	g.setColour(Colours::red);	
 	g.strokePath(bounds, PathStrokeType(1.0f));
 	*/
-	
 }
 
 void MLButton::clicked()
@@ -160,5 +155,3 @@ void MLButton::setListener (MLButton::Listener* l)
     assert (l);
     mpListener = l;
 }
-
-

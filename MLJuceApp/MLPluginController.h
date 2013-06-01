@@ -16,8 +16,7 @@
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
-	public MLSignalReporter,
-	public MLPatcher::Listener
+	public MLSignalReporter
 {
 public:
 	MLPluginController(MLPluginProcessor* const pProcessor);
@@ -29,30 +28,18 @@ public:
 	// things to do after View is set
 	virtual void initialize() {}
 
-	// from MLButton::Listener
+	// from MLResponder
     virtual void buttonClicked (MLButton*);
-	
-	// from MLMenuButton::Listener
 	void showMenu (MLSymbol menuName, MLMenuButton* instigator);
 
- 	// from MLDial::Listener
     virtual void dialValueChanged (MLDial*);
 	virtual void dialDragStarted (MLDial*);
 	virtual void dialDragEnded (MLDial*);
-
-	// from MLMultiButton::Listener
     virtual void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-
-	// from MLMultiSlider::Listener
 	virtual void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
 	virtual void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
     virtual void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
 
-	// from MLPatcher::Listener
-	virtual void patcherClear (MLPatcher* ) = 0;
-	virtual void patcherAddPatchCord (MLPatcher* , int , int ) = 0;
-	virtual void patcherRemovePatchCord (MLPatcher* , int , int ) = 0;
-	
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string& name, const std::string& dir);
 	

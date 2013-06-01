@@ -29,7 +29,6 @@ class MLResponder  :
 	public MLMultiSlider::Listener
 {
 public:
-
 	MLResponder() {}
     virtual ~MLResponder() {}
 
@@ -41,10 +40,14 @@ public:
 	virtual void menuItemChosen(MLSymbol menuName, int result) = 0;
 
  	// from MLDial::Listener
+	virtual void dialDragStarted (MLDial*) = 0;
     virtual void dialValueChanged (MLDial*) = 0;
+	virtual void dialDragEnded (MLDial*) = 0;
 	
 	// from MLMultiSlider::Listener
+	virtual void multiSliderDragStarted (MLMultiSlider* pSlider, int idx) = 0;
     virtual void multiSliderValueChanged (MLMultiSlider* , int ) = 0;
+	virtual void multiSliderDragEnded (MLMultiSlider* pSlider, int idx) = 0;
 
 	// from MLMultiButton::Listener
     virtual void multiButtonValueChanged (MLMultiButton* , int ) = 0;

@@ -3,9 +3,12 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// This file is derived in part from the JUCE library - "Jules' Utility Class Extensions"
-// Copyright 2004-13 by Raw Material Software Ltd.
-
+// Portions of this software originate from JUCE, 
+// copyright 2004-2013 by Raw Material Software ltd.
+// JUCE is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #ifndef __ML_DIAL_HEADER__
 #define __ML_DIAL_HEADER__
@@ -22,8 +25,7 @@ class MLDialDetent
 {
 public:
 	MLDialDetent(const float v, const float w) : mValue(v), mWidth(w) {}
-	~MLDialDetent(){}
-	
+	~MLDialDetent(){}	
 	float mValue;
 	float mWidth;
 };
@@ -35,7 +37,6 @@ class MLDial  :
     protected AsyncUpdater
 {
 friend class MLLookAndFeel;
-
 public:
     MLDial ();
     ~MLDial();
@@ -44,11 +45,12 @@ public:
 	{
 	public:
 		virtual ~Listener() {}
+		virtual void dialDragStarted (MLDial* dial) = 0;
 		virtual void dialValueChanged (MLDial* dial) = 0;
+		virtual void dialDragEnded (MLDial* dial) = 0;
 	};
 	
 	void setListener (MLDial::Listener* const l);
-
 	void setAttribute(MLSymbol attr, float val);
 	
 	enum DialStyle
@@ -235,8 +237,8 @@ public:
 		const MLDial::DialRect whichRect,
 		const float dialPos, const float minDialPos, const float maxDialPos) ;
 
-	WhichDial				getRectOverPoint(const MouseEvent& e);
-	WhichDial				getRectOverPoint(const int x, const int y);		
+	WhichDial getRectOverPoint(const MouseEvent& e);
+	WhichDial getRectOverPoint(const int x, const int y);		
 	
 	float getValueOfDial(WhichDial s);
 	void setValueOfDial(WhichDial s, float val, bool quiet = false);
@@ -247,22 +249,17 @@ public:
 
 protected:
 
-    /** @internal */
     void repaintAll ();
-	
 	virtual void paint (Graphics& g);
-
 	void drawLinearDial (Graphics& g, int rx, int ry, int rw, int rh, 
 		float dialPos, float minDialPos, float maxDialPos,
 		const MLDial::DialStyle style);		
 	void drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float dialPos);
-
-    /** @internal */
+    
     void moved();
     virtual void resized();
-    /** @internal */
+    
     void mouseDown (const MouseEvent& e);
-    /** @internal */
     void mouseUp (const MouseEvent& e);
 
 	bool collectMouseMotion(int dp, int dt);
@@ -273,18 +270,16 @@ protected:
 	void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel);
 
 	void hideMouse();
-    /** @internal */
     void modifierKeysChanged (const ModifierKeys& modifiers);
-    /** @internal */
     void lookAndFeelChanged();
-    /** @internal */
     void enablementChanged();
-
     void handleAsyncUpdate();
-	
-    /** @internal */
     void colourChanged();
-    void endDrag();
+    void sendDragStart();
+	void sendDragEnd();
+ 	
+	inline void endDrag(){ dialBeingDragged = NoDial; }
+
     float constrainedValue (float value) const throw();
     void triggerChangeMessage (const bool synchronous);
 

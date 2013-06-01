@@ -3,38 +3,14 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-/*
-  ==============================================================================
+// Portions of this software originate from JUCE, 
+// copyright 2004-2013 by Raw Material Software ltd.
+// JUCE is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
-   This file was part of the JUCE library - "Jules' Utility Class Extensions"
-   Copyright 2004-7 by Raw Material Software ltd.
-
-  ------------------------------------------------------------------------------
-
-   JUCE can be redistributed and/or modified under the terms of the
-   GNU General Public License, as published by the Free Software Foundation;
-   either version 2 of the License, or (at your option) any later version.
-
-   JUCE is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   GNU General Public License for more details.
-
-   You should have received a copy of the GNU General Public License
-   along with JUCE; if not, visit www.gnu.org/licenses or write to the
-   Free Software Foundation, Inc., 59 Temple Place, Suite 330,
-   Boston, MA 02111-1307 USA
-
-  ------------------------------------------------------------------------------
-
-   If you'd like to release a closed-source product which uses JUCE, commercial
-   licenses are also available: visit www.rawmaterialsoftware.com/juce for
-   more information.
-
-  ==============================================================================
-*/
-
-// MLLookAndFeel is Juce-based, JuceLookAndFeel with minor extensions.
+// MLLookAndFeel is Juce-based, JuceLookAndFeel with extensions.
 // Madrona Labs 2009-2013.
 
 #ifndef __ML_LOOKANDFEEL_H__
@@ -90,8 +66,8 @@ public:
 		backgroundColor2				= 0x10A0010, 
 		markColor						= 0x10A0011, 
 		darkLabelColor					= 0x10A0012, 
-		buttonBackgroundColor			= 0x10A0013, 
-		defaultDialFillColor			= 0x10A0014, 
+		unused2							= 0x10A0013, 
+		defaultFillColor			= 0x10A0014, 
 		//
 		// Colors probably not to change, written with IDs for consistency
 		redColor						= 0x10A002B, 

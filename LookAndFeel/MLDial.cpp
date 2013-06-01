@@ -3,8 +3,12 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// This file is derived in part from the JUCE library - "Jules' Utility Class Extensions"
-// Copyright 2004-13 by Raw Material Software Ltd.
+// Portions of this software originate from JUCE, 
+// copyright 2004-2013 by Raw Material Software ltd.
+// JUCE is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 
 #include "MLDial.h"
 #include "MLLookAndFeel.h"
@@ -15,10 +19,8 @@ const int kMouseWheelStepSize = 4;
 static const int kMinimumDialSizeForJump = 26;
 static const int kLabelHeight = 16;
 static const int kSmallLabelHeight = 11;
-
 static const float kSpeedThresh = 4.;
 static const float kSpeedMax = 32.;
-
 static const float kRotaryStartDefault = kMLPi*-0.75f;
 static const float kRotaryEndDefault = kMLPi*0.5f;
 
@@ -135,12 +137,18 @@ void MLDial::handleAsyncUpdate()
 
 //--------------------------------------------------------------------------------
 
-void MLDial::endDrag()
+void MLDial::sendDragStart()
 {
-    dialBeingDragged = NoDial;
+    if(mpListener)
+        mpListener->dialDragStarted (this);
 }
 
-//==============================================================================
+void MLDial::sendDragEnd()
+{
+    if(mpListener)
+        mpListener->dialDragEnded (this);
+}
+ 
 void MLDial::setDialStyle (const MLDial::DialStyle newStyle)
 {
     if (style != newStyle)
@@ -1290,37 +1298,43 @@ void MLDial::mouseDown (const MouseEvent& e)
 	mThumbLayerNeedsRedraw = true;
     if (isEnabled())
     {		
-//		if (maximum > minimum)
-        {
-			findDialToDrag(e);	// sets dialToDrag
-			dialBeingDragged = dialToDrag;
+		sendDragStart();
+		findDialToDrag(e);	// sets dialToDrag
+		dialBeingDragged = dialToDrag;
 
-			if (dialBeingDragged != NoDial)
-			{
-				mLastDragX = e.x;
-				mLastDragY = e.y;
-				mLastDragTime = Time(e.eventTime.toMilliseconds());
-				mFilteredMouseSpeed = 0.;
-				mMouseMotionAccum = 0;
-				
-				if (dialBeingDragged == MaxDial)
-					valueWhenLastDragged = valueMax;
-				else if (dialBeingDragged == MinDial)
-					valueWhenLastDragged = valueMin;
-				else
-					valueWhenLastDragged = currentValue;
+		if (dialBeingDragged != NoDial)
+		{
+			mLastDragX = e.x;
+			mLastDragY = e.y;
+			mLastDragTime = Time(e.eventTime.toMilliseconds());
+			mFilteredMouseSpeed = 0.;
+			mMouseMotionAccum = 0;
+			
+			if (dialBeingDragged == MaxDial)
+				valueWhenLastDragged = valueMax;
+			else if (dialBeingDragged == MinDial)
+				valueWhenLastDragged = valueMin;
+			else
+				valueWhenLastDragged = currentValue;
 
-				valueOnMouseDown = valueWhenLastDragged;
-
-				mouseDrag(e);
-			}
-        }
+			valueOnMouseDown = valueWhenLastDragged;
+			mouseDrag(e);
+		}
     }
 }
 
-
 void MLDial::mouseUp (const MouseEvent&)
 {
+    if (isEnabled())
+    {
+		sendDragEnd();
+		if (dialBeingDragged != NoDial)
+		{
+			restoreMouseIfHidden();
+			if (sendChangeOnlyOnRelease && valueOnMouseDown != currentValue)
+				triggerChangeMessage (false);
+		}
+    }
 	endDrag();
 }
 
@@ -1329,17 +1343,13 @@ void MLDial::restoreMouseIfHidden()
     if (mouseWasHidden)
     {
         mouseWasHidden = false;
-
         for (int i = Desktop::getInstance().getNumMouseSources(); --i >= 0;)
             Desktop::getInstance().getMouseSource(i)->enableUnboundedMouseMovement (false);
 
         Point<int> mousePos;
-
 		mousePos = Desktop::getLastMouseDownPosition();
-
         Desktop::setMousePosition (mousePos);
     }
-
 }
 
 void MLDial::hideMouse()
@@ -1365,8 +1375,9 @@ void MLDial::mouseDoubleClick (const MouseEvent&)
          && minimum <= doubleClickReturnValue
          && maximum >= doubleClickReturnValue)
     {
+        sendDragStart();
         setSelectedValue (doubleClickReturnValue, mainValue, true, true);
-        endDrag();
+		sendDragEnd();
     }
 }
 
@@ -1468,8 +1479,9 @@ void MLDial::mouseDrag (const MouseEvent& e)
 				 && minimum <= doubleClickReturnValue
 				 && maximum >= doubleClickReturnValue)
 			{
+				sendDragStart();
 				setSelectedValue (doubleClickReturnValue, mainValue, true, true);
-				endDrag();
+				sendDragEnd();
 			}
 			return;
 		}
@@ -1573,8 +1585,9 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 			int dir = sign(dpf);
 			int dp = dir*max(1, (int)(fabs(dpf)*16.));
 			valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kMouseWheelStepSize);			
+            sendDragStart();
 			setValueOfDial(dialToDrag, valueWhenLastDragged);			
-            endDrag();
+			sendDragEnd();
         }
     }
     else

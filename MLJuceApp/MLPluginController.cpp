@@ -411,7 +411,7 @@ int MLPluginController::getIndexOfPreset(const std::string& dir, const std::stri
 // --------------------------------------------------------------------------------
 #pragma mark menus
 
-static void menuItemChosenCallback (int result, MLPluginController* pC);
+static void menuItemChosenCallback (int result, MLPluginController* pC, MLSymbol menuName);
 
 void MLPluginController::showMenu (MLSymbol menuName, MLMenuButton* instigator)
 {
@@ -435,12 +435,12 @@ void MLPluginController::showMenu (MLSymbol menuName, MLMenuButton* instigator)
 	if (menuName == "preset")
 	{
 		mPresetMenu.showMenuAsync (PopupMenu::Options().withTargetComponent(instigator).withStandardItemHeight(height),
-			ModalCallbackFunction::create(menuItemChosenCallback, this));	
+			ModalCallbackFunction::withParam(menuItemChosenCallback, this, menuName));
 	}
 	else if (menuName == "key_scale")
 	{
 		mScaleMenu.showMenuAsync (PopupMenu::Options().withTargetComponent(instigator).withStandardItemHeight(height),
-			ModalCallbackFunction::create(menuItemChosenCallback, this));
+			ModalCallbackFunction::withParam(menuItemChosenCallback, this, menuName));
 	}
 	
 	/*
@@ -568,41 +568,7 @@ void MLPluginController::doScaleMenu(int result)
 	getCurrMenuInstigator()->setButtonText(scaleName);
 }
 
-static void menuItemChosenCallback (int result, MLPluginController* pC)
-{
-	MLMenuButton* instigator = pC->getCurrMenuInstigator();
-	assert(instigator);
-	
-	// get result string	
-	if (result)
-	{
-		String resultStr; // TODO std::string, ML menu class 
-		MLSymbol menuName = pC->getCurrMenuName();
-
-		MLAppView* pV = pC->getView();
-		if(pV)
-		{
-			if (menuName == "preset")
-			{
-				pC->doPresetMenu(result);
-			}	
-			else if(menuName == "key_scale")
-			{
-				pC->doScaleMenu(result);
-			}
-			
-			// notify Model / Processor of change
-		}		
-	}
-	if(instigator)
-	{
-		instigator->setToggleState(false, false);
-	}
-}
-
-/*
-static void menuItemChosenCallback (int result, SoundplaneController* pC, MLSymbol menuName);
-static void menuItemChosenCallback (int result, SoundplaneController* pC, MLSymbol menuName)
+static void menuItemChosenCallback (int result, MLPluginController* pC, MLSymbol menuName)
 {
 	MLMenuButton* instigator = pC->getCurrMenuInstigator();
 	if(instigator)
@@ -610,10 +576,7 @@ static void menuItemChosenCallback (int result, SoundplaneController* pC, MLSymb
 		instigator->setToggleState(false, false);
 	}
 	pC->menuItemChosen(menuName, result);
-	
-	
 }
-*/
 
 // get all files in the given directory and its immediate subdirectories that have the 
 // given extension. append the Files to results. if the three optional menu params 
