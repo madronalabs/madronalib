@@ -21,8 +21,6 @@
 
 // Responders listen to UI objects, and tell Models to do things.
 
-// TODO make pure virtual!!!
-
 class MLResponder  : 
 	public MLButton::Listener,
 	public MLMenuButton::Listener,
@@ -32,33 +30,24 @@ class MLResponder  :
 {
 public:
 
-	MLResponder();
-    ~MLResponder();
+	MLResponder() {}
+    virtual ~MLResponder() {}
 
 	// from MLButton::Listener
-    virtual void buttonClicked (MLButton*){}
+    virtual void buttonClicked (MLButton*) = 0;
 	
 	// from MLMenuButton::Listener
- 	virtual void showMenu(MLSymbol , MLMenuButton* ){}
+ 	virtual void showMenu(MLSymbol , MLMenuButton* ) = 0;
+	virtual void menuItemChosen(MLSymbol menuName, int result) = 0;
 
  	// from MLDial::Listener
-    virtual void dialValueChanged (MLDial*){}
-	virtual void dialDragStarted (MLDial*){}
-	virtual void dialDragEnded (MLDial*){}
+    virtual void dialValueChanged (MLDial*) = 0;
 	
 	// from MLMultiSlider::Listener
-	virtual void multiSliderDragStarted (MLMultiSlider* , int ) {}
-	virtual void multiSliderDragEnded (MLMultiSlider* , int ) {}
-    virtual void multiSliderValueChanged (MLMultiSlider* , int ) {}
+    virtual void multiSliderValueChanged (MLMultiSlider* , int ) = 0;
 
 	// from MLMultiButton::Listener
-    virtual void multiButtonValueChanged (MLMultiButton* , int ) {}
-	
-protected:
-	std::map<MLSymbol, MLMenuPtr> mMenuMap; 
-	
-private:	
-
+    virtual void multiButtonValueChanged (MLMultiButton* , int ) = 0;
 };
 
 #endif // __ML_RESPONDER_H

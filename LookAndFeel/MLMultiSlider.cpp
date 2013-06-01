@@ -204,14 +204,12 @@ void MLMultiSlider::mouseDown (const MouseEvent& e)
     if (!isEnabled()) return;
 	mMousePos = Vec2(e.x, e.y);
 	mCurrDragSlider = getSliderUnderPoint(mMousePos);
-	sendDragStart();
 	mouseDrag(e);
 }
 
 void MLMultiSlider::mouseUp (const MouseEvent&)
 {
 	if (!isEnabled()) return;
-	sendDragEnd();
 	mCurrDragSlider = -1;
 }
 
@@ -283,9 +281,7 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 					// finish old drag and switch to dragging new dial
 					if (i != mCurrDragSlider)
 					{
-						sendDragEnd();
 						mCurrDragSlider = i;
-						sendDragStart();
 					}
 					setSelectedValue(snapValue (mixedval, false), i, true, true);
 				}
@@ -395,9 +391,7 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& event, const MouseWheelDet
 //printf("delta: %f \n", delta);
 			}
 			mCurrDragSlider = s;
-            sendDragStart();
 			setSelectedValue(snapValue (newValue, false), s, true, true);
-            sendDragEnd();
 			mCurrDragSlider = -1;
         }
     }
@@ -515,18 +509,6 @@ void MLMultiSlider::handleAsyncUpdate()
 }
 
 //--------------------------------------------------------------------------------
-
-void MLMultiSlider::sendDragStart()
-{
-	if(!mpListener) return;
-    mpListener->multiSliderDragStarted (this, mCurrDragSlider);
-}
-
-void MLMultiSlider::sendDragEnd()
-{
-	if(!mpListener) return;
-    mpListener->multiSliderDragEnded (this, mCurrDragSlider);
-}
 
 #pragma mark -
 

@@ -45,8 +45,6 @@ public:
 	public:
 		virtual ~Listener() {}
 		virtual void dialValueChanged (MLDial* dial) = 0;
-		virtual void dialDragStarted (MLDial* dial) = 0;
-		virtual void dialDragEnded (MLDial* dial) = 0;
 	};
 	
 	void setListener (MLDial::Listener* const l);
@@ -174,8 +172,6 @@ public:
 
 	WhichDial getThumbBeingDragged() const throw()        { return dialBeingDragged; }
 
-	virtual void startedDragging();
-    virtual void stoppedDragging();
     virtual void valueChanged();
     virtual int valueChanged (float) { jassertfalse; return 0; }
 	virtual void findDialToDrag(const int x, const int y);
@@ -246,6 +242,8 @@ public:
 	void setValueOfDial(WhichDial s, float val, bool quiet = false);
 	void sizeChanged();
 	void visibilityChanged();
+	
+	float getLabelVerticalOffset() { return 0.875f; }
 
 protected:
 
@@ -286,8 +284,7 @@ protected:
 	
     /** @internal */
     void colourChanged();
-    void sendDragStart();
-    void sendDragEnd();
+    void endDrag();
     float constrainedValue (float value) const throw();
     void triggerChangeMessage (const bool synchronous);
 

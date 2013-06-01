@@ -1268,7 +1268,6 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 	return err;
 }
 
-
 void MLPluginProcessor::loadScale(const File& f) 
 {
 	MLScale* pScale = mEngine.getScale();

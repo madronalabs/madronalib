@@ -351,7 +351,6 @@ int digitsToPositiveInt(const char* p)
     return v;
 }
 
-
 bool isDigit(char c)
 {
 	if (c >= '0' && c <= '9')

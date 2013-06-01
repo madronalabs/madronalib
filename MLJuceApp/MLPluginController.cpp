@@ -435,8 +435,7 @@ void MLPluginController::showMenu (MLSymbol menuName, MLMenuButton* instigator)
 	if (menuName == "preset")
 	{
 		mPresetMenu.showMenuAsync (PopupMenu::Options().withTargetComponent(instigator).withStandardItemHeight(height),
-			ModalCallbackFunction::create(menuItemChosenCallback, this));
-	
+			ModalCallbackFunction::create(menuItemChosenCallback, this));	
 	}
 	else if (menuName == "key_scale")
 	{
@@ -539,7 +538,6 @@ void MLPluginController::doPresetMenu(int result)
 	}
 }
 
-
 void MLPluginController::doScaleMenu(int result)
 {
 	MLPluginProcessor* const filter = getProcessor();
@@ -569,7 +567,6 @@ void MLPluginController::doScaleMenu(int result)
 	}
 	getCurrMenuInstigator()->setButtonText(scaleName);
 }
-
 
 static void menuItemChosenCallback (int result, MLPluginController* pC)
 {
@@ -603,6 +600,20 @@ static void menuItemChosenCallback (int result, MLPluginController* pC)
 	}
 }
 
+/*
+static void menuItemChosenCallback (int result, SoundplaneController* pC, MLSymbol menuName);
+static void menuItemChosenCallback (int result, SoundplaneController* pC, MLSymbol menuName)
+{
+	MLMenuButton* instigator = pC->getCurrMenuInstigator();
+	if(instigator)
+	{
+		instigator->setToggleState(false, false);
+	}
+	pC->menuItemChosen(menuName, result);
+	
+	
+}
+*/
 
 // get all files in the given directory and its immediate subdirectories that have the 
 // given extension. append the Files to results. if the three optional menu params 

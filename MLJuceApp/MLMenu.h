@@ -22,7 +22,8 @@ public:
 	void clear();
 	const std::string& getItemString(int idx);
 	PopupMenu& getJuceMenu();
-	
+
+private:	
 	MLSymbol mName;
 	PopupMenu mJuceMenu;
 	int mNumItems;

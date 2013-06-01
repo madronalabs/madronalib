@@ -50,6 +50,7 @@ public:
 	int getWidgetGridUnitSize(void) const { return mGridUnitSize; }
 	void setSizeMultiplier(float f) { mSize = f; }
 	float getSizeMultiplier() { return mSize; }
+	virtual float getLabelVerticalOffset() { return 1.f; }
 
 	// here we set the component bounds from the grid-based bounds. 
 	// can be overridden so that widgets can calculate their own margins.

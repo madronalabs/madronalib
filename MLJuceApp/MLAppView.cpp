@@ -275,7 +275,7 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 		label->setSizeMultiplier(sizeMultiplier);
 		label->setJustification(Justification::centred);		
 	
-		MLRect rr = r.translated(Vec2(0, -labelHeight) + offset);
+		MLRect rr = r.translated(Vec2(0, -labelHeight*c->getLabelVerticalOffset()) + offset);
 		addWidgetToView(label, rr);
 
 	}

@@ -15,9 +15,10 @@
 
 typedef unsigned short SymbolIDT;		// unique ID of symbol.
 typedef unsigned short SymbolIndexT;	// sorted index of symbol.
-const unsigned kTableSize = 1 << (sizeof(SymbolIDT)*8);
-const int kMLMaxSymbolLength = 56;
-const int kMLMaxNumberLength = 8;
+
+static const int kMLMaxSymbolLength = 56;
+static const int kMLMaxNumberLength = 8;
+
 // ----------------------------------------------------------------
 #pragma mark MLCharArray
 
@@ -65,6 +66,7 @@ public:
 	void audit(void);
 	
 private:
+	static const unsigned int kTableSize = 1 << (sizeof(SymbolIDT)*8);
 	
 	std::string mNullString;
 	
@@ -104,7 +106,6 @@ inline MLSymbolTable& theSymbolTable()
 class MLSymbol
 {
 friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
-
 public:
 
 	// create symbols:

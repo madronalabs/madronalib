@@ -26,8 +26,6 @@ public:
 	{
 	public:
 		virtual ~Listener() {}
-		virtual void multiSliderDragStarted (MLMultiSlider* pSlider, int idx) = 0;
-		virtual void multiSliderDragEnded (MLMultiSlider* pSlider, int idx) = 0;
 		virtual void multiSliderValueChanged (MLMultiSlider* dial, int idx) = 0;
 	};
 
@@ -79,8 +77,6 @@ public:
 protected:
 	void triggerChangeMessage (const bool synchronous);
     void handleAsyncUpdate();
-	void sendDragStart();
-    void sendDragEnd();
  	
 private:
 	int getSliderUnderPoint(const Vec2& p);
