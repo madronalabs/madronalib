@@ -27,6 +27,9 @@ public:
 		{		
 			if(mpListener)
 			{
+				// TEMP
+				// CRASH here - stale listener?
+				// to reproduce delete and make another Kaivo
 				mpListener->getStream() << item;
 			}
 			else
@@ -61,6 +64,5 @@ private:
 
 extern "C" MLTextStream& debug(void);
 extern "C" MLTextStream& MLError(void);
-
 
 #endif // _ML_DEBUG_H

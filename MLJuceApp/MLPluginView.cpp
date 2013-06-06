@@ -16,6 +16,7 @@ MLPluginView::MLPluginView (MLPluginProcessor* const ownerProcessor, MLPluginCon
 
 MLPluginView::~MLPluginView()
 {	
+	mpController->setView(0);
 	deleteAllChildren();
 }
 

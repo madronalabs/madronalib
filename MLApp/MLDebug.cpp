@@ -26,9 +26,12 @@ void MLTextStream::setListener(MLTextStreamListener* pL)
 	// transfer any startup items
 	if(!mpListener)
 	{
-		std::string outStr = mLocalStream.str();
-		pL->getStream() << outStr;
-		pL->getStream() << "---------------\n";
+		if(pL)
+		{
+			std::string outStr = mLocalStream.str();
+			pL->getStream() << outStr;
+			pL->getStream() << "---------------\n";
+		}
 	}
 	mpListener = pL;
 }

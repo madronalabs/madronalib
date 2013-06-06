@@ -30,15 +30,16 @@ public:
 
 	// from MLResponder
     virtual void buttonClicked (MLButton*);
-	void showMenu (MLSymbol menuName, MLMenuButton* instigator);
+	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
+	virtual void menuItemChosen(MLSymbol menuName, int result);
 
-    virtual void dialValueChanged (MLDial*);
-	virtual void dialDragStarted (MLDial*);
-	virtual void dialDragEnded (MLDial*);
-    virtual void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-	virtual void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
-	virtual void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
-    virtual void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
+	void dialValueChanged (MLDial*);
+	void dialDragStarted (MLDial*);
+	void dialDragEnded (MLDial*);
+	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
+	void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
+	void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
+	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
 
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string& name, const std::string& dir);
@@ -53,9 +54,9 @@ public:
 	void setPluginWrapperFormat(int format);
 	void setupMenus();
 	
-	MLSymbol getCurrMenuName() { return mCurrMenuName; }
-	void setCurrMenuInstigator(MLMenuButton* pI) { mCurrMenuInstigator = pI; }
-	MLMenuButton* getCurrMenuInstigator() { return mCurrMenuInstigator; }
+//	MLSymbol getCurrMenuName() { return mCurrMenuName; }
+//	void setCurrMenuInstigator(MLMenuButton* pI) { mCurrMenuInstigator = pI; }
+//	MLMenuButton* getCurrMenuInstigator() { return mCurrMenuInstigator; }
 
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
@@ -70,11 +71,9 @@ protected:
 	MLAppView* mpView;
 	
 private:
-	PopupMenu mPresetMenu; 
+	MLPluginProcessor* mpProcessor; // contains Model
+	//PopupMenu mPresetMenu; 
 	
-	MLSymbol mCurrMenuName;
-	MLMenuButton* mCurrMenuInstigator;
-
 	String mCurrentPresetName;
 	String mCurrentScaleName;
 	String mCurrentScaleDir;
@@ -89,10 +88,10 @@ private:
 	File mFactoryPresetsFolder, mUserPresetsFolder, mScalesFolder;
 	File mCurrentPresetFolder;
 	bool mFileLocationsOK;
-	MLPluginProcessor* mpProcessor;
 
 	OwnedArray<PopupMenu> mPresetSubMenus;
-	Array<String> mMenuItemStrings;
+
+//	Array<String> mMenuItemStrings;
 	Array<File> mMenuPresetFiles;	
 	int mPresetMenuStartItems;
 	int mCurrentPresetIndex;
@@ -100,13 +99,13 @@ private:
 	// stored indices for MIDI program changes-- hackish
 	std::vector<File> mMIDIProgramFiles;
 
-	PopupMenu mScaleMenu;	
+	MLMenuMapT mMenuMap; 	
+//	PopupMenu mScaleMenu;	
 	OwnedArray<PopupMenu> mScaleSubMenus;
 	Array<String> mScaleMenuItemStrings;
 	Array<File> mScaleMenuFiles;	
 
-	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, 
-		Array<String>* menuStrings, PopupMenu* pMenu, OwnedArray<PopupMenu>* subMenus);
+	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
 
 	void populatePresetMenu(); 
 	void populateScaleMenu();	

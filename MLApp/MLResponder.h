@@ -36,7 +36,7 @@ public:
     virtual void buttonClicked (MLButton*) = 0;
 	
 	// from MLMenuButton::Listener
- 	virtual void showMenu(MLSymbol , MLMenuButton* ) = 0;
+ 	virtual void showMenu(MLSymbol menuName, MLSymbol instigatorName) = 0;
 	virtual void menuItemChosen(MLSymbol menuName, int result) = 0;
 
  	// from MLDial::Listener

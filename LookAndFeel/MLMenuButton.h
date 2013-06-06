@@ -31,7 +31,7 @@ public:
 	{
 	public:
 		virtual ~Listener() {}
-		virtual void showMenu (MLSymbol, MLMenuButton*) {}
+		virtual void showMenu (MLSymbol, MLSymbol) {}
 	};
 	
     void setListener (MLMenuButton::Listener* listener) { mpListener = listener; }

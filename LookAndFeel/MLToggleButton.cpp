@@ -47,7 +47,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 	const Colour brightColor = Colour(bc.getHue(), bc.getSaturation(), jmin(bc.getBrightness() + 0.1, 1.), bc.getFloatAlpha());				
 	Colour buttonColor = bc.withAlpha (alpha);	
 	Colour outlineColor, outlineOnColor, outlineOffColor;
-	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.75f));
+	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.625f));
 	outlineOffColor = findColour(MLLookAndFeel::outlineColor);
 	outlineColor = getToggleState() ? outlineOnColor : outlineOffColor;
 	outlineColor = outlineColor.withAlpha (alpha);

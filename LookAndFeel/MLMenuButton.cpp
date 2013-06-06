@@ -20,16 +20,19 @@ MLMenuButton::~MLMenuButton()
 
 void MLMenuButton::setAttribute(MLSymbol attr, float val)
 {
-	static const MLSymbol valueSym("value");
 	MLWidget::setAttribute(attr, val);
+	static const MLSymbol valueSym("value");
 	if (attr == valueSym)
 	{
+		// update state without notify
+		setToggleState(val > 0.5f, false);
 		repaint();
 	}
 }
 
-void MLMenuButton::setStringAttribute(MLSymbol , const std::string& val)
+void MLMenuButton::setStringAttribute(MLSymbol sym, const std::string& val)
 {
+	MLWidget::setStringAttribute(sym, val);
 	setButtonText(val.c_str());
 	repaint();
 }
@@ -83,11 +86,10 @@ void MLMenuButton::colourChanged()
 void MLMenuButton::mouseDown(const MouseEvent& e)
 {
 	Button::mouseDown(e);
-	
-	// TODO set click state down until menu gone	
 	if (mpListener)
 	{
-		mpListener->showMenu(getParamName(), this);
+		// send our Widget name to listener as menu instigator
+		mpListener->showMenu(getParamName(), getWidgetName());
 	}	
 }
 

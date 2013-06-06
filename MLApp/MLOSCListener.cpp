@@ -33,6 +33,10 @@ void *MLOSCListener::startThread(void *arg)
 
 	pSocket->Run();
 	
+	// CRASH
+	// this thread can terminate on MalformedBundleException( "bundle element size must be multiple of four" );
+	// when Soundplane is quit.
+	
 	debug() << "MLOSCListener: listener thread on port " << port << " terminated.\n"; 
 
 	pL->mSocketActive = false;
