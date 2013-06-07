@@ -2052,8 +2052,8 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	
 	const Colour light0Color = baseColor.overlaidWith(whiteAlpha.withMultipliedAlpha(0.1f));
 	const Colour light1Color = baseColor.overlaidWith(whiteAlpha.withMultipliedAlpha(0.2f));
-	const Colour dark0Color = baseColor.overlaidWith(darkest.withMultipliedAlpha(0.1f));
-	const Colour dark1Color = baseColor.overlaidWith(darkest.withMultipliedAlpha(0.2f));
+	const Colour dark0Color = baseColor.overlaidWith(darkest.withMultipliedAlpha(0.25f));
+	const Colour dark1Color = baseColor.overlaidWith(darkest.withMultipliedAlpha(0.35f));
 
 	const Colour glow1Color = (baseColor.overlaidWith(whiteAlpha.withAlpha(0.5f))).withMultipliedAlpha(0.25f);
 	const Colour glow2Color = baseColor.withMultipliedAlpha(0.5f);
@@ -2087,13 +2087,10 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	}
 	else
 	{
-//		c1 = light0Color;
-//		c2 = light0Color;
 		c1 = baseColor;
 		c2 = baseColor;
 		c3 = baseColor;
 		c4 = baseColor;
-//		c4 = dark0Color;
 	}
 	
 	

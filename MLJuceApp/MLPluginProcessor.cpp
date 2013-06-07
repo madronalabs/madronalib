@@ -76,7 +76,6 @@ AudioProcessorEditor* MLPluginProcessor::createEditor()
 {
 	// creation function defined to return the plugin's flavor of plugin editor
     MLPluginEditor* r = CreateMLPluginEditor(this, mEditorRect, mEditorNumbersOn, mEditorAnimationsOn);	
-	
 	return r;
 }
 
@@ -1084,7 +1083,7 @@ void MLPluginProcessor::clearMIDIProgramFiles()
 
 void MLPluginProcessor::setMIDIProgramFile(int idx, File f)
 {
-	if(idx < kMLPluginMIDIPrograms)
+	if((unsigned)idx < mMIDIProgramFiles.size())
 	{
 		mMIDIProgramFiles[idx] = f;
 	}
@@ -1092,11 +1091,59 @@ void MLPluginProcessor::setMIDIProgramFile(int idx, File f)
 
 void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
 {
-	if(idx < kMLPluginMIDIPrograms)
+	if((unsigned)idx < mMIDIProgramFiles.size())
 	{
 		if(mMIDIProgramFiles[idx].exists())
 		{
 			loadStateFromFile(mMIDIProgramFiles[idx]);
+		}
+	}
+}
+
+void MLPluginProcessor::scanMIDIPrograms()
+{
+	String pluginType;
+	String presetFileType;
+	switch(mWrapperFormat)
+	{
+		case MLPluginFormats::eVSTPlugin:
+			pluginType = "VST";
+			presetFileType = ".mlpreset";
+		break;
+		case MLPluginFormats::eStandalone:
+			pluginType = "App";
+			presetFileType = ".mlpreset";
+		break;
+		case MLPluginFormats::eAUPlugin:
+			pluginType = "AU";
+			presetFileType = ".aupreset";
+		break;
+		default:
+			pluginType = "undefined!";
+		break;
+	}
+
+	clearMIDIProgramFiles();
+	
+	File startDir = getDefaultFileLocation(kUserPresetFiles);
+	if (!startDir.isDirectory()) return;	
+	File subDir = startDir.getChildFile("MIDI Programs");
+	if (!startDir.isDirectory()) return;	
+
+	Array<File> subdirArray;
+	const int level1FilesToFind = File::findFiles | File::ignoreHiddenFiles;
+	int filesInCategory = subDir.findChildFiles(subdirArray, level1FilesToFind, false);
+	int midiPgmCount = 0;
+	for(int j=0; j<filesInCategory; ++j)
+	{
+		File f2 = subdirArray[j];
+		if (f2.hasFileExtension(presetFileType))
+		{
+			if(midiPgmCount < kMLPluginMIDIPrograms)
+			{
+	debug() << "MIDI program " << midiPgmCount << ": " << f2.getFileName() << "\n";
+				setMIDIProgramFile(midiPgmCount++, f2);
+			}
 		}
 	}
 }

@@ -631,8 +631,9 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 	if (!startDir.isDirectory()) return;
 	bool doMenus = (pMenu != nullptr);
 	Array<File> startDirArray;
-	const int userFilesToFind = File::findFilesAndDirectories | File::ignoreHiddenFiles;
-	int userFiles = startDir.findChildFiles(startDirArray, userFilesToFind, false);
+	const int level0FilesToFind = File::findFilesAndDirectories | File::ignoreHiddenFiles;
+	const int level1FilesToFind = File::findFiles | File::ignoreHiddenFiles;
+	int userFiles = startDir.findChildFiles(startDirArray, level0FilesToFind, false);
 	int midiPgmCount = 0; 
 	for(int i=0; i<userFiles; ++i)
 	{
@@ -652,7 +653,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 				{
 					subPop->setItemOffset(pMenu->getNumItems());
 				}
-				int filesInCategory = subdir.findChildFiles(subdirArray, userFilesToFind, false);
+				int filesInCategory = subdir.findChildFiles(subdirArray, level1FilesToFind, false);
 				for(int j=0; j<filesInCategory; ++j)
 				{
 					File f2 = subdirArray[j];
@@ -780,7 +781,7 @@ void MLPluginController::populatePresetMenu()
 			{
 				if(mMIDIProgramFiles[i].exists())
 				{
-			//debug() << "MIDI pgm " << i << " " << mMIDIProgramFiles[i].getFileName() << "\n";
+			debug() << "MIDI pgm " << i << " " << mMIDIProgramFiles[i].getFileName() << "\n";
 					pProc->setMIDIProgramFile(i, mMIDIProgramFiles[i]);
 				}
 			}

@@ -89,20 +89,13 @@ private:
 	File mCurrentPresetFolder;
 	bool mFileLocationsOK;
 
-	OwnedArray<PopupMenu> mPresetSubMenus;
-
-//	Array<String> mMenuItemStrings;
-	Array<File> mMenuPresetFiles;	
-	int mPresetMenuStartItems;
-	int mCurrentPresetIndex;
-	
 	// stored indices for MIDI program changes-- hackish
 	std::vector<File> mMIDIProgramFiles;
 
 	MLMenuMapT mMenuMap; 	
-//	PopupMenu mScaleMenu;	
-	OwnedArray<PopupMenu> mScaleSubMenus;
-	Array<String> mScaleMenuItemStrings;
+	Array<File> mMenuPresetFiles;	
+	int mPresetMenuStartItems;
+	int mCurrentPresetIndex;
 	Array<File> mScaleMenuFiles;	
 
 	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);

@@ -118,6 +118,7 @@ public:
 	void clearMIDIProgramFiles();
 	void setMIDIProgramFile(int pgm, File f);
 	void setStateFromMIDIProgram (const int pgmIdx);
+	void scanMIDIPrograms();
 
 	// --------------------------------------------------------------------------------
 	// channels
