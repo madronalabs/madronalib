@@ -7,8 +7,10 @@
 
 MLMenu::MLMenu(const char* name) :
 	mName(name),
+	mNumItems(0),
 	mItemOffset(0)
 {
+	mNullStr = "<null>";
 }
 
 MLMenu::~MLMenu()
@@ -16,10 +18,9 @@ MLMenu::~MLMenu()
 }
 
 void MLMenu::addItem(const char* name, bool enabled)
-{
-	int size = mItems.size();
-//debug() << "menu adding item " << name << "\n";	
-	mJuceMenu.addItem(size + mItemOffset + 1, name, enabled);
+{	
+	mJuceMenu.addItem(mNumItems + mItemOffset + 1, name, enabled);
+	mNumItems++;
 	mItems.push_back(std::string(name));
 }
 
@@ -33,16 +34,20 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 	std::vector<std::string>::const_iterator it;
 	for(it = items.begin(); it != items.end(); it++)
 	{
-		mItems.push_back(*it);
+		addItem(it->c_str(), true);
 	}
 }
 
 void MLMenu::addSubMenu(MLMenuPtr m, bool enabled)
 {	
 	mJuceMenu.addSubMenu(m->getName().c_str(), m->getJuceMenu(), enabled);
-
-	addItems(m->getItemVector());
-	
+	std::vector<std::string>::const_iterator it;
+	const std::vector<std::string> v = m->getItemVector();	
+	for(it = v.begin(); it != v.end(); it++)
+	{
+		mItems.push_back(*it);
+		mNumItems++;
+	}
 	return;
 }
 
@@ -54,13 +59,17 @@ void MLMenu::addSeparator()
 void MLMenu::clear()
 {
 	mJuceMenu.clear();
+	mNumItems = 0;
 	mItems.clear();
 }
 
 const std::string& MLMenu::getItemString(int idx)
 {
-debug() << "item " << idx << ":" << mItems[idx] << "\n";
-	return mItems[idx];
+	if(within(idx, 0, mNumItems))
+	{
+		return mItems[idx];
+	}
+	return mNullStr;
 }
 
 PopupMenu& MLMenu::getJuceMenu()

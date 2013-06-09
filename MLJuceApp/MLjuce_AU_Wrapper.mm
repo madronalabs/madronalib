@@ -474,7 +474,6 @@ public:
 // this code ended up in here because of access to RestoreState().  There may be other issues.
 // TODO look at moving this to MLJuceFilesMac.
 	
-
 	void loadFile(const File& f) 
 	{
 		String juceName = f.getFullPathName();
@@ -486,7 +485,7 @@ public:
 		CFDataRef         resourceData;
 		Boolean           status;
 		SInt32            errorCode;
-		ComponentResult r;
+		ComponentResult err;
 
 		// get URL from Juce File
 		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
@@ -508,7 +507,11 @@ public:
 				   
 		if (errorString == NULL)
 		{
-			r = RestoreState (propertyList);
+			err = RestoreState (propertyList);
+			if (err != noErr)
+			{
+				MLError() << "error: " << err << "loading preset file.\n";
+			}
 		}
 		else
 		{

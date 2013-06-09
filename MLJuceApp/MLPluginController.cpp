@@ -350,7 +350,7 @@ debug() << mMenuPresetFiles.size() << " presets\n";
 
 	if(idx < mMenuPresetFiles.size())
 	{
-		debug() << "loading preset " << idx << ": " << mMenuPresetFiles[mCurrentPresetIndex].getFileNameWithoutExtension() << "\n";		
+		debug() << "loading preset " << idx << ": " << mMenuPresetFiles[idx].getFileNameWithoutExtension() << "\n";		
 		filter->loadStateFromFile(mMenuPresetFiles[idx]);	
 		mCurrentPresetFolder = mMenuPresetFiles[idx].getParentDirectory();
 	}

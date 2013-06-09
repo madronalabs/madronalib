@@ -32,7 +32,8 @@ MLPluginProcessor::MLPluginProcessor() :
 	{
 		mFileLocationsOK = true;
 	}	
-	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
+
+	clearMIDIProgramFiles();
 
 //	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
 //	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
@@ -828,11 +829,10 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 		}
 	}
 	
-	
+	// get plugin-specific translation table for updating older versions of data
 	std::map<MLSymbol, MLSymbol> translationTable;
 
 	// TODO move this into Aalto! 
-	/*
 	// make translation tables based on program version. 
 	//
 	if (blobVersion <= 0x00010120)
@@ -872,8 +872,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 			translationTable[oldSym2] = newSym2;	
 		}		
 	}
-	*/
-	
 	
 	// get params from xml
 	const unsigned numAttrs = xmlState.getNumAttributes();
@@ -1014,7 +1012,6 @@ void MLPluginProcessor::saveStateToFile(File& saveFile, int format)
 			saveFile = saveFile.getParentDirectory().getChildFile(shortName + extension);
 			
 			// create or save over file
-
 			getStateAsText(newState);
 			saveFile.replaceWithText(newState);
 		break;
@@ -1079,11 +1076,12 @@ void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
 void MLPluginProcessor::clearMIDIProgramFiles()
 {
 	mMIDIProgramFiles.clear();
+	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
 }
 
 void MLPluginProcessor::setMIDIProgramFile(int idx, File f)
 {
-	if((unsigned)idx < mMIDIProgramFiles.size())
+	if(idx < kMLPluginMIDIPrograms)
 	{
 		mMIDIProgramFiles[idx] = f;
 	}
@@ -1091,7 +1089,7 @@ void MLPluginProcessor::setMIDIProgramFile(int idx, File f)
 
 void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
 {
-	if((unsigned)idx < mMIDIProgramFiles.size())
+	if(within(idx, 0, kMLPluginMIDIPrograms))
 	{
 		if(mMIDIProgramFiles[idx].exists())
 		{
@@ -1141,7 +1139,6 @@ void MLPluginProcessor::scanMIDIPrograms()
 		{
 			if(midiPgmCount < kMLPluginMIDIPrograms)
 			{
-	debug() << "MIDI program " << midiPgmCount << ": " << f2.getFileName() << "\n";
 				setMIDIProgramFile(midiPgmCount++, f2);
 			}
 		}
@@ -1301,9 +1298,11 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 
 //	const ScopedLock sl (MLlistenerLock);
 
+
 	switch(msg)
 	{
 		case MLAudioProcessorListener::kLoad:
+debug() << "sendMessageToMLListener: load file " << f.getFileName() << "\n";	
 			MLListener->loadFile (f);
 		break;
 		case MLAudioProcessorListener::kSave:
