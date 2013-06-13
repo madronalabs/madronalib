@@ -5,10 +5,14 @@
 
 #include "MLProc.h"
 
+// RESEARCH
+// We are really reinventing wavelets here, in a sense.  So a
+// wavelet-based or similar analytic description of a signal
+// might be a better, more general, tool for making synthesizers.
 
-// stores an ordered list of time-stamped changes to a scalar value.
-// generates a 1D time series signal.
-// changes must be added in order. 
+// MLChangeList stores an ordered list of time-stamped changes to a scalar 
+// value that can be written out to a 1D time domain signal.
+// Changes are relative to the start of a process buffer, and must be added in order. 
 //
 class MLChangeList 
 {
@@ -22,7 +26,7 @@ public:
 	void addChange(MLSample val, int time);
 	void setGlideTime(float time);
 	void setSampleRate(unsigned rate);
-	void writeToSignal(MLSignal& y, unsigned offset, unsigned frames, bool ignoreZeroes = false);
+	void writeToSignal(MLSignal& y, int offset, int frames, bool doDebug = false);
 	void dump();
 	
 private:
@@ -30,22 +34,23 @@ private:
 	inline void setGlideTarget(float target);
 
 	// size of the output vector.
-	unsigned mSize;
+	int mSize;
 	// number of changes stored.
-	unsigned mChanges;
+	int mChanges;
 	
 	float mGlideTime;
-	unsigned mSampleRate;
-	unsigned mGlideTimeInSamples;
+	int mSampleRate;
+	int mGlideTimeInSamples;
 	float mInvGlideTimeInSamples;
 	int mGlideCounter;
-	
-	MLSample temp;
 	
 	MLSample mValue;
 	MLSample mGlideStartValue;
 	MLSample mGlideEndValue;
 	MLSignal mValueSignal;
 	MLSignal mTimeSignal;
+	
+	bool mDebugTest;
+	float mTheta;
 };
 

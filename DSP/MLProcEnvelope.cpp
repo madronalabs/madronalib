@@ -103,7 +103,6 @@ void MLProcEnvelope::process(const int samples)
 	
 	// input change thresholds for state changes
 	const float inputThresh = 0.005f; // < 1/127 for MIDI input
-//	const float repeatThresh = 0.5f;
 
 	for (int n=0; n<samples; ++n)
 	{

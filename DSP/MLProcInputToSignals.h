@@ -17,34 +17,22 @@
 
 #include <stdexcept>
 
-// states to mark an event's connection to one or more voices. 
-// states > 0 mean voices are active.
-const long kVoiceOff = -1;
-const long kVoicePending = -2;
-const long kVoiceUnison = 1<<14;
-
-const int kMLMaxEvents = 1 << 4;
-const int kMLEventMask = kMLMaxEvents - 1;
-const int kNoteBufElements = 512;
-
-const float kControllerScale = 1.f/127.f;
-const float kDriftConstantsAmount = 0.004f;
-const float kDriftRandomAmount = 0.002f;
-
-const int kOSCToSignalsFrameWidth = 4;
-const int kOSCToSignalsFrameHeight = 16;
-const int kOSCToSignalsFrameBufferSize = 128;
-
 // a key that is down.
 class MLKeyEvent 
 {
 public:
+	// states to mark an event's connection to one or more voices. 
+	// states > 0 mean voices are active.
+	static const long kVoiceOff = -1;
+	static const long kVoicePending = -2;
+	static const long kVoiceUnison = 1<<14;
+
 	MLKeyEvent();
 	~MLKeyEvent() {};
 	void clear();
 	void setup(int note, int vel, int time, int order);
 	void setVoice(int v);
-	bool isSounding();
+	inline bool isSounding() { return (mVoiceState >= 0); }
 	
 	int mNote;
 	int mVel;
@@ -70,7 +58,6 @@ public:
 	// for continuous touch inputs (Soundplane / OSC)
 	float mStartX;
 	float mStartY;
-	float mStartPitch;
 	float mPitch;
 	float mX1;
 	float mY1;
@@ -93,6 +80,18 @@ class MLProcInputToSignals : public MLProc
 {
 public:
 
+	static const int kMLMaxEvents = 1 << 4;
+	static const int kMLEventMask = kMLMaxEvents - 1;
+	static const int kNoteBufElements = 512;
+
+	static const float kControllerScale = 1.f/127.f;
+	static const float kDriftConstantsAmount = 0.004f;
+	static const float kDriftRandomAmount = 0.002f;
+
+	static const int kFrameWidth = 4;
+	static const int kFrameHeight = 16;
+	static const int kFrameBufferSize = 128;
+
 	 MLProcInputToSignals();
 	~MLProcInputToSignals();
 
@@ -100,6 +99,8 @@ public:
 	void clear();
 	MLProc::err prepareToProcess();
 	void process(const int n);		
+	void processOSC(const int n);		
+	void processMIDI(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
 	void clearMIDI();
@@ -127,16 +128,12 @@ public:
 	MLSample velToAmp(int vel);
 
 	void doParams();
-	
-	// any code that needs to run while processing is not occurring must get this lock.
-//	const CriticalSection& getProcessLock() const noexcept { return mProcessLock; }
 
 private:
 	MLProcInfo<MLProcInputToSignals> mInfo;
 	
 	int mProtocol;
 	
-//	CriticalSection mProcessLock;
 	PaUtilRingBuffer* mpFrameBuf;
 	MLSignal mLatestFrame;
 	
@@ -170,8 +167,12 @@ private:
 	MLRange mAmpRange;
 	bool mRetrig;
 	bool mUnisonMode;
+	int mUnisonInputTouch;
 	bool mDriftMode;
 	float mGlide;	
+	int mOSCDataRate;
+	
+	float mUnisonPitch1;
 
 	int mCurrentVoices;
 	int mDriftCounter;
@@ -188,10 +189,9 @@ private:
 	MLScale mScale;
 	
 	int temp;
-
-MLSample xyToPitch(float x, float y);
-	float mNoteTable[128]; // TEMP
-
+	
+	// TEMP
+	float mAmp1;
 };
 
 

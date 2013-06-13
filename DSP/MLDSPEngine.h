@@ -72,6 +72,7 @@ public:
 	// control input
 
 	void setInputProtocol(int p);
+	void setInputDataRate(int p);
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
 	void clearMIDI();		
 	void addNoteOn(unsigned note, unsigned vel, unsigned time);

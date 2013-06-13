@@ -1146,8 +1146,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
             Path track;
 			pg.setColour (mHilightColor);
             track.addArc(rx1-mh, ry1-mh, mDiameter+m, mDiameter+m, 0.f, kMLTwoPi, true);
-            pg.strokePath (track, PathStrokeType(m));
-			
+            pg.strokePath (track, PathStrokeType(m));			
 		}
 	}
 	
@@ -1162,7 +1161,6 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 			// outer shadow
 			Path outline;
 			float d, opacity;
-
 			for (int i=0; i<mShadowSize; i++)
 			{
 				outline.clear();			
@@ -1172,16 +1170,13 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 				sg.setColour (shadow.withAlpha(opacity));
 				sg.strokePath (outline, PathStrokeType (1.f));	
 			}
+			
 		}		
 		
 		{	
 			// track outline
 			Path outline;
-
-			AffineTransform t1 = AffineTransform::rotation (rotaryStart).translated (cx, cy);
-			AffineTransform t2 = AffineTransform::rotation (rotaryEnd).translated (cx, cy);	
-			outline.addCentredArc(cx, cy, r1, r1, 0., rotaryStart, rotaryEnd, true);
-			
+			outline.addCentredArc(cx, cy, r1, r1, 0., rotaryStart, rotaryEnd, true);			
 			sg.setColour (outline_color.withMultipliedAlpha(0.15f));
 			sg.strokePath (outline, PathStrokeType (2.f*mLineThickness));	
 			sg.setColour (outline_color);
@@ -1192,7 +1187,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		{	
 			float angle;
 			Path tick;
-			tick.startNewSubPath(0, -r1);// + mLineThickness/2);
+			tick.startNewSubPath(0, -r1);
 			tick.lineTo(0, -r1-mTickSize);
 			sg.setColour (outline_color);
 			for (int t=0; t<mTicks; t++)

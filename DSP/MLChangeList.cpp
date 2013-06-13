@@ -15,8 +15,10 @@ MLChangeList::MLChangeList() : mSize(0), mChanges(0), mValue(0.f)
 	mGlideStartValue = mGlideEndValue = 0.f;
 	
 	mSampleRate = 44100;
-	temp = 0.f;
 	mValue = 0.f;
+	
+		mDebugTest = false;
+		mTheta = 0.;
 }
 
 MLChangeList::~MLChangeList()
@@ -72,24 +74,28 @@ void MLChangeList::setSampleRate(unsigned rate)
 	calcGlide();
 }
 
+// add a change: a request to arrive at the given value 
 void MLChangeList::addChange(MLSample val, int time)
 {
-	temp = val;
-	if (mChanges < mSize)
+	// EXPERIMENTAL
+	float dV = val - mGlideEndValue;
+	if(fabs(dV) > 0.00001f)
 	{
-		if (mChanges > 0)
+		if (mChanges < mSize)
 		{
-			int prevTime = (int)mTimeSignal[mChanges - 1];			
-			if (time == prevTime)
+			if (mChanges > 0)
 			{
-				mChanges--;
+				int prevTime = (int)mTimeSignal[mChanges - 1];			
+				if (time == prevTime)
+				{
+					mChanges--;
+				}
 			}
+			mValueSignal[mChanges] = val;
+			mTimeSignal[mChanges] = time;
+//	debug() << "MLChangeList(" << static_cast<void*>(this) << ") add changes:" << mChanges << " time:" << time  << " val:" << val << " glide:" << mGlideTimeInSamples << "\n";
+			mChanges++;
 		}
-
-		mValueSignal[mChanges] = val;
-		mTimeSignal[mChanges] = time;
-//debug() << "MLChangeList(" << static_cast<void*>(this) << ") add changes:" << mChanges << " time:" << time  << " val:" << val << " glide:" << mGlideTimeInSamples << "\n";
-		mChanges++;
 	}
 }
 
@@ -101,19 +107,20 @@ inline void MLChangeList::setGlideTarget(float target)
 }
 
 // write the input change list from the given offset into the output signal y .
-// if ignoreZeroes is on, don't allow the value to change to 0.
 // 
-void MLChangeList::writeToSignal(MLSignal& y, unsigned readOffset, unsigned frames, bool ignoreZeroes)
+void MLChangeList::writeToSignal(MLSignal& y, int readOffset, int frames, bool )
 {
-	unsigned size = min(y.getWidth(), mValueSignal.getWidth());
+	int size = min(y.getWidth(), mValueSignal.getWidth());
 	size = min(size, frames);
-	unsigned t=0;
-	unsigned i, changeTime, localChangeTime;
+	int t=0;
+	int changeTime, localChangeTime;
+
+	y.setConstant(false);
 	
 	// no changes, no glide?  mark constant and bail.
 	if (!mChanges && (mGlideCounter <= 0)) 
 	{
-		y.setToConstant(mValue);
+		y.setToConstant(mValue);		
 	}
 	else if (!mChanges) // just gliding to target
 	{
@@ -134,6 +141,7 @@ void MLChangeList::writeToSignal(MLSignal& y, unsigned readOffset, unsigned fram
 		y.setConstant(false);
 	
 		// skip changes until change time is >= offset
+		int i;
 		for(i=0; i<mChanges; ++i)
 		{
 			changeTime = (int)mTimeSignal[i];
@@ -154,19 +162,14 @@ void MLChangeList::writeToSignal(MLSignal& y, unsigned readOffset, unsigned fram
 				if (mGlideCounter > 0) 
 				{
 					mGlideCounter--;
-					float x = (float)(mGlideTimeInSamples - mGlideCounter) * mInvGlideTimeInSamples;
-					mValue = lerp(mGlideStartValue, mGlideEndValue, x);
+					float mx = (float)(mGlideTimeInSamples - mGlideCounter) * mInvGlideTimeInSamples;
+					mValue = lerp(mGlideStartValue, mGlideEndValue, mx);
 				}				
 				y[t] = mValue;			
 			}
 			
 			float nextTarget = mValueSignal[i];
-			bool doSet = ignoreZeroes ? (nextTarget != 0.f) : true;
-			if (doSet)
-			{
-				setGlideTarget(nextTarget);
-//debug() << "set glide target " << nextTarget << " i = " << i << "\n";
-			}
+			setGlideTarget(nextTarget);
 		}
 		
 		// tick out to end
@@ -176,12 +179,11 @@ void MLChangeList::writeToSignal(MLSignal& y, unsigned readOffset, unsigned fram
 			if (mGlideCounter > 0) 
 			{
 				mGlideCounter--;
-				float x = (float)(mGlideTimeInSamples - mGlideCounter) * mInvGlideTimeInSamples;
-				mValue = lerp(mGlideStartValue, mGlideEndValue, x);
-			}				
+				float mx = (float)(mGlideTimeInSamples - mGlideCounter) * mInvGlideTimeInSamples;
+				mValue = lerp(mGlideStartValue, mGlideEndValue, mx);
+			}
 			y[t] = mValue;
-		}
-		
+		}		
 		mChanges = 0;
 	}
 }

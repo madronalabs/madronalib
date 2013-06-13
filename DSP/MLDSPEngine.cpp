@@ -333,6 +333,14 @@ void MLDSPEngine::setInputProtocol(int p)
 
 }
 
+void MLDSPEngine::setInputDataRate(int p)
+{
+	if (mpInputToSignalsProc)
+	{
+		mpInputToSignalsProc->setParam("data_rate", p);
+	}
+}
+
 // set frame buffer for OSC inputs
 void MLDSPEngine::setInputFrameBuffer(PaUtilRingBuffer* pBuf)
 {
