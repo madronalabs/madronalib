@@ -591,7 +591,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 {	
 	float x, y, z, note;
 	float dx, dy;
-	int age;
 	int avail = 0;
 	int framesRead = 0;
 	
@@ -636,7 +635,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 			y = mLatestFrame(1, v);
 			z = mLatestFrame(2, v);
 			note = mLatestFrame(3, v);
-			age = mLatestFrame(4, v);
 			dx = 0.;
 			dy = 0.;
 			if (z > 0.f)
@@ -684,9 +682,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 				// unison continues				
 				ux = mLatestFrame(0, mUnisonInputTouch);
 				uy = mLatestFrame(1, mUnisonInputTouch);
-
 				note = mLatestFrame(3, mUnisonInputTouch);
-				age = mLatestFrame(4, mUnisonInputTouch);
 				upitch = noteToPitch(note);
 				udx = ux - mVoices[mUnisonInputTouch].mStartX;
 				udy = uy - mVoices[mUnisonInputTouch].mStartY;
@@ -716,7 +712,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 			y = mLatestFrame(1, v);
 			z = mLatestFrame(2, v);
 			note = mLatestFrame(3, v);
-			age = mLatestFrame(4, v);
 			dx = 0.;
 			dy = 0.;
 			
@@ -743,11 +738,13 @@ void MLProcInputToSignals::processOSC(const int frames)
 			}
 			else
 			{
-				// process note off
-				mVoices[v].mStartX = x;
-				mVoices[v].mStartY = y;
-				x = mVoices[v].mX1;
-				y = mVoices[v].mY1;
+				if (mVoices[v].mZ1 > 0.)
+				{
+					// process note off, set pitch for release
+					mVoices[v].mPitch = noteToPitch(note);
+					x = mVoices[v].mX1;
+					y = mVoices[v].mY1;
+				}
 			}
 
 			mVoices[v].mZ1 = z;
