@@ -91,9 +91,12 @@ public:
 	}
 
 	// mutator, return reference for proc outputs.
+	// TODO I caught this being called when the inspector should have been called!
+	// investigate before returning to desired code.
 	inline MLSample& operator[] (int i)
 	{	
-		return mDataAligned[i];
+//		return mDataAligned[i]; // desired
+		return mDataAligned[i&mConstantMask];
 	}
 	
 	// float inspector, return by value 

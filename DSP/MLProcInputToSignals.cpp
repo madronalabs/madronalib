@@ -72,7 +72,8 @@ MLVoice::MLVoice() :
 	mPitch(0.),
 	mX1(0.),
 	mY1(0.),
-	mZ1(0.)
+	mZ1(0.),
+	mAge(0)
 {
 	mActive = 0;
 	mNote = 0;
@@ -107,6 +108,7 @@ void MLVoice::clearState()
 {
 	mActive = 0;
 	mNote = 0;
+	mAge = 0;
 }
 
 // clear changes but not current state.
@@ -152,7 +154,8 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mCurrentVoices(0),
 	mProtocol(-1),
 	mpFrameBuf(0),
-	mUnisonInputTouch(-1)
+	mUnisonInputTouch(-1),
+	mSustain(false)
 {
 //	debug() << "MLProcInputToSignals constructor:\n";
 	setParam("voices", 0);	// default
@@ -176,7 +179,6 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mDriftCounter = -1;
 	
 	temp = 0;
-	mAmp1 = 0.;
 	mOSCDataRate = 100;
 	
 	// ring buffer for incoming note events
@@ -358,6 +360,7 @@ void MLProcInputToSignals::doParams()
 	{
 		mProtocol = newProtocol;
 	}
+	
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
@@ -445,7 +448,6 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 
 void MLProcInputToSignals::clear()
 {
-//	const ScopedLock l (getProcessLock()); 
 	int vecSize = getContextVectorSize();
 	
 	//debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
@@ -562,6 +564,15 @@ void MLProcInputToSignals::process(const int frames)
 	}	
 	mDriftCounter += frames;
 				
+	// update age for each voice
+	for (int v=0; v<mCurrentVoices; ++v)
+	{
+		if(mVoices[v].mAge >= 0)
+		{
+			mVoices[v].mAge += frames;
+		}
+	}		
+
 	// make voice number signal for each voice
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
 	{
@@ -613,7 +624,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 		}
 		while (avail > 0);	
 	}
-	
+
 	// First turn touch frames into change lists, either in unison mode or not.
 	if (mUnisonMode)
 	{		
@@ -774,8 +785,8 @@ void MLProcInputToSignals::processOSC(const int frames)
 		MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
 		MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
 		MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
-		
-	
+
+			
 		if (v < mCurrentVoices)
 		{
 			mVoices[v].mdPitch.writeToSignal(pitch, mMIDIFrameOffset, frames);		
@@ -808,6 +819,7 @@ void MLProcInputToSignals::processMIDI(const int frames)
 	// pop note events from FIFO and create change lists for each voice
 	int midiNote, vel, time;
 	int unpacked;
+
 	while(PaUtil_ReadRingBuffer( &mNoteBuf, &unpacked, 1 ))
 	{
 		unpackNote(unpacked, midiNote, vel, time);					
@@ -815,12 +827,13 @@ void MLProcInputToSignals::processMIDI(const int frames)
 		if (vel)
 		{
 //	debug() << "+\n";
-			doNoteOn(midiNote, vel, time);
+			doNoteOn(midiNote, vel, time, frames);
+
 		}
 		else
 		{
 //	debug() << "-\n";
-			doNoteOff(midiNote, time);
+			doNoteOff(midiNote, time, frames);
 		}			
 	}
 	
@@ -851,6 +864,7 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			pitch.add(mDriftSignal); 
 					
 			mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);
+			
 			mVoices[v].mdVel.writeToSignal(velSig, mMIDIFrameOffset, frames); 
 
 			// aftertouch for each voice is channel aftertouch + poly aftertouch.
@@ -865,6 +879,15 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			
 			mod3.clear();
 			mod3.add(mControllerSignal3);
+				
+			mVoices[v].mdPitch.clearChanges();
+			mVoices[v].mdDrift.clearChanges();
+			mVoices[v].mdAmp.clearChanges();
+			mVoices[v].mdAfter.clearChanges();
+			mVoices[v].mdVel.clearChanges();
+			mVoices[v].mdMod.clearChanges();
+			mVoices[v].mdMod2.clearChanges();
+			mVoices[v].mdMod3.clearChanges();
 		}
 		else
 		{
@@ -877,6 +900,35 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			mod3.setToConstant(0.f); 
 		}
 	}
+	
+	/*
+		// DEBUG
+	MLSignal& amp = getOutput(2);
+	bool up = false;
+	for(int i=0; i<frames - 1; ++i)
+	{
+		float a = amp[i];
+		float b = amp[i+1];
+		if(b > a)
+		{
+			debug() << "up: amp[" << i << "] = " << a << "->" << "amp[" << i+1 << "] = " << b << "\n";		
+			debug() << "amp is constant? " << amp.isConstant() << "\n";
+			up = true;
+			break;
+		}
+	}
+		float c = amp[0];
+		float d = amp[1];
+		if( c+d > 12123123)
+		{
+			debug() << "\n";
+		}
+	if(up || anyOns)
+	{
+	debug() << "INPUT TO SIGNALS: " << anyOns << " ONS \n";
+		amp.dump(true);
+	}
+	*/
 }
 
 
@@ -933,7 +985,6 @@ MLSample MLProcInputToSignals::midiToPitch(int note)
 	return MLSample(log2((float)mScale.noteToPitch(clamp(note, 0, 127))));
 }
 
-
 // [0-127] -> [0.-1.]
 MLSample MLProcInputToSignals::velToAmp(int vel) 
 {
@@ -945,7 +996,7 @@ MLSample MLProcInputToSignals::velToAmp(int vel)
 
 // activate an event, taking over one voice.  translates note to pitch 
 // and velocity to amplitude.
-void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx)
+void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int bufFrames)
 {
 	int note = e.mNote;
 	int vel = e.mVel;
@@ -957,11 +1008,9 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx)
 // debug() << "        unison vel = " << vel << "\n";
 		for (int v=0; v<mCurrentVoices; ++v)
 		{
-			mVoices[v].mActive = true;
-			mVoices[v].mNote = note;		
 			
 			/*		
-			// if retrig is on, add voice off before voice on.
+			// TODO if retrig is on, add voice off before voice on.
 			if (mRetrig)
 			{
 				if (time == 0) time++; // in rare case where time = 0, make room for extra voice off.
@@ -970,6 +1019,9 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx)
 			}
 			*/
 			
+			mVoices[v].mActive = true;
+			mVoices[v].mNote = note;		
+			mVoices[v].mAge = bufFrames - time;		
 			mVoices[v].mdPitch.addChange(midiToPitch(note), time);
 			mVoices[v].mdAmp.addChange(velToAmp(vel), time);
 			mVoices[v].mdVel.addChange(velToAmp(vel), time);
@@ -977,25 +1029,50 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx)
 	}
 	else if (voiceIdx >= 0)
 	{
-		mVoices[voiceIdx].mActive = true;
-		mVoices[voiceIdx].mNote = note;		// in multi-touch system this will check unique touch ID
-		
-		// if retrig is on, add voice off before voice on.
-		if (mRetrig)
+		if (mVoices[voiceIdx].mActive) // are we stealing?
 		{
-			if (time == 0) time++; // in rare case where time = 0, make room for extra voice off.
-			mVoices[voiceIdx].mdAmp.addChange(0.f, time - 1);  
-		}
+			/*
+			// find event currently attached to this voice and clear it.
+			for (int i=0; i<kMLMaxEvents; ++i)
+			{
+				int eventIdx = (mNextEventIdx - i) & kMLEventMask; // look backwards
+				MLKeyEvent& event = mEvents[eventIdx];
+				if (event.mVoiceState == voiceIdx)
+				{
+					event.clear();
+					break;
+				}
+			}
+			*/
+			// if retrig is on, turn voice amp off before new note to force envelopes to retrigger.
+			if (mRetrig)
+			{
+				if (time == 0) time++; // in case where time = 0, make room for turning amp off.
+				mVoices[voiceIdx].mdAmp.addChange(0.f, time - 1);  
+			}
+		}		
 
+		mVoices[voiceIdx].mActive = true;
+		mVoices[voiceIdx].mNote = note;	
+		mVoices[voiceIdx].mAge = bufFrames - time;		
 		mVoices[voiceIdx].mdPitch.addChange(midiToPitch(note), time);
 		mVoices[voiceIdx].mdAmp.addChange(velToAmp(vel), time);
 		mVoices[voiceIdx].mdVel.addChange(velToAmp(vel), time);
 	}
-
+	/*
+	// DEBUG
+	debug() << "voices: ";
+	for (int v=0; v<mCurrentVoices; ++v)
+	{
+		debug() << v << ":" << mVoices[v].mNote << " ";
+	}
+	debug() << "\n";
+	*/
+		
 }
 
 
-// return free voice or voice to steal. 
+// return index of free voice or voice to steal. 
 int MLProcInputToSignals::allocate()
 {
 	int r = 0;
@@ -1021,29 +1098,26 @@ int MLProcInputToSignals::allocate()
 		}
 		r = mNextVoiceIdx;
 	}	
-	// otherwise return the voice with highest note
-	// TODO longest held note option?
-	// TODO lowest voice #, not round robin?
+	// otherwise return the oldest voice
 	else
 	{
-		int note;
-		int maxNote = 0;
-		int maxNoteIdx = 0;
+		int age;
+		int maxAge = 0;
+		int maxAgeIdx = 0;
 		for (int v=0; v<mCurrentVoices; ++v)
 		{
-			note = mVoices[v].mNote;
-			if (note > maxNote)
+			age = mVoices[v].mAge;
+			if (age > maxAge)
 			{
-				maxNote = note;
-				maxNoteIdx = v;
+				maxAge = age;
+				maxAgeIdx = v;
 			}
 		}
-		r = maxNoteIdx;
+		r = maxAgeIdx;
 	}
-	
 
 //debug() << "allocate:  free voices " << freeVoices << "\n";
-	
+
 	return r;
 }
 
@@ -1118,7 +1192,6 @@ int MLProcInputToSignals::findEventForNote(int note)
 }
 
 
-
 // when crash here once: time == 1 , vel = 0
 void MLProcInputToSignals::clearEvent(MLKeyEvent& event, int time)
 {
@@ -1127,10 +1200,21 @@ void MLProcInputToSignals::clearEvent(MLKeyEvent& event, int time)
 		if (mVoices[v].mNote == event.mNote)
 		{
 			mVoices[v].mActive = false;
+			mVoices[v].mNote = 0;
+			mVoices[v].mAge = 0;
 			mVoices[v].mdAmp.addChange(0.f, time);
 		}
 	}
 	event.clear();
+	
+	// DEBUG
+	debug() << "clears: ";
+	for (int v=0; v<mCurrentVoices; ++v)
+	{
+		debug() << v << ":" << mVoices[v].mNote << " ";
+	}
+	debug() << "\n";
+		
 }
 
 void MLProcInputToSignals::addNoteOn(int note, int vel, int time)
@@ -1146,7 +1230,7 @@ void MLProcInputToSignals::addNoteOff(int note, int vel, int time)
 	PaUtil_WriteRingBuffer( &mNoteBuf, &n, 1 );
 }
 
-void MLProcInputToSignals::doNoteOn(int note, int vel, int time)
+void MLProcInputToSignals::doNoteOn(int note, int vel, int time, int frames)
 {
 	int newVoice;
 		
@@ -1164,15 +1248,13 @@ void MLProcInputToSignals::doNoteOn(int note, int vel, int time)
 	
 	if (freeEventIdx < 0)
 	{
-		debug() << "MLProcInputToSignals::addNoteOn: out of free events!\n";
+		debug() << "MLProcInputToSignals::doNoteOn: out of free events!\n";
 		return; 
 	}
 				
 	MLKeyEvent& newEvent = mEvents[freeEventIdx];
 	newEvent.setup(note, vel, time, mEventCounter++);
 	newEvent.mVoiceState = MLKeyEvent::kVoicePending;
-	
-//debug() << "note on: " << note << ", velocity " << vel << "\n";
 
 	if (mUnisonMode)
 	{		
@@ -1187,39 +1269,26 @@ void MLProcInputToSignals::doNoteOn(int note, int vel, int time)
 				break;
 			}
 		}
-		sendEventToVoice(newEvent, MLKeyEvent::kVoiceUnison);
+		sendEventToVoice(newEvent, MLKeyEvent::kVoiceUnison, frames);
 	}
 	else
 	{
 		newVoice = allocate();
-		if (mVoices[newVoice].mActive)
-		{
-			// find event currently attached to this voice and clear it.
-			for (int i=0; i<kMLMaxEvents; ++i)
-			{
-				int eventIdx = (mNextEventIdx - i) & kMLEventMask; // look backwards
-				MLKeyEvent& event = mEvents[eventIdx];
-				if (event.mVoiceState == newVoice)
-				{
-					event.clear();
-					break;
-				}
-			}
-		}
-		sendEventToVoice(newEvent, newVoice);
+		sendEventToVoice(newEvent, newVoice, frames);
 	}
 }
 
-void MLProcInputToSignals::doNoteOff(int note, int time)
+void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 {
 //debug() << "add note off " << note << " at time " << time << "\n";
 
 	if (!mUnisonMode) // single voice per event
 	{
-		// clearEvent(event, time);	
 		// could possibly activate pending held notes here.  
 		// I don't think most keyboards bother, or is it even desirable?
 		// way too much code for turning a note off, but we are just adding stuff until it works right now
+		
+		// clear key event
 		for (int i=0; i<kMLMaxEvents; ++i)
 		{
 			if (mEvents[i].mNote == note)
@@ -1227,12 +1296,19 @@ void MLProcInputToSignals::doNoteOff(int note, int time)
 				mEvents[i].clear();
 			}
 		}	
-		for (int v=0; v<mCurrentVoices; ++v)
+		
+		// if not sustaining, free voice
+		if(!mSustain)
 		{
-			if (mVoices[v].mNote == note)
+			for (int v=0; v<mCurrentVoices; ++v)
 			{
-				mVoices[v].mActive = false;
-				mVoices[v].mdAmp.addChange(0.f, time);
+				if (mVoices[v].mNote == note)
+				{
+					mVoices[v].mActive = false;
+					mVoices[v].mNote = 0;
+					mVoices[v].mAge = 0;
+					mVoices[v].mdAmp.addChange(0.f, time);					
+				}
 			}
 		}
 	}			
@@ -1281,7 +1357,7 @@ void MLProcInputToSignals::doNoteOff(int note, int time)
 	//debug() << " activating held note " << mEvents[maxEventIdx].mNote << " at time " << time << "\n";
 					mEvents[maxEventIdx].mVel = (int)holdVelocity;
 					mEvents[maxEventIdx].mStartTime = time;
-					sendEventToVoice(mEvents[maxEventIdx], MLKeyEvent::kVoiceUnison);
+					sendEventToVoice(mEvents[maxEventIdx], MLKeyEvent::kVoiceUnison, frames);
 				}			
 				else
 				{
@@ -1299,9 +1375,12 @@ void MLProcInputToSignals::doNoteOff(int note, int time)
 
 void MLProcInputToSignals::allNotesOff()
 {
-//	const ScopedLock l (getProcessLock()); 
-//		setMIDIFrameOffset(0);
 	clear();
+}
+
+void MLProcInputToSignals::setRetrig(bool r)
+{
+	mRetrig = r;
 }
 
 void MLProcInputToSignals::setController(int controller, int value, int time)
@@ -1342,7 +1421,7 @@ void MLProcInputToSignals::setPitchWheel(int value, int time)
 //debug() << "pitch bend " << bendAdd << ", " << time << "\n";
 
 //	mdPitchBend.addChange(bendAdd, time); 
-	mdPitchBend.addChange(bendAdd, 1);	// 1 is a bandaid that is makin git work in Live 8.1.5 TODO
+	mdPitchBend.addChange(bendAdd, 1);	// 1 is a bandaid that is making it work in Live 8.1.5 TODO
 }
 
 void MLProcInputToSignals::setAfterTouch(int note, int value, int time)
@@ -1368,8 +1447,46 @@ void MLProcInputToSignals::setChannelAfterTouch(int value, int time)
 	mdChannelAfterTouch.addChange(value * kControllerScale, 1);
 }
 
-void MLProcInputToSignals::setSustainPedal(int value, int )
+
+// TODO ALL MIDI should come out of the ring buffer!! order is not guaranteed otherwise.
+void MLProcInputToSignals::setSustainPedal(int value, int time)
 {
-		debug() << "MLProcInputToSignals: sustain " << value << "\n";
+	if(value != mSustain)
+	{
+		mSustain = value;	
+		// for each note:
+		if(mSustain)
+		{
+			// turning on, nothing to do here
+		}
+		else
+		{
+			// turn off all sustained voices that do not have key events held down			
+			for (int v=0; v<mCurrentVoices; ++v)
+			{
+				if (mVoices[v].mNote > 0)
+				{				
+					// find held key event matching note
+					bool foundEvent = false;
+					
+					for (int i=0; i<kMLMaxEvents; ++i)
+					{
+						if ((mEvents[i].mNote == mVoices[v].mNote) && mEvents[i].isSounding())
+						{
+							foundEvent = true;
+							break;
+						}
+					}	
+					
+					if(!foundEvent)
+					{
+						mVoices[v].mNote = 0;
+						mVoices[v].mActive = false;
+						mVoices[v].mdAmp.addChange(0.f, time);
+					}
+				}
+			}		
+		}
+	}
 }
 

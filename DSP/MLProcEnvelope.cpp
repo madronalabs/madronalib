@@ -102,7 +102,7 @@ void MLProcEnvelope::process(const int samples)
 	const bool doMult = getParam(xvelSym) > 0.f;
 	
 	// input change thresholds for state changes
-	const float inputThresh = 0.005f; // < 1/127 for MIDI input
+	const float inputThresh = 0.001f;
 
 	for (int n=0; n<samples; ++n)
 	{

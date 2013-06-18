@@ -220,33 +220,36 @@ void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 			int note = message.getNoteNumber();
 			int vel = message.getVelocity();
 			mEngine.addNoteOn(note, vel, time);
-debug() << "ON " << note << "\n";
 		}		
 		else if(message.isNoteOff())
 		{
 			int note = message.getNoteNumber();
 			int vel = message.getVelocity();
 			mEngine.addNoteOff(note, vel, time);
-debug() << "OFF " << note << "\n";
 		}		
+		else if (message.isSustainPedalOn())
+		{			
+			mEngine.setSustainPedal(1, time);
+		}
+		else if (message.isSustainPedalOff())
+		{
+			mEngine.setSustainPedal(0, time);
+		}
 		else if (message.isController())
 		{
 			int controller = message.getControllerNumber();
 			int value = message.getControllerValue();
 			mEngine.setController(controller, value, time);
-debug() << "CTL " << controller << "  " << value << "\n";
 		}
 		else if (message.isAftertouch())
 		{
 			int note = message.getNoteNumber();
 			int value = message.getAfterTouchValue();
 			mEngine.setAfterTouch(note, value, time);
-debug() << "AFT " << note << " " << value << "\n";
 		}
 		else if (message.isChannelPressure())
 		{
 			int value = message.getChannelPressureValue();
-debug() << "pressure " << value << "\n";
 			mEngine.setChannelAfterTouch(value, time);
 		}
 		else if (message.isPitchWheel())
@@ -254,16 +257,6 @@ debug() << "pressure " << value << "\n";
 			int value = message.getPitchWheelValue();
 			//debug() << "pitch bend " << value << ", " << time << "\n";
 			mEngine.setPitchWheel(value, time);
-		}
-		else if (message.isSustainPedalOn())
-		{			
-debug() << "sustain ON\n";
-			mEngine.setSustainPedal(1, time);
-		}
-		else if (message.isSustainPedalOff())
-		{
-debug() << "sustain OFF\n";
-			mEngine.setSustainPedal(0, time);
 		}
 		else if (message.isProgramChange())
 		{
@@ -281,6 +274,7 @@ debug() << "program change " << pgm << "\n";
 			}
 		}
 		else
+		
 		// TEST
 		{
 			int msgSize = message.getRawDataSize();

@@ -364,7 +364,6 @@ void MLDSPEngine::clearMIDI()
 
 void MLDSPEngine::addNoteOn(unsigned note, unsigned vel, unsigned time)
 {
-debug() << "note on: " << note << " vel: " << vel << " time: " << time << "\n";
 	if (mpInputToSignalsProc)
 	{
 		mpInputToSignalsProc->addNoteOn(note, vel, time);
@@ -373,7 +372,6 @@ debug() << "note on: " << note << " vel: " << vel << " time: " << time << "\n";
 
 void MLDSPEngine::addNoteOff(unsigned note, unsigned vel, unsigned time)
 {
-//debug() << "note off: " << note << " time: " << time << "\n";
 	if (mpInputToSignalsProc)
 	{
 		mpInputToSignalsProc->addNoteOff(note, vel, time);
@@ -384,7 +382,6 @@ void MLDSPEngine::setController(unsigned controller, unsigned value, unsigned ti
 {
 	if (mpInputToSignalsProc)
 	{
-//debug() << "MLDSPEngine::time " << time << " ctrl " << controller << " value " << value << "\n";
 		mpInputToSignalsProc->setController(controller, value, time);
 	}
 }
@@ -397,7 +394,6 @@ void MLDSPEngine::setPitchWheel(unsigned value, unsigned time)
 	}
 }
 
-
 void MLDSPEngine::setAfterTouch(unsigned note, unsigned value, unsigned time)
 {
 	if (mpInputToSignalsProc)
@@ -405,7 +401,6 @@ void MLDSPEngine::setAfterTouch(unsigned note, unsigned value, unsigned time)
 		mpInputToSignalsProc->setAfterTouch(note, value, time);
 	}
 }
-
 
 void MLDSPEngine::setChannelAfterTouch(unsigned value, unsigned time)
 {

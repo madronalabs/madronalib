@@ -53,7 +53,8 @@ public:
 	void zero();
 	
 	int mActive;
-	int mNote;
+	int mNote;	
+	int mAge;	// time in this state, measured to the end of the current process buffer
 	
 	// for continuous touch inputs (Soundplane / OSC)
 	float mStartX;
@@ -116,6 +117,7 @@ public:
 	void addNoteOn(int note, int vel, int time);
 	void addNoteOff(int note, int vel, int time);
 	void allNotesOff();
+	void setRetrig(bool r);
 	void setController(int controller, int value, int time);
 	void setPitchWheel(int value, int time);
 	void setAfterTouch(int note, int value, int time);
@@ -141,10 +143,10 @@ private:
 	void dumpVoices();
 	
 	int allocate();
-	void sendEventToVoice(MLKeyEvent& e, int voiceIdx);
+	void sendEventToVoice(MLKeyEvent& e, int voiceIdx, int frames);
 
-	void doNoteOn(int note, int vel, int time);
-	void doNoteOff(int note, int time);
+	void doNoteOn(int note, int vel, int time, int frames);
+	void doNoteOff(int note, int time, int frames);
 	
 	MLKeyEvent mEvents[kMLMaxEvents];
 	int mNextEventIdx;
@@ -189,9 +191,7 @@ private:
 	MLScale mScale;
 	
 	int temp;
-	
-	// TEMP
-	float mAmp1;
+	bool mSustain;
 };
 
 
