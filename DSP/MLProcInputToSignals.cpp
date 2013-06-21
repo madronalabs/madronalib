@@ -902,7 +902,7 @@ void MLProcInputToSignals::processMIDI(const int frames)
 	}
 	
 	/*
-		// DEBUG
+	// DEBUG
 	MLSignal& amp = getOutput(2);
 	bool up = false;
 	for(int i=0; i<frames - 1; ++i)

@@ -83,7 +83,6 @@ void MLProcPhasor::process(const int samples)
 //	if (mParamsChanged) calcCoeffs();
 //	calcCoeffs();
 
-
 	// TODO reset
 
 	for (int n=0; n<samples; ++n)

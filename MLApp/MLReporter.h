@@ -49,7 +49,6 @@ public:
 	void addParamViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
 	void viewAllParams();
 	void viewAllChangedParams();
-	void viewParam();
 
 	// MLModelListener interface
 	void doParamChangeAction(MLSymbol param, const MLModelParam& oldVal, const MLModelParam& newVal);

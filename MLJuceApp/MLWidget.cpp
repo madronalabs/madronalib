@@ -22,6 +22,19 @@ MLWidget::~MLWidget()
 {
 }
 
+void MLWidget::setAttribute(MLSymbol attr, float val)
+{
+	mAttributes[attr] = val;
+}
+
+void MLWidget::setStringAttribute(MLSymbol attr, const std::string& val)
+{
+	mStringAttributes[attr] = val;
+}
+
+// --------------------------------------------------------------------------------
+// protected getters, to be used only by subclasses.
+
 float MLWidget::getAttribute(MLSymbol attr)
 {
 	float result = 0.;
@@ -31,11 +44,6 @@ float MLWidget::getAttribute(MLSymbol attr)
 		result = (look->second);
 	}
 	return result;
-}
-
-void MLWidget::setAttribute(MLSymbol attr, float val)
-{
-	mAttributes[attr] = val;
 }
 
 const std::string& MLWidget::getStringAttribute(MLSymbol attr)
@@ -48,10 +56,7 @@ const std::string& MLWidget::getStringAttribute(MLSymbol attr)
 	return kNullStr;
 }
 
-void MLWidget::setStringAttribute(MLSymbol attr, const std::string& val)
-{
-	mStringAttributes[attr] = val;
-}
+// --------------------------------------------------------------------------------
 
 void MLWidget::setGridBounds(const MLRect& p)
 {

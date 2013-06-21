@@ -80,25 +80,21 @@ public:
 	//
 	// 1-D access methods 
 	//
-	
-	// inspector, return by value for proc inputs.
-	// clients must use const references in order to call this operator.
+
+	// inspector applied to const references, typically from getInput()
 	// when a signal is marked as constant, mConstantMask = 0 and we return
 	// the first value in the array.
-	inline MLSample operator[] (int i) const 
+	inline MLSample operator[] (int i) const
 	{
 		return mDataAligned[i&mConstantMask];
 	}
 
-	// mutator, return reference for proc outputs.
-	// TODO I caught this being called when the inspector should have been called!
-	// investigate before returning to desired code.
+	// mutator, called for non-const references 
 	inline MLSample& operator[] (int i)
 	{	
-//		return mDataAligned[i]; // desired
-		return mDataAligned[i&mConstantMask];
+		return mDataAligned[i];
 	}
-	
+
 	// float inspector, return by value 
 	inline MLSample getInterpolated(float f) const 
 	{

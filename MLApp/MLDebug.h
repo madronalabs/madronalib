@@ -27,14 +27,11 @@ public:
 		{		
 			if(mpListener)
 			{
-				// TEMP
-				// CRASH here - stale listener?
-				// to reproduce delete and make another Kaivo
 				mpListener->getStream() << item;
 			}
 			else
 			{
-				std::cout << item;
+				std::cerr << item;
 				
 				// for catching initial messages before UI is made
 				if(mItemCount++ < kStartupItems)

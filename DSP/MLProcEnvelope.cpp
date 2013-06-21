@@ -52,15 +52,12 @@ ML_UNUSED MLProcOutput<MLProcEnvelope> outputs[] = {"out"};
 
 }	// namespace
 
-
 // ----------------------------------------------------------------
 // implementation
-
 
 MLProcEnvelope::MLProcEnvelope()
 {
 }
-
 
 MLProcEnvelope::~MLProcEnvelope()
 {

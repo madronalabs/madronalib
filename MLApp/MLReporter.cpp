@@ -78,8 +78,3 @@ void MLReporter::doParamChangeAction(MLSymbol param, const MLModelParam& , const
 		}
 	}
 }
-
-void MLReporter::viewParam() 
-{
-	
-}

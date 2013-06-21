@@ -590,9 +590,12 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 #else
 
   	const unsigned numParams = getNumParameters();
+
+	// TODO use string attributes of model instead of these JUCE strings.
+	// also use std::string based XML or JSON persistence.
 	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
     xml.setAttribute ("presetName", mCurrentPresetName);	
-    xml.setAttribute ("presetDir", mCurrentPresetDir);	
+    xml.setAttribute ("presetDir", mCurrentPresetDir);		
     xml.setAttribute ("scaleName", mCurrentScaleName);
     xml.setAttribute ("scaleDir", mCurrentScaleDir);
 	// debug() << "saving with scale " << mCurrentScaleDir << "/" << mCurrentScaleName << "\n";
@@ -790,7 +793,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	// try to load scale if a scale attribute exists
 	const String scaleName = xmlState.getStringAttribute ("scaleName");		
 	const String scaleDir = xmlState.getStringAttribute ("scaleDir");		
-	
 	if ((scaleName == String::empty) || (scaleName == "12-equal"))
 	{
 		setCurrentScaleName("12-equal");
@@ -1191,22 +1193,10 @@ const String& MLPluginProcessor::getCurrentScaleName()
 void MLPluginProcessor::setCurrentScaleName(const char* name)
 {
 	mCurrentScaleName = name;
-	setModelParam("scale_name", name);
-
-	/*
-	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
-	if(pEditor)
-	{
-		MLWidget* pW = pEditor->getWidget("key_scale");
-		if(pW)
-		{
-			pW->setStringAttribute("value", name);
-		}
-	}
-	*/
+	setModelParam("key_scale", name);
 }
 
-// set default value for each parameter.  needed before loading
+// set default value for each scalar parameter.  needed before loading
 // patches, which are only required to store differences from these
 // default values.
 void MLPluginProcessor::setDefaultParameters()
@@ -1410,10 +1400,17 @@ void MLPluginProcessor::loadScale(const File& f)
 
 void MLPluginProcessor::loadDefaultScale()
 {
+debug() << 	"MLPluginProcessor::loadDefaultScale()\n";
+	
 	MLScale* pScale = mEngine.getScale();
 	if (!pScale) return;
+	
+	setModelParam("key_scale", "12-equal");
+	
+	// TODO these special variables will go away, use the string attributes instead.
 	mCurrentScaleName = "12-equal";
 	mCurrentScaleDir = "";
+	
 	pScale->setDefaultScale();
 	pScale->setDefaultMapping();
 } 

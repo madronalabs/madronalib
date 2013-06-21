@@ -51,11 +51,9 @@ MLProcOnepole::MLProcOnepole()
 	setParam("frequency", 1000.f);
 }
 
-
 MLProcOnepole::~MLProcOnepole()
 {
 }
-
 
 void MLProcOnepole::doParams(void) 
 {

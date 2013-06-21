@@ -44,7 +44,7 @@ void MLTextStream::setActive(bool a)
 
 void MLTextStream::flush()
 {
-
+	mLocalStream.flush();
 }
 
 void MLTextStream::display()
@@ -57,6 +57,7 @@ void MLTextStream::display()
 	else
 	{
 		// no listener, using stdout
+		flush();
 	}
 }
 

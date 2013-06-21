@@ -582,23 +582,31 @@ void MLPluginController::doScaleMenu(int result)
 	MLMenuPtr menu = mMenuMap["key_scale"];
 	if (menu != MLMenuPtr())
 	{
+debug() << 	"doScaleMenu setting scale to " << menu->getItemString(menuIdx) << "\n";
 		mpProcessor->setModelParam("key_scale", menu->getItemString(menuIdx));
 	}
 }
 
 static void menuItemChosenCallback (int result, MLPluginController* pC, MLMenuPtr menu)
 {
-	MLWidgetContainer* pView = pC->getView();
-	if(pView)
-	{	
-		MLWidget* pInstigator = pView->getWidget(menu->getInstigator());
-		if(pInstigator != nullptr)
-		{
-			// turn instigator Widget off
-			pInstigator->setAttribute("value", 0);
+debug() << "MLPluginController: menuItemChosenCallback\n";
+debug() << "    pC:" << std::hex << (void *)pC << std::dec << "\n";
+	if(pC != nullptr)
+	{
+		MLWidgetContainer* pView = pC->getView();
+debug() << "    pView:" << std::hex << (void *)pView << std::dec << "\n";
+		if(pView != nullptr)
+		{	
+			MLWidget* pInstigator = pView->getWidget(menu->getInstigator());
+debug() << "    pInstigator:" << std::hex << (void *)pInstigator << std::dec << "\n";
+			if(pInstigator != nullptr)
+			{
+				// turn instigator Widget off
+				pInstigator->setAttribute("value", 0);
+			}
 		}
+		pC->menuItemChosen(menu->getName(), result);
 	}
-	pC->menuItemChosen(menu->getName(), result);
 }
 
 void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
