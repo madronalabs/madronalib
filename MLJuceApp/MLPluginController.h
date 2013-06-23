@@ -13,6 +13,7 @@
 #include "MLPatcher.h"
 #include "MLAppView.h"
 
+
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
@@ -54,6 +55,8 @@ public:
 	void setPluginWrapperFormat(int format);
 	void setupMenus();
 	
+	MLMenu* findMenuByName(MLSymbol menuName);	
+
 //	MLSymbol getCurrMenuName() { return mCurrMenuName; }
 //	void setCurrMenuInstigator(MLMenuButton* pI) { mCurrMenuInstigator = pI; }
 //	MLMenuButton* getCurrMenuInstigator() { return mCurrMenuInstigator; }
@@ -70,6 +73,8 @@ protected:
 	MLPluginFormats::pluginFormat mWrapperFormat;
 	MLAppView* mpView;
 	
+	WeakReference<MLPluginController>::Master masterReference;
+	friend class WeakReference<MLPluginController>;	
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
 	//PopupMenu mPresetMenu; 

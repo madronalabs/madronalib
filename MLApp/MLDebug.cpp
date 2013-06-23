@@ -47,6 +47,19 @@ void MLTextStream::flush()
 	mLocalStream.flush();
 }
 
+MLTextStream& debug(void)
+{
+	static MLTextStream theDebugMessageStream("debug");
+	return theDebugMessageStream;
+}
+
+MLTextStream& MLError(void)
+{
+	static MLTextStream theErrorMessageStream("error");
+	return theErrorMessageStream;
+}
+
+
 void MLTextStream::display()
 {
 	if(!mActive) return;
@@ -61,15 +74,21 @@ void MLTextStream::display()
 	}
 }
 
-MLTextStream& debug(void)
+
+#ifndef ML_MAC
+
+void MLTextStream::displayImmediate()
 {
-	static MLTextStream theDebugMessageStream("debug");
-	return theDebugMessageStream;
+	if(!mActive) return;
+	if(mpListener)
+	{
+		mpListener->display();
+	}
+	else
+	{
+		// no listener, using stdout
+		flush();
+	}
 }
 
-MLTextStream& MLError(void)
-{
-	static MLTextStream theErrorMessageStream("error");
-	return theErrorMessageStream;
-}
-
+#endif // ML_MAC

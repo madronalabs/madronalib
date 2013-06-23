@@ -11,11 +11,13 @@
 
 #include <iostream>
 
-const int kStartupItems = 1024;
 
 class MLTextStream
 {
 public:
+	// set maximum to prevent local stream from growing too large
+	static const int kMaxLocalItems = 1024;
+
 	MLTextStream(const char* name);
 	~MLTextStream();
 
@@ -31,13 +33,16 @@ public:
 			}
 			else
 			{
+				mLocalStream << item;
+				displayImmediate();
+				/*
 				std::cerr << item;
-				
 				// for catching initial messages before UI is made
-				if(mItemCount++ < kStartupItems)
+				if(mItemCount++ < kMaxLocalItems)
 				{
 					mLocalStream << item;
 				}
+				*/
 			}
 		}
 		return *this;
@@ -47,6 +52,8 @@ public:
 	void setActive(bool a);
 	void flush(void);
 	
+	void displayImmediate();
+
 	// empty stream to destination, hopefully from message thread
 	void display();
 

@@ -1400,14 +1400,13 @@ void MLPluginProcessor::loadScale(const File& f)
 
 void MLPluginProcessor::loadDefaultScale()
 {
-debug() << 	"MLPluginProcessor::loadDefaultScale()\n";
-	
 	MLScale* pScale = mEngine.getScale();
 	if (!pScale) return;
 	
 	setModelParam("key_scale", "12-equal");
 	
 	// TODO these special variables will go away, use the string attributes instead.
+	// wait and move XML presistence to stdlib-based code at the same time.
 	mCurrentScaleName = "12-equal";
 	mCurrentScaleDir = "";
 	

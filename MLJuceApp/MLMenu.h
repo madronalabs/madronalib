@@ -26,13 +26,13 @@ public:
 	void addSubMenu(MLMenuPtr m, bool enabled = true);
 	void setItemOffset(int f) { mItemOffset = f; }
 	void addSeparator();	
-	int getNumItems() { return mNumItems; }
+	int getNumItems() const { return mNumItems; }
 	const std::string& getItemString(int idx);
 	PopupMenu& getJuceMenu();	
-	const std::string& getName() {return mName;}
+	const std::string& getName() const {return mName;}
 
 	void setInstigator(MLSymbol n) {mInstigatorName = n;}
-	MLSymbol getInstigator() {return mInstigatorName;}
+	MLSymbol getInstigator() const {return mInstigatorName;} 
 
 protected:
 	const std::vector<std::string>& getItemVector() { return mItems; }
