@@ -43,7 +43,7 @@ class MLAppView :
 public:
 	MLAppView(MLResponder* pResp, MLReporter* pRep);
     ~MLAppView();
-	
+
 	virtual bool isWidgetContainer(void) { return true; }
 
 	void setReporter(MLReporter* pRep);	

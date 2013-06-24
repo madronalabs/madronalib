@@ -416,11 +416,9 @@ void MLProcInputToSignals::doParams()
 	{
 		mVoices[v].mdPitch.setGlideTime(mGlide);
 	}
-	
-	
+		
 	mParamsChanged = false;
 //dumpParams();	// DEBUG
-	
 }
 
 inline int packNote(int note, int vel, int time)

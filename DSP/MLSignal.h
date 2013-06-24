@@ -86,12 +86,14 @@ public:
 	// the first value in the array.
 	inline MLSample operator[] (int i) const
 	{
+		assert(i < mSize);
 		return mDataAligned[i&mConstantMask];
 	}
 
 	// mutator, called for non-const references 
 	inline MLSample& operator[] (int i)
 	{	
+		assert(i < mSize);
 		return mDataAligned[i];
 	}
 
@@ -127,12 +129,14 @@ public:
 	// (TODO) does not work with reference?! (MLSignal& t = mySignal; t(2, 3) = k;)
 	inline MLSample& operator()(const int i, const int j)
 	{
+		assert((j<<mWidthBits) + i < mSize);
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 	
 	// inspector, return by value
 	inline const MLSample operator()(const int i, const int j) const
 	{
+		assert((j<<mWidthBits) + i < mSize);
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 
@@ -144,12 +148,14 @@ public:
 	// mutator, return sample reference
 	inline MLSample& operator()(const int i, const int j, const int k)
 	{
+		assert((k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i < mSize);
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
 	}
 	
 	// inspector, return sample by value
 	inline const MLSample operator()(const int i, const int j, const int k) const
 	{
+		assert((k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i < mSize);
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
 	}
 

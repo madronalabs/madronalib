@@ -73,7 +73,7 @@ private:
 	// indexes into strings list, 128kB of storage in this impl
 	SymbolIndexT mIndexesByID[kTableSize];	
 
-	// ptrs to strings in keys, 128kB of storage in this impl
+	// ptrs to strings in keys, 256kB of storage in this impl
 	std::string* mStringsByID[kTableSize];	
 
 	typedef std::map<MLSymbolKey, SymbolIDT> MLSymbolMapT;

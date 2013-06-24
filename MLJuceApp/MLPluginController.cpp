@@ -49,6 +49,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	
 	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
 	
+	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
 }
 
@@ -64,6 +65,12 @@ MLAppView* MLPluginController::getView()
 
 void MLPluginController::setView(MLAppView* v) 
 { 
+	// if view is going away, stop reporting parameters and signals
+	const ScopedLock lock(mViewLock);	
+	if(!v)
+	{
+		debug() << "MLPluginController::setView 0\n";
+	}
 	mpView = v; 
 }
 
@@ -486,26 +493,6 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 	}
 }
 
-
-
-/*
-
-        E.g. @code
-        static void myCallbackFunction (int modalResult, Slider* mySlider, String customParam)
-        {
-            if (modalResult == 1 && mySlider != nullptr) // (must check that mySlider isn't null in case it was deleted..)
-                mySlider->setName (customParam);
-        }
-
-        Component* someKindOfComp;
-        Slider* mySlider;
-        ...
-        someKindOfComp->enterModalState (ModalCallbackFunction::forComponent (myCallbackFunction, mySlider, String ("hello")));
-        @endcode
-        @see ModalComponentManager::Callback
-*/
-		
-		
 void MLPluginController::doPresetMenu(int result)
 {
 	String presetStr;
@@ -614,22 +601,8 @@ void MLPluginController::doScaleMenu(int result)
 		mpProcessor->setModelParam("key_scale", menu->getItemString(menuIdx));
 	}
 }
-
-// after menu item is chosen:
-// - restore instigator widget state
-// - call Controller menuItemChosen() with menu name and result.
-
-/*
-given: result, controller, menuName
-menu <- controller, menuname
-view <- controller
-instigator <- menu + view 
-menuName <- menu 
-controller
-result 
-*/
-
 	
+// TODO use this 
 MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)	
 {
 	MLMenu* r = nullptr;
@@ -657,7 +630,7 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 	
 	if(pC != nullptr)
 	{	
-	debug() << "    MLPluginController:" << std::hex << (void *)pC << std::dec << "\n";
+		debug() << "    MLPluginController:" << std::hex << (void *)pC << std::dec << "\n";
 
 		// get menu by name from Controller’s menu map		
 		const MLMenu* pMenu = pC->findMenuByName(menuName);
@@ -669,17 +642,17 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 		{		
 			MLWidgetContainer* pView = pC->getView();
 			
-	debug() << "    pView:" << std::hex << (void *)pView << std::dec << "\n";
+			debug() << "    pView:" << std::hex << (void *)pView << std::dec << "\n";
 			if(pView != nullptr)
 			{	
 				debug() << "        pView widget name:" << pView->getWidgetName() << "\n";
 				
 				MLWidget* pInstigator = pView->getWidget(pMenu->getInstigator());
 				
-	debug() << "    pInstigator:" << std::hex << (void *)pInstigator << std::dec << "\n";
+				debug() << "    pInstigator:" << std::hex << (void *)pInstigator << std::dec << "\n";
 				if(pInstigator != nullptr)
 				{
-				debug() << "        name:" << pInstigator->getWidgetName() << "\n";
+					debug() << "        name:" << pInstigator->getWidgetName() << "\n";
 					// turn instigator Widget off
 					pInstigator->setAttribute("value", 0);
 				}

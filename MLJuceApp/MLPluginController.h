@@ -72,6 +72,7 @@ public:
 protected:
 	MLPluginFormats::pluginFormat mWrapperFormat;
 	MLAppView* mpView;
+	juce::CriticalSection mViewLock;
 	
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	

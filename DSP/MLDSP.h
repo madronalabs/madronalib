@@ -64,7 +64,7 @@ const uintptr_t kMLSamplesPerSSEVectorBits = 2;
 const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
 //const unsigned kMLVectorsPerBuffer = kMLDefaultSignalSize / kSSEVecSize;	// number of SSE vectors in a default buffer 
 
-const int kMLEngineMaxVoices = 4;
+const int kMLEngineMaxVoices = 8;
 
 const uintptr_t kMLAlignBits = 6; // cache line is 64 bytes
 const uintptr_t kMLAlignSize = 1 << kMLAlignBits;
@@ -189,7 +189,7 @@ float dBToAmp(float d);
 #pragma mark fast trig approximations
 // ----------------------------------------------------------------
 
-// fastest and worst.  OK for values in [-pi, pi].  never use outside [-2. 2].
+// fastest and worst.  rough approximation sometimes useful in [-pi/2, pi/2].
 inline float fsin1(const float x)
 {
     return x - (x*x*x*0.15f);

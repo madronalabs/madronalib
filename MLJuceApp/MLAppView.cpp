@@ -26,6 +26,7 @@ MLAppView::MLAppView(MLResponder* pResp, MLReporter* pRep) :
 
 MLAppView::~MLAppView()
 {
+	
 	setAnimationsActive(false);
 	deleteAllChildren();
 }
