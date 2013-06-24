@@ -1069,35 +1069,44 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int buf
 		
 }
 
-
 // return index of free voice or voice to steal. 
 int MLProcInputToSignals::allocate()
 {
 	int r = 0;
+	int found = false;
 	
-	// get number of free voices
-	int freeVoices = 0;
+	// look for a free voice
+	int n = mNextVoiceIdx;
 	for (int v=0; v<mCurrentVoices; ++v)
 	{
-		if (!mVoices[v].mActive)
+		n = (n + 1) % mCurrentVoices;
+		if (!mVoices[n].mActive) 
 		{
-			freeVoices++;
+			r = mNextVoiceIdx = n;
+			found = true;
+			break;
 		}
 	}
-		
-	// if there are any free voices, just increment counter until we reach a free voice
-	if (freeVoices > 0)
+	
+	// look for any voice not matching a key held down
+	// (possible with sustain pedal on)
+	if(!found)
 	{
+		n = mNextVoiceIdx;
 		for (int v=0; v<mCurrentVoices; ++v)
 		{
-			mNextVoiceIdx++;
-			mNextVoiceIdx %= mCurrentVoices;
-			if (!mVoices[mNextVoiceIdx].mActive) break;
+			n = (n + 1) % mCurrentVoices;
+			if (!hasHeldKeyEvent(n))
+			{
+				r = mNextVoiceIdx = n;
+				found = true;
+				break;
+			}
 		}
-		r = mNextVoiceIdx;
-	}	
-	// otherwise return the oldest voice
-	else
+	}
+
+	// if still not found, just steal oldest voice.
+	if(!found)
 	{
 		int age;
 		int maxAge = 0;
@@ -1113,7 +1122,6 @@ int MLProcInputToSignals::allocate()
 		}
 		r = maxAgeIdx;
 	}
-
 //debug() << "allocate:  free voices " << freeVoices << "\n";
 
 	return r;
@@ -1282,9 +1290,7 @@ void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 
 	if (!mUnisonMode) // single voice per event
 	{
-		// could possibly activate pending held notes here.  
-		// I don't think most keyboards bother, or is it even desirable?
-		// way too much code for turning a note off, but we are just adding stuff until it works right now
+		// could possibly activate stolen held notes here.  
 		
 		// clear key event
 		for (int i=0; i<kMLMaxEvents; ++i)
@@ -1445,8 +1451,26 @@ void MLProcInputToSignals::setChannelAfterTouch(int value, int time)
 	mdChannelAfterTouch.addChange(value * kControllerScale, 1);
 }
 
+// is any event (key) currently sustained and playing voice v?
+bool MLProcInputToSignals::hasHeldKeyEvent(int v)
+{
+	bool foundEvent = false;
+	if (mVoices[v].mNote > 0)
+	{				
+		// find held key event matching note		
+		for (int i=0; i<kMLMaxEvents; ++i)
+		{
+			if ((mEvents[i].mNote == mVoices[v].mNote) && mEvents[i].isSounding())
+			{
+				foundEvent = true;
+				break;
+			}
+		}		
+	}
+	return foundEvent;
+}
 
-// TODO ALL MIDI should come out of the ring buffer!! order is not guaranteed otherwise.
+// TODO ALL MIDI including sustain message should come out of the ring buffer!! order is not guaranteed otherwise.
 void MLProcInputToSignals::setSustainPedal(int value, int time)
 {
 	if(value != mSustain)
@@ -1462,26 +1486,11 @@ void MLProcInputToSignals::setSustainPedal(int value, int time)
 			// turn off all sustained voices that do not have key events held down			
 			for (int v=0; v<mCurrentVoices; ++v)
 			{
-				if (mVoices[v].mNote > 0)
-				{				
-					// find held key event matching note
-					bool foundEvent = false;
-					
-					for (int i=0; i<kMLMaxEvents; ++i)
-					{
-						if ((mEvents[i].mNote == mVoices[v].mNote) && mEvents[i].isSounding())
-						{
-							foundEvent = true;
-							break;
-						}
-					}	
-					
-					if(!foundEvent)
-					{
-						mVoices[v].mNote = 0;
-						mVoices[v].mActive = false;
-						mVoices[v].mdAmp.addChange(0.f, time);
-					}
+				if(!hasHeldKeyEvent(v))
+				{
+					mVoices[v].mNote = 0;
+					mVoices[v].mActive = false;
+					mVoices[v].mdAmp.addChange(0.f, time);
 				}
 			}		
 		}

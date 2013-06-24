@@ -113,6 +113,7 @@ public:
 	// events
 	int findEventForNote(int note);
 	void clearEvent(MLKeyEvent& event, int time);
+	bool hasHeldKeyEvent(int v);
 
 	void addNoteOn(int note, int vel, int time);
 	void addNoteOff(int note, int vel, int time);
