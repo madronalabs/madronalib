@@ -16,7 +16,6 @@ MLPluginView::MLPluginView (MLPluginProcessor* const ownerProcessor, MLPluginCon
 
 MLPluginView::~MLPluginView()
 {	
-debug() << "DELETING MLPluginView " << getWidgetName() << "\n";
 	deleteAllChildren();
 }
 
