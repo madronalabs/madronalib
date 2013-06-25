@@ -1318,7 +1318,7 @@ void MLSignal::dump(bool verbose) const
 		else
 		{
 			debug() << std::setprecision(5);
-			for (int i=0; i<mSize; ++i)
+			for (int i=0; i<w; ++i)
 			{
 				debug() << mDataAligned[i] << " ";
 			}

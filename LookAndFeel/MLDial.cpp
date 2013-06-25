@@ -1782,7 +1782,6 @@ void MLDial::findDialToDrag(const int x, const int y)
 
 void MLDial::addDetent(const float value, const float width)
 {
-debug() << getWidgetName() << "adding detent: " << value << "\n";
 	mDetents.push_back(MLDialDetent(value, width));
 }
 
