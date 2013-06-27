@@ -32,14 +32,14 @@ public:
 		
 	MLPluginProcessor();
     ~MLPluginProcessor();
-	void setWrapperFormat(int format) { mWrapperFormat = format; }
+	void setWrapperFormat(int format);
 	
 	// --------------------------------------------------------------------------------
 	// plugin description and default preset
 	void loadPluginDescription(const char* desc);
 	virtual void loadDefaultPreset() = 0;
 	
-	// initialize is called after graph is created
+	// initializeProcessor is called after graph is created.
 	virtual void initializeProcessor() = 0; 
 
 	// --------------------------------------------------------------------------------

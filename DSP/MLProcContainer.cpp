@@ -1141,10 +1141,6 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 		{
 			pList.push_back(proc);
 		}
-		else
-		{
-			debug() << "MLProcContainer: getProcList:" << pathI << " not found in container " << getName() << "!\n";
-		}
 	}
 }
 

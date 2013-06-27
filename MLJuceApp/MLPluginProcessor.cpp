@@ -33,7 +33,7 @@ MLPluginProcessor::MLPluginProcessor() :
 		mFileLocationsOK = true;
 	}	
 
-	clearMIDIProgramFiles();
+debug() << "CREATING plugin processor\n";
 
 //	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
 //	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
@@ -43,6 +43,13 @@ MLPluginProcessor::MLPluginProcessor() :
 MLPluginProcessor::~MLPluginProcessor()
 {
 //	debug() << "deleting MLPluginProcessor.\n";
+}
+
+void MLPluginProcessor::setWrapperFormat(int format)
+{ 
+	mWrapperFormat = format; 
+debug() << "SCANNING MIDI programs\n";
+	scanMIDIPrograms();
 }
 
 void MLPluginProcessor::loadPluginDescription(const char* desc)
@@ -1122,8 +1129,11 @@ void MLPluginProcessor::scanMIDIPrograms()
 	File startDir = getDefaultFileLocation(kUserPresetFiles);
 	if (!startDir.isDirectory()) return;	
 	File subDir = startDir.getChildFile("MIDI Programs");
-	if (!startDir.isDirectory()) return;	
-
+	if (!startDir.isDirectory()) 
+	{
+		debug() << "WARNING: MIDI Programs directory not found.\n";
+		return;	
+	}
 	Array<File> subdirArray;
 	const int level1FilesToFind = File::findFiles | File::ignoreHiddenFiles;
 	int filesInCategory = subDir.findChildFiles(subdirArray, level1FilesToFind, false);
@@ -1139,6 +1149,7 @@ void MLPluginProcessor::scanMIDIPrograms()
 			}
 		}
 	}
+	debug() << "MLPluginProcessor::scanMIDIPrograms found " << midiPgmCount << " MIDI programs\n";
 }
 
 // --------------------------------------------------------------------------------

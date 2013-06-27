@@ -5,12 +5,12 @@
 
 #include "MLMenu.h"
 
-MLMenu::MLMenu(const char* name) :
-	mName(name),
+static const std::string kNullStr("<null>");
+
+MLMenu::MLMenu() :
 	mNumItems(0),
 	mItemOffset(0)
 {
-	mNullStr = "<null>";
 }
 
 MLMenu::~MLMenu()
@@ -38,9 +38,9 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 	}
 }
 
-void MLMenu::addSubMenu(MLMenuPtr m, bool enabled)
+void MLMenu::addSubMenu(MLMenuPtr m, const char* name, bool enabled)
 {	
-	mJuceMenu.addSubMenu(m->getName().c_str(), m->getJuceMenu(), enabled);
+	mJuceMenu.addSubMenu(name, m->getJuceMenu(), enabled);
 	std::vector<std::string>::const_iterator it;
 	const std::vector<std::string> v = m->getItemVector();	
 	for(it = v.begin(); it != v.end(); it++)
@@ -69,7 +69,7 @@ const std::string& MLMenu::getItemString(int idx)
 	{
 		return mItems[idx];
 	}
-	return mNullStr;
+	return kNullStr;
 }
 
 PopupMenu& MLMenu::getJuceMenu()

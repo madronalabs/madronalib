@@ -23,9 +23,9 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr
 
 void MLSignalReporter::viewSignals() 
 {	
-	if(!mpProcessor) return;
-	
+	if(!mpProcessor) return;	
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
+	if(!pEngine) return;	
 	
 	// for all signal views
 	MLSymbol signalName;

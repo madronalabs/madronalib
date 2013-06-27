@@ -16,20 +16,19 @@ typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
 class MLMenu
 {
 public:
-	MLMenu(const char* name);
+	MLMenu();
 	~MLMenu();
 	
 	void clear();
 	void addItem(const char * name, bool enabled = true);
 	void addItem(const std::string& name, bool enabled = true);	
 	void addItems(const std::vector<std::string>& items);
-	void addSubMenu(MLMenuPtr m, bool enabled = true);
+	void addSubMenu(MLMenuPtr m, const char* name, bool enabled = true);
 	void setItemOffset(int f) { mItemOffset = f; }
 	void addSeparator();	
 	int getNumItems() const { return mNumItems; }
 	const std::string& getItemString(int idx);
 	PopupMenu& getJuceMenu();	
-	const std::string& getName() const {return mName;}
 
 	void setInstigator(MLSymbol n) {mInstigatorName = n;}
 	MLSymbol getInstigator() const {return mInstigatorName;} 
@@ -39,13 +38,11 @@ protected:
 
 private:	
 
-	std::string mName; // viewable name, used when this is a submenu
 	MLSymbol mInstigatorName; // name of Widget that triggered us
 	PopupMenu mJuceMenu;		
 	int mItemOffset; // offset for returned item values, useful for submenus
 	int mNumItems;
 	std::vector<std::string> mItems;
 	std::vector<MLMenuPtr> mSubMenus;
-	std::string mNullStr;
 };
 

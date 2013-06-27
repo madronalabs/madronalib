@@ -142,10 +142,6 @@ MLProcPtr MLProcMultiple::getProc(const MLPath & path)
 						 // recurse into there
 						r = copyAsContainer->getProc(tail);
 					}
-					else
-					{
-						debug() << " MLProcMultiple::getProc: error copy " << copy << " out of range!\n";
-					}
 				}
 				else // return template.
 				{

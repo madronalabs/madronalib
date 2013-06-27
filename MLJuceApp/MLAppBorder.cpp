@@ -40,6 +40,8 @@ void MLAppBorder::makeResizer(Component* targetComp)
 void MLAppBorder::paint (Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	
+	// This is where most of the plugin's background is actually painted.
 	myLookAndFeel->drawBackground(g, this);	
 		
 	/*	

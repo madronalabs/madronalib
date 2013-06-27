@@ -13,7 +13,6 @@
 #include "MLPatcher.h"
 #include "MLAppView.h"
 
-
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
@@ -53,14 +52,10 @@ public:
 
 	// called by wrappers to tell editor what type of plugin it is editing.
 	void setPluginWrapperFormat(int format);
-	void setupMenus();
 	
+	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName);	
-
-//	MLSymbol getCurrMenuName() { return mCurrMenuName; }
-//	void setCurrMenuInstigator(MLMenuButton* pI) { mCurrMenuInstigator = pI; }
-//	MLMenuButton* getCurrMenuInstigator() { return mCurrMenuInstigator; }
-
+	void setupMenus();
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
 

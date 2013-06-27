@@ -339,10 +339,9 @@ String MLPluginController::getPresetString(int n)
 	int idx = n - 1;
 	if (idx >= 0)
 	{
-		MLMenuMapT::iterator menuIter(mMenuMap.find("preset"));
-		if (menuIter != mMenuMap.end())
+		MLMenu* menu = findMenuByName("preset");
+		if (menu != nullptr)
 		{
-			MLMenuPtr menu = menuIter->second;
 			return String(menu->getItemString(idx).c_str()); 
 		}
 	}
@@ -430,24 +429,43 @@ int MLPluginController::getIndexOfPreset(const std::string& dir, const std::stri
 
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> pC, MLSymbol menuName);
 
+MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)	
+{
+	MLMenu* r = nullptr;
+	MLMenuMapT::iterator menuIter(mMenuMap.find(menuName));		
+	if (menuIter != mMenuMap.end())
+	{
+		MLMenuPtr menuPtr = menuIter->second;
+		r = menuPtr.get();
+	}	
+	return r;
+}
+
+MLMenu* MLPluginController::createMenu(MLSymbol menuName)
+{
+	mMenuMap[menuName] = MLMenuPtr(new MLMenu());
+	return findMenuByName(menuName);
+}
+
 void MLPluginController::setupMenus()
 {
-	mMenuMap["preset"] = MLMenuPtr(new MLMenu("preset"));
-	populatePresetMenu();
-	
-	mMenuMap["key_scale"] = MLMenuPtr(new MLMenu("key_scale"));
-	populateScaleMenu();
-
+	if(createMenu("preset"))
+	{
+		populatePresetMenu();
+	}
+	if(createMenu("key_scale"))
+	{
+		populateScaleMenu();
+	}
 }
 
 void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 {	
 	if(!mpView) return;
 	
-	MLMenuMapT::iterator menuIter(mMenuMap.find(menuName));
-	if (menuIter != mMenuMap.end())
+	MLMenu* menu = findMenuByName(menuName);
+	if (menu != nullptr)
 	{
-		MLMenuPtr menu = menuIter->second;
 		menu->setInstigator(instigatorName);
 
 		// find instigator widget and set value to 1 - this depresses menu buttons for example
@@ -470,24 +488,17 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 		{
 			populateScaleMenu();
 		}
-		
-		if(menu != MLMenuPtr())
+	
+		if(pInstigator != nullptr)
 		{
-			if(pInstigator != nullptr)
+			Component* pInstComp = pInstigator->getComponent();
+			if(pInstComp)
 			{
-				Component* pInstComp = pInstigator->getComponent();
-				if(pInstComp)
-				{
-					PopupMenu& juceMenu = menu->getJuceMenu();
-					juceMenu.showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
-						ModalCallbackFunction::withParam(menuItemChosenCallback, 
-							WeakReference<MLPluginController>(this),
-							menuName
-							)
-						);
-							
-					//	(MLPluginController*)this, constMenuRef));
-				}
+				PopupMenu& juceMenu = menu->getJuceMenu();
+				juceMenu.showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
+					ModalCallbackFunction::withParam(menuItemChosenCallback, 
+						WeakReference<MLPluginController>(this),menuName)
+					);
 			}
 		}
 	}
@@ -595,24 +606,11 @@ void MLPluginController::doScaleMenu(int result)
 	
 	// notify Model of change
 	int menuIdx = result - 1;
-	MLMenuPtr menu = mMenuMap["key_scale"];
-	if (menu != MLMenuPtr())
+	MLMenu* menu = findMenuByName("key_scale");
+	if (menu != nullptr)
 	{
 		mpProcessor->setModelParam("key_scale", menu->getItemString(menuIdx));
 	}
-}
-	
-// TODO use this 
-MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)	
-{
-	MLMenu* r = nullptr;
-	MLMenuMapT::iterator menuIter(mMenuMap.find(menuName));		
-	if (menuIter != mMenuMap.end())
-	{
-		MLMenuPtr menuPtr = menuIter->second;
-		r = menuPtr.get();
-	}	
-	return r;
 }
 	
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, MLSymbol menuName)
@@ -712,7 +710,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 			if(subdir.exists())
 			{
 				Array<File> subdirArray;
-				MLMenuPtr subPop(new MLMenu(category.toUTF8()));
+				MLMenuPtr subPop(new MLMenu());
 				if(doMenus)
 				{
 					subPop->setItemOffset(pMenu->getNumItems());
@@ -743,7 +741,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 				}
 				if(doMenus)
 				{
-					pMenu->addSubMenu(subPop);
+					pMenu->addSubMenu(subPop, category.toUTF8());
 				}
 			}					
 		}
@@ -762,12 +760,13 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 
 void MLPluginController::populatePresetMenu() 
 {
-	MLMenuMapT::iterator menuIter(mMenuMap.find("preset"));
-	if (menuIter == mMenuMap.end())
+	MLMenu* menu = findMenuByName("preset");
+	if (menu == nullptr)
 	{
 		MLError() << "MLPluginController::populatePresetMenu(): menu not found!\n";
+		return;
 	}			
-	MLMenuPtr menu = menuIter->second;
+
 	menu->clear();
 	mMenuPresetFiles.clear();
 	mPresetMenuStartItems = 0;
@@ -830,9 +829,9 @@ void MLPluginController::populatePresetMenu()
 	if (mFileLocationsOK)
 	{
 		menu->addSeparator();		
-		findFilesOneLevelDeep(mUserPresetsFolder, presetFileType, mMenuPresetFiles, &(*menu));
+		findFilesOneLevelDeep(mUserPresetsFolder, presetFileType, mMenuPresetFiles, menu);
 		menu->addSeparator(); 				
-		findFilesOneLevelDeep(mFactoryPresetsFolder, presetFileType, mMenuPresetFiles, &(*menu));	
+		findFilesOneLevelDeep(mFactoryPresetsFolder, presetFileType, mMenuPresetFiles, menu);	
 			
 //		debug() << "MLPluginController: " << mMenuPresetFiles.size() << " preset files.\n";
 		
@@ -861,17 +860,17 @@ void MLPluginController::populatePresetMenu()
 void MLPluginController::populateScaleMenu()
 {
 	String scaleName, scaleDir;
-	MLMenuMapT::iterator menuIter(mMenuMap.find("key_scale"));
-	if (menuIter == mMenuMap.end())
+	MLMenu* menu = findMenuByName("key_scale");
+	if (menu == nullptr)
 	{
 		MLError() << "MLPluginController::populateScaleMenu(): menu not found!\n";
+		return;
 	}			
-	MLMenuPtr menu = menuIter->second;
 	menu->clear();
 	menu->addItem("12-equal");
 	if(mFileLocationsOK) 
 	{
-		findFilesOneLevelDeep(mScalesFolder, ".scl", mScaleMenuFiles, &(*menu));
+		findFilesOneLevelDeep(mScalesFolder, ".scl", mScaleMenuFiles, menu);
 	}
 }
 
