@@ -29,8 +29,8 @@ public:
 	// what to repaint next time around.  When there is nothing to repaint, set (0, 0, 1, 1)
 	// so that the component gets a chance to update itself.
 	void setRepaintRect(const MLRect& r);
-	const MLRect& getRepaintRect() const;
 	
+	const MLRect& getRepaintRect() const;	
 	MLSymbol getSignalName() { return mSignalName; }	
 
 protected:
@@ -42,8 +42,7 @@ protected:
 	MLSymbol mAttr;
 	MLSignal mViewBuffer; 
 	MLSignal mViewBuffer2; 
-	unsigned mSize;
-
+	int mSize;
 };
 
 

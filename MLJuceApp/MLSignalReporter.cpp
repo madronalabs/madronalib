@@ -43,7 +43,7 @@ void MLSignalReporter::viewSignals()
 		// the constant signal flags.  Right now the individual samples are
 		// checked in doViewSignal().
 		bool changed = true;
-		
+
 		if(changed)
 		{
 			MLSignalViewList viewList = it->second;
@@ -59,7 +59,6 @@ void MLSignalReporter::viewSignals()
 			}
 		}
 	}
-		
 //	debug() << "MLSignalReporter::viewSignals() : " << changedSignals << " signals changed / viewed.\n";
 }
 

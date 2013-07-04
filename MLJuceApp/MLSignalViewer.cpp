@@ -5,7 +5,6 @@
 
 #include "MLSignalViewer.h"
 
-
 const char* MLSignalViewer::kViewProcName = "signal_viewer_proc";
 
 MLSignalViewer::MLSignalViewer(MLWidget* w, MLSymbol attr, int size) :
@@ -38,13 +37,13 @@ void MLSignalViewer::doViewSignal()
 	if (!mpEngine) return;
 	
 	// copy previous buffer
-	mViewBuffer2 = mViewBuffer;
-	
+	mViewBuffer2 = mViewBuffer;	
 	int samples = mpEngine->readPublishedSignal(mSignalName, mViewBuffer);	
-	
+
+	// if identical to previous signal, bail.
 	if (mViewBuffer == mViewBuffer2) return;
 			
-	if ((samples > 0) && (samples <= mViewBuffer.getSize()) )
+	if ((samples > 0) && (samples <= mSize))
 	{
 		mpWidget->viewSignal(mAttr, mViewBuffer, samples);
 	}
