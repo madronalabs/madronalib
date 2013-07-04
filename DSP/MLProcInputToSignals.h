@@ -77,21 +77,21 @@ public:
 extern const int kNumVoiceSignals;
 extern const char * voiceSignalNames[];
 
+const int kMLMaxEvents = 1 << 4;
+const int kMLEventMask = kMLMaxEvents - 1;
+const int kNoteBufElements = 512;
+
 class MLProcInputToSignals : public MLProc
 {
 public:
 
-	static const int kMLMaxEvents = 1 << 4;
-	static const int kMLEventMask = kMLMaxEvents - 1;
-	static const int kNoteBufElements = 512;
+	static const float kControllerScale;
+	static const float kDriftConstantsAmount;
+	static const float kDriftRandomAmount;
 
-	static const float kControllerScale = 1.f/127.f;
-	static const float kDriftConstantsAmount = 0.004f;
-	static const float kDriftRandomAmount = 0.002f;
-
-	static const int kFrameWidth = 4;
-	static const int kFrameHeight = 16;
-	static const int kFrameBufferSize = 128;
+	static const int kFrameWidth;
+	static const int kFrameHeight;
+	static const int kFrameBufferSize;
 
 	 MLProcInputToSignals();
 	~MLProcInputToSignals();

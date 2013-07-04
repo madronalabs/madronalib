@@ -13,7 +13,6 @@ const float kDriftConstants[16] =
 	0.196f, 0.591f, 0.961f, 0.442f
 };
 
-
 const int kNumVoiceSignals = 9;
 const char * voiceSignalNames[kNumVoiceSignals] = 
 {
@@ -27,6 +26,14 @@ const char * voiceSignalNames[kNumVoiceSignals] =
 	"modc",
 	"position"
 };
+
+const float MLProcInputToSignals::kControllerScale = 1.f/127.f;
+const float MLProcInputToSignals::kDriftConstantsAmount = 0.004f;
+const float MLProcInputToSignals::kDriftRandomAmount = 0.002f;
+
+const int MLProcInputToSignals::kFrameWidth = 4;
+const int MLProcInputToSignals::kFrameHeight = 16;
+const int MLProcInputToSignals::kFrameBufferSize = 128;
 
 // ----------------------------------------------------------------
 //
