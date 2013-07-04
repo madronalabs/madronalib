@@ -32,7 +32,7 @@ void MLParamView::view(const MLModelParam& p) const
 			mpWidget->setStringAttribute(mAttr, p.getStringValue());		
 			break;
 		case MLModelParam::kSignalParam:
-			// unused
+			mpWidget->setSignalAttribute(mAttr, p.getSignalValue());		
 			break;
 	}
 }
@@ -61,7 +61,7 @@ void MLReporter::addParamViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 	mParamViewsMap[p].push_back(MLParamViewPtr(new MLParamView(w, attr))); 
 }
 
-void MLReporter::doParamChangeAction(MLSymbol param, const MLModelParam& , const MLModelParam& newVal)
+void MLReporter::doParamChangeAction(MLSymbol param, const MLModelParam& oldVal, const MLModelParam& newVal)
 {
 	// debug() << "MLReporter::doParamChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
 	// do we have viewers for this parameter?

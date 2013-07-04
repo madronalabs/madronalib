@@ -99,7 +99,9 @@ void MLProcRingBuffer::process(const int frames)
 	}
 }
 
-
+// read a ring buffer into a destination signal.
+// The skip and offset arguments can be used to read every nth sample into the signal,
+// starting from the given offset.   
 unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int skip, int offset) 
 {
 	int lastRead = 0;

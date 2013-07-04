@@ -33,7 +33,6 @@
 #include "cJSON.h"
 
 static const char *ep;
-
 const char *cJSON_GetErrorPtr() {return ep;}
 
 static int cJSON_strcasecmp(const char *s1,const char *s2)

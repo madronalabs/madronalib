@@ -97,7 +97,7 @@ public:
 
 	// --------------------------------------------------------------------------------
 	// state
-	void getStateAsXML (XmlElement& xml);
+	virtual void getStateAsXML (XmlElement& xml);
 	virtual void setStateFromXML(const XmlElement& xmlState);
 	int saveStateAsVersion(const File& f);
 	int saveStateOverPrevious(const File& f);

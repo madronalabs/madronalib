@@ -17,6 +17,7 @@ class MLMenu
 {
 public:
 	MLMenu();
+	MLMenu(const MLSymbol name);
 	~MLMenu();
 	
 	void clear();
@@ -26,6 +27,7 @@ public:
 	void addSubMenu(MLMenuPtr m, const char* name, bool enabled = true);
 	void setItemOffset(int f) { mItemOffset = f; }
 	void addSeparator();	
+	MLSymbol getName() { return mName; }
 	int getNumItems() const { return mNumItems; }
 	const std::string& getItemString(int idx);
 	PopupMenu& getJuceMenu();	
@@ -37,7 +39,7 @@ protected:
 	const std::vector<std::string>& getItemVector() { return mItems; }
 
 private:	
-
+	MLSymbol mName;
 	MLSymbol mInstigatorName; // name of Widget that triggered us
 	PopupMenu mJuceMenu;		
 	int mItemOffset; // offset for returned item values, useful for submenus

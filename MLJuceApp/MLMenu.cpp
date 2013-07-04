@@ -9,7 +9,15 @@ static const std::string kNullStr("<null>");
 
 MLMenu::MLMenu() :
 	mNumItems(0),
-	mItemOffset(0)
+	mItemOffset(0),
+	mName("")
+{
+}
+
+MLMenu::MLMenu(const MLSymbol name) :
+	mNumItems(0),
+	mItemOffset(0),
+	mName(name)
 {
 }
 

@@ -98,7 +98,6 @@ void MLModel::addParamListener(MLModelListener* pL)
 	mpListeners.push_back(pL); 
 }
 
-
 void MLModel::removeParamListener(MLModelListener* pToRemove) 
 { 
 	std::list<MLModelListener*>::iterator it;

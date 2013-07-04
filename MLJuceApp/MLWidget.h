@@ -31,8 +31,10 @@ public:
 	// i think so.  Therefore there are no getters here.
 	virtual void setAttribute(MLSymbol attr, float val);
 	virtual void setStringAttribute(MLSymbol attr, const std::string& val);
+	virtual void setSignalAttribute(MLSymbol attr, const MLSignal& val);
 
-	// signal viewer, not required
+	// A signal viewer, not required. This is called repeatedly to view 
+	// a dynamic Signal, as opposed to a signal Parameter.
 	virtual void viewSignal(MLSymbol, const MLSignal&, int) {}
 
 	// in order to function, a widget's Component must get set!
@@ -99,6 +101,7 @@ private:
 	
 	std::map<MLSymbol, float> mAttributes;
 	std::map<MLSymbol, std::string> mStringAttributes;
+	std::map<MLSymbol, MLSignal> mSignalAttributes;
 	
 };
 

@@ -32,6 +32,11 @@ void MLWidget::setStringAttribute(MLSymbol attr, const std::string& val)
 	mStringAttributes[attr] = val;
 }
 
+void MLWidget::setSignalAttribute(MLSymbol attr, const MLSignal& val)
+{
+	mSignalAttributes[attr] = val;
+}
+
 // --------------------------------------------------------------------------------
 // protected getters, to be used only by subclasses.
 

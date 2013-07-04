@@ -32,9 +32,8 @@ typedef std::map<MLSymbol, MLParamViewList> MLParamViewListMap;
 // --------------------------------------------------------------------------------
 #pragma mark MLReporter 
 
-// Reporter watches a Model and reports its state. It doesn't know about Views, only Widgets.
-// It reports values of parameters, using a map to a list of Widgets for each. 
-// likewise, it can send Signals to signal display widgets. 
+// Reporter listens to a Model and reports its changing Parameters by setting 
+// Attributes of Widgets. Parameters may contain float, string or signal values.
 //
 class MLReporter :
 	public MLModelListener

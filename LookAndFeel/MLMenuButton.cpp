@@ -18,6 +18,7 @@ MLMenuButton::~MLMenuButton()
 {
 }
 
+// The value attribute sets the up/down state of a MenuButton.
 void MLMenuButton::setAttribute(MLSymbol attr, float val)
 {
 	MLWidget::setAttribute(attr, val);

@@ -694,7 +694,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 	bool doMenus = (pMenu != nullptr);
 	Array<File> startDirArray;
 	const int level0FilesToFind = File::findFilesAndDirectories | File::ignoreHiddenFiles;
-	const int level1FilesToFind = File::findFiles | File::ignoreHiddenFiles;
+	const int level1FilesToFind = File::findFiles;
 	int userFiles = startDir.findChildFiles(startDirArray, level0FilesToFind, false);
 	int midiPgmCount = 0; 
 	for(int i=0; i<userFiles; ++i)
@@ -705,6 +705,8 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 			// only recurse one level deep.
 			String category = f.getFileNameWithoutExtension();
 			File subdir = startDir.getChildFile(category);
+			
+			// note: this will find MIDI Programs in either User or Factory directories!
 			bool doMIDI = (category == "MIDI Programs"); 
 			
 			if(subdir.exists())
@@ -852,7 +854,7 @@ void MLPluginController::populatePresetMenu()
 	}
 	// sync current preset index to new list
 	MLPluginProcessor* const pProc = getProcessor();
-	mCurrentPresetIndex = getIndexOfPreset(pProc->getModelStringParam("preset_dir"), pProc->getModelStringParam("preset_name"));
+	mCurrentPresetIndex = getIndexOfPreset(pProc->getModelStringParam("preset_dir"), pProc->getModelStringParam("preset"));
 }
 
 // create a menu of the factory scale presets.

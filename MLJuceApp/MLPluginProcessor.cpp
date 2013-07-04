@@ -682,7 +682,7 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 {
 	int version = 0;
-	std::string nameStr = getModelStringParam("preset_name");
+	std::string nameStr = getModelStringParam("preset");
 	std::string noVersionStr;
 	std::string versionStr;
 	int numberStart = 0;
@@ -738,7 +738,7 @@ int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 
 int MLPluginProcessor::saveStateOverPrevious(const File& destDir)
 {
-	std::string nameStr = getModelStringParam("preset_name");	
+	std::string nameStr = getModelStringParam("preset");	
 	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
 	saveStateToFile(saveFile, mWrapperFormat);
 	return 0;
@@ -1129,13 +1129,13 @@ void MLPluginProcessor::scanMIDIPrograms()
 	File startDir = getDefaultFileLocation(kUserPresetFiles);
 	if (!startDir.isDirectory()) return;	
 	File subDir = startDir.getChildFile("MIDI Programs");
-	if (!startDir.isDirectory()) 
+	if (!subDir.isDirectory()) 
 	{
 		debug() << "WARNING: MIDI Programs directory not found.\n";
 		return;	
 	}
 	Array<File> subdirArray;
-	const int level1FilesToFind = File::findFiles | File::ignoreHiddenFiles;
+	const int level1FilesToFind = File::findFiles;
 	int filesInCategory = subDir.findChildFiles(subdirArray, level1FilesToFind, false);
 	int midiPgmCount = 0;
 	for(int j=0; j<filesInCategory; ++j)
@@ -1187,7 +1187,7 @@ const String& MLPluginProcessor::getCurrentPresetDir()
 void MLPluginProcessor::setCurrentPresetName(const char* name)
 {
 	mCurrentPresetName = name;	
-	setModelParam("preset_name", name);	
+	setModelParam("preset", name);	
 }
 
 void MLPluginProcessor::setCurrentPresetDir(const char* name)

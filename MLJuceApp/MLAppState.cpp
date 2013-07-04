@@ -31,7 +31,7 @@ void MLAppState::timerCallback()
 // MLModelListener implementation
 // an updateChangedParams() is needed to get these actions sent by the Model.
 //
-void MLAppState::doParamChangeAction(MLSymbol param, const MLModelParam & oldVal, const MLModelParam & newVal)
+void MLAppState::doParamChangeAction(MLSymbol , const MLModelParam & , const MLModelParam & )
 {
 	// debug() << "MLAppState::doParamChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
 }
@@ -180,15 +180,15 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 					MLSignal* pSig;
 					int width = cJSON_GetObjectItem(pNode, "width")->valueint;
 					int height = cJSON_GetObjectItem(pNode, "height")->valueint;
-					int depth = cJSON_GetObjectItem(pNode, "depth")->valueint;
-					pSig = new MLSignal(width, height, depth);
+					int sigDepth = cJSON_GetObjectItem(pNode, "depth")->valueint;
+					pSig = new MLSignal(width, height, sigDepth);
 					if(pSig)
 					{
 						// read data into signal and set model param
 						float* pSigData = pSig->getBuffer();
 						int widthBits = bitsToContain(width);
 						int heightBits = bitsToContain(height);
-						int depthBits = bitsToContain(depth);
+						int depthBits = bitsToContain(sigDepth);
 						int size = 1 << widthBits << heightBits << depthBits;
 						cJSON* pData = cJSON_GetObjectItem(pNode, "data");
 						int dataSize = cJSON_GetArraySize(pData);
@@ -264,7 +264,7 @@ const std::string& MLAppState::getStateAsText()
 }
 */
 
-void MLAppState::setStateFromText(const std::string& stateAsText)
+void MLAppState::setStateFromText(const std::string& )
 {
 
 }

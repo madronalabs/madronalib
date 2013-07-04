@@ -1486,11 +1486,6 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	outSig.clear();
 	outSig.setConstant(false);
 	
-	if (alias == MLSymbol("osc_pitch_out"))
-	{
-//		debug() << "osc...\n";
-	}
-	
 	// look up signal container
 	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
 	if (it != mPublishedSignalMap.end()) 
@@ -1508,6 +1503,8 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 		
 //debug() << "readPublishedSignal: " << alias << ": " << nVoices << "\n";
 
+		// read from ring buffer into the destination signal.
+		// if more than one voice is found, interleave signals into the destination.
 		// need to iterate here again so we can pass nVoices to readToSignal().
 		if (nVoices > 0)
 		{
@@ -1529,10 +1526,12 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 			}
 		}
 	}
+#ifdef ML_DEBUG	
 	else
 	{
 		debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found in container " << getName() << "!\n";
 	}
+#endif	
 	return samplesRead;
 }
 
