@@ -42,15 +42,16 @@ void MLSignalViewer::doViewSignal()
 
 	// if identical to previous signal, bail.
 	if (mViewBuffer == mViewBuffer2) return;
-			
+	
 	if ((samples > 0) && (samples <= mSize))
 	{
 		mpWidget->viewSignal(mAttr, mViewBuffer, samples);
 	}
 	else
 	{
-		// TODO revisit: is this a problem?
-//		debug() << "doViewSignal() bad read of signal 	" << mSignalName << "!\n";
+		// Bad reads may happen while changing the number of voices, or any time ring
+		// buffers are empty. 
+		// debug() << "doViewSignal() bad read of signal 	" << mSignalName << "!\n";
 	}
 }
 

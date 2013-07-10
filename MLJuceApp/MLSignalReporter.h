@@ -6,15 +6,12 @@
 #ifndef __ML_SIGNAL_REPORTER_H
 #define __ML_SIGNAL_REPORTER_H
 
-//#include "JuceHeader.h"
-
-//#include "MLModel.h"
-//#include "MLWidget.h"
-//#include <map>
+// MLSignalReporter is a mixin class used by objects like MLPluginController
+// that display one or more published signals from the DSP engine. 
+// 
 
 #include "MLPluginProcessor.h"
 #include "MLSignalViewer.h"
-
 
 // --------------------------------------------------------------------------------
 #pragma mark signal viewing 
@@ -32,7 +29,10 @@ public:
 	MLSignalReporter(MLPluginProcessor* p);
     ~MLSignalReporter();
 	
+	// add a signal view entry to the map and connect it to a new signal viewer.
 	void addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size);
+	
+	// view all of the signals in the map.
 	void viewSignals();
 
 protected:
@@ -40,7 +40,5 @@ protected:
 	MLSignalViewListMap mSignalViewsMap;
 	
 };
-
-
 
 #endif // __ML_SIGNAL_REPORTER_H

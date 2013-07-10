@@ -590,8 +590,6 @@ void packUsingFirstFitAlgorithm(compileSignal* pSig, std::list<sharedBuffer>& bu
 	}
 }
 
-
-
 // recurse on containers, preparing each proc.
 MLProc::err MLProcContainer::prepareToProcess()
 {

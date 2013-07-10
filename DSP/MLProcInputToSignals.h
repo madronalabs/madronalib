@@ -89,9 +89,9 @@ public:
 	static const float kDriftConstantsAmount;
 	static const float kDriftRandomAmount;
 
-	static const int kFrameWidth;
-	static const int kFrameHeight;
-	static const int kFrameBufferSize;
+	static const int kFrameWidth = 4;
+	static const int kFrameHeight = 16;
+	static const int kFrameBufferSize = 128;
 
 	 MLProcInputToSignals();
 	~MLProcInputToSignals();
