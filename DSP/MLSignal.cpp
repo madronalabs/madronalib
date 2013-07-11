@@ -151,6 +151,7 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 	mHeightBits = bitsToContain(mHeight);
 	mDepthBits = bitsToContain(mDepth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
+	mConstantMask = mSize - 1;
 }
 
 MLSignal::~MLSignal() 
@@ -177,6 +178,7 @@ MLSample* MLSignal::setDims (int width, int height, int depth)
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
 	mData = allocateData(mSize);	
 	mDataAligned = initializeData(mData, mSize);	
+	mConstantMask = mSize - 1;
 	return mDataAligned;
 }
 

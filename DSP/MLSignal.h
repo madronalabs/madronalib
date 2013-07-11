@@ -77,7 +77,7 @@ public:
 		return mDataAligned;
 	}
 	
-	//
+	// --------------------------------------------------------------------------------
 	// 1-D access methods 
 	//
 
@@ -97,7 +97,9 @@ public:
 		return mDataAligned[i];
 	}
 
-	// float inspector, return by value 
+	// return linear interpolated value. for power-of-two size tables, this
+	// will interpolate around the loop.
+	// TODO SSE - get interpolated vector.
 	inline MLSample getInterpolated(float f) const 
 	{
 		int i = (int)f;
@@ -113,9 +115,16 @@ public:
 	
 	inline void setConstant(bool k)
 	{
-		// 1 -> 0
-		// 0 -> 0xFFFF
-		mConstantMask = ((unsigned long)k - 1);
+		if(k)
+		{
+			// if this is a constant signal, mConstantMask gets 0.
+			mConstantMask = 0;
+		}
+		else
+		{
+			// if this not is a constant signal, mConstantMask gets the mask for the power-of-two size.
+			mConstantMask = mSize - 1;
+		}
 	}
 	
 	inline bool isConstant(void) const
@@ -123,6 +132,7 @@ public:
 		return(mConstantMask == 0);
 	}
 	
+	// --------------------------------------------------------------------------------
 	// 2D access methods
 	//
 	// mutator, return reference to sample
@@ -143,6 +153,7 @@ public:
 	const MLSample operator() (const float i, const float j) const;
 	const MLSample operator() (const Vec2& pos) const;
 	
+	// --------------------------------------------------------------------------------
 	// 3D access methods
 	//
 	// mutator, return sample reference
@@ -295,10 +306,10 @@ private:
 	// mask for array lookups. By setting to zero, the signal becomes a constant.
 	unsigned long mConstantMask;	
 	
-	// total size in samples, stored for fast access by clear() etc.
+	// total power-of-two size in samples, stored for fast access by clear() etc.
 	int mSize; 
 	
-	// store requested size of each dimension. For 1D signals, height is 1.
+	// store requested size of each dimension. For 1D signals, height is 1, etc.
 	int mWidth, mHeight, mDepth; 
 	
 	// store log2 of actual size of each dimension.

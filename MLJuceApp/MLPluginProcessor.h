@@ -69,6 +69,7 @@ public:
 	int getParameterIndex (const MLSymbol name);
 	float getParameter (int index);
     void setParameter (int index, float newValue);
+	void setParameter (MLSymbol paramName, float newValue);
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
 	void MLSetParameterNotifyingHost (const int parameterIndex, const float newValue);

@@ -384,7 +384,7 @@ float MLPluginProcessor::getParameter (int index)
 	return mEngine.getParamByIndex(index);
 }
 
-// called by the host wrapper.
+// set parameter by index. Typically called by the host wrapper.
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
@@ -395,6 +395,20 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 	
 	// set MLModel Parameter 
 	MLSymbol paramName = getParameterAlias(index);
+	setModelParam(paramName, newValue);
+}
+
+// set parameter by name. Typically called from internal code. 
+//
+void MLPluginProcessor::setParameter (MLSymbol paramName, float newValue)
+{
+	int index = getParameterIndex(paramName);
+	if (index < 0) return;	
+
+	mEngine.setPublishedParam(index, newValue);	
+	mHasParametersSet = true;
+	
+	// set MLModel Parameter 
 	setModelParam(paramName, newValue);
 }
 
