@@ -161,9 +161,13 @@ public:
 	void setMLListener (MLAudioProcessorListener* const newListener) throw();
     MLProc::err sendMessageToMLListener (unsigned msg, const File& f);
 
+	// --------------------------------------------------------------------------------
+	// scales
+	
 	void loadScale(const File& f);
 	void loadDefaultScale();
 	void setScalesFolder(const File f);
+	virtual void broadcastScale(const MLScale* pScale) = 0;
 	
 	MLDSPEngine* getEngine() { return &mEngine; }
 	

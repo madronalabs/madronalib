@@ -206,11 +206,9 @@ public:
 	}
 };
 
-
-
 // an MLProc processes signals.  It contains Signals to receive its output.  
 // If the block size is small enough, the buffers in these Signals are 
-// internal to the MLProc object, presumably on the stack.  
+// internal to the MLProc object.  
 //
 // All inputs and outputs to an MLProc must have the same sampling rate
 // and buffer size.  The one exception is MLProcResample, which is only

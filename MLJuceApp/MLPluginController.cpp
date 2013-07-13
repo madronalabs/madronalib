@@ -615,7 +615,7 @@ void MLPluginController::doScaleMenu(int result)
 	
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, MLSymbol menuName)
 {
-	debug() << "menuItemChosenCallback: result " << result << "\n";
+	//debug() << "menuItemChosenCallback: result " << result << "\n";
 
 	MLPluginController* pC = wpC;
 	
@@ -628,7 +628,7 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 	
 	if(pC != nullptr)
 	{	
-		debug() << "    MLPluginController:" << std::hex << (void *)pC << std::dec << "\n";
+		//debug() << "    MLPluginController:" << std::hex << (void *)pC << std::dec << "\n";
 
 		// get menu by name from Controller’s menu map		
 		const MLMenu* pMenu = pC->findMenuByName(menuName);
@@ -640,17 +640,17 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 		{		
 			MLWidgetContainer* pView = pC->getView();
 			
-			debug() << "    pView:" << std::hex << (void *)pView << std::dec << "\n";
+			//debug() << "    pView:" << std::hex << (void *)pView << std::dec << "\n";
 			if(pView != nullptr)
 			{	
-				debug() << "        pView widget name:" << pView->getWidgetName() << "\n";
+				//debug() << "        pView widget name:" << pView->getWidgetName() << "\n";
 				
 				MLWidget* pInstigator = pView->getWidget(pMenu->getInstigator());
 				
-				debug() << "    pInstigator:" << std::hex << (void *)pInstigator << std::dec << "\n";
+				//debug() << "    pInstigator:" << std::hex << (void *)pInstigator << std::dec << "\n";
 				if(pInstigator != nullptr)
 				{
-					debug() << "        name:" << pInstigator->getWidgetName() << "\n";
+					//debug() << "        name:" << pInstigator->getWidgetName() << "\n";
 					// turn instigator Widget off
 					pInstigator->setAttribute("value", 0);
 				}

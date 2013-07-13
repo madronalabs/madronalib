@@ -1307,7 +1307,6 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 
 //	const ScopedLock sl (MLlistenerLock);
 
-
 	switch(msg)
 	{
 		case MLAudioProcessorListener::kLoad:
@@ -1415,13 +1414,13 @@ void MLPluginProcessor::loadScale(const File& f)
 	
 	if (ratios > 0)
 	{
-		pScale->recalcRatios();
-		
 		// TODO load .kbm mapping file if one exists
 		pScale->setDefaultMapping();
+		pScale->recalcRatios();		
 	}
+	
+	broadcastScale(pScale);
 }
-
 
 void MLPluginProcessor::loadDefaultScale()
 {
@@ -1431,12 +1430,14 @@ void MLPluginProcessor::loadDefaultScale()
 	setModelParam("key_scale", "12-equal");
 	
 	// TODO these special variables will go away, use the string attributes instead.
-	// wait and move XML presistence to stdlib-based code at the same time.
+	// wait and move XML persistence to std::string-based code at the same time.
 	mCurrentScaleName = "12-equal";
 	mCurrentScaleDir = "";
 	
 	pScale->setDefaultScale();
 	pScale->setDefaultMapping();
+	pScale->recalcRatios();		
+	broadcastScale(pScale);
 } 
 
 

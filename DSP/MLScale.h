@@ -22,9 +22,6 @@ public:
 	~MLScale();
 
 	void operator= (const MLScale& b);
-	
-//	void loadScaleFromFile(File& f); // TODO use POSIX
-
 	void setDefaultScale();
 	void clear();
 	
@@ -43,14 +40,16 @@ public:
 	// if the scale has been changed since its last use, recalculate.
 	float noteToPitch(float note);
 	float noteToPitch(int note);
+
+	float quantizePitch(float a);
 	
 //	double noteToFrequency(unsigned note);  // requires tonic, maybe implement with .kbm mappings
 
 	void setName(const char* nameStr);
 	void setDescription(const char* descStr);
-
+	void dump();
+	
 private:
-	bool mNeedsRecalc;
 	
 	std::string mName;
 	std::string mDescription;
@@ -64,6 +63,9 @@ private:
 	
 	// all possible pitches stored as exponents e where tonic * 2^e = frequency.
 	float mRatios[kMLNumRatios];	
+	
+	// pitches stored in linear octave space. pitch = log2(ratio).
+	float mPitches[kMLNumRatios];	
 	
 	// mappings from note number to pitch number.
 	unsigned mNotes[kMLNumScaleNotes];

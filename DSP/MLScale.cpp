@@ -19,9 +19,13 @@ MLScale::~MLScale()
 
 void MLScale::operator= (const MLScale& b)
 {
+	mName = b.mName;
+	mDescription = b.mDescription;
+	mRatioList = b.mRatioList;
 	for(int p=0; p<kMLNumRatios; ++p)
 	{
 		mRatios[p] = b.mRatios[p];
+		mPitches[p] = b.mPitches[p];
 	}
 	for(int n=0; n<kMLNumScaleNotes; ++n)
 	{
@@ -32,7 +36,8 @@ void MLScale::operator= (const MLScale& b)
 void MLScale::setDefaultScale()
 {
 	clear();
-
+	setName("12-equal");
+	setDescription("The chromatic equal-tempered scale.");
 	// make 12-ET scale	
 	for(unsigned i=1; i<=12; ++i)
 	{
@@ -46,22 +51,16 @@ void MLScale::clear()
 	addRatio(0.0);
 }
 
-
 void MLScale::addRatio(unsigned n, unsigned d)
 {
 	double ratio = ((double)n / (double)d);
 	mRatioList.push_back(ratio);
-//debug() << "adding " << n << "/" << d << "\n";
-	mNeedsRecalc = true;
 }
-
 
 void MLScale::addRatio(double cents)
 {
 	double ratio = pow(2., cents / 1200.);
 	mRatioList.push_back(ratio);
-//debug() << "adding " << ratio << "\n";
-	mNeedsRecalc = true;
 }
 
 void MLScale::recalcRatios()
@@ -84,11 +83,8 @@ void MLScale::recalcRatios()
 		}
 		double octaveStartRatio = pow(octaveRatio, (double)octave);		
 		mRatios[i] = (float)octaveStartRatio*mRatioList[noteInOctave];
-		
-//debug() << " note " << i << ", octave " << octave << ", noteInOctave " << noteInOctave << ", ratio " << mRatios[i] << "\n";
+		mPitches[i] = log2(mRatios[i]);
 	}
-
-	mNeedsRecalc = false;
 }
 
 // set up a default scale mapping.  we choose to make octaves on the keyboard wrap to octaves
@@ -137,41 +133,37 @@ void MLScale::setDefaultMapping()
 
 float MLScale::noteToPitch(float note)
 {
-	if (mNeedsRecalc)
-	{
-		recalcRatios(); 
-	}
-
 	float fn = clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));
 	int i = fn;
 	float intPart = i;
 	float fracPart = fn - intPart;
 	float a = mRatios[mNotes[i]];
 	float b = mRatios[mNotes[i + 1]];
-	
-	// 
 	return lerp(a, b, fracPart);
 }
 
 float MLScale::noteToPitch(int note)
 {
-	if (mNeedsRecalc)
-	{
-		recalcRatios(); 
-	}
-	
-	// debug() << "MIDI note " << note << " map note " << mNotes[note] << " ratio " << mRatios[mNotes[note]] << "\n";
-	
 	int n = clamp(note, 0, kMLNumScaleNotes - 1);
 	return mRatios[mNotes[n]];
 }
 
-/*
-double MLScale::noteToFrequency(unsigned note)
+// quantize an incoming pitch in linear octave space. 
+//
+float MLScale::quantizePitch(float a)
 {
-
+	float r = 1.0f;
+	for (int i = kMLNumRatios - 1; i > 0; i--)
+	{
+		float p = mPitches[i];
+		if(p <= a) 
+		{
+			r = p;
+			break;
+		}
+	}
+	return r;
 }
-*/
 
 void MLScale::setName(const char* nameStr)
 {
@@ -181,5 +173,15 @@ void MLScale::setName(const char* nameStr)
 void MLScale::setDescription(const char* descStr)
 {
 	mDescription = descStr;
+}
+
+void MLScale::dump()
+{
+	debug() << "scale " << mName << ":\n";
+	int n = mRatioList.size();
+	for(int i = 0; i<n; ++i)
+	{
+		debug() << "    " << i << " : " << mRatioList[i] << "\n";
+	}
 }
 

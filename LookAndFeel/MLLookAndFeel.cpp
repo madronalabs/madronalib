@@ -40,7 +40,7 @@ MLLookAndFeel::MLLookAndFeel()
     setColour(labelColor, Colour::fromHSV(0.5f, 0.5f, 0.0f, 1.f));
 	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.25f, 1.f));
 	setColour(outlineColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f)); 
-	setColour(shadowColor, Colour::fromHSV(0.5f, 0.f, 0.1f, 1.f));
+	setColour(shadowColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
 	//
 	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.70f, 1.f));
 	setColour(radioOffColor, Colour(0xffc0c0bc));
