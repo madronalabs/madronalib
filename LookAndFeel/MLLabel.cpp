@@ -20,11 +20,8 @@ MLLabel::MLLabel (const char* labelText) :
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	
-	// label is always opaque so we can get the best possible
-	// text rendering
-	setOpaque(true);
-	
+		
+	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
     setRepaintsOnMouseActivity (false);

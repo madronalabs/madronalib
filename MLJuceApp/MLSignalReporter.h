@@ -8,17 +8,14 @@
 
 // MLSignalReporter is a mixin class used by objects like MLPluginController
 // that display one or more published signals from the DSP engine. 
-// 
 
 #include "MLPluginProcessor.h"
-#include "MLSignalViewer.h"
+#include "MLSignalView.h"
 
-// --------------------------------------------------------------------------------
-#pragma mark signal viewing 
-
-typedef std::tr1::shared_ptr<MLSignalViewer> MLSignalViewPtr;
+typedef std::tr1::shared_ptr<MLSignalView> MLSignalViewPtr;
 typedef std::list<MLSignalViewPtr> MLSignalViewList;
 typedef std::map<MLSymbol, MLSignalViewList> MLSignalViewListMap;
+typedef std::map<MLSymbol, MLSignalPtr> MLSignalMap;
 
 // --------------------------------------------------------------------------------
 #pragma mark MLSignalReporter 
@@ -37,6 +34,8 @@ public:
 
 protected:
 	MLPluginProcessor* mpProcessor;
+	MLSignalMap mSignalBuffers;
+	MLSignalMap mSignalBuffers2;
 	MLSignalViewListMap mSignalViewsMap;
 	
 };

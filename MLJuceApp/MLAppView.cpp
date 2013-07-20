@@ -66,7 +66,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(dial, displayName);
+		addLabelAbove(dial, displayName);		
 	}
 	return dial;
 }

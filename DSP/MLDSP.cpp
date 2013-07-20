@@ -119,9 +119,7 @@ void MLRandReset(void)
 	gMLRandomSeed = 0;
 }
 
-
 const MLRange UnityRange = MLRange(0.f, 1.f);
-
 
 
 float ampTodB(float a)

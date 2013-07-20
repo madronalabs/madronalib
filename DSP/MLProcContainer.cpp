@@ -1422,10 +1422,8 @@ MLSymbol MLProcContainer::getOutputName(int index)
 	return MLSymbol();
 }
 
-
 // ----------------------------------------------------------------
 #pragma mark published signals
-
 
 void MLProcContainer::publishSignal(const MLPath & procAddress, const MLSymbol outputName, const MLSymbol alias, 
 	int trigMode, int bufLength)
@@ -1443,8 +1441,6 @@ void MLProcContainer::publishSignal(const MLPath & procAddress, const MLSymbol o
 	}	
 }
 
-
-//
 // return the number of currently enabled buffers in the signal list.
 // 
 int MLProcContainer::countPublishedSignals(const MLSymbol alias)
@@ -1470,16 +1466,14 @@ int MLProcContainer::countPublishedSignals(const MLSymbol alias)
 	return nVoices;
 }
 
-
-		
-//
 // read samples from a published signal list into outSig.  
 // return the number of samples read.
 // 
 int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 {
 	int nVoices = 0;
-	int samplesRead = 0;
+	int r;
+	int minSamplesRead = 2<<16;
 	int samples = outSig.getSize();
 	outSig.clear();
 	outSig.setConstant(false);
@@ -1489,7 +1483,8 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	if (it != mPublishedSignalMap.end()) 
 	{
 		const MLProcList& bufList = it->second;
-		// count enabled procs in buffer list
+		
+		// iterate buffer list and count enabled ring buffers.
 		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
 		{
 			MLProcPtr proc = (*jt);
@@ -1501,7 +1496,7 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 		
 //debug() << "readPublishedSignal: " << alias << ": " << nVoices << "\n";
 
-		// read from ring buffer into the destination signal.
+		// read from enabled ring buffers into the destination signal.
 		// if more than one voice is found, interleave signals into the destination.
 		// need to iterate here again so we can pass nVoices to readToSignal().
 		if (nVoices > 0)
@@ -1513,7 +1508,8 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 				if (proc && proc->isEnabled())
 				{
 					MLProcRingBuffer& bufferProc = static_cast<MLProcRingBuffer&>(*proc);	
-					samplesRead = bufferProc.readToSignal(outSig, samples, nVoices, voice);
+					r = bufferProc.readToSignal(outSig, samples, nVoices, voice);
+					minSamplesRead = min(r, minSamplesRead);
 					voice++;			
 				}
 			}
@@ -1530,7 +1526,7 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 		debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found in container " << getName() << "!\n";
 	}
 #endif	
-	return samplesRead;
+	return minSamplesRead;
 }
 
 MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol outputName, MLSymbol alias, 
@@ -1554,10 +1550,8 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 			addPipe(procName, outputName, MLPath(alias), MLSymbol("in"));
 		}
 	}
-
 	return e;
 }
-
 
 // recurse into graph, adding ring buffers where necessary to capture signals matching procAddress.
 // this is necessary to get multiple signals that resolve to the same address.

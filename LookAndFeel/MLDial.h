@@ -217,6 +217,7 @@ public:
 	void setTicksOffsetAngle (float t);
 
 	void setFillColor (const Colour& color);
+	void setTopLeft(const bool n) {mTopLeft = n;}
 	void setDoNumber(const bool n) {mDoNumber = n;}
 	void setBipolar(const bool n) {mBipolar = n;}
 
