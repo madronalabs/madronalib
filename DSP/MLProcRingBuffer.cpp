@@ -152,6 +152,7 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int skip,
 		case eMLRingBufferMostRecent:			
 			if (available > samples)
 			{
+				// TODO modify pa ringbuffer instead of reading to trash buffer. 
 				lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, trashBuffer, available - samples );
 				skipped += lastRead;
 			}			

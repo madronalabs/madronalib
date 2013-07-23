@@ -275,6 +275,7 @@ public:
 	void publishSignal(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias, 
 		int trigMode, int bufLength);
 	int countPublishedSignals(const MLSymbol alias);
+	int getPublishedSignalBufferSize(const MLSymbol alias);
 	int readPublishedSignal(const MLSymbol alias, MLSignal& outSig);
 	//
 	// methods of MLContainerBase

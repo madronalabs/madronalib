@@ -1466,6 +1466,28 @@ int MLProcContainer::countPublishedSignals(const MLSymbol alias)
 	return nVoices;
 }
 
+// get the buffer size for a published signal by looking at the length parameter
+// of the first attached ring buffer.   
+// 
+int MLProcContainer::getPublishedSignalBufferSize(const MLSymbol alias)
+{
+	int result = 0;
+	
+	// look up signal container
+	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
+	if (it != mPublishedSignalMap.end()) 
+	{
+		const MLProcList& bufList = it->second;
+		MLProcList::const_iterator jt = bufList.begin();
+		MLProcPtr proc = (*jt);
+		if (proc)
+		{
+			result = proc->getParam("length");
+		}
+	}
+	return result;
+}
+
 // read samples from a published signal list into outSig.  
 // return the number of samples read.
 // 

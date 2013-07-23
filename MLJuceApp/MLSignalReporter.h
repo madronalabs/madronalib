@@ -12,10 +12,6 @@
 #include "MLPluginProcessor.h"
 #include "MLSignalView.h"
 
-typedef std::tr1::shared_ptr<MLSignalView> MLSignalViewPtr;
-typedef std::list<MLSignalViewPtr> MLSignalViewList;
-typedef std::map<MLSymbol, MLSignalViewList> MLSignalViewListMap;
-typedef std::map<MLSymbol, MLSignalPtr> MLSignalMap;
 
 // --------------------------------------------------------------------------------
 #pragma mark MLSignalReporter 
@@ -33,9 +29,14 @@ public:
 	void viewSignals();
 
 protected:
+	typedef std::tr1::shared_ptr<MLSignalView> MLSignalViewPtr;
+	typedef std::list<MLSignalViewPtr> MLSignalViewList;
+	typedef std::map<MLSymbol, MLSignalViewList> MLSignalViewListMap;
+	typedef std::map<MLSymbol, MLSignalPtr> MLSymbolToSignalMap;
+
 	MLPluginProcessor* mpProcessor;
-	MLSignalMap mSignalBuffers;
-	MLSignalMap mSignalBuffers2;
+	MLSymbolToSignalMap mSignalBuffers;
+	MLSymbolToSignalMap mSignalBuffers2;
 	MLSignalViewListMap mSignalViewsMap;
 	
 };

@@ -17,15 +17,34 @@ MLSignalReporter::~MLSignalReporter()
 
 // add another signal view to our map, to be serviced periodically.
 //
-void MLSignalReporter::addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size)
+void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize)
 {
-	// add a buffer so we can see if the signal has been changed since the last view
-	mSignalBuffers[p] = MLSignalPtr(new MLSignal(size));
-	mSignalBuffers2[p] = MLSignalPtr(new MLSignal(size));
-	mSignalBuffers2[p]->fill(-1.f); // force initial view of zero signal
+ 	MLDSPEngine* const pEngine = mpProcessor->getEngine();
+	if(!pEngine) return;	
 
-	// add the list of widgets and attributes for viewing
-	mSignalViewsMap[p].push_back(MLSignalViewPtr(new MLSignalView(w, attr, size)));
+	// first, find published signal if available and add read buffers. 
+	int bufSize = pEngine->getPublishedSignalBufferSize(alias);
+	if(bufSize > 0)
+	{
+		// if signal buffer does not already exist, add one
+		MLSymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
+		if (it == mSignalBuffers.end()) 
+		{
+			// add buffers so we can see if the signal has been changed since the last view
+			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize));
+			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize));
+			mSignalBuffers2[alias]->fill(-1.f); // force initial view of zero signal
+		}
+		
+		viewSize = min(viewSize, bufSize);
+
+		// add the list of widgets and attributes for viewing
+		mSignalViewsMap[alias].push_back(MLSignalViewPtr(new MLSignalView(w, attr, viewSize)));
+	}
+	else
+	{
+		MLError() << "MLSignalReporter::addSignalViewToMap: no published signal " << alias << "!\n";
+	}
 }
 
 void MLSignalReporter::viewSignals() 
