@@ -1245,8 +1245,7 @@ Label* MLLookAndFeel::createComboBoxTextBox (ComboBox&)
 
 
 //==============================================================================
-								   
-
+								
 
 Button* MLLookAndFeel::createDialButton (const bool isIncrement)
 {
@@ -1257,6 +1256,19 @@ ImageEffectFilter* MLLookAndFeel::getDialEffect()
 {
     return 0;
 }
+
+//==============================================================================
+
+Font MLLookAndFeel::getLabelFont (Label& label)
+{
+    return label.getFont();
+}
+
+Font MLLookAndFeel::getTextButtonFont (TextButton& button)
+{
+    return button.getFont();
+}
+
 //==============================================================================
 Button* MLLookAndFeel::createFilenameComponentBrowseButton (const String& text)
 {

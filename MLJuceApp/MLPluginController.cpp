@@ -1061,6 +1061,8 @@ public:
         }
     }
 	
+	void timerCallback(){}
+	
 	private:
 		Array<File> &mpFiles;
 		MLPluginProcessor* mpFilter;
