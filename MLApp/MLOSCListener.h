@@ -16,19 +16,23 @@
 
 #include "MLDebug.h"
 
+#include <stdexcept>
 #include "pthread.h"
+	
+// start and run a listener thread, not returning until the thread is done.
+// used as argument to pthread_create().
+void * MLOSCListenerStartThread(void *arg);
 
 class MLOSCListener : public osc::OscPacketListener
 {
+friend void * MLOSCListenerStartThread(void *arg);
+
 public:
 	MLOSCListener();
 	~MLOSCListener();
 	
 	// listen to the given port or, if port = 0, shut down listening gear
 	void listenToOSC(int port);
-	
-	// start a listener thread, not returning until the thread is done.
-	static void *startThread(void *arg);
 		
 protected:
     virtual void ProcessMessage(const osc::ReceivedMessage &, const IpEndpointName& ) = 0;

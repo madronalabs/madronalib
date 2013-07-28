@@ -23,7 +23,7 @@ MLOSCListener::~MLOSCListener()
 	listenToOSC(0);
 }
 
-void *MLOSCListener::startThread(void *arg)
+void * MLOSCListenerStartThread(void *arg)
 {
 	MLOSCListener* pL = static_cast<MLOSCListener*>(arg);
 	UdpListeningReceiveSocket* pSocket = pL->mpSocket;
@@ -31,11 +31,18 @@ void *MLOSCListener::startThread(void *arg)
 			
 	debug() << "MLOSCListener: starting listen thread for OSC on port " << port << "...\n";
 
-	pSocket->Run();
-	
-	// CRASH
-	// this thread can terminate on MalformedBundleException( "bundle element size must be multiple of four" );
-	// when Soundplane is quit.
+	try
+	{
+		pSocket->Run();
+	}
+	catch( osc::Exception& e )
+	{
+		MLError() << "MLOSCListener caught osc exception: " << e.what() << "\n";
+	}
+	catch( std::runtime_error& e )
+	{
+		MLError() << "MLOSCListener caught runtime_error exception: " << e.what() << "\n";
+	}
 	
 	debug() << "MLOSCListener: listener thread on port " << port << " terminated.\n"; 
 
@@ -75,7 +82,7 @@ void MLOSCListener::listenToOSC(int port)
 		
 		if(mpSocket)
 		{
-			debug() << "MLOSCListener::listenToOSC: listener OK on port " << port << ".\n";
+			debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
 			mSocketActive = true;
 			mPort = port;
 			
@@ -86,7 +93,7 @@ void MLOSCListener::listenToOSC(int port)
 			err = pthread_attr_init(&attr);
 
 			debug() << "creating listener thread...\n";
-			err = pthread_create(&mListenerThread, &attr, &MLOSCListener::startThread, (void*)this);			
+			err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);			
 		}
 	}
 	else

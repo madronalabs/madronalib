@@ -66,7 +66,7 @@ void MLMultProxy::setEnabledCopies(const int c)
 	int copies = (int)mCopies.size();
 	mEnabledCopies = min(c, copies);
 
-debug() << "MLMultProxy: enabling " << mEnabledCopies << " copies.\n";
+	// debug() << "MLMultProxy: enabling " << mEnabledCopies << " copies.\n";
 	
 	for (int i=0; i < copies; ++i)
 	{

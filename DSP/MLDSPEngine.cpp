@@ -111,7 +111,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	if (!mPatcherList.empty())
 	{
 		patcherOK = true;
-		debug() << "got " << mPatcherList.size() << "patchers. \n";
+		//debug() << "got " << mPatcherList.size() << "patchers. \n";
 	}
 
 	if (graphOK)

@@ -101,7 +101,7 @@ void MLPluginController::setPluginWrapperFormat(int format)
 	#endif
 
 	mVersionString = std::string("version ");
-	mVersionString += (std::string(JucePlugin_VersionString));
+	mVersionString += (std::string(ProjectInfo::versionString));
 	mVersionString += " (" + pluginType + bitsStr + ")";
 
 	

@@ -45,7 +45,7 @@ void MLPluginEditor::setWrapperFormat(int format)
 	#endif
 
 	mVersionString = ("version ");
-	mVersionString += (JucePlugin_VersionString);
+	mVersionString += (ProjectInfo::versionString);
 	mVersionString += " (" + pluginType + bitsStr + ")";
 
 	/*

@@ -6,6 +6,7 @@
 #ifndef __ML_PLUGINEDITOR_H__
 #define __ML_PLUGINEDITOR_H__
 
+#include "MLProjectInfo.h"
 #include "MLUI.h"
 #include "MLPluginFormats.h"
 

@@ -6,6 +6,7 @@
 #ifndef __ML_PLUGINCTRLR_H__
 #define __ML_PLUGINCTRLR_H__
 
+#include "MLProjectInfo.h"
 #include "MLPluginFormats.h"
 #include "MLResponder.h"
 #include "MLReporter.h"

@@ -33,11 +33,9 @@ MLPluginProcessor::MLPluginProcessor() :
 		mFileLocationsOK = true;
 	}	
 
-debug() << "CREATING plugin processor\n";
-
-//	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
-//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
-//	debug() << "processor scales: " << mScalesFolder.getFullPathName() << "\n";
+	//	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
+	//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
+	//	debug() << "processor scales: " << mScalesFolder.getFullPathName() << "\n";
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -48,7 +46,6 @@ MLPluginProcessor::~MLPluginProcessor()
 void MLPluginProcessor::setWrapperFormat(int format)
 { 
 	mWrapperFormat = format; 
-debug() << "SCANNING MIDI programs\n";
 	scanMIDIPrograms();
 }
 
@@ -132,24 +129,24 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// dsp engine has one vecSize of latency in order to run constant block size.
 		setLatencySamples(vecSize);
 		
-		debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";	
+		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";	
 		
 		// build: turn XML description into graph of processors
 		if (mEngine.getGraphStatus() != MLProc::OK)
 		{
 			bool makeSignalInputs = inChans > 0;
-			debug() << "building MLPluginProcessor graph... \n";
-			
 			r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI()); 
-			debug() << getNumParameters() << " parameters in description.\n";
+			// debug() << getNumParameters() << " parameters in description.\n";
 		}
 		else
 		{
 			//debug() << "MLPluginProcessor graph OK.\n";
 		}
 
+#ifdef DEBUG
 		theSymbolTable().audit();
 		//theSymbolTable().dump();
+#endif
 
 		// compile: schedule graph of processors , setup connections, allocate buffers
 		if (mEngine.getCompileStatus() != MLProc::OK)
@@ -1163,7 +1160,7 @@ void MLPluginProcessor::scanMIDIPrograms()
 			}
 		}
 	}
-	debug() << "MLPluginProcessor::scanMIDIPrograms found " << midiPgmCount << " MIDI programs\n";
+	// debug() << "MLPluginProcessor::scanMIDIPrograms found " << midiPgmCount << " MIDI programs\n";
 }
 
 // --------------------------------------------------------------------------------

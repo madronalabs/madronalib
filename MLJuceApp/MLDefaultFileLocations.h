@@ -8,6 +8,7 @@
 
 #include "MLUI.h"
 #include "MLDebug.h"
+#include "MLProjectInfo.h"
 
 enum eFileTypes
 {
