@@ -11,7 +11,6 @@
 
 #include <iostream>
 
-
 class MLTextStream
 {
 public:
@@ -27,34 +26,32 @@ public:
 	{
 		if(mActive)
 		{		
+			// If we have a listener Widget, send the item to
+			// the Listener’s stream. 
 			if(mpListener)
 			{
 				mpListener->getStream() << item;
 			}
+			// Else send the item to the local stream, which will be
+			// made visible next time display() is called.
 			else
 			{
-				mLocalStream << item;
-				displayImmediate();
-				/*
-				std::cerr << item;
-				// for catching initial messages before UI is made
-				if(mItemCount++ < kMaxLocalItems)
+				// in case display() is never called, don’t allow local stream 
+				// to grow without limit.
+				if(mItemsInLocalStream++ < kMaxLocalItems)
 				{
 					mLocalStream << item;
 				}
-				*/
 			}
 		}
 		return *this;
 	}
 	
-	void setListener(MLTextStreamListener* pL);	
-	void setActive(bool a);
+	void sendOutputToListener(MLTextStreamListener* pL);	
+	void setActive(bool b) { mActive = b; }
 	void flush(void);
-	
-	void displayImmediate();
 
-	// empty stream to destination, hopefully from message thread
+	// empty local stream to destination from message thread
 	void display();
 
 private:
@@ -63,10 +60,11 @@ private:
 	MLTextStreamListener* mpListener;
 	
 	std::stringstream mLocalStream;
-	int mItemCount;
+	int mItemsInLocalStream;
 };
 
 extern "C" MLTextStream& debug(void);
 extern "C" MLTextStream& MLError(void);
+extern "C" MLTextStream& MLConsole(void);
 
 #endif // _ML_DEBUG_H

@@ -3,21 +3,28 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-
 #include <Cocoa/Cocoa.h>
 #include "MLDebug.h"
+#include "JuceHeader.h"
 	
 #ifdef ML_MAC
 
-void MLTextStream::displayImmediate()
+void MLTextStream::display()
 {
-	if(!mActive) return;
+	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
+	{
+		MLError() << ".";
+		return;
+	}
 	if(mpListener)
 	{
 		mpListener->display();
 	}
 	else
 	{
+		MLError() << ".";
+		// no listener, send to NSLog() for viewing in XCode or Console
+		flush();
 		std::string outStr = mLocalStream.str();
 		int size = outStr.size();
 		if(outStr[size - 1] == '\n')

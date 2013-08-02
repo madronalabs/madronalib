@@ -124,13 +124,12 @@ void MLLabel::paint (Graphics& g)
 	}
 	
 	/*
-	// TEST
+	// TEST show bounds
 	Path tbounds;
 	const Rectangle<int> & boundsRect ( getLocalBounds());	
 	tbounds.addRectangle(boundsRect);
 	g.setColour(Colours::red);	
 	g.strokePath(tbounds, PathStrokeType(0.5f));
-	
 	*/
 }
 
@@ -158,7 +157,7 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 		TextLayout t;
 		t.createLayout(mRichStr, kInfWidth); 
 		float tw = t.getWidth();
-		tw *= 1.1f; // slop
+		tw *= 1.33f; // slop
 		tw = max(tw, size); // for very short texts
 		Component* pC = getComponent();
 		if(pC)

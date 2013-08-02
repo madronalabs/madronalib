@@ -4,24 +4,24 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLDebug.h"
-const int kMLDebugMaxChars = 32768;
 
 MLTextStream::MLTextStream(const char* name) : 
 	mName(name), 
 	mActive(true),
 	mpListener(0),
-	mItemCount(0)
+	mItemsInLocalStream(0)
 {
 
 }
 
 MLTextStream::~MLTextStream()
 {
-	setActive(false);
+	mActive = false;
+	mpListener = 0;
 	flush();
 }
 
-void MLTextStream::setListener(MLTextStreamListener* pL)
+void MLTextStream::sendOutputToListener(MLTextStreamListener* pL)
 {
 	// transfer any startup items
 	if(!mpListener)
@@ -36,59 +36,62 @@ void MLTextStream::setListener(MLTextStreamListener* pL)
 	mpListener = pL;
 }
 
-void MLTextStream::setActive(bool a)
-{
-	//printf("debug: turning output off.\n");
-	mActive = a;
-}
-
 void MLTextStream::flush()
 {
 	mLocalStream.flush();
+	mItemsInLocalStream = 0;
 }
 
+#ifndef ML_MAC
+
+void MLTextStream::display()
+{
+	if (!(MessageManager::getInstance()->isThisTheMessageThread())) 
+	{
+		return;
+	}
+	if(mpListener)
+	{
+		mpListener->display();
+	}
+	else
+	{
+		// no listener, send to stdout
+		flush();
+	}
+}
+
+#endif // ML_MAC
+
+// --------------------------------------------------------------------------------
+// global entry points
+
+// Send a message to the application or plugin’s debug output.
+// in release builds this will be disabled completely.
+//
 MLTextStream& debug(void)
 {
 	static MLTextStream theDebugMessageStream("debug");
+#ifdef NDEBUG
+	theDebugMessageStream.setActive(false);
+#endif	
 	return theDebugMessageStream;
 }
 
+// Send a message to the application or plugin’s error output. 
+// in release builds these messages will still be logged.
+//
 MLTextStream& MLError(void)
 {
 	static MLTextStream theErrorMessageStream("error");
 	return theErrorMessageStream;
 }
 
-
-void MLTextStream::display()
+// Send a message to the application or plugin’s console, if one exists. 
+//
+MLTextStream& MLConsole(void)
 {
-	if(!mActive) return;
-	if(mpListener)
-	{
-		mpListener->display();
-	}
-	else
-	{
-		// no listener, using stdout
-		flush();
-	}
+	static MLTextStream theConsoleMessageStream("console");
+	return theConsoleMessageStream;
 }
 
-
-#ifndef ML_MAC
-
-void MLTextStream::displayImmediate()
-{
-	if(!mActive) return;
-	if(mpListener)
-	{
-		mpListener->display();
-	}
-	else
-	{
-		// no listener, using stdout
-		flush();
-	}
-}
-
-#endif // ML_MAC
