@@ -1,0 +1,300 @@
+<!-- 
+DSP graph description for the MLExample synthesizer.
+Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+Use this very simple XML syntax to make a connected graph of audio processors,
+which can then run as a plugin or part of an application. 
+
+NOTE: processors are run in the order they are created with <proc> tags.  So 
+if you want to process the output of proc a with proc b, proc b MUST be 
+made after proc a. This can be done automatically, along wiht identifying 
+circular graphs, etc, in a future version of the DSP compiler. 
+
+-->
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE MLProcessorDescription>
+
+<rootproc>
+
+	<proc class="multiple" name="voices" copies="4"  >
+
+		<proc class="container" name="voice" > 
+		
+			<!-- OSCILLATOR -->			
+			<proc class="container" name="osc"  >
+
+				<!-- pitch knob -->
+				<proc class="param_to_sig" name="pitch_param"/>
+ 
+				<!-- get 2 to the power of MIDI input -->
+				<proc class="exp2" name="pitch_exp" />
+
+				<!-- multiply ref. pitch * input -->
+				<proc class="multiply" name="m" />
+				<connect from="pitch_param" output="out" to="m" input="in1" />
+				<connect from="pitch_exp" output="out" to="m" input="in2" />
+
+				<!-- oscillator -->
+				<proc class="sine_osc" name="osc" />
+				<connect from="m" output="out" to="osc" input="frequency" /> 
+
+				<!-- noise -->
+				<proc class="noise" name="noise_sig" gain="1." />
+				<proc class="param_to_sig" name="noise_param"/>
+
+				<!-- sine / noise fade -->
+				<proc class="fade" name="snf" />
+				<connect from="osc" output="out" to="snf" input="in1" />
+				<connect from="noise_sig" output="out" to="snf" input="in2" />
+				<connect from="noise_param" output="out" to="snf" input="mix" />
+
+				<!-- pitch input -->			
+				<input proc="pitch_exp" input="in" alias="pitch_in" />  
+
+				<!-- audio output -->			
+				<output proc="snf" output="out" alias="out" />
+			
+			</proc> 
+							
+			<!-- GATE -->	
+			<proc class="container" name="gate" >
+
+				<!-- MULTIPLIER -->
+				<proc class="multiply" name="m" />				
+								
+				<!-- I/O -->
+				<input proc="m" input="in1" alias="in" />
+				<input proc="m" input="in2" alias="gate" />  
+				<output proc="m" output="out" alias="out" />
+			
+			</proc>
+					
+			<!-- OUTPUT -->	
+			<proc class="container" name="output">	
+							
+				<!-- in_thru -->
+				<proc class="thru" name="in_thru" />
+					
+				<!-- reverb send -->
+				<proc class="param_to_sig" name="send_param"/>
+				<proc class="multiply" name="send" />
+				<connect from="send_param" output="out" to="send" input="in1" />
+				<connect from="in_thru" output="out" to="send" input="in2" />
+					
+				<!-- pan -->
+				<proc class="param_to_sig" name="pan_param"/>
+				<proc class="pan" name="pan" />
+				<connect from="pan_param" output="out" to="pan" input="pan" />
+				<connect from="in_thru" output="out" to="pan" input="in" />
+					
+				<!-- I/O -->
+				<input proc="in_thru" input="in" alias="in" />			 
+				<output proc="send" output="out" alias="send" />
+				<output proc="pan" output="out_l" alias="out_l" />
+				<output proc="pan" output="out_r" alias="out_r" />
+			
+			</proc> 
+			
+			<!-- <proc class="thru" name="dummy" /> -->
+			
+			<!-- CONNECT MAIN MODULES IN VOICE -->	
+			
+			<!-- audio connections -->
+			<connect from="osc" output="out" to="gate" input="in" /> 
+			<connect from="gate" output="out" to="output" input="in" /> 
+			
+			<!-- VOICE I/O -->
+			<input proc="osc" input="pitch_in" alias="pitch" />
+			<input proc="gate" input="gate" alias="gate" />			
+			<!--  <input proc="dummy" input="in" alias="dummy_in" /> -->
+			
+			<output proc="output" output="out_l" alias="out_l" />
+			<output proc="output" output="out_r" alias="out_r" />
+			<output proc="output" output="send" alias="out_send" />
+					
+		</proc>  <!-- multicontainer voice* -->	
+
+		<!--  publish voice control inputs to individual voices -->
+		<input proc="voice" copy="1" input="pitch" alias="pitch1" />
+		<input proc="voice" copy="1" input="gate" alias="gate1" />
+		
+		<input proc="voice" copy="2" input="pitch" alias="pitch2" />
+		<input proc="voice" copy="2" input="gate" alias="gate2" />
+		
+		<input proc="voice" copy="3" input="pitch" alias="pitch3" />
+		<input proc="voice" copy="3" input="gate" alias="gate3" />
+		
+		<input proc="voice" copy="4" input="pitch" alias="pitch4" />
+		<input proc="voice" copy="4" input="gate" alias="gate4" />
+				 
+		<!-- publishing dummy input has been needed to avoid crash!
+		<input proc="voice" input="dummy_in" alias="voice_dummy_in" /> -->
+		
+		<!--  outputs from all voices -->
+		<output proc="voice" output="out_l" alias="out_l" />
+		<output proc="voice" output="out_r" alias="out_r" />
+		<output proc="voice" output="out_send" alias="reverb_send" />
+		
+	</proc> <!-- multiple "voices" -->
+
+	<proc class="container" name="reverb">
+
+		<proc class="onepole" name="lp1" frequency="5000." />
+		<proc class="allpass" name="ap1" time=".00476" gain="0.75" />
+		<proc class="allpass" name="ap2" time=".00358" gain="0.70" />
+		<proc class="allpass" name="ap3" time=".00973" gain="0.6255" />
+		<proc class="allpass" name="ap4" time=".00830" gain="0.625" />
+
+		<connect from="lp1" output="out" to="ap1" input="in" />
+		<connect from="ap1" output="out" to="ap2" input="in" />
+		<connect from="ap2" output="out" to="ap3" input="in" />
+		<connect from="ap3" output="out" to="ap4" input="in" />
+
+		<proc class="param_to_sig" name="tf1" in="0.035" />
+		<proc class="param_to_sig" name="tf2" in="0.044" />
+		<proc class="delay_output" name="delay1_out" backwards="1" />
+		<proc class="delay_output" name="delay2_out" backwards="1" />
+		<connect from="tf1" output="out" to="delay1_out" input="delay_time" />
+		<connect from="tf2" output="out" to="delay2_out" input="delay_time" />
+
+		<proc class="add" name="a1" />
+		<proc class="add" name="a2" />
+		<connect from="ap4" output="out" to="a1" input="in1" />
+		<connect from="ap4" output="out" to="a2" input="in1" />		
+		
+		<connect from="delay1_out" output="out" to="a1" input="in2" />
+		<connect from="delay2_out" output="out" to="a2" input="in2" />
+		
+		<proc class="allpass" name="ap5" time="0.029" gain="0.7" />
+		<proc class="allpass" name="ap6" time="0.021" gain="0.7" />
+		<proc class="allpass" name="ap7" time="0.078" gain="0.6" />
+		<proc class="allpass" name="ap8" time="0.09" gain="0.6" />
+		<connect from="a1" output="out" to="ap5" input="in" />
+		<connect from="a2" output="out" to="ap6" input="in" />
+		<connect from="ap5" output="out" to="ap7" input="in" />
+		<connect from="ap6" output="out" to="ap8" input="in" />
+
+		<proc class="onepole" name="lp2" frequency="5000." />
+		<proc class="onepole" name="lp3" frequency="5000." />
+		<connect from="ap7" output="out" to="lp2" input="in" />
+		<connect from="ap8" output="out" to="lp3" input="in" />
+
+		<proc class="param_to_sig" name="fb_mult" in="0.66" />
+		<proc class="multiply" name="m1"/>
+		<proc class="multiply" name="m2"/>		
+		<connect from="lp2" output="out" to="m1" input="in1" />
+		<connect from="lp3" output="out" to="m2" input="in1" />			
+		<connect from="fb_mult" output="out" to="m1" input="in2" />
+		<connect from="fb_mult" output="out" to="m2" input="in2" />		
+
+		<proc class="allpass" name="ap9" time="0.111" gain="0.5" />
+		<proc class="allpass" name="ap10" time="0.096" gain="0.5" />
+		<connect from="m1" output="out" to="ap9" input="in" />
+		<connect from="m2" output="out" to="ap10" input="in" />	
+		
+		<proc class="delay_input" name="delay1" length="1." />
+		<proc class="delay_input" name="delay2" length="1." />	
+		<connect from="ap9" output="out" to="delay2" input="in" />
+		<connect from="ap10" output="out" to="delay1" input="in" />
+	
+		<proc class="param_to_sig" name="bandpass_freq" in="1400."/>
+		<proc class="param_to_sig" name="bandpass_q" in="0.25"/>	
+		<proc class="biquad" name="out_bp1" mode="2." />	
+		<proc class="biquad" name="out_bp2" mode="2." />	
+		<connect from="m1" output="out" to="out_bp1" input="in" />
+		<connect from="m2" output="out" to="out_bp2" input="in" />		
+		<connect from="bandpass_freq" output="out" to="out_bp1" input="frequency" />
+		<connect from="bandpass_q" output="out" to="out_bp1" input="q" />
+		<connect from="bandpass_freq" output="out" to="out_bp2" input="frequency" />
+		<connect from="bandpass_q" output="out" to="out_bp2" input="q" />
+
+		<input proc="lp1" input="in" alias="in" /> 			
+	
+		<output proc="out_bp1" output="out" alias="out_l" />
+		<output proc="out_bp2" output="out" alias="out_r" />
+			
+	</proc> <!-- REVERB -->
+
+	<connect from="voices" output="reverb_send" to="reverb" input="in" />	
+
+	<!--  sum reverb and voices -->
+	<proc class="add" name="sum_l" />
+	<proc class="add" name="sum_r" />
+
+	<connect from="voices" output="out_l" to="sum_l" input="in1" />
+	<connect from="voices" output="out_r" to="sum_r" input="in1" /> 
+	
+	<connect from="reverb" output="out_l" to="sum_l" input="in2" />
+	<connect from="reverb" output="out_r" to="sum_r" input="in2" /> 
+	
+	<!-- connect midi inputs -->
+	<!-- uses proc names defined in MLProcContainer.h -->
+	<!-- procs are made in MLDSPEngine::buildGraphAndInputs -->	
+
+	<connect from="the_host_phasor" output="out" to="voices" input="voice_dummy_in" />		
+
+	<connect from="the_midi_inputs" output="pitch1" to="voices" input="pitch1" />		
+	<connect from="the_midi_inputs" output="amp1" to="voices" input="gate1" /> 
+
+	<connect from="the_midi_inputs" output="pitch2" to="voices" input="pitch2" />		
+	<connect from="the_midi_inputs" output="amp2" to="voices" input="gate2" /> 
+	
+	<connect from="the_midi_inputs" output="pitch3" to="voices" input="pitch3" />		
+	<connect from="the_midi_inputs" output="amp3" to="voices" input="gate3" /> 
+	
+	<connect from="the_midi_inputs" output="pitch4" to="voices" input="pitch4" />		
+	<connect from="the_midi_inputs" output="amp4" to="voices" input="gate4" /> 
+
+	<!------------------------------------------------------------------------------------> 
+	<!-- MAIN OUTPUTS 1 and 2 -->	
+
+	<output proc="sum_l" output="out" alias="out1" />
+	<output proc="sum_r" output="out" alias="out2" />
+	
+	<!------------------------------------------------------------------------------------> 
+	<!-- PARAMETERS -->	
+	
+	<paramgroup name="key">
+		<param proc="voices" param="enable" alias="voices">
+			<range low="1" high="4" interval="1" />
+			<default value="4" />
+			<alsosets proc="the_midi_inputs" param="voices" /> 
+		</param>
+		<param proc="the_midi_inputs" param="bend" alias="key_bend">
+			<range low="0" high="24" interval="1" />
+			<default value="7" />
+		</param>
+		<param proc="the_midi_inputs" param="unison" alias="key_unison">
+			<range low="0" high="1" interval="1" />
+			<default value="0" />
+		</param>
+	</paramgroup>
+
+	<paramgroup name="osc">	
+		<param proc="voices/voice/osc/noise_param" param="in" alias="osc_noise">
+			<range low="0." high="1." interval="0.01" />
+			<default value="0." />
+		</param>
+		<param proc="voices/voice/osc/pitch_param" param="in" alias="osc_pitch">
+			<range low="27.5" high="3520." interval="0.1" log="1" /> 
+			<default value="220." />
+		</param>
+	</paramgroup>
+
+	<paramgroup name="output">		
+		<param proc="voices/voice/output/send_param" param="in" alias="output_reverb">
+			<range low="0." high="1." interval="0.01" />
+			<default value="0." />
+		</param>		
+		<param proc="voices/voice/output/pan_param" param="in" alias="output_pan">
+			<range low="-1." high="1." interval="0.01" />
+			<default value="0." />
+		</param>		
+	</paramgroup>
+	
+</rootproc>
+
+	
+	
