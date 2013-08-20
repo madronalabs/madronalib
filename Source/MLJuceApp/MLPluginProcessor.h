@@ -11,7 +11,6 @@
 #include "MLDefaultFileLocations.h"
 #include "MLModel.h"
 #include "MLPluginEditor.h"
-#include "MLPluginFormats.h"
 
 #include <vector>
 #include <map>
@@ -32,7 +31,6 @@ public:
 		
 	MLPluginProcessor();
     ~MLPluginProcessor();
-	void setWrapperFormat(int format);
 	
 	// --------------------------------------------------------------------------------
 	// plugin description and default preset
@@ -110,7 +108,7 @@ public:
 	void getStateInformation (juce::MemoryBlock& destData);
     void setStateInformation (const void* data, int sizeInBytes);
 
-	void saveStateToFile(File& saveFile, int format);
+	void saveStateToFile(File& saveFile);
 	void loadStateFromFile(const File& loadFile);
 
 	// --------------------------------------------------------------------------------
@@ -145,7 +143,7 @@ public:
 	// --------------------------------------------------------------------------------
 	// presets
 	
-	const String getExtensionForFormat(int format);
+	const String getExtensionForWrapperType();
 	const String& getCurrentPresetName();
 	const String& getCurrentPresetDir();
 	const String& getCurrentScaleName();

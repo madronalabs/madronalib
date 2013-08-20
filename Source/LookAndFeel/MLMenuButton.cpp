@@ -26,7 +26,7 @@ void MLMenuButton::setAttribute(MLSymbol attr, float val)
 	if (attr == valueSym)
 	{
 		// update state without notify
-		setToggleState(val > 0.5f, false);
+        setToggleState(val > 0.5f, false);
 		repaint();
 	}
 }

@@ -7,11 +7,11 @@
 #define __ML_PLUGINCTRLR_H__
 
 #include "MLProjectInfo.h"
-#include "MLPluginFormats.h"
 #include "MLResponder.h"
 #include "MLReporter.h"
 #include "MLSignalReporter.h"
 #include "MLAppView.h"
+#include "MLPluginEditor.h"
 
 class MLPluginController : 
 	public MLResponder,
@@ -26,7 +26,7 @@ public:
 	void setView(MLAppView* v); 
 	
 	// things to do after View is set
-	virtual void initialize() {}
+	virtual void initialize();
 
 	// from MLResponder
     virtual void buttonClicked (MLButton*);
@@ -49,9 +49,6 @@ public:
 	String getPresetString(int n);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
-
-	// called by wrappers to tell editor what type of plugin it is editing.
-	void setPluginWrapperFormat(int format);
 	
 	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName);	
@@ -65,12 +62,14 @@ public:
 #endif // ML_MAC
 
 protected:
-	MLPluginFormats::pluginFormat mWrapperFormat;
 	MLAppView* mpView;
 	juce::CriticalSection mViewLock;
 	
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	
+
+	void setupFormat();
+
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
 	//PopupMenu mPresetMenu; 

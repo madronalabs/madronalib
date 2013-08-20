@@ -363,7 +363,9 @@ float MLMultiSlider::proportionOfLengthToValue(float l)
 
 void MLMultiSlider::mouseWheelMove (const MouseEvent& event, const MouseWheelDetails& wheel)
 {
-	const float wheelSpeed = 0.15f;
+	float wheelSpeed = 0.15f;
+    if(wheel.isReversed)
+        wheelSpeed = -wheelSpeed;
 	
 	if(mCurrDragSlider >= 0) return;
 	
@@ -386,7 +388,7 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& event, const MouseWheelDet
 				float delta = (n != val) ? max (diff, mInterval) : 0.f;
 				if (val > n)
 					delta = -delta;
-				newValue = val + delta;
+ 				newValue = val + delta;
 //printf ("X:%f, Y:%f, %f, %f, %f \n", wheel.deltaX, wheel.deltaY, proportionDelta, currentPos, newValue);
 //printf("delta: %f \n", delta);
 			}

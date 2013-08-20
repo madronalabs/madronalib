@@ -14,7 +14,6 @@
 		61792EFEB47D87819D7676C2 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2E58109147CCFC780F10C23D /* AudioUnit.framework */; };
 		A068599CF7E166847EE45D5F /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A206765795252391D3F60EA4 /* AudioToolbox.framework */; };
 		AB1CA2580B4A152E93E261AB /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C37123DA8D32C1B6FC09FFF2 /* CoreAudio.framework */; };
-		B003460B11C0B7C1CC07E666 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = 0926E36205F4D676343AB6E7 /* RecentFilesMenuTemplate.nib */; };
 		B503B05017BA940700D84FD1 /* juce_AU_Wrapper.mm in Sources */ = {isa = PBXBuildFile; fileRef = B503B03717BA940700D84FD1 /* juce_AU_Wrapper.mm */; };
 		B503B05117BA940700D84FD1 /* juce_audio_basics.mm in Sources */ = {isa = PBXBuildFile; fileRef = B503B03817BA940700D84FD1 /* juce_audio_basics.mm */; };
 		B503B05217BA940700D84FD1 /* juce_audio_devices.mm in Sources */ = {isa = PBXBuildFile; fileRef = B503B03917BA940700D84FD1 /* juce_audio_devices.mm */; };
@@ -231,7 +230,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		0926E36205F4D676343AB6E7 /* RecentFilesMenuTemplate.nib */ = {isa = PBXFileReference; lastKnownFileType = file.nib; path = RecentFilesMenuTemplate.nib; sourceTree = SOURCE_ROOT; };
 		188AEC2A029C41DE66359AEF /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = System/Library/Frameworks/Carbon.framework; sourceTree = SDKROOT; };
 		28F65EEAFB3B971E8EDB10F3 /* DiscRecording.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = DiscRecording.framework; path = System/Library/Frameworks/DiscRecording.framework; sourceTree = SDKROOT; };
 		2D799F4BCA83847DEACB505D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = SOURCE_ROOT; };
@@ -260,7 +258,7 @@
 		B503B06517BA943300D84FD1 /* AppConfig.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppConfig.h; path = ../../Source/AppConfig.h; sourceTree = "<group>"; };
 		B503B06617BA943300D84FD1 /* JuceHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = JuceHeader.h; path = ../../Source/JuceHeader.h; sourceTree = "<group>"; };
 		B503B06717BAA2BF00D84FD1 /* PluginCharacteristics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PluginCharacteristics.h; path = ../../Source/PluginCharacteristics.h; sourceTree = "<group>"; };
-		B503B06817BAA7BC00D84FD1 /* MLProjectInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MLProjectInfo.h; sourceTree = "<group>"; };
+		B503B06817BAA7BC00D84FD1 /* MLProjectInfo.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MLProjectInfo.h; path = ../../Source/MLProjectInfo.h; sourceTree = "<group>"; };
 		B503B06B17BAAEAC00D84FD1 /* MLChangeList.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLChangeList.cpp; path = /Users/rej/Dev/madronalib/Source/DSP/MLChangeList.cpp; sourceTree = "<absolute>"; };
 		B503B06C17BAAEAC00D84FD1 /* MLChangeList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = MLChangeList.h; path = /Users/rej/Dev/madronalib/Source/DSP/MLChangeList.h; sourceTree = "<absolute>"; };
 		B503B06D17BAAEAC00D84FD1 /* MLDSP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = MLDSP.cpp; path = /Users/rej/Dev/madronalib/Source/DSP/MLDSP.cpp; sourceTree = "<absolute>"; };
@@ -682,7 +680,6 @@
 			isa = PBXGroup;
 			children = (
 				2D799F4BCA83847DEACB505D /* Info.plist */,
-				0926E36205F4D676343AB6E7 /* RecentFilesMenuTemplate.nib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -756,6 +753,7 @@
 				B503B0F217BAB01600D84FD1 /* portaudio */,
 			);
 			name = MadronaLib;
+			path = ../../../../Source;
 			sourceTree = "<group>";
 		};
 		B503B06A17BAAE9000D84FD1 /* DSP */ = {
@@ -839,9 +837,8 @@
 				B503B0B617BAAEAC00D84FD1 /* MLVector.h */,
 				B503B0B717BAAEAC00D84FD1 /* MLVector.cpp */,
 			);
-			name = DSP;
-			path = /Users/rej/Dev/madronalib/Source/DSP;
-			sourceTree = "<absolute>";
+			path = DSP;
+			sourceTree = "<group>";
 		};
 		B503B0F217BAB01600D84FD1 /* portaudio */ = {
 			isa = PBXGroup;
@@ -850,8 +847,7 @@
 				B503B0F417BAB01600D84FD1 /* pa_ringbuffer.cpp */,
 				B503B0F517BAB01600D84FD1 /* pa_ringbuffer.h */,
 			);
-			name = portaudio;
-			path = ../../../../Source/portaudio;
+			path = portaudio;
 			sourceTree = "<group>";
 		};
 		B503B12B17BAB47500D84FD1 /* OSC */ = {
@@ -861,8 +857,7 @@
 				B503B13917BAB47500D84FD1 /* osc */,
 				B503B14617BAB47500D84FD1 /* zeroconf */,
 			);
-			name = OSC;
-			path = ../../../../Source/OSC;
+			path = OSC;
 			sourceTree = "<group>";
 		};
 		B503B12C17BAB47500D84FD1 /* ip */ = {
@@ -962,8 +957,7 @@
 				B503B17617BAB69F00D84FD1 /* MLSymbolMap.h */,
 				B503B17717BAB69F00D84FD1 /* MLTextStreamListener.h */,
 			);
-			name = MLApp;
-			path = ../../../../Source/MLApp;
+			path = MLApp;
 			sourceTree = "<group>";
 		};
 		B503B18217BAB6AB00D84FD1 /* MLJuceApp */ = {
@@ -1011,8 +1005,7 @@
 				B503B1B117BAB6AB00D84FD1 /* MLWidgetContainer.cpp */,
 				B503B1B217BAB6AB00D84FD1 /* MLWidgetContainer.h */,
 			);
-			name = MLJuceApp;
-			path = ../../../../Source/MLJuceApp;
+			path = MLJuceApp;
 			sourceTree = "<group>";
 		};
 		B503B1CC17BAB6B700D84FD1 /* LookAndFeel */ = {
@@ -1061,8 +1054,7 @@
 				B503B1F517BAB6B700D84FD1 /* MLUIBinaryData.cpp */,
 				B503B1F617BAB6B700D84FD1 /* MLUIBinaryData.h */,
 			);
-			name = LookAndFeel;
-			path = ../../../../Source/LookAndFeel;
+			path = LookAndFeel;
 			sourceTree = "<group>";
 		};
 		B503B20C17BAB78D00D84FD1 /* cJSON */ = {
@@ -1071,8 +1063,7 @@
 				B503B20D17BAB78D00D84FD1 /* cJSON.c */,
 				B503B20E17BAB78D00D84FD1 /* cJSON.h */,
 			);
-			name = cJSON;
-			path = ../../../../Source/cJSON;
+			path = cJSON;
 			sourceTree = "<group>";
 		};
 		B51A0AE317B197CD00D6A3E2 /* Apple AU Files */ = {
@@ -1350,7 +1341,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B003460B11C0B7C1CC07E666 /* RecentFilesMenuTemplate.nib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

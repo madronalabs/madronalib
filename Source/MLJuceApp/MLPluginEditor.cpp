@@ -18,54 +18,6 @@ void MLPluginEditor::paint(Graphics& )
 {
 }
 
-void MLPluginEditor::setWrapperFormat(int format)
-{ 
-	mWrapperFormat = format; 
-	juce::String regStr, bitsStr, pluginType;
-	switch(mWrapperFormat)
-	{
-		case MLPluginFormats::eVSTPlugin:
-			pluginType = "VST";
-		break;
-		case MLPluginFormats::eAUPlugin:
-			pluginType = "AU";
-		break;
-		case MLPluginFormats::eStandalone:
-			pluginType = "App";
-		break;
-		default:
-			pluginType = "?";
-		break;
-	}
-		
-	#if (__LP64__) || (_WIN64)
-		bitsStr = ".64";
-	#else
-		bitsStr = ".32";
-	#endif
-
-	mVersionString = ("version ");
-	mVersionString += (MLProjectInfo::versionString);
-	mVersionString += " (" + pluginType + bitsStr + ")";
-
-	/*
-	regStr = mVersionString;
-	if (mCanBeLicensed)
-	{
-	#if DEMO
-		regStr += " DEMO";
-	#else
-		regStr += ", licensed to:";
-	#endif
-	}
-		
-	if (mpHeaderUserLabel)
-	{
-		mpHeaderUserLabel->setText(regStr, false);
-	}	
-	*/
-}
-
 MLRect MLPluginEditor::getWindowBounds()
 {
 	ComponentPeer *peer = getPeer();

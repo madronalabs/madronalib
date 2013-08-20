@@ -375,8 +375,8 @@ protected:
 	std::vector<MLSignal*> mOutputs;
 	
 private:	
-	MLSymbol mName;
 	int mCopyIndex;		// copy index if in multicontainer, 0 otherwise
+	MLSymbol mName;
 };
 
 typedef std::tr1::shared_ptr<MLProc> MLProcPtr;

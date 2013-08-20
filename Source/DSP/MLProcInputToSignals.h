@@ -133,25 +133,20 @@ public:
 	void doParams();
 
 private:
-	MLProcInfo<MLProcInputToSignals> mInfo;
-	
-	int mProtocol;
-	
-	PaUtilRingBuffer* mpFrameBuf;
-	MLSignal mLatestFrame;
-	
 	void dumpEvents();
 	void dumpVoices();
-	
 	int allocate();
 	void sendEventToVoice(MLKeyEvent& e, int voiceIdx, int frames);
-
 	void doNoteOn(int note, int vel, int time, int frames);
 	void doNoteOff(int note, int time, int frames);
-	
+
+	int mProtocol;
+	MLProcInfo<MLProcInputToSignals> mInfo;
+	PaUtilRingBuffer* mpFrameBuf;
+	MLSignal mLatestFrame;
+
 	MLKeyEvent mEvents[kMLMaxEvents];
 	int mNextEventIdx;
-	
 	MLVoice mVoices[kMLEngineMaxVoices]; 
 	int mNextVoiceIdx;
 	
@@ -164,7 +159,10 @@ private:
 	MLChangeList mdController2;
 	MLChangeList mdController3;
 	int mControllerNumber;
-	
+	int mCurrentVoices;
+	int mDriftCounter;
+	int mEventCounter;
+		
 	int mMIDIFrameOffset;
 	MLRange mPitchRange;
 	MLRange mAmpRange;
@@ -177,10 +175,6 @@ private:
 	
 	float mUnisonPitch1;
 
-	int mCurrentVoices;
-	int mDriftCounter;
-	int mEventCounter;
-	
 	MLSignal mPitchBendSignal;
 	MLSignal mDriftSignal;
 	MLSignal mChannelAfterTouchSignal;

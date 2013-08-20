@@ -33,7 +33,9 @@ MLPluginProcessor::MLPluginProcessor() :
 		mFileLocationsOK = true;
 	}	
 
-	//	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
+	scanMIDIPrograms();
+	
+    //	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
 	//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
 	//	debug() << "processor scales: " << mScalesFolder.getFullPathName() << "\n";
 }
@@ -41,12 +43,6 @@ MLPluginProcessor::MLPluginProcessor() :
 MLPluginProcessor::~MLPluginProcessor()
 {
 //	debug() << "deleting MLPluginProcessor.\n";
-}
-
-void MLPluginProcessor::setWrapperFormat(int format)
-{ 
-	mWrapperFormat = format; 
-	scanMIDIPrograms();
 }
 
 void MLPluginProcessor::loadPluginDescription(const char* desc)
@@ -445,7 +441,7 @@ void MLPluginProcessor::MLSetParameterNotifyingHost (const int parameterIndex, c
 	
 	// convert to host units for VST	
 	float wrapperValue = newValue;
-	if (mWrapperFormat == MLPluginFormats::eVSTPlugin)
+	if (wrapperType == AudioProcessor::wrapperType_VST)
 	{
 		MLPublishedParamPtr p = mEngine.getParamPtr(parameterIndex);
 		if(p)
@@ -730,7 +726,7 @@ int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 	
 	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
 	String shortName = saveFile.getFileNameWithoutExtension();
-	String ext = getExtensionForFormat(mWrapperFormat);
+	const String ext = getExtensionForWrapperType();
 	File saveWithExt = saveFile.getParentDirectory().getChildFile(shortName + ext);
 	
 	int r;
@@ -741,7 +737,7 @@ int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 	}
 	else
 	{
-		saveStateToFile(saveFile, mWrapperFormat);
+		saveStateToFile(saveFile);
 		r = 0;
 	}
 	return r;
@@ -751,7 +747,7 @@ int MLPluginProcessor::saveStateOverPrevious(const File& destDir)
 {
 	std::string nameStr = getModelStringParam("preset");	
 	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
-	saveStateToFile(saveFile, mWrapperFormat);
+	saveStateToFile(saveFile);
 	return 0;
 }
 
@@ -994,7 +990,7 @@ void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
 // save the current state to the native file for our plugin type.  
 //
-void MLPluginProcessor::saveStateToFile(File& saveFile, int format)
+void MLPluginProcessor::saveStateToFile(File& saveFile)
 {
 #if DEMO
 	String shortName = saveFile.getFileNameWithoutExtension();
@@ -1006,7 +1002,7 @@ void MLPluginProcessor::saveStateToFile(File& saveFile, int format)
 	setCurrentPresetName(shortName.toUTF8());
 	setCurrentPresetDir(dirName.toUTF8());
 
-	String extension = getExtensionForFormat(format);
+	String extension = getExtensionForWrapperType();
 		
 	// insure < 32 chars! (TODO needed if not AU?)
 	int maxlength = 32 - extension.length();
@@ -1018,10 +1014,10 @@ void MLPluginProcessor::saveStateToFile(File& saveFile, int format)
 	// TODO warn or ask or something if saveFile does not have the proper extension
 	
 	String newState;
-	switch(format)
+	switch(wrapperType)
 	{
-		case MLPluginFormats::eVSTPlugin:
-		case MLPluginFormats::eStandalone:
+		case wrapperType_VST:
+		case wrapperType_Standalone:
 			// get File with new name
 			saveFile = saveFile.getParentDirectory().getChildFile(shortName + extension);
 			
@@ -1029,7 +1025,7 @@ void MLPluginProcessor::saveStateToFile(File& saveFile, int format)
 			getStateAsText(newState);
 			saveFile.replaceWithText(newState);
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case wrapperType_AudioUnit:
 			// tell AU wrapper to save, insuring extension is .aupreset
 			sendMessageToMLListener (MLAudioProcessorListener::kSave, saveFile.withFileExtension(extension));
 		break;
@@ -1116,17 +1112,17 @@ void MLPluginProcessor::scanMIDIPrograms()
 {
 	String pluginType;
 	String presetFileType;
-	switch(mWrapperFormat)
+	switch(wrapperType)
 	{
-		case MLPluginFormats::eVSTPlugin:
+		case AudioProcessor::wrapperType_VST:
 			pluginType = "VST";
 			presetFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eStandalone:
+		case AudioProcessor::wrapperType_Standalone:
 			pluginType = "App";
 			presetFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case AudioProcessor::wrapperType_AudioUnit:
 			pluginType = "AU";
 			presetFileType = ".aupreset";
 		break;
@@ -1167,19 +1163,18 @@ void MLPluginProcessor::scanMIDIPrograms()
 #pragma mark presets
 //
 
-const String MLPluginProcessor::getExtensionForFormat(int format)
+const String MLPluginProcessor::getExtensionForWrapperType()
 {
 	String ext;
-	switch(format)
+	switch(wrapperType)
 	{
-		case MLPluginFormats::eVSTPlugin:
-		case MLPluginFormats::eStandalone:
+		case AudioProcessor::wrapperType_VST:
+		case AudioProcessor::wrapperType_Standalone:
+		default:
 			ext = ".mlpreset";
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case AudioProcessor::wrapperType_AudioUnit:
 			ext = ".aupreset";
-		break;
-		default:
 		break;
 	}
 	return ext;

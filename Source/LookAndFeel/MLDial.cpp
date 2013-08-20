@@ -1576,7 +1576,8 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 			{
 				dpf = (wheel.deltaY);
 			}
-			
+            
+            if(wheel.isReversed) dpf = -dpf;			
 			float val = getValueOfDial(dialToDrag);
 			int dir = sign(dpf);
 			int dp = dir*max(1, (int)(fabs(dpf)*16.));

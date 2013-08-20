@@ -10,8 +10,8 @@
 
 MLPageView::MLPageView(MLResponder* pResp, MLReporter* pRep) :
 	MLAppView(pResp, pRep),
-	mCurrPage(-1),
-	mpParent(0)
+    mpParent(0),
+	mCurrPage(-1)
 {
 	setOpaque (false);
 	MLWidget::setComponent(this);

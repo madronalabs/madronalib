@@ -40,6 +40,8 @@ MLButton::MLButton ()
 	setClickingTogglesState (true);
     setWantsKeyboardFocus (false);
     setRepaintsOnMouseActivity (false);
+	setOpaque(true);
+	setBufferedToImage(false);
 
 	mDoRollover = false;
 	
@@ -47,8 +49,6 @@ MLButton::MLButton ()
 	setColour ((const int)textColourId, Colours::black);
 	mImageOffset = Vec2(0, 0);
 
-	setOpaque(true);	
-	setBufferedToImage(false);
 	MLWidget::setComponent(this); 
 }
 

@@ -6,8 +6,8 @@
 #include "MLAppBorder.h"
 
 MLAppBorder::MLAppBorder() : 
-	mpResizer(0),
 	pMainView(0),
+    mpResizer(0),
 	mZoomable(false)
 {
 	Component::setBounds(0, 0, 0, 0);

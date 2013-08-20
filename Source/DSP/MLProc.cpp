@@ -9,9 +9,9 @@
 #pragma mark MLProc
 
 MLProc::MLProc() :
+    mpContext(0),
 	mParamsChanged(true),
-	mCopyIndex(0),
-	mpContext(0)
+	mCopyIndex(0)
 {
 }
 

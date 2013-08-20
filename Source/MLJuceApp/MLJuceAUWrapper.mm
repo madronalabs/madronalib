@@ -27,6 +27,7 @@
 #include "AppConfig.h"
 
 #include "modules/juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
+
 #if JucePlugin_Build_AU
 
 #if __LP64__
@@ -53,6 +54,15 @@
 #include "MusicDeviceBase.h"
 #undef Point
 #undef Component
+
+// ML
+#include "JuceHeader.h"
+#define Button juce::Button
+#define Point juce::Point
+#define Component juce::Component
+#include "MLPluginProcessor.h"
+#include "MLPluginEditor.h"
+// ML
 
 /** The BUILD_AU_CARBON_UI flag lets you specify whether old-school carbon hosts are supported as
     well as ones that can open a cocoa view. If this is enabled, you'll need to also add the AUCarbonBase
@@ -81,7 +91,7 @@
 
 #include "modules/juce_audio_plugin_client/utility/juce_IncludeModuleHeaders.h"
 #include "modules/juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h"
-//#include "modules/juce_audio_plugin_client/utility/juce_CarbonVisibility.h"
+#include "modules/juce_audio_plugin_client/utility/juce_CarbonVisibility.h"
 #include "modules/juce_audio_plugin_client/utility/juce_PluginHostType.h"
 #include "modules/juce_core/native/juce_osx_ObjCHelpers.h"
 
@@ -106,9 +116,10 @@ static const int numChannelConfigs = sizeof (channelConfigs) / sizeof (*channelC
 
 //==============================================================================
 class JuceAU   : public JuceAUBaseClass,
-                 public AudioProcessorListener,
-                 public AudioPlayHead,
-                 public ComponentListener
+                public MLAudioProcessorListener, // ML
+                public AudioProcessorListener,
+                public AudioPlayHead,
+                public ComponentListener
 {
 public:
     //==============================================================================
@@ -130,10 +141,11 @@ public:
             initialiseJuce_GUI();
         }
 
-        juceFilter = createPluginFilterOfType (AudioProcessor::wrapperType_AudioUnit);
+        juceFilter = static_cast<MLPluginProcessor*>(createPluginFilterOfType (AudioProcessor::wrapperType_AudioUnit));
 
         juceFilter->setPlayHead (this);
         juceFilter->addListener (this);
+		juceFilter->setMLListener (this);
 
         Globals()->UseIndexedParameters (juceFilter->getNumParameters());
 
@@ -220,6 +232,23 @@ public:
                     return noErr;
                 }
             }
+			// ----------------------------------------------------------------
+			// ML
+			else if(inID == kAudioUnitProperty_ParameterClumpName)
+			{
+				outDataSize = sizeof(AudioUnitParameterNameInfo);
+				outWritable = false;
+				return noErr;
+			}
+			
+			else if(inID == kAudioUnitProperty_SampleRate)
+			{
+				outDataSize = sizeof(Float64);
+				outWritable = true;
+				return noErr;
+			}
+			// ML
+			// ----------------------------------------------------------------
         }
 
         return JuceAUBaseClass::GetPropertyInfo (inID, inScope, inElement, outDataSize, outWritable);
@@ -270,7 +299,49 @@ public:
                     return noErr;
                 }
             }
-        }
+ 			// ----------------------------------------------------------------
+			// ML
+			else if (inID == kAudioUnitProperty_ParameterClumpName)
+			{
+				OSStatus result = noErr;
+				AudioUnitParameterNameInfo* ioClumpInfo = (AudioUnitParameterNameInfo*) outData;
+				unsigned index = ioClumpInfo->inID;
+				
+				if (index == kAudioUnitClumpID_System)	// this ID value is reserved
+				{
+					result = kAudioUnitErr_InvalidPropertyValue;
+				}
+				else
+				{
+					int maxLen = ioClumpInfo->inDesiredLength;
+					std::string groupStr (juceFilter->getParameterGroupName(index));
+					if (groupStr.length() > 0)
+					{
+						if (groupStr.length() > maxLen)
+						{
+							groupStr.resize(maxLen);
+						}
+						const char* c = groupStr.c_str();
+						if (c)
+						{
+							CFStringRef clumpName = CFStringCreateWithCString(NULL, c, kCFStringEncodingUTF8);
+							CFRetain(clumpName);
+							ioClumpInfo->outName = (clumpName);
+						}
+					}
+				}
+				return result;
+			}
+			
+			// sample rate
+			else if (inID == kAudioUnitProperty_SampleRate)
+			{
+                *(Float64*) outData = juceFilter->getSampleRate();
+                return noErr;
+			}
+			// ML
+			// ----------------------------------------------------------------
+       }
 
         return JuceAUBaseClass::GetProperty (inID, inScope, inElement, outData);
     }
@@ -302,11 +373,31 @@ public:
         jassert (CFGetTypeID (*outData) == CFDictionaryGetTypeID());
 
         CFMutableDictionaryRef dict = (CFMutableDictionaryRef) *outData;
+        
+		// ----------------------------------------------------------------
+		// ML
+		// get saved preset name
+		char nameBuf[33];
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFStringRef presetName = reinterpret_cast<CFStringRef>(CFDictionaryGetValue (dict, kNameString));
+		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
+		// ML
+		// ----------------------------------------------------------------
 
         if (juceFilter != nullptr)
         {
             juce::MemoryBlock state;
             juceFilter->getCurrentProgramStateInformation (state);
+
+			// ----------------------------------------------------------------
+			// ML
+			if (nameResult)
+			{
+				// update filter with saved name.
+				juceFilter->setCurrentPresetName (nameBuf);
+			}
+			// ML
+			// ----------------------------------------------------------------
 
             if (state.getSize() > 0)
             {
@@ -331,6 +422,18 @@ public:
             if (err != noErr)
                 return err;
         }
+        
+		// ----------------------------------------------------------------
+		// ML
+		// get saved preset name
+		char nameBuf[33];
+        CFDictionaryRef dict = (CFDictionaryRef) inData;
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFStringRef presetName = reinterpret_cast<CFStringRef>(CFDictionaryGetValue (dict, kNameString));
+		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
+        
+		// ML
+		// ----------------------------------------------------------------
 
         if (juceFilter != nullptr)
         {
@@ -346,12 +449,138 @@ public:
 
                     if (numBytes > 0)
                         juceFilter->setCurrentProgramStateInformation (rawBytes, numBytes);
-                }
+ 					// ----------------------------------------------------------------
+					// ML
+					if (nameResult)
+					{
+						juceFilter->setCurrentPresetName (nameBuf);
+					}
+					// ML
+					// ----------------------------------------------------------------
+               }
             }
         }
 
         return noErr;
     }
+    // --------------------------------------------------------------------------------
+#pragma mark -
+#pragma mark MLAudioProcessorListener methods
+    // this code ended up in here because of access to RestoreState().  There may be other issues.
+    // TODO look at moving this to MLJuceFilesMac.
+	
+	void loadFile(const File& f)
+	{
+		String juceName = f.getFullPathName();
+		const char* fileStr = juceName.toUTF8();
+		debug() << JucePlugin_Name << " AU: loading state from file: " << fileStr << "\n";
+        
+		CFPropertyListRef propertyList;
+		CFStringRef       errorString;
+		CFDataRef         resourceData;
+		Boolean           status;
+		SInt32            errorCode;
+		ComponentResult err;
+        
+		// get URL from Juce File
+		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+        
+		// Read the CFData file containing the encoded XML.
+		status = CFURLCreateDataAndPropertiesFromResource(
+                                                          kCFAllocatorDefault,
+                                                          fileURL,
+                                                          &resourceData,            // place to put file data
+                                                          NULL,
+                                                          NULL,
+                                                          &errorCode);
+        
+		// Reconstitute the dictionary using the XML data.
+		propertyList = CFPropertyListCreateFromXMLData( kCFAllocatorDefault,
+                                                       resourceData,
+                                                       kCFPropertyListImmutable,
+                                                       &errorString);
+        
+		if (errorString == NULL)
+		{
+			err = RestoreState (propertyList);
+			if (err != noErr)
+			{
+				MLError() << "error: " << err << "loading preset file.\n";
+			}
+		}
+		else
+		{
+			char errBuf[256];
+			const bool errResult = (CFStringGetCString(errorString, errBuf, 255, kCFStringEncodingASCII));
+			if (errResult)
+			{
+				std::cout << errBuf << "\n";
+				CFRelease( errorString );
+			}
+		}
+		
+		CFRelease( resourceData );
+		CFRelease( propertyList );
+        
+	}
+    
+    
+	void saveToFile(const File& f)
+	{
+		String juceName = f.getFullPathName();
+		const char* fileStr = juceName.toUTF8();
+		String shortName = f.getFileNameWithoutExtension();
+        
+		// get URL from Juce File
+		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+		
+		// get property list.
+		CFPropertyListRef myPropsRef;
+		ComponentResult err = JuceAUBaseClass::SaveState (&myPropsRef);
+        if (err != noErr) return;
+        jassert (CFGetTypeID (myPropsRef) == CFDictionaryGetTypeID());
+        CFMutableDictionaryRef dict = (CFMutableDictionaryRef) myPropsRef;
+        
+		// save state to the dictionary.
+		if (juceFilter != 0)
+        {
+            juce::MemoryBlock state;
+            juceFilter->getCurrentProgramStateInformation (state);
+            
+            if (state.getSize() > 0)
+            {
+                CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), state.getSize());
+                CFDictionarySetValue (dict, CFSTR("jucePluginState"), ourState);
+                CFRelease (ourState);
+            }
+        }
+        
+		// overwrite preset name in properties
+		CFStringRef newName = CFStringCreateWithCString(NULL, shortName.toUTF8(), kCFStringEncodingUTF8);
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFDictionarySetValue (dict, kNameString, newName);
+		
+		// Convert the property list into XML data.
+		CFDataRef xmlCFDataRef = CFPropertyListCreateXMLData(kCFAllocatorDefault, myPropsRef );
+		SInt32 errorCode = coreFoundationUnknownErr;
+		
+		if (NULL != xmlCFDataRef)
+		{
+			// Write the XML data to the CFData file.
+			(void) CFURLWriteDataAndPropertiesToResource(fileURL, xmlCFDataRef, NULL, &errorCode);
+            
+			// Release the XML data
+			CFRelease(xmlCFDataRef);
+		}
+		
+		// restore state in base class, to update preset name in host.
+		JuceAUBaseClass::RestoreState (myPropsRef);
+		CFRelease(myPropsRef);
+	}
+    
+	
+#pragma mark -
+	// --------------------------------------------------------------------------------
 
     UInt32 SupportedNumChannels (const AUChannelInfo** outInfo)
     {
@@ -383,6 +612,29 @@ public:
                                       AudioUnitParameterInfo& outParameterInfo)
     {
         const int index = (int) inParameterID;
+		MLPublishedParamPtr paramPtr; // ML
+		paramPtr = juceFilter->getParameterPtr(index); // ML
+		
+		if (!paramPtr)
+		{
+			debug() << "parameter #" << index << ": null parameter ptr!\n";
+			return kAudioUnitErr_InvalidParameter;
+		}
+		
+		if (inScope != kAudioUnitScope_Global)
+		{
+			debug() << "parameter #" << index << ": invalid scope!\n";
+		}
+		
+		if (juceFilter == nullptr)
+		{
+			debug() << "parameter #" << index << ": no audio processor!\n";
+		}
+		
+		if (index >= juceFilter->getNumParameters())
+		{
+			debug() << "parameter #" << index << ": index too big, max " << juceFilter->getNumParameters() << "!\n";
+		}
 
         if (inScope == kAudioUnitScope_Global
              && juceFilter != nullptr
@@ -403,11 +655,41 @@ public:
 
             AUBase::FillInParameterName (outParameterInfo, name.toCFString(), true);
 
-            outParameterInfo.minValue = 0.0f;
-            outParameterInfo.maxValue = 1.0f;
-            outParameterInfo.defaultValue = juceFilter->getParameterDefaultValue (index);
-            outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
-
+ 			// ----------------------------------------------------------------
+			// ML
+			outParameterInfo.minValue = paramPtr->getRangeLo();
+			outParameterInfo.maxValue = paramPtr->getRangeHi();
+            outParameterInfo.defaultValue = paramPtr->getDefault();
+			outParameterInfo.unit = paramPtr->getUnit(); // unimplemented
+            
+			if (paramPtr->getWarpMode() == kJucePluginParam_Exp)
+			{
+				outParameterInfo.flags |= kAudioUnitParameterFlag_DisplayLogarithmic;
+			}
+			if (paramPtr->getGroupIndex() >= 0)
+			{
+				// sets kAudioUnitParameterFlag_HasClump
+				HasClump (outParameterInfo, paramPtr->getGroupIndex());
+			}
+            
+            /*
+             debug() << "parameter #" << index << " (" << paramPtr->getAlias() << ") : ";
+             debug() << "min " << outParameterInfo.minValue;
+             debug() << " max " << outParameterInfo.maxValue;
+             debug() << " dflt " << outParameterInfo.defaultValue;
+             debug() << " unit " << outParameterInfo.unit;
+             debug() << " flgs " << outParameterInfo.flags;
+             debug() << "\n";
+             */
+            
+			// Another important issue here is to make sure that if a parameter sets
+			// kAudioUnitParameterFlag_ValuesHaveStrings, not only should you support
+			// kAudioUnitProperty_ParameterStringFromValue (formerly known as kAudioUnitProperty_ParameterValueName)
+			// for that parameter, but also implement the reverse transformation via
+			// kAudioUnitProperty_ParameterValueFromString to allow the host application
+			// to translate user-entered text into a parameter value.
+			// ML
+			// ----------------------------------------------------------------
             return noErr;
         }
 
@@ -1160,7 +1442,7 @@ public:
 
 private:
     //==============================================================================
-    ScopedPointer<AudioProcessor> juceFilter;
+    ScopedPointer<MLPluginProcessor> juceFilter; // ML
     AudioSampleBuffer bufferSpace;
     HeapBlock <float*> channels;
     MidiBuffer midiEvents, incomingEvents;
@@ -1183,28 +1465,237 @@ private:
 };
 
 
-//AUDIOCOMPONENT_ENTRY(AUBaseFactory, Filter)
+//==============================================================================
+#if BUILD_AU_CARBON_UI
 
-//AUDIOCOMPONENT_ENTRY(AUMusicDeviceFactory, JuceAU)
+class JuceAUView  : public AUCarbonViewBase
+{
+public:
+    JuceAUView (AudioUnitCarbonView auview)
+      : AUCarbonViewBase (auview),
+        juceFilter (nullptr)
+    {
+    }
 
+    ~JuceAUView()
+    {
+        deleteUI();
+    }
 
-/*
-// NOTE: Component Mgr is deprecated in ML.
-// this macro should not be used with new audio components
-// it is only for backwards compatibility with Lion and SL.
-// this macro registers both a plugin and a component mgr version.
-#define AUDIOCOMPONENT_ENTRY(FactoryType, Class) \
-extern "C" OSStatus Class##Entry(ComponentParameters *params, Class *obj); \
-extern "C" OSStatus Class##Entry(ComponentParameters *params, Class *obj) { \
-return ComponentEntryPoint<Class>::Dispatch(params, obj); \
-} \
-extern "C" void * Class##Factory(const AudioComponentDescription *inDesc); \
-extern "C" void * Class##Factory(const AudioComponentDescription *inDesc) { \
-return FactoryType<Class>::Factory(inDesc); \
-}
+    ComponentResult CreateUI (Float32 /*inXOffset*/, Float32 /*inYOffset*/)
+    {
+        JUCE_AUTORELEASEPOOL
+        {
+            if (juceFilter == nullptr)
+            {
+                void* pointers[2];
+                UInt32 propertySize = sizeof (pointers);
 
-*/
+                AudioUnitGetProperty (GetEditAudioUnit(),
+                                      juceFilterObjectPropertyID,
+                                      kAudioUnitScope_Global,
+                                      0,
+                                      pointers,
+                                      &propertySize);
 
+                juceFilter = (AudioProcessor*) pointers[0];
+            }
+
+            if (juceFilter != nullptr)
+            {
+                deleteUI();
+
+                AudioProcessorEditor* editorComp = juceFilter->createEditorIfNeeded();
+                editorComp->setOpaque (true);
+                windowComp = new ComponentInHIView (editorComp, mCarbonPane);
+            }
+            else
+            {
+                jassertfalse // can't get a pointer to our effect
+            }
+        }
+
+        return noErr;
+    }
+
+    AudioUnitCarbonViewEventListener getEventListener() const   { return mEventListener; }
+    void* getEventListenerUserData() const                      { return mEventListenerUserData; }
+
+private:
+    //==============================================================================
+    AudioProcessor* juceFilter;
+    ScopedPointer<Component> windowComp;
+    FakeMouseMoveGenerator fakeMouseGenerator;
+
+    void deleteUI()
+    {
+        if (windowComp != nullptr)
+        {
+            PopupMenu::dismissAllActiveMenus();
+
+            /* This assertion is triggered when there's some kind of modal component active, and the
+               host is trying to delete our plugin.
+               If you must use modal components, always use them in a non-blocking way, by never
+               calling runModalLoop(), but instead using enterModalState() with a callback that
+               will be performed on completion. (Note that this assertion could actually trigger
+               a false alarm even if you're doing it correctly, but is here to catch people who
+               aren't so careful) */
+            jassert (Component::getCurrentlyModalComponent() == nullptr);
+
+            if (JuceAU::EditorCompHolder* editorCompHolder = dynamic_cast <JuceAU::EditorCompHolder*> (windowComp->getChildComponent(0)))
+                if (AudioProcessorEditor* audioProcessEditor = dynamic_cast <AudioProcessorEditor*> (editorCompHolder->getChildComponent(0)))
+                    juceFilter->editorBeingDeleted (audioProcessEditor);
+
+            windowComp = nullptr;
+        }
+    }
+
+    //==============================================================================
+    // Uses a child NSWindow to sit in front of a HIView and display our component
+    class ComponentInHIView  : public Component
+    {
+    public:
+        ComponentInHIView (AudioProcessorEditor* const editor_, HIViewRef parentHIView)
+            : parentView (parentHIView),
+              editor (editor_),
+              recursive (false)
+        {
+            JUCE_AUTORELEASEPOOL
+            {
+                jassert (editor_ != nullptr);
+                addAndMakeVisible (&editor);
+                setOpaque (true);
+                setVisible (true);
+                setBroughtToFrontOnMouseClick (true);
+
+                setSize (editor.getWidth(), editor.getHeight());
+                SizeControl (parentHIView, (SInt16) editor.getWidth(), (SInt16) editor.getHeight());
+
+                WindowRef windowRef = HIViewGetWindow (parentHIView);
+                hostWindow = [[NSWindow alloc] initWithWindowRef: windowRef];
+
+                [hostWindow retain];
+                [hostWindow setCanHide: YES];
+                [hostWindow setReleasedWhenClosed: YES];
+
+                updateWindowPos();
+
+               #if ! JucePlugin_EditorRequiresKeyboardFocus
+                addToDesktop (ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
+                setWantsKeyboardFocus (false);
+               #else
+                addToDesktop (ComponentPeer::windowIsTemporary);
+                setWantsKeyboardFocus (true);
+               #endif
+
+                setVisible (true);
+                toFront (false);
+
+                addSubWindow();
+
+                NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
+                [pluginWindow setNextResponder: hostWindow];
+
+                attachWindowHidingHooks (this, (WindowRef) windowRef, hostWindow);
+            }
+        }
+
+        ~ComponentInHIView()
+        {
+            JUCE_AUTORELEASEPOOL
+            {
+                removeWindowHidingHooks (this);
+
+                NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
+                [hostWindow removeChildWindow: pluginWindow];
+                removeFromDesktop();
+
+                [hostWindow release];
+                hostWindow = nil;
+            }
+        }
+
+        void updateWindowPos()
+        {
+            HIPoint f;
+            f.x = f.y = 0;
+            HIPointConvert (&f, kHICoordSpaceView, parentView, kHICoordSpaceScreenPixel, 0);
+            setTopLeftPosition ((int) f.x, (int) f.y);
+        }
+
+        void addSubWindow()
+        {
+            NSWindow* pluginWindow = [((NSView*) getWindowHandle()) window];
+            [pluginWindow setExcludedFromWindowsMenu: YES];
+            [pluginWindow setCanHide: YES];
+
+            [hostWindow addChildWindow: pluginWindow
+                               ordered: NSWindowAbove];
+            [hostWindow orderFront: nil];
+            [pluginWindow orderFront: nil];
+        }
+
+        void resized() override
+        {
+            if (Component* const child = getChildComponent (0))
+                child->setBounds (getLocalBounds());
+        }
+
+        void paint (Graphics&) override {}
+
+        void childBoundsChanged (Component*) override
+        {
+            if (! recursive)
+            {
+                recursive = true;
+
+                const int w = jmax (32, editor.getWidth());
+                const int h = jmax (32, editor.getHeight());
+
+                SizeControl (parentView, (SInt16) w, (SInt16) h);
+
+                if (getWidth() != w || getHeight() != h)
+                    setSize (w, h);
+
+                editor.repaint();
+
+                updateWindowPos();
+                addSubWindow(); // (need this for AULab)
+
+                recursive = false;
+            }
+        }
+
+        bool keyPressed (const KeyPress& kp) override
+        {
+            if (! kp.getModifiers().isCommandDown())
+            {
+                // If we have an unused keypress, move the key-focus to a host window
+                // and re-inject the event..
+                static NSTimeInterval lastEventTime = 0; // check we're not recursively sending the same event
+                NSTimeInterval eventTime = [[NSApp currentEvent] timestamp];
+
+                if (lastEventTime != eventTime)
+                {
+                    lastEventTime = eventTime;
+
+                    [[hostWindow parentWindow] makeKeyWindow];
+                    [NSApp postEvent: [NSApp currentEvent] atStart: YES];
+                }
+            }
+
+            return false;
+        }
+
+    private:
+        HIViewRef parentView;
+        NSWindow* hostWindow;
+        JuceAU::EditorCompHolder editor;
+        bool recursive;
+    };
+};
+
+#endif
 
 //==============================================================================
 #define JUCE_COMPONENT_ENTRYX(Class, Name, Suffix) \
@@ -1232,9 +1723,7 @@ return FactoryType<Class>::Factory(inDesc); \
 
 //==============================================================================
 JUCE_COMPONENT_ENTRY (JuceAU, JucePlugin_AUExportPrefix, Entry)
-JUCE_FACTORY_ENTRY (JuceAU, JucePlugin_AUExportPrefix)
 
-/*
 #ifndef AUDIOCOMPONENT_ENTRY
  #define JUCE_DISABLE_AU_FACTORY_ENTRY 1
 #endif
@@ -1243,9 +1732,12 @@ JUCE_FACTORY_ENTRY (JuceAU, JucePlugin_AUExportPrefix)
 JUCE_FACTORY_ENTRY   (JuceAU, JucePlugin_AUExportPrefix)
 #endif
 
+#if BUILD_AU_CARBON_UI
+ JUCE_COMPONENT_ENTRY (JuceAUView, JucePlugin_AUExportPrefix, ViewEntry)
+#endif
+
 #if ! JUCE_DISABLE_AU_FACTORY_ENTRY
  #include "AUPlugInDispatch.cpp"
 #endif
-*/
 
 #endif

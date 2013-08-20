@@ -71,13 +71,13 @@ void MLKeyEvent::setVoice(int v)
 static const int kDriftInterval = 10;
 
 MLVoice::MLVoice() : 
+    mAge(0),
 	mStartX(0.),
 	mStartY(0.),
 	mPitch(0.),
 	mX1(0.),
 	mY1(0.),
-	mZ1(0.),
-	mAge(0)
+	mZ1(0.)
 {
 	mActive = 0;
 	mNote = 0;
@@ -155,9 +155,9 @@ namespace
 }	
 
 MLProcInputToSignals::MLProcInputToSignals() :
+    mProtocol(-1),
+    mpFrameBuf(0),
 	mCurrentVoices(0),
-	mProtocol(-1),
-	mpFrameBuf(0),
 	mUnisonInputTouch(-1),
 	mSustain(false)
 {

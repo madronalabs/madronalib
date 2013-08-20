@@ -6,13 +6,12 @@
 #include "MLPluginController.h"
 
 MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
-	mpProcessor(pProcessor),
 	MLResponder(),
 	MLReporter(pProcessor),
 	MLSignalReporter(pProcessor),
-	mWrapperFormat(MLPluginFormats::eUndefined),
-	mFileLocationsOK(false),
 	mpView(nullptr),
+    mpProcessor(pProcessor),
+    mFileLocationsOK(false),
 	mCurrentPresetIndex(0)
 {
 	// get parameters and initial values from our processor and create corresponding model params. 
@@ -30,7 +29,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 			pModel->setModelParam(paramName, val);
 		}
 	}
-
+    
 	// get data folder locations
 	mFactoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
 	mUserPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
@@ -74,19 +73,22 @@ void MLPluginController::setView(MLAppView* v)
 	mpView = v; 
 }
 
-void MLPluginController::setPluginWrapperFormat(int format)
-{ 
-	mWrapperFormat = static_cast<MLPluginFormats::pluginFormat>(format); 
+// setup info pertaining to the plugin format we are controlling
+//
+void MLPluginController::initialize()
+{
+    AudioProcessor::WrapperType w = getProcessor()->wrapperType;
+    
 	std::string regStr, bitsStr, pluginType;
-	switch(mWrapperFormat)
+	switch(w)
 	{
-		case MLPluginFormats::eVSTPlugin:
+		case AudioProcessor::wrapperType_VST:
 			pluginType = "VST";
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case AudioProcessor::wrapperType_AudioUnit:
 			pluginType = "AU";
 		break;
-		case MLPluginFormats::eStandalone:
+		case AudioProcessor::wrapperType_Standalone:
 			pluginType = "App";
 		break;
 		default:
@@ -103,7 +105,6 @@ void MLPluginController::setPluginWrapperFormat(int format)
 	mVersionString = std::string("version ");
 	mVersionString += (std::string(MLProjectInfo::versionString));
 	mVersionString += " (" + pluginType + bitsStr + ")";
-
 	
 	regStr = mVersionString;
 	#if DEMO
@@ -111,15 +112,16 @@ void MLPluginController::setPluginWrapperFormat(int format)
 	#else
 		regStr += ", licensed to:\n";
 	#endif
-		
 	
-	// TODO typed widgets?
 	MLAppView* myView = getView();
-	MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
-	if(regLabel)
-	{
-		regLabel->setStringAttribute(MLSymbol("text"), regStr);
-	}	
+    if(myView)
+    {
+        MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
+        if(regLabel)
+        {
+            regLabel->setStringAttribute(MLSymbol("text"), regStr);
+        }
+    }
 }
 
 // --------------------------------------------------------------------------------
@@ -234,7 +236,6 @@ void MLPluginController::multiSliderDragStarted (MLMultiSlider* pSlider, int idx
 	MLPluginProcessor* const filter = getProcessor();
 	if (!filter) return;
 	const MLSymbol paramName = pSlider->getParamName();
-	const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
 	int paramIdx = filter->getParameterIndex(paramName);
 	if (paramIdx >= 0)
 	{
@@ -247,7 +248,6 @@ void MLPluginController::multiSliderDragEnded (MLMultiSlider* pSlider, int idx)
 	MLPluginProcessor* const filter = getProcessor();
 	if (!filter) return;
 	const MLSymbol paramName = pSlider->getParamName();
-	const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
 	int paramIdx = filter->getParameterIndex(paramName);
 	if (paramIdx >= 0)
 	{
@@ -548,7 +548,7 @@ void MLPluginController::doPresetMenu(int result)
 			if (fc.browseForFileToSave (true))
 			{
 				File saveFile = fc.getResult();	
-				getProcessor()->saveStateToFile(saveFile, mWrapperFormat);
+				getProcessor()->saveStateToFile(saveFile);
 				populatePresetMenu();
 			}
 		}
@@ -807,17 +807,17 @@ void MLPluginController::populatePresetMenu()
 	// get plugin type and set extension to look for
 	String pluginType;
 	String presetFileType;
-	switch(mWrapperFormat)
+	switch(mpProcessor->wrapperType)
 	{
-		case MLPluginFormats::eVSTPlugin:
+		case AudioProcessor::wrapperType_VST:
 			pluginType = "VST";
 			presetFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eStandalone:
+		case AudioProcessor::wrapperType_Standalone:
 			pluginType = "App";
 			presetFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case AudioProcessor::wrapperType_AudioUnit:
 			pluginType = "AU";
 			presetFileType = ".aupreset";
 		break;
@@ -935,19 +935,19 @@ void MLPluginController::getPresetsToConvert(Array<File>* pResults)
 
 	String pluginType;
 	String fromFileType, toFileType;
-	switch(mWrapperFormat)
+	switch(mpProcessor->wrapperType)
 	{
-		case MLPluginFormats::eRTASPlugin:
+		case AudioProcessor::wrapperType_RTAS:
 			pluginType = "RTAS";
 			fromFileType = ".aupreset";
 			toFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eVSTPlugin:
+		case AudioProcessor::wrapperType_VST:
 			pluginType = "VST";
 			fromFileType = ".aupreset";
 			toFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case AudioProcessor::wrapperType_AudioUnit:
 			pluginType = "AU";
 			fromFileType = ".mlpreset";
 			toFileType = ".aupreset";
@@ -996,7 +996,7 @@ void MLPluginController::getPresetsToConvert(Array<File>* pResults)
 class PresetConverterThread  : public ThreadWithProgressWindow
 {
 public:
-    PresetConverterThread(Array<File> &pFilesToConvert, MLPluginProcessor* filter, MLPluginFormats::pluginFormat format)
+    PresetConverterThread(Array<File> &pFilesToConvert, MLPluginProcessor* filter, AudioProcessor::WrapperType format)
         : ThreadWithProgressWindow (String::empty, true, true),
 		mpFiles(pFilesToConvert),
 		mpFilter(filter),
@@ -1005,10 +1005,10 @@ public:
         setStatusMessage ("Getting ready...");
 		switch(mFormat)
 		{
-			case MLPluginFormats::eVSTPlugin:
+			case AudioProcessor::wrapperType_VST:
 				mExtension = ".mlpreset";
 			break;
-			case MLPluginFormats::eAUPlugin:
+			case AudioProcessor::wrapperType_AudioUnit:
 				mExtension = ".aupreset";
 			break;
 			default:
@@ -1052,7 +1052,7 @@ public:
 				else if (mExtension == ".aupreset")
 				{
 					mpFilter->loadStateFromFile(fromFile);
-					mpFilter->saveStateToFile(toFile, mFormat);
+					mpFilter->saveStateToFile(toFile);
 					wait(10); 
 				}
 			}
@@ -1066,8 +1066,8 @@ public:
 	private:
 		Array<File> &mpFiles;
 		MLPluginProcessor* mpFilter;
-		MLPluginFormats::pluginFormat mFormat;
 		String mExtension;
+        AudioProcessor::WrapperType mFormat;
 };
 
 
@@ -1082,15 +1082,15 @@ void MLPluginController::convertPresets()
 	getPresetsToConvert(&filesToConvert);
 	int numFiles = filesToConvert.size();
 	String fromFileType, toFileType, fromPluginType, toPluginType;
-	switch(mWrapperFormat)
+	switch(mpProcessor->wrapperType)
 	{
-		case MLPluginFormats::eVSTPlugin:
+		case AudioProcessor::wrapperType_VST:
 			fromPluginType = "AU";
 			toPluginType = "VST";
 			fromFileType = ".aupreset";
 			toFileType = ".mlpreset";
 		break;
-		case MLPluginFormats::eAUPlugin:
+		case AudioProcessor::wrapperType_AudioUnit:
 			fromPluginType = "VST";
 			toPluginType = "AU";
 			fromFileType = ".mlpreset";
@@ -1124,7 +1124,7 @@ void MLPluginController::convertPresets()
 			
 		if (userPickedOk)
 		{
-			PresetConverterThread demoThread(filesToConvert, getProcessor(), mWrapperFormat);
+			PresetConverterThread demoThread(filesToConvert, getProcessor(), mpProcessor->wrapperType);
 
 			if (demoThread.runThread())
 			{

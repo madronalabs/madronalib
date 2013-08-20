@@ -58,8 +58,8 @@ namespace
 MLProcRate::MLProcRate() :
 	mRate(1.),
 	mX1(0),
-	mxv(0),
 	mY1(0),
+    mxv(0),
 	mRatio1(1.f),
 	mCorrectedRatio(1.f),
 	mFilteredRatio(1.f),

@@ -8,7 +8,8 @@
 
 #include "MLProjectInfo.h"
 #include "MLUI.h"
-#include "MLPluginFormats.h"
+
+const int kMLPluginMIDIPrograms = 127;
 
 class MLPluginProcessor;
 
@@ -20,14 +21,8 @@ public:
     ~MLPluginEditor();
 
 	void paint(Graphics& g);
-
-	virtual void setWrapperFormat(int format);
 	
 	MLRect getWindowBounds();
-
-protected:
-	int mWrapperFormat;
-	juce::String mVersionString;
 };
 
 #endif  // __ML_PLUGINEDITOR_H__
