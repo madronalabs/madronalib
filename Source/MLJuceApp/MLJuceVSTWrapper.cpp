@@ -25,10 +25,11 @@
 
 // Your project must contain an AppConfig.h file with your project-specific settings in it,
 // and your header search path must make it accessible to the module's files.
-#if ML_BUILD_VST // && JucePlugin_Build_VST
+
+#if ML_BUILD_VST
 
 #include "AppConfig.h"
-#include "juce_CheckSettingMacros.h"
+#include "modules/juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
 
 #ifdef _MSC_VER
   #pragma warning (disable : 4996 4100)
@@ -92,9 +93,9 @@
  #pragma pack (push, 8)
 #endif
 
-#include "../utility/juce_IncludeModuleHeaders.h"
-#include "../utility/juce_FakeMouseMoveGenerator.h"
-#include "../utility/juce_PluginHostType.h"
+#include "modules/juce_audio_plugin_client/utility/juce_IncludeModuleHeaders.h"
+#include "modules/juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h"
+#include "modules/juce_audio_plugin_client/utility/juce_PluginHostType.h"
 
 #include "MLPluginProcessor.h"
 
@@ -114,7 +115,7 @@ namespace juce
   extern void initialiseMac();
   extern void* attachComponentToWindowRef (Component* component, void* windowRef);
   extern void detachComponentFromWindowRef (Component* component, void* nsWindow);
-  extern void setNativeHostWindowSize (void* nsWindow, Component* editorComp, int newWidth, int newHeight, const PluginHostType& host);
+  extern void setNativeHostWindowSize (void* nsWindow, Component* editorComp, int newWidth, int newHeight);
   extern void checkWindowVisibility (void* nsWindow, Component* component);
   extern bool forwardCurrentKeyEventToHost (Component* component);
  #endif
@@ -1116,12 +1117,7 @@ public:
                 ed->setVisible (true);
 
                 editorComp = new EditorCompWrapper (*this, ed);
- 				
-				// ML
-				MLPluginEditor* mlEditor = static_cast<MLPluginEditor*> (ed);
-				mlEditor->setWrapperFormat(MLPluginFormats::eVSTPlugin);
-				// ML
-			}
+ 			}
             else
             {
                 cEffect.flags &= ~effFlagsHasEditor;
@@ -1260,7 +1256,7 @@ public:
             {
                 // some hosts don't support the sizeWindow call, so do it manually..
                #if JUCE_MAC
-                setNativeHostWindowSize (hostWindow, editorComp, newWidth, newHeight, getHostType());
+                setNativeHostWindowSize (hostWindow, editorComp, newWidth, newHeight);
 
                #elif JUCE_LINUX
                 // (Currently, all linux hosts support sizeWindow, so this should never need to happen)

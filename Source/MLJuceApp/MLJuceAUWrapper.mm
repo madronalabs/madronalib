@@ -24,6 +24,9 @@
 
 // Your project must contain an AppConfig.h file with your project-specific settings in it,
 // and your header search path must make it accessible to the module's files.
+
+#if ML_BUILD_AU
+
 #include "AppConfig.h"
 
 #include "modules/juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
@@ -1738,6 +1741,8 @@ JUCE_FACTORY_ENTRY   (JuceAU, JucePlugin_AUExportPrefix)
 
 #if ! JUCE_DISABLE_AU_FACTORY_ENTRY
  #include "AUPlugInDispatch.cpp"
+#endif
+
 #endif
 
 #endif

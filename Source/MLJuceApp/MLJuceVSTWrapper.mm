@@ -34,48 +34,44 @@
 // and your header search path must make it accessible to the module's files.
 #include "AppConfig.h"
 
-#include "juce_CheckSettingMacros.h"
-
-#if JucePlugin_Build_VST
-
-#define JUCE_MAC_WINDOW_VISIBITY_BODGE 1
-
-#include "../utility/juce_IncludeSystemHeaders.h"
-#include "../utility/juce_IncludeModuleHeaders.h"
-#include "../utility/juce_FakeMouseMoveGenerator.h"
-#if ! JUCE_64BIT
-	#include "../utility/juce_CarbonVisibility.h"
-#endif
-#include "../utility/juce_PluginHostType.h"
+#include "modules/juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
+#include "modules/juce_audio_plugin_client/utility/juce_IncludeSystemHeaders.h"
+#include "modules/juce_audio_plugin_client/utility/juce_IncludeModuleHeaders.h"
+#include "modules/juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h"
+#include "modules/juce_audio_plugin_client/utility/juce_CarbonVisibility.h"
+#include "modules/juce_audio_plugin_client/utility/juce_PluginHostType.h"
 
 //==============================================================================
+
 namespace juce
 {
-#if ! JUCE_64BIT
-static void updateComponentPos (Component* const comp)
-{
-    HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
-                            comp->getProperties() ["dummyViewRef"].toString().getHexValue64();
 
-    HIRect r;
-    HIViewGetFrame (dummyView, &r);
-    HIViewRef root;
-    HIViewFindByID (HIViewGetRoot (HIViewGetWindow (dummyView)), kHIViewWindowContentID, &root);
-    HIViewConvertRect (&r, HIViewGetSuperview (dummyView), root);
-
-    Rect windowPos;
-    GetWindowBounds (HIViewGetWindow (dummyView), kWindowContentRgn, &windowPos);
-
-    comp->setTopLeftPosition ((int) (windowPos.left + r.origin.x),
-                              (int) (windowPos.top + r.origin.y));
-}
-
-static pascal OSStatus viewBoundsChangedEvent (EventHandlerCallRef, EventRef, void* user)
-{
-    updateComponentPos ((Component*) user);
-    return noErr;
-}
+#if (! JUCE_64BIT) && (JUCE_SUPPORT_CARBON)
+    static void updateComponentPos (Component* const comp)
+    {
+        HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
+        comp->getProperties() ["dummyViewRef"].toString().getHexValue64();
+        
+        HIRect r;
+        HIViewGetFrame (dummyView, &r);
+        HIViewRef root;
+        HIViewFindByID (HIViewGetRoot (HIViewGetWindow (dummyView)), kHIViewWindowContentID, &root);
+        HIViewConvertRect (&r, HIViewGetSuperview (dummyView), root);
+        
+        Rect windowPos;
+        GetWindowBounds (HIViewGetWindow (dummyView), kWindowContentRgn, &windowPos);
+        
+        comp->setTopLeftPosition ((int) (windowPos.left + r.origin.x),
+                                  (int) (windowPos.top + r.origin.y));
+    }
+    
+    static pascal OSStatus viewBoundsChangedEvent (EventHandlerCallRef, EventRef, void* user)
+    {
+        updateComponentPos ((Component*) user);
+        return noErr;
+    }
 #endif
+
 
 //==============================================================================
 void initialiseMac();
@@ -90,7 +86,10 @@ void* attachComponentToWindowRef (Component* comp, void* windowRef);
 void* attachComponentToWindowRef (Component* comp, void* windowRef)
 {
     JUCE_AUTORELEASEPOOL
-
+    {
+        #if 1 //JUCE_64BIT
+        NSView* parentView = (NSView*) windowRef;
+        
        #if JucePlugin_EditorRequiresKeyboardFocus
         comp->addToDesktop (0, parentView);
        #else
@@ -179,10 +178,10 @@ void detachComponentFromWindowRef (Component* comp, void* nsWindow)
 {
     JUCE_AUTORELEASEPOOL
     {
-       #if JUCE_64BIT
+       #if 1// JUCE_64BIT
         comp->removeFromDesktop();
        #else
-        EventHandlerRef ref = (EventHandlerRef) (void*) (pointer_sized_int)
+        AEventHandlerRefref = (EventHandlerRef) (void*) (pointer_sized_int)
                                     comp->getProperties() ["boundsEventRef"].toString().getHexValue64();
         RemoveEventHandler (ref);
 
@@ -214,12 +213,13 @@ void detachComponentFromWindowRef (Component* comp, void* nsWindow)
     }
 }
 
+    
 void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth, int newHeight);
 void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth, int newHeight)
 {
     JUCE_AUTORELEASEPOOL
     {
-       #if JUCE_64BIT
+       #if 1// JUCE_64BIT
         if (NSView* hostView = (NSView*) nsWindow)
         {
             // xxx is this necessary, or do the hosts detect a change in the child view and do this automatically?
