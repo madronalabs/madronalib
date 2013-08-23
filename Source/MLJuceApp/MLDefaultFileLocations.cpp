@@ -39,11 +39,11 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		}
 		else if (whichFiles == kFactoryPresetFiles)
 		{
-			dest = String("Madrona Labs") + "/" + ProjectInfo::projectName + "/Presets";
+			dest = String("Madrona Labs") + "/" + MLProjectInfo::projectName + "/Presets";
 		}
 		else if (whichFiles == kUserPresetFiles)
 		{
-			dest = String("Madrona Labs") + "/" + ProjectInfo::projectName + "/Presets";
+			dest = String("Madrona Labs") + "/" + MLProjectInfo::projectName + "/Presets";
 		}
 
 #elif JUCE_LINUX

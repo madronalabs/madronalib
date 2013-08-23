@@ -8,6 +8,7 @@
 
 #include "MLPlatform.h"
 #include "MLTextStreamListener.h"
+#include "JuceHeader.h" // requires JUCE only for message thread checking
 
 #include <iostream>
 
