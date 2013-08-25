@@ -59,7 +59,7 @@ public:
 	// --------------------------------------------------------------------------------
 	bool hasEditor() const { return true; }
 	AudioProcessorEditor* createEditor();
-    const String getName() const        { return JucePlugin_Name; }
+    const String getName() const { return MLProjectInfo::projectName; }
 
 	// --------------------------------------------------------------------------------
 	// parameters
