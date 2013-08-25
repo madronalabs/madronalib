@@ -89,19 +89,7 @@ void MLDemoInstrumentEditor::initialize (MLPluginProcessor* )
 	mpController->initialize();
 	mpController->updateAllParams();
 	
-    // TEST
-	mpBorder->setSize(getWidth(), getHeight());
-    
     addAndMakeVisible(mpBorder);
-    
-    
-    // TEST
-    pGainSlider = new Slider();
-    addAndMakeVisible (pGainSlider);
-    pGainSlider->setSliderStyle (Slider::Rotary);
-    pGainSlider->addListener (this);
-    pGainSlider->setRange (0.0, 1.0, 0.01);
-	pGainSlider->setBufferedToImage(true);
     
     debug() << "CREATING MLDemoInstrumentEditor\n";
 }
@@ -111,26 +99,4 @@ void MLDemoInstrumentEditor::resized()
     debug() << "MLDemoInstrumentEditor:: RESIZED to " << getWidth() << ", " << getHeight() << "\n";
 	
     mpBorder->setSize(getWidth(), getHeight());
-    
-    //TEST
-    pGainSlider->setBounds (20, 60, 150, 40);
-    
-    
-    //    resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
 }
-
-void MLDemoInstrumentEditor::setWrapperFormat(int format)
-{ 
-	MLPluginEditor::setWrapperFormat(format);
-	mpController->setPluginWrapperFormat(format);
-	mpController->setupMenus();
-}
-
-// This is our Slider::Listener callback, when the user drags a slider.
-void MLDemoInstrumentEditor::sliderValueChanged (Slider* slider)
-{
-    if (slider == pGainSlider)
-    {
-    }
-}
-
