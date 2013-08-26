@@ -46,7 +46,7 @@ void MLTextStream::flush()
 
 void MLTextStream::display()
 {
-	if (!(MessageManager::getInstance()->isThisTheMessageThread())) 
+	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
 	{
 		return;
 	}
