@@ -87,7 +87,9 @@ MLDial::MLDial () :
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	setOpaque(myLookAndFeel->getDefaultOpacity());
-	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
+    
+    // TODO sort out issues with Retina and buffering
+	setBufferedToImage(true);//(myLookAndFeel->getDefaultBufferMode());
 
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
 
@@ -953,7 +955,6 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 		}
 	}
 	
-
 	if(mThumbLayerNeedsRedraw)
 	{
 		Graphics tg(mThumbImage);	
@@ -1096,7 +1097,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	ttop = cy + mMargin*uBounds.height()*0.5f;
 	tleft = cx;
 
-	// parameter layer
+ 	// parameter layer
 	if (mParameterLayerNeedsRedraw)
 	{	
 		Graphics pg(mParameterImage);	
@@ -1150,7 +1151,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
             pg.strokePath (track, PathStrokeType(m));			
 		}
 	}
-	
+    
 	// static layer
 	if (mStaticLayerNeedsRedraw)
     {
@@ -1242,26 +1243,26 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		
 	// draw number text over composited images
 	if (mParameterLayerNeedsRedraw)
-	{				
+	{
 		if (myLookAndFeel->mDrawNumbers && mDoNumber)
 		{
 			// draw background under text
-			if (!isOpaque()) 
-				myLookAndFeel->drawBackgroundRect(g, this, mRotaryTextRect);	
-
-			float textSize = mTextSize;			
+			if (!isOpaque())
+				myLookAndFeel->drawBackgroundRect(g, this, mRotaryTextRect);
+            
+			float textSize = mTextSize;
 			float op = isEnabled() ? 1.f : 0.4f;
 			const char* numBuf = myLookAndFeel->formatNumber(getValue(), mDigits, mPrecision, mDoSign, mValueDisplayMode);
-			myLookAndFeel->drawNumber(g, numBuf, tleft, ttop, boundsRect.getWidth() - tleft, textSize, 
-				findColour(MLLookAndFeel::outlineColor).withAlpha(op)); 
+			myLookAndFeel->drawNumber(g, numBuf, tleft, ttop, boundsRect.getWidth() - tleft, textSize,
+                                      findColour(MLLookAndFeel::outlineColor).withAlpha(op));
 		}
 	}
-
-	if(mStaticImage.isValid())
+    
+ 	if(mStaticImage.isValid())
 	{
-		g.drawImage (mStaticImage,rx, ry, rw, rh, rx, ry, rw, rh, false); 
+		g.drawImage (mStaticImage,rx, ry, rw, rh, rx, ry, rw, rh, false);
 	}
-	
+ 	
 	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = false;
 }
 
@@ -2007,6 +2008,8 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 	Component* pC = getComponent();
 	if(pC)
 	{
+ 		MLWidget::resizeWidget(b, u);
+     
 		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 		const MLRect uBounds = getGridBounds();
 		bool multi = (isTwoOrThreeValued());
@@ -2153,6 +2156,27 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 
 		pC->setBounds(cBounds);
 		
+        // get display scale
+        int displayScale = 1;
+        
+        // TODO fix display scale and move code into MLWidget 
+        /*
+        // get the top-level window containing this Component
+        ComponentPeer* peer = getPeer();
+        if(peer)
+        {
+            Rectangle<int> peerBounds = peer->getBounds();
+            const Desktop::Displays::Display& d = Desktop::getInstance().getDisplays().getDisplayContaining(peerBounds.getCentre());
+            displayScale = (int)d.scale;
+             if(getWidgetName() == "key_voices")
+             {
+                debug() << "RESIZEWIDGET: " << getWidgetName() << ", " << b << "\n";
+                debug() << "    peer bounds: " << juceToMLRect(peerBounds) << "\n";
+                debug() << "    display scale: " << displayScale << "\n";
+            }
+        }
+         */
+        
 		// make compositing images
 		if ((width > 0) && (height > 0))
 		{
@@ -2162,9 +2186,11 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			mParameterImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
 			mThumbImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
 			mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-			mStaticImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
+            
+			mStaticImage = Image(Image::ARGB, compWidth * displayScale, compHeight*displayScale, true, SoftwareImageType());
 			mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-		}	
+            
+		}
 		
 		mParameterLayerNeedsRedraw = mThumbLayerNeedsRedraw = mStaticLayerNeedsRedraw = true;
 		resized();
