@@ -118,6 +118,20 @@ MLRect MLWidget::getWidgetWindowBounds()
 	return MLRect();
 }
 
+double MLWidget::getBackingLayerScale() const
+{
+    ComponentPeer* peer = pComponent->getPeer();
+    if(peer)
+    {
+        Rectangle<int> peerBounds = peer->getBounds();
+        return Desktop::getInstance().getDisplays().getDisplayContaining(peerBounds.getCentre()).scale;
+    }
+    else
+    {
+        return Desktop::getInstance().getDisplays().getDisplayContaining(pComponent->getScreenBounds().getCentre()).scale;
+    }
+}
+
 void MLWidget::resizeWidget(const MLRect& b, const int)
 {
 	// adapt vrect to juce rect

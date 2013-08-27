@@ -49,6 +49,11 @@ public:
 	MLRect getWidgetBounds();
 	MLRect getWidgetLocalBounds();
 	MLRect getWidgetWindowBounds();
+    
+    double getBackingLayerScale() const;    
+    int getBackingLayerWidth() const { return (int)(getBackingLayerScale() * pComponent->getWidth()); }
+    int getBackingLayerHeight() const  { return (int)(getBackingLayerScale() * pComponent->getHeight()); }
+
 	int getWidgetGridUnitSize(void) const { return mGridUnitSize; }
 	void setSizeMultiplier(float f) { mSize = f; }
 	float getSizeMultiplier() { return mSize; }
