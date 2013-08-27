@@ -1242,7 +1242,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	}
 		
 	// draw number text over composited images
-	if (mParameterLayerNeedsRedraw)
+	if (1)//(mParameterLayerNeedsRedraw)
 	{
 		if (myLookAndFeel->mDrawNumbers && mDoNumber)
 		{

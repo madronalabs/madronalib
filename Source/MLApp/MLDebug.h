@@ -64,8 +64,18 @@ private:
 	int mItemsInLocalStream;
 };
 
+// Send a message to the application’s or plugin’s debug output stream.
+// in release builds this will be disabled completely.
+//
 extern MLTextStream& debug(void);
+                    
+// Send a message to the application or plugin’s error output.
+// in release builds these messages will still be logged.
+//
 extern MLTextStream& MLError(void);
+
+// Send a message to the application or plugin’s console, if one exists.
+//
 extern MLTextStream& MLConsole(void);
 
 #endif // _ML_DEBUG_H
