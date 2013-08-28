@@ -78,3 +78,8 @@ void MLAppWindow::setContent(MLAppView* contentView)
 	mpBorder->addMainView(contentView);
 
 }
+
+void MLAppWindow::closeButtonPressed()
+{
+    JUCEApplication::getInstance()->systemRequestedQuit();
+}

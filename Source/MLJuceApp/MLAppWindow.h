@@ -20,6 +20,7 @@ public:
 	void mouseDrag (const MouseEvent& e);	
 	void setGridUnits(double gx, double gy);
 	void setContent(MLAppView* newView);
+    void closeButtonPressed();
 
 private:
  	ComponentDragger myDragger;
