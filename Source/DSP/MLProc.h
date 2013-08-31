@@ -90,7 +90,20 @@ friend class MLProcFactory;
 				map.addEntry(paramName);
 			}
 		}
+#ifdef DEBUG
+        MLParamValue* paramToSet = mParams[paramName];
+        if (paramToSet != mParams.getNullElement())
+        {
+            *paramToSet = value;
+        }
+        else
+        {
+            debug() << "setParam: " << getClassName() << " has no parameter " << paramName << "!\n";
+        }
+         
+#else
 		*(mParams[paramName]) = value;
+#endif
 	}
 	
 	MLParamValue getParam(const MLSymbol paramName)
