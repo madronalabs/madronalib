@@ -113,6 +113,8 @@ void MLProcContainer::compile()
 	const bool verbose = false;	
 	err e = OK;
 
+debug() << "compiling container " << getName() << ":\n";
+    
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
 	// in other words we just copy mProcList to mOpsList.
@@ -262,6 +264,8 @@ void MLProcContainer::compile()
 	// for each output signal from this container,
 	for(int i = 0; i < (int)mPublishedOutputs.size(); ++i)
 	{
+        
+         
 		// get src proc and index of output
 		MLPublishedOutputPtr output = mPublishedOutputs[i];
 		MLProcPtr outputProc = output->mSrc;	
@@ -269,6 +273,12 @@ void MLProcContainer::compile()
 		MLSymbol outputProcName = outputProc->getName();//.withNumber(0);		// number?
 		MLSymbol sigName = compileOpsMap[outputProcName]->outputs[outputIdx - 1];
 		
+        if(1) // DEBUG
+        {
+            debug() << "    published output " << i << ": out " << outputIdx << " of proc " << outputProcName << "\n";
+        }
+        
+        
 		// if output wasn't previously connected to anything
 		if (!sigName)
 		{
@@ -286,10 +296,11 @@ void MLProcContainer::compile()
 
 		// set lifespan of output signal, from op's position to end.
 		signals[sigName].addLifespan(pOp->listIdx, mOpsList.size() - 1);
-//debug() << "adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
+debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
 		
 		// add published output to list
 		signals[sigName].mPublishedOutput = i + 1;
+debug() << "    signal " << sigName << " gets output  " << i + 1 << "\n";
 		compileOutputs.push_back(sigName);
 	}
 	
@@ -318,7 +329,7 @@ void MLProcContainer::compile()
 	
 	for (std::map<MLSymbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
 	{
-		// MLSymbol sigName = ((*it).first);
+		MLSymbol sigName = ((*it).first);
 		compileSignal* pCompileSig = &((*it).second);
 		bool needsBuffer = true;
 		
@@ -331,20 +342,29 @@ void MLProcContainer::compile()
 		{		
 			// get src proc and index of output
 			int i = pCompileSig->mPublishedOutput;
-			MLPublishedOutputPtr output = mPublishedOutputs[i - 1];
-			MLProcPtr outputProc = output->mSrc;	
-			int outputIdx = output->mSrcOutputIndex;				
+            if(i <= mPublishedOutputs.size())
+            {
+                MLPublishedOutputPtr output = mPublishedOutputs[i - 1];
+                MLProcPtr outputProc = output->mSrc;	
+                int outputIdx = output->mSrcOutputIndex;				
 
-			// has a signal been allocated?
-			if(outputProc->outputIsValid(outputIdx))
-			{
-				pCompileSig->mpSigBuffer = &outputProc->getOutput(outputIdx);
-				needsBuffer = false;
-			}
-			else
-			{
-				needsBuffer = true;
-			}
+                // has a signal been allocated?
+                if(outputProc->outputIsValid(outputIdx))
+                {
+                    pCompileSig->mpSigBuffer = &outputProc->getOutput(outputIdx);
+                    needsBuffer = false;
+                }
+                else
+                {
+                    needsBuffer = true;
+                }
+            }
+            else
+            {
+                // TODO this is not very informative. Try to explain what is happening at a higher level.
+                MLError() << "MLProcContainer::compile(): bad published output in " << getName() << " for signal " << sigName << "\n";
+                MLError() << "    (" << i + 1 << " of " << mPublishedOutputs.size() << ")\n";
+            }
 		}
 		else 
 		{	
