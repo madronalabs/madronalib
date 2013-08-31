@@ -6,7 +6,7 @@
 #include "MLVector.h"
 #include "MLGL.h"
 
-void orthoView(int width, int height)
+void MLGL::orthoView(int width, int height)
 {
     glViewport(0,0,width,height);
  
@@ -20,7 +20,7 @@ void orthoView(int width, int height)
 }
 
 #if ML_MAC // TEMP add GLUT Windows
-void worldView(float aspect)
+void MLGL::worldView(float aspect)
 {
  	// setup world viewing coordinates
 	glMatrixMode(GL_PROJECTION);
@@ -34,7 +34,8 @@ void worldView(float aspect)
 }
 #endif
 
-void fillRect(const MLRect& r)
+// TEMP
+void MLGL::fillRect(const MLRect& r)
 {
 	glBegin(GL_QUADS);
 	const MLRect tr = r;
@@ -45,13 +46,75 @@ void fillRect(const MLRect& r)
 	glEnd();
 }
 
-void frameRect(const MLRect& r)
+// TEMP
+void MLGL::strokeRect(const MLRect& r)
 {
 	glBegin(GL_LINE_LOOP);
-	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
-	glVertex2f(tr.left(), tr.top());
-	glVertex2f(tr.right()-1, tr.top());
-	glVertex2f(tr.right()-1, tr.bottom()-1);
-	glVertex2f(tr.left(), tr.bottom()-1);
+//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
+	glVertex2f(r.left(), r.top());
+	glVertex2f(r.right(), r.top());
+	glVertex2f(r.right(), r.bottom());
+	glVertex2f(r.left(), r.bottom());
 	glEnd();
 }
+
+// TEMP
+void MLGL::drawTextAt(float x, float y, float z, const char* ps)
+{
+	int len, i;
+    
+	glRasterPos3f(x, y, z);
+	len = (int) strlen(ps);
+	for (i = 0; i < len; i++)
+	{
+		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ps[i]);
+	}
+}
+
+Vec2 MLGL::worldToScreen(const Vec3& world)
+{
+	GLint viewport[4];
+	GLdouble mvmatrix[16], projmatrix[16];
+	GLdouble wx, wy, wz;
+    
+	glGetIntegerv(GL_VIEWPORT, viewport);
+	glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
+	glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+	
+	GLint result = gluProject(world[0], world[1], world[2],
+                              mvmatrix, projmatrix, viewport,
+                              &wx, &wy, &wz);
+	
+	if (result == GL_TRUE)
+	{
+		return Vec2(wx, wy);
+	}
+	else
+	{
+		return Vec2(0, 0);
+	}
+}
+
+// temporary, ugly
+void MLGL::drawDot(Vec2 pos)
+{
+    
+	Vec4 dotColor(0.8f, 0.8f, 0.8f, 1.f);
+	glColor4fv(&dotColor[0]);
+	int steps = 16;
+	float r = 0.04f;
+    
+	float x = pos.x();
+	float y = pos.y();
+    
+	glBegin(GL_TRIANGLE_FAN);
+	glVertex2f(x, y);
+	for(int i=0; i<=steps; ++i)
+	{
+		float theta = kMLTwoPi * (float)i / (float)steps;
+		float rx = r*cosf(theta);
+		float ry = r*sinf(theta);
+		glVertex3f(x + rx, y + ry, 0.f);
+	}
+	glEnd();
+}	

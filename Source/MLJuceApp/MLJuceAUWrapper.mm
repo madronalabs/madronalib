@@ -1435,7 +1435,7 @@ public:
                                       kAudioUnitScope_Global, 0, pointers, &propertySize) == noErr)
             {
                 if (AudioProcessor* filter = static_cast <AudioProcessor*> (pointers[0]))
-                    if (AudioProcessorEditor* editorComp = filter->createEditorIfNeeded())
+                    if (AudioProcessorEditor* editorComp = filter->createEditorIfNeeded()) 
                         return EditorCompHolder::createViewFor (filter, static_cast <JuceAU*> (pointers[1]), editorComp);
             }
 

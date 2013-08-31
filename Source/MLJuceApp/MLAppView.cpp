@@ -26,7 +26,7 @@ MLAppView::MLAppView(MLResponder* pResp, MLReporter* pRep) :
 
 MLAppView::~MLAppView()
 {
-	
+    debug() << "DELETING " << getWidgetName() << "\n";
 	setAnimationsActive(false);
 	deleteAllChildren();
 }

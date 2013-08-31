@@ -123,14 +123,15 @@ void MLLabel::paint (Graphics& g)
 			mJustification, 2, 1.0);		
 	}
 	
-	/*
-	// TEST show bounds
-	Path tbounds;
-	const Rectangle<int> & boundsRect ( getLocalBounds());	
-	tbounds.addRectangle(boundsRect);
-	g.setColour(Colours::red);	
-	g.strokePath(tbounds, PathStrokeType(0.5f));
-	*/
+	if(0)
+    {
+        // TEST show bounds
+        Path tbounds;
+        const Rectangle<int> & boundsRect ( getLocalBounds());	
+        tbounds.addRectangle(boundsRect);
+        g.setColour(Colours::red);	
+        g.strokePath(tbounds, PathStrokeType(0.5f));
+	}
 }
 
 void MLLabel::setText (const char* newText)

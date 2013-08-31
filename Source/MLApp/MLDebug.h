@@ -41,7 +41,11 @@ public:
 				// to grow without limit.
 				if(mItemsInLocalStream++ < kMaxLocalItems)
 				{
+#ifdef DEBUG
+                    std::cout << item;
+#else
 					mLocalStream << item;
+#endif
 				}
 			}
 		}

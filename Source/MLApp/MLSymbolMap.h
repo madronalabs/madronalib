@@ -128,6 +128,8 @@ public:
 		}
 		return p;
 	}
+                
+    arrayElement* getNullElement() const { return &mNullData; }
 	
 private:
 
