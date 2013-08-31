@@ -43,7 +43,8 @@ public:
 	MLVec(const MLVec& b) : val(b.val) {}
 	MLVec(const float a, const float b, const float c, const float d)
 		{ val.f[0] = a; val.f[1] = b; val.f[2] = c; val.f[3] = d; }
-	inline MLVec(__m128 vk) { val.v = vk; } 
+	MLVec(const float* fb) : val(fb[0], fb[1], fb[2], fb[3]) {}
+	inline MLVec(__m128 vk) { val.v = vk; }
 	inline void clear() { val.v = _mm_setzero_ps(); }
 	inline void set(float f) { val.v = _mm_set1_ps(f); }
 	inline MLVec & operator+=(const MLVec& b) { val.v = _mm_add_ps(val.v, b.val.v); return *this; }
@@ -57,6 +58,8 @@ public:
 	MLVec(const MLVec& b) { val = b.val; }
 	MLVec(const float a, const float b, const float c, const float d)
 		{ val.f[0] = a; val.f[1] = b; val.f[2] = c; val.f[3] = d; }
+	MLVec(const float* fb) 
+        { val.f[0] = fb[0]; val.f[1] = fb[1]; val.f[2] = fb[2]; val.f[3] = fb[3]; }
 	inline void clear()
 		{ val.f[0] = val.f[1] = val.f[2] = val.f[3] = 0.f; }
 	inline void set(float f) 
@@ -215,6 +218,8 @@ public:
 	
 	inline void expand(float d){ stretchWidth(d); stretchHeight(d); }
 	inline void expand(const Vec2& b){ stretchWidth(b.x()); stretchHeight(b.y()); }
+	inline void shrink(float d){ expand(-d); }
+	inline void shrink(const Vec2& b){ expand(-b); }
 	
 	MLRect translated(const Vec2& b) const;
 	MLRect withCenter(const Vec2& b) const;
