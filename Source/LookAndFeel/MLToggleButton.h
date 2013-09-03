@@ -9,9 +9,6 @@
 #include "MLUI.h"
 #include "MLButton.h"
 
-typedef std::tr1::shared_ptr<Drawable> DrawablePtr;
-
-
 class MLToggleButton : 
 	public MLButton
 {

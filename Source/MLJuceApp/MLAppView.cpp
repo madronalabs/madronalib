@@ -119,26 +119,41 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	return b;
 }
 
-MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName, 
-	const Colour& color, const float sizeMultiplier)
-{	
+MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName,
+                                     const Colour& color, const float sizeMultiplier)
+{
 	MLButton* button = new MLToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setParamName(paramName);
-
-	button->setListener(getResponder());	
-
-	button->setFillColor(color); 
-
+	button->setListener(getResponder());
+	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
-	
 	addParamView(paramName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
 		addLabelAbove(button, displayName, sizeMultiplier);
 	}
+    
+	return button;
+}
 
+MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName,
+                                     const Colour& color, const float sizeMultiplier)
+{
+	MLButton* button = new MLTriToggleButton;
+	button->setSizeMultiplier(sizeMultiplier);
+	button->setParamName(paramName);
+	button->setListener(getResponder());
+	button->setFillColor(color);
+	addWidgetToView(button, r, paramName);
+	addParamView(paramName, button, MLSymbol("value"));
+	
+	if (strcmp(displayName, ""))
+	{
+		addLabelAbove(button, displayName, sizeMultiplier);
+	}
+    
 	return button;
 }
 

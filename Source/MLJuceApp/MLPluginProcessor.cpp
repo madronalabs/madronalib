@@ -132,11 +132,11 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		{
 			bool makeSignalInputs = inChans > 0;
 			r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI()); 
-			// debug() << getNumParameters() << " parameters in description.\n";
+			debug() << getNumParameters() << " parameters in description.\n";
 		}
 		else
 		{
-			//debug() << "MLPluginProcessor graph OK.\n";
+			debug() << "MLPluginProcessor graph OK.\n";
 		}
 
 #ifdef DEBUG
@@ -162,7 +162,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			debug() << "MLPluginProcessor: prepareToPlay error: \n";
 		}
 		
-		// mEngine.dump(); 
+		mEngine.dump(); 
 			
 		// after prepare to play, set state from saved blob if one exists
 		const unsigned blobSize = mSavedParamBlob.getSize();

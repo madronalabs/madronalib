@@ -264,44 +264,50 @@ debug() << "compiling container " << getName() << ":\n";
 	// for each output signal from this container,
 	for(int i = 0; i < (int)mPublishedOutputs.size(); ++i)
 	{
-        
-         
-		// get src proc and index of output
+ 		// get src proc and index of output
 		MLPublishedOutputPtr output = mPublishedOutputs[i];
 		MLProcPtr outputProc = output->mSrc;	
 		int outputIdx = output->mSrcOutputIndex;	
 		MLSymbol outputProcName = outputProc->getName();//.withNumber(0);		// number?
-		MLSymbol sigName = compileOpsMap[outputProcName]->outputs[outputIdx - 1];
 		
         if(1) // DEBUG
         {
-            debug() << "    published output " << i << ": out " << outputIdx << " of proc " << outputProcName << "\n";
+            debug() << "    publishing output " << i << ": out " << outputIdx << " of proc " << outputProcName << "\n";
         }
         
-        
-		// if output wasn't previously connected to anything
-		if (!sigName)
-		{
-			// add a new compileSignal to map
-			sigName = nameMaker.nextName();
-			signals[sigName] = (compileSignal());
-		
-			// mark the output source with the new signal.
-			compileOpsMap[outputProcName]->outputs[outputIdx - 1] = sigName;			
-		}
+        compileOp* pOutputOp = compileOpsMap[outputProcName];
+		if (!pOutputOp)
+        {
+            MLError() << "compile error: can’t connect output for proc " << outputProcName << " !\n";            
+        }
+        else
+        {
+            MLSymbol sigName = pOutputOp->outputs[outputIdx - 1];
+            
+            // if output wasn't previously connected to anything
+            if (!sigName)
+            {
+                // add a new compileSignal to map
+                sigName = nameMaker.nextName();
+                signals[sigName] = (compileSignal());
+            
+                // mark the output source with the new signal.
+                compileOpsMap[outputProcName]->outputs[outputIdx - 1] = sigName;			
+            }
 
-		// set corresponding output of proc in ops map to name of compileSignal.
-		compileOp* pOp = compileOpsMap[outputProcName];
-		pOp->outputs[outputIdx - 1] = sigName;		
+            // set corresponding output of proc in ops map to name of compileSignal.
+            compileOp* pOp = compileOpsMap[outputProcName];
+            pOp->outputs[outputIdx - 1] = sigName;		
 
-		// set lifespan of output signal, from op's position to end.
-		signals[sigName].addLifespan(pOp->listIdx, mOpsList.size() - 1);
-debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
-		
-		// add published output to list
-		signals[sigName].mPublishedOutput = i + 1;
-debug() << "    signal " << sigName << " gets output  " << i + 1 << "\n";
-		compileOutputs.push_back(sigName);
+            // set lifespan of output signal, from op's position to end.
+            signals[sigName].addLifespan(pOp->listIdx, mOpsList.size() - 1);
+    debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
+            
+            // add published output to list
+            signals[sigName].mPublishedOutput = i + 1;
+    debug() << "    signal " << sigName << " gets output  " << i + 1 << "\n";
+            compileOutputs.push_back(sigName);
+        }
 	}
 	
 	// ----------------------------------------------------------------
@@ -1362,17 +1368,22 @@ bail:
 
 // publish an output of a subproc by setting one of our output ptrs to the subproc's output signal.
 // 
-void MLProcContainer::publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias)
+void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol outputName, const MLSymbol alias)
 {
-	err e = OK;
+    int copy = srcProcName.getCopy();
+    debug() << "MLProcContainer " << getName() << ": publishOutput " << outputName;
+    if(copy > 0) { debug() << "(copy " << copy << ") "; }
+    debug() << " of " << srcProcName << " as " << alias << "\n";
+	
+    err e = OK;
 	MLPublishedOutputPtr p;
-	const MLProcPtr outputProc = getProc(procName);
+	const MLProcPtr sourceProc = getProc(srcProcName);
 	const MLRatio myRatio = getResampleRatio();
-	if (outputProc)
+	if (sourceProc)
 	{	 
 		int outSize = (int)mPublishedOutputs.size();
-		const int procOutputIndex = outputProc->getOutputIndex(outputName);		
-		if (!procOutputIndex) { e = badIndexErr; goto bail; }
+		const int srcProcOutputIndex = sourceProc->getOutputIndex(outputName);
+		if (!srcProcOutputIndex) { e = badIndexErr; goto bail; }
 		
 		if (!myRatio.isUnity()) 
 		{
@@ -1396,15 +1407,18 @@ void MLProcContainer::publishOutput(const MLPath & procName, const MLSymbol outp
 			// set pre-resampling source
 			if (p)
 			{
-				p->setSrc(outputProc, procOutputIndex);	
+				p->setSrc(sourceProc, srcProcOutputIndex);	
 			}
 		}
 		else
 		{
-			p = MLPublishedOutputPtr(new MLPublishedOutput(outputProc, procOutputIndex, outSize + 1));
-			if (procOutputIndex > (int)outputProc->mOutputs.size())
+			// publish source proc output
+ 			p = MLPublishedOutputPtr(new MLPublishedOutput(sourceProc, srcProcOutputIndex, outSize + 1));
+            
+            // make outputs in the source proc if needed
+			if (srcProcOutputIndex > (int)sourceProc->mOutputs.size())
 			{
-				outputProc->resizeOutputs(procOutputIndex);	
+				sourceProc->resizeOutputs(srcProcOutputIndex);	
 			}			
 		}
 		
@@ -1419,13 +1433,12 @@ void MLProcContainer::publishOutput(const MLPath & procName, const MLSymbol outp
 	}
 	else
 	{
-		MLError() << "MLProcContainer::publishOutput: proc " << procName << " not found in container " << getName() << "!\n";
+		MLError() << "MLProcContainer::publishOutput: proc " << srcProcName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
 	// TODO return err
 }
-
 
 MLSymbol MLProcContainer::getOutputName(int index)
 {	
@@ -2027,11 +2040,23 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("output"))
 		{
+            // TEMP
+           if(getName() == "voices")
+           {
+               debug()  << "voices output!\n";
+           }
+            debug()  << getName() << "wants output\n";
+            
 			MLPath arg1 = RequiredPathAttribute(child, "proc");
 			MLSymbol arg2 = RequiredAttribute(child, "output");
 			MLSymbol arg3 = RequiredAttribute(child, "alias");
 			if (arg1 && arg2 && arg3)
 			{
+				// add optional copy attribute
+				int copy = 0;
+				copy = child->getIntAttribute("copy", copy);
+                debug() << "publishing output: copy " << copy << "\n";
+				arg1.setCopy(copy);
 				publishOutput(arg1, arg2, arg3);
 			}
 		}
@@ -2057,8 +2082,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				// recurse					
 				buildGraph(child);
 			}
-		}
-				
+		}				
 		else if (child->hasTagName("param"))
 		{
 			MLPath arg1 = RequiredPathAttribute(child, "proc");

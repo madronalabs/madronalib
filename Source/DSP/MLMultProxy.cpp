@@ -99,7 +99,7 @@ MLProcContainer* MLMultProxy::getCopyAsContainer(int c)
 	}
 	else
 	{
-		debug() << "MLMultProxy::getCopyAsContainer: error, copy is not container!\n";
+		debug() << "MLMultProxy::getCopyAsContainer: error, copy " << c << " of template " << mCopies[0]->getName() << "is not container!\n";
 		return 0;
 	}
 }
@@ -632,7 +632,12 @@ void MLMultiContainer::publishInput(const MLPath & procName, const MLSymbol inpu
 
 void MLMultiContainer::publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias)
 {
-	const int copies = (int)mCopies.size();	
+    int copy = procName.getCopy();
+    debug() << "MLMultiContainer " << getName() << ": publishOutput " << outputName;
+    if(copy > 0) { debug() << "(copy " << copy << ") "; }
+    debug() << " of " << procName << " as " << alias << "\n";
+ 
+	const int copies = (int)mCopies.size();
 	for(int i=0; i<copies; i++)
 	{
 		getCopyAsContainer(i)->publishOutput(procName, outputName, alias);

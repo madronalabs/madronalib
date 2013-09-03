@@ -19,6 +19,7 @@
 #include "MLTextButton.h"
 #include "MLMenuButton.h"
 #include "MLToggleButton.h"
+#include "MLTriToggleButton.h"
 #include "MLMultiButton.h"
 #include "MLMultiSlider.h"
 #include "MLLookAndFeel.h"
@@ -60,8 +61,10 @@ public:
 		int n, const Colour& color);
 	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, 
 		int n, const Colour& color);
-	virtual MLButton* addToggleButton(const char* displayName, const MLRect & r, const MLSymbol name, 
-		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
+	virtual MLButton* addToggleButton(const char* displayName, const MLRect & r, const MLSymbol name,
+                                      const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
+	virtual MLButton* addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol name,
+                                      const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 
 	MLPanel* addPanel(const MLRect & r, const Colour& color = defaultColor);
 	MLDebugDisplay* addDebugDisplay(const MLRect & r);

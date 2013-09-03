@@ -102,7 +102,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	if (pRootElem)
 	{	
 		makeRoot("root");
-		buildGraph(pRootElem);	
+		buildGraph(pRootElem);
 		graphOK = true;
 	}
 	
