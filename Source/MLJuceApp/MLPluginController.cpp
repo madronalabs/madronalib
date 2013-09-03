@@ -128,19 +128,30 @@ void MLPluginController::initialize()
 #pragma mark MLButton::Listener
 
 void MLPluginController::buttonClicked (MLButton* button)
-{	
+{
 	const MLSymbol paramName = button->getParamName();
 	MLPluginProcessor* const filter = getProcessor();
-	const bool state = button->getToggleState();
-	if (filter)
-	{
-		int idx = filter->getParameterIndex(paramName);
-		if (idx >= 0)
-		{
-			float bVal = state ? button->getOnValue() : button->getOffValue();
-			filter->MLSetParameterNotifyingHost(idx, bVal);
-		}
-	}
+ 	const int tri = button->getAttribute("tri_button");
+    float val;
+    if(tri)
+    {        
+        val = button->getAttribute("value");
+        debug() << "TRI_BUTTON val = " << val << "\n";        
+    }
+    else
+    {
+        // TODO simplify/merge on / off states and 3-way button concepts
+        const bool state = button->getToggleState();
+        val = state ? button->getOnValue() : button->getOffValue();
+    }
+    if (filter)
+    {
+        int idx = filter->getParameterIndex(paramName);
+        if (idx >= 0)
+        {
+            filter->MLSetParameterNotifyingHost(idx, val);
+        }
+    }
 }
 
 // --------------------------------------------------------------------------------

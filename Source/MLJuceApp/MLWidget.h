@@ -27,11 +27,13 @@ public:
 	virtual bool isWidgetContainer(void) { return false; }
 	virtual MLWidget* getWidget(MLSymbol ) { return nullptr; }
 	
-	// should Widgets be only one-way viewers of information? 
-	// i think so.  Therefore there are no getters here.
+    // attributes
 	virtual void setAttribute(MLSymbol attr, float val);
 	virtual void setStringAttribute(MLSymbol attr, const std::string& val);
 	virtual void setSignalAttribute(MLSymbol attr, const MLSignal& val);
+	float getAttribute(MLSymbol attr);
+	const std::string& getStringAttribute(MLSymbol attr);
+    const MLSignal& getSignalAttribute(MLSymbol attr);
 
 	// A signal viewer, not required. This is called repeatedly to view 
 	// a dynamic Signal, as opposed to a signal Parameter.
@@ -80,10 +82,6 @@ protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
 	
-	// attribute values are protected because widgets are intended to view and
-	// manipulate model data, not store any data.
-	float getAttribute(MLSymbol attr);
-	const std::string& getStringAttribute(MLSymbol attr);
 
 private:
 	MLSymbol mName;
@@ -107,7 +105,6 @@ private:
 	std::map<MLSymbol, float> mAttributes;
 	std::map<MLSymbol, std::string> mStringAttributes;
 	std::map<MLSymbol, MLSignal> mSignalAttributes;
-	
 };
 
 #endif // __ML_WIDGET_H__

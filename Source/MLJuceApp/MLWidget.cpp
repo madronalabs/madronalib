@@ -7,6 +7,7 @@
 #include "MLDebug.h"
 
 static const std::string kNullStr;
+static const MLSignal kNullSignal;
 
 MLWidget::MLWidget() : 
 	mGridBounds(),
@@ -38,7 +39,7 @@ void MLWidget::setSignalAttribute(MLSymbol attr, const MLSignal& val)
 }
 
 // --------------------------------------------------------------------------------
-// protected getters, to be used only by subclasses.
+// protected attribute getters, to be used only by subclasses.
 
 float MLWidget::getAttribute(MLSymbol attr)
 {
@@ -53,12 +54,22 @@ float MLWidget::getAttribute(MLSymbol attr)
 
 const std::string& MLWidget::getStringAttribute(MLSymbol attr)
 {
-	std::map<MLSymbol, std::string>::iterator look = mStringAttributes.find(attr);	
+	std::map<MLSymbol, std::string>::iterator look = mStringAttributes.find(attr);
 	if(look != mStringAttributes.end())
 	{
 		return look->second;
 	}
 	return kNullStr;
+}
+
+const MLSignal& MLWidget::getSignalAttribute(MLSymbol attr)
+{
+	std::map<MLSymbol, MLSignal>::iterator look = mSignalAttributes.find(attr);
+	if(look != mSignalAttributes.end())
+	{
+		return look->second;
+	}
+	return kNullSignal;
 }
 
 // --------------------------------------------------------------------------------

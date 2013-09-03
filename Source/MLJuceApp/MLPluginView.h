@@ -42,8 +42,10 @@ public:
 		const Colour& color = defaultColor);
 	MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, int n, 
 		const Colour& color = defaultColor);
-	MLButton* addToggleButton(const char * displayName, const MLRect & r, const char * name, 
-		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
+	MLButton* addToggleButton(const char * displayName, const MLRect & r, const char * name,
+                              const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
+	MLButton* addTriToggleButton(const char * displayName, const MLRect & r, const char * name,
+                              const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 
 	MLDial* addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color);
 

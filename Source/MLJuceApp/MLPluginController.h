@@ -30,7 +30,7 @@ public:
 
 	// from MLResponder
     virtual void buttonClicked (MLButton*);
-	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
+ 	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	virtual void menuItemChosen(MLSymbol menuName, int result);
 
 	void dialValueChanged (MLDial*);

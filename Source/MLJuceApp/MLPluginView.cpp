@@ -117,11 +117,11 @@ MLMultiButton* MLPluginView::addMultiButton(const char * displayName, const MLRe
 	return b;
 }
 
-MLButton* MLPluginView::addToggleButton(const char * displayName, const MLRect & r, const char * paramName, 
-		const Colour& color, const float sizeMultiplier)
+MLButton* MLPluginView::addToggleButton(const char * displayName, const MLRect & r, const char * paramName,
+                                        const Colour& color, const float sizeMultiplier)
 {
 	MLButton* b = MLAppView::addToggleButton(displayName, r, paramName, color, sizeMultiplier);
-
+    
 	// setup button attrs from filter parameter
 	MLPluginProcessor* const filter = getProcessor();
 	int idx = filter->getParameterIndex(paramName);
@@ -130,7 +130,7 @@ MLButton* MLPluginView::addToggleButton(const char * displayName, const MLRect &
 		MLPublishedParamPtr p = filter->getParameterPtr(idx);
 		if (p)
 		{
-			b->setRange(p->getRangeLo(), p->getRangeHi()); 
+			b->setRange(p->getRangeLo(), p->getRangeHi());
 		}
 	}
 	else
@@ -138,6 +138,13 @@ MLButton* MLPluginView::addToggleButton(const char * displayName, const MLRect &
 		debug() << "MLPluginView::addToggleButton: parameter " << paramName << " not found!\n";
 	}
 	
+	return b;
+}
+
+MLButton* MLPluginView::addTriToggleButton(const char * displayName, const MLRect & r, const char * paramName,
+                                        const Colour& color, const float sizeMultiplier)
+{
+	MLButton* b = MLAppView::addTriToggleButton(displayName, r, paramName, color, sizeMultiplier);
 	return b;
 }
 
