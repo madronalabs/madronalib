@@ -31,14 +31,14 @@ MLProc::err MLProc::prepareToProcess()
 {
 	MLProc::err e = OK;
 	
-// debug() << "preparing " << getClassName() << " \"" << getName() << "\" : " ;
+    // debug() << "preparing " << getClassName() << " \"" << getName() << "\" : " ;
 
 	int ins = getNumInputs();
 	int outs = getNumOutputs();
 	MLSampleRate rate = getContextSampleRate();
 	int blockSize = getContextVectorSize();
 	
-// debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
+    // debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
 
 	
 	// All inputs must have a signal connected.	
@@ -82,17 +82,15 @@ bail:
 
 void MLProc::clearProc()
 {		
-	//const int op = getNumOutputs();
+	const int op = getNumOutputs();
 
  //debug() << "clearing " << getName() << " (" << getClassName() << ")\n";
 	
-	/*
 	// clear anything left in outputs
 	for (int i=0; i<op; i++)
 	{
 		mOutputs[i]->clear();
 	}
-	*/
 
 	// let subclass clear filter histories etc.
 	clear();
