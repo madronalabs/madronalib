@@ -62,6 +62,8 @@ MLProcMatrix::~MLProcMatrix()
 MLProc::err MLProcMatrix::resize()
 {
 	MLProc::err e = OK;
+    
+    // TODO sort out resizing and limits. 
 
 //	const unsigned inputs = getParam("inputs"); // currently unused
 //	const unsigned outputs = getParam("outputs");
@@ -86,8 +88,8 @@ void MLProcMatrix::clearConnections()
 // multiple connections are made here using connect method.
 void MLProcMatrix::connect(unsigned a, unsigned b)
 {
-	const unsigned inputs = getNumInputs();
-	const unsigned outputs = getNumOutputs();
+	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		mGain[a][b] = 1.;
@@ -96,8 +98,8 @@ void MLProcMatrix::connect(unsigned a, unsigned b)
 
 void MLProcMatrix::disconnect(unsigned a, unsigned b)
 {
-	const unsigned inputs = getNumInputs();
-	const unsigned outputs = getNumOutputs();
+	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		mGain[a][b] = 0.;
@@ -108,8 +110,8 @@ void MLProcMatrix::disconnect(unsigned a, unsigned b)
 bool MLProcMatrix::getConnection(unsigned a, unsigned b)
 {
 	bool r = false;
-	const unsigned inputs = getNumInputs();
-	const unsigned outputs = getNumOutputs();
+	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		r = (mGain[a][b] > 0.5f);
@@ -122,8 +124,8 @@ bool MLProcMatrix::getConnection(unsigned a, unsigned b)
 void MLProcMatrix::getConnectionData(MLMatrixConnectionList* pData)
 {
 	unsigned n = 0;	
-	const unsigned inputs = getNumInputs();
-	const unsigned outputs = getNumOutputs();
+	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	
 	for(unsigned i=0; i<2 * kMLMatrixMaxIns * kMLMatrixMaxOuts; ++i)
 	{
@@ -180,8 +182,8 @@ void MLProcMatrix::calcCoeffs()
 
 void MLProcMatrix::process(const int frames)
 {
-	const unsigned inputs = getNumInputs();
-	const unsigned outputs = getNumOutputs();
+	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	
 	if (mParamsChanged)
 	{

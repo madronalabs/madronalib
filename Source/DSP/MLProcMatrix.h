@@ -9,8 +9,8 @@
 
 #include "MLProc.h"
 
-static const unsigned kMLMatrixMaxIns = 32;
-static const unsigned kMLMatrixMaxOuts = 32;
+static const int kMLMatrixMaxIns = 32;
+static const int kMLMatrixMaxOuts = 64;
 
 // compact form representing connections in a matrix. 
 class MLMatrixConnectionList
@@ -18,8 +18,9 @@ class MLMatrixConnectionList
 public:
 	unsigned size;
 	unsigned char data[2 * kMLMatrixMaxIns * kMLMatrixMaxOuts];
-	
-	MLMatrixConnectionList(){};
+	void clear() { bzero(data, sizeof(data)); };
+    
+	MLMatrixConnectionList() : size(0) { clear(); };
 	~MLMatrixConnectionList(){};
 	
 	bool operator== (const MLMatrixConnectionList& b);
