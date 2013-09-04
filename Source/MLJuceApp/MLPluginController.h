@@ -42,7 +42,7 @@ public:
 	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
 
 	void loadPresetByIndex (int idx);
-	int getIndexOfPreset(const std::string& name, const std::string& dir);
+	int getIndexOfPreset(const std::string* dir, const std::string* name);
 	
 	void prevPreset();
 	void nextPreset();

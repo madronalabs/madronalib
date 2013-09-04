@@ -29,10 +29,10 @@ void MLParamView::view(const MLModelParam& p) const
 			mpWidget->setAttribute(mAttr, p.getFloatValue());		
 			break;
 		case MLModelParam::kStringParam:
-			mpWidget->setStringAttribute(mAttr, p.getStringValue());		
+			mpWidget->setStringAttribute(mAttr, *p.getStringValue());
 			break;
 		case MLModelParam::kSignalParam:
-			mpWidget->setSignalAttribute(mAttr, p.getSignalValue());		
+			mpWidget->setSignalAttribute(mAttr, *p.getSignalValue());
 			break;
 	}
 }

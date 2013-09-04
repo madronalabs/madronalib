@@ -27,10 +27,10 @@ MLModelParam::MLModelParam(const MLModelParam& other) :
 			mVal.mFloatVal = other.getFloatValue();
 			break;
 		case MLModelParam::kStringParam:
-			mVal.mpStringVal = new std::string(other.getStringValue());
+			mVal.mpStringVal = new std::string(*other.getStringValue());
 			break;
 		case MLModelParam::kSignalParam:
-			mVal.mpSignalVal = new MLSignal(other.getSignalValue());
+			mVal.mpSignalVal = new MLSignal(*other.getSignalValue());
 			break;
 		default:
 			mVal.mpStringVal = 0;
@@ -47,10 +47,10 @@ MLModelParam& MLModelParam::operator= (const MLModelParam& other)
 			mVal.mFloatVal = other.getFloatValue();
 			break;
 		case MLModelParam::kStringParam:
-			mVal.mpStringVal = new std::string(other.getStringValue());
+			mVal.mpStringVal = new std::string(*other.getStringValue());
 			break;
 		case MLModelParam::kSignalParam:
-			mVal.mpSignalVal = new MLSignal(other.getSignalValue());
+			mVal.mpSignalVal = new MLSignal(*other.getSignalValue());
 			break;
 		default:
 			mVal.mpStringVal = 0;
@@ -97,14 +97,14 @@ float MLModelParam::getFloatValue() const
 	return mVal.mFloatVal;
 }
 
-const std::string& MLModelParam::getStringValue() const
+const std::string* MLModelParam::getStringValue() const
 {
-	return *(mVal.mpStringVal);
+	return (mVal.mpStringVal);
 }
 
-const MLSignal& MLModelParam::getSignalValue() const
+const MLSignal* MLModelParam::getSignalValue() const
 {
-	return *(mVal.mpSignalVal);
+	return (mVal.mpSignalVal);
 }
 
 void MLModelParam::setValue(float v)

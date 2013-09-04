@@ -71,8 +71,8 @@ public:
 	inline const MLModelParam& getModelParam(MLSymbol p) { return mParams[p]; }
 
 	inline float getModelFloatParam(MLSymbol p) { return mParams[p].getFloatValue(); }
-	inline const std::string& getModelStringParam(MLSymbol p) { return mParams[p].getStringValue(); }
-	inline const MLSignal& getModelSignalParam(MLSymbol p) { return mParams[p].getSignalValue(); }
+	inline const std::string* getModelStringParam(MLSymbol p) { return mParams[p].getStringValue(); }
+	inline const MLSignal* getModelSignalParam(MLSymbol p) { return mParams[p].getSignalValue(); }
 
 	virtual void setModelParam(MLSymbol p, float v);
 	virtual void setModelParam(MLSymbol p, const std::string& v) ;

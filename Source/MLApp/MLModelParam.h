@@ -30,8 +30,8 @@ public:
 	~MLModelParam();
 			
 	float getFloatValue() const;
-	const std::string& getStringValue() const;
-	const MLSignal& getSignalValue() const;
+	const std::string* getStringValue() const;
+	const MLSignal* getSignalValue() const;
 
 	void setValue(float v);
 	void setValue(const std::string& v);

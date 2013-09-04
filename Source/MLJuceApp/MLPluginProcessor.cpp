@@ -689,7 +689,8 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 {
 	int version = 0;
-	std::string nameStr = getModelStringParam("preset");
+	const std::string* pNameStr1 = getModelStringParam("preset");
+    std::string nameStr(*pNameStr1);
 	std::string noVersionStr;
 	std::string versionStr;
 	int numberStart = 0;
@@ -745,8 +746,8 @@ int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 
 int MLPluginProcessor::saveStateOverPrevious(const File& destDir)
 {
-	std::string nameStr = getModelStringParam("preset");	
-	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
+	const std::string* pNameStr = getModelStringParam("preset");
+	File saveFile = destDir.getChildFile(String(pNameStr->c_str()));
 	saveStateToFile(saveFile);
 	return 0;
 }

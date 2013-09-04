@@ -380,13 +380,13 @@ debug() << mMenuPresetFiles.size() << " presets\n";
 	//startTimer(kTimerInterval);
 }
 
-int MLPluginController::getIndexOfPreset(const std::string& dir, const std::string& name)
+int MLPluginController::getIndexOfPreset(const std::string* dir, const std::string* name)
 {
 	int index = -1;
 	const int kDefaultIdx = 0;
 	int size = mMenuPresetFiles.size();
-	String searchName (name.c_str());
-	String searchDir (dir.c_str());
+	String searchName (name->c_str());
+	String searchDir (dir->c_str());
 	String presetName, presetDir;
 	std::string defaultStr("default");
 	

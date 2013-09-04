@@ -91,19 +91,19 @@ void MLAppState::saveState()
 					cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
 					break;
 				case MLModelParam::kStringParam:
-					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue().c_str());
+					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue()->c_str());
 					break;
 				case MLModelParam::kSignalParam:
 				{
 					// make and populate JSON object representing signal
 					cJSON* signalObj = cJSON_CreateObject();
-					const MLSignal& sig = state.mValue.getSignalValue();
+					const MLSignal* sig = state.mValue.getSignalValue();
 					cJSON_AddStringToObject(signalObj, "type", "signal");
-					cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
-					cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
-					cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
-					int size = sig.getSize();
-					float* pSignalData = sig.getBuffer();
+					cJSON_AddNumberToObject(signalObj, "width", sig->getWidth());
+					cJSON_AddNumberToObject(signalObj, "height", sig->getHeight());
+					cJSON_AddNumberToObject(signalObj, "depth", sig->getDepth());
+					int size = sig->getSize();
+					float* pSignalData = sig->getBuffer();
 					cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
 					cJSON_AddItemToObject(signalObj, "data", data);
 					
