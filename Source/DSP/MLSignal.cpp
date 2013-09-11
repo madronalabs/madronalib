@@ -540,7 +540,6 @@ void MLSignal::add(const MLSignal& b)
 	}
 }
 
-
 // TODO SSE
 void MLSignal::subtract(const MLSignal& b)
 {
@@ -721,7 +720,8 @@ void MLSignal::sigClamp(const MLSample min, const MLSample max)
 	}
 }
 
-void MLSignal::sigMin(const MLSample m)	
+// TODO SSE
+void MLSignal::sigMin(const MLSample m)
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -730,6 +730,7 @@ void MLSignal::sigMin(const MLSample m)
 	}
 }
 
+// TODO SSE
 void MLSignal::sigMax(const MLSample m)	
 {
 	for(int i=0; i<mSize; ++i)

@@ -349,8 +349,8 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		mEngine.processBlock(samples, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 		
 		// must clear the MIDI buffer otherwise messages will be passed back to the host
-		if(acceptsMidi()) midiMessages.clear();	
-	}
+		if(acceptsMidi()) midiMessages.clear();
+    }
 	else
 	{
 		buffer.clear();

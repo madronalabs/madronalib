@@ -276,13 +276,13 @@ public:
 	inline bool is2D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
 	inline bool is3D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth > 1)); }
 
-private:	
-	// private signal constructor: make a reference to a frame of the external signal.
-	MLSignal(const MLSignal* other, int frame);
-
 	// handy shorthand for row and plane access
 	inline int row(int i) const { return i<<mWidthBits; }
 	inline int plane(int i) const { return i<<mWidthBits<<mHeightBits; }
+    
+private:
+	// private signal constructor: make a reference to a frame of the external signal.
+	MLSignal(const MLSignal* other, int frame);
 
 	MLSample* getCopy();
 
