@@ -293,12 +293,22 @@ void MLDSPEngine::readInputBuffers(const int samples)
 // write outputs of root container to ringbuffers
 void MLDSPEngine::writeOutputBuffers(const int samples)
 {
-	int outs = getNumOutputs();	
+	int outs = getNumOutputs();
 	for(int i=0; i < outs; ++i)
 	{
-//        getOutput(i+1).write(mpOuts.channel[i], offset, samples);
+        //        getOutput(i+1).write(mpOuts.channel[i], offset, samples);
 		
 		mOutputBuffers[i]->write(getOutput(i+1).getBuffer(), samples);
+	}
+} 
+
+// write outputs of root container to ringbuffers
+void MLDSPEngine::clearOutputBuffers()
+{
+	int outs = getNumOutputs();
+	for(int i=0; i < outs; ++i)
+	{
+		mOutputBuffers[i]->clear();
 	}
 } 
 
@@ -498,6 +508,7 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 		{
 			MLSignalStats stats;
 			collectStats(&stats);
+            
 			process(mVectorSize);  // MLProcContainer::process()
 	
 			debug() << "\n";
@@ -533,15 +544,41 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 				mCPUTimeCount += juce::Time::highResolutionTicksToSeconds (endTime - startTime);
 				mSampleCount += mVectorSize;
 			}
-		}
-		
+		}		
+         
 		// TEST
 		//debug() << "samples to process:" << mSamplesToProcess << "(" << c++ << ")\n";	
 		
-		writeOutputBuffers(mVectorSize);
+#ifdef DEBUG
+        // DEBUG recover from blowups leading to NaNs in output
+        bool hasNaN = false;
+        int outs = getNumOutputs();
+		for (int i=0; i<outs; ++i)
+		{
+			float* f = getOutput(i+1).getBuffer();
+            int size = getOutput(i+1).getSize();
+            for(int j = 0; j < size; ++j)
+            {
+                float s = f[j];
+                if(s != s)
+                {
+                    hasNaN = true;
+                    break;
+                }
+            }
+		}
+        if(hasNaN)
+        {
+            clear();
+            clearOutputBuffers();
+        }
+        else
+#endif
+        {
+             writeOutputBuffers(mVectorSize);
+        }
 		processed += mVectorSize;
 		mSamplesToProcess -= mVectorSize;
-
 	}	
 	readOutputBuffers(newSamples);
 

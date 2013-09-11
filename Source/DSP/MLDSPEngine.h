@@ -144,6 +144,7 @@ private:
 	double mCPUTimeCount;
 		
 	void writeInputBuffers(const int samples);
+    void clearOutputBuffers();
 	void readInputBuffers(const int samples);
 	void writeOutputBuffers(const int samples);
 	void readOutputBuffers(const int samples);
