@@ -223,6 +223,7 @@
 		B582B85917BBF9E600A9BCB1 /* AUOutputBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B582B85017BBF9E600A9BCB1 /* AUOutputBase.cpp */; };
 		B582B85B17BBF9E600A9BCB1 /* MusicDeviceBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B582B85417BBF9E600A9BCB1 /* MusicDeviceBase.cpp */; };
 		B582B85E17BBFA8C00A9BCB1 /* AUMIDIBase.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B582B85C17BBFA8C00A9BCB1 /* AUMIDIBase.cpp */; };
+		B5DED64617E0E9C300121663 /* MLTriToggleButton.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B5DED64417E0E9C300121663 /* MLTriToggleButton.cpp */; };
 		CC4D3A6F1EF2934059AA9FEB /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 61848A238C57C54BF83884C3 /* IOKit.framework */; };
 		D8EA61FEC398A5C223891C51 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 188AEC2A029C41DE66359AEF /* Carbon.framework */; };
 		ECF60C3CF6D180AAFF43C822 /* DiscRecording.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28F65EEAFB3B971E8EDB10F3 /* DiscRecording.framework */; };
@@ -640,6 +641,8 @@
 		B582B85517BBF9E600A9BCB1 /* MusicDeviceBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MusicDeviceBase.h; sourceTree = "<group>"; };
 		B582B85C17BBFA8C00A9BCB1 /* AUMIDIBase.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = AUMIDIBase.cpp; sourceTree = "<group>"; };
 		B582B85D17BBFA8C00A9BCB1 /* AUMIDIBase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AUMIDIBase.h; sourceTree = "<group>"; };
+		B5DED64417E0E9C300121663 /* MLTriToggleButton.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLTriToggleButton.cpp; sourceTree = "<group>"; };
+		B5DED64517E0E9C300121663 /* MLTriToggleButton.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLTriToggleButton.h; sourceTree = "<group>"; };
 		BA98346EFD1037285E245CC9 /* CoreMIDI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMIDI.framework; path = System/Library/Frameworks/CoreMIDI.framework; sourceTree = SDKROOT; };
 		C37123DA8D32C1B6FC09FFF2 /* CoreAudio.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreAudio.framework; path = System/Library/Frameworks/CoreAudio.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -1049,6 +1052,8 @@
 				B503B1F017BAB6B700D84FD1 /* MLTextButton.h */,
 				B503B1F117BAB6B700D84FD1 /* MLToggleButton.cpp */,
 				B503B1F217BAB6B700D84FD1 /* MLToggleButton.h */,
+				B5DED64417E0E9C300121663 /* MLTriToggleButton.cpp */,
+				B5DED64517E0E9C300121663 /* MLTriToggleButton.h */,
 				B503B1F317BAB6B700D84FD1 /* MLUI.cpp */,
 				B503B1F417BAB6B700D84FD1 /* MLUI.h */,
 				B503B1F517BAB6B700D84FD1 /* MLUIBinaryData.cpp */,
@@ -1568,6 +1573,7 @@
 				B582B85917BBF9E600A9BCB1 /* AUOutputBase.cpp in Sources */,
 				B582B85B17BBF9E600A9BCB1 /* MusicDeviceBase.cpp in Sources */,
 				B582B85E17BBFA8C00A9BCB1 /* AUMIDIBase.cpp in Sources */,
+				B5DED64617E0E9C300121663 /* MLTriToggleButton.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
