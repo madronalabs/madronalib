@@ -50,8 +50,9 @@ public:
 	
 	void process(const int n);		
 	err prepareToProcess();	
-	void clear();	 
-	void clearInputs();	 
+	void clear();
+	void clearProc();
+	void clearInputs();
 	void clearInput(int i);	 
 	MLProc::err setInput(const int idx, const MLSignal& srcSig);	
 	void setParam(const MLSymbol p, MLParamValue v);	
@@ -89,6 +90,7 @@ public:
 	void collectStats(MLSignalStats* pStats);
 	void process(const int n);		
 	err prepareToProcess();	
+	void clear();
 
 	// not in ContainerBase because this is a virtual method of MLProc.
 	bool isContainer(void) { return true; }

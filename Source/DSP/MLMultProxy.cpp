@@ -191,13 +191,12 @@ MLProc::err MLMultiProc::prepareToProcess()
 }
 
 void MLMultiProc::clear()
-{		
-	const int copies = (int)mCopies.size();	
+{
+	const int copies = (int)mCopies.size();
 	for(int i=0; i<copies; i++)
 	{
 		mCopies[i]->clear();
 	}
-//	MLProc::clear();
 }
 
 void MLMultiProc::clearInputs()
@@ -430,6 +429,15 @@ MLProc::err MLMultiContainer::prepareToProcess()
 		}	
 	}
 	return e;
+}
+
+void MLMultiContainer::clear()
+{
+	const int copies = (int)mCopies.size();
+	for(int i=0; i<copies; i++)
+	{
+		mCopies[i]->clearProc();
+	}
 }
 
 MLProcInfoBase& MLMultiContainer::procInfo()
