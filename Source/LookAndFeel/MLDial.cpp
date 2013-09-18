@@ -1387,7 +1387,6 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	{
 		val = mZeroThreshold;
 	}
-
 	if(detents && mSnapToDetents && !doFineAdjust)
 	{	
 		// get next detent, collecting mouse motion if needed
@@ -1785,7 +1784,14 @@ void MLDial::findDialToDrag(const int x, const int y)
 
 void MLDial::addDetent(const float value, const float width)
 {
-	mDetents.push_back(MLDialDetent(value, width));
+    if(value > mZeroThreshold)
+    {
+        mDetents.push_back(MLDialDetent(value, width));
+    }
+    else
+    {
+        MLError() << "MLDial::addDetent: value below zero threshold!\n";
+    }
 }
 
 void MLDial::snapToDetents(const bool snap)
