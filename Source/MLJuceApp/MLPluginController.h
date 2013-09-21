@@ -63,7 +63,8 @@ public:
 
 protected:
 	MLAppView* mpView;
-	juce::CriticalSection mViewLock;
+    
+ 	juce::CriticalSection mViewLock;
 	
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	

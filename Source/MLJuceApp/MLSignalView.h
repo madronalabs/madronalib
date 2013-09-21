@@ -21,7 +21,7 @@ friend class MLSignalReporter;
 public:
 	static const char* kViewProcName;
 
-	MLSignalView(MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize);
+	MLSignalView(MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize, int priority = 0);
 	~MLSignalView();
 	void setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, unsigned voices);
 	void sendSignalToWidget(const MLSignal& signal, int samples);
@@ -39,6 +39,7 @@ private:
 	MLWidget* mpWidget;
 	MLSymbol mAttr;
 	int mSize;
+    int mPriority;
 };
 
 

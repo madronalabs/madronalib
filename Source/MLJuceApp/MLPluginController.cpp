@@ -65,12 +65,12 @@ MLAppView* MLPluginController::getView()
 void MLPluginController::setView(MLAppView* v) 
 { 
 	// if view is going away, stop reporting parameters and signals
-	const ScopedLock lock(mViewLock);	
+	const ScopedLock lock(mViewLock);
 	if(!v)
 	{
 		debug() << "MLPluginController::setView 0\n";
 	}
-	mpView = v; 
+	mpView = v;
 }
 
 // setup info pertaining to the plugin format we are controlling

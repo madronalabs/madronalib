@@ -28,11 +28,12 @@ MLPluginView::~MLPluginView()
 // w: widget to do the viewing
 // attr: attr of widget to send the signal to 
 // size: size of signals to collect
+// priority: at present either 1 for show always, or 0 for normal priority
 //
-void MLPluginView::addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size)
+void MLPluginView::addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority)
 {
 	if(p && w && attr)
-		mpController->addSignalViewToMap(p, w, attr, size);
+		mpController->addSignalViewToMap(p, w, attr, size, priority);
 }
 
 MLPluginView* MLPluginView::addSubView(const MLRect & r, const MLSymbol name)

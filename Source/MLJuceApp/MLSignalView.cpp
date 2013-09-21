@@ -7,12 +7,13 @@
 
 const char* MLSignalView::kViewProcName = "signal_viewer_proc";
 
-MLSignalView::MLSignalView(MLWidget* w, MLSymbol attr, int size) :
+MLSignalView::MLSignalView(MLWidget* w, MLSymbol attr, int size, int priority) :
 	mViewingSignal(false),
 	mpEngine(0),
 	mpWidget(w),
 	mAttr(attr),
-	mSize(size),
+    mSize(size),
+    mPriority(priority),
 	mNumSignals(1)
 {
 

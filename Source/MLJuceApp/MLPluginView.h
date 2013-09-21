@@ -30,7 +30,7 @@ public:
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; } // TO GO
 
-	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size);
+	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0);
 
 	// component setup 
 	//

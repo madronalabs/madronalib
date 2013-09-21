@@ -8,6 +8,7 @@
 MLSignalReporter::MLSignalReporter(MLPluginProcessor* p) :
 	mpProcessor(p)
 {
+    mMapIter = mSignalViewsMap.begin();
 }
 
 MLSignalReporter::~MLSignalReporter()
@@ -17,7 +18,7 @@ MLSignalReporter::~MLSignalReporter()
 
 // add another signal view to our map, to be serviced periodically.
 //
-void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize)
+void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return;	
@@ -38,8 +39,15 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 		
 		viewSize = min(viewSize, bufSize);
 
-		// add the list of widgets and attributes for viewing
-		mSignalViewsMap[alias].push_back(MLSignalViewPtr(new MLSignalView(w, attr, viewSize)));
+        // add the list of widgets and attributes for viewing
+        mSignalViewsMap[alias].push_back(MLSignalViewPtr(new MLSignalView(w, attr, viewSize, priority)));
+        
+        // mark priority map if high priority
+        if(priority > 0)
+        {
+            int p = mViewPriorityMap[alias]; // creates and returns 0 if not found
+            mViewPriorityMap[alias] = max(p, priority);
+        }
 	}
 	else
 	{
@@ -47,75 +55,100 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 	}
 }
 
-void MLSignalReporter::viewSignals() 
-{	
+// for one signal in the map, run all views in the view list matching priority.
+//
+int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
+{
+ 	MLDSPEngine* const pEngine = mpProcessor->getEngine();
+	if(!pEngine) return 0;
+    
+    // get temp buffers
+    MLSignal& buffer1 = *(mSignalBuffers[signalName].get());
+    MLSignal& buffer2 = *(mSignalBuffers2[signalName].get());
+    
+    // TODO revisit this-- we should not need to count the signals each time.
+    // only needed when we recompile or turn voices on / off.
+    int voices = mpProcessor->countSignals(signalName);
+    
+    // read signal into buffer and check for change.
+    // TODO post ring buffer, we have to look at all the samples in the buffer
+    // to detect changes. Instead, the DSP engine can keep track of what
+    // published signals have changed since the last read, and we can ask it.
+    int drawn = 0;
+    int samples = pEngine->readPublishedSignal(signalName, buffer1);
+    
+    if(samples > 0)
+    {
+        // test the RMS change of the signal buffer to see if a redraw is needed.
+        // TODO better metric taking display range of signal viewer component into account.
+        // all this does currently is prevents some of the tiny changes from parameter
+        // drifts from causing redraws. 
+        float changeSum = buffer1.rmsDiff(buffer2);
+        buffer2 = buffer1;
+        if(changeSum > 0.001f)
+        {
+            // send signal to each signal view in its viewer list.
+            MLSignalViewList viewList = mSignalViewsMap[signalName];//it->second;
+            
+            for(MLSignalViewList::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
+            {
+                // send engine and signal information to viewer proc.
+                MLSignalViewPtr pV = *it2;
+                
+                int viewPriority = pV->mPriority;
+                if(viewPriority == priority)
+                {
+                    // should not be needed every time, only when # of voices changes
+                    pV->setupSignalView(pEngine, signalName, voices);
+                    
+                    pV->sendSignalToWidget(buffer1, samples);
+                    drawn++;
+                }
+           }
+        }
+    }
+    
+    return drawn;
+}
+
+void MLSignalReporter::viewSignals()
+{
 	if(!mpProcessor) return;	
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
-	if(!pEngine) return;	
-	
+	if(!pEngine) return;
+    
 	// for each named signal in map
+    const int maxSignalsToDraw = 1;
+    
 	MLSymbol signalName;
- 	MLSignalViewListMap::iterator it;		
-	for(it = mSignalViewsMap.begin(); it != mSignalViewsMap.end(); it++)
+    int mapSize = mSignalViewsMap.size();
+    
+    // first service all views that have high priority set
+    for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
+        it != mViewPriorityMap.end(); it++ )
+    {
+        signalName = it->first;
+        int p = it->second;
+        if(p > 0)
+        {
+            viewOneSignal(signalName, p);
+        }
+    }
+ 
+    // with persistent iterator,
+    // wrap through all signals in map to see if they need servicing,
+    // bailing out if maxSignalsToDraw are serviced
+    int signalsDrawn = 0;
+    for(int i = 0; (i<mapSize) && (signalsDrawn < maxSignalsToDraw); ++i)
 	{
-		signalName = it->first;		
-		
-		// get temp buffers
-		MLSignal& buffer1 = *(mSignalBuffers[signalName].get());
-		MLSignal& buffer2 = *(mSignalBuffers2[signalName].get());
-		
-		// TODO revisit this-- we should not need to count the signals each time.  
-		// only needed when we recompile or turn voices on / off.
-		int voices = mpProcessor->countSignals(signalName);
-		
-		// read signal into buffer and check for change. 
-		
-		// TODO post ring buffer, we have to look at all the samples in the buffer
-		// to detect changes. Instead, the DSP engine can keep track of what 
-		// published signals have changed since the last read, and we can ask it. 
-		
-		buffer2 = buffer1;	
-		int samples = pEngine->readPublishedSignal(signalName, buffer1);	
-		if(samples > 0)
-		{
-			const bool changed = (buffer1 != buffer2);
+        // increment class member iterator and wrap
+        mMapIter++;
+        if(mMapIter == mSignalViewsMap.end())
+            mMapIter = mSignalViewsMap.begin();
 
-			if(changed)
-			{
-				// send signal to each signal view in list.
-				MLSignalViewList viewList = it->second;
-				MLSignalViewList::iterator it2;		
-
-	/*
-				int s = viewList.size();
-				if(s > 1)
-				{
-					debug() << "viewing " << signalName	<< " : " << s << "views\n";
-				}
-				int is = 0;
-	*/												
-																																			
-				for(it2 = viewList.begin(); it2 != viewList.end(); it2++)
-				{
-					// send engine and signal information to viewer proc.
-					MLSignalViewPtr pV = *it2; 
-					
-					// should not be needed every time, only when # of voices changes
-					pV->setupSignalView(pEngine, signalName, voices);
-
-	/*
-					if(s > 1)
-					{
-						debug() << "    view " << ++is << " : attr " << pV->mAttr << 
-							" of Widget " << pV->mpWidget->getWidgetName() << "\n";
-					}
-	*/				
-					pV->sendSignalToWidget(buffer1, samples);
-				}
-			}
-		}
+        signalName = mMapIter->first;        
+        signalsDrawn += viewOneSignal(signalName);
 	}
-//	debug() << "MLSignalReporter::viewSignals() : " << changedSignals << " signals changed / viewed.\n";
 }
 
 

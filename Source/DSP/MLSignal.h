@@ -241,6 +241,8 @@ public:
 	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
 	void variance3x3();
 
+    float rmsDiff(const MLSignal& b);
+
 	Vec2 correctPeak(const int ix, const int iy) const;
 
 	// unary operators on Signals
