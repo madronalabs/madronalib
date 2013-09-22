@@ -162,7 +162,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			debug() << "MLPluginProcessor: prepareToPlay error: \n";
 		}
 		
-		mEngine.dump(); 
+		// mEngine.dump();
 			
 		// after prepare to play, set state from saved blob if one exists
 		const unsigned blobSize = mSavedParamBlob.getSize();
