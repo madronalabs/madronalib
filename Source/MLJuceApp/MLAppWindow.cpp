@@ -16,7 +16,8 @@ MLAppWindow::MLAppWindow()
 	mpBorder(0),
 	mpConstrainer(0)
 {
-	setResizable(true, false);
+    setOpaque(true);
+    setResizable(true, false);
 	setResizeLimits (400, 300, 8192, 8192);
 	
 	// note: native title bar prevents resizing by dragging border on Mac. 

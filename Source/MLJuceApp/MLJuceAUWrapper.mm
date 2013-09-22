@@ -90,7 +90,7 @@
  #pragma clang diagnostic pop
 #endif
 
-#define JUCE_MAC_WINDOW_VISIBITY_BODGE 1
+#define JUCE_MAC_WINDOW_VISIBITY_BODGE 0
 
 #include "modules/juce_audio_plugin_client/utility/juce_IncludeModuleHeaders.h"
 #include "modules/juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h"
@@ -1329,7 +1329,12 @@ public:
             addMethod (@selector (applicationWillTerminate:),   applicationWillTerminate,   "v@:@");
             addMethod (@selector (viewDidMoveToWindow),         viewDidMoveToWindow,        "v@:");
             addMethod (@selector (mouseDownCanMoveWindow),      mouseDownCanMoveWindow,     "c@:");
-
+            
+            // ML
+            addMethod (@selector (isOpaque),      isOpaque,     "c@:");
+            addMethod (@selector (wantsDefaultClipping),      wantsDefaultClipping,     "c@:");
+            // ML
+            
             registerClass();
         }
 
@@ -1402,6 +1407,17 @@ public:
         {
             return NO;
         }
+        
+        // ML
+        static BOOL isOpaque (id, SEL)
+        {
+            return YES;
+        }
+        static BOOL wantsDefaultClipping (id, SEL)
+        {
+            return NO;
+        }
+        // ML
     };
 
     //==============================================================================

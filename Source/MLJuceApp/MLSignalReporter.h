@@ -47,7 +47,7 @@ protected:
     MLSignalViewListMap::iterator mMapIter;
 
 	int viewOneSignal(MLSymbol signalName, int priority = 0);
-
+    bool mTickTock;
 };
 
 #endif // __ML_SIGNAL_REPORTER_H

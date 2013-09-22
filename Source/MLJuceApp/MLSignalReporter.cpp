@@ -118,37 +118,43 @@ void MLSignalReporter::viewSignals()
 	if(!pEngine) return;
     
 	// for each named signal in map
-    const int maxSignalsToDraw = 1;
+    const int maxSignalsToDraw = 4;
     
 	MLSymbol signalName;
     int mapSize = mSignalViewsMap.size();
     
-    // first service all views that have high priority set
-    for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
-        it != mViewPriorityMap.end(); it++ )
+    mTickTock = !mTickTock;
+ //   if(mTickTock)
     {
-        signalName = it->first;
-        int p = it->second;
-        if(p > 0)
+        // first service all views that have high priority set
+        for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
+            it != mViewPriorityMap.end(); it++ )
         {
-            viewOneSignal(signalName, p);
+            signalName = it->first;
+            int p = it->second;
+            if(p > 0)
+            {
+                viewOneSignal(signalName, p);
+            }
         }
     }
- 
-    // with persistent iterator,
-    // wrap through all signals in map to see if they need servicing,
-    // bailing out if maxSignalsToDraw are serviced
-    int signalsDrawn = 0;
-    for(int i = 0; (i<mapSize) && (signalsDrawn < maxSignalsToDraw); ++i)
-	{
-        // increment class member iterator and wrap
-        mMapIter++;
-        if(mMapIter == mSignalViewsMap.end())
-            mMapIter = mSignalViewsMap.begin();
+//    else
+    {
+        // with persistent iterator,
+        // wrap through all signals in map to see if they need servicing,
+        // bailing out if maxSignalsToDraw are serviced
+        int signalsDrawn = 0;
+        for(int i = 0; (i<mapSize) && (signalsDrawn < maxSignalsToDraw); ++i)
+        {
+            // increment class member iterator and wrap
+            mMapIter++;
+            if(mMapIter == mSignalViewsMap.end())
+                mMapIter = mSignalViewsMap.begin();
 
-        signalName = mMapIter->first;        
-        signalsDrawn += viewOneSignal(signalName);
-	}
+            signalName = mMapIter->first;        
+            signalsDrawn += viewOneSignal(signalName);
+        }
+    }
 }
 
 

@@ -89,7 +89,7 @@ MLDial::MLDial () :
 	setOpaque(myLookAndFeel->getDefaultOpacity());
     
     // TODO sort out issues with Retina and buffering
-	setBufferedToImage(true);//(myLookAndFeel->getDefaultBufferMode());
+	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
 

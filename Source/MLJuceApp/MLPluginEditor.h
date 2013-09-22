@@ -7,6 +7,7 @@
 #define __ML_PLUGINEDITOR_H__
 
 #include "MLProjectInfo.h"
+#include "JuceHeader.h"
 #include "MLUI.h"
 
 const int kMLPluginMIDIPrograms = 127;
@@ -23,6 +24,12 @@ public:
 	void paint(Graphics& g);
 	
 	MLRect getWindowBounds();
+    
+private:
+#if GLX
+    juce::OpenGLContext openGLContext;
+#endif
+
 };
 
 #endif  // __ML_PLUGINEDITOR_H__
