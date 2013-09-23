@@ -6,9 +6,9 @@
 #include "MLSignalReporter.h"
 
 MLSignalReporter::MLSignalReporter(MLPluginProcessor* p) :
-	mpProcessor(p)
+	mpProcessor(p),
+    mViewIndex(0)
 {
-    mMapIter = mSignalViewsMap.begin();
 }
 
 MLSignalReporter::~MLSignalReporter()
@@ -41,6 +41,9 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 
         // add the list of widgets and attributes for viewing
         mSignalViewsMap[alias].push_back(MLSignalViewPtr(new MLSignalView(w, attr, viewSize, priority)));
+        
+        // push name to name vector
+        mSignalNames.push_back(alias);
         
         // mark priority map if high priority
         if(priority > 0)
@@ -88,15 +91,13 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
         if(changeSum > 0.001f)
         {
             // send signal to each signal view in its viewer list.
-            MLSignalViewList viewList = mSignalViewsMap[signalName];//it->second;
+            MLSignalViewList viewList = mSignalViewsMap[signalName];
             
             for(MLSignalViewList::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
             {
                 // send engine and signal information to viewer proc.
                 MLSignalViewPtr pV = *it2;
-                
-                int viewPriority = pV->mPriority;
-                if(viewPriority == priority)
+                if(pV->mPriority >= priority)
                 {
                     // should not be needed every time, only when # of voices changes
                     pV->setupSignalView(pEngine, signalName, voices);
@@ -117,43 +118,34 @@ void MLSignalReporter::viewSignals()
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return;
     
-	// for each named signal in map
     const int maxSignalsToDraw = 4;
-    
 	MLSymbol signalName;
-    int mapSize = mSignalViewsMap.size();
     
-    mTickTock = !mTickTock;
- //   if(mTickTock)
+    // first service all views that have high priority set
+    for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
+        it != mViewPriorityMap.end(); it++ )
     {
-        // first service all views that have high priority set
-        for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
-            it != mViewPriorityMap.end(); it++ )
+        signalName = it->first;
+        int p = it->second;
+        if(p > 0)
         {
-            signalName = it->first;
-            int p = it->second;
-            if(p > 0)
-            {
-                viewOneSignal(signalName, p);
-            }
+            viewOneSignal(signalName, p);
         }
     }
-//    else
-    {
-        // with persistent iterator,
-        // wrap through all signals in map to see if they need servicing,
-        // bailing out if maxSignalsToDraw are serviced
-        int signalsDrawn = 0;
-        for(int i = 0; (i<mapSize) && (signalsDrawn < maxSignalsToDraw); ++i)
-        {
-            // increment class member iterator and wrap
-            mMapIter++;
-            if(mMapIter == mSignalViewsMap.end())
-                mMapIter = mSignalViewsMap.begin();
 
-            signalName = mMapIter->first;        
-            signalsDrawn += viewOneSignal(signalName);
+    // wrap through all signals to see if they need servicing,
+    // bailing out if maxSignalsToDraw are serviced    
+    int nSignals = mSignalNames.size();
+    int signalsDrawn = 0;
+    for(int i = 0; (i<nSignals) && (signalsDrawn < maxSignalsToDraw); ++i)
+    {
+        mViewIndex++;
+        if(mViewIndex >= nSignals)
+        {
+            mViewIndex = 0;
         }
+        signalName = mSignalNames[mViewIndex];
+        signalsDrawn += viewOneSignal(signalName);
     }
 }
 

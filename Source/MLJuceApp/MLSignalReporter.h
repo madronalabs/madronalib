@@ -48,6 +48,8 @@ protected:
 
 	int viewOneSignal(MLSymbol signalName, int priority = 0);
     bool mTickTock;
+    int mViewIndex;
+    std::vector<MLSymbol> mSignalNames;
 };
 
 #endif // __ML_SIGNAL_REPORTER_H
