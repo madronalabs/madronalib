@@ -24,7 +24,11 @@ MLAppWindow::MLAppWindow()
 	// also enforces fixed title bar height, and automatically includes a
 	// resizing rect in lower right. 
 	setUsingNativeTitleBar (true);
-	
+    
+#if GLX
+    openGLContext.attachTo (*getTopLevelComponent());
+#endif
+    
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);
 	setVisible (true);
@@ -44,6 +48,9 @@ MLAppWindow::~MLAppWindow()
 	{
 		delete mpConstrainer;
 	}
+#if GLX
+    openGLContext.detach();
+#endif
 }
 
 void MLAppWindow::mouseDown (const MouseEvent& e)

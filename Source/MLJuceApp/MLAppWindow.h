@@ -30,6 +30,9 @@ private:
 	
 	MLAppBorder* mpBorder;
     MLBoundsConstrainer* mpConstrainer;
+#if GLX
+    juce::OpenGLContext openGLContext;
+#endif
  };
 
 
