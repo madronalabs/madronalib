@@ -42,12 +42,9 @@ protected:
     
     // map of view lists
 	MLSignalViewListMap mSignalViewsMap;
-    
-    // iterator for low priority views
-    MLSignalViewListMap::iterator mMapIter;
 
 	int viewOneSignal(MLSymbol signalName, int priority = 0);
-    bool mTickTock;
+  
     int mViewIndex;
     std::vector<MLSymbol> mSignalNames;
 };
