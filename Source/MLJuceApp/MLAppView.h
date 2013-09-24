@@ -24,6 +24,7 @@
 #include "MLMultiSlider.h"
 #include "MLLookAndFeel.h"
 #include "MLEnvelope.h"
+#include "MLWaveform.h"
 #include "MLProgressBar.h"
 #include "MLGraph.h"
 #include "MLDebugDisplay.h"
@@ -92,7 +93,9 @@ public:
 	MLDrawing* addDrawing(const MLRect & r);
 
 	MLProgressBar* addProgressBar(const MLRect & r);
-		
+
+    MLWaveform* addWaveform(const MLRect & r, const MLSymbol paramName);
+
 	// animations
 	void setAnimationsActive(bool animState);
 

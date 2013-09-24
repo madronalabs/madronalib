@@ -167,7 +167,7 @@ MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, co
 MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const MLSymbol paramName)
 {
 	MLEnvelope * pE = new MLEnvelope();
-		
+    
 	const std::string paramStr = paramName.getString();
 	addParamView(MLSymbol(paramStr + "_delay"), pE, MLSymbol("delay"));
 	addParamView(MLSymbol(paramStr + "_attack"), pE, MLSymbol("attack"));
@@ -179,4 +179,5 @@ MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const MLSymbol paramName
 	addWidgetToView(pE, r, paramName);
 	return(pE);
 }
+
 

@@ -313,6 +313,15 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 	return pb;
 }
 
+
+MLWaveform* MLAppView::addWaveform(const MLRect & r, const MLSymbol paramName)
+{
+	MLWaveform* w = new MLWaveform;
+	addWidgetToView(w, r, paramName);
+	addParamView(paramName, w, MLSymbol("wave"));
+	return w;
+}
+
 void MLAppView::setAnimationsActive(bool animState)
 {
 //debug() << "animations: " << animState << "\n";

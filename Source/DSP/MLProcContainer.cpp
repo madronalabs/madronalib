@@ -113,8 +113,6 @@ void MLProcContainer::compile()
 	const bool verbose = false;	
 	err e = OK;
 
-debug() << "compiling container " << getName() << ":\n";
-    
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
 	// in other words we just copy mProcList to mOpsList.
@@ -270,11 +268,6 @@ debug() << "compiling container " << getName() << ":\n";
 		int outputIdx = output->mSrcOutputIndex;	
 		MLSymbol outputProcName = outputProc->getName();//.withNumber(0);		// number?
 		
-        if(1) // DEBUG
-        {
-            debug() << "    publishing output " << i << ": out " << outputIdx << " of proc " << outputProcName << "\n";
-        }
-        
         compileOp* pOutputOp = compileOpsMap[outputProcName];
 		if (!pOutputOp)
         {
@@ -301,11 +294,11 @@ debug() << "compiling container " << getName() << ":\n";
 
             // set lifespan of output signal, from op's position to end.
             signals[sigName].addLifespan(pOp->listIdx, mOpsList.size() - 1);
-    debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
+            // debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
             
             // add published output to list
             signals[sigName].mPublishedOutput = i + 1;
-    debug() << "    signal " << sigName << " gets output  " << i + 1 << "\n";
+            // debug() << "    signal " << sigName << " gets output  " << i + 1 << "\n";
             compileOutputs.push_back(sigName);
         }
 	}
@@ -1371,9 +1364,9 @@ bail:
 void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol outputName, const MLSymbol alias)
 {
     int copy = srcProcName.getCopy();
-    debug() << "MLProcContainer " << getName() << ": publishOutput " << outputName;
-    if(copy > 0) { debug() << "(copy " << copy << ") "; }
-    debug() << " of " << srcProcName << " as " << alias << "\n";
+    //debug() << "MLProcContainer " << getName() << ": publishOutput " << outputName;
+    //if(copy > 0) { debug() << "(copy " << copy << ") "; }
+    //debug() << " of " << srcProcName << " as " << alias << "\n";
 	
     err e = OK;
 	MLPublishedOutputPtr p;
@@ -2040,13 +2033,6 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("output"))
 		{
-            // TEMP
-           if(getName() == "voices")
-           {
-               debug()  << "voices output!\n";
-           }
-            debug()  << getName() << "wants output\n";
-            
 			MLPath arg1 = RequiredPathAttribute(child, "proc");
 			MLSymbol arg2 = RequiredAttribute(child, "output");
 			MLSymbol arg3 = RequiredAttribute(child, "alias");
@@ -2055,7 +2041,6 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				// add optional copy attribute
 				int copy = 0;
 				copy = child->getIntAttribute("copy", copy);
-                debug() << "publishing output: copy " << copy << "\n";
 				arg1.setCopy(copy);
 				publishOutput(arg1, arg2, arg3);
 			}
