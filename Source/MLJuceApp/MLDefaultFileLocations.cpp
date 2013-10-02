@@ -14,11 +14,13 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 	File::SpecialLocationType startDirType;
 	switch(whichFiles)
 	{
-		case kFactoryPresetFiles: case kScaleFiles:
+		case kFactoryPresetFiles:
+        case kScaleFiles:
 			startDirType = File::commonApplicationDataDirectory;
 		break;
 		case kUserPresetFiles:
-			startDirType = File::userApplicationDataDirectory;	
+		case kSampleFiles:
+			startDirType = File::userApplicationDataDirectory;
 		break;
 		default:
 		break;
@@ -35,15 +37,19 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 
 		if (whichFiles == kScaleFiles)
 		{
-			dest = String("Madrona Labs") + "/Scales";
+			dest = String(MLProjectInfo::makerString) + "/Scales";
+		}
+		else if (whichFiles == kSampleFiles)
+		{
+			dest = String(MLProjectInfo::makerString) + "/" + MLProjectInfo::projectName + "/Samples";
 		}
 		else if (whichFiles == kFactoryPresetFiles)
 		{
-			dest = String("Madrona Labs") + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerString) + "/" + MLProjectInfo::projectName + "/Presets";
 		}
 		else if (whichFiles == kUserPresetFiles)
 		{
-			dest = String("Madrona Labs") + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerString) + "/" + MLProjectInfo::projectName + "/Presets";
 		}
 
 #elif JUCE_LINUX
@@ -55,20 +61,28 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 #elif JUCE_MAC
 		if (whichFiles == kScaleFiles)
 		{
-			dest = "Audio/Presets/Madrona Labs/Scales";
+			dest = String("Audio/Presets/") + MLProjectInfo::makerString + "/Scales";
+		}
+		else if (whichFiles == kSampleFiles)
+		{
+			dest = String("Audio/Presets/") + MLProjectInfo::makerString + "/Samples";
 		}
 		else // either presets type
 		{
-			dest = String("Audio/Presets/Madrona Labs/") + MLProjectInfo::projectName;
+			dest = String("Audio/Presets/") + MLProjectInfo::makerString + "/" + MLProjectInfo::projectName;
 		}
 #endif
 		result = startDir.getChildFile(dest);	
-		/*
+	
 		if (result.exists())
 		{
 			debug() << "found path: " << dest << "\n";
 			debug() << "full path:" << result.getFullPathName() << "\n";
-		}*/
+		}
+        else
+        {
+            result = File::nonexistent;
+        }
 	}
 	return result;
 }

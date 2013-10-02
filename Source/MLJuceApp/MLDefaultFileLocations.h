@@ -14,11 +14,12 @@ enum eFileTypes
 {
 	// plugin data
 	kFactoryPresetFiles     = 0,  
-	kUserPresetFiles		= 1,
-	kScaleFiles				= 2,
+	kUserPresetFiles,
+	kScaleFiles,
+	kSampleFiles,
 	
 	// app storage
-	kAppPresetFiles			= 3
+	kAppPresetFiles
 };
 	
 
