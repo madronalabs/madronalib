@@ -69,7 +69,8 @@ protected:
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	
 
-	void setupFormat();
+	void setupFormat();    
+	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
 
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
@@ -98,8 +99,6 @@ private:
 	int mPresetMenuStartItems;
 	int mCurrentPresetIndex;
 	Array<File> mScaleMenuFiles;	
-
-	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
 
 	void populatePresetMenu(); 
 	void populateScaleMenu();	
