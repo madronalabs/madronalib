@@ -1144,6 +1144,8 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 	return r; 
 }
 
+// TODO this can't possibly work with multis inside multis, since the copy # is specified
+// for the entire path. Fix with new MLPath structure with copy or wildcard per branch.
 void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, int copies)
 {
 	pList.clear();
@@ -1151,11 +1153,10 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 	{
 		MLPath pathI = pathName;
 		pathI.setCopy(i);
-		MLProcPtr proc = getProc(pathI);
-		
-//debug() << "MLProcContainer (" << (void *)this << ") getProcList: added " << (void *)&*proc << "\n\n";		
+		MLProcPtr proc = getProc(pathI);		
 		if (proc)
 		{
+            // debug() << "MLProcContainer (" << getName() << ") getProcList: added " << (void *)&*proc << " (# " << i << ")\n";
 			pList.push_back(proc);
 		}
 	}
