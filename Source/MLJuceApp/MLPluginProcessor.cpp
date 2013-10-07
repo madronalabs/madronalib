@@ -816,8 +816,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	else
 	{
 		File scale;
-
-//		scales = ("/Library/Audio/Presets/Madrona Labs/Scales/");
 		if (mScalesFolder.exists())
 		{
 			String scaleFileName = scaleDir + "/" + scaleName + ".scl";
@@ -1315,6 +1313,7 @@ debug() << "sendMessageToMLListener: load file " << f.getFileName() << "\n";
 	return err;
 }
 
+// TODO what is this doing in Processor? Should be in MLScale.
 void MLPluginProcessor::loadScale(const File& f) 
 {
 	MLScale* pScale = mEngine.getScale();

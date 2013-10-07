@@ -37,19 +37,19 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 
 		if (whichFiles == kScaleFiles)
 		{
-			dest = String(MLProjectInfo::makerString) + "/Scales";
+			dest = String(MLProjectInfo::makerName) + "/Scales";
 		}
 		else if (whichFiles == kSampleFiles)
 		{
-			dest = String(MLProjectInfo::makerString) + "/" + MLProjectInfo::projectName + "/Samples";
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Samples";
 		}
 		else if (whichFiles == kFactoryPresetFiles)
 		{
-			dest = String(MLProjectInfo::makerString) + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
 		}
 		else if (whichFiles == kUserPresetFiles)
 		{
-			dest = String(MLProjectInfo::makerString) + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
 		}
 
 #elif JUCE_LINUX
@@ -61,15 +61,15 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 #elif JUCE_MAC
 		if (whichFiles == kScaleFiles)
 		{
-			dest = String("Audio/Presets/") + MLProjectInfo::makerString + "/Scales";
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/Scales";
 		}
 		else if (whichFiles == kSampleFiles)
 		{
-			dest = String("Audio/Presets/") + MLProjectInfo::makerString + "/Samples";
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/Samples";
 		}
 		else // either presets type
 		{
-			dest = String("Audio/Presets/") + MLProjectInfo::makerString + "/" + MLProjectInfo::projectName;
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName;
 		}
 #endif
 		result = startDir.getChildFile(dest);	

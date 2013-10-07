@@ -696,7 +696,10 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 
 // get all files in the given directory and its immediate subdirectories that have the 
 // given extension. append the Files to results. if the three optional menu params 
-// are specified, add menu items to the menus.  
+// are specified, add menu items to the menus.
+//
+// TODO this is really just not good, and wants an object to manage menu / file
+// connections coherently
 //
 //
 void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu)
