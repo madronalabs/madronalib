@@ -11,7 +11,6 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
     mpProcessor(pProcessor),
-    mFileLocationsOK(false),
 	mCurrentPresetIndex(0)
 {
 	// get parameters and initial values from our processor and create corresponding model params. 
@@ -29,22 +28,6 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 			pModel->setModelParam(paramName, val);
 		}
 	}
-    
-	// get data folder locations
-	mFactoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
-	mUserPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
-	mScalesFolder = getDefaultFileLocation(kScaleFiles);
-	if ((mFactoryPresetsFolder == File::nonexistent) ||
-		(mUserPresetsFolder == File::nonexistent) ||
-		(mScalesFolder == File::nonexistent))
-	{
-		MLError() << "MLPluginEditor: couldn't get data files!\n";
-	}
-	else
-	{
-		mFileLocationsOK = true;
-		mCurrentPresetFolder = mUserPresetsFolder;
-	}	
 	
 	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
 	
@@ -555,12 +538,23 @@ void MLPluginController::doPresetMenu(int result)
 		break;
 		case (3):	// save as ...
 		{
-			FileChooser fc ("Save preset as...", mUserPresetsFolder, String::empty, true); // true = native file chooser
-			if (fc.browseForFileToSave (true))
-			{
-				File saveFile = fc.getResult();	
-				getProcessor()->saveStateToFile(saveFile);
-				populatePresetMenu();
+            File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
+            if (userPresetsFolder != File::nonexistent)
+            {
+                FileChooser fc ("Save preset as...", userPresetsFolder, String::empty, true); // true = native file chooser
+                if (fc.browseForFileToSave (true))
+                {
+                    File saveFile = fc.getResult();	
+                    getProcessor()->saveStateToFile(saveFile);
+                    populatePresetMenu();
+                }
+            }
+            else
+            {
+				AlertWindow::showMessageBox (AlertWindow::NoIcon,
+                                             String::empty,
+                                             getProcessor()->getErrorMessage(),
+                                             "OK");
 			}
 		}
 		break;
@@ -718,48 +712,52 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 		{
 			// only recurse one level deep.
 			String category = f.getFileNameWithoutExtension();
-			File subdir = startDir.getChildFile(category);
-			
-			// note: this will find MIDI Programs in either User or Factory directories!
-			bool doMIDI = (category == "MIDI Programs"); 
-			
-			if(subdir.exists())
-			{
-				Array<File> subdirArray;
-				MLMenuPtr subPop(new MLMenu());
-				if(doMenus)
-				{
-					subPop->setItemOffset(pMenu->getNumItems());
-				}
-				int filesInCategory = subdir.findChildFiles(subdirArray, level1FilesToFind, false);
-				for(int j=0; j<filesInCategory; ++j)
-				{
-					File f2 = subdirArray[j];
-					if (f2.hasFileExtension(extension))
-					{
-						String subPreset = f2.getFileNameWithoutExtension();
-						if(doMIDI && (midiPgmCount < kMLPluginMIDIPrograms))
-						{
-							String tagStr;
-							tagStr << " (#" << midiPgmCount << ")";
-							
-							// save index of MIDI program
-							mMIDIProgramFiles[midiPgmCount] = f2;
-							midiPgmCount++;
-							subPreset += tagStr;
-						}
-						results.add(f2);
-						if(doMenus)
-						{
-							subPop->addItem(subPreset.toUTF8());
-						}	
-					}
-				}
-				if(doMenus)
-				{
-					pMenu->addSubMenu(subPop, category.toUTF8());
-				}
-			}					
+            if(category != "Samples") // ignore samples directory
+            {
+                    
+                File subdir = startDir.getChildFile(category);
+                
+                // note: this will find MIDI Programs in either User or Factory directories!
+                bool doMIDI = (category == "MIDI Programs"); 
+                
+                if(subdir.exists())
+                {
+                    Array<File> subdirArray;
+                    MLMenuPtr subPop(new MLMenu());
+                    if(doMenus)
+                    {
+                        subPop->setItemOffset(pMenu->getNumItems());
+                    }
+                    int filesInCategory = subdir.findChildFiles(subdirArray, level1FilesToFind, false);
+                    for(int j=0; j<filesInCategory; ++j)
+                    {
+                        File f2 = subdirArray[j];
+                        if (f2.hasFileExtension(extension))
+                        {
+                            String subPreset = f2.getFileNameWithoutExtension();
+                            if(doMIDI && (midiPgmCount < kMLPluginMIDIPrograms))
+                            {
+                                String tagStr;
+                                tagStr << " (#" << midiPgmCount << ")";
+                                
+                                // save index of MIDI program
+                                mMIDIProgramFiles[midiPgmCount] = f2;
+                                midiPgmCount++;
+                                subPreset += tagStr;
+                            }
+                            results.add(f2);
+                            if(doMenus)
+                            {
+                                subPop->addItem(subPreset.toUTF8());
+                            }	
+                        }
+                    }
+                    if(doMenus)
+                    {
+                        pMenu->addSubMenu(subPop, category.toUTF8());
+                    }
+                }
+            }
 		}
 		else if (f.hasFileExtension(extension))
 		{
@@ -840,34 +838,49 @@ void MLPluginController::populatePresetMenu()
 		break;
 	}
 	
-	// find and add patch files to menus
 	mPresetMenuStartItems = menu->getNumItems();
-	if (mFileLocationsOK)
+    
+
+	// find and add patch files to menus
+    menu->addSeparator();
+	File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
+	if (userPresetsFolder != File::nonexistent)
 	{
-		menu->addSeparator();		
-		findFilesOneLevelDeep(mUserPresetsFolder, presetFileType, mMenuPresetFiles, menu);
-		menu->addSeparator(); 				
-		findFilesOneLevelDeep(mFactoryPresetsFolder, presetFileType, mMenuPresetFiles, menu);	
-			
-//		debug() << "MLPluginController: " << mMenuPresetFiles.size() << " preset files.\n";
-		
-		// send MIDI program info to processor
-		MLPluginProcessor* const pProc = getProcessor();
-		if(pProc)
-		{
-			pProc->clearMIDIProgramFiles();
-			for(int i=0; i<kMLPluginMIDIPrograms; ++i)
-			{
-				if(mMIDIProgramFiles[i].exists())
-				{
-			debug() << "MIDI pgm " << i << " " << mMIDIProgramFiles[i].getFileName() << "\n";
-					pProc->setMIDIProgramFile(i, mMIDIProgramFiles[i]);
-				}
-			}
-		}
+		findFilesOneLevelDeep(userPresetsFolder, presetFileType, mMenuPresetFiles, menu);
+    }
+    else
+    {
+        menu->addItem("user presets folder not found!", false);
+    }
+    
+    menu->addSeparator();
+	File factoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
+    if(factoryPresetsFolder != File::nonexistent)
+    {
+		findFilesOneLevelDeep(factoryPresetsFolder, presetFileType, mMenuPresetFiles, menu);
 	}
+    else
+    {
+        menu->addItem("factory presets folder not found!", false);
+    }
+//		debug() << "MLPluginController: " << mMenuPresetFiles.size() << " preset files.\n";
+    
+    // send MIDI program info to processor
+    MLPluginProcessor* const pProc = getProcessor();
+    if(pProc)
+    {
+        pProc->clearMIDIProgramFiles();
+        for(int i=0; i<kMLPluginMIDIPrograms; ++i)
+        {
+            if(mMIDIProgramFiles[i].exists())
+            {
+        debug() << "MIDI pgm " << i << " " << mMIDIProgramFiles[i].getFileName() << "\n";
+                pProc->setMIDIProgramFile(i, mMIDIProgramFiles[i]);
+            }
+        }
+    }
+
 	// sync current preset index to new list
-	MLPluginProcessor* const pProc = getProcessor();
 	mCurrentPresetIndex = getIndexOfPreset(pProc->getModelStringParam("preset_dir"), pProc->getModelStringParam("preset"));
 }
 
@@ -884,13 +897,14 @@ void MLPluginController::populateScaleMenu()
 	}			
 	menu->clear();
 	menu->addItem("12-equal");
-	if(mFileLocationsOK) 
+	File scalesFolder = getDefaultFileLocation(kScaleFiles);
+	if (scalesFolder != File::nonexistent)
 	{
-		findFilesOneLevelDeep(mScalesFolder, ".scl", mScaleMenuFiles, menu);
+		findFilesOneLevelDeep(scalesFolder, ".scl", mScaleMenuFiles, menu);
 	}
 }
 
-/* 
+/*
 
 // TEST implementation TODO in v.2
 // settings menu component. just contains number and animate buttons now.
@@ -974,13 +988,19 @@ void MLPluginController::getPresetsToConvert(Array<File>* pResults)
 	}
 	// debug() << "getPresetsToConvert: my plugin type is " << pluginType << "\n";
 	
-	if (mFileLocationsOK)
-	{	
-		// get lists of files but don't add to menus
-		findFilesOneLevelDeep(mUserPresetsFolder, fromFileType, fromFiles, 0);
-		findFilesOneLevelDeep(mFactoryPresetsFolder, fromFileType, fromFiles, 0);
+    // get lists of files but don't add to menus
+    File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
+    if (userPresetsFolder != File::nonexistent)
+	{
+        findFilesOneLevelDeep(userPresetsFolder, fromFileType, fromFiles, 0);
+    }
+    
+    File factoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
+    if(factoryPresetsFolder != File::nonexistent)
+    {
+        findFilesOneLevelDeep(factoryPresetsFolder, fromFileType, fromFiles, 0);
 	}
-	
+ 
 	//debug() << "convertPresets: got " << fromFiles.size() << " preset files of other type.\n";
 
 	// for each fromType file, look to see if it has a toType counterpart. 

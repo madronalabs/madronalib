@@ -27,7 +27,6 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 	}
 	File startDir = File::getSpecialLocation (startDirType);	
 	
-
 	if (startDir.exists())
 	{
 
@@ -65,7 +64,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		}
 		else if (whichFiles == kSampleFiles)
 		{
-			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/Samples";
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName + "/Samples";
 		}
 		else // either presets type
 		{

@@ -87,9 +87,7 @@ private:
 //	ScopedPointer <DirectoryContentsList> mScalesList;
 //   TimeSliceThread mFactoryPresetsThread, mUserPresetsThread, mScalesThread;
  
-	File mFactoryPresetsFolder, mUserPresetsFolder, mScalesFolder;
 	File mCurrentPresetFolder;
-	bool mFileLocationsOK;
 
 	// stored indices for MIDI program changes-- hackish
 	std::vector<File> mMIDIProgramFiles;
