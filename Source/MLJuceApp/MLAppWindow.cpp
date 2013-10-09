@@ -16,6 +16,7 @@ MLAppWindow::MLAppWindow()
 	mpBorder(0),
 	mpConstrainer(0)
 {
+ 	setVisible (false);
     setOpaque(true);
     setResizable(true, false);
 	setResizeLimits (400, 300, 8192, 8192);
@@ -31,7 +32,7 @@ MLAppWindow::MLAppWindow()
     
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);
-	setVisible (true);
+	//setVisible (true);
 }
 
 MLAppWindow::~MLAppWindow()
