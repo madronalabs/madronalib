@@ -279,8 +279,11 @@ public:
 	inline bool is3D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth > 1)); }
 
 	// handy shorthand for row and plane access
-	inline int row(int i) const { return i<<mWidthBits; }
+    // TODO looking at actual use, would look better to return dataAligned + row, plane.
+ 	inline int row(int i) const { return i<<mWidthBits; }
 	inline int plane(int i) const { return i<<mWidthBits<<mHeightBits; }
+	inline int getRowStride() const { return 1<<mWidthBits; }
+	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
     
 private:
 	// private signal constructor: make a reference to a frame of the external signal.
