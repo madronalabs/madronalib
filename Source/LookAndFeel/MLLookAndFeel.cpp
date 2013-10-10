@@ -604,7 +604,7 @@ float MLLookAndFeel::getLabelHeight()
 float MLLookAndFeel::getLabelTextKerning(float textSize)
 {
 	MLRange pointsRange(6, 24);
-	MLRange trackingRange(0.07, -0.02);
+	MLRange trackingRange(0.03, -0.03);
 	pointsRange.convertTo(trackingRange);
 	return pointsRange.convertAndClip(textSize);
 }
@@ -612,7 +612,7 @@ float MLLookAndFeel::getLabelTextKerning(float textSize)
 float MLLookAndFeel::getButtonTextKerning(float textSize)
 {
 	MLRange pointsRange(6, 24);
-	MLRange trackingRange(0.03, -0.05);
+	MLRange trackingRange(0.03, -0.03);
 	pointsRange.convertTo(trackingRange);
 	return pointsRange.convertAndClip(textSize);
 }
@@ -626,8 +626,8 @@ float MLLookAndFeel::getButtonTextSize(const MLButton& button)
 {
 	const MLRect& uBounds = button.getGridBounds();
 	float uh = uBounds.height();
-	uh = clamp(uh, 0.5f, 2.f);
-	uh *= 0.6f;
+	uh = clamp(uh, 0.33f, 2.f);
+	uh *= 0.66f;
 	uh *= (float)button.getWidgetGridUnitSize();
 	// TODO good text size list
 	return floor(uh);

@@ -145,11 +145,8 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
-	mFont.setHeight(size);
-	
-	// don't use kerning for now. JUCE calculates the size wrong. 
-	// mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
-	mFont.setExtraKerningFactor(0.);
+	mFont.setHeight(size);	
+	mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
 	mRichStr.setFont(mFont);
 		
 	if (mResizeToText && !mpDrawable)
