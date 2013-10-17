@@ -18,7 +18,7 @@ enum eFileTypes
 	kScaleFiles,
 	kSampleFiles,
 	
-	// app storage
+	// app persistent state storage
 	kAppPresetFiles
 };
 	

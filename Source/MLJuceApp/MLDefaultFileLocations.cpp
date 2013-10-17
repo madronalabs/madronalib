@@ -10,26 +10,34 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 	File result = File::nonexistent;
 	String dest;	
 
-	// get start directory for search
+	// get start directory for search according to platform and file type
 	File::SpecialLocationType startDirType;
+    File startDir;
 	switch(whichFiles)
 	{
 		case kFactoryPresetFiles:
         case kScaleFiles:
-			startDirType = File::commonApplicationDataDirectory;
-		break;
+            startDir = File::getSpecialLocation (File::commonApplicationDataDirectory);
+			break;
 		case kUserPresetFiles:
 		case kSampleFiles:
-			startDirType = File::userApplicationDataDirectory;
-		break;
+            startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+            break;
+        case kAppPresetFiles:
 		default:
-		break;
+#if JUCE_MAC || JUCE_IOS
+            startDir = File("~/Library/Application Support"); // user Library, not system
+#elif JUCE_LINUX || JUCE_ANDROID
+            startDir = File("~/" + "." + makerName + "/" + applicationName);
+#elif JUCE_WINDOWS
+            startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+#endif
+			break;
 	}
-	File startDir = File::getSpecialLocation (startDirType);	
 	
+    // get subdirectory 
 	if (startDir.exists())
 	{
-
 #if JUCE_WINDOWS
 
 		// debug() << "Start dir: " << startDir.getFullPathName() << " \n";
@@ -50,6 +58,10 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		{
 			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
 		}
+		else if (whichFiles == kAppPresetFiles)
+		{
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName ;
+		}
 
 #elif JUCE_LINUX
 
@@ -66,12 +78,23 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		{
 			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName + "/Samples";
 		}
-		else // either presets type
-		{
+		else if (whichFiles == kFactoryPresetFiles)
+        {
 			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName;
 		}
+		else if (whichFiles == kUserPresetFiles)
+        {
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName;
+		}
+		else if (whichFiles == kAppPresetFiles)
+		{
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName ;
+		}
 #endif
-		result = startDir.getChildFile(dest);	
+
+        debug() << "getDefaultFileLocation: looking for path: " << dest << "\n";
+
+        result = startDir.getChildFile(dest);
 	
 		if (result.exists())
 		{
