@@ -590,7 +590,6 @@ float MLLookAndFeel::getLabelTextSize()
 	float t = 0.25f*mGlobalTextScale;
 	t *= (float)getGridUnitSize();
 	return t;
-	// TODO good text size list
 }
 
 // return standard label height in grid units.
@@ -626,10 +625,9 @@ float MLLookAndFeel::getButtonTextSize(const MLButton& button)
 {
 	const MLRect& uBounds = button.getGridBounds();
 	float uh = uBounds.height();
-	uh = clamp(uh, 0.33f, 2.f);
 	uh *= 0.66f;
+	uh = clamp(uh, 0.25f, 2.f);
 	uh *= (float)button.getWidgetGridUnitSize();
-	// TODO good text size list
 	return floor(uh);
 }
 
