@@ -26,7 +26,7 @@ MLAppView::MLAppView(MLResponder* pResp, MLReporter* pRep) :
 
 MLAppView::~MLAppView()
 {
-    debug() << "DELETING " << getWidgetName() << "\n";
+    // debug() << "DELETING " << getWidgetName() << "\n";
 	setAnimationsActive(false);
 	deleteAllChildren();
 }
@@ -372,16 +372,14 @@ void MLAppView::setPeerBounds(int x, int y, int w, int h)
 	Desktop& d = Desktop::getInstance();
 	Rectangle<int> r = d.getDisplays().getTotalBounds(true);
 	
-	// 
 	const int kMenuBarHeight = 20;
 	r.setTop(r.getY() + kMenuBarHeight);
 	
-			
 	Rectangle<int> b(x, y, w, h);
 	Rectangle<int> c = r.getIntersection(b);	
 	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
 	{
-debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
+        // debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
 		p->setBounds(Rectangle<int>(x, y, w, h), false);
 	}
 	else

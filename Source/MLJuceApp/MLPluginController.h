@@ -81,12 +81,6 @@ private:
 	String mCurrentScaleDir;
 	std::string mVersionString;
 
-	// TODO v.2
-//	ScopedPointer <DirectoryContentsList> mFactoryPresetsList;
-//	ScopedPointer <DirectoryContentsList> mUserPresetsList;
-//	ScopedPointer <DirectoryContentsList> mScalesList;
-//   TimeSliceThread mFactoryPresetsThread, mUserPresetsThread, mScalesThread;
- 
 	File mCurrentPresetFolder;
 
 	// stored indices for MIDI program changes-- hackish

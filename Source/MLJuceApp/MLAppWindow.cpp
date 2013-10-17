@@ -13,26 +13,33 @@ MLAppWindow::MLAppWindow()
 					  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
 					  DocumentWindow::allButtons,
 					  true),
-	mpBorder(0),
-	mpConstrainer(0)
+	mpConstrainer(0),
+    mUsingGL(false)
 {
- 	setVisible (false);
-    setOpaque(true);
     setResizable(true, false);
 	setResizeLimits (400, 300, 8192, 8192);
-	
-	// note: native title bar prevents resizing by dragging border on Mac. 
-	// also enforces fixed title bar height, and automatically includes a
-	// resizing rect in lower right. 
-	setUsingNativeTitleBar (true);
+
+    //commandManager.registerAllCommandsForTarget (&mBorder);
+    commandManager.registerAllCommandsForTarget (JUCEApplication::getInstance());
     
-#if GLX
-    openGLContext.attachTo (*getTopLevelComponent());
-#endif
+    // this lets the command manager use keypresses that arrive in our window to send
+    // out commands
+    addKeyListener (commandManager.getKeyMappings());
     
+
+    setContentOwned(&mBorder, false);
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);
-	//setVisible (true);
+
+	setUsingNativeTitleBar (true);
+    
+    
+    // tells our menu bar model that it should watch this command manager for
+    // changes, and send change messages accordingly.
+    //&mBorder->setApplicationCommandManagerToWatch (&commandManager);
+    
+
+    //setVisible (true);
 }
 
 MLAppWindow::~MLAppWindow()
@@ -41,10 +48,7 @@ MLAppWindow::~MLAppWindow()
 	//  TODO  String getWindowStateAsString();
 	//  TODO  bool restoreWindowStateFromString (const String& previousState);
 	// (the content component will be deleted automatically, so no need to do it here)
-	if (mpBorder)
-	{
-		delete mpBorder;
-	}
+
 	if (mpConstrainer)
 	{
 		delete mpConstrainer;
@@ -69,26 +73,48 @@ void MLAppWindow::setGridUnits(double gx, double gy)
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
 	mpConstrainer->setFixedAspectRatio(gx/gy);	
-	
-	if (mpBorder)
-	{
-		mpBorder->setGridUnits(gx, gy);
-	}
+    mBorder.setGridUnits(gx, gy);
 }
 
 void MLAppWindow::setContent(MLAppView* contentView)
 {
-	if (!mpBorder) 
-	{
-		mpBorder = new MLAppBorder();
-		mpBorder->setBounds(getBounds());
-	}
-	setContentNonOwned (mpBorder, false);
-	mpBorder->addMainView(contentView);
-
+	mBorder.addMainView(contentView);
 }
 
 void MLAppWindow::closeButtonPressed()
 {
     JUCEApplication::getInstance()->systemRequestedQuit();
+}
+
+void MLAppWindow::moved()
+{
+    // repainting here is not quite perfect because
+    // a flash happens when changing between
+    // screens of differing resolution.
+    
+    // TODO could check for move to different display and only repaint in that case
+    repaint();
+    DocumentWindow::moved();
+    mBorder.moved();
+}
+
+void MLAppWindow::resized()
+{
+    DocumentWindow::resized();
+}
+
+void MLAppWindow::setUsingOpenGL(bool b)
+{
+    if(b != mUsingGL)
+    {
+        if(b)
+        {
+            openGLContext.attachTo (*getTopLevelComponent());
+        }
+        else
+        {
+            openGLContext.detach();            
+        }
+        mUsingGL = b;
+    }
 }

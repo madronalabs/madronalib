@@ -714,7 +714,6 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 			String category = f.getFileNameWithoutExtension();
             if(category != "Samples") // ignore samples directory
             {
-                    
                 File subdir = startDir.getChildFile(category);
                 
                 // note: this will find MIDI Programs in either User or Factory directories!
@@ -840,7 +839,6 @@ void MLPluginController::populatePresetMenu()
 	
 	mPresetMenuStartItems = menu->getNumItems();
     
-
 	// find and add patch files to menus
     menu->addSeparator();
 	File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
@@ -1104,11 +1102,7 @@ public:
         AudioProcessor::WrapperType mFormat;
 };
 
-
-//
-// TODO BUG! plugin will crash if Live is quit while modal window is up.
-//
-void MLPluginController::convertPresets() 
+void MLPluginController::convertPresets()
 {
 //debug() << "converting presets...\n";
 

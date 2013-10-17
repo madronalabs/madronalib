@@ -21,15 +21,23 @@ public:
 	void setGridUnits(double gx, double gy);
 	void setContent(MLAppView* newView);
     void closeButtonPressed();
+    void moved();
+    void resized();
+    void setUsingOpenGL(bool);
 
 private:
  	ComponentDragger myDragger;
 	
 	float mGridUnitsX;
 	float mGridUnitsY;
+    bool mUsingGL;
 	
-	MLAppBorder* mpBorder;
+	MLAppBorder mBorder;
     MLBoundsConstrainer* mpConstrainer;
+    
+    // the command manager object used to dispatch command events
+    ApplicationCommandManager commandManager;
+
 #if GLX
     juce::OpenGLContext openGLContext;
 #endif
