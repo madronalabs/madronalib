@@ -47,14 +47,32 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 }
 
 void MLMenu::addSubMenu(MLMenuPtr m, const char* name, bool enabled)
-{	
+{
 	mJuceMenu.addSubMenu(name, m->getJuceMenu(), enabled);
 	std::vector<std::string>::const_iterator it;
-	const std::vector<std::string> v = m->getItemVector();	
+	const std::vector<std::string> v = m->getItemVector();
+    
+    // add each element of submenu in turn to our flat item vector
 	for(it = v.begin(); it != v.end(); it++)
 	{
 		mItems.push_back(*it);
 		mNumItems++;
+	}
+	return;
+}
+
+void MLMenu::appendMenu(MLMenuPtr m)
+{
+	std::vector<std::string>::const_iterator it;
+	const std::vector<std::string> v = m->getItemVector();
+    
+    // TODO recursive add
+    
+    // add each element of other menu in turn to our flat item vector
+	for(it = v.begin(); it != v.end(); it++)
+	{
+        debug() << "item " << *it << "\n";
+		addItem((const std::string&)*it);
 	}
 	return;
 }
@@ -83,5 +101,20 @@ const std::string& MLMenu::getItemString(int idx)
 PopupMenu& MLMenu::getJuceMenu()
 {
 	return mJuceMenu;
+}
+
+void MLMenu::dump()
+{
+ 	std::vector<std::string>::const_iterator it;
+    
+    debug() << "menu " << mName << "\n";
+    
+    // add each element of submenu in turn to our flat item vector
+    int idx = 0;
+	for(it = mItems.begin(); it != mItems.end(); it++)
+	{
+		debug() << "    " << idx++ << *it << "\n";
+	}
+   
 }
 
