@@ -58,7 +58,9 @@ protected:
 };
 
 // ----------------------------------------------------------------
-#pragma mark MVC application parameter code
+#pragma mark MVC application attribute code
+
+// TODO WHY did I call attributes "parameters"? Lots of renaming to do.
 
 typedef std::map<MLSymbol, MLModelParam> MLModelParameterMap;
 

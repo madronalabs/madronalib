@@ -105,6 +105,7 @@ void MLAppWindow::resized()
 
 void MLAppWindow::setUsingOpenGL(bool b)
 {
+#if GLX
     if(b != mUsingGL)
     {
         if(b)
@@ -117,4 +118,5 @@ void MLAppWindow::setUsingOpenGL(bool b)
         }
         mUsingGL = b;
     }
+#endif
 }

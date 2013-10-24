@@ -338,7 +338,7 @@ public:
 		mMaxOutput = max(c, d);
 	}
 	
-	float operator()(float f) const // deprecate this strange syntax
+	float operator()(float f) const 
 	{
 		float r = f*mScale + mOffset;
 		if(mClip) r = clamp(r, mMinOutput, mMaxOutput);
