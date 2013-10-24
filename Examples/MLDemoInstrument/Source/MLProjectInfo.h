@@ -15,6 +15,7 @@
 
 namespace MLProjectInfo
 {
+    const char* const  makerName      = JucePlugin_Manufacturer;
     const char* const  projectName    = JucePlugin_Name;
     const char* const  versionString  = JucePlugin_VersionString;
     const int          versionNumber  = JucePlugin_VersionCode;
