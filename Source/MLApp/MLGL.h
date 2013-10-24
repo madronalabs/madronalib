@@ -46,6 +46,8 @@ class MLGL
 public:
      
     static void orthoView(int width, int height);
+    static void orthoView2(int width, int height);
+    void orthoViewForAspectInBounds(const float a, const MLRect bounds);
     
 #if ML_MAC // TODO
     static void worldView(float aspect);
