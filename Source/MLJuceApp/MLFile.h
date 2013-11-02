@@ -1,6 +1,6 @@
 //
 //  MLFile.h
-//  Kaivo
+//  MadronaLib
 //
 //  Created by Randy Jones on 10/31/13.
 //
@@ -26,19 +26,17 @@ public:
     
     void clear();
     void insert(const std::string& path, MLFilePtr f);
+    MLFilePtr find(const std::string& path);
     void buildMenu(MLMenuPtr m);
-    void addToMenu(MLMenu* m); // TEMP
     
     File mFile;
     bool mIsDirectory;
+    int mIndex;
     std::string mRelativePath;
     std::string mShortName;
     
 private:
     std::map<std::string, MLFilePtr> mFiles;
-//    MLFilePtr findFileByName(const std::string& name);
-
-    
 };
 
 #endif /* defined(__Kaivo__MLFile__) */

@@ -45,18 +45,15 @@ public:
     // returns the number of files found.
     int findFilesImmediate();
    
-    //int getFileIndexByPath(String path);
-    const MLFile& getFileByIndex(int idx);
+    const MLFilePtr getFileByName(const std::string& name);
     
     MLMenuPtr buildMenu(bool flat = false);
-    void addToMenu(MLMenu* m, bool flat = false);
     void dump();
     
 private:
     // the file tree
     MLFile mRoot;
-    std::vector<MLFilePtr> mFilesByIndex;
-    
+    std::vector<MLFilePtr> mFilesByIndex;    
     MLSymbol mName;
     String mExtension;
     Listener* mpListener;

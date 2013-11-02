@@ -12,15 +12,16 @@
 MLFile::MLFile(const std::string& dirName) :
     mFile(File::nonexistent),
     mIsDirectory(true),
-    mShortName(dirName)
+    mShortName(dirName),
+    mIndex(-1)
 {}
 
 MLFile::MLFile(const File startDir) :
-    mFile(startDir), mIsDirectory(startDir.isDirectory())
+mFile(startDir), mIsDirectory(startDir.isDirectory()), mIndex(-1)
 {}
 
 MLFile::MLFile(const File f, const std::string& p, const std::string& n) :
-    mFile(f), mIsDirectory(f.isDirectory()), mRelativePath(p), mShortName(n)
+    mFile(f), mIsDirectory(f.isDirectory()), mRelativePath(p), mShortName(n), mIndex(-1)
 {}
 
 MLFile::~MLFile()
@@ -36,7 +37,7 @@ void MLFile::clear()
 void MLFile::insert(const std::string& path, MLFilePtr f)
 {
     debug() << "INSERTING: " << path << "\n";
-    int len = path.length(); 
+    int len = path.length();
     if(len)
     {
         int b = path.find_first_of("/");
@@ -44,7 +45,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
         {
             // leaf, insert file here creating dir if needed
             debug() << "        LEAF: " << path << "\n\n" ;
-           
+            
             // add leaf file to map
             mFiles[path] = f;
         }
@@ -64,7 +65,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
             {
                 if(mFiles.find(firstDir) == mFiles.end())
                 {
-                    mFiles[firstDir] = MLFilePtr(new MLFile(firstDir));                    
+                    mFiles[firstDir] = MLFilePtr(new MLFile(firstDir));
                 }
                 mFiles[firstDir]->insert(restOfDirs, f);
             }
@@ -73,6 +74,59 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
     else
     {
         MLError() << "MLFile::insert: empty file name!\n";
+    }
+}
+
+MLFilePtr MLFile::find(const std::string& path)
+{
+    debug() << "FINDING: " << path << "\n";
+    int len = path.length();
+    if(len)
+    {
+        int b = path.find_first_of("/");
+        if(b == std::string::npos)
+        {
+            // leaf, find short name here or return fail.
+            debug() << "        LEAF: " << path << "\n\n" ;
+            
+            std::map<std::string, MLFilePtr>::const_iterator it;
+            it = mFiles.find(path);
+            if(it != mFiles.end())
+            {
+                // return the found file.
+                return it->second;
+            }
+            else
+            {
+                return MLFilePtr();
+            }
+        }
+        else
+        {
+            std::string firstDir = path.substr(0, b);
+            std::string restOfDirs = path.substr(b + 1, len - b);
+            
+            debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
+            
+            // find file matching first dir
+            if(firstDir == "")
+            {
+                MLError() << "MLFile::find: empty directory name!\n";
+            }
+            else if(mFiles.find(firstDir) != mFiles.end())
+            {
+                // look for rest of dirs in found non-leaf file
+                return mFiles[firstDir]->find(restOfDirs);
+            }
+            else
+            {
+                return MLFilePtr();
+            }
+        }
+    }
+    else
+    {
+        MLError() << "MLFile::find: empty file name!\n";
     }
 }
 
@@ -98,36 +152,3 @@ void MLFile::buildMenu(MLMenuPtr m)
         }
     }
 }
-
-// TODO remove this and use buildMenu instead, when we can implement adding recursive menus together
-void MLFile::addToMenu(MLMenu* m)
-{
-    std::map<std::string, MLFilePtr>::const_iterator it;
-    for(it = mFiles.begin(); it != mFiles.end(); ++it)
-    {
-        const MLFilePtr f = it->second;
-        if(f->mIsDirectory)
-        {
-            debug() << "ADDING SUBMENU: " << f->mShortName << "\n";
-            MLMenuPtr subMenu(new MLMenu());
-            subMenu->setItemOffset(m->getNumItems());
-            f->buildMenu(subMenu);
-            m->addSubMenu(subMenu, f->mShortName);
-        }
-        else
-        {
-            debug() << "ADDING ITEM: " << f->mShortName << "\n";
-            m->addItem(f->mShortName);
-        }
-    }
-}
-
-/*
-MLFilePtr findFileByName(const std::string& name)
-{
-    
-    
-}
-*/
-
-

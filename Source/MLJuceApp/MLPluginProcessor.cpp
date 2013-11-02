@@ -772,7 +772,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	// getCallbackLock() is in juce_AudioProcessor
 	// process lock is a quick fix.  it is here to prevent doParams() from getting called in 
 	// process() methods and thereby setting mParamsChanged to false before the real changes take place.
-	//
+	// A better alternative would be a lock-free queue of parameter changes. 
 	const ScopedLock sl (getCallbackLock()); 
 		
 	// only the differences between default parameters and the program state are saved in a program,

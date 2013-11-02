@@ -97,6 +97,14 @@ int MLFileCollection::findFilesImmediate()
                 
                 // push to index
                 mFilesByIndex.push_back(newFile);
+                /*
+                if(mFilesByIndex.size() <= processed)
+                {
+                    mFilesByIndex.resize(processed + 1);
+                }
+                mFilesByIndex[processed] = newFile;
+                 */
+                newFile->mIndex = processed;
                 
                 if(mpListener)
                 {
@@ -110,10 +118,20 @@ int MLFileCollection::findFilesImmediate()
     return processed;
 }
 
-const MLFile& MLFileCollection::getFileByIndex(int idx)
+/*
+const MLFile* MLFileCollection::getFileByIndex(int idx)
 {
-    idx = clamp(idx, 0, (int)mFilesByIndex.size() - 1);
-    return *(mFilesByIndex[idx]);
+    int size = mFilesByIndex.size();
+    if(within(idx, 0, size)
+    {
+        return *(mFilesByIndex[idx]);
+    }
+    return nullptr;
+}*/
+
+const MLFilePtr MLFileCollection::getFileByName(const std::string& fullName)
+{
+    return mRoot.find(fullName);
 }
 
 MLMenuPtr MLFileCollection::buildMenu(bool flat)
@@ -137,37 +155,17 @@ MLMenuPtr MLFileCollection::buildMenu(bool flat)
     return m;
 }
 
-void MLFileCollection::addToMenu(MLMenu* m, bool flat)
-{
-    int size = mFilesByIndex.size();
-    if(flat)
-    {
-        for(int i=0; i<size; ++i)
-        {
-            MLFilePtr f = mFilesByIndex[i];
-            debug() << "buildMenu: adding " << f->mShortName << "\n";
-            m->addItem(f->mShortName);
-        }
-    }
-    else
-    {
-        mRoot.addToMenu(m);
-    }
-    m->renumber();
-}
-
 void MLFileCollection::dump()
 {
  	std::vector<MLFilePtr>::const_iterator it;
     
     debug() << "MLFileCollection " << mName << ":\n";
     
-    // add each element of submenu in turn to our flat item vector
-    int idx = 0;
-	for(it = mFilesByIndex.begin(); it != mFilesByIndex.end(); it++)
+    int len = mFilesByIndex.size();
+	for(int i = 0; i<len; ++i)
 	{
-        const MLFilePtr f = *it;
-		debug() << "    " << idx++ << ": " << f->mRelativePath << " " << f->mShortName << "\n";
+        const MLFilePtr f = mFilesByIndex[i];
+		debug() << "    " << i << ": " << f->mRelativePath << " " << f->mShortName << "\n";
 	}
 }
 

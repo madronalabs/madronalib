@@ -29,45 +29,101 @@ void MLMenu::Node::dump(int level)
     debug() << "\n";
 }
 
-/*
-// recursively add all the items in the node to the argument vector.
-void MLMenu::Node::addItemsToVector(std::vector<NodePtr>& v)
-{
-    std::list<std::string>::const_iterator it;
-	for(it = index.begin(); it != index.end(); it++)
-	{
-        const std::string& name = *it;
-        std::map<std::string, NodePtr>::const_iterator it = map.find(name);
-        NodePtr node = it->second;
-		v.push_back(node);
-        node->addItemsToVector(v);
-	}
-}
-*/
-
 int MLMenu::Node::renumberItems(int n)
 {
-    int c = n + 1;
-    itemNumber = c;
-    std::list<std::string>::const_iterator it;
-	for(it = index.begin(); it != index.end(); it++)
-	{
-        const std::string& name = *it;
-        std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
-        NodePtr node = it2->second;
-        //node->itemNumber = c;
-        c = node->renumberItems(c);
-	}
-    return c;
+    bool isLeaf = (index.size() == 0);
+    if(isLeaf)
+    {
+        itemNumber = n++;
+    }
+    else
+    {
+        std::list<std::string>::const_iterator it;
+        for(it = index.begin(); it != index.end(); it++)
+        {
+            const std::string& name = *it;
+            if(name != kSeparatorStr)
+            {
+                std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+                NodePtr node = it2->second;
+                n = node->renumberItems(n);
+            }
+        }
+    }
+    return n;
+}
+
+// get size, counting only leaf nodes that are not separators.
+int MLMenu::Node::getSize(int n)
+{
+    bool isLeaf = (index.size() == 0);
+    if(isLeaf)
+    {
+        n++;
+    }
+    else
+    {
+        std::map<std::string, NodePtr>::const_iterator it;
+        for(it = map.begin(); it != map.end(); it++)
+        {
+            std::string name = it->first;
+            if(name != kSeparatorStr)
+            {
+                NodePtr node = it->second;
+                n = node->getSize(n);
+            }
+        }
+    }
+    return n;
+}
+
+void MLMenu::Node::buildFullNameIndex(std::vector<std::string>& nameVec, const std::string& path)
+{
+    bool isLeaf = (index.size() == 0);
+    if(isLeaf)
+    {
+        if(itemNumber >= nameVec.size())
+        {
+            nameVec.resize(itemNumber + 1);
+        }
+        nameVec[itemNumber] = path;
+    }
+    else
+    {
+        std::list<std::string>::const_iterator it;
+        for(it = index.begin(); it != index.end(); it++)
+        {
+            const std::string& name = *it;
+            std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+            const std::string& nodeName = it2->first;
+            NodePtr node = it2->second;
+            std::string fullPath;
+            if(path == std::string(""))
+            {
+                fullPath = nodeName;
+            }
+            else
+            {
+                fullPath = path + "/" + nodeName;
+            }
+            node->buildFullNameIndex(nameVec, fullPath);
+        }
+    }
 }
 
 void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, bool root)
 {
-    int size = index.size();
-    bool isLeaf = (size == 0);
+    bool isLeaf = (index.size() == 0);
     if(isLeaf)
     {
-        pMenu->addItem(itemNumber, name);
+        if(name != kSeparatorStr)
+        {
+            pMenu->addItem(itemNumber, stripExtension(getShortName(name)));
+        }
+        else
+        {
+            pMenu->addSeparator();
+        }
     }
     else if (root)
     {
@@ -105,22 +161,18 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
     }
 }
 
-
-
 // --------------------------------------------------------------------------------
 #pragma mark MLMenu
 
 MLMenu::MLMenu() :
     mName(""),
-    mItemOffset(0),
-    mItems(new Node())
+    mRoot(new Node())
 {
 }
 
 MLMenu::MLMenu(const MLSymbol name) :
     mName(name),
-    mItemOffset(0),
-    mItems(new Node())
+    mRoot(new Node())
 {
 }
 
@@ -132,16 +184,15 @@ void MLMenu::addItem(const std::string& name, bool e)
 {
     NodePtr n(new Node());
     n->enabled = e;
-    mItems->map[name] = n;
-    mItems->index.push_back(name);
-    mItemsByIndex.push_back(n);
+    mRoot->map[name] = n;
+    mRoot->index.push_back(name);
 }
 
 MLMenu::NodePtr MLMenu::getItem(const std::string& name)
 {
     NodePtr n;
-    std::map<std::string, NodePtr>::const_iterator it = mItems->map.find(name);
-    if(it != mItems->map.end())
+    std::map<std::string, NodePtr>::const_iterator it = mRoot->map.find(name);
+    if(it != mRoot->map.end())
     {
         n = it->second;
     }
@@ -160,31 +211,41 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 void MLMenu::addSubMenu(MLMenuPtr m, const std::string& name)
 {
     // copy NodePtr into our node map
-    mItems->map[name] = m->mItems;
-    mItems->index.push_back(name);
-    
-    // add nodes in sub menu to flat index
-    //m->mItems->addItemsToVector(mItemsByIndex);
+    mRoot->map[name] = m->mRoot;
+    mRoot->index.push_back(name);
 }
 
+// append all items in root to the menu m
 void MLMenu::appendMenu(MLMenuPtr m)
 {
-    std::map<std::string, NodePtr>::const_iterator it;
-
-    debug() << "appending menu " << m->getName();
-    
     // add each element of other menu in turn to our item map
-	for(it = m->mItems->map.begin(); it != m->mItems->map.end(); it++)
+    std::map<std::string, NodePtr>::const_iterator it;
+	for(it = m->mRoot->map.begin(); it != m->mRoot->map.end(); it++)
 	{
         const std::string& name = it->first;
         NodePtr node = it->second;
-        mItems->map[name] = node;
-        mItems->index.push_back(name);
-       
-        debug() << "    appending item " << name << "\n";
+        mRoot->map[name] = node;
+        mRoot->index.push_back(name);
 	}
 }
 
+void MLMenu::buildIndex()
+{
+    mRoot->renumberItems();
+    std::string startPath("");
+    mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
+    
+    // DEBUG
+    debug() << "fullnames by index: \n";
+    int size = mFullNamesByIndex.size();
+    for(int i = 0; i < size; ++i)
+    {
+        
+        debug() << " #" << i << ": " << mFullNamesByIndex[i] << "\n";
+        
+    }
+}
+    
 void MLMenu::addSeparator()
 {
     addItem(kSeparatorStr);
@@ -192,33 +253,33 @@ void MLMenu::addSeparator()
 
 void MLMenu::clear()
 {
-	mItems->clear();
-    mItemsByIndex.clear();
+	mRoot->clear();
+    mFullNamesByIndex.clear();
 }
 
-const std::string MLMenu::getItemString(int idx)
+const std::string& MLMenu::getItemFullName(int idx)
 {
-    int items = getNumItems();
-	if(within(idx, 0, items))
+    int items = getSize();
+    // items are 1-indexed
+	if(within(idx, 0, items + 1))
 	{
-	//	return mItems[idx];
-        return std::string("OK"); // temp TODO build string from path
+        return mFullNamesByIndex[idx];
 	}
 	return kNullStr;
 }
 
 JuceMenuPtr MLMenu::getJuceMenu()
 {
-    renumber();
-    JuceMenuPtr jm(new PopupMenu());
-    mItems->addToJuceMenu(mName.getString(), jm);
+    buildIndex();
+    JuceMenuPtr jm(new PopupMenu());    
+    mRoot->addToJuceMenu(mName.getString(), jm);
     return jm;
 }
 
 void MLMenu::dump()
 {
     debug() << " dump of menu " << mName << ":\n";
-    mItems->dump();
+    mRoot->dump();
     debug() << "\n\n";
 }
 

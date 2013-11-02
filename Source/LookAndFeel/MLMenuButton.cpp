@@ -34,8 +34,15 @@ void MLMenuButton::setAttribute(MLSymbol attr, float val)
 void MLMenuButton::setStringAttribute(MLSymbol sym, const std::string& val)
 {
 	MLWidget::setStringAttribute(sym, val);
-	setButtonText(val.c_str());
-	repaint();
+    if((int)getAttribute("strip") > 0)
+    {
+        setButtonText(stripExtension(getShortName(val)).c_str());	    
+    }
+    else
+    {
+        setButtonText(val.c_str());
+	}
+    repaint();
 }
 
 void MLMenuButton::paintButton (Graphics& g,

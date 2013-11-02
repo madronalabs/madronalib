@@ -30,8 +30,9 @@ public:
         ~Node(){}
         void clear() { map.clear(); }
         void dump(int level = 0);
-        //void addItemsToVector(std::vector<NodePtr>& v);
-        int renumberItems(int n = 0);
+        int renumberItems(int n = 1);
+        int getSize(int n);
+        void buildFullNameIndex(std::vector<std::string>& nameVec, const std::string& path);
         void addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, bool root = true);
         
         std::map<std::string, NodePtr> map;
@@ -46,19 +47,18 @@ public:
 	~MLMenu();
     
 	void clear();
-	//void addItem(const char * name, bool enabled = true);
 	void addItem(const std::string& name, bool enabled = true);
+	void addSeparator();
 	NodePtr getItem(const std::string& name);
 	void addItems(const std::vector<std::string>& items);
 	void addSubMenu(MLMenuPtr m, const std::string& name);
 	void appendMenu(MLMenuPtr m);
-	void setItemOffset(int f) { mItemOffset = f; }
-    void renumber() { mItems->renumberItems(); }
+    void buildIndex();
     
-	void addSeparator();	
 	MLSymbol getName() { return mName; }
-	int getNumItems() const { return mItemsByIndex.size(); }
-	const std::string getItemString(int idx);
+	int getSize() { return mRoot->getSize(0); }
+    
+	const std::string& getItemFullName(int idx);
     
     // build a Juce menu on the fly and return it
 	JuceMenuPtr getJuceMenu();	
@@ -68,17 +68,11 @@ public:
     
     void dump();
 
-protected:
-	//const std::vector<std::string>& getItemVector() { return mItems; }
-	//const Node& getItemVector() { return mItems; }
-
 private:	
 	MLSymbol mName;
 	MLSymbol mInstigatorName; // name of Widget that triggered us
-	int mItemOffset; // offset for returned item values, useful for submenus
-    
-    NodePtr mItems;
-    std::vector<NodePtr> mItemsByIndex;
+    NodePtr mRoot;
+    std::vector<std::string> mFullNamesByIndex;
 };
 
 

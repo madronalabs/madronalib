@@ -336,7 +336,7 @@ String MLPluginController::getPresetString(int n)
 		MLMenu* menu = findMenuByName("preset");
 		if (menu != nullptr)
 		{
-			return String(menu->getItemString(idx).c_str()); 
+		//	return String(menu->getItemString(idx).c_str());
 		}
 	}
 	return String();
@@ -615,7 +615,7 @@ void MLPluginController::doScaleMenu(int result)
 	MLMenu* menu = findMenuByName("key_scale");
 	if (menu != nullptr)
 	{
-		mpProcessor->setModelParam("key_scale", menu->getItemString(menuIdx));
+	//	mpProcessor->setModelParam("key_scale", menu->getItemString(menuIdx));
 	}
 }
 	
@@ -726,7 +726,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
                     MLMenuPtr subPop(new MLMenu());
                     if(doMenus)
                     {
-                        subPop->setItemOffset(pMenu->getNumItems());
+               //         subPop->setItemOffset(pMenu->getNumItems());
                     }
                     int filesInCategory = subdir.findChildFiles(subdirArray, level1FilesToFind, false);
                     for(int j=0; j<filesInCategory; ++j)
@@ -838,7 +838,7 @@ void MLPluginController::populatePresetMenu()
 		break;
 	}
 	
-	mPresetMenuStartItems = menu->getNumItems();
+	mPresetMenuStartItems = menu->getSize();
     
 	// find and add patch files to menus
     menu->addSeparator();
