@@ -435,9 +435,10 @@ MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)
 	return r;
 }
 
+// set the menu map entry for the given name to a new, empty menu.
 MLMenu* MLPluginController::createMenu(MLSymbol menuName)
 {
-	mMenuMap[menuName] = MLMenuPtr(new MLMenu());
+	mMenuMap[menuName] = MLMenuPtr(new MLMenu(menuName));
 	return findMenuByName(menuName);
 }
 
@@ -488,8 +489,8 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 			Component* pInstComp = pInstigator->getComponent();
 			if(pInstComp)
 			{
-				PopupMenu& juceMenu = menu->getJuceMenu();
-				juceMenu.showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
+				JuceMenuPtr juceMenu = menu->getJuceMenu();
+				juceMenu->showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
 					ModalCallbackFunction::withParam(menuItemChosenCallback, 
 						WeakReference<MLPluginController>(this),menuName)
 					);
@@ -747,13 +748,13 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
                             results.add(f2);
                             if(doMenus)
                             {
-                                subPop->addItem(subPreset.toUTF8());
+                                subPop->addItem(std::string(subPreset.toUTF8()));
                             }	
                         }
                     }
                     if(doMenus)
                     {
-                        pMenu->addSubMenu(subPop, category.toUTF8());
+                        pMenu->addSubMenu(subPop, std::string(category.toUTF8()));
                     }
                 }
             }
@@ -765,7 +766,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 			results.add(f);
 			if(doMenus)
 			{
-				pMenu->addItem(preset.toUTF8());
+				pMenu->addItem(std::string(preset.toUTF8()));
 			}
 		}
 	}

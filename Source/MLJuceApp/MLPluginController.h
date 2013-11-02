@@ -74,7 +74,6 @@ protected:
 
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
-	//PopupMenu mPresetMenu; 
 	
 	String mCurrentPresetName;
 	String mCurrentScaleName;

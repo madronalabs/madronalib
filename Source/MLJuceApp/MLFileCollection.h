@@ -10,12 +10,13 @@
 #define __Soundplane__MLFileCollection__
 
 #include "JuceHeader.h"
+#include "MLFile.h"
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
 
 // a collection of files matching some kind of critertia.
 // TODO just moving the existing plugin code into here for now.
-// not implementing the callback or background stuff.
+// planned timer / background scan stuff unimplemented.
 class MLFileCollection :
     public Timer
 {
@@ -29,19 +30,11 @@ public:
 		virtual ~Listener() {}
 		virtual void processFile (const MLSymbol collection, const File& f, int idx) = 0;
 	};
-	
-    class FileInfo
-    {
-    public:
-        FileInfo(File f, String p, String n) : mFile(f), mRelativePath(p), mShortName(n){}
-        ~FileInfo(){}
-        File mFile;
-        String mRelativePath;
-        String mShortName;
-    };
     
  	MLFileCollection(MLSymbol name, const File startDir, String extension);
     ~MLFileCollection();
+    void clear();
+    int size() { return mFilesByIndex.size(); }
     
     void setListener (Listener* listener);
 
@@ -53,16 +46,20 @@ public:
     int findFilesImmediate();
    
     //int getFileIndexByPath(String path);
-    const File& getFileByIndex(int idx);
+    const MLFile& getFileByIndex(int idx);
     
     MLMenuPtr buildMenu(bool flat = false);
+    void addToMenu(MLMenu* m, bool flat = false);
     void dump();
+    
 private:
+    // the file tree
+    MLFile mRoot;
+    std::vector<MLFilePtr> mFilesByIndex;
+    
     MLSymbol mName;
-	const File mStartDir;
     String mExtension;
     Listener* mpListener;
-    std::vector <FileInfo> mFiles;
 };
 
 typedef std::tr1::shared_ptr<MLFileCollection> MLFileCollectionPtr;

@@ -10,11 +10,11 @@
 
 MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension): //, int maxDepth) :
     mName(name),
-    mStartDir(startDir),
     mExtension(extension),
-    mpListener(nullptr)
+    mpListener(nullptr),
+    mRoot(startDir)
 {
-    if(mStartDir != File::nonexistent)
+    if(mRoot.mFile != File::nonexistent)
     {
         //startTimer(100);
     }
@@ -26,6 +26,12 @@ MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String ex
 
 MLFileCollection::~MLFileCollection()
 {
+}
+
+void MLFileCollection::clear()
+{
+    mRoot.clear();
+    mFilesByIndex.clear();
 }
 
 void MLFileCollection::setListener (Listener* listener)
@@ -47,15 +53,15 @@ int MLFileCollection::findFilesImmediate()
 {
     int found = 0;
     int processed = 0;
-    mFiles.clear();
-	if (mStartDir.exists() && mStartDir.isDirectory())
+    clear();
+	if (mRoot.mFile.exists() && mRoot.mFile.isDirectory())
     {
         Array<File> allFilesFound;
         const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
         const String& wildCard = "*";
         bool recurse = true;
 
-        DirectoryIterator di (mStartDir, recurse, wildCard, whatToLookFor);
+        DirectoryIterator di (mRoot.mFile, recurse, wildCard, whatToLookFor);
         while (di.next())
         {
             allFilesFound.add (di.getFile());
@@ -66,72 +72,102 @@ int MLFileCollection::findFilesImmediate()
         for(int i=0; i<found; ++i)
         {
             File f = allFilesFound[i];
+            String shortName = f.getFileName();
+            String relativePath;
+            File parentDir = f.getParentDirectory();
+            if(parentDir == mRoot.mFile)
+            {
+                relativePath = "";
+            }
+            else
+            {
+                relativePath = parentDir.getRelativePathFrom(mRoot.mFile);
+            }
+
             if (f.existsAsFile() && f.hasFileExtension(mExtension))
             {
-                String shortName = f.getFileName();                
-                String relativePath;
-                File parentDir = f.getParentDirectory();
-                if(parentDir == mStartDir)
-                {
-                    relativePath = "";
-                }
-                else
-                {
-                    relativePath = parentDir.getRelativePathFrom(mStartDir);
-                }
-                mFiles.push_back(FileInfo(f, relativePath, shortName));
+                std::string rPath(relativePath.toUTF8());
+                std::string delimiter = (rPath == "" ? "" : "/");
+                std::string sName(shortName.toUTF8());
+                
+                MLFilePtr newFile(new MLFile(f, rPath, sName)); // TODO no path in file
+                
+                // insert file into file tree
+                mRoot.insert(rPath + delimiter + sName, newFile);
+                
+                // push to index
+                mFilesByIndex.push_back(newFile);
+                
                 if(mpListener)
                 {
                     // give file and index to listener for processing
-                    mpListener->processFile (mName, f, processed++);
+                    mpListener->processFile (mName, f, processed);
                 }
+                processed++;
             }
         }
     }
-    return found;
+    return processed;
 }
 
-const File& MLFileCollection::getFileByIndex(int idx)
+const MLFile& MLFileCollection::getFileByIndex(int idx)
 {
-    return mFiles[idx].mFile;
+    idx = clamp(idx, 0, (int)mFilesByIndex.size() - 1);
+    return *(mFilesByIndex[idx]);
 }
-
 
 MLMenuPtr MLFileCollection::buildMenu(bool flat)
 {
-    // make a new menu named after this collection. 
+    // make a new menu named after this collection and containing all of the files in it.
     MLMenuPtr m(new MLMenu(mName));
-    int size = mFiles.size();
+    int size = mFilesByIndex.size();
     if(flat)
     {
         for(int i=0; i<size; ++i)
         {
-            
-            FileInfo& f = mFiles[i];
-         debug() << "buildMenu: adding " << (const char *)(f.mShortName.toUTF8()) << "\n";
-            m->addItem(f.mShortName.toUTF8());
+            MLFilePtr f = mFilesByIndex[i];
+            debug() << "buildMenu: adding " << f->mShortName << "\n";
+            m->addItem(f->mShortName);
         }
     }
     else
     {
-        
+        mRoot.buildMenu(m);
     }
     return m;
 }
 
+void MLFileCollection::addToMenu(MLMenu* m, bool flat)
+{
+    int size = mFilesByIndex.size();
+    if(flat)
+    {
+        for(int i=0; i<size; ++i)
+        {
+            MLFilePtr f = mFilesByIndex[i];
+            debug() << "buildMenu: adding " << f->mShortName << "\n";
+            m->addItem(f->mShortName);
+        }
+    }
+    else
+    {
+        mRoot.addToMenu(m);
+    }
+    m->renumber();
+}
+
 void MLFileCollection::dump()
 {
- 	std::vector<FileInfo>::const_iterator it;
+ 	std::vector<MLFilePtr>::const_iterator it;
     
     debug() << "MLFileCollection " << mName << ":\n";
     
     // add each element of submenu in turn to our flat item vector
     int idx = 0;
-	for(it = mFiles.begin(); it != mFiles.end(); it++)
+	for(it = mFilesByIndex.begin(); it != mFilesByIndex.end(); it++)
 	{
-        
-		debug() << "    " << idx++ << ": " << it->mRelativePath << " " << it->mShortName << "\n";
+        const MLFilePtr f = *it;
+		debug() << "    " << idx++ << ": " << f->mRelativePath << " " << f->mShortName << "\n";
 	}
-    
 }
 
