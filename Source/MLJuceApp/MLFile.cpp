@@ -26,7 +26,7 @@ MLFile::MLFile(const File f, const std::string& p, const std::string& n) :
 
 MLFile::~MLFile()
 {
-    debug() << "DELETING file " << mShortName << "\n";
+    // debug() << "DELETING file " << mShortName << "\n";
 }
 
 void MLFile::clear()
@@ -36,7 +36,7 @@ void MLFile::clear()
 
 void MLFile::insert(const std::string& path, MLFilePtr f)
 {
-    debug() << "INSERTING: " << path << "\n";
+    // debug() << "INSERTING: " << path << "\n";
     int len = path.length();
     if(len)
     {
@@ -44,7 +44,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
         if(b == std::string::npos)
         {
             // leaf, insert file here creating dir if needed
-            debug() << "        LEAF: " << path << "\n\n" ;
+            // debug() << "        LEAF: " << path << "\n\n" ;
             
             // add leaf file to map
             mFiles[path] = f;
@@ -54,7 +54,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
             std::string firstDir = path.substr(0, b);
             std::string restOfDirs = path.substr(b + 1, len - b);
             
-            debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
+            // debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
             
             // find or add first dir
             if(firstDir == "")
@@ -79,7 +79,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
 
 MLFilePtr MLFile::find(const std::string& path)
 {
-    debug() << "FINDING: " << path << "\n";
+    // debug() << "FINDING: " << path << "\n";
     int len = path.length();
     if(len)
     {
@@ -87,7 +87,7 @@ MLFilePtr MLFile::find(const std::string& path)
         if(b == std::string::npos)
         {
             // leaf, find short name here or return fail.
-            debug() << "        LEAF: " << path << "\n\n" ;
+            // debug() << "        LEAF: " << path << "\n\n" ;
             
             std::map<std::string, MLFilePtr>::const_iterator it;
             it = mFiles.find(path);
@@ -106,7 +106,7 @@ MLFilePtr MLFile::find(const std::string& path)
             std::string firstDir = path.substr(0, b);
             std::string restOfDirs = path.substr(b + 1, len - b);
             
-            debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
+            // debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
             
             // find file matching first dir
             if(firstDir == "")
@@ -139,15 +139,14 @@ void MLFile::buildMenu(MLMenuPtr m)
         const MLFilePtr f = it->second;
         if(f->mIsDirectory)
         {
-            debug() << "ADDING SUBMENU: " << f->mShortName << "\n";
+            // debug() << "ADDING SUBMENU: " << f->mShortName << "\n";
             MLMenuPtr subMenu(new MLMenu());
-//            subMenu->setItemOffset(m->getNumItems());
             f->buildMenu(subMenu);
             m->addSubMenu(subMenu, f->mShortName);
         }
         else
         {
-            debug() << "ADDING ITEM: " << f->mShortName << "\n";
+            // debug() << "ADDING ITEM: " << f->mShortName << "\n";
             m->addItem(f->mShortName);
         }
     }

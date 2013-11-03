@@ -21,10 +21,10 @@ MLPluginProcessor::MLPluginProcessor() :
 	// get data folder locations
 	mFactoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
 	mUserPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
-	mScalesFolder = getDefaultFileLocation(kScaleFiles);
+
+    
 	if ((mFactoryPresetsFolder == File::nonexistent) ||
-		(mUserPresetsFolder == File::nonexistent) ||
-		(mScalesFolder == File::nonexistent))
+		(mUserPresetsFolder == File::nonexistent) )
 	{
 		debug() << "MLPluginProcessor: couldn't get data files!\n";
 	}
@@ -34,10 +34,17 @@ MLPluginProcessor::MLPluginProcessor() :
 	}	
 
 	scanMIDIPrograms();
-	
+
+    
+    // get scales collection
+    mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+    mScaleFiles->setListener(this);
+    mScaleFiles->findFilesImmediate();
+    
+
     //	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
 	//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
-	//	debug() << "processor scales: " << mScalesFolder.getFullPathName() << "\n";
+
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -203,8 +210,44 @@ void MLPluginProcessor::releaseResources()
 }
 
 // --------------------------------------------------------------------------------
+#pragma mark MLFileCollection::Listener
+
+// nothing in particular to do here, but there might be in the future. 
+void MLPluginProcessor::processFile (const MLSymbol collection, const File& f, int idx)
+{
+    if(collection == "scales")
+    {
+    }
+    else if(collection == "mappings")
+    {
+    }
+    else if(collection == "presets")
+    {        
+    }
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark Listener related
+
+void MLPluginProcessor::pushInfoToListeners()
+{
+    // push things a listener needs to know about
+    if(mpListener)
+    {
+        // sample file collection
+        mpListener->scaleFilesChanged(mScaleFiles);
+    }
+}
+
+// when a new listener is set, immediately update it with all the current info we have.
+void MLPluginProcessor::setProcessorListener(MLPluginProcessor::Listener* l)
+{
+    mpListener = l;
+    pushInfoToListeners();
+}
+
+// --------------------------------------------------------------------------------
 #pragma mark process
-//
 
 void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 {
@@ -563,6 +606,42 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 
 // --------------------------------------------------------------------------------
+#pragma mark MLModel params TODO should be called attributes
+
+void MLPluginProcessor::setModelParam(MLSymbol p, float v)
+{
+	MLModel::setModelParam(p, v);
+}
+
+void MLPluginProcessor::setModelParam(MLSymbol p, const std::string& v)
+{
+	MLModel::setModelParam(p, v);
+	if (p == "key_scale")
+	{
+		setScaleByName(v);
+ 	}
+}
+
+void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
+{
+	MLModel::setModelParam(p, v);
+}
+
+
+void MLPluginProcessor::setScaleByName(const std::string& fullName)
+{
+    const MLFilePtr f = mScaleFiles->getFileByName(fullName);
+    if(f != MLFilePtr())
+    {
+        loadScale(f->mFile);
+    }
+    else
+    {
+        loadDefaultScale();
+    }
+}
+
+// --------------------------------------------------------------------------------
 #pragma mark signals
 //
 
@@ -609,11 +688,10 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 	// also use std::string based XML or JSON persistence.
 	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
     xml.setAttribute ("presetName", mCurrentPresetName);	
-    xml.setAttribute ("presetDir", mCurrentPresetDir);		
-    xml.setAttribute ("scaleName", mCurrentScaleName);
-    xml.setAttribute ("scaleDir", mCurrentScaleDir);
-	// debug() << "saving with scale " << mCurrentScaleDir << "/" << mCurrentScaleName << "\n";
-	
+    xml.setAttribute ("presetDir", mCurrentPresetDir);
+    
+    xml.setAttribute ("scaleName", String(getModelStringParam("key_scale")->c_str()));
+
 	// store parameter values to xml as a bunch of attributes.  
 	// not XML best practice in general but takes fewer characters.
 	for(unsigned i=0; i<numParams; ++i)
@@ -806,38 +884,10 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	setCurrentPresetDir(presetDir.toUTF8());
 	
 	// try to load scale if a scale attribute exists
+    // TODO auto save all state including this
 	const String scaleName = xmlState.getStringAttribute ("scaleName");		
-	const String scaleDir = xmlState.getStringAttribute ("scaleDir");		
-	if ((scaleName == String::empty) || (scaleName == "12-equal"))
-	{
-		setCurrentScaleName("12-equal");
-		loadDefaultScale();
-	}
-	else
-	{
-		File scale;
-		if (mScalesFolder.exists())
-		{
-			String scaleFileName = scaleDir + "/" + scaleName + ".scl";
-			scale = mScalesFolder.getChildFile(scaleFileName); 
-
-			if (scale.exists())
-			{
-				setCurrentScaleName(scaleName.toUTF8());
-				loadScale(scale);
-				mCurrentScaleDir = scaleDir;
-			}
-			else
-			{
-				MLError() << "MLPluginProcessor: scale " << scaleFileName << " not found!\n";
-			}
-		}
-		else
-		{
-			MLError() << "MLPluginProcessor: Scales directory not found!\n";
-		}
-	}
-	
+	setModelParam("key_scale", std::string(scaleName.toUTF8()));
+    	
 	// get plugin-specific translation table for updating older versions of data
 	std::map<MLSymbol, MLSymbol> translationTable;
 
@@ -1201,17 +1251,6 @@ void MLPluginProcessor::setCurrentPresetDir(const char* name)
 	setModelParam("preset_dir", name);	
 }
 
-const String& MLPluginProcessor::getCurrentScaleName()
-{ 
-	return mCurrentScaleName; 
-}
-
-void MLPluginProcessor::setCurrentScaleName(const char* name)
-{
-	mCurrentScaleName = name;
-	setModelParam("key_scale", name);
-}
-
 // set default value for each scalar parameter.  needed before loading
 // patches, which are only required to store differences from these
 // default values.
@@ -1278,25 +1317,14 @@ bool MLPluginProcessor::producesMidi() const
 
 void MLPluginProcessor::setMLListener (MLAudioProcessorListener* const newListener) throw()
 {
-//    const ScopedLock sl (MLlistenerLock);
 	assert(newListener);
     MLListener = newListener;
 }
-
-/*
-void MLPluginProcessor::removeMLListener (MLAudioProcessorListener* const listenerToRemove) throw()
-{
-    const ScopedLock sl (MLlistenerLock);
-    MLlisteners.removeValue (listenerToRemove);
-}
-*/
 
 MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File& f)
 {
 	MLProc::err err = MLProc::OK;
 	if(!MLListener) return MLProc::unknownErr;
-
-//	const ScopedLock sl (MLlistenerLock);
 
 	switch(msg)
 	{
@@ -1349,8 +1377,6 @@ void MLPluginProcessor::loadScale(const File& f)
 					pScale->setDescription(descStr);
 					const char* nameStr = scaleName.toUTF8();
 					pScale->setName(nameStr);
-					mCurrentScaleName = scaleName;
-					mCurrentScaleDir = scaleDir;
 				}
 				break;
 				
@@ -1418,13 +1444,6 @@ void MLPluginProcessor::loadDefaultScale()
 {
 	MLScale* pScale = mEngine.getScale();
 	if (!pScale) return;
-	
-	setModelParam("key_scale", "12-equal");
-	
-	// TODO these special variables will go away, use the string attributes instead.
-	// wait and move XML persistence to std::string-based code at the same time.
-	mCurrentScaleName = "12-equal";
-	mCurrentScaleDir = "";
 	
 	pScale->setDefaultScale();
 	pScale->setDefaultMapping();

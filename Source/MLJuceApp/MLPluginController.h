@@ -16,7 +16,8 @@
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
-	public MLSignalReporter
+	public MLSignalReporter,
+    public MLPluginProcessor::Listener
 {
 public:
 	MLPluginController(MLPluginProcessor* const pProcessor);
@@ -40,6 +41,9 @@ public:
 	void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
 	void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
 	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
+    
+    // MLPluginProcessor::Listener
+    void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
 
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string* dir, const std::string* name);
@@ -52,7 +56,7 @@ public:
 	
 	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName);	
-	void setupMenus();
+
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
 
@@ -76,11 +80,10 @@ private:
 	MLPluginProcessor* mpProcessor; // contains Model
 	
 	String mCurrentPresetName;
-	String mCurrentScaleName;
-	String mCurrentScaleDir;
+	File mCurrentPresetFolder;
+
 	std::string mVersionString;
 
-	File mCurrentPresetFolder;
 
 	// stored indices for MIDI program changes-- hackish
 	std::vector<File> mMIDIProgramFiles;
@@ -89,10 +92,9 @@ private:
 	Array<File> mMenuPresetFiles;	
 	int mPresetMenuStartItems;
 	int mCurrentPresetIndex;
-	Array<File> mScaleMenuFiles;	
 
 	void populatePresetMenu(); 
-	void populateScaleMenu();	
+	void populateScaleMenu(const MLFileCollectionPtr fileCollection);	
  
 };
 

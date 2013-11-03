@@ -311,6 +311,12 @@ void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int id
 	}
 }
 
+// called to build the scale menu when the Processor's collection of sample files has changed.
+void MLPluginController::scaleFilesChanged(const MLFileCollectionPtr fileCollection)
+{
+    populateScaleMenu(fileCollection);
+}
+
 // --------------------------------------------------------------------------------
 #pragma mark presets
 
@@ -442,18 +448,6 @@ MLMenu* MLPluginController::createMenu(MLSymbol menuName)
 	return findMenuByName(menuName);
 }
 
-void MLPluginController::setupMenus()
-{
-	if(createMenu("preset"))
-	{
-		populatePresetMenu();
-	}
-	if(createMenu("key_scale"))
-	{
-		populateScaleMenu();
-	}
-}
-
 void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 {	
 	if(!mpView) return;
@@ -474,16 +468,6 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 		int height = ((float)u)*0.35f;
 		height = clamp(height, 12, 128);
 		
-		// update menus that might change each time
-		if (menuName == "preset")
-		{
-			populatePresetMenu();
-		}
-		else if (menuName == "key_scale")
-		{
-			populateScaleMenu();
-		}
-	
 		if(pInstigator != nullptr)
 		{
 			Component* pInstComp = pInstigator->getComponent();
@@ -584,39 +568,23 @@ void MLPluginController::doPresetMenu(int result)
 
 void MLPluginController::doScaleMenu(int result)
 {
-	MLPluginProcessor* const filter = getProcessor();
-	String scaleName, scaleDir;
-	
-	if (result > 1)
-	{
-		int scaleIdx = result - 2;
-		scaleName = mScaleMenuFiles[scaleIdx].getFileNameWithoutExtension();
-		scaleDir = mScaleMenuFiles[scaleIdx].getParentDirectory().getFileNameWithoutExtension();
-		filter->loadScale (mScaleMenuFiles[scaleIdx]);
-		mCurrentScaleDir = scaleDir;
-	}
-	
-	else switch(result)
-	{
-		case (0):	// do nothing
-		default:
-		break;
-		case (1):	// 12-equal
-		{
-			filter->loadDefaultScale();
-			scaleName = "12-equal";
-			mCurrentScaleDir = scaleDir;
-		}
-		break;
-	}
-	
-	// notify Model of change
-	int menuIdx = result - 1;
-	MLMenu* menu = findMenuByName("key_scale");
-	if (menu != nullptr)
-	{
-	//	mpProcessor->setModelParam("key_scale", menu->getItemString(menuIdx));
-	}
+    switch(result)
+    {
+        case (0):	// dismiss
+            break;
+        case (1):	
+            mpProcessor->setModelParam("key_scale", "12-equal");
+            break;
+        default:
+            MLMenu* menu = findMenuByName("key_scale");
+            if (menu)
+            {
+                // set model param to the full name of the file in the menu
+                const std::string& fullName = menu->getItemFullName(result);
+                mpProcessor->setModelParam("key_scale", fullName);
+            }
+            break;
+    }
 }
 	
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, MLSymbol menuName)
@@ -671,10 +639,7 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 {
 	if (result > 0)
 	{
-		// do action
 		MLAppView* pV = getView();
-		
-		// TODO check
 		if(pV)
 		{
 			if (menuName == "preset")
@@ -885,22 +850,15 @@ void MLPluginController::populatePresetMenu()
 
 // create a menu of the factory scale presets.
 //
-void MLPluginController::populateScaleMenu()
+void MLPluginController::populateScaleMenu(const MLFileCollectionPtr fileCollection)
 {
-	String scaleName, scaleDir;
-	MLMenu* menu = findMenuByName("key_scale");
-	if (menu == nullptr)
-	{
-		MLError() << "MLPluginController::populateScaleMenu(): menu not found!\n";
-		return;
-	}			
-	menu->clear();
-	menu->addItem("12-equal");
-	File scalesFolder = getDefaultFileLocation(kScaleFiles);
-	if (scalesFolder != File::nonexistent)
-	{
-		findFilesOneLevelDeep(scalesFolder, ".scl", mScaleMenuFiles, menu);
-	}
+    MLMenu* pMenu = createMenu("key_scale");
+	pMenu->clear();
+    
+ 	pMenu->addItem("12-equal");
+
+    MLMenuPtr p = fileCollection->buildMenu();
+    pMenu->appendMenu(p);
 }
 
 /*
