@@ -35,6 +35,7 @@ public:
 	public:
 		virtual ~Listener() {}
 		virtual void scaleFilesChanged(const MLFileCollectionPtr) = 0;
+		virtual void presetFilesChanged(const MLFileCollectionPtr, const MLFileCollectionPtr) = 0;
 	};
 		
 	MLPluginProcessor();
@@ -142,7 +143,7 @@ public:
 	void setMIDIProgramFile(int pgm, File f);
 	void setStateFromMIDIProgram (const int pgmIdx);
 	void scanMIDIPrograms();
-
+ 
 	// --------------------------------------------------------------------------------
 	// channels
 	
@@ -171,9 +172,11 @@ public:
 	const String& getCurrentPresetName();
 	const String& getCurrentPresetDir();
 	const String& getCurrentScaleName();
+    
+	void scanPresets();
 
 	// used by wrapper
-	void setCurrentPresetName(const char* name);
+	// void setCurrentPresetName(const char* name);
 	
 	// --------------------------------------------------------------------------------
     AudioPlayHead::CurrentPositionInfo lastPosInfo;
@@ -241,6 +244,8 @@ private:
 	String mCurrentPresetDir;
 
     MLFileCollectionPtr mScaleFiles;
+    MLFileCollectionPtr mFactoryPresetFiles;
+    MLFileCollectionPtr mUserPresetFiles;
 
 	File mFactoryPresetsFolder, mUserPresetsFolder;
 	bool mFileLocationsOK;

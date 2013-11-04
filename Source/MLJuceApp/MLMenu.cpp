@@ -82,9 +82,14 @@ void MLMenu::Node::buildFullNameIndex(std::vector<std::string>& nameVec, const s
     bool isLeaf = (index.size() == 0);
     if(isLeaf)
     {
-        if(itemNumber >= nameVec.size())
+        int size = nameVec.size();
+        if(itemNumber >= size)
         {
             nameVec.resize(itemNumber + 1);
+            for(int i = size; i <= itemNumber; ++i)
+            {
+                nameVec[i] = std::string();
+            }
         }
         nameVec[itemNumber] = path;
     }
@@ -235,14 +240,13 @@ void MLMenu::buildIndex()
     std::string startPath("");
     mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
     
-    /*
     // DEBUG
     debug() << "fullnames by index: \n";
     int size = mFullNamesByIndex.size();
     for(int i = 0; i < size; ++i)
     {
         debug() << " #" << i << ": " << mFullNamesByIndex[i] << "\n";
-    }*/
+    }
 }
     
 void MLMenu::addSeparator()
@@ -256,9 +260,9 @@ void MLMenu::clear()
     mFullNamesByIndex.clear();
 }
 
-const std::string& MLMenu::getItemFullName(int idx)
+const std::string MLMenu::getItemFullName(int idx)
 {
-    int items = getSize();
+    int items = mFullNamesByIndex.size();
     // items are 1-indexed
 	if(within(idx, 0, items + 1))
 	{

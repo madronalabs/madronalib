@@ -377,6 +377,7 @@ public:
 
         CFMutableDictionaryRef dict = (CFMutableDictionaryRef) *outData;
         
+        /*
 		// ----------------------------------------------------------------
 		// ML
 		// get saved preset name
@@ -386,12 +387,14 @@ public:
 		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
 		// ML
 		// ----------------------------------------------------------------
-
+         */
+        
         if (juceFilter != nullptr)
         {
             juce::MemoryBlock state;
             juceFilter->getCurrentProgramStateInformation (state);
 
+            /*
 			// ----------------------------------------------------------------
 			// ML
 			if (nameResult)
@@ -401,7 +404,8 @@ public:
 			}
 			// ML
 			// ----------------------------------------------------------------
-
+             */
+            
             if (state.getSize() > 0)
             {
                 CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), (CFIndex) state.getSize());
@@ -426,6 +430,7 @@ public:
                 return err;
         }
         
+        /*
 		// ----------------------------------------------------------------
 		// ML
 		// get saved preset name
@@ -437,7 +442,8 @@ public:
         
 		// ML
 		// ----------------------------------------------------------------
-
+         */
+        
         if (juceFilter != nullptr)
         {
             CFDictionaryRef dict = (CFDictionaryRef) inData;
@@ -452,6 +458,8 @@ public:
 
                     if (numBytes > 0)
                         juceFilter->setCurrentProgramStateInformation (rawBytes, numBytes);
+                    
+                    /*
  					// ----------------------------------------------------------------
 					// ML
 					if (nameResult)
@@ -460,6 +468,7 @@ public:
 					}
 					// ML
 					// ----------------------------------------------------------------
+                     */
                }
             }
         }

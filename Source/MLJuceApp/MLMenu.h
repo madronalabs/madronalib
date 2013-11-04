@@ -58,7 +58,7 @@ public:
 	MLSymbol getName() { return mName; }
 	int getSize() { return mRoot->getSize(0); }
     
-	const std::string& getItemFullName(int idx);
+	const std::string getItemFullName(int idx);
     
     // build a Juce menu on the fly and return it
 	JuceMenuPtr getJuceMenu();	

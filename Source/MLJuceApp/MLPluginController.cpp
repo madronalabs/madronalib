@@ -317,6 +317,11 @@ void MLPluginController::scaleFilesChanged(const MLFileCollectionPtr fileCollect
     populateScaleMenu(fileCollection);
 }
 
+void MLPluginController::presetFilesChanged(const MLFileCollectionPtr factoryColl, const MLFileCollectionPtr userColl)
+{
+    populatePresetMenu(factoryColl, userColl);
+}
+
 // --------------------------------------------------------------------------------
 #pragma mark presets
 
@@ -488,16 +493,18 @@ void MLPluginController::doPresetMenu(int result)
 	String presetStr;
 	if (result > mPresetMenuStartItems)
 	{
-		// load a preset
-		String resultStr = getPresetString(result);
-		// sets Model patch param, which updates menu display
-		loadPresetByIndex(result - mPresetMenuStartItems - 1);
+        MLMenu* menu = findMenuByName("preset");
+        if (menu)
+        {
+            // set model param to the full name of the file in the menu
+            const std::string& fullName = menu->getItemFullName(result);
+            mpProcessor->setModelParam("preset", fullName);
+        }
 	}
 	else switch(result)
 	{
 		// do another menu command
 		case (0):	// dismiss
-		default:
 		break;
 		case (1):	// save over previous
 			if(getProcessor()->saveStateAsVersion(mCurrentPresetFolder) != MLProc::OK)  // TODO this should be MLErr
@@ -507,8 +514,7 @@ void MLPluginController::doPresetMenu(int result)
 					getProcessor()->getErrorMessage(),
 					"OK");
 			}
-			// rescan all is sort of lazy, but doesn't seem too slow for now
-			populatePresetMenu();
+			getProcessor()->scanPresets();
 		break;
 		case (2):	// save as version in current dir
 			if(getProcessor()->saveStateOverPrevious(mCurrentPresetFolder) != MLProc::OK)  // TODO this should be MLErr
@@ -518,8 +524,8 @@ void MLPluginController::doPresetMenu(int result)
 					getProcessor()->getErrorMessage(),
 					"OK");
 			}
-			// rescan all is sort of lazy, but doesn't seem too slow for now
-			populatePresetMenu();
+			getProcessor()->scanPresets();
+
 		break;
 		case (3):	// save as ...
 		{
@@ -531,7 +537,7 @@ void MLPluginController::doPresetMenu(int result)
                 {
                     File saveFile = fc.getResult();	
                     getProcessor()->saveStateToFile(saveFile);
-                    populatePresetMenu();
+                    getProcessor()->scanPresets();
                 }
             }
             else
@@ -559,10 +565,17 @@ void MLPluginController::doPresetMenu(int result)
 #if ML_MAC
 		case (7):	// show convert alert box
 			convertPresets();
-			populatePresetMenu();
+			getProcessor()->scanPresets();
 		break;
 #endif
-
+        default:    // set preset
+            MLMenu* menu = findMenuByName("preset");
+            if (menu)
+            {
+                const std::string& fullName = menu->getItemFullName(result);
+                mpProcessor->setModelParam("preset", fullName);
+            }
+            break;
 	}
 }
 
@@ -737,15 +750,14 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 	}
 }
 
-void MLPluginController::populatePresetMenu() 
+void MLPluginController::populatePresetMenu(const MLFileCollectionPtr factoryColl, const MLFileCollectionPtr userColl)
 {
-	MLMenu* menu = findMenuByName("preset");
+	MLMenu* menu = createMenu("preset");
 	if (menu == nullptr)
 	{
 		MLError() << "MLPluginController::populatePresetMenu(): menu not found!\n";
 		return;
 	}			
-
 	menu->clear();
 	mMenuPresetFiles.clear();
 	mPresetMenuStartItems = 0;
@@ -780,33 +792,16 @@ void MLPluginController::populatePresetMenu()
 	menu->addSeparator();		
 	menu->addItem("Convert presets..."); 
 #endif
-
-	// get plugin type and set extension to look for
-	String pluginType;
-	String presetFileType;
-	switch(mpProcessor->wrapperType)
-	{
-		case AudioProcessor::wrapperType_VST:
-			pluginType = "VST";
-			presetFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_Standalone:
-			pluginType = "App";
-			presetFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_AudioUnit:
-			pluginType = "AU";
-			presetFileType = ".aupreset";
-		break;
-		default:
-			pluginType = "undefined!";
-		break;
-	}
 	
 	mPresetMenuStartItems = menu->getSize();
     
-	// find and add patch files to menus
     menu->addSeparator();
+    menu->appendMenu(factoryColl->buildMenu());
+    menu->addSeparator();    
+    menu->appendMenu(userColl->buildMenu());
+    menu->buildIndex();
+    
+    /*
 	File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
 	if (userPresetsFolder != File::nonexistent)
 	{
@@ -828,6 +823,7 @@ void MLPluginController::populatePresetMenu()
         menu->addItem("factory presets folder not found!", false);
     }
 //		debug() << "MLPluginController: " << mMenuPresetFiles.size() << " preset files.\n";
+    */
     
     // send MIDI program info to processor
     MLPluginProcessor* const pProc = getProcessor();
@@ -844,19 +840,19 @@ void MLPluginController::populatePresetMenu()
         }
     }
 
+    /*
 	// sync current preset index to new list
 	mCurrentPresetIndex = getIndexOfPreset(pProc->getModelStringParam("preset_dir"), pProc->getModelStringParam("preset"));
+     */
 }
 
-// create a menu of the factory scale presets.
+// create a menu of the factory scales.
 //
 void MLPluginController::populateScaleMenu(const MLFileCollectionPtr fileCollection)
 {
     MLMenu* pMenu = createMenu("key_scale");
 	pMenu->clear();
-    
  	pMenu->addItem("12-equal");
-
     MLMenuPtr p = fileCollection->buildMenu();
     pMenu->appendMenu(p);
 }

@@ -44,6 +44,7 @@ public:
     
     // MLPluginProcessor::Listener
     void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
+    void presetFilesChanged(const MLFileCollectionPtr factoryColl, const MLFileCollectionPtr userColl);
 
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string* dir, const std::string* name);
@@ -93,7 +94,7 @@ private:
 	int mPresetMenuStartItems;
 	int mCurrentPresetIndex;
 
-	void populatePresetMenu(); 
+	void populatePresetMenu(const MLFileCollectionPtr, const MLFileCollectionPtr);
 	void populateScaleMenu(const MLFileCollectionPtr fileCollection);	
  
 };

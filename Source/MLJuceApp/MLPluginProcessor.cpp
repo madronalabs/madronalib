@@ -7,6 +7,7 @@
 
 MLPluginProcessor::MLPluginProcessor() : 
 	MLListener(0),
+    mpListener(0),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
 	mInitialized(false)
@@ -15,14 +16,9 @@ MLPluginProcessor::MLPluginProcessor() :
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
 
-	setCurrentPresetName("");	
-	setCurrentPresetDir("");	
-
 	// get data folder locations
 	mFactoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
 	mUserPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
-
-    
 	if ((mFactoryPresetsFolder == File::nonexistent) ||
 		(mUserPresetsFolder == File::nonexistent) )
 	{
@@ -32,19 +28,14 @@ MLPluginProcessor::MLPluginProcessor() :
 	{
 		mFileLocationsOK = true;
 	}	
-
-	scanMIDIPrograms();
-
     
     // get scales collection
     mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
     mScaleFiles->setListener(this);
     mScaleFiles->findFilesImmediate();
     
-
-    //	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
-	//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
-
+    scanPresets();
+	scanMIDIPrograms();
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -236,6 +227,7 @@ void MLPluginProcessor::pushInfoToListeners()
     {
         // sample file collection
         mpListener->scaleFilesChanged(mScaleFiles);
+        mpListener->presetFilesChanged(mFactoryPresetFiles, mUserPresetFiles);
     }
 }
 
@@ -620,13 +612,20 @@ void MLPluginProcessor::setModelParam(MLSymbol p, const std::string& v)
 	{
 		setScaleByName(v);
  	}
+	else if (p == "preset")
+	{
+        const MLFilePtr f = mUserPresetFiles->getFileByName(v);
+        if(f != MLFilePtr())
+        {
+            loadStateFromFile(f->mFile);
+        }
+ 	}
 }
 
 void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
 {
 	MLModel::setModelParam(p, v);
 }
-
 
 void MLPluginProcessor::setScaleByName(const std::string& fullName)
 {
@@ -685,11 +684,9 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
   	const unsigned numParams = getNumParameters();
 
 	// TODO use string attributes of model instead of these JUCE strings.
-	// also use std::string based XML or JSON persistence.
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
-    xml.setAttribute ("presetName", mCurrentPresetName);	
-    xml.setAttribute ("presetDir", mCurrentPresetDir);
-    
+	// also move to JSON.
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	    
+    xml.setAttribute ("presetName", String(getModelStringParam("preset")->c_str()));
     xml.setAttribute ("scaleName", String(getModelStringParam("key_scale")->c_str()));
 
 	// store parameter values to xml as a bunch of attributes.  
@@ -869,25 +866,28 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 		return;
 	}
 	
-	// get name saved in blob.  when saving from AU host, name will also be set from RestoreState().
-	const String presetName = xmlState.getStringAttribute ("presetName");	
-	const String presetDir = xmlState.getStringAttribute ("presetDir");	
-	
-	/*
-	debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
-	MemoryOutputStream myStream;
-    xmlState->writeToStream (myStream, "");
-	debug() << myStream.toString();
-	*/
-	
-	setCurrentPresetName(presetName.toUTF8());
-	setCurrentPresetDir(presetDir.toUTF8());
-	
+
 	// try to load scale if a scale attribute exists
     // TODO auto save all state including this
-	const String scaleName = xmlState.getStringAttribute ("scaleName");		
+	const String scaleName = xmlState.getStringAttribute ("scaleName");
 	setModelParam("key_scale", std::string(scaleName.toUTF8()));
-    	
+    
+	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
+	const String presetName = xmlState.getStringAttribute ("presetName");
+	setModelParam("preset", std::string(presetName.toUTF8()));
+    
+	/*
+     debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
+     MemoryOutputStream myStream;
+     xmlState->writeToStream (myStream, "");
+     debug() << myStream.toString();
+     */
+	
+    /*
+     setCurrentPresetName(presetName.toUTF8());
+     setCurrentPresetDir(presetDir.toUTF8());
+     */
+    
 	// get plugin-specific translation table for updating older versions of data
 	std::map<MLSymbol, MLSymbol> translationTable;
 
@@ -1047,11 +1047,10 @@ void MLPluginProcessor::saveStateToFile(File& saveFile)
 #else
 
 	String shortName = saveFile.getFileNameWithoutExtension();
-	String dirName = saveFile.getParentDirectory().getFileNameWithoutExtension();
-	setCurrentPresetName(shortName.toUTF8());
-	setCurrentPresetDir(dirName.toUTF8());
+	String dirName = saveFile.getParentDirectory().getFileNameWithoutExtension();    
+//	setCurrentPresetName(shortName.toUTF8());
 
-	String extension = getExtensionForWrapperType();
+ 	String extension = getExtensionForWrapperType();
 		
 	// insure < 32 chars! (TODO needed if not AU?)
 	int maxlength = 32 - extension.length();
@@ -1059,8 +1058,6 @@ void MLPluginProcessor::saveStateToFile(File& saveFile)
 	{
 		shortName = shortName.substring(0, maxlength - 1);
 	}
-	
-	// TODO warn or ask or something if saveFile does not have the proper extension
 	
 	String newState;
 	switch(wrapperType)
@@ -1093,7 +1090,7 @@ void MLPluginProcessor::loadStateFromFile(const File& loadFile)
 		String extension = loadFile.getFileExtension();
 		String dirName = loadFile.getParentDirectory().getFileNameWithoutExtension();
 		
-		debug() << "loading file: " << dirName << "/" << shortName << "\n";
+debug() << "loading file: " << dirName << "/" << shortName << "\n";
 		
 		if (extension == ".mlpreset")
 		{
@@ -1113,7 +1110,7 @@ void MLPluginProcessor::loadStateFromFile(const File& loadFile)
 		}
 		
 		// override preset name in blob with saved file name.
-		setCurrentPresetName(shortName.toUTF8());
+		// setCurrentPresetName(shortName.toUTF8());
 		
 	}	
 }
@@ -1155,6 +1152,33 @@ void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
 			loadStateFromFile(mMIDIProgramFiles[idx]);
 		}
 	}
+}
+
+void MLPluginProcessor::scanPresets()
+{
+   // get preset extension to look for
+    std::string presetFileType;
+    switch(wrapperType)
+    {
+        case AudioProcessor::wrapperType_AudioUnit:
+//            presetFileType = "aupreset";
+  //          break;
+        case AudioProcessor::wrapperType_VST:
+        case AudioProcessor::wrapperType_Standalone:
+        default:
+            presetFileType = "mlpreset";
+            break;
+    }
+
+    // get presets collections
+    mUserPresetFiles = MLFileCollectionPtr(new MLFileCollection("user_presets", getDefaultFileLocation(kUserPresetFiles), presetFileType));
+    mUserPresetFiles->setListener(this);
+    mUserPresetFiles->findFilesImmediate();
+    mFactoryPresetFiles = MLFileCollectionPtr(new MLFileCollection("factory_presets", getDefaultFileLocation(kFactoryPresetFiles), presetFileType));
+    mFactoryPresetFiles->setListener(this);
+    mFactoryPresetFiles->findFilesImmediate();
+    
+    pushInfoToListeners();
 }
 
 void MLPluginProcessor::scanMIDIPrograms()
@@ -1229,6 +1253,7 @@ const String MLPluginProcessor::getExtensionForWrapperType()
 	return ext;
 }
 
+/*
 const String& MLPluginProcessor::getCurrentPresetName()
 { 
 	return mCurrentPresetName; 
@@ -1241,7 +1266,7 @@ const String& MLPluginProcessor::getCurrentPresetDir()
 
 void MLPluginProcessor::setCurrentPresetName(const char* name)
 {
-	mCurrentPresetName = name;	
+	mCurrentPresetName = name;
 	setModelParam("preset", name);	
 }
 
@@ -1250,6 +1275,7 @@ void MLPluginProcessor::setCurrentPresetDir(const char* name)
 	mCurrentPresetDir = name;	
 	setModelParam("preset_dir", name);	
 }
+*/
 
 // set default value for each scalar parameter.  needed before loading
 // patches, which are only required to store differences from these

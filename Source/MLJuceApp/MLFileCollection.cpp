@@ -8,7 +8,7 @@
 
 #include "MLFileCollection.h"
 
-MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension): //, int maxDepth) :
+MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
     mName(name),
     mExtension(extension),
     mpListener(nullptr),
