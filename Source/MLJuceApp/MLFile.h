@@ -21,11 +21,11 @@ class MLFile
 public:
     MLFile(const std::string& dirName);
     MLFile(const File startDir);
-    MLFile(const File f, const std::string& name);
+    MLFile(const File f, const std::string& shortName, const std::string& longName);
     ~MLFile();
     
     void clear();
-    void insert(const std::string& path, MLFilePtr f);
+    void insert(const std::string& relPath, MLFilePtr f);
     MLFilePtr find(const std::string& path);
     std::string getAbsolutePath();
     void buildMenu(MLMenuPtr m);
@@ -34,6 +34,8 @@ public:
     bool mIsDirectory;
     int mIndex;
     std::string mShortName;
+    // path relative to collection root including name
+    std::string mLongName;
     
 private:
     std::map<std::string, MLFilePtr> mFiles;

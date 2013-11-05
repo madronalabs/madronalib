@@ -14,8 +14,7 @@
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
 
-// a collection of files matching some kind of critertia.
-// TODO just moving the existing plugin code into here for now.
+// a collection of files matching some kind of criteria.
 // planned timer / background scan stuff unimplemented.
 class MLFileCollection :
     public Timer
@@ -45,8 +44,11 @@ public:
     // returns the number of files found.
     int findFilesImmediate();
    
-    // return a file by its name relative to our starting directory.
+    // return a file by its path + name relative to our starting directory.
     const MLFilePtr getFileByName(const std::string& name);
+
+    std::string getFileNameByIndex(int idx);
+    const int getFileIndexByName(const std::string& fullName);
 
     // make a new file.
     const MLFilePtr createFile(const std::string& relativePath);

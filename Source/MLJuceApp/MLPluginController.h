@@ -46,12 +46,8 @@ public:
     void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
     void presetFilesChanged(const MLFileCollectionPtr presets);
 
-	void loadPresetByIndex (int idx);
-	int getIndexOfPreset(const std::string* dir, const std::string* name);
-	
 	void prevPreset();
 	void nextPreset();
-	String getPresetString(int n);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 	
@@ -73,9 +69,8 @@ protected:
 	
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	
-
-	void setupFormat();    
-	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
+  
+	//void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
 
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
@@ -85,9 +80,6 @@ private:
 	std::vector<File> mMIDIProgramFiles;
 
 	MLMenuMapT mMenuMap; 	
-	Array<File> mMenuPresetFiles;	
-	int mPresetMenuStartItems;
-	int mCurrentPresetIndex;
 
 	void populatePresetMenu(const MLFileCollectionPtr f);
 	void populateScaleMenu(const MLFileCollectionPtr f);

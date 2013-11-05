@@ -173,11 +173,10 @@ public:
 	// presets
 	
 	std::string getExtensionForWrapperType();
-    
 	void scanPresets();
-
-	// was used by wrapper
-	// void setCurrentPresetName(const char* name);
+    void prevPreset();
+    void nextPreset();
+    void advancePreset(int amount);
 	
 	// --------------------------------------------------------------------------------
     AudioPlayHead::CurrentPositionInfo lastPosInfo;

@@ -20,8 +20,8 @@ MLFile::MLFile(const File startDir) :
 mFile(startDir), mIsDirectory(startDir.isDirectory()), mIndex(-1)
 {}
 
-MLFile::MLFile(const File f, const std::string& n) :
-    mFile(f), mIsDirectory(f.isDirectory()), mShortName(n), mIndex(-1)
+MLFile::MLFile(const File f, const std::string& shortName, const std::string& longName) :
+    mFile(f), mIsDirectory(f.isDirectory()), mShortName(shortName), mLongName(longName), mIndex(-1)
 {}
 
 MLFile::~MLFile()
@@ -79,15 +79,15 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
 
 MLFilePtr MLFile::find(const std::string& path)
 {
-    // debug() << "FINDING: " << path << "\n";
+  debug() << "FINDING: " << path << "\n";
     int len = path.length();
     if(len)
     {
         int b = path.find_first_of("/");
         if(b == std::string::npos)
         {
-            // leaf, find short name here or return fail.
-            // debug() << "        LEAF: " << path << "\n\n" ;
+            // end of path, find short name here or return fail.
+         debug() << "        path end: " << path << "\n\n" ;
             
             std::map<std::string, MLFilePtr>::const_iterator it;
             it = mFiles.find(path);
@@ -98,6 +98,15 @@ MLFilePtr MLFile::find(const std::string& path)
             }
             else
             {
+                debug() << "did not find " << path << " in :\n";
+                
+                std::map<std::string, MLFilePtr>::const_iterator it2;
+                for(it2 = mFiles.begin(); it2 != mFiles.end(); ++it2)
+                {
+                        debug() << it2->first << ", ";
+                }
+                debug() << "\n";
+                
                 return MLFilePtr();
             }
         }
@@ -106,7 +115,7 @@ MLFilePtr MLFile::find(const std::string& path)
             std::string firstDir = path.substr(0, b);
             std::string restOfDirs = path.substr(b + 1, len - b);
             
-            // debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
+    debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
             
             // find file matching first dir
             if(firstDir == "")

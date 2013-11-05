@@ -666,9 +666,6 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 	// also move to JSON.
 	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	    
     xml.setAttribute ("presetName", String(getModelStringParam("preset")->c_str()));
-    
-    
-    //xml.setAttribute ("shortName", stripExtension(getShortName(*getModelStringParam("preset"))).c_str());
     xml.setAttribute ("scaleName", String(getModelStringParam("key_scale")->c_str()));
 
 	// store parameter values to xml as a bunch of attributes.  
@@ -1056,10 +1053,7 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 	
 #endif
     
-    
 }
-
-
 
 void MLPluginProcessor::loadStateFromPath(const std::string& path)
 {
@@ -1087,6 +1081,8 @@ debug() << "loading file: " << f.getFileName() << "\n";
 				XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
 				setStateFromXML(*pDocElem);
 				mpLatestStateLoaded = pDocElem;
+                
+                
 			}
 		}
 		else if (extension == ".aupreset")
@@ -1233,29 +1229,42 @@ std::string MLPluginProcessor::getExtensionForWrapperType()
 	return ext;
 }
 
-/*
-const String& MLPluginProcessor::getCurrentPresetName()
-{ 
-	return mCurrentPresetName; 
-}
-
-const String& MLPluginProcessor::getCurrentPresetDir()
-{ 
-	return mCurrentPresetDir; 
-}
-
-void MLPluginProcessor::setCurrentPresetName(const char* name)
+void MLPluginProcessor::prevPreset()
 {
-	mCurrentPresetName = name;
-	setModelParam("preset", name);	
+    advancePreset(-1);
 }
 
-void MLPluginProcessor::setCurrentPresetDir(const char* name)
+void MLPluginProcessor::nextPreset()
 {
-	mCurrentPresetDir = name;	
-	setModelParam("preset_dir", name);	
+    advancePreset(1);
 }
-*/
+
+void MLPluginProcessor::advancePreset(int amount)
+{
+    int len = mPresetFiles->size();
+    std::string extension = getExtensionForWrapperType();
+    int currIdx = mPresetFiles->getFileIndexByName(*getModelStringParam("preset") + extension);
+    
+    if(currIdx >= 0)
+    {
+        currIdx += amount;
+    }
+    else
+    {
+        // not found
+        currIdx = 0;
+    }
+    if(currIdx < 0)
+    {
+        currIdx = len - 1;
+    }
+    if(currIdx >= len)
+    {
+        currIdx = 0;
+    }
+    std::string relPath = mPresetFiles->getFileNameByIndex(currIdx);
+    loadStateFromPath(relPath);
+}
 
 // set default value for each scalar parameter.  needed before loading
 // patches, which are only required to store differences from these

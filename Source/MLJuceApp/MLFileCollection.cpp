@@ -89,11 +89,12 @@ int MLFileCollection::findFilesImmediate()
                 std::string rPath(relativePath.toUTF8());
                 std::string delimiter = (rPath == "" ? "" : "/");
                 std::string sName(shortName.toUTF8());
+                std::string longName(rPath + delimiter + sName);
                 
-                MLFilePtr newFile(new MLFile(f, sName)); 
+                MLFilePtr newFile(new MLFile(f, sName, longName));
                 
                 // insert file into file tree
-                mRoot.insert(rPath + delimiter + sName, newFile);
+                mRoot.insert(longName, newFile);
                 
                 // push to index
                 mFilesByIndex.push_back(newFile);
@@ -118,22 +119,43 @@ int MLFileCollection::findFilesImmediate()
     return processed;
 }
 
-/*
-const MLFile* MLFileCollection::getFileByIndex(int idx)
+std::string MLFileCollection::getFileNameByIndex(int idx)
 {
     int size = mFilesByIndex.size();
-    if(within(idx, 0, size)
+    if(within(idx, 0, size))
     {
-        return *(mFilesByIndex[idx]);
+        return mFilesByIndex[idx]->mLongName;
     }
-    return nullptr;
-}*/
+    return std::string();
+}
 
 const MLFilePtr MLFileCollection::getFileByName(const std::string& fullName)
 {
     return mRoot.find(fullName);
 }
 
+const int MLFileCollection::getFileIndexByName(const std::string& fullName)
+{
+    int r = -1;
+    MLFilePtr f = mRoot.find(fullName);
+    if(f != MLFilePtr())
+    {
+        int len = mFilesByIndex.size();
+        for(int i = 0; i<len; ++i)
+        {
+            const MLFilePtr g = mFilesByIndex[i];
+            if(f == g)
+            {
+                r = i;                
+                break;
+            }
+        }        
+    }
+    return r;
+}
+
+// TODO re-index is needed after this, for now we are re-searching for all files!
+//
 const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndName)
 {
     std::string sName = getShortName(relativePathAndName);
@@ -141,15 +163,17 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
     
     // need absolute path to make the Juce file
     File *f = new File(String(fullPath.c_str()));
-    MLFilePtr newFile(new MLFile(*f, sName));
+    MLFilePtr newFile(new MLFile(*f, sName, relativePathAndName));
     
     // insert file into file tree at relative path
     mRoot.insert(relativePathAndName, newFile);
 
+    // TODO repair index
+    
     return newFile;
 }
 
-// get path of p relative to our root path.
+// get part of absolute path p, if any, relative to our root path.
 std::string MLFileCollection::getRelativePath(const std::string& p)
 {
     std::string rootPath = mRoot.getAbsolutePath();

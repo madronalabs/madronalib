@@ -10,8 +10,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLReporter(pProcessor),
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
-    mpProcessor(pProcessor),
-	mCurrentPresetIndex(0)
+    mpProcessor(pProcessor)
 {
 	// get parameters and initial values from our processor and create corresponding model params. 
 	MLPluginProcessor* const pProc = getProcessor();
@@ -327,106 +326,12 @@ void MLPluginController::presetFilesChanged(const MLFileCollectionPtr fileCollec
 
 void MLPluginController::prevPreset()
 {
-	int idx = mCurrentPresetIndex - 1;
-	if (idx < 0) idx = mMenuPresetFiles.size() - 1;	
-	loadPresetByIndex(idx);
+    mpProcessor->prevPreset();
 }
 
 void MLPluginController::nextPreset()
 {
-	int idx = mCurrentPresetIndex + 1;
-	if (idx >= mMenuPresetFiles.size()) idx = 0;
-	loadPresetByIndex(idx);
-}
-
-String MLPluginController::getPresetString(int n)
-{ 
-	int idx = n - 1;
-	if (idx >= 0)
-	{
-		MLMenu* menu = findMenuByName("preset");
-		if (menu != nullptr)
-		{
-		//	return String(menu->getItemString(idx).c_str());
-		}
-	}
-	return String();
-}
-
-void MLPluginController::loadPresetByIndex (int idx)
-{
-	MLPluginProcessor* const filter = getProcessor();
-	
-	// pause timer
-	//stopTimer();
-	
-debug() << mMenuPresetFiles.size() << " presets\n";
-
-	if(idx < mMenuPresetFiles.size())
-	{
-		debug() << "loading preset " << idx << ": " << mMenuPresetFiles[idx].getFileNameWithoutExtension() << "\n";		
-		filter->loadStateFromFile(mMenuPresetFiles[idx]);	
-		//mCurrentPresetFolder = mMenuPresetFiles[idx].getParentDirectory();
-	}
-	mCurrentPresetIndex = idx;
-	
-	// resume
-	//startTimer(kTimerInterval);
-}
-
-int MLPluginController::getIndexOfPreset(const std::string* dir, const std::string* name)
-{
-	int index = -1;
-	const int kDefaultIdx = 0;
-	int size = mMenuPresetFiles.size();
-	String searchName (name->c_str());
-	String searchDir (dir->c_str());
-	String presetName, presetDir;
-	std::string defaultStr("default");
-	
-	if ((dir == defaultStr) && (name == defaultStr))
-	{
-		index = kDefaultIdx;
-	}
-		
-	// first try to match both folder and preset name
-	if (index == -1)
-	{
-		for(int i=0; i < size; ++i)
-		{
-			const File& f = mMenuPresetFiles[i];
-			presetName = f.getFileNameWithoutExtension();
-			presetDir = f.getParentDirectory().getFileNameWithoutExtension();
-			if((searchName == presetName) && (searchDir == presetDir))
-			{
-				index = i;
-				break;
-			}
-		}
-	}
-	
-	// settle for preset name only
-	if (index == -1)
-	{
-		for(int i=0; i < size; ++i)
-		{
-			const File& f = mMenuPresetFiles[i];
-			presetName = f.getFileNameWithoutExtension();			
-			if(searchName == presetName)
-			{
-				index = i;
-				break;
-			}
-		}
-	}
-	
-	// settle for preset name only
-	if (index == -1)
-	{
-		index = kDefaultIdx;
-	}
-	
-	return index;
+    mpProcessor->nextPreset();
 }
 
 // --------------------------------------------------------------------------------
@@ -507,8 +412,6 @@ void MLPluginController::doPresetMenu(int result)
 			getProcessor()->scanPresets();
 		break;
             
-        // should factory presets allow save over?
-            
 		case (2):	// save over previous
 			if(getProcessor()->saveStateOverPrevious() != MLProc::OK)
 			{
@@ -518,7 +421,6 @@ void MLPluginController::doPresetMenu(int result)
 					"OK");
 			}
 			getProcessor()->scanPresets();
-
 		break;
             
 		case (3):	// save as ...
@@ -585,7 +487,6 @@ void MLPluginController::doPresetMenu(int result)
             break;
 	}
 }
-
 
 void MLPluginController::doScaleMenu(int result)
 {
@@ -675,6 +576,7 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 	}
 }
 
+/*
 // get all files in the given directory and its immediate subdirectories that have the 
 // given extension. append the Files to results. if the three optional menu params 
 // are specified, add menu items to the menus.
@@ -757,6 +659,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 		}
 	}
 }
+*/
 
 void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFiles)
 {
@@ -767,8 +670,6 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
 		return;
 	}			
 	menu->clear();
-	mMenuPresetFiles.clear();
-	mPresetMenuStartItems = 0;
 	
 #if DEMO	
 	menu->addItem("Save as version", false);
@@ -800,8 +701,6 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
 	menu->addSeparator();		
 	menu->addItem("Convert presets..."); 
 #endif
-	
-	mPresetMenuStartItems = menu->getSize();
     
     menu->addSeparator();    
     menu->appendMenu(presetFiles->buildMenu());
@@ -821,11 +720,6 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
             }
         }
     }
-
-    /*
-	// sync current preset index to new list
-	mCurrentPresetIndex = getIndexOfPreset(pProc->getModelStringParam("preset_dir"), pProc->getModelStringParam("preset"));
-     */
 }
 
 // create a menu of the factory scales.
@@ -927,7 +821,8 @@ void MLPluginController::getPresetsToConvert(Array<File>* pResults)
     File presetsFolder = getDefaultFileLocation(kPresetFiles);
     if (presetsFolder != File::nonexistent)
 	{
-        findFilesOneLevelDeep(presetsFolder, fromFileType, fromFiles, 0);
+        // TODO replace
+    //    findFilesOneLevelDeep(presetsFolder, fromFileType, fromFiles, 0);
     }
      
 	//debug() << "convertPresets: got " << fromFiles.size() << " preset files of other type.\n";
