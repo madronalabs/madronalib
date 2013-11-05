@@ -35,7 +35,7 @@ public:
 	public:
 		virtual ~Listener() {}
 		virtual void scaleFilesChanged(const MLFileCollectionPtr) = 0;
-		virtual void presetFilesChanged(const MLFileCollectionPtr, const MLFileCollectionPtr) = 0;
+		virtual void presetFilesChanged(const MLFileCollectionPtr) = 0;
 	};
 		
 	MLPluginProcessor();
@@ -123,17 +123,21 @@ public:
 	// state
 	virtual void getStateAsXML (XmlElement& xml);
 	virtual void setStateFromXML(const XmlElement& xmlState);
-	int saveStateAsVersion(const File& f);
-	int saveStateOverPrevious(const File& f);
+	int saveStateAsVersion();
+    
+	int saveStateOverPrevious();
 	void returnToLatestStateLoaded();
 	
-	void getStateAsText (String& destStr);
+	String getStateAsText ();
 	void setStateFromText (const String& stateStr);
 
 	void getStateInformation (juce::MemoryBlock& destData);
     void setStateInformation (const void* data, int sizeInBytes);
 
-	void saveStateToFile(File& saveFile);
+    int saveStateToFullPath(const std::string& path);
+    void saveStateToRelativePath(const std::string& path);
+    
+    void loadStateFromPath(const std::string& path);
 	void loadStateFromFile(const File& loadFile);
 
 	// --------------------------------------------------------------------------------
@@ -168,14 +172,11 @@ public:
 	// --------------------------------------------------------------------------------
 	// presets
 	
-	const String getExtensionForWrapperType();
-	const String& getCurrentPresetName();
-	const String& getCurrentPresetDir();
-	const String& getCurrentScaleName();
+	std::string getExtensionForWrapperType();
     
 	void scanPresets();
 
-	// used by wrapper
+	// was used by wrapper
 	// void setCurrentPresetName(const char* name);
 	
 	// --------------------------------------------------------------------------------
@@ -199,11 +200,6 @@ public:
 	// debug
 	
 	inline void showEngine() { mEngine.dump(); }
-	
-	// errors TODO do this reusably
-	
-	const String& getErrorMessage() { return mErrorMessage; }
-	void setErrorMessage(const String& s) { mErrorMessage = s; }
 	
 protected:
 	// Engine creates graphs of Processors, does the work
@@ -244,8 +240,7 @@ private:
 	String mCurrentPresetDir;
 
     MLFileCollectionPtr mScaleFiles;
-    MLFileCollectionPtr mFactoryPresetFiles;
-    MLFileCollectionPtr mUserPresetFiles;
+    MLFileCollectionPtr mPresetFiles;
 
 	File mFactoryPresetsFolder, mUserPresetsFolder;
 	bool mFileLocationsOK;
@@ -260,8 +255,6 @@ private:
 	bool mEditorAnimationsOn;
 	
 	bool mInitialized;
-	
-	String mErrorMessage;
 };
 
 #endif  // __PLUGINPROCESSOR__

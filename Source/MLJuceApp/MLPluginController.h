@@ -44,7 +44,7 @@ public:
     
     // MLPluginProcessor::Listener
     void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
-    void presetFilesChanged(const MLFileCollectionPtr factoryColl, const MLFileCollectionPtr userColl);
+    void presetFilesChanged(const MLFileCollectionPtr presets);
 
 	void loadPresetByIndex (int idx);
 	int getIndexOfPreset(const std::string* dir, const std::string* name);
@@ -79,12 +79,7 @@ protected:
 
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
-	
-	String mCurrentPresetName;
-	File mCurrentPresetFolder;
-
 	std::string mVersionString;
-
 
 	// stored indices for MIDI program changes-- hackish
 	std::vector<File> mMIDIProgramFiles;
@@ -94,9 +89,8 @@ private:
 	int mPresetMenuStartItems;
 	int mCurrentPresetIndex;
 
-	void populatePresetMenu(const MLFileCollectionPtr, const MLFileCollectionPtr);
-	void populateScaleMenu(const MLFileCollectionPtr fileCollection);	
- 
+	void populatePresetMenu(const MLFileCollectionPtr f);
+	void populateScaleMenu(const MLFileCollectionPtr f);
 };
 
 

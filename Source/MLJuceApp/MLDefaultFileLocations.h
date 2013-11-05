@@ -13,8 +13,7 @@
 enum eFileTypes
 {
 	// plugin data
-	kFactoryPresetFiles     = 0,  
-	kUserPresetFiles,
+	kPresetFiles     = 0,  
 	kScaleFiles,
 	kSampleFiles,
 	

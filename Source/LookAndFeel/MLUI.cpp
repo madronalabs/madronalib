@@ -62,7 +62,7 @@ const juce::Colour darkerColor (const juce::Colour& c)
 // --------------------------------------------------------------------------------
 #pragma mark string utilities
 
-const std::string getShortName(const std::string& str)
+const std::string stripExtension(const std::string& str)
 {
     std::string r(str);
     int b = r.find_last_of(".");
@@ -73,7 +73,7 @@ const std::string getShortName(const std::string& str)
     return r;
 }
 
-const std::string stripExtension(const std::string& str)
+const std::string getShortName(const std::string& str)
 {
     std::string r(str);
     int b = r.find_last_of("/");
@@ -81,6 +81,17 @@ const std::string stripExtension(const std::string& str)
     {
         int len = r.length();
         r = r.substr(b + 1, len - b);
+    }
+    return r;
+}
+
+const std::string getPath(const std::string& str)
+{
+    std::string r;
+    int b = str.find_last_of("/");
+    if(b != std::string::npos)
+    {
+        r = str.substr(0, b);
     }
     return r;
 }

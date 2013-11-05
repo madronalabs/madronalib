@@ -317,9 +317,9 @@ void MLPluginController::scaleFilesChanged(const MLFileCollectionPtr fileCollect
     populateScaleMenu(fileCollection);
 }
 
-void MLPluginController::presetFilesChanged(const MLFileCollectionPtr factoryColl, const MLFileCollectionPtr userColl)
+void MLPluginController::presetFilesChanged(const MLFileCollectionPtr fileCollection)
 {
-    populatePresetMenu(factoryColl, userColl);
+    populatePresetMenu(fileCollection);
 }
 
 // --------------------------------------------------------------------------------
@@ -366,7 +366,7 @@ debug() << mMenuPresetFiles.size() << " presets\n";
 	{
 		debug() << "loading preset " << idx << ": " << mMenuPresetFiles[idx].getFileNameWithoutExtension() << "\n";		
 		filter->loadStateFromFile(mMenuPresetFiles[idx]);	
-		mCurrentPresetFolder = mMenuPresetFiles[idx].getParentDirectory();
+		//mCurrentPresetFolder = mMenuPresetFiles[idx].getParentDirectory();
 	}
 	mCurrentPresetIndex = idx;
 	
@@ -490,63 +490,72 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 
 void MLPluginController::doPresetMenu(int result)
 {
-	String presetStr;
-	if (result > mPresetMenuStartItems)
-	{
-        MLMenu* menu = findMenuByName("preset");
-        if (menu)
-        {
-            // set model param to the full name of the file in the menu
-            const std::string& fullName = menu->getItemFullName(result);
-            mpProcessor->setModelParam("preset", fullName);
-        }
-	}
-	else switch(result)
+    switch(result)
 	{
 		// do another menu command
 		case (0):	// dismiss
 		break;
-		case (1):	// save over previous
-			if(getProcessor()->saveStateAsVersion(mCurrentPresetFolder) != MLProc::OK)  // TODO this should be MLErr
+		case (1):	// save as version in current dir
+			if(getProcessor()->saveStateAsVersion() != MLProc::OK) 
 			{
 				AlertWindow::showMessageBox (AlertWindow::NoIcon,
 					String::empty,
-					getProcessor()->getErrorMessage(),
+					"",
 					"OK");
 			}
+            // update menu (overkill)
 			getProcessor()->scanPresets();
 		break;
-		case (2):	// save as version in current dir
-			if(getProcessor()->saveStateOverPrevious(mCurrentPresetFolder) != MLProc::OK)  // TODO this should be MLErr
+            
+        // should factory presets allow save over?
+            
+		case (2):	// save over previous
+			if(getProcessor()->saveStateOverPrevious() != MLProc::OK)
 			{
 				AlertWindow::showMessageBox (AlertWindow::NoIcon,
 					String::empty,
-					getProcessor()->getErrorMessage(),
+					"",
 					"OK");
 			}
 			getProcessor()->scanPresets();
 
 		break;
+            
 		case (3):	// save as ...
 		{
-            File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
+            int err = 0;
+            String errStr;
+            File userPresetsFolder = getDefaultFileLocation(kPresetFiles);
             if (userPresetsFolder != File::nonexistent)
             {
-                FileChooser fc ("Save preset as...", userPresetsFolder, String::empty, true); // true = native file chooser
+                bool nativeChooserUI = true;
+                FileChooser fc ("Save preset as...", userPresetsFolder, String::empty, nativeChooserUI);
                 if (fc.browseForFileToSave (true))
                 {
                     File saveFile = fc.getResult();	
-                    getProcessor()->saveStateToFile(saveFile);
+                    err = getProcessor()->saveStateToFullPath(std::string(saveFile.getFullPathName().toUTF8()));
+                    if(err)
+                    {
+                        errStr = "Please choose a location in the ";
+                        errStr += MLProjectInfo::projectName;
+                        errStr += " folder.";
+                    }
                     getProcessor()->scanPresets();
                 }
             }
             else
             {
-				AlertWindow::showMessageBox (AlertWindow::NoIcon,
-                                             String::empty,
-                                             getProcessor()->getErrorMessage(),
-                                             "OK");
-			}
+                err = 1;
+                errStr = ("Presets folder ");
+                errStr += userPresetsFolder.getFullPathName();
+                errStr += " not found!";
+            }
+            
+            if(err)
+            {                
+                AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
+            }
+			getProcessor()->scanPresets();
 		}
 		break;
 		case (4):	// revert
@@ -554,12 +563,10 @@ void MLPluginController::doPresetMenu(int result)
 		break;
 
 		case (5):	// copy
-			getProcessor()->getStateAsText (presetStr);
-			SystemClipboard::copyTextToClipboard (presetStr);
+			SystemClipboard::copyTextToClipboard (getProcessor()->getStateAsText());
 		break;
 		case (6):	// paste
-			presetStr = SystemClipboard::getTextFromClipboard();
-			getProcessor()->setStateFromText (presetStr);
+			getProcessor()->setStateFromText (SystemClipboard::getTextFromClipboard());
 		break;
 
 #if ML_MAC
@@ -568,16 +575,17 @@ void MLPluginController::doPresetMenu(int result)
 			getProcessor()->scanPresets();
 		break;
 #endif
-        default:    // set preset
+        default:    // load preset
             MLMenu* menu = findMenuByName("preset");
             if (menu)
             {
-                const std::string& fullName = menu->getItemFullName(result);
-                mpProcessor->setModelParam("preset", fullName);
+                const std::string& fullName = menu->getItemFullName(result);                
+                getProcessor()->loadStateFromPath(fullName);
             }
             break;
 	}
 }
+
 
 void MLPluginController::doScaleMenu(int result)
 {
@@ -750,7 +758,7 @@ void MLPluginController::findFilesOneLevelDeep(File& startDir, String extension,
 	}
 }
 
-void MLPluginController::populatePresetMenu(const MLFileCollectionPtr factoryColl, const MLFileCollectionPtr userColl)
+void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFiles)
 {
 	MLMenu* menu = createMenu("preset");
 	if (menu == nullptr)
@@ -795,36 +803,10 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr factoryCol
 	
 	mPresetMenuStartItems = menu->getSize();
     
-    menu->addSeparator();
-    menu->appendMenu(factoryColl->buildMenu());
     menu->addSeparator();    
-    menu->appendMenu(userColl->buildMenu());
+    menu->appendMenu(presetFiles->buildMenu());
     menu->buildIndex();
-    
-    /*
-	File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
-	if (userPresetsFolder != File::nonexistent)
-	{
-		findFilesOneLevelDeep(userPresetsFolder, presetFileType, mMenuPresetFiles, menu);
-    }
-    else
-    {
-        menu->addItem("user presets folder not found!", false);
-    }
-    
-    menu->addSeparator();
-	File factoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
-    if(factoryPresetsFolder != File::nonexistent)
-    {
-		findFilesOneLevelDeep(factoryPresetsFolder, presetFileType, mMenuPresetFiles, menu);
-	}
-    else
-    {
-        menu->addItem("factory presets folder not found!", false);
-    }
-//		debug() << "MLPluginController: " << mMenuPresetFiles.size() << " preset files.\n";
-    */
-    
+     
     // send MIDI program info to processor
     MLPluginProcessor* const pProc = getProcessor();
     if(pProc)
@@ -942,18 +924,12 @@ void MLPluginController::getPresetsToConvert(Array<File>* pResults)
 	// debug() << "getPresetsToConvert: my plugin type is " << pluginType << "\n";
 	
     // get lists of files but don't add to menus
-    File userPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
-    if (userPresetsFolder != File::nonexistent)
+    File presetsFolder = getDefaultFileLocation(kPresetFiles);
+    if (presetsFolder != File::nonexistent)
 	{
-        findFilesOneLevelDeep(userPresetsFolder, fromFileType, fromFiles, 0);
+        findFilesOneLevelDeep(presetsFolder, fromFileType, fromFiles, 0);
     }
-    
-    File factoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
-    if(factoryPresetsFolder != File::nonexistent)
-    {
-        findFilesOneLevelDeep(factoryPresetsFolder, fromFileType, fromFiles, 0);
-	}
- 
+     
 	//debug() << "convertPresets: got " << fromFiles.size() << " preset files of other type.\n";
 
 	// for each fromType file, look to see if it has a toType counterpart. 
@@ -1039,8 +1015,9 @@ public:
 				else if (mExtension == ".aupreset")
 				{
 					mpFilter->loadStateFromFile(fromFile);
-					mpFilter->saveStateToFile(toFile);
-					wait(10); 
+					wait(100);
+                    mpFilter->saveStateToFullPath(std::string(toFile.getFullPathName().toUTF8()));
+					wait(100);
 				}
 			}
 					

@@ -45,7 +45,14 @@ public:
     // returns the number of files found.
     int findFilesImmediate();
    
+    // return a file by its name relative to our starting directory.
     const MLFilePtr getFileByName(const std::string& name);
+
+    // make a new file.
+    const MLFilePtr createFile(const std::string& relativePath);
+
+    // given a full system file path, get its path relative to our starting directory.
+    std::string getRelativePath(const std::string& name);
     
     MLMenuPtr buildMenu(bool flat = false);
     void dump();

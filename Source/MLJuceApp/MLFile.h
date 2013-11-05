@@ -21,18 +21,18 @@ class MLFile
 public:
     MLFile(const std::string& dirName);
     MLFile(const File startDir);
-    MLFile(const File f, const std::string& p, const std::string& n);
+    MLFile(const File f, const std::string& name);
     ~MLFile();
     
     void clear();
     void insert(const std::string& path, MLFilePtr f);
     MLFilePtr find(const std::string& path);
+    std::string getAbsolutePath();
     void buildMenu(MLMenuPtr m);
     
     File mFile;
     bool mIsDirectory;
     int mIndex;
-    std::string mRelativePath;
     std::string mShortName;
     
 private:

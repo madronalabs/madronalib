@@ -123,5 +123,6 @@ const juce::Colour darkerColor (const juce::Colour& c);
 
 const std::string getShortName(const std::string& str);
 const std::string stripExtension(const std::string& str);
+const std::string getPath(const std::string& str);
 
 #endif // __ML_UI__

@@ -15,11 +15,8 @@ File getDefaultFileLocation(eFileTypes whichFiles)
     File startDir;
 	switch(whichFiles)
 	{
-		case kFactoryPresetFiles:
-        case kScaleFiles:
-            startDir = File::getSpecialLocation (File::commonApplicationDataDirectory);
-			break;
-		case kUserPresetFiles:
+		case kPresetFiles:
+        case kScaleFiles:         
 		case kSampleFiles:
             startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
             break;
@@ -50,11 +47,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		{
 			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Samples";
 		}
-		else if (whichFiles == kFactoryPresetFiles)
-		{
-			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
-		}
-		else if (whichFiles == kUserPresetFiles)
+		else if (whichFiles == kPresetFiles)
 		{
 			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
 		}
@@ -78,11 +71,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		{
 			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName + "/Samples";
 		}
-		else if (whichFiles == kFactoryPresetFiles)
-        {
-			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName;
-		}
-		else if (whichFiles == kUserPresetFiles)
+		else if (whichFiles == kPresetFiles)
         {
 			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName;
 		}
@@ -92,17 +81,10 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		}
 #endif
 
-        debug() << "getDefaultFileLocation: looking for path: " << dest << "\n";
-
         result = startDir.getChildFile(dest);
 	
-		if (result.exists())
+		if (!result.exists())
 		{
-			debug() << "found path: " << dest << "\n";
-			debug() << "full path:" << result.getFullPathName() << "\n";
-		}
-        else
-        {
             result = File::nonexistent;
         }
 	}

@@ -90,7 +90,7 @@ int MLFileCollection::findFilesImmediate()
                 std::string delimiter = (rPath == "" ? "" : "/");
                 std::string sName(shortName.toUTF8());
                 
-                MLFilePtr newFile(new MLFile(f, rPath, sName)); // TODO no path in file
+                MLFilePtr newFile(new MLFile(f, sName)); 
                 
                 // insert file into file tree
                 mRoot.insert(rPath + delimiter + sName, newFile);
@@ -134,6 +134,41 @@ const MLFilePtr MLFileCollection::getFileByName(const std::string& fullName)
     return mRoot.find(fullName);
 }
 
+const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndName)
+{
+    std::string sName = getShortName(relativePathAndName);
+    std::string fullPath = mRoot.getAbsolutePath() + "/" + relativePathAndName;
+    
+    // need absolute path to make the Juce file
+    File *f = new File(String(fullPath.c_str()));
+    MLFilePtr newFile(new MLFile(*f, sName));
+    
+    // insert file into file tree at relative path
+    mRoot.insert(relativePathAndName, newFile);
+
+    return newFile;
+}
+
+// get path of p relative to our root path.
+std::string MLFileCollection::getRelativePath(const std::string& p)
+{
+    std::string rootPath = mRoot.getAbsolutePath();
+    debug() << "root:" << rootPath << "\n";
+    debug() << ", p: " << p << "\n";
+    std::string relPath;
+    
+    // p should begin with root
+    size_t rootPos = p.find(rootPath);
+    if(rootPos == 0)
+    {
+        int rLen = rootPath.length();
+        int pLen = p.length();
+        relPath = p.substr(rLen + 1, pLen - rLen - 1);        
+    }
+    
+    return relPath;
+}
+
 MLMenuPtr MLFileCollection::buildMenu(bool flat)
 {
     // make a new menu named after this collection and containing all of the files in it.
@@ -165,7 +200,7 @@ void MLFileCollection::dump()
 	for(int i = 0; i<len; ++i)
 	{
         const MLFilePtr f = mFilesByIndex[i];
-		debug() << "    " << i << ": " << f->mRelativePath << " " << f->mShortName << "\n";
+		debug() << "    " << i << ": " << f->mShortName << "\n";
 	}
 }
 

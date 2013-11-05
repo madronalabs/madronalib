@@ -20,8 +20,8 @@ MLFile::MLFile(const File startDir) :
 mFile(startDir), mIsDirectory(startDir.isDirectory()), mIndex(-1)
 {}
 
-MLFile::MLFile(const File f, const std::string& p, const std::string& n) :
-    mFile(f), mIsDirectory(f.isDirectory()), mRelativePath(p), mShortName(n), mIndex(-1)
+MLFile::MLFile(const File f, const std::string& n) :
+    mFile(f), mIsDirectory(f.isDirectory()), mShortName(n), mIndex(-1)
 {}
 
 MLFile::~MLFile()
@@ -128,6 +128,11 @@ MLFilePtr MLFile::find(const std::string& path)
     {
         MLError() << "MLFile::find: empty file name!\n";
     }
+}
+
+std::string MLFile::getAbsolutePath()
+{
+    return std::string(mFile.getFullPathName().toUTF8());
 }
 
 void MLFile::buildMenu(MLMenuPtr m)
