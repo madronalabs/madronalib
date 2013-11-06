@@ -295,8 +295,7 @@ debug() << "program change " << pgm << "\n";
 				setStateFromMIDIProgram(pgm);
 			}
 		}
-		else
-		
+        else if (!message.isMidiClock())
 		// TEST
 		{
 			int msgSize = message.getRawDataSize();
