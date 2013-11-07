@@ -660,14 +660,23 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 #else
 
   	const unsigned numParams = getNumParameters();
+    const std::string* paramStr;
 
 	// TODO use string attributes of model instead of these JUCE strings.
 	// also move to JSON.
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	    
-    xml.setAttribute ("presetName", String(getModelStringParam("preset")->c_str()));
-    xml.setAttribute ("scaleName", String(getModelStringParam("key_scale")->c_str()));
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
+    paramStr = getModelStringParam("preset");
+    if (paramStr != 0)
+    {
+        xml.setAttribute ("presetName", String(paramStr->c_str()));
+    }
+    paramStr = getModelStringParam("key_scale");
+    if (paramStr != 0)
+    {
+        xml.setAttribute ("scaleName", String(paramStr->c_str()));
+    }
 
-	// store parameter values to xml as a bunch of attributes.  
+	// store parameter values to xml as a bunch of attributes.
 	// not XML best practice in general but takes fewer characters.
 	for(unsigned i=0; i<numParams; ++i)
 	{
