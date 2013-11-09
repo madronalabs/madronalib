@@ -129,6 +129,16 @@ std::string MLFileCollection::getFileNameByIndex(int idx)
     return std::string();
 }
 
+MLFilePtr MLFileCollection::getFileByIndex(int idx)
+{
+    int size = mFilesByIndex.size();
+    if(within(idx, 0, size))
+    {
+        return mFilesByIndex[idx];
+    }
+    return MLFilePtr();
+}
+
 const MLFilePtr MLFileCollection::getFileByName(const std::string& fullName)
 {
     return mRoot.find(fullName);

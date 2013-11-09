@@ -48,6 +48,7 @@ public:
     const MLFilePtr getFileByName(const std::string& name);
 
     std::string getFileNameByIndex(int idx);
+    MLFilePtr getFileByIndex(int idx);
     const int getFileIndexByName(const std::string& fullName);
 
     // make a new file.
