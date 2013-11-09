@@ -374,15 +374,14 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 			pInstigator->setAttribute("value", 1);
 		}
 		
-		const int u = pInstigator->getWidgetGridUnitSize();
-		int height = ((float)u)*0.35f;
-		height = clamp(height, 12, 128);
-		
 		if(pInstigator != nullptr)
 		{
 			Component* pInstComp = pInstigator->getComponent();
 			if(pInstComp)
 			{
+                const int u = pInstigator->getWidgetGridUnitSize();
+                int height = ((float)u)*0.35f;
+                height = clamp(height, 12, 128);
 				JuceMenuPtr juceMenu = menu->getJuceMenu();
 				juceMenu->showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
 					ModalCallbackFunction::withParam(menuItemChosenCallback, 
