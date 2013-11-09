@@ -61,7 +61,7 @@ public:
     
     static Vec2 worldToScreen(const Vec3& world);
 
-    static void drawDot(Vec2 pos);
+    static void drawDot(Vec2 pos, float r); // TEMP
 
 };
 

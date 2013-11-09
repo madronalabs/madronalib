@@ -298,7 +298,6 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 	return label;
 }
 
-
 MLDrawing* MLAppView::addDrawing(const MLRect & r)
 {
 	MLDrawing* drawing = new MLDrawing;
@@ -312,7 +311,6 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 	addWidgetToView(pb, r);
 	return pb;
 }
-
 
 MLWaveform* MLAppView::addWaveform(const MLRect & r, const MLSymbol paramName)
 {

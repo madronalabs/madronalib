@@ -103,13 +103,11 @@ Vec2 MLGL::worldToScreen(const Vec3& world)
 }
 
 // temporary, ugly
-void MLGL::drawDot(Vec2 pos)
-{
-    
+void MLGL::drawDot(Vec2 pos, float r)
+{    
 	Vec4 dotColor(0.8f, 0.8f, 0.8f, 1.f);
 	glColor4fv(&dotColor[0]);
 	int steps = 16;
-	float r = 0.04f;
     
 	float x = pos.x();
 	float y = pos.y();
