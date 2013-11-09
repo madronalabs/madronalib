@@ -53,6 +53,13 @@ int MLMenu::Node::renumberItems(int n)
     return n;
 }
 
+void MLMenu::Node::clear()
+{
+    map.clear();
+    index.clear();
+    subMenu = JuceMenuPtr();
+}
+
 // get size, counting only leaf nodes that are not separators.
 int MLMenu::Node::getSize(int n)
 {

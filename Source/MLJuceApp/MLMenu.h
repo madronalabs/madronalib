@@ -28,7 +28,7 @@ public:
     public:
         Node() : itemNumber(0){}
         ~Node(){}
-        void clear() { map.clear(); }
+        void clear();
         void dump(int level = 0);
         int renumberItems(int n = 1);
         int getSize(int n);
