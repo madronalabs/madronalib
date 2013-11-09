@@ -607,12 +607,18 @@ void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
 
 void MLPluginProcessor::setScaleByName(const std::string& fullName)
 {
-    const MLFilePtr f = mScaleFiles->getFileByName(fullName);
-    if(f != MLFilePtr())
+    bool loaded = false;
+    if(fullName != std::string())
     {
-        loadScale(f->mFile);
+        const MLFilePtr f = mScaleFiles->getFileByName(fullName);
+        if(f != MLFilePtr())
+        {
+            loadScale(f->mFile);
+            loaded = true;
+        }
     }
-    else
+    
+    if(!loaded)
     {
         loadDefaultScale();
     }
@@ -1064,11 +1070,14 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 }
 
 void MLPluginProcessor::loadStateFromPath(const std::string& path)
-{
-    const MLFilePtr f = mPresetFiles->getFileByName(path);
-    if(f != MLFilePtr())
+{    
+    if(path != std::string())
     {
-        loadStateFromFile(f->mFile);
+        const MLFilePtr f = mPresetFiles->getFileByName(path);
+        if(f != MLFilePtr())
+        {
+            loadStateFromFile(f->mFile);
+        }
     }
 }
 
