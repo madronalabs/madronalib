@@ -9,6 +9,7 @@
 #include "MLProjectInfo.h"
 #include "JuceHeader.h"
 #include "MLUI.h"
+#include "MLDebug.h"
 
 const int kMLPluginMIDIPrograms = 127;
 
@@ -21,7 +22,7 @@ public:
 	MLPluginEditor (juce::AudioProcessor* ownerProcessor);
     ~MLPluginEditor();
 
-	void paint(Graphics& g);
+	//void paint(Graphics& g);
 	
 	MLRect getWindowBounds();
     

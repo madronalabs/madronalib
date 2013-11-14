@@ -60,8 +60,8 @@
 
 // ML
 #include "JuceHeader.h"
-#define Button juce::Button
-#define Point juce::Point
+//#define Button juce::Button
+//#define Point juce::Point
 #define Component juce::Component
 #include "MLPluginProcessor.h"
 #include "MLPluginEditor.h"

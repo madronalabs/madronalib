@@ -8,7 +8,7 @@
 MLPluginEditor::MLPluginEditor (juce::AudioProcessor* ownerProcessor) : 
 	AudioProcessorEditor(ownerProcessor)
 {
-    setOpaque(true);
+    //setOpaque(true);
 #if GLX
     openGLContext.attachTo (*getTopLevelComponent());
 #endif
@@ -17,14 +17,18 @@ MLPluginEditor::MLPluginEditor (juce::AudioProcessor* ownerProcessor) :
 
 MLPluginEditor::~MLPluginEditor()
 {
+    debug() << "DELETING ~MLPluginEditor\n";
+    
 #if GLX
     openGLContext.detach();
 #endif
 }
 
+/*
 void MLPluginEditor::paint(Graphics& )
 {
 }
+*/
 
 MLRect MLPluginEditor::getWindowBounds()
 {

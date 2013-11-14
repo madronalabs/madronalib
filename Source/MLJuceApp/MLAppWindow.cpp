@@ -26,18 +26,15 @@ MLAppWindow::MLAppWindow()
     // out commands
     addKeyListener (commandManager.getKeyMappings());
     
-
     setContentOwned(&mBorder, false);
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);
 
 	setUsingNativeTitleBar (true);
-    
-    
+        
     // tells our menu bar model that it should watch this command manager for
     // changes, and send change messages accordingly.
     //&mBorder->setApplicationCommandManagerToWatch (&commandManager);
-    
 
     //setVisible (true);
 }
