@@ -38,7 +38,7 @@ typedef std::tr1::shared_ptr<Drawable> DrawablePtr;
 
 const float kPopupMenuTextScale = 0.85f;
 
-class  MLLookAndFeel : public LookAndFeel, public DeletedAtShutdown
+class  MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
 {
 public:
     //==============================================================================

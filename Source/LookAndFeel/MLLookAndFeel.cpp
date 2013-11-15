@@ -722,7 +722,7 @@ void MLLookAndFeel::drawProgressBar (Graphics& g, ProgressBar& progressBar,
 {
     if (progress < 0 || progress >= 1.0)
     {
-        LookAndFeel::drawProgressBar (g, progressBar, width, height, progress, textToShow);
+        LookAndFeel_V3::drawProgressBar (g, progressBar, width, height, progress, textToShow);
     }
     else
     {
@@ -1382,80 +1382,6 @@ void MLLookAndFeel::drawDocumentWindowTitleBar (DocumentWindow& window,
 
     g.drawText (window.getName(), textX, 0, textW, h, Justification::centredLeft, true);
 }
-
-//==============================================================================
-class GlassWindowButton   : public Button
-{
-public:
-    //==============================================================================
-    GlassWindowButton (const String& name, const Colour& col,
-                       const Path& normalShape_,
-                       const Path& toggledShape_) throw()
-        : Button (name),
-          colour (col),
-          normalShape (normalShape_),
-          toggledShape (toggledShape_)
-    {
-    }
-
-    ~GlassWindowButton()
-    {
-    }
-
-    //==============================================================================
-    void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown)
-    {
-        float alpha = isMouseOverButton ? (isButtonDown ? 1.0f : 0.8f) : 0.55f;
-
-        if (! isEnabled())
-            alpha *= 0.5f;
-
-        float x = 0, y = 0, diam;
-
-        if (getWidth() < getHeight())
-        {
-            diam = (float) getWidth();
-            y = (getHeight() - getWidth()) * 0.5f;
-        }
-        else
-        {
-            diam = (float) getHeight();
-            y = (getWidth() - getHeight()) * 0.5f;
-        }
-
-        x += diam * 0.05f;
-        y += diam * 0.05f;
-        diam *= 0.9f;
-
-        g.setGradientFill (ColourGradient (Colour::greyLevel (0.9f).withAlpha (alpha), 0, y + diam,
-                                           Colour::greyLevel (0.6f).withAlpha (alpha), 0, y, false));
-        g.fillEllipse (x, y, diam, diam);
-
-        x += 2.0f;
-        y += 2.0f;
-        diam -= 4.0f;
-
-        LookAndFeel::drawGlassSphere (g, x, y, diam, colour.withAlpha (alpha), 1.0f);
-
-        Path& p = getToggleState() ? toggledShape : normalShape;
-
-        const AffineTransform t (p.getTransformToScaleToFit (x + diam * 0.3f, y + diam * 0.3f,
-                                                             diam * 0.4f, diam * 0.4f, true));
-
-        g.setColour (Colours::black.withAlpha (alpha * 0.6f));
-        g.fillPath (p, t);
-    }
-
-    //==============================================================================
-    juce_UseDebuggingNewOperator
-
-private:
-    Colour colour;
-    Path normalShape, toggledShape;
-
-    GlassWindowButton (const GlassWindowButton&);
-    const GlassWindowButton& operator= (const GlassWindowButton&);
-};
 
 void MLLookAndFeel::positionDocumentWindowButtons (DocumentWindow&,
                                                  int titleBarX,
