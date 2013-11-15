@@ -61,6 +61,13 @@
 #undef Point
 #undef Component
 
+// ML
+#include "JuceHeader.h"
+#define Component juce::Component
+#include "MLPluginProcessor.h"
+#include "MLPluginEditor.h"
+// ML
+
 /** The BUILD_AU_CARBON_UI flag lets you specify whether old-school carbon hosts are supported as
  well as ones that can open a cocoa view. If this is enabled, you'll need to also add the AUCarbonBase
  files to your project.
@@ -132,6 +139,7 @@ public:
 //==============================================================================
 class JuceAU   : public JuceAUBaseClass,
 public AudioProcessorListener,
+public MLAudioProcessorListener,
 public AudioPlayHead,
 public ComponentListener
 {
@@ -150,12 +158,14 @@ public:
             
             initialiseJuce_GUI();
         }
-        
+
         juceFilter = createPluginFilterOfType (AudioProcessor::wrapperType_AudioUnit);
-        
+        MLPluginProcessor* madronaFilter = static_cast<MLPluginProcessor*>(&(*(juceFilter)));
+
         juceFilter->setPlayHead (this);
         juceFilter->addListener (this);
-        
+		madronaFilter->setMLListener (this);
+
         Globals()->UseIndexedParameters (juceFilter->getNumParameters());
         
         activePlugins.add (this);
@@ -254,6 +264,20 @@ public:
                     outWritable = true;
                     return noErr;
 #endif
+                    // ----------------------------------------------------------------
+                    // ML
+                case kAudioUnitProperty_ParameterClumpName:
+                    outDataSize = sizeof(AudioUnitParameterNameInfo);
+                    outWritable = false;
+                    return noErr;
+                    
+                case kAudioUnitProperty_SampleRate:
+                    outDataSize = sizeof(Float64);
+                    outWritable = true;
+                    return noErr;
+
+                    // ML
+                    // ----------------------------------------------------------------
                     
                 default: break;
             }
@@ -318,11 +342,54 @@ public:
                     return noErr;
                 }
 #endif
+                // ----------------------------------------------------------------
+                // ML
+                case kAudioUnitProperty_ParameterClumpName:
+                {
+                    OSStatus result = noErr;
+                    AudioUnitParameterNameInfo* ioClumpInfo = (AudioUnitParameterNameInfo*) outData;
+                    unsigned index = ioClumpInfo->inID;
                     
+                    if (index == kAudioUnitClumpID_System)	// this ID value is reserved
+                    {
+                        result = kAudioUnitErr_InvalidPropertyValue;
+                    }
+                    else
+                    {
+                        int maxLen = ioClumpInfo->inDesiredLength;
+                        MLPluginProcessor* madronaFilter = static_cast<MLPluginProcessor*>(&(*(juceFilter)));
+                        std::string groupStr (madronaFilter->getParameterGroupName(index));
+                        if (groupStr.length() > 0)
+                        {
+                            if (groupStr.length() > maxLen)
+                            {
+                                groupStr.resize(maxLen);
+                            }
+                            const char* c = groupStr.c_str();
+                            if (c)
+                            {
+                                CFStringRef clumpName = CFStringCreateWithCString(NULL, c, kCFStringEncodingUTF8);
+                                CFRetain(clumpName);
+                                ioClumpInfo->outName = (clumpName);
+                            }
+                        }
+                    }
+                    return result;
+                }
+                    
+                    // sample rate
+                case kAudioUnitProperty_SampleRate:
+                {
+                    *(Float64*) outData = juceFilter->getSampleRate();
+                    return noErr;
+                }
+                // ML
+                // ----------------------------------------------------------------
                 default: break;
             }
-        }
-        
+
+       }
+
         return JuceAUBaseClass::GetProperty (inID, inScope, inElement, outData);
     }
     
@@ -371,10 +438,34 @@ public:
         
         CFMutableDictionaryRef dict = (CFMutableDictionaryRef) *outData;
         
+        /*
+		// ----------------------------------------------------------------
+		// ML
+		// get saved preset name
+		char nameBuf[33];
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFStringRef presetName = reinterpret_cast<CFStringRef>(CFDictionaryGetValue (dict, kNameString));
+		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
+		// ML
+		// ----------------------------------------------------------------
+         */
+        
         if (juceFilter != nullptr)
         {
             juce::MemoryBlock state;
             juceFilter->getCurrentProgramStateInformation (state);
+
+            /*
+			// ----------------------------------------------------------------
+			// ML
+			if (nameResult)
+			{
+				// update filter with saved name.
+				juceFilter->setCurrentPresetName (nameBuf);
+			}
+			// ML
+			// ----------------------------------------------------------------
+             */
             
             if (state.getSize() > 0)
             {
@@ -400,6 +491,20 @@ public:
                 return err;
         }
         
+        /*
+		// ----------------------------------------------------------------
+		// ML
+		// get saved preset name
+		char nameBuf[33];
+        CFDictionaryRef dict = (CFDictionaryRef) inData;
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFStringRef presetName = reinterpret_cast<CFStringRef>(CFDictionaryGetValue (dict, kNameString));
+		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
+        
+		// ML
+		// ----------------------------------------------------------------
+         */
+        
         if (juceFilter != nullptr)
         {
             CFDictionaryRef dict = (CFDictionaryRef) inData;
@@ -414,12 +519,142 @@ public:
                     
                     if (numBytes > 0)
                         juceFilter->setCurrentProgramStateInformation (rawBytes, numBytes);
-                }
+                    
+                    /*
+ 					// ----------------------------------------------------------------
+					// ML
+					if (nameResult)
+					{
+						juceFilter->setCurrentPresetName (nameBuf);
+					}
+					// ML
+					// ----------------------------------------------------------------
+                     */
+               }
             }
         }
         
         return noErr;
     }
+    
+    // --------------------------------------------------------------------------------
+#pragma mark -
+#pragma mark MLAudioProcessorListener methods
+    // this code ended up in here because of access to RestoreState().  There may be other issues.
+    // TODO look at moving this to MLJuceFilesMac.
+	
+	void loadFile(const File& f)
+	{
+		String juceName = f.getFullPathName();
+		const char* fileStr = juceName.toUTF8();
+		debug() << JucePlugin_Name << " AU: loading state from file: " << fileStr << "\n";
+        
+		CFPropertyListRef propertyList;
+		CFStringRef       errorString;
+		CFDataRef         resourceData;
+		Boolean           status;
+		SInt32            errorCode;
+		ComponentResult err;
+        
+		// get URL from Juce File
+		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+        
+		// Read the CFData file containing the encoded XML.
+		status = CFURLCreateDataAndPropertiesFromResource(
+                                                          kCFAllocatorDefault,
+                                                          fileURL,
+                                                          &resourceData,            // place to put file data
+                                                          NULL,
+                                                          NULL,
+                                                          &errorCode);
+        
+		// Reconstitute the dictionary using the XML data.
+		propertyList = CFPropertyListCreateFromXMLData( kCFAllocatorDefault,
+                                                       resourceData,
+                                                       kCFPropertyListImmutable,
+                                                       &errorString);
+        
+		if (errorString == NULL)
+		{
+			err = RestoreState (propertyList);
+			if (err != noErr)
+			{
+				MLError() << "error: " << err << "loading preset file.\n";
+			}
+		}
+		else
+		{
+			char errBuf[256];
+			const bool errResult = (CFStringGetCString(errorString, errBuf, 255, kCFStringEncodingASCII));
+			if (errResult)
+			{
+				std::cout << errBuf << "\n";
+				CFRelease( errorString );
+			}
+		}
+		
+		CFRelease( resourceData );
+		CFRelease( propertyList );
+        
+	}
+    
+    
+	void saveToFile(const File& f)
+	{
+		String juceName = f.getFullPathName();
+		const char* fileStr = juceName.toUTF8();
+		String shortName = f.getFileNameWithoutExtension();
+        
+		// get URL from Juce File
+		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+		
+		// get property list.
+		CFPropertyListRef myPropsRef;
+		ComponentResult err = JuceAUBaseClass::SaveState (&myPropsRef);
+        if (err != noErr) return;
+        jassert (CFGetTypeID (myPropsRef) == CFDictionaryGetTypeID());
+        CFMutableDictionaryRef dict = (CFMutableDictionaryRef) myPropsRef;
+        
+		// save state to the dictionary.
+		if (juceFilter != 0)
+        {
+            juce::MemoryBlock state;
+            juceFilter->getCurrentProgramStateInformation (state);
+            
+            if (state.getSize() > 0)
+            {
+                CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), state.getSize());
+                CFDictionarySetValue (dict, CFSTR("jucePluginState"), ourState);
+                CFRelease (ourState);
+            }
+        }
+        
+		// overwrite preset name in properties
+		CFStringRef newName = CFStringCreateWithCString(NULL, shortName.toUTF8(), kCFStringEncodingUTF8);
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFDictionarySetValue (dict, kNameString, newName);
+		
+		// Convert the property list into XML data.
+		CFDataRef xmlCFDataRef = CFPropertyListCreateXMLData(kCFAllocatorDefault, myPropsRef );
+		SInt32 errorCode = coreFoundationUnknownErr;
+		
+		if (NULL != xmlCFDataRef)
+		{
+			// Write the XML data to the CFData file.
+			(void) CFURLWriteDataAndPropertiesToResource(fileURL, xmlCFDataRef, NULL, &errorCode);
+            
+			// Release the XML data
+			CFRelease(xmlCFDataRef);
+		}
+		
+		// restore state in base class, to update preset name in host.
+		JuceAUBaseClass::RestoreState (myPropsRef);
+		CFRelease(myPropsRef);
+	}
+    
+	
+#pragma mark -
+	// --------------------------------------------------------------------------------
     
     UInt32 SupportedNumChannels (const AUChannelInfo** outInfo) override
     {
@@ -451,7 +686,31 @@ public:
                                       AudioUnitParameterInfo& outParameterInfo) override
     {
         const int index = (int) inParameterID;
-        
+		MLPublishedParamPtr paramPtr; // ML
+        MLPluginProcessor* madronaFilter = static_cast<MLPluginProcessor*>(&(*(juceFilter))); // ML
+		paramPtr = madronaFilter->getParameterPtr(index); // ML
+		
+		if (!paramPtr)
+		{
+			debug() << "parameter #" << index << ": null parameter ptr!\n";
+			return kAudioUnitErr_InvalidParameter;
+		}
+		
+		if (inScope != kAudioUnitScope_Global)
+		{
+			debug() << "parameter #" << index << ": invalid scope!\n";
+		}
+		
+		if (juceFilter == nullptr)
+		{
+			debug() << "parameter #" << index << ": no audio processor!\n";
+		}
+		
+		if (index >= juceFilter->getNumParameters())
+		{
+			debug() << "parameter #" << index << ": index too big, max " << juceFilter->getNumParameters() << "!\n";
+		}
+
         if (inScope == kAudioUnitScope_Global
             && juceFilter != nullptr
             && index < juceFilter->getNumParameters())
@@ -470,12 +729,42 @@ public:
                 outParameterInfo.flags |= kAudioUnitParameterFlag_IsGlobalMeta;
             
             AUBase::FillInParameterName (outParameterInfo, name.toCFString(), true);
+
+ 			// ----------------------------------------------------------------
+			// ML
+			outParameterInfo.minValue = paramPtr->getRangeLo();
+			outParameterInfo.maxValue = paramPtr->getRangeHi();
+            outParameterInfo.defaultValue = paramPtr->getDefault();
+			outParameterInfo.unit = paramPtr->getUnit(); // unimplemented
             
-            outParameterInfo.minValue = 0.0f;
-            outParameterInfo.maxValue = 1.0f;
-            outParameterInfo.defaultValue = juceFilter->getParameterDefaultValue (index);
-            outParameterInfo.unit = kAudioUnitParameterUnit_Generic;
+			if (paramPtr->getWarpMode() == kJucePluginParam_Exp)
+			{
+				outParameterInfo.flags |= kAudioUnitParameterFlag_DisplayLogarithmic;
+			}
+			if (paramPtr->getGroupIndex() >= 0)
+			{
+				// sets kAudioUnitParameterFlag_HasClump
+				HasClump (outParameterInfo, paramPtr->getGroupIndex());
+			}
             
+            /*
+             debug() << "parameter #" << index << " (" << paramPtr->getAlias() << ") : ";
+             debug() << "min " << outParameterInfo.minValue;
+             debug() << " max " << outParameterInfo.maxValue;
+             debug() << " dflt " << outParameterInfo.defaultValue;
+             debug() << " unit " << outParameterInfo.unit;
+             debug() << " flgs " << outParameterInfo.flags;
+             debug() << "\n";
+             */
+            
+			// Another important issue here is to make sure that if a parameter sets
+			// kAudioUnitParameterFlag_ValuesHaveStrings, not only should you support
+			// kAudioUnitProperty_ParameterStringFromValue (formerly known as kAudioUnitProperty_ParameterValueName)
+			// for that parameter, but also implement the reverse transformation via
+			// kAudioUnitProperty_ParameterValueFromString to allow the host application
+			// to translate user-entered text into a parameter value.
+			// ML
+			// ----------------------------------------------------------------
             return noErr;
         }
         
@@ -1123,6 +1412,11 @@ public:
             addMethod (@selector (viewDidMoveToWindow),         viewDidMoveToWindow,        "v@:");
             addMethod (@selector (mouseDownCanMoveWindow),      mouseDownCanMoveWindow,     "c@:");
             
+            // ML
+            addMethod (@selector (isOpaque),      isOpaque,     "c@:");
+            addMethod (@selector (wantsDefaultClipping),      wantsDefaultClipping,     "c@:");
+            // ML
+            
             registerClass();
         }
         
@@ -1195,6 +1489,17 @@ public:
         {
             return NO;
         }
+        
+        // ML
+        static BOOL isOpaque (id, SEL)
+        {
+            return YES;
+        }
+        static BOOL wantsDefaultClipping (id, SEL)
+        {
+            return NO;
+        }
+        // ML
     };
     
     //==============================================================================

@@ -845,7 +845,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 		MLError() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
 		return;
 	}
-	
+    
 	// try to load scale if a scale attribute exists
     // TODO auto save all state including this
 	const String scaleName = xmlState.getStringAttribute ("scaleName");
