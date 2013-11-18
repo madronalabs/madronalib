@@ -89,7 +89,7 @@ MLDial::MLDial () :
 	setOpaque(myLookAndFeel->getDefaultOpacity());
     
     // TODO sort out issues with Retina and buffering
-	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
+	setBufferedToImage(true);//(myLookAndFeel->getDefaultBufferMode());
 
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
 
@@ -946,7 +946,7 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
         {
  			float tX = tr.x();
 			float tY = tr.y();
-			float tW = tr.getWidth();
+			//float tW = tr.getWidth();
 			float tH = tr.getHeight();
 			float x1, y1, x2, y2;
             
@@ -2041,9 +2041,20 @@ void MLDial::getDialRect (MLRect& ret,
 			break;
 		case MLDial::Text1Rect:
 			ret = text1Size.withCenter(thumb1Center);
+            // tweak for small text
+            if(mTextHeight <= 9)
+            {
+                ret.expand(1.);
+            }
+            
 			break;
 		case MLDial::Text2Rect:
 			ret = text2Size.withCenter(thumb2Center);
+            // tweak for small text
+            if(mTextHeight <= 9)
+            {
+                ret.expand(1.);
+            }
 			break;
 		case MLDial::Tip1Rect:
 			ret = thumb1Tip;
@@ -2162,6 +2173,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 
 			mRotaryTextRect = MLRect(cx, cy, mMaxNumberWidth, height - cy);
 		}
+        /*
 		else if(smallThumbs)
         // linear with fixed track size, small thumbs, border expands 
         {
@@ -2200,7 +2212,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 				trackRect.setCenter(bb.getSize());
 			}
 			
-        }
+        }*/
         else // normal linear, track shrinks to fit
 		{
             MLRect bb = b;
@@ -2210,7 +2222,8 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			
 			mShadowSize = (int)(kMLShadowThickness*u/32.) & ~0x1;			
 			mTextHeight = (((long)mTextSize) | 0x1) - 2;
-			mThumbMargin = (int)(myLookAndFeel->getSmallMargin()*u*0.75f);
+            
+			mThumbMargin = (int)(myLookAndFeel->getSmallMargin()*u);//*0.75f);
 			int padding = mShadowSize + mTrackThickness/2;
 			int thumbHeight = mTextHeight + mThumbMargin*2 ;
 			Vec2 maxThumbSize(thumbHeight*3, thumbHeight + padding);
