@@ -1077,6 +1077,8 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         if(f != MLFilePtr())
         {
             loadStateFromFile(f->mFile);
+            std::string shortPath = stripExtension(path);
+            setModelParam("preset", shortPath);
         }
     }
 }
@@ -1098,8 +1100,6 @@ debug() << "loading file: " << f.getFileName() << "\n";
 				XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
 				setStateFromXML(*pDocElem);
 				mpLatestStateLoaded = pDocElem;
-                
-                
 			}
 		}
 		else if (extension == ".aupreset")
