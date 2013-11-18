@@ -56,7 +56,7 @@ public:
 	int mNote;	
 	int mAge;	// time in this state, measured to the end of the current process buffer
 	
-	// for continuous touch inputs (Soundplane / OSC)
+	// for continuous touch inputs (OSC)
 	float mStartX;
 	float mStartY;
 	float mPitch;

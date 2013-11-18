@@ -1364,7 +1364,7 @@ bail:
 // 
 void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol outputName, const MLSymbol alias)
 {
-    int copy = srcProcName.getCopy();
+    //int copy = srcProcName.getCopy();
     //debug() << "MLProcContainer " << getName() << ": publishOutput " << outputName;
     //if(copy > 0) { debug() << "(copy " << copy << ") "; }
     //debug() << " of " << srcProcName << " as " << alias << "\n";

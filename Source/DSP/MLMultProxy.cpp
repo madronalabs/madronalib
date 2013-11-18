@@ -640,7 +640,7 @@ void MLMultiContainer::publishInput(const MLPath & procName, const MLSymbol inpu
 
 void MLMultiContainer::publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias)
 {
-    int copy = procName.getCopy();
+    //int copy = procName.getCopy();
     //debug() << "MLMultiContainer " << getName() << ": publishOutput " << outputName;
     //if(copy > 0) { debug() << "(copy " << copy << ") "; }
     //debug() << " of " << procName << " as " << alias << "\n";
