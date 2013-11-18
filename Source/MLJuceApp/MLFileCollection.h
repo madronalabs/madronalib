@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __Soundplane__MLFileCollection__
-#define __Soundplane__MLFileCollection__
+#ifndef __MLFileCollection__
+#define __MLFileCollection__
 
 #include "JuceHeader.h"
 #include "MLFile.h"
@@ -71,4 +71,4 @@ private:
 
 typedef std::tr1::shared_ptr<MLFileCollection> MLFileCollectionPtr;
 
-#endif /* defined(__Soundplane__MLFileCollection__) */
+#endif 

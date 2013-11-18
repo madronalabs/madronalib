@@ -155,7 +155,7 @@ bool MLLookAndFeel::getDefaultOpacity()
 
 bool MLLookAndFeel::getDefaultBufferMode() 
 { 
-	return true;
+	return false;
 }
 
 bool MLLookAndFeel::getDefaultUnclippedMode() 
@@ -456,11 +456,6 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 	const int tt = button.isConnectedOnTop();
 	const int rr = button.isConnectedOnRight();
 	const int bb = button.isConnectedOnBottom();
-	
-//    const float indentL = ll ? 0.f : 1;
- //   const float indentT = tt ? 0.f : 1;
- //   const float indentR = rr ? 0.f : 1;
-  //  const float indentB = bb ? 0.f : 1;
 
 	Colour buttonColor = backgroundColour.withAlpha(alpha);
 	Colour blineColor = findColour(outlineColor).withAlpha(alpha);

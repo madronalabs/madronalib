@@ -1,6 +1,6 @@
 //
 //  MLFileCollection.cpp
-//  Soundplane
+//  madronalib
 //
 //  Created by Randy Jones on 10/10/13.
 //

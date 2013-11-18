@@ -34,7 +34,7 @@ and add the line #include "MLPluginProcessor.h" just after the first "namespace 
 
 
     Misc. problem notes:
-    
+
 
     problem: Unknown type name HIViewRef in MLJuceVSTWrapper.mm
     trying:

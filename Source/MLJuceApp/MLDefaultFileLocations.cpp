@@ -11,7 +11,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 	String dest;	
 
 	// get start directory for search according to platform and file type
-	File::SpecialLocationType startDirType;
+	//File::SpecialLocationType startDirType;
     File startDir;
 	switch(whichFiles)
 	{

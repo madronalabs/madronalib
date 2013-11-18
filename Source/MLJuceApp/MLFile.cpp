@@ -137,6 +137,7 @@ MLFilePtr MLFile::find(const std::string& path)
     {
         MLError() << "MLFile::find: empty file name!\n";
     }
+    return MLFilePtr();
 }
 
 std::string MLFile::getAbsolutePath()

@@ -3,8 +3,8 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef __Soundplane__MLMenu__
-#define __Soundplane__MLMenu__
+#ifndef __MLMenu__
+#define __MLMenu__
 
 #include "JuceHeader.h"
 #include "MLDSP.h"
@@ -76,4 +76,4 @@ private:
 };
 
 
-#endif // __Soundplane__MLMenu__
+#endif // __MLMenu__
