@@ -18,7 +18,9 @@ void MLImageBank::buildImages()
 	{
 		for(unsigned i=0; i<mNumImages; ++i)
 		{
-			mImages.push_back(Image(Image::ARGB, mWidth, mHeight, true, SoftwareImageType()));
+            Image newImage(Image::ARGB, mWidth + 1, mHeight + 1, true, NativeImageType());
+            newImage.clear(Rectangle<int>(0, 0, mWidth + 1, mHeight + 1), Colours::transparentBlack);
+			mImages.push_back(newImage);
 		}	
 	}
 	repaint();
@@ -70,10 +72,12 @@ void MLImageBank::paint (Graphics& g)
 		{
 			if ((p.mIndex >= 0) && (mImages[p.mIndex].isValid()))
 			{
-				g.drawImage (mImages[p.mIndex],
-					p.mLocation.x(), p.mLocation.y(), mWidth, mHeight,
-					0, 0, mWidth, mHeight,
-					false);
+                {
+                    Graphics::ScopedSaveState state(g);
+                    g.reduceClipRegion(p.mLocation.x(), p.mLocation.y(), mWidth, mHeight);
+                    g.drawImageAt (mImages[p.mIndex], p.mLocation.x(), p.mLocation.y(), false);
+                }
+                 
 				p.mPrevIndex = p.mIndex;
 			}
 		}
