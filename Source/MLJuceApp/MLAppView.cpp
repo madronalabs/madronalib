@@ -341,11 +341,11 @@ void MLAppView::resized()
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();
-		MLRect scaled = r*u;
+		MLRect scaled = (r*u).getIntPart();
 		if (!w->wantsResizeLast())
 		{
 			w->setWidgetGridUnitSize(u);
-			w->resizeWidget(r*u, u);
+			w->resizeWidget(scaled, u);
 		}
 	}
 	
@@ -353,11 +353,11 @@ void MLAppView::resized()
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();
-		MLRect scaled = r*u;
+		MLRect scaled = (r*u).getIntPart();
 		if (w->wantsResizeLast())
 		{
 			w->setWidgetGridUnitSize(u);
-			w->resizeWidget(r*u, u);
+			w->resizeWidget(scaled, u);
 		}
 	}
 }
