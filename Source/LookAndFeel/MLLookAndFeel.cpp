@@ -200,18 +200,17 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 	return p;
 }
 
-
 char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, MLValueDisplayMode mode)  throw()
 {
-	const unsigned bufLength = 255;
-	static char temp[bufLength] = {0};
+	const unsigned bufLength = 16;
+	static char numBuf[bufLength] = {0};
 	static char format[bufLength] = {0};
 	float tweakedNumber;
 	
 	// clear buffer
 	for (unsigned i=0; i<bufLength; ++i)
 	{
-		temp[i] = format[i] = 0;
+		numBuf[i] = format[i] = 0;
 	}
 	
 	int m = maxDigits(digits, precision);
@@ -234,7 +233,7 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 				{
 					if (fabs(number - (float)a/(float)b) < 0.001)
 					{
-						sprintf(temp, "%d/%d", a, b);	
+						snprintf(numBuf, bufLength, "%d/%d", a, b);
 						done = true;	
 					}
 				}
@@ -243,14 +242,14 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			{
 				if (doSign)
 				{
-					sprintf(format, "X-+0%1d.%1df", m, p);
+					snprintf(format, bufLength, "X-+0%1d.%1df", m, p);
 				}
 				else
 				{
-					sprintf(format, "X-0%1d.%1df", m, p);
+					snprintf(format, bufLength, "X-0%1d.%1df", m, p);
 				}
 				format[0] = 37;	// '%'			
-				sprintf(temp, format, tweakedNumber);		
+				snprintf(numBuf, bufLength, format, tweakedNumber);
 			}
 		}
 		break;
@@ -262,14 +261,14 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			float distFromOctave = fabs (number - quant);
 			if (distFromOctave < 0.01)
 			{			
-				sprintf(format, "X-0%1d.%1df\nA%d", m, p, octave);
+				snprintf(format, bufLength, "X-0%1d.%1df\nA%d", m, p, octave);
 			}
 			else
 			{
-				sprintf(format, "X-0%1d.%1df", m, p);
+				snprintf(format,bufLength,  "X-0%1d.%1df", m, p);
 			}
 			format[0] = 37;	// '%'			
-			sprintf(temp, format, tweakedNumber);		
+			sprintf(numBuf, format, tweakedNumber);		
 		}
 		break;
 		
@@ -279,14 +278,14 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		{
 			if (doSign)
 			{
-				sprintf(format, "X-+0%1d.%1df", m, p);
+				snprintf(format, bufLength, "X-+0%1d.%1df", m, p);
 			}
 			else
 			{
-				sprintf(format, "X-0%1d.%1df", m, p);
+				snprintf(format, bufLength, "X-0%1d.%1df", m, p);
 			}
 			format[0] = 37;	// '%'			
-			sprintf(temp, format, tweakedNumber);		
+			snprintf(numBuf, bufLength, format, tweakedNumber);
 		}			
 		break;
 	}
@@ -297,17 +296,17 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		switch(mode)
 		{
 			case eMLNumFloat:			
-				if (doSign) temp[0] = ' ';
+				if (doSign) numBuf[0] = ' ';
 			break;
 			case eMLNumZeroIsOff:
-				sprintf(temp, "off"); 
+				snprintf(numBuf, bufLength, "off");
 			break;
 			default:
 			break;
 		}
 	}
 	
-	return temp;
+	return numBuf;
 }
 
 void MLLookAndFeel::drawNumber (Graphics& g, const char* number, const int x, const int y, 
@@ -437,13 +436,12 @@ void MLLookAndFeel::drawButtonGlow (Graphics& g,
 
 }
 
-
-
 void MLLookAndFeel::drawButtonBackground (Graphics& g,
                                         Button& button,
                                         const Colour& backgroundColour,
                                         bool , // isMouseOver
-                                        bool isButtonDown)
+                                        bool isButtonDown,
+                                        float outlineThickness)
 {
 	const float alpha = button.isEnabled() ? 1.f : 0.33f;
 	// our buttons use toggle state, not isButtonDown argument.
@@ -470,13 +468,9 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 		flair |= (eMLAdornPressed);
 	}	
 	// flair |= eMLAdornFlat;  // flat buttons are all the rage
-	
-//	drawMLButtonShape (g, indentL, indentT, width - indentL - indentR, height - indentT - indentB,
-//		kMLCornerSize, buttonColor, blineColor, kMLButtonOutlineThickness, flair, 0., 0.);
 
 	drawMLButtonShape (g, 0, 0, width, height,
-		kMLCornerSize, buttonColor, blineColor, kMLButtonOutlineThickness, flair, 0., 0.);
-				  				  
+		0, buttonColor, blineColor, outlineThickness, flair, 0., 0.);
 }
 
 
@@ -1750,7 +1744,7 @@ void MLLookAndFeel::createMLRectangle (Path& p,
 	float ih = floor(h);
     const float cs2 = 2.0f*cs;
 	const float cs3 = cs2;
-
+    
 	if (isOutline)
 	{
 		ix += 0.5f;
@@ -1969,14 +1963,12 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 										const float sx, 
 										const float sy) throw()
 {
+	if (h <= 0. || w <= 0.) return;
+
 	const float sat = baseColor.getSaturation();
 	const float b = baseColor.getBrightness();
 	const float a = baseColor.getFloatAlpha();
-	const float oa = myOutlineColor.getFloatAlpha();
-	
-	if (a < 0.05 && oa < 0.05) return;
-	if (h <= 0. || w <= 0.) return;
-	
+		
  //	const Colour baseOpaque = baseColor.withAlpha(1.f);
  	const Colour whiteAlpha = Colours::white.withAlpha(a);
  	const Colour blackAlpha = Colours::black.withAlpha(a);
@@ -2002,11 +1994,21 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	gradWidthTop = clamp(gradWidthTop, 0.125f, 1.f);
 	gradWidthBottom = gradWidthTop;
 	
-    Path outline;	
-    createMLRectangle (outline, x, y, w, h, maxCornerSize, flair, sx, sy, true); 
-	
-    Path fill;	
-    createMLRectangle (fill, x, y, w, h, maxCornerSize, flair, sx, sy, false); 
+    Path outline;
+    createMLRectangle (outline, x, y, w, h, maxCornerSize, flair, sx, sy, true);
+    
+//    outline.addRectangle(x, y, w, h);
+    
+    /*
+    Path xHairs;
+    xHairs.startNewSubPath(x, y + h/2);
+    xHairs.lineTo(x + w, y + h/2);
+    xHairs.startNewSubPath(x + w/2, y);
+    xHairs.lineTo(x + w/2, y + h);
+	*/
+    
+//    Path fill;
+//    createMLRectangle (fill, x, y, w, h, maxCornerSize, flair, sx, sy, false);
 	
 	Colour c1, c2, c3, c4;
 	Colour cg1, cg2;
@@ -2025,8 +2027,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 		c3 = baseColor;
 		c4 = baseColor;
 	}
-	
-	
+		
 	if (flat)
 	{
 		c1 = c3 = c4 = c2;
@@ -2043,8 +2044,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 		g.restoreState();
 	}
 	*/
-	
-	
+
 	// draw dark fill vert grad
 	{
 		ColourGradient cg (c1, 0, y, c4, 0, y + h + 1, false);
@@ -2053,10 +2053,9 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 		if (gradWidthBottom < 1.)
 			cg.addColour (1. - gradWidthBottom, c3);
 		g.setGradientFill(cg);
-		g.fillPath (outline);
+		g.fillPath (outline); 
 	}
-	
-	
+
 	// shadow 
 	if (pressed)
 	{	
@@ -2092,11 +2091,14 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	}
 
 	// draw outline
-	if (strokeWidth > 0.05f && oa > 0.05)
+	if (strokeWidth > 0.05f)
 	{
 		g.setColour (myOutlineColor);
 		g.strokePath (outline, PathStrokeType (strokeWidth));
+//		g.strokePath (xHairs, PathStrokeType (strokeWidth)); // TEST
 	}
+
+    
 }
 
 // --------------------------------------------------------------------------------

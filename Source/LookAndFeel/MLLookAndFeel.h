@@ -110,7 +110,8 @@ public:
                                        juce::Button& button,
                                        const Colour& backgroundColour,
                                        bool isMouseOverButton,
-                                       bool isButtonDown);
+                                       bool isButtonDown,
+                                        float outlineThickness = kMLButtonOutlineThickness);
 
     /** Draws the text for a TextButton. */
     void drawButtonText (Graphics& g,
