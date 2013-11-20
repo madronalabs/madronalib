@@ -138,7 +138,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 void MLToggleButton::resizeWidget(const MLRect& b, const int u)
 {
 	Component* pC = getComponent();
-	mLineThickness = u/64.f;
+	mLineThickness = u/128.f;
 	if(pC)
 	{
 		MLRect bb = b;
