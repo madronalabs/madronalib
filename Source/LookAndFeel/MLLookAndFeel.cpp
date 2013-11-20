@@ -444,8 +444,7 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
                                         float outlineThickness)
 {
 	const float alpha = button.isEnabled() ? 1.f : 0.33f;
-	// our buttons use toggle state, not isButtonDown argument.
-	bool down = (button.getToggleState() || isButtonDown);
+	bool down = (isButtonDown);
 	
     const int width = button.getWidth();
     const int height = button.getHeight();

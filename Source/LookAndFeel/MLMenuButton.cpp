@@ -22,13 +22,7 @@ MLMenuButton::~MLMenuButton()
 void MLMenuButton::setAttribute(MLSymbol attr, float val)
 {
 	MLWidget::setAttribute(attr, val);
-	static const MLSymbol valueSym("value");
-	if (attr == valueSym)
-	{
-		// update state without notify
-        setToggleState(val > 0.5f, false);
-		repaint();
-	}
+    repaint();
 }
 
 void MLMenuButton::setStringAttribute(MLSymbol sym, const std::string& val)
@@ -52,12 +46,13 @@ void MLMenuButton::paintButton (Graphics& g,
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (MLTextButton::buttonColourId));	
-	const Colour t (findColour (MLTextButton::textColourId));	
-
+	const Colour t (findColour (MLTextButton::textColourId));
+    
+    bool isActive = getAttribute("value") > 0.5f;
     myLookAndFeel->drawButtonBackground (g, *this,
 		c,
 		isMouseOverButton,
-		isButtonDown, mLineThickness);
+		isActive, mLineThickness);
 	
 	if(mMenuTextStyle)
 	{
@@ -70,18 +65,6 @@ void MLMenuButton::paintButton (Graphics& g,
 			isMouseOverButton,
 			isButtonDown);
 	}
-
-		/*
-		// TEST
-		debug() << "painting button " << getButtonText() << ", height" << getHeight() << ":\n";							
-		Path bounds;
-		bounds.addRectangle(getLocalBounds());
-		g.setColour(Colours::yellow.withAlpha(0.5f));	
-		g.fillPath(bounds);
-		g.setColour(Colours::red);	
-		g.strokePath(bounds, PathStrokeType(1.0f));
-		*/
-		
 }
 
 void MLMenuButton::colourChanged()
@@ -96,6 +79,9 @@ void MLMenuButton::mouseDown(const MouseEvent& e)
 	Button::mouseDown(e);
 	if (mpListener)
 	{
+        setAttribute("value", 1);
+        repaint();
+        
 		// send our Widget name to listener as menu instigator
 		mpListener->showMenu(getParamName(), getWidgetName());
 	}	

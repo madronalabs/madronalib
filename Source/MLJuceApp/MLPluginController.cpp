@@ -367,13 +367,8 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 	{
 		menu->setInstigator(instigatorName);
 
-		// find instigator widget and set value to 1 - this depresses menu buttons for example
+		// find instigator widget and show menu beside it
 		MLWidget* pInstigator = mpView->getWidget(instigatorName);
-		if(pInstigator != nullptr)
-		{
-			pInstigator->setAttribute("value", 1);
-		}
-		
 		if(pInstigator != nullptr)
 		{
 			Component* pInstComp = pInstigator->getComponent();
@@ -385,8 +380,8 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 				JuceMenuPtr juceMenu = menu->getJuceMenu();
 				juceMenu->showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
 					ModalCallbackFunction::withParam(menuItemChosenCallback, 
-						WeakReference<MLPluginController>(this),menuName)
-					);
+                    WeakReference<MLPluginController>(this),menuName)
+                );
 			}
 		}
 	}
@@ -510,8 +505,6 @@ void MLPluginController::doScaleMenu(int result)
 	
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, MLSymbol menuName)
 {
-	//debug() << "menuItemChosenCallback: result " << result << "\n";
-
 	MLPluginController* pC = wpC;
 	
 	// get Controller ptr from weak reference
@@ -541,11 +534,8 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 				//debug() << "        pView widget name:" << pView->getWidgetName() << "\n";
 				
 				MLWidget* pInstigator = pView->getWidget(pMenu->getInstigator());
-				
-				//debug() << "    pInstigator:" << std::hex << (void *)pInstigator << std::dec << "\n";
 				if(pInstigator != nullptr)
 				{
-					//debug() << "        name:" << pInstigator->getWidgetName() << "\n";
 					// turn instigator Widget off
 					pInstigator->setAttribute("value", 0);
 				}
@@ -554,6 +544,8 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 			pC->menuItemChosen(menuName, result);
 		}
 	}
+    
+    debug() << "----------\n";
 }
 
 void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
