@@ -184,7 +184,7 @@ public:
 	MLRect(const MLVec& b) : MLVec(b) {};
 	MLRect(float x, float y, float width, float height); 
 	MLRect(const Vec2& corner1, const Vec2& corner2);
-	inline float left() const { return val.f[0]; }
+    float left() const { return val.f[0]; }
 	float top() const { return val.f[1]; }	
 	float right() const { return val.f[0] + val.f[2]; }
 	float bottom() const { return val.f[1] + val.f[3]; }	
@@ -200,6 +200,7 @@ public:
 	void setToIntersectionWith(const MLRect& b); 
 	void setToUnionWith(const MLRect& b); 
 	
+	inline void setOrigin(Vec2 b){ val.f[0] = b.val.f[0]; val.f[1] = b.val.f[1]; }
 	inline void setLeft(float px){ val.f[0] = px; }
 	inline void setTop(float py){ val.f[1] = py; }
 	inline void setWidth(float w){ val.f[2] = w; }
@@ -209,6 +210,7 @@ public:
 	inline void setBottom(float py){ val.f[1] = py - val.f[3]; }
 	void translate(const Vec2& b);
 	void setCenter(const Vec2& b);
+	void centerInRect(const MLRect& b);
 
 	inline void stretchWidth(float d){ val.f[0] -= d*0.5; val.f[2] += d; }	
 	inline void stretchHeight(float d){ val.f[1] -= d*0.5; val.f[3] += d; }
@@ -224,9 +226,10 @@ public:
 	MLRect translated(const Vec2& b) const;
 	MLRect withCenter(const Vec2& b) const;
 	MLRect withCenter(const float cx, const float cy);
+	MLRect withTopLeft(const Vec2& b) const;
+	MLRect withTopLeft(const float cx, const float cy);
 
 	Vec2 getCenter() const;
-	Vec2 getSize() const;
 	Vec2 getTopLeft() const;
 	Vec2 getBottomRight() const;
 	
