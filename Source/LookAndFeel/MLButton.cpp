@@ -111,7 +111,7 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 	flair |= eMLAdornGlow;	
 	
 	myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight, 
-		cornerSize, buttonColor, outlineColor, kMLButtonOutlineThickness, flair, 0., 0.);		
+		cornerSize, buttonColor, outlineColor, mLineThickness, flair, 0., 0.);
 		
 	if (mImage.isValid())
 	{
@@ -155,3 +155,14 @@ void MLButton::setListener (MLButton::Listener* l)
     assert (l);
     mpListener = l;
 }
+
+void MLButton::resizeWidget(const MLRect& b, const int u)
+{
+	Component* pC = getComponent();
+	if(pC)
+	{
+ 		MLWidget::resizeWidget(b, u);
+		mLineThickness = u/128.f;
+    }
+}
+

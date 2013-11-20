@@ -46,14 +46,14 @@ public:
 	void setImageOffset(int x, int y){ mImageOffset = Vec2(x, y); }
 	void setLabelText (const char* ln);
 	void sizeChanged();
-
     void clicked();
-
 	void setRange(float a, float b) { mOffValue = a; mOnValue = b; }
 	
 	float getOffValue() { return mOffValue; }
 	float getOnValue() { return mOnValue; }
-	
+
+	void resizeWidget(const MLRect& b, const int u);
+
 protected:
 
 	void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown);
@@ -69,6 +69,7 @@ protected:
 	
 	float mOffValue;
 	float mOnValue;
+    float mLineThickness;
 	
     MLButton::Listener* mpListener;
 	

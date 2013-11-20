@@ -83,7 +83,7 @@ void MLDrawableButton::paintButton (Graphics& g, bool isMouseOverButton, bool is
 	if (style == ImageOnButtonBackground)
     {
         myLookAndFeel->drawButtonBackground (g, *this,
-			getBackgroundColour(), isMouseOverButton, isButtonDown);
+			getBackgroundColour(), isMouseOverButton, isButtonDown, mLineThickness);
     }	
 
 	if (style == ImageFitted)

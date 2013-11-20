@@ -29,24 +29,13 @@ void MLTextButton::paintButton (Graphics& g,
     myLookAndFeel->drawButtonBackground (g, *this,
 		c,
 		isMouseOverButton,
-		isButtonDown);
+		isButtonDown, mLineThickness);
 	
     myLookAndFeel->drawButtonText (g, *this,
 		t,
 		isMouseOverButton,
 		isButtonDown);
 
-		/*
-		// TEST
-		debug() << "painting button " << getButtonText() << ", height" << getHeight() << ":\n";							
-		Path bounds;
-		bounds.addRectangle(getLocalBounds());
-		g.setColour(Colours::yellow.withAlpha(0.5f));	
-		g.fillPath(bounds);
-		g.setColour(Colours::red);	
-		g.strokePath(bounds, PathStrokeType(1.0f));
-		*/
-		
 }
 
 void MLTextButton::colourChanged()
