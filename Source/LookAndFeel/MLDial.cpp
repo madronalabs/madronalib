@@ -665,13 +665,13 @@ float MLDial::getLinearDialPos (const float value)
     if (isVertical())
 	{
         dialPosProportional = 1.0 - dialPosProportional;
-		start = trackRect.top() - 1.f;
-		extent = trackRect.height() + 1.f;
+		start = trackRect.top() + 1;
+		extent = trackRect.height() - 1;
 	}
 	else
 	{
-		start = trackRect.left() - 1.f;
-		extent = trackRect.width() + 1.f;
+		start = trackRect.left() + 1;
+		extent = trackRect.width() - 1;
 	}
 	ret = (float) (start + dialPosProportional*extent);
     return ret;
@@ -732,7 +732,6 @@ float MLDial::getPositionOfValue (const float value)
 #pragma mark paint
 //==============================================================================
 
-
 void MLDial::paint (Graphics& g)
 {
 	enterPaint();
@@ -741,7 +740,6 @@ void MLDial::paint (Graphics& g)
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 
-	// TODO draw backgroun dbehind number
 	if (isOpaque()) 
 		myLookAndFeel->drawBackground(g, this);	
 	
@@ -758,110 +756,51 @@ void MLDial::paint (Graphics& g)
 	{
 		const float dialPos = (float) valueToProportionOfLength (currentValue);
 		drawRotaryDial(g, 0, 0, width, height, dialPos);
+		drawRotaryDialOverlay(g, 0, 0, width, height, dialPos);
 	}
 	else
 	{
-		drawLinearDial(g, 0, 0, width, height,  
-			getLinearDialPos(currentValue), getLinearDialPos(valueMin), getLinearDialPos(valueMax),
-			style);
+		drawLinearDial(g, 0, 0, width, height,
+                       getLinearDialPos(currentValue), getLinearDialPos(valueMin), getLinearDialPos(valueMax));
+		drawLinearDialOverlay(g, 0, 0, width, height,
+                       getLinearDialPos(currentValue), getLinearDialPos(valueMin), getLinearDialPos(valueMax));
 	}
-
-	/*
-	// TEST
-	Path P;
-	const Rectangle<int> & br ( getLocalBounds());	
-//	P.addRectangle(br);
-	P.addRectangle(MLToJuceRectInt(mRotaryTextRect));
-	g.setColour(Colours::red);	
-	g.strokePath(P, PathStrokeType(0.5f));
-	*/
+	
+    if(0)
+    {
+        Path P;
+        const Rectangle<int> & br ( getLocalBounds());	
+        P.addRectangle(br);
+        g.setColour(Colours::red);	
+        g.strokePath(P, PathStrokeType(1.f));
+    }
 }
 
 void MLDial::repaintAll()
 {
-//	int width = 0;//getWidth();
-//	int height = 0;//getHeight();
-//	mSignalRedrawBounds.setBounds(0, 0, width, height);
 	mParameterLayerNeedsRedraw = mThumbLayerNeedsRedraw = mStaticLayerNeedsRedraw = true;
 	repaint();
 }
 
 void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
-	float dialPos, float minDialPos, float maxDialPos,
-    const MLDial::DialStyle )
+	float dialPos, float minDialPos, float maxDialPos)
 {
 	const int compWidth = getWidth();
 	const int compHeight = getHeight();
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	
-	// COLORS
 	
 	Path full, not_full, thumb;	
-	MLRect sr(getWidgetLocalBounds());
-	
-	const int multi = (isTwoOrThreeValued());
-	//const int textSize = mTextSize;
-	
-	const float cornerSize = 2.;
-	int thumbAdorn1, thumbAdorn2;
-//	int currX, currY;	
-	float val1, val2;
-	long doDial1, doDial2;		
+	MLRect sr(getWidgetLocalBounds());	
 
 	const Colour trackDark (mTrackDarkColor);		
-	const Colour trackColour (myLookAndFeel->shadowColor);		
-	const Colour outline = findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f);
-	const Colour textColor = outline;
-	const Colour shadow = findColour(MLLookAndFeel::shadowColor).withAlpha (isEnabled() ? 1.f : 0.5f);
-	const Colour fill_glow (mGlowColor.withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour fill_normal = (mTrackFillColor.withAlpha (isEnabled() ? 1.f : 0.5f));
-	const Colour thumb_normal = (mFillColor.withAlpha (isEnabled() ? 1.f : 0.5f));
-	const Colour thumb_glow (mThumbGlowColor.withAlpha (isEnabled() ? 1.f : 0.5f));
-	const Colour signal_color (mIndicatorColor.withAlpha (isEnabled() ? 1.f : 0.f));
-		
-	// get glows
-	// DIMENSIONS
-	int glowTrack = false, glow1 = false, glow2 = false;
 	
- 	if (multi)
-	{
-		doDial1 = doDial2 = true;
-		val1 = getMinValue();
-		val2 = getMaxValue();
-	}
-	else
-	{
-		doDial1 = mTopLeft;
-		doDial2 = !doDial1;
-		val1 = val2 = getValue();
-	}
-	
-	if (isHorizontal()) 
-	{
-		thumbAdorn1 = eMLAdornBottomLeft | eMLAdornBottom | eMLAdornBottomRight;
-		thumbAdorn2 = eMLAdornTopLeft | eMLAdornTop | eMLAdornTopRight;
-	}
-	else // vertical
-	{
-		thumbAdorn1 = eMLAdornTopRight | eMLAdornRight | eMLAdornBottomRight;	
-		thumbAdorn2 = eMLAdornTopLeft | eMLAdornLeft | eMLAdornBottomLeft;
-	}
-	
-	MLRect nfr1, nfr2, fr, tr, thumb1, thumb2, tip1, tip2, text1, text2;
+	MLRect nfr1, nfr2, fr, tr;
 	getDialRect (nfr1, MLDial::NoFillRect1, dialPos, minDialPos, maxDialPos);
 	getDialRect (nfr2, MLDial::NoFillRect2, dialPos, minDialPos, maxDialPos);
 	getDialRect (fr, MLDial::FillRect, dialPos, minDialPos, maxDialPos);
 	getDialRect (tr, MLDial::TrackRect, dialPos, minDialPos, maxDialPos);
-	getDialRect (thumb1, MLDial::Thumb1Rect, dialPos, minDialPos, maxDialPos);
-	getDialRect (thumb2, MLDial::Thumb2Rect, dialPos, minDialPos, maxDialPos);
-	getDialRect (tip1, MLDial::Tip1Rect, dialPos, minDialPos, maxDialPos);
-	getDialRect (tip2, MLDial::Tip2Rect, dialPos, minDialPos, maxDialPos);
-	getDialRect (text1, MLDial::Text1Rect, dialPos, minDialPos, maxDialPos);
-	getDialRect (text2, MLDial::Text2Rect, dialPos, minDialPos, maxDialPos);
 	
 	full.addRectangle(MLToJuceRect(fr));
-	
-	// DRAWING	
 	
 	// parameter layer
 	if (mParameterLayerNeedsRedraw)
@@ -873,38 +812,12 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 		pg.setColour (trackDark);
 		pg.fillRect (MLToJuceRectInt(nfr1));	
 		pg.fillRect (MLToJuceRectInt(nfr2));	
-		
-		// outer shadow
-		Path sp;
-		float d, opacity;
-		for (int i=1; i<=mShadowSize; i++)
+        
+		// draw fill
 		{
-			sp.clear();			
-			MLRect r = tr.getIntPart();
-			r.expand(i*2);
-			sp.addRectangle(MLToJuceRect(r));
-			d = (float)(mShadowSize - i) / (float)mShadowSize; // 0. - 1.
-			opacity = d * d * d * kMLShadowOpacity;
-			pg.setColour (shadow.withAlpha(opacity));
-			pg.strokePath (sp, PathStrokeType (1.f));	
-		}
-		
-		// draw fill on top of shadow
-		{
-			pg.setColour (glowTrack ? fill_glow : fill_normal);  // fill could be gradient
+			pg.setColour (fill_normal);
 			pg.fillPath (full);	
 		}
-		
-		// draw track outline
-		{
-			Path track;
-			MLRect tra = tr.getIntPart();
-			tra.expand(1.f);
-			track.addRectangle (MLToJuceRect(tra)); 
-			pg.setColour (outline);
-			pg.strokePath (track, PathStrokeType(mLineThickness));
-		}
-		
 	}
 	
 	// static layer
@@ -913,7 +826,7 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 		Graphics sg(mStaticImage);	
 		mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
 		const Colour label_color = (findColour(MLLookAndFeel::labelColor).withAlpha (isEnabled() ? 1.f : 0.5f));	
-	
+        
 		// detents 
         if (isHorizontal())
         {
@@ -938,8 +851,7 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 				J.lineTo(x2, y2);
 
 				sg.setColour (label_color.withAlpha(1.f));
-				sg.strokePath (J, PathStrokeType(mLineThickness*0.75f));
- 
+				sg.strokePath (J, PathStrokeType(mLineThickness*2));
 			}
 		}
         else
@@ -966,49 +878,113 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 				J.lineTo(x2, y2);
                 
 				sg.setColour (label_color.withAlpha(1.f));
-				sg.strokePath (J, PathStrokeType(mLineThickness*0.75f));
+				sg.strokePath (J, PathStrokeType(mLineThickness*2));
                 
 			}
         }
 	}
 	
-	if(mThumbLayerNeedsRedraw)
-	{
-		Graphics tg(mThumbImage);	
-		mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-		
-		// draw thumbs
-		if (doDial1 && mDrawThumb)
-		{
-			myLookAndFeel->drawMLButtonShape (tg, thumb1, cornerSize, 
-				thumb_normal, outline, mLineThickness*0.75f, thumbAdorn1, tip1.x(), tip1.y()); 							
-		}
-		if (doDial2 && mDrawThumb)
-		{
-			myLookAndFeel->drawMLButtonShape (tg, thumb2, cornerSize,
-				thumb_normal, outline, mLineThickness*0.75f, thumbAdorn2, tip2.x(), tip2.y()); 		
-		}
-	}
-    
 	// composite images
 	//
 	if(mParameterImage.isValid())
 	{
-		g.drawImage (mParameterImage, 0, 0, compWidth, compHeight, 0, 0, compWidth, compHeight, false); 
-	}				
-	
+		g.drawImage (mParameterImage, 0, 0, compWidth, compHeight, 0, 0, compWidth, compHeight, false);
+	}
 	if(mStaticImage.isValid())
 	{
-		g.drawImage (mStaticImage, 0, 0, compWidth, compHeight, 0, 0, compWidth, compHeight, false); 
-	}	
-	// TODO composite and move smaller thumb image
-	if(mThumbImage.isValid())
-	{
-		g.drawImage (mThumbImage, 0, 0, compWidth, compHeight, 0, 0, compWidth, compHeight, false); 
+		g.drawImage (mStaticImage, 0, 0, compWidth, compHeight, 0, 0, compWidth, compHeight, false);
 	}
-	
+	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = false;
+}
+
+void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
+    float dialPos, float minDialPos, float maxDialPos)
+{
+	const int compWidth = getWidth();
+	const int compHeight = getHeight();
+	const float cornerSize = 0;
+	int thumbAdorn1, thumbAdorn2;
+	int glow1 = false, glow2 = false;
+	float val1, val2;
+	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+
+    const Colour thumb_normal = (mFillColor.withAlpha (isEnabled() ? 1.f : 0.5f));
+	const Colour outline = findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f);
+	const Colour textColor = outline;
+
+	MLRect nfr1, nfr2, fr, tr, thumb1, thumb2, tip1, tip2, text1, text2;
+	getDialRect (nfr1, MLDial::NoFillRect1, dialPos, minDialPos, maxDialPos);
+	getDialRect (nfr2, MLDial::NoFillRect2, dialPos, minDialPos, maxDialPos);
+	getDialRect (fr, MLDial::FillRect, dialPos, minDialPos, maxDialPos);
+	getDialRect (tr, MLDial::TrackRect, dialPos, minDialPos, maxDialPos);
+	getDialRect (thumb1, MLDial::Thumb1Rect, dialPos, minDialPos, maxDialPos);
+	getDialRect (thumb2, MLDial::Thumb2Rect, dialPos, minDialPos, maxDialPos);
+	getDialRect (tip1, MLDial::Tip1Rect, dialPos, minDialPos, maxDialPos);
+	getDialRect (tip2, MLDial::Tip2Rect, dialPos, minDialPos, maxDialPos);
+	getDialRect (text1, MLDial::Text1Rect, dialPos, minDialPos, maxDialPos);
+	getDialRect (text2, MLDial::Text2Rect, dialPos, minDialPos, maxDialPos);
+    
+	long doDial1, doDial2;
+	const int multi = (isTwoOrThreeValued());
+ 	if (multi)
+	{
+		doDial1 = doDial2 = true;
+		val1 = getMinValue();
+		val2 = getMaxValue();
+	}
+	else
+	{
+		doDial1 = mTopLeft;
+		doDial2 = !doDial1;
+		val1 = val2 = getValue();
+	}
+
+    if (isHorizontal())
+	{
+		thumbAdorn1 = eMLAdornBottomLeft | eMLAdornBottom | eMLAdornBottomRight;
+		thumbAdorn2 = eMLAdornTopLeft | eMLAdornTop | eMLAdornTopRight;
+	}
+	else // vertical
+	{
+		thumbAdorn1 = eMLAdornTopRight | eMLAdornRight | eMLAdornBottomRight;
+		thumbAdorn2 = eMLAdornTopLeft | eMLAdornLeft | eMLAdornBottomLeft;
+	}
+
+	if(mThumbLayerNeedsRedraw)
+	{
+		Graphics tg(mThumbImage);
+		mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
+		
+		// draw track outline
+		{
+			Path track;
+			MLRect tra = tr;
+			tra.shrink(0.5f);
+			track.addRectangle (MLToJuceRect(tra));
+			tg.setColour (outline);
+			tg.strokePath (track, PathStrokeType(mLineThickness));
+		}
+		
+		// draw thumbs
+		if (doDial1 && mDrawThumb)
+		{
+			myLookAndFeel->drawMLButtonShape (tg, thumb1, cornerSize,
+                                              thumb_normal, outline, mLineThickness, thumbAdorn1, tip1.x(), tip1.y());
+		}
+		if (doDial2 && mDrawThumb)
+		{
+			myLookAndFeel->drawMLButtonShape (tg, thumb2, cornerSize,
+                                              thumb_normal, outline, mLineThickness, thumbAdorn2, tip2.x(), tip2.y());
+		}
+	}
+
+    if(mThumbImage.isValid())
+	{
+		g.drawImage (mThumbImage, 0, 0, compWidth, compHeight, 0, 0, compWidth, compHeight, false);
+	}
+    
 	// finally, draw numbers over composited images
-	//	
+	//
 	if(1)//(mParameterLayerNeedsRedraw)
 	{
 		if (doDial1 && mDrawThumb)
@@ -1016,9 +992,9 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 			if (myLookAndFeel->mDrawNumbers && mDoNumber)
 			{
 				g.setOpacity(isEnabled() ? (glow1 ? 0.8 : 1.) : 0.4f);
-				const char* numBuf = myLookAndFeel->formatNumber(val1, mDigits, mPrecision, mDoSign, mValueDisplayMode);				
-				myLookAndFeel->drawNumber(g, numBuf, text1.x(), text1.y(), text1.getWidth(), 
-					text1.getHeight(), textColor, Justification::centred); 
+				const char* numBuf = myLookAndFeel->formatNumber(val1, mDigits, mPrecision, mDoSign, mValueDisplayMode);
+				myLookAndFeel->drawNumber(g, numBuf, text1.x(), text1.y(), text1.getWidth(),
+                    text1.getHeight(), textColor, Justification::centred);
 			}
 		}
 		if (doDial2 && mDrawThumb)
@@ -1027,37 +1003,29 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 			{
 				g.setOpacity(isEnabled() ? (glow2 ? 0.8 : 1.) : 0.4f);
 				const char* numBuf = myLookAndFeel->formatNumber(val2, mDigits, mPrecision, mDoSign, mValueDisplayMode);
-				myLookAndFeel->drawNumber(g, numBuf, text2.x(), text2.y(), text2.getWidth(), 
-					text2.getHeight(), textColor, Justification::centred); 
+				myLookAndFeel->drawNumber(g, numBuf, text2.x(), text2.y(), text2.getWidth(),
+                    text2.getHeight(), textColor, Justification::centred);
 			}
 		}
 	}
-
-	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = mThumbLayerNeedsRedraw = false;
+	mThumbLayerNeedsRedraw = false;
 }
+
 
 #pragma mark rotary dial
 
 void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float dialPos)
 {	
-//	int width = trackRect.getWidth();
-//	int height = trackRect.getHeight();
-
  	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	const MLRect uBounds = getGridBounds();
 	const MLRect boundsRect = getWidgetLocalBounds();
 
-	// Colors TODO sort out, calculate less often
+	// Colors 
 	const Colour trackDark = (mTrackDarkColor.withMultipliedAlpha (isEnabled() ? 1.f : 0.5f));					
 	const Colour shadow (findColour(MLLookAndFeel::shadowColor).withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour outline_color (findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour fill_color (mTrackFillColor.withAlpha (isEnabled() ? 1.0f : 0.5f));
-	const Colour thumb_color = mFillColor.withAlpha (isEnabled() ? 1.f : 0.5f);
-	const Colour glow_color = mGlowColor.withAlpha (isEnabled() ? 1.f : 0.5f);
 	const Colour indicator_color (mIndicatorColor.withAlpha (isEnabled() ? 0.75f : 0.35f));
-	const Colour signal_color (mIndicatorColor.withAlpha (isEnabled() ? 1.f : 0.f));
-	const Colour glow1Color = (trackDark.overlaidWith(indicator_color.withAlpha(0.6f))).withMultipliedAlpha(0.25f);
-	const Colour glow3Color = outline_color.withAlpha(0.125f);
 
 	// Dimensions
 	const float r1 = mDiameter*0.5f;
@@ -1070,15 +1038,12 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
     const float rx1 = cx - r1;
     const float ry1 = cy - r1;
 	
-	float indicator_thick = mLineThickness;
+	float indicator_thick = mLineThickness*2.f;
 	
-	bool do_shadow = true;
 	bool do_indicator = true;
 	bool do_ticks = true;
 	if (uBounds.height() <= 0.5f) 
 	{
-		do_shadow = 0;   // ?
-		indicator_thick = 0.5;
 		do_ticks = 0;
 	}
 	
@@ -1137,16 +1102,6 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
             pg.fillPath (filledArc);
 		}
 
-		bool glow = false;
-		if (glow)
-		{
-			Path track;
-            track.addPieSegment (rx1, ry1, mDiameter, mDiameter, rotaryStart, rotaryEnd, 0.);
-			ColourGradient cg (glow1Color, rx1 + (mDiameter/2.), ry1 + (mDiameter/2.), glow3Color, rx1, ry1, true); // radial
-			pg.setGradientFill(cg);
-			pg.fillPath (track);
-		}
-		
 		// indicator line
 		if (do_indicator)
 		{	
@@ -1157,10 +1112,10 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
             pg.strokePath (indicator, PathStrokeType(indicator_thick), AffineTransform::rotation(angleI).translated (cx, iy));
 		}
 		
-		// hilight ( for patcher connections to tiny dials)
+		// hilight (for patcher connections to tiny dials)
 		if (mHilighted)
 		{
-			const float m = mLineThickness*3.;
+			const float m = mLineThickness*6.;
 			const float mh = m / 2.;
             Path track;
 			pg.setColour (mHilightColor);
@@ -1188,22 +1143,21 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 				opacity = d * d * d * kMLShadowOpacity;
 				sg.setColour (shadow.withAlpha(opacity));
 				sg.strokePath (outline, PathStrokeType (1.f));	
-			}
-			
+			}			
 		}		
 		
 		{	
 			// track outline
 			Path outline;
 			outline.addCentredArc(cx, cy, r1, r1, 0., rotaryStart, rotaryEnd, true);			
-			sg.setColour (outline_color.withMultipliedAlpha(0.15f));
-			sg.strokePath (outline, PathStrokeType (2.f*mLineThickness));	
+			sg.setColour (outline_color.withAlpha(0.25f));
+			sg.strokePath (outline, PathStrokeType (mLineThickness));
 			sg.setColour (outline_color);
-			sg.strokePath (outline, PathStrokeType (0.75f*mLineThickness));
+			sg.strokePath (outline, PathStrokeType (mLineThickness*2));
 		}
 
 		if (do_ticks)
-		{	
+		{
 			float angle;
 			Path tick;
 			tick.startNewSubPath(0, -r1);
@@ -1213,7 +1167,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 			{
 				angle = rotaryStart + (t * (rotaryEnd - rotaryStart) / (mTicks - 1)) ;
 				angle += mTicksOffsetAngle;
-				sg.strokePath (tick, PathStrokeType(mLineThickness), AffineTransform::rotation (angle).translated (cx, cy - 0.5f));
+				sg.strokePath (tick, PathStrokeType(mLineThickness*2), AffineTransform::rotation (angle).translated (cx, cy - 0.5f));
 			}
 		}
 
@@ -1232,7 +1186,6 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 				if (!coveringEnd)
 				{
 					Path J;
-					float thickness = mLineThickness;
 
 					// draw detent - outer edge lines up with tick
 					AffineTransform t1 = AffineTransform::rotation(theta).translated(cx, cy);
@@ -1246,7 +1199,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 					J.startNewSubPath(x1, y1);
 					J.lineTo(x2, y2);
 					sg.setColour (label_color);
-					sg.strokePath (J, PathStrokeType(thickness));
+					sg.strokePath (J, PathStrokeType(mLineThickness*2));
 				}
 			}
 		}		
@@ -1257,7 +1210,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	{
 		g.drawImage (mParameterImage, rx, ry, rw, rh, rx, ry, rw, rh, false); 
 	}
-		
+    
 	// draw number text over composited images
 	if (1)//(mParameterLayerNeedsRedraw)
 	{
@@ -1275,12 +1228,16 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		}
 	}
     
- 	if(mStaticImage.isValid())
-	{
-		g.drawImage (mStaticImage,rx, ry, rw, rh, rx, ry, rw, rh, false);
-	}
- 	
+
 	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = false;
+}
+
+void MLDial::drawRotaryDialOverlay (Graphics& g, int rx, int ry, int rw, int rh, float dialPos)
+{
+    if(mStaticImage.isValid())
+    {
+        g.drawImage (mStaticImage,rx, ry, rw, rh, rx, ry, rw, rh, false);
+    }
 }
 
 #pragma mark -
@@ -1305,6 +1262,7 @@ void MLDial::visibilityChanged()
 	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = true;
 }
 
+#pragma mark -
 void MLDial::mouseDown (const MouseEvent& e)
 {
     mouseWasHidden = false;
@@ -1473,8 +1431,16 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 void MLDial::mouseDrag (const MouseEvent& e)
 {
 	const MLRect uBounds = getGridBounds();
-	const bool doInitialJump = uBounds.height() > 0.5f;
-
+    bool doInitialJump;
+    if (style == MLDial::Rotary)
+    {
+        doInitialJump = uBounds.height() > 0.5f;
+    }
+    else
+    {
+        doInitialJump = true;
+    }
+    
 	int detents = mDetents.size();
 	
 	// TODO can we make shift work if pressed during drag?
@@ -1534,6 +1500,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 			{
 				float start = isHorizontal() ? trackRect.left() : trackRect.top();
 				float extent = isHorizontal() ? trackRect.width() : trackRect.height();
+
 				if (mOverTrack)
 				{
 					const int mousePos = (isHorizontal() || style == MLDial::RotaryHorizontalDrag) ? e.x : e.y;
@@ -1719,17 +1686,17 @@ MLDial::WhichDial MLDial::getRectOverPoint(const int xx, const int yy)
 		
 		if (mainRect.contains(x, y))
 		{
-//	printf("clicked MAIN\n");
+            //printf("clicked MAIN\n");
 			which = MainDial;
 		}
 		else if (trackRect.contains(x, y))
 		{
-//	printf("clicked TRACK\n");
+            //printf("clicked TRACK\n");
 			which = TrackDial;
 		}
 		else if (fieldRect.contains(x, y))
 		{
-//	printf("clicked FIELD\n");
+            //printf("clicked FIELD\n");
 			which = MainDial;
 		}
 	}
@@ -1752,8 +1719,7 @@ void MLDial::findDialToDrag(const int x, const int y)
 {
 	float min, max;
 	WhichDial thumb;
-// printf ("[%f], min %f, max %f, current %f\n", mousePos, min, max, current);
-	
+
 	if (getDialStyle() == MLDial::Rotary)
 	{
 		thumb = MainDial;
@@ -1829,12 +1795,7 @@ void MLDial::getDialRect (MLRect& ret,
 	const float dialPos, const float minDialPos, const float maxDialPos) 
 {
  	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	bool num = myLookAndFeel->mDrawNumbers && mDoNumber;
     bool smallThumbs = getAttribute("small_thumbs");
-	
-	// get max width for either number. 
-	int thumbDefaultWidth = ((int)(mTextHeight)/* & ~0x1*/) + 2 ;
-	
 	bool multi = (isTwoOrThreeValued());
 		
 	MLRect full, notFull1, notFull2;
@@ -1888,8 +1849,8 @@ void MLDial::getDialRect (MLRect& ret,
     }
     else
     {
-        numWidth1 = 1;
-        numWidth2 = 1;
+        numWidth1 = 0;
+        numWidth2 = 0;
     }
 	
  	MLRect text1Size(0, 0, numWidth1, mTextHeight);
@@ -1897,29 +1858,40 @@ void MLDial::getDialRect (MLRect& ret,
 
 	// get thumb size
     int thumbWidth, thumbHeight;
+    bool doNumber = (myLookAndFeel->mDrawNumbers && mDoNumber);
 	if (isHorizontal())
 	{
         if(smallThumbs)
         {
-            thumbWidth = thumbDefaultWidth;
-            thumbHeight = mMargin*2;
+            int tt = mTrackThickness;
+            thumbWidth = tt*2 + 1;
+            thumbHeight = tt*2 + 1;
         }
         else
         {
-            thumbWidth = (num ? mMaxNumberWidth : thumbDefaultWidth) + mThumbMargin*2;
-            thumbHeight = mTextHeight + mThumbMargin*2 ;
+            if(doNumber)
+            {
+                thumbWidth = mMaxNumberWidth + mThumbMargin*2;
+                thumbHeight = mTextHeight + mThumbMargin*2;
+            }
+            else
+            {
+                thumbWidth = mTrackThickness*2 - 1;
+                thumbHeight = mTextHeight + mThumbMargin*2;
+            }
         }
     }
     else
     {
         if(smallThumbs)
         {
-            thumbWidth = mMargin*2;
-            thumbHeight = thumbDefaultWidth;
+            int tt = mTrackThickness;
+            thumbWidth = tt*2 + 1;
+            thumbHeight = tt*2 + 1;
         }
         else
         {
-            thumbWidth = (num ? mMaxNumberWidth : thumbDefaultWidth) + mThumbMargin*2;
+            thumbWidth = mMaxNumberWidth + mThumbMargin*2;
             thumbHeight = mTextHeight + mThumbMargin*2 ;
         }
     }
@@ -1930,16 +1902,23 @@ void MLDial::getDialRect (MLRect& ret,
 	Vec2 thumb1Center, thumb2Center;
 	if (isHorizontal())
 	{
-		thumb1Center = Vec2(iPos1 + 1, trackRect.top() - thumbHeight/2 - 1);
-		thumb2Center = Vec2(iPos2 + 1, trackRect.bottom() + thumbHeight/2 + 1);
+		thumb1Center = Vec2(iPos1, trackRect.top() - thumbHeight/2 );
+		thumb2Center = Vec2(iPos2, trackRect.bottom() + thumbHeight/2 );
+        if(smallThumbs)
+        {
+            thumb1Center += Vec2(0, 0);
+            thumb2Center += Vec2(0, 0);
+        }
 	}
 	else
 	{
-		thumb1Center = Vec2(trackRect.left() - thumbWidth/2, iPos1 + 1);
-		thumb2Center = Vec2(trackRect.right() + thumbWidth/2, iPos2 + 1);
+		thumb1Center = Vec2(trackRect.left() - thumbWidth/2 , iPos1);
+		thumb2Center = Vec2(trackRect.right() + thumbWidth/2 , iPos2);
+        thumb1Center += Vec2(1, 0);
+        thumb2Center += Vec2(-1, 0);
 	}
-	
-	// get adornment
+    
+	// get adornment (which spikes on thumbs)
 	int thumbAdorn1, thumbAdorn2;
 	if (isHorizontal())
 	{
@@ -1957,20 +1936,36 @@ void MLDial::getDialRect (MLRect& ret,
 	Vec2 thumb2Tip = thumb2Center;
 	if (isHorizontal())
 	{
-		thumb1Tip += Vec2(0, mTrackThickness + thumbHeight/2);
-		thumb2Tip -= Vec2(0, mTrackThickness + thumbHeight/2);
+		thumb1Tip += Vec2(0, mTrackThickness + thumbHeight/2 - 1);
+		thumb2Tip -= Vec2(0, mTrackThickness + thumbHeight/2 - 1);
         if(smallThumbs)
         {
-            thumb1Tip += Vec2(1, 0);
-            thumb2Tip -= Vec2(1, 0);
+            thumb1Tip += Vec2(0, 0);
+            thumb2Tip += Vec2(-1, 0);
+        }
+        else
+        {
+            if(doNumber)
+            {
+            }
+            else
+            {
+                thumb1Tip += Vec2(0, 0);
+                thumb2Tip += Vec2(-1, 0);
+            }
         }
 	}
 	else
 	{
-		thumb1Tip += Vec2(mTrackThickness + thumbWidth/2, 0);
-		thumb2Tip -= Vec2(mTrackThickness + thumbWidth/2, 0);
+		thumb1Tip += Vec2(mTrackThickness + thumbWidth/2 - 1, 0);
+		thumb2Tip -= Vec2(mTrackThickness + thumbWidth/2 - 1, 0);
+        if(smallThumbs)
+        {
+            thumb1Tip += Vec2(-1, 0);
+            thumb2Tip += Vec2(-1, 0);
+        }
 	}
-	
+      
 	// get fill rects
 	full = trackRect;
 	notFull1 = trackRect;
@@ -2041,21 +2036,10 @@ void MLDial::getDialRect (MLRect& ret,
 			break;
 		case MLDial::Text1Rect:
 			ret = text1Size.withCenter(thumb1Center);
-            // tweak for small text
-            if(mTextHeight <= 9)
-            {
-                ret.expand(1.);
-            }
-            
 			break;
 		case MLDial::Text2Rect:
 			ret = text2Size.withCenter(thumb2Center);
-            // tweak for small text
-            if(mTextHeight <= 9)
-            {
-                ret.expand(1.);
-            }
-			break;
+ 			break;
 		case MLDial::Tip1Rect:
 			ret = thumb1Tip;
 			break;
@@ -2072,11 +2056,9 @@ void MLDial::getDialRect (MLRect& ret,
 			ret = notFull2;
 			break;
 	}
-	
-	correctRect(ret);
 }
 
-// resize this Dial and set the track rect, from which all the other 
+// resize this Dial and set the track rect, from which all the other
 // parts are calculated
 void MLDial::resizeWidget(const MLRect& b, const int u)
 {
@@ -2098,20 +2080,11 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		
 		Vec2 bCenter = b.getCenter();		
 		mMargin = myLookAndFeel->getSmallMargin() * u;
-		mTrackThickness = (int)((float)kMLTrackThickness * u / 64.);
-		mTrackThickness |= 1; // make odd
-		mLineThickness = u/48.f;
+		mTrackThickness = (int)((float)kMLTrackThickness * u / 48.);
+		mLineThickness = u/128.f;
 		mTextSize = (float)u*myLookAndFeel->getDialTextSize(*this);
-		if (mDoNumber)
-		{
-			mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign)*mTextSize + 2.;
-//			debug() << "dial " << getWidgetName() << " digits:" << mDigits << " precis:" << 
-//				mPrecision << " width:" << mMaxNumberWidth << "\n";
-		}
-		else
-		{
-			mMaxNumberWidth = 0;
-		}
+        mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign)*mTextSize + 2.;
+        mMaxNumberWidth &= (~1); // make even
 		
 		// get component bounds
 		//
@@ -2131,6 +2104,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 				mShadowSize = (int)(kMLShadowThickness*u/48.); // for small dials
 				mDiameter = minDim - mShadowSize*2.;
 				mTickSize = 0.;
+                mMaxNumberWidth = 0;
 			}
 			else
 			{
@@ -2173,56 +2147,84 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 
 			mRotaryTextRect = MLRect(cx, cy, mMaxNumberWidth, height - cy);
 		}
-        /*
-		else if(smallThumbs)
+ 		else if(smallThumbs)
         // linear with fixed track size, small thumbs, border expands 
         {
             MLRect bb = b;
-			mMaxNumberWidth = ((int)(mMaxNumberWidth) & ~0x1) + 2 ;			
+			mMaxNumberWidth = 0;
 			mShadowSize = (int)(kMLShadowThickness*u/32.) & ~0x1;
-			mTextHeight = (((long)mTextSize) | 0x1) - 2;
-			mThumbMargin = (int)(myLookAndFeel->getSmallMargin()*u*0.75f);
-            int smallThumbSize = (int)(u*0.5f);
-
-			// get track size
-			if (isHorizontal())
-			{
-                trackRect = MLRect(0, 0, bb.width(), mTrackThickness);
-                trackRect.stretchWidth(-2);
-			}
-			else
-			{
-				trackRect = MLRect(0, 0, mTrackThickness, bb.height());
-                trackRect.stretchHeight(-2);
-			}
+			mTextHeight = mTrackThickness;
+			mThumbMargin = mTrackThickness * 2;//(int)(myLookAndFeel->getSmallMargin()*u*0.75f);
             
-            // expand boundary to fit thumbs
-            if (isHorizontal())
+            const int multi = (isTwoOrThreeValued());
+            bool doDial1, doDial2;
+            if (multi)
             {
-                bb.expand(smallThumbSize);
+                doDial1 = doDial2 = true;
             }
             else
             {
-                bb.expand(smallThumbSize);
+                doDial1 = mTopLeft;
+                doDial2 = !doDial1;
             }
-			cBounds = MLToJuceRectInt(bb);
-            
-			// get track position relative to bounds rect
+
+			// get track rect inside bounds and adjust bounds
+            int t = mTrackThickness + 2;
+            int nudge = 1;
+			if (isHorizontal())
 			{
-				trackRect.setCenter(bb.getSize());
+                if(multi)
+                {
+                    // center track rect
+                    // unimplemented
+                }
+                else if(doDial1)
+                {
+                    // unimplemented                   
+                }
+                else if(doDial2)
+                {
+                    trackRect = MLRect(0, 0, bb.width(), mTrackThickness);
+                    bb.stretchWidth(t*2);
+                    bb.setHeight(bb.getHeight() + t);
+                    bb.translate(Vec2(0, nudge));
+                    trackRect.translate(Vec2(t, 1));
+                }
 			}
-			
-        }*/
+			else
+			{
+                if(multi)
+                {
+                    // center track rect
+                    // unimplemented
+                }
+                else if(doDial1)
+                {
+                    trackRect = MLRect(bb.getWidth() - mTrackThickness, 0, mTrackThickness, bb.height());
+                    bb.stretchHeight(t*2);
+                    bb.setWidth(bb.getWidth() + t);
+                    bb.translate(Vec2(-t, 0));
+                    trackRect.translate(Vec2(t, 0));
+                    bb.translate(Vec2(-nudge, 0));
+                    trackRect.translate(Vec2(-1, t));
+                }
+                else if(doDial2)
+                {
+                    // unimplemented
+                }
+			}
+            
+			cBounds = MLToJuceRectInt(bb);
+        }
         else // normal linear, track shrinks to fit
 		{
             MLRect bb = b;
 			// max widths for dials are too long for horiz thumbs - correct
-			mMaxNumberWidth = ((int)(mMaxNumberWidth) & ~0x1) + 2 ;			
+			// mMaxNumberWidth = ((int)(mMaxNumberWidth) & ~0x1) + 2 ;
 			cBounds = MLToJuceRectInt(bb);
 			
 			mShadowSize = (int)(kMLShadowThickness*u/32.) & ~0x1;			
-			mTextHeight = (((long)mTextSize) | 0x1) - 2;
-            
+			mTextHeight = (((long)mTextSize) | 0x1) - 2;            
 			mThumbMargin = (int)(myLookAndFeel->getSmallMargin()*u);//*0.75f);
 			int padding = mShadowSize + mTrackThickness/2;
 			int thumbHeight = mTextHeight + mThumbMargin*2 ;
@@ -2243,7 +2245,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			// get track position relative to bounds rect
 			if (multi)
 			{
-				trackRect.setCenter(bb.getSize());
+				trackRect.centerInRect(bb.withTopLeft(0, 0));
 			}
 			else
 			{
@@ -2272,30 +2274,13 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			}
 		}
 
+        trackRect = trackRect.getIntPart();
 		pC->setBounds(cBounds);
 		
         // get display scale
         int displayScale = 1;
         
-        // TODO fix display scale and move code into MLWidget 
-        /*
-        // get the top-level window containing this Component
-        ComponentPeer* peer = getPeer();
-        if(peer)
-        {
-            Rectangle<int> peerBounds = peer->getBounds();
-            const Desktop::Displays::Display& d = Desktop::getInstance().getDisplays().getDisplayContaining(peerBounds.getCentre());
-            displayScale = (int)d.scale;
-             if(getWidgetName() == "key_voices")
-             {
-                debug() << "RESIZEWIDGET: " << getWidgetName() << ", " << b << "\n";
-                debug() << "    peer bounds: " << juceToMLRect(peerBounds) << "\n";
-                debug() << "    display scale: " << displayScale << "\n";
-            }
-        }
-         */
-        
-		// make compositing images
+ 		// make compositing images
 		if ((width > 0) && (height > 0))
 		{
 			int compWidth = getWidth();
@@ -2303,11 +2288,9 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			mParameterImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
 			mParameterImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
 			mThumbImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
-			mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-            
+			mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);            
 			mStaticImage = Image(Image::ARGB, compWidth * displayScale, compHeight*displayScale, true, SoftwareImageType());
-			mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-            
+			mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);            
 		}
 		
 		mParameterLayerNeedsRedraw = mThumbLayerNeedsRedraw = mStaticLayerNeedsRedraw = true;
