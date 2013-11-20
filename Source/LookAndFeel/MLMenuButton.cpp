@@ -57,7 +57,7 @@ void MLMenuButton::paintButton (Graphics& g,
     myLookAndFeel->drawButtonBackground (g, *this,
 		c,
 		isMouseOverButton,
-		isButtonDown);
+		isButtonDown, mLineThickness);
 	
 	if(mMenuTextStyle)
 	{
