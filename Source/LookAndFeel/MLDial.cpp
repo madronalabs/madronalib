@@ -1522,12 +1522,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 		
 		else if (dialBeingDragged != NoDial) 
 		{
-            /*
-            MouseInputSource& src = e.source;
-			src.hideCursor();
-			src.enableUnboundedMouseMovement (true, false);
-			mouseWasHidden = true;
-            */
+			e.source.enableUnboundedMouseMovement (true, false);
             
 			int dp = isHorizontal() ? (e.x - mLastDragX) : -(e.y - mLastDragY);
 			mLastDragX = e.x;
