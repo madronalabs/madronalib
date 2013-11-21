@@ -509,7 +509,6 @@ float MLDial::proportionOfLengthToValue (float proportion)
 	return r;
 }
 
-// TODO get value using Parameter
 float MLDial::valueToProportionOfLength (float value) const
 {
 	float min = getMinimum();
@@ -524,21 +523,29 @@ float MLDial::valueToProportionOfLength (float value) const
 		min = temp;
 		flip = true;
 	}
-		
-	if (mWarpMode == kJucePluginParam_Exp)
-	{
-		value = clamp(value, min, max);
-		x = log(value/min) / log(max/min);
-	}
-	else
-	{
-		x = (value - minimum) / (maximum - minimum);
-	}
-	
-	if (flip)
-	{
-		x = 1. - x;
-	}
+    
+    if(value > mZeroThreshold)
+    {
+            
+        if (mWarpMode == kJucePluginParam_Exp)
+        {
+            value = clamp(value, min, max);
+            x = log(value/min) / log(max/min);
+        }
+        else
+        {
+            x = (value - minimum) / (maximum - minimum);
+        }
+        
+        if (flip)
+        {
+            x = 1. - x;
+        }
+    }
+    else
+    {
+        x = 0.f;
+    }
 
 	return x;
 }
@@ -563,7 +570,7 @@ float MLDial::snapValue (float attemptedValue, const bool)
 
 unsigned MLDial::nearestDetent (float attemptedValue) const
 {
-	unsigned r = attemptedValue;
+	unsigned r = 0;
 	
 	int detents = mDetents.size();	
 	if (detents)
@@ -574,12 +581,22 @@ unsigned MLDial::nearestDetent (float attemptedValue) const
 		
 		for (int i=0; i<detents; ++i)
 		{
-			float td = fabs(valueToProportionOfLength(mDetents[i].mValue) - p1);
-			if (td < d_min)
-			{
-				i_min = i;
-				d_min = td;
-			}			
+            float dv = mDetents[i].mValue;
+            float td; // distance to detent
+            if(dv > mZeroThreshold)
+            {
+                td = fabs(valueToProportionOfLength(dv) - p1);
+            }
+            else
+            {
+                td = p1;
+            }
+        
+            if (td < d_min)
+            {
+                i_min = i;
+                d_min = td;
+            }
 		}
 		r = i_min;
 	}
@@ -1765,14 +1782,7 @@ void MLDial::findDialToDrag(const int x, const int y)
 
 void MLDial::addDetent(const float value, const float width)
 {
-    if(value > mZeroThreshold)
-    {
-        mDetents.push_back(MLDialDetent(value, width));
-    }
-    else
-    {
-        MLError() << "MLDial::addDetent: value below zero threshold!\n";
-    }
+    mDetents.push_back(MLDialDetent(value, width));
 }
 
 void MLDial::snapToDetents(const bool snap)
