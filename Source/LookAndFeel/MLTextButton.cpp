@@ -6,7 +6,6 @@
 #include "MLTextButton.h"
 #include "MLLookAndFeel.h"
 
-
 MLTextButton::MLTextButton (const String& name, const String& )
     : MLButton (name)
 {
@@ -17,9 +16,7 @@ MLTextButton::~MLTextButton()
 {
 }
 
-void MLTextButton::paintButton (Graphics& g,
-                              bool isMouseOverButton,
-                              bool isButtonDown)
+void MLTextButton::paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->drawBackground(g, this);
@@ -35,11 +32,9 @@ void MLTextButton::paintButton (Graphics& g,
 		t,
 		isMouseOverButton,
 		isButtonDown);
-
 }
 
 void MLTextButton::colourChanged()
 {
     repaint();
 }
-
