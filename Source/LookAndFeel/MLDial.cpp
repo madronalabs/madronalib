@@ -14,8 +14,8 @@
 #include "MLLookAndFeel.h"
 
 static const int kMinPixelMovement = 4;
-const int kDragStepSize = 2;
-const int kMouseWheelStepSize = 2;
+const int kDragStepSize = 16;
+const int kMouseWheelStepSize = 16;
 static const int kMinimumDialSizeForJump = 26;
 static const int kLabelHeight = 16;
 static const int kSmallLabelHeight = 11;
@@ -1379,28 +1379,18 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	{
 		val = mZeroThreshold;
 	}
-	if(detents && mSnapToDetents && !doFineAdjust)
+	if (detents && mSnapToDetents && !doFineAdjust)
 	{	
-		// get next detent, collecting mouse motion if needed
-		bool doStep = true;
-		int direction = sign(dp);
-		if (stepSize > 1)
-		{
-			mMouseMotionAccum += direction;
-			if (abs(mMouseMotionAccum) > stepSize)
-			{
-				mMouseMotionAccum = 0;
-			}
-			else 
-			{
-				doStep = false;
-			}
-		}
+        // more than one detent may be spanned by this event. calculate the number of steps
+        // and store the remainder back in mMouseMotionAccum.
+        int np = mMouseMotionAccum + dp;
+        int steps = np / stepSize;
+        mMouseMotionAccum = np - (steps * stepSize);
 		
-		if (doStep)
+		if (steps != 0)
 		{
 			mCurrentDetent = nearestDetent(val);				
-			mCurrentDetent += direction;
+			mCurrentDetent += steps;
 			mCurrentDetent = clamp(mCurrentDetent, 0, detents - 1);
 			r = mDetents[mCurrentDetent].mValue;
 		}
