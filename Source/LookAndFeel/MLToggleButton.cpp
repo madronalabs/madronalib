@@ -60,7 +60,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 	// geometry
     const int width = getWidth();
     const int height = getHeight();	
-	int toggleSize = myLookAndFeel->getToggleButtonSize() * getWidgetGridUnitSize();
+	int toggleSize = myLookAndFeel->getToggleButtonSize() * getWidgetGridUnitSize() * getSizeMultiplier();
 	int halfSize = toggleSize/2;
 		
 	// get int center
