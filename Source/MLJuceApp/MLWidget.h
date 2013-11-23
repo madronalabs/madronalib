@@ -31,9 +31,12 @@ public:
 	virtual void setAttribute(MLSymbol attr, float val);
 	virtual void setStringAttribute(MLSymbol attr, const std::string& val);
 	virtual void setSignalAttribute(MLSymbol attr, const MLSignal& val);
-	float getAttribute(MLSymbol attr);
-	const std::string& getStringAttribute(MLSymbol attr);
-    const MLSignal& getSignalAttribute(MLSymbol attr);
+    virtual void setColorAttribute(MLSymbol attr, juce::Colour val);
+
+	float getAttribute(MLSymbol attr) const;
+	const std::string& getStringAttribute(MLSymbol attr) const;
+    const MLSignal& getSignalAttribute(MLSymbol attr) const;
+    juce::Colour getColorAttribute(MLSymbol attr) const;
 
 	// A signal viewer, not required. This is called repeatedly to view 
 	// a dynamic Signal, as opposed to a signal Parameter.
@@ -42,7 +45,7 @@ public:
 	// in order to function, a widget's Component must get set!
 	//
 	void setComponent(Component* pC) { pComponent = pC; }
-	Component* getComponent() { return pComponent; }
+	Component* getComponent() const { return pComponent; }
 
 	void setGridBounds(const MLRect& p);
 	const MLRect& getGridBounds() const;
