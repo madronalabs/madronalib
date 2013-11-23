@@ -223,7 +223,8 @@ void MLPluginController::dialValueChanged (MLDial* pSlider)
 
 // --------------------------------------------------------------------------------
 #pragma mark MLMultiSlider::Listener	
-	
+
+/*
 void MLPluginController::multiSliderDragStarted (MLMultiSlider* pSlider, int idx)
 {
 	MLPluginProcessor* const filter = getProcessor();
@@ -247,6 +248,7 @@ void MLPluginController::multiSliderDragEnded (MLMultiSlider* pSlider, int idx)
 		filter->endParameterChangeGesture (paramIdx);
 	}
 }
+*/
 
 void MLPluginController::multiSliderValueChanged (MLMultiSlider* pSlider, int idx)
 {

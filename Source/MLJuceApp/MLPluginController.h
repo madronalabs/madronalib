@@ -38,8 +38,9 @@ public:
 	void dialDragStarted (MLDial*);
 	void dialDragEnded (MLDial*);
 	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-	void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
-	void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
+    
+	//void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
+	//void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
 	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
     
     // MLPluginProcessor::Listener
