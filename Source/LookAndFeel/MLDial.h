@@ -310,7 +310,6 @@ protected:
 	float mFilteredMouseSpeed;
 	int mMouseMotionAccum;
 
-	bool mHilighted, mWasHilighted;	
     int pixelsForFullDragExtent;
     MLDial::DialStyle style;
 	MLValueDisplayMode mValueDisplayMode;

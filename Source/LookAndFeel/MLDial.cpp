@@ -40,7 +40,7 @@ MLDial::MLDial () :
 	mFilteredMouseSpeed(0.),
 	mMouseMotionAccum(0),
 	//
-	mHilighted(false), mWasHilighted(false),
+    mHilightColor(Colours::white),
     pixelsForFullDragExtent (250),
     style (MLDial::LinearHorizontal),
 	mValueDisplayMode(eMLNumFloat),
@@ -117,13 +117,17 @@ void MLDial::setAttribute(MLSymbol attr, float val)
 	
 //debug() << "MLDial " << getWidgetName() << ":" << attr << " = " << val << "\n";
 	
-	// TODO other dial attributes?
-	bool quiet = true;
 	
 	if (attr == valueSym)
 	{
+        bool quiet = true;
 		setValueOfDial(MainDial, val, quiet);
 	}
+    else if(attr == "highlight")
+    {
+        mParameterLayerNeedsRedraw = true;
+        repaint();
+    }
 }
 
 //--------------------------------------------------------------------------------
@@ -1130,12 +1134,13 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		}
 		
 		// hilight (for patcher connections to tiny dials)
-		if (mHilighted)
+		if (getAttribute("highlight"))
 		{
 			const float m = mLineThickness*6.;
 			const float mh = m / 2.;
             Path track;
-			pg.setColour (mHilightColor);
+            Colour hc = getColorAttribute("highlight_color");
+			pg.setColour (hc);
             track.addArc(rx1-mh, ry1-mh, mDiameter+m, mDiameter+m, 0.f, kMLTwoPi, true);
             pg.strokePath (track, PathStrokeType(m));			
 		}
@@ -1631,16 +1636,6 @@ void MLDial::setFillColor (const Colour& color)
 	//lookAndFeelChanged();
 }
 
-void MLDial::setHilight (bool h)
-{
-	if (h != mHilighted)
-	{
-		mHilighted = h;
-		mParameterLayerNeedsRedraw = true;
-		repaint();
-	}
-}
-
 void MLDial::setHilightColor (const Colour& color)
 {
 	mHilightColor = color;
@@ -1870,7 +1865,7 @@ void MLDial::getDialRect (MLRect& ret,
         {
             int tt = mTrackThickness;
             thumbWidth = tt*2 + 1;
-            thumbHeight = tt*2 + 1;
+            thumbHeight = tt + tt/2;
         }
         else
         {
@@ -1891,7 +1886,7 @@ void MLDial::getDialRect (MLRect& ret,
         if(smallThumbs)
         {
             int tt = mTrackThickness;
-            thumbWidth = tt*2 + 1;
+            thumbWidth = tt + tt/2;
             thumbHeight = tt*2 + 1;
         }
         else
