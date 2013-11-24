@@ -17,14 +17,14 @@ const int kNumVoiceSignals = 9;
 const char * voiceSignalNames[kNumVoiceSignals] = 
 {
 	"pitch",
+	"gate",
 	"amp",
 	"vel",
 	"voice",
 	"after",
 	"moda",
 	"modb",
-	"modc",
-	"position"
+	"modc"
 };
 
 const float MLProcInputToSignals::kControllerScale = 1.f/127.f;
@@ -91,7 +91,8 @@ MLProc::err MLVoice::resize(int bufSize)
 
 	// make delta lists
 	// allow for one change each sample, though this is unlikely to get used.
-	MLProc::err a = mdPitch.setDims(bufSize);	
+	MLProc::err a = mdPitch.setDims(bufSize);
+	MLProc::err i = mdGate.setDims(bufSize);
 	MLProc::err b = mdAmp.setDims(bufSize);
 	MLProc::err c = mdVel.setDims(bufSize);
 	MLProc::err d = mdAfter.setDims(bufSize);
@@ -100,7 +101,7 @@ MLProc::err MLVoice::resize(int bufSize)
 	MLProc::err g = mdMod3.setDims(bufSize);
 	MLProc::err h = mdDrift.setDims(bufSize);
 	
-	if (a || b || c || d || e || f || g || h)
+	if (a || b || c || d || e || f || g || h || i)
 	{
 		ret = MLProc::memErr;
 	}
@@ -119,6 +120,7 @@ void MLVoice::clearState()
 void MLVoice::clearChanges()
 {
 	mdPitch.clearChanges();
+	mdGate.clearChanges();
 	mdAmp.clearChanges();
 	mdVel.clearChanges();
 	mdAfter.clearChanges();
@@ -130,6 +132,7 @@ void MLVoice::clearChanges()
 void MLVoice::zero()
 {
 	mdPitch.zero();
+	mdGate.zero();
 	mdAmp.zero();
 	mdVel.zero();
 	mdAfter.zero();
@@ -394,6 +397,7 @@ void MLProcInputToSignals::doParams()
 			{				
 				// TODO fix names, amp and vel are really switched. 
 				// amp snaps to new velocity right away 
+				mVoices[i].mdGate.setGlideTime(0.0f);
 				mVoices[i].mdAmp.setGlideTime(0.0f);
 				mVoices[i].mdVel.setGlideTime(1.f / (float)mOSCDataRate);
 				mVoices[i].mdAfter.setGlideTime(1.f / (float)mOSCDataRate);
@@ -406,6 +410,7 @@ void MLProcInputToSignals::doParams()
 		case kInputProtocolMIDI:	
 			for(int i=0; i<kMLEngineMaxVoices; ++i)
 			{
+				mVoices[i].mdGate.setGlideTime(0.0f);
 				mVoices[i].mdAmp.setGlideTime(0.0f);
 			}
 			break;
@@ -494,16 +499,17 @@ void MLProcInputToSignals::clear()
 			mVoices[v].clearChanges();
 			mVoices[v].zero();
             
-            if((v*kNumVoiceSignals + 8) < outs)
+            if((v*kNumVoiceSignals + 9) < outs)
             {                
                 mVoices[v].mdPitch.writeToSignal(getOutput(v*kNumVoiceSignals + 1), 0, vecSize);
-                mVoices[v].mdAmp.writeToSignal(getOutput(v*kNumVoiceSignals + 2), 0, vecSize);
-                mVoices[v].mdVel.writeToSignal(getOutput(v*kNumVoiceSignals + 3), 0, vecSize); 
-                getOutput(v*kNumVoiceSignals + 4).setToConstant(v); 
-                mVoices[v].mdAfter.writeToSignal(getOutput(v*kNumVoiceSignals + 5), 0, vecSize);
-                mVoices[v].mdMod.writeToSignal(getOutput(v*kNumVoiceSignals + 6), 0, vecSize);
-                mVoices[v].mdMod2.writeToSignal(getOutput(v*kNumVoiceSignals + 7), 0, vecSize);
-                mVoices[v].mdMod3.writeToSignal(getOutput(v*kNumVoiceSignals + 8), 0, vecSize);
+                mVoices[v].mdGate.writeToSignal(getOutput(v*kNumVoiceSignals + 2), 0, vecSize);
+                mVoices[v].mdAmp.writeToSignal(getOutput(v*kNumVoiceSignals + 3), 0, vecSize);
+                mVoices[v].mdVel.writeToSignal(getOutput(v*kNumVoiceSignals + 4), 0, vecSize);
+                getOutput(v*kNumVoiceSignals + 5).setToConstant(v);
+                mVoices[v].mdAfter.writeToSignal(getOutput(v*kNumVoiceSignals + 6), 0, vecSize);
+                mVoices[v].mdMod.writeToSignal(getOutput(v*kNumVoiceSignals + 7), 0, vecSize);
+                mVoices[v].mdMod2.writeToSignal(getOutput(v*kNumVoiceSignals + 8), 0, vecSize);
+                mVoices[v].mdMod3.writeToSignal(getOutput(v*kNumVoiceSignals + 9), 0, vecSize);
             }
 		}
 	}
@@ -511,7 +517,8 @@ void MLProcInputToSignals::clear()
 }
 
 // order of signals:
-// pitch 
+// pitch
+// gate
 // amp (gate * velocity)
 // vel (velocity, stays same after note off)
 // voice 
@@ -519,58 +526,8 @@ void MLProcInputToSignals::clear()
 // mod, mod2, mod3
 //
 
-// ????
-
-
-const int kRows = 5;
-//float rowPositionsMTS[kRows + 2] = {0.f, 0.1515f, 0.3636f, 0.6363f, 0.8484f, 1.f, 99.f};
-float rowPositionsMTS[kRows + 2] = {0.f, 0.2f, 0.4f, 0.6f, 0.8f, 1.f, 99.f};
-
-/*
-MLSample xToDx(float x);
-MLSample xToDx(float x) // TEMP
-{
-	// get col 0-30
-	// cols are over carriers 2-61 
-	int col = 0;
-	float carrier = x*64.f;
-	clamp(carrier, 2.f, 62.f);
-	col = (carrier - 1.5f)/2.f;
-	
-	
-	float dx = (carrier - ((float)col) - 0.5) * 2.;
-	
-	return dx;
-}
-*/
-
-/*
-MLSample yToDy(float y);
-MLSample yToDy(float y) // TEMP
-{
-	// quick and dirty!
-	// get row 0 - 4
-	int row = 0;
-	for(row=0; row<kRows; row++)
-	{
-		if(y + 0.6f < rowPositionsMTS[row+1]) 
-		{
-			break;
-		}
-	}
-	
-	float rowLo = rowPositionsMTS[row];
-	float rowHi = rowPositionsMTS[row+1];
-	
-	float py = ((y - rowLo) / (rowHi - rowLo)) - 0.5;
-	py *= 2.f;
-	return py;
-}
-*/
-
-// display MIDI: pitch vel voice after mod -2 -3 -4
-
-// display OSC: pitch vel(constant during hold) voice(touch) after(z) dx dy x y
+// display MIDI: pitch gate vel voice after mod -2 -3 -4
+// display OSC: pitch gate vel(constant during hold) voice(touch) after(z) dx dy x y
 
 // TODO sustain
 
@@ -639,6 +596,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 
 	// TEMP get most recent frame and apply to whole buffer			
 	// read from mpFrameBuf, which is being filled up by OSC listener thread
+    
 	if(mpFrameBuf)
 	{
 		avail = PaUtil_GetRingBufferReadAvailable(mpFrameBuf);
@@ -733,6 +691,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 		{			
 			const int frameTime = 1;
 			mVoices[v].mdPitch.addChange(upitch, frameTime);
+			mVoices[v].mdGate.addChange((int)(uz > 0.), frameTime);
 			mVoices[v].mdAmp.addChange(uz, frameTime);
 			mVoices[v].mdVel.addChange(uz, frameTime);
 			
@@ -792,6 +751,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 			// OSC: pitch vel(constant during hold) voice(touch) after(z) dx dy x y			
 			const int frameTime = 1;
 			mVoices[v].mdPitch.addChange(mVoices[v].mPitch, frameTime);
+			mVoices[v].mdGate.addChange((int)(z > 0.), frameTime);
 			mVoices[v].mdAmp.addChange(z, frameTime);
 			mVoices[v].mdVel.addChange(z, frameTime);
 			
@@ -807,14 +767,14 @@ void MLProcInputToSignals::processOSC(const int frames)
 	{
 		// changes per voice
 		MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
-		MLSignal& amp = getOutput(v*kNumVoiceSignals + 2);
-		MLSignal& vel = getOutput(v*kNumVoiceSignals + 3);
-		
-		MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
-		MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
-		MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
-		MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
-
+		MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
+		MLSignal& amp = getOutput(v*kNumVoiceSignals + 3);
+		MLSignal& vel = getOutput(v*kNumVoiceSignals + 4);
+		// voice = 5
+		MLSignal& after = getOutput(v*kNumVoiceSignals + 6);
+		MLSignal& mod = getOutput(v*kNumVoiceSignals + 7);
+		MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 8);
+		MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 9);
 			
 		if (v < mCurrentVoices)
 		{
@@ -823,8 +783,9 @@ void MLProcInputToSignals::processOSC(const int frames)
 			mVoices[v].mdDrift.writeToSignal(mDriftSignal, 0, frames);
 			pitch.add(mDriftSignal); 
 
+			mVoices[v].mdGate.writeToSignal(gate, mMIDIFrameOffset, frames);
 			mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);
-			mVoices[v].mdVel.writeToSignal(vel, mMIDIFrameOffset, frames); 
+			mVoices[v].mdVel.writeToSignal(vel, mMIDIFrameOffset, frames);
 			mVoices[v].mdAfter.writeToSignal(after, mMIDIFrameOffset, frames); 
 			mVoices[v].mdMod.writeToSignal(mod, mMIDIFrameOffset, frames); 
 			mVoices[v].mdMod2.writeToSignal(mod2, mMIDIFrameOffset, frames); 
@@ -832,8 +793,9 @@ void MLProcInputToSignals::processOSC(const int frames)
 		}
 		else
 		{
-			pitch.setToConstant(0.f); 
-			amp.setToConstant(0.f); 
+			pitch.setToConstant(0.f);
+			gate.setToConstant(0.f);
+			amp.setToConstant(0.f);
 			vel.setToConstant(0.f); 
 			after.setToConstant(0.f); 
 			mod.setToConstant(0.f); 
@@ -877,12 +839,14 @@ void MLProcInputToSignals::processMIDI(const int frames)
 	{
 		// changes per voice
 		MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
-		MLSignal& amp = getOutput(v*kNumVoiceSignals + 2);
-		MLSignal& velSig = getOutput(v*kNumVoiceSignals + 3);
-		MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
-		MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
-		MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
-		MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
+		MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
+		MLSignal& amp = getOutput(v*kNumVoiceSignals + 3);
+		MLSignal& velSig = getOutput(v*kNumVoiceSignals + 4);
+        // voice = 5
+		MLSignal& after = getOutput(v*kNumVoiceSignals + 6);
+		MLSignal& mod = getOutput(v*kNumVoiceSignals + 7);
+		MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 8);
+		MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 9);
 
 		if (v < mCurrentVoices)
 		{
@@ -892,8 +856,8 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			mVoices[v].mdDrift.writeToSignal(mDriftSignal, 0, frames);
 			pitch.add(mDriftSignal); 
 					
-			mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);
-			
+			mVoices[v].mdGate.writeToSignal(gate, mMIDIFrameOffset, frames);
+			mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);			
 			mVoices[v].mdVel.writeToSignal(velSig, mMIDIFrameOffset, frames); 
 
 			// aftertouch for each voice is channel aftertouch + poly aftertouch.
@@ -911,6 +875,7 @@ void MLProcInputToSignals::processMIDI(const int frames)
 				
 			mVoices[v].mdPitch.clearChanges();
 			mVoices[v].mdDrift.clearChanges();
+			mVoices[v].mdGate.clearChanges();
 			mVoices[v].mdAmp.clearChanges();
 			mVoices[v].mdAfter.clearChanges();
 			mVoices[v].mdVel.clearChanges();
@@ -920,8 +885,9 @@ void MLProcInputToSignals::processMIDI(const int frames)
 		}
 		else
 		{
-			pitch.setToConstant(0.f); 
-			amp.setToConstant(0.f); 
+			pitch.setToConstant(0.f);
+			gate.setToConstant(0.f);
+			amp.setToConstant(0.f);
 			velSig.setToConstant(0.f); 
 			after.setToConstant(0.f); 
 			mod.setToConstant(0.f); 
@@ -930,9 +896,9 @@ void MLProcInputToSignals::processMIDI(const int frames)
 		}
 	}
 	
-	/*
+    /*
 	// DEBUG
-	MLSignal& amp = getOutput(2);
+	MLSignal& amp = getOutput(3);
 	bool up = false;
 	for(int i=0; i<frames - 1; ++i)
 	{
@@ -946,18 +912,12 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			break;
 		}
 	}
-		float c = amp[0];
-		float d = amp[1];
-		if( c+d > 12123123)
-		{
-			debug() << "\n";
-		}
-	if(up || anyOns)
+
+	if(up )
 	{
-	debug() << "INPUT TO SIGNALS: " << anyOns << " ONS \n";
 		amp.dump(true);
 	}
-	*/
+     */
 }
 
 
@@ -1052,6 +1012,7 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int buf
 			mVoices[v].mNote = note;		
 			mVoices[v].mAge = bufFrames - time;		
 			mVoices[v].mdPitch.addChange(midiToPitch(note), time);
+			mVoices[v].mdGate.addChange((int)(vel > 0.), time);
 			mVoices[v].mdAmp.addChange(velToAmp(vel), time);
 			mVoices[v].mdVel.addChange(velToAmp(vel), time);
 		}
@@ -1077,7 +1038,8 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int buf
 			if (mRetrig)
 			{
 				if (time == 0) time++; // in case where time = 0, make room for turning amp off.
-				mVoices[voiceIdx].mdAmp.addChange(0.f, time - 1);  
+				mVoices[voiceIdx].mdGate.addChange(0.f, time - 1);
+				mVoices[voiceIdx].mdAmp.addChange(0.f, time - 1);
 			}
 		}		
 
@@ -1085,6 +1047,7 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int buf
 		mVoices[voiceIdx].mNote = note;	
 		mVoices[voiceIdx].mAge = bufFrames - time;		
 		mVoices[voiceIdx].mdPitch.addChange(midiToPitch(note), time);
+		mVoices[voiceIdx].mdGate.addChange((int)(vel > 0.), time);
 		mVoices[voiceIdx].mdAmp.addChange(velToAmp(vel), time);
 		mVoices[voiceIdx].mdVel.addChange(velToAmp(vel), time);
 	}
@@ -1240,6 +1203,7 @@ void MLProcInputToSignals::clearEvent(MLKeyEvent& event, int time)
 			mVoices[v].mNote = 0;
 			mVoices[v].mAge = 0;
 			mVoices[v].mdAmp.addChange(0.f, time);
+			mVoices[v].mdGate.addChange(0.f, time);
 		}
 	}
 	event.clear();
@@ -1342,7 +1306,8 @@ void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 					mVoices[v].mActive = false;
 					mVoices[v].mNote = 0;
 					mVoices[v].mAge = 0;
-					mVoices[v].mdAmp.addChange(0.f, time);					
+					mVoices[v].mdAmp.addChange(0.f, time);
+					mVoices[v].mdGate.addChange(0.f, time);
 				}
 			}
 		}
@@ -1399,6 +1364,7 @@ void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 					// turn off all voices
 					for (int i=0; i<mCurrentVoices; ++i)
 					{
+						mVoices[i].mdGate.addChange(0.f, time);
 						mVoices[i].mdAmp.addChange(0.f, time);
 						mVoices[i].mActive = false;
 					}
@@ -1522,6 +1488,7 @@ void MLProcInputToSignals::setSustainPedal(int value, int time)
 					mVoices[v].mNote = 0;
 					mVoices[v].mActive = false;
 					mVoices[v].mdAmp.addChange(0.f, time);
+					mVoices[v].mdGate.addChange(0.f, time);
 				}
 			}		
 		}

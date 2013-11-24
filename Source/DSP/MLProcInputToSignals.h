@@ -65,6 +65,7 @@ public:
 	float mZ1;
 
 	MLChangeList mdPitch;
+	MLChangeList mdGate;
 	MLChangeList mdAmp;
 	MLChangeList mdVel;
 	MLChangeList mdAfter;

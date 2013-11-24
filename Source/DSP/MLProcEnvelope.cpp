@@ -46,8 +46,8 @@ static const float kMaxSegTime = 20.000f;
 namespace{
 
 MLProcRegistryEntry<MLProcEnvelope> classReg("envelope");
-ML_UNUSED MLProcParam<MLProcEnvelope> params[] = { "xvel" }; 
-ML_UNUSED MLProcInput<MLProcEnvelope> inputs[] = {"in",  "delay", "attack", "decay", "sustain", "release", "repeat" };
+ML_UNUSED MLProcParam<MLProcEnvelope> params[] = { "xvel" };
+ML_UNUSED MLProcInput<MLProcEnvelope> inputs[] = {"in",  "delay", "attack", "decay", "sustain", "release", "repeat", "vel" };
 ML_UNUSED MLProcOutput<MLProcEnvelope> outputs[] = {"out"};
 
 }	// namespace
@@ -93,6 +93,7 @@ void MLProcEnvelope::process(const int samples)
 	const MLSignal& sustain = getInput(5);
 	const MLSignal& release = getInput(6);
 	const MLSignal& repeat = getInput(7);
+	const MLSignal& vel = getInput(8);
 	MLSignal& y = getOutput();
 	
 	static MLSymbol xvelSym("xvel");
@@ -104,7 +105,7 @@ void MLProcEnvelope::process(const int samples)
 	for (int n=0; n<samples; ++n)
 	{
 		register float bias = 0.05f;
-		register float dxdt, gIn;
+		register float dxdt, gIn, velIn;
 		register bool upTrig, downTrig, crossedThresh, delayCounterDone, doRepeat;
 		
 		// TODO make constant coefficient vectors for constant input parameter signals.
@@ -122,7 +123,8 @@ void MLProcEnvelope::process(const int samples)
 		}
 		
 		// process gate input
-		gIn = gate[n];	
+		gIn = gate[n];
+		velIn = vel[n];
 		const bool wasOver = mGate1 > inputThresh;
 		const bool isOver = gIn > inputThresh;		
 		upTrig = !wasOver && isOver;
@@ -155,7 +157,7 @@ void MLProcEnvelope::process(const int samples)
 				mEnv = 0.f;
 				mX = 0.f;
 				mState = stateDelay;
-				mMult = doMult ? gIn : 1.f;	// set mMult here only.
+				mMult = doMult ? velIn : 1.f;	// set mMult here only.
 			}
 			else if (delayCounterDone || doRepeat) // start attack
 			{	
