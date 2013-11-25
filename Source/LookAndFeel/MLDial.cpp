@@ -831,8 +831,8 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 		
 		// track unfilled area(s)
 		pg.setColour (trackDark);
-		pg.fillRect (MLToJuceRectInt(nfr1));	
-		pg.fillRect (MLToJuceRectInt(nfr2));	
+		pg.fillRect (MLToJuceRectInt(nfr1));
+		pg.fillRect (MLToJuceRectInt(nfr2));
         
 		// draw fill
 		{
@@ -1988,7 +1988,7 @@ void MLDial::getDialRect (MLRect& ret,
 		if (multi || mBipolar)
 		{		
 			notFull1.setTop(t); 
-			notFull1.setHeight(t - fillPos2); 
+			notFull1.setHeight(fillPos1 - t);
 			full.setTop(fillPos2);
 			full.setHeight(fillPos1 - fillPos2);
 			notFull2.setTop(fillPos1); 
