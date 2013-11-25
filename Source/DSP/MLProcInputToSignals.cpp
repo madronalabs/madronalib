@@ -562,7 +562,7 @@ void MLProcInputToSignals::process(const int frames)
 	// make voice number signal for each voice
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
 	{
-		MLSignal& vox = getOutput(v*kNumVoiceSignals + 4);
+		MLSignal& vox = getOutput(v*kNumVoiceSignals + 5);
 		if (v < mCurrentVoices)
 		{
 			vox.setToConstant(v); 
