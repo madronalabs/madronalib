@@ -1470,9 +1470,9 @@ void MLDial::mouseDrag (const MouseEvent& e)
 				 && minimum <= doubleClickReturnValue
 				 && maximum >= doubleClickReturnValue)
 			{
-				sendDragStart();
+				//sendDragStart();
 				setSelectedValue (doubleClickReturnValue, mainValue, true, true);
-				sendDragEnd();
+				//sendDragEnd();
 			}
 			return;
 		}
@@ -2064,6 +2064,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		
 		// adapt vrect to juce rect
 		MLRect bb = b;
+		float left =  bb.left();
 		float top =  bb.top();
 		float width =  bb.width();
 		float height = bb.height();	
@@ -2075,6 +2076,8 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		mTextSize = (float)u*myLookAndFeel->getDialTextSize(*this);
         mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign)*mTextSize + 2.;
         mMaxNumberWidth &= (~1); // make even
+        
+        bool isSmall = (uBounds.height() <= 0.5f);
 		
 		// get component bounds
 		//
@@ -2089,12 +2092,11 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			// 
 			int cx, cy;
 
-			if (uBounds.height() <= 0.5f) 
+			if (isSmall) 
 			{
 				mShadowSize = (int)(kMLShadowThickness*u/48.); // for small dials
-				mDiameter = minDim - mShadowSize*2.;
+				mDiameter = minDim - mShadowSize*2 - 2;
 				mTickSize = 0.;
-                mMaxNumberWidth = 0;
 			}
 			else
 			{
@@ -2103,38 +2105,36 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 				mTickSize = mDiameter * 0.1f;
 			}
 			
-			cx = mDiameter/2 + max(mShadowSize, (int)mTickSize); 
-			cy = cx;
+			cx = width/2;//mDiameter/2 + max(mShadowSize, (int)mTickSize);
+			cy = height/2;//cx;
 			mDialCenter = Vec2(cx, cy);
 
-			if (uBounds.height() <= 0.75f) 
-			{
-				height = cy*2;
+            // adjust size to make space for numbers
+            float newLeft = left;
+            if(!isSmall)
+            {
+                if (uBounds.height() <= 0.75f)
+                {
+                    height = cy*2;
+                }
+                else
+                {
+                    // cut off bottom
+                    height = (float)cy*1.8f ;
+                }
+                            
+                newLeft = bCenter.x() - cx;
+                width = cx*2 + 1; 
+                int rightHalf = width - cx;
+                if (mMaxNumberWidth > rightHalf)
+                {
+                    width = cx + mMaxNumberWidth;
+                }			
 			}
-			else
-			{
-				// cut off bottom
-				height = (float)cy*1.8f ;
-			}
-						
-			int newLeft = bCenter.x() - cx;
-
-			// resize input rect, keeping center constant				
-			width = cx*2 + 1; 
-			
-			// if there is not enough room for number, expand right side 
-			int rightHalf = width - cx;
-			if (mMaxNumberWidth > rightHalf)
-			{
-				int newWidth = cx + mMaxNumberWidth;
-				width = newWidth;
-			}			
-			
-			cBounds = Rectangle<int>(newLeft, top, (int)width, (int)height);		
-			
+            
+			cBounds = Rectangle<int>(newLeft, top, (int)width, (int)height);					
 			MLRect tr(newLeft, top, (int)width, (int)height);
 			trackRect = tr;
-
 			mRotaryTextRect = MLRect(cx, cy, mMaxNumberWidth, height - cy);
 		}
  		else if(smallThumbs)

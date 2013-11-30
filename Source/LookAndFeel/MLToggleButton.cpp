@@ -9,6 +9,7 @@
 MLToggleButton::MLToggleButton()
     : MLButton()
 {
+    setOpaque(false);
 }
 
 MLToggleButton::~MLToggleButton()
@@ -31,7 +32,7 @@ void MLToggleButton::setAttribute(MLSymbol attr, float val)
 void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	myLookAndFeel->drawBackground(g, this);
+	//myLookAndFeel->drawBackground(g, this);
 	
 	// colors	
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));		

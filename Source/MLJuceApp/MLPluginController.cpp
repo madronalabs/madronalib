@@ -47,7 +47,7 @@ MLAppView* MLPluginController::getView()
 void MLPluginController::setView(MLAppView* v) 
 { 
 	// if view is going away, stop reporting parameters and signals
-	const ScopedLock lock(mViewLock);
+	const ScopedLock lock(mViewShutdownLock);
 	if(!v)
 	{
 		debug() << "MLPluginController::setView 0\n";

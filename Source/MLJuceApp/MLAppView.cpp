@@ -176,20 +176,16 @@ MLDebugDisplay* MLAppView::addDebugDisplay(const MLRect & r)
 }
 
 MLDrawableButton* MLAppView::addDrawableButton(const MLRect & r, const char * name, 
-	const Colour& color, const Drawable* normalImg)
+	const Drawable* normalImg, const Colour& color)
 {
 	MLDrawableButton* b = new MLDrawableButton;
-	b->setParamName(name);
-	
+	b->setParamName(name);	
 	b->setListener(getResponder());	
 	b->setClickingTogglesState(false);
-	
+	b->setFillColor(color);	
 	b->setButtonStyle(MLDrawableButton::ImageOnButtonBackground);
-	b->setBackgroundColours(color, color);
 	b->setImage(normalImg);
-
 	addWidgetToView(b, r, name);
-
 	return b;
 }
 
@@ -198,16 +194,12 @@ MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * na
 {
 	MLDrawableButton* b = new MLDrawableButton;
 	b->setParamName(name);
-	
 	b->setListener(getResponder());	
 	b->setClickingTogglesState(false);
-	
 	b->setButtonStyle(MLDrawableButton::ImageFitted);
 	b->setBackgroundColours(color, color);
-	b->setImage(normalImg);
-	
+	b->setImage(normalImg);	
 	addWidgetToView(b, r, name);
-
 	return b;
 }
 

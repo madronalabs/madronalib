@@ -47,6 +47,7 @@ public:
 	MLButton* addTriToggleButton(const char * displayName, const MLRect & r, const char * name,
                               const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 
+    MLDrawableButton* addDrawableButton(const MLRect & r, const char * name, const Drawable* img, const Colour& color = defaultColor);
 	MLDial* addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color);
 
 	MLEnvelope* addEnvelope(const MLRect & r, const MLSymbol paramName);

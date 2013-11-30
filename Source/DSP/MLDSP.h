@@ -354,7 +354,12 @@ public:
 	{
 		return clamp((f*mScale + mOffset), mMinOutput, mMaxOutput);
 	}
-	
+
+    inline bool contains(float f) const
+	{
+		return ((f > mMinOutput) && (f < mMaxOutput));
+	}
+
 private:
 	float mA;
 	float mB;

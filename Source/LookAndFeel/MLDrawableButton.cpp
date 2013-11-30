@@ -13,8 +13,8 @@ MLDrawableButton::MLDrawableButton (const String& name, const MLDrawableButton::
 {
     if (buttonStyle == ImageOnButtonBackground)
     {
-        backgroundOff = Colour (0xffbbbbff);
-        backgroundOn = Colour (0xff3333ff);
+        backgroundOff = (findColour (MLTextButton::buttonColourId));
+        backgroundOn = (findColour (MLTextButton::buttonColourId));
     }
     else
     {
@@ -40,7 +40,6 @@ void MLDrawableButton::setAttribute(MLSymbol , float )
 
 }
 
-
 //==============================================================================
 void MLDrawableButton::setImage (const Drawable* img)
 {
@@ -62,13 +61,9 @@ void MLDrawableButton::setButtonStyle (const MLDrawableButton::ButtonStyle newSt
 
 void MLDrawableButton::setBackgroundColours (const Colour& toggledOffColour, const Colour& toggledOnColour)
 {
-    if (backgroundOff != toggledOffColour
-         || backgroundOn != toggledOnColour)
-    {
-        backgroundOff = toggledOffColour;
-        backgroundOn = toggledOnColour;
-        repaint();
-    }
+    backgroundOff = toggledOffColour;
+    backgroundOn = toggledOnColour;
+    repaint();
 }
 
 const Colour& MLDrawableButton::getBackgroundColour() const throw()
@@ -79,11 +74,19 @@ const Colour& MLDrawableButton::getBackgroundColour() const throw()
 void MLDrawableButton::paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
  	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
+    Rectangle<int> imageSpace = getLocalBounds();
+	if (isOpaque()) myLookAndFeel->drawBackground(g, this);
+	const Colour c (findColour (TextButton::buttonColourId));
 	if (style == ImageOnButtonBackground)
     {
-        myLookAndFeel->drawButtonBackground (g, *this,
-			getBackgroundColour(), isMouseOverButton, isButtonDown, mLineThickness);
+        int h = imageSpace.getHeight();
+        int w = imageSpace.getWidth();
+        myLookAndFeel->drawButtonBackground (g, *this, c, isMouseOverButton, isButtonDown, mLineThickness);
+        
+        imageSpace.reduce(0, h/4);
+		normalImage->setTransformToFit (imageSpace.toFloat(), RectanglePlacement::centred);
+		normalImage->drawAt(g, 0, 0, 1.);
+        
     }	
 
 	if (style == ImageFitted)
@@ -94,7 +97,6 @@ void MLDrawableButton::paintButton (Graphics& g, bool isMouseOverButton, bool is
 			myLookAndFeel->drawButtonGlow (g, *this, backgroundOn);
 		}
 	
-		Rectangle<int> imageSpace = getLocalBounds();								  
 		if (isButtonDown)
 		{
 			imageSpace.translate(0, u/32.);
@@ -108,8 +110,9 @@ void MLDrawableButton::paintButton (Graphics& g, bool isMouseOverButton, bool is
 
 //==============================================================================
 
-void MLDrawableButton::resizeWidget(const MLRect& b, const int)
+void MLDrawableButton::resizeWidget(const MLRect& b, const int u)
 {
+    MLButton::resizeWidget(b, u);
 	Component* pC = getComponent();
 	if(pC)
 	{
