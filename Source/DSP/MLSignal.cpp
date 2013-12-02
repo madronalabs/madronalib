@@ -1308,14 +1308,14 @@ float MLSignal::getMax() const
 	return fMax;
 }
 
-void MLSignal::dump(bool verbose) const
+void MLSignal::dump(int verbosity) const
 {
 	debug() << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;
 	const MLSignal& f = *this;
-	if(verbose)
+	if(verbosity > 0)
 	{
 		if(isConstant())
 		{
@@ -1338,7 +1338,11 @@ void MLSignal::dump(bool verbose) const
 			debug() << std::setprecision(5);
 			for (int i=0; i<w; ++i)
 			{
-				debug() << mDataAligned[i] << " ";
+                if(verbosity > 1)
+                {
+                    debug() << "[" << i << "]";
+                }
+                debug() << mDataAligned[i] << " ";
 			}
 			debug() << "\n";
 		}

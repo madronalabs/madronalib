@@ -271,7 +271,7 @@ public:
 	float getMean() const;
 	float getMin() const;
 	float getMax() const;
-	void dump(bool verbose = false) const;
+	void dump(int verbosity = 0) const;
 	void dump(const MLRect& b) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
