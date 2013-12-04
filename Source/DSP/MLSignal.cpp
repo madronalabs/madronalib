@@ -1147,6 +1147,17 @@ void MLSignal::variance3x3()
 	}
 }
 
+float MLSignal::getRMS()
+{
+    float d = 0.f;
+    for(int i=0; i<mSize; ++i)
+    {
+        const float v = (mDataAligned[i]);
+        d += v*v;
+    }
+    return sqrtf(d/mSize);
+}
+
 float MLSignal::rmsDiff(const MLSignal& b)
 {
     float d = 0.f;
