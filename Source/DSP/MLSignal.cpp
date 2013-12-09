@@ -740,6 +740,48 @@ void MLSignal::sigMax(const MLSample m)
 	}
 }
 
+// convolve a 1D signal with a 3-point impulse response.
+void MLSignal::convolve3(const MLSample km, const MLSample k, const MLSample kp)
+{
+    // TODO SSE
+	int width = mWidth;
+	MLSample* pIn = getCopy();
+    
+    // left
+    mDataAligned[0] = k*pIn[0] + kp*pIn[1];
+    
+    // center
+    for(int i=1; i<width - 1; ++i)
+    {
+        mDataAligned[i] = km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1];
+    }
+    
+    // right
+    mDataAligned[width - 1] = km*pIn[width - 2] + k*pIn[width - 1];
+}
+
+void MLSignal::convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
+{
+    // TODO SSE
+	int width = mWidth;
+	MLSample* pIn = getCopy();
+    
+    // left
+    mDataAligned[0] = k*pIn[0] + kp*pIn[1] + kpp*pIn[2];
+    mDataAligned[1] = km*pIn[0] + k*pIn[1] + kp*pIn[2] + kpp*pIn[3];
+    
+    // center
+    for(int i=2; i<width - 2; ++i)
+    {
+        mDataAligned[i] = kmm*pIn[i - 2] + km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1] + kpp*pIn[i + 2];
+    }
+    
+    // right
+    mDataAligned[width - 2] = kmm*pIn[width - 4] + km*pIn[width - 3] + k*pIn[width - 2] + kp*pIn[width - 1];
+    mDataAligned[width - 1] = kmm*pIn[width - 4] + km*pIn[width - 3] + k*pIn[width - 2];
+}
+
+
 // an operator for 2D signals only
 void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk)
 {

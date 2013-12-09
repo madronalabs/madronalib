@@ -131,8 +131,15 @@ MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 		}
 		else if (mInputs[idx - 1])
 		{
-            // TODO this condition can cause crashes down the road, fix
-			e = inputOccupiedErr;
+            if(mInputs[idx - 1] == &(getContext()->getNullInput()))
+            {
+                mInputs[idx - 1] = &srcSig;
+            }
+            else
+            {
+                // TODO this condition can cause crashes down the road, fix
+                e = inputOccupiedErr;
+            }
 		}
 		else
 		{

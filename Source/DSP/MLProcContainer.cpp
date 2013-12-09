@@ -1243,20 +1243,20 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	b->createInput(bi);
 	
 	// TODO fix crashing on ill-formed graphs
-	/*
-	debug() << "connecting " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-	debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-	debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-	debug() << "\n";
-	*/
 	
 	e = b->setInput(bi, a->getOutput(ai));
 	
+#if DEBUG
 	if (e != OK)
 	{
 		printErr(e);
+        debug() << "...connecting " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+        debug() << "\n\n";
 	}
-	
+#endif
+    
 bail:	
 	return e;
 }
@@ -1317,9 +1317,9 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 				resamplerProc->createInput(resamplerInIndex);
 				
 				// set to a valid input in case graph ends up incomplete
-				// TODO investigate, why is this commented out?  
-//				resamplerProc->setContext(this);
-//				resamplerProc->setInput(resamplerInIndex, getNullInput());
+                // TODO: investigate: this is causing inputOccupiedErr sometimes?!
+				resamplerProc->setContext(this);
+				resamplerProc->setInput(resamplerInIndex, getNullInput());
 				
 				// publish resampler input
 				p = MLPublishedInputPtr(new MLPublishedInput(resamplerProc, resamplerInIndex, inSize + 1));

@@ -769,8 +769,8 @@ void MLProcResample::process(const int inFrames)
 		MLError() << "MLProcResample: unity ratio!\n";
 		return;
 	}
-	
- 	if (x.isConstant())
+    
+  	if (x.isConstant())
 	{
 		y.setToConstant(x[0]);
 	}

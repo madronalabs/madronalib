@@ -61,7 +61,7 @@ void MLProcDebug::doParams()
 
 void MLProcDebug::process(const int frames)
 {
-	const int intervalSeconds = 4;
+	const int intervalSeconds = 2;
 	const int intervalFrames = getContextSampleRate() * intervalSeconds;
 	if (mParamsChanged) doParams();
 	mTemp += frames;
