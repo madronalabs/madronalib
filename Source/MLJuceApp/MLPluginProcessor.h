@@ -210,9 +210,6 @@ protected:
 	// TODO shared_ptr
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
-	
-	// patcher and other UI element ptrs TEMP
-	// MLMatrixConnectionList mMatrixData;
 		
 private:
 

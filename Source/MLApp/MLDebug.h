@@ -31,7 +31,8 @@ public:
 			// the Listener’s stream. 
 			if(mpListener)
 			{
-				mpListener->getStream() << item;
+                std::stringstream& s = mpListener->getStream();
+				s << item;
 			}
 			// Else send the item to the local stream, which will be
 			// made visible next time display() is called.

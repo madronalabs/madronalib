@@ -1286,7 +1286,7 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName() + "_resamp_in");
+			MLSymbol resamplerName(getName() + MLSymbol("_resamp_in"));
 			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(inSize + 1));
 			
 			// would be cleaner to use buildProc() here, but right now that adds the new proc
@@ -1382,7 +1382,7 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol o
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName() + "_resamp_out");
+			MLSymbol resamplerName(getName() + MLSymbol("_resamp_out"));
 			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(outSize + 1)); 
 			if (!resamplerProc) { e = newProcErr; goto bail; }
 			

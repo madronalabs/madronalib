@@ -223,7 +223,9 @@ int MLProc::getOutputIndex(const MLSymbol name)
 		}
 		else
 		{
+            /* TEMP compiler issues
 			debug() << "MLProc::getOutputIndex: bad name for variable output index " << str << "!\n";
+             */
 		}
 	}
 	else

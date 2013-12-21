@@ -37,7 +37,7 @@ private:
 	int mT;
 };
 	
-static const float kMinSegTime = 0.0002f;
+static const float kMinSegTime = 0.00002f;
 static const float kMaxSegTime = 20.000f;
 
 // ----------------------------------------------------------------
@@ -98,7 +98,7 @@ void MLProcEnvelope::process(const int samples)
 	
 	static MLSymbol xvelSym("xvel");
 	const bool doMult = getParam(xvelSym) > 0.f;
-	
+    
 	// input change thresholds for state changes
 	const float inputThresh = 0.001f;
 
@@ -107,6 +107,10 @@ void MLProcEnvelope::process(const int samples)
 		register float bias = 0.05f;
 		register float dxdt, gIn, velIn;
 		register bool upTrig, downTrig, crossedThresh, delayCounterDone, doRepeat;
+        
+        // TEMP
+        float attackIn = attack[n] - 0.0001f;
+        attackIn = clamp(attackIn, 0.f, 20.f);
 		
 		// TODO make constant coefficient vectors for constant input parameter signals.
 		// TODO mark/write output signal as constant when we know it is.		
@@ -116,7 +120,7 @@ void MLProcEnvelope::process(const int samples)
 			mSustain = sustain[n];
 			mDelayStep = invSr / max(delay[n], kMinSegTime); 
 			mRepeatStep = (repeat[n] == 0.f) ? 0.f : invSr / max(repeat[n], kMinSegTime);
-			mCAttack =  kMLTwoPi * invSr / max(attack[n], kMinSegTime);
+			mCAttack =  kMLTwoPi * invSr / max(attackIn, kMinSegTime);
 			mCDecay = kMLTwoPi * invSr / max(decay[n], kMinSegTime);
 //			mCSustain = kMLTwoPi * invSr / ();
 			mCRelease = kMLTwoPi * invSr / max(release[n], kMinSegTime);

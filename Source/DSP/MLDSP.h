@@ -381,12 +381,14 @@ inline char * spaceStr( unsigned int numIndents )
 	return &pINDENT[ LENGTH-n ];
 }
 
-class BiquadCoeffs
+class MLBiquad
 {
-public:	
-	BiquadCoeffs() { a0 = a1 = a2 = b1 = b2 = 0.f; mOneOverSr = 1.f;}
-	~BiquadCoeffs() {}
+public:
+	MLBiquad() { a0 = a1 = a2 = b1 = b2 = 0.f; mOneOverSr = 1.f;}
+	~MLBiquad() {}
 	
+    float processSample(float x);
+    void clear();
 	void setSampleRate(float sr) { mOneOverSr = 1.f / sr; }
 	void setLopass(float f, float q);
 	void setHipass(float f, float q);
@@ -394,6 +396,7 @@ public:
 	void setOnePole(float f);
 	void setDifferentiate(void);
 	float a0, a1, a2, b1, b2;
+	float x1, x2, y1, y2;
 	float mOneOverSr;
 };
 
