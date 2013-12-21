@@ -154,11 +154,11 @@ void MLDSPEngine::compileEngine()
 }
 
 
-// prepareToPlay() needs to be called if the sampling rate or block size changes.
+// prepareEngine() needs to be called if the sampling rate or block size changes.
 //
-MLProc::err MLDSPEngine::prepareToPlay(double sr, unsigned bufSize, unsigned vecSize)
+MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned vecSize)
 {
-	// debug() << " MLDSPEngine::prepareToPlay: DSPEngine " << std::hex << (void *)this << std::dec << "\n"; 
+	// debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
 	
 	if ((e == OK) && (mGraphStatus == OK) && (mCompileStatus == OK))
@@ -209,7 +209,7 @@ MLProc::err MLDSPEngine::prepareToPlay(double sr, unsigned bufSize, unsigned vec
 		if (mpInputToSignalsProc)
 		{
 // TEMP
-debug() << "MLDSPEngine::prepareToPlay: mpInputToSignalsProc bufsize: " << bufSize << "\n";
+debug() << "MLDSPEngine::prepareEngine: mpInputToSignalsProc bufsize: " << bufSize << "\n";
 			mpInputToSignalsProc->setParam("bufsize", bufSize);
 			mpInputToSignalsProc->resize();		
 		}

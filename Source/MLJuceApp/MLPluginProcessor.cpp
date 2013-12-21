@@ -141,7 +141,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		}
 
 		// prepare to play: resize and clear processors
-		prepareErr = mEngine.prepareToPlay(sr, bufSize, vecSize);
+		prepareErr = mEngine.prepareEngine(sr, bufSize, vecSize);
 		if (prepareErr != MLProc::OK)
 		{
 			debug() << "MLPluginProcessor: prepareToPlay error: \n";

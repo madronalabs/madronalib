@@ -47,7 +47,7 @@ public:
 	
 	void compileEngine();
 	bool getCompileStatus(void) {return mCompileStatus;}
-	MLProc::err prepareToPlay(double sr, unsigned bufSize, unsigned vecSize);
+	MLProc::err prepareEngine(double sr, unsigned bufSize, unsigned vecSize);
 
 	// ----------------------------------------------------------------
 	// I/O
