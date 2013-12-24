@@ -701,7 +701,7 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 		MLProcList patchers = getPatcherList();
 		if (!patchers.empty())
 		{
-			MLProcMatrix& firstPatcher = static_cast<MLProcMatrix&>(**patchers.begin());
+			MLProcPatcher& firstPatcher = static_cast<MLProcPatcher&>(**patchers.begin());
 			const unsigned inputs = firstPatcher.getNumInputs();
 			const unsigned outputs = firstPatcher.getNumOutputs();
 			String outStr;
@@ -1169,7 +1169,7 @@ void MLPluginProcessor::scanPresets()
     mPresetFiles = MLFileCollectionPtr(new MLFileCollection("user_presets", getDefaultFileLocation(kPresetFiles), presetFileType));
     mPresetFiles->setListener(this);
     mPresetFiles->findFilesImmediate();
-    mPresetFiles->dump();
+    // mPresetFiles->dump();
     
     pushInfoToListeners();
 }

@@ -10,7 +10,6 @@
 #include "MLProcInputToSignals.h"
 #include "MLInputProtocols.h"
 #include "MLProcHostPhasor.h"
-#include "MLProcMatrix.h"
 #include "MLSignal.h"
 #include "MLRingBuffer.h"
 #include "OscTypes.h"

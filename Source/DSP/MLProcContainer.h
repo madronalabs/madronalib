@@ -18,10 +18,7 @@
 #include "MLParameter.h"
 #include "MLRatio.h"
 
-//#include "tinyxml.h"
-//#include "juce_XmlDocument.h" // just for XML, TODO 
 #include "JuceHeader.h"
-
 
 class MLProcRingBuffer;
 

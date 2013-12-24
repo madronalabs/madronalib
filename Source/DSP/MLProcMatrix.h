@@ -6,30 +6,13 @@
 #ifndef ML_PROC_MATRIX_H
 #define ML_PROC_MATRIX_H
 
-
 #include "MLProc.h"
 
 static const int kMLMatrixMaxIns = 32;
 static const int kMLMatrixMaxOuts = 64;
 
-// compact form representing connections in a matrix. 
-class MLMatrixConnectionList
-{
-public:
-	unsigned size;
-	unsigned char data[2 * kMLMatrixMaxIns * kMLMatrixMaxOuts];
-	void clear() { bzero(data, sizeof(data)); };
-    
-	MLMatrixConnectionList() : size(0) { clear(); };
-	~MLMatrixConnectionList(){};
-	
-	bool operator== (const MLMatrixConnectionList& b);
-	bool operator!= (const MLMatrixConnectionList& b);
-};
-
 // ----------------------------------------------------------------
 // class definition
-
 
 class MLProcMatrix : public MLProc
 {
@@ -42,7 +25,6 @@ public:
 	void connect(unsigned a, unsigned b);
 	void disconnect(unsigned a, unsigned b);
 	bool getConnection(unsigned a, unsigned b);
-	void getConnectionData(MLMatrixConnectionList* pData);
 
 	void clear(){};
 	void process(const int frames);		
@@ -52,8 +34,9 @@ public:
 private:
 	MLProcInfo<MLProcMatrix> mInfo;
 	MLSample mGain[kMLMatrixMaxIns + 1][kMLMatrixMaxOuts + 1];
-	
-	
+    int mInputs;
+    int mOutputs;
+    MLSignal mDelayBuffers[kMLMatrixMaxOuts];
 };
 
 #endif // ML_PROC_MATRIX_H

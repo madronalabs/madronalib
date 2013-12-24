@@ -48,7 +48,6 @@ private:
 	
 	void doParams(void);	// rebuilds buffer 
 
-
 };
 
 

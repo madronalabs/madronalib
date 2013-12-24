@@ -12,6 +12,7 @@
 #include "MLModel.h"
 #include "MLPluginEditor.h"
 #include "MLFileCollection.h"
+#include "MLProcPatcher.h"
 
 #include <vector>
 #include <map>

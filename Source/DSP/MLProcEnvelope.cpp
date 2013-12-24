@@ -37,7 +37,7 @@ private:
 	int mT;
 };
 	
-static const float kMinSegTime = 0.00002f;
+static const float kMinSegTime = 0.0002f;
 static const float kMaxSegTime = 20.000f;
 
 // ----------------------------------------------------------------
@@ -132,6 +132,9 @@ void MLProcEnvelope::process(const int samples)
 		const bool wasOver = mGate1 > inputThresh;
 		const bool isOver = gIn > inputThresh;		
 		upTrig = !wasOver && isOver;
+        
+//        if(upTrig) { debug() << "!"; }
+        
 		downTrig = wasOver && !isOver;
 		
 		// IIR filter.  

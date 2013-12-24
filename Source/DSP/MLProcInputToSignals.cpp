@@ -376,10 +376,7 @@ void MLProcInputToSignals::setup()
 
 void MLProcInputToSignals::doParams()
 {
-    debug() << "MLProcInputToSignals: doParams()\n";
 	int newVoices = (int)getParam("voices");
-    
-    debug() << "MLProcInputToSignals: " << newVoices << " voices.\n";
     
 // TODO enable / disable voice containers here
 	mOSCDataRate = (int)getParam("data_rate");
@@ -480,7 +477,7 @@ void MLProcInputToSignals::clear()
 	int bufSize = (int)getParam("bufsize");
 	int vecSize = getContextVectorSize();
 	
-	debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
+	// debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
 	
     clearMIDI();
 	
@@ -857,9 +854,11 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			pitch.add(mDriftSignal); 
 					
 			mVoices[v].mdGate.writeToSignal(gate, mMIDIFrameOffset, frames);
-			mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);			
-			mVoices[v].mdVel.writeToSignal(velSig, mMIDIFrameOffset, frames); 
-
+			
+            mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);
+            
+ 			mVoices[v].mdVel.writeToSignal(velSig, mMIDIFrameOffset, frames);
+            
 			// aftertouch for each voice is channel aftertouch + poly aftertouch.
 			mVoices[v].mdAfter.writeToSignal(after, mMIDIFrameOffset, frames);
 			after.add(mChannelAfterTouchSignal); 				

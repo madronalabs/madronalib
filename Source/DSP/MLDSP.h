@@ -58,7 +58,7 @@ typedef float MLParamValue;
 // ----------------------------------------------------------------
 
 const uintptr_t kMLSampleSizeBits = 2;
-const uintptr_t kMLDefaultSignalSizeBits = 8;
+const uintptr_t kMLDefaultSignalSizeBits = 6;
 const uintptr_t kMLDefaultSignalSize = 1 << kMLDefaultSignalSizeBits;
 const uintptr_t kMLSamplesPerSSEVectorBits = 2;
 const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;

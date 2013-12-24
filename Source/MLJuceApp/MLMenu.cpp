@@ -247,13 +247,14 @@ void MLMenu::buildIndex()
     std::string startPath("");
     mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
     
+    /*
     // DEBUG
     debug() << "fullnames by index: \n";
     int size = mFullNamesByIndex.size();
     for(int i = 0; i < size; ++i)
     {
         debug() << " #" << i << ": " << mFullNamesByIndex[i] << "\n";
-    }
+    */
 }
     
 void MLMenu::addSeparator()
