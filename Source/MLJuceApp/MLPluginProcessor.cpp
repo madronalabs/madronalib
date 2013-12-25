@@ -702,8 +702,8 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 		if (!patchers.empty())
 		{
 			MLProcPatcher& firstPatcher = static_cast<MLProcPatcher&>(**patchers.begin());
-			const unsigned inputs = firstPatcher.getNumInputs();
-			const unsigned outputs = firstPatcher.getNumOutputs();
+			const int inputs = firstPatcher.getParam("inputs");
+			const int outputs = firstPatcher.getParam("outputs");
 			String outStr;
 			String patcherInput = "patcher_input_";
 			
