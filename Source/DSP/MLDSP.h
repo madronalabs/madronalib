@@ -392,6 +392,7 @@ public:
 	void setSampleRate(float sr) { mOneOverSr = 1.f / sr; }
 	void setLopass(float f, float q);
 	void setHipass(float f, float q);
+    void setPeakNotch(float f, float q, float gain);
 	void setNotch(float f, float q);
 	void setOnePole(float f);
 	void setDifferentiate(void);
