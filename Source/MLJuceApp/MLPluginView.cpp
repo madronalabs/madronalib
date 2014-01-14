@@ -175,16 +175,15 @@ MLDrawableButton* MLPluginView::addDrawableButton(const MLRect & r, const char *
 
 MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color)
 {
-	MLDial* dial = MLAppView::addDial("", r, paramName, color);
+	MLDial* dial = addDial("", r, paramName, color);
 	dial->setRange(0., 1., 0.01);
 	dial->setBipolar(false);	
 	dial->setDialStyle (MLDial::Rotary);
 	dial->setRotaryParameters ((kMLPi * 1.f),(kMLPi * 3.0f), true);
 	dial->setDoNumber(false);
 	dial->setTicks(0);
-	dial->setDoubleClickReturnValue (true, 0.0);
-	dial->setOpaque(false);
-	
+	// dial->setDoubleClickReturnValue (true, 0.0);
+	dial->setOpaque(false);	
 	return dial;
 }
 
