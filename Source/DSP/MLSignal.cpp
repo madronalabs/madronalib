@@ -245,29 +245,8 @@ int MLSignal::getFrames() const
 	}
 }
 
+
 /*
-// MLSample value
-// interpolate between neighbors.  
-// TODO consider different kinds of interpolation.
-// consider implementing interpolate-row method for speed.
-MLSample MLSignal::operator() (float fi) const
-{
-	MLSample a, b;
-	unsigned i = floor(fi);
-	float remainder = fi - i;
-	a = mData[i&mWidthMask];
-	b = mData[(i + 1)&(mWidthMask)];
-	return lerp(a, b, remainder);
-}
-
-// inspector, return by value
-	inline MLSample& operator()(int i, int j)
-	{
-		return mDataAligned[(j<<mWidthBits) + i];
-	}
-*/
-
-
 const MLSample MLSignal::operator()(const float fi, const float fj) const
 {
 	MLSample a, b, c, d;
@@ -294,14 +273,16 @@ const MLSample MLSignal::operator()(const float fi, const float fj) const
 	d = (j2ok && i2ok) ? mDataAligned[row(j + 1) + i + 1] : 0.f;
 	
 	return lerp(lerp(a, b, ri), lerp(c, d, ri), rj);
-}
+}*/
 
+/*
 // TODO SSE
 const MLSample MLSignal::operator()(const Vec2& pos) const
 {
 	return operator()(pos.x(), pos.y());
 }
-
+*/
+/*
 // TODO unimplemented
 const MLSample MLSignal::operator() (const float , const float , const float ) const
 {
@@ -312,6 +293,7 @@ const MLSample MLSignal::operator() (const Vec3 ) const
 {
 	return 0.;
 }
+*/
 
 // return const 2D signal made from a slice of the 3D data in place. 
 const MLSignal MLSignal::getFrame(int i) const

@@ -97,16 +97,6 @@ public:
 		return mDataAligned[i];
 	}
 
-	// return linear interpolated value. for power-of-two size tables, this
-	// will interpolate around the loop.
-	// TODO SSE - get interpolated vector.
-	inline MLSample getInterpolated(float f) const 
-	{
-		int i = (int)f;
-		float m = f - i;
-		return lerp(mDataAligned[i&mConstantMask], mDataAligned[(i+1)&mConstantMask], m);
-	}
-	
 	inline void setToConstant(MLSample k)
 	{
 		mConstantMask = 0;
@@ -131,7 +121,49 @@ public:
 	{
 		return(mConstantMask == 0);
 	}
+    
+	// return signal value at the position p, interpolated linearly.
+    // For power-of-two size tables, this will interpolate around the loop.
+	inline MLSample getInterpolatedLinear(float p) const
+	{
+		int pi = (int)p;
+		float m = p - pi;
+        float r0 = mDataAligned[pi&mConstantMask];
+        float r1 = mDataAligned[(pi + 1)&mConstantMask];
+		return lerp(r0, r1, m);
+	}
+    
+    void addDeinterpolatedLinear(float p, float v)
+    {
+		int pi = (int)p;
+		float m = p - pi;
+        mDataAligned[pi&mConstantMask] += (1.0f - m)*v;
+        mDataAligned[(pi + 1)&mConstantMask] += (m)*v;
+    }
+
 	
+    /*
+     // MLSample value
+     // interpolate between neighbors.
+     // TODO consider different kinds of interpolation.
+     // consider implementing interpolate-row method for speed.
+     MLSample MLSignal::operator() (float fi) const
+     {
+     MLSample a, b;
+     unsigned i = floor(fi);
+     float remainder = fi - i;
+     a = mData[i&mWidthMask];
+     b = mData[(i + 1)&(mWidthMask)];
+     return lerp(a, b, remainder);
+     }
+     
+     // inspector, return by value
+     inline MLSample& operator()(int i, int j)
+     {
+     return mDataAligned[(j<<mWidthBits) + i];
+     }
+     */
+    
 	// --------------------------------------------------------------------------------
 	// 2D access methods
 	//
@@ -150,8 +182,42 @@ public:
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 
-	const MLSample operator() (const float i, const float j) const;
-	const MLSample operator() (const Vec2& pos) const;
+	inline MLSample getInterpolatedLinear(float px, float py) const
+	{
+		int pxi = (int)px;
+		int pyi = (int)py;
+		float mx = px - pxi;
+		float my = py - pyi;
+        float r00 = mDataAligned[(row(pyi) + pxi)];
+        float r01 = mDataAligned[(row(pyi) + pxi + 1)];
+        float r10 = mDataAligned[(row(pyi + 1) + pxi)];
+        float r11 = mDataAligned[(row(pyi + 1) + pxi + 1)];
+        float r0 = lerp(r00, r01, mx);
+        float r1 = lerp(r10, r11, mx);
+        float r = lerp(r0, r1, my);
+		return r;
+	}
+
+    void addDeinterpolatedLinear(float px, float py, float v)
+    {
+		int pxi = (int)px;
+		int pyi = (int)py;
+		float mx = px - pxi;
+		float my = py - pyi;
+        float r0 = (1.0f - my)*v;
+        float r1 = (my)*v;
+        float r00 = (1.0f - mx)*r0;
+        float r01 = (mx)*r0;
+        float r10 = (1.0f - mx)*r1;
+        float r11 = (mx)*r1;
+        mDataAligned[(row(pyi) + pxi)] += r00;
+        mDataAligned[(row(pyi) + pxi + 1)] += r01;
+        mDataAligned[(row(pyi + 1) + pxi)] += r10;
+        mDataAligned[(row(pyi + 1) + pxi + 1)] += r11;
+    }
+
+//	const MLSample operator() (const float i, const float j) const;
+//	const MLSample operator() (const Vec2& pos) const;
 	
 	// --------------------------------------------------------------------------------
 	// 3D access methods
@@ -170,9 +236,11 @@ public:
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
 	}
 
+    /*
 	const MLSample operator() (const float i, const float j, const float k) const;
 	const MLSample operator() (const Vec3 pos) const;
-	
+	*/
+    
 	// getFrame() - return const 2D signal made from data in place. 
 	const MLSignal getFrame(int i) const;
 
@@ -240,7 +308,6 @@ public:
 
 	// Convolve the 2D matrix with a radially symmetric 3x3 matrix defined by coefficients
 	// kc (center), ke (edge), and kk (corner).
-	//
 	void convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk);
 	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
 	void variance3x3();
@@ -264,7 +331,7 @@ public:
 	void partialDiffY();
 	// return highest value in signal
 	Vec3 findPeak() const;
-
+    // add (blit) another 2D signal
 	void add2D(const MLSignal& b, int destX, int destY);
 	void add2D(const MLSignal& b, const Vec2& destOffset);
 	
