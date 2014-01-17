@@ -1,4 +1,3 @@
-
 // MadronaLib: a C++ framework for DSP applications.
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
@@ -160,6 +159,7 @@ namespace
 MLProcInputToSignals::MLProcInputToSignals() :
     mProtocol(-1),
     mpFrameBuf(0),
+    mControllerNumber(-1),
 	mCurrentVoices(0),
 	mUnisonInputTouch(-1),
 	mSustain(false)

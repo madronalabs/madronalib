@@ -1260,7 +1260,13 @@ void MLPluginProcessor::advancePreset(int amount)
 {
     int len = mPresetFiles->size();
     std::string extension = getExtensionForWrapperType();
-    int currIdx = mPresetFiles->getFileIndexByName(*getModelStringParam("preset") + extension);
+
+    int currIdx = - 1;
+    const std::string* currPresetName = getModelStringParam("preset");
+    if (currPresetName != NULL)
+    {
+        mPresetFiles->getFileIndexByName(*currPresetName + extension);
+    }
     
     if(currIdx >= 0)
     {
