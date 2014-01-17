@@ -135,8 +135,12 @@ public:
     
     void addDeinterpolatedLinear(float p, float v)
     {
-		int pi = (int)p;
-		float m = p - pi;
+        // TODO SSE
+        float eps = 0.00001f;
+        float fw = (float)mWidth - eps;
+        float pc = min(p, fw);
+		int pi = (int)pc;
+		float m = pc - pi;
         mDataAligned[pi&mConstantMask] += (1.0f - m)*v;
         mDataAligned[(pi + 1)&mConstantMask] += (m)*v;
     }
@@ -200,10 +204,16 @@ public:
 
     void addDeinterpolatedLinear(float px, float py, float v)
     {
-		int pxi = (int)px;
-		int pyi = (int)py;
-		float mx = px - pxi;
-		float my = py - pyi;
+        // TODO SSE
+        float eps = 0.00001f;
+        float fw = (float)mWidth - eps;
+        float fh = (float)mHeight - eps;        
+        float pxc = min(px, fw);
+        float pyc = min(px, fh);
+		int pxi = (int)pxc;
+		int pyi = (int)pyc;
+		float mx = pxc - pxi;
+		float my = pyc - pyi;
         float r0 = (1.0f - my)*v;
         float r1 = (my)*v;
         float r00 = (1.0f - mx)*r0;
