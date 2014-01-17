@@ -18,7 +18,7 @@ class MLMatrixConnectionList
 public:
 	unsigned size;
 	unsigned char data[2 * kMLMatrixMaxIns * kMLMatrixMaxOuts];
-	void clear() { bzero(data, sizeof(data)); };
+	void clear() { memset(data, 0, sizeof(data)); };
     
 	MLMatrixConnectionList() : size(0) { clear(); };
 	~MLMatrixConnectionList(){};

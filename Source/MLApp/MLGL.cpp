@@ -61,14 +61,17 @@ void MLGL::strokeRect(const MLRect& r)
 // TEMP
 void MLGL::drawTextAt(float x, float y, float z, const char* ps)
 {
+#ifdef MAC
 	int len, i;
     
 	glRasterPos3f(x, y, z);
 	len = (int) strlen(ps);
 	for (i = 0; i < len; i++)
 	{
+
 		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ps[i]);
 	}
+#endif
 }
 
 Vec2 MLGL::worldToScreen(const Vec3& world)

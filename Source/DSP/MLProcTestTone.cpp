@@ -31,7 +31,7 @@ namespace
 {
 	MLProcRegistryEntry<MLProcTestTone> classReg("test_tone");
 	ML_UNUSED MLProcParam<MLProcTestTone> params[1] = { "mode" }; // todo a few kinds of test signals
-	ML_UNUSED MLProcInput<MLProcTestTone> inputs[] = { };
+	// ML_UNUSED MLProcInput<MLProcTestTone> inputs[] = { };
 	ML_UNUSED MLProcOutput<MLProcTestTone> outputs[] = { "out" };
 }
 

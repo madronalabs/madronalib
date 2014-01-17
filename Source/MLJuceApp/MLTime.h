@@ -17,7 +17,7 @@ typedef   signed long long              int64;
 typedef unsigned long long              uint64;
 #endif
 
-int64 getMicroseconds(); 
+juce::int64 getMicroseconds(); 
 
 
 #endif // __ML_TIME_H__

@@ -5,7 +5,7 @@
 
 #include "MLTime.h"
 
-int64 getMicroseconds()
+juce::int64 getMicroseconds()
 {
 
 /*
@@ -24,11 +24,11 @@ int64 getMicroseconds()
 #endif
 
 */
-	
-	int64 now = juce::Time::getHighResolutionTicks();
+
+	juce::int64 now = juce::Time::getHighResolutionTicks();
 	double t = juce::Time::highResolutionTicksToSeconds (now);
 	double micros = t*1000000.;
-	int64 m = micros;
+	juce::int64 m = micros;
 	return m;
 }
 
