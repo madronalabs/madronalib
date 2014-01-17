@@ -72,6 +72,7 @@ private:
 	MLSymbol mName;
 	MLSymbol mInstigatorName; // name of Widget that triggered us
     NodePtr mRoot;
+    bool mHasIndex;
     std::vector<std::string> mFullNamesByIndex;
 };
 
