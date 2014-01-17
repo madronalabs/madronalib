@@ -30,7 +30,6 @@ private:
 	
 	// temp
 	unsigned mC;
-	float mVal1;
 };
 
 
@@ -89,11 +88,6 @@ void MLProcParamToSignal::process(const int frames)
 	
 	if (mGlide == 0.f)
 	{
-		if(mVal1 != mVal)
-		{
-//			debug() << " #" << std::setprecision(5) << mVal ;
-			mVal1 = mVal;
-		}
 		y.setToConstant(mVal);
 	}
 	else
