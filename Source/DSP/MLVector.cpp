@@ -189,6 +189,11 @@ void MLRect::setCenter(const Vec2& b)
 	val.f[1] = b.val.f[1] - val.f[3]*0.5f;
 }
 
+void MLRect::centerInRect(const MLRect& b)
+{
+    setCenter(b.getCenter());
+}
+
 MLRect MLRect::translated(const Vec2& b) const
 {
 	return *this + b; 
@@ -204,14 +209,20 @@ MLRect MLRect::withCenter(const float cx, const float cy)
 	return (translated(Vec2(cx - left() - width()*0.5f, cy - top() - height()*0.5f))); 
 }
 
+MLRect MLRect::withTopLeft(const Vec2& b) const
+{
+	return (MLRect(b.val.f[0], b.val.f[1], width(), height()));
+}
+
+MLRect MLRect::withTopLeft(const float cx, const float cy) 
+{
+	return (MLRect(cx, cy, width(), height()));
+}
+
+
 Vec2 MLRect::getCenter() const
 {
 	return Vec2(left() + width()*0.5f, top() + height()*0.5f);
-}
-
-Vec2 MLRect::getSize() const
-{
-	return Vec2(width()*0.5f, height()*0.5f);
 }
 
 Vec2 MLRect::getTopLeft() const

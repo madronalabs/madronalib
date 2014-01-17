@@ -22,31 +22,9 @@ public:
         foregroundColor              = 0x10120a01,  
     };
 	
-	/*
-	enum
-	{
-		delayValue,
-		attackValue,
-		decayValue,
-		sustainValue,
-		releaseValue,
-		repeatValue
-	};
-	*/
-	
 	void setAttribute(MLSymbol attr, float val);
-
     void setDARMode(bool m) { mDARMode = m; }
-	
-	/*
-	void setSelectedValue (double newValue,
-						const int valSelector,
-                       const bool sendUpdateMessage,
-                       const bool sendMessageSynchronously = 0);
-	*/
-	
 	void triggerChangeMessage (const bool synchronous);
-
 	void resizeWidget(const MLRect& b, const int u);
 
 protected:
@@ -59,15 +37,6 @@ protected:
 private:
 	bool mDARMode;
 	float mOutlineThickness;
-	
-	/*
-	double mDelay;
-	double mAttack;
-	double mDecay;
-	double mSustain;
-	double mRelease;
-	double mRepeat;
-	*/
 	
     MLEnvelope (const MLEnvelope&);
     const MLEnvelope& operator= (const MLEnvelope&);

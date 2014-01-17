@@ -11,6 +11,8 @@
 #include "MLDefaultFileLocations.h"
 #include "MLModel.h"
 #include "MLPluginEditor.h"
+#include "MLFileCollection.h"
+#include "MLProcPatcher.h"
 
 #include <vector>
 #include <map>
@@ -25,9 +27,17 @@ const int kMLPatcherMaxTableSize = 64;
 
 class MLPluginProcessor : 
 	public AudioProcessor,
+    public MLFileCollection::Listener,
 	public MLModel
 {
 public:
+	class Listener
+	{
+	public:
+		virtual ~Listener() {}
+		virtual void scaleFilesChanged(const MLFileCollectionPtr) = 0;
+		virtual void presetFilesChanged(const MLFileCollectionPtr) = 0;
+	};
 		
 	MLPluginProcessor();
     ~MLPluginProcessor();
@@ -48,6 +58,14 @@ public:
     void releaseResources();
 	void setDefaultParameters();
 	void reset();
+
+	// --------------------------------------------------------------------------------
+    // MLFileCollection::Listener
+    virtual void processFile (const MLSymbol collection, const File& f, int idx);
+
+	// --------------------------------------------------------------------------------
+    void pushInfoToListeners();
+    void setProcessorListener (MLPluginProcessor::Listener* l);
 
 	// --------------------------------------------------------------------------------
 	// process
@@ -85,7 +103,15 @@ public:
 	MLPublishedParamPtr getParameterPtr (int index);
 	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
 	const std::string& getParameterGroupName (int index);
-		
+    
+	// --------------------------------------------------------------------------------
+    // MLModel parameters
+    virtual void setModelParam(MLSymbol p, float v);
+    virtual void setModelParam(MLSymbol p, const std::string& v);
+    virtual void setModelParam(MLSymbol p, const MLSignal& v);
+    
+    void setScaleByName(const std::string& fullName);
+
 	// --------------------------------------------------------------------------------
 	// signals
 	int countSignals(const MLSymbol alias);
@@ -98,17 +124,21 @@ public:
 	// state
 	virtual void getStateAsXML (XmlElement& xml);
 	virtual void setStateFromXML(const XmlElement& xmlState);
-	int saveStateAsVersion(const File& f);
-	int saveStateOverPrevious(const File& f);
+	int saveStateAsVersion();
+    
+	int saveStateOverPrevious();
 	void returnToLatestStateLoaded();
 	
-	void getStateAsText (String& destStr);
+	String getStateAsText ();
 	void setStateFromText (const String& stateStr);
 
 	void getStateInformation (juce::MemoryBlock& destData);
     void setStateInformation (const void* data, int sizeInBytes);
 
-	void saveStateToFile(File& saveFile);
+    int saveStateToFullPath(const std::string& path);
+    void saveStateToRelativePath(const std::string& path);
+    
+    void loadStateFromPath(const std::string& path);
 	void loadStateFromFile(const File& loadFile);
 
 	// --------------------------------------------------------------------------------
@@ -118,7 +148,7 @@ public:
 	void setMIDIProgramFile(int pgm, File f);
 	void setStateFromMIDIProgram (const int pgmIdx);
 	void scanMIDIPrograms();
-
+ 
 	// --------------------------------------------------------------------------------
 	// channels
 	
@@ -143,13 +173,11 @@ public:
 	// --------------------------------------------------------------------------------
 	// presets
 	
-	const String getExtensionForWrapperType();
-	const String& getCurrentPresetName();
-	const String& getCurrentPresetDir();
-	const String& getCurrentScaleName();
-
-	// used by wrapper
-	void setCurrentPresetName(const char* name);
+	std::string getExtensionForWrapperType();
+	void scanPresets();
+    void prevPreset();
+    void nextPreset();
+    void advancePreset(int amount);
 	
 	// --------------------------------------------------------------------------------
     AudioPlayHead::CurrentPositionInfo lastPosInfo;
@@ -164,7 +192,6 @@ public:
 	
 	void loadScale(const File& f);
 	void loadDefaultScale();
-	void setScalesFolder(const File f);
 	virtual void broadcastScale(const MLScale* pScale) = 0;
 	
 	MLDSPEngine* getEngine() { return &mEngine; }
@@ -173,11 +200,6 @@ public:
 	// debug
 	
 	inline void showEngine() { mEngine.dump(); }
-	
-	// errors TODO do this reusably
-	
-	const String& getErrorMessage() { return mErrorMessage; }
-	void setErrorMessage(const String& s) { mErrorMessage = s; }
 	
 protected:
 	// Engine creates graphs of Processors, does the work
@@ -189,17 +211,14 @@ protected:
 	// TODO shared_ptr
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
-	
-	// patcher and other UI element ptrs TEMP
-	// MLMatrixConnectionList mMatrixData;
 		
 private:
 
 	void setCurrentPresetDir(const char* name);
-	void setCurrentScaleName(const char* name);
 	
 	MLAudioProcessorListener* MLListener;
-
+    Listener* mpListener;
+    
 	// number of parameters stored here so we can access it before engine compile
 	int mNumParameters; 
 	
@@ -216,10 +235,11 @@ private:
 	
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
-	String mCurrentScaleName;
-	String mCurrentScaleDir;
 
-	File mFactoryPresetsFolder, mUserPresetsFolder, mScalesFolder;
+    MLFileCollectionPtr mScaleFiles;
+    MLFileCollectionPtr mPresetFiles;
+
+	File mFactoryPresetsFolder, mUserPresetsFolder;
 	bool mFileLocationsOK;
 		
 	std::vector<File> mMIDIProgramFiles;
@@ -232,8 +252,6 @@ private:
 	bool mEditorAnimationsOn;
 	
 	bool mInitialized;
-	
-	String mErrorMessage;
 };
 
 #endif  // __PLUGINPROCESSOR__

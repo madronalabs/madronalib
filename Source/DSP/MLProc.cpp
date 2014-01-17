@@ -131,11 +131,19 @@ MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 		}
 		else if (mInputs[idx - 1])
 		{
-			e = inputOccupiedErr;
+            if(mInputs[idx - 1] == &(getContext()->getNullInput()))
+            {
+                mInputs[idx - 1] = &srcSig;
+            }
+            else
+            {
+                // TODO this condition can cause crashes down the road, fix
+                e = inputOccupiedErr;
+            }
 		}
 		else
 		{
-			mInputs[idx - 1] = &srcSig;	
+			mInputs[idx - 1] = &srcSig;
 		}
 	}
 	return e;
@@ -215,7 +223,9 @@ int MLProc::getOutputIndex(const MLSymbol name)
 		}
 		else
 		{
+            /* TEMP compiler issues
 			debug() << "MLProc::getOutputIndex: bad name for variable output index " << str << "!\n";
+             */
 		}
 	}
 	else

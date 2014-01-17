@@ -18,37 +18,13 @@ namespace
 }
 
 // ----------------------------------------------------------------
-// MLMatrixConnectionList
-
-bool MLMatrixConnectionList::operator== (const MLMatrixConnectionList& b)
-{
-	if (size != b.size)
-	{
-		return false;
-	}
-	
-	for(unsigned i=0; i<2 * kMLMatrixMaxIns * kMLMatrixMaxOuts; ++i)
-	{
-		if (data[i] != b.data[i])
-		{
-			return false;
-		}
-	}
-	return true;
-}
-	
-bool MLMatrixConnectionList::operator!= (const MLMatrixConnectionList& b)
-{
-	return !operator==(b);
-}
-
-// ----------------------------------------------------------------
 // implementation
 
 MLProcMatrix::MLProcMatrix()
 {
 	setParam("in", 0.);
 	setParam("out", 0.);
+    mInputs = mOutputs = 0;
 //	debug() << "MLProcMatrix constructor\n";
 	clearConnections();
 }
@@ -62,13 +38,18 @@ MLProcMatrix::~MLProcMatrix()
 MLProc::err MLProcMatrix::resize()
 {
 	MLProc::err e = OK;
-    
-    // TODO sort out resizing and limits. 
+	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 
-//	const unsigned inputs = getParam("inputs"); // currently unused
-//	const unsigned outputs = getParam("outputs");
+    mInputs = inputs;
+    mOutputs = outputs;
 	
 //debug() << "MLProcMatrix: " << inputs << " inputs " << outputs << " outputs \n";
+    
+    for(int i=0; i<mOutputs; ++i)
+    {
+        mDelayBuffers[i].setDims(kMLDefaultSignalSize);
+    }
 	
 	return e;
 }
@@ -119,36 +100,6 @@ bool MLProcMatrix::getConnection(unsigned a, unsigned b)
 	return r;
 }
 
-// put info about every connection into the destination block of memory.
-// For each connection a pair of bytes [a, b] goes into the destination.
-void MLProcMatrix::getConnectionData(MLMatrixConnectionList* pData)
-{
-	unsigned n = 0;	
-	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
-	
-	for(unsigned i=0; i<2 * kMLMatrixMaxIns * kMLMatrixMaxOuts; ++i)
-	{
-		pData->data[i] = 0;
-	}
-	
-	for (unsigned i=1; i <= inputs; ++i)
-	{
-		for (unsigned j=1; j <= outputs; ++j)
-		{
-			if (mGain[i][j] > 0.5f)
-			{
-				pData->data[n*2] = (unsigned char)i;
-				pData->data[n*2 + 1] = (unsigned char)j;
-				n++;
-			}
-		}
-	}
-	
-	pData->size = n;
-}
-
-
 // single connections are made here by parameters.
 void MLProcMatrix::calcCoeffs()
 {
@@ -185,11 +136,16 @@ void MLProcMatrix::process(const int frames)
 	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
 	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	
+    if((inputs != mInputs) || (outputs != mOutputs))
+    {
+        resize();
+    }
 	if (mParamsChanged)
 	{
 		calcCoeffs();
 	}
-	
+    
+    
 	// TODO optimize, calc constants
 	
 	for (unsigned j=1; j <= outputs; ++j)

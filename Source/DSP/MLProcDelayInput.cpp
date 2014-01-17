@@ -44,9 +44,6 @@ MLProc::err MLProcDelayInput::resize()
 	mLengthMask = length - 1;
 	
 	MLSample* pBuf = mBuffer.setDims(length);
-
-//debug() << "	MLProcDelayInput " << getName() << " resize: " << length << " samples.\n";
-
 	if (!pBuf)
 	{
 		e = memErr;
@@ -60,7 +57,6 @@ void MLProcDelayInput::clear()
 	mBuffer.clear();
 	mWriteIndex = 0;
 }
-
 
 void MLProcDelayInput::process(const int frames)
 {

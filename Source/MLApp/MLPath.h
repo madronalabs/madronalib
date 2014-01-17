@@ -14,7 +14,10 @@
 // previous container.  
 // 
 // the copy number lets the path refer to one specific MLProc in a
-// multiple container.  
+// multiple container.
+// TODO the copy nuber cannot possibly handle multis inside multis,
+// which need to be possible eventually. Rather there needs to be the
+// possibility of either a wildcard or a copy number at each multi.
 
 const int kMLPathMaxSymbols = 14;
 

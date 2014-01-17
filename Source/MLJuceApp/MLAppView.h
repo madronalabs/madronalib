@@ -71,7 +71,7 @@ public:
 	MLDebugDisplay* addDebugDisplay(const MLRect & r);
 		
 	MLDrawableButton* addDrawableButton(const MLRect & r, const char * name, 
-		const Colour& color, const Drawable* normal);
+		const Drawable* normal, const Colour& color = defaultColor);
 		
 	MLDrawableButton* addRawImageButton(const MLRect & r, const char * name, 
 		const Colour& color, const Drawable* normal);

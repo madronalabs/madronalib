@@ -132,23 +132,62 @@ float dBToAmp(float d)
 	return powf(10.f, d/20.f);
 }	
 
-#pragma mark BiquadCoeffs
-void BiquadCoeffs::setLopass(float f, float q)
+#pragma mark MLBiquad
+float MLBiquad::processSample(float x)
+{
+    float in, out;
+    in = x;
+    out = a0*in + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+    x2 = x1;
+    x1 = x;
+    y2 = y1;
+    y1 = out;
+    return(out);
+}
+
+void MLBiquad::clear()
+{
+    x2 = 0.;
+    x1 = 0.;
+    y2 = 0.;
+    y1 = 0.;
+}
+
+void MLBiquad::setLopass(float f, float q)
 {
 	//LPF:        H(s) = 1 / (s^2 + s/Q + 1)
 	float omega = kMLTwoPi * f * mOneOverSr;
 	float cosOmega = cosf(omega);
 	float alpha = sinf(omega) / (2.f * q);
-	float b0 = 1.f + alpha;
+	float b0 = 1.f / (1.f + alpha);
 	
-	a0 = (1.f - cosOmega) * 0.5f / b0;
-	a1 = (1.f - cosOmega) / b0;
+	a0 = (1.f - cosOmega) * 0.5f * b0;
+	a1 = (1.f - cosOmega) * b0;
 	a2 = a0;
-	b1 = -2.f * cosOmega / b0;
-	b2 = (1.f - alpha) / b0;
+	b1 = -2.f * cosOmega * b0;
+	b2 = (1.f - alpha) * b0;
 }
 
-void BiquadCoeffs::setHipass(float f, float q)
+void MLBiquad::setPeakNotch(float f, float q, float gain)
+{    
+	//notch: H(s) = (s^2 + 1) / (s^2 + s/Q + 1)
+	float omega = kMLTwoPi * f * mOneOverSr;
+	float cosOmega = cosf(omega);
+	float alpha = sinf(omega) / (2.f * q);
+    
+    float A = sqrtf(gain);
+    float alphaOverA = alpha/A;
+    A *= alpha;
+	float b0 = 1.f / (1.f + alphaOverA);
+	
+	a0 = (1.f + A) * b0;
+	a1 = -2.f * cosOmega * b0;
+	a2 = (1.f - A) * b0;
+	b1 = a1;
+	b2 = (1.f - alphaOverA) * b0;
+}
+
+void MLBiquad::setHipass(float f, float q)
 {
 	//HPF:        H(s) = s^2 / (s^2 + s/Q + 1)
 	float omega = kMLTwoPi * f * mOneOverSr;
@@ -163,7 +202,7 @@ void BiquadCoeffs::setHipass(float f, float q)
 	b2 = (1.f - alpha) / b0;
 }
 
-void BiquadCoeffs::setNotch(float f, float q)
+void MLBiquad::setNotch(float f, float q)
 {
 	//notch: H(s) = (s^2 + 1) / (s^2 + s/Q + 1)
 	float omega = kMLTwoPi * f * mOneOverSr;
@@ -178,7 +217,7 @@ void BiquadCoeffs::setNotch(float f, float q)
 	b2 = (1.f - alpha) / b0;
 }
 
-void BiquadCoeffs::setOnePole(float f)
+void MLBiquad::setOnePole(float f)
 {
 //	float omega = kMLTwoPi * f * mOneOverSr;
 //	float cosOmega = cosf(omega);
@@ -191,7 +230,7 @@ void BiquadCoeffs::setOnePole(float f)
 	b2 = 0;
 }
 
-void BiquadCoeffs::setDifferentiate(void)
+void MLBiquad::setDifferentiate(void)
 {
 	a0 = 1.f;
 	a1 = -1.f;

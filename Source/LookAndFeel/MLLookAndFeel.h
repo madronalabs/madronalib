@@ -38,7 +38,7 @@ typedef std::tr1::shared_ptr<Drawable> DrawablePtr;
 
 const float kPopupMenuTextScale = 0.85f;
 
-class  MLLookAndFeel : public LookAndFeel, public DeletedAtShutdown
+class  MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
 {
 public:
     //==============================================================================
@@ -102,15 +102,16 @@ public:
 	
     /** Draws the glow for an ML raw image button. */
     void drawButtonGlow (Graphics& g,
-                                       Button& button,
+                         juce::Button& button,
 									   const Colour& glowColor);
 
     /** Draws the lozenge-shaped background for a standard button. */
     void drawButtonBackground (Graphics& g,
-                                       Button& button,
+                                       juce::Button& button,
                                        const Colour& backgroundColour,
                                        bool isMouseOverButton,
-                                       bool isButtonDown);
+                                       bool isButtonDown,
+                                        float outlineThickness = kMLButtonOutlineThickness);
 
     /** Draws the text for a TextButton. */
     void drawButtonText (Graphics& g,
@@ -221,14 +222,14 @@ public:
                                               GlyphArrangement& destArrangement,
                                               int width);
 */
-    Button* createFileBrowserGoUpButton();
+    juce::Button* createFileBrowserGoUpButton();
 
     void layoutFileBrowserComponent (FileBrowserComponent& browserComp,
                                              DirectoryContentsDisplayComponent* fileListComponent,
                                              FilePreviewComponent* previewComp,
                                              ComboBox* currentPathBox,
                                              TextEditor* filenameBox,
-                                             Button* goUpButton);
+                                             juce::Button* goUpButton);
 
 
 
@@ -294,7 +295,7 @@ public:
 
     Label* createComboBoxTextBox (ComboBox& box);
 
-    Button* createDialButton (const bool isIncrement);
+    juce::Button* createDialButton (const bool isIncrement);
  //   Label* createDialTextBox (MLDial& MLDial);
 
     ImageEffectFilter* getDialEffect();
@@ -305,10 +306,10 @@ public:
 	Font getTextButtonFont (TextButton& button);
 
     //==============================================================================
-    Button* createFilenameComponentBrowseButton (const String& text);
+    juce::Button* createFilenameComponentBrowseButton (const String& text);
 
     void layoutFilenameComponent (FilenameComponent& filenameComp,
-                                          ComboBox* filenameBox, Button* browseButton);
+                                          ComboBox* filenameBox, juce::Button* browseButton);
 
     //==============================================================================
     void drawCornerResizer (Graphics& g,
@@ -338,9 +339,9 @@ public:
     void positionDocumentWindowButtons (DocumentWindow& window,
                                                 int titleBarX, int titleBarY,
                                                 int titleBarW, int titleBarH,
-                                                Button* minimiseButton,
-                                                Button* maximiseButton,
-                                                Button* closeButton,
+                                                juce::Button* minimiseButton,
+                                                juce::Button* maximiseButton,
+                                                juce::Button* closeButton,
                                                 bool positionTitleBarButtonsOnLeft);
 
     int getDefaultMenuBarHeight();
@@ -366,7 +367,7 @@ public:
     //==============================================================================
     void paintToolbarBackground (Graphics& g, int width, int height, Toolbar& toolbar);
 
-    Button* createToolbarMissingItemsButton (Toolbar& toolbar);
+    juce::Button* createToolbarMissingItemsButton (Toolbar& toolbar);
 
     void paintToolbarButtonBackground (Graphics& g, int width, int height,
                                                bool isMouseOver, bool isMouseDown,

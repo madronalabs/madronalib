@@ -245,29 +245,8 @@ int MLSignal::getFrames() const
 	}
 }
 
+
 /*
-// MLSample value
-// interpolate between neighbors.  
-// TODO consider different kinds of interpolation.
-// consider implementing interpolate-row method for speed.
-MLSample MLSignal::operator() (float fi) const
-{
-	MLSample a, b;
-	unsigned i = floor(fi);
-	float remainder = fi - i;
-	a = mData[i&mWidthMask];
-	b = mData[(i + 1)&(mWidthMask)];
-	return lerp(a, b, remainder);
-}
-
-// inspector, return by value
-	inline MLSample& operator()(int i, int j)
-	{
-		return mDataAligned[(j<<mWidthBits) + i];
-	}
-*/
-
-
 const MLSample MLSignal::operator()(const float fi, const float fj) const
 {
 	MLSample a, b, c, d;
@@ -294,14 +273,16 @@ const MLSample MLSignal::operator()(const float fi, const float fj) const
 	d = (j2ok && i2ok) ? mDataAligned[row(j + 1) + i + 1] : 0.f;
 	
 	return lerp(lerp(a, b, ri), lerp(c, d, ri), rj);
-}
+}*/
 
+/*
 // TODO SSE
 const MLSample MLSignal::operator()(const Vec2& pos) const
 {
 	return operator()(pos.x(), pos.y());
 }
-
+*/
+/*
 // TODO unimplemented
 const MLSample MLSignal::operator() (const float , const float , const float ) const
 {
@@ -312,6 +293,7 @@ const MLSample MLSignal::operator() (const Vec3 ) const
 {
 	return 0.;
 }
+*/
 
 // return const 2D signal made from a slice of the 3D data in place. 
 const MLSignal MLSignal::getFrame(int i) const
@@ -740,6 +722,48 @@ void MLSignal::sigMax(const MLSample m)
 	}
 }
 
+// convolve a 1D signal with a 3-point impulse response.
+void MLSignal::convolve3(const MLSample km, const MLSample k, const MLSample kp)
+{
+    // TODO SSE
+	int width = mWidth;
+	MLSample* pIn = getCopy();
+    
+    // left
+    mDataAligned[0] = k*pIn[0] + kp*pIn[1];
+    
+    // center
+    for(int i=1; i<width - 1; ++i)
+    {
+        mDataAligned[i] = km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1];
+    }
+    
+    // right
+    mDataAligned[width - 1] = km*pIn[width - 2] + k*pIn[width - 1];
+}
+
+void MLSignal::convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
+{
+    // TODO SSE
+	int width = mWidth;
+	MLSample* pIn = getCopy();
+    
+    // left
+    mDataAligned[0] = k*pIn[0] + kp*pIn[1] + kpp*pIn[2];
+    mDataAligned[1] = km*pIn[0] + k*pIn[1] + kp*pIn[2] + kpp*pIn[3];
+    
+    // center
+    for(int i=2; i<width - 2; ++i)
+    {
+        mDataAligned[i] = kmm*pIn[i - 2] + km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1] + kpp*pIn[i + 2];
+    }
+    
+    // right
+    mDataAligned[width - 2] = kmm*pIn[width - 4] + km*pIn[width - 3] + k*pIn[width - 2] + kp*pIn[width - 1];
+    mDataAligned[width - 1] = kmm*pIn[width - 4] + km*pIn[width - 3] + k*pIn[width - 2];
+}
+
+
 // an operator for 2D signals only
 void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk)
 {
@@ -1147,6 +1171,17 @@ void MLSignal::variance3x3()
 	}
 }
 
+float MLSignal::getRMS()
+{
+    float d = 0.f;
+    for(int i=0; i<mSize; ++i)
+    {
+        const float v = (mDataAligned[i]);
+        d += v*v;
+    }
+    return sqrtf(d/mSize);
+}
+
 float MLSignal::rmsDiff(const MLSignal& b)
 {
     float d = 0.f;
@@ -1308,14 +1343,14 @@ float MLSignal::getMax() const
 	return fMax;
 }
 
-void MLSignal::dump(bool verbose) const
+void MLSignal::dump(int verbosity) const
 {
 	debug() << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;
 	const MLSignal& f = *this;
-	if(verbose)
+	if(verbosity > 0)
 	{
 		if(isConstant())
 		{
@@ -1338,7 +1373,11 @@ void MLSignal::dump(bool verbose) const
 			debug() << std::setprecision(5);
 			for (int i=0; i<w; ++i)
 			{
-				debug() << mDataAligned[i] << " ";
+                if(verbosity > 1)
+                {
+                    debug() << "[" << i << "]";
+                }
+                debug() << mDataAligned[i] << " ";
 			}
 			debug() << "\n";
 		}

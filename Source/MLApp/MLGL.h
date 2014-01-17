@@ -30,14 +30,14 @@ namespace MLGLData
     static const int indicatorColorsMask = indicatorColorsSize - 1;
     const float indicatorColors[indicatorColorsSize*4] =
     {
-        0.0, 0.5, 0.7, 1.,
-        0.5, 0.2, 0.9, 1.,
-        0.8, 0.0, 0.8, 1.,
-        0.8, 0.1, 0.4, 1.,
-        0.9, 0.3, 0.0, 1.,
-        1.0, 0.4, 0.0, 1.,
-        0.8, 0.7, 0.0, 1.,
-        0.4, 0.7, 0.1, 1.,
+        0.0705, 0.501, 0.670, 1.,
+        0.352, 0.4, 0.647, 1.,
+        0.623, 0.341, 0.623, 1.,
+        0.701, 0.286, 0.243, 1.,
+        0.788, 0.435, 0.223, 1.,
+        0.784, 0.592, 0.278, 1.,
+        0.737, 0.647, 0.494, 1.,
+        0.415, 0.454, 0.231, 1.
     };
 };
 
@@ -46,6 +46,8 @@ class MLGL
 public:
      
     static void orthoView(int width, int height);
+    static void orthoView2(int width, int height);
+    void orthoViewForAspectInBounds(const float a, const MLRect bounds);
     
 #if ML_MAC // TODO
     static void worldView(float aspect);
@@ -59,7 +61,7 @@ public:
     
     static Vec2 worldToScreen(const Vec3& world);
 
-    static void drawDot(Vec2 pos);
+    static void drawDot(Vec2 pos, float r); // TEMP
 
 };
 

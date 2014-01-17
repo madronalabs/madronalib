@@ -36,10 +36,14 @@ void MLPageView::setParent(MLAppView* pParent)
 MLAppView* MLPageView::addPage()
 {
 	MLAppView* newPage = new MLAppView(getResponder(), getReporter());
+    int pageNum = mPages.size();
+    String pageStr = String("page") + String(pageNum);
+    newPage->setName(pageStr);
+    
+    // debug() << "ADDING page " << pageStr << "\n";
 	mPages.push_back(newPage);
 	addChildComponent(newPage);
 	newPage->setBounds(0, 0, getWidth(), getHeight());	
-	int pageNum = mWidgets.size();
 	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), MLSymbol("page").withFinalNumber(pageNum));
 	return newPage;
 }
@@ -82,7 +86,8 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	int h = getHeight();
 	Rectangle<int> localBounds(0, 0, w, h);
 	
-	if(!mPages.size()) return;
+    int pages = mPages.size();
+	if(!pages) return;
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int u = myLookAndFeel->getGridUnitSize(); 
@@ -147,6 +152,22 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 //	debug() << "next alpha: " << targetAlpha << "\n";
 		}
 	}
+    else
+    {
+        for(int p=0; p<pages; ++p)
+        {
+            if(p == newPage)
+            {
+                mPages[p]->setBounds(localBounds);
+                mPages[p]->setVisible(true);
+            }
+            else
+            {
+                mPages[p]->setBounds(localBounds.translated((w + margin), 0));
+                mPages[p]->setVisible(false);
+            }
+        }
+    }
 
 	mCurrPage = newPage;
 }

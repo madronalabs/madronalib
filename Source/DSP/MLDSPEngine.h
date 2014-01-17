@@ -10,7 +10,6 @@
 #include "MLProcInputToSignals.h"
 #include "MLInputProtocols.h"
 #include "MLProcHostPhasor.h"
-#include "MLProcMatrix.h"
 #include "MLSignal.h"
 #include "MLRingBuffer.h"
 #include "OscTypes.h"
@@ -47,7 +46,7 @@ public:
 	
 	void compileEngine();
 	bool getCompileStatus(void) {return mCompileStatus;}
-	MLProc::err prepareToPlay(double sr, unsigned bufSize, unsigned vecSize);
+	MLProc::err prepareEngine(double sr, unsigned bufSize, unsigned vecSize);
 
 	// ----------------------------------------------------------------
 	// I/O

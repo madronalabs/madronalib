@@ -105,7 +105,8 @@ inline bool approxEqual(const float a, const float b) { return(fabs(b - a) < 0.0
 
 
 // --------------------------------------------------------------------------------
-//
+#pragma mark color utilities
+
 const juce::Colour createMLBaseColour (const juce::Colour& buttonColour,
                                       const bool hasKeyboardFocus,
                                       const bool,
@@ -115,5 +116,13 @@ const juce::Colour brightColor (const juce::Colour& c);
 const juce::Colour brighterColor (const juce::Colour& c);
 const juce::Colour darkColor (const juce::Colour& c);
 const juce::Colour darkerColor (const juce::Colour& c);
+
+// --------------------------------------------------------------------------------
+#pragma mark string utilities
+
+
+const std::string getShortName(const std::string& str);
+const std::string stripExtension(const std::string& str);
+const std::string getPath(const std::string& str);
 
 #endif // __ML_UI__

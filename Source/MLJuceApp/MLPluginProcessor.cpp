@@ -7,6 +7,7 @@
 
 MLPluginProcessor::MLPluginProcessor() : 
 	MLListener(0),
+    mpListener(0),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
 	mInitialized(false)
@@ -14,30 +15,14 @@ MLPluginProcessor::MLPluginProcessor() :
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
-
-	setCurrentPresetName("");	
-	setCurrentPresetDir("");	
-
-	// get data folder locations
-	mFactoryPresetsFolder = getDefaultFileLocation(kFactoryPresetFiles);
-	mUserPresetsFolder = getDefaultFileLocation(kUserPresetFiles);
-	mScalesFolder = getDefaultFileLocation(kScaleFiles);
-	if ((mFactoryPresetsFolder == File::nonexistent) ||
-		(mUserPresetsFolder == File::nonexistent) ||
-		(mScalesFolder == File::nonexistent))
-	{
-		debug() << "MLPluginProcessor: couldn't get data files!\n";
-	}
-	else
-	{
-		mFileLocationsOK = true;
-	}	
-
+    
+    // get scales collection
+    mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+    mScaleFiles->setListener(this);
+    mScaleFiles->findFilesImmediate();
+    
+    scanPresets();
 	scanMIDIPrograms();
-	
-    //	debug() << "processor factory presets: " << mFactoryPresetsFolder.getFullPathName() << "\n";
-	//	debug() << "processor user presets: " << mUserPresetsFolder.getFullPathName() << "\n";
-	//	debug() << "processor scales: " << mScalesFolder.getFullPathName() << "\n";
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -156,7 +141,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		}
 
 		// prepare to play: resize and clear processors
-		prepareErr = mEngine.prepareToPlay(sr, bufSize, vecSize);
+		prepareErr = mEngine.prepareEngine(sr, bufSize, vecSize);
 		if (prepareErr != MLProc::OK)
 		{
 			debug() << "MLPluginProcessor: prepareToPlay error: \n";
@@ -203,8 +188,45 @@ void MLPluginProcessor::releaseResources()
 }
 
 // --------------------------------------------------------------------------------
+#pragma mark MLFileCollection::Listener
+
+// nothing in particular to do here, but there might be in the future. 
+void MLPluginProcessor::processFile (const MLSymbol collection, const File& f, int idx)
+{
+    if(collection == "scales")
+    {
+    }
+    else if(collection == "mappings")
+    {
+    }
+    else if(collection == "presets")
+    {        
+    }
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark Listener related
+
+void MLPluginProcessor::pushInfoToListeners()
+{
+    // push things a listener needs to know about
+    if(mpListener)
+    {
+        // sample file collection
+        mpListener->scaleFilesChanged(mScaleFiles);
+        mpListener->presetFilesChanged(mPresetFiles);
+    }
+}
+
+// when a new listener is set, immediately update it with all the current info we have.
+void MLPluginProcessor::setProcessorListener(MLPluginProcessor::Listener* l)
+{
+    mpListener = l;
+    pushInfoToListeners();
+}
+
+// --------------------------------------------------------------------------------
 #pragma mark process
-//
 
 void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 {
@@ -273,8 +295,7 @@ debug() << "program change " << pgm << "\n";
 				setStateFromMIDIProgram(pgm);
 			}
 		}
-		else
-		
+        else if (!message.isMidiClock())
 		// TEST
 		{
 			int msgSize = message.getRawDataSize();
@@ -563,6 +584,47 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 
 // --------------------------------------------------------------------------------
+#pragma mark MLModel params TODO should be called attributes
+
+void MLPluginProcessor::setModelParam(MLSymbol p, float v)
+{
+	MLModel::setModelParam(p, v);
+}
+
+void MLPluginProcessor::setModelParam(MLSymbol p, const std::string& v)
+{
+	MLModel::setModelParam(p, v);
+	if (p == "key_scale")
+	{
+		setScaleByName(v);
+ 	}
+}
+
+void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
+{
+	MLModel::setModelParam(p, v);
+}
+
+void MLPluginProcessor::setScaleByName(const std::string& fullName)
+{
+    bool loaded = false;
+    if(fullName != std::string())
+    {
+        const MLFilePtr f = mScaleFiles->getFileByName(fullName);
+        if(f != MLFilePtr())
+        {
+            loadScale(f->mFile);
+            loaded = true;
+        }
+    }
+    
+    if(!loaded)
+    {
+        loadDefaultScale();
+    }
+}
+
+// --------------------------------------------------------------------------------
 #pragma mark signals
 //
 
@@ -604,17 +666,23 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 #else
 
   	const unsigned numParams = getNumParameters();
+    const std::string* paramStr;
 
 	// TODO use string attributes of model instead of these JUCE strings.
-	// also use std::string based XML or JSON persistence.
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
-    xml.setAttribute ("presetName", mCurrentPresetName);	
-    xml.setAttribute ("presetDir", mCurrentPresetDir);		
-    xml.setAttribute ("scaleName", mCurrentScaleName);
-    xml.setAttribute ("scaleDir", mCurrentScaleDir);
-	// debug() << "saving with scale " << mCurrentScaleDir << "/" << mCurrentScaleName << "\n";
-	
-	// store parameter values to xml as a bunch of attributes.  
+	// also move to JSON.
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
+    paramStr = getModelStringParam("preset");
+    if (paramStr != 0)
+    {
+        xml.setAttribute ("presetName", String(paramStr->c_str()));
+    }
+    paramStr = getModelStringParam("key_scale");
+    if (paramStr != 0)
+    {
+        xml.setAttribute ("scaleName", String(paramStr->c_str()));
+    }
+
+	// store parameter values to xml as a bunch of attributes.
 	// not XML best practice in general but takes fewer characters.
 	for(unsigned i=0; i<numParams; ++i)
 	{
@@ -633,9 +701,9 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 		MLProcList patchers = getPatcherList();
 		if (!patchers.empty())
 		{
-			MLProcMatrix& firstPatcher = static_cast<MLProcMatrix&>(**patchers.begin());
-			const unsigned inputs = firstPatcher.getNumInputs();
-			const unsigned outputs = firstPatcher.getNumOutputs();
+			MLProcPatcher& firstPatcher = static_cast<MLProcPatcher&>(**patchers.begin());
+			const int inputs = firstPatcher.getParam("inputs");
+			const int outputs = firstPatcher.getParam("outputs");
 			String outStr;
 			String patcherInput = "patcher_input_";
 			
@@ -686,11 +754,12 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 
 }
 
-int MLPluginProcessor::saveStateAsVersion(const File& destDir)
+// auto-increment a version number and save at the current preset location with the new pathname.
+int MLPluginProcessor::saveStateAsVersion()
 {
+    int r = 0;
 	int version = 0;
-	const std::string* pNameStr1 = getModelStringParam("preset");
-    std::string nameStr(*pNameStr1);
+    std::string nameStr(*getModelStringParam("preset"));
 	std::string noVersionStr;
 	std::string versionStr;
 	int numberStart = 0;
@@ -723,32 +792,18 @@ int MLPluginProcessor::saveStateAsVersion(const File& destDir)
 	version = clamp(version, 1, 9999);
 	char vBuf[16];
 	sprintf(vBuf, "[%d]", version);
-	nameStr = noVersionStr + vBuf;
-	
-	File saveFile = destDir.getChildFile(String(nameStr.c_str()));
-	String shortName = saveFile.getFileNameWithoutExtension();
-	const String ext = getExtensionForWrapperType();
-	File saveWithExt = saveFile.getParentDirectory().getChildFile(shortName + ext);
-	
-	int r;
-	if(saveWithExt.exists())
-	{
-		setErrorMessage("Version " + shortName + " already exists!");
-		r = -1;
-	}
-	else
-	{
-		saveStateToFile(saveFile);
-		r = 0;
-	}
+    std::string newName = noVersionStr + vBuf;
+
+    saveStateToRelativePath(newName);
+
+    r = 0;
+
 	return r;
 }
 
-int MLPluginProcessor::saveStateOverPrevious(const File& destDir)
+int MLPluginProcessor::saveStateOverPrevious()
 {
-	const std::string* pNameStr = getModelStringParam("preset");
-	File saveFile = destDir.getChildFile(String(pNameStr->c_str()));
-	saveStateToFile(saveFile);
+    saveStateToRelativePath(*getModelStringParam("preset"));
 	return 0;
 }
 
@@ -772,7 +827,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	// getCallbackLock() is in juce_AudioProcessor
 	// process lock is a quick fix.  it is here to prevent doParams() from getting called in 
 	// process() methods and thereby setting mParamsChanged to false before the real changes take place.
-	//
+	// A better alternative would be a lock-free queue of parameter changes. 
 	const ScopedLock sl (getCallbackLock()); 
 		
 	// only the differences between default parameters and the program state are saved in a program,
@@ -790,56 +845,29 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 		MLError() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
 		return;
 	}
-	
-	// get name saved in blob.  when saving from AU host, name will also be set from RestoreState().
-	const String presetName = xmlState.getStringAttribute ("presetName");	
-	const String presetDir = xmlState.getStringAttribute ("presetDir");	
-	
-	/*
-	debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
-	MemoryOutputStream myStream;
-    xmlState->writeToStream (myStream, "");
-	debug() << myStream.toString();
-	*/
-	
-	setCurrentPresetName(presetName.toUTF8());
-	setCurrentPresetDir(presetDir.toUTF8());
-	
+    
 	// try to load scale if a scale attribute exists
-	const String scaleName = xmlState.getStringAttribute ("scaleName");		
-	const String scaleDir = xmlState.getStringAttribute ("scaleDir");		
-	if ((scaleName == String::empty) || (scaleName == "12-equal"))
-	{
-		setCurrentScaleName("12-equal");
-		loadDefaultScale();
-	}
-	else
-	{
-		File scale;
-
-//		scales = ("/Library/Audio/Presets/Madrona Labs/Scales/");
-		if (mScalesFolder.exists())
-		{
-			String scaleFileName = scaleDir + "/" + scaleName + ".scl";
-			scale = mScalesFolder.getChildFile(scaleFileName); 
-
-			if (scale.exists())
-			{
-				setCurrentScaleName(scaleName.toUTF8());
-				loadScale(scale);
-				mCurrentScaleDir = scaleDir;
-			}
-			else
-			{
-				MLError() << "MLPluginProcessor: scale " << scaleFileName << " not found!\n";
-			}
-		}
-		else
-		{
-			MLError() << "MLPluginProcessor: Scales directory not found!\n";
-		}
-	}
+    // TODO auto save all state including this
+	const String scaleName = xmlState.getStringAttribute ("scaleName");
+	setModelParam("key_scale", std::string(scaleName.toUTF8()));
+    
+	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
+    
+	const String presetName = xmlState.getStringAttribute ("presetName");
+	setModelParam("preset", std::string(presetName.toUTF8()));
+    
+	/*
+     debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
+     MemoryOutputStream myStream;
+     xmlState->writeToStream (myStream, "");
+     debug() << myStream.toString();
+     */
 	
+    /*
+     setCurrentPresetName(presetName.toUTF8());
+     setCurrentPresetDir(presetDir.toUTF8());
+     */
+    
 	// get plugin-specific translation table for updating older versions of data
 	std::map<MLSymbol, MLSymbol> translationTable;
 
@@ -947,13 +975,13 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	}
 }
 
-void MLPluginProcessor::getStateAsText (String& destStr)
+String MLPluginProcessor::getStateAsText ()
 {
     // create an outer XML element.
 	ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
 	getStateAsXML(*xmlProgram);
 	
-	destStr = xmlProgram->createDocument (String::empty, true, false);
+	return xmlProgram->createDocument (String::empty, true, false);
 }
 
 void MLPluginProcessor::setStateFromText (const String& stateStr)
@@ -989,68 +1017,84 @@ void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 	}
 }
 
-// save the current state to the native file for our plugin type.  
+// save with full path name as input -- needed for using system File dialogs
 //
-void MLPluginProcessor::saveStateToFile(File& saveFile)
+int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
 {
-#if DEMO
-	String shortName = saveFile.getFileNameWithoutExtension();
-	debug() << "DEMO version. Saving is disabled.\n";
-#else
-
-	String shortName = saveFile.getFileNameWithoutExtension();
-	String dirName = saveFile.getParentDirectory().getFileNameWithoutExtension();
-	setCurrentPresetName(shortName.toUTF8());
-	setCurrentPresetDir(dirName.toUTF8());
-
-	String extension = getExtensionForWrapperType();
-		
-	// insure < 32 chars! (TODO needed if not AU?)
-	int maxlength = 32 - extension.length();
-	if (shortName.length() > maxlength)
-	{
-		shortName = shortName.substring(0, maxlength - 1);
-	}
-	
-	// TODO warn or ask or something if saveFile does not have the proper extension
-	
-	String newState;
-	switch(wrapperType)
-	{
-		case wrapperType_VST:
-		case wrapperType_Standalone:
-			// get File with new name
-			saveFile = saveFile.getParentDirectory().getChildFile(shortName + extension);
-			
-			// create or save over file
-			getStateAsText(newState);
-			saveFile.replaceWithText(newState);
-		break;
-		case wrapperType_AudioUnit:
-			// tell AU wrapper to save, insuring extension is .aupreset
-			sendMessageToMLListener (MLAudioProcessorListener::kSave, saveFile.withFileExtension(extension));
-		break;
-		default:
-		break;
-	}
-	
-#endif
+    int r = 0;
+    std::string newPath = mPresetFiles->getRelativePath(fullPath);
+    if(newPath != "")
+    {
+        saveStateToRelativePath(newPath);
+    }
+    else
+    {
+        r = 1;
+    }
+    return r;
 }
 
-void MLPluginProcessor::loadStateFromFile(const File& loadFile)
+// creates a file with the right extension for the plugin type.
+// input: a file path relative to the presets root, without extension.
+//
+void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 {
-	if (loadFile.exists())
+#if DEMO
+	debug() << "DEMO version. Saving is disabled.\n";
+#else
+    
+    // the Model param contains the file path relative to the root.
+    std::string shortPath = stripExtension(path);
+    setModelParam("preset", shortPath);
+    std::string extension = getExtensionForWrapperType();
+    std::string extPath = shortPath + extension;    
+    const MLFilePtr f = mPresetFiles->createFile(extPath);
+    
+    switch(wrapperType)
+    {
+        case wrapperType_VST:
+        case wrapperType_Standalone:            
+            // get state and write to file
+            f->mFile.replaceWithText(getStateAsText());
+            break;
+        case wrapperType_AudioUnit:
+            // tell AU wrapper to save
+            sendMessageToMLListener (MLAudioProcessorListener::kSave, f->mFile);
+            break;
+        default:
+            break;
+    }
+	
+#endif
+    
+}
+
+void MLPluginProcessor::loadStateFromPath(const std::string& path)
+{    
+    if(path != std::string())
+    {
+        const MLFilePtr f = mPresetFiles->getFileByName(path);
+        if(f != MLFilePtr())
+        {
+            loadStateFromFile(f->mFile);
+            std::string shortPath = stripExtension(path);
+            setModelParam("preset", shortPath);
+        }
+    }
+}
+
+void MLPluginProcessor::loadStateFromFile(const File& f)
+{
+	if (f.exists())
 	{
-		String shortName = loadFile.getFileNameWithoutExtension();
-		String extension = loadFile.getFileExtension();
-		String dirName = loadFile.getParentDirectory().getFileNameWithoutExtension();
+		String extension = f.getFileExtension();
 		
-		debug() << "loading file: " << dirName << "/" << shortName << "\n";
+debug() << "loading file: " << f.getFileName() << "\n";
 		
 		if (extension == ".mlpreset")
 		{
 			// load cross-platform mlpreset file.
-			ScopedPointer<XmlDocument> stateToLoad (new XmlDocument(loadFile));
+			ScopedPointer<XmlDocument> stateToLoad (new XmlDocument(f));
 			if (stateToLoad != NULL)
 			{
 				XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
@@ -1061,12 +1105,8 @@ void MLPluginProcessor::loadStateFromFile(const File& loadFile)
 		else if (extension == ".aupreset")
 		{
 			// tell AU wrapper to load AU-compatible .aupreset file.
-			sendMessageToMLListener (MLAudioProcessorListener::kLoad, loadFile);				
+			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
 		}
-		
-		// override preset name in blob with saved file name.
-		setCurrentPresetName(shortName.toUTF8());
-		
 	}	
 }
 
@@ -1109,6 +1149,31 @@ void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
 	}
 }
 
+void MLPluginProcessor::scanPresets()
+{
+   // get preset extension to look for
+    std::string presetFileType;
+    switch(wrapperType)
+    {
+        case AudioProcessor::wrapperType_AudioUnit:
+            presetFileType = "aupreset";
+            break;
+        case AudioProcessor::wrapperType_VST:
+        case AudioProcessor::wrapperType_Standalone:
+        default:
+            presetFileType = "mlpreset";
+            break;
+    }
+
+    // get presets collections
+    mPresetFiles = MLFileCollectionPtr(new MLFileCollection("user_presets", getDefaultFileLocation(kPresetFiles), presetFileType));
+    mPresetFiles->setListener(this);
+    mPresetFiles->findFilesImmediate();
+    // mPresetFiles->dump();
+    
+    pushInfoToListeners();
+}
+
 void MLPluginProcessor::scanMIDIPrograms()
 {
 	String pluginType;
@@ -1134,7 +1199,7 @@ void MLPluginProcessor::scanMIDIPrograms()
 
 	clearMIDIProgramFiles();
 	
-	File startDir = getDefaultFileLocation(kUserPresetFiles);
+	File startDir = getDefaultFileLocation(kPresetFiles);
 	if (!startDir.isDirectory()) return;	
 	File subDir = startDir.getChildFile("MIDI Programs");
 	if (!subDir.isDirectory()) 
@@ -1164,9 +1229,9 @@ void MLPluginProcessor::scanMIDIPrograms()
 #pragma mark presets
 //
 
-const String MLPluginProcessor::getExtensionForWrapperType()
+std::string MLPluginProcessor::getExtensionForWrapperType()
 {
-	String ext;
+    std::string ext;
 	switch(wrapperType)
 	{
 		case AudioProcessor::wrapperType_VST:
@@ -1181,37 +1246,41 @@ const String MLPluginProcessor::getExtensionForWrapperType()
 	return ext;
 }
 
-const String& MLPluginProcessor::getCurrentPresetName()
-{ 
-	return mCurrentPresetName; 
-}
-
-const String& MLPluginProcessor::getCurrentPresetDir()
-{ 
-	return mCurrentPresetDir; 
-}
-
-void MLPluginProcessor::setCurrentPresetName(const char* name)
+void MLPluginProcessor::prevPreset()
 {
-	mCurrentPresetName = name;	
-	setModelParam("preset", name);	
+    advancePreset(-1);
 }
 
-void MLPluginProcessor::setCurrentPresetDir(const char* name)
+void MLPluginProcessor::nextPreset()
 {
-	mCurrentPresetDir = name;	
-	setModelParam("preset_dir", name);	
+    advancePreset(1);
 }
 
-const String& MLPluginProcessor::getCurrentScaleName()
-{ 
-	return mCurrentScaleName; 
-}
-
-void MLPluginProcessor::setCurrentScaleName(const char* name)
+void MLPluginProcessor::advancePreset(int amount)
 {
-	mCurrentScaleName = name;
-	setModelParam("key_scale", name);
+    int len = mPresetFiles->size();
+    std::string extension = getExtensionForWrapperType();
+    int currIdx = mPresetFiles->getFileIndexByName(*getModelStringParam("preset") + extension);
+    
+    if(currIdx >= 0)
+    {
+        currIdx += amount;
+    }
+    else
+    {
+        // not found
+        currIdx = 0;
+    }
+    if(currIdx < 0)
+    {
+        currIdx = len - 1;
+    }
+    if(currIdx >= len)
+    {
+        currIdx = 0;
+    }
+    std::string relPath = mPresetFiles->getFileNameByIndex(currIdx);
+    loadStateFromPath(relPath);
 }
 
 // set default value for each scalar parameter.  needed before loading
@@ -1280,25 +1349,14 @@ bool MLPluginProcessor::producesMidi() const
 
 void MLPluginProcessor::setMLListener (MLAudioProcessorListener* const newListener) throw()
 {
-//    const ScopedLock sl (MLlistenerLock);
 	assert(newListener);
     MLListener = newListener;
 }
-
-/*
-void MLPluginProcessor::removeMLListener (MLAudioProcessorListener* const listenerToRemove) throw()
-{
-    const ScopedLock sl (MLlistenerLock);
-    MLlisteners.removeValue (listenerToRemove);
-}
-*/
 
 MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File& f)
 {
 	MLProc::err err = MLProc::OK;
 	if(!MLListener) return MLProc::unknownErr;
-
-//	const ScopedLock sl (MLlistenerLock);
 
 	switch(msg)
 	{
@@ -1315,6 +1373,7 @@ debug() << "sendMessageToMLListener: load file " << f.getFileName() << "\n";
 	return err;
 }
 
+// TODO what is this doing in Processor? Should be in MLScale.
 void MLPluginProcessor::loadScale(const File& f) 
 {
 	MLScale* pScale = mEngine.getScale();
@@ -1350,8 +1409,6 @@ void MLPluginProcessor::loadScale(const File& f)
 					pScale->setDescription(descStr);
 					const char* nameStr = scaleName.toUTF8();
 					pScale->setName(nameStr);
-					mCurrentScaleName = scaleName;
-					mCurrentScaleDir = scaleDir;
 				}
 				break;
 				
@@ -1419,13 +1476,6 @@ void MLPluginProcessor::loadDefaultScale()
 {
 	MLScale* pScale = mEngine.getScale();
 	if (!pScale) return;
-	
-	setModelParam("key_scale", "12-equal");
-	
-	// TODO these special variables will go away, use the string attributes instead.
-	// wait and move XML persistence to std::string-based code at the same time.
-	mCurrentScaleName = "12-equal";
-	mCurrentScaleDir = "";
 	
 	pScale->setDefaultScale();
 	pScale->setDefaultMapping();

@@ -10,6 +10,7 @@ MLTriToggleButton::MLTriToggleButton() :
     MLButton()
 {
     setAttribute("tri_button", true);
+    setOpaque(false);
 }
 
 MLTriToggleButton::~MLTriToggleButton()
@@ -31,24 +32,23 @@ void MLTriToggleButton::setAttribute(MLSymbol attr, float val)
 void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	myLookAndFeel->drawBackground(g, this);
 	
 	// colors
+	const float alpha = isEnabled() ? 1.f : 0.25f;
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));
 	const Colour onColor (findColour (MLButton::buttonOnColourId));
 	const Colour offBrightColor (offColor.getHue(), offColor.getSaturation(), jmin(offColor.getBrightness() + 0.1, 1.), offColor.getFloatAlpha());
 	const Colour onBrightColor (onColor.getHue(), onColor.getSaturation(), jmin(onColor.getBrightness() + 0.1, 1.), onColor.getFloatAlpha());
-	const Colour offOverColor ((mDoRollover && isMouseOverButton) ? offBrightColor : offColor);
-	const Colour onOverColor ((mDoRollover && isMouseOverButton) ? onBrightColor : onColor);
+	const Colour offOverColor (((mDoRollover && isMouseOverButton) ? offBrightColor : offColor).withMultipliedAlpha (alpha));
+	const Colour onOverColor (((mDoRollover && isMouseOverButton) ? onBrightColor : onColor).withMultipliedAlpha (alpha));
 	const Colour bc = (getToggleState() ? onOverColor : offOverColor);
-	const float alpha = isEnabled() ? 1.f : 0.25f;
 	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));
 	const Colour track_hard (findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha));
 	const Colour brightColor = Colour(bc.getHue(), bc.getSaturation(), jmin(bc.getBrightness() + 0.1, 1.), bc.getFloatAlpha());
 	Colour buttonColor = bc.withAlpha (alpha);
 	Colour outlineColor, outlineOnColor, outlineOffColor;
-	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.625f));
-	outlineOffColor = findColour(MLLookAndFeel::outlineColor);
+	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.625f)).withMultipliedAlpha (alpha);
+	outlineOffColor = findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha);
 	outlineColor = getToggleState() ? outlineOnColor : outlineOffColor;
 	outlineColor = outlineColor.withAlpha (alpha);
     

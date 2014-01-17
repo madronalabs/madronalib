@@ -16,7 +16,8 @@
 class MLPluginController : 
 	public MLResponder,
 	public MLReporter,
-	public MLSignalReporter
+	public MLSignalReporter,
+    public MLPluginProcessor::Listener
 {
 public:
 	MLPluginController(MLPluginProcessor* const pProcessor);
@@ -37,22 +38,23 @@ public:
 	void dialDragStarted (MLDial*);
 	void dialDragEnded (MLDial*);
 	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-	void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
-	void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
+    
+	//void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
+	//void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
 	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
+    
+    // MLPluginProcessor::Listener
+    void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
+    void presetFilesChanged(const MLFileCollectionPtr presets);
 
-	void loadPresetByIndex (int idx);
-	int getIndexOfPreset(const std::string* dir, const std::string* name);
-	
 	void prevPreset();
 	void nextPreset();
-	String getPresetString(int n);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 	
 	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName);	
-	void setupMenus();
+
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
 
@@ -64,46 +66,24 @@ public:
 protected:
 	MLAppView* mpView;
     
- 	juce::CriticalSection mViewLock;
+ 	juce::CriticalSection mViewShutdownLock;
 	
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	
-
-	void setupFormat();
+  
+	//void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
 
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
-	//PopupMenu mPresetMenu; 
-	
-	String mCurrentPresetName;
-	String mCurrentScaleName;
-	String mCurrentScaleDir;
 	std::string mVersionString;
-
-	// TODO v.2
-//	ScopedPointer <DirectoryContentsList> mFactoryPresetsList;
-//	ScopedPointer <DirectoryContentsList> mUserPresetsList;
-//	ScopedPointer <DirectoryContentsList> mScalesList;
-//   TimeSliceThread mFactoryPresetsThread, mUserPresetsThread, mScalesThread;
- 
-	File mFactoryPresetsFolder, mUserPresetsFolder, mScalesFolder;
-	File mCurrentPresetFolder;
-	bool mFileLocationsOK;
 
 	// stored indices for MIDI program changes-- hackish
 	std::vector<File> mMIDIProgramFiles;
 
 	MLMenuMapT mMenuMap; 	
-	Array<File> mMenuPresetFiles;	
-	int mPresetMenuStartItems;
-	int mCurrentPresetIndex;
-	Array<File> mScaleMenuFiles;	
 
-	void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
-
-	void populatePresetMenu(); 
-	void populateScaleMenu();	
- 
+	void populatePresetMenu(const MLFileCollectionPtr f);
+	void populateScaleMenu(const MLFileCollectionPtr f);
 };
 
 

@@ -14,6 +14,9 @@ MLPoint getPixelCenter(const MLRect& r)
 	return Vec2(w/2, h/2);
 }
 
+// --------------------------------------------------------------------------------
+#pragma mark color utilities
+
 const juce::Colour createMLBaseColour (const juce::Colour& buttonColour,
                                       const bool hasKeyboardFocus,
                                       const bool,
@@ -54,5 +57,42 @@ const juce::Colour darkColor (const juce::Colour& c)
 const juce::Colour darkerColor (const juce::Colour& c)
 {
 	return c.overlaidWith(juce::Colours::black.withAlpha(0.25f));
+}
+
+// --------------------------------------------------------------------------------
+#pragma mark string utilities
+
+const std::string stripExtension(const std::string& str)
+{
+    std::string r(str);
+    int b = r.find_last_of(".");
+    if(b != std::string::npos)
+    {
+        r = r.substr(0, b);
+    }
+    return r;
+}
+
+const std::string getShortName(const std::string& str)
+{
+    std::string r(str);
+    int b = r.find_last_of("/");
+    if(b != std::string::npos)
+    {
+        int len = r.length();
+        r = r.substr(b + 1, len - b);
+    }
+    return r;
+}
+
+const std::string getPath(const std::string& str)
+{
+    std::string r;
+    int b = str.find_last_of("/");
+    if(b != std::string::npos)
+    {
+        r = str.substr(0, b);
+    }
+    return r;
 }
 

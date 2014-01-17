@@ -14,6 +14,7 @@ MLAppBorder::MLAppBorder() :
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);	
 	Component::setName("border");
+    Component::setOpaque(true);
 }
 
 MLAppBorder::~MLAppBorder()
@@ -38,13 +39,14 @@ void MLAppBorder::makeResizer(Component* targetComp)
 }
 
 void MLAppBorder::paint (Graphics& g)
-{
+{    
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	
+    // TODO optimize, because this has to be redrawn behind every non-opaque component repaint.
 	// This is where most of the plugin's background is actually painted.
-	myLookAndFeel->drawBackground(g, this);	
-		
-	/*	
+	myLookAndFeel->drawBackground(g, this);
+    
+	/*
 	// TEST outline border areas
 	Path p, p2;
 	int w = getWidth();
@@ -79,6 +81,7 @@ void MLAppBorder::centerMainViewInWindow()
 	double viewRatio = (double)mGridUnitsX/(double)mGridUnitsY;
 	int u = (int)(windowHeight / mGridUnitsY);
 	int viewWidth, viewHeight;
+	if ((!windowWidth) || (!windowHeight) || !u) return;
 	
 	// TODO different modes: fit fixed scale, quantize only. 
 	// This is fit fixed scale, good for static layouts.
@@ -96,7 +99,7 @@ void MLAppBorder::centerMainViewInWindow()
 		u = viewWidth / mGridUnitsX;
 	}
     
-    debug() << "MLAppBorder:: RESIZED to " << viewWidth << ", " << viewHeight << "\n";
+    // debug() << "MLAppBorder:: RESIZED to " << viewWidth << ", " << viewHeight << "\n";
 	
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->setGridUnitSize(u);	

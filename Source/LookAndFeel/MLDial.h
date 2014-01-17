@@ -252,10 +252,12 @@ protected:
 
     void repaintAll ();
 	virtual void paint (Graphics& g);
-	void drawLinearDial (Graphics& g, int rx, int ry, int rw, int rh, 
-		float dialPos, float minDialPos, float maxDialPos,
-		const MLDial::DialStyle style);		
+	void drawLinearDial (Graphics& g, int rx, int ry, int rw, int rh,
+        float dialPos, float minDialPos, float maxDialPos);
+	void drawLinearDialOverlay (Graphics& g, int rx, int ry, int rw, int rh,
+        float dialPos, float minDialPos, float maxDialPos);
 	void drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float dialPos);
+	void drawRotaryDialOverlay (Graphics& g, int rx, int ry, int rw, int rh, float dialPos);
     
     void moved();
     virtual void resized();
@@ -308,7 +310,6 @@ protected:
 	float mFilteredMouseSpeed;
 	int mMouseMotionAccum;
 
-	bool mHilighted, mWasHilighted;	
     int pixelsForFullDragExtent;
     MLDial::DialStyle style;
 	MLValueDisplayMode mValueDisplayMode;
@@ -347,7 +348,7 @@ protected:
 	bool mBipolar;
 	
 	float mTextSize;
-	float mMaxNumberWidth;
+	int mMaxNumberWidth;
 
 	int mTrackThickness; // for track of linear dials. 	
 	float mLineThickness;

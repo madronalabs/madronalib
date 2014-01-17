@@ -9,6 +9,7 @@
 MLToggleButton::MLToggleButton()
     : MLButton()
 {
+    setOpaque(false);
 }
 
 MLToggleButton::~MLToggleButton()
@@ -31,7 +32,7 @@ void MLToggleButton::setAttribute(MLSymbol attr, float val)
 void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	myLookAndFeel->drawBackground(g, this);
+	//myLookAndFeel->drawBackground(g, this);
 	
 	// colors	
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));		
@@ -60,7 +61,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 	// geometry
     const int width = getWidth();
     const int height = getHeight();	
-	int toggleSize = myLookAndFeel->getToggleButtonSize() * getWidgetGridUnitSize();
+	int toggleSize = myLookAndFeel->getToggleButtonSize() * getWidgetGridUnitSize() * getSizeMultiplier();
 	int halfSize = toggleSize/2;
 		
 	// get int center
@@ -138,7 +139,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 void MLToggleButton::resizeWidget(const MLRect& b, const int u)
 {
 	Component* pC = getComponent();
-	mLineThickness = u/64.f;
+	mLineThickness = u/128.f;
 	if(pC)
 	{
 		MLRect bb = b;

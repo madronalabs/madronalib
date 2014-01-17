@@ -98,7 +98,8 @@ void MLLabel::paint (Graphics& g)
 	int h = getHeight();
 	
 	const Colour fc (findColour (textColourId));	
-	const Colour bc (findColour (backgroundColourId));	
+	const Colour bc (findColour (backgroundColourId));
+	float alpha = isEnabled() ? 1. : 0.25f;
 
 	if (isOpaque())
 		myLookAndFeel->drawBackground(g, this);
@@ -112,12 +113,13 @@ void MLLabel::paint (Graphics& g)
 	// draw image
 	if (mpDrawable)
 	{
+        // nothing special for disabled here
 		mpDrawable->draw(g, 1.0f);
 	}
 	
 	if (mText.length() > 0)
 	{
-		g.setColour (fc);//.withMultipliedAlpha (alpha));
+		g.setColour (fc.withAlpha (alpha));
 		g.setFont (mFont);
 		g.drawFittedText (mText, 0, 0, w, h, 
 			mJustification, 2, 1.0);		
@@ -145,11 +147,8 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
-	mFont.setHeight(size);
-	
-	// don't use kerning for now. JUCE calculates the size wrong. 
-	// mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
-	mFont.setExtraKerningFactor(0.);
+	mFont.setHeight(size);	
+	mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
 	mRichStr.setFont(mFont);
 		
 	if (mResizeToText && !mpDrawable)

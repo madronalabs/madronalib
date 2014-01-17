@@ -9,6 +9,7 @@ oscpack https://code.google.com/p/oscpack/downloads/list
 osctools https://github.com/tap/osctools
 
 getting juce:
+I have not forked JUCE. I try to use a recent, unmodified version but not always the latest tip. Currently this JUCE version is commit 9a1171a7ef8cb544df5103101e7ee558323bb80a, so to get it:
 git clone https://github.com/julianstorer/JUCE.git juce
 git reset --hard 9a1171a7ef8cb544df5103101e7ee558323bb80a
 

@@ -46,8 +46,8 @@ static const float kMaxSegTime = 20.000f;
 namespace{
 
 MLProcRegistryEntry<MLProcEnvelope> classReg("envelope");
-ML_UNUSED MLProcParam<MLProcEnvelope> params[] = { "xvel" }; 
-ML_UNUSED MLProcInput<MLProcEnvelope> inputs[] = {"in",  "delay", "attack", "decay", "sustain", "release", "repeat" };
+ML_UNUSED MLProcParam<MLProcEnvelope> params[] = { "xvel" };
+ML_UNUSED MLProcInput<MLProcEnvelope> inputs[] = {"in",  "delay", "attack", "decay", "sustain", "release", "repeat", "vel" };
 ML_UNUSED MLProcOutput<MLProcEnvelope> outputs[] = {"out"};
 
 }	// namespace
@@ -93,19 +93,24 @@ void MLProcEnvelope::process(const int samples)
 	const MLSignal& sustain = getInput(5);
 	const MLSignal& release = getInput(6);
 	const MLSignal& repeat = getInput(7);
+	const MLSignal& vel = getInput(8);
 	MLSignal& y = getOutput();
 	
 	static MLSymbol xvelSym("xvel");
 	const bool doMult = getParam(xvelSym) > 0.f;
-	
+    
 	// input change thresholds for state changes
 	const float inputThresh = 0.001f;
 
 	for (int n=0; n<samples; ++n)
 	{
 		register float bias = 0.05f;
-		register float dxdt, gIn;
+		register float dxdt, gIn, velIn;
 		register bool upTrig, downTrig, crossedThresh, delayCounterDone, doRepeat;
+        
+        // TEMP
+        float attackIn = attack[n] - 0.0001f;
+        attackIn = clamp(attackIn, 0.f, 20.f);
 		
 		// TODO make constant coefficient vectors for constant input parameter signals.
 		// TODO mark/write output signal as constant when we know it is.		
@@ -115,17 +120,21 @@ void MLProcEnvelope::process(const int samples)
 			mSustain = sustain[n];
 			mDelayStep = invSr / max(delay[n], kMinSegTime); 
 			mRepeatStep = (repeat[n] == 0.f) ? 0.f : invSr / max(repeat[n], kMinSegTime);
-			mCAttack =  kMLTwoPi * invSr / max(attack[n], kMinSegTime);
+			mCAttack =  kMLTwoPi * invSr / max(attackIn, kMinSegTime);
 			mCDecay = kMLTwoPi * invSr / max(decay[n], kMinSegTime);
 //			mCSustain = kMLTwoPi * invSr / ();
 			mCRelease = kMLTwoPi * invSr / max(release[n], kMinSegTime);
 		}
 		
 		// process gate input
-		gIn = gate[n];	
+		gIn = gate[n];
+		velIn = vel[n];
 		const bool wasOver = mGate1 > inputThresh;
 		const bool isOver = gIn > inputThresh;		
 		upTrig = !wasOver && isOver;
+        
+//        if(upTrig) { debug() << "!"; }
+        
 		downTrig = wasOver && !isOver;
 		
 		// IIR filter.  
@@ -155,7 +164,7 @@ void MLProcEnvelope::process(const int samples)
 				mEnv = 0.f;
 				mX = 0.f;
 				mState = stateDelay;
-				mMult = doMult ? gIn : 1.f;	// set mMult here only.
+				mMult = doMult ? velIn : 1.f;	// set mMult here only.
 			}
 			else if (delayCounterDone || doRepeat) // start attack
 			{	

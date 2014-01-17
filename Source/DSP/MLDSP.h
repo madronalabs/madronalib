@@ -58,7 +58,7 @@ typedef float MLParamValue;
 // ----------------------------------------------------------------
 
 const uintptr_t kMLSampleSizeBits = 2;
-const uintptr_t kMLDefaultSignalSizeBits = 8;
+const uintptr_t kMLDefaultSignalSizeBits = 6;
 const uintptr_t kMLDefaultSignalSize = 1 << kMLDefaultSignalSizeBits;
 const uintptr_t kMLSamplesPerSSEVectorBits = 2;
 const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
@@ -338,7 +338,7 @@ public:
 		mMaxOutput = max(c, d);
 	}
 	
-	float operator()(float f) const // deprecate this strange syntax
+	float operator()(float f) const 
 	{
 		float r = f*mScale + mOffset;
 		if(mClip) r = clamp(r, mMinOutput, mMaxOutput);
@@ -354,7 +354,12 @@ public:
 	{
 		return clamp((f*mScale + mOffset), mMinOutput, mMaxOutput);
 	}
-	
+
+    inline bool contains(float f) const
+	{
+		return ((f > mMinOutput) && (f < mMaxOutput));
+	}
+
 private:
 	float mA;
 	float mB;
@@ -376,19 +381,23 @@ inline char * spaceStr( unsigned int numIndents )
 	return &pINDENT[ LENGTH-n ];
 }
 
-class BiquadCoeffs
+class MLBiquad
 {
-public:	
-	BiquadCoeffs() { a0 = a1 = a2 = b1 = b2 = 0.f; mOneOverSr = 1.f;}
-	~BiquadCoeffs() {}
+public:
+	MLBiquad() { a0 = a1 = a2 = b1 = b2 = 0.f; mOneOverSr = 1.f;}
+	~MLBiquad() {}
 	
+    float processSample(float x);
+    void clear();
 	void setSampleRate(float sr) { mOneOverSr = 1.f / sr; }
 	void setLopass(float f, float q);
 	void setHipass(float f, float q);
+    void setPeakNotch(float f, float q, float gain);
 	void setNotch(float f, float q);
 	void setOnePole(float f);
 	void setDifferentiate(void);
 	float a0, a1, a2, b1, b2;
+	float x1, x2, y1, y2;
 	float mOneOverSr;
 };
 

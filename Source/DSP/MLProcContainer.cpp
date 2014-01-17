@@ -1144,6 +1144,8 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 	return r; 
 }
 
+// TODO this can't possibly work with multis inside multis, since the copy # is specified
+// for the entire path. Fix with new MLPath structure with copy or wildcard per branch.
 void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, int copies)
 {
 	pList.clear();
@@ -1151,11 +1153,10 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 	{
 		MLPath pathI = pathName;
 		pathI.setCopy(i);
-		MLProcPtr proc = getProc(pathI);
-		
-//debug() << "MLProcContainer (" << (void *)this << ") getProcList: added " << (void *)&*proc << "\n\n";		
+		MLProcPtr proc = getProc(pathI);		
 		if (proc)
 		{
+            // debug() << "MLProcContainer (" << getName() << ") getProcList: added " << (void *)&*proc << " (# " << i << ")\n";
 			pList.push_back(proc);
 		}
 	}
@@ -1242,20 +1243,20 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	b->createInput(bi);
 	
 	// TODO fix crashing on ill-formed graphs
-	/*
-	debug() << "connecting " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-	debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-	debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-	debug() << "\n";
-	*/
 	
 	e = b->setInput(bi, a->getOutput(ai));
 	
+#if DEBUG
 	if (e != OK)
 	{
 		printErr(e);
+        debug() << "...connecting " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+        debug() << "\n\n";
 	}
-	
+#endif
+    
 bail:	
 	return e;
 }
@@ -1285,7 +1286,7 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName() + "_resamp_in");
+			MLSymbol resamplerName(getName() + MLSymbol("_resamp_in"));
 			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(inSize + 1));
 			
 			// would be cleaner to use buildProc() here, but right now that adds the new proc
@@ -1316,9 +1317,9 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 				resamplerProc->createInput(resamplerInIndex);
 				
 				// set to a valid input in case graph ends up incomplete
-				// TODO investigate, why is this commented out?  
-//				resamplerProc->setContext(this);
-//				resamplerProc->setInput(resamplerInIndex, getNullInput());
+                // TODO: investigate: this is causing inputOccupiedErr sometimes?!
+				resamplerProc->setContext(this);
+				resamplerProc->setInput(resamplerInIndex, getNullInput());
 				
 				// publish resampler input
 				p = MLPublishedInputPtr(new MLPublishedInput(resamplerProc, resamplerInIndex, inSize + 1));
@@ -1363,7 +1364,7 @@ bail:
 // 
 void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol outputName, const MLSymbol alias)
 {
-    int copy = srcProcName.getCopy();
+    //int copy = srcProcName.getCopy();
     //debug() << "MLProcContainer " << getName() << ": publishOutput " << outputName;
     //if(copy > 0) { debug() << "(copy " << copy << ") "; }
     //debug() << " of " << srcProcName << " as " << alias << "\n";
@@ -1381,7 +1382,7 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol o
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName() + "_resamp_out");
+			MLSymbol resamplerName(getName() + MLSymbol("_resamp_out"));
 			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(outSize + 1)); 
 			if (!resamplerProc) { e = newProcErr; goto bail; }
 			

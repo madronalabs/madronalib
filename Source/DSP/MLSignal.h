@@ -97,16 +97,6 @@ public:
 		return mDataAligned[i];
 	}
 
-	// return linear interpolated value. for power-of-two size tables, this
-	// will interpolate around the loop.
-	// TODO SSE - get interpolated vector.
-	inline MLSample getInterpolated(float f) const 
-	{
-		int i = (int)f;
-		float m = f - i;
-		return lerp(mDataAligned[i&mConstantMask], mDataAligned[(i+1)&mConstantMask], m);
-	}
-	
 	inline void setToConstant(MLSample k)
 	{
 		mConstantMask = 0;
@@ -131,7 +121,53 @@ public:
 	{
 		return(mConstantMask == 0);
 	}
+    
+	// return signal value at the position p, interpolated linearly.
+    // For power-of-two size tables, this will interpolate around the loop.
+	inline MLSample getInterpolatedLinear(float p) const
+	{
+		int pi = (int)p;
+		float m = p - pi;
+        float r0 = mDataAligned[pi&mConstantMask];
+        float r1 = mDataAligned[(pi + 1)&mConstantMask];
+		return lerp(r0, r1, m);
+	}
+    
+    void addDeinterpolatedLinear(float p, float v)
+    {
+        // TODO SSE
+        float eps = 0.00001f;
+        float fw = (float)mWidth - eps;
+        float pc = min(p, fw);
+		int pi = (int)pc;
+		float m = pc - pi;
+        mDataAligned[pi&mConstantMask] += (1.0f - m)*v;
+        mDataAligned[(pi + 1)&mConstantMask] += (m)*v;
+    }
+
 	
+    /*
+     // MLSample value
+     // interpolate between neighbors.
+     // TODO consider different kinds of interpolation.
+     // consider implementing interpolate-row method for speed.
+     MLSample MLSignal::operator() (float fi) const
+     {
+     MLSample a, b;
+     unsigned i = floor(fi);
+     float remainder = fi - i;
+     a = mData[i&mWidthMask];
+     b = mData[(i + 1)&(mWidthMask)];
+     return lerp(a, b, remainder);
+     }
+     
+     // inspector, return by value
+     inline MLSample& operator()(int i, int j)
+     {
+     return mDataAligned[(j<<mWidthBits) + i];
+     }
+     */
+    
 	// --------------------------------------------------------------------------------
 	// 2D access methods
 	//
@@ -150,8 +186,48 @@ public:
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 
-	const MLSample operator() (const float i, const float j) const;
-	const MLSample operator() (const Vec2& pos) const;
+	inline MLSample getInterpolatedLinear(float px, float py) const
+	{
+		int pxi = (int)px;
+		int pyi = (int)py;
+		float mx = px - pxi;
+		float my = py - pyi;
+        float r00 = mDataAligned[(row(pyi) + pxi)];
+        float r01 = mDataAligned[(row(pyi) + pxi + 1)];
+        float r10 = mDataAligned[(row(pyi + 1) + pxi)];
+        float r11 = mDataAligned[(row(pyi + 1) + pxi + 1)];
+        float r0 = lerp(r00, r01, mx);
+        float r1 = lerp(r10, r11, mx);
+        float r = lerp(r0, r1, my);
+		return r;
+	}
+
+    void addDeinterpolatedLinear(float px, float py, float v)
+    {
+        // TODO SSE
+        float eps = 0.00001f;
+        float fw = (float)mWidth - eps;
+        float fh = (float)mHeight - eps;        
+        float pxc = min(px, fw);
+        float pyc = min(px, fh);
+		int pxi = (int)pxc;
+		int pyi = (int)pyc;
+		float mx = pxc - pxi;
+		float my = pyc - pyi;
+        float r0 = (1.0f - my)*v;
+        float r1 = (my)*v;
+        float r00 = (1.0f - mx)*r0;
+        float r01 = (mx)*r0;
+        float r10 = (1.0f - mx)*r1;
+        float r11 = (mx)*r1;
+        mDataAligned[(row(pyi) + pxi)] += r00;
+        mDataAligned[(row(pyi) + pxi + 1)] += r01;
+        mDataAligned[(row(pyi + 1) + pxi)] += r10;
+        mDataAligned[(row(pyi + 1) + pxi + 1)] += r11;
+    }
+
+//	const MLSample operator() (const float i, const float j) const;
+//	const MLSample operator() (const Vec2& pos) const;
 	
 	// --------------------------------------------------------------------------------
 	// 3D access methods
@@ -170,9 +246,11 @@ public:
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
 	}
 
+    /*
 	const MLSample operator() (const float i, const float j, const float k) const;
 	const MLSample operator() (const Vec3 pos) const;
-	
+	*/
+    
 	// getFrame() - return const 2D signal made from data in place. 
 	const MLSignal getFrame(int i) const;
 
@@ -234,13 +312,18 @@ public:
 	void sigMin(const MLSample min);
 	void sigMax(const MLSample max);
 
+    // 1D convolution
+    void convolve3(const MLSample km, const MLSample k, const MLSample kp);
+    void convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp);
+
 	// Convolve the 2D matrix with a radially symmetric 3x3 matrix defined by coefficients
 	// kc (center), ke (edge), and kk (corner).
-	//
 	void convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk);
 	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
 	void variance3x3();
 
+    // metrics
+    float getRMS();
     float rmsDiff(const MLSignal& b);
 
 	Vec2 correctPeak(const int ix, const int iy) const;
@@ -258,7 +341,7 @@ public:
 	void partialDiffY();
 	// return highest value in signal
 	Vec3 findPeak() const;
-
+    // add (blit) another 2D signal
 	void add2D(const MLSignal& b, int destX, int destY);
 	void add2D(const MLSignal& b, const Vec2& destOffset);
 	
@@ -271,7 +354,7 @@ public:
 	float getMean() const;
 	float getMin() const;
 	float getMax() const;
-	void dump(bool verbose = false) const;
+	void dump(int verbosity = 0) const;
 	void dump(const MLRect& b) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
@@ -279,8 +362,11 @@ public:
 	inline bool is3D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth > 1)); }
 
 	// handy shorthand for row and plane access
-	inline int row(int i) const { return i<<mWidthBits; }
+    // TODO looking at actual use, would look better to return dataAligned + row, plane.
+ 	inline int row(int i) const { return i<<mWidthBits; }
 	inline int plane(int i) const { return i<<mWidthBits<<mHeightBits; }
+	inline int getRowStride() const { return 1<<mWidthBits; }
+	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
     
 private:
 	// private signal constructor: make a reference to a frame of the external signal.

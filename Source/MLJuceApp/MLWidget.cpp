@@ -38,13 +38,24 @@ void MLWidget::setSignalAttribute(MLSymbol attr, const MLSignal& val)
 	mSignalAttributes[attr] = val;
 }
 
+void MLWidget::setColorAttribute(MLSymbol attr, juce::Colour c)
+{
+    MLSignal colorSig;
+    colorSig.setDims(4);
+    colorSig[0] = c.getHue();
+    colorSig[1] = c.getSaturation();
+    colorSig[2] = c.getBrightness();
+    colorSig[3] = c.getFloatAlpha();
+	mSignalAttributes[attr] = colorSig;
+}
+
 // --------------------------------------------------------------------------------
 // protected attribute getters, to be used only by subclasses.
 
-float MLWidget::getAttribute(MLSymbol attr)
+float MLWidget::getAttribute(MLSymbol attr) const
 {
 	float result = 0.;
-	std::map<MLSymbol, float>::iterator look = mAttributes.find(attr);	
+	std::map<MLSymbol, float>::const_iterator look = mAttributes.find(attr);
 	if(look != mAttributes.end())
 	{
 		result = (look->second);
@@ -52,9 +63,9 @@ float MLWidget::getAttribute(MLSymbol attr)
 	return result;
 }
 
-const std::string& MLWidget::getStringAttribute(MLSymbol attr)
+const std::string& MLWidget::getStringAttribute(MLSymbol attr) const
 {
-	std::map<MLSymbol, std::string>::iterator look = mStringAttributes.find(attr);
+	std::map<MLSymbol, std::string>::const_iterator look = mStringAttributes.find(attr);
 	if(look != mStringAttributes.end())
 	{
 		return look->second;
@@ -62,14 +73,25 @@ const std::string& MLWidget::getStringAttribute(MLSymbol attr)
 	return kNullStr;
 }
 
-const MLSignal& MLWidget::getSignalAttribute(MLSymbol attr)
+const MLSignal& MLWidget::getSignalAttribute(MLSymbol attr) const
 {
-	std::map<MLSymbol, MLSignal>::iterator look = mSignalAttributes.find(attr);
+	std::map<MLSymbol, MLSignal>::const_iterator look = mSignalAttributes.find(attr);
 	if(look != mSignalAttributes.end())
 	{
 		return look->second;
 	}
 	return kNullSignal;
+}
+
+juce::Colour MLWidget::getColorAttribute(MLSymbol attr) const
+{
+    float h, s, v, a;
+    const MLSignal& colorSig = getSignalAttribute(attr);
+    h = colorSig[0];
+    s = colorSig[1];
+    v = colorSig[2];
+    a = colorSig[3];
+    return juce::Colour::fromHSV(h, s, v, a);
 }
 
 // --------------------------------------------------------------------------------

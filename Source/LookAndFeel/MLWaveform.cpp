@@ -75,8 +75,8 @@ void MLWaveform::paint (Graphics& g)
         
         for(int i=0; i<width; i += 2)
         {
-            float pos = posRange(i);
-            float amp = ampRange1((*mpSignal)[i]);
+            //float pos = posRange(i);
+            //float amp = ampRange1((*mpSignal)[i]);
             
             envPath.lineTo(posRange(i), ampRange1((*mpSignal)[i]));
         }

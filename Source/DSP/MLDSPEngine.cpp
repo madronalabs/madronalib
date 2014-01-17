@@ -55,7 +55,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	// TODO refactor
 	if (makeMidiInput)
  	{
-		debug() << "building MIDI input... ";
+		// debug() << "building MIDI input... ";
 		// make XML node describing MIDI to signal processor. 
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
@@ -153,12 +153,11 @@ void MLDSPEngine::compileEngine()
 	}
 }
 
-
-// prepareToPlay() needs to be called if the sampling rate or block size changes.
+// prepareEngine() needs to be called if the sampling rate or block size changes.
 //
-MLProc::err MLDSPEngine::prepareToPlay(double sr, unsigned bufSize, unsigned vecSize)
+MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned vecSize)
 {
-	// debug() << " MLDSPEngine::prepareToPlay: DSPEngine " << std::hex << (void *)this << std::dec << "\n"; 
+	// debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
 	
 	if ((e == OK) && (mGraphStatus == OK) && (mCompileStatus == OK))
@@ -209,7 +208,7 @@ MLProc::err MLDSPEngine::prepareToPlay(double sr, unsigned bufSize, unsigned vec
 		if (mpInputToSignalsProc)
 		{
 // TEMP
-debug() << "MLDSPEngine::prepareToPlay: mpInputToSignalsProc bufsize: " << bufSize << "\n";
+debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
 			mpInputToSignalsProc->setParam("bufsize", bufSize);
 			mpInputToSignalsProc->resize();		
 		}

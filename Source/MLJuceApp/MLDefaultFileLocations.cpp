@@ -10,40 +10,50 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 	File result = File::nonexistent;
 	String dest;	
 
-	// get start directory for search
-	File::SpecialLocationType startDirType;
+	// get start directory for search according to platform and file type
+	//File::SpecialLocationType startDirType;
+    File startDir;
 	switch(whichFiles)
 	{
-		case kFactoryPresetFiles: case kScaleFiles:
-			startDirType = File::commonApplicationDataDirectory;
-		break;
-		case kUserPresetFiles:
-			startDirType = File::userApplicationDataDirectory;	
-		break;
+		case kPresetFiles:
+        case kScaleFiles:         
+		case kSampleFiles:
+            startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+            break;
+        case kAppPresetFiles:
 		default:
-		break;
+#if JUCE_MAC || JUCE_IOS
+            startDir = File("~/Library/Application Support"); // user Library, not system
+#elif JUCE_LINUX || JUCE_ANDROID
+            startDir = File("~/" + "." + makerName + "/" + applicationName);
+#elif JUCE_WINDOWS
+            startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+#endif
+			break;
 	}
-	File startDir = File::getSpecialLocation (startDirType);	
 	
-
+    // get subdirectory 
 	if (startDir.exists())
 	{
-
 #if JUCE_WINDOWS
 
 		// debug() << "Start dir: " << startDir.getFullPathName() << " \n";
 
 		if (whichFiles == kScaleFiles)
 		{
-			dest = String("Madrona Labs") + "/Scales";
+			dest = String(MLProjectInfo::makerName) + "/Scales";
 		}
-		else if (whichFiles == kFactoryPresetFiles)
+		else if (whichFiles == kSampleFiles)
 		{
-			dest = String("Madrona Labs") + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Samples";
 		}
-		else if (whichFiles == kUserPresetFiles)
+		else if (whichFiles == kPresetFiles)
 		{
-			dest = String("Madrona Labs") + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
+		}
+		else if (whichFiles == kAppPresetFiles)
+		{
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName ;
 		}
 
 #elif JUCE_LINUX
@@ -55,20 +65,29 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 #elif JUCE_MAC
 		if (whichFiles == kScaleFiles)
 		{
-			dest = "Audio/Presets/Madrona Labs/Scales";
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/Scales";
 		}
-		else // either presets type
+		else if (whichFiles == kSampleFiles)
 		{
-			dest = String("Audio/Presets/Madrona Labs/") + MLProjectInfo::projectName;
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName + "/Samples";
+		}
+		else if (whichFiles == kPresetFiles)
+        {
+			dest = String("Audio/Presets/") + MLProjectInfo::makerName + "/" + MLProjectInfo::projectName;
+		}
+        
+		else if (whichFiles == kAppPresetFiles)
+		{
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName ;
 		}
 #endif
-		result = startDir.getChildFile(dest);	
-		/*
-		if (result.exists())
+
+        result = startDir.getChildFile(dest);
+	
+		if (!result.exists())
 		{
-			debug() << "found path: " << dest << "\n";
-			debug() << "full path:" << result.getFullPathName() << "\n";
-		}*/
+            result = File::nonexistent;
+        }
 	}
 	return result;
 }

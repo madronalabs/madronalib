@@ -26,7 +26,7 @@ MLAppView::MLAppView(MLResponder* pResp, MLReporter* pRep) :
 
 MLAppView::~MLAppView()
 {
-    debug() << "DELETING " << getWidgetName() << "\n";
+    // debug() << "DELETING " << getWidgetName() << "\n";
 	setAnimationsActive(false);
 	deleteAllChildren();
 }
@@ -176,20 +176,16 @@ MLDebugDisplay* MLAppView::addDebugDisplay(const MLRect & r)
 }
 
 MLDrawableButton* MLAppView::addDrawableButton(const MLRect & r, const char * name, 
-	const Colour& color, const Drawable* normalImg)
+	const Drawable* normalImg, const Colour& color)
 {
 	MLDrawableButton* b = new MLDrawableButton;
-	b->setParamName(name);
-	
+	b->setParamName(name);	
 	b->setListener(getResponder());	
 	b->setClickingTogglesState(false);
-	
+	b->setFillColor(color);	
 	b->setButtonStyle(MLDrawableButton::ImageOnButtonBackground);
-	b->setBackgroundColours(color, color);
 	b->setImage(normalImg);
-
 	addWidgetToView(b, r, name);
-
 	return b;
 }
 
@@ -198,16 +194,12 @@ MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * na
 {
 	MLDrawableButton* b = new MLDrawableButton;
 	b->setParamName(name);
-	
 	b->setListener(getResponder());	
 	b->setClickingTogglesState(false);
-	
 	b->setButtonStyle(MLDrawableButton::ImageFitted);
 	b->setBackgroundColours(color, color);
-	b->setImage(normalImg);
-	
+	b->setImage(normalImg);	
 	addWidgetToView(b, r, name);
-
 	return b;
 }
 
@@ -298,7 +290,6 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 	return label;
 }
 
-
 MLDrawing* MLAppView::addDrawing(const MLRect & r)
 {
 	MLDrawing* drawing = new MLDrawing;
@@ -312,7 +303,6 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 	addWidgetToView(pb, r);
 	return pb;
 }
-
 
 MLWaveform* MLAppView::addWaveform(const MLRect & r, const MLSymbol paramName)
 {
@@ -343,11 +333,11 @@ void MLAppView::resized()
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();
-		MLRect scaled = r*u;
+		MLRect scaled = (r*u).getIntPart();
 		if (!w->wantsResizeLast())
 		{
 			w->setWidgetGridUnitSize(u);
-			w->resizeWidget(r*u, u);
+			w->resizeWidget(scaled, u);
 		}
 	}
 	
@@ -355,11 +345,11 @@ void MLAppView::resized()
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();
-		MLRect scaled = r*u;
+		MLRect scaled = (r*u).getIntPart();
 		if (w->wantsResizeLast())
 		{
 			w->setWidgetGridUnitSize(u);
-			w->resizeWidget(r*u, u);
+			w->resizeWidget(scaled, u);
 		}
 	}
 }
@@ -372,16 +362,14 @@ void MLAppView::setPeerBounds(int x, int y, int w, int h)
 	Desktop& d = Desktop::getInstance();
 	Rectangle<int> r = d.getDisplays().getTotalBounds(true);
 	
-	// 
 	const int kMenuBarHeight = 20;
 	r.setTop(r.getY() + kMenuBarHeight);
 	
-			
 	Rectangle<int> b(x, y, w, h);
 	Rectangle<int> c = r.getIntersection(b);	
 	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
 	{
-debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
+        // debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
 		p->setBounds(Rectangle<int>(x, y, w, h), false);
 	}
 	else

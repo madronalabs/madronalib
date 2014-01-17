@@ -155,7 +155,7 @@ bool MLLookAndFeel::getDefaultOpacity()
 
 bool MLLookAndFeel::getDefaultBufferMode() 
 { 
-	return true;
+	return false;
 }
 
 bool MLLookAndFeel::getDefaultUnclippedMode() 
@@ -200,18 +200,17 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 	return p;
 }
 
-
 char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, MLValueDisplayMode mode)  throw()
 {
-	const unsigned bufLength = 255;
-	static char temp[bufLength] = {0};
+	const unsigned bufLength = 16;
+	static char numBuf[bufLength] = {0};
 	static char format[bufLength] = {0};
 	float tweakedNumber;
 	
 	// clear buffer
 	for (unsigned i=0; i<bufLength; ++i)
 	{
-		temp[i] = format[i] = 0;
+		numBuf[i] = format[i] = 0;
 	}
 	
 	int m = maxDigits(digits, precision);
@@ -234,7 +233,7 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 				{
 					if (fabs(number - (float)a/(float)b) < 0.001)
 					{
-						sprintf(temp, "%d/%d", a, b);	
+						snprintf(numBuf, bufLength, "%d/%d", a, b);
 						done = true;	
 					}
 				}
@@ -243,14 +242,14 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			{
 				if (doSign)
 				{
-					sprintf(format, "X-+0%1d.%1df", m, p);
+					snprintf(format, bufLength, "X-+0%1d.%1df", m, p);
 				}
 				else
 				{
-					sprintf(format, "X-0%1d.%1df", m, p);
+					snprintf(format, bufLength, "X-0%1d.%1df", m, p);
 				}
 				format[0] = 37;	// '%'			
-				sprintf(temp, format, tweakedNumber);		
+				snprintf(numBuf, bufLength, format, tweakedNumber);
 			}
 		}
 		break;
@@ -262,14 +261,14 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			float distFromOctave = fabs (number - quant);
 			if (distFromOctave < 0.01)
 			{			
-				sprintf(format, "X-0%1d.%1df\nA%d", m, p, octave);
+				snprintf(format, bufLength, "X-0%1d.%1df\nA%d", m, p, octave);
 			}
 			else
 			{
-				sprintf(format, "X-0%1d.%1df", m, p);
+				snprintf(format,bufLength,  "X-0%1d.%1df", m, p);
 			}
 			format[0] = 37;	// '%'			
-			sprintf(temp, format, tweakedNumber);		
+			sprintf(numBuf, format, tweakedNumber);		
 		}
 		break;
 		
@@ -279,14 +278,14 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		{
 			if (doSign)
 			{
-				sprintf(format, "X-+0%1d.%1df", m, p);
+				snprintf(format, bufLength, "X-+0%1d.%1df", m, p);
 			}
 			else
 			{
-				sprintf(format, "X-0%1d.%1df", m, p);
+				snprintf(format, bufLength, "X-0%1d.%1df", m, p);
 			}
 			format[0] = 37;	// '%'			
-			sprintf(temp, format, tweakedNumber);		
+			snprintf(numBuf, bufLength, format, tweakedNumber);
 		}			
 		break;
 	}
@@ -297,17 +296,17 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		switch(mode)
 		{
 			case eMLNumFloat:			
-				if (doSign) temp[0] = ' ';
+				if (doSign) numBuf[0] = ' ';
 			break;
 			case eMLNumZeroIsOff:
-				sprintf(temp, "off"); 
+				snprintf(numBuf, bufLength, "off");
 			break;
 			default:
 			break;
 		}
 	}
 	
-	return temp;
+	return numBuf;
 }
 
 void MLLookAndFeel::drawNumber (Graphics& g, const char* number, const int x, const int y, 
@@ -437,17 +436,15 @@ void MLLookAndFeel::drawButtonGlow (Graphics& g,
 
 }
 
-
-
 void MLLookAndFeel::drawButtonBackground (Graphics& g,
                                         Button& button,
                                         const Colour& backgroundColour,
                                         bool , // isMouseOver
-                                        bool isButtonDown)
+                                        bool isButtonDown,
+                                        float outlineThickness)
 {
 	const float alpha = button.isEnabled() ? 1.f : 0.33f;
-	// our buttons use toggle state, not isButtonDown argument.
-	bool down = (button.getToggleState() || isButtonDown);
+	bool down = (isButtonDown);
 	
     const int width = button.getWidth();
     const int height = button.getHeight();
@@ -456,11 +453,6 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 	const int tt = button.isConnectedOnTop();
 	const int rr = button.isConnectedOnRight();
 	const int bb = button.isConnectedOnBottom();
-	
-//    const float indentL = ll ? 0.f : 1;
- //   const float indentT = tt ? 0.f : 1;
- //   const float indentR = rr ? 0.f : 1;
-  //  const float indentB = bb ? 0.f : 1;
 
 	Colour buttonColor = backgroundColour.withAlpha(alpha);
 	Colour blineColor = findColour(outlineColor).withAlpha(alpha);
@@ -475,13 +467,9 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 		flair |= (eMLAdornPressed);
 	}	
 	// flair |= eMLAdornFlat;  // flat buttons are all the rage
-	
-//	drawMLButtonShape (g, indentL, indentT, width - indentL - indentR, height - indentT - indentB,
-//		kMLCornerSize, buttonColor, blineColor, kMLButtonOutlineThickness, flair, 0., 0.);
 
 	drawMLButtonShape (g, 0, 0, width, height,
-		kMLCornerSize, buttonColor, blineColor, kMLButtonOutlineThickness, flair, 0., 0.);
-				  				  
+		0, buttonColor, blineColor, outlineThickness, flair, 0., 0.);
 }
 
 
@@ -590,7 +578,6 @@ float MLLookAndFeel::getLabelTextSize()
 	float t = 0.25f*mGlobalTextScale;
 	t *= (float)getGridUnitSize();
 	return t;
-	// TODO good text size list
 }
 
 // return standard label height in grid units.
@@ -604,7 +591,7 @@ float MLLookAndFeel::getLabelHeight()
 float MLLookAndFeel::getLabelTextKerning(float textSize)
 {
 	MLRange pointsRange(6, 24);
-	MLRange trackingRange(0.07, -0.02);
+	MLRange trackingRange(0.03, -0.03);
 	pointsRange.convertTo(trackingRange);
 	return pointsRange.convertAndClip(textSize);
 }
@@ -612,7 +599,7 @@ float MLLookAndFeel::getLabelTextKerning(float textSize)
 float MLLookAndFeel::getButtonTextKerning(float textSize)
 {
 	MLRange pointsRange(6, 24);
-	MLRange trackingRange(0.03, -0.05);
+	MLRange trackingRange(0.03, -0.03);
 	pointsRange.convertTo(trackingRange);
 	return pointsRange.convertAndClip(textSize);
 }
@@ -626,10 +613,9 @@ float MLLookAndFeel::getButtonTextSize(const MLButton& button)
 {
 	const MLRect& uBounds = button.getGridBounds();
 	float uh = uBounds.height();
-	uh = clamp(uh, 0.5f, 2.f);
-	uh *= 0.6f;
+	uh *= 0.66f;
+	uh = clamp(uh, 0.25f, 2.f);
 	uh *= (float)button.getWidgetGridUnitSize();
-	// TODO good text size list
 	return floor(uh);
 }
 
@@ -724,7 +710,7 @@ void MLLookAndFeel::drawProgressBar (Graphics& g, ProgressBar& progressBar,
 {
     if (progress < 0 || progress >= 1.0)
     {
-        LookAndFeel::drawProgressBar (g, progressBar, width, height, progress, textToShow);
+        LookAndFeel_V3::drawProgressBar (g, progressBar, width, height, progress, textToShow);
     }
     else
     {
@@ -1385,80 +1371,6 @@ void MLLookAndFeel::drawDocumentWindowTitleBar (DocumentWindow& window,
     g.drawText (window.getName(), textX, 0, textW, h, Justification::centredLeft, true);
 }
 
-//==============================================================================
-class GlassWindowButton   : public Button
-{
-public:
-    //==============================================================================
-    GlassWindowButton (const String& name, const Colour& col,
-                       const Path& normalShape_,
-                       const Path& toggledShape_) throw()
-        : Button (name),
-          colour (col),
-          normalShape (normalShape_),
-          toggledShape (toggledShape_)
-    {
-    }
-
-    ~GlassWindowButton()
-    {
-    }
-
-    //==============================================================================
-    void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown)
-    {
-        float alpha = isMouseOverButton ? (isButtonDown ? 1.0f : 0.8f) : 0.55f;
-
-        if (! isEnabled())
-            alpha *= 0.5f;
-
-        float x = 0, y = 0, diam;
-
-        if (getWidth() < getHeight())
-        {
-            diam = (float) getWidth();
-            y = (getHeight() - getWidth()) * 0.5f;
-        }
-        else
-        {
-            diam = (float) getHeight();
-            y = (getWidth() - getHeight()) * 0.5f;
-        }
-
-        x += diam * 0.05f;
-        y += diam * 0.05f;
-        diam *= 0.9f;
-
-        g.setGradientFill (ColourGradient (Colour::greyLevel (0.9f).withAlpha (alpha), 0, y + diam,
-                                           Colour::greyLevel (0.6f).withAlpha (alpha), 0, y, false));
-        g.fillEllipse (x, y, diam, diam);
-
-        x += 2.0f;
-        y += 2.0f;
-        diam -= 4.0f;
-
-        LookAndFeel::drawGlassSphere (g, x, y, diam, colour.withAlpha (alpha), 1.0f);
-
-        Path& p = getToggleState() ? toggledShape : normalShape;
-
-        const AffineTransform t (p.getTransformToScaleToFit (x + diam * 0.3f, y + diam * 0.3f,
-                                                             diam * 0.4f, diam * 0.4f, true));
-
-        g.setColour (Colours::black.withAlpha (alpha * 0.6f));
-        g.fillPath (p, t);
-    }
-
-    //==============================================================================
-    juce_UseDebuggingNewOperator
-
-private:
-    Colour colour;
-    Path normalShape, toggledShape;
-
-    GlassWindowButton (const GlassWindowButton&);
-    const GlassWindowButton& operator= (const GlassWindowButton&);
-};
-
 void MLLookAndFeel::positionDocumentWindowButtons (DocumentWindow&,
                                                  int titleBarX,
                                                  int titleBarY,
@@ -1831,7 +1743,7 @@ void MLLookAndFeel::createMLRectangle (Path& p,
 	float ih = floor(h);
     const float cs2 = 2.0f*cs;
 	const float cs3 = cs2;
-
+    
 	if (isOutline)
 	{
 		ix += 0.5f;
@@ -2050,14 +1962,12 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 										const float sx, 
 										const float sy) throw()
 {
+	if (h <= 0. || w <= 0.) return;
+
 	const float sat = baseColor.getSaturation();
 	const float b = baseColor.getBrightness();
 	const float a = baseColor.getFloatAlpha();
-	const float oa = myOutlineColor.getFloatAlpha();
-	
-	if (a < 0.05 && oa < 0.05) return;
-	if (h <= 0. || w <= 0.) return;
-	
+		
  //	const Colour baseOpaque = baseColor.withAlpha(1.f);
  	const Colour whiteAlpha = Colours::white.withAlpha(a);
  	const Colour blackAlpha = Colours::black.withAlpha(a);
@@ -2083,11 +1993,21 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	gradWidthTop = clamp(gradWidthTop, 0.125f, 1.f);
 	gradWidthBottom = gradWidthTop;
 	
-    Path outline;	
-    createMLRectangle (outline, x, y, w, h, maxCornerSize, flair, sx, sy, true); 
-	
-    Path fill;	
-    createMLRectangle (fill, x, y, w, h, maxCornerSize, flair, sx, sy, false); 
+    Path outline;
+    createMLRectangle (outline, x, y, w, h, maxCornerSize, flair, sx, sy, true);
+    
+//    outline.addRectangle(x, y, w, h);
+    
+    /*
+    Path xHairs;
+    xHairs.startNewSubPath(x, y + h/2);
+    xHairs.lineTo(x + w, y + h/2);
+    xHairs.startNewSubPath(x + w/2, y);
+    xHairs.lineTo(x + w/2, y + h);
+	*/
+    
+//    Path fill;
+//    createMLRectangle (fill, x, y, w, h, maxCornerSize, flair, sx, sy, false);
 	
 	Colour c1, c2, c3, c4;
 	Colour cg1, cg2;
@@ -2106,8 +2026,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 		c3 = baseColor;
 		c4 = baseColor;
 	}
-	
-	
+		
 	if (flat)
 	{
 		c1 = c3 = c4 = c2;
@@ -2124,8 +2043,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 		g.restoreState();
 	}
 	*/
-	
-	
+
 	// draw dark fill vert grad
 	{
 		ColourGradient cg (c1, 0, y, c4, 0, y + h + 1, false);
@@ -2134,10 +2052,9 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 		if (gradWidthBottom < 1.)
 			cg.addColour (1. - gradWidthBottom, c3);
 		g.setGradientFill(cg);
-		g.fillPath (outline);
+		g.fillPath (outline); 
 	}
-	
-	
+
 	// shadow 
 	if (pressed)
 	{	
@@ -2173,11 +2090,14 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	}
 
 	// draw outline
-	if (strokeWidth > 0.05f && oa > 0.05)
+	if (strokeWidth > 0.05f)
 	{
 		g.setColour (myOutlineColor);
 		g.strokePath (outline, PathStrokeType (strokeWidth));
+//		g.strokePath (xHairs, PathStrokeType (strokeWidth)); // TEST
 	}
+
+    
 }
 
 // --------------------------------------------------------------------------------

@@ -39,6 +39,9 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const MLSymbol name)
 		mWidgets[newName] = pW;
 		pW->setWidgetName(newName);
 	}
+    
+    // add parent JUCE component 
+    getComponent()->addChildComponent(pW->getComponent());
 }
 
 MLWidget* MLWidgetContainer::getWidget(MLSymbol name)
