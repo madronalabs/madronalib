@@ -178,13 +178,15 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
 
 MLMenu::MLMenu() :
     mName(""),
-    mRoot(new Node())
+    mRoot(new Node()),
+    mHasIndex(false)
 {
 }
 
 MLMenu::MLMenu(const MLSymbol name) :
     mName(name),
-    mRoot(new Node())
+    mRoot(new Node()),
+    mHasIndex(false)
 {
 }
 
@@ -246,7 +248,7 @@ void MLMenu::buildIndex()
     mRoot->renumberItems();
     std::string startPath("");
     mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
-    
+    mHasIndex = true;
     /*
     // DEBUG
     debug() << "fullnames by index: \n";
@@ -270,6 +272,10 @@ void MLMenu::clear()
 
 const std::string MLMenu::getItemFullName(int idx)
 {
+    if(!mHasIndex)
+    {
+        buildIndex();
+    }
     int items = mFullNamesByIndex.size();
     // items are 1-indexed
 	if(within(idx, 0, items + 1))
