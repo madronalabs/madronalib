@@ -212,8 +212,8 @@ public:
 	void setCenter(const Vec2& b);
 	void centerInRect(const MLRect& b);
 
-	inline void stretchWidth(float d){ val.f[0] -= d*0.5; val.f[2] += d; }	
-	inline void stretchHeight(float d){ val.f[1] -= d*0.5; val.f[3] += d; }
+	inline void stretchWidth(float d){ val.f[0] -= d*0.5f; val.f[2] += d; }
+	inline void stretchHeight(float d){ val.f[1] -= d*0.5f; val.f[3] += d; }
 	
 	inline void stretchWidthTo(float w){ float d = w - width(); stretchWidth(d); }
 	inline void stretchHeightTo(float h){ float d = h - height(); stretchHeight(d); }	
@@ -235,11 +235,11 @@ public:
 	
 	// JUCE adapters
 	inline bool contains(int px, int py) const { return (within(px, (int)left(), (int)right()) && within(py, (int)top(), (int)bottom())); }
-	inline void setBounds(int l, int t, int w, int h) { *this = MLRect(l, t, w, h); }
-	inline int x() const { return left(); }
-	inline int y() const { return top(); }
-	inline int getWidth() const { return width(); }
-	inline int getHeight() const { return height(); }
+	inline void setBounds(int l, int t, int w, int h) { *this = MLRect((float)l, (float)t, (float)w, (float)h); }
+	inline int x() const { return (int)left(); }
+	inline int y() const { return (int)top(); }
+	inline int getWidth() const { return (int)width(); }
+	inline int getHeight() const { return (int)height(); }
 };
 
 std::ostream& operator<< (std::ostream& out, const Vec2& r);

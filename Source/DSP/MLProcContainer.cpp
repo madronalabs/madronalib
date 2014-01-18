@@ -341,7 +341,7 @@ void MLProcContainer::compile()
 		{		
 			// get src proc and index of output
 			int i = pCompileSig->mPublishedOutput;
-            if(i <= mPublishedOutputs.size())
+            if(i <= (int)mPublishedOutputs.size())
             {
                 MLPublishedOutputPtr output = mPublishedOutputs[i - 1];
                 MLProcPtr outputProc = output->mSrc;	
@@ -453,10 +453,10 @@ void MLProcContainer::compile()
 			pR->setOutput(1, *allocBuffer());
 			
 			// set resampler to inverse of our ratio
-			pR->setParam("ratio_top", myRatio.bottom);
-			pR->setParam("ratio_bottom", myRatio.top);
-			pR->setParam("up_order", getResampleUpOrder());
-			pR->setParam("down_order", getResampleDownOrder());
+			pR->setParam("ratio_top", (float)myRatio.bottom);
+			pR->setParam("ratio_bottom", (float)myRatio.top);
+			pR->setParam("up_order", (float)getResampleUpOrder());
+			pR->setParam("down_order", (float)getResampleDownOrder());
 			pR->setup();
 			
 			// connect resampler output to main output
