@@ -209,7 +209,7 @@ public:
         float fw = (float)mWidth - eps;
         float fh = (float)mHeight - eps;        
         float pxc = min(px, fw);
-        float pyc = min(px, fh);
+        float pyc = min(py, fh);
 		int pxi = (int)pxc;
 		int pyi = (int)pyc;
 		float mx = pxc - pxi;
@@ -227,7 +227,7 @@ public:
     }
 
 //	const MLSample operator() (const float i, const float j) const;
-//	const MLSample operator() (const Vec2& pos) const;
+    const MLSample getInterpolatedLinear(const Vec2& pos) const { return getInterpolatedLinear(pos.x(), pos.y()); }
 	
 	// --------------------------------------------------------------------------------
 	// 3D access methods
