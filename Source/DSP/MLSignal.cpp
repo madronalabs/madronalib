@@ -649,8 +649,6 @@ void MLSignal::clear()
 {
 //	std::fill(mDataAligned, mDataAligned+mSize, 0);
 //	setToConstant(0); // TODO 
-//	bzero((void *)(mDataAligned), (size_t)(mSize*sizeof(MLSample)));
-
 	memset((void *)(mDataAligned), 0, (size_t)(mSize*sizeof(MLSample)));
 }
 
