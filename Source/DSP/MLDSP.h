@@ -43,6 +43,10 @@ inline double log2( double n )
 
 #endif
 
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif // _MSC_VER
+
 // ----------------------------------------------------------------
 #pragma mark Types
 // ----------------------------------------------------------------
