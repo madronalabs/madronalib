@@ -42,8 +42,10 @@ void MLTextStream::flush()
 	mItemsInLocalStream = 0;
 }
 
-#ifndef ML_MAC
-
+#ifdef ML_WINDOWS
+#include <Windows.h>
+const int kWideBufSize = 1024;
+static wchar_t wideBuf[kWideBufSize];
 void MLTextStream::display()
 {
 	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
@@ -56,8 +58,22 @@ void MLTextStream::display()
 	}
 	else
 	{
-		// no listener, send to stdout
+		// no listener, send to output
 		flush();
+		std::string outStr = mLocalStream.str();
+		int size = outStr.size();
+		if(size > 0)
+		{
+			if(outStr[size - 1] == '\n')
+			{		
+				mLocalStream.str("");
+				const char* cStr = outStr.c_str();
+				{
+					MultiByteToWideChar(0, 0, cStr, -1, wideBuf, kWideBufSize);
+					OutputDebugString(wideBuf);
+				}
+			}
+		}
 	}
 }
 
