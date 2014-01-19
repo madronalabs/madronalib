@@ -19,6 +19,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
         case kScaleFiles:         
 		case kSampleFiles:
             startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+					debug() << "    start dir: " << startDir.getFullPathName() << " \n";
             break;
         case kAppPresetFiles:
 		default:
@@ -28,6 +29,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
             startDir = File("~/" + "." + makerName + "/" + applicationName);
 #elif JUCE_WINDOWS
             startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+
 #endif
 			break;
 	}
@@ -36,8 +38,6 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 	if (startDir.exists())
 	{
 #if JUCE_WINDOWS
-
-		// debug() << "Start dir: " << startDir.getFullPathName() << " \n";
 
 		if (whichFiles == kScaleFiles)
 		{
@@ -55,6 +55,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		{
 			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName ;
 		}
+		debug() << "    dest: " << startDir.getFullPathName() << " \n";
 
 #elif JUCE_LINUX
 

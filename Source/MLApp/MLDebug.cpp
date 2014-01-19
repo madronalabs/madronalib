@@ -88,7 +88,7 @@ void MLTextStream::display()
 MLTextStream& debug(void)
 {
 	static MLTextStream theDebugMessageStream("debug");
-#ifdef NDEBUG
+#ifndef DEBUG
 	theDebugMessageStream.setActive(false);
 #endif
 	return theDebugMessageStream;

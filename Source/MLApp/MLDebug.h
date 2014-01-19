@@ -38,9 +38,7 @@ public:
 			// made visible next time display() is called.
 			else
 			{
-#ifdef DEBUG
-                std::cout << item;
-#else
+#if defined (NDEBUG) || defined (_WINDOWS)
 				// in case display() is never called, don’t allow local stream
 				// to grow without limit.
 				if(mItemsInLocalStream++ < kMaxLocalItems)
@@ -51,6 +49,8 @@ public:
                 {                    
                     mLocalStream << "\n******** debug stream full, some items after this will be lost! ********\n\n ";
                 }
+#else
+			std::cout << item;
 #endif
 			}
 		}
