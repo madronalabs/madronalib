@@ -818,26 +818,26 @@ void MLPluginController::getPresetsToConvert(Array<File>* pResults)
     //    findFilesOneLevelDeep(presetsFolder, fromFileType, fromFiles, 0);
     }
      
-	//debug() << "convertPresets: got " << fromFiles.size() << " preset files of other type.\n";
+	debug() << "convertPresets: got " << fromFiles.size() << " preset files of other type.\n";
 
 	// for each fromType file, look to see if it has a toType counterpart. 
-	// if not, add it to list. 
+	// if not, add it to list.
 	for(int i=0; i<fromFiles.size(); i++)
 	{
-		// debug() << fromFiles[i].getFileNameWithoutExtension() << " : ";
+		debug() << fromFiles[i].getFileNameWithoutExtension() << " : ";
 		
 		if (!(fromFiles[i].withFileExtension(toFileType).exists()))
 		{
-		//debug() << " NOT in our format\n";		
+		debug() << " NOT in our format\n";		
 			pResults->add(fromFiles[i]);
 		}
 		else
 		{
-		//debug() << " IS in our format\n";
+		debug() << " IS in our format\n";
 		}
 	}
 
-	// debug() << "got " << pResults->size() << " preset files to convert.\n";
+	debug() << "got " << pResults->size() << " preset files to convert.\n";
 } 
 
 

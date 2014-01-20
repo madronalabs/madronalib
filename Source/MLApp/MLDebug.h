@@ -39,7 +39,8 @@ public:
 			else
 			{
 #ifdef DEBUG
-                std::cout << item;
+                std::cout << item;                        
+                        
 #else
 				// in case display() is never called, don’t allow local stream
 				// to grow without limit.
