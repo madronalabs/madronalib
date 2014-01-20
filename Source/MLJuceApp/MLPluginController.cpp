@@ -447,6 +447,7 @@ void MLPluginController::doPresetMenu(int result)
                 errStr = ("Presets folder ");
                 errStr += userPresetsFolder.getFullPathName();
                 errStr += " not found!";
+				debug() << "MLPluginController::doPresetMenu: " << errStr << "\n";
             }
             
             if(err)
