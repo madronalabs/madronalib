@@ -764,7 +764,7 @@ void MLProcContainer::process(const int extFrames)
 		// process all procs!
 		p->process(intFrames);
 
-#ifdef DEBUG
+#if VALIDATE_SIGNALS
 		// check signal integrity.
 		for(int i=0; i<outs; ++i)
 		{
@@ -845,7 +845,7 @@ void MLProcContainer::process(const int extFrames)
 		mOutputs[i]->copy(outSig);
 	}	
 	
-#ifdef DEBUG
+#if VALIDATE_SIGNALS
 	// test outputs!
 	int outs = (int)mPublishedOutputs.size();
 	

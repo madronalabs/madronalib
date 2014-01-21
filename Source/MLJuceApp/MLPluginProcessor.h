@@ -19,7 +19,7 @@
 
 const int kMLPatcherMaxTableSize = 64;
 
-// MLPluginProcessor wraps up an AudioProcessor in an MLModel interface. 
+// MLPluginProcessor wraps up an AudioProcessor in an MLModel interface.
 // The audio wrapper code needs to get at AudioProcessor directly, so this
 // is a composition of MLModel with AudioProcessor rather than a wrapper, 
 // which would otherwise be cleaner. 
@@ -31,6 +31,13 @@ class MLPluginProcessor :
 	public MLModel
 {
 public:
+    
+    enum
+    {
+        kRequiresSSE2,
+        kRequiresSSE3
+    };
+    
 	class Listener
 	{
 	public:
@@ -52,7 +59,7 @@ public:
 
 	// --------------------------------------------------------------------------------
 	// preflight and cleanup
-	MLProc::err preflight();
+	MLProc::err preflight(int requirements = kRequiresSSE2);
 	virtual bool wantsMIDI() {return true;}
     void prepareToPlay (double sampleRate, int samplesPerBlock);
     void releaseResources();

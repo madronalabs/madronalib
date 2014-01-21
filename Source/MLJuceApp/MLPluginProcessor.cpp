@@ -69,11 +69,26 @@ AudioProcessorEditor* MLPluginProcessor::createEditor()
 #pragma mark preflight and cleanup
 //
 
-MLProc::err MLPluginProcessor::preflight()
+MLProc::err MLPluginProcessor::preflight(int requirements)
 {
 	MLProc::err e = MLProc::OK;
-	if (!SystemStats::hasSSE2())
-		e = MLProc::SSE2RequiredErr;
+    switch(requirements)
+    {
+        default:
+        case kRequiresSSE2:            
+            if (!SystemStats::hasSSE2())
+            {
+                e = MLProc::SSE2RequiredErr;
+            }
+            break;
+            
+        case kRequiresSSE3:            
+            if (!SystemStats::hasSSE3())
+            {
+                e = MLProc::SSE3RequiredErr;
+            }
+            break;
+    }
 	return e;
 }
 

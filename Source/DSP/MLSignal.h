@@ -86,14 +86,18 @@ public:
 	// the first value in the array.
 	inline MLSample operator[] (int i) const
 	{
-		assert(i < mSize);
+#if VALIDATE_SIGNALS
+        assert(i < mSize);
+#endif
 		return mDataAligned[i&mConstantMask];
 	}
 
 	// mutator, called for non-const references 
 	inline MLSample& operator[] (int i)
 	{	
-		assert(i < mSize);
+#if VALIDATE_SIGNALS
+        assert(i < mSize);
+#endif
 		return mDataAligned[i];
 	}
 

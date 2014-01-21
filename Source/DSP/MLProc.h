@@ -260,6 +260,7 @@ public:
 		resizeErr,
 		badIndexErr,
 		SSE2RequiredErr,
+		SSE3RequiredErr,
 		unknownErr
 	};
 
