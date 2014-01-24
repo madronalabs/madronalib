@@ -1387,6 +1387,7 @@ void MLSignal::dump(const MLRect& b) const
 	const MLSignal& f = *this;
 	if(mHeight > 1)
 	{
+        debug() << std::fixed << std::setprecision(3);
 		for (int j=b.top(); j< b.bottom(); ++j)
 		{
 			debug() << j << " | ";

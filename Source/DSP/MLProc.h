@@ -17,6 +17,8 @@
 #include "MLSymbol.h"
 #include "MLSymbolMap.h"
 
+#define CHECK_IO    DEBUG
+
 #ifdef	__GNUC__
 	#define	ML_UNUSED	__attribute__ (( __unused__ )) 
 #else
@@ -90,7 +92,7 @@ friend class MLProcFactory;
 				map.addEntry(paramName);
 			}
 		}
-#ifdef DEBUG
+#if CHECK_IO
         MLParamValue* paramToSet = mParams[paramName];
         if (paramToSet != mParams.getNullElement())
         {
@@ -300,25 +302,25 @@ public:
 
 	inline const MLSignal& getInput(const int idx)
 	{ 	
-	#ifdef DEBUG
+#if CHECK_IO
 		if (idx > (int)mInputs.size())
 		{
 			debug() << "MLProc::getInput: no input " << idx << " of proc " << getName() << "!\n";
 			return (getContext()->getNullInput());
 		}
-	#endif
+#endif
 		return (*mInputs[idx-1]); 
 	}
 
 	inline MLSignal& getOutput(const int idx) 
 	{	
-	#ifdef DEBUG
+#if CHECK_IO
 		if (idx > (int)mOutputs.size())
 		{
 			debug() << "MLProc::getOutput: no output " << idx << " of proc " << getName() << "!\n";
 			return (getContext()->getNullOutput());
 		}
-	#endif
+#endif
 		return (*mOutputs[idx-1]); 
 	}
 
