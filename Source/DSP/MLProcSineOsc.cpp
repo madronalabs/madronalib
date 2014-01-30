@@ -15,14 +15,26 @@ public:
 	~MLProcSineOsc();
 	
 	void clear();
-	void process(const int n);		
+	void doParams();
+	void process(const int n);
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcSineOsc> mInfo;
-	MLSample mRootX, mDomain, mRootY, mScale;
+    static const float kIntDomain, kRootX, kOneSixth, kRange, kDomain, kScale, kDomainScale, kFlipOffset;
+
 	int32_t mOmega32;
+    float mInvSrDomain;
 };
+
+const float MLProcSineOsc::kIntDomain = powf(2.f, 32.f);
+const float MLProcSineOsc::kRootX = sqrtf(2.f);
+const float MLProcSineOsc::kOneSixth = 1.f/6.f;
+const float MLProcSineOsc::kRange = kRootX - kRootX*kRootX*kRootX*kOneSixth;
+const float MLProcSineOsc::kDomain = kRootX*4.f;
+const float MLProcSineOsc::kScale = 1.f/kRange;
+const float MLProcSineOsc::kDomainScale = kDomain/kIntDomain;
+const float MLProcSineOsc::kFlipOffset = kRootX*2.f;
 
 
 // ----------------------------------------------------------------
@@ -42,10 +54,6 @@ namespace
 MLProcSineOsc::MLProcSineOsc()
 {
 	clear();	
-	mRootX = sqrtf(2.f);
-	const float range = mRootX - mRootX*mRootX*mRootX/6.f;
-	mDomain = mRootX * 4.f;
-	mScale = 1.f / range;
 }
 
 MLProcSineOsc::~MLProcSineOsc()
@@ -54,44 +62,47 @@ MLProcSineOsc::~MLProcSineOsc()
 
 void MLProcSineOsc::clear()
 {
-	mOmega32 = 0.f;
+	mOmega32 = 0;
+}
+
+void MLProcSineOsc::doParams()
+{
+	const float invSr = getContextInvSampleRate();
+	mInvSrDomain = kIntDomain * invSr;
+    
+    // setup I/O
+    
+    
+    mParamsChanged = false;
 }
 
 // this sine generator makes a looping counter by letting a 32 bit word overflow.
 void MLProcSineOsc::process(const int samples)
-{	
-	MLSample f;
+{
+	if (mParamsChanged) doParams();
 	const MLSignal& freq = getInput(1);
 	MLSignal& y = getOutput();
-	
-	const float invSr = getContextInvSampleRate();
-	static const float intDomain = pow(2.f, 32.f);
-	const float srDomain = intDomain * invSr;
-	const float domainScale = mDomain / intDomain;
-	const float domainOffset = mRootX; 
-	const float flipOffset = mRootX * 2.f; 
-	static const float oneSixth = 1.f / 6.f;	
-	
-	float x, fOmega;	
+
+	float f, x, fOmega;
 	
 	for (int n=0; n<samples; ++n)
 	{
 		f = freq[n];
 		
 		// get integer step
-		int32_t step32 = (int)(srDomain * f);
+		int32_t step32 = (int)(mInvSrDomain * f);
 		
 		// add increment with wrap
 		mOmega32 += step32;
 		
 		// scale to sin approx domain 
-		fOmega = mOmega32 * domainScale + domainOffset;
+		fOmega = mOmega32 * kDomainScale + kRootX;
 		
 		// reverse upper half to make triangle wave
 		// equivalent to: if (mOmega32 > 0) x = flipOffset - fOmega; else x = fOmega;
-		x = fOmega + fSignBit(mOmega32)*(flipOffset - fOmega - fOmega);
+		x = fOmega + fSignBit(mOmega32)*(kFlipOffset - fOmega - fOmega);
 		
 		// sine approx. 
-		y[n] = x*(1 - oneSixth*x*x) * mScale;	
+		y[n] = x*(1 - kOneSixth*x*x) * kScale;
 	}
 }
