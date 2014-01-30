@@ -27,9 +27,6 @@ public:
 	MLRect getWindowBounds();
     
 private:
-#if GLX
-    juce::OpenGLContext openGLContext;
-#endif
 
 };
 

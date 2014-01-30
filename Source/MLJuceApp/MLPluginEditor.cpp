@@ -9,19 +9,12 @@ MLPluginEditor::MLPluginEditor (juce::AudioProcessor* ownerProcessor) :
 	AudioProcessorEditor(ownerProcessor)
 {
     //setOpaque(true);
-#if GLX
-    openGLContext.attachTo (*getTopLevelComponent());
-#endif
     
 }
 
 MLPluginEditor::~MLPluginEditor()
 {
     debug() << "DELETING ~MLPluginEditor\n";
-    
-#if GLX
-    openGLContext.detach();
-#endif
 }
 
 /*

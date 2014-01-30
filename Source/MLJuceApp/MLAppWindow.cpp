@@ -107,7 +107,7 @@ void MLAppWindow::setUsingOpenGL(bool b)
     {
         if(b)
         {
-            openGLContext.attachTo (*getTopLevelComponent());
+            openGLContext.attachTo (*this);
         }
         else
         {
