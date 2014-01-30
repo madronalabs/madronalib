@@ -16,11 +16,17 @@ public:
 	~MLProcMultiply();
 
 	void clear(){};
-	void process(const int n);		
+	void doParams();
+	void process(const int n);
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcMultiply> mInfo;
+    int mConstantMode;
+    const MLSignal* mpX1, *mpX2;
+    MLSignal *mpY1;
+    const MLSample* mpFX1, *mpFX2;
+    MLSample* mpFY1;
 };
 
 
@@ -43,47 +49,56 @@ MLProcMultiply::MLProcMultiply()
 {
 }
 
-
 MLProcMultiply::~MLProcMultiply()
 {
 }
+
 /*
 void MLProcMultiply::process(const int frames)
 {
 	const MLSignal& x1 = getInput(1);
 	const MLSignal& x2 = getInput(2);
 	MLSignal& y1 = getOutput();
-
 	for (int n=0; n<frames; ++n)
 	{
 		y1[n] = x1[n]*x2[n];
 	}
+}
+*/
 
+void MLProcMultiply::doParams()
+{
+	mpX1 = &getInput(1);
+	mpX2 = &getInput(2);
+	mpY1 = &(getOutput());
+
+	mpFX1 = mpX1->getConstBuffer();
+	mpFX2 = mpX2->getConstBuffer();
+	mpFY1 = mpY1->getBuffer();
+    
+    mParamsChanged = false;
 }
 
-*/
 void MLProcMultiply::process(const int frames)
 {
-	const MLSignal& x1 = getInput(1);
-	const MLSignal& x2 = getInput(2);
-	MLSignal& y1 = getOutput();
+    if(mParamsChanged) doParams();
 	
-	const bool k1 = x1.isConstant();
-	const bool k2 = x2.isConstant();
-	const unsigned mode = (k1 << 1) + k2;	
+	const MLSample* px1 = mpFX1;
+	const MLSample* px2 = mpFX2;
+	MLSample* py1 = mpFY1;
 	
-	y1.setConstant(false);
-	
-	const MLSample* px1 = x1.getConstBuffer();
-	const MLSample* px2 = x2.getConstBuffer();
-	MLSample* py1 = y1.getBuffer();
-	
+	// get one of four possible constant combinations
+	const bool k1 = mpX1->isConstant();
+	const bool k2 = mpX2->isConstant();
+	int constantMode = (k1 << 1) + k2;	
+
 	int c = frames >> kMLSamplesPerSSEVectorBits;
 	__m128 vx1, vx2, vr; 	
 
-	switch(mode)
+	switch(constantMode)
 	{
 		case 0:
+            mpY1->setConstant(false);
 			for (int n = 0; n < c; ++n)
 			{
 				vx1 = _mm_load_ps(px1);
@@ -96,7 +111,8 @@ void MLProcMultiply::process(const int frames)
 			}
 		break;
 		case 1:
-			vx2 = _mm_set1_ps(x2[0]);
+            mpY1->setConstant(false);
+			vx2 = _mm_set1_ps(px2[0]);
 			for (int n = 0; n < c; ++n)
 			{
 				vx1 = _mm_load_ps(px1);
@@ -107,7 +123,8 @@ void MLProcMultiply::process(const int frames)
 			}
 		break;
 		case 2:
-			vx1 = _mm_set1_ps(x1[0]);
+            mpY1->setConstant(false);
+			vx1 = _mm_set1_ps(px1[0]);
 			for (int n = 0; n < c; ++n)
 			{
 				vx2 = _mm_load_ps(px2);
@@ -118,30 +135,7 @@ void MLProcMultiply::process(const int frames)
 			}
 		break;
 		case 3: // yay
-			y1.setToConstant(x1[0] * x2[0]);
+			mpY1->setToConstant(px1[0] * px2[0]);
 		break;
-	
-	
 	}
-	
-#ifdef DEBUG
-	// test output!
-	int count = 0;
-	for (int n=0; n<frames; ++n)
-	{
-		MLSample k = y1[n];
-		if (k != k)
-		{
-			count++;
-		}
-	}
-	if (count > 0)
-	{
-		debug() << "MLProcMultiply " << getName() << ": " << count << " NaN samples!\n" ;
-		float a = x1[0]; float b = x2[0];
-		if (a != a) debug() << "    x1 NaN!\n";
-		if (b != b) debug() << "    x2 NaN!\n";
-	}
-#endif
-
 }
