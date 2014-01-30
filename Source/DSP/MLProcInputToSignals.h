@@ -170,7 +170,6 @@ private:
 	bool mRetrig;
 	bool mUnisonMode;
 	int mUnisonInputTouch;
-	bool mDriftMode;
 	float mGlide;	
 	int mOSCDataRate;
 	

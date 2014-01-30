@@ -27,9 +27,10 @@ const char * voiceSignalNames[kNumVoiceSignals] =
 };
 
 const float MLProcInputToSignals::kControllerScale = 1.f/127.f;
-const float MLProcInputToSignals::kDriftConstantsAmount = 0.004f;
-const float MLProcInputToSignals::kDriftRandomAmount = 0.002f;
-
+#if INPUT_DRIFT
+    const float MLProcInputToSignals::kDriftConstantsAmount = 0.004f;
+    const float MLProcInputToSignals::kDriftRandomAmount = 0.002f;
+#endif
 
 // ----------------------------------------------------------------
 //
@@ -535,6 +536,7 @@ void MLProcInputToSignals::process(const int frames)
 	int sr = getContextSampleRate();	 
 	if (mParamsChanged) doParams();
 
+#if INPUT_DRIFT
 	// update drift change list for each voice
 	if ((mDriftCounter < 0) || (mDriftCounter > sr*kDriftInterval))
 	{
@@ -546,7 +548,8 @@ void MLProcInputToSignals::process(const int frames)
 		mDriftCounter = 0;
 	}	
 	mDriftCounter += frames;
-				
+#endif
+    
 	// update age for each voice
 	for (int v=0; v<mCurrentVoices; ++v)
 	{
@@ -775,11 +778,13 @@ void MLProcInputToSignals::processOSC(const int frames)
 			
 		if (v < mCurrentVoices)
 		{
-			mVoices[v].mdPitch.writeToSignal(pitch, mMIDIFrameOffset, frames);		
+			mVoices[v].mdPitch.writeToSignal(pitch, mMIDIFrameOffset, frames);
+
+#if INPUT_DRIFT
 			// write to common temp drift signal, we add one change manually so read offset is 0
 			mVoices[v].mdDrift.writeToSignal(mDriftSignal, 0, frames);
-			pitch.add(mDriftSignal); 
-
+			pitch.add(mDriftSignal);
+#endif
 			mVoices[v].mdGate.writeToSignal(gate, mMIDIFrameOffset, frames);
 			mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);
 			mVoices[v].mdVel.writeToSignal(vel, mMIDIFrameOffset, frames);
@@ -848,11 +853,14 @@ void MLProcInputToSignals::processMIDI(const int frames)
 		if (v < mCurrentVoices)
 		{
 			mVoices[v].mdPitch.writeToSignal(pitch, mMIDIFrameOffset, frames);			
-			pitch.add(mPitchBendSignal); 		
+			pitch.add(mPitchBendSignal);
+            
+#if INPUT_DRIFT
 			// write to common temp drift signal, we add one change manually so read offset is 0
 			mVoices[v].mdDrift.writeToSignal(mDriftSignal, 0, frames);
 			pitch.add(mDriftSignal); 
-					
+#endif
+            
 			mVoices[v].mdGate.writeToSignal(gate, mMIDIFrameOffset, frames);
 			
             mVoices[v].mdAmp.writeToSignal(amp, mMIDIFrameOffset, frames);
@@ -873,7 +881,6 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			mod3.add(mControllerSignal3);
 				
 			mVoices[v].mdPitch.clearChanges();
-			mVoices[v].mdDrift.clearChanges();
 			mVoices[v].mdGate.clearChanges();
 			mVoices[v].mdAmp.clearChanges();
 			mVoices[v].mdAfter.clearChanges();
@@ -881,6 +888,9 @@ void MLProcInputToSignals::processMIDI(const int frames)
 			mVoices[v].mdMod.clearChanges();
 			mVoices[v].mdMod2.clearChanges();
 			mVoices[v].mdMod3.clearChanges();
+#if INPUT_DRIFT
+			mVoices[v].mdDrift.clearChanges();
+#endif
 		}
 		else
 		{
