@@ -88,7 +88,6 @@ void MLProcBiquad::clear()
 	mX1 = mX2 = mY1 = mY2 = 0.f;
 }
 
-
 void MLProcBiquad::calcCoeffs(const unsigned frames) 
 {
 	static MLSymbol modeSym("mode");
@@ -203,29 +202,5 @@ void MLProcBiquad::process(const int frames)
 		mY1 = out;
 		y[n] = out;
 	}
-	
-#ifdef DEBUG
-	// test output!
-	int count = 0;
-	for (int n=0; n<frames; ++n)
-	{
-		MLSample k = y[n];
-		if (k != k)
-		{
-			count++;
-		}
-	}
-	if (count > 0)
-	{
-		debug() << "MLProcBiquad " << getName() << ": " << count << " NaN samples!\n" ;
-		float a = A0[0]; float b = A1[0]; float c = A2[0];float d = B1[0];float e = B2[0];
-		if (a != a) debug() << "    a0 NaN!\n";
-		if (b != b) debug() << "    a1 NaN!\n";
-		if (c != c) debug() << "    a2 NaN!\n";
-		if (d != d) debug() << "    b1 NaN!\n";
-		if (e != e) debug() << "    b2 NaN!\n";
-	}
-#endif
-
 }
 	   
