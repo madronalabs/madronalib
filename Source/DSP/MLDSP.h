@@ -388,15 +388,18 @@ inline char * spaceStr( unsigned int numIndents )
 	return &pINDENT[ LENGTH-n ];
 }
 
+// ----------------------------------------------------------------
+// DSP units -- basic building blocks not in MLProcs
+
 class MLBiquad
 {
 public:
-	MLBiquad() { a0 = a1 = a2 = b1 = b2 = 0.f; mOneOverSr = 1.f;}
+	MLBiquad() { a0 = a1 = a2 = b1 = b2 = 0.f; mInvSr = 1.f;}
 	~MLBiquad() {}
 	
     float processSample(float x);
     void clear();
-	void setSampleRate(float sr) { mOneOverSr = 1.f / sr; }
+	void setSampleRate(float sr) { mInvSr = 1.f / sr; }
 	void setLopass(float f, float q);
 	void setHipass(float f, float q);
     void setPeakNotch(float f, float q, float gain);
@@ -405,9 +408,8 @@ public:
 	void setDifferentiate(void);
 	float a0, a1, a2, b1, b2;
 	float x1, x2, y1, y2;
-	float mOneOverSr;
+	float mInvSr;
 };
-
 
 #endif // _ML_DSP_H
 
