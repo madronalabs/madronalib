@@ -96,6 +96,46 @@ void MLBiquad::setOnePole(float f)
 	b2 = 0;
 }
 
+void MLBiquad::setLoShelf(float f, float q, float gain)
+{
+    // lowShelf: H(s) = A * (s^2 + (sqrt(A)/Q)*s + A)/(A*s^2 + (sqrt(A)/Q)*s + 1)
+    float A = gain;
+    float aMinus1 = A - 1.0f;
+    float aPlus1 = A + 1.0f;
+	float omega = kMLTwoPi * f * mInvSr;
+	float cosOmega = cosf(omega);
+	float alpha = sinf(omega) / (2.f * q);
+    float beta = 2.0f*sqrtf(A)*alpha;
+    
+	float b0 = aPlus1 + aMinus1*cosOmega + beta;
+	
+	a0 = (A*(aPlus1 - aMinus1*cosOmega + beta)) / b0;
+	a1 = (A*(aPlus1*-2.0f*cosOmega + 2.0f*aMinus1)) / b0;
+	a2 = (A*(aPlus1 - aMinus1*cosOmega - beta)) / b0;
+    b1 = (aPlus1*-2.0f*cosOmega - 2.0f*aMinus1) / b0;
+	b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
+}
+
+void MLBiquad::setHiShelf(float f, float q, float gain)
+{
+    // highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
+    float A = gain;
+    float aMinus1 = A - 1.0f;
+    float aPlus1 = A + 1.0f;
+	float omega = kMLTwoPi * f * mInvSr;
+	float cosOmega = cosf(omega);
+	float alpha = sinf(omega) / (2.f * q);
+    float beta = 2.0f*sqrtf(A)*alpha;
+    
+	float b0 = aPlus1 - aMinus1*cosOmega + beta;
+	
+	a0 = (A*(aPlus1 + aMinus1*cosOmega + beta)) / b0;
+	a1 = (A*(aPlus1*-2.0f*cosOmega + -2.0f*aMinus1)) / b0;
+	a2 = (A*(aPlus1 + aMinus1*cosOmega - beta)) / b0;
+    b1 = (aPlus1*-2.0f*cosOmega + 2.0f*aMinus1) / b0;
+	b2 = (aPlus1 - aMinus1*cosOmega - beta) / b0;
+}
+
 void MLBiquad::setDifferentiate(void)
 {
 	a0 = 1.f;
@@ -104,7 +144,6 @@ void MLBiquad::setDifferentiate(void)
 	b1 = 0;
 	b2 = 0;
 }
-
 
 // ----------------------------------------------------------------
 #pragma mark MLSineOsc
@@ -122,13 +161,17 @@ const float MLSineOsc::kFlipOffset = kRootX*2.f;
 #pragma mark MLTriOsc
 
 const float MLTriOsc::kIntDomain = powf(2.f, 32.f);
-const float MLTriOsc::kRootX = sqrtf(2.f);
-const float MLTriOsc::kOneSixth = 1.f/6.f;
-const float MLTriOsc::kRange = kRootX - kRootX*kRootX*kRootX*kOneSixth;
-const float MLTriOsc::kDomain = kRootX*4.f;
-const float MLTriOsc::kScale = 1.f/kRange;
-const float MLTriOsc::kDomainScale = kDomain/kIntDomain;
-const float MLTriOsc::kFlipOffset = kRootX*2.f;
+const float MLTriOsc::kDomainScale = 4.f/kIntDomain;
+
+// ----------------------------------------------------------------
+#pragma mark MLLinearDelay
+
+void MLLinearDelay::resize(float duration)
+{
+    int newSize = duration*(float)mSR;
+    mBuffer.setDims(newSize);
+    mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
+}
 
 // ----------------------------------------------------------------
 #pragma mark MLAllpassDelay
@@ -140,6 +183,19 @@ void MLAllpassDelay::resize(float duration)
     mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
 }
 
+void MLAllpassDelay::setModDelay(float d)
+{
+//    int prevD = mModDelayInSamples;
+
+    mModDelayInSamples = d*(float)mSR;
+    
+//    int newD = mModDelayInSamples;    
+//    if(prevD < newD) debug() << "<";
+//    if(prevD > newD) debug() << ">";
+}
+
+// TODO modulating this allpass is a little bit clicky.
+// add history crossfading to address this. 
 MLSample MLAllpassDelay::processSample(const MLSample x)
 {
     float fDelayInt, D;
@@ -149,7 +205,7 @@ MLSample MLAllpassDelay::processSample(const MLSample x)
     
     mWriteIndex &= mLengthMask;
     sum = x - mFeedback*mFixedTapOut;
-   
+
     mBuffer[mWriteIndex] = sum;
     mWriteIndex++;
     
@@ -159,12 +215,14 @@ MLSample MLAllpassDelay::processSample(const MLSample x)
     
     // get allpass interpolation coefficient D
     D = mModDelayInSamples - fDelayInt;
+
     // constrain D to [0.5 - 1.5];
     if (D < 0.5f)
     {
         D += 1.f;
         delayInt -= 1;
     }
+    
     alpha = (1.f - D) / (1.f + D); // exact
     // TODO try this or Taylor approx. in van Duyne thesis
     //float xm1 = (D - 1.f);
@@ -184,4 +242,7 @@ MLSample MLAllpassDelay::processSample(const MLSample x)
     
     return sum*mBlend + modTapOut*mFeedForward;
 }
+
+
+
 
