@@ -30,12 +30,16 @@ public:
 	void setSampleRate(float sr) { mInvSr = 1.f / sr; }
 	void setLopass(float f, float q);
 	void setHipass(float f, float q);
+	void setBandpass(float f, float q);
     void setPeakNotch(float f, float q, float gain);
 	void setNotch(float f, float q);
 	void setOnePole(float f);
+    void setAllpass1(float d);
+    void setAllpass2(float f, float r);
 	void setDifferentiate(void);
-    void setHiShelf(float f, float q, float gain);
     void setLoShelf(float f, float q, float gain);
+    void setHiShelf(float f, float q, float gain);
+    void setCoefficients(float, float, float, float, float);
     inline MLSample processSample(float x)
     {
         float out;

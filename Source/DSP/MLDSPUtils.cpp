@@ -68,6 +68,22 @@ void MLBiquad::setHipass(float f, float q)
 	b2 = (1.f - alpha) / b0;
 }
 
+void MLBiquad::setBandpass(float f, float q)
+{
+	//BPF: H(s) = s / (s^2 + s/Q + 1)  (constant skirt gain, peak gain = Q)
+
+	float omega = kMLTwoPi * f * mInvSr;
+	float cosOmega = cosf(omega);
+	float alpha = sinf(omega) / (2.f * q);
+	float b0 = 1.f + alpha;
+	
+	a0 = alpha / b0;
+	a1 = 0.;
+	a2 = -alpha / b0;
+	b1 = -2.f * cosOmega / b0;
+	b2 = (1.f - alpha) / b0;
+}
+
 void MLBiquad::setNotch(float f, float q)
 {
 	//notch: H(s) = (s^2 + 1) / (s^2 + s/Q + 1)
@@ -116,6 +132,7 @@ void MLBiquad::setLoShelf(float f, float q, float gain)
 	b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
 }
 
+
 void MLBiquad::setHiShelf(float f, float q, float gain)
 {
     // highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
@@ -136,6 +153,29 @@ void MLBiquad::setHiShelf(float f, float q, float gain)
 	b2 = (aPlus1 - aMinus1*cosOmega - beta) / b0;
 }
 
+// make first order allpass section based on delay parameter d.
+void MLBiquad::setAllpass1(float D)
+{
+    float alpha = (1.f - D) / (1.f + D);    
+    a0 = alpha;
+    a1 = 1.f;
+    a2 = 0;
+    b1 = alpha;
+    b2 = 0;
+}
+
+// make second order allpass section based on frequency f and pole radius r.
+void MLBiquad::setAllpass2(float f, float r)
+{
+	float omega = kMLTwoPi * f * mInvSr;
+	float cosOmega = cosf(omega);
+	a0 = r*r;
+	a1 = -2.f*r*cosOmega;
+	a2 = 1.f;
+	b1 = -2.f*r*cosOmega;
+	b2 = r*r;
+}
+
 void MLBiquad::setDifferentiate(void)
 {
 	a0 = 1.f;
@@ -143,6 +183,15 @@ void MLBiquad::setDifferentiate(void)
 	a2 = 0;
 	b1 = 0;
 	b2 = 0;
+}
+
+void MLBiquad::setCoefficients(float pa0, float pa1, float pa2, float pb1, float pb2)
+{
+	a0 = pa0;
+	a1 = pa1;
+	a2 = pa2;
+	b1 = pb1;
+	b2 = pb2;
 }
 
 // ----------------------------------------------------------------
