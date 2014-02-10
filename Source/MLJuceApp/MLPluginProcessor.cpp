@@ -1301,7 +1301,7 @@ void MLPluginProcessor::advancePreset(int amount)
     const std::string* currPresetName = getModelStringParam("preset");
     if (currPresetName != NULL)
     {
-        mPresetFiles->getFileIndexByName(*currPresetName + extension);
+        currIdx = mPresetFiles->getFileIndexByName(*currPresetName + extension);
     }
     
     if(currIdx >= 0)
