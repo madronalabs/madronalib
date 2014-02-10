@@ -49,7 +49,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		}
 		else if (whichFiles == kPresetFiles)
 		{
-			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName + "/Presets";
+			dest = String(MLProjectInfo::makerName) + "/" + MLProjectInfo::projectName;
 		}
 		else if (whichFiles == kAppPresetFiles)
 		{
