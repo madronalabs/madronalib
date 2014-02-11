@@ -238,18 +238,12 @@ public:
     void drawPopupMenuBackground (Graphics& g, int width, int height);
 
     /** Draws one of the items in a popup menu. */
-    void drawPopupMenuItem (Graphics& g,
-                                    int width, int height,
-                                    const bool isSeparator,
-                                    const bool isActive,
-                                    const bool isHighlighted,
-                                    const bool isTicked,
-                                    const bool hasSubMenu,
-                                    const String& text,
-                                    const String& shortcutKeyText,
-                                    Image* image,
-                                    const Colour* const textColour);
-
+    void drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
+                                           const bool isSeparator, const bool isActive,
+                                           const bool isHighlighted, const bool isTicked,
+                                           const bool hasSubMenu, const String& text,
+                                           const String& shortcutKeyText,
+                                           const Drawable* icon, const Colour* const textColourToUse);
 
     /** Returns the size and style of font to use in popup menus. */
     Font getPopupMenuFont();

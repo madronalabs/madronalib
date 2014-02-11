@@ -50,7 +50,7 @@ void MLPluginController::setView(MLAppView* v)
 	const ScopedLock lock(mViewShutdownLock);
 	if(!v)
 	{
-		debug() << "MLPluginController::setView 0\n";
+		// debug() << "MLPluginController::setView 0\n";
 	}
 	mpView = v;
 }

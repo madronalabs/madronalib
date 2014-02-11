@@ -14,7 +14,7 @@ MLPluginEditor::MLPluginEditor (juce::AudioProcessor* ownerProcessor) :
 
 MLPluginEditor::~MLPluginEditor()
 {
-    debug() << "DELETING ~MLPluginEditor\n";
+    // debug() << "DELETING ~MLPluginEditor\n";
 }
 
 /*
