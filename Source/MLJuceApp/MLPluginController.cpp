@@ -692,12 +692,22 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
 	menu->addItem("Paste from clipboard");
 	
 #if ML_MAC
-	menu->addSeparator();		
-	menu->addItem("Convert presets..."); 
+	menu->addItem("Convert presets...");
 #endif
+	menu->addSeparator();
     
-    menu->addSeparator();    
-    menu->appendMenu(presetFiles->buildMenu());
+    // add factory presets, those starting with the plugin name    
+    MLMenuPtr factoryMenu(new MLMenu(presetFiles->getName()));
+    presetFiles->getRoot()->buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
+    menu->appendMenu(factoryMenu);
+    
+    menu->addSeparator();
+    
+    // add user presets, all the others
+    MLMenuPtr userMenu(new MLMenu(presetFiles->getName()));
+    presetFiles->getRoot()->buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
+    menu->appendMenu(userMenu);
+    
     menu->buildIndex();
      
     // send MIDI program info to processor

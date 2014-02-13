@@ -28,7 +28,9 @@ public:
     void insert(const std::string& relPath, MLFilePtr f);
     MLFilePtr find(const std::string& path);
     std::string getAbsolutePath();
-    void buildMenu(MLMenuPtr m);
+    void buildMenu(MLMenuPtr m) const;
+    void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
+    void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
     
     File mFile;
     bool mIsDirectory;

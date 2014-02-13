@@ -79,7 +79,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
 
 MLFilePtr MLFile::find(const std::string& path)
 {
-  debug() << "FINDING: " << path << "\n";
+    // debug() << "FINDING: " << path << "\n";
     int len = path.length();
     if(len)
     {
@@ -87,7 +87,7 @@ MLFilePtr MLFile::find(const std::string& path)
         if(b == std::string::npos)
         {
             // end of path, find short name here or return fail.
-         debug() << "        path end: " << path << "\n\n" ;
+            // debug() << "        path end: " << path << "\n\n" ;
             
             std::map<std::string, MLFilePtr>::const_iterator it;
             it = mFiles.find(path);
@@ -98,7 +98,7 @@ MLFilePtr MLFile::find(const std::string& path)
             }
             else
             {
-                debug() << "did not find " << path << " in :\n";
+                debug() << "MLFile::find: did not find " << path << " in :\n";
                 
                 std::map<std::string, MLFilePtr>::const_iterator it2;
                 for(it2 = mFiles.begin(); it2 != mFiles.end(); ++it2)
@@ -145,7 +145,7 @@ std::string MLFile::getAbsolutePath()
     return std::string(mFile.getFullPathName().toUTF8());
 }
 
-void MLFile::buildMenu(MLMenuPtr m)
+void MLFile::buildMenu(MLMenuPtr m) const
 {
     m->clear();
     std::map<std::string, MLFilePtr>::const_iterator it;
@@ -163,6 +163,59 @@ void MLFile::buildMenu(MLMenuPtr m)
         {
             // debug() << "ADDING ITEM: " << f->mShortName << "\n";
             m->addItem(f->mShortName);
+        }
+    }
+}
+
+// build a menu of only the files in top-level directories starting with the prefix.
+// this adds only directories, not files. Made for adding "factory" presets separately.
+void MLFile::buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const
+{
+    int prefixLen = prefix.length();
+    m->clear();
+    std::map<std::string, MLFilePtr>::const_iterator it;
+    for(it = mFiles.begin(); it != mFiles.end(); ++it)
+    {
+        const MLFilePtr f = it->second;
+        std::string filePrefix = f->mShortName.substr(0, prefixLen);
+        if(filePrefix.compare(prefix) == 0)
+        {
+            if(f->mIsDirectory)
+            {
+                MLMenuPtr subMenu(new MLMenu());
+                f->buildMenu(subMenu);
+                m->addSubMenu(subMenu, f->mShortName);
+            }
+            else
+            {
+                m->addItem(f->mShortName);
+            }
+        }
+    }
+}
+
+// build a menu of only the files not starting with the prefix.
+void MLFile::buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const
+{
+    int prefixLen = prefix.length();
+    m->clear();
+    std::map<std::string, MLFilePtr>::const_iterator it;
+    for(it = mFiles.begin(); it != mFiles.end(); ++it)
+    {
+        const MLFilePtr f = it->second;
+        std::string filePrefix = f->mShortName.substr(0, prefixLen);
+        if(filePrefix.compare(prefix) != 0)
+        {
+            if(f->mIsDirectory)
+            {
+                MLMenuPtr subMenu(new MLMenu());
+                f->buildMenu(subMenu);
+                m->addSubMenu(subMenu, f->mShortName);
+            }
+            else
+            {
+                m->addItem(f->mShortName);
+            }
         }
     }
 }

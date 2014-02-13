@@ -985,7 +985,6 @@ void MLLookAndFeel::drawPopupMenuUpDownArrow (Graphics& g,
     g.fillPath (p);
 }
 
-
 void MLLookAndFeel::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
                                         const bool isSeparator, const bool isActive,
                                         const bool isHighlighted, const bool isTicked,
@@ -1032,8 +1031,7 @@ void MLLookAndFeel::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
         
         const float maxFontHeight = area.getHeight() / 1.3f;
 
-        float fh = (float)maxFontHeight;//*kPopupMenuTextScale;
-//		font.setHeight(floor(fh) + 0.75f);
+        float fh = (float)maxFontHeight;
 		font.setExtraKerningFactor(getButtonTextKerning(fh));
         
         if (font.getHeight() > maxFontHeight)

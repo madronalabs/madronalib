@@ -34,6 +34,8 @@ public:
     ~MLFileCollection();
     void clear();
     int size() { return mFilesByIndex.size(); }
+    MLSymbol getName() { return mName; }
+    const MLFile* getRoot() { return (const_cast<const MLFile *>(&mRoot)); }
     
     void setListener (Listener* listener);
 
@@ -58,6 +60,7 @@ public:
     std::string getRelativePath(const std::string& name);
     
     MLMenuPtr buildMenu(bool flat = false);
+    MLMenuPtr buildMenuMatchingPrefix(std::string prefix);
     void dump();
     
 private:
