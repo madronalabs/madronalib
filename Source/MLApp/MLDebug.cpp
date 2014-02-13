@@ -58,6 +58,7 @@ void MLTextStream::display()
 	}
 	else
 	{
+#if DEBUG
 		// no listener, send to output
 		flush();
 		std::string outStr = mLocalStream.str();
@@ -74,10 +75,11 @@ void MLTextStream::display()
 				}
 			}
 		}
+#endif // DEBUG
 	}
 }
 
-#endif // ML_MAC
+#endif // ML_WINDOWS
 
 // --------------------------------------------------------------------------------
 // global entry points

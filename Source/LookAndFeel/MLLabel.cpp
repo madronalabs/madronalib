@@ -43,7 +43,7 @@ MLLabel::MLLabel (const char* labelText) :
 
 MLLabel::~MLLabel()
 {
-
+	debug() << "deleting MLLabel " << getName() << "\n";
 }
 
 void MLLabel::setFont (const Font& newFont)

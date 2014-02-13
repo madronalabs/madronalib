@@ -77,7 +77,7 @@ void MLAppBorder::centerMainViewInWindow()
 	Rectangle<int> br = getBounds();
 	int windowWidth = br.getWidth();
 	int windowHeight = br.getHeight();	
-	double windowRatio = (double)windowWidth/(double)windowHeight;
+	double windowRatio = (double)(windowWidth + 1)/(double)windowHeight;
 	double viewRatio = (double)mGridUnitsX/(double)mGridUnitsY;
 	int u = (int)(windowHeight / mGridUnitsY);
 	int viewWidth, viewHeight;
@@ -89,13 +89,13 @@ void MLAppBorder::centerMainViewInWindow()
 	{
 		// too wide
 		viewHeight = windowHeight;
-		viewWidth = (double)windowHeight*viewRatio;
+		viewWidth = floor((double)windowHeight*viewRatio);
 	}
 	else
 	{
 		// too tall
 		viewWidth = windowWidth;
-		viewHeight = (double)windowWidth/viewRatio;
+		viewHeight = floor((double)windowWidth/viewRatio);
 		u = viewWidth / mGridUnitsX;
 	}
     
@@ -108,7 +108,7 @@ void MLAppBorder::centerMainViewInWindow()
 	int vwq = viewWidth / u * u;
 	int vhq = viewHeight / u * u;
 	int borderX = (windowWidth - vwq)/2;
-	int borderY = (windowHeight - vhq)/2;
+	int borderY = 0;//(windowHeight - vhq)/2;
 	
 	if (pMainView) pMainView->resizeWidget(MLRect(borderX, borderY, vwq, vhq), u);
 }
