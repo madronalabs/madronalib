@@ -2214,11 +2214,11 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			cBounds = MLToJuceRectInt(bb);
 			
 			mShadowSize = (int)(kMLShadowThickness*u/32.) & ~0x1;			
-			mTextHeight = (((long)mTextSize) | 0x1) - 2;            
-			mThumbMargin = (int)(myLookAndFeel->getSmallMargin()*u);//*0.75f);
+			mTextHeight = ((long)mTextSize - 1) | 0x1;
+			mThumbMargin = (int)(myLookAndFeel->getSmallMargin()*u);
 			int padding = mShadowSize + mTrackThickness/2;
 			int thumbHeight = mTextHeight + mThumbMargin*2 ;
-			Vec2 maxThumbSize(thumbHeight*3, thumbHeight + padding);
+			Vec2 maxThumbSize(thumbHeight*4, thumbHeight + padding);
 
 			// get track size
 			if (isHorizontal())
