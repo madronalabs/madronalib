@@ -935,7 +935,7 @@ public:
 
 void MLPluginController::convertPresets()
 {
-//debug() << "converting presets...\n";
+debug() << "converting presets...\n";
 
 	Array<File> filesToConvert;
 	getPresetsToConvert(&filesToConvert);
