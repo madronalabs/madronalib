@@ -87,7 +87,7 @@ MLFilePtr MLFile::find(const std::string& path)
         if(b == std::string::npos)
         {
             // end of path, find short name here or return fail.
-            // debug() << "        path end: " << path << "\n\n" ;
+            //debug() << "        path end: " << path << "\n\n" ;
             
             std::map<std::string, MLFilePtr>::const_iterator it;
             it = mFiles.find(path);
@@ -98,14 +98,14 @@ MLFilePtr MLFile::find(const std::string& path)
             }
             else
             {
-                debug() << "MLFile::find: did not find " << path << " in :\n";
+                //debug() << "MLFile::find: did not find " << path << " in :\n";
                 
                 std::map<std::string, MLFilePtr>::const_iterator it2;
                 for(it2 = mFiles.begin(); it2 != mFiles.end(); ++it2)
                 {
-                        debug() << it2->first << ", ";
+                        //debug() << it2->first << ", ";
                 }
-                debug() << "\n";
+                //debug() << "\n";
                 
                 return MLFilePtr();
             }
@@ -115,7 +115,7 @@ MLFilePtr MLFile::find(const std::string& path)
             std::string firstDir = path.substr(0, b);
             std::string restOfDirs = path.substr(b + 1, len - b);
             
-    debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
+            //debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
             
             // find file matching first dir
             if(firstDir == "")

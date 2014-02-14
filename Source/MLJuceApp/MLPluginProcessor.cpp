@@ -611,8 +611,24 @@ void MLPluginProcessor::setModelParam(MLSymbol p, const std::string& v)
 	MLModel::setModelParam(p, v);
 	if (p == "key_scale")
 	{
-		setScaleByName(v);
- 	}
+        bool loaded = false;
+        
+        // look for scale under full name with path
+        if(v != std::string())
+        {
+            const MLFilePtr f = mScaleFiles->getFileByName(v);
+            if(f != MLFilePtr())
+            {
+                loadScale(f->mFile);
+                loaded = true;
+            }
+        }
+        
+        if(!loaded)
+        {
+            loadDefaultScale();
+        }
+    }
 }
 
 void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
@@ -620,24 +636,6 @@ void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
 	MLModel::setModelParam(p, v);
 }
 
-void MLPluginProcessor::setScaleByName(const std::string& fullName)
-{
-    bool loaded = false;
-    if(fullName != std::string())
-    {
-        const MLFilePtr f = mScaleFiles->getFileByName(fullName);
-        if(f != MLFilePtr())
-        {
-            loadScale(f->mFile);
-            loaded = true;
-        }
-    }
-    
-    if(!loaded)
-    {
-        loadDefaultScale();
-    }
-}
 
 // --------------------------------------------------------------------------------
 #pragma mark signals
@@ -848,7 +846,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	// only the differences between default parameters and the program state are saved in a program,
 	// so the first step is to set the default parameters. 
 	setDefaultParameters();
-	loadDefaultScale();
 	
 	// get program version of saved state
 	unsigned blobVersion = xmlState.getIntAttribute ("pluginVersion");
@@ -863,8 +860,22 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
     
 	// try to load scale if a scale attribute exists
     // TODO auto save all state including this
+ 	const String scaleDir = xmlState.getStringAttribute ("scaleDir"); // look for old-style dir attribute   
 	const String scaleName = xmlState.getStringAttribute ("scaleName");
-	setModelParam("key_scale", std::string(scaleName.toUTF8()));
+    String fullName;
+    if(scaleName != String::empty)
+    {
+        fullName = scaleName;
+        if(scaleDir != String::empty)
+        {
+            fullName = scaleDir + String("/") + fullName + ".scl";
+        }
+    }
+    else
+    {
+        fullName = "12-equal";
+    }
+	setModelParam("key_scale", std::string(fullName.toUTF8()));
     
 	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
     
@@ -1112,9 +1123,6 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 	if (f.exists())
 	{
 		String extension = f.getFileExtension();
-		
-debug() << "loading file: " << f.getFileName() << "\n";
-		
 		if (extension == ".mlpreset")
 		{
 			// load cross-platform mlpreset file.
@@ -1125,8 +1133,7 @@ debug() << "loading file: " << f.getFileName() << "\n";
 				setStateFromXML(*pDocElem);
 				mpLatestStateLoaded = pDocElem;
 			}
-		}
-        
+		}        
 		else if (extension == ".aupreset")
 		{
 			// tell AU wrapper to load AU-compatible .aupreset file.
@@ -1403,7 +1410,6 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 	switch(msg)
 	{
 		case MLAudioProcessorListener::kLoad:
-debug() << "sendMessageToMLListener: load file " << f.getFileName() << "\n";	
 			MLListener->loadFile (f);
 		break;
 		case MLAudioProcessorListener::kSave:

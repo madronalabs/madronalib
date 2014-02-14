@@ -116,8 +116,6 @@ public:
     virtual void setModelParam(MLSymbol p, float v);
     virtual void setModelParam(MLSymbol p, const std::string& v);
     virtual void setModelParam(MLSymbol p, const MLSignal& v);
-    
-    void setScaleByName(const std::string& fullName);
 
 	// --------------------------------------------------------------------------------
 	// signals
