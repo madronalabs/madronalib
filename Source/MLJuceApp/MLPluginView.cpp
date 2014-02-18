@@ -154,7 +154,7 @@ MLDrawableButton* MLPluginView::addDrawableButton(const MLRect & r, const char *
 	MLDrawableButton* b = MLAppView::addDrawableButton(r, name, img, color);
     
 	// setup button attrs from filter parameter
-	MLPluginProcessor* const filter = getProcessor();
+	//MLPluginProcessor* const filter = getProcessor();
     /*
      int idx = filter->getParameterIndex(paramName);
      if (idx >= 0)

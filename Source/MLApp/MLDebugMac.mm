@@ -3,6 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+#include "MLPlatform.h"
 #include <Cocoa/Cocoa.h>
 #include "MLDebug.h"
 #include "JuceHeader.h"

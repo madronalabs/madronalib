@@ -475,7 +475,7 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 
 void MLProcInputToSignals::clear()
 {
-	int bufSize = (int)getParam("bufsize");
+	//int bufSize = (int)getParam("bufsize");
 	int vecSize = getContextVectorSize();
 	
 	// debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";

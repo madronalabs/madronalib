@@ -954,7 +954,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 			// see if we have this named parameter in our engine. 
 			MLSymbol paramSym = XMLAttrToSymbol(attrName);
 			const int pIdx = getParameterIndex(paramSym);
-
+            
 //debug() << "<" << paramSym << " = " << paramVal << ">\n";
 			if (pIdx >= 0)
 			{

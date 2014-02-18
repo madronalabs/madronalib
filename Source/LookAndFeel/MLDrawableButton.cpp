@@ -80,7 +80,7 @@ void MLDrawableButton::paintButton (Graphics& g, bool isMouseOverButton, bool is
 	if (style == ImageOnButtonBackground)
     {
         int h = imageSpace.getHeight();
-        int w = imageSpace.getWidth();
+        //int w = imageSpace.getWidth();
         myLookAndFeel->drawButtonBackground (g, *this, c, isMouseOverButton, isButtonDown, mLineThickness);
         
         imageSpace.reduce(0, h/4);
