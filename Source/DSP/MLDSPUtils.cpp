@@ -220,6 +220,12 @@ void MLLinearDelay::resize(float duration)
     int newSize = duration*(float)mSR;
     mBuffer.setDims(newSize);
     mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
+    clear();
+}
+
+void MLLinearDelay::setModDelay(float d)
+{
+    mModDelayInSamples = d*(float)mSR;
 }
 
 // ----------------------------------------------------------------
@@ -230,6 +236,7 @@ void MLAllpassDelay::resize(float duration)
     int newSize = duration*(float)mSR;
     mBuffer.setDims(newSize);
     mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
+    mWriteIndex = 0;
 }
 
 void MLAllpassDelay::setModDelay(float d)
@@ -293,5 +300,160 @@ MLSample MLAllpassDelay::processSample(const MLSample x)
 }
 
 
+// ----------------------------------------------------------------
+#pragma mark MLFDN
+
+static const float kMaxDelayLength = 1.0f;
+
+void MLFDN::resize(int n)
+{
+    mDelays.resize(n);
+    for(int i=0; i<n; ++i)
+    {
+        mDelays[i].setSampleRate(mSR);
+        mDelays[i].resize(kMaxDelayLength);
+    }
+
+    mAllpasses.resize(n);
+    mFilters.resize(n);
+    mDelayOutputs.setDims(n);
+    
+    // make Householder feedback matrix
+    mMatrix.setDims(n, n);
+    mMatrix.setIdentity();
+    mMatrix.subtract(2.0f/(float)n);
+    
+    mSize = n;
+    calcCoeffs();
+}
+
+void MLFDN::clear()
+{
+    for(int i=0; i<mSize; ++i)
+    {
+        mDelays[i].clear();
+        mFilters[i].clear();
+        mAllpasses[i].clear();
+    }
+    mDelayOutputs.clear();
+}
+
+void MLFDN::setSampleRate(int sr)
+{
+    mSR = sr;
+    mInvSr = 1.0f / (float)sr;
+    // delays samples rates need to be set here so resize calculates correctly
+    for(int i=0; i<mSize; ++i)
+    {
+        mDelays[i].setSampleRate(sr);
+        mDelays[i].resize(kMaxDelayLength);
+        mDelays[i].clear();        
+    }
+    calcCoeffs();
+}
+
+// set lengths of delay lines, which will control the reverb density
+void MLFDN::setDelayLengths(float maxLength)
+{
+    float t = clamp(maxLength, 0.f, kMaxDelayLength);
+    mDelayTime = t;
+    calcCoeffs();
+}
+
+// set the delay decay time, given the current lengths, using gain and filters
+void MLFDN::setDelayTime(float t)
+{
+    for(int i=0; i<mSize; ++i)
+    {
+        //mFilters[i].setOnePole();
+    }
+    calcCoeffs();
+}
+
+// calculate all internal coefficients based on sr, size, length, delay time
+void MLFDN::calcCoeffs()
+{
+    debug() << " MLFDN delays: \n ";
+    float t = mDelayTime;
+    for(int i=0; i<mSize; ++i)
+    {
+        // clear delay and set to all feedforward, no feedback
+        mDelays[i].setSampleRate(mSR);
+        mDelays[i].setMixParams(0., 1., 0.);
+        mDelays[i].clear();
+        
+        debug() << "    " << i << " : " << t << "\n";
+        mDelays[i].setModDelay(t);
+        float m = 0.925f;
+        t *= m;
+    }
+
+    for(int i=0; i<mSize; ++i)
+    {
+        // setup allpass params
+        mAllpasses[i].setSampleRate(mSR);
+        mAllpasses[i].setAllpass1(0.75);
+        mAllpasses[i].clear();
+    }
+    
+    for(int i=0; i<mSize; ++i)
+    {
+        // setup lowpass params
+        mFilters[i].setSampleRate(mSR);
+//        mFilters[i].setHiShelf(5000., 0.5, 0.5f);
+        mFilters[i].setOnePole(15000.f);
+        mFilters[i].clear();
+    }
+    
+}
+
+MLSample MLFDN::processSample(const MLSample x)
+{
+    float outputSum = 0.f;
+    for(int j=0; j<mSize; ++j)
+    {
+        // input + feedback
+        float inputSum = x;
+        for(int i=0; i<mSize; ++i)
+        {
+            inputSum += mDelayOutputs[i]*mMatrix(i, j);
+        }
+        
+        
+        
+        // delays
+        mDelayOutputs[j] = mDelays[j].processSample(inputSum);        
+        mDelayOutputs[j] *= mFeedbackAmp;
+        
+        // allpass scramblers
+        mDelayOutputs[j] = mAllpasses[j].processSample(mDelayOutputs[j]);
+        
+        
+        // filters
+        mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);
+        // test no filter
+        
+       
+        
+        
+        
+        outputSum += mDelayOutputs[j];
+    }
+    
+    // TEMP
+    if (outputSum != outputSum)
+    {
+        debug() << "NaN! -----------------\n";
+        // dump state
+        mMatrix.dump(MLRect(0, 0, mSize, mSize));
+        
+        for(int i=0; i<mSize; ++i)
+        {
+            mDelays[i].mBuffer.dump();
+        }
+    }
+    // temp
+    return outputSum;
+}
 
 

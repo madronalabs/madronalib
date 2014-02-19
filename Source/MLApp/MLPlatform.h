@@ -15,7 +15,7 @@
 #elif defined (__APPLE__)
     #define     ML_MAC 1
 #else
-  #error "Unknown platform!"
+    #define     ML_UNKNOWN 1 // this happens with Apple's Rez for example, so can't cause an error
 #endif
 
 #endif // _ML_PLATFORM_H

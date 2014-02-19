@@ -145,12 +145,13 @@ public:
 	inline void clear()
     {
         mBuffer.clear();
+        mWriteIndex = 0;
     }
     inline void setSampleRate(int sr) { mSR = sr; mInvSr = 1.0f / (float)sr; }
     void resize(float duration);
     inline void setMixParams(float b, float ff, float fb) { mBlend = b; mFeedForward = ff; mFeedback = fb; }
     inline void setFixedDelay(float d) { mFixedDelayInSamples = (int)(d*(float)mSR); }
-    inline void setModDelay(float d) { mModDelayInSamples = d*(float)mSR; }
+    void setModDelay(float d);
     
     inline MLSample processSample(const MLSample x)
     {
@@ -188,9 +189,9 @@ public:
         return sum*mBlend + modTapOut*mFeedForward;
     }
     
+    MLSignal mBuffer; // public TEMP
     
 private:	
-    MLSignal mBuffer;
     int mSR;
     float mInvSr;
     
@@ -220,6 +221,9 @@ public:
 	inline void clear()
     {
         mBuffer.clear();
+        mX1 = 0.f;
+        mY1 = 0.f;
+        mFixedTapOut = 0.;
     }
     inline void setSampleRate(int sr) { mSR = sr; mInvSr = 1.0f / (float)sr; }
     void resize(float duration);
@@ -230,8 +234,8 @@ public:
     
     MLSample processSample(const MLSample x);
     
+    MLSignal mBuffer; // public TEMP
 private:
-    MLSignal mBuffer;
     int mSR;
     float mInvSr;
     
@@ -242,11 +246,46 @@ private:
     int mFixedDelayInSamples;
     float mModDelayInSamples;
     
-    MLSample mBlend, mFeedForward, mFeedback;
-	
+    MLSample mBlend, mFeedForward, mFeedback;	
 	MLSample mFixedTapOut;
 	MLSample mX1;
 	MLSample mY1;
+};
+
+// ----------------------------------------------------------------
+#pragma mark MLFDN
+
+// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
+
+class MLFDN
+{
+public:
+    MLFDN() : mFeedbackAmp(0) { clear(); }
+	~MLFDN() {}
+    
+    // set the number of delay lines.
+    void resize(int n);
+    void clear();
+    void setSampleRate(int sr);
+    void setDelayLengths(float maxLength);
+    void setDelayTime(float t);
+    void setFeedbackAmp(float f) { mFeedbackAmp = f; }
+    void calcCoeffs();
+    MLSample processSample(const MLSample x);
+    
+private:
+    
+    int mSize;
+  //  std::vector<MLAllpassDelay> mDelays;  // allpass is still making hi end feedback
+    std::vector<MLLinearDelay> mDelays;
+    std::vector<MLBiquad> mAllpasses;
+    std::vector<MLBiquad> mFilters;
+    MLSignal mMatrix;
+    MLSignal mDelayOutputs;
+    float mDelayTime;
+    float mFeedbackAmp;
+    int mSR;
+    float mInvSr;
     
 };
 

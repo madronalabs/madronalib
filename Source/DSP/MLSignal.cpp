@@ -220,7 +220,9 @@ MLSample* MLSignal::initializeData(MLSample* pData, int size)
 	{
 		newDataAligned = alignToCacheLine(pData); 
 		memset((void *)(newDataAligned), 0, (size_t)(size*sizeof(MLSample)));
+#ifdef DEBUG
 		std::copy(kMLSignalEndSamples, kMLSignalEndSamples + kMLSignalEndSize, newDataAligned + size);
+#endif
 	}
 	return newDataAligned;
 }
@@ -1235,6 +1237,17 @@ void MLSignal::ssign()
 		MLSample f = mDataAligned[i];
 		mDataAligned[i] = f < 0.f ? -1.f : 1.f;	
 	}
+}
+
+void MLSignal::setIdentity()
+{
+	MLSignal& a = *this;
+    clear();
+    int n = min(mWidth, mHeight);
+    for(int i = 0; i < n; ++i)
+    {
+        a(i, i) = 1;
+    }
 }
 
 // make a boundary useful for DSP and other operations by writing the 

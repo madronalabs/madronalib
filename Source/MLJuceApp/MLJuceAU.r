@@ -4,6 +4,7 @@
 #include <CoreServices/CoreServices.r>
 
 #include "AppConfig.h"
+#include "AppConfig.h"
 
 //==============================================================================
 // component resources for Audio Unit

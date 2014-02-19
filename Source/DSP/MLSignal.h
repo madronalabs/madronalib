@@ -340,6 +340,7 @@ public:
 	void ssign();	
 	
 	// 2D signal utils
+	void setIdentity();
 	void makeDuplicateBoundary2D();
 	void partialDiffX();
 	void partialDiffY();
