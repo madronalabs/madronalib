@@ -34,6 +34,7 @@ public:
     void setPeakNotch(float f, float q, float gain);
 	void setNotch(float f, float q);
 	void setOnePole(float f);
+    void setAllpassAlpha(float a);
     void setAllpass1(float d);
     void setAllpass2(float f, float r);
 	void setDifferentiate(void);
@@ -132,6 +133,50 @@ private:
 };
 
 // ----------------------------------------------------------------
+#pragma mark MLSampleDelay
+// a simple delay in integer samples with no mixing.
+
+class MLSampleDelay
+{
+public:
+    MLSampleDelay() { clear(); }
+	~MLSampleDelay() {}
+    
+	inline void clear()
+    {
+        mBuffer.clear();
+        mWriteIndex = 0;
+    }
+    inline void setSampleRate(int sr) { mSR = sr; mInvSr = 1.0f / (float)sr; }
+    void resize(float duration);
+    void setDelay(float d);
+    
+    inline MLSample processSample(const MLSample x)
+    {
+        mWriteIndex &= mLengthMask;
+        mBuffer[mWriteIndex] = x;
+        mWriteIndex++;
+        
+        uintptr_t readIndex = mWriteIndex - (uintptr_t)mDelayInSamples;
+        readIndex &= mLengthMask;
+        
+        float a = mBuffer[readIndex];
+        
+        return a;
+    }
+    
+    MLSignal mBuffer; // public TEMP
+    
+private:
+    int mSR;
+    float mInvSr;
+    
+	uintptr_t mWriteIndex;
+	uintptr_t mLengthMask;
+    
+    int mDelayInSamples;
+};
+// ----------------------------------------------------------------
 #pragma mark MLLinearDelay
 // a delay with one fixed feedback tap and one linear interpolated
 // modulation tap. A dry blend is also summed at the output.
@@ -191,7 +236,7 @@ public:
     
     MLSignal mBuffer; // public TEMP
     
-private:	
+private:
     int mSR;
     float mInvSr;
     
@@ -202,7 +247,7 @@ private:
     int mFixedDelayInSamples;
     float mModDelayInSamples;
     
-    MLSample mBlend, mFeedForward, mFeedback;	
+    MLSample mBlend, mFeedForward, mFeedback;
 	MLSample mFixedTapOut;
 };
 
@@ -265,19 +310,22 @@ public:
     
     // set the number of delay lines.
     void resize(int n);
+    void setIdentityMatrix();
     void clear();
     void setSampleRate(int sr);
     void setDelayLengths(float maxLength);
     void setDelayTime(float t);
     void setFeedbackAmp(float f) { mFeedbackAmp = f; }
     void calcCoeffs();
+    void setLopass(float f);
     MLSample processSample(const MLSample x);
     
 private:
     
     int mSize;
-  //  std::vector<MLAllpassDelay> mDelays;  // allpass is still making hi end feedback
-    std::vector<MLLinearDelay> mDelays;
+    std::vector<MLAllpassDelay> mDelays;
+    //std::vector<MLLinearDelay> mDelays;
+  
     std::vector<MLBiquad> mAllpasses;
     std::vector<MLBiquad> mFilters;
     MLSignal mMatrix;

@@ -156,7 +156,17 @@ void MLBiquad::setHiShelf(float f, float q, float gain)
 // make first order allpass section based on delay parameter d.
 void MLBiquad::setAllpass1(float D)
 {
-    float alpha = (1.f - D) / (1.f + D);    
+    float alpha = (1.f - D) / (1.f + D);
+    a0 = alpha;
+    a1 = 1.f;
+    a2 = 0;
+    b1 = alpha;
+    b2 = 0;
+}
+
+// set first order allpass section alpha directly.
+void MLBiquad::setAllpassAlpha(float alpha)
+{
     a0 = alpha;
     a1 = 1.f;
     a2 = 0;
@@ -211,6 +221,22 @@ const float MLSineOsc::kFlipOffset = kRootX*2.f;
 
 const float MLTriOsc::kIntDomain = powf(2.f, 32.f);
 const float MLTriOsc::kDomainScale = 4.f/kIntDomain;
+
+// ----------------------------------------------------------------
+#pragma mark MLLinearDelay
+
+void MLSampleDelay::resize(float duration)
+{
+    int newSize = duration*(float)mSR;
+    mBuffer.setDims(newSize);
+    mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
+    clear();
+}
+
+void MLSampleDelay::setDelay(float d)
+{
+    mDelayInSamples = (int)(d*(float)mSR);
+}
 
 // ----------------------------------------------------------------
 #pragma mark MLLinearDelay
@@ -318,13 +344,18 @@ void MLFDN::resize(int n)
     mFilters.resize(n);
     mDelayOutputs.setDims(n);
     
-    // make Householder feedback matrix
+    // make Householder feedback matrix (default)
     mMatrix.setDims(n, n);
     mMatrix.setIdentity();
     mMatrix.subtract(2.0f/(float)n);
     
     mSize = n;
     calcCoeffs();
+}
+
+void MLFDN::setIdentityMatrix()
+{
+    mMatrix.setIdentity();
 }
 
 void MLFDN::clear()
@@ -348,6 +379,8 @@ void MLFDN::setSampleRate(int sr)
         mDelays[i].setSampleRate(sr);
         mDelays[i].resize(kMaxDelayLength);
         mDelays[i].clear();        
+        mAllpasses[i].setSampleRate(sr);
+        mFilters[i].setSampleRate(sr);
     }
     calcCoeffs();
 }
@@ -400,16 +433,22 @@ void MLFDN::calcCoeffs()
     {
         // setup lowpass params
         mFilters[i].setSampleRate(mSR);
-//        mFilters[i].setHiShelf(5000., 0.5, 0.5f);
-        mFilters[i].setOnePole(15000.f);
         mFilters[i].clear();
     }
-    
+}
+
+void MLFDN::setLopass(float f)
+{
+    for(int i=0; i<mSize; ++i)
+    {
+        mFilters[i].setOnePole(f);
+    }
 }
 
 MLSample MLFDN::processSample(const MLSample x)
 {
     float outputSum = 0.f;
+    
     for(int j=0; j<mSize; ++j)
     {
         // input + feedback
@@ -418,24 +457,16 @@ MLSample MLFDN::processSample(const MLSample x)
         {
             inputSum += mDelayOutputs[i]*mMatrix(i, j);
         }
-        
-        
-        
+                
         // delays
         mDelayOutputs[j] = mDelays[j].processSample(inputSum);        
         mDelayOutputs[j] *= mFeedbackAmp;
         
-        // allpass scramblers
-        mDelayOutputs[j] = mAllpasses[j].processSample(mDelayOutputs[j]);
-        
-        
+        // allpass scramblers (needed?)
+        //mDelayOutputs[j] = mAllpasses[j].processSample(mDelayOutputs[j]);
+                
         // filters
         mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);
-        // test no filter
-        
-       
-        
-        
         
         outputSum += mDelayOutputs[j];
     }
@@ -443,14 +474,15 @@ MLSample MLFDN::processSample(const MLSample x)
     // TEMP
     if (outputSum != outputSum)
     {
-        debug() << "NaN! -----------------\n";
+        debug() << "MLFDN: NaN! -----------------\n";
         // dump state
-        mMatrix.dump(MLRect(0, 0, mSize, mSize));
-        
+        mMatrix.dump(MLRect(0, 0, mSize, mSize));        
         for(int i=0; i<mSize; ++i)
         {
             mDelays[i].mBuffer.dump();
         }
+        clear();
+        outputSum = 0;
     }
     // temp
     return outputSum;
