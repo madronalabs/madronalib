@@ -340,7 +340,6 @@ void MLFDN::resize(int n)
         mDelays[i].resize(kMaxDelayLength);
     }
 
-    mAllpasses.resize(n);
     mFilters.resize(n);
     mDelayOutputs.setDims(n);
     
@@ -364,7 +363,6 @@ void MLFDN::clear()
     {
         mDelays[i].clear();
         mFilters[i].clear();
-        mAllpasses[i].clear();
     }
     mDelayOutputs.clear();
 }
@@ -379,7 +377,6 @@ void MLFDN::setSampleRate(int sr)
         mDelays[i].setSampleRate(sr);
         mDelays[i].resize(kMaxDelayLength);
         mDelays[i].clear();        
-        mAllpasses[i].setSampleRate(sr);
         mFilters[i].setSampleRate(sr);
     }
     calcCoeffs();
@@ -390,17 +387,18 @@ void MLFDN::setDelayLengths(float maxLength)
 {
     float t = clamp(maxLength, 0.f, kMaxDelayLength);
     mDelayTime = t;
-    calcCoeffs();
-}
-
-// set the delay decay time, given the current lengths, using gain and filters
-void MLFDN::setDelayTime(float t)
-{
     for(int i=0; i<mSize; ++i)
     {
-        //mFilters[i].setOnePole();
+        // clear delay and set to all feedforward, no feedback
+        mDelays[i].setSampleRate(mSR);
+        mDelays[i].setMixParams(0., 1., 0.);
+        mDelays[i].clear();
+        
+        debug() << "    " << i << " : " << t << "\n";
+        mDelays[i].setModDelay(t);
+        float m = 0.925f;
+        t *= m;
     }
-    calcCoeffs();
 }
 
 // calculate all internal coefficients based on sr, size, length, delay time
@@ -408,6 +406,8 @@ void MLFDN::calcCoeffs()
 {
     debug() << " MLFDN delays: \n ";
     float t = mDelayTime;
+    
+    // temp
     for(int i=0; i<mSize; ++i)
     {
         // clear delay and set to all feedforward, no feedback
@@ -421,14 +421,6 @@ void MLFDN::calcCoeffs()
         t *= m;
     }
 
-    for(int i=0; i<mSize; ++i)
-    {
-        // setup allpass params
-        mAllpasses[i].setSampleRate(mSR);
-        mAllpasses[i].setAllpass1(0.75);
-        mAllpasses[i].clear();
-    }
-    
     for(int i=0; i<mSize; ++i)
     {
         // setup lowpass params
@@ -462,9 +454,6 @@ MLSample MLFDN::processSample(const MLSample x)
         mDelayOutputs[j] = mDelays[j].processSample(inputSum);        
         mDelayOutputs[j] *= mFeedbackAmp;
         
-        // allpass scramblers (needed?)
-        //mDelayOutputs[j] = mAllpasses[j].processSample(mDelayOutputs[j]);
-                
         // filters
         mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);
         

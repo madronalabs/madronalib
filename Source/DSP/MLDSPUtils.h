@@ -314,7 +314,6 @@ public:
     void clear();
     void setSampleRate(int sr);
     void setDelayLengths(float maxLength);
-    void setDelayTime(float t);
     void setFeedbackAmp(float f) { mFeedbackAmp = f; }
     void calcCoeffs();
     void setLopass(float f);
@@ -323,8 +322,8 @@ public:
 private:
     
     int mSize;
-    std::vector<MLAllpassDelay> mDelays;
-    //std::vector<MLLinearDelay> mDelays;
+    //std::vector<MLAllpassDelay> mDelays;
+    std::vector<MLLinearDelay> mDelays;
   
     std::vector<MLBiquad> mAllpasses;
     std::vector<MLBiquad> mFilters;
