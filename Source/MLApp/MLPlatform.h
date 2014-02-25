@@ -10,7 +10,7 @@
   #define       ML_WINDOWS 1
 #elif defined (LINUX) || defined (__linux__)
   #define     ML_LINUX 1
-#elif (defined (TARGET_OS_IPHONE) || defined(TARGET_IPHONE_SIMULATOR))
+#elif (TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR)
     #define     ML_IOS 1
 #elif defined (__APPLE__)
     #define     ML_MAC 1
