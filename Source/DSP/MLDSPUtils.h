@@ -305,32 +305,40 @@ private:
 class MLFDN
 {
 public:
-    MLFDN() : mFeedbackAmp(0) { clear(); }
-	~MLFDN() {}
+    MLFDN() :
+        mSR(44100),
+        mSize(0),
+        mFeedbackAmp(0),
+        mFreqMul(0.925)
+        {}
+	~MLFDN()
+        {}
     
     // set the number of delay lines.
     void resize(int n);
     void setIdentityMatrix();
     void clear();
     void setSampleRate(int sr);
+    void setFreqMul(float m) { mFreqMul = m; }
     void setDelayLengths(float maxLength);
     void setFeedbackAmp(float f) { mFeedbackAmp = f; }
-    void calcCoeffs();
     void setLopass(float f);
     MLSample processSample(const MLSample x);
+    MLSample getOddOutputs();
+    MLSample getEvenOutputs();
     
 private:
     
     int mSize;
     //std::vector<MLAllpassDelay> mDelays;
     std::vector<MLLinearDelay> mDelays;
-  
     std::vector<MLBiquad> mAllpasses;
     std::vector<MLBiquad> mFilters;
     MLSignal mMatrix;
     MLSignal mDelayOutputs;
     float mDelayTime;
     float mFeedbackAmp;
+    float mFreqMul;
     int mSR;
     float mInvSr;
     

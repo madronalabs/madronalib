@@ -349,7 +349,6 @@ void MLFDN::resize(int n)
     mMatrix.subtract(2.0f/(float)n);
     
     mSize = n;
-    calcCoeffs();
 }
 
 void MLFDN::setIdentityMatrix()
@@ -359,9 +358,13 @@ void MLFDN::setIdentityMatrix()
 
 void MLFDN::clear()
 {
-    for(int i=0; i<mSize; ++i)
+    for(int i=0; i<mDelays.size(); ++i)
     {
         mDelays[i].clear();
+    }
+    
+    for(int i=0; i<mFilters.size(); ++i)
+    {
         mFilters[i].clear();
     }
     mDelayOutputs.clear();
@@ -379,7 +382,6 @@ void MLFDN::setSampleRate(int sr)
         mDelays[i].clear();        
         mFilters[i].setSampleRate(sr);
     }
-    calcCoeffs();
 }
 
 // set lengths of delay lines, which will control the reverb density
@@ -387,6 +389,7 @@ void MLFDN::setDelayLengths(float maxLength)
 {
     float t = clamp(maxLength, 0.f, kMaxDelayLength);
     mDelayTime = t;
+    //debug() << " MLFDN delays: \n ";
     for(int i=0; i<mSize; ++i)
     {
         // clear delay and set to all feedforward, no feedback
@@ -394,38 +397,12 @@ void MLFDN::setDelayLengths(float maxLength)
         mDelays[i].setMixParams(0., 1., 0.);
         mDelays[i].clear();
         
-        debug() << "    " << i << " : " << t << "\n";
+        //debug() << "    " << i << " : " << t << "\n";
         mDelays[i].setModDelay(t);
-        float m = 0.925f;
-        t *= m;
-    }
-}
-
-// calculate all internal coefficients based on sr, size, length, delay time
-void MLFDN::calcCoeffs()
-{
-    debug() << " MLFDN delays: \n ";
-    float t = mDelayTime;
-    
-    // temp
-    for(int i=0; i<mSize; ++i)
-    {
-        // clear delay and set to all feedforward, no feedback
-        mDelays[i].setSampleRate(mSR);
-        mDelays[i].setMixParams(0., 1., 0.);
-        mDelays[i].clear();
+        t *= mFreqMul;
         
-        debug() << "    " << i << " : " << t << "\n";
-        mDelays[i].setModDelay(t);
-        float m = 0.925f;
-        t *= m;
-    }
-
-    for(int i=0; i<mSize; ++i)
-    {
-        // setup lowpass params
-        mFilters[i].setSampleRate(mSR);
-        mFilters[i].clear();
+        float offset = mDelayTime*0.02f;
+        t += offset;
     }
 }
 
@@ -439,8 +416,7 @@ void MLFDN::setLopass(float f)
 
 MLSample MLFDN::processSample(const MLSample x)
 {
-    float outputSum = 0.f;
-    
+    float outputSum = 0.f;    
     for(int j=0; j<mSize; ++j)
     {
         // input + feedback
@@ -455,8 +431,7 @@ MLSample MLFDN::processSample(const MLSample x)
         mDelayOutputs[j] *= mFeedbackAmp;
         
         // filters
-        mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);
-        
+        mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);        
         outputSum += mDelayOutputs[j];
     }
     
@@ -474,6 +449,26 @@ MLSample MLFDN::processSample(const MLSample x)
         outputSum = 0;
     }
     // temp
+    return outputSum;
+}
+
+MLSample MLFDN::getOddOutputs()
+{
+    float outputSum = 0.f;
+    for(int j=3; j<mSize; ++j)
+    {
+        outputSum += mDelayOutputs[j];
+    }
+    return outputSum;
+}
+
+MLSample MLFDN::getEvenOutputs()
+{
+    float outputSum = 0.f;
+    for(int j=2; j<mSize; ++j)
+    {
+        outputSum += mDelayOutputs[j];
+    }
     return outputSum;
 }
 
