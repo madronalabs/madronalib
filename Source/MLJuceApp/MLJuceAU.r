@@ -1,9 +1,12 @@
 
+// prevent problems including MLPlatform.h
+#define TARGET_OS_IPHONE 0
+#define TARGET_IPHONE_SIMULATOR 0
+
 #define UseExtendedThingResource 1
 #include <AudioUnit/AudioUnit.r>
 #include <CoreServices/CoreServices.r>
 
-#include "AppConfig.h"
 #include "AppConfig.h"
 
 //==============================================================================

@@ -533,7 +533,7 @@ void MLProcInputToSignals::clear()
 
 void MLProcInputToSignals::process(const int frames)
 {	
-	int sr = getContextSampleRate();	 
+	// int sr = getContextSampleRate();
 	if (mParamsChanged) doParams();
 
 #if INPUT_DRIFT
