@@ -118,7 +118,6 @@ void MLPluginController::buttonClicked (MLButton* button)
     if(tri)
     {        
         val = button->getAttribute("value");
-        debug() << "TRI_BUTTON val = " << val << "\n";        
     }
     else
     {
