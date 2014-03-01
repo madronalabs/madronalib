@@ -27,7 +27,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
         startDir = File("~/" + "." + makerName);
     #elif JUCE_WINDOWS
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
-        startDir = startDir.getChildFile(dest);
+		startDir = startDir.getChildFile(String(MLProjectInfo::makerName));
     #endif
     }
     
@@ -56,6 +56,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
         }
 	}
     
+	/*
     if(result == File::nonexistent)
     {
         debug() << "failed to find location: " << startStr << " / " << destStr << "\n";
@@ -64,6 +65,6 @@ File getDefaultFileLocation(eFileTypes whichFiles)
     {
         debug() << "found location: " << startStr << " / " << destStr << "\n";
     }
-    
+    */
 	return result;
 }
