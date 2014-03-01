@@ -425,7 +425,7 @@ void MLLookAndFeel::drawButtonGlow (Graphics& g,
 	const Colour glow2Color = glowColor.withMultipliedAlpha(0.f);
 	
 	Path outline;
-	Rectangle<int> bbox = button.getLocalBounds();
+	juce::Rectangle<int> bbox = button.getLocalBounds();
 	outline.addRectangle(bbox);
 
 	float cx = bbox.getCentreX();
