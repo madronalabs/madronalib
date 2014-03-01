@@ -533,11 +533,11 @@ void MLProcInputToSignals::clear()
 
 void MLProcInputToSignals::process(const int frames)
 {	
-	// int sr = getContextSampleRate();
 	if (mParamsChanged) doParams();
 
 #if INPUT_DRIFT
 	// update drift change list for each voice
+	int sr = getContextSampleRate();
 	if ((mDriftCounter < 0) || (mDriftCounter > sr*kDriftInterval))
 	{
 		for (int v=0; v<mCurrentVoices; ++v)

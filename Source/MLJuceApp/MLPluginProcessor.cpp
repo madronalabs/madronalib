@@ -1242,7 +1242,7 @@ void MLPluginProcessor::scanMIDIPrograms()
 	File subDir = startDir.getChildFile("MIDI Programs");
 	if (!subDir.isDirectory()) 
 	{
-		debug() << "WARNING: MIDI Programs directory not found.\n";
+		// debug() << "WARNING: MIDI Programs directory not found.\n";
 		return;	
 	}
 	Array<File> subdirArray;
