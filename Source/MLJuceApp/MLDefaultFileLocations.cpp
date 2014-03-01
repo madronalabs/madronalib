@@ -8,7 +8,7 @@
 File getDefaultFileLocation(eFileTypes whichFiles)
 {
 	File result = File::nonexistent;
-	String dest;	
+	String startStr, destStr;
     File startDir;
     
     // get start directory for search according to platform
@@ -16,15 +16,13 @@ File getDefaultFileLocation(eFileTypes whichFiles)
     {
         // app preset files are still in /Library/Application Support/Madrona Labs on Mac
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
-        startDir = startDir.getChildFile(dest);
     }
     else
     {
     #if JUCE_MAC || JUCE_IOS
         // everything else is now in ~/Music/Madrona Labs on Mac
-        String startName = String("~/Music/") + String(MLProjectInfo::makerName);
-        startDir = File(startName);
-        startDir = startDir.getChildFile(dest);
+        startStr = String("~/Music/") + String(MLProjectInfo::makerName);
+        startDir = File(startStr);
     #elif JUCE_LINUX || JUCE_ANDROID
         startDir = File("~/" + "." + makerName);
     #elif JUCE_WINDOWS
@@ -39,24 +37,33 @@ File getDefaultFileLocation(eFileTypes whichFiles)
         switch(whichFiles)
         {
             case kSampleFiles:
-                dest = String(MLProjectInfo::projectName) + "/Samples";
+                destStr = String(MLProjectInfo::projectName) + "/Samples";
                 break;
             case kScaleFiles:
-                dest = ("Scales");
+                destStr = ("Scales");
                 break;
             case kPresetFiles:
             case kAppPresetFiles:
-                dest = String(MLProjectInfo::projectName);
+                destStr = String(MLProjectInfo::projectName);
                 break;
         }
 
-        result = startDir.getChildFile(dest);
+        result = startDir.getChildFile(destStr);
 	
 		if (!result.exists())
 		{
             result = File::nonexistent;
         }
 	}
+    
+    if(result == File::nonexistent)
+    {
+        debug() << "failed to find location: " << startStr << " / " << destStr << "\n";
+    }
+    else
+    {
+        debug() << "found location: " << startStr << " / " << destStr << "\n";
+    }
     
 	return result;
 }
