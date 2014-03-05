@@ -740,7 +740,8 @@ void MLProcInputToSignals::processOSC(const int frames)
 				if (mVoices[v].mZ1 > 0.)
 				{
 					// process note off, set pitch for release
-					mVoices[v].mPitch = noteToPitch(note);
+                // TODO quick fix for Soundplane 1.0 problem, investigate
+				//	mVoices[v].mPitch = noteToPitch(note);
 					x = mVoices[v].mX1;
 					y = mVoices[v].mY1;
 				}
