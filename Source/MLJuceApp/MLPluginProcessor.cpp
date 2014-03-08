@@ -69,6 +69,28 @@ AudioProcessorEditor* MLPluginProcessor::createEditor()
 #pragma mark preflight and cleanup
 //
 
+#ifdef ML_WINDOWS
+static bool CheckSSE3()
+{
+    int CPUInfo[4] = {-1};
+    
+    //-- Get number of valid info ids
+    __cpuid(CPUInfo, 0);
+    int nIds = CPUInfo[0];
+    
+    //-- Get info for id "1"
+    if (nIds >= 1)
+    {
+        __cpuid(CPUInfo, 1);
+        bool bSSE3NewInstructions = (CPUInfo[2] & 0x1) || false;
+        return bSSE3NewInstructions;
+    }
+    
+    return false;
+}
+#endif
+
+
 MLProc::err MLPluginProcessor::preflight(int requirements)
 {
 	MLProc::err e = MLProc::OK;
@@ -82,10 +104,24 @@ MLProc::err MLPluginProcessor::preflight(int requirements)
             }
             break;
             
-        case kRequiresSSE3:            
-            if (!SystemStats::hasSSE3())
+        case kRequiresSSE3:
+#ifdef ML_WINDOWS
+            // workaround for XP
+            if (SystemStats::getOperatingSystemType() == SystemStats::WinXP)
             {
-                e = MLProc::SSE3RequiredErr;
+                bool sse3 = CheckSSE3();
+                if(!sse3)
+                {
+                    e = MLProc::SSE3RequiredErr;
+                }
+            }
+            else
+#endif
+            {
+                if (!SystemStats::hasSSE3())
+                {
+                    e = MLProc::SSE3RequiredErr;
+                }
             }
             break;
     }
