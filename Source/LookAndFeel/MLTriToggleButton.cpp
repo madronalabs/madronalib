@@ -26,6 +26,7 @@ void MLTriToggleButton::setAttribute(MLSymbol attr, float val)
 	{
 		// update state without notify
         mState = (int)val;
+        repaint();
 	}
 }
 
