@@ -613,9 +613,16 @@ float MLLookAndFeel::getButtonTextSize(const MLButton& button)
 {
 	const MLRect& uBounds = button.getGridBounds();
 	float uh = uBounds.height();
-	uh *= 0.66f;
-	uh = clamp(uh, 0.25f, 2.f);
-	uh *= (float)button.getWidgetGridUnitSize();
+    if(uh > 0)
+    {
+        uh *= 0.66f;
+        uh = clamp(uh, 0.25f, 2.f);
+        uh *= (float)button.getWidgetGridUnitSize();
+    }
+    else // hack for buttons not in grid system
+    {
+        uh = button.getBounds().getHeight()*0.66f;
+    }
 	return floor(uh);
 }
 

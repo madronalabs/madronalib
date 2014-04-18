@@ -11,7 +11,8 @@ MLButton::MLButton (const String& label)
 	mLabelOffset(MLPoint(0, 0)),
 	mpListener(0),
 	mOffValue(0.f),
-	mOnValue(1.f)
+	mOnValue(1.f),
+    mLineThickness(0.5f)
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
