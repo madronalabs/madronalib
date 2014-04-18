@@ -95,7 +95,7 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
             
             for(MLSignalViewList::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
             {
-                // send engine and signal information to viewer proc.
+                // send engine and signal information to viewer proc.  
                 MLSignalViewPtr pV = *it2;
                 if(pV->mPriority >= priority)
                 {
@@ -105,7 +105,7 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
                     pV->sendSignalToWidget(buffer1, samples);
                     drawn++;
                 }
-           }
+            }
         }
     }
     

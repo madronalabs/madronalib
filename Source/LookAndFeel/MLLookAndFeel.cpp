@@ -79,10 +79,14 @@ MLLookAndFeel::MLLookAndFeel()
 	mTitleFont.setHeight(14.8);
 	mTitleFont.setExtraKerningFactor (0.05);
 
+	mPlainFont = (pMadronaSans);
+	mPlainFont.setHeight(12.);
+	mPlainFont.setExtraKerningFactor(0.0);
+    
 	mCaptionFont = (pMadronaSansItalic);
 	mCaptionFont.setHeight(13.25);
 	mCaptionFont.setExtraKerningFactor (0.04);
-
+    
 	mCaptionSmallFont = (pMadronaSansItalic);
 	mCaptionSmallFont.setHeight(11.25);
 	mCaptionSmallFont.setExtraKerningFactor (0.05);
@@ -498,7 +502,6 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 		0, buttonColor, blineColor, outlineThickness, flair, 0., 0.);
 }
 
-
 void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	const Colour& textColor,
     bool, bool)
@@ -514,7 +517,7 @@ void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-	g.drawFittedText (button.getButtonText(),
+    g.drawFittedText (button.getButtonText(),
                       m, m, w, h,
                       Justification::centred, 1., 1.);
 }
@@ -888,16 +891,6 @@ void MLLookAndFeel::drawScrollbar (Graphics& g,
     g.setGradientFill (ColourGradient (Colour (0x10000000), gx1, gy1,
                        Colours::transparentBlack, gx2, gy2, false));
 
-    g.saveState();
-
-    if (isScrollbarVertical)
-        g.reduceClipRegion (x + width / 2, y, width, height);
-    else
-        g.reduceClipRegion (x, y + height / 2, width, height);
-
-    g.fillPath (thumbPath);
-    g.restoreState();
-
     g.setColour (Colour (0x4c000000));
     g.strokePath (thumbPath, PathStrokeType (0.4f));
 }
@@ -922,33 +915,6 @@ int MLLookAndFeel::getScrollbarButtonSize (ScrollBar& scrollbar)
     return 2 + (scrollbar.isVertical() ? scrollbar.getWidth()
                                        : scrollbar.getHeight());
 }
-
-//==============================================================================
-void MLLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, int x, int y, int w, int h, bool isPlus, 
-	bool ) // isMouseOver
-{
-    const int boxSize = ((jmin (16, w, h) << 1) / 3) | 1;
-
-    x += (w - boxSize) >> 1;
-    y += (h - boxSize) >> 1;
-    w = boxSize;
-    h = boxSize;
-
-    g.setColour (Colour (0xe5ffffff));
-    g.fillRect (x, y, w, h);
-
-    g.setColour (Colour (0x80000000));
-    g.drawRect (x, y, w, h);
-
-    const float size = boxSize / 2 + 1.0f;
-    const float centre = (float) (boxSize / 2);
-
-    g.fillRect (x + (w - size) * 0.5f, y + centre, size, 1.0f);
-
-    if (isPlus)
-        g.fillRect (x + centre, y + (h - size) * 0.5f, 1.0f, size);
-}
-
 
 #pragma mark -
 
@@ -1030,11 +996,9 @@ void MLLookAndFeel::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
         Rectangle<int> r (area.reduced (5, 0));
         r.removeFromTop (r.getHeight() / 2 - 1);
         
-        g.setColour (Colour (0x33000000));
+        g.setColour (findColour(markColor));
         g.fillRect (r.removeFromTop (1));
-        
-        g.setColour (Colour (0x66ffffff));
-        g.fillRect (r.removeFromTop (1));
+
     }
     else
     {
@@ -1246,6 +1210,115 @@ Label* MLLookAndFeel::createComboBoxTextBox (ComboBox&)
     return new Label (String::empty, String::empty);
 }
 
+// --------------------------------------------------------------------------------
+#pragma mark TreeView
+
+
+void MLLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
+                                       Colour backgroundColour, bool isOpen, bool isMouseOver)
+{
+    const int boxSize = roundToInt (jmin (16.0f, area.getWidth(), area.getHeight()) * 0.7f) | 1;
+    
+    const int x = ((int) area.getWidth()  - boxSize) / 2 + (int) area.getX();
+    const int y = ((int) area.getHeight() - boxSize) / 2 + (int) area.getY();
+    const int w = boxSize;
+    const int h = boxSize;
+    
+    g.setColour (findColour(juce::TreeView::backgroundColourId));
+    g.fillRect (x, y, w, h);
+    
+    g.setColour (findColour(juce::TreeView::linesColourId));
+    g.drawRect (x, y, w, h);
+    
+    const float size = boxSize / 2 + 1.0f;
+    const float centre = (float) (boxSize / 2);
+    
+    g.fillRect (x + (w - size) * 0.5f, y + centre, size, 1.0f);
+    
+    if (!isOpen)
+    {
+        g.fillRect (x + centre, y + (h - size) * 0.5f, 1.0f, size);
+    }
+}
+
+bool MLLookAndFeel::areLinesDrawnForTreeView (TreeView&) { return true; }
+int MLLookAndFeel::getTreeViewIndentSize (TreeView&) { return 17; }
+
+
+// --------------------------------------------------------------------------------
+#pragma mark TreeViewItem, file browser
+
+void MLLookAndFeel::drawFileBrowserRow (Graphics& g, int width, int height,
+                                         const String& filename, Image* icon,
+                                         const String& fileSizeDescription,
+                                         const String& fileTimeDescription,
+                                         const bool isDirectory, const bool isItemSelected,
+                                         const int /*itemIndex*/, DirectoryContentsDisplayComponent& dcc)
+{
+    Component* const fileListComp = dynamic_cast<Component*> (&dcc);
+    
+    if (isItemSelected)
+        g.fillAll (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::highlightColourId)
+                   : findColour (DirectoryContentsDisplayComponent::highlightColourId));
+    
+    const int x = 12;
+    // g.setColour (Colours::black);
+    
+    /*
+    if (icon != nullptr && icon->isValid())
+    {
+        g.drawImageWithin (*icon, 2, 2, x - 4, height - 4,
+                           RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize,
+                           false);
+    }
+    else
+    {
+        if (const Drawable* d = isDirectory ? getDefaultFolderImage()
+            : getDefaultDocumentFileImage())
+            d->drawWithin (g, Rectangle<float> (2.0f, 2.0f, x - 4.0f, height - 4.0f),
+                           RectanglePlacement::centred | RectanglePlacement::onlyReduceInSize, 1.0f);
+    }
+    */
+    
+    g.setColour (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::textColourId)
+                 : findColour (DirectoryContentsDisplayComponent::textColourId));
+    
+    
+    Font f = getFont(eMLTitle);
+    g.setFont (f);
+    g.setFont (height * 0.8f);
+    
+    if (width > 450 && ! isDirectory)
+    {
+        const int sizeX = roundToInt (width * 0.5f);
+        const int dateX = roundToInt (width * 0.75f);
+        
+        g.drawFittedText (filename,
+                          x, 0, sizeX - x, height,
+                          Justification::centredLeft, 1);
+        
+        g.setFont (height * 0.8f);
+        g.setColour (Colours::darkgrey);
+        
+        if (! isDirectory)
+        {
+            g.drawFittedText (fileSizeDescription,
+                              sizeX, 0, dateX - sizeX - 8, height,
+                              Justification::centredRight, 1);
+            
+            g.drawFittedText (fileTimeDescription,
+                              dateX, 0, width - 8 - dateX, height,
+                              Justification::centredRight, 1);
+        }
+    }
+    else
+    {
+        g.drawFittedText (filename,
+                          x, 0, width - x, height,
+                          Justification::centredLeft, 1);
+        
+    }
+}
 
 #pragma mark -
 
@@ -1325,20 +1398,39 @@ void MLLookAndFeel::drawCornerResizer (Graphics& g,
     }
  }
 
-void MLLookAndFeel::drawResizableFrame (Graphics&, int /*w*/, int /*h*/,
-                                      const BorderSize<int>& /*borders*/)
+void MLLookAndFeel::drawResizableFrame (Graphics& g, int w, int h, const BorderSize<int>& border)
 {
+    if (! border.isEmpty())
+    {
+        const Rectangle<int> fullSize (0, 0, w, h);
+        const Rectangle<int> centreArea (border.subtractedFrom (fullSize));
+        
+        g.saveState();
+        
+        g.excludeClipRegion (centreArea);
+        
+        g.setColour (Colour (0x50000000));
+        g.drawRect (fullSize);
+        
+        g.setColour (Colour (0x19000000));
+        g.drawRect (centreArea.expanded (1, 1));
+        
+        g.restoreState();
+    }
 }
 
-/*
-//==============================================================================
+void MLLookAndFeel::fillResizableWindowBackground (Graphics& g, int w, int h,
+                                                    const BorderSize<int>& /*border*/, ResizableWindow& window)
+{
+    drawBackgroundAtOrigin(g, Rectangle<int>(0, 0, w, h));
+}
+
+
 void MLLookAndFeel::drawResizableWindowBorder (Graphics& g, int w, int h,
                                              const BorderSize<int>& border, ResizableWindow&)
 {
 	// do nothing
-
 }
-*/
 
 void MLLookAndFeel::drawDocumentWindowTitleBar (DocumentWindow& window,
                                               Graphics& g, int w, int h,
@@ -1348,47 +1440,22 @@ void MLLookAndFeel::drawDocumentWindowTitleBar (DocumentWindow& window,
 {
     const bool isActive = window.isActiveWindow();
 
-    g.setGradientFill (ColourGradient (window.getBackgroundColour(),
-                                       0.0f, 0.0f,
-                                       window.getBackgroundColour().contrasting (isActive ? 0.15f : 0.05f),
-                                       0.0f, (float) h, false));
-  //  g.fillAll();
+    Font f = getFont(eMLTitle);
+    f.setExtraKerningFactor(0.f);
+    g.setFont (f);
+    g.setFont (h * 0.65f);
 
-    Font font (h * 0.65f, Font::bold);
-    g.setFont (font);
-
-    int textW = font.getStringWidth (window.getName());
-    int iconW = 0;
-    int iconH = 0;
-
-    if (icon != 0)
-    {
-        iconH = (int) font.getHeight();
-        iconW = icon->getWidth() * iconH / icon->getHeight() + 4;
-    }
-
-    textW = jmin (titleSpaceW, textW + iconW);
-    int textX = drawTitleTextOnLeft ? titleSpaceX
-                                    : jmax (titleSpaceX, (w - textW) / 2);
+    int winMargin = 16;
+    int winW = window.getWidth();
+    int textW = f.getStringWidth (window.getName());
+    int textX = (winW - textW) / 2;
 
     if (textX + textW > titleSpaceX + titleSpaceW)
         textX = titleSpaceX + titleSpaceW - textW;
 
-    if (icon != 0)
-    {
-        g.setOpacity (isActive ? 1.0f : 0.6f);
-        g.drawImageWithin (*icon, textX, (h - iconH) / 2, iconW, iconH,
-                           RectanglePlacement::centred, false);
-        textX += iconW;
-        textW -= iconW;
-    }
-
-    if (window.isColourSpecified (DocumentWindow::textColourId) || isColourSpecified (DocumentWindow::textColourId))
-        g.setColour (findColour (DocumentWindow::textColourId));
-    else
-        g.setColour (window.getBackgroundColour().contrasting (isActive ? 0.7f : 0.4f));
-
-    g.drawText (window.getName(), textX, 0, textW, h, Justification::centredLeft, true);
+    float selectAlpha = isActive ? 1.0f : 0.3f;
+    g.setColour (findColour (DocumentWindow::textColourId).withAlpha(selectAlpha));
+    g.drawText (window.getName(), winMargin, 0, winW - winMargin*2, h, Justification::centred, true);
 }
 
 void MLLookAndFeel::positionDocumentWindowButtons (DocumentWindow&,
@@ -1605,8 +1672,9 @@ void MLLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserCom
                                               TextEditor* filenameBox,
                                               Button* goUpButton)
 {
-    const int x = 8;
-    int w = browserComp.getWidth() - x - x;
+    const int x = 0;
+    int y = 0;
+    int w = browserComp.getWidth();
 
     if (previewComp != 0)
     {
@@ -1616,12 +1684,15 @@ void MLLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserCom
         w -= previewWidth + 4;
     }
 
-    int y = 4;
-
-    const int controlsHeight = 22;
+    const int controlsHeight = 18;
     const int bottomSectionHeight = controlsHeight + 8;
     const int upButtonWidth = 50;
 
+    // NOTE this will break for tree views. There is no way to inspect whether
+    // a FileBrowserComponent has a tree view or not. 
+    FileListComponent* pF = static_cast<FileListComponent*>(fileListComponent);
+    pF->setRowHeight(18);
+    
     currentPathBox->setBounds (x, y, w - upButtonWidth - 6, controlsHeight);
     goUpButton->setBounds (x + w - upButtonWidth, y, upButtonWidth, controlsHeight);
 
@@ -1631,7 +1702,9 @@ void MLLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserCom
     listAsComp->setBounds (x, y, w, browserComp.getHeight() - y - bottomSectionHeight);
 
     y = listAsComp->getBottom() + 4;
-    filenameBox->setBounds (x + 50, y, w - 50, controlsHeight);
+    
+    int labelWidth = 120;
+    filenameBox->setBounds (x + labelWidth, y, w - labelWidth, controlsHeight);
 }
 
 
@@ -1897,9 +1970,20 @@ void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int>& gStart, Point
 	}
 }
 
+// fill a rect with background gradient starting at origin. 
+//
+void MLLookAndFeel::drawBackgroundAtOrigin(Graphics& g, Rectangle<int>r)
+{
+	Point<int> gStart = Point<int>(0 ,0);
+	Point<int> gEnd = Point<int>(r.getWidth(), r.getHeight());
+	
+	setBackgroundGradient(g, gStart, gEnd);
+	g.fillRect (r);
+}
+
 // draw a background gradient over the component's rect, positioned
 // so that backgrounds of different components will match each other
-// without seams. 
+// without seams.
 //
 void MLLookAndFeel::drawBackground(Graphics& g, Component* pC)
 {

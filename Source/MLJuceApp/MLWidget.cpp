@@ -11,6 +11,7 @@ static const MLSignal kNullSignal;
 
 MLWidget::MLWidget() : 
 	mGridBounds(),
+    mGridUnitSize(0),
 	mSize(1.f),
     mLabelOffset(),
     pComponent(nullptr),

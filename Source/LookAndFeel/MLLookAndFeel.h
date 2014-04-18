@@ -286,9 +286,23 @@ public:
 
     Label* createComboBoxTextBox (ComboBox& box);
 
-    juce::Button* createDialButton (const bool isIncrement);
- //   Label* createDialTextBox (MLDial& MLDial);
+    // --------------------------------------------------------------------------------
+    #pragma mark TreeView
 
+    void drawTreeviewPlusMinusBox (Graphics&, const Rectangle<float>& area,
+                                   Colour backgroundColour, bool isItemOpen, bool isMouseOver);    
+    bool areLinesDrawnForTreeView (TreeView&);
+    int getTreeViewIndentSize (TreeView&);
+
+    void drawFileBrowserRow (Graphics& g, int width, int height,
+                                            const String& filename, Image* icon,
+                                            const String& fileSizeDescription,
+                                            const String& fileTimeDescription,
+                                            const bool isDirectory, const bool isItemSelected,
+                             const int /*itemIndex*/, DirectoryContentsDisplayComponent& dcc);
+    // --------------------------------------------------------------------------------
+
+    juce::Button* createDialButton (const bool isIncrement);
     ImageEffectFilter* getDialEffect();
 
     //==============================================================================
@@ -311,14 +325,16 @@ public:
     void drawResizableFrame (Graphics& g,
                                     int w, int h,
                                     const BorderSize<int>& borders);
+    
+    void fillResizableWindowBackground (Graphics& g,
+                                    int w, int h,
+                                        const BorderSize<int>& /*border*/, ResizableWindow& window);
 
-    //==============================================================================
-	/*
     void drawResizableWindowBorder (Graphics& g,
                                             int w, int h,
                                             const BorderSize<int>& border,
                                             ResizableWindow& window);
-	*/
+	
     //==============================================================================
     void drawDocumentWindowTitleBar (DocumentWindow& window,
                                              Graphics& g, int w, int h,
@@ -442,6 +458,7 @@ public:
 	void setGradientMode(int m) { mGradientMode = m;}	
 	void setGradientSize(float f) { mGradientSize = f;}	
 	void setBackgroundGradient(Graphics& g, Point<int>& gStart, Point<int>& gEnd);
+    void drawBackgroundAtOrigin(Graphics& g, Rectangle<int>r);
 	void drawBackground(Graphics& g, Component* pC);
 	void drawBackgroundRect(Graphics& g, Component* pC, MLRect r);
 	void drawUnitGrid(Graphics& g);
