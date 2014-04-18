@@ -31,24 +31,19 @@ MLLookAndFeel::MLLookAndFeel()
 	mGlobalTextScale = 1.0f;
 	
 	// default Madrona theme (B/W)
-	setColour(backgroundColorNeutral, Colour::fromHSV(0.58f, 0.0f, 0.20f, 1.f));	
-	setColour(backgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.75f, 1.f));
-	setColour(backgroundColor2, Colour::fromHSV(0.5f, 0.00f, 0.70f, 1.f)); // edges	
-	setColour(defaultFillColor, Colour::fromHSV(0.5f, 0.0f, 0.95f, 1.f));
-	
-	setColour(markColor, Colour::fromHSV(0.5f, 0.0f, 0.6f, 1.f));
-    setColour(labelColor, Colour::fromHSV(0.5f, 0.5f, 0.0f, 1.f));
-	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.25f, 1.f));
-	setColour(outlineColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f)); 
+    // change these to set up the application's color scheme.	
+	setColour(backgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.75f, 1.f));   
+	setColour(backgroundColor2, Colour::fromHSV(0.5f, 0.00f, 0.70f, 1.f)); 
+	setColour(defaultFillColor, Colour::fromHSV(0.5f, 0.0f, 0.95f, 1.f));  
+	//
+	setColour(outlineColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
+    setColour(labelColor, Colour::fromHSV(0.5f, 0.f, 0.15f, 1.f));
+	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
+	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.99f, 1.f));
 	setColour(shadowColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
+	setColour(markColor, Colour::fromHSV(0.5f, 0.0f, 0.05f, 1.f));
 	//
-	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.70f, 1.f));
-	setColour(radioOffColor, Colour(0xffc0c0bc));
-	setColour(radioOnColor, Colour::fromHSV(0.15f, 0.f, 0.85f, 1.f));
-	setColour(buttonOffColor, Colour::fromHSV(0.5f, 0.5f, 0.80f, 1.f));
-	setColour(buttonOnColor, Colour::fromHSV(0.5f, 0.5f, 0.80f, 1.f));
-	//
-	setColour(lineColor, findColour(labelColor).overlaidWith(findColour(backgroundColor).withAlpha(0.5f)) );
+	setColour(lightFillColor, findColour(backgroundColor).overlaidWith(findColour(highlightColor).withAlpha(0.25f)));
 	setColour(darkFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.10f)));
 	setColour(darkerFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.5f)));
 	setColour(darkestFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.75f)));
@@ -69,31 +64,6 @@ MLLookAndFeel::MLLookAndFeel()
 	setColour(darkGrayColor, Colour::fromHSV(0.60f, 0.10f, 0.45f, 1.f));
 	setColour(brownColor, Colour::fromHSV(0.1f, 0.30f, 0.80f, 1.f));
 	setColour(darkBrownColor, Colour::fromHSV(0.1f, 0.35f, 0.65f, 1.f));
-
-	// initialize control colors
-	// Text Button colors
-    setColour (MLTextButton::buttonColourId,		Colour::fromHSV(0.5f, 0.0f, 0.85f, 1.f));
-    setColour (MLTextButton::textColourId,			Colour::fromHSV(0.5f, 0.0f, 0.0f, 1.f));
-	
-    setColour (MLLabel::backgroundColourId,			Colour::fromHSV(0.5f, 0.0f, 0.85f, 1.f));
-    setColour (MLLabel::textColourId,				Colour::fromHSV(0.5f, 0.5f, 0.0f, 1.f));
-	
-    setColour (ListBox::outlineColourId,            Colour::fromHSV(0.5f, 0.0f, 0.20f, 1.f));
-	
-    setColour (ScrollBar::thumbColourId, findColour(darkFillColor));
-    setColour (ScrollBar::backgroundColourId, findColour(darkerFillColor));
-	
-    setColour (ProgressBar::backgroundColourId,     Colours::white.withAlpha (0.6f));
-    setColour (ProgressBar::foregroundColourId,     Colours::green.withAlpha (0.7f));
- 
-    setColour (PopupMenu::textColourId,				findColour(labelColor));
-    setColour (PopupMenu::highlightedTextColourId,  findColour(MLTextButton::buttonColourId));
-    setColour (PopupMenu::highlightedBackgroundColourId, findColour(labelColor));
-    
-	setColour (TextEditor::focusedOutlineColourId,  findColour (TextButton::buttonColourId));
-
-    setColour (MLSeparator::backgroundColourId,    Colours::white.withAlpha (0.0f));
-    setColour (MLSeparator::foregroundColourId,    findColour(markColor));
 
 	// get typefaces from serialised binary data
 
@@ -125,12 +95,68 @@ MLLookAndFeel::MLLookAndFeel()
 	mNumbersFont.setExtraKerningFactor(0.04f);
 
 	mDrawNumbers = true;	// default
+    sendMLColorsToJUCE();
 }
 
 
 MLLookAndFeel::~MLLookAndFeel()
 {
 	clearSingletonInstance();
+}
+
+void MLLookAndFeel::sendMLColorsToJUCE()
+{
+	// initialize control colors
+	// Text Button colors
+    setColour (MLTextButton::buttonColourId,        findColour(lightFillColor));
+    setColour (MLTextButton::textColourId,			findColour(markColor));
+	
+    setColour (MLLabel::backgroundColourId,			findColour(lightFillColor).withAlpha(0.0f));
+    setColour (MLLabel::textColourId,				findColour(labelColor));
+	
+    setColour (Label::backgroundColourId,			findColour(lightFillColor).withAlpha(0.0f));
+    setColour (Label::textColourId,                 findColour(labelColor));
+	
+    setColour (ListBox::outlineColourId,            findColour(markColor));
+	
+    setColour (ScrollBar::backgroundColourId,       findColour(darkFillColor));
+    setColour (ScrollBar::thumbColourId,            findColour(defaultFillColor));
+    setColour (ScrollBar::trackColourId,            findColour(darkFillColor));
+	
+    setColour (ProgressBar::backgroundColourId,     findColour(darkerFillColor));
+    setColour (ProgressBar::foregroundColourId,     findColour(backgroundColor));
+    
+    setColour (PopupMenu::textColourId,				findColour(markColor));
+    setColour (PopupMenu::backgroundColourId,		findColour(backgroundColor));
+    setColour (PopupMenu::highlightedTextColourId,  findColour(backgroundColor));
+    setColour (PopupMenu::highlightedBackgroundColourId, findColour(markColor));
+    
+	setColour (TextEditor::focusedOutlineColourId,  findColour(highlightColor));
+    setColour (TextEditor::backgroundColourId,      findColour(lightFillColor));
+    setColour (TextEditor::textColourId,            findColour(markColor));
+    
+    setColour (MLSeparator::backgroundColourId,     findColour(markColor).withAlpha (0.0f));
+    setColour (MLSeparator::foregroundColourId,     findColour(markColor));
+
+	setColour(AlertWindow::backgroundColourId,      findColour(backgroundColor2));
+	setColour(AlertWindow::textColourId,            findColour(outlineColor));
+    
+    setColour (TextButton::buttonColourId, findColour(lightFillColor));
+    setColour (TextButton::buttonOnColourId, findColour(lightFillColor));
+	setColour (TextButton::textColourOffId, findColour(markColor));
+	setColour (TextButton::textColourOnId, findColour(markColor));
+    
+    setColour (FileTreeComponent::backgroundColourId, findColour(defaultFillColor));
+    setColour (FileTreeComponent::linesColourId, findColour(labelColor));
+    setColour (FileTreeComponent::dragAndDropIndicatorColourId, findColour(highlightColor));
+    setColour (FileTreeComponent::selectedItemBackgroundColourId, findColour(highlightColor));
+    
+    setColour (DirectoryContentsDisplayComponent::highlightColourId, findColour(highlightColor));
+    setColour (DirectoryContentsDisplayComponent::textColourId, findColour(markColor));
+    
+    setColour (TreeView::linesColourId, findColour(labelColor));
+    
+    setColour (DocumentWindow::textColourId, findColour(markColor));
 }
 
 void MLLookAndFeel::setDrawNumbers(bool n)

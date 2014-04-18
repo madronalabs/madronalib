@@ -38,38 +38,35 @@ typedef std::tr1::shared_ptr<Drawable> DrawablePtr;
 
 const float kPopupMenuTextScale = 0.85f;
 
-class  MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
+class MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
 {
 public:
     //==============================================================================
     MLLookAndFeel();
     ~MLLookAndFeel();
-	
+    
+    // call this after setting up an application's custom colors to spread them
+    // back to the JUCE defaults. 
+    void sendMLColorsToJUCE();
+    
 	enum ColourIds
 	{
 		// Madrona Colors to change for themes
-		outlineColor					= 0x10A0001, 
-		buttonOffColor					= 0x10A0002, 
-		buttonOnColor					= 0x10A0003, 
-		backgroundColor					= 0x10A0004, 
-		backgroundColorNeutral			= 0x10A0005, 
-		shadowColor						= 0x10A0006, 
-		labelColor						= 0x10A0007, 
-		radioOffColor					= 0x10A0008, 
-		radioOnColor					= 0x10A0009, 
-		highlightColor					= 0x10A000A,
-		lineColor						= 0x10A000B,
-		unused1							= 0x10A000C,
-		darkFillColor					= 0x10A000D,
+		backgroundColor					= 0x10A0001,    // middle of gradient or flat bg
+		backgroundColor2				= 0x10A0002,    // top and bottom of bg gradient
+		defaultFillColor                = 0x10A0003,    // positive fill for dials and others
+		outlineColor					= 0x10A0004,    // outlines of controls
+		labelColor						= 0x10A0005,    // small text labels
+		darkLabelColor					= 0x10A0006,    // big text headers
+		highlightColor					= 0x10A0007,    // color to lighten things
+		shadowColor						= 0x10A0008,    // color to darken things
+		markColor						= 0x10A0009,    // marks like separators, default text color
+		lightFillColor                  = 0x10A000C,    // for clickable areas like button backgrounds
+		darkFillColor					= 0x10A000D,    // negative empty things like dial tracks
 		darkerFillColor					= 0x10A000E,
 		darkestFillColor				= 0x10A000F,
-		backgroundColor2				= 0x10A0010, 
-		markColor						= 0x10A0011, 
-		darkLabelColor					= 0x10A0012, 
-		unused2							= 0x10A0013, 
-		defaultFillColor			= 0x10A0014, 
-		//
-		// Colors probably not to change, written with IDs for consistency
+        
+		// reference hues, written with IDs for consistency
 		redColor						= 0x10A002B, 
 		redOrangeColor					= 0x10A002C, 
 		orangeColor						= 0x10A002D, 
