@@ -1,4 +1,4 @@
-/*
+    /*
  ==============================================================================
  
  This file is part of the JUCE library.
@@ -1461,10 +1461,6 @@ public:
         
         static void shutdown (id self)
         {
-            // there's some kind of component currently modal, but the host
-            // is trying to delete our plugin..
-            jassert (Component::getCurrentlyModalComponent() == nullptr);
-            
             [[NSNotificationCenter defaultCenter] removeObserver: self];
             deleteEditor (self);
             
