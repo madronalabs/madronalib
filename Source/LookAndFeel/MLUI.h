@@ -73,7 +73,9 @@ const float kMLTrackThickness = 6.f;
 const float kMLShadowThickness = 3.f;
 const float kMLShadowOpacity = 0.25f;
 
-const unsigned kMLSignalViewBufferSize = 128;
+const int kMLSignalViewBufferSize = 128;
+
+const int kMLTreeViewItemSize = 15;
 
 inline juce::Rectangle<float> MLToJuceRect(const MLRect& b) { return juce::Rectangle<float>(b.left(), b.top(), b.width(), b.height()); }
 inline juce::Rectangle<int> MLToJuceRectInt(const MLRect& b) { return juce::Rectangle<int>(b.left(), b.top(), b.width(), b.height()); }

@@ -1242,7 +1242,7 @@ void MLLookAndFeel::drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float
 }
 
 bool MLLookAndFeel::areLinesDrawnForTreeView (TreeView&) { return true; }
-int MLLookAndFeel::getTreeViewIndentSize (TreeView&) { return 17; }
+int MLLookAndFeel::getTreeViewIndentSize (TreeView&) { return kMLTreeViewItemSize; }
 
 
 // --------------------------------------------------------------------------------
@@ -2218,6 +2218,7 @@ AlertWindow* MLLookAndFeel::createAlertWindow (const String& title,
                                              int numButtons,
                                              Component* associatedComponent)
 {
+    debug() << "MAKING alert window\n";
     AlertWindow* aw = new AlertWindow (title, message, iconType, associatedComponent);
 
     if (numButtons == 1)
