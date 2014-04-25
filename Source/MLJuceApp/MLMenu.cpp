@@ -17,7 +17,7 @@ void MLMenu::Node::dump(int level)
 	for(it = index.begin(); it != index.end(); it++)
 	{
         const std::string& name = *it;
-        std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+        StringToMenuNodeMapT::const_iterator it2 = map.find(name);
         NodePtr node = it2->second;
         for(int i=0; i<level*4; ++i)
         {
@@ -44,7 +44,7 @@ int MLMenu::Node::renumberItems(int n)
             const std::string& name = *it;
             if(name != kSeparatorStr)
             {
-                std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+                StringToMenuNodeMapT::const_iterator it2 = map.find(name);
                 NodePtr node = it2->second;
                 n = node->renumberItems(n);
             }
@@ -70,7 +70,7 @@ int MLMenu::Node::getSize(int n)
     }
     else
     {
-        std::map<std::string, NodePtr>::const_iterator it;
+        StringToMenuNodeMapT::const_iterator it;
         for(it = map.begin(); it != map.end(); it++)
         {
             std::string name = it->first;
@@ -106,7 +106,7 @@ void MLMenu::Node::buildFullNameIndex(std::vector<std::string>& nameVec, const s
         for(it = index.begin(); it != index.end(); it++)
         {
             const std::string& name = *it;
-            std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+            StringToMenuNodeMapT::const_iterator it2 = map.find(name);
             const std::string& nodeName = it2->first;
             NodePtr node = it2->second;
             std::string fullPath;
@@ -145,7 +145,7 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
         for(it = index.begin(); it != index.end(); it++)
         {
             const std::string& name = *it;
-            std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+            StringToMenuNodeMapT::const_iterator it2 = map.find(name);
             const std::string& nodeName = it2->first;
             NodePtr node = it2->second;
             node->addToJuceMenu(nodeName, pMenu, false);
@@ -162,7 +162,7 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
         for(it = index.begin(); it != index.end(); it++)
         {
             const std::string& name = *it;
-            std::map<std::string, NodePtr>::const_iterator it2 = map.find(name);
+            StringToMenuNodeMapT::const_iterator it2 = map.find(name);
             const std::string& nodeName = it2->first;
             NodePtr node = it2->second;
             node->addToJuceMenu(nodeName, subMenu, false);
@@ -205,7 +205,7 @@ void MLMenu::addItem(const std::string& name, bool e)
 MLMenu::NodePtr MLMenu::getItem(const std::string& name)
 {
     NodePtr n;
-    std::map<std::string, NodePtr>::const_iterator it = mRoot->map.find(name);
+    StringToMenuNodeMapT::const_iterator it = mRoot->map.find(name);
     if(it != mRoot->map.end())
     {
         n = it->second;
@@ -233,7 +233,7 @@ void MLMenu::addSubMenu(MLMenuPtr m, const std::string& name)
 void MLMenu::appendMenu(MLMenuPtr m)
 {
     // add each element of other menu in turn to our item map
-    std::map<std::string, NodePtr>::const_iterator it;
+    StringToMenuNodeMapT::const_iterator it;
 	for(it = m->mRoot->map.begin(); it != m->mRoot->map.end(); it++)
 	{
         const std::string& name = it->first;

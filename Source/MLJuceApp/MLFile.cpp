@@ -89,7 +89,7 @@ MLFilePtr MLFile::find(const std::string& path)
             // end of path, find short name here or return fail.
             //debug() << "        path end: " << path << "\n\n" ;
             
-            std::map<std::string, MLFilePtr>::const_iterator it;
+            nameToFileMap::const_iterator it;
             it = mFiles.find(path);
             if(it != mFiles.end())
             {
@@ -100,7 +100,7 @@ MLFilePtr MLFile::find(const std::string& path)
             {
                 //debug() << "MLFile::find: did not find " << path << " in :\n";
                 
-                std::map<std::string, MLFilePtr>::const_iterator it2;
+                nameToFileMap::const_iterator it2;
                 for(it2 = mFiles.begin(); it2 != mFiles.end(); ++it2)
                 {
                         //debug() << it2->first << ", ";
@@ -148,7 +148,8 @@ std::string MLFile::getAbsolutePath()
 void MLFile::buildMenu(MLMenuPtr m) const
 {
     m->clear();
-    std::map<std::string, MLFilePtr>::const_iterator it;
+    
+    nameToFileMap::const_iterator it;
     for(it = mFiles.begin(); it != mFiles.end(); ++it)
     {
         const MLFilePtr f = it->second;
@@ -167,13 +168,14 @@ void MLFile::buildMenu(MLMenuPtr m) const
     }
 }
 
-// build a menu of only the files in top-level directories starting with the prefix.
+// build a menu of only the files in top-level directories starting with the given prefix.
 // this adds only directories, not files. Made for adding "factory" presets separately.
 void MLFile::buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const
 {
     int prefixLen = prefix.length();
     m->clear();
-    std::map<std::string, MLFilePtr>::const_iterator it;
+    
+    nameToFileMap::const_iterator it;
     for(it = mFiles.begin(); it != mFiles.end(); ++it)
     {
         const MLFilePtr f = it->second;
@@ -199,7 +201,8 @@ void MLFile::buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const
 {
     int prefixLen = prefix.length();
     m->clear();
-    std::map<std::string, MLFilePtr>::const_iterator it;
+    
+    nameToFileMap::const_iterator it;
     for(it = mFiles.begin(); it != mFiles.end(); ++it)
     {
         const MLFilePtr f = it->second;

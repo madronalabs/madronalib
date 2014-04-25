@@ -10,8 +10,10 @@
 #include "MLDSP.h"
 #include "MLLookAndFeel.h"
 #include "MLSymbol.h"
+#include "MLTypes.h"
 
 class MLMenu;
+
 typedef std::tr1::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
 typedef std::tr1::shared_ptr<juce::PopupMenu> JuceMenuPtr;
@@ -23,6 +25,7 @@ public:
     
     class Node;
     typedef std::tr1::shared_ptr<Node> NodePtr;
+    typedef std::map<std::string, NodePtr, MLStringCompareFn> StringToMenuNodeMapT;
     class Node
     {
     public:
@@ -35,12 +38,13 @@ public:
         void buildFullNameIndex(std::vector<std::string>& nameVec, const std::string& path);
         void addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, bool root = true);
         
-        std::map<std::string, NodePtr> map;
+        StringToMenuNodeMapT map;
         std::list<std::string> index;
         bool enabled;
         int itemNumber;
         JuceMenuPtr subMenu;
     };
+    
 
 	MLMenu();
 	MLMenu(const MLSymbol name);

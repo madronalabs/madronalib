@@ -12,9 +12,12 @@
 #include "JuceHeader.h"
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
+#include "MLTypes.h"
 
 class MLFile;
 typedef std::tr1::shared_ptr<MLFile> MLFilePtr;
+
+typedef std::map<std::string, MLFilePtr, MLStringCompareFn> nameToFileMap;
 
 class MLFile
 {
@@ -40,7 +43,7 @@ public:
     std::string mLongName;
     
 private:
-    std::map<std::string, MLFilePtr> mFiles;
+    nameToFileMap mFiles;
 };
 
 #endif /* defined(__Kaivo__MLFile__) */
