@@ -98,13 +98,6 @@ int MLFileCollection::findFilesImmediate()
                 
                 // push to index
                 mFilesByIndex.push_back(newFile);
-                /*
-                if(mFilesByIndex.size() <= processed)
-                {
-                    mFilesByIndex.resize(processed + 1);
-                }
-                mFilesByIndex[processed] = newFile;
-                 */
                 newFile->mIndex = processed;
                 
                 if(mpListener)
@@ -117,6 +110,127 @@ int MLFileCollection::findFilesImmediate()
         }
     }
     return processed;
+}
+
+
+// count the number of files in the collection, and begin making the collection.
+// returns the number of found files.
+//
+int MLFileCollection::beginProcessFiles()
+{
+    int found = 0;
+
+	if (mRoot.mFile.exists() && mRoot.mFile.isDirectory())
+    {
+        mFiles.clear();
+        const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
+        const String& wildCard = "*";
+        bool recurse = true;
+        
+        DirectoryIterator di (mRoot.mFile, recurse, wildCard, whatToLookFor);
+        while (di.next())
+        {
+            mFiles.push_back (di.getFile());
+            found++;
+        }
+    }
+    else
+    {
+        found = -1;
+    }
+    return found;
+}
+
+// iterate one step in making the collection. 
+void MLFileCollection::iterateProcessFiles(int i)
+{
+    int r = 0;
+    
+    File f = mFiles[i];
+    String shortName = f.getFileName();
+    String relativePath;
+    File parentDir = f.getParentDirectory();
+    if(parentDir == mRoot.mFile)
+    {
+        relativePath = "";
+    }
+    else
+    {
+        relativePath = parentDir.getRelativePathFrom(mRoot.mFile);
+    }
+    
+    if (f.existsAsFile() && f.hasFileExtension(mExtension))
+    {
+        std::string rPath(relativePath.toUTF8());
+        std::string delimiter = (rPath == "" ? "" : "/");
+        std::string sName(shortName.toUTF8());
+        std::string longName(rPath + delimiter + sName);
+        
+        MLFilePtr newFile(new MLFile(f, sName, longName));
+        
+        // insert file into file tree
+        mRoot.insert(longName, newFile);
+        
+        // push to index
+        mFilesByIndex.push_back(newFile);
+        int newIdx = mFilesByIndex.size() - 1;
+        newFile->mIndex = newIdx;
+        
+        if(mpListener)
+        {
+            // give file and index to listener for processing
+            mpListener->processFile (mName, f, newIdx);
+        }
+    }
+}
+
+
+class FileFinderThreadWithProgressWindow  : public ThreadWithProgressWindow
+{
+public:
+    FileFinderThreadWithProgressWindow(MLFileCollection& m, Component* pLocationComp, String str) :
+        mCollection(m),
+        ThreadWithProgressWindow (String(""), true, false, 10000, String(), pLocationComp),
+        mProcessMessage(str)
+    {
+    }
+    
+    ~FileFinderThreadWithProgressWindow()
+    {
+    }
+    
+    void run()
+    {
+        // count and display uncertain progress
+        setStatusMessage ("Counting files...");
+        setProgress (-1.0f);
+        wait (1000); // TEST
+        
+        // OK, assuming this can happen all in one chunk quickly.
+        int filesFound = mCollection.beginProcessFiles();
+        
+        mCollection.clear();
+        
+        // iterate and display known progress with informative message
+        setStatusMessage (mProcessMessage);
+        for(int i=0; i<filesFound; ++i)
+        {
+            mCollection.iterateProcessFiles(i);
+            if (threadShouldExit()) return;
+            setProgress ((float)i/(float)filesFound);
+        }
+    }
+    
+private:
+    MLFileCollection& mCollection;
+    String mProcessMessage;
+};
+
+
+void MLFileCollection::findFilesWithProgressWindow(Component* pLocationComp, String str)
+{
+    FileFinderThreadWithProgressWindow finderThread(*this, pLocationComp, str);
+    finderThread.runThread();
 }
 
 std::string MLFileCollection::getFileNameByIndex(int idx)

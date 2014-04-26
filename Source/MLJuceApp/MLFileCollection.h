@@ -29,7 +29,7 @@ public:
 		virtual ~Listener() {}
 		virtual void processFile (const MLSymbol collection, const File& f, int idx) = 0;
 	};
-    
+     
  	MLFileCollection(MLSymbol name, const File startDir, String extension);
     ~MLFileCollection();
     void clear();
@@ -45,7 +45,11 @@ public:
     // find all files matching description in the start dir.
     // returns the number of files found.
     int findFilesImmediate();
-   
+    
+    int beginProcessFiles();
+    void iterateProcessFiles(int i);
+    void findFilesWithProgressWindow(Component* pLocationComp, String str);
+  
     // return a file by its path + name relative to our starting directory.
     const MLFilePtr getFileByName(const std::string& name);
 
@@ -70,6 +74,10 @@ private:
     MLSymbol mName;
     String mExtension;
     Listener* mpListener;
+    
+    // temp storage for processing files
+    std::vector <File> mFiles;
+
 };
 
 typedef std::tr1::shared_ptr<MLFileCollection> MLFileCollectionPtr;

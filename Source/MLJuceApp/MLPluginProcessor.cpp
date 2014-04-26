@@ -367,7 +367,6 @@ void MLPluginProcessor::setCollectStats(bool k)
 	mEngine.setCollectStats(k);
 }
 
-
 void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
 	if (mEngine.isEnabled())
