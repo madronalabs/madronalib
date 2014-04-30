@@ -352,38 +352,67 @@ public:
         ~AllpassSection();
         void clear();
         
-        // TODO save work with noble identity xform
         inline MLSample processSample(const MLSample x)
         {
-            x2=x1;
-            y2=y1;
             x1=x0;
             y1=y0;
             x0=x;
-            y0 = x2 + (x0 - y2)*a;
+            y0 = x1 + (x0 - y1)*a;            
             return y0;
         }
         
-        float x0, x1, x2, y0, y1, y2;
+        float x0, x1, y0, y1;
         float a;        
     };
     
     MLHalfBandFilter();
     ~MLHalfBandFilter();
     void clear();
-    inline MLSample processSample(const MLSample x)
+    inline MLSample processSampleDown(const MLSample x)
     {
-        MLSample a, b, y;        
-        a = apa1.processSample(apa0.processSample(x));
-        b = apb1.processSample(apb0.processSample(x));
-        y = (a + mb1)*0.5f;
-        mb1 = b;
+        MLSample y;
+        
+        if(k)
+        {
+            a0 = apa1.processSample(apa0.processSample(x));
+        }
+        else
+        {
+            b0 = apb1.processSample(apb0.processSample(x));
+        }
+        
+        y = (a0 + b1)*0.5f;
+        b1 = b0;
+        k = !k;
+        return y;
+    }
+    
+    inline MLSample processSampleUp(const MLSample x)
+    {
+        MLSample y;
+        
+        if(k)
+        {
+            a0 = apa1.processSample(apa0.processSample(x));
+            y = a0;
+        }
+        else
+        {
+            b0 = apb1.processSample(apb0.processSample(x));
+            y = b1;
+        }
+
+        b1 = b0;
+        k = !k;
         return y;
     }
     
 private:
     AllpassSection apa0, apa1, apb0, apb1;
-    float mb1;
+    MLBiquad apab;
+    float x0, x1;
+    float a0, b0, b1;
+    bool k;
 
 };
 
@@ -393,8 +422,8 @@ private:
 class MLDownsample2x
 {
 public:
-    MLDownsample2x();
-    ~MLDownsample2x();
+    MLDownsample2x(){}
+    ~MLDownsample2x(){}
     void clear();
     
     // process n input samples from src and generate n / 2 output samples in dest.
@@ -404,14 +433,13 @@ public:
         int nn = n >> 1;
         for(int i = 0; i < nn; ++i)
         {
-            f.processSample(src[j++]);
-            dest[i] = f.processSample(src[j++]);
+            f.processSampleDown(src[j++]);
+            dest[i] = f.processSampleDown(src[j++]);
         }
     }
     
 private:
     MLHalfBandFilter f;
-    
 };
 
 // ----------------------------------------------------------------
@@ -420,8 +448,8 @@ private:
 class MLUpsample2x
 {
 public:
-    MLUpsample2x();
-    ~MLUpsample2x();
+    MLUpsample2x(){}
+    ~MLUpsample2x(){}
     void clear();
     
     // process n input samples from src and generate 2n output samples in dest.
@@ -430,8 +458,8 @@ public:
         int j = 0;
         for(int i = 0; i < n; ++i)
         {
-            dest[j++] = f.processSample(src[i]);
-            dest[j++] = f.processSample(0.f);
+            dest[j++] = f.processSampleUp(src[i]);
+            dest[j++] = f.processSampleUp(src[i]);
         }
     }
     

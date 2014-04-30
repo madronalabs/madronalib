@@ -492,7 +492,7 @@ MLHalfBandFilter::AllpassSection::~AllpassSection()
 
 void MLHalfBandFilter::AllpassSection::clear()
 {
-    x0 = x1 = x2 = y0 = y1 = y2 = 0.f;
+    x0 = x1 = y0 = y1 = 0.f;
 }
 
 MLHalfBandFilter::MLHalfBandFilter()
@@ -501,7 +501,9 @@ MLHalfBandFilter::MLHalfBandFilter()
     apa1.a = ka1;
     apb0.a = kb0;
     apb1.a = kb1;
-    mb1 = 0.f;
+    x0 = x1 = a0 = b0 = b1 = 0.f;
+    k = 0;
+    
     clear();
 }
 
@@ -520,14 +522,6 @@ void MLHalfBandFilter::clear()
 // ----------------------------------------------------------------
 #pragma mark MLDownsample2x
 
-MLDownsample2x::MLDownsample2x()
-{
-}
-
-MLDownsample2x::~MLDownsample2x()
-{
-}
-
 void MLDownsample2x::clear()
 {
     f.clear();
@@ -535,14 +529,6 @@ void MLDownsample2x::clear()
 
 // ----------------------------------------------------------------
 #pragma mark MLUpsample2x
-
-MLUpsample2x::MLUpsample2x()
-{
-}
-
-MLUpsample2x::~MLUpsample2x()
-{
-}
 
 void MLUpsample2x::clear()
 {
