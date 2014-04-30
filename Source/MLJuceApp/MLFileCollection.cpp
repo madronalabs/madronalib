@@ -201,18 +201,20 @@ public:
     
     void run()
     {
+        /*
         // count and display uncertain progress
         setStatusMessage ("Counting files...");
         setProgress (-1.0f);
         wait (1000); // TEST
+        */
         
         // OK, assuming this can happen all in one chunk quickly.
+        setStatusMessage (mProcessMessage);
         int filesFound = mCollection.beginProcessFiles();
         
         mCollection.clear();
         
         // iterate and display known progress with informative message
-        setStatusMessage (mProcessMessage);
         for(int i=0; i<filesFound; ++i)
         {
             mCollection.iterateProcessFiles(i);

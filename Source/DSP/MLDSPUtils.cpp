@@ -518,6 +518,22 @@ void MLHalfBandFilter::clear()
 }
 
 // ----------------------------------------------------------------
+#pragma mark MLDownsample2x
+
+MLDownsample2x::MLDownsample2x()
+{
+}
+
+MLDownsample2x::~MLDownsample2x()
+{
+}
+
+void MLDownsample2x::clear()
+{
+    f.clear();
+}
+
+// ----------------------------------------------------------------
 #pragma mark MLUpsample2x
 
 MLUpsample2x::MLUpsample2x()

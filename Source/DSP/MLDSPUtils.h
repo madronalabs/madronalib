@@ -352,7 +352,7 @@ public:
         ~AllpassSection();
         void clear();
         
-        // TODO save work with noble identity
+        // TODO save work with noble identity xform
         inline MLSample processSample(const MLSample x)
         {
             x2=x1;
@@ -390,6 +390,29 @@ private:
 // ----------------------------------------------------------------
 #pragma mark MLDownsample2x
 
+class MLDownsample2x
+{
+public:
+    MLDownsample2x();
+    ~MLDownsample2x();
+    void clear();
+    
+    // process n input samples from src and generate n / 2 output samples in dest.
+    inline void processVector(const float* src, float* dest, int n)
+    {
+        int j = 0;
+        int nn = n >> 1;
+        for(int i = 0; i < nn; ++i)
+        {
+            f.processSample(src[j++]);
+            dest[i] = f.processSample(src[j++]);
+        }
+    }
+    
+private:
+    MLHalfBandFilter f;
+    
+};
 
 // ----------------------------------------------------------------
 #pragma mark MLUpsample2x
@@ -402,7 +425,7 @@ public:
     void clear();
     
     // process n input samples from src and generate 2n output samples in dest.
-    inline void processVector(const float* src, float* dest, float n)
+    inline void processVector(const float* src, float* dest, int n)
     {
         int j = 0;
         for(int i = 0; i < n; ++i)
@@ -414,7 +437,6 @@ public:
     
 private:
     MLHalfBandFilter f;
-    
 };
 
 
