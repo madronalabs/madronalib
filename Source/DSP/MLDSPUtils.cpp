@@ -132,7 +132,6 @@ void MLBiquad::setLoShelf(float f, float q, float gain)
 	b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
 }
 
-
 void MLBiquad::setHiShelf(float f, float q, float gain)
 {
     // highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
@@ -473,3 +472,63 @@ MLSample MLFDN::getEvenOutputs()
 }
 
 
+// ----------------------------------------------------------------
+#pragma mark MLHalfBandFilter
+
+const float MLHalfBandFilter::ka0 = 0.07986642623635751;
+const float MLHalfBandFilter::ka1 = 0.5453536510711322;
+const float MLHalfBandFilter::kb0 = 0.28382934487410993;
+const float MLHalfBandFilter::kb1 = 0.8344118914807379;
+
+MLHalfBandFilter::AllpassSection::AllpassSection() :
+    a(0)
+{
+    clear();
+}
+
+MLHalfBandFilter::AllpassSection::~AllpassSection()
+{
+}
+
+void MLHalfBandFilter::AllpassSection::clear()
+{
+    x0 = x1 = x2 = y0 = y1 = y2 = 0.f;
+}
+
+MLHalfBandFilter::MLHalfBandFilter()
+{
+    apa0.a = ka0;
+    apa1.a = ka1;
+    apb0.a = kb0;
+    apb1.a = kb1;
+    mb1 = 0.f;
+    clear();
+}
+
+MLHalfBandFilter::~MLHalfBandFilter()
+{
+}
+
+void MLHalfBandFilter::clear()
+{
+    apa0.clear();
+    apa1.clear();
+    apb0.clear();
+    apb1.clear();
+}
+
+// ----------------------------------------------------------------
+#pragma mark MLUpsample2x
+
+MLUpsample2x::MLUpsample2x()
+{
+}
+
+MLUpsample2x::~MLUpsample2x()
+{
+}
+
+void MLUpsample2x::clear()
+{
+    f.clear();
+}
