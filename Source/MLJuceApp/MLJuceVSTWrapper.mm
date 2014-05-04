@@ -28,7 +28,7 @@
 
 #include "../utility/juce_CheckSettingMacros.h"
 
-#if JucePlugin_Build_VST
+#if JucePlugin_Build_VST || JucePlugin_Build_VST3
 
 #define JUCE_MAC_WINDOW_VISIBITY_BODGE 1
 
@@ -77,31 +77,15 @@ namespace juce
 #endif
     }
     
-    void* attachComponentToWindowRef (Component* comp, void* windowRef);
-    void* attachComponentToWindowRef (Component* comp, void* windowRef)
+void* attachComponentToWindowRef (Component* comp, void* parentWindowOrView, bool isNSView);
+void* attachComponentToWindowRef (Component* comp, void* parentWindowOrView, bool isNSView)
     {
         JUCE_AUTORELEASEPOOL
         {
-#if JUCE_64BIT
-            NSView* parentView = (NSView*) windowRef;
-            
-#if JucePlugin_EditorRequiresKeyboardFocus
-            comp->addToDesktop (0, parentView);
-#else
-            comp->addToDesktop (ComponentPeer::windowIgnoresKeyPresses, parentView);
-#endif
-            
-            // (this workaround is because Wavelab provides a zero-size parent view..)
-            if ([parentView frame].size.height == 0)
-                [((NSView*) comp->getWindowHandle()) setFrameOrigin: NSZeroPoint];
-            
-            comp->setVisible (true);
-            comp->toFront (false);
-            
-            [[parentView window] setAcceptsMouseMovedEvents: YES];
-            return parentView;
-#else
-            NSWindow* hostWindow = [[NSWindow alloc] initWithWindowRef: windowRef];
+       #if ! JUCE_64BIT
+        if (! isNSView)
+        {
+            NSWindow* hostWindow = [[NSWindow alloc] initWithWindowRef: parentWindowOrView];
             [hostWindow retain];
             [hostWindow setCanHide: YES];
             [hostWindow setReleasedWhenClosed: YES];
@@ -109,10 +93,10 @@ namespace juce
             HIViewRef parentView = 0;
             
             WindowAttributes attributes;
-            GetWindowAttributes ((WindowRef) windowRef, &attributes);
+            GetWindowAttributes ((WindowRef) parentWindowOrView, &attributes);
             if ((attributes & kWindowCompositingAttribute) != 0)
             {
-                HIViewRef root = HIViewGetRoot ((WindowRef) windowRef);
+                HIViewRef root = HIViewGetRoot ((WindowRef) parentWindowOrView);
                 HIViewFindByID (root, kHIViewWindowContentID, &parentView);
                 
                 if (parentView == 0)
@@ -120,10 +104,10 @@ namespace juce
             }
             else
             {
-                GetRootControl ((WindowRef) windowRef, (ControlRef*) &parentView);
+                GetRootControl ((WindowRef) parentWindowOrView, (ControlRef*) &parentView);
                 
                 if (parentView == 0)
-                    CreateRootControl ((WindowRef) windowRef, (ControlRef*) &parentView);
+                    CreateRootControl ((WindowRef) parentWindowOrView, (ControlRef*) &parentView);
             }
             
             // It seems that the only way to successfully position our overlaid window is by putting a dummy
@@ -161,21 +145,41 @@ namespace juce
             [hostWindow orderFront: nil];
             [pluginWindow orderFront: nil];
             
-            attachWindowHidingHooks (comp, (WindowRef) windowRef, hostWindow);
+            attachWindowHidingHooks (comp, (WindowRef) parentWindowOrView, hostWindow);
             
             return hostWindow;
+        }
 #endif
+
+        (void) isNSView;
+        NSView* parentView = (NSView*) parentWindowOrView;
+
+       #if JucePlugin_EditorRequiresKeyboardFocus
+        comp->addToDesktop (0, parentView);
+       #else
+        comp->addToDesktop (ComponentPeer::windowIgnoresKeyPresses, parentView);
+       #endif
+
+        // (this workaround is because Wavelab provides a zero-size parent view..)
+        if ([parentView frame].size.height == 0)
+            [((NSView*) comp->getWindowHandle()) setFrameOrigin: NSZeroPoint];
+
+        comp->setVisible (true);
+        comp->toFront (false);
+
+        [[parentView window] setAcceptsMouseMovedEvents: YES];
+        return parentView;
         }
     }
     
-    void detachComponentFromWindowRef (Component* comp, void* nsWindow);
-    void detachComponentFromWindowRef (Component* comp, void* nsWindow)
+void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView);
+void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
     {
         JUCE_AUTORELEASEPOOL
         {
-#if JUCE_64BIT
-            comp->removeFromDesktop();
-#else
+       #if ! JUCE_64BIT
+        if (! isNSView)
+        {
             EventHandlerRef ref = (EventHandlerRef) (void*) (pointer_sized_int)
             comp->getProperties() ["boundsEventRef"].toString().getHexValue64();
             RemoveEventHandler (ref);
@@ -188,41 +192,46 @@ namespace juce
             if (HIViewIsValid (dummyView))
                 CFRelease (dummyView);
             
-            NSWindow* hostWindow = (NSWindow*) nsWindow;
+            NSWindow* hostWindow = (NSWindow*) window;
             NSView* pluginView = (NSView*) comp->getWindowHandle();
             NSWindow* pluginWindow = [pluginView window];
             
+            [pluginView retain];
             [hostWindow removeChildWindow: pluginWindow];
+            [pluginWindow close];
             comp->removeFromDesktop();
+            [pluginView release];
             
             [hostWindow release];
             
+            static bool needToRunMessageLoop = ! getHostType().isReaper();
+
             // The event loop needs to be run between closing the window and deleting the plugin,
             // presumably to let the cocoa objects get tidied up. Leaving out this line causes crashes
-            // in Live and Reaper when you delete the plugin with its window open.
+            // in Live when you delete the plugin with its window open.
             // (Doing it this way rather than using a single longer timout means that we can guarantee
             // how many messages will be dispatched, which seems to be vital in Reaper)
+            if (needToRunMessageLoop)
             for (int i = 20; --i >= 0;)
                 MessageManager::getInstance()->runDispatchLoopUntil (1);
+
+            return;
+        }
 #endif
+
+        (void) isNSView; (void) window;
+        comp->removeFromDesktop();
         }
     }
     
-    void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth, int newHeight);
-    void setNativeHostWindowSize (void* nsWindow, Component* component, int newWidth, int newHeight)
+void setNativeHostWindowSize (void* window, Component* component, int newWidth, int newHeight, bool isNSView);
+void setNativeHostWindowSize (void* window, Component* component, int newWidth, int newHeight, bool isNSView)
     {
         JUCE_AUTORELEASEPOOL
         {
-#if JUCE_64BIT
-            if (NSView* hostView = (NSView*) nsWindow)
+       #if ! JUCE_64BIT
+        if (! isNSView)
             {
-                // xxx is this necessary, or do the hosts detect a change in the child view and do this automatically?
-                [hostView setFrameSize: NSMakeSize ([hostView frame].size.width + (newWidth - component->getWidth()),
-                                                    [hostView frame].size.height + (newHeight - component->getHeight()))];
-            }
-#else
-            (void) nsWindow;
-            
             if (HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
                 component->getProperties() ["dummyViewRef"].toString().getHexValue64())
             {
@@ -232,30 +241,53 @@ namespace juce
                 frameRect.size.height = newHeight;
                 HIViewSetFrame (dummyView, &frameRect);
             }
+
+            return;
+        }
 #endif
+
+        (void) isNSView;
+
+        if (NSView* hostView = (NSView*) window)
+        {
+            const int dx = newWidth  - component->getWidth();
+            const int dy = newHeight - component->getHeight();
+
+            NSRect r = [hostView frame];
+            r.size.width += dx;
+            r.size.height += dy;
+            r.origin.y -= dy;
+            [hostView setFrame: r];
         }
     }
+}
     
-    void checkWindowVisibility (void* nsWindow, Component* comp);
-    void checkWindowVisibility (void* nsWindow, Component* comp)
+void checkWindowVisibility (void* window, Component* comp, bool isNSView);
+void checkWindowVisibility (void* window, Component* comp, bool isNSView)
     {
+    (void) window; (void) comp; (void) isNSView;
+
 #if ! JUCE_64BIT
-        comp->setVisible ([((NSWindow*) nsWindow) isVisible]);
+    if (! isNSView)
+        comp->setVisible ([((NSWindow*) window) isVisible]);
 #endif
     }
     
-    bool forwardCurrentKeyEventToHost (Component* comp);
-    bool forwardCurrentKeyEventToHost (Component* comp)
+bool forwardCurrentKeyEventToHost (Component* comp, bool isNSView);
+bool forwardCurrentKeyEventToHost (Component* comp, bool isNSView)
     {
-#if JUCE_64BIT
-        (void) comp;
-        return false;
-#else
+   #if ! JUCE_64BIT
+    if (! isNSView)
+    {
         NSWindow* win = [(NSView*) comp->getWindowHandle() window];
         [[win parentWindow] makeKeyWindow];
         repostCurrentNSEvent();
         return true;
+    }
 #endif
+
+    (void) comp; (void) isNSView;
+    return false;
     }
     
 } // (juce namespace)
