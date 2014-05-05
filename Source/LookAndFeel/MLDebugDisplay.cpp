@@ -15,7 +15,10 @@ MLDebugDisplay::MLDebugDisplay () :
 	
 	mpComp = new CodeEditorComponent(mDoc, nullptr);
 	mpComp->setScrollbarThickness(12);
-//	mpComp->setLineNumbersShown(false);
+    
+    // enable if you want to copy/paste text, but that may screw up keyboard events in hosts.
+    mpComp->setWantsKeyboardFocus(false);
+    
 	addAndMakeVisible(mpComp);
  	MLWidget::setComponent(this);
 	startTimer(250);

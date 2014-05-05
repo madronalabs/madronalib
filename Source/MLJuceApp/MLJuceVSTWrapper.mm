@@ -273,10 +273,11 @@ void checkWindowVisibility (void* window, Component* comp, bool isNSView)
 #endif
     }
     
+        
 bool forwardCurrentKeyEventToHost (Component* comp, bool isNSView);
 bool forwardCurrentKeyEventToHost (Component* comp, bool isNSView)
     {
-   #if ! JUCE_64BIT
+#if ! JUCE_64BIT
     if (! isNSView)
     {
         NSWindow* win = [(NSView*) comp->getWindowHandle() window];
@@ -284,6 +285,8 @@ bool forwardCurrentKeyEventToHost (Component* comp, bool isNSView)
         repostCurrentNSEvent();
         return true;
     }
+#else
+         
 #endif
 
     (void) comp; (void) isNSView;

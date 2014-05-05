@@ -398,7 +398,7 @@ public:
     VstPlugCategory getPlugCategory() override   { return JucePlugin_VSTCategory; }
     bool keysRequired()                 { return (JucePlugin_EditorRequiresKeyboardFocus) != 0; }
     
-    VstInt32 canDo (char* text) override
+    VstInt32 canDo (char* text) 
     {
         if (strcmp (text, "receiveVstEvents") == 0
             || strcmp (text, "receiveVstMidiEvent") == 0
@@ -1355,7 +1355,8 @@ public:
         }
         
 #if JUCE_MAC
-        bool keyPressed (const KeyPress&) override
+        
+        bool keyPressed (const KeyPress& k) override
         {
             // If we have an unused keypress, move the key-focus to a host window
             // and re-inject the event..
