@@ -28,9 +28,10 @@ extern const MLPath kMLPatcherPath;
 class MLDSPEngine : public MLProcContainer
 {
 public:
-    struct IOPtrs
+    struct ClientIOMap
 	{
-		float * channel[kMLEngineMaxChannels];
+		const float * inputs[kMLEngineMaxChannels];
+		float * outputs[kMLEngineMaxChannels];
 	};
 	
 	MLDSPEngine();
@@ -59,7 +60,7 @@ public:
 	void setOutputChannels(unsigned c); 
 	
 	// set external buffers for top level I/O with client
-	void setIOPtrs(IOPtrs * pIns, IOPtrs * pOuts);
+	void setIOBuffers(const ClientIOMap& pMap);
 	
 	// ----------------------------------------------------------------
 	// Housekeeping
@@ -117,11 +118,7 @@ private:
 	int mInputChans;
 	int mOutputChans;
 	
-	// signal inputs
-	IOPtrs mpIns; 
-	
-	// signal outputs
-	IOPtrs mpOuts;
+    ClientIOMap mIOMap;
 	
 	// input signals that will be sent to the root proc.
 	std::vector<MLSignalPtr> mInputSignals;

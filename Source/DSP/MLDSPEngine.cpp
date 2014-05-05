@@ -262,10 +262,9 @@ void MLDSPEngine::setOutputChannels(unsigned c)
 }
 
 // set pointers to client signal buffers.
-void MLDSPEngine::setIOPtrs(IOPtrs * pIns, IOPtrs * pOuts) 
+void MLDSPEngine::setIOBuffers(const ClientIOMap& pMap)
 {
-	mpIns = *pIns;
-	mpOuts = *pOuts;
+    mIOMap = pMap;
 }
 
 // read from client input buffers to input ringbuffers.
@@ -273,7 +272,7 @@ void MLDSPEngine::writeInputBuffers(const int samples)
 {
 	for(int i=0; i<mInputChans; ++i)
 	{
-		mInputBuffers[i]->write(mpIns.channel[i], samples);
+		mInputBuffers[i]->write(mIOMap.inputs[i], samples);
 	}
 }
 
@@ -295,8 +294,6 @@ void MLDSPEngine::writeOutputBuffers(const int samples)
 	int outs = getNumOutputs();
 	for(int i=0; i < outs; ++i)
 	{
-        //        getOutput(i+1).write(mpOuts.channel[i], offset, samples);
-		
 		mOutputBuffers[i]->write(getOutput(i+1).getBuffer(), samples);
 	}
 } 
@@ -318,7 +315,7 @@ void MLDSPEngine::readOutputBuffers(const int samples)
 	for(int i=0; 
 	i < outs; ++i)
 	{
-		if (samples != mOutputBuffers[i]->read(mpOuts.channel[i], samples))
+		if (samples != mOutputBuffers[i]->read(mIOMap.outputs[i], samples))
 		{
 			debug() << "MLDSPEngine: output ringbuffer out of data!\n";
 		}

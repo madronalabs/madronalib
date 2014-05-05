@@ -19,8 +19,8 @@ public:
 	int resize(int length);
 	int getRemaining();
 		
-	int write(MLSample* pOut, unsigned samples);
-	int read(MLSample* pIn, unsigned samples);
+	int write(const MLSample* pSrc, unsigned samples);
+	int read(MLSample* pDest, unsigned samples);
 
 	PaUtilRingBuffer mBuf;
 	float* pData;

@@ -40,22 +40,22 @@ int MLRingBuffer::getRemaining()
 	return PaUtil_GetRingBufferReadAvailable(&mBuf);
 }
 
-int MLRingBuffer::write(MLSample* pOut, unsigned samples) 
+int MLRingBuffer::write(const MLSample* pSrc, unsigned samples)
 {
 	int r = 0;
 	if (pData)
 	{
-		r = PaUtil_WriteRingBuffer( &mBuf, pOut, samples );
+		r = PaUtil_WriteRingBuffer( &mBuf, pSrc, samples );
 	}
 	return r;
 }
 		
-int MLRingBuffer::read(MLSample* pIn, unsigned samples) 
+int MLRingBuffer::read(MLSample* pDest, unsigned samples)
 {
 	int r = 0;
 	if (pData)
 	{
-		r = PaUtil_ReadRingBuffer( &mBuf, pIn, samples );
+		r = PaUtil_ReadRingBuffer( &mBuf, pDest, samples );
 	}
 	return r;
 }

@@ -402,17 +402,17 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		}
 			
 		// set Engine I/O.  done here because JUCE may change pointers on us.  possibly.
-		MLDSPEngine::IOPtrs pIn = {{0}};
-		MLDSPEngine::IOPtrs pOut = {{0}};
+		MLDSPEngine::ClientIOMap ioMap;
+
 		for (int i=0; i<getNumInputChannels(); ++i)
 		{
-			pIn.channel[i] = buffer.getSampleData(i);	
+			ioMap.inputs[i] = buffer.getReadPointer(i);
 		}		
 		for (int i=0; i<getNumOutputChannels(); ++i)
 		{
-			pOut.channel[i] = buffer.getSampleData(i);	
+			ioMap.outputs[i] = buffer.getWritePointer(i);
 		}
-		mEngine.setIOPtrs(&pIn, &pOut);
+		mEngine.setIOBuffers(ioMap);
 				
 		if(acceptsMidi()) processMIDI(midiMessages);
 		
