@@ -594,6 +594,7 @@ public:
 		
 		CFRelease( resourceData );
 		CFRelease( propertyList );
+		CFRelease( fileURL );
         
 	}
     
@@ -610,45 +611,49 @@ public:
 		// get property list.
 		CFPropertyListRef myPropsRef;
 		ComponentResult err = JuceAUBaseClass::SaveState (&myPropsRef);
-        if (err != noErr) return;
-        jassert (CFGetTypeID (myPropsRef) == CFDictionaryGetTypeID());
-        CFMutableDictionaryRef dict = (CFMutableDictionaryRef) myPropsRef;
-        
-		// save state to the dictionary.
-		if (juceFilter != 0)
+        if (err == noErr)
         {
-            juce::MemoryBlock state;
-            juceFilter->getCurrentProgramStateInformation (state);
+            jassert (CFGetTypeID (myPropsRef) == CFDictionaryGetTypeID());
+            CFMutableDictionaryRef dict = (CFMutableDictionaryRef) myPropsRef;
             
-            if (state.getSize() > 0)
+            // save state to the dictionary.
+            if (juceFilter != 0)
             {
-                CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), state.getSize());
-                CFDictionarySetValue (dict, CFSTR("jucePluginState"), ourState);
-                CFRelease (ourState);
+                juce::MemoryBlock state;
+                juceFilter->getCurrentProgramStateInformation (state);
+                
+                if (state.getSize() > 0)
+                {
+                    CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), state.getSize());
+                    CFDictionarySetValue (dict, CFSTR("jucePluginState"), ourState);
+                    CFRelease (ourState);
+                }
             }
-        }
-        
-		// overwrite preset name in properties
-		CFStringRef newName = CFStringCreateWithCString(NULL, shortName.toUTF8(), kCFStringEncodingUTF8);
-		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
-		CFDictionarySetValue (dict, kNameString, newName);
-		
-		// Convert the property list into XML data.
-		CFDataRef xmlCFDataRef = CFPropertyListCreateXMLData(kCFAllocatorDefault, myPropsRef );
-		SInt32 errorCode = coreFoundationUnknownErr;
-		
-		if (NULL != xmlCFDataRef)
-		{
-			// Write the XML data to the CFData file.
-			(void) CFURLWriteDataAndPropertiesToResource(fileURL, xmlCFDataRef, NULL, &errorCode);
             
-			// Release the XML data
-			CFRelease(xmlCFDataRef);
-		}
-		
-		// restore state in base class, to update preset name in host.
-		JuceAUBaseClass::RestoreState (myPropsRef);
-		CFRelease(myPropsRef);
+            // overwrite preset name in properties
+            CFStringRef newName = CFStringCreateWithCString(NULL, shortName.toUTF8(), kCFStringEncodingUTF8);
+            CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+            CFDictionarySetValue (dict, kNameString, newName);
+            
+            // Convert the property list into XML data.
+            CFDataRef xmlCFDataRef = CFPropertyListCreateXMLData(kCFAllocatorDefault, myPropsRef );
+            SInt32 errorCode = coreFoundationUnknownErr;
+            
+            if (NULL != xmlCFDataRef)
+            {
+                // Write the XML data to the CFData file.
+                (void) CFURLWriteDataAndPropertiesToResource(fileURL, xmlCFDataRef, NULL, &errorCode);
+                
+                // Release the XML data
+                CFRelease(xmlCFDataRef);
+            }
+            
+            // restore state in base class, to update preset name in host.
+            JuceAUBaseClass::RestoreState (myPropsRef);
+            CFRelease(newName);
+        }
+        CFRelease(myPropsRef);
+		CFRelease( fileURL );
 	}
     
 	

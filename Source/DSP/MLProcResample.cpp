@@ -100,7 +100,7 @@ public:
 
 		MLSample process(const MLSample input)
 		{
-			MLSample x, y;	
+			MLSample x, y = input;
 			CAllPassFilter* pFilter;
 			x = input;
 			for(int i=0; i<numfilters; ++i)

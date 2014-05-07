@@ -907,8 +907,11 @@ public:
 				if (mExtension == ".mlpreset")
 				{
 					ScopedPointer<XmlElement> xml(loadPropertyFileToXML(fromFile));
-					xml->writeToFile(toFile, String::empty);
-					wait(10); 
+                    if(xml)
+                    {
+                        xml->writeToFile(toFile, String::empty);
+                        wait(10);
+                    }
 				}
 				else if (mExtension == ".aupreset")
 				{

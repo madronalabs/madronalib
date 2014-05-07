@@ -7,7 +7,6 @@
 
 #if JUCE_MAC
 
-
 juce::XmlElement* loadPropertyFileToXML(const juce::File& f) 
 {
 	juce::String juceName = f.getFullPathName();
@@ -18,7 +17,7 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 	CFDataRef         resourceData;
 	Boolean           status;
 	SInt32            errorCode;
-	juce::XmlElement* ret;
+	juce::XmlElement* ret = nullptr;
 
 	// get URL from Juce File
 	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
@@ -72,6 +71,7 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 	CFRelease(resourceData);
 	CFRelease(propertyList);
 	CFRelease(nameString);
+    CFRelease(fileURL);
 		
 	return ret;
 }
