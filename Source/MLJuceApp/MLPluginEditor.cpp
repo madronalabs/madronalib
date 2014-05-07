@@ -17,21 +17,13 @@ MLPluginEditor::~MLPluginEditor()
     // debug() << "DELETING ~MLPluginEditor\n";
 }
 
-/*
-void MLPluginEditor::paint(Graphics& )
-{
-}
-*/
-
 MLRect MLPluginEditor::getWindowBounds()
 {
 	ComponentPeer *peer = getPeer();
 	if(peer)
 	{
-		MLRect r(juceToMLRect(peer->getBounds()));
+		MLRect r(juceToMLRect(peer->localToGlobal(peer->getBounds())));
 		return r;
 	}
 	return MLRect();
 }
-
-

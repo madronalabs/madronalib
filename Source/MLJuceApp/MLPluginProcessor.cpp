@@ -65,6 +65,12 @@ AudioProcessorEditor* MLPluginProcessor::createEditor()
 	return r;
 }
 
+void MLPluginProcessor::editorResized(int w, int h)
+{
+    mEditorRect.setWidth(w);
+    mEditorRect.setHeight(h);
+}
+
 // --------------------------------------------------------------------------------
 #pragma mark preflight and cleanup
 //

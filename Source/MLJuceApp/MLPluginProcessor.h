@@ -84,6 +84,7 @@ public:
 	// --------------------------------------------------------------------------------
 	bool hasEditor() const { return true; }
 	AudioProcessorEditor* createEditor();
+    void editorResized(int w, int h);
     const String getName() const { return MLProjectInfo::projectName; }
 
 	// --------------------------------------------------------------------------------
