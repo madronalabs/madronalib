@@ -161,9 +161,9 @@ public:
         return a;
     }
     
-    MLSignal mBuffer; // public TEMP
-    
 private:
+    MLSignal mBuffer;
+    
     int mSR;
     float mInvSr;
 	uintptr_t mWriteIndex;
@@ -228,9 +228,9 @@ public:
         return sum*mBlend + modTapOut*mFeedForward;
     }
     
-    MLSignal mBuffer; // public TEMP
-    
 private:
+    MLSignal mBuffer;
+    
     int mSR;
     float mInvSr;
     
@@ -273,8 +273,8 @@ public:
     
     MLSample processSample(const MLSample x);
     
-    MLSignal mBuffer; // public TEMP
 private:
+    MLSignal mBuffer;
     int mSR;
     float mInvSr;
     

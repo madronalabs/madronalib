@@ -433,21 +433,6 @@ MLSample MLFDN::processSample(const MLSample x)
         mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);        
         outputSum += mDelayOutputs[j];
     }
-    
-    // TEMP
-    if (outputSum != outputSum)
-    {
-        debug() << "MLFDN: NaN! -----------------\n";
-        // dump state
-        mMatrix.dump(MLRect(0, 0, mSize, mSize));        
-        for(int i=0; i<mSize; ++i)
-        {
-            mDelays[i].mBuffer.dump();
-        }
-        clear();
-        outputSum = 0;
-    }
-    // temp
     return outputSum;
 }
 

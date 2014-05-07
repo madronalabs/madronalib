@@ -108,11 +108,6 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	
 	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
 	getProcList(mPatcherList, MLPath(kMLPatcherProcName), kMLEngineMaxVoices);
-	if (!mPatcherList.empty())
-	{
-		patcherOK = true;
-		//debug() << "got " << mPatcherList.size() << "patchers. \n";
-	}
 
 	if (graphOK)
 	{
@@ -461,7 +456,7 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 	int sr = getSampleRate();
 	int processed = 0;
 	bool reportStats = false;
-	osc::int64 startTime, endTime;
+	osc::int64 startTime = 0, endTime = 0;
 		
 	if (mpHostPhasorProc)
 	{	
@@ -530,7 +525,10 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 		}
 		else
 		{
-			if (mCollectStats) startTime = juce::Time::getHighResolutionTicks();
+			if (mCollectStats)
+            {
+                startTime = juce::Time::getHighResolutionTicks();
+            }
 			
 			process(mVectorSize); 
 			
