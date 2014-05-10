@@ -5,6 +5,8 @@
 
 #include "MLProc.h"
 
+MLParamValueAliasVec MLProcInfoBase::kMLProcNullAliasVec;
+
 // --------------------------------------------------------------------------------
 #pragma mark MLProc
 

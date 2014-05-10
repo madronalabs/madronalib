@@ -118,7 +118,7 @@ void MLSignalReporter::viewSignals()
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return;
     
-    const int maxSignalsToViewPerFrame = 4;
+    const int maxSignalsToViewPerFrame = 8;
 	MLSymbol signalName;
     
     // first service all views that have high priority set

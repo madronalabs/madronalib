@@ -191,10 +191,10 @@ std::ostream& operator<< (std::ostream& out, const MLModelParam & r)
 			out << r.getFloatValue();
 			break;
 		case MLModelParam::kStringParam:	
-			out << r.getStringValue();
+			out << *(r.getStringValue());
 			break;
 		case MLModelParam::kSignalParam:	
-			out << r.getSignalValue();
+			out << *(r.getSignalValue());
 		break;
 	}
 	return out;

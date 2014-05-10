@@ -10,7 +10,7 @@
 
 
 // each MLProc-derived class creates static instances of MLSymbolMap so that 
-// its parameters can be found by name.  An MLSymbolMap is just
+// its parameters, inputs and outputs can be found by name.  An MLSymbolMap is just
 // a wrapper around std::map for now.
 class MLSymbolMap
 {
@@ -159,10 +159,8 @@ private:
 	static arrayElement mNullData;
 };
 
-
 template <class arrayElement, int size>
 	 arrayElement SymbolMappedArray<arrayElement, size>::mNullData;
-
 
 
 #endif	// _ML_SYMBOL_MAP_H
