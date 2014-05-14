@@ -153,7 +153,7 @@ void MLBiquad::setHiShelf(float f, float q, float gain)
 }
 
 // make first order allpass section based on delay parameter d.
-void MLBiquad::setAllpass1(float D)
+void MLBiquad::setAllpassDelay(float D)
 {
     float alpha = (1.f - D) / (1.f + D);
     a0 = alpha;

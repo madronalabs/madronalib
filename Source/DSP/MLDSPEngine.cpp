@@ -202,8 +202,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned vec
 		// after setVectorSize, set midiToSignals input buffer size.
 		if (mpInputToSignalsProc)
 		{
-// TEMP
-debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
+            //debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
 			mpInputToSignalsProc->setParam("bufsize", bufSize);
 			mpInputToSignalsProc->resize();		
 		}
@@ -225,11 +224,8 @@ bail:
 	return e;
 }
 
-
 // ----------------------------------------------------------------
 #pragma mark I/O
-
-
 
 void MLDSPEngine::setBufferSize(unsigned size) 
 {
