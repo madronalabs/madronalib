@@ -478,12 +478,21 @@ void MLSignal::add2D(const MLSignal& b, const Vec2& destOffset)
 	{
 		for(int i=destRect.left(); i<destRect.right(); ++i)
 		{
-			a(i, j) += b(i - destX - srcPosFX, j - destY - srcPosFY);
+			a(i, j) += b.getInterpolatedLinear(i - destX - srcPosFX, j - destY - srcPosFY);
 		}
 	}
 
 	setConstant(false);
 }
+
+/*
+// TEMP
+const MLSample MLSignal::operator() (const float i, const float j) const
+{
+    return getInterpolatedLinear(i, j);
+
+}*/
+
 
 // TODO SSE
 void MLSignal::add(const MLSignal& b)

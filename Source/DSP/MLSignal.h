@@ -190,22 +190,54 @@ public:
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 
-	inline MLSample getInterpolatedLinear(float px, float py) const
+	inline MLSample getInterpolatedLinear(float fi, float fj) const
+    {
+        MLSample a, b, c, d;
+        
+        int i = (int)(fi);
+        int j = (int)(fj);
+        
+        // get truncate down for inputs < 0
+        // TODO use vectors with _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        // _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+        if (fi < 0) i--;
+        if (fj < 0) j--;
+        float ri = fi - i;
+        float rj = fj - j;
+        
+        int i1ok = within(i, 0, mWidth);
+        int i2ok = within(i + 1, 0, mWidth);
+        int j1ok = within(j, 0, mHeight);
+        int j2ok = within(j + 1, 0, mHeight);
+        
+        a = (j1ok && i1ok) ? mDataAligned[row(j) + i] : 0.f;
+        b = (j1ok && i2ok) ? mDataAligned[row(j) + i + 1] : 0.f;
+        c = (j2ok && i1ok) ? mDataAligned[row(j + 1) + i] : 0.f;
+        d = (j2ok && i2ok) ? mDataAligned[row(j + 1) + i + 1] : 0.f;
+        
+        return lerp(lerp(a, b, ri), lerp(c, d, ri), rj);
+    }
+
+    // NOTE: this code below was added more recently but is breaking Soundplane touches.
+    // TODO investigate and optimize
+    /*
 	{
-		int pxi = (int)px;
-		int pyi = (int)py;
-		float mx = px - pxi;
-		float my = py - pyi;
-        float r00 = mDataAligned[(row(pyi) + pxi)];
-        float r01 = mDataAligned[(row(pyi) + pxi + 1)];
-        float r10 = mDataAligned[(row(pyi + 1) + pxi)];
-        float r11 = mDataAligned[(row(pyi + 1) + pxi + 1)];
+		int i = (int)fi;
+		int j = (int)py;
+		float mx = fi - i;
+		float my = fj - j;
+        float r00 = mDataAligned[(row(j) + i)];
+        float r01 = mDataAligned[(row(j) + i + 1)];
+        float r10 = mDataAligned[(row(j + 1) + i)];
+        float r11 = mDataAligned[(row(j + 1) + i + 1)];
         float r0 = lerp(r00, r01, mx);
         float r1 = lerp(r10, r11, mx);
         float r = lerp(r0, r1, my);
 		return r;
 	}
-
+     */
+    
+    
     void addDeinterpolatedLinear(float px, float py, float v)
     {
         // TODO SSE
@@ -215,7 +247,7 @@ public:
         float pxc = min(px, fw);
         float pyc = min(py, fh);
 		int pxi = (int)pxc;
-		int pyi = (int)pyc;
+		int pyi = (int)pyc; 
 		float mx = pxc - pxi;
 		float my = pyc - pyi;
         float r0 = (1.0f - my)*v;
@@ -230,7 +262,7 @@ public:
         mDataAligned[(row(pyi + 1) + pxi + 1)] += r11;
     }
 
-//	const MLSample operator() (const float i, const float j) const;
+	const MLSample operator() (const float i, const float j) const;
     const MLSample getInterpolatedLinear(const Vec2& pos) const { return getInterpolatedLinear(pos.x(), pos.y()); }
 	
 	// --------------------------------------------------------------------------------
