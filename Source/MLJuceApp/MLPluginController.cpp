@@ -437,7 +437,6 @@ void MLPluginController::doPresetMenu(int result)
                         errStr += MLProjectInfo::projectName;
                         errStr += " folder.";
                     }
-                    getProcessor()->scanPresets();
                 }
             }
             else
