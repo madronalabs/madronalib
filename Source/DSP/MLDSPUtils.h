@@ -35,7 +35,7 @@ public:
 	void setNotch(float f, float q);
 	void setOnePole(float f);
     void setAllpassAlpha(float a);
-    void setAllpass1(float d);
+    void setAllpassDelay(float d);
     void setAllpass2(float f, float r);
 	void setDifferentiate(void);
     void setLoShelf(float f, float q, float gain);
@@ -55,6 +55,40 @@ public:
 	float x1, x2, y1, y2;
 	float mInvSr;
 };
+
+// ----------------------------------------------------------------
+#pragma mark MLAsymmetricOnepole
+
+class MLAsymmetricOnepole
+{
+public:
+    MLAsymmetricOnepole() : ka(0), kb(0), y1(0){};
+    ~MLAsymmetricOnepole(){};
+    void clear()
+    {
+        y1 = 0.f;
+    }
+	void setSampleRate(float sr) { mInvSr = 1.f / sr; }
+    void setCutoffs(float fa, float fb)
+    {
+        ka = clamp(kMLTwoPi*fa*mInvSr, 0.f, 0.25f);
+        kb = clamp(kMLTwoPi*fb*mInvSr, 0.f, 0.25f);
+    }
+    inline MLSample processSample(float x)
+    {
+        float dxdt = x - y1;
+        float s = (dxdt < 0.f ? -1.f : 1.f);
+        float k = ((1.f - s)*kb + (1.f + s)*ka)*0.5f;
+        float out = y1 + k*dxdt;
+        y1 = out;
+        return(out);
+    }
+    
+	float ka, kb;
+	float y1;
+	float mInvSr;
+};
+
 
 // ----------------------------------------------------------------
 #pragma mark MLSineOsc
