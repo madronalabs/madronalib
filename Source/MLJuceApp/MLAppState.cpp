@@ -275,9 +275,7 @@ File MLAppState::getStateDir() const
  	String applicationName(File::createLegalFileName (String(mpAppName)));
 
    #if JUCE_MAC || JUCE_IOS
-    File dir ("~/Library/Application Support"); // user Library
- 
-	dir = dir.getChildFile (makerName);
+    File dir ("~/Music/Madrona Labs"); 
 	dir = dir.getChildFile (applicationName);
 
    #elif JUCE_LINUX || JUCE_ANDROID
