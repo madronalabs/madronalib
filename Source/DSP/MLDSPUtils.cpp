@@ -40,7 +40,6 @@ void MLBiquad::setPeakNotch(float f, float q, float gain)
 	float omega = kMLTwoPi * f * mInvSr;
 	float cosOmega = cosf(omega);
 	float alpha = sinf(omega) / (2.f * q);
-    
     float A = sqrtf(gain);
     float alphaOverA = alpha/A;
     A *= alpha;
@@ -101,8 +100,6 @@ void MLBiquad::setNotch(float f, float q)
 
 void MLBiquad::setOnePole(float f)
 {
-    //	float omega = kMLTwoPi * f * mInvSr;
-    //	float cosOmega = cosf(omega);
 	float e = 2.718281828;
 	float x = powf(e, -kMLTwoPi * f * mInvSr);
 	a0 = 1.f - x;
@@ -122,7 +119,6 @@ void MLBiquad::setLoShelf(float f, float q, float gain)
 	float cosOmega = cosf(omega);
 	float alpha = sinf(omega) / (2.f * q);
     float beta = 2.0f*sqrtf(A)*alpha;
-    
 	float b0 = aPlus1 + aMinus1*cosOmega + beta;
 	
 	a0 = (A*(aPlus1 - aMinus1*cosOmega + beta)) / b0;
@@ -436,27 +432,6 @@ MLSample MLFDN::processSample(const MLSample x)
     return outputSum;
 }
 
-MLSample MLFDN::getOddOutputs()
-{
-    float outputSum = 0.f;
-    for(int j=3; j<mSize; ++j)
-    {
-        outputSum += mDelayOutputs[j];
-    }
-    return outputSum;
-}
-
-MLSample MLFDN::getEvenOutputs()
-{
-    float outputSum = 0.f;
-    for(int j=2; j<mSize; ++j)
-    {
-        outputSum += mDelayOutputs[j];
-    }
-    return outputSum;
-}
-
-
 // ----------------------------------------------------------------
 #pragma mark MLHalfBandFilter
 
@@ -488,7 +463,6 @@ MLHalfBandFilter::MLHalfBandFilter()
     apb1.a = kb1;
     x0 = x1 = a0 = b0 = b1 = 0.f;
     k = 0;
-    
     clear();
 }
 

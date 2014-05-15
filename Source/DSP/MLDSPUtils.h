@@ -14,7 +14,7 @@
 
 // ----------------------------------------------------------------
 // DSP utility objects -- some very basic building blocks, not in MLProcs
-// so they can be used by MLProcs.
+// so they can be used more easily in MLProcs and elsewhere.
 //
 
 // ----------------------------------------------------------------
@@ -352,8 +352,6 @@ public:
     void setFeedbackAmp(float f) { mFeedbackAmp = f; }
     void setLopass(float f);
     MLSample processSample(const MLSample x);
-    MLSample getOddOutputs();
-    MLSample getEvenOutputs();
     
 private:
     int mSize;
@@ -369,7 +367,6 @@ private:
     int mSR;
     float mInvSr;
 };
-
 
 // ----------------------------------------------------------------
 #pragma mark MLHalfBandFilter
