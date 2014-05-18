@@ -1468,15 +1468,39 @@ void MLProcContainer::publishSignal(const MLPath & procAddress, const MLSymbol o
 	}	
 }
 
-// return the number of currently enabled buffers in the signal list.
-// 
-int MLProcContainer::countPublishedSignals(const MLSymbol alias)
+// return the number of buffers matching alias in the signal list.
+//
+int MLProcContainer::getPublishedSignalVoices(const MLSymbol alias)
 {
 	int nVoices = 0;
 	
 	// look up signal container
 	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
-	if (it != mPublishedSignalMap.end()) 
+	if (it != mPublishedSignalMap.end())
+	{
+		const MLProcList& bufList = it->second;
+		// count procs in buffer list
+		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
+		{
+			MLProcPtr proc = (*jt);
+			if (proc)
+			{
+				nVoices++;
+			}
+		}
+	}
+	return nVoices;
+}
+
+// return the number of currently enabled buffers matching alias in the signal list.
+//
+int MLProcContainer::getPublishedSignalVoicesEnabled(const MLSymbol alias)
+{
+	int nVoices = 0;
+	
+	// look up signal container
+	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
+	if (it != mPublishedSignalMap.end())
 	{
 		const MLProcList& bufList = it->second;
 		// count enabled procs in buffer list
@@ -1489,7 +1513,7 @@ int MLProcContainer::countPublishedSignals(const MLSymbol alias)
 			}
 		}
 	}
-//debug() << "countPublishedSignals: " << alias << ": " << nVoices << "\n";
+    //debug() << "getPublishedSignalVoicesEnabled: " << alias << ": " << nVoices << "\n";
 	return nVoices;
 }
 
@@ -1533,6 +1557,7 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	{
 		const MLProcList& bufList = it->second;
 		
+        // TODO why all this counting
 		// iterate buffer list and count enabled ring buffers.
 		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
 		{
@@ -1546,7 +1571,7 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 //debug() << "readPublishedSignal: " << alias << ": " << nVoices << "\n";
 
 		// read from enabled ring buffers into the destination signal.
-		// if more than one voice is found, interleave signals into the destination.
+        // if more than one voice is found, each voice goes into one row of the signal.
 		// need to iterate here again so we can pass nVoices to readToSignal().
 		if (nVoices > 0)
 		{
@@ -1557,15 +1582,10 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 				if (proc && proc->isEnabled())
 				{
 					MLProcRingBuffer& bufferProc = static_cast<MLProcRingBuffer&>(*proc);	
-					r = bufferProc.readToSignal(outSig, samples, nVoices, voice);
+					r = bufferProc.readToSignal(outSig, samples, voice);
 					minSamplesRead = min(r, minSamplesRead);
 					voice++;			
 				}
-			}
-
-			if (nVoices != voice) // this does actually happen sometimes, v.1.2.4
-			{
-				debug() << "readPublishedSignal: nVoices != voice!\n";
 			}
 		}
 	}

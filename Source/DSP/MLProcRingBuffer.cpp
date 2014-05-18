@@ -57,9 +57,9 @@ MLProc::err MLProcRingBuffer::resize()
 	}
 	else
 	{	
-		PaUtil_InitializeRingBuffer( &mBuf, sizeof(MLSample), size, buf );	
-		// get readout signal
-		mOutputSignal.setDims(size);
+		PaUtil_InitializeRingBuffer( &mBuf, sizeof(MLSample), size, buf );
+        
+		// get trash signal
 		if (getParam("mode") != eMLRingBufferNoTrash)
 		{
 			mTrashSignal.setDims(size);	
@@ -69,12 +69,10 @@ MLProc::err MLProcRingBuffer::resize()
 	return e;
 }
 
-
 void MLProcRingBuffer::doParams(void) 
 {
 	mParamsChanged = false;
 }
-
 
 void MLProcRingBuffer::process(const int frames)
 {
@@ -99,16 +97,14 @@ void MLProcRingBuffer::process(const int frames)
 	}
 }
 
-// read a ring buffer into a destination signal.
-// The skip and offset arguments can be used to read every nth sample into the signal,
-// starting from the given offset.   
-unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int skip, int offset) 
+// read a ring buffer into the given row of the destination signal.
+//
+unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
 {
 	int lastRead = 0;
 	int skipped = 0;
 	int available = 0;
-	MLSample * outBuffer = outSig.getBuffer();
-	MLSample * localOutBuffer = mOutputSignal.getBuffer();
+	MLSample * outBuffer = outSig.getBuffer() + outSig.row(row);
 	void * trashBuffer = (void *)mTrashSignal.getBuffer();
 	MLSample * trashbufferAsSamples = reinterpret_cast<MLSample*>(trashBuffer);
 	static MLSymbol modeSym("mode");
@@ -117,11 +113,9 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int skip,
 	MLSample triggerVal = 0.f;
 		
 	samples = min(samples, (int)outSig.getSize());
-	samples = min(samples, (int)mOutputSignal.getSize());
 
 	available = (int)PaUtil_GetRingBufferReadAvailable( &mBuf );
 	if (available <= 0) return 0;
-	if (skip == 0) return 0;
 	
 	// depending on trigger mode, trash samples up to the ones we will return.
 	switch(mode)
@@ -159,30 +153,7 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int skip,
 		break;
 	}
 	
-	if (skip == 1)
-	{
-		// read direct to outBuffer
-		lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, outBuffer, samples );
-	}
-	else
-	{
-		// read to local output buffer and interlace to outBuffer
-		lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, localOutBuffer, samples );
-		for (int i=offset; i<samples; i+= skip)
-		{
-			outBuffer[i] = localOutBuffer[i];
-		}
-	}
-
-	/*
-	// TEST
-	mOutputSignal.clear();
-	for (int n=0; n<samples; ++n)
-	{
-		mOutputSignal[n] = (float)n / (float)samples;
-	}
-	*/
-
+    lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, outBuffer, samples );
 
 	// DEBUG
 	/*
@@ -202,10 +173,5 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int skip,
 	*/
 
 	return lastRead;
-}
-
-const MLSignal& MLProcRingBuffer::getOutputSignal() 
-{
-	return mOutputSignal;
 }
 

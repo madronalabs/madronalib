@@ -685,7 +685,7 @@ void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
 // count the number of published copies of the signal matching alias.
 int MLPluginProcessor::countSignals(const MLSymbol alias)
 {
-	int numSignals = mEngine.countPublishedSignals(alias);
+	int numSignals = mEngine.getPublishedSignalVoicesEnabled(alias);
 	return numSignals;
 }
 

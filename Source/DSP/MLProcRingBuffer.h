@@ -35,10 +35,8 @@ public:
 	void clear(){};
 	void process(const int n);		
 
-	// read the buffer contents out to the given signal, starting at offset and writing
-	// a new sample evey (skip) samples. Typically used for displays where (skip) = the
-	// number of voies combined into one display.
-	unsigned readToSignal(MLSignal& outSig, int samples, int skip=1, int offset=0);
+	// read the buffer contents out to the specified row of the given signal.
+	unsigned readToSignal(MLSignal& outSig, int samples, int row=0);
 	const MLSignal& getOutputSignal();
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -49,7 +47,6 @@ private:
 
 	MLSignal mRing;
 	MLSignal mTrashSignal;	
-	MLSignal mOutputSignal;	
 	PaUtilRingBuffer mBuf;
 	
 	MLSignal test;

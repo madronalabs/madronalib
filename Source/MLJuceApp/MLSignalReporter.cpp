@@ -25,6 +25,7 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 
 	// first, find published signal if available and add read buffers. 
 	int bufSize = pEngine->getPublishedSignalBufferSize(alias);
+    int voices = pEngine->getPublishedSignalVoices(alias);
 	if(bufSize > 0)
 	{
 		// if signal buffer does not already exist, add one
@@ -32,8 +33,8 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 		if (it == mSignalBuffers.end()) 
 		{
 			// add buffers so we can see if the signal has been changed since the last view
-			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize));
-			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize));
+			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
+			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
 			mSignalBuffers2[alias]->fill(-1.f); // force initial view of zero signal
 		}
 		
@@ -78,6 +79,7 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
     // to detect changes. Instead, the DSP engine can keep track of what
     // published signals have changed since the last read, and we can ask it.
     int drawn = 0;
+    buffer1.clear();
     int samples = pEngine->readPublishedSignal(signalName, buffer1);
     
     if(samples > 0)
