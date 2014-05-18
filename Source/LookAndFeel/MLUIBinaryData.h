@@ -5,11 +5,12 @@
 
 namespace MLUIBinaryData
 {
-	extern const char*  madronasans_jucefont;
-    const int           madronasans_jucefontSize = 37497;
+    extern const char*  madronasanscondensedoblique_ttf;
+    const int           madronasanscondensedoblique_ttfSize = 16036;
 
-    extern const char*  madronasansitalic_jucefont;
-    const int           madronasansitalic_jucefontSize = 37532;
+    extern const char*  madronasansregular_ttf;
+    const int           madronasansregular_ttfSize = 14848;
+
 };
 
 #endif

@@ -68,12 +68,10 @@ MLLookAndFeel::MLLookAndFeel()
 	// get typefaces from serialised binary data
 
 	// typeface 0: Madrona Sans regular
-	MemoryInputStream s1 (MLUIBinaryData::madronasans_jucefont, MLUIBinaryData::madronasans_jucefontSize, true);
-	pMadronaSans = new CustomTypeface (s1);	
+	pMadronaSans = Typeface::createSystemTypefaceFor(MLUIBinaryData::madronasansregular_ttf, MLUIBinaryData::madronasansregular_ttfSize);
 	
 	// typeface 1: Madrona Sans italic
-	MemoryInputStream s2 (MLUIBinaryData::madronasansitalic_jucefont, MLUIBinaryData::madronasansitalic_jucefontSize, false);
-	pMadronaSansItalic = new CustomTypeface(s2);
+	pMadronaSansItalic = Typeface::createSystemTypefaceFor(MLUIBinaryData::madronasanscondensedoblique_ttf, MLUIBinaryData::madronasanscondensedoblique_ttfSize);
 	
 	mTitleFont = (pMadronaSans);
 	mTitleFont.setHeight(14.8);
