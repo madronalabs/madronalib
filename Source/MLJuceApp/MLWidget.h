@@ -40,7 +40,7 @@ public:
 
 	// A signal viewer, not required. This is called repeatedly to view 
 	// a dynamic Signal, as opposed to a signal Parameter.
-	virtual void viewSignal(MLSymbol, const MLSignal&, int) {}
+	virtual void viewSignal(MLSymbol, const MLSignal&, int frames, int voices) {}
 
 	// in order to function, a widget's Component must get set!
 	//

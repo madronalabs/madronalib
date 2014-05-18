@@ -23,7 +23,7 @@ MLSignalView::~MLSignalView()
 {
 }
 
-void MLSignalView::setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, unsigned voices)
+void MLSignalView::setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, int voices)
 {
 	mViewingSignal = true;
 	mpEngine = pEng;
@@ -31,8 +31,8 @@ void MLSignalView::setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, u
 	mpWidget->setAttribute(MLSymbol("voices"), voices);
 }
 
-void MLSignalView::sendSignalToWidget(const MLSignal& signal, int samples)	
+void MLSignalView::sendSignalToWidget(const MLSignal& signal, int samples, int voices)
 {		
 	const int viewSamples = min(mSize, samples);
-	mpWidget->viewSignal(mAttr, signal, viewSamples);
+	mpWidget->viewSignal(mAttr, signal, viewSamples, voices);
 }

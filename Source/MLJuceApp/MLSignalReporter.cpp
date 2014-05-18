@@ -101,10 +101,9 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
                 MLSignalViewPtr pV = *it2;
                 if(pV->mPriority >= priority)
                 {
-                    // should not be needed every time, only when # of voices changes
-                    pV->setupSignalView(pEngine, signalName, voices);
-                    
-                    pV->sendSignalToWidget(buffer1, samples);
+                    // again TODO should not be needed every time, only when # of voices changes
+                    pV->setupSignalView(pEngine, signalName, voices);                    
+                    pV->sendSignalToWidget(buffer1, samples, voices);
                     drawn++;
                 }
             }

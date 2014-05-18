@@ -7,11 +7,9 @@
 #define __ML_SIGNALVIEWER_H__
 
 #include "MLWidget.h"
-
 #include "MLProcContainer.h"
 #include "MLSymbol.h"
 #include "MLPath.h"
-
 #include "MLSignal.h"
 #include "MLDSPEngine.h"
 
@@ -23,25 +21,20 @@ public:
 
 	MLSignalView(MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize, int priority = 0);
 	~MLSignalView();
-	void setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, unsigned voices);
-	void sendSignalToWidget(const MLSignal& signal, int samples);
-	
+	void setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, int voices);
+	void sendSignalToWidget(const MLSignal& signal, int samples, int voices);	
 	const MLRect& getRepaintRect() const;	
 	MLSymbol getSignalName() { return mSignalName; }	
 
 private:
-
 	int mNumSignals;
 	bool mViewingSignal;
-	MLDSPEngine* mpEngine;
-	
+	MLDSPEngine* mpEngine;	
 	MLSymbol mSignalName;
 	MLWidget* mpWidget;
 	MLSymbol mAttr;
 	int mSize;
     int mPriority;
 };
-
-
 
 #endif
