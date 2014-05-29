@@ -349,6 +349,18 @@ bool MLProc::outputIsValid(int idx)
 	}
 }
 
+MLSymbol MLProc::getNameWithCopyIndex()
+{
+    int c = mCopyIndex;
+    if(c)
+    {
+        return mName.withFinalNumber(mCopyIndex);
+    }
+    else
+    {
+        return mName;
+    }
+}
 
 void MLProc::dumpParams()
 {

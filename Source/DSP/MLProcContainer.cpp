@@ -110,8 +110,11 @@ void MLProcContainer::makeRoot(const MLSymbol name)
 
 void MLProcContainer::compile()
 {
-	const bool verbose = false;	
+	const bool dumpOutputs = false;
+	const bool verbose = false;
 	err e = OK;
+
+    // debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
@@ -138,13 +141,16 @@ void MLProcContainer::compile()
 	MLNameMaker nameMaker;
 
 	// make compileOps from ops list.
-	// reads ops list, writes compils ops list, compile ops map. 
+	// reads ops list, writes compile ops list, compile ops map. 
 	// for each proc in ops list, 
 	for (std::list<MLProcPtr>::iterator it = mOpsList.begin(); it != mOpsList.end(); ++it)
 	{
 		MLProcPtr pRef = *it;
-		MLSymbol pName = pRef->getName();//.withNumber(0);
-		
+        
+        // we get each proc name with the copy index attached because in multicontainers we can have
+        // multiple procs with the same name.
+		MLSymbol pName = pRef->getName();
+        
 		// make a new compileOp referencing the proc.
 		compileOp c(pRef);
 		
@@ -159,7 +165,8 @@ void MLProcContainer::compile()
 		compileOps.push_back(c);
 		
 		// add map entry to reference compileOp by proc name.
-		compileOpsMap[pName] = &compileOps.back();	
+		compileOpsMap[pName] = &compileOps.back();
+
 	}
 
 	// ----------------------------------------------------------------
@@ -177,25 +184,25 @@ void MLProcContainer::compile()
 		
 		// this makes numbered copies of voices resolve to the same compile signal.
 		// this works because these copies are always processed as one chunk.
-		MLSymbol pName = proc->getName();	
-
+        // TODO but... what about outputs from an individual copy? this is not working right.
+		MLSymbol pName = proc->getName();
+        
 		// set corresponding input of proc in ops map to a new compileSignal.
 		compileOp* pOp = compileOpsMap[pName];
 		if (pOp)
 		{
 			MLSymbol sigName = nameMaker.nextName();
 			signals[sigName] = (compileSignal());
-			pOp->inputs[inputIdx - 1] = sigName;		
+			pOp->inputs[inputIdx - 1] = sigName;
 			
 			// set lifespan of input signal, from start to op position.
 			signals[sigName].setLifespan(0, pOp->listIdx);
 			signals[sigName].mPublishedInput = i + 1;
 			compileInputs.push_back(sigName);
-			
 		}
 		else
 		{
-			debug() << "MLProcContainer::compile(): no compile op named " << pName << "\n";
+			debug() << "error: MLProcContainer " << getName() << " ::compile(): no compile op named " << pName << "\n";
 		}
 	}
 
@@ -211,10 +218,13 @@ void MLProcContainer::compile()
 		int srcIndex = pipe->mSrcIndex;
 		MLSymbol destName = pipe->mDest->getName();
 		int destIndex = pipe->mDestIndex;
-		
+        
+        // debug() << "ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
+        
 		// resize inputs and outputs if needed for variable i/o procs
 		compileOp* pSrcOp = compileOpsMap[srcName];
 		compileOp* pDestOp = compileOpsMap[destName];
+        
 		if ((int)pSrcOp->outputs.size() < srcIndex)
 		{
 			pSrcOp->outputs.resize(srcIndex);
@@ -249,7 +259,8 @@ void MLProcContainer::compile()
 		int pipeStartIdx = compileOpsMap[srcName]->listIdx;
 		int pipeEndIdx = compileOpsMap[destName]->listIdx;
 
-		//debug() << "adding span for " << sigName << ": [" << pipeStartIdx << ", " <<  pipeEndIdx << "]\n";
+		// debug() << "adding span for " << sigName << ": [" << pipeStartIdx << ", " <<  pipeEndIdx << "]\n";
+        
 		// set signal lifetime to union of signal lifetime and pipe extent
 		signals[sigName].addLifespan(pipeStartIdx, pipeEndIdx);
 		
@@ -259,19 +270,19 @@ void MLProcContainer::compile()
 	// name output signals where they exit container, get lifespans:
 	// reads published outputs, container procs (for name), compile ops map
 	// writes compile ops map, signals
-	// for each output signal from this container,
+	// for each output signal from this container,    
 	for(int i = 0; i < (int)mPublishedOutputs.size(); ++i)
 	{
  		// get src proc and index of output
 		MLPublishedOutputPtr output = mPublishedOutputs[i];
 		MLProcPtr outputProc = output->mSrc;	
 		int outputIdx = output->mSrcOutputIndex;	
-		MLSymbol outputProcName = outputProc->getName();//.withNumber(0);		// number?
-		
+		MLSymbol outputProcName = outputProc->getName();
+
         compileOp* pOutputOp = compileOpsMap[outputProcName];
 		if (!pOutputOp)
         {
-            MLError() << "compile error: can’t connect output for proc " << outputProcName << " !\n";            
+            MLError() << "compile error: can’t connect output for proc " << outputProcName << " !\n";
         }
         else
         {
@@ -285,7 +296,7 @@ void MLProcContainer::compile()
                 signals[sigName] = (compileSignal());
             
                 // mark the output source with the new signal.
-                compileOpsMap[outputProcName]->outputs[outputIdx - 1] = sigName;			
+                compileOpsMap[outputProcName]->outputs[outputIdx - 1] = sigName;
             }
 
             // set corresponding output of proc in ops map to name of compileSignal.
@@ -298,7 +309,6 @@ void MLProcContainer::compile()
             
             // add published output to list
             signals[sigName].mPublishedOutput = i + 1;
-            // debug() << "    signal " << sigName << " gets output  " << i + 1 << "\n";
             compileOutputs.push_back(sigName);
         }
 	}
@@ -406,12 +416,11 @@ void MLProcContainer::compile()
 	
 		op.procRef->resizeInputs(op.inputs.size());
 		op.procRef->resizeOutputs(op.outputs.size());
-
+        
 		// for each output of compile op, set output of proc to allocated buffer or null signal.
 		for(int i=0; i<(int)op.outputs.size(); ++i)
 		{
 			MLSymbol sigName = op.outputs[i];
-//			MLSignal* pOutSig = (!sigName) ? (&getNullOutput()) : (signals[sigName].mpSigBuffer);
 			MLSignal* pOutSig;
 			if(sigName) 
 			{
@@ -438,7 +447,8 @@ void MLProcContainer::compile()
 	
 	// setup this container's published outputs
 	// reads compileoutputs, signals
-	// writes MLProc outputs, output resamplers
+	// writes MLProc outputs, output resamplers    
+    
 	for(int i=0; i<(int)compileOutputs.size(); ++i)
 	{
 		MLSymbol outName = compileOutputs[i];
@@ -466,16 +476,31 @@ void MLProcContainer::compile()
 		{
 			// connect src proc to main output
 			setOutput(i + 1, *signals[outName].mpSigBuffer);
-		}				
+        }
 	}
-	
+    
 	// ----------------------------------------------------------------
 	// dump some things:
-	
+    
+    if(dumpOutputs)
+	{
+        // MLPublishedOutput
+        MLPublishedOutputMapT::const_iterator it = mPublishedOutputMap.begin();
+        debug() << mPublishedOutputMap.size() << " outputs:\n";
+        for(; it != mPublishedOutputMap.end(); it++)
+        {
+            MLSymbol name = it->first;
+            MLPublishedOutputPtr p = it->second;
+            debug() << "[" << p->mName << ": " << p->mProc->getNameWithCopyIndex() << " " << p->mOutput << "] ";
+            assert(name == p->mName);
+        }
+        debug() << "NULL: " << &getNullOutput() << "\n";
+        debug() << "\n";
+    }
 	if (verbose)
 	{
 		// dump compile graph
-		debug() << "\n\ncontainer " << getName() << "\n";
+		debug() << "\n\ncontainer " << getNameWithCopyIndex() << "\n";
 		debug() << compileOps.size() << " operations: ----------------------------------------------------------------\n";
 		int opIdx = 0;
 		for (std::list<compileOp>::const_iterator it = compileOps.begin(); it != compileOps.end(); ++it)
@@ -1238,24 +1263,24 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 		e = MLProc::badIndexErr;
 		goto bail;
 	}	
-
+	
+#if DEBUG
+	if (e != OK)
+	{
+		printErr(e);
+        debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+        debug() << "\n\n";
+	}
+#endif
+    
 	// construct input pointer if needed
 	b->createInput(bi);
 	
 	// TODO fix crashing on ill-formed graphs
 	
 	e = b->setInput(bi, a->getOutput(ai));
-	
-#if DEBUG
-	if (e != OK)
-	{
-		printErr(e);
-        debug() << "...connecting " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-        debug() << "\n\n";
-	}
-#endif
     
 bail:	
 	return e;
@@ -1272,8 +1297,6 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 {
 	err e = OK;
 	MLPublishedInputPtr p;
-
-	// debug() << "MLProcContainer " << getName() << ": publishInput " << inputName << " of " << procName << " as " << alias << "\n";
 
 	const MLProcPtr proc = getProc(procName);	
 	const MLRatio myRatio = getResampleRatio();
@@ -1363,12 +1386,7 @@ bail:
 // publish an output of a subproc by setting one of our output ptrs to the subproc's output signal.
 // 
 void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol outputName, const MLSymbol alias)
-{
-    //int copy = srcProcName.getCopy();
-    //debug() << "MLProcContainer " << getName() << ": publishOutput " << outputName;
-    //if(copy > 0) { debug() << "(copy " << copy << ") "; }
-    //debug() << " of " << srcProcName << " as " << alias << "\n";
-	
+{	
     err e = OK;
 	MLPublishedOutputPtr p;
 	const MLProcPtr sourceProc = getProc(srcProcName);
@@ -1420,10 +1438,19 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol o
 		{
 			// store by alias for getOutputIndex()
 			p->mName = alias;
-			mPublishedOutputMap[alias] = p;
-			mPublishedOutputs.push_back(p);	
-			resizeOutputs(mPublishedOutputs.size());			
-		}
+
+            MLPublishedOutputMapT::const_iterator it = mPublishedOutputMap.find(alias);            
+            if (it == mPublishedOutputMap.end())
+            {
+                mPublishedOutputMap[alias] = p;
+                mPublishedOutputs.push_back(p);
+                resizeOutputs(mPublishedOutputs.size());
+            }
+            else
+            {
+                MLError() << "MLProcContainer::publishOutput: alias " << alias << " already in map for container " << getName() << "!\n";
+            }
+ 		}
 	}
 	else
 	{

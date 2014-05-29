@@ -75,7 +75,18 @@ MLProc::err MLProcMultiple::addProc(const MLSymbol className, const MLSymbol pro
 				
 				proxy.setTemplate(pTemplate); 
 				proxy.setCopies(proxyCopies);
-			}
+
+                /*
+                for(int i=0; i<proxyCopies; ++i)
+                {
+                    
+                    mProcMap[proxy.getCopy(i)->getNameWithCopyIndex()] = proxy.getCopy(i);
+                    mProcList.push_back(proxy.getCopy(i));
+                    debug() << "PUSHING multicontainer " << proxy.getCopy(i)->getNameWithCopyIndex() << "\n";
+                    
+                }
+                 */
+            }
 			else 
 			{			
 				pProxyProc = newProc("multiproc", procName);
@@ -86,11 +97,26 @@ MLProc::err MLProcMultiple::addProc(const MLSymbol className, const MLSymbol pro
 				
 				proxy.setTemplate(pTemplate); 
 				proxy.setCopies(proxyCopies);
-			}		
-
+			
+                /*
+                for(int i=0; i<proxyCopies; ++i)
+                {
+                    mProcMap[proxy.getCopy(i)->getNameWithCopyIndex()] = proxy.getCopy(i); 
+                    mProcList.push_back(proxy.getCopy(i));                    
+                    debug() << "PUSHING multiproc " << proxy.getCopy(i)->getNameWithCopyIndex() << "\n";                    
+                }
+                 */
+            }
+            
+            // MLTEST
+            
+            
 			// add proxy to this container.
 			mProcMap[procName] = pProxyProc;
 			mProcList.push_back(pProxyProc);
+            
+
+            
 		}
 		else
 		{

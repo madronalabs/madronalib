@@ -189,7 +189,6 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// compile: schedule graph of processors , setup connections, allocate buffers
 		if (mEngine.getCompileStatus() != MLProc::OK)
 		{
-			debug() << "MLPluginProcessor: compiling... \n";
 			mEngine.compileEngine();
 		}
 		else

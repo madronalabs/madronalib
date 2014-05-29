@@ -437,6 +437,8 @@ public:
 	
 	MLSymbol& getClassName() { return procInfo().getClassName(); }
 	const MLSymbol& getName() const { return mName; }
+    int getCopyIndex() const { return mCopyIndex; }
+    MLSymbol getNameWithCopyIndex();
 	void dumpParams();
 	virtual void dumpProc(int indent);
 
@@ -454,6 +456,7 @@ protected:
 
 	void setName(const MLSymbol name) { mName = name; }
 	void setContext(MLDSPContext* pc) { mpContext = pc; }
+    void setCopyIndex(int c)  { mCopyIndex = c; }
 	
 	virtual void createInput(const int idx);
 	

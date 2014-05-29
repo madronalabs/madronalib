@@ -30,9 +30,7 @@ protected:
 	MLProcPtr getCopy(int c);
 	MLProcContainer* getCopyAsContainer(int c);
 	
-	// mCopies[0] is a template object and the rest are copies. 
-	// storing all of them in this vector makes the client code simpler
-	// than having a separate member variable for the template.
+    MLProcPtr mTemplate;
 	std::vector<MLProcPtr> mCopies;
 	int mEnabledCopies;
 };

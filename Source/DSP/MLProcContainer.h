@@ -400,7 +400,8 @@ protected:
 // ----------------------------------------------------------------
 #pragma mark compiler temps
 
-
+// represents a signal and its lifetime in the DSP graph.
+//
 class compileSignal
 {
 public:
@@ -446,6 +447,8 @@ public:
 	int mPublishedOutput;
 };
 
+// a class representing a single processing node with inputs and outputs when compiling.
+//
 class compileOp
 {
 public:
@@ -459,7 +462,7 @@ public:
 	std::vector<MLSymbol> outputs;
 };
 
-// temporary object for compile.
+// another temporary object for compile.
 // TODO move inside class
 // a buffer shared between multiple signals at different times. 
 // the lifetime of each signal is stored in the signal itself.
@@ -475,7 +478,6 @@ public:
 	// sorted by signal lifetime. lifetimes cannot overlap.
 	std::list<compileSignal*> mSignals;
 };
-
 
 // different functions to pack a signal into a list of shared buffers. 
 // a new sharedBuffer is added to the list if it is needed.

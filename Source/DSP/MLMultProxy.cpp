@@ -19,40 +19,35 @@ MLMultProxy::~MLMultProxy()
 
 void MLMultProxy::setTemplate(MLProcPtr pTemplate)
 {
-	mCopies.resize(1);
-	mCopies[0] = pTemplate;
-	mCopies[0]->mCopyIndex = 0;
-	mEnabledCopies = 1;
+	mTemplate = pTemplate;
+	mTemplate->mCopyIndex = 0;
+	mEnabledCopies = 0;
 }
 
-// make the multiple procs.  Must set template (mCopies[0]) beforehand.
+// make the multiple procs.  Must set template beforehand.
 // new copies are intially not enabled.
 void MLMultProxy::setCopies(const int newSize)
 {
 	if (newSize < 1) return;
-	if (mCopies[0])
-	{
+	if (mTemplate)
+	{        
 		int oldSize = (int)mCopies.size();
 		if (newSize != oldSize)
 		{
-			//debug() << "MLMultProxy::setCopies: setting " << newSize << " copies:\n";
-			mCopies.resize(newSize); 
-			if (newSize > oldSize)
-			{
-				// initialize new copies
-				MLSymbol className = mCopies[0]->getClassName();
-				MLSymbol procName = mCopies[0]->getName();
-				for(int i = oldSize; i < newSize; ++i)
-				{
-					// make new proc.  we use the template object's container for the call to 
-					// newProc(), but the new proc is not added to the container.
-					// instead we keep a ProcPtr in mCopies.
-					MLProcContainer* c = static_cast<MLProcContainer*>(mCopies[0]->getContext());
-					mCopies[i] = c->newProc(className, procName);
-					mCopies[i]->clearProc();
-					mCopies[i]->mCopyIndex = i;
-				}
-			}
+			mCopies.resize(newSize);
+            // initialize new copies
+            MLSymbol className = mTemplate->getClassName();
+            MLSymbol procName = mTemplate->getName();
+            for(int i = 0; i < newSize; ++i)
+            {
+                // make new proc.  we use the template object's container for the call to 
+                // newProc(), but the new proc is not added to the container.
+                // instead we keep a ProcPtr in mCopies.
+                MLProcContainer* c = static_cast<MLProcContainer*>(mTemplate->getContext());
+                mCopies[i] = c->newProc(className, procName);
+                mCopies[i]->setCopyIndex(i + 1);
+                mCopies[i]->clearProc();
+            }
 		}
 	}
 	else
@@ -99,7 +94,7 @@ MLProcContainer* MLMultProxy::getCopyAsContainer(int c)
 	}
 	else
 	{
-		debug() << "MLMultProxy::getCopyAsContainer: error, copy " << c << " of template " << mCopies[0]->getName() << "is not container!\n";
+		debug() << "MLMultProxy::getCopyAsContainer: error, copy " << c << " of template " << mTemplate->getName() << "is not container!\n";
 		return 0;
 	}
 }
@@ -133,9 +128,9 @@ MLMultiProc::~MLMultiProc()
 
 MLProcInfoBase& MLMultiProc::procInfo()
 { 
-	if (mCopies[0])
+	if (mTemplate)
 	{
-		return mCopies[0]->procInfo(); 
+		return mTemplate->procInfo();
 	}
 	else
 	{
@@ -147,7 +142,7 @@ MLProcInfoBase& MLMultiProc::procInfo()
 
 void MLMultiProc::process(const int n)
 {
-	const int outs = mCopies[0]->getNumOutputs();
+	const int outs = mTemplate->getNumOutputs();
 	
 	// for each enabled copy, process.  
 	// TODO this can be dispatched to multiple threads.
@@ -161,7 +156,7 @@ void MLMultiProc::process(const int n)
 	// for each output,
 	for (int i=1; i <= outs; ++i)
 	{
-		// sum outputs of copies to our output.
+		// sum outputs of copies to our MLProc output.
 		MLSignal& out = MLProc::getOutput(i);
 		out.clear();
 		for(int j=0; j < mEnabledCopies; ++j)
@@ -253,13 +248,12 @@ void MLMultiProc::setParam(const MLSymbol p, MLParamValue v)
 
 int MLMultiProc::getInputIndex(const MLSymbol name)
 {
-	return mCopies[0]->getInputIndex(name);
+	return mTemplate->getInputIndex(name);
 }
-
 
 int MLMultiProc::getOutputIndex(const MLSymbol name)		
 {
-	return mCopies[0]->getOutputIndex(name);
+	return mTemplate->getOutputIndex(name);
 }
 
 void MLMultiProc::createInput(const int idx)
@@ -353,7 +347,7 @@ bool MLMultiContainer::isProcEnabled(const MLProc* p) const
 //	(int)((p->mCopyIndex < mEnabledCopies) && (getContext()->isEnabled())) << "\n";
 //debug() << "index " << p->mCopyIndex << ", " << mEnabledCopies << " enabled.\n";
 	
-	return mEnabled && (p->mCopyIndex < mEnabledCopies);
+	return mEnabled && (p->mCopyIndex <= mEnabledCopies);
 }
 
 void MLMultiContainer::setup()
@@ -393,20 +387,23 @@ void MLMultiContainer::process(const int n)
 	{
 		getCopyAsContainer(i)->process(n);
 	}
-	
-	// TODO create a voice in/out fade interval, and fade instead of just adding during change. 
-		
+    
 	// for each of our outputs,
 	for (int i=1; i <= outs; ++i)
 	{
 		// sum outputs of copies to our output.
 		MLSignal& y = getOutput(i);
 		y.clear();
+                
 		for(int j=0; j < mEnabledCopies; ++j)
 		{
+            // TODO rewrite to handle multiple outputs better.
+            // right now if the last copy is enabled, it shares a buffer with the
+            // parent and this add doubles the last value. the hack in place adds one more copy to prevent this. 
+            
 			y.add(getCopyAsContainer(j)->getOutput(i));
-		}
-	}
+ 		}
+    }
 }
 
 // Setup internal buffers and data to prepare for processing any attached input signals.
@@ -442,9 +439,9 @@ void MLMultiContainer::clear()
 
 MLProcInfoBase& MLMultiContainer::procInfo()
 { 
-	if (mCopies[0])
+	if (mTemplate)
 	{
-		return mCopies[0]->procInfo(); 
+		return mTemplate->procInfo(); 
 	}
 	else
 	{
@@ -560,6 +557,7 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 		{
 			MLPath procPath(procName);
 			pCopy->setProcParams(procPath, parent);
+            pCopy->setCopyIndex(i + 1);
 			MLProcPtr p = pCopy->getProc(procPath);	
 			if(p)
 			{	
@@ -578,7 +576,6 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 	}
 	return e;
 }
-
 
 // calling this is a bad idea because there are no procs in this container, 
 // only in our template and copies. 
@@ -625,7 +622,6 @@ MLProc::err MLMultiContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int
 
 void MLMultiContainer::publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias)
 {
-	// debug() << "MLMultiContainer " << getName() << ": publishInput " << inputName << " of " << procName << " as " << alias << "\n"; 
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
@@ -640,12 +636,7 @@ void MLMultiContainer::publishInput(const MLPath & procName, const MLSymbol inpu
 
 void MLMultiContainer::publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias)
 {
-    //int copy = procName.getCopy();
-    //debug() << "MLMultiContainer " << getName() << ": publishOutput " << outputName;
-    //if(copy > 0) { debug() << "(copy " << copy << ") "; }
-    //debug() << " of " << procName << " as " << alias << "\n";
- 
-	const int copies = (int)mCopies.size();
+ 	const int copies = (int)mCopies.size();
 	for(int i=0; i<copies; i++)
 	{
 		getCopyAsContainer(i)->publishOutput(procName, outputName, alias);
@@ -776,16 +767,18 @@ void MLMultiContainer::routeParam(const MLPath & procAddress, const MLSymbol par
 
 void MLMultiContainer::compile()
 {
-	const int copies = (int)mCopies.size();	
+	const int copies = (int)mCopies.size();
+    
 	for(int i=0; i<copies; i++)
 	{
 		getCopyAsContainer(i)->compile();
 	}
-	
-	// MLContainer's outputs are allocated in compile().  We do a minimal verison here. 
+    
+    // MLProcContainer's outputs are allocated in compile().  We do a minimal verison here.
 	int outs = getNumOutputs();
 	for(int i=0; i<outs; ++i)
 	{
-		setOutput(i + 1, *allocBuffer());
+        MLSignal& newSig = *allocBuffer();
+		setOutput(i + 1, newSig);
 	}
 }

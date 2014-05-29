@@ -232,9 +232,6 @@ MLProc::err MLProcInputToSignals::resize()
 	int bufSize = (int)getParam("bufsize");
 	int vecSize = getContextVectorSize();
     
-// TEMP
-    debug() << "MLProcInputToSignals::resize: bufsize: " << bufSize << " vecSize: " << vecSize << "\n";
-    
 	MLProc::err r;
 	for(int i=0; i<kMLEngineMaxVoices; ++i)
 	{
