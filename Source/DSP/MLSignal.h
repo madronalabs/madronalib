@@ -369,7 +369,8 @@ public:
 	void sqrt();	
 	void abs();	
 	void inv();	
-	void ssign();	
+	void ssign();
+	void log2Approx();
 	
 	// 2D signal utils
 	void setIdentity();
