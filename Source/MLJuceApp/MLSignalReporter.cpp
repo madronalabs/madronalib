@@ -28,7 +28,8 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
     int voices = pEngine->getPublishedSignalVoices(alias);
 	if(bufSize > 0)
 	{
-		// if signal buffer does not already exist, add one
+		// if signal buffer does not already exist, add one.
+        // Allocates a signal with one row per voice. 
 		MLSymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
 		if (it == mSignalBuffers.end()) 
 		{

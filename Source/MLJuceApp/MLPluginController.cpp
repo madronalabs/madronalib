@@ -545,8 +545,6 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 			pC->menuItemChosen(menuName, result);
 		}
 	}
-    
-    debug() << "----------\n";
 }
 
 void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
