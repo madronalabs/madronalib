@@ -33,6 +33,7 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 		MLSymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
 		if (it == mSignalBuffers.end()) 
 		{
+            // debug() << "ADDING signal view " << alias << ", width: " << bufSize << ", voices: " << voices << " \n";
 			// add buffers so we can see if the signal has been changed since the last view
 			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
 			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
@@ -60,6 +61,30 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 	}
 }
 
+bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToCompare, int voices)
+{
+    bool result = false;
+    float totalDiff = 0.0f;
+    for(int j = 0; j < voices; ++j)
+    {
+        for(int i = 0; i<samplesToCompare; ++i)
+        {
+            float fa = a(i, j);
+            float fb = b(i, j);
+            float df = fa - fb;
+            totalDiff += df*df;
+            if(totalDiff > 0.01f)
+            {
+                result = true;
+                goto bail;
+            }
+        }
+    }
+    
+bail:
+    return result;
+}
+
 // for one signal in the map, run all views in the view list matching priority.
 //
 int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
@@ -80,18 +105,14 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
     // to detect changes. Instead, the DSP engine can keep track of what
     // published signals have changed since the last read, and we can ask it.
     int drawn = 0;
-    buffer1.clear();
-    int samples = pEngine->readPublishedSignal(signalName, buffer1);
+    int samplesRead = pEngine->readPublishedSignal(signalName, buffer1);
+    int samplesRequested = buffer1.getWidth(); // samples asked for by readPublishedSignal()
     
-    if(samples > 0)
+    // if the buffer was full, compare to see if a redraw is needed. 
+    if(samplesRead == samplesRequested)
     {
-        // test the RMS change of the signal buffer to see if a redraw is needed.
-        // TODO better metric taking display range of signal viewer component into account.
-        // all this does currently is prevents some of the tiny changes from parameter
-        // drifts from causing redraws. 
-        float changeSum = buffer1.rmsDiff(buffer2);
-        buffer2 = buffer1;
-        if(changeSum > 0.001f)
+        bool changed = signalsAreDifferent(buffer1, buffer2, samplesRead, voices);
+        if(changed)
         {
             // send signal to each signal view in its viewer list.
             MLSignalViewList viewList = mSignalViewsMap[signalName];
@@ -104,13 +125,13 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
                 {
                     // again TODO should not be needed every time, only when # of voices changes
                     pV->setupSignalView(pEngine, signalName, voices);                    
-                    pV->sendSignalToWidget(buffer1, samples, voices);
+                    pV->sendSignalToWidget(buffer1, samplesRead, voices);
                     drawn++;
                 }
             }
         }
-    }
-    
+        buffer2 = buffer1;
+    }    
     return drawn;
 }
 
@@ -120,7 +141,7 @@ void MLSignalReporter::viewSignals()
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return;
     
-    const int maxSignalsToViewPerFrame = 8;
+    const int maxSignalsToViewPerFrame = 6;
 	MLSymbol signalName;
     
     // first service all views that have high priority set

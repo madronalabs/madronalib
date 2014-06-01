@@ -16,7 +16,6 @@ MLSignalView::MLSignalView(MLWidget* w, MLSymbol attr, int size, int priority) :
     mPriority(priority),
 	mNumSignals(1)
 {
-
 }
 
 MLSignalView::~MLSignalView()
