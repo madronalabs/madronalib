@@ -675,7 +675,8 @@ MLProc::err MLMultiContainer::addSignalBuffers(const MLPath & procAddress, const
 
 void MLMultiContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers)
 {
-	const int copies = (int)mCopies.size();	
+    const int hack = 1; // for multiple outputs extra voice
+	const int copies = (int)mCopies.size() - hack;
 	for(int i=0; i<copies; i++)
 	{
 		getCopyAsContainer(i)->gatherSignalBuffers(procAddress, alias, signalBuffers);
