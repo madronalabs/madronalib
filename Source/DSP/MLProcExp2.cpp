@@ -38,7 +38,8 @@ namespace
 // implementation
 
 
-MLProcExp2::MLProcExp2() : mPrecise(false)
+MLProcExp2::MLProcExp2() :
+    mPrecise(false)
 {
 }
 
@@ -47,7 +48,8 @@ MLProcExp2::~MLProcExp2()
 {
 }
 
-
+// calculate 2^n for each input sample.
+// 
 void MLProcExp2::process(const int frames)
 {
 	static const MLSymbol preciseSym("precise");
@@ -93,15 +95,4 @@ void MLProcExp2::process(const int frames)
 		}
 	}
 }
-
-
-// scalar code for reference
-/*
-for (int n=0; n<frames; ++n)
-{
-	y1[n] = pow(2.f, x1[n]);
-}
-*/
-
-
 
