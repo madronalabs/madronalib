@@ -168,7 +168,11 @@ void MLSignalReporter::viewSignals()
             mViewIndex = 0;
         }
         signalName = mSignalNames[mViewIndex];
-        signalsDrawn += viewOneSignal(signalName);
+        int p = mViewPriorityMap[signalName];
+        if(p == 0)
+        {
+            signalsDrawn += viewOneSignal(signalName);
+        }
     }
 }
 
