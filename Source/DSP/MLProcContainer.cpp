@@ -1496,6 +1496,7 @@ void MLProcContainer::publishSignal(const MLPath & procAddress, const MLSymbol o
 }
 
 // return the number of buffers matching alias in the signal list.
+// these are not always copies of a multiple signal, as when a wildcard is used, for example.
 //
 int MLProcContainer::getPublishedSignalVoices(const MLSymbol alias)
 {
@@ -1565,7 +1566,7 @@ int MLProcContainer::getPublishedSignalBufferSize(const MLSymbol alias)
 	}
 	return result;
 }
-
+    
 // read samples from a published signal list into outSig.  
 // return the number of samples read.
 // 
@@ -1595,8 +1596,6 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 			}
 		}
 		
-//debug() << "readPublishedSignal: " << alias << ": " << nVoices << "\n";
-
 		// read from enabled ring buffers into the destination signal.
         // if more than one voice is found, each voice goes into one row of the signal.
 		// need to iterate here again so we can pass nVoices to readToSignal().
