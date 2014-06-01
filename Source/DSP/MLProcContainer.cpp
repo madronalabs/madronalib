@@ -1574,7 +1574,7 @@ int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	int nVoices = 0;
 	int r;
 	int minSamplesRead = 2<<16;
-	int samples = outSig.getSize();
+	int samples = outSig.getWidth();
 	outSig.clear();
 	outSig.setConstant(false);
 	
