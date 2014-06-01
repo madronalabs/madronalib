@@ -112,10 +112,11 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
 	bool underTrigger = false;
 	MLSample triggerVal = 0.f;
 		
-	samples = min(samples, (int)outSig.getSize());
-
+	samples = min(samples, (int)outSig.getWidth());
 	available = (int)PaUtil_GetRingBufferReadAvailable( &mBuf );
-	if (available <= 0) return 0;
+    
+    // return if we have not accumulated enough signal.
+	if (available < samples) return 0;
 	
 	// depending on trigger mode, trash samples up to the ones we will return.
 	switch(mode)
@@ -147,7 +148,7 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
 			if (available > samples)
 			{
 				// TODO modify pa ringbuffer instead of reading to trash buffer. 
-				lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, trashBuffer, available - samples );
+				lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, trashBuffer, available - samples );  
 				skipped += lastRead;
 			}			
 		break;
@@ -157,17 +158,17 @@ unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
 
 	// DEBUG
 	/*
-	MLSymbol& myName = getName();
-	if (!myName.compare("out_l"))
+	const MLSymbol& myName = getName();
+	if (!myName.compare("body_position_x_out"))
 	{
-		// available = PaUtil_GetRingBufferReadAvailable( &mBuf );
+		available = PaUtil_GetRingBufferReadAvailable( &mBuf );
 		if ((skipped == 0) && (lastRead == 0))
 		{
-	//		debug() << "-";
+			debug() << "-";
 		}
 		else
 		{
-//	debug() << getName() << " requested " << samples << ", skipped " << skipped << ", avail. " << available << "\n";
+	debug() << getName() << " requested " << samples << " read " << lastRead << ", skipped " << skipped << ", avail. " << available << "\n";
 		}
 	}
 	*/
