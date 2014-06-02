@@ -1477,152 +1477,7 @@ MLSymbol MLProcContainer::getOutputName(int index)
 }
 
 // ----------------------------------------------------------------
-#pragma mark published signals
-
-void MLProcContainer::publishSignal(const MLPath & procAddress, const MLSymbol outputName, const MLSymbol alias, 
-	int trigMode, int bufLength)
-{
-	err e = addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength);
-	if (e == OK)
-	{
-		MLProcList signalBuffers;
-		gatherSignalBuffers(procAddress, alias, signalBuffers);		
-		if (signalBuffers.size() > 0)
-		{
-			// TODO list copy is unnecessary here -- turn this around
-			mPublishedSignalMap[alias] = signalBuffers; 
-		}		
-	}	
-}
-
-// return the number of buffers matching alias in the signal list.
-// these are not always copies of a multiple signal, as when a wildcard is used, for example.
-//
-int MLProcContainer::getPublishedSignalVoices(const MLSymbol alias)
-{
-	int nVoices = 0;
-	
-	// look up signal container
-	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
-	if (it != mPublishedSignalMap.end())
-	{
-		const MLProcList& bufList = it->second;
-		// count procs in buffer list
-		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
-		{
-			MLProcPtr proc = (*jt);
-			if (proc)
-			{
-				nVoices++;
-			}
-		}
-	}
-	return nVoices;
-}
-
-// return the number of currently enabled buffers matching alias in the signal list.
-//
-int MLProcContainer::getPublishedSignalVoicesEnabled(const MLSymbol alias)
-{
-	int nVoices = 0;
-	
-	// look up signal container
-	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
-	if (it != mPublishedSignalMap.end())
-	{
-		const MLProcList& bufList = it->second;
-		// count enabled procs in buffer list
-		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
-		{
-			MLProcPtr proc = (*jt);
-			if (proc && proc->isEnabled())
-			{
-				nVoices++;
-			}
-		}
-	}
-    //debug() << "getPublishedSignalVoicesEnabled: " << alias << ": " << nVoices << "\n";
-	return nVoices;
-}
-
-// get the buffer size for a published signal by looking at the length parameter
-// of the first attached ring buffer.   
-// 
-int MLProcContainer::getPublishedSignalBufferSize(const MLSymbol alias)
-{
-	int result = 0;
-	
-	// look up signal container
-	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
-	if (it != mPublishedSignalMap.end()) 
-	{
-		const MLProcList& bufList = it->second;
-		MLProcList::const_iterator jt = bufList.begin();
-		MLProcPtr proc = (*jt);
-		if (proc)
-		{
-			result = proc->getParam("length");
-		}
-	}
-	return result;
-}
-    
-// read samples from a published signal list into outSig.  
-// return the number of samples read.
-// 
-int MLProcContainer::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
-{
-	int nVoices = 0;
-	int r;
-	int minSamplesRead = 2<<16;
-	int samples = outSig.getWidth();
-	outSig.clear();
-	outSig.setConstant(false);
-	
-	// look up signal container
-	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
-	if (it != mPublishedSignalMap.end()) 
-	{
-		const MLProcList& bufList = it->second;
-		
-        // TODO why all this counting
-		// iterate buffer list and count enabled ring buffers.
-		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
-		{
-			MLProcPtr proc = (*jt);
-			if (proc && proc->isEnabled())
-			{
-				nVoices++;
-			}
-		}
-		
-		// read from enabled ring buffers into the destination signal.
-        // if more than one voice is found, each voice goes into one row of the signal.
-		// need to iterate here again so we can pass nVoices to readToSignal().
-		if (nVoices > 0)
-		{
-			int voice = 0;  // check change
-			for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
-			{
-				MLProcPtr proc = (*jt);
-				if (proc && proc->isEnabled())
-				{
-					MLProcRingBuffer& bufferProc = static_cast<MLProcRingBuffer&>(*proc);	
-					r = bufferProc.readToSignal(outSig, samples, voice);
-					minSamplesRead = min(r, minSamplesRead);
-					voice++;			
-				}
-			}
-		}
-	}
-#ifdef ML_DEBUG	
-	else
-	{
-		debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found in container " << getName() << "!\n";
-	}
-#endif	
-	return minSamplesRead;
-}
+#pragma mark recursive part of published signals
 
 MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol outputName, MLSymbol alias, 
 	int trigMode, int bufLength)
@@ -2019,9 +1874,7 @@ void MLProcContainer::scanDoc(juce::XmlDocument* pDoc, int* numParameters)
 	
 }
 
-MLSymbol RequiredAttribute(juce::XmlElement* parent, const char * name);
-
-MLSymbol RequiredAttribute(juce::XmlElement* parent, const char * name)
+MLSymbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char * name)
 {
 	if (parent->hasAttribute(name))
 	{
@@ -2035,8 +1888,7 @@ MLSymbol RequiredAttribute(juce::XmlElement* parent, const char * name)
 	}
 }
 
-MLPath RequiredPathAttribute(juce::XmlElement* parent, const char * name);
-MLPath RequiredPathAttribute(juce::XmlElement* parent, const char * name)
+MLPath MLProcContainer::RequiredPathAttribute(juce::XmlElement* parent, const char * name)
 {
 	if (parent->hasAttribute(name))
 	{
@@ -2132,6 +1984,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				}
 			}
 		}
+        /*
 		else if (child->hasTagName("signal"))
 		{
 			int mode = eMLRingBufferMostRecent;
@@ -2148,7 +2001,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				MLSymbol aliasSym (aliasArg);
 				publishSignal(procPath, outSym, aliasSym, mode, bufLength);
 			}
-		}
+		}*/
 	}
 }
 

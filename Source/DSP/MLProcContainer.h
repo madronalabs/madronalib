@@ -180,7 +180,6 @@ public:
 	typedef std::map<MLSymbol, MLPublishedParamPtr> MLPublishedParamMapT;
 	typedef std::map<MLSymbol, MLPublishedInputPtr> MLPublishedInputMapT;
 	typedef std::map<MLSymbol, MLPublishedOutputPtr> MLPublishedOutputMapT;
-	typedef std::map<MLSymbol, MLProcList> MLPublishedSignalMapT;
 };
 
 // An MLProcContainer stores a connected graph of MLProc objects.
@@ -269,13 +268,6 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark signals
 	//
-	void publishSignal(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias, 
-		int trigMode, int bufLength);
-	int getPublishedSignalVoices(const MLSymbol alias);
-	int getPublishedSignalVoicesEnabled(const MLSymbol alias);
-	int getPublishedSignalBufferSize(const MLSymbol alias);
-	int readPublishedSignal(const MLSymbol alias, MLSignal& outSig);
-	//
 	// methods of MLContainerBase
 	virtual MLProc::err addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
 		const MLSymbol alias, int trigMode, int bufLength);
@@ -308,7 +300,9 @@ public:
 	#pragma mark xml loading / saving
 	//
 	void scanDoc(juce::XmlDocument* pDoc, int* numParameters);
-	void buildGraph(juce::XmlElement* pDoc);	
+    MLSymbol RequiredAttribute(juce::XmlElement* parent, const char * name);
+    MLPath RequiredPathAttribute(juce::XmlElement* parent, const char * name);     
+    void buildGraph(juce::XmlElement* pDoc);
 	virtual void dumpGraph(int indent);			
 	virtual void setProcParams(const MLPath& procName, juce::XmlElement* pelem);	
 
@@ -369,9 +363,6 @@ protected:
 	// by index
 	std::vector<MLPublishedOutputPtr> mPublishedOutputs;
 
-	// map to published signals by name
-	MLPublishedSignalMapT mPublishedSignalMap;
-		
 	// list of processors in order of processing operations. 
 	std::list<MLProcPtr> mOpsList;
 		

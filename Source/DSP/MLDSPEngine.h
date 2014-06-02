@@ -69,6 +69,15 @@ public:
 	void dump(); 
 	
 	// ----------------------------------------------------------------
+	// published signals
+
+	void publishSignal(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias, int trigMode, int bufLength);
+	int getPublishedSignalVoices(const MLSymbol alias);
+	int getPublishedSignalVoicesEnabled(const MLSymbol alias);
+	int getPublishedSignalBufferSize(const MLSymbol alias);
+	int readPublishedSignal(const MLSymbol alias, MLSignal& outSig);
+    
+	// ----------------------------------------------------------------
 	// control input
 
 	void setInputProtocol(int p);
@@ -119,7 +128,11 @@ private:
 	int mOutputChans;
 	
     ClientIOMap mIOMap;
-	
+
+    // map to published signals by name
+	typedef std::map<MLSymbol, MLProcList> MLPublishedSignalMapT;
+	MLPublishedSignalMapT mPublishedSignalMap;
+    
 	// input signals that will be sent to the root proc.
 	std::vector<MLSignalPtr> mInputSignals;
 
