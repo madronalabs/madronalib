@@ -325,8 +325,9 @@ protected:
 	// this is used to return param info to host before graph is built. 
 	int countPublishedParamsInDoc(juce::XmlElement* pElem);	
 	
-private:		
 	MLProcFactory& theProcFactory;
+
+private:
 	
 	// append a Proc to the end of the proc list, to be run in order by process().
 	// Currently the compiler is dumb: procs will be run in the order they are added.
