@@ -70,8 +70,6 @@ protected:
 	
 	WeakReference<MLPluginController>::Master masterReference;
 	friend class WeakReference<MLPluginController>;	
-  
-	//void findFilesOneLevelDeep(File& startDir, String extension, Array<File>& results, MLMenu* pMenu);
 
 private:
 	MLPluginProcessor* mpProcessor; // contains Model
