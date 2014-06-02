@@ -87,7 +87,7 @@ bail:
 
 // for one signal in the map, run all views in the view list matching priority.
 //
-int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
+int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int priority)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return 0;
@@ -109,10 +109,10 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
     int samplesRequested = buffer1.getWidth(); // samples asked for by readPublishedSignal()
     
     // if the buffer was full, compare to see if a redraw is needed. 
-    if(samplesRead == samplesRequested)
+    if(samplesRead == samplesRequested) 
     {
         bool changed = signalsAreDifferent(buffer1, buffer2, samplesRead, voices);
-        if(changed)
+        if(changed || forceView)
         {
             // send signal to each signal view in its viewer list.
             MLSignalViewList viewList = mSignalViewsMap[signalName];
@@ -135,9 +135,9 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, int priority)
     return drawn;
 }
 
-void MLSignalReporter::viewSignals()
+void MLSignalReporter::viewChangedSignals()
 {
-	if(!mpProcessor) return;	
+	if(!mpProcessor) return;
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return;
     
@@ -152,12 +152,12 @@ void MLSignalReporter::viewSignals()
         int p = it->second;
         if(p > 0)
         {
-            viewOneSignal(signalName, p);
+            viewOneSignal(signalName, false, p);
         }
     }
-
+    
     // wrap through all signals to see if they need servicing,
-    // bailing out if maxSignalsToDraw are serviced    
+    // bailing out if maxSignalsToDraw are serviced
     int nSignals = mSignalNames.size();
     int signalsDrawn = 0;
     for(int i = 0; (i<nSignals) && (signalsDrawn < maxSignalsToViewPerFrame); ++i)
@@ -171,8 +171,23 @@ void MLSignalReporter::viewSignals()
         int p = mViewPriorityMap[signalName];
         if(p == 0)
         {
-            signalsDrawn += viewOneSignal(signalName);
+            signalsDrawn += viewOneSignal(signalName, false);
         }
+    }
+}
+
+void MLSignalReporter::viewAllSignals()
+{
+	if(!mpProcessor) return;
+ 	MLDSPEngine* const pEngine = mpProcessor->getEngine();
+	if(!pEngine) return;
+    
+    int nSignals = mSignalNames.size();
+    for(int i = 0; i<nSignals; ++i)
+    {
+        const bool forceView = true;
+        const MLSymbol signalName = mSignalNames[i];
+        viewOneSignal(signalName, forceView);
     }
 }
 

@@ -25,9 +25,12 @@ public:
  	// add a signal view entry to the map and connect it to a new signal viewer.
 	void addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0);
 	
+	// view all of the signals in the map if they have changed.
+	void viewChangedSignals();
+    
 	// view all of the signals in the map.
-	void viewSignals();
-
+	void viewAllSignals();
+    
 protected:
 	typedef std::tr1::shared_ptr<MLSignalView> MLSignalViewPtr;
 	typedef std::list<MLSignalViewPtr> MLSignalViewList;
@@ -43,7 +46,7 @@ protected:
     // map of view lists
 	MLSignalViewListMap mSignalViewsMap;
 
-	int viewOneSignal(MLSymbol signalName, int priority = 0);
+	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
   
     int mViewIndex;
     std::vector<MLSymbol> mSignalNames;
