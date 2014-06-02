@@ -312,8 +312,7 @@ namespace multiContainer
 	MLProcOutput<MLMultiContainer> outputs[] = {"*"};
 }
 
-MLMultiContainer::MLMultiContainer() :
-	theProcFactory(MLProcFactory::theFactory())
+MLMultiContainer::MLMultiContainer() //: theProcFactory(MLProcFactory::theFactory())
 {
 }
 

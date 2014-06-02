@@ -142,48 +142,9 @@ public:
 	void compile();
 
 private:
-	MLProcFactory& theProcFactory;
 	MLProcInfo<MLMultiContainer> mInfo; //  unused except for errors
-//	bool mOKToProcess;
 
-	// TODO 
-	// params inputs and outputs can all be managed by some new
-	// class that indexes ptrs quickly by both names and integers
-	// required: getIndexByName, getObjectByIndex, addObjectByName
-	// 
-	// vector of published params, for speedy access by integer	
-	std::vector<MLPublishedParamPtr> mPublishedParams;	
-	
-	// map to published params by alias name
-	MLPublishedParamMapT mPublishedParamMap;
-			
-	// map to published inputs by name
-	MLPublishedInputMapT mPublishedInputMap;	
-	// by index
-	std::vector<MLPublishedInputPtr> mPublishedInputs;
-	
-	// map to published outputs by name
-	MLPublishedOutputMapT mPublishedOutputMap;	
-	// by index
-	std::vector<MLPublishedOutputPtr> mPublishedOutputs;
-	
-	// map to published signals by name
-	MLPublishedSignalMapT mPublishedSignalMap;
-	
-	// list of processors in order of processing operations. 
-	std::list<MLProcPtr> mOpsList;
-		
-	// map to processors by name.   
-	MLSymbolProcMapT mProcMap;
-	
-	// list of processors in order of creation. 
-	std::list<MLProcPtr> mProcList;
 
-	// List of Pipes created by addPipe().  Pipes are not named. 
-	std::list<MLPipePtr> mPipeList; 
-
-	// parameter groups
-	MLParamGroupMap mParamGroups;
 };
 
 
