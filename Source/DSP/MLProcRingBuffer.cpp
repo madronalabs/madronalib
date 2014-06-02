@@ -29,7 +29,7 @@ MLProcRingBuffer::MLProcRingBuffer()
 	// TODO set from component->engine.
 	//  will want downsampling for viewing when running at 96k or higher...
 	setParam("length", kMLRingBufferDefaultSize);	
-	setParam("mode", eMLRingBufferMostRecent);
+	setParam("mode", eMLRingBufferNoTrash);
 	mTrig1 = -1.f;
 	mTemp = 0;
 }
