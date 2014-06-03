@@ -1099,7 +1099,6 @@ MLProc::err MLProcContainer::addProcAfter(MLSymbol className, MLSymbol alias, ML
 			}
 			mProcMap[alias] = pNew;
 			mProcList.insert(jt, pNew);
-
 				
 			// add inputs and outputs to proc if needed. 
 			pNew->createInput(pNew->getNumRequiredInputs());
@@ -1477,7 +1476,7 @@ MLSymbol MLProcContainer::getOutputName(int index)
 }
 
 // ----------------------------------------------------------------
-#pragma mark recursive part of published signals
+#pragma mark published signals - the recursive part
 
 MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol outputName, MLSymbol alias, 
 	int trigMode, int bufLength)
