@@ -308,7 +308,8 @@ public:
     //==============================================================================
  
     Font getLabelFont (Label&);
-	Font getTextButtonFont (TextButton& button);
+    Font getTextButtonFont (TextButton&, int buttonHeight);
+    
 
     //==============================================================================
     juce::Button* createFilenameComponentBrowseButton (const String& text);
@@ -389,26 +390,15 @@ public:
     /* AlertWindow handling..
     */
 	
-
-    AlertWindow* createAlertWindow (const String& title,
-                                            const String& message,
-                                            const String& button1,
-                                            const String& button2,
-                                            const String& button3,
-                                            AlertWindow::AlertIconType iconType,
-                                            int numButtons,
-                                            Component* associatedComponent);
-
-	/* //  Rectangle problem - clean up!
-    void drawAlertBox (Graphics& g,
-                               AlertWindow& alert,
-                               const Rectangle<int>& textArea,
-                               TextLayout& textLayout);
-	*/
-	
+    AlertWindow* createAlertWindow (const String& title, const String& message,
+                                                   const String& button1, const String& button2, const String& button3,
+                                                   AlertWindow::AlertIconType iconType,
+                                                   int numButtons, Component* associatedComponent);
+    void drawAlertBox (Graphics& g, AlertWindow& alert,const Rectangle<int>& textArea, TextLayout& textLayout);
     int getAlertBoxWindowFlags();
-
     int getAlertWindowButtonHeight();
+    Font getAlertWindowMessageFont();
+    Font getAlertWindowFont();
 
     //==============================================================================
     /** Utility function to draw a shiny, glassy circle (for round LED-type buttons). */

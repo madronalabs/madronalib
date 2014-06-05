@@ -1341,9 +1341,9 @@ Font MLLookAndFeel::getLabelFont (Label& label)
     return label.getFont();
 }
 
-Font MLLookAndFeel::getTextButtonFont (TextButton& button)
+Font MLLookAndFeel::getTextButtonFont (TextButton& button, int buttonHeight)
 {
-    return button.getFont();
+    return getFont(eMLPlain);
 }
 
 //==============================================================================
@@ -2207,115 +2207,80 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 #pragma mark alerts
 //
 
-AlertWindow* MLLookAndFeel::createAlertWindow (const String& title,
-                                             const String& message,
-                                             const String& button1,
-                                             const String& button2,
-                                             const String& button3,
-                                             AlertWindow::AlertIconType iconType,
-                                             int numButtons,
-                                             Component* associatedComponent)
+//==============================================================================
+AlertWindow* MLLookAndFeel::createAlertWindow (const String& title, const String& message,
+                                                const String& button1, const String& button2, const String& button3,
+                                                AlertWindow::AlertIconType iconType,
+                                                int numButtons, Component* associatedComponent)
 {
-    debug() << "MAKING alert window\n";
     AlertWindow* aw = new AlertWindow (title, message, iconType, associatedComponent);
-
+    MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+    aw->setLookAndFeel(myLookAndFeel);
+    setDefaultLookAndFeel(myLookAndFeel);
+    
     if (numButtons == 1)
     {
         aw->addButton (button1, 0,
-                       KeyPress (KeyPress::escapeKey, 0, 0),
-                       KeyPress (KeyPress::returnKey, 0, 0));
+                       KeyPress (KeyPress::escapeKey),
+                       KeyPress (KeyPress::returnKey));
     }
     else
     {
-        const KeyPress button1ShortCut (CharacterFunctions::toLowerCase (button1[0]), 0, 0);
-        KeyPress button2ShortCut (CharacterFunctions::toLowerCase (button2[0]), 0, 0);
+        const KeyPress button1ShortCut ((int) CharacterFunctions::toLowerCase (button1[0]), 0, 0);
+        KeyPress button2ShortCut ((int) CharacterFunctions::toLowerCase (button2[0]), 0, 0);
         if (button1ShortCut == button2ShortCut)
             button2ShortCut = KeyPress();
-
+        
         if (numButtons == 2)
         {
-            aw->addButton (button1, 1, KeyPress (KeyPress::returnKey, 0, 0), button1ShortCut);
-            aw->addButton (button2, 0, KeyPress (KeyPress::escapeKey, 0, 0), button2ShortCut);
+            aw->addButton (button1, 1, KeyPress (KeyPress::returnKey), button1ShortCut);
+            aw->addButton (button2, 0, KeyPress (KeyPress::escapeKey), button2ShortCut);
         }
         else if (numButtons == 3)
         {
             aw->addButton (button1, 1, button1ShortCut);
             aw->addButton (button2, 2, button2ShortCut);
-            aw->addButton (button3, 0, KeyPress (KeyPress::escapeKey, 0, 0));
+            aw->addButton (button3, 0, KeyPress (KeyPress::escapeKey));
         }
     }
-	
-	if (associatedComponent)
-	{
-		int h1 = associatedComponent->getHeight();
-		int h2 = aw->getHeight();
-		Point<int> pos = aw->getPosition();
-		aw->setTopLeftPosition(pos.getX(), pos.getY() + (h1 + h2)/2);															
-	}
-	
-//	aw->setHeight(aw->getHeight() - 50);
-	
-	ComponentPeer* p = aw->getPeer();
-	p->setAlwaysOnTop(true);
-
+    
     return aw;
 }
 
-/*
-void MLLookAndFeel::drawAlertBox (Graphics& g,
-                                AlertWindow& alert,
-                                const Rectangle<int>& textArea,
-                                TextLayout& )
+void MLLookAndFeel::drawAlertBox (Graphics& g, AlertWindow& alert,
+                                   const Rectangle<int>& textArea, TextLayout& textLayout)
 {
-    const int iconWidth = 80;
-
-    const Colour background (alert.findColour (MLLookAndFeel::backgroundColor));
-    const Colour background2 (alert.findColour (MLLookAndFeel::backgroundColor2));
-	int height = alert.getHeight();
-	int width = alert.getWidth();
-	ColourGradient cg (background, 0, 0, background2, 0, height, false);
-	g.setGradientFill(cg);
-	g.fillRect (0, 0, width, height);
-
-    Justification alignment (Justification::horizontallyCentred);
-
-    int iconSize = jmin (iconWidth + 50, alert.getHeight() + 20);
-
-    if (alert.containsAnyExtraComponents() || alert.getNumButtons() > 2)
-        iconSize = jmin (iconSize, textArea.getHeight() + 50);
-
-    const MLRect iconRect (iconSize / -10,
-                              iconSize / -10,
-                              iconSize,
-                              iconSize);
-
-	g.setColour (alert.findColour (AlertWindow::textColourId));
-
-	
-    textLayout.drawWithin (g,
-                           textArea.x() + iconSpaceUsed,
-                           textArea.y(),
-                           textArea.getWidth() - iconSpaceUsed,
-                           textArea.getHeight(),
-                           alignment.getFlags() | Justification::top);
-	
-	
+    g.fillAll (alert.findColour (AlertWindow::backgroundColourId));
+    
+    g.setColour (alert.findColour (AlertWindow::textColourId));
+    
+    textLayout.draw (g, Rectangle<int> (textArea.getX(),
+                                        textArea.getY(),
+                                        textArea.getWidth(),
+                                        textArea.getHeight()).toFloat());
+    
     g.setColour (alert.findColour (AlertWindow::outlineColourId));
     g.drawRect (0, 0, alert.getWidth(), alert.getHeight());
 }
 
-*/
-
 int MLLookAndFeel::getAlertBoxWindowFlags()
 {
-    return ComponentPeer::windowAppearsOnTaskbar
-            | ComponentPeer::windowHasDropShadow 
-			| ComponentPeer::windowIsTemporary;
+    return ComponentPeer::windowAppearsOnTaskbar | ComponentPeer::windowHasDropShadow;
 }
 
 int MLLookAndFeel::getAlertWindowButtonHeight()
 {
     return 20;
+}
+
+Font MLLookAndFeel::getAlertWindowMessageFont()
+{
+    return getFont(eMLPlain);
+}
+
+Font MLLookAndFeel::getAlertWindowFont()
+{
+    return getFont(eMLNotice);
 }
 
 // --------------------------------------------------------------------------------

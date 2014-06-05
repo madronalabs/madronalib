@@ -200,11 +200,11 @@ public:
 	void loadDefaultScale();
 	virtual void broadcastScale(const MLScale* pScale) = 0;
 	
-	MLDSPEngine* getEngine() { return &mEngine; }
-	
 	// --------------------------------------------------------------------------------
-	// debug
-	
+	// engine stuff
+
+    MLProcPtr getProcFromEngine();
+	MLDSPEngine* getEngine() { return &mEngine; }
 	inline void showEngine() { mEngine.dump(); }
 	
 protected:
