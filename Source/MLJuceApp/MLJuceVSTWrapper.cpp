@@ -181,45 +181,7 @@ namespace
         return w;
     }
     
-    //==============================================================================
-    static HHOOK mouseWheelHook = 0;
-    static int mouseHookUsers = 0;
-    
-    LRESULT CALLBACK mouseWheelHookCallback (int nCode, WPARAM wParam, LPARAM lParam)
-    {
-        if (nCode >= 0 && wParam == WM_MOUSEWHEEL)
-        {
-            const MOUSEHOOKSTRUCTEX& hs = *(MOUSEHOOKSTRUCTEX*) lParam;
-            
-            if (Component* const comp = Desktop::getInstance().findComponentAt (Point<int> (hs.pt.x, hs.pt.y)))
-                if (comp->getWindowHandle() != 0)
-                    return PostMessage ((HWND) comp->getWindowHandle(), WM_MOUSEWHEEL,
-                                        hs.mouseData & 0xffff0000, (hs.pt.x & 0xffff) | (hs.pt.y << 16));
-        }
-        
-        return CallNextHookEx (mouseWheelHook, nCode, wParam, lParam);
-    }
-    
-    void registerMouseWheelHook()
-    {
-        if (mouseHookUsers++ == 0)
-            mouseWheelHook = SetWindowsHookEx (WH_MOUSE, mouseWheelHookCallback,
-                                               (HINSTANCE) Process::getCurrentModuleInstanceHandle(),
-                                               GetCurrentThreadId());
-    }
-    
-    void unregisterMouseWheelHook()
-    {
-        if (--mouseHookUsers == 0 && mouseWheelHook != 0)
-        {
-            UnhookWindowsHookEx (mouseWheelHook);
-            mouseWheelHook = 0;
-        }
-    }
-    
-#if JUCE_WINDOWS
     static bool messageThreadIsDefinitelyCorrect = false;
-#endif
 }
 
 //==============================================================================
