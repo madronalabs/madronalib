@@ -289,7 +289,7 @@ public:
     // --------------------------------------------------------------------------------
     #pragma mark TreeView
 
-    void drawTreeviewPlusMinusBox (Graphics&, const Rectangle<float>& area,
+    void drawTreeviewPlusMinusBox (Graphics&, const juce::Rectangle<float>& area,
                                    Colour backgroundColour, bool isItemOpen, bool isMouseOver);    
     bool areLinesDrawnForTreeView (TreeView&);
     int getTreeViewIndentSize (TreeView&);
@@ -394,7 +394,7 @@ public:
                                                    const String& button1, const String& button2, const String& button3,
                                                    AlertWindow::AlertIconType iconType,
                                                    int numButtons, Component* associatedComponent);
-    void drawAlertBox (Graphics& g, AlertWindow& alert,const Rectangle<int>& textArea, TextLayout& textLayout);
+    void drawAlertBox (Graphics& g, AlertWindow& alert,const juce::Rectangle<int>& textArea, TextLayout& textLayout);
     int getAlertBoxWindowFlags();
     int getAlertWindowButtonHeight();
     Font getAlertWindowMessageFont();
@@ -448,7 +448,7 @@ public:
 	void setGradientMode(int m) { mGradientMode = m;}	
 	void setGradientSize(float f) { mGradientSize = f;}	
 	void setBackgroundGradient(Graphics& g, Point<int>& gStart, Point<int>& gEnd);
-    void drawBackgroundAtOrigin(Graphics& g, Rectangle<int>r);
+    void drawBackgroundAtOrigin(Graphics& g, juce::Rectangle<int>r);
 	void drawBackground(Graphics& g, Component* pC);
 	void drawBackgroundRect(Graphics& g, Component* pC, MLRect r);
 	void drawUnitGrid(Graphics& g);
