@@ -548,7 +548,6 @@ MLProcPtr MLProcFactory::create(const MLSymbol className, MLDSPContext* context)
 void MLProcFactory::printRegistry(void)
 {
 	std::string procName;
-	MLProcCreateFnT procFn;
 	int size = (int)procRegistry.size();
 	
 	debug() << "---------------------------------------\n";
@@ -557,7 +556,6 @@ void MLProcFactory::printRegistry(void)
 	for (FnRegistryT::iterator i = procRegistry.begin(); i != procRegistry.end(); i++)
 	{
 		procName = (*i).first.getString();
-		procFn = (*i).second;
 		debug() << procName << "\n";		
 	}
 }

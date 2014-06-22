@@ -16,7 +16,6 @@ const MLSample kMLSignalEndSamples[4] =
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
-
 // no length argument: construct a 1-D Signal of default size and zero it.
 MLSignal::MLSignal() : 
 	mData(0),
@@ -776,10 +775,10 @@ void MLSignal::convolve5(const MLSample kmm, const MLSample km, const MLSample k
 // an operator for 2D signals only
 void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk)
 {
-	register int i, j;
-	register float f;
-	register float * pr1, * pr2, * pr3; // input row ptrs
-	register float * prOut; 	
+	int i, j;
+    float f;
+    float * pr1, * pr2, * pr3; // input row ptrs
+    float * prOut; 	
 	
 	MLSample* pIn = getCopy();
 	MLSample* pOut = mDataAligned;
@@ -887,10 +886,10 @@ void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample
 // convolve signal with coefficients, duplicating samples at border. 
 void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk)
 {
-	register int i, j;
-	register float f;
-	register float * pr1, * pr2, * pr3; // input row ptrs
-	register float * prOut; 	
+	int i, j;
+	float f;
+	float * pr1, * pr2, * pr3; // input row ptrs
+	float * prOut; 	
 	
 	MLSample* pIn = getCopy();
 	MLSample* pOut = mDataAligned;
@@ -1499,9 +1498,9 @@ float rmsDifference2D(const MLSignal& a, const MLSignal& b)
 //
 void MLSignal::partialDiffX()
 {
-	register int i, j;
-	register float * pr; // input row ptr
-	register float * prOut; 	
+	int i, j;
+	float * pr; // input row ptr
+	float * prOut; 	
 	
 	MLSample* pIn = getCopy();
 	MLSample* pOut = mDataAligned;
@@ -1535,9 +1534,9 @@ void MLSignal::partialDiffX()
 //
 void MLSignal::partialDiffY()
 {
-	register int i, j;
-	register float * pr1, * pr2, * pr3; // input row ptrs
-	register float * prOut; 	
+	int i, j;
+	float * pr1, * pr2, * pr3; // input row ptrs
+	float * prOut; 	
 	
 	MLSample* pIn = getCopy();
 	MLSample* pOut = mDataAligned;

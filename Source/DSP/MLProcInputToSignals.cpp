@@ -600,10 +600,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 		if (avail) do
 		{
 			framesRead = PaUtil_ReadRingBuffer(mpFrameBuf, mLatestFrame.getBuffer(), 1);
-			if (!framesRead == 1)
-			{
-	//			printf(stderr, "error: read from ring buffer returned %d\n", read);
-			}
 			avail = PaUtil_GetRingBufferReadAvailable(mpFrameBuf);
 		}
 		while (avail > 0);	
@@ -630,8 +626,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 			y = mLatestFrame(1, v);
 			z = mLatestFrame(2, v);
 			note = mLatestFrame(3, v);
-			dx = 0.;
-			dy = 0.;
+
 			if (z > 0.f)
 			{
 				if (mVoices[v].mZ1 <= 0.)

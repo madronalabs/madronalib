@@ -303,7 +303,7 @@ const char *positiveIntToDigits(int i)
 
 const char* naturalNumberToDigits(int value, char* pDest) 
 {
-	register const int base = 10;
+	const int base = 10;
 	char* ptr = pDest, *ptr1 = pDest, tmp_char;
 	int tmp_value;
 	

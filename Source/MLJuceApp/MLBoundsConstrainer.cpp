@@ -41,7 +41,6 @@ void MLBoundsConstrainer::checkBounds (Rectangle<int>& bounds,
 	// fix ratio
 	const int rLimitH = 800;
 	const int rLimitW = (double)rLimitH * r;			
-	bool quantize = true;				
 	if(r > 0.0)
 	{
 		if(!mZoomable)
@@ -75,10 +74,6 @@ void MLBoundsConstrainer::checkBounds (Rectangle<int>& bounds,
 		else if(h < rLimitH)
 		{		
 			h = rLimitH;
-		}
-		else
-		{
-			quantize = false;
 		}
 	}
 			

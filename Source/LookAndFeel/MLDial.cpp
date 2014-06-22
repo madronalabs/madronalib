@@ -13,14 +13,9 @@
 #include "MLDial.h"
 #include "MLLookAndFeel.h"
 
-static const int kMinPixelMovement = 4;
 const int kDragStepSize = 16;
 const int kMouseWheelStepSize = 16;
 static const int kMinimumDialSizeForJump = 26;
-static const int kLabelHeight = 16;
-static const int kSmallLabelHeight = 11;
-static const float kSpeedThresh = 4.;
-static const float kSpeedMax = 32.;
 static const float kRotaryStartDefault = kMLPi*-0.75f;
 static const float kRotaryEndDefault = kMLPi*0.5f;
 

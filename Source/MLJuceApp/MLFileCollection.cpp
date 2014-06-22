@@ -144,8 +144,6 @@ int MLFileCollection::beginProcessFiles()
 // iterate one step in making the collection. 
 void MLFileCollection::iterateProcessFiles(int i)
 {
-    int r = 0;
-    
     File f = mFiles[i];
     String shortName = f.getFileName();
     String relativePath;

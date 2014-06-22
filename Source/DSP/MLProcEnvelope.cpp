@@ -38,7 +38,6 @@ private:
 };
 	
 static const float kMinSegTime = 0.0002f;
-static const float kMaxSegTime = 20.000f;
 
 // ----------------------------------------------------------------
 // registry section
@@ -104,9 +103,9 @@ void MLProcEnvelope::process(const int samples)
 
 	for (int n=0; n<samples; ++n)
 	{
-		register float bias = 0.05f;
-		register float dxdt, gIn, velIn;
-		register bool upTrig, downTrig, crossedThresh, delayCounterDone, doRepeat;
+        float bias = 0.05f;
+        float dxdt, gIn, velIn;
+        bool upTrig, downTrig, crossedThresh, delayCounterDone, doRepeat;
         
         // TEMP
         float attackIn = attack[n] - 0.0001f;

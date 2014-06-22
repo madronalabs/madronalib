@@ -49,37 +49,14 @@ MLProcPow::~MLProcPow()
 
 void MLProcPow::process(const int frames)
 {
-	const MLSignal& x1 = getInput(1);
-	const MLSignal& x2 = getInput(2);
-	MLSignal& y1 = getOutput();
+	const MLSignal& base = getInput(1);
+	const MLSignal& exp = getInput(2);
+	MLSignal& out = getOutput();
 	
-	/*
 	for (int n=0; n<frames; ++n)
 	{
-		out[n] = pow(b[n], e[n]);
+		out[n] = powf(base[n], exp[n]);
 	}
-	*/
-	
-	const MLSample* px1 = x1.getConstBuffer();
-	const MLSample* px2 = x2.getConstBuffer();
-	MLSample* py1 = y1.getBuffer();
-		
-	int c = frames >> kMLSamplesPerSSEVectorBits;
-	__m128 vx1, vx2, vr; 	
-	
-	for (int n = 0; n < c; ++n)
-	{
-		vx1 = _mm_load_ps(px1);
-		vx2 = _mm_load_ps(px2);
-		
-		vr = exp2Approx4(vx2); // temp calc 2^n
-		
-		_mm_store_ps(py1, vr);
-		px1 += kSSEVecSize;
-		px2 += kSSEVecSize;
-		py1 += kSSEVecSize;
-	}
-
 }
 
 

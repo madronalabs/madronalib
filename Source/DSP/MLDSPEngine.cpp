@@ -42,7 +42,6 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 {
 	MLProc::err r = unknownErr;
 	bool graphOK = false;
-	bool patcherOK = false;
 	mpInputToSignalsProc = 0;
 	mpHostPhasorProc = 0;
 	clear();
@@ -72,7 +71,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 			if (pms)
 			{
 				mpInputToSignalsProc = static_cast<MLProcInputToSignals*>(&(*pms));
-				debug() << "MIDI / OSC input OK.\n";
+				// debug() << "MIDI / OSC input OK.\n";
 			}
 		}
 	}	

@@ -44,7 +44,7 @@ void * MLOSCListenerStartThread(void *arg)
 		MLError() << "MLOSCListener caught runtime_error exception: " << e.what() << "\n";
 	}
 	
-	debug() << "MLOSCListener: listener thread on port " << port << " terminated.\n"; 
+	// debug() << "MLOSCListener: listener thread on port " << port << " terminated.\n";
 
 	pL->mSocketActive = false;
 	return 0;
@@ -82,17 +82,17 @@ void MLOSCListener::listenToOSC(int port)
 		
 		if(mpSocket)
 		{
-			debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
+			// debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
 			mSocketActive = true;
 			mPort = port;
 			
 			int err;
 			pthread_attr_t attr;
 			
-			debug() << "initializing pthread attributes...\n";
+			// debug() << "initializing pthread attributes...\n";
 			err = pthread_attr_init(&attr);
 
-			debug() << "creating listener thread...\n";
+			// debug() << "creating listener thread...\n";
 			err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);			
 		}
 	}

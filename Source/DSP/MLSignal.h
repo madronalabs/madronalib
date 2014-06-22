@@ -148,7 +148,6 @@ public:
         mDataAligned[pi&mConstantMask] += (1.0f - m)*v;
         mDataAligned[(pi + 1)&mConstantMask] += (m)*v;
     }
-
 	
     /*
      // MLSample value

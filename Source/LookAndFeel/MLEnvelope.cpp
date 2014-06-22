@@ -65,7 +65,7 @@ void MLEnvelope::paint (Graphics& g)
 	int h = getHeight()-1;
 	
 	float totalTime;
-	float startX, leadX, delX, attX, decX, susX, relX, repX, endX;
+	float startX, delX, attX, decX, susX, relX, repX, endX;
 	float attTime, decTime, relTime, susTime;
 	float leadIn = 0.01;
 	float leadOut = 0.01;
@@ -103,7 +103,7 @@ void MLEnvelope::paint (Graphics& g)
 	wRange.convertTo(MLRange(margin, w - margin*2));
 	float t = 0.;
 	startX = wRange(0.);
-	leadX = wRange(t += leadIn);
+
 	delX = wRange(t += mDelay);
 	attX = wRange(t += attTime);
 	decX = wRange(t += decTime);

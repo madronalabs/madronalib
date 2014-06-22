@@ -1445,11 +1445,6 @@ void MLLookAndFeel::drawDocumentWindowTitleBar (DocumentWindow& window,
 
     int winMargin = 16;
     int winW = window.getWidth();
-    int textW = f.getStringWidth (window.getName());
-    int textX = (winW - textW) / 2;
-
-    if (textX + textW > titleSpaceX + titleSpaceW)
-        textX = titleSpaceX + titleSpaceW - textW;
 
     float selectAlpha = isActive ? 1.0f : 0.3f;
     g.setColour (findColour (DocumentWindow::textColourId).withAlpha(selectAlpha));

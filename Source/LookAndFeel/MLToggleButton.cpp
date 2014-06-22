@@ -25,7 +25,7 @@ void MLToggleButton::setAttribute(MLSymbol attr, float val)
 	if (attr == valueSym)
 	{
 		// update state without notify
-        setToggleState(newState, false);
+        juce::Button::setToggleState(newState, false);
 	}
 }
 

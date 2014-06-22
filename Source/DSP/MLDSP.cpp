@@ -32,7 +32,7 @@ int bitsToContain(int n)
 
 unsigned ilog2(unsigned x) 
 {
-    register unsigned b=0;
+    unsigned b=0;
     if(x >= 1<<16) { x >>= 16; b |= 16; }
     if(x >= 1<<8) { x >>= 8; b |= 8; }
     if(x >= 1<<4) { x >>= 4; b |= 4; }

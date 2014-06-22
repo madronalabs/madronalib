@@ -78,7 +78,7 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 
 
 // defined in juce_Audioprocessor.cpp
-static const unsigned long magicXmlNumber = 0x21324356;
+//static const unsigned long magicXmlNumber = 0x21324356;
 
 /*
 void writeXMLToPropertyFile(XmlElement* xml, File& f) 
