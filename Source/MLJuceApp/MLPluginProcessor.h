@@ -129,7 +129,7 @@ public:
 	// --------------------------------------------------------------------------------
 	// state
 	virtual void getStateAsXML (XmlElement& xml);
-	virtual void setStateFromXML(const XmlElement& xmlState);
+	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
 	int saveStateAsVersion();
     
 	int saveStateOverPrevious();

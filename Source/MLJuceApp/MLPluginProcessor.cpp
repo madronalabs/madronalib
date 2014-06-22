@@ -174,11 +174,11 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		{
 			bool makeSignalInputs = inChans > 0;
 			r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI()); 
-			debug() << getNumParameters() << " parameters in description.\n";
+			// debug() << getNumParameters() << " parameters in description.\n";
 		}
 		else
 		{
-			debug() << "MLPluginProcessor graph OK.\n";
+			// debug() << "MLPluginProcessor graph OK.\n";
 		}
 
 #ifdef DEBUG
@@ -864,7 +864,8 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 {
 	if(mpLatestStateLoaded)
 	{
-		setStateFromXML(*mpLatestStateLoaded);
+        bool setViewAttributes = false;
+		setStateFromXML(*mpLatestStateLoaded, setViewAttributes);
 	}
 	else
 	{
@@ -872,7 +873,7 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 	}
 }
 
-void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
+void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
 {
 	if (!(xmlState.hasTagName (JucePlugin_Name))) return;
 	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // ? revisit need to compile first
@@ -1030,6 +1031,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState)
 	}
 	
 	// get editor state from XML
+    if(setViewAttributes)
 	{
 		int x = xmlState.getIntAttribute("editor_x");
 		int y = xmlState.getIntAttribute("editor_y");
@@ -1056,7 +1058,8 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 	XmlElementPtr xmlState (doc.getDocumentElement());
 	if (xmlState)
 	{
-		setStateFromXML(*xmlState);
+        bool setViewAttributes = false;
+		setStateFromXML(*xmlState, setViewAttributes);
 		mpLatestStateLoaded = xmlState;
 	}
 }
@@ -1170,7 +1173,7 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 			if (stateToLoad != NULL)
 			{
 				XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
-				setStateFromXML(*pDocElem);
+				setStateFromXML(*pDocElem, false);
 				mpLatestStateLoaded = pDocElem;
 			}
 		}        
@@ -1183,13 +1186,16 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 	}	
 }
 
+// set state, including the view status, from a binary blob stored in host.
+//
 void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
 {
 	// debug() << "setStateFromBlob: " << sizeInBytes << "bytes of XML data.\n";
 	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
 	if (xmlState)
 	{
-		setStateFromXML(*xmlState);
+        bool setViewAttributes = true;
+		setStateFromXML(*xmlState, setViewAttributes);
 		mpLatestStateLoaded = xmlState;
 	}
 }
