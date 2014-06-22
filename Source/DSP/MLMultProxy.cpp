@@ -399,8 +399,15 @@ void MLMultiContainer::process(const int n)
             // TODO rewrite to handle multiple outputs better.
             // right now if the last copy is enabled, it shares a buffer with the
             // parent and this add doubles the last value. the hack in place adds one more copy to prevent this. 
-            
-			y.add(getCopyAsContainer(j)->getOutput(i));
+            MLProcContainer* pCopy = getCopyAsContainer(j);
+            if(pCopy)
+            {
+                y.add(pCopy->getOutput(i));
+            }
+            else
+            {
+                MLError() << "MLMultiContainer: null copy in process()!\n";
+            }
  		}
     }
 }
@@ -551,27 +558,34 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 	{
 		// add the specified proc to all subcontainers. 
 		MLProcContainer* pCopy = getCopyAsContainer(i);
-		e = pCopy->addProc(className, procName);		
-		if (e == MLProc::OK)
-		{
-			MLPath procPath(procName);
-			pCopy->setProcParams(procPath, parent);
-            pCopy->setCopyIndex(i + 1);
-			MLProcPtr p = pCopy->getProc(procPath);	
-			if(p)
-			{	
-				p->setup();
-				if (p->isContainer())
-				{	
-					MLProcContainer* pc = static_cast<MLProcContainer*>(&(*p));
-					pc->buildGraph(parent);
-				}
-			}		
-			else
-			{
-				debug() << "MLMultiContainer::buildProc: getProc failed for new proc!\n";
-			}
-		}
+        if(pCopy != nullptr)
+        {
+            e = pCopy->addProc(className, procName);
+            if (e == MLProc::OK)
+            {
+                MLPath procPath(procName);
+                pCopy->setProcParams(procPath, parent);
+                pCopy->setCopyIndex(i + 1);
+                MLProcPtr p = pCopy->getProc(procPath);	
+                if(p)
+                {	
+                    p->setup();
+                    if (p->isContainer())
+                    {	
+                        MLProcContainer* pc = static_cast<MLProcContainer*>(&(*p));
+                        pc->buildGraph(parent);
+                    }
+                }		
+                else
+                {
+                    debug() << "MLMultiContainer::buildProc: getProc failed for new proc!\n";
+                }
+            }
+        }
+        else
+        {
+            debug() << "MLMultiContainer: null copy in buildProc ()!\n";
+        }
 	}
 	return e;
 }
