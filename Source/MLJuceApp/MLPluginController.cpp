@@ -698,191 +698,92 @@ void MLPluginEditor::doSettingsMenu()
 
 
 #if ML_MAC
-// 
-void MLPluginController::getPresetsToConvert(Array<File>* pResults)
+
+
+// --------------------------------------------------------------------------------
+#pragma mark MLFileCollection::Listener
+
+// nothing in particular to do here, but there might be in the future.
+void MLPluginController::processFile (const MLSymbol collection, const File& f, int idx)
 {
-	Array<File> fromFiles;
-
-	String pluginType;
-	String fromFileType, toFileType;
-	switch(mpProcessor->wrapperType)
-	{
-		case AudioProcessor::wrapperType_RTAS:
-			pluginType = "RTAS";
-			fromFileType = ".aupreset";
-			toFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_VST:
-			pluginType = "VST";
-			fromFileType = ".aupreset";
-			toFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_AudioUnit:
-			pluginType = "AU";
-			fromFileType = ".mlpreset";
-			toFileType = ".aupreset";
-		break;
-		default:
-			pluginType = "undefined!";
-			fromFileType = ".undefined";
-			toFileType = ".undefined";
-		break;
-	}
-	// debug() << "getPresetsToConvert: my plugin type is " << pluginType << "\n";
-	
-    // get lists of files but don't add to menus
-    File presetsFolder = getDefaultFileLocation(kPresetFiles);
-    if (presetsFolder != File::nonexistent)
-	{
-        // TODO replace
-    //    findFilesOneLevelDeep(presetsFolder, fromFileType, fromFiles, 0);
-    }
-     
-	debug() << "convertPresets: got " << fromFiles.size() << " preset files of other type.\n";
-
-	// for each fromType file, look to see if it has a toType counterpart. 
-	// if not, add it to list.
-	for(int i=0; i<fromFiles.size(); i++)
-	{
-		debug() << fromFiles[i].getFileNameWithoutExtension() << " : ";
-		
-		if (!(fromFiles[i].withFileExtension(toFileType).exists()))
-		{
-		debug() << " NOT in our format\n";		
-			pResults->add(fromFiles[i]);
-		}
-		else
-		{
-		debug() << " IS in our format\n";
-		}
-	}
-
-	debug() << "got " << pResults->size() << " preset files to convert.\n";
-} 
-
-
-// Convert all the preset files in the array parameter to the format of the current
-// plugin version.  Just loads each preset into the filter and saves it out again. 
-//
-class PresetConverterThread  : public ThreadWithProgressWindow
-{
-public:
-    PresetConverterThread(Array<File> &pFilesToConvert, MLPluginProcessor* filter, AudioProcessor::WrapperType format)
-        : ThreadWithProgressWindow (String::empty, true, true),
-		mpFiles(pFilesToConvert),
-		mpFilter(filter),
-		mFormat(format)
+    if(collection == "old_user_presets")
     {
-        setStatusMessage ("Getting ready...");
-		switch(mFormat)
-		{
-			case AudioProcessor::wrapperType_VST:
-				mExtension = ".mlpreset";
-			break;
-			case AudioProcessor::wrapperType_AudioUnit:
-				mExtension = ".aupreset";
-			break;
-			default:
-				mExtension = ".undefined";
-			break;
-		}			
-    }
 
-    ~PresetConverterThread()
-    {
+        debug() << "convertPresets: processing: " << f.getFullPathName() << "\n";
     }
-
-    void run()
+    else
     {
-        setProgress (-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar..
-        setStatusMessage ("Preparing to convert...");
-        wait (1000);
-		
-		const int numFiles = mpFiles.size();
- 
-		setStatusMessage ("Converting presets...");
-		for (int i = 0; i < numFiles; ++i)
-        {
-            // must check this often, because this is
-            // how we know if the user has pressed 'cancel'
-            if (threadShouldExit())
-                return;
-				
-			// do the conversion.
-			File fromFile, toFile;
-			fromFile = mpFiles[i];		
-			toFile = fromFile.withFileExtension(mExtension);					
-			if (!toFile.exists())
-			{				
-				if (mExtension == ".mlpreset")
-				{
-					ScopedPointer<XmlElement> xml(loadPropertyFileToXML(fromFile));
-                    if(xml)
-                    {
-                        xml->writeToFile(toFile, String::empty);
-                        wait(10);
-                    }
-				}
-				else if (mExtension == ".aupreset")
-				{
-					mpFilter->loadStateFromFile(fromFile);
-					wait(100);
-                    mpFilter->saveStateToFullPath(std::string(toFile.getFullPathName().toUTF8()));
-					wait(100);
-				}
-			}
-					
-            setProgress (i / (double) numFiles);
-        }
+        debug() << "got file from " << collection << "\n";
     }
-	
-	void timerCallback(){}
-	
-	private:
-		Array<File> &mpFiles;
-		MLPluginProcessor* mpFilter;
-		String mExtension;
-        AudioProcessor::WrapperType mFormat;
-};
+}
 
 void MLPluginController::convertPresets()
 {
-debug() << "converting presets...\n";
+    // only convert .aupreset (AU) to .mlpreset (VST) now. After 1.6 there will be no need to convert presets.
 
-	Array<File> filesToConvert;
-	getPresetsToConvert(&filesToConvert);
-	int numFiles = filesToConvert.size();
-	String fromFileType, toFileType, fromPluginType, toPluginType;
-	switch(mpProcessor->wrapperType)
-	{
-		case AudioProcessor::wrapperType_VST:
-			fromPluginType = "AU";
-			toPluginType = "VST";
-			fromFileType = ".aupreset";
-			toFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_AudioUnit:
-			fromPluginType = "VST";
-			toPluginType = "AU";
-			fromFileType = ".mlpreset";
-			toFileType = ".aupreset";
-		break;
-		default:
-			fromPluginType = "undefined!";
-			toPluginType = "undefined!";
-			fromFileType = ".undefined";
-			toFileType = ".undefined";
-		break;
-	}			
+    File presetsFolder = getDefaultFileLocation(kOldPresetFiles);
+    if (presetsFolder != File::nonexistent)
+    {
+        mPresetsToConvert = MLFileCollectionPtr(new MLFileCollection("old_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
+        mPresetsToConvert->setListener(this);
+        mPresetsToConvert->searchForFilesNow();
+    }
+    else
+    {
+        debug() << "convertPresets: couldn't find preset folder " << presetsFolder.getFullPathName() << ".\n";
+    }
 
+    for(int i=0; i < mPresetsToConvert->size(); ++i)
+    {
+        // do the conversion.
+//        MLFilePtr fromFile;
+ //       File toFile;
+   //     fromFile = oldPresetFiles->getFileByIndex(i);
+        
+        /*
+//        toFile = fromFile.withFileExtension(mExtension);
+        if (!toFile.exists())
+        {
+            if (mExtension == ".mlpreset")
+            {
+                ScopedPointer<XmlElement> xml(loadPropertyFileToXML(fromFile));
+                if(xml)
+                {
+                    xml->writeToFile(toFile, String::empty);
+                    wait(10);
+                }
+            }
+            else if (mExtension == ".aupreset")
+            {
+                mpFilter->loadStateFromFile(fromFile);
+                wait(100);
+                mpFilter->saveStateToFullPath(std::string(toFile.getFullPathName().toUTF8()));
+                wait(100);
+            }
+        }
+         */
+        
+        
+        
+        // wait(100);
+        
+    }
+//    mProgressThread setProgress (i / (double) numFiles);
+  
+    
+    
+
+    
+    /*
+    
 	if (numFiles > 0)
 	{
 		// prompt to convert files
 		String noticeStr;
 		String numberStr(numFiles);
 		String filesStr;
-		filesStr = (numFiles > 1) ? " preset files were " : " preset file was ";		
-		noticeStr = String(JucePlugin_Name) + " " + toPluginType + ": " + String(filesToConvert.size()) + filesStr + 
+		filesStr = (numFiles > 1) ? " preset files were " : " preset file was ";
+		noticeStr = String(JucePlugin_Name) + " " + toPluginType + ": " + String(filesToConvert.size()) + filesStr +
 			"found in other formats.";
 		noticeStr += " Convert to " + toFileType + " format for " + toPluginType + " ?";
 				
@@ -919,6 +820,8 @@ debug() << "converting presets...\n";
 			"No presets found to convert to " + toPluginType + " format.",
 			"OK");
 	}
+     */
+    
 }
 
 

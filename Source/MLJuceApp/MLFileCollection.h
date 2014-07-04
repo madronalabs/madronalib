@@ -16,8 +16,7 @@
 
 // a collection of files matching some kind of criteria.
 // planned timer / background scan stuff unimplemented.
-class MLFileCollection :
-    public Timer
+class MLFileCollection
 {
 public:
     
@@ -39,16 +38,10 @@ public:
     
     void setListener (Listener* listener);
 
-    // TODO look for files asynchronously
-    void timerCallback();
-    
-    // find all files matching description in the start dir.
-    // returns the number of files found.
-    int findFilesImmediate();
-    
     int beginProcessFiles();
     void iterateProcessFiles(int i);
-    void findFilesWithProgressWindow(Component* pLocationComp, String str);
+    void searchForFilesNow();
+    float getSearchProgress();
   
     // return a file by its path + name relative to our starting directory.
     const MLFilePtr getFileByName(const std::string& name);
@@ -68,6 +61,32 @@ public:
     void dump();
     
 private:
+    
+    class SearchThread : public Thread
+    {
+    public:
+        SearchThread(MLFileCollection& c) :
+            Thread(String(c.getName().getString() + "_search")),
+            mCollection(c),
+            mProgress(0)
+        {
+        }
+        
+        ~SearchThread()
+        {
+            stopThread(-1);
+        }
+        
+        void run();
+        float getProgress() { return mProgress; }
+        void setProgress(float p) { mProgress = p; }
+        
+    private:
+        MLFileCollection& mCollection;
+        float mProgress;
+    };
+
+    
     // the file tree
     MLFile mRoot;
     std::vector<MLFilePtr> mFilesByIndex;    
@@ -77,6 +96,8 @@ private:
     
     // temp storage for processing files
     std::vector <File> mFiles;
+    
+    std::tr1::shared_ptr<SearchThread> mSearchThread;
 
 };
 

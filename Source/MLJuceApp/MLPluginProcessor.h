@@ -244,7 +244,7 @@ private:
 
     MLFileCollectionPtr mScaleFiles;
     MLFileCollectionPtr mPresetFiles;
-
+    
 	File mFactoryPresetsFolder, mUserPresetsFolder;
 	bool mFileLocationsOK;
 		

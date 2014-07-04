@@ -19,7 +19,7 @@ MLPluginProcessor::MLPluginProcessor() :
     // get scales collection
     mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
     mScaleFiles->setListener(this);
-    mScaleFiles->findFilesImmediate();
+    mScaleFiles->searchForFilesNow();
     
     scanPresets();
 	scanMIDIPrograms();
@@ -152,7 +152,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		mEngine.setOutputChannels(outChans);
 
 		unsigned bufSize = 0;
-		unsigned vecSize = 0;
+		unsigned chunkSize = 0;
 
 		// choose new buffer size and vector size.
 		{
@@ -161,11 +161,11 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			bufSize = 1 << maxFramesBits;
 			
 			// vector size is desired processing block size, set this to default size of signal.
-			vecSize = min((int)bufSize, (int)kMLDefaultSignalSize);
+			chunkSize = min((int)bufSize, (int)kMLProcessChunkSize);
 		}	
 		
-		// dsp engine has one vecSize of latency in order to run constant block size.
-		setLatencySamples(vecSize);
+		// dsp engine has one chunkSize of latency in order to run constant block size.
+		setLatencySamples(chunkSize);
 		
 		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";	
 		
@@ -197,7 +197,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		}
 
 		// prepare to play: resize and clear processors
-		prepareErr = mEngine.prepareEngine(sr, bufSize, vecSize);
+		prepareErr = mEngine.prepareEngine(sr, bufSize, chunkSize);
 		if (prepareErr != MLProc::OK)
 		{
 			debug() << "MLPluginProcessor: prepareToPlay error: \n";
@@ -1251,7 +1251,7 @@ void MLPluginProcessor::scanPresets()
     // get presets collections
     mPresetFiles = MLFileCollectionPtr(new MLFileCollection("user_presets", getDefaultFileLocation(kPresetFiles), presetFileType));
     mPresetFiles->setListener(this);
-    mPresetFiles->findFilesImmediate();
+    mPresetFiles->searchForFilesNow();
     // mPresetFiles->dump();
     
     pushInfoToListeners();

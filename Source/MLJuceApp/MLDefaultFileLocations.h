@@ -18,7 +18,10 @@ enum eFileTypes
 	kSampleFiles,
 	
 	// app persistent state storage
-	kAppPresetFiles
+	kAppPresetFiles,
+    
+    // previous location of presets, for converting to Aalto 1.6. Then let's stop the madness.
+	kOldPresetFiles
 };
 	
 

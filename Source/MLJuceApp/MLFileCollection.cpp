@@ -39,80 +39,6 @@ void MLFileCollection::setListener (Listener* listener)
     mpListener = listener;
 }
 
-void MLFileCollection::timerCallback()
-{
-    // TODO look for files in the start directory. After the whole directory has been scanned,
-    // keep an eye on the directory, look for changed files, and add / process them when needed.
-    //ScopedPointer<DirectoryContentsList> list;
-    //TimeSliceThread thread;
-}
-
-// TODO list of extensions to look for, list of directories to ignore
-//
-int MLFileCollection::findFilesImmediate()
-{
-    int found = 0;
-    int processed = 0;
-    clear();
-	if (mRoot.mFile.exists() && mRoot.mFile.isDirectory())
-    {
-        Array<File> allFilesFound;
-        const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
-        const String& wildCard = "*";
-        bool recurse = true;
-
-        DirectoryIterator di (mRoot.mFile, recurse, wildCard, whatToLookFor);
-        while (di.next())
-        {
-            allFilesFound.add (di.getFile());
-            found++;
-        }
-         
-        // iterate all found files, including directories
-        for(int i=0; i<found; ++i)
-        {
-            File f = allFilesFound[i];
-            String shortName = f.getFileName();
-            String relativePath;
-            File parentDir = f.getParentDirectory();
-            if(parentDir == mRoot.mFile)
-            {
-                relativePath = "";
-            }
-            else
-            {
-                relativePath = parentDir.getRelativePathFrom(mRoot.mFile);
-            }
-
-            if (f.existsAsFile() && f.hasFileExtension(mExtension))
-            {
-                std::string rPath(relativePath.toUTF8());
-                std::string delimiter = (rPath == "" ? "" : "/");
-                std::string sName(shortName.toUTF8());
-                std::string longName(rPath + delimiter + sName);
-                
-                MLFilePtr newFile(new MLFile(f, sName, longName));
-                
-                // insert file into file tree
-                mRoot.insert(longName, newFile);
-                
-                // push to index
-                mFilesByIndex.push_back(newFile);
-                newFile->mIndex = processed;
-                
-                if(mpListener)
-                {
-                    // give file and index to listener for processing
-                    mpListener->processFile (mName, f, processed);
-                }
-                processed++;
-            }
-        }
-    }
-    return processed;
-}
-
-
 // count the number of files in the collection, and begin making the collection.
 // returns the number of found files.
 //
@@ -182,55 +108,41 @@ void MLFileCollection::iterateProcessFiles(int i)
     }
 }
 
-
-class FileFinderThreadWithProgressWindow  : public ThreadWithProgressWindow
+float MLFileCollection::getSearchProgress()
 {
-public:
-    FileFinderThreadWithProgressWindow(MLFileCollection& m, Component* pLocationComp, String str) :
-        mCollection(m),
-        ThreadWithProgressWindow (String(""), true, false, 10000, String(), pLocationComp),
-        mProcessMessage(str)
+    float p = -1;
+    if(mSearchThread)
     {
+        p = mSearchThread->getProgress();
     }
-    
-    ~FileFinderThreadWithProgressWindow()
-    {
-    }
-    
-    void run()
-    {
-        /*
-        // count and display uncertain progress
-        setStatusMessage ("Counting files...");
-        setProgress (-1.0f);
-        wait (1000); // TEST
-        */
-        
-        // OK, assuming this can happen all in one chunk quickly.
-        setStatusMessage (mProcessMessage);
-        int filesFound = mCollection.beginProcessFiles();
-        
-        mCollection.clear();
-        
-        // iterate and display known progress with informative message
-        for(int i=0; i<filesFound; ++i)
-        {
-            mCollection.iterateProcessFiles(i);
-            if (threadShouldExit()) return;
-            setProgress ((float)i/(float)filesFound);
-        }
-    }
-    
-private:
-    MLFileCollection& mCollection;
-    String mProcessMessage;
-};
+    return p;
+}
 
-
-void MLFileCollection::findFilesWithProgressWindow(Component* pLocationComp, String str)
+void MLFileCollection::SearchThread::run()
 {
-    FileFinderThreadWithProgressWindow finderThread(*this, pLocationComp, str);
-    finderThread.runThread();
+    int filesFound = mCollection.beginProcessFiles();
+
+    // iterate and display known progress with informative message
+    for(int i=0; i<filesFound; ++i)
+    {
+        // good practice to check this even if we are only running for a short while
+        if (threadShouldExit())
+            return;
+
+        mCollection.iterateProcessFiles(i);
+        
+        float p = (float)(i + 1) / (float)filesFound;
+        setProgress(p);
+  
+        debug() << "iterateProcessFiles progress:" << p << "\n";
+    }
+}
+
+void MLFileCollection::searchForFilesNow()
+{
+    debug() << "STARTING\n";
+    mSearchThread = std::tr1::shared_ptr<SearchThread>(new SearchThread(*this));
+    mSearchThread->startThread();
 }
 
 std::string MLFileCollection::getFileNameByIndex(int idx)

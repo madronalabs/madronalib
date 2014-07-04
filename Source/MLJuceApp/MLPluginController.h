@@ -17,7 +17,8 @@ class MLPluginController :
 	public MLResponder,
 	public MLReporter,
 	public MLSignalReporter,
-    public MLPluginProcessor::Listener
+    public MLPluginProcessor::Listener,
+    public MLFileCollection::Listener
 {
 public:
 	MLPluginController(MLPluginProcessor* const pProcessor);
@@ -47,6 +48,10 @@ public:
     void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
     void presetFilesChanged(const MLFileCollectionPtr presets);
 
+    // --------------------------------------------------------------------------------
+    // MLFileCollection::Listener
+    void processFile (const MLSymbol collection, const File& f, int idx);
+ 
 	void prevPreset();
 	void nextPreset();
 
@@ -59,8 +64,12 @@ public:
 	void doPresetMenu(int result);
 
 #if ML_MAC
-	void getPresetsToConvert(Array<File>* pResults);
+	void convertPresets(Array<File>* pResults);
 	void convertPresets();
+    MLFileCollectionPtr mPresetsToConvert;
+    
+    ScopedPointer<ThreadWithProgressWindow> progressThread;
+    
 #endif // ML_MAC
 
 protected:

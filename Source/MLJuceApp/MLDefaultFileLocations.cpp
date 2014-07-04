@@ -14,7 +14,11 @@ File getDefaultFileLocation(eFileTypes whichFiles)
     // get start directory for search according to platform
     if (whichFiles == kAppPresetFiles)
     {
-        // app preset files are still in /Library/Application Support/Madrona Labs on Mac
+        // app (not plugin) preset files are still in /Library/Application Support/Madrona Labs on Mac
+        startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+    }
+    else if (whichFiles == kOldPresetFiles)
+    {
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
     }
     else
@@ -41,6 +45,9 @@ File getDefaultFileLocation(eFileTypes whichFiles)
                 break;
             case kScaleFiles:
                 destStr = ("Scales");
+                break;
+            case kOldPresetFiles:
+                destStr = String("Audio/Presets/") + String(MLProjectInfo::makerName) + String("/") + String(MLProjectInfo::projectName);
                 break;
             case kPresetFiles:
             case kAppPresetFiles:
