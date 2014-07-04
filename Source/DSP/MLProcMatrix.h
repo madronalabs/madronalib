@@ -35,6 +35,8 @@ private:
 	MLSample mGain[kMLMatrixMaxIns + 1][kMLMatrixMaxOuts + 1];
     int mInputs;
     int mOutputs;
+    
+    // the default signal size of kMLProcessChunkSize is used for these signals, so no need to resize.
     MLSignal mDelayBuffers[kMLMatrixMaxOuts];
 };
 

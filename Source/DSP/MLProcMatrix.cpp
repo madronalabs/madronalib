@@ -40,17 +40,8 @@ MLProc::err MLProcMatrix::resize()
 	MLProc::err e = OK;
 	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
 	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
-
     mInputs = inputs;
     mOutputs = outputs;
-	
-//debug() << "MLProcMatrix: " << inputs << " inputs " << outputs << " outputs \n";
-    
-    for(int i=0; i<mOutputs; ++i)
-    {
-        mDelayBuffers[i].setDims(kMLDefaultSignalSize);
-    }
-	
 	return e;
 }
 

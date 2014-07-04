@@ -49,10 +49,7 @@ public:
 	virtual bool isEnabled() const = 0;
 	virtual bool isProcEnabled(const MLProc* p) const = 0;
 
-	// any code that relies on the enable state not changing must get this lock.
-//	const CriticalSection& getEnableLock() const noexcept { return mEnableLock; }
-
-protected:	
+protected:
 	
 	// two null signals: every context has them.
 	// the null input is for receiving a signal guaranteed to be 0. 
@@ -62,7 +59,6 @@ protected:
 	bool mEnabled;
 	
 private:
-//	CriticalSection mEnableLock; // TODO 
 	MLRatio mResampleRatio;	
 	int mResampleUpOrder;	
 	int mResampleDownOrder;	

@@ -25,7 +25,6 @@ MLDSPContext::~MLDSPContext()
 {
 }
 
-
 int MLDSPContext::setVectorSize(unsigned newSize)
 {	
 	int retErr = 0;

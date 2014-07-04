@@ -48,11 +48,6 @@ MLProcContainer::~MLProcContainer()
 #pragma mark MLDSPContext methods
 //
 
-// rules for enable lock: 
-// get the lock if you need to:
-// - change the enabled state
-// - do an action assuming the enabled state is constant during the action
-
 void MLProcContainer::setEnabled(bool t)
 {	
 	// debug() << "enabling container " << getName() << "\n";
@@ -67,7 +62,6 @@ void MLProcContainer::setEnabled(bool t)
 			pc.setEnabled(t);
 		}
 	}
-//	const ScopedLock l (getEnableLock()); 	
 	mEnabled = t;
 }
 
@@ -754,7 +748,6 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 // process signals.
 void MLProcContainer::process(const int extFrames)
 {
-//	const ScopedLock l (getEnableLock()); 
 	if (!isEnabled()) return;
 	
 	const MLRatio myRatio = getResampleRatio();

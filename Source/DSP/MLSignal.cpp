@@ -25,7 +25,7 @@ MLSignal::MLSignal() :
 {
 	mRate = kMLToBeCalculated;
 	setConstant(false);
-	setDims(kMLDefaultSignalSize);
+	setDims(kMLProcessChunkSize);
 }
 
 MLSignal::MLSignal (int width, int height, int depth) : 

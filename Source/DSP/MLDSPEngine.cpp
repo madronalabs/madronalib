@@ -172,7 +172,7 @@ void MLDSPEngine::compileEngine()
 
 // prepareEngine() needs to be called if the sampling rate or block size changes.
 //
-MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned vecSize)
+MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned chunkSize)
 {
 	// debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
@@ -204,22 +204,22 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned vec
 		unsigned outs = getNumOutputs();	
 		for(unsigned i=0; i < outs; ++i)
 		{
-			if (!mOutputBuffers[i]->resize(bufSize + vecSize))
+			if (!mOutputBuffers[i]->resize(bufSize + chunkSize))
 			{
 				e = MLProc::memErr; 
 				goto bail;
 			}
 			
-			// add samples to ringbuffers so processing in vector size chunks is always possible.
-			MLSignal delay(vecSize);	
+			// add samples to ringbuffers so processing in chunks is always possible.
+			MLSignal delay(chunkSize);
 			delay.clear();		
-			mOutputBuffers[i]->write(delay.getBuffer(), vecSize);
+			mOutputBuffers[i]->write(delay.getBuffer(), chunkSize);
 		}
 		
 		mSamplesToProcess = 0; // doesn't count delay
 		setSampleRate((MLSampleRate)sr);
 		setBufferSize(bufSize);
-		setVectorSize(vecSize);
+		setVectorSize(chunkSize);
 
 		// after setVectorSize, set midiToSignals input buffer size.
 		if (mpInputToSignalsProc)

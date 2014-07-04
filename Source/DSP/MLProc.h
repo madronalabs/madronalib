@@ -361,7 +361,9 @@ public:
 	
 	// for subclasses to set up buffers, etc.  Can be left at this if there is nothing to resize.
 	virtual err resize() { return OK; }		
-	virtual err prepareToProcess();	 	
+	virtual err prepareToProcess();
+    
+    // the process method.
     virtual void process(const int n) = 0;	
 
 	// clearProc() is called by engine, procs override clear() to clear histories. 

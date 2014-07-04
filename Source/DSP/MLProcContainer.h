@@ -251,8 +251,6 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark graph creation
 	//
-//	bool okToProcess() const { return mOKToProcess; }
-	//
 	MLProcPtr newProc(const MLSymbol className, const MLSymbol procName);
 	virtual MLProc::err addProc(const MLSymbol className, const MLSymbol procName); 
 	virtual void addPipe(const MLPath& src, const MLSymbol output, const MLPath& dest, const MLSymbol input);
