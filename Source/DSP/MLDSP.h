@@ -64,12 +64,11 @@ typedef float MLParamValue;
 #pragma mark Engine Constants
 // ----------------------------------------------------------------
 
-const uintptr_t kMLSampleSizeBits = 2;
-const uintptr_t kMLDefaultSignalSizeBits = 6;
-const uintptr_t kMLDefaultSignalSize = 1 << kMLDefaultSignalSizeBits;
+const uintptr_t kMLProcessChunkBits = 6;     // signals are always processed in chunks of this size.
+const uintptr_t kMLProcessChunkSize = 1 << kMLProcessChunkBits;
+
 const uintptr_t kMLSamplesPerSSEVectorBits = 2;
 const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
-//const unsigned kMLVectorsPerBuffer = kMLDefaultSignalSize / kSSEVecSize;	// number of SSE vectors in a default buffer 
 
 const int kMLEngineMaxVoices = 8;
 
