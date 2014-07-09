@@ -464,11 +464,13 @@ void MLPluginController::doPresetMenu(int result)
 			getProcessor()->setStateFromText (SystemClipboard::getTextFromClipboard());
 		break;
 
+#if SHOW_CONVERT_PRESETS
 #if ML_MAC
 		case (7):	// show convert alert box
 			convertPresets();
 			getProcessor()->scanPresets();
 		break;
+#endif
 #endif
         default:    // load preset
             MLMenu* menu = findMenuByName("preset");
@@ -600,8 +602,10 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
 	menu->addItem("Copy to clipboard");
 	menu->addItem("Paste from clipboard");
 	
+#if SHOW_CONVERT_PRESETS
 #if ML_MAC
 	menu->addItem("Convert presets...");
+#endif
 #endif
 	menu->addSeparator();
     

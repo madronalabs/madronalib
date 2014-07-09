@@ -36,7 +36,7 @@ public:
 	void process(const int n);		
 
 	// read the buffer contents out to the specified row of the given signal.
-	unsigned readToSignal(MLSignal& outSig, int samples, int row=0);
+	int readToSignal(MLSignal& outSig, int samples, int row=0);
 	const MLSignal& getOutputSignal();
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -51,8 +51,6 @@ private:
 	
 	MLSignal test;
 	MLSample mTrig1;
-	
-	unsigned mTemp;
 };
 
 

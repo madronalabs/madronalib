@@ -230,13 +230,13 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 
 char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, MLValueDisplayMode mode)  throw()
 {
-	const unsigned bufLength = 16;
+	const int bufLength = 16;
 	static char numBuf[bufLength] = {0};
 	static char format[bufLength] = {0};
 	float tweakedNumber;
 	
 	// clear buffer
-	for (unsigned i=0; i<bufLength; ++i)
+	for (int i=0; i<bufLength; ++i)
 	{
 		numBuf[i] = format[i] = 0;
 	}
@@ -1809,19 +1809,19 @@ void MLLookAndFeel::createMLRectangle (Path& p,
                                const float x, const float y,
                                const float w, const float h,
                                const float cs,
-                               const unsigned int flair, 
+                               const int flair, 
 							   const float sx, 
 							   const float sy,
 							   const bool isOutline)  throw()
 {
-	const unsigned int curveTopLeft = !(flair & eMLAdornTopLeft);
-	const unsigned int curveTopRight = !(flair & eMLAdornTopRight);
-	const unsigned int curveBottomRight = !(flair & eMLAdornBottomRight);
-	const unsigned int curveBottomLeft = !(flair & eMLAdornBottomLeft);
-	const unsigned int spikeLeft = flair & eMLAdornLeft;
-	const unsigned int spikeTop = flair & eMLAdornTop;
-	const unsigned int spikeRight = flair & eMLAdornRight;
-	const unsigned int spikeBottom = flair & eMLAdornBottom;
+	const int curveTopLeft = !(flair & eMLAdornTopLeft);
+	const int curveTopRight = !(flair & eMLAdornTopRight);
+	const int curveBottomRight = !(flair & eMLAdornBottomRight);
+	const int curveBottomLeft = !(flair & eMLAdornBottomLeft);
+	const int spikeLeft = flair & eMLAdornLeft;
+	const int spikeTop = flair & eMLAdornTop;
+	const int spikeRight = flair & eMLAdornRight;
+	const int spikeBottom = flair & eMLAdornBottom;
 	
 	float ix = floor(x);
 	float iy = floor(y);
@@ -2034,7 +2034,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
                                         const Colour& baseColor,
                                         const Colour& myOutlineColor,
                                         const float strokeWidth,
-                                        const unsigned flair,
+                                        const int flair,
 										const float sx, 
 										const float sy) throw()
 {
@@ -2055,7 +2055,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
                                         const Colour& baseColor,
                                         const Colour& myOutlineColor,
                                         const float strokeWidth,
-                                        const unsigned flair,
+                                        const int flair,
 										const float sx, 
 										const float sy) throw()
 {
@@ -2084,7 +2084,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	const bool glow = flair & eMLAdornGlow;
 	const bool flat = flair & eMLAdornFlat;
 	const float gradPixelY = (1. / h);
-	const unsigned gradPixels = 2;
+	const int gradPixels = 2;
 	float gradWidthTop, gradWidthBottom;
 	gradWidthTop = gradPixels * gradPixelY;
 	gradWidthTop = clamp(gradWidthTop, 0.125f, 1.f);

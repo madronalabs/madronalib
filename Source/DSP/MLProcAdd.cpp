@@ -52,7 +52,7 @@ void MLProcAdd::process(const int frames)
 	const MLSignal& x1 = getInput(1);
 	const MLSignal& x2 = getInput(2);
 	MLSignal& y1 = getOutput();
-	for(unsigned n=0; n<frames; ++n)
+	for(int n=0; n<frames; ++n)
 	{
 		y1[n] = x1[n] + x2[n];
 	}
@@ -70,7 +70,7 @@ void MLProcAdd::process(const int frames)
 	
 	const bool k1 = x1.isConstant();
 	const bool k2 = x2.isConstant();
-	const unsigned mode = (k1 << 1) + k2;	
+	const int mode = (k1 << 1) + k2;	
 	
 	y1.setConstant(false);
 	

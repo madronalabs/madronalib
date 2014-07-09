@@ -30,9 +30,9 @@ int bitsToContain(int n)
 	return (exp);
 }
 
-unsigned ilog2(unsigned x) 
+int ilog2(int x)
 {
-    unsigned b=0;
+    int b=0;
     if(x >= 1<<16) { x >>= 16; b |= 16; }
     if(x >= 1<<8) { x >>= 8; b |= 8; }
     if(x >= 1<<4) { x >>= 4; b |= 4; }

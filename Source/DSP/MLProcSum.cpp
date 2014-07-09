@@ -54,14 +54,14 @@ MLProcSum::~MLProcSum()
 
 void MLProcSum::process(const int frames)
 {
-	const unsigned inputs = getNumInputs();
+	const int inputs = getNumInputs();
 	MLSignal& y = getOutput();
 
 	y.clear();
 	
 	// can optimize in many ways: for small numbers of inputs,
 	// loop unrolling, etc.
-	for (unsigned i=1; i <= inputs; ++i)
+	for (int i=1; i <= inputs; ++i)
 	{
 		const MLSignal& xi = getInput(i);
 		for (int n=0; n < frames; ++n)

@@ -17,8 +17,8 @@ public:
 	int bottom;
 
 	MLRatio() : top(1), bottom(1) {};
-	MLRatio(unsigned a) : top(a), bottom(1) {};
-	MLRatio(unsigned a, unsigned b) : top(a), bottom(b) {};
+	MLRatio(int a) : top(a), bottom(1) {};
+	MLRatio(int a, int b) : top(a), bottom(b) {};
 	~MLRatio() {} ;
 	
 	void simplify(void);
@@ -26,7 +26,7 @@ public:
 	bool isUnity(void) const { return(bottom == top); }
 	bool isZero(void) const { return(0 == top); }
 	
-	void set(unsigned t, unsigned b);
+	void set(int t, int b);
 	
 	MLRatio& operator*= ( const MLRatio& b );
 	MLRatio& operator/= ( const MLRatio& b );

@@ -428,7 +428,7 @@ public:
                                const float x, const float y,
                                const float w, const float h,
                                const float cs,
-                               const unsigned flair, const float sx, const float sy,
+                               const int flair, const float sx, const float sy,
 							   const bool isOutline = false) throw();
 				
 	
@@ -477,7 +477,7 @@ public:
                                         const Colour& baseColor,
                                         const Colour& myOutlineColor,
                                         const float strokeWidth,
-                                        const unsigned flair,
+                                        const int flair,
 										const float sx, 
 										const float sy) throw();
 
@@ -487,7 +487,7 @@ public:
                                         const Colour& baseColour,
                                         const Colour& outlineColour,
                                         const float strokeWidth,
-                                        const unsigned flair,
+                                        const int flair,
 										const float sx, 
 										const float sy) throw();
 							   

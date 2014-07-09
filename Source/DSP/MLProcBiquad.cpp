@@ -31,7 +31,7 @@ public:
 
 private:
 	MLProcInfo<MLProcBiquad> mInfo;
-	void calcCoeffs(const unsigned n);
+	void calcCoeffs(const int n);
 	
 	// coeff signals
 	MLSignal mA0, mA1, mA2, mB1, mB2;
@@ -71,7 +71,7 @@ MLProcBiquad::~MLProcBiquad()
 MLProc::err MLProcBiquad::resize() 
 {	
 	MLProc::err e = OK;
-	unsigned b = getContextVectorSize();
+	int b = getContextVectorSize();
 	mA0.setDims(b);
 	mA1.setDims(b);
 	mA2.setDims(b);
@@ -88,13 +88,13 @@ void MLProcBiquad::clear()
 	mX1 = mX2 = mY1 = mY2 = 0.f;
 }
 
-void MLProcBiquad::calcCoeffs(const unsigned frames) 
+void MLProcBiquad::calcCoeffs(const int frames) 
 {
 	static MLSymbol modeSym("mode");
-	unsigned mode = (int)getParam(modeSym);
+	int mode = (int)getParam(modeSym);
 	const MLSignal& frequency = getInput(2);
 	const MLSignal& q = getInput(3);
-	unsigned coeffFrames;
+	int coeffFrames;
 	
 	float twoPiOverSr = kMLTwoPi*getContextInvSampleRate();		
 
@@ -122,7 +122,7 @@ void MLProcBiquad::calcCoeffs(const unsigned frames)
 				
 	// generate coefficient signals
 	// TODO SSE
-	for(unsigned n=0; n<coeffFrames; ++n)
+	for(int n=0; n<coeffFrames; ++n)
 	{
 		qm1 = 1.f/(q[n] + 0.05f);
 		omega = clamp(frequency[n], kLowFrequencyLimit, highLimit) * twoPiOverSr;

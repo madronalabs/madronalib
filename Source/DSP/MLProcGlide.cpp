@@ -25,7 +25,7 @@ private:
 	// coeffs
 	MLSample mY1;
 	MLSample mEndValue;
-	unsigned mRampTimeInSamples;
+	int mRampTimeInSamples;
 	MLSample mInvRampTimeInSamples;
 	MLSample mStep;
 	bool mActive;

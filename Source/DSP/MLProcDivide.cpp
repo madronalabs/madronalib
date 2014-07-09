@@ -57,7 +57,7 @@ void MLProcDivide::process(const int frames)
 	
 	const bool k1 = x1.isConstant();
 	const bool k2 = x2.isConstant();
-	const unsigned mode = (k1 << 1) + k2;	
+	const int mode = (k1 << 1) + k2;	
 	
 	y1.setConstant(false);
 	

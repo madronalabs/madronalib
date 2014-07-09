@@ -431,7 +431,7 @@ void MLSignal::copy(const MLSignal& b)
 	}
 	else 
 	{
-		const unsigned n = min(mSize, b.getSize());
+		const int n = min(mSize, b.getSize());
 		std::copy(b.mDataAligned, b.mDataAligned + n, mDataAligned);
 		setConstant(false);
 	}
@@ -504,11 +504,11 @@ void MLSignal::add(const MLSignal& b)
 	}
 	else 
 	{
-		const unsigned n = min(mSize, b.getSize());
+		const int n = min(mSize, b.getSize());
 		if (ka && !kb)
 		{
 			MLSample fa = mDataAligned[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] = fa + b[i];
 			}
@@ -516,14 +516,14 @@ void MLSignal::add(const MLSignal& b)
 		else if (!ka && kb)
 		{
 			MLSample fb = b[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] += fb;
 			}
 		}
 		else
 		{
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] += b.mDataAligned[i];
 			}
@@ -543,11 +543,11 @@ void MLSignal::subtract(const MLSignal& b)
 	}
 	else 
 	{
-		const unsigned n = min(mSize, b.getSize());
+		const int n = min(mSize, b.getSize());
 		if (ka && !kb)
 		{
 			MLSample fa = mDataAligned[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] = fa - b[i];
 			}
@@ -555,14 +555,14 @@ void MLSignal::subtract(const MLSignal& b)
 		else if (!ka && kb)
 		{
 			MLSample fb = b[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] -= fb;
 			}
 		}
 		else
 		{
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] -= b.mDataAligned[i];
 			}
@@ -583,11 +583,11 @@ void MLSignal::multiply(const MLSignal& b)
 	}
 	else 
 	{
-		const unsigned n = min(mSize, b.getSize());
+		const int n = min(mSize, b.getSize());
 		if (ka && !kb)
 		{
 			MLSample fa = mDataAligned[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] = fa * b[i];
 			}
@@ -595,14 +595,14 @@ void MLSignal::multiply(const MLSignal& b)
 		else if (!ka && kb)
 		{
 			MLSample fb = b[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] *= fb;
 			}
 		}
 		else
 		{
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] *= b.mDataAligned[i];
 			}
@@ -622,11 +622,11 @@ void MLSignal::divide(const MLSignal& b)
 	}
 	else 
 	{
-		const unsigned n = min(mSize, b.getSize());
+		const int n = min(mSize, b.getSize());
 		if (ka && !kb)
 		{
 			MLSample fa = mDataAligned[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] = fa / b[i];
 			}
@@ -634,14 +634,14 @@ void MLSignal::divide(const MLSignal& b)
 		else if (!ka && kb)
 		{
 			MLSample fb = b[0];
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] /= fb;
 			}
 		}
 		else
 		{
-			for(unsigned i = 0; i < n; ++i)
+			for(int i = 0; i < n; ++i)
 			{
 				mDataAligned[i] /= b.mDataAligned[i];
 			}

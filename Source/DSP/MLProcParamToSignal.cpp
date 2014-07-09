@@ -27,9 +27,6 @@ private:
 	MLChangeList mChangeList;
 	MLSample mVal;	
 	float mGlide;
-	
-	// temp
-	unsigned mC;
 };
 
 
@@ -49,7 +46,6 @@ namespace
 
 MLProcParamToSignal::MLProcParamToSignal()
 {
-	mC = 0;
 //	debug() << "MLProcParamToSignal constructor\n";
 	setParam("glide", 0.01f);
 }
@@ -63,7 +59,7 @@ MLProcParamToSignal::~MLProcParamToSignal()
 
 MLProc::err MLProcParamToSignal::resize()
 {
-	unsigned vecSize = getContextVectorSize();
+	int vecSize = getContextVectorSize();
 	MLSampleRate rate = getContextSampleRate();
 	
 	mChangeList.setDims(vecSize);
@@ -94,20 +90,6 @@ void MLProcParamToSignal::process(const int frames)
 	{
 		mChangeList.writeToSignal(y, 0, frames);
 	}
-	
-	/*
-	std::string name = getName();
-	if (!name.compare("pitch_exp_patcher_knob_to_sig"))
-	{
-		mC++;
-		if (mC > 100)
-		{
-			debug() << "--------------" << getParam("in") << " = " << y[0] <<  "-------------\n" ;
-			mC = 0;
-		}
-	}
-	*/
-	
 }
 
 

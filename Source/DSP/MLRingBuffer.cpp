@@ -23,7 +23,7 @@ void MLRingBuffer::clear()
 int MLRingBuffer::resize(int length)
 {
 	int r = 0;
-	unsigned size = 1 << bitsToContain(length);
+	int size = 1 << bitsToContain(length);
 	pData = new MLSample[size];
 	
 	if (pData)
@@ -40,7 +40,7 @@ int MLRingBuffer::getRemaining()
 	return PaUtil_GetRingBufferReadAvailable(&mBuf);
 }
 
-int MLRingBuffer::write(const MLSample* pSrc, unsigned samples)
+int MLRingBuffer::write(const MLSample* pSrc, int samples)
 {
 	int r = 0;
 	if (pData)
@@ -50,7 +50,7 @@ int MLRingBuffer::write(const MLSample* pSrc, unsigned samples)
 	return r;
 }
 		
-int MLRingBuffer::read(MLSample* pDest, unsigned samples)
+int MLRingBuffer::read(MLSample* pDest, int samples)
 {
 	int r = 0;
 	if (pData)

@@ -4,14 +4,6 @@
 
 #include "MLProcInputToSignals.h"
  
-const float kDriftConstants[16] = 
-{
-	0.465f, 0.005f, 0.013f, 0.019f, 
-	0.155f, 0.933f, 0.002f, 0.024f,
-	0.943f, 0.924f, 0.139f, 0.501f,
-	0.196f, 0.591f, 0.961f, 0.442f
-};
-
 const int kNumVoiceSignals = 9;
 const char * voiceSignalNames[kNumVoiceSignals] = 
 {
@@ -28,6 +20,13 @@ const char * voiceSignalNames[kNumVoiceSignals] =
 
 const float MLProcInputToSignals::kControllerScale = 1.f/127.f;
 #if INPUT_DRIFT
+    const float kDriftConstants[16] =
+    {
+        0.465f, 0.005f, 0.013f, 0.019f,
+        0.155f, 0.933f, 0.002f, 0.024f,
+        0.943f, 0.924f, 0.139f, 0.501f,
+        0.196f, 0.591f, 0.961f, 0.442f
+    };
     const float MLProcInputToSignals::kDriftConstantsAmount = 0.004f;
     const float MLProcInputToSignals::kDriftRandomAmount = 0.002f;
 #endif
@@ -50,8 +49,9 @@ void MLKeyEvent::clear()
 	mVoiceState = kVoiceOff;
 }
 
-void MLKeyEvent::setup(int note, int vel, int time, int count)
+void MLKeyEvent::setup(int chan, int note, int vel, int time, int count)
 {
+	mChan = chan;
 	mNote = note;
 	mVel = vel;
 	mStartTime = time;
@@ -163,7 +163,8 @@ MLProcInputToSignals::MLProcInputToSignals() :
     mControllerNumber(-1),
 	mCurrentVoices(0),
 	mUnisonInputTouch(-1),
-	mSustain(false)
+	mSustain(false),
+    mMultiChan(false)
 {
 //	debug() << "MLProcInputToSignals constructor:\n";
       
@@ -191,7 +192,7 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mOSCDataRate = 100;
 	
 	// ring buffer for incoming note events
-	PaUtil_InitializeRingBuffer( &mNoteBuf, 4, kNoteBufElements, mNoteBufData );	
+	PaUtil_InitializeRingBuffer( &mNoteBuf, sizeof(NoteEvent), kNoteBufElements, mNoteBufData );
 }
 
 MLProcInputToSignals::~MLProcInputToSignals()
@@ -445,22 +446,6 @@ void MLProcInputToSignals::doParams()
 		
 	mParamsChanged = false;
 //dumpParams();	// DEBUG
-}
-
-inline int packNote(int note, int vel, int time)
-{
-	int r = 0;
-	r |= note & 0xFF;
-	r |= (vel & 0xFF) << 8;
-	r |= (time & 0xFFFF) << 16;
-	return r;
-}
-
-inline void unpackNote(int packed, int& note, int& vel, int& time)
-{
-	note = packed & 0xFF;
-	vel = (packed & 0xFF00) >> 8;
-	time = (packed & 0xFFFF0000) >> 16;
 }
 
 MLProc::err MLProcInputToSignals::prepareToProcess()
@@ -803,31 +788,34 @@ void MLProcInputToSignals::processOSC(const int frames)
 void MLProcInputToSignals::processMIDI(const int frames)
 {	
 	// pop note events from FIFO and create change lists for each voice
-	int midiNote, vel, time;
-	int unpacked;
+	NoteEvent event;
 
-	while(PaUtil_ReadRingBuffer( &mNoteBuf, &unpacked, 1 ))
+    // TODO what would be nicer is a template around the ring buffer so we could write
+    // NoteEvent event = noteBuf.read();
+	while(PaUtil_ReadRingBuffer( &mNoteBuf, &event, 1 ))
 	{
-		unpackNote(unpacked, midiNote, vel, time);					
-		if (time > frames - 1) time = frames - 1;
-		if (vel)
+		if (event.frameTime > frames - 1) event.frameTime = frames - 1;
+		if (event.velocity)
 		{
 //	debug() << "+\n";
-			doNoteOn(midiNote, vel, time, frames);
+			doNoteOn(event);
 
 		}
 		else
 		{
 //	debug() << "-\n";
-			doNoteOff(midiNote, time, frames);
+			doNoteOff(event);
 		}			
 	}
 	
 	// write global change lists to signals -- same for all voices
 	mdPitchBend.writeToSignal(mPitchBendSignal, mMIDIFrameOffset, frames);
+    
+    
 	mdController.writeToSignal(mControllerSignal, mMIDIFrameOffset, frames);
 	mdController2.writeToSignal(mControllerSignal2, mMIDIFrameOffset, frames);
 	mdController3.writeToSignal(mControllerSignal3, mMIDIFrameOffset, frames);
+    
 	mdChannelAfterTouch.writeToSignal(mChannelAfterTouchSignal, mMIDIFrameOffset, frames);
 	
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
@@ -845,7 +833,8 @@ void MLProcInputToSignals::processMIDI(const int frames)
 
 		if (v < mCurrentVoices)
 		{
-			mVoices[v].mdPitch.writeToSignal(pitch, mMIDIFrameOffset, frames);			
+			mVoices[v].mdPitch.writeToSignal(pitch, mMIDIFrameOffset, frames);
+            
 			pitch.add(mPitchBendSignal);
             
 #if INPUT_DRIFT
@@ -862,6 +851,7 @@ void MLProcInputToSignals::processMIDI(const int frames)
             
 			// aftertouch for each voice is channel aftertouch + poly aftertouch.
 			mVoices[v].mdAfter.writeToSignal(after, mMIDIFrameOffset, frames);
+            
 			after.add(mChannelAfterTouchSignal); 				
 			
 			mod.clear();
@@ -987,7 +977,7 @@ MLSample MLProcInputToSignals::velToAmp(int vel)
 
 // activate an event, taking over one voice.  translates note to pitch 
 // and velocity to amplitude.
-void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int bufFrames)
+void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx)
 {
 	int note = e.mNote;
 	int vel = e.mVel;
@@ -1012,7 +1002,7 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int buf
 			
 			mVoices[v].mActive = true;
 			mVoices[v].mNote = note;		
-			mVoices[v].mAge = bufFrames - time;		
+			mVoices[v].mAge = 0;// bufFrames - time;
 			mVoices[v].mdPitch.addChange(midiToPitch(note), time);
 			mVoices[v].mdGate.addChange((int)(vel > 0.), time);
 			mVoices[v].mdAmp.addChange(velToAmp(vel), time);
@@ -1047,7 +1037,7 @@ void MLProcInputToSignals::sendEventToVoice(MLKeyEvent& e, int voiceIdx, int buf
 
 		mVoices[voiceIdx].mActive = true;
 		mVoices[voiceIdx].mNote = note;	
-		mVoices[voiceIdx].mAge = bufFrames - time;		
+		mVoices[voiceIdx].mAge = 0;//bufFrames - time;
 		mVoices[voiceIdx].mdPitch.addChange(midiToPitch(note), time);
 		mVoices[voiceIdx].mdGate.addChange((int)(vel > 0.), time);
 		mVoices[voiceIdx].mdAmp.addChange(velToAmp(vel), time);
@@ -1220,22 +1210,27 @@ void MLProcInputToSignals::clearEvent(MLKeyEvent& event, int time)
 		
 }
 
-void MLProcInputToSignals::addNoteOn(int note, int vel, int time)
+void MLProcInputToSignals::addNoteOn(int chan, int note, int vel, int time)
 {
-	int n = packNote(note, vel, time);
-	PaUtil_WriteRingBuffer( &mNoteBuf, &n, 1 );
+    
+  debug() << "note on: chan " << chan << ", note " << note << ", time " << time << "\n";
+    
+	NoteEvent e(chan, note, vel, time);
+	PaUtil_WriteRingBuffer( &mNoteBuf, &e, 1 );
 }
 
-void MLProcInputToSignals::addNoteOff(int note, int vel, int time)
+void MLProcInputToSignals::addNoteOff(int chan, int note, int , int time)
 {
-	#pragma unused(vel)
-	int n = packNote(note, 0, time);
-	PaUtil_WriteRingBuffer( &mNoteBuf, &n, 1 );
+	NoteEvent e(chan, note, 0, time);
+	PaUtil_WriteRingBuffer( &mNoteBuf, &e, 1 );
 }
 
-void MLProcInputToSignals::doNoteOn(int note, int vel, int time, int frames)
+void MLProcInputToSignals::doNoteOn(const NoteEvent& event)
 {
-	int newVoice;
+    
+debug() << "do note on " << event.note << " at frame time " << event.frameTime << "\n";
+	
+    int newVoice;
 		
 	// get next free event
 	int freeEventIdx = -1;
@@ -1256,7 +1251,8 @@ void MLProcInputToSignals::doNoteOn(int note, int vel, int time, int frames)
 	}
 				
 	MLKeyEvent& newEvent = mEvents[freeEventIdx];
-	newEvent.setup(note, vel, time, mEventCounter++);
+	newEvent.setup(event.channel, event.note, event.velocity, event.frameTime, mEventCounter++);
+    
 	newEvent.mVoiceState = MLKeyEvent::kVoicePending;
 
 	if (mUnisonMode)
@@ -1272,18 +1268,18 @@ void MLProcInputToSignals::doNoteOn(int note, int vel, int time, int frames)
 				break;
 			}
 		}
-		sendEventToVoice(newEvent, MLKeyEvent::kVoiceUnison, frames);
+		sendEventToVoice(newEvent, MLKeyEvent::kVoiceUnison);
 	}
 	else
 	{
 		newVoice = allocate();
-		sendEventToVoice(newEvent, newVoice, frames);
+		sendEventToVoice(newEvent, newVoice);
 	}
 }
 
-void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
+void MLProcInputToSignals::doNoteOff(const NoteEvent& event)
 {
-//debug() << "add note off " << note << " at time " << time << "\n";
+    // debug() << "add note off " << event.note << " at time " << event.frameTime << "\n";
 
 	if (!mUnisonMode) // single voice per event
 	{
@@ -1292,7 +1288,7 @@ void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 		// clear key event
 		for (int i=0; i<kMLMaxEvents; ++i)
 		{
-			if (mEvents[i].mNote == note)
+			if (mEvents[i].mNote == event.note)
 			{
 				mEvents[i].clear();
 			}
@@ -1303,25 +1299,25 @@ void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 		{
 			for (int v=0; v<mCurrentVoices; ++v)
 			{
-				if (mVoices[v].mNote == note)
+				if (mVoices[v].mNote == event.note)
 				{
 					mVoices[v].mActive = false;
 					mVoices[v].mNote = 0;
 					mVoices[v].mAge = 0;
-					mVoices[v].mdAmp.addChange(0.f, time);
-					mVoices[v].mdGate.addChange(0.f, time);
+					mVoices[v].mdAmp.addChange(0.f, event.frameTime);
+					mVoices[v].mdGate.addChange(0.f, event.frameTime);
 				}
 			}
 		}
 	}			
 	else // unison
 	{
-		const int eventIdxToTurnOff = findEventForNote(note);
+		const int eventIdxToTurnOff = findEventForNote(event.note);
 		if (eventIdxToTurnOff >= 0)
 		{
-			MLKeyEvent& event = mEvents[eventIdxToTurnOff];
-			float holdVelocity = event.mVel;
-			const bool eventWasSounding = (event.isSounding());
+			MLKeyEvent& keyEvent = mEvents[eventIdxToTurnOff];
+			float holdVelocity = keyEvent.mVel;
+			const bool eventWasSounding = (keyEvent.isSounding());
 			mEvents[eventIdxToTurnOff].clear();
 			if (eventWasSounding)
 			{
@@ -1358,16 +1354,16 @@ void MLProcInputToSignals::doNoteOff(int note, int time, int frames)
 				{
 	//debug() << " activating held note " << mEvents[maxEventIdx].mNote << " at time " << time << "\n";
 					mEvents[maxEventIdx].mVel = (int)holdVelocity;
-					mEvents[maxEventIdx].mStartTime = time;
-					sendEventToVoice(mEvents[maxEventIdx], MLKeyEvent::kVoiceUnison, frames);
+					mEvents[maxEventIdx].mStartTime = event.frameTime;
+					sendEventToVoice(mEvents[maxEventIdx], MLKeyEvent::kVoiceUnison);
 				}			
 				else
 				{
 					// turn off all voices
 					for (int i=0; i<mCurrentVoices; ++i)
 					{
-						mVoices[i].mdGate.addChange(0.f, time);
-						mVoices[i].mdAmp.addChange(0.f, time);
+						mVoices[i].mdGate.addChange(0.f, event.frameTime);
+						mVoices[i].mdAmp.addChange(0.f, event.frameTime);
 						mVoices[i].mActive = false;
 					}
 				}
@@ -1404,7 +1400,7 @@ void MLProcInputToSignals::setController(int controller, int value, int time)
 	}
 }
 
-void MLProcInputToSignals::setPitchWheel(int value, int time)
+void MLProcInputToSignals::setPitchWheel(int chan, int value, int time)
 {
 	#pragma unused(time) // TODO
 	// set pitch multiplier for all voices.
@@ -1427,7 +1423,7 @@ void MLProcInputToSignals::setPitchWheel(int value, int time)
 	mdPitchBend.addChange(bendAdd, 1);	// 1 is a bandaid that is making it work in Live 8.1.5 TODO
 }
 
-void MLProcInputToSignals::setAfterTouch(int note, int value, int time)
+void MLProcInputToSignals::setAfterTouch(int chan, int note, int value, int time)
 {
 	#pragma unused(time) // TODO
 	// if a voice is playing the given note number,	

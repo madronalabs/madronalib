@@ -13,7 +13,7 @@ std::ostream& operator<< (std::ostream& out, const MLRatio & r)
 	return out;
 }
 
-inline unsigned GCD(unsigned a, unsigned b)
+inline int GCD(int a, int b)
 {
 	if (a == 0) return b;
 	while(b > 0)
@@ -35,7 +35,7 @@ void MLRatio::simplify(void)
 	}
 	else
 	{
-		unsigned g = GCD(bottom, top);
+		int g = GCD(bottom, top);
 		if (g != 1)
 		{
 			bottom /= g;
@@ -44,7 +44,7 @@ void MLRatio::simplify(void)
 	}
 }
 
-void MLRatio::set(unsigned t, unsigned b)
+void MLRatio::set(int t, int b)
 {
 	top = t;
 	bottom = b;
@@ -157,8 +157,8 @@ bool operator<= (const MLRatio& a,  const MLRatio& b)
 // ----------------------------------------------------------------
 // MLCommonRatios
 
-const unsigned kRecips = 16;
-static const unsigned recips[kRecips] = {12, 14, 15, 16, 20, 25, 32, 36, 42, 50, 64, 100, 128, 256, 512, 1024}; 
+const int kRecips = 16;
+static const int recips[kRecips] = {12, 14, 15, 16, 20, 25, 32, 36, 42, 50, 64, 100, 128, 256, 512, 1024}; 
 
 MLCommonRatios::MLCommonRatios() :
 	mRatios(std::list<MLRatio>())
@@ -167,10 +167,10 @@ MLCommonRatios::MLCommonRatios() :
 	mRatios.push_back(MLRatio(1, 1));
 
 	// add small ratios
-	unsigned maxDiv = 11;
-	for(unsigned n = 1; n <= maxDiv; ++n)
+	int maxDiv = 11;
+	for(int n = 1; n <= maxDiv; ++n)
 	{
-		for(unsigned d = 2; d <= maxDiv; ++d)
+		for(int d = 2; d <= maxDiv; ++d)
 		{
 			if (GCD(n, d) == 1)
 			{
@@ -181,7 +181,7 @@ MLCommonRatios::MLCommonRatios() :
 	}
 	
 	// add 1/n list above max
-	for(unsigned n=0; n < kRecips; ++n)
+	for(int n=0; n < kRecips; ++n)
 	{
 		mRatios.push_back(MLRatio(1, recips[n]));
 		mRatios.push_back(MLRatio(recips[n], 1));

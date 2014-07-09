@@ -10,7 +10,7 @@
 // ----------------------------------------------------------------
 #pragma mark MLSymbolKey
 
-MLSymbolKey::MLSymbolKey(const char * data, unsigned len) : 
+MLSymbolKey::MLSymbolKey(const char * data, int len) : 
 	mpData(data), mLength(len), mpString(0) 
 {
 }
@@ -41,15 +41,15 @@ void MLSymbolKey::makeString()
 bool MLSymbolKey::operator< (const MLSymbolKey & b) const
 {
 	bool r = false;
-	unsigned la = mLength;
-	unsigned lb = b.mLength;
+	int la = mLength;
+	int lb = b.mLength;
 	
 	// len is smaller of the two key lengths.
-	unsigned len = (la < lb) ? la : lb;
+	int len = (la < lb) ? la : lb;
 	
 	// compare up to len
 	bool equal = true;
-	for(unsigned c=0; c<len; ++c)
+	for(int c=0; c<len; ++c)
 	{
 		char ca = mpData[c];
 		char cb = b.mpData[c];
@@ -113,7 +113,7 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 {
 	SymbolIDT r = 0;
 	bool found = false;
-	unsigned size = mMap.size();
+	int size = mMap.size();
 	
 //debug() << size << " entries, making symbol " << sym << "\n";
 	
@@ -153,7 +153,7 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 			beginIter = mMap.begin();
 
 			// get index of new entry
-			unsigned newIndex = distance(beginIter, newEntryIter);
+			int newIndex = distance(beginIter, newEntryIter);
 			
 //debug() << "adding symbol " << sym << ", length " << len << "\n";		
 //debug() << "new map entry index: " << newIndex << " ID = " << size << "\n";
@@ -166,7 +166,7 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 			newEntryIter->second = size;
 		
 			// adjust indexes to reflect insertion
-			for(unsigned id=0; id<size; ++id)
+			for(int id=0; id<size; ++id)
 			{
 				if (mIndexesByID[id] >= newIndex)
 				{
@@ -210,8 +210,8 @@ SymbolIDT MLSymbolTable::getID(SymbolIDT symID)
 void MLSymbolTable::dump(void)
 {
 	bool found;
-	unsigned i, idx;
-	unsigned size = mMap.size();
+	int i, idx;
+	int size = mMap.size();
 debug() << "---------------------------------------------------------\n";
 debug() << size << " symbols:\n";
 
@@ -221,7 +221,7 @@ debug() << size << " symbols:\n";
 		found = false;
 		for(i=0; i<size; ++i)
 		{
-			unsigned idxAtI = mIndexesByID[i];
+			int idxAtI = mIndexesByID[i];
 			if (idx == idxAtI)
 			{
 				found = true;
@@ -245,9 +245,9 @@ debug() << "    ID " << i << ": index "  << idx << " = " << s << ", ID = " << id
 		
 void MLSymbolTable::audit(void)
 {
-	unsigned i=0;
+	int i=0;
 	bool OK = true;
-	unsigned size = mMap.size();
+	int size = mMap.size();
 
 	for(i=0; i<size; ++i)
 	{
@@ -264,7 +264,7 @@ void MLSymbolTable::audit(void)
 	}
 	else
 	{
-		unsigned idx = mIndexesByID[i];		
+		int idx = mIndexesByID[i];		
 		SymbolIDT id = getID(i);
 		const std::string& s = getStringByID(i);
 		MLError() << "MLSymbolTable: error in symbol table, line " << i << ":\n";
@@ -579,11 +579,11 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 const MLSymbol MLNameMaker::nextName()
 {
 	std::string nameStr;
-	unsigned base = 26;
+	int base = 26;
 	char baseChar = 'A';
-	unsigned a, m, d, rem;
+	int a, m, d, rem;
 	
-	std::list<unsigned> digits;
+	std::list<int> digits;
 	a = index++;
 	
 	if (!a)

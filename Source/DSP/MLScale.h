@@ -26,7 +26,7 @@ public:
 	void clear();
 	
 	// add a ratio expressed as a rational number.
-	void addRatio(unsigned n, unsigned d);
+	void addRatio(int n, int d);
 	
 	// add a ratio expressed in cents.
 	void addRatio(double c);
@@ -43,7 +43,7 @@ public:
 
 	float quantizePitch(float a);
 	
-//	double noteToFrequency(unsigned note);  // requires tonic, maybe implement with .kbm mappings
+//	double noteToFrequency(int note);  // requires tonic, maybe implement with .kbm mappings
 
 	void setName(const char* nameStr);
 	void setDescription(const char* descStr);
@@ -55,7 +55,7 @@ private:
 	std::string mDescription;
 	
 	// mNotes entry that points to the ratio 1/1
-	unsigned mTonicNote;
+	int mTonicNote;
 	
 	// list of ratios forming a scale.  The first entry is always 1.0, or 0 cents. 
 	// For scales that repeat on octaves the last entry will always be 2.  
@@ -68,7 +68,7 @@ private:
 	float mPitches[kMLNumRatios];	
 	
 	// mappings from note number to pitch number.
-	unsigned mNotes[kMLNumScaleNotes];
+	int mNotes[kMLNumScaleNotes];
 	
 };
 

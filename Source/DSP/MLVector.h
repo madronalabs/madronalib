@@ -82,9 +82,9 @@ public:
 #endif
 
 	// inspector, return by value
-	inline float operator[] (unsigned i) const { return val.f[i]; }
+	inline float operator[] (int i) const { return val.f[i]; }
 	// mutator, return by reference
-	inline float& operator[] (unsigned i) { return val.f[i]; }
+	inline float& operator[] (int i) { return val.f[i]; }
 
 	bool operator==(const MLVec& b) const;
 	bool operator!=(const MLVec& b) const;

@@ -33,8 +33,6 @@ private:
 	float mNoiseGain;
 	float mNoisePeriodSeconds;
 	float mOneOverNoiseDomain;
-	
-	unsigned mTest;
 };
 
 
@@ -58,7 +56,6 @@ MLProcAllpass::MLProcAllpass()
 	setParam("gain", 0.5f);
 	mGain = 0.5f;
 	mNoiseGain = 0.f;
-	mTest = 0;
 	mNoiseIndex = 0;
 }
 
@@ -141,7 +138,6 @@ void MLProcAllpass::process(const int frames)
 		readIndex &= mLengthMask;
 		mWriteIndex &= mLengthMask;
 	
-// noise annoys
 #if DEMO
 		mNoiseIndex &= mNoiseMask;
 		float p25 = 0.25f;
@@ -177,25 +173,7 @@ void MLProcAllpass::process(const int frames)
 		y[n] = fxn - mGain*v;	
 		mX[mWriteIndex++] = v;
 	}
-	
-#if DEMO
-/*
-	if (mGain == 0.6255f)
-	{
-
-		mTest += frames;
-		if (mTest >= sr)
-		{
-			debug() << "noise period: " << mNoisePeriodSeconds << "\n";
-			debug() << "x:" << mNoiseIndex << ", offset = " << noiseOffset << "\n";
-			debug() << "fx:" << noiseX << "\n";
-			mTest = 0;
-		}
-	}
-*/
-
-#endif
-		
+			
 	// linear interp:
 	//y[n] = frac*x[m+1] + (1-frac)*x[m]
 	

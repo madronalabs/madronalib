@@ -172,7 +172,7 @@ void MLDSPEngine::compileEngine()
 
 // prepareEngine() needs to be called if the sampling rate or block size changes.
 //
-MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned chunkSize)
+MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 {
 	// debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
@@ -201,8 +201,8 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, unsigned bufSize, unsigned chu
 			}
 		}		
 
-		unsigned outs = getNumOutputs();	
-		for(unsigned i=0; i < outs; ++i)
+		int outs = getNumOutputs();	
+		for(int i=0; i < outs; ++i)
 		{
 			if (!mOutputBuffers[i]->resize(bufSize + chunkSize))
 			{
@@ -249,12 +249,12 @@ bail:
 // ----------------------------------------------------------------
 #pragma mark I/O
 
-void MLDSPEngine::setBufferSize(unsigned size) 
+void MLDSPEngine::setBufferSize(int size) 
 {
 	mBufferSize = size;
 }
 
-void MLDSPEngine::setInputChannels(unsigned c) 
+void MLDSPEngine::setInputChannels(int c) 
 {
 	mInputChans = c;
 	mInputSignals.clear();
@@ -265,7 +265,7 @@ void MLDSPEngine::setInputChannels(unsigned c)
 	}
 }
 
-void MLDSPEngine::setOutputChannels(unsigned c) 
+void MLDSPEngine::setOutputChannels(int c) 
 {
 	mOutputChans = c;
 	for (int i=0; i<mOutputChans; i++)
@@ -532,23 +532,23 @@ void MLDSPEngine::clearMIDI()
 	}
 }
 
-void MLDSPEngine::addNoteOn(unsigned note, unsigned vel, unsigned time)
+void MLDSPEngine::addNoteOn(int chan, int note, int vel, int time)
 {
 	if (mpInputToSignalsProc)
 	{
-		mpInputToSignalsProc->addNoteOn(note, vel, time);
+		mpInputToSignalsProc->addNoteOn(chan, note, vel, time);
 	}
 }
 
-void MLDSPEngine::addNoteOff(unsigned note, unsigned vel, unsigned time)
+void MLDSPEngine::addNoteOff(int chan, int note, int vel, int time)
 {
 	if (mpInputToSignalsProc)
 	{
-		mpInputToSignalsProc->addNoteOff(note, vel, time);
+		mpInputToSignalsProc->addNoteOff(chan, note, vel, time);
 	}
 }
 
-void MLDSPEngine::setController(unsigned controller, unsigned value, unsigned time)
+void MLDSPEngine::setController(int controller, int value, int time)
 {
 	if (mpInputToSignalsProc)
 	{
@@ -556,23 +556,23 @@ void MLDSPEngine::setController(unsigned controller, unsigned value, unsigned ti
 	}
 }
 
-void MLDSPEngine::setPitchWheel(unsigned value, unsigned time)
+void MLDSPEngine::setPitchWheel(int chan, int value, int time)
 {
 	if (mpInputToSignalsProc)
 	{
-		mpInputToSignalsProc->setPitchWheel(value, time);
+		mpInputToSignalsProc->setPitchWheel(chan, value, time);
 	}
 }
 
-void MLDSPEngine::setAfterTouch(unsigned note, unsigned value, unsigned time)
+void MLDSPEngine::setAfterTouch(int chan, int note, int value, int time)
 {
 	if (mpInputToSignalsProc)
 	{
-		mpInputToSignalsProc->setAfterTouch(note, value, time);
+		mpInputToSignalsProc->setAfterTouch(chan, note, value, time);
 	}
 }
 
-void MLDSPEngine::setChannelAfterTouch(unsigned value, unsigned time)
+void MLDSPEngine::setChannelAfterTouch(int value, int time)
 {
 	if (mpInputToSignalsProc)
 	{
@@ -580,7 +580,7 @@ void MLDSPEngine::setChannelAfterTouch(unsigned value, unsigned time)
 	}
 }
 
-void MLDSPEngine::setSustainPedal(int value, unsigned time)
+void MLDSPEngine::setSustainPedal(int value, int time)
 {
 	if (mpInputToSignalsProc)
 	{
@@ -618,7 +618,7 @@ void MLDSPEngine::setCollectStats(bool k)
 
 // run one buffer of the compiled graph, processing signals from the global inputs (if any)
 // to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
-void MLDSPEngine::processBlock(const int newSamples, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+void MLDSPEngine::processBlock(const int frames, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {
 	int sr = getSampleRate();
 	int processed = 0;
@@ -633,7 +633,7 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 	// count sample interval to collect stats
 	if (mCollectStats)
 	{
-		mStatsCount += newSamples;
+		mStatsCount += frames;
 		const int statsInterval = 1;
 		if (mStatsCount > sr * statsInterval)
 		{	
@@ -642,10 +642,10 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 		}
 	}
 
-	writeInputBuffers(newSamples);
-	mSamplesToProcess += newSamples;
+	writeInputBuffers(frames);
+	mSamplesToProcess += frames;
 	
-	//debug() << "new samples: " << newSamples << "\n";
+	//debug() << "new samples: " << frames << "\n";
 
 	// set denormal state
 	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
@@ -659,8 +659,16 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 		// set MIDI signals offset into change lists
 		if (mpInputToSignalsProc)
 		{
-			mpInputToSignalsProc->setMIDIFrameOffset(processed);
+			// mpInputToSignalsProc->setMIDIFrameOffset(processed);
+            
+            // send events to the graph. subtract the frame offset here.
+            
+            
+            
 		}
+        
+        
+        
 		
 		if (reportStats)
 		{
@@ -697,7 +705,7 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
                 startTime = juce::Time::getHighResolutionTicks();
             }
 			
-			process(mVectorSize); 
+			process(mVectorSize);  // MLProcContainer::process()
 			
 			if (mCollectStats) 
 			{
@@ -741,7 +749,7 @@ void MLDSPEngine::processBlock(const int newSamples, const int64_t , const doubl
 		processed += mVectorSize;
 		mSamplesToProcess -= mVectorSize;
 	}	
-	readOutputBuffers(newSamples);
+	readOutputBuffers(frames);
 
 	_mm_setcsr( oldMXCSR ); // restore MXCSR state
 }

@@ -56,8 +56,8 @@ MLProc::err MLProcDelay::resize()
 {	
 	MLProc::err e = OK;
 	const float sr = getContextSampleRate();
-	unsigned lenBits = bitsToContain((int)(getParam("length") * sr));
-	unsigned length = 1 << lenBits;
+	int lenBits = bitsToContain((int)(getParam("length") * sr));
+	int length = 1 << lenBits;
 	mLengthMask = length - 1;
 	
 	MLSample* pBuf = mBuffer.setDims(length);
@@ -93,7 +93,7 @@ void MLProcDelay::process(const int frames)
 		// read
 		// zero order (integer delay)
 		MLSample delay = delaySig[n] * sr;
-//		unsigned delayInt = floor(delay);
+//		int delayInt = floor(delay);
 		int delayInt = (int)delay;
 		readIndex = mWriteIndex - delayInt;
 		readIndex &= mLengthMask;

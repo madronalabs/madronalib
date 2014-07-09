@@ -30,10 +30,11 @@ public:
 	MLKeyEvent();
 	~MLKeyEvent() {};
 	void clear();
-	void setup(int note, int vel, int time, int order);
+	void setup(int chan, int note, int vel, int time, int order);
 	void setVoice(int v);
 	inline bool isSounding() { return (mVoiceState >= 0); }
 	
+	int mChan;
 	int mNote;
 	int mVel;
 	int mStartTime;
@@ -116,13 +117,14 @@ public:
 	void clearEvent(MLKeyEvent& event, int time);
 	bool hasHeldKeyEvent(int v);
 
-	void addNoteOn(int note, int vel, int time);
-	void addNoteOff(int note, int vel, int time);
+	void addNoteOn(int chan, int note, int vel, int time);
+	void addNoteOff(int chan, int note, int vel, int time);
+	void setPitchWheel(int chan, int value, int time);
+	void setAfterTouch(int chan, int note, int value, int time);
+
 	void allNotesOff();
 	void setRetrig(bool r);
 	void setController(int controller, int value, int time);
-	void setPitchWheel(int value, int time);
-	void setAfterTouch(int note, int value, int time);
 	void setChannelAfterTouch(int value, int time);
 	void setSustainPedal(int value, int time);
 	
@@ -134,12 +136,28 @@ public:
 	void doParams();
 
 private:
+    class NoteEvent
+    {
+    public:
+        NoteEvent()
+            : channel(0), note(0), velocity(0), frameTime(0) {}
+        NoteEvent(int c, int n, int v, int t)
+            : channel(c), note(n), velocity(v), frameTime(t) {}
+        ~NoteEvent() {}
+        
+        int channel;
+        int note;
+        int velocity;
+        int frameTime;
+    };
+
 	void dumpEvents();
 	void dumpVoices();
 	int allocate();
-	void sendEventToVoice(MLKeyEvent& e, int voiceIdx, int frames);
-	void doNoteOn(int note, int vel, int time, int frames);
-	void doNoteOff(int note, int time, int frames);
+	void sendEventToVoice(MLKeyEvent& e, int voiceIdx);
+    
+	void doNoteOn(const NoteEvent& event);
+	void doNoteOff(const NoteEvent& event);
 
 	int mProtocol;
 	MLProcInfo<MLProcInputToSignals> mInfo;
@@ -152,7 +170,7 @@ private:
 	int mNextVoiceIdx;
 	
 	PaUtilRingBuffer mNoteBuf;
-	int mNoteBufData[kNoteBufElements];
+	NoteEvent mNoteBufData[kNoteBufElements];
 		
 	MLChangeList mdChannelAfterTouch;
 	MLChangeList mdPitchBend;
@@ -187,6 +205,7 @@ private:
 	
 	int temp;
 	bool mSustain;
+    bool mMultiChan;
 };
 
 

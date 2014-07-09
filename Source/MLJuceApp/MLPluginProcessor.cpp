@@ -291,20 +291,36 @@ void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
     int time;
 		
 	mEngine.clearMIDI();
-    while (i.getNextEvent(message, time)) 
+    while (i.getNextEvent(message, time)) // writes to time
 	{
 		if (message.isNoteOn())
 		{
+			int chan = message.getChannel();
 			int note = message.getNoteNumber();
 			int vel = message.getVelocity();
-			mEngine.addNoteOn(note, vel, time);
+			mEngine.addNoteOn(chan, note, vel, time);
 		}		
 		else if(message.isNoteOff())
 		{
+			int chan = message.getChannel();
 			int note = message.getNoteNumber();
 			int vel = message.getVelocity();
-			mEngine.addNoteOff(note, vel, time);
+			mEngine.addNoteOff(chan, note, vel, time);
 		}		
+		else if (message.isAftertouch())
+		{
+			int chan = message.getChannel();
+			int note = message.getNoteNumber();
+			int value = message.getAfterTouchValue();
+			mEngine.setAfterTouch(chan, note, value, time);
+		}
+		else if (message.isPitchWheel())
+		{
+			int chan = message.getChannel();
+			int value = message.getPitchWheelValue();
+            //debug() << "pitch bend " << value << ", " << time << "\n";
+			mEngine.setPitchWheel(chan, value, time);
+		}
 		else if (message.isSustainPedalOn())
 		{			
 			mEngine.setSustainPedal(1, time);
@@ -317,29 +333,19 @@ void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 		{
 			int controller = message.getControllerNumber();
 			int value = message.getControllerValue();
+//debug() << "ctrl " << controller << ", val " << value << ", t " << time << "\n";
+            
 			mEngine.setController(controller, value, time);
-		}
-		else if (message.isAftertouch())
-		{
-			int note = message.getNoteNumber();
-			int value = message.getAfterTouchValue();
-			mEngine.setAfterTouch(note, value, time);
 		}
 		else if (message.isChannelPressure())
 		{
 			int value = message.getChannelPressureValue();
 			mEngine.setChannelAfterTouch(value, time);
 		}
-		else if (message.isPitchWheel())
-		{			
-			int value = message.getPitchWheelValue();
-			//debug() << "pitch bend " << value << ", " << time << "\n";
-			mEngine.setPitchWheel(value, time);
-		}
 		else if (message.isProgramChange())
 		{
 			int pgm = message.getProgramChangeNumber();
-debug() << "program change " << pgm << "\n";
+//debug() << "program change " << pgm << "\n";
 			if(pgm == kMLPluginMIDIPrograms)	
 			{
 				// load most recent saved program
@@ -406,7 +412,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			<< " secs:" << secsPosition << "\n";
 		}
 			
-		// set Engine I/O.  done here because JUCE may change pointers on us.  possibly.
+		// set Engine I/O.  done here each time because JUCE may change pointers on us.  possibly.
 		MLDSPEngine::ClientIOMap ioMap;
 
 		for (int i=0; i<getNumInputChannels(); ++i)
@@ -418,11 +424,19 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			ioMap.outputs[i] = buffer.getWritePointer(i);
 		}
 		mEngine.setIOBuffers(ioMap);
-				
+        
 		if(acceptsMidi()) processMIDI(midiMessages);
-		
+        
+        /*
+        if(acceptsMidi())
+        {
+            convertMIDIToEvents(midiMessages, events);
+        }
+		*/
+        
 		// do everything
 		mEngine.processBlock(samples, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+//		mEngine.processBlock(samples, events, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 		
 		// must clear the MIDI buffer otherwise messages will be passed back to the host
 		if(acceptsMidi()) midiMessages.clear();

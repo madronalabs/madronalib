@@ -24,8 +24,8 @@ public:
 	void clear();
 	void process(const int n);		
 	
-	unsigned read(MLSample* pOut, unsigned samples);
-	unsigned readToOutputSignal(const unsigned samples);
+	int read(MLSample* pOut, int samples);
+	int readToOutputSignal(const int samples);
 	MLSignal& getBuffer() {return mBuffer;}
 	
 	MLSignal mBuffer;

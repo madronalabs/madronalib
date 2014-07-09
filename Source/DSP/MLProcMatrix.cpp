@@ -38,8 +38,8 @@ MLProcMatrix::~MLProcMatrix()
 MLProc::err MLProcMatrix::resize()
 {
 	MLProc::err e = OK;
-	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
     mInputs = inputs;
     mOutputs = outputs;
 	return e;
@@ -48,9 +48,9 @@ MLProc::err MLProcMatrix::resize()
 void MLProcMatrix::clearConnections()
 {
 //debug() << "MLProcMatrix::MLProcMatrix::clearConnections! \n";
-	for (unsigned i=1; i <= kMLMatrixMaxIns; ++i)
+	for (int i=1; i <= kMLMatrixMaxIns; ++i)
 	{
-		for (unsigned j=1; j <= kMLMatrixMaxOuts; ++j)
+		for (int j=1; j <= kMLMatrixMaxOuts; ++j)
 		{
 			mGain[i][j] = 0.;
 		}
@@ -58,20 +58,20 @@ void MLProcMatrix::clearConnections()
 }
 
 // multiple connections are made here using connect method.
-void MLProcMatrix::connect(unsigned a, unsigned b)
+void MLProcMatrix::connect(int a, int b)
 {
-	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		mGain[a][b] = 1.;
 	}
 }
 
-void MLProcMatrix::disconnect(unsigned a, unsigned b)
+void MLProcMatrix::disconnect(int a, int b)
 {
-	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		mGain[a][b] = 0.;
@@ -79,11 +79,11 @@ void MLProcMatrix::disconnect(unsigned a, unsigned b)
 }
 
 // get a single connection.
-bool MLProcMatrix::getConnection(unsigned a, unsigned b)
+bool MLProcMatrix::getConnection(int a, int b)
 {
 	bool r = false;
-	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		r = (mGain[a][b] > 0.5f);
@@ -124,8 +124,8 @@ void MLProcMatrix::calcCoeffs()
 
 void MLProcMatrix::process(const int frames)
 {
-	const unsigned inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const unsigned outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
 	
     if((inputs != mInputs) || (outputs != mOutputs))
     {
@@ -139,11 +139,11 @@ void MLProcMatrix::process(const int frames)
     
 	// TODO optimize, calc constants
 	
-	for (unsigned j=1; j <= outputs; ++j)
+	for (int j=1; j <= outputs; ++j)
 	{
 		MLSignal& y = getOutput(j);
 		y.clear();
-		for (unsigned i=1; i <= inputs; ++i)
+		for (int i=1; i <= inputs; ++i)
 		{
 			const MLSignal& x = getInput(i);
 			if (mGain[i][j] > 0.)

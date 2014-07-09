@@ -39,7 +39,7 @@ void MLScale::setDefaultScale()
 	setName("12-equal");
 	setDescription("The chromatic equal-tempered scale.");
 	// make 12-ET scale	
-	for(unsigned i=1; i<=12; ++i)
+	for(int i=1; i<=12; ++i)
 	{
 		addRatio(100.0 * i);
 	}
@@ -51,7 +51,7 @@ void MLScale::clear()
 	addRatio(0.0);
 }
 
-void MLScale::addRatio(unsigned n, unsigned d)
+void MLScale::addRatio(int n, int d)
 {
 	double ratio = ((double)n / (double)d);
 	mRatioList.push_back(ratio);

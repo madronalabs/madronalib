@@ -152,7 +152,7 @@ void MLProcMultiplyAdd::process(const int frames)
 	__m128 vm1, vm2, va1, vr; 
 	int c = frames >> kMLSamplesPerSSEVectorBits;
 
-	const unsigned mode = (km1 << 2) + (km2 << 1) + ka1;
+	const int mode = (km1 << 2) + (km2 << 1) + ka1;
 	
 	switch(mode)
 	{

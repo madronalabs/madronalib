@@ -157,7 +157,7 @@ public:
      MLSample MLSignal::operator() (float fi) const
      {
      MLSample a, b;
-     unsigned i = floor(fi);
+     int i = floor(fi);
      float remainder = fi - i;
      a = mData[i&mWidthMask];
      b = mData[(i + 1)&(mWidthMask)];
@@ -429,7 +429,7 @@ private:
 	MLSample* mCopyAligned;
 
 	// mask for array lookups. By setting to zero, the signal becomes a constant.
-	unsigned long mConstantMask;	
+	int mConstantMask;
 	
 	// total power-of-two size in samples, stored for fast access by clear() etc.
 	int mSize; 

@@ -31,7 +31,7 @@ static const int kMLMaxNumberLength = 8;
 class MLSymbolKey
 {
 public:
-	MLSymbolKey(const char * data, unsigned len);
+	MLSymbolKey(const char * data, int len);
 	~MLSymbolKey();
 	
 	// make a local copy of the external char array we are referencing.
@@ -40,7 +40,7 @@ public:
 	bool operator< (const MLSymbolKey& b) const;
 	
 	const char * mpData;
-	unsigned mLength;
+	int mLength;
 	std::string* mpString;
 };
 
@@ -173,7 +173,7 @@ public:
 	const MLSymbol nextName();
 
 private:
-	unsigned index;
+	int index;
 	
 };
 

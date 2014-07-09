@@ -25,10 +25,6 @@ private:
 	
 	MLSample mY1;
 	MLSample mC1;
-//	unsigned mTimeInSamples;
-
-	unsigned mTemp;
-
 };
 
 
@@ -51,7 +47,6 @@ ML_UNUSED MLProcOutput<MLProcPeak> outputs[] = {"out"};
 
 MLProcPeak::MLProcPeak()
 {
-	mTemp = 0;
 	setParam("time", 0.25f);	// seconds
 }
 

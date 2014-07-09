@@ -28,7 +28,7 @@ private:
 	
 	MLProcDelayInput* mpDelayInputProc;
 	uintptr_t mReadIndex;
-	unsigned mVectorDelay;
+	int mVectorDelay;
 	uintptr_t mLengthMask;
 
 };
@@ -86,7 +86,7 @@ void MLProcDelayOutput::doParams()
 	
 	MLProcContainer* myContainer = static_cast<MLProcContainer*>(getContext());
 	const std::string myName = getName().getString();
-	unsigned dPos = myName.find('_');
+	int dPos = myName.find('_');
 	
 	MLPath delayName (myName.substr(0, dPos));
 	MLProcPtr myInputProc = myContainer->getProc(delayName);
@@ -133,7 +133,7 @@ void MLProcDelayOutput::process(const int frames)
 	const float sr = getContextSampleRate();
 	MLSample delay;
 	
-	unsigned delayedIndex;
+	int delayedIndex;
 
 	if (mParamsChanged) doParams();
 	

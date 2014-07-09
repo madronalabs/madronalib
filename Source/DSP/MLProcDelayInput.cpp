@@ -39,8 +39,8 @@ MLProc::err MLProcDelayInput::resize()
 {	
 	MLProc::err e = OK;
 	const float sr = getContextSampleRate();
-	unsigned lenBits = bitsToContain((int)(getParam("length") * sr));
-	unsigned length = 1 << lenBits;
+	int lenBits = bitsToContain((int)(getParam("length") * sr));
+	int length = 1 << lenBits;
 	mLengthMask = length - 1;
 	
 	MLSample* pBuf = mBuffer.setDims(length);

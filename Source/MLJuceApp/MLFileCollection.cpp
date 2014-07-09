@@ -128,19 +128,13 @@ void MLFileCollection::SearchThread::run()
         // good practice to check this even if we are only running for a short while
         if (threadShouldExit())
             return;
-
+        setProgress((float)(i + 1) / (float)filesFound);
         mCollection.iterateProcessFiles(i);
-        
-        float p = (float)(i + 1) / (float)filesFound;
-        setProgress(p);
-  
-        debug() << "iterateProcessFiles progress:" << p << "\n";
     }
 }
 
 void MLFileCollection::searchForFilesNow()
 {
-    debug() << "STARTING\n";
     mSearchThread = std::tr1::shared_ptr<SearchThread>(new SearchThread(*this));
     mSearchThread->startThread();
 }

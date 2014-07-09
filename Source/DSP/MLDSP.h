@@ -110,7 +110,7 @@ inline float fSignBit(float f)
 
 MLSample* alignToCacheLine(const MLSample* p);
 int bitsToContain(int n);
-unsigned ilog2(unsigned x);
+int ilog2(int n);
 
 inline MLSample lerp(const MLSample a, const MLSample b, const MLSample m)
 {

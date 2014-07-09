@@ -196,16 +196,16 @@ public:
 	friend class MLDSPEngine;
 	public:
 		
-		MLPipe(MLProcPtr a, unsigned ai, MLProcPtr b, unsigned bi) :
+		MLPipe(MLProcPtr a, int ai, MLProcPtr b, int bi) :
 			mSrc(a), mSrcIndex(ai), mDest(b), mDestIndex(bi)
 			{};
 		~MLPipe()
 			{};
 		
 		MLProcPtr mSrc;
-		unsigned mSrcIndex;
+		int mSrcIndex;
 		MLProcPtr mDest;
-		unsigned mDestIndex;
+		int mDestIndex;
 	};
 
 	typedef std::tr1::shared_ptr<MLPipe> MLPipePtr;

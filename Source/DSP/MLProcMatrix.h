@@ -21,9 +21,9 @@ public:
 	
 	MLProc::err resize();
 	void clearConnections();
-	void connect(unsigned a, unsigned b);
-	void disconnect(unsigned a, unsigned b);
-	bool getConnection(unsigned a, unsigned b);
+	void connect(int a, int b);
+	void disconnect(int a, int b);
+	bool getConnection(int a, int b);
 
 	void clear(){};
 	void process(const int frames);		

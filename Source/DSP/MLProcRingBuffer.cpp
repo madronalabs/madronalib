@@ -31,7 +31,6 @@ MLProcRingBuffer::MLProcRingBuffer()
 	setParam("length", kMLRingBufferDefaultSize);	
 	setParam("mode", eMLRingBufferNoTrash);
 	mTrig1 = -1.f;
-	mTemp = 0;
 }
 
 
@@ -43,7 +42,7 @@ MLProcRingBuffer::~MLProcRingBuffer()
 MLProc::err MLProcRingBuffer::resize() 
 {	
 	MLProc::err e = OK;
-	unsigned size = 1 << bitsToContain((int)getParam("length"));
+	int size = 1 << bitsToContain((int)getParam("length"));
 	void * buf;
 	
 	// debug() << "allocating " << size << " samples for ringbuffer " << getName() << "\n";
@@ -99,7 +98,7 @@ void MLProcRingBuffer::process(const int frames)
 
 // read a ring buffer into the given row of the destination signal.
 //
-unsigned MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
+int MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
 {
 	int lastRead = 0;
 	int skipped = 0;

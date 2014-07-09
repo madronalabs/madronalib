@@ -431,7 +431,7 @@ MLProcResample::MLProcResample()
 	int halfBandOrder = 8; // not the overall resampling order
 	int steep = 1;
 	mx1 = 0.f;
-	for(unsigned n=0; n<4; ++n)
+	for(int n=0; n<4; ++n)
 	{
 		mFilters[n] = 0;
 		mFilters[n] = new HalfBandFilter(halfBandOrder, steep);
@@ -445,7 +445,7 @@ MLProcResample::MLProcResample()
 
 MLProcResample::~MLProcResample()
 {
-	for(unsigned n=0; n<4; ++n)
+	for(int n=0; n<4; ++n)
 	{
 		if (mFilters[n])
 		{
@@ -479,7 +479,7 @@ MLProc::err MLProcResample::resize()
 void MLProcResample::clear()
 {
 	mx1 = 0.f;
-	for(unsigned n=0; n<4; ++n)
+	for(int n=0; n<4; ++n)
 	{
 		if (mFilters[n])
 		{

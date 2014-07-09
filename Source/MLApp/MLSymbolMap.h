@@ -27,9 +27,9 @@ public:
 	} 
 	
 	// return one-based index of parameter if found, otherwise 0.
-	unsigned getIndex(const MLSymbol paramName)
+	int getIndex(const MLSymbol paramName)
 	{	
-		unsigned index = 0;
+		int index = 0;
 
 		// get named entry from parameter map
 		MLSymbolMapT::const_iterator i;
@@ -89,12 +89,12 @@ public:
 	// return element ptr by key.  If key is not found, return safe null ptr.
 	arrayElement * operator[] (const MLSymbol key)
 	{
-		unsigned zeroIndex, overflowIndex;
+		int zeroIndex, overflowIndex;
 		
 		arrayElement * p = &mNullData;
 		if (pMap)
 		{
-			unsigned idx = pMap->getIndex(key);
+			int idx = pMap->getIndex(key);
 			if (idx)
 			{
 				zeroIndex = idx - 1;
@@ -133,7 +133,7 @@ public:
 	
 private:
 
-	arrayElement* reallocate(unsigned newSize)
+	arrayElement* reallocate(int newSize)
 	{
 		arrayElement* pTemp;
 		pTemp = new arrayElement[newSize];
@@ -151,7 +151,7 @@ private:
 	// TODO investigate problem with non-local storage !?
 	arrayElement mData[localStorageSize];
 	arrayElement* mOverflowData;
-	unsigned mOverflowSize;
+	int mOverflowSize;
 	
 	MLSymbolMap* pMap;
 	

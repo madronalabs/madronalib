@@ -14,7 +14,7 @@
 #include "MLRingBuffer.h"
 #include "OscTypes.h"
 
-const unsigned kMLEngineMaxChannels = 8;
+const int kMLEngineMaxChannels = 8;
 
 extern const char * kMLInputToSignalProcName;
 extern const char * kMLHostPhasorProcName;
@@ -47,17 +47,17 @@ public:
 	
 	void compileEngine();
 	bool getCompileStatus(void) {return mCompileStatus;}
-	MLProc::err prepareEngine(double sr, unsigned bufSize, unsigned chunkSize);
+	MLProc::err prepareEngine(double sr, int bufSize, int chunkSize);
 
 	// ----------------------------------------------------------------
 	// I/O
 			
 	// set size of I/O buffers. 
-	void setBufferSize(unsigned size);
-	unsigned getBufferSize(void){ return mBufferSize; }
+	void setBufferSize(int size);
+	int getBufferSize(void){ return mBufferSize; }
 
-	void setInputChannels(unsigned c); 
-	void setOutputChannels(unsigned c); 
+	void setInputChannels(int c); 
+	void setOutputChannels(int c); 
 	
 	// set external buffers for top level I/O with client
 	void setIOBuffers(const ClientIOMap& pMap);
@@ -83,14 +83,18 @@ public:
 	void setInputProtocol(int p);
 	void setInputDataRate(int p);
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
-	void clearMIDI();		
-	void addNoteOn(unsigned note, unsigned vel, unsigned time);
-	void addNoteOff(unsigned note, unsigned vel, unsigned time);
-	void setController(unsigned controller, unsigned value, unsigned time);
-	void setPitchWheel(unsigned value, unsigned time);
-	void setAfterTouch(unsigned note, unsigned value, unsigned time);
-	void setChannelAfterTouch(unsigned value, unsigned time);
-	void setSustainPedal(int value, unsigned time);
+	void clearMIDI();
+    
+    // to individual channels
+	void addNoteOn(int chan, int note, int vel, int time);
+	void addNoteOff(int chan, int note, int vel, int time);
+	void setPitchWheel(int chan, int value, int time);
+	void setAfterTouch(int chan, int note, int value, int time);
+    
+    // to all channels
+	void setController(int controller, int value, int time);
+	void setChannelAfterTouch(int value, int time);
+	void setSustainPedal(int value, int time);
 	
 	MLScale* getScale();
 	
@@ -142,7 +146,7 @@ private:
 	std::vector<MLRingBufferPtr> mOutputBuffers;
 
 	bool mCollectStats;
-	unsigned mBufferSize;
+	int mBufferSize;
 	err mGraphStatus;
 	err mCompileStatus;
 	
