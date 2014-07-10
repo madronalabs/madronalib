@@ -6,14 +6,64 @@
 #ifndef __ML_MODEL__
 #define __ML_MODEL__
 
+#include <string>
 #include "MLSignal.h"
 #include "MLSymbol.h"
-#include "MLModelParam.h"
+#include "MLDebug.h"
+
+// MLModelProperty: a modifiable property of a model. Model properties have three types: float, string, and signal.
+
+class MLModelProperty
+{
+public:
+	enum eType
+	{
+		kUndefinedProperty	= 0,
+		kFloatProperty	= 1,
+		kStringProperty = 2,
+		kSignalProperty = 3
+	};
+    
+	MLModelProperty();
+	MLModelProperty(const MLModelProperty& other);
+	MLModelProperty& operator= (const MLModelProperty & other);
+	MLModelProperty(float v);
+	MLModelProperty(const std::string& s);
+	MLModelProperty(const MLSignal& s);
+	~MLModelProperty();
+    
+	float getFloatValue() const;
+	const std::string* getStringValue() const;
+	const MLSignal* getSignalValue() const;
+    
+    // set an existing attibute to a new value. values cannot change type.
+	void setValue(float v);
+	void setValue(const std::string& v);
+	void setValue(const MLSignal& v);
+	
+	bool operator== (const MLModelProperty& b) const;
+	bool operator!= (const MLModelProperty& b) const;
+	eType getType() const { return mType; }
+	
+	bool operator<< (const MLModelProperty& b) const;
+	
+private:
+	
+	eType mType;
+	union
+	{
+		float mFloatVal;
+		std::string* mpStringVal;
+		MLSignal* mpSignalVal;
+	} mVal;
+};
+
+std::ostream& operator<< (std::ostream& out, const MLModelProperty & r);
 
 class MLModel;
 
 // ----------------------------------------------------------------
-// MLModelListeners are notified when any of a Model's parameters change. 
+// MLModelListeners are notified when any of a Model's properties change.
 
 class MLModelListener
 {
@@ -22,47 +72,44 @@ public:
 	virtual ~MLModelListener() {}
 	
 	// mark one parameter as changed. 
-	void modelParamChanged(MLSymbol p);
+	void modelPropertyChanged(MLSymbol p);
 
 	// mark one parameter as changed. 
 	void modelStringParamChanged(MLSymbol p);
 
 	// do an action for any params with changed values.
-	void updateChangedParams();
+	void updateChangedProperties();
 	
 	// force an update of all params.
-	void updateAllParams();
+	void updateAllProperties();
 
-	virtual void doParamChangeAction(MLSymbol param, const MLModelParam & oldVal, const MLModelParam & newVal) = 0;
+	virtual void doPropertyChangeAction(MLSymbol param, const MLModelProperty & oldVal, const MLModelProperty & newVal) = 0;
 	
 protected:	
 	// represent the state of a model parameter relative to updates. 
-	class ModelParamState
+	class ModelPropertyState
 	{
 	public:
-		ModelParamState() : 
+		ModelPropertyState() : 
 			mInitialized(false),
 			mChangedSinceUpdate(true)
 			{};
 			
-		~ModelParamState() {}
+		~ModelPropertyState() {}
 		
 		bool mInitialized;  
 		bool mChangedSinceUpdate; 
-		MLModelParam mValue;
+		MLModelProperty mValue;
 	};
 		
-	std::map<MLSymbol, ModelParamState> mModelParamStates;
+	std::map<MLSymbol, ModelPropertyState> mModelPropertyStates;
 
 	MLModel* mpModel;
 };
 
 // ----------------------------------------------------------------
-#pragma mark MVC application attribute code
 
-// TODO WHY did I call attributes "parameters"? Lots of renaming to do.
-
-typedef std::map<MLSymbol, MLModelParam> MLModelParameterMap;
+typedef std::map<MLSymbol, MLModelProperty> MLModelPropertyMap;
 
 class MLModel
 {
@@ -70,25 +117,25 @@ public:
 	MLModel();
 	virtual ~MLModel();	
 
-	inline const MLModelParam& getModelParam(MLSymbol p) { return mParams[p]; }
+	inline const MLModelProperty& getModelProperty(MLSymbol p) { return mProperties[p]; }
 
-	inline float getModelFloatParam(MLSymbol p) { return mParams[p].getFloatValue(); }
-	inline const std::string* getModelStringParam(MLSymbol p) { return mParams[p].getStringValue(); }
-	inline const MLSignal* getModelSignalParam(MLSymbol p) { return mParams[p].getSignalValue(); }
+	inline float getModelFloatParam(MLSymbol p) { return mProperties[p].getFloatValue(); }
+	inline const std::string* getModelStringParam(MLSymbol p) { return mProperties[p].getStringValue(); }
+	inline const MLSignal* getModelSignalParam(MLSymbol p) { return mProperties[p].getSignalValue(); }
 
-	virtual void setModelParam(MLSymbol p, float v);
-	virtual void setModelParam(MLSymbol p, const std::string& v) ;
-	virtual void setModelParam(MLSymbol p, const MLSignal& v) ;
+	virtual void setModelProperty(MLSymbol p, float v);
+	virtual void setModelProperty(MLSymbol p, const std::string& v);
+	virtual void setModelProperty(MLSymbol p, const MLSignal& v);
 	
-	void addParamListener(MLModelListener* pL);
-	void removeParamListener(MLModelListener* pToRemove);
-	void broadcastAllParams();
+	void addPropertyListener(MLModelListener* pL);
+	void removePropertyListener(MLModelListener* pToRemove);
+	void broadcastAllProperties();
 	
 protected:
-	MLModelParameterMap mParams;
+	MLModelPropertyMap mProperties;
 
 	std::list<MLModelListener*> mpListeners;
-	void broadcastParam(MLSymbol p);
+	void broadcastProperty(MLSymbol p);
 	void broadcastStringParam(MLSymbol p);
 };
 

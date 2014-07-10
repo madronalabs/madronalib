@@ -54,8 +54,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	// TODO refactor
 	if (makeMidiInput)
  	{
-		// debug() << "building MIDI input... ";
-		// make XML node describing MIDI to signal processor. 
+		// make XML node describing MIDI to signal processor.
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
 		pElem->setAttribute("name", juce::String(kMLInputToSignalProcName));
@@ -660,11 +659,7 @@ void MLDSPEngine::processBlock(const int frames, const int64_t , const double se
 		if (mpInputToSignalsProc)
 		{
 			// mpInputToSignalsProc->setMIDIFrameOffset(processed);
-            
             // send events to the graph. subtract the frame offset here.
-            
-            
-            
 		}
         
         

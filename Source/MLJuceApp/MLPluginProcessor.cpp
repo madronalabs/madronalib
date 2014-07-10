@@ -428,15 +428,19 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		if(acceptsMidi()) processMIDI(midiMessages);
         
         /*
+         TODO something nicer like this, see MLControlEvent and refactor this business
         if(acceptsMidi())
         {
             convertMIDIToEvents(midiMessages, events);
+            
+            // must clear the MIDI buffer otherwise messages will be passed back to the hostf
+            midiMessages.clear();
         }
-		*/
+         mEngine.processBlock(samples, events, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+        */
         
 		// do everything
 		mEngine.processBlock(samples, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
-//		mEngine.processBlock(samples, events, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 		
 		// must clear the MIDI buffer otherwise messages will be passed back to the host
 		if(acceptsMidi()) midiMessages.clear();
@@ -478,7 +482,7 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 	
 	// set MLModel Parameter 
 	MLSymbol paramName = getParameterAlias(index);
-	setModelParam(paramName, newValue);
+	setModelProperty(paramName, newValue);
 }
 
 // set parameter by name. Typically called from internal code. 
@@ -492,7 +496,7 @@ void MLPluginProcessor::setParameter (MLSymbol paramName, float newValue)
 	mHasParametersSet = true;
 	
 	// set MLModel Parameter 
-	setModelParam(paramName, newValue);
+	setModelProperty(paramName, newValue);
 }
 
 float MLPluginProcessor::getParameterAsLinearProportion (int index)
@@ -520,7 +524,7 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		// set MLModel Parameter 
 		MLSymbol paramName = getParameterAlias(index);
 		float realVal = mEngine.getParamByIndex(index);
-		setModelParam(paramName, realVal);
+		setModelProperty(paramName, realVal);
 	}
 }
 
@@ -655,14 +659,14 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 // --------------------------------------------------------------------------------
 #pragma mark MLModel params TODO should be called attributes
 
-void MLPluginProcessor::setModelParam(MLSymbol p, float v)
+void MLPluginProcessor::setModelProperty(MLSymbol p, float v)
 {
-	MLModel::setModelParam(p, v);
+	MLModel::setModelProperty(p, v);
 }
 
-void MLPluginProcessor::setModelParam(MLSymbol p, const std::string& v)
+void MLPluginProcessor::setModelProperty(MLSymbol p, const std::string& v)
 {
-	MLModel::setModelParam(p, v);
+	MLModel::setModelProperty(p, v);
 	if (p == "key_scale")
 	{
         bool loaded = false;
@@ -685,9 +689,9 @@ void MLPluginProcessor::setModelParam(MLSymbol p, const std::string& v)
     }
 }
 
-void MLPluginProcessor::setModelParam(MLSymbol p, const MLSignal& v)
+void MLPluginProcessor::setModelProperty(MLSymbol p, const MLSignal& v)
 {
-	MLModel::setModelParam(p, v);
+	MLModel::setModelProperty(p, v);
 }
 
 
@@ -930,12 +934,12 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     {
         fullName = "12-equal";
     }
-	setModelParam("key_scale", std::string(fullName.toUTF8()));
+	setModelProperty("key_scale", std::string(fullName.toUTF8()));
     
 	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
     
 	const String presetName = xmlState.getStringAttribute ("presetName");
-	setModelParam("preset", std::string(presetName.toUTF8()));
+	setModelProperty("preset", std::string(presetName.toUTF8()));
     
 	/*
      debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
@@ -1128,7 +1132,7 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
     
     // the Model param contains the file path relative to the root.
     std::string shortPath = stripExtension(path);
-    setModelParam("preset", shortPath);
+    setModelProperty("preset", shortPath);
     
  
 #ifdef ML_PRESETS_ONLY
@@ -1170,7 +1174,7 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         {
             loadStateFromFile(f->mFile);
             std::string shortPath = stripExtension(path);
-            setModelParam("preset", shortPath);
+            setModelProperty("preset", shortPath);
         }
     }
 }

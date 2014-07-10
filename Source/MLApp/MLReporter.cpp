@@ -8,30 +8,30 @@
 // --------------------------------------------------------------------------------
 #pragma mark param viewing 
 
-MLParamView::MLParamView(MLWidget* w, MLSymbol a) :
+MLPropertyView::MLPropertyView(MLWidget* w, MLSymbol a) :
 	mpWidget(w),
 	mAttr(a)
 {
 
 }
 
-MLParamView::~MLParamView()
+MLPropertyView::~MLPropertyView()
 {
 }
 	
-void MLParamView::view(const MLModelParam& p) const
+void MLPropertyView::view(const MLModelProperty& p) const
 {
 	switch(p.getType())
 	{
-		case MLModelParam::kUndefinedParam:
+		case MLModelProperty::kUndefinedProperty:
 			break;
-		case MLModelParam::kFloatParam:
+		case MLModelProperty::kFloatProperty:
 			mpWidget->setAttribute(mAttr, p.getFloatValue());		
 			break;
-		case MLModelParam::kStringParam:
+		case MLModelProperty::kStringProperty:
 			mpWidget->setStringAttribute(mAttr, *p.getStringValue());
 			break;
-		case MLModelParam::kSignalParam:
+		case MLModelProperty::kSignalProperty:
 			mpWidget->setSignalAttribute(mAttr, *p.getSignalValue());
 			break;
 	}
@@ -43,7 +43,7 @@ void MLParamView::view(const MLModelParam& p) const
 MLReporter::MLReporter(MLModel* m) :
 	MLModelListener(m)
 {
-	mpModel->addParamListener(this); 
+	mpModel->addPropertyListener(this); 
 }
 
 MLReporter::~MLReporter()
@@ -56,24 +56,24 @@ MLReporter::~MLReporter()
 // add a parameter view. 
 // when param p changes, attribute attr of Widget w will be set to the param's value.
 //
-void MLReporter::addParamViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
+void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 {
-	mParamViewsMap[p].push_back(MLParamViewPtr(new MLParamView(w, attr))); 
+	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
 }
 
-void MLReporter::doParamChangeAction(MLSymbol param, const MLModelParam& oldVal, const MLModelParam& newVal)
+void MLReporter::doPropertyChangeAction(MLSymbol param, const MLModelProperty& oldVal, const MLModelProperty& newVal)
 {
-	// debug() << "MLReporter::doParamChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
+	// debug() << "MLReporter::doPropertyChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
 	// do we have viewers for this parameter?
-	MLParamViewListMap::iterator look = mParamViewsMap.find(param);
-	if (look != mParamViewsMap.end())
+	MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(param);
+	if (look != mPropertyViewsMap.end())
 	{		
 		// run viewers
-		MLParamViewList viewers = look->second;
-		for(MLParamViewList::iterator vit = viewers.begin(); vit != viewers.end(); vit++)
+		MLPropertyViewList viewers = look->second;
+		for(MLPropertyViewList::iterator vit = viewers.begin(); vit != viewers.end(); vit++)
 		{
-			MLParamViewPtr pv = (*vit);
-			const MLParamView& v = (*pv);
+			MLPropertyViewPtr pv = (*vit);
+			const MLPropertyView& v = (*pv);
 			v.view(newVal);
 		}
 	}

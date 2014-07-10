@@ -114,9 +114,9 @@ public:
     
 	// --------------------------------------------------------------------------------
     // MLModel parameters
-    virtual void setModelParam(MLSymbol p, float v);
-    virtual void setModelParam(MLSymbol p, const std::string& v);
-    virtual void setModelParam(MLSymbol p, const MLSignal& v);
+    virtual void setModelProperty(MLSymbol p, float v);
+    virtual void setModelProperty(MLSymbol p, const std::string& v);
+    virtual void setModelProperty(MLSymbol p, const MLSignal& v);
 
 	// --------------------------------------------------------------------------------
 	// signals
@@ -221,6 +221,9 @@ protected:
 private:
 
 	void setCurrentPresetDir(const char* name);
+    
+	// set the plugin state from a memory blob containing parameter and patcher settings.
+	void setStateFromBlob (const void* data, int sizeInBytes);
 	
 	MLAudioProcessorListener* MLListener;
     Listener* mpListener;
@@ -235,9 +238,6 @@ private:
 
 	// temp storage for parameter data given to us before our DSP graph is made.
 	juce::MemoryBlock mSavedParamBlob;	
-		
-	// set the plugin state from a memory blob containing parameter and patcher settings.
-	void setStateFromBlob (const void* data, int sizeInBytes);
 	
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
@@ -252,7 +252,7 @@ private:
 	
 	int mWrapperFormat;
 	
-	// state for editor
+	// saved state for editor
 	MLRect mEditorRect;
 	bool mEditorNumbersOn;
 	bool mEditorAnimationsOn;

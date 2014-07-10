@@ -11,29 +11,29 @@
 #include <map>
 
 // --------------------------------------------------------------------------------
-#pragma mark param viewing 
+#pragma mark property viewing
 
-class MLParamView
+class MLPropertyView
 {
 public:
-	MLParamView(MLWidget* w, MLSymbol attr);
-	~MLParamView();
-	void view(const MLModelParam& v) const;
+	MLPropertyView(MLWidget* w, MLSymbol attr);
+	~MLPropertyView();
+	void view(const MLModelProperty& v) const;
 	
 private:
 	MLWidget* mpWidget;
 	MLSymbol mAttr;
 };
 
-typedef std::tr1::shared_ptr<MLParamView> MLParamViewPtr;
-typedef std::list<MLParamViewPtr> MLParamViewList;
-typedef std::map<MLSymbol, MLParamViewList> MLParamViewListMap;
+typedef std::tr1::shared_ptr<MLPropertyView> MLPropertyViewPtr;
+typedef std::list<MLPropertyViewPtr> MLPropertyViewList;
+typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 
 // --------------------------------------------------------------------------------
 #pragma mark MLReporter 
 
-// Reporter listens to a Model and reports its changing Parameters by setting 
-// Attributes of Widgets. Parameters may contain float, string or signal values.
+// Reporter listens to a Model and reports its changing properties by setting
+// Attributes of Widgets. Properties may contain float, string or signal values.
 //
 class MLReporter :
 	public MLModelListener
@@ -45,16 +45,16 @@ public:
 	MLModel* getModel() { return mpModel; }
 
 	// parameter viewing
-	void addParamViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
-	void viewAllParams();
-	void viewAllChangedParams();
+	void addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
+	void viewAllProperties();
+	void viewAllChangedProperties();
 
 	// MLModelListener interface
-	void doParamChangeAction(MLSymbol param, const MLModelParam& oldVal, const MLModelParam& newVal);
+	void doPropertyChangeAction(MLSymbol param, const MLModelProperty& oldVal, const MLModelProperty& newVal);
 
 protected:
 
-	MLParamViewListMap mParamViewsMap;
+	MLPropertyViewListMap mPropertyViewsMap;
 };
 
 #endif // __ML_REPORTER_H

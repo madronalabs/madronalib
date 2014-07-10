@@ -55,7 +55,7 @@ public:
 	
 	int mActive;
 	int mNote;	
-	int mAge;	// time in this state, measured to the end of the current process buffer
+	int mAge;	// time active, measured to the end of the current process buffer
 	
 	// for continuous touch inputs (OSC)
 	float mStartX;
@@ -97,6 +97,7 @@ public:
 
 	 MLProcInputToSignals();
 	~MLProcInputToSignals();
+	MLProcInfoBase& procInfo() { return mInfo; }
 
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
 	void clear();
@@ -104,7 +105,6 @@ public:
 	void process(const int n);		
 	void processOSC(const int n);		
 	void processMIDI(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
 	
 	void clearMIDI();
  	void setup();
@@ -122,7 +122,6 @@ public:
 	void setPitchWheel(int chan, int value, int time);
 	void setAfterTouch(int chan, int note, int value, int time);
 
-	void allNotesOff();
 	void setRetrig(bool r);
 	void setController(int controller, int value, int time);
 	void setChannelAfterTouch(int value, int time);
@@ -154,6 +153,7 @@ private:
 	void dumpEvents();
 	void dumpVoices();
 	int allocate();
+    
 	void sendEventToVoice(MLKeyEvent& e, int voiceIdx);
     
 	void doNoteOn(const NoteEvent& event);

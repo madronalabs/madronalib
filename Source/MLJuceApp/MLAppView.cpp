@@ -34,7 +34,7 @@ MLAppView::~MLAppView()
 void MLAppView::addParamView(MLSymbol p, MLWidget* w, MLSymbol attr)
 {
 	if(p && w && attr)
-		getReporter()->addParamViewToMap(p, w, attr);
+		getReporter()->addPropertyViewToMap(p, w, attr);
 }
 
 void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = MLSymbol())

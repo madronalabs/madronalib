@@ -24,7 +24,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 		{
 			MLSymbol paramName = param->getAlias();
 			MLParamValue val = param->getValue();
-			pModel->setModelParam(paramName, val);
+			pModel->setModelProperty(paramName, val);
 		}
 	}
 	
@@ -490,7 +490,7 @@ void MLPluginController::doScaleMenu(int result)
         case (0):	// dismiss
             break;
         case (1):	
-            mpProcessor->setModelParam("key_scale", "12-equal");
+            mpProcessor->setModelProperty("key_scale", "12-equal");
             break;
         default:
             MLMenu* menu = findMenuByName("key_scale");
@@ -498,7 +498,7 @@ void MLPluginController::doScaleMenu(int result)
             {
                 // set model param to the full name of the file in the menu
                 const std::string& fullName = menu->getItemFullName(result);
-                mpProcessor->setModelParam("key_scale", fullName);
+                mpProcessor->setModelProperty("key_scale", fullName);
             }
             break;
     }

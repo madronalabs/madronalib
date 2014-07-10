@@ -41,7 +41,6 @@ MLProc::err MLProc::prepareToProcess()
 	int blockSize = getContextVectorSize();
 	
     // debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
-
 	
 	// All inputs must have a signal connected.	
 	// So connect unconnected inputs to null input signal.

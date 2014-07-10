@@ -133,6 +133,4 @@ public:
 	int mCurrentGroup;
 };
 
-
-
 #endif // ML_PARAMETER_H

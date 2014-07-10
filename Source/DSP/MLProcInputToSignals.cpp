@@ -415,7 +415,7 @@ void MLProcInputToSignals::doParams()
 	if (newVoices != mCurrentVoices)
 	{
 		mCurrentVoices = newVoices;
-		allNotesOff();
+		clear();
 	}
 	
 	// pitch wheel mult
@@ -435,7 +435,7 @@ void MLProcInputToSignals::doParams()
 	if (mUnisonMode != unison)
 	{
 		mUnisonMode = unison;
-		allNotesOff();
+		clear();
 	}
 	
 	mGlide = getParam("glide");
@@ -450,7 +450,7 @@ void MLProcInputToSignals::doParams()
 
 MLProc::err MLProcInputToSignals::prepareToProcess()
 {
-	allNotesOff();
+	clear();
 	setMIDIFrameOffset(0);
 	return OK;
 }
@@ -1370,11 +1370,6 @@ void MLProcInputToSignals::doNoteOff(const NoteEvent& event)
 			}
 		}
 	}
-}
-
-void MLProcInputToSignals::allNotesOff()
-{
-	clear();
 }
 
 void MLProcInputToSignals::setRetrig(bool r)

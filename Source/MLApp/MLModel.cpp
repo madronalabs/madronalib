@@ -5,16 +5,211 @@
 
 #include "MLModel.h"
 
+static const std::string kNullModelPropertyString;
+static const MLSignal kNullModelPropertySignal;
+
+// ----------------------------------------------------------------
+// MLModelProperty implementation
+
+
+MLModelProperty::MLModelProperty() :
+mType(kUndefinedProperty)
+{
+	mVal.mpStringVal = 0;
+}
+
+MLModelProperty::MLModelProperty(const MLModelProperty& other) :
+mType(other.getType())
+{
+	switch(mType)
+	{
+		case MLModelProperty::kFloatProperty:
+			mVal.mFloatVal = other.getFloatValue();
+			break;
+		case MLModelProperty::kStringProperty:
+			mVal.mpStringVal = new std::string(*other.getStringValue());
+			break;
+		case MLModelProperty::kSignalProperty:
+			mVal.mpSignalVal = new MLSignal(*other.getSignalValue());
+			break;
+		default:
+			mVal.mpStringVal = 0;
+			break;
+	}
+}
+
+MLModelProperty& MLModelProperty::operator= (const MLModelProperty& other)
+{
+	mType = other.getType();
+	switch(mType)
+	{
+		case MLModelProperty::kFloatProperty:
+			mVal.mFloatVal = other.getFloatValue();
+			break;
+		case MLModelProperty::kStringProperty:
+			mVal.mpStringVal = new std::string(*other.getStringValue());
+			break;
+		case MLModelProperty::kSignalProperty:
+			mVal.mpSignalVal = new MLSignal(*other.getSignalValue());
+			break;
+		default:
+			mVal.mpStringVal = 0;
+			break;
+	}
+	return *this;
+}
+
+MLModelProperty::MLModelProperty(float v) :
+mType(kFloatProperty)
+{
+	mVal.mFloatVal = v;
+}
+
+MLModelProperty::MLModelProperty(const std::string& s) :
+mType(kStringProperty)
+{
+	mVal.mpStringVal = new std::string(s);
+}
+
+MLModelProperty::MLModelProperty(const MLSignal& s) :
+mType(kSignalProperty)
+{
+	mVal.mpSignalVal = new MLSignal(s);
+}
+
+MLModelProperty::~MLModelProperty()
+{
+	switch(mType)
+	{
+		case kStringProperty:
+			delete mVal.mpStringVal;
+			break;
+		case kSignalProperty:
+			delete mVal.mpSignalVal;
+			break;
+		default:
+			break;
+	}
+}
+
+float MLModelProperty::getFloatValue() const
+{
+	return mVal.mFloatVal;
+}
+
+const std::string* MLModelProperty::getStringValue() const
+{
+	return (mVal.mpStringVal);
+}
+
+const MLSignal* MLModelProperty::getSignalValue() const
+{
+	return (mVal.mpSignalVal);
+}
+
+void MLModelProperty::setValue(float v)
+{
+	if(mType == kUndefinedProperty)
+		mType = kFloatProperty;
+	if(mType == kFloatProperty)
+	{
+		mVal.mFloatVal = v;
+	}
+	else
+	{
+		debug() << "MLModelProperty::setValue: type mismatch!\n";
+	}
+}
+
+void MLModelProperty::setValue(const std::string& v)
+{
+	if(mType == kUndefinedProperty)
+		mType = kStringProperty;
+	if(mType == kStringProperty)
+	{
+		delete mVal.mpStringVal;
+		mVal.mpStringVal = new std::string(v);
+	}
+	else
+	{
+		debug() << "MLModelProperty::setValue: type mismatch!\n";
+	}
+}
+
+void MLModelProperty::setValue(const MLSignal& v)
+{
+	if(mType == kUndefinedProperty)
+		mType = kSignalProperty;
+	if(mType == kSignalProperty)
+	{
+		delete mVal.mpSignalVal;
+		mVal.mpSignalVal = new MLSignal(v);
+	}
+	else
+	{
+		debug() << "MLModelProperty::setValue: type mismatch!\n";
+	}
+}
+
+bool MLModelProperty::operator== (const MLModelProperty& b) const
+{
+	bool r = false;
+	if(mType == b.getType())
+	{
+		switch(mType)
+		{
+			case kUndefinedProperty:
+				r = true;
+				break;
+			case kFloatProperty:
+				r = (getFloatValue() == b.getFloatValue());
+				break;
+			case kStringProperty:
+				r = (getStringValue() == b.getStringValue());
+				break;
+			case kSignalProperty:
+				r = (getSignalValue() == b.getSignalValue());
+				break;
+		}
+	}
+	return r;
+}
+
+bool MLModelProperty::operator!= (const MLModelProperty& b) const
+{
+	return !operator==(b);
+}
+
+std::ostream& operator<< (std::ostream& out, const MLModelProperty & r)
+{
+	switch(r.getType())
+	{
+		case MLModelProperty::kUndefinedProperty:
+			out << "[undefined]";
+			break;
+		case MLModelProperty::kFloatProperty:
+			out << r.getFloatValue();
+			break;
+		case MLModelProperty::kStringProperty:
+			out << *(r.getStringValue());
+			break;
+		case MLModelProperty::kSignalProperty:
+			out << *(r.getSignalValue());
+            break;
+	}
+	return out;
+}
+
 // ----------------------------------------------------------------
 // MLModelListener implementation
 
 // called by the Model to notify us that one parameter has changed.
 // if the param is new, or the value has changed, we mark the state as changed. 
 //
-void MLModelListener::modelParamChanged(MLSymbol paramSym)
+void MLModelListener::modelPropertyChanged(MLSymbol paramSym)
 {
 	// if the param does not exist in the map yet, this lookup will add it. 
-	ModelParamState& state = mModelParamStates[paramSym];
+	ModelPropertyState& state = mModelPropertyStates[paramSym];
 
 	// if not initialized, always mark as changed. 
 	if(!state.mInitialized)
@@ -25,7 +220,7 @@ void MLModelListener::modelParamChanged(MLSymbol paramSym)
 	}
 	else // check for value change. 
 	{
-		const MLModelParam& modelValue = mpModel->getModelParam(paramSym);
+		const MLModelProperty& modelValue = mpModel->getModelProperty(paramSym);
 		if(modelValue != state.mValue)
 		{
 			state.mChangedSinceUpdate = true;
@@ -33,35 +228,35 @@ void MLModelListener::modelParamChanged(MLSymbol paramSym)
 	}
 }
 
-void MLModelListener::updateChangedParams() 
+void MLModelListener::updateChangedProperties() 
 {	
 	// for all model parameters we know about 
-	std::map<MLSymbol, ModelParamState>::iterator it;
-	for(it = mModelParamStates.begin(); it != mModelParamStates.end(); it++)
+	std::map<MLSymbol, ModelPropertyState>::iterator it;
+	for(it = mModelPropertyStates.begin(); it != mModelPropertyStates.end(); it++)
 	{
 		MLSymbol key = it->first;
-		ModelParamState& state = it->second;
+		ModelPropertyState& state = it->second;
 		
 		if(state.mChangedSinceUpdate)
 		{
-			const MLModelParam& modelValue = mpModel->getModelParam(key);
-			doParamChangeAction(key, state.mValue, modelValue);
+			const MLModelProperty& modelValue = mpModel->getModelProperty(key);
+			doPropertyChangeAction(key, state.mValue, modelValue);
 			state.mChangedSinceUpdate = false;
 			state.mValue = modelValue;
 		}
 	}
 }
 
-void MLModelListener::updateAllParams() 
+void MLModelListener::updateAllProperties() 
 {	
-	mpModel->broadcastAllParams();
-	std::map<MLSymbol, ModelParamState>::iterator it;
-	for(it = mModelParamStates.begin(); it != mModelParamStates.end(); it++)
+	mpModel->broadcastAllProperties();
+	std::map<MLSymbol, ModelPropertyState>::iterator it;
+	for(it = mModelPropertyStates.begin(); it != mModelPropertyStates.end(); it++)
 	{
-		ModelParamState& state = it->second;
+		ModelPropertyState& state = it->second;
 		state.mChangedSinceUpdate = true;
 	}
-	updateChangedParams();
+	updateChangedProperties();
 }
 
 // ----------------------------------------------------------------
@@ -75,30 +270,30 @@ MLModel::~MLModel()
 {
 }
 
-void MLModel::setModelParam(MLSymbol p, float v) 
+void MLModel::setModelProperty(MLSymbol p, float v) 
 {
-	mParams[p].setValue(v);
-	broadcastParam(p);
+	mProperties[p].setValue(v);
+	broadcastProperty(p);
 }
 
-void MLModel::setModelParam(MLSymbol p, const std::string& v) 
+void MLModel::setModelProperty(MLSymbol p, const std::string& v) 
 {
-	mParams[p].setValue(v);
-	broadcastParam(p);
+	mProperties[p].setValue(v);
+	broadcastProperty(p);
 }
 
-void MLModel::setModelParam(MLSymbol p, const MLSignal& v) 
+void MLModel::setModelProperty(MLSymbol p, const MLSignal& v) 
 {
-	mParams[p].setValue(v);
-	broadcastParam(p);
+	mProperties[p].setValue(v);
+	broadcastProperty(p);
 }
 
-void MLModel::addParamListener(MLModelListener* pL) 
+void MLModel::addPropertyListener(MLModelListener* pL) 
 { 
 	mpListeners.push_back(pL); 
 }
 
-void MLModel::removeParamListener(MLModelListener* pToRemove) 
+void MLModel::removePropertyListener(MLModelListener* pToRemove) 
 { 
 	std::list<MLModelListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
@@ -112,23 +307,23 @@ void MLModel::removeParamListener(MLModelListener* pToRemove)
 	}
 }
 
-void MLModel::broadcastParam(MLSymbol p) 
+void MLModel::broadcastProperty(MLSymbol p) 
 {
 	std::list<MLModelListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		MLModelListener* pL = *it;
-		pL->modelParamChanged(p);
+		pL->modelPropertyChanged(p);
 	}
 }
 
-void MLModel::broadcastAllParams()
+void MLModel::broadcastAllProperties()
 {
-	MLModelParameterMap::iterator it;
-	for(it = mParams.begin(); it != mParams.end(); it++)
+	MLModelPropertyMap::iterator it;
+	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
 		MLSymbol p = it->first;
-		broadcastParam(p); 
+		broadcastProperty(p); 
 	}
 }
 

@@ -12,8 +12,8 @@ MLAppState::MLAppState(MLModel* pM, MLAppView* pV, const char* makerName, const 
 	mpAppName(appName),
 	mVersion(version)
 {
-	pM->addParamListener(this);
-	updateAllParams();
+	pM->addPropertyListener(this);
+	updateAllProperties();
 	startTimer(1000);
 }
 
@@ -24,16 +24,16 @@ MLAppState::~MLAppState()
 
 void MLAppState::timerCallback()
 {
-	updateChangedParams();
+	updateChangedProperties();
 }
 
 // --------------------------------------------------------------------------------
 // MLModelListener implementation
-// an updateChangedParams() is needed to get these actions sent by the Model.
+// an updateChangedProperties() is needed to get these actions sent by the Model.
 //
-void MLAppState::doParamChangeAction(MLSymbol , const MLModelParam & , const MLModelParam & )
+void MLAppState::doPropertyChangeAction(MLSymbol , const MLModelProperty & , const MLModelProperty & )
 {
-	// debug() << "MLAppState::doParamChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
+	// debug() << "MLAppState::doPropertyChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
 }
 
 // --------------------------------------------------------------------------------
@@ -79,21 +79,21 @@ void MLAppState::saveState()
 	if(root)
 	{
 		// get Model parameters
-		std::map<MLSymbol, ModelParamState>::iterator it;
-		for(it = mModelParamStates.begin(); it != mModelParamStates.end(); it++)
+		std::map<MLSymbol, ModelPropertyState>::iterator it;
+		for(it = mModelPropertyStates.begin(); it != mModelPropertyStates.end(); it++)
 		{
 			MLSymbol key = it->first;
 			const char* keyStr = key.getString().c_str();
-			ModelParamState& state = it->second;
+			ModelPropertyState& state = it->second;
 			switch(state.mValue.getType())
 			{
-				case MLModelParam::kFloatParam:
+				case MLModelProperty::kFloatProperty:
 					cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
 					break;
-				case MLModelParam::kStringParam:
+				case MLModelProperty::kStringProperty:
 					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue()->c_str());
 					break;
-				case MLModelParam::kSignalParam:
+				case MLModelProperty::kSignalProperty:
 				{
 					// make and populate JSON object representing signal
 					cJSON* signalObj = cJSON_CreateObject();
@@ -153,11 +153,11 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 			{
 			case cJSON_Number:
 //debug() << " depth " << depth << " loading float param " << pNode->string << " : " << pNode->valuedouble << "\n";
-				mpModel->setModelParam(MLSymbol(pNode->string), (float)pNode->valuedouble);
+				mpModel->setModelProperty(MLSymbol(pNode->string), (float)pNode->valuedouble);
 				break;
 			case cJSON_String:
 //debug() << " depth " << depth << " loading string param " << pNode->string << " : " << pNode->valuestring << "\n";
-				mpModel->setModelParam(MLSymbol(pNode->string), pNode->valuestring);
+				mpModel->setModelProperty(MLSymbol(pNode->string), pNode->valuestring);
 				break;
 			case cJSON_Array: 
 				if(!strcmp(pNode->string, "window_bounds"))
@@ -207,7 +207,7 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 						{
 							MLError() << "MLAppState::loadStateFromJSON: wrong array size!\n";
 						}				
-						mpModel->setModelParam(MLSymbol(pNode->string), *pSig);
+						mpModel->setModelProperty(MLSymbol(pNode->string), *pSig);
 					}
 				}
 			
@@ -248,7 +248,7 @@ bool MLAppState::loadSavedState()
 	{
 		r = false;
 	}
-	updateAllParams();
+	updateAllProperties();
 	return r;
 }
 
