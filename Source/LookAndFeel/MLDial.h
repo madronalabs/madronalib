@@ -19,7 +19,6 @@
 #include "MLParameter.h"
 #include "MLProcContainer.h"
 #include "MLLabel.h"
-#include "MLParamSetter.h"
 
 class MLDialDetent
 {
@@ -33,7 +32,6 @@ public:
 class MLDial  : 
 	public Component,
 	public MLWidget,
-	public MLParamSetter,
     protected AsyncUpdater
 {
 friend class MLLookAndFeel;
@@ -336,8 +334,6 @@ protected:
 	JucePluginParamWarpMode mWarpMode;
 	float			mZeroThreshold;
 	bool			mTopLeft;
-	
-	MLSymbol		mParamName;
 	bool			mDrawThumb;
 	
 	MLRect mRotaryTextRect;

@@ -109,7 +109,7 @@ void MLPluginController::initialize()
 
 void MLPluginController::buttonClicked (MLButton* button)
 {
-	const MLSymbol paramName = button->getParamName();
+	const MLSymbol paramName = button->getTargetPropertyName();
 	MLPluginProcessor* const filter = getProcessor();
  	const int tri = button->getAttribute("tri_button");
     float val;
@@ -138,7 +138,7 @@ void MLPluginController::buttonClicked (MLButton* button)
 	
 void MLPluginController::dialDragStarted (MLDial* pSlider)
 {
-	const MLSymbol paramName = pSlider->getParamName();
+	const MLSymbol paramName = pSlider->getTargetPropertyName();
 	MLPluginProcessor* const filter = getProcessor();
 	if (filter)
 	{
@@ -150,7 +150,7 @@ void MLPluginController::dialDragStarted (MLDial* pSlider)
 
 void MLPluginController::dialDragEnded (MLDial* pSlider)
 {
-	const MLSymbol paramName = pSlider->getParamName();
+	const MLSymbol paramName = pSlider->getTargetPropertyName();
 	MLPluginProcessor* const filter = getProcessor();
 	if (filter)
 	{
@@ -169,7 +169,7 @@ void MLPluginController::dialValueChanged (MLDial* pSlider)
 	
 	if (pSlider)
 	{
-		const MLSymbol paramName = pSlider->getParamName();
+		const MLSymbol paramName = pSlider->getTargetPropertyName();
 
 		if (pSlider->isMultiValued())
 		{
@@ -226,7 +226,7 @@ void MLPluginController::multiSliderDragStarted (MLMultiSlider* pSlider, int idx
 {
 	MLPluginProcessor* const filter = getProcessor();
 	if (!filter) return;
-	const MLSymbol paramName = pSlider->getParamName();
+	const MLSymbol paramName = pSlider->getTargetPropertyName();
 	int paramIdx = filter->getParameterIndex(paramName);
 	if (paramIdx >= 0)
 	{
@@ -238,7 +238,7 @@ void MLPluginController::multiSliderDragEnded (MLMultiSlider* pSlider, int idx)
 {
 	MLPluginProcessor* const filter = getProcessor();
 	if (!filter) return;
-	const MLSymbol paramName = pSlider->getParamName();
+	const MLSymbol paramName = pSlider->getTargetPropertyName();
 	int paramIdx = filter->getParameterIndex(paramName);
 	if (paramIdx >= 0)
 	{
@@ -256,7 +256,7 @@ void MLPluginController::multiSliderValueChanged (MLMultiSlider* pSlider, int id
 	
 	if (pSlider)
 	{
-		MLSymbol paramName = pSlider->getParamName();
+		MLSymbol paramName = pSlider->getTargetPropertyName();
 		const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
 		paramIdx = filter->getParameterIndex(nameWithNumber);
 		val = pSlider->getValue(idx);		
@@ -287,7 +287,7 @@ void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int id
 	
 	if (pButton)
 	{
-		MLSymbol paramName = pButton->getParamName();
+		MLSymbol paramName = pButton->getTargetPropertyName();
 		const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
 		paramIdx = filter->getParameterIndex(nameWithNumber);
 		val = pButton->getValue(idx);		

@@ -57,7 +57,6 @@ inline double log2( double n )
 typedef float MLSample;
 typedef double MLDouble;
 typedef int MLSampleRate;
-typedef std::string MLParamName;
 typedef float MLParamValue;
 
 // ----------------------------------------------------------------

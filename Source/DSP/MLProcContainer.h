@@ -287,7 +287,7 @@ public:
 	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val);
 	
 	// return ptr to name where stored in map.
-	MLSymbol getParamName(int index);
+	MLSymbol getTargetPropertyName(int index);
 	MLPublishedParamPtr getParamPtr(int index);
 	int getParamIndex(const MLSymbol name);
 	const std::string& getParamGroupName(int index);	

@@ -83,7 +83,7 @@ void MLMenuButton::mouseDown(const MouseEvent& e)
         repaint();
         
 		// send our Widget name to listener as menu instigator
-		mpListener->showMenu(getParamName(), getWidgetName());
+		mpListener->showMenu(getTargetPropertyName(), getWidgetName());
 	}	
 }
 

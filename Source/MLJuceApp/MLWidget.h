@@ -80,6 +80,13 @@ public:
 	void setWidgetVisible(bool v);
 	
 	void enterPaint(); // for debugging
+    
+	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
+	void setTargetPropertyName(MLSymbol p) {  mTargetPropertyName = p; }
+
+    
+    
+
 	
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
@@ -88,6 +95,7 @@ protected:
 
 private:
 	MLSymbol mName;
+	MLSymbol mTargetPropertyName;
 	
 	// this is the size of drawn widget parts compared to the usual size.
 	// normally 1.0, set to 0.75 or similar for smaller labels, buttons, etc. 

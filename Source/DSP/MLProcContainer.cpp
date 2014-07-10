@@ -1748,7 +1748,7 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 #pragma mark engine params
 
 
-MLSymbol MLProcContainer::getParamName(int index)
+MLSymbol MLProcContainer::getTargetPropertyName(int index)
 {	
 	const int size = (int)mPublishedParams.size();
 	if (index < size)
@@ -1759,7 +1759,7 @@ MLSymbol MLProcContainer::getParamName(int index)
 	}
 	else
 	{
-		debug() << "MLProcContainer::getParamName: param " << index << " not found in container " << getName() << "!\n";
+		debug() << "MLProcContainer::getTargetPropertyName: param " << index << " not found in container " << getName() << "!\n";
 	}
 	return MLSymbol();
 }

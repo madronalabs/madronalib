@@ -15,7 +15,6 @@
 class MLMultiSlider : 
 	public Component,
 	public MLWidget,
-	public MLParamSetter,
     protected AsyncUpdater
 {
 public:

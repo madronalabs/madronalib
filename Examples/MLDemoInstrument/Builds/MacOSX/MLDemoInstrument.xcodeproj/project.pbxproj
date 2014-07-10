@@ -105,7 +105,6 @@
 		B503B17917BAB69F00D84FD1 /* MLDebugMac.mm in Sources */ = {isa = PBXBuildFile; fileRef = B503B16217BAB69F00D84FD1 /* MLDebugMac.mm */; };
 		B503B17A17BAB69F00D84FD1 /* MLGL.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B503B16317BAB69F00D84FD1 /* MLGL.cpp */; };
 		B503B17B17BAB69F00D84FD1 /* MLModel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B503B16617BAB69F00D84FD1 /* MLModel.cpp */; };
-		B503B17C17BAB69F00D84FD1 /* MLModelParam.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B503B16817BAB69F00D84FD1 /* MLModelParam.cpp */; };
 		B503B17D17BAB69F00D84FD1 /* MLNetServiceHub.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B503B16A17BAB69F00D84FD1 /* MLNetServiceHub.cpp */; };
 		B503B17E17BAB69F00D84FD1 /* MLOSCListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B503B16C17BAB69F00D84FD1 /* MLOSCListener.cpp */; };
 		B503B17F17BAB69F00D84FD1 /* MLPath.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B503B16E17BAB69F00D84FD1 /* MLPath.cpp */; };
@@ -380,8 +379,6 @@
 		B503B16517BAB69F00D84FD1 /* MLInputProtocols.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLInputProtocols.h; sourceTree = "<group>"; };
 		B503B16617BAB69F00D84FD1 /* MLModel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLModel.cpp; sourceTree = "<group>"; };
 		B503B16717BAB69F00D84FD1 /* MLModel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLModel.h; sourceTree = "<group>"; };
-		B503B16817BAB69F00D84FD1 /* MLModelParam.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLModelParam.cpp; sourceTree = "<group>"; };
-		B503B16917BAB69F00D84FD1 /* MLModelParam.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLModelParam.h; sourceTree = "<group>"; };
 		B503B16A17BAB69F00D84FD1 /* MLNetServiceHub.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLNetServiceHub.cpp; sourceTree = "<group>"; };
 		B503B16B17BAB69F00D84FD1 /* MLNetServiceHub.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLNetServiceHub.h; sourceTree = "<group>"; };
 		B503B16C17BAB69F00D84FD1 /* MLOSCListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLOSCListener.cpp; sourceTree = "<group>"; };
@@ -943,8 +940,6 @@
 				B503B16517BAB69F00D84FD1 /* MLInputProtocols.h */,
 				B503B16617BAB69F00D84FD1 /* MLModel.cpp */,
 				B503B16717BAB69F00D84FD1 /* MLModel.h */,
-				B503B16817BAB69F00D84FD1 /* MLModelParam.cpp */,
-				B503B16917BAB69F00D84FD1 /* MLModelParam.h */,
 				B503B16A17BAB69F00D84FD1 /* MLNetServiceHub.cpp */,
 				B503B16B17BAB69F00D84FD1 /* MLNetServiceHub.h */,
 				B503B16C17BAB69F00D84FD1 /* MLOSCListener.cpp */,
@@ -1510,7 +1505,6 @@
 				B503B17917BAB69F00D84FD1 /* MLDebugMac.mm in Sources */,
 				B503B17A17BAB69F00D84FD1 /* MLGL.cpp in Sources */,
 				B503B17B17BAB69F00D84FD1 /* MLModel.cpp in Sources */,
-				B503B17C17BAB69F00D84FD1 /* MLModelParam.cpp in Sources */,
 				B503B17D17BAB69F00D84FD1 /* MLNetServiceHub.cpp in Sources */,
 				B503B17E17BAB69F00D84FD1 /* MLOSCListener.cpp in Sources */,
 				B503B17F17BAB69F00D84FD1 /* MLPath.cpp in Sources */,
