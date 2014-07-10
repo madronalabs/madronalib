@@ -83,10 +83,6 @@ public:
     
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(MLSymbol p) {  mTargetPropertyName = p; }
-
-    
-    
-
 	
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
