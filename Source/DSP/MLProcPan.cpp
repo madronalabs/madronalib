@@ -4,6 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLProc.h"
+#include "MLDSPUtils.h"
 
 // ----------------------------------------------------------------
 // class definition
@@ -22,6 +23,7 @@ public:
 private:
 	MLProcInfo<MLProcPan> mInfo;
 	void calcCoeffs(void);
+    MLBiquad mSlewLimiter;
 
 };
 
@@ -54,6 +56,9 @@ MLProcPan::~MLProcPan()
 
 void MLProcPan::calcCoeffs(void) 
 {
+    int sr = getContextSampleRate();
+    mSlewLimiter.setSampleRate(sr);
+    mSlewLimiter.setOnePole(500);
 	mParamsChanged = false;
 }
 
@@ -64,7 +69,7 @@ void MLProcPan::process(const int samples)
 	const MLSignal& pan = getInput(2);
 	MLSignal& out1 = getOutput();
 	MLSignal& out2 = getOutput(2);
-	float in, in2, pos;
+	float in, p, pos;
 	const float half = 0.5f;
 	
 	// coeffs
@@ -74,10 +79,11 @@ void MLProcPan::process(const int samples)
 	for (int n=0; n<samples; ++n)
 	{
 		in = x[n];
-		pos = pan[n] * half + half;
-		in2 = in*pos;
-		out1[n] = in - in2;
-		out2[n] = in2;
+        pos = mSlewLimiter.processSample(pan[n]);
+		pos = pos * half + half;
+		p = in*pos;
+		out1[n] = in - p;
+		out2[n] = p;
 	}
 }
 
