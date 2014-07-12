@@ -32,32 +32,22 @@ void MLToggleButton::setAttribute(MLSymbol attr, float val)
 void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	//myLookAndFeel->drawBackground(g, this);
 	
 	// colors	
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));		
-	const Colour onColor (findColour (MLButton::buttonOnColourId));	
-	const Colour offBrightColor (offColor.getHue(), offColor.getSaturation(), jmin(offColor.getBrightness() + 0.1, 1.), offColor.getFloatAlpha());		
-	const Colour onBrightColor (onColor.getHue(), onColor.getSaturation(), jmin(onColor.getBrightness() + 0.1, 1.), onColor.getFloatAlpha());		
-	const Colour offOverColor ((mDoRollover && isMouseOverButton) ? offBrightColor : offColor);
-	const Colour onOverColor ((mDoRollover && isMouseOverButton) ? onBrightColor : onColor);
-	const Colour bc = (getToggleState() ? onOverColor : offOverColor);		
+	const Colour onColor (findColour (MLButton::buttonOnColourId));
+	const Colour bc = (getToggleState() ? onColor : offColor);
+    
 	const float alpha = isEnabled() ? 1.f : 0.25f;	
 	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));	
-	const Colour track_hard (findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha));	
-	const Colour brightColor = Colour(bc.getHue(), bc.getSaturation(), jmin(bc.getBrightness() + 0.1, 1.), bc.getFloatAlpha());				
-	Colour buttonColor = bc.withAlpha (alpha);	
+	Colour buttonColor = bc.withAlpha (alpha);
+    
 	Colour outlineColor, outlineOnColor, outlineOffColor;
-	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.625f));
+	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onColor.withMultipliedAlpha(0.625f));
 	outlineOffColor = findColour(MLLookAndFeel::outlineColor);
 	outlineColor = getToggleState() ? outlineOnColor : outlineOffColor;
 	outlineColor = outlineColor.withAlpha (alpha);
 
-	if (mImage.isValid())
-	{
-		buttonColor = buttonColor.overlaidWith(onColor.withMultipliedAlpha(0.25f));
-	}
-	
 	// geometry
     const int width = getWidth();
     const int height = getHeight();	
@@ -84,7 +74,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 	{
 		// dark background
 		myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight, 
-			cornerSize, offOverColor, outlineOffColor, kMLButtonOutlineThickness, flair, 0., 0.);	
+			cornerSize, offColor, outlineOffColor, kMLButtonOutlineThickness, flair, 0., 0.);
 			
 		// light half
 		g.saveState();
@@ -97,7 +87,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 			g.reduceClipRegion(toggleX + halfSize, toggleY - 1, halfSize + 1, toggleHeight + 1);
 		}
 		myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight, 
-			cornerSize, onOverColor, outlineOnColor, mLineThickness, flair, 0., 0.);	
+			cornerSize, onColor, outlineOnColor, mLineThickness, flair, 0., 0.);
 		g.restoreState();
 	}
 	else
@@ -106,6 +96,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 			cornerSize, buttonColor, outlineColor, mLineThickness, flair, 0., 0.);		
 	}
 		
+    /*
 	if (mImage.isValid())
 	{
 		float imageAlpha = getToggleState() ? 0.5f : 1.f;
@@ -121,7 +112,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 			0, 0, ww, hh,
 			mImageOffset.x(), mImageOffset.y(), ww, hh,
 			true);
-	}
+	}*/
 	
 	/*
 	// TEST

@@ -102,15 +102,26 @@ void MLMultiButton::paint (Graphics& g)
 //	g.fillRect(0, 0, getWidth(), getHeight());
 	
 	// colors
-	Colour buttonOnColor (findColour (MLMultiButton::buttonOnColourId));	
-	Colour buttonOffColor (findColour (MLMultiButton::buttonOffColourId));	
+//	Colour buttonOnColor (findColour (MLMultiButton::buttonOnColourId));
+//	Colour buttonOffColor (findColour (MLMultiButton::buttonOffColourId));
 
 //	const Colour buttonOnHoverColor = buttonOnColor.brighter(0.25);			
 //	const Colour buttonOffHoverColor = buttonOffColor.brighter(0.25);			
 	
-	Colour outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(buttonOnColor.withAlpha(0.75f));
-	Colour outlineOffColor = findColour(MLLookAndFeel::outlineColor);
-	
+    
+    // colors
+	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));
+	const Colour onColor (findColour (MLMultiButton::buttonOnColourId));
+
+    
+	const float alpha = isEnabled() ? 1.f : 0.25f;
+
+    
+	Colour outlineOnColor, outlineOffColor;
+	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onColor.withMultipliedAlpha(0.625f));
+	outlineOffColor = findColour(MLLookAndFeel::outlineColor);
+    
+    
 	// geometry
 	const float cornerSize = 0.;
 	int flair = 0;
@@ -128,7 +139,7 @@ void MLMultiButton::paint (Graphics& g)
 		flair = eMLAdornShadow | eMLAdornGlow;
 		if (down) flair |= (eMLAdornPressed);
 		
-		buttonColor = on ? buttonOnColor : buttonOffColor;
+		buttonColor = on ? onColor : offColor;
 		outlineColor = on ? outlineOnColor : outlineOffColor;
 		
 		myLookAndFeel->drawMLButtonShape (g, mPos.getElementBounds(i),
@@ -325,7 +336,7 @@ void MLMultiButton::resizeWidget(const MLRect& b, const int u)
 	mPos.setSizeFlags(mSizeFlags);
 	mPos.setMargin(mMarginFraction);	
 
-	mLineThickness = u/64.f;
+	mLineThickness = u/128.f;
 	
 	// Vec2 panelSize = mPos.getElementSize();
 	
