@@ -15,6 +15,7 @@ MLWidget::MLWidget() :
 	mSize(1.f),
     mLabelOffset(),
     pComponent(nullptr),
+    pGLContext(nullptr),
 	mWantsResizeLast(false)
 {
 
@@ -22,6 +23,11 @@ MLWidget::MLWidget() :
 
 MLWidget::~MLWidget()
 {
+    if(pGLContext)
+    {
+        pGLContext->detach();
+        delete pGLContext;
+    }
 }
 
 void MLWidget::setAttribute(MLSymbol attr, float val)
@@ -97,6 +103,40 @@ juce::Colour MLWidget::getColorAttribute(MLSymbol attr) const
 
 // --------------------------------------------------------------------------------
 
+void MLWidget::setupGL(Component* pC)
+{
+    if(pComponent)
+    {
+        pGLContext = new OpenGLContext();
+        pGLContext->setRenderer (this);
+        // pGLContext->attachTo (*pComponent);
+        pGLContext->setComponentPaintingEnabled (false);
+        pGLContext->setContinuousRepainting(true);
+    }
+}
+
+float MLWidget::getRenderingScale() const
+{
+    float t = 1.0f;
+    if(pGLContext)
+    {
+        t = pGLContext->getRenderingScale();
+    }
+    return t;
+}
+
+int MLWidget::getBackingLayerWidth() const
+{
+    return getComponent()->getWidth() * getRenderingScale();
+}
+
+int MLWidget::getBackingLayerHeight() const
+{
+    return getComponent()->getHeight() * getRenderingScale();
+}
+
+// --------------------------------------------------------------------------------
+
 void MLWidget::setGridBounds(const MLRect& p)
 {
 	mGridBounds = p;
@@ -152,6 +192,7 @@ MLRect MLWidget::getWidgetWindowBounds()
 	return MLRect();
 }
 
+/*
 double MLWidget::getBackingLayerScale() const
 {
     ComponentPeer* peer = pComponent->getPeer();
@@ -165,6 +206,7 @@ double MLWidget::getBackingLayerScale() const
         return Desktop::getInstance().getDisplays().getDisplayContaining(pComponent->getScreenBounds().getCentre()).scale;
     }
 }
+*/
 
 void MLWidget::resizeWidget(const MLRect& b, const int)
 {
@@ -172,6 +214,10 @@ void MLWidget::resizeWidget(const MLRect& b, const int)
 	if(pComponent)
 	{
 		pComponent->setBounds(b.left(), b.top(), b.width(), b.height());
+        if(pGLContext)
+        {
+            pGLContext->attachTo (*pComponent);
+        }
 	}
 }
 

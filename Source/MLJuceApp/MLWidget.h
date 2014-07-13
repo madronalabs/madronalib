@@ -16,7 +16,8 @@ class MLWidgetContainer;
 // adapter for private UI stuff to Juce UI stuff.  as we use less of JUCE
 // this can incorporate our own component class.
 //
-class MLWidget
+class MLWidget :
+    public OpenGLRenderer
 {
 friend class MLWidgetContainer;
 friend class MLAppView;
@@ -47,6 +48,14 @@ public:
 	void setComponent(Component* pC) { pComponent = pC; }
 	Component* getComponent() const { return pComponent; }
 
+    void setupGL(Component* pC);
+    OpenGLContext* getGLContext() { return pGLContext; }
+    
+    // OpenGLRenderer methods to use if we have one
+    virtual void newOpenGLContextCreated() {}
+    virtual void openGLContextClosing() {}
+    virtual void renderOpenGL() {}
+    
 	void setGridBounds(const MLRect& p);
 	const MLRect& getGridBounds() const;
 	
@@ -55,10 +64,11 @@ public:
 	MLRect getWidgetLocalBounds();
 	MLRect getWidgetWindowBounds();
     
-    double getBackingLayerScale() const;    
-    int getBackingLayerWidth() const { return (int)(getBackingLayerScale() * pComponent->getWidth()); }
-    int getBackingLayerHeight() const  { return (int)(getBackingLayerScale() * pComponent->getHeight()); }
-
+    //double getBackingLayerScale() const;
+    float getRenderingScale() const;
+    int getBackingLayerWidth() const;
+    int getBackingLayerHeight() const;
+    
 	int getWidgetGridUnitSize(void) const { return mGridUnitSize; }
 	void setSizeMultiplier(float f) { mSize = f; }
 	float getSizeMultiplier() { return mSize; }
@@ -104,8 +114,13 @@ private:
 	// offset for an external label if there is one
 	Vec2 mLabelOffset;
 	
-	// JUCE component we are using.  Needs to be set up in ctor of every subclass!
+	// JUCE component we are using. Not owned. Needs to be set up in ctor of every subclass!
 	Component* pComponent;
+    
+    // JUCE GL context, if we have one. Owned.
+    OpenGLContext* pGLContext;
+
+
 	
 	bool mWantsResizeLast;
 	
