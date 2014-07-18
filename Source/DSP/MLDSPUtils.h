@@ -23,7 +23,7 @@
 class MLBiquad
 {
 public:
-	MLBiquad() { a0 = a1 = a2 = b1 = b2 = 0.f; mInvSr = 1.f;}
+	MLBiquad() { a0 = a1 = a2 = b1 = b2 = 0.f; mInvSr = 1.f; clear(); }
 	~MLBiquad() {}
 	
     void clear();
