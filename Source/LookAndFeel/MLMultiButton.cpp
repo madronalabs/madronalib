@@ -95,27 +95,11 @@ void MLMultiButton::paint (Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
-
 	int buttons = mButtonValues.size();
-	
-//	g.setColour(Colours::red);
-//	g.fillRect(0, 0, getWidth(), getHeight());
-	
-	// colors
-//	Colour buttonOnColor (findColour (MLMultiButton::buttonOnColourId));
-//	Colour buttonOffColor (findColour (MLMultiButton::buttonOffColourId));
-
-//	const Colour buttonOnHoverColor = buttonOnColor.brighter(0.25);			
-//	const Colour buttonOffHoverColor = buttonOffColor.brighter(0.25);			
-	
     
     // colors
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));
 	const Colour onColor (findColour (MLMultiButton::buttonOnColourId));
-
-    
-	const float alpha = isEnabled() ? 1.f : 0.25f;
-
     
 	Colour outlineOnColor, outlineOffColor;
 	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onColor.withMultipliedAlpha(0.625f));

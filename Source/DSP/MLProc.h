@@ -17,7 +17,7 @@
 #include "MLSymbol.h"
 #include "MLSymbolMap.h"
 
-#define CHECK_IO    DEBUG
+#define CHECK_IO    0
 
 #ifdef	__GNUC__
 	#define	ML_UNUSED	__attribute__ (( __unused__ )) 

@@ -786,20 +786,19 @@ void MLProcContainer::process(const int extFrames)
 		// check signal integrity.
 		for(int i=0; i<outs; ++i)
 		{
-			int k = p->getOutput(i + 1).checkIntegrity();
-			if (!k) 
+			if (!p->getOutput(i + 1).checkIntegrity())
 			{
-				debug() << getName() << ": " << "bad signal " << p->getName() << " output " << i << " (" << p->getOutputName(i + 1) << ")\n";
+				debug() << getName() << ": " << "corrupt signal " << p->getName() << " output " << i << " (" << p->getOutputName(i + 1) << ")\n";
 			}
+            if (p->getOutput(i + 1).checkForNaN())
+            {
+                if(p->getName() != MLSymbol("signal_viewer_proc")) // temp hack, signal viewers output weird pakced char format
+                {
+                    debug() << "MLProcContainer " << getName() << ": NaN output " << i + 1 << " of proc " << p->getName() << "!\n" ;
+                }
+            }
 		}
 #endif
-
-		// kill denormals
-//			for(int i=0; i<outs; ++i)
-//			{
-//				MLSignal& out = (*it)->getOutput(i + 1);
-//				out.killDenormals();
-//			}			
 
 		/*
 		// TEST make everything constant
@@ -861,22 +860,7 @@ void MLProcContainer::process(const int extFrames)
 	{
 		MLSignal& outSig = mPublishedOutputs[i]->mProc->getOutput(mPublishedOutputs[i]->mOutput);
 		mOutputs[i]->copy(outSig);
-	}	
-	
-#if VALIDATE_SIGNALS
-	// test outputs!
-	int outs = (int)mPublishedOutputs.size();
-	
-	for (int outIdx=0; outIdx<outs; ++outIdx)
-	{
-		MLSample k = (*mOutputs[outIdx])[0];
-		if (k != k)
-		{
-			debug() << "MLProcContainer " << getName() << ": NaN output " << outIdx << "!\n" ;
-		}
 	}
-#endif
-
 }
 
 void MLProcContainer::clearInput(const int idx)
