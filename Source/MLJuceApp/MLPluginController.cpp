@@ -712,7 +712,6 @@ void MLPluginController::processFile (const MLSymbol collection, const File& f, 
 {
     if(collection == "old_user_presets")
     {
-
         debug() << "convertPresets: processing: " << f.getFullPathName() << "\n";
     }
     else
@@ -728,9 +727,19 @@ void MLPluginController::convertPresets()
     File presetsFolder = getDefaultFileLocation(kOldPresetFiles);
     if (presetsFolder != File::nonexistent)
     {
+        
+        // TODO
+        //TODO make progress window thread
+        progressThread = new ThreadWithProgressWindow(this);
+        
         mPresetsToConvert = MLFileCollectionPtr(new MLFileCollection("old_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
         mPresetsToConvert->setListener(this);
         mPresetsToConvert->searchForFilesNow();
+        
+        
+        now tell progress thread to close
+        
+        
     }
     else
     {
@@ -773,11 +782,7 @@ void MLPluginController::convertPresets()
         
     }
 //    mProgressThread setProgress (i / (double) numFiles);
-  
-    
-    
-
-    
+     
     /*
     
 	if (numFiles > 0)

@@ -175,8 +175,14 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 {
 	// debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
-	
-	if ((e == OK) && (mGraphStatus == OK) && (mCompileStatus == OK))
+    
+	// set denormal state
+	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
+	int newMXCSR = oldMXCSR | 0x8040; // set DAZ and FZ bits
+	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
+	// _mm_setcsr( oldMXCSR ); // restore MXCSR state (needed?)
+    
+	if ((mGraphStatus == OK) && (mCompileStatus == OK))
 	{
 		// set self as context to get size and rate chain started.
 		setContext(this);	
@@ -323,16 +329,27 @@ void MLDSPEngine::clearOutputBuffers()
 // read ringbuffers to client output buffers
 void MLDSPEngine::readOutputBuffers(const int samples)
 {
-	int outs = getNumOutputs();	
-	for(int i=0; 
-	i < outs; ++i)
+	int outs = getNumOutputs();
+    int okToRead = true;
+	for(int i=0; i < outs; ++i)
 	{
-		if (samples != mOutputBuffers[i]->read(mIOMap.outputs[i], samples))
-		{
-			debug() << "MLDSPEngine: output ringbuffer out of data!\n";
-		}
+		if(mOutputBuffers[i]->getRemaining() < samples)
+        {
+            okToRead = false;
+            break;
+        }
 	}
-} 
+    if(okToRead)
+    {
+        for(int i=0; i < outs; ++i)
+        {
+            if (samples != mOutputBuffers[i]->read(mIOMap.outputs[i], samples))
+            {
+                debug() << "MLDSPEngine: output ringbuffer out of data!\n";
+            }
+        }
+    }
+}
 
 void MLDSPEngine::dump()
 {
@@ -527,63 +544,7 @@ void MLDSPEngine::clearMIDI()
 {
 	if (mpInputToSignalsProc)
 	{
-		mpInputToSignalsProc->clearMIDI();
-	}
-}
-
-void MLDSPEngine::addNoteOn(int chan, int note, int vel, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->addNoteOn(chan, note, vel, time);
-	}
-}
-
-void MLDSPEngine::addNoteOff(int chan, int note, int vel, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->addNoteOff(chan, note, vel, time);
-	}
-}
-
-void MLDSPEngine::setController(int controller, int value, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->setController(controller, value, time);
-	}
-}
-
-void MLDSPEngine::setPitchWheel(int chan, int value, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->setPitchWheel(chan, value, time);
-	}
-}
-
-void MLDSPEngine::setAfterTouch(int chan, int note, int value, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->setAfterTouch(chan, note, value, time);
-	}
-}
-
-void MLDSPEngine::setChannelAfterTouch(int value, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->setChannelAfterTouch(value, time);
-	}
-}
-
-void MLDSPEngine::setSustainPedal(int value, int time)
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->setSustainPedal(value, time);
+		mpInputToSignalsProc->clearChangeLists();
 	}
 }
 
@@ -596,7 +557,6 @@ MLScale* MLDSPEngine::getScale()
 	}
 	return r;
 }
-
 
 // ----------------------------------------------------------------
 #pragma mark Patcher
@@ -617,14 +577,18 @@ void MLDSPEngine::setCollectStats(bool k)
 
 // run one buffer of the compiled graph, processing signals from the global inputs (if any)
 // to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
-void MLDSPEngine::processBlock(const int frames, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+//
+void MLDSPEngine::processBlock(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {
 	int sr = getSampleRate();
 	int processed = 0;
 	bool reportStats = false;
 	osc::int64 startTime = 0, endTime = 0;
+    MLControlEventVector::const_iterator firstEvent, lastEvent;
 		
-	if (mpHostPhasorProc)
+	//debug() << "new samples: " << frames << "\n";
+	
+    if (mpHostPhasorProc)
 	{	
 		mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
 	}	
@@ -643,28 +607,23 @@ void MLDSPEngine::processBlock(const int frames, const int64_t , const double se
 
 	writeInputBuffers(frames);
 	mSamplesToProcess += frames;
-	
-	//debug() << "new samples: " << frames << "\n";
-
-	// set denormal state
-	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
-	int newMXCSR = oldMXCSR | 0x8040; // set DAZ and FZ bits
-	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
 
 	while(mSamplesToProcess >= mVectorSize)
 	{
 		readInputBuffers(mVectorSize);
-		
-		// set MIDI signals offset into change lists
+
 		if (mpInputToSignalsProc)
 		{
-			// mpInputToSignalsProc->setMIDIFrameOffset(processed);
-            // send events to the graph. subtract the frame offset here.
+            // advance iterators into sorted event vector to capture range of events
+            firstEvent = events.begin();
+            
+            for(firstEvent = events.begin(); (!(*firstEvent).isFree()) && ((*firstEvent).mTime < processed); firstEvent++){}
+            for(lastEvent = firstEvent; (!(*lastEvent).isFree()) && ((*lastEvent).mTime < processed + mVectorSize); lastEvent++){}
+
+			mpInputToSignalsProc->setEventTimeOffset(processed);
+			mpInputToSignalsProc->setEventRange(firstEvent, lastEvent);
 		}
         
-        
-        
-		
 		if (reportStats)
 		{
 			MLSignalStats stats;
@@ -710,43 +669,11 @@ void MLDSPEngine::processBlock(const int frames, const int64_t , const double se
 			}
 		}		
          
-		// TEST
-		//debug() << "samples to process:" << mSamplesToProcess << "(" << c++ << ")\n";	
-		
-#ifdef DEBUG
-        // DEBUG recover from blowups leading to NaNs in output
-        bool hasNaN = false;
-        int outs = getNumOutputs();
-		for (int i=0; i<outs; ++i)
-		{
-			float* f = getOutput(i+1).getBuffer();
-            int size = getOutput(i+1).getSize();
-            for(int j = 0; j < size; ++j)
-            {
-                float s = f[j];
-                if(s != s)
-                {
-                    hasNaN = true;
-                    break;
-                }
-            }
-		}
-        if(hasNaN)
-        {
-            clear();
-            clearOutputBuffers();
-        }
-        else
-#endif
-        {
-             writeOutputBuffers(mVectorSize);
-        }
+        writeOutputBuffers(mVectorSize);
 		processed += mVectorSize;
 		mSamplesToProcess -= mVectorSize;
 	}	
 	readOutputBuffers(frames);
-
-	_mm_setcsr( oldMXCSR ); // restore MXCSR state
 }
 
 

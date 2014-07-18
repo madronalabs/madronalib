@@ -12,6 +12,7 @@
 #include "MLProcHostPhasor.h"
 #include "MLSignal.h"
 #include "MLRingBuffer.h"
+#include "MLControlEvent.h"
 #include "OscTypes.h"
 
 const int kMLEngineMaxChannels = 8;
@@ -112,7 +113,7 @@ public:
 
 	// run the compiled graph, processing signals from the global inputs (if any)
 	// to the global outputs. 
-	void processBlock(const int samples, const int64_t samplesPos, const double secs, const double position, const double bpm, bool isPlaying); 
+	void processBlock(const int samples, const MLControlEventVector& events, const int64_t samplesPos, const double secs, const double position, const double bpm, bool isPlaying);
 
 private:
 	

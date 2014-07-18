@@ -13,36 +13,13 @@
 #include "MLScale.h"
 #include "MLChangeList.h"
 #include "MLInputProtocols.h"
+#include "MLControlEvent.h"
 #include "pa_ringbuffer.h"
 
 #include <stdexcept>
 
-// a key that is down.
-class MLKeyEvent 
-{
-public:
-	// states to mark an event's connection to one or more voices. 
-	// states > 0 mean voices are active.
-	static const long kVoiceOff = -1;
-	static const long kVoicePending = -2;
-	static const long kVoiceUnison = 1<<14;
-
-	MLKeyEvent();
-	~MLKeyEvent() {};
-	void clear();
-	void setup(int chan, int note, int vel, int time, int order);
-	void setVoice(int v);
-	inline bool isSounding() { return (mVoiceState >= 0); }
-	
-	int mChan;
-	int mNote;
-	int mVel;
-	int mStartTime;
-	int mVoiceState;	// zero or positive for voice we are assigned to, or negative for status flags
-	int mStartOrder;	// always increasing from event to event
-};
-
-// a voice that can play. 
+// a voice that can play.
+//
 class MLVoice
 {
 public:
@@ -54,7 +31,9 @@ public:
 	void zero();
 	
 	int mActive;
-	int mNote;	
+    int mInstigatorID; // for matching event sources, could be MIDI key, or touch number.
+    int mChannel;   
+	int mNote;
 	int mAge;	// time active, measured to the end of the current process buffer
 	
 	// for continuous touch inputs (OSC)
@@ -64,12 +43,14 @@ public:
 	float mX1;
 	float mY1;
 	float mZ1;
-
+    
 	MLChangeList mdPitch;
+	MLChangeList mdPitchBend;
 	MLChangeList mdGate;
 	MLChangeList mdAmp;
 	MLChangeList mdVel;
-	MLChangeList mdAfter;
+	MLChangeList mdNotePressure;
+	MLChangeList mdChannelPressure;
 	MLChangeList mdMod;
 	MLChangeList mdMod2;
 	MLChangeList mdMod3;
@@ -78,10 +59,6 @@ public:
 
 extern const int kNumVoiceSignals;
 extern const char * voiceSignalNames[];
-
-const int kMLMaxEvents = 1 << 4;
-const int kMLEventMask = kMLMaxEvents - 1;
-const int kNoteBufElements = 512;
 
 class MLProcInputToSignals : public MLProc
 {
@@ -95,117 +72,97 @@ public:
 	static const int kFrameHeight = 16;
 	static const int kFrameBufferSize = 128;
 
-	 MLProcInputToSignals();
+    MLProcInputToSignals();
 	~MLProcInputToSignals();
 	MLProcInfoBase& procInfo() { return mInfo; }
+	int getOutputIndex(const MLSymbol name);
 
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
 	void clear();
 	MLProc::err prepareToProcess();
-	void process(const int n);		
-	void processOSC(const int n);		
-	void processMIDI(const int n);		
+	void process(const int n);
+    
+	void clearChangeLists();
+    void setEventTimeOffset(int t);
+    void setEventRange(MLControlEventVector::const_iterator start, MLControlEventVector::const_iterator end);
 	
-	void clearMIDI();
  	void setup();
  	err resize();
-	void setMIDIFrameOffset(int offset);
-	int getOutputIndex(const MLSymbol name);
-	
-	// events
-	int findEventForNote(int note);
-	void clearEvent(MLKeyEvent& event, int time);
-	bool hasHeldKeyEvent(int v);
-
-	void addNoteOn(int chan, int note, int vel, int time);
-	void addNoteOff(int chan, int note, int vel, int time);
-	void setPitchWheel(int chan, int value, int time);
-	void setAfterTouch(int chan, int note, int value, int time);
-
-	void setRetrig(bool r);
-	void setController(int controller, int value, int time);
-	void setChannelAfterTouch(int value, int time);
-	void setSustainPedal(int value, int time);
 	
 	MLScale* getScale();
 	MLSample noteToPitch(float note);
-	MLSample midiToPitch(int note);
-	MLSample velToAmp(int vel);
 
 	void doParams();
 
 private:
-    class NoteEvent
-    {
-    public:
-        NoteEvent()
-            : channel(0), note(0), velocity(0), frameTime(0) {}
-        NoteEvent(int c, int n, int v, int t)
-            : channel(c), note(n), velocity(v), frameTime(t) {}
-        ~NoteEvent() {}
-        
-        int channel;
-        int note;
-        int velocity;
-        int frameTime;
-    };
+    void processOSC(const int n);
+	void processEvents();
+	void writeOutputSignals(const int n);
+
+    void processEvent(const MLControlEvent& event);
+	void doNoteOn(const MLControlEvent& event);
+	void doNoteOff(const MLControlEvent& event);
+	void doController(const MLControlEvent& event);
+	void doPitchWheel(const MLControlEvent& event);
+	void doNotePressure(const MLControlEvent& event);
+	void doChannelPressure(const MLControlEvent& event);
+	void doSustain(const MLControlEvent& event);
 
 	void dumpEvents();
 	void dumpVoices();
-	int allocate();
+	void dumpSignals();
     
-	void sendEventToVoice(MLKeyEvent& e, int voiceIdx);
+    int findFreeVoice();
+    int findSustainedVoice();
+    int findOldestVoice();
     
-	void doNoteOn(const NoteEvent& event);
-	void doNoteOff(const NoteEvent& event);
+    void sendNoteToVoice(const MLControlEvent& e, int voiceIdx);
+    void removeNoteFromVoice(const MLControlEvent& e, int voiceIdx);
+    void stealVoice(const MLControlEvent& e, int voiceIdx);
 
 	int mProtocol;
 	MLProcInfo<MLProcInputToSignals> mInfo;
 	PaUtilRingBuffer* mpFrameBuf;
 	MLSignal mLatestFrame;
+    int mFrameCounter;
+    
+    MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
+    MLControlEventVector mNoteEventsSustaining; // notes still sounding because sustain pedal is held
+    MLControlEventVector mNoteEventsPending;    // notes stolen that may play again when voices are freed
+    
+	MLVoice mVoices[kMLEngineMaxVoices];
 
-	MLKeyEvent mEvents[kMLMaxEvents];
 	int mNextEventIdx;
-	MLVoice mVoices[kMLEngineMaxVoices]; 
-	int mNextVoiceIdx;
+	int mVoiceRotateOffset;
 	
-	PaUtilRingBuffer mNoteBuf;
-	NoteEvent mNoteBufData[kNoteBufElements];
+    int mEventTimeOffset;
+    // the range of events [mStartEvent, mEndEvent) will control the next process() call.
+    MLControlEventVector::const_iterator mStartEvent, mEndEvent;
 		
-	MLChangeList mdChannelAfterTouch;
-	MLChangeList mdPitchBend;
-	MLChangeList mdController;
-	MLChangeList mdController2;
-	MLChangeList mdController3;
 	int mControllerNumber;
 	int mCurrentVoices;
 	int mDriftCounter;
 	int mEventCounter;
 		
-	int mMIDIFrameOffset;
 	MLRange mPitchRange;
 	MLRange mAmpRange;
 	bool mRetrig;
 	bool mUnisonMode;
+	bool mRotateMode;
 	int mUnisonInputTouch;
 	float mGlide;	
 	int mOSCDataRate;
 	
 	float mUnisonPitch1;
 
-	MLSignal mPitchBendSignal;
-	MLSignal mDriftSignal;
+	MLSignal mTempSignal;
 	MLSignal mChannelAfterTouchSignal;
-	MLSignal mControllerSignal;
-	MLSignal mControllerSignal2;
-	MLSignal mControllerSignal3;
 
 	float mPitchWheelSemitones;
 	MLScale mScale;
 	
 	int temp;
 	bool mSustain;
-    bool mMultiChan;
 };
 
 
