@@ -88,7 +88,7 @@ void MLProcParamToSignal::process(const int frames)
 	}
 	else
 	{
-		mChangeList.writeToSignal(y, 0, frames);
+		mChangeList.writeToSignal(y, frames);
 	}
 }
 

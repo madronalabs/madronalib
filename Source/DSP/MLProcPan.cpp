@@ -1,4 +1,5 @@
 
+
 // MadronaLib: a C++ framework for DSP applications.
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
@@ -14,7 +15,6 @@ class MLProcPan : public MLProc
 public:
 	 MLProcPan();
 	~MLProcPan();
-	
 
 	void clear(){};
 	void process(const int n);		
@@ -24,9 +24,7 @@ private:
 	MLProcInfo<MLProcPan> mInfo;
 	void calcCoeffs(void);
     MLBiquad mSlewLimiter;
-
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -39,29 +37,25 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcPan> outputs[] = {"out_l", "out_r"};
 }
 
-
 // ----------------------------------------------------------------
 // implementation
-
 
 MLProcPan::MLProcPan()
 {
 }
 
-
 MLProcPan::~MLProcPan()
 {
 }
-
 
 void MLProcPan::calcCoeffs(void) 
 {
     int sr = getContextSampleRate();
     mSlewLimiter.setSampleRate(sr);
     mSlewLimiter.setOnePole(500);
+    
 	mParamsChanged = false;
 }
-
 
 void MLProcPan::process(const int samples)
 {	
@@ -71,11 +65,11 @@ void MLProcPan::process(const int samples)
 	MLSignal& out2 = getOutput(2);
 	float in, p, pos;
 	const float half = 0.5f;
-	
+    
 	// coeffs
 	if (mParamsChanged) calcCoeffs();
 	calcCoeffs();
-
+    
 	for (int n=0; n<samples; ++n)
 	{
 		in = x[n];
@@ -86,5 +80,3 @@ void MLProcPan::process(const int samples)
 		out2[n] = p;
 	}
 }
-
-

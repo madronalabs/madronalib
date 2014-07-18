@@ -387,6 +387,7 @@ public:
 	void invert();
 
 	int checkIntegrity() const;
+	int checkForNaN() const;
 	float getSum() const;
 	float getMean() const;
 	float getMin() const;

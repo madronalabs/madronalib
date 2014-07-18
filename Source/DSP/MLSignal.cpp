@@ -1335,6 +1335,22 @@ int MLSignal::checkIntegrity() const
 	return ret;
 }
 
+int MLSignal::checkForNaN() const
+{
+	int ret = false;
+	const MLSample* p = mDataAligned;
+	for(int i=0; i<mSize; ++i)
+	{
+        const float k = p[i];
+		if (k != k)
+		{
+			ret = true;
+			break;
+		}
+	}
+	return ret;
+}
+
 float MLSignal::getSum() const
 {
 	MLSample sum = 0.f;

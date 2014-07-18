@@ -23,7 +23,6 @@ private:
 	MLProcInfo<MLProcFMBandwidth> mInfo;
 };
 
-
 // ----------------------------------------------------------------
 // registry section
 
@@ -34,20 +33,16 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcFMBandwidth> outputs[] = {"out"};
 }	
 
-
 // ----------------------------------------------------------------
 // implementation
-
 
 MLProcFMBandwidth::MLProcFMBandwidth()
 {
 }
 
-
 MLProcFMBandwidth::~MLProcFMBandwidth()
 {
 }
-
 
 void MLProcFMBandwidth::process(const int frames)
 {
@@ -58,11 +53,10 @@ void MLProcFMBandwidth::process(const int frames)
 	
 	for (int n=0; n<frames; ++n)
 	{
+        float fc = c[n];
+        float fm = m[n];
+        float fi = i[n];
 //		out[n] = c[n] + m[n]*(i[n] + log(i[n] + 1)); // original formula
-		out[n] = c[n] + m[n]*(i[n] + sqrtf(i[n]*0.5f)*0.5f); // approximation
+		out[n] = fc + fm*(fi + sqrtf(fi*0.5f)*0.5f); // approximation
 	}
 }
-
-
-
-
