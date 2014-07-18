@@ -26,7 +26,7 @@ public:
 	void addChange(MLSample val, int time);
 	void setGlideTime(float time);
 	void setSampleRate(unsigned rate);
-	void writeToSignal(MLSignal& y, int offset, int frames, bool doDebug = false);
+	void writeToSignal(MLSignal& y, int frames);
 	void dump();
 	
 private:

@@ -103,12 +103,12 @@ inline void MLChangeList::setGlideTarget(float target)
 
 // write the input change list from the given offset into the output signal y .
 // 
-void MLChangeList::writeToSignal(MLSignal& y, int readOffset, int frames, bool /*doDebug*/)
+void MLChangeList::writeToSignal(MLSignal& y, int frames)
 {
   	int size = min(y.getWidth(), mValueSignal.getWidth());
 	size = min(size, frames);
 	int t=0;
-	int changeTime, localChangeTime;
+	int changeTime;
 	y.setConstant(false);
 	
 	// no changes, no glide?  mark constant and bail.
@@ -134,23 +134,21 @@ void MLChangeList::writeToSignal(MLSignal& y, int readOffset, int frames, bool /
 	{
 		y.setConstant(false);
 	
-		// skip changes until change time is >= offset
-		int i;
-		for(i=0; i<mChanges; ++i)
-		{
-			changeTime = (int)mTimeSignal[i];
-			if (changeTime >= readOffset) break;
-		}
-		
 		// write current value up to each change time, then change current value
-		for(; i<mChanges; ++i)
+		for(int i = 0; i<mChanges; ++i)
 		{
 			changeTime = (int)mTimeSignal[i];
-			localChangeTime = changeTime - readOffset;
-			if (localChangeTime >= size) break;
+			if (changeTime >= size)
+            {
+#ifdef DEBUG
+                debug() << "warning: MLChangeList time (" << changeTime <<  ") > size!\n";
+#endif
+                
+                break;
+            }
 			
 			// write current glide up to change
-			for(; t<localChangeTime; ++t)
+			for(; t<changeTime; ++t)
 			{
 				// tick glide
 				if (mGlideCounter > 0) 
