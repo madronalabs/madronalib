@@ -12,7 +12,8 @@
 #include "MLModel.h"
 #include "MLPluginEditor.h"
 #include "MLFileCollection.h"
-#include "MLProcPatcher.h"
+#include "MLControlEvent.h"
+#include "MLProcPatcher.h" // TODO avoid
 
 #include <vector>
 #include <map>
@@ -77,7 +78,7 @@ public:
 	// --------------------------------------------------------------------------------
 	// process
 	bool isOKToProcess();
-	void processMIDI (MidiBuffer& midiMessages);
+    void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
 	void setCollectStats(bool k);
     void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
@@ -88,7 +89,7 @@ public:
     const String getName() const { return MLProjectInfo::projectName; }
 
 	// --------------------------------------------------------------------------------
-	// parameters
+	// DSP parameters
     int getNumParameters();
 	int getParameterIndex (const MLSymbol name);
 	float getParameter (int index);
@@ -113,18 +114,18 @@ public:
 	const std::string& getParameterGroupName (int index);
     
 	// --------------------------------------------------------------------------------
-    // MLModel parameters
-    virtual void setModelProperty(MLSymbol p, float v);
-    virtual void setModelProperty(MLSymbol p, const std::string& v);
-    virtual void setModelProperty(MLSymbol p, const MLSignal& v);
+    // MLModel propertes
+    virtual void setProperty(MLSymbol p, float v);
+    virtual void setProperty(MLSymbol p, const std::string& v);
+    virtual void setProperty(MLSymbol p, const MLSignal& v);
 
 	// --------------------------------------------------------------------------------
 	// signals
 	int countSignals(const MLSymbol alias);
 	unsigned readSignal(const MLSymbol alias, MLSignal& outSig);
 
-	// temp
-	MLProcList& getPatcherList();
+	
+	MLProcList& getPatcherList(); // TODO remove
 
 	// --------------------------------------------------------------------------------
 	// state
@@ -219,7 +220,6 @@ protected:
 	String mDocLocationString;
 		
 private:
-
 	void setCurrentPresetDir(const char* name);
     
 	// set the plugin state from a memory blob containing parameter and patcher settings.
@@ -258,6 +258,9 @@ private:
 	bool mEditorAnimationsOn;
 	
 	bool mInitialized;
+    
+    // vector of control events to send to engine along with each block of audio.
+    MLControlEventVector mControlEvents;
 };
 
 #endif  // __PLUGINPROCESSOR__

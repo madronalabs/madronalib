@@ -19,19 +19,19 @@ MLPropertyView::~MLPropertyView()
 {
 }
 	
-void MLPropertyView::view(const MLModelProperty& p) const
+void MLPropertyView::view(const MLProperty& p) const
 {
 	switch(p.getType())
 	{
-		case MLModelProperty::kUndefinedProperty:
+		case MLProperty::kUndefinedProperty:
 			break;
-		case MLModelProperty::kFloatProperty:
+		case MLProperty::kFloatProperty:
 			mpWidget->setAttribute(mAttr, p.getFloatValue());		
 			break;
-		case MLModelProperty::kStringProperty:
+		case MLProperty::kStringProperty:
 			mpWidget->setStringAttribute(mAttr, *p.getStringValue());
 			break;
-		case MLModelProperty::kSignalProperty:
+		case MLProperty::kSignalProperty:
 			mpWidget->setSignalAttribute(mAttr, *p.getSignalValue());
 			break;
 	}
@@ -61,7 +61,7 @@ void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
 }
 
-void MLReporter::doPropertyChangeAction(MLSymbol param, const MLModelProperty& oldVal, const MLModelProperty& newVal)
+void MLReporter::doPropertyChangeAction(MLSymbol param, const MLProperty& oldVal, const MLProperty& newVal)
 {
 	// debug() << "MLReporter::doPropertyChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
 	// do we have viewers for this parameter?

@@ -1471,8 +1471,8 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 	
 	if((dxx != 0.f)&&(dxx != 0.f)&&(dxx != 0.f))
 	{
-		Vec2 minPos(x - 0.5f, y - 0.5f);
-		Vec2 maxPos(x + 0.5f, y + 0.5f);
+		Vec2 minPos(x - 1.0f, y - 1.0f);
+		Vec2 maxPos(x + 1.0f, y + 1.0f);
 		float oneOverDiscriminant = 1.f/(dxx*dyy - dxy*dxy);
 		float fx = (dyy*dx - dxy*dy) * oneOverDiscriminant;
 		float fy = (dxx*dy - dxy*dx) * oneOverDiscriminant;

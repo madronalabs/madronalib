@@ -4,6 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPluginProcessor.h"
+const int kMaxControlEventsPerBlock = 1024;
 
 MLPluginProcessor::MLPluginProcessor() : 
 	MLListener(0),
@@ -23,6 +24,8 @@ MLPluginProcessor::MLPluginProcessor() :
     
     scanPresets();
 	scanMIDIPrograms();
+    
+    mControlEvents.resize(kMaxControlEventsPerBlock);
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -284,63 +287,69 @@ void MLPluginProcessor::setProcessorListener(MLPluginProcessor::Listener* l)
 // --------------------------------------------------------------------------------
 #pragma mark process
 
-void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
+void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector& events)
 {
+    int c = 0;
+    int size = events.size();
+    
 	MidiBuffer::Iterator i (midiMessages);
     juce::MidiMessage message (0xf4, 0.0);
-    int time;
+    MLControlEvent::EventType type = MLControlEvent::eNull;
+    int chan = 0;
+    int id = 0;
+    int time = 0;
+    float v1 = 0.f;
+    float v2 = 0.f;
 		
-	mEngine.clearMIDI();
     while (i.getNextEvent(message, time)) // writes to time
 	{
+        chan = message.getChannel();
 		if (message.isNoteOn())
 		{
-			int chan = message.getChannel();
-			int note = message.getNoteNumber();
-			int vel = message.getVelocity();
-			mEngine.addNoteOn(chan, note, vel, time);
-		}		
+            type = MLControlEvent::eNoteOn;
+			v1 = message.getNoteNumber();
+			v2 = message.getVelocity() / 127.f;
+            id = (int)v1;
+		}
 		else if(message.isNoteOff())
 		{
-			int chan = message.getChannel();
-			int note = message.getNoteNumber();
-			int vel = message.getVelocity();
-			mEngine.addNoteOff(chan, note, vel, time);
-		}		
-		else if (message.isAftertouch())
-		{
-			int chan = message.getChannel();
-			int note = message.getNoteNumber();
-			int value = message.getAfterTouchValue();
-			mEngine.setAfterTouch(chan, note, value, time);
-		}
-		else if (message.isPitchWheel())
-		{
-			int chan = message.getChannel();
-			int value = message.getPitchWheelValue();
-            //debug() << "pitch bend " << value << ", " << time << "\n";
-			mEngine.setPitchWheel(chan, value, time);
-		}
-		else if (message.isSustainPedalOn())
-		{			
-			mEngine.setSustainPedal(1, time);
-		}
-		else if (message.isSustainPedalOff())
-		{
-			mEngine.setSustainPedal(0, time);
+            type = MLControlEvent::eNoteOff;
+			v1 = message.getNoteNumber();
+			v2 = message.getVelocity() / 127.f;
+            id = (int)v1;
 		}
 		else if (message.isController())
 		{
-			int controller = message.getControllerNumber();
-			int value = message.getControllerValue();
-//debug() << "ctrl " << controller << ", val " << value << ", t " << time << "\n";
-            
-			mEngine.setController(controller, value, time);
+            type = MLControlEvent::eController;
+			v1 = message.getControllerNumber();
+			v2 = message.getControllerValue() / 127.f;
+		}
+		else if (message.isPitchWheel())
+		{
+            type = MLControlEvent::ePitchWheel;
+			v1 = message.getPitchWheelValue();
+		}
+		else if (message.isAftertouch())
+		{
+            type = MLControlEvent::eNotePressure;
+			v1 = message.getNoteNumber();
+			v2 = message.getAfterTouchValue() / 127.f;
+            id = (int)v1;
 		}
 		else if (message.isChannelPressure())
 		{
-			int value = message.getChannelPressureValue();
-			mEngine.setChannelAfterTouch(value, time);
+            type = MLControlEvent::eChannelPressure;
+			v1 = message.getChannelPressureValue() / 127.f;
+		}
+		else if (message.isSustainPedalOn())
+		{			
+            type = MLControlEvent::eSustainPedal;
+			v1 = 1.f;
+		}
+		else if (message.isSustainPedalOff())
+		{
+            type = MLControlEvent::eSustainPedal;
+			v1 = 0.f;
 		}
 		else if (message.isProgramChange())
 		{
@@ -356,6 +365,9 @@ void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
 				setStateFromMIDIProgram(pgm);
 			}
+            type = MLControlEvent::eProgramChange;
+            id = chan;
+            v1 = (float)pgm;
 		}
         else if (!message.isMidiClock())
 		// TEST
@@ -370,7 +382,14 @@ void MLPluginProcessor::processMIDI (MidiBuffer& midiMessages)
 			}	
 			debug() << std::dec << "]\n";
 		}
+        if(c < size - 1)
+        {
+            events[c++] = MLControlEvent(type, chan, id, time, v1, v2);
+        }
 	}
+    
+    // null-terminate new event list
+    events[c] = kMLNullControlEvent;
 }
 
 void MLPluginProcessor::setCollectStats(bool k)
@@ -414,7 +433,6 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			
 		// set Engine I/O.  done here each time because JUCE may change pointers on us.  possibly.
 		MLDSPEngine::ClientIOMap ioMap;
-
 		for (int i=0; i<getNumInputChannels(); ++i)
 		{
 			ioMap.inputs[i] = buffer.getReadPointer(i);
@@ -425,25 +443,12 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		}
 		mEngine.setIOBuffers(ioMap);
         
-		if(acceptsMidi()) processMIDI(midiMessages);
-        
-        /*
-         TODO something nicer like this, see MLControlEvent and refactor this business
         if(acceptsMidi())
         {
-            convertMIDIToEvents(midiMessages, events);
-            
-            // must clear the MIDI buffer otherwise messages will be passed back to the hostf
-            midiMessages.clear();
+            convertMIDIToEvents(midiMessages, mControlEvents);
+            midiMessages.clear(); // otherwise messages will be passed back to the host
         }
-         mEngine.processBlock(samples, events, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
-        */
-        
-		// do everything
-		mEngine.processBlock(samples, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
-		
-		// must clear the MIDI buffer otherwise messages will be passed back to the host
-		if(acceptsMidi()) midiMessages.clear();
+        mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
     }
 	else
 	{
@@ -482,7 +487,7 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 	
 	// set MLModel Parameter 
 	MLSymbol paramName = getParameterAlias(index);
-	setModelProperty(paramName, newValue);
+	setProperty(paramName, newValue);
 }
 
 // set parameter by name. Typically called from internal code. 
@@ -496,7 +501,7 @@ void MLPluginProcessor::setParameter (MLSymbol paramName, float newValue)
 	mHasParametersSet = true;
 	
 	// set MLModel Parameter 
-	setModelProperty(paramName, newValue);
+	setProperty(paramName, newValue);
 }
 
 float MLPluginProcessor::getParameterAsLinearProportion (int index)
@@ -524,7 +529,7 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		// set MLModel Parameter 
 		MLSymbol paramName = getParameterAlias(index);
 		float realVal = mEngine.getParamByIndex(index);
-		setModelProperty(paramName, realVal);
+		setProperty(paramName, realVal);
 	}
 }
 
@@ -659,14 +664,14 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 // --------------------------------------------------------------------------------
 #pragma mark MLModel params TODO should be called attributes
 
-void MLPluginProcessor::setModelProperty(MLSymbol p, float v)
+void MLPluginProcessor::setProperty(MLSymbol p, float v)
 {
-	MLModel::setModelProperty(p, v);
+	MLModel::setProperty(p, v);
 }
 
-void MLPluginProcessor::setModelProperty(MLSymbol p, const std::string& v)
+void MLPluginProcessor::setProperty(MLSymbol p, const std::string& v)
 {
-	MLModel::setModelProperty(p, v);
+	MLModel::setProperty(p, v);
 	if (p == "key_scale")
 	{
         bool loaded = false;
@@ -689,9 +694,9 @@ void MLPluginProcessor::setModelProperty(MLSymbol p, const std::string& v)
     }
 }
 
-void MLPluginProcessor::setModelProperty(MLSymbol p, const MLSignal& v)
+void MLPluginProcessor::setProperty(MLSymbol p, const MLSignal& v)
 {
-	MLModel::setModelProperty(p, v);
+	MLModel::setProperty(p, v);
 }
 
 
@@ -742,12 +747,12 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 	// TODO use string attributes of model instead of these JUCE strings.
 	// also move to JSON.
 	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
-    paramStr = getModelStringParam("preset");
+    paramStr = getStringProperty("preset");
     if (paramStr != 0)
     {
         xml.setAttribute ("presetName", String(paramStr->c_str()));
     }
-    paramStr = getModelStringParam("key_scale");
+    paramStr = getStringProperty("key_scale");
     if (paramStr != 0)
     {
         xml.setAttribute ("scaleName", String(paramStr->c_str()));
@@ -814,8 +819,8 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 		xml.setAttribute("editor_width", r.getWidth());	
 		xml.setAttribute("editor_height", r.getHeight());	
 		
-		xml.setAttribute("editor_num", getModelFloatParam("patch_num"));	
-		xml.setAttribute("editor_anim", getModelFloatParam("patch_anim"));	
+		xml.setAttribute("editor_num", getFloatProperty("patch_num"));	
+		xml.setAttribute("editor_anim", getFloatProperty("patch_anim"));	
 	}
 	
 	// save blob as most recently saved state
@@ -830,7 +835,7 @@ int MLPluginProcessor::saveStateAsVersion()
 {
     int r = 0;
 	int version = 0;
-    std::string nameStr(*getModelStringParam("preset"));
+    std::string nameStr(*getStringProperty("preset"));
 	std::string noVersionStr;
 	std::string versionStr;
 	int numberStart = 0;
@@ -874,7 +879,7 @@ int MLPluginProcessor::saveStateAsVersion()
 
 int MLPluginProcessor::saveStateOverPrevious()
 {
-    saveStateToRelativePath(*getModelStringParam("preset"));
+    saveStateToRelativePath(*getStringProperty("preset"));
 	return 0;
 }
 
@@ -934,12 +939,12 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     {
         fullName = "12-equal";
     }
-	setModelProperty("key_scale", std::string(fullName.toUTF8()));
+	setProperty("key_scale", std::string(fullName.toUTF8()));
     
 	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
     
 	const String presetName = xmlState.getStringAttribute ("presetName");
-	setModelProperty("preset", std::string(presetName.toUTF8()));
+	setProperty("preset", std::string(presetName.toUTF8()));
     
 	/*
      debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
@@ -1132,7 +1137,7 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
     
     // the Model param contains the file path relative to the root.
     std::string shortPath = stripExtension(path);
-    setModelProperty("preset", shortPath);
+    setProperty("preset", shortPath);
     
  
 #ifdef ML_PRESETS_ONLY
@@ -1174,7 +1179,7 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         {
             loadStateFromFile(f->mFile);
             std::string shortPath = stripExtension(path);
-            setModelProperty("preset", shortPath);
+            setProperty("preset", shortPath);
         }
     }
 }
@@ -1369,7 +1374,7 @@ void MLPluginProcessor::advancePreset(int amount)
 #endif
     
     int currIdx = - 1;
-    const std::string* currPresetName = getModelStringParam("preset");
+    const std::string* currPresetName = getStringProperty("preset");
     if (currPresetName != NULL)
     {
         currIdx = mPresetFiles->getFileIndexByName(*currPresetName + extension);

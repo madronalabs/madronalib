@@ -38,7 +38,7 @@ public:
 	void setStateFromText(const std::string& stateAsText);
 
 	// MLModelListener interface
-	void doPropertyChangeAction(MLSymbol param, const MLModelProperty& oldVal, const MLModelProperty& newVal);
+	void doPropertyChangeAction(MLSymbol param, const MLProperty& oldVal, const MLProperty& newVal);
 
 protected:
 	MLAppView* mpAppView;

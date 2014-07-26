@@ -15,13 +15,12 @@
 #include "MLMenu.h"
 
 // a collection of files matching some kind of criteria.
-// planned timer / background scan stuff unimplemented.
 class MLFileCollection
 {
 public:
     
     // a Listener class must have a processFile routine to do something
-	// with each file as it is found.
+    // with each file as it is found.
     class Listener
 	{
 	public:
@@ -96,7 +95,6 @@ private:
     
     // temp storage for processing files
     std::vector <File> mFiles;
-    
     std::tr1::shared_ptr<SearchThread> mSearchThread;
 
 };

@@ -11,9 +11,9 @@
 #include "MLSymbol.h"
 #include "MLDebug.h"
 
-// MLModelProperty: a modifiable property of a model. Model properties have three types: float, string, and signal.
+// MLProperty: a modifiable property of a model. Model properties have three types: float, string, and signal.
 
-class MLModelProperty
+class MLProperty
 {
 public:
 	enum eType
@@ -24,13 +24,13 @@ public:
 		kSignalProperty = 3
 	};
     
-	MLModelProperty();
-	MLModelProperty(const MLModelProperty& other);
-	MLModelProperty& operator= (const MLModelProperty & other);
-	MLModelProperty(float v);
-	MLModelProperty(const std::string& s);
-	MLModelProperty(const MLSignal& s);
-	~MLModelProperty();
+	MLProperty();
+	MLProperty(const MLProperty& other);
+	MLProperty& operator= (const MLProperty & other);
+	MLProperty(float v);
+	MLProperty(const std::string& s);
+	MLProperty(const MLSignal& s);
+	~MLProperty();
     
 	float getFloatValue() const;
 	const std::string* getStringValue() const;
@@ -41,11 +41,11 @@ public:
 	void setValue(const std::string& v);
 	void setValue(const MLSignal& v);
 	
-	bool operator== (const MLModelProperty& b) const;
-	bool operator!= (const MLModelProperty& b) const;
+	bool operator== (const MLProperty& b) const;
+	bool operator!= (const MLProperty& b) const;
 	eType getType() const { return mType; }
 	
-	bool operator<< (const MLModelProperty& b) const;
+	bool operator<< (const MLProperty& b) const;
 	
 private:
 	
@@ -58,12 +58,14 @@ private:
 	} mVal;
 };
 
-std::ostream& operator<< (std::ostream& out, const MLModelProperty & r);
+std::ostream& operator<< (std::ostream& out, const MLProperty & r);
+
+typedef std::map<MLSymbol, MLProperty> MLPropertyMap;
 
 class MLModel;
 
 // ----------------------------------------------------------------
-// MLModelListeners are notified when any of a Model's properties change.
+// MLModelListeners are notified when a Property changes.
 
 class MLModelListener
 {
@@ -71,11 +73,8 @@ public:
 	MLModelListener(MLModel* m) : mpModel(m) {}
 	virtual ~MLModelListener() {}
 	
-	// mark one parameter as changed. 
-	void modelPropertyChanged(MLSymbol p);
-
-	// mark one parameter as changed. 
-	void modelStringParamChanged(MLSymbol p);
+	// mark one property as changed.
+	void propertyChanged(MLSymbol p);
 
 	// do an action for any params with changed values.
 	void updateChangedProperties();
@@ -83,7 +82,7 @@ public:
 	// force an update of all params.
 	void updateAllProperties();
 
-	virtual void doPropertyChangeAction(MLSymbol param, const MLModelProperty & oldVal, const MLModelProperty & newVal) = 0;
+	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & oldVal, const MLProperty & newVal) = 0;
 	
 protected:	
 	// represent the state of a model parameter relative to updates. 
@@ -99,7 +98,7 @@ protected:
 		
 		bool mInitialized;  
 		bool mChangedSinceUpdate; 
-		MLModelProperty mValue;
+		MLProperty mValue;
 	};
 		
 	std::map<MLSymbol, ModelPropertyState> mModelPropertyStates;
@@ -109,30 +108,28 @@ protected:
 
 // ----------------------------------------------------------------
 
-typedef std::map<MLSymbol, MLModelProperty> MLModelPropertyMap;
-
 class MLModel
 {
 public:
 	MLModel();
 	virtual ~MLModel();	
 
-	inline const MLModelProperty& getModelProperty(MLSymbol p) { return mProperties[p]; }
+	inline const MLProperty& getProperty(MLSymbol p) { return mProperties[p]; }
 
-	inline float getModelFloatParam(MLSymbol p) { return mProperties[p].getFloatValue(); }
-	inline const std::string* getModelStringParam(MLSymbol p) { return mProperties[p].getStringValue(); }
-	inline const MLSignal* getModelSignalParam(MLSymbol p) { return mProperties[p].getSignalValue(); }
+	inline float getFloatProperty(MLSymbol p) { return mProperties[p].getFloatValue(); }
+	inline const std::string* getStringProperty(MLSymbol p) { return mProperties[p].getStringValue(); }
+	inline const MLSignal* getSignalProperty(MLSymbol p) { return mProperties[p].getSignalValue(); }
 
-	virtual void setModelProperty(MLSymbol p, float v);
-	virtual void setModelProperty(MLSymbol p, const std::string& v);
-	virtual void setModelProperty(MLSymbol p, const MLSignal& v);
+	virtual void setProperty(MLSymbol p, float v);
+	virtual void setProperty(MLSymbol p, const std::string& v);
+	virtual void setProperty(MLSymbol p, const MLSignal& v);
 	
 	void addPropertyListener(MLModelListener* pL);
 	void removePropertyListener(MLModelListener* pToRemove);
 	void broadcastAllProperties();
 	
 protected:
-	MLModelPropertyMap mProperties;
+	MLPropertyMap mProperties;
 
 	std::list<MLModelListener*> mpListeners;
 	void broadcastProperty(MLSymbol p);

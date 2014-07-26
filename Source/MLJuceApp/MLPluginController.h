@@ -64,10 +64,8 @@ public:
 	void doPresetMenu(int result);
 
 #if ML_MAC
-	void convertPresets(Array<File>* pResults);
 	void convertPresets();
     MLFileCollectionPtr mPresetsToConvert;
-    
     ScopedPointer<ThreadWithProgressWindow> progressThread;
     
 #endif // ML_MAC

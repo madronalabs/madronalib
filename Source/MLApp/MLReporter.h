@@ -18,7 +18,7 @@ class MLPropertyView
 public:
 	MLPropertyView(MLWidget* w, MLSymbol attr);
 	~MLPropertyView();
-	void view(const MLModelProperty& v) const;
+	void view(const MLProperty& v) const;
 	
 private:
 	MLWidget* mpWidget;
@@ -50,7 +50,7 @@ public:
 	void viewAllChangedProperties();
 
 	// MLModelListener interface
-	void doPropertyChangeAction(MLSymbol param, const MLModelProperty& oldVal, const MLModelProperty& newVal);
+	void doPropertyChangeAction(MLSymbol param, const MLProperty& oldVal, const MLProperty& newVal);
 
 protected:
 
