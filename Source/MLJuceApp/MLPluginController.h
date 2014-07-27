@@ -17,6 +17,7 @@ class MLPluginController :
 	public MLResponder,
 	public MLReporter,
 	public MLSignalReporter,
+    public MLPropertyModifier,
     public MLPluginProcessor::Listener,
     public MLFileCollection::Listener
 {
@@ -38,10 +39,7 @@ public:
 	void dialValueChanged (MLDial*);
 	void dialDragStarted (MLDial*);
 	void dialDragEnded (MLDial*);
-	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-    
-	//void multiSliderDragStarted (MLMultiSlider* pSlider, int idx);
-	//void multiSliderDragEnded (MLMultiSlider* pSlider, int idx);
+	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);    
 	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
     
     // MLPluginProcessor::Listener
@@ -77,7 +75,7 @@ protected:
 	friend class WeakReference<MLPluginController>;	
 
 private:
-	MLPluginProcessor* mpProcessor; // contains Model
+	MLPluginProcessor* mpProcessor;
 	std::string mVersionString;
 
 	// stored indices for MIDI program changes-- hackish

@@ -19,7 +19,7 @@
 // --------------------------------------------------------------------------------
 #pragma mark MLResponder
 
-// Responders listen to UI objects, and tell Models to do things.
+// Responders listen to UI objects. Typically they tell Models to do things.
 
 class MLResponder  : 
 	public MLButton::Listener,

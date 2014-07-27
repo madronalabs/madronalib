@@ -88,6 +88,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	
     int pages = mPages.size();
 	if(!pages) return;
+    if(mCurrPage == destPage) return;
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int u = myLookAndFeel->getGridUnitSize(); 
@@ -95,7 +96,6 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	// margin between pages prevents invisible components from overlapping
 	// those onscreen
 	int margin = u;
-	
 	int newPage = clamp(destPage, 0, (int)mPages.size() - 1);
 	
 	if ((animate) && (newPage != mCurrPage) && (mCurrPage >= 0))

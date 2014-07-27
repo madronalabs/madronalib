@@ -36,21 +36,19 @@ typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 // Attributes of Widgets. Properties may contain float, string or signal values.
 //
 class MLReporter :
-	public MLModelListener
+	public MLPropertyListener
 {
 public:
-	MLReporter(MLModel* m);
+	MLReporter(MLPropertySet* m);
     ~MLReporter();
-	
-	MLModel* getModel() { return mpModel; }
 
 	// parameter viewing
 	void addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
 	void viewAllProperties();
 	void viewAllChangedProperties();
 
-	// MLModelListener interface
-	void doPropertyChangeAction(MLSymbol param, const MLProperty& oldVal, const MLProperty& newVal);
+	// MLPropertyListener interface
+	void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
 
 protected:
 

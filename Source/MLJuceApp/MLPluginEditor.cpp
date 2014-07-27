@@ -9,7 +9,6 @@ MLPluginEditor::MLPluginEditor (juce::AudioProcessor* ownerProcessor) :
 	AudioProcessorEditor(ownerProcessor)
 {
     //setOpaque(true);
-    
 }
 
 MLPluginEditor::~MLPluginEditor()

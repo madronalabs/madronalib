@@ -21,7 +21,7 @@ class MLPluginEditor :
 public:
 	MLPluginEditor (juce::AudioProcessor* ownerProcessor);
     ~MLPluginEditor();
-
+    
 	MLRect getWindowBounds();
     
 private:

@@ -6,13 +6,13 @@
 #include "MLAppState.h"
 
 MLAppState::MLAppState(MLModel* pM, MLAppView* pV, const char* makerName, const char* appName, int version) :
-	MLModelListener(pM),
+    MLPropertyListener(pM),
+    MLPropertyModifier(pM),
 	mpAppView(pV),
 	mpMakerName(makerName),
 	mpAppName(appName),
 	mVersion(version)
 {
-	pM->addPropertyListener(this);
 	updateAllProperties();
 	startTimer(1000);
 }
@@ -28,12 +28,14 @@ void MLAppState::timerCallback()
 }
 
 // --------------------------------------------------------------------------------
-// MLModelListener implementation
+// MLPropertyListener implementation
 // an updateChangedProperties() is needed to get these actions sent by the Model.
 //
-void MLAppState::doPropertyChangeAction(MLSymbol , const MLProperty & , const MLProperty & )
+void MLAppState::doPropertyChangeAction(MLSymbol p, const MLProperty & val)
 {
-	// debug() << "MLAppState::doPropertyChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
+    // nothing to do here, but we do need to be an MLPropertyListener in order to
+    // states of all the Properties.
+	//debug() << "MLAppState::doPropertyChangeAction: " << p << " to " << val << "\n";
 }
 
 // --------------------------------------------------------------------------------
@@ -79,12 +81,12 @@ void MLAppState::saveState()
 	if(root)
 	{
 		// get Model parameters
-		std::map<MLSymbol, ModelPropertyState>::iterator it;
-		for(it = mModelPropertyStates.begin(); it != mModelPropertyStates.end(); it++)
+		std::map<MLSymbol, PropertyState>::iterator it;
+		for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 		{
 			MLSymbol key = it->first;
 			const char* keyStr = key.getString().c_str();
-			ModelPropertyState& state = it->second;
+			PropertyState& state = it->second;
 			switch(state.mValue.getType())
 			{
 				case MLProperty::kFloatProperty:
@@ -153,11 +155,11 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 			{
 			case cJSON_Number:
 //debug() << " depth " << depth << " loading float param " << pNode->string << " : " << pNode->valuedouble << "\n";
-				mpModel->setProperty(MLSymbol(pNode->string), (float)pNode->valuedouble);
+				requestPropertyChange(MLSymbol(pNode->string), (float)pNode->valuedouble);
 				break;
 			case cJSON_String:
 //debug() << " depth " << depth << " loading string param " << pNode->string << " : " << pNode->valuestring << "\n";
-				mpModel->setProperty(MLSymbol(pNode->string), pNode->valuestring);
+				requestPropertyChange(MLSymbol(pNode->string), pNode->valuestring);
 				break;
 			case cJSON_Array: 
 				if(!strcmp(pNode->string, "window_bounds"))
@@ -207,7 +209,7 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 						{
 							MLError() << "MLAppState::loadStateFromJSON: wrong array size!\n";
 						}				
-						mpModel->setProperty(MLSymbol(pNode->string), *pSig);
+						requestPropertyChange(MLSymbol(pNode->string), *pSig);
 					}
 				}
 			

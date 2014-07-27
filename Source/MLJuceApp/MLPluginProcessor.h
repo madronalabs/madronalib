@@ -20,16 +20,10 @@
 
 const int kMLPatcherMaxTableSize = 64;
 
-// MLPluginProcessor wraps up an AudioProcessor in an MLModel interface.
-// The audio wrapper code needs to get at AudioProcessor directly, so this
-// is a composition of MLModel with AudioProcessor rather than a wrapper, 
-// which would otherwise be cleaner. 
-//
-
 class MLPluginProcessor : 
 	public AudioProcessor,
     public MLFileCollection::Listener,
-	public MLModel
+	public MLPropertySet
 {
 public:
     
@@ -113,12 +107,6 @@ public:
 	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
 	const std::string& getParameterGroupName (int index);
     
-	// --------------------------------------------------------------------------------
-    // MLModel propertes
-    virtual void setProperty(MLSymbol p, float v);
-    virtual void setProperty(MLSymbol p, const std::string& v);
-    virtual void setProperty(MLSymbol p, const MLSignal& v);
-
 	// --------------------------------------------------------------------------------
 	// signals
 	int countSignals(const MLSymbol alias);

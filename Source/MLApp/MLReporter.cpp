@@ -40,10 +40,9 @@ void MLPropertyView::view(const MLProperty& p) const
 // --------------------------------------------------------------------------------
 #pragma mark MLReporter 
 	
-MLReporter::MLReporter(MLModel* m) :
-	MLModelListener(m)
+MLReporter::MLReporter(MLPropertySet* m) :
+	MLPropertyListener(m)
 {
-	mpModel->addPropertyListener(this); 
 }
 
 MLReporter::~MLReporter()
@@ -61,9 +60,8 @@ void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
 }
 
-void MLReporter::doPropertyChangeAction(MLSymbol param, const MLProperty& oldVal, const MLProperty& newVal)
+void MLReporter::doPropertyChangeAction(MLSymbol param, const MLProperty& newVal)
 {
-	// debug() << "MLReporter::doPropertyChangeAction: " << param << " from " << oldVal << " to " << newVal << "\n";	
 	// do we have viewers for this parameter?
 	MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(param);
 	if (look != mPropertyViewsMap.end())

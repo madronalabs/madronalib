@@ -11,7 +11,8 @@
 #include "MLSymbol.h"
 #include "MLDebug.h"
 
-// MLProperty: a modifiable property of a model. Model properties have three types: float, string, and signal.
+// MLProperty: a modifiable property. Properties have three types: float, string, and signal.
+// Properties start out with undefined type. Once a type is assigned, properties cannot change type.
 
 class MLProperty
 {
@@ -36,7 +37,6 @@ public:
 	const std::string* getStringValue() const;
 	const MLSignal* getSignalValue() const;
     
-    // set an existing attibute to a new value. values cannot change type.
 	void setValue(float v);
 	void setValue(const std::string& v);
 	void setValue(const MLSignal& v);
@@ -48,92 +48,123 @@ public:
 	bool operator<< (const MLProperty& b) const;
 	
 private:
-	
 	eType mType;
 	union
 	{
 		float mFloatVal;
 		std::string* mpStringVal;
 		MLSignal* mpSignalVal;
-	} mVal;
+	}   mVal;
 };
 
 std::ostream& operator<< (std::ostream& out, const MLProperty & r);
 
-typedef std::map<MLSymbol, MLProperty> MLPropertyMap;
+class MLPropertyListener;
+class MLPropertyModifier;
 
-class MLModel;
+// a Set of Properties. Property names are stored here.
 
-// ----------------------------------------------------------------
-// MLModelListeners are notified when a Property changes.
-
-class MLModelListener
+class MLPropertySet
 {
+friend class MLPropertyModifier;
 public:
-	MLModelListener(MLModel* m) : mpModel(m) {}
-	virtual ~MLModelListener() {}
-	
-	// mark one property as changed.
-	void propertyChanged(MLSymbol p);
+	MLPropertySet();
+	virtual ~MLPropertySet();
 
+	inline const MLProperty& getProperty(MLSymbol p) { return mProperties[p]; }
+	inline float getFloatProperty(MLSymbol p) { return mProperties[p].getFloatValue(); }
+	inline const std::string* getStringProperty(MLSymbol p) { return mProperties[p].getStringValue(); }
+	inline const MLSignal* getSignalProperty(MLSymbol p) { return mProperties[p].getSignalValue(); }
+
+	void addPropertyListener(MLPropertyListener* pL);
+	void removePropertyListener(MLPropertyListener* pToRemove);
+    void broadcastAllProperties();
+
+protected:
+    void setProperty(MLSymbol p, float v);
+    void setProperty(MLSymbol p, const std::string& v);
+    void setProperty(MLSymbol p, const MLSignal& v);
+	
+private:
+	std::map<MLSymbol, MLProperty> mProperties;
+	std::list<MLPropertyListener*> mpListeners;
+	void broadcastProperty(MLSymbol p);
+};
+
+// MLPropertyListeners are notified when a Property of an MLPropertySet changes. They do something in
+// response by overriding doPropertyChangeAction().
+
+class MLPropertyListener
+{
+friend class MLPropertySet;
+public:
+	MLPropertyListener(MLPropertySet* m) : mpPropertyOwner(m)
+    {
+        mpPropertyOwner->addPropertyListener(this);
+    }
+	virtual ~MLPropertyListener() {}
+    
+	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & newVal) = 0;
+	
 	// do an action for any params with changed values.
 	void updateChangedProperties();
 	
 	// force an update of all params.
 	void updateAllProperties();
-
-	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & oldVal, const MLProperty & newVal) = 0;
-	
-protected:	
-	// represent the state of a model parameter relative to updates. 
-	class ModelPropertyState
+    
+protected:
+    // mark one property as changed.
+	void propertyChanged(MLSymbol p);
+    
+    // called by property owners if they going to be deleted
+    void ownerClosing();
+    
+	// represent the state of a property relative to updates.
+	class PropertyState
 	{
 	public:
-		ModelPropertyState() : 
-			mInitialized(false),
-			mChangedSinceUpdate(true)
-			{};
-			
-		~ModelPropertyState() {}
+		PropertyState() :
+        mChangedSinceUpdate(true)
+        {};
+        
+		~PropertyState() {}
 		
-		bool mInitialized;  
-		bool mChangedSinceUpdate; 
+		bool mChangedSinceUpdate;
 		MLProperty mValue;
 	};
-		
-	std::map<MLSymbol, ModelPropertyState> mModelPropertyStates;
-
-	MLModel* mpModel;
+    
+	std::map<MLSymbol, PropertyState> mPropertyStates;
+	MLPropertySet* mpPropertyOwner;
 };
 
-// ----------------------------------------------------------------
+// an MLPropertyModifier can request that PropertySets make changes to Properties.
+// use, for example, to control a Model from a UI or recall it to a saved state.
 
-class MLModel
+class MLPropertyModifier
+{
+public:
+	MLPropertyModifier(MLPropertySet* m) : mpPropertyOwner(m) {}
+	virtual ~MLPropertyModifier() {}
+    void requestPropertyChange(MLSymbol p, float v);
+    void requestPropertyChange(MLSymbol p, const std::string& v);
+    void requestPropertyChange(MLSymbol p, const MLSignal& v);
+
+private:
+    MLPropertySet* mpPropertyOwner;
+};
+
+// Finally, a Model is a kind of PropertySet that is also its own PropertyListener.
+// Override doPropertyChangeAction to propagate any changes from Properties to the core logic.
+
+// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
+
+class MLModel : public MLPropertySet, public MLPropertyListener, public juce::Timer
 {
 public:
 	MLModel();
-	virtual ~MLModel();	
-
-	inline const MLProperty& getProperty(MLSymbol p) { return mProperties[p]; }
-
-	inline float getFloatProperty(MLSymbol p) { return mProperties[p].getFloatValue(); }
-	inline const std::string* getStringProperty(MLSymbol p) { return mProperties[p].getStringValue(); }
-	inline const MLSignal* getSignalProperty(MLSymbol p) { return mProperties[p].getSignalValue(); }
-
-	virtual void setProperty(MLSymbol p, float v);
-	virtual void setProperty(MLSymbol p, const std::string& v);
-	virtual void setProperty(MLSymbol p, const MLSignal& v);
-	
-	void addPropertyListener(MLModelListener* pL);
-	void removePropertyListener(MLModelListener* pToRemove);
-	void broadcastAllProperties();
-	
-protected:
-	MLPropertyMap mProperties;
-
-	std::list<MLModelListener*> mpListeners;
-	void broadcastProperty(MLSymbol p);
-	void broadcastStringParam(MLSymbol p);
+	virtual ~MLModel();
+    void timerCallback();
+	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & newVal) = 0;
 };
 
 #endif // __ML_MODEL__

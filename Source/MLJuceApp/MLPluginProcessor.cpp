@@ -476,7 +476,7 @@ float MLPluginProcessor::getParameter (int index)
 	return mEngine.getParamByIndex(index);
 }
 
-// set parameter by index. Typically called by the host wrapper.
+// set plugin parameter by index. Typically called by the host wrapper.
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
@@ -484,13 +484,10 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 
 	mEngine.setPublishedParam(index, newValue);	
 	mHasParametersSet = true;
-	
-	// set MLModel Parameter 
-	MLSymbol paramName = getParameterAlias(index);
-	setProperty(paramName, newValue);
+	setProperty(getParameterAlias(index), newValue);
 }
 
-// set parameter by name. Typically called from internal code. 
+// set plugin parameter by name. Typically called from internal code.
 //
 void MLPluginProcessor::setParameter (MLSymbol paramName, float newValue)
 {
@@ -499,8 +496,6 @@ void MLPluginProcessor::setParameter (MLSymbol paramName, float newValue)
 
 	mEngine.setPublishedParam(index, newValue);	
 	mHasParametersSet = true;
-	
-	// set MLModel Parameter 
 	setProperty(paramName, newValue);
 }
 
@@ -658,45 +653,6 @@ const String MLPluginProcessor::getParameterText (int index)
 const std::string& MLPluginProcessor::getParameterGroupName (int index)
 {
 	return mEngine.getParamGroupName(index);
-}
-
-
-// --------------------------------------------------------------------------------
-#pragma mark MLModel params TODO should be called attributes
-
-void MLPluginProcessor::setProperty(MLSymbol p, float v)
-{
-	MLModel::setProperty(p, v);
-}
-
-void MLPluginProcessor::setProperty(MLSymbol p, const std::string& v)
-{
-	MLModel::setProperty(p, v);
-	if (p == "key_scale")
-	{
-        bool loaded = false;
-        
-        // look for scale under full name with path
-        if(v != std::string())
-        {
-            const MLFilePtr f = mScaleFiles->getFileByName(v);
-            if(f != MLFilePtr())
-            {
-                loadScale(f->mFile);
-                loaded = true;
-            }
-        }
-        
-        if(!loaded)
-        {
-            loadDefaultScale();
-        }
-    }
-}
-
-void MLPluginProcessor::setProperty(MLSymbol p, const MLSignal& v)
-{
-	MLModel::setProperty(p, v);
 }
 
 
@@ -939,10 +895,25 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     {
         fullName = "12-equal";
     }
-	setProperty("key_scale", std::string(fullName.toUTF8()));
+    std::string fullScaleName(fullName.toUTF8());
+	setProperty("key_scale", fullScaleName);
+    bool loaded = false;
+    // look for scale under full name with path
+    if(fullScaleName != std::string())
+    {
+        const MLFilePtr f = mScaleFiles->getFileByName(fullScaleName);
+        if(f != MLFilePtr())
+        {
+            loadScale(f->mFile);
+            loaded = true;
+        }
+    }
+    if(!loaded)
+    {
+        loadDefaultScale();
+    }
     
 	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
-    
 	const String presetName = xmlState.getStringAttribute ("presetName");
 	setProperty("preset", std::string(presetName.toUTF8()));
     

@@ -9,12 +9,12 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLResponder(),
 	MLReporter(pProcessor),
 	MLSignalReporter(pProcessor),
+    MLPropertyModifier(pProcessor),
 	mpView(nullptr),
     mpProcessor(pProcessor)
 {
-	// get parameters and initial values from our processor and create corresponding model params. 
+	// get plugin parameters and initial values from our processor and create corresponding model properties.
 	MLPluginProcessor* const pProc = getProcessor();
-	MLModel* pModel = getModel();
 	int params = pProc->getNumParameters();
 	for(int i=0; i<params; ++i)
 	{
@@ -22,9 +22,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 		MLPublishedParam* param = &(*p);
 		if(param)
 		{
-			MLSymbol paramName = param->getAlias();
-			MLParamValue val = param->getValue();
-			pModel->setProperty(paramName, val);
+			requestPropertyChange(param->getAlias(), param->getValue());
 		}
 	}
 	
@@ -220,32 +218,6 @@ void MLPluginController::dialValueChanged (MLDial* pSlider)
 
 // --------------------------------------------------------------------------------
 #pragma mark MLMultiSlider::Listener	
-
-/*
-void MLPluginController::multiSliderDragStarted (MLMultiSlider* pSlider, int idx)
-{
-	MLPluginProcessor* const filter = getProcessor();
-	if (!filter) return;
-	const MLSymbol paramName = pSlider->getTargetPropertyName();
-	int paramIdx = filter->getParameterIndex(paramName);
-	if (paramIdx >= 0)
-	{
-		filter->beginParameterChangeGesture (paramIdx);
-	}
-}
-
-void MLPluginController::multiSliderDragEnded (MLMultiSlider* pSlider, int idx)
-{
-	MLPluginProcessor* const filter = getProcessor();
-	if (!filter) return;
-	const MLSymbol paramName = pSlider->getTargetPropertyName();
-	int paramIdx = filter->getParameterIndex(paramName);
-	if (paramIdx >= 0)
-	{
-		filter->endParameterChangeGesture (paramIdx);
-	}
-}
-*/
 
 void MLPluginController::multiSliderValueChanged (MLMultiSlider* pSlider, int idx)
 {
@@ -490,7 +462,7 @@ void MLPluginController::doScaleMenu(int result)
         case (0):	// dismiss
             break;
         case (1):	
-            mpProcessor->setProperty("key_scale", "12-equal");
+            requestPropertyChange("key_scale", "12-equal");
             break;
         default:
             MLMenu* menu = findMenuByName("key_scale");
@@ -498,7 +470,7 @@ void MLPluginController::doScaleMenu(int result)
             {
                 // set model param to the full name of the file in the menu
                 const std::string& fullName = menu->getItemFullName(result);
-                mpProcessor->setProperty("key_scale", fullName);
+                requestPropertyChange("key_scale", fullName);
             }
             break;
     }

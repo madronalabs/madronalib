@@ -8,9 +8,8 @@
 static const std::string kNullModelPropertyString;
 static const MLSignal kNullModelPropertySignal;
 
-// ----------------------------------------------------------------
-// MLProperty implementation
-
+// --------------------------------------------------------------------------------
+// MLProperty
 
 MLProperty::MLProperty() :
 mType(kUndefinedProperty)
@@ -117,7 +116,7 @@ void MLProperty::setValue(float v)
 	}
 	else
 	{
-		debug() << "MLProperty::setValue: type mismatch!\n";
+		debug() << "MLProperty::setValue: type mismatch! Expected float.\n";
 	}
 }
 
@@ -132,7 +131,7 @@ void MLProperty::setValue(const std::string& v)
 	}
 	else
 	{
-		debug() << "MLProperty::setValue: type mismatch!\n";
+		debug() << "MLProperty::setValue: type mismatch! Expected string.\n";
 	}
 }
 
@@ -147,7 +146,7 @@ void MLProperty::setValue(const MLSignal& v)
 	}
 	else
 	{
-		debug() << "MLProperty::setValue: type mismatch!\n";
+		debug() << "MLProperty::setValue: type mismatch! Expected signal.\n";
 	}
 }
 
@@ -200,105 +199,110 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 	return out;
 }
 
-// ----------------------------------------------------------------
-// MLModelListener implementation
+// --------------------------------------------------------------------------------
+// MLPropertyListener
 
-// called by the Model to notify us that one parameter has changed.
-// if the param is new, or the value has changed, we mark the state as changed. 
+// called by a PropertySet to notify us that one property has changed.
+// if the property is new, or the value has changed, we mark the state as changed. 
 //
-void MLModelListener::propertyChanged(MLSymbol paramSym)
+void MLPropertyListener::propertyChanged(MLSymbol paramSym)
 {
-	// if the param does not exist in the map yet, this lookup will add it. 
-	ModelPropertyState& state = mModelPropertyStates[paramSym];
+    if(!mpPropertyOwner) return;
 
-	// if not initialized, always mark as changed. 
-	if(!state.mInitialized)
-	{
-		state.mChangedSinceUpdate = true;
-		state.mInitialized = true;
-		return;
-	}
-	else // check for value change. 
-	{
-		const MLProperty& modelValue = mpModel->getProperty(paramSym);
-		if(modelValue != state.mValue)
-		{
-			state.mChangedSinceUpdate = true;
-		}
-	}
+	// if the property does not exist in the map yet, this lookup will add it.
+	PropertyState& state = mPropertyStates[paramSym];
+
+    const MLProperty& modelValue = mpPropertyOwner->getProperty(paramSym);
+    if(modelValue != state.mValue)
+    {
+        state.mChangedSinceUpdate = true;
+    }
 }
 
-void MLModelListener::updateChangedProperties() 
+void MLPropertyListener::updateChangedProperties()
 {	
-	// for all model parameters we know about 
-	std::map<MLSymbol, ModelPropertyState>::iterator it;
-	for(it = mModelPropertyStates.begin(); it != mModelPropertyStates.end(); it++)
+    if(!mpPropertyOwner) return;
+	// for all model parameters we know about
+	std::map<MLSymbol, PropertyState>::iterator it;
+	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
 		MLSymbol key = it->first;
-		ModelPropertyState& state = it->second;
+		PropertyState& state = it->second;
 		
 		if(state.mChangedSinceUpdate)
 		{
-			const MLProperty& modelValue = mpModel->getProperty(key);
-			doPropertyChangeAction(key, state.mValue, modelValue);
+			const MLProperty& newValue = mpPropertyOwner->getProperty(key);
+			doPropertyChangeAction(key, newValue);
 			state.mChangedSinceUpdate = false;
-			state.mValue = modelValue;
+			state.mValue = newValue;
 		}
 	}
 }
 
-void MLModelListener::updateAllProperties() 
-{	
-	mpModel->broadcastAllProperties();
-	std::map<MLSymbol, ModelPropertyState>::iterator it;
-	for(it = mModelPropertyStates.begin(); it != mModelPropertyStates.end(); it++)
+void MLPropertyListener::updateAllProperties() 
+{
+    if(!mpPropertyOwner) return;
+	mpPropertyOwner->broadcastAllProperties();
+	std::map<MLSymbol, PropertyState>::iterator it;
+	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
-		ModelPropertyState& state = it->second;
+		PropertyState& state = it->second;
 		state.mChangedSinceUpdate = true;
 	}
 	updateChangedProperties();
 }
 
-// ----------------------------------------------------------------
-// MLModel implementation
+void MLPropertyListener::ownerClosing()
+{
+    mpPropertyOwner = nullptr;
+}
 
-MLModel::MLModel()
+// --------------------------------------------------------------------------------
+// MLPropertySet
+
+MLPropertySet::MLPropertySet()
 {
 }
 
-MLModel::~MLModel()
+MLPropertySet::~MLPropertySet()
 {
+    std::list<MLPropertyListener*>::iterator it;
+	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
+	{
+		MLPropertyListener* pL = *it;
+		pL->ownerClosing();
+    }
 }
 
-void MLModel::setProperty(MLSymbol p, float v) 
+void MLPropertySet::setProperty(MLSymbol p, float v)
 {
 	mProperties[p].setValue(v);
 	broadcastProperty(p);
 }
 
-void MLModel::setProperty(MLSymbol p, const std::string& v) 
+void MLPropertySet::setProperty(MLSymbol p, const std::string& v)
 {
 	mProperties[p].setValue(v);
 	broadcastProperty(p);
 }
 
-void MLModel::setProperty(MLSymbol p, const MLSignal& v) 
+void MLPropertySet::setProperty(MLSymbol p, const MLSignal& v)
 {
 	mProperties[p].setValue(v);
 	broadcastProperty(p);
 }
 
-void MLModel::addPropertyListener(MLModelListener* pL) 
+void MLPropertySet::addPropertyListener(MLPropertyListener* pL)
 { 
 	mpListeners.push_back(pL); 
 }
 
-void MLModel::removePropertyListener(MLModelListener* pToRemove) 
+void MLPropertySet::removePropertyListener(MLPropertyListener* pToRemove)
 { 
-	std::list<MLModelListener*>::iterator it;
+	std::list<MLPropertyListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
-		MLModelListener* pL = *it;
+		MLPropertyListener* pL = *it;
 		if(pL == pToRemove)
 		{
 			mpListeners.erase(it);
@@ -307,23 +311,71 @@ void MLModel::removePropertyListener(MLModelListener* pToRemove)
 	}
 }
 
-void MLModel::broadcastProperty(MLSymbol p) 
+void MLPropertySet::broadcastProperty(MLSymbol p)
 {
-	std::list<MLModelListener*>::iterator it;
+	std::list<MLPropertyListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
-		MLModelListener* pL = *it;
+		MLPropertyListener* pL = *it;
 		pL->propertyChanged(p);
 	}
 }
 
-void MLModel::broadcastAllProperties()
+void MLPropertySet::broadcastAllProperties()
 {
-	MLPropertyMap::iterator it;
+	std::map<MLSymbol, MLProperty>::const_iterator it;
 	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
 		MLSymbol p = it->first;
 		broadcastProperty(p); 
 	}
 }
+
+// --------------------------------------------------------------------------------
+// MLPropertyModifier
+
+void MLPropertyModifier::requestPropertyChange(MLSymbol p, float v)
+{
+    if(mpPropertyOwner)
+    {
+        mpPropertyOwner->setProperty(p, v);
+    }
+}
+
+void MLPropertyModifier::requestPropertyChange(MLSymbol p, const std::string& v)
+{
+    if(mpPropertyOwner)
+    {
+        mpPropertyOwner->setProperty(p, v);
+    }
+}
+
+void MLPropertyModifier::requestPropertyChange(MLSymbol p, const MLSignal& v)
+{
+    if(mpPropertyOwner)
+    {
+        mpPropertyOwner->setProperty(p, v);
+    }
+}
+
+// --------------------------------------------------------------------------------
+// MLModel
+
+MLModel::MLModel() :
+    MLPropertyListener(this)
+{
+    startTimer(10);
+}
+
+MLModel::~MLModel()
+{
+
+}
+
+void MLModel::timerCallback()
+{
+    // pull property changes from the PropertySet to the PropertyListener
+    updateChangedProperties();
+}
+
 

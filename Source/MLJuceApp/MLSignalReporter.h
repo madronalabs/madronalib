@@ -12,7 +12,6 @@
 #include "MLPluginProcessor.h"
 #include "MLSignalView.h"
 
-
 // --------------------------------------------------------------------------------
 #pragma mark MLSignalReporter 
 
@@ -32,6 +31,8 @@ public:
 	void viewAllSignals();
     
 protected:
+	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
+    
 	typedef std::tr1::shared_ptr<MLSignalView> MLSignalViewPtr;
 	typedef std::list<MLSignalViewPtr> MLSignalViewList;
 	typedef std::map<MLSymbol, MLSignalViewList> MLSignalViewListMap;
@@ -46,8 +47,6 @@ protected:
     // map of view lists
 	MLSignalViewListMap mSignalViewsMap;
 
-	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
-  
     int mViewIndex;
     std::vector<MLSymbol> mSignalNames;
 };
