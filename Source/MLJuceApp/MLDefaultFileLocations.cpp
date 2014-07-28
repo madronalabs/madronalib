@@ -9,7 +9,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 {
 	File result = File::nonexistent;
 	String startStr, destStr;
-    File startDir;
+    File startDir, childDir;
     
     // get start directory for search according to platform
     if (whichFiles == kAppPresetFiles)
@@ -55,11 +55,11 @@ File getDefaultFileLocation(eFileTypes whichFiles)
                 break;
         }
 
-        result = startDir.getChildFile(destStr);
-	
-		if (!result.exists())
-		{
-            result = File::nonexistent;
+        childDir = startDir.getChildFile(destStr);
+        
+        if(childDir.createDirectory() == Result::ok())
+        {
+            result = childDir;
         }
 	}
     
