@@ -766,7 +766,7 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
     int chan = event.mChannel;
     float note = event.mValue1;
     float vel = event.mValue2;
-    debug() << "do note on " << note << " chan " << chan << " vel " << vel << " at time " << time << "\n";
+    // debug() << "do note on " << note << " chan " << chan << " vel " << vel << " at time " << time << "\n";
     
     int eventIdx = mNoteEventsPlaying.findFreeEvent();
     if(eventIdx < 0) return;
@@ -802,7 +802,7 @@ void MLProcInputToSignals::doNoteOff(const MLControlEvent& event)
     int id = event.mID;
     float note = event.mValue1;
     float vel = event.mValue2;
-    debug() << "do note off " << note << " vel " << vel << " at time " << time << "\n";
+    // debug() << "do note off " << note << " vel " << vel << " at time " << time << "\n";
     
 	if (!mUnisonMode) // single voice per event
 	{
@@ -1015,8 +1015,7 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 			// write to common temp drift signal, we add one change manually so read offset is 0
 			mVoices[v].mdDrift.writeToSignal(mTempSignal, frames);
 			pitch.add(mTempSignal);
-#endif
-            
+#endif            
 			mVoices[v].mdGate.writeToSignal(gate, frames);
             mVoices[v].mdAmp.writeToSignal(amp, frames);
  			mVoices[v].mdVel.writeToSignal(velSig, frames);

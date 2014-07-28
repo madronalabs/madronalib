@@ -151,7 +151,6 @@ public:
     const String getOutputChannelName (const int channelIndex) const;
     bool isInputChannelStereoPair (int index) const;
     bool isOutputChannelStereoPair (int index) const;
-
 	double getTailLengthSeconds() const;
 	bool acceptsMidi() const;
     bool producesMidi() const;

@@ -546,7 +546,7 @@ public:
 	{
 		String juceName = f.getFullPathName();
 		const char* fileStr = juceName.toUTF8();
-		debug() << JucePlugin_Name << " AU: loading state from file: " << fileStr << "\n";
+		// debug() << JucePlugin_Name << " AU: loading state from file: " << fileStr << "\n";
         
 		CFPropertyListRef propertyList;
 		CFStringRef       errorString;

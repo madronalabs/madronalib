@@ -259,7 +259,12 @@ void MLPluginProcessor::processFile (const MLSymbol collection, const File& f, i
     {
     }
     else if(collection == "presets")
-    {        
+    {
+        float p = mPresetFiles->getSearchProgress();
+        if(p >= 1.0)
+        {
+            pushInfoToListeners();
+        }
     }
 }
 
@@ -769,12 +774,10 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 	if(pEditor)
 	{
 		MLRect r = pEditor->getWindowBounds();
-
 		xml.setAttribute("editor_x", r.x());	
 		xml.setAttribute("editor_y", r.y());	
 		xml.setAttribute("editor_width", r.getWidth());	
-		xml.setAttribute("editor_height", r.getHeight());	
-		
+		xml.setAttribute("editor_height", r.getHeight());
 		xml.setAttribute("editor_num", getFloatProperty("patch_num"));	
 		xml.setAttribute("editor_anim", getFloatProperty("patch_anim"));	
 	}
@@ -825,9 +828,7 @@ int MLPluginProcessor::saveStateAsVersion()
 	char vBuf[16];
 	sprintf(vBuf, "[%d]", version);
     std::string newName = noVersionStr + vBuf;
-
     saveStateToRelativePath(newName);
-
     r = 0;
 
 	return r;
@@ -1109,7 +1110,6 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
     // the Model param contains the file path relative to the root.
     std::string shortPath = stripExtension(path);
     setProperty("preset", shortPath);
-    
  
 #ifdef ML_PRESETS_ONLY
     std::string extension (".mlpreset");
@@ -1243,12 +1243,9 @@ void MLPluginProcessor::scanPresets()
 #endif
     
     // get presets collections
-    mPresetFiles = MLFileCollectionPtr(new MLFileCollection("user_presets", getDefaultFileLocation(kPresetFiles), presetFileType));
+    mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), presetFileType));
     mPresetFiles->setListener(this);
     mPresetFiles->searchForFilesNow();
-    // mPresetFiles->dump();
-    
-    pushInfoToListeners();
 }
 
 void MLPluginProcessor::scanMIDIPrograms()
