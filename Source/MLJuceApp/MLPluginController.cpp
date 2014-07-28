@@ -289,6 +289,7 @@ void MLPluginController::scaleFilesChanged(const MLFileCollectionPtr fileCollect
 
 void MLPluginController::presetFilesChanged(const MLFileCollectionPtr fileCollection)
 {
+    // when to do this now with async file search
     populatePresetMenu(fileCollection);
 }
 
@@ -406,23 +407,19 @@ void MLPluginController::doPresetMenu(int result)
                         errStr = "Please choose a location in the ";
                         errStr += MLProjectInfo::projectName;
                         errStr += " folder.";
+                        AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
+                    }
+                    else
+                    {
+                        getProcessor()->scanPresets();
                     }
                 }
             }
             else
             {
-                err = 1;
-                errStr = ("Presets folder ");
-                errStr += userPresetsFolder.getFullPathName();
-                errStr += " not found!";
-				debug() << "MLPluginController::doPresetMenu: " << errStr << "\n";
-            }
-            
-            if(err)
-            {                
+                errStr = ("Error: user presets folder did not exist and could not be created.");
                 AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
             }
-			getProcessor()->scanPresets();
 		}
 		break;
 		case (4):	// revert
