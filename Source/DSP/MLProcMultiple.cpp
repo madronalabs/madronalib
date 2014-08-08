@@ -108,15 +108,9 @@ MLProc::err MLProcMultiple::addProc(const MLSymbol className, const MLSymbol pro
                  */
             }
             
-            // MLTEST
-            
-            
 			// add proxy to this container.
 			mProcMap[procName] = pProxyProc;
 			mProcList.push_back(pProxyProc);
-            
-
-            
 		}
 		else
 		{

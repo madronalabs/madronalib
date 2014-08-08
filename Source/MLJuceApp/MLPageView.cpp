@@ -129,7 +129,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 				targetAlpha = 1.f;
 			}
             
-            // NOTE: this can cause a problem in CachedImage::stop if called at just the wrong time-- TODO investigate!
+            // NOTE: this can cause a problem stopping a running thread in CachedImage::stop if called at just the wrong time-- TODO investigate!
 			mAnimator.animateComponent (mPages[i], localBounds.translated((w + margin)*(i - newPage), 0),
 				targetAlpha, duration, proxy, 1.0, 1.0);
 		}

@@ -140,7 +140,7 @@ MLFilePtr MLFile::find(const std::string& path)
     return MLFilePtr();
 }
 
-std::string MLFile::getAbsolutePath()
+std::string MLFile::getAbsolutePath() const
 {
     return std::string(mFile.getFullPathName().toUTF8());
 }

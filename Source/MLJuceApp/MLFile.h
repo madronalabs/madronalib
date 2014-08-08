@@ -6,8 +6,8 @@
 //
 //
 
-#ifndef __Kaivo__MLFile__
-#define __Kaivo__MLFile__
+#ifndef __MLFile__
+#define __MLFile__
 
 #include "JuceHeader.h"
 #include "MLDefaultFileLocations.h"
@@ -16,7 +16,6 @@
 
 class MLFile;
 typedef std::tr1::shared_ptr<MLFile> MLFilePtr;
-
 typedef std::map<std::string, MLFilePtr, MLStringCompareFn> nameToFileMap;
 
 class MLFile
@@ -30,7 +29,9 @@ public:
     void clear();
     void insert(const std::string& relPath, MLFilePtr f);
     MLFilePtr find(const std::string& path);
-    std::string getAbsolutePath();
+    std::string getAbsolutePath() const;
+    const std::string & getShortName() const { return mShortName; }
+    const std::string & getLongName() const { return mLongName; }
     void buildMenu(MLMenuPtr m) const;
     void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
     void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
@@ -46,4 +47,4 @@ private:
     nameToFileMap mFiles;
 };
 
-#endif /* defined(__Kaivo__MLFile__) */
+#endif /* defined(__MLFile__) */

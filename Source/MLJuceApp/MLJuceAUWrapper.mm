@@ -539,7 +539,7 @@ public:
     // --------------------------------------------------------------------------------
 #pragma mark -
 #pragma mark MLAudioProcessorListener methods
-    // this code ended up in here because of access to RestoreState().  There may be other issues.
+    // this code ended up in here because of access to AUBase::RestoreState().  There may be other issues.
     // TODO look at moving this to MLJuceFilesMac.
 	
 	void loadFile(const File& f)
@@ -595,7 +595,6 @@ public:
 		CFRelease( resourceData );
 		CFRelease( propertyList );
 		CFRelease( fileURL );
-        
 	}
     
     

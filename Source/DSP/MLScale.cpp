@@ -127,7 +127,6 @@ void MLScale::setDefaultMapping()
 		}
 		
 		mNotes[i] = mTonicNote + octave*scaleSize + noteInOctave*(scaleSize + 1)/(keyCycle);
-
 	}	
 }
 

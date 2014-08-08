@@ -2246,14 +2246,11 @@ void MLLookAndFeel::drawAlertBox (Graphics& g, AlertWindow& alert,
                                    const Rectangle<int>& textArea, TextLayout& textLayout)
 {
     g.fillAll (alert.findColour (AlertWindow::backgroundColourId));
-    
     g.setColour (alert.findColour (AlertWindow::textColourId));
-    
     textLayout.draw (g, Rectangle<int> (textArea.getX(),
                                         textArea.getY(),
                                         textArea.getWidth(),
                                         textArea.getHeight()).toFloat());
-    
     g.setColour (alert.findColour (AlertWindow::outlineColourId));
     g.drawRect (0, 0, alert.getWidth(), alert.getHeight());
 }
