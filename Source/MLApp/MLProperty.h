@@ -121,6 +121,7 @@ protected:
 	void propertyChanged(MLSymbol p);
     
     void stopListening();
+    void propertyOwnerClosing();
     
 	// represent the state of a property relative to updates.
 	class PropertyState

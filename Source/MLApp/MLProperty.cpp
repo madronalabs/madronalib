@@ -256,6 +256,12 @@ void MLPropertyListener::stopListening()
     mpPropertyOwner = nullptr;
 }
 
+void MLPropertyListener::propertyOwnerClosing()
+{
+    if(!mpPropertyOwner) return;
+    mpPropertyOwner = nullptr;
+}
+
 // --------------------------------------------------------------------------------
 // MLPropertySet
 
@@ -266,17 +272,12 @@ MLPropertySet::MLPropertySet()
 MLPropertySet::~MLPropertySet()
 {
     std::list<MLPropertyListener*>::iterator it;
-    
-    debug() << "~MLPropertySet: SHUTTING down " << mpListeners.size() << " listeners\n";
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
-        debug() << "ERASING listener\n";
-        
 		MLPropertyListener* pL = *it;
-        mpListeners.erase(it++);
-        debug() << "STOPPING listener\n";
-		pL->stopListening();
+		pL->propertyOwnerClosing();
     }
+    mpListeners.clear();
 }
 
 void MLPropertySet::setProperty(MLSymbol p, float v)
@@ -299,13 +300,11 @@ void MLPropertySet::setProperty(MLSymbol p, const MLSignal& v)
 
 void MLPropertySet::addPropertyListener(MLPropertyListener* pL)
 {
-    debug() << "ADDING listener\n";
 	mpListeners.push_back(pL);
 }
 
 void MLPropertySet::removePropertyListener(MLPropertyListener* pToRemove)
 {
-    debug() << "REMOVING listener\n";
 	std::list<MLPropertyListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
