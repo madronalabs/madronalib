@@ -102,7 +102,11 @@ public:
     {
         mpPropertyOwner->addPropertyListener(this);
     }
-	virtual ~MLPropertyListener() {}
+    
+    virtual ~MLPropertyListener()
+    {
+        stopListening();
+    }
     
 	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & newVal) = 0;
 	
@@ -116,8 +120,7 @@ protected:
     // mark one property as changed.
 	void propertyChanged(MLSymbol p);
     
-    // called by property owners if they going to be deleted
-    void ownerClosing();
+    void stopListening();
     
 	// represent the state of a property relative to updates.
 	class PropertyState
