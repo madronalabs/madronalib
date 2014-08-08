@@ -63,7 +63,7 @@ public:
 
 	// --------------------------------------------------------------------------------
     // MLFileCollection::Listener
-    virtual void processFile (const MLSymbol collection, const File& f, int idx);
+    virtual void processFile (const MLSymbol collection, const MLFile& f, int idx, int size);
 
 	// --------------------------------------------------------------------------------
     void pushInfoToListeners();

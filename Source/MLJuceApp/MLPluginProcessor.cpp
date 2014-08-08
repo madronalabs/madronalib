@@ -249,8 +249,7 @@ void MLPluginProcessor::releaseResources()
 // --------------------------------------------------------------------------------
 #pragma mark MLFileCollection::Listener
 
-// nothing in particular to do here, but there might be in the future. 
-void MLPluginProcessor::processFile (const MLSymbol collection, const File& f, int idx)
+void MLPluginProcessor::processFile (const MLSymbol collection, const MLFile& f, int idx, int size)
 {
     if(collection == "scales")
     {
@@ -260,8 +259,7 @@ void MLPluginProcessor::processFile (const MLSymbol collection, const File& f, i
     }
     else if(collection == "presets")
     {
-        float p = mPresetFiles->getSearchProgress();
-        if(p >= 1.0)
+        if(idx == size) // done?
         {
             pushInfoToListeners();
         }
@@ -404,7 +402,7 @@ void MLPluginProcessor::setCollectStats(bool k)
 
 void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-	if (mEngine.isEnabled())
+ 	if (mEngine.isEnabled() && !isSuspended())
 	{
 		unsigned samples = buffer.getNumSamples();
 		
@@ -1099,6 +1097,7 @@ int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
 }
 
 // creates a file with the right extension for the plugin type.
+// as of Aalto 1.6 / Kaivo this is always .mlpreset.
 // input: a file path relative to the presets root, without extension.
 //
 void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
@@ -1110,33 +1109,16 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
     // the Model param contains the file path relative to the root.
     std::string shortPath = stripExtension(path);
     setProperty("preset", shortPath);
- 
-#ifdef ML_PRESETS_ONLY
+
     std::string extension (".mlpreset");
-#else
-    std::string extension = getExtensionForWrapperType();
-#endif
     std::string extPath = shortPath + extension;
     const MLFilePtr f = mPresetFiles->createFile(extPath);
-
-#ifdef ML_PRESETS_ONLY
-    f->mFile.replaceWithText(getStateAsText());
-#else
-    switch(wrapperType)
+    if(!f->mFile.exists())
     {
-        case wrapperType_VST:
-        case wrapperType_Standalone:            
-            // get state and write to file
-            f->mFile.replaceWithText(getStateAsText());
-            break;
-        case wrapperType_AudioUnit:            
-            // tell AU wrapper to save
-            sendMessageToMLListener (MLAudioProcessorListener::kSave, f->mFile);
-            break;
-        default:
-            break;
+        f->mFile.create();
     }
-#endif
+
+    f->mFile.replaceWithText(getStateAsText());
 #endif // DEMO
     
 }
@@ -1176,7 +1158,6 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 			// tell AU wrapper to load AU-compatible .aupreset file.
 			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
 		}
-         
 	}	
 }
 
@@ -1224,53 +1205,15 @@ void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
 
 void MLPluginProcessor::scanPresets()
 {
-   // get preset extension to look for
-    std::string presetFileType;
-#ifdef ML_PRESETS_ONLY
-    presetFileType = "mlpreset";
-#else    
-    switch(wrapperType)
-    {
-        case AudioProcessor::wrapperType_AudioUnit:
-            presetFileType = "aupreset";
-            break;
-        case AudioProcessor::wrapperType_VST:
-        case AudioProcessor::wrapperType_Standalone:
-        default:
-            presetFileType = "mlpreset";
-            break;
-    }
-#endif
-    
     // get presets collections
-    mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), presetFileType));
+    mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
     mPresetFiles->setListener(this);
     mPresetFiles->searchForFilesNow();
 }
 
 void MLPluginProcessor::scanMIDIPrograms()
 {
-	String presetFileType;
-    
-#ifdef ML_PRESETS_ONLY
-    presetFileType = ".mlpreset";
-#else
-    switch(wrapperType)
-	{
-		case AudioProcessor::wrapperType_VST:
-			presetFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_Standalone:
-			presetFileType = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_AudioUnit:
-			presetFileType = ".aupreset";
-		break;
-		default:
-			presetFileType = ".mlpreset";
-		break;
-	}
-#endif
+	String presetFileType = ".mlpreset";
     
 	clearMIDIProgramFiles();
 	

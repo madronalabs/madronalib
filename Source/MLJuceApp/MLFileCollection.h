@@ -13,19 +13,22 @@
 #include "MLFile.h"
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
+#include "MLProperty.h"
 
-// a collection of files matching some kind of criteria.
-class MLFileCollection
+// a collection of files matching some kind of criteria. Uses the PropertySet interface
+// to report progress for searches.
+
+class MLFileCollection : public MLPropertySet
 {
+friend class SearchThread;
 public:
-    
     // a Listener class must have a processFile routine to do something
     // with each file as it is found.
     class Listener
 	{
 	public:
 		virtual ~Listener() {}
-		virtual void processFile (const MLSymbol collection, const File& f, int idx) = 0;
+		virtual void processFile (const MLSymbol collection, const MLFile& f, int idx, int size) = 0;
 	};
      
  	MLFileCollection(MLSymbol name, const File startDir, String extension);
@@ -38,13 +41,11 @@ public:
     void setListener (Listener* listener);
 
     int beginProcessFiles();
-    void iterateProcessFiles(int i);
-    void searchForFilesNow();
-    float getSearchProgress();
+    void searchForFilesNow(int delay = 0);
+    void cancelSearch();
   
     // return a file by its path + name relative to our starting directory.
     const MLFilePtr getFileByName(const std::string& name);
-
     std::string getFileNameByIndex(int idx);
     MLFilePtr getFileByIndex(int idx);
     const int getFileIndexByName(const std::string& fullName);
@@ -61,30 +62,30 @@ public:
     
 private:
     
+    void buildTree();
+    void processFileInTree(int i);
+
     class SearchThread : public Thread
     {
     public:
         SearchThread(MLFileCollection& c) :
             Thread(String(c.getName().getString() + "_search")),
             mCollection(c),
-            mProgress(0)
+            mDelay(0)
         {
         }
         
         ~SearchThread()
         {
-            stopThread(-1);
         }
         
+        void setDelay(int d) { mDelay = d; }
         void run();
-        float getProgress() { return mProgress; }
-        void setProgress(float p) { mProgress = p; }
         
     private:
+        int mDelay;
         MLFileCollection& mCollection;
-        float mProgress;
     };
-
     
     // the file tree
     MLFile mRoot;

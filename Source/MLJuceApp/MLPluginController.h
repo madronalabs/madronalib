@@ -48,7 +48,7 @@ public:
 
     // --------------------------------------------------------------------------------
     // MLFileCollection::Listener
-    void processFile (const MLSymbol collection, const File& f, int idx);
+    void processFile (const MLSymbol collection, const MLFile& f, int idx, int size);
  
 	void prevPreset();
 	void nextPreset();
@@ -62,13 +62,17 @@ public:
 	void doPresetMenu(int result);
 
 #if ML_MAC
-	void convertPresets();
+    void updatePresets();
+    void cancelUpdate();
     MLFileCollectionPtr mPresetsToConvert;
-    ScopedPointer<ThreadWithProgressWindow> progressThread;
+    MLFileCollectionPtr mPresetsToMove;
+    std::tr1::shared_ptr<ThreadWithProgressWindow> mConvertProgressThread;
+    std::tr1::shared_ptr<Thread> mConvertPresetsThread;
     
 #endif // ML_MAC
 
 protected:
+    
 	MLAppView* mpView;
     
 	WeakReference<MLPluginController>::Master masterReference;

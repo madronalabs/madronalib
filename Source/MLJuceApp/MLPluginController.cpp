@@ -436,7 +436,7 @@ void MLPluginController::doPresetMenu(int result)
 #if SHOW_CONVERT_PRESETS
 #if ML_MAC
 		case (7):	// show convert alert box
-			convertPresets();
+			updatePresets();
 			getProcessor()->scanPresets();
 		break;
 #endif
@@ -669,193 +669,226 @@ void MLPluginEditor::doSettingsMenu()
 }
 */
 
-#if ML_MAC
-
 // --------------------------------------------------------------------------------
 #pragma mark MLFileCollection::Listener
 
+void MLPluginController::processFile (const MLSymbol collection, const MLFile& srcFile, int idx, int size)
+{
+    //debug() << "got file from " << collection << " : " << srcFile.getShortName() << "\n";
+    if(collection == "convert_user_presets")
+    {
+        File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
+        File destRoot(newPresetsFolder);
+        const std::string& relativeName = srcFile.getLongName();
+        
+        // If file at destination does not exist, or is older than the source, convert
+        // source and overwrite destination.
+        File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
+        if(!destFile.exists()  )
+        {
+            mpProcessor->loadStateFromFile(srcFile.mFile);
+            mpProcessor->saveStateToRelativePath(relativeName);
+        }
+        
+        if(srcFile.mFile.getLastModificationTime() > destFile.getLastModificationTime())
+        {
+            mpProcessor->loadStateFromFile(srcFile.mFile);
+            mpProcessor->saveStateToRelativePath(relativeName);
+        }
+        
+        // finishing?
+        if(idx == size)
+        {
+            mpProcessor->scanPresets();
+            mpProcessor->suspendProcessing(false);
+        }
+    }
+    else if(collection == "move_user_presets")
+    {
+        // move from old place to new if new file does not exist.
+        File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
+        File destRoot(newPresetsFolder);
+        const std::string& relativeName = srcFile.getLongName();
+        File destFile = destRoot.getChildFile(String(relativeName));
+        if(!destFile.exists())
+        {
+            String presetStr(srcFile.mFile.loadFileAsString());
+            destFile.create();
+            destFile.replaceWithText(presetStr);
+        }
+    }
+    else
+    {
+    }
+}
 
-//==============================================================================
-class ConvertPresetsThread  : public ThreadWithProgressWindow
+#if ML_MAC
+
+// --------------------------------------------------------------------------------
+#pragma mark ConvertProgressDisplayThread
+
+// ConvertProgressDisplayThread: progress display for preset converter.
+// TODO write on our own base class to replace ThreadWithProgressWindow.
+
+class ConvertProgressDisplayThread : public ThreadWithProgressWindow, public MLPropertyListener, public DeletedAtShutdown
 {
 public:
-    ConvertPresetsThread()
-    : ThreadWithProgressWindow ("busy doing some important things...", true, true)
+    ConvertProgressDisplayThread(MLPluginController* pC, MLFileCollectionPtr pFiles) :
+        pController(pC),
+        MLPropertyListener(&(*pFiles)),
+        mpFileCollection(pFiles),
+        myProgress(0),
+        mFilesConverted(0),
+        ThreadWithProgressWindow ("", true, true)
     {
-        setStatusMessage ("Getting ready...");
     }
+    
+    ~ConvertProgressDisplayThread() {}
     
     void run() override
     {
-        setProgress (-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar..
-        setStatusMessage ("Preparing to do some stuff...");
-//        wait (2000);
-        
-        const int thingsToDo = 10;
-        
-        for (int i = 0; i < thingsToDo; ++i)
+        std::string rootStr = mpFileCollection->getRoot()->getAbsolutePath();
+        rootStr = std::string("Updating presets from ") + rootStr + std::string("...");
+        setProgress(-1.0);
+        setStatusMessage (rootStr);
+
+        while(myProgress < 1.0)
         {
-            // must check this as often as possible, because this is
-            // how we know if the user's pressed 'cancel'
-            if (threadShouldExit())
-                return;
-            
-            // this will update the progress bar on the dialog box
-            setProgress (i / (double) thingsToDo);
-            
-            setStatusMessage (String (thingsToDo - i) + " things left to do...");
-            
-            wait (500);
+            if (threadShouldExit()) return;
+            updateChangedProperties();
+            wait(10);
         }
-        
-        setProgress (-1.0); // setting a value beyond the range 0 -> 1 will show a spinning bar..
-        setStatusMessage ("Finishing off the last few bits and pieces!");
-        wait (2000);
     }
     
-    // This method gets called on the message thread once our thread has finished..
-    void threadComplete (bool userPressedCancel) override
+    void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal)
     {
+        if(param == "progress")
+        {
+            float p = newVal.getFloatValue();
+            if(p < 1.)
+            {
+                mFilesConverted++;
+            }
+            myProgress = p;
+            setProgress(p);
+        }
+    }
+    
+    MLPluginController* pController;
+    MLFileCollectionPtr mpFileCollection;
+    float myProgress;
+    int mFilesConverted;
+    
+    // This method gets called from the message thread to end our thread.
+    void threadComplete (bool userPressedCancel)
+    {
+        File destDir = getDefaultFileLocation(kPresetFiles);
+        String destDirName = destDir.getFullPathName();
         if (userPressedCancel)
         {
-            AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                              "Progress window",
-                                              "You pressed cancel!");
+            pController->cancelUpdate();
+            AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, "Convert presets was cancelled.",
+                "Some presets may not have been converted.");
         }
         else
         {
-            // thread finished normally..
-            AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
-                                              "Progress window",
-                                              "Thread finished ok!");
+            if(mFilesConverted)
+            {
+                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, "Convert presets successful.",
+                    String("Converted presets were added to ") + destDirName + ".");
+            }
+            else
+            {
+                AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, "No presets found to convert.", "");
+            }
         }
-        
-        // ..and clean up by deleting our thread object..
-        delete this;
     }
 };
 
-void MLPluginController::processFile (const MLSymbol collection, const File& f, int idx)
-{
-    if(collection == "old_user_presets")
-    {
-        debug() << "START: " << idx << "convertPresets: processing: " << f.getFullPathName() << "\n";
-    }
-    else
-    {
-        debug() << "got file from " << collection << "\n";
-    }
-}
+// --------------------------------------------------------------------------------
+#pragma mark ConvertPresetsThread
 
-void MLPluginController::convertPresets()
+class ConvertPresetsThread : public Thread, public DeletedAtShutdown
 {
-    // only convert .aupreset (AU) to .mlpreset (VST) now. After 1.6 there will be no need to convert presets.
+public:
+    ConvertPresetsThread(MLFileCollectionPtr p, MLFileCollectionPtr q) :
+        Thread("update_presets_thread"),
+        mPresetsToMove(p),
+        mPresetsToConvert(q)
+    {
+    }
+    
+    ~ConvertPresetsThread()
+    {
+        stopThread(1000);
+    }
+    
+    void run()
+    {
+        int interFileDelay = 2;
+        
+        // move files in immediate mode
+        mPresetsToMove->searchForFilesNow(interFileDelay);
+        
+        // wait for move to finish
+        while(mPresetsToMove->getFloatProperty("progress") < 1.)
+        {
+            if (threadShouldExit()) return;
+            wait(10);
+        }
+        
+        // convert files in immediate mode
+        mPresetsToConvert->searchForFilesNow(interFileDelay);
+        
+        // wait for convert to finish
+        while(mPresetsToConvert->getFloatProperty("progress") < 1.)
+        {
+            if (threadShouldExit()) return;
+            wait(10);
+        }
+    }
+    
+private:
+    MLFileCollectionPtr mPresetsToConvert;
+    MLFileCollectionPtr mPresetsToMove;
+};
 
+// only convert .aupreset (AU) to .mlpreset (VST) now. After Aalto 1.6 there will be no need to convert presets.
+void MLPluginController::updatePresets()
+{
+    if(!mpProcessor) return;
+    
     File presetsFolder = getDefaultFileLocation(kOldPresetFiles);
     if (presetsFolder != File::nonexistent)
     {
-        mPresetsToConvert = MLFileCollectionPtr(new MLFileCollection("old_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
-
-        // start display
-        //        progressThread = new ConvertPresetsThread(mPresetsToConvert);
-        
+        mPresetsToMove = MLFileCollectionPtr(new MLFileCollection("move_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
+        mPresetsToMove->setListener(this);
+        mPresetsToConvert = MLFileCollectionPtr(new MLFileCollection("convert_user_presets", getDefaultFileLocation(kOldPresetFiles), ".aupreset"));
         mPresetsToConvert->setListener(this);
-        mPresetsToConvert->searchForFilesNow();
+
+        // turn off audio -- will be turned back on by finish or cancel
+        mpProcessor->suspendProcessing(true);
+
+        mConvertProgressThread = std::tr1::shared_ptr<ThreadWithProgressWindow>(new ConvertProgressDisplayThread(this, mPresetsToConvert));
+        mConvertProgressThread->launchThread();
         
- //       progressThread->threadComplete(false);
-        
+        mConvertPresetsThread = std::tr1::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToMove, mPresetsToConvert));
+        mConvertPresetsThread->startThread();
     }
     else
     {
-        debug() << "convertPresets: couldn't find preset folder " << presetsFolder.getFullPathName() << ".\n";
+        debug() << "updatePresets: couldn't find preset folder " << presetsFolder.getFullPathName() << ".\n";
     }
-
-    for(int i=0; i < mPresetsToConvert->size(); ++i)
-    {
-        // do the conversion.
-//        MLFilePtr fromFile;
- //       File toFile;
-   //     fromFile = oldPresetFiles->getFileByIndex(i);
-        
-        /*
-//        toFile = fromFile.withFileExtension(mExtension);
-        if (!toFile.exists())
-        {
-            if (mExtension == ".mlpreset")
-            {
-                ScopedPointer<XmlElement> xml(loadPropertyFileToXML(fromFile));
-                if(xml)
-                {
-                    xml->writeToFile(toFile, String::empty);
-                    wait(10);
-                }
-            }
-            else if (mExtension == ".aupreset")
-            {
-                mpFilter->loadStateFromFile(fromFile);
-                wait(100);
-                mpFilter->saveStateToFullPath(std::string(toFile.getFullPathName().toUTF8()));
-                wait(100);
-            }
-        }
-         */
-        
-        
-        
-        // wait(100);
-        
-    }
-//    mProgressThread setProgress (i / (double) numFiles);
-     
-    /*
-    
-	if (numFiles > 0)
-	{
-		// prompt to convert files
-		String noticeStr;
-		String numberStr(numFiles);
-		String filesStr;
-		filesStr = (numFiles > 1) ? " preset files were " : " preset file was ";
-		noticeStr = String(JucePlugin_Name) + " " + toPluginType + ": " + String(filesToConvert.size()) + filesStr +
-			"found in other formats.";
-		noticeStr += " Convert to " + toFileType + " format for " + toPluginType + " ?";
-				
-		bool userPickedOk
-			= AlertWindow::showOkCancelBox (AlertWindow::NoIcon,
-			String::empty,
-			noticeStr,
-			"OK",
-			"Cancel");
-			
-		if (userPickedOk)
-		{
-			PresetConverterThread demoThread(filesToConvert, getProcessor(), mpProcessor->wrapperType);
-
-			if (demoThread.runThread())
-			{
-				// thread finished normally..
-				AlertWindow::showMessageBox (AlertWindow::NoIcon,
-					String::empty, "Presets converted ok.", "OK");
-			}
-			else
-			{
-				// user pressed the cancel button..
-				AlertWindow::showMessageBox (AlertWindow::NoIcon,
-					String::empty, "Convert cancelled.  Some presets were not converted.",
-					"OK");
-			}
-		}
-	}
-	else
-	{
-		AlertWindow::showMessageBox (AlertWindow::NoIcon,
-			String::empty,
-			"No presets found to convert to " + toPluginType + " format.",
-			"OK");
-	}
-     */
-    
 }
+
+void MLPluginController::cancelUpdate()
+{
+    mPresetsToMove->cancelSearch();
+    mPresetsToConvert->cancelSearch();
+    mConvertPresetsThread->stopThread(1000);
+    mpProcessor->suspendProcessing(false);
+}
+
 
 
 #endif // ML_MAC

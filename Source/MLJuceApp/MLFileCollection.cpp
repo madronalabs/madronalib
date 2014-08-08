@@ -14,18 +14,15 @@ MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String ex
     mpListener(nullptr),
     mRoot(startDir)
 {
-    if(mRoot.mFile != File::nonexistent)
-    {
-        //startTimer(100);
-    }
-    else
-    {
-        
-    }
+    setProperty("progress", -1);
 }
 
 MLFileCollection::~MLFileCollection()
 {
+    if(mSearchThread)
+    {
+        mSearchThread->stopThread(1000);
+    }
 }
 
 void MLFileCollection::clear()
@@ -40,7 +37,7 @@ void MLFileCollection::setListener (Listener* listener)
 }
 
 // count the number of files in the collection, and begin making the collection.
-// returns the number of found files.
+// returns the number of found files, or -1 if the file root is not usable.
 //
 int MLFileCollection::beginProcessFiles()
 {
@@ -57,86 +54,87 @@ int MLFileCollection::beginProcessFiles()
         while (di.next())
         {
             mFiles.push_back (di.getFile());
-            found++;
         }
+        found = mFiles.size();
     }
     else
     {
         found = -1;
     }
+    
     return found;
 }
 
-// iterate one step in making the collection. 
-void MLFileCollection::iterateProcessFiles(int i)
+// examine all files in mFiles and build indexed tree
+//
+void MLFileCollection::buildTree()
 {
-    File f = mFiles[i];
-    String shortName = f.getFileName();
-    String relativePath;
-    File parentDir = f.getParentDirectory();
-    if(parentDir == mRoot.mFile)
+    int found = mFiles.size();
+    for(int i=0; i<found; i++)
     {
-        relativePath = "";
-    }
-    else
-    {
-        relativePath = parentDir.getRelativePathFrom(mRoot.mFile);
-    }
-    
-    if (f.existsAsFile() && f.hasFileExtension(mExtension))
-    {
-        std::string rPath(relativePath.toUTF8());
-        std::string delimiter = (rPath == "" ? "" : "/");
-        std::string sName(shortName.toUTF8());
-        std::string longName(rPath + delimiter + sName);
-        
-        MLFilePtr newFile(new MLFile(f, sName, longName));
-        
-        // insert file into file tree
-        mRoot.insert(longName, newFile);
-        
-        // push to index
-        mFilesByIndex.push_back(newFile);
-        int newIdx = mFilesByIndex.size() - 1;
-        newFile->mIndex = newIdx;
-        
-        if(mpListener)
+        juce::File f = mFiles[i];
+        String shortName = f.getFileName();
+        String relativePath;
+        File parentDir = f.getParentDirectory();
+        if(parentDir == mRoot.mFile)
         {
-            // give file and index to listener for processing
-            mpListener->processFile (mName, f, newIdx);
+            relativePath = "";
+        }
+        else
+        {
+            relativePath = parentDir.getRelativePathFrom(mRoot.mFile);
+        }
+        
+        if (f.existsAsFile() && f.hasFileExtension(mExtension))
+        {
+            std::string rPath(relativePath.toUTF8());
+            std::string delimiter = (rPath == "" ? "" : "/");
+            std::string sName(shortName.toUTF8());
+            std::string longName(rPath + delimiter + sName);
+            
+            MLFile* nf = new MLFile(f, sName, longName);
+            MLFilePtr newFile(nf);
+            
+            // insert file into file tree
+            mRoot.insert(longName, newFile);
+            
+            // push to index
+            mFilesByIndex.push_back(newFile);
+            int newIdx = mFilesByIndex.size() - 1;
+            newFile->mIndex = newIdx;
         }
     }
 }
 
-float MLFileCollection::getSearchProgress()
+// Allow the listener to process the file from the tree.
+// takes zero-based index. sends one-based index and total count to the listener.
+//
+void MLFileCollection::processFileInTree(int i)
 {
-    float p = -1;
-    if(mSearchThread)
+    MLFilePtr f = getFileByIndex(i);
+    int size = mFilesByIndex.size();
+    if(i < size)
     {
-        p = mSearchThread->getProgress();
-    }
-    return p;
-}
-
-void MLFileCollection::SearchThread::run()
-{
-    int filesFound = mCollection.beginProcessFiles();
-
-    // iterate and display known progress with informative message
-    for(int i=0; i<filesFound; ++i)
-    {
-        // good practice to check this even if we are only running for a short while
-        if (threadShouldExit())
-            return;
-        setProgress((float)(i + 1) / (float)filesFound);
-        mCollection.iterateProcessFiles(i);
+        if(mpListener)
+        {
+            mpListener->processFile (mName, *f, i + 1, size);
+        }
     }
 }
 
-void MLFileCollection::searchForFilesNow()
+void MLFileCollection::searchForFilesNow(int delay)
 {
     mSearchThread = std::tr1::shared_ptr<SearchThread>(new SearchThread(*this));
+    mSearchThread->setDelay(delay);
     mSearchThread->startThread();
+}
+
+void MLFileCollection::cancelSearch()
+{
+    if(mSearchThread)
+    {
+        mSearchThread->stopThread(1000);
+    }
 }
 
 std::string MLFileCollection::getFileNameByIndex(int idx)
@@ -184,7 +182,8 @@ const int MLFileCollection::getFileIndexByName(const std::string& fullName)
     return r;
 }
 
-// TODO re-index is needed after this, for now we are re-searching for all files!
+// TODO intelligent re-index can be done after this.
+// for now we are re-searching for all files
 //
 const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndName)
 {
@@ -198,8 +197,6 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
     // insert file into file tree at relative path
     mRoot.insert(relativePathAndName, newFile);
 
-    // TODO repair index
-    
     return newFile;
 }
 
@@ -256,5 +253,24 @@ void MLFileCollection::dump()
         const MLFilePtr f = mFilesByIndex[i];
 		debug() << "    " << i << ": " << f->mShortName << "\n";
 	}
+}
+
+// MLFileCollection::SearchThread
+
+// search for all files as quickly as possible
+void MLFileCollection::SearchThread::run()
+{
+    mCollection.beginProcessFiles();
+    mCollection.buildTree();
+    int t = mCollection.size();
+    for(int i=0; i<t; i++)
+    {
+        if (threadShouldExit())
+            return;
+        mCollection.setProperty("progress", (float)(i) / (float)t);
+        mCollection.processFileInTree(i);
+        wait(mDelay);
+    }
+    mCollection.setProperty("progress", 1.);
 }
 
