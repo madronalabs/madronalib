@@ -167,7 +167,6 @@ public:
 	// --------------------------------------------------------------------------------
 	// presets
 	
-	std::string getExtensionForWrapperType();
 	void scanPresets();
     void prevPreset();
     void nextPreset();

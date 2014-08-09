@@ -1247,24 +1247,6 @@ void MLPluginProcessor::scanMIDIPrograms()
 #pragma mark presets
 //
 
-std::string MLPluginProcessor::getExtensionForWrapperType()
-{
-    std::string ext;
-
-	switch(wrapperType)
-	{
-		case AudioProcessor::wrapperType_VST:
-		case AudioProcessor::wrapperType_Standalone:
-		default:
-			ext = ".mlpreset";
-		break;
-		case AudioProcessor::wrapperType_AudioUnit:
-			ext = ".aupreset";
-		break;
-	}
-	return ext;
-}
-
 void MLPluginProcessor::prevPreset()
 {
     advancePreset(-1);
@@ -1278,12 +1260,8 @@ void MLPluginProcessor::nextPreset()
 void MLPluginProcessor::advancePreset(int amount)
 {
     int len = mPresetFiles->size();
-#ifdef ML_PRESETS_ONLY
     std::string extension (".mlpreset");
-#else
-    std::string extension = getExtensionForWrapperType();
-#endif
-    
+
     int currIdx = - 1;
     const std::string* currPresetName = getStringProperty("preset");
     if (currPresetName != NULL)

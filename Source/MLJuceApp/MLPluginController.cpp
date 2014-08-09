@@ -299,11 +299,13 @@ void MLPluginController::presetFilesChanged(const MLFileCollectionPtr fileCollec
 void MLPluginController::prevPreset()
 {
     mpProcessor->prevPreset();
+    updateChangedProperties();
 }
 
 void MLPluginController::nextPreset()
 {
     mpProcessor->nextPreset();
+    updateChangedProperties();
 }
 
 // --------------------------------------------------------------------------------
@@ -573,7 +575,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
 	
 #if SHOW_CONVERT_PRESETS
 #if ML_MAC
-	menu->addItem("Convert presets...");
+	menu->addItem("Update presets...");
 #endif
 #endif
 	menu->addSeparator();
@@ -886,6 +888,7 @@ void MLPluginController::cancelUpdate()
     mPresetsToMove->cancelSearch();
     mPresetsToConvert->cancelSearch();
     mConvertPresetsThread->stopThread(1000);
+    mpProcessor->scanPresets();
     mpProcessor->suspendProcessing(false);
 }
 

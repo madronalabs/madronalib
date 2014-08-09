@@ -48,9 +48,7 @@ public:
 
 	virtual bool isWidgetContainer(void) { return true; }
 
-	void setReporter(MLReporter* pRep);	
-	
-	// setup view for param p as attr of widget. 
+	// setup view for param p as attr of widget.
 	void addParamView(MLSymbol p, MLWidget* w, MLSymbol attr);
 	
 	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);
