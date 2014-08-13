@@ -240,7 +240,7 @@ public:
 	WhichDial getRectOverPoint(const int x, const int y);		
 	
 	float getValueOfDial(WhichDial s);
-	void setValueOfDial(WhichDial s, float val, bool quiet = false);
+	void setValueOfDial(WhichDial s, float val, bool quiet = false, bool sync = false);
 	void sizeChanged();
 	void visibilityChanged();
 	

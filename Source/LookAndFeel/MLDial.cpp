@@ -83,9 +83,7 @@ MLDial::MLDial () :
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	setOpaque(myLookAndFeel->getDefaultOpacity());
     
-    // TODO sort out issues with Retina and buffering
-	setBufferedToImage(true);//(myLookAndFeel->getDefaultBufferMode());
-
+	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
 
 	setWantsKeyboardFocus (false);
@@ -98,6 +96,9 @@ MLDial::MLDial () :
 MLDial::~MLDial()
 {
 }
+
+//--------------------------------------------------------------------------------
+// MLWidget methods
 
 void MLDial::setListener (MLDial::Listener* const l)
 {
@@ -112,11 +113,11 @@ void MLDial::setAttribute(MLSymbol attr, float val)
 	
 //debug() << "MLDial " << getWidgetName() << ":" << attr << " = " << val << "\n";
 	
-	
 	if (attr == valueSym)
 	{
         bool quiet = true;
-		setValueOfDial(MainDial, val, quiet);
+		bool sync = true;
+		setValueOfDial(MainDial, val, quiet, sync);
 	}
     else if(attr == "highlight")
     {
@@ -342,10 +343,9 @@ float MLDial::getValueOfDial(WhichDial s)
 }
 
 
-void MLDial::setValueOfDial(WhichDial s, float val, bool quiet)
+void MLDial::setValueOfDial(WhichDial s, float val, bool quiet, bool synch)
 {
 	bool sendMsg = !quiet;
-	bool synch = false;
 	float newVal = snapValue(val, true);
 	switch(s) 
 	{
@@ -368,9 +368,9 @@ void MLDial::setSelectedValue (float newValue,
 					const bool sendUpdateMessage,
 					const bool sendMessageSynchronously)
 {	
-//debug() << "in constrain: " << newValue << "\n";
+	//debug() << "in constrain: " << newValue << "\n";
 	newValue = constrainedValue (newValue);
-//debug() << "    out constrain: " << newValue << "\n";
+	//debug() << "    out constrain: " << newValue << "\n";
 	
 	// get reference to target
 	float* pTargetValue = 0;
