@@ -8,7 +8,6 @@
 // ----------------------------------------------------------------
 // class definition
 
-
 class MLProcPeak : public MLProc
 {
 public:
@@ -27,33 +26,27 @@ private:
 	MLSample mC1;
 };
 
-
 // ----------------------------------------------------------------
 // registry section
 
-namespace{
-
-MLProcRegistryEntry<MLProcPeak> classReg("peak");
-ML_UNUSED MLProcParam<MLProcPeak> params[1] = {"time"};
-ML_UNUSED MLProcInput<MLProcPeak> inputs[] = {"in"};
-ML_UNUSED MLProcOutput<MLProcPeak> outputs[] = {"out"};
-
-}	// namespace
-
+namespace
+{
+	MLProcRegistryEntry<MLProcPeak> classReg("peak");
+	ML_UNUSED MLProcParam<MLProcPeak> params[] = {"time"};		// decay time in seconds
+	ML_UNUSED MLProcInput<MLProcPeak> inputs[] = {"in"};
+	ML_UNUSED MLProcOutput<MLProcPeak> outputs[] = {"out"};
+}
 
 // ----------------------------------------------------------------
 // implementation
 
-
 MLProcPeak::MLProcPeak()
 {
-	setParam("time", 0.25f);	// seconds
+	setParam("time", 0.25f);
 }
-
 
 MLProcPeak::~MLProcPeak()
 {
-//	debug() << "MLProcPeak destructor\n";
 }
 
 void MLProcPeak::clear(void) 
@@ -63,7 +56,6 @@ void MLProcPeak::clear(void)
 	calcCoeffs();
 }
 
-
 void MLProcPeak::calcCoeffs(void) 
 {
 	MLSample t = getParam("time");
@@ -71,12 +63,10 @@ void MLProcPeak::calcCoeffs(void)
 	mParamsChanged = false;
 }
 
-// TODO don't calculate so often!  We typically don't use it except in displays.
 void MLProcPeak::process(const int samples)
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
-
 	if (mParamsChanged) calcCoeffs();
 	
 	for (int n=0; n<samples; ++n)

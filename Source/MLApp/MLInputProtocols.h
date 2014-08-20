@@ -12,12 +12,4 @@ enum eInputProtocol
 	kInputProtocolOSC = 1
 };
 
-class MLInputProtocolReceiver
-{
-public:
-	MLInputProtocolReceiver() {}
-	virtual ~MLInputProtocolReceiver() {}
-	virtual void setInputProtocol(int p) = 0;
-};
-
 #endif // ML_INPUT_PROTOCOLS_H

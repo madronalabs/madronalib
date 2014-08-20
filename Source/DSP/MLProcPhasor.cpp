@@ -31,7 +31,7 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcPhasor> classReg("phasor");
-	ML_UNUSED MLProcParam<MLProcPhasor> params[1] = { "mode" };
+	ML_UNUSED MLProcParam<MLProcPhasor> params[] = { "mode" };
 	ML_UNUSED MLProcInput<MLProcPhasor> inputs[] = { "frequency", "reset" }; 
 	ML_UNUSED MLProcOutput<MLProcPhasor> outputs[] = { "out", "period" };
 }			

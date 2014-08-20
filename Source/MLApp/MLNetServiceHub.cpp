@@ -41,7 +41,6 @@
 
 using namespace ZeroConf;
 
-
 //------------------------------------------------------------------------------------------------------------
 
 MLNetServiceHub::MLNetServiceHub() :
@@ -103,8 +102,6 @@ bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInS
 	
 	return false;
 }
-
-
 
 void MLNetServiceHub::PollNetServices()
 {

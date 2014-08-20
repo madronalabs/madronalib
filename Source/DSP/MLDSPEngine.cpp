@@ -509,7 +509,7 @@ int MLDSPEngine::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 #pragma mark MIDI
 
 
-void MLDSPEngine::setInputProtocol(int p)
+void MLDSPEngine::setEngineInputProtocol(int p)
 {
 	if (mpInputToSignalsProc)
 	{

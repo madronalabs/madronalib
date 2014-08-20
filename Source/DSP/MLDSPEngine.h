@@ -81,7 +81,7 @@ public:
 	// ----------------------------------------------------------------
 	// control input
 
-	void setInputProtocol(int p);
+	void setEngineInputProtocol(int p);
 	void setInputDataRate(int p);
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
 	void clearMIDI();

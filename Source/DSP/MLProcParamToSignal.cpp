@@ -36,7 +36,7 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcParamToSignal> classReg("param_to_sig");
-	ML_UNUSED MLProcParam<MLProcParamToSignal> params[2] = {"in", "glide"};	
+	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in", "glide"};
 	ML_UNUSED MLProcOutput<MLProcParamToSignal> outputs[] = {"out"};
 }
 
