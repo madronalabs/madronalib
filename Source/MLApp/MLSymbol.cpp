@@ -276,20 +276,18 @@ void MLSymbolTable::audit(void)
 // ----------------------------------------------------------------
 #pragma mark MLSymbol
 
-const int kMLMaxNumberDigits = 20; 
+const int kMLMaxNumberDigits = 14;
 
 const char *positiveIntToDigits(int i);
 int digitsToPositiveInt(const char* p);
-
 const char *naturalNumberToDigits(int value, char* pDest);
-
 bool isDigit(char c);
 bool isValidSymbolChar(char c);
 int processSymbolText(const char* sym, int maxLen = kMLMaxSymbolLength);
 
 const char *positiveIntToDigits(int i)
 {
-	static char buf[kMLMaxNumberDigits + 2];
+	char buf[kMLMaxNumberDigits + 2] = {0};
 	char *p = buf + kMLMaxNumberDigits + 1;	
 	*p = 0;
 	do 
