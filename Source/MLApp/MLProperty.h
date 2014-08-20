@@ -62,7 +62,7 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r);
 class MLPropertyListener;
 class MLPropertyModifier;
 
-// a Set of Properties. Property names are stored here.
+// MLPropertySet: a Set of Properties. Property names are stored here.
 
 class MLPropertySet
 {
@@ -105,7 +105,9 @@ public:
     
     virtual ~MLPropertyListener()
     {
-        stopListening();
+		if(!mpPropertyOwner) return;
+		mpPropertyOwner->removePropertyListener(this);
+		mpPropertyOwner = nullptr;
     }
     
 	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & newVal) = 0;
@@ -123,17 +125,14 @@ protected:
 	// If immediate is true and the state has changed, doPropertyChangeAction() will be called.
 	void propertyChanged(MLSymbol p, bool immediate);
     
-    void stopListening();
+	// Must be called by the Property owner to notify us in the event it is going away.
     void propertyOwnerClosing();
     
-	// represent the state of a property relative to updates.
+	// PropertyStates represent the state of a single property relative to updates.
 	class PropertyState
 	{
 	public:
-		PropertyState() :
-        mChangedSinceUpdate(true)
-        {};
-        
+		PropertyState() : mChangedSinceUpdate(true) {}
 		~PropertyState() {}
 		
 		bool mChangedSinceUpdate;
@@ -146,7 +145,8 @@ protected:
 
 // an MLPropertyModifier can request that PropertySets make changes to Properties.
 // use, for example, to control a Model from a UI or recall it to a saved state.
-
+// These changes propagate to Listeners as pending changes, which can
+// trigger actions the next time the Listeners are updated.
 class MLPropertyModifier
 {
 public:

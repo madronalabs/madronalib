@@ -199,25 +199,6 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 // --------------------------------------------------------------------------------
 // MLPropertyListener
 
-void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
-{
-    if(!mpPropertyOwner) return;
-    
-	// if the property does not exist in the map yet, this lookup will add it.
-	PropertyState& state = mPropertyStates[propName];
-    
-    const MLProperty& modelValue = mpPropertyOwner->getProperty(propName);
-    if((modelValue != state.mValue) || (modelValue.getType() == MLProperty::kSignalProperty))
-    {
-        state.mChangedSinceUpdate = true;
-		if(immediate)
-		{
-			doPropertyChangeAction(propName, modelValue);
-			state.mValue = modelValue;
-		}
-    }
-}
-
 void MLPropertyListener::updateChangedProperties()
 {
     if(!mpPropertyOwner) return;
@@ -251,11 +232,23 @@ void MLPropertyListener::updateAllProperties()
 	updateChangedProperties();
 }
 
-void MLPropertyListener::stopListening()
+void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
 {
     if(!mpPropertyOwner) return;
-    mpPropertyOwner->removePropertyListener(this);
-    mpPropertyOwner = nullptr;
+    
+	// if the property does not exist in the map yet, this lookup will add it.
+	PropertyState& state = mPropertyStates[propName];
+    
+    const MLProperty& modelValue = mpPropertyOwner->getProperty(propName);
+    if((modelValue != state.mValue) || (modelValue.getType() == MLProperty::kSignalProperty))
+    {
+        state.mChangedSinceUpdate = true;
+		if(immediate)
+		{
+			doPropertyChangeAction(propName, modelValue);
+			state.mValue = modelValue;
+		}
+    }
 }
 
 void MLPropertyListener::propertyOwnerClosing()
