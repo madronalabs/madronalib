@@ -21,8 +21,8 @@ static const float kRotaryEndDefault = kMLPi*0.5f;
 
 //==============================================================================
 MLDial::MLDial () : 
-	dialBeingDragged (NoDial),
-	dialToDrag (NoDial),
+	dialBeingDragged (kNoDial),
+	dialToDrag (kNoDial),
 	//
     currentValue (0.0), valueMin (0.0), valueMax (0.0),
     minimum (0), maximum (1), interval (0), doubleClickReturnValue(0.0),
@@ -111,31 +111,19 @@ void MLDial::setAttribute(MLSymbol attr, float val)
 	static const MLSymbol valueSym("value");
 	MLWidget::setAttribute(attr, val);
 	
-//debug() << "MLDial " << getWidgetName() << ":" << attr << " = " << val << "\n";
+	debug() << "MLDial::setAttribute " << getWidgetName() << ":" << attr << " = " << val << "\n";
 	
 	if (attr == valueSym)
 	{
-        bool quiet = true;
+        bool sendUpdate = false;
 		bool sync = false;
-		setValueOfDial(MainDial, val, quiet, sync);
+		setValueOfDial(kMainDial, val, sendUpdate, sync);
 	}
     else if(attr == "highlight")
     {
         mParameterLayerNeedsRedraw = true;
         repaint();
     }
-}
-
-//--------------------------------------------------------------------------------
-// AsyncUpdater methods
-
-void MLDial::handleAsyncUpdate()
-{
-	if(mpListener)
-	{
-		cancelPendingUpdate();
-		mpListener->dialValueChanged (this);
-	}
 }
 
 //--------------------------------------------------------------------------------
@@ -211,15 +199,6 @@ void MLDial::setDialSnapsToMousePosition (const bool shouldSnapToMouse) throw()
     snapsToMousePos = shouldSnapToMouse;
 }
 
-/*
-void MLDial::setPopupDisplayEnabled (const bool enabled,
-                                     Component* const parentComponentToUse) throw()
-{
-    popupDisplayEnabled = enabled;
-    parentForPopupDisplay = parentComponentToUse;
-}
-*/
-
 //==============================================================================
 void MLDial::colourChanged()
 {
@@ -231,8 +210,6 @@ void MLDial::lookAndFeelChanged()
     repaintAll();
 }
 
-
-	
 //==============================================================================
 
 void MLDial::setWarpMode(const JucePluginParamWarpMode w)
@@ -269,12 +246,12 @@ void MLDial::setRange (const float newMin,
 	// keep the current values inside the new range..
 	if (style != MLDial::TwoValueHorizontal && style != MLDial::TwoValueVertical)
 	{
-		setSelectedValue (currentValue, mainValue, false, false);
+		setSelectedValue (currentValue, mainValue);
 	}
 	else
 	{
-		setSelectedValue (getMinValue(), minValue, false, false);
-		setSelectedValue (getMaxValue(), maxValue, false, false);
+		setSelectedValue (getMinValue(), minValue);
+		setSelectedValue (getMaxValue(), maxValue);
 	}
 	
 	mDigits = ceil(log10(jmax((abs(newMin) + 1.), (abs(newMax) + 1.))));
@@ -289,16 +266,6 @@ void MLDial::setRange (const float newMin,
 void MLDial::setDefault (const float newDefault)
 {
 	setDoubleClickReturnValue(true, newDefault);
-}
-
-void MLDial::triggerChangeMessage (const bool synchronous)
-{
-    if (synchronous)
-        handleAsyncUpdate();
-    else
-        triggerAsyncUpdate();
-
-    valueChanged();
 }
 
 float MLDial::getValue() const throw()
@@ -327,13 +294,13 @@ float MLDial::getValueOfDial(WhichDial s)
 	float val = 0.;
 	switch(s) 
 	{
-		case MainDial:
+		case kMainDial:
 			val = currentValue;
 			break;
-		case MinDial:
+		case kMinDial:
 			val = valueMin;
 			break;
-		case MaxDial:
+		case kMaxDial:
 			val = valueMax;
 			break;		
 		default:
@@ -342,31 +309,77 @@ float MLDial::getValueOfDial(WhichDial s)
 	return val;
 }
 
-
 void MLDial::setValueOfDial(WhichDial s, float val, bool quiet, bool synch)
 {
-	bool sendMsg = !quiet;
 	float newVal = snapValue(val, true);
-	switch(s) 
+	switch(s)
 	{
-		case MainDial:
-            setSelectedValue (newVal, mainValue, sendMsg, synch);
+		case kMainDial:
+            setSelectedValue (newVal, mainValue);
 			break;
-		case MinDial:
-            setSelectedValue (newVal, minValue, sendMsg, synch);
+		case kMinDial:
+            setSelectedValue (newVal, minValue);
 			break;
-		case MaxDial:
-            setSelectedValue (newVal, maxValue, sendMsg, synch);
-			break;		
+		case kMaxDial:
+            setSelectedValue (newVal, maxValue);
+			break;
 		default:
-			break;		
+			break;
 	}
 }
 
-void MLDial::setSelectedValue (float newValue,
-					const int valSelector,
-					const bool sendUpdateMessage,
-					const bool sendMessageSynchronously)
+void MLDial::sendValueOfDial(WhichDial s, float val)
+{
+	float newValue = snapValue(val, true);
+
+	//debug() << "in constrain: " << newValue << "\n";
+	newValue = constrainedValue (newValue);
+	//debug() << "    out constrain: " << newValue << "\n";
+	
+	// get reference to target
+	float* pTargetValue = 0;
+	pTargetValue = &currentValue;
+
+	// clip value to other dial parts
+	switch(s)
+	{
+		case kMainDial:
+			if (style == MLDial::ThreeValueHorizontal || style == MLDial::ThreeValueVertical)
+			{
+				jassert (valueMin <= valueMax);
+				newValue = jlimit (valueMin, valueMax, newValue);
+			}
+			break;
+		case kMinDial:
+			if (style == MLDial::TwoValueHorizontal || style == MLDial::TwoValueVertical)
+				newValue = jmin (valueMax, newValue);
+			else
+				newValue = jmin (currentValue, newValue);
+			break;
+		case kMaxDial:
+			if (style == MLDial::TwoValueHorizontal || style == MLDial::TwoValueVertical)
+				newValue = jmax (valueMin, newValue);
+			else
+				newValue = jmax (currentValue, newValue);
+			break;
+		default:
+			break;
+	}
+	
+	if (*pTargetValue != newValue)
+	{
+		// debug
+		if (newValue != newValue)
+		{
+			debug() << "value NaN!\n";
+		}
+		
+		*pTargetValue = newValue;
+		mpListener->dialValueChanged (this);
+	}
+}
+
+void MLDial::setSelectedValue (float newValue, const int valSelector)
 {	
 	//debug() << "in constrain: " << newValue << "\n";
 	newValue = constrainedValue (newValue);
@@ -388,48 +401,11 @@ void MLDial::setSelectedValue (float newValue,
 		break;
 	}
 
-	// clip value to other dial parts, but only if we are initiating change from the dial. 
-	if (sendUpdateMessage)
-	{
-		switch(valSelector)
-		{
-			case mainValue:
-				if (style == MLDial::ThreeValueHorizontal || style == MLDial::ThreeValueVertical)
-				{
-					jassert (valueMin <= valueMax);
-					newValue = jlimit (valueMin, valueMax, newValue);
-				}
-			break;
-			case minValue:
-				if (style == MLDial::TwoValueHorizontal || style == MLDial::TwoValueVertical)
-					newValue = jmin (valueMax, newValue);
-				else
-					newValue = jmin (currentValue, newValue);
-			break;
-			case maxValue:
-				if (style == MLDial::TwoValueHorizontal || style == MLDial::TwoValueVertical)
-					newValue = jmax (valueMin, newValue);
-				else
-					newValue = jmax (currentValue, newValue);
-			break;
-		}
-	}
-
     if (*pTargetValue != newValue)
     {
-		// debug
-		if (newValue != newValue) 
-		{
-			debug() << "value NaN!\n";
-		}
-	
 		*pTargetValue = newValue;
 		mParameterLayerNeedsRedraw = true;
 		mThumbLayerNeedsRedraw = true;
-		
-        if (sendUpdateMessage)
-            triggerChangeMessage (sendMessageSynchronously);
-
 		repaintAll();
     }
 }
@@ -1291,7 +1267,7 @@ void MLDial::mouseDown (const MouseEvent& e)
 		findDialToDrag(e);	// sets dialToDrag
 		dialBeingDragged = dialToDrag;
 
-		if (dialBeingDragged != NoDial)
+		if (dialBeingDragged != kNoDial)
 		{
 			mLastDragX = e.x;
 			mLastDragY = e.y;
@@ -1299,9 +1275,9 @@ void MLDial::mouseDown (const MouseEvent& e)
 			mFilteredMouseSpeed = 0.;
 			mMouseMotionAccum = 0;
 			
-			if (dialBeingDragged == MaxDial)
+			if (dialBeingDragged == kMaxDial)
 				valueWhenLastDragged = valueMax;
-			else if (dialBeingDragged == MinDial)
+			else if (dialBeingDragged == kMinDial)
 				valueWhenLastDragged = valueMin;
 			else
 				valueWhenLastDragged = currentValue;
@@ -1317,11 +1293,9 @@ void MLDial::mouseUp (const MouseEvent&)
     if (isEnabled())
     {
 		sendDragEnd();
-		if (dialBeingDragged != NoDial)
+		if (dialBeingDragged != kNoDial)
 		{
 			restoreMouseIfHidden();
-			if (sendChangeOnlyOnRelease && valueOnMouseDown != currentValue)
-				triggerChangeMessage (false);
 		}
     }
 	endDrag();
@@ -1365,7 +1339,7 @@ void MLDial::mouseDoubleClick (const MouseEvent&)
          && maximum >= doubleClickReturnValue)
     {
         sendDragStart();
-        setSelectedValue (doubleClickReturnValue, mainValue, true, true);
+        setSelectedValue (doubleClickReturnValue, mainValue);
 		sendDragEnd();
     }
 }
@@ -1466,7 +1440,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 				 && maximum >= doubleClickReturnValue)
 			{
 				//sendDragStart();
-				setSelectedValue (doubleClickReturnValue, mainValue, true, true);
+				setSelectedValue (doubleClickReturnValue, mainValue);
 				//sendDragEnd();
 			}
 			return;
@@ -1527,7 +1501,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 			}
 		}
 		
-		else if (dialBeingDragged != NoDial) 
+		else if (dialBeingDragged != kNoDial) 
 		{
 			e.source.enableUnboundedMouseMovement (true, false);
             
@@ -1540,7 +1514,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 				valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kDragStepSize);	
 			}		
 		}		
-		setValueOfDial(dialBeingDragged, valueWhenLastDragged);
+		sendValueOfDial(dialBeingDragged, valueWhenLastDragged);
     }
 }
 
@@ -1572,7 +1546,7 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 			int dp = dir*max(1, (int)(fabs(dpf)*32.)); // mouse scale for no detents
 			valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kMouseWheelStepSize);			
             sendDragStart();
-			setValueOfDial(dialToDrag, valueWhenLastDragged);
+			sendValueOfDial(dialToDrag, valueWhenLastDragged);
 			sendDragEnd();
         }
     }
@@ -1636,7 +1610,7 @@ MLDial::WhichDial MLDial::getRectOverPoint(const MouseEvent& e)
 
 MLDial::WhichDial MLDial::getRectOverPoint(const int xx, const int yy)
 {
-	WhichDial which = NoDial;
+	WhichDial which = kNoDial;
 	
 	// looks correct for all our Juce lines centered on 0.5
 	const int x = xx - 1;
@@ -1657,17 +1631,17 @@ MLDial::WhichDial MLDial::getRectOverPoint(const int xx, const int yy)
 		if (minRect.contains(x, y))
 		{
 //	printf("clicked multiMIN\n");
-			which = MinDial;
+			which = kMinDial;
 		}
 		else if (maxRect.contains(x, y))
 		{
 //	printf("clicked multiMAX\n");
-			which = MaxDial;
+			which = kMaxDial;
 		}
 		else if (trackRect.contains(x, y))
 		{
 //	printf("clicked multiTRACK\n");
-			which = TrackDial;
+			which = kTrackDial;
 		}
 	}
 	else
@@ -1679,17 +1653,17 @@ MLDial::WhichDial MLDial::getRectOverPoint(const int xx, const int yy)
 		if (mainRect.contains(x, y))
 		{
             //printf("clicked MAIN\n");
-			which = MainDial;
+			which = kMainDial;
 		}
 		else if (trackRect.contains(x, y))
 		{
             //printf("clicked TRACK\n");
-			which = TrackDial;
+			which = kTrackDial;
 		}
 		else if (fieldRect.contains(x, y))
 		{
             //printf("clicked FIELD\n");
-			which = MainDial;
+			which = kMainDial;
 		}
 	}
 	
@@ -1714,14 +1688,14 @@ void MLDial::findDialToDrag(const int x, const int y)
 
 	if (getDialStyle() == MLDial::Rotary)
 	{
-		thumb = MainDial;
+		thumb = kMainDial;
 	}
 	else
 	{
 		// if over area covered by a MLDial, drag that one. 
 		thumb = getRectOverPoint(x, y);
 		
-		if (thumb == TrackDial)
+		if (thumb == kTrackDial)
 		{
 			mOverTrack = true;
 			if (isTwoOrThreeValued())
@@ -1738,17 +1712,17 @@ void MLDial::findDialToDrag(const int x, const int y)
 				if (maxPosDistance <= minPosDistance)
 				{
 	//			printf ("drag max\n");
-					thumb = MaxDial;
+					thumb = kMaxDial;
 				}
 				else
 				{
 	//			printf ("drag min\n");
-					thumb = MinDial;
+					thumb = kMinDial;
 				}
 			}
 			else
 			{
-				thumb = MainDial;
+				thumb = kMainDial;
 			}
 		}
 		else

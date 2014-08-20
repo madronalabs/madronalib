@@ -13,18 +13,32 @@ const int kMLModelUpdateInterval = 10;
 MLModel::MLModel() :
     MLPropertyListener(this)
 {
-	startTimer(kMLModelUpdateInterval);
+	mpTimer = std::tr1::shared_ptr<ModelTimer>(new ModelTimer(this));
+	mpTimer->startTimer(kMLModelUpdateInterval);
 }
 
 MLModel::~MLModel()
 {
-
+	mpTimer->stopTimer();
 }
 
-void MLModel::timerCallback()
+// --------------------------------------------------------------------------------
+// MLModel::ModelTimer
+
+MLModel::ModelTimer::ModelTimer(MLModel* pM) :
+	mpModel(pM)
+{
+}
+
+MLModel::ModelTimer::~ModelTimer()
+{
+	stopTimer();
+}
+
+void MLModel::ModelTimer::timerCallback()
 {
     // pull property changes from the PropertySet to the PropertyListener
-    updateChangedProperties();
+    mpModel->updateChangedProperties();
 }
 
 

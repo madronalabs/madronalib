@@ -31,8 +31,7 @@ public:
 
 class MLDial  : 
 	public Component,
-	public MLWidget,
-    protected AsyncUpdater
+	public MLWidget
 {
 friend class MLLookAndFeel;
 public:
@@ -86,11 +85,11 @@ public:
 	
     enum WhichDial
 	{
-        MainDial,		
-        MinDial,   
-        MaxDial,
-		TrackDial,
-		NoDial
+        kMainDial,		
+        kMinDial,   
+        kMaxDial,
+		kTrackDial,
+		kNoDial
 	};
 	
     enum DialRect
@@ -141,10 +140,6 @@ public:
                                     const float offset = 0.0,
                                     const bool userCanPressKeyToSwapMode = true) throw();
 
-    void setSelectedValue (float newValue,
-					int valSelector,
-                   const bool sendUpdateMessage = true,
-                   const bool sendMessageSynchronously = false);
 
     float getValue() const throw();
 	void setRange (const float newMinimum,
@@ -239,15 +234,19 @@ public:
 	WhichDial getRectOverPoint(const MouseEvent& e);
 	WhichDial getRectOverPoint(const int x, const int y);		
 	
-	float getValueOfDial(WhichDial s);
-	void setValueOfDial(WhichDial s, float val, bool quiet = false, bool sync = false);
+	
 	void sizeChanged();
 	void visibilityChanged();
 	
 	float getLabelVerticalOffset() { return 0.875f; }
 
 protected:
+	float getValueOfDial(WhichDial s);
+	void sendValueOfDial(WhichDial s, float val);
+	void setValueOfDial(WhichDial s, float val, bool sendUpdate = false, bool sync = false);
+    void setSelectedValue (float newValue, int valSelector);
 
+	
     void repaintAll ();
 	virtual void paint (Graphics& g);
 	void drawLinearDial (Graphics& g, int rx, int ry, int rw, int rh,
@@ -274,15 +273,12 @@ protected:
     void modifierKeysChanged (const ModifierKeys& modifiers);
     void lookAndFeelChanged();
     void enablementChanged();
-    void handleAsyncUpdate();
     void colourChanged();
     void sendDragStart();
 	void sendDragEnd();
- 	
-	inline void endDrag(){ dialBeingDragged = NoDial; }
+	inline void endDrag() { dialBeingDragged = kNoDial; }
 
     float constrainedValue (float value) const throw();
-    void triggerChangeMessage (const bool synchronous);
 
     WhichDial dialBeingDragged;
 	WhichDial dialToDrag;
