@@ -27,7 +27,7 @@ public:
 	MLSymbol getSignalName() { return mSignalName; }	
 
 private:
-	int mNumSignals;
+	int mVoices;
 	bool mViewingSignal;
 	MLDSPEngine* mpEngine;	
 	MLSymbol mSignalName;

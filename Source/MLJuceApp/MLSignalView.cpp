@@ -14,7 +14,7 @@ MLSignalView::MLSignalView(MLWidget* w, MLSymbol attr, int size, int priority) :
 	mAttr(attr),
     mSize(size),
     mPriority(priority),
-	mNumSignals(1)
+	mVoices(0)
 {
 }
 
@@ -27,7 +27,11 @@ void MLSignalView::setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, i
 	mViewingSignal = true;
 	mpEngine = pEng;
 	mSignalName = sigName;
-	mpWidget->setAttribute(MLSymbol("voices"), voices);
+	if(voices != mVoices)
+	{
+		mpWidget->setAttribute(MLSymbol("voices"), voices);
+		mVoices = voices;
+	}
 }
 
 void MLSignalView::sendSignalToWidget(const MLSignal& signal, int samples, int voices)
