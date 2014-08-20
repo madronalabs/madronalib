@@ -80,7 +80,6 @@ private:
 	MLSymbolMapT mMap;
 };
 
-
 inline MLSymbolTable& theSymbolTable()
 {
 	static MLSymbolTable* t = new MLSymbolTable();
@@ -174,7 +173,6 @@ public:
 
 private:
 	int index;
-	
 };
 
 

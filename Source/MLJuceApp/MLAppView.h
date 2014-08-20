@@ -89,10 +89,8 @@ public:
 	MLGraph* addGraph(const char * name, const Colour& color);
 
 	MLDrawing* addDrawing(const MLRect & r);
-
 	MLProgressBar* addProgressBar(const MLRect & r);
-
-    MLWaveform* addWaveform(const MLRect & r, const MLSymbol paramName);
+	MLWaveform* addWaveform(const MLRect & r, const MLSymbol paramName);
 
 	// animations
 	void setAnimationsActive(bool animState);

@@ -8,10 +8,12 @@
 // --------------------------------------------------------------------------------
 // MLModel
 
+const int kMLModelUpdateInterval = 10;
+
 MLModel::MLModel() :
     MLPropertyListener(this)
 {
-    startTimer(30);
+	startTimer(kMLModelUpdateInterval);
 }
 
 MLModel::~MLModel()

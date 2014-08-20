@@ -107,8 +107,6 @@ void MLPluginController::initialize()
 
 void MLPluginController::buttonClicked (MLButton* button)
 {
-	const MLSymbol paramName = button->getTargetPropertyName();
-	MLPluginProcessor* const filter = getProcessor();
  	const int tri = button->getAttribute("tri_button");
     float val;
     if(tri)
@@ -121,14 +119,7 @@ void MLPluginController::buttonClicked (MLButton* button)
         const bool state = button->getToggleState();
         val = state ? button->getOnValue() : button->getOffValue();
     }
-    if (filter)
-    {
-        int idx = filter->getParameterIndex(paramName);
-        if (idx >= 0)
-        {
-            filter->MLSetParameterNotifyingHost(idx, val);
-        }
-    }
+	requestPropertyChange(button->getTargetPropertyName(), val);
 }
 
 // --------------------------------------------------------------------------------
@@ -161,59 +152,31 @@ void MLPluginController::dialDragEnded (MLDial* pSlider)
 // send Slider changes to filter. 
 void MLPluginController::dialValueChanged (MLDial* pSlider)
 {
-    MLPluginProcessor* const filter = getProcessor();
-	float val = 0, minVal = 0, maxVal = 0;
-	int paramIdx = -1;
-	
-	if (pSlider)
-	{
-		const MLSymbol paramName = pSlider->getTargetPropertyName();
+	const MLSymbol paramName = pSlider->getTargetPropertyName();
 
-		if (pSlider->isMultiValued())
-		{
+	if (pSlider->isMultiValued())
+	{
 //			minVal = pSlider->getMinValue();
-		}
-		else
+	}
+	else
+	{
+		if (!pSlider->isTwoValued())
 		{
-			if (!pSlider->isTwoValued())
-			{
-				val = pSlider->getValue();				
-				paramIdx = filter->getParameterIndex(paramName);
-				if (paramIdx >= 0)
-				{
-					float paramVal = filter->getParameter(paramIdx);
-					if (val != paramVal)
-					{
-						filter->MLSetParameterNotifyingHost(paramIdx, val);
-					}
-				}
-			}
-			
-			// NOT TESTED
-			if (pSlider->isTwoOrThreeValued())
-			{
-				const std::string paramStr = paramName.getString();
-				minVal = pSlider->getMinValue();
-				paramIdx = filter->getParameterIndex(MLSymbol(paramStr + "_min"));
-	//debug() << "index of " << minName << " is " << index << ".\n";
-				if (paramIdx >= 0)
-				{
-					filter->MLSetParameterNotifyingHost(paramIdx, minVal);
-				}
-				maxVal = pSlider->getMaxValue();
-				paramIdx = filter->getParameterIndex(MLSymbol(paramStr + "_max"));
-	//debug() << "index of " << maxName << " is " << index << ".\n";
-				if (paramIdx >= 0)
-				{
-					filter->MLSetParameterNotifyingHost(paramIdx, maxVal);
-				}
-			}		
+			requestPropertyChange(pSlider->getTargetPropertyName(), pSlider->getValue());
 		}
+		
+		// NOT TESTED
+		if (pSlider->isTwoOrThreeValued())
+		{
+			const std::string paramStr = paramName.getString();
+			requestPropertyChange(MLSymbol(paramStr + "_min"), pSlider->getMinValue());
+			requestPropertyChange(MLSymbol(paramStr + "_max"), pSlider->getMaxValue());
+		}		
+	}
 
 //		debug() << "dial: " << static_cast<void *>(pSlider) << ", index " << paramIdx << 
 //			" [" << minVal << " " << val << " " << maxVal << "]\n";
 
-	}
 }
 
 // --------------------------------------------------------------------------------
@@ -221,65 +184,31 @@ void MLPluginController::dialValueChanged (MLDial* pSlider)
 
 void MLPluginController::multiSliderValueChanged (MLMultiSlider* pSlider, int idx)
 {
-    MLPluginProcessor* const filter = getProcessor();
-	if (!filter) return;
-	float val = 0.;
-	int paramIdx = -1;
-	
 	if (pSlider)
 	{
 		MLSymbol paramName = pSlider->getTargetPropertyName();
 		const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
-		paramIdx = filter->getParameterIndex(nameWithNumber);
-		val = pSlider->getValue(idx);		
-
-//debug() << "    name: " << nameWithNumber << " index " << paramIdx << " ...\n";
-		
-		if (paramIdx >= 0)
-		{
-			float paramVal = filter->getParameter(paramIdx);
-			if(val != paramVal)
-			{
-				filter->MLSetParameterNotifyingHost(paramIdx, val);
-			}
-		}
-		else
-		{
-			debug() << "MLPluginController::multiSliderValueChanged: couldn't get param index for " << nameWithNumber << "\n";
-		}
+		requestPropertyChange(nameWithNumber, pSlider->getValue(idx));
 	}
 }
+
+// --------------------------------------------------------------------------------
+#pragma mark MLMultiButton::Listener
 
 void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int idx)
 {
-    MLPluginProcessor* const filter = getProcessor();
-	if (!filter) return;
-	float val = 0.;
-	int paramIdx = -1;
-	
-	if (pButton)
-	{
-		MLSymbol paramName = pButton->getTargetPropertyName();
-		const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
-		paramIdx = filter->getParameterIndex(nameWithNumber);
-		val = pButton->getValue(idx);		
-
-//debug() << "    paramName name: " << nameWithNumber << " index " << paramIdx << " ...\n";
-		
-		if (paramIdx >= 0)
-		{
-			float paramVal = filter->getParameter(paramIdx);
-			if(val != paramVal)
-			{
-				filter->MLSetParameterNotifyingHost(paramIdx, val);
-			}
-		}
-		else
-		{
-			debug() << "MLPluginController::multiButtonValueChanged: couldn't get param index for " << nameWithNumber << "\n";
-		}
-	}
+	MLSymbol paramName = pButton->getTargetPropertyName();
+	const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
+	requestPropertyChange(nameWithNumber, pButton->getValue(idx));
 }
+
+// --------------------------------------------------------------------------------
+#pragma mark MLPatcher::Listener
+
+
+
+// --------------------------------------------------------------------------------
+#pragma mark file collections
 
 // called to build the scale menu when the Processor's collection of sample files has changed.
 void MLPluginController::scaleFilesChanged(const MLFileCollectionPtr fileCollection)

@@ -25,8 +25,9 @@ public:
 	
 	void timerCallback();
 	
-	// save the application stats to a global preferences location so it persists on relaunch.
-	void saveState();
+	// save the application state to a global preferences location so it persists on relaunch.
+	// TODO move the JSON stuff into propertySet::getStateAsJSON() or similar
+    void saveState();
 
 	void loadStateFromJSON(cJSON* pNode, int depth = 0);
 

@@ -107,7 +107,7 @@ MLSymbolTable::~MLSymbolTable()
 
 }
 
-// look up a symbol by name and return ID.
+// look up a symbol by name and return its ID.
 // if the symbol already exists, this routine must not allocate any memory.
 SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 {
@@ -115,7 +115,7 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 	bool found = false;
 	int size = mMap.size();
 	
-//debug() << size << " entries, making symbol " << sym << "\n";
+	//debug() << size << " entries, making symbol " << sym << "\n";
 	
 	if (len == 0)
 	{
@@ -154,9 +154,9 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 
 			// get index of new entry
 			int newIndex = distance(beginIter, newEntryIter);
-			
-//debug() << "adding symbol " << sym << ", length " << len << "\n";		
-//debug() << "new map entry index: " << newIndex << " ID = " << size << "\n";
+						
+			//debug() << "adding symbol " << sym << ", length " << len << "\n";		
+			//debug() << "new map entry index: " << newIndex << " ID = " << size << "\n";
 		
 			// make key data local in map
 			MLSymbolKey& newKey = const_cast<MLSymbolKey&>(newEntryIter->first);			
@@ -212,8 +212,8 @@ void MLSymbolTable::dump(void)
 	bool found;
 	int i, idx;
 	int size = mMap.size();
-debug() << "---------------------------------------------------------\n";
-debug() << size << " symbols:\n";
+	debug() << "---------------------------------------------------------\n";
+	debug() << size << " symbols:\n";
 
 	// print in sorted order.
 	for(idx=0; idx<size; ++idx)
@@ -579,8 +579,8 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 const MLSymbol MLNameMaker::nextName()
 {
 	std::string nameStr;
-	int base = 26;
-	char baseChar = 'A';
+	const int base = 26;
+	const char baseChar = 'A';
 	int a, m, d, rem;
 	
 	std::list<int> digits;

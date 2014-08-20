@@ -37,7 +37,6 @@ MLDSPEngine::~MLDSPEngine()
 // ----------------------------------------------------------------
 #pragma mark build graph
 
-
 MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeSignalInputs, bool makeMidiInput)
 {
 	MLProc::err r = unknownErr;
@@ -565,7 +564,6 @@ MLProcList& MLDSPEngine::getPatcherList()
 {
 	return mPatcherList;
 }
-
 
 // ----------------------------------------------------------------
 #pragma mark Process

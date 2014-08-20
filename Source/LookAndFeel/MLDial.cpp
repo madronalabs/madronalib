@@ -116,7 +116,7 @@ void MLDial::setAttribute(MLSymbol attr, float val)
 	if (attr == valueSym)
 	{
         bool quiet = true;
-		bool sync = true;
+		bool sync = false;
 		setValueOfDial(MainDial, val, quiet, sync);
 	}
     else if(attr == "highlight")

@@ -34,7 +34,7 @@ void MLAppState::timerCallback()
 void MLAppState::doPropertyChangeAction(MLSymbol p, const MLProperty & val)
 {
     // nothing to do here, but we do need to be an MLPropertyListener in order to
-    // states of all the Properties.
+    // know the update states of all the Properties.
 	//debug() << "MLAppState::doPropertyChangeAction: " << p << " to " << val << "\n";
 }
 

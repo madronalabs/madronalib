@@ -23,7 +23,7 @@ const int kMLPatcherMaxTableSize = 64;
 class MLPluginProcessor : 
 	public AudioProcessor,
     public MLFileCollection::Listener,
-	public MLPropertySet
+	public MLModel
 {
 public:
     
@@ -44,7 +44,11 @@ public:
 	MLPluginProcessor();
     ~MLPluginProcessor();
 	
-	// --------------------------------------------------------------------------------
+	bool hasEditor() const { return true; }
+	AudioProcessorEditor* createEditor();
+    void editorResized(int w, int h);
+    const String getName() const { return MLProjectInfo::projectName; }
+    
 	// plugin description and default preset
 	void loadPluginDescription(const char* desc);
 	virtual void loadDefaultPreset() = 0;
@@ -52,7 +56,6 @@ public:
 	// initializeProcessor is called after graph is created.
 	virtual void initializeProcessor() = 0; 
 
-	// --------------------------------------------------------------------------------
 	// preflight and cleanup
 	MLProc::err preflight(int requirements = kRequiresSSE2);
 	virtual bool wantsMIDI() {return true;}
@@ -61,37 +64,27 @@ public:
 	void setDefaultParameters();
 	void reset();
 
-	// --------------------------------------------------------------------------------
     // MLFileCollection::Listener
     virtual void processFile (const MLSymbol collection, const MLFile& f, int idx, int size);
 
-	// --------------------------------------------------------------------------------
     void pushInfoToListeners();
     void setProcessorListener (MLPluginProcessor::Listener* l);
 
-	// --------------------------------------------------------------------------------
 	// process
 	bool isOKToProcess();
     void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
 	void setCollectStats(bool k);
     void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
-	// --------------------------------------------------------------------------------
-	bool hasEditor() const { return true; }
-	AudioProcessorEditor* createEditor();
-    void editorResized(int w, int h);
-    const String getName() const { return MLProjectInfo::projectName; }
-
-	// --------------------------------------------------------------------------------
 	// DSP parameters
     int getNumParameters();
 	int getParameterIndex (const MLSymbol name);
 	float getParameter (int index);
     void setParameter (int index, float newValue);
-	void setParameter (MLSymbol paramName, float newValue);
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
-	void MLSetParameterNotifyingHost (const int parameterIndex, const float newValue);
+	
+	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
 
     const String getParameterName (int index);
 	const String symbolToXMLAttr(const MLSymbol sym);
@@ -106,16 +99,18 @@ public:
 	MLPublishedParamPtr getParameterPtr (int index);
 	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
 	const std::string& getParameterGroupName (int index);
+
+	// MLModel
+	
+	void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
     
-	// --------------------------------------------------------------------------------
 	// signals
+	
 	int countSignals(const MLSymbol alias);
 	unsigned readSignal(const MLSymbol alias, MLSignal& outSig);
-
 	
 	MLProcList& getPatcherList(); // TODO remove
 
-	// --------------------------------------------------------------------------------
 	// state
 	virtual void getStateAsXML (XmlElement& xml);
 	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
@@ -136,7 +131,6 @@ public:
     void loadStateFromPath(const std::string& path);
 	void loadStateFromFile(const File& loadFile);
 
-	// --------------------------------------------------------------------------------
 	// MIDI programs
 	
 	void clearMIDIProgramFiles();
@@ -144,7 +138,6 @@ public:
 	void setStateFromMIDIProgram (const int pgmIdx);
 	void scanMIDIPrograms();
  
-	// --------------------------------------------------------------------------------
 	// channels
 	
     const String getInputChannelName (const int channelIndex) const;
@@ -155,16 +148,14 @@ public:
 	bool acceptsMidi() const;
     bool producesMidi() const;
 	
-	// --------------------------------------------------------------------------------
 	// factory presets - a VST concept - unimplemented
-	// 
-    int getNumPrograms()                                        { return 0; }
-    int getCurrentProgram()                                     { return 0; }
-    void setCurrentProgram (int)                          { }
-    const String getProgramName (int)                     { return String::empty; }
-    void changeProgramName (int, const String&)   { }
 
-	// --------------------------------------------------------------------------------
+    int getNumPrograms() { return 0; }
+    int getCurrentProgram() { return 0; }
+    void setCurrentProgram (int) { }
+    const String getProgramName (int) { return String::empty; }
+    void changeProgramName (int, const String&) { }
+
 	// presets
 	
 	void scanPresets();
@@ -172,22 +163,17 @@ public:
     void nextPreset();
     void advancePreset(int amount);
 	
-	// --------------------------------------------------------------------------------
     AudioPlayHead::CurrentPositionInfo lastPosInfo;
-
-	// --------------------------------------------------------------------------------
 
 	void setMLListener (MLAudioProcessorListener* const newListener) throw();
     MLProc::err sendMessageToMLListener (unsigned msg, const File& f);
 
-	// --------------------------------------------------------------------------------
 	// scales
 	
 	void loadScale(const File& f);
 	void loadDefaultScale();
 	virtual void broadcastScale(const MLScale* pScale) = 0;
 	
-	// --------------------------------------------------------------------------------
 	// engine stuff
 
     MLProcPtr getProcFromEngine();
@@ -214,7 +200,8 @@ private:
 	MLAudioProcessorListener* MLListener;
     Listener* mpListener;
     
-	// number of parameters stored here so we can access it before engine compile
+	// The number of parameters in the plugin is stored here so we can access it before
+	// the DSP engine is compiled.
 	int mNumParameters; 
 	
 	// True when any parameters have been set by the host. 

@@ -60,10 +60,10 @@ void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
 }
 
-void MLReporter::doPropertyChangeAction(MLSymbol param, const MLProperty& newVal)
+void MLReporter::doPropertyChangeAction(MLSymbol prop, const MLProperty& newVal)
 {
 	// do we have viewers for this parameter?
-	MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(param);
+	MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(prop);
 	if (look != mPropertyViewsMap.end())
 	{		
 		// run viewers

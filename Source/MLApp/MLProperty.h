@@ -81,14 +81,14 @@ public:
     void broadcastAllProperties();
     
 protected:
-    void setProperty(MLSymbol p, float v);
-    void setProperty(MLSymbol p, const std::string& v);
-    void setProperty(MLSymbol p, const MLSignal& v);
+    void setProperty(MLSymbol p, float v, bool immediate = false);
+    void setProperty(MLSymbol p, const std::string& v, bool immediate = false);
+    void setProperty(MLSymbol p, const MLSignal& v, bool immediate = false);
 	
 private:
 	std::map<MLSymbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
-	void broadcastProperty(MLSymbol p);
+	void broadcastProperty(MLSymbol p, bool immediate);
 };
 
 // MLPropertyListeners are notified when a Property of an MLPropertySet changes. They do something in
@@ -117,8 +117,11 @@ public:
 	void updateAllProperties();
     
 protected:
-    // mark one property as changed.
-	void propertyChanged(MLSymbol p);
+
+    // called by a PropertySet to notify us that one property has changed.
+	// if the property is new, or the value has changed, we mark the state as changed.
+	// If immediate is true and the state has changed, doPropertyChangeAction() will be called.
+	void propertyChanged(MLSymbol p, bool immediate);
     
     void stopListening();
     void propertyOwnerClosing();

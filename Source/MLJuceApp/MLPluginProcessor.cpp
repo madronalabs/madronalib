@@ -99,7 +99,6 @@ static bool CheckSSE3()
 }
 #endif
 
-
 MLProc::err MLPluginProcessor::preflight(int requirements)
 {
 	MLProc::err e = MLProc::OK;
@@ -479,7 +478,7 @@ float MLPluginProcessor::getParameter (int index)
 	return mEngine.getParamByIndex(index);
 }
 
-// set plugin parameter by index. Typically called by the host wrapper.
+// set plugin parameter by index. Typically called by the host wrapper
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
@@ -487,21 +486,21 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 
 	mEngine.setPublishedParam(index, newValue);	
 	mHasParametersSet = true;
-	setProperty(getParameterAlias(index), newValue);
+	setProperty(getParameterAlias(index), newValue, true);
 }
 
-// set plugin parameter by name. Typically called from internal code.
+// set plugin parameter by name without setting property. Typically called from internal code.
 //
-void MLPluginProcessor::setParameter (MLSymbol paramName, float newValue)
+void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float newValue)
 {
 	int index = getParameterIndex(paramName);
 	if (index < 0) return;	
 
 	mEngine.setPublishedParam(index, newValue);	
 	mHasParametersSet = true;
-	setProperty(paramName, newValue);
 }
 
+// for VST wrapper.
 float MLPluginProcessor::getParameterAsLinearProportion (int index)
 {
 	float r = 0;
@@ -514,6 +513,7 @@ float MLPluginProcessor::getParameterAsLinearProportion (int index)
 	return r;
 }
 
+// for VST wrapper.
 void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValue)
 {
 	if (index < 0) return;	
@@ -527,31 +527,10 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		// set MLModel Parameter 
 		MLSymbol paramName = getParameterAlias(index);
 		float realVal = mEngine.getParamByIndex(index);
-		setProperty(paramName, realVal);
+		setProperty(paramName, realVal, true);
 	}
 }
 
-void MLPluginProcessor::MLSetParameterNotifyingHost (const int parameterIndex, const float newValue)
-{
-	// set in actual units
-    setParameter (parameterIndex, newValue);
-	
-	// convert to host units for VST	
-	float wrapperValue = newValue;
-	if (wrapperType == AudioProcessor::wrapperType_VST)
-	{
-		MLPublishedParamPtr p = mEngine.getParamPtr(parameterIndex);
-		if(p)
-		{	
-			wrapperValue = p->getValueAsLinearProportion();
-		}
-	}
-	
-//debug() << "MLSetParameterNotifyingHost : " << newValue << " wrapper: " << wrapperValue << "\n";
-	
-	// send to wrapper in host units
-    sendParamChangeMessageToListeners (parameterIndex, wrapperValue);
-}
 
 float MLPluginProcessor::getParameterMin (int index)
 {
@@ -658,6 +637,43 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 	return mEngine.getParamGroupName(index);
 }
 
+// --------------------------------------------------------------------------------
+#pragma mark MLModel
+
+void MLPluginProcessor::doPropertyChangeAction(MLSymbol propertyName, const MLProperty& newVal)
+{
+	int propertyType = newVal.getType();
+	int paramIdx = getParameterIndex(propertyName);
+	float f = newVal.getFloatValue();
+	
+	switch(propertyType)
+	{
+		case MLProperty::kFloatProperty:
+			setParameterWithoutProperty (propertyName, f);
+			if (paramIdx < 0) return;
+			
+			// convert to host units for VST
+			f = newVal.getFloatValue();
+			if (wrapperType == AudioProcessor::wrapperType_VST)
+			{
+				MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
+				if(p)
+				{
+					f = p->getValueAsLinearProportion();
+				}
+			}
+			// send to wrapper in host units
+			AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
+			
+			break;
+		case MLProperty::kStringProperty:
+			break;
+		case MLProperty::kSignalProperty:
+			break;
+		default:
+			break;
+	}
+}
 
 // --------------------------------------------------------------------------------
 #pragma mark signals
@@ -677,7 +693,6 @@ unsigned MLPluginProcessor::readSignal(const MLSymbol alias, MLSignal& outSig)
 	unsigned samples = mEngine.readPublishedSignal(alias, outSig);
 	return samples;
 }
-
 
 // --------------------------------------------------------------------------------
 #pragma mark patcher-specific TO REMOVE
@@ -703,7 +718,7 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
   	const unsigned numParams = getNumParameters();
     const std::string* paramStr;
 
-	// TODO use string attributes of model instead of these JUCE strings.
+	// TODO use string properties of model instead of these JUCE strings.
 	// also move to JSON.
 	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
     paramStr = getStringProperty("preset");
@@ -727,7 +742,7 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 		if (paramVal != defaultVal)
 		{
 			xml.setAttribute(paramName, paramVal);		
-//debug() << "setting XML param " << paramName << " to " << paramVal << "\n";
+			//debug() << "setting XML param " << paramName << " to " << paramVal << "\n";
 		}
 	}
 
@@ -854,16 +869,16 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
 {
 	if (!(xmlState.hasTagName (JucePlugin_Name))) return;
-	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // ? revisit need to compile first
+	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // TODO revisit need to compile first
 
 	// getCallbackLock() is in juce_AudioProcessor
 	// process lock is a quick fix.  it is here to prevent doParams() from getting called in 
 	// process() methods and thereby setting mParamsChanged to false before the real changes take place.
-	// A better alternative would be a lock-free queue of parameter changes. 
+	// A better alternative would be a lock-free queue of parameter changes.
 	const ScopedLock sl (getCallbackLock()); 
 		
 	// only the differences between default parameters and the program state are saved in a program,
-	// so the first step is to set the default parameters. 
+	// so the first step is to set the default parameters.
 	setDefaultParameters();
 	
 	// get program version of saved state
@@ -959,7 +974,8 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 		MLSymbol oldSym2 = MLSymbol("seq_pulse");
 		MLSymbol newSym2 = MLSymbol("seq_pulse").withFinalNumber(0);
 		translationTable[oldSym] = newSym;
-		translationTable[oldSym2] = newSym2;	
+		translationTable[oldSym2] = newSym2;
+		
 		// translate seq parameters
 		for(unsigned n=1; n<16; ++n)
 		{
@@ -988,15 +1004,15 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			// see if we have this named parameter in our engine. 
 			MLSymbol paramSym = XMLAttrToSymbol(attrName);
 			const int pIdx = getParameterIndex(paramSym);
-            
-//debug() << "<" << paramSym << " = " << paramVal << ">\n";
+			
 			if (pIdx >= 0)
 			{
-				MLSetParameterNotifyingHost(pIdx, paramVal);
+				// debug() << "setStateFromXML: <" << paramSym << " = " << paramVal << ">\n";
+				setProperty(paramSym, paramVal, true);
 			}
 			else // try finding a match through translation table. 
 			{
-	//debug() << "Looking for parameter " << paramSym << " in table...\n";
+				//debug() << "Looking for parameter " << paramSym << " in table...\n";
 				std::map<MLSymbol, MLSymbol>::iterator it;
 				it = translationTable.find(paramSym);
 				if (it != translationTable.end())
@@ -1005,8 +1021,8 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 					const int pNewIdx = getParameterIndex(newSym);
 					if (pNewIdx >= 0)
 					{
-	//debug() << "translated parameter to " << newSym << " .\n";
-						MLSetParameterNotifyingHost(pNewIdx, paramVal);
+						//debug() << "translated parameter to " << newSym << " .\n";
+						setProperty(newSym, paramVal, true);
 					}
 					else
 					{
@@ -1017,7 +1033,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 				{
 					// fail silently on unfound params, because we have deprecated some but they may still 
 					// be around in old presets. 
-	//debug() << "MLPluginProcessor::setStateFromXML: parameter " << paramSym << " not found!\n";
+					//debug() << "MLPluginProcessor::setStateFromXML: parameter " << paramSym << " not found!\n";
 				}
 			}
 		}
@@ -1165,7 +1181,7 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 //
 void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
 {
-	// debug() << "setStateFromBlob: " << sizeInBytes << "bytes of XML data.\n";
+	debug() << "setStateFromBlob: " << sizeInBytes << "bytes of XML data.\n";
 	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
 	if (xmlState)
 	{
@@ -1302,7 +1318,7 @@ void MLPluginProcessor::setDefaultParameters()
 		for(unsigned i=0; i<numParams; ++i)
 		{
 			float defaultVal = getParameterDefault(i);
-			MLSetParameterNotifyingHost(i, defaultVal);
+			setProperty(getParameterAlias(i), defaultVal, true);
 		}
 	}
 }
