@@ -43,7 +43,7 @@ public:
 	// a dynamic Signal, as opposed to a signal Parameter.
 	virtual void viewSignal(MLSymbol, const MLSignal&, int frames, int voices) {}
 
-	// in order to function, a widget's Component must get set!
+	// in order to function, a Widget's Component must get set!
 	//
 	void setComponent(Component* pC) { pComponent = pC; }
 	Component* getComponent() const { return pComponent; }
@@ -64,7 +64,6 @@ public:
 	MLRect getWidgetLocalBounds();
 	MLRect getWidgetWindowBounds();
     
-    //double getBackingLayerScale() const;
     float getRenderingScale() const;
     int getBackingLayerWidth() const;
     int getBackingLayerHeight() const;
@@ -97,7 +96,6 @@ public:
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
-	
 
 private:
 	MLSymbol mName;
@@ -119,8 +117,6 @@ private:
     
     // JUCE GL context, if we have one. Owned.
     OpenGLContext* pGLContext;
-
-
 	
 	bool mWantsResizeLast;
 	

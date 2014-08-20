@@ -103,13 +103,14 @@ juce::Colour MLWidget::getColorAttribute(MLSymbol attr) const
 
 // --------------------------------------------------------------------------------
 
+// TODO this looks pretty bad! A Widget should not have its own context. There should
+// be something like a Scene object that draws a bunch of GL Widgets.
 void MLWidget::setupGL(Component* pC)
 {
     if(pComponent)
     {
         pGLContext = new OpenGLContext();
         pGLContext->setRenderer (this);
-        // pGLContext->attachTo (*pComponent);
         pGLContext->setComponentPaintingEnabled (false);
         pGLContext->setContinuousRepainting(true);
     }
@@ -192,22 +193,6 @@ MLRect MLWidget::getWidgetWindowBounds()
 	return MLRect();
 }
 
-/*
-double MLWidget::getBackingLayerScale() const
-{
-    ComponentPeer* peer = pComponent->getPeer();
-    if(peer)
-    {
-        Rectangle<int> peerBounds = peer->getBounds();
-        return Desktop::getInstance().getDisplays().getDisplayContaining(peerBounds.getCentre()).scale;
-    }
-    else
-    {
-        return Desktop::getInstance().getDisplays().getDisplayContaining(pComponent->getScreenBounds().getCentre()).scale;
-    }
-}
-*/
-
 void MLWidget::resizeWidget(const MLRect& b, const int)
 {
 	// adapt vrect to juce rect
@@ -226,10 +211,6 @@ void MLWidget::setWidgetVisible(bool v)
 	if(pComponent)
 	{
 		pComponent->setVisible(v);
-		if(v)
-		{
-			pComponent->repaint();
-		}
 	}
 }
 
