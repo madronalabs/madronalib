@@ -29,8 +29,6 @@ public:
 	};
 
     void setListener (MLMultiSlider::Listener* const listener) throw();
-
-	void setAttribute(MLSymbol attr, float val);
 	
     enum ColourIds
     {

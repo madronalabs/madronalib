@@ -21,13 +21,20 @@ MLPropertyView::~MLPropertyView()
 	
 void MLPropertyView::view(const MLProperty& p) const
 {
+	mpWidget->setPropertyImmediate(mAttr, p);
+
+	/*
+	// with Widget properties we can remove switch! TODO
+
 	switch(p.getType())
 	{
 		case MLProperty::kUndefinedProperty:
 			break;
 		case MLProperty::kFloatProperty:
-			mpWidget->setAttribute(mAttr, p.getFloatValue());		
+			mpWidget->setAttribute(mAttr, p.getFloatValue());
+			
 			break;
+			
 		case MLProperty::kStringProperty:
 			mpWidget->setStringAttribute(mAttr, *p.getStringValue());
 			break;
@@ -35,6 +42,7 @@ void MLPropertyView::view(const MLProperty& p) const
 			mpWidget->setSignalAttribute(mAttr, *p.getSignalValue());
 			break;
 	}
+	 */
 }
 
 // --------------------------------------------------------------------------------

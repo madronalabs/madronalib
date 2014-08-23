@@ -92,7 +92,6 @@ void MLLabel::setDrawable (const Drawable* pD)
 
 void MLLabel::paint (Graphics& g)
 {
-	enterPaint();
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int w = getWidth();
 	int h = getHeight();
@@ -104,7 +103,7 @@ void MLLabel::paint (Graphics& g)
 	if (isOpaque())
 		myLookAndFeel->drawBackground(g, this);
 		
-	if((int)getAttribute("background"))
+	if((bool)getFloatProperty("background"))
 	{
 		g.setColour(bc);
 		g.fillRect(getLocalBounds());	

@@ -29,7 +29,7 @@ void MLSignalView::setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, i
 	mSignalName = sigName;
 	if(voices != mVoices)
 	{
-		mpWidget->setAttribute(MLSymbol("voices"), voices);
+		mpWidget->setProperty(MLSymbol("voices"), voices);
 		mVoices = voices;
 	}
 }

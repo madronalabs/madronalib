@@ -9,7 +9,7 @@
 MLTriToggleButton::MLTriToggleButton() :
     MLButton()
 {
-    setAttribute("tri_button", true);
+    setProperty("tri_button", true);
     setOpaque(false);
 }
 
@@ -17,7 +17,8 @@ MLTriToggleButton::~MLTriToggleButton()
 {
 }
 
-void MLTriToggleButton::setAttribute(MLSymbol attr, float val)
+/*
+void MLTriToggleButton::setProperty(MLSymbol attr, float val)
 {
 	static const MLSymbol valueSym("value");
 	MLWidget::setAttribute(attr, val);
@@ -28,11 +29,13 @@ void MLTriToggleButton::setAttribute(MLSymbol attr, float val)
         mState = (int)val;
         repaint();
 	}
-}
+}*/
+
 
 void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	bool toggleState = getFloatProperty("value");
 	
 	// colors
 	const float alpha = isEnabled() ? 1.f : 0.25f;
@@ -42,7 +45,7 @@ void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool is
 	const Colour onBrightColor (onColor.getHue(), onColor.getSaturation(), jmin(onColor.getBrightness() + 0.1, 1.), onColor.getFloatAlpha());
 	const Colour offOverColor (((mDoRollover && isMouseOverButton) ? offBrightColor : offColor).withMultipliedAlpha (alpha));
 	const Colour onOverColor (((mDoRollover && isMouseOverButton) ? onBrightColor : onColor).withMultipliedAlpha (alpha));
-	const Colour bc = (getToggleState() ? onOverColor : offOverColor);
+	const Colour bc = (toggleState ? onOverColor : offOverColor);
 	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));
 	const Colour track_hard (findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha));
 	const Colour brightColor = Colour(bc.getHue(), bc.getSaturation(), jmin(bc.getBrightness() + 0.1, 1.), bc.getFloatAlpha());
@@ -50,7 +53,7 @@ void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool is
 	Colour outlineColor, outlineOnColor, outlineOffColor;
 	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.625f)).withMultipliedAlpha (alpha);
 	outlineOffColor = findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha);
-	outlineColor = getToggleState() ? outlineOnColor : outlineOffColor;
+	outlineColor = toggleState ? outlineOnColor : outlineOffColor;
 	outlineColor = outlineColor.withAlpha (alpha);
     
 	if (mImage.isValid())
@@ -115,10 +118,10 @@ void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool is
 
 void MLTriToggleButton::clicked (const ModifierKeys& modifiers)
 {
-    int state = getAttribute("value");
+    int state = getFloatProperty("value");
     state += 1;
     if(state > 2) state = 0;
-    setAttribute("value", state);
+    setProperty("value", state);
     MLButton::clicked();
 }
 

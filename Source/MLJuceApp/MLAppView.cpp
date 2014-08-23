@@ -42,6 +42,7 @@ void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = M
 	addWidget(pW, name);
 	pW->setGridBounds(r);
 	//pW->setWidgetContainer(this);
+	pW->addListener(getResponder());
 	addAndMakeVisible(pW->getComponent());
 }
 
@@ -54,7 +55,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 {
 	MLDial* dial = new MLDial;
 	dial->setTargetPropertyName(p);
-	dial->setListener(getResponder());	
+//	dial->setListener(getResponder()); // MLTEST
 	
 	dial->setSizeMultiplier(sizeMultiplier);
 	dial->setDialStyle (MLDial::Rotary);
@@ -71,13 +72,14 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	return dial;
 }
 
+
 MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, 
 	int numSliders, const Colour& color)
 {
 	MLMultiSlider* slider = new MLMultiSlider;
 	slider->setNumSliders(numSliders);
 	slider->setTargetPropertyName(paramName);
-	slider->setListener(getResponder());	
+// MLTEST	slider->setListener(getResponder());
 	
 	slider->setFillColor(color); 		
 
@@ -101,7 +103,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	MLMultiButton* b = new MLMultiButton;
 	b->setNumButtons(n);
 	b->setTargetPropertyName(paramName);
-	b->setListener(getResponder());	
+// MLTEST 	b->setListener(getResponder());
 	
 	b->setFillColor(color); 		
 
@@ -125,7 +127,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	MLButton* button = new MLToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setTargetPropertyName(paramName);
-	button->setListener(getResponder());
+// MLTEST 	button->setListener(getResponder());
 	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
 	addParamView(paramName, button, MLSymbol("value"));
@@ -144,7 +146,7 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 	MLButton* button = new MLTriToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setTargetPropertyName(paramName);
-	button->setListener(getResponder());
+// MLTEST 	button->setListener(getResponder());
 	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
 	addParamView(paramName, button, MLSymbol("value"));
@@ -175,61 +177,45 @@ MLDebugDisplay* MLAppView::addDebugDisplay(const MLRect & r)
 	return b;
 }
 
-MLDrawableButton* MLAppView::addDrawableButton(const MLRect & r, const char * name, 
-	const Drawable* normalImg, const Colour& color)
-{
-	MLDrawableButton* b = new MLDrawableButton;
-	b->setTargetPropertyName(name);	
-	b->setListener(getResponder());	
-	b->setClickingTogglesState(false);
-	b->setFillColor(color);	
-	b->setButtonStyle(MLDrawableButton::ImageOnButtonBackground);
-	b->setImage(normalImg);
-	addWidgetToView(b, r, name);
-	return b;
-}
-
 MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * name, 
 	const Colour& color, const Drawable* normalImg)
 {
 	MLDrawableButton* b = new MLDrawableButton;
 	b->setTargetPropertyName(name);
-	b->setListener(getResponder());	
-	b->setClickingTogglesState(false);
-	b->setButtonStyle(MLDrawableButton::ImageFitted);
-	b->setBackgroundColours(color, color);
-	b->setImage(normalImg);	
+// MLTEST 	b->setListener(getResponder());
+	b->setProperty("toggle", false);
+	b->setImage(normalImg);
 	addWidgetToView(b, r, name);
 	return b;
 }
 
 MLTextButton* MLAppView::addTextButton(const char * displayName, const MLRect & r, const char * name, const Colour& color)
 {	
-	MLTextButton* button = new MLTextButton;
-	button->setTargetPropertyName(name);
-	button->setListener(getResponder());	
-	button->setClickingTogglesState(false);
-	button->setFillColor(color); 
-	button->setButtonText(displayName);	
-	addWidgetToView(button, r, name);
-	return button;
+	MLTextButton* b = new MLTextButton;
+	b->setTargetPropertyName(name);
+// MLTEST 	button->setListener(getResponder());
+	b->setProperty("toggle", false);
+	b->setFillColor(color);
+	b->setProperty("text", displayName);
+	addWidgetToView(b, r, name);
+	return b;
 }
 
 MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & r, const char * menuName, const Colour& color)
 {	
-	MLMenuButton* button = new MLMenuButton();
-	button->setTargetPropertyName(menuName);
-	button->setListener(getResponder());		
-	button->setFillColor(color); 
-	button->setButtonText("---"); 
-	addWidgetToView(button, r, menuName);	
-	addParamView(menuName, button, MLSymbol("text"));
+	MLMenuButton* b = new MLMenuButton();
+	b->setTargetPropertyName(menuName);
+// MLTEST 	button->setListener(getResponder());		
+	b->setFillColor(color);
+	b->setProperty("text", "---");
+	addWidgetToView(b, r, menuName);
+	addParamView(menuName, b, MLSymbol("text"));
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(button, displayName);
+		addLabelAbove(b, displayName);
 	}
-	return button;
+	return b;
 }
 
 MLGraph* MLAppView::addGraph(const char * name, const Colour& color)

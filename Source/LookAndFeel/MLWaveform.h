@@ -22,10 +22,7 @@ public:
         foregroundColor              = 0x10150a01,
     };
 	
-	void setAttribute(MLSymbol attr, float val);
-
-	void triggerChangeMessage (const bool synchronous);
-    
+	void triggerChangeMessage (const bool synchronous);    
 	void resizeWidget(const MLRect& b, const int u);
     void setSignalToView(MLSignal* sig);
     

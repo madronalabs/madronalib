@@ -21,7 +21,7 @@
 #include "MLWidget.h"
 #include "MLSeparator.h"
 #include "MLLabel.h"
-#include "MLDial.h"
+//#include "MLDial.h"
 #include "MLMultiSlider.h"
 #include "MLButton.h"
 #include "MLDrawableButton.h"
@@ -219,7 +219,7 @@ public:
                                               GlyphArrangement& destArrangement,
                                               int width);
 */
-    juce::Button* createFileBrowserGoUpButton();
+// MLTEST    MLButton* createFileBrowserGoUpButton();
 
     void layoutFileBrowserComponent (FileBrowserComponent& browserComp,
                                              DirectoryContentsDisplayComponent* fileListComponent,

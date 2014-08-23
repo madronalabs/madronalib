@@ -7,9 +7,7 @@
 #define __ML_WIDGET_CONTAINER_H__
 
 #include "JuceHeader.h"
-
 #include "MLWidget.h"
-
 
 // maintains a View Component with grid dimensions set by parent. 
 // provides handy UI component creation functions for grid.
@@ -22,12 +20,9 @@ public:
     ~MLWidgetContainer();
 	
 	bool isWidgetContainer(void) { return true; }
-
 	void addWidget(MLWidget* pW, const MLSymbol name = MLSymbol());
 	MLWidget* getWidget(MLSymbol name);
-	
 	void renameWidget(MLWidget* pW, const MLSymbol newName);
-	
 	void dumpWidgets(int depth = 0);
 
 protected:
@@ -35,11 +30,6 @@ protected:
 	std::map<MLSymbol, MLWidget*> mWidgets;
 	
 	MLNameMaker mWidgetNamer;
-
-private:
-	
-
-
 };
 
 #endif // __ML_WIDGET_CONTAINER_H__

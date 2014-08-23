@@ -24,7 +24,7 @@ MLProgressBar::~MLProgressBar()
 void MLProgressBar::paint (Graphics& g)
 {
 	const Colour fc = findColour(MLLookAndFeel::labelColor);	
-	const float progress = getAttribute("progress");
+	const float progress = getFloatProperty("progress");
 
 	Path gbounds;
 	const Rectangle<int> & boundsRect (getLocalBounds());	

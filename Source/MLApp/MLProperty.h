@@ -24,7 +24,7 @@ public:
 		kStringProperty = 2,
 		kSignalProperty = 3
 	};
-    
+
 	MLProperty();
 	MLProperty(const MLProperty& other);
 	MLProperty& operator= (const MLProperty & other);
@@ -33,13 +33,14 @@ public:
 	MLProperty(const MLSignal& s);
 	~MLProperty();
     
-	float getFloatValue() const;
-	const std::string* getStringValue() const;
-	const MLSignal* getSignalValue() const;
+	const float& getFloatValue() const;
+	const std::string& getStringValue() const;
+	const MLSignal& getSignalValue() const;
     
-	void setValue(float v);
+	void setValue(const float& v);
 	void setValue(const std::string& v);
 	void setValue(const MLSignal& v);
+	void setValue(const MLProperty& v);
 	
 	bool operator== (const MLProperty& b) const;
 	bool operator!= (const MLProperty& b) const;
@@ -60,30 +61,54 @@ private:
 std::ostream& operator<< (std::ostream& out, const MLProperty & r);
 
 class MLPropertyListener;
-class MLPropertyModifier;
+// class MLPropertyModifier;
 
 // MLPropertySet: a Set of Properties. Property names are stored here.
 
 class MLPropertySet
 {
     friend class MLPropertyModifier;
+	
 public:
 	MLPropertySet();
 	virtual ~MLPropertySet();
     
-	inline const MLProperty& getProperty(MLSymbol p) { return mProperties[p]; }
-	inline float getFloatProperty(MLSymbol p) { return mProperties[p].getFloatValue(); }
-	inline const std::string* getStringProperty(MLSymbol p) { return mProperties[p].getStringValue(); }
-	inline const MLSignal* getSignalProperty(MLSymbol p) { return mProperties[p].getSignalValue(); }
+	const MLProperty& getProperty(MLSymbol p) const;
+	const float& getFloatProperty(MLSymbol p) const;
+	const std::string& getStringProperty(MLSymbol p) const;
+	const MLSignal& getSignalProperty(MLSymbol p) const;
     
+	/*
+    void setProperty(MLSymbol p, const float& v, bool immediate = false);
+    void setProperty(MLSymbol p, const std::string& v, bool immediate = false);
+    void setProperty(MLSymbol p, const MLSignal& v, bool immediate = false);
+    void setProperty(MLSymbol p, const MLProperty& v, bool immediate = false);
+	
+	void MLPropertySet::setProperty(MLSymbol p, const std::string& v, bool immediate)
+	{
+		mProperties[p].setValue(v);
+		broadcastProperty(p, immediate);
+	}*/
+	
+	template <typename T>
+	void setProperty(MLSymbol p, T v)
+	{
+		mProperties[p].setValue(v);
+		broadcastProperty(p, false);
+	}
+
+	template <typename T>
+	void setPropertyImmediate(MLSymbol p, T v)
+	{
+		mProperties[p].setValue(v);
+		broadcastProperty(p, true);
+	}
+
 	void addPropertyListener(MLPropertyListener* pL);
 	void removePropertyListener(MLPropertyListener* pToRemove);
     void broadcastAllProperties();
     
-protected:
-    void setProperty(MLSymbol p, float v, bool immediate = false);
-    void setProperty(MLSymbol p, const std::string& v, bool immediate = false);
-    void setProperty(MLSymbol p, const MLSignal& v, bool immediate = false);
+	static const MLProperty nullProperty;
 	
 private:
 	std::map<MLSymbol, MLProperty> mProperties;
@@ -110,12 +135,13 @@ public:
 		mpPropertyOwner = nullptr;
     }
     
+	// override to do whatever this PropertyListener needs to do based on the values of properties.
 	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & newVal) = 0;
 	
-	// do an action for any params with changed values.
+	// call periodically to do actions for any properties that have changed since the last call.
 	void updateChangedProperties();
 	
-	// force an update of all params.
+	// force an update of all properties.
 	void updateAllProperties();
     
 protected:
@@ -147,18 +173,22 @@ protected:
 // use, for example, to control a Model from a UI or recall it to a saved state.
 // These changes propagate to Listeners as pending changes, which can
 // trigger actions the next time the Listeners are updated.
+
+/*
 class MLPropertyModifier
 {
 public:
 	MLPropertyModifier(MLPropertySet* m) : mpPropertyOwner(m) {}
 	virtual ~MLPropertyModifier() {}
-    void requestPropertyChange(MLSymbol p, float v);
+    void requestPropertyChange(MLSymbol p, const float& v);
     void requestPropertyChange(MLSymbol p, const std::string& v);
     void requestPropertyChange(MLSymbol p, const MLSignal& v);
+    void requestPropertyChange(MLSymbol p, const MLProperty& v, bool immediate = true); // TODO sort out immediate
     
 private:
     MLPropertySet* mpPropertyOwner;
 };
+*/
 
 #endif // __ML_PROPERTY__
 

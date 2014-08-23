@@ -16,7 +16,6 @@ extern const char* kMLStateDirName;
 
 class MLAppState : 
     public MLPropertyListener,
-    public MLPropertyModifier,
 	public Timer
 {
 public:
@@ -40,7 +39,7 @@ public:
 	void setStateFromText(const std::string& stateAsText);
 
 	// MLPropertyListener interface
-	void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 
 protected:
 	MLAppView* mpAppView;
@@ -49,6 +48,7 @@ protected:
 	int mVersion;
 	
 private:
+	MLModel* mpModel;
 	File getStateDir() const;
 	File getStateFile() const;
 	

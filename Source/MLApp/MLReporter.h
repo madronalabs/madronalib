@@ -48,7 +48,7 @@ public:
 	void viewAllChangedProperties();
 
 	// MLPropertyListener interface
-	void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 
 protected:
 

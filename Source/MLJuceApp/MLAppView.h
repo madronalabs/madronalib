@@ -7,11 +7,11 @@
 #define __ML_APP_VIEW_H__
 
 #include "JuceHeader.h"
-
 #include "MLUIBinaryData.h"
 #include "MLResponder.h"
 #include "MLReporter.h"
 #include "MLWidgetContainer.h"
+//#include "MLDial.h"
 #include "MLButton.h"
 #include "MLPanel.h"
 #include "MLDrawing.h"
@@ -67,9 +67,6 @@ public:
 
 	MLPanel* addPanel(const MLRect & r, const Colour& color = defaultColor);
 	MLDebugDisplay* addDebugDisplay(const MLRect & r);
-		
-	MLDrawableButton* addDrawableButton(const MLRect & r, const char * name, 
-		const Drawable* normal, const Colour& color = defaultColor);
 		
 	MLDrawableButton* addRawImageButton(const MLRect & r, const char * name, 
 		const Colour& color, const Drawable* normal);

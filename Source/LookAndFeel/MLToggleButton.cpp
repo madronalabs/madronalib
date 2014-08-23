@@ -16,6 +16,7 @@ MLToggleButton::~MLToggleButton()
 {
 }
 
+/*
 void MLToggleButton::setAttribute(MLSymbol attr, float val)
 {
 	static const MLSymbol valueSym("value");
@@ -28,15 +29,16 @@ void MLToggleButton::setAttribute(MLSymbol attr, float val)
         juce::Button::setToggleState(newState, false);
 	}
 }
+*/
 
-void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
+void MLToggleButton::paint(Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	
 	// colors	
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));		
 	const Colour onColor (findColour (MLButton::buttonOnColourId));
-	const Colour bc = (getToggleState() ? onColor : offColor);
+	const Colour bc = (mToggleState ? onColor : offColor);
     
 	const float alpha = isEnabled() ? 1.f : 0.25f;	
 	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));	
@@ -45,7 +47,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 	Colour outlineColor, outlineOnColor, outlineOffColor;
 	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onColor.withMultipliedAlpha(0.625f));
 	outlineOffColor = findColour(MLLookAndFeel::outlineColor);
-	outlineColor = getToggleState() ? outlineOnColor : outlineOffColor;
+	outlineColor = mToggleState ? outlineOnColor : outlineOffColor;
 	outlineColor = outlineColor.withAlpha (alpha);
 
 	// geometry
@@ -65,12 +67,12 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 	int toggleHeight = halfSize*2;
 	
 	int flair = 0;
-	if (isButtonDown) flair |= (eMLAdornPressed);
+	if (mDown) flair |= (eMLAdornPressed);
 	flair |= eMLAdornShadow;
 	flair |= eMLAdornGlow;	
 	
 	const float cornerSize = 0.;
-	if (getAttribute("split"))
+	if (getFloatProperty("split"))
 	{
 		// dark background
 		myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight, 
@@ -78,7 +80,7 @@ void MLToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isBut
 			
 		// light half
 		g.saveState();
-		if (!getToggleState())
+		if (!mToggleState)
 		{
 			g.reduceClipRegion(toggleX - 1, toggleY - 1, halfSize + 1, toggleHeight + 1);
 		}

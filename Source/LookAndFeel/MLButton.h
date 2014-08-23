@@ -12,7 +12,7 @@
 #include "MLLabel.h"
 
 class MLButton : 
-	public Button,   // TODO do not inherit all the crap in Button
+	public Component,
 	public MLWidget
 {
 friend class MLLookAndFeel;
@@ -26,38 +26,24 @@ public:
 		buttonOffColourId               = 0x1009001,
         textColourId                    = 0x1009002
     };
-		
-	class Listener 
-	{
-	public:
-		virtual ~Listener() {}
-		virtual void buttonClicked (MLButton* button) = 0;
-	};
 	
-    void setListener (MLButton::Listener* listener);
+	void paint (Graphics& g);
 	
 	// set all colors calculated from fill color
 	virtual void setFillColor(const Colour c);
-	
-	void setClickSize(int x, int y);
-	void setImage(const Image& m){ mImage = m; }
-	void setImageOffset(int x, int y){ mImageOffset = Vec2(x, y); }
-	void setLabelText (const char* ln);
-	void sizeChanged();
-    void clicked();
-	void setRange(float a, float b) { mOffValue = a; mOnValue = b; }
-	
-	float getOffValue() { return mOffValue; }
-	float getOnValue() { return mOnValue; }
 
+	void mouseDown (const MouseEvent& e);
+	void mouseUp (const MouseEvent& e);
+	void mouseDrag (const MouseEvent&);
+	
+	// MLPropertyListener
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+		
+    void clicked();
 	void resizeWidget(const MLRect& b, const int u);
+	void setToggleValues(float, float);
 
 protected:
-
-	void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown);
-
-	bool mDrawName;
-
 	bool mDoRollover;
 	Image mImage;
 	float mMargin;
@@ -67,10 +53,13 @@ protected:
 	float mOffValue;
 	float mOnValue;
     float mLineThickness;
+
+	bool mOver;
+	bool mDown;
+	bool mToggleState;
+	bool mTriggerOnMouseDown;
 	
-    MLButton::Listener* mpListener;
-	
-private:	
+private:
 
 };
 

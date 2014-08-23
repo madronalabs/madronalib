@@ -7,7 +7,7 @@
 
 MLAppState::MLAppState(MLModel* pM, MLAppView* pV, const char* makerName, const char* appName, int version) :
     MLPropertyListener(pM),
-    MLPropertyModifier(pM),
+	mpModel(pM),
 	mpAppView(pV),
 	mpMakerName(makerName),
 	mpAppName(appName),
@@ -93,19 +93,19 @@ void MLAppState::saveState()
 					cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
 					break;
 				case MLProperty::kStringProperty:
-					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue()->c_str());
+					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue().c_str());
 					break;
 				case MLProperty::kSignalProperty:
 				{
 					// make and populate JSON object representing signal
 					cJSON* signalObj = cJSON_CreateObject();
-					const MLSignal* sig = state.mValue.getSignalValue();
+					const MLSignal& sig = state.mValue.getSignalValue();
 					cJSON_AddStringToObject(signalObj, "type", "signal");
-					cJSON_AddNumberToObject(signalObj, "width", sig->getWidth());
-					cJSON_AddNumberToObject(signalObj, "height", sig->getHeight());
-					cJSON_AddNumberToObject(signalObj, "depth", sig->getDepth());
-					int size = sig->getSize();
-					float* pSignalData = sig->getBuffer();
+					cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
+					cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
+					cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
+					int size = sig.getSize();
+					float* pSignalData = sig.getBuffer();
 					cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
 					cJSON_AddItemToObject(signalObj, "data", data);
 					
@@ -155,11 +155,11 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 			{
 			case cJSON_Number:
 //debug() << " depth " << depth << " loading float param " << pNode->string << " : " << pNode->valuedouble << "\n";
-				requestPropertyChange(MLSymbol(pNode->string), (float)pNode->valuedouble);
+				mpModel->setProperty(MLSymbol(pNode->string), (float)pNode->valuedouble);
 				break;
 			case cJSON_String:
 //debug() << " depth " << depth << " loading string param " << pNode->string << " : " << pNode->valuestring << "\n";
-				requestPropertyChange(MLSymbol(pNode->string), pNode->valuestring);
+				mpModel->setProperty(MLSymbol(pNode->string), pNode->valuestring);
 				break;
 			case cJSON_Array: 
 				if(!strcmp(pNode->string, "window_bounds"))
@@ -209,7 +209,7 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 						{
 							MLError() << "MLAppState::loadStateFromJSON: wrong array size!\n";
 						}				
-						requestPropertyChange(MLSymbol(pNode->string), *pSig);
+						mpModel->setProperty(MLSymbol(pNode->string), *pSig);
 					}
 				}
 			

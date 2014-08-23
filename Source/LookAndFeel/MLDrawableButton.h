@@ -13,39 +13,16 @@ class  MLDrawableButton :
 	public MLButton
 {
 public:
-    enum ButtonStyle
-    {
-        ImageFitted,
-		ImageOnButtonBackground 
-    };
 
-	MLDrawableButton (const String& buttonName, ButtonStyle buttonStyle);
     MLDrawableButton();
     ~MLDrawableButton();
 
-	void setAttribute(MLSymbol attr, float val);
-	
-	void setImage (const Drawable* img);
-
-    void setButtonStyle (ButtonStyle newStyle);
-
-    void setBackgroundColours (const Colour& toggledOffColour,
-                               const Colour& toggledOnColour);
-
-	// set an optional color to be used for background when hovering.
-	void setHoverColor(const Colour& h);
-
-    const Colour& getBackgroundColour() const throw();
-
+	void paint (Graphics& g);
+ 	void setImage (const Drawable* img);
 	void resizeWidget(const MLRect& b, const int);
 
-protected:
- 
-	void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown);
- 
 private:
     //==============================================================================
-    ButtonStyle style;
     ScopedPointer <Drawable> normalImage;
     Colour backgroundOff, backgroundOn, backgroundHover, mGlowColor;
 	

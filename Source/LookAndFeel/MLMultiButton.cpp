@@ -27,6 +27,7 @@ MLMultiButton::~MLMultiButton()
 	deleteAllChildren();
 }
 
+/*
 void MLMultiButton::setAttribute(MLSymbol attr, float val)
 {
 	static const MLSymbol valueSym("value");
@@ -47,6 +48,7 @@ void MLMultiButton::setAttribute(MLSymbol attr, float val)
 	}
 }
 
+*/
 
 void MLMultiButton::setNumButtons(int n)
 {

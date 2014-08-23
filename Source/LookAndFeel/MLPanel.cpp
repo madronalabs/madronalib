@@ -31,7 +31,6 @@ MLPanel::~MLPanel()
 
 void MLPanel::paint (Graphics&)
 {
-	enterPaint();
 //	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 //	myLookAndFeel->drawBackground(g, this);
 

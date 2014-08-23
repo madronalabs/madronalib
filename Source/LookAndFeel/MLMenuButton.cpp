@@ -7,8 +7,8 @@
 #include "MLLookAndFeel.h"
 
 
-MLMenuButton::MLMenuButton ()
-    : MLButton (),
+MLMenuButton::MLMenuButton () :
+    MLButton (),
 	mMenuTextStyle(true)
 {
  	setRepaintsOnMouseActivity(false);
@@ -18,13 +18,7 @@ MLMenuButton::~MLMenuButton()
 {
 }
 
-// The value attribute sets the up/down state of a MenuButton.
-void MLMenuButton::setAttribute(MLSymbol attr, float val)
-{
-	MLWidget::setAttribute(attr, val);
-    repaint();
-}
-
+/*
 void MLMenuButton::setStringAttribute(MLSymbol sym, const std::string& val)
 {
 	MLWidget::setStringAttribute(sym, val);
@@ -38,6 +32,7 @@ void MLMenuButton::setStringAttribute(MLSymbol sym, const std::string& val)
 	}
     repaint();
 }
+*/
 
 void MLMenuButton::paintButton (Graphics& g,
                               bool isMouseOverButton,
@@ -48,12 +43,14 @@ void MLMenuButton::paintButton (Graphics& g,
 	const Colour c (findColour (MLTextButton::buttonColourId));	
 	const Colour t (findColour (MLTextButton::textColourId));
     
-    bool isActive = getAttribute("value") > 0.5f;
+    bool isActive = getFloatProperty("value") > 0.5f;
+	/*
     myLookAndFeel->drawButtonBackground (g, *this,
 		c,
 		isMouseOverButton,
 		isActive, mLineThickness);
-	
+	*/
+	//MLTEST
 	if(mMenuTextStyle)
 	{
 		myLookAndFeel->drawMenuButtonText (g, *this, t);
@@ -72,6 +69,7 @@ void MLMenuButton::colourChanged()
     repaint();
 }
 
+/*
 // make menu buttons trigger right away
 //
 void MLMenuButton::mouseDown(const MouseEvent& e)
@@ -79,7 +77,7 @@ void MLMenuButton::mouseDown(const MouseEvent& e)
 	Button::mouseDown(e);
 	if (mpListener)
 	{
-        setAttribute("value", 1);
+        setProperty("value", 1);
         repaint();
         
 		// send our Widget name to listener as menu instigator
@@ -87,4 +85,4 @@ void MLMenuButton::mouseDown(const MouseEvent& e)
 	}	
 }
 
-
+*/

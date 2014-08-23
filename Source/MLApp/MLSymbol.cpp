@@ -287,7 +287,7 @@ int processSymbolText(const char* sym, int maxLen = kMLMaxSymbolLength);
 
 const char *positiveIntToDigits(int i)
 {
-	char buf[kMLMaxNumberDigits + 2] = {0};
+	static char buf[kMLMaxNumberDigits + 2] = {0};
 	char *p = buf + kMLMaxNumberDigits + 1;	
 	*p = 0;
 	do 

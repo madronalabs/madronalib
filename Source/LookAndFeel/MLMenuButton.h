@@ -18,8 +18,6 @@ protected:
 public:
      MLMenuButton ();
     ~MLMenuButton();
-	void setAttribute(MLSymbol attr, float val);
-	void setStringAttribute(MLSymbol , const std::string& val);
 
     enum ColourIds
     {
@@ -41,7 +39,7 @@ public:
 protected:
 	void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown);
     void colourChanged();
-	void mouseDown(const MouseEvent& e);
+//	void mouseDown(const MouseEvent& e);
 
 private:
 	MLMenuButton::Listener* mpListener;

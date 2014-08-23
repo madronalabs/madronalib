@@ -22,7 +22,6 @@ public:
         foregroundColor              = 0x10120a01,  
     };
 	
-	void setAttribute(MLSymbol attr, float val);
     void setDARMode(bool m) { mDARMode = m; }
 	void triggerChangeMessage (const bool synchronous);
 	void resizeWidget(const MLRect& b, const int u);

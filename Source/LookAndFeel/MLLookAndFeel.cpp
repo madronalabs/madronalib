@@ -515,7 +515,7 @@ void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-    g.drawFittedText (button.getButtonText(),
+    g.drawFittedText (button.getStringProperty("text"),
                       m, m, w, h,
                       Justification::centred, 1., 1.);
 }
@@ -535,7 +535,7 @@ void MLLookAndFeel::drawMenuButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-	g.drawFittedText (button.getButtonText(),
+	g.drawFittedText (button.getStringProperty("text"),
                       h/2, m, w - h, hm,
                       Justification::left, 1., 1.);
 	
@@ -1642,7 +1642,8 @@ void MLLookAndFeel::createFileChooserHeaderText (const String& title,
 }
 */
 
-Button* MLLookAndFeel::createFileBrowserGoUpButton()
+/*
+MLButton* MLLookAndFeel::createFileBrowserGoUpButton()
 {
     MLDrawableButton* goUpButton = new MLDrawableButton ("up", MLDrawableButton::ImageOnButtonBackground);
 
@@ -1657,6 +1658,7 @@ Button* MLLookAndFeel::createFileBrowserGoUpButton()
 
     return goUpButton;
 }
+*/
 
 void MLLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserComp,
                                               DirectoryContentsDisplayComponent* fileListComponent,

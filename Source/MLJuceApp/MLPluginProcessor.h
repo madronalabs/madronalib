@@ -101,8 +101,7 @@ public:
 	const std::string& getParameterGroupName (int index);
 
 	// MLModel
-	
-	void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
     
 	// signals
 	
@@ -181,6 +180,9 @@ public:
 	inline void showEngine() { mEngine.dump(); }
 	
 protected:
+	// set what kind of event input we are listening to (MIDI or OSC)
+	void setInputProtocol(int p);
+
 	// Engine creates graphs of Processors, does the work
 	MLDSPEngine	mEngine;	
 	
@@ -190,13 +192,25 @@ protected:
 	// TODO shared_ptr
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
-		
+
+	// input protocol stuff
+	int mInputProtocol;
+	int mT3DWaitTime;
+    osc::int32 mDataRate;
+	
 private:
+	class ProtocolPoller : public Timer
+	{
+		ProtocolPoller(MLPluginProcessor*);
+		~ProtocolPoller();
+		void timerCallback();
+	};
+	
 	void setCurrentPresetDir(const char* name);
     
 	// set the plugin state from a memory blob containing parameter and patcher settings.
 	void setStateFromBlob (const void* data, int sizeInBytes);
-	
+
 	MLAudioProcessorListener* MLListener;
     Listener* mpListener;
     
@@ -234,6 +248,7 @@ private:
     
     // vector of control events to send to engine along with each block of audio.
     MLControlEventVector mControlEvents;
+
 };
 
 #endif  // __PLUGINPROCESSOR__

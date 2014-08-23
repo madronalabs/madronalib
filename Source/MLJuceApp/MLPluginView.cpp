@@ -131,7 +131,7 @@ MLButton* MLPluginView::addToggleButton(const char * displayName, const MLRect &
 		MLPublishedParamPtr p = filter->getParameterPtr(idx);
 		if (p)
 		{
-			b->setRange(p->getRangeLo(), p->getRangeHi());
+			b->setToggleValues(p->getRangeLo(), p->getRangeHi());
 		}
 	}
 	else
@@ -149,30 +149,6 @@ MLButton* MLPluginView::addTriToggleButton(const char * displayName, const MLRec
 	return b;
 }
 
-MLDrawableButton* MLPluginView::addDrawableButton(const MLRect & r, const char * name, const Drawable* img, const Colour& color)
-{
-	MLDrawableButton* b = MLAppView::addDrawableButton(r, name, img, color);
-    
-	// setup button attrs from filter parameter
-	//MLPluginProcessor* const filter = getProcessor();
-    /*
-     int idx = filter->getParameterIndex(paramName);
-     if (idx >= 0)
-     {
-     MLPublishedParamPtr p = filter->getParameterPtr(idx);
-     if (p)
-     {
-     b->setRange(p->getRangeLo(), p->getRangeHi());
-     }
-     }
-     else
-     {
-     debug() << "MLPluginView::addToggleButton: parameter " << paramName << " not found!\n";
-     }
-     */
-	return b;
-}
-
 MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color)
 {
 	MLDial* dial = addDial("", r, paramName, color);
@@ -183,7 +159,7 @@ MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, co
 	dial->setDoNumber(false);
 	dial->setTicks(0);
 	// dial->setDoubleClickReturnValue (true, 0.0);
-	dial->setOpaque(false);	
+	//dial->setOpaque(false);
 	return dial;
 }
 

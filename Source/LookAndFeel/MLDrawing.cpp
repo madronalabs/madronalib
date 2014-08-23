@@ -113,8 +113,6 @@ void MLDrawing::drawArrowhead(Graphics& g, const Vec2& p1, const Vec2& p2, float
 
 void MLDrawing::paint(Graphics& g)
 {
-	enterPaint();
-
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	float fu = myLookAndFeel->getGridUnitSize();
 

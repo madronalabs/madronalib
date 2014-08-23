@@ -30,6 +30,7 @@ MLMultiSlider::~MLMultiSlider()
 	deleteAllChildren();
 }
 
+/*
 void MLMultiSlider::setAttribute(MLSymbol attr, float val)
 {
 	static const MLSymbol valueSym("value");
@@ -49,7 +50,7 @@ void MLMultiSlider::setAttribute(MLSymbol attr, float val)
 		}
 	}
 }
-
+*/
 
 void MLMultiSlider::setNumSliders(int n)
 {
@@ -79,7 +80,6 @@ void MLMultiSlider::setRange(float a, float b, float c)
 	mZeroThreshold = a;
 }
 
-
 // the colors for different MLDial parts are generated algorithmically.
 void MLMultiSlider::setFillColor (const Colour& c)
 {
@@ -99,7 +99,6 @@ void MLMultiSlider::setFillColor (const Colour& c)
 
     lookAndFeelChanged();
 }
-
 
 #pragma mark -
 

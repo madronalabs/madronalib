@@ -7,8 +7,9 @@
 #include "MLLookAndFeel.h"
 
 MLTextButton::MLTextButton (const String& name, const String& )
-    : MLButton (name)
+    : MLButton ()
 {
+	setProperty("text", std::string(name.toUTF8()));
   //  setTooltip (toolTip);
 }
 
@@ -23,6 +24,7 @@ void MLTextButton::paintButton (Graphics& g, bool isMouseOverButton, bool isButt
 	const Colour c (findColour (MLTextButton::buttonColourId));	
 	const Colour t (findColour (MLTextButton::textColourId));	
 
+	/*
     myLookAndFeel->drawButtonBackground (g, *this,
 		c,
 		isMouseOverButton,
@@ -32,6 +34,8 @@ void MLTextButton::paintButton (Graphics& g, bool isMouseOverButton, bool isButt
 		t,
 		isMouseOverButton,
 		isButtonDown);
+	 */
+	
 }
 
 void MLTextButton::colourChanged()

@@ -6,10 +6,11 @@
 #include "MLWidget.h"
 #include "MLDebug.h"
 
-static const std::string kNullStr;
-static const MLSignal kNullSignal;
+// static const std::string kNullStr;
+// static const MLSignal kNullSignal;
 
-MLWidget::MLWidget() : 
+MLWidget::MLWidget() :
+	MLPropertyListener(this),
 	mGridBounds(),
     mGridUnitSize(0),
 	mSize(1.f),
@@ -18,7 +19,6 @@ MLWidget::MLWidget() :
     pGLContext(nullptr),
 	mWantsResizeLast(false)
 {
-
 }
 
 MLWidget::~MLWidget()
@@ -30,6 +30,23 @@ MLWidget::~MLWidget()
     }
 }
 
+void MLWidget::addListener(MLWidget::Listener* pL)
+{
+	debug() << "MLWidget " << getWidgetName() << " : ADDING listener \n";
+	mpListeners.push_back(pL);
+}
+
+void MLWidget::sendAction(MLSymbol msg, MLSymbol targetProperty, const MLProperty& val)
+{
+	std::list<MLWidget::Listener*>::iterator it;
+	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
+	{
+		MLWidget::Listener* pL = *it;
+		pL->handleWidgetAction(this, msg, targetProperty, val);
+	}
+}
+
+/*
 void MLWidget::setAttribute(MLSymbol attr, float val)
 {
 	mAttributes[attr] = val;
@@ -55,7 +72,8 @@ void MLWidget::setColorAttribute(MLSymbol attr, juce::Colour c)
     colorSig[3] = c.getFloatAlpha();
 	mSignalAttributes[attr] = colorSig;
 }
-
+*/
+/*
 // --------------------------------------------------------------------------------
 // protected attribute getters, to be used only by subclasses.
 
@@ -100,6 +118,7 @@ juce::Colour MLWidget::getColorAttribute(MLSymbol attr) const
     a = colorSig[3];
     return juce::Colour::fromHSV(h, s, v, a);
 }
+*/
 
 // --------------------------------------------------------------------------------
 
@@ -212,11 +231,6 @@ void MLWidget::setWidgetVisible(bool v)
 	{
 		pComponent->setVisible(v);
 	}
-}
-
-void MLWidget::enterPaint()
-{
-//	debug() << " paint: " << getWidgetName() << "\n";
 }
 
 

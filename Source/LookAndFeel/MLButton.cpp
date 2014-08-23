@@ -6,63 +6,32 @@
 #include "MLButton.h"
 #include "MLLookAndFeel.h"
 
-MLButton::MLButton (const String& label)
-    : Button (label),
+MLButton::MLButton () :
 	mLabelOffset(MLPoint(0, 0)),
-	mpListener(0),
 	mOffValue(0.f),
 	mOnValue(1.f),
-    mLineThickness(0.5f)
+	mOver(false),
+	mDown(false),
+	mTriggerOnMouseDown(false),
+	mToggleState(0)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	setOpaque(myLookAndFeel->getDefaultOpacity());
-	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
-	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
-
-	setClickingTogglesState (true);
-    setWantsKeyboardFocus (false);
-    setRepaintsOnMouseActivity (false);
-
-	mDoRollover = false;
-	
-	setFillColor (Colours::lightgrey);
-	setColour ((const int)textColourId, Colours::black);
-	mImageOffset = Vec2(0, 0);
-}
-
-MLButton::MLButton ()
-    : Button (""),
-	mLabelOffset(MLPoint(0, 0)),
-	mpListener(0),
-	mOffValue(0.f),
-	mOnValue(1.f)
-{
-	setClickingTogglesState (true);
     setWantsKeyboardFocus (false);
     setRepaintsOnMouseActivity (false);
 	setOpaque(true);
 	setBufferedToImage(false);
+	
+	setProperty("toggle", 1);
 
 	mDoRollover = false;
 	
 	setFillColor (Colours::lightgrey);
 	setColour ((const int)textColourId, Colours::black);
 	mImageOffset = Vec2(0, 0);
-
-	MLWidget::setComponent(this); 
 }
 
-void MLButton::setFillColor(const Colour c)
+void MLButton::paint (Graphics& g)
 {
-	setColour(buttonOnColourId, brighterColor(c));
-    setColour(buttonOffColourId, findColour(MLLookAndFeel::backgroundColor).overlaidWith(Colours::black.withAlpha(0.5f)));	
-}
- 
-void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
-{
-	enterPaint();
-	
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int d = myLookAndFeel->getToggleButtonSize() * getSizeMultiplier();
 
@@ -74,9 +43,9 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 	const Colour onColor (findColour (MLButton::buttonOnColourId));	
 	const Colour offBrightColor (offColor.getHue(), offColor.getSaturation(), jmin(offColor.getBrightness() + 0.1, 1.), offColor.getFloatAlpha());		
 	const Colour onBrightColor (onColor.getHue(), onColor.getSaturation(), jmin(onColor.getBrightness() + 0.1, 1.), onColor.getFloatAlpha());		
-	const Colour offOverColor ((mDoRollover && isMouseOverButton) ? offBrightColor : offColor);
-	const Colour onOverColor ((mDoRollover && isMouseOverButton) ? onBrightColor : onColor);
-	const Colour bc = (getToggleState() ? onOverColor : offOverColor);		
+	const Colour offOverColor ((mDoRollover && mOver) ? offBrightColor : offColor);
+	const Colour onOverColor ((mDoRollover && mOver) ? onBrightColor : onColor);
+	const Colour bc = (mToggleState ? onOverColor : offOverColor);
 
 	const float alpha = isEnabled() ? 1.f : 0.25f;	
 	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));	
@@ -87,7 +56,7 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 	Colour outlineColor, outlineOnColor, outlineOffColor;
 	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.5f));
 	outlineOffColor = findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha);
-	outlineColor = getToggleState() ? outlineOnColor : outlineOffColor;
+	outlineColor = mToggleState ? outlineOnColor : outlineOffColor;
 	
 	if (mImage.isValid())
 	{
@@ -107,7 +76,7 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 	toggleY = (height - toggleHeight)/2;
 	
 	int flair = 0;
-	if (isButtonDown) flair |= (eMLAdornPressed);
+	if (mDown) flair |= (eMLAdornPressed);
 	flair |= eMLAdornShadow;
 	flair |= eMLAdornGlow;	
 	
@@ -116,7 +85,7 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 		
 	if (mImage.isValid())
 	{
-		float imageAlpha = getToggleState() ? 0.5f : 1.f;
+		float imageAlpha = mToggleState ? 0.5f : 1.f;
 
 		g.setColour(findColour(MLLookAndFeel::labelColor).withMultipliedAlpha(imageAlpha));
 		
@@ -143,18 +112,77 @@ void MLButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDow
 	*/
 }
 
-void MLButton::clicked()
+void MLButton::setFillColor(const Colour c)
 {
-	if(mpListener)
+	setColour(buttonOnColourId, brighterColor(c));
+    setColour(buttonOffColourId, findColour(MLLookAndFeel::backgroundColor).overlaidWith(Colours::black.withAlpha(0.5f)));
+}
+
+void MLButton::clicked ()
+{
+    if (!isEnabled() || !isVisible() || isCurrentlyBlockedByAnotherModalComponent()) return;
+	bool oldT = mToggleState;
+	bool newT = oldT;
+	if(getFloatProperty("toggle"))
 	{
-		mpListener->buttonClicked(this);
+		newT = !oldT;
+	}
+	else
+	{
+		sendAction("bang", getTargetPropertyName());
+	}
+	
+	if(oldT != newT)
+	{
+		mToggleState = newT;
+		setPropertyImmediate ("value", (mToggleState ? mOnValue : mOffValue));
+		sendAction("property", getTargetPropertyName(), getProperty("value"));
 	}
 }
 
-void MLButton::setListener (MLButton::Listener* l)
+void MLButton::mouseDown (const MouseEvent& e)
 {
-    assert (l);
-    mpListener = l;
+	mDown = true;
+	mOver = isMouseOver();
+    if (mOver && mTriggerOnMouseDown)
+	{
+        clicked ();
+	}
+	repaint();
+}
+
+void MLButton::mouseUp (const MouseEvent& e)
+{
+    const bool wasDown = mDown;
+	const bool wasOver = mOver;
+	mDown = false;
+	mOver = isMouseOver();
+    if (wasDown && wasOver && ! mTriggerOnMouseDown)
+	{
+        clicked ();
+	}
+	repaint();
+}
+
+void MLButton::mouseDrag (const MouseEvent&)
+{
+    mOver = isMouseOver();
+}
+
+void MLButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+{
+	debug() << "MLButton::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
+	
+	if (property == "value")
+	{
+		// translate lo / hi values back to toggle state
+		float v = val.getFloatValue();
+		mToggleState = (v > mOffValue);
+	}
+    else if(property == "highlight")
+    {
+    }
+	repaint();
 }
 
 void MLButton::resizeWidget(const MLRect& b, const int u)
@@ -165,5 +193,11 @@ void MLButton::resizeWidget(const MLRect& b, const int u)
  		MLWidget::resizeWidget(b, u);
 		mLineThickness = u/128.f;
     }
+}
+
+void MLButton::setToggleValues(float lo, float hi)
+{
+	mOffValue = lo;
+	mOnValue = hi;
 }
 

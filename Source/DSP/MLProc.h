@@ -60,7 +60,7 @@ public:
 	virtual bool hasVariableOutputs() const = 0;
 	virtual MLSymbol& getClassName() = 0;
 	
-    static MLParamValueAliasVec kMLProcNullAliasVec;
+    static const MLParamValueAliasVec kMLProcNullAliasVec;
 
 private:
 	// make uncopyable

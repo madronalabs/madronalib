@@ -10,6 +10,7 @@
 #include "MLVector.h"
 #include "MLSymbol.h"
 #include "MLSignal.h"
+#include "MLProperty.h"
 
 class MLWidgetContainer;
 
@@ -17,36 +18,42 @@ class MLWidgetContainer;
 // this can incorporate our own component class.
 //
 class MLWidget :
-    public OpenGLRenderer
+    public OpenGLRenderer, // WAT
+	public MLPropertySet,
+	public MLPropertyListener
 {
 friend class MLWidgetContainer;
+friend class MLPropertyView;
 friend class MLAppView;
 public:
 	MLWidget();
 	virtual ~MLWidget();
-
-	virtual bool isWidgetContainer(void) { return false; }
-	virtual MLWidget* getWidget(MLSymbol ) { return nullptr; }
 	
-    // attributes
-	virtual void setAttribute(MLSymbol attr, float val);
-	virtual void setStringAttribute(MLSymbol attr, const std::string& val);
-	virtual void setSignalAttribute(MLSymbol attr, const MLSignal& val);
-    virtual void setColorAttribute(MLSymbol attr, juce::Colour val);
-
-	float getAttribute(MLSymbol attr) const;
-	const std::string& getStringAttribute(MLSymbol attr) const;
-    const MLSignal& getSignalAttribute(MLSymbol attr) const;
-    juce::Colour getColorAttribute(MLSymbol attr) const;
-
-	// A signal viewer, not required. This is called repeatedly to view 
-	// a dynamic Signal, as opposed to a signal Parameter.
-	virtual void viewSignal(MLSymbol, const MLSignal&, int frames, int voices) {}
+	class Listener
+	{
+		public:
+		virtual ~Listener() {}
+		virtual void handleWidgetAction (MLWidget*, MLSymbol action, MLSymbol target, const MLProperty& val) = 0;
+	};
 
 	// in order to function, a Widget's Component must get set!
-	//
 	void setComponent(Component* pC) { pComponent = pC; }
 	Component* getComponent() const { return pComponent; }
+	
+	// add a Listener to our list.
+	void addListener (MLWidget::Listener* const p);
+	
+	// send an action to all of our listeners.
+	void sendAction(MLSymbol m, MLSymbol target, const MLProperty& val = MLPropertySet::nullProperty);
+
+	// return true if this Widget contains other Widgets. Used to search recursively for Widgets.
+	virtual bool isWidgetContainer(void) { return false; }
+	
+	// recursive search for a Widget contained within this one.
+	virtual MLWidget* getWidget(MLSymbol name) { return nullptr; }
+	
+	// A signal viewer, not required. This is called repeatedly to view a Signal.
+	virtual void viewSignal(MLSymbol, const MLSignal&, int frames, int voices) {}
 
     void setupGL(Component* pC);
     OpenGLContext* getGLContext() { return pGLContext; }
@@ -87,15 +94,18 @@ public:
 	const MLSymbol& getWidgetName() { return mName; }
 
 	void setWidgetVisible(bool v);
-	
-	void enterPaint(); // for debugging
     
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(MLSymbol p) {  mTargetPropertyName = p; }
 	
+	// MLPropertyListener methods
+	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal) {}
+	
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
+
+	std::list<MLWidget::Listener*> mpListeners;
 
 private:
 	MLSymbol mName;
@@ -119,10 +129,6 @@ private:
     OpenGLContext* pGLContext;
 	
 	bool mWantsResizeLast;
-	
-	std::map<MLSymbol, float> mAttributes;
-	std::map<MLSymbol, std::string> mStringAttributes;
-	std::map<MLSymbol, MLSignal> mSignalAttributes;
 };
 
 #endif // __ML_WIDGET_H__

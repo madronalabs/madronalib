@@ -11,7 +11,10 @@ MLPluginProcessor::MLPluginProcessor() :
     mpListener(0),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
-	mInitialized(false)
+	mInitialized(false),
+	mInputProtocol(-1),
+	mT3DWaitTime(0),
+	mDataRate(-1)
 {
 	mHasParametersSet = false;
 	mNumParameters = 0;
@@ -486,7 +489,7 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 
 	mEngine.setPublishedParam(index, newValue);	
 	mHasParametersSet = true;
-	setProperty(getParameterAlias(index), newValue, true);
+	setPropertyImmediate(getParameterAlias(index), newValue);
 }
 
 // set plugin parameter by name without setting property. Typically called from internal code.
@@ -527,7 +530,7 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		// set MLModel Parameter 
 		MLSymbol paramName = getParameterAlias(index);
 		float realVal = mEngine.getParamByIndex(index);
-		setProperty(paramName, realVal, true);
+		setPropertyImmediate(paramName, realVal);
 	}
 }
 
@@ -640,16 +643,16 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 // --------------------------------------------------------------------------------
 #pragma mark MLModel
 
-void MLPluginProcessor::doPropertyChangeAction(MLSymbol propertyName, const MLProperty& newVal)
+void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProperty& newVal)
 {
 	int propertyType = newVal.getType();
-	int paramIdx = getParameterIndex(propertyName);
+	int paramIdx = getParameterIndex(property);
 	float f = newVal.getFloatValue();
 	
 	switch(propertyType)
 	{
 		case MLProperty::kFloatProperty:
-			setParameterWithoutProperty (propertyName, f);
+			setParameterWithoutProperty (property, f);
 			if (paramIdx < 0) return;
 			
 			// convert to host units for VST
@@ -716,21 +719,12 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 #else
 
   	const unsigned numParams = getNumParameters();
-    const std::string* paramStr;
 
 	// TODO use string properties of model instead of these JUCE strings.
 	// also move to JSON.
 	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
-    paramStr = getStringProperty("preset");
-    if (paramStr != 0)
-    {
-        xml.setAttribute ("presetName", String(paramStr->c_str()));
-    }
-    paramStr = getStringProperty("key_scale");
-    if (paramStr != 0)
-    {
-        xml.setAttribute ("scaleName", String(paramStr->c_str()));
-    }
+	xml.setAttribute ("presetName", String(getStringProperty("preset").c_str()));
+	xml.setAttribute ("scaleName", String(getStringProperty("key_scale").c_str()));
 
 	// store parameter values to xml as a bunch of attributes.
 	// not XML best practice in general but takes fewer characters.
@@ -807,7 +801,7 @@ int MLPluginProcessor::saveStateAsVersion()
 {
     int r = 0;
 	int version = 0;
-    std::string nameStr(*getStringProperty("preset"));
+    std::string nameStr(getStringProperty("preset"));
 	std::string noVersionStr;
 	std::string versionStr;
 	int numberStart = 0;
@@ -849,7 +843,7 @@ int MLPluginProcessor::saveStateAsVersion()
 
 int MLPluginProcessor::saveStateOverPrevious()
 {
-    saveStateToRelativePath(*getStringProperty("preset"));
+    saveStateToRelativePath(getStringProperty("preset"));
 	return 0;
 }
 
@@ -1008,7 +1002,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			if (pIdx >= 0)
 			{
 				// debug() << "setStateFromXML: <" << paramSym << " = " << paramVal << ">\n";
-				setProperty(paramSym, paramVal, true);
+				setPropertyImmediate(paramSym, paramVal);
 			}
 			else // try finding a match through translation table. 
 			{
@@ -1022,7 +1016,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 					if (pNewIdx >= 0)
 					{
 						//debug() << "translated parameter to " << newSym << " .\n";
-						setProperty(newSym, paramVal, true);
+						setPropertyImmediate(newSym, paramVal);
 					}
 					else
 					{
@@ -1279,11 +1273,7 @@ void MLPluginProcessor::advancePreset(int amount)
     std::string extension (".mlpreset");
 
     int currIdx = - 1;
-    const std::string* currPresetName = getStringProperty("preset");
-    if (currPresetName != NULL)
-    {
-        currIdx = mPresetFiles->getFileIndexByName(*currPresetName + extension);
-    }
+	currIdx = mPresetFiles->getFileIndexByName(getStringProperty("preset") + extension);
     
     if(currIdx >= 0)
     {
@@ -1318,7 +1308,7 @@ void MLPluginProcessor::setDefaultParameters()
 		for(unsigned i=0; i<numParams; ++i)
 		{
 			float defaultVal = getParameterDefault(i);
-			setProperty(getParameterAlias(i), defaultVal, true);
+			setPropertyImmediate(getParameterAlias(i), defaultVal);
 		}
 	}
 }
@@ -1504,5 +1494,59 @@ void MLPluginProcessor::loadDefaultScale()
 	pScale->recalcRatios();		
 	broadcastScale(pScale);
 } 
+
+
+// called to change the input protocol, or ping that t3d is alive.
+//
+void MLPluginProcessor::setInputProtocol(int p)
+{
+	if(p != mInputProtocol)
+	{
+		// set the model’s protocol property, which a View can use to change its UI
+		setProperty("protocol", p);
+		getEngine()->setEngineInputProtocol(p);
+		switch(p)
+		{
+			case kInputProtocolMIDI:
+				break;
+			case kInputProtocolOSC:
+				break;
+		}
+		mInputProtocol = p;
+	}
+}
+
+
+/*
+// if we are in t3d mode and get no pings for a while, switch back
+// to MIDI mode assuming Soundplane or t3d device was disconnected.
+//
+void AaltoProcessor::ProtocolPoller::timerCallback()
+
+
+yuck
+ 
+ restore this, and finally Patcher.
+
+{
+	 static const int kT3DTimeout = 4;
+#if ML_MAC
+	 PollNetServices();
+#endif
+	 if(mInputProtocol == kInputProtocolOSC)
+	 {
+		 // increment counter. this is reset each time we receive a t3d frame.
+		 mT3DWaitTime++;
+		 // debug() << "waiting for t3d:\n";
+		 if(mT3DWaitTime > kT3DTimeout)
+		 {
+			 debug() << "t3d timeout, switching back to MIDI.\n";
+			 setInputProtocol(kInputProtocolMIDI);
+		 }
+	 }
+ }
+
+*/
+
 
 

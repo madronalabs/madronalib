@@ -39,19 +39,8 @@ void MLWaveform::setSignalToView(MLSignal* sig)
     // TODO precalculate waveform data here
 }
 
-void MLWaveform::setAttribute(MLSymbol attr, float val)
-{
-	MLWidget::setAttribute(attr, val);
-	
-    // debug() << "MLWaveform " << getWidgetName() << ":" << attr << " = " << val << "\n";
-    
-	repaint();
-}
-
 void MLWaveform::paint (Graphics& g)
 {
-	enterPaint();
-    
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	if (isOpaque())
 		myLookAndFeel->drawBackground(g, this);

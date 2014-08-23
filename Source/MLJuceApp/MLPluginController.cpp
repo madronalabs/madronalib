@@ -9,7 +9,6 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLResponder(),
 	MLReporter(pProcessor),
 	MLSignalReporter(pProcessor),
-    MLPropertyModifier(pProcessor),
 	mpView(nullptr),
     mpProcessor(pProcessor)
 {
@@ -22,7 +21,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 		MLPublishedParam* param = &(*p);
 		if(param)
 		{
-			requestPropertyChange(param->getAlias(), param->getValue());
+			mpProcessor->setProperty(param->getAlias(), param->getValue());
 		}
 	}
 	
@@ -102,6 +101,43 @@ void MLPluginController::initialize()
     }
 }
 
+void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)
+{
+	debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
+
+	if(action == "start_gesture")
+	{
+		MLPluginProcessor* const filter = getProcessor();
+		if (filter)
+		{
+			int idx = filter->getParameterIndex(targetProperty);
+			if (idx > 0)
+			{
+				filter->beginParameterChangeGesture (idx);
+			}
+		}
+	}
+	else if(action == "property")
+	{
+		mpProcessor->setPropertyImmediate(targetProperty, val);
+	}
+	else if (action == "end_gesture")
+	{
+		MLPluginProcessor* const filter = getProcessor();
+		if (filter)
+		{
+			int idx = filter->getParameterIndex(targetProperty);
+			if (idx > 0)
+			{
+				filter->endParameterChangeGesture (idx);
+			}
+		}
+	}
+}
+
+
+/*
+
 // --------------------------------------------------------------------------------
 #pragma mark MLButton::Listener
 
@@ -149,34 +185,33 @@ void MLPluginController::dialDragEnded (MLDial* pSlider)
 	}
 }
 
-// send Slider changes to filter. 
-void MLPluginController::dialValueChanged (MLDial* pSlider)
+// send Dial changes to Model.
+void MLPluginController::dialValueChanged (MLDial* pD)
 {
-	const MLSymbol paramName = pSlider->getTargetPropertyName();
+	const MLSymbol paramName = pD->getTargetPropertyName();
 
-	if (pSlider->isMultiValued())
+	if (pD->isMultiValued())
 	{
 //			minVal = pSlider->getMinValue();
 	}
 	else
 	{
-		if (!pSlider->isTwoValued())
+		if (!pD->isTwoValued())
 		{
-			requestPropertyChange(pSlider->getTargetPropertyName(), pSlider->getValue());
+			requestPropertyChange(paramName, pD->getValue());
 		}
 		
 		// NOT TESTED
-		if (pSlider->isTwoOrThreeValued())
+		if (pD->isTwoOrThreeValued())
 		{
 			const std::string paramStr = paramName.getString();
-			requestPropertyChange(MLSymbol(paramStr + "_min"), pSlider->getMinValue());
-			requestPropertyChange(MLSymbol(paramStr + "_max"), pSlider->getMaxValue());
+			requestPropertyChange(MLSymbol(paramStr + "_min"), pD->getMinValue());
+			requestPropertyChange(MLSymbol(paramStr + "_max"), pD->getMaxValue());
 		}		
 	}
 
 //		debug() << "dial: " << static_cast<void *>(pSlider) << ", index " << paramIdx << 
 //			" [" << minVal << " " << val << " " << maxVal << "]\n";
-
 }
 
 // --------------------------------------------------------------------------------
@@ -206,6 +241,7 @@ void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int id
 #pragma mark MLPatcher::Listener
 
 
+*/
 
 // --------------------------------------------------------------------------------
 #pragma mark file collections
@@ -390,7 +426,7 @@ void MLPluginController::doScaleMenu(int result)
         case (0):	// dismiss
             break;
         case (1):	
-            requestPropertyChange("key_scale", "12-equal");
+            mpProcessor->setProperty("key_scale", "12-equal");
             break;
         default:
             MLMenu* menu = findMenuByName("key_scale");
@@ -398,7 +434,7 @@ void MLPluginController::doScaleMenu(int result)
             {
                 // set model param to the full name of the file in the menu
                 const std::string& fullName = menu->getItemFullName(result);
-                requestPropertyChange("key_scale", fullName);
+                mpProcessor->setProperty("key_scale", fullName);
             }
             break;
     }
@@ -438,7 +474,7 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 				if(pInstigator != nullptr)
 				{
 					// turn instigator Widget off
-					pInstigator->setAttribute("value", 0);
+					pInstigator->setPropertyImmediate("value", 0);
 				}
 			}
 			
@@ -691,9 +727,9 @@ public:
         }
     }
     
-    void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal)
+    void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal)
     {
-        if(param == "progress")
+        if(property == "progress")
         {
             float p = newVal.getFloatValue();
             if(p < 1.)

@@ -6,7 +6,7 @@
 #include "MLProperty.h"
 
 // --------------------------------------------------------------------------------
-// MLProperty
+#pragma mark MLProperty
 
 MLProperty::MLProperty() :
 	mType(kUndefinedProperty)
@@ -23,10 +23,10 @@ MLProperty::MLProperty(const MLProperty& other) :
 			mVal.mFloatVal = other.getFloatValue();
 			break;
 		case MLProperty::kStringProperty:
-			mVal.mpStringVal = new std::string(*other.getStringValue());
+			mVal.mpStringVal = new std::string(other.getStringValue());
 			break;
 		case MLProperty::kSignalProperty:
-			mVal.mpSignalVal = new MLSignal(*other.getSignalValue());
+			mVal.mpSignalVal = new MLSignal(other.getSignalValue());
 			break;
 		default:
 			mVal.mpStringVal = 0;
@@ -43,10 +43,10 @@ MLProperty& MLProperty::operator= (const MLProperty& other)
 			mVal.mFloatVal = other.getFloatValue();
 			break;
 		case MLProperty::kStringProperty:
-			mVal.mpStringVal = new std::string(*other.getStringValue());
+			mVal.mpStringVal = new std::string(other.getStringValue());
 			break;
 		case MLProperty::kSignalProperty:
-			mVal.mpSignalVal = new MLSignal(*other.getSignalValue());
+			mVal.mpSignalVal = new MLSignal(other.getSignalValue());
 			break;
 		default:
 			mVal.mpStringVal = 0;
@@ -88,22 +88,25 @@ MLProperty::~MLProperty()
 	}
 }
 
-float MLProperty::getFloatValue() const
+const float& MLProperty::getFloatValue() const
 {
-	return mVal.mFloatVal;
+	static const float nullFloat = 0.f;
+	return (mType == kFloatProperty) ? mVal.mFloatVal : nullFloat;
 }
 
-const std::string* MLProperty::getStringValue() const
+const std::string& MLProperty::getStringValue() const
 {
-	return (mVal.mpStringVal);
+	static const std::string nullString;
+	return (mType == kStringProperty) ? (*mVal.mpStringVal) : nullString;
 }
 
-const MLSignal* MLProperty::getSignalValue() const
+const MLSignal& MLProperty::getSignalValue() const
 {
-	return (mVal.mpSignalVal);
+	static const MLSignal nullSignal;
+	return (mType == kSignalProperty) ? (*mVal.mpSignalVal) : nullSignal;
 }
 
-void MLProperty::setValue(float v)
+void MLProperty::setValue(const float& v)
 {
 	if(mType == kUndefinedProperty)
 		mType = kFloatProperty;
@@ -147,6 +150,11 @@ void MLProperty::setValue(const MLSignal& v)
 	}
 }
 
+void MLProperty::setValue(const MLProperty& v)
+{
+	*this = v;
+}
+
 bool MLProperty::operator== (const MLProperty& b) const
 {
 	bool r = false;
@@ -187,17 +195,17 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 			out << r.getFloatValue();
 			break;
 		case MLProperty::kStringProperty:
-			out << *(r.getStringValue());
+			out << (r.getStringValue());
 			break;
 		case MLProperty::kSignalProperty:
-			out << *(r.getSignalValue());
+			out << (r.getSignalValue());
             break;
 	}
 	return out;
 }
 
 // --------------------------------------------------------------------------------
-// MLPropertyListener
+#pragma mark MLPropertyListener
 
 void MLPropertyListener::updateChangedProperties()
 {
@@ -258,7 +266,9 @@ void MLPropertyListener::propertyOwnerClosing()
 }
 
 // --------------------------------------------------------------------------------
-// MLPropertySet
+#pragma mark MLPropertySet
+
+const MLProperty MLPropertySet::nullProperty;
 
 MLPropertySet::MLPropertySet()
 {
@@ -275,7 +285,64 @@ MLPropertySet::~MLPropertySet()
     mpListeners.clear();
 }
 
-void MLPropertySet::setProperty(MLSymbol p, float v, bool immediate)
+const MLProperty& MLPropertySet::getProperty(MLSymbol p) const
+{
+	static const MLProperty nullProperty;
+	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	if(it != mProperties.end())
+	{
+		return it->second;
+	}
+	else
+	{
+		return nullProperty;
+	}
+}
+
+const float& MLPropertySet::getFloatProperty(MLSymbol p) const
+{
+	static const float nullFloat = 0.f;
+	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	if(it != mProperties.end())
+	{
+		return it->second.getFloatValue();
+	}
+	else
+	{
+		return nullFloat;
+	}
+}
+
+const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
+{
+	static const std::string nullString;
+	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	if(it != mProperties.end())
+	{
+		return it->second.getStringValue();
+	}
+	else
+	{
+		return nullString;
+	}
+}
+
+const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
+{
+	static const MLSignal nullSignal;
+	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	if(it != mProperties.end())
+	{
+		return it->second.getSignalValue();
+	}
+	else
+	{
+		return nullSignal;
+	}
+}
+
+/*
+void MLPropertySet::setProperty(MLSymbol p, const float& v, bool immediate)
 {
 	mProperties[p].setValue(v);
 	broadcastProperty(p, immediate);
@@ -292,6 +359,13 @@ void MLPropertySet::setProperty(MLSymbol p, const MLSignal& v, bool immediate)
 	mProperties[p].setValue(v);
 	broadcastProperty(p, immediate);
 }
+
+void MLPropertySet::setProperty(MLSymbol p, const MLProperty& v, bool immediate)
+{
+	mProperties[p] = v;
+	broadcastProperty(p, immediate);
+}
+*/
 
 void MLPropertySet::addPropertyListener(MLPropertyListener* pL)
 {
@@ -332,10 +406,11 @@ void MLPropertySet::broadcastAllProperties()
 	}
 }
 
+/*
 // --------------------------------------------------------------------------------
 // MLPropertyModifier
 
-void MLPropertyModifier::requestPropertyChange(MLSymbol p, float v)
+void MLPropertyModifier::requestPropertyChange(MLSymbol p, const float& v)
 {
     if(mpPropertyOwner)
     {
@@ -359,3 +434,11 @@ void MLPropertyModifier::requestPropertyChange(MLSymbol p, const MLSignal& v)
     }
 }
 
+void MLPropertyModifier::requestPropertyChange(MLSymbol p, const MLProperty& v, bool immediate)
+{
+    if(mpPropertyOwner)
+    {
+        mpPropertyOwner->setProperty(p, v, immediate);
+    }
+}
+*/

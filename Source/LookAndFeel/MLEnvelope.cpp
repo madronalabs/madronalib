@@ -35,25 +35,14 @@ void MLEnvelope::colourChanged()
     lookAndFeelChanged();
 }
 
-void MLEnvelope::setAttribute(MLSymbol attr, float val)
-{
-	MLWidget::setAttribute(attr, val);
-	
-// debug() << "MLEnvelope " << getWidgetName() << ":" << attr << " = " << val << "\n";
-
-	repaint();
-}
-
 void MLEnvelope::paint (Graphics& g)
-{
-	enterPaint();
-	
-	float mDelay = getAttribute("delay");
-	float mAttack = getAttribute("attack");
-	float mSustain = getAttribute("sustain");
-	float mDecay = getAttribute("decay");
-	float mRelease = getAttribute("release");
-	float r = getAttribute("repeat");
+{	
+	float mDelay = getFloatProperty("delay");
+	float mAttack = getFloatProperty("attack");
+	float mSustain = getFloatProperty("sustain");
+	float mDecay = getFloatProperty("decay");
+	float mRelease = getFloatProperty("release");
+	float r = getFloatProperty("repeat");
 	float mRepeat = (r > 0.f) ? (1.f / (r + 0.0001f)) : 0.f;
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();

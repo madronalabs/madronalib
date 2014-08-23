@@ -16,8 +16,7 @@ public:
      MLToggleButton();
     ~MLToggleButton();
 	
-	void setAttribute(MLSymbol attr, float val);
-	void paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown);
+	void paint(Graphics& g);
 	void resizeWidget(const MLRect& b, const int);
 
 protected:

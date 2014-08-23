@@ -14,6 +14,7 @@
 #define __ML_DIAL_HEADER__
 
 #include "MLUI.h"
+#include "MLResponder.h"
 #include "MLWidget.h"
 #include "MLProc.h"
 #include "MLParameter.h"
@@ -30,7 +31,7 @@ public:
 };
 
 class MLDial  : 
-	public Component,
+	protected Component,
 	public MLWidget
 {
 friend class MLLookAndFeel;
@@ -38,6 +39,7 @@ public:
     MLDial ();
     ~MLDial();
 	
+	/*
 	class Listener 
 	{
 	public:
@@ -47,8 +49,15 @@ public:
 		virtual void dialDragEnded (MLDial* dial) = 0;
 	};
 	
-	void setListener (MLDial::Listener* const l);
-	void setAttribute(MLSymbol attr, float val);
+	void setListener (MLResponder* const pl);
+	 */
+	
+	//void setAttribute(MLSymbol attr, float val);
+	
+	// MLPropertyListener
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	
+
 	
 	enum DialStyle
     {
@@ -116,7 +125,6 @@ public:
 		TopRight,
 	};
 	
-	
 	WhichDial getDialBeingDragged() {return dialBeingDragged;}
 	WhichDial getDialToDrag() {return dialToDrag;}
 	bool isOverTrack() {return mOverTrack;}
@@ -132,16 +140,15 @@ public:
                               const bool stopAtEnd);
 
     void setMouseDragSensitivity (const int distanceForFullScaleDrag);
-
     void setVelocityBasedMode (const bool isVelocityBased) throw();
-
     void setVelocityModeParameters (const float sensitivity = 1.0,
                                     const int threshold = 1,
                                     const float offset = 0.0,
                                     const bool userCanPressKeyToSwapMode = true) throw();
 
-
-    float getValue() const throw();
+    const float& getValue() const throw();
+    const float& getMinValue() const throw();
+    const float& getMaxValue() const throw();
 	void setRange (const float newMinimum,
 				const float newMaximum,
 				const float newInterval = 0.,
@@ -152,8 +159,6 @@ public:
     float getMaximum() const throw()                                       { return maximum; }
     float getMinimum() const throw()                                       { return minimum; }
     float getInterval() const throw()                                      { return interval; }
-    float getMinValue() const throw();
-    float getMaxValue() const throw();
 
 	void setDoubleClickReturnValue (const bool isDoubleClickEnabled,
                                     const float valueToSetOnDoubleClick) throw();
@@ -181,7 +186,6 @@ public:
 
     float getPositionOfValue (const float value);
 
-    virtual float snapValue (float attemptedValue, const bool userIsDragging);
 	unsigned nearestDetent (float attemptedValue) const;
 
     bool isHorizontal() const throw();
@@ -234,19 +238,16 @@ public:
 	WhichDial getRectOverPoint(const MouseEvent& e);
 	WhichDial getRectOverPoint(const int x, const int y);		
 	
-	
 	void sizeChanged();
 	void visibilityChanged();
 	
 	float getLabelVerticalOffset() { return 0.875f; }
 
 protected:
-	float getValueOfDial(WhichDial s);
-	void sendValueOfDial(WhichDial s, float val);
-	void setValueOfDial(WhichDial s, float val, bool sendUpdate = false, bool sync = false);
-    void setSelectedValue (float newValue, int valSelector);
+	float clipToOtherDialValues(float val, WhichDial s);
 
-	
+	void sendValueOfDial(WhichDial s, float val);
+
     void repaintAll ();
 	virtual void paint (Graphics& g);
 	void drawLinearDial (Graphics& g, int rx, int ry, int rw, int rh,
@@ -274,11 +275,11 @@ protected:
     void lookAndFeelChanged();
     void enablementChanged();
     void colourChanged();
-    void sendDragStart();
-	void sendDragEnd();
+
+	
 	inline void endDrag() { dialBeingDragged = kNoDial; }
 
-    float constrainedValue (float value) const throw();
+    float constrainValue (float value) const throw();
 
     WhichDial dialBeingDragged;
 	WhichDial dialToDrag;
@@ -292,7 +293,8 @@ protected:
     void restoreMouseIfHidden();
     bool incDecDragDirectionIsHorizontal() const throw();
 	
-    float currentValue, valueMin, valueMax;
+    //float currentValue, valueMin, valueMax;
+	
     float minimum, maximum, interval, doubleClickReturnValue;
     float valueWhenLastDragged, valueOnMouseDown;
     float rotaryStart, rotaryEnd;
@@ -368,8 +370,6 @@ protected:
 	Image mParameterImage;
 	Image mStaticImage;
 	Image mThumbImage;
-	
-	MLDial::Listener* mpListener;
 };
 
 #endif // __ML_DIAL_HEADER__

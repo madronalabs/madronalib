@@ -47,8 +47,6 @@ public:
 	
 	void setListener (MLMultiButton::Listener* const listener);
 
-	void setAttribute(MLSymbol attr, float val);
-
 	void setNumButtons(int n);
 	unsigned getNumButtons();
 	void setFillColor(const Colour& c);	
