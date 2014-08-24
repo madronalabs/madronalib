@@ -61,9 +61,8 @@ private:
 std::ostream& operator<< (std::ostream& out, const MLProperty & r);
 
 class MLPropertyListener;
-// class MLPropertyModifier;
 
-// MLPropertySet: a Set of Properties. Property names are stored here.
+// MLPropertySet: a Set of Properties. Property names are stored as keys to the property map.
 
 class MLPropertySet
 {
@@ -78,18 +77,6 @@ public:
 	const std::string& getStringProperty(MLSymbol p) const;
 	const MLSignal& getSignalProperty(MLSymbol p) const;
     
-	/*
-    void setProperty(MLSymbol p, const float& v, bool immediate = false);
-    void setProperty(MLSymbol p, const std::string& v, bool immediate = false);
-    void setProperty(MLSymbol p, const MLSignal& v, bool immediate = false);
-    void setProperty(MLSymbol p, const MLProperty& v, bool immediate = false);
-	
-	void MLPropertySet::setProperty(MLSymbol p, const std::string& v, bool immediate)
-	{
-		mProperties[p].setValue(v);
-		broadcastProperty(p, immediate);
-	}*/
-	
 	template <typename T>
 	void setProperty(MLSymbol p, T v)
 	{
@@ -168,27 +155,6 @@ protected:
 	std::map<MLSymbol, PropertyState> mPropertyStates;
 	MLPropertySet* mpPropertyOwner;
 };
-
-// an MLPropertyModifier can request that PropertySets make changes to Properties.
-// use, for example, to control a Model from a UI or recall it to a saved state.
-// These changes propagate to Listeners as pending changes, which can
-// trigger actions the next time the Listeners are updated.
-
-/*
-class MLPropertyModifier
-{
-public:
-	MLPropertyModifier(MLPropertySet* m) : mpPropertyOwner(m) {}
-	virtual ~MLPropertyModifier() {}
-    void requestPropertyChange(MLSymbol p, const float& v);
-    void requestPropertyChange(MLSymbol p, const std::string& v);
-    void requestPropertyChange(MLSymbol p, const MLSignal& v);
-    void requestPropertyChange(MLSymbol p, const MLProperty& v, bool immediate = true); // TODO sort out immediate
-    
-private:
-    MLPropertySet* mpPropertyOwner;
-};
-*/
 
 #endif // __ML_PROPERTY__
 

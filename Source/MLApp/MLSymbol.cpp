@@ -70,8 +70,6 @@ bool MLSymbolKey::operator< (const MLSymbolKey & b) const
 	return r;
 }
 
-
-
 // ----------------------------------------------------------------
 #pragma mark MLSymbolTable
 
@@ -100,7 +98,6 @@ MLSymbolTable::MLSymbolTable()
 	mIndexesByID[0] = 0;
 	mStringsByID[0] = newKey.mpString;			
 }
-
 
 MLSymbolTable::~MLSymbolTable()
 {
@@ -271,7 +268,6 @@ void MLSymbolTable::audit(void)
 		MLError() << "    ID " << i << ": index "  << idx << " = " << s << ", ID = " << id << "\n";
 	}
 }
-
 
 // ----------------------------------------------------------------
 #pragma mark MLSymbol
@@ -526,7 +522,6 @@ MLSymbol MLSymbol::withFinalNumber(int n) const
 	return MLSymbol(tempBuf);
 }
 
-
 // remove any final number.
 MLSymbol MLSymbol::withoutFinalNumber() const
 {
@@ -569,7 +564,6 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 	return out;
 }
 
-
 // ----------------------------------------------------------------
 #pragma mark MLNameMaker
 
@@ -606,7 +600,4 @@ const MLSymbol MLNameMaker::nextName()
 		
 	return MLSymbol(nameStr.c_str());
 }
-
-
-
 

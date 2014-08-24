@@ -30,16 +30,12 @@ public:
 	// things to do after View is set
 	virtual void initialize();
 
-	// from MLWidget::Listener
-	void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
+	// MLWidget::Listener
+	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
 	
     // MLTEST virtual void buttonClicked (MLButton*);
  	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	virtual void menuItemChosen(MLSymbol menuName, int result);
-
-	//void dialValueChanged (MLDial*);
-	//void dialDragStarted (MLDial*);
-	//void dialDragEnded (MLDial*);
 	
 	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
 	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);

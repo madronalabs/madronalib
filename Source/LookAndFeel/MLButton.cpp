@@ -120,7 +120,6 @@ void MLButton::setFillColor(const Colour c)
 
 void MLButton::clicked ()
 {
-    if (!isEnabled() || !isVisible() || isCurrentlyBlockedByAnotherModalComponent()) return;
 	bool oldT = mToggleState;
 	bool newT = oldT;
 	if(getFloatProperty("toggle"))
@@ -129,7 +128,7 @@ void MLButton::clicked ()
 	}
 	else
 	{
-		sendAction("bang", getTargetPropertyName());
+		sendAction("click", getTargetPropertyName());
 	}
 	
 	if(oldT != newT)
@@ -142,6 +141,7 @@ void MLButton::clicked ()
 
 void MLButton::mouseDown (const MouseEvent& e)
 {
+    if (!isEnabled() || !isVisible() || isCurrentlyBlockedByAnotherModalComponent()) return;
 	mDown = true;
 	mOver = isMouseOver();
     if (mOver && mTriggerOnMouseDown)
@@ -153,6 +153,7 @@ void MLButton::mouseDown (const MouseEvent& e)
 
 void MLButton::mouseUp (const MouseEvent& e)
 {
+    if (!isEnabled() || !isVisible() || isCurrentlyBlockedByAnotherModalComponent()) return;
     const bool wasDown = mDown;
 	const bool wasOver = mOver;
 	mDown = false;
@@ -166,23 +167,8 @@ void MLButton::mouseUp (const MouseEvent& e)
 
 void MLButton::mouseDrag (const MouseEvent&)
 {
+    if (!isEnabled() || !isVisible() || isCurrentlyBlockedByAnotherModalComponent()) return;
     mOver = isMouseOver();
-}
-
-void MLButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
-{
-	debug() << "MLButton::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
-	
-	if (property == "value")
-	{
-		// translate lo / hi values back to toggle state
-		float v = val.getFloatValue();
-		mToggleState = (v > mOffValue);
-	}
-    else if(property == "highlight")
-    {
-    }
-	repaint();
 }
 
 void MLButton::resizeWidget(const MLRect& b, const int u)
@@ -199,5 +185,21 @@ void MLButton::setToggleValues(float lo, float hi)
 {
 	mOffValue = lo;
 	mOnValue = hi;
+}
+
+void MLButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+{
+	debug() << "MLButton::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
+	
+	if (property == "value")
+	{
+		// translate lo / hi values back to toggle state
+		float v = val.getFloatValue();
+		mToggleState = (v > mOffValue);
+	}
+    else if(property == "highlight")
+    {
+    }
+	repaint();
 }
 

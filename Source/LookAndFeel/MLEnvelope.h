@@ -25,6 +25,9 @@ public:
     void setDARMode(bool m) { mDARMode = m; }
 	void triggerChangeMessage (const bool synchronous);
 	void resizeWidget(const MLRect& b, const int u);
+	
+	// MLPropertyListener
+	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 
 protected:
 

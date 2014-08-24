@@ -36,13 +36,13 @@ public:
 	void mouseUp (const MouseEvent& e);
 	void mouseDrag (const MouseEvent&);
 	
-	// MLPropertyListener
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-		
-    void clicked();
+    virtual void clicked();
 	void resizeWidget(const MLRect& b, const int u);
 	void setToggleValues(float, float);
 
+	// MLPropertyListener
+	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	
 protected:
 	bool mDoRollover;
 	Image mImage;

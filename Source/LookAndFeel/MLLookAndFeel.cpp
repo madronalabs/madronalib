@@ -465,7 +465,7 @@ void MLLookAndFeel::drawButtonGlow (Graphics& g,
 }
 
 void MLLookAndFeel::drawButtonBackground (Graphics& g,
-                                        Button& button,
+                                        MLButton& button,
                                         const Colour& backgroundColour,
                                         bool , // isMouseOver
                                         bool isButtonDown,
@@ -477,20 +477,11 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
     const int width = button.getWidth();
     const int height = button.getHeight();
 
-	const int ll = button.isConnectedOnLeft();
-	const int tt = button.isConnectedOnTop();
-	const int rr = button.isConnectedOnRight();
-	const int bb = button.isConnectedOnBottom();
-
 	Colour buttonColor = backgroundColour.withAlpha(alpha);
 	Colour blineColor = findColour(outlineColor).withAlpha(alpha);
 	
 	int flair = 0;
-	if (ll) flair |= (eMLAdornTopLeft | eMLAdornBottomLeft);
-	if (tt) flair |= (eMLAdornTopRight | eMLAdornTopLeft);
-	if (rr) flair |= (eMLAdornBottomRight | eMLAdornTopRight);
-	if (bb) flair |= (eMLAdornBottomLeft | eMLAdornBottomRight);
-	if (down) 
+	if (down)
 	{
 		flair |= (eMLAdornPressed);
 	}	
@@ -515,7 +506,7 @@ void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-    g.drawFittedText (button.getStringProperty("text"),
+    g.drawFittedText (button.getStringProperty("processed_text"),
                       m, m, w, h,
                       Justification::centred, 1., 1.);
 }
@@ -535,7 +526,7 @@ void MLLookAndFeel::drawMenuButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-	g.drawFittedText (button.getStringProperty("text"),
+	g.drawFittedText (button.getStringProperty("processed_text"),
                       h/2, m, w - h, hm,
                       Justification::left, 1., 1.);
 	

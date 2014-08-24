@@ -25,24 +25,18 @@ public:
 		textColourId					= 0x1000102, 
 	};
 	
-	class Listener 
-	{
-	public:
-		virtual ~Listener() {}
-		virtual void showMenu (MLSymbol, MLSymbol) {}
-	};
-	
-    void setListener (MLMenuButton::Listener* listener) { mpListener = listener; }
+	void paint(Graphics& g);
+	void clicked();
+
 	// if true, draw left justified text with right arrow
 	void setMenuTextStyle(bool t) { mMenuTextStyle = t; }
 	
+	// MLPropertyListener
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	
 protected:
-	void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown);
-    void colourChanged();
-//	void mouseDown(const MouseEvent& e);
 
 private:
-	MLMenuButton::Listener* mpListener;
 	bool mMenuTextStyle;
 };
 

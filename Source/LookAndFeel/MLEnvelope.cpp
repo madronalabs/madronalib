@@ -158,13 +158,13 @@ void MLEnvelope::visibilityChanged()
 
 }
 
-
-
-// resize this Dial and set the track rect, from which all the other 
-// parts are calculated
 void MLEnvelope::resizeWidget(const MLRect& b, const int u)
 {
 	MLWidget::resizeWidget(b, u);
 	mOutlineThickness = u/96.f;
 }
 
+void MLEnvelope::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+{
+	repaint();
+}

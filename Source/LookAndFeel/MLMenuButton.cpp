@@ -6,83 +6,64 @@
 #include "MLMenuButton.h"
 #include "MLLookAndFeel.h"
 
-
 MLMenuButton::MLMenuButton () :
     MLButton (),
 	mMenuTextStyle(true)
 {
- 	setRepaintsOnMouseActivity(false);
+	mTriggerOnMouseDown = true;
 }
 
 MLMenuButton::~MLMenuButton()
 {
 }
 
-/*
-void MLMenuButton::setStringAttribute(MLSymbol sym, const std::string& val)
-{
-	MLWidget::setStringAttribute(sym, val);
-    if((int)getAttribute("strip") > 0)
-    {
-        setButtonText(stripExtension(getShortName(val)).c_str());	    
-    }
-    else
-    {
-        setButtonText(val.c_str());
-	}
-    repaint();
-}
-*/
-
-void MLMenuButton::paintButton (Graphics& g,
-                              bool isMouseOverButton,
-                              bool isButtonDown)
+void MLMenuButton::paint(Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (MLTextButton::buttonColourId));	
 	const Colour t (findColour (MLTextButton::textColourId));
     
-    bool isActive = getFloatProperty("value") > 0.5f;
-	/*
-    myLookAndFeel->drawButtonBackground (g, *this,
-		c,
-		isMouseOverButton,
-		isActive, mLineThickness);
-	*/
-	//MLTEST
+    myLookAndFeel->drawButtonBackground(g, *this, c, mOver, mToggleState, mLineThickness);
+	
 	if(mMenuTextStyle)
 	{
-		myLookAndFeel->drawMenuButtonText (g, *this, t);
+		myLookAndFeel->drawMenuButtonText(g, *this, t);
 	}
 	else
 	{
-		myLookAndFeel->drawButtonText (g, *this,
-			t,
-			isMouseOverButton,
-			isButtonDown);
+		myLookAndFeel->drawButtonText(g, *this, t, mOver, mDown);
 	}
 }
 
-void MLMenuButton::colourChanged()
+void MLMenuButton::clicked ()
 {
-    repaint();
+	sendAction("show_menu", getTargetPropertyName());
+	setPropertyImmediate("value", 1);
 }
 
-/*
-// make menu buttons trigger right away
-//
-void MLMenuButton::mouseDown(const MouseEvent& e)
+void MLMenuButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	Button::mouseDown(e);
-	if (mpListener)
+	debug() << "MLMenuButton::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
+	
+	if (property == "text")
 	{
-        setProperty("value", 1);
-        repaint();
-        
-		// send our Widget name to listener as menu instigator
-		mpListener->showMenu(getTargetPropertyName(), getWidgetName());
-	}	
+		std::string processedText;
+		const std::string str = val.getStringValue();
+		if(getFloatProperty("strip"))
+		{
+			processedText = stripExtension(getShortName(str));
+		}
+		else
+		{
+			processedText = str;
+		}
+		setProperty("processed_text", processedText);
+		repaint();
+	}
+	else
+	{
+		MLButton::doPropertyChangeAction(property, val);
+	}
 }
 
-*/

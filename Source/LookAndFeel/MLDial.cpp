@@ -135,12 +135,14 @@ void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 	
 	if (property == "value")
 	{
+        mParameterLayerNeedsRedraw = true;
+        mThumbLayerNeedsRedraw = true;
 	}
     else if(property == "highlight")
     {
         mParameterLayerNeedsRedraw = true;
-        repaint();
     }
+	repaint();
 }
 
 //--------------------------------------------------------------------------------

@@ -104,7 +104,7 @@ public:
 
     /** Draws the lozenge-shaped background for a standard button. */
     void drawButtonBackground (Graphics& g,
-                                       juce::Button& button,
+                                       MLButton& button,
                                        const Colour& backgroundColour,
                                        bool isMouseOverButton,
                                        bool isButtonDown,

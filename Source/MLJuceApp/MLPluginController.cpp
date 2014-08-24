@@ -105,7 +105,15 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 {
 	debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
 
-	if(action == "start_gesture")
+	if(action == "click")
+	{
+		
+	}
+	else if(action == "show_menu")
+	{
+		showMenu(targetProperty, pw->getWidgetName());
+	}
+	else if(action == "start_gesture")
 	{
 		MLPluginProcessor* const filter = getProcessor();
 		if (filter)
@@ -137,82 +145,6 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 
 
 /*
-
-// --------------------------------------------------------------------------------
-#pragma mark MLButton::Listener
-
-void MLPluginController::buttonClicked (MLButton* button)
-{
- 	const int tri = button->getAttribute("tri_button");
-    float val;
-    if(tri)
-    {        
-        val = button->getAttribute("value");
-    }
-    else
-    {
-        // TODO simplify/merge on / off states and 3-way button concepts
-        const bool state = button->getToggleState();
-        val = state ? button->getOnValue() : button->getOffValue();
-    }
-	requestPropertyChange(button->getTargetPropertyName(), val);
-}
-
-// --------------------------------------------------------------------------------
-#pragma mark MLDial::Listener	
-	
-void MLPluginController::dialDragStarted (MLDial* pSlider)
-{
-	const MLSymbol paramName = pSlider->getTargetPropertyName();
-	MLPluginProcessor* const filter = getProcessor();
-	if (filter)
-	{
-		int idx = filter->getParameterIndex(paramName);
-		if (idx > 0)
-			filter->beginParameterChangeGesture (idx);
-	}
-}
-
-void MLPluginController::dialDragEnded (MLDial* pSlider)
-{
-	const MLSymbol paramName = pSlider->getTargetPropertyName();
-	MLPluginProcessor* const filter = getProcessor();
-	if (filter)
-	{
-		int idx = filter->getParameterIndex(paramName);
-		if (idx > 0)
-			filter->endParameterChangeGesture (idx);
-	}
-}
-
-// send Dial changes to Model.
-void MLPluginController::dialValueChanged (MLDial* pD)
-{
-	const MLSymbol paramName = pD->getTargetPropertyName();
-
-	if (pD->isMultiValued())
-	{
-//			minVal = pSlider->getMinValue();
-	}
-	else
-	{
-		if (!pD->isTwoValued())
-		{
-			requestPropertyChange(paramName, pD->getValue());
-		}
-		
-		// NOT TESTED
-		if (pD->isTwoOrThreeValued())
-		{
-			const std::string paramStr = paramName.getString();
-			requestPropertyChange(MLSymbol(paramStr + "_min"), pD->getMinValue());
-			requestPropertyChange(MLSymbol(paramStr + "_max"), pD->getMaxValue());
-		}		
-	}
-
-//		debug() << "dial: " << static_cast<void *>(pSlider) << ", index " << paramIdx << 
-//			" [" << minVal << " " << val << " " << maxVal << "]\n";
-}
 
 // --------------------------------------------------------------------------------
 #pragma mark MLMultiSlider::Listener	
@@ -585,56 +517,6 @@ void MLPluginController::populateScaleMenu(const MLFileCollectionPtr fileCollect
     MLMenuPtr p = fileCollection->buildMenu();
     pMenu->appendMenu(p);
 }
-
-/*
-
-// TEST implementation TODO in v.2
-// settings menu component. just contains number and animate buttons now.
-// in the future this should contain anything that affects the plugin but
-// not its sound.  Examples would be other look and feel changes or
-// localization.
-//
-class SettingsComponent : public Component
-{
-public:
-    SettingsComponent(const String& componentName = String::empty) : Component(componentName)
-    {
-		// num display toggle
-		mNumbersButton = new MLButton("numbers");
-		mNumbersButton->setDrawName(true);
-		mNumbersButton->setBounds(10, 10, 32, 26);
-		addAndMakeVisible(mNumbersButton);
-		mComponents.add(mNumbersButton);		
-		setSize(192, 64);
-    }
-
-    ~SettingsComponent()
-    {
-    }
-	
-	void buttonClicked (Button* button)
-	{
-	debug() << "YA";
-	
-		if (button == mNumbersButton)
-		{
-			debug() << "numbers!\n";
-		}
-	}
-	
-private:
-	OwnedArray<Component> mComponents;
-	MLButton* mNumbersButton;
-};
-
-
-void MLPluginEditor::doSettingsMenu()
-{
-	SettingsComponent settings("SETTINGS");
-	MLCallOutBox callOut (settings, *mHeaderSettingsButton, this);
-	callOut.runModalLoopAsync();
-}
-*/
 
 // --------------------------------------------------------------------------------
 #pragma mark MLFileCollection::Listener
