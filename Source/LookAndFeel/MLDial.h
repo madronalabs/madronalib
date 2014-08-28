@@ -14,7 +14,6 @@
 #define __ML_DIAL_HEADER__
 
 #include "MLUI.h"
-#include "MLResponder.h"
 #include "MLWidget.h"
 #include "MLProc.h"
 #include "MLParameter.h"
@@ -38,26 +37,9 @@ friend class MLLookAndFeel;
 public:
     MLDial ();
     ~MLDial();
-	
-	/*
-	class Listener 
-	{
-	public:
-		virtual ~Listener() {}
-		virtual void dialDragStarted (MLDial* dial) = 0;
-		virtual void dialValueChanged (MLDial* dial) = 0;
-		virtual void dialDragEnded (MLDial* dial) = 0;
-	};
-	
-	void setListener (MLResponder* const pl);
-	 */
-	
-	//void setAttribute(MLSymbol attr, float val);
-	
+		
 	// MLPropertyListener
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-	
-
 	
 	enum DialStyle
     {
@@ -275,7 +257,6 @@ protected:
     void lookAndFeelChanged();
     void enablementChanged();
     void colourChanged();
-
 	
 	inline void endDrag() { dialBeingDragged = kNoDial; }
 
@@ -292,8 +273,6 @@ protected:
     float getLinearDialPos (const float value);
     void restoreMouseIfHidden();
     bool incDecDragDirectionIsHorizontal() const throw();
-	
-    //float currentValue, valueMin, valueMax;
 	
     float minimum, maximum, interval, doubleClickReturnValue;
     float valueWhenLastDragged, valueOnMouseDown;

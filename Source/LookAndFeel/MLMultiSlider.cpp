@@ -7,7 +7,6 @@
 #include "MLLookAndFeel.h"
 
 MLMultiSlider::MLMultiSlider () :
-	mpListener(0),
 	mVertical(true)
 {
 	MLWidget::setComponent(this);
@@ -30,48 +29,26 @@ MLMultiSlider::~MLMultiSlider()
 	deleteAllChildren();
 }
 
-/*
-void MLMultiSlider::setAttribute(MLSymbol attr, float val)
+void MLMultiSlider::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	static const MLSymbol valueSym("value");
+	debug() << "MLMultiSlider::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
 	
-	// debug() << "MLMultiSlider " << getWidgetName() << ":" << attr << " = " << val << "\n";
-	
-	// TODO other dial attributes?
-	
-	if (attr.withoutFinalNumber() == valueSym)
+	if (property.withoutFinalNumber() == "value")
 	{
-		int dialIdx = attr.getFinalNumber();
-		if(within(dialIdx, 0, (int)mSliderValues.size()))
-		{
-			mSliderValues[dialIdx] = val;			
-            triggerChangeMessage (false);
-			repaint();
-		}
+		repaint();
 	}
 }
-*/
 
 void MLMultiSlider::setNumSliders(int n)
 {
-	if (n > 0)
-	{
-		mSliderValues.resize(n);
-		mValueNeedsUpdate.resize(n);
-		for(int i=0; i<n; ++i)
-		{
-			mSliderValues[i] = 0.;
-			mValueNeedsUpdate[i] = false;
-		}
-		resized();
-	}
+	mNumSliders = n;
+	resized();
 }
 
-unsigned MLMultiSlider::getNumSliders()
+int MLMultiSlider::getNumSliders()
 {
-	return mSliderValues.size();
+	return mNumSliders;
 }
-
 
 void MLMultiSlider::setRange(float a, float b, float c)
 {
@@ -106,18 +83,18 @@ const MLRect MLMultiSlider::getActiveRect() const
 {
 	int w = getWidth() - kMLShadowThickness*2;
 	int h = getHeight() - kMLShadowThickness*2;
-	const unsigned dials = mSliderValues.size();
+	const int dials = getSignalProperty("value").getWidth();
 	w = getSliderWidth() * dials;
 	int x = kMLShadowThickness;
 	int y = kMLShadowThickness;
 	return MLRect(x, y, w, h);
 }
 	
-unsigned MLMultiSlider::getSliderWidth() const
+int MLMultiSlider::getSliderWidth() const
 {
 	int w = getWidth() - 16;
-	const unsigned dials = mSliderValues.size();
-	const unsigned sw = dials ? (w / dials) : 1;
+	const int dials = getSignalProperty("value").getWidth();
+	const int sw = dials ? (w / dials) : 1;
 	return sw;
 }
 	
@@ -129,26 +106,7 @@ void MLMultiSlider::paint (Graphics& g)
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
 	float outlineThickness = myLookAndFeel->getGridUnitSize() / 64.f;
 	MLRect r = mPos.getLocalOutline();
-	
-	int dials = mSliderValues.size();
-
-	const Colour outlineColor (findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f));		
-	// const Colour shadowColor (findColour(MLLookAndFeel::shadowColor).withAlpha (isEnabled() ? 1.f : 0.5f));						
-	
-	/*
- 	// draw outline shadow
-	for (int i=1; i<kMLShadowThickness; i++)
-	{
-		Path sp;
-		MLRect outRect = r;
-		outRect.expand(i);
-		sp.addRectangle(MLToJuceRect(outRect));
-		float d = (float)(kMLShadowThickness - i) / kMLShadowThickness; // 0. - 1.
-		float opacity = d * d * kMLShadowOpacity;
-		g.setColour (Colours::red);//(shadowColor.withAlpha(opacity));
-		g.strokePath (sp, PathStrokeType (1.f));	
-	}
-	*/
+	const Colour outlineColor (findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f));
 	
 	// draw fills
 	// vertical only
@@ -160,11 +118,11 @@ void MLMultiSlider::paint (Graphics& g)
 	MLRange drawRange(mRange);
 	drawRange.convertTo(MLRange(r.height(), 0.));
 	
-	for (int i=0; i<dials; ++i)
+	for (int i=0; i<mNumSliders; ++i)
 	{
 		MLRect sr = (mPos.getElementBounds(i));
 
-		dialY = drawRange(mSliderValues[i]);
+		dialY = drawRange(getFloatProperty(MLSymbol("value").withFinalNumber(i)));
 		fullRect = sr;
 		emptyRect = sr;		
 		fullRect.setTop(dialY);
@@ -193,7 +151,6 @@ void MLMultiSlider::paint (Graphics& g)
 		g.strokePath(empty, PathStrokeType (outlineThickness));
 		
 	}
-	
 }
 
 #pragma mark -
@@ -243,7 +200,7 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 	
 	int mx = clamp(e.x, (int)r.left() + 1, (int)(r.left() + w));
 	int my = clamp(e.y, (int)r.top() + 1, (int)(r.top() + h));
-	int dials = mSliderValues.size();
+	int dials = getSignalProperty("value").getWidth();
 	int s = getSliderUnderPoint(Vec2(mx, my));
 	
     if (isEnabled())
@@ -282,12 +239,12 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 					{
 						mCurrDragSlider = i;
 					}
-					setSelectedValue(snapValue (mixedval, false), i, true, true);
+					setSelectedValue(snapValue (mixedval, false), i);
 				}
 			}
 			else if (mCurrDragSlider == s) // set current drag dial
 			{
-				setSelectedValue(snapValue (val, false), s, true, true);
+				setSelectedValue(snapValue (val, false), s);
 			}
 			
 			if (s != mSliderUnderMouse)
@@ -373,26 +330,25 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& event, const MouseWheelDet
 
     if (isEnabled())
 	{
-		//int s = getSliderUnderMouse();		
 		int s = getSliderUnderPoint(Vec2(event.x, event.y));
 		if ((s >= 0) && ! isMouseButtonDownAnywhere())
 		{
-			float val, newValue;
-			val = mSliderValues[s];
+			float currentVal, newValue;
+			currentVal = getFloatProperty(MLSymbol("value").withFinalNumber(s));
 			{
 				float proportionDelta = (wheel.deltaX != 0 ? -wheel.deltaX : wheel.deltaY) * wheelSpeed; 
-				const float currentPos = valueToProportionOfLength (val);
+				const float currentPos = valueToProportionOfLength (currentVal);
 				const float n = proportionOfLengthToValue (clamp (currentPos + proportionDelta, 0.f, 1.f));
-				float diff = fabs(n - val);
-				float delta = (n != val) ? max (diff, mInterval) : 0.f;
-				if (val > n)
+				float diff = fabs(n - currentVal);
+				float delta = (n != currentVal) ? max (diff, mInterval) : 0.f;
+				if (currentVal > n)
 					delta = -delta;
- 				newValue = val + delta;
+ 				newValue = currentVal + delta;
 //printf ("X:%f, Y:%f, %f, %f, %f \n", wheel.deltaX, wheel.deltaY, proportionDelta, currentPos, newValue);
 //printf("delta: %f \n", delta);
 			}
 			mCurrDragSlider = s;
-			setSelectedValue(snapValue (newValue, false), s, true, true);
+			setSelectedValue(snapValue (newValue, false), s);
 			mCurrDragSlider = -1;
         }
     }
@@ -415,53 +371,38 @@ int MLMultiSlider::getSliderUnderMouse()
 	return r;
 } 
 
-
-void MLMultiSlider::setSelectedValue (float newValue, int selector, 
-	const bool sendUpdateMessage,
-	const bool sendMessageSynchronously)
+void MLMultiSlider::setSelectedValue (float val, int selector)
 {
-	newValue = constrainedValue (newValue);
-    if (mSliderValues[selector] != newValue)
+	MLSymbol sliderName = MLSymbol("value").withFinalNumber(selector);
+	float currentValue = getFloatProperty(sliderName);
+	float newValue = constrainedValue(val);
+
+    if (currentValue != newValue)
     {
-		mSliderValues[selector] = newValue;
-		mValueNeedsUpdate[selector] = true;
-		repaint();
-        if (sendUpdateMessage)
-		{
-            triggerChangeMessage (sendMessageSynchronously);
-		}
+		MLSymbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
+		setPropertyImmediate(sliderName, newValue);
+		sendAction("property", targetPropertyName, getProperty(sliderName));
     }
 }
 
-float MLMultiSlider::getValue(unsigned index)
+void MLMultiSlider::setWave(int w)
 {
-	float r = 0.;
-	if (index < mSliderValues.size())
-	{
-		r = mSliderValues[index];
-	}
-	return r;
-}
-
-void MLMultiSlider::setWave(unsigned w)
-{
-	unsigned dials = mSliderValues.size();
 	float val = 0.;
 	
 	MLRange vRange;
 	vRange.convertTo(mRange);
-	for (unsigned i=0; i<dials; ++i)
+	for (int i=0; i<mNumSliders; ++i)
 	{
 		switch(w)
 		{
 			case 1: // square
-				val = i <dials/2 ? 0 : 1;
+				val = i <mNumSliders/2 ? 0 : 1;
 			break;
 			case 2: // sine
-				val = sin(i * kMLTwoPi / dials)/-2. + 0.5;
+				val = sin(i * kMLTwoPi / mNumSliders)/-2. + 0.5;
 			break;
 			case 3: // saw
-				val = (float)i / (float)(dials - 1);
+				val = (float)i / (float)(mNumSliders - 1);
 			break;
 			case 4: // random
 				val = MLRand();
@@ -471,42 +412,8 @@ void MLMultiSlider::setWave(unsigned w)
 			break;
 		}	
 		val = vRange(val);
-		setSelectedValue(val, i, true, true);
+		setSelectedValue(val, i);
 	}
-}
-
-void MLMultiSlider::setListener (MLMultiSlider::Listener* const listener) throw()
-{
-    jassert (listener != 0);
-    if (listener != 0)
-        mpListener = listener;
-}
-
-//--------------------------------------------------------------------------------
-// AsyncUpdater related methods
-
-void MLMultiSlider::triggerChangeMessage (const bool synchronous)
-{
-    if (synchronous)
-        handleAsyncUpdate();
-    else
-        triggerAsyncUpdate();
-}
- 
-void MLMultiSlider::handleAsyncUpdate()
-{
-	if(!mpListener) return;
-    cancelPendingUpdate();
-	int dials = mSliderValues.size();
-
-	for(int j=0; j<dials; ++j)
-	{
-		if (mValueNeedsUpdate[j])
-		{
-			mpListener->multiSliderValueChanged(this, j);
-			mValueNeedsUpdate[j] = false;
-		}
-    }
 }
 
 //--------------------------------------------------------------------------------
@@ -521,7 +428,7 @@ void MLMultiSlider::resizeWidget(const MLRect& b, const int )
 	mPos.setBounds(b);
 	pC->setBounds(MLToJuceRectInt(mPos.getBounds()));
 
-	int s = mSliderValues.size();	
+	int s = mNumSliders;
 	mPos.setElements(s);
 	mPos.setGeometry(MLPositioner::kHorizontal); 
 	mPos.setSizeFlags(0);//(MLPositioner::kOnePixelOverlap); 

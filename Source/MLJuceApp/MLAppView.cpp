@@ -7,7 +7,7 @@
 
 const Colour defaultColor = Colours::grey;
 
-MLAppView::MLAppView(MLResponder* pResp, MLReporter* pRep) :
+MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	mDoAnimations(false),
 	mpResponder(pResp),
 	mpReporter(pRep)
@@ -41,7 +41,6 @@ void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = M
 {
 	addWidget(pW, name);
 	pW->setGridBounds(r);
-	//pW->setWidgetContainer(this);
 	pW->addListener(getResponder());
 	addAndMakeVisible(pW->getComponent());
 }
@@ -55,8 +54,6 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 {
 	MLDial* dial = new MLDial;
 	dial->setTargetPropertyName(p);
-//	dial->setListener(getResponder()); // MLTEST
-	
 	dial->setSizeMultiplier(sizeMultiplier);
 	dial->setDialStyle (MLDial::Rotary);
 	dial->setFillColor(color); 		
@@ -79,10 +76,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	MLMultiSlider* slider = new MLMultiSlider;
 	slider->setNumSliders(numSliders);
 	slider->setTargetPropertyName(paramName);
-// MLTEST	slider->setListener(getResponder());
-	
-	slider->setFillColor(color); 		
-
+	slider->setFillColor(color);
 	addWidgetToView(slider, r, paramName);
 	
 	for(int i=0; i<numSliders; ++i)
@@ -103,10 +97,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	MLMultiButton* b = new MLMultiButton;
 	b->setNumButtons(n);
 	b->setTargetPropertyName(paramName);
-// MLTEST 	b->setListener(getResponder());
-	
-	b->setFillColor(color); 		
-
+	b->setFillColor(color);
 	addWidgetToView(b, r, paramName);
 	
 	for(int i=0; i<n; ++i)
@@ -127,7 +118,6 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	MLButton* button = new MLToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setTargetPropertyName(paramName);
-// MLTEST 	button->setListener(getResponder());
 	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
 	addParamView(paramName, button, MLSymbol("value"));
@@ -146,7 +136,6 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 	MLButton* button = new MLTriToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setTargetPropertyName(paramName);
-// MLTEST 	button->setListener(getResponder());
 	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
 	addParamView(paramName, button, MLSymbol("value"));
@@ -182,7 +171,6 @@ MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * na
 {
 	MLDrawableButton* b = new MLDrawableButton;
 	b->setTargetPropertyName(name);
-// MLTEST 	b->setListener(getResponder());
 	b->setProperty("toggle", false);
 	b->setImage(normalImg);
 	addWidgetToView(b, r, name);
@@ -193,7 +181,6 @@ MLTextButton* MLAppView::addTextButton(const char * displayName, const MLRect & 
 {	
 	MLTextButton* b = new MLTextButton;
 	b->setTargetPropertyName(name);
-// MLTEST 	button->setListener(getResponder());
 	b->setProperty("toggle", false);
 	b->setFillColor(color);
 	b->setProperty("text", displayName);
@@ -205,7 +192,6 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 {	
 	MLMenuButton* b = new MLMenuButton();
 	b->setTargetPropertyName(menuName);
-// MLTEST 	button->setListener(getResponder());		
 	b->setFillColor(color);
 	b->setProperty("text", "---");
 	addWidgetToView(b, r, menuName);
@@ -288,14 +274,6 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 	MLProgressBar* pb = new MLProgressBar;
 	addWidgetToView(pb, r);
 	return pb;
-}
-
-MLWaveform* MLAppView::addWaveform(const MLRect & r, const MLSymbol paramName)
-{
-	MLWaveform* w = new MLWaveform;
-	addWidgetToView(w, r, paramName);
-	addParamView(paramName, w, MLSymbol("wave"));
-	return w;
 }
 
 void MLAppView::setAnimationsActive(bool animState)

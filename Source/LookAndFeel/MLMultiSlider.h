@@ -14,21 +14,13 @@
 
 class MLMultiSlider : 
 	public Component,
-	public MLWidget,
-    protected AsyncUpdater
+	public MLWidget
 {
 public:
 	MLMultiSlider ();
 	~MLMultiSlider();
 		
-	class Listener 
-	{
-	public:
-		virtual ~Listener() {}
-		virtual void multiSliderValueChanged (MLMultiSlider* dial, int idx) = 0;
-	};
-
-    void setListener (MLMultiSlider::Listener* const listener) throw();
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& val);
 	
     enum ColourIds
     {
@@ -41,12 +33,12 @@ public:
     };
 
 	void setNumSliders(int n);
-	unsigned getNumSliders();
+	int getNumSliders();
 	void setRange(float a, float b, float c);	
 
 	void setFillColor(const Colour& c);
 	const MLRect getActiveRect () const;
-	unsigned getSliderWidth() const;
+	int getSliderWidth() const;
 	void paint (Graphics& g);
 	//
 	float constrainedValue (float value) const throw();
@@ -62,10 +54,8 @@ public:
 	void mouseDrag (const MouseEvent& e);
     void mouseWheelMove (const MouseEvent& event, const MouseWheelDetails& wheel);
 	//
-//	void setIndexedValue (unsigned index, float newValue, const bool sendUpdateMessage, const bool sendMessageSynchronously);
-	float getValue(unsigned index);
-	void setWave(unsigned w);
-	void setSelectedValue (float newValue, int selector, const bool sendUpdateMessage = true, const bool sendMessageSynchronously = false);
+	void setWave(int w);
+	void setSelectedValue (float newValue, int selector);
  
 	int getCurrentDragSlider() {return mCurrDragSlider;}
 
@@ -79,10 +69,7 @@ private:
 	int getSliderUnderPoint(const Vec2& p);
 	int getSliderUnderMouse();
 
-	MLMultiSlider::Listener* mpListener;
-	
-	std::vector<float> mSliderValues;
-	std::vector<bool> mValueNeedsUpdate;
+	int mNumSliders;
 	MLRange mRange; 
 	float mInterval;
 	float mZeroThreshold;

@@ -89,7 +89,6 @@ public:
 
 typedef std::tr1::shared_ptr<MLPublishedOutput> MLPublishedOutputPtr;
 
-
 // for gathering stats during process()
 class MLSignalStats
 {
@@ -112,7 +111,6 @@ public:
 	int mNanSignals;
 	int mConstantSignals;
 };
-
 
 class MLContainerBase
 {
@@ -286,8 +284,6 @@ public:
 	virtual void setPublishedParam(int index, MLParamValue val);
 	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val);
 	
-	// return ptr to name where stored in map.
-	MLSymbol getTargetPropertyName(int index);
 	MLPublishedParamPtr getParamPtr(int index);
 	int getParamIndex(const MLSymbol name);
 	const std::string& getParamGroupName(int index);	

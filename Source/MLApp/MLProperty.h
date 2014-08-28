@@ -17,7 +17,7 @@
 class MLProperty
 {
 public:
-	enum eType
+	enum Type
 	{
 		kUndefinedProperty	= 0,
 		kFloatProperty	= 1,
@@ -36,20 +36,22 @@ public:
 	const float& getFloatValue() const;
 	const std::string& getStringValue() const;
 	const MLSignal& getSignalValue() const;
+	Colour getValueAsColor() const;
     
+	void setValue(const MLProperty& v);
 	void setValue(const float& v);
 	void setValue(const std::string& v);
 	void setValue(const MLSignal& v);
-	void setValue(const MLProperty& v);
+	void setValue(const Colour& v);
 	
 	bool operator== (const MLProperty& b) const;
 	bool operator!= (const MLProperty& b) const;
-	eType getType() const { return mType; }
+	Type getType() const { return mType; }
 	
 	bool operator<< (const MLProperty& b) const;
 	
 private:
-	eType mType;
+	Type mType;
 	union
 	{
 		float mFloatVal;
@@ -58,16 +60,16 @@ private:
 	}   mVal;
 };
 
-std::ostream& operator<< (std::ostream& out, const MLProperty & r);
+// utilities
 
-class MLPropertyListener;
+std::ostream& operator<< (std::ostream& out, const MLProperty & r);
 
 // MLPropertySet: a Set of Properties. Property names are stored as keys to the property map.
 
+class MLPropertyListener;
+
 class MLPropertySet
-{
-    friend class MLPropertyModifier;
-	
+{	
 public:
 	MLPropertySet();
 	virtual ~MLPropertySet();
@@ -76,6 +78,7 @@ public:
 	const float& getFloatProperty(MLSymbol p) const;
 	const std::string& getStringProperty(MLSymbol p) const;
 	const MLSignal& getSignalProperty(MLSymbol p) const;
+	Colour getColorProperty(MLSymbol p) const;
     
 	template <typename T>
 	void setProperty(MLSymbol p, T v)

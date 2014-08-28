@@ -5,7 +5,6 @@
 
 #include "MLProperty.h"
 
-// --------------------------------------------------------------------------------
 #pragma mark MLProperty
 
 MLProperty::MLProperty() :
@@ -106,6 +105,12 @@ const MLSignal& MLProperty::getSignalValue() const
 	return (mType == kSignalProperty) ? (*mVal.mpSignalVal) : nullSignal;
 }
 
+Colour MLProperty::getValueAsColor() const
+{
+	const MLSignal& sig = getSignalValue();
+	return Colour::fromFloatRGBA(sig[0], sig[1], sig[2], sig[3]);
+}
+
 void MLProperty::setValue(const float& v)
 {
 	if(mType == kUndefinedProperty)
@@ -155,6 +160,17 @@ void MLProperty::setValue(const MLProperty& v)
 	*this = v;
 }
 
+void MLProperty::setValue(const Colour& v)
+{
+	MLSignal s;
+	s.setDims(4);
+	s[0] = v.getFloatRed();
+	s[1] = v.getFloatGreen();
+	s[2] = v.getFloatBlue();
+	s[3] = v.getFloatAlpha();
+	setValue(s);
+}
+
 bool MLProperty::operator== (const MLProperty& b) const
 {
 	bool r = false;
@@ -184,6 +200,8 @@ bool MLProperty::operator!= (const MLProperty& b) const
 	return !operator==(b);
 }
 
+#pragma mark MLProperty utilities
+
 std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 {
 	switch(r.getType())
@@ -204,7 +222,6 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 	return out;
 }
 
-// --------------------------------------------------------------------------------
 #pragma mark MLPropertySet
 
 const MLProperty MLPropertySet::nullProperty;
@@ -277,6 +294,20 @@ const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
 	else
 	{
 		return nullSignal;
+	}
+}
+
+Colour MLPropertySet::getColorProperty(MLSymbol p) const
+{
+	static const MLSignal nullSignal;
+	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	if(it != mProperties.end())
+	{
+		return it->second.getValueAsColor();
+	}
+	else
+	{
+		return Colour();
 	}
 }
 

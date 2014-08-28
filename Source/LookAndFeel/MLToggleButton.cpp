@@ -16,21 +16,6 @@ MLToggleButton::~MLToggleButton()
 {
 }
 
-/*
-void MLToggleButton::setAttribute(MLSymbol attr, float val)
-{
-	static const MLSymbol valueSym("value");
-	MLWidget::setAttribute(attr, val);
-	
-	bool newState = (val == getOnValue());	
-	if (attr == valueSym)
-	{
-		// update state without notify
-        juce::Button::setToggleState(newState, false);
-	}
-}
-*/
-
 void MLToggleButton::paint(Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -97,25 +82,7 @@ void MLToggleButton::paint(Graphics& g)
 		myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight, 
 			cornerSize, buttonColor, outlineColor, mLineThickness, flair, 0., 0.);		
 	}
-		
-    /*
-	if (mImage.isValid())
-	{
-		float imageAlpha = getToggleState() ? 0.5f : 1.f;
 
-		g.setColour(findColour(MLLookAndFeel::labelColor).withMultipliedAlpha(imageAlpha));
-		
-		int ww = mImage.getWidth();
-		int hh = mImage.getHeight();
-
-		// draw image and let component clip.  
-		// workaround for garbage bug with small subrects.
-		g.drawImage(mImage, 
-			0, 0, ww, hh,
-			mImageOffset.x(), mImageOffset.y(), ww, hh,
-			true);
-	}*/
-	
 	/*
 	// TEST
 	Path bounds;

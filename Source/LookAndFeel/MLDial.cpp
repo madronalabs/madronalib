@@ -76,7 +76,6 @@ MLDial::MLDial () :
 	mParameterLayerNeedsRedraw(true),
 	mStaticLayerNeedsRedraw(true),		
 	mThumbLayerNeedsRedraw(true)
-//	mpListener(0)
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -99,39 +98,9 @@ MLDial::~MLDial()
 //--------------------------------------------------------------------------------
 // MLWidget methods
 
-/*
-void MLDial::setListener (MLResponder* const l)
-{
-    assert (l);
-    mpListener = l;
-}
-*/
-
-/*
-void MLDial::setAttribute(MLSymbol attr, float val)
-{
-	static const MLSymbol valueSym("value");
-	MLWidget::setAttribute(attr, val);
-	
-	debug() << "MLDial::setAttribute " << getWidgetName() << ":" << attr << " = " << val << "\n";
-	
-	if (attr == valueSym)
-	{
-        bool sendUpdate = false;
-		bool sync = false;
-		setValueOfDial(kMainDial, val, sendUpdate, sync);
-	}
-    else if(attr == "highlight")
-    {
-        mParameterLayerNeedsRedraw = true;
-        repaint();
-    }
-}
-*/
-
 void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	// debug() << "MLDial::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
+	debug() << "MLDial::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
 	
 	if (property == "value")
 	{
@@ -139,6 +108,10 @@ void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
         mThumbLayerNeedsRedraw = true;
 	}
     else if(property == "highlight")
+    {
+        mParameterLayerNeedsRedraw = true;
+    }
+    else if(property == "highlight_color")
     {
         mParameterLayerNeedsRedraw = true;
     }
@@ -223,7 +196,6 @@ void MLDial::setWarpMode(const JucePluginParamWarpMode w)
 {	
 	mWarpMode = w;
 }
-
 
 void MLDial::setRange (const float newMin,
                        const float newMax,
@@ -364,7 +336,6 @@ float MLDial::getValueFromText (const String& text)
             .getDoubleValue();
 }
 
-// TODO get value using Parameter
 float MLDial::proportionOfLengthToValue (float proportion)
 {
 	float min = getMinimum();
@@ -481,15 +452,12 @@ unsigned MLDial::nearestDetent (float attemptedValue) const
 	return r;
 }
 
-//==============================================================================
-
 void MLDial::valueChanged()
 {
 	mParameterLayerNeedsRedraw = true;
 	mThumbLayerNeedsRedraw = true;
 }
 
-//==============================================================================
 void MLDial::enablementChanged()
 {
 	repaintAll();
@@ -609,9 +577,7 @@ float MLDial::getPositionOfValue (const float value)
     }
 }
 
-#pragma mark -
 #pragma mark paint
-//==============================================================================
 
 void MLDial::paint (Graphics& g)
 {
@@ -1001,8 +967,8 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 			const float m = mLineThickness*6.;
 			const float mh = m / 2.;
             Path track;
-// MLTEST            Colour hc = getColorAttribute("highlight_color");
-//			pg.setColour (hc);
+			Colour hc = getColorProperty("highlight_color");
+			pg.setColour (hc);
             track.addArc(rx1-mh, ry1-mh, mDiameter+m, mDiameter+m, 0.f, kMLTwoPi, true);
             pg.strokePath (track, PathStrokeType(m));			
 		}
@@ -1330,9 +1296,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 				 && minimum <= doubleClickReturnValue
 				 && maximum >= doubleClickReturnValue)
 			{
-				sendAction("start_gesture", getTargetPropertyName());
 				setPropertyImmediate ("value", doubleClickReturnValue);
-				sendAction("end_gesture", getTargetPropertyName());
 			}
 			return;
 		}

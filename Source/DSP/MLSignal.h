@@ -56,7 +56,6 @@ extern const MLSample kMLSignalEndSamples[4];
 // This allows optimizations to take place downstream, and does not require 
 // conditionals in loops to read the signal.
 
-
 class MLSignal 
 {	
 public:

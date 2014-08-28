@@ -8,10 +8,9 @@
 
 #include "JuceHeader.h"
 #include "MLUIBinaryData.h"
-#include "MLResponder.h"
 #include "MLReporter.h"
 #include "MLWidgetContainer.h"
-//#include "MLDial.h"
+
 #include "MLButton.h"
 #include "MLPanel.h"
 #include "MLDrawing.h"
@@ -24,7 +23,6 @@
 #include "MLMultiSlider.h"
 #include "MLLookAndFeel.h"
 #include "MLEnvelope.h"
-#include "MLWaveform.h"
 #include "MLProgressBar.h"
 #include "MLGraph.h"
 #include "MLDebugDisplay.h"
@@ -43,7 +41,7 @@ class MLAppView :
 	public MLWidgetContainer
 {
 public:
-	MLAppView(MLResponder* pResp, MLReporter* pRep);
+	MLAppView(MLWidget::Listener* pResp, MLReporter* pRep);
     ~MLAppView();
 
 	virtual bool isWidgetContainer(void) { return true; }
@@ -87,7 +85,6 @@ public:
 
 	MLDrawing* addDrawing(const MLRect & r);
 	MLProgressBar* addProgressBar(const MLRect & r);
-	MLWaveform* addWaveform(const MLRect & r, const MLSymbol paramName);
 
 	// animations
 	void setAnimationsActive(bool animState);
@@ -95,13 +92,13 @@ public:
 	void resized();
 	void setPeerBounds(int x, int y, int w, int h);
 	
-	inline MLResponder* getResponder() { return mpResponder; }
+	inline MLWidget::Listener* getResponder() { return mpResponder; }
 	inline MLReporter* getReporter() { return mpReporter; }
 
 protected:
 	float mGridUnitSize;	
 	bool mDoAnimations;	
-	MLResponder* mpResponder;
+	MLWidget::Listener* mpResponder;
 	MLReporter* mpReporter;
 
 private:

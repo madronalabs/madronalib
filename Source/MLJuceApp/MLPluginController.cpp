@@ -6,7 +6,7 @@
 #include "MLPluginController.h"
 
 MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
-	MLResponder(),
+	MLWidget::Listener(),
 	MLReporter(pProcessor),
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),

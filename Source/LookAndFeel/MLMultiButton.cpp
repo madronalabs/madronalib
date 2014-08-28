@@ -6,8 +6,7 @@
 #include "MLMultiButton.h"
 #include "MLLookAndFeel.h"
 
-MLMultiButton::MLMultiButton () :
-	mpListener(0)
+MLMultiButton::MLMultiButton()
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -27,48 +26,24 @@ MLMultiButton::~MLMultiButton()
 	deleteAllChildren();
 }
 
-/*
-void MLMultiButton::setAttribute(MLSymbol attr, float val)
+void MLMultiButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	static const MLSymbol valueSym("value");
-	
-	// debug() << "MLMultiButton " << getWidgetName() << ":" << attr << " = " << val << "\n";
-	
-	// TODO other multibutton attributes?
-	
-	if (attr.withoutFinalNumber() == valueSym)
+	if (property.withoutFinalNumber() == "value")
 	{
-		int bIdx = attr.getFinalNumber();
-		if(within(bIdx, 0, (int)mButtonValues.size()))
-		{
-			mButtonValues[bIdx] = val;			
-            triggerChangeMessage (false);
-			repaint();
-		}
+		repaint();
 	}
 }
 
-*/
-
 void MLMultiButton::setNumButtons(int n)
 {
-	if (n > 0)
-	{
-		mButtonValues.resize(n);
-		mValueNeedsUpdate.resize(n);
-		for(int i=0; i<n; ++i)
-		{
-			mButtonValues[i] = 0.;
-			mValueNeedsUpdate[i] = false;
-		}
-	}
+	mNumButtons = n;
+	resized();
 }
 
 unsigned MLMultiButton::getNumButtons()
 {
-	return mButtonValues.size();
+	return mNumButtons;
 }
-
 
 // the colors for different MLDial parts are generated algorithmically.
 void MLMultiButton::setFillColor (const Colour& c)
@@ -97,8 +72,7 @@ void MLMultiButton::paint (Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
-	int buttons = mButtonValues.size();
-    
+
     // colors
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));
 	const Colour onColor (findColour (MLMultiButton::buttonOnColourId));
@@ -117,9 +91,9 @@ void MLMultiButton::paint (Graphics& g)
 	// draw buttons
 	// TODO use ImageBank
 	//
-	for (int i=0; i<buttons; ++i)
+	for (int i=0; i<mNumButtons; ++i)
 	{
-		on = mButtonValues[i];
+		on = getFloatProperty(MLSymbol("value").withFinalNumber(i));
 		down = ((i == mButtonUnderMouse) && (mCurrDragButton >= 0));
 
 		flair = eMLAdornShadow | eMLAdornGlow;
@@ -145,9 +119,9 @@ void MLMultiButton::mouseDown (const MouseEvent& e)
     if (isEnabled())
     {		
 		mCurrDragButton = getButtonUnderPoint(e.getPosition());
-		if(within(mCurrDragButton, 0, (int)mButtonValues.size()))
+		if(within(mCurrDragButton, 0, mNumButtons))
 		{
-			bool val = mButtonValues[mCurrDragButton];
+			bool val = getFloatProperty(MLSymbol("value").withFinalNumber(mCurrDragButton));
 	//		val = !val;
 			mCurrDragValue = val;
 	//		setIndexedValue(mCurrDragButton, val, true, true);		
@@ -165,7 +139,7 @@ void MLMultiButton::mouseUp (const MouseEvent&)
 	{
 		if(!mMovedInDrag) // no movement, toggle drag start button 
 		{
-			setSelectedValue(!mCurrDragValue, mCurrDragButton, true, true);
+			setSelectedValue(!mCurrDragValue, mCurrDragButton);
 		}
 		
 		mCurrDragButton = -1;
@@ -199,12 +173,11 @@ void MLMultiButton::mouseExit (const MouseEvent& )
 void MLMultiButton::mouseDrag(const MouseEvent& e)
 {
 	int b = getButtonUnderPoint(Point<int>(e.x, e.y));
-	int buttons = mButtonValues.size();
 	
     if (isEnabled())
     {		
 //debug() << "drag:" << mx << "," << my << "dial " << s << "\n";
-		if (within(b, 0, buttons))
+		if (within(b, 0, mNumButtons))
 		{
 //			const int mousePos = isHorizontal() ? mx : my;
 			
@@ -220,7 +193,7 @@ void MLMultiButton::mouseDrag(const MouseEvent& e)
 				int dir = sign(span);
 				for(int i=mCurrDragButton; i != b + dir; i += dir)
 				{
-					setSelectedValue(!mCurrDragValue, i, true, true);
+					setSelectedValue(!mCurrDragValue, i);
 				}
 			}
 
@@ -248,65 +221,19 @@ int MLMultiButton::getButtonUnderMouse()
 } 
 */
 
-void MLMultiButton::setSelectedValue (float newValue, int selector, 
-	const bool sendUpdateMessage,
-	const bool sendMessageSynchronously)
+void MLMultiButton::setSelectedValue (float val, int selector)
 {
-	if(!within(selector, 0, (int)mButtonValues.size())) return;
-    if (mButtonValues[selector] != newValue)
+	MLSymbol buttonName = MLSymbol("value").withFinalNumber(selector);
+	float currentValue = getFloatProperty(buttonName);
+	float newValue = clamp(val, 0.f, 1.f);
+	
+    if (currentValue != newValue)
     {
-		mButtonValues[selector] = newValue;
-		mValueNeedsUpdate[selector] = true;
-		repaint();
-        if (sendUpdateMessage)
-		{
-            triggerChangeMessage (sendMessageSynchronously);
-		}
+		MLSymbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
+		setPropertyImmediate(buttonName, newValue);
+		sendAction("property", targetPropertyName, getProperty(buttonName));
     }
 }
-
-float MLMultiButton::getValue(unsigned index)
-{
-	float r = 0.;
-	if (index < mButtonValues.size())
-	{
-		r = mButtonValues[index];
-	}
-	return r;
-}
-
-void MLMultiButton::setListener (MLMultiButton::Listener* const pL)
-{
-	mpListener = pL;
-}
-//--------------------------------------------------------------------------------
-// AsyncUpdater related methods
-
-void MLMultiButton::triggerChangeMessage (const bool synchronous)
-{
-    if (synchronous)
-        handleAsyncUpdate();
-    else
-        triggerAsyncUpdate();
-}
- 
-void MLMultiButton::handleAsyncUpdate()
-{
-	if(!mpListener) return;
-    cancelPendingUpdate();
-	int buttons = mButtonValues.size();
-
-	for (int j=0; j<buttons; ++j)
-	{
-		if (mValueNeedsUpdate[j])
-		{
-			mpListener->multiButtonValueChanged(this, j);
-			mValueNeedsUpdate[j] = false;
-		}
-	}
-}
-
-
 
 #pragma mark -
 
@@ -316,8 +243,7 @@ void MLMultiButton::resizeWidget(const MLRect& b, const int u)
 	mPos.setBounds(b);
 	pC->setBounds(MLToJuceRectInt(mPos.getBounds()));
 
-	int buttons = mButtonValues.size();	
-	mPos.setElements(buttons);
+	mPos.setElements(mNumButtons);
 	mPos.setGeometry(mGeometry); 
 	mPos.setSizeFlags(mSizeFlags);
 	mPos.setMargin(mMarginFraction);	

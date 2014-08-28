@@ -8,7 +8,7 @@
 // --------------------------------------------------------------------------------
 #pragma mark page view
 
-MLPageView::MLPageView(MLResponder* pResp, MLReporter* pRep) :
+MLPageView::MLPageView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	MLAppView(pResp, pRep),
     mpParent(0),
 	mCurrPage(-1)

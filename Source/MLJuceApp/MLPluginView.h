@@ -11,7 +11,6 @@
 #include "MLPluginProcessor.h"
 #include "MLAppView.h"
 #include "MLPageView.h"
-#include "MLResponder.h"
 #include "MLDrawing.h"
 
 // view for looking at changes of plugins. 

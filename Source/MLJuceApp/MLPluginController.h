@@ -7,14 +7,13 @@
 #define __ML_PLUGINCTRLR_H__
 
 #include "MLProjectInfo.h"
-#include "MLResponder.h"
 #include "MLReporter.h"
 #include "MLSignalReporter.h"
 #include "MLAppView.h"
 #include "MLPluginEditor.h"
 
 class MLPluginController : 
-	public MLResponder,
+	public MLWidget::Listener,
 	public MLReporter,
 	public MLSignalReporter,
     public MLPluginProcessor::Listener,
@@ -33,12 +32,11 @@ public:
 	// MLWidget::Listener
 	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
 	
-    // MLTEST virtual void buttonClicked (MLButton*);
  	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	virtual void menuItemChosen(MLSymbol menuName, int result);
 	
 	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-	void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
+	// void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
     
     // MLPluginProcessor::Listener
     void scaleFilesChanged(const MLFileCollectionPtr fileCollection);

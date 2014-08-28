@@ -20,13 +20,9 @@
 #include "MLLookAndFeel.h"
 #include "MLMultiButton.h"
 #include "MLEnvelope.h"
-
 #include "MLDefaultFileLocations.h"
 #include "MLJuceFilesMac.h"
-
-
 #include "MLAppView.h"
-#include "MLResponder.h"
 
 #pragma mark page view
 
@@ -35,7 +31,7 @@ class MLPageView :
 	public ChangeListener
 {
 public:
-    MLPageView(MLResponder* pResp, MLReporter* pRep);
+    MLPageView(MLWidget::Listener* pResp, MLReporter* pRep);
 	~MLPageView();
 
 	void resized();

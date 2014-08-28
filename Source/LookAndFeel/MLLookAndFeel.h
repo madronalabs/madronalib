@@ -206,7 +206,6 @@ public:
     /** Returns the length in pixels to use for a scrollbar button. */
     int getScrollbarButtonSize (ScrollBar& scrollbar);
 
-
     //==============================================================================
     /** Draws the + or - box in a treeview. */
 	void drawTreeviewPlusMinusBox (Graphics& g, int x, int y, int w, int h, bool isPlus, bool isMouseOver);

@@ -13,24 +13,16 @@
 #include "MLPositioner.h"
 #include <vector>
 
-class MLMultiButton;
-
-class MLMultiButtonListener 
-{
-public:
-    virtual ~MLMultiButtonListener() {}
-    virtual void multiButtonValueChanged (MLMultiButton* b, int button) = 0;
-};
-
 class MLMultiButton :
 	public Component,
-	public MLWidget,
-    protected AsyncUpdater
+	public MLWidget
 {
 public:
 	MLMultiButton ();
 	~MLMultiButton();
 	
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& val);
+
     enum ColourIds
     {
         buttonOnColourId                = 0x1018000,  
@@ -38,15 +30,6 @@ public:
         textColourId                    = 0x1018002
     };
 		
-	class Listener 
-	{
-	public:
-		virtual ~Listener() {}
-		virtual void multiButtonValueChanged (MLMultiButton* , int ) = 0;
-	};
-	
-	void setListener (MLMultiButton::Listener* const listener);
-
 	void setNumButtons(int n);
 	unsigned getNumButtons();
 	void setFillColor(const Colour& c);	
@@ -61,13 +44,7 @@ public:
 	void mouseDrag (const MouseEvent& e);
 	//
 
-	void setSelectedValue (float newValue, int selector, const bool sendUpdateMessage = true, const bool sendMessageSynchronously = false);
-	
-	float getValue(unsigned index);
-
-
-	void triggerChangeMessage (const bool synchronous);
-	void handleAsyncUpdate();
+	void setSelectedValue (float newValue, int selector);
 
 	void setGeometry(const MLPositioner::Geometry g) { mGeometry = g; }
 	void setSizeFlags(const int f) { mSizeFlags = (MLPositioner::SizeFlags)f; }
@@ -79,9 +56,7 @@ private:
 	int getButtonUnderPoint(const Point<int>& p);
 	int getButtonUnderMouse();
 
- 	Listener* mpListener;
-	std::vector<int> mButtonValues;
-	std::vector<int> mValueNeedsUpdate;
+	int mNumButtons;
 	int mButtonUnderMouse;
 	int mCurrDragButton;
 	float mCurrDragValue;

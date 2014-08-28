@@ -22,27 +22,6 @@ MLPropertyView::~MLPropertyView()
 void MLPropertyView::view(const MLProperty& p) const
 {
 	mpWidget->setPropertyImmediate(mAttr, p);
-
-	/*
-	// with Widget properties we can remove switch! TODO
-
-	switch(p.getType())
-	{
-		case MLProperty::kUndefinedProperty:
-			break;
-		case MLProperty::kFloatProperty:
-			mpWidget->setAttribute(mAttr, p.getFloatValue());
-			
-			break;
-			
-		case MLProperty::kStringProperty:
-			mpWidget->setStringAttribute(mAttr, *p.getStringValue());
-			break;
-		case MLProperty::kSignalProperty:
-			mpWidget->setSignalAttribute(mAttr, *p.getSignalValue());
-			break;
-	}
-	 */
 }
 
 // --------------------------------------------------------------------------------
@@ -57,11 +36,8 @@ MLReporter::~MLReporter()
 {
 }
 
-// ----------------------------------------------------------------
-// parameter viewing
-
-// add a parameter view. 
-// when param p changes, attribute attr of Widget w will be set to the param's value.
+// add a view.
+// when property p changes, property attr of Widget w will be set to the new property's value.
 //
 void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 {
@@ -70,7 +46,7 @@ void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
 
 void MLReporter::doPropertyChangeAction(MLSymbol prop, const MLProperty& newVal)
 {
-	// do we have viewers for this parameter?
+	// do we have viewers for this property?
 	MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(prop);
 	if (look != mPropertyViewsMap.end())
 	{		

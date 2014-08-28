@@ -1731,23 +1731,6 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 // ----------------------------------------------------------------
 #pragma mark engine params
 
-
-MLSymbol MLProcContainer::getTargetPropertyName(int index)
-{	
-	const int size = (int)mPublishedParams.size();
-	if (index < size)
-	{
-		MLPublishedParamPtr p = mPublishedParams[index];
-		return p->getAlias();
-//		debug() << "param " << index << " is called " << r << ".\n";
-	}
-	else
-	{
-		debug() << "MLProcContainer::getTargetPropertyName: param " << index << " not found in container " << getName() << "!\n";
-	}
-	return MLSymbol();
-}
-
 MLPublishedParamPtr MLProcContainer::getParamPtr(int index)
 {
 	MLPublishedParamPtr p;
