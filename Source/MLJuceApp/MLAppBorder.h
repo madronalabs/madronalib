@@ -10,7 +10,7 @@
 #include "MLAppView.h"
 #include "MLBoundsConstrainer.h"
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLAppBorder
 // a component for resizing other components nicely
 //

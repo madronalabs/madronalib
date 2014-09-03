@@ -158,7 +158,7 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark -- parameters
 	// 
-	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias) = 0;
+	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type) = 0;
 	virtual void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param) = 0;
 	virtual void setPublishedParam(int index, MLParamValue val) = 0;
 	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val) = 0;
@@ -279,7 +279,7 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark parameters
 	// 
-	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias);
+	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type);
 	virtual void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param);
 	virtual void setPublishedParam(int index, MLParamValue val);
 	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val);

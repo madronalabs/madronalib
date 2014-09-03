@@ -44,6 +44,9 @@ public:
 	MLPluginProcessor();
     ~MLPluginProcessor();
 	
+	// MLModel
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+    
 	bool hasEditor() const { return true; }
 	AudioProcessorEditor* createEditor();
     void editorResized(int w, int h);
@@ -100,11 +103,7 @@ public:
 	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
 	const std::string& getParameterGroupName (int index);
 
-	// MLModel
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-    
 	// signals
-	
 	int countSignals(const MLSymbol alias);
 	unsigned readSignal(const MLSymbol alias, MLSignal& outSig);
 	

@@ -1199,7 +1199,7 @@ Label* MLLookAndFeel::createComboBoxTextBox (ComboBox&)
     return new Label (String::empty, String::empty);
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark TreeView
 
 
@@ -1234,7 +1234,7 @@ bool MLLookAndFeel::areLinesDrawnForTreeView (TreeView&) { return true; }
 int MLLookAndFeel::getTreeViewIndentSize (TreeView&) { return kMLTreeViewItemSize; }
 
 
-// --------------------------------------------------------------------------------
+
 #pragma mark TreeViewItem, file browser
 
 void MLLookAndFeel::drawFileBrowserRow (Graphics& g, int width, int height,
@@ -2190,7 +2190,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
     
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark -
 #pragma mark alerts
 //
@@ -2268,7 +2268,7 @@ Font MLLookAndFeel::getAlertWindowFont()
     return getFont(eMLNotice);
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark -
 //
 
@@ -2498,7 +2498,7 @@ const Font & MLLookAndFeel::getFont(int style)
 
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark drawing resources
 //
 

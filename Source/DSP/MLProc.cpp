@@ -7,7 +7,7 @@
 
 const MLParamValueAliasVec MLProcInfoBase::kMLProcNullAliasVec;
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLProc
 
 MLProc::MLProc() :
@@ -183,9 +183,11 @@ MLParamValue MLProc::getParam(const MLSymbol pname)
 }
   
 void MLProc::setParam(const MLSymbol pname, MLParamValue f) 
-{	
-	// TODO post changes to be called by container
-	procInfo().setParam(pname, f); 
+{
+	// TODO rather than setting directly here, the enclosing MLDSPContext can store a list of changes
+	// to take effect before the next process() call. This way all the [if (mParamsChanged) doParams();]
+	// code can be moved out of process() methods.
+	procInfo().setParam(pname, f);
 	mParamsChanged = true;
 }
 
@@ -375,8 +377,6 @@ void MLProc::dumpParams()
 	debug() << "\n";
 }
 
-
-	
 // TODO null signals function but are not printed out quite right
 // because sometimes the parent's null signal is used and sometimes not
 void MLProc::dumpProc(int indent)

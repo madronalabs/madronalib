@@ -15,12 +15,7 @@ MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
-
 	setOpaque(false);
-//	setOpaque(myLookAndFeel->getDefaultOpacity());
-//	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
-//	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
-	
 	setInterceptsMouseClicks (false, true);
 }
 
@@ -45,7 +40,7 @@ void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = M
 	addAndMakeVisible(pW->getComponent());
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark component add utility methods
 //
 
@@ -151,11 +146,8 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 MLPanel* MLAppView::addPanel(const MLRect & r, const Colour& color)
 {
 	MLPanel* b = new MLPanel;
-	
 	b->setBackgroundColor(color);
-
 	addWidgetToView(b, r);
-
 	return b;
 }
 
@@ -282,7 +274,7 @@ void MLAppView::setAnimationsActive(bool animState)
 	mDoAnimations = animState;
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark resize
 //
 

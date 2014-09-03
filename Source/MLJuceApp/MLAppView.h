@@ -48,7 +48,7 @@ public:
 
 	// setup view for param p as attr of widget.
 	void addParamView(MLSymbol p, MLWidget* w, MLSymbol attr);
-	
+
 	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);
 	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize);	
 

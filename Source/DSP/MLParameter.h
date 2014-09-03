@@ -13,6 +13,7 @@
 #include "MLDSP.h"
 #include "MLSymbol.h"
 #include "MLPath.h"
+#include "MLSignal.h"
 
 // ----------------------------------------------------------------
 #pragma mark Parameter Definitions
@@ -58,18 +59,21 @@ private:
 	
 public:
 	
-	MLPublishedParam(const MLPath & address, const MLSymbol name, const MLSymbol alias, int idx);
+	MLPublishedParam(const MLPath & address, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx);
 	~MLPublishedParam();
 	
 	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, 
 		bool log, MLParamValue zt);
 	void addAddress(const MLPath & address, const MLSymbol name);
 
-	MLParamValue getValue(void);
-	MLParamValue setValue(MLParamValue val);
+	MLParamValue getValue();
+	MLParamValue constrainValue(MLParamValue val);
 	MLParamValue getValueAsLinearProportion() const;
 	MLParamValue setValueAsLinearProportion (MLParamValue p);
-
+	
+//	const MLSignal& getSignalValue() { return mSignalValue; }
+//	void setSignalValue(const MLSignal& sig) { mSignalValue = sig; }
+	
 	unsigned getIndex(void) { return mIndex; }
 	MLParamValue getRangeLo(void) const { return mRangeLo; }
 	MLParamValue getRangeHi(void) const { return mRangeHi; }
@@ -92,9 +96,14 @@ protected:
 	void setDefault(MLParamValue val);
 	
 private:
-	std::list<ParamAddress> mAddresses;	
+	std::list<ParamAddress> mAddresses;
+	
+	// values: TODO use properties of Procs only
 	MLParamValue mValue;
+	MLSignal mSignalValue;
+	
 	MLSymbol mAlias;
+	MLSymbol mType;
 	unsigned mIndex;
 	MLParamValue mRangeLo;
 	MLParamValue mRangeHi;

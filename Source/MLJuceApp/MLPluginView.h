@@ -22,8 +22,6 @@ public:
 	MLPluginView(MLPluginProcessor* const pProcessor, MLPluginController* pR);
     ~MLPluginView();
 	
-//	void paint(Graphics& g);
-
 	void setGridUnits(double gx, double gy);
 	void setContent(MLAppView* contentView);
 
@@ -58,21 +56,9 @@ private:
     // (prevent copy constructor and operator= being generated..)
     MLPluginView (const MLPluginView&);
     const MLPluginView& operator= (const MLPluginView&);
-
 	
-	int mWrapperFormat;
-	
+	int mWrapperFormat;	
 };
-
-// --------------------------------------------------------------------------------
-// component setter functions
-//
-void setSliderValue(Component* comp, float val, int selector);
-void setMultiSliderValue(Component* comp, float val, int selector);
-void setMultiButtonValue(Component* comp, float val, int selector);
-void setEnvelopeValue(Component* comp, float val, int selector);
-void setButtonToggleState(Component* comp, float val, int selector);
-
 
 
 

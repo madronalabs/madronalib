@@ -27,7 +27,7 @@ void MLAppState::timerCallback()
 	updateChangedProperties();
 }
 
-// --------------------------------------------------------------------------------
+
 // MLPropertyListener implementation
 // an updateChangedProperties() is needed to get these actions sent by the Model.
 //
@@ -38,7 +38,7 @@ void MLAppState::doPropertyChangeAction(MLSymbol p, const MLProperty & val)
 	//debug() << "MLAppState::doPropertyChangeAction: " << p << " to " << val << "\n";
 }
 
-// --------------------------------------------------------------------------------
+
 
 void MLAppState::saveState()
 {
@@ -141,7 +141,7 @@ void MLAppState::saveState()
 	}
 }
 
-// --------------------------------------------------------------------------------
+
 // JSON parser (to move)
 //
 

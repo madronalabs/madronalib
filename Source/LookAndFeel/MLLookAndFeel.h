@@ -285,7 +285,7 @@ public:
 
     Label* createComboBoxTextBox (ComboBox& box);
 
-    // --------------------------------------------------------------------------------
+    
     #pragma mark TreeView
 
     void drawTreeviewPlusMinusBox (Graphics&, const juce::Rectangle<float>& area,
@@ -299,7 +299,7 @@ public:
                                             const String& fileTimeDescription,
                                             const bool isDirectory, const bool isItemSelected,
                              const int /*itemIndex*/, DirectoryContentsDisplayComponent& dcc);
-    // --------------------------------------------------------------------------------
+    
 
     juce::Button* createDialButton (const bool isIncrement);
     ImageEffectFilter* getDialEffect();

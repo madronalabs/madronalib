@@ -25,6 +25,12 @@ MLEnvelope::~MLEnvelope()
 {
 }
 
+void MLEnvelope::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+{
+	debug() << "MLEnvelope::doPropertyChangeAction " << property << " -> " << val << "\n";
+	repaint();
+}
+
 void MLEnvelope::lookAndFeelChanged()
 {
 	setInterceptsMouseClicks(false, false);
@@ -162,9 +168,4 @@ void MLEnvelope::resizeWidget(const MLRect& b, const int u)
 {
 	MLWidget::resizeWidget(b, u);
 	mOutlineThickness = u/96.f;
-}
-
-void MLEnvelope::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
-{
-	repaint();
 }

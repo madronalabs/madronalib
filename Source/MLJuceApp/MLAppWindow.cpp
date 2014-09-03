@@ -5,7 +5,7 @@
 
 #include "MLAppWindow.h" 
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLAppWindow
 
 MLAppWindow::MLAppWindow()

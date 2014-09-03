@@ -6,9 +6,6 @@
 #include "MLWidget.h"
 #include "MLDebug.h"
 
-// static const std::string kNullStr;
-// static const MLSignal kNullSignal;
-
 MLWidget::MLWidget() :
 	MLPropertyListener(this),
 	mGridBounds(),
@@ -32,7 +29,6 @@ MLWidget::~MLWidget()
 
 void MLWidget::addListener(MLWidget::Listener* pL)
 {
-	debug() << "MLWidget " << getWidgetName() << " : ADDING listener \n";
 	mpListeners.push_back(pL);
 }
 
@@ -46,81 +42,7 @@ void MLWidget::sendAction(MLSymbol msg, MLSymbol targetProperty, const MLPropert
 	}
 }
 
-/*
-void MLWidget::setAttribute(MLSymbol attr, float val)
-{
-	mAttributes[attr] = val;
-}
 
-void MLWidget::setStringAttribute(MLSymbol attr, const std::string& val)
-{
-	mStringAttributes[attr] = val;
-}
-
-void MLWidget::setSignalAttribute(MLSymbol attr, const MLSignal& val)
-{
-	mSignalAttributes[attr] = val;
-}
-
-void MLWidget::setColorAttribute(MLSymbol attr, juce::Colour c)
-{
-    MLSignal colorSig;
-    colorSig.setDims(4);
-    colorSig[0] = c.getHue();
-    colorSig[1] = c.getSaturation();
-    colorSig[2] = c.getBrightness();
-    colorSig[3] = c.getFloatAlpha();
-	mSignalAttributes[attr] = colorSig;
-}
-*/
-/*
-// --------------------------------------------------------------------------------
-// protected attribute getters, to be used only by subclasses.
-
-float MLWidget::getAttribute(MLSymbol attr) const
-{
-	float result = 0.;
-	std::map<MLSymbol, float>::const_iterator look = mAttributes.find(attr);
-	if(look != mAttributes.end())
-	{
-		result = (look->second);
-	}
-	return result;
-}
-
-const std::string& MLWidget::getStringAttribute(MLSymbol attr) const
-{
-	std::map<MLSymbol, std::string>::const_iterator look = mStringAttributes.find(attr);
-	if(look != mStringAttributes.end())
-	{
-		return look->second;
-	}
-	return kNullStr;
-}
-
-const MLSignal& MLWidget::getSignalAttribute(MLSymbol attr) const
-{
-	std::map<MLSymbol, MLSignal>::const_iterator look = mSignalAttributes.find(attr);
-	if(look != mSignalAttributes.end())
-	{
-		return look->second;
-	}
-	return kNullSignal;
-}
-
-juce::Colour MLWidget::getColorAttribute(MLSymbol attr) const
-{
-    float h, s, v, a;
-    const MLSignal& colorSig = getSignalAttribute(attr);
-    h = colorSig[0];
-    s = colorSig[1];
-    v = colorSig[2];
-    a = colorSig[3];
-    return juce::Colour::fromHSV(h, s, v, a);
-}
-*/
-
-// --------------------------------------------------------------------------------
 
 // TODO this looks pretty bad! A Widget should not have its own context. There should
 // be something like a Scene object that draws a bunch of GL Widgets.
@@ -155,7 +77,7 @@ int MLWidget::getBackingLayerHeight() const
     return getComponent()->getHeight() * getRenderingScale();
 }
 
-// --------------------------------------------------------------------------------
+
 
 void MLWidget::setGridBounds(const MLRect& p)
 {

@@ -80,7 +80,6 @@ template <class MLProcSubclass>
 class MLProcInfo : public MLProcInfoBase
 {
 public:
-//friend class MLProcContainer;
 friend class MLProcFactory;
 
 	MLProcInfo()
@@ -105,6 +104,7 @@ friend class MLProcFactory;
         MLParamValue* paramToSet = mParams[paramName];
         if (paramToSet != mParams.getNullElement())
         {
+			// TODO allow proc params to have String and Signal values.
             *paramToSet = value;
         }
         else
@@ -221,9 +221,8 @@ private:
 };
 
 // an MLProcParam creates a single indexed parameter that is shared by all
-// instances of an MLProc subclass.  This is written as a class only so that
-// class parameters can be set up at static initialization time.  It's really
-// a function that happens to be called by a constructor.
+// instances of an MLProc subclass.  This is written as a class so that
+// parameters for each MLProc subclass can be set up at static initialization time.
 template <class MLProcSubclass>
 class MLProcParam
 {
@@ -467,7 +466,7 @@ protected:
 	
 protected:
 	MLDSPContext* mpContext;		// set by our enclosing context to itself on creation
-	bool mParamsChanged;			// set by setParam() // TODO  container stores list of changes
+	bool mParamsChanged;			// set by setParam() // TODO Context stores list of changes
 
 	// pointers to input signals.  A subclass of MLProc will get data from these
 	// signals directly in its process() method.  A subclass of MLProcContainer
@@ -486,7 +485,6 @@ typedef MLProcList::iterator MLProcListIterator;
 
 // ----------------------------------------------------------------
 #pragma mark factory
-
 
 class MLProcFactory
 {

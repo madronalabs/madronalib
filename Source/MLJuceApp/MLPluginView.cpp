@@ -19,9 +19,8 @@ MLPluginView::~MLPluginView()
 	deleteAllChildren();
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark component setup 
-//
 
 // add a view to our controller’s map that the controller will service periodically.
 // p: name of signal to view

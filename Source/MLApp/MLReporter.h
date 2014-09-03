@@ -10,7 +10,7 @@
 #include "MLWidget.h"
 #include <map>
 
-// --------------------------------------------------------------------------------
+
 #pragma mark property viewing
 
 class MLPropertyView
@@ -29,7 +29,7 @@ typedef std::tr1::shared_ptr<MLPropertyView> MLPropertyViewPtr;
 typedef std::list<MLPropertyViewPtr> MLPropertyViewList;
 typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLReporter 
 
 // Reporter listens to a Model and reports its changing properties by setting
@@ -41,14 +41,14 @@ class MLReporter :
 public:
 	MLReporter(MLPropertySet* m);
     ~MLReporter();
+	
+	// MLPropertyListener interface
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 
 	// parameter viewing
 	void addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
 	void viewAllProperties();
 	void viewAllChangedProperties();
-
-	// MLPropertyListener interface
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 
 protected:
 

@@ -189,8 +189,6 @@ void MLButton::setToggleValues(float lo, float hi)
 
 void MLButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLButton::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
-	
 	if (property == "value")
 	{
 		// translate lo / hi values back to toggle state

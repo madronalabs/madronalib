@@ -5,7 +5,7 @@
 
 #include "MLReporter.h"
 
-// --------------------------------------------------------------------------------
+
 #pragma mark param viewing 
 
 MLPropertyView::MLPropertyView(MLWidget* w, MLSymbol a) :
@@ -21,10 +21,13 @@ MLPropertyView::~MLPropertyView()
 	
 void MLPropertyView::view(const MLProperty& p) const
 {
+	// debug() << "MLPropertyView::view " << mAttr << " -> " << p << "\n";
+	// setting Widget properties immediately is OK because we are always being
+	// called from the Model's timer callback.
 	mpWidget->setPropertyImmediate(mAttr, p);
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLReporter 
 	
 MLReporter::MLReporter(MLPropertySet* m) :
@@ -36,20 +39,12 @@ MLReporter::~MLReporter()
 {
 }
 
-// add a view.
-// when property p changes, property attr of Widget w will be set to the new property's value.
-//
-void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
-{
-	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
-}
-
 void MLReporter::doPropertyChangeAction(MLSymbol prop, const MLProperty& newVal)
 {
 	// do we have viewers for this property?
 	MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(prop);
 	if (look != mPropertyViewsMap.end())
-	{		
+	{
 		// run viewers
 		MLPropertyViewList viewers = look->second;
 		for(MLPropertyViewList::iterator vit = viewers.begin(); vit != viewers.end(); vit++)
@@ -59,4 +54,12 @@ void MLReporter::doPropertyChangeAction(MLSymbol prop, const MLProperty& newVal)
 			v.view(newVal);
 		}
 	}
+}
+
+// add a view.
+// when property p changes, property attr of Widget w will be set to the new property's value.
+//
+void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
+{
+	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
 }

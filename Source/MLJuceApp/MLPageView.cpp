@@ -5,7 +5,7 @@
 
 #include "MLPageView.h"
 
-// --------------------------------------------------------------------------------
+
 #pragma mark page view
 
 MLPageView::MLPageView(MLWidget::Listener* pResp, MLReporter* pRep) :

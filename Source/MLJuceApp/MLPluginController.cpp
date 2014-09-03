@@ -21,7 +21,8 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 		MLPublishedParam* param = &(*p);
 		if(param)
 		{
-			mpProcessor->setProperty(param->getAlias(), param->getValue());
+//			mpProcessor->setProperty(param->getAlias(), param->getValue());
+			mpProcessor->setProperty(param->getAlias(), param->getDefault());
 		}
 	}
 	
@@ -103,7 +104,7 @@ void MLPluginController::initialize()
 
 void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)
 {
-	debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
+	// debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
 
 	if(action == "click")
 	{
@@ -115,67 +116,28 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 	else if(action == "start_gesture")
 	{
-		MLPluginProcessor* const filter = getProcessor();
-		if (filter)
+		int idx = mpProcessor->getParameterIndex(targetProperty);
+		if (idx > 0)
 		{
-			int idx = filter->getParameterIndex(targetProperty);
-			if (idx > 0)
-			{
-				filter->beginParameterChangeGesture (idx);
-			}
+			mpProcessor->beginParameterChangeGesture (idx);
 		}
 	}
 	else if(action == "property")
 	{
-		mpProcessor->setPropertyImmediate(targetProperty, val);
+		mpProcessor->setProperty(targetProperty, val);
 	}
 	else if (action == "end_gesture")
 	{
-		MLPluginProcessor* const filter = getProcessor();
-		if (filter)
+		int idx = mpProcessor->getParameterIndex(targetProperty);
+		if (idx > 0)
 		{
-			int idx = filter->getParameterIndex(targetProperty);
-			if (idx > 0)
-			{
-				filter->endParameterChangeGesture (idx);
-			}
+			mpProcessor->endParameterChangeGesture (idx);
 		}
 	}
 }
 
 
-/*
 
-// --------------------------------------------------------------------------------
-#pragma mark MLMultiSlider::Listener	
-
-void MLPluginController::multiSliderValueChanged (MLMultiSlider* pSlider, int idx)
-{
-	if (pSlider)
-	{
-		MLSymbol paramName = pSlider->getTargetPropertyName();
-		const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
-		requestPropertyChange(nameWithNumber, pSlider->getValue(idx));
-	}
-}
-
-// --------------------------------------------------------------------------------
-#pragma mark MLMultiButton::Listener
-
-void MLPluginController::multiButtonValueChanged (MLMultiButton* pButton, int idx)
-{
-	MLSymbol paramName = pButton->getTargetPropertyName();
-	const MLSymbol nameWithNumber = paramName.withFinalNumber(idx);
-	requestPropertyChange(nameWithNumber, pButton->getValue(idx));
-}
-
-// --------------------------------------------------------------------------------
-#pragma mark MLPatcher::Listener
-
-
-*/
-
-// --------------------------------------------------------------------------------
 #pragma mark file collections
 
 // called to build the scale menu when the Processor's collection of sample files has changed.
@@ -190,7 +152,7 @@ void MLPluginController::presetFilesChanged(const MLFileCollectionPtr fileCollec
     populatePresetMenu(fileCollection);
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark presets
 
 void MLPluginController::prevPreset()
@@ -205,7 +167,7 @@ void MLPluginController::nextPreset()
     updateChangedProperties();
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark menus
 
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> pC, MLSymbol menuName);
@@ -518,7 +480,7 @@ void MLPluginController::populateScaleMenu(const MLFileCollectionPtr fileCollect
     pMenu->appendMenu(p);
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLFileCollection::Listener
 
 void MLPluginController::processFile (const MLSymbol collection, const MLFile& srcFile, int idx, int size)
@@ -573,7 +535,7 @@ void MLPluginController::processFile (const MLSymbol collection, const MLFile& s
 
 #if ML_MAC
 
-// --------------------------------------------------------------------------------
+
 #pragma mark ConvertProgressDisplayThread
 
 // ConvertProgressDisplayThread: progress display for preset converter.
@@ -654,7 +616,7 @@ public:
     }
 };
 
-// --------------------------------------------------------------------------------
+
 #pragma mark ConvertPresetsThread
 
 class ConvertPresetsThread : public Thread, public DeletedAtShutdown

@@ -20,7 +20,7 @@
 #define DESCRIPTION     JucePlugin_Desc
 #define ENTRY_POINT     JucePlugin_AUExportPrefixQuoted "Entry"
 
-// --------------------------------------------------------------------------------
+
 // old AUResources.r is copied here
 
 // this is a define used to indicate that a component has no static data that would mean

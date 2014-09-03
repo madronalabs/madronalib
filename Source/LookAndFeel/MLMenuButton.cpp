@@ -44,8 +44,6 @@ void MLMenuButton::clicked ()
 
 void MLMenuButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLMenuButton::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
-	
 	if (property == "text")
 	{
 		std::string processedText;

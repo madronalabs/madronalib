@@ -16,8 +16,7 @@ class MLModel : public MLPropertySet, public MLPropertyListener
 public:
 	MLModel();
 	virtual ~MLModel();
-    void timerCallback();
-	
+ 	
 private:
     // TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
 	class ModelTimer : public juce::Timer

@@ -31,8 +31,6 @@ MLMultiSlider::~MLMultiSlider()
 
 void MLMultiSlider::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLMultiSlider::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
-	
 	if (property.withoutFinalNumber() == "value")
 	{
 		repaint();

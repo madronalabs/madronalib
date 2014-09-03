@@ -8,7 +8,7 @@
 static const std::string kNullStr("<null>");
 static const std::string kSeparatorStr("---");
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLMenu::Node
 
 void MLMenu::Node::dump(int level)
@@ -173,7 +173,7 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
     }
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLMenu
 
 MLMenu::MLMenu() :

@@ -36,13 +36,13 @@ public:
 	const float& getFloatValue() const;
 	const std::string& getStringValue() const;
 	const MLSignal& getSignalValue() const;
-	Colour getValueAsColor() const;
+	juce::Colour getValueAsColor() const;
     
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
 	void setValue(const std::string& v);
 	void setValue(const MLSignal& v);
-	void setValue(const Colour& v);
+	void setValue(const juce::Colour& v);
 	
 	bool operator== (const MLProperty& b) const;
 	bool operator!= (const MLProperty& b) const;
@@ -78,7 +78,7 @@ public:
 	const float& getFloatProperty(MLSymbol p) const;
 	const std::string& getStringProperty(MLSymbol p) const;
 	const MLSignal& getSignalProperty(MLSymbol p) const;
-	Colour getColorProperty(MLSymbol p) const;
+	juce::Colour getColorProperty(MLSymbol p) const;
     
 	template <typename T>
 	void setProperty(MLSymbol p, T v)

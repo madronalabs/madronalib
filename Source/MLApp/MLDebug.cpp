@@ -81,7 +81,7 @@ void MLTextStream::display()
 
 #endif // ML_WINDOWS
 
-// --------------------------------------------------------------------------------
+
 // global entry points
 
 // Send a message to the application or plugin’s debug output.

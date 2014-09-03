@@ -12,7 +12,7 @@
 #include "MLPluginProcessor.h"
 #include "MLSignalView.h"
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLSignalReporter 
 
 class MLSignalReporter

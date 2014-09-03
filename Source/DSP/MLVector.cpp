@@ -99,7 +99,7 @@ float Vec4::magnitude() const
 	return sqrtf(a*a + b*b + c*c + d*d);
 }
 
-// --------------------------------------------------------------------------------
+
 //
 #pragma mark MLRect
 

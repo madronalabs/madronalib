@@ -76,10 +76,8 @@ public:
 		return mDataAligned;
 	}
 	
-	// --------------------------------------------------------------------------------
-	// 1-D access methods 
+	// 1-D access methods
 	//
-
 	// inspector applied to const references, typically from getInput()
 	// when a signal is marked as constant, mConstantMask = 0 and we return
 	// the first value in the array.
@@ -147,30 +145,7 @@ public:
         mDataAligned[pi&mConstantMask] += (1.0f - m)*v;
         mDataAligned[(pi + 1)&mConstantMask] += (m)*v;
     }
-	
-    /*
-     // MLSample value
-     // interpolate between neighbors.
-     // TODO consider different kinds of interpolation.
-     // consider implementing interpolate-row method for speed.
-     MLSample MLSignal::operator() (float fi) const
-     {
-     MLSample a, b;
-     int i = floor(fi);
-     float remainder = fi - i;
-     a = mData[i&mWidthMask];
-     b = mData[(i + 1)&(mWidthMask)];
-     return lerp(a, b, remainder);
-     }
-     
-     // inspector, return by value
-     inline MLSample& operator()(int i, int j)
-     {
-     return mDataAligned[(j<<mWidthBits) + i];
-     }
-     */
     
-	// --------------------------------------------------------------------------------
 	// 2D access methods
 	//
 	// mutator, return reference to sample
@@ -263,7 +238,7 @@ public:
 	const MLSample operator() (const float i, const float j) const;
     const MLSample getInterpolatedLinear(const Vec2& pos) const { return getInterpolatedLinear(pos.x(), pos.y()); }
 	
-	// --------------------------------------------------------------------------------
+	
 	// 3D access methods
 	//
 	// mutator, return sample reference
@@ -280,11 +255,6 @@ public:
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
 	}
 
-    /*
-	const MLSample operator() (const float i, const float j, const float k) const;
-	const MLSample operator() (const Vec3 pos) const;
-	*/
-    
 	// getFrame() - return const 2D signal made from data in place. 
 	const MLSignal getFrame(int i) const;
 

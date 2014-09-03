@@ -725,7 +725,7 @@ void MLMultiContainer::setProcParams(const MLPath& procName, juce::XmlElement* p
 	}
 }
 
-MLPublishedParamPtr MLMultiContainer::publishParam(const MLPath & procName, const MLSymbol param, const MLSymbol alias)
+MLPublishedParamPtr MLMultiContainer::publishParam(const MLPath & procName, const MLSymbol param, const MLSymbol alias, const MLSymbol type)
 {
 	MLPublishedParamPtr p;
 
@@ -733,11 +733,11 @@ MLPublishedParamPtr MLMultiContainer::publishParam(const MLPath & procName, cons
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
-		getCopyAsContainer(i)->publishParam(procName, param, alias);
+		getCopyAsContainer(i)->publishParam(procName, param, alias, type);
 	}
 
 	// publish param in this
-	p = MLProcContainer::publishParam(procName, param, alias);
+	p = MLProcContainer::publishParam(procName, param, alias, type);
 	return p;
 }
 

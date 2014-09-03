@@ -8,12 +8,13 @@
 // ----------------------------------------------------------------
 #pragma mark published parameters
 
-MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, int idx) :
+MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
 	mAlias(alias), mIndex(idx)
 {
 	setRange(0.f, 1.f, 0.01f, false, 0.f);
 	mUnit = kJucePluginParam_Generic;
 	mWarpMode = kJucePluginParam_Linear; // TODO use instead
+	mType = type;
 	mValue = 0.f;
 	mDefault = 0.f;
 	mZeroThreshold = 0.f - (MLParamValue)(2 << 16);
@@ -78,7 +79,7 @@ MLParamValue MLPublishedParam::getValue(void)
 	return mValue;
 }
 
-MLParamValue MLPublishedParam::setValue(MLParamValue val)
+MLParamValue MLPublishedParam::constrainValue(MLParamValue val)
 {
 	mValue = clamp(val, mRangeLo, mRangeHi);
 	if (fabs(mValue) <= mZeroThreshold)

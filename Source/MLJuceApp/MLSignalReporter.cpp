@@ -33,7 +33,6 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 		MLSymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
 		if (it == mSignalBuffers.end()) 
 		{
-            // debug() << "ADDING signal view " << alias << ", width: " << bufSize << ", voices: " << voices << " \n";
 			// add buffers so we can see if the signal has been changed since the last view
 			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
 			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize, voices));

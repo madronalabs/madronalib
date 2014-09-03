@@ -762,10 +762,12 @@ void MLProcInputToSignals::processEvent(const MLControlEvent &event)
 
 void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 {
+	/*
     int time = event.mTime;
     int chan = event.mChannel;
     float note = event.mValue1;
     float vel = event.mValue2;
+	 */
     // debug() << "do note on " << note << " chan " << chan << " vel " << vel << " at time " << time << "\n";
     
     int eventIdx = mNoteEventsPlaying.findFreeEvent();
@@ -798,12 +800,15 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 
 void MLProcInputToSignals::doNoteOff(const MLControlEvent& event)
 {
-    int time = event.mTime;
     int id = event.mID;
+	
+	/*
+    int time = event.mTime;
     float note = event.mValue1;
     float vel = event.mValue2;
     // debug() << "do note off " << note << " vel " << vel << " at time " << time << "\n";
-    
+    */
+	
 	if (!mUnisonMode) // single voice per event
 	{
 		for (int i=0; i<kMaxEvents; ++i)

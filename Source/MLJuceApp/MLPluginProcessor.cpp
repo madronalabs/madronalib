@@ -36,6 +36,49 @@ MLPluginProcessor::~MLPluginProcessor()
 //	debug() << "deleting MLPluginProcessor.\n";
 }
 
+#pragma mark MLModel
+
+void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProperty& newVal)
+{
+	int propertyType = newVal.getType();
+	int paramIdx = getParameterIndex(property);
+	if (paramIdx < 0) return;
+	float f = newVal.getFloatValue();
+	
+	switch(propertyType)
+	{
+		case MLProperty::kFloatProperty:
+			setParameterWithoutProperty (property, f);
+			
+			// convert to host units for VST
+			f = newVal.getFloatValue();
+			if (wrapperType == AudioProcessor::wrapperType_VST)
+			{
+				MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
+				if(p)
+				{
+					f = p->getValueAsLinearProportion();
+				}
+			}
+			// send to wrapper in host units
+			AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
+			
+			break;
+		case MLProperty::kStringProperty:
+			break;
+		case MLProperty::kSignalProperty:
+			if(property == "patcher_matrix")
+			{
+				debug() << "MLPluginProcessor::doPropertyChangeAction: got matrix \n";
+				
+			}
+			break;
+		default:
+			break;
+	}
+}
+
+
 void MLPluginProcessor::loadPluginDescription(const char* desc)
 {
 	mpPluginDoc = new XmlDocument(String(desc));
@@ -59,7 +102,6 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	}
 }
 
-// --------------------------------------------------------------------------------
 // editor creation function to be defined in (YourPluginEditor).cpp
 //
 extern MLPluginEditor* CreateMLPluginEditor (MLPluginProcessor* const ownerProcessor, const MLRect& bounds, bool num, bool anim);
@@ -77,7 +119,7 @@ void MLPluginProcessor::editorResized(int w, int h)
     mEditorRect.setHeight(h);
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark preflight and cleanup
 //
 
@@ -248,7 +290,6 @@ void MLPluginProcessor::releaseResources()
     // spare memory, etc.
 }
 
-// --------------------------------------------------------------------------------
 #pragma mark MLFileCollection::Listener
 
 void MLPluginProcessor::processFile (const MLSymbol collection, const MLFile& f, int idx, int size)
@@ -268,7 +309,6 @@ void MLPluginProcessor::processFile (const MLSymbol collection, const MLFile& f,
     }
 }
 
-// --------------------------------------------------------------------------------
 #pragma mark Listener related
 
 void MLPluginProcessor::pushInfoToListeners()
@@ -289,7 +329,6 @@ void MLPluginProcessor::setProcessorListener(MLPluginProcessor::Listener* l)
     pushInfoToListeners();
 }
 
-// --------------------------------------------------------------------------------
 #pragma mark process
 
 void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector& events)
@@ -461,7 +500,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 	}
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark parameters
 //
 
@@ -487,6 +526,8 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 {
 	if (index < 0) return;	
 
+	debug() << "SETTING parameter: " << index << ": " << newValue << "\n";
+	
 	mEngine.setPublishedParam(index, newValue);	
 	mHasParametersSet = true;
 	setPropertyImmediate(getParameterAlias(index), newValue);
@@ -533,7 +574,6 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		setPropertyImmediate(paramName, realVal);
 	}
 }
-
 
 float MLPluginProcessor::getParameterMin (int index)
 {
@@ -640,47 +680,8 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 	return mEngine.getParamGroupName(index);
 }
 
-// --------------------------------------------------------------------------------
-#pragma mark MLModel
 
-void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProperty& newVal)
-{
-	int propertyType = newVal.getType();
-	int paramIdx = getParameterIndex(property);
-	float f = newVal.getFloatValue();
-	
-	switch(propertyType)
-	{
-		case MLProperty::kFloatProperty:
-			setParameterWithoutProperty (property, f);
-			if (paramIdx < 0) return;
-			
-			// convert to host units for VST
-			f = newVal.getFloatValue();
-			if (wrapperType == AudioProcessor::wrapperType_VST)
-			{
-				MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
-				if(p)
-				{
-					f = p->getValueAsLinearProportion();
-				}
-			}
-			// send to wrapper in host units
-			AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
-			
-			break;
-		case MLProperty::kStringProperty:
-			break;
-		case MLProperty::kSignalProperty:
-			break;
-		default:
-			break;
-	}
-}
-
-// --------------------------------------------------------------------------------
 #pragma mark signals
-//
 
 // count the number of published copies of the signal matching alias.
 int MLPluginProcessor::countSignals(const MLSymbol alias)
@@ -697,7 +698,7 @@ unsigned MLPluginProcessor::readSignal(const MLSymbol alias, MLSignal& outSig)
 	return samples;
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark patcher-specific TO REMOVE
 //
 
@@ -706,7 +707,7 @@ MLProcList& MLPluginProcessor::getPatcherList()
  	return mEngine.getPatcherList();
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark state
 
 void MLPluginProcessor::getStateAsXML (XmlElement& xml)
@@ -932,11 +933,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
      debug() << myStream.toString();
      */
 	
-    /*
-     setCurrentPresetName(presetName.toUTF8());
-     setCurrentPresetDir(presetDir.toUTF8());
-     */
-    
 	// get plugin-specific translation table for updating older versions of data
 	std::map<MLSymbol, MLSymbol> translationTable;
 
@@ -1002,7 +998,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			if (pIdx >= 0)
 			{
 				// debug() << "setStateFromXML: <" << paramSym << " = " << paramVal << ">\n";
-				setPropertyImmediate(paramSym, paramVal);
+				setProperty(paramSym, paramVal);
 			}
 			else // try finding a match through translation table. 
 			{
@@ -1016,7 +1012,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 					if (pNewIdx >= 0)
 					{
 						//debug() << "translated parameter to " << newSym << " .\n";
-						setPropertyImmediate(newSym, paramVal);
+						setProperty(newSym, paramVal);
 					}
 					else
 					{
@@ -1185,7 +1181,7 @@ void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
 	}
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MIDI programs
 
 void MLPluginProcessor::clearMIDIProgramFiles()
@@ -1253,9 +1249,8 @@ void MLPluginProcessor::scanMIDIPrograms()
 	// debug() << "MLPluginProcessor::scanMIDIPrograms found " << midiPgmCount << " MIDI programs\n";
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark presets
-//
 
 void MLPluginProcessor::prevPreset()
 {
@@ -1313,9 +1308,8 @@ void MLPluginProcessor::setDefaultParameters()
 	}
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark channels
-//
 
 const String MLPluginProcessor::getInputChannelName (const int channelIndex) const
 {

@@ -36,6 +36,10 @@ public:
 		virtual void handleWidgetAction (MLWidget*, MLSymbol action, MLSymbol target, const MLProperty& val) = 0;
 	};
 
+	// MLPropertyListener methods.
+	// a Widget's local properties will get set in Immediate mode. There is no timer to propagate changes.
+	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal) {}
+	
 	// in order to function, a Widget's Component must get set!
 	void setComponent(Component* pC) { pComponent = pC; }
 	Component* getComponent() const { return pComponent; }
@@ -98,9 +102,6 @@ public:
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(MLSymbol p) {  mTargetPropertyName = p; }
 	
-	// MLPropertyListener methods
-	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal) {}
-	
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
@@ -109,6 +110,10 @@ protected:
 
 private:
 	MLSymbol mName;
+	
+	// name of the target property of Listeners we would like to affect.
+	// if a Widget has multiple parts, like a Multislider, this property name can get
+	// a numerical or symbolic suffix to indicate what part was changed.
 	MLSymbol mTargetPropertyName;
 	
 	// this is the size of drawn widget parts compared to the usual size.

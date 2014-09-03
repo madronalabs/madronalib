@@ -741,7 +741,7 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 	}
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark -
 #pragma mark process
 
@@ -1616,11 +1616,11 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 
 // return a new MLPublishedParamPtr that can be called upon to set the given param.
 // 
-MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const MLSymbol param, const MLSymbol alias)
+MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const MLSymbol param, const MLSymbol alias, const MLSymbol type)
 {
 	MLPublishedParamPtr p;	
 	const int i = (int)mPublishedParams.size();
-	p = MLPublishedParamPtr(new MLPublishedParam(procPath, param, alias, (int)i));
+	p = MLPublishedParamPtr(new MLPublishedParam(procPath, param, alias, type, (int)i));
 	mPublishedParams.push_back(p);	
 	mPublishedParamMap[alias] = p; 
 	return p;
@@ -1640,13 +1640,14 @@ void MLProcContainer::setPublishedParam(int index, MLParamValue val)
 		if (p)
 		{
 			// allow published parameter to tweak value 
-//debug() << "in: " << val << "\n";			
-			val = p->setValue(val);
+//debug() << "in: " << val << "\n";
+			
+			val = p->constrainValue(val);
 //debug() << "out: " << val << "\n";			
 			for(MLPublishedParam::AddressIterator it = p->beginAddress(); it != p->endAddress(); ++it)
 			{		
 				// set param at address.
-//debug() << "setting param #" << index << ", " << it->paramName << " of " << it->procAddress << " to " << val << "\n";	
+debug() << "setting param #" << index << ", " << it->paramName << " of " << it->procAddress << " to " << val << "\n";
 				routeParam(it->procAddress, it->paramName, val);			
 			}
 		}
@@ -1678,9 +1679,9 @@ MLParamValue MLProcContainer::getParam(const MLSymbol alias)
 	return r;
 }
 
-// perform our node's part of looking up the address.  if the address tail
+// perform our node's part of sending the parameter to the address.  if the address tail
 // is empty, we are done-- look for the named proc and set the param.
-// TODO verify why this doesn't just use getProc().
+// TODO verify why this doesn't just use getProcList().
 void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val)
 {
 	MLProcPtr headProc;
@@ -1719,7 +1720,7 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 	{
 		if (head == MLSymbol("this"))
 		{
-			setParam(paramName, val);
+			MLProc::setParam(paramName, val);
 		}
 		else
 		{
@@ -1727,6 +1728,15 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
 
 // ----------------------------------------------------------------
 #pragma mark engine params
@@ -1762,7 +1772,6 @@ int MLProcContainer::getParamIndex(const MLSymbol paramName)
 	return r;
 }
 
-	
 const std::string& MLProcContainer::getParamGroupName(int index)
 {
 	return mParamGroups.getGroupName(index);
@@ -1785,13 +1794,10 @@ MLParamValue MLProcContainer::getParamByIndex(int index)
 	return r;
 }
 
-
 int MLProcContainer::getPublishedParams()
 {
 	return mPublishedParams.size();
 }
-
-
 
 // ----------------------------------------------------------------
 #pragma mark xml loading / saving
@@ -1830,7 +1836,6 @@ void MLProcContainer::scanDoc(juce::XmlDocument* pDoc, int* numParameters)
 		juce::String error = pDoc->getLastParseError();
 		error << "description parse error: " << error << "\n";
 	}
-	
 }
 
 MLSymbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char * name)
@@ -1841,7 +1846,6 @@ MLSymbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char
 	}
 	else
 	{
-//		MLError() << "required attribute " << name << " missing on line " << parent->Row() << "\n"; // tinyxml
 		MLError() << parent->getTagName() << ": required attribute " << name << " missing \n";
 		return MLSymbol();
 	}
@@ -1934,36 +1938,27 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 			
 			if (arg1 && arg2 && arg3)
 			{
-				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3);
+				// optional param type attribute
+				MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
+				
+/*				if((!type) || (type == MLSymbol("float")))
+				{
+				}
+*/
+				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3, type);
+				
 				if (p)
 				{
 					setPublishedParamAttrs(p, child);
 					setPublishedParam(p->mIndex, p->getDefault());
 					mParamGroups.addParamToCurrentGroup(p);
 				}
+				
+				
 			}
 		}
-        /*
-		else if (child->hasTagName("signal"))
-		{
-			int mode = eMLRingBufferMostRecent;
-			MLPath procArg = RequiredPathAttribute(child, "proc");
-			MLSymbol outArg = RequiredAttribute(child, "output");
-			MLSymbol aliasArg = RequiredAttribute(child, "alias");
-
-			if (procArg && outArg && aliasArg)
-			{
-				int bufLength = kMLRingBufferDefaultSize;
-				bufLength = child->getIntAttribute("length", bufLength);
-				MLPath procPath (procArg);
-				MLSymbol outSym (outArg);
-				MLSymbol aliasSym (aliasArg);
-				publishSignal(procPath, outSym, aliasSym, mode, bufLength);
-			}
-		}*/
 	}
 }
-
 
 MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 {
@@ -2094,7 +2089,15 @@ int MLProcContainer::countPublishedParamsInDoc(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("param"))
 		{
-			++sum;
+			MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
+			if((!type) || (type == MLSymbol("float")))
+			{
+				++sum;
+			}
+			else
+			{
+				debug() << "HEY got non-settable param\n";
+			}
 		}
 	}
 	return sum;

@@ -105,10 +105,10 @@ const MLSignal& MLProperty::getSignalValue() const
 	return (mType == kSignalProperty) ? (*mVal.mpSignalVal) : nullSignal;
 }
 
-Colour MLProperty::getValueAsColor() const
+juce::Colour MLProperty::getValueAsColor() const
 {
 	const MLSignal& sig = getSignalValue();
-	return Colour::fromFloatRGBA(sig[0], sig[1], sig[2], sig[3]);
+	return juce::Colour::fromFloatRGBA(sig[0], sig[1], sig[2], sig[3]);
 }
 
 void MLProperty::setValue(const float& v)
@@ -160,7 +160,7 @@ void MLProperty::setValue(const MLProperty& v)
 	*this = v;
 }
 
-void MLProperty::setValue(const Colour& v)
+void MLProperty::setValue(const juce::Colour& v)
 {
 	MLSignal s;
 	s.setDims(4);
@@ -297,7 +297,7 @@ const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
 	}
 }
 
-Colour MLPropertySet::getColorProperty(MLSymbol p) const
+juce::Colour MLPropertySet::getColorProperty(MLSymbol p) const
 {
 	static const MLSignal nullSignal;
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
@@ -307,7 +307,7 @@ Colour MLPropertySet::getColorProperty(MLSymbol p) const
 	}
 	else
 	{
-		return Colour();
+		return juce::Colour();
 	}
 }
 
@@ -350,7 +350,7 @@ void MLPropertySet::broadcastAllProperties()
 	}
 }
 
-// --------------------------------------------------------------------------------
+
 #pragma mark MLPropertyListener
 
 void MLPropertyListener::updateChangedProperties()

@@ -34,21 +34,14 @@ public:
 	
  	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	virtual void menuItemChosen(MLSymbol menuName, int result);
-	
-	void multiButtonValueChanged (MLMultiButton* pSlider, int idx);
-	// void multiSliderValueChanged (MLMultiSlider* pSlider, int idx);
     
     // MLPluginProcessor::Listener
     void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
     void presetFilesChanged(const MLFileCollectionPtr presets);
 
-    // --------------------------------------------------------------------------------
     // MLFileCollection::Listener
     void processFile (const MLSymbol collection, const MLFile& f, int idx, int size);
  
-	void prevPreset();
-	void nextPreset();
-
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 	
 	MLMenu* createMenu(MLSymbol menuName);
@@ -68,7 +61,9 @@ public:
 #endif // ML_MAC
 
 protected:
-    
+	void prevPreset();
+	void nextPreset();
+	    
 	MLAppView* mpView;
     
 	WeakReference<MLPluginController>::Master masterReference;
