@@ -14,6 +14,7 @@
 #include "MLLookAndFeel.h"
 
 const int kDragStepSize = 16;
+const int kWheelTimeoutDuration = 250;
 const int kMouseWheelStepSize = 16;
 static const int kMinimumDialSizeForJump = 26;
 static const float kRotaryStartDefault = kMLPi*-0.75f;
@@ -33,6 +34,8 @@ MLDial::MLDial () :
 	mLastDragX(0), mLastDragY(0),
 	mFilteredMouseSpeed(0.),
 	mMouseMotionAccum(0),
+	isMouseDown(false),
+	isMouseWheelMoving(false),
 	//
     mHilightColor(Colours::white),
     pixelsForFullDragExtent (250),
@@ -77,6 +80,8 @@ MLDial::MLDial () :
 	mStaticLayerNeedsRedraw(true),		
 	mThumbLayerNeedsRedraw(true)
 {
+	mpTimer = std::tr1::shared_ptr<DialTimer>(new DialTimer(this));
+
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	setOpaque(myLookAndFeel->getDefaultOpacity());
@@ -100,8 +105,6 @@ MLDial::~MLDial()
 
 void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLDial::doPropertyChangeAction " << getWidgetName() << ":" << property << " = " << val << "\n";
-	
 	if (property == "value")
 	{
         mParameterLayerNeedsRedraw = true;
@@ -120,7 +123,7 @@ void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 
 //--------------------------------------------------------------------------------
 
-// TODO use attributes
+// TODO use properties
 void MLDial::setDialStyle (const MLDial::DialStyle newStyle)
 {
     if (style != newStyle)
@@ -130,7 +133,7 @@ void MLDial::setDialStyle (const MLDial::DialStyle newStyle)
     }
 }
 
-// TODO use attributes
+// TODO use properties
 void MLDial::setRotaryParameters (const float startAngleRadians,
                                   const float endAngleRadians,
                                   const bool stopAtEnd)
@@ -391,7 +394,6 @@ float MLDial::valueToProportionOfLength (float value) const
     
     if(value > mZeroThreshold)
     {
-            
         if (mWarpMode == kJucePluginParam_Exp)
         {
             value = clamp(value, min, max);
@@ -860,7 +862,6 @@ void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
 	mThumbLayerNeedsRedraw = false;
 }
 
-
 #pragma mark rotary dial
 
 void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float dialPos)
@@ -1118,6 +1119,16 @@ void MLDial::mouseDown (const MouseEvent& e)
     mouseWasHidden = false;
 	mParameterLayerNeedsRedraw = true;
 	mThumbLayerNeedsRedraw = true;
+	
+	// cancel mouse wheel gesture
+	if(isMouseWheelMoving)
+	{
+		isMouseWheelMoving = false;
+		sendAction("end_gesture", getTargetPropertyName());
+	}
+	
+	isMouseDown = true;
+	
     if (isEnabled())
     {		
 		findDialToDrag(e);	// sets dialToDrag
@@ -1149,10 +1160,14 @@ void MLDial::mouseUp (const MouseEvent&)
 {
     if (isEnabled())
     {
-		if (dialBeingDragged != kNoDial)
+		if(isMouseDown)
 		{
-			sendAction("end_gesture", getTargetPropertyName());
-			restoreMouseIfHidden();
+			isMouseDown = false;
+			if (dialBeingDragged != kNoDial)
+			{
+				sendAction("end_gesture", getTargetPropertyName());
+				restoreMouseIfHidden();
+			}
 		}
     }
 	endDrag();
@@ -1403,15 +1418,22 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 			
 			int dir = sign(dpf);
 			int dp = dir*max(1, (int)(fabs(dpf)*32.)); // mouse scale for no detents
-			valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kMouseWheelStepSize);			
-			sendAction("start_gesture", getTargetPropertyName());
-			sendValueOfDial(dialToDrag, valueWhenLastDragged);
-			sendAction("end_gesture", getTargetPropertyName());
-
 			
-			mParameterLayerNeedsRedraw = true;
-			mThumbLayerNeedsRedraw = true;
-			repaint();
+			float oldVal = valueWhenLastDragged;
+			valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kMouseWheelStepSize);
+			if(valueWhenLastDragged != oldVal)
+			{
+				if(!isMouseWheelMoving)
+				{
+					isMouseWheelMoving = true;
+					sendAction("start_gesture", getTargetPropertyName());
+				}
+				sendValueOfDial(dialToDrag, valueWhenLastDragged);
+				mpTimer->startTimer(kWheelTimeoutDuration);
+				mParameterLayerNeedsRedraw = true;
+				mThumbLayerNeedsRedraw = true;
+				repaint();
+			}
         }
     }
     else
@@ -2113,10 +2135,40 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			mThumbImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
 			mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);            
 			mStaticImage = Image(Image::ARGB, compWidth * displayScale, compHeight*displayScale, true, SoftwareImageType());
-			mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);            
+			mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
+			
 		}
 		
 		mParameterLayerNeedsRedraw = mThumbLayerNeedsRedraw = mStaticLayerNeedsRedraw = true;
 		resized();
 	}
 }
+
+void MLDial::endWheelMove()
+{
+	if(isMouseWheelMoving)
+	{
+		isMouseWheelMoving = false;
+		sendAction("end_gesture", getTargetPropertyName());
+	}
+}
+
+// MLModel::ModelTimer
+
+MLDial::DialTimer::DialTimer(MLDial* pM) :
+	mpOwner(pM)
+{
+}
+
+MLDial::DialTimer::~DialTimer()
+{
+	stopTimer();
+}
+
+void MLDial::DialTimer::timerCallback()
+{
+	stopTimer();
+    mpOwner->endWheelMove();
+}
+
+

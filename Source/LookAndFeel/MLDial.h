@@ -259,7 +259,7 @@ protected:
     void colourChanged();
 	
 	inline void endDrag() { dialBeingDragged = kNoDial; }
-
+	void endWheelMove();
     float constrainValue (float value) const throw();
 
     WhichDial dialBeingDragged;
@@ -279,6 +279,8 @@ protected:
     float rotaryStart, rotaryEnd;
     int numDecimalPlaces;
 	bool mOverTrack;
+	bool isMouseDown;
+	bool isMouseWheelMoving;
 	
 	Time mLastDragTime, mLastWheelTime;
 	int mLastDragX, mLastDragY;
@@ -349,6 +351,18 @@ protected:
 	Image mParameterImage;
 	Image mStaticImage;
 	Image mThumbImage;
+	
+	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
+	class DialTimer : public juce::Timer
+	{
+	public:
+		DialTimer(MLDial*);
+		~DialTimer();
+		void timerCallback();
+	private:
+		MLDial* mpOwner;
+	};
+	std::tr1::shared_ptr<DialTimer> mpTimer;
 };
 
 #endif // __ML_DIAL_HEADER__
