@@ -437,35 +437,11 @@ public:
         
         CFMutableDictionaryRef dict = (CFMutableDictionaryRef) *outData;
         
-        /*
-		// ----------------------------------------------------------------
-		// ML
-		// get saved preset name
-		char nameBuf[33];
-		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
-		CFStringRef presetName = reinterpret_cast<CFStringRef>(CFDictionaryGetValue (dict, kNameString));
-		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
-		// ML
-		// ----------------------------------------------------------------
-         */
-        
         if (juceFilter != nullptr)
         {
             juce::MemoryBlock state;
             juceFilter->getCurrentProgramStateInformation (state);
 
-            /*
-			// ----------------------------------------------------------------
-			// ML
-			if (nameResult)
-			{
-				// update filter with saved name.
-				juceFilter->setCurrentPresetName (nameBuf);
-			}
-			// ML
-			// ----------------------------------------------------------------
-             */
-            
             if (state.getSize() > 0)
             {
                 CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), (CFIndex) state.getSize());
@@ -490,20 +466,6 @@ public:
                 return err;
         }
         
-        /*
-		// ----------------------------------------------------------------
-		// ML
-		// get saved preset name
-		char nameBuf[33];
-        CFDictionaryRef dict = (CFDictionaryRef) inData;
-		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
-		CFStringRef presetName = reinterpret_cast<CFStringRef>(CFDictionaryGetValue (dict, kNameString));
-		const bool nameResult = (CFStringGetCString(presetName, nameBuf, 32, kCFStringEncodingASCII));
-        
-		// ML
-		// ----------------------------------------------------------------
-         */
-        
         if (juceFilter != nullptr)
         {
             CFDictionaryRef dict = (CFDictionaryRef) inData;
@@ -518,17 +480,6 @@ public:
                     
                     if (numBytes > 0)
                         juceFilter->setCurrentProgramStateInformation (rawBytes, numBytes);
-                    
-                    /*
- 					// ----------------------------------------------------------------
-					// ML
-					if (nameResult)
-					{
-						juceFilter->setCurrentPresetName (nameBuf);
-					}
-					// ML
-					// ----------------------------------------------------------------
-                     */
                }
             }
         }
@@ -536,7 +487,7 @@ public:
         return noErr;
     }
     
-    // --------------------------------------------------------------------------------
+    
 #pragma mark -
 #pragma mark MLAudioProcessorListener methods
     // this code ended up in here because of access to AUBase::RestoreState().  There may be other issues.
@@ -657,7 +608,7 @@ public:
     
 	
 #pragma mark -
-	// --------------------------------------------------------------------------------
+	
     
     UInt32 SupportedNumChannels (const AUChannelInfo** outInfo) override
     {
