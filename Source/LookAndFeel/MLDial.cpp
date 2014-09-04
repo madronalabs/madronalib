@@ -78,9 +78,10 @@ MLDial::MLDial () :
 	//
 	mParameterLayerNeedsRedraw(true),
 	mStaticLayerNeedsRedraw(true),		
-	mThumbLayerNeedsRedraw(true)
+	mThumbLayerNeedsRedraw(true),
+	mGestureInProgress(false)
 {
-	mpTimer = std::tr1::shared_ptr<DialTimer>(new DialTimer(this));
+	mpTimer = std::tr1::shared_ptr<GestureTimer>(new GestureTimer(this));
 
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -300,7 +301,7 @@ void MLDial::sendValueOfDial(WhichDial s, float val)
 	if(newValue != oldValue)
 	{
 		setPropertyImmediate("value", newValue);
-		sendAction("property", getTargetPropertyName(), getProperty("value"));
+		sendAction("change_property", getTargetPropertyName(), getProperty("value"));
 	}
 }
 
@@ -1120,13 +1121,6 @@ void MLDial::mouseDown (const MouseEvent& e)
 	mParameterLayerNeedsRedraw = true;
 	mThumbLayerNeedsRedraw = true;
 	
-	// cancel mouse wheel gesture
-	if(isMouseWheelMoving)
-	{
-		isMouseWheelMoving = false;
-		sendAction("end_gesture", getTargetPropertyName());
-	}
-	
 	isMouseDown = true;
 	
     if (isEnabled())
@@ -1136,7 +1130,7 @@ void MLDial::mouseDown (const MouseEvent& e)
 		
 		if (dialBeingDragged != kNoDial)
 		{
-			sendAction("start_gesture", getTargetPropertyName());
+			beginGesture();
 			mLastDragX = e.x;
 			mLastDragY = e.y;
 			mLastDragTime = Time(e.eventTime.toMilliseconds());
@@ -1160,17 +1154,8 @@ void MLDial::mouseUp (const MouseEvent&)
 {
     if (isEnabled())
     {
-		if(isMouseDown)
-		{
-			isMouseDown = false;
-			if (dialBeingDragged != kNoDial)
-			{
-				sendAction("end_gesture", getTargetPropertyName());
-				restoreMouseIfHidden();
-			}
-		}
+		endGesture();
     }
-	endDrag();
 }
 
 void MLDial::restoreMouseIfHidden()
@@ -1210,9 +1195,9 @@ void MLDial::mouseDoubleClick (const MouseEvent&)
          && minimum <= doubleClickReturnValue
          && maximum >= doubleClickReturnValue)
     {
-		sendAction("start_gesture", getTargetPropertyName());
+		beginGesture();
 		setProperty("value", constrainValue(doubleClickReturnValue));
-		sendAction("end_gesture", getTargetPropertyName());
+		endGesture();
     }
 }
 
@@ -1426,7 +1411,7 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 				if(!isMouseWheelMoving)
 				{
 					isMouseWheelMoving = true;
-					sendAction("start_gesture", getTargetPropertyName());
+					beginGesture();
 				}
 				sendValueOfDial(dialToDrag, valueWhenLastDragged);
 				mpTimer->startTimer(kWheelTimeoutDuration);
@@ -2144,31 +2129,47 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 	}
 }
 
-void MLDial::endWheelMove()
+void MLDial::beginGesture()
 {
-	if(isMouseWheelMoving)
+	if(mGestureInProgress)
 	{
+		endGesture();
+	}
+	
+	sendAction("begin_gesture", getTargetPropertyName());
+	mGestureInProgress = true;
+}
+
+void MLDial::endGesture()
+{
+	if(mGestureInProgress)
+	{
+		isMouseDown = false;
+		dialBeingDragged = kNoDial;
 		isMouseWheelMoving = false;
+		restoreMouseIfHidden();
 		sendAction("end_gesture", getTargetPropertyName());
+		mGestureInProgress = false;
 	}
 }
 
-// MLModel::ModelTimer
 
-MLDial::DialTimer::DialTimer(MLDial* pM) :
+#pragma mark MLDial::GestureTimer
+
+MLDial::GestureTimer::GestureTimer(MLDial* pM) :
 	mpOwner(pM)
 {
 }
 
-MLDial::DialTimer::~DialTimer()
+MLDial::GestureTimer::~GestureTimer()
 {
 	stopTimer();
 }
 
-void MLDial::DialTimer::timerCallback()
+void MLDial::GestureTimer::timerCallback()
 {
 	stopTimer();
-    mpOwner->endWheelMove();
+    mpOwner->endGesture();
 }
 
 

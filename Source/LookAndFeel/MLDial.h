@@ -258,14 +258,17 @@ protected:
     void enablementChanged();
     void colourChanged();
 	
-	inline void endDrag() { dialBeingDragged = kNoDial; }
-	void endWheelMove();
     float constrainValue (float value) const throw();
 
     WhichDial dialBeingDragged;
 	WhichDial dialToDrag;
 
 	void resizeWidget(const MLRect& b, const int u);
+	void beginGesture();
+	void endGesture();
+	
+	// data
+	bool mGestureInProgress;
 		
     MLDial (const MLDial&); // no copy
     const MLDial& operator= (const MLDial&);
@@ -353,16 +356,16 @@ protected:
 	Image mThumbImage;
 	
 	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
-	class DialTimer : public juce::Timer
+	class GestureTimer : public juce::Timer
 	{
 	public:
-		DialTimer(MLDial*);
-		~DialTimer();
+		GestureTimer(MLDial*);
+		~GestureTimer();
 		void timerCallback();
 	private:
 		MLDial* mpOwner;
 	};
-	std::tr1::shared_ptr<DialTimer> mpTimer;
+	std::tr1::shared_ptr<GestureTimer> mpTimer;
 };
 
 #endif // __ML_DIAL_HEADER__
