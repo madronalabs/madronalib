@@ -6,9 +6,15 @@
 #include "MLMultiSlider.h"
 #include "MLLookAndFeel.h"
 
+const int kWheelTimeoutDuration = 250;
+
 MLMultiSlider::MLMultiSlider () :
-	mVertical(true)
+	mVertical(true),
+	isMouseWheelMoving(false),
+	mGestureInProgress(false)
 {
+	mpTimer = std::tr1::shared_ptr<GestureTimer>(new GestureTimer(this));
+	
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	setOpaque(myLookAndFeel->getDefaultOpacity());
@@ -271,10 +277,6 @@ float MLMultiSlider::constrainedValue (float value) const throw()
 		rmax = rmin;
 		rmin = temp;
 	}
-
-	// quantize to chunks of interval
-    if (mInterval > 0)
-        value = rmin + mInterval * floor((value - rmin)/mInterval + 0.5f);
 	
 	value = clamp(value, rmin, rmax);
 	if (value <= mZeroThreshold)
@@ -315,44 +317,50 @@ float MLMultiSlider::proportionOfLengthToValue(float l)
 	return u(l);
 } 
 
-void MLMultiSlider::mouseWheelMove (const MouseEvent& event, const MouseWheelDetails& wheel)
+void MLMultiSlider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-	float wheelSpeed = 0.15f;
-    if(wheel.isReversed)
-        wheelSpeed = -wheelSpeed;
+	// filter out zero motions from trackpad
+	if ((wheel.deltaX == 0.) && (wheel.deltaY == 0.)) return;
 	
 	if(mCurrDragSlider >= 0) return;
 	
-	// filter out zero motions from trackpad
-	if ((wheel.deltaX == 0.) && (wheel.deltaY == 0.)) return;
-
+	bool doFineAdjust = e.mods.isShiftDown();
+	float wheelSpeed = doFineAdjust ? 0.1f : 1.f;
+	float wheelDirection = (wheel.isReversed) ? -1.f : 1.f;
+	
     if (isEnabled())
 	{
-		int s = getSliderUnderPoint(Vec2(event.x, event.y));
+		int s = getSliderUnderPoint(Vec2(e.x, e.y));
 		if ((s >= 0) && ! isMouseButtonDownAnywhere())
 		{
-			float currentVal, newValue;
-			currentVal = getFloatProperty(MLSymbol("value").withFinalNumber(s));
+			float currentVal = getFloatProperty(MLSymbol("value").withFinalNumber(s));
+			float minPosDelta = 0.01f;
+			float deltaDir = (wheel.deltaY > 0.f) ? 1.f : -1.f;
+			float posDelta = (wheel.deltaY + deltaDir*minPosDelta)*wheelSpeed*wheelDirection;			
+			
+			const float currentPos = valueToProportionOfLength (currentVal);
+			const float newPos = clamp (currentPos + posDelta, 0.f, 1.f);
+			float newValue = proportionOfLengthToValue (newPos);
+
+			if(newValue != currentVal)
 			{
-				float proportionDelta = (wheel.deltaX != 0 ? -wheel.deltaX : wheel.deltaY) * wheelSpeed; 
-				const float currentPos = valueToProportionOfLength (currentVal);
-				const float n = proportionOfLengthToValue (clamp (currentPos + proportionDelta, 0.f, 1.f));
-				float diff = fabs(n - currentVal);
-				float delta = (n != currentVal) ? max (diff, mInterval) : 0.f;
-				if (currentVal > n)
-					delta = -delta;
- 				newValue = currentVal + delta;
-//printf ("X:%f, Y:%f, %f, %f, %f \n", wheel.deltaX, wheel.deltaY, proportionDelta, currentPos, newValue);
-//printf("delta: %f \n", delta);
+				if(!isMouseWheelMoving)
+				{
+					isMouseWheelMoving = true;
+					beginGesture();
+				}
+				mpTimer->startTimer(kWheelTimeoutDuration);
+
+				mCurrDragSlider = s;
+				setSelectedValue(snapValue (newValue, false), s);
+				mpTimer->startTimer(kWheelTimeoutDuration);
+				mCurrDragSlider = -1;
 			}
-			mCurrDragSlider = s;
-			setSelectedValue(snapValue (newValue, false), s);
-			mCurrDragSlider = -1;
         }
     }
     else
     {
-        Component::mouseWheelMove (event, wheel);
+        Component::mouseWheelMove (e, wheel);
     }
 }
 
@@ -379,7 +387,7 @@ void MLMultiSlider::setSelectedValue (float val, int selector)
     {
 		MLSymbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
 		setPropertyImmediate(sliderName, newValue);
-		sendAction("property", targetPropertyName, getProperty(sliderName));
+		sendAction("change_property", targetPropertyName, getProperty(sliderName));
     }
 }
 
@@ -475,4 +483,44 @@ void MLMultiSlider::resizeWidget(const MLRect& b, const int )
 	
 	// Component::resized();
 }
+
+void MLMultiSlider::beginGesture()
+{
+	if(mGestureInProgress)
+	{
+		endGesture();
+	}
+	
+	sendAction("begin_gesture", getTargetPropertyName());
+	mGestureInProgress = true;
+}
+
+void MLMultiSlider::endGesture()
+{
+	if(mGestureInProgress)
+	{
+		isMouseWheelMoving = false;
+		sendAction("end_gesture", getTargetPropertyName());
+		mGestureInProgress = false;
+	}
+}
+
+#pragma mark MLMultiSlider::GestureTimer
+
+MLMultiSlider::GestureTimer::GestureTimer(MLMultiSlider* pM) :
+mpOwner(pM)
+{
+}
+
+MLMultiSlider::GestureTimer::~GestureTimer()
+{
+	stopTimer();
+}
+
+void MLMultiSlider::GestureTimer::timerCallback()
+{
+	stopTimer();
+    mpOwner->endGesture();
+}
+
 

@@ -61,6 +61,9 @@ public:
 
 	void resizeWidget(const MLRect& b, const int );
 	
+	void beginGesture();
+	void endGesture();
+	
 protected:
 	void triggerChangeMessage (const bool synchronous);
     void handleAsyncUpdate();
@@ -85,6 +88,21 @@ private:
 	MLPositioner::Geometry mGeometry;
 	MLPositioner::SizeFlags mSizeFlags;
 	float mMarginFraction;
+	
+	bool isMouseWheelMoving;
+	bool mGestureInProgress;
+	
+	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
+	class GestureTimer : public juce::Timer
+	{
+	public:
+		GestureTimer(MLMultiSlider*);
+		~GestureTimer();
+		void timerCallback();
+	private:
+		MLMultiSlider* mpOwner;
+	};
+	std::tr1::shared_ptr<GestureTimer> mpTimer;
 };
 
 #endif // __ML_MULTI_SLIDER_HEADER__
