@@ -8,7 +8,6 @@
 const Colour defaultColor = Colours::grey;
 
 MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
-	mDoAnimations(false),
 	mpResponder(pResp),
 	mpReporter(pRep)
 {
@@ -16,7 +15,9 @@ MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
 	setOpaque(false);
+	mDoAnimations = false;
 	setInterceptsMouseClicks (false, true);
+
 }
 
 MLAppView::~MLAppView()
@@ -39,7 +40,6 @@ void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = M
 	pW->addListener(getResponder());
 	addAndMakeVisible(pW->getComponent());
 }
-
 
 #pragma mark component add utility methods
 //
@@ -274,9 +274,7 @@ void MLAppView::setAnimationsActive(bool animState)
 	mDoAnimations = animState;
 }
 
-
 #pragma mark resize
-//
 
 void MLAppView::resized()
 {

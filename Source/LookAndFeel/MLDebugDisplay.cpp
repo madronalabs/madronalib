@@ -12,7 +12,6 @@ static const int kMLDebugMaxChars = 32768;
 MLDebugDisplay::MLDebugDisplay () :
 	mpComp(0)
 {
-	
 	mpComp = new CodeEditorComponent(mDoc, nullptr);
 	mpComp->setScrollbarThickness(12);
     

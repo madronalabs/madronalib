@@ -5,7 +5,6 @@
 
 #include "MLModel.h"
 
-
 // MLModel
 
 const int kMLModelUpdateInterval = 10;
@@ -21,7 +20,6 @@ MLModel::~MLModel()
 {
 	mpTimer->stopTimer();
 }
-
 
 // MLModel::ModelTimer
 

@@ -101,11 +101,12 @@ MLDial::~MLDial()
 {
 }
 
-//--------------------------------------------------------------------------------
+
 // MLWidget methods
 
 void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
+	debug() << "MLDial::doPropertyChangeAction RECEIVED " << property << " -> " << val << "\n";
 	if (property == "value")
 	{
         mParameterLayerNeedsRedraw = true;
@@ -122,7 +123,22 @@ void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 	repaint();
 }
 
-//--------------------------------------------------------------------------------
+void MLDial::sendValueOfDial(WhichDial s, float val)
+{
+	// TODO min and max thumbs are unimplemented
+	
+	//debug() << "in constrain: " << newValue << "\n";
+	float oldValue = getFloatProperty("value");
+	float newValue = constrainValue (val);
+	//debug() << "    out constrain: " << newValue << "\n";
+	
+	if(newValue != oldValue)
+	{
+		debug() << "MLDial::sendValueOfDial SEND " << newValue << "\n";
+		setPropertyImmediate("value", newValue);
+		sendAction("change_property", getTargetPropertyName(), getProperty("value"));
+	}
+}
 
 // TODO use properties
 void MLDial::setDialStyle (const MLDial::DialStyle newStyle)
@@ -287,22 +303,6 @@ float MLDial::clipToOtherDialValues(float val, WhichDial s)
 			break;
 	}
 	return newValue;
-}
-
-void MLDial::sendValueOfDial(WhichDial s, float val)
-{
-	// TODO min and max thumbs are unimplemented
-	
-	//debug() << "in constrain: " << newValue << "\n";
-	float oldValue = getFloatProperty("value");
-	float newValue = constrainValue (val);
-	//debug() << "    out constrain: " << newValue << "\n";
-
-	if(newValue != oldValue)
-	{
-		setPropertyImmediate("value", newValue);
-		sendAction("change_property", getTargetPropertyName(), getProperty("value"));
-	}
 }
 
 void MLDial::setDoubleClickReturnValue (const bool isDoubleClickEnabled,
@@ -1400,7 +1400,6 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
             
             if(wheel.isReversed) dpf = -dpf;			
 			float val = getFloatProperty("value");
-			
 			int dir = sign(dpf);
 			int dp = dir*max(1, (int)(fabs(dpf)*32.)); // mouse scale for no detents
 			
@@ -1413,8 +1412,9 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 					isMouseWheelMoving = true;
 					beginGesture();
 				}
-				sendValueOfDial(dialToDrag, valueWhenLastDragged);
 				mpTimer->startTimer(kWheelTimeoutDuration);
+				
+				sendValueOfDial(dialToDrag, valueWhenLastDragged);
 				mParameterLayerNeedsRedraw = true;
 				mThumbLayerNeedsRedraw = true;
 				repaint();

@@ -26,6 +26,7 @@ enum eFileTypes
 
 // get the default location for saving files of the given type.
 // Creates any needed directories if they do not exist.
+// TODO should be MLFile!
 File getDefaultFileLocation(eFileTypes whichFiles);
 
 #endif // __ML_DEFAULTFILELOCATIONS_H__

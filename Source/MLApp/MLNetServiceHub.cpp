@@ -128,17 +128,17 @@ void MLNetServiceHub::publishUDPService(const char *name, int port)
 
 void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
-	veciterator it = std::find(services.begin(),services.end(), pNetService->getName());
-	if(it!=services.end()) return; // we already have it
-	services.push_back(pNetService->getName());
+	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
+	if(it!=mServices.end()) return; // we already have it
+	mServices.push_back(pNetService->getName());
 }
 
 void MLNetServiceHub::didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
-	veciterator it = std::find(services.begin(),services.end(), pNetService->getName());
-	if(it==services.end()) return;      // we don't have it
-	//long index = it-services.begin();   // store the position
-	services.erase(it);
+	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
+	if(it==mServices.end()) return;      // we don't have it
+	//long index = it-mServices.begin();   // store the position
+	mServices.erase(it);
 }
 
 void MLNetServiceHub::didResolveAddress(NetService *pNetService)

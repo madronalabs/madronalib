@@ -135,7 +135,7 @@ void MLButton::clicked ()
 	{
 		mToggleState = newT;
 		setPropertyImmediate ("value", (mToggleState ? mOnValue : mOffValue));
-		sendAction("property", getTargetPropertyName(), getProperty("value"));
+		sendAction("change_property", getTargetPropertyName(), getProperty("value"));
 	}
 }
 

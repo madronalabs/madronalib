@@ -228,7 +228,7 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 	return p;
 }
 
-char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, MLValueDisplayMode mode)  throw()
+char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, const MLValueDisplayMode mode)  throw()
 {
 	const int bufLength = 16;
 	static char numBuf[bufLength] = {0};
@@ -251,7 +251,6 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		case eMLNumHertz:
 		case eMLNumDecibels:
 		case eMLNumPan:
-			
 		case eMLNumRatio:
 		{
 			bool done = false;

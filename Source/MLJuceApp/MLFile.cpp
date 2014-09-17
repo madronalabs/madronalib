@@ -12,16 +12,15 @@
 MLFile::MLFile(const std::string& dirName) :
     mFile(File::nonexistent),
     mIsDirectory(true),
-    mShortName(dirName),
-    mIndex(-1)
+    mShortName(dirName)
 {}
 
 MLFile::MLFile(const File startDir) :
-mFile(startDir), mIsDirectory(startDir.isDirectory()), mIndex(-1)
+mFile(startDir), mIsDirectory(startDir.isDirectory())
 {}
 
 MLFile::MLFile(const File f, const std::string& shortName, const std::string& longName) :
-    mFile(f), mIsDirectory(f.isDirectory()), mShortName(shortName), mLongName(longName), mIndex(-1)
+    mFile(f), mIsDirectory(f.isDirectory()), mShortName(shortName), mLongName(longName)
 {}
 
 MLFile::~MLFile()

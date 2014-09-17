@@ -8,7 +8,7 @@
 MLAppState::MLAppState(MLModel* pM, MLAppView* pV, const char* makerName, const char* appName, int version) :
     MLPropertyListener(pM),
 	mpModel(pM),
-	mpAppView(pV),
+	mpAppView(pV), // TODO view should not communicate directly to state!
 	mpMakerName(makerName),
 	mpAppName(appName),
 	mVersion(version)

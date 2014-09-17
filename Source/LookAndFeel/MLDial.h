@@ -35,49 +35,45 @@ class MLDial  :
 {
 friend class MLLookAndFeel;
 public:
-    MLDial ();
-    ~MLDial();
-		
-	// MLPropertyListener
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
+	// TODO replace with properties, clean unused
 	enum DialStyle
     {
         LinearHorizontal,       /**< A traditional horizontal dial. */
         LinearVertical,         /**< A traditional vertical dial. */
         LinearBar,              /**< A horizontal bar dial with the text label drawn on top of it. */
         Rotary,                 /**< A rotary control that you move by dragging the mouse in a circular motion, like a knob.
-                                     @see setRotaryParameters */
+								 @see setRotaryParameters */
         RotaryHorizontalDrag,   /**< A rotary control that you move by dragging the mouse left-to-right.
-                                     @see setRotaryParameters */
+								 @see setRotaryParameters */
         RotaryVerticalDrag,     /**< A rotary control that you move by dragging the mouse up-and-down.
-                                     @see setRotaryParameters */
+								 @see setRotaryParameters */
 		TwoValueHorizontal,     /**< A horizontal dial that has two thumbs instead of one, so it can show a minimum and maximum value.
-                                     @see setMinValue, setMaxValue */
+								 @see setMinValue, setMaxValue */
         TwoValueVertical,       /**< A vertical dial that has two thumbs instead of one, so it can show a minimum and maximum value.
-                                     @see setMinValue, setMaxValue */
-
+								 @see setMinValue, setMaxValue */
+		
         ThreeValueHorizontal,   /**< A horizontal dial that has three thumbs instead of one, so it can show a minimum and maximum
-                                     value, with the current value being somewhere between them.
-                                     @see setMinValue, setMaxValue */
+								 value, with the current value being somewhere between them.
+								 @see setMinValue, setMaxValue */
         ThreeValueVertical,     /**< A vertical dial that has three thumbs instead of one, so it can show a minimum and maximum
-                                     value, with the current value being somewhere between them.
-                                     @see setMinValue, setMaxValue */
-        MultiHorizontal,  
-        MultiVertical   
+								 value, with the current value being somewhere between them.
+								 @see setMinValue, setMaxValue */
+        MultiHorizontal,
+        MultiVertical
 	};
- 
+	
     enum WhichValue
 	{
-        mainValue,		
-        minValue,   
+        mainValue,
+        minValue,
         maxValue
 	};
 	
     enum WhichDial
 	{
-        kMainDial,		
-        kMinDial,   
+        kMainDial,
+        kMinDial,
         kMaxDial,
 		kTrackDial,
 		kNoDial
@@ -85,10 +81,10 @@ public:
 	
     enum DialRect
 	{
-        Thumb1Rect,		
-        Thumb2Rect,   
-        Thumb1Field,		
-        Thumb2Field,   
+        Thumb1Rect,
+        Thumb2Rect,
+        Thumb1Field,
+        Thumb2Field,
 		TrackRect,
 		Text1Rect,
 		Text2Rect,
@@ -101,12 +97,20 @@ public:
 	
     enum WhichCorner
 	{
-        BottomLeft,		
-        BottomRight,   
+        BottomLeft,
+        BottomRight,
         TopLeft,
 		TopRight,
 	};
+
+	MLDial ();
+    ~MLDial();
+		
+	// MLPropertyListener
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
+	void sendValueOfDial(WhichDial s, float val);
+		
 	WhichDial getDialBeingDragged() {return dialBeingDragged;}
 	WhichDial getDialToDrag() {return dialToDrag;}
 	bool isOverTrack() {return mOverTrack;}
@@ -227,8 +231,6 @@ public:
 
 protected:
 	float clipToOtherDialValues(float val, WhichDial s);
-
-	void sendValueOfDial(WhichDial s, float val);
 
     void repaintAll ();
 	virtual void paint (Graphics& g);

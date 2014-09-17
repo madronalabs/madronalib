@@ -32,19 +32,23 @@ public:
     std::string getAbsolutePath() const;
     const std::string & getShortName() const { return mShortName; }
     const std::string & getLongName() const { return mLongName; }
+	juce::File getJuceFile() const { return mFile; }
+	
     void buildMenu(MLMenuPtr m) const;
     void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
     void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
     
-    File mFile;
+private:
+	juce::File mFile;
     bool mIsDirectory;
-    int mIndex;
-    std::string mShortName;
+
+    // the file's name including prefix.
+	std::string mShortName;
+	
     // path relative to collection root including name
     std::string mLongName;
-    
-private:
-    nameToFileMap mFiles;
+	
+	nameToFileMap mFiles;
 };
 
 #endif /* defined(__MLFile__) */

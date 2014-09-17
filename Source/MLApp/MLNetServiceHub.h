@@ -50,7 +50,7 @@ public:
 	NetServiceBrowser *browser;
 	NetService *resolver;
 	NetService *service;
-	std::vector<std::string> services;
+	std::vector<std::string> mServices;
 	typedef std::vector<std::string>::iterator veciterator;
 
 	MLNetServiceHub();

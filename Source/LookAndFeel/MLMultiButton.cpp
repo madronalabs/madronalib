@@ -231,7 +231,7 @@ void MLMultiButton::setSelectedValue (float val, int selector)
     {
 		MLSymbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
 		setPropertyImmediate(buttonName, newValue);
-		sendAction("property", targetPropertyName, getProperty(buttonName));
+		sendAction("change_property", targetPropertyName, getProperty(buttonName));
     }
 }
 

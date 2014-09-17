@@ -17,7 +17,7 @@ public:
 
     void setText (const String& text);
 
-     enum ColourIds
+	enum ColourIds
     {
         backgroundColourId              = 0x1008900,   
         foregroundColourId              = 0x1008a00,  

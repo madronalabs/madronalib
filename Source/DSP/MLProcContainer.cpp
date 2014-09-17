@@ -1621,7 +1621,9 @@ MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const
 	MLPublishedParamPtr p;	
 	const int i = (int)mPublishedParams.size();
 	p = MLPublishedParamPtr(new MLPublishedParam(procPath, param, alias, type, (int)i));
-	mPublishedParams.push_back(p);	
+	mPublishedParams.push_back(p);
+	
+	debug() << "MLProcContainer::publishParam: pushed back param idx " << i << "\n";
 	mPublishedParamMap[alias] = p; 
 	return p;
 }
@@ -1643,11 +1645,19 @@ void MLProcContainer::setPublishedParam(int index, MLParamValue val)
 //debug() << "in: " << val << "\n";
 			
 			val = p->constrainValue(val);
-//debug() << "out: " << val << "\n";			
+//debug() << "out: " << val << "\n";
+			
+			MLSymbol type = p->getType();
+			
+//			debug() << "MLProcContainer::setPublishedParam: parameter " << index << " is type " << type << "  \n";
+			if(type == "signal")
+			{
+			}
+			   
 			for(MLPublishedParam::AddressIterator it = p->beginAddress(); it != p->endAddress(); ++it)
 			{		
 				// set param at address.
-debug() << "setting param #" << index << ", " << it->paramName << " of " << it->procAddress << " to " << val << "\n";
+//debug() << "setting param #" << index << ", " << it->paramName << " of " << it->procAddress << " to " << val << "\n";
 				routeParam(it->procAddress, it->paramName, val);			
 			}
 		}
@@ -1940,21 +1950,20 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 			{
 				// optional param type attribute
 				MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
-				
-/*				if((!type) || (type == MLSymbol("float")))
-				{
-				}
-*/
 				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3, type);
-				
-				if (p)
+				MLSymbol createdType = p->getType();
+				if (createdType == "float")
 				{
 					setPublishedParamAttrs(p, child);
 					setPublishedParam(p->mIndex, p->getDefault());
 					mParamGroups.addParamToCurrentGroup(p);
 				}
-				
-				
+				else if (createdType == "string")
+				{
+				}
+				else if (createdType == "signal")
+				{
+				}
 			}
 		}
 	}

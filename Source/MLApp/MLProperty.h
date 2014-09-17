@@ -120,9 +120,10 @@ public:
     
     virtual ~MLPropertyListener()
     {
-		if(!mpPropertyOwner) return;
-		mpPropertyOwner->removePropertyListener(this);
-		mpPropertyOwner = nullptr;
+		if(mpPropertyOwner)
+		{
+			mpPropertyOwner->removePropertyListener(this);
+		}
     }
     
 	// override to do whatever this PropertyListener needs to do based on the values of properties.

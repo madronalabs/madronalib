@@ -336,7 +336,7 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails
 			float currentVal = getFloatProperty(MLSymbol("value").withFinalNumber(s));
 			float minPosDelta = 0.01f;
 			float deltaDir = (wheel.deltaY > 0.f) ? 1.f : -1.f;
-			float posDelta = (wheel.deltaY + deltaDir*minPosDelta)*wheelSpeed*wheelDirection;			
+			float posDelta = (wheel.deltaY + deltaDir*minPosDelta)*wheelSpeed*wheelDirection; 			
 			
 			const float currentPos = valueToProportionOfLength (currentVal);
 			const float newPos = clamp (currentPos + posDelta, 0.f, 1.f);

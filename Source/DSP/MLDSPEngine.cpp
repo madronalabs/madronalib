@@ -557,6 +557,7 @@ MLScale* MLDSPEngine::getScale()
 	return r;
 }
 
+/*
 // ----------------------------------------------------------------
 #pragma mark Patcher
 
@@ -564,6 +565,7 @@ MLProcList& MLDSPEngine::getPatcherList()
 {
 	return mPatcherList;
 }
+*/
 
 // ----------------------------------------------------------------
 #pragma mark Process
