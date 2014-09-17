@@ -66,6 +66,7 @@ public:
 		bool log, MLParamValue zt);
 	void addAddress(const MLPath & address, const MLSymbol name);
 
+	MLSymbol getType() { return mType; }
 	MLParamValue getValue();
 	MLParamValue constrainValue(MLParamValue val);
 	MLParamValue getValueAsLinearProportion() const;

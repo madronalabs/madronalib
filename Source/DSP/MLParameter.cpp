@@ -14,12 +14,21 @@ MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name,
 	setRange(0.f, 1.f, 0.01f, false, 0.f);
 	mUnit = kJucePluginParam_Generic;
 	mWarpMode = kJucePluginParam_Linear; // TODO use instead
-	mType = type;
 	mValue = 0.f;
 	mDefault = 0.f;
 	mZeroThreshold = 0.f - (MLParamValue)(2 << 16);
 	mGroupIndex = -1;
 	addAddress(procPath, name);
+	
+	if(type == MLSymbol())
+	{
+		mType = MLSymbol("float");
+	}
+	else
+	{
+		mType = type;
+	}
+	debug() << "NEW MLPublishedParam type is " << mType << "\n";
 }
 
 MLPublishedParam::~MLPublishedParam() 
