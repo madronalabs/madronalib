@@ -350,7 +350,6 @@ void MLPropertySet::broadcastAllProperties()
 	}
 }
 
-
 #pragma mark MLPropertyListener
 
 void MLPropertyListener::updateChangedProperties()
@@ -392,15 +391,16 @@ void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
     
 	// if the property does not exist in the map yet, this lookup will add it.
 	PropertyState& state = mPropertyStates[propName];
-    
-    const MLProperty& modelValue = mpPropertyOwner->getProperty(propName);
-    if((modelValue != state.mValue) || (modelValue.getType() == MLProperty::kSignalProperty))
+	
+	// check for change in property. Note that this also compares signals and strings, which may possibly be slow.
+    const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);
+    if(ownerValue != state.mValue)
     {
         state.mChangedSinceUpdate = true;
 		if(immediate)
 		{
-			doPropertyChangeAction(propName, modelValue);
-			state.mValue = modelValue;
+			doPropertyChangeAction(propName, ownerValue);
+			state.mValue = ownerValue;
 		}
     }
 }
