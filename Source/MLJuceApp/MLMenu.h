@@ -32,19 +32,23 @@ public:
         Node() : itemNumber(0){}
         ~Node(){}
         void clear();
+        bool isValid() { return itemNumber > 0; }
         void dump(int level = 0);
         int renumberItems(int n = 1);
-        int getSize(int n);
+        int getNodeSize(int n);
         void buildFullNameIndex(std::vector<std::string>& nameVec, const std::string& path);
         void addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, bool root = true);
-        
+        void setDisplayPrefix(const std::string& p) { mDisplayPrefix = p; }
+		const std::list<std::string>& getIndex() { return index; }
+		NodePtr getSubnodeByName(const std::string& name);
+		
         StringToMenuNodeMapT map;
         std::list<std::string> index;
         bool enabled;
+		std::string mDisplayPrefix;
         int itemNumber;
         JuceMenuPtr subMenu;
     };
-    
 
 	MLMenu();
 	MLMenu(const MLSymbol name);
@@ -60,8 +64,7 @@ public:
     void buildIndex();
     
 	MLSymbol getName() { return mName; }
-	int getSize() { return mRoot->getSize(0); }
-    
+	int getSize() { return mRoot->getNodeSize(0); }
 	const std::string getItemFullName(int idx);
     
     // build a Juce menu on the fly and return it

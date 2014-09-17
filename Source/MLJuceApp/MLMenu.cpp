@@ -8,7 +8,6 @@
 static const std::string kNullStr("<null>");
 static const std::string kSeparatorStr("---");
 
-
 #pragma mark MLMenu::Node
 
 void MLMenu::Node::dump(int level)
@@ -27,6 +26,11 @@ void MLMenu::Node::dump(int level)
         node->dump(level + 1);
 	}
     debug() << "\n";
+}
+
+MLMenu::NodePtr MLMenu::Node::getSubnodeByName(const std::string& name)
+{
+	return map.find(name)->second;
 }
 
 int MLMenu::Node::renumberItems(int n)
@@ -60,8 +64,7 @@ void MLMenu::Node::clear()
     subMenu = JuceMenuPtr();
 }
 
-// get size, counting only leaf nodes that are not separators.
-int MLMenu::Node::getSize(int n)
+int MLMenu::Node::getNodeSize(int n)
 {
     bool isLeaf = (index.size() == 0);
     if(isLeaf)
@@ -77,7 +80,7 @@ int MLMenu::Node::getSize(int n)
             if(name != kSeparatorStr)
             {
                 NodePtr node = it->second;
-                n = node->getSize(n);
+                n = node->getNodeSize(n);
             }
         }
     }
@@ -130,7 +133,7 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
     {
         if(name != kSeparatorStr)
         {
-            pMenu->addItem(itemNumber, stripExtension(getShortName(name)), enabled);
+            pMenu->addItem(itemNumber, mDisplayPrefix + stripExtension(getShortName(name)), enabled);
         }
         else
         {
@@ -172,7 +175,6 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
         pMenu->addSubMenu(name, *subMenu);
     }
 }
-
 
 #pragma mark MLMenu
 
@@ -249,14 +251,16 @@ void MLMenu::buildIndex()
     std::string startPath("");
     mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
     mHasIndex = true;
-    /*
+ 
+	/*
     // DEBUG
     debug() << "fullnames by index: \n";
     int size = mFullNamesByIndex.size();
     for(int i = 0; i < size; ++i)
     {
         debug() << " #" << i << ": " << mFullNamesByIndex[i] << "\n";
-    */
+	}
+	 */
 }
     
 void MLMenu::addSeparator()
@@ -278,7 +282,7 @@ const std::string MLMenu::getItemFullName(int idx)
     }
     int items = mFullNamesByIndex.size();
     // items are 1-indexed
-	if(within(idx, 0, items + 1))
+	if(within(idx, 1, items + 1))
 	{
         return mFullNamesByIndex[idx];
 	}
