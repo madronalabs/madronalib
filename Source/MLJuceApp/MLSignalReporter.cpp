@@ -7,7 +7,8 @@
 
 MLSignalReporter::MLSignalReporter(MLPluginProcessor* p) :
 	mpProcessor(p),
-    mViewIndex(0)
+    mViewIndex(0),
+	mNeedsRedraw(true)
 {
 }
 
@@ -132,6 +133,25 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
         buffer2 = buffer1;
     }    
     return drawn;
+}
+
+
+void MLSignalReporter::viewSignals()
+{
+	if(mNeedsRedraw)
+	{
+		mNeedsRedraw = false;
+		viewAllSignals();
+	}
+	else
+	{
+		viewChangedSignals();
+	}
+}
+
+void MLSignalReporter::redrawSignals()
+{
+	mNeedsRedraw = true;
 }
 
 void MLSignalReporter::viewChangedSignals()

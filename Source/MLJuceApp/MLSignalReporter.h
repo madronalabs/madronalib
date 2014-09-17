@@ -12,7 +12,6 @@
 #include "MLPluginProcessor.h"
 #include "MLSignalView.h"
 
-
 #pragma mark MLSignalReporter 
 
 class MLSignalReporter
@@ -29,6 +28,9 @@ public:
     
 	// view all of the signals in the map.
 	void viewAllSignals();
+	
+	void viewSignals();
+	void redrawSignals();
     
 protected:
 	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
@@ -49,6 +51,8 @@ protected:
 
     int mViewIndex;
     std::vector<MLSymbol> mSignalNames;
+	
+	bool mNeedsRedraw;
 };
 
 #endif // __ML_SIGNAL_REPORTER_H
