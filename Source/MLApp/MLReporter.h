@@ -9,12 +9,13 @@
 #include "MLModel.h"
 #include "MLWidget.h"
 #include <map>
-
+#include "pa_ringbuffer.h"
 
 #pragma mark property viewing
 
 class MLPropertyView
 {
+	friend class MLReporter;
 public:
 	MLPropertyView(MLWidget* w, MLSymbol attr);
 	~MLPropertyView();
@@ -28,7 +29,6 @@ private:
 typedef std::tr1::shared_ptr<MLPropertyView> MLPropertyViewPtr;
 typedef std::list<MLPropertyViewPtr> MLPropertyViewList;
 typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
-
 
 #pragma mark MLReporter 
 
@@ -44,15 +44,27 @@ public:
 	
 	// MLPropertyListener interface
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-
-	// parameter viewing
+	
 	void addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
-	void viewAllProperties();
-	void viewAllChangedProperties();
+	void viewProperties();
 
 protected:
-
 	MLPropertyViewListMap mPropertyViewsMap;
+	std::vector<MLSymbol> mSymbolData;
+	PaUtilRingBuffer mSymbolRing;
+	
+private:
+	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
+	class ReporterTimer : public juce::Timer
+	{
+	public:
+		ReporterTimer(MLReporter*);
+		~ReporterTimer();
+		void timerCallback();
+	private:
+		MLReporter* mpOwner;
+	};
+	std::tr1::shared_ptr<ReporterTimer> mpTimer;
 };
 
 #endif // __ML_REPORTER_H
