@@ -22,26 +22,43 @@ class MLFileCollection : public MLPropertySet
 {
 friend class SearchThread;
 public:
-    // a Listener class must have a processFile routine to do something
+    // a Listener class must have a processFileFromCollection routine to do something
     // with each file as it is found.
     class Listener
 	{
+		friend class MLFileCollection;
 	public:
-		virtual ~Listener() {}
-		virtual void processFile (const MLSymbol collection, const MLFile& f, int idx, int size) = 0;
+		Listener(){}
+		virtual ~Listener();
+		void addCollection(MLFileCollection* pC);
+		void removeCollection(MLFileCollection* pCollectionToRemove);
+		
+		// process a file from the Collection. In an immediate search, first the files will be counted, then
+		// this will be called for each file. So idx and size can be used to display progress, or take action
+		// after the last file is processed. In a background search, idx may equal size more often as files
+		// are discovered, and so the post-processing steps (building menus for example) may take place
+		// more often.
+		//
+		// Note that idx is one-based.
+		virtual void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size) = 0;
+		
+	private:
+		std::list<MLFileCollection*> mpCollections;
 	};
      
  	MLFileCollection(MLSymbol name, const File startDir, String extension);
     ~MLFileCollection();
+	
     void clear();
-    int size() { return mFilesByIndex.size(); }
-    MLSymbol getName() { return mName; }
-    const MLFile* getRoot() { return (const_cast<const MLFile *>(&mRoot)); }
+    int getSize() const { return mFilesByIndex.size(); }
+    MLSymbol getName() const { return mName; }
+    const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
     
-    void setListener (Listener* listener);
+    void addListener (Listener* listener);
+	void removeListener(Listener* pToRemove);
 
-    int beginProcessFiles();
-    void searchForFilesNow(int delay = 0);
+    void searchForFilesImmediate(int delay = 0);
+    void searchForFilesInBackground(int delay = 0);
     void cancelSearch();
   
     // return a file by its path + name relative to our starting directory.
@@ -56,12 +73,12 @@ public:
     // given a full system file path, get its path relative to our starting directory.
     std::string getRelativePath(const std::string& name);
     
-    MLMenuPtr buildMenu(bool flat = false);
-    MLMenuPtr buildMenuMatchingPrefix(std::string prefix);
+    MLMenuPtr buildMenu(bool flat = false) const;
     void dump();
     
 private:
     
+    int beginProcessFiles();
     void buildTree();
     void processFileInTree(int i);
 
@@ -92,7 +109,7 @@ private:
     std::vector<MLFilePtr> mFilesByIndex;    
     MLSymbol mName;
     String mExtension;
-    Listener* mpListener;
+	std::list<Listener*> mpListeners;
     
     // temp storage for processing files
     std::vector <File> mFiles;

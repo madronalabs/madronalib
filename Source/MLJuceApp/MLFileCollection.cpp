@@ -8,10 +8,41 @@
 
 #include "MLFileCollection.h"
 
+// MLFileCollection::Listener
+
+MLFileCollection::Listener::~Listener()
+{
+	for(std::list<MLFileCollection*>::iterator it = mpCollections.begin(); it != mpCollections.end(); it++)
+	{
+		MLFileCollection* pC = *it;
+		pC->removeListener(this);
+	}
+}
+
+void MLFileCollection::Listener::addCollection(MLFileCollection* pC)
+{
+	mpCollections.push_back(pC);
+}
+
+void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionToRemove)
+{
+	std::list<Listener*>::iterator it;
+	for(std::list<MLFileCollection*>::iterator it = mpCollections.begin(); it != mpCollections.end(); it++)
+	{
+		MLFileCollection* pC = *it;
+		if(pC == pCollectionToRemove)
+		{
+			mpCollections.erase(it);
+			return;
+		}
+	}
+}
+
+// MLFileCollection
+
 MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
     mName(name),
     mExtension(extension),
-    mpListener(nullptr),
     mRoot(startDir)
 {
     setProperty("progress", -1);
@@ -23,6 +54,11 @@ MLFileCollection::~MLFileCollection()
     {
         mSearchThread->stopThread(1000);
     }
+	for(std::list<Listener*>::iterator it = mpListeners.begin(); it != mpListeners.end(); it++)
+	{
+		Listener* pL = *it;
+		pL->removeCollection(this);
+	}
 }
 
 void MLFileCollection::clear()
@@ -31,9 +67,24 @@ void MLFileCollection::clear()
     mFilesByIndex.clear();
 }
 
-void MLFileCollection::setListener (Listener* listener)
+void MLFileCollection::addListener (Listener* pL)
 {
-    mpListener = listener;
+    mpListeners.push_back(pL);
+	pL->addCollection(this);
+}
+
+void MLFileCollection::removeListener(Listener* pToRemove)
+{
+	std::list<Listener*>::iterator it;
+	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
+	{
+		Listener* pL = *it;
+		if(pL == pToRemove)
+		{
+			mpListeners.erase(it);
+			return;
+		}
+	}
 }
 
 // count the number of files in the collection, and begin making the collection.
@@ -43,14 +94,14 @@ int MLFileCollection::beginProcessFiles()
 {
     int found = 0;
 
-	if (mRoot.mFile.exists() && mRoot.mFile.isDirectory())
+	if (mRoot.getJuceFile().exists() && mRoot.getJuceFile().isDirectory())
     {
         mFiles.clear();
         const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
         const String& wildCard = "*";
         bool recurse = true;
         
-        DirectoryIterator di (mRoot.mFile, recurse, wildCard, whatToLookFor);
+        DirectoryIterator di (mRoot.getJuceFile(), recurse, wildCard, whatToLookFor);
         while (di.next())
         {
             mFiles.push_back (di.getFile());
@@ -76,13 +127,13 @@ void MLFileCollection::buildTree()
         String shortName = f.getFileName();
         String relativePath;
         File parentDir = f.getParentDirectory();
-        if(parentDir == mRoot.mFile)
+        if(parentDir == mRoot.getJuceFile())
         {
             relativePath = "";
         }
         else
         {
-            relativePath = parentDir.getRelativePathFrom(mRoot.mFile);
+            relativePath = parentDir.getRelativePathFrom(mRoot.getJuceFile());
         }
         
         if (f.existsAsFile() && f.hasFileExtension(mExtension))
@@ -100,8 +151,6 @@ void MLFileCollection::buildTree()
             
             // push to index
             mFilesByIndex.push_back(newFile);
-            int newIdx = mFilesByIndex.size() - 1;
-            newFile->mIndex = newIdx;
         }
     }
 }
@@ -115,18 +164,25 @@ void MLFileCollection::processFileInTree(int i)
     int size = mFilesByIndex.size();
     if(i < size)
     {
-        if(mpListener)
-        {
-            mpListener->processFile (mName, *f, i + 1, size);
-        }
+		std::list<Listener*>::iterator it;
+		for(it = mpListeners.begin(); it != mpListeners.end(); it++)
+		{
+			Listener* pL = *it;
+			pL->processFileFromCollection (*f, *this, i + 1, size);
+		}
     }
 }
 
-void MLFileCollection::searchForFilesNow(int delay)
+void MLFileCollection::searchForFilesImmediate(int delay)
 {
     mSearchThread = std::tr1::shared_ptr<SearchThread>(new SearchThread(*this));
     mSearchThread->setDelay(delay);
     mSearchThread->startThread();
+}
+
+void MLFileCollection::searchForFilesInBackground(int delay)
+{
+    // TODO
 }
 
 void MLFileCollection::cancelSearch()
@@ -142,7 +198,7 @@ std::string MLFileCollection::getFileNameByIndex(int idx)
     int size = mFilesByIndex.size();
     if(within(idx, 0, size))
     {
-        return mFilesByIndex[idx]->mLongName;
+        return mFilesByIndex[idx]->getLongName();
     }
     return std::string();
 }
@@ -220,7 +276,7 @@ std::string MLFileCollection::getRelativePath(const std::string& p)
     return relPath;
 }
 
-MLMenuPtr MLFileCollection::buildMenu(bool flat)
+MLMenuPtr MLFileCollection::buildMenu(bool flat) const
 {
     // make a new menu named after this collection and containing all of the files in it.
     MLMenuPtr m(new MLMenu(mName));
@@ -230,8 +286,8 @@ MLMenuPtr MLFileCollection::buildMenu(bool flat)
         for(int i=0; i<size; ++i)
         {
             MLFilePtr f = mFilesByIndex[i];
-            debug() << "buildMenu: adding " << f->mShortName << "\n";
-            m->addItem(f->mShortName);
+            debug() << "buildMenu: adding " << f->getShortName() << "\n";
+            m->addItem(f->getShortName());
         }
     }
     else
@@ -251,7 +307,7 @@ void MLFileCollection::dump()
 	for(int i = 0; i<len; ++i)
 	{
         const MLFilePtr f = mFilesByIndex[i];
-		debug() << "    " << i << ": " << f->mShortName << "\n";
+		debug() << "    " << i << ": " << f->getShortName() << "\n";
 	}
 }
 
@@ -262,7 +318,7 @@ void MLFileCollection::SearchThread::run()
 {
     mCollection.beginProcessFiles();
     mCollection.buildTree();
-    int t = mCollection.size();
+    int t = mCollection.getSize();
     for(int i=0; i<t; i++)
     {
         if (threadShouldExit())
