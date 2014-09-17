@@ -13,7 +13,7 @@
 #include "MLPluginEditor.h"
 #include "MLFileCollection.h"
 #include "MLControlEvent.h"
-#include "MLProcPatcher.h" // TODO avoid
+//#include "MLProcPatcher.h" // TODO avoid
 
 #include <vector>
 #include <map>
@@ -33,14 +33,6 @@ public:
         kRequiresSSE3
     };
     
-	class Listener
-	{
-	public:
-		virtual ~Listener() {}
-		virtual void scaleFilesChanged(const MLFileCollectionPtr) = 0;
-		virtual void presetFilesChanged(const MLFileCollectionPtr) = 0;
-	};
-		
 	MLPluginProcessor();
     ~MLPluginProcessor();
 	
@@ -68,10 +60,11 @@ public:
 	void reset();
 
     // MLFileCollection::Listener
-    virtual void processFile (const MLSymbol collection, const MLFile& f, int idx, int size);
-
-    void pushInfoToListeners();
-    void setProcessorListener (MLPluginProcessor::Listener* l);
+	void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size);
+	
+	// add an additional listener to the file collections that we are listening to. Controllers can use this
+	// to get updates and build menus, etc.
+	void addFileCollectionListener(MLFileCollection::Listener* pL);
 
 	// process
 	bool isOKToProcess();
@@ -86,7 +79,6 @@ public:
     void setParameter (int index, float newValue);
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
-	
 	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
 
     const String getParameterName (int index);
@@ -107,7 +99,7 @@ public:
 	int countSignals(const MLSymbol alias);
 	unsigned readSignal(const MLSymbol alias, MLSignal& outSig);
 	
-	MLProcList& getPatcherList(); // TODO remove
+	// MLProcList& getPatcherList(); // TODO remove
 
 	// state
 	virtual void getStateAsXML (XmlElement& xml);
@@ -129,12 +121,7 @@ public:
     void loadStateFromPath(const std::string& path);
 	void loadStateFromFile(const File& loadFile);
 
-	// MIDI programs
-	
-	void clearMIDIProgramFiles();
-	void setMIDIProgramFile(int pgm, File f);
 	void setStateFromMIDIProgram (const int pgmIdx);
-	void scanMIDIPrograms();
  
 	// channels
 	
@@ -154,9 +141,11 @@ public:
     const String getProgramName (int) { return String::empty; }
     void changeProgramName (int, const String&) { }
 
+	// files
+	void createFileCollections();
+	void scanAllFilesImmediate();
+		
 	// presets
-	
-	void scanPresets();
     void prevPreset();
     void nextPreset();
     void advancePreset(int amount);
@@ -210,8 +199,7 @@ private:
 	// set the plugin state from a memory blob containing parameter and patcher settings.
 	void setStateFromBlob (const void* data, int sizeInBytes);
 
-	MLAudioProcessorListener* MLListener;
-    Listener* mpListener;
+	MLAudioProcessorListener* mMLListener;
     
 	// The number of parameters in the plugin is stored here so we can access it before
 	// the DSP engine is compiled.
@@ -230,13 +218,7 @@ private:
 
     MLFileCollectionPtr mScaleFiles;
     MLFileCollectionPtr mPresetFiles;
-    
-	File mFactoryPresetsFolder, mUserPresetsFolder;
-	bool mFileLocationsOK;
-		
-	std::vector<File> mMIDIProgramFiles;
-	
-	int mWrapperFormat;
+    MLFileCollectionPtr mMIDIProgramFiles;
 	
 	// saved state for editor
 	MLRect mEditorRect;

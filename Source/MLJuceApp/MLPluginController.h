@@ -16,7 +16,6 @@ class MLPluginController :
 	public MLWidget::Listener,
 	public MLReporter,
 	public MLSignalReporter,
-    public MLPluginProcessor::Listener,
     public MLFileCollection::Listener
 {
 public:
@@ -32,23 +31,18 @@ public:
 	// MLWidget::Listener
 	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
 	
+    // MLFileCollection::Listener
+	void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size);
+ 	
+	// menus
  	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	virtual void menuItemChosen(MLSymbol menuName, int result);
-    
-    // MLPluginProcessor::Listener
-    void scaleFilesChanged(const MLFileCollectionPtr fileCollection);
-    void presetFilesChanged(const MLFileCollectionPtr presets);
-
-    // MLFileCollection::Listener
-    void processFile (const MLSymbol collection, const MLFile& f, int idx, int size);
- 
-	MLPluginProcessor* getProcessor() const { return mpProcessor; }
-	
 	MLMenu* createMenu(MLSymbol menuName);
-	MLMenu* findMenuByName(MLSymbol menuName);	
-
+	MLMenu* findMenuByName(MLSymbol menuName); // TODO move into new controller base class
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
+
+	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 
 #if ML_MAC
     void updatePresets();
@@ -70,16 +64,15 @@ protected:
 	friend class WeakReference<MLPluginController>;	
 
 private:
+	void populatePresetMenu(const MLFileCollection& f);
+	void populateScaleMenu(const MLFileCollection& f);
+	void flagMIDIProgramsInPresetMenu();
+
 	MLPluginProcessor* mpProcessor;
 	std::string mVersionString;
 
-	// stored indices for MIDI program changes-- hackish
-	std::vector<File> mMIDIProgramFiles;
-
 	MLMenuMapT mMenuMap; 	
 
-	void populatePresetMenu(const MLFileCollectionPtr f);
-	void populateScaleMenu(const MLFileCollectionPtr f);
 };
 
 

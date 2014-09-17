@@ -7,8 +7,7 @@
 const int kMaxControlEventsPerBlock = 1024;
 
 MLPluginProcessor::MLPluginProcessor() : 
-	MLListener(0),
-    mpListener(0),
+	mMLListener(0),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
 	mInitialized(false),
@@ -16,24 +15,20 @@ MLPluginProcessor::MLPluginProcessor() :
 	mT3DWaitTime(0),
 	mDataRate(-1)
 {
+	debug() << "creating MLPluginProcessor.\n";
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
     
-    // get scales collection
-    mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
-    mScaleFiles->setListener(this);
-    mScaleFiles->searchForFilesNow();
-    
-    scanPresets();
-	scanMIDIPrograms();
+    createFileCollections();
+    scanAllFilesImmediate();
     
     mControlEvents.resize(kMaxControlEventsPerBlock);
 }
 
 MLPluginProcessor::~MLPluginProcessor()
 {
-//	debug() << "deleting MLPluginProcessor.\n";
+	debug() << "deleting MLPluginProcessor.\n";
 }
 
 #pragma mark MLModel
@@ -67,17 +62,17 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProper
 		case MLProperty::kStringProperty:
 			break;
 		case MLProperty::kSignalProperty:
+			debug() << "MLPluginProcessor: got matrix property\n";
+			
 			if(property == "patcher_matrix")
 			{
-				debug() << "MLPluginProcessor::doPropertyChangeAction: got matrix \n";
-				
+				debug() << "MLPluginProcessor::doPropertyChangeAction: got patcher matrix \n";
 			}
 			break;
 		default:
 			break;
 	}
 }
-
 
 void MLPluginProcessor::loadPluginDescription(const char* desc)
 {
@@ -292,41 +287,35 @@ void MLPluginProcessor::releaseResources()
 
 #pragma mark MLFileCollection::Listener
 
-void MLPluginProcessor::processFile (const MLSymbol collection, const MLFile& f, int idx, int size)
+void MLPluginProcessor::processFileFromCollection (const MLFile& srcFile, const MLFileCollection& collection, int idx, int size)
 {
-    if(collection == "scales")
+	MLSymbol collectionName = collection.getName();
+    if(collectionName == "scales")
     {
     }
-    else if(collection == "mappings")
+    else if(collectionName == "presets")
     {
-    }
-    else if(collection == "presets")
-    {
-        if(idx == size) // done?
+        if(idx == 1) // starting?
+		{
+			
+		}
+		else if(idx == size) // done?
         {
-            pushInfoToListeners();
+			
         }
     }
-}
-
-#pragma mark Listener related
-
-void MLPluginProcessor::pushInfoToListeners()
-{
-    // push things a listener needs to know about
-    if(mpListener)
+    else if(collectionName == "midi_programs")
     {
-        // sample file collection
-        mpListener->scaleFilesChanged(mScaleFiles);
-        mpListener->presetFilesChanged(mPresetFiles);
+		// nothing to do
+		// debug() << "GOT MIDI PROGRAM file: " << srcFile.getLongName() << "\n";
     }
 }
 
-// when a new listener is set, immediately update it with all the current info we have.
-void MLPluginProcessor::setProcessorListener(MLPluginProcessor::Listener* l)
+void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL)
 {
-    mpListener = l;
-    pushInfoToListeners();
+	mScaleFiles->addListener(pL);
+	mPresetFiles->addListener(pL);
+	mMIDIProgramFiles->addListener(pL);
 }
 
 #pragma mark process
@@ -398,7 +387,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 		else if (message.isProgramChange())
 		{
 			int pgm = message.getProgramChangeNumber();
-//debug() << "program change " << pgm << "\n";
+debug() << "*** program change -> " << pgm << "\n";
 			if(pgm == kMLPluginMIDIPrograms)	
 			{
 				// load most recent saved program
@@ -698,7 +687,7 @@ unsigned MLPluginProcessor::readSignal(const MLSymbol alias, MLSignal& outSig)
 	return samples;
 }
 
-
+/*
 #pragma mark patcher-specific TO REMOVE
 //
 
@@ -706,6 +695,7 @@ MLProcList& MLPluginProcessor::getPatcherList()
 {
  	return mEngine.getPatcherList();
 }
+*/
 
 
 #pragma mark state
@@ -741,6 +731,7 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 		}
 	}
 
+	/*
 	// store patcher info to xml
 	{			
 		MLProcList patchers = getPatcherList();
@@ -776,6 +767,7 @@ void MLPluginProcessor::getStateAsXML (XmlElement& xml)
 			}
 		}
 	}	
+	*/
 	
 	// store editor state to XML if one exists	
 	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
@@ -907,13 +899,14 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     std::string fullScaleName(fullName.toUTF8());
 	setProperty("key_scale", fullScaleName);
     bool loaded = false;
+	
     // look for scale under full name with path
     if(fullScaleName != std::string())
     {
         const MLFilePtr f = mScaleFiles->getFileByName(fullScaleName);
         if(f != MLFilePtr())
         {
-            loadScale(f->mFile);
+            loadScale(f->getJuceFile());
             loaded = true;
         }
     }
@@ -1119,12 +1112,12 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
     std::string extension (".mlpreset");
     std::string extPath = shortPath + extension;
     const MLFilePtr f = mPresetFiles->createFile(extPath);
-    if(!f->mFile.exists())
+    if(!f->getJuceFile().exists())
     {
-        f->mFile.create();
+        f->getJuceFile().create();
     }
 
-    f->mFile.replaceWithText(getStateAsText());
+    f->getJuceFile().replaceWithText(getStateAsText());
 #endif // DEMO
     
 }
@@ -1136,7 +1129,7 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         const MLFilePtr f = mPresetFiles->getFileByName(path);
         if(f != MLFilePtr())
         {
-            loadStateFromFile(f->mFile);
+            loadStateFromFile(f->getJuceFile());
             std::string shortPath = stripExtension(path);
             setProperty("preset", shortPath);
         }
@@ -1181,74 +1174,32 @@ void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
 	}
 }
 
-
 #pragma mark MIDI programs
-
-void MLPluginProcessor::clearMIDIProgramFiles()
-{
-	mMIDIProgramFiles.clear();
-	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
-}
-
-void MLPluginProcessor::setMIDIProgramFile(int idx, File f)
-{
-	if(idx < kMLPluginMIDIPrograms)
-	{
-		mMIDIProgramFiles[idx] = f;
-	}
-}
 
 void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
 {
-	if(within(idx, 0, kMLPluginMIDIPrograms))
-	{
-		if(mMIDIProgramFiles[idx].exists())
-		{
-			loadStateFromFile(mMIDIProgramFiles[idx]);
-		}
-	}
+	loadStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
 }
 
-void MLPluginProcessor::scanPresets()
+void MLPluginProcessor::createFileCollections()
 {
-    // get presets collections
+    mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+    mScaleFiles->addListener(this);
+
     mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
-    mPresetFiles->setListener(this);
-    mPresetFiles->searchForFilesNow();
+    mPresetFiles->addListener(this);
+
+	File MIDIProgramsDir = getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs");
+    mMIDIProgramFiles = MLFileCollectionPtr(new MLFileCollection("midi_programs", MIDIProgramsDir, "mlpreset"));
+    mMIDIProgramFiles->addListener(this);
 }
 
-void MLPluginProcessor::scanMIDIPrograms()
+void MLPluginProcessor::scanAllFilesImmediate()
 {
-	String presetFileType = ".mlpreset";
-    
-	clearMIDIProgramFiles();
-	
-	File startDir = getDefaultFileLocation(kPresetFiles);
-	if (!startDir.isDirectory()) return;	
-	File subDir = startDir.getChildFile("MIDI Programs");
-	if (!subDir.isDirectory()) 
-	{
-		// debug() << "WARNING: MIDI Programs directory not found.\n";
-		return;	
-	}
-	Array<File> subdirArray;
-	const int level1FilesToFind = File::findFiles;
-	int filesInCategory = subDir.findChildFiles(subdirArray, level1FilesToFind, false);
-	int midiPgmCount = 0;
-	for(int j=0; j<filesInCategory; ++j)
-	{
-		File f2 = subdirArray[j];
-		if (f2.hasFileExtension(presetFileType))
-		{
-			if(midiPgmCount < kMLPluginMIDIPrograms)
-			{
-				setMIDIProgramFile(midiPgmCount++, f2);
-			}
-		}
-	}
-	// debug() << "MLPluginProcessor::scanMIDIPrograms found " << midiPgmCount << " MIDI programs\n";
+    mScaleFiles->searchForFilesImmediate();
+    mPresetFiles->searchForFilesImmediate();
+    mMIDIProgramFiles->searchForFilesImmediate();
 }
-
 
 #pragma mark presets
 
@@ -1264,7 +1215,7 @@ void MLPluginProcessor::nextPreset()
 
 void MLPluginProcessor::advancePreset(int amount)
 {
-    int len = mPresetFiles->size();
+    int len = mPresetFiles->getSize();
     std::string extension (".mlpreset");
 
     int currIdx = - 1;
@@ -1303,7 +1254,14 @@ void MLPluginProcessor::setDefaultParameters()
 		for(unsigned i=0; i<numParams; ++i)
 		{
 			float defaultVal = getParameterDefault(i);
+			
 			setPropertyImmediate(getParameterAlias(i), defaultVal);
+
+			const MLProperty& p = getProperty(getParameterAlias(i));
+			debug() << "default was type  " << p.getType() << "\n";
+			
+			debug() << "SETTING default: " << getParameterAlias(i) << " -> " << defaultVal << "\n";
+			
 		}
 	}
 }
@@ -1357,21 +1315,21 @@ bool MLPluginProcessor::producesMidi() const
 void MLPluginProcessor::setMLListener (MLAudioProcessorListener* const newListener) throw()
 {
 	assert(newListener);
-    MLListener = newListener;
+    mMLListener = newListener;
 }
 
 MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File& f)
 {
 	MLProc::err err = MLProc::OK;
-	if(!MLListener) return MLProc::unknownErr;
+	if(!mMLListener) return MLProc::unknownErr;
 
 	switch(msg)
 	{
 		case MLAudioProcessorListener::kLoad:
-			MLListener->loadFile (f);
+			mMLListener->loadFile (f);
 		break;
 		case MLAudioProcessorListener::kSave:
-			MLListener->saveToFile (f);
+			mMLListener->saveToFile (f);
 		break;
 		default:
 		break;
@@ -1519,6 +1477,8 @@ void AaltoProcessor::ProtocolPoller::timerCallback()
 
 
 yuck
+ 
+ TODO
  
  restore this, and finally Patcher.
 

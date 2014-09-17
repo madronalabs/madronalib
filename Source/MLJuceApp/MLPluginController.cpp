@@ -21,12 +21,18 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 		MLPublishedParam* param = &(*p);
 		if(param)
 		{
-//			mpProcessor->setProperty(param->getAlias(), param->getValue());
-			mpProcessor->setProperty(param->getAlias(), param->getDefault());
+			MLSymbol type = param->getType();
+			if((type == "float") || (type == MLSymbol()))
+			{
+				debug() << param->getAlias() << " is a float type \n";
+				mpProcessor->setProperty(param->getAlias(), param->getDefault());
+			}
+			else
+			{
+				debug() << param->getAlias() << " is a non-float type \n";
+			}
 		}
 	}
-	
-	mMIDIProgramFiles.resize(kMLPluginMIDIPrograms);
 	
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
@@ -34,6 +40,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 
 MLPluginController::~MLPluginController()
 {
+	
 	masterReference.clear();
 }
 
@@ -104,7 +111,7 @@ void MLPluginController::initialize()
 
 void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)
 {
-	// debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
+	debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
 
 	if(action == "click")
 	{
@@ -114,7 +121,7 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	{
 		showMenu(targetProperty, pw->getWidgetName());
 	}
-	else if(action == "start_gesture")
+	else if(action == "begin_gesture")
 	{
 		int idx = mpProcessor->getParameterIndex(targetProperty);
 		if (idx > 0)
@@ -122,7 +129,7 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 			mpProcessor->beginParameterChangeGesture (idx);
 		}
 	}
-	else if(action == "property")
+	else if(action == "change_property")
 	{
 		mpProcessor->setProperty(targetProperty, val);
 	}
@@ -135,23 +142,6 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 		}
 	}
 }
-
-
-
-#pragma mark file collections
-
-// called to build the scale menu when the Processor's collection of sample files has changed.
-void MLPluginController::scaleFilesChanged(const MLFileCollectionPtr fileCollection)
-{
-    populateScaleMenu(fileCollection);
-}
-
-void MLPluginController::presetFilesChanged(const MLFileCollectionPtr fileCollection)
-{
-    // when to do this now with async file search
-    populatePresetMenu(fileCollection);
-}
-
 
 #pragma mark presets
 
@@ -236,7 +226,7 @@ void MLPluginController::doPresetMenu(int result)
 					"OK");
 			}
             // update menu (overkill)
-			getProcessor()->scanPresets();
+			getProcessor()->scanAllFilesImmediate();
 		break;
             
 		case (2):	// save over previous
@@ -247,7 +237,7 @@ void MLPluginController::doPresetMenu(int result)
 					"",
 					"OK");
 			}
-			getProcessor()->scanPresets();
+			getProcessor()->scanAllFilesImmediate();
 		break;
             
 		case (3):	// save as ...
@@ -272,7 +262,7 @@ void MLPluginController::doPresetMenu(int result)
                     }
                     else
                     {
-                        getProcessor()->scanPresets();
+                        getProcessor()->scanAllFilesImmediate();
                     }
                 }
             }
@@ -298,7 +288,7 @@ void MLPluginController::doPresetMenu(int result)
 #if ML_MAC
 		case (7):	// show convert alert box
 			updatePresets();
-			getProcessor()->scanPresets();
+			getProcessor()->scanAllFilesImmediate();
 		break;
 #endif
 #endif
@@ -351,12 +341,8 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 
 		// get menu by name from Controller’s menu map		
 		const MLMenu* pMenu = pC->findMenuByName(menuName);
-		if (pMenu == nullptr)
+		if (pMenu)
 		{
-			debug() << "    MLPluginController::populatePresetMenu(): menu not found!\n";
-		}	
-		else
-		{		
 			MLWidgetContainer* pView = pC->getView();
 			
 			//debug() << "    pView:" << std::hex << (void *)pView << std::dec << "\n";
@@ -396,7 +382,7 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 	}
 }
 
-void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFiles)
+void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 {
 	MLMenu* menu = createMenu("preset");
 	if (menu == nullptr)
@@ -440,101 +426,123 @@ void MLPluginController::populatePresetMenu(const MLFileCollectionPtr presetFile
 	menu->addSeparator();
     
     // add factory presets, those starting with the plugin name    
-    MLMenuPtr factoryMenu(new MLMenu(presetFiles->getName()));
-    presetFiles->getRoot()->buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
+    MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
+    presetFiles.getRoot()->buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
     menu->appendMenu(factoryMenu);
     
     menu->addSeparator();
     
     // add user presets, all the others
-    MLMenuPtr userMenu(new MLMenu(presetFiles->getName()));
-    presetFiles->getRoot()->buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
+    MLMenuPtr userMenu(new MLMenu(presetFiles.getName()));
+    presetFiles.getRoot()->buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
     menu->appendMenu(userMenu);
-    
     menu->buildIndex();
-     
-    // send MIDI program info to processor
-    MLPluginProcessor* const pProc = getProcessor();
-    if(pProc)
-    {
-        pProc->clearMIDIProgramFiles();
-        for(int i=0; i<kMLPluginMIDIPrograms; ++i)
-        {
-            if(mMIDIProgramFiles[i].exists())
-            {
-        debug() << "MIDI pgm " << i << " " << mMIDIProgramFiles[i].getFileName() << "\n";
-                pProc->setMIDIProgramFile(i, mMIDIProgramFiles[i]);
-            }
-        }
-    }
 }
 
 // create a menu of the factory scales.
 //
-void MLPluginController::populateScaleMenu(const MLFileCollectionPtr fileCollection)
+void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
 {
     MLMenu* pMenu = createMenu("key_scale");
 	pMenu->clear();
  	pMenu->addItem("12-equal");
-    MLMenuPtr p = fileCollection->buildMenu();
+    MLMenuPtr p = fileCollection.buildMenu();
     pMenu->appendMenu(p);
 }
 
+void MLPluginController::flagMIDIProgramsInPresetMenu()
+{
+	MLMenu* pMenu = findMenuByName("preset");
+	if(pMenu != nullptr)
+	{
+		MLMenu::NodePtr node = pMenu->getItem("MIDI Programs");
+		if(node->getNodeSize(0) > 0)
+		{
+			std::list<std::string>::const_iterator it;
+			const std::list<std::string>& nodeIndex = node->getIndex();
+			
+			int p = 1;
+			for(it = nodeIndex.begin(); it != nodeIndex.end(); it++)
+			{
+				const std::string& name = *it;
+				MLMenu::NodePtr subNode = node->getSubnodeByName(name);
+				{
+					std::ostringstream s;
+					s << p++;
+					const std::string pStr(s.str());
+					subNode->setDisplayPrefix(std::string("[") + pStr + std::string("] "));
+				}
+			}
+		}
+	}
+}
 
 #pragma mark MLFileCollection::Listener
 
-void MLPluginController::processFile (const MLSymbol collection, const MLFile& srcFile, int idx, int size)
+void MLPluginController::processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size)
 {
-    //debug() << "got file from " << collection << " : " << srcFile.getShortName() << "\n";
-    if(collection == "convert_user_presets")
+	MLSymbol collectionName = collection.getName();
+
+    if(collectionName == "convert_user_presets")
     {
         File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
         File destRoot(newPresetsFolder);
-        const std::string& relativeName = srcFile.getLongName();
+        const std::string& relativeName = file.getLongName();
         
         // If file at destination does not exist, or is older than the source, convert
         // source and overwrite destination.
         File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
         if(!destFile.exists()  )
         {
-            mpProcessor->loadStateFromFile(srcFile.mFile);
+            mpProcessor->loadStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         
-        if(srcFile.mFile.getLastModificationTime() > destFile.getLastModificationTime())
+        if(file.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
         {
-            mpProcessor->loadStateFromFile(srcFile.mFile);
+            mpProcessor->loadStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         
         // finishing?
         if(idx == size)
         {
-            mpProcessor->scanPresets();
+            mpProcessor->scanAllFilesImmediate();
             mpProcessor->suspendProcessing(false);
         }
     }
-    else if(collection == "move_user_presets")
+    else if(collectionName == "move_user_presets")
     {
         // move from old place to new if new file does not exist.
         File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
         File destRoot(newPresetsFolder);
-        const std::string& relativeName = srcFile.getLongName();
+        const std::string& relativeName = file.getLongName();
         File destFile = destRoot.getChildFile(String(relativeName));
         if(!destFile.exists())
         {
-            String presetStr(srcFile.mFile.loadFileAsString());
+            String presetStr(file.getJuceFile().loadFileAsString());
             destFile.create();
             destFile.replaceWithText(presetStr);
         }
     }
-    else
+    else if(collectionName == "scales")
     {
+		if(idx == size) // done?
+        {
+			populateScaleMenu(collection);
+		}
+    }
+    else if(collectionName == "presets")
+    {
+        if(idx == size) // done?
+        {
+			populatePresetMenu(collection);
+			flagMIDIProgramsInPresetMenu();
+        }
     }
 }
 
 #if ML_MAC
-
 
 #pragma mark ConvertProgressDisplayThread
 
@@ -639,7 +647,7 @@ public:
         int interFileDelay = 2;
         
         // move files in immediate mode
-        mPresetsToMove->searchForFilesNow(interFileDelay);
+        mPresetsToMove->searchForFilesImmediate(interFileDelay);
         
         // wait for move to finish
         while(mPresetsToMove->getFloatProperty("progress") < 1.)
@@ -649,7 +657,7 @@ public:
         }
         
         // convert files in immediate mode
-        mPresetsToConvert->searchForFilesNow(interFileDelay);
+        mPresetsToConvert->searchForFilesImmediate(interFileDelay);
         
         // wait for convert to finish
         while(mPresetsToConvert->getFloatProperty("progress") < 1.)
@@ -673,9 +681,9 @@ void MLPluginController::updatePresets()
     if (presetsFolder != File::nonexistent)
     {
         mPresetsToMove = MLFileCollectionPtr(new MLFileCollection("move_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
-        mPresetsToMove->setListener(this);
+        mPresetsToMove->addListener(this);
         mPresetsToConvert = MLFileCollectionPtr(new MLFileCollection("convert_user_presets", getDefaultFileLocation(kOldPresetFiles), ".aupreset"));
-        mPresetsToConvert->setListener(this);
+        mPresetsToConvert->addListener(this);
 
         // turn off audio -- will be turned back on by finish or cancel
         mpProcessor->suspendProcessing(true);
@@ -697,7 +705,7 @@ void MLPluginController::cancelUpdate()
     mPresetsToMove->cancelSearch();
     mPresetsToConvert->cancelSearch();
     mConvertPresetsThread->stopThread(1000);
-    mpProcessor->scanPresets();
+    mpProcessor->scanAllFilesImmediate();
     mpProcessor->suspendProcessing(false);
 }
 
