@@ -62,8 +62,7 @@ public:
 	MLPublishedParam(const MLPath & address, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx);
 	~MLPublishedParam();
 	
-	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, 
-		bool log, MLParamValue zt);
+	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, bool log, MLParamValue zt);
 	void addAddress(const MLPath & address, const MLSymbol name);
 
 	MLSymbol getType() { return mType; }
@@ -71,10 +70,7 @@ public:
 	MLParamValue constrainValue(MLParamValue val);
 	MLParamValue getValueAsLinearProportion() const;
 	MLParamValue setValueAsLinearProportion (MLParamValue p);
-	
-//	const MLSignal& getSignalValue() { return mSignalValue; }
-//	void setSignalValue(const MLSignal& sig) { mSignalValue = sig; }
-	
+
 	unsigned getIndex(void) { return mIndex; }
 	MLParamValue getRangeLo(void) const { return mRangeLo; }
 	MLParamValue getRangeHi(void) const { return mRangeHi; }
@@ -98,11 +94,7 @@ protected:
 	
 private:
 	std::list<ParamAddress> mAddresses;
-	
-	// values: TODO use properties of Procs only
-	MLParamValue mValue;
-	MLSignal mSignalValue;
-	
+	MLParamValue mParamValue;
 	MLSymbol mAlias;
 	MLSymbol mType;
 	unsigned mIndex;
@@ -136,7 +128,6 @@ public:
 	void addParamToCurrentGroup(MLPublishedParamPtr p);	
 	
 	// get the group name of the indexed parameter.
-	// const std::string& getGroupName(MLPublishedParamPtr p);
 	const std::string& getGroupName(unsigned index);
 	
 	std::vector<std::string> mGroupVec;

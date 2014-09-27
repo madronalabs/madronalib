@@ -13,8 +13,8 @@ MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name,
 {
 	setRange(0.f, 1.f, 0.01f, false, 0.f);
 	mUnit = kJucePluginParam_Generic;
-	mWarpMode = kJucePluginParam_Linear; // TODO use instead
-	mValue = 0.f;
+	mWarpMode = kJucePluginParam_Linear;
+	mParamValue = 0.f;
 	mDefault = 0.f;
 	mZeroThreshold = 0.f - (MLParamValue)(2 << 16);
 	mGroupIndex = -1;
@@ -85,17 +85,17 @@ void MLPublishedParam::setDefault(MLParamValue val)
 
 MLParamValue MLPublishedParam::getValue(void)
 {
-	return mValue;
+	return mParamValue;
 }
 
 MLParamValue MLPublishedParam::constrainValue(MLParamValue val)
 {
-	mValue = clamp(val, mRangeLo, mRangeHi);
-	if (fabs(mValue) <= mZeroThreshold)
+	mParamValue = clamp(val, mRangeLo, mRangeHi);
+	if (fabs(mParamValue) <= mZeroThreshold)
 	{
-		mValue = 0.f;
+		mParamValue = 0.f;
 	}	
-	return mValue;
+	return mParamValue;
 }
 
 MLParamValue MLPublishedParam::getValueAsLinearProportion() const
@@ -103,7 +103,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 	MLParamValue lo = getRangeLo();
 	MLParamValue hi = getRangeHi();
 	MLParamValue p;
-	MLParamValue val = mValue;
+	MLParamValue val = mParamValue;
 	
 	switch (mWarpMode)
 	{
@@ -116,7 +116,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			p = logf(val/lo) / logf(hi/lo);
 			break;
 		case kJucePluginParam_ExpBipolar:
-			bool positiveHalf = mValue > 0.;
+			bool positiveHalf = mParamValue > 0.;
 			if (positiveHalf)
 			{
 				val = clamp(val, lo, hi);
@@ -171,7 +171,7 @@ MLParamValue MLPublishedParam::setValueAsLinearProportion (MLParamValue p)
 	}
 	
 	//debug() << " prop = " << p <<  " -> val = " << val << "\n";
-	mValue = val;
+	mParamValue = val;
 	return val;
 }
 
