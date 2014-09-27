@@ -11,36 +11,13 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
     mpProcessor(pProcessor)
-{
-	// get plugin parameters and initial values from our processor and create corresponding model properties.
-	MLPluginProcessor* const pProc = getProcessor();
-	int params = pProc->getNumParameters();
-	for(int i=0; i<params; ++i)
-	{
-		MLPublishedParamPtr p = pProc->getParameterPtr(i);
-		MLPublishedParam* param = &(*p);
-		if(param)
-		{
-			MLSymbol type = param->getType();
-			if((type == "float") || (type == MLSymbol()))
-			{
-				debug() << param->getAlias() << " is a float type \n";
-				mpProcessor->setProperty(param->getAlias(), param->getDefault());
-			}
-			else
-			{
-				debug() << param->getAlias() << " is a non-float type \n";
-			}
-		}
-	}
-	
+{	
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
 }
 
 MLPluginController::~MLPluginController()
 {
-	
 	masterReference.clear();
 }
 
@@ -131,7 +108,7 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 	else if(action == "change_property")
 	{
-		mpProcessor->setProperty(targetProperty, val);
+		mpProcessor->setPropertyImmediate(targetProperty, val);
 	}
 	else if (action == "end_gesture")
 	{
@@ -156,7 +133,6 @@ void MLPluginController::nextPreset()
     mpProcessor->nextPreset();
     updateChangedProperties();
 }
-
 
 #pragma mark menus
 

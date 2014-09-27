@@ -43,6 +43,8 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProper
 	switch(propertyType)
 	{
 		case MLProperty::kFloatProperty:
+			
+			// set published parameter in DSP engine.
 			setParameterWithoutProperty (property, f);
 			
 			// convert to host units for VST
@@ -62,12 +64,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProper
 		case MLProperty::kStringProperty:
 			break;
 		case MLProperty::kSignalProperty:
-			debug() << "MLPluginProcessor: got matrix property\n";
-			
-			if(property == "patcher_matrix")
-			{
-				debug() << "MLPluginProcessor::doPropertyChangeAction: got patcher matrix \n";
-			}
+			debug() << "MLPluginProcessor::doPropertyChangeAction got matrix property\n";
 			break;
 		default:
 			break;
@@ -94,6 +91,28 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	else
 	{
 		MLError() << "MLPluginProcessor: couldn't load plugin description!\n";
+		return;
+	}
+	
+	// get plugin parameters and initial values and create corresponding model properties.
+	int params = getNumParameters();
+	for(int i=0; i<params; ++i)
+	{
+		MLPublishedParamPtr p = getParameterPtr(i);
+		MLPublishedParam* param = &(*p);
+		if(param)
+		{
+			MLSymbol type = param->getType();
+			if((type == "float") || (type == MLSymbol()))
+			{
+				debug() << param->getAlias() << " is a float type \n";
+				setProperty(param->getAlias(), param->getDefault());
+			}
+			else
+			{
+				debug() << param->getAlias() << " is a non-float type \n";
+			}
+		}
 	}
 }
 
@@ -113,7 +132,6 @@ void MLPluginProcessor::editorResized(int w, int h)
     mEditorRect.setWidth(w);
     mEditorRect.setHeight(h);
 }
-
 
 #pragma mark preflight and cleanup
 //
@@ -509,17 +527,16 @@ float MLPluginProcessor::getParameter (int index)
 	return mEngine.getParamByIndex(index);
 }
 
-// set plugin parameter by index. Typically called by the host wrapper
+// set plugin parameter by index. Typically called by the host wrapper.
+// The Property must propagate to other Listeners, but not back to us.
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
 	if (index < 0) return;	
-
-	debug() << "SETTING parameter: " << index << ": " << newValue << "\n";
-	
-	mEngine.setPublishedParam(index, newValue);	
+	mEngine.setPublishedParam(index, newValue);
 	mHasParametersSet = true;
-	setPropertyImmediate(getParameterAlias(index), newValue);
+	// setPropertyImmediate(getParameterAlias(index), newValue);
+	setPropertyExcludingListener(getParameterAlias(index), newValue, this);
 }
 
 // set plugin parameter by name without setting property. Typically called from internal code.

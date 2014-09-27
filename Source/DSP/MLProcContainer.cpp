@@ -1649,9 +1649,10 @@ void MLProcContainer::setPublishedParam(int index, MLParamValue val)
 			
 			MLSymbol type = p->getType();
 			
-//			debug() << "MLProcContainer::setPublishedParam: parameter " << index << " is type " << type << "  \n";
+			debug() << "MLProcContainer::setPublishedParam: parameter " << index << " is type " << type << "  \n";
 			if(type == "signal")
 			{
+				debug() << "SETTING signal param!\n";
 			}
 			   
 			for(MLPublishedParam::AddressIterator it = p->beginAddress(); it != p->endAddress(); ++it)
@@ -1778,6 +1779,10 @@ int MLProcContainer::getParamIndex(const MLSymbol paramName)
 		{
 			debug() << "MLProcContainer::getParamIndex: null param ptr for " << paramName << "\n";
 		}
+	}
+	else
+	{
+		debug() << "MLProcContainer::getParamIndex: param " << paramName << " not found!\n";
 	}
 	return r;
 }

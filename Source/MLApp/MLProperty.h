@@ -51,6 +51,8 @@ public:
 	bool operator<< (const MLProperty& b) const;
 	
 private:
+	void deallocate();
+	
 	Type mType;
 	union
 	{
@@ -80,6 +82,8 @@ public:
 	const MLSignal& getSignalProperty(MLSymbol p) const;
 	juce::Colour getColorProperty(MLSymbol p) const;
     
+	// set the property and allow it to propagate to Listeners the next time
+	// each Listener calls updateChangedProperties().
 	template <typename T>
 	void setProperty(MLSymbol p, T v)
 	{
@@ -87,13 +91,23 @@ public:
 		broadcastProperty(p, false);
 	}
 
+	// set the property and propagate to Listeners immediately.
 	template <typename T>
 	void setPropertyImmediate(MLSymbol p, T v)
 	{
 		mProperties[p].setValue(v);
 		broadcastProperty(p, true);
 	}
-
+	
+	// set the property and propagate to Listeners immediately,
+	// except for the named Listener
+	template <typename T>
+	void setPropertyExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
+	{
+		mProperties[p].setValue(v);
+		broadcastPropertyExcludingListener(p, true, pL);
+	}
+	
 	void addPropertyListener(MLPropertyListener* pL);
 	void removePropertyListener(MLPropertyListener* pToRemove);
     void broadcastAllProperties();
@@ -104,6 +118,7 @@ private:
 	std::map<MLSymbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
 	void broadcastProperty(MLSymbol p, bool immediate);
+	void broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude);
 };
 
 // MLPropertyListeners are notified when a Property of an MLPropertySet changes. They do something in

@@ -264,7 +264,6 @@ MLSymbol MLProc::getOutputName(int index)
 	return MLSymbol();
 }
 
-
 // TODO: sort out createinput / resizeInputs / resizeOutputs
 // just creates room for Signal pointer and nulls it
 void MLProc::createInput(const int index)
@@ -517,7 +516,6 @@ void MLProcFactory::registerFn(const MLSymbol className, MLProcCreateFnT fn)
     procRegistry[className] = fn;
 }
 
-
 MLProcPtr MLProcFactory::create(const MLSymbol className, MLDSPContext* context)
 {
 	MLProcCreateFnT fn;
@@ -543,7 +541,6 @@ MLProcPtr MLProcFactory::create(const MLSymbol className, MLDSPContext* context)
     return resultProc;
 }
 
-
 void MLProcFactory::printRegistry(void)
 {
 	std::string procName;
@@ -558,6 +555,3 @@ void MLProcFactory::printRegistry(void)
 		debug() << procName << "\n";		
 	}
 }
-
-
-

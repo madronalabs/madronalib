@@ -106,7 +106,21 @@ MLDial::~MLDial()
 
 void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLDial::doPropertyChangeAction RECEIVED " << property << " -> " << val << "\n";
+	debug() << "MLDial " << getWidgetName() << " doPropertyChangeAction RECEIVED " << getTargetPropertyName() << " -> " << val << "\n";
+	
+	if(getTargetPropertyName() == "osc_pitch")
+	{
+		if(val.getFloatValue() == 220.0f)
+		{
+			debug() << "osc_pitch VAL: 220\n";
+		}
+		else
+		{
+			debug() << "osc_pitch SOME OTHER VAL: " << val.getFloatValue() << "\n";
+		}
+	}
+	
+	
 	if (property == "value")
 	{
         mParameterLayerNeedsRedraw = true;

@@ -35,6 +35,10 @@ MLProperty::MLProperty(const MLProperty& other) :
 
 MLProperty& MLProperty::operator= (const MLProperty& other)
 {
+	if(mType != kUndefinedProperty)
+	{
+		deallocate();
+	}
 	mType = other.getType();
 	switch(mType)
 	{
@@ -74,6 +78,11 @@ MLProperty::MLProperty(const MLSignal& s) :
 
 MLProperty::~MLProperty()
 {
+	deallocate();
+}
+
+void MLProperty::deallocate()
+{
 	switch(mType)
 	{
 		case kStringProperty:
@@ -83,6 +92,8 @@ MLProperty::~MLProperty()
 			delete mVal.mpSignalVal;
 			break;
 		default:
+			mType = kUndefinedProperty;
+			mVal.mpStringVal = 0;
 			break;
 	}
 }
@@ -113,46 +124,23 @@ juce::Colour MLProperty::getValueAsColor() const
 
 void MLProperty::setValue(const float& v)
 {
-	if(mType == kUndefinedProperty)
-		mType = kFloatProperty;
-	if(mType == kFloatProperty)
-	{
-		mVal.mFloatVal = v;
-	}
-	else
-	{
-		debug() << "MLProperty::setValue: type mismatch! Expected float.\n";
-	}
+	deallocate();
+	mType = kFloatProperty;
+	mVal.mFloatVal = v;
 }
 
 void MLProperty::setValue(const std::string& v)
 {
-	if(mType == kUndefinedProperty)
-		mType = kStringProperty;
-	if(mType == kStringProperty)
-	{
-		delete mVal.mpStringVal;
-		mVal.mpStringVal = new std::string(v);
-	}
-	else
-	{
-		debug() << "MLProperty::setValue: type mismatch! Expected string.\n";
-	}
+	deallocate();
+	mType = kStringProperty;
+	mVal.mpStringVal = new std::string(v);
 }
 
 void MLProperty::setValue(const MLSignal& v)
 {
-	if(mType == kUndefinedProperty)
-		mType = kSignalProperty;
-	if(mType == kSignalProperty)
-	{
-		delete mVal.mpSignalVal;
-		mVal.mpSignalVal = new MLSignal(v);
-	}
-	else
-	{
-		debug() << "MLProperty::setValue: type mismatch! Expected signal.\n";
-	}
+	deallocate();
+	mType = kSignalProperty;
+	mVal.mpSignalVal = new MLSignal(v);
 }
 
 void MLProperty::setValue(const MLProperty& v)
@@ -340,13 +328,26 @@ void MLPropertySet::broadcastProperty(MLSymbol p, bool immediate)
 	}
 }
 
+void MLPropertySet::broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude)
+{
+	std::list<MLPropertyListener*>::iterator it;
+	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
+	{
+		MLPropertyListener* pL = *it;
+		if(pL != pListenerToExclude)
+		{
+			pL->propertyChanged(p, immediate);
+		}
+	}
+}
+
 void MLPropertySet::broadcastAllProperties()
 {
 	std::map<MLSymbol, MLProperty>::const_iterator it;
 	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
 		MLSymbol p = it->first;
-		broadcastProperty(p, false);
+		broadcastProperty(p, true);
 	}
 }
 
@@ -361,7 +362,6 @@ void MLPropertyListener::updateChangedProperties()
 	{
 		MLSymbol key = it->first;
 		PropertyState& state = it->second;
-		
 		if(state.mChangedSinceUpdate)
 		{
 			const MLProperty& newValue = mpPropertyOwner->getProperty(key);
@@ -391,12 +391,28 @@ void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
     
 	// if the property does not exist in the map yet, this lookup will add it.
 	PropertyState& state = mPropertyStates[propName];
+
+
 	
 	// check for change in property. Note that this also compares signals and strings, which may possibly be slow.
     const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);
-    if(ownerValue != state.mValue)
+
+	// MLTEST
+	if(propName == "osc_pitch")
+	{
+		debug() << "MLPropertyListener::propertyChanged osc_pitch: " << ownerValue << " \n";
+	}
+	
+	
+	if(ownerValue != state.mValue)
     {
-        state.mChangedSinceUpdate = true;
+// MLTEST
+		if(propName == "osc_pitch")
+		{
+		debug() << "        osc_pitch CHANGED\n";
+		}
+		
+		state.mChangedSinceUpdate = true;
 		if(immediate)
 		{
 			doPropertyChangeAction(propName, ownerValue);

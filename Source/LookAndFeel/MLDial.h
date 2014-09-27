@@ -102,6 +102,17 @@ public:
         TopLeft,
 		TopRight,
 	};
+	
+    enum ColourIds
+    {
+        fillColor			= 0x1001200,
+        trackFillColor		= 0x1001201,
+        indicatorColor		= 0x1001202,
+        glowColor			= 0x1001203,
+        thumbGlowColor		= 0x1001204,
+        trackLightColor		= 0x1001205,
+        trackDarkColor		= 0x1001206,
+    };
 
 	MLDial ();
     ~MLDial();
@@ -109,12 +120,6 @@ public:
 	// MLPropertyListener
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
-	void sendValueOfDial(WhichDial s, float val);
-		
-	WhichDial getDialBeingDragged() {return dialBeingDragged;}
-	WhichDial getDialToDrag() {return dialToDrag;}
-	bool isOverTrack() {return mOverTrack;}
-
     void setDialStyle (const MLDial::DialStyle newStyle);
     MLDial::DialStyle getDialStyle() const throw() { return style; }
 
@@ -156,8 +161,6 @@ public:
 
 	void setScrollWheelEnabled (const bool enabled) throw();
 
-	WhichDial getThumbBeingDragged() const throw()        { return dialBeingDragged; }
-
     virtual void valueChanged();
     virtual int valueChanged (float) { jassertfalse; return 0; }
 	virtual void findDialToDrag(const int x, const int y);
@@ -179,17 +182,6 @@ public:
     bool isTwoOrThreeValued() const throw();
 	bool isTwoValued() const throw();
 	bool isMultiValued() const throw();
-	
-    enum ColourIds
-    {
-        fillColor			= 0x1001200,  
-        trackFillColor		= 0x1001201,                                                        
-        indicatorColor		= 0x1001202,  
-        glowColor			= 0x1001203,  
-        thumbGlowColor		= 0x1001204, 
-        trackLightColor		= 0x1001205,  
-        trackDarkColor		= 0x1001206,  
-    };
 	
 #pragma mark -
 	
@@ -221,17 +213,21 @@ public:
 		const MLDial::DialRect whichRect,
 		const float dialPos, const float minDialPos, const float maxDialPos) ;
 
-	WhichDial getRectOverPoint(const MouseEvent& e);
-	WhichDial getRectOverPoint(const int x, const int y);		
-	
 	void sizeChanged();
 	void visibilityChanged();
 	
 	float getLabelVerticalOffset() { return 0.875f; }
 
 protected:
+	void sendValueOfDial(WhichDial s, float val);
+	
+	bool isOverTrack() {return mOverTrack;}
+
 	float clipToOtherDialValues(float val, WhichDial s);
 
+	WhichDial getRectOverPoint(const MouseEvent& e);
+	WhichDial getRectOverPoint(const int x, const int y);
+	
     void repaintAll ();
 	virtual void paint (Graphics& g);
 	void drawLinearDial (Graphics& g, int rx, int ry, int rw, int rh,

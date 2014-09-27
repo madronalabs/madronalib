@@ -104,14 +104,12 @@ friend class MLProcFactory;
         MLParamValue* paramToSet = mParams[paramName];
         if (paramToSet != mParams.getNullElement())
         {
-			// TODO allow proc params to have String and Signal values.
             *paramToSet = value;
         }
         else
         {
             debug() << "setParam: " << getClassName() << " has no parameter " << paramName << "!\n";
         }
-         
 #else
 		*(mParams[paramName]) = value;
 #endif
@@ -221,7 +219,7 @@ private:
 };
 
 // an MLProcParam creates a single indexed parameter that is shared by all
-// instances of an MLProc subclass.  This is written as a class so that
+// instances of an MLProc subclass. This is written as a class so that
 // parameters for each MLProc subclass can be set up at static initialization time.
 template <class MLProcSubclass>
 class MLProcParam

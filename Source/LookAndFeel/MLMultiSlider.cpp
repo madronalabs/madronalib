@@ -243,12 +243,12 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 					{
 						mCurrDragSlider = i;
 					}
-					setSelectedValue(snapValue (mixedval, false), i);
+					sendSliderAction(snapValue (mixedval, false), i);
 				}
 			}
 			else if (mCurrDragSlider == s) // set current drag dial
 			{
-				setSelectedValue(snapValue (val, false), s);
+				sendSliderAction(snapValue (val, false), s);
 			}
 			
 			if (s != mSliderUnderMouse)
@@ -352,7 +352,7 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails
 				mpTimer->startTimer(kWheelTimeoutDuration);
 
 				mCurrDragSlider = s;
-				setSelectedValue(snapValue (newValue, false), s);
+				sendSliderAction(snapValue (newValue, false), s);
 				mpTimer->startTimer(kWheelTimeoutDuration);
 				mCurrDragSlider = -1;
 			}
@@ -377,7 +377,7 @@ int MLMultiSlider::getSliderUnderMouse()
 	return r;
 } 
 
-void MLMultiSlider::setSelectedValue (float val, int selector)
+void MLMultiSlider::sendSliderAction (float val, int selector)
 {
 	MLSymbol sliderName = MLSymbol("value").withFinalNumber(selector);
 	float currentValue = getFloatProperty(sliderName);
@@ -418,7 +418,7 @@ void MLMultiSlider::setWave(int w)
 			break;
 		}	
 		val = vRange(val);
-		setSelectedValue(val, i);
+		sendSliderAction(val, i);
 	}
 }
 

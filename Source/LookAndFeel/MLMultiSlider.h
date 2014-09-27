@@ -55,7 +55,7 @@ public:
     void mouseWheelMove (const MouseEvent& event, const MouseWheelDetails& wheel);
 	//
 	void setWave(int w);
-	void setSelectedValue (float newValue, int selector);
+	void sendSliderAction (float newValue, int selector);
  
 	int getCurrentDragSlider() {return mCurrDragSlider;}
 
