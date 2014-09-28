@@ -412,11 +412,14 @@ void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
 		debug() << "        osc_pitch CHANGED\n";
 		}
 		
-		state.mChangedSinceUpdate = true;
 		if(immediate)
 		{
 			doPropertyChangeAction(propName, ownerValue);
 			state.mValue = ownerValue;
+		}
+		else
+		{
+			state.mChangedSinceUpdate = true;
 		}
     }
 }
