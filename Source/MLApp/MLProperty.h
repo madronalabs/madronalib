@@ -11,12 +11,14 @@
 #include "MLSymbol.h"
 #include "MLDebug.h"
 
-// MLProperty: a modifiable property. Properties have three types: float, string, and signal.
-// Properties start out with undefined type. Once a type is assigned, properties cannot change type.
+// MLProperty: a modifiable property. Properties have four types: undefined, float, string, and signal.
 
 class MLProperty
 {
 public:
+	static const std::string nullString;
+	static const MLSignal nullSignal;
+
 	enum Type
 	{
 		kUndefinedProperty	= 0,
@@ -36,13 +38,14 @@ public:
 	const float& getFloatValue() const;
 	const std::string& getStringValue() const;
 	const MLSignal& getSignalValue() const;
-	juce::Colour getValueAsColor() const;
     
+	// set the value of the property to that of the argument.
+	// For all property types, if the size of the argument is equal to the
+	// size of the current value, the value must be modified in place.
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
 	void setValue(const std::string& v);
 	void setValue(const MLSignal& v);
-	void setValue(const juce::Colour& v);
 	
 	bool operator== (const MLProperty& b) const;
 	bool operator!= (const MLProperty& b) const;
@@ -80,7 +83,6 @@ public:
 	const float& getFloatProperty(MLSymbol p) const;
 	const std::string& getStringProperty(MLSymbol p) const;
 	const MLSignal& getSignalProperty(MLSymbol p) const;
-	juce::Colour getColorProperty(MLSymbol p) const;
     
 	// set the property and allow it to propagate to Listeners the next time
 	// each Listener calls updateChangedProperties().
@@ -102,7 +104,7 @@ public:
 	// set the property and propagate to Listeners immediately,
 	// except for the named Listener
 	template <typename T>
-	void setPropertyExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
+	void setPropertyImmediateExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
 	{
 		mProperties[p].setValue(v);
 		broadcastPropertyExcludingListener(p, true, pL);

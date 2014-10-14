@@ -160,8 +160,8 @@ public:
 	// 
 	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type) = 0;
 	virtual void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param) = 0;
-	virtual void setPublishedParam(int index, MLParamValue val) = 0;
-	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val) = 0;
+	virtual void setPublishedParam(int index, const MLProperty& val) = 0;
+	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val) = 0;
 	//	
 	virtual void makeRoot(const MLSymbol name) = 0;
 	virtual bool isRoot() const = 0;
@@ -281,8 +281,8 @@ public:
 	// 
 	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type);
 	virtual void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param);
-	virtual void setPublishedParam(int index, MLParamValue val);
-	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val);
+	virtual void setPublishedParam(int index, const MLProperty& val);
+	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val);
 	
 	MLPublishedParamPtr getParamPtr(int index);
 	int getParamIndex(const MLSymbol name);

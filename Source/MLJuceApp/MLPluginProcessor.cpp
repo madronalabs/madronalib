@@ -44,7 +44,9 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProper
 	{
 		case MLProperty::kFloatProperty:
 			
-			// set published parameter in DSP engine.
+			debug() << "MLPluginProcessor::doPropertyChangeAction " << property << " -> " << f << "\n";
+			
+			// set published float parameter in DSP engine.
 			setParameterWithoutProperty (property, f);
 			
 			// convert to host units for VST
@@ -64,8 +66,14 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProper
 		case MLProperty::kStringProperty:
 			break;
 		case MLProperty::kSignalProperty:
-			debug() << "MLPluginProcessor::doPropertyChangeAction got matrix property\n";
+		{
+			debug() << "MLPluginProcessor::doPropertyChangeAction got SIGNAL property\n";
+			// set published signal parameter in DSP engine.
+			const MLSignal& sigVal = newVal.getSignalValue();
+			setSignalParameterWithoutProperty (property, sigVal);
+
 			break;
+		}
 		default:
 			break;
 	}
@@ -527,26 +535,37 @@ float MLPluginProcessor::getParameter (int index)
 	return mEngine.getParamByIndex(index);
 }
 
-// set plugin parameter by index. Typically called by the host wrapper.
+// set scalar float plugin parameter by index. Typically called by the host wrapper.
 // The Property must propagate to other Listeners, but not back to us.
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
 	if (index < 0) return;	
-	mEngine.setPublishedParam(index, newValue);
+	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 	// setPropertyImmediate(getParameterAlias(index), newValue);
-	setPropertyExcludingListener(getParameterAlias(index), newValue, this);
+	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);
 }
 
-// set plugin parameter by name without setting property. Typically called from internal code.
+// set scalar float plugin parameter by name without setting property. Typically called from internal code.
 //
 void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (index < 0) return;	
+	if (index < 0) return;
+	
+	mEngine.setPublishedParam(index, MLProperty(newValue));
+	mHasParametersSet = true;
+}
 
-	mEngine.setPublishedParam(index, newValue);	
+// set signal plugin parameter by name without setting property. Typically called from internal code.
+//
+void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue)
+{
+	int index = getParameterIndex(paramName);
+	if (index < 0) return;
+	
+	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 }
 
@@ -571,7 +590,7 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 	if(p)
 	{
 		p->setValueAsLinearProportion(newValue);	
-		mEngine.setPublishedParam(index, p->getValue());	
+		mEngine.setPublishedParam(index, MLProperty(p->getValue()));
 		mHasParametersSet = true;
 		
 		// set MLModel Parameter 
@@ -685,7 +704,6 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 {
 	return mEngine.getParamGroupName(index);
 }
-
 
 #pragma mark signals
 
@@ -988,10 +1006,13 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 		}		
 	}
 	
+	// get patcher matrix from old-style input params
+	String patcherInputStr ("patcher_input_");
+	
+	
 	// get params from xml
 	const unsigned numAttrs = xmlState.getNumAttributes();
-	String patcherInputStr ("patcher_input_");
-
+	
 	for(unsigned i=0; i<numAttrs; ++i)
 	{
 		// get name / value pair.
@@ -1270,15 +1291,28 @@ void MLPluginProcessor::setDefaultParameters()
 		const unsigned numParams = getNumParameters();
 		for(unsigned i=0; i<numParams; ++i)
 		{
-			float defaultVal = getParameterDefault(i);
-			
-			setPropertyImmediate(getParameterAlias(i), defaultVal);
-
-			const MLProperty& p = getProperty(getParameterAlias(i));
-			debug() << "default was type  " << p.getType() << "\n";
-			
-			debug() << "SETTING default: " << getParameterAlias(i) << " -> " << defaultVal << "\n";
-			
+			MLPublishedParamPtr paramPtr = getParameterPtr(i);
+			MLSymbol paramType = paramPtr->getType();
+			if(paramType == "float")
+			{
+				float defaultVal = getParameterDefault(i);
+				setPropertyImmediate(getParameterAlias(i), defaultVal);
+			}
+			else if (paramType == "string")
+			{
+				
+			}
+			else if (paramType == "signal")
+			{
+				const MLProperty& p = getProperty(getParameterAlias(i));
+				if (p.getType() == MLProperty::kSignalProperty)
+				{
+					// TODO some way to set up defaults for signal params
+					// debug() << "SETTING SIGNAL default: " << getParameterAlias(i) << " -> [?] "  << "\n";
+					
+					
+				}
+			}
 		}
 	}
 }

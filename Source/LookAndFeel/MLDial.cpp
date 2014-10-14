@@ -14,7 +14,7 @@
 #include "MLLookAndFeel.h"
 
 const int kDragStepSize = 16;
-const int kWheelTimeoutDuration = 250;
+const int kMinGestureDuration = 250;
 const int kMouseWheelStepSize = 16;
 static const int kMinimumDialSizeForJump = 26;
 static const float kRotaryStartDefault = kMLPi*-0.75f;
@@ -101,12 +101,11 @@ MLDial::~MLDial()
 {
 }
 
-
 // MLWidget methods
 
 void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLDial " << getWidgetName() << " doPropertyChangeAction RECEIVED " << getTargetPropertyName() << " -> " << val << "\n";
+	debug() << "MLDial " << getWidgetName() << " doPropertyChangeAction RECEIVED " << property << " -> " << val << "\n";
 	
 	if(getTargetPropertyName() == "osc_pitch")
 	{
@@ -119,7 +118,6 @@ void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 			debug() << "osc_pitch SOME OTHER VAL: " << val.getFloatValue() << "\n";
 		}
 	}
-	
 	
 	if (property == "value")
 	{
@@ -983,7 +981,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 			const float m = mLineThickness*6.;
 			const float mh = m / 2.;
             Path track;
-			Colour hc = getColorProperty("highlight_color");
+			Colour hc = signalToJuceColor(getSignalProperty("highlight_color"));
 			pg.setColour (hc);
             track.addArc(rx1-mh, ry1-mh, mDiameter+m, mDiameter+m, 0.f, kMLTwoPi, true);
             pg.strokePath (track, PathStrokeType(m));			
@@ -1168,7 +1166,7 @@ void MLDial::mouseUp (const MouseEvent&)
 {
     if (isEnabled())
     {
-		endGesture();
+		mpTimer->scheduleEndGesture(kMinGestureDuration);
     }
 }
 
@@ -1210,8 +1208,10 @@ void MLDial::mouseDoubleClick (const MouseEvent&)
          && maximum >= doubleClickReturnValue)
     {
 		beginGesture();
-		setProperty("value", constrainValue(doubleClickReturnValue));
-		endGesture();
+		float newValue = constrainValue(doubleClickReturnValue);
+		setPropertyImmediate("value", newValue);
+		sendAction("change_property", getTargetPropertyName(), getProperty("value"));
+		mpTimer->scheduleEndGesture(kMinGestureDuration);
     }
 }
 
@@ -1426,7 +1426,7 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 					isMouseWheelMoving = true;
 					beginGesture();
 				}
-				mpTimer->startTimer(kWheelTimeoutDuration);
+				mpTimer->scheduleEndGesture(kMinGestureDuration);
 				
 				sendValueOfDial(dialToDrag, valueWhenLastDragged);
 				mParameterLayerNeedsRedraw = true;
@@ -2156,17 +2156,21 @@ void MLDial::beginGesture()
 
 void MLDial::endGesture()
 {
+	debug() << "MLDial::endGesture: mGestureInProgress ? " << mGestureInProgress << "\n";
+	
 	if(mGestureInProgress)
 	{
 		isMouseDown = false;
 		dialBeingDragged = kNoDial;
 		isMouseWheelMoving = false;
 		restoreMouseIfHidden();
+		
+		debug() << "MLDial::endGesture: ENDING \n";
+
 		sendAction("end_gesture", getTargetPropertyName());
 		mGestureInProgress = false;
 	}
 }
-
 
 #pragma mark MLDial::GestureTimer
 
@@ -2184,6 +2188,11 @@ void MLDial::GestureTimer::timerCallback()
 {
 	stopTimer();
     mpOwner->endGesture();
+}
+
+void MLDial::GestureTimer::scheduleEndGesture(int timeFromNow)
+{
+	startTimer(timeFromNow);
 }
 
 

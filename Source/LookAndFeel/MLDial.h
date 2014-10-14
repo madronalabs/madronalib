@@ -354,12 +354,13 @@ protected:
 	Image mThumbImage;
 	
 	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
-	class GestureTimer : public juce::Timer
+	class GestureTimer : private juce::Timer
 	{
 	public:
 		GestureTimer(MLDial*);
 		~GestureTimer();
 		void timerCallback();
+		void scheduleEndGesture(int timeFromNow);
 	private:
 		MLDial* mpOwner;
 	};

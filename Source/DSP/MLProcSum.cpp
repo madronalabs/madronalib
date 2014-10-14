@@ -14,7 +14,6 @@ class MLProcSum : public MLProc
 public:
 	MLProcSum();
 	~MLProcSum();
-	
 
 	void clear(){};
 	void process(const int frames);		

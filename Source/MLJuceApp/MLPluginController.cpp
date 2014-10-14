@@ -108,7 +108,7 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 	else if(action == "change_property")
 	{
-		mpProcessor->setPropertyImmediate(targetProperty, val);
+		mpProcessor->setPropertyImmediateExcludingListener(targetProperty, val, this);
 	}
 	else if (action == "end_gesture")
 	{

@@ -53,7 +53,7 @@ void MLProcPan::calcCoeffs(void)
     int sr = getContextSampleRate();
     mSlewLimiter.setSampleRate(sr);
     mSlewLimiter.setOnePole(500);
-    
+	
 	mParamsChanged = false;
 }
 

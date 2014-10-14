@@ -179,15 +179,25 @@ bool MLProc::paramExists(const MLSymbol pname)
 
 MLParamValue MLProc::getParam(const MLSymbol pname)
 {
-	return procInfo().getParam(pname); 
+	return procInfo().getParamProperty(pname).getFloatValue();
 }
-  
-void MLProc::setParam(const MLSymbol pname, MLParamValue f) 
+
+const MLSignal& MLProc::getSignalParam(const MLSymbol pname)
+{
+	return procInfo().getParamProperty(pname).getSignalValue();
+}
+
+void MLProc::setParam(const MLSymbol pname, const MLProperty& val)
 {
 	// TODO rather than setting directly here, the enclosing MLDSPContext can store a list of changes
 	// to take effect before the next process() call. This way all the [if (mParamsChanged) doParams();]
-	// code can be moved out of process() methods.
-	procInfo().setParam(pname, f);
+	// code can be moved out of process() methods and mParamsChanged would not be needed!
+	
+	
+	// MLTEST setPropertyWithoutReallocate -
+	
+	
+	procInfo().setParamProperty(pname, val);
 	mParamsChanged = true;
 }
 

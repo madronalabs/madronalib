@@ -7,6 +7,9 @@
 
 #pragma mark MLProperty
 
+const std::string MLProperty::nullString;
+const MLSignal MLProperty::nullSignal;
+
 MLProperty::MLProperty() :
 	mType(kUndefinedProperty)
 {
@@ -106,57 +109,60 @@ const float& MLProperty::getFloatValue() const
 
 const std::string& MLProperty::getStringValue() const
 {
-	static const std::string nullString;
 	return (mType == kStringProperty) ? (*mVal.mpStringVal) : nullString;
 }
 
 const MLSignal& MLProperty::getSignalValue() const
 {
-	static const MLSignal nullSignal;
 	return (mType == kSignalProperty) ? (*mVal.mpSignalVal) : nullSignal;
-}
-
-juce::Colour MLProperty::getValueAsColor() const
-{
-	const MLSignal& sig = getSignalValue();
-	return juce::Colour::fromFloatRGBA(sig[0], sig[1], sig[2], sig[3]);
 }
 
 void MLProperty::setValue(const float& v)
 {
-	deallocate();
-	mType = kFloatProperty;
-	mVal.mFloatVal = v;
+	if(mType == kFloatProperty)
+	{
+		mVal.mFloatVal = v;
+	}
+	else
+	{
+		deallocate();
+		mType = kFloatProperty;
+		mVal.mFloatVal = v;
+	}
 }
 
 void MLProperty::setValue(const std::string& v)
 {
-	deallocate();
-	mType = kStringProperty;
-	mVal.mpStringVal = new std::string(v);
+	if(mType == kStringProperty)
+	{
+		std::string& s = *mVal.mpStringVal;
+		s.replace(s.begin(), s.end(), v);
+	}
+	else
+	{
+		deallocate();
+		mType = kStringProperty;
+		mVal.mpStringVal = new std::string(v);
+	}
 }
 
 void MLProperty::setValue(const MLSignal& v)
 {
-	deallocate();
-	mType = kSignalProperty;
-	mVal.mpSignalVal = new MLSignal(v);
+	if(mType == kSignalProperty)
+	{
+		*mVal.mpSignalVal = v;
+	}
+	else
+	{
+		deallocate();
+		mType = kSignalProperty;
+		mVal.mpSignalVal = new MLSignal(v);
+	}
 }
 
 void MLProperty::setValue(const MLProperty& v)
 {
 	*this = v;
-}
-
-void MLProperty::setValue(const juce::Colour& v)
-{
-	MLSignal s;
-	s.setDims(4);
-	s[0] = v.getFloatRed();
-	s[1] = v.getFloatGreen();
-	s[2] = v.getFloatBlue();
-	s[3] = v.getFloatAlpha();
-	setValue(s);
 }
 
 bool MLProperty::operator== (const MLProperty& b) const
@@ -259,7 +265,6 @@ const float& MLPropertySet::getFloatProperty(MLSymbol p) const
 
 const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
 {
-	static const std::string nullString;
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -267,13 +272,12 @@ const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
 	}
 	else
 	{
-		return nullString;
+		return MLProperty::nullString;
 	}
 }
 
 const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
 {
-	static const MLSignal nullSignal;
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -281,21 +285,7 @@ const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
 	}
 	else
 	{
-		return nullSignal;
-	}
-}
-
-juce::Colour MLPropertySet::getColorProperty(MLSymbol p) const
-{
-	static const MLSignal nullSignal;
-	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
-	if(it != mProperties.end())
-	{
-		return it->second.getValueAsColor();
-	}
-	else
-	{
-		return juce::Colour();
+		return MLProperty::nullSignal;
 	}
 }
 
@@ -391,27 +381,12 @@ void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
     
 	// if the property does not exist in the map yet, this lookup will add it.
 	PropertyState& state = mPropertyStates[propName];
-
-
 	
 	// check for change in property. Note that this also compares signals and strings, which may possibly be slow.
     const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);
-
-	// MLTEST
-	if(propName == "osc_pitch")
-	{
-		debug() << "MLPropertyListener::propertyChanged osc_pitch: " << ownerValue << " \n";
-	}
-	
 	
 	if(ownerValue != state.mValue)
     {
-// MLTEST
-		if(propName == "osc_pitch")
-		{
-		debug() << "        osc_pitch CHANGED\n";
-		}
-		
 		if(immediate)
 		{
 			doPropertyChangeAction(propName, ownerValue);

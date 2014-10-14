@@ -20,6 +20,7 @@ MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name,
 	mGroupIndex = -1;
 	addAddress(procPath, name);
 	
+	// default type is float
 	if(type == MLSymbol())
 	{
 		mType = MLSymbol("float");
@@ -85,17 +86,47 @@ void MLPublishedParam::setDefault(MLParamValue val)
 
 MLParamValue MLPublishedParam::getValue(void)
 {
+	return mParamValue.getFloatValue();
+}
+
+const MLProperty& MLPublishedParam::getValueProperty()
+{
 	return mParamValue;
 }
 
-MLParamValue MLPublishedParam::constrainValue(MLParamValue val)
+// set the value of the parameter to a float, string or signal property. Once
+// allocated initially the property cannot be resized.
+void MLPublishedParam::setValueProperty(const MLProperty& paramProp)
 {
-	mParamValue = clamp(val, mRangeLo, mRangeHi);
-	if (fabs(mParamValue) <= mZeroThreshold)
+	MLProperty::Type type = paramProp.getType();
+	switch(type)
 	{
-		mParamValue = 0.f;
-	}	
-	return mParamValue;
+		case MLProperty::kFloatProperty:
+		{
+			const float val = paramProp.getFloatValue();
+			float clampedVal = clamp(val, mRangeLo, mRangeHi);
+			if (fabs(clampedVal) <= mZeroThreshold)
+			{
+				clampedVal = 0.f;
+			}
+			mParamValue.setValue(clampedVal);
+			break;
+		}
+		case MLProperty::kStringProperty:
+		{
+			debug() << "SETTING string parameter value!\n";
+			mParamValue.setValue(paramProp.getStringValue());
+			break;
+		}
+		case MLProperty::kSignalProperty:
+		{
+			debug() << "SETTING signal parameter value!\n";
+			mParamValue.setValue(paramProp.getSignalValue());
+			break;
+		}
+		default:
+			break;
+	}
 }
 
 MLParamValue MLPublishedParam::getValueAsLinearProportion() const
@@ -103,7 +134,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 	MLParamValue lo = getRangeLo();
 	MLParamValue hi = getRangeHi();
 	MLParamValue p;
-	MLParamValue val = mParamValue;
+	MLParamValue val = mParamValue.getFloatValue();
 	
 	switch (mWarpMode)
 	{
@@ -116,7 +147,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			p = logf(val/lo) / logf(hi/lo);
 			break;
 		case kJucePluginParam_ExpBipolar:
-			bool positiveHalf = mParamValue > 0.;
+			bool positiveHalf = val > 0.;
 			if (positiveHalf)
 			{
 				val = clamp(val, lo, hi);

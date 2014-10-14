@@ -10,6 +10,7 @@
 
 using namespace juce;
 
+#include "MLSignal.h"
 #include "MLVector.h"
 
 #ifdef _WIN32
@@ -116,6 +117,25 @@ const juce::Colour brightColor (const juce::Colour& c);
 const juce::Colour brighterColor (const juce::Colour& c);
 const juce::Colour darkColor (const juce::Colour& c);
 const juce::Colour darkerColor (const juce::Colour& c);
+
+inline juce::Colour signalToJuceColor(const MLSignal& sig)
+{
+	if(sig.getSize() < 4)
+	{
+		return juce::Colour::fromFloatRGBA(0.f, 0.f, 0.f, 0.f);
+	}
+	return juce::Colour::fromFloatRGBA(sig[0], sig[1], sig[2], sig[3]);
+}
+
+inline MLSignal juceColorToSignal(const juce::Colour& v)
+{
+	MLSignal s(4);
+	s[0] = v.getFloatRed();
+	s[1] = v.getFloatGreen();
+	s[2] = v.getFloatBlue();
+	s[3] = v.getFloatAlpha();
+	return s;
+}
 
 #pragma mark string utilities
 

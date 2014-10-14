@@ -1633,7 +1633,7 @@ void MLProcContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & pro
 	p->addAddress(procName, paramName);
 }
 
-void MLProcContainer::setPublishedParam(int index, MLParamValue val)
+void MLProcContainer::setPublishedParam(int index, const MLProperty& val)
 {
 	const int size = (int)mPublishedParams.size();
 	if (index < size)
@@ -1641,25 +1641,11 @@ void MLProcContainer::setPublishedParam(int index, MLParamValue val)
 		MLPublishedParamPtr p = mPublishedParams[index];
 		if (p)
 		{
-			// allow published parameter to tweak value 
-//debug() << "in: " << val << "\n";
+			p->setValueProperty(val);
 			
-			val = p->constrainValue(val);
-//debug() << "out: " << val << "\n";
-			
-			MLSymbol type = p->getType();
-			
-			debug() << "MLProcContainer::setPublishedParam: parameter " << index << " is type " << type << "  \n";
-			if(type == "signal")
-			{
-				debug() << "SETTING signal param!\n";
-			}
-			   
 			for(MLPublishedParam::AddressIterator it = p->beginAddress(); it != p->endAddress(); ++it)
 			{		
-				// set param at address.
-//debug() << "setting param #" << index << ", " << it->paramName << " of " << it->procAddress << " to " << val << "\n";
-				routeParam(it->procAddress, it->paramName, val);			
+				routeParam(it->procAddress, it->paramName, p->getValueProperty());
 			}
 		}
 	}
@@ -1693,7 +1679,7 @@ MLParamValue MLProcContainer::getParam(const MLSymbol alias)
 // perform our node's part of sending the parameter to the address.  if the address tail
 // is empty, we are done-- look for the named proc and set the param.
 // TODO verify why this doesn't just use getProcList().
-void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val)
+void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val)
 {
 	MLProcPtr headProc;
 	MLSymbolProcMapT::iterator it;
@@ -1739,15 +1725,6 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 		}
 	}
 }
-
-
-
-
-
-
-
-
-
 
 // ----------------------------------------------------------------
 #pragma mark engine params
@@ -1804,7 +1781,7 @@ MLParamValue MLProcContainer::getParamByIndex(int index)
 	}
 	else
 	{
-		debug() << "MLProcContainer::getParam *** param index out of range!\n";	
+		debug() << "MLProcContainer::getParamByIndex *** param index out of range!\n";
 	}
 	return r;
 }
@@ -1955,12 +1932,18 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 			{
 				// optional param type attribute
 				MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
+				
+				if(type == "signal")
+				{
+					debug() << "signal type!\n";
+				}
+				
 				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3, type);
 				MLSymbol createdType = p->getType();
 				if (createdType == "float")
 				{
 					setPublishedParamAttrs(p, child);
-					setPublishedParam(p->mIndex, p->getDefault());
+					setPublishedParam(p->mIndex, MLProperty(p->getDefault()));
 					mParamGroups.addParamToCurrentGroup(p);
 				}
 				else if (createdType == "string")
@@ -1968,6 +1951,13 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				}
 				else if (createdType == "signal")
 				{
+					debug() << "BUILDING SIGNAL param " << p->getAlias() << "\n";
+					
+					setPublishedParamAttrs(p, child);
+					
+					// get size attrs and set to matrix of the correct size
+					
+					mParamGroups.addParamToCurrentGroup(p);
 				}
 			}
 		}
@@ -2050,7 +2040,7 @@ void MLProcContainer::setProcParams(const MLPath& procName, juce::XmlElement* pa
 	}
 }
 
-// we don't recurse into param elements. 
+// set up any attributes that a parameter might have. we don't recurse into param elements.
 void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlElement* parent)
 {
 	std::string valStr;
@@ -2075,11 +2065,41 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 		{
 			p->setDefault((MLParamValue)child->getDoubleAttribute("value", 0.f));
 		}
-	
 		else if(child->hasTagName("alsosets"))
 		{
-			addSetterToParam(p, stringToPath(child->getStringAttribute("proc")), 
-				stringToSymbol(child->getStringAttribute("param")));
+			addSetterToParam(p, stringToPath(child->getStringAttribute("proc")),
+							 stringToSymbol(child->getStringAttribute("param")));
+		}
+		else if(child->hasTagName("size"))
+		{
+			MLSymbol type = p->getType();
+			if(type == "signal")
+			{
+				// create storage for the signal parameter.
+				int width = 1;
+				int height = 1;
+				int depth = 1;
+				width = child->getIntAttribute("width", width);
+				height = child->getIntAttribute("height", height);
+				depth = child->getIntAttribute("depth", depth);
+				debug() << "CREATED signal storage for param: " << width << ", " << height << ", " << depth << "\n";
+
+				p->setValueProperty(MLSignal(width, height, depth));
+				
+			}
+		}
+		else if(child->hasTagName("length"))
+		{
+			MLSymbol type = p->getType();
+			if(type == "string")
+			{
+				// create storage for the string parameter.
+				int len = 256;
+				len = child->getIntAttribute("length", len);
+				p->setValueProperty(std::string((size_t)len, '\0'));
+				
+				debug() << "CREATED string storage for param: " << len << "\n";
+			}
 		}
 	}
 }

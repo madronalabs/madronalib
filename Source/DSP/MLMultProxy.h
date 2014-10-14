@@ -136,8 +136,8 @@ public:
 	void setProcParams(const MLPath& procName, juce::XmlElement* pelem);
 	MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type);
 	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param);
-	void setPublishedParam(int index, MLParamValue val);
-	void routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val);
+	void setPublishedParam(int index, const MLProperty& val);
+	void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val);
 	//
 	void compile();
 

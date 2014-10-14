@@ -14,6 +14,7 @@
 #include "MLSymbol.h"
 #include "MLPath.h"
 #include "MLSignal.h"
+#include "MLProperty.h"
 
 // ----------------------------------------------------------------
 #pragma mark Parameter Definitions
@@ -67,7 +68,10 @@ public:
 
 	MLSymbol getType() { return mType; }
 	MLParamValue getValue();
-	MLParamValue constrainValue(MLParamValue val);
+	
+	const MLProperty& getValueProperty();
+	void setValueProperty(const MLProperty& val);
+	
 	MLParamValue getValueAsLinearProportion() const;
 	MLParamValue setValueAsLinearProportion (MLParamValue p);
 
@@ -94,7 +98,8 @@ protected:
 	
 private:
 	std::list<ParamAddress> mAddresses;
-	MLParamValue mParamValue;
+	MLProperty mParamValue;
+	
 	MLSymbol mAlias;
 	MLSymbol mType;
 	unsigned mIndex;

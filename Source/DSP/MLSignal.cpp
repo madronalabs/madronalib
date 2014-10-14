@@ -59,10 +59,6 @@ MLSignal::MLSignal(const MLSignal& other) :
 	std::copy(other.mDataAligned, other.mDataAligned + mSize, mDataAligned);
 }
 
-//
-// 1-D access methods 
-//
-
 MLSignal& MLSignal::operator= (const MLSignal& other)
 {
 	if (this != &other) // protect against self-assignment

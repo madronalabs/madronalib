@@ -74,7 +74,7 @@ void MLMultiSlider::setFillColor (const Colour& c)
 	// dial fill selected 
 	setColour(trackFullLightColor, findColour(fillColor).overlaidWith(findColour(indicatorColor).withAlpha(0.15f)));
 	// track fill 
-	setColour(trackFullDarkColor, c.overlaidWith(Colours::black.withAlpha(0.15f)).withMultipliedSaturation(1.2f));
+	setColour(trackFullDarkColor, c.overlaidWith(Colours::black.withAlpha(0.17f)).withMultipliedSaturation(1.5f));
 	// track background plain
 	setColour(trackEmptyDarkColor, findColour(MLLookAndFeel::darkerFillColor));
 
@@ -137,8 +137,8 @@ void MLMultiSlider::paint (Graphics& g)
 		// groups of 4 
 		if (!(i&4))
 		{
-			emptyColor = emptyColor.brighter(0.1f);
-			fullColor = fullColor.brighter(0.15f);
+			emptyColor = emptyColor.brighter(0.10f);
+			fullColor = fullColor.brighter(0.20f);
 		}
 		
 		empty.clear();
@@ -153,7 +153,6 @@ void MLMultiSlider::paint (Graphics& g)
 				
 		g.setColour(outlineColor);
 		g.strokePath(empty, PathStrokeType (outlineThickness));
-		
 	}
 }
 

@@ -16,6 +16,7 @@
 #include "MLDSPContext.h"
 #include "MLSymbol.h"
 #include "MLSymbolMap.h"
+#include "MLProperty.h"
 
 #define CHECK_IO    0
 
@@ -49,9 +50,11 @@ class MLProcInfoBase
 
 public:
 	MLProcInfoBase() {};	
-	virtual ~MLProcInfoBase() {};	
-	virtual void setParam(const MLSymbol paramName, MLParamValue value) = 0;
-	virtual MLParamValue getParam(const MLSymbol paramName) = 0;
+	virtual ~MLProcInfoBase() {};
+	
+	virtual const MLProperty& getParamProperty(const MLSymbol paramName) = 0;
+	virtual void setParamProperty(const MLSymbol paramName, const MLProperty& value) = 0;
+	
 	virtual MLSymbolMap& getParamMap() const = 0;
 	virtual MLSymbolMap& getInputMap() const = 0;
 	virtual MLSymbolMap& getOutputMap() const = 0;
@@ -88,8 +91,23 @@ friend class MLProcFactory;
 		mParams.setMap(getClassParamMap()); 
 	}
 	~MLProcInfo() {};
+
+	const MLProperty& getParamProperty(const MLSymbol paramName)
+	{
+		if (hasVariableParams())
+		{
+			// if entry is not present, make it and initialize value to 0
+			MLSymbolMap& map = getParamMap();
+			if (!map.getIndex(paramName))
+			{
+				map.addEntry(paramName);
+				setParamProperty(paramName, MLProperty(0.f));
+			}
+		}
+		return *(mParams[paramName]);
+	}
 	
-	void setParam(const MLSymbol paramName, MLParamValue value)
+	void setParamProperty(const MLSymbol paramName, const MLProperty& value)
 	{
 		if (hasVariableParams())
 		{
@@ -115,22 +133,7 @@ friend class MLProcFactory;
 #endif
 	}
 	
-	MLParamValue getParam(const MLSymbol paramName)
-	{
-		if (hasVariableParams())
-		{
-			// if entry is not present, make it and initialize value to 0
-			MLSymbolMap& map = getParamMap();
-			if (!map.getIndex(paramName))
-			{
-				map.addEntry(paramName);
-				setParam(paramName, 0.f); 
-			}		
-		}
-		return *(mParams[paramName]);
-	}
-	
-	MLSymbolMap& getParamMap() const { return getClassParamMap(); } 
+	MLSymbolMap& getParamMap() const { return getClassParamMap(); }
 	MLSymbolMap& getInputMap() const { return getClassInputMap(); } 
 	MLSymbolMap& getOutputMap() const { return getClassOutputMap(); } 
 	inline bool hasVariableParams() const { return getVariableParamsFlag(); }
@@ -214,8 +217,11 @@ friend class MLProcFactory;
 private:
 
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
-	// 
-	SymbolMappedArray<MLParamValue, kMLProcLocalParams> mParams;
+	//
+	
+	// MLTEST try SymbolMappedArray of properties.
+	
+	SymbolMappedArray<MLProperty, kMLProcLocalParams> mParams;
 };
 
 // an MLProcParam creates a single indexed parameter that is shared by all
@@ -411,10 +417,14 @@ public:
 	virtual err setInput(const int idx, const MLSignal& srcSig);	 
 	void setOutput(const int idx, MLSignal& srcSig);	 
 	
+	// params
 	bool paramExists(const MLSymbol p);
-	virtual MLParamValue getParam(const MLSymbol p);	
-	virtual void setParam(const MLSymbol p, MLParamValue v);	
-
+	
+	// get and set parameters
+	virtual void setParam(const MLSymbol p, const MLProperty& val);
+	virtual MLParamValue getParam(const MLSymbol p);
+	virtual const MLSignal& getSignalParam(const MLSymbol p);
+	
 	// MLProc returns the index to an entry in its proc map.
 	// MLProcContainer returns an index to a published input or output.
 	virtual int getInputIndex(const MLSymbol name);	
@@ -464,7 +474,7 @@ protected:
 	
 protected:
 	MLDSPContext* mpContext;		// set by our enclosing context to itself on creation
-	bool mParamsChanged;			// set by setParam() // TODO Context stores list of changes
+	bool mParamsChanged;			// set by setParam() // TODO Context stores list of Parameter changes
 
 	// pointers to input signals.  A subclass of MLProc will get data from these
 	// signals directly in its process() method.  A subclass of MLProcContainer

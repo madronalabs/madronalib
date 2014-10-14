@@ -13,7 +13,7 @@
 #include "MLPluginEditor.h"
 #include "MLFileCollection.h"
 #include "MLControlEvent.h"
-//#include "MLProcPatcher.h" // TODO avoid
+#include "MLProperty.h" 
 
 #include <vector>
 #include <map>
@@ -80,6 +80,7 @@ public:
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
 	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
+	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
 
     const String getParameterName (int index);
 	const String symbolToXMLAttr(const MLSymbol sym);

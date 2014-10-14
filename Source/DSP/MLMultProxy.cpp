@@ -754,7 +754,7 @@ void MLMultiContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & pr
 	MLProcContainer::addSetterToParam(p, procName, param);
 }
 
-void MLMultiContainer::setPublishedParam(int index, MLParamValue val)
+void MLMultiContainer::setPublishedParam(int index, const MLProperty& val)
 {
 	// set param in containers
 	const int copies = (int)mCopies.size();	
@@ -767,7 +767,7 @@ void MLMultiContainer::setPublishedParam(int index, MLParamValue val)
 	//MLProcContainer::setPublishedParam(index, val);
 }
 
-void MLMultiContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, MLParamValue val)
+void MLMultiContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val)
 {
 	// set param in containers
 	const int copies = (int)mCopies.size();	

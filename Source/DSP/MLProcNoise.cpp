@@ -29,12 +29,13 @@ private:
 // ----------------------------------------------------------------
 // registry section
 
-namespace{
-MLProcRegistryEntry<MLProcNoise> classReg("noise");
-ML_UNUSED MLProcParam<MLProcNoise> params[1] = { "gain" };
-//ML_UNUSED MLProcInput<MLProcNoise> inputs[] = {"gain"}; 
-ML_UNUSED MLProcOutput<MLProcNoise> outputs[] = {"out"};
-}	// namespace
+namespace
+{
+	MLProcRegistryEntry<MLProcNoise> classReg("noise");
+	ML_UNUSED MLProcParam<MLProcNoise> params[1] = { "gain" };
+	//ML_UNUSED MLProcInput<MLProcNoise> inputs[] = {}; 
+	ML_UNUSED MLProcOutput<MLProcNoise> outputs[] = {"out"};
+}
 
 // ----------------------------------------------------------------
 // implementation
