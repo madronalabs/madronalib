@@ -222,11 +222,12 @@ void MLParamGroupMap::clear()
 {
 	mCurrentGroup = -1;
 	mGroupVec.clear();
+	mGroupVec.push_back(std::string("null"));
 }
 
 void MLParamGroupMap::setGroup(const MLSymbol groupSym)
 {
-	unsigned i;
+	unsigned i = 0;
 	bool found = false;
 	std::string groupStr = groupSym.getString();
 	for (i=0; i<mGroupVec.size(); i++)
@@ -240,9 +241,10 @@ void MLParamGroupMap::setGroup(const MLSymbol groupSym)
 	
 	if(!found) 
 	{
+		// create new group
 		mGroupVec.push_back(groupStr);
 	}
-	
+
 	mCurrentGroup = i;
 }
 
