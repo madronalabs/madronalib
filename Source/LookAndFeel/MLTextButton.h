@@ -14,23 +14,16 @@ class MLTextButton :
 	public MLButton
 {
 public:
-     MLTextButton (const String& buttonName = String::empty,
-                const String& toolTip = String::empty);
-
+     MLTextButton();
     ~MLTextButton();
+	void paint(Graphics& g);
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& val);
 
     enum ColourIds
     {
         buttonColourId                  = 0x1000100,
 		textColourId					= 0x1000102, 
 	};
-
-protected:
-	void paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown);
-    void colourChanged();
-
-private:
-
 };
 
 

@@ -38,6 +38,7 @@ MLLookAndFeel::MLLookAndFeel()
 	//
 	setColour(outlineColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
     setColour(labelColor, Colour::fromHSV(0.5f, 0.f, 0.15f, 1.f));
+	setColour(textHeaderColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
 	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
 	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.99f, 1.f));
 	setColour(shadowColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
@@ -466,13 +467,11 @@ void MLLookAndFeel::drawButtonGlow (Graphics& g,
 void MLLookAndFeel::drawButtonBackground (Graphics& g,
                                         MLButton& button,
                                         const Colour& backgroundColour,
-                                        bool , // isMouseOver
+                                        bool isMouseOver,
                                         bool isButtonDown,
                                         float outlineThickness)
 {
-	const float alpha = button.isEnabled() ? 1.f : 0.33f;
-	bool down = (isButtonDown);
-	
+	const float alpha = button.isEnabled() ? 1.f : 0.33f;	
     const int width = button.getWidth();
     const int height = button.getHeight();
 
@@ -480,11 +479,10 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 	Colour blineColor = findColour(outlineColor).withAlpha(alpha);
 	
 	int flair = 0;
-	if (down)
+	if (isButtonDown && isMouseOver)
 	{
 		flair |= (eMLAdornPressed);
 	}	
-	// flair |= eMLAdornFlat;  // flat buttons are all the rage
 
 	drawMLButtonShape (g, 0, 0, width, height,
 		0, buttonColor, blineColor, outlineThickness, flair, 0., 0.);

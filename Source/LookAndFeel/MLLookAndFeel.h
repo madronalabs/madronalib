@@ -57,7 +57,8 @@ public:
 		defaultFillColor                = 0x10A0003,    // positive fill for dials and others
 		outlineColor					= 0x10A0004,    // outlines of controls
 		labelColor						= 0x10A0005,    // small text labels
-		darkLabelColor					= 0x10A0006,    // big text headers
+		textHeaderColor					= 0x10A0015,    // big text headers
+		darkLabelColor					= 0x10A0006,    // sections outlines, drawings
 		highlightColor					= 0x10A0007,    // color to lighten things
 		shadowColor						= 0x10A0008,    // color to darken things
 		markColor						= 0x10A0009,    // marks like separators, default text color

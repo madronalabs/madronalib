@@ -6,39 +6,37 @@
 #include "MLTextButton.h"
 #include "MLLookAndFeel.h"
 
-MLTextButton::MLTextButton (const String& name, const String& )
+MLTextButton::MLTextButton()
     : MLButton ()
 {
-	setProperty("text", std::string(name.toUTF8()));
-  //  setTooltip (toolTip);
 }
 
 MLTextButton::~MLTextButton()
 {
 }
 
-void MLTextButton::paintButton (Graphics& g, bool isMouseOverButton, bool isButtonDown)
+void MLTextButton::paint(Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (MLTextButton::buttonColourId));	
 	const Colour t (findColour (MLTextButton::textColourId));	
-
-	/*
-    myLookAndFeel->drawButtonBackground (g, *this,
-		c,
-		isMouseOverButton,
-		isButtonDown, mLineThickness);
-	
-    myLookAndFeel->drawButtonText (g, *this,
-		t,
-		isMouseOverButton,
-		isButtonDown);
-	 */
-	
+    myLookAndFeel->drawButtonBackground(g, *this, c, mOver, mDown, mLineThickness);
+	myLookAndFeel->drawButtonText(g, *this, t, mOver, mDown);
 }
 
-void MLTextButton::colourChanged()
+void MLTextButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-    repaint();
+	if (property == "text")
+	{
+		// this is needed because of MLMenuButton's file name stripping. see "strip" .
+		// maybe not such a good design for that feature.
+		setProperty("processed_text", val);
+		repaint();
+	}
+	else
+	{
+		MLButton::doPropertyChangeAction(property, val);
+	}
 }
+
