@@ -38,25 +38,54 @@ MLProperty::MLProperty(const MLProperty& other) :
 
 MLProperty& MLProperty::operator= (const MLProperty& other)
 {
-	if(mType != kUndefinedProperty)
+	bool complete = false;
+	if(mType == other.getType())
+	{
+		// copy data in place if possible
+		switch(mType)
+		{
+			case MLProperty::kFloatProperty:
+				mVal.mFloatVal = other.getFloatValue();
+				complete = true;
+				break;
+			case MLProperty::kStringProperty:
+				if((mVal.mpStringVal->size()) == (other.mVal.mpStringVal->size()))
+				{
+					std::string& s = *mVal.mpStringVal;
+					s.replace(s.begin(), s.end(), other.getStringValue());
+					complete = true;
+				}
+				break;
+			case MLProperty::kSignalProperty:
+				// MLSignal handles copy-in-place when possible
+				*mVal.mpSignalVal = other.getSignalValue();
+				complete = true;
+				break;
+			default:
+				mVal.mpStringVal = 0;
+				break;
+		}
+	}
+	
+	if(!complete)
 	{
 		deallocate();
-	}
-	mType = other.getType();
-	switch(mType)
-	{
-		case MLProperty::kFloatProperty:
-			mVal.mFloatVal = other.getFloatValue();
-			break;
-		case MLProperty::kStringProperty:
-			mVal.mpStringVal = new std::string(other.getStringValue());
-			break;
-		case MLProperty::kSignalProperty:
-			mVal.mpSignalVal = new MLSignal(other.getSignalValue());
-			break;
-		default:
-			mVal.mpStringVal = 0;
-			break;
+		mType = other.getType();
+		switch(mType)
+		{
+			case MLProperty::kFloatProperty:
+				mVal.mFloatVal = other.getFloatValue();
+				break;
+			case MLProperty::kStringProperty:
+				mVal.mpStringVal = new std::string(other.getStringValue());
+				break;
+			case MLProperty::kSignalProperty:
+				mVal.mpSignalVal = new MLSignal(other.getSignalValue());
+				break;
+			default:
+				mVal.mpStringVal = 0;
+				break;
+		}
 	}
 	return *this;
 }
@@ -95,10 +124,10 @@ void MLProperty::deallocate()
 			delete mVal.mpSignalVal;
 			break;
 		default:
-			mType = kUndefinedProperty;
 			mVal.mpStringVal = 0;
 			break;
 	}
+	mType = kUndefinedProperty;
 }
 
 const float& MLProperty::getFloatValue() const
