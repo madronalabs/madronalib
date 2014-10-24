@@ -888,7 +888,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	const Colour shadow (findColour(MLLookAndFeel::shadowColor).withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour outline_color (findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour fill_color (mTrackFillColor.withAlpha (isEnabled() ? 1.0f : 0.5f));
-	const Colour indicator_color (mIndicatorColor.withAlpha (isEnabled() ? 0.75f : 0.35f));
+	const Colour indicator_color (mIndicatorColor.withAlpha (isEnabled() ? 1.f : 0.5f));
 
 	// Dimensions
 	const float r1 = mDiameter*0.5f;
