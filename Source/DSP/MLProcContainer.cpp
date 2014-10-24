@@ -1622,8 +1622,7 @@ MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const
 	const int i = (int)mPublishedParams.size();
 	p = MLPublishedParamPtr(new MLPublishedParam(procPath, param, alias, type, (int)i));
 	mPublishedParams.push_back(p);
-	
-	debug() << "MLProcContainer::publishParam: pushed back param idx " << i << "\n";
+	// debug() << "\nMLProcContainer::publishParam: pushed back " << p->getType() << " param idx " << i << "\n";
 	mPublishedParamMap[alias] = p; 
 	return p;
 }
@@ -1759,7 +1758,7 @@ int MLProcContainer::getParamIndex(const MLSymbol paramName)
 	}
 	else
 	{
-		debug() << "MLProcContainer::getParamIndex: param " << paramName << " not found!\n";
+		// debug() << "MLProcContainer::getParamIndex: param " << paramName << " not found!\n";
 	}
 	return r;
 }
@@ -1938,6 +1937,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 					debug() << "signal type!\n";
 				}
 				
+				// publish param and set attributes
 				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3, type);
 				MLSymbol createdType = p->getType();
 				if (createdType == "float")
@@ -1951,13 +1951,16 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				}
 				else if (createdType == "signal")
 				{
-					debug() << "BUILDING SIGNAL param " << p->getAlias() << "\n";
-					
 					setPublishedParamAttrs(p, child);
-					
-					// get size attrs and set to matrix of the correct size
-					
 					mParamGroups.addParamToCurrentGroup(p);
+				}
+				
+				// make queue if needed
+				if(p->getNeedsQueue())
+				{
+					debug() << "ADDING queue for " << p->getAlias() << "\n";
+					
+					
 				}
 			}
 		}
@@ -2082,10 +2085,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 				width = child->getIntAttribute("width", width);
 				height = child->getIntAttribute("height", height);
 				depth = child->getIntAttribute("depth", depth);
-				debug() << "CREATED signal storage for param: " << width << ", " << height << ", " << depth << "\n";
-
 				p->setValueProperty(MLSignal(width, height, depth));
-				
 			}
 		}
 		else if(child->hasTagName("length"))
@@ -2097,8 +2097,18 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 				int len = 256;
 				len = child->getIntAttribute("length", len);
 				p->setValueProperty(std::string((size_t)len, '\0'));
-				
-				debug() << "CREATED string storage for param: " << len << "\n";
+			}
+		}
+		else if(child->hasTagName("queue"))
+		{
+			MLSymbol type = p->getType();
+			if(type == "float")
+			{
+				p->setNeedsQueue(child->getIntAttribute("value", 0));
+			}
+			else
+			{
+				debug() << "MLProcContainer::setPublishedParamAttrs: queue only supported for float parameters!\n";
 			}
 		}
 	}
@@ -2123,15 +2133,7 @@ int MLProcContainer::countPublishedParamsInDoc(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("param"))
 		{
-			MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
-			if((!type) || (type == MLSymbol("float")))
-			{
-				++sum;
-			}
-			else
-			{
-				debug() << "HEY got non-settable param\n";
-			}
+			++sum;
 		}
 	}
 	return sum;
