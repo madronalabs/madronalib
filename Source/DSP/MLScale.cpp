@@ -130,7 +130,7 @@ void MLScale::setDefaultMapping()
 	}	
 }
 
-float MLScale::noteToPitch(float note)
+float MLScale::noteToPitch(float note) const
 {
 	float fn = clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));
 	int i = fn;
@@ -141,15 +141,20 @@ float MLScale::noteToPitch(float note)
 	return lerp(a, b, fracPart);
 }
 
-float MLScale::noteToPitch(int note)
+float MLScale::noteToPitch(int note) const
 {
 	int n = clamp(note, 0, kMLNumScaleNotes - 1);
 	return mRatios[mNotes[n]];
 }
 
-// quantize an incoming pitch in linear octave space. 
+float MLScale::noteToFrequency(float note) const
+{
+	return log2f(noteToPitch(clamp(note, 0.f, 127.f)));
+}
+
+// quantize an incoming pitch in linear octave space.
 //
-float MLScale::quantizePitch(float a)
+float MLScale::quantizePitch(float a) const
 {
 	float r = 1.0f;
 	for (int i = kMLNumRatios - 1; i > 0; i--)

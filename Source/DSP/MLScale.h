@@ -37,13 +37,13 @@ public:
 	void setDefaultMapping();
 	
 	// convert a note number into a pitch ratio using the currently loaded scale. 
-	// if the scale has been changed since its last use, recalculate.
-	float noteToPitch(float note);
-	float noteToPitch(int note);
+	float noteToPitch(float note) const;
+	float noteToPitch(int note) const;
 
-	float quantizePitch(float a);
+	float quantizePitch(float a) const;
 	
-//	double noteToFrequency(int note);  // requires tonic, maybe implement with .kbm mappings
+	// requires tonic, maybe implement with .kbm mappings
+	float noteToFrequency(float note) const;
 
 	void setName(const char* nameStr);
 	void setDescription(const char* descStr);
