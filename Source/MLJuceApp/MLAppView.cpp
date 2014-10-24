@@ -171,11 +171,11 @@ MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * na
 
 MLTextButton* MLAppView::addTextButton(const char * displayName, const MLRect & r, const char * name, const Colour& color)
 {	
-	MLTextButton* b = new MLTextButton;
+	MLTextButton* b = new MLTextButton();
 	b->setTargetPropertyName(name);
 	b->setProperty("toggle", false);
 	b->setFillColor(color);
-	b->setProperty("text", displayName);
+	b->setPropertyImmediate("text", displayName);
 	addWidgetToView(b, r, name);
 	return b;
 }
