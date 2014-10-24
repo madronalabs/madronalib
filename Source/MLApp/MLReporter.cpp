@@ -45,7 +45,6 @@ void MLReporter::doPropertyChangeAction(MLSymbol prop, const MLProperty& newVal)
 	// enqueue property name
 	int written = PaUtil_WriteRingBuffer( &mSymbolRing, &prop, 1 );
 #if DEBUG
-	debug() << "pushing " << prop << "\n";
 	if(written < 1)
 	{
 		debug() << "MLReporter::doPropertyChangeAction: ring buffer full! \n";
@@ -68,7 +67,6 @@ void MLReporter::viewProperties()
 		// dequeue property name
 		MLSymbol prop;
 		PaUtil_ReadRingBuffer( &mSymbolRing, &prop, 1 );
-debug() << "popping " << prop << "\n";
 
 		// do we have viewers for this property?
 		MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(prop);
@@ -80,11 +78,6 @@ debug() << "popping " << prop << "\n";
 			{
 				MLPropertyViewPtr pv = (*vit);
 				const MLPropertyView& v = (*pv);
-				
-				if(prop == "osc_pitch")
-				{
-					debug() << "viewProperties: " << prop << "\n";
-				}
 				v.view(mpPropertyOwner->getProperty(prop));
 			}
 		}

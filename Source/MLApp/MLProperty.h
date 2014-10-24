@@ -102,7 +102,7 @@ public:
 	}
 	
 	// set the property and propagate to Listeners immediately,
-	// except for the named Listener
+	// except for the argument Listener pL
 	template <typename T>
 	void setPropertyImmediateExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
 	{

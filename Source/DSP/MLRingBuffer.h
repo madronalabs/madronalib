@@ -6,6 +6,9 @@
 // simple wrapper around whatever ringbuffer code we might want to use. 
 // right now it's portaudio.
 
+#ifndef _ML_RING_BUFFER_H
+#define _ML_RING_BUFFER_H
+
 #include "pa_ringbuffer.h"
 #include "MLDSP.h"
 
@@ -28,3 +31,5 @@ public:
 
 
 typedef std::tr1::shared_ptr<MLRingBuffer> MLRingBufferPtr;
+
+#endif // _ML_RING_BUFFER_H

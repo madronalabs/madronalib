@@ -33,7 +33,7 @@ typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 #pragma mark MLReporter 
 
 // Reporter listens to a Model and reports its changing properties by setting
-// Attributes of Widgets. Properties may contain float, string or signal values.
+// properties of Widgets. Properties may contain float, string or signal values.
 //
 class MLReporter :
 	public MLPropertyListener

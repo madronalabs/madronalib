@@ -355,7 +355,6 @@ void MLDSPEngine::dump()
 	dumpGraph(0);
 }
 
-
 // ----------------------------------------------------------------
 #pragma mark published signals
 
@@ -557,16 +556,6 @@ MLScale* MLDSPEngine::getScale()
 	return r;
 }
 
-/*
-// ----------------------------------------------------------------
-#pragma mark Patcher
-
-MLProcList& MLDSPEngine::getPatcherList()
-{
-	return mPatcherList;
-}
-*/
-
 // ----------------------------------------------------------------
 #pragma mark Process
 
@@ -608,6 +597,7 @@ void MLDSPEngine::processBlock(const int frames, const MLControlEventVector& eve
 	writeInputBuffers(frames);
 	mSamplesToProcess += frames;
 
+	// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
 	while(mSamplesToProcess >= mVectorSize)
 	{
 		readInputBuffers(mVectorSize);

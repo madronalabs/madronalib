@@ -487,7 +487,6 @@ public:
         return noErr;
     }
     
-    
 #pragma mark -
 #pragma mark MLAudioProcessorListener methods
     // this code ended up in here because of access to AUBase::RestoreState().  There may be other issues.

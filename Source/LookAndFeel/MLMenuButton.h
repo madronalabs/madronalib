@@ -16,7 +16,7 @@ class MLMenuButton :
 protected:
 
 public:
-     MLMenuButton ();
+     MLMenuButton();
     ~MLMenuButton();
 
     enum ColourIds

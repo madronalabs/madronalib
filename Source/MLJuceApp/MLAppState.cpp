@@ -119,6 +119,7 @@ void MLAppState::saveState()
 		// get View info
 		//int w = mpAppView->getWidth();
 		//int h = mpAppView->getHeight();
+		// TODO what is this doing here?!
 		ComponentPeer* p = mpAppView->getPeer();
 		if(p)
 		{
@@ -157,7 +158,8 @@ void MLAppState::loadStateFromJSON(cJSON* pNode, int depth)
 //debug() << " depth " << depth << " loading string param " << pNode->string << " : " << pNode->valuestring << "\n";
 				mpModel->setProperty(MLSymbol(pNode->string), pNode->valuestring);
 				break;
-			case cJSON_Array: 
+			case cJSON_Array:
+				// TODO what is this doing here?!
 				if(!strcmp(pNode->string, "window_bounds"))
 				{
 					assert(cJSON_GetArraySize(pNode) == 4);

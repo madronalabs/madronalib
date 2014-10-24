@@ -81,7 +81,10 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 {
 	int duration = 250;
 	float targetAlpha;
+	
+	//with this on, animations fail sometimes. with this off, they fail in a different way,always.
 	bool proxy = true;
+	
 	int w = getWidth();
 	int h = getHeight();
 	Rectangle<int> localBounds(0, 0, w, h);
@@ -98,6 +101,8 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	int margin = u;
 	int newPage = clamp(destPage, 0, (int)mPages.size() - 1);
 	
+	// TODO fix animations. GL context errors sometimes lead to a crash.
+	animate = false;
 	if ((animate) && (newPage != mCurrPage) && (mCurrPage >= 0))
 	{
 		// line up all pages from new through current offscreen

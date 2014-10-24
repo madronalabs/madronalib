@@ -46,6 +46,7 @@ void MLMenuButton::doPropertyChangeAction(MLSymbol property, const MLProperty& v
 {
 	if (property == "text")
 	{
+		// TODO this file-specific stuff should not be here. 
 		std::string processedText;
 		const std::string str = val.getStringValue();
 		if(getFloatProperty("strip"))

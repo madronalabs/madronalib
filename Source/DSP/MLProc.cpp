@@ -193,10 +193,6 @@ void MLProc::setParam(const MLSymbol pname, const MLProperty& val)
 	// to take effect before the next process() call. This way all the [if (mParamsChanged) doParams();]
 	// code can be moved out of process() methods and mParamsChanged would not be needed!
 	
-	
-	// MLTEST setPropertyWithoutReallocate -
-	
-	
 	procInfo().setParamProperty(pname, val);
 	mParamsChanged = true;
 }
