@@ -13,7 +13,8 @@ MLPluginProcessor::MLPluginProcessor() :
 	mInitialized(false),
 	mInputProtocol(-1),
 	mT3DWaitTime(0),
-	mDataRate(-1)
+	mDataRate(-1),
+mTemp(0)
 {
 	debug() << "creating MLPluginProcessor.\n";
 	mHasParametersSet = false;
@@ -24,6 +25,7 @@ MLPluginProcessor::MLPluginProcessor() :
     scanAllFilesImmediate();
     
     mControlEvents.resize(kMaxControlEventsPerBlock);
+
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -33,49 +35,55 @@ MLPluginProcessor::~MLPluginProcessor()
 
 #pragma mark MLModel
 
-void MLPluginProcessor::doPropertyChangeAction(MLSymbol property, const MLProperty& newVal)
+void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
 {
 	int propertyType = newVal.getType();
-	int paramIdx = getParameterIndex(property);
+	int paramIdx = getParameterIndex(propName);
 	if (paramIdx < 0) return;
 	float f = newVal.getFloatValue();
 	
 	switch(propertyType)
 	{
 		case MLProperty::kFloatProperty:
-			
-			debug() << "MLPluginProcessor::doPropertyChangeAction " << property << " -> " << f << "\n";
-			
-			// set published float parameter in DSP engine.
-			setParameterWithoutProperty (property, f);
-			
-			// convert to host units for VST
-			f = newVal.getFloatValue();
-			if (wrapperType == AudioProcessor::wrapperType_VST)
+		{
+			MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
+			if(p)
 			{
-				MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
-				if(p)
+				// debug() << "MLPluginProcessor::doPropertyChangeAction " << propName << " -> " << f << "\n";
+				
+				// set published float parameter in DSP engine.
+				setParameterWithoutProperty (propName, f);
+				
+				// convert to host units for VST
+				f = newVal.getFloatValue();
+				if (wrapperType == AudioProcessor::wrapperType_VST)
 				{
 					f = p->getValueAsLinearProportion();
 				}
+				
+				// queue up change, os send change immediately to host wrapper
+				if(p->getNeedsQueue())
+				{
+					p->pushValue(f);
+				}
+				else
+				{
+					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
+				}
 			}
-			// send to wrapper in host units
-			AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
-			
-			break;
+		}
+		break;
 		case MLProperty::kStringProperty:
-			break;
+		break;
 		case MLProperty::kSignalProperty:
 		{
-			debug() << "MLPluginProcessor::doPropertyChangeAction got SIGNAL property\n";
 			// set published signal parameter in DSP engine.
 			const MLSignal& sigVal = newVal.getSignalValue();
-			setSignalParameterWithoutProperty (property, sigVal);
-
-			break;
+			setSignalParameterWithoutProperty (propName, sigVal);
 		}
+		break;
 		default:
-			break;
+		break;
 	}
 }
 
@@ -89,7 +97,7 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 		if (doc)	// true = quick scan header
 		{
 			mEngine.scanDoc(&*mpPluginDoc, &mNumParameters);
-			//debug() << "loaded " << JucePlugin_Name << " plugin description, " << mNumParameters << " parameters.\n";	
+			debug() << "loaded " << JucePlugin_Name << " plugin description, " << mNumParameters << " parameters.\n";
 		}
 		else
 		{
@@ -353,7 +361,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
     
 	MidiBuffer::Iterator i (midiMessages);
     juce::MidiMessage message (0xf4, 0.0);
-    MLControlEvent::EventType type = MLControlEvent::eNull;
+    MLControlEvent::EventType type = MLControlEvent::kNull;
     int chan = 0;
     int id = 0;
     int time = 0;
@@ -365,55 +373,55 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
         chan = message.getChannel();
 		if (message.isNoteOn())
 		{
-            type = MLControlEvent::eNoteOn;
+            type = MLControlEvent::kNoteOn;
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
 		}
 		else if(message.isNoteOff())
 		{
-            type = MLControlEvent::eNoteOff;
+            type = MLControlEvent::kNoteOff;
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
 		}
+		else if (message.isSustainPedalOn())
+		{
+            type = MLControlEvent::kSustainPedal;
+			v1 = 1.f;
+		}
+		else if (message.isSustainPedalOff())
+		{
+            type = MLControlEvent::kSustainPedal;
+			v1 = 0.f;
+		}
 		else if (message.isController())
 		{
-            type = MLControlEvent::eController;
+            type = MLControlEvent::kController;
 			v1 = message.getControllerNumber();
 			v2 = message.getControllerValue() / 127.f;
 		}
 		else if (message.isPitchWheel())
 		{
-            type = MLControlEvent::ePitchWheel;
+            type = MLControlEvent::kPitchWheel;
 			v1 = message.getPitchWheelValue();
 		}
 		else if (message.isAftertouch())
 		{
-            type = MLControlEvent::eNotePressure;
+            type = MLControlEvent::kNotePressure;
 			v1 = message.getNoteNumber();
 			v2 = message.getAfterTouchValue() / 127.f;
             id = (int)v1;
 		}
 		else if (message.isChannelPressure())
 		{
-            type = MLControlEvent::eChannelPressure;
+            type = MLControlEvent::kChannelPressure;
 			v1 = message.getChannelPressureValue() / 127.f;
-		}
-		else if (message.isSustainPedalOn())
-		{			
-            type = MLControlEvent::eSustainPedal;
-			v1 = 1.f;
-		}
-		else if (message.isSustainPedalOff())
-		{
-            type = MLControlEvent::eSustainPedal;
-			v1 = 0.f;
 		}
 		else if (message.isProgramChange())
 		{
 			int pgm = message.getProgramChangeNumber();
-debug() << "*** program change -> " << pgm << "\n";
+			// debug() << "*** program change -> " << pgm << "\n";
 			if(pgm == kMLPluginMIDIPrograms)	
 			{
 				// load most recent saved program
@@ -424,7 +432,7 @@ debug() << "*** program change -> " << pgm << "\n";
 				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
 				setStateFromMIDIProgram(pgm);
 			}
-            type = MLControlEvent::eProgramChange;
+            type = MLControlEvent::kProgramChange;
             id = chan;
             v1 = (float)pgm;
 		}
@@ -501,12 +509,29 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			ioMap.outputs[i] = buffer.getWritePointer(i);
 		}
 		mEngine.setIOBuffers(ioMap);
+
+		// for any parameters with queues, send out one queued value per block
+		for(int i = 0; i < mEngine.getPublishedParams(); ++i)
+		{
+			MLPublishedParamPtr p = mEngine.getParamPtr(i);
+			if(p) // TODO clean up null paramater ptrs!
+			{
+				if(p->getQueueValuesRemaining() > 0)
+				{
+					AudioProcessor::sendParamChangeMessageToListeners (i, p->popValue());
+				}
+			}
+		}
         
         if(acceptsMidi())
         {
             convertMIDIToEvents(midiMessages, mControlEvents);
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
+		
+		// MLTEST
+		// debug() << "samples: " << samples << "\n";
+		
         mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
     }
 	else
@@ -540,10 +565,14 @@ float MLPluginProcessor::getParameter (int index)
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
-	if (index < 0) return;	
+	if (index < 0) return;
+	
+	debug() << "         PARAM: " << index << " VALUE: " << newValue << "\n";
+	// MLTEST
+	
+	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
-	// setPropertyImmediate(getParameterAlias(index), newValue);
 	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);
 }
 
@@ -1009,7 +1038,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	// get patcher matrix from old-style input params
 	String patcherInputStr ("patcher_input_");
 	
-	
 	// get params from xml
 	const unsigned numAttrs = xmlState.getNumAttributes();
 	
@@ -1181,6 +1209,9 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 		String extension = f.getFileExtension();
 		if (extension == ".mlpreset")
 		{
+			// MLTEST need to determine blob type, XML or JSON
+	
+			
 			// load cross-platform mlpreset file.
 			ScopedPointer<XmlDocument> stateToLoad (new XmlDocument(f));
 			if (stateToLoad != NULL)
@@ -1202,6 +1233,11 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 //
 void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
 {
+	
+	// MLTEST need to determine blob type, XML or JSON
+	
+	
+	
 	debug() << "setStateFromBlob: " << sizeInBytes << "bytes of XML data.\n";
 	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
 	if (xmlState)
@@ -1300,23 +1336,23 @@ void MLPluginProcessor::setDefaultParameters()
 			}
 			else if (paramType == "string")
 			{
-				
+				// unimplemented
 			}
 			else if (paramType == "signal")
 			{
 				const MLProperty& p = getProperty(getParameterAlias(i));
 				if (p.getType() == MLProperty::kSignalProperty)
 				{
-					// TODO some way to set up defaults for signal params
-					// debug() << "SETTING SIGNAL default: " << getParameterAlias(i) << " -> [?] "  << "\n";
-					
-					
+					// TODO set up defaults for signal params once we are loading from JSON
+					// right now we clear to zero
+					MLSignal defaultSignal(p.getSignalValue());
+					defaultSignal.clear();
+					setPropertyImmediate(getParameterAlias(i), defaultSignal);
 				}
 			}
 		}
 	}
 }
-
 
 #pragma mark channels
 
