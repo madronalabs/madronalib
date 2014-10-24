@@ -9,7 +9,7 @@
 #include "MLControlEvent.h"
 
 MLControlEvent::MLControlEvent() :
-    mType(eNull),
+    mType(kNull),
     mChannel(0),
     mID(0),
     mValue1(0.),
@@ -50,3 +50,64 @@ int MLControlEventVector::findFreeEvent() const
     }
     return r;
 }
+
+void MLControlEventVector::clearEventsMatchingID(int id)
+{
+	for(int i=0; i<size(); ++i)
+    {
+		MLControlEvent& event = (*this)[i];
+        if (event.mID == id)
+        {
+			event.clear();
+        }
+    }
+}
+
+void MLControlEventStack::push(const MLControlEvent& e)
+{
+	if(mSize < size())
+	{
+		(*this)[mSize++] = e;
+	}
+}
+
+MLControlEvent MLControlEventStack::pop()
+{
+	if(mSize > 0)
+	{
+		mSize--;
+		return (*this)[mSize];
+	}
+	return kMLNullControlEvent;
+}
+
+bool MLControlEventStack::isEmpty()
+{
+	return (mSize == 0);
+}
+
+int MLControlEventStack::getSize()
+{
+	return mSize;
+}
+
+void MLControlEventStack::clearEventsMatchingID(int id)
+{
+	int currentSize = size();
+	for(int i=0; i<currentSize; ++i)
+    {
+		MLControlEvent& event = (*this)[i];
+        if (event.mID == id)
+        {
+			event.clear();
+			// compact
+			for(int j=i; j<currentSize - 1; ++j)
+			{
+				(*this)[j] = (*this)[j + 1];
+			}
+			(*this)[currentSize - 1] = kMLNullControlEvent;
+			mSize--;
+        }
+    }
+}
+

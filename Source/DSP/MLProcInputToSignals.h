@@ -23,14 +23,26 @@
 class MLVoice
 {
 public:
+	
+	enum State
+	{
+		kOff,
+		kOn,
+		kSustain
+	};
+	
 	MLVoice();
 	~MLVoice() {} ;
 	void clearState();
 	void clearChanges();
 	MLProc::err resize(int size);
 	void zero();
-	
-	int mActive;
+
+	// send a note on, off or sustain event to the voice.
+	void addNoteEvent(const MLControlEvent& e, const MLScale& scale);
+	void stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool retrig);
+
+	int mState;
     int mInstigatorID; // for matching event sources, could be MIDI key, or touch number.
     int mChannel;   
 	int mNote;
@@ -55,6 +67,8 @@ public:
 	MLChangeList mdMod2;
 	MLChangeList mdMod3;
 	MLChangeList mdDrift;
+	
+	MLControlEvent mCurrentNoteEvent;
 };
 
 extern const int kNumVoiceSignals;
@@ -89,8 +103,11 @@ public:
  	void setup();
  	err resize();
 	
+	// mutable return value is used by Processor to set a new scale.
 	MLScale* getScale();
 	MLSample noteToPitch(float note);
+	
+	//void sendEventToVoice(const MLControlEvent& e, MLVoice& v);
 
 	void doParams();
 
@@ -102,23 +119,19 @@ private:
     void processEvent(const MLControlEvent& event);
 	void doNoteOn(const MLControlEvent& event);
 	void doNoteOff(const MLControlEvent& event);
+	void doSustain(const MLControlEvent& event);
 	void doController(const MLControlEvent& event);
 	void doPitchWheel(const MLControlEvent& event);
 	void doNotePressure(const MLControlEvent& event);
 	void doChannelPressure(const MLControlEvent& event);
-	void doSustain(const MLControlEvent& event);
 
 	void dumpEvents();
 	void dumpVoices();
 	void dumpSignals();
     
     int findFreeVoice();
-    int findSustainedVoice();
+    int findOldestSustainedVoice();
     int findOldestVoice();
-    
-    void sendNoteToVoice(const MLControlEvent& e, int voiceIdx);
-    void removeNoteFromVoice(const MLControlEvent& e, int voiceIdx);
-    void stealVoice(const MLControlEvent& e, int voiceIdx);
 
 	int mProtocol;
 	MLProcInfo<MLProcInputToSignals> mInfo;
@@ -127,8 +140,7 @@ private:
     int mFrameCounter;
     
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
-    MLControlEventVector mNoteEventsSustaining; // notes still sounding because sustain pedal is held
-    MLControlEventVector mNoteEventsPending;    // notes stolen that may play again when voices are freed
+    MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
     
 	MLVoice mVoices[kMLEngineMaxVoices];
 
@@ -162,7 +174,7 @@ private:
 	MLScale mScale;
 	
 	int temp;
-	bool mSustain;
+	bool mSustainPedal;
 };
 
 
