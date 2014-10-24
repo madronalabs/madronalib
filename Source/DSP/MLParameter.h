@@ -15,6 +15,7 @@
 #include "MLPath.h"
 #include "MLSignal.h"
 #include "MLProperty.h"
+#include "MLRingBuffer.h"
 
 // ----------------------------------------------------------------
 #pragma mark Parameter Definitions
@@ -50,16 +51,15 @@ private:
 	public:
 		ParamAddress(const MLPath & a, const MLSymbol n) : procAddress(a), paramName(n) {}
 		~ParamAddress() {}
-	
-		// procAddress is where to send the param.  can resolve to a single MLProc, 
-		// or a list of processors in the case of multiples.  The address is always relative to 
+		
+		// procAddress is where to send the param.  can resolve to a single MLProc,
+		// or a list of processors in the case of multiples.  The address is always relative to
 		// the container that publishes the parameters.
-		MLPath procAddress;		
+		MLPath procAddress;
 		MLSymbol paramName;
 	};
-	
-public:
-	
+
+public:	
 	MLPublishedParam(const MLPath & address, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx);
 	~MLPublishedParam();
 	
@@ -86,7 +86,13 @@ public:
 
 	int getGroupIndex(void) { return mGroupIndex; }
 	void setGroupIndex(int g) { mGroupIndex = g; }
-
+	
+	bool getNeedsQueue(void);
+	void setNeedsQueue(bool q);
+	void pushValue(float v);
+	float popValue();
+	int getQueueValuesRemaining();
+	
 	MLSymbol getAlias(void) { return mAlias; }
 				
 	typedef std::list<ParamAddress>::const_iterator AddressIterator;
@@ -99,6 +105,8 @@ protected:
 private:
 	std::list<ParamAddress> mAddresses;
 	MLProperty mParamValue;
+	MLRingBufferPtr mpValueQueue;
+	float mTempValue;
 	
 	MLSymbol mAlias;
 	MLSymbol mType;
@@ -108,6 +116,7 @@ private:
 	MLParamValue mInterval;
 	MLParamValue mZeroThreshold;
 	MLParamValue mDefault;
+	bool mNeedsQueue;
 	JucePluginParamUnit mUnit;
 	JucePluginParamWarpMode mWarpMode;
 	int mGroupIndex;	// -1 for none
