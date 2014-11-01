@@ -4,6 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPluginProcessor.h"
+
 const int kMaxControlEventsPerBlock = 1024;
 
 MLPluginProcessor::MLPluginProcessor() : 
@@ -14,6 +15,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	mInputProtocol(-1),
 	mT3DWaitTime(0),
 	mDataRate(-1),
+	mpState(nullptr),
 mTemp(0)
 {
 	debug() << "creating MLPluginProcessor.\n";
@@ -25,12 +27,19 @@ mTemp(0)
     scanAllFilesImmediate();
     
     mControlEvents.resize(kMaxControlEventsPerBlock);
-
+	
+	// initialize application state
+	mpState = new MLAppState(static_cast<MLModel*>(this),
+		MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber);
 }
 
 MLPluginProcessor::~MLPluginProcessor()
 {
 	debug() << "deleting MLPluginProcessor.\n";
+	if(mpState)
+	{
+		delete mpState;
+	}
 }
 
 #pragma mark MLModel
@@ -259,7 +268,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 
 #ifdef DEBUG
 		theSymbolTable().audit();
-		//theSymbolTable().dump();
+		theSymbolTable().dump();
 #endif
 
 		// compile: schedule graph of processors , setup connections, allocate buffers
@@ -317,6 +326,49 @@ void MLPluginProcessor::releaseResources()
 {
     // When playback stops, you can use this as an opportunity to free up any
     // spare memory, etc.
+}
+
+
+#pragma mark juce::AudioProcessor
+
+void MLPluginProcessor::getStateInformation (MemoryBlock& destData)
+{
+	// OLD:  XML
+	/*
+    // create an outer XML element.
+    ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
+	getStateAsXML(*xmlProgram);
+    copyXmlToBinary (*xmlProgram, destData);
+	
+	{
+        MemoryOutputStream out (destData, false);
+        out.writeInt (magicXmlNumber);
+        out.writeInt (0);
+        xmlProgram->writeToStream (out, String(), true, false);
+        out.writeByte (0);
+    }
+	
+    // go back and write the string length..
+    static_cast<uint32*> (destData.getData())[1]
+	= ByteOrder::swapIfBigEndian ((uint32) destData.getSize() - 9);
+	*/
+	
+	// NEW: JSON
+	destData = mpState->getStateAsBinary();
+}
+
+void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+	// if uninitialized, save blob for later.
+	if (mEngine.getCompileStatus() != MLProc::OK)
+	{
+		mSavedParamBlob.setSize(0);
+		mSavedParamBlob.append(data, sizeInBytes);
+	}
+	else
+	{
+		setStateFromBlob (data, sizeInBytes);
+	}
 }
 
 #pragma mark MLFileCollection::Listener
@@ -707,7 +759,7 @@ const MLSymbol MLPluginProcessor::getParameterAlias (int index)
  	return mEngine.getParamPtr(index)->getAlias();
 }
 
-const MLParamValue MLPluginProcessor::getParameterDefault (int index)
+float MLPluginProcessor::getParameterDefaultValue (int index)
 {
  	return mEngine.getParamPtr(index)->getDefault();
 }
@@ -734,8 +786,6 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 	return mEngine.getParamGroupName(index);
 }
 
-#pragma mark signals
-
 // count the number of published copies of the signal matching alias.
 int MLPluginProcessor::countSignals(const MLSymbol alias)
 {
@@ -743,115 +793,7 @@ int MLPluginProcessor::countSignals(const MLSymbol alias)
 	return numSignals;
 }
 
-// fill the output signal with samples from the named published signal list.
-// returns the number of samples read.
-unsigned MLPluginProcessor::readSignal(const MLSymbol alias, MLSignal& outSig)
-{
-	unsigned samples = mEngine.readPublishedSignal(alias, outSig);
-	return samples;
-}
-
-/*
-#pragma mark patcher-specific TO REMOVE
-//
-
-MLProcList& MLPluginProcessor::getPatcherList()
-{
- 	return mEngine.getPatcherList();
-}
-*/
-
-
-#pragma mark state
-
-void MLPluginProcessor::getStateAsXML (XmlElement& xml)
-{
-	if( !(mEngine.getCompileStatus() == MLProc::OK)) return;
-	
-#if DEMO	
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);	
-    xml.setAttribute ("presetName", String("----"));	
-#else
-
-  	const unsigned numParams = getNumParameters();
-
-	// TODO use string properties of model instead of these JUCE strings.
-	// also move to JSON.
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
-	xml.setAttribute ("presetName", String(getStringProperty("preset").c_str()));
-	xml.setAttribute ("scaleName", String(getStringProperty("key_scale").c_str()));
-
-	// store parameter values to xml as a bunch of attributes.
-	// not XML best practice in general but takes fewer characters.
-	for(unsigned i=0; i<numParams; ++i)
-	{
-		const String paramName = symbolToXMLAttr(getParameterAlias(i));
-		const float defaultVal = getParameterDefault(i);
-		const float paramVal = getParameter(i);
-		if (paramVal != defaultVal)
-		{
-			xml.setAttribute(paramName, paramVal);		
-			//debug() << "setting XML param " << paramName << " to " << paramVal << "\n";
-		}
-	}
-
-	/*
-	// store patcher info to xml
-	{			
-		MLProcList patchers = getPatcherList();
-		if (!patchers.empty())
-		{
-			MLProcPatcher& firstPatcher = static_cast<MLProcPatcher&>(**patchers.begin());
-			const int inputs = firstPatcher.getParam("inputs");
-			const int outputs = firstPatcher.getParam("outputs");
-			String outStr;
-			String patcherInput = "patcher_input_";
-			
-			for(unsigned i=1; i<=inputs; ++i)
-			{
-				bool differentFromDefault = false;
-				outStr = "";
-				for(unsigned j=1; j<=outputs; ++j)
-				{
-					if (firstPatcher.getConnection(i, j))
-					{
-						outStr += "1";
-						differentFromDefault = true;
-					}
-					else
-					{
-						outStr += "0";
-					}
-				}
-				if(differentFromDefault)
-				{
-					String outNum (i); 
-					xml.setAttribute(patcherInput + outNum, outStr);	
-				}				
-			}
-		}
-	}	
-	*/
-	
-	// store editor state to XML if one exists	
-	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
-	if(pEditor)
-	{
-		MLRect r = pEditor->getWindowBounds();
-		xml.setAttribute("editor_x", r.x());	
-		xml.setAttribute("editor_y", r.y());	
-		xml.setAttribute("editor_width", r.getWidth());	
-		xml.setAttribute("editor_height", r.getHeight());
-		xml.setAttribute("editor_num", getFloatProperty("patch_num"));	
-		xml.setAttribute("editor_anim", getFloatProperty("patch_anim"));	
-	}
-	
-	// save blob as most recently saved state
-	mpLatestStateLoaded = XmlElementPtr(new XmlElement(xml));
-	
-#endif
-
-}
+#pragma mark get and save state
 
 // auto-increment a version number and save at the current preset location with the new pathname.
 int MLPluginProcessor::saveStateAsVersion()
@@ -894,7 +836,6 @@ int MLPluginProcessor::saveStateAsVersion()
     std::string newName = noVersionStr + vBuf;
     saveStateToRelativePath(newName);
     r = 0;
-
 	return r;
 }
 
@@ -902,6 +843,158 @@ int MLPluginProcessor::saveStateOverPrevious()
 {
     saveStateToRelativePath(getStringProperty("preset"));
 	return 0;
+}
+
+// save with full path name as input -- needed for using system File dialogs
+//
+int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
+{
+    int r = 0;
+    std::string newPath = mPresetFiles->getRelativePath(fullPath);
+    if(newPath != "")
+    {
+        saveStateToRelativePath(newPath);
+    }
+    else
+    {
+        r = 1;
+    }
+    return r;
+}
+
+// creates a file with the right extension for the plugin type.
+// as of Aalto 1.6 / Kaivo this is always .mlpreset.
+// input: a file path relative to the presets root, without extension.
+//
+void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
+{
+#if DEMO
+	debug() << "DEMO version. Saving is disabled.\n";
+#else
+    
+    // the Model param contains the file path relative to the root.
+    std::string shortPath = stripExtension(path);
+    setProperty("preset", shortPath);
+	
+    std::string extension (".mlpreset");
+    std::string extPath = shortPath + extension;
+    const MLFilePtr f = mPresetFiles->createFile(extPath);
+    if(!f->getJuceFile().exists())
+    {
+        f->getJuceFile().create();
+    }
+	
+    f->getJuceFile().replaceWithText(getStateAsText());
+	
+#endif // DEMO
+    
+}
+
+String MLPluginProcessor::getStateAsText()
+{
+	// OLD: XML
+	/*
+	 // create an outer XML element.
+	 ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
+	 getStateAsXML(*xmlProgram);
+	 
+	 return xmlProgram->createDocument (String::empty, true, false);
+	 */
+	
+	// NEW: JSON
+	String r;
+	if(mpState)
+	{
+		r = mpState->getStateAsText();
+	}
+	return r;
+}
+	
+#if(1)
+void MLPluginProcessor::getStateAsXML (XmlElement& xml)
+{
+	if( !(mEngine.getCompileStatus() == MLProc::OK)) return;
+	
+#if DEMO
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
+    xml.setAttribute ("presetName", String("----"));
+#else
+	
+  	const unsigned numParams = getNumParameters();
+	
+	// TODO use string properties of model instead of these JUCE strings.
+	// also move to JSON.
+	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
+	xml.setAttribute ("presetName", String(getStringProperty("preset").c_str()));
+	xml.setAttribute ("scaleName", String(getStringProperty("key_scale").c_str()));
+	
+	// store parameter values to xml as a bunch of attributes.
+	// not XML best practice in general but takes fewer characters.
+	for(unsigned i=0; i<numParams; ++i)
+	{
+		const String paramName = symbolToXMLAttr(getParameterAlias(i));
+		const float defaultVal = getParameterDefaultValue(i);
+		const float paramVal = getParameter(i);
+		if (paramVal != defaultVal)
+		{
+			xml.setAttribute(paramName, paramVal);
+			//debug() << "setting XML param " << paramName << " to " << paramVal << "\n";
+		}
+	}
+	
+	// store editor state to XML if one exists
+	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
+	if(pEditor)
+	{
+		MLRect r = pEditor->getWindowBounds();
+		xml.setAttribute("editor_x", r.x());
+		xml.setAttribute("editor_y", r.y());
+		xml.setAttribute("editor_width", r.getWidth());
+		xml.setAttribute("editor_height", r.getHeight());
+		xml.setAttribute("editor_num", getFloatProperty("patch_num"));
+		xml.setAttribute("editor_anim", getFloatProperty("patch_anim"));
+	}
+	
+	// save blob as most recently saved state
+	mpLatestStateLoaded = XmlElementPtr(new XmlElement(xml));
+	
+#endif
+	
+}
+
+#endif
+
+#pragma mark load state from file
+
+void MLPluginProcessor::setStateFromPath(const std::string& path)
+{
+    if(path != std::string())
+    {
+        const MLFilePtr f = mPresetFiles->getFileByName(path);
+        if(f != MLFilePtr())
+        {
+            setStateFromFile(f->getJuceFile());
+            std::string shortPath = stripExtension(path);
+            setProperty("preset", shortPath);
+        }
+    }
+}
+
+void MLPluginProcessor::setStateFromFile(const File& f)
+{
+	if (f.exists())
+	{
+		String extension = f.getFileExtension();
+		if (extension == ".mlpreset")
+		{
+			setStateFromText(f.loadFileAsString());
+		}
+		else if (extension == ".aupreset")
+		{
+			// tell AU wrapper to load AU-compatible .aupreset file.
+			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
+		}
+	}
 }
 
 void MLPluginProcessor::returnToLatestStateLoaded()
@@ -917,17 +1010,90 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 	}
 }
 
+#pragma mark set state (JSON, or XML for backwards compatibility)
+
+// set state, including the view status, from a binary blob stored in host.
+//
+void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
+{
+	debug() << "setStateFromBlob: " << sizeInBytes << "bytes of state data.\n";
+	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
+	if (xmlState)
+	{
+        debug() << "setStateFromBlob: setting XML state\n";
+		
+		bool setViewAttributes = true;
+		setStateFromXML(*xmlState, setViewAttributes);
+		mpLatestStateLoaded = xmlState;
+	}
+	else
+	{
+        debug() << "setStateFromBlob: setting JSON state\n";
+		mpState->setStateFromBinary(MemoryBlock(data, sizeInBytes));
+	}
+}
+
+void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
+{
+	setStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
+}
+
+void MLPluginProcessor::setStateFromText (const String& stateStr)
+{
+	const String& trimmedState = stateStr.trimStart();
+	if(trimmedState[0] == '{')
+	{
+		// assume JSON
+		cJSON* root = cJSON_Parse(trimmedState.toUTF8());
+		if(root)
+		{
+			mpState->setStateFromJSON(root);
+			cJSON_Delete(root);
+			
+			// TODO make memo to return to
+			
+		}
+		else
+		{
+			debug() << "MLPluginProcessor::setStateFromText: couldn't create JSON object!\n";
+		}
+	}
+	else if (trimmedState[0] == '<')
+	{
+		// assume XML
+		ScopedPointer<XmlDocument> stateToLoad (new XmlDocument(trimmedState));
+		if (stateToLoad != NULL)
+		{
+			XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
+			setStateFromXML(*pDocElem, false);
+			
+			// TODO store in appState:
+			// MLAppState:
+			mpLatestStateLoaded = pDocElem;
+		}
+		else
+		{
+			debug() << "MLPluginProcessor::setStateFromText: couldn't create XML object!\n";
+		}
+	}
+	else
+	{
+		debug() << "MLPluginProcessor::setStateFromText: unknown format for .mlpreset file!\n";
+	}
+	updateAllProperties();
+}
+
 void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
 {
 	if (!(xmlState.hasTagName (JucePlugin_Name))) return;
 	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // TODO revisit need to compile first
-
+	
 	// getCallbackLock() is in juce_AudioProcessor
-	// process lock is a quick fix.  it is here to prevent doParams() from getting called in 
+	// process lock is a quick fix.  it is here to prevent doParams() from getting called in
 	// process() methods and thereby setting mParamsChanged to false before the real changes take place.
 	// A better alternative would be a lock-free queue of parameter changes.
-	const ScopedLock sl (getCallbackLock()); 
-		
+	const ScopedLock sl (getCallbackLock());
+	
 	// only the differences between default parameters and the program state are saved in a program,
 	// so the first step is to set the default parameters.
 	setDefaultParameters();
@@ -945,7 +1111,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     
 	// try to load scale if a scale attribute exists
     // TODO auto save all state including this
- 	const String scaleDir = xmlState.getStringAttribute ("scaleDir"); // look for old-style dir attribute   
+ 	const String scaleDir = xmlState.getStringAttribute ("scaleDir"); // look for old-style dir attribute
 	const String scaleName = xmlState.getStringAttribute ("scaleName");
     String fullName;
     if(scaleName != String::empty)
@@ -992,9 +1158,9 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	
 	// get plugin-specific translation table for updating older versions of data
 	std::map<MLSymbol, MLSymbol> translationTable;
-
-	// TODO move this into Aalto! 
-	// make translation tables based on program version. 
+	
+	// TODO move this into Aalto!
+	// make translation tables based on program version.
 	//
 	if (blobVersion <= 0x00010120)
 	{
@@ -1010,10 +1176,10 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			MLSymbol oldSym2(pName2.str());
 			MLSymbol newSym2 = MLSymbol("seq_pulse#").withFinalNumber(n);
 			translationTable[oldSym] = newSym;
-			translationTable[oldSym2] = newSym2;	
+			translationTable[oldSym2] = newSym2;
 		}
 	}
-
+	
 	if (blobVersion <= 0x00010200)
 	{
 		MLSymbol oldSym = MLSymbol("seq_value");
@@ -1031,8 +1197,8 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			oldSym2 = MLSymbol("seq_pulse#").withFinalNumber(n);
 			newSym2 = MLSymbol("seq_pulse").withFinalNumber(n);
 			translationTable[oldSym] = newSym;
-			translationTable[oldSym2] = newSym2;	
-		}		
+			translationTable[oldSym2] = newSym2;
+		}
 	}
 	
 	// get patcher matrix from old-style input params
@@ -1049,8 +1215,8 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 		
 		// if not a patcher input setting,
 		if (!attrName.contains(patcherInputStr))
-		{					
-			// see if we have this named parameter in our engine. 
+		{
+			// see if we have this named parameter in our engine.
 			MLSymbol paramSym = XMLAttrToSymbol(attrName);
 			const int pIdx = getParameterIndex(paramSym);
 			
@@ -1059,7 +1225,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 				// debug() << "setStateFromXML: <" << paramSym << " = " << paramVal << ">\n";
 				setProperty(paramSym, paramVal);
 			}
-			else // try finding a match through translation table. 
+			else // try finding a match through translation table.
 			{
 				//debug() << "Looking for parameter " << paramSym << " in table...\n";
 				std::map<MLSymbol, MLSymbol>::iterator it;
@@ -1080,8 +1246,8 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 				}
 				else
 				{
-					// fail silently on unfound params, because we have deprecated some but they may still 
-					// be around in old presets. 
+					// fail silently on unfound params, because we have deprecated some but they may still
+					// be around in old presets.
 					//debug() << "MLPluginProcessor::setStateFromXML: parameter " << paramSym << " not found!\n";
 				}
 			}
@@ -1101,159 +1267,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	}
 }
 
-String MLPluginProcessor::getStateAsText ()
-{
-    // create an outer XML element.
-	ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
-	getStateAsXML(*xmlProgram);
-	
-	return xmlProgram->createDocument (String::empty, true, false);
-}
-
-void MLPluginProcessor::setStateFromText (const String& stateStr)
-{
-	XmlDocument doc(stateStr);
-	XmlElementPtr xmlState (doc.getDocumentElement());
-	if (xmlState)
-	{
-        bool setViewAttributes = false;
-		setStateFromXML(*xmlState, setViewAttributes);
-		mpLatestStateLoaded = xmlState;
-	}
-}
-
-void MLPluginProcessor::getStateInformation (MemoryBlock& destData)
-{
-    // create an outer XML element.
-    ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
-	getStateAsXML(*xmlProgram);
-    copyXmlToBinary (*xmlProgram, destData);
-}
-
-void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
-{
-	// if uninitialized, save blob for later.
-	if (mEngine.getCompileStatus() != MLProc::OK)
-	{
-		mSavedParamBlob.setSize(0);
-		mSavedParamBlob.append(data, sizeInBytes);
-	}
-	else
-	{
-		setStateFromBlob (data, sizeInBytes);
-	}
-}
-
-// save with full path name as input -- needed for using system File dialogs
-//
-int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
-{
-    int r = 0;
-    std::string newPath = mPresetFiles->getRelativePath(fullPath);
-    if(newPath != "")
-    {
-        saveStateToRelativePath(newPath);
-    }
-    else
-    {
-        r = 1;
-    }
-    return r;
-}
-
-// creates a file with the right extension for the plugin type.
-// as of Aalto 1.6 / Kaivo this is always .mlpreset.
-// input: a file path relative to the presets root, without extension.
-//
-void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
-{
-#if DEMO
-	debug() << "DEMO version. Saving is disabled.\n";
-#else
-    
-    // the Model param contains the file path relative to the root.
-    std::string shortPath = stripExtension(path);
-    setProperty("preset", shortPath);
-
-    std::string extension (".mlpreset");
-    std::string extPath = shortPath + extension;
-    const MLFilePtr f = mPresetFiles->createFile(extPath);
-    if(!f->getJuceFile().exists())
-    {
-        f->getJuceFile().create();
-    }
-
-    f->getJuceFile().replaceWithText(getStateAsText());
-#endif // DEMO
-    
-}
-
-void MLPluginProcessor::loadStateFromPath(const std::string& path)
-{    
-    if(path != std::string())
-    {
-        const MLFilePtr f = mPresetFiles->getFileByName(path);
-        if(f != MLFilePtr())
-        {
-            loadStateFromFile(f->getJuceFile());
-            std::string shortPath = stripExtension(path);
-            setProperty("preset", shortPath);
-        }
-    }
-}
-
-void MLPluginProcessor::loadStateFromFile(const File& f)
-{
-	if (f.exists())
-	{
-		String extension = f.getFileExtension();
-		if (extension == ".mlpreset")
-		{
-			// MLTEST need to determine blob type, XML or JSON
-	
-			
-			// load cross-platform mlpreset file.
-			ScopedPointer<XmlDocument> stateToLoad (new XmlDocument(f));
-			if (stateToLoad != NULL)
-			{
-				XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
-				setStateFromXML(*pDocElem, false);
-				mpLatestStateLoaded = pDocElem;
-			}
-		}        
-		else if (extension == ".aupreset")
-		{
-			// tell AU wrapper to load AU-compatible .aupreset file.
-			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
-		}
-	}	
-}
-
-// set state, including the view status, from a binary blob stored in host.
-//
-void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
-{
-	
-	// MLTEST need to determine blob type, XML or JSON
-	
-	
-	
-	debug() << "setStateFromBlob: " << sizeInBytes << "bytes of XML data.\n";
-	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
-	if (xmlState)
-	{
-        bool setViewAttributes = true;
-		setStateFromXML(*xmlState, setViewAttributes);
-		mpLatestStateLoaded = xmlState;
-	}
-}
-
 #pragma mark MIDI programs
-
-void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
-{
-	loadStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
-}
 
 void MLPluginProcessor::createFileCollections()
 {
@@ -1313,7 +1327,7 @@ void MLPluginProcessor::advancePreset(int amount)
         currIdx = 0;
     }
     std::string relPath = mPresetFiles->getFileNameByIndex(currIdx);
-    loadStateFromPath(relPath);
+    setStateFromPath(relPath);
 }
 
 // set default value for each scalar parameter.  needed before loading
@@ -1331,7 +1345,7 @@ void MLPluginProcessor::setDefaultParameters()
 			MLSymbol paramType = paramPtr->getType();
 			if(paramType == "float")
 			{
-				float defaultVal = getParameterDefault(i);
+				float defaultVal = getParameterDefaultValue(i);
 				setPropertyImmediate(getParameterAlias(i), defaultVal);
 			}
 			else if (paramType == "string")

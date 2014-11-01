@@ -108,7 +108,7 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 	else if(action == "change_property")
 	{
-		mpProcessor->setPropertyImmediateExcludingListener(targetProperty, val, this);
+		mpProcessor->setPropertyImmediateExcludingListener(targetProperty, val, pw);
 	}
 	else if (action == "end_gesture")
 	{
@@ -273,7 +273,8 @@ void MLPluginController::doPresetMenu(int result)
             if (menu)
             {
                 const std::string& fullName = menu->getItemFullName(result);                
-                getProcessor()->loadStateFromPath(fullName);
+                getProcessor()->setStateFromPath(fullName);
+				// TODO do filename stripping here instead of in button?
             }
             break;
 	}
@@ -329,7 +330,7 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 				MLWidget* pInstigator = pView->getWidget(pMenu->getInstigator());
 				if(pInstigator != nullptr)
 				{
-					// turn instigator Widget off
+					// turn instigator Widget off (typically, release button)
 					pInstigator->setPropertyImmediate("value", 0);
 				}
 			}
@@ -470,13 +471,13 @@ void MLPluginController::processFileFromCollection (const MLFile& file, const ML
         File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
         if(!destFile.exists()  )
         {
-            mpProcessor->loadStateFromFile(file.getJuceFile());
+            mpProcessor->setStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         
         if(file.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
         {
-            mpProcessor->loadStateFromFile(file.getJuceFile());
+            mpProcessor->setStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         

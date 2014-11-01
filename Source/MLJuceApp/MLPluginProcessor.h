@@ -14,6 +14,7 @@
 #include "MLFileCollection.h"
 #include "MLControlEvent.h"
 #include "MLProperty.h" 
+#include "MLAppState.h"
 
 #include <vector>
 #include <map>
@@ -35,14 +36,42 @@ public:
     
 	MLPluginProcessor();
     ~MLPluginProcessor();
-	
-	// MLModel
+
+	// MLModel implementation
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-    
-	bool hasEditor() const { return true; }
+	
+	// juce::AudioProcessor implementation
+	const String getName() const { return MLProjectInfo::projectName; }
+    void prepareToPlay (double sampleRate, int samplesPerBlock);
+    void releaseResources();
+    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
+    const String getInputChannelName (const int channelIndex) const;
+    const String getOutputChannelName (const int channelIndex) const;
+    bool isInputChannelStereoPair (int index) const;
+    bool isOutputChannelStereoPair (int index) const;
+	double getTailLengthSeconds() const;
+	bool acceptsMidi() const;
+    bool producesMidi() const;
+	void reset();
 	AudioProcessorEditor* createEditor();
+	bool hasEditor() const { return true; }
+	int getNumParameters();
+    const String getParameterName (int index);
+	float getParameter (int index);
+    const String getParameterText (int index);
+	float getParameterDefaultValue (int index);
+    void setParameter (int index, float newValue);
+	//  TODO bool isParameterAutomatable (int parameterIndex) const;
+	// factory presets - a VST concept - unimplemented
+    int getNumPrograms() { return 0; }
+    int getCurrentProgram() { return 0; }
+    void setCurrentProgram (int) { }
+    const String getProgramName (int) { return String::empty; }
+    void changeProgramName (int, const String&) { }
+	void getStateInformation (juce::MemoryBlock& destData);
+    void setStateInformation (const void* data, int sizeInBytes);
+    
     void editorResized(int w, int h);
-    const String getName() const { return MLProjectInfo::projectName; }
     
 	// plugin description and default preset
 	void loadPluginDescription(const char* desc);
@@ -54,10 +83,7 @@ public:
 	// preflight and cleanup
 	MLProc::err preflight(int requirements = kRequiresSSE2);
 	virtual bool wantsMIDI() {return true;}
-    void prepareToPlay (double sampleRate, int samplesPerBlock);
-    void releaseResources();
 	void setDefaultParameters();
-	void reset();
 
     // MLFileCollection::Listener
 	void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size);
@@ -70,26 +96,17 @@ public:
 	bool isOKToProcess();
     void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
 	void setCollectStats(bool k);
-    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
 
-	// DSP parameters
-    int getNumParameters();
+	// parameters
 	int getParameterIndex (const MLSymbol name);
-	float getParameter (int index);
-    void setParameter (int index, float newValue);
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
-	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
-	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
-
-    const String getParameterName (int index);
+	
 	const String symbolToXMLAttr(const MLSymbol sym);
 	const MLSymbol XMLAttrToSymbol(const String& str);
 	
     const MLSymbol getParameterAlias (int index);
-    const MLParamValue getParameterDefault (int index);
-    const String getParameterText (int index);
-	float getParameterMin (int index);
+    float getParameterMin (int index);
 	float getParameterMax (int index);
 	
 	MLPublishedParamPtr getParameterPtr (int index);
@@ -98,13 +115,10 @@ public:
 
 	// signals
 	int countSignals(const MLSymbol alias);
-	unsigned readSignal(const MLSymbol alias, MLSignal& outSig);
-	
-	// MLProcList& getPatcherList(); // TODO remove
 
 	// state
+	// REMOVING
 	virtual void getStateAsXML (XmlElement& xml);
-	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
 	int saveStateAsVersion();
     
 	int saveStateOverPrevious();
@@ -113,35 +127,14 @@ public:
 	String getStateAsText ();
 	void setStateFromText (const String& stateStr);
 
-	void getStateInformation (juce::MemoryBlock& destData);
-    void setStateInformation (const void* data, int sizeInBytes);
-
     int saveStateToFullPath(const std::string& path);
     void saveStateToRelativePath(const std::string& path);
     
-    void loadStateFromPath(const std::string& path);
-	void loadStateFromFile(const File& loadFile);
-
+    void setStateFromPath(const std::string& path);
 	void setStateFromMIDIProgram (const int pgmIdx);
+	void setStateFromFile(const File& loadFile);
+	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
  
-	// channels
-	
-    const String getInputChannelName (const int channelIndex) const;
-    const String getOutputChannelName (const int channelIndex) const;
-    bool isInputChannelStereoPair (int index) const;
-    bool isOutputChannelStereoPair (int index) const;
-	double getTailLengthSeconds() const;
-	bool acceptsMidi() const;
-    bool producesMidi() const;
-	
-	// factory presets - a VST concept - unimplemented
-
-    int getNumPrograms() { return 0; }
-    int getCurrentProgram() { return 0; }
-    void setCurrentProgram (int) { }
-    const String getProgramName (int) { return String::empty; }
-    void changeProgramName (int, const String&) { }
-
 	// files
 	void createFileCollections();
 	void scanAllFilesImmediate();
@@ -157,14 +150,11 @@ public:
     MLProc::err sendMessageToMLListener (unsigned msg, const File& f);
 
 	// scales
-	
 	void loadScale(const File& f);
 	void loadDefaultScale();
 	virtual void broadcastScale(const MLScale* pScale) = 0;
 	
 	// engine stuff
-
-    MLProcPtr getProcFromEngine();
 	MLDSPEngine* getEngine() { return &mEngine; }
 	inline void showEngine() { mEngine.dump(); }
 	
@@ -172,6 +162,10 @@ protected:
 	// set what kind of event input we are listening to (MIDI or OSC)
 	void setInputProtocol(int p);
 
+	// set the parameter of the Engine but not the Model property.
+	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
+	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
+	
 	// Engine creates graphs of Processors, does the work
 	MLDSPEngine	mEngine;	
 	
@@ -230,6 +224,10 @@ private:
     
     // vector of control events to send to engine along with each block of audio.
     MLControlEventVector mControlEvents;
+
+	int mTemp;
+	
+	MLAppState* mpState;
 
 };
 

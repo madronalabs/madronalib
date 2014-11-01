@@ -323,7 +323,7 @@ void MLAppView::setPeerBounds(int x, int y, int w, int h)
 	Rectangle<int> c = r.getIntersection(b);	
 	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
 	{
-        // debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
+        debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
 		p->setBounds(Rectangle<int>(x, y, w, h), false);
 	}
 	else

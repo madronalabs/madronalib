@@ -11,6 +11,13 @@
 #include "MLWidget.h"
 #include "MLAppView.h"
 #include "cJSON.h"
+#include "lzfx.h"
+
+#ifdef _WIN32
+#include <memory>
+#else
+#include <tr1/memory>
+#endif
 
 extern const char* kMLStateDirName;
 
@@ -19,39 +26,39 @@ class MLAppState :
 	public Timer
 {
 public:
-	MLAppState(MLModel* , MLAppView* , const char* , const char* , int );
+	MLAppState(MLModel*, const char* , const char* , int );
     ~MLAppState();
+	
+	// MLPropertyListener interface
+	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
 	void timerCallback();
 	
-	// save the application state to a global preferences location so it persists on relaunch.
-	// TODO move the JSON stuff into propertySet::getStateAsJSON() or similar
-    void saveState();
+	// get and save state
+	// TODO JUCE-free
+	MemoryBlock getStateAsBinary();
+	String getStateAsText();
+	void getStateAsJSON(cJSON* pNode);
+	void saveStateToStateFile();
 
-	void loadStateFromJSON(cJSON* pNode, int depth = 0);
+	// load and set state
+	bool loadStateFromAppStateFile();
+	void setStateFromBinary(const MemoryBlock& newState);
+	bool setStateFromText(String stateStr);
+	void setStateFromJSON(cJSON* pNode, int depth = 0);
 
-	// load the application stats from the global preferences.
-	bool loadSavedState();
-	// load a state to use if there are no saved preferences. 
+	// load a state to use if there are no saved preferences.
 	void loadDefaultState();
 
-	//const std::string& getStateAsText();
-	void setStateFromText(const std::string& stateAsText);
-
-	// MLPropertyListener interface
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-
 protected:
-	MLAppView* mpAppView;
 	const char* mpMakerName;
 	const char* mpAppName;
-	int mVersion;
+	int mAppVersion;
 	
 private:
 	MLModel* mpModel;
-	File getStateDir() const;
-	File getStateFile() const;
-	
+	File getAppStateDir() const;
+	File getAppStateFile() const;
 };
 
 #endif // __ML_APP_STATE_H

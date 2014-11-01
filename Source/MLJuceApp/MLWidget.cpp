@@ -75,8 +75,6 @@ int MLWidget::getBackingLayerHeight() const
     return getComponent()->getHeight() * getRenderingScale();
 }
 
-
-
 void MLWidget::setGridBounds(const MLRect& p)
 {
 	mGridBounds = p;

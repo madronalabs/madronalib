@@ -5,9 +5,6 @@
 
 #include "MLPageView.h"
 
-
-#pragma mark page view
-
 MLPageView::MLPageView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	MLAppView(pResp, pRep),
     mpParent(0),
@@ -212,5 +209,4 @@ void MLPageView::changeListenerCallback (ChangeBroadcaster* pSender)
 		}
 	}
 }
-
 
