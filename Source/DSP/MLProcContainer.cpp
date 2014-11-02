@@ -112,7 +112,7 @@ void MLProcContainer::compile()
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
-	// in other words we just copy mProcList to mOpsList.
+	// in other words we just copy mProcList to mOpsVec.
 	//
 	// This means that when writing DSP graphs in XML, you must specify the
 	// procs in the order that they are to be run.
@@ -121,7 +121,7 @@ void MLProcContainer::compile()
 	for (std::list<MLProcPtr>::iterator it = mProcList.begin(); it != mProcList.end(); ++it)
 	{
 		MLProcPtr p = (*it);		
-		mOpsList.push_back(p);
+		mOpsVec.push_back(p.get());
 	}
 
 	// ----------------------------------------------------------------
@@ -137,9 +137,9 @@ void MLProcContainer::compile()
 	// make compileOps from ops list.
 	// reads ops list, writes compile ops list, compile ops map. 
 	// for each proc in ops list, 
-	for (std::list<MLProcPtr>::iterator it = mOpsList.begin(); it != mOpsList.end(); ++it)
+	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it)
 	{
-		MLProcPtr pRef = *it;
+		MLProc* pRef = *it;
         
         // we get each proc name with the copy index attached because in multicontainers we can have
         // multiple procs with the same name.
@@ -298,8 +298,8 @@ void MLProcContainer::compile()
             pOp->outputs[outputIdx - 1] = sigName;		
 
             // set lifespan of output signal, from op's position to end.
-            signals[sigName].addLifespan(pOp->listIdx, mOpsList.size() - 1);
-            // debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsList.size() - 1 << "]\n";
+            signals[sigName].addLifespan(pOp->listIdx, mOpsVec.size() - 1);
+            // debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsVec.size() - 1 << "]\n";
             
             // add published output to list
             signals[sigName].mPublishedOutput = i + 1;
@@ -311,9 +311,9 @@ void MLProcContainer::compile()
 	// recurse
 
 	// depth first recurse into container subprocs
-	for (std::list<MLProcPtr>::iterator i = mOpsList.begin(); i != mOpsList.end(); ++i)
+	for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
 	{
-		MLProcPtr p = (*i);
+		MLProc* p = (*i);
 		if (p->isContainer())
 		{
 			MLProcContainer& pc = static_cast<MLProcContainer&>(*p);
@@ -530,7 +530,7 @@ void MLProcContainer::compile()
 		else
 		{
 	//		setEnabled(true); // WAT
-			debug() << "compile done: " << mOpsList.size() << " subprocs.\n";
+			debug() << "compile done: " << mOpsVec.size() << " subprocs.\n";
 		}
 		
 		// dump buffers
@@ -632,7 +632,6 @@ void packUsingFirstFitAlgorithm(compileSignal* pSig, std::list<sharedBuffer>& bu
 MLProc::err MLProcContainer::prepareToProcess()
 {
 	MLProc::err e = MLProc::OK;
-	MLProcPtr p;	
 	
 	int containerSize = getContextVectorSize();
 	MLSampleRate containerRate = getContextSampleRate();
@@ -655,9 +654,9 @@ MLProc::err MLProcContainer::prepareToProcess()
 		setSampleRate(myRate);
 
 		// prepare all subprocs
-		for (std::list<MLProcPtr>::iterator i = mOpsList.begin(); i != mOpsList.end(); ++i)
+		for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
 		{
-			p = (*i);
+			MLProc* p = (*i);
 			e = p->prepareToProcess();
 			if(e != MLProc::OK)	break;
 		}
@@ -709,7 +708,7 @@ void MLProcContainer::clear()
 		(*i)->clearProc();
 	}
 	// iterate through ops list, clearing Processors.
-	for (std::list<MLProcPtr>::iterator i = mOpsList.begin(); i != mOpsList.end(); ++i)
+	for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
 	{
 		(*i)->clearProc();
 	}
@@ -724,15 +723,15 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 	// if nonzero, get info
 	if (mStatsPtr)
 	{
-		int ops = mOpsList.size();
+		int ops = mOpsVec.size();
 		pStats->mProcs += ops;
 //		debug() << getName() << ": added " << ops << " ops \n";
 	}
 
 	// recurse, setting pointer to stats block in DSPEngine
-	for (std::list<MLProcPtr>::iterator it = mOpsList.begin(); it != mOpsList.end(); ++it)
+	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it)
 	{
-		MLProcPtr p = *it;
+		MLProc* p = *it;
 		if(p->isContainer())
 		{	
 			MLProcContainer& pc = static_cast<MLProcContainer&>(*p);
@@ -766,10 +765,11 @@ void MLProcContainer::process(const int extFrames)
 		}
 	}
 	
-	// process ops list, recursing into containers.
-	for (std::list<MLProcPtr>::const_iterator it = mOpsList.begin(); it != mOpsList.end(); ++it)
+	// process ops vector, recursing into containers.
+	int numOps = mOpsVec.size();
+	for(int i = 0; i < numOps; ++i)
 	{
-		MLProc* p = (*it).get();
+		MLProc* p = mOpsVec[i];
 		
 		// set output buffers to not constant.  
 		// with this extra step here every proc can safely assume this condition. 
@@ -781,69 +781,6 @@ void MLProcContainer::process(const int extFrames)
 
 		// process all procs!
 		p->process(intFrames);
-
-#if VALIDATE_SIGNALS
-		// check signal integrity.
-		for(int i=0; i<outs; ++i)
-		{
-			if (!p->getOutput(i + 1).checkIntegrity())
-			{
-				debug() << getName() << ": " << "corrupt signal " << p->getName() << " output " << i << " (" << p->getOutputName(i + 1) << ")\n";
-			}
-            if (p->getOutput(i + 1).checkForNaN())
-            {
-                if(p->getName() != MLSymbol("signal_viewer_proc")) // temp hack, signal viewers output weird pakced char format
-                {
-                    debug() << "MLProcContainer " << getName() << ": NaN output " << i + 1 << " of proc " << p->getName() << "!\n" ;
-                }
-            }
-		}
-#endif
-
-		/*
-		// TEST make everything constant
-		for(int i=0; i<outs; ++i)
-		{
-			MLSignal& out = (*it)->getOutput(i + 1);
-			out.setToConstant(out[0]);
-		}			
-		*/
-		
-		/*
-		// TEST make nothing constant
-		for(int i=0; i<outs; ++i)
-		{
-			MLSignal& out = (*it)->getOutput(i + 1);
-			out.setConstant(false);
-		}
-		*/
-		
-		// collect stats. 
-		if (mStatsPtr)
-		{
-			for(int i=0; i<outs; ++i)
-			{
-				mStatsPtr->mSignals++;
-				MLSignal& outSig = p->getOutput(i + 1);
-				if (outSig.isConstant())
-				{
-					mStatsPtr->mConstantSignals++;
-				}
-
-				volatile MLSample f = outSig[0];
-				if (MLisNaN(f))					
-				{
-					debug() << getName() << ": " << "NaN in " << (*it)->getName() << " output " << i << " (" << (*it)->getOutputName(i + 1) << ")\n";
-					mStatsPtr->mNanSignals++;
-					break;
-				}
-			}
-		}
-	}
-	
-	if (mStatsPtr)
-	{
-		mStatsPtr->mSignalBuffers += mBufferPool.size();
 	}
 	
 	if (resample)
@@ -2142,8 +2079,6 @@ int MLProcContainer::countPublishedParamsInDoc(juce::XmlElement* parent)
 
 void MLProcContainer::dumpGraph(int indent)
 {
-	MLProcPtr p;	
-	
 	const MLRatio myRatio = getResampleRatio();
 	if (!myRatio.isUnity()) 
 	{
@@ -2161,12 +2096,12 @@ void MLProcContainer::dumpGraph(int indent)
 	// dump children
 	debug() << spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
 	debug() << spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
-	debug() << spaceStr(indent) << "ops list: " << mOpsList.size() << " elements: \n";	
+	debug() << spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
 
 	int ops = 0;
-	for (std::list<MLProcPtr>::iterator it = mOpsList.begin(); it != mOpsList.end(); ++it, ++ops)
+	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it, ++ops)
 	{		
-		p = (*it);
+		MLProc* p = (*it);
 		debug() << spaceStr(indent) << ops << ":\n";
 		if (p->isContainer())
 		{

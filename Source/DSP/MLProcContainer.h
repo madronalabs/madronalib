@@ -357,8 +357,9 @@ protected:
 	// by index
 	std::vector<MLPublishedOutputPtr> mPublishedOutputs;
 
-	// list of processors in order of processing operations. 
-	std::list<MLProcPtr> mOpsList;
+	// vector of processors in order of processing operations.
+	// This is what gets iterated on during process().
+	std::vector<MLProc*> mOpsVec;
 		
 	// map to processors by name.   
 	MLSymbolProcMapT mProcMap;
@@ -438,12 +439,12 @@ public:
 class compileOp
 {
 public:
-	compileOp(MLProcPtr p) :
+	compileOp(MLProc* p) :
 		procRef(p) {};
 	~compileOp(){};
 
 	int listIdx;
-	MLProcPtr procRef;
+	MLProc* procRef;
 	std::vector<MLSymbol> inputs;
 	std::vector<MLSymbol> outputs;
 };
