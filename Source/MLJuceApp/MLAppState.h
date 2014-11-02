@@ -36,14 +36,14 @@ public:
 	
 	// get and save state
 	// TODO JUCE-free
-	MemoryBlock getStateAsBinary();
+	juce::MemoryBlock getStateAsBinary();
 	String getStateAsText();
 	void getStateAsJSON(cJSON* pNode);
 	void saveStateToStateFile();
 
 	// load and set state
 	bool loadStateFromAppStateFile();
-	void setStateFromBinary(const MemoryBlock& newState);
+	void setStateFromBinary(const juce::MemoryBlock& newState);
 	bool setStateFromText(String stateStr);
 	void setStateFromJSON(cJSON* pNode, int depth = 0);
 

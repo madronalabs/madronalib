@@ -75,7 +75,6 @@ void MLProcGlide::clear()
 	mActive= false;
 }
 
-
 void MLProcGlide::process(const int samples)
 {	
 	const MLSignal& x = getInput(1);
@@ -109,8 +108,7 @@ void MLProcGlide::process(const int samples)
 			}
 		}
 		
-		y[n] = mY1;		
-		
+		y[n] = mY1;
 	}
 }
 

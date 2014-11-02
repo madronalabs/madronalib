@@ -8,7 +8,6 @@
 
 #include "MLSymbol.h"
 
-
 // each MLProc-derived class creates static instances of MLSymbolMap so that 
 // its parameters, inputs and outputs can be found by name.  An MLSymbolMap is just
 // a wrapper around std::map for now.
