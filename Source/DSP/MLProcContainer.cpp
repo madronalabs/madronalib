@@ -771,14 +771,14 @@ void MLProcContainer::process(const int extFrames)
 	{
 		MLProc* p = mOpsVec[i];
 		
-		// set output buffers to not constant.  
+		// set output buffers to not constant.
 		// with this extra step here every proc can safely assume this condition. 
 		int outs = p->getNumOutputs();
 		for(int i=0; i<outs; ++i)
 		{
 			p->getOutput(i + 1).setConstant(false);
 		}
-
+		
 		// process all procs!
 		p->process(intFrames);
 	}

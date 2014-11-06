@@ -10,7 +10,6 @@
 #include "MLAudioProcessorListener.h"
 #include "MLDefaultFileLocations.h"
 #include "MLModel.h"
-#include "MLPluginEditor.h"
 #include "MLFileCollection.h"
 #include "MLControlEvent.h"
 #include "MLProperty.h" 
@@ -20,6 +19,7 @@
 #include <map>
 
 const int kMLPatcherMaxTableSize = 64;
+const int kMLPluginMIDIPrograms = 127;
 
 class MLPluginProcessor : 
 	public AudioProcessor,
@@ -70,7 +70,6 @@ public:
     void changeProgramName (int, const String&) { }
 	void getStateInformation (juce::MemoryBlock& destData);
     void setStateInformation (const void* data, int sizeInBytes);
-    
     void editorResized(int w, int h);
     
 	// plugin description and default preset
@@ -117,22 +116,19 @@ public:
 	int countSignals(const MLSymbol alias);
 
 	// state
-	// REMOVING
-	virtual void getStateAsXML (XmlElement& xml);
 	int saveStateAsVersion();
-    
 	int saveStateOverPrevious();
 	void returnToLatestStateLoaded();
-	
-	String getStateAsText ();
-	void setStateFromText (const String& stateStr);
+
+	String getStateAsText();
+	void setStateFromText(const String& stateStr);
 
     int saveStateToFullPath(const std::string& path);
     void saveStateToRelativePath(const std::string& path);
     
-    void setStateFromPath(const std::string& path);
-	void setStateFromMIDIProgram (const int pgmIdx);
-	void setStateFromFile(const File& loadFile);
+    void loadStateFromPath(const std::string& path);
+	void loadStateFromMIDIProgram (const int pgmIdx);
+	void loadStateFromFile(const File& loadFile);
 	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
  
 	// files
@@ -170,7 +166,6 @@ protected:
 	MLDSPEngine	mEngine;	
 	
 	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
-	XmlElementPtr mpLatestStateLoaded;
 
 	// TODO shared_ptr
 	ScopedPointer<XmlDocument> mpPluginDoc;
@@ -192,7 +187,7 @@ private:
 	void setCurrentPresetDir(const char* name);
     
 	// set the plugin state from a memory blob containing parameter and patcher settings.
-	void setStateFromBlob (const void* data, int sizeInBytes);
+	void setStateFromBinary (const void* data, int sizeInBytes);
 
 	MLAudioProcessorListener* mMLListener;
     
@@ -206,7 +201,7 @@ private:
 	bool mHasParametersSet;
 
 	// temp storage for parameter data given to us before our DSP graph is made.
-	juce::MemoryBlock mSavedParamBlob;	
+	juce::MemoryBlock mSavedBinaryState;	
 	
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
@@ -224,8 +219,6 @@ private:
     
     // vector of control events to send to engine along with each block of audio.
     MLControlEventVector mControlEvents;
-
-	int mTemp;
 	
 	MLAppState* mpState;
 

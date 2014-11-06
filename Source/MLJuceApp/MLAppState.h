@@ -11,7 +11,6 @@
 #include "MLWidget.h"
 #include "MLAppView.h"
 #include "cJSON.h"
-#include "lzfx.h"
 
 #ifdef _WIN32
 #include <memory>
@@ -49,7 +48,13 @@ public:
 
 	// load a state to use if there are no saved preferences.
 	void loadDefaultState();
-
+	
+	// state stack
+	void clearStateStack();
+	void pushStateToStack();
+	void popStateFromStack();
+	void returnToFirstSavedState();
+	
 protected:
 	const char* mpMakerName;
 	const char* mpAppName;
@@ -59,6 +64,7 @@ private:
 	MLModel* mpModel;
 	File getAppStateDir() const;
 	File getAppStateFile() const;
+	std::vector<juce::MemoryBlock> mStateStack;
 };
 
 #endif // __ML_APP_STATE_H

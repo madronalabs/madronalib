@@ -42,36 +42,30 @@ MemoryBlock MLAppState::getStateAsBinary()
 {
 	MemoryBlock bIn;
 	String stateStr = getStateAsText();
-	bIn.replaceWith(stateStr.toUTF8(), stateStr.getNumBytesAsUTF8());
-	const void* inData = bIn.getData();
-	unsigned int bInSize = bIn.getSize();
-	MemoryBlock bOut(bInSize);
-	void* outData = bOut.getData();
-	unsigned int bOutSize = bInSize;
-	int compressResult = lzfx_compress(inData, bInSize, outData, &bOutSize);
-	if(compressResult < 0)
+	debug() << "STATE: \n" << stateStr << "\n";
+	
+	if(stateStr.length() > 0)
 	{
-		debug() << "MLAppState::getStateAsBinary: compression failed! \n";
+		int cLen = CharPointer_UTF8::getBytesRequiredFor (stateStr.toUTF8());
+		bIn.replaceWith(stateStr.toUTF8(), cLen);
+		// TODO compress here
 	}
-
-	bOut.setSize(bOutSize);
-	return bOut;
+	return bIn;
 }
 
 String MLAppState::getStateAsText()
 {
 	String r;
-	updateAllProperties();
 	cJSON* root = cJSON_CreateObject();
 	if(root)
 	{
 		getStateAsJSON(root);
+		r = cJSON_Print(root);
 	}
 	else
 	{
 		debug() << "MLAppState::getStateAsText: couldn't create JSON object!\n";
 	}
-	r = cJSON_PrintUnformatted(root);
 	return r;
 }
 
@@ -130,10 +124,7 @@ void MLAppState::saveStateToStateFile()
 
 void MLAppState::getStateAsJSON(cJSON* root)
 {
-	// add environment info
-	cJSON_AddStringToObject(root, "maker_name", mpMakerName);
-	cJSON_AddStringToObject(root, "app_name", mpAppName);
-	cJSON_AddNumberToObject(root, "app_version", mAppVersion);
+	updateAllProperties();
 
 	// get Model parameters
 	std::map<MLSymbol, PropertyState>::iterator it;
@@ -173,6 +164,11 @@ void MLAppState::getStateAsJSON(cJSON* root)
 				break;
 		}
 	}
+	
+	// replace environment info
+	cJSON_ReplaceItemInObject(root, "maker_name", cJSON_CreateString(mpMakerName));
+	cJSON_ReplaceItemInObject(root, "app_name", cJSON_CreateString(mpAppName));
+	cJSON_ReplaceItemInObject(root, "app_version", cJSON_CreateNumber(mAppVersion));
 }
 
 #pragma mark load and set state
@@ -181,28 +177,12 @@ void MLAppState::setStateFromBinary(const MemoryBlock& bIn)
 {
 	const void* inData = bIn.getData();
 	unsigned int inSize = bIn.getSize();
-	MemoryBlock bOut;
-	void* outData = bOut.getData();
-	unsigned int outSize = 0;
+	// TODO uncompress here
+	String stateStr = juce::String::fromUTF8(static_cast<const char *>(inData), inSize);
 
-	// preflight decompression, determine space needed
-	int compressResult = lzfx_decompress(inData, inSize, 0, &outSize);
-	if(compressResult >= 0)
-	{
-		// allocate space needed
-		bOut.setSize(outSize);
-		outData = bOut.getData();
-		compressResult = lzfx_decompress(inData, inSize, outData, &outSize);
-		if(compressResult >= 0)
-		{
-			String stateStr = juce::String::fromUTF8(static_cast<const char *>(outData), outSize);
-			setStateFromText(stateStr);
-		}
-	}
-	if(compressResult < 0)
-	{
-		debug() << "MLAppState::setStateFromBinary: decompression failed! \n";
-	}
+	debug() << "BINARY INPUT STATE: \n" << stateStr << "\n";
+
+	setStateFromText(stateStr);
 }
 
 bool MLAppState::loadStateFromAppStateFile()
@@ -367,5 +347,36 @@ File MLAppState::getAppStateFile() const
     return dir.getChildFile(applicationName + "AppState").withFileExtension (extension);
 }
 
+void MLAppState::clearStateStack()
+{
+	mStateStack.clear();
+}
+
+void MLAppState::pushStateToStack()
+{
+	mStateStack.push_back(getStateAsBinary());
+}
+
+void MLAppState::popStateFromStack()
+{
+	if(mStateStack.size() > 0)
+	{
+		MemoryBlock p = mStateStack.back();
+		mStateStack.pop_back();
+		setStateFromBinary(p);
+	}
+}
+
+void MLAppState::returnToFirstSavedState()
+{
+	MemoryBlock p;
+	if(mStateStack.size() > 0)
+	{
+		p = mStateStack[0];
+		mStateStack.clear();
+		mStateStack.push_back(p);
+		setStateFromBinary(p);
+	}
+}
 
 

@@ -10,7 +10,6 @@
 #include "MLReporter.h"
 #include "MLSignalReporter.h"
 #include "MLAppView.h"
-#include "MLPluginEditor.h"
 
 class MLPluginController : 
 	public MLWidget::Listener,

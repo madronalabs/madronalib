@@ -273,7 +273,7 @@ void MLPluginController::doPresetMenu(int result)
             if (menu)
             {
                 const std::string& fullName = menu->getItemFullName(result);                
-                getProcessor()->setStateFromPath(fullName);
+                getProcessor()->loadStateFromPath(fullName);
 				// TODO do filename stripping here instead of in button?
             }
             break;
@@ -471,13 +471,13 @@ void MLPluginController::processFileFromCollection (const MLFile& file, const ML
         File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
         if(!destFile.exists()  )
         {
-            mpProcessor->setStateFromFile(file.getJuceFile());
+            mpProcessor->loadStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         
         if(file.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
         {
-            mpProcessor->setStateFromFile(file.getJuceFile());
+            mpProcessor->loadStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         

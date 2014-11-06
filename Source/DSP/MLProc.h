@@ -436,7 +436,7 @@ public:
 	int getNumInputs();
 	int getNumRequiredInputs();
 	int getNumOutputs();	
-	int getNumRequiredOutputs();	
+	int getNumRequiredOutputs();
 	
 	virtual void resizeInputs(int n);
 	virtual void resizeOutputs(int n);

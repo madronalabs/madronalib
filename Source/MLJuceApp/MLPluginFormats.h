@@ -6,8 +6,6 @@
 #ifndef __ML_PLUGINFORMATS_H__
 #define __ML_PLUGINFORMATS_H__
 
-const int kMLPluginMIDIPrograms = 127;
-
 namespace MLPluginFormats
 {
 

@@ -15,8 +15,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	mInputProtocol(-1),
 	mT3DWaitTime(0),
 	mDataRate(-1),
-	mpState(nullptr),
-mTemp(0)
+	mpState(nullptr)
 {
 	debug() << "creating MLPluginProcessor.\n";
 	mHasParametersSet = false;
@@ -143,12 +142,12 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 
 // editor creation function to be defined in (YourPluginEditor).cpp
 //
-extern MLPluginEditor* CreateMLPluginEditor (MLPluginProcessor* const ownerProcessor, const MLRect& bounds, bool num, bool anim);
+extern juce::AudioProcessorEditor* CreateMLPluginEditor (MLPluginProcessor* const ownerProcessor);
 
-AudioProcessorEditor* MLPluginProcessor::createEditor()
+juce::AudioProcessorEditor* MLPluginProcessor::createEditor()
 {
 	// creation function defined to return the plugin's flavor of plugin editor
-    MLPluginEditor* r = CreateMLPluginEditor(this, mEditorRect, mEditorNumbersOn, mEditorAnimationsOn);	
+    AudioProcessorEditor* r = CreateMLPluginEditor(this);
 	return r;
 }
 
@@ -156,6 +155,12 @@ void MLPluginProcessor::editorResized(int w, int h)
 {
     mEditorRect.setWidth(w);
     mEditorRect.setHeight(h);
+	MLSignal bounds(4);
+	bounds.clear();
+	bounds[2] = w;
+	bounds[3] = h;
+	debug() << "MLPluginProcessor SETTING bounds to " << w << ", " << h << "\n";
+	setProperty("editor_bounds", bounds);
 }
 
 #pragma mark preflight and cleanup
@@ -291,11 +296,11 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// mEngine.dump();
 			
 		// after prepare to play, set state from saved blob if one exists
-		const unsigned blobSize = mSavedParamBlob.getSize();
+		const unsigned blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
 		{
-			setStateFromBlob (mSavedParamBlob.getData(), blobSize);
-			mSavedParamBlob.setSize(0);
+			setStateFromBinary (mSavedBinaryState.getData(), blobSize);
+			mSavedBinaryState.setSize(0);
 		}
 		else 
 		{
@@ -328,32 +333,10 @@ void MLPluginProcessor::releaseResources()
     // spare memory, etc.
 }
 
-
 #pragma mark juce::AudioProcessor
 
 void MLPluginProcessor::getStateInformation (MemoryBlock& destData)
 {
-	// OLD:  XML
-	/*
-    // create an outer XML element.
-    ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
-	getStateAsXML(*xmlProgram);
-    copyXmlToBinary (*xmlProgram, destData);
-	
-	{
-        MemoryOutputStream out (destData, false);
-        out.writeInt (magicXmlNumber);
-        out.writeInt (0);
-        xmlProgram->writeToStream (out, String(), true, false);
-        out.writeByte (0);
-    }
-	
-    // go back and write the string length..
-    static_cast<uint32*> (destData.getData())[1]
-	= ByteOrder::swapIfBigEndian ((uint32) destData.getSize() - 9);
-	*/
-	
-	// NEW: JSON
 	destData = mpState->getStateAsBinary();
 }
 
@@ -362,12 +345,13 @@ void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 	// if uninitialized, save blob for later.
 	if (mEngine.getCompileStatus() != MLProc::OK)
 	{
-		mSavedParamBlob.setSize(0);
-		mSavedParamBlob.append(data, sizeInBytes);
+		mSavedBinaryState.setSize(0);
+		mSavedBinaryState.append(data, sizeInBytes);
 	}
 	else
 	{
-		setStateFromBlob (data, sizeInBytes);
+		setStateFromBinary (data, sizeInBytes);
+		
 	}
 }
 
@@ -482,7 +466,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			else
 			{		
 				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
-				setStateFromMIDIProgram(pgm);
+				loadStateFromMIDIProgram(pgm);
 			}
             type = MLControlEvent::kProgramChange;
             id = chan;
@@ -886,22 +870,15 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 	
     f->getJuceFile().replaceWithText(getStateAsText());
 	
+	// reset state stack and push current state for recall
+	mpState->clearStateStack();
+	mpState->pushStateToStack();
 #endif // DEMO
     
 }
 
 String MLPluginProcessor::getStateAsText()
 {
-	// OLD: XML
-	/*
-	 // create an outer XML element.
-	 ScopedPointer<XmlElement> xmlProgram (new XmlElement(JucePlugin_Name));
-	 getStateAsXML(*xmlProgram);
-	 
-	 return xmlProgram->createDocument (String::empty, true, false);
-	 */
-	
-	// NEW: JSON
 	String r;
 	if(mpState)
 	{
@@ -909,78 +886,24 @@ String MLPluginProcessor::getStateAsText()
 	}
 	return r;
 }
-	
-#if(1)
-void MLPluginProcessor::getStateAsXML (XmlElement& xml)
-{
-	if( !(mEngine.getCompileStatus() == MLProc::OK)) return;
-	
-#if DEMO
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
-    xml.setAttribute ("presetName", String("----"));
-#else
-	
-  	const unsigned numParams = getNumParameters();
-	
-	// TODO use string properties of model instead of these JUCE strings.
-	// also move to JSON.
-	xml.setAttribute ("pluginVersion", JucePlugin_VersionCode);
-	xml.setAttribute ("presetName", String(getStringProperty("preset").c_str()));
-	xml.setAttribute ("scaleName", String(getStringProperty("key_scale").c_str()));
-	
-	// store parameter values to xml as a bunch of attributes.
-	// not XML best practice in general but takes fewer characters.
-	for(unsigned i=0; i<numParams; ++i)
-	{
-		const String paramName = symbolToXMLAttr(getParameterAlias(i));
-		const float defaultVal = getParameterDefaultValue(i);
-		const float paramVal = getParameter(i);
-		if (paramVal != defaultVal)
-		{
-			xml.setAttribute(paramName, paramVal);
-			//debug() << "setting XML param " << paramName << " to " << paramVal << "\n";
-		}
-	}
-	
-	// store editor state to XML if one exists
-	MLPluginEditor* pEditor = static_cast<MLPluginEditor*>(getActiveEditor());
-	if(pEditor)
-	{
-		MLRect r = pEditor->getWindowBounds();
-		xml.setAttribute("editor_x", r.x());
-		xml.setAttribute("editor_y", r.y());
-		xml.setAttribute("editor_width", r.getWidth());
-		xml.setAttribute("editor_height", r.getHeight());
-		xml.setAttribute("editor_num", getFloatProperty("patch_num"));
-		xml.setAttribute("editor_anim", getFloatProperty("patch_anim"));
-	}
-	
-	// save blob as most recently saved state
-	mpLatestStateLoaded = XmlElementPtr(new XmlElement(xml));
-	
-#endif
-	
-}
-
-#endif
 
 #pragma mark load state from file
 
-void MLPluginProcessor::setStateFromPath(const std::string& path)
+void MLPluginProcessor::loadStateFromPath(const std::string& path)
 {
     if(path != std::string())
     {
         const MLFilePtr f = mPresetFiles->getFileByName(path);
         if(f != MLFilePtr())
         {
-            setStateFromFile(f->getJuceFile());
+            loadStateFromFile(f->getJuceFile());
             std::string shortPath = stripExtension(path);
             setProperty("preset", shortPath);
         }
     }
 }
 
-void MLPluginProcessor::setStateFromFile(const File& f)
+void MLPluginProcessor::loadStateFromFile(const File& f)
 {
 	if (f.exists())
 	{
@@ -994,48 +917,49 @@ void MLPluginProcessor::setStateFromFile(const File& f)
 			// tell AU wrapper to load AU-compatible .aupreset file.
 			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
 		}
+		
+		mpState->updateChangedProperties();
+		mpState->clearStateStack();
+		mpState->pushStateToStack();
 	}
 }
 
 void MLPluginProcessor::returnToLatestStateLoaded()
 {
-	if(mpLatestStateLoaded)
-	{
-        bool setViewAttributes = false;
-		setStateFromXML(*mpLatestStateLoaded, setViewAttributes);
-	}
-	else
-	{
-		debug() << "MLPluginProcessor::returnToLatestStateLoaded: no saved state!\n";
-	}
+	mpState->returnToFirstSavedState();
 }
 
 #pragma mark set state (JSON, or XML for backwards compatibility)
 
-// set state, including the view status, from a binary blob stored in host.
+// set Model and Editor states from XML or JSON in binary.
 //
-void MLPluginProcessor::setStateFromBlob (const void* data, int sizeInBytes)
+void MLPluginProcessor::setStateFromBinary (const void* data, int sizeInBytes)
 {
-	debug() << "setStateFromBlob: " << sizeInBytes << "bytes of state data.\n";
+	debug() << "setStateFromBinary: " << sizeInBytes << "bytes of state data.\n";
 	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
 	if (xmlState)
 	{
-        debug() << "setStateFromBlob: setting XML state\n";
-		
+		// blob is an XML state
 		bool setViewAttributes = true;
 		setStateFromXML(*xmlState, setViewAttributes);
-		mpLatestStateLoaded = xmlState;
 	}
 	else
 	{
-        debug() << "setStateFromBlob: setting JSON state\n";
+        // blob is a JSON state
 		mpState->setStateFromBinary(MemoryBlock(data, sizeInBytes));
+		
+		// set editor state
+		
 	}
+	
+	// push state for access with "Revert To saved"
+	mpState->clearStateStack();
+	mpState->pushStateToStack();
 }
 
-void MLPluginProcessor::setStateFromMIDIProgram (const int idx)
+void MLPluginProcessor::loadStateFromMIDIProgram (const int idx)
 {
-	setStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
+	loadStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
 }
 
 void MLPluginProcessor::setStateFromText (const String& stateStr)
@@ -1049,9 +973,6 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 		{
 			mpState->setStateFromJSON(root);
 			cJSON_Delete(root);
-			
-			// TODO make memo to return to
-			
 		}
 		else
 		{
@@ -1066,10 +987,6 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 		{
 			XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
 			setStateFromXML(*pDocElem, false);
-			
-			// TODO store in appState:
-			// MLAppState:
-			mpLatestStateLoaded = pDocElem;
 		}
 		else
 		{
@@ -1081,6 +998,7 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 		debug() << "MLPluginProcessor::setStateFromText: unknown format for .mlpreset file!\n";
 	}
 	updateAllProperties();
+
 }
 
 void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
@@ -1327,7 +1245,7 @@ void MLPluginProcessor::advancePreset(int amount)
         currIdx = 0;
     }
     std::string relPath = mPresetFiles->getFileNameByIndex(currIdx);
-    setStateFromPath(relPath);
+    loadStateFromPath(relPath);
 }
 
 // set default value for each scalar parameter.  needed before loading
