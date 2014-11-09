@@ -199,7 +199,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
 namespace
 {
 	MLProcRegistryEntry<MLProcInputToSignals> classReg("midi_to_signals");
-	ML_UNUSED MLProcParam<MLProcInputToSignals> params[8] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate" };
+	ML_UNUSED MLProcParam<MLProcInputToSignals> params[9] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate", "osc_port_offset" };
 	// no input signals.
 	ML_UNUSED MLProcOutput<MLProcInputToSignals> outputs[] = {"*"};	// variable outputs
 }	
@@ -280,7 +280,7 @@ MLProc::err MLProcInputToSignals::resize()
 	mTempSignal.setDims(vecSize);
 	mChannelAfterTouchSignal.setDims(vecSize);
 	
-	if (!mLatestFrame.setDims(kFrameWidth, kFrameHeight))
+	if (!mLatestFrame.setDims(MLT3DHub::kFrameWidth, MLT3DHub::kFrameHeight))
 	{
 		return MLProc::memErr;
 	}
@@ -782,7 +782,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 		}
 	}
 }
-
 
 // process control events to make change lists
 //

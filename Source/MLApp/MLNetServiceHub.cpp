@@ -39,8 +39,6 @@
 
 #include "MLNetServiceHub.h"
 
-using namespace ZeroConf;
-
 //------------------------------------------------------------------------------------------------------------
 
 MLNetServiceHub::MLNetServiceHub() :

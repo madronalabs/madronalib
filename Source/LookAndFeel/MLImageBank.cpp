@@ -26,7 +26,7 @@ void MLImageBank::buildImages()
 	repaint();
 }
 
-void MLImageBank::setDims(int w, int h)
+void MLImageBank::setImageDims(int w, int h)
 {
 	mWidth = w;
 	mHeight = h;

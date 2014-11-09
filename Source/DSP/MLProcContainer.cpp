@@ -1665,7 +1665,7 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 // ----------------------------------------------------------------
 #pragma mark engine params
 
-MLPublishedParamPtr MLProcContainer::getParamPtr(int index)
+MLPublishedParamPtr MLProcContainer::getParamPtr(int index) const
 {
 	MLPublishedParamPtr p;
 	const int size = (int)mPublishedParams.size();
@@ -1869,11 +1869,6 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				// optional param type attribute
 				MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
 				
-				if(type == "signal")
-				{
-					debug() << "signal type!\n";
-				}
-				
 				// publish param and set attributes
 				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3, type);
 				MLSymbol createdType = p->getType();
@@ -1896,8 +1891,6 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				if(p->getNeedsQueue())
 				{
 					debug() << "ADDING queue for " << p->getAlias() << "\n";
-					
-					
 				}
 			}
 		}
@@ -2047,6 +2040,10 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			{
 				debug() << "MLProcContainer::setPublishedParamAttrs: queue only supported for float parameters!\n";
 			}
+		}
+		else if(child->hasTagName("automatable"))
+		{
+			p->setAutomatable(child->getIntAttribute("value", 0));
 		}
 	}
 }

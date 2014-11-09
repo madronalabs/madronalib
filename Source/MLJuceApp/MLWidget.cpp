@@ -29,12 +29,13 @@ MLWidget::~MLWidget()
 
 void MLWidget::addListener(MLWidget::Listener* pL)
 {
+	// TODO check for duplicates
 	mpListeners.push_back(pL);
 }
 
 void MLWidget::sendAction(MLSymbol msg, MLSymbol targetProperty, const MLProperty& val)
 {
-	std::list<MLWidget::Listener*>::iterator it;
+	std::vector<MLWidget::Listener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		MLWidget::Listener* pL = *it;

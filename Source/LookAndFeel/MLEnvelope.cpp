@@ -27,7 +27,6 @@ MLEnvelope::~MLEnvelope()
 
 void MLEnvelope::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLEnvelope::doPropertyChangeAction " << property << " -> " << val << "\n";
 	repaint();
 }
 

@@ -75,6 +75,8 @@ class MLPropertyListener;
 
 class MLPropertySet
 {	
+    friend class MLPropertyListener;
+	
 public:
 	MLPropertySet();
 	virtual ~MLPropertySet();
@@ -110,11 +112,13 @@ public:
 		broadcastPropertyExcludingListener(p, true, pL);
 	}
 	
-	void addPropertyListener(MLPropertyListener* pL);
-	void removePropertyListener(MLPropertyListener* pToRemove);
     void broadcastAllProperties();
     
 	static const MLProperty nullProperty;
+
+protected:
+	void addPropertyListener(MLPropertyListener* pL);
+	void removePropertyListener(MLPropertyListener* pToRemove);
 	
 private:
 	std::map<MLSymbol, MLProperty> mProperties;

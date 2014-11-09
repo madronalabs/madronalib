@@ -15,7 +15,7 @@ public:
 	MLImageBank();
     ~MLImageBank();
 	
-	void setDims(int w, int h);
+	void setImageDims(int w, int h);
 	void setImages(unsigned n);
 	Image& getImage(unsigned imageIdx);
 	

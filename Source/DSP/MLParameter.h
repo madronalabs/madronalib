@@ -89,6 +89,8 @@ public:
 	
 	bool getNeedsQueue(void);
 	void setNeedsQueue(bool q);
+	bool getAutomatable(void);
+	void setAutomatable(bool q);
 	void pushValue(float v);
 	float popValue();
 	int getQueueValuesRemaining();
@@ -117,6 +119,7 @@ private:
 	MLParamValue mZeroThreshold;
 	MLParamValue mDefault;
 	bool mNeedsQueue;
+	bool mAutomatable;
 	JucePluginParamUnit mUnit;
 	JucePluginParamWarpMode mWarpMode;
 	int mGroupIndex;	// -1 for none

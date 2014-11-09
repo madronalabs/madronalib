@@ -13,8 +13,6 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorAnimationsOn(true),
 	mInitialized(false),
 	mInputProtocol(-1),
-	mT3DWaitTime(0),
-	mDataRate(-1),
 	mpState(nullptr)
 {
 	debug() << "creating MLPluginProcessor.\n";
@@ -29,12 +27,17 @@ MLPluginProcessor::MLPluginProcessor() :
 	
 	// initialize application state
 	mpState = new MLAppState(static_cast<MLModel*>(this),
-		MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber);
+							 MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber);
+	
+	// initialize T3D listener
+	mT3DHub.addListener(this);
 }
 
 MLPluginProcessor::~MLPluginProcessor()
 {
 	debug() << "deleting MLPluginProcessor.\n";
+	
+	mT3DHub.removeListener(this);
 	if(mpState)
 	{
 		delete mpState;
@@ -140,6 +143,20 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	}
 }
 
+void MLPluginProcessor::initializeProcessor()
+{
+	// debug() <<  "initializing MLProcessor @ " << std::hex << (void*)this << std::dec << "...\n";
+	setInputProtocol(kInputProtocolMIDI);
+	
+	// connect t3d hub to DSP engine
+	// send frame buf address to input proc.
+	MLDSPEngine* pEngine = getEngine();
+	if(pEngine)
+	{
+		pEngine->setInputFrameBuffer(mT3DHub.getFrameBuffer());
+	}
+}
+
 // editor creation function to be defined in (YourPluginEditor).cpp
 //
 extern juce::AudioProcessorEditor* CreateMLPluginEditor (MLPluginProcessor* const ownerProcessor);
@@ -159,7 +176,6 @@ void MLPluginProcessor::editorResized(int w, int h)
 	bounds.clear();
 	bounds[2] = w;
 	bounds[3] = h;
-	debug() << "MLPluginProcessor SETTING bounds to " << w << ", " << h << "\n";
 	setProperty("editor_bounds", bounds);
 }
 
@@ -234,7 +250,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 	if (r == MLProc::OK)
 	{
 		// get the Juce process lock  // TODO ???
-		const ScopedLock sl (getCallbackLock());
+		const juce::ScopedLock sl (getCallbackLock());
 
 		unsigned inChans = getNumInputChannels();
 		unsigned outChans = getNumOutputChannels();
@@ -273,7 +289,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 
 #ifdef DEBUG
 		theSymbolTable().audit();
-		theSymbolTable().dump();
+		//theSymbolTable().dump();
 #endif
 
 		// compile: schedule graph of processors , setup connections, allocate buffers
@@ -323,7 +339,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 
 void MLPluginProcessor::reset()
 {
-	const ScopedLock sl (getCallbackLock());
+	const juce::ScopedLock sl (getCallbackLock());
 	mEngine.clear();
 }
 
@@ -386,6 +402,27 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 	mScaleFiles->addListener(pL);
 	mPresetFiles->addListener(pL);
 	mMIDIProgramFiles->addListener(pL);
+}
+
+#pragma mark MLT3DHub::Listener
+
+void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
+{
+	// TODO test switch statement for these kinds of selectors by adding MLSymbol.getID()
+	if(action == "connected")
+	{
+		int protocol = val ? kInputProtocolOSC : kInputProtocolMIDI;
+		setInputProtocol(protocol);
+	}
+	else if(action == "data_rate")
+	{
+		int r = val;
+		if(r != (int)getFloatProperty("data_rate"))
+		{
+			setProperty("data_rate", r);
+			getEngine()->setInputDataRate(r);
+		}
+	}
 }
 
 #pragma mark process
@@ -770,6 +807,12 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 	return mEngine.getParamGroupName(index);
 }
 
+bool MLPluginProcessor::isParameterAutomatable (int idx) const
+{
+	debug() << "is automatable? " << mEngine.getParamPtr(idx)->getAutomatable() << "\n";
+	return mEngine.getParamPtr(idx)->getAutomatable();
+}
+
 // count the number of published copies of the signal matching alias.
 int MLPluginProcessor::countSignals(const MLSymbol alias)
 {
@@ -935,7 +978,6 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 //
 void MLPluginProcessor::setStateFromBinary (const void* data, int sizeInBytes)
 {
-	debug() << "setStateFromBinary: " << sizeInBytes << "bytes of state data.\n";
 	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
 	if (xmlState)
 	{
@@ -947,12 +989,9 @@ void MLPluginProcessor::setStateFromBinary (const void* data, int sizeInBytes)
 	{
         // blob is a JSON state
 		mpState->setStateFromBinary(MemoryBlock(data, sizeInBytes));
-		
-		// set editor state
-		
 	}
 	
-	// push state for access with "Revert To saved"
+	// push state for access by "Revert To saved"
 	mpState->clearStateStack();
 	mpState->pushStateToStack();
 }
@@ -1006,13 +1045,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	if (!(xmlState.hasTagName (JucePlugin_Name))) return;
 	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // TODO revisit need to compile first
 	
-	// getCallbackLock() is in juce_AudioProcessor
-	// process lock is a quick fix.  it is here to prevent doParams() from getting called in
-	// process() methods and thereby setting mParamsChanged to false before the real changes take place.
-	// A better alternative would be a lock-free queue of parameter changes.
-	const ScopedLock sl (getCallbackLock());
-	
-	// only the differences between default parameters and the program state are saved in a program,
+	// only the differences between default parameters and the program state are saved in an XML program,
 	// so the first step is to set the default parameters.
 	setDefaultParameters();
 	
@@ -1487,39 +1520,20 @@ void MLPluginProcessor::setInputProtocol(int p)
 	}
 }
 
-
-/*
-// if we are in t3d mode and get no pings for a while, switch back
-// to MIDI mode assuming Soundplane or t3d device was disconnected.
+// broadcastScale: send scale to any of our processors that need it.
 //
-void AaltoProcessor::ProtocolPoller::timerCallback()
-
-
-yuck
- 
- TODO
- 
- restore this, and finally Patcher.
-
+void MLPluginProcessor::broadcastScale(const MLScale* pScale)
 {
-	 static const int kT3DTimeout = 4;
-#if ML_MAC
-	 PollNetServices();
-#endif
-	 if(mInputProtocol == kInputProtocolOSC)
-	 {
-		 // increment counter. this is reset each time we receive a t3d frame.
-		 mT3DWaitTime++;
-		 // debug() << "waiting for t3d:\n";
-		 if(mT3DWaitTime > kT3DTimeout)
-		 {
-			 debug() << "t3d timeout, switching back to MIDI.\n";
-			 setInputProtocol(kInputProtocolMIDI);
-		 }
-	 }
- }
+    static const char* seqPath = "voices/voice/seq/seq";
+    MLProcList sequencers;
+	getEngine()->getProcList(sequencers, MLPath(seqPath), kMLEngineMaxVoices);
+    for (MLProcListIterator p = sequencers.begin(); p != sequencers.end(); p++)
+    {
+//        MLProcStepSequencer& sequencer = static_cast<MLProcStepSequencer&>(**p);
+  //      sequencer.setScale(pScale);
+    }
+}
 
-*/
 
 
 

@@ -42,8 +42,6 @@ MemoryBlock MLAppState::getStateAsBinary()
 {
 	MemoryBlock bIn;
 	String stateStr = getStateAsText();
-	debug() << "STATE: \n" << stateStr << "\n";
-	
 	if(stateStr.length() > 0)
 	{
 		int cLen = CharPointer_UTF8::getBytesRequiredFor (stateStr.toUTF8());
@@ -179,9 +177,6 @@ void MLAppState::setStateFromBinary(const MemoryBlock& bIn)
 	unsigned int inSize = bIn.getSize();
 	// TODO uncompress here
 	String stateStr = juce::String::fromUTF8(static_cast<const char *>(inData), inSize);
-
-	debug() << "BINARY INPUT STATE: \n" << stateStr << "\n";
-
 	setStateFromText(stateStr);
 }
 
@@ -213,9 +208,6 @@ bool MLAppState::setStateFromText(String stateStr)
 	else
 	{
 		debug() << "MLAppState::setStateFromText: couldn't create JSON object!\n";
-#ifdef ML_DEBUG
-		debug() << "STATE:\n" << 	stateStr << "\n";
-#endif
 	}
 	return r;
 }
@@ -236,64 +228,51 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 					//debug() << " depth " << depth << " loading string param " << pNode->string << " : " << pNode->valuestring << "\n";
 					mpModel->setProperty(MLSymbol(pNode->string), pNode->valuestring);
 					break;
-				case cJSON_Array:
-					/*
-					// TODO what is this doing here?! MLTEST
-					if(mpAppView)
-					{
-						if(!strcmp(pNode->string, "window_bounds"))
-						{
-							assert(cJSON_GetArraySize(pNode) == 4);
-							int x = cJSON_GetArrayItem(pNode, 0)->valueint;
-							int y = cJSON_GetArrayItem(pNode, 1)->valueint;
-							int w = cJSON_GetArrayItem(pNode, 2)->valueint;
-							int h = cJSON_GetArrayItem(pNode, 3)->valueint;
-							mpAppView->setPeerBounds(x, y, w, h);
-						}
-					}
-					 */
-					break;
 				case cJSON_Object:
 					// 	debug() << "looking at object: \n";
 					// see if object is a stored signal
-					cJSON* pObjType = cJSON_GetObjectItem(pNode, "type");
-					if(pObjType && !strcmp(pObjType->valuestring, "signal") )
+					if(cJSON* pObjType = cJSON_GetObjectItem(pNode, "type"))
 					{
-						//debug() << " depth " << depth << " loading signal param " << pNode->string << "\n";
-						MLSignal* pSig;
-						int width = cJSON_GetObjectItem(pNode, "width")->valueint;
-						int height = cJSON_GetObjectItem(pNode, "height")->valueint;
-						int sigDepth = cJSON_GetObjectItem(pNode, "depth")->valueint;
-						pSig = new MLSignal(width, height, sigDepth);
-						if(pSig)
+						if(!strcmp(pObjType->valuestring, "signal") )
 						{
-							// read data into signal and set model param
-							float* pSigData = pSig->getBuffer();
-							int widthBits = bitsToContain(width);
-							int heightBits = bitsToContain(height);
-							int depthBits = bitsToContain(sigDepth);
-							int size = 1 << widthBits << heightBits << depthBits;
-							cJSON* pData = cJSON_GetObjectItem(pNode, "data");
-							int dataSize = cJSON_GetArraySize(pData);
-							if(dataSize == size)
+							//debug() << " depth " << depth << " loading signal param " << pNode->string << "\n";
+							MLSignal* pSig;
+							int width = cJSON_GetObjectItem(pNode, "width")->valueint;
+							int height = cJSON_GetObjectItem(pNode, "height")->valueint;
+							int sigDepth = cJSON_GetObjectItem(pNode, "depth")->valueint;
+							pSig = new MLSignal(width, height, sigDepth);
+							if(pSig)
 							{
-								// read array
-								cJSON *c=pData->child;
-								int i = 0;
-								while (c)
+								// read data into signal and set model param
+								float* pSigData = pSig->getBuffer();
+								int widthBits = bitsToContain(width);
+								int heightBits = bitsToContain(height);
+								int depthBits = bitsToContain(sigDepth);
+								int size = 1 << widthBits << heightBits << depthBits;
+								cJSON* pData = cJSON_GetObjectItem(pNode, "data");
+								int dataSize = cJSON_GetArraySize(pData);
+								if(dataSize == size)
 								{
-									pSigData[i++] = c->valuedouble;
-									c=c->next;
+									// read array
+									cJSON *c=pData->child;
+									int i = 0;
+									while (c)
+									{
+										pSigData[i++] = c->valuedouble;
+										c=c->next;
+									}
 								}
+								else
+								{
+									MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
+								}
+								mpModel->setProperty(MLSymbol(pNode->string), *pSig);
 							}
-							else
-							{
-								MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
-							}
-							mpModel->setProperty(MLSymbol(pNode->string), *pSig);
 						}
 					}
-					
+					break;
+				case cJSON_Array:
+				default:
 					break;
 			}
 		}

@@ -318,7 +318,7 @@ const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
 	}
 }
 
-// TODO check for duplicates! That would lead to a crash
+// TODO check for duplicates! That could lead to a crash.
 void MLPropertySet::addPropertyListener(MLPropertyListener* pL)
 {
 	mpListeners.push_back(pL);

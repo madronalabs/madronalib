@@ -27,7 +27,6 @@
 #include <list>
 #include <tr1/memory>
 
-using namespace ZeroConf;
 
 /*
 //------------------------------------------------------------------------------------------------------------
@@ -39,6 +38,11 @@ public:
 
 };
 */
+
+#define NetServiceListener ZeroConf::NetServiceListener
+#define NetServiceBrowserListener ZeroConf::NetServiceBrowserListener
+#define NetService ZeroConf::NetService
+#define NetServiceBrowser ZeroConf::NetServiceBrowser
 
 //------------------------------------------------------------------------------------------------------------
 class MLNetServiceHub : 

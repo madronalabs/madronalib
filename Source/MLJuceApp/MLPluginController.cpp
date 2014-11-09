@@ -88,8 +88,6 @@ void MLPluginController::initialize()
 
 void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)
 {
-	debug() << "widget ACTION " << action << " , " << targetProperty << " to " << val << "\n";
-
 	if(action == "click")
 	{
 		

@@ -15,6 +15,16 @@
 #include "MLProperty.h" 
 #include "MLAppState.h"
 
+#if ML_MAC
+#include "pa_ringbuffer.h"
+#include "MLOSCListener.h"
+#include "UdpSocket.h"
+#include "OscReceivedElements.h"
+#include "OscPacketListener.h"
+#include "MLNetServiceHub.h"
+#include "MLT3DHub.h"
+#endif
+
 #include <vector>
 #include <map>
 
@@ -23,11 +33,14 @@ const int kMLPluginMIDIPrograms = 127;
 
 class MLPluginProcessor : 
 	public AudioProcessor,
-    public MLFileCollection::Listener,
+	public MLFileCollection::Listener,
+	public MLT3DHub::Listener,
+#if ML_MAC
+	public MLNetServiceHub,
+#endif
 	public MLModel
 {
 public:
-    
     enum
     {
         kRequiresSSE2,
@@ -61,7 +74,7 @@ public:
     const String getParameterText (int index);
 	float getParameterDefaultValue (int index);
     void setParameter (int index, float newValue);
-	//  TODO bool isParameterAutomatable (int parameterIndex) const;
+	bool isParameterAutomatable (int idx) const;
 	// factory presets - a VST concept - unimplemented
     int getNumPrograms() { return 0; }
     int getCurrentProgram() { return 0; }
@@ -77,7 +90,7 @@ public:
 	virtual void loadDefaultPreset() = 0;
 	
 	// initializeProcessor is called after graph is created.
-	virtual void initializeProcessor() = 0; 
+	virtual void initializeProcessor(); 
 
 	// preflight and cleanup
 	MLProc::err preflight(int requirements = kRequiresSSE2);
@@ -90,6 +103,9 @@ public:
 	// add an additional listener to the file collections that we are listening to. Controllers can use this
 	// to get updates and build menus, etc.
 	void addFileCollectionListener(MLFileCollection::Listener* pL);
+	
+	// MLT3DHub::Listener
+	void handleHubNotification(MLSymbol action, const float val);
 
 	// process
 	bool isOKToProcess();
@@ -148,7 +164,6 @@ public:
 	// scales
 	void loadScale(const File& f);
 	void loadDefaultScale();
-	virtual void broadcastScale(const MLScale* pScale) = 0;
 	
 	// engine stuff
 	MLDSPEngine* getEngine() { return &mEngine; }
@@ -161,28 +176,20 @@ protected:
 	// set the parameter of the Engine but not the Model property.
 	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
 	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
+
+	void broadcastScale(const MLScale* pScale);
 	
 	// Engine creates graphs of Processors, does the work
 	MLDSPEngine	mEngine;	
-	
-	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
 
+	int mInputProtocol;
+		
 	// TODO shared_ptr
+	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
-
-	// input protocol stuff
-	int mInputProtocol;
-	int mT3DWaitTime;
-    osc::int32 mDataRate;
 	
 private:
-	class ProtocolPoller : public Timer
-	{
-		ProtocolPoller(MLPluginProcessor*);
-		~ProtocolPoller();
-		void timerCallback();
-	};
 	
 	void setCurrentPresetDir(const char* name);
     
@@ -222,6 +229,7 @@ private:
 	
 	MLAppState* mpState;
 
+	MLT3DHub mT3DHub;
 };
 
 #endif  // __PLUGINPROCESSOR__

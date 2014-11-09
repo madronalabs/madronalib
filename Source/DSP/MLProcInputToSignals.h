@@ -14,6 +14,7 @@
 #include "MLChangeList.h"
 #include "MLInputProtocols.h"
 #include "MLControlEvent.h"
+#include "MLT3DHub.h"
 #include "pa_ringbuffer.h"
 
 #include <stdexcept>
@@ -82,8 +83,6 @@ public:
 	static const float kDriftConstantsAmount;
 	static const float kDriftRandomAmount;
 
-	static const int kFrameWidth = 4;
-	static const int kFrameHeight = 16;
 	static const int kFrameBufferSize = 128;
 
     MLProcInputToSignals();
@@ -106,8 +105,6 @@ public:
 	// mutable return value is used by Processor to set a new scale.
 	MLScale* getScale();
 	MLSample noteToPitch(float note);
-	
-	//void sendEventToVoice(const MLControlEvent& e, MLVoice& v);
 
 	void doParams();
 

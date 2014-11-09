@@ -257,7 +257,7 @@ void MLSymbolTable::audit(void)
 	}
 	if (OK)
 	{
-		debug() << ": symbol table OK. " << size << " symbols.\n";
+		debug() << "Symbol table OK. " << size << " symbols.\n";
 	}
 	else
 	{

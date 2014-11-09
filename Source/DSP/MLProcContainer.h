@@ -284,7 +284,7 @@ public:
 	virtual void setPublishedParam(int index, const MLProperty& val);
 	virtual void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val);
 	
-	MLPublishedParamPtr getParamPtr(int index);
+	MLPublishedParamPtr getParamPtr(int index) const;
 	int getParamIndex(const MLSymbol name);
 	const std::string& getParamGroupName(int index);	
 	MLParamValue getParamByIndex(int index);

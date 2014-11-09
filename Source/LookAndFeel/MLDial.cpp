@@ -105,20 +105,6 @@ MLDial::~MLDial()
 
 void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
 {
-	debug() << "MLDial " << getWidgetName() << " doPropertyChangeAction RECEIVED " << property << " -> " << val << "\n";
-	
-	if(getTargetPropertyName() == "osc_pitch")
-	{
-		if(val.getFloatValue() == 220.0f)
-		{
-			debug() << "osc_pitch VAL: 220\n";
-		}
-		else
-		{
-			debug() << "osc_pitch SOME OTHER VAL: " << val.getFloatValue() << "\n";
-		}
-	}
-	
 	if (property == "value")
 	{
         mParameterLayerNeedsRedraw = true;
@@ -146,7 +132,6 @@ void MLDial::sendValueOfDial(WhichDial s, float val)
 	
 	if(newValue != oldValue)
 	{
-		debug() << "MLDial::sendValueOfDial SEND " << newValue << "\n";
 		setPropertyImmediate("value", newValue);
 		sendAction("change_property", getTargetPropertyName(), getProperty("value"));
 	}
@@ -2156,17 +2141,12 @@ void MLDial::beginGesture()
 
 void MLDial::endGesture()
 {
-	debug() << "MLDial::endGesture: mGestureInProgress ? " << mGestureInProgress << "\n";
-	
 	if(mGestureInProgress)
 	{
 		isMouseDown = false;
 		dialBeingDragged = kNoDial;
 		isMouseWheelMoving = false;
 		restoreMouseIfHidden();
-		
-		debug() << "MLDial::endGesture: ENDING \n";
-
 		sendAction("end_gesture", getTargetPropertyName());
 		mGestureInProgress = false;
 	}

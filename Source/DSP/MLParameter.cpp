@@ -11,7 +11,8 @@
 MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
 	mAlias(alias),
 	mIndex(idx),
-	mNeedsQueue(false)
+	mNeedsQueue(false),
+	mAutomatable(true)
 {
 	setRange(0.f, 1.f, 0.01f, false, 0.f);
 	mUnit = kJucePluginParam_Generic;
@@ -218,6 +219,16 @@ void MLPublishedParam::setNeedsQueue(bool q)
 		mpValueQueue = MLRingBufferPtr(new MLRingBuffer());
 		mpValueQueue->resize(1024);
 	}
+}
+
+bool MLPublishedParam::getAutomatable(void)
+{
+	return mAutomatable;
+}
+
+void MLPublishedParam::setAutomatable(bool a)
+{
+	mAutomatable = a;
 }
 
 void MLPublishedParam::pushValue(float v)

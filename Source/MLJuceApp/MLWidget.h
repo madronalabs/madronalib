@@ -100,13 +100,13 @@ public:
 	void setWidgetVisible(bool v);
     
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
-	void setTargetPropertyName(MLSymbol p) {  mTargetPropertyName = p; }
+	void setTargetPropertyName(MLSymbol p) { mTargetPropertyName = p; }
 	
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
 
-	std::list<MLWidget::Listener*> mpListeners;
+	std::vector<MLWidget::Listener*> mpListeners;
 
 private:
 	MLSymbol mName;
