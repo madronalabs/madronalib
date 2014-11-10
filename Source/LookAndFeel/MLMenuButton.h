@@ -13,8 +13,6 @@
 class MLMenuButton : 
 	public MLButton
 {
-protected:
-
 public:
      MLMenuButton();
     ~MLMenuButton();
@@ -22,14 +20,19 @@ public:
     enum ColourIds
     {
         buttonColourId                  = 0x1000100,
-		textColourId					= 0x1000102, 
+		textColourId					= 0x1000102,
+	};
+	
+    enum Style
+    {
+        kPlainStyle = 0,
+		kRightArrowStyle,
+		kTextOnlyStyle
 	};
 	
 	void paint(Graphics& g);
 	void clicked();
-
-	// if true, draw left justified text with right arrow
-	void setMenuTextStyle(bool t) { mMenuTextStyle = t; }
+	void setStyle(int);
 	
 	// MLPropertyListener
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
@@ -37,7 +40,7 @@ public:
 protected:
 
 private:
-	bool mMenuTextStyle;
+	int mStyle;
 };
 
 

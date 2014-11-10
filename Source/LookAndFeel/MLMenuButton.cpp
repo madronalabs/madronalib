@@ -8,7 +8,7 @@
 
 MLMenuButton::MLMenuButton () :
     MLButton (),
-	mMenuTextStyle(true)
+	mStyle(kRightArrowStyle)
 {
 	mTriggerOnMouseDown = true;
 }
@@ -17,22 +17,34 @@ MLMenuButton::~MLMenuButton()
 {
 }
 
+void MLMenuButton::setStyle(int t)
+{
+	mStyle = t;
+}
+
 void MLMenuButton::paint(Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	myLookAndFeel->drawBackground(g, this);
-	const Colour c (findColour (MLTextButton::buttonColourId));	
+	const Colour c (findColour (MLTextButton::buttonColourId));
 	const Colour t (findColour (MLTextButton::textColourId));
-    
-    myLookAndFeel->drawButtonBackground(g, *this, c, mOver, mToggleState, mLineThickness);
+	myLookAndFeel->drawBackground(g, this);
 	
-	if(mMenuTextStyle)
+	if(mStyle != kTextOnlyStyle)
 	{
-		myLookAndFeel->drawMenuButtonText(g, *this, t);
+		myLookAndFeel->drawButtonBackground(g, *this, c, mOver, mToggleState, mLineThickness);
 	}
-	else
+	
+	switch(mStyle)
 	{
-		myLookAndFeel->drawButtonText(g, *this, t, mOver, mDown);
+		case kPlainStyle:
+			myLookAndFeel->drawButtonText(g, *this, t, mOver, mDown);
+			break;
+		case kRightArrowStyle:
+			myLookAndFeel->drawMenuButtonText(g, *this, t);
+			break;
+		case kTextOnlyStyle:
+			myLookAndFeel->drawButtonText(g, *this, t, mOver, mDown);
+			break;
 	}
 }
 
