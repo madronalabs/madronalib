@@ -92,10 +92,6 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	{
 		
 	}
-	else if(action == "show_menu")
-	{
-		showMenu(targetProperty, pw->getWidgetName());
-	}
 	else if(action == "begin_gesture")
 	{
 		int idx = mpProcessor->getParameterIndex(targetProperty);
@@ -115,6 +111,11 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 		{
 			mpProcessor->endParameterChangeGesture (idx);
 		}
+	}
+	else if(action == "show_menu")
+	{
+		updateMenu(targetProperty);
+		showMenu(targetProperty, pw->getWidgetName());
 	}
 }
 
@@ -284,7 +285,7 @@ void MLPluginController::doScaleMenu(int result)
     {
         case (0):	// dismiss
             break;
-        case (1):	
+        case (1):
             mpProcessor->setProperty("key_scale", "12-equal");
             break;
         default:
@@ -298,7 +299,25 @@ void MLPluginController::doScaleMenu(int result)
             break;
     }
 }
+
+void MLPluginController::doMoreMenu(int result)
+{
+	debug() << "MORE menu: " << result << "\n";
 	
+    switch(result)
+    {
+        case (0):	// dismiss
+            break;
+        default:
+            MLMenu* menu = findMenuByName("key_more");
+            if (menu)
+            {
+      //          mpProcessor->setProperty("key_scale", fullName);
+            }
+            break;
+    }
+}
+
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, MLSymbol menuName)
 {
 	MLPluginController* pC = wpC;
@@ -338,6 +357,8 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 	}
 }
 
+void MLPluginController::updateMenu(MLSymbol menuName){}
+
 void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 {
 	if (result > 0)
@@ -352,8 +373,13 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 			else if(menuName == "key_scale")
 			{
 				doScaleMenu(result);
-			}			
-		}		
+			}
+			// TEMP
+			else if(menuName == "key_more")
+			{
+				doMoreMenu(result);
+			}
+		}
 	}
 }
 

@@ -408,7 +408,6 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 
 void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 {
-	// TODO test switch statement for these kinds of selectors by adding MLSymbol.getID()
 	if(action == "connected")
 	{
 		int protocol = val ? kInputProtocolOSC : kInputProtocolMIDI;
@@ -809,7 +808,6 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 bool MLPluginProcessor::isParameterAutomatable (int idx) const
 {
-	debug() << "is automatable? " << mEngine.getParamPtr(idx)->getAutomatable() << "\n";
 	return mEngine.getParamPtr(idx)->getAutomatable();
 }
 

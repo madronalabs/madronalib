@@ -34,12 +34,17 @@ public:
 	void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size);
  	
 	// menus
- 	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
+	//
+	// controllers can override to rebuild menus before showing.
+	virtual void updateMenu(MLSymbol menuName);
+	// controllers override menuItemChosen to respond to menus.
 	virtual void menuItemChosen(MLSymbol menuName, int result);
+ 	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName); // TODO move into new controller base class
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
+	void doMoreMenu(int result);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 

@@ -37,6 +37,8 @@ public:
 	MLT3DHub();
 	~MLT3DHub();
 	
+	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
+
 	PaUtilRingBuffer* getFrameBuffer() { return &mFrameBuf; }
 	
     class Listener

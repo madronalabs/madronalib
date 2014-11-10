@@ -117,8 +117,8 @@ namespace ZeroConf
 		
 		void resolveWithTimeout(double timeOutInSeconds, bool launchThread = true);
 
-		/** Halts a currently running attempt to publish or resolve a service. 
-		 
+		/** Halts a currently running attempt to publish or resolve a service.
+
 		 this method results in the sending of a netServiceDidStop: message to the delegate.
 		 */
 		void stop();

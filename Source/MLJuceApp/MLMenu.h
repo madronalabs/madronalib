@@ -29,10 +29,10 @@ public:
     class Node
     {
     public:
-        Node() : itemNumber(0){}
-        ~Node(){}
+        Node();
+        ~Node();
         void clear();
-        bool isValid() { return itemNumber > 0; }
+        bool isValid();
         void dump(int level = 0);
         int renumberItems(int n = 1);
         int getNodeSize(int n);
@@ -44,10 +44,11 @@ public:
 		
         StringToMenuNodeMapT map;
         std::list<std::string> index;
-        bool enabled;
 		std::string mDisplayPrefix;
-        int itemNumber;
-        JuceMenuPtr subMenu;
+		JuceMenuPtr subMenu;
+        int mItemNumber;
+        bool mEnabled;
+		bool mTicked;
     };
 
 	MLMenu();
@@ -55,7 +56,7 @@ public:
 	~MLMenu();
     
 	void clear();
-	void addItem(const std::string& name, bool enabled = true);
+	void addItem(const std::string& name, bool enabled = true, bool ticked = false);
 	void addSeparator();
 	NodePtr getItem(const std::string& name);
 	void addItems(const std::vector<std::string>& items);

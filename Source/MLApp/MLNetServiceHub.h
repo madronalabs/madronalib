@@ -27,29 +27,20 @@
 #include <list>
 #include <tr1/memory>
 
-
-/*
-//------------------------------------------------------------------------------------------------------------
-class MLNetServiceHubListener
-{
-public:
-
-
-
-};
-*/
-
 #define NetServiceListener ZeroConf::NetServiceListener
 #define NetServiceBrowserListener ZeroConf::NetServiceBrowserListener
 #define NetService ZeroConf::NetService
 #define NetServiceBrowser ZeroConf::NetServiceBrowser
+
+extern const char * kDomainLocal;
+extern const char * kServiceTypeUDP;
+
 
 //------------------------------------------------------------------------------------------------------------
 class MLNetServiceHub : 
 	public NetServiceListener, 
 	public NetServiceBrowserListener
 {
-//	MLNetServiceHubListener *mpListener;
 public:
 	NetServiceBrowser *browser;
 	NetService *resolver;
@@ -60,8 +51,8 @@ public:
 	MLNetServiceHub();
 	~MLNetServiceHub();
 
-	virtual void Browse(const char *type, const char *domain);
-	virtual void Resolve(const char *name, const char *type, const char *domain);
+	virtual void Browse(const char *domain, const char *type);
+	virtual void Resolve(const char *domain, const char *type, const char *name);
 	virtual void publishUDPService(const char *name, int port);
 
 	bool pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err);

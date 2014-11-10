@@ -38,7 +38,8 @@ MLT3DHub::MLT3DHub() :
 
 	// TODO make OSC services list
 	// services.clear();
-	// Browse(kUDPType, kLocalDotDomain);
+	// Browse(kDomainLocal, kServiceTypeUDP);
+	
 	// if mUDPPortNum is in list, find another port number
 	// TODO get unique port number to disambiguate multiple T3D plugin instances
 	// could possibly publish the current patch name here
@@ -57,6 +58,15 @@ MLT3DHub::MLT3DHub() :
 MLT3DHub::~MLT3DHub()
 {
 	listenToOSC(0);
+}
+
+void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
+{
+	MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService, moreServicesComing);
+	debug() << "FOUND net service " << pNetService->getName() << "\n*****\n";
+	
+	usleep(100);
+	
 }
 
 void MLT3DHub::addListener(MLT3DHub::Listener* pL)

@@ -39,6 +39,9 @@
 
 #include "MLNetServiceHub.h"
 
+const char * kDomainLocal = "local.";
+const char * kServiceTypeUDP = "_osc._udp";
+
 //------------------------------------------------------------------------------------------------------------
 
 MLNetServiceHub::MLNetServiceHub() :
@@ -55,7 +58,7 @@ MLNetServiceHub::~MLNetServiceHub()
 	if(service) delete service;
 }
 
-void MLNetServiceHub::Browse(const char *type, const char *domain)
+void MLNetServiceHub::Browse(const char *domain, const char *type)
 {
 	if(browser) delete browser;
 	browser = 0;
@@ -64,7 +67,7 @@ void MLNetServiceHub::Browse(const char *type, const char *domain)
 	browser->searchForServicesOfType(type, domain);
 }
 
-void MLNetServiceHub::Resolve(const char *name, const char *type, const char *domain)
+void MLNetServiceHub::Resolve(const char *domain, const char *type, const char *name)
 {
 	if(resolver) delete resolver;
 	resolver = 0;
@@ -72,7 +75,6 @@ void MLNetServiceHub::Resolve(const char *name, const char *type, const char *do
 	resolver->setListener(this);
 	resolver->resolveWithTimeout(10.0, false);  // ML temp
 }
-
 
 bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err)
 {
@@ -119,7 +121,7 @@ void MLNetServiceHub::publishUDPService(const char *name, int port)
 {
 	if(service) delete service;
 	service = 0;
-	service = new NetService("local.", "_osc._udp", name, port);
+	service = new NetService(kDomainLocal, kServiceTypeUDP, name, port);
 	service->setListener(this);
 	service->publish(false);
 }

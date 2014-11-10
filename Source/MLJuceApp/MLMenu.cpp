@@ -10,6 +10,31 @@ static const std::string kSeparatorStr("---");
 
 #pragma mark MLMenu::Node
 
+MLMenu::Node::Node() :
+	mItemNumber(0),
+	mEnabled(false),
+	mTicked(false)
+{
+	
+}
+
+MLMenu::Node::~Node()
+{
+	
+}
+
+void MLMenu::Node::clear()
+{
+    map.clear();
+    index.clear();
+    subMenu = JuceMenuPtr();
+}
+
+bool MLMenu::Node::isValid()
+{
+	return mItemNumber > 0;
+}
+
 void MLMenu::Node::dump(int level)
 {
     std::list<std::string>::const_iterator it;
@@ -22,7 +47,7 @@ void MLMenu::Node::dump(int level)
         {
             debug() << " ";
         }
-		debug() << name << " #" << node->itemNumber << ", (" << node->index.size() << ")\n";
+		debug() << name << " #" << node->mItemNumber << ", (" << node->index.size() << ")\n";
         node->dump(level + 1);
 	}
     debug() << "\n";
@@ -38,7 +63,7 @@ int MLMenu::Node::renumberItems(int n)
     bool isLeaf = (index.size() == 0);
     if(isLeaf)
     {
-        itemNumber = n++;
+        mItemNumber = n++;
     }
     else
     {
@@ -55,13 +80,6 @@ int MLMenu::Node::renumberItems(int n)
         }
     }
     return n;
-}
-
-void MLMenu::Node::clear()
-{
-    map.clear();
-    index.clear();
-    subMenu = JuceMenuPtr();
 }
 
 int MLMenu::Node::getNodeSize(int n)
@@ -93,15 +111,15 @@ void MLMenu::Node::buildFullNameIndex(std::vector<std::string>& nameVec, const s
     if(isLeaf)
     {
         int size = nameVec.size();
-        if(itemNumber >= size)
+        if(mItemNumber >= size)
         {
-            nameVec.resize(itemNumber + 1);
-            for(int i = size; i <= itemNumber; ++i)
+            nameVec.resize(mItemNumber + 1);
+            for(int i = size; i <= mItemNumber; ++i)
             {
                 nameVec[i] = std::string();
             }
         }
-        nameVec[itemNumber] = path;
+        nameVec[mItemNumber] = path;
     }
     else
     {
@@ -133,7 +151,7 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
     {
         if(name != kSeparatorStr)
         {
-            pMenu->addItem(itemNumber, mDisplayPrefix + stripExtension(getShortName(name)), enabled);
+            pMenu->addItem(mItemNumber, mDisplayPrefix + stripExtension(getShortName(name)), mEnabled, mTicked);
         }
         else
         {
@@ -196,10 +214,11 @@ MLMenu::~MLMenu()
 {
 }
 
-void MLMenu::addItem(const std::string& name, bool e)
+void MLMenu::addItem(const std::string& name, bool enabled, bool ticked)
 {
     NodePtr n(new Node());
-    n->enabled = e;
+    n->mEnabled = enabled;
+    n->mTicked = ticked;
     mRoot->map[name] = n;
     mRoot->index.push_back(name);
 }
