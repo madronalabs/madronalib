@@ -122,7 +122,7 @@ void MLAppState::saveStateToStateFile()
 
 void MLAppState::getStateAsJSON(cJSON* root)
 {
-	updateAllProperties();
+	updateChangedProperties();
 
 	// get Model parameters
 	std::map<MLSymbol, PropertyState>::iterator it;
@@ -284,7 +284,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 		pNode = pNode->next;
 	}
 	
-	updateAllProperties();
+	//updateAllProperties(); // MLTEST
 }
 
 void MLAppState::loadDefaultState()

@@ -117,11 +117,37 @@ printf("PollNetServices::stop.\n");
 	}
 }
 
+void MLNetServiceHub::buildFullName()
+{
+	std::stringstream fullName;
+	fullName << mName << " (" << mPort << ")";
+	mFullName = (fullName.str());
+}
+
+void MLNetServiceHub::setName(const char *name)
+{
+	mName = std::string(name);
+	buildFullName();
+}
+
+void MLNetServiceHub::setPort(int port)
+{
+	mPort = port;
+	buildFullName();
+	if(service)
+	{
+		service->setPort(port);
+		service->publish(false);
+	}
+}
 void MLNetServiceHub::publishUDPService(const char *name, int port)
 {
 	if(service) delete service;
 	service = 0;
-	service = new NetService(kDomainLocal, kServiceTypeUDP, name, port);
+	setName(name);
+	setPort(port);
+
+	service = new NetService(kDomainLocal, kServiceTypeUDP, mFullName.c_str(), port);
 	service->setListener(this);
 	service->publish(false);
 }

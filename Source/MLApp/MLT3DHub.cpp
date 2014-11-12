@@ -13,7 +13,7 @@
 MLT3DHub::MLT3DHub() :
 	mT3DWaitTime(0),
 	mDataRate(-1),
-	mUDPPortNum(3123),
+	mUDPPortOffset(0),
 	mConnected(false)
 {
 	// initialize touch frame for output
@@ -42,15 +42,7 @@ MLT3DHub::MLT3DHub() :
 	
 	// if mUDPPortNum is in list, find another port number
 	// TODO get unique port number to disambiguate multiple T3D plugin instances
-	// could possibly publish the current patch name here
 
-	// TODO send variable port number to engine
-	publishUDPService(MLProjectInfo::projectName, mUDPPortNum);
-
-	// setup listener thread
-	//
-	listenToOSC(mUDPPortNum);
-	
 	// start protocol polling
 	startTimer(1000);
 }
@@ -60,13 +52,35 @@ MLT3DHub::~MLT3DHub()
 	listenToOSC(0);
 }
 
+void MLT3DHub::connect()
+{
+	// could possibly publish the current patch name here
+	publishUDPService(MLProjectInfo::projectName, kDefaultUDPPort + mUDPPortOffset);
+	
+	// setup listener thread
+	//
+	listenToOSC(kDefaultUDPPort + mUDPPortOffset);
+}
+
+void MLT3DHub::setPortOffset(int offset)
+{
+	if(offset != mUDPPortOffset)
+	{
+		mUDPPortOffset = offset;
+		setPort(kDefaultUDPPort + mUDPPortOffset);
+		if(mListening)
+		{
+			listenToOSC(kDefaultUDPPort + mUDPPortOffset);
+		}
+	}
+}
+
 void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
 	MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService, moreServicesComing);
 	debug() << "FOUND net service " << pNetService->getName() << "\n*****\n";
 	
 	usleep(100);
-	
 }
 
 void MLT3DHub::addListener(MLT3DHub::Listener* pL)
@@ -220,6 +234,5 @@ void MLT3DHub::timerCallback()
 		}
 	}
 }
-
 
 #endif // MAC

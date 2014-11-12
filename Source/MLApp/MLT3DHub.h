@@ -33,9 +33,13 @@ public:
 	static const int kFrameWidth = 4;
 	static const int kFrameHeight = 16;
 	static const int kFrameBufferSize = 128;
+	static const int kDefaultUDPPort = 3123;
 
 	MLT3DHub();
 	~MLT3DHub();
+	
+	void connect();
+	void setPortOffset(int offset);
 	
 	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
 
@@ -55,7 +59,8 @@ public:
 	void removeListener(Listener* pL);
 	void notifyListeners(MLSymbol action, const float val);
 	void timerCallback();
-
+	void setOSCPortOffset(int offset);
+	
 	osc::int32 mDataRate;
 	int mT3DWaitTime;
 	
@@ -68,10 +73,9 @@ private:
 	std::vector<MLT3DHub::Listener*> mpListeners;
 
 	UdpListeningReceiveSocket* mpSocket;
-	bool mSocketActive;
 	pthread_t mListenerThread;
 
-	int mUDPPortNum;
+	int mUDPPortOffset;
 	bool mConnected;
 	MLSignal mTouchFrames;
 	PaUtilRingBuffer mFrameBuf;

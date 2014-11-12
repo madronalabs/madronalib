@@ -72,7 +72,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 					f = p->getValueAsLinearProportion();
 				}
 				
-				// queue up change, os send change immediately to host wrapper
+				// either enqueue change, or send change immediately to host wrapper
 				if(p->getNeedsQueue())
 				{
 					p->pushValue(f);
@@ -81,6 +81,13 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 				{
 					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
 				}
+			}
+			// update OSC port offset
+			if(propName == "osc_port_offset")
+			{
+				int offset = newVal.getFloatValue();
+				debug() << "MLPluginProcessor NEW OSC offset: " << offset << "\n";
+				mT3DHub.setPortOffset(offset);
 			}
 		}
 		break;
@@ -155,6 +162,9 @@ void MLPluginProcessor::initializeProcessor()
 	{
 		pEngine->setInputFrameBuffer(mT3DHub.getFrameBuffer());
 	}
+	
+	// publish t3d service and listen for incoming t3d data
+	mT3DHub.connect();
 }
 
 // editor creation function to be defined in (YourPluginEditor).cpp
@@ -1034,7 +1044,7 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 	{
 		debug() << "MLPluginProcessor::setStateFromText: unknown format for .mlpreset file!\n";
 	}
-	updateAllProperties();
+	updateChangedProperties();
 
 }
 

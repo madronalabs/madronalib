@@ -24,6 +24,7 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <sstream>
 #include <list>
 #include <tr1/memory>
 
@@ -54,6 +55,8 @@ public:
 	virtual void Browse(const char *domain, const char *type);
 	virtual void Resolve(const char *domain, const char *type, const char *name);
 	virtual void publishUDPService(const char *name, int port);
+	void setName(const char *name);
+	void setPort(int port);
 
 	bool pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err);
 	void PollNetServices(); // ML
@@ -76,6 +79,12 @@ private:
 	virtual void willSearch(NetServiceBrowser *) {}
 	virtual void didNotSearch(NetServiceBrowser *) {}
 	virtual void didStopSearch(NetServiceBrowser *) {}
+	
+	void buildFullName();
+
+	std::string mName;
+	std::string mFullName;
+	int mPort;
 };
 
 #endif // ML_WINDOWS

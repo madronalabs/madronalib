@@ -136,7 +136,7 @@ NetService::NetService(const std::string &domain, const std::string &type, const
 NetService::~NetService()
 {
 	stop();
-	}
+}
 
 void NetService::setListener(NetServiceListener *pNetServiceListener)
 {
@@ -150,7 +150,7 @@ NetServiceListener *NetService::getListener() const
 
 void NetService::setPort(int port)
 {
-  mPort = port;
+	mPort = port;
 }
 
 void NetService::setName(const std::string &name)

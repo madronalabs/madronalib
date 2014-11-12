@@ -38,6 +38,8 @@ protected:
     virtual void ProcessMessage(const osc::ReceivedMessage &, const IpEndpointName& ) = 0;
 	virtual void ProcessBundle(const osc::ReceivedBundle& , const IpEndpointName& ) = 0;
 
+	bool mListening;
+
 private:
 	UdpListeningReceiveSocket* mpSocket;
 	bool mSocketActive;

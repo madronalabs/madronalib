@@ -309,11 +309,7 @@ void MLPluginController::doMoreMenu(int result)
         case (0):	// dismiss
             break;
         default:
-            MLMenu* menu = findMenuByName("key_more");
-            if (menu)
-            {
-      //          mpProcessor->setProperty("key_scale", fullName);
-            }
+			mpProcessor->setProperty("osc_port_offset", result - 1);
             break;
     }
 }
@@ -374,7 +370,6 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 			{
 				doScaleMenu(result);
 			}
-			// TEMP
 			else if(menuName == "key_more")
 			{
 				doMoreMenu(result);

@@ -14,7 +14,8 @@
 MLOSCListener::MLOSCListener() :
 	mpSocket(0),
 	mSocketActive(0),
-	mPort(0)
+	mPort(0),
+	mListening(false)
 {
 }
 
@@ -60,6 +61,7 @@ void MLOSCListener::listenToOSC(int port)
 		}
 		try
 		{
+			debug() << "MLOSCListener: trying listen on port " << port << "...\n";
 			mpSocket = new UdpListeningReceiveSocket(
 				IpEndpointName( IpEndpointName::ANY_ADDRESS, port), 
 				this);
@@ -82,7 +84,7 @@ void MLOSCListener::listenToOSC(int port)
 		
 		if(mpSocket)
 		{
-			// debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
+			debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
 			mSocketActive = true;
 			mPort = port;
 			
@@ -95,9 +97,11 @@ void MLOSCListener::listenToOSC(int port)
 			// debug() << "creating listener thread...\n";
 			err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);			
 		}
+		mListening = true;
 	}
 	else
 	{
+		mListening = false;
 		if(mpSocket)
 		{
 			mpSocket->AsynchronousBreak();
