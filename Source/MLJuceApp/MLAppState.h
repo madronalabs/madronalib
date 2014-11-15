@@ -25,7 +25,7 @@ class MLAppState :
 	public Timer
 {
 public:
-	MLAppState(MLModel*, const char* , const char* , int );
+	MLAppState(MLModel*, const std::string&, const std::string&, const std::string&, int );
     ~MLAppState();
 	
 	// MLPropertyListener interface
@@ -56,8 +56,9 @@ public:
 	void returnToFirstSavedState();
 	
 protected:
-	const char* mpMakerName;
-	const char* mpAppName;
+	std::string mName;
+	std::string mMakerName;
+	std::string mAppName;
 	int mAppVersion;
 	
 private:
@@ -66,5 +67,7 @@ private:
 	File getAppStateFile() const;
 	std::vector<juce::MemoryBlock> mStateStack;
 };
+
+typedef std::tr1::shared_ptr<MLAppState> MLAppStatePtr;
 
 #endif // __ML_APP_STATE_H

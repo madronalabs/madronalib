@@ -5,11 +5,12 @@
 
 #include "MLAppState.h"
 
-MLAppState::MLAppState(MLModel* pM, const char* makerName, const char* appName, int version) :
+MLAppState::MLAppState(MLModel* pM, const std::string& name, const std::string& makerName, const std::string& appName, int version) :
     MLPropertyListener(pM),
 	mpModel(pM),
-	mpMakerName(makerName),
-	mpAppName(appName),
+	mName(name),
+	mMakerName(makerName),
+	mAppName(appName),
 	mAppVersion(version)
 {
 	updateAllProperties();
@@ -33,7 +34,8 @@ void MLAppState::doPropertyChangeAction(MLSymbol p, const MLProperty & val)
 {
     // nothing to do here, but we do need to be an MLPropertyListener in order to
     // know the update states of all the Properties.
-	//debug() << "MLAppState::doPropertyChangeAction: " << p << " to " << val << "\n";
+	
+	// debug() << "MLAppState " << mName << ": doPropertyChangeAction: " << p << " to " << val << "\n";
 }
 
 #pragma mark get and save state
@@ -122,7 +124,7 @@ void MLAppState::saveStateToStateFile()
 
 void MLAppState::getStateAsJSON(cJSON* root)
 {
-	updateChangedProperties();
+	updateAllProperties();
 
 	// get Model parameters
 	std::map<MLSymbol, PropertyState>::iterator it;
@@ -164,8 +166,8 @@ void MLAppState::getStateAsJSON(cJSON* root)
 	}
 	
 	// replace environment info
-	cJSON_ReplaceItemInObject(root, "maker_name", cJSON_CreateString(mpMakerName));
-	cJSON_ReplaceItemInObject(root, "app_name", cJSON_CreateString(mpAppName));
+	cJSON_ReplaceItemInObject(root, "maker_name", cJSON_CreateString(mMakerName.c_str()));
+	cJSON_ReplaceItemInObject(root, "app_name", cJSON_CreateString(mAppName.c_str()));
 	cJSON_ReplaceItemInObject(root, "app_version", cJSON_CreateNumber(mAppVersion));
 }
 
@@ -214,74 +216,73 @@ bool MLAppState::setStateFromText(String stateStr)
 
 void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 {
-	while(pNode)
+	if(!pNode) return;
+	cJSON *child = pNode->child;
+	while(child)
 	{
-		if(pNode->string)
+		switch(child->type & 255)
 		{
-			switch(pNode->type)
-			{
-				case cJSON_Number:
-					//debug() << " depth " << depth << " loading float param " << pNode->string << " : " << pNode->valuedouble << "\n";
-					mpModel->setProperty(MLSymbol(pNode->string), (float)pNode->valuedouble);
-					break;
-				case cJSON_String:
-					//debug() << " depth " << depth << " loading string param " << pNode->string << " : " << pNode->valuestring << "\n";
-					mpModel->setProperty(MLSymbol(pNode->string), pNode->valuestring);
-					break;
-				case cJSON_Object:
-					// 	debug() << "looking at object: \n";
-					// see if object is a stored signal
-					if(cJSON* pObjType = cJSON_GetObjectItem(pNode, "type"))
+			case cJSON_Number:
+				//debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
+				mpModel->setProperty(MLSymbol(child->string), (float)child->valuedouble);
+				break;
+			case cJSON_String:
+				//debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
+				mpModel->setProperty(MLSymbol(child->string), child->valuestring);
+				break;
+			case cJSON_Object:
+				//debug() << "looking at object: " << child->string << "\n";
+				// see if object is a stored signal
+				if(cJSON* pObjType = cJSON_GetObjectItem(child, "type"))
+				{
+					if(!strcmp(pObjType->valuestring, "signal") )
 					{
-						if(!strcmp(pObjType->valuestring, "signal") )
+						//debug() << " depth " << depth << " loading signal param " << child->string << "\n";
+						MLSignal* pSig;
+						int width = cJSON_GetObjectItem(child, "width")->valueint;
+						int height = cJSON_GetObjectItem(child, "height")->valueint;
+						int sigDepth = cJSON_GetObjectItem(child, "depth")->valueint;
+						pSig = new MLSignal(width, height, sigDepth);
+						if(pSig)
 						{
-							//debug() << " depth " << depth << " loading signal param " << pNode->string << "\n";
-							MLSignal* pSig;
-							int width = cJSON_GetObjectItem(pNode, "width")->valueint;
-							int height = cJSON_GetObjectItem(pNode, "height")->valueint;
-							int sigDepth = cJSON_GetObjectItem(pNode, "depth")->valueint;
-							pSig = new MLSignal(width, height, sigDepth);
-							if(pSig)
+							// read data into signal and set model param
+							float* pSigData = pSig->getBuffer();
+							int widthBits = bitsToContain(width);
+							int heightBits = bitsToContain(height);
+							int depthBits = bitsToContain(sigDepth);
+							int size = 1 << widthBits << heightBits << depthBits;
+							cJSON* pData = cJSON_GetObjectItem(child, "data");
+							int dataSize = cJSON_GetArraySize(pData);
+							if(dataSize == size)
 							{
-								// read data into signal and set model param
-								float* pSigData = pSig->getBuffer();
-								int widthBits = bitsToContain(width);
-								int heightBits = bitsToContain(height);
-								int depthBits = bitsToContain(sigDepth);
-								int size = 1 << widthBits << heightBits << depthBits;
-								cJSON* pData = cJSON_GetObjectItem(pNode, "data");
-								int dataSize = cJSON_GetArraySize(pData);
-								if(dataSize == size)
+								// read array
+								cJSON *c=pData->child;
+								int i = 0;
+								while (c)
 								{
-									// read array
-									cJSON *c=pData->child;
-									int i = 0;
-									while (c)
-									{
-										pSigData[i++] = c->valuedouble;
-										c=c->next;
-									}
+									pSigData[i++] = c->valuedouble;
+									c=c->next;
 								}
-								else
-								{
-									MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
-								}
-								mpModel->setProperty(MLSymbol(pNode->string), *pSig);
 							}
+							else
+							{
+								MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
+							}
+							mpModel->setProperty(MLSymbol(child->string), *pSig);
 						}
 					}
-					break;
-				case cJSON_Array:
-				default:
-					break;
-			}
+				}
+				else
+				{
+					//debug() << " recursing into object " << child->string << ": \n";
+					setStateFromJSON(child, depth + 1);
+				}
+				break;
+			case cJSON_Array:
+			default:
+				break;
 		}
-		
-		if(pNode->child && depth < 1)
-		{
-			setStateFromJSON(pNode->child, depth + 1);
-		}
-		pNode = pNode->next;
+		child = child->next;
 	}
 	
 	//updateAllProperties(); // MLTEST
@@ -294,8 +295,8 @@ void MLAppState::loadDefaultState()
 
 File MLAppState::getAppStateDir() const
 {
- 	String makerName(File::createLegalFileName (String(mpMakerName)));
- 	String applicationName(File::createLegalFileName (String(mpAppName)));
+ 	String makerName(File::createLegalFileName (String(mMakerName)));
+ 	String applicationName(File::createLegalFileName (String(mAppName)));
 
    #if JUCE_MAC || JUCE_IOS
     File dir ("~/Library/Application Support"); // user Library
@@ -320,7 +321,7 @@ File MLAppState::getAppStateDir() const
 
 File MLAppState::getAppStateFile() const
 {
-    String applicationName(mpAppName);
+    String applicationName(mAppName);
 	String extension("txt");
 	File dir(getAppStateDir());
     return dir.getChildFile(applicationName + "AppState").withFileExtension (extension);
@@ -357,5 +358,3 @@ void MLAppState::returnToFirstSavedState()
 		setStateFromBinary(p);
 	}
 }
-
-
