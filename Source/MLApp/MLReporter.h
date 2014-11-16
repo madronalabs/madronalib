@@ -32,28 +32,42 @@ typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 
 #pragma mark MLReporter 
 
-// Reporter listens to a Model and reports its changing properties by setting
+// Reporter listens to one or more property sets and reports their changing properties by setting
 // properties of Widgets. Properties may contain float, string or signal values.
 //
-class MLReporter :
-	public MLPropertyListener
+class MLReporter
 {
 public:
-	MLReporter(MLPropertySet* m);
+	MLReporter();
     ~MLReporter();
 	
-	// MLPropertyListener interface
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
-	
+	void listenTo(MLPropertySet* p);
+	void fetchChangedProperties();
+	void fetchAllProperties();
 	void addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
 	void viewProperties();
 
 protected:
 	MLPropertyViewListMap mPropertyViewsMap;
-	std::vector<MLSymbol> mSymbolData;
-	PaUtilRingBuffer mSymbolRing;
 	
 private:
+	std::vector<MLPropertyListenerPtr> pListeners;
+	
+	// our subclass of MLPropertyListener that forwards actions to us.
+	class PropertyListener : public MLPropertyListener
+	{
+	public:
+		PropertyListener(MLReporter* p, MLPropertySet* set) :
+			mpOwnerReporter(p),
+			MLPropertyListener(set)
+			{}
+		~PropertyListener()  {}
+		void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+
+	private:
+		MLReporter* mpOwnerReporter;
+	};
+	
 	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
 	class ReporterTimer : public juce::Timer
 	{
@@ -62,8 +76,14 @@ private:
 		~ReporterTimer();
 		void timerCallback();
 	private:
-		MLReporter* mpOwner;
+		MLReporter* mpOwnerReporter;
 	};
+	
+	void enqueuePropertyChange(MLSymbol property, const MLProperty& newVal);
+
+	MLPropertySet mCurrentProperties;
+	std::vector<MLSymbol> mChangeData;
+	PaUtilRingBuffer mChangeQueue;
 	std::tr1::shared_ptr<ReporterTimer> mpTimer;
 };
 

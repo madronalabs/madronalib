@@ -23,7 +23,7 @@ class MLWidget :
 	public MLPropertyListener
 {
 friend class MLWidgetContainer;
-friend class MLPropertyView;
+//friend class MLPropertyView;
 friend class MLAppView;
 public:
 	MLWidget();
@@ -37,10 +37,10 @@ public:
 	};
 
 	// MLPropertyListener methods.
-	// a Widget's local properties will get set in Immediate mode. There is no timer to propagate changes.
+	// a Widget's local properties must be set in Immediate mode. There is no timer to propagate changes.
 	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal) {}
 	
-	// in order to function, a Widget's Component must get set!
+	// in order to function, a Widget's Component must get set.
 	void setComponent(Component* pC) { pComponent = pC; }
 	Component* getComponent() const { return pComponent; }
 	

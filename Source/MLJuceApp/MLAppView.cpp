@@ -323,14 +323,11 @@ void MLAppView::setPeerBounds(int x, int y, int w, int h)
 	Rectangle<int> c = r.getIntersection(b);	
 	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
 	{
-        debug() << "	MLAppView::setPeerBounds: " << x << " " << y << " " << w << " " << h << "\n";
 		p->setBounds(Rectangle<int>(x, y, w, h), false);
 	}
 	else
 	{
 		// make new onscreen bounds rect
-		//const Desktop::Displays::Display& main = d.getDisplays().getMainDisplay();
-		//Rectangle<int>mainRect = main.userArea;		
 		Rectangle<int> onscreenBounds = b.constrainedWithin(r);
 		p->setBounds(onscreenBounds, false);
 	}

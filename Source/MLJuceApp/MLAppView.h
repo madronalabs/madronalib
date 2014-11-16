@@ -46,10 +46,12 @@ public:
 
 	virtual bool isWidgetContainer(void) { return true; }
 
-	// setup view for param p as attr of widget.
+	// using our Reporter, setup view for param p as attr of widget.
 	void addParamView(MLSymbol p, MLWidget* w, MLSymbol attr);
 
+	// add the widget and add our Responder as a listener. The Responder can then do things in HandleWidgetAction().
 	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);
+	
 	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize);	
 
 	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol paramName, 

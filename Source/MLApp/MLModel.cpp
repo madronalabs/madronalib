@@ -7,7 +7,7 @@
 
 // MLModel
 
-const int kMLModelUpdateInterval = 10;
+const int kMLModelUpdateInterval = 100;
 
 MLModel::MLModel() :
     MLPropertyListener(this)
@@ -24,7 +24,7 @@ MLModel::~MLModel()
 // MLModel::ModelTimer
 
 MLModel::ModelTimer::ModelTimer(MLModel* pM) :
-	mpModel(pM)
+	mpOwnerModel(pM)
 {
 }
 
@@ -36,7 +36,7 @@ MLModel::ModelTimer::~ModelTimer()
 void MLModel::ModelTimer::timerCallback()
 {
     // pull property changes from the PropertySet to the PropertyListener
-    mpModel->updateChangedProperties();
+    mpOwnerModel->updateChangedProperties();
 }
 
 

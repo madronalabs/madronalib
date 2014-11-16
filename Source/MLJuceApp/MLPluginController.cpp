@@ -7,13 +7,16 @@
 
 MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLWidget::Listener(),
-	MLReporter(pProcessor),
+	MLReporter(),
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
     mpProcessor(pProcessor)
 {	
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
+	
+	listenTo(pProcessor);
+	listenTo(pProcessor->getEnvironment());
 }
 
 MLPluginController::~MLPluginController()
@@ -124,13 +127,13 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 void MLPluginController::prevPreset()
 {
     mpProcessor->prevPreset();
-    updateChangedProperties();
+	MLReporter::fetchChangedProperties();
 }
 
 void MLPluginController::nextPreset()
 {
     mpProcessor->nextPreset();
-    updateChangedProperties();
+	MLReporter::fetchChangedProperties();
 }
 
 #pragma mark menus
@@ -256,7 +259,7 @@ void MLPluginController::doPresetMenu(int result)
 			SystemClipboard::copyTextToClipboard (getProcessor()->getStateAsText());
 		break;
 		case (6):	// paste
-			getProcessor()->setStateFromText (SystemClipboard::getTextFromClipboard());
+			getProcessor()->setPatchStateFromText (SystemClipboard::getTextFromClipboard());
 		break;
 
 #if SHOW_CONVERT_PRESETS
@@ -309,7 +312,7 @@ void MLPluginController::doMoreMenu(int result)
         case (0):	// dismiss
             break;
         default:
-			mpProcessor->setProperty("osc_port_offset", result - 1);
+			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 1);
             break;
     }
 }
@@ -490,13 +493,13 @@ void MLPluginController::processFileFromCollection (const MLFile& file, const ML
         File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
         if(!destFile.exists()  )
         {
-            mpProcessor->loadStateFromFile(file.getJuceFile());
+            mpProcessor->loadPatchStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         
         if(file.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
         {
-            mpProcessor->loadStateFromFile(file.getJuceFile());
+            mpProcessor->loadPatchStateFromFile(file.getJuceFile());
             mpProcessor->saveStateToRelativePath(relativeName);
         }
         

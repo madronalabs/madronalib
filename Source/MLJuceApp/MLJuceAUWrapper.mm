@@ -65,7 +65,6 @@
 #include "JuceHeader.h"
 #define Component juce::Component
 #include "MLPluginProcessor.h"
-
 // ML
 
 /** The BUILD_AU_CARBON_UI flag lets you specify whether old-school carbon hosts are supported as

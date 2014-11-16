@@ -40,12 +40,23 @@ class MLPluginProcessor :
 #endif
 	public MLModel
 {
+	friend class MLEnvironmentModel;
 public:
     enum
     {
         kRequiresSSE2,
         kRequiresSSE3
     };
+	
+	class MLEnvironmentModel : public MLModel
+	{
+	public:
+		MLEnvironmentModel(MLPluginProcessor* pProc) : mpOwnerProcessor(pProc) {}
+		~MLEnvironmentModel() {}
+		void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+		
+		MLPluginProcessor* mpOwnerProcessor;
+	};
     
 	MLPluginProcessor();
     ~MLPluginProcessor();
@@ -117,9 +128,6 @@ public:
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
 	
-	const String symbolToXMLAttr(const MLSymbol sym);
-	const MLSymbol XMLAttrToSymbol(const String& str);
-	
     const MLSymbol getParameterAlias (int index);
     float getParameterMin (int index);
 	float getParameterMax (int index);
@@ -131,21 +139,28 @@ public:
 	// signals
 	int countSignals(const MLSymbol alias);
 
-	// state
+	// get the patch and environment states as a binary blob.
+	void getPatchAndEnvStatesAsBinary (MemoryBlock& destData);
+	// set the patch and environment states from a binary blob.
+	void setPatchAndEnvStatesFromBinary (const void* data, int sizeInBytes);
+    
 	int saveStateAsVersion();
 	int saveStateOverPrevious();
 	void returnToLatestStateLoaded();
 
 	String getStateAsText();
-	void setStateFromText(const String& stateStr);
-
+	void setPatchStateFromText(const String& stateStr);
     int saveStateToFullPath(const std::string& path);
     void saveStateToRelativePath(const std::string& path);
     
-    void loadStateFromPath(const std::string& path);
+	void loadStateFromPath(const std::string& path);
 	void loadStateFromMIDIProgram (const int pgmIdx);
-	void loadStateFromFile(const File& loadFile);
+	void loadPatchStateFromFile(const File& loadFile);
+	
+	// deprecated - to remove in 2.0
 	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
+	const String symbolToXMLAttr(const MLSymbol sym);
+	const MLSymbol XMLAttrToSymbol(const String& str);
  
 	// files
 	void createFileCollections();
@@ -156,8 +171,6 @@ public:
     void nextPreset();
     void advancePreset(int amount);
 	
-    AudioPlayHead::CurrentPositionInfo lastPosInfo;
-
 	void setMLListener (MLAudioProcessorListener* const newListener) throw();
     MLProc::err sendMessageToMLListener (unsigned msg, const File& f);
 
@@ -169,6 +182,9 @@ public:
 	MLDSPEngine* getEngine() { return &mEngine; }
 	inline void showEngine() { mEngine.dump(); }
 	
+	// environment
+	MLEnvironmentModel* getEnvironment() { return mpEnvironmentModel.get(); }
+	
 protected:
 	// set what kind of event input we are listening to (MIDI or OSC)
 	void setInputProtocol(int p);
@@ -178,24 +194,22 @@ protected:
 	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
 
 	void broadcastScale(const MLScale* pScale);
-	
+		
 	// Engine creates graphs of Processors, does the work
 	MLDSPEngine	mEngine;	
 
 	int mInputProtocol;
 		
-	// TODO shared_ptr
 	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
-	
+    
+	AudioPlayHead::CurrentPositionInfo lastPosInfo;
+		
 private:
 	
 	void setCurrentPresetDir(const char* name);
     
-	// set the plugin state from a memory blob containing parameter and patcher settings.
-	void setStateFromBinary (const void* data, int sizeInBytes);
-
 	MLAudioProcessorListener* mMLListener;
     
 	// The number of parameters in the plugin is stored here so we can access it before
@@ -227,8 +241,9 @@ private:
     // vector of control events to send to engine along with each block of audio.
     MLControlEventVector mControlEvents;
 	
-	MLAppState* mpState;
-
+	MLAppStatePtr mpPatchState;
+	std::tr1::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
+	MLAppStatePtr mpEnvironmentState;
 	MLT3DHub mT3DHub;
 };
 

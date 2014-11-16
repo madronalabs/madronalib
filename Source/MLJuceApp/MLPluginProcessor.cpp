@@ -12,8 +12,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
 	mInitialized(false),
-	mInputProtocol(-1),
-	mpState(nullptr)
+	mInputProtocol(-1)
 {
 	debug() << "creating MLPluginProcessor.\n";
 	mHasParametersSet = false;
@@ -25,23 +24,21 @@ MLPluginProcessor::MLPluginProcessor() :
     
     mControlEvents.resize(kMaxControlEventsPerBlock);
 	
-	// initialize application state
-	mpState = new MLAppState(static_cast<MLModel*>(this),
-							 MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber);
+	// initialize DSP state
+	mpPatchState = MLAppStatePtr(new MLAppState(static_cast<MLModel*>(this),
+		"patch", MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber));
 	
+	// initialize environment model and state
+	mpEnvironmentModel = std::tr1::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
+	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
+		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	// initialize T3D listener
 	mT3DHub.addListener(this);
 }
 
 MLPluginProcessor::~MLPluginProcessor()
 {
-	debug() << "deleting MLPluginProcessor.\n";
-	
 	mT3DHub.removeListener(this);
-	if(mpState)
-	{
-		delete mpState;
-	}
 }
 
 #pragma mark MLModel
@@ -57,6 +54,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	{
 		case MLProperty::kFloatProperty:
 		{
+			// update DSP engine parameters
 			MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
 			if(p)
 			{
@@ -82,13 +80,6 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
 				}
 			}
-			// update OSC port offset
-			if(propName == "osc_port_offset")
-			{
-				int offset = newVal.getFloatValue();
-				debug() << "MLPluginProcessor NEW OSC offset: " << offset << "\n";
-				mT3DHub.setPortOffset(offset);
-			}
 		}
 		break;
 		case MLProperty::kStringProperty:
@@ -102,6 +93,33 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 		break;
 		default:
 		break;
+	}
+}
+
+void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
+{
+	int propertyType = newVal.getType();
+	
+	switch(propertyType)
+	{
+		case MLProperty::kFloatProperty:
+		{
+			if(propName == "osc_port_offset")
+			{
+				int offset = newVal.getFloatValue();
+				debug() << "MLPluginProcessor NEW OSC offset: " << offset << "\n";
+				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
+			}
+		}
+			break;
+		case MLProperty::kStringProperty:
+			break;
+		case MLProperty::kSignalProperty:
+			{
+			}
+			break;
+		default:
+			break;
 	}
 }
 
@@ -186,7 +204,7 @@ void MLPluginProcessor::editorResized(int w, int h)
 	bounds.clear();
 	bounds[2] = w;
 	bounds[3] = h;
-	setProperty("editor_bounds", bounds);
+	mpEnvironmentModel->setProperty("editor_bounds", bounds);
 }
 
 #pragma mark preflight and cleanup
@@ -325,7 +343,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		const unsigned blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
 		{
-			setStateFromBinary (mSavedBinaryState.getData(), blobSize);
+			setPatchAndEnvStatesFromBinary (mSavedBinaryState.getData(), blobSize);
 			mSavedBinaryState.setSize(0);
 		}
 		else 
@@ -363,7 +381,7 @@ void MLPluginProcessor::releaseResources()
 
 void MLPluginProcessor::getStateInformation (MemoryBlock& destData)
 {
-	destData = mpState->getStateAsBinary();
+	getPatchAndEnvStatesAsBinary(destData);
 }
 
 void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -376,8 +394,7 @@ void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 	}
 	else
 	{
-		setStateFromBinary (data, sizeInBytes);
-		
+		setPatchAndEnvStatesFromBinary (data, sizeInBytes);
 	}
 }
 
@@ -922,8 +939,8 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
     f->getJuceFile().replaceWithText(getStateAsText());
 	
 	// reset state stack and push current state for recall
-	mpState->clearStateStack();
-	mpState->pushStateToStack();
+	mpPatchState->clearStateStack();
+	mpPatchState->pushStateToStack();
 #endif // DEMO
     
 }
@@ -931,11 +948,51 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 String MLPluginProcessor::getStateAsText()
 {
 	String r;
-	if(mpState)
+	if(mpPatchState)
 	{
-		r = mpState->getStateAsText();
+		r = mpPatchState->getStateAsText();
 	}
 	return r;
+}
+
+void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
+{
+	// get processor state as JSON
+	cJSON* procRoot = cJSON_CreateObject();
+	if(procRoot)
+	{
+		mpPatchState->getStateAsJSON(procRoot);
+		
+		debug() << "PATCH STATE: \n" << cJSON_Print(procRoot) << "\n";
+	}
+	
+	// get environment state as JSON
+	cJSON* envRoot = cJSON_CreateObject();
+	if(envRoot)
+	{
+		mpEnvironmentState->getStateAsJSON(envRoot);
+
+		debug() << "ENV STATE: \n" << cJSON_Print(envRoot) << "\n";
+	}
+	
+	// combine the states
+	cJSON* combinedRoot = cJSON_CreateObject();
+	std::string combinedStateStr;
+	if(combinedRoot)
+	{
+		cJSON_AddItemToObject(combinedRoot, "patch", procRoot);
+		cJSON_AddItemToObject(combinedRoot, "environment", envRoot);
+		combinedStateStr = cJSON_Print(combinedRoot);
+		
+		debug() << "COMBINED STATE: \n" << combinedStateStr << "\n";
+	}
+	
+	if(combinedStateStr.length() > 0)
+	{
+		// TODO compress here
+		int stateStrLen = combinedStateStr.size();
+		destData.replaceWith(combinedStateStr.data(), stateStrLen);
+	}
 }
 
 #pragma mark load state from file
@@ -947,21 +1004,21 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         const MLFilePtr f = mPresetFiles->getFileByName(path);
         if(f != MLFilePtr())
         {
-            loadStateFromFile(f->getJuceFile());
+            loadPatchStateFromFile(f->getJuceFile());
             std::string shortPath = stripExtension(path);
             setProperty("preset", shortPath);
         }
     }
 }
 
-void MLPluginProcessor::loadStateFromFile(const File& f)
+void MLPluginProcessor::loadPatchStateFromFile(const File& f)
 {
 	if (f.exists())
 	{
 		String extension = f.getFileExtension();
 		if (extension == ".mlpreset")
 		{
-			setStateFromText(f.loadFileAsString());
+			setPatchStateFromText(f.loadFileAsString());
 		}
 		else if (extension == ".aupreset")
 		{
@@ -969,47 +1026,89 @@ void MLPluginProcessor::loadStateFromFile(const File& f)
 			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
 		}
 		
-		mpState->updateChangedProperties();
-		mpState->clearStateStack();
-		mpState->pushStateToStack();
+		mpPatchState->updateChangedProperties();
+		mpPatchState->clearStateStack();
+		mpPatchState->pushStateToStack();
 	}
 }
 
 void MLPluginProcessor::returnToLatestStateLoaded()
 {
-	mpState->returnToFirstSavedState();
+	mpPatchState->returnToFirstSavedState();
 }
 
 #pragma mark set state (JSON, or XML for backwards compatibility)
 
-// set Model and Editor states from XML or JSON in binary.
+// set Processor and Environment states from XML or JSON in binary.
 //
-void MLPluginProcessor::setStateFromBinary (const void* data, int sizeInBytes)
+void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int sizeInBytes)
 {
+	// first try getting XML from binary- this will fail if blob is not in XML format
 	XmlElementPtr xmlState(getXmlFromBinary (data, sizeInBytes));
 	if (xmlState)
 	{
-		// blob is an XML state
 		bool setViewAttributes = true;
 		setStateFromXML(*xmlState, setViewAttributes);
 	}
 	else
 	{
-        // blob is a JSON state
-		mpState->setStateFromBinary(MemoryBlock(data, sizeInBytes));
+		// TODO uncompress here
+		std::string stateStr (static_cast<const char *>(data), sizeInBytes);
+		
+		// trim starting whitespace
+		const char * pStart = stateStr.data();
+		const char * pTrimmedStart = pStart;
+		while(isspace(*pTrimmedStart) && (pTrimmedStart - pStart < sizeInBytes))
+		{
+			pTrimmedStart++;
+		}
+		
+		// assume JSON
+		bool OK = true;
+		cJSON* root = cJSON_Parse(pTrimmedStart);
+		if(root)
+		{
+			cJSON* patchState = cJSON_GetObjectItem(root, "patch");
+			if(patchState)
+			{
+				mpPatchState->setStateFromJSON(patchState);
+			}
+			else
+			{
+				OK = false;
+			}
+			
+			cJSON* environmentState = cJSON_GetObjectItem(root, "environment");
+			if(environmentState)
+			{
+				mpEnvironmentState->setStateFromJSON(environmentState);
+			}
+			else
+			{
+				OK = false;
+			}
+			
+			cJSON_Delete(root);
+		}
+		
+		if(!OK)
+		{
+			// TODO notify user in release
+			debug() << "MLPluginProcessor::setPatchAndEnvStatesFromBinary: couldn't load JSON!\n";
+		}
 	}
 	
 	// push state for access by "Revert To saved"
-	mpState->clearStateStack();
-	mpState->pushStateToStack();
+	mpPatchState->clearStateStack();
+	mpPatchState->pushStateToStack();
 }
 
 void MLPluginProcessor::loadStateFromMIDIProgram (const int idx)
 {
-	loadStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
+	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
 }
 
-void MLPluginProcessor::setStateFromText (const String& stateStr)
+void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 {
 	const String& trimmedState = stateStr.trimStart();
 	if(trimmedState[0] == '{')
@@ -1018,12 +1117,12 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 		cJSON* root = cJSON_Parse(trimmedState.toUTF8());
 		if(root)
 		{
-			mpState->setStateFromJSON(root);
+			mpPatchState->setStateFromJSON(root);
 			cJSON_Delete(root);
 		}
 		else
 		{
-			debug() << "MLPluginProcessor::setStateFromText: couldn't create JSON object!\n";
+			debug() << "MLPluginProcessor::setPatchStateFromText: couldn't create JSON object!\n";
 		}
 	}
 	else if (trimmedState[0] == '<')
@@ -1037,12 +1136,12 @@ void MLPluginProcessor::setStateFromText (const String& stateStr)
 		}
 		else
 		{
-			debug() << "MLPluginProcessor::setStateFromText: couldn't create XML object!\n";
+			debug() << "MLPluginProcessor::setPatchStateFromText: couldn't create XML object!\n";
 		}
 	}
 	else
 	{
-		debug() << "MLPluginProcessor::setStateFromText: unknown format for .mlpreset file!\n";
+		debug() << "MLPluginProcessor::setPatchStateFromText: unknown format for .mlpreset file!\n";
 	}
 	updateChangedProperties();
 
@@ -1289,13 +1388,14 @@ void MLPluginProcessor::advancePreset(int amount)
     loadStateFromPath(relPath);
 }
 
-// set default value for each scalar parameter.  needed before loading
-// patches, which are only required to store differences from these
-// default values.
 void MLPluginProcessor::setDefaultParameters()
 {
 	if (mEngine.getCompileStatus() == MLProc::OK)
-	{	
+	{
+		
+		
+		
+		
 		// set default for each parameter.
 		const unsigned numParams = getNumParameters();
 		for(unsigned i=0; i<numParams; ++i)

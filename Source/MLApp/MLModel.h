@@ -26,7 +26,7 @@ private:
 		~ModelTimer();
 		void timerCallback();
 	private:
-		MLModel* mpModel;
+		MLModel* mpOwnerModel;
 	};
 	std::tr1::shared_ptr<ModelTimer> mpTimer;
 };
