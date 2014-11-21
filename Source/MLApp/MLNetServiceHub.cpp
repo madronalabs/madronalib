@@ -45,7 +45,8 @@ const char * kServiceTypeUDP = "_osc._udp";
 MLNetServiceHub::MLNetServiceHub() :
 	browser(0),
 	resolver(0),
-	service(0)
+	service(0),
+	mPort(0)
 {
 }
 

@@ -411,7 +411,7 @@ public:
         char *data = 0;
         
         try{
-            
+	
             // configure the master fd_set for select()
 
             fd_set masterfds, tempfds;
@@ -431,7 +431,6 @@ public:
                     fdmax = i->second->impl_->Socket();
                 FD_SET( i->second->impl_->Socket(), &masterfds );
             }
-
 
             // configure the timer queue
             double currentTimeMs = GetCurrentTimeMs();

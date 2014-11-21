@@ -117,7 +117,9 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 	else if(action == "show_menu")
 	{
+		// give subclasses a chance to rebuild menus
 		updateMenu(targetProperty);
+		
 		showMenu(targetProperty, pw->getWidgetName());
 	}
 }
@@ -305,14 +307,18 @@ void MLPluginController::doScaleMenu(int result)
 
 void MLPluginController::doMoreMenu(int result)
 {
-	debug() << "MORE menu: " << result << "\n";
-	
     switch(result)
     {
         case (0):	// dismiss
             break;
+        case (1):
+		{
+			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
+			mpProcessor->getEnvironment()->setProperty("osc_enabled", !enabled);
+           break;
+		}
         default:
-			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 1);
+			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 2);
             break;
     }
 }

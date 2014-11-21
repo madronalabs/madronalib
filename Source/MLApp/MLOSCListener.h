@@ -42,7 +42,6 @@ protected:
 
 private:
 	UdpListeningReceiveSocket* mpSocket;
-	bool mSocketActive;
 	pthread_t mListenerThread;
 	int mPort;
 };

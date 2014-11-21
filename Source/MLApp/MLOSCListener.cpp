@@ -13,7 +13,6 @@
 
 MLOSCListener::MLOSCListener() :
 	mpSocket(0),
-	mSocketActive(0),
 	mPort(0),
 	mListening(false)
 {
@@ -28,9 +27,6 @@ void * MLOSCListenerStartThread(void *arg)
 {
 	MLOSCListener* pL = static_cast<MLOSCListener*>(arg);
 	UdpListeningReceiveSocket* pSocket = pL->mpSocket;
-	int port = pL->mPort;
-			
-	debug() << "MLOSCListener: starting listen thread for OSC on port " << port << "...\n";
 
 	try
 	{
@@ -46,8 +42,6 @@ void * MLOSCListenerStartThread(void *arg)
 	}
 	
 	// debug() << "MLOSCListener: listener thread on port " << port << " terminated.\n";
-
-	pL->mSocketActive = false;
 	return 0;
 }
 
@@ -62,16 +56,13 @@ int MLOSCListener::listenToOSC(int port)
 		}
 		try
 		{
-			debug() << "MLOSCListener: trying listen on port " << port << "...\n";
+			//debug() << "MLOSCListener: trying listen on port " << port << "...\n";
 			mpSocket = new UdpListeningReceiveSocket(
 				IpEndpointName( IpEndpointName::ANY_ADDRESS, port), 
 				this);
 		}
 		catch( osc::Exception& e )
 		{
-			// TODO find another socket!  Integrate with zeroconf stuff.  
-			
-			// TODO MLError() should do what exactly?
 			mpSocket = 0;
 			debug() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
 			debug() << "error: " << e.what() << "\n";
@@ -85,8 +76,7 @@ int MLOSCListener::listenToOSC(int port)
 		
 		if(mpSocket)
 		{
-			debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
-			mSocketActive = true;
+			// debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
 			mPort = port;
 			
 			int err;
@@ -110,19 +100,15 @@ int MLOSCListener::listenToOSC(int port)
 	}
 	else
 	{
-		mListening = false;
 		if(mpSocket)
 		{
-			mpSocket->AsynchronousBreak();
-			while(mSocketActive)
-			{
-				usleep(100);
-			}
+			mpSocket->Break();
 			delete mpSocket;
 			mpSocket = 0;
-			mPort = 0;
 			ret = true;
 		}
+		mListening = false;
+		ret = true;
 	}
 	return ret;
 }

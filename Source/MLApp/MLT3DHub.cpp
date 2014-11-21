@@ -13,8 +13,11 @@
 MLT3DHub::MLT3DHub() :
 	mT3DWaitTime(0),
 	mDataRate(-1),
+	mEnabled(true),
 	mUDPPortOffset(0),
-	mConnected(false)
+	mConnected(false),
+	mShouldConnect(false),
+	mShouldDisconnect(false)
 {
 	// initialize touch frame for output
 	mOutputFrame.setDims(MLT3DHub::kFrameWidth, MLT3DHub::kFrameHeight);
@@ -32,48 +35,19 @@ MLT3DHub::MLT3DHub() :
 	{
 		debug() << "MLPluginProcessor::initialize: couldn't get frame data!\n";
 	}
-	
-	// publish UDP service
-	// TODO Browse existing MLPlugin instances
 
-	// TODO make OSC services list
-	// services.clear();
-	// Browse(kDomainLocal, kServiceTypeUDP);
+	// set default name and port
+	setName(MLProjectInfo::projectName);
+	setPort(kDefaultUDPPort + mUDPPortOffset);
 	
-	// if mUDPPortNum is in list, find another port number
-	// TODO get unique port number to disambiguate multiple T3D plugin instances
-	
-	//setPortOffset(0);
-
 	// start protocol polling
 	startTimer(1000);
 }
 
 MLT3DHub::~MLT3DHub()
 {
+	stopTimer();
 	disconnect();
-}
-
-void MLT3DHub::connect()
-{
-	// setup listener thread
-	//
-	if(listenToOSC(kDefaultUDPPort + mUDPPortOffset))
-	{
-		debug() << "Listen OK, publishing: \n";
-		
-		// could possibly publish the current patch name here
-		publishUDPService();
-	}
-}
-
-void MLT3DHub::disconnect()
-{
-	if(listenToOSC(0))
-	{
-		debug() << "removing UDP: \n";
-		removeUDPService();
-	}
 }
 
 void MLT3DHub::setPortOffset(int offset)
@@ -82,20 +56,30 @@ void MLT3DHub::setPortOffset(int offset)
 	{
 		mUDPPortOffset = offset;
 		setPort(kDefaultUDPPort + mUDPPortOffset);
-		if(mListening)
-		{
-			disconnect();
-			connect();
-		}
+		
+		// turn it off and back on again
+		mShouldDisconnect = true;
+		mShouldConnect = true;
 	}
+}
+
+void MLT3DHub::setEnabled(int e)
+{
+	if(e)
+	{
+		mShouldConnect = true;
+	}
+	else
+	{
+		mShouldDisconnect = true;
+	}
+	mEnabled = e;
 }
 
 void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
 	MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService, moreServicesComing);
 	debug() << "FOUND net service " << pNetService->getName() << "\n*****\n";
-	
-	usleep(100);
 }
 
 void MLT3DHub::addListener(MLT3DHub::Listener* pL)
@@ -231,13 +215,28 @@ void MLT3DHub::ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName&
 }
 
 
-// if we are in t3d mode and get no pings for a while, switch back
-// to MIDI mode assuming Soundplane or t3d device was disconnected.
 //
 void MLT3DHub::timerCallback()
 {
 	static const int kT3DTimeout = 2; // seconds
+	
+	if(mShouldDisconnect)
+	{
+		disconnect();
+		mShouldDisconnect = false;
+	}
+	if(!mEnabled) return;
+	if(mShouldConnect)
+	{
+		connect();
+		mShouldConnect = false;
+	}
+
 	PollNetServices();
+	
+	// if we are connected and get no pings for a while, disconnect
+	// assuming Soundplane or t3d device was disconnected. The plugin will be notified
+	// and can revert to MIDI mode.
 	if(mConnected)
 	{
 		// increment counter. this is reset each time we receive a t3d frame.
@@ -247,6 +246,22 @@ void MLT3DHub::timerCallback()
 			mConnected = false;
 			notifyListeners("connected", 0);
 		}
+	}
+}
+
+void MLT3DHub::connect()
+{
+	if(listenToOSC(kDefaultUDPPort + mUDPPortOffset))
+	{
+		publishUDPService();
+	}
+}
+
+void MLT3DHub::disconnect()
+{
+	if(listenToOSC(0))
+	{
+		removeUDPService();
 	}
 }
 

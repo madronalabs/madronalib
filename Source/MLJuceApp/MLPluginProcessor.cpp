@@ -105,10 +105,14 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 	{
 		case MLProperty::kFloatProperty:
 		{
-			if(propName == "osc_port_offset")
+			if(propName == "osc_enabled")
+			{
+				int enabled = newVal.getFloatValue();
+				mpOwnerProcessor->mT3DHub.setEnabled(enabled);
+			}
+			else if(propName == "osc_port_offset")
 			{
 				int offset = newVal.getFloatValue();
-				debug() << "MLPluginProcessor NEW OSC offset: " << offset << "\n";
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
 		}
@@ -183,9 +187,8 @@ void MLPluginProcessor::initializeProcessor()
 	}
 	
 	// publish t3d service and listen for incoming t3d data
-	mT3DHub.setName(MLProjectInfo::projectName);
 	mT3DHub.setPortOffset(mpEnvironmentModel->getFloatProperty("osc_port_offset"));
-	mT3DHub.connect();
+	mT3DHub.setEnabled(mpEnvironmentModel->getFloatProperty("osc_enabled"));
 }
 
 // editor creation function to be defined in (YourPluginEditor).cpp
@@ -346,13 +349,8 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		const unsigned blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
 		{
-			debug() << "SETTING state from blob\n";
 			setPatchAndEnvStatesFromBinary (mSavedBinaryState.getData(), blobSize);
 			mSavedBinaryState.setSize(0);
-			
-			// do state change actions
-			updateAllProperties();
-			mpEnvironmentModel->updateAllProperties();
 		}
 		else 
 		{

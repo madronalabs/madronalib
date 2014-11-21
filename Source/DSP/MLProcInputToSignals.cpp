@@ -199,7 +199,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
 namespace
 {
 	MLProcRegistryEntry<MLProcInputToSignals> classReg("midi_to_signals");
-	ML_UNUSED MLProcParam<MLProcInputToSignals> params[9] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate", "osc_port_offset" };
+	ML_UNUSED MLProcParam<MLProcInputToSignals> params[8] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate" };
 	// no input signals.
 	ML_UNUSED MLProcOutput<MLProcInputToSignals> outputs[] = {"*"};	// variable outputs
 }	

@@ -38,8 +38,7 @@ public:
 	MLT3DHub();
 	~MLT3DHub();
 	
-	void connect();
-	void disconnect();
+	void setEnabled(int e);
 	void setPortOffset(int offset);
 	
 	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
@@ -71,13 +70,16 @@ protected:
 	void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint);
 	
 private:
+	void connect();
+	void disconnect();
+
 	std::vector<MLT3DHub::Listener*> mpListeners;
 
-	UdpListeningReceiveSocket* mpSocket;
-	pthread_t mListenerThread;
-
+	int mEnabled;
 	int mUDPPortOffset;
 	bool mConnected;
+	bool mShouldConnect;
+	bool mShouldDisconnect;
 	MLSignal mTouchFrames;
 	PaUtilRingBuffer mFrameBuf;
 	MLSignal mOutputFrame;
