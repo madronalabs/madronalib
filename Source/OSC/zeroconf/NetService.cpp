@@ -171,8 +171,12 @@ void NetService::publish(bool launchThread)
 void NetService::publishWithOptions(Options options, bool launchThread)
 {
 	stop();
-	  
-  if(mPort<0)
+	if(mPort == 0)
+	{
+		return;
+	}
+	
+  if(mPort < 0)
   {
     if(mpListener)
     {
@@ -273,7 +277,7 @@ void NetService::stop()
   if(mpNetServiceThread)
   {
     mpNetServiceThread->setThreadShouldExit();
-    mpNetServiceThread->waitForThreadToExit(100);
+    mpNetServiceThread->waitForThreadToExit(1000);
     delete mpNetServiceThread;
     mpNetServiceThread = NULL;
   }

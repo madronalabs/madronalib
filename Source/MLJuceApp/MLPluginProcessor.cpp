@@ -32,6 +32,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpEnvironmentModel = std::tr1::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
 	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
+	
 	// initialize T3D listener
 	mT3DHub.addListener(this);
 }
@@ -182,6 +183,8 @@ void MLPluginProcessor::initializeProcessor()
 	}
 	
 	// publish t3d service and listen for incoming t3d data
+	mT3DHub.setName(MLProjectInfo::projectName);
+	mT3DHub.setPortOffset(mpEnvironmentModel->getFloatProperty("osc_port_offset"));
 	mT3DHub.connect();
 }
 
@@ -343,8 +346,13 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		const unsigned blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
 		{
+			debug() << "SETTING state from blob\n";
 			setPatchAndEnvStatesFromBinary (mSavedBinaryState.getData(), blobSize);
 			mSavedBinaryState.setSize(0);
+			
+			// do state change actions
+			updateAllProperties();
+			mpEnvironmentModel->updateAllProperties();
 		}
 		else 
 		{
@@ -355,6 +363,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			}
 		}		
 		
+		// after setting state, initialize processor
 		if(!mInitialized)
 		{					
 			initializeProcessor();
@@ -628,9 +637,6 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
-		// MLTEST
-		// debug() << "samples: " << samples << "\n";
-		
         mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
     }
 	else
@@ -665,11 +671,6 @@ float MLPluginProcessor::getParameter (int index)
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
 	if (index < 0) return;
-	
-	debug() << "         PARAM: " << index << " VALUE: " << newValue << "\n";
-	// MLTEST
-	
-	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);

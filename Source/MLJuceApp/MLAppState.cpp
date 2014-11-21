@@ -284,8 +284,6 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 		}
 		child = child->next;
 	}
-	
-	//updateAllProperties(); // MLTEST
 }
 
 void MLAppState::loadDefaultState()

@@ -218,9 +218,6 @@ private:
 
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
 	//
-	
-	// MLTEST try SymbolMappedArray of properties.
-	
 	SymbolMappedArray<MLProperty, kMLProcLocalParams> mParams;
 };
 

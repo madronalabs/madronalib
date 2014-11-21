@@ -28,6 +28,8 @@
 #include <list>
 #include <tr1/memory>
 
+#include "MLDebug.h" // TEMP
+
 #define NetServiceListener ZeroConf::NetServiceListener
 #define NetServiceBrowserListener ZeroConf::NetServiceBrowserListener
 #define NetService ZeroConf::NetService
@@ -36,8 +38,6 @@
 extern const char * kDomainLocal;
 extern const char * kServiceTypeUDP;
 
-
-//------------------------------------------------------------------------------------------------------------
 class MLNetServiceHub : 
 	public NetServiceListener, 
 	public NetServiceBrowserListener
@@ -54,7 +54,10 @@ public:
 
 	virtual void Browse(const char *domain, const char *type);
 	virtual void Resolve(const char *domain, const char *type, const char *name);
-	virtual void publishUDPService(const char *name, int port);
+	
+	virtual void publishUDPService();
+	virtual void removeUDPService();
+	
 	void setName(const char *name);
 	void setPort(int port);
 

@@ -31,11 +31,11 @@ public:
 	MLOSCListener();
 	virtual ~MLOSCListener();
 	
-	// listen to the given port or, if port = 0, shut down listening gear
-	void listenToOSC(int port);
+	// listen to the given port or, if port = 0, shut down listening gear. Return success.
+	int listenToOSC(int port);
 		
 protected:
-    virtual void ProcessMessage(const osc::ReceivedMessage &, const IpEndpointName& ) = 0;
+    virtual void ProcessMessage(const osc::ReceivedMessage&, const IpEndpointName& ) = 0;
 	virtual void ProcessBundle(const osc::ReceivedBundle& , const IpEndpointName& ) = 0;
 
 	bool mListening;

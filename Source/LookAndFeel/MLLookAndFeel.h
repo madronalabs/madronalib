@@ -219,7 +219,6 @@ public:
                                               GlyphArrangement& destArrangement,
                                               int width);
 */
-// MLTEST    MLButton* createFileBrowserGoUpButton();
 
     void layoutFileBrowserComponent (FileBrowserComponent& browserComp,
                                              DirectoryContentsDisplayComponent* fileListComponent,

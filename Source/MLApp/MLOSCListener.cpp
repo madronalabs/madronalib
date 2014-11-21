@@ -51,8 +51,9 @@ void * MLOSCListenerStartThread(void *arg)
 	return 0;
 }
 
-void MLOSCListener::listenToOSC(int port)
+int MLOSCListener::listenToOSC(int port)
 {
+	int ret = false;
 	if(port)
 	{
 		if(mpSocket)
@@ -94,10 +95,18 @@ void MLOSCListener::listenToOSC(int port)
 			// debug() << "initializing pthread attributes...\n";
 			err = pthread_attr_init(&attr);
 
-			// debug() << "creating listener thread...\n";
-			err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);			
+			if(!err)
+			{
+				// debug() << "creating listener thread...\n";
+				err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);
+				
+				if(!err)
+				{
+					ret = true;
+					mListening = true;
+				}
+			}
 		}
-		mListening = true;
 	}
 	else
 	{
@@ -112,8 +121,10 @@ void MLOSCListener::listenToOSC(int port)
 			delete mpSocket;
 			mpSocket = 0;
 			mPort = 0;
+			ret = true;
 		}
 	}
+	return ret;
 }
 
 #endif // ML_WINDOWS

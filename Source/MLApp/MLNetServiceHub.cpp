@@ -42,8 +42,6 @@
 const char * kDomainLocal = "local.";
 const char * kServiceTypeUDP = "_osc._udp";
 
-//------------------------------------------------------------------------------------------------------------
-
 MLNetServiceHub::MLNetServiceHub() :
 	browser(0),
 	resolver(0),
@@ -64,6 +62,8 @@ void MLNetServiceHub::Browse(const char *domain, const char *type)
 	browser = 0;
 	browser = new NetServiceBrowser();
 	browser->setListener(this);
+	
+	// launch a thread that searches for services.
 	browser->searchForServicesOfType(type, domain);
 }
 
@@ -136,24 +136,33 @@ void MLNetServiceHub::setPort(int port)
 	buildFullName();
 	if(service)
 	{
+		service->setName(mName);
 		service->setPort(port);
 		service->publish(false);
 	}
 }
-void MLNetServiceHub::publishUDPService(const char *name, int port)
-{
-	if(service) delete service;
-	service = 0;
-	setName(name);
-	setPort(port);
 
-	service = new NetService(kDomainLocal, kServiceTypeUDP, mFullName.c_str(), port);
+void MLNetServiceHub::publishUDPService()
+{
+	service = new NetService(kDomainLocal, kServiceTypeUDP, mFullName.c_str(), mPort);
 	service->setListener(this);
 	service->publish(false);
 }
 
+void MLNetServiceHub::removeUDPService()
+{
+	if(service)
+	{
+		delete service;
+		service = 0;
+	}
+}
+
 void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
+	
+	debug() << "FOUND service: " << pNetService->getName() << "\n";
+
 	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
 	if(it!=mServices.end()) return; // we already have it
 	mServices.push_back(pNetService->getName());
@@ -161,6 +170,9 @@ void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetS
 
 void MLNetServiceHub::didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
+	
+	debug() << "REMOVED service: " << pNetService->getName() << "\n";
+
 	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
 	if(it==mServices.end()) return;      // we don't have it
 	//long index = it-mServices.begin();   // store the position

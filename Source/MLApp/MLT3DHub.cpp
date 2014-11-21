@@ -42,6 +42,8 @@ MLT3DHub::MLT3DHub() :
 	
 	// if mUDPPortNum is in list, find another port number
 	// TODO get unique port number to disambiguate multiple T3D plugin instances
+	
+	//setPortOffset(0);
 
 	// start protocol polling
 	startTimer(1000);
@@ -49,17 +51,29 @@ MLT3DHub::MLT3DHub() :
 
 MLT3DHub::~MLT3DHub()
 {
-	listenToOSC(0);
+	disconnect();
 }
 
 void MLT3DHub::connect()
 {
-	// could possibly publish the current patch name here
-	publishUDPService(MLProjectInfo::projectName, kDefaultUDPPort + mUDPPortOffset);
-	
 	// setup listener thread
 	//
-	listenToOSC(kDefaultUDPPort + mUDPPortOffset);
+	if(listenToOSC(kDefaultUDPPort + mUDPPortOffset))
+	{
+		debug() << "Listen OK, publishing: \n";
+		
+		// could possibly publish the current patch name here
+		publishUDPService();
+	}
+}
+
+void MLT3DHub::disconnect()
+{
+	if(listenToOSC(0))
+	{
+		debug() << "removing UDP: \n";
+		removeUDPService();
+	}
 }
 
 void MLT3DHub::setPortOffset(int offset)
@@ -70,7 +84,8 @@ void MLT3DHub::setPortOffset(int offset)
 		setPort(kDefaultUDPPort + mUDPPortOffset);
 		if(mListening)
 		{
-			listenToOSC(kDefaultUDPPort + mUDPPortOffset);
+			disconnect();
+			connect();
 		}
 	}
 }

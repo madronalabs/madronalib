@@ -25,9 +25,9 @@
 #include <stdexcept>
 
 class MLT3DHub :
+	public MLNetServiceHub,
 	private MLOSCListener,
-	private MLNetServiceHub,
-	private Timer
+	private juce::Timer
 {
 public:
 	static const int kFrameWidth = 4;
@@ -39,6 +39,7 @@ public:
 	~MLT3DHub();
 	
 	void connect();
+	void disconnect();
 	void setPortOffset(int offset);
 	
 	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);

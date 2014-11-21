@@ -67,7 +67,7 @@ MLReporter::~MLReporter()
 
 void MLReporter::enqueuePropertyChange(MLSymbol prop, const MLProperty& newVal)
 {
-	// enqueue change token
+	// enqueue change
 	int written = PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
 
 	// store changed value
