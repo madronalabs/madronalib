@@ -367,7 +367,7 @@ void MLPropertySet::broadcastAllProperties()
 	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
 		MLSymbol p = it->first;
-		broadcastProperty(p, true);
+		broadcastProperty(p, false);
 	}
 }
 
@@ -396,6 +396,7 @@ void MLPropertyListener::updateAllProperties()
 {
     if(!mpPropertyOwner) return;
 	mpPropertyOwner->broadcastAllProperties();
+
 	std::map<MLSymbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
@@ -403,6 +404,7 @@ void MLPropertyListener::updateAllProperties()
 		state.mChangedSinceUpdate = true;
 	}
 	updateChangedProperties();
+	 
 }
 
 void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
