@@ -36,9 +36,7 @@ MLT3DHub::MLT3DHub() :
 		debug() << "MLPluginProcessor::initialize: couldn't get frame data!\n";
 	}
 
-	// set default name and port
-	setName(MLProjectInfo::projectName);
-	setPort(kDefaultUDPPort + mUDPPortOffset);
+	setPortOffset(0);
 	
 	// start protocol polling
 	startTimer(1000);
@@ -54,7 +52,11 @@ void MLT3DHub::setPortOffset(int offset)
 {
 	if(offset != mUDPPortOffset)
 	{
+		// set default name and port
 		mUDPPortOffset = offset;
+		std::stringstream nameStream;
+		nameStream << MLProjectInfo::projectName << " (" << mUDPPortOffset << ")";
+		setName(nameStream.str());
 		setPort(kDefaultUDPPort + mUDPPortOffset);
 		
 		// turn it off and back on again
@@ -79,7 +81,7 @@ void MLT3DHub::setEnabled(int e)
 void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
 	MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService, moreServicesComing);
-	debug() << "FOUND net service " << pNetService->getName() << "\n*****\n";
+	// debug() << "FOUND net service " << pNetService->getName() << "\n*****\n";
 }
 
 void MLT3DHub::addListener(MLT3DHub::Listener* pL)
@@ -214,8 +216,6 @@ void MLT3DHub::ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName&
 		PaUtil_WriteRingBuffer(&mFrameBuf, mOutputFrame.getBuffer(), 1);
 }
 
-
-//
 void MLT3DHub::timerCallback()
 {
 	static const int kT3DTimeout = 2; // seconds

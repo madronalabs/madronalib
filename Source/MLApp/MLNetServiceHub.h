@@ -3,15 +3,8 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-
 #ifndef __ML_NET_SERVICE_HUB_H_
 #define __ML_NET_SERVICE_HUB_H_
-
-//#include "MLDebug.h"
-//#include "MLTime.h"
-
-//#include "OscOutboundPacketStream.h"
-//#include "UdpSocket.h"
 
 #if ML_WINDOWS
 	// TODO
@@ -58,7 +51,7 @@ public:
 	virtual void publishUDPService();
 	virtual void removeUDPService();
 	
-	void setName(const char *name);
+	void setName(const std::string& name);
 	void setPort(int port);
 
 	bool pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err);
@@ -82,11 +75,8 @@ private:
 	virtual void willSearch(NetServiceBrowser *) {}
 	virtual void didNotSearch(NetServiceBrowser *) {}
 	virtual void didStopSearch(NetServiceBrowser *) {}
-	
-	void buildFullName();
 
 	std::string mName;
-	std::string mFullName;
 	int mPort;
 };
 

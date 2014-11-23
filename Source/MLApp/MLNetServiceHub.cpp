@@ -108,33 +108,22 @@ void MLNetServiceHub::PollNetServices()
 {
 	if(resolver && resolver->getDNSServiceRef())
 	{
-printf("PollNetServices::polling...\n");
 		DNSServiceErrorType err = kDNSServiceErr_NoError;
 		if(pollService(resolver->getDNSServiceRef(), 0.001, err))
 		{
-printf("PollNetServices::stop.\n");
 			resolver->stop();
 		}
 	}
 }
 
-void MLNetServiceHub::buildFullName()
-{
-	std::stringstream fullName;
-	fullName << mName << " (" << mPort << ")";
-	mFullName = (fullName.str());
-}
-
-void MLNetServiceHub::setName(const char *name)
+void MLNetServiceHub::setName(const std::string& name)
 {
 	mName = std::string(name);
-	buildFullName();
 }
 
 void MLNetServiceHub::setPort(int port)
 {
 	mPort = port;
-	buildFullName();
 	if(service)
 	{
 		service->setName(mName);
@@ -145,7 +134,7 @@ void MLNetServiceHub::setPort(int port)
 
 void MLNetServiceHub::publishUDPService()
 {
-	service = new NetService(kDomainLocal, kServiceTypeUDP, mFullName.c_str(), mPort);
+	service = new NetService(kDomainLocal, kServiceTypeUDP, mName.c_str(), mPort);
 	service->setListener(this);
 	service->publish(false);
 }
@@ -161,8 +150,7 @@ void MLNetServiceHub::removeUDPService()
 
 void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
-	
-	debug() << "FOUND service: " << pNetService->getName() << "\n";
+	// debug() << "FOUND service: " << pNetService->getName() << "\n";
 
 	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
 	if(it!=mServices.end()) return; // we already have it
@@ -171,8 +159,7 @@ void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetS
 
 void MLNetServiceHub::didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
-	
-	debug() << "REMOVED service: " << pNetService->getName() << "\n";
+	// debug() << "REMOVED service: " << pNetService->getName() << "\n";
 
 	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
 	if(it==mServices.end()) return;      // we don't have it
@@ -184,7 +171,6 @@ void MLNetServiceHub::didResolveAddress(NetService *pNetService)
 {
 //	const std::string& hostName = pNetService->getHostName();
 //	int port = pNetService->getPort();
-	
 }
 
 void MLNetServiceHub::didPublish(NetService *pNetService)
