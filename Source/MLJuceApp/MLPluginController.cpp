@@ -315,7 +315,7 @@ void MLPluginController::doMoreMenu(int result)
 		{
 			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
 			mpProcessor->getEnvironment()->setProperty("osc_enabled", !enabled);
-           break;
+			break;
 		}
         default:
 			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 2);

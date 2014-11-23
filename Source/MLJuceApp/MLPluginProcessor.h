@@ -172,10 +172,6 @@ public:
 	
 	void setMLListener (MLAudioProcessorListener* const newListener) throw();
     MLProc::err sendMessageToMLListener (unsigned msg, const File& f);
-
-	// scales
-	void loadScale(const File& f);
-	void loadDefaultScale();
 	
 	// engine stuff
 	MLDSPEngine* getEngine() { return &mEngine; }
@@ -190,9 +186,8 @@ protected:
 
 	// set the parameter of the Engine but not the Model property.
 	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
+	void setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue);
 	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
-
-	void broadcastScale(const MLScale* pScale);
 		
 	// Engine creates graphs of Processors, does the work
 	MLDSPEngine	mEngine;	

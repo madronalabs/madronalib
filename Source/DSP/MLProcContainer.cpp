@@ -1880,6 +1880,8 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				}
 				else if (createdType == "string")
 				{
+					setPublishedParamAttrs(p, child);
+					mParamGroups.addParamToCurrentGroup(p);
 				}
 				else if (createdType == "signal")
 				{

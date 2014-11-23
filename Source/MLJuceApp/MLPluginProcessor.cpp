@@ -59,8 +59,6 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 			MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
 			if(p)
 			{
-				// debug() << "MLPluginProcessor::doPropertyChangeAction " << propName << " -> " << f << "\n";
-				
 				// set published float parameter in DSP engine.
 				setParameterWithoutProperty (propName, f);
 				
@@ -84,6 +82,11 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 		}
 		break;
 		case MLProperty::kStringProperty:
+		{
+			// set published string parameter in DSP engine.
+			const std::string& sigVal = newVal.getStringValue();
+			setStringParameterWithoutProperty (propName, sigVal);
+		}
 		break;
 		case MLProperty::kSignalProperty:
 		{
@@ -685,6 +688,17 @@ void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float n
 	mHasParametersSet = true;
 }
 
+// set string plugin parameter by name without setting property. Typically called from internal code.
+//
+void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue)
+{
+	int index = getParameterIndex(paramName);
+	if (index < 0) return;
+	
+	mEngine.setPublishedParam(index, MLProperty(newValue));
+	mHasParametersSet = true;
+}
+
 // set signal plugin parameter by name without setting property. Typically called from internal code.
 //
 void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue)
@@ -961,8 +975,6 @@ void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 	if(procRoot)
 	{
 		mpPatchState->getStateAsJSON(procRoot);
-		
-		debug() << "PATCH STATE: \n" << cJSON_Print(procRoot) << "\n";
 	}
 	
 	// get environment state as JSON
@@ -970,8 +982,6 @@ void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 	if(envRoot)
 	{
 		mpEnvironmentState->getStateAsJSON(envRoot);
-
-		debug() << "ENV STATE: \n" << cJSON_Print(envRoot) << "\n";
 	}
 	
 	// combine the states
@@ -982,8 +992,6 @@ void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 		cJSON_AddItemToObject(combinedRoot, "patch", procRoot);
 		cJSON_AddItemToObject(combinedRoot, "environment", envRoot);
 		combinedStateStr = cJSON_Print(combinedRoot);
-		
-		debug() << "COMBINED STATE: \n" << combinedStateStr << "\n";
 	}
 	
 	if(combinedStateStr.length() > 0)
@@ -1143,7 +1151,6 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 		debug() << "MLPluginProcessor::setPatchStateFromText: unknown format for .mlpreset file!\n";
 	}
 	updateChangedProperties();
-
 }
 
 void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
@@ -1185,23 +1192,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     }
     std::string fullScaleName(fullName.toUTF8());
 	setProperty("key_scale", fullScaleName);
-    bool loaded = false;
 	
-    // look for scale under full name with path
-    if(fullScaleName != std::string())
-    {
-        const MLFilePtr f = mScaleFiles->getFileByName(fullScaleName);
-        if(f != MLFilePtr())
-        {
-            loadScale(f->getJuceFile());
-            loaded = true;
-        }
-    }
-    if(!loaded)
-    {
-        loadDefaultScale();
-    }
-    
 	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
 	const String presetName = xmlState.getStringAttribute ("presetName");
 	setProperty("preset", std::string(presetName.toUTF8()));
@@ -1391,10 +1382,6 @@ void MLPluginProcessor::setDefaultParameters()
 {
 	if (mEngine.getCompileStatus() == MLProc::OK)
 	{
-		
-		
-		
-		
 		// set default for each parameter.
 		const unsigned numParams = getNumParameters();
 		for(unsigned i=0; i<numParams; ++i)
@@ -1496,117 +1483,6 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 	return err;
 }
 
-// TODO what is this doing in Processor? Should be in MLScale.
-void MLPluginProcessor::loadScale(const File& f) 
-{
-	MLScale* pScale = mEngine.getScale();
-	if (!pScale) return;
-
-	String scaleName = f.getFileNameWithoutExtension();
-	String scaleDir = f.getParentDirectory().getFileNameWithoutExtension();
-	String scaleStr = f.loadFileAsString();
-	const String delim = "\n\r";
-	int a, b;
-	int contentLines = 0;
-	int ratios = 0;
-
-	// debug() << "MLPluginProcessor: loading scale " << scaleDir << "/" << scaleName << "\n";		
-
-	a = b = 0;
-	while(b >= 0)
-	{
-		b = scaleStr.indexOfAnyOf(delim, a, false);
-		
-//		debug() << "[" << a << ", " << b << "] > " << scaleStr.substring(a, b) << "\n";
-		String inputLine = scaleStr.substring(a, b);
-		
-		if (inputLine[0] != '!')
-		{
-			contentLines++;
-			
-			switch(contentLines)
-			{
-				case 1:
-				{
-					const char* descStr = inputLine.toUTF8();
-					pScale->setDescription(descStr);
-					const char* nameStr = scaleName.toUTF8();
-					pScale->setName(nameStr);
-				}
-				break;
-				
-				case 2:
-				{
-//					int notes = inputLine.getIntValue(); // unused
-					pScale->clear();
-				}
-				break;
-				
-				default: // after 2nd line, add ratios.
-				{
-					// 
-					if (inputLine.contains("."))
-					{
-						double ratio = inputLine.getDoubleValue();
-						ratios++;
-						pScale->addRatio(ratio);
-					}
-					else
-					{
-						if (inputLine.containsChar('/'))
-						{
-							int s = inputLine.indexOfChar('/');
-							String numStr = inputLine.substring(0, s);
-							String denomStr = inputLine.substring(s + 1, inputLine.length());
-							int num = numStr.getIntValue();
-							int denom = denomStr.getIntValue();
-//	debug() << "n:" << num << " denom: " << denom << "\n";
-							if ((num > 0) && (denom > 0))
-							{
-								ratios++;
-								pScale->addRatio(num, denom);
-							}
-						}
-						else
-						{
-							int num = inputLine.getIntValue();
-							if (num > 0)
-							{
-								ratios++;
-								pScale->addRatio(num, 1);
-							}
-						}
-					}
-				}
-				break;			
-			}
-		}
-		
-		a = b + 2;	
-	}
-	
-	if (ratios > 0)
-	{
-		// TODO load .kbm mapping file if one exists
-		pScale->setDefaultMapping();
-		pScale->recalcRatios();		
-	}
-	
-	broadcastScale(pScale);
-}
-
-void MLPluginProcessor::loadDefaultScale()
-{
-	MLScale* pScale = mEngine.getScale();
-	if (!pScale) return;
-	
-	pScale->setDefaultScale();
-	pScale->setDefaultMapping();
-	pScale->recalcRatios();		
-	broadcastScale(pScale);
-} 
-
-
 // called to change the input protocol, or ping that t3d is alive.
 //
 void MLPluginProcessor::setInputProtocol(int p)
@@ -1626,21 +1502,5 @@ void MLPluginProcessor::setInputProtocol(int p)
 		mInputProtocol = p;
 	}
 }
-
-// broadcastScale: send scale to any of our processors that need it.
-//
-void MLPluginProcessor::broadcastScale(const MLScale* pScale)
-{
-    static const char* seqPath = "voices/voice/seq/seq";
-    MLProcList sequencers;
-	getEngine()->getProcList(sequencers, MLPath(seqPath), kMLEngineMaxVoices);
-    for (MLProcListIterator p = sequencers.begin(); p != sequencers.end(); p++)
-    {
-//        MLProcStepSequencer& sequencer = static_cast<MLProcStepSequencer&>(**p);
-  //      sequencer.setScale(pScale);
-    }
-}
-
-
 
 

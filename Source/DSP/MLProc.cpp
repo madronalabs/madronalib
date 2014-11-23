@@ -182,6 +182,11 @@ MLParamValue MLProc::getParam(const MLSymbol pname)
 	return procInfo().getParamProperty(pname).getFloatValue();
 }
 
+const std::string& MLProc::getStringParam(const MLSymbol pname)
+{
+	return procInfo().getParamProperty(pname).getStringValue();
+}
+
 const MLSignal& MLProc::getSignalParam(const MLSymbol pname)
 {
 	return procInfo().getParamProperty(pname).getSignalValue();

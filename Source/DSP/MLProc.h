@@ -420,6 +420,7 @@ public:
 	// get and set parameters
 	virtual void setParam(const MLSymbol p, const MLProperty& val);
 	virtual MLParamValue getParam(const MLSymbol p);
+	virtual const std::string& getStringParam(const MLSymbol p);
 	virtual const MLSignal& getSignalParam(const MLSymbol p);
 	
 	// MLProc returns the index to an entry in its proc map.
