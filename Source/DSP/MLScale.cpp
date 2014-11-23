@@ -246,6 +246,43 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 	return mKeyMap.mNotes.size();
 }
 
+// TODO: look at moving this code and similar kinds to a loader utilities / file helpers object or something.
+// the impetus is that an object like MLScale really shouldn't know about Files.
+// scales are used by procs, which also shouldn't really have to know about Files. so maybe the MLProc
+// gets the i/o utility through the help of its Context.
+void MLScale::loadFromRelativePath(const std::string& scaleName)
+{
+	if(scaleName != mScalePath)
+	{
+		File scaleRoot = getDefaultFileLocation(kScaleFiles);
+		if (scaleRoot.exists() && scaleRoot.isDirectory())
+		{
+			// TODO add MLFile methods so this can all be done with MLFiles and std::string
+			File scaleFile = scaleRoot.getChildFile(String(scaleName.c_str()));
+			if(scaleFile.exists())
+			{
+				String scaleStr = scaleFile.loadFileAsString();
+				
+				// look for .kbm mapping file
+				String mapStr;
+				File mappingFile = scaleFile.withFileExtension(".kbm");
+				if(mappingFile.exists())
+				{
+					mapStr = mappingFile.loadFileAsString();
+				}
+				
+				loadFromString(std::string(scaleStr.toUTF8()), std::string(mapStr.toUTF8()));
+			}
+			else
+			{
+				// default is 12-equal
+				setDefaults();
+			}
+		}
+		mScalePath = scaleName;
+	}
+}
+
 float MLScale::noteToPitch(float note) const
 {
 	float fn = clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));

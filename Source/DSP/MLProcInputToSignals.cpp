@@ -375,35 +375,7 @@ void MLProcInputToSignals::doParams()
 	mOSCDataRate = (int)getParam("data_rate");
 	
 	const std::string& scaleName = getStringParam("scale");
-	if(scaleName != mScalePath)
-	{
-		File scaleRoot = getDefaultFileLocation(kScaleFiles);
-		if (scaleRoot.exists() && scaleRoot.isDirectory())
-		{
-			// TODO add MLFile methods so this can all be done with MLFiles and std::string
-			File scaleFile = scaleRoot.getChildFile(String(scaleName.c_str()));
-			if(scaleFile.exists())
-			{
-				String scaleStr = scaleFile.loadFileAsString();
-
-				// look for .kbm mapping file
-				String mapStr;
-				File mappingFile = scaleFile.withFileExtension(".kbm");
-				if(mappingFile.exists())
-				{
-					mapStr = mappingFile.loadFileAsString();
-				}
-
-				mScale.loadFromString(std::string(scaleStr.toUTF8()), std::string(mapStr.toUTF8()));
-			}
-			else
-			{
-				// default is 12-equal
-				mScale.setDefaults();
-			}
-		}
-		mScalePath = scaleName;
-	}
+	mScale.loadFromRelativePath(scaleName);
 	
 	int newProtocol = (int)getParam("protocol");	
 	if (newProtocol != mProtocol)
