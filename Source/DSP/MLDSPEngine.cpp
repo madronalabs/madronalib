@@ -546,16 +546,6 @@ void MLDSPEngine::clearMIDI()
 	}
 }
 
-MLScale* MLDSPEngine::getScale()
-{
-	MLScale* r = 0;
-	if (mpInputToSignalsProc)
-	{
-		r = mpInputToSignalsProc->getScale();
-	}
-	return r;
-}
-
 // ----------------------------------------------------------------
 #pragma mark Process
 

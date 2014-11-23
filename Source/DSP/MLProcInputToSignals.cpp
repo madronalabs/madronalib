@@ -159,7 +159,7 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 		mdAmp.addChange(vel, time);
 		if(e.mType == MLControlEvent::kNoteOn)
 		{
-			mdPitch.addChange(scale.noteToFrequency(note), time);
+			mdPitch.addChange(scale.noteToLogPitch(note), time);
 			mdVel.addChange(vel, time);
 		}
 	}
@@ -177,7 +177,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
     mInstigatorID = e.mID;
     mNote = note;
     mAge = 0;
-    mdPitch.addChange(scale.noteToFrequency(note), time);
+    mdPitch.addChange(scale.noteToLogPitch(note), time);
     
     if (retrig)
     {
@@ -199,7 +199,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
 namespace
 {
 	MLProcRegistryEntry<MLProcInputToSignals> classReg("midi_to_signals");
-	ML_UNUSED MLProcParam<MLProcInputToSignals> params[8] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate" };
+	ML_UNUSED MLProcParam<MLProcInputToSignals> params[9] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate" , "scale"};
 	// no input signals.
 	ML_UNUSED MLProcOutput<MLProcInputToSignals> outputs[] = {"*"};	// variable outputs
 }	
@@ -373,7 +373,38 @@ void MLProcInputToSignals::doParams()
     
     // TODO enable / disable voice containers here
 	mOSCDataRate = (int)getParam("data_rate");
+	
+	const std::string& scaleName = getStringParam("scale");
+	if(scaleName != mScalePath)
+	{
+		File scaleRoot = getDefaultFileLocation(kScaleFiles);
+		if (scaleRoot.exists() && scaleRoot.isDirectory())
+		{
+			// TODO add MLFile methods so this can all be done with MLFiles and std::string
+			File scaleFile = scaleRoot.getChildFile(String(scaleName.c_str()));
+			if(scaleFile.exists())
+			{
+				String scaleStr = scaleFile.loadFileAsString();
 
+				// look for .kbm mapping file
+				String mapStr;
+				File mappingFile = scaleFile.withFileExtension(".kbm");
+				if(mappingFile.exists())
+				{
+					mapStr = mappingFile.loadFileAsString();
+				}
+
+				mScale.loadFromString(std::string(scaleStr.toUTF8()), std::string(mapStr.toUTF8()));
+			}
+			else
+			{
+				// default is 12-equal
+				mScale.setDefaults();
+			}
+		}
+		mScalePath = scaleName;
+	}
+	
 	int newProtocol = (int)getParam("protocol");	
 	if (newProtocol != mProtocol)
 	{
@@ -618,7 +649,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 					mUnisonInputTouch = v;
 					ux = mVoices[v].mStartX = x;
 					uy = mVoices[v].mStartY = y;
-					upitch = mVoices[v].mPitch = mScale.noteToFrequency(note);
+					upitch = mVoices[v].mPitch = mScale.noteToLogPitch(note);
 					udx = 0.f;
 					udy = 0.f;		
 				}
@@ -656,7 +687,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 				ux = mLatestFrame(0, mUnisonInputTouch);
 				uy = mLatestFrame(1, mUnisonInputTouch);
 				note = mLatestFrame(3, mUnisonInputTouch);
-				upitch = mScale.noteToFrequency(note);
+				upitch = mScale.noteToLogPitch(note);
 				udx = ux - mVoices[mUnisonInputTouch].mStartX;
 				udy = uy - mVoices[mUnisonInputTouch].mStartY;
 			}
@@ -696,14 +727,14 @@ void MLProcInputToSignals::processOSC(const int frames)
 					// process note on
 					mVoices[v].mStartX = x;
 					mVoices[v].mStartY = y;
-					mVoices[v].mPitch = mScale.noteToFrequency(note);
+					mVoices[v].mPitch = mScale.noteToLogPitch(note);
 					dx = 0.f;
 					dy = 0.f;
 				}
 				else
 				{
 					// note continues
-					mVoices[v].mPitch = mScale.noteToFrequency(note);
+					mVoices[v].mPitch = mScale.noteToLogPitch(note);
 					dx = x - mVoices[v].mStartX;
 					dy = y - mVoices[v].mStartY;
 				}
@@ -715,8 +746,9 @@ void MLProcInputToSignals::processOSC(const int frames)
 				if (mVoices[v].mZ1 > 0.)
 				{
 					// process note off, set pitch for release
+	// MLTEST
                 // TODO quick fix for Soundplane 1.0 problem, investigate
-				//	mVoices[v].mPitch = mScale.noteToFrequency(note);
+				//	mVoices[v].mPitch = mScale.noteToLogPitch(note);
 					x = mVoices[v].mX1;
 					y = mVoices[v].mY1;
 				}
@@ -1089,11 +1121,6 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 }
 
 #pragma mark -
-
-MLScale* MLProcInputToSignals::getScale()
-{
-	return &mScale;
-}
 
 // return index of free voice or -1 for none.
 // increments mVoiceRotateOffset.

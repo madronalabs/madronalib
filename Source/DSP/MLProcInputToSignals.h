@@ -15,6 +15,8 @@
 #include "MLInputProtocols.h"
 #include "MLControlEvent.h"
 #include "MLT3DHub.h"
+#include "MLDefaultFileLocations.h"
+
 #include "pa_ringbuffer.h"
 
 #include <stdexcept>
@@ -102,10 +104,6 @@ public:
  	void setup();
  	err resize();
 	
-	// mutable return value is used by Processor to set a new scale.
-	MLScale* getScale();
-	MLSample noteToPitch(float note);
-
 	void doParams();
 
 private:
@@ -172,6 +170,7 @@ private:
 	
 	int temp;
 	bool mSustainPedal;
+	std::string mScalePath;
 };
 
 

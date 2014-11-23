@@ -97,15 +97,6 @@ public:
 	void setChannelAfterTouch(int value, int time);
 	void setSustainPedal(int value, int time);
 	
-	MLScale* getScale();
-	
-	/*
-	// ----------------------------------------------------------------
-	// Patcher
-
-	MLProcList& getPatcherList();
-	 */
-	
 	// ----------------------------------------------------------------
 	// Process
 	

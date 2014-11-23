@@ -1,6 +1,6 @@
 //
 //  MLDSPUtils.h
-//  Kaivo
+//  Madronalib
 //
 //  Created by Randy Jones on 1/31/14.
 //
