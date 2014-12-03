@@ -205,8 +205,6 @@ void MLPluginController::doPresetMenu(int result)
 					"",
 					"OK");
 			}
-            // update menu (overkill)
-			getProcessor()->scanAllFilesImmediate();
 		break;
             
 		case (2):	// save over previous
@@ -217,7 +215,6 @@ void MLPluginController::doPresetMenu(int result)
 					"",
 					"OK");
 			}
-			getProcessor()->scanAllFilesImmediate();
 		break;
             
 		case (3):	// save as ...
@@ -239,10 +236,6 @@ void MLPluginController::doPresetMenu(int result)
                         errStr += MLProjectInfo::projectName;
                         errStr += " folder.";
                         AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
-                    }
-                    else
-                    {
-                        getProcessor()->scanAllFilesImmediate();
                     }
                 }
             }
@@ -540,21 +533,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 				destFile.replaceWithText(presetStr);
 			}
 		}
-		else if(collectionName == "scales")
-		{
-			if(idx == size) // done?
-			{
-				populateScaleMenu(collection);
-			}
-		}
-		else if(collectionName == "presets")
-		{
-			if(idx == size) // done?
-			{
-				populatePresetMenu(collection);
-				flagMIDIProgramsInPresetMenu();
-			}
-		}
+
 	}
 	else if(action == "update")
 	{
@@ -562,8 +541,17 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	}
 	else if(action == "end")
 	{
+		// search is ending, so we populate menus and the like.
+		if(collectionName == "scales")
+		{
+			populateScaleMenu(collection);
+		}
+		else if(collectionName == "presets")
+		{
+			populatePresetMenu(collection);
+			flagMIDIProgramsInPresetMenu();
+		}
 	}
-
 }
 
 #if ML_MAC

@@ -961,6 +961,10 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 	// reset state stack and push current state for recall
 	mpPatchState->clearStateStack();
 	mpPatchState->pushStateToStack();
+	
+	// fix file menus
+	scanAllFilesImmediate();
+	
 #endif // DEMO
     
 }

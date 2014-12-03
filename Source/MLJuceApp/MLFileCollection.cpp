@@ -121,6 +121,8 @@ int MLFileCollection::beginProcessFiles()
 void MLFileCollection::buildTree()
 {
     int found = mFiles.size();
+	mFilesByIndex.clear();
+	
     for(int i=0; i<found; i++)
     {
         juce::File f = mFiles[i];
@@ -244,8 +246,7 @@ const int MLFileCollection::getFileIndexByName(const std::string& fullName)
 			r = i;                
 			break;
 		}
-	}        
-
+	}
     return r;
 }
 
@@ -297,6 +298,7 @@ MLMenuPtr MLFileCollection::buildMenu(bool flat) const
         for(int i=0; i<size; ++i)
         {
             MLFilePtr f = mFilesByIndex[i];
+			
             debug() << "buildMenu: adding " << f->getShortName() << "\n";
             m->addItem(f->getShortName());
         }
