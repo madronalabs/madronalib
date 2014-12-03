@@ -20,7 +20,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	lastPosInfo.resetToDefault();
     
     createFileCollections();
-    scanAllFilesImmediate();
+//    scanAllFilesImmediate();
     
     mControlEvents.resize(kMaxControlEventsPerBlock);
 	
@@ -410,8 +410,13 @@ void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 
 #pragma mark MLFileCollection::Listener
 
-void MLPluginProcessor::processFileFromCollection (const MLFile& srcFile, const MLFileCollection& collection, int idx, int size)
+/*
+void MLPluginProcessor::processFileFromCollection (MLSymbol action, const MLFile& srcFile, const MLFileCollection& collection, int idx, int size)
 {
+	why is this even here
+	
+	// TODO why
+	
 	MLSymbol collectionName = collection.getName();
     if(collectionName == "scales")
     {
@@ -433,7 +438,9 @@ void MLPluginProcessor::processFileFromCollection (const MLFile& srcFile, const 
 		// debug() << "GOT MIDI PROGRAM file: " << srcFile.getLongName() << "\n";
     }
 }
+*/
 
+// add the listener to all of our file collections.
 void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL)
 {
 	mScaleFiles->addListener(pL);
@@ -539,7 +546,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			else
 			{		
 				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
-				loadStateFromMIDIProgram(pgm);
+				loadPatchStateFromMIDIProgram(pgm);
 			}
             type = MLControlEvent::kProgramChange;
             id = chan;
@@ -938,7 +945,7 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 #else
     
     // the Model param contains the file path relative to the root.
-    std::string shortPath = stripExtension(path);
+    std::string shortPath = MLStringUtils::stripExtension(path);
     setProperty("preset", shortPath);
 	
     std::string extension (".mlpreset");
@@ -1008,29 +1015,29 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
 {
     if(path != std::string())
     {
-        const MLFilePtr f = mPresetFiles->getFileByName(path);
-        if(f != MLFilePtr())
+        const MLFile& f = mPresetFiles->getFileByName(path);
+        if(f.exists())
         {
-            loadPatchStateFromFile(f->getJuceFile());
-            std::string shortPath = stripExtension(path);
+            loadPatchStateFromFile(f);
+            std::string shortPath = MLStringUtils::stripExtension(path);
             setProperty("preset", shortPath);
         }
     }
 }
 
-void MLPluginProcessor::loadPatchStateFromFile(const File& f)
+void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 {
 	if (f.exists())
 	{
-		String extension = f.getFileExtension();
+		String extension = f.getJuceFile().getFileExtension();
 		if (extension == ".mlpreset")
 		{
-			setPatchStateFromText(f.loadFileAsString());
+			setPatchStateFromText(f.getJuceFile().loadFileAsString());
 		}
 		else if (extension == ".aupreset")
 		{
 			// tell AU wrapper to load AU-compatible .aupreset file.
-			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f);
+			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f.getJuceFile());
 		}
 		
 		mpPatchState->updateChangedProperties();
@@ -1111,9 +1118,9 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 	mpPatchState->pushStateToStack();
 }
 
-void MLPluginProcessor::loadStateFromMIDIProgram (const int idx)
+void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
-	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx)->getJuceFile());
+	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx));
 }
 
 void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
@@ -1321,14 +1328,14 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 void MLPluginProcessor::createFileCollections()
 {
     mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
-    mScaleFiles->addListener(this);
+//    mScaleFiles->addListener(this);
 
     mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
-    mPresetFiles->addListener(this);
+//    mPresetFiles->addListener(this);
 
 	File MIDIProgramsDir = getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs");
     mMIDIProgramFiles = MLFileCollectionPtr(new MLFileCollection("midi_programs", MIDIProgramsDir, "mlpreset"));
-    mMIDIProgramFiles->addListener(this);
+//    mMIDIProgramFiles->addListener(this);
 }
 
 void MLPluginProcessor::scanAllFilesImmediate()

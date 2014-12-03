@@ -160,7 +160,7 @@ void MLFileCollection::buildTree()
 //
 void MLFileCollection::processFileInTree(int i)
 {
-    MLFilePtr f = getFileByIndex(i);
+    const MLFile& f = getFileByIndex(i);
     int size = mFilesByIndex.size();
     if(i < size)
     {
@@ -168,9 +168,21 @@ void MLFileCollection::processFileInTree(int i)
 		for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 		{
 			Listener* pL = *it;
-			pL->processFileFromCollection (*f, *this, i + 1, size);
+			pL->processFileFromCollection (MLSymbol("process"), f, *this, i + 1, size);
 		}
     }
+}
+
+void MLFileCollection::sendActionToListeners(MLSymbol action)
+{
+    int size = mFilesByIndex.size();
+	std::list<Listener*>::iterator it;
+	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
+	{
+		Listener* pL = *it;
+		MLFile nullFile;
+		pL->processFileFromCollection (action, nullFile, *this, 0, size);
+	}
 }
 
 void MLFileCollection::searchForFilesImmediate(int delay)
@@ -203,17 +215,17 @@ std::string MLFileCollection::getFileNameByIndex(int idx)
     return std::string();
 }
 
-MLFilePtr MLFileCollection::getFileByIndex(int idx)
+const MLFile& MLFileCollection::getFileByIndex(int idx)
 {
     int size = mFilesByIndex.size();
     if(within(idx, 0, size))
     {
-        return mFilesByIndex[idx];
+        return *(mFilesByIndex[idx]);
     }
-    return MLFilePtr();
+    return MLFile::nullObject;
 }
 
-const MLFilePtr MLFileCollection::getFileByName(const std::string& fullName)
+const MLFile& MLFileCollection::getFileByName(const std::string& fullName)
 {
     return mRoot.find(fullName);
 }
@@ -221,20 +233,19 @@ const MLFilePtr MLFileCollection::getFileByName(const std::string& fullName)
 const int MLFileCollection::getFileIndexByName(const std::string& fullName)
 {
     int r = -1;
-    MLFilePtr f = mRoot.find(fullName);
-    if(f != MLFilePtr())
-    {
-        int len = mFilesByIndex.size();
-        for(int i = 0; i<len; ++i)
-        {
-            const MLFilePtr g = mFilesByIndex[i];
-            if(f == g)
-            {
-                r = i;                
-                break;
-            }
-        }        
-    }
+    const MLFile& f = mRoot.find(fullName);
+
+	int len = mFilesByIndex.size();
+	for(int i = 0; i<len; ++i)
+	{
+		const MLFile& g = *(mFilesByIndex[i]);
+		if(f == g)
+		{
+			r = i;                
+			break;
+		}
+	}        
+
     return r;
 }
 
@@ -243,7 +254,7 @@ const int MLFileCollection::getFileIndexByName(const std::string& fullName)
 //
 const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndName)
 {
-    std::string sName = getShortName(relativePathAndName);
+    std::string sName = MLStringUtils::getShortName(relativePathAndName);
     std::string fullPath = mRoot.getAbsolutePath() + "/" + relativePathAndName;
     
     // need absolute path to make the Juce file

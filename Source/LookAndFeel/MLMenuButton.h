@@ -9,6 +9,7 @@
 
 #include "MLUI.h"
 #include "MLButton.h"
+#include "MLStringUtils.h"
 
 class MLMenuButton : 
 	public MLButton

@@ -362,7 +362,9 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 	}
 }
 
-void MLPluginController::updateMenu(MLSymbol menuName){}
+void MLPluginController::updateMenu(MLSymbol menuName)
+{
+}
 
 void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 {
@@ -487,67 +489,81 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 
 #pragma mark MLFileCollection::Listener
 
-void MLPluginController::processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size)
+void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	MLSymbol collectionName = collection.getName();
-
-    if(collectionName == "convert_user_presets")
-    {
-        File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
-        File destRoot(newPresetsFolder);
-        const std::string& relativeName = file.getLongName();
-        
-        // If file at destination does not exist, or is older than the source, convert
-        // source and overwrite destination.
-        File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
-        if(!destFile.exists()  )
-        {
-            mpProcessor->loadPatchStateFromFile(file.getJuceFile());
-            mpProcessor->saveStateToRelativePath(relativeName);
-        }
-        
-        if(file.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
-        {
-            mpProcessor->loadPatchStateFromFile(file.getJuceFile());
-            mpProcessor->saveStateToRelativePath(relativeName);
-        }
-        
-        // finishing?
-        if(idx == size)
-        {
-            mpProcessor->scanAllFilesImmediate();
-            mpProcessor->suspendProcessing(false);
-        }
-    }
-    else if(collectionName == "move_user_presets")
-    {
-        // move from old place to new if new file does not exist.
-        File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
-        File destRoot(newPresetsFolder);
-        const std::string& relativeName = file.getLongName();
-        File destFile = destRoot.getChildFile(String(relativeName));
-        if(!destFile.exists())
-        {
-            String presetStr(file.getJuceFile().loadFileAsString());
-            destFile.create();
-            destFile.replaceWithText(presetStr);
-        }
-    }
-    else if(collectionName == "scales")
-    {
-		if(idx == size) // done?
-        {
-			populateScaleMenu(collection);
+	
+	if(action == "begin")
+	{
+	}
+	else if(action == "process")
+	{
+		if(collectionName == "convert_user_presets")
+		{
+			File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
+			File destRoot(newPresetsFolder);
+			const std::string& relativeName = fileToProcess.getLongName();
+			
+			// If file at destination does not exist, or is older than the source, convert
+			// source and overwrite destination.
+			File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
+			if(!destFile.exists())
+			{
+				mpProcessor->loadPatchStateFromFile(fileToProcess);
+				mpProcessor->saveStateToRelativePath(relativeName);
+			}
+			
+			if(fileToProcess.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
+			{
+				mpProcessor->loadPatchStateFromFile(fileToProcess);
+				mpProcessor->saveStateToRelativePath(relativeName);
+			}
+			
+			// finishing?
+			if(idx == size)
+			{
+				mpProcessor->scanAllFilesImmediate();
+				mpProcessor->suspendProcessing(false);
+			}
 		}
-    }
-    else if(collectionName == "presets")
-    {
-        if(idx == size) // done?
-        {
-			populatePresetMenu(collection);
-			flagMIDIProgramsInPresetMenu();
-        }
-    }
+		else if(collectionName == "move_user_presets")
+		{
+			// move from old place to new if new file does not exist.
+			File newPresetsFolder = getDefaultFileLocation(kPresetFiles);
+			File destRoot(newPresetsFolder);
+			const std::string& relativeName = fileToProcess.getLongName();
+			File destFile = destRoot.getChildFile(String(relativeName));
+			if(!destFile.exists())
+			{
+				String presetStr(fileToProcess.getJuceFile().loadFileAsString());
+				destFile.create();
+				destFile.replaceWithText(presetStr);
+			}
+		}
+		else if(collectionName == "scales")
+		{
+			if(idx == size) // done?
+			{
+				populateScaleMenu(collection);
+			}
+		}
+		else if(collectionName == "presets")
+		{
+			if(idx == size) // done?
+			{
+				populatePresetMenu(collection);
+				flagMIDIProgramsInPresetMenu();
+			}
+		}
+	}
+	else if(action == "update")
+	{
+		// unimplemented
+	}
+	else if(action == "end")
+	{
+	}
+
 }
 
 #if ML_MAC

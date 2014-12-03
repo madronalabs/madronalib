@@ -11,6 +11,7 @@
 #include "MLLookAndFeel.h"
 #include "MLSymbol.h"
 #include "MLTypes.h"
+#include "MLStringUtils.h"
 
 class MLMenu;
 

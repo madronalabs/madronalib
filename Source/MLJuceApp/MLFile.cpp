@@ -8,19 +8,26 @@
 
 #include "MLFile.h"
 
-// no file pointer, just a directory name 
+const MLFile MLFile::nullObject;
+
+// null file object ctor
+MLFile::MLFile() :
+	mJuceFile(File::nonexistent)
+{}
+
+// TODO this is confusing and bad. Some weird stuff with names is enabling trees.
+// Files that can contain other files should go in MLFileCollection::Node or similar.
 MLFile::MLFile(const std::string& dirName) :
-    mFile(File::nonexistent),
-    mIsDirectory(true),
-    mShortName(dirName)
+	mJuceFile(File::nonexistent),
+	mShortName(dirName)
 {}
 
 MLFile::MLFile(const File startDir) :
-mFile(startDir), mIsDirectory(startDir.isDirectory())
+	mJuceFile(startDir)
 {}
 
 MLFile::MLFile(const File f, const std::string& shortName, const std::string& longName) :
-    mFile(f), mIsDirectory(f.isDirectory()), mShortName(shortName), mLongName(longName)
+    mJuceFile(f), mShortName(shortName), mLongName(longName)
 {}
 
 MLFile::~MLFile()
@@ -53,7 +60,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
             std::string firstDir = path.substr(0, b);
             std::string restOfDirs = path.substr(b + 1, len - b);
             
-            // debug() << "    FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
+			// debug() << "    MLFile::insert: FIRST: " << firstDir << ", REST " << restOfDirs << "\n";
             
             // find or add first dir
             if(firstDir == "")
@@ -76,7 +83,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
     }
 }
 
-MLFilePtr MLFile::find(const std::string& path)
+const MLFile& MLFile::find(const std::string& path)
 {
     // debug() << "FINDING: " << path << "\n";
     int len = path.length();
@@ -93,20 +100,11 @@ MLFilePtr MLFile::find(const std::string& path)
             if(it != mFiles.end())
             {
                 // return the found file.
-                return it->second;
+                return *(it->second);
             }
             else
             {
-                //debug() << "MLFile::find: did not find " << path << " in :\n";
-                
-                nameToFileMap::const_iterator it2;
-                for(it2 = mFiles.begin(); it2 != mFiles.end(); ++it2)
-                {
-                        //debug() << it2->first << ", ";
-                }
-                //debug() << "\n";
-                
-                return MLFilePtr();
+                return MLFile::nullObject;
             }
         }
         else
@@ -128,7 +126,7 @@ MLFilePtr MLFile::find(const std::string& path)
             }
             else
             {
-                return MLFilePtr();
+                return MLFile::nullObject;
             }
         }
     }
@@ -136,12 +134,12 @@ MLFilePtr MLFile::find(const std::string& path)
     {
         MLError() << "MLFile::find: empty file name!\n";
     }
-    return MLFilePtr();
+    return MLFile::nullObject;
 }
 
 std::string MLFile::getAbsolutePath() const
 {
-    return std::string(mFile.getFullPathName().toUTF8());
+    return std::string(mJuceFile.getFullPathName().toUTF8());
 }
 
 void MLFile::buildMenu(MLMenuPtr m) const
@@ -152,7 +150,7 @@ void MLFile::buildMenu(MLMenuPtr m) const
     for(it = mFiles.begin(); it != mFiles.end(); ++it)
     {
         const MLFilePtr f = it->second;
-        if(f->mIsDirectory)
+        if(f->isDirectory())
         {
             // debug() << "ADDING SUBMENU: " << f->mShortName << "\n";
             MLMenuPtr subMenu(new MLMenu());
@@ -181,7 +179,7 @@ void MLFile::buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const
         std::string filePrefix = f->mShortName.substr(0, prefixLen);
         if(filePrefix.compare(prefix) == 0)
         {
-            if(f->mIsDirectory)
+            if(f->isDirectory())
             {
                 MLMenuPtr subMenu(new MLMenu());
                 f->buildMenu(subMenu);
@@ -208,7 +206,7 @@ void MLFile::buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const
         std::string filePrefix = f->mShortName.substr(0, prefixLen);
         if(filePrefix.compare(prefix) != 0)
         {
-            if(f->mIsDirectory)
+            if(f->isDirectory())
             {
                 MLMenuPtr subMenu(new MLMenu());
                 f->buildMenu(subMenu);

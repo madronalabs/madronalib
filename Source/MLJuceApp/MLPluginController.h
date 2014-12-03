@@ -31,7 +31,7 @@ public:
 	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
 	
     // MLFileCollection::Listener
-	void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size);
+	void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size);
  	
 	// menus
 	//

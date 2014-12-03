@@ -14,6 +14,7 @@
 #include "MLControlEvent.h"
 #include "MLProperty.h" 
 #include "MLAppState.h"
+#include "MLStringUtils.h"
 
 #if ML_MAC
 #include "pa_ringbuffer.h"
@@ -32,7 +33,7 @@ const int kMLPluginMIDIPrograms = 127;
 
 class MLPluginProcessor : 
 	public AudioProcessor,
-	public MLFileCollection::Listener,
+	//public MLFileCollection::Listener,
 	public MLT3DHub::Listener,
 #if ML_MAC
 	public MLNetServiceHub,
@@ -85,14 +86,17 @@ public:
 	float getParameterDefaultValue (int index);
     void setParameter (int index, float newValue);
 	bool isParameterAutomatable (int idx) const;
+	
 	// factory presets - a VST concept - unimplemented
     int getNumPrograms() { return 0; }
     int getCurrentProgram() { return 0; }
     void setCurrentProgram (int) { }
     const String getProgramName (int) { return String::empty; }
     void changeProgramName (int, const String&) { }
+	
 	void getStateInformation (juce::MemoryBlock& destData);
     void setStateInformation (const void* data, int sizeInBytes);
+	
     void editorResized(int w, int h);
     
 	// plugin description and default preset
@@ -108,9 +112,9 @@ public:
 	void setDefaultParameters();
 
     // MLFileCollection::Listener
-	void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size);
+	//void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size);
 	
-	// add an additional listener to the file collections that we are listening to. Controllers can use this
+	// add an additional listener to the file collections that we have. Controllers can use this
 	// to get updates and build menus, etc.
 	void addFileCollectionListener(MLFileCollection::Listener* pL);
 	
@@ -126,11 +130,9 @@ public:
 	int getParameterIndex (const MLSymbol name);
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
-	
     const MLSymbol getParameterAlias (int index);
     float getParameterMin (int index);
 	float getParameterMax (int index);
-	
 	MLPublishedParamPtr getParameterPtr (int index);
 	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
 	const std::string& getParameterGroupName (int index);
@@ -153,8 +155,8 @@ public:
     void saveStateToRelativePath(const std::string& path);
     
 	void loadStateFromPath(const std::string& path);
-	void loadStateFromMIDIProgram (const int pgmIdx);
-	void loadPatchStateFromFile(const File& loadFile);
+	void loadPatchStateFromMIDIProgram (const int pgmIdx);
+	void loadPatchStateFromFile(const MLFile& loadFile);
 	
 	// deprecated - to remove in 2.0
 	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
@@ -177,7 +179,7 @@ public:
 	MLDSPEngine* getEngine() { return &mEngine; }
 	inline void showEngine() { mEngine.dump(); }
 	
-	// environment
+	// environment: through which anything outside the patch, such as window size, can be stored in the host
 	MLEnvironmentModel* getEnvironment() { return mpEnvironmentModel.get(); }
 	
 protected:

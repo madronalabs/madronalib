@@ -63,7 +63,7 @@ void MLMenuButton::doPropertyChangeAction(MLSymbol property, const MLProperty& v
 		const std::string str = val.getStringValue();
 		if(getFloatProperty("strip"))
 		{
-			processedText = stripExtension(getShortName(str));
+			processedText = MLStringUtils::stripExtension(MLStringUtils::getShortName(str));
 		}
 		else
 		{

@@ -14,6 +14,7 @@
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
 #include "MLProperty.h"
+#include "MLStringUtils.h"
 
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
 // to report progress for searches.
@@ -22,8 +23,6 @@ class MLFileCollection : public MLPropertySet
 {
 friend class SearchThread;
 public:
-    // a Listener class must have a processFileFromCollection routine to do something
-    // with each file as it is found.
     class Listener
 	{
 		friend class MLFileCollection;
@@ -39,11 +38,22 @@ public:
 		// are discovered, and so the post-processing steps (building menus for example) may take place
 		// more often.
 		//
+		// Possible actions are:
+		// begin: Collection is about to send all files.
+		// process: Called for each file.
+		// update: Called in a background search when a file's content has been changed.
+		// end: All files recently changed have been transmitted.
+		//
 		// Note that idx is one-based.
-		virtual void processFileFromCollection (const MLFile& file, const MLFileCollection& collection, int idx, int size) = 0;
-		
+		virtual void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size) = 0;
+				
 	private:
 		std::list<MLFileCollection*> mpCollections;
+	};
+	
+	class Node
+	{
+		
 	};
      
  	MLFileCollection(MLSymbol name, const File startDir, String extension);
@@ -62,9 +72,10 @@ public:
     void cancelSearch();
   
     // return a file by its path + name relative to our starting directory.
-    const MLFilePtr getFileByName(const std::string& name);
+    const MLFile& getFileByName(const std::string& name);
+	
     std::string getFileNameByIndex(int idx);
-    MLFilePtr getFileByIndex(int idx);
+    const MLFile& getFileByIndex(int idx);
     const int getFileIndexByName(const std::string& fullName);
 
     // make a new file.
@@ -81,6 +92,7 @@ private:
     int beginProcessFiles();
     void buildTree();
     void processFileInTree(int i);
+	void sendActionToListeners(MLSymbol action);
 
     class SearchThread : public Thread
     {
