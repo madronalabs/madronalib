@@ -572,7 +572,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 	float x, y, z, note;
 	float dx, dy;
 	int avail = 0;
-	int framesRead = 0;
 	
 	// TODO this code only updates every signal vector.  Add sample-accurate
 	// reading from OSC.
@@ -585,7 +584,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 		avail = PaUtil_GetRingBufferReadAvailable(mpFrameBuf);
 		if (avail) do
 		{
-			framesRead = PaUtil_ReadRingBuffer(mpFrameBuf, mLatestFrame.getBuffer(), 1);
+			PaUtil_ReadRingBuffer(mpFrameBuf, mLatestFrame.getBuffer(), 1);
 			avail = PaUtil_GetRingBufferReadAvailable(mpFrameBuf);
 		}
 		while (avail > 0);	

@@ -113,7 +113,8 @@
 #pragma pack (pop)
 #endif
 
-#undef MemoryBlock
+// ML
+// #undef MemoryBlock
 
 class JuceVSTWrapper;
 static bool recursionCheck = false;

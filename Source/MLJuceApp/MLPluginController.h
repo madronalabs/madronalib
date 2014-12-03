@@ -49,8 +49,8 @@ public:
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 
 #if ML_MAC
-    void updatePresets();
-    void cancelUpdate();
+    void convertPresets();
+    void cancelConvert();
     MLFileCollectionPtr mPresetsToConvert;
     MLFileCollectionPtr mPresetsToMove;
     std::tr1::shared_ptr<ThreadWithProgressWindow> mConvertProgressThread;

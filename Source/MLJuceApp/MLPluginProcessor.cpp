@@ -1044,9 +1044,10 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 	mpPatchState->returnToFirstSavedState();
 }
 
-#pragma mark set state (JSON, or XML for backwards compatibility)
+#pragma mark set state
 
 // set Processor and Environment states from XML or JSON in binary.
+// state is in JSON format. XML can be read for backwards compatibility..
 //
 void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int sizeInBytes)
 {

@@ -139,7 +139,7 @@ public:
 	int countSignals(const MLSymbol alias);
 
 	// get the patch and environment states as a binary blob.
-	void getPatchAndEnvStatesAsBinary (MemoryBlock& destData);
+	void getPatchAndEnvStatesAsBinary (juce::MemoryBlock& destData);
 	// set the patch and environment states from a binary blob.
 	void setPatchAndEnvStatesFromBinary (const void* data, int sizeInBytes);
     

@@ -267,7 +267,7 @@ void MLPluginController::doPresetMenu(int result)
 #if SHOW_CONVERT_PRESETS
 #if ML_MAC
 		case (7):	// show convert alert box
-			updatePresets();
+			convertPresets();
 			getProcessor()->scanAllFilesImmediate();
 		break;
 #endif
@@ -613,7 +613,7 @@ public:
         String destDirName = destDir.getFullPathName();
         if (userPressedCancel)
         {
-            pController->cancelUpdate();
+            pController->cancelConvert();
             AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon, "Convert presets was cancelled.",
                 "Some presets may not have been converted.");
         }
@@ -681,7 +681,7 @@ private:
 };
 
 // only convert .aupreset (AU) to .mlpreset (VST) now. After Aalto 1.6 there will be no need to convert presets.
-void MLPluginController::updatePresets()
+void MLPluginController::convertPresets()
 {
     if(!mpProcessor) return;
     
@@ -704,11 +704,11 @@ void MLPluginController::updatePresets()
     }
     else
     {
-        debug() << "updatePresets: couldn't find preset folder " << presetsFolder.getFullPathName() << ".\n";
+        debug() << "convertPresets: couldn't find preset folder " << presetsFolder.getFullPathName() << ".\n";
     }
 }
 
-void MLPluginController::cancelUpdate()
+void MLPluginController::cancelConvert()
 {
     mPresetsToMove->cancelSearch();
     mPresetsToConvert->cancelSearch();
