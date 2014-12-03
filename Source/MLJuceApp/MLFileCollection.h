@@ -78,7 +78,7 @@ public:
     const MLFile& getFileByIndex(int idx);
     const int getFileIndexByName(const std::string& fullName);
 
-    // make a new file.
+    // make a new file. TODO return const MLFile &
     const MLFilePtr createFile(const std::string& relativePath);
 
     // given a full system file path, get its path relative to our starting directory.
@@ -116,9 +116,13 @@ private:
         MLFileCollection& mCollection;
     };
     
-    // the file tree
+    // the file tree TODO will become a tree of MLFileCollection::fileNode or some such thing.
     MLFile mRoot;
-    std::vector<MLFilePtr> mFilesByIndex;    
+	
+	// files by index. TODO we own these MLFile objects, and can keep track of them more intelligently
+	// without just relying on shared_ptr.
+    std::vector<MLFilePtr> mFilesByIndex;
+	
     MLSymbol mName;
     String mExtension;
 	std::list<Listener*> mpListeners;
@@ -126,7 +130,6 @@ private:
     // temp storage for processing files
     std::vector <File> mFiles;
     std::tr1::shared_ptr<SearchThread> mSearchThread;
-
 };
 
 typedef std::tr1::shared_ptr<MLFileCollection> MLFileCollectionPtr;

@@ -33,7 +33,6 @@ const int kMLPluginMIDIPrograms = 127;
 
 class MLPluginProcessor : 
 	public AudioProcessor,
-	//public MLFileCollection::Listener,
 	public MLT3DHub::Listener,
 #if ML_MAC
 	public MLNetServiceHub,
@@ -110,9 +109,6 @@ public:
 	MLProc::err preflight(int requirements = kRequiresSSE2);
 	virtual bool wantsMIDI() {return true;}
 	void setDefaultParameters();
-
-    // MLFileCollection::Listener
-	//void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size);
 	
 	// add an additional listener to the file collections that we have. Controllers can use this
 	// to get updates and build menus, etc.

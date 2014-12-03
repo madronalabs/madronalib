@@ -511,13 +511,6 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 				mpProcessor->loadPatchStateFromFile(fileToProcess);
 				mpProcessor->saveStateToRelativePath(relativeName);
 			}
-			
-			// finishing?
-			if(idx == size)
-			{
-				mpProcessor->scanAllFilesImmediate();
-				mpProcessor->suspendProcessing(false);
-			}
 		}
 		else if(collectionName == "move_user_presets")
 		{
@@ -542,7 +535,12 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	else if(action == "end")
 	{
 		// search is ending, so we populate menus and the like.
-		if(collectionName == "scales")
+		if(collectionName == "convert_user_presets")
+		{
+			mpProcessor->scanAllFilesImmediate();
+			mpProcessor->suspendProcessing(false);
+		}
+		else if(collectionName == "scales")
 		{
 			populateScaleMenu(collection);
 		}

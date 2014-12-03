@@ -182,8 +182,7 @@ void MLFileCollection::sendActionToListeners(MLSymbol action)
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		Listener* pL = *it;
-		MLFile nullFile;
-		pL->processFileFromCollection (action, nullFile, *this, 0, size);
+		pL->processFileFromCollection (action, MLFile::nullObject, *this, 0, size);
 	}
 }
 
@@ -250,7 +249,7 @@ const int MLFileCollection::getFileIndexByName(const std::string& fullName)
     return r;
 }
 
-// TODO intelligent re-index can be done after this.
+// TODO intelligent re-index and update can be done after this.
 // for now we are re-searching for all files
 //
 const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndName)
@@ -331,6 +330,7 @@ void MLFileCollection::SearchThread::run()
 {
     mCollection.beginProcessFiles();
     mCollection.buildTree();
+	mCollection.sendActionToListeners("begin");
     int t = mCollection.getSize();
     for(int i=0; i<t; i++)
     {
@@ -341,5 +341,6 @@ void MLFileCollection::SearchThread::run()
         wait(mDelay);
     }
     mCollection.setProperty("progress", 1.);
+	mCollection.sendActionToListeners("end");
 }
 

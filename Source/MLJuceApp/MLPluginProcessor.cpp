@@ -408,38 +408,6 @@ void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 	}
 }
 
-#pragma mark MLFileCollection::Listener
-
-/*
-void MLPluginProcessor::processFileFromCollection (MLSymbol action, const MLFile& srcFile, const MLFileCollection& collection, int idx, int size)
-{
-	why is this even here
-	
-	// TODO why
-	
-	MLSymbol collectionName = collection.getName();
-    if(collectionName == "scales")
-    {
-    }
-    else if(collectionName == "presets")
-    {
-        if(idx == 1) // starting?
-		{
-			
-		}
-		else if(idx == size) // done?
-        {
-			
-        }
-    }
-    else if(collectionName == "midi_programs")
-    {
-		// nothing to do
-		// debug() << "GOT MIDI PROGRAM file: " << srcFile.getLongName() << "\n";
-    }
-}
-*/
-
 // add the listener to all of our file collections.
 void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL)
 {
@@ -1332,14 +1300,11 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 void MLPluginProcessor::createFileCollections()
 {
     mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
-//    mScaleFiles->addListener(this);
 
     mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
-//    mPresetFiles->addListener(this);
 
 	File MIDIProgramsDir = getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs");
     mMIDIProgramFiles = MLFileCollectionPtr(new MLFileCollection("midi_programs", MIDIProgramsDir, "mlpreset"));
-//    mMIDIProgramFiles->addListener(this);
 }
 
 void MLPluginProcessor::scanAllFilesImmediate()
