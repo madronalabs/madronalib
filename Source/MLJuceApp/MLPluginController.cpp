@@ -461,21 +461,24 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 	if(pMenu != nullptr)
 	{
 		MLMenu::NodePtr node = pMenu->getItem("MIDI Programs");
-		if(node->getNodeSize(0) > 0)
+		if(node.get() != nullptr)
 		{
-			std::list<std::string>::const_iterator it;
-			const std::list<std::string>& nodeIndex = node->getIndex();
-			
-			int p = 1;
-			for(it = nodeIndex.begin(); it != nodeIndex.end(); it++)
+			if(node->getNodeSize(0) > 0)
 			{
-				const std::string& name = *it;
-				MLMenu::NodePtr subNode = node->getSubnodeByName(name);
+				std::list<std::string>::const_iterator it;
+				const std::list<std::string>& nodeIndex = node->getIndex();
+				
+				int p = 1;
+				for(it = nodeIndex.begin(); it != nodeIndex.end(); it++)
 				{
-					std::ostringstream s;
-					s << p++;
-					const std::string pStr(s.str());
-					subNode->setDisplayPrefix(std::string("[") + pStr + std::string("] "));
+					const std::string& name = *it;
+					MLMenu::NodePtr subNode = node->getSubnodeByName(name);
+					{
+						std::ostringstream s;
+						s << p++;
+						const std::string pStr(s.str());
+						subNode->setDisplayPrefix(std::string("[") + pStr + std::string("] "));
+					}
 				}
 			}
 		}
