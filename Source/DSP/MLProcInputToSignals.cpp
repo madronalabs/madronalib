@@ -80,6 +80,7 @@ void MLVoice::clearState()
     mAge = 0;
 	mStartX = 0.;
 	mStartY = 0.;
+	mStartVel = 0.;
 	mPitch = 0.;
 	mX1 = 0.;
 	mY1 = 0.;
@@ -156,11 +157,11 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 	if(e.mType != MLControlEvent::kNoteSustain)
 	{
 		mdGate.addChange(gate, time);
-		mdAmp.addChange(vel, time);
+		mdVel.addChange(vel, time);
 		if(e.mType == MLControlEvent::kNoteOn)
 		{
 			mdPitch.addChange(scale.noteToLogPitch(note), time);
-			mdVel.addChange(vel, time);
+			mdAmp.addChange(vel, time);
 		}
 	}
 	
@@ -182,7 +183,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
     if (retrig)
     {
         mdGate.addChange(0.f, time - 1);
-        mdAmp.addChange(0.f, time - 1);
+        mdVel.addChange(0.f, time - 1);
     }
 	
     mdGate.addChange(1, time);
@@ -210,6 +211,7 @@ MLProcInputToSignals::MLProcInputToSignals() :
     mControllerNumber(-1),
 	mCurrentVoices(0),
 	mUnisonInputTouch(-1),
+	mUnisonVel(0.),
 	mSustainPedal(false),
 	mRetrig(false),
     mFrameCounter(0)
@@ -225,6 +227,7 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mPitchWheelSemitones = 7.f;
 	mUnisonMode = false;
 	mRotateMode = true;
+	mAddChannelPressure = true;
 	mEventCounter = 0;
 	mDriftCounter = -1;
 	
@@ -383,30 +386,42 @@ void MLProcInputToSignals::doParams()
 		mProtocol = newProtocol;
 	}
 	
+	mGlide = getParam("glide");
+	for (int v=0; v<kMLEngineMaxVoices; ++v)
+	{
+		mVoices[v].mdPitch.setGlideTime(mGlide);
+		mVoices[v].mdPitchBend.setGlideTime(mGlide);
+	}
+	
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
 			for(int i=0; i<kMLEngineMaxVoices; ++i)
-			{				
-				// TODO fix names, amp and vel are really switched. 
-				// amp snaps to new velocity right away 
+			{
 				mVoices[i].mdGate.setGlideTime(0.0f);
-				mVoices[i].mdAmp.setGlideTime(0.0f);
-				mVoices[i].mdVel.setGlideTime(1.f / (float)mOSCDataRate);
+				mVoices[i].mdAmp.setGlideTime(1.f / (float)mOSCDataRate);
+				mVoices[i].mdVel.setGlideTime(0.0f);
 				mVoices[i].mdNotePressure.setGlideTime(1.f / (float)mOSCDataRate);
 				mVoices[i].mdChannelPressure.setGlideTime(1.f / (float)mOSCDataRate);
 				mVoices[i].mdMod.setGlideTime(1.f / (float)mOSCDataRate);
 				mVoices[i].mdMod2.setGlideTime(1.f / (float)mOSCDataRate);
 				mVoices[i].mdMod3.setGlideTime(1.f / (float)mOSCDataRate);
 			}
-
+			mAddChannelPressure = false;
 			break;
 		case kInputProtocolMIDI:	
 			for(int i=0; i<kMLEngineMaxVoices; ++i)
 			{
-				mVoices[i].mdGate.setGlideTime(0.0f);
-				mVoices[i].mdAmp.setGlideTime(0.0f);
+				mVoices[i].mdGate.setGlideTime(0.f);
+				mVoices[i].mdAmp.setGlideTime(0.001f);
+				mVoices[i].mdVel.setGlideTime(0.f);
+				mVoices[i].mdNotePressure.setGlideTime(0.001f);
+				mVoices[i].mdChannelPressure.setGlideTime(0.001f);
+				mVoices[i].mdMod.setGlideTime(0.001f);
+				mVoices[i].mdMod2.setGlideTime(0.001f);
+				mVoices[i].mdMod3.setGlideTime(0.001f);
 			}
+			mAddChannelPressure = true;
 			break;
 	}
 	
@@ -429,13 +444,6 @@ void MLProcInputToSignals::doParams()
 		clear();
 	}
 	
-	mGlide = getParam("glide");
-	for (int v=0; v<kMLEngineMaxVoices; ++v)
-	{
-		mVoices[v].mdPitch.setGlideTime(mGlide);
-		mVoices[v].mdPitchBend.setGlideTime(mGlide);
-	}
-		
 	mParamsChanged = false;
 //dumpParams();	// DEBUG
 }
@@ -543,6 +551,7 @@ void MLProcInputToSignals::process(const int frames)
 		}
 	}		
 
+	// generate change lists
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
@@ -553,6 +562,7 @@ void MLProcInputToSignals::process(const int frames)
 			break;
 	}
     
+	// generate output signals from change lists
     writeOutputSignals(frames);
     
     mFrameCounter += frames;
@@ -573,7 +583,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 	float dx, dy;
 	int avail = 0;
 	
-	// TODO this code only updates every signal vector.  Add sample-accurate
+	// TODO this code only updates every signal vector (64 samples).  Add sample-accurate
 	// reading from OSC.
 
 	// TEMP get most recent frame and apply to whole buffer			
@@ -622,7 +632,14 @@ void MLProcInputToSignals::processOSC(const int frames)
 					uy = mVoices[v].mStartY = y;
 					upitch = mVoices[v].mPitch = mScale.noteToLogPitch(note);
 					udx = 0.f;
-					udy = 0.f;		
+					udy = 0.f;
+					
+					// simple velocity
+					float dz = z - mVoices[v].mZ1;
+                    mVoices[v].mStartVel = clamp(dz*32.f, 0.2f, 1.f);
+					
+					// store most recent unison start velocity
+					mUnisonVel = mVoices[v].mStartVel;
 				}
 			}
 			mVoices[v].mZ1 = z;
@@ -663,15 +680,14 @@ void MLProcInputToSignals::processOSC(const int frames)
 				udy = uy - mVoices[mUnisonInputTouch].mStartY;
 			}
 		}
-		
+
 		for (int v=0; v<mCurrentVoices; ++v)
 		{			
 			const int frameTime = 1;
 			mVoices[v].mdPitch.addChange(upitch, frameTime);
 			mVoices[v].mdGate.addChange((int)(uz > 0.), frameTime);
 			mVoices[v].mdAmp.addChange(uz, frameTime);
-			mVoices[v].mdVel.addChange(uz, frameTime);
-			
+			mVoices[v].mdVel.addChange(mUnisonVel, frameTime);
 			mVoices[v].mdNotePressure.addChange(udx, frameTime);
 			mVoices[v].mdMod.addChange(udy, frameTime);
 			mVoices[v].mdMod2.addChange(ux*2.f - 1.f, frameTime);
@@ -699,6 +715,10 @@ void MLProcInputToSignals::processOSC(const int frames)
 					mVoices[v].mStartX = x;
 					mVoices[v].mStartY = y;
 					mVoices[v].mPitch = mScale.noteToLogPitch(note);
+					
+					// simple velocity
+					float dz = z - mVoices[v].mZ1;
+                    mVoices[v].mStartVel = clamp(dz*32.f, 0.2f, 1.f);
 					dx = 0.f;
 					dy = 0.f;
 				}
@@ -727,12 +747,13 @@ void MLProcInputToSignals::processOSC(const int frames)
 
 			mVoices[v].mZ1 = z;
 
-			// OSC: pitch vel(constant during hold) voice(touch) after(z) dx dy x y			
+			// OSC: pitch vel(constant during hold and until next note) voice(touch) after(z) dx dy x y
 			const int frameTime = 1;
 			mVoices[v].mdPitch.addChange(mVoices[v].mPitch, frameTime);
 			mVoices[v].mdGate.addChange((int)(z > 0.), frameTime);
+			mVoices[v].mdVel.addChange(mVoices[v].mStartVel, frameTime);
+			
 			mVoices[v].mdAmp.addChange(z, frameTime);
-			mVoices[v].mdVel.addChange(z, frameTime);
 			
 			mVoices[v].mdNotePressure.addChange(dx, frameTime);
 			mVoices[v].mdMod.addChange(dy, frameTime);
@@ -740,50 +761,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 			mVoices[v].mdMod3.addChange(y*2.f - 1.f, frameTime);		
 		}	
 	}	
-	
-	// write change lists out to signals.
-	for (int v=0; v<kMLEngineMaxVoices; ++v)
-	{
-		// changes per voice
-		MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
-		MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
-		MLSignal& amp = getOutput(v*kNumVoiceSignals + 3);
-		MLSignal& vel = getOutput(v*kNumVoiceSignals + 4);
-		// voice = 5
-		MLSignal& after = getOutput(v*kNumVoiceSignals + 6);
-		MLSignal& mod = getOutput(v*kNumVoiceSignals + 7);
-		MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 8);
-		MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 9);
-			
-		if (v < mCurrentVoices)
-		{
-			mVoices[v].mdPitch.writeToSignal(pitch, frames);
-
-#if INPUT_DRIFT
-			// write to common temp drift signal, we add one change manually so read offset is 0
-			mVoices[v].mdDrift.writeToSignal(mTempSignal, frames);
-			pitch.add(mTempSignal);
-#endif
-			mVoices[v].mdGate.writeToSignal(gate, frames);
-			mVoices[v].mdAmp.writeToSignal(amp, frames);
-			mVoices[v].mdVel.writeToSignal(vel, frames);
-			mVoices[v].mdNotePressure.writeToSignal(after, frames);
-			mVoices[v].mdMod.writeToSignal(mod, frames);
-			mVoices[v].mdMod2.writeToSignal(mod2, frames);
-			mVoices[v].mdMod3.writeToSignal(mod3, frames);
-		}
-		else
-		{
-			pitch.setToConstant(0.f);
-			gate.setToConstant(0.f);
-			amp.setToConstant(0.f);
-			vel.setToConstant(0.f); 
-			after.setToConstant(0.f); 
-			mod.setToConstant(0.f); 
-			mod2.setToConstant(0.f); 
-			mod3.setToConstant(0.f); 
-		}
-	}
 }
 
 // process control events to make change lists
@@ -1039,10 +1016,10 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 
 		if (v < mCurrentVoices)
 		{
+			// write signals
 			mVoices[v].mdPitch.writeToSignal(pitch, frames);
 			mVoices[v].mdPitchBend.writeToSignal(mTempSignal, frames);
 			pitch.add(mTempSignal);
-            
 #if INPUT_DRIFT
 			// write to common temp drift signal, we add one change manually so read offset is 0
 			mVoices[v].mdDrift.writeToSignal(mTempSignal, frames);
@@ -1051,24 +1028,26 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 			mVoices[v].mdGate.writeToSignal(gate, frames);
             mVoices[v].mdAmp.writeToSignal(amp, frames);
  			mVoices[v].mdVel.writeToSignal(velSig, frames);
- 			mVoices[v].mdMod.writeToSignal(mod, frames);
+			voiceSig.setToConstant(v);
+			// aftertouch for each voice is channel aftertouch + poly aftertouch.
+			mVoices[v].mdNotePressure.writeToSignal(after, frames);
+			if(mAddChannelPressure)
+			{
+				mVoices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
+				after.add(mTempSignal);
+			}
+			mVoices[v].mdMod.writeToSignal(mod, frames);
  			mVoices[v].mdMod2.writeToSignal(mod2, frames);
  			mVoices[v].mdMod3.writeToSignal(mod3, frames);
             
-            voiceSig.setToConstant(v);
-            
-			// aftertouch for each voice is channel aftertouch + poly aftertouch.
-			mVoices[v].mdNotePressure.writeToSignal(after, frames);
-			mVoices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
-			after.add(mTempSignal);
-            
+			// clear change lists
 			mVoices[v].mdPitch.clearChanges();
 			mVoices[v].mdPitchBend.clearChanges();
 			mVoices[v].mdGate.clearChanges();
 			mVoices[v].mdAmp.clearChanges();
+			mVoices[v].mdVel.clearChanges();
 			mVoices[v].mdNotePressure.clearChanges();
 			mVoices[v].mdChannelPressure.clearChanges();
-			mVoices[v].mdVel.clearChanges();
 			mVoices[v].mdMod.clearChanges();
 			mVoices[v].mdMod2.clearChanges();
 			mVoices[v].mdMod3.clearChanges();
@@ -1222,11 +1201,12 @@ void MLProcInputToSignals::dumpSignals()
         MLSignal& pitch = getOutput(i*kNumVoiceSignals + 1);
         MLSignal& gate = getOutput(i*kNumVoiceSignals + 2);
         MLSignal& amp = getOutput(i*kNumVoiceSignals + 3);
-        
+        MLSignal& vel = getOutput(i*kNumVoiceSignals + 4);
 
         debug() << "[pitch: " << pitch[0] << "] ";
         debug() << "[gate : " << gate[0] << "] ";
         debug() << "[amp  : " << amp[0] << "] ";
+        debug() << "[vel  : " << vel[0] << "] ";
         debug() << "\n";
     }
 	debug() << "\n";

@@ -54,6 +54,7 @@ public:
 	// for continuous touch inputs (OSC)
 	float mStartX;
 	float mStartY;
+	float mStartVel;
 	float mPitch;
 	float mX1;
 	float mY1;
@@ -156,8 +157,10 @@ private:
 	bool mRetrig;
 	bool mUnisonMode;
 	bool mRotateMode;
+	bool mAddChannelPressure;
 	int mUnisonInputTouch;
-	float mGlide;	
+	float mUnisonVel;
+	float mGlide;
 	int mOSCDataRate;
 	
 	float mUnisonPitch1;
