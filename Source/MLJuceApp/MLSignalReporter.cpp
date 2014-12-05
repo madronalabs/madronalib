@@ -76,7 +76,7 @@ bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToComp
             if(totalDiff > 0.01f)
             {
                 result = true;
-                goto bail;
+				goto bail;
             }
         }
     }
@@ -116,7 +116,6 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
         {
             // send signal to each signal view in its viewer list.
             MLSignalViewList viewList = mSignalViewsMap[signalName];
-            
             for(MLSignalViewList::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
             {
                 // send engine and signal information to viewer proc.  
@@ -129,9 +128,9 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
                     drawn++;
                 }
             }
+			buffer2 = buffer1;
         }
-        buffer2 = buffer1;
-    }    
+    }
     return drawn;
 }
 

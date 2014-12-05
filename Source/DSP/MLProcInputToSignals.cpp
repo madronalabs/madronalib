@@ -747,14 +747,11 @@ void MLProcInputToSignals::processOSC(const int frames)
 
 			mVoices[v].mZ1 = z;
 
-			// OSC: pitch vel(constant during hold and until next note) voice(touch) after(z) dx dy x y
 			const int frameTime = 1;
 			mVoices[v].mdPitch.addChange(mVoices[v].mPitch, frameTime);
 			mVoices[v].mdGate.addChange((int)(z > 0.), frameTime);
 			mVoices[v].mdVel.addChange(mVoices[v].mStartVel, frameTime);
-			
 			mVoices[v].mdAmp.addChange(z, frameTime);
-			
 			mVoices[v].mdNotePressure.addChange(dx, frameTime);
 			mVoices[v].mdMod.addChange(dy, frameTime);
 			mVoices[v].mdMod2.addChange(x*2.f - 1.f, frameTime);
