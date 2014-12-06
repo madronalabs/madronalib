@@ -133,6 +133,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 
 void MLPluginProcessor::loadPluginDescription(const char* desc)
 {
+	MLProc::err r;
 	mpPluginDoc = new XmlDocument(String(desc));
 	
 	if (mpPluginDoc.get())
@@ -153,6 +154,16 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 		MLError() << "MLPluginProcessor: couldn't load plugin description!\n";
 		return;
 	}
+
+	// build: turn XML description into graph of processors
+	if (mEngine.getGraphStatus() != MLProc::OK)
+	{
+		int inChans = getNumInputChannels();
+		bool makeSignalInputs = inChans > 0;
+		r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI());
+	}
+
+	loadDefaultPreset();
 	
 	// get plugin parameters and initial values and create corresponding model properties.
 	int params = getNumParameters();
@@ -165,12 +176,7 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 			MLSymbol type = param->getType();
 			if((type == "float") || (type == MLSymbol()))
 			{
-				debug() << param->getAlias() << " is a float type \n";
 				setProperty(param->getAlias(), param->getDefault());
-			}
-			else
-			{
-				debug() << param->getAlias() << " is a non-float type \n";
 			}
 		}
 	}
@@ -289,13 +295,13 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// get the Juce process lock  // TODO ???
 		const juce::ScopedLock sl (getCallbackLock());
 
-		unsigned inChans = getNumInputChannels();
-		unsigned outChans = getNumOutputChannels();
+		int inChans = getNumInputChannels();
+		int outChans = getNumOutputChannels();
 		mEngine.setInputChannels(inChans);
 		mEngine.setOutputChannels(outChans);
 
-		unsigned bufSize = 0;
-		unsigned chunkSize = 0;
+		int bufSize = 0;
+		int chunkSize = 0;
 
 		// choose new buffer size and vector size.
 		{
@@ -310,19 +316,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// dsp engine has one chunkSize of latency in order to run constant block size.
 		setLatencySamples(chunkSize);
 		
-		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";	
-		
-		// build: turn XML description into graph of processors
-		if (mEngine.getGraphStatus() != MLProc::OK)
-		{
-			bool makeSignalInputs = inChans > 0;
-			r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI()); 
-			// debug() << getNumParameters() << " parameters in description.\n";
-		}
-		else
-		{
-			// debug() << "MLPluginProcessor graph OK.\n";
-		}
+		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";
 
 #ifdef DEBUG
 		theSymbolTable().audit();
