@@ -19,7 +19,7 @@
 #include <string>
 #include <sstream>
 #include <list>
-#include <tr1/memory>
+#include <memory>
 
 #include "MLDebug.h" // TEMP
 

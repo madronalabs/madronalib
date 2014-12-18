@@ -12,12 +12,7 @@ using namespace juce;
 
 #include "MLSignal.h"
 #include "MLVector.h"
-
-#ifdef _WIN32
-	#include <memory>
-#else
-	#include <tr1/memory>
-#endif
+#include <memory>
 
 const int kMLNumChars = 19;
 const int kMLMaxNumberDigits = 16;

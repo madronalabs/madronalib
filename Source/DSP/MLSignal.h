@@ -411,7 +411,7 @@ private:
 	MLSampleRate mRate;
 };
 
-typedef std::tr1::shared_ptr<MLSignal> MLSignalPtr;
+typedef std::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);

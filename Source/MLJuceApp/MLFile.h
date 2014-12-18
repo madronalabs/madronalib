@@ -15,7 +15,7 @@
 #include "MLTypes.h"
 
 class MLFile;
-typedef std::tr1::shared_ptr<MLFile> MLFilePtr;
+typedef std::shared_ptr<MLFile> MLFilePtr;
 typedef std::map<std::string, MLFilePtr, MLStringCompareFn> nameToFileMap;
 
 class MLFile

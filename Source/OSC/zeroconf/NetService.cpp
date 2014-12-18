@@ -25,9 +25,9 @@
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "zeroconf/NetService.h"
-#include "zeroconf/NetServiceThread.h"
-#include "zeroconf/Thread.h"
+#include "NetService.h"
+#include "NetServiceThread.h"
+#include "Thread.h"
 #include <cassert>
 #include <cmath>
 #include <iostream>

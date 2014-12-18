@@ -58,11 +58,7 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double position, 
 	{
 		mTime = newTime;
 		mParamsChanged = true;
-	}
-	
-	mPlaying = isPlaying;
-	if(mPlaying)
-	{	
+
 		if (secs > 0.f) // filter out some Logic weirdness
 		{		
 			double phase = newTime - int(newTime);

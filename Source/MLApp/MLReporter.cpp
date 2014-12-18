@@ -57,7 +57,7 @@ MLReporter::MLReporter()
 	int size = 1 << 10;
 	mChangeData.resize(size);
 	PaUtil_InitializeRingBuffer( &mChangeQueue, sizeof(MLSymbol), size, &(mChangeData[0]) );
-	mpTimer = std::tr1::shared_ptr<ReporterTimer>(new ReporterTimer(this));
+	mpTimer = std::shared_ptr<ReporterTimer>(new ReporterTimer(this));
 	mpTimer->startTimer(33);
 }
 

@@ -34,7 +34,7 @@ using namespace juce;
 
 MLPoint adjust(MLPoint p);
 
-typedef std::tr1::shared_ptr<Drawable> DrawablePtr;
+typedef std::shared_ptr<Drawable> DrawablePtr;
 
 const float kPopupMenuTextScale = 0.85f;
 

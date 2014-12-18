@@ -15,7 +15,7 @@
 #ifdef _WIN32
 #include <memory>
 #else
-#include <tr1/memory>
+#include <memory>
 #endif
 
 extern const char* kMLStateDirName;
@@ -68,6 +68,6 @@ private:
 	std::vector<juce::MemoryBlock> mStateStack;
 };
 
-typedef std::tr1::shared_ptr<MLAppState> MLAppStatePtr;
+typedef std::shared_ptr<MLAppState> MLAppStatePtr;
 
 #endif // __ML_APP_STATE_H

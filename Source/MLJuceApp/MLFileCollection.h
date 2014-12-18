@@ -129,9 +129,9 @@ private:
     
     // temp storage for processing files
     std::vector <File> mFiles;
-    std::tr1::shared_ptr<SearchThread> mSearchThread;
+    std::shared_ptr<SearchThread> mSearchThread;
 };
 
-typedef std::tr1::shared_ptr<MLFileCollection> MLFileCollectionPtr;
+typedef std::shared_ptr<MLFileCollection> MLFileCollectionPtr;
 
 #endif 

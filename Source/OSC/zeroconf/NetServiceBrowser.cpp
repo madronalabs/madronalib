@@ -25,9 +25,9 @@
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "zeroconf/NetServiceBrowser.h"
-#include "zeroconf/NetService.h"
-#include "zeroconf/NetServiceThread.h"
+#include "NetServiceBrowser.h"
+#include "NetService.h"
+#include "NetServiceThread.h"
 #include <cassert>
 #include <dns_sd.h>
 

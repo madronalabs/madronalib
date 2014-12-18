@@ -29,7 +29,7 @@
 #define ZeroConf_NetService_H
 
 #include <string>
-#include "zeroconf/CriticalSection.h"
+#include "CriticalSection.h"
 #include "dns_sd.h"
 
 namespace ZeroConf 

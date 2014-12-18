@@ -28,7 +28,7 @@
 #ifndef ZeroConf_NetServiceBrowser_H
 #define ZeroConf_NetServiceBrowser_H
 
-#include "zeroconf/CriticalSection.h"
+#include "CriticalSection.h"
 #include <string>
 #include <vector>
 #include "dns_sd.h"

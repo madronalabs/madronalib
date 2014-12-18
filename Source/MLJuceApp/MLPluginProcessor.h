@@ -192,7 +192,7 @@ protected:
 
 	int mInputProtocol;
 		
-	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
+	typedef std::shared_ptr<XmlElement> XmlElementPtr;
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
     
@@ -234,7 +234,7 @@ private:
     MLControlEventVector mControlEvents;
 	
 	MLAppStatePtr mpPatchState;
-	std::tr1::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
+	std::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
 	MLAppStatePtr mpEnvironmentState;
 	MLT3DHub mT3DHub;
 };

@@ -26,7 +26,7 @@
 // and your header search path must make it accessible to the module's files.
 #include "AppConfig.h"
 
-#include "../utility/juce_CheckSettingMacros.h"
+#include "juce_CheckSettingMacros.h"
 
 #if JucePlugin_Build_AU
 
@@ -42,9 +42,10 @@
 #pragma clang diagnostic ignored "-Wdeprecated-declarations"
 #pragma clang diagnostic ignored "-Wsign-conversion"
 #pragma clang diagnostic ignored "-Wconversion"
+ #pragma clang diagnostic ignored "-Woverloaded-virtual"
 #endif
 
-#include "../utility/juce_IncludeSystemHeaders.h"
+#include "juce_IncludeSystemHeaders.h"
 
 #include <AudioUnit/AUCocoaUIView.h>
 #include <AudioUnit/AudioUnit.h>
@@ -56,6 +57,13 @@
 #define Component CarbonDummyCompName
 #endif
 
+/*
+    Got an include error here?
+
+    You probably need to install Apple's AU classes - see the
+    juce website for more info on how to get them:
+    http://www.juce.com/forum/topic/aus-xcode
+*/
 #include "AUMIDIEffectBase.h"
 #include "MusicDeviceBase.h"
 #undef Point
@@ -92,10 +100,10 @@
 
 #define JUCE_MAC_WINDOW_VISIBITY_BODGE 1
 
-#include "../utility/juce_IncludeModuleHeaders.h"
-#include "../utility/juce_FakeMouseMoveGenerator.h"
-#include "../utility/juce_CarbonVisibility.h"
-#include "../../juce_core/native/juce_osx_ObjCHelpers.h"
+#include "juce_IncludeModuleHeaders.h"
+#include "juce_FakeMouseMoveGenerator.h"
+#include "juce_CarbonVisibility.h"
+#include "juce_osx_ObjCHelpers.h"
 
 //==============================================================================
 static Array<void*> activePlugins, activeUIs;
@@ -752,6 +760,10 @@ public:
         return AUBase::SetParameter (inID, inScope, inElement, inValue, inBufferOffsetInFrames);
     }
     
+    // No idea what this method actually does or what it should return. Current Apple docs say nothing about it.
+    // (Note that this isn't marked 'override' in case older versions of the SDK don't include it)
+    bool CanScheduleParameters() const                   { return false; }
+
     //==============================================================================
     ComponentResult Version() override                   { return JucePlugin_VersionCode; }
     bool SupportsTail() override                         { return true; }
@@ -787,13 +799,9 @@ public:
     {
         info.timeSigNumerator = 0;
         info.timeSigDenominator = 0;
-        info.timeInSamples = 0;
-        info.timeInSeconds = 0;
         info.editOriginTime = 0;
         info.ppqPositionOfLastBarStart = 0;
-        info.isPlaying = false;
         info.isRecording = false;
-        info.isLooping = false;
         info.ppqLoopStart = 0;
         info.ppqLoopEnd = 0;
         
@@ -830,20 +838,26 @@ public:
         }
         
         double outCurrentSampleInTimeLine, outCycleStartBeat, outCycleEndBeat;
-        Boolean playing, playchanged, looping;
+        Boolean playing = false, looping = false, playchanged;
         
+		//MLTEST this is returning -1,  mHostCallbackInfo.transportStateProc  = 0?!
+		
         if (CallHostTransportState (&playing,
                                     &playchanged,
                                     &outCurrentSampleInTimeLine,
                                     &looping,
                                     &outCycleStartBeat,
-                                    &outCycleEndBeat) == noErr)
+                                    &outCycleEndBeat) != noErr)
         {
-            info.isPlaying = playing;
-            info.timeInSamples = (int64) outCurrentSampleInTimeLine;
-            info.timeInSeconds = outCurrentSampleInTimeLine / getSampleRate();
+            // If the host doesn't support this callback, use the sample time from lastTimeStamp:
+            outCurrentSampleInTimeLine = lastTimeStamp.mSampleTime;
         }
         
+        info.isPlaying = playing;
+        info.timeInSamples = (int64) (outCurrentSampleInTimeLine + 0.5);
+        info.timeInSeconds = info.timeInSamples / getSampleRate();
+        info.isLooping = looping;
+
         return true;
     }
     
@@ -875,6 +889,8 @@ public:
     void audioProcessorChanged (AudioProcessor*)
     {
         PropertyChanged (kAudioUnitProperty_Latency, kAudioUnitScope_Global, 0);
+        PropertyChanged (kAudioUnitProperty_ParameterList, kAudioUnitScope_Global, 0);
+        PropertyChanged (kAudioUnitProperty_ParameterInfo, kAudioUnitScope_Global, 0);
     }
     
     bool StreamFormatWritable (AudioUnitScope, AudioUnitElement) override
@@ -891,9 +907,9 @@ public:
     ComponentResult Initialize() override
     {
 #if ! JucePlugin_IsSynth
-        const int numIns  = GetInput(0)  != 0 ? (int) GetInput(0)->GetStreamFormat().mChannelsPerFrame : 0;
+        const int numIns  = findNumInputChannels();
 #endif
-        const int numOuts = GetOutput(0) != 0 ? (int) GetOutput(0)->GetStreamFormat().mChannelsPerFrame : 0;
+        const int numOuts = findNumOutputChannels();
         
         bool isValidChannelConfig = false;
         
@@ -937,17 +953,30 @@ public:
         return JuceAUBaseClass::Reset (inScope, inElement);
     }
     
+    int findNumInputChannels()
+    {
+       #if ! JucePlugin_IsSynth
+        if (AUInputElement* e = GetInput(0))
+            return (int) e->GetStreamFormat().mChannelsPerFrame;
+       #endif
+
+        return 0;
+    }
+
+    int findNumOutputChannels()
+    {
+        if (AUOutputElement* e = GetOutput(0))
+            return (int) e->GetStreamFormat().mChannelsPerFrame;
+
+        return 0;
+    }
+
     void prepareToPlay()
     {
         if (juceFilter != nullptr)
         {
-            juceFilter->setPlayConfigDetails (
-#if ! JucePlugin_IsSynth
-                                              (int) GetInput(0)->GetStreamFormat().mChannelsPerFrame,
-#else
-                                              0,
-#endif
-                                              (int) GetOutput(0)->GetStreamFormat().mChannelsPerFrame,
+            juceFilter->setPlayConfigDetails (findNumInputChannels(),
+                                              findNumOutputChannels(),
                                               getSampleRate(),
                                               (int) GetMaxFramesPerSlice());
             
@@ -1423,8 +1452,15 @@ public:
             
             jassert (activeUIs.contains (self));
             activeUIs.removeFirstMatchingValue (self);
+
             if (activePlugins.size() + activeUIs.size() == 0)
+            {
+                // there's some kind of component currently modal, but the host
+                // is trying to delete our plugin..
+                jassert (Component::getCurrentlyModalComponent() == nullptr);
+
                 shutdownJuce_GUI();
+        }
         }
         
         static void viewDidMoveToWindow (id self, SEL)
@@ -1568,7 +1604,7 @@ public:
             }
             else
             {
-                jassertfalse // can't get a pointer to our effect
+                jassertfalse; // can't get a pointer to our effect
             }
         }
         

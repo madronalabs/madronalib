@@ -26,16 +26,16 @@
 // and your header search path must make it accessible to the module's files.
 #include "AppConfig.h"
 
-#include "../utility/juce_CheckSettingMacros.h"
+#include "juce_CheckSettingMacros.h"
 
 #if JucePlugin_Build_VST || JucePlugin_Build_VST3
 
 #define JUCE_MAC_WINDOW_VISIBITY_BODGE 1
 
-#include "../utility/juce_IncludeSystemHeaders.h"
-#include "../utility/juce_IncludeModuleHeaders.h"
-#include "../utility/juce_FakeMouseMoveGenerator.h"
-#include "../utility/juce_CarbonVisibility.h"
+#include "juce_IncludeSystemHeaders.h"
+#include "juce_IncludeModuleHeaders.h"
+#include "juce_FakeMouseMoveGenerator.h"
+#include "juce_CarbonVisibility.h"
 
 //==============================================================================
 namespace juce

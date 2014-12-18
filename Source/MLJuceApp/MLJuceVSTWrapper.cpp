@@ -26,7 +26,7 @@
 // and your header search path must make it accessible to the module's files.
 #include "AppConfig.h"
 
-#include "../utility/juce_CheckSettingMacros.h"
+#include "juce_CheckSettingMacros.h"
 
 #if JucePlugin_Build_VST
 
@@ -105,9 +105,9 @@
 #pragma pack (push, 8)
 #endif
 
-#include "../utility/juce_IncludeModuleHeaders.h"
-#include "../utility/juce_FakeMouseMoveGenerator.h"
-#include "../utility/juce_WindowsHooks.h"
+#include "juce_IncludeModuleHeaders.h"
+#include "juce_FakeMouseMoveGenerator.h"
+#include "juce_WindowsHooks.h"
 
 #ifdef _MSC_VER
 #pragma pack (pop)

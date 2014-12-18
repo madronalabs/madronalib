@@ -53,7 +53,7 @@ public:
 	int mDestInputIndex;
 };
 
-typedef std::tr1::shared_ptr<MLPublishedInput> MLPublishedInputPtr;
+typedef std::shared_ptr<MLPublishedInput> MLPublishedInputPtr;
 
 class MLPublishedOutput
 {
@@ -87,7 +87,7 @@ public:
 	int mSrcOutputIndex;
 };
 
-typedef std::tr1::shared_ptr<MLPublishedOutput> MLPublishedOutputPtr;
+typedef std::shared_ptr<MLPublishedOutput> MLPublishedOutputPtr;
 
 // for gathering stats during process()
 class MLSignalStats
@@ -206,7 +206,7 @@ public:
 		int mDestIndex;
 	};
 
-	typedef std::tr1::shared_ptr<MLPipe> MLPipePtr;
+	typedef std::shared_ptr<MLPipe> MLPipePtr;
 
 	MLProcContainer();
 	virtual ~MLProcContainer();	

@@ -35,7 +35,7 @@ public:
 protected:
 	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
     
-	typedef std::tr1::shared_ptr<MLSignalView> MLSignalViewPtr;
+	typedef std::shared_ptr<MLSignalView> MLSignalViewPtr;
 	typedef std::list<MLSignalViewPtr> MLSignalViewList;
 	typedef std::map<MLSymbol, MLSignalViewList> MLSignalViewListMap;
 	typedef std::map<MLSymbol, MLSignalPtr> MLSymbolToSignalMap;

@@ -8,13 +8,12 @@
 const int kMaxControlEventsPerBlock = 1024;
 
 MLPluginProcessor::MLPluginProcessor() : 
+	mInputProtocol(-1),
 	mMLListener(0),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
-	mInitialized(false),
-	mInputProtocol(-1)
+	mInitialized(false)
 {
-	debug() << "creating MLPluginProcessor.\n";
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
@@ -29,7 +28,7 @@ MLPluginProcessor::MLPluginProcessor() :
 		"patch", MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber));
 	
 	// initialize environment model and state
-	mpEnvironmentModel = std::tr1::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
+	mpEnvironmentModel = std::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
 	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
@@ -559,22 +558,13 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		{
 			lastPosInfo.resetToDefault();
 		}
-
-		// set host phasor 
+		
+		// set host phasor
 		double bpm = lastPosInfo.isPlaying ? lastPosInfo.bpm : 0.;
 		double ppqPosition = lastPosInfo.ppqPosition;
 		double secsPosition = lastPosInfo.timeInSeconds;
 		int64 samplesPosition = lastPosInfo.timeInSamples;
 		bool isPlaying = lastPosInfo.isPlaying;
-		
-		// TEST
-		if(0)
-		if(lastPosInfo.isPlaying)
-		{
-			debug() << "bpm:" << lastPosInfo.bpm 
-			<< " ppq:" << std::setprecision(5) << ppqPosition << std::setprecision(2) 
-			<< " secs:" << secsPosition << "\n";
-		}
 			
 		// set Engine I/O.  done here each time because JUCE may change pointers on us.  possibly.
 		MLDSPEngine::ClientIOMap ioMap;

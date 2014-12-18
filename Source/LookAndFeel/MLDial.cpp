@@ -81,7 +81,7 @@ MLDial::MLDial () :
 	mThumbLayerNeedsRedraw(true),
 	mGestureInProgress(false)
 {
-	mpTimer = std::tr1::shared_ptr<GestureTimer>(new GestureTimer(this));
+	mpTimer = std::shared_ptr<GestureTimer>(new GestureTimer(this));
 
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -572,7 +572,7 @@ float MLDial::getPositionOfValue (const float value)
     }
     else
     {
-        jassertfalse // not a valid call on a MLDial that doesn't work linearly!
+        jassertfalse; // not a valid call on a MLDial that doesn't work linearly!
         return 0.0f;
     }
 }

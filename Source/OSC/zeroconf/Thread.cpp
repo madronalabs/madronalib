@@ -25,7 +25,7 @@
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "zeroconf/Thread.h"
+#include "Thread.h"
 #include <cassert>
 
 using namespace ZeroConf;

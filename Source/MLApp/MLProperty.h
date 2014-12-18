@@ -181,7 +181,7 @@ protected:
 	MLPropertySet* mpPropertyOwner;
 };
 
-typedef std::tr1::shared_ptr<MLPropertyListener> MLPropertyListenerPtr;
+typedef std::shared_ptr<MLPropertyListener> MLPropertyListenerPtr;
 
 #endif // __ML_PROPERTY__
 

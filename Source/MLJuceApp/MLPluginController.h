@@ -53,8 +53,8 @@ public:
     void cancelConvert();
     MLFileCollectionPtr mPresetsToConvert;
     MLFileCollectionPtr mPresetsToMove;
-    std::tr1::shared_ptr<ThreadWithProgressWindow> mConvertProgressThread;
-    std::tr1::shared_ptr<Thread> mConvertPresetsThread;
+    std::shared_ptr<ThreadWithProgressWindow> mConvertProgressThread;
+    std::shared_ptr<Thread> mConvertPresetsThread;
     
 #endif // ML_MAC
 

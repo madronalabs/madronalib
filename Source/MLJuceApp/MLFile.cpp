@@ -10,15 +10,11 @@
 
 const MLFile MLFile::nullObject;
 
-// null file object ctor
-MLFile::MLFile() :
-	mJuceFile(File::nonexistent)
-{}
+MLFile::MLFile(){}
 
 // TODO this is confusing and bad. Some weird stuff with names is enabling trees.
 // Files that can contain other files should go in MLFileCollection::Node or similar.
 MLFile::MLFile(const std::string& dirName) :
-	mJuceFile(File::nonexistent),
 	mShortName(dirName)
 {}
 

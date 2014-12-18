@@ -444,6 +444,9 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
 {
     MLMenu* pMenu = createMenu("key_scale");
+	
+	// MLTEST pMenu was NULL here once, I swear it. How?
+	
 	pMenu->clear();
  	pMenu->addItem("12-equal");
     MLMenuPtr p = fileCollection.buildMenu();
@@ -698,10 +701,10 @@ void MLPluginController::convertPresets()
         // turn off audio -- will be turned back on by finish or cancel
         mpProcessor->suspendProcessing(true);
 
-        mConvertProgressThread = std::tr1::shared_ptr<ThreadWithProgressWindow>(new ConvertProgressDisplayThread(this, mPresetsToConvert));
+        mConvertProgressThread = std::shared_ptr<ThreadWithProgressWindow>(new ConvertProgressDisplayThread(this, mPresetsToConvert));
         mConvertProgressThread->launchThread();
         
-        mConvertPresetsThread = std::tr1::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToMove, mPresetsToConvert));
+        mConvertPresetsThread = std::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToMove, mPresetsToConvert));
         mConvertPresetsThread->startThread();
     }
     else

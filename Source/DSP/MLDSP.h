@@ -11,7 +11,7 @@
 #ifdef _WIN32
 	#include <memory>
 #else
-	#include <tr1/memory>
+	#include <memory>
 #endif
 
 #include "math.h"

@@ -29,7 +29,7 @@
 #ifndef ZeroConf_Thread_H
 #define ZeroConf_Thread_H
 
-#include "zeroconf/CriticalSection.h"
+#include "CriticalSection.h"
 
 namespace ZeroConf 
 {
