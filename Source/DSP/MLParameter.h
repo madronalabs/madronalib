@@ -125,7 +125,7 @@ private:
 	int mGroupIndex;	// -1 for none
 };
 
-typedef std::shared_ptr<MLPublishedParam> MLPublishedParamPtr;
+typedef std::tr1::shared_ptr<MLPublishedParam> MLPublishedParamPtr;
 
 // ----------------------------------------------------------------
 #pragma mark named parameter groups

@@ -68,6 +68,6 @@ private:
 	std::vector<juce::MemoryBlock> mStateStack;
 };
 
-typedef std::shared_ptr<MLAppState> MLAppStatePtr;
+typedef std::tr1::shared_ptr<MLAppState> MLAppStatePtr;
 
 #endif // __ML_APP_STATE_H

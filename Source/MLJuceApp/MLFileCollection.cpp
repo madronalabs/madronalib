@@ -140,13 +140,13 @@ void MLFileCollection::buildTree()
         
         if (f.existsAsFile() && f.hasFileExtension(mExtension))
         {
-			
             std::string rPath(relativePath.toUTF8());
             std::string delimiter = (rPath == "" ? "" : "/");
             std::string sName(shortName.toUTF8());
             std::string longName(rPath + delimiter + sName);
             
-			debug() << "FOUND " << longName << "\n";
+			// MLTEST
+			// debug() << "FOUND " << longName << "\n";
 			
             MLFile* nf = new MLFile(f, sName, longName);
             MLFilePtr newFile(nf);
@@ -191,7 +191,7 @@ void MLFileCollection::sendActionToListeners(MLSymbol action)
 
 void MLFileCollection::searchForFilesImmediate(int delay)
 {
-    mSearchThread = std::shared_ptr<SearchThread>(new SearchThread(*this));
+    mSearchThread = std::tr1::shared_ptr<SearchThread>(new SearchThread(*this));
     mSearchThread->setDelay(delay);
     mSearchThread->startThread();
 }

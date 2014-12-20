@@ -9,6 +9,7 @@
 #ifndef _ML_RING_BUFFER_H
 #define _ML_RING_BUFFER_H
 
+#include <tr1/memory>
 #include "pa_ringbuffer.h"
 #include "MLDSP.h"
 
@@ -30,6 +31,6 @@ public:
 };
 
 
-typedef std::shared_ptr<MLRingBuffer> MLRingBufferPtr;
+typedef std::tr1::shared_ptr<MLRingBuffer> MLRingBufferPtr;
 
 #endif // _ML_RING_BUFFER_H

@@ -569,9 +569,9 @@ void MLProcInputToSignals::process(const int frames)
     if(mFrameCounter > sr)
     {
         mFrameCounter -= sr;
-        dumpEvents();
-        dumpVoices();
-        dumpSignals();
+        //dumpEvents();
+        //dumpVoices();
+        //dumpSignals();
     }
 }
 

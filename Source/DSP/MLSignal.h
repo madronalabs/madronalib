@@ -11,6 +11,7 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <tr1/memory>
 #include "math.h"
 #include "MLDSP.h"
 #include "MLVector.h"
@@ -411,7 +412,7 @@ private:
 	MLSampleRate mRate;
 };
 
-typedef std::shared_ptr<MLSignal> MLSignalPtr;
+typedef std::tr1::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);

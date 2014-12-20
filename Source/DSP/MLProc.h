@@ -485,7 +485,7 @@ private:
 	MLSymbol mName;
 };
 
-typedef std::shared_ptr<MLProc> MLProcPtr;
+typedef std::tr1::shared_ptr<MLProc> MLProcPtr;
 typedef std::list<MLProcPtr> MLProcList;
 typedef MLProcList::iterator MLProcListIterator;
 

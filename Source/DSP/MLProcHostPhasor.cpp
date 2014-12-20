@@ -41,8 +41,6 @@ void MLProcHostPhasor::calcCoeffs(void)
 
 void MLProcHostPhasor::setTimeAndRate(const double secs, const double position, const double bpm, bool isPlaying)
 {
-	double newTime, newRate;
-
 	// working around a bug I can't reproduce, so I'm covering all the bases.
 	if ( ((MLisNaN(position)) || (MLisInfinite(position)))
 		|| ((MLisNaN(bpm)) || (MLisInfinite(bpm)))
@@ -52,23 +50,20 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double position, 
 		return;
 	}
 	
-	newTime = clamp(position, 0., 100000.);
-	mActive = (mTime != newTime);
+	double newTime = clamp(position, 0., 100000.);
+	mActive = (mTime != newTime) && (secs >= 0.);
 	if (mActive)
 	{
 		mTime = newTime;
 		mParamsChanged = true;
 
-		if (secs > 0.f) // filter out some Logic weirdness
-		{		
-			double phase = newTime - int(newTime);
-			mOmega = (float)phase;
-			newRate = clamp(bpm, 0., 1000.);
-			if (mRate != newRate)
-			{
-				mRate = newRate;				
-				mParamsChanged = true;
-			}
+		double phase = newTime - int(newTime);
+		mOmega = (float)phase;
+		double newRate = clamp(bpm, 0., 1000.);
+		if (mRate != newRate)
+		{
+			mRate = newRate;				
+			mParamsChanged = true;
 		}
 	}
 	else

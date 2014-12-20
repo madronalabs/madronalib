@@ -364,7 +364,7 @@ protected:
 	private:
 		MLDial* mpOwner;
 	};
-	std::shared_ptr<GestureTimer> mpTimer;
+	std::tr1::shared_ptr<GestureTimer> mpTimer;
 };
 
 #endif // __ML_DIAL_HEADER__

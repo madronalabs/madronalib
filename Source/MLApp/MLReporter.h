@@ -26,7 +26,7 @@ private:
 	MLSymbol mAttr;
 };
 
-typedef std::shared_ptr<MLPropertyView> MLPropertyViewPtr;
+typedef std::tr1::shared_ptr<MLPropertyView> MLPropertyViewPtr;
 typedef std::list<MLPropertyViewPtr> MLPropertyViewList;
 typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 
@@ -84,7 +84,7 @@ private:
 	MLPropertySet mCurrentProperties;
 	std::vector<MLSymbol> mChangeData;
 	PaUtilRingBuffer mChangeQueue;
-	std::shared_ptr<ReporterTimer> mpTimer;
+	std::tr1::shared_ptr<ReporterTimer> mpTimer;
 };
 
 #endif // __ML_REPORTER_H

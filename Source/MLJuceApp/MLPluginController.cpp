@@ -701,10 +701,10 @@ void MLPluginController::convertPresets()
         // turn off audio -- will be turned back on by finish or cancel
         mpProcessor->suspendProcessing(true);
 
-        mConvertProgressThread = std::shared_ptr<ThreadWithProgressWindow>(new ConvertProgressDisplayThread(this, mPresetsToConvert));
+        mConvertProgressThread = std::tr1::shared_ptr<ThreadWithProgressWindow>(new ConvertProgressDisplayThread(this, mPresetsToConvert));
         mConvertProgressThread->launchThread();
         
-        mConvertPresetsThread = std::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToMove, mPresetsToConvert));
+        mConvertPresetsThread = std::tr1::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToMove, mPresetsToConvert));
         mConvertPresetsThread->startThread();
     }
     else

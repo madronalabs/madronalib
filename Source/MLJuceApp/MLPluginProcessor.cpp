@@ -19,7 +19,9 @@ MLPluginProcessor::MLPluginProcessor() :
 	lastPosInfo.resetToDefault();
     
     createFileCollections();
-//    scanAllFilesImmediate();
+	
+	// Files are scanned before UI is made in order to get MIDI programs, scales, etc.
+    scanAllFilesImmediate();
     
     mControlEvents.resize(kMaxControlEventsPerBlock);
 	
@@ -28,7 +30,7 @@ MLPluginProcessor::MLPluginProcessor() :
 		"patch", MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber));
 	
 	// initialize environment model and state
-	mpEnvironmentModel = std::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
+	mpEnvironmentModel = std::tr1::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
 	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
