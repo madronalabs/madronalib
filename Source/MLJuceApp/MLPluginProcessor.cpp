@@ -508,7 +508,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			}
 			else
 			{		
-				pgm = clamp(pgm, 0, kMLPluginMIDIPrograms - 1);			
+				pgm = clamp(pgm, 1, kMLPluginMIDIPrograms);
 				loadPatchStateFromMIDIProgram(pgm);
 			}
             type = MLControlEvent::kProgramChange;
@@ -1317,8 +1317,7 @@ void MLPluginProcessor::advancePreset(int amount)
     int len = mPresetFiles->getSize();
     std::string extension (".mlpreset");
 
-    int currIdx = - 1;
-	currIdx = mPresetFiles->getFileIndexByName(getStringProperty("preset") + extension);
+    int currIdx = mPresetFiles->getFileIndexByName(getStringProperty("preset") + extension);
     
     if(currIdx >= 0)
     {
