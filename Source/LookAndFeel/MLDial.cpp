@@ -34,6 +34,7 @@ MLDial::MLDial () :
 	mLastDragX(0), mLastDragY(0),
 	mFilteredMouseSpeed(0.),
 	mMouseMotionAccum(0),
+	mMouseSubValueAccum(0),
 	isMouseDown(false),
 	isMouseWheelMoving(false),
 	//
@@ -1231,33 +1232,59 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
 		d = clamp(d, 0, 3);
 		float minValChange = max(powf(10., -d), interval);		
-		if(doFineAdjust)
+
+		// for dials without many possible values, slow down mouse movement
+		// as the inverse proportion to the number of values.
+		int values = max(4, (int)((maximum - minimum)/interval));
+		const int valuesThresh = 128;
+		int subValueScale = 1;
+		int subValueMult = 1;
+		if(values < valuesThresh)
 		{
-			// get minimum visible change as change in position
-			float p2 = valueToProportionOfLength (val + minValChange * dp);
-			r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));			
-		}
-		else 
-		{
-			// move dial 1/100 of length range * drag distance
-			float p1 = valueToProportionOfLength (val);
-			float p2 = p1 + dp*0.01f;			
-			r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
-			
-			// if this motion is too small to change the displayed value, 
-			// do the smallest visible change instead
-			if(dp > 0)
+			subValueScale = (float)valuesThresh/(float)values;
+			if(doFineAdjust) subValueScale *= 4;
+			mMouseSubValueAccum += dp;
+			if(abs(mMouseSubValueAccum) > subValueScale)
 			{
-				if (r < val + minValChange)
-				{
-					r = val + minValChange;
-				}
+				subValueMult = sign(dp);
+				mMouseSubValueAccum = 0;
 			}
-			else if(dp < 0)
+			else
 			{
-				if (r > val - minValChange)
+				subValueMult = 0;
+			}
+		}
+		
+		if(subValueMult != 0)
+		{
+			if(doFineAdjust)
+			{
+				// get minimum visible change as change in position
+				float p2 = valueToProportionOfLength (val + minValChange*sign(dp));
+				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
+			}
+			else 
+			{
+				// move dial 1/100 of length range * drag distance
+				float p1 = valueToProportionOfLength (val);
+				float p2 = p1 + dp*0.01f;
+				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
+				
+				// if this motion is too small to change the displayed value, 
+				// do the smallest visible change instead
+				if(dp > 0)
 				{
-					r = val - minValChange;
+					if (r < val + minValChange)
+					{
+						r = val + minValChange;
+					}
+				}
+				else if(dp < 0)
+				{
+					if (r > val - minValChange)
+					{
+						r = val - minValChange;
+					}
 				}
 			}
 		}
@@ -1400,10 +1427,11 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
             if(wheel.isReversed) dpf = -dpf;			
 			float val = getFloatProperty("value");
 			int dir = sign(dpf);
-			int dp = dir*max(1, (int)(fabs(dpf)*32.)); // mouse scale for no detents
-			
+			int dp = dir*max(1, (int)(fabs(dpf)*16.)); // mouse scale for no detents
+						
 			float oldVal = valueWhenLastDragged;
 			valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kMouseWheelStepSize);
+			
 			if(valueWhenLastDragged != oldVal)
 			{
 				if(!isMouseWheelMoving)

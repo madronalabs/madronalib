@@ -287,6 +287,7 @@ protected:
 	int mLastDragX, mLastDragY;
 	float mFilteredMouseSpeed;
 	int mMouseMotionAccum;
+	int mMouseSubValueAccum;
 
     int pixelsForFullDragExtent;
     MLDial::DialStyle style;
