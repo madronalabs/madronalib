@@ -11,182 +11,108 @@ const std::string MLProperty::nullString;
 const MLSignal MLProperty::nullSignal;
 
 MLProperty::MLProperty() :
-	mType(kUndefinedProperty)
+	mType(kUndefinedProperty),
+	mFloatVal(0)
 {
-	mVal.mpStringVal = 0;
 }
 
 MLProperty::MLProperty(const MLProperty& other) :
-	mType(other.getType())
+	mType(other.getType()),
+	mFloatVal(0)
 {
 	switch(mType)
 	{
 		case MLProperty::kFloatProperty:
-			mVal.mFloatVal = other.getFloatValue();
+			mFloatVal = other.getFloatValue();
 			break;
 		case MLProperty::kStringProperty:
-			mVal.mpStringVal = new std::string(other.getStringValue());
+			mStringVal = other.getStringValue().c_str();
 			break;
 		case MLProperty::kSignalProperty:
-			mVal.mpSignalVal = new MLSignal(other.getSignalValue());
+			mSignalVal = other.getSignalValue();
 			break;
 		default:
-			mVal.mpStringVal = 0;
 			break;
 	}
 }
 
 MLProperty& MLProperty::operator= (const MLProperty& other)
 {
-	bool complete = false;
-	if(mType == other.getType())
+	// copy data in place if possible
+	mType = other.getType();
+	switch(mType)
 	{
-		// copy data in place if possible
-		switch(mType)
-		{
-			case MLProperty::kFloatProperty:
-				mVal.mFloatVal = other.getFloatValue();
-				complete = true;
-				break;
-			case MLProperty::kStringProperty:
-				if((mVal.mpStringVal->size()) == (other.mVal.mpStringVal->size()))
-				{
-					std::string& s = *mVal.mpStringVal;
-					s.replace(s.begin(), s.end(), other.getStringValue());
-					complete = true;
-				}
-				break;
-			case MLProperty::kSignalProperty:
-				// MLSignal handles copy-in-place when possible
-				*mVal.mpSignalVal = other.getSignalValue();
-				complete = true;
-				break;
-			default:
-				mVal.mpStringVal = 0;
-				break;
-		}
+		case MLProperty::kFloatProperty:
+			mFloatVal = other.getFloatValue();
+			break;
+		case MLProperty::kStringProperty:
+			mStringVal = other.getStringValue().c_str();
+			break;
+		case MLProperty::kSignalProperty:
+			// MLSignal handles copy-in-place when possible
+			mSignalVal = other.getSignalValue();
+			break;
+		default:
+			break;
 	}
-	
-	if(!complete)
-	{
-		deallocate();
-		mType = other.getType();
-		switch(mType)
-		{
-			case MLProperty::kFloatProperty:
-				mVal.mFloatVal = other.getFloatValue();
-				break;
-			case MLProperty::kStringProperty:
-				mVal.mpStringVal = new std::string(other.getStringValue());
-				break;
-			case MLProperty::kSignalProperty:
-				mVal.mpSignalVal = new MLSignal(other.getSignalValue());
-				break;
-			default:
-				mVal.mpStringVal = 0;
-				break;
-		}
-	}
+
 	return *this;
 }
 
 MLProperty::MLProperty(float v) :
 	mType(kFloatProperty)
 {
-	mVal.mFloatVal = v;
+	mFloatVal = v;
 }
 
 MLProperty::MLProperty(const std::string& s) :
 	mType(kStringProperty)
 {
-	mVal.mpStringVal = new std::string(s);
+	mStringVal = s.c_str();
 }
 
 MLProperty::MLProperty(const MLSignal& s) :
 	mType(kSignalProperty)
 {
-	mVal.mpSignalVal = new MLSignal(s);
+	mSignalVal = s;
 }
 
 MLProperty::~MLProperty()
 {
-	deallocate();
-}
-
-void MLProperty::deallocate()
-{
-	switch(mType)
-	{
-		case kStringProperty:
-			delete mVal.mpStringVal;
-			break;
-		case kSignalProperty:
-			delete mVal.mpSignalVal;
-			break;
-		default:
-			mVal.mpStringVal = 0;
-			break;
-	}
-	mType = kUndefinedProperty;
 }
 
 const float& MLProperty::getFloatValue() const
 {
 	static const float nullFloat = 0.f;
-	return (mType == kFloatProperty) ? mVal.mFloatVal : nullFloat;
+	return (mType == kFloatProperty) ? mFloatVal : nullFloat;
 }
 
 const std::string& MLProperty::getStringValue() const
 {
-	return (mType == kStringProperty) ? (*mVal.mpStringVal) : nullString;
+	return (mType == kStringProperty) ? (mStringVal) : nullString;
 }
 
 const MLSignal& MLProperty::getSignalValue() const
 {
-	return (mType == kSignalProperty) ? (*mVal.mpSignalVal) : nullSignal;
+	return (mType == kSignalProperty) ? (mSignalVal) : nullSignal;
 }
 
 void MLProperty::setValue(const float& v)
 {
-	if(mType == kFloatProperty)
-	{
-		mVal.mFloatVal = v;
-	}
-	else
-	{
-		deallocate();
-		mType = kFloatProperty;
-		mVal.mFloatVal = v;
-	}
+	mType = kFloatProperty;
+	mFloatVal = v;
 }
 
 void MLProperty::setValue(const std::string& v)
 {
-	if(mType == kStringProperty)
-	{
-		std::string& s = *mVal.mpStringVal;
-		s.replace(s.begin(), s.end(), v);
-	}
-	else
-	{
-		deallocate();
-		mType = kStringProperty;
-		mVal.mpStringVal = new std::string(v);
-	}
+	mType = kStringProperty;
+	mStringVal = v;
 }
 
 void MLProperty::setValue(const MLSignal& v)
 {
-	if(mType == kSignalProperty)
-	{
-		*mVal.mpSignalVal = v;
-	}
-	else
-	{
-		deallocate();
-		mType = kSignalProperty;
-		mVal.mpSignalVal = new MLSignal(v);
-	}
+	mType = kSignalProperty;
+	mSignalVal = v;
 }
 
 void MLProperty::setValue(const MLProperty& v)
@@ -387,6 +313,11 @@ void MLPropertyListener::updateChangedProperties()
 			const MLProperty& newValue = mpPropertyOwner->getProperty(key);
 			doPropertyChangeAction(key, newValue);
 			state.mChangedSinceUpdate = false;
+			
+			// MLDEBUG check current state consistency
+//			int stateOK = state.mValue.audit();
+
+			
 			state.mValue = newValue;
 		}
 	}

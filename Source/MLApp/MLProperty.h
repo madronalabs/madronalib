@@ -41,7 +41,7 @@ public:
     
 	// set the value of the property to that of the argument.
 	// For all property types, if the size of the argument is equal to the
-	// size of the current value, the value must be modified in place.
+	// size of the current value, the value is modified in place.
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
 	void setValue(const std::string& v);
@@ -54,15 +54,12 @@ public:
 	bool operator<< (const MLProperty& b) const;
 	
 private:
-	void deallocate();
-	
+	// TODO reduce storage requirements-- this is a minimal-code start
+	// TODO stop using std::string or otherwise control threading issues
 	Type mType;
-	union
-	{
-		float mFloatVal;
-		std::string* mpStringVal;
-		MLSignal* mpSignalVal;
-	}   mVal;
+	float mFloatVal;
+	std::string mStringVal;
+	MLSignal mSignalVal;
 };
 
 // utilities
