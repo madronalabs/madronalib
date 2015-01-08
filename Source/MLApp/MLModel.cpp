@@ -13,12 +13,16 @@ MLModel::MLModel() :
     MLPropertyListener(this)
 {
 	mpTimer = std::tr1::shared_ptr<ModelTimer>(new ModelTimer(this));
-	mpTimer->startTimer(kMLModelUpdateInterval);
 }
 
 MLModel::~MLModel()
 {
 	mpTimer->stopTimer();
+}
+
+void MLModel::startModelTimer()
+{
+	mpTimer->startTimer(kMLModelUpdateInterval);
 }
 
 // MLModel::ModelTimer
