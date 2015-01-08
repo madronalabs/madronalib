@@ -88,6 +88,7 @@ public:
 	template <typename T>
 	void setProperty(MLSymbol p, T v)
 	{
+		const juce::ScopedLock pl (mPropertyLock);
 		mProperties[p].setValue(v);
 		broadcastProperty(p, false);
 	}
@@ -96,6 +97,7 @@ public:
 	template <typename T>
 	void setPropertyImmediate(MLSymbol p, T v)
 	{
+		const juce::ScopedLock pl (mPropertyLock);
 		mProperties[p].setValue(v);
 		broadcastProperty(p, true);
 	}
@@ -105,6 +107,7 @@ public:
 	template <typename T>
 	void setPropertyImmediateExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
 	{
+		const juce::ScopedLock pl (mPropertyLock);
 		mProperties[p].setValue(v);
 		broadcastPropertyExcludingListener(p, true, pL);
 	}
@@ -120,6 +123,8 @@ protected:
 private:
 	std::map<MLSymbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
+	juce::CriticalSection mPropertyLock; // MLTEST
+	
 	void broadcastProperty(MLSymbol p, bool immediate);
 	void broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude);
 };
