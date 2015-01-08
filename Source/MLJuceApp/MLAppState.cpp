@@ -60,7 +60,7 @@ String MLAppState::getStateAsText()
 	if(root)
 	{
 		getStateAsJSON(root);
-		r = cJSON_Print(root);
+		r = CharPointer_UTF8(cJSON_Print(root));
 	}
 	else
 	{

@@ -261,7 +261,7 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
     std::string fullPath = mRoot.getAbsolutePath() + "/" + relativePathAndName;
     
     // need absolute path to make the Juce file
-    File *f = new File(String(fullPath.c_str()));
+    File *f = new File(String(CharPointer_UTF8(fullPath.c_str())));
     MLFilePtr newFile(new MLFile(*f, sName, relativePathAndName));
     
     // insert file into file tree at relative path

@@ -334,8 +334,8 @@ class MLFDN
 {
 public:
     MLFDN() :
-        mSR(44100),
         mSize(0),
+		mSR(44100),
         mFeedbackAmp(0),
         mFreqMul(0.925)
         {}
@@ -355,6 +355,7 @@ public:
     
 private:
     int mSize;
+    int mSR;
     //std::vector<MLAllpassDelay> mDelays;
     std::vector<MLLinearDelay> mDelays;
     std::vector<MLBiquad> mAllpasses;
@@ -364,7 +365,6 @@ private:
     float mDelayTime;
     float mFeedbackAmp;
     float mFreqMul;
-    int mSR;
     float mInvSr;
 };
 

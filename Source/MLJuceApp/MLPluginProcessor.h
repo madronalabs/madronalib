@@ -86,7 +86,7 @@ public:
     void setParameter (int index, float newValue);
 	bool isParameterAutomatable (int idx) const;
 	
-	// factory presets - a VST concept - unimplemented
+	// factory presets - a VST concept - TODO
     int getNumPrograms() { return 0; }
     int getCurrentProgram() { return 0; }
     void setCurrentProgram (int) { }

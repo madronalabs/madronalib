@@ -85,8 +85,8 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 		case MLProperty::kStringProperty:
 		{
 			// set published string parameter in DSP engine.
-			const std::string& sigVal = newVal.getStringValue();
-			setStringParameterWithoutProperty (propName, sigVal);
+			const std::string& stringVal = newVal.getStringValue();
+			setStringParameterWithoutProperty (propName, stringVal);
 		}
 		break;
 		case MLProperty::kSignalProperty:
@@ -500,8 +500,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 		else if (message.isProgramChange())
 		{
 			int pgm = message.getProgramChangeNumber();
-			// debug() << "*** program change -> " << pgm << "\n";
-			if(pgm == kMLPluginMIDIPrograms)	
+			if(pgm == kMLPluginMIDIPrograms)
 			{
 				// load most recent saved program
 				returnToLatestStateLoaded();
@@ -515,7 +514,8 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
             id = chan;
             v1 = (float)pgm;
 		}
-        else if (!message.isMidiClock())
+		/*
+		 else if (!message.isMidiClock())
 		// TEST
 		{
 			int msgSize = message.getRawDataSize();
@@ -528,6 +528,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			}	
 			debug() << std::dec << "]\n";
 		}
+		 */
         if(c < size - 1)
         {
             events[c++] = MLControlEvent(type, chan, id, time, v1, v2);
@@ -872,6 +873,7 @@ int MLPluginProcessor::saveStateOverPrevious()
 }
 
 // save with full path name as input -- needed for using system File dialogs
+// return nonzero on error.
 //
 int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
 {
@@ -998,6 +1000,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f.getJuceFile());
 		}
 		
+		// replace app state with new state loaded
 		mpPatchState->updateChangedProperties();
 		mpPatchState->clearStateStack();
 		mpPatchState->pushStateToStack();
@@ -1078,7 +1081,7 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 
 void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
-	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx));
+	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx - 1));
 }
 
 void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
@@ -1116,6 +1119,9 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 	{
 		debug() << "MLPluginProcessor::setPatchStateFromText: unknown format for .mlpreset file!\n";
 	}
+	
+	// update any properties that have changed from previous state of Model. This will cause DSP parameter changes
+	// to happen through doPropertyChangeAction().
 	updateChangedProperties();
 }
 

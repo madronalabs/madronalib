@@ -69,7 +69,7 @@ void MLMenuButton::doPropertyChangeAction(MLSymbol property, const MLProperty& v
 		{
 			processedText = str;
 		}
-		setProperty("processed_text", processedText);
+		setProperty("processed_text", processedText);		
 		repaint();
 	}
 	else

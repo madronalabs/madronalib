@@ -280,7 +280,8 @@ void MLScale::loadFromRelativePath(const std::string& scaleName)
 			}
 		}
 		// use of c_str preventing possible move assignment if (= std::string) were used. TODO revisit!
-		mScalePath = scaleName.c_str(); 	}
+		mScalePath = scaleName.c_str();
+	}
 }
 
 float MLScale::noteToPitch(float note) const

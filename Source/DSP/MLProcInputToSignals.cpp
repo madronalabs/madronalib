@@ -971,6 +971,7 @@ void MLProcInputToSignals::doPitchWheel(const MLControlEvent& event)
 
 void MLProcInputToSignals::doNotePressure(const MLControlEvent& event)
 {
+	debug() << "NOTE PRESSURE: ID:" << event.mID << " channel:" << event.mChannel << " val:" << event.mValue2 << "\n";
 	for (int i=0; i<mCurrentVoices; ++i)
 	{
 		if ((event.mChannel == mVoices[i].mChannel) && (event.mID == mVoices[i].mInstigatorID))
@@ -1023,6 +1024,7 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
             mVoices[v].mdAmp.writeToSignal(amp, frames);
  			mVoices[v].mdVel.writeToSignal(velSig, frames);
 			voiceSig.setToConstant(v);
+			
 			// aftertouch for each voice is channel aftertouch + poly aftertouch.
 			mVoices[v].mdNotePressure.writeToSignal(after, frames);
 			if(mAddChannelPressure)

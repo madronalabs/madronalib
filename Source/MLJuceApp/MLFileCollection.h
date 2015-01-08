@@ -112,8 +112,8 @@ private:
         void run();
         
     private:
-        int mDelay;
         MLFileCollection& mCollection;
+        int mDelay;
     };
     
     // the file tree TODO will become a tree of MLFileCollection::fileNode or some such thing.

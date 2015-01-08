@@ -58,8 +58,8 @@ private:
 	{
 	public:
 		PropertyListener(MLReporter* p, MLPropertySet* set) :
-			mpOwnerReporter(p),
-			MLPropertyListener(set)
+			MLPropertyListener(set),
+			mpOwnerReporter(p)
 			{}
 		~PropertyListener()  {}
 		void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);

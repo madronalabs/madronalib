@@ -840,8 +840,6 @@ public:
         double outCurrentSampleInTimeLine, outCycleStartBeat, outCycleEndBeat;
         Boolean playing = false, looping = false, playchanged;
         
-		//MLTEST this is returning -1,  mHostCallbackInfo.transportStateProc  = 0?!
-		
         if (CallHostTransportState (&playing,
                                     &playchanged,
                                     &outCurrentSampleInTimeLine,
