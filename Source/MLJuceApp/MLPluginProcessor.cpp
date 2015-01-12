@@ -875,9 +875,9 @@ int MLPluginProcessor::saveStateOverPrevious()
 // save with full path name as input -- needed for using system File dialogs
 // return nonzero on error.
 //
-int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
+void MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
 {
-    int r = 0;
+    int r = true;
     std::string newPath = mPresetFiles->getRelativePath(fullPath);
     if(newPath != "")
     {
@@ -885,9 +885,54 @@ int MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
     }
     else
     {
-        r = 1;
+		// warn that path is outside the usual directory.
+		String errStr = "Note: the location ";
+		errStr += fullPath;
+		errStr += " is outside of the ";
+		errStr += MLProjectInfo::projectName;
+		errStr += " folder. The saved file will not appear in the preset menu. Save anyway?";
+		if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
+		
+		// use only the short name as model param.
+		std::string shortPath = MLStringUtils::getShortName(fullPath);
+		setProperty("preset", shortPath);
+		
+		std::string extension (".mlpreset");
+		std::string newFilePath = fullPath + extension;
+		
+		// using juce files, TODO revisit
+		String newFileName(newFilePath.c_str());
+		juce::File newFile(newFileName);
+		if(!(newFile.exists()))
+		{
+			r = newFile.replaceWithText(getStateAsText());
+		}
+		else
+		{
+			String errStr = "The file ";
+			errStr += fullPath;
+			errStr += " already exists. Overwrite? ";
+			if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
+			r = newFile.replaceWithText(getStateAsText());
+		}
+		
+		if(r != true)
+		{
+			String errStr = "Error saving file to ";
+			errStr += fullPath;
+			AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
+		}
+		else
+		{
+			// reset state stack and push current state for recall
+			mpPatchState->clearStateStack();
+			mpPatchState->pushStateToStack();
+			
+			// fix file menus
+			scanAllFilesImmediate();
+		}
     }
-    return r;
+    return;
 }
 
 // creates a file with the right extension for the plugin type.

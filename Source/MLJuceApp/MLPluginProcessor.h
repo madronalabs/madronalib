@@ -147,7 +147,7 @@ public:
 
 	String getStateAsText();
 	void setPatchStateFromText(const String& stateStr);
-    int saveStateToFullPath(const std::string& path);
+    void saveStateToFullPath(const std::string& path);
     void saveStateToRelativePath(const std::string& path);
     
 	void loadStateFromPath(const std::string& path);
