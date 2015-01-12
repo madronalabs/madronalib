@@ -228,15 +228,13 @@ void MLPluginController::doPresetMenu(int result)
                 FileChooser fc ("Save preset as...", userPresetsFolder, String::empty, nativeChooserUI);
                 if (fc.browseForFileToSave (true))
                 {
-                    File saveFile = fc.getResult();	
-                    err = getProcessor()->saveStateToFullPath(std::string(saveFile.getFullPathName().toUTF8()));
-                    if(err)
-                    {
-                        errStr = "Please choose a location in the ";
-                        errStr += MLProjectInfo::projectName;
-                        errStr += " folder.";
-                        AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
-                    }
+                    File saveFile = fc.getResult();
+					
+					// MLTEST
+					std::string fullSavePath(saveFile.getFullPathName().toUTF8());
+					debug() << "saving to: " << fullSavePath << "\n";
+		
+                    getProcessor()->saveStateToFullPath(fullSavePath);
                 }
             }
             else
@@ -420,7 +418,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
 #if SHOW_CONVERT_PRESETS
 #if ML_MAC
-	menu->addItem("Update presets...");
+	menu->addItem("Convert presets...");
 #endif
 #endif
 	menu->addSeparator();
@@ -503,18 +501,16 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 			// If file at destination does not exist, or is older than the source, convert
 			// source and overwrite destination.
 			File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
-			if(!destFile.exists())
+			bool destinationExists = destFile.exists();
+			bool destinationIsOlder =  destFile.getLastModificationTime() < fileToProcess.getJuceFile().getLastModificationTime();
+			if((!destinationExists) || (destinationIsOlder))
 			{
-				mpProcessor->loadPatchStateFromFile(fileToProcess);
-				mpProcessor->saveStateToRelativePath(relativeName);
-			}
-			
-			if(fileToProcess.getJuceFile().getLastModificationTime() > destFile.getLastModificationTime())
-			{
+				debug() << "converting: " << relativeName << "\n";
 				mpProcessor->loadPatchStateFromFile(fileToProcess);
 				mpProcessor->saveStateToRelativePath(relativeName);
 			}
 		}
+		/*
 		else if(collectionName == "move_user_presets")
 		{
 			// move from old place to new if new file does not exist.
@@ -529,6 +525,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 				destFile.replaceWithText(presetStr);
 			}
 		}
+		 */
 
 	}
 	else if(action == "update")
@@ -643,9 +640,8 @@ public:
 class ConvertPresetsThread : public Thread, public DeletedAtShutdown
 {
 public:
-    ConvertPresetsThread(MLFileCollectionPtr p, MLFileCollectionPtr q) :
+    ConvertPresetsThread(MLFileCollectionPtr q) :
         Thread("update_presets_thread"),
-        mPresetsToMove(p),
         mPresetsToConvert(q)
     {
     }
@@ -659,6 +655,7 @@ public:
     {
         int interFileDelay = 2;
         
+		/*
         // move files in immediate mode
         mPresetsToMove->searchForFilesImmediate(interFileDelay);
         
@@ -668,7 +665,8 @@ public:
             if (threadShouldExit()) return;
             wait(10);
         }
-        
+        */
+		
         // convert files in immediate mode
         mPresetsToConvert->searchForFilesImmediate(interFileDelay);
         
@@ -693,8 +691,9 @@ void MLPluginController::convertPresets()
     File presetsFolder = getDefaultFileLocation(kOldPresetFiles);
     if (presetsFolder != File::nonexistent)
     {
-        mPresetsToMove = MLFileCollectionPtr(new MLFileCollection("move_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
-        mPresetsToMove->addListener(this);
+//        mPresetsToMove = MLFileCollectionPtr(new MLFileCollection("move_user_presets", getDefaultFileLocation(kOldPresetFiles), ".mlpreset"));
+//        mPresetsToMove->addListener(this);
+		
         mPresetsToConvert = MLFileCollectionPtr(new MLFileCollection("convert_user_presets", getDefaultFileLocation(kOldPresetFiles), ".aupreset"));
         mPresetsToConvert->addListener(this);
 
@@ -704,7 +703,7 @@ void MLPluginController::convertPresets()
         mConvertProgressThread = std::tr1::shared_ptr<ThreadWithProgressWindow>(new ConvertProgressDisplayThread(this, mPresetsToConvert));
         mConvertProgressThread->launchThread();
         
-        mConvertPresetsThread = std::tr1::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToMove, mPresetsToConvert));
+        mConvertPresetsThread = std::tr1::shared_ptr<Thread>(new ConvertPresetsThread(mPresetsToConvert));
         mConvertPresetsThread->startThread();
     }
     else
