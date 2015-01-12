@@ -106,6 +106,7 @@ private:
         
         ~SearchThread()
         {
+			stopThread(100);
         }
         
         void setDelay(int d) { mDelay = d; }

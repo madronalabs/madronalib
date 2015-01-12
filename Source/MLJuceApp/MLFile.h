@@ -1,6 +1,6 @@
 //
 //  MLFile.h
-//  MadronaLib
+//  madronalib
 //
 //  Created by Randy Jones on 10/31/13.
 //

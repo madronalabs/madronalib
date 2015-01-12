@@ -41,19 +41,16 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 // MLFileCollection
 
 MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
+	mRoot(startDir),
     mName(name),
     mExtension(extension),
-    mRoot(startDir)
+	mSearchThread(new SearchThread(*this))
 {
     setProperty("progress", -1);
 }
 
 MLFileCollection::~MLFileCollection()
 {
-    if(mSearchThread)
-    {
-        mSearchThread->stopThread(1000);
-    }
 	for(std::list<Listener*>::iterator it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		Listener* pL = *it;
@@ -191,7 +188,6 @@ void MLFileCollection::sendActionToListeners(MLSymbol action)
 
 void MLFileCollection::searchForFilesImmediate(int delay)
 {
-    mSearchThread = std::tr1::shared_ptr<SearchThread>(new SearchThread(*this));
     mSearchThread->setDelay(delay);
     mSearchThread->startThread();
 }
@@ -274,8 +270,11 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
 std::string MLFileCollection::getRelativePath(const std::string& p)
 {
     std::string rootPath = mRoot.getAbsolutePath();
-    debug() << "root:" << rootPath << "\n";
-    debug() << ", p: " << p << "\n";
+	
+	// MLTEST
+	debug() << "getRelativePath: rootPath = " << rootPath << "\n";
+	debug() << "getRelativePath: p = " << p << "\n";
+	
     std::string relPath;
     
     // p should begin with root
@@ -286,6 +285,9 @@ std::string MLFileCollection::getRelativePath(const std::string& p)
         int pLen = p.length();
         relPath = p.substr(rLen + 1, pLen - rLen - 1);        
     }
+	
+	// MLTEST
+	debug() << "getRelativePath: relPath = " << relPath << "\n";
     
     return relPath;
 }
