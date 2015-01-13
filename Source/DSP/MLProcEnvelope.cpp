@@ -45,7 +45,7 @@ static const float kMinSegTime = 0.0002f;
 namespace{
 
 MLProcRegistryEntry<MLProcEnvelope> classReg("envelope");
-ML_UNUSED MLProcParam<MLProcEnvelope> params[] = { "xvel" };
+ML_UNUSED MLProcParam<MLProcEnvelope> params[] = { "xvel", "trig_select" };
 ML_UNUSED MLProcInput<MLProcEnvelope> inputs[] = {"in",  "delay", "attack", "decay", "sustain", "release", "repeat", "vel" };
 ML_UNUSED MLProcOutput<MLProcEnvelope> outputs[] = {"out"};
 
@@ -95,8 +95,11 @@ void MLProcEnvelope::process(const int samples)
 	const MLSignal& vel = getInput(8);
 	MLSignal& y = getOutput();
 	
+	static MLSymbol trigSelectSym("trig_select");
+	const bool trigSelect = getParam(trigSelectSym) > 1.f; // this param is 1 or 2
+	
 	static MLSymbol xvelSym("xvel");
-	const bool doMult = getParam(xvelSym) > 0.f;
+	const bool doMult = (getParam(xvelSym) > 0.f) && !trigSelect;
     
 	// input change thresholds for state changes
 	const float inputThresh = 0.001f;
@@ -224,14 +227,16 @@ void MLProcEnvelope::process(const int samples)
 		y[n] = mEnv * mMult * 2.f;
 	}
 	
-	/*
+	
+	int sr = getContextSampleRate();
 	mT += samples;
 	if (mT > sr)
 	{
-		debug() << getName() << " state: " << mState << " env: " << mEnv << "\n";
+	//	debug() << getName() << " state: " << mState << " env: " << mEnv << "\n";
+		debug() << "trig: " << trigSelect << "\n";
 		mT -= sr;
 	}
-	*/
+	
 }
 
 // TODO envelope sometimes sticks on for very fast gate transients.  Rewrite this thing!
