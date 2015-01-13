@@ -227,7 +227,7 @@ void MLProcEnvelope::process(const int samples)
 		y[n] = mEnv * mMult * 2.f;
 	}
 	
-	
+	/*
 	int sr = getContextSampleRate();
 	mT += samples;
 	if (mT > sr)
@@ -236,7 +236,7 @@ void MLProcEnvelope::process(const int samples)
 		debug() << "trig: " << trigSelect << "\n";
 		mT -= sr;
 	}
-	
+	*/
 }
 
 // TODO envelope sometimes sticks on for very fast gate transients.  Rewrite this thing!
