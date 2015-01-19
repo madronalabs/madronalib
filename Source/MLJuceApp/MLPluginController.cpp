@@ -563,8 +563,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 
 void MLPluginController::ConvertProgressDisplayThread::run()
 {
-	std::string rootStr;
-	rootStr = std::string("Converting presets: ") + rootStr + std::string("...");
+	std::string rootStr("Converting .aupreset and .mlpreset files from /Library and ~/Library...");
 	setProgress(-1.0);
 	setStatusMessage (rootStr);
 
@@ -654,7 +653,7 @@ MLPluginController::ConvertPresetsThread::~ConvertPresetsThread()
 
 void MLPluginController::ConvertPresetsThread::run()
 {
-	int interFileDelay = 10;
+	int interFileDelay = 5;
 	float p;
 	
 	// convert files in immediate mode and wait for finish.
