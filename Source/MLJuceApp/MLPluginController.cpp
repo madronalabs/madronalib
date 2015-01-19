@@ -350,11 +350,13 @@ void MLPluginController::doMoreMenu(int result)
             break;
         case (1):
 		{
+			// first item: OSC enable checkbox
 			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
 			mpProcessor->getEnvironment()->setProperty("osc_enabled", !enabled);
 			break;
 		}
         default:
+			// other items set osc port offset.
 			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 2);
             break;
     }
