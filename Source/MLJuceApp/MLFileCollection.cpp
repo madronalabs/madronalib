@@ -143,9 +143,6 @@ void MLFileCollection::buildTree()
             std::string sName(shortName.toUTF8());
             std::string longName(rPath + delimiter + sName);
             
-			// MLTEST
-			// debug() << "FOUND " << longName << "\n";
-			
             MLFile* nf = new MLFile(f, sName, longName);
             MLFilePtr newFile(nf);
             
@@ -271,24 +268,33 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
 std::string MLFileCollection::getRelativePath(const std::string& p)
 {
     std::string rootPath = mRoot.getAbsolutePath();
-	
-	// MLTEST
-	debug() << "getRelativePath: rootPath = " << rootPath << "\n";
-	debug() << "getRelativePath: p = " << p << "\n";
-	
+	std::string filePath = p;
     std::string relPath;
 	
-	
-	// MLTEST TODO convert case
-	
-    
-    // p should begin with root
-    size_t rootPos = p.find(rootPath);
+	// convert case in the weird scenario the user has the home directory renamed.
+	// this should only do anything on English MacOS systems.
+	// quick hack. If needed add lower / upper stuff to our own UTF-8 string class later.
+	if(p.find("/Users/") == 0)
+	{
+		if(rootPath.find("/Users/") == 0)
+		{
+			char cr = (rootPath.c_str())[7];
+			char cf = (filePath.c_str())[7];
+			char crl = tolower(cr);
+			char cfl = tolower(cf);
+			rootPath.replace(7, 1, &crl, 1);
+			filePath.replace(7, 1, &cfl, 1);
+		}
+	}
+ 
+    // p should begin with root. if this is true, the relative path is the
+	// part of p after root.
+    size_t rootPos = filePath.find(rootPath);
     if(rootPos == 0)
     {
         int rLen = rootPath.length();
-        int pLen = p.length();
-        relPath = p.substr(rLen + 1, pLen - rLen - 1);        
+        int pLen = filePath.length();
+        relPath = filePath.substr(rLen + 1, pLen - rLen - 1);
     }
     return relPath;
 }
