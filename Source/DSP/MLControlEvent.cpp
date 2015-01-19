@@ -22,9 +22,9 @@ MLControlEvent::MLControlEvent(MLControlEvent::EventType type, int channel, int 
     mType(type),
     mChannel(channel),
     mID(id),
-    mTime(time),
     mValue1(value),
-    mValue2(value2)
+    mValue2(value2),
+	mTime(time)
 {
 }
 

@@ -88,7 +88,6 @@ public:
     void dump();
     
 private:
-    
     int beginProcessFiles();
     void buildTree();
     void processFileInTree(int i);

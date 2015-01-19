@@ -162,6 +162,7 @@ public:
 	// files
 	void createFileCollections();
 	void scanAllFilesImmediate();
+	const MLFileCollectionPtr& getPresetCollection() const { return mPresetFiles; }
 		
 	// presets
     void prevPreset();

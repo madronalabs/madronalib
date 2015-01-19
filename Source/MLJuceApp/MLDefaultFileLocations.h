@@ -21,7 +21,8 @@ enum eFileTypes
 	kAppPresetFiles,
     
     // previous location of presets, for converting to Aalto 1.6. Then let's stop the madness.
-	kOldPresetFiles
+	kOldPresetFiles,
+	kOldPresetFiles2
 };
 
 // get the default location for saving files of the given type.

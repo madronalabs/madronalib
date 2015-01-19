@@ -134,6 +134,9 @@ public:
 	bool operator== (const MLSymbol b) const;
 	operator bool() const { return mID != 0; }
 	
+	bool beginsWith (const MLSymbol b) const;
+	bool endsWith (const MLSymbol b) const;
+	
 	bool hasWildCard() const;
 	MLSymbol withWildCardNumber(int n) const;
 	MLSymbol withFinalNumber(int n) const;
@@ -158,7 +161,6 @@ inline bool MLSymbol::operator== (const MLSymbol b) const
 }
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
-
 
 // ----------------------------------------------------------------
 #pragma mark MLNameMaker

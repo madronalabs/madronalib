@@ -748,9 +748,8 @@ void MLLookAndFeel::drawProgressBar (Graphics& g, ProgressBar& progressBar,
 
         if (textToShow.isNotEmpty())
         {
-            g.setColour (Colour::contrasting (background, foreground));
-            g.setFont (height * 0.6f);
-
+            g.setColour (findColour(markColor));
+            g.setFont (getFont(eMLTitle));
             g.drawText (textToShow, 0, 0, width, height, Justification::centred, false);
         }
     }
@@ -2236,7 +2235,7 @@ void MLLookAndFeel::drawAlertBox (Graphics& g, AlertWindow& alert,
                                    const Rectangle<int>& textArea, TextLayout& textLayout)
 {
     g.fillAll (alert.findColour (AlertWindow::backgroundColourId));
-    g.setColour (alert.findColour (AlertWindow::textColourId));
+    g.setColour (findColour (MLLookAndFeel::markColor));
     textLayout.draw (g, Rectangle<int> (textArea.getX(),
                                         textArea.getY(),
                                         textArea.getWidth(),

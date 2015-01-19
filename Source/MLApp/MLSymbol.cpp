@@ -417,6 +417,40 @@ const std::string& MLSymbol::getString() const
 	return theSymbolTable().getStringByID(mID);
 }
 
+bool MLSymbol::beginsWith (const MLSymbol b) const
+{
+	const std::string& strA = getString();
+	const char* pa = strA.c_str();
+	const int aLen = strA.length();
+	const std::string& strB = b.getString();
+	const char* pb = strB.c_str();
+	const int bLen = strB.length();
+	
+	if(bLen > aLen) return false;
+	for(int i=0; i<bLen; ++i)
+	{
+		if(pa[i] != pb[i]) return false;
+	}
+	return true;
+}
+
+bool MLSymbol::endsWith (const MLSymbol b) const
+{
+	const std::string& strA = getString();
+	const char* pa = strA.c_str();
+	const int aLen = strA.length();
+	const std::string& strB = b.getString();
+	const char* pb = strB.c_str();
+	const int bLen = strB.length();
+	
+	if(bLen > aLen) return false;
+	for(int i=bLen - 1; i>=0; --i)
+	{
+		if(pa[i + aLen - bLen] != pb[i]) return false;
+	}
+	return true;
+}
+
 bool MLSymbol::hasWildCard() const
 {
 	const std::string& str = getString();

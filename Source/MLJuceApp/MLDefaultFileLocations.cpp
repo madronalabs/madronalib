@@ -14,12 +14,18 @@ File getDefaultFileLocation(eFileTypes whichFiles)
     // get start directory for search according to platform
     if (whichFiles == kAppPresetFiles)
     {
-        // app (not plugin) preset files are still in /Library/Application Support/Madrona Labs on Mac
+        // app (not plugin) preset files are still in ~/Library/Application Support/Madrona Labs on Mac
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
     }
     else if (whichFiles == kOldPresetFiles)
     {
+        // Aalto preset files prior to version 1.6 were in ~/Library/Application Support/Madrona Labs on Mac
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
+    }
+    else if (whichFiles == kOldPresetFiles2)
+    {
+        // some Aalto preset files may also have been here long ago
+        startDir = File::getSpecialLocation (File::commonApplicationDataDirectory);
     }
     else
     {
@@ -47,6 +53,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
                 destStr = ("Scales");
                 break;
             case kOldPresetFiles:
+            case kOldPresetFiles2:
                 destStr = String("Audio/Presets/") + String(MLProjectInfo::makerName) + String("/") + String(MLProjectInfo::projectName);
                 break;
             case kPresetFiles:

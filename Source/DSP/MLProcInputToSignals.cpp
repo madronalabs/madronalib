@@ -210,11 +210,11 @@ MLProcInputToSignals::MLProcInputToSignals() :
     mpFrameBuf(0),
     mControllerNumber(-1),
 	mCurrentVoices(0),
+    mFrameCounter(0),
+	mRetrig(false),
 	mUnisonInputTouch(-1),
 	mUnisonVel(0.),
-	mSustainPedal(false),
-	mRetrig(false),
-    mFrameCounter(0)
+	mSustainPedal(false)
 {
 	setParam("voices", 0);	// default
 	setParam("protocol", kInputProtocolMIDI);	// default

@@ -46,7 +46,7 @@ MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String ex
     mExtension(extension),
 	mSearchThread(new SearchThread(*this))
 {
-    setProperty("progress", -1);
+    setProperty("progress", 0.);
 }
 
 MLFileCollection::~MLFileCollection()
@@ -90,14 +90,16 @@ void MLFileCollection::removeListener(Listener* pToRemove)
 int MLFileCollection::beginProcessFiles()
 {
     int found = 0;
-
+	
 	if (mRoot.getJuceFile().exists() && mRoot.getJuceFile().isDirectory())
-    {
-        mFiles.clear();
+    {		
+		mFiles.clear();
         const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
         const String& wildCard = "*";
         bool recurse = true;
         
+		// TODO searching directories like / by mistake can take unacceptably long. Make this more
+		// robust against this kind of problem.
         DirectoryIterator di (mRoot.getJuceFile(), recurse, wildCard, whatToLookFor);
         while (di.next())
         {
@@ -109,7 +111,6 @@ int MLFileCollection::beginProcessFiles()
     {
         found = -1;
     }
-    
     return found;
 }
 
@@ -276,6 +277,10 @@ std::string MLFileCollection::getRelativePath(const std::string& p)
 	debug() << "getRelativePath: p = " << p << "\n";
 	
     std::string relPath;
+	
+	
+	// MLTEST TODO convert case
+	
     
     // p should begin with root
     size_t rootPos = p.find(rootPath);
@@ -285,10 +290,6 @@ std::string MLFileCollection::getRelativePath(const std::string& p)
         int pLen = p.length();
         relPath = p.substr(rLen + 1, pLen - rLen - 1);        
     }
-	
-	// MLTEST
-	debug() << "getRelativePath: relPath = " << relPath << "\n";
-    
     return relPath;
 }
 
@@ -302,8 +303,6 @@ MLMenuPtr MLFileCollection::buildMenu(bool flat) const
         for(int i=0; i<size; ++i)
         {
             MLFilePtr f = mFilesByIndex[i];
-			
-            debug() << "buildMenu: adding " << f->getShortName() << "\n";
             m->addItem(f->getShortName());
         }
     }

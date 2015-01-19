@@ -12,8 +12,8 @@ MLButton::MLButton () :
 	mOnValue(1.f),
 	mOver(false),
 	mDown(false),
-	mTriggerOnMouseDown(false),
-	mToggleState(0)
+	mToggleState(0),
+	mTriggerOnMouseDown(false)
 {
 	MLWidget::setComponent(this);
     setWantsKeyboardFocus (false);

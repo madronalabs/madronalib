@@ -11,13 +11,15 @@
 #include "MLSignalReporter.h"
 #include "MLAppView.h"
 
-class MLPluginController : 
+class MLPluginController :
+	public Timer,
 	public MLWidget::Listener,
 	public MLReporter,
 	public MLSignalReporter,
     public MLFileCollection::Listener
 {
 public:
+	
 	MLPluginController(MLPluginProcessor* const pProcessor);
     ~MLPluginController();
 
@@ -26,6 +28,8 @@ public:
 	
 	// things to do after View is set
 	virtual void initialize();
+
+	void timerCallback();
 
 	// MLWidget::Listener
 	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
@@ -49,12 +53,63 @@ public:
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 
 #if ML_MAC
+	
+	friend class ConvertPresetsThread;
+	class ConvertPresetsThread :
+		public Thread,
+		public DeletedAtShutdown,
+		public MLFileCollection::Listener
+	{
+	public:
+		ConvertPresetsThread(MLPluginController* pC);
+		~ConvertPresetsThread();
+		
+		void run();
+		
+		// MLFileCollection::Listener
+		void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size);
+
+	private:
+		MLFileCollection* mpPresetsToConvertAU1, *mpPresetsToConvertAU2, *mpPresetsToConvertVST1, *mpPresetsToConvertVST2;
+		MLPluginController* mpController;
+	};
+	
+	class ConvertProgressDisplayThread :
+		public ThreadWithProgressWindow,
+		public DeletedAtShutdown
+	{
+	public:
+		ConvertProgressDisplayThread(MLPluginController* pC) :
+			ThreadWithProgressWindow ("", true, true),
+			//        MLPropertyListener(&(*pFiles)),
+			pController(pC),
+			myProgress(0),
+			mFilesConverted(0)
+		{
+		}
+		
+		void run() override;
+		
+		//void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+		
+		MLPluginController* pController;
+		float myProgress;
+		int mFilesConverted;
+		
+		// This method gets called from the message thread to end our thread.
+		void threadComplete (bool userPressedCancel);
+	};
+
     void convertPresets();
-    void cancelConvert();
-    MLFileCollectionPtr mPresetsToConvert;
-    MLFileCollectionPtr mPresetsToMove;
-    std::tr1::shared_ptr<ThreadWithProgressWindow> mConvertProgressThread;
-    std::tr1::shared_ptr<Thread> mConvertPresetsThread;
+	void setConvertProgress(float);
+	float getConvertProgress() const;
+	void fileConverted() { mFilesConverted++; }
+	int getFilesConverted() const;
+	void endConvertPresets();
+
+protected:
+    ConvertProgressDisplayThread* mpConvertProgressThread;
+    ConvertPresetsThread* mpConvertPresetsThread;
     
 #endif // ML_MAC
 
@@ -75,8 +130,11 @@ private:
 	MLPluginProcessor* mpProcessor;
 	std::string mVersionString;
 
-	MLMenuMapT mMenuMap; 	
-
+	MLMenuMapT mMenuMap;
+	int mClockDivider;
+	bool mConvertPresetsThreadMarkedForDeath;
+	float mConvertProgress;
+	int mFilesConverted;
 };
 
 
