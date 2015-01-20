@@ -9,7 +9,6 @@
 #ifndef _ML_RING_BUFFER_H
 #define _ML_RING_BUFFER_H
 
-#include <tr1/memory>
 #include "pa_ringbuffer.h"
 #include "MLDSP.h"
 

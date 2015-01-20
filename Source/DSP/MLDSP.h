@@ -11,7 +11,7 @@
 #ifdef _WIN32
 	#include <memory>
 #else
-	#include <memory>
+	#include <tr1/memory>
 #endif
 
 #include "math.h"
@@ -49,6 +49,9 @@ inline double log2( double n )
 #ifdef _MSC_VER
 #define snprintf _snprintf
 #endif // _MSC_VER
+
+
+
 
 // ----------------------------------------------------------------
 #pragma mark Types

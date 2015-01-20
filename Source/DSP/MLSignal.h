@@ -11,7 +11,6 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
-#include <tr1/memory>
 #include "math.h"
 #include "MLDSP.h"
 #include "MLVector.h"
