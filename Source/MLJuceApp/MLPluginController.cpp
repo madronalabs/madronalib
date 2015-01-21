@@ -10,7 +10,9 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	MLReporter(),
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
+#if ML_MAC
 	mpConvertPresetsThread(nullptr),
+#endif
 	mpProcessor(pProcessor),
 	mClockDivider(0),
 	mConvertPresetsThreadMarkedForDeath(false),
@@ -29,11 +31,13 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 
 MLPluginController::~MLPluginController()
 {
+#if defined(__APPLE__)
 	if(mpConvertPresetsThread)
 	{
 		mpConvertPresetsThread->stopThread(100);
 		delete mpConvertPresetsThread;
 	}
+#endif
 	masterReference.clear();
 }
 

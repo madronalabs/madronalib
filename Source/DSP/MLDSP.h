@@ -37,13 +37,16 @@
 #define force_inline  inline
 #endif
 
-// log2 for Windows.   
+// logs for Windows.   
 #ifdef _WIN32
 inline double log2( double n )   
 {       
 	return log( n ) / log( 2. );   
 } 
-
+inline float log2f(float n)
+{
+	return logf(n) / 0.693147180559945309417232121458176568f;
+}
 #endif
 
 #ifdef _MSC_VER

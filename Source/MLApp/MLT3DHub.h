@@ -1,13 +1,15 @@
 //
-//  MLT3DReceiver.h
+//  MLT3DHub.h
 //  MadronaLib
 //
 //  Created by Randy Jones on 11/7/14.
 //
 //
 
-#ifndef __MLT3DReceiver__
-#define __MLT3DReceiver__
+#ifndef __MLT3DHUB__
+#define __MLT3DHUB__
+
+#if defined (__APPLE__)
 
 #include <iostream>
 
@@ -86,5 +88,6 @@ private:
 	
 };
 
+#endif // APPLE
 
-#endif /* defined(__MLT3DReceiver__) */
+#endif /* defined(__MLT3DHub__) */

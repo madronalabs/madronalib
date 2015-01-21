@@ -108,7 +108,6 @@ public:
 	void endConvertPresets();
 
 protected:
-    ConvertProgressDisplayThread* mpConvertProgressThread;
     ConvertPresetsThread* mpConvertPresetsThread;
     
 #endif // ML_MAC
