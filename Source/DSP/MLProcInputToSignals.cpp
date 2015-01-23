@@ -283,11 +283,13 @@ MLProc::err MLProcInputToSignals::resize()
 	mTempSignal.setDims(vecSize);
 	mChannelAfterTouchSignal.setDims(vecSize);
 	
+#if defined (__APPLE__)
 	if (!mLatestFrame.setDims(MLT3DHub::kFrameWidth, MLT3DHub::kFrameHeight))
 	{
 		return MLProc::memErr;
 	}
-   	
+#endif
+
 	// make outputs
 	//
 	for(int i=1; i <= kMLEngineMaxVoices * kNumVoiceSignals; ++i)

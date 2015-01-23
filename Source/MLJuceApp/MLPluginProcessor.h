@@ -33,8 +33,8 @@ const int kMLPluginMIDIPrograms = 127;
 
 class MLPluginProcessor : 
 	public AudioProcessor,
-	public MLT3DHub::Listener,
 #if ML_MAC
+	public MLT3DHub::Listener,
 	public MLNetServiceHub,
 #endif
 	public MLModel
@@ -115,8 +115,9 @@ public:
 	void addFileCollectionListener(MLFileCollection::Listener* pL);
 	
 	// MLT3DHub::Listener
+#if ML_MAC
 	void handleHubNotification(MLSymbol action, const float val);
-
+#endif
 	// process
 	bool isOKToProcess();
     void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
@@ -239,7 +240,10 @@ private:
 	MLAppStatePtr mpPatchState;
 	std::tr1::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
 	MLAppStatePtr mpEnvironmentState;
+#if defined(__APPLE__)
 	MLT3DHub mT3DHub;
+#endif
+
 };
 
 #endif  // __PLUGINPROCESSOR__

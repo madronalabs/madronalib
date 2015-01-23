@@ -34,13 +34,17 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
+#if defined (__APPLE__)
 	// initialize T3D listener
 	mT3DHub.addListener(this);
+#endif
 }
 
 MLPluginProcessor::~MLPluginProcessor()
 {
+#if defined (__APPLE__)
 	mT3DHub.removeListener(this);
+#endif
 }
 
 #pragma mark MLModel
@@ -107,6 +111,8 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 	
 	switch(propertyType)
 	{
+
+#if defined(__APPLE__) // TODO implement OSC / t3d on Windows
 		case MLProperty::kFloatProperty:
 		{
 			if(propName == "osc_enabled")
@@ -121,6 +127,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 			}
 		}
 			break;
+#endif
 		case MLProperty::kStringProperty:
 			break;
 		case MLProperty::kSignalProperty:
@@ -188,6 +195,7 @@ void MLPluginProcessor::initializeProcessor()
 	// debug() <<  "initializing MLProcessor @ " << std::hex << (void*)this << std::dec << "...\n";
 	setInputProtocol(kInputProtocolMIDI);
 	
+#if defined(__APPLE__)
 	// connect t3d hub to DSP engine
 	// send frame buf address to input proc.
 	MLDSPEngine* pEngine = getEngine();
@@ -199,6 +207,7 @@ void MLPluginProcessor::initializeProcessor()
 	// publish t3d service and listen for incoming t3d data
 	mT3DHub.setPortOffset(mpEnvironmentModel->getFloatProperty("osc_port_offset"));
 	mT3DHub.setEnabled(mpEnvironmentModel->getFloatProperty("osc_enabled"));
+#endif
 }
 
 // editor creation function to be defined in (YourPluginEditor).cpp
@@ -411,6 +420,7 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 	mMIDIProgramFiles->addListener(pL);
 }
 
+#if ML_MAC
 #pragma mark MLT3DHub::Listener
 
 void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
@@ -430,6 +440,8 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 		}
 	}
 }
+
+#endif
 
 #pragma mark process
 

@@ -7,6 +7,8 @@
 #ifndef __ML_OSC_LISTENER_H__
 #define __ML_OSC_LISTENER_H__
 
+#if defined(__APPLE__)
+
 #include "MLPlatform.h"
 
 #include "OscTypes.h"
@@ -46,5 +48,6 @@ private:
 	int mPort;
 };
 
+#endif // __APPLE__
 
 #endif // __ML_OSC_LISTENER_H__
