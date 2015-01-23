@@ -23,7 +23,7 @@ MLDSPEngine::MLDSPEngine() :
 	mSampleCount(0),
 	mCPUTimeCount(0.)
 {
-#if defined(DEBUG) || defined(BETA) || (DEMO)
+#if defined(DEBUG) || (BETA) || (DEMO)
 	//mCollectStats = true;
 #endif
 	setName("dspengine");

@@ -1336,12 +1336,11 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 
 void MLPluginProcessor::createFileCollections()
 {
-    mScaleFiles = MLFileCollectionPtr(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
-
-    mPresetFiles = MLFileCollectionPtr(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
+    mScaleFiles = (new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+    mPresetFiles = (new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
 
 	File MIDIProgramsDir = getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs");
-    mMIDIProgramFiles = MLFileCollectionPtr(new MLFileCollection("midi_programs", MIDIProgramsDir, "mlpreset"));
+    mMIDIProgramFiles = (new MLFileCollection("midi_programs", MIDIProgramsDir, "mlpreset"));
 }
 
 void MLPluginProcessor::scanAllFilesImmediate()

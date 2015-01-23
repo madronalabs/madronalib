@@ -132,6 +132,4 @@ private:
     std::tr1::shared_ptr<SearchThread> mSearchThread;
 };
 
-typedef std::tr1::shared_ptr<MLFileCollection> MLFileCollectionPtr;
-
 #endif 

@@ -162,7 +162,9 @@ public:
 	// files
 	void createFileCollections();
 	void scanAllFilesImmediate();
-	const MLFileCollectionPtr& getPresetCollection() const { return mPresetFiles; }
+	
+	// TODO make everything using this a private method!
+	MLFileCollection* getPresetCollection() const { return mPresetFiles.get(); }
 		
 	// presets
     void prevPreset();
@@ -220,9 +222,9 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-    MLFileCollectionPtr mScaleFiles;
-    MLFileCollectionPtr mPresetFiles;
-    MLFileCollectionPtr mMIDIProgramFiles;
+    juce::ScopedPointer<MLFileCollection> mScaleFiles;
+    juce::ScopedPointer<MLFileCollection> mPresetFiles;
+    juce::ScopedPointer<MLFileCollection> mMIDIProgramFiles;
 	
 	// saved state for editor
 	MLRect mEditorRect;
