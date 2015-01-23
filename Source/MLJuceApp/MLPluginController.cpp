@@ -128,7 +128,7 @@ void MLPluginController::timerCallback()
         viewSignals();
     }
 	
-#if ML_MAC
+#if ML_MAC && SHOW_CONVERT_PRESETS
 	if(mConvertPresetsThreadMarkedForDeath)
 	{
 		if(mpConvertPresetsThread)
@@ -545,10 +545,7 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	MLSymbol collectionName(collection.getName());
-	
-		
 	debug() << " MLPluginController::processFileFromCollection: " << collectionName << " / " << action << " / " << fileToProcess.getShortName() << "\n";
-
 
 	if(action == "begin")
 	{
@@ -763,7 +760,7 @@ void MLPluginController::convertPresets()
         mpProcessor->suspendProcessing(true);
 		
 		// clear presets collection
-		MLFileCollectionPtr presetFiles = mpProcessor->getPresetCollection();
+		MLFileCollection* presetFiles = mpProcessor->getPresetCollection();
 		presetFiles->clear();
 
 		// clear menu
@@ -811,7 +808,7 @@ void MLPluginController::endConvertPresets()
 	mConvertPresetsThreadMarkedForDeath = true;
 
 	// rebuild presets menu
-	MLFileCollectionPtr presetFiles = mpProcessor->getPresetCollection();
+	MLFileCollection* presetFiles = mpProcessor->getPresetCollection();
 	presetFiles->searchForFilesImmediate();
 	
 	// resume processing
