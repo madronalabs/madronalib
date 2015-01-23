@@ -85,7 +85,7 @@ public:
     std::string getRelativePath(const std::string& name);
     
     MLMenuPtr buildMenu(bool flat = false) const;
-    void dump();
+    void dump() const;
     
 private:
     int beginProcessFiles();

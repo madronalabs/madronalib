@@ -14,6 +14,9 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
+	// MLTEST
+	debug() << "CREATING PROCESSOR\n";
+
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
