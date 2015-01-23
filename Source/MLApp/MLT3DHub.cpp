@@ -11,8 +11,8 @@
 #ifdef ML_MAC
 
 MLT3DHub::MLT3DHub() :
-	mT3DWaitTime(0),
 	mDataRate(-1),
+	mT3DWaitTime(0),
 	mEnabled(true),
 	mUDPPortOffset(0),
 	mConnected(false),

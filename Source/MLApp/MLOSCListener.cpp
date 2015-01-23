@@ -13,8 +13,8 @@
 
 MLOSCListener::MLOSCListener() :
 	mpSocket(0),
-	mPort(0),
-	mListening(false)
+	mListening(false),
+	mPort(0)
 {
 }
 

@@ -133,7 +133,6 @@ private:
 	MLProcInfo<MLProcInputToSignals> mInfo;
 	PaUtilRingBuffer* mpFrameBuf;
 	MLSignal mLatestFrame;
-    int mFrameCounter;
     
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
     MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
@@ -151,6 +150,7 @@ private:
 	int mCurrentVoices;
 	int mDriftCounter;
 	int mEventCounter;
+    int mFrameCounter;
 		
 	MLRange mPitchRange;
 	MLRange mAmpRange;

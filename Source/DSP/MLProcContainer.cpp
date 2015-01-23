@@ -483,10 +483,12 @@ void MLProcContainer::compile()
         debug() << mPublishedOutputMap.size() << " outputs:\n";
         for(; it != mPublishedOutputMap.end(); it++)
         {
-            MLSymbol name = it->first;
             MLPublishedOutputPtr p = it->second;
             debug() << "[" << p->mName << ": " << p->mProc->getNameWithCopyIndex() << " " << p->mOutput << "] ";
+#if DEBUG
+            MLSymbol name = it->first;
             assert(name == p->mName);
+#endif
         }
         debug() << "NULL: " << &getNullOutput() << "\n";
         debug() << "\n";

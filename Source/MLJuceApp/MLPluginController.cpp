@@ -101,7 +101,7 @@ void MLPluginController::initialize()
         MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
         if(regLabel)
         {
-            regLabel->setStringAttribute(MLSymbol("text"), regStr);
+            regLabel->setProperty(MLSymbol("text"), regStr);
         }
     }
 }
@@ -753,8 +753,7 @@ void MLPluginController::convertPresets()
         mpProcessor->suspendProcessing(true);
 		
 		// clear presets collection
-		MLFileCollection* presetFiles = mpProcessor->getPresetCollection();
-		presetFiles->clear();
+		mpProcessor->clearPresetCollection();
 
 		// clear menu
 		findMenuByName("preset")->clear();
@@ -801,8 +800,7 @@ void MLPluginController::endConvertPresets()
 	mConvertPresetsThreadMarkedForDeath = true;
 
 	// rebuild presets menu
-	MLFileCollection* presetFiles = mpProcessor->getPresetCollection();
-	presetFiles->searchForFilesImmediate();
+	mpProcessor->searchForPresets();
 	
 	// resume processing
 	mpProcessor->suspendProcessing(false);
