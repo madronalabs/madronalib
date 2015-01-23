@@ -10,7 +10,6 @@
 
 //==============================================================================
 MLLabel::MLLabel (const char* labelText) :
-	mText(String::empty),
 	mInverse(0), 
 	mDrawImage(0), 
 	mImageMode(imageModeOpaque),
@@ -33,11 +32,7 @@ MLLabel::MLLabel (const char* labelText) :
 	
 	if (labelText)
 	{
-		setText(labelText);
-	}
-	else 
-	{
-		setText("");
+		setProperty("text", labelText);
 	}
 }
 
@@ -80,11 +75,6 @@ void MLLabel::resized()
 {
 }
 
-void MLLabel::setStringAttribute(MLSymbol , const std::string& val)
-{
-	setText(val.c_str());
-}
-
 void MLLabel::setDrawable (const Drawable* pD)
 {
 	mpDrawable = pD->createCopy();
@@ -116,11 +106,12 @@ void MLLabel::paint (Graphics& g)
 		mpDrawable->draw(g, 1.0f);
 	}
 	
-	if (mText.length() > 0)
+	const std::string& text = getStringProperty("text");
+	if (text.length() > 0)
 	{
 		g.setColour (fc.withAlpha (alpha));
 		g.setFont (mFont);
-		g.drawFittedText (mText, 0, 0, w, h, 
+		g.drawFittedText (String(text.c_str()), 0, 0, w, h,
 			mJustification, 2, 1.0);		
 	}
 	
@@ -135,13 +126,6 @@ void MLLabel::paint (Graphics& g)
 	}
 }
 
-void MLLabel::setText (const char* newText)
-{
-	mText = String(newText);
-	mRichStr.setText(mText);
-	repaint();
-}
-
 void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -149,7 +133,8 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 	mFont.setHeight(size);	
 	mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
 	mRichStr.setFont(mFont);
-		
+	mRichStr.setText(String(getStringProperty("text").c_str()));
+
 	if (mResizeToText && !mpDrawable)
 	{	
 		// get text width by creating a text layout

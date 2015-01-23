@@ -36,8 +36,7 @@ public:
     ~MLLabel();
 
     void setFont (const Font& newFont);
-    void setText (const char* newText);
-	
+ 	
 	void setSizeMultiplier(float f) { mSizeMultiplier = f; }
 	void resizeWidget(const MLRect& b, const int u);
 	
@@ -52,24 +51,22 @@ public:
 	void setResizeToText(bool r) { mResizeToText = r; }
 
 	void resized();
-	
-	void setStringAttribute(MLSymbol attr, const std::string& val);
-	
+
 protected:
     Font mFont;
-	String mText;
 	AttributedString mRichStr;
-    Justification mJustification;
-	float mSizeMultiplier;	
-	void paint (Graphics& g);
+
 	bool mInverse;
 	bool mDrawImage;
+	eMLImageMode mImageMode;
+    Justification mJustification;
+	bool mResizeToText;
+	float mSizeMultiplier;
+	void paint (Graphics& g);
 	Image mImage;
 	char* mImageData;	
 	ScopedPointer<Drawable> mpDrawable;
-	eMLImageMode mImageMode;
 	MLRect mTextRect;
-	bool mResizeToText;
 
 private:
 };

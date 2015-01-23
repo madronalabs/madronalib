@@ -164,10 +164,9 @@ public:
 	void createFileCollections();
 	void scanAllFilesImmediate();
 	
-	// TODO make everything using this a private method!
-	MLFileCollection* getPresetCollection() const { return mPresetFiles.get(); }
-		
 	// presets
+	void clearPresetCollection() { mPresetFiles->clear(); }
+	void searchForPresets() { mPresetFiles->searchForFilesImmediate(); }
     void prevPreset();
     void nextPreset();
     void advancePreset(int amount);

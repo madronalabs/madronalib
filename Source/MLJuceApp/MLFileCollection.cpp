@@ -189,8 +189,11 @@ void MLFileCollection::sendActionToListeners(MLSymbol action)
 
 void MLFileCollection::searchForFilesImmediate(int delay)
 {
+	/*
     mSearchThread->setDelay(delay);
     mSearchThread->startThread();
+	 */
+	//MLTEST
 }
 
 void MLFileCollection::searchForFilesInBackground(int delay)
