@@ -56,11 +56,13 @@ MemoryBlock MLAppState::getStateAsBinary()
 String MLAppState::getStateAsText()
 {
 	String r;
-	cJSON* root = cJSON_CreateObject();
+	cJSON* root = getStateAsJSON();
 	if(root)
 	{
-		getStateAsJSON(root);
-		r = CharPointer_UTF8(cJSON_Print(root));
+		char* stateText = cJSON_Print(root);
+		r = CharPointer_UTF8(stateText);
+		free(stateText);
+		cJSON_Delete(root);
 	}
 	else
 	{
@@ -105,26 +107,26 @@ void MLAppState::saveStateToStateFile()
 	}
 	
 	// get app state as JSON container
-	cJSON* root = cJSON_CreateObject();
+	cJSON* root = getStateAsJSON();
 	if(root)
 	{
-		getStateAsJSON(root);
+		char* stateText = cJSON_Print(root);
+		String stateStr(stateText);
+		stateFile.replaceWithText(stateStr);
+		cJSON_Delete(root);
+		free(stateText);
 	}
 	else		
 	{
 		debug() << "MLAppState::saveStateToStateFile: couldn't create JSON object!\n";
 	}
-	String stateStr(cJSON_Print(root));
-	stateFile.replaceWithText(stateStr);
-	if(root)
-	{
-		cJSON_Delete(root);
-	}
 }
 
-void MLAppState::getStateAsJSON(cJSON* root)
+cJSON* MLAppState::getStateAsJSON()
 {
 	updateAllProperties();
+	
+	cJSON* root = cJSON_CreateObject();
 
 	// get Model parameters
 	std::map<MLSymbol, PropertyState>::iterator it;
@@ -142,22 +144,22 @@ void MLAppState::getStateAsJSON(cJSON* root)
 				cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue().c_str());
 				break;
 			case MLProperty::kSignalProperty:
-			{
-				// make and populate JSON object representing signal
-				cJSON* signalObj = cJSON_CreateObject();
-				const MLSignal& sig = state.mValue.getSignalValue();
-				cJSON_AddStringToObject(signalObj, "type", "signal");
-				cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
-				cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
-				cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
-				int size = sig.getSize();
-				float* pSignalData = sig.getBuffer();
-				cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
-				cJSON_AddItemToObject(signalObj, "data", data);
-				
-				// add signal object to state JSON
-				cJSON_AddItemToObject(root, keyStr, signalObj);
-			}
+				{
+					// make and populate JSON object representing signal
+					cJSON* signalObj = cJSON_CreateObject();
+					const MLSignal& sig = state.mValue.getSignalValue();
+					cJSON_AddStringToObject(signalObj, "type", "signal");
+					cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
+					cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
+					cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
+					int size = sig.getSize();
+					float* pSignalData = sig.getBuffer();
+					cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
+					cJSON_AddItemToObject(signalObj, "data", data);
+					
+					// add signal object to state JSON
+					cJSON_AddItemToObject(root, keyStr, signalObj);
+				}
 				break;
 			default:
 				MLError() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
@@ -166,9 +168,16 @@ void MLAppState::getStateAsJSON(cJSON* root)
 	}
 	
 	// replace environment info
-	cJSON_ReplaceItemInObject(root, "maker_name", cJSON_CreateString(mMakerName.c_str()));
-	cJSON_ReplaceItemInObject(root, "app_name", cJSON_CreateString(mAppName.c_str()));
-	cJSON_ReplaceItemInObject(root, "app_version", cJSON_CreateNumber(mAppVersion));
+	cJSON * makerName = cJSON_CreateString(mMakerName.c_str());
+	cJSON_AddItemToObject(root, "maker_name", makerName);
+		
+	cJSON * appName = cJSON_CreateString(mAppName.c_str());
+	cJSON_AddItemToObject(root, "app_name", appName);
+		
+	cJSON * appVersion = cJSON_CreateNumber(mAppVersion);
+	cJSON_AddItemToObject(root, "app_version", appVersion);
+	
+	return root;
 }
 
 #pragma mark load and set state
@@ -238,19 +247,20 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 					if(!strcmp(pObjType->valuestring, "signal") )
 					{
 						//debug() << " depth " << depth << " loading signal param " << child->string << "\n";
-						MLSignal* pSig;
 						int width = cJSON_GetObjectItem(child, "width")->valueint;
 						int height = cJSON_GetObjectItem(child, "height")->valueint;
 						int sigDepth = cJSON_GetObjectItem(child, "depth")->valueint;
-						pSig = new MLSignal(width, height, sigDepth);
-						if(pSig)
+						
+						// read data into signal and set model param
+						MLSignal signalValue(width, height, sigDepth);
+						float* pSigData = signalValue.getBuffer();
+						if(pSigData)
 						{
-							// read data into signal and set model param
-							float* pSigData = pSig->getBuffer();
 							int widthBits = bitsToContain(width);
 							int heightBits = bitsToContain(height);
 							int depthBits = bitsToContain(sigDepth);
 							int size = 1 << widthBits << heightBits << depthBits;
+							
 							cJSON* pData = cJSON_GetObjectItem(child, "data");
 							int dataSize = cJSON_GetArraySize(pData);
 							if(dataSize == size)
@@ -268,7 +278,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 							{
 								MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
 							}
-							mpModel->setProperty(MLSymbol(child->string), *pSig);
+							mpModel->setProperty(MLSymbol(child->string), signalValue);
 						}
 					}
 				}

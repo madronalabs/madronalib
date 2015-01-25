@@ -998,27 +998,21 @@ String MLPluginProcessor::getStateAsText()
 void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 {
 	// get processor state as JSON
-	cJSON* procRoot = cJSON_CreateObject();
-	if(procRoot)
-	{
-		mpPatchState->getStateAsJSON(procRoot);
-	}
+	cJSON* procRoot = mpPatchState->getStateAsJSON();
 	
 	// get environment state as JSON
-	cJSON* envRoot = cJSON_CreateObject();
-	if(envRoot)
-	{
-		mpEnvironmentState->getStateAsJSON(envRoot);
-	}
+	cJSON* envRoot = mpEnvironmentState->getStateAsJSON();
 	
 	// combine the states
 	cJSON* combinedRoot = cJSON_CreateObject();
+	
 	std::string combinedStateStr;
-	if(combinedRoot)
+	cJSON_AddItemToObject(combinedRoot, "patch", procRoot);
+	cJSON_AddItemToObject(combinedRoot, "environment", envRoot);
 	{
-		cJSON_AddItemToObject(combinedRoot, "patch", procRoot);
-		cJSON_AddItemToObject(combinedRoot, "environment", envRoot);
-		combinedStateStr = cJSON_Print(combinedRoot);
+		char * stateText = cJSON_Print(combinedRoot);
+		combinedStateStr = stateText;
+		free(stateText);
 	}
 	
 	if(combinedStateStr.length() > 0)
@@ -1027,6 +1021,10 @@ void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 		int stateStrLen = combinedStateStr.size();
 		destData.replaceWith(combinedStateStr.data(), stateStrLen);
 	}
+	
+	cJSON_Delete(procRoot);
+	cJSON_Delete(envRoot);
+	cJSON_Delete(combinedRoot);
 }
 
 #pragma mark load state from file
@@ -1075,7 +1073,7 @@ void MLPluginProcessor::returnToLatestStateLoaded()
 #pragma mark set state
 
 // set Processor and Environment states from XML or JSON in binary.
-// state is in JSON format. XML can be read for backwards compatibility..
+// state is in JSON format. XML can be read for backwards compatibility.
 //
 void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int sizeInBytes)
 {

@@ -37,7 +37,7 @@ public:
 	// TODO JUCE-free
 	juce::MemoryBlock getStateAsBinary();
 	String getStateAsText();
-	void getStateAsJSON(cJSON* pNode);
+	cJSON* getStateAsJSON();
 	void saveStateToStateFile();
 
 	// load and set state
