@@ -19,6 +19,9 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	mConvertProgress(0),
 	mFilesConverted(0)
 {
+	// MLTEST
+	debug() << "CREATING CONTROLLER\n";
+	
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
 	
@@ -38,6 +41,9 @@ MLPluginController::~MLPluginController()
 		delete mpConvertPresetsThread;
 	}
 #endif
+	// MLTEST
+	debug() << "DELETING CONTROLLER\n";
+
 	masterReference.clear();
 }
 
