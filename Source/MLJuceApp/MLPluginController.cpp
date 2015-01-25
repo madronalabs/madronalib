@@ -41,6 +41,10 @@ MLPluginController::~MLPluginController()
 		delete mpConvertPresetsThread;
 	}
 #endif
+
+		// MLTEST
+	debug() << "DELETING CONTROLLER\n";
+
 	masterReference.clear();
 }
 
