@@ -42,7 +42,7 @@ MLPluginController::~MLPluginController()
 	}
 #endif
 	// MLTEST
-	debug() << "DELETING CONTROLLER\n";
+	// debug() << "DELETING CONTROLLER\n";
 
 	masterReference.clear();
 }
@@ -544,7 +544,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 {
 	MLSymbol collectionName(collection.getName());
 	
-	debug() << " MLPluginController::processFileFromCollection: " << collectionName << " / " << action << " / " << fileToProcess.getShortName() << "\n";
+	// debug() << " MLPluginController::processFileFromCollection: " << collectionName << " / " << action << " / " << fileToProcess.getShortName() << "\n";
 	
 	if(action == "begin")
 	{
