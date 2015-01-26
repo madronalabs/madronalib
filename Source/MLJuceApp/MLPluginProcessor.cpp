@@ -1021,10 +1021,8 @@ void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 		int stateStrLen = combinedStateStr.size();
 		destData.replaceWith(combinedStateStr.data(), stateStrLen);
 	}
-	
-	cJSON_Delete(procRoot);
-	cJSON_Delete(envRoot);
-	cJSON_Delete(combinedRoot);
+
+	cJSON_Delete(combinedRoot); // also deletes procRoot and envRoot
 }
 
 #pragma mark load state from file
@@ -1349,6 +1347,10 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 
 void MLPluginProcessor::createFileCollections()
 {
+	
+	File scales = getDefaultFileLocation(kScaleFiles);
+	
+	
     mScaleFiles = (new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
     mPresetFiles = (new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
 

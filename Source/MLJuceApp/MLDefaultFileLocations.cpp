@@ -40,6 +40,11 @@ File getDefaultFileLocation(eFileTypes whichFiles)
 		startDir = startDir.getChildFile(String(MLProjectInfo::makerName));
     #endif
     }
+	
+	if (!startDir.exists())
+    {
+		startDir.createDirectory();
+	}
     
     // get subdirectory according to file type
 	if (startDir.exists())
