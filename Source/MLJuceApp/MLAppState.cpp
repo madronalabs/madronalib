@@ -19,7 +19,7 @@ MLAppState::MLAppState(MLModel* pM, const std::string& name, const std::string& 
 
 MLAppState::~MLAppState()
 {
-
+	stopTimer();
 }
 
 void MLAppState::timerCallback()

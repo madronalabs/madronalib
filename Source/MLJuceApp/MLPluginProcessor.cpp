@@ -14,6 +14,9 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
+	// MLTEST
+	debug() << "CREATING PROCESSOR\n";
+
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
@@ -1357,9 +1360,11 @@ void MLPluginProcessor::createFileCollections()
 
 void MLPluginProcessor::scanAllFilesImmediate()
 {
+	/* MLTEST
     mScaleFiles->searchForFilesImmediate();
     mPresetFiles->searchForFilesImmediate();
     mMIDIProgramFiles->searchForFilesImmediate();
+	*/
 }
 
 #pragma mark presets

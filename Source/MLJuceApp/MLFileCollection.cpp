@@ -111,6 +111,9 @@ int MLFileCollection::beginProcessFiles()
     {
         found = -1;
     }
+
+	// MLTEST
+	debug() << "MLFileCollection: found " << found << "files.\n";
     return found;
 }
 
@@ -319,7 +322,7 @@ MLMenuPtr MLFileCollection::buildMenu(bool flat) const
     return m;
 }
 
-void MLFileCollection::dump()
+void MLFileCollection::dump() const
 {
  	std::vector<MLFilePtr>::const_iterator it;
     

@@ -19,9 +19,6 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 	mConvertProgress(0),
 	mFilesConverted(0)
 {
-	// MLTEST
-	debug() << "CREATING CONTROLLER\n";
-	
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
 	
@@ -34,6 +31,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 
 MLPluginController::~MLPluginController()
 {
+	stopTimer();
 #if defined(__APPLE__)
 	if(mpConvertPresetsThread)
 	{
@@ -41,9 +39,6 @@ MLPluginController::~MLPluginController()
 		delete mpConvertPresetsThread;
 	}
 #endif
-	// MLTEST
-	// debug() << "DELETING CONTROLLER\n";
-
 	masterReference.clear();
 }
 
@@ -110,6 +105,9 @@ void MLPluginController::initialize()
             regLabel->setProperty(MLSymbol("text"), regStr);
         }
     }
+
+	startTimer(42);
+
 }
 
 
@@ -498,13 +496,18 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 //
 void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
 {
-    MLMenu* pMenu = findMenuByName("key_scale");
-	
+	debug() << "SCALE MENU \n";
+
+    MLMenu* pMenu = findMenuByName("key_scale");	
 	// MLTEST pMenu was NULL here once, I swear it. How?
 	
 	pMenu->clear();
  	pMenu->addItem("12-equal");
     MLMenuPtr p = fileCollection.buildMenu();
+
+	// MLTEST
+	fileCollection.dump();
+
     pMenu->appendMenu(p);
 }
 
@@ -543,9 +546,6 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	MLSymbol collectionName(collection.getName());
-	
-	// debug() << " MLPluginController::processFileFromCollection: " << collectionName << " / " << action << " / " << fileToProcess.getShortName() << "\n";
-	
 	if(action == "begin")
 	{
 	}
