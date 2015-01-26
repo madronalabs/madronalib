@@ -37,6 +37,7 @@ void MLReporter::PropertyListener::doPropertyChangeAction(MLSymbol property, con
 MLReporter::ReporterTimer::ReporterTimer(MLReporter* pR) :
 mpOwnerReporter(pR)
 {
+	startTimer(33);
 }
 
 MLReporter::ReporterTimer::~ReporterTimer()
@@ -58,7 +59,6 @@ MLReporter::MLReporter()
 	mChangeData.resize(size);
 	PaUtil_InitializeRingBuffer( &mChangeQueue, sizeof(MLSymbol), size, &(mChangeData[0]) );
 	mpTimer = std::tr1::shared_ptr<ReporterTimer>(new ReporterTimer(this));
-	mpTimer->startTimer(33);
 }
 
 MLReporter::~MLReporter()

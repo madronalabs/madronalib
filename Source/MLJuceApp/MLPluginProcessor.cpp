@@ -1360,9 +1360,11 @@ void MLPluginProcessor::createFileCollections()
 
 void MLPluginProcessor::scanAllFilesImmediate()
 {
+	/* MLTEST
     mScaleFiles->searchForFilesImmediate();
     mPresetFiles->searchForFilesImmediate();
     mMIDIProgramFiles->searchForFilesImmediate();
+	*/
 }
 
 #pragma mark presets

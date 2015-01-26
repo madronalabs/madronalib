@@ -31,6 +31,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
 
 MLPluginController::~MLPluginController()
 {
+	stopTimer();
 #if defined(__APPLE__)
 	if(mpConvertPresetsThread)
 	{
@@ -104,6 +105,9 @@ void MLPluginController::initialize()
             regLabel->setProperty(MLSymbol("text"), regStr);
         }
     }
+
+	startTimer(42);
+
 }
 
 
