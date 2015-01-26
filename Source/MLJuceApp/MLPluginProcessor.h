@@ -87,8 +87,8 @@ public:
 	bool isParameterAutomatable (int idx) const;
 	
 	// factory presets - a VST concept - TODO
-    int getNumPrograms() { return 0; }
-    int getCurrentProgram() { return 0; }
+    int getNumPrograms() { return 1; }
+    int getCurrentProgram() { return 1; }
     void setCurrentProgram (int) { }
     const String getProgramName (int) { return String::empty; }
     void changeProgramName (int, const String&) { }
