@@ -46,6 +46,9 @@ MLPluginProcessor::MLPluginProcessor() :
 
 MLPluginProcessor::~MLPluginProcessor()
 {
+#if DEBUG
+	stopDebugging();
+#endif
 #if defined (__APPLE__)
 	mT3DHub.removeListener(this);
 #endif

@@ -44,7 +44,7 @@ void MLTextStream::flush()
 
 #ifdef ML_WINDOWS
 #include <Windows.h>
-const int kWideBufSize = 1024;
+const int kWideBufSize = 16384;
 static wchar_t wideBuf[kWideBufSize];
 void MLTextStream::display()
 {
@@ -106,7 +106,7 @@ public:
 			if (threadShouldExit())
 				return;
 			debug().display();
-			wait(100);
+			wait(10);
 		}
 	}
 };
@@ -143,10 +143,21 @@ MLTextStream& MLConsole(void)
 	return theConsoleMessageStream;
 }
 
+MLDebugThread& theDebugThread()
+{
+	static MLDebugThread theDebugThreadObject;
+	return theDebugThreadObject;
+}
+
 void startDebugging(void)
 {
-	static MLDebugThread theDebugThread;
-	theDebugThread.startThread();
+	theDebugThread().startThread();
 }
+
+void stopDebugging(void)
+{
+	theDebugThread().stopThread(100);
+}
+
 
 

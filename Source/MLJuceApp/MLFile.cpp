@@ -28,7 +28,6 @@ MLFile::MLFile(const File f, const std::string& shortName, const std::string& lo
 
 MLFile::~MLFile()
 {
-    // debug() << "DELETING file " << mShortName << "\n";
 }
 
 void MLFile::clear()
@@ -38,7 +37,6 @@ void MLFile::clear()
 
 void MLFile::insert(const std::string& path, MLFilePtr f)
 {
-    
 	debug() << "INSERTING: " << path << "\n";
 
     int len = path.length();
