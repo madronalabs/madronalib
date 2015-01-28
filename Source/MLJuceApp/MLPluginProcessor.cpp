@@ -14,8 +14,9 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
-	// MLTEST
-	debug() << "CREATING PROCESSOR\n";
+#if DEBUG
+	startDebugging();
+#endif
 
 	mHasParametersSet = false;
 	mNumParameters = 0;
@@ -561,7 +562,7 @@ void MLPluginProcessor::setCollectStats(bool k)
 
 void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
- 	if (mEngine.isEnabled() && !isSuspended())
+	if (mEngine.isEnabled() && !isSuspended())
 	{
 		unsigned samples = buffer.getNumSamples();
 		
@@ -622,7 +623,6 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		buffer.clear();
 	}
 }
-
 
 #pragma mark parameters
 //
@@ -1360,11 +1360,9 @@ void MLPluginProcessor::createFileCollections()
 
 void MLPluginProcessor::scanAllFilesImmediate()
 {
-	/* MLTEST
     mScaleFiles->searchForFilesImmediate();
     mPresetFiles->searchForFilesImmediate();
     mMIDIProgramFiles->searchForFilesImmediate();
-	*/
 }
 
 #pragma mark presets

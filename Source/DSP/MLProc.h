@@ -532,9 +532,8 @@ public:
 		MLSymbol classSym(className);
         MLProcFactory::theFactory().registerFn(classSym, createInstance);	
 		MLProcInfo<MLProcSubclass>::setClassName(classSym);
-//debug() << "class " << className << " entry initialized\n"; // TEMP
     }
-	
+
 	// return shared_ptr to a new MLProc instance. 
 	static MLProcPtr createInstance()
     {

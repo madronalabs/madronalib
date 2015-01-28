@@ -87,4 +87,8 @@ extern MLTextStream& MLError(void);
 //
 extern MLTextStream& MLConsole(void);
 
+// start regular display of debug messages.
+//
+extern void startDebugging(void);
+
 #endif // _ML_DEBUG_H

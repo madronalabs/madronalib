@@ -20,7 +20,7 @@ class MLPluginController :
 {
 public:
 	
-	MLPluginController(MLPluginProcessor* const pProcessor);
+	MLPluginController(MLPluginProcessor* pProcessor);
     ~MLPluginController();
 
 	MLAppView* getView(); 

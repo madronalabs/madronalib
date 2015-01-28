@@ -101,7 +101,6 @@ MLSymbolTable::MLSymbolTable()
 
 MLSymbolTable::~MLSymbolTable()
 {
-
 }
 
 // look up a symbol by name and return its ID.

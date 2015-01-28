@@ -82,7 +82,7 @@ private:
 
 inline MLSymbolTable& theSymbolTable()
 {
-	static MLSymbolTable* t = new MLSymbolTable();
+	static std::auto_ptr<MLSymbolTable> t (new MLSymbolTable());
 	return *t;
 }
 

@@ -5,7 +5,7 @@
 
 #include "MLPluginController.h"
 
-MLPluginController::MLPluginController(MLPluginProcessor* const pProcessor) :
+MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	MLWidget::Listener(),
 	MLReporter(),
 	MLSignalReporter(pProcessor),
@@ -107,7 +107,6 @@ void MLPluginController::initialize()
     }
 
 	startTimer(42);
-
 }
 
 
