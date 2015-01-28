@@ -368,7 +368,7 @@ public:
     VstPlugCategory getPlugCategory() override   { return JucePlugin_VSTCategory; }
     bool keysRequired()                 { return (JucePlugin_EditorRequiresKeyboardFocus) != 0; }
     
-    VstInt32 canDo (char* text) override
+    VstInt32 canDo (char* text)
     {
         if (strcmp (text, "receiveVstEvents") == 0
             || strcmp (text, "receiveVstMidiEvent") == 0
