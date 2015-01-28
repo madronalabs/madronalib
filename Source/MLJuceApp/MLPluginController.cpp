@@ -121,7 +121,6 @@ void MLPluginController::timerCallback()
     {
         // do less frequent things
         mClockDivider = 0;
-        debug().display();
     }
 	
     if(getView() != nullptr)
