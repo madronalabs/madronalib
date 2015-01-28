@@ -48,10 +48,12 @@ const int kWideBufSize = 1024;
 static wchar_t wideBuf[kWideBufSize];
 void MLTextStream::display()
 {
+	/*
 	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
 	{
 		return;
 	}
+	*/
 	if(mpListener)
 	{
 		mpListener->display();
@@ -59,6 +61,7 @@ void MLTextStream::display()
 	else
 	{
 #if DEBUG
+
 		// no listener, send to output
 		flush();
 		std::string outStr = mLocalStream.str();
@@ -80,6 +83,33 @@ void MLTextStream::display()
 }
 
 #endif // ML_WINDOWS
+
+
+
+class MLDebugThread : public Thread
+{
+public:
+	MLDebugThread() :
+	Thread(String("madronalib_debug"))
+	{
+	}
+	
+	~MLDebugThread()
+	{
+		stopThread(100);
+	}
+	
+	void run()
+	{
+		while(1)
+		{
+			if (threadShouldExit())
+				return;
+			debug().display();
+			wait(100);
+		}
+	}
+};
 
 
 // global entry points
@@ -112,4 +142,11 @@ MLTextStream& MLConsole(void)
 	static MLTextStream theConsoleMessageStream("console");
 	return theConsoleMessageStream;
 }
+
+void startDebugging(void)
+{
+	static MLDebugThread theDebugThread;
+	theDebugThread.startThread();
+}
+
 
