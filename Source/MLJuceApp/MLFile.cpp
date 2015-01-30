@@ -35,7 +35,7 @@ void MLFile::clear()
     mFiles.clear();
 }
 
-void MLFile::insert(const std::string& path, MLFilePtr f)
+void MLFile::insertFile(const std::string& path, MLFilePtr f)
 {
 	debug() << "INSERTING: " << path << "\n";
 
@@ -69,7 +69,7 @@ void MLFile::insert(const std::string& path, MLFilePtr f)
                 {
                     mFiles[firstDir] = MLFilePtr(new MLFile(firstDir));
                 }
-                mFiles[firstDir]->insert(restOfDirs, f);
+                mFiles[firstDir]->insertFile(restOfDirs, f);
             }
         }
     }

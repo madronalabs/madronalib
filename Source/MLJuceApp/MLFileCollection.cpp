@@ -150,7 +150,7 @@ void MLFileCollection::buildTree()
             MLFilePtr newFile(nf);
             
             // insert file into file tree
-            mRoot.insert(longName, newFile);
+            mRoot.insertFile(longName, newFile);
             
             // push to index
             mFilesByIndex.push_back(newFile);
@@ -163,27 +163,23 @@ void MLFileCollection::buildTree()
 //
 void MLFileCollection::processFileInTree(int i)
 {
-    const MLFile& f = getFileByIndex(i);
     int size = mFilesByIndex.size();
-    if(i < size)
+    if(within(i, 0, size))
     {
-		std::list<Listener*>::iterator it;
-		for(it = mpListeners.begin(); it != mpListeners.end(); it++)
-		{
-			Listener* pL = *it;
-			pL->processFileFromCollection (MLSymbol("process"), f, *this, i + 1, size);
-		}
+		sendActionToListeners(MLSymbol("process"), i);
     }
 }
 
-void MLFileCollection::sendActionToListeners(MLSymbol action)
+void MLFileCollection::sendActionToListeners(MLSymbol action, int fileIndex)
 {
     int size = mFilesByIndex.size();
+    const MLFile& f = getFileByIndex(fileIndex);
+	
 	std::list<Listener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		Listener* pL = *it;
-		pL->processFileFromCollection (action, MLFile::nullObject, *this, 0, size);
+		pL->processFileFromCollection (action, f, *this, fileIndex + 1, size);
 	}
 }
 
@@ -262,7 +258,7 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
     MLFilePtr newFile(new MLFile(*f, sName, relativePathAndName));
     
     // insert file into file tree at relative path
-    mRoot.insert(relativePathAndName, newFile);
+    mRoot.insertFile(relativePathAndName, newFile);
 
     return newFile;
 }

@@ -91,7 +91,8 @@ private:
     int beginProcessFiles();
     void buildTree();
     void processFileInTree(int i);
-	void sendActionToListeners(MLSymbol action);
+	
+	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 
     class SearchThread : public Thread
     {

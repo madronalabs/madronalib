@@ -40,7 +40,9 @@ public:
 	
 	// recursive stuff that should go somewhere else
 	void clear();
-	void insert(const std::string& relPath, MLFilePtr f);
+	
+	// insert a file into the tree, routing by path name relative to collection root.
+	void insertFile(const std::string& relPath, MLFilePtr f);
     const MLFile& find(const std::string& path);
     void buildMenu(MLMenuPtr m) const;
     void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
