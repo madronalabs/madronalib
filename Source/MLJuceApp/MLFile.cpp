@@ -37,7 +37,7 @@ void MLFile::clear()
 
 void MLFile::insertFile(const std::string& path, MLFilePtr f)
 {
-	debug() << "INSERTING: " << path << "\n";
+	// debug() << "INSERTING: " << path << "\n";
 
     int len = path.length();
     if(len)
@@ -150,7 +150,7 @@ void MLFile::buildMenu(MLMenuPtr m) const
 		// MLTEST
 		juce::File jf = f->getJuceFile();
 		String jfn = jf.getFullPathName();
-		debug() << " [ checking " << jfn << ": ";
+	//	debug() << " [ checking " << jfn << ": ";
 
 		if(!(f->exists()))
 		{
@@ -158,18 +158,18 @@ void MLFile::buildMenu(MLMenuPtr m) const
 		}
 		else if(f->isDirectory())
         {
-     debug() << "ADDING SUBMENU: " << f->mShortName << "\n";
+    // debug() << "ADDING SUBMENU: " << f->mShortName << "\n";
             MLMenuPtr subMenu(new MLMenu());
             f->buildMenu(subMenu);
             m->addSubMenu(subMenu, f->mShortName);
         }
         else
         {
-    debug() << "ADDING ITEM: " << f->mShortName << "\n";
+    //debug() << "ADDING ITEM: " << f->mShortName << "\n";
             m->addItem(f->mShortName);
         }
 
-		debug() << "]\n";
+	//	debug() << "]\n";
     }
 }
 

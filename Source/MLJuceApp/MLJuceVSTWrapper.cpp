@@ -242,7 +242,7 @@ static Array<void*> activePlugins;
 class JuceVSTWrapper  : public AudioEffectX,
                         public AudioProcessorListener,
                         public AudioPlayHead,
-private Timer,
+						private Timer,
                         private AsyncUpdater
 {
 public:
@@ -1035,6 +1035,13 @@ public:
             shouldDeleteEditor = false;
             deleteEditor (true);
         }
+		// ML -
+		else
+		{
+			editorComp->resizeIfNeeded();
+		}
+		
+		
         
         if (chunkMemoryTime > 0
             && chunkMemoryTime < juce::Time::getApproximateMillisecondCounter() - 2000
@@ -1309,6 +1316,8 @@ public:
         EditorCompWrapper (JuceVSTWrapper& w, AudioProcessorEditor* editor)
         : wrapper (w)
         {
+			mNeedsResize = false;
+			
             setOpaque (true);
             editor->setOpaque (true);
             
@@ -1366,28 +1375,43 @@ public:
         
         void childBoundsChanged (Component* child) override
         {
-            child->setTopLeftPosition (0, 0);
-            
-            const int cw = child->getWidth();
-            const int ch = child->getHeight();
-            
-           #if JUCE_MAC
-            if (wrapper.useNSView)
-            setTopLeftPosition (0, getHeight() - ch);
-#endif
-            
-            wrapper.resizeHostWindow (cw, ch);
-            
-#if ! JUCE_LINUX // setSize() on linux causes renoise and energyxt to fail.
-            setSize (cw, ch);
-#else
-            XResizeWindow (display, (Window) getWindowHandle(), cw, ch);
-#endif
-            
-#if JUCE_MAC
-            wrapper.resizeHostWindow (cw, ch);  // (doing this a second time seems to be necessary in tracktion)
-#endif
+			// ML
+			// set up new resize request to be done in timer callback
+			child->setTopLeftPosition (0, 0);
+			const int cw = child->getWidth();
+			const int ch = child->getHeight();
+			mNeedsResize = true;
+			mNeedsWidth = cw;
+			mNeedsHeight = ch;
         }
+		
+		// to be called on the message thread, and not during a paint callback!
+		void resizeIfNeeded()
+		{
+			if(mNeedsResize)
+			{
+
+				
+#if JUCE_MAC
+				if (wrapper.useNSView)
+				{
+					setTopLeftPosition (0, getHeight() - mNeedsHeight);
+				}
+#endif
+				
+				wrapper.resizeHostWindow (mNeedsWidth, mNeedsHeight);
+#if ! JUCE_LINUX // setSize() on linux causes renoise and energyxt to fail.
+				setSize (mNeedsWidth, mNeedsHeight);
+#else
+				XResizeWindow (display, (Window) getWindowHandle(), mNeedsWidth, mNeedsHeight);
+#endif
+				
+#if JUCE_MAC
+				wrapper.resizeHostWindow (mNeedsWidth, mNeedsHeight);  // (doing this a second time seems to be necessary in tracktion)
+#endif
+				mNeedsResize = false;
+			}
+		}
         
         void handleAsyncUpdate() override
         {
@@ -1410,10 +1434,15 @@ public:
         }
 #endif
         
+		
     private:
         //==============================================================================
         JuceVSTWrapper& wrapper;
         FakeMouseMoveGenerator fakeMouseGenerator;
+		
+		// ML
+		bool mNeedsResize;
+		int mNeedsHeight, mNeedsWidth;
         
        #if JUCE_WINDOWS
         WindowsHooks hooks;

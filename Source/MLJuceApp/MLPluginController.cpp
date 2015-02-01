@@ -550,10 +550,11 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	else if(action == "update")
 	{
 		// unimplemented
+		// in the future we can modify the existing menus incrementally here when new files are found.
 	}
 	else if(action == "end")
 	{
-		// search is ending, so we populate menus and the like.
+		// for now, we populate menus only when the file search ends.
 		if(collectionName == "scales")
 		{
 			populateScaleMenu(collection);

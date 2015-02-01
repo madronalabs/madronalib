@@ -103,7 +103,7 @@ int MLFileCollection::beginProcessFiles()
         DirectoryIterator di (mRoot.getJuceFile(), recurse, wildCard, whatToLookFor);
         while (di.next())
         {
-            mFiles.push_back (di.getFile());
+            mFiles.push_back(di.getFile());
         }
         found = mFiles.size();
     }
