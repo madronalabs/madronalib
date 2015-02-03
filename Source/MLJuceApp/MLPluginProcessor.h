@@ -163,6 +163,7 @@ public:
 	// files
 	void createFileCollections();
 	void scanAllFilesImmediate();
+	const MLFileCollection& getScaleCollection() { return *(mScaleFiles); }
 	
 	// presets
 	void clearPresetCollection() { mPresetFiles->clear(); }

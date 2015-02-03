@@ -63,6 +63,9 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	if (paramIdx < 0) return;
 	float f = newVal.getFloatValue();
 	
+	// MLTEST
+	debug() << "MLPluginProcessor: PROPERTY " << propName << " CHANGED to " << newVal << "\n";
+	
 	switch(propertyType)
 	{
 		case MLProperty::kFloatProperty:
@@ -1380,6 +1383,8 @@ void MLPluginProcessor::advancePreset(int amount)
     std::string extension (".mlpreset");
 
     int currIdx = mPresetFiles->getFileIndexByName(getStringProperty("preset") + extension);
+	
+	// MLTEST need to ask the collection for next file relative to current index so we can skip directory nodes now
     
     if(currIdx >= 0)
     {

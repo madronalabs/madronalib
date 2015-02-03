@@ -50,19 +50,14 @@ public:
 	private:
 		std::list<MLFileCollection*> mpCollections;
 	};
-	
-	class Node
-	{
-		
-	};
-     
+
  	MLFileCollection(MLSymbol name, const File startDir, String extension);
     ~MLFileCollection();
 	
     void clear();
     int getSize() const { return mFilesByIndex.size(); }
     MLSymbol getName() const { return mName; }
-    const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
+    //const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
     
     void addListener (Listener* listener);
 	void removeListener(Listener* pToRemove);
@@ -85,6 +80,15 @@ public:
     std::string getRelativePath(const std::string& name);
     
     MLMenuPtr buildMenu(bool flat = false) const;
+	
+	// build a menu of only the files in top-level directories starting with the given prefix.
+	// this adds only directories, not files. Made for adding "factory" presets separately.
+	void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
+
+	// build a menu of only the files not starting with the prefix.
+	void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
+	
+	
     void dump() const;
     
 private:
@@ -116,12 +120,35 @@ private:
         MLFileCollection& mCollection;
         int mDelay;
     };
-    
-    // the file tree TODO will become a tree of MLFileCollection::fileNode or some such thing.
-    MLFile mRoot;
 	
-	// files by index. TODO we own these MLFile objects, and can keep track of them more intelligently
-	// without just relying on shared_ptr.
+	// TODO this looks a lot like MLMenu::Node and should use the same Node template
+	
+	class TreeNode;
+    typedef std::tr1::shared_ptr<TreeNode> TreeNodePtr;
+    typedef std::map<std::string, TreeNodePtr, MLStringCompareFn> StringToNodeMapT;
+    class TreeNode
+    {
+	public:
+		TreeNode(MLFilePtr f);
+		~TreeNode();
+		
+		void clear();
+		
+		// insert a file into the tree, routing by path name relative to collection root.
+		void insertFile(const std::string& relPath, MLFilePtr f);
+		const MLFile& find(const std::string& path);
+		
+		void buildMenu(MLMenuPtr m, int level = 0) const;
+		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
+		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
+
+		StringToNodeMapT mChildren;
+		MLFilePtr mFile;
+	};
+
+    TreeNodePtr mRoot;
+	
+	// leaf files in collection stored by index.
     std::vector<MLFilePtr> mFilesByIndex;
 	
     MLSymbol mName;
@@ -129,7 +156,7 @@ private:
 	std::list<Listener*> mpListeners;
     
     // temp storage for processing files
-    std::vector <File> mFiles;
+    std::vector <juce::File> mFiles;
     std::tr1::shared_ptr<SearchThread> mSearchThread;
 };
 

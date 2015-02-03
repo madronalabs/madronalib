@@ -221,6 +221,12 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 {	
 	if(!mpView) return;
 	
+	if(menuName == "key_scale")
+	{
+		populateScaleMenu(getProcessor()->getScaleCollection());
+	}
+	
+	
 	MLMenu* menu = findMenuByName(menuName);
 	if (menu != nullptr)
 	{
@@ -334,7 +340,7 @@ void MLPluginController::doScaleMenu(int result)
         case (0):	// dismiss
             break;
         case (1):
-            mpProcessor->setProperty("key_scale", "12-equal");
+            mpProcessor->setPropertyImmediate("key_scale", "12-equal");
             break;
         default:
             MLMenu* menu = findMenuByName("key_scale");
@@ -342,7 +348,7 @@ void MLPluginController::doScaleMenu(int result)
             {
                 // set model param to the full name of the file in the menu
                 const std::string& fullName = menu->getItemFullName(result);
-                mpProcessor->setProperty("key_scale", fullName);
+                mpProcessor->setPropertyImmediate("key_scale", fullName);
             }
             break;
     }
@@ -477,14 +483,14 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     
     // add factory presets, those starting with the plugin name    
     MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.getRoot()->buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
+    presetFiles.buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
     menu->appendMenu(factoryMenu);
 	
 	menu->addSeparator();
     
     // add user presets, all the others
     MLMenuPtr userMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.getRoot()->buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
+    presetFiles.buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
     menu->appendMenu(userMenu);
 
 	menu->buildIndex();
@@ -494,18 +500,12 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 //
 void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
 {
-	debug() << "SCALE MENU \n";
-
-    MLMenu* pMenu = findMenuByName("key_scale");	
+    MLMenu* pMenu = findMenuByName("key_scale");
 	// MLTEST pMenu was NULL here once, I swear it. How?
 	
 	pMenu->clear();
  	pMenu->addItem("12-equal");
     MLMenuPtr p = fileCollection.buildMenu();
-
-	// MLTEST
-	fileCollection.dump();
-
     pMenu->appendMenu(p);
 }
 
