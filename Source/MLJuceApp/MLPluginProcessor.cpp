@@ -64,7 +64,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	float f = newVal.getFloatValue();
 	
 	// MLTEST
-	debug() << "MLPluginProcessor: PROPERTY " << propName << " CHANGED to " << newVal << "\n";
+	// debug() << "MLPluginProcessor: PROPERTY " << propName << " CHANGED to " << newVal << "\n";
 	
 	switch(propertyType)
 	{
@@ -967,11 +967,10 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 #else
     
     // the Model param contains the file path relative to the root.
-    std::string shortPath = MLStringUtils::stripExtension(path);
-    setProperty("preset", shortPath);
+    setProperty("preset", path);
 	
     std::string extension (".mlpreset");
-    std::string extPath = shortPath + extension;
+    std::string extPath = path + extension;
     const MLFilePtr f = mPresetFiles->createFile(extPath);
     if(!f->getJuceFile().exists())
     {
@@ -1367,6 +1366,7 @@ void MLPluginProcessor::scanAllFilesImmediate()
 
 #pragma mark presets
 
+
 void MLPluginProcessor::prevPreset()
 {
     advancePreset(-1);
@@ -1380,11 +1380,7 @@ void MLPluginProcessor::nextPreset()
 void MLPluginProcessor::advancePreset(int amount)
 {
     int len = mPresetFiles->getSize();
-    std::string extension (".mlpreset");
-
-    int currIdx = mPresetFiles->getFileIndexByName(getStringProperty("preset") + extension);
-	
-	// MLTEST need to ask the collection for next file relative to current index so we can skip directory nodes now
+    int currIdx = mPresetFiles->getFileIndexByPath(getStringProperty("preset"));
     
     if(currIdx >= 0)
     {
@@ -1403,9 +1399,11 @@ void MLPluginProcessor::advancePreset(int amount)
     {
         currIdx = 0;
     }
-    std::string relPath = mPresetFiles->getFileNameByIndex(currIdx);
+	
+    std::string relPath = mPresetFiles->getFilePathByIndex(currIdx);
     loadStateFromPath(relPath);
 }
+
 
 void MLPluginProcessor::setDefaultParameters()
 {

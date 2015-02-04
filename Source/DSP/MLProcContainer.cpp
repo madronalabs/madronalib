@@ -1625,7 +1625,7 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 	const MLSymbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 	
-	debug() << "MLProcContainer(" << (void *)this << ") routeParam: " << head << " / " << tail << "\n";
+	// debug() << "MLProcContainer(" << (void *)this << ") routeParam: " << head << " / " << tail << "\n";
 	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);

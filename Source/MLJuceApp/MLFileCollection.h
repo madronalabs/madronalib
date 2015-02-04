@@ -69,9 +69,9 @@ public:
     // return a file by its path + name relative to our starting directory.
     const MLFile& getFileByName(const std::string& name);
 	
-    std::string getFileNameByIndex(int idx);
+    std::string getFilePathByIndex(int idx);
     const MLFile& getFileByIndex(int idx);
-    const int getFileIndexByName(const std::string& fullName);
+    const int getFileIndexByPath(const std::string& fullName);
 
     // make a new file. TODO return const MLFile &
     const MLFilePtr createFile(const std::string& relativePath);
@@ -87,7 +87,6 @@ public:
 
 	// build a menu of only the files not starting with the prefix.
 	void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
-	
 	
     void dump() const;
     
@@ -136,6 +135,9 @@ private:
 		
 		// insert a file into the tree, routing by path name relative to collection root.
 		void insertFile(const std::string& relPath, MLFilePtr f);
+		
+		// find a file by relative path. TODO this should use symbols.
+		// Would require an unambiguous mapping from UTF-8 to symbols.
 		const MLFile& find(const std::string& path);
 		
 		void buildMenu(MLMenuPtr m, int level = 0) const;
@@ -156,7 +158,7 @@ private:
 	std::list<Listener*> mpListeners;
     
     // temp storage for processing files
-    std::vector <juce::File> mFiles;
+    std::vector <juce::File> mFilesToProcess;
     std::tr1::shared_ptr<SearchThread> mSearchThread;
 };
 

@@ -1038,7 +1038,10 @@ public:
 		// ML -
 		else
 		{
-			editorComp->resizeIfNeeded();
+			if(editorComp != nullptr)
+			{
+				editorComp->resizeIfNeeded();
+			}
 		}
 		
 		
@@ -1187,7 +1190,11 @@ public:
             
             startTimer (1000 / 4); // performs misc housekeeping chores
             
-            deleteEditor (true);
+		//	if (editorComp != nullptr)
+            {
+			   deleteEditor (true);
+			}
+			
             createEditorComp();
             
             if (editorComp != nullptr)

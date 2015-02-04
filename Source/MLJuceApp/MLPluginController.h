@@ -46,9 +46,6 @@ public:
  	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName); // TODO move into new controller base class
-	void doScaleMenu(int result);
-	void doPresetMenu(int result);
-	void doMoreMenu(int result);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 
@@ -113,6 +110,7 @@ protected:
 #endif // ML_MAC
 
 protected:
+
 	void prevPreset();
 	void nextPreset();
 	    
@@ -122,6 +120,12 @@ protected:
 	friend class WeakReference<MLPluginController>;	
 
 private:
+	
+	void doScaleMenu(int result);
+	void doPresetMenu(int result);
+	void doMoreMenu(int result);
+	void loadPresetByMenuIndex(int result);
+	
 	void populatePresetMenu(const MLFileCollection& f);
 	void populateScaleMenu(const MLFileCollection& f);
 	void flagMIDIProgramsInPresetMenu();
@@ -134,6 +138,10 @@ private:
 	bool mConvertPresetsThreadMarkedForDeath;
 	float mConvertProgress;
 	int mFilesConverted;
+
+	int mCurrentPresetInMenu;
+	int mFirstPresetInMenu;
+	int mLastPresetInMenu;
 };
 
 

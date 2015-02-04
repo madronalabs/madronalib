@@ -105,7 +105,7 @@ void MLPluginController::initialize()
         MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
         if(regLabel)
         {
-            regLabel->setProperty(MLSymbol("text"), regStr);
+            regLabel->setPropertyImmediate(MLSymbol("text"), regStr);
         }
     }
 
@@ -183,19 +183,29 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 }
 
+/*
 #pragma mark presets
 
 void MLPluginController::prevPreset()
 {
-    mpProcessor->prevPreset();
-	MLReporter::fetchChangedProperties();
+	mCurrentPresetInMenu--;
+	if(mCurrentPresetInMenu < mFirstPresetInMenu)
+	{
+		mCurrentPresetInMenu = mLastPresetInMenu;
+	}
+	loadPresetByMenuIndex(mCurrentPresetInMenu);
 }
 
 void MLPluginController::nextPreset()
 {
-    mpProcessor->nextPreset();
-	MLReporter::fetchChangedProperties();
+	mCurrentPresetInMenu++;
+	if(mCurrentPresetInMenu > mLastPresetInMenu)
+	{
+		mCurrentPresetInMenu = mFirstPresetInMenu;
+	}
+	loadPresetByMenuIndex(mCurrentPresetInMenu);
 }
+*/
 
 #pragma mark menus
 
@@ -228,7 +238,11 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 	{
 		populateScaleMenu(getProcessor()->getScaleCollection());
 	}
-	
+	else if(menuName == "preset")
+	{
+		populatePresetMenu(getProcessor()->getPresetCollection());
+		flagMIDIProgramsInPresetMenu();
+	}
 	
 	MLMenu* menu = findMenuByName(menuName);
 	if (menu != nullptr)
@@ -325,15 +339,22 @@ void MLPluginController::doPresetMenu(int result)
 #endif
 #endif
         default:    // load preset
-            MLMenu* menu = findMenuByName("preset");
-            if (menu)
-            {
-                const std::string& fullName = menu->getItemFullName(result);                
-                getProcessor()->loadStateFromPath(fullName);
-				// TODO do filename stripping here instead of in button?
-            }
+            loadPresetByMenuIndex(result);
             break;
 	}
+}
+
+void MLPluginController::loadPresetByMenuIndex(int result)
+{
+	debug() << "LOADING " << result << "\n";
+	mCurrentPresetInMenu = result;
+	MLMenu* menu = findMenuByName("preset");
+	if (menu)
+	{
+		const std::string& fullName = menu->getItemFullName(result);
+		getProcessor()->loadStateFromPath(fullName);
+	}
+	MLReporter::fetchChangedProperties();
 }
 
 void MLPluginController::doScaleMenu(int result)
@@ -443,6 +464,7 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 
 void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 {
+	int p = mCurrentPresetInMenu;
 	MLMenu* menu = findMenuByName("preset");
 	if (menu == nullptr)
 	{
@@ -484,6 +506,8 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 #endif
 	menu->addSeparator();
     
+	mFirstPresetInMenu = menu->getSize() + 1;
+	
     // add factory presets, those starting with the plugin name    
     MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
     presetFiles.buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
@@ -496,6 +520,14 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     presetFiles.buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
     menu->appendMenu(userMenu);
 
+	// get new range of presets and clamp current preset. if this changed the current preset, load the new preset.
+	mLastPresetInMenu = menu->getSize();
+	mCurrentPresetInMenu = clamp(mCurrentPresetInMenu, mFirstPresetInMenu, mLastPresetInMenu);
+	if(mCurrentPresetInMenu != p)
+	{
+		
+	}
+	
 	menu->buildIndex();
 }
 
@@ -544,6 +576,7 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 
 #pragma mark MLFileCollection::Listener
 
+// looks like we are doing nothing here now. So do we need to be a MLFileCollection::Listener? MLTEST
 void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	MLSymbol collectionName(collection.getName());
@@ -557,6 +590,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	}
 	else if(action == "end")
 	{
+		/* MLTEST
 		// for now, we populate menus only when the file search ends.
 		if(collectionName == "scales")
 		{
@@ -567,6 +601,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 			populatePresetMenu(collection);
 			flagMIDIProgramsInPresetMenu();
 		}
+		 */
 	}
 }
 

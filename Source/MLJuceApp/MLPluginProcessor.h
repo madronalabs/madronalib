@@ -164,10 +164,12 @@ public:
 	void createFileCollections();
 	void scanAllFilesImmediate();
 	const MLFileCollection& getScaleCollection() { return *(mScaleFiles); }
+	const MLFileCollection& getPresetCollection() { return *(mPresetFiles); }
 	
 	// presets
 	void clearPresetCollection() { mPresetFiles->clear(); }
 	void searchForPresets() { mPresetFiles->searchForFilesImmediate(); }
+	
     void prevPreset();
     void nextPreset();
     void advancePreset(int amount);
