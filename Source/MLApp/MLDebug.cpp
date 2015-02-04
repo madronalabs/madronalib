@@ -141,10 +141,25 @@ MLTextStream& MLConsole(void)
 	return theConsoleMessageStream;
 }
 
+MLDebugThread& theDebugThread()
+{
+	static MLDebugThread theDebugThreadObject;
+	return theDebugThreadObject;
+}
+
 void startDebugging(void)
 {
-	static MLDebugThread theDebugThread;
-	theDebugThread.startThread();
+#if DEBUG
+	theDebugThread().startThread();
+#endif
 }
+
+void stopDebugging(void)
+{
+#if DEBUG
+	theDebugThread().stopThread(100);
+#endif
+}
+
 
 

@@ -571,6 +571,9 @@ void MLProcInputToSignals::process(const int frames)
     if(mFrameCounter > sr)
     {
         mFrameCounter -= sr;
+		
+		// MLTEST
+		//debug() << "key scale: " << getStringParam("scale") << "\n";
         //dumpEvents();
         //dumpVoices();
         //dumpSignals();

@@ -258,7 +258,7 @@ void MLScale::loadFromRelativePath(const std::string& scaleName)
 		if (scaleRoot.exists() && scaleRoot.isDirectory())
 		{
 			// TODO add MLFile methods so this can all be done with MLFiles and std::string
-			File scaleFile = scaleRoot.getChildFile(String(scaleName.c_str()));
+			File scaleFile = scaleRoot.getChildFile(String(scaleName.c_str())).withFileExtension(".scl");
 			if(scaleFile.exists())
 			{
 				String scaleStr = scaleFile.loadFileAsString();

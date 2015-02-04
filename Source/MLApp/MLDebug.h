@@ -99,8 +99,9 @@ extern MLTextStream& MLError(void);
 //
 extern MLTextStream& MLConsole(void);
 
-// start regular display of debug messages.
+// start and stop display of debug messages.
 //
-extern void startDebugging(void);
+extern void startDebugging();
+extern void stopDebugging();
 
 #endif // _ML_DEBUG_H

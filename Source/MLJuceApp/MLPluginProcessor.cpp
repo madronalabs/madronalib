@@ -46,6 +46,9 @@ MLPluginProcessor::MLPluginProcessor() :
 
 MLPluginProcessor::~MLPluginProcessor()
 {
+#if DEBUG
+	stopDebugging();
+#endif
 #if defined (__APPLE__)
 	mT3DHub.removeListener(this);
 #endif
@@ -59,6 +62,9 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	int paramIdx = getParameterIndex(propName);
 	if (paramIdx < 0) return;
 	float f = newVal.getFloatValue();
+	
+	// MLTEST
+	// debug() << "MLPluginProcessor: PROPERTY " << propName << " CHANGED to " << newVal << "\n";
 	
 	switch(propertyType)
 	{
@@ -961,11 +967,10 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 #else
     
     // the Model param contains the file path relative to the root.
-    std::string shortPath = MLStringUtils::stripExtension(path);
-    setProperty("preset", shortPath);
+    setProperty("preset", path);
 	
     std::string extension (".mlpreset");
-    std::string extPath = shortPath + extension;
+    std::string extPath = path + extension;
     const MLFilePtr f = mPresetFiles->createFile(extPath);
     if(!f->getJuceFile().exists())
     {
@@ -1347,15 +1352,9 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 
 void MLPluginProcessor::createFileCollections()
 {
-	
-	File scales = getDefaultFileLocation(kScaleFiles);
-	
-	
-    mScaleFiles = (new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+	mScaleFiles = (new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
     mPresetFiles = (new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
-
-	File MIDIProgramsDir = getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs");
-    mMIDIProgramFiles = (new MLFileCollection("midi_programs", MIDIProgramsDir, "mlpreset"));
+    mMIDIProgramFiles = (new MLFileCollection("midi_programs", getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs"), "mlpreset"));
 }
 
 void MLPluginProcessor::scanAllFilesImmediate()
@@ -1366,6 +1365,7 @@ void MLPluginProcessor::scanAllFilesImmediate()
 }
 
 #pragma mark presets
+
 
 void MLPluginProcessor::prevPreset()
 {
@@ -1380,9 +1380,7 @@ void MLPluginProcessor::nextPreset()
 void MLPluginProcessor::advancePreset(int amount)
 {
     int len = mPresetFiles->getSize();
-    std::string extension (".mlpreset");
-
-    int currIdx = mPresetFiles->getFileIndexByName(getStringProperty("preset") + extension);
+    int currIdx = mPresetFiles->getFileIndexByPath(getStringProperty("preset"));
     
     if(currIdx >= 0)
     {
@@ -1401,9 +1399,11 @@ void MLPluginProcessor::advancePreset(int amount)
     {
         currIdx = 0;
     }
-    std::string relPath = mPresetFiles->getFileNameByIndex(currIdx);
+	
+    std::string relPath = mPresetFiles->getFilePathByIndex(currIdx);
     loadStateFromPath(relPath);
 }
+
 
 void MLPluginProcessor::setDefaultParameters()
 {

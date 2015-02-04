@@ -17,7 +17,10 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	mClockDivider(0),
 	mConvertPresetsThreadMarkedForDeath(false),
 	mConvertProgress(0),
-	mFilesConverted(0)
+	mFilesConverted(0),
+	mCurrentPresetInMenu(0),
+	mFirstPresetInMenu(0),
+	mLastPresetInMenu(0)
 {
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
@@ -102,7 +105,7 @@ void MLPluginController::initialize()
         MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
         if(regLabel)
         {
-            regLabel->setProperty(MLSymbol("text"), regStr);
+            regLabel->setPropertyImmediate(MLSymbol("text"), regStr);
         }
     }
 
@@ -120,7 +123,6 @@ void MLPluginController::timerCallback()
     {
         // do less frequent things
         mClockDivider = 0;
-        debug().display();
     }
 	
     if(getView() != nullptr)
@@ -181,19 +183,29 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	}
 }
 
+/*
 #pragma mark presets
 
 void MLPluginController::prevPreset()
 {
-    mpProcessor->prevPreset();
-	MLReporter::fetchChangedProperties();
+	mCurrentPresetInMenu--;
+	if(mCurrentPresetInMenu < mFirstPresetInMenu)
+	{
+		mCurrentPresetInMenu = mLastPresetInMenu;
+	}
+	loadPresetByMenuIndex(mCurrentPresetInMenu);
 }
 
 void MLPluginController::nextPreset()
 {
-    mpProcessor->nextPreset();
-	MLReporter::fetchChangedProperties();
+	mCurrentPresetInMenu++;
+	if(mCurrentPresetInMenu > mLastPresetInMenu)
+	{
+		mCurrentPresetInMenu = mFirstPresetInMenu;
+	}
+	loadPresetByMenuIndex(mCurrentPresetInMenu);
 }
+*/
 
 #pragma mark menus
 
@@ -221,6 +233,16 @@ MLMenu* MLPluginController::createMenu(MLSymbol menuName)
 void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 {	
 	if(!mpView) return;
+	
+	if(menuName == "key_scale")
+	{
+		populateScaleMenu(getProcessor()->getScaleCollection());
+	}
+	else if(menuName == "preset")
+	{
+		populatePresetMenu(getProcessor()->getPresetCollection());
+		flagMIDIProgramsInPresetMenu();
+	}
 	
 	MLMenu* menu = findMenuByName(menuName);
 	if (menu != nullptr)
@@ -317,15 +339,22 @@ void MLPluginController::doPresetMenu(int result)
 #endif
 #endif
         default:    // load preset
-            MLMenu* menu = findMenuByName("preset");
-            if (menu)
-            {
-                const std::string& fullName = menu->getItemFullName(result);                
-                getProcessor()->loadStateFromPath(fullName);
-				// TODO do filename stripping here instead of in button?
-            }
+            loadPresetByMenuIndex(result);
             break;
 	}
+}
+
+void MLPluginController::loadPresetByMenuIndex(int result)
+{
+	debug() << "LOADING " << result << "\n";
+	mCurrentPresetInMenu = result;
+	MLMenu* menu = findMenuByName("preset");
+	if (menu)
+	{
+		const std::string& fullName = menu->getItemFullName(result);
+		getProcessor()->loadStateFromPath(fullName);
+	}
+	MLReporter::fetchChangedProperties();
 }
 
 void MLPluginController::doScaleMenu(int result)
@@ -335,7 +364,7 @@ void MLPluginController::doScaleMenu(int result)
         case (0):	// dismiss
             break;
         case (1):
-            mpProcessor->setProperty("key_scale", "12-equal");
+            mpProcessor->setPropertyImmediate("key_scale", "12-equal");
             break;
         default:
             MLMenu* menu = findMenuByName("key_scale");
@@ -343,7 +372,7 @@ void MLPluginController::doScaleMenu(int result)
             {
                 // set model param to the full name of the file in the menu
                 const std::string& fullName = menu->getItemFullName(result);
-                mpProcessor->setProperty("key_scale", fullName);
+                mpProcessor->setPropertyImmediate("key_scale", fullName);
             }
             break;
     }
@@ -359,12 +388,12 @@ void MLPluginController::doMoreMenu(int result)
 		{
 			// first item: OSC enable checkbox
 			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
-			mpProcessor->getEnvironment()->setProperty("osc_enabled", !enabled);
+			mpProcessor->getEnvironment()->setPropertyImmediate("osc_enabled", !enabled);
 			break;
 		}
         default:
 			// other items set osc port offset.
-			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 2);
+			mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - 2);
             break;
     }
 }
@@ -435,6 +464,7 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 
 void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 {
+	int p = mCurrentPresetInMenu;
 	MLMenu* menu = findMenuByName("preset");
 	if (menu == nullptr)
 	{
@@ -476,18 +506,28 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 #endif
 	menu->addSeparator();
     
+	mFirstPresetInMenu = menu->getSize() + 1;
+	
     // add factory presets, those starting with the plugin name    
     MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.getRoot()->buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
+    presetFiles.buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
     menu->appendMenu(factoryMenu);
 	
 	menu->addSeparator();
     
     // add user presets, all the others
     MLMenuPtr userMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.getRoot()->buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
+    presetFiles.buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
     menu->appendMenu(userMenu);
 
+	// get new range of presets and clamp current preset. if this changed the current preset, load the new preset.
+	mLastPresetInMenu = menu->getSize();
+	mCurrentPresetInMenu = clamp(mCurrentPresetInMenu, mFirstPresetInMenu, mLastPresetInMenu);
+	if(mCurrentPresetInMenu != p)
+	{
+		
+	}
+	
 	menu->buildIndex();
 }
 
@@ -495,21 +535,10 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 //
 void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
 {
-	debug() << "POPULATING SCALE MENU: \n";
-
-	
-	// MLTEST
-	fileCollection.dump();
-
-
-    MLMenu* pMenu = findMenuByName("key_scale");	
-	// MLTEST pMenu was NULL here once, I swear it. How?
-	
+    MLMenu* pMenu = findMenuByName("key_scale");
 	pMenu->clear();
  	pMenu->addItem("12-equal");
     MLMenuPtr p = fileCollection.buildMenu();
-
-
     pMenu->appendMenu(p);
 }
 
@@ -545,6 +574,7 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 
 #pragma mark MLFileCollection::Listener
 
+// looks like we are doing nothing here now. So do we need to be a MLFileCollection::Listener? MLTEST
 void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	MLSymbol collectionName(collection.getName());
@@ -554,10 +584,12 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	else if(action == "update")
 	{
 		// unimplemented
+		// in the future we can modify the existing menus incrementally here when new files are found.
 	}
 	else if(action == "end")
 	{
-		// search is ending, so we populate menus and the like.
+		/* MLTEST
+		// for now, we populate menus only when the file search ends.
 		if(collectionName == "scales")
 		{
 			populateScaleMenu(collection);
@@ -567,6 +599,7 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 			populatePresetMenu(collection);
 			flagMIDIProgramsInPresetMenu();
 		}
+		 */
 	}
 }
 
