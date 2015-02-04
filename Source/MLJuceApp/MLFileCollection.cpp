@@ -8,6 +8,8 @@
 
 #include "MLFileCollection.h"
 
+
+
 // MLFileCollection::Listener
 
 MLFileCollection::Listener::~Listener()
@@ -340,7 +342,7 @@ std::string MLFileCollection::getFilePathByIndex(int idx)
     if(within(idx, 0, size))
     {
 		std::string fullName = mFilesByIndex[idx]->getLongName();
-		return getRelativePath(fullName);
+		return getRelativePathFromName(fullName);
     }
     return std::string();
 }
@@ -355,9 +357,9 @@ const MLFile& MLFileCollection::getFileByIndex(int idx)
     return MLFile::nullObject;
 }
 
-const MLFile& MLFileCollection::getFileByName(const std::string& fullName)
+const MLFile& MLFileCollection::getFileByPath(const std::string& path)
 {
-    return mRoot->find(fullName);
+    return mRoot->find(path);
 }
 
 const int MLFileCollection::getFileIndexByPath(const std::string& path)
@@ -397,37 +399,52 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
 }
 
 // get part of absolute path p, if any, relative to our root path, without extension.
-std::string MLFileCollection::getRelativePath(const std::string& p)
+std::string MLFileCollection::getRelativePathFromName(const std::string& f)
 {
-    std::string rootPath = mRoot->mFile->getLongName();
-	std::string filePath = p;
+    std::string rootName = mRoot->mFile->getLongName();
+	std::string fullName = f;
     std::string relPath;
 	
 	// convert case in the weird scenario the user has the home directory renamed.
 	// this should only do anything on English MacOS systems.
 	// quick hack. If needed add lower / upper stuff to our own UTF-8 string class later.
-	if(p.find("/Users/") == 0)
+	if(fullName.find("/Users/") == 0)
 	{
-		if(rootPath.find("/Users/") == 0)
+		if(rootName.find("/Users/") == 0)
 		{
-			char cr = (rootPath.c_str())[7];
-			char cf = (filePath.c_str())[7];
+			char cr = (rootName.c_str())[7];
+			char cf = (fullName.c_str())[7];
 			char crl = tolower(cr);
 			char cfl = tolower(cf);
-			rootPath.replace(7, 1, &crl, 1);
-			filePath.replace(7, 1, &cfl, 1);
+			rootName.replace(7, 1, &crl, 1);
+			fullName.replace(7, 1, &cfl, 1);
 		}
 	}
  
     // p should begin with root. if this is true, the relative path is the
 	// part of p after root.
-    size_t rootPos = filePath.find(rootPath);
+    size_t rootPos = fullName.find(rootName);
     if(rootPos == 0)
     {
-        int rLen = rootPath.length();
-        int pLen = filePath.length();
-        relPath = filePath.substr(rLen + 1, pLen - rLen - 1);
+        int rLen = rootName.length();
+        int pLen = fullName.length();
+        relPath = fullName.substr(rLen + 1, pLen - rLen - 1);
     }
+	
+#ifdef ML_WINDOWS
+	// convert into path format.
+	// TODO make a different data type for paths! a vector of (New UTF-8) symbols.
+	// all this path vs. name tsuff has been confusing.
+	int s = relPath.length();
+	for(int c = 0 ; c < relPath; ++c)
+	{
+		if (relPath[c] == '\\')
+		{
+			relPath.replace(c, 1, '/', 1);
+		}
+	}
+	
+#endif
 	
     return MLStringUtils::stripExtension(relPath);
 }

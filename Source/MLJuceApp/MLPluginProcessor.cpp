@@ -893,13 +893,13 @@ int MLPluginProcessor::saveStateOverPrevious()
 	return 0;
 }
 
-// save with full path name as input -- needed for using system File dialogs
+// save with long file name as input -- needed for using system File dialogs
 // return nonzero on error.
 //
-void MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
+void MLPluginProcessor::saveStateToLongFileName(const std::string& longName)
 {
     int r = true;
-    std::string newPath = mPresetFiles->getRelativePath(fullPath);
+    std::string newPath = mPresetFiles->getRelativePathFromName(longName);
     if(newPath != "")
     {
         saveStateToRelativePath(newPath);
@@ -908,18 +908,18 @@ void MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
     {
 		// warn that path is outside the usual directory.
 		String errStr = "Note: the location ";
-		errStr += fullPath;
+		errStr += longName;
 		errStr += " is outside of the ";
 		errStr += MLProjectInfo::projectName;
 		errStr += " folder. The saved file will not appear in the preset menu. Save anyway?";
 		if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
 		
 		// use only the short name as model param.
-		std::string shortPath = MLStringUtils::getShortName(fullPath);
-		setProperty("preset", shortPath);
+		std::string shortName = MLStringUtils::getShortName(longName);
+		setProperty("preset", shortName);
 		
 		std::string extension (".mlpreset");
-		std::string newFilePath = fullPath + extension;
+		std::string newFilePath = longName + extension;
 		
 		// using juce files, TODO revisit
 		String newFileName(newFilePath.c_str());
@@ -931,7 +931,7 @@ void MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
 		else
 		{
 			String errStr = "The file ";
-			errStr += fullPath;
+			errStr += longName;
 			errStr += " already exists. Overwrite? ";
 			if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
 			r = newFile.replaceWithText(getStateAsText());
@@ -940,7 +940,7 @@ void MLPluginProcessor::saveStateToFullPath(const std::string& fullPath)
 		if(r != true)
 		{
 			String errStr = "Error saving file to ";
-			errStr += fullPath;
+			errStr += longName;
 			AlertWindow::showMessageBox (AlertWindow::NoIcon, String::empty, errStr, "OK");
 		}
 		else
@@ -1036,7 +1036,7 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
 {
     if(path != std::string())
     {
-        const MLFile& f = mPresetFiles->getFileByName(path);
+        const MLFile& f = mPresetFiles->getFileByPath(path);
         if(f.exists())
         {
             loadPatchStateFromFile(f);
