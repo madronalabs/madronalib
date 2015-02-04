@@ -17,7 +17,10 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	mClockDivider(0),
 	mConvertPresetsThreadMarkedForDeath(false),
 	mConvertProgress(0),
-	mFilesConverted(0)
+	mFilesConverted(0),
+	mCurrentPresetInMenu(0),
+	mFirstPresetInMenu(0),
+	mLastPresetInMenu(0)
 {
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
@@ -364,12 +367,12 @@ void MLPluginController::doMoreMenu(int result)
 		{
 			// first item: OSC enable checkbox
 			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
-			mpProcessor->getEnvironment()->setProperty("osc_enabled", !enabled);
+			mpProcessor->getEnvironment()->setPropertyImmediate("osc_enabled", !enabled);
 			break;
 		}
         default:
 			// other items set osc port offset.
-			mpProcessor->getEnvironment()->setProperty("osc_port_offset", result - 2);
+			mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - 2);
             break;
     }
 }
