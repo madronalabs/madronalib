@@ -44,16 +44,14 @@ void MLTextStream::flush()
 
 #ifdef ML_WINDOWS
 #include <Windows.h>
-const int kWideBufSize = 1024;
+const int kWideBufSize = 16384;
 static wchar_t wideBuf[kWideBufSize];
 void MLTextStream::display()
 {
-	/*
 	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
 	{
 		return;
 	}
-	*/
 	if(mpListener)
 	{
 		mpListener->display();
@@ -106,7 +104,7 @@ public:
 			if (threadShouldExit())
 				return;
 			debug().display();
-			wait(100);
+			wait(10);
 		}
 	}
 };

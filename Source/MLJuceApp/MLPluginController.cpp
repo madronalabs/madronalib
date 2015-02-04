@@ -495,7 +495,12 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 //
 void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
 {
-	debug() << "SCALE MENU \n";
+	debug() << "POPULATING SCALE MENU: \n";
+
+	
+	// MLTEST
+	fileCollection.dump();
+
 
     MLMenu* pMenu = findMenuByName("key_scale");	
 	// MLTEST pMenu was NULL here once, I swear it. How?
@@ -504,8 +509,6 @@ void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollectio
  	pMenu->addItem("12-equal");
     MLMenuPtr p = fileCollection.buildMenu();
 
-	// MLTEST
-	fileCollection.dump();
 
     pMenu->appendMenu(p);
 }

@@ -25,6 +25,18 @@ public:
 	template<typename itemType>
 	MLTextStream& (operator<<)(itemType const& item)
 	{
+
+
+#ifdef ML_WINDOWS
+
+	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
+	{
+		printf("Windows: no debugging outside of message thread!\n");
+		return *this;
+	}
+
+#endif 
+
 		if(mActive)
 		{		
 			// If we have a listener Widget, send the item to
