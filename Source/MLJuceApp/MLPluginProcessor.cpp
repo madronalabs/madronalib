@@ -657,7 +657,7 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 	if (index < 0) return;
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
-	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);
+	setPropertyImmediate(getParameterAlias(index), newValue);
 }
 
 // set scalar float plugin parameter by name without setting property. Typically called from internal code.

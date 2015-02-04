@@ -175,34 +175,9 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 	{
 		// give subclasses a chance to rebuild menus
 		updateMenu(targetProperty);
-		
 		showMenu(targetProperty, pw->getWidgetName());
 	}
 }
-
-/*
-#pragma mark presets
-
-void MLPluginController::prevPreset()
-{
-	mCurrentPresetInMenu--;
-	if(mCurrentPresetInMenu < mFirstPresetInMenu)
-	{
-		mCurrentPresetInMenu = mLastPresetInMenu;
-	}
-	loadPresetByMenuIndex(mCurrentPresetInMenu);
-}
-
-void MLPluginController::nextPreset()
-{
-	mCurrentPresetInMenu++;
-	if(mCurrentPresetInMenu > mLastPresetInMenu)
-	{
-		mCurrentPresetInMenu = mFirstPresetInMenu;
-	}
-	loadPresetByMenuIndex(mCurrentPresetInMenu);
-}
-*/
 
 #pragma mark menus
 
