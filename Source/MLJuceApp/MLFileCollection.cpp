@@ -436,11 +436,12 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f)
 	// TODO make a different data type for paths! a vector of (New UTF-8) symbols.
 	// all this path vs. name tsuff has been confusing.
 	int s = relPath.length();
-	for(int c = 0 ; c < relPath; ++c)
+	for(int c = 0 ; c < s; ++c)
 	{
 		if (relPath[c] == '\\')
 		{
-			relPath.replace(c, 1, '/', 1);
+			char fwdSlash = '/';
+			relPath.replace(c, 1, &fwdSlash, 1);
 		}
 	}
 	
