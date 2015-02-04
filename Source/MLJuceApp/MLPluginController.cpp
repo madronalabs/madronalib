@@ -17,10 +17,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	mClockDivider(0),
 	mConvertPresetsThreadMarkedForDeath(false),
 	mConvertProgress(0),
-	mFilesConverted(0),
-	mCurrentPresetInMenu(0),
-	mFirstPresetInMenu(0),
-	mLastPresetInMenu(0)
+	mFilesConverted(0)
 {
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
@@ -309,7 +306,7 @@ void MLPluginController::doPresetMenu(int result)
                 {
                     File saveFile = fc.getResult();
 					std::string fullSavePath(saveFile.getFullPathName().toUTF8());
-                    getProcessor()->saveStateToFullPath(fullSavePath);
+                    getProcessor()->saveStateToLongFileName(fullSavePath);
                 }
             }
             else
@@ -346,10 +343,8 @@ void MLPluginController::doPresetMenu(int result)
 
 void MLPluginController::loadPresetByMenuIndex(int result)
 {
-	debug() << "LOADING " << result << "\n";
-	mCurrentPresetInMenu = result;
 	MLMenu* menu = findMenuByName("preset");
-	if (menu)
+	if(menu)
 	{
 		const std::string& fullName = menu->getItemFullName(result);
 		getProcessor()->loadStateFromPath(fullName);
@@ -464,7 +459,6 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 
 void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 {
-	int p = mCurrentPresetInMenu;
 	MLMenu* menu = findMenuByName("preset");
 	if (menu == nullptr)
 	{
@@ -506,9 +500,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 #endif
 	menu->addSeparator();
     
-	mFirstPresetInMenu = menu->getSize() + 1;
-	
-    // add factory presets, those starting with the plugin name    
+    // add factory presets, those starting with the plugin name
     MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
     presetFiles.buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
     menu->appendMenu(factoryMenu);
@@ -519,14 +511,6 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     MLMenuPtr userMenu(new MLMenu(presetFiles.getName()));
     presetFiles.buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
     menu->appendMenu(userMenu);
-
-	// get new range of presets and clamp current preset. if this changed the current preset, load the new preset.
-	mLastPresetInMenu = menu->getSize();
-	mCurrentPresetInMenu = clamp(mCurrentPresetInMenu, mFirstPresetInMenu, mLastPresetInMenu);
-	if(mCurrentPresetInMenu != p)
-	{
-		
-	}
 	
 	menu->buildIndex();
 }
@@ -577,7 +561,7 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 // looks like we are doing nothing here now. So do we need to be a MLFileCollection::Listener? MLTEST
 void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
-	MLSymbol collectionName(collection.getName());
+	// MLSymbol collectionName(collection.getName());
 	if(action == "begin")
 	{
 	}
@@ -842,6 +826,9 @@ void MLPluginController::endConvertPresets()
 
 	// rebuild presets menu
 	mpProcessor->searchForPresets();
+
+	// MLTEST std::string defaultPreset =
+	//mpProcessor->loadStateFromPath(defaultPreset);
 	
 	// resume processing
 	mpProcessor->suspendProcessing(false);

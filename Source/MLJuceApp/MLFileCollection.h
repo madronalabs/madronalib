@@ -66,18 +66,19 @@ public:
     void searchForFilesInBackground(int delay = 0);
     void cancelSearch();
   
-    // return a file by its path + name relative to our starting directory.
-    const MLFile& getFileByName(const std::string& name);
+    // return a file by its path relative to our starting directory.
+    const MLFile& getFileByPath(const std::string& path);
+    const int getFileIndexByPath(const std::string& path);
 	
     std::string getFilePathByIndex(int idx);
     const MLFile& getFileByIndex(int idx);
-    const int getFileIndexByPath(const std::string& fullName);
+	
 
     // make a new file. TODO return const MLFile &
     const MLFilePtr createFile(const std::string& relativePath);
 
-    // given a full system file path, get its path relative to our starting directory.
-    std::string getRelativePath(const std::string& name);
+    // given a full system file name, get its path relative to our starting directory.
+    std::string getRelativePathFromName(const std::string& name);
     
     MLMenuPtr buildMenu(bool flat = false) const;
 	

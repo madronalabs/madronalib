@@ -138,10 +138,6 @@ private:
 	bool mConvertPresetsThreadMarkedForDeath;
 	float mConvertProgress;
 	int mFilesConverted;
-
-	int mCurrentPresetInMenu;
-	int mFirstPresetInMenu;
-	int mLastPresetInMenu;
 };
 
 
