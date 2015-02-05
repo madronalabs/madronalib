@@ -2198,6 +2198,8 @@ AlertWindow* MLLookAndFeel::createAlertWindow (const String& title, const String
                                                 int numButtons, Component* associatedComponent)
 {
     AlertWindow* aw = new AlertWindow (title, message, iconType, associatedComponent);
+	
+	aw->setSize(aw->getWidth(), 350);
     MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
     aw->setLookAndFeel(myLookAndFeel);
     setDefaultLookAndFeel(myLookAndFeel);

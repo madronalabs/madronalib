@@ -77,7 +77,7 @@ public:
 	{
 	public:
 		ConvertProgressDisplayThread(MLPluginController* pC) :
-			ThreadWithProgressWindow ("", true, true),
+			ThreadWithProgressWindow (" ", true, true),
 			//        MLPropertyListener(&(*pFiles)),
 			pController(pC),
 			myProgress(0),
@@ -86,8 +86,6 @@ public:
 		}
 		
 		void run() override;
-		
-		//void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 		
 		MLPluginController* pController;
 		float myProgress;
