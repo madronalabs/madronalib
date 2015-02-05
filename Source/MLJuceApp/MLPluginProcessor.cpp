@@ -63,9 +63,6 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	if (paramIdx < 0) return;
 	float f = newVal.getFloatValue();
 	
-	// MLTEST
-	// debug() << "MLPluginProcessor: PROPERTY " << propName << " CHANGED to " << newVal << "\n";
-	
 	switch(propertyType)
 	{
 		case MLProperty::kFloatProperty:
@@ -118,6 +115,8 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
 {
 	int propertyType = newVal.getType();
+	
+	// debug() << "Environment: " << propName << " to " << newVal << "\n";
 	
 	switch(propertyType)
 	{
@@ -435,7 +434,7 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 
 void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 {
-	if(action == "connected")
+	if(action == "receiving")
 	{
 		int protocol = val ? kInputProtocolOSC : kInputProtocolMIDI;
 		setInputProtocol(protocol);
@@ -1516,8 +1515,8 @@ void MLPluginProcessor::setInputProtocol(int p)
 {
 	if(p != mInputProtocol)
 	{
-		// set the model’s protocol property, which a View can use to change its UI
-		setProperty("protocol", p);
+		// set the environment model’s protocol property, which a View can use to change its UI
+		getEnvironment()->setPropertyImmediate("protocol", p);
 		getEngine()->setEngineInputProtocol(p);
 		switch(p)
 		{

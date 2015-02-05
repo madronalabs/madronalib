@@ -15,7 +15,7 @@ MLT3DHub::MLT3DHub() :
 	mT3DWaitTime(0),
 	mEnabled(true),
 	mUDPPortOffset(0),
-	mConnected(false),
+	mReceivingT3d(false),
 	mShouldConnect(false),
 	mShouldDisconnect(false)
 {
@@ -39,7 +39,7 @@ MLT3DHub::MLT3DHub() :
 	setPortOffset(0);
 	
 	// start protocol polling
-	startTimer(1000);
+	startTimer(500);
 }
 
 MLT3DHub::~MLT3DHub()
@@ -142,10 +142,10 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			args >> frameID >> deviceID;
             mT3DWaitTime = 0;
 			
-			if(!mConnected)
+			if(!mReceivingT3d)
 			{
-				mConnected = true;
-				notifyListeners("connected", 1);
+				mReceivingT3d = true;
+				notifyListeners("receiving", 1);
 			}
             //debug() << "FRM " << frameID << "\n";
 		}
@@ -177,7 +177,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 		}
         
 		// data rate
-		else if (strcmp(addy,"/t3d/dr")==0)
+		else if (strcmp(addy, "/t3d/dr")==0)
 		{
 			osc::int32 r;
 			args >> r;
@@ -218,7 +218,7 @@ void MLT3DHub::ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName&
 
 void MLT3DHub::timerCallback()
 {
-	static const int kT3DTimeout = 2; // seconds
+	static const int kT3DTimeout = 4;
 	
 	if(mShouldDisconnect)
 	{
@@ -237,15 +237,20 @@ void MLT3DHub::timerCallback()
 	// if we are connected and get no pings for a while, disconnect
 	// assuming Soundplane or t3d device was disconnected. The plugin will be notified
 	// and can revert to MIDI mode.
-	if(mConnected)
+	if(mReceivingT3d)
 	{
 		// increment counter. this is reset each time we receive a t3d frame.
 		mT3DWaitTime++;
 		if(mT3DWaitTime > kT3DTimeout)
 		{
-			mConnected = false;
-			notifyListeners("connected", 0);
+			mReceivingT3d = false;
+			notifyListeners("receiving", 0);
 		}
+		/* MLTEST
+		else
+		{
+			notifyListeners("receiving", 1);
+		}*/
 	}
 }
 
@@ -261,6 +266,11 @@ void MLT3DHub::disconnect()
 {
 	if(listenToOSC(0))
 	{
+		if(mReceivingT3d)
+		{
+			mReceivingT3d = false;
+			notifyListeners("receiving", 0);
+		}
 		removeUDPService();
 	}
 }

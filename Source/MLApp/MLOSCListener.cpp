@@ -56,7 +56,7 @@ int MLOSCListener::listenToOSC(int port)
 		}
 		try
 		{
-			//debug() << "MLOSCListener: trying listen on port " << port << "...\n";
+			debug() << "MLOSCListener: trying listen on port " << port << "...\n";
 			mpSocket = new UdpListeningReceiveSocket(
 				IpEndpointName( IpEndpointName::ANY_ADDRESS, port), 
 				this);
@@ -76,7 +76,7 @@ int MLOSCListener::listenToOSC(int port)
 		
 		if(mpSocket)
 		{
-			// debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
+			debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
 			mPort = port;
 			
 			int err;
@@ -102,6 +102,7 @@ int MLOSCListener::listenToOSC(int port)
 	{
 		if(mpSocket)
 		{
+			debug() << "MLOSCListener: disconnecting.\n";
 			mpSocket->Break();
 			delete mpSocket;
 			mpSocket = 0;

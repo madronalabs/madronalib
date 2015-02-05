@@ -79,7 +79,10 @@ private:
 
 	int mEnabled;
 	int mUDPPortOffset;
-	bool mConnected;
+	
+	// true if we have actually received OSC on our connected port.
+	bool mReceivingT3d;
+	
 	bool mShouldConnect;
 	bool mShouldDisconnect;
 	MLSignal mTouchFrames;

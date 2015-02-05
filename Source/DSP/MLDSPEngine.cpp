@@ -514,7 +514,6 @@ void MLDSPEngine::setEngineInputProtocol(int p)
 	{
 		mpInputToSignalsProc->setParam("protocol", p);
 	}
-
 }
 
 void MLDSPEngine::setInputDataRate(int p)

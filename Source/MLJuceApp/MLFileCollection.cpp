@@ -399,7 +399,7 @@ const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndN
 }
 
 // get part of absolute path p, if any, relative to our root path, without extension.
-std::string MLFileCollection::getRelativePathFromName(const std::string& f)
+std::string MLFileCollection::getRelativePathFromName(const std::string& f) const
 {
     std::string rootName = mRoot->mFile->getLongName();
 	std::string fullName = f;
@@ -434,7 +434,7 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f)
 #ifdef ML_WINDOWS
 	// convert into path format.
 	// TODO make a different data type for paths! a vector of (New UTF-8) symbols.
-	// all this path vs. name tsuff has been confusing.
+	// all this path vs. name stuff has been confusing.
 	int s = relPath.length();
 	for(int c = 0 ; c < s; ++c)
 	{
@@ -552,6 +552,7 @@ void MLFileCollection::SearchThread::run()
 {
     mCollection.beginProcessFiles();
     mCollection.buildTree();
+	
 	mCollection.sendActionToListeners("begin");
     int t = mCollection.getSize();
     for(int i=0; i<t; i++)

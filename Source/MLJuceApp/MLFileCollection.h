@@ -78,7 +78,7 @@ public:
     const MLFilePtr createFile(const std::string& relativePath);
 
     // given a full system file name, get its path relative to our starting directory.
-    std::string getRelativePathFromName(const std::string& name);
+    std::string getRelativePathFromName(const std::string& name) const;
     
     MLMenuPtr buildMenu(bool flat = false) const;
 	

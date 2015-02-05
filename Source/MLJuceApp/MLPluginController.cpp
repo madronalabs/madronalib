@@ -612,9 +612,6 @@ void MLPluginController::ConvertProgressDisplayThread::threadComplete (bool user
 	delete this;
 }
 
-
-
-
 #pragma mark ConvertPresetsThread
 
 MLPluginController::ConvertPresetsThread::ConvertPresetsThread(MLPluginController* pC) :
@@ -672,6 +669,9 @@ void MLPluginController::ConvertPresetsThread::run()
 		if (threadShouldExit()) return;
 		wait(10);
 	}
+	
+	mpPresetsToConvertAU1->dump();
+	
 	// convert files in immediate mode and wait for finish.
 	mpPresetsToConvertAU2->searchForFilesImmediate(interFileDelay);
 	while((p = mpPresetsToConvertAU2->getFloatProperty("progress")) < 1.)
@@ -680,6 +680,10 @@ void MLPluginController::ConvertPresetsThread::run()
 		if (threadShouldExit()) return;
 		wait(10);
 	}
+
+	
+	mpPresetsToConvertAU2->dump();
+
 	// convert files in immediate mode and wait for finish.
 	mpPresetsToConvertVST1->searchForFilesImmediate(interFileDelay);
 	while((p = mpPresetsToConvertVST1->getFloatProperty("progress")) < 1.)
@@ -688,7 +692,10 @@ void MLPluginController::ConvertPresetsThread::run()
 		if (threadShouldExit()) return;
 		wait(10);
 	}
-	// convert files in immediate mode and wait for finish.
+
+	mpPresetsToConvertVST1->dump();
+	
+// convert files in immediate mode and wait for finish.
 	mpPresetsToConvertVST2->searchForFilesImmediate(interFileDelay);
 	while((p = mpPresetsToConvertVST2->getFloatProperty("progress")) < 1.)
 	{
@@ -696,6 +703,9 @@ void MLPluginController::ConvertPresetsThread::run()
 		if (threadShouldExit()) return;
 		wait(10);
 	}
+
+	mpPresetsToConvertVST2->dump();
+
 	
 	// notify controller we are all done
 	mpController->endConvertPresets();
@@ -717,7 +727,7 @@ void MLPluginController::ConvertPresetsThread::processFileFromCollection
 			File destRoot(newPresetsFolder);
 			
 			// get name relative to collection root.
-			const std::string& relativeName = fileToProcess.getLongName();
+			const std::string& relativeName = collection.getRelativePathFromName(fileToProcess.getLongName());
 			
 			// If file at destination does not exist, or is older than the source, convert
 			// source and overwrite destination.
