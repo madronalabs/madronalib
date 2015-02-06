@@ -28,7 +28,6 @@ MLLabel::MLLabel (const char* labelText) :
 	setJustification(Justification::centred);
 	
 	mFont = myLookAndFeel->getFont(eMLCaption);
-	mRichStr.setFont(mFont);
 	
 	if (labelText)
 	{
@@ -44,7 +43,6 @@ MLLabel::~MLLabel()
 void MLLabel::setFont (const Font& newFont)
 {
 	mFont = newFont;
-	mRichStr.setFont(newFont);
 	repaint();
 }
 
@@ -128,12 +126,17 @@ void MLLabel::paint (Graphics& g)
 
 void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
+	const std::string& labelText = getStringProperty("text");
+
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
-	mFont.setHeight(size);	
-	mFont.setExtraKerningFactor(myLookAndFeel->getLabelTextKerning(size));
+	const float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
+	const float kern = myLookAndFeel->getLabelTextKerning(size);
+	
+	mFont.setHeight(size);
+	mFont.setExtraKerningFactor(kern);
+	mRichStr.setText(String(labelText.c_str()));
+	mRichStr.setJustification(mJustification);
 	mRichStr.setFont(mFont);
-	mRichStr.setText(String(getStringProperty("text").c_str()));
 
 	if (mResizeToText && !mpDrawable)
 	{	
