@@ -124,6 +124,11 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 #if defined(__APPLE__) // TODO implement OSC / t3d on Windows
 		case MLProperty::kFloatProperty:
 		{
+			// TODO these were getting reset to redundant values when the editor opens because it calls
+			// updateAllProperties() on the environment. Listeners are where duplicate values get filtered out.
+			// we want to update the new editor but no thte t3d hub. so the editor and t3d hub should have separate
+			// listeners from the environment properties. so maybe it's not a Model but just a PropertySet?
+			// quick fix now, sort out later.
 			if(propName == "osc_enabled")
 			{
 				int enabled = newVal.getFloatValue();

@@ -83,6 +83,7 @@ private:
 	// true if we have actually received OSC on our connected port.
 	bool mReceivingT3d;
 	
+	bool mConnected;
 	bool mShouldConnect;
 	bool mShouldDisconnect;
 	MLSignal mTouchFrames;

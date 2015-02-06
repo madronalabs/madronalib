@@ -16,6 +16,7 @@ MLT3DHub::MLT3DHub() :
 	mEnabled(true),
 	mUDPPortOffset(0),
 	mReceivingT3d(false),
+	mConnected(0),
 	mShouldConnect(false),
 	mShouldDisconnect(false)
 {
@@ -256,22 +257,30 @@ void MLT3DHub::timerCallback()
 
 void MLT3DHub::connect()
 {
-	if(listenToOSC(kDefaultUDPPort + mUDPPortOffset))
+	if(!mConnected)
 	{
-		publishUDPService();
+		if(listenToOSC(kDefaultUDPPort + mUDPPortOffset))
+		{
+			publishUDPService();
+			mConnected = true;
+		}
 	}
 }
 
 void MLT3DHub::disconnect()
 {
-	if(listenToOSC(0))
+	if(mConnected)
 	{
-		if(mReceivingT3d)
+		if(listenToOSC(0))
 		{
-			mReceivingT3d = false;
-			notifyListeners("receiving", 0);
+			if(mReceivingT3d)
+			{
+				mReceivingT3d = false;
+				notifyListeners("receiving", 0);
+			}
+			removeUDPService();
+			mConnected = false;
 		}
-		removeUDPService();
 	}
 }
 
