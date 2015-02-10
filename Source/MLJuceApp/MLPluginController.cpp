@@ -17,13 +17,15 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	mClockDivider(0),
 	mConvertPresetsThreadMarkedForDeath(false),
 	mConvertProgress(0),
-	mFilesConverted(0)
+	mFilesConverted(0),
+	mOSCMenuItemStart(0)
 {
 	// initialize reference
 	WeakReference<MLPluginController> initWeakReference = this;
 	
 	createMenu("key_scale");
 	createMenu("preset");
+	createMenu("settings");
 
 	listenTo(pProcessor);
 	listenTo(pProcessor->getEnvironment());
@@ -105,7 +107,6 @@ void MLPluginController::initialize()
             regLabel->setPropertyImmediate(MLSymbol("text"), regStr);
         }
     }
-
 	startTimer(42);
 }
 
@@ -149,7 +150,11 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 {
 	if(action == "click")
 	{
-		
+		// TODO make this happen like other menus
+		if (targetProperty == "settings")
+		{
+			showMenu("settings", "settings");
+		}
 	}
 	else if(action == "begin_gesture")
 	{
@@ -214,6 +219,10 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 	{
 		populatePresetMenu(getProcessor()->getPresetCollection());
 		flagMIDIProgramsInPresetMenu();
+	}
+	else if(menuName == "settings")
+	{
+		populateSettingsMenu();
 	}
 	
 	MLMenu* menu = findMenuByName(menuName);
@@ -348,7 +357,9 @@ void MLPluginController::doScaleMenu(int result)
     }
 }
 
-void MLPluginController::doMoreMenu(int result)
+// TODO menus should respond to symbols when possible, not numbers!!
+// menu should return MLPath to item chosen.
+void MLPluginController::doSettingsMenu(int result)
 {
     switch(result)
     {
@@ -356,15 +367,34 @@ void MLPluginController::doMoreMenu(int result)
             break;
         case (1):
 		{
-			// first item: OSC enable checkbox
+			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("editor_num");
+			mpProcessor->getEnvironment()->setPropertyImmediate("editor_num", !enabled);
+			break;
+		}
+        case (2):
+		{
+			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("editor_anim");
+			mpProcessor->getEnvironment()->setPropertyImmediate("editor_anim", !enabled);
+			break;
+		}
+        case (3):
+		{
+			// set editor to default size
+			MLPoint p = mpProcessor->getDefaultEditorSize();
+			mpProcessor->editorResized(p.x(), p.y());
+			break;
+		}
+        case (4):
+		{
 			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
 			mpProcessor->getEnvironment()->setPropertyImmediate("osc_enabled", !enabled);
 			break;
 		}
         default:
+		{
 			// other items set osc port offset.
-			mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - 2);
-            break;
+			mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - mOSCMenuItemStart - 1);
+		}
     }
 }
 
@@ -424,12 +454,23 @@ void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
 			{
 				doScaleMenu(result);
 			}
-			else if(menuName == "key_more")
+			else if(menuName == "settings")
 			{
-				doMoreMenu(result);
+				doSettingsMenu(result);
 			}
 		}
 	}
+}
+
+// create a menu of the factory scales.
+//
+void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
+{
+    MLMenu* pMenu = findMenuByName("key_scale");
+	pMenu->clear();
+ 	pMenu->addItem("12-equal");
+    MLMenuPtr p = fileCollection.buildMenu();
+    pMenu->appendMenu(p);
 }
 
 void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
@@ -492,13 +533,36 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 
 // create a menu of the factory scales.
 //
-void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollection)
+void MLPluginController::populateSettingsMenu()
 {
-    MLMenu* pMenu = findMenuByName("key_scale");
+	MLMenu* pMenu = findMenuByName("settings");
 	pMenu->clear();
- 	pMenu->addItem("12-equal");
-    MLMenuPtr p = fileCollection.buildMenu();
-    pMenu->appendMenu(p);
+	
+	bool num = (bool)mpProcessor->getEnvironment()->getFloatProperty("editor_num");
+	bool anim = (bool)mpProcessor->getEnvironment()->getFloatProperty("editor_anim");
+	pMenu->addItem("Show numbers", true, num);
+	pMenu->addItem("Animate dials", true, anim);
+	pMenu->addItem("Reset editor size");
+	
+#if ML_MAC
+	pMenu->addSeparator();
+	MLMenuPtr portsMenu(new MLMenu());
+	for(int i=0; i<16; ++i)
+	{
+		int currPort = mpProcessor->getEnvironment()->getFloatProperty("osc_port_offset");
+		
+		bool ticked = (i == currPort);
+		std::ostringstream s;
+		s << i;
+		const std::string iStr(s.str());
+		portsMenu->addItem(iStr, true, ticked);
+	}
+	
+	int enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
+	pMenu->addItem("OSC enabled", true, enabled);
+	mOSCMenuItemStart = pMenu->getSize();
+	pMenu->addSubMenu(portsMenu, "OSC port offset");
+#endif
 }
 
 void MLPluginController::flagMIDIProgramsInPresetMenu()

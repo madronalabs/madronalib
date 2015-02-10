@@ -121,11 +121,13 @@ private:
 	
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
-	void doMoreMenu(int result);
+	void doSettingsMenu(int result);
 	void loadPresetByMenuIndex(int result);
 	
-	void populatePresetMenu(const MLFileCollection& f);
 	void populateScaleMenu(const MLFileCollection& f);
+	void populatePresetMenu(const MLFileCollection& f);
+	void populateSettingsMenu();
+	
 	void flagMIDIProgramsInPresetMenu();
 
 	MLPluginProcessor* mpProcessor;
@@ -136,6 +138,8 @@ private:
 	bool mConvertPresetsThreadMarkedForDeath;
 	float mConvertProgress;
 	int mFilesConverted;
+	
+	int mOSCMenuItemStart;
 };
 
 

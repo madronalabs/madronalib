@@ -184,6 +184,8 @@ public:
 	// environment: through which anything outside the patch, such as window size, can be stored in the host
 	MLEnvironmentModel* getEnvironment() { return mpEnvironmentModel.get(); }
 	
+	virtual MLPoint getDefaultEditorSize() = 0;
+	
 protected:
 	// set what kind of event input we are listening to (MIDI or OSC)
 	void setInputProtocol(int p);
@@ -242,6 +244,7 @@ private:
 	MLAppStatePtr mpPatchState;
 	std::tr1::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
 	MLAppStatePtr mpEnvironmentState;
+	std::tr1::shared_ptr<cJSON> mpDefaultEnvironmentState;
 #if defined(__APPLE__)
 	MLT3DHub mT3DHub;
 #endif

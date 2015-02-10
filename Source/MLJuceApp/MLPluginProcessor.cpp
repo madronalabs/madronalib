@@ -1408,7 +1408,6 @@ void MLPluginProcessor::advancePreset(int amount)
     loadStateFromPath(relPath);
 }
 
-
 void MLPluginProcessor::setDefaultParameters()
 {
 	if (mEngine.getCompileStatus() == MLProc::OK)

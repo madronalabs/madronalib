@@ -68,15 +68,18 @@ void MLT3DHub::setPortOffset(int offset)
 
 void MLT3DHub::setEnabled(int e)
 {
-	if(e)
+	if(e != mEnabled)
 	{
-		mShouldConnect = true;
+		if(e)
+		{
+			mShouldConnect = true;
+		}
+		else
+		{
+			mShouldDisconnect = true;
+		}
+		mEnabled = e;
 	}
-	else
-	{
-		mShouldDisconnect = true;
-	}
-	mEnabled = e;
 }
 
 void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
