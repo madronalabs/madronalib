@@ -1260,7 +1260,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 			if(doFineAdjust)
 			{
 				// get minimum visible change as change in position
-				float p2 = valueToProportionOfLength (val + minValChange*sign(dp));
+				float p2 = valueToProportionOfLength (val + minValChange*(dp));
 				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
 			}
 			else 

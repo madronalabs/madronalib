@@ -1090,6 +1090,7 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 	{
 		bool setViewAttributes = true;
 		setStateFromXML(*xmlState, setViewAttributes);
+		updateChangedProperties();
 	}
 	else
 	{
