@@ -88,9 +88,6 @@ public:
 	MLDrawing* addDrawing(const MLRect & r);
 	MLProgressBar* addProgressBar(const MLRect & r);
 
-	// animations
-	void setAnimationsActive(bool animState);
-
 	void resized();
 	void setPeerBounds(int x, int y, int w, int h);
 	
@@ -99,14 +96,8 @@ public:
 
 protected:
 	float mGridUnitSize;	
-	bool mDoAnimations;	
 	MLWidget::Listener* mpResponder;
 	MLReporter* mpReporter;
-
-private:
-	
-
-
 };
 
 #endif // __ML_APP_VIEW_H__

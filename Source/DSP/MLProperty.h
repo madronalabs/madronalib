@@ -123,7 +123,7 @@ protected:
 private:
 	std::map<MLSymbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
-	juce::CriticalSection mPropertyLock; // MLTEST
+	juce::CriticalSection mPropertyLock;
 	
 	void broadcastProperty(MLSymbol p, bool immediate);
 	void broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude);

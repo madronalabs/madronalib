@@ -56,8 +56,6 @@ private:
     // (prevent copy constructor and operator= being generated..)
     MLPluginView (const MLPluginView&);
     const MLPluginView& operator= (const MLPluginView&);
-	
-	int mWrapperFormat;	
 };
 
 

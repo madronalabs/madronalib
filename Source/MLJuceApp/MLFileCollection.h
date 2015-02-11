@@ -59,7 +59,7 @@ public:
     MLSymbol getName() const { return mName; }
     //const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
     
-    void addListener (Listener* listener);
+    void addListener(Listener* listener);
 	void removeListener(Listener* pToRemove);
 
     void searchForFilesImmediate(int delay = 0);

@@ -250,11 +250,6 @@ void MLT3DHub::timerCallback()
 			mReceivingT3d = false;
 			notifyListeners("receiving", 0);
 		}
-		/* MLTEST
-		else
-		{
-			notifyListeners("receiving", 1);
-		}*/
 	}
 }
 

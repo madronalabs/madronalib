@@ -197,7 +197,7 @@ void MLFileCollection::clear()
     mFilesByIndex.clear();
 }
 
-void MLFileCollection::addListener (Listener* pL)
+void MLFileCollection::addListener(Listener* pL)
 {
     mpListeners.push_back(pL);
 	pL->addCollection(this);

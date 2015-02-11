@@ -597,7 +597,6 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 
 #pragma mark MLFileCollection::Listener
 
-// looks like we are doing nothing here now. So do we need to be a MLFileCollection::Listener? MLTEST
 void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	// MLSymbol collectionName(collection.getName());
@@ -611,18 +610,6 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	}
 	else if(action == "end")
 	{
-		/* MLTEST
-		// for now, we populate menus only when the file search ends.
-		if(collectionName == "scales")
-		{
-			populateScaleMenu(collection);
-		}
-		else if(collectionName == "presets")
-		{
-			populatePresetMenu(collection);
-			flagMIDIProgramsInPresetMenu();
-		}
-		 */
 	}
 }
 
@@ -875,9 +862,6 @@ void MLPluginController::endConvertPresets()
 
 	// rebuild presets menu
 	mpProcessor->searchForPresets();
-
-	// MLTEST std::string defaultPreset =
-	//mpProcessor->loadStateFromPath(defaultPreset);
 	
 	// resume processing
 	mpProcessor->suspendProcessing(false);

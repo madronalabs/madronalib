@@ -184,11 +184,7 @@ void MLPageView::changeListenerCallback (ChangeBroadcaster* pSender)
 		{
 			// animation start
 			// turn off openGL timers
-//debug() << "anim off\n"		;	
-			if(mpParent)
-			{
-				mpParent->setAnimationsActive(false);
-			}
+//debug() << "anim off\n"		;
 		}
 		else
 		{
@@ -199,13 +195,7 @@ void MLPageView::changeListenerCallback (ChangeBroadcaster* pSender)
 			for(int i=0; i<numPages; ++i)
 			{
 				mPages[i]->setVisible(i == mCurrPage);
-			}
-			
-			// restart openGL timers
-			if(mpParent)
-			{
-				mpParent->setAnimationsActive(true);
-			}			
+			}		
 		}
 	}
 }
