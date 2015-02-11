@@ -26,7 +26,7 @@
 // and your header search path must make it accessible to the module's files.
 #include "AppConfig.h"
 
-#include "juce_CheckSettingMacros.h"
+#include "juce_CheckSettingMacros.h" 
 
 #if JucePlugin_Build_VST
 
@@ -1188,9 +1188,9 @@ public:
             const MessageManagerLock mmLock;
             jassert (! recursionCheck);
             
-            startTimer (1000 / 4); // performs misc housekeeping chores
+            startTimer (1000 / 10);// performs misc housekeeping tasks
             
-		//	if (editorComp != nullptr)
+			if (editorComp != nullptr)
             {
 			   deleteEditor (true);
 			}
