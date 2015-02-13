@@ -16,7 +16,7 @@ class MLTextStream
 {
 public:
 	// set maximum to prevent local stream from growing too large
-	static const int kMaxLocalItems = 1024;
+	static const int kMaxLocalItems = 16384;
 
 	MLTextStream(const char* name);
 	~MLTextStream();
@@ -29,6 +29,7 @@ public:
 
 #ifdef ML_WINDOWS
 
+	// TODO enable multi-threaded debugging again with some kind of queue on Windows.
 	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
 	{
 		printf("Windows: no debugging outside of message thread!\n");

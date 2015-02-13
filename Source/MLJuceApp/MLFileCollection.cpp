@@ -95,6 +95,7 @@ void MLFileCollection::TreeNode::insertFile(const std::string& path, MLFilePtr f
     }
 }
 
+// TODO use MLPath
 const MLFile& MLFileCollection::TreeNode::find(const std::string& path)
 {
     int len = path.length();
@@ -161,6 +162,8 @@ void MLFileCollection::TreeNode::buildMenu(MLMenuPtr m, int level) const
 			{
 				MLMenuPtr subMenu(new MLMenu());
 				n->buildMenu(subMenu);
+
+				// TODO menu should be based on path, not file name?
 				m->addSubMenu(subMenu, f->getShortName());
 			}
 			else
@@ -168,6 +171,21 @@ void MLFileCollection::TreeNode::buildMenu(MLMenuPtr m, int level) const
 				m->addItem(f->getShortName());
 			}
 		}
+    }
+}
+
+void MLFileCollection::TreeNode::dump(int level) 
+{	
+	StringToNodeMapT::const_iterator it;
+
+	for(it = mChildren.begin(); it != mChildren.end(); ++it)
+    {
+        const std::string& p = it->first;
+        const TreeNodePtr n = it->second;
+
+		debug() << level << ": " << spaceStr(level) << p << "\n";
+
+		n->dump(level + 1);
     }
 }
 
@@ -273,16 +291,13 @@ void MLFileCollection::buildTree()
 		// insert all leaf nodes matching extension into tree
         if (f.isDirectory() || f.hasFileExtension(mExtension))
         {
-            std::string rPath(relativePath.toUTF8());
-            std::string delimiter = (rPath == "" ? "" : "/");
-            std::string sName(shortName.toUTF8());
 			std::string fullName(f.getFullPathName().toUTF8());
             MLFilePtr newFile(new MLFile(fullName));
             
             // insert file into file tree relative to collection root
-            std::string relativeName(rPath + delimiter + sName);
+ 			std::string relativeName = getRelativePathFromName(fullName);
             mRoot->insertFile(relativeName, newFile);
-            
+
             // push leaf nodes to index
 			if(f.hasFileExtension(mExtension))
 			{
@@ -530,18 +545,17 @@ void MLFileCollection::buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix)
     }
 }
 
-
 void MLFileCollection::dump() const
 {
  	std::vector<MLFilePtr>::const_iterator it;
-    
+	// mRoot->dump();
     debug() << "MLFileCollection " << mName << ":\n";
     
     int len = mFilesByIndex.size();
 	for(int i = 0; i<len; ++i)
 	{
         const MLFilePtr f = mFilesByIndex[i];
-		debug() << "    " << i << ": " << f->getShortName() << "\n";
+		debug() << "    " << i << ": " << f->getLongName() << "\n";
 	}
 }
 

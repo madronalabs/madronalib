@@ -66,7 +66,7 @@ void MLTextStream::display()
 		int size = outStr.size();
 		if(size > 0)
 		{
-			if(outStr[size - 1] == '\n')
+			//if(outStr[size - 1] == '\n')
 			{		
 				mLocalStream.str("");
 				const char* cStr = outStr.c_str();

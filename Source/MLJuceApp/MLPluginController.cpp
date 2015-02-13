@@ -217,7 +217,8 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 	}
 	else if(menuName == "preset")
 	{
-		populatePresetMenu(getProcessor()->getPresetCollection());
+		const MLFileCollection& presets = getProcessor()->getPresetCollection();
+		populatePresetMenu(presets);
 		flagMIDIProgramsInPresetMenu();
 	}
 	else if(menuName == "settings")

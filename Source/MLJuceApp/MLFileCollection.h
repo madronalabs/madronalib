@@ -145,6 +145,8 @@ private:
 		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
 		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
 
+		void dump(int level = 0);
+
 		StringToNodeMapT mChildren;
 		MLFilePtr mFile;
 	};
