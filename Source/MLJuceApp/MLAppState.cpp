@@ -294,7 +294,11 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 		}
 		child = child->next;
 	}
-	mpModel->updateChangedProperties();
+	
+	// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
+	// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
+//	mpModel->updateChangedProperties();
+	mpModel->updateAllProperties();
 }
 
 void MLAppState::loadDefaultState()

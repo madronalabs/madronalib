@@ -654,7 +654,7 @@ float MLPluginProcessor::getParameter (int index)
 }
 
 // set scalar float plugin parameter by index. Typically called by the host wrapper.
-// The Property must propagate to other Listeners, but not back to us.
+// The Property must propagate to other Listeners, but not back to this MLPluginProcessor object.
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
@@ -662,39 +662,8 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);
-}
-
-// set scalar float plugin parameter by name without setting property. Typically called from internal code.
-//
-void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float newValue)
-{
-	int index = getParameterIndex(paramName);
-	if (index < 0) return;
 	
-	mEngine.setPublishedParam(index, MLProperty(newValue));
-	mHasParametersSet = true;
-}
-
-// set string plugin parameter by name without setting property. Typically called from internal code.
-//
-void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue)
-{
-	int index = getParameterIndex(paramName);
-	if (index < 0) return;
-	
-	mEngine.setPublishedParam(index, MLProperty(newValue));
-	mHasParametersSet = true;
-}
-
-// set signal plugin parameter by name without setting property. Typically called from internal code.
-//
-void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue)
-{
-	int index = getParameterIndex(paramName);
-	if (index < 0) return;
-	
-	mEngine.setPublishedParam(index, MLProperty(newValue));
-	mHasParametersSet = true;
+	//from MIDI: NEED to propagate to Model without causing feedback
 }
 
 // for VST wrapper.
@@ -836,6 +805,39 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 bool MLPluginProcessor::isParameterAutomatable (int idx) const
 {
 	return mEngine.getParamPtr(idx)->getAutomatable();
+}
+
+// set scalar float plugin parameter by name without setting property.
+//
+void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float newValue)
+{
+	int index = getParameterIndex(paramName);
+	if (index < 0) return;
+	
+	mEngine.setPublishedParam(index, MLProperty(newValue));
+	mHasParametersSet = true;
+}
+
+// set string plugin parameter by name without setting property.
+//
+void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue)
+{
+	int index = getParameterIndex(paramName);
+	if (index < 0) return;
+	
+	mEngine.setPublishedParam(index, MLProperty(newValue));
+	mHasParametersSet = true;
+}
+
+// set signal plugin parameter by name without setting property.
+//
+void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue)
+{
+	int index = getParameterIndex(paramName);
+	if (index < 0) return;
+	
+	mEngine.setPublishedParam(index, MLProperty(newValue));
+	mHasParametersSet = true;
 }
 
 // count the number of published copies of the signal matching alias.
