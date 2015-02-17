@@ -7,11 +7,11 @@
 
 MLAppState::MLAppState(MLModel* pM, const std::string& name, const std::string& makerName, const std::string& appName, int version) :
     MLPropertyListener(pM),
-	mpModel(pM),
 	mName(name),
 	mMakerName(makerName),
 	mAppName(appName),
-	mAppVersion(version)
+	mAppVersion(version),
+	mpModel(pM)
 {
 	updateAllProperties();
 	startTimer(1000);
