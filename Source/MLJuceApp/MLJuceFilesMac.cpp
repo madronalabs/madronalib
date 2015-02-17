@@ -15,15 +15,16 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 	CFPropertyListRef propertyList;
 	CFStringRef       errorString;
 	CFDataRef         resourceData;
-	Boolean           status;
+	// Boolean           status;
 	SInt32            errorCode;
 	juce::XmlElement* ret = nullptr;
 
 	// get URL from Juce File
-	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+	CFStringRef fileNameString = CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8);
+	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, fileNameString, kCFURLPOSIXPathStyle, false);
 
 	// Read the CFData file containing the encoded XML.
-	status = CFURLCreateDataAndPropertiesFromResource(
+	CFURLCreateDataAndPropertiesFromResource(
 			kCFAllocatorDefault,
 			fileURL,
 			&resourceData,            // place to put file data
@@ -72,7 +73,7 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 	CFRelease(propertyList);
 	CFRelease(nameString);
     CFRelease(fileURL);
-		
+	CFRelease(fileNameString);
 	return ret;
 }
 
