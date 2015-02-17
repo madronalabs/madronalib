@@ -24,6 +24,7 @@ int MLRingBuffer::resize(int length)
 {
 	int r = 0;
 	int size = 1 << bitsToContain(length);
+	if (pData) delete[] pData;
 	pData = new MLSample[size];
 	
 	if (pData)
