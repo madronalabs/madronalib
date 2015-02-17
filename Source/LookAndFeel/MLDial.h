@@ -114,7 +114,7 @@ public:
         trackDarkColor		= 0x1001206,
     };
 
-	MLDial ();
+	MLDial();
     ~MLDial();
 		
 	// MLPropertyListener
@@ -153,12 +153,10 @@ public:
 
 	void setDoubleClickReturnValue (const bool isDoubleClickEnabled,
                                     const float valueToSetOnDoubleClick) throw();
-
 	float getDoubleClickReturnValue (bool& isEnabled) const throw();
     void setChangeNotificationOnlyOnRelease (const bool onlyNotifyOnRelease) throw();
 
     void setDialSnapsToMousePosition (const bool shouldSnapToMouse) throw();
-
 	void setScrollWheelEnabled (const bool enabled) throw();
 
     virtual void valueChanged();
@@ -168,15 +166,10 @@ public:
     virtual float getValueFromText (const String& text);
     virtual const String getTextFromValue (float value);
     void setTextValueSuffix (const String& suffix);
-
     virtual float proportionOfLengthToValue (float proportion);
-
     virtual float valueToProportionOfLength (float value) const;
-
     float getPositionOfValue (const float value);
-
 	unsigned nearestDetent (float attemptedValue) const;
-
     bool isHorizontal() const throw();
     bool isVertical() const throw();
     bool isTwoOrThreeValued() const throw();
@@ -186,11 +179,9 @@ public:
 #pragma mark -
 	
 	const MLPoint getDialCenter() const;
-	Vec2 mDialCenter;
 	
 	void setTicks (int t);
 	void setTicksOffsetAngle (float t);
-
 	void setFillColor (const Colour& color);
 	void setTopLeft(const bool n) {mTopLeft = n;}
 	void setDoNumber(const bool n) {mDoNumber = n;}
@@ -215,16 +206,12 @@ public:
 
 	void sizeChanged();
 	void visibilityChanged();
-	
 	float getLabelVerticalOffset() { return 0.875f; }
 
 protected:
 	void sendValueOfDial(WhichDial s, float val);
-	
 	bool isOverTrack() {return mOverTrack;}
-
 	float clipToOtherDialValues(float val, WhichDial s);
-
 	WhichDial getRectOverPoint(const MouseEvent& e);
 	WhichDial getRectOverPoint(const int x, const int y);
 	
@@ -242,38 +229,32 @@ protected:
     
     void mouseDown (const MouseEvent& e);
     void mouseUp (const MouseEvent& e);
-
 	bool collectMouseMotion(int dp, int dt);
 	float getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize);
-
     void mouseDrag (const MouseEvent& e);		
     void mouseDoubleClick (const MouseEvent& e);
 	void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel);
-
 	void hideMouse();
     void modifierKeysChanged (const ModifierKeys& modifiers);
     void lookAndFeelChanged();
     void enablementChanged();
     void colourChanged();
-	
     float constrainValue (float value) const throw();
-
-    WhichDial dialBeingDragged;
-	WhichDial dialToDrag;
-
 	void resizeWidget(const MLRect& b, const int u);
 	void beginGesture();
 	void endGesture();
+	float getLinearDialPos (const float value);
+	void restoreMouseIfHidden();
+	bool incDecDragDirectionIsHorizontal() const throw();
+	
+	MLDial (const MLDial&); // no copy
+	const MLDial& operator= (const MLDial&);
 	
 	// data
+	Vec2 mDialCenter;
+	WhichDial dialBeingDragged;
+	WhichDial dialToDrag;
 	bool mGestureInProgress;
-		
-    MLDial (const MLDial&); // no copy
-    const MLDial& operator= (const MLDial&);
-
-    float getLinearDialPos (const float value);
-    void restoreMouseIfHidden();
-    bool incDecDragDirectionIsHorizontal() const throw();
 	
     float minimum, maximum, interval, doubleClickReturnValue;
     float valueWhenLastDragged, valueOnMouseDown;
@@ -292,9 +273,6 @@ protected:
     int pixelsForFullDragExtent;
     MLDial::DialStyle style;
 	MLValueDisplayMode mValueDisplayMode;
-
-    MLRect trackRect;
-    String textSuffix;
 
     bool doubleClickToValue : 1;
     bool isVelocityBased : 1, userKeyOverridesVelocity : 1, rotaryStop : 1;
@@ -317,8 +295,6 @@ protected:
 	bool			mTopLeft;
 	bool			mDrawThumb;
 	
-	MLRect mRotaryTextRect;
-
 	bool mDoSign;
 	bool mDoNumber;
 	int	mDigits, mPrecision;
@@ -327,7 +303,11 @@ protected:
 	float mTextSize;
 	int mMaxNumberWidth;
 
-	int mTrackThickness; // for track of linear dials. 	
+	MLRect trackRect;
+	MLRect mRotaryTextRect;
+	String textSuffix;
+	
+	int mTrackThickness; // for track of linear dials.
 	float mLineThickness;
 	int mTicks;
 	float mTicksOffsetAngle;

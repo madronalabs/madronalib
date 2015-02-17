@@ -136,4 +136,6 @@ private:
 	bool mWantsResizeLast;
 };
 
+
+
 #endif // __ML_WIDGET_H__

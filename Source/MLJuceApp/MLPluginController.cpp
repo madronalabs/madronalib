@@ -9,10 +9,10 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	MLWidget::Listener(),
 	MLReporter(),
 	MLSignalReporter(pProcessor),
-	mpView(nullptr),
 #if ML_MAC
 	mpConvertPresetsThread(nullptr),
 #endif
+	mpView(nullptr),
 	mpProcessor(pProcessor),
 	mClockDivider(0),
 	mConvertPresetsThreadMarkedForDeath(false),
@@ -280,7 +280,6 @@ void MLPluginController::doPresetMenu(int result)
             
 		case (3):	// save as ...
 		{
-            int err = 0;
             String errStr;
             File userPresetsFolder = getDefaultFileLocation(kPresetFiles);
             if (userPresetsFolder != File::nonexistent)
@@ -668,11 +667,11 @@ void MLPluginController::ConvertProgressDisplayThread::threadComplete (bool user
 
 MLPluginController::ConvertPresetsThread::ConvertPresetsThread(MLPluginController* pC) :
 	Thread("convert_presets_thread"),
-	mpController(pC),
 	mpPresetsToConvertAU1(0),
 	mpPresetsToConvertAU2(0),
 	mpPresetsToConvertVST1(0),
-	mpPresetsToConvertVST2(0)
+	mpPresetsToConvertVST2(0),
+	mpController(pC)
 {
 	mpPresetsToConvertAU1 = (new MLFileCollection("convert_presets_au1", getDefaultFileLocation(kOldPresetFiles), ".aupreset"));
 	mpPresetsToConvertAU1->addListener(this);

@@ -44,8 +44,8 @@ protected:
 
 private:
 	UdpListeningReceiveSocket* mpSocket;
-	pthread_t mListenerThread;
 	int mPort;
+	pthread_t mListenerThread;
 };
 
 #endif // __APPLE__

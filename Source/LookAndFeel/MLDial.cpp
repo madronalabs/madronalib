@@ -24,22 +24,22 @@ static const float kRotaryEndDefault = kMLPi*0.5f;
 MLDial::MLDial () : 
 	dialBeingDragged (kNoDial),
 	dialToDrag (kNoDial),
-	//
+	mGestureInProgress(false),
+
     minimum (0), maximum (1), interval (0), doubleClickReturnValue(0.0),
 	valueWhenLastDragged(0), valueOnMouseDown(0),
     numDecimalPlaces (7),
  	mOverTrack(false),
+	isMouseDown(false),
+	isMouseWheelMoving(false),
 	//
 	mLastDragTime(0), mLastWheelTime(0),
 	mLastDragX(0), mLastDragY(0),
 	mFilteredMouseSpeed(0.),
 	mMouseMotionAccum(0),
 	mMouseSubValueAccum(0),
-	isMouseDown(false),
-	isMouseWheelMoving(false),
 	//
-    mHilightColor(Colours::white),
-    pixelsForFullDragExtent (250),
+	pixelsForFullDragExtent (250),
     style (MLDial::LinearHorizontal),
 	mValueDisplayMode(eMLNumFloat),
 	//
@@ -55,14 +55,21 @@ MLDial::MLDial () :
     scrollWheelEnabled (true),
     snapsToMousePos (true),
 	//
+	mHilightColor(Colours::white),
+	//
 	mWarpMode (kJucePluginParam_Linear),
 	mZeroThreshold(0. - (2<<16)),
 	mTopLeft(false),
 	mDrawThumb(true),
+
 	mDoSign(false),
 	mDoNumber(true),
 	mDigits(3), mPrecision(2),
 	mBipolar(false),
+
+	mTextSize(0.),
+	mMaxNumberWidth(0.),
+
 	mTrackThickness(kMLTrackThickness),
 	mTicks(2),
 	mTicksOffsetAngle(0.),
@@ -70,8 +77,7 @@ MLDial::MLDial () :
 	mMargin(0),
 	mTickSize(0),
 	mShadowSize(0),
-	mTextSize(0.),
-	mMaxNumberWidth(0.),
+
 	//
 	mSnapToDetents(true),
 	mCurrentDetent(-1),
@@ -79,8 +85,8 @@ MLDial::MLDial () :
 	//
 	mParameterLayerNeedsRedraw(true),
 	mStaticLayerNeedsRedraw(true),		
-	mThumbLayerNeedsRedraw(true),
-	mGestureInProgress(false)
+	mThumbLayerNeedsRedraw(true)
+
 {
 	mpTimer = std::tr1::shared_ptr<GestureTimer>(new GestureTimer(this));
 

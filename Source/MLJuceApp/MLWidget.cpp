@@ -8,12 +8,12 @@
 
 MLWidget::MLWidget() :
 	MLPropertyListener(this),
-	mGridBounds(),
-    mGridUnitSize(0),
 	mSize(1.f),
-    mLabelOffset(),
-    pComponent(nullptr),
-    pGLContext(nullptr),
+	mGridBounds(),
+	mGridUnitSize(0),
+	mLabelOffset(),
+	pComponent(nullptr),
+	pGLContext(nullptr),
 	mWantsResizeLast(false)
 {
 }

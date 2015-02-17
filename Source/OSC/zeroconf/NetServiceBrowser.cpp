@@ -57,10 +57,10 @@ static void browse_reply(DNSServiceRef client,
   }
 }
 
-NetServiceBrowser::NetServiceBrowser()
-: mpListener(NULL)
-, mpNetServiceThread(NULL)
-, mDNSServiceRef(NULL)
+NetServiceBrowser::NetServiceBrowser() :
+	mDNSServiceRef(NULL),
+	mpListener(NULL),
+	mpNetServiceThread(NULL)
 {
 }
 

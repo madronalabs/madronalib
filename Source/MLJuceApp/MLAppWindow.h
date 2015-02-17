@@ -30,11 +30,11 @@ private:
 	
 	float mGridUnitsX;
 	float mGridUnitsY;
-    bool mUsingGL;
 	
 	MLAppBorder mBorder;
     MLBoundsConstrainer* mpConstrainer;
-    
+	bool mUsingGL;
+	
     // the command manager object used to dispatch command events
     ApplicationCommandManager commandManager;
 

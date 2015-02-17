@@ -12,8 +12,8 @@
 #include "MLOSCListener.h"
 
 MLOSCListener::MLOSCListener() :
-	mpSocket(0),
 	mListening(false),
+	mpSocket(0),
 	mPort(0)
 {
 }
@@ -106,7 +106,6 @@ int MLOSCListener::listenToOSC(int port)
 			mpSocket->Break();
 			delete mpSocket;
 			mpSocket = 0;
-			ret = true;
 		}
 		mListening = false;
 		ret = true;

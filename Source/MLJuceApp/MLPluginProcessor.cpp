@@ -155,7 +155,6 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 
 void MLPluginProcessor::loadPluginDescription(const char* desc)
 {
-	MLProc::err r;
 	mpPluginDoc = new XmlDocument(String(desc));
 	
 	if (mpPluginDoc.get())
@@ -182,7 +181,7 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	{
 		int inChans = getNumInputChannels();
 		bool makeSignalInputs = inChans > 0;
-		r = mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI());
+		mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI());
 	}
 
 	loadDefaultPreset();

@@ -8,13 +8,13 @@
 const char* MLSignalView::kViewProcName = "signal_viewer_proc";
 
 MLSignalView::MLSignalView(MLWidget* w, MLSymbol attr, int size, int priority) :
+	mVoices(0),
 	mViewingSignal(false),
 	mpEngine(0),
 	mpWidget(w),
 	mAttr(attr),
-    mSize(size),
-    mPriority(priority),
-	mVoices(0)
+	mSize(size),
+	mPriority(priority)
 {
 }
 
