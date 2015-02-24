@@ -19,9 +19,11 @@
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
 // to report progress for searches.
 
-class MLFileCollection : public MLPropertySet
+class MLFileCollection :
+	public MLPropertySet,
+	private Thread
+
 {
-friend class SearchThread;
 public:
     class Listener
 	{
@@ -46,15 +48,44 @@ public:
 		//
 		// Note that idx is one-based.
 		virtual void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size) = 0;
-				
+
 	private:
 		std::list<MLFileCollection*> mpCollections;
 	};
-
- 	MLFileCollection(MLSymbol name, const File startDir, String extension);
-    ~MLFileCollection();
 	
-    void clear();
+	// TODO this looks a lot like MLMenu::Node and should use the same Node template or object
+	class TreeNode;
+	typedef std::tr1::shared_ptr<TreeNode> TreeNodePtr;
+	typedef std::map<std::string, TreeNodePtr, MLStringCompareFn> StringToNodeMapT;
+	class TreeNode
+	{
+	public:
+		TreeNode(MLFilePtr f);
+		~TreeNode();
+		
+		void clear();
+		
+		// insert a file into the tree, routing by path name relative to collection root.
+		void insertFile(const std::string& relPath, MLFilePtr f);
+		
+		// find a file by relative path. TODO this should use symbols.
+		// Would require an unambiguous mapping from UTF-8 to symbols.
+		const MLFile& find(const std::string& path);
+		
+		void buildMenu(MLMenuPtr m, int level = 0) const;
+		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
+		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
+		
+		void dump(int level = 0);
+		
+		StringToNodeMapT mChildren;
+		MLFilePtr mFile;
+	};
+	
+	MLFileCollection(MLSymbol name, const File startDir, String extension);
+    ~MLFileCollection();
+
+	void clear();
     int getSize() const { return mFilesByIndex.size(); }
     MLSymbol getName() const { return mName; }
     //const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
@@ -62,9 +93,18 @@ public:
     void addListener(Listener* listener);
 	void removeListener(Listener* pToRemove);
 
-    void searchForFilesImmediate(int delay = 0);
-    void searchForFilesInBackground(int delay = 0);
-    void cancelSearch();
+	// blocks while discovering all files in the collection, then starts the process thread with
+	// the given delay between files. returns the number of files found.
+	int processFiles(int delay = 0);
+	
+	// runs process thread in the background, to monitor any changes to the collection.
+	// the process thread keeps running and any changes are processed until cancelProcess()
+	// is called.
+	// UNIMPLEMENTED
+    void processFilesInBackground(int delay = 0);
+	
+	// will cancel the process thread started by either processFiles() or processFilesInBackground().
+    void cancelProcess();
   
     // return a file by its path relative to our starting directory.
     const MLFile& getFileByPath(const std::string& path);
@@ -72,7 +112,6 @@ public:
 	
     std::string getFilePathByIndex(int idx);
     const MLFile& getFileByIndex(int idx);
-	
 
     // make a new file. TODO return const MLFile &
     const MLFilePtr createFile(const std::string& relativePath);
@@ -92,65 +131,12 @@ public:
     void dump() const;
     
 private:
-    int beginProcessFiles();
+    int searchForFilesImmediate();
     void buildTree();
     void processFileInTree(int i);
-	
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
-
-    class SearchThread : public Thread
-    {
-    public:
-        SearchThread(MLFileCollection& c) :
-            Thread(String(c.getName().getString() + "_search")),
-            mCollection(c),
-            mDelay(0)
-        {
-        }
-        
-        ~SearchThread()
-        {
-			stopThread(100);
-        }
-        
-        void setDelay(int d) { mDelay = d; }
-        void run();
-        
-    private:
-        MLFileCollection& mCollection;
-        int mDelay;
-    };
+	void run();
 	
-	// TODO this looks a lot like MLMenu::Node and should use the same Node template
-	
-	class TreeNode;
-    typedef std::tr1::shared_ptr<TreeNode> TreeNodePtr;
-    typedef std::map<std::string, TreeNodePtr, MLStringCompareFn> StringToNodeMapT;
-    class TreeNode
-    {
-	public:
-		TreeNode(MLFilePtr f);
-		~TreeNode();
-		
-		void clear();
-		
-		// insert a file into the tree, routing by path name relative to collection root.
-		void insertFile(const std::string& relPath, MLFilePtr f);
-		
-		// find a file by relative path. TODO this should use symbols.
-		// Would require an unambiguous mapping from UTF-8 to symbols.
-		const MLFile& find(const std::string& path);
-		
-		void buildMenu(MLMenuPtr m, int level = 0) const;
-		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
-		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
-
-		void dump(int level = 0);
-
-		StringToNodeMapT mChildren;
-		MLFilePtr mFile;
-	};
-
     TreeNodePtr mRoot;
 	
 	// leaf files in collection stored by index.
@@ -162,7 +148,8 @@ private:
     
     // temp storage for processing files
     std::vector <juce::File> mFilesToProcess;
-    std::tr1::shared_ptr<SearchThread> mSearchThread;
+	
+	int mProcessDelay;
 };
 
 #endif 

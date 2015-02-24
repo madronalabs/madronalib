@@ -8,7 +8,7 @@
 
 #include "MLFileCollection.h"
 
-
+//const MLFileCollection MLFileCollection::nullObject;
 
 // MLFileCollection::Listener
 
@@ -189,15 +189,16 @@ void MLFileCollection::TreeNode::dump(int level)
     }
 }
 
-// MLFileCollection
+#pragma mark MLFileCollection
 
 MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
-mRoot(new TreeNode(MLFilePtr(new MLFile(std::string(startDir.getFullPathName().toUTF8()))))),
-    mName(name),
-    mExtension(extension),
-	mSearchThread(new SearchThread(*this))
+	Thread(name.getString()),
+	mRoot(new TreeNode(MLFilePtr(new MLFile(std::string(startDir.getFullPathName().toUTF8()))))),
+	mName(name),
+	mExtension(extension),
+	mProcessDelay(0)
 {
-    setProperty("progress", 0.);
+   setProperty("progress", 0.);
 }
 
 MLFileCollection::~MLFileCollection()
@@ -238,7 +239,7 @@ void MLFileCollection::removeListener(Listener* pToRemove)
 // count the number of files in the collection, and begin making the collection.
 // returns the number of found files, or -1 if the file root is not usable.
 //
-int MLFileCollection::beginProcessFiles()
+int MLFileCollection::searchForFilesImmediate()
 {
     int found = 0;
 	
@@ -332,23 +333,23 @@ void MLFileCollection::sendActionToListeners(MLSymbol action, int fileIndex)
 	}
 }
 
-void MLFileCollection::searchForFilesImmediate(int delay)
+int MLFileCollection::processFiles(int delay)
 {
-    mSearchThread->setDelay(delay);
-    mSearchThread->startThread();
+	cancelProcess();
+	int found = searchForFilesImmediate();
+	mProcessDelay = delay;
+	startThread(); // calls run()
+	return found;
 }
 
-void MLFileCollection::searchForFilesInBackground(int delay)
+void MLFileCollection::processFilesInBackground(int delay)
 {
     // TODO
 }
 
-void MLFileCollection::cancelSearch()
+void MLFileCollection::cancelProcess()
 {
-    if(mSearchThread)
-    {
-        mSearchThread->stopThread(1000);
-    }
+	stopThread(1000);
 }
 
 std::string MLFileCollection::getFilePathByIndex(int idx)
@@ -559,25 +560,21 @@ void MLFileCollection::dump() const
 	}
 }
 
-// MLFileCollection::SearchThread
-
-// search for all files as quickly as possible
-void MLFileCollection::SearchThread::run()
+void MLFileCollection::run()
 {
-    mCollection.beginProcessFiles();
-    mCollection.buildTree();
+    buildTree();
 	
-	mCollection.sendActionToListeners("begin");
-    int t = mCollection.getSize();
+	sendActionToListeners("begin");
+    int t = getSize();
     for(int i=0; i<t; i++)
     {
         if (threadShouldExit())
             return;
-        mCollection.setProperty("progress", (float)(i) / (float)t);
-        mCollection.processFileInTree(i);
-        wait(mDelay);
+        setProperty("progress", (float)(i) / (float)t);
+        processFileInTree(i);
+        wait(mProcessDelay);
     }
-    mCollection.setProperty("progress", 1.);
-	mCollection.sendActionToListeners("end");
+    setProperty("progress", 1.);
+	sendActionToListeners("end");
 }
 
