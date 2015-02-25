@@ -31,11 +31,8 @@ public:
 	
 	MLProcInfoBase& procInfo() { return mInfo; }
 protected:	
- 	MLProcInfo<MLProcMultiple> mInfo;
-
-	
+ 	MLProcInfo<MLProcMultiple> mInfo;	
 };
-
 
 
 #endif	//ML_PROC_MULTIPLE_H

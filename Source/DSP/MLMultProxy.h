@@ -35,7 +35,6 @@ protected:
 	int mEnabledCopies;
 };
 
-
 class MLMultiProc : public MLProc, public MLMultProxy
 {
 public:

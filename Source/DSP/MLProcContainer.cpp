@@ -2077,7 +2077,6 @@ int MLProcContainer::countPublishedParamsInDoc(juce::XmlElement* parent)
 	return sum;
 }
 
-
 void MLProcContainer::dumpGraph(int indent)
 {
 	const MLRatio myRatio = getResampleRatio();

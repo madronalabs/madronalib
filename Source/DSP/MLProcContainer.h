@@ -386,6 +386,7 @@ protected:
 
 // ----------------------------------------------------------------
 #pragma mark compiler temps
+// TODO move into class
 
 // represents a signal and its lifetime in the DSP graph.
 //

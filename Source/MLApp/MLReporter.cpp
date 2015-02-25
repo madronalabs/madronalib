@@ -50,7 +50,6 @@ void MLReporter::ReporterTimer::timerCallback()
 	mpOwnerReporter->viewProperties();
 }
 
-
 // MLReporter
 	
 MLReporter::MLReporter()

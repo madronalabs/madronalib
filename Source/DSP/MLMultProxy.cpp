@@ -233,7 +233,6 @@ MLProc::err MLMultiProc::setInput(const int idx, const MLSignal& srcSig)
 	return e;
 }
 
-
 // we override setParam but not getParam.  Since all copies share parameters,
 // we just store them in our MLProc and return those for getParam().
 void MLMultiProc::setParam(const MLSymbol p, MLParamValue v)
