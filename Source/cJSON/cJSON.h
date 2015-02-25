@@ -120,6 +120,9 @@ extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *ne
 #define cJSON_AddNumberToObject(object,name,n)	cJSON_AddItemToObject(object, name, cJSON_CreateNumber(n))
 #define cJSON_AddStringToObject(object,name,s)	cJSON_AddItemToObject(object, name, cJSON_CreateString(s))
 
+// ML
+void cJSON_ReplaceOrAddItemToObject(cJSON *object,const char *string,cJSON *newitem);
+
 #ifdef __cplusplus
 }
 #endif
