@@ -162,12 +162,11 @@ public:
 #if BUILD_AU_CARBON_UI
             NSApplicationLoad();
 #endif
-            
             initialiseJuce_GUI();
         }
 
         juceFilter = createPluginFilterOfType (AudioProcessor::wrapperType_AudioUnit);
-        MLPluginProcessor* madronaFilter = static_cast<MLPluginProcessor*>(&(*(juceFilter)));
+		MLPluginProcessor* madronaFilter = static_cast<MLPluginProcessor*>(&(*(juceFilter)));
 
         juceFilter->setPlayHead (this);
         juceFilter->addListener (this);
@@ -496,123 +495,121 @@ public:
     
 #pragma mark -
 #pragma mark MLAudioProcessorListener methods
-    // this code ended up in here because of access to AUBase::RestoreState().  There may be other issues.
-    // TODO look at moving this to MLJuceFilesMac.
+
+// this code ended up in here because of access to AUBase::RestoreState().  There may be other issues.
+// TODO look at moving this to MLJuceFilesMac.
+
+void loadFile(const File& f)
+{
+	String juceName = f.getFullPathName();
+	const char* fileStr = juceName.toUTF8();
+	CFPropertyListRef propertyList;
+	CFStringRef       errorString;
+	CFDataRef         resourceData;
+	//Boolean           status;
+	SInt32            errorCode;
+	ComponentResult err;
 	
-	void loadFile(const File& f)
+	// get URL from Juce File
+	CFStringRef nameString = CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8);
+	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, nameString, kCFURLPOSIXPathStyle, false);
+	
+	// Read the CFData file containing the encoded XML.
+	CFURLCreateDataAndPropertiesFromResource(
+											  kCFAllocatorDefault,
+											  fileURL,
+											  &resourceData,            // place to put file data
+											  NULL,
+											  NULL,
+											  &errorCode);
+	
+	// Reconstitute the dictionary using the XML data.
+	propertyList = CFPropertyListCreateFromXMLData( kCFAllocatorDefault,
+												   resourceData,
+												   kCFPropertyListImmutable,
+												   &errorString);
+	
+	if (errorString == NULL)
 	{
-		String juceName = f.getFullPathName();
-		const char* fileStr = juceName.toUTF8();
-		// debug() << JucePlugin_Name << " AU: loading state from file: " << fileStr << "\n";
-        
-		CFPropertyListRef propertyList;
-		CFStringRef       errorString;
-		CFDataRef         resourceData;
-		Boolean           status;
-		SInt32            errorCode;
-		ComponentResult err;
-        
-		// get URL from Juce File
-		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
-        
-		// Read the CFData file containing the encoded XML.
-		status = CFURLCreateDataAndPropertiesFromResource(
-                                                          kCFAllocatorDefault,
-                                                          fileURL,
-                                                          &resourceData,            // place to put file data
-                                                          NULL,
-                                                          NULL,
-                                                          &errorCode);
-        
-		// Reconstitute the dictionary using the XML data.
-		propertyList = CFPropertyListCreateFromXMLData( kCFAllocatorDefault,
-                                                       resourceData,
-                                                       kCFPropertyListImmutable,
-                                                       &errorString);
-        
-		if (errorString == NULL)
+		err = RestoreState (propertyList);
+		if (err != noErr)
 		{
-			err = RestoreState (propertyList);
-			if (err != noErr)
-			{
-				MLError() << "error: " << err << "loading preset file.\n";
-			}
+			MLError() << "error: " << err << "loading preset file.\n";
 		}
-		else
+	}
+	else
+	{
+		char errBuf[256];
+		const bool errResult = (CFStringGetCString(errorString, errBuf, 255, kCFStringEncodingASCII));
+		if (errResult)
 		{
-			char errBuf[256];
-			const bool errResult = (CFStringGetCString(errorString, errBuf, 255, kCFStringEncodingASCII));
-			if (errResult)
+			std::cout << errBuf << "\n";
+			CFRelease( errorString );
+		}
+	}
+	
+	CFRelease( resourceData );
+	CFRelease( propertyList );
+	CFRelease( fileURL );
+}
+
+void saveToFile(const File& f)
+{
+	String juceName = f.getFullPathName();
+	const char* fileStr = juceName.toUTF8();
+	String shortName = f.getFileNameWithoutExtension();
+	
+	// get URL from Juce File
+	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+	
+	// get property list.
+	CFPropertyListRef myPropsRef;
+	ComponentResult err = JuceAUBaseClass::SaveState (&myPropsRef);
+	if (err == noErr)
+	{
+		jassert (CFGetTypeID (myPropsRef) == CFDictionaryGetTypeID());
+		CFMutableDictionaryRef dict = (CFMutableDictionaryRef) myPropsRef;
+		
+		// save state to the dictionary.
+		if (juceFilter != 0)
+		{
+			juce::MemoryBlock state;
+			juceFilter->getCurrentProgramStateInformation (state);
+			
+			if (state.getSize() > 0)
 			{
-				std::cout << errBuf << "\n";
-				CFRelease( errorString );
+				CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), state.getSize());
+				CFDictionarySetValue (dict, CFSTR("jucePluginState"), ourState);
+				CFRelease (ourState);
 			}
 		}
 		
-		CFRelease( resourceData );
-		CFRelease( propertyList );
-		CFRelease( fileURL );
-	}
-    
-    
-	void saveToFile(const File& f)
-	{
-		String juceName = f.getFullPathName();
-		const char* fileStr = juceName.toUTF8();
-		String shortName = f.getFileNameWithoutExtension();
-        
-		// get URL from Juce File
-		CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+		// overwrite preset name in properties
+		CFStringRef newName = CFStringCreateWithCString(NULL, shortName.toUTF8(), kCFStringEncodingUTF8);
+		CFStringRef kNameString = CFSTR(kAUPresetNameKey);
+		CFDictionarySetValue (dict, kNameString, newName);
 		
-		// get property list.
-		CFPropertyListRef myPropsRef;
-		ComponentResult err = JuceAUBaseClass::SaveState (&myPropsRef);
-        if (err == noErr)
-        {
-            jassert (CFGetTypeID (myPropsRef) == CFDictionaryGetTypeID());
-            CFMutableDictionaryRef dict = (CFMutableDictionaryRef) myPropsRef;
-            
-            // save state to the dictionary.
-            if (juceFilter != 0)
-            {
-                juce::MemoryBlock state;
-                juceFilter->getCurrentProgramStateInformation (state);
-                
-                if (state.getSize() > 0)
-                {
-                    CFDataRef ourState = CFDataCreate (kCFAllocatorDefault, (const UInt8*) state.getData(), state.getSize());
-                    CFDictionarySetValue (dict, CFSTR("jucePluginState"), ourState);
-                    CFRelease (ourState);
-                }
-            }
-            
-            // overwrite preset name in properties
-            CFStringRef newName = CFStringCreateWithCString(NULL, shortName.toUTF8(), kCFStringEncodingUTF8);
-            CFStringRef kNameString = CFSTR(kAUPresetNameKey);
-            CFDictionarySetValue (dict, kNameString, newName);
-            
-            // Convert the property list into XML data.
-            CFDataRef xmlCFDataRef = CFPropertyListCreateXMLData(kCFAllocatorDefault, myPropsRef );
-            SInt32 errorCode = coreFoundationUnknownErr;
-            
-            if (NULL != xmlCFDataRef)
-            {
-                // Write the XML data to the CFData file.
-                (void) CFURLWriteDataAndPropertiesToResource(fileURL, xmlCFDataRef, NULL, &errorCode);
-                
-                // Release the XML data
-                CFRelease(xmlCFDataRef);
-            }
-            
-            // restore state in base class, to update preset name in host.
-            JuceAUBaseClass::RestoreState (myPropsRef);
-            CFRelease(newName);
-        }
-        CFRelease(myPropsRef);
-		CFRelease( fileURL );
+		// Convert the property list into XML data.
+		CFDataRef xmlCFDataRef = CFPropertyListCreateXMLData(kCFAllocatorDefault, myPropsRef );
+		SInt32 errorCode = coreFoundationUnknownErr;
+		
+		if (NULL != xmlCFDataRef)
+		{
+			// Write the XML data to the CFData file.
+			(void) CFURLWriteDataAndPropertiesToResource(fileURL, xmlCFDataRef, NULL, &errorCode);
+			
+			// Release the XML data
+			CFRelease(xmlCFDataRef);
+		}
+		
+		// restore state in base class, to update preset name in host.
+		JuceAUBaseClass::RestoreState (myPropsRef);
+		CFRelease(newName);
 	}
-    
-	
+	CFRelease(myPropsRef);
+	CFRelease( fileURL );
+}
+
 #pragma mark -
 	
     
