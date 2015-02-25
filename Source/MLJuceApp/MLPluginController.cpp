@@ -515,17 +515,21 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 #endif
 #endif
 	menu->addSeparator();
-    
+	
+	// presets and directories starting with the name of the plugin followed by a space
+	// will be sorted into a separate factory area.
+	std::string nameWithSpace = MLProjectInfo::projectName + std::string(" ");
+	
     // add factory presets, those starting with the plugin name
     MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.buildMenuIncludingPrefix(factoryMenu, MLProjectInfo::projectName);
+	presetFiles.buildMenuIncludingPrefix(factoryMenu, nameWithSpace);
     menu->appendMenu(factoryMenu);
 	
 	menu->addSeparator();
     
     // add user presets, all the others
     MLMenuPtr userMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.buildMenuExcludingPrefix(userMenu, MLProjectInfo::projectName);
+    presetFiles.buildMenuExcludingPrefix(userMenu, nameWithSpace);
     menu->appendMenu(userMenu);
 	
 	menu->buildIndex();
