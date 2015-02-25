@@ -1522,7 +1522,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 	if(p != mInputProtocol)
 	{
 		// set the environment model’s protocol property, which a View can use to change its UI
-		getEnvironment()->setPropertyImmediate("protocol", p);
+		getEnvironment()->setProperty("protocol", p);
 		getEngine()->setEngineInputProtocol(p);
 		switch(p)
 		{
