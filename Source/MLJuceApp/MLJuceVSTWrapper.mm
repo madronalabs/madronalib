@@ -37,6 +37,9 @@
 #include "juce_FakeMouseMoveGenerator.h"
 #include "juce_CarbonVisibility.h"
 
+
+#include "MLDebug.h"
+
 //==============================================================================
 namespace juce
 {
@@ -86,7 +89,10 @@ void* attachComponentToWindowRef (Component* comp, void* parentWindowOrView, boo
         if (! isNSView)
         {
             NSWindow* hostWindow = [[NSWindow alloc] initWithWindowRef: parentWindowOrView];
-            [hostWindow retain];
+			
+			// MLTEST [hostWindow retain];
+			// commenting this out fixes the ghost windows issue with 32-bit VST / Live 9.1.7.
+			
             [hostWindow setCanHide: YES];
             [hostWindow setReleasedWhenClosed: YES];
             
@@ -185,13 +191,13 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             RemoveEventHandler (ref);
             
             removeWindowHidingHooks (comp);
-            
+
             HIViewRef dummyView = (HIViewRef) (void*) (pointer_sized_int)
             comp->getProperties() ["dummyViewRef"].toString().getHexValue64();
             
             if (HIViewIsValid (dummyView))
                 CFRelease (dummyView);
-            
+
             NSWindow* hostWindow = (NSWindow*) window;
             NSView* pluginView = (NSView*) comp->getWindowHandle();
             NSWindow* pluginWindow = [pluginView window];
@@ -201,10 +207,12 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             [pluginWindow close];
             comp->removeFromDesktop();
             [pluginView release];
-            
+
             [hostWindow release];
-            
-            static bool needToRunMessageLoop = ! getHostType().isReaper();
+
+			static bool needToRunMessageLoop = 0 ;
+			// MLTEST ! getHostType().isReaper();
+			// the below is often crashing in Live 9.1.7 / 64-bit VST.
 
             // The event loop needs to be run between closing the window and deleting the plugin,
             // presumably to let the cocoa objects get tidied up. Leaving out this line causes crashes
@@ -213,7 +221,11 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             // how many messages will be dispatched, which seems to be vital in Reaper)
             if (needToRunMessageLoop)
             for (int i = 20; --i >= 0;)
-                MessageManager::getInstance()->runDispatchLoopUntil (1);
+			{
+				MessageManager* pM = MessageManager::getInstance();
+				debug() << "MSG MGR: " << std::hex << (unsigned long)pM << std::dec << "\n";
+				pM->runDispatchLoopUntil (1);
+			}
 
             return;
         }

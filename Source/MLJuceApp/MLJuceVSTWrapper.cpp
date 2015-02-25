@@ -345,7 +345,7 @@ public:
     {
         // Note: most hosts call this on the UI thread, but wavelab doesn't, so be careful in here.
         stopTimer();
-        
+
         if (MessageManager::getInstance()->isThisTheMessageThread())
             deleteEditor (false);
     }
@@ -1135,7 +1135,7 @@ public:
             
             if (editorComp != nullptr)
             {
-                if (Component* const modalComponent = Component::getCurrentlyModalComponent())
+				if (Component* const modalComponent = Component::getCurrentlyModalComponent())
                 {
                     modalComponent->exitModalState (0);
                     
@@ -1150,12 +1150,12 @@ public:
 #if JUCE_MAC
                 if (hostWindow != 0)
                 {
-                    detachComponentFromWindowRef (editorComp, hostWindow, useNSView);
+					detachComponentFromWindowRef (editorComp, hostWindow, useNSView);
                     hostWindow = 0;
                 }
 #endif
                 
-                filter->editorBeingDeleted (editorComp->getEditorComp());
+				filter->editorBeingDeleted (editorComp->getEditorComp());
                 
                 editorComp = nullptr;
                 
@@ -1189,10 +1189,10 @@ public:
             jassert (! recursionCheck);
             
             startTimer (1000 / 10);// performs misc housekeeping tasks
-            
+			
 			if (editorComp != nullptr)
-            {
-			   deleteEditor (true);
+			{
+				deleteEditor (true);
 			}
 			
             createEditorComp();
