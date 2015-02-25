@@ -213,6 +213,7 @@ MLFileCollection::~MLFileCollection()
 void MLFileCollection::clear()
 {
     mRoot->clear();
+	mFilesToProcess.clear();
     mFilesByIndex.clear();
 }
 
@@ -242,10 +243,10 @@ void MLFileCollection::removeListener(Listener* pToRemove)
 int MLFileCollection::searchForFilesImmediate()
 {
     int found = 0;
+	clear();
 	
 	if (mRoot->mFile->exists() && mRoot->mFile->isDirectory())
     {		
-		mFilesToProcess.clear();
         const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
         const String& wildCard = "*";
         bool recurse = true;
@@ -263,7 +264,6 @@ int MLFileCollection::searchForFilesImmediate()
     {
         found = -1;
     }
-	
 	return found;
 }
 
@@ -331,6 +331,26 @@ void MLFileCollection::sendActionToListeners(MLSymbol action, int fileIndex)
 		Listener* pL = *it;
 		pL->processFileFromCollection (action, f, *this, fileIndex + 1, size);
 	}
+}
+
+int MLFileCollection::processFilesImmediate(int delay)
+{
+	cancelProcess();
+	int found = searchForFilesImmediate();
+	mProcessDelay = delay;
+	buildTree();
+	
+	sendActionToListeners("begin");
+	int t = getSize();
+	for(int i=0; i<t; i++)
+	{
+		setProperty("progress", (float)(i) / (float)t);
+		processFileInTree(i);
+		Thread::wait(mProcessDelay);
+	}
+	setProperty("progress", 1.);
+	sendActionToListeners("end");
+	return found;
 }
 
 int MLFileCollection::processFiles(int delay)

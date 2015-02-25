@@ -93,6 +93,13 @@ public:
     void addListener(Listener* listener);
 	void removeListener(Listener* pToRemove);
 
+	// search for files in the collection, traversing the entire directory tree before
+	// returning. returns the number of files found. 
+	int searchForFilesImmediate();
+
+	// search for and process all files on the calling thread, with the given delay between files.
+	int processFilesImmediate(int delay = 0);
+	
 	// blocks while discovering all files in the collection, then starts the process thread with
 	// the given delay between files. returns the number of files found.
 	int processFiles(int delay = 0);
@@ -131,7 +138,6 @@ public:
     void dump() const;
     
 private:
-    int searchForFilesImmediate();
     void buildTree();
     void processFileInTree(int i);
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
