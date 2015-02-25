@@ -57,7 +57,9 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 			if (numBytes > 16)
 			{
 				const char* xmlBytes = static_cast<const char*> (rawBytes) + 8;
-				const int xmlLength = numBytes - 8;				
+				const int xmlLength = numBytes - 8;
+				
+				// parse() allocates a new XmlElement
 				juce::XmlElement* xmlState = juce::XmlDocument::parse (juce::String::fromUTF8 (xmlBytes, xmlLength));
 				if (nameResult)
 				{
