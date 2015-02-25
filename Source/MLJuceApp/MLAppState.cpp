@@ -167,15 +167,15 @@ cJSON* MLAppState::getStateAsJSON()
 		}
 	}
 	
-	// replace environment info
+	// add or replace environment info
 	cJSON * makerName = cJSON_CreateString(mMakerName.c_str());
-	cJSON_AddItemToObject(root, "maker_name", makerName);
-		
+	cJSON_ReplaceOrAddItemToObject(root, "maker_name", makerName);
+	
 	cJSON * appName = cJSON_CreateString(mAppName.c_str());
-	cJSON_AddItemToObject(root, "app_name", appName);
-		
+	cJSON_ReplaceOrAddItemToObject(root, "app_name", appName);
+
 	cJSON * appVersion = cJSON_CreateNumber(mAppVersion);
-	cJSON_AddItemToObject(root, "app_version", appVersion);
+	cJSON_ReplaceOrAddItemToObject(root, "app_version", appVersion);
 	
 	return root;
 }
