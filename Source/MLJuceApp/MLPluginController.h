@@ -51,25 +51,7 @@ public:
 
 #if ML_MAC
 	
-	friend class ConvertPresetsThread;
-	class ConvertPresetsThread :
-		public Thread,
-		public DeletedAtShutdown,
-		public MLFileCollection::Listener
-	{
-	public:
-		ConvertPresetsThread(MLPluginController* pC);
-		~ConvertPresetsThread();
-		
-		void run();
-		
-		// MLFileCollection::Listener
-		void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size);
-
-	private:
-		MLFileCollection* mpPresetsToConvertAU1, *mpPresetsToConvertAU2, *mpPresetsToConvertVST1, *mpPresetsToConvertVST2;
-		MLPluginController* mpController;
-	};
+	std::auto_ptr<MLFileCollection> mPresetsToConvertAU1, mPresetsToConvertAU2, mPresetsToConvertVST1, mPresetsToConvertVST2;
 	
 	class ConvertProgressDisplayThread :
 		public ThreadWithProgressWindow,
@@ -78,9 +60,8 @@ public:
 	public:
 		ConvertProgressDisplayThread(MLPluginController* pC) :
 			ThreadWithProgressWindow (" ", true, true),
-			//        MLPropertyListener(&(*pFiles)),
 			pController(pC),
-			myProgress(0),
+			myProgress(0.),
 			mFilesConverted(0)
 		{
 		}
@@ -96,15 +77,10 @@ public:
 	};
 
     void convertPresets();
-	void setConvertProgress(float);
-	float getConvertProgress() const;
-	void fileConverted() { mFilesConverted++; }
+	float getConvertProgress();
 	int getFilesConverted() const;
 	void endConvertPresets();
-
-protected:
-    ConvertPresetsThread* mpConvertPresetsThread;
-    
+	
 #endif // ML_MAC
 
 protected:
@@ -118,6 +94,27 @@ protected:
 	friend class WeakReference<MLPluginController>;	
 
 private:
+	
+	// file action queue for converting presets
+	class FileAction
+	{
+	public:
+		FileAction() {}
+		FileAction(MLSymbol action, const MLFile* file, const MLFileCollection* collection, int idx, int size) :
+			mAction(action), mFile(file), mCollection(collection), mIdx(idx), mSize(size)
+			{}
+		~FileAction() {}
+		
+		MLSymbol mAction;
+		const MLFile* mFile;
+		const MLFileCollection* mCollection;
+		int mIdx;
+		int mSize;
+	};
+	std::vector<FileAction> mFileActionData;
+	PaUtilRingBuffer mFileActionQueue;
+	void clearFileActionQueue();
+	void doFileQueueAction(FileAction a);
 	
 	void doScaleMenu(int result);
 	void doPresetMenu(int result);
@@ -135,9 +132,12 @@ private:
 
 	MLMenuMapT mMenuMap;
 	int mClockDivider;
-	bool mConvertPresetsThreadMarkedForDeath;
-	float mConvertProgress;
+	
+	bool mConvertingPresets;
+	int mFilesToProcess;
 	int mFilesConverted;
+	int mFilesProcessed;
+	int mMaxFileQueueSize;
 	
 	int mOSCMenuItemStart;
 };
