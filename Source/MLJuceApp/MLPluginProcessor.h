@@ -168,7 +168,7 @@ public:
 	
 	// presets
 	void clearPresetCollection() { mPresetFiles->clear(); }
-	void searchForPresets() { mPresetFiles->searchForFilesImmediate(); }
+	void searchForPresets() { mPresetFiles->processFilesImmediate(); }
 	
     void prevPreset();
     void nextPreset();
@@ -227,7 +227,7 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-    juce::ScopedPointer<MLFileCollection> mScaleFiles;
+	juce::ScopedPointer<MLFileCollection> mScaleFiles;
     juce::ScopedPointer<MLFileCollection> mPresetFiles;
     juce::ScopedPointer<MLFileCollection> mMIDIProgramFiles;
 	

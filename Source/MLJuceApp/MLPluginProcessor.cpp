@@ -45,7 +45,7 @@ MLPluginProcessor::MLPluginProcessor() :
 }
 
 MLPluginProcessor::~MLPluginProcessor()
-{
+{	
 #if DEBUG
 	stopDebugging();
 #endif
@@ -953,9 +953,6 @@ void MLPluginProcessor::saveStateToLongFileName(const std::string& longName)
 			// reset state stack and push current state for recall
 			mpPatchState->clearStateStack();
 			mpPatchState->pushStateToStack();
-			
-			// fix file menus
-			scanAllFilesImmediate();
 		}
     }
     return;
@@ -987,9 +984,6 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 	// reset state stack and push current state for recall
 	mpPatchState->clearStateStack();
 	mpPatchState->pushStateToStack();
-	
-	// fix file menus
-	scanAllFilesImmediate();
 	
 #endif // DEMO
     
@@ -1058,12 +1052,43 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 		String extension = f.getJuceFile().getFileExtension();
 		if (extension == ".mlpreset")
 		{
+			// .mlpreset files may be XML (old) or JSON (new)
 			setPatchStateFromText(f.getJuceFile().loadFileAsString());
 		}
 		else if (extension == ".aupreset")
 		{
-			// tell AU wrapper to load AU-compatible .aupreset file.
-			sendMessageToMLListener (MLAudioProcessorListener::kLoad, f.getJuceFile());
+			// .aupreset files are XML inside Mac OS Property File wrapper
+			std::string pluginType;
+			switch(wrapperType)
+			{
+				case AudioProcessor::wrapperType_VST:
+					{
+						pluginType = "VST";
+						juce::ScopedPointer<juce::XmlElement> pXML = loadPropertyFileToXML(f.getJuceFile());
+						if(pXML)
+						{
+							juce::MemoryBlock destData;
+							MemoryOutputStream out (destData, false);
+							pXML->writeToStream (out, String(), true, false);
+							String xmlStr = out.toUTF8();
+							setPatchStateFromText(xmlStr);
+						}
+					}
+					break;
+				case AudioProcessor::wrapperType_AudioUnit:
+					pluginType = "AU";
+					
+					// tell AU wrapper to load AU-compatible .aupreset file.
+					sendMessageToMLListener (MLAudioProcessorListener::kLoad, f.getJuceFile());
+
+					break;
+				case AudioProcessor::wrapperType_Standalone:
+					pluginType = "App";
+					break;
+				default:
+					pluginType = "?";
+					break;
+			}
 		}
 		
 		// replace app state with new state loaded
@@ -1187,9 +1212,9 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 		debug() << "MLPluginProcessor::setPatchStateFromText: unknown format for .mlpreset file!\n";
 	}
 	
-	// update any properties that have changed from previous state of Model. This will cause DSP parameter changes
+	// update all properties from previous state of Model. This will cause DSP parameter changes
 	// to happen through doPropertyChangeAction().
-	updateChangedProperties();
+	updateAllProperties();
 }
 
 void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
@@ -1365,9 +1390,9 @@ void MLPluginProcessor::createFileCollections()
 
 void MLPluginProcessor::scanAllFilesImmediate()
 {
-    mScaleFiles->searchForFilesImmediate();
-    mPresetFiles->searchForFilesImmediate();
-    mMIDIProgramFiles->searchForFilesImmediate();
+    mScaleFiles->processFilesImmediate();
+    mPresetFiles->processFilesImmediate();
+    mMIDIProgramFiles->processFilesImmediate();
 }
 
 #pragma mark presets
