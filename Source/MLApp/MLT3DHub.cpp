@@ -13,7 +13,7 @@
 MLT3DHub::MLT3DHub() :
 	mDataRate(-1),
 	mT3DWaitTime(0),
-	mEnabled(true),
+	mEnabled(false),
 	mUDPPortOffset(0),
 	mReceivingT3d(false),
 	mConnected(0),
