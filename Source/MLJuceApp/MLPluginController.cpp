@@ -27,9 +27,10 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 
 	listenTo(pProcessor);
 	listenTo(pProcessor->getEnvironment());
-	
+#if ML_MAC
 	mFileActionData.resize(0);
 	PaUtil_InitializeRingBuffer( &mFileActionQueue, sizeof(FileAction), 0, &(mFileActionData[0]) );
+#endif
 }
 
 MLPluginController::~MLPluginController()
@@ -117,6 +118,7 @@ void MLPluginController::timerCallback()
         viewSignals();
     }
 	
+#if ML_MAC
 	// read from file action queue and do any needed actions
 	if(mConvertingPresets)
 	{
@@ -133,6 +135,7 @@ void MLPluginController::timerCallback()
 			if(!filesInQueue) endConvertPresets();
 		}
 	}
+#endif
 }
 
 void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)

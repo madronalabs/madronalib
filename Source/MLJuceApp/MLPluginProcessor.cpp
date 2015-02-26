@@ -1055,6 +1055,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 			// .mlpreset files may be XML (old) or JSON (new)
 			setPatchStateFromText(f.getJuceFile().loadFileAsString());
 		}
+#if ML_MAC
 		else if (extension == ".aupreset")
 		{
 			// .aupreset files are XML inside Mac OS Property File wrapper
@@ -1090,7 +1091,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 					break;
 			}
 		}
-		
+#endif
 		// replace app state with new state loaded
 		mpPatchState->updateChangedProperties();
 		mpPatchState->clearStateStack();
