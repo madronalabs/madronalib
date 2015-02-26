@@ -67,17 +67,17 @@ MLReporter::~MLReporter()
 void MLReporter::enqueuePropertyChange(MLSymbol prop, const MLProperty& newVal)
 {
 	// enqueue change
-	int written = PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
-
-	// store changed value
-	mCurrentProperties.setProperty(prop, newVal);
-	
 #if DEBUG
+	int written = PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
 	if(written < 1)
 	{
 		debug() << "MLReporter::doPropertyChangeAction: ring buffer full! \n";
 	}
+#else
+	PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
 #endif
+	// store changed value
+	mCurrentProperties.setProperty(prop, newVal);
 }
 
 void MLReporter::listenTo(MLPropertySet* p)
