@@ -45,7 +45,7 @@ MLPluginProcessor::MLPluginProcessor() :
 }
 
 MLPluginProcessor::~MLPluginProcessor()
-{	
+{
 #if DEBUG
 	stopDebugging();
 #endif
@@ -660,9 +660,9 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 	if (index < 0) return;
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
-	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);
 	
-	//from MIDI: NEED to propagate to Model without causing feedback
+	// exclude this listener to avoid feedback!
+	setPropertyImmediateExcludingListener(getParameterAlias(index), newValue, this);
 }
 
 // for VST wrapper.
@@ -690,9 +690,10 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		mHasParametersSet = true;
 		
 		// set MLModel Parameter 
+		// exclude this listener to avoid feedback!
 		MLSymbol paramName = getParameterAlias(index);
 		float realVal = mEngine.getParamByIndex(index);
-		setPropertyImmediate(paramName, realVal);
+		setPropertyImmediateExcludingListener(paramName, realVal, this);
 	}
 }
 
