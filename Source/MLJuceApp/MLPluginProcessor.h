@@ -227,9 +227,9 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-	juce::ScopedPointer<MLFileCollection> mScaleFiles;
-    juce::ScopedPointer<MLFileCollection> mPresetFiles;
-    juce::ScopedPointer<MLFileCollection> mMIDIProgramFiles;
+	MLFileCollectionPtr mScaleFiles;
+    MLFileCollectionPtr mPresetFiles;
+    MLFileCollectionPtr mMIDIProgramFiles;
 	
 	// saved state for editor
 	MLRect mEditorRect;

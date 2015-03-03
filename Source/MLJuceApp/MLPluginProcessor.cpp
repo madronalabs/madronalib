@@ -804,6 +804,7 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 bool MLPluginProcessor::isParameterAutomatable (int idx) const
 {
+	debug() << "AUTO? " << idx << " : " << mEngine.getParamPtr(idx)->getAutomatable() << "\n";
 	return mEngine.getParamPtr(idx)->getAutomatable();
 }
 
@@ -1384,9 +1385,9 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 
 void MLPluginProcessor::createFileCollections()
 {
-	mScaleFiles = (new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
-    mPresetFiles = (new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
-    mMIDIProgramFiles = (new MLFileCollection("midi_programs", getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs"), "mlpreset"));
+	mScaleFiles = (MLFileCollectionPtr)(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+    mPresetFiles = (MLFileCollectionPtr)(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
+    mMIDIProgramFiles = (MLFileCollectionPtr)(new MLFileCollection("midi_programs", getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs"), "mlpreset"));
 }
 
 void MLPluginProcessor::scanAllFilesImmediate()

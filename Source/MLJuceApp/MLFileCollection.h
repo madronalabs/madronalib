@@ -22,7 +22,6 @@
 class MLFileCollection :
 	public MLPropertySet,
 	private Thread
-
 {
 public:
     class Listener
@@ -157,5 +156,7 @@ private:
 	
 	int mProcessDelay;
 };
+
+typedef std::auto_ptr<MLFileCollection> MLFileCollectionPtr;
 
 #endif 
