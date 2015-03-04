@@ -321,7 +321,7 @@ void MLPluginController::loadPresetByMenuIndex(int result)
 	MLMenu* menu = findMenuByName("preset");
 	if(menu)
 	{
-		const std::string& fullName = menu->getItemFullName(result);
+		const std::string& fullName = menu->getMenuItemPath(result);
 		getProcessor()->loadStateFromPath(fullName);
 	}
 	MLReporter::fetchChangedProperties();
@@ -341,7 +341,7 @@ void MLPluginController::doScaleMenu(int result)
             if (menu)
             {
                 // set model param to the full name of the file in the menu
-                const std::string& fullName = menu->getItemFullName(result);
+                const std::string& fullName = menu->getMenuItemPath(result);
                 mpProcessor->setPropertyImmediate("key_scale", fullName);
             }
             break;
