@@ -1202,7 +1202,14 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 		if (stateToLoad != NULL)
 		{
 			XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
-			setStateFromXML(*pDocElem, false);
+			if(pDocElem)
+			{
+				setStateFromXML(*pDocElem, false);
+			}
+			else
+			{
+				debug() << "ERROR parsing patch: " << stateToLoad->getLastParseError() << "\n";
+			}
 		}
 		else
 		{
