@@ -16,7 +16,6 @@ MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
 	setOpaque(false);
 	setInterceptsMouseClicks (false, true);
-
 }
 
 MLAppView::~MLAppView()
@@ -193,9 +192,9 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 	return b;
 }
 
-MLGraph* MLAppView::addGraph(const char * name, const Colour& color)
+MLPolynomialWidget* MLAppView::addGraph(const char * name, const Colour& color)
 {
-	MLGraph* graph = new MLGraph;
+	MLPolynomialWidget* graph = new MLPolynomialWidget;
 	graph->setName(name);
 	graph->setColor(color); 
 	addAndMakeVisible(graph);

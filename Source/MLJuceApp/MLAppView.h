@@ -24,7 +24,7 @@
 #include "MLLookAndFeel.h"
 #include "MLEnvelope.h"
 #include "MLProgressBar.h"
-#include "MLGraph.h"
+#include "MLPolynomialWidget.h"
 #include "MLDebugDisplay.h"
 #include "MLDefaultFileLocations.h"
 #include "MLJuceFilesMac.h"
@@ -83,7 +83,7 @@ public:
 	MLLabel* addLabelAbove(MLWidget* c, const char* displayName, 
 		const float sizeMultiplier = 1.0f, const int font = eMLCaption, Vec2 offset = Vec2());
 
-	MLGraph* addGraph(const char * name, const Colour& color);
+	MLPolynomialWidget* addGraph(const char * name, const Colour& color);
 
 	MLDrawing* addDrawing(const MLRect & r);
 	MLProgressBar* addProgressBar(const MLRect & r);
