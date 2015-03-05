@@ -82,13 +82,11 @@ void MLTextStream::display()
 
 #endif // ML_WINDOWS
 
-
-
-class MLDebugThread : public Thread
+class MLDebugThread : public juce::Thread
 {
 public:
 	MLDebugThread() :
-	Thread(String("madronalib_debug"))
+	Thread(juce::String("madronalib_debug"))
 	{
 	}
 	
@@ -108,7 +106,6 @@ public:
 		}
 	}
 };
-
 
 // global entry points
 
