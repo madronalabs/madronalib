@@ -51,7 +51,6 @@ protected:
 	MLPropertyViewListMap mPropertyViewsMap;
 	
 private:
-	std::vector<MLPropertyListenerPtr> pListeners;
 	
 	// our subclass of MLPropertyListener that forwards actions to us.
 	class PropertyListener : public MLPropertyListener
@@ -81,6 +80,7 @@ private:
 	
 	void enqueuePropertyChange(MLSymbol property, const MLProperty& newVal);
 
+	std::vector<MLPropertyListenerPtr> pListeners;
 	MLPropertySet mCurrentProperties;
 	std::vector<MLSymbol> mChangeData;
 	PaUtilRingBuffer mChangeQueue;

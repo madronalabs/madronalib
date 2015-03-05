@@ -108,7 +108,7 @@ void MLPluginController::timerCallback()
     
 	if(mClockDivider > lessFrequentThingsDivision)
     {
-        // do less frequent things
+        // do less frequent things (unused)
         mClockDivider = 0;
     }
 	
