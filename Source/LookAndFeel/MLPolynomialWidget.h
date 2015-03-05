@@ -12,13 +12,13 @@
 
 #include <vector>
 
-class MLGraph : public Component
+class MLPolynomialWidget : public Component
 {
 friend class MLLookAndFeel;
 public:
-    MLGraph (const String& componentName = String::empty,
+    MLPolynomialWidget (const String& componentName = String::empty,
            const String& labelText = String::empty);
-    ~MLGraph();
+    ~MLPolynomialWidget();
 	
 	void setColor(const Colour& color);
 	void setDomain(float a, float b);

@@ -3,24 +3,24 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLGraph.h"
+#include "MLPolynomialWidget.h"
 
 
-MLGraph::MLGraph (const String& , const String& )
+MLPolynomialWidget::MLPolynomialWidget (const String& , const String& )
 {
 }
 
-MLGraph::~MLGraph()
+MLPolynomialWidget::~MLPolynomialWidget()
 {
 
 }
 	
-void MLGraph::setColor(const Colour& )
+void MLPolynomialWidget::setColor(const Colour& )
 {
 
 }
 
-void MLGraph::setPolyCoeffs(std::vector<float>& coeffs )
+void MLPolynomialWidget::setPolyCoeffs(std::vector<float>& coeffs )
 {
 	mPolyCoeffs.clear();
 	int s = coeffs.size();
@@ -31,7 +31,7 @@ void MLGraph::setPolyCoeffs(std::vector<float>& coeffs )
 	}
 }
 
-void MLGraph::resized()
+void MLPolynomialWidget::resized()
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int m = myLookAndFeel->getSmallMargin();
@@ -45,7 +45,7 @@ void MLGraph::resized()
 	mViewRange.convertTo(MLRange(h - m + 0.5, m + 0.5));
 }
 
-void MLGraph::paint (Graphics& g)
+void MLPolynomialWidget::paint (Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int m = myLookAndFeel->getSmallMargin();
