@@ -76,7 +76,7 @@ void MLPageView::resized()
 
 void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Component* nextButton)
 {
-	int duration = 250;
+	int duration = 500;
 	float targetAlpha;
 	
 	//with this on, animations fail sometimes. with this off, they fail in a different way,always.
@@ -97,9 +97,8 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	// those onscreen
 	int margin = u;
 	int newPage = clamp(destPage, 0, (int)mPages.size() - 1);
-	
-	// TODO fix animations. GL context errors sometimes lead to a crash.
-	animate = false;
+
+	animate = true;
 	if ((animate) && (newPage != mCurrPage) && (mCurrPage >= 0))
 	{
 		// line up all pages from new through current offscreen
@@ -133,7 +132,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
             
             // NOTE: this can cause a problem stopping a running thread in CachedImage::stop if called at just the wrong time-- TODO investigate!
 			mAnimator.animateComponent (mPages[i], localBounds.translated((w + margin)*(i - newPage), 0),
-				targetAlpha, duration, proxy, 1.0, 1.0);
+				targetAlpha, duration, proxy, 4.0, 0.25);
 		}
 		
 		// animate buttons 
