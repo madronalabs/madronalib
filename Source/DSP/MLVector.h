@@ -223,6 +223,8 @@ public:
 	inline void shrink(float d){ expand(-d); }
 	inline void shrink(const Vec2& b){ expand(-b); }
 	
+	void quantize(int q);
+	
 	MLRect translated(const Vec2& b) const;
 	MLRect withCenter(const Vec2& b) const;
 	MLRect withCenter(const float cx, const float cy);

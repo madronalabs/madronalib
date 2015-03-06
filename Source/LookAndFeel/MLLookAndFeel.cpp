@@ -1404,6 +1404,7 @@ void MLLookAndFeel::drawResizableFrame (Graphics& g, int w, int h, const BorderS
     }
 }
 
+// unused 
 void MLLookAndFeel::fillResizableWindowBackground (Graphics& g, int w, int h,
                                                     const BorderSize<int>& /*border*/, ResizableWindow& window)
 {

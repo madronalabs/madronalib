@@ -588,14 +588,15 @@ float MLDial::getPositionOfValue (const float value)
 
 void MLDial::paint (Graphics& g)
 {
+
 	const int width = getWidth();
 	const int height = getHeight();
 	float currentValue = getFloatProperty("value");
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 
-	if (isOpaque()) 
-		myLookAndFeel->drawBackground(g, this);	
+//	if (isOpaque()) 
+//		myLookAndFeel->drawBackground(g, this);	
 	
 	// see if lookandfeel's drawNumbers changed
 	bool LFDrawNumbers = myLookAndFeel->mDrawNumbers;
@@ -604,6 +605,18 @@ void MLDial::paint (Graphics& g)
 		mParameterLayerNeedsRedraw = true;
 		mThumbLayerNeedsRedraw = true;
 		mPrevLFDrawNumbers = LFDrawNumbers;
+	}
+	
+	
+	
+	if(0)
+	{
+		Path P;
+		Rectangle<int> br = ( getLocalBounds());	
+		br.expand(1, 1);
+		P.addRectangle(br);
+		g.setColour(Colours::white);	
+		g.fillPath(P);
 	}
 	
 	if (style == MLDial::Rotary)
@@ -1064,7 +1077,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	// composite images
 	if(mParameterImage.isValid())
 	{
-		g.drawImage (mParameterImage, rx, ry, rw, rh, rx, ry, rw, rh, false); 
+		g.drawImageTransformed (mParameterImage, AffineTransform::translation(rx, ry), false);
 	}
     
 	// draw number text over composited images
@@ -1084,7 +1097,6 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		}
 	}
     
-
 	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = false;
 }
 
@@ -1092,7 +1104,7 @@ void MLDial::drawRotaryDialOverlay (Graphics& g, int rx, int ry, int rw, int rh,
 {
     if(mStaticImage.isValid())
     {
-        g.drawImage (mStaticImage,rx, ry, rw, rh, rx, ry, rw, rh, false);
+		g.drawImageTransformed (mStaticImage, AffineTransform::translation(rx, ry), false);
     }
 }
 
@@ -1945,7 +1957,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		Vec2 bCenter = b.getCenter();		
 		mMargin = myLookAndFeel->getSmallMargin() * u;
 		mTrackThickness = (int)((float)kMLTrackThickness * u / 48.);
-		mLineThickness = u/128.f;
+		mLineThickness = u/192.f;
 		mTextSize = (float)u*myLookAndFeel->getDialTextSize(*this);
         mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign)*mTextSize + 2.;
         mMaxNumberWidth &= (~1); // make even
@@ -2005,7 +2017,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
                 }			
 			}
             
-			cBounds = Rectangle<int>(newLeft, top, (int)width, (int)height);					
+			cBounds = Rectangle<int>(newLeft, top, (int)width, (int)height);	
 			MLRect tr(newLeft, top, (int)width, (int)height);
 			trackRect = tr;
 			mRotaryTextRect = MLRect(cx, cy, mMaxNumberWidth, height - cy);
@@ -2148,13 +2160,12 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		{
 			int compWidth = getWidth();
 			int compHeight = getHeight();
-			mParameterImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
-			mParameterImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-			mThumbImage = Image(Image::ARGB, compWidth, compHeight, true, SoftwareImageType());
+			mParameterImage = Image(Image::ARGB, compWidth + 1, compHeight + 1, true, SoftwareImageType());
+			mParameterImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);	
+			mThumbImage = Image(Image::ARGB, compWidth + 1, compHeight + 1, true, SoftwareImageType());
 			mThumbImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);            
-			mStaticImage = Image(Image::ARGB, compWidth * displayScale, compHeight*displayScale, true, SoftwareImageType());
+			mStaticImage = Image(Image::ARGB, compWidth*displayScale + 1, compHeight*displayScale + 1, true, SoftwareImageType());
 			mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-			
 		}
 		
 		mParameterLayerNeedsRedraw = mThumbLayerNeedsRedraw = mStaticLayerNeedsRedraw = true;

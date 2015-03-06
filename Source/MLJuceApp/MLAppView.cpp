@@ -192,15 +192,6 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 	return b;
 }
 
-MLPolynomialWidget* MLAppView::addGraph(const char * name, const Colour& color)
-{
-	MLPolynomialWidget* graph = new MLPolynomialWidget;
-	graph->setName(name);
-	graph->setColor(color); 
-	addAndMakeVisible(graph);
-	return graph;
-}
-
 MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const float sizeMultiplier, int font)
 {
 	MLLabel* label = new MLLabel(displayName);
