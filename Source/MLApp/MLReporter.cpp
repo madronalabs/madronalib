@@ -116,7 +116,7 @@ void MLReporter::viewProperties()
 		// dequeue name of changed property
 		MLSymbol propName;
 		PaUtil_ReadRingBuffer( &mChangeQueue, &propName, 1 );
-
+		
 		// do we have viewers for this property?
 		MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(propName);
 		if (look != mPropertyViewsMap.end())

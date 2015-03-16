@@ -330,12 +330,14 @@ void MLPropertyListener::updateAllProperties()
     if(!mpPropertyOwner) return;
 	mpPropertyOwner->broadcastAllProperties();
 
+	// mark all states as changed
 	std::map<MLSymbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
 		PropertyState& state = it->second;
 		state.mChangedSinceUpdate = true;
 	}
+	
 	updateChangedProperties();
 }
 
