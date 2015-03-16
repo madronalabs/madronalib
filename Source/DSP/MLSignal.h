@@ -326,7 +326,11 @@ public:
     float getRMS();
     float rmsDiff(const MLSignal& b);
 
-	Vec2 correctPeak(const int ix, const int iy) const;
+	// find the subpixel peak in the neighborhood of the input position, 
+	// by 2D Taylor series expansion of the surface function at (x, y).  
+	// The result is clamped to the input position plus or minus maxCorrect.
+	//
+	Vec2 correctPeak(const int ix, const int iy, const float maxCorrect) const;
 
 	// unary operators on Signals
 	void square();	

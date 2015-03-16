@@ -1448,10 +1448,7 @@ void MLSignal::dump(const MLRect& b) const
 	}
 }
 
-// find the subpixel peak, by 2D Taylor series expansion of the surface 
-// function at (x, y).  Use centered differences to find derivatives.
-//
-Vec2 MLSignal::correctPeak(const int ix, const int iy) const
+Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) const
 {		
 	const MLSignal& in = *this;
 	int width = in.getWidth();
@@ -1459,6 +1456,8 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 	int x = clamp(ix, 1, width - 2);
 	int y = clamp(iy, 1, height - 2);
 	Vec2 pos(x, y);
+	
+	// Use centered differences to find derivatives.
 	float dx = (in(x + 1, y) - in(x - 1, y)) / 2.f;
 	float dy = (in(x, y + 1) - in(x, y - 1)) / 2.f;
 	float dxx = (in(x + 1, y) + in(x - 1, y) - 2*in(x, y));
@@ -1467,8 +1466,6 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 	
 	if((dxx != 0.f)&&(dxx != 0.f)&&(dxx != 0.f))
 	{
-		Vec2 minPos(x - 1.0f, y - 1.0f);
-		Vec2 maxPos(x + 1.0f, y + 1.0f);
 		float oneOverDiscriminant = 1.f/(dxx*dyy - dxy*dxy);
 		float fx = (dyy*dx - dxy*dy) * oneOverDiscriminant;
 		float fy = (dxx*dy - dxy*dx) * oneOverDiscriminant;
@@ -1476,9 +1473,11 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 		// here is the code to return the z approximaton if needed. 
 	//	float fz = dx*fx + dy*fy + 0.5f*(dxx*fx*fx + 2.f*dxy*fx*fy + dyy*fy*fy);
 	//	float z = in(x, y) + fz;
+		
+		fx = clamp(fx, -maxCorrect, maxCorrect);
+		fy = clamp(fy, -maxCorrect, maxCorrect);
 			
 		pos -= Vec2(fx, fy);
-		pos = vclamp(pos, minPos, maxPos);
 	}
 	return pos;
 }
