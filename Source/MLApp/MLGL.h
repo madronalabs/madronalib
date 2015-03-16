@@ -9,6 +9,10 @@
 #include "MLVector.h"
 #include "MLPlatform.h"
 
+// OpenGL helper utilities. 
+// This is all considered temporary, because it is all in immediate mode, which is a bad way to write 
+// OpenGL code. TODO consider finding a good 2d GL library written by someone else.
+
 #if ML_WINDOWS
  #include <Windows.h>
  #include <gl/gl.h>
@@ -55,9 +59,9 @@ public:
    
     static const float* getIndicatorColor(int i) { return MLGLData::indicatorColors + 4*(i & MLGLData::indicatorColorsMask); }
     static void fillRect(const MLRect& r);
-    static void strokeRect(const MLRect& r);
+    static void strokeRect(const MLRect& r, float viewScale);
     
-    static void drawTextAt(float x, float y, float z, const char* ps);
+    static void drawTextAt(float x, float y, float z, float textScale, float viewScale, const char* ps);
     
     static Vec2 worldToScreen(const Vec3& world);
 

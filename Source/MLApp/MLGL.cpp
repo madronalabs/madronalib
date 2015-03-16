@@ -54,8 +54,13 @@ void MLGL::fillRect(const MLRect& r)
 }
 
 // TEMP
-void MLGL::strokeRect(const MLRect& r)
-{
+void MLGL::strokeRect(const MLRect& r, float viewScale)
+{	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+	glLineWidth(1.0*viewScale);
+	
 	glBegin(GL_LINE_LOOP);
 //	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
 	glVertex2f(r.left(), r.top());
@@ -66,18 +71,28 @@ void MLGL::strokeRect(const MLRect& r)
 }
 
 // TEMP
-void MLGL::drawTextAt(float x, float y, float z, const char* ps)
+void MLGL::drawTextAt(float x, float y, float z, float textScale, float viewScale, const char* ps)
 {
-#ifdef MAC
+#ifdef ML_MAC
 	int len, i;
-    
-	glRasterPos3f(x, y, z);
+	glPushMatrix();
+	glTranslatef(x, y, z);
+	glScalef(textScale*viewScale, textScale*viewScale, z);
 	len = (int) strlen(ps);
+	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glEnable(GL_LINE_SMOOTH);
+	glLineWidth(1.0*viewScale);
+	
 	for (i = 0; i < len; i++)
 	{
-
-		glutBitmapCharacter(GLUT_BITMAP_HELVETICA_10, ps[i]);
+		glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, ps[i]);
 	}
+	glLineWidth(1.0f);
+	glPopMatrix();
+	
+	
 #endif
 }
 
