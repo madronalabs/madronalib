@@ -90,8 +90,11 @@ void* attachComponentToWindowRef (Component* comp, void* parentWindowOrView, boo
         {
             NSWindow* hostWindow = [[NSWindow alloc] initWithWindowRef: parentWindowOrView];
 			
-			// MLTEST [hostWindow retain];
-			// commenting this out fixes the ghost windows issue with 32-bit VST / Live 9.1.7.
+			// Ableton-specific fix for the ghost windows issue with 32-bit VST / Live 9.1.7.
+			if(!getHostType().isAbletonLive())
+			{
+				[hostWindow retain];
+			}
 			
             [hostWindow setCanHide: YES];
             [hostWindow setReleasedWhenClosed: YES];
@@ -207,7 +210,6 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             [pluginWindow close];
             comp->removeFromDesktop();
             [pluginView release];
-
             [hostWindow release];
 
 			static bool needToRunMessageLoop = 0 ;
