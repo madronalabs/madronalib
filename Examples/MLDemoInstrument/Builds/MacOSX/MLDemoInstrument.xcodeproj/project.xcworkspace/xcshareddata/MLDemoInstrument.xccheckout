@@ -10,41 +10,29 @@
 	<string>MLDemoInstrument</string>
 	<key>IDESourceControlProjectOriginsDictionary</key>
 	<dict>
-		<key>C990805F-636C-46F3-8997-0F9C56D38BFA</key>
+		<key>CFB2ED0CE041856555549A2E30B4752E8671332F</key>
 		<string>https://github.com/madronalabs/madronalib.git</string>
-		<key>DDEB5799-AE66-424B-8DD3-EFE8169995AE</key>
-		<string>git://github.com/julianstorer/JUCE.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>Examples/MLDemoInstrument/Builds/MacOSX/MLDemoInstrument.xcodeproj/project.xcworkspace</string>
+	<string>Examples/MLDemoInstrument/Builds/MacOSX/MLDemoInstrument.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
-		<key>C990805F-636C-46F3-8997-0F9C56D38BFA</key>
+		<key>CFB2ED0CE041856555549A2E30B4752E8671332F</key>
 		<string>../../../../../..</string>
-		<key>DDEB5799-AE66-424B-8DD3-EFE8169995AE</key>
-		<string>../../../../../../../juce</string>
 	</dict>
 	<key>IDESourceControlProjectURL</key>
 	<string>https://github.com/madronalabs/madronalib.git</string>
 	<key>IDESourceControlProjectVersion</key>
-	<integer>110</integer>
+	<integer>111</integer>
 	<key>IDESourceControlProjectWCCIdentifier</key>
-	<string>C990805F-636C-46F3-8997-0F9C56D38BFA</string>
+	<string>CFB2ED0CE041856555549A2E30B4752E8671332F</string>
 	<key>IDESourceControlProjectWCConfigurations</key>
 	<array>
 		<dict>
 			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
 			<string>public.vcs.git</string>
 			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>DDEB5799-AE66-424B-8DD3-EFE8169995AE</string>
-			<key>IDESourceControlWCCName</key>
-			<string>juce</string>
-		</dict>
-		<dict>
-			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
-			<string>public.vcs.git</string>
-			<key>IDESourceControlWCCIdentifierKey</key>
-			<string>C990805F-636C-46F3-8997-0F9C56D38BFA</string>
+			<string>CFB2ED0CE041856555549A2E30B4752E8671332F</string>
 			<key>IDESourceControlWCCName</key>
 			<string>madronalib</string>
 		</dict>
