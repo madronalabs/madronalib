@@ -452,6 +452,11 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 			getEngine()->setInputDataRate(r);
 		}
 	}
+	else if(action == "program")
+	{
+		int r = val;
+		loadPatchStateFromMIDIProgram(r);
+	}
 }
 
 #endif
@@ -532,7 +537,6 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			}
 			else
 			{		
-				pgm = clamp(pgm, 1, kMLPluginMIDIPrograms);
 				loadPatchStateFromMIDIProgram(pgm);
 			}
             type = MLControlEvent::kProgramChange;
@@ -1175,7 +1179,8 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 
 void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
-	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx - 1));
+	int pgm = clamp(idx, 0, kMLPluginMIDIPrograms - 1);
+	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(pgm));
 }
 
 void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
