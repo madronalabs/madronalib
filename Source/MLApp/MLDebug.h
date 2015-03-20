@@ -8,7 +8,9 @@
 
 #include "MLPlatform.h"
 #include "MLTextStreamListener.h"
-#include "JuceHeader.h" // requires JUCE only for message thread checking
+#ifdef ML_WINDOWS
+	#include "JuceHeader.h" // requires JUCE only for message thread checking
+#endif
 
 #include <iostream>
 
