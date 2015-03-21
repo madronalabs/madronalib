@@ -38,6 +38,9 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
+	// set up state to not save certain properties
+	mpEnvironmentState->ignoreProperty("protocol");
+	
 #if defined (__APPLE__)
 	// initialize T3D listener
 	mT3DHub.addListener(this);
