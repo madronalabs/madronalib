@@ -34,7 +34,7 @@ MLT3DHub::MLT3DHub() :
 	}
 	else
 	{
-		debug() << "MLPluginProcessor::initialize: couldn't get frame data!\n";
+		debug() << "MLT3DHub::initialize: couldn't get frame data!\n";
 	}
 
 	setPortOffset(0);
@@ -188,9 +188,15 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			mDataRate = r;
 			notifyListeners("data_rate", r);
 		}
-		else
+		else if (strcmp(addy, "/pgm")==0)
 		{
-            //debug() << "osc unhandled:" << addy << "\n";
+			osc::int32 pgm;
+			args >> pgm;
+            
+			
+			debug() << "GOT program change:" << pgm << "\n";
+			
+			notifyListeners("program", pgm);
 		}
 	}
 	catch( osc::Exception& e )

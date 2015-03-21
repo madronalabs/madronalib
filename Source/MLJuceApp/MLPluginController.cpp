@@ -572,14 +572,14 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 				std::list<std::string>::const_iterator it;
 				const std::list<std::string>& nodeIndex = node->getIndex();
 				
-				int p = 1;
-				for(it = nodeIndex.begin(); it != nodeIndex.end(); it++)
+				int pgm = 0;
+				for(it = nodeIndex.begin(); ((it != nodeIndex.end()) && (pgm <= 127)); it++)
 				{
 					const std::string& name = *it;
 					MLMenu::NodePtr subNode = node->getSubnodeByName(name);
 					{
 						std::ostringstream s;
-						s << p++;
+						s << pgm++;
 						const std::string pStr(s.str());
 						subNode->setDisplayPrefix(std::string("[") + pStr + std::string("] "));
 					}
