@@ -147,22 +147,25 @@ const MLFile& MLFileCollection::TreeNode::find(const std::string& path)
     return MLFile::nullObject;
 }
 
-void MLFileCollection::TreeNode::buildMenu(MLMenuPtr m, int level) const
+// TODO all these routines have similar traversal code. factor that out into an iterator for TreeNode. 
+// then callers can use the iterator instead to get all these things done.
+
+void MLFileCollection::TreeNode::buildMenu(MLMenuPtr m) const
 {
-    m->clear();
+	m->clear();
 	StringToNodeMapT::const_iterator it;
-    for(it = mChildren.begin(); it != mChildren.end(); ++it)
-    {
-        const TreeNodePtr n = it->second;
-        const MLFilePtr f = n->mFile;
+	for(it = mChildren.begin(); it != mChildren.end(); ++it)
+	{
+		const TreeNodePtr node = it->second;
+		const MLFilePtr f = node->mFile;
 		
 		if(f->exists())
 		{
 			if(f->isDirectory())
 			{
 				MLMenuPtr subMenu(new MLMenu());
-				n->buildMenu(subMenu);
-
+				node->buildMenu(subMenu);
+				
 				// TODO menu should be based on path, not file name?
 				m->addSubMenu(subMenu, f->getShortName());
 			}
@@ -171,7 +174,31 @@ void MLFileCollection::TreeNode::buildMenu(MLMenuPtr m, int level) const
 				m->addItem(f->getShortName());
 			}
 		}
-    }
+	}
+}
+
+void MLFileCollection::TreeNode::buildIndex(std::vector<MLFilePtr>& index) const
+{
+	StringToNodeMapT::const_iterator it;
+	
+	for(it = mChildren.begin(); it != mChildren.end(); ++it)
+	{
+		const TreeNodePtr node = it->second;
+		const MLFilePtr f = node->mFile;
+		
+		if(f->exists())
+		{
+			if(f->isDirectory())
+			{
+				node->buildIndex(index);
+			}
+			else
+			{
+				// push any leaves into node
+				index.push_back(f);
+			}
+		}
+	}
 }
 
 void MLFileCollection::TreeNode::dump(int level) 
@@ -213,7 +240,6 @@ MLFileCollection::~MLFileCollection()
 void MLFileCollection::clear()
 {
     mRoot->clear();
-	mFilesToProcess.clear();
     mFilesByIndex.clear();
 }
 
@@ -237,7 +263,7 @@ void MLFileCollection::removeListener(Listener* pToRemove)
 	}
 }
 
-// count the number of files in the collection, and begin making the collection.
+// count the number of files in the collection, and build the node tree.
 // returns the number of found files, or -1 if the file root is not usable.
 //
 int MLFileCollection::searchForFilesImmediate()
@@ -256,9 +282,9 @@ int MLFileCollection::searchForFilesImmediate()
         DirectoryIterator di (mRoot->mFile->getJuceFile(), recurse, wildCard, whatToLookFor);
         while (di.next())
         {
-            mFilesToProcess.push_back(di.getFile());
+			insertFileIntoTree(di.getFile());
+			found++;
         }
-        found = mFilesToProcess.size();
     }
     else
     {
@@ -267,46 +293,38 @@ int MLFileCollection::searchForFilesImmediate()
 	return found;
 }
 
-// examine all files in mFilesToProcess and build indexed tree
-//
-void MLFileCollection::buildTree()
+void MLFileCollection::insertFileIntoTree(juce::File f)
 {
-    int found = mFilesToProcess.size();
-	mFilesByIndex.clear();
-	
-    for(int i=0; i<found; i++)
-    {
-        juce::File f = mFilesToProcess[i];
-        String shortName = f.getFileNameWithoutExtension();
-        String relativePath;
-		juce::File parentDir = f.getParentDirectory();
-        if(parentDir == mRoot->mFile->getJuceFile())
-        {
-            relativePath = "";
-        }
-        else
-        {
-            relativePath = parentDir.getRelativePathFrom(mRoot->mFile->getJuceFile());
-        }
-        
-		// insert all leaf nodes matching extension into tree
-        if (f.isDirectory() || f.hasFileExtension(mExtension))
-        {
-			std::string fullName(f.getFullPathName().toUTF8());
-            MLFilePtr newFile(new MLFile(fullName));
-            
-            // insert file into file tree relative to collection root
- 			std::string relativeName = getRelativePathFromName(fullName);
-            mRoot->insertFile(relativeName, newFile);
+	String shortName = f.getFileNameWithoutExtension();		
+	String relativePath;
+	juce::File parentDir = f.getParentDirectory();
+	if(parentDir == mRoot->mFile->getJuceFile())
+	{
+		relativePath = "";
+	}
+	else
+	{
+		relativePath = parentDir.getRelativePathFrom(mRoot->mFile->getJuceFile());
+	}
 
-            // push leaf nodes to index
-			if(f.hasFileExtension(mExtension))
-			{
-				mFilesByIndex.push_back(newFile);
-			}
-        }
-    }
+	if (f.isDirectory() || f.hasFileExtension(mExtension))
+	{
+		std::string fullName(f.getFullPathName().toUTF8());
+		MLFilePtr newFile(new MLFile(fullName));
+
+		// insert file or directory into file tree relative to collection root
+		std::string relativeName = getRelativePathFromName(fullName);
+		mRoot->insertFile(relativeName, newFile);
+	}
 }
+
+// build the linear index of files in the tree.
+//
+void MLFileCollection::buildIndex()
+{	
+	mRoot->buildIndex(mFilesByIndex);
+}
+
 
 // Allow the listener to process the file from the tree.
 // takes zero-based index. sends one-based index and total count to the listener.
@@ -338,7 +356,7 @@ int MLFileCollection::processFilesImmediate(int delay)
 	cancelProcess();
 	int found = searchForFilesImmediate();
 	mProcessDelay = delay;
-	buildTree();
+	buildIndex();
 	
 	sendActionToListeners("begin");
 	int t = getSize();
@@ -422,10 +440,9 @@ const int MLFileCollection::getFileIndexByPath(const std::string& path)
 const MLFilePtr MLFileCollection::createFile(const std::string& relativePathAndName)
 {
     std::string sName = MLStringUtils::getShortName(relativePathAndName);
-    std::string fullPath = mRoot->mFile->getLongName() + "/" + relativePathAndName;
     
     // need absolute path to make the Juce file
-    //File *f = new File(String(CharPointer_UTF8(fullPath.c_str())));
+	std::string fullPath = mRoot->mFile->getLongName() + "/" + relativePathAndName;
     MLFilePtr newFile(new MLFile(fullPath));
     
     // insert file into file tree at relative path
@@ -486,26 +503,11 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
     return MLStringUtils::stripExtension(relPath);
 }
 
-MLMenuPtr MLFileCollection::buildMenu(bool flat) const
+// make a new menu named after this collection and containing all of the files in it.
+MLMenuPtr MLFileCollection::buildMenu() const
 {
-    // make a new menu named after this collection and containing all of the files in it.
     MLMenuPtr m(new MLMenu(mName));
-    int size = mFilesByIndex.size();
-    if(flat)
-    {
-        for(int i=0; i<size; ++i)
-        {
-            MLFilePtr f = mFilesByIndex[i];
-			if(f->exists() && !f->isDirectory())
-			{
-				m->addItem(f->getShortName());
-			}
-        }
-    }
-    else
-    {
-        mRoot->buildMenu(m);
-    }
+	mRoot->buildMenu(m);
     return m;
 }
 
@@ -582,8 +584,8 @@ void MLFileCollection::dump() const
 
 void MLFileCollection::run()
 {
-    buildTree();
-	
+	buildIndex();
+
 	sendActionToListeners("begin");
     int t = getSize();
     for(int i=0; i<t; i++)
