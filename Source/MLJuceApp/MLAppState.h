@@ -18,6 +18,8 @@
 #include <memory>
 #endif
 
+#include <set>
+
 extern const char* kMLStateDirName;
 
 class MLAppState : 
@@ -32,6 +34,8 @@ public:
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
 	void timerCallback();
+	
+	void ignoreProperty(MLSymbol property);
 	
 	// get and save state
 	// TODO JUCE-free
@@ -66,6 +70,7 @@ private:
 	File getAppStateDir() const;
 	File getAppStateFile() const;
 	std::vector<juce::MemoryBlock> mStateStack;
+	std::set<MLSymbol> mIgnoredProperties;
 };
 
 typedef std::tr1::shared_ptr<MLAppState> MLAppStatePtr;
