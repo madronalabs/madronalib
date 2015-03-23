@@ -19,11 +19,12 @@ MLSignalReporter::~MLSignalReporter()
 
 // add another signal view to our map, to be serviced periodically.
 //
-void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority)
+MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
-	if(!pEngine) return;	
-
+	if(!pEngine) return nullptr;	
+	MLSignalView* pNewView = nullptr;
+	
 	// first, find published signal if available and add read buffers. 
 	int bufSize = pEngine->getPublishedSignalBufferSize(alias);
     int voices = pEngine->getPublishedSignalVoices(alias);
@@ -43,7 +44,8 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 		viewSize = min(viewSize, bufSize);
 
         // add the list of widgets and attributes for viewing
-        mSignalViewsMap[alias].push_back(MLSignalViewPtr(new MLSignalView(w, attr, viewSize, priority)));
+		pNewView = new MLSignalView(w, attr, viewSize, priority);
+        mSignalViewsMap[alias].push_back(MLSignalViewPtr(pNewView));
         
         // push name to name vector
         mSignalNames.push_back(alias);
@@ -57,8 +59,9 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 	}
 	else
 	{
-		MLError() << "MLSignalReporter::addSignalViewToMap: no published signal " << alias << "!\n";
+		debug() << "MLSignalReporter::addSignalViewToMap: no published signal " << alias << "!\n";
 	}
+	return pNewView;
 }
 
 bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToCompare, int voices)
@@ -127,6 +130,13 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
                     pV->sendSignalToWidget(buffer1, samplesRead, voices);
                     drawn++;
                 }
+				if(pV->mSendOSC)
+				{
+debug() << "SENDING " << signalName << "via OSC\n";
+					
+					// MLTEST
+					
+				}
             }
 			buffer2 = buffer1;
         }

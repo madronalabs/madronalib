@@ -84,9 +84,6 @@ public:
 #endif // ML_MAC
 
 protected:
-
-	void prevPreset();
-	void nextPreset();
 	    
 	MLAppView* mpView;
     

@@ -6,12 +6,17 @@
 #ifndef _ML_DEBUG_H
 #define _ML_DEBUG_H
 
-#include "MLPlatform.h"
-#include "MLTextStreamListener.h"
-#include "JuceHeader.h" // requires JUCE only for message thread checking
+//#include "MLPlatform.h"
+//#include "MLTextStreamListener.h"
+
+//#include "JuceHeader.h" // TODO currently requires JUCE for message thread checking
 
 #include <iostream>
 
+std::ostream& debug();
+
+
+#if 0
 class MLTextStream
 {
 public:
@@ -70,7 +75,7 @@ public:
 		return *this;
 	}
 	
-	void sendOutputToListener(MLTextStreamListener* pL);	
+//	void sendOutputToListener(MLTextStreamListener* pL);	
 	void setActive(bool b) { mActive = b; }
 	void flush(void);
 
@@ -80,25 +85,33 @@ public:
 private:
 	std::string mName;
 	bool mActive;
-	MLTextStreamListener* mpListener;
+//	MLTextStreamListener* mpListener;
 	
-	std::stringstream mLocalStream;
+//	std::stringstream mLocalStream;
 	int mItemsInLocalStream;
 };
 
+				
+#endif // 0
+				
+				
 // Send a message to the application’s or plugin’s debug output stream.
 // in release builds this will be disabled completely.
 //
-extern MLTextStream& debug(void);
-                    
+//extern MLTextStream& debug(void);
+
+//				std::ostream& debug(void) { return std::cout; }
+
 // Send a message to the application or plugin’s error output.
 // in release builds these messages will still be logged.
 //
-extern MLTextStream& MLError(void);
+//extern MLTextStream& debug(void);
 
 // Send a message to the application or plugin’s console, if one exists.
 //
-extern MLTextStream& MLConsole(void);
+
+std::ostream& MLConsole(void);
+std::ostream& MLError(void);
 
 // start and stop display of debug messages.
 //

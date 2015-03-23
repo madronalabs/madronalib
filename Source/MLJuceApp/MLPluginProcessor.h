@@ -25,6 +25,9 @@
 #include "MLT3DHub.h"
 #endif
 
+#include "OscOutboundPacketStream.h"
+#include "UdpSocket.h"
+
 #include <vector>
 #include <map>
 
@@ -63,7 +66,7 @@ public:
 	// MLModel implementation
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
-	// juce::AudioProcessor implementation
+	// juce::AudioProcessor
 	const String getName() const { return MLProjectInfo::projectName; }
     void prepareToPlay (double sampleRate, int samplesPerBlock);
     void releaseResources();
@@ -73,8 +76,10 @@ public:
     bool isInputChannelStereoPair (int index) const;
     bool isOutputChannelStereoPair (int index) const;
 	double getTailLengthSeconds() const;
+	bool silenceInProducesSilenceOut() const { return false; }
 	bool acceptsMidi() const;
     bool producesMidi() const;
+	
 	void reset();
 	AudioProcessorEditor* createEditor();
 	bool hasEditor() const { return true; }
@@ -118,6 +123,7 @@ public:
 #if ML_MAC
 	void handleHubNotification(MLSymbol action, const float val);
 #endif
+	
 	// process
 	bool isOKToProcess();
     void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
@@ -200,7 +206,7 @@ protected:
 
 	int mInputProtocol;
 		
-	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
+	typedef std::shared_ptr<XmlElement> XmlElementPtr;
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
     
@@ -242,13 +248,23 @@ private:
     MLControlEventVector mControlEvents;
 	
 	MLAppStatePtr mpPatchState;
-	std::tr1::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
+	std::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
 	MLAppStatePtr mpEnvironmentState;
-	std::tr1::shared_ptr<cJSON> mpDefaultEnvironmentState;
+	std::shared_ptr<cJSON> mpDefaultEnvironmentState;
 #if defined(__APPLE__)
 	MLT3DHub mT3DHub;
+	
 #endif
+	
+	// MLTEST
+	// transmit sequencer state including OSC port offset on port 9123
+	std::unique_ptr<UdpTransmitSocket> mSeqInfoSocket;
+	std::vector<char> mpOSCBuf;
+	void sendSeqInfo();
+	int mVisSendCounter;
 
+public:
+	
 };
 
 #endif  // __PLUGINPROCESSOR__

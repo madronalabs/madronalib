@@ -14,7 +14,7 @@
 class MLDebugDisplay : 
 	public Component,
 	public MLWidget,
-	public MLTextStreamListener,
+//	public MLTextStreamListener,
 	public Timer
 {
 public:

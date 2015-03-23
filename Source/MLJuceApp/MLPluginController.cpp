@@ -112,10 +112,8 @@ void MLPluginController::timerCallback()
         mClockDivider = 0;
     }
 	
-    if(getView() != nullptr)
-    {
-        viewSignals();
-    }
+	MLAppView* pView = getView();
+	viewSignals(pView);
 	
 	// read from file action queue and do any needed actions
 	if(mConvertingPresets)
@@ -468,7 +466,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	MLMenu* menu = findMenuByName("preset");
 	if (menu == nullptr)
 	{
-		MLError() << "MLPluginController::populatePresetMenu(): menu not found!\n";
+		debug() << "MLPluginController::populatePresetMenu(): menu not found!\n";
 		return;
 	}			
 	menu->clear();

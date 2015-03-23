@@ -28,7 +28,7 @@ void MLSymbolKey::makeString()
 		mpString = new std::string(mpData, mLength);
 		if (!mpString)
 		{
-			MLError() << "MLSymbolKey::makeString: could not allocate!\n";
+			debug() << "MLSymbolKey::makeString: could not allocate!\n";
 		}
 		else
 		{
@@ -143,7 +143,7 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 			// check insertion
 			if (!newEntryRet.second)
 			{
-				MLError() << "MLSymbolTable::getSymbolID: error, key " << sym << " already in map!\n";
+				debug() << "MLSymbolTable::getSymbolID: error, key " << sym << " already in map!\n";
 			}
 			newEntryIter = newEntryRet.first;
 			beginIter = mMap.begin();
@@ -233,7 +233,7 @@ debug() << "    ID " << i << ": index "  << idx << " = " << s << ", ID = " << id
 		}
 		else
 		{
-			MLError() << "error: symbol index " << idx << "not found! \n";
+			debug() << "error: symbol index " << idx << "not found! \n";
 		}
 	}
 }
@@ -263,8 +263,8 @@ void MLSymbolTable::audit(void)
 		int idx = mIndexesByID[i];		
 		SymbolIDT id = getID(i);
 		const std::string& s = getStringByID(i);
-		MLError() << "MLSymbolTable: error in symbol table, line " << i << ":\n";
-		MLError() << "    ID " << i << ": index "  << idx << " = " << s << ", ID = " << id << "\n";
+		debug() << "MLSymbolTable: error in symbol table, line " << i << ":\n";
+		debug() << "    ID " << i << ": index "  << idx << " = " << s << ", ID = " << id << "\n";
 	}
 }
 

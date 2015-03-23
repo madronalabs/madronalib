@@ -54,7 +54,7 @@ public:
 	
 	// TODO this looks a lot like MLMenu::Node and should use the same Node template or object
 	class TreeNode;
-	typedef std::tr1::shared_ptr<TreeNode> TreeNodePtr;
+	typedef std::shared_ptr<TreeNode> TreeNodePtr;
 	typedef std::map<std::string, TreeNodePtr, MLStringCompareFn> StringToNodeMapT;
 	class TreeNode
 	{

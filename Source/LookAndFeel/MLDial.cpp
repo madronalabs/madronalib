@@ -88,7 +88,7 @@ MLDial::MLDial () :
 	mThumbLayerNeedsRedraw(true)
 
 {
-	mpTimer = std::tr1::shared_ptr<GestureTimer>(new GestureTimer(this));
+	mpTimer = std::shared_ptr<GestureTimer>(new GestureTimer(this));
 
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();

@@ -6,12 +6,12 @@
 #ifndef _ML_DSP_H
 #define _ML_DSP_H
 
-#include "AppConfig.h"
+// NOTE should require nothing
 
 #ifdef _WIN32
 	#include <memory>
 #else
-	#include <tr1/memory>
+	//#include <tr1/memory>
 #endif
 
 #include "math.h"

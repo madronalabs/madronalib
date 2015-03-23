@@ -107,7 +107,7 @@ void MLProcDelayOutput::doParams()
 	}
 	else
 	{
-		MLError() << "MLProcDelayOutput::doParams: couldn't find delay proc " << delayName << "\n";
+		debug() << "MLProcDelayOutput::doParams: couldn't find delay proc " << delayName << "\n";
 	}
 	
 	if(getParam("backwards"))

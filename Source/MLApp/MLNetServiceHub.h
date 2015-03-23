@@ -20,6 +20,7 @@
 #include <sstream>
 #include <list>
 #include <memory>
+#include <sys/select.h>
 
 #include "MLDebug.h" // TEMP
 

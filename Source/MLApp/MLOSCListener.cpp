@@ -34,14 +34,14 @@ void * MLOSCListenerStartThread(void *arg)
 	}
 	catch( osc::Exception& e )
 	{
-		MLError() << "MLOSCListener caught osc exception: " << e.what() << "\n";
+		std::cout << "MLOSCListener caught osc exception: " << e.what() << "\n";
 	}
 	catch( std::runtime_error& e )
 	{
-		MLError() << "MLOSCListener caught runtime_error exception: " << e.what() << "\n";
+		std::cout << "MLOSCListener caught runtime_error exception: " << e.what() << "\n";
 	}
 	
-	// debug() << "MLOSCListener: listener thread on port " << port << " terminated.\n";
+	// std::cout << "MLOSCListener: listener thread on port " << port << " terminated.\n";
 	return 0;
 }
 
@@ -56,7 +56,7 @@ int MLOSCListener::listenToOSC(int port)
 		}
 		try
 		{
-			debug() << "MLOSCListener: trying listen on port " << port << "...\n";
+			std::cout << "MLOSCListener: trying listen on port " << port << "...\n";
 			mpSocket = new UdpListeningReceiveSocket(
 				IpEndpointName( IpEndpointName::ANY_ADDRESS, port), 
 				this);
@@ -64,30 +64,30 @@ int MLOSCListener::listenToOSC(int port)
 		catch( osc::Exception& e )
 		{
 			mpSocket = 0;
-			debug() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
-			debug() << "error: " << e.what() << "\n";
+			std::cout << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
+			std::cout << "error: " << e.what() << "\n";
 		}
 		catch(...)
 		{
 			mpSocket = 0;
-			debug() << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
-			debug() << "Unknown error.\n";
+			std::cout << "MLOSCListener::listenToOSC: couldn't bind to port " << port << ".\n";
+			std::cout << "Unknown error.\n";
 		}
 		
 		if(mpSocket)
 		{
-			debug() << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
+			std::cout << "MLOSCListener::listenToOSC: created receive socket on port " << port << ".\n";
 			mPort = port;
 			
 			int err;
 			pthread_attr_t attr;
 			
-			// debug() << "initializing pthread attributes...\n";
+			// std::cout << "initializing pthread attributes...\n";
 			err = pthread_attr_init(&attr);
 
 			if(!err)
 			{
-				// debug() << "creating listener thread...\n";
+				// std::cout << "creating listener thread...\n";
 				err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);
 				
 				if(!err)
@@ -102,7 +102,7 @@ int MLOSCListener::listenToOSC(int port)
 	{
 		if(mpSocket)
 		{
-			debug() << "MLOSCListener: disconnecting.\n";
+			std::cout << "MLOSCListener: disconnecting.\n";
 			mpSocket->Break();
 			delete mpSocket;
 			mpSocket = 0;

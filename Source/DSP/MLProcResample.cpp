@@ -515,7 +515,7 @@ void MLProcResample::upsample0(MLSample* pSrc, MLSample* pDest, int inFrames, in
 		break;
 		
 		default: 
-			MLError() << "MLProcResample: invalid upsample ratio " << ratio << "!\n";
+			debug() << "MLProcResample: invalid upsample ratio " << ratio << "!\n";
 		break;
 	}
 }
@@ -566,7 +566,7 @@ void MLProcResample::upsample1(MLSample* pSrc, MLSample* pDest, int inFrames, in
 		break;
 		
 		default: 
-			MLError() << "MLProcResample: invalid upsample ratio " << ratio << "!\n";
+			debug() << "MLProcResample: invalid upsample ratio " << ratio << "!\n";
 		break;
 	}
 }
@@ -599,7 +599,7 @@ void MLProcResample::upsample2(MLSample* pSrc, MLSample* pDest, int inFrames, in
 		break;
 		
 		default: 
-			MLError() << "MLProcResample: invalid upsample ratio " << ratio << "!\n";
+			debug() << "MLProcResample: invalid upsample ratio " << ratio << "!\n";
 		break;
 	}
 }
@@ -755,7 +755,7 @@ void MLProcResample::downsample2(MLSample* pSrc, MLSample* pDest, int inFrames, 
 			}
 		break;
 		default:
-			MLError() << "MLProcResample: invalid downsample ratio " << ratio << "!\n";
+			debug() << "MLProcResample: invalid downsample ratio " << ratio << "!\n";
 		break;
 	}
 }
@@ -766,7 +766,7 @@ void MLProcResample::process(const int inFrames)
 	MLSignal& y = getOutput();
 	if (mRatio.isUnity())
 	{
-		MLError() << "MLProcResample: unity ratio!\n";
+		debug() << "MLProcResample: unity ratio!\n";
 		return;
 	}
     

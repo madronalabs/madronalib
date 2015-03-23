@@ -5,6 +5,13 @@
 
 #include "MLDebug.h"
 
+std::ostream& debug() { return std::cout; }
+std::ostream& MLConsole() { return std::cout; } // MLTEST TEMP
+std::ostream& MLError() { return std::cout; } // MLTEST TEMP
+
+// MLTEST
+#if 0
+
 MLTextStream::MLTextStream(const char* name) : 
 	mName(name), 
 	mActive(true),
@@ -82,6 +89,7 @@ void MLTextStream::display()
 
 #endif // ML_WINDOWS
 
+/*
 class MLDebugThread : public juce::Thread
 {
 public:
@@ -106,9 +114,11 @@ public:
 		}
 	}
 };
+*/
 
 // global entry points
 
+/*
 // Send a message to the application or plugin’s debug output.
 // in release builds this will be disabled completely.
 //
@@ -120,11 +130,13 @@ MLTextStream& debug(void)
 #endif
 	return theDebugMessageStream;
 }
+*/
 
+/*
 // Send a message to the application or plugin’s error output. 
 // in release builds these messages will still be logged.
 //
-MLTextStream& MLError(void)
+MLTextStream& debug(void)
 {
 	static MLTextStream theErrorMessageStream("error");
 	return theErrorMessageStream;
@@ -137,24 +149,29 @@ MLTextStream& MLConsole(void)
 	static MLTextStream theConsoleMessageStream("console");
 	return theConsoleMessageStream;
 }
+*/
 
+/*
 MLDebugThread& theDebugThread()
 {
 	static MLDebugThread theDebugThreadObject;
 	return theDebugThreadObject;
 }
+*/
+
+#endif // 0
 
 void startDebugging(void)
 {
 #if DEBUG
-	theDebugThread().startThread();
+	//theDebugThread().startThread();
 #endif
 }
 
 void stopDebugging(void)
 {
 #if DEBUG
-	theDebugThread().stopThread(100);
+	//theDebugThread().stopThread(100);
 #endif
 }
 

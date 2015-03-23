@@ -11,10 +11,11 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <memory>
 #include "math.h"
 #include "MLDSP.h"
 #include "MLVector.h"
-#include "MLDebug.h"
+// #include "MLDebug.h"
 
 #ifdef DEBUG
 	const int kMLSignalEndSize = 4;
@@ -361,8 +362,8 @@ public:
 	float getMean() const;
 	float getMin() const;
 	float getMax() const;
-	void dump(int verbosity = 0) const;
-	void dump(const MLRect& b) const;
+	void dump(std::ostream& s, int verbosity = 0) const;
+	void dump(std::ostream& s, const MLRect& b) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
 	inline bool is2D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
@@ -415,7 +416,7 @@ private:
 	MLSampleRate mRate;
 };
 
-typedef std::tr1::shared_ptr<MLSignal> MLSignalPtr;
+typedef std::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);

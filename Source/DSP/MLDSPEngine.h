@@ -99,8 +99,6 @@ public:
 	
 	// ----------------------------------------------------------------
 	// Process
-	
-public:
 
 	void setCollectStats(bool k);
 

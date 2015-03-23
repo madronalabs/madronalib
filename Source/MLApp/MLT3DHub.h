@@ -26,6 +26,8 @@
 #include "pthread.h"
 #include <stdexcept>
 
+#include "JuceHeader.h"
+
 class MLT3DHub :
 	public MLNetServiceHub,
 	private MLOSCListener,
@@ -41,6 +43,7 @@ public:
 	~MLT3DHub();
 	
 	void setEnabled(int e);
+	int getPortOffset() { return mUDPPortOffset; }
 	void setPortOffset(int offset);
 	
 	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);

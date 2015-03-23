@@ -12,7 +12,7 @@ const int kMLModelUpdateInterval = 100;
 MLModel::MLModel() :
     MLPropertyListener(this)
 {
-	mpTimer = std::tr1::shared_ptr<ModelTimer>(new ModelTimer(this));
+	mpTimer = std::shared_ptr<ModelTimer>(new ModelTimer(this));
 }
 
 MLModel::~MLModel()

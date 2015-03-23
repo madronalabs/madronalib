@@ -84,7 +84,7 @@ void MLAppState::saveStateToStateFile()
 	{
 		if(!dir.isDirectory())
 		{
-			MLError() << "MLAppState:: file present instead of directory " << 
+			debug() << "MLAppState:: file present instead of directory " << 
 				dir.getFileName() << "!  Aborting.\n";
 		}
 	}
@@ -94,7 +94,7 @@ void MLAppState::saveStateToStateFile()
 		Result r = dir.createDirectory();
 		if(r.failed())
 		{
-			MLError() << "Error creating state directory: " << r.getErrorMessage() << "\n";
+			debug() << "Error creating state directory: " << r.getErrorMessage() << "\n";
 			return;
 		}
 	}
@@ -106,7 +106,7 @@ void MLAppState::saveStateToStateFile()
 		Result r = stateFile.create();
 		if(r.failed())
 		{
-			MLError() << "Error creating state file: " << r.getErrorMessage() << "\n";
+			debug() << "Error creating state file: " << r.getErrorMessage() << "\n";
 			return;
 		}
 	}
@@ -169,7 +169,7 @@ cJSON* MLAppState::getStateAsJSON()
 					}
 					break;
 				default:
-					MLError() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
+					debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
 					break;
 			}
 		}
@@ -287,7 +287,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 								}
 								else
 								{
-									MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
+									debug() << "MLAppState::setStateFromJSON: wrong array size!\n";
 								}
 								mpModel->setProperty(key, signalValue);
 							}

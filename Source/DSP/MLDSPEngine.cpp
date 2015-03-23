@@ -6,6 +6,7 @@
 #include "MLDSPEngine.h"
 
 const char * kMLInputToSignalProcName("the_midi_inputs");
+const char * kMLStepSeqProcName("voices/voice/seq/seq");
 const char * kMLHostPhasorProcName("the_host_phasor");
 const char * kMLPatcherProcName("voices/voice/patcher");
 
@@ -50,7 +51,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		
 	}
 	
-	// TODO refactor
+	// TODO refactor - paths to proccs are plugin-specific
 	if (makeMidiInput)
  	{
 		// make XML node describing MIDI to signal processor.

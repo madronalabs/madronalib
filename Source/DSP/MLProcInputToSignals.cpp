@@ -274,7 +274,7 @@ MLProc::err MLProcInputToSignals::resize()
 		r = mVoices[i].resize(bufSize);
 		if (!(r == OK))
         {
-            MLError() << "MLProcInputToSignals: resize error!\n";
+            debug() << "MLProcInputToSignals: resize error!\n";
             break;
         }
 	}
@@ -360,7 +360,7 @@ int MLProcInputToSignals::getOutputIndex(const MLSymbol name)
 	
 	if (!idx)
 	{
-		MLError() << "MLProcInputToSignals::getOutputIndex: null output " << name << "\n";	
+		debug() << "MLProcInputToSignals::getOutputIndex: null output " << name << "\n";	
 	}
 
 	// debug() << "MLProcInputToSignals:getOutputIndex output " << name << 	": " << idx << "\n";

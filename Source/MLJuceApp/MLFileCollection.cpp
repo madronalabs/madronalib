@@ -77,7 +77,7 @@ void MLFileCollection::TreeNode::insertFile(const std::string& path, MLFilePtr f
             // find or add first dir
             if(firstDir == "")
             {
-                MLError() << "MLFile::insert: empty directory name!\n";
+                debug() << "MLFile::insert: empty directory name!\n";
             }
             else
             {
@@ -91,7 +91,7 @@ void MLFileCollection::TreeNode::insertFile(const std::string& path, MLFilePtr f
     }
     else
     {
-        MLError() << "MLFile::insert: empty file name!\n";
+        debug() << "MLFile::insert: empty file name!\n";
     }
 }
 
@@ -126,7 +126,7 @@ const MLFile& MLFileCollection::TreeNode::find(const std::string& path)
             // find file matching first dir
             if(firstDir == "")
             {
-                MLError() << "MLFileCollection::TreeNode::find: empty directory name!\n";
+                debug() << "MLFileCollection::TreeNode::find: empty directory name!\n";
             }
             else if(mChildren.find(firstDir) != mChildren.end())
             {
@@ -142,7 +142,7 @@ const MLFile& MLFileCollection::TreeNode::find(const std::string& path)
     }
     else
     {
-        MLError() << "MLFile::find: empty file name!\n";
+        debug() << "MLFile::find: empty file name!\n";
     }
     return MLFile::nullObject;
 }

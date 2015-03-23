@@ -1390,9 +1390,9 @@ float MLSignal::getMax() const
 	return fMax;
 }
 
-void MLSignal::dump(int verbosity) const
+void MLSignal::dump(std::ostream& s, int verbosity) const
 {
-	debug() << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
+	s << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;
@@ -1401,49 +1401,49 @@ void MLSignal::dump(int verbosity) const
 	{
 		if(isConstant())
 		{
-			debug() << "constant " << mDataAligned[0] << "\n";
+			s << "constant " << mDataAligned[0] << "\n";
 		}
 		else if(is2D())
 		{
 			for (int j=0; j<h; ++j)
 			{
-				debug() << j << " | ";
+				s << j << " | ";
 				for(int i=0; i<w; ++i)
 				{
-					debug() << f(i, j) << " ";
+					s << f(i, j) << " ";
 				}
-				debug() << "\n";
+				s << "\n";
 			}
 		}
 		else
 		{
-			debug() << std::setprecision(5);
+			s << std::setprecision(5);
 			for (int i=0; i<w; ++i)
 			{
                 if(verbosity > 1)
                 {
-                    debug() << "[" << i << "]";
+                    s << "[" << i << "]";
                 }
-                debug() << mDataAligned[i] << " ";
+                s << mDataAligned[i] << " ";
 			}
-			debug() << "\n";
+			s << "\n";
 		}
 	}
 }
 
-void MLSignal::dump(const MLRect& b) const
+void MLSignal::dump(std::ostream& s, const MLRect& b) const
 {
 	const MLSignal& f = *this;
 	{
-        debug() << std::fixed << std::setprecision(3);
+        s << std::fixed << std::setprecision(3);
 		for (int j=b.top(); j< b.bottom(); ++j)
 		{
-			debug() << j << " | ";
+			s << j << " | ";
 			for(int i=b.left(); i< b.right(); ++i)
 			{
-				debug() << f(i, j) << " ";
+				s << f(i, j) << " ";
 			}
-			debug() << "\n";
+			s << "\n";
 		}
 	}
 }
@@ -1594,7 +1594,7 @@ void MLSignal::partialDiffY()
 
 std::ostream& operator<< (std::ostream& out, const MLSignal & s)
 {
-	s.dump();
+	s.dump(out);
 	return out;
 }
 

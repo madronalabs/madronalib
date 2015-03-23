@@ -6,6 +6,11 @@
 #include "MLPluginProcessor.h"
 
 const int kMaxControlEventsPerBlock = 1024;
+const int kSeqInfoPort = 9123;
+
+const int kUDPOutputBufferSize = 1024;
+const char* kUDPAddressName = "localhost";
+
 
 MLPluginProcessor::MLPluginProcessor() : 
 	mInputProtocol(-1),
@@ -34,7 +39,7 @@ MLPluginProcessor::MLPluginProcessor() :
 		"patch", MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber));
 	
 	// initialize environment model and state
-	mpEnvironmentModel = std::tr1::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
+	mpEnvironmentModel = std::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
 	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
@@ -45,6 +50,13 @@ MLPluginProcessor::MLPluginProcessor() :
 	// initialize T3D listener
 	mT3DHub.addListener(this);
 #endif
+	
+
+	// MLTEST vis/seq
+	mpOSCBuf.resize(kUDPOutputBufferSize);
+	mSeqInfoSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kSeqInfoPort)));		
+	mVisSendCounter = 0;
+		
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -55,6 +67,8 @@ MLPluginProcessor::~MLPluginProcessor()
 #if defined (__APPLE__)
 	mT3DHub.removeListener(this);
 #endif
+	
+
 }
 
 #pragma mark MLModel
@@ -170,12 +184,12 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 		}
 		else
 		{
-			MLError() << "MLPluginProcessor: error loading plugin description!\n";
+			debug() << "MLPluginProcessor: error loading plugin description!\n";
 		}   
 	}
 	else
 	{
-		MLError() << "MLPluginProcessor: couldn't load plugin description!\n";
+		debug() << "MLPluginProcessor: couldn't load plugin description!\n";
 		return;
 	}
 
@@ -460,6 +474,10 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 		int r = val;
 		loadPatchStateFromMIDIProgram(r);
 	}
+	else if(action == "volume")
+	{
+		getEngine()->setMasterVolume(val);
+	}
 }
 
 #endif
@@ -633,6 +651,18 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
         }
 		
         mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+		
+		// MLTEST
+		// if(osc enabled)
+		mVisSendCounter += samples;
+		int samplesPerSecond = 44100;
+		int period = samplesPerSecond/10;
+		if(mVisSendCounter > period)
+		{
+			sendSeqInfo();
+			mVisSendCounter -= period;
+		}
+		
     }
 	else
 	{
@@ -811,7 +841,6 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 bool MLPluginProcessor::isParameterAutomatable (int idx) const
 {
-	debug() << "AUTO? " << idx << " : " << mEngine.getParamPtr(idx)->getAutomatable() << "\n";
 	return mEngine.getParamPtr(idx)->getAutomatable();
 }
 
@@ -1183,6 +1212,9 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
 	int pgm = clamp(idx, 0, kMLPluginMIDIPrograms - 1);
+	
+	debug() << "MLPluginProcessor: LOADING pgm " << pgm << "\n";
+	
 	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(pgm));
 }
 
@@ -1250,7 +1282,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	if (blobVersion > pluginVersion)
 	{
 		// TODO show error to user
-		MLError() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
+		debug() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
 		return;
 	}
     
@@ -1370,7 +1402,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 					}
 					else
 					{
-						MLError() << "MLPluginProcessor::setStateFromXML: no such parameter! \n";
+						debug() << "MLPluginProcessor::setStateFromXML: no such parameter! \n";
 					}
 				}
 				else
@@ -1410,6 +1442,8 @@ void MLPluginProcessor::scanAllFilesImmediate()
     mScaleFiles->processFilesImmediate();
     mPresetFiles->processFilesImmediate();
     mMIDIProgramFiles->processFilesImmediate();
+	// MLTEST
+	//mMIDIProgramFiles->dump();
 }
 
 #pragma mark presets
@@ -1564,7 +1598,9 @@ void MLPluginProcessor::setInputProtocol(int p)
 	if(p != mInputProtocol)
 	{
 		// set the environment model’s protocol property, which a View can use to change its UI
+		
 		getEnvironment()->setProperty("protocol", p);
+		
 		getEngine()->setEngineInputProtocol(p);
 		switch(p)
 		{
@@ -1577,4 +1613,22 @@ void MLPluginProcessor::setInputProtocol(int p)
 	}
 }
 
+#include "MLProcStepSequencer.h"
+
+void MLPluginProcessor::sendSeqInfo()
+{
+	int chan = mT3DHub.getPortOffset();
+	int seqData = mT3DHub.getPortOffset();
+	
+
+	osc::OutboundPacketStream p( mpOSCBuf.data(), kUDPOutputBufferSize );
+
+	p << osc::BeginMessage( "/vis/seq" );	
+	p << chan;
+	p << 1232;
+	p << osc::EndMessage; 
+	
+	// debug() << "sending " << p.Size() << " bytes\n";
+	mSeqInfoSocket->Send( p.Data(), p.Size() );
+}
 

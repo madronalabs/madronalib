@@ -6,7 +6,7 @@
 #include "MLDebugDisplay.h"
 #include "MLLookAndFeel.h"
 
-static const int kMLDebugMaxChars = 32768;
+// static const int kMLDebugMaxChars = 32768;
 
 //==============================================================================
 MLDebugDisplay::MLDebugDisplay () :
@@ -37,13 +37,17 @@ void MLDebugDisplay::display()
 	int selectSize = mpComp->getHighlightedRegion().getLength();
 	if(selectSize > 0) return;
 	
-	mStream.flush();
-	std::string outStr = mStream.str();
-	const char* pOutput = outStr.c_str();
-	String newStr(pOutput);
+	std::cout.flush();
+	//mStream.flush();
+	//std::string outStr = mStream.str();
+	// const char* pOutput = outStr.c_str();
+	//String newStr(pOutput);
+	
+	// MLTEST
+	/*
 
 	// erase stream contents
-	mStream.str(std::string());
+	//mStream.str(std::string());
 
 	int len = newStr.length();
 	if (len > 0)
@@ -69,6 +73,7 @@ void MLDebugDisplay::display()
 			mpComp->scrollToLine(startLine);
 		}
 	}
+	 */
 }
 
 void MLDebugDisplay::resizeWidget(const MLRect& b, const int)

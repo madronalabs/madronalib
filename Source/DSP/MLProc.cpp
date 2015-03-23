@@ -68,7 +68,7 @@ MLProc::err MLProc::prepareToProcess()
 		}
 		else
 		{
-			MLError() << "MLProc::prepareToProcess: null output " << i << " for " << getName() << "! \n";
+			debug() << "MLProc::prepareToProcess: null output " << i << " for " << getName() << "! \n";
 		}
 //debug() << "    out " << i << ": " << (void *)(MLSignal*)(&out) << ", " << out.getSize() << " samples.\n";
 	}
@@ -453,59 +453,59 @@ void MLProc::dumpProc(int indent)
 
 void MLProc::printErr(MLProc::err e)
 {
-	MLError() << "*** proc " << getName() << " error: ";
+	debug() << "*** proc " << getName() << " error: ";
 	switch(e)
 	{
 		case memErr:
-			MLError() << "memErr\n";
+			debug() << "memErr\n";
 			break;		
 		case inputBoundsErr:
-			MLError() << "inputBoundsErr\n";
+			debug() << "inputBoundsErr\n";
 			break;		
 		case inputOccupiedErr:
-			MLError() << "inputOccupiedErr\n";
+			debug() << "inputOccupiedErr\n";
 			break;		
 		case inputRateErr:
-			MLError() << "inputRateErr\n";
+			debug() << "inputRateErr\n";
 			break;		
 		case noInputErr:
-			MLError() << "noInputErr\n";
+			debug() << "noInputErr\n";
 			break;		
 		case inputMismatchErr:
-			MLError() << "inputMismatchErr\n";
+			debug() << "inputMismatchErr\n";
 			break;		
 		case fractionalBlockSizeErr:
-			MLError() << "fractionalBlockSizeErr\n";
+			debug() << "fractionalBlockSizeErr\n";
 			break;		
 		case connectScopeErr:
-			MLError() << "connectScopeErr\n";
+			debug() << "connectScopeErr\n";
 			break;		
 		case nameInUseErr:
-			MLError() << "nameInUseErr\n";
+			debug() << "nameInUseErr\n";
 			break;
 		case headNotContainerErr:
-			MLError() << "headNotContainerErr\n";
+			debug() << "headNotContainerErr\n";
 			break;
 		case nameNotFoundErr:
-			MLError() << "nameNotFoundErr\n";
+			debug() << "nameNotFoundErr\n";
 			break;
 		case fileOpenErr:
-			MLError() << "fileOpenErr\n";
+			debug() << "fileOpenErr\n";
 			break;
 		case docSyntaxErr:
-			MLError() << "docSyntaxErr\n";
+			debug() << "docSyntaxErr\n";
 			break;
 		case newProcErr:
-			MLError() << "newProcErr\n";
+			debug() << "newProcErr\n";
 			break;
 		case SSE2RequiredErr:
-			MLError() << "SSE2RequiredErr\n";
+			debug() << "SSE2RequiredErr\n";
 			break;
 		case OK:
-			MLError() << "OK\n";
+			debug() << "OK\n";
 			break;
 		default:
-			MLError() << "unknown error " << e << "\n";
+			debug() << "unknown error " << e << "\n";
 			break;
 	}
 }

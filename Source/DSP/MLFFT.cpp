@@ -165,7 +165,7 @@ int FFT2D(MLSignal& cReal, MLSignal& cImag, int nx, int ny, int dir)
 	if (real == NULL || imag == NULL)
 		return(false);
 	if (!Powerof2(nx,&m,&twopm) || twopm != nx)
-		return(FALSE);
+		return(false);
 	for (j=0;j<ny;j++) {
 		for (i=0;i<nx;i++) {
 			real[i] = cReal(i, j);
@@ -205,7 +205,7 @@ int FFT2D(MLSignal& cReal, MLSignal& cImag, int nx, int ny, int dir)
 	delete[] real;
 	delete[] imag;
 	
-	return(TRUE);
+	return(true);
 }
 
 int FFT2DReal(MLSignal& cReal, int nx, int ny, int dir)

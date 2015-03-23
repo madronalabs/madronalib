@@ -192,16 +192,18 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 		{
 			osc::int32 pgm;
 			args >> pgm;
-            
-			
-			debug() << "GOT program change:" << pgm << "\n";
-			
 			notifyListeners("program", pgm);
+		}
+		else if (strcmp(addy, "/vol")==0)
+		{
+			float v;
+			args >> v;
+			notifyListeners("volume", v);
 		}
 	}
 	catch( osc::Exception& e )
 	{
-		MLError() << "error parsing t3d message: " << e.what() << "\n";
+		debug() << "error parsing t3d message: " << e.what() << "\n";
 	}
 }
 

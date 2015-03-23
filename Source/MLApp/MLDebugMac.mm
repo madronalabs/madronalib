@@ -10,6 +10,7 @@
 	
 #ifdef ML_MAC
 
+#if 0
 void MLTextStream::display()
 {
     if (!(juce::MessageManager::getInstance()->isThisTheMessageThread()))
@@ -36,6 +37,6 @@ void MLTextStream::display()
 		}
 	}
 }
-		
+#endif	
 				
 #endif	// ML_MAC

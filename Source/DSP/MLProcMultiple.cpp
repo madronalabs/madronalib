@@ -114,13 +114,13 @@ MLProc::err MLProcMultiple::addProc(const MLSymbol className, const MLSymbol pro
 		}
 		else
 		{
-			MLError() << "MLProcMultiple: addProc: couldn't make proc!\n";
+			debug() << "MLProcMultiple: addProc: couldn't make proc!\n";
 			e = newProcErr;
 		}
 	}
 	else
 	{
-		MLError() << "MLProcMultiple: addProc: name " << procName << " already in use!\n";
+		debug() << "MLProcMultiple: addProc: name " << procName << " already in use!\n";
 		e = nameInUseErr;
 	}
 	return e;

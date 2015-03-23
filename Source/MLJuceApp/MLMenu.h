@@ -15,9 +15,9 @@
 
 class MLMenu;
 
-typedef std::tr1::shared_ptr<MLMenu> MLMenuPtr;
+typedef std::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
-typedef std::tr1::shared_ptr<juce::PopupMenu> JuceMenuPtr;
+typedef std::shared_ptr<juce::PopupMenu> JuceMenuPtr;
 
 // adapter to Juce menu
 class MLMenu
@@ -25,7 +25,7 @@ class MLMenu
 public:
     
     class Node;
-    typedef std::tr1::shared_ptr<Node> NodePtr;
+    typedef std::shared_ptr<Node> NodePtr;
     typedef std::map<std::string, NodePtr, MLStringCompareFn> StringToMenuNodeMapT;
     class Node
     {

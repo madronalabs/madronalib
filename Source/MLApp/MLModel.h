@@ -33,7 +33,7 @@ private:
 	private:
 		MLModel* mpOwnerModel;
 	};
-	std::tr1::shared_ptr<ModelTimer> mpTimer;
+	std::shared_ptr<ModelTimer> mpTimer;
 };
 
 #endif // __ML_MODEL__

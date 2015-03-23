@@ -13,7 +13,7 @@ MLMultiSlider::MLMultiSlider () :
 	isMouseWheelMoving(false),
 	mGestureInProgress(false)
 {
-	mpTimer = std::tr1::shared_ptr<GestureTimer>(new GestureTimer(this));
+	mpTimer = std::shared_ptr<GestureTimer>(new GestureTimer(this));
 	
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -291,7 +291,7 @@ float MLMultiSlider::snapValue (float attemptedValue, const bool)
 	float r = 0.;
 	if (attemptedValue != attemptedValue)
 	{
-		MLError() << "dial " << getName() << ": not a number!\n";
+		debug() << "dial " << getName() << ": not a number!\n";
 	}
 	else 
 	{
