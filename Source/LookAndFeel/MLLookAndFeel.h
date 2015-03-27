@@ -456,9 +456,6 @@ public:
 	void setGridUnitSize(float s);
 	float getGridUnitSize();
 	void setGridUnits(double gx, double gy);
-	
-	int getGridUnitsX();
-	int getGridUnitsY();
 
 	float getMargin();
 	float getSmallMargin();

@@ -562,16 +562,6 @@ void MLLookAndFeel::setGridUnits(double gx, double gy)
 	mGridUnitsY = gy;
 }
 
-int MLLookAndFeel::getGridUnitsX()
-{
-	return mGridUnitsX;
-}
-
-int MLLookAndFeel::getGridUnitsY()
-{
-	return mGridUnitsY;
-}
-
 // big margin for setting back components from grid edges. 
 //
 float MLLookAndFeel::getMargin()
