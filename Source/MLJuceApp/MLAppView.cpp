@@ -26,14 +26,14 @@ MLAppView::~MLAppView()
 void MLAppView::addParamView(MLSymbol p, MLWidget* w, MLSymbol attr)
 {
 	if(p && w && attr)
-		getReporter()->addPropertyViewToMap(p, w, attr);
+		mpReporter->addPropertyViewToMap(p, w, attr);
 }
 
 void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = MLSymbol())
 {
 	addWidget(pW, name);
 	pW->setGridBounds(r);
-	pW->addListener(getResponder());
+	pW->addListener(mpResponder);
 	addAndMakeVisible(pW->getComponent());
 }
 

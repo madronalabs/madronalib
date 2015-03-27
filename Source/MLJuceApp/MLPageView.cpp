@@ -32,7 +32,7 @@ void MLPageView::setParent(MLAppView* pParent)
 
 MLAppView* MLPageView::addPage()
 {
-	MLAppView* newPage = new MLAppView(getResponder(), getReporter());
+	MLAppView* newPage = new MLAppView(mpResponder, mpReporter);
     int pageNum = mPages.size();
     String pageStr = String("page") + String(pageNum);
     newPage->setName(pageStr);

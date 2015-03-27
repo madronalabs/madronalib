@@ -87,9 +87,6 @@ public:
 
 	void resized();
 	void setPeerBounds(int x, int y, int w, int h);
-	
-	inline MLWidget::Listener* getResponder() { return mpResponder; }
-	inline MLReporter* getReporter() { return mpReporter; }
 
 protected:
 	float mGridUnitSize;	
