@@ -9,7 +9,8 @@ const Colour defaultColor = Colours::grey;
 
 MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	mpResponder(pResp),
-	mpReporter(pRep)
+	mpReporter(pRep),
+	mInitialized(false)
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -21,6 +22,38 @@ MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 MLAppView::~MLAppView()
 {
 	deleteAllChildren();
+}
+
+void MLAppView::initialize()
+{
+	mInitialized = true;
+}
+
+void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
+{
+	int propertyType = newVal.getType();
+	switch(propertyType)
+	{
+		case MLProperty::kFloatProperty:
+		{
+		}
+		break;
+		case MLProperty::kStringProperty:
+		{
+		}
+		break;
+		case MLProperty::kSignalProperty:
+		{
+			const MLSignal& sig = newVal.getSignalValue();
+			if(p == MLSymbol("view_bounds"))
+			{
+				setWindowBounds(sig);
+			}
+		}
+		break;
+		default:
+		break;
+	}
 }
 
 void MLAppView::addParamView(MLSymbol p, MLWidget* w, MLSymbol attr)
@@ -59,7 +92,6 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	}
 	return dial;
 }
-
 
 MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, 
 	int numSliders, const Colour& color)
@@ -255,8 +287,6 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 	return pb;
 }
 
-#pragma mark resize
-
 void MLAppView::resized()
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -289,28 +319,38 @@ void MLAppView::resized()
 	}
 }
 
-void MLAppView::setPeerBounds(int x, int y, int w, int h)
+void MLAppView::setViewBoundsProperty()
 {
-	int minDim = 200;
+	if(!mInitialized) return;
+	
+	MLSignal bounds(4);
+	ComponentPeer* p = getPeer();
+	if(!p) return;	
+	Rectangle<int> peerBounds = p->getBounds();	
+	bounds[0] = peerBounds.getX();
+	bounds[1] = peerBounds.getY();
+	bounds[2] = peerBounds.getWidth();
+	bounds[3] = peerBounds.getHeight();
+
+	// set property for saving, avoiding loop
+	setPropertyImmediateExcludingListener("view_bounds", bounds, this);
+}
+
+void MLAppView::setWindowBounds(const MLSignal& bounds)
+{
 	ComponentPeer* p = getPeer();
 	if(!p) return;
-	Desktop& d = Desktop::getInstance();
-	Rectangle<int> r = d.getDisplays().getTotalBounds(true);
-	
-	const int kMenuBarHeight = 20;
-	r.setTop(r.getY() + kMenuBarHeight);
-	
-	Rectangle<int> b(x, y, w, h);
-	Rectangle<int> c = r.getIntersection(b);	
-	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
-	{
-		p->setBounds(Rectangle<int>(x, y, w, h), false);
-	}
-	else
-	{
-		// make new onscreen bounds rect
-		Rectangle<int> onscreenBounds = b.constrainedWithin(r);
-		p->setBounds(onscreenBounds, false);
-	}
+	bool fullScreen = 0;
+	p->setBounds(Rectangle<int>(bounds[0], bounds[1], bounds[2], bounds[3]), fullScreen);
+}
+
+void MLAppView::windowMoved()
+{
+	setViewBoundsProperty();
+}
+
+void MLAppView::windowResized()
+{
+	setViewBoundsProperty();
 }
 

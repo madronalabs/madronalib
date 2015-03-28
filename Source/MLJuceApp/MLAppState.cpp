@@ -5,14 +5,20 @@
 
 #include "MLAppState.h"
 
-MLAppState::MLAppState(MLModel* pM, const std::string& name, const std::string& makerName, const std::string& appName, int version) :
+MLAppState::MLAppState(MLPropertySet* pM, const std::string& name, const std::string& makerName, const std::string& appName, int version) :
     MLPropertyListener(pM),
-	mName(name),
+	mExtraName(name),
 	mMakerName(makerName),
 	mAppName(appName),
 	mAppVersion(version),
-	mpModel(pM)
+	mpTarget(pM)
 {
+	// default extra name
+	if(mExtraName.length() == 0)
+	{
+		mExtraName = "App";
+	}
+	
 	updateAllProperties();
 	startTimer(1000);
 }
@@ -244,11 +250,11 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 			{
 				case cJSON_Number:
 					//debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
-					mpModel->setProperty(key, (float)child->valuedouble);
+					mpTarget->setProperty(key, (float)child->valuedouble);
 					break;
 				case cJSON_String:
 					//debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
-					mpModel->setProperty(key, child->valuestring);
+					mpTarget->setProperty(key, child->valuestring);
 					break;
 				case cJSON_Object:
 					//debug() << "looking at object: " << child->string << "\n";
@@ -289,7 +295,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 								{
 									debug() << "MLAppState::setStateFromJSON: wrong array size!\n";
 								}
-								mpModel->setProperty(key, signalValue);
+								mpTarget->setProperty(key, signalValue);
 							}
 						}
 					}
@@ -306,11 +312,6 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 		}
 		child = child->next;
 	}
-	
-	// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
-	// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
-//	mpModel->updateChangedProperties();
-	mpModel->updateAllProperties();
 }
 
 void MLAppState::loadDefaultState()
@@ -349,7 +350,8 @@ File MLAppState::getAppStateFile() const
     String applicationName(mAppName);
 	String extension("txt");
 	File dir(getAppStateDir());
-    return dir.getChildFile(applicationName + "AppState").withFileExtension (extension);
+	std::string extra;
+    return dir.getChildFile(applicationName + mExtraName + "State").withFileExtension (extension);
 }
 
 void MLAppState::clearStateStack()

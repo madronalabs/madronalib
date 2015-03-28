@@ -38,14 +38,20 @@ extern const Colour defaultColor;
 class MLAppView : 
 	public Component,
 	public MLWidgetContainer
+//,	public MLPropertySet
 {
 public:
 	MLAppView(MLWidget::Listener* pResp, MLReporter* pRep);
     ~MLAppView();
 
+	void initialize();
+	
+	// MLWidget::MLPropertyListener
+	void doPropertyChangeAction(MLSymbol p, const MLProperty & newVal);
+
 	virtual bool isWidgetContainer(void) { return true; }
 
-	// using our Reporter, setup view for param p as attr of widget.
+	// using our Reporter, setup view for Model Property p as attr of widget.
 	void addParamView(MLSymbol p, MLWidget* w, MLSymbol attr);
 
 	// add the widget and add our Responder as a listener. The Responder can then do things in HandleWidgetAction().
@@ -86,9 +92,15 @@ public:
 	MLProgressBar* addProgressBar(const MLRect & r);
 
 	void resized();
-	void setPeerBounds(int x, int y, int w, int h);
+	void setViewBoundsProperty();
+	void setWindowBounds(const MLSignal& bounds);
 
+	// sent by the AppWindow 
+	void windowMoved();
+	void windowResized();
+	
 protected:
+	bool mInitialized;
 	float mGridUnitSize;	
 	MLWidget::Listener* mpResponder;
 	MLReporter* mpReporter;

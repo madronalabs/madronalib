@@ -8,7 +8,9 @@
 MLAppBorder::MLAppBorder() : 
 	pMainView(0),
     mpResizer(0),
-	mZoomable(false)
+	mZoomable(false),
+	mGridUnitsX(0),
+	mGridUnitsY(0)
 {
 	Component::setBounds(0, 0, 0, 0);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -99,8 +101,6 @@ void MLAppBorder::centerMainViewInWindow()
 		u = viewWidth / mGridUnitsX;
 	}
     
-    // debug() << "MLAppBorder:: RESIZED to " << viewWidth << ", " << viewHeight << "\n";
-	
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->setGridUnitSize(u);	
 
@@ -126,11 +126,11 @@ void MLAppBorder::resized()
 	}
 }
 
-void MLAppBorder::setGridUnits(double gx, double gy)
+void MLAppBorder::setGridUnits(int gx, int gy)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	myLookAndFeel->setGridUnits(gx, gy);	
-	myConstrainer.setFixedAspectRatio(gx/gy);	
+	myConstrainer.setFixedAspectRatio((float)gx/(float)gy);	
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
 }

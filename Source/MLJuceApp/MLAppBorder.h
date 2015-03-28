@@ -10,9 +10,9 @@
 #include "MLAppView.h"
 #include "MLBoundsConstrainer.h"
 
-
 #pragma mark MLAppBorder
-// a component for resizing other components nicely
+
+// a component for holding a view and resizing other components nicely.
 //
 class MLAppBorder : 
 	public Component
@@ -27,10 +27,7 @@ public:
     void centerMainViewInWindow();
     void resized();
 
-	void setGridUnits(double w, double h);
-	int getGridUnitsX() { return mGridUnitsX; }
-	int getGridUnitsY() { return mGridUnitsY; }
-
+	void setGridUnits(int w, int h);
 	void setContent(MLAppView* contentView);
 	void setZoomable(bool z);
 
@@ -45,8 +42,8 @@ private:
 	MLBoundsConstrainer myConstrainer;	 	
 	
 	// grid-based view resizing things. 
-	float mGridUnitsX;
-	float mGridUnitsY;	
+	int mGridUnitsX;
+	int mGridUnitsY;	
 	
 	bool mZoomable;
 	
