@@ -102,7 +102,7 @@ private:
 	private:
 		MLMultiSlider* mpOwner;
 	};
-	std::shared_ptr<GestureTimer> mpTimer;
+	std::unique_ptr<GestureTimer> mpTimer;
 };
 
 #endif // __ML_MULTI_SLIDER_HEADER__

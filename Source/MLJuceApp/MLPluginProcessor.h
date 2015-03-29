@@ -121,7 +121,7 @@ public:
 	
 	// MLT3DHub::Listener
 #if ML_MAC
-	void handleHubNotification(MLSymbol action, const float val);
+	void handleHubNotification(MLSymbol action, const MLProperty val);
 #endif
 	
 	// process
@@ -247,10 +247,10 @@ private:
     // vector of control events to send to engine along with each block of audio.
     MLControlEventVector mControlEvents;
 	
-	MLAppStatePtr mpPatchState;
-	std::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
-	MLAppStatePtr mpEnvironmentState;
-	std::shared_ptr<cJSON> mpDefaultEnvironmentState;
+	std::unique_ptr<MLAppState> mpPatchState;
+	std::unique_ptr<MLEnvironmentModel> mpEnvironmentModel;
+	std::unique_ptr<MLAppState> mpEnvironmentState;
+	std::unique_ptr<cJSON> mpDefaultEnvironmentState;
 #if defined(__APPLE__)
 	MLT3DHub mT3DHub;
 	
@@ -262,6 +262,9 @@ private:
 	std::vector<char> mpOSCBuf;
 	void sendSeqInfo();
 	int mVisSendCounter;
+	MLProcList mSequencerList;
+	
+	void setSequence(const MLSignal& seq);
 
 public:
 	

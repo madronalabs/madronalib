@@ -19,10 +19,6 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
-#if DEBUG
-	startDebugging();
-#endif
-
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
@@ -35,12 +31,12 @@ MLPluginProcessor::MLPluginProcessor() :
     mControlEvents.resize(kMaxControlEventsPerBlock);
 	
 	// initialize DSP state
-	mpPatchState = MLAppStatePtr(new MLAppState(static_cast<MLModel*>(this),
+	mpPatchState = std::unique_ptr<MLAppState>(new MLAppState(static_cast<MLModel*>(this),
 		"patch", MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber));
 	
 	// initialize environment model and state
-	mpEnvironmentModel = std::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
-	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
+	mpEnvironmentModel = std::unique_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
+	mpEnvironmentState = std::unique_ptr<MLAppState>(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
 	// set up state to not save certain properties
@@ -61,14 +57,10 @@ MLPluginProcessor::MLPluginProcessor() :
 
 MLPluginProcessor::~MLPluginProcessor()
 {
-#if DEBUG
-	stopDebugging();
-#endif
+	debug() << "deleting MLPluginProcessor\n";
 #if defined (__APPLE__)
 	mT3DHub.removeListener(this);
 #endif
-	
-
 }
 
 #pragma mark MLModel
@@ -453,16 +445,16 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 #if ML_MAC
 #pragma mark MLT3DHub::Listener
 
-void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
+void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty prop)
 {
 	if(action == "receiving")
 	{
-		int protocol = val ? kInputProtocolOSC : kInputProtocolMIDI;
+		int protocol = prop.getFloatValue() ? kInputProtocolOSC : kInputProtocolMIDI;
 		setInputProtocol(protocol);
 	}
 	else if(action == "data_rate")
 	{
-		int r = val;
+		int r = prop.getFloatValue();
 		if(r != (int)getFloatProperty("data_rate"))
 		{
 			setProperty("data_rate", r);
@@ -471,12 +463,16 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 	}
 	else if(action == "program")
 	{
-		int r = val;
+		int r = prop.getFloatValue();
 		loadPatchStateFromMIDIProgram(r);
 	}
 	else if(action == "volume")
 	{
-		getEngine()->setMasterVolume(val);
+		getEngine()->setMasterVolume(prop.getFloatValue());
+	}
+	else if(action == "sequence")
+	{
+		setSequence(prop.getSignalValue());
 	}
 }
 
@@ -656,7 +652,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		// if(osc enabled)
 		mVisSendCounter += samples;
 		int samplesPerSecond = 44100;
-		int period = samplesPerSecond/10;
+		int period = samplesPerSecond/60;
 		if(mVisSendCounter > period)
 		{
 			sendSeqInfo();
@@ -1178,6 +1174,9 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 			if(patchState)
 			{
 				mpPatchState->setStateFromJSON(patchState);
+				// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
+				// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
+				updateAllProperties();
 			}
 			else
 			{
@@ -1212,9 +1211,6 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
 	int pgm = clamp(idx, 0, kMLPluginMIDIPrograms - 1);
-	
-	debug() << "MLPluginProcessor: LOADING pgm " << pgm << "\n";
-	
 	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(pgm));
 }
 
@@ -1228,6 +1224,9 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 		if(root)
 		{
 			mpPatchState->setStateFromJSON(root);
+			// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
+			// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
+			updateAllProperties();
 			cJSON_Delete(root);
 		}
 		else
@@ -1613,22 +1612,70 @@ void MLPluginProcessor::setInputProtocol(int p)
 	}
 }
 
+// MLTEST
 #include "MLProcStepSequencer.h"
+const char * kMLStepSeqProcName("voices/voice/seq/seq");
 
 void MLPluginProcessor::sendSeqInfo()
 {
 	int chan = mT3DHub.getPortOffset();
-	int seqData = mT3DHub.getPortOffset();
+	//int seqData = mT3DHub.getPortOffset();
 	
+	MLDSPEngine* eng = getEngine();
+	
+	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
+	eng->getProcList(mSequencerList, MLPath(kMLStepSeqProcName), kMLEngineMaxVoices);
+	// debug() << "got " << mSequencerList.size() << "seqs\n";
+	//int nSeqs = mSequencerList.size();
 
+	
+	/* TODO make ProcList a vector
+	for(int i=0; i<nSeqs; ++i)
+	{
+		int step = mSequencerList.begin().getStep();
+	}
+	*/
+	
+	int32_t brightLights = 0;
+	int32_t dimLights = 0;
+	for (MLProcList::const_iterator jt = mSequencerList.begin(); jt != mSequencerList.end(); jt++)
+	{
+		MLProcPtr proc = (*jt);
+		MLProc* proc2 = &(*proc);
+		MLProcStepSequencer* pSeq = static_cast<MLProcStepSequencer*>(proc2);
+		if (pSeq)
+		{
+			// add bright light for current step of each sequencer
+			int step = pSeq->getStep();
+			step = clamp(step, 0, 15);
+			brightLights |= (1 << step);
+			
+			// get pattern (same for all)
+			if(jt == mSequencerList.begin())
+			{
+				dimLights = pSeq->getPattern();
+			}
+		}
+	}	
+	
 	osc::OutboundPacketStream p( mpOSCBuf.data(), kUDPOutputBufferSize );
 
 	p << osc::BeginMessage( "/vis/seq" );	
-	p << chan;
-	p << 1232;
+	p << chan << brightLights << dimLights;
 	p << osc::EndMessage; 
 	
 	// debug() << "sending " << p.Size() << " bytes\n";
 	mSeqInfoSocket->Send( p.Data(), p.Size() );
+}
+
+void MLPluginProcessor::setSequence(const MLSignal& seq)
+{
+	//debug() << "SEQUENCE: " << seq << "\n";
+	for(int i=0; i<16; ++i)
+	{
+		float step = seq[i];
+		MLSymbol stepSym = MLSymbol("seq_pulse").withFinalNumber(i);
+		setPropertyImmediate(stepSym, step);
+	}
 }
 

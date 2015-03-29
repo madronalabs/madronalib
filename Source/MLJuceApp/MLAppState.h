@@ -75,6 +75,4 @@ private:
 	std::set<MLSymbol> mIgnoredProperties;
 };
 
-typedef std::shared_ptr<MLAppState> MLAppStatePtr;
-
 #endif // __ML_APP_STATE_H

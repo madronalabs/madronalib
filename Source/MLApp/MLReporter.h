@@ -84,7 +84,7 @@ private:
 	MLPropertySet mCurrentProperties;
 	std::vector<MLSymbol> mChangeData;
 	PaUtilRingBuffer mChangeQueue;
-	std::shared_ptr<ReporterTimer> mpTimer;
+	std::unique_ptr<ReporterTimer> mpTimer;
 };
 
 #endif // __ML_REPORTER_H
