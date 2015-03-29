@@ -38,6 +38,7 @@ void MLGL::worldView(float aspect)
 	gluLookAt(0.0, -15.0, 5.0, // eyepoint x y z
 			  0.0, 0.0, -0.25, // center x y z
 			  0.0, 1.0, 0.0); // up vector
+
 }
 #endif
 
@@ -108,7 +109,7 @@ Vec2 MLGL::worldToScreen(const Vec3& world)
 	
 	GLint result = gluProject(world[0], world[1], world[2],
                               mvmatrix, projmatrix, viewport,
-                              &wx, &wy, &wz);
+                              &wx, &wy, &wz);	
 	
 	if (result == GL_TRUE)
 	{
