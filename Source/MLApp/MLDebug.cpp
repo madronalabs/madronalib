@@ -5,20 +5,13 @@
 
 #include "MLDebug.h"
 
-std::ostream& debug() { return std::cout; }
-std::ostream& MLConsole() { return std::cout; } // MLTEST TEMP
-std::ostream& MLError() { return std::cout; } // MLTEST TEMP
-
-// MLTEST
-#if 0
-
 MLTextStream::MLTextStream(const char* name) : 
 	mName(name), 
 	mActive(true),
 	mpListener(0),
 	mItemsInLocalStream(0)
 {
-
+	
 }
 
 MLTextStream::~MLTextStream()
@@ -50,6 +43,7 @@ void MLTextStream::flush()
 }
 
 #ifdef ML_WINDOWS
+
 #include <Windows.h>
 const int kWideBufSize = 16384;
 static wchar_t wideBuf[kWideBufSize];
@@ -66,7 +60,7 @@ void MLTextStream::display()
 	else
 	{
 #if DEBUG
-
+		
 		// no listener, send to output
 		flush();
 		std::string outStr = mLocalStream.str();
@@ -86,10 +80,10 @@ void MLTextStream::display()
 #endif // DEBUG
 	}
 }
+#elif ML_MAC
 
-#endif // ML_WINDOWS
+#endif 
 
-/*
 class MLDebugThread : public juce::Thread
 {
 public:
@@ -109,71 +103,34 @@ public:
 		{
 			if (threadShouldExit())
 				return;
-			debug().display();
+			//debug().display();
 			wait(10);
 		}
 	}
 };
-*/
 
 // global entry points
 
-/*
 // Send a message to the application or plugin’s debug output.
 // in release builds this will be disabled completely.
 //
-MLTextStream& debug(void)
-{
-	static MLTextStream theDebugMessageStream("debug");
-#ifndef DEBUG
-	theDebugMessageStream.setActive(false);
-#endif
-	return theDebugMessageStream;
-}
-*/
 
-/*
-// Send a message to the application or plugin’s error output. 
-// in release builds these messages will still be logged.
-//
-MLTextStream& debug(void)
+std::ostream& debug()
 {
-	static MLTextStream theErrorMessageStream("error");
-	return theErrorMessageStream;
+	return std::cout;
 }
 
 // Send a message to the application or plugin’s console, if one exists. 
 //
-MLTextStream& MLConsole(void)
+MLTextStream& MLConsole()
 {
 	static MLTextStream theConsoleMessageStream("console");
 	return theConsoleMessageStream;
 }
-*/
 
-/*
 MLDebugThread& theDebugThread()
 {
 	static MLDebugThread theDebugThreadObject;
 	return theDebugThreadObject;
 }
-*/
-
-#endif // 0
-
-void startDebugging(void)
-{
-#if DEBUG
-	//theDebugThread().startThread();
-#endif
-}
-
-void stopDebugging(void)
-{
-#if DEBUG
-	//theDebugThread().stopThread(100);
-#endif
-}
-
-
 
