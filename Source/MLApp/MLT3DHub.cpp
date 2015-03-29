@@ -45,6 +45,7 @@ MLT3DHub::MLT3DHub() :
 
 MLT3DHub::~MLT3DHub()
 {
+	debug() << "deleting MLT3DHub\n";
 	stopTimer();
 	disconnect();
 }
@@ -113,7 +114,7 @@ void MLT3DHub::removeListener(MLT3DHub::Listener* pL)
 	}
 }
 
-void MLT3DHub::notifyListeners(MLSymbol action, const float val)
+void MLT3DHub::notifyListeners(MLSymbol action, const MLProperty val)
 {
 	int nListeners = mpListeners.size();
 	for(int i = 0; i < nListeners; ++i)
@@ -200,6 +201,22 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			args >> v;
 			notifyListeners("volume", v);
 		}
+		else if (strcmp(addy, "/seq")==0)
+		{
+			MLSignal sequence;
+			sequence.setDims(16);
+			osc::int32 seqWord;
+			args >> seqWord;
+			
+			// build signal from sequence bits
+			for(int i=0; i<16; ++i)
+			{
+				float f = (seqWord & (1<<i)) ? 1. : 0.;
+				sequence[i] = f;
+			}
+			
+			notifyListeners("sequence", sequence);
+		}
 	}
 	catch( osc::Exception& e )
 	{
@@ -277,6 +294,7 @@ void MLT3DHub::disconnect()
 {
 	if(mConnected)
 	{
+		debug() << "MLT3DHub: disconnecting\n";
 		if(listenToOSC(0))
 		{
 			if(mReceivingT3d)
