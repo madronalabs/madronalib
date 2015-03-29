@@ -112,8 +112,8 @@ void MLPluginController::timerCallback()
         mClockDivider = 0;
     }
 	
-	MLAppView* pView = getView();
-	viewSignals(pView);
+	if(getView())
+		viewSignals();
 	
 	// read from file action queue and do any needed actions
 	if(mConvertingPresets)

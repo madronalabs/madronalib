@@ -24,12 +24,12 @@ public:
 	MLSignalView* addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0);
 	
 	// view all of the signals in the map.
-	void viewSignals(MLAppView* pView);
+	void viewSignals();
 
 protected:
-	void viewChangedSignals(MLAppView* pView);	
-	void viewAllSignals(MLAppView* pView);
-	int viewOneSignal(MLSymbol signalName, MLAppView* pView, bool forceView, int priority = 0);
+	void viewChangedSignals();	
+	void viewAllSignals();
+	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
 	void redrawSignals();
 	
 	typedef std::shared_ptr<MLSignalView> MLSignalViewPtr;

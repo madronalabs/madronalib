@@ -1104,7 +1104,8 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 		if (proc)
 		{
             // debug() << "MLProcContainer (" << getName() << ") getProcList: added " << (void *)&*proc << " (# " << i << ")\n";
-			pList.push_back(proc);
+			if(proc->isEnabled())
+				pList.push_back(proc);
 		}
 	}
 }

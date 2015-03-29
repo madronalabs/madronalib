@@ -18,12 +18,11 @@ class MLWidgetContainer;
 // this can incorporate our own component class.
 //
 class MLWidget :
-    public OpenGLRenderer, // WAT
+    public OpenGLRenderer,
 	public MLPropertySet,
 	public MLPropertyListener
 {
 friend class MLWidgetContainer;
-//friend class MLPropertyView;
 friend class MLAppView;
 public:
 	MLWidget();

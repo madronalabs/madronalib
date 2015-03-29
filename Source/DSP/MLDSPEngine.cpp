@@ -6,7 +6,6 @@
 #include "MLDSPEngine.h"
 
 const char * kMLInputToSignalProcName("the_midi_inputs");
-const char * kMLStepSeqProcName("voices/voice/seq/seq");
 const char * kMLHostPhasorProcName("the_host_phasor");
 const char * kMLPatcherProcName("voices/voice/patcher");
 

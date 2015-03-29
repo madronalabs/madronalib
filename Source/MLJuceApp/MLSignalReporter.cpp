@@ -130,13 +130,6 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
                     pV->sendSignalToWidget(buffer1, samplesRead, voices);
                     drawn++;
                 }
-				if(pV->mSendOSC)
-				{
-debug() << "SENDING " << signalName << "via OSC\n";
-					
-					// MLTEST
-					
-				}
             }
 			buffer2 = buffer1;
         }
