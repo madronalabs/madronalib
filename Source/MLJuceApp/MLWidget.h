@@ -97,6 +97,7 @@ public:
 	const MLSymbol& getWidgetName() { return mName; }
 
 	void setWidgetVisible(bool v);
+	void setWidgetEnabled(bool v);
     
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(MLSymbol p) { mTargetPropertyName = p; }

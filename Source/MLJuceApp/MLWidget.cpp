@@ -153,4 +153,13 @@ void MLWidget::setWidgetVisible(bool v)
 }
 
 
+void MLWidget::setWidgetEnabled(bool v)
+{
+	if(pComponent)
+	{
+		pComponent->setEnabled(v);
+	}
+}
+
+
 
