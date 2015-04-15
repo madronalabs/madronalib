@@ -256,6 +256,7 @@ private:
 	
 #endif
 	
+#if OSC_PARAMS	
 	// MLTEST
 	// transmit sequencer state including OSC port offset on port 9123
 	std::unique_ptr<UdpTransmitSocket> mSeqInfoSocket;
@@ -263,6 +264,7 @@ private:
 	void sendSeqInfo();
 	int mVisSendCounter;
 	MLProcList mSequencerList;
+#endif // OSC_PARAMS
 	
 	void setSequence(const MLSignal& seq);
 

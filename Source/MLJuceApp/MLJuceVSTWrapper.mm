@@ -212,7 +212,7 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             [pluginView release];
             [hostWindow release];
 
-			static bool needToRunMessageLoop = 0 ;
+			static bool needToRunMessageLoop = false;
 			// MLTEST ! getHostType().isReaper();
 			// the below is often crashing in Live 9.1.7 / 64-bit VST.
 
@@ -225,7 +225,6 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             for (int i = 20; --i >= 0;)
 			{
 				MessageManager* pM = MessageManager::getInstance();
-				debug() << "MSG MGR: " << std::hex << (unsigned long)pM << std::dec << "\n";
 				pM->runDispatchLoopUntil (1);
 			}
 

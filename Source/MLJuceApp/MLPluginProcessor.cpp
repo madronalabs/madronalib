@@ -6,11 +6,10 @@
 #include "MLPluginProcessor.h"
 
 const int kMaxControlEventsPerBlock = 1024;
-const int kSeqInfoPort = 9123;
-
-const int kUDPOutputBufferSize = 1024;
 const char* kUDPAddressName = "localhost";
 
+//const int kSeqInfoPort = 9123;
+//const int kUDPOutputBufferSize = 1024;
 
 MLPluginProcessor::MLPluginProcessor() : 
 	mInputProtocol(-1),
@@ -47,12 +46,12 @@ MLPluginProcessor::MLPluginProcessor() :
 	mT3DHub.addListener(this);
 #endif
 	
-
+#if OSC_PARAMS	
 	// MLTEST vis/seq
 	mpOSCBuf.resize(kUDPOutputBufferSize);
 	mSeqInfoSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kSeqInfoPort)));		
 	mVisSendCounter = 0;
-		
+#endif		
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -648,7 +647,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		
         mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 		
-		// MLTEST
+#if OSC_PARAMS
 		// if(osc enabled)
 		mVisSendCounter += samples;
 		int samplesPerSecond = 44100;
@@ -658,7 +657,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			sendSeqInfo();
 			mVisSendCounter -= period;
 		}
-		
+#endif		
     }
 	else
 	{
@@ -1441,8 +1440,6 @@ void MLPluginProcessor::scanAllFilesImmediate()
     mScaleFiles->processFilesImmediate();
     mPresetFiles->processFilesImmediate();
     mMIDIProgramFiles->processFilesImmediate();
-	// MLTEST
-	//mMIDIProgramFiles->dump();
 }
 
 #pragma mark presets
@@ -1612,7 +1609,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 	}
 }
 
-// MLTEST
+#if OSC_PARAMS
 #include "MLProcStepSequencer.h"
 const char * kMLStepSeqProcName("voices/voice/seq/seq");
 
@@ -1667,6 +1664,7 @@ void MLPluginProcessor::sendSeqInfo()
 	// debug() << "sending " << p.Size() << " bytes\n";
 	mSeqInfoSocket->Send( p.Data(), p.Size() );
 }
+#endif
 
 void MLPluginProcessor::setSequence(const MLSignal& seq)
 {
