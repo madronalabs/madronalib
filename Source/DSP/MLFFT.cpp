@@ -195,6 +195,7 @@ int FFT2D(MLSignal& cReal, MLSignal& cImag, int nx, int ny, int dir)
 			real[j] = cReal(i, j);
 			imag[j] = cImag(i, j);
 		}
+		
 		FFT(dir,m,real,imag);
 		for (j=0;j<ny;j++) 
 		{
@@ -208,11 +209,208 @@ int FFT2D(MLSignal& cReal, MLSignal& cImag, int nx, int ny, int dir)
 	return(true);
 }
 
-int FFT2DReal(MLSignal& cReal, int nx, int ny, int dir)
+
+// temp 
+int FFT1DReal(MLSignal& cReal)
 {
+	int dir = 1;
+	int w = cReal.getWidth();
+	
 	// allocate temp signal for imaginary values
-	MLSignal cImag(cReal.getWidth(), cReal.getHeight());
-	return FFT2D(cReal, cImag, nx, ny, dir);
+	MLSignal cImag(w);
+	cImag = cReal;
+	FFT(dir, bitsToContain(w), cReal.getBuffer(), cImag.getBuffer());
+	return 1;
+}
+
+// temp 
+int FFT1DRealInverse(MLSignal& cReal)
+{
+	int dir = -1;
+	int w = cReal.getWidth();
+	
+	// allocate temp signal for imaginary values
+	MLSignal cImag(w);
+	cImag = cReal;
+	FFT(dir, bitsToContain(w), cReal.getBuffer(), cImag.getBuffer());
+	
+	// shuffle and flip 
+	cImag = cReal;
+	for(int i=0; i<w; ++i)
+	{
+		int ii = w - i;
+		if (ii == w) ii = 0;
+		cReal[i] = cImag[ii];
+	}
+	
+	return 1;
+}
+
+/*
+void FFTEachRowReal(MLSignal& cReal)
+{
+	int h = cReal.getHeight();
+	int w = cReal.getWidth();
+	int dir = 1;
+	
+	// allocate temp signal for imaginary values
+	MLSignal cImag(w, h);
+	cImag = cReal;
+	
+	for(int j=0; j<h; ++j)
+	{
+		float* realRow = cReal.getBuffer() + cReal.row(j);
+		float* imagRow = cImag.getBuffer() + cImag.row(j);
+		FFT(dir, bitsToContain(w), realRow, imagRow);
+	}
+}
+
+void FFTEachRowRealInverse(MLSignal& cReal)
+{
+	int h = cReal.getHeight();
+	int w = cReal.getWidth();
+	int dir = -1;
+	
+	// allocate temp signal for imaginary values
+	MLSignal cImag(w, h);
+	cImag = cReal;
+	
+	for(int j=0; j<h; ++j)
+	{
+		float* realRow = cReal.getBuffer() + cReal.row(j);
+		float* imagRow = cImag.getBuffer() + cImag.row(j);
+		FFT(dir, bitsToContain(w), realRow, imagRow);
+		
+		// silly copy to temp
+		for(int i=0; i<w; ++i)
+		{
+			imagRow[i] = realRow[i];
+		}
+		
+		// shuffle and flip 
+		for(int i=0; i<w; ++i)
+		{
+			int ii = w - i;
+			if (ii == w) ii = 0;
+			realRow[i] = imagRow[ii];
+		}
+	}	
+}
+*/
+
+void FFTEachRow(MLSignal& aReal, MLSignal& bImag)
+{
+	int h = aReal.getHeight();
+	int w = aReal.getWidth();
+	int dir = 1;
+	
+	for(int j=0; j<h; ++j)
+	{
+		float* realRow = aReal.getBuffer() + aReal.row(j);
+		float* imagRow = bImag.getBuffer() + bImag.row(j);
+		FFT(dir, bitsToContain(w), realRow, imagRow);
+	}
+}
+
+void FFTEachRowInverse(MLSignal& aReal, MLSignal& bImag)
+{
+	int h = aReal.getHeight();
+	int w = aReal.getWidth();
+	int dir = -1;
+	
+	for(int j=0; j<h; ++j)
+	{
+		float* realRow = aReal.getBuffer() + aReal.row(j);
+		float* imagRow = bImag.getBuffer() + bImag.row(j);
+		FFT(dir, bitsToContain(w), realRow, imagRow);
+	}	
+}
+
+
+// divide (a + bi) by (c + di) and put the result in (a + bi)
+// of course all signals must be the same dims. 
+// TODO this is stupid and temporary, write as complex signals
+void FFTEachRowDivide(MLSignal& aReal, MLSignal& bImag, MLSignal& cReal, MLSignal& dImag)
+{
+	int w = aReal.getWidth();
+	int h = aReal.getHeight();
+	
+	MLSignal temp1(w, h);
+	MLSignal temp2(w, h);
+	MLSignal acMinusBd(w, h);
+	MLSignal bcMinusAd(w, h);
+	MLSignal denom(w, h);
+	
+	acMinusBd = aReal;
+	acMinusBd.multiply(cReal);
+	temp1 = bImag;
+	temp1.multiply(dImag);
+	acMinusBd.subtract(temp1);
+	
+	bcMinusAd = bImag;
+	bcMinusAd.multiply(cReal);
+	temp1 = aReal;
+	temp1.multiply(dImag);
+	bcMinusAd.subtract(temp1);
+	
+	// denom = c^2 + d^2
+	temp1 = cReal;
+	temp1.multiply(temp1);
+	temp2 = dImag;
+	temp2.multiply(temp2);
+	denom = temp1;
+	denom.add(temp2);
+	
+	// put results into aReal and bImag
+	aReal = acMinusBd;
+	aReal.divide(denom);
+	bImag = bcMinusAd;
+	bImag.divide(denom);	
+}
+
+
+
+// temp 
+int FFT2DReal(MLSignal& cReal)
+{
+	int dir = 1;
+	int w = cReal.getWidth();
+	int h = cReal.getHeight();
+	
+	// allocate temp signal for imaginary values
+	MLSignal cImag(w, h);
+	cImag = cReal;
+	FFT2D(cReal, cImag, w, h, dir);
+	return 1;
+}
+
+// temp 
+int FFT2DRealInverse(MLSignal& cReal)
+{
+	int dir = -1;
+	int w = cReal.getWidth();
+	int h = cReal.getHeight();
+	
+	// allocate temp signal for imaginary values
+	MLSignal cImag(w, h);
+	cImag = cReal;
+	FFT2D(cReal, cImag, w, h, dir);	
+	
+	// shuffle and flip horizontal
+	cImag = cReal;
+	for(int j=0; j<h; ++j)
+	{
+		for(int i=0; i<w; ++i)
+		{
+			int ii = w - i;
+			if (ii == w) ii = 0;
+			int jj = h - j;
+			if (jj == h) jj = 0;
+			cReal(i, j) = cImag(ii, jj);
+		}
+	}
+
+	return 1;
 }
 
 
