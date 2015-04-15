@@ -56,7 +56,7 @@ void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
 	}
 }
 
-void MLAppView::addParamView(MLSymbol p, MLWidget* w, MLSymbol attr)
+void MLAppView::addPropertyView(MLSymbol p, MLWidget* w, MLSymbol attr)
 {
 	if(p && w && attr)
 		mpReporter->addPropertyViewToMap(p, w, attr);
@@ -84,7 +84,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 
 	addWidgetToView(dial, r, p);
 	
-	addParamView(p, dial, MLSymbol("value"));
+	addPropertyView(p, dial, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -104,7 +104,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	
 	for(int i=0; i<numSliders; ++i)
 	{
-		addParamView(paramName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(paramName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -125,7 +125,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	
 	for(int i=0; i<n; ++i)
 	{
-		addParamView(paramName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(paramName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -143,7 +143,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	button->setTargetPropertyName(paramName);
 	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
-	addParamView(paramName, button, MLSymbol("value"));
+	addPropertyView(paramName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -161,7 +161,7 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 	button->setTargetPropertyName(paramName);
 	button->setFillColor(color);
 	addWidgetToView(button, r, paramName);
-	addParamView(paramName, button, MLSymbol("value"));
+	addPropertyView(paramName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -215,7 +215,7 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 	b->setFillColor(color);
 	b->setProperty("text", "---");
 	addWidgetToView(b, r, menuName);
-	addParamView(menuName, b, MLSymbol("text"));
+	addPropertyView(menuName, b, MLSymbol("text"));
 	
 	if (strcmp(displayName, ""))
 	{

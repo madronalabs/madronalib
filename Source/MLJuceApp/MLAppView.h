@@ -38,7 +38,6 @@ extern const Colour defaultColor;
 class MLAppView : 
 	public Component,
 	public MLWidgetContainer
-//,	public MLPropertySet
 {
 public:
 	MLAppView(MLWidget::Listener* pResp, MLReporter* pRep);
@@ -52,7 +51,7 @@ public:
 	virtual bool isWidgetContainer(void) { return true; }
 
 	// using our Reporter, setup view for Model Property p as attr of widget.
-	void addParamView(MLSymbol p, MLWidget* w, MLSymbol attr);
+	void addPropertyView(MLSymbol p, MLWidget* w, MLSymbol attr);
 
 	// add the widget and add our Responder as a listener. The Responder can then do things in HandleWidgetAction().
 	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);

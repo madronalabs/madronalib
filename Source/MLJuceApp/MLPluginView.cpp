@@ -167,12 +167,12 @@ MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const MLSymbol paramName
 	MLEnvelope * pE = new MLEnvelope();
     
 	const std::string paramStr = paramName.getString();
-	addParamView(MLSymbol(paramStr + "_delay"), pE, MLSymbol("delay"));
-	addParamView(MLSymbol(paramStr + "_attack"), pE, MLSymbol("attack"));
-	addParamView(MLSymbol(paramStr + "_decay"), pE, MLSymbol("decay"));
-	addParamView(MLSymbol(paramStr + "_sustain"), pE, MLSymbol("sustain"));
-	addParamView(MLSymbol(paramStr + "_release"), pE, MLSymbol("release"));
-	addParamView(MLSymbol(paramStr + "_repeat"), pE, MLSymbol("repeat"));
+	addPropertyView(MLSymbol(paramStr + "_delay"), pE, MLSymbol("delay"));
+	addPropertyView(MLSymbol(paramStr + "_attack"), pE, MLSymbol("attack"));
+	addPropertyView(MLSymbol(paramStr + "_decay"), pE, MLSymbol("decay"));
+	addPropertyView(MLSymbol(paramStr + "_sustain"), pE, MLSymbol("sustain"));
+	addPropertyView(MLSymbol(paramStr + "_release"), pE, MLSymbol("release"));
+	addPropertyView(MLSymbol(paramStr + "_repeat"), pE, MLSymbol("repeat"));
 	
 	addWidgetToView(pE, r, paramName);
 	return(pE);

@@ -102,11 +102,11 @@ void MLReporter::fetchAllProperties()
 }
 
 // add a view. This means that:
-// when property p changes, property attr of Widget w will be set to the new property's value.
+// when the Model's Property p changes, Property widgetProp of Widget w will be set to the new property's value.
 //
-void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
+void MLReporter::addPropertyViewToMap(MLSymbol modelProp, MLWidget* w, MLSymbol widgetProp)
 {
-	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
+	mPropertyViewsMap[modelProp].push_back(MLPropertyViewPtr(new MLPropertyView(w, widgetProp))); 
 }
 
 void MLReporter::viewProperties()
