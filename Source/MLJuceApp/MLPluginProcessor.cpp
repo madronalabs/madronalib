@@ -75,7 +75,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	{
 		case MLProperty::kFloatProperty:
 		{
-			// update DSP engine parameters
+			// Here is where changes in Model properties turn into changes in DSP Engine parameters.
 			MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
 			if(p)
 			{

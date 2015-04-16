@@ -56,10 +56,10 @@ void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
 	}
 }
 
-void MLAppView::addPropertyView(MLSymbol p, MLWidget* w, MLSymbol attr)
+void MLAppView::addPropertyView(MLSymbol modelProp, MLWidget* widget, MLSymbol widgetProp)
 {
-	if(p && w && attr)
-		mpReporter->addPropertyViewToMap(p, w, attr);
+	if(modelProp && widget && widgetProp)
+		mpReporter->addPropertyViewToMap(modelProp, widget, widgetProp);
 }
 
 void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = MLSymbol())
@@ -93,18 +93,18 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	return dial;
 }
 
-MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol propName, 
 	int numSliders, const Colour& color)
 {
 	MLMultiSlider* slider = new MLMultiSlider;
 	slider->setNumSliders(numSliders);
-	slider->setTargetPropertyName(paramName);
+	slider->setTargetPropertyName(propName);
 	slider->setFillColor(color);
-	addWidgetToView(slider, r, paramName);
+	addWidgetToView(slider, r, propName);
 	
 	for(int i=0; i<numSliders; ++i)
 	{
-		addPropertyView(paramName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(propName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -114,18 +114,18 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	return slider;
 }
 
-MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol propName, 
 	int n, const Colour& color)
 {
 	MLMultiButton* b = new MLMultiButton;
 	b->setNumButtons(n);
-	b->setTargetPropertyName(paramName);
+	b->setTargetPropertyName(propName);
 	b->setFillColor(color);
-	addWidgetToView(b, r, paramName);
+	addWidgetToView(b, r, propName);
 	
 	for(int i=0; i<n; ++i)
 	{
-		addPropertyView(paramName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(propName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -135,15 +135,15 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	return b;
 }
 
-MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName,
+MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
 	MLButton* button = new MLToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
-	button->setTargetPropertyName(paramName);
+	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
-	addWidgetToView(button, r, paramName);
-	addPropertyView(paramName, button, MLSymbol("value"));
+	addWidgetToView(button, r, propName);
+	addPropertyView(propName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -153,15 +153,15 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	return button;
 }
 
-MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName,
+MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
 	MLButton* button = new MLTriToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
-	button->setTargetPropertyName(paramName);
+	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
-	addWidgetToView(button, r, paramName);
-	addPropertyView(paramName, button, MLSymbol("value"));
+	addWidgetToView(button, r, propName);
+	addPropertyView(propName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{

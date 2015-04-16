@@ -17,8 +17,7 @@
 #include "MLProperty.h"
 #include "MLRingBuffer.h"
 
-// ----------------------------------------------------------------
-#pragma mark Parameter Definitions
+// MLPublishedParam: a parameter of one of the Procs in a DSP graph that is settable 
 
 typedef enum
 {
@@ -40,7 +39,7 @@ typedef enum
 }	JucePluginParamWarpMode;
 
 // ----------------------------------------------------------------
-// a published param means: named parameter mParam of mProc is called mAlias.
+// a published param means: named parameter mParam of mProc is called mPublishedAlias.
 //
 class MLPublishedParam
 {
@@ -49,7 +48,7 @@ private:
 	class ParamAddress
 	{
 	public:
-		ParamAddress(const MLPath & a, const MLSymbol n) : procAddress(a), paramName(n) {}
+		ParamAddress(const MLPath & alias, const MLSymbol name) : procAddress(alias), paramName(name) {}
 		~ParamAddress() {}
 		
 		// procAddress is where to send the param.  can resolve to a single MLProc,
@@ -95,7 +94,7 @@ public:
 	float popValue();
 	int getQueueValuesRemaining();
 	
-	MLSymbol getAlias(void) { return mAlias; }
+	MLSymbol getAlias(void) { return mPublishedAlias; }
 				
 	typedef std::list<ParamAddress>::const_iterator AddressIterator;
 	AddressIterator beginAddress() { return mAddresses.begin(); }
@@ -110,7 +109,7 @@ private:
 	MLRingBufferPtr mpValueQueue;
 	float mTempValue;
 	
-	MLSymbol mAlias;
+	MLSymbol mPublishedAlias;
 	MLSymbol mType;
 	unsigned mIndex;
 	MLParamValue mRangeLo;

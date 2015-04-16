@@ -58,11 +58,11 @@ public:
 	
 	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize);	
 
-	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);	
-	virtual MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	virtual MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		int n, const Colour& color);
-	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		int n, const Colour& color);
 	virtual MLButton* addToggleButton(const char* displayName, const MLRect & r, const MLSymbol name,
                                       const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
