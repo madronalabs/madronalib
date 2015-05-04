@@ -18,6 +18,7 @@ public:
 	
 	void paint(Graphics& g);
 	void resizeWidget(const MLRect& b, const int);
+	float getLabelVerticalOffset() { return 0.75f; }
 
 protected:
 	float mLineThickness;

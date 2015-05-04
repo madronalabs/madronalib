@@ -71,12 +71,13 @@ void MLMultiSlider::setFillColor (const Colour& c)
 	setColour(fillColor, c);
 	// bright line
 	setColour(indicatorColor, Colour(c.getHue(), jmax(c.getSaturation() - (b*0.05), 0.), jmin((c.getBrightness() + b*2.f), 1.f), 1.f));
+
+	// track background plain
+	setColour(trackEmptyDarkColor, findColour(MLLookAndFeel::darkestFillColor));
 	// dial fill selected 
 	setColour(trackFullLightColor, findColour(fillColor).overlaidWith(findColour(indicatorColor).withAlpha(0.15f)));
 	// track fill 
 	setColour(trackFullDarkColor, c.overlaidWith(Colours::black.withAlpha(0.17f)).withMultipliedSaturation(1.5f));
-	// track background plain
-	setColour(trackEmptyDarkColor, findColour(MLLookAndFeel::darkerFillColor));
 
     lookAndFeelChanged();
 }
