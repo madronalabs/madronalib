@@ -1,13 +1,13 @@
 //
 //  MLControlEvent.h
-//  Aalto
+//  madronalib
 //
 //  Created by Randy Jones on 7/9/14.
 //
 //
 
-#ifndef __Aalto__MLControlEvent__
-#define __Aalto__MLControlEvent__
+#ifndef __MLControlEvent__
+#define __MLControlEvent__
 
 #include <iostream>
 #include <vector>
@@ -76,4 +76,4 @@ public:
 	int mSize;
 };
 
-#endif /* defined(__Aalto__MLControlEvent__) */
+#endif /* defined(__MLControlEvent__) */

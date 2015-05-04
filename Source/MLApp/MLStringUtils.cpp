@@ -1,6 +1,6 @@
 //
 //  MLStringUtils.cpp
-//  Aalto
+//  madronalib
 //
 //  Created by Randy Jones on 12/3/14.
 //

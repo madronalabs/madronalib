@@ -1,6 +1,6 @@
 //
 //  MLControlEvent.cpp
-//  Aalto
+//  madronalib
 //
 //  Created by Randy Jones on 7/9/14.
 //:

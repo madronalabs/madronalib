@@ -41,7 +41,12 @@ public:
     void setLoShelf(float f, float q, float gain);
     void setHiShelf(float f, float q, float gain);
     void setCoefficients(float, float, float, float, float);
-    inline MLSample processSample(float x)
+	
+	// set the internal state of the filter as if the output has been at
+	// the value f indefinitely. May cause a discontinuity in output.
+	void setState(float f);
+
+	inline MLSample processSample(float x)
     {
         const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
         x2 = x1;
@@ -50,7 +55,7 @@ public:
         y1 = out;
         return(out);
     }
-    
+
 	float a0, a1, a2, b1, b2;
 	float x1, x2, y1, y2;
 	float mInvSr;
