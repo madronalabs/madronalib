@@ -136,6 +136,8 @@ private:
 	int mFilesProcessed;
 	int mMaxFileQueueSize;
 	
+	// todo symbols for menus and get rid of these
+	int mProtocolMenuItemStart;
 	int mOSCMenuItemStart;
 };
 

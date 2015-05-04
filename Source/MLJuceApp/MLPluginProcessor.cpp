@@ -38,8 +38,8 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpEnvironmentState = std::unique_ptr<MLAppState>(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
 	
-	// set up state to not save certain properties
-	mpEnvironmentState->ignoreProperty("protocol");
+	// set up state to not save certain properties that are dynamic.
+	mpPatchState->ignoreProperty("receiving_t3d");
 	
 #if defined (__APPLE__)
 	// initialize T3D listener
@@ -134,13 +134,13 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 		{
 			// TODO these were getting reset to redundant values when the editor opens because it calls
 			// updateAllProperties() on the environment. Listeners are where duplicate values get filtered out.
-			// we want to update the new editor but no thte t3d hub. so the editor and t3d hub should have separate
+			// we want to update the new editor but not the t3d hub. so the editor and t3d hub should have separate
 			// listeners from the environment properties. so maybe it's not a Model but just a PropertySet?
 			// quick fix now, sort out later.
-			if(propName == "osc_enabled")
+			if(propName == "protocol")
 			{
-				int enabled = newVal.getFloatValue();
-				mpOwnerProcessor->mT3DHub.setEnabled(enabled);
+				int p = newVal.getFloatValue();
+				mpOwnerProcessor->setInputProtocol(p);
 			}
 			else if(propName == "osc_port_offset")
 			{
@@ -148,7 +148,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
 		}
-			break;
+		break;
 #endif
 		case MLProperty::kStringProperty:
 			break;
@@ -214,7 +214,6 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 void MLPluginProcessor::initializeProcessor()
 {
 	// debug() <<  "initializing MLProcessor @ " << std::hex << (void*)this << std::dec << "...\n";
-	setInputProtocol(kInputProtocolMIDI);
 	
 #if defined(__APPLE__)
 	// connect t3d hub to DSP engine
@@ -227,7 +226,7 @@ void MLPluginProcessor::initializeProcessor()
 	
 	// publish t3d service and listen for incoming t3d data
 	mT3DHub.setPortOffset(mpEnvironmentModel->getFloatProperty("osc_port_offset"));
-	mT3DHub.setEnabled(mpEnvironmentModel->getFloatProperty("osc_enabled"));
+	
 #endif
 }
 
@@ -239,6 +238,7 @@ juce::AudioProcessorEditor* MLPluginProcessor::createEditor()
 {
 	// creation function defined to return the plugin's flavor of plugin editor
     AudioProcessorEditor* r = CreateMLPluginEditor(this);
+	
 	return r;
 }
 
@@ -448,8 +448,9 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 {
 	if(action == "receiving")
 	{
-		int protocol = prop.getFloatValue() ? kInputProtocolOSC : kInputProtocolMIDI;
-		setInputProtocol(protocol);
+		// set model property just for viewing. 
+		int r = prop.getFloatValue();
+		setProperty("receiving_t3d", r);
 	}
 	else if(action == "data_rate")
 	{
@@ -479,10 +480,13 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 
 #pragma mark process
 
-void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector& events)
+// Process any incoming MIDI messages, generating a vector of events for the DSP engine. 
+// Some MIDI messages may also cause major side effects here like changing the program or input type (MPE) 
+void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVector& events)
 {
     int c = 0;
     int size = events.size();
+	bool addControlEvent;
     
 	MidiBuffer::Iterator i (midiMessages);
     juce::MidiMessage message (0xf4, 0.0);
@@ -495,6 +499,9 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 		
     while (i.getNextEvent(message, time)) // writes to time
 	{
+		// default: most MIDI messages cause a control event to be made
+		addControlEvent = true; 
+		
         chan = message.getChannel();
 		if (message.isNoteOn())
 		{
@@ -502,6 +509,9 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
+			
+	debug() << "NOTE ON : " << chan << " " << v1 << " " << v2 << "\n";
+			
 		}
 		else if(message.isNoteOff())
 		{
@@ -509,6 +519,9 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
+			
+	debug() << "NOTE OFF: " << chan << " " << v1 << " " << v2 << "\n";
+			
 		}
 		else if (message.isSustainPedalOn())
 		{
@@ -524,12 +537,32 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 		{
             type = MLControlEvent::kController;
 			v1 = message.getControllerNumber();
-			v2 = message.getControllerValue() / 127.f;
+			v2 = message.getControllerValue()/127.f;
+			
+		debug() << "CONTROL  : " << chan << " " << v1 << " " << v2 << "\n";
+			
+			/*
+			// look for MPE Mode messages
+			if(v1 == 127)
+			{
+				// MPE switch, nothing to do in engine.
+				addControlEvent = false; 
+				int chans = clamp(message.getControllerValue(), 0, 15);	
+				
+				if(chans > 0)
+				{
+					getEnvironment()->setPropertyImmediate("protocol", kInputProtocolMIDI_MPE);			
+				}
+			}
+			 */
 		}
 		else if (message.isPitchWheel())
 		{
             type = MLControlEvent::kPitchWheel;
 			v1 = message.getPitchWheelValue();
+			
+			debug() << "PITCH   : " << chan << " " << v1 << " " << v2 << "\n";
+			
 		}
 		else if (message.isAftertouch())
 		{
@@ -555,6 +588,8 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			{		
 				loadPatchStateFromMIDIProgram(pgm);
 			}
+			// currently unused. but a sample-accurate program change might be
+			// useful in the future, especially for offline rendering.
             type = MLControlEvent::kProgramChange;
             id = chan;
             v1 = (float)pgm;
@@ -574,7 +609,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			debug() << std::dec << "]\n";
 		}
 		 */
-        if(c < size - 1)
+        if(addControlEvent && (c < size - 1))
         {
             events[c++] = MLControlEvent(type, chan, id, time, v1, v2);
         }
@@ -641,7 +676,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
         
         if(acceptsMidi())
         {
-            convertMIDIToEvents(midiMessages, mControlEvents);
+            processMIDI(midiMessages, mControlEvents);
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
@@ -1166,6 +1201,8 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 		
 		// assume JSON
 		bool OK = true;
+		
+		debug() << "STATES:\n" << pTrimmedStart << "\n";
 		cJSON* root = cJSON_Parse(pTrimmedStart);
 		if(root)
 		{
@@ -1587,24 +1624,22 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 	return err;
 }
 
-// called to change the input protocol, or ping that t3d is alive.
+// called to change the input protocol.
 //
 void MLPluginProcessor::setInputProtocol(int p)
 {
 	if(p != mInputProtocol)
 	{
-		// set the environment model’s protocol property, which a View can use to change its UI
-		
-		getEnvironment()->setProperty("protocol", p);
-		
 		getEngine()->setEngineInputProtocol(p);
-		switch(p)
+		
+		if(p == kInputProtocolOSC)
 		{
-			case kInputProtocolMIDI:
-				break;
-			case kInputProtocolOSC:
-				break;
+			mT3DHub.setEnabled(true);
 		}
+		else
+		{
+			mT3DHub.setEnabled(false);
+		}		
 		mInputProtocol = p;
 	}
 }

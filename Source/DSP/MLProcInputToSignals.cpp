@@ -382,11 +382,8 @@ void MLProcInputToSignals::doParams()
 	const std::string& scaleName = getStringParam("scale");
 	mScale.loadFromRelativePath(scaleName);
 	
-	int newProtocol = (int)getParam("protocol");	
-	if (newProtocol != mProtocol)
-	{
-		mProtocol = newProtocol;
-	}
+	const int newProtocol = (int)getParam("protocol");	
+	mProtocol = newProtocol;
 	
 	mGlide = getParam("glide");
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
@@ -412,6 +409,7 @@ void MLProcInputToSignals::doParams()
 			mAddChannelPressure = false;
 			break;
 		case kInputProtocolMIDI:	
+		case kInputProtocolMIDI_MPE:	
 			for(int i=0; i<kMLEngineMaxVoices; ++i)
 			{
 				mVoices[i].mdGate.setGlideTime(0.f);
@@ -560,6 +558,7 @@ void MLProcInputToSignals::process(const int frames)
 			processOSC(frames);
 			break;
 		case kInputProtocolMIDI:	
+		case kInputProtocolMIDI_MPE:	
 			processEvents();
 			break;
 	}
@@ -927,11 +926,16 @@ void MLProcInputToSignals::doSustain(const MLControlEvent& event)
     }
 }
 
+// if the controller number matches one of the numbers we are sending to the
+// patcher, update it.
 void MLProcInputToSignals::doController(const MLControlEvent& event)
 {
     int time = event.mTime;
-	float ctrl = event.mValue1;
+	int ctrl = event.mValue1;
 	float val = event.mValue2;
+	
+	debug() << "doController " << ctrl << "\n";
+	
 	for (int i=0; i<mCurrentVoices; ++i)
 	{
 		if (event.mChannel == mVoices[i].mChannel)

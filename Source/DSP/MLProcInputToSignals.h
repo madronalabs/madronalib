@@ -129,7 +129,10 @@ private:
     int findOldestSustainedVoice();
     int findOldestVoice();
 
+	// OSC, MIDI, MIDI_MPE or nothing
+	// MIDI_MPE enables MPE (Multidimensional Polyphonic Expression) mode via MIDI
 	int mProtocol;
+	
 	MLProcInfo<MLProcInputToSignals> mInfo;
 	PaUtilRingBuffer* mpFrameBuf;
 	MLSignal mLatestFrame;

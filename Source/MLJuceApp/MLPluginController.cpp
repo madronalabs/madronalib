@@ -16,6 +16,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	mClockDivider(0),
 	mConvertingPresets(false),
 	mFilesConverted(0),
+	mProtocolMenuItemStart(0),
 	mOSCMenuItemStart(0)
 {
 	// initialize reference
@@ -373,16 +374,17 @@ void MLPluginController::doSettingsMenu(int result)
 			mpProcessor->editorResized(p.x(), p.y());
 			break;
 		}
-        case (4):
+		default:
 		{
-			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
-			mpProcessor->getEnvironment()->setPropertyImmediate("osc_enabled", !enabled);
-			break;
-		}
-        default:
-		{
-			// other items set osc port offset.
-			mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - mOSCMenuItemStart - 1);
+			if(result <= mOSCMenuItemStart)
+			{
+				mpProcessor->getEnvironment()->setPropertyImmediate("protocol", result - mProtocolMenuItemStart - 1);
+			}
+			else
+			{
+				// other items set osc port offset.
+				mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - mOSCMenuItemStart - 1);
+			}
 		}
     }
 }
@@ -523,7 +525,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	menu->buildIndex();
 }
 
-// create a menu of the factory scales.
+// "gear" menu for environment settings.
 //
 void MLPluginController::populateSettingsMenu()
 {
@@ -535,9 +537,24 @@ void MLPluginController::populateSettingsMenu()
 	pMenu->addItem("Show numbers", true, num);
 	pMenu->addItem("Animate dials", true, anim);
 	pMenu->addItem("Reset editor size");
+
+	// protocols
+	const int currProtocol = mpProcessor->getEnvironment()->getFloatProperty("protocol");
+	MLMenuPtr protocolMenu(new MLMenu());
+	{
+		const std::vector<std::string> names ({"MIDI", "MIDI MPE", "OSC"});
+		for(int i=0; i<names.size(); ++i)
+		{
+			bool ticked = (i == currProtocol);
+			protocolMenu->addItem(names[i], true, ticked);
+		}
+	}
 	
-#if ML_MAC
 	pMenu->addSeparator();
+	mProtocolMenuItemStart = pMenu->getSize();
+	pMenu->addSubMenu(protocolMenu, "Input protocol");
+
+#if ML_MAC
 	MLMenuPtr portsMenu(new MLMenu());
 	for(int i=0; i<16; ++i)
 	{
@@ -550,8 +567,6 @@ void MLPluginController::populateSettingsMenu()
 		portsMenu->addItem(iStr, true, ticked);
 	}
 	
-	int enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
-	pMenu->addItem("OSC enabled", true, enabled);
 	mOSCMenuItemStart = pMenu->getSize();
 	pMenu->addSubMenu(portsMenu, "OSC port offset");
 #endif

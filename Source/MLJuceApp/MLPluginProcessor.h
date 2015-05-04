@@ -124,9 +124,6 @@ public:
 	void handleHubNotification(MLSymbol action, const MLProperty val);
 #endif
 	
-	// process
-	bool isOKToProcess();
-    void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
 	void setCollectStats(bool k);
 
 	// parameters
@@ -189,13 +186,16 @@ public:
 	
 	// environment: through which anything outside the patch, such as window size, can be stored in the host
 	MLEnvironmentModel* getEnvironment() { return mpEnvironmentModel.get(); }
-	
+
 	virtual MLPoint getDefaultEditorSize() = 0;
 	
 protected:
-	// set what kind of event input we are listening to (MIDI or OSC)
-	void setInputProtocol(int p);
+	
+	void processMIDI (MidiBuffer& midiMessages, MLControlEventVector & events);
 
+	// set what kind of event input we are listening to (MIDI or MIDI_MPE or OSC)
+	void setInputProtocol(int p);
+	
 	// set the parameter of the Engine but not the Model property.
 	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
 	void setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue);
@@ -251,9 +251,9 @@ private:
 	std::unique_ptr<MLEnvironmentModel> mpEnvironmentModel;
 	std::unique_ptr<MLAppState> mpEnvironmentState;
 	std::unique_ptr<cJSON> mpDefaultEnvironmentState;
+	
 #if defined(__APPLE__)
 	MLT3DHub mT3DHub;
-	
 #endif
 	
 #if OSC_PARAMS	
