@@ -147,7 +147,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			args >> frameID >> deviceID;
             mT3DWaitTime = 0;
 			mReceivingT3d = true;
-            //debug() << "FRM " << frameID << "\n";
+ // debug() << "FRM " << frameID << "\n";
 		}
         // match tch[n] message
         else if (strncmp(addy, "/t3d/tch", 8) == 0)
@@ -168,7 +168,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			// t3d/tch[ID], (float)x, (float)y, (float)z, (float)note
 			args >> x >> y >> z >> note;
 			
-			//debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
+			// debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
             
 			mOutputFrame(0, touchID) = x;
 			mOutputFrame(1, touchID) = y;
@@ -242,7 +242,7 @@ void MLT3DHub::ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName&
 
 void MLT3DHub::timerCallback()
 {
-	static const int kT3DTimeout = 4;
+	static const int kT3DTimeout = 2; // 2 cycles of this timer
 	
 	if(mShouldDisconnect)
 	{
