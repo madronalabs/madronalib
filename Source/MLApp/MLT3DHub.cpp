@@ -146,12 +146,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 		{
 			args >> frameID >> deviceID;
             mT3DWaitTime = 0;
-			
-			if(!mReceivingT3d)
-			{
-				mReceivingT3d = true;
-				notifyListeners("receiving", 1);
-			}
+			mReceivingT3d = true;
             //debug() << "FRM " << frameID << "\n";
 		}
         // match tch[n] message
@@ -273,8 +268,8 @@ void MLT3DHub::timerCallback()
 		if(mT3DWaitTime > kT3DTimeout)
 		{
 			mReceivingT3d = false;
-			notifyListeners("receiving", 0);
 		}
+		notifyListeners("receiving", mReceivingT3d);
 	}
 }
 
