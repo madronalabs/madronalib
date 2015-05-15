@@ -263,7 +263,7 @@ void MLDial::setRange (const float newMin,
 		setPropertyImmediate("max_value", constrainValue(getFloatProperty("max_value")));
 	}
 	
-	mDigits = ceil(log10(jmax((abs(newMin) + 1.), (abs(newMax) + 1.))));
+    mDigits = ceil(log10(jmax((std::abs(newMin) + 1.), (std::abs(newMax) + 1.))));
 	mDoSign = ((newMax < 0) || (newMin < 0));
 	mPrecision = ceil(log10(1. / newInt) - 0.0001);	
 	
