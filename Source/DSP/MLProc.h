@@ -155,65 +155,6 @@ friend class MLProcFactory;
 	static bool& getVariableInputsFlag() { static bool mHasVariableInputs; return mHasVariableInputs; }
 	static bool& getVariableOutputsFlag() { static bool mHasVariableInputs; return mHasVariableInputs; }
     
-    // new parameter alias maps: map (symbol -> map(string -> int));
-    MLParamValueAliasMap& getParamValueAliasMap() const { return getClassParamValueAliasMap(); }
-	static MLParamValueAliasMap &getClassParamValueAliasMap()  { static MLParamValueAliasMap aliasMap; return aliasMap; }
-    
-    static const MLParamValueAliasVec& getParamValueAliasVec(MLSymbol param)
-    {
-        MLParamValueAliasMap & aliasMap = MLProcInfo<MLProcSubclass>::getClassParamValueAliasMap();
-        MLParamValueAliasMap::iterator it = aliasMap.find(param);
-        if(it != aliasMap.end())
-        {
-            return it->second;
-        }
-        return MLProcInfoBase::kMLProcNullAliasVec;
-    }
-    
-    static const std::string& getParamAliasByValue(MLSymbol param, int value)
-    {
-        MLParamValueAliasMap & aliasMap = MLProcInfo<MLProcSubclass>::getClassParamValueAliasMap();
-        MLParamValueAliasMap::iterator it = aliasMap.find(param);
-        if(it != aliasMap.end())
-        {
-            const std::vector<std::string> & aliasVec = it->second;
-            if(within(value, 1, (int)aliasVec.size() + 1))
-            {
-                return aliasVec[value - 1]; // one-indexed
-            }
-            else
-            {
-                return kMLProcAliasUndefinedStr;
-            }
-        }
-        return kMLProcAliasUndefinedStr;
-    }
-	
-    // return the parameter value for param with the given alias, or 0 if not found. 
-    static int getParamValueByAlias(MLSymbol param, const std::string& alias)
-    {
-        int r = 0;
-        MLParamValueAliasMap & aliasMap = MLProcInfo<MLProcSubclass>::getClassParamValueAliasMap();
-        MLParamValueAliasMap::iterator it = aliasMap.find(param);
-        if(it != aliasMap.end())
-        {
-            const std::vector<std::string> & aliasVec = it->second;
-            MLParamValueAliasVec::const_iterator vecIter;
-            int idx = 1; // one-indexed
-            for(vecIter = aliasVec.begin(); vecIter != aliasVec.end(); ++vecIter)
-            {
-                const std::string& aStr = *vecIter;
-                if(aStr == alias)
-                {
-                    r = idx;
-                    break;
-                }
-                idx++;
-            }
-        }
-        return r;
-    }
-	
 private:
 
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
@@ -240,20 +181,6 @@ public:
 			MLSymbolMap & pMap = MLProcInfo<MLProcSubclass>::getClassParamMap();
 			pMap.addEntry(MLSymbol(name));
 		}
-	}
-};
-
-// an MLProcParamValueAlias creates a string alias to an integer value of the parameter 'param'.
-// Useful for creating menus and such. aliases will be made for integers in the order they are created.
-//
-template <class MLProcSubclass, const MLSymbol& param>
-class MLProcParamValueAlias
-{
-public:
-	MLProcParamValueAlias(const char * name)
-    {
-        MLParamValueAliasMap & aliasMap = MLProcInfo<MLProcSubclass>::getClassParamValueAliasMap();
-        aliasMap[param].push_back(std::string(name));
 	}
 };
 
