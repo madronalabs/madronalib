@@ -141,11 +141,11 @@ void MLDrawing::paint(Graphics& g)
 //debug() << "painting MLDrawing " << getWidgetName() << "\n";
 //int c = 0;	
 
-	for(std::vector<MLDrawing::Operation>::iterator it = mOperations.begin(); it != mOperations.end(); it++)
+	for(auto op : mOperations)
 	{
 		Path p;
 		Vec2 p1, p2;
-		const MLDrawing::Operation& op = *it;
+		//const MLDrawing::Operation& op = *it;
 
 //debug() << "    painting op " << c++ << "\n";	
 		for(int i=0; i<4; ++i)

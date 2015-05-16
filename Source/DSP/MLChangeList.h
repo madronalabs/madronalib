@@ -7,8 +7,8 @@
 
 // RESEARCH
 // We are really reinventing wavelets here, in a sense.  So a
-// wavelet-based or similar analytic description of a signal
-// might be a better, more general, tool for making synthesizers.
+// wavelet-based or similar analytic description 
+// might be a better, more general, tool for making control signals.
 
 // MLChangeList stores an ordered list of time-stamped changes to a scalar 
 // value that can be written out to a 1D time domain signal.

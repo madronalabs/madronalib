@@ -64,8 +64,13 @@ MLPluginProcessor::~MLPluginProcessor()
 
 #pragma mark MLModel
 
+// if a parameter of the DSP engine exists matching the property name, set it to the new value.
+// TODO DSP engine can simply have properties.
+
 void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
 {
+	// debug() << " doPropertyChangeAction: " << propName << " -> " << newVal << "\n";
+	
 	int propertyType = newVal.getType();
 	int paramIdx = getParameterIndex(propName);
 	if (paramIdx < 0) return;

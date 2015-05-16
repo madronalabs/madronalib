@@ -267,6 +267,14 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 		label->setJustification(Justification::centred);		
 	
 		MLRect rr = r.translated(Vec2(0, -labelHeight*c->getLabelVerticalOffset()) + offset);
+		
+		// MLTEST quantize label top to 1/8 grid
+		float gridSize = 0.125;
+		float top = rr.top();
+		top = (roundf(top/gridSize))*gridSize;
+		rr.setTop(top);
+		
+		
 		addWidgetToView(label, rr);
 
 	}

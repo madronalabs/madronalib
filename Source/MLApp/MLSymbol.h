@@ -143,6 +143,9 @@ public:
 	MLSymbol withoutFinalNumber() const;
 	int getFinalNumber() const;
 
+	// TODO an idea: getTranslatedString() here might be a good API for internationalization
+	// a dictionary of symbols -> translations (incl. English) is needed. 
+	
 	const std::string& getString() const;
 	int compare(const char *str) const;
 	

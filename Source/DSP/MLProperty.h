@@ -40,9 +40,12 @@ public:
 	const std::string& getStringValue() const;
 	const MLSignal& getSignalValue() const;
     
-	// set the value of the property to that of the argument.
-	// For all property types, if the size of the argument is equal to the
-	// size of the current value, the value is modified in place.
+	// For each type of property, a setValue method must exist
+	// to set the value of the property to that of the argument.
+	//
+	// For each type of property, if the size of the argument is equal to the
+	// size of the current value, the value must be modified in place.
+	// This guarantee keeps DSP graphs from allocating memory as they run.
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
 	void setValue(const std::string& v);
@@ -56,7 +59,7 @@ public:
 	
 private:
 	// TODO reduce storage requirements-- this is a minimal-code start
-	// TODO stop using std::string or otherwise control threading issues
+	// TODO stop using std::string, which seems to be causing threading issues
 	Type mType;
 	float mFloatVal;
 	std::string mStringVal;

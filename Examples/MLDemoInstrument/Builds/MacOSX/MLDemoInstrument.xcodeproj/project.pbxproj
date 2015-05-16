@@ -388,7 +388,6 @@
 		B503B17017BAB69F00D84FD1 /* MLPlatform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLPlatform.h; sourceTree = "<group>"; };
 		B503B17117BAB69F00D84FD1 /* MLReporter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLReporter.cpp; sourceTree = "<group>"; };
 		B503B17217BAB69F00D84FD1 /* MLReporter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLReporter.h; sourceTree = "<group>"; };
-		B503B17317BAB69F00D84FD1 /* MLResponder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLResponder.h; sourceTree = "<group>"; };
 		B503B17417BAB69F00D84FD1 /* MLSymbol.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MLSymbol.cpp; sourceTree = "<group>"; };
 		B503B17517BAB69F00D84FD1 /* MLSymbol.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSymbol.h; sourceTree = "<group>"; };
 		B503B17617BAB69F00D84FD1 /* MLSymbolMap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MLSymbolMap.h; sourceTree = "<group>"; };
@@ -949,7 +948,6 @@
 				B503B17017BAB69F00D84FD1 /* MLPlatform.h */,
 				B503B17117BAB69F00D84FD1 /* MLReporter.cpp */,
 				B503B17217BAB69F00D84FD1 /* MLReporter.h */,
-				B503B17317BAB69F00D84FD1 /* MLResponder.h */,
 				B503B17417BAB69F00D84FD1 /* MLSymbol.cpp */,
 				B503B17517BAB69F00D84FD1 /* MLSymbol.h */,
 				B503B17617BAB69F00D84FD1 /* MLSymbolMap.h */,
@@ -1597,7 +1595,7 @@
 					$OSCTOOLS_DIR,
 				);
 				JUCE_DIR = /Users/rej/Dev/juce;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MADRONALIB_DIR = /Users/rej/Dev/madronalib/Source;
 				ONLY_ACTIVE_ARCH = YES;
 				OSCPACK_DIR = /Users/rej/Dev/oscpack;
@@ -1613,6 +1611,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEAD_CODE_STRIPPING = YES;
@@ -1651,6 +1650,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1706,7 +1706,7 @@
 					$OSCTOOLS_DIR,
 				);
 				JUCE_DIR = /Users/rej/Dev/juce;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MADRONALIB_DIR = /Users/rej/Dev/madronalib/Source;
 				ONLY_ACTIVE_ARCH = YES;
 				OSCPACK_DIR = /Users/rej/Dev/oscpack;
@@ -1722,6 +1722,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -1777,7 +1778,7 @@
 					$OSCTOOLS_DIR,
 				);
 				JUCE_DIR = /Users/rej/Dev/juce;
-				MACOSX_DEPLOYMENT_TARGET = 10.5;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
 				MADRONALIB_DIR = /Users/rej/Dev/madronalib/Source;
 				OSCPACK_DIR = /Users/rej/Dev/oscpack;
 				OSCTOOLS_DIR = /Users/rej/Dev/osctools;

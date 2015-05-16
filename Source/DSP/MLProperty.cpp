@@ -349,8 +349,7 @@ void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
 	PropertyState& state = mPropertyStates[propName];
 	
 	// check for change in property. Note that this also compares signals and strings, which may possibly be slow.
-    const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);
-	
+    const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);	
 	if(ownerValue != state.mValue)
     {
 		if(immediate)

@@ -43,6 +43,7 @@ public:
 		const std::list<std::string>& getIndex() { return index; }
 		NodePtr getSubnodeByName(const std::string& name);
 		
+		// TODO use MLSymbols as map keys instead. Return MLSymbols and MLPaths. strings only for display.
         StringToMenuNodeMapT map;
         std::list<std::string> index;
 		std::string mDisplayPrefix;
