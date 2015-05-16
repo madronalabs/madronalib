@@ -176,6 +176,13 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> pC, MLSymbol menuName);
 
+// set the menu map entry for the given name to a new, empty menu.
+MLMenu* MLPluginController::createMenu(MLSymbol menuName)
+{
+	mMenuMap[menuName] = MLMenuPtr(new MLMenu(menuName));
+	return findMenuByName(menuName);
+}
+
 MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)	
 {
 	MLMenu* r = nullptr;
@@ -188,11 +195,16 @@ MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)
 	return r;
 }
 
-// set the menu map entry for the given name to a new, empty menu.
-MLMenu* MLPluginController::createMenu(MLSymbol menuName)
+void MLPluginController::buildMenuFromSymbolVector(MLSymbol menuName, std::vector<std::string> & v)
 {
-	mMenuMap[menuName] = MLMenuPtr(new MLMenu(menuName));
-	return findMenuByName(menuName);
+	if(MLMenu* pMenu = createMenu(menuName))
+	{
+		pMenu->clear();
+		for(auto itemString : v)
+		{
+			pMenu->addItem(itemString);
+		}
+	}
 }
 
 void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
