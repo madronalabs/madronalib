@@ -43,7 +43,7 @@ public:
 	virtual void updateMenu(MLSymbol menuName);
 	// controllers override menuItemChosen to respond to menus.
 	virtual void menuItemChosen(MLSymbol menuName, int result);
- 	void showMenu (MLSymbol menuName, MLSymbol instigatorName);
+ 	virtual void showMenu (MLSymbol menuName, MLSymbol instigatorName);
 	MLMenu* createMenu(MLSymbol menuName);
 	MLMenu* findMenuByName(MLSymbol menuName); // TODO move into new controller base class
 	

@@ -518,7 +518,7 @@ void MLDSPEngine::setEngineInputProtocol(int p)
 		{
 			// just use max voices for MPE for now
 			// later if we do splits as defined in the MPE spec this can change
-			mpInputToSignalsProc->setParam("mpe", 15);
+			// mpInputToSignalsProc->setParam("voices", 15);
 		}
 	}
 }

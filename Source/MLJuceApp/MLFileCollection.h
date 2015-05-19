@@ -156,6 +156,6 @@ private:
 	int mProcessDelay;
 };
 
-typedef std::auto_ptr<MLFileCollection> MLFileCollectionPtr;
+typedef std::unique_ptr<MLFileCollection> MLFileCollectionPtr;
 
 #endif 

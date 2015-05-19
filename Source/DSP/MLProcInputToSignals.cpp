@@ -375,6 +375,7 @@ void MLProcInputToSignals::setup()
 void MLProcInputToSignals::doParams()
 {
 	int newVoices = (int)getParam("voices");
+	newVoices = clamp(newVoices, 0, 15);
     
     // TODO enable / disable voice containers here
 	mOSCDataRate = (int)getParam("data_rate");

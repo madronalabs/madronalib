@@ -64,7 +64,7 @@ public:
     ~MLPluginProcessor();
 
 	// MLModel implementation
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
 	// juce::AudioProcessor
 	const String getName() const { return MLProjectInfo::projectName; }
