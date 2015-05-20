@@ -184,7 +184,7 @@ bool MLLookAndFeel::getDefaultOpacity()
 
 bool MLLookAndFeel::getDefaultBufferMode() 
 { 
-	return false;
+	return true;
 }
 
 bool MLLookAndFeel::getDefaultUnclippedMode() 
