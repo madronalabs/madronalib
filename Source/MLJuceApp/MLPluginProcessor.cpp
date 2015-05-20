@@ -1174,6 +1174,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 void MLPluginProcessor::returnToLatestStateLoaded()
 {
 	mpPatchState->returnToFirstSavedState();
+	updateAllProperties();
 }
 
 #pragma mark set state
