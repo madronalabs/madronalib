@@ -27,6 +27,14 @@ MLWidget::~MLWidget()
     }
 }
 
+void MLWidget::doPropertyChangeAction(MLSymbol param, const MLProperty& newVal)
+{
+	if(pComponent)
+	{
+		pComponent->repaint();
+	}
+}
+
 void MLWidget::addListener(MLWidget::Listener* pL)
 {
 	// TODO check for duplicates
