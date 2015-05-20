@@ -588,15 +588,14 @@ float MLDial::getPositionOfValue (const float value)
 
 void MLDial::paint (Graphics& g)
 {
-
 	const int width = getWidth();
 	const int height = getHeight();
 	float currentValue = getFloatProperty("value");
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 
-//	if (isOpaque()) 
-//		myLookAndFeel->drawBackground(g, this);	
+	if (isOpaque()) 
+		myLookAndFeel->drawBackground(g, this);	
 	
 	// see if lookandfeel's drawNumbers changed
 	bool LFDrawNumbers = myLookAndFeel->mDrawNumbers;
@@ -606,8 +605,6 @@ void MLDial::paint (Graphics& g)
 		mThumbLayerNeedsRedraw = true;
 		mPrevLFDrawNumbers = LFDrawNumbers;
 	}
-	
-	
 	
 	if(0)
 	{
@@ -983,7 +980,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		// hilight (for patcher connections to tiny dials)
 		if ((bool)getFloatProperty("highlight"))
 		{
-			const float m = mLineThickness*6.;
+			const float m = mLineThickness*10.;
 			const float mh = m / 2.;
             Path track;
 			Colour hc = signalToJuceColor(getSignalProperty("highlight_color"));

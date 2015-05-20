@@ -1207,7 +1207,7 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 		// assume JSON
 		bool OK = true;
 		
-		debug() << "STATES:\n" << pTrimmedStart << "\n";
+		// debug() << "STATES:\n" << pTrimmedStart << "\n";
 		cJSON* root = cJSON_Parse(pTrimmedStart);
 		if(root)
 		{
