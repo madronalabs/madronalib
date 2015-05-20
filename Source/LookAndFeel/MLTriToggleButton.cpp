@@ -17,50 +17,19 @@ MLTriToggleButton::~MLTriToggleButton()
 {
 }
 
-/*
-void MLTriToggleButton::setProperty(MLSymbol attr, float val)
-{
-	static const MLSymbol valueSym("value");
-	MLWidget::setAttribute(attr, val);
-	
-	if (attr == valueSym)
-	{
-		// update state without notify
-        mState = (int)val;
-        repaint();
-	}
-}*/
-
-
-void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown)
+void MLTriToggleButton::paint(Graphics& g)
 {
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
-	bool toggleState = getFloatProperty("value");
+	int state = getFloatProperty("value");
 	
 	// colors
 	const float alpha = isEnabled() ? 1.f : 0.25f;
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));
 	const Colour onColor (findColour (MLButton::buttonOnColourId));
-	const Colour offBrightColor (offColor.getHue(), offColor.getSaturation(), jmin(offColor.getBrightness() + 0.1, 1.), offColor.getFloatAlpha());
-	const Colour onBrightColor (onColor.getHue(), onColor.getSaturation(), jmin(onColor.getBrightness() + 0.1, 1.), onColor.getFloatAlpha());
-	const Colour offOverColor (((mDoRollover && isMouseOverButton) ? offBrightColor : offColor).withMultipliedAlpha (alpha));
-	const Colour onOverColor (((mDoRollover && isMouseOverButton) ? onBrightColor : onColor).withMultipliedAlpha (alpha));
-	const Colour bc = (toggleState ? onOverColor : offOverColor);
-	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));
-	const Colour track_hard (findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha));
-	const Colour brightColor = Colour(bc.getHue(), bc.getSaturation(), jmin(bc.getBrightness() + 0.1, 1.), bc.getFloatAlpha());
-	Colour buttonColor = bc.withAlpha (alpha);
-	Colour outlineColor, outlineOnColor, outlineOffColor;
-	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.625f)).withMultipliedAlpha (alpha);
+	Colour outlineOnColor, outlineOffColor;
+	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onColor.withMultipliedAlpha(0.625f)).withMultipliedAlpha (alpha);
 	outlineOffColor = findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha);
-	outlineColor = toggleState ? outlineOnColor : outlineOffColor;
-	outlineColor = outlineColor.withAlpha (alpha);
-    
-	if (mImage.isValid())
-	{
-		buttonColor = buttonColor.overlaidWith(onColor.withMultipliedAlpha(0.25f));
-	}
-	
+ 	
 	// geometry
     const int width = getWidth();
     const int height = getHeight();
@@ -81,10 +50,7 @@ void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool is
 	int toggleWidth = halfSize*2;
 	int toggleHeight = halfSize*2;
 	
-	int flair = 0;
-	if (isButtonDown) flair |= (eMLAdornPressed);
-	flair |= eMLAdornShadow;
-	flair |= eMLAdornGlow;
+	int flair = eMLAdornShadow | eMLAdornGlow;
 	
 	const float cornerSize = 0.;
     
@@ -93,9 +59,9 @@ void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool is
 
     // dark background
     myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight,
-                                      cornerSize, offOverColor, outlineOffColor, kMLButtonOutlineThickness, flair, 0., 0.);        
+                                      cornerSize, offColor, outlineOffColor, kMLButtonOutlineThickness, flair, 0., 0.);        
     g.saveState();
-    switch(mState)
+    switch(state)
     {
         case 0: // left
             g.reduceClipRegion(toggleX - 1, toggleY - 1, thirdSize + 1, toggleHeight + 1);
@@ -111,18 +77,18 @@ void MLTriToggleButton::paintButton(Graphics& g, bool isMouseOverButton, bool is
     }
      
     myLookAndFeel->drawMLButtonShape (g, toggleX, toggleY, toggleWidth, toggleHeight,
-                                      cornerSize, onOverColor, outlineOnColor, mLineThickness, flair, 0., 0.);
+                                      cornerSize, onColor, outlineOnColor, mLineThickness, flair, 0., 0.);
     g.restoreState();
 
 }
 
-void MLTriToggleButton::clicked (const ModifierKeys& modifiers)
+void MLTriToggleButton::clicked()
 {
     int state = getFloatProperty("value");
     state += 1;
     if(state > 2) state = 0;
-    setProperty("value", state);
-    MLButton::clicked();
+	setPropertyImmediate ("value", state);
+	sendAction("change_property", getTargetPropertyName(), getProperty("value"));
 }
 
 void MLTriToggleButton::resizeWidget(const MLRect& b, const int u)
