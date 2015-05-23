@@ -109,9 +109,10 @@ void MLLabel::paint (Graphics& g)
 	const std::string& text = getStringProperty("text");
 	if (text.length() > 0)
 	{
+		float p = getFloatProperty("padding");
 		g.setColour (fc.withAlpha (alpha));
 		g.setFont (mFont);
-		g.drawFittedText (String(text.c_str()), 0, 0, w, h,
+		g.drawFittedText (String(text.c_str()), p, p, w - p*2., h - p*2.,
 			mJustification, 2, 1.0);		
 	}
 	
