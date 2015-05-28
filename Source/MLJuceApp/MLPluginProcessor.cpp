@@ -515,7 +515,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
 			
-	debug() << "NOTE ON : " << chan << " " << v1 << " " << v2 << "\n";
+			// debug() << "NOTE ON : " << chan << " " << v1 << " " << v2 << "\n";
 			
 		}
 		else if(message.isNoteOff())
@@ -525,7 +525,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
 			
-	debug() << "NOTE OFF: " << chan << " " << v1 << " " << v2 << "\n";
+			//debug() << "NOTE OFF: " << chan << " " << v1 << " " << v2 << "\n";
 			
 		}
 		else if (message.isSustainPedalOn())
@@ -544,7 +544,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			v1 = message.getControllerNumber();
 			v2 = message.getControllerValue()/127.f;
 			
-		debug() << "CONTROL  : " << chan << " " << v1 << " " << v2 << "\n";
+			// debug() << "CONTROL  : " << chan << " " << v1 << " " << v2 << "\n";
 			
 			/*
 			// look for MPE Mode messages
