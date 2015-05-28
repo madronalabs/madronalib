@@ -127,6 +127,7 @@ private:
     
     int findFreeVoice();
     int findOldestSustainedVoice();
+	int findNearestVoice(int note);
     int findOldestVoice();
 
 	// OSC, MIDI, MIDI_MPE or nothing
@@ -136,6 +137,7 @@ private:
 	MLProcInfo<MLProcInputToSignals> mInfo;
 	PaUtilRingBuffer* mpFrameBuf;
 	MLSignal mLatestFrame;
+	MLSignal mPreviousFrame;
     
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
     MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
@@ -157,7 +159,7 @@ private:
 		
 	MLRange mPitchRange;
 	MLRange mAmpRange;
-	bool mRetrig;
+	bool mGlissando;
 	bool mUnisonMode;
 	bool mRotateMode;
 	bool mAddChannelPressure;
@@ -169,6 +171,7 @@ private:
 	float mUnisonPitch1;
 
 	MLSignal mTempSignal;
+	MLSignal mMainPitchSignal;
 	MLSignal mChannelAfterTouchSignal;
 
 	float mPitchWheelSemitones;

@@ -93,7 +93,7 @@ int MLControlEventStack::getSize()
 
 void MLControlEventStack::clearEventsMatchingID(int id)
 {
-	int currentSize = size();
+	int currentSize = mSize;
 	for(int i=0; i<currentSize; ++i)
     {
 		MLControlEvent& event = (*this)[i];
@@ -106,7 +106,10 @@ void MLControlEventStack::clearEventsMatchingID(int id)
 				(*this)[j] = (*this)[j + 1];
 			}
 			(*this)[currentSize - 1] = kMLNullControlEvent;
+
 			mSize--;
+			if(mSize <= 0) return;
+
         }
     }
 }
