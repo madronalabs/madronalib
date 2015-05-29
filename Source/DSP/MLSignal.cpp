@@ -59,6 +59,22 @@ MLSignal::MLSignal(const MLSignal& other) :
 	std::copy(other.mDataAligned, other.mDataAligned + mSize, mDataAligned);
 }
 
+MLSignal::MLSignal (std::initializer_list<float> values) : 
+mData(0),
+mDataAligned(0),
+mCopy(0),
+mCopyAligned(0)
+{
+	mRate = kMLToBeCalculated;
+	setConstant(false);	
+	setDims(values.size());
+	int idx = 0;
+	for(float f : values)
+	{
+		mDataAligned[idx++] = f;
+	}
+}
+
 MLSignal& MLSignal::operator= (const MLSignal& other)
 {
 	if (this != &other) // protect against self-assignment
@@ -727,7 +743,7 @@ void MLSignal::sigMax(const MLSample m)
 }
 
 // convolve a 1D signal with a 3-point impulse response.
-void MLSignal::convolve3(const MLSample km, const MLSample k, const MLSample kp)
+void MLSignal::convolve3x1(const MLSample km, const MLSample k, const MLSample kp)
 {
     // TODO SSE
 	int width = mWidth;
@@ -746,7 +762,7 @@ void MLSignal::convolve3(const MLSample km, const MLSample k, const MLSample kp)
     mDataAligned[width - 1] = km*pIn[width - 2] + k*pIn[width - 1];
 }
 
-void MLSignal::convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
+void MLSignal::convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
 {
     // TODO SSE
 	int width = mWidth;

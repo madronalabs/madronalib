@@ -63,6 +63,7 @@ public:
 	MLSignal();	
 	MLSignal(const MLSignal& b);
 	MLSignal(int width, int height = 1, int depth = 1); 
+	MLSignal (std::initializer_list<float> values);
 
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
@@ -314,8 +315,8 @@ public:
 	void sigMax(const MLSample max);
 
     // 1D convolution
-    void convolve3(const MLSample km, const MLSample k, const MLSample kp);
-    void convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp);
+    void convolve3x1(const MLSample km, const MLSample k, const MLSample kp);
+    void convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp);
 
 	// Convolve the 2D matrix with a radially symmetric 3x3 matrix defined by coefficients
 	// kc (center), ke (edge), and kk (corner).
