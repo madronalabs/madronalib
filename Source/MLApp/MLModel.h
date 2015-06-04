@@ -6,6 +6,7 @@
 #ifndef __ML_MODEL__
 #define __ML_MODEL__
 
+#include "JuceHeader.h" // to remove
 #include "MLProperty.h"
 
 // an MLModel is a kind of PropertySet that is also its own PropertyListener.

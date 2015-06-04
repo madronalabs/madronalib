@@ -78,6 +78,8 @@ public:
 		return mDataAligned;
 	}
 	
+	// TODO make a range accessor so we can write code like for(sample x : mySignal)
+	
 	// 1-D access methods
 	//
 	// inspector applied to const references, typically from getInput()

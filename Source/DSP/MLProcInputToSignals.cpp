@@ -1062,6 +1062,9 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 			mVoices[v].mdPitchBend.writeToSignal(mTempSignal, frames);
 			pitch.add(mTempSignal);
 			
+			// in plain MIDI mode, all notes are sent on the same channel, 
+			// bend and other controllers are only set from latest voice.
+			
 			// add main channel pitch bend for MPE
 			if(mProtocol == kInputProtocolMIDI_MPE)
 			{

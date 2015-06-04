@@ -8,8 +8,12 @@
 const int kMaxControlEventsPerBlock = 1024;
 const char* kUDPAddressName = "localhost";
 
-//const int kSeqInfoPort = 9123;
-//const int kUDPOutputBufferSize = 1024;
+#if OSC_PARAMS	
+	const int kSeqInfoPort = 9123;
+	const int kUDPOutputBufferSize = 1024;
+
+	const int kScribbleScenePort = 9223;
+#endif
 
 MLPluginProcessor::MLPluginProcessor() : 
 	mInputProtocol(-1),
@@ -51,6 +55,13 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpOSCBuf.resize(kUDPOutputBufferSize);
 	mSeqInfoSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kSeqInfoPort)));		
 	mVisSendCounter = 0;
+	
+	
+	mpOSCVisualsBuf.resize(kUDPOutputBufferSize);
+	mVisualsSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kScribbleScenePort)));		
+		
+	
+	
 #endif		
 }
 
@@ -150,6 +161,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 			else if(propName == "osc_port_offset")
 			{
 				int offset = newVal.getFloatValue();
+				mpOwnerProcessor->mT3DHub.setShortName(MLProjectInfo::projectName);
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
 		}
@@ -230,6 +242,7 @@ void MLPluginProcessor::initializeProcessor()
 	}
 	
 	// publish t3d service and listen for incoming t3d data
+	mT3DHub.setShortName(MLProjectInfo::projectName);
 	mT3DHub.setPortOffset(mpEnvironmentModel->getFloatProperty("osc_port_offset"));
 	
 #endif
@@ -695,6 +708,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		if(mVisSendCounter > period)
 		{
 			sendSeqInfo();
+			sendVisuals();
 			mVisSendCounter -= period;
 		}
 #endif		
@@ -1665,14 +1679,14 @@ void MLPluginProcessor::sendSeqInfo()
 	eng->getProcList(mSequencerList, MLPath(kMLStepSeqProcName), kMLEngineMaxVoices);
 	// debug() << "got " << mSequencerList.size() << "seqs\n";
 	//int nSeqs = mSequencerList.size();
-
+	
 	
 	/* TODO make ProcList a vector
-	for(int i=0; i<nSeqs; ++i)
-	{
+	 for(int i=0; i<nSeqs; ++i)
+	 {
 		int step = mSequencerList.begin().getStep();
-	}
-	*/
+	 }
+	 */
 	
 	int32_t brightLights = 0;
 	int32_t dimLights = 0;
@@ -1697,14 +1711,58 @@ void MLPluginProcessor::sendSeqInfo()
 	}	
 	
 	osc::OutboundPacketStream p( mpOSCBuf.data(), kUDPOutputBufferSize );
-
+	
 	p << osc::BeginMessage( "/vis/seq" );	
 	p << chan << brightLights << dimLights;
 	p << osc::EndMessage; 
 	
 	// debug() << "sending " << p.Size() << " bytes\n";
-	mSeqInfoSocket->Send( p.Data(), p.Size() );
+	if(mSeqInfoSocket.get())
+	{
+		mSeqInfoSocket->Send( p.Data(), p.Size() );
+	}
 }
+
+#include "MLProcRMS.h"
+const char * kMLRMSProcName("voices_sum_rms");
+
+void MLPluginProcessor::sendVisuals()
+{
+	float rms = 0.;
+	int chan = mT3DHub.getPortOffset();
+	//int seqData = mT3DHub.getPortOffset();
+	
+	MLDSPEngine* eng = getEngine();
+	
+	eng->getProcList(mRMSProcList, MLPath(kMLRMSProcName), 1);
+	
+	// debug() << "got " << mRMSProcList.size() << "RMS procs\n";
+	// int nRMS = mRMSProcList.size();
+	for (MLProcList::const_iterator jt = mRMSProcList.begin(); jt != mRMSProcList.end(); jt++)
+	{
+		MLProcPtr proc = (*jt);
+		MLProc* proc2 = &(*proc);
+		MLProcRMS* pRMS = static_cast<MLProcRMS*>(proc2);
+		if (pRMS)
+		{
+			rms = pRMS->getRMS();
+			//debug() << "RMS: " << rms << "\n";
+		}
+	}	
+	
+	osc::OutboundPacketStream p( mpOSCVisualsBuf.data(), kUDPOutputBufferSize );
+	
+	p << osc::BeginMessage( "/vis/rms" );	
+	p << chan << rms;
+	p << osc::EndMessage; 
+	
+	//debug() << "sending " << p.Size() << " bytes\n";
+	if(mVisualsSocket.get())
+	{
+		mVisualsSocket->Send( p.Data(), p.Size() );
+	}
+}
+
 #endif
 
 void MLPluginProcessor::setSequence(const MLSignal& seq)

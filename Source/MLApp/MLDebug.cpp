@@ -84,6 +84,27 @@ void MLTextStream::display()
 
 #endif 
 
+// global entry points
+
+// Send a message to the application or plugin’s debug output.
+// in release builds this will be disabled completely.
+//
+
+std::ostream& debug()
+{
+	return std::cout;
+}
+
+// Send a message to the application or plugin’s console, if one exists. 
+//
+MLTextStream& MLConsole()
+{
+	static MLTextStream theConsoleMessageStream("console");
+	return theConsoleMessageStream;
+}
+
+#if 0
+
 class MLDebugThread : public juce::Thread
 {
 public:
@@ -109,28 +130,10 @@ public:
 	}
 };
 
-// global entry points
-
-// Send a message to the application or plugin’s debug output.
-// in release builds this will be disabled completely.
-//
-
-std::ostream& debug()
-{
-	return std::cout;
-}
-
-// Send a message to the application or plugin’s console, if one exists. 
-//
-MLTextStream& MLConsole()
-{
-	static MLTextStream theConsoleMessageStream("console");
-	return theConsoleMessageStream;
-}
-
 MLDebugThread& theDebugThread()
 {
 	static MLDebugThread theDebugThreadObject;
 	return theDebugThreadObject;
 }
 
+#endif

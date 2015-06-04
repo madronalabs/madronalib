@@ -32,7 +32,7 @@ namespace
 MLProcContainer::MLProcContainer() :
 	theProcFactory(MLProcFactory::theFactory()),
 	mStatsPtr(0),
-	mMasterVolume(1.0f)
+	mMasterVolume(1.0f) // MLTEST really? here and not dspEngine?
 {
 	setParam("ratio", 1.f);
 	setParam("order", 2);
@@ -1103,8 +1103,7 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 		MLProcPtr proc = getProc(pathI);		
 		if (proc)
 		{
-            // debug() << "MLProcContainer (" << getName() << ") getProcList: added " << (void *)&*proc << " (# " << i << ")\n";
-			if(proc->isEnabled())
+ 			if(proc->isEnabled())
 				pList.push_back(proc);
 		}
 	}

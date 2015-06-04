@@ -264,7 +264,21 @@ private:
 	void sendSeqInfo();
 	int mVisSendCounter;
 	MLProcList mSequencerList;
+	
+	
+	// visuals out 
+	
+	std::unique_ptr<UdpTransmitSocket> mVisualsSocket;
+	std::vector<char> mpOSCVisualsBuf;
+	void sendVisuals();
+	MLProcList mRMSProcList;
+	
+	
+	
+	
 #endif // OSC_PARAMS
+	
+
 	
 	void setSequence(const MLSignal& seq);
 
