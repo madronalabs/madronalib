@@ -15,7 +15,6 @@
 
 #include "MLDSP.h"
 #include "MLPlatform.h"
-#include "MLProjectInfo.h"
 #include "MLOSCListener.h"
 #include "MLNetServiceHub.h"
 #include "MLDebug.h"
@@ -67,6 +66,8 @@ public:
 	void timerCallback();
 	void setOSCPortOffset(int offset);
 	
+	void setShortName(const std::string& n) { mShortName = n; }
+	
 	osc::int32 mDataRate;
 	int mT3DWaitTime;
 	
@@ -80,6 +81,7 @@ private:
 	void disconnect();
 
 	std::vector<MLT3DHub::Listener*> mpListeners;
+	std::string mShortName; // will append a port # to this to create full name of MLNetServiceHub
 
 	int mEnabled;
 	int mUDPPortOffset;
