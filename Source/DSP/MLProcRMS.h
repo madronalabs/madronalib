@@ -28,8 +28,7 @@ public:
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
 	// volume accessor TODO make generic getter via symbol
-	float getRMS() { return mRMS; }
-	
+	float getRMS();	
 	
 private:
 	void calcCoeffs(void);
@@ -37,6 +36,8 @@ private:
 	
 	float mRMS;
 	MLBiquad mFilter;
+	int sampleCounter;
+	int snapshotSamples;
 };
 
 #endif
