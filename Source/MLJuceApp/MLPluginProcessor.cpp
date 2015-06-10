@@ -51,11 +51,9 @@ MLPluginProcessor::MLPluginProcessor() :
 #endif
 	
 #if OSC_PARAMS	
-	// MLTEST vis/seq
 	mpOSCBuf.resize(kUDPOutputBufferSize);
 	mSeqInfoSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kSeqInfoPort)));		
-	mVisSendCounter = 0;
-	
+	mVisSendCounter = 0;	
 	
 	mpOSCVisualsBuf.resize(kUDPOutputBufferSize);
 	mVisualsSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kScribbleScenePort)));		
@@ -483,6 +481,9 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 	{
 		int r = prop.getFloatValue();
 		loadPatchStateFromMIDIProgram(r);
+#if OSC_PARAMS		
+		sendProgramChange(r);
+#endif
 	}
 	else if(action == "volume")
 	{
@@ -704,7 +705,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		// if(osc enabled)
 		mVisSendCounter += samples;
 		int samplesPerSecond = 44100;
-		int period = samplesPerSecond/60;
+		int period = samplesPerSecond/30;
 		if(mVisSendCounter > period)
 		{
 			sendSeqInfo();
@@ -1723,6 +1724,7 @@ void MLPluginProcessor::sendSeqInfo()
 	}
 }
 
+
 #include "MLProcRMS.h"
 const char * kMLRMSProcName("voices_sum_rms");
 
@@ -1754,6 +1756,24 @@ void MLPluginProcessor::sendVisuals()
 	
 	p << osc::BeginMessage( "/vis/rms" );	
 	p << chan << rms;
+	p << osc::EndMessage; 
+	
+	//debug() << "sending " << p.Size() << " bytes\n";
+	if(mVisualsSocket.get())
+	{
+		mVisualsSocket->Send( p.Data(), p.Size() );
+	}
+}
+
+// send pgm change message to OSC visuals server
+void MLPluginProcessor::sendProgramChange(int pgm)
+{
+	int chan = mT3DHub.getPortOffset();
+	
+	osc::OutboundPacketStream p( mpOSCVisualsBuf.data(), kUDPOutputBufferSize );
+	
+	p << osc::BeginMessage( "/vis/pgm" );	
+	p << chan << pgm;
 	p << osc::EndMessage; 
 	
 	//debug() << "sending " << p.Size() << " bytes\n";
