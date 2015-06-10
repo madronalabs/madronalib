@@ -24,10 +24,9 @@ public:
 	void addPanel(MLPoint p);
 	void clearPanels();
 	
-	// set a panel's value, return true if the panel should be redrawn.
+	// set a panel's value, return true if the value is changed.
 	bool setPanelValue(unsigned p, float v);
-	
-	bool panelIndexChanged(unsigned p);
+
 	void getPanelRect(unsigned p, MLRect& r);
 
 private:
