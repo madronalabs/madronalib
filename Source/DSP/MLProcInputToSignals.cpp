@@ -256,6 +256,7 @@ void MLProcInputToSignals::clearChangeLists()
 	{
 		mVoices[v].clearChanges();
 	}
+	mMPEMainVoice.clearChanges();
 }
 
 // set up output buffers
@@ -278,6 +279,7 @@ MLProc::err MLProcInputToSignals::resize()
             break;
         }
 	}
+	mMPEMainVoice.resize(bufSize);
 
 	// make signals that apply to all voices
 	mTempSignal.setDims(vecSize);
@@ -393,6 +395,7 @@ void MLProcInputToSignals::doParams()
 		mVoices[v].mdPitch.setGlideTime(mGlide);
 		mVoices[v].mdPitchBend.setGlideTime(mGlide);
 	}
+	mMPEMainVoice.mdPitchBend.setGlideTime(mGlide);
 	
 	switch(mProtocol)
 	{
@@ -423,6 +426,7 @@ void MLProcInputToSignals::doParams()
 				mVoices[i].mdMod2.setGlideTime(0.001f);
 				mVoices[i].mdMod3.setGlideTime(0.001f);
 			}
+
 			mAddChannelPressure = true;
 			break;
 	}
@@ -494,6 +498,9 @@ void MLProcInputToSignals::clear()
                 mVoices[v].mdMod3.writeToSignal(getOutput(v*kNumVoiceSignals + 9), vecSize);
             }
 		}
+		mMPEMainVoice.clearState();
+		mMPEMainVoice.clearChanges();
+		mMPEMainVoice.zero();
 	}
 	mEventCounter = 0;
 }
@@ -1003,7 +1010,11 @@ void MLProcInputToSignals::doPitchWheel(const MLControlEvent& event)
 	{
 		if (event.mChannel == mVoices[i].mChannel)
 		{
-            mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
+			mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
+		}
+		else if (event.mChannel == 1) // MPE Main Channel
+		{
+			mMPEMainVoice.mdPitchBend.addChange(bendAdd, event.mTime);
 		}
 	}
 }
@@ -1034,10 +1045,10 @@ void MLProcInputToSignals::doChannelPressure(const MLControlEvent& event)
 //
 void MLProcInputToSignals::writeOutputSignals(const int frames)
 {
-	// save main channel pitch bend for MPE
+	// get main channel pitch bend signal for MPE
 	if(mProtocol == kInputProtocolMIDI_MPE)
 	{
-		mVoices[0].mdPitchBend.writeToSignal(mMainPitchSignal, frames);
+		mMPEMainVoice.mdPitchBend.writeToSignal(mMainPitchSignal, frames);
 	}
 	
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
