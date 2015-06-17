@@ -579,9 +579,6 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 		{
             type = MLControlEvent::kPitchWheel;
 			v1 = message.getPitchWheelValue();
-			
-			debug() << "PITCH   : " << chan << " " << v1 << " " << v2 << "\n";
-			
 		}
 		else if (message.isAftertouch())
 		{
@@ -834,7 +831,6 @@ const String MLPluginProcessor::symbolToXMLAttr(const MLSymbol sym)
 		}
 	}
  	return (String(nameCopy.c_str()));
-
 }
 
 const MLSymbol MLPluginProcessor::XMLAttrToSymbol(const String& str)

@@ -137,7 +137,6 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
     return drawn;
 }
 
-
 void MLSignalReporter::viewSignals()
 {
 	if(mNeedsRedraw)

@@ -167,7 +167,6 @@ private:
 	bool mGlissando;
 	bool mUnisonMode;
 	bool mRotateMode;
-	bool mAddChannelPressure;
 	int mUnisonInputTouch;
 	float mUnisonVel;
 	float mGlide;
