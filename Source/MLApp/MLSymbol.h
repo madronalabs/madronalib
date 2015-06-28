@@ -20,7 +20,7 @@ static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
 
 // ----------------------------------------------------------------
-#pragma mark MLCharArray
+#pragma mark MLSymbolKey
 
 // an MLSymbolKey points to a number of characters at a certain location.
 // the number is needed because we will compare keys with portions of
@@ -59,7 +59,10 @@ public:
 		return mIndexesByID[symID];
 	}
 	
+	// look up a symbol by name and return its ID.
+	// if the symbol already exists, this routine must not allocate any memory.
 	SymbolIDT getSymbolID(const char * sym, const int len);
+	
 	const std::string& getStringByID(SymbolIDT symID);
 	SymbolIDT getID(SymbolIDT symID);
 	void dump(void);
@@ -111,9 +114,9 @@ public:
 	// Must be reasonably fast.  We will often want to be
 	// lazy and write code like getParam("gain"), even in a DSP method. 
 	// So the constructor must not allocate memory, even any
-	// temporary memory, after the first time a signal is used.  
+	// temporary memory, after the first time a symbol is used.  
 	//
-	// Where the best possible performace is needed, symbols can be
+	// Where the best possible performance is needed, symbols can be
 	// cached like so:
 	//
 	// void myDSPMethod() {
@@ -129,9 +132,18 @@ public:
 
 	// compare two symbols:
 	// Must be the fastest. used in std:map all over the place.
-	bool operator< (const MLSymbol b) const;
+	//bool operator< (const MLSymbol b) const;
+	inline bool operator< (const MLSymbol b) const
+	{
+		return ((theSymbolTable().getSymbolIndex(mID)) < (theSymbolTable().getSymbolIndex(b.mID)));
+	}
 	
-	bool operator== (const MLSymbol b) const;
+	//bool operator== (const MLSymbol b) const;	
+	inline bool operator== (const MLSymbol b) const
+	{
+		return (mID == b.mID);
+	}
+
 	operator bool() const { return mID != 0; }
 	
 	bool beginsWith (const MLSymbol b) const;
@@ -153,21 +165,11 @@ private:
 	SymbolIDT mID;
 };
 
-inline bool MLSymbol::operator< (const MLSymbol b) const
-{
-	return ((theSymbolTable().getSymbolIndex(mID)) < (theSymbolTable().getSymbolIndex(b.mID)));
-}
-
-inline bool MLSymbol::operator== (const MLSymbol b) const
-{
-	return (mID == b.mID);
-}
-
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 
 // ----------------------------------------------------------------
 #pragma mark MLNameMaker
-// a utility to make many short names when they are needed. 
+// a utility to make many short, human-readable names when they are needed. 
 
 class MLNameMaker
 {

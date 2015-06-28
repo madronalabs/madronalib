@@ -163,16 +163,15 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 		if(e.mType == MLControlEvent::kNoteOff)
 		{
 			mdNotePressure.addChange(0, time);
+			
+			// for MPE mode when controlling envelopes with aftertouch: ensure 
+			// notes are not sending pressure when off
 			mdChannelPressure.addChange(0, time);
-			debug() << "pressure: off " <<  "\n";
 		}
 		if(e.mType == MLControlEvent::kNoteOn)
 		{
 			mdPitch.addChange(scale.noteToLogPitch(note), time);
 			mdVel.addChange(vel, time);
-			//mdChannelPressure.addChange(vel, time);
-			
-			debug() << "pressure: " << vel << "\n";
 		}
 	}
 	
@@ -197,7 +196,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
 debug() << "retrig\n";		
         mdGate.addChange(0.f, time - 1);
 		mdNotePressure.addChange(0.f, time - 1);
-		mdChannelPressure.addChange(0.f, time - 1);
+		//mdChannelPressure.addChange(0.f, time - 1);
 		//mdVel.addChange(0.f, time - 1);
     }
 	

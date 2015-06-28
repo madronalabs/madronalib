@@ -103,8 +103,6 @@ MLSymbolTable::~MLSymbolTable()
 {
 }
 
-// look up a symbol by name and return its ID.
-// if the symbol already exists, this routine must not allocate any memory.
 SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 {
 	SymbolIDT r = 0;
@@ -119,6 +117,7 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym, const int len)
 	}	
 
 	// symbol data stays external for now, no memory is allocated.
+	// This is the fast path, and how we look up symbols from char* in typical code.
 	MLSymbolKey symKey(sym, len);	
 	MLSymbolMapT::iterator mapIter(mMap.find(symKey));
 	if (mapIter != mMap.end())
