@@ -79,7 +79,7 @@ int MLSymbolTable::addEntry(const char * sym)
 	mHashTable[hash].push_back(newID);	
 
 	mMutex.unlock();
-	return mSize;
+	return newID;
 }
 
 SymbolIDT MLSymbolTable::getSymbolID(const char * sym)
