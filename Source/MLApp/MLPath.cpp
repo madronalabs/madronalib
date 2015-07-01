@@ -34,7 +34,7 @@ MLPath::MLPath(const char * str) :
 		symEnd = endPos - 1;
 		
 		// make symbol
-		addSymbol(MLSymbol(str+symStart, symEnd - symStart + 1));
+		addSymbol(std::string(str+symStart, symEnd - symStart + 1));
 		symStart = symEnd + 2;
 	}
 }
