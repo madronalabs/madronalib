@@ -1,0 +1,550 @@
+
+// MLSymbol.cpp
+// ----------
+// Madrona Labs C++ framework for DSP applications.
+// Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+
+#include "MLSymbol.h"
+#include <iostream>
+#include <sstream>
+
+// ----------------------------------------------------------------
+#pragma mark MLSymbolTable
+
+MLSymbolTable::MLSymbolTable() : mSize(0)
+{
+	debug() << "CREATING symbol table: size = " << kHashTableSize << "\n";
+	clear();
+}
+
+MLSymbolTable::~MLSymbolTable()
+{
+}
+
+void MLSymbolTable::clear()
+{
+	mSize = 0;
+	mSymbolsByID.resize(kDefaultTableSize);
+	mSymbolsByID.clear();
+	mAlphaOrderByID.resize(kDefaultTableSize);
+	mAlphaOrderByID.clear();
+
+	mSymbolsByIndex.clear();
+	mHashTable.resize(kHashTableSize);
+	addEntry("");
+}
+
+
+SymbolIndexT MLSymbolTable::getSymbolAlphaOrder(const SymbolIDT symID) 
+{
+	return mAlphaOrderByID[symID];
+}
+
+// add an entry to the table. The entry must not already exist in the table.
+// this must be the only way of modifying the symbol table.
+int MLSymbolTable::addEntry(const char * sym)
+{
+	mMutex.lock();
+	
+	int newID = mSize++;
+	// debug() << "adding " << sym << " : size " << mSize << "\n";
+
+	mSymbolsByID[newID] = std::string(sym);
+
+	// store in sorted structure to get index.
+	auto insertReturnVal = mSymbolsByIndex.insert(mSymbolsByID[newID]);
+	auto newEntryIter = insertReturnVal.first;
+	auto beginIter = mSymbolsByIndex.begin();
+
+	// get index of new entry
+	int newIndex = distance(beginIter, newEntryIter);
+	// make new index list entry
+	mAlphaOrderByID[newID] = newIndex;
+
+	// insert into alphabetical order list
+	for(int i=0; i<newID; ++i)
+	{
+		if (mAlphaOrderByID[i] >= newIndex)
+		{
+			mAlphaOrderByID[i]++;
+		}
+	}
+
+	// store in hash table	
+	// debug() << "inserting: " << newSymbol << "\n";
+
+	unsigned hash = KRhash(sym);
+	mHashTable[hash].push_back(newID);	
+
+	mMutex.unlock();
+	return mSize;
+}
+
+SymbolIDT MLSymbolTable::getSymbolID(const char * sym)
+{
+	SymbolIDT r = 0;
+	bool found = false;
+	
+	// look up ID by symbol
+	// This is the fast path, and how we look up symbols from char* in typical code.
+	
+	int hash = KRhash(sym);
+	const std::vector<int>& bin = mHashTable[hash];
+	
+	// there should be few collisions, so probably the first ID in the hash bin
+	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
+	// compare the entire string.
+	for(int ID : bin)
+	{
+		// MLTEST
+		if(ID > 1000)
+		{
+			debug() << "WTF\n";
+		}
+		if(!strcmp(sym, mSymbolsByID[ID].c_str()))
+		{
+			r = ID;
+			found = true;
+			break;
+		}
+	}
+	
+	if(!found)
+	{	
+		r = addEntry(sym);
+		debug() << "added entry " << r << "\n";
+	}
+
+	if(r > 1000)
+	{
+		debug() << "WTF\n";
+	}
+
+	// TODO figure out return values for any error conditions
+	return r;
+}
+
+const std::string& MLSymbolTable::getSymbolByID(SymbolIDT symID)
+{
+	return mSymbolsByID[symID];
+}
+
+
+void MLSymbolTable::dump(void)
+{
+	int size = mSymbolsByID.size();
+	debug() << "---------------------------------------------------------\n";
+	debug() << size << " symbols:\n";
+	
+	// print symbols in order of creation. 
+	for(int i=0; i<size; ++i)
+	{
+		const std::string& sym = mSymbolsByID[i];
+		debug() << "    ID " << i << " = " << sym << "\n";
+	}
+}
+
+
+void MLSymbolTable::audit(void)
+{
+	int i=0;
+	int i2 = 0;
+	bool OK = true;
+	int size = mSymbolsByID.size();
+ 
+	for(i=0; i<size; ++i)
+	{
+		const std::string& sym = getSymbolByID(i);
+		const char* symChars = sym.c_str();
+		MLSymbol symB(symChars);
+		i2 = symB.getID();
+		if (i != i2)
+		{
+			OK = false;
+			break;
+		}
+		if (i2 > size)
+		{
+			OK = false;
+			break;
+		}
+	}
+	if (OK)
+	{
+		debug() << "Symbol table OK. " << size << " symbols.\n";
+	}
+	else
+	{
+		const std::string& s = getSymbolByID(i);
+		debug() << "MLSymbolTable: error in symbol table, line " << i << ":\n";
+		debug() << "    ID " << i << " = " << s << ", ID B = " << i2 << "\n";
+	}
+}
+ 
+
+// ----------------------------------------------------------------
+#pragma mark MLSymbol
+
+const int kMLMaxNumberDigits = 14;
+
+const char *positiveIntToDigits(int i);
+int digitsToPositiveInt(const char* p);
+const char *naturalNumberToDigits(int value, char* pDest);
+bool isDigit(char c);
+bool isValidSymbolChar(char c);
+int processSymbolText(const char* sym, int maxLen = kMLMaxSymbolLength);
+
+const char *positiveIntToDigits(int i)
+{
+	static char buf[kMLMaxNumberDigits + 2] = {0};
+	char *p = buf + kMLMaxNumberDigits + 1;	
+	*p = 0;
+	do 
+	{
+		*--p = '0' + (i % 10);
+		i /= 10;
+	} 
+	while (i != 0);
+	return p;
+}
+
+const char* naturalNumberToDigits(int value, char* pDest) 
+{
+	const int base = 10;
+	char* ptr = pDest, *ptr1 = pDest, tmp_char;
+	int tmp_value;
+	
+	if(value <= 0)
+	{
+		*pDest = '0';
+		*(++pDest) = '\0';
+		return pDest;
+	}
+	
+	do 
+	{
+		tmp_value = value;
+		value /= base;
+		*ptr++ = "0123456789abcdef"[tmp_value - value*base];
+	} while ( value > 0 );
+	
+	*ptr-- = '\0';
+	while(ptr1 < ptr) 
+	{
+		tmp_char = *ptr;
+		*ptr-- = *ptr1;
+		*ptr1++ = tmp_char;
+	}
+	return pDest;
+}
+
+int digitsToPositiveInt(const char* p)
+{
+	int v = 0;
+	int l = 0;
+	int d;
+	char c;
+	
+	while (p[l] && (l < kMLMaxNumberDigits-1))
+	{
+		c = p[l];
+		if (c >= '0' && c <= '9')
+			d = (c - '0');
+		else
+			break;
+		v = (v * 10) + d;
+		l++;
+	}
+	return v;
+}
+
+bool isDigit(char c)
+{
+	if (c >= '0' && c <= '9')
+		return true;
+	return false;
+}
+
+bool isValidSymbolChar(char c)
+{
+	if (c >= 'a' && c <= 'z')
+		return true;
+	if (c >= 'A' && c <= 'Z')
+		return true;
+	if (isDigit(c))
+		return true;
+	if (c == '_' || c == '*' || c == '#')
+		return true;
+	return false;
+}
+
+// process incoming symbol text in place up to maxLen characters and return the text length.  
+//
+int processSymbolText(const char* sym, int maxLen)
+{
+	int len = 0;
+	// check for starting number (these will be invalid symbols)
+	if (isDigit(sym[0]))
+	{
+		debug() << "processSymbolText warning: looking for symbol, found number " << sym << "  \n"; 
+	}
+	else
+	{
+		int n;
+		for(n=0; (isValidSymbolChar(sym[n]) && (n < maxLen)); n++){}
+		len = n;
+		if (len >= kMLMaxSymbolLength)
+		{
+			debug() << "processSymbolText warning: symbol exceeded max size! \n"; 
+		}
+	}
+	return len;
+}
+
+MLSymbol::MLSymbol()
+{
+	mID = 0;
+}
+
+MLSymbol::MLSymbol(const char *sym)
+{
+	mID = theSymbolTable().getSymbolID(sym);
+}
+
+MLSymbol::MLSymbol(const std::string& str)
+{
+	mID = theSymbolTable().getSymbolID(str.c_str());
+}
+
+// return a reference to the symbol's string in the table.
+const std::string& MLSymbol::getString() const
+{
+	return theSymbolTable().getSymbolByID(mID);
+}
+
+bool MLSymbol::beginsWith (const MLSymbol b) const
+{
+	const std::string& strA = getString();
+	const char* pa = strA.c_str();
+	const int aLen = strA.length();
+	const std::string& strB = b.getString();
+	const char* pb = strB.c_str();
+	const int bLen = strB.length();
+	
+	if(bLen > aLen) return false;
+	for(int i=0; i<bLen; ++i)
+	{
+		if(pa[i] != pb[i]) return false;
+	}
+	return true;
+}
+
+bool MLSymbol::endsWith (const MLSymbol b) const
+{
+	const std::string& strA = getString();
+	const char* pa = strA.c_str();
+	const int aLen = strA.length();
+	const std::string& strB = b.getString();
+	const char* pb = strB.c_str();
+	const int bLen = strB.length();
+	
+	if(bLen > aLen) return false;
+	for(int i=bLen - 1; i>=0; --i)
+	{
+		if(pa[i + aLen - bLen] != pb[i]) return false;
+	}
+	return true;
+}
+
+bool MLSymbol::hasWildCard() const
+{
+	const std::string& str = getString();
+	const char* p = str.c_str();
+	int l = 0;
+	while(p[l] && (l < kMLMaxSymbolLength-1))
+	{
+		if (p[l++] == '*')
+			return true;
+	}
+	return false;
+}
+
+// replace wild card with the given number.
+MLSymbol MLSymbol::withWildCardNumber(int n) const
+{
+	const std::string& inStr = getString();
+	const char* p = inStr.c_str();
+	int l = 0;
+	int m = 0;
+	char c;
+	char tempBuf[kMLMaxSymbolLength] = {0};
+	
+	while(p[l] && (m < kMLMaxSymbolLength-1))
+	{
+		c = p[l];
+		if (c == '*')
+		{
+			const char* d = positiveIntToDigits(n);
+			int j = 0;
+			while(d[j] && (m < kMLMaxSymbolLength-1))
+			{
+				tempBuf[m] = d[j];
+				j++;
+				m++;
+			}
+			m--;
+		}
+		else
+		{
+			tempBuf[m] = c;
+		}
+		l++;
+		m++;
+	}
+	tempBuf[m] = 0;
+	return MLSymbol(tempBuf);
+}
+
+// if the symbol's string ends in a number, return that number.
+int MLSymbol::getFinalNumber() const
+{
+	const std::string& str = getString();
+	const char* p = str.c_str();
+	int l = 0;
+	while(p[l])
+	{
+		l++;
+	}
+	if (!isDigit(p[l - 1])) return 0; // no ending number
+	char c;
+	int i;
+	for (i = l-1; i >= 0; i--)
+	{
+		c = p[i];
+		if (!isDigit(c)) break;
+	}
+	return digitsToPositiveInt(&p[i + 1]);
+}
+
+// add a number n to the end of a symbol after removing any final number.
+// n must be >= 0.
+MLSymbol MLSymbol::withFinalNumber(int n) const
+{
+	// *not* static because different threads could collide accesing a single buffer.
+	char tempBuf[kMLMaxSymbolLength + kMLMaxNumberLength] = {0};
+	
+	const std::string& str = getString();
+	const char* p = str.c_str();
+	
+	int i, j;
+	int l = 0;
+	
+	// set l to length
+	while(p[l])
+	{
+		l++;
+	}
+	// find last non-number character
+	for (i = l-1; i >= 0; --i)
+	{
+		if (!isDigit(p[i])) break;
+	}	
+	// copy symbol without number to temp 
+	for(j=0; j<=i; ++j)
+	{
+		tempBuf[j] = p[j];
+	}
+	
+	naturalNumberToDigits(n, tempBuf+j);
+	
+	//debug() << "in: " << n << ", char*: " << tempBuf << ", Symbol " << MLSymbol(tempBuf) << "\n";	
+	return MLSymbol(tempBuf);
+}
+
+// remove any final number.
+MLSymbol MLSymbol::withoutFinalNumber() const
+{
+	// *not* static because different threads could collide accesing a single buffer.
+	char tempBuf[kMLMaxSymbolLength] = {0};
+	
+	const std::string& str = getString();
+	const char* p = str.c_str();
+	int i, j;
+	int l = 0;
+	
+	// set l to length
+	while(p[l])
+	{
+		l++;
+	}
+	// find last non-number character
+	for (i = l-1; i >= 0; --i)
+	{
+		if (!isDigit(p[i])) break;
+	}	
+	// copy symbol without number to temp 
+	for(j=0; j<=i; ++j)
+	{
+		tempBuf[j] = p[j];
+	}
+	tempBuf[i+1] = 0;
+	return MLSymbol(tempBuf);
+}
+
+
+int MLSymbol::compare(const char * s) const
+{
+	return getString().compare(s);
+}
+
+std::ostream& operator<< (std::ostream& out, const MLSymbol r)
+{
+	out << r.getString();
+	return out;
+}
+
+// ----------------------------------------------------------------
+#pragma mark MLNameMaker
+
+// base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
+std::string MLNameMaker::nextNameAsString()
+{
+	// TODO using std::string and std::list is pretty lazy here
+	std::string nameStr;
+	
+	const int base = 26;
+	const char baseChar = 'A';
+	int a, m, d, rem;
+	
+	std::list<int> digits;
+	a = index++;
+	
+	if (!a)
+	{
+		digits.push_front(0);
+	}
+	else while(a)
+	{
+		d = a / base;
+		m = d * base;
+		rem = a - m;
+		digits.push_front(rem);
+		a = d;
+	}
+	
+	while(digits.size())
+	{
+		d = digits.front();
+		digits.pop_front();
+		nameStr += (char)d + baseChar;
+	}
+	return nameStr;
+}
+
+const MLSymbol MLNameMaker::nextName()
+{
+	return MLSymbol(nextNameAsString().c_str());
+}
+
