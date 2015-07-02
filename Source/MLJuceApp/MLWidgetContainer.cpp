@@ -20,28 +20,16 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const MLSymbol name)
 	MLSymbol newName;
 	if (name)
 	{
-		debug() << "\nlooking for widget " << name << " : " << name.getID() << "\n";
-
 		if(mWidgets.find(name) != mWidgets.end())
 		{
-			debug() << "MLWidgetContainer::addWidget: name " << name << " already taken! \n";
-			
+			debug() << "MLWidgetContainer::addWidget: name " << name << " already taken! \n";			
 			debug() << mWidgets.size() << " widgets:\n";
-			for(auto w : mWidgets)
-			{
-				debug() << w.first << " : " << reinterpret_cast<unsigned long>(w.second) << "\n";
-			}
-//			dumpWidgets();
-//			theSymbolTable().dump();
-			
+			dumpWidgets();
+			theSymbolTable().dump();
 			theSymbolTable().audit();
 		}
 		else
 		{
-			// MLTEST
-			debug() << "MLWidgetContainer::addWidget: adding widget " << name << "... \n";
-			dumpWidgets();
-			
 			newName = name;
 		}
 	}
@@ -52,9 +40,7 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const MLSymbol name)
 
 	if(newName)
 	{
-		std::string nameStr2 = newName.getString();
-
-		mWidgets[nameStr2] = pW;
+		mWidgets[newName] = pW;
 		pW->setWidgetName(newName);
 	}
     

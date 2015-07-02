@@ -7,6 +7,7 @@
 #define __ML_PROPERTY__
 
 #include <string>
+#include <list>
 #include "MLSignal.h"
 #include "MLSymbol.h"
 #include "MLDebug.h"

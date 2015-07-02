@@ -1,36 +1,32 @@
+
 //
-//  symbolTable
+//  symbolTest
 //
 
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <iostream>
-#include <time.h>
 #include <vector>
+#include <map>
 #include <unordered_map>
 #include <chrono>
 
 #include "../include/madronalib.h"
 
-const char letters[24] = "abcdefghijklmnopqrstuvw";
-
+const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 int main(int argc, char *argv[]) 
 {
 	const int kTableSize = 1000;	
 	const int kTestLength = 1000000;
 
-	// test: is std::unordered_map<MLSymbol, float> faster than std::unordered_map<std::string, float> in a typical use?
+	// main maps for testing
 	std::map<MLSymbol, float> testMap1;
 	std::map<std::string, float> testMap2;
 	
-	// make test maps and symbol / string lists
+	// make dictionaries of symbols, strings and chars for testing
 	MLNameMaker nameMaker;
 	std::vector<MLSymbol> symbolDict;
 	std::vector<std::string> stringDict;
 	std::vector<const char *> charDict;
-	
 	int p = 0;
 	for(int i=0; i<kTableSize; ++i)
 	{
@@ -43,6 +39,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
+			// procedural gibberish
 			int length = 3 + (p%8);
 			for(int j=0; j<length; ++j)
 			{
@@ -72,146 +69,98 @@ int main(int argc, char *argv[])
 		charDict.push_back(stringDict[i].c_str());
 	}
 	
-	debug() << "table size: " << theSymbolTable().getSize();
-		
-	theSymbolTable().dump();
-//	theSymbolTable().audit();
-	
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	std::chrono::duration<double> elapsed_seconds;
 	std::time_t end_time;
-	float sum;
+	double a, b, c, d;
 	int idx;
 
-if(0)
-{
 	// -------------------------------------
 	// lookup from existing std::strings
-   	start = std::chrono::system_clock::now();
-   	sum = 0.f;
+	start = std::chrono::system_clock::now();
+	a = 0.f;
 	idx = 0;
 	for(int i=0; i<kTestLength; ++i)
 	{
 		if(++idx >= kTableSize) idx = 0;	
-		sum += testMap2[stringDict[idx]];
+		a += testMap2[stringDict[idx]];
 	}	
-	debug() << "\nSUM [std::string]: " << sum << "\n";
+	debug() << "\nSUM [std::string]: " << a << "\n";
 	end = std::chrono::system_clock::now();
-    elapsed_seconds = end-start;
-    end_time = std::chrono::system_clock::to_time_t(end);
-    std::cout << "existing strings, elapsed time: " << elapsed_seconds.count() << "s\n";
+	elapsed_seconds = end-start;
+	end_time = std::chrono::system_clock::to_time_t(end);
+	std::cout << "existing strings, elapsed time: " << elapsed_seconds.count() << "s\n";
 	// -------------------------------------
-
+	
+	// -------------------------------------
+	// lookup from newly made std::strings
+	start = std::chrono::system_clock::now();
+	b = 0.f;
+	idx = 0;
+	for(int i=0; i<kTestLength; ++i)
+	{
+		if(++idx >= kTableSize) idx = 0;	
+		b += testMap2[std::string(charDict[idx])];
+	}	
+	debug() << "\nSUM [std::string]: " << b << "\n";
+	end = std::chrono::system_clock::now();
+	elapsed_seconds = end-start;
+	end_time = std::chrono::system_clock::to_time_t(end);
+	std::cout << "newly made strings, elapsed time: " << elapsed_seconds.count() << "s\n";
+	// -------------------------------------
 	
 	// -------------------------------------
 	// lookup from existing MLSymbols
 	// begin time
 	start = std::chrono::system_clock::now();
-	sum = 0.f;
+	c = 0.f;
 	idx = 0;
 	for(int i=0; i<kTestLength; ++i)
 	{
 		if(++idx >= kTableSize) idx = 0;	
-		sum += testMap1[symbolDict[idx]];
+		c += testMap1[symbolDict[idx]];
 	}
-	debug() << "\nSUM [MLSymbol]: " << sum << "\n";
+	debug() << "\nSUM [MLSymbol]: " << c << "\n";
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 	end_time = std::chrono::system_clock::to_time_t(end);
 	std::cout << "existing symbols, elapsed time: " << elapsed_seconds.count() << "s\n";
 	// -------------------------------------
-
 	
 	// -------------------------------------
 	// lookup from new MLSymbols made from char * 
 	// begin time
 	start = std::chrono::system_clock::now();
-	sum = 0.f;
+	d = 0.f;
 	idx = 0;
 	for(int i=0; i<kTestLength; ++i)
 	{
 		if(++idx >= kTableSize) idx = 0;	
-		sum += testMap1[charDict[idx]];
+		d += testMap1[charDict[idx]];
 	}
-	debug() << "\nSUM [MLSymbol]: " << sum << "\n";
+	debug() << "\nSUM [MLSymbol]: " << d << "\n";
 	end = std::chrono::system_clock::now();
 	elapsed_seconds = end-start;
 	std::cout << "newly made symbols, elapsed time: " << elapsed_seconds.count() << "s\n";
 	// -------------------------------------
-}
-	MLSymbol nullSym;
-	if(!nullSym)
-	{
-		debug() << "null symbol is null.\n";
-	}
 	
-	// -------------------------------------
-	// test using a std::map while adding symbols
-//	theSymbolTable().clear();
-	MLNameMaker namer;
-	std::map<MLSymbol, int> numbersMap;
-	int strIdx = 0;
+	theSymbolTable().audit();
+
 	for(int i=0; i<10; ++i)
 	{
-		MLSymbol newName;
-		const MLSymbol name = stringDict[strIdx++];
-		if(name)
-		{
-			if(numbersMap.find(name) != numbersMap.end())
-			{
-				debug() << name << " is taken?!\n";
-			}
-			else
-			{
-				debug() << "adding " << name << "...\n"; 
-				newName = name;
-			}
-			MLSymbol name2 = stringDict[strIdx++];
-			MLSymbol name3 = stringDict[strIdx++];
-			MLSymbol name4 = stringDict[strIdx++];
-			debug() << name2 << " " << name3 << " " << name4 << "\n";
-		}
-		else
-		{
-			newName = namer.nextName();
-		}
-		
-		if(newName)
-		{
-			
-			numbersMap[newName] = i;
-		}
+		MLSymbol symWithNum = symbolDict[i].withFinalNumber(i);
+		debug() << i << " " << symWithNum << " " << symWithNum.getFinalNumber() << " " << symWithNum.withoutFinalNumber() << "\n";
+		// assert symWithNum.withoutFinalNumber() = symbolDict[i];
 	}
 	
-	debug() << "---------------\n";
-	for(auto m : numbersMap)
-	{
-		debug() << m.first << " : " << m.second << "\n";
-	}
-		
+	theSymbolTable().audit();
+	
+	// TODO compare results and make this test a thing that can pass or fail.
+	
+	// TODO multithreaded tests
+
 	return 0;
 }
-
-
-/*
-1000000 in 0.5 s
-1000000 in 20000 samples
-1000 in 20 samples
-100 in 2 samples
-1 in 0.02 samples
-
-say we have a 16 sample buffer. processing 1000 symbol lookups over the course of our network will take 4/5 or 80% of our CPU time! 
-
-show results with map and unordered_map for both types of keys.
- 
- unordered_map<MLSymbol, float>
-1000000 in 0.01 s
-1000000 in 400 samples
-1000 in 0.4 samples
-100 in 0.04 samples
- 
-
-*/
 
 
 
