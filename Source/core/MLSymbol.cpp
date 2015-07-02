@@ -10,12 +10,13 @@
 #include <iostream>
 #include <sstream>
 
+int processSymbolText(const char* sym);
+
 // ----------------------------------------------------------------
 #pragma mark MLSymbolTable
 
 MLSymbolTable::MLSymbolTable() : mSize(0)
 {
-	debug() << "CREATING symbol table: size = " << kHashTableSize << "\n";
 	clear();
 }
 
@@ -23,43 +24,66 @@ MLSymbolTable::~MLSymbolTable()
 {
 }
 
+// clear all symbols from the table.
 void MLSymbolTable::clear()
 {
 	mSize = 0;
-	mSymbolsByID.resize(kDefaultTableSize);
+	mCapacity = 0;
+	
 	mSymbolsByID.clear();
-	mAlphaOrderByID.resize(kDefaultTableSize);
+	
+#if USE_ALPHA_SORT	
 	mAlphaOrderByID.clear();
-
 	mSymbolsByIndex.clear();
+#endif
+
+	allocateChunk();
+
 	mHashTable.resize(kHashTableSize);
-	addEntry("");
+	mHashTable.clear();
+	addEntry("", 0);
 }
 
+// allocate one additional chunk of storage. 
+void MLSymbolTable::allocateChunk()
+{
+	mCapacity += kTableChunkSize;
+	mSymbolsByID.resize(mCapacity);
+	
+#if USE_ALPHA_SORT	
+	mAlphaOrderByID.resize(mCapacity);
+#endif
+}
 
-SymbolIndexT MLSymbolTable::getSymbolAlphaOrder(const SymbolIDT symID) 
+#if USE_ALPHA_SORT	
+SymbolIndexT MLSymbolTable::getSymbolAlphaOrder(const int symID) 
 {
 	return mAlphaOrderByID[symID];
 }
+#endif
 
 // add an entry to the table. The entry must not already exist in the table.
 // this must be the only way of modifying the symbol table.
-int MLSymbolTable::addEntry(const char * sym)
+int MLSymbolTable::addEntry(const char * sym, int len)
 {
 	mMutex.lock();
 	
 	int newID = mSize++;
-	// debug() << "adding " << sym << " : size " << mSize << "\n";
-
+	
+	if(mSize >= mCapacity)
+	{
+		allocateChunk();
+	}
+	
 	mSymbolsByID[newID] = std::string(sym);
 
-	// store in sorted structure to get index.
+#if USE_ALPHA_SORT	
+	// store symbol in set to get alphabetically sorted index of new entry.
 	auto insertReturnVal = mSymbolsByIndex.insert(mSymbolsByID[newID]);
 	auto newEntryIter = insertReturnVal.first;
 	auto beginIter = mSymbolsByIndex.begin();
-
-	// get index of new entry
 	int newIndex = distance(beginIter, newEntryIter);
+	
 	// make new index list entry
 	mAlphaOrderByID[newID] = newIndex;
 
@@ -71,39 +95,41 @@ int MLSymbolTable::addEntry(const char * sym)
 			mAlphaOrderByID[i]++;
 		}
 	}
-
-	// store in hash table	
-	// debug() << "inserting: " << newSymbol << "\n";
-
-	unsigned hash = KRhash(sym);
-	mHashTable[hash].push_back(newID);	
+#endif 
+	
+	mHashTable[KRhash(sym)].push_back(newID);	
 
 	mMutex.unlock();
 	return newID;
 }
 
-SymbolIDT MLSymbolTable::getSymbolID(const char * sym)
+int MLSymbolTable::getSymbolID(const char * sym)
 {
-	SymbolIDT r = 0;
+	int r = 0;
 	bool found = false;
+	
+	int len = processSymbolText(sym);
 	
 	// look up ID by symbol
 	// This is the fast path, and how we look up symbols from char* in typical code.
-	
-	int hash = KRhash(sym);
-	const std::vector<int>& bin = mHashTable[hash];
+	const std::vector<int>& bin = mHashTable[KRhash(sym)];
 	
 	// there should be few collisions, so probably the first ID in the hash bin
 	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
 	// compare the entire string.
+	
+	// or maybe not...
+	// here's an interesting idea: imagine some function hash2 that is orthogonal to the first hash,
+	// in the sense that if a != b and hash(a) = hash(b) (there is a collision), hash2(a) is
+	// guaranteed != hash2(b). if this function is cheap to compute, the strings no longer need 
+	// to be compared entirely.
+	
+	// debug() << "getSymbolID: " << sym << " hash : " << KRhash(sym) << "\n";
+	
 	for(int ID : bin)
 	{
-		// MLTEST
-		if(ID > 1000)
-		{
-			debug() << "WTF\n";
-		}
-		if(!strcmp(sym, mSymbolsByID[ID].c_str()))
+		// if (hash2(sym) != mSymbolsByID[ID].mStoredHash2) // idea
+		if(!strncmp(sym, mSymbolsByID[ID].c_str(), len))
 		{
 			r = ID;
 			found = true;
@@ -113,46 +139,36 @@ SymbolIDT MLSymbolTable::getSymbolID(const char * sym)
 	
 	if(!found)
 	{	
-		r = addEntry(sym);
-		debug() << "added entry " << r << "\n";
+		r = addEntry(sym, len);
 	}
 
-	if(r > 1000)
-	{
-		debug() << "WTF\n";
-	}
-
-	// TODO figure out return values for any error conditions
 	return r;
 }
 
-const std::string& MLSymbolTable::getSymbolByID(SymbolIDT symID)
+const std::string& MLSymbolTable::getSymbolByID(int symID)
 {
 	return mSymbolsByID[symID];
 }
 
-
 void MLSymbolTable::dump(void)
 {
-	int size = mSymbolsByID.size();
 	debug() << "---------------------------------------------------------\n";
-	debug() << size << " symbols:\n";
+	debug() << mSize << " symbols:\n";
 	
 	// print symbols in order of creation. 
-	for(int i=0; i<size; ++i)
+	for(int i=0; i<mSize; ++i)
 	{
 		const std::string& sym = mSymbolsByID[i];
 		debug() << "    ID " << i << " = " << sym << "\n";
 	}
 }
 
-
 void MLSymbolTable::audit(void)
 {
 	int i=0;
 	int i2 = 0;
 	bool OK = true;
-	int size = mSymbolsByID.size();
+	int size = mSize;
  
 	for(i=0; i<size; ++i)
 	{
@@ -182,7 +198,6 @@ void MLSymbolTable::audit(void)
 		debug() << "    ID " << i << " = " << s << ", ID B = " << i2 << "\n";
 	}
 }
- 
 
 // ----------------------------------------------------------------
 #pragma mark MLSymbol
@@ -193,8 +208,6 @@ const char *positiveIntToDigits(int i);
 int digitsToPositiveInt(const char* p);
 const char *naturalNumberToDigits(int value, char* pDest);
 bool isDigit(char c);
-bool isValidSymbolChar(char c);
-int processSymbolText(const char* sym, int maxLen = kMLMaxSymbolLength);
 
 const char *positiveIntToDigits(int i)
 {
@@ -267,22 +280,9 @@ bool isDigit(char c)
 	return false;
 }
 
-bool isValidSymbolChar(char c)
-{
-	if (c >= 'a' && c <= 'z')
-		return true;
-	if (c >= 'A' && c <= 'Z')
-		return true;
-	if (isDigit(c))
-		return true;
-	if (c == '_' || c == '*' || c == '#')
-		return true;
-	return false;
-}
-
 // process incoming symbol text in place up to maxLen characters and return the text length.  
 //
-int processSymbolText(const char* sym, int maxLen)
+int processSymbolText(const char* sym)
 {
 	int len = 0;
 	// check for starting number (these will be invalid symbols)
@@ -293,7 +293,7 @@ int processSymbolText(const char* sym, int maxLen)
 	else
 	{
 		int n;
-		for(n=0; (isValidSymbolChar(sym[n]) && (n < maxLen)); n++){}
+		for(n=0; ((sym[n]) && (n < kMLMaxSymbolLength)); n++){}
 		len = n;
 		if (len >= kMLMaxSymbolLength)
 		{
@@ -466,7 +466,7 @@ MLSymbol MLSymbol::withFinalNumber(int n) const
 // remove any final number.
 MLSymbol MLSymbol::withoutFinalNumber() const
 {
-	// *not* static because different threads could collide accesing a single buffer.
+	// *not* static because different threads could collide accessing a single buffer.
 	char tempBuf[kMLMaxSymbolLength] = {0};
 	
 	const std::string& str = getString();
@@ -493,7 +493,6 @@ MLSymbol MLSymbol::withoutFinalNumber() const
 	return MLSymbol(tempBuf);
 }
 
-
 int MLSymbol::compare(const char * s) const
 {
 	return getString().compare(s);
@@ -511,33 +510,32 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 // base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
 std::string MLNameMaker::nextNameAsString()
 {
-	// TODO using std::string and std::list is pretty lazy here
 	std::string nameStr;
+	std::vector<int> digits;
 	
 	const int base = 26;
 	const char baseChar = 'A';
 	int a, m, d, rem;
 	
-	std::list<int> digits;
 	a = index++;
 	
 	if (!a)
 	{
-		digits.push_front(0);
+		digits.push_back(0);
 	}
 	else while(a)
 	{
 		d = a / base;
 		m = d * base;
 		rem = a - m;
-		digits.push_front(rem);
+		digits.push_back(rem);
 		a = d;
 	}
 	
 	while(digits.size())
 	{
-		d = digits.front();
-		digits.pop_front();
+		d = digits.back();
+		digits.pop_back();
 		nameStr += (char)d + baseChar;
 	}
 	return nameStr;
