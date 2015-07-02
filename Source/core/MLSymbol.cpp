@@ -5,7 +5,6 @@
 // Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-
 #include "MLSymbol.h"
 #include <iostream>
 #include <sstream>
@@ -27,6 +26,8 @@ MLSymbolTable::~MLSymbolTable()
 // clear all symbols from the table.
 void MLSymbolTable::clear()
 {
+	mMutex.lock();
+
 	mSize = 0;
 	mCapacity = 0;
 	
@@ -34,29 +35,35 @@ void MLSymbolTable::clear()
 	
 #if USE_ALPHA_SORT	
 	mAlphaOrderByID.clear();
-	mSymbolsByIndex.clear();
+	mSymbolsByAlphaOrder.clear();
 #endif
+	mHashTable.resize(kHashTableSize);
+	mHashTable.clear();
+
+	mMutex.unlock();
 
 	allocateChunk();
 
-	mHashTable.resize(kHashTableSize);
-	mHashTable.clear();
+	mMutex.lock();
 	addEntry("", 0);
+	mMutex.unlock();
 }
 
 // allocate one additional chunk of storage. 
 void MLSymbolTable::allocateChunk()
 {
+	mMutex.lock();
 	mCapacity += kTableChunkSize;
 	mSymbolsByID.resize(mCapacity);
 	
 #if USE_ALPHA_SORT	
 	mAlphaOrderByID.resize(mCapacity);
 #endif
+	mMutex.unlock();
 }
 
 #if USE_ALPHA_SORT	
-SymbolIndexT MLSymbolTable::getSymbolAlphaOrder(const int symID) 
+int MLSymbolTable::getSymbolAlphaOrder(const int symID) 
 {
 	return mAlphaOrderByID[symID];
 }
@@ -66,10 +73,9 @@ SymbolIndexT MLSymbolTable::getSymbolAlphaOrder(const int symID)
 // this must be the only way of modifying the symbol table.
 int MLSymbolTable::addEntry(const char * sym, int len)
 {
-	mMutex.lock();
+	int newID = mSize;	
 	
-	int newID = mSize++;
-	
+	mSize++;
 	if(mSize >= mCapacity)
 	{
 		allocateChunk();
@@ -79,9 +85,9 @@ int MLSymbolTable::addEntry(const char * sym, int len)
 
 #if USE_ALPHA_SORT	
 	// store symbol in set to get alphabetically sorted index of new entry.
-	auto insertReturnVal = mSymbolsByIndex.insert(mSymbolsByID[newID]);
+	auto insertReturnVal = mSymbolsByAlphaOrder.insert(mSymbolsByID[newID]); 
 	auto newEntryIter = insertReturnVal.first;
-	auto beginIter = mSymbolsByIndex.begin();
+	auto beginIter = mSymbolsByAlphaOrder.begin();
 	int newIndex = distance(beginIter, newEntryIter);
 	
 	// make new index list entry
@@ -98,8 +104,6 @@ int MLSymbolTable::addEntry(const char * sym, int len)
 #endif 
 	
 	mHashTable[KRhash(sym)].push_back(newID);	
-
-	mMutex.unlock();
 	return newID;
 }
 
@@ -110,6 +114,8 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	
 	int len = processSymbolText(sym);
 	
+	mMutex.lock();
+
 	// look up ID by symbol
 	// This is the fast path, and how we look up symbols from char* in typical code.
 	const std::vector<int>& bin = mHashTable[KRhash(sym)];
@@ -124,11 +130,11 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	// guaranteed != hash2(b). if this function is cheap to compute, the strings no longer need 
 	// to be compared entirely.
 	
-	// debug() << "getSymbolID: " << sym << " hash : " << KRhash(sym) << "\n";
+	// also if we replace std::string with a custom char * type that stores its length, 
+	// and use SSE to do the compares, they could be awful quick.
 	
 	for(int ID : bin)
 	{
-		// if (hash2(sym) != mSymbolsByID[ID].mStoredHash2) // idea
 		if(!strncmp(sym, mSymbolsByID[ID].c_str(), len))
 		{
 			r = ID;
@@ -136,34 +142,47 @@ int MLSymbolTable::getSymbolID(const char * sym)
 			break;
 		}
 	}
-	
 	if(!found)
 	{	
 		r = addEntry(sym, len);
 	}
+	
+	mMutex.unlock();
 
 	return r;
 }
 
 const std::string& MLSymbolTable::getSymbolByID(int symID)
 {
-	return mSymbolsByID[symID];
+	mMutex.lock();
+	const std::string& str (mSymbolsByID[symID]); 
+	mMutex.unlock();
+	return str;
 }
 
 void MLSymbolTable::dump(void)
 {
 	debug() << "---------------------------------------------------------\n";
 	debug() << mSize << " symbols:\n";
-	
+		
+#if USE_ALPHA_SORT
+	int i = 0;
+	for(auto sym : mSymbolsByAlphaOrder)
+	{
+		debug() << "    ID " << i++ << " = " << sym << "\n";
+	}
+#else
 	// print symbols in order of creation. 
 	for(int i=0; i<mSize; ++i)
 	{
 		const std::string& sym = mSymbolsByID[i];
 		debug() << "    ID " << i << " = " << sym << "\n";
 	}
+#endif
+	
 }
 
-void MLSymbolTable::audit(void)
+int MLSymbolTable::audit(void)
 {
 	int i=0;
 	int i2 = 0;
@@ -187,16 +206,13 @@ void MLSymbolTable::audit(void)
 			break;
 		}
 	}
-	if (OK)
-	{
-		debug() << "Symbol table OK. " << size << " symbols.\n";
-	}
-	else
+	if (!OK)
 	{
 		const std::string& s = getSymbolByID(i);
 		debug() << "MLSymbolTable: error in symbol table, line " << i << ":\n";
 		debug() << "    ID " << i << " = " << s << ", ID B = " << i2 << "\n";
 	}
+	return OK;
 }
 
 // ----------------------------------------------------------------
@@ -280,7 +296,7 @@ bool isDigit(char c)
 	return false;
 }
 
-// process incoming symbol text in place up to maxLen characters and return the text length.  
+// scan incoming symbol text in place up to maxLen characters and return the text length.  
 //
 int processSymbolText(const char* sym)
 {

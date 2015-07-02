@@ -13,8 +13,7 @@
 // a wrapper around std::map for now.
 class MLSymbolMap
 {
-public:
-	
+public:	
 	typedef std::map<MLSymbol, int> MLSymbolMapT;	
 	typedef MLSymbolMapT::iterator MLSymbolMapIter;
 	

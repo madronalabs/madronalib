@@ -8,20 +8,31 @@
 #include <map>
 #include <unordered_map>
 #include <chrono>
+#include <thread>
 
 #include "../include/madronalib.h"
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
+void threadTest(int threadID)
+{
+	MLNameMaker namer;
+	for(int i=0; i<100; ++i)
+	{
+		MLSymbol sym(namer.nextNameAsString());
+		std::this_thread::yield();
+	}
+}
+
 int main(int argc, char *argv[]) 
 {
-	const int kTableSize = 1000;	
+	const int kTableSize = 100;	
 	const int kTestLength = 1000000;
 
 	// main maps for testing
 	std::map<MLSymbol, float> testMap1;
 	std::map<std::string, float> testMap2;
-	
+
 	// make dictionaries of symbols, strings and chars for testing
 	MLNameMaker nameMaker;
 	std::vector<MLSymbol> symbolDict;
@@ -68,7 +79,7 @@ int main(int argc, char *argv[])
 	{
 		charDict.push_back(stringDict[i].c_str());
 	}
-	
+
 	std::chrono::time_point<std::chrono::system_clock> start, end;
 	std::chrono::duration<double> elapsed_seconds;
 	std::time_t end_time;
@@ -144,21 +155,40 @@ int main(int argc, char *argv[])
 	std::cout << "newly made symbols, elapsed time: " << elapsed_seconds.count() << "s\n";
 	// -------------------------------------
 	
+	// assert(a == c);
+	
 	theSymbolTable().audit();
 
+	// numbers test
 	for(int i=0; i<10; ++i)
 	{
-		MLSymbol symWithNum = symbolDict[i].withFinalNumber(i);
-		debug() << i << " " << symWithNum << " " << symWithNum.getFinalNumber() << " " << symWithNum.withoutFinalNumber() << "\n";
-		// assert symWithNum.withoutFinalNumber() = symbolDict[i];
+		MLSymbol testSym = symbolDict[i];
+		MLSymbol testSymWithNum = testSym.withFinalNumber(i);
+		MLSymbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
+		// assert testSym = testSymWithoutNum;
 	}
-	
+
+	theSymbolTable().dump();
 	theSymbolTable().audit();
 	
-	// TODO compare results and make this test a thing that can pass or fail.
+	// multithreaded test. 
+	theSymbolTable().clear();
+	int nThreads = 10;
+	std::vector< std::thread > threads;
+	for(int i=0; i < nThreads; ++i)
+	{
+		threads.push_back(std::thread(threadTest, i));
+	}
+	for(int i=0; i < nThreads; ++i)
+	{
+		threads[i].join();
+	}
+	theSymbolTable().dump();
+	theSymbolTable().audit();
+	// assert(theSymbolTable.getSize() == 101);
 	
-	// TODO multithreaded tests
-
+	// TODO use assertions, compare results and make this test a thing that can pass or fail in a the context of a real test framework.
+	
 	return 0;
 }
 

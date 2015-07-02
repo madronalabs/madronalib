@@ -5,15 +5,17 @@
 // Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// MLSymbol is designed to be an efficient key in map structures that is easy 
-// to convert to and from a unique string.  The value of an MLSymbol must 
-// remain valid even after more MLSymbols are created.  
+// MLSymbol is designed to be an efficient key in STL containers such as map and
+// unordered_map, that is quick to convert to and from a unique string.  
 //
-// This second requirement means that a layer of indirection is needed to get
-// from MLSymbols to the sortable primitives associated with them.  That layer is the
-// symbol table.  Each symbol has an ID, which remains constant for its lifetime. 
-// Each ID can quickly reference a symbol index, which may change when new symbols
-// are added. 
+// requirements
+// ---------
+//
+// The value of an MLSymbol must remain valid even after more MLSymbols are created.  
+// This allows MLSymbols to function as correct keys.
+//
+// Accessing an MLSymbol must not cause any heap to be allocated if the symbol already exists. 
+// This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
 
 #ifndef _ML_SYMBOL_H
 #define _ML_SYMBOL_H
@@ -21,7 +23,6 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <map>
 #include <mutex>
 
 #define debug() std::cout
@@ -60,12 +61,11 @@ public:
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
 	
-	int getSize() { return mSize; }
-	
 	const std::string& getSymbolByID(int symID);
 	
+	int getSize() { return mSize; }	
 	void dump(void);
-	void audit(void);
+	int audit(void);
 	
 private:
 	
@@ -81,24 +81,21 @@ private:
 		return hashval & kHashTableMask;
 	}
 	
+	// 2^32 unique symbols are possible. There is no checking for overflow.
 	int mSize;
 	int mCapacity;
 	
 	std::mutex mMutex;
 	
-	// each symbol is stored as a std::string.
-	// a symbol's ID is defined as the order in which the symbol is created, and never changes. 
-	// a symbol's index is the alphabetically sorted order of the symbol.
-	
-	// vector of symbols in ID order
+	// vector of symbols in ID/creation order
 	std::vector<std::string> mSymbolsByID;	
 	
 #if USE_ALPHA_SORT	
 	// vector of alphabetically sorted indexes into symbol vector, in ID order
-	std::vector<SymbolIndexT> mAlphaOrderByID;	
+	std::vector<int> mAlphaOrderByID;	
 	
 	// TEMP set used for sorting.
-	std::set<std::string> mSymbolsByIndex;
+	std::set<std::string> mSymbolsByAlphaOrder;
 #endif
 	
 	// hash table containing indexes to strings
@@ -119,7 +116,7 @@ class MLSymbol
 	friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 public:
 	
-	// create symbols:
+	// creating symbols:
 	// Must be reasonably fast.  We will often want to be
 	// lazy and write code like getParam("gain"), even in a DSP method. 
 	// So the constructor must not allocate any heap memory when looking up
@@ -191,7 +188,7 @@ namespace std
 
 // ----------------------------------------------------------------
 #pragma mark MLNameMaker
-// a utility to make many short, human-readable names when they are needed. 
+// a utility to make many short, unique, human-readable names when they are needed. 
 
 class MLNameMaker
 {
