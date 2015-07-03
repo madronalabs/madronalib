@@ -23,7 +23,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_TESTS "Build the ML test programs" ON)
-option(ML_BUILD_DOCS "Build the ML documentation" ON)
+option(ML_BUILD_DOCS "Build the ML documentation" OFF)
 option(ML_INSTALL "Generate installation target" ON)
 option(ML_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
@@ -65,8 +65,8 @@ if (ML_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
-if (DOXYGEN_FOUND AND ML_BUILD_DOCS)
-    add_subdirectory(docs)
-endif()
+#if (DOXYGEN_FOUND AND ML_BUILD_DOCS)
+#    add_subdirectory(docs)
+#endif()
 
 
