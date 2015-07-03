@@ -52,14 +52,12 @@ void MLSymbolTable::clear()
 // allocate one additional chunk of storage. 
 void MLSymbolTable::allocateChunk()
 {
-	mMutex.lock();
 	mCapacity += kTableChunkSize;
 	mSymbolsByID.resize(mCapacity);
 	
 #if USE_ALPHA_SORT	
 	mAlphaOrderByID.resize(mCapacity);
 #endif
-	mMutex.unlock();
 }
 
 #if USE_ALPHA_SORT	
