@@ -33,6 +33,10 @@ public:
 	//
 	MLPluginView* addSubView(const MLRect & r, const MLSymbol name);
 
+	// TODO all these methods for adding different kinds of Widgets have a lot of duplication.
+	// instead there should be a Widget factory that can make them by name. 
+	// any extra property connections / other setup can be done in a new virtual initWidget() or something.
+	
 	MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol paramName, 
 		const Colour& color = defaultColor);	
 	MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, int n, 

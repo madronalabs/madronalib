@@ -59,6 +59,22 @@ MLSignal::MLSignal(const MLSignal& other) :
 	std::copy(other.mDataAligned, other.mDataAligned + mSize, mDataAligned);
 }
 
+MLSignal::MLSignal (std::initializer_list<float> values) : 
+mData(0),
+mDataAligned(0),
+mCopy(0),
+mCopyAligned(0)
+{
+	mRate = kMLToBeCalculated;
+	setConstant(false);	
+	setDims(values.size());
+	int idx = 0;
+	for(float f : values)
+	{
+		mDataAligned[idx++] = f;
+	}
+}
+
 MLSignal& MLSignal::operator= (const MLSignal& other)
 {
 	if (this != &other) // protect against self-assignment
@@ -727,7 +743,7 @@ void MLSignal::sigMax(const MLSample m)
 }
 
 // convolve a 1D signal with a 3-point impulse response.
-void MLSignal::convolve3(const MLSample km, const MLSample k, const MLSample kp)
+void MLSignal::convolve3x1(const MLSample km, const MLSample k, const MLSample kp)
 {
     // TODO SSE
 	int width = mWidth;
@@ -746,7 +762,7 @@ void MLSignal::convolve3(const MLSample km, const MLSample k, const MLSample kp)
     mDataAligned[width - 1] = km*pIn[width - 2] + k*pIn[width - 1];
 }
 
-void MLSignal::convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
+void MLSignal::convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
 {
     // TODO SSE
 	int width = mWidth;
@@ -1390,9 +1406,9 @@ float MLSignal::getMax() const
 	return fMax;
 }
 
-void MLSignal::dump(int verbosity) const
+void MLSignal::dump(std::ostream& s, int verbosity) const
 {
-	debug() << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
+	s << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;
@@ -1401,57 +1417,54 @@ void MLSignal::dump(int verbosity) const
 	{
 		if(isConstant())
 		{
-			debug() << "constant " << mDataAligned[0] << "\n";
+			s << "constant " << mDataAligned[0] << "\n";
 		}
 		else if(is2D())
 		{
 			for (int j=0; j<h; ++j)
 			{
-				debug() << j << " | ";
+				s << j << " | ";
 				for(int i=0; i<w; ++i)
 				{
-					debug() << f(i, j) << " ";
+					s << f(i, j) << " ";
 				}
-				debug() << "\n";
+				s << "\n";
 			}
 		}
 		else
 		{
-			debug() << std::setprecision(5);
+			s << std::setprecision(5);
 			for (int i=0; i<w; ++i)
 			{
                 if(verbosity > 1)
                 {
-                    debug() << "[" << i << "]";
+                    s << "[" << i << "]";
                 }
-                debug() << mDataAligned[i] << " ";
+                s << mDataAligned[i] << " ";
 			}
-			debug() << "\n";
+			s << "\n";
 		}
 	}
 }
 
-void MLSignal::dump(const MLRect& b) const
+void MLSignal::dump(std::ostream& s, const MLRect& b) const
 {
 	const MLSignal& f = *this;
 	{
-        debug() << std::fixed << std::setprecision(3);
+        s << std::fixed << std::setprecision(3);
 		for (int j=b.top(); j< b.bottom(); ++j)
 		{
-			debug() << j << " | ";
+			s << j << " | ";
 			for(int i=b.left(); i< b.right(); ++i)
 			{
-				debug() << f(i, j) << " ";
+				s << f(i, j) << " ";
 			}
-			debug() << "\n";
+			s << "\n";
 		}
 	}
 }
 
-// find the subpixel peak, by 2D Taylor series expansion of the surface 
-// function at (x, y).  Use centered differences to find derivatives.
-//
-Vec2 MLSignal::correctPeak(const int ix, const int iy) const
+Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) const
 {		
 	const MLSignal& in = *this;
 	int width = in.getWidth();
@@ -1459,6 +1472,8 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 	int x = clamp(ix, 1, width - 2);
 	int y = clamp(iy, 1, height - 2);
 	Vec2 pos(x, y);
+	
+	// Use centered differences to find derivatives.
 	float dx = (in(x + 1, y) - in(x - 1, y)) / 2.f;
 	float dy = (in(x, y + 1) - in(x, y - 1)) / 2.f;
 	float dxx = (in(x + 1, y) + in(x - 1, y) - 2*in(x, y));
@@ -1467,8 +1482,6 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 	
 	if((dxx != 0.f)&&(dxx != 0.f)&&(dxx != 0.f))
 	{
-		Vec2 minPos(x - 1.0f, y - 1.0f);
-		Vec2 maxPos(x + 1.0f, y + 1.0f);
 		float oneOverDiscriminant = 1.f/(dxx*dyy - dxy*dxy);
 		float fx = (dyy*dx - dxy*dy) * oneOverDiscriminant;
 		float fy = (dxx*dy - dxy*dx) * oneOverDiscriminant;
@@ -1476,9 +1489,11 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy) const
 		// here is the code to return the z approximaton if needed. 
 	//	float fz = dx*fx + dy*fy + 0.5f*(dxx*fx*fx + 2.f*dxy*fx*fy + dyy*fy*fy);
 	//	float z = in(x, y) + fz;
+		
+		fx = clamp(fx, -maxCorrect, maxCorrect);
+		fy = clamp(fy, -maxCorrect, maxCorrect);
 			
 		pos -= Vec2(fx, fy);
-		pos = vclamp(pos, minPos, maxPos);
 	}
 	return pos;
 }
@@ -1595,7 +1610,7 @@ void MLSignal::partialDiffY()
 
 std::ostream& operator<< (std::ostream& out, const MLSignal & s)
 {
-	s.dump();
+	s.dump(out);
 	return out;
 }
 

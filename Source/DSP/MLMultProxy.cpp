@@ -134,7 +134,7 @@ MLProcInfoBase& MLMultiProc::procInfo()
 	}
 	else
 	{
-		MLError() << "MLMultiProc::procInfo(): no template!\n";
+		debug() << "MLMultiProc::procInfo(): no template!\n";
 		return mInfo; 
 	}
 }
@@ -405,7 +405,7 @@ void MLMultiContainer::process(const int n)
             }
             else
             {
-                MLError() << "MLMultiContainer: null copy in process()!\n";
+                debug() << "MLMultiContainer: null copy in process()!\n";
             }
  		}
     }

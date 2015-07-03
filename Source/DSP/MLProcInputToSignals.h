@@ -127,17 +127,27 @@ private:
     
     int findFreeVoice();
     int findOldestSustainedVoice();
+	int findNearestVoice(int note);
     int findOldestVoice();
 
+	// OSC, MIDI, MIDI_MPE or nothing
+	// MIDI_MPE enables MPE (Multidimensional Polyphonic Expression) mode via MIDI
 	int mProtocol;
+	
 	MLProcInfo<MLProcInputToSignals> mInfo;
 	PaUtilRingBuffer* mpFrameBuf;
 	MLSignal mLatestFrame;
+	MLSignal mPreviousFrame;
     
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
     MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
     
+	// the usual voices for each channel
 	MLVoice mVoices[kMLEngineMaxVoices];
+	
+	// a special voice for the MPE "Main Channel"
+	// stores main pitch bend, which is added to other voices. 
+	MLVoice mMPEMainVoice;						
 
 	int mNextEventIdx;
 	int mVoiceRotateOffset;
@@ -154,10 +164,9 @@ private:
 		
 	MLRange mPitchRange;
 	MLRange mAmpRange;
-	bool mRetrig;
+	bool mGlissando;
 	bool mUnisonMode;
 	bool mRotateMode;
-	bool mAddChannelPressure;
 	int mUnisonInputTouch;
 	float mUnisonVel;
 	float mGlide;
@@ -166,6 +175,7 @@ private:
 	float mUnisonPitch1;
 
 	MLSignal mTempSignal;
+	MLSignal mMainPitchSignal;
 	MLSignal mChannelAfterTouchSignal;
 
 	float mPitchWheelSemitones;

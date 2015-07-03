@@ -283,7 +283,7 @@ void MLMenu::clear()
     mFullNamesByIndex.clear();
 }
 
-const std::string MLMenu::getItemFullName(int idx)
+const std::string MLMenu::getMenuItemPath(int idx)
 {
     if(!mHasIndex)
     {

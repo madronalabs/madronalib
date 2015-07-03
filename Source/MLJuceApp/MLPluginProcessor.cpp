@@ -6,6 +6,14 @@
 #include "MLPluginProcessor.h"
 
 const int kMaxControlEventsPerBlock = 1024;
+const char* kUDPAddressName = "localhost";
+
+#if OSC_PARAMS	
+	const int kSeqInfoPort = 9123;
+	const int kUDPOutputBufferSize = 1024;
+
+	const int kScribbleScenePort = 9223;
+#endif
 
 MLPluginProcessor::MLPluginProcessor() : 
 	mInputProtocol(-1),
@@ -14,10 +22,6 @@ MLPluginProcessor::MLPluginProcessor() :
 	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
-#if DEBUG
-	startDebugging();
-#endif
-
 	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
@@ -30,25 +34,38 @@ MLPluginProcessor::MLPluginProcessor() :
     mControlEvents.resize(kMaxControlEventsPerBlock);
 	
 	// initialize DSP state
-	mpPatchState = MLAppStatePtr(new MLAppState(static_cast<MLModel*>(this),
+	mpPatchState = std::unique_ptr<MLAppState>(new MLAppState(static_cast<MLModel*>(this),
 		"patch", MLProjectInfo::makerName, MLProjectInfo::projectName, MLProjectInfo::versionNumber));
 	
 	// initialize environment model and state
-	mpEnvironmentModel = std::tr1::shared_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
-	mpEnvironmentState = MLAppStatePtr(new MLAppState(mpEnvironmentModel.get(),
+	mpEnvironmentModel = std::unique_ptr<MLEnvironmentModel>(new MLEnvironmentModel(this));
+	mpEnvironmentState = std::unique_ptr<MLAppState>(new MLAppState(mpEnvironmentModel.get(),
 		"environment", MLProjectInfo::makerName, MLProjectInfo::projectName + std::string("Editor"), MLProjectInfo::versionNumber));
+	
+	// set up state to not save certain properties that are dynamic.
+	mpPatchState->ignoreProperty("receiving_t3d");
 	
 #if defined (__APPLE__)
 	// initialize T3D listener
 	mT3DHub.addListener(this);
 #endif
+	
+#if OSC_PARAMS	
+	mpOSCBuf.resize(kUDPOutputBufferSize);
+	mSeqInfoSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kSeqInfoPort)));		
+	mVisSendCounter = 0;	
+	
+	mpOSCVisualsBuf.resize(kUDPOutputBufferSize);
+	mVisualsSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kScribbleScenePort)));		
+		
+	
+	
+#endif		
 }
 
 MLPluginProcessor::~MLPluginProcessor()
 {
-#if DEBUG
-	stopDebugging();
-#endif
+	debug() << "deleting MLPluginProcessor\n";
 #if defined (__APPLE__)
 	mT3DHub.removeListener(this);
 #endif
@@ -56,8 +73,13 @@ MLPluginProcessor::~MLPluginProcessor()
 
 #pragma mark MLModel
 
+// if a parameter of the DSP engine exists matching the property name, set it to the new value.
+// TODO DSP engine can simply have properties.
+
 void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
 {
+	// debug() << " doPropertyChangeAction: " << propName << " -> " << newVal << "\n";
+	
 	int propertyType = newVal.getType();
 	int paramIdx = getParameterIndex(propName);
 	if (paramIdx < 0) return;
@@ -67,7 +89,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	{
 		case MLProperty::kFloatProperty:
 		{
-			// update DSP engine parameters
+			// Here is where changes in Model properties turn into changes in DSP Engine parameters.
 			MLPublishedParamPtr p = mEngine.getParamPtr(paramIdx);
 			if(p)
 			{
@@ -126,21 +148,22 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 		{
 			// TODO these were getting reset to redundant values when the editor opens because it calls
 			// updateAllProperties() on the environment. Listeners are where duplicate values get filtered out.
-			// we want to update the new editor but no thte t3d hub. so the editor and t3d hub should have separate
+			// we want to update the new editor but not the t3d hub. so the editor and t3d hub should have separate
 			// listeners from the environment properties. so maybe it's not a Model but just a PropertySet?
 			// quick fix now, sort out later.
-			if(propName == "osc_enabled")
+			if(propName == "protocol")
 			{
-				int enabled = newVal.getFloatValue();
-				mpOwnerProcessor->mT3DHub.setEnabled(enabled);
+				int p = newVal.getFloatValue();
+				mpOwnerProcessor->setInputProtocol(p);
 			}
 			else if(propName == "osc_port_offset")
 			{
 				int offset = newVal.getFloatValue();
+				mpOwnerProcessor->mT3DHub.setShortName(MLProjectInfo::projectName);
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
 		}
-			break;
+		break;
 #endif
 		case MLProperty::kStringProperty:
 			break;
@@ -167,12 +190,12 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 		}
 		else
 		{
-			MLError() << "MLPluginProcessor: error loading plugin description!\n";
+			debug() << "MLPluginProcessor: error loading plugin description!\n";
 		}   
 	}
 	else
 	{
-		MLError() << "MLPluginProcessor: couldn't load plugin description!\n";
+		debug() << "MLPluginProcessor: couldn't load plugin description!\n";
 		return;
 	}
 
@@ -206,7 +229,6 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 void MLPluginProcessor::initializeProcessor()
 {
 	// debug() <<  "initializing MLProcessor @ " << std::hex << (void*)this << std::dec << "...\n";
-	setInputProtocol(kInputProtocolMIDI);
 	
 #if defined(__APPLE__)
 	// connect t3d hub to DSP engine
@@ -218,8 +240,9 @@ void MLPluginProcessor::initializeProcessor()
 	}
 	
 	// publish t3d service and listen for incoming t3d data
+	mT3DHub.setShortName(MLProjectInfo::projectName);
 	mT3DHub.setPortOffset(mpEnvironmentModel->getFloatProperty("osc_port_offset"));
-	mT3DHub.setEnabled(mpEnvironmentModel->getFloatProperty("osc_enabled"));
+	
 #endif
 }
 
@@ -231,6 +254,7 @@ juce::AudioProcessorEditor* MLPluginProcessor::createEditor()
 {
 	// creation function defined to return the plugin's flavor of plugin editor
     AudioProcessorEditor* r = CreateMLPluginEditor(this);
+	
 	return r;
 }
 
@@ -436,21 +460,38 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 #if ML_MAC
 #pragma mark MLT3DHub::Listener
 
-void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
+void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty prop)
 {
 	if(action == "receiving")
 	{
-		int protocol = val ? kInputProtocolOSC : kInputProtocolMIDI;
-		setInputProtocol(protocol);
+		// set model property just for viewing. 
+		int r = prop.getFloatValue();
+		setProperty("receiving_t3d", r);
 	}
 	else if(action == "data_rate")
 	{
-		int r = val;
+		int r = prop.getFloatValue();
 		if(r != (int)getFloatProperty("data_rate"))
 		{
 			setProperty("data_rate", r);
 			getEngine()->setInputDataRate(r);
 		}
+	}
+	else if(action == "program")
+	{
+		int r = prop.getFloatValue();
+		loadPatchStateFromMIDIProgram(r);
+#if OSC_PARAMS		
+		sendProgramChange(r);
+#endif
+	}
+	else if(action == "volume")
+	{
+		getEngine()->setMasterVolume(prop.getFloatValue());
+	}
+	else if(action == "sequence")
+	{
+		setSequence(prop.getSignalValue());
 	}
 }
 
@@ -458,10 +499,13 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const float val)
 
 #pragma mark process
 
-void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector& events)
+// Process any incoming MIDI messages, generating a vector of events for the DSP engine. 
+// Some MIDI messages may also cause major side effects here like changing the program or input type (MPE) 
+void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVector& events)
 {
     int c = 0;
     int size = events.size();
+	bool addControlEvent;
     
 	MidiBuffer::Iterator i (midiMessages);
     juce::MidiMessage message (0xf4, 0.0);
@@ -474,6 +518,9 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 		
     while (i.getNextEvent(message, time)) // writes to time
 	{
+		// default: most MIDI messages cause a control event to be made
+		addControlEvent = true; 
+		
         chan = message.getChannel();
 		if (message.isNoteOn())
 		{
@@ -481,6 +528,9 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
+			
+			// debug() << "NOTE ON : " << chan << " " << v1 << " " << v2 << "\n";
+			
 		}
 		else if(message.isNoteOff())
 		{
@@ -488,6 +538,9 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
+			
+			//debug() << "NOTE OFF: " << chan << " " << v1 << " " << v2 << "\n";
+			
 		}
 		else if (message.isSustainPedalOn())
 		{
@@ -503,7 +556,24 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 		{
             type = MLControlEvent::kController;
 			v1 = message.getControllerNumber();
-			v2 = message.getControllerValue() / 127.f;
+			v2 = message.getControllerValue()/127.f;
+			
+			// debug() << "CONTROL  : " << chan << " " << v1 << " " << v2 << "\n";
+			
+			/*
+			// look for MPE Mode messages
+			if(v1 == 127)
+			{
+				// MPE switch, nothing to do in engine.
+				addControlEvent = false; 
+				int chans = clamp(message.getControllerValue(), 0, 15);	
+				
+				if(chans > 0)
+				{
+					getEnvironment()->setPropertyImmediate("protocol", kInputProtocolMIDI_MPE);			
+				}
+			}
+			 */
 		}
 		else if (message.isPitchWheel())
 		{
@@ -532,9 +602,10 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			}
 			else
 			{		
-				pgm = clamp(pgm, 1, kMLPluginMIDIPrograms);
 				loadPatchStateFromMIDIProgram(pgm);
 			}
+			// currently unused. but a sample-accurate program change might be
+			// useful in the future, especially for offline rendering.
             type = MLControlEvent::kProgramChange;
             id = chan;
             v1 = (float)pgm;
@@ -554,7 +625,7 @@ void MLPluginProcessor::convertMIDIToEvents (MidiBuffer& midiMessages, MLControl
 			debug() << std::dec << "]\n";
 		}
 		 */
-        if(c < size - 1)
+        if(addControlEvent && (c < size - 1))
         {
             events[c++] = MLControlEvent(type, chan, id, time, v1, v2);
         }
@@ -621,11 +692,24 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
         
         if(acceptsMidi())
         {
-            convertMIDIToEvents(midiMessages, mControlEvents);
+            processMIDI(midiMessages, mControlEvents);
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
         mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+		
+#if OSC_PARAMS
+		// if(osc enabled)
+		mVisSendCounter += samples;
+		int samplesPerSecond = 44100;
+		int period = samplesPerSecond/30;
+		if(mVisSendCounter > period)
+		{
+			sendSeqInfo();
+			sendVisuals();
+			mVisSendCounter -= period;
+		}
+#endif		
     }
 	else
 	{
@@ -747,7 +831,6 @@ const String MLPluginProcessor::symbolToXMLAttr(const MLSymbol sym)
 		}
 	}
  	return (String(nameCopy.c_str()));
-
 }
 
 const MLSymbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
@@ -1103,6 +1186,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 void MLPluginProcessor::returnToLatestStateLoaded()
 {
 	mpPatchState->returnToFirstSavedState();
+	updateAllProperties();
 }
 
 #pragma mark set state
@@ -1135,6 +1219,8 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 		
 		// assume JSON
 		bool OK = true;
+		
+		// debug() << "STATES:\n" << pTrimmedStart << "\n";
 		cJSON* root = cJSON_Parse(pTrimmedStart);
 		if(root)
 		{
@@ -1142,6 +1228,9 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 			if(patchState)
 			{
 				mpPatchState->setStateFromJSON(patchState);
+				// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
+				// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
+				updateAllProperties();
 			}
 			else
 			{
@@ -1175,7 +1264,8 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 
 void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
-	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(idx - 1));
+	int pgm = clamp(idx, 0, kMLPluginMIDIPrograms - 1);
+	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(pgm));
 }
 
 void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
@@ -1188,6 +1278,9 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 		if(root)
 		{
 			mpPatchState->setStateFromJSON(root);
+			// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
+			// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
+			updateAllProperties();
 			cJSON_Delete(root);
 		}
 		else
@@ -1202,7 +1295,14 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 		if (stateToLoad != NULL)
 		{
 			XmlElementPtr pDocElem (stateToLoad->getDocumentElement(true));
-			setStateFromXML(*pDocElem, false);
+			if(pDocElem)
+			{
+				setStateFromXML(*pDocElem, false);
+			}
+			else
+			{
+				debug() << "ERROR parsing patch: " << stateToLoad->getLastParseError() << "\n";
+			}
 		}
 		else
 		{
@@ -1235,7 +1335,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	if (blobVersion > pluginVersion)
 	{
 		// TODO show error to user
-		MLError() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
+		debug() << "MLPluginProcessor::setStateFromXML: saved program version is newer than plugin version!\n";
 		return;
 	}
     
@@ -1355,7 +1455,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 					}
 					else
 					{
-						MLError() << "MLPluginProcessor::setStateFromXML: no such parameter! \n";
+						debug() << "MLPluginProcessor::setStateFromXML: no such parameter! \n";
 					}
 				}
 				else
@@ -1385,9 +1485,9 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 
 void MLPluginProcessor::createFileCollections()
 {
-	mScaleFiles = (new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
-    mPresetFiles = (new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
-    mMIDIProgramFiles = (new MLFileCollection("midi_programs", getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs"), "mlpreset"));
+	mScaleFiles = (MLFileCollectionPtr)(new MLFileCollection("scales", getDefaultFileLocation(kScaleFiles), "scl"));
+    mPresetFiles = (MLFileCollectionPtr)(new MLFileCollection("presets", getDefaultFileLocation(kPresetFiles), "mlpreset"));
+    mMIDIProgramFiles = (MLFileCollectionPtr)(new MLFileCollection("midi_programs", getDefaultFileLocation(kPresetFiles).getChildFile("MIDI Programs"), "mlpreset"));
 }
 
 void MLPluginProcessor::scanAllFilesImmediate()
@@ -1542,24 +1642,154 @@ MLProc::err MLPluginProcessor::sendMessageToMLListener (unsigned msg, const File
 	return err;
 }
 
-// called to change the input protocol, or ping that t3d is alive.
+// called to change the input protocol.
 //
 void MLPluginProcessor::setInputProtocol(int p)
 {
 	if(p != mInputProtocol)
 	{
-		// set the environment model’s protocol property, which a View can use to change its UI
-		getEnvironment()->setProperty("protocol", p);
 		getEngine()->setEngineInputProtocol(p);
-		switch(p)
+		
+		if(p == kInputProtocolOSC)
 		{
-			case kInputProtocolMIDI:
-				break;
-			case kInputProtocolOSC:
-				break;
+			mT3DHub.setEnabled(true);
 		}
+		else
+		{
+			mT3DHub.setEnabled(false);
+		}		
 		mInputProtocol = p;
 	}
 }
 
+#if OSC_PARAMS
+#include "MLProcStepSequencer.h"
+const char * kMLStepSeqProcName("voices/voice/seq/seq");
+
+void MLPluginProcessor::sendSeqInfo()
+{
+	int chan = mT3DHub.getPortOffset();
+	//int seqData = mT3DHub.getPortOffset();
+	
+	MLDSPEngine* eng = getEngine();
+	
+	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
+	eng->getProcList(mSequencerList, MLPath(kMLStepSeqProcName), kMLEngineMaxVoices);
+	// debug() << "got " << mSequencerList.size() << "seqs\n";
+	//int nSeqs = mSequencerList.size();
+	
+	
+	/* TODO make ProcList a vector
+	 for(int i=0; i<nSeqs; ++i)
+	 {
+		int step = mSequencerList.begin().getStep();
+	 }
+	 */
+	
+	int32_t brightLights = 0;
+	int32_t dimLights = 0;
+	for (MLProcList::const_iterator jt = mSequencerList.begin(); jt != mSequencerList.end(); jt++)
+	{
+		MLProcPtr proc = (*jt);
+		MLProc* proc2 = &(*proc);
+		MLProcStepSequencer* pSeq = static_cast<MLProcStepSequencer*>(proc2);
+		if (pSeq)
+		{
+			// add bright light for current step of each sequencer
+			int step = pSeq->getStep();
+			step = clamp(step, 0, 15);
+			brightLights |= (1 << step);
+			
+			// get pattern (same for all)
+			if(jt == mSequencerList.begin())
+			{
+				dimLights = pSeq->getPattern();
+			}
+		}
+	}	
+	
+	osc::OutboundPacketStream p( mpOSCBuf.data(), kUDPOutputBufferSize );
+	
+	p << osc::BeginMessage( "/vis/seq" );	
+	p << chan << brightLights << dimLights;
+	p << osc::EndMessage; 
+	
+	// debug() << "sending " << p.Size() << " bytes\n";
+	if(mSeqInfoSocket.get())
+	{
+		mSeqInfoSocket->Send( p.Data(), p.Size() );
+	}
+}
+
+
+#include "MLProcRMS.h"
+const char * kMLRMSProcName("voices_sum_rms");
+
+void MLPluginProcessor::sendVisuals()
+{
+	float rms = 0.;
+	int chan = mT3DHub.getPortOffset();
+	//int seqData = mT3DHub.getPortOffset();
+	
+	MLDSPEngine* eng = getEngine();
+	
+	eng->getProcList(mRMSProcList, MLPath(kMLRMSProcName), 1);
+	
+	// debug() << "got " << mRMSProcList.size() << "RMS procs\n";
+	// int nRMS = mRMSProcList.size();
+	for (MLProcList::const_iterator jt = mRMSProcList.begin(); jt != mRMSProcList.end(); jt++)
+	{
+		MLProcPtr proc = (*jt);
+		MLProc* proc2 = &(*proc);
+		MLProcRMS* pRMS = static_cast<MLProcRMS*>(proc2);
+		if (pRMS)
+		{
+			rms = pRMS->getRMS();
+			//debug() << "RMS: " << rms << "\n";
+		}
+	}	
+	
+	osc::OutboundPacketStream p( mpOSCVisualsBuf.data(), kUDPOutputBufferSize );
+	
+	p << osc::BeginMessage( "/vis/rms" );	
+	p << chan << rms;
+	p << osc::EndMessage; 
+	
+	//debug() << "sending " << p.Size() << " bytes\n";
+	if(mVisualsSocket.get())
+	{
+		mVisualsSocket->Send( p.Data(), p.Size() );
+	}
+}
+
+// send pgm change message to OSC visuals server
+void MLPluginProcessor::sendProgramChange(int pgm)
+{
+	int chan = mT3DHub.getPortOffset();
+	
+	osc::OutboundPacketStream p( mpOSCVisualsBuf.data(), kUDPOutputBufferSize );
+	
+	p << osc::BeginMessage( "/vis/pgm" );	
+	p << chan << pgm;
+	p << osc::EndMessage; 
+	
+	//debug() << "sending " << p.Size() << " bytes\n";
+	if(mVisualsSocket.get())
+	{
+		mVisualsSocket->Send( p.Data(), p.Size() );
+	}
+}
+
+#endif
+
+void MLPluginProcessor::setSequence(const MLSignal& seq)
+{
+	//debug() << "SEQUENCE: " << seq << "\n";
+	for(int i=0; i<16; ++i)
+	{
+		float step = seq[i];
+		MLSymbol stepSym = MLSymbol("seq_pulse").withFinalNumber(i);
+		setPropertyImmediate(stepSym, step);
+	}
+}
 

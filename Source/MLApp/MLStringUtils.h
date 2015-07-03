@@ -1,13 +1,13 @@
 //
 //  MLStringUtils.h
-//  Aalto
+//  madronalib
 //
 //  Created by Randy Jones on 12/3/14.
 //
 //
 
-#ifndef __Aalto__MLStringUtils__
-#define __Aalto__MLStringUtils__
+#ifndef __MLStringUtils__
+#define __MLStringUtils__
 
 #include <iostream>
 
@@ -19,4 +19,4 @@ public:
 	static const std::string getPath(const std::string& str);
 };
 
-#endif /* defined(__Aalto__MLStringUtils__) */
+#endif /* defined(__MLStringUtils__) */

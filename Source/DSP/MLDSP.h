@@ -6,12 +6,12 @@
 #ifndef _ML_DSP_H
 #define _ML_DSP_H
 
-#include "AppConfig.h"
+// NOTE should require nothing
 
 #ifdef _WIN32
 	#include <memory>
 #else
-	#include <tr1/memory>
+	//#include <tr1/memory>
 #endif
 
 #include "math.h"
@@ -195,6 +195,14 @@ float inMinusPiToPi(float theta);
 
 float ampTodB(float a);
 float dBToAmp(float d);
+
+#pragma mark smoothstep
+
+inline float smoothstep(float a, float b, float x)
+{
+	x = clamp((x - a)/(b - a), 0.f, 1.f); 
+	return x*x*(3.f - 2.f*x);
+}
 
 // ----------------------------------------------------------------
 #pragma mark fast trig approximations

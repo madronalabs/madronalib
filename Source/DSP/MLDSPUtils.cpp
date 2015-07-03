@@ -199,6 +199,13 @@ void MLBiquad::setCoefficients(float pa0, float pa1, float pa2, float pb1, float
 	b2 = pb2;
 }
 
+// TODO verify that this is correct for different filter types.
+void MLBiquad::setState(float f)
+{
+	x2 = x1 = f;
+	y2 = y1 = f;
+}
+
 // ----------------------------------------------------------------
 #pragma mark MLSineOsc
 

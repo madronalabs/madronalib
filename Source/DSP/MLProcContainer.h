@@ -18,7 +18,7 @@
 #include "MLParameter.h"
 #include "MLRatio.h"
 
-#include "JuceHeader.h"
+#include "JuceHeader.h" // used only for XML loading now. TODO move to creation by scripting and remove.
 
 class MLProcRingBuffer;
 
@@ -53,7 +53,7 @@ public:
 	int mDestInputIndex;
 };
 
-typedef std::tr1::shared_ptr<MLPublishedInput> MLPublishedInputPtr;
+typedef std::shared_ptr<MLPublishedInput> MLPublishedInputPtr;
 
 class MLPublishedOutput
 {
@@ -87,7 +87,7 @@ public:
 	int mSrcOutputIndex;
 };
 
-typedef std::tr1::shared_ptr<MLPublishedOutput> MLPublishedOutputPtr;
+typedef std::shared_ptr<MLPublishedOutput> MLPublishedOutputPtr;
 
 // for gathering stats during process()
 class MLSignalStats
@@ -206,7 +206,7 @@ public:
 		int mDestIndex;
 	};
 
-	typedef std::tr1::shared_ptr<MLPipe> MLPipePtr;
+	typedef std::shared_ptr<MLPipe> MLPipePtr;
 
 	MLProcContainer();
 	virtual ~MLProcContainer();	
@@ -232,7 +232,10 @@ public:
 
 	virtual void process(const int samples);
 	virtual err prepareToProcess();
-	
+
+	// set volume by which the output will be scaled.
+	void setMasterVolume(float v);
+
 	void clear();	// clear buffers, DSP history
 	void clearInput(const int idx);
 	MLProc::err setInput(const int idx, const MLSignal& sig);
@@ -381,6 +384,10 @@ protected:
 	MLParamGroupMap mParamGroups;
 	
 	MLSignalStats* mStatsPtr;
+	
+private: // TODO more data should be private
+	
+	float mMasterVolume;
 
 };
 

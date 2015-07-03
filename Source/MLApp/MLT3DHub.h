@@ -15,16 +15,18 @@
 
 #include "MLDSP.h"
 #include "MLPlatform.h"
-#include "MLProjectInfo.h"
 #include "MLOSCListener.h"
 #include "MLNetServiceHub.h"
 #include "MLDebug.h"
 #include "MLSignal.h"
 #include "MLSymbol.h"
+#include "MLProperty.h"
 
 #include "pa_ringbuffer.h"
 #include "pthread.h"
 #include <stdexcept>
+
+#include "JuceHeader.h"
 
 class MLT3DHub :
 	public MLNetServiceHub,
@@ -41,6 +43,7 @@ public:
 	~MLT3DHub();
 	
 	void setEnabled(int e);
+	int getPortOffset() { return mUDPPortOffset; }
 	void setPortOffset(int offset);
 	
 	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
@@ -54,14 +57,16 @@ public:
 		Listener() {}
 		virtual ~Listener() {}
 	protected:
-		virtual void handleHubNotification(MLSymbol action, const float val) = 0;
+		virtual void handleHubNotification(MLSymbol action, const MLProperty val) = 0;
 	};
 	
 	void addListener(Listener* pL);
 	void removeListener(Listener* pL);
-	void notifyListeners(MLSymbol action, const float val);
+	void notifyListeners(MLSymbol action, const MLProperty val);
 	void timerCallback();
 	void setOSCPortOffset(int offset);
+	
+	void setShortName(const std::string& n) { mShortName = n; }
 	
 	osc::int32 mDataRate;
 	int mT3DWaitTime;
@@ -76,6 +81,7 @@ private:
 	void disconnect();
 
 	std::vector<MLT3DHub::Listener*> mpListeners;
+	std::string mShortName; // will append a port # to this to create full name of MLNetServiceHub
 
 	int mEnabled;
 	int mUDPPortOffset;

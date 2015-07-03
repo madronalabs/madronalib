@@ -22,7 +22,6 @@
 class MLFileCollection :
 	public MLPropertySet,
 	private Thread
-
 {
 public:
     class Listener
@@ -55,7 +54,7 @@ public:
 	
 	// TODO this looks a lot like MLMenu::Node and should use the same Node template or object
 	class TreeNode;
-	typedef std::tr1::shared_ptr<TreeNode> TreeNodePtr;
+	typedef std::shared_ptr<TreeNode> TreeNodePtr;
 	typedef std::map<std::string, TreeNodePtr, MLStringCompareFn> StringToNodeMapT;
 	class TreeNode
 	{
@@ -72,10 +71,12 @@ public:
 		// Would require an unambiguous mapping from UTF-8 to symbols.
 		const MLFile& find(const std::string& path);
 		
-		void buildMenu(MLMenuPtr m, int level = 0) const;
+		void buildMenu(MLMenuPtr m) const;
 		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
 		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
-		
+
+		void buildIndex(std::vector<MLFilePtr>& index) const;
+
 		void dump(int level = 0);
 		
 		StringToNodeMapT mChildren;
@@ -126,7 +127,7 @@ public:
     // given a full system file name, get its path relative to our starting directory.
     std::string getRelativePathFromName(const std::string& name) const;
     
-    MLMenuPtr buildMenu(bool flat = false) const;
+    MLMenuPtr buildMenu() const;
 	
 	// build a menu of only the files in top-level directories starting with the given prefix.
 	// this adds only directories, not files. Made for adding "factory" presets separately.
@@ -138,7 +139,8 @@ public:
     void dump() const;
     
 private:
-    void buildTree();
+	void insertFileIntoTree(juce::File f);
+	void buildIndex();
     void processFileInTree(int i);
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 	void run();
@@ -151,11 +153,9 @@ private:
     MLSymbol mName;
     String mExtension;
 	std::list<Listener*> mpListeners;
-    
-    // temp storage for processing files
-    std::vector <juce::File> mFilesToProcess;
-	
 	int mProcessDelay;
 };
+
+typedef std::unique_ptr<MLFileCollection> MLFileCollectionPtr;
 
 #endif 

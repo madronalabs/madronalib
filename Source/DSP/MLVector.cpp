@@ -194,6 +194,23 @@ void MLRect::centerInRect(const MLRect& b)
     setCenter(b.getCenter());
 }
 
+void MLRect::quantize(int q)
+{
+	int i0, i1, i2, i3;
+	i0 = val.f[0];
+	i1 = val.f[1];
+	i2 = val.f[2];
+	i3 = val.f[3];
+	i0 = (i0/q)*q;
+	i1 = (i1/q)*q;
+	i2 = (i2/q)*q;
+	i3 = (i3/q)*q;
+	val.f[0] = i0;
+	val.f[1] = i1;
+	val.f[2] = i2;
+	val.f[3] = i3;
+}
+
 MLRect MLRect::translated(const Vec2& b) const
 {
 	return *this + b; 

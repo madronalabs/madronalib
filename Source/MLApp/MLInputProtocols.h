@@ -9,7 +9,8 @@
 enum eInputProtocol
 {
 	kInputProtocolMIDI = 0,
-	kInputProtocolOSC = 1
+	kInputProtocolMIDI_MPE = 1,
+	kInputProtocolOSC = 2
 };
 
 #endif // ML_INPUT_PROTOCOLS_H

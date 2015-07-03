@@ -9,14 +9,14 @@ const Colour defaultColor = Colours::grey;
 
 MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	mpResponder(pResp),
-	mpReporter(pRep)
+	mpReporter(pRep),
+	mInitialized(false)
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
 	setOpaque(false);
 	setInterceptsMouseClicks (false, true);
-
 }
 
 MLAppView::~MLAppView()
@@ -24,17 +24,49 @@ MLAppView::~MLAppView()
 	deleteAllChildren();
 }
 
-void MLAppView::addParamView(MLSymbol p, MLWidget* w, MLSymbol attr)
+void MLAppView::initialize()
 {
-	if(p && w && attr)
-		getReporter()->addPropertyViewToMap(p, w, attr);
+	mInitialized = true;
+}
+
+void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
+{
+	int propertyType = newVal.getType();
+	switch(propertyType)
+	{
+		case MLProperty::kFloatProperty:
+		{
+		}
+		break;
+		case MLProperty::kStringProperty:
+		{
+		}
+		break;
+		case MLProperty::kSignalProperty:
+		{
+			const MLSignal& sig = newVal.getSignalValue();
+			if(p == MLSymbol("view_bounds"))
+			{
+				setWindowBounds(sig);
+			}
+		}
+		break;
+		default:
+		break;
+	}
+}
+
+void MLAppView::addPropertyView(MLSymbol modelProp, MLWidget* widget, MLSymbol widgetProp)
+{
+	if(modelProp && widget && widgetProp)
+		mpReporter->addPropertyViewToMap(modelProp, widget, widgetProp);
 }
 
 void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = MLSymbol())
 {
 	addWidget(pW, name);
 	pW->setGridBounds(r);
-	pW->addListener(getResponder());
+	pW->addListener(mpResponder);
 	addAndMakeVisible(pW->getComponent());
 }
 
@@ -52,7 +84,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 
 	addWidgetToView(dial, r, p);
 	
-	addParamView(p, dial, MLSymbol("value"));
+	addPropertyView(p, dial, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -61,19 +93,18 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	return dial;
 }
 
-
-MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol propName, 
 	int numSliders, const Colour& color)
 {
 	MLMultiSlider* slider = new MLMultiSlider;
 	slider->setNumSliders(numSliders);
-	slider->setTargetPropertyName(paramName);
+	slider->setTargetPropertyName(propName);
 	slider->setFillColor(color);
-	addWidgetToView(slider, r, paramName);
+	addWidgetToView(slider, r, propName);
 	
 	for(int i=0; i<numSliders; ++i)
 	{
-		addParamView(paramName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(propName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -83,18 +114,18 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	return slider;
 }
 
-MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol propName, 
 	int n, const Colour& color)
 {
 	MLMultiButton* b = new MLMultiButton;
 	b->setNumButtons(n);
-	b->setTargetPropertyName(paramName);
+	b->setTargetPropertyName(propName);
 	b->setFillColor(color);
-	addWidgetToView(b, r, paramName);
+	addWidgetToView(b, r, propName);
 	
 	for(int i=0; i<n; ++i)
 	{
-		addParamView(paramName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(propName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -104,15 +135,15 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	return b;
 }
 
-MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName,
+MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
 	MLButton* button = new MLToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
-	button->setTargetPropertyName(paramName);
+	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
-	addWidgetToView(button, r, paramName);
-	addParamView(paramName, button, MLSymbol("value"));
+	addWidgetToView(button, r, propName);
+	addPropertyView(propName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -122,15 +153,15 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	return button;
 }
 
-MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol paramName,
+MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
 	MLButton* button = new MLTriToggleButton;
 	button->setSizeMultiplier(sizeMultiplier);
-	button->setTargetPropertyName(paramName);
+	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
-	addWidgetToView(button, r, paramName);
-	addParamView(paramName, button, MLSymbol("value"));
+	addWidgetToView(button, r, propName);
+	addPropertyView(propName, button, MLSymbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -184,22 +215,13 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 	b->setFillColor(color);
 	b->setProperty("text", "---");
 	addWidgetToView(b, r, menuName);
-	addParamView(menuName, b, MLSymbol("text"));
+	addPropertyView(menuName, b, MLSymbol("text"));
 	
 	if (strcmp(displayName, ""))
 	{
 		addLabelAbove(b, displayName);
 	}
 	return b;
-}
-
-MLGraph* MLAppView::addGraph(const char * name, const Colour& color)
-{
-	MLGraph* graph = new MLGraph;
-	graph->setName(name);
-	graph->setColor(color); 
-	addAndMakeVisible(graph);
-	return graph;
 }
 
 MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const float sizeMultiplier, int font)
@@ -245,6 +267,14 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 		label->setJustification(Justification::centred);		
 	
 		MLRect rr = r.translated(Vec2(0, -labelHeight*c->getLabelVerticalOffset()) + offset);
+		
+		// MLTEST quantize label top to 1/8 grid
+		float gridSize = 0.125;
+		float top = rr.top();
+		top = (roundf(top/gridSize))*gridSize;
+		rr.setTop(top);
+		
+		
 		addWidgetToView(label, rr);
 
 	}
@@ -264,8 +294,6 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 	addWidgetToView(pb, r);
 	return pb;
 }
-
-#pragma mark resize
 
 void MLAppView::resized()
 {
@@ -299,28 +327,38 @@ void MLAppView::resized()
 	}
 }
 
-void MLAppView::setPeerBounds(int x, int y, int w, int h)
+void MLAppView::setViewBoundsProperty()
 {
-	int minDim = 200;
+	if(!mInitialized) return;
+	
+	MLSignal bounds(4);
+	ComponentPeer* p = getPeer();
+	if(!p) return;	
+	Rectangle<int> peerBounds = p->getBounds();	
+	bounds[0] = peerBounds.getX();
+	bounds[1] = peerBounds.getY();
+	bounds[2] = peerBounds.getWidth();
+	bounds[3] = peerBounds.getHeight();
+
+	// set property for saving, avoiding loop
+	setPropertyImmediateExcludingListener("view_bounds", bounds, this);
+}
+
+void MLAppView::setWindowBounds(const MLSignal& bounds)
+{
 	ComponentPeer* p = getPeer();
 	if(!p) return;
-	Desktop& d = Desktop::getInstance();
-	Rectangle<int> r = d.getDisplays().getTotalBounds(true);
-	
-	const int kMenuBarHeight = 20;
-	r.setTop(r.getY() + kMenuBarHeight);
-	
-	Rectangle<int> b(x, y, w, h);
-	Rectangle<int> c = r.getIntersection(b);	
-	if((c.getWidth() >= minDim) && (c.getHeight() >= minDim))
-	{
-		p->setBounds(Rectangle<int>(x, y, w, h), false);
-	}
-	else
-	{
-		// make new onscreen bounds rect
-		Rectangle<int> onscreenBounds = b.constrainedWithin(r);
-		p->setBounds(onscreenBounds, false);
-	}
+	bool fullScreen = 0;
+	p->setBounds(Rectangle<int>(bounds[0], bounds[1], bounds[2], bounds[3]), fullScreen);
+}
+
+void MLAppView::windowMoved()
+{
+	setViewBoundsProperty();
+}
+
+void MLAppView::windowResized()
+{
+	setViewBoundsProperty();
 }
 

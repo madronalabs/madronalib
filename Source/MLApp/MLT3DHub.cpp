@@ -23,6 +23,8 @@ MLT3DHub::MLT3DHub() :
 	// initialize touch frame for output
 	mOutputFrame.setDims(MLT3DHub::kFrameWidth, MLT3DHub::kFrameHeight);
 
+	setShortName("<unnamed hub>");
+	
 	// build touch frame buffer
 	//
 	mFrameBuf.buffer = 0;
@@ -34,7 +36,7 @@ MLT3DHub::MLT3DHub() :
 	}
 	else
 	{
-		debug() << "MLPluginProcessor::initialize: couldn't get frame data!\n";
+		debug() << "MLT3DHub::initialize: couldn't get frame data!\n";
 	}
 
 	setPortOffset(0);
@@ -45,6 +47,7 @@ MLT3DHub::MLT3DHub() :
 
 MLT3DHub::~MLT3DHub()
 {
+	debug() << "deleting MLT3DHub\n";
 	stopTimer();
 	disconnect();
 }
@@ -55,9 +58,12 @@ void MLT3DHub::setPortOffset(int offset)
 	{
 		// set default name and port
 		mUDPPortOffset = offset;
+
+		
 		std::stringstream nameStream;
-		nameStream << MLProjectInfo::projectName << " (" << mUDPPortOffset << ")";
+		nameStream << mShortName << " (" << mUDPPortOffset << ")";
 		setName(nameStream.str());
+
 		setPort(kDefaultUDPPort + mUDPPortOffset);
 		
 		// turn it off and back on again
@@ -113,7 +119,7 @@ void MLT3DHub::removeListener(MLT3DHub::Listener* pL)
 	}
 }
 
-void MLT3DHub::notifyListeners(MLSymbol action, const float val)
+void MLT3DHub::notifyListeners(MLSymbol action, const MLProperty val)
 {
 	int nListeners = mpListeners.size();
 	for(int i = 0; i < nListeners; ++i)
@@ -145,13 +151,8 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 		{
 			args >> frameID >> deviceID;
             mT3DWaitTime = 0;
-			
-			if(!mReceivingT3d)
-			{
-				mReceivingT3d = true;
-				notifyListeners("receiving", 1);
-			}
-            //debug() << "FRM " << frameID << "\n";
+			mReceivingT3d = true;
+ // debug() << "FRM " << frameID << "\n";
 		}
         // match tch[n] message
         else if (strncmp(addy, "/t3d/tch", 8) == 0)
@@ -172,7 +173,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			// t3d/tch[ID], (float)x, (float)y, (float)z, (float)note
 			args >> x >> y >> z >> note;
 			
-			//debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
+			// debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
             
 			mOutputFrame(0, touchID) = x;
 			mOutputFrame(1, touchID) = y;
@@ -188,14 +189,38 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			mDataRate = r;
 			notifyListeners("data_rate", r);
 		}
-		else
+		else if (strcmp(addy, "/pgm")==0)
 		{
-            //debug() << "osc unhandled:" << addy << "\n";
+			osc::int32 pgm;
+			args >> pgm;
+			notifyListeners("program", pgm);
+		}
+		else if (strcmp(addy, "/vol")==0)
+		{
+			float v;
+			args >> v;
+			notifyListeners("volume", v);
+		}
+		else if (strcmp(addy, "/seq")==0)
+		{
+			MLSignal sequence;
+			sequence.setDims(16);
+			osc::int32 seqWord;
+			args >> seqWord;
+			
+			// build signal from sequence bits
+			for(int i=0; i<16; ++i)
+			{
+				float f = (seqWord & (1<<i)) ? 1. : 0.;
+				sequence[i] = f;
+			}
+			
+			notifyListeners("sequence", sequence);
 		}
 	}
 	catch( osc::Exception& e )
 	{
-		MLError() << "error parsing t3d message: " << e.what() << "\n";
+		debug() << "error parsing t3d message: " << e.what() << "\n";
 	}
 }
 
@@ -222,7 +247,7 @@ void MLT3DHub::ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName&
 
 void MLT3DHub::timerCallback()
 {
-	static const int kT3DTimeout = 4;
+	static const int kT3DTimeout = 2; // 2 cycles of this timer
 	
 	if(mShouldDisconnect)
 	{
@@ -248,8 +273,8 @@ void MLT3DHub::timerCallback()
 		if(mT3DWaitTime > kT3DTimeout)
 		{
 			mReceivingT3d = false;
-			notifyListeners("receiving", 0);
 		}
+		notifyListeners("receiving", mReceivingT3d);
 	}
 }
 
@@ -269,6 +294,7 @@ void MLT3DHub::disconnect()
 {
 	if(mConnected)
 	{
+		debug() << "MLT3DHub: disconnecting\n";
 		if(listenToOSC(0))
 		{
 			if(mReceivingT3d)

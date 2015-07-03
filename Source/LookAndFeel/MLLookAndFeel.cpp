@@ -184,7 +184,7 @@ bool MLLookAndFeel::getDefaultOpacity()
 
 bool MLLookAndFeel::getDefaultBufferMode() 
 { 
-	return false;
+	return true;
 }
 
 bool MLLookAndFeel::getDefaultUnclippedMode() 
@@ -212,7 +212,7 @@ static int maxDigits(const int digits, const int precision)
 int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, const int precision)  throw()
 {
 	int m = maxDigits(digits, precision);
-	int d = ceil(log10(abs(number)+1.));
+	int d = ceil(log10(std::abs(number)+1.));
 	int p;
 	if (d + precision > m)
 	{
@@ -375,7 +375,7 @@ float MLLookAndFeel::getNumberWidth (const float number, const int digits, const
 	char c;
 
 	// calc precision
-	int d = ceil(log10(abs(number)+1.));
+	int d = ceil(log10(std::abs(number)+1.));
 	int p;
 	if (d + precision > m)
 	{
@@ -560,16 +560,6 @@ void MLLookAndFeel::setGridUnits(double gx, double gy)
 {
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
-}
-
-int MLLookAndFeel::getGridUnitsX()
-{
-	return mGridUnitsX;
-}
-
-int MLLookAndFeel::getGridUnitsY()
-{
-	return mGridUnitsY;
 }
 
 // big margin for setting back components from grid edges. 
@@ -1404,6 +1394,7 @@ void MLLookAndFeel::drawResizableFrame (Graphics& g, int w, int h, const BorderS
     }
 }
 
+// unused 
 void MLLookAndFeel::fillResizableWindowBackground (Graphics& g, int w, int h,
                                                     const BorderSize<int>& /*border*/, ResizableWindow& window)
 {
@@ -1769,8 +1760,8 @@ static void spikyPathTo(Path& p, const float x2, const float y2, const int doSpi
 		float baseX, baseY;		
 		
 		// set half width of spike base
-		baseX = min((double)abs(y3 - sy), abs(x2 - x1) / 2.);
-		baseY = min((double)abs(x3 - sx), abs(y2 - y1) / 2.);
+		baseX = min((double)std::abs(y3 - sy), std::abs(x2 - x1) / 2.);
+		baseY = min((double)std::abs(x3 - sx), std::abs(y2 - y1) / 2.);
 		if (x2 > x1) baseX *= -1;
 		if (y2 > y1) baseY *= -1;
 		baseX = floor(baseX);

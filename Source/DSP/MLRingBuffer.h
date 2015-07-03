@@ -30,6 +30,6 @@ public:
 };
 
 
-typedef std::tr1::shared_ptr<MLRingBuffer> MLRingBufferPtr;
+typedef std::shared_ptr<MLRingBuffer> MLRingBufferPtr;
 
 #endif // _ML_RING_BUFFER_H

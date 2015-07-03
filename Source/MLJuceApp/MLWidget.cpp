@@ -27,6 +27,14 @@ MLWidget::~MLWidget()
     }
 }
 
+void MLWidget::doPropertyChangeAction(MLSymbol param, const MLProperty& newVal)
+{
+	if(pComponent)
+	{
+		pComponent->repaint();
+	}
+}
+
 void MLWidget::addListener(MLWidget::Listener* pL)
 {
 	// TODO check for duplicates
@@ -44,7 +52,7 @@ void MLWidget::sendAction(MLSymbol msg, MLSymbol targetProperty, const MLPropert
 }
 
 // TODO this looks pretty bad! A Widget should not have its own context. There should
-// be something like a Scene object that draws a bunch of GL Widgets.
+// be something like a Scene object that draws a bunch of GL Widgets. 
 void MLWidget::setupGL(Component* pC)
 {
     if(pComponent)
@@ -149,6 +157,15 @@ void MLWidget::setWidgetVisible(bool v)
 	if(pComponent)
 	{
 		pComponent->setVisible(v);
+	}
+}
+
+
+void MLWidget::setWidgetEnabled(bool v)
+{
+	if(pComponent)
+	{
+		pComponent->setEnabled(v);
 	}
 }
 

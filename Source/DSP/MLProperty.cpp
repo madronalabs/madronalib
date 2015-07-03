@@ -194,7 +194,6 @@ const MLProperty& MLPropertySet::getProperty(MLSymbol p) const
 {
 	static const MLProperty nullProperty;
 	
-	const juce::ScopedLock pl (mPropertyLock);
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -210,7 +209,6 @@ const float& MLPropertySet::getFloatProperty(MLSymbol p) const
 {
 	static const float nullFloat = 0.f;
 
-	const juce::ScopedLock pl (mPropertyLock);
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -224,7 +222,6 @@ const float& MLPropertySet::getFloatProperty(MLSymbol p) const
 
 const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
 {
-	const juce::ScopedLock pl (mPropertyLock);
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -238,7 +235,6 @@ const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
 
 const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
 {
-	const juce::ScopedLock pl (mPropertyLock);
 	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -295,7 +291,6 @@ void MLPropertySet::broadcastPropertyExcludingListener(MLSymbol p, bool immediat
 
 void MLPropertySet::broadcastAllProperties()
 {
-	const juce::ScopedLock pl (mPropertyLock);
 	std::map<MLSymbol, MLProperty>::const_iterator it;
 	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
@@ -330,12 +325,14 @@ void MLPropertyListener::updateAllProperties()
     if(!mpPropertyOwner) return;
 	mpPropertyOwner->broadcastAllProperties();
 
+	// mark all states as changed
 	std::map<MLSymbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
 		PropertyState& state = it->second;
 		state.mChangedSinceUpdate = true;
 	}
+	
 	updateChangedProperties();
 }
 
@@ -347,8 +344,7 @@ void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
 	PropertyState& state = mPropertyStates[propName];
 	
 	// check for change in property. Note that this also compares signals and strings, which may possibly be slow.
-    const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);
-	
+    const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);	
 	if(ownerValue != state.mValue)
     {
 		if(immediate)

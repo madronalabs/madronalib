@@ -534,7 +534,7 @@ void loadFile(const File& f)
 		err = RestoreState (propertyList);
 		if (err != noErr)
 		{
-			MLError() << "error: " << err << "loading preset file.\n";
+			debug() << "error: " << err << "loading preset file.\n";
 		}
 	}
 	else

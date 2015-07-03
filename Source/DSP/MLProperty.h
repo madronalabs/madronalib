@@ -39,9 +39,12 @@ public:
 	const std::string& getStringValue() const;
 	const MLSignal& getSignalValue() const;
     
-	// set the value of the property to that of the argument.
-	// For all property types, if the size of the argument is equal to the
-	// size of the current value, the value is modified in place.
+	// For each type of property, a setValue method must exist
+	// to set the value of the property to that of the argument.
+	//
+	// For each type of property, if the size of the argument is equal to the
+	// size of the current value, the value must be modified in place.
+	// This guarantee keeps DSP graphs from allocating memory as they run.
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
 	void setValue(const std::string& v);
@@ -55,7 +58,7 @@ public:
 	
 private:
 	// TODO reduce storage requirements-- this is a minimal-code start
-	// TODO stop using std::string or otherwise control threading issues
+	// TODO stop using std::string, which seems to be causing threading issues
 	Type mType;
 	float mFloatVal;
 	std::string mStringVal;
@@ -88,7 +91,6 @@ public:
 	template <typename T>
 	void setProperty(MLSymbol p, T v)
 	{
-		const juce::ScopedLock pl (mPropertyLock);
 		mProperties[p].setValue(v);
 		broadcastProperty(p, false);
 	}
@@ -97,7 +99,6 @@ public:
 	template <typename T>
 	void setPropertyImmediate(MLSymbol p, T v)
 	{
-		const juce::ScopedLock pl (mPropertyLock);
 		mProperties[p].setValue(v);
 		broadcastProperty(p, true);
 	}
@@ -107,7 +108,6 @@ public:
 	template <typename T>
 	void setPropertyImmediateExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
 	{
-		const juce::ScopedLock pl (mPropertyLock);
 		mProperties[p].setValue(v);
 		broadcastPropertyExcludingListener(p, true, pL);
 	}
@@ -123,7 +123,6 @@ protected:
 private:
 	std::map<MLSymbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
-	juce::CriticalSection mPropertyLock;
 	
 	void broadcastProperty(MLSymbol p, bool immediate);
 	void broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude);
@@ -183,7 +182,7 @@ protected:
 	MLPropertySet* mpPropertyOwner;
 };
 
-typedef std::tr1::shared_ptr<MLPropertyListener> MLPropertyListenerPtr;
+typedef std::shared_ptr<MLPropertyListener> MLPropertyListenerPtr;
 
 #endif // __ML_PROPERTY__
 

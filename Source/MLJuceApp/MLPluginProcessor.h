@@ -25,6 +25,9 @@
 #include "MLT3DHub.h"
 #endif
 
+#include "OscOutboundPacketStream.h"
+#include "UdpSocket.h"
+
 #include <vector>
 #include <map>
 
@@ -61,9 +64,9 @@ public:
     ~MLPluginProcessor();
 
 	// MLModel implementation
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
-	// juce::AudioProcessor implementation
+	// juce::AudioProcessor
 	const String getName() const { return MLProjectInfo::projectName; }
     void prepareToPlay (double sampleRate, int samplesPerBlock);
     void releaseResources();
@@ -73,8 +76,10 @@ public:
     bool isInputChannelStereoPair (int index) const;
     bool isOutputChannelStereoPair (int index) const;
 	double getTailLengthSeconds() const;
+	bool silenceInProducesSilenceOut() const { return false; }
 	bool acceptsMidi() const;
     bool producesMidi() const;
+	
 	void reset();
 	AudioProcessorEditor* createEditor();
 	bool hasEditor() const { return true; }
@@ -116,11 +121,9 @@ public:
 	
 	// MLT3DHub::Listener
 #if ML_MAC
-	void handleHubNotification(MLSymbol action, const float val);
+	void handleHubNotification(MLSymbol action, const MLProperty val);
 #endif
-	// process
-	bool isOKToProcess();
-    void convertMIDIToEvents (MidiBuffer& midiMessages, MLControlEventVector & events);
+	
 	void setCollectStats(bool k);
 
 	// parameters
@@ -183,13 +186,16 @@ public:
 	
 	// environment: through which anything outside the patch, such as window size, can be stored in the host
 	MLEnvironmentModel* getEnvironment() { return mpEnvironmentModel.get(); }
-	
+
 	virtual MLPoint getDefaultEditorSize() = 0;
 	
 protected:
-	// set what kind of event input we are listening to (MIDI or OSC)
-	void setInputProtocol(int p);
+	
+	void processMIDI (MidiBuffer& midiMessages, MLControlEventVector & events);
 
+	// set what kind of event input we are listening to (MIDI or MIDI_MPE or OSC)
+	void setInputProtocol(int p);
+	
 	// set the parameter of the Engine but not the Model property.
 	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
 	void setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue);
@@ -200,7 +206,7 @@ protected:
 
 	int mInputProtocol;
 		
-	typedef std::tr1::shared_ptr<XmlElement> XmlElementPtr;
+	typedef std::shared_ptr<XmlElement> XmlElementPtr;
 	ScopedPointer<XmlDocument> mpPluginDoc;
 	String mDocLocationString;
     
@@ -227,9 +233,9 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-	juce::ScopedPointer<MLFileCollection> mScaleFiles;
-    juce::ScopedPointer<MLFileCollection> mPresetFiles;
-    juce::ScopedPointer<MLFileCollection> mMIDIProgramFiles;
+	MLFileCollectionPtr mScaleFiles;
+    MLFileCollectionPtr mPresetFiles;
+    MLFileCollectionPtr mMIDIProgramFiles;
 	
 	// saved state for editor
 	MLRect mEditorRect;
@@ -241,14 +247,42 @@ private:
     // vector of control events to send to engine along with each block of audio.
     MLControlEventVector mControlEvents;
 	
-	MLAppStatePtr mpPatchState;
-	std::tr1::shared_ptr<MLEnvironmentModel> mpEnvironmentModel;
-	MLAppStatePtr mpEnvironmentState;
-	std::tr1::shared_ptr<cJSON> mpDefaultEnvironmentState;
+	std::unique_ptr<MLAppState> mpPatchState;
+	std::unique_ptr<MLEnvironmentModel> mpEnvironmentModel;
+	std::unique_ptr<MLAppState> mpEnvironmentState;
+	std::unique_ptr<cJSON> mpDefaultEnvironmentState;
+	
 #if defined(__APPLE__)
 	MLT3DHub mT3DHub;
 #endif
+	
+#if OSC_PARAMS	
+	// transmit sequencer state including OSC port offset on port 9123
+	std::unique_ptr<UdpTransmitSocket> mSeqInfoSocket;
+	std::vector<char> mpOSCBuf;
+	void sendSeqInfo();
+	int mVisSendCounter;
+	MLProcList mSequencerList;
+	
+	
+	// visuals out OSC
+	std::unique_ptr<UdpTransmitSocket> mVisualsSocket;
+	std::vector<char> mpOSCVisualsBuf;
+	void sendVisuals();
+	MLProcList mRMSProcList;
+	
+	// program out OSC
+	void sendProgramChange(int pgm);
+	
+	
+#endif // OSC_PARAMS
+	
 
+	
+	void setSequence(const MLSignal& seq);
+
+public:
+	
 };
 
 #endif  // __PLUGINPROCESSOR__

@@ -15,9 +15,9 @@
 
 class MLMenu;
 
-typedef std::tr1::shared_ptr<MLMenu> MLMenuPtr;
+typedef std::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
-typedef std::tr1::shared_ptr<juce::PopupMenu> JuceMenuPtr;
+typedef std::shared_ptr<juce::PopupMenu> JuceMenuPtr;
 
 // adapter to Juce menu
 class MLMenu
@@ -25,7 +25,7 @@ class MLMenu
 public:
     
     class Node;
-    typedef std::tr1::shared_ptr<Node> NodePtr;
+    typedef std::shared_ptr<Node> NodePtr;
     typedef std::map<std::string, NodePtr, MLStringCompareFn> StringToMenuNodeMapT;
     class Node
     {
@@ -43,6 +43,7 @@ public:
 		const std::list<std::string>& getIndex() { return index; }
 		NodePtr getSubnodeByName(const std::string& name);
 		
+		// TODO use MLSymbols as map keys instead. Return MLSymbols and MLPaths. strings only for display.
         StringToMenuNodeMapT map;
         std::list<std::string> index;
 		std::string mDisplayPrefix;
@@ -67,7 +68,7 @@ public:
     
 	MLSymbol getName() { return mName; }
 	int getSize() { return mRoot->getNodeSize(0); }
-	const std::string getItemFullName(int idx);
+	const std::string getMenuItemPath(int idx);
     
     // build a Juce menu on the fly and return it
 	JuceMenuPtr getJuceMenu();	

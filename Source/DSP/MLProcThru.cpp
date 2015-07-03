@@ -14,7 +14,6 @@ public:
 	 MLProcThru();
 	~MLProcThru();
 	
-
 	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
@@ -27,12 +26,13 @@ private:
 // ----------------------------------------------------------------
 // registry section
 
-namespace{
-MLProcRegistryEntry<MLProcThru> classReg("thru");
-// no parameters, all signals.  ML_UNUSED MLProcParam<MLProcThru> params[1] = { "freq" };
-ML_UNUSED MLProcInput<MLProcThru> inputs[] = {"in"}; 
-ML_UNUSED MLProcOutput<MLProcThru> outputs[] = {"out"};
-}	// namespace
+namespace
+{
+	MLProcRegistryEntry<MLProcThru> classReg("thru");
+	// no parameters, all signals.  ML_UNUSED MLProcParam<MLProcThru> params[1] = { "freq" };
+	ML_UNUSED MLProcInput<MLProcThru> inputs[] = {"in"}; 
+	ML_UNUSED MLProcOutput<MLProcThru> outputs[] = {"out"};
+}
 
 // ----------------------------------------------------------------
 // implementation

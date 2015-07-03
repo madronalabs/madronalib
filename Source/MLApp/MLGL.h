@@ -3,11 +3,72 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+// NOTE: this is the old MLGL based on GLUT and immediate mode. Deprecated!
+
 #ifndef _MLGL_
 #define _MLGL_
 
 #include "MLVector.h"
 #include "MLPlatform.h"
+
+
+#undef JUCE_OPENGL
+#define JUCE_OPENGL 1
+
+#if ML_IOS
+#define JUCE_OPENGL_ES 1
+#endif
+
+// Windows
+#if ML_WINDOWS
+	#ifndef APIENTRY
+		#define APIENTRY __stdcall
+		#define CLEAR_TEMP_APIENTRY 1
+	#endif
+	#ifndef WINGDIAPI
+		#define WINGDIAPI __declspec(dllimport)
+		#define CLEAR_TEMP_WINGDIAPI 1
+	#endif
+	#include <gl/GL.h>
+	#ifdef CLEAR_TEMP_WINGDIAPI
+		#undef WINGDIAPI
+		#undef CLEAR_TEMP_WINGDIAPI
+	#endif
+	#ifdef CLEAR_TEMP_APIENTRY
+		#undef APIENTRY
+		#undef CLEAR_TEMP_APIENTRY
+	#endif
+// Linux
+#elif ML_LINUX
+	#include <GL/gl.h>
+	#undef KeyPress
+// IOS
+#elif ML_IOS
+	#if defined (__IPHONE_7_0) && __IPHONE_OS_VERSION_MAX_ALLOWED >= __IPHONE_7_0
+		#include <OpenGLES/ES3/gl.h>
+	#else
+		#include <OpenGLES/ES2/gl.h>
+	#endif
+// Mac OS
+#elif ML_MAC
+/*
+	#if defined (MAC_OS_X_VERSION_10_7) && (MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_7)
+		#define JUCE_OPENGL3 1
+		#include <OpenGL/gl3.h>
+		#include <OpenGL/gl3ext.h>
+	#else
+ */
+		#include <OpenGL/gl.h>
+		#include <OpenGL/glext.h>
+
+#endif
+
+
+
+// OpenGL helper utilities. 
+// This is all considered temporary, because it is all in immediate mode, which is a bad way to write 
+// OpenGL code. TODO consider finding a good 2d GL library written by someone else.
+
 
 #if ML_WINDOWS
  #include <Windows.h>
@@ -23,6 +84,8 @@
 #elif ML_MAC
  #include <GLUT/glut.h>
 #endif
+
+
 
 namespace MLGLData
 {
@@ -55,9 +118,9 @@ public:
    
     static const float* getIndicatorColor(int i) { return MLGLData::indicatorColors + 4*(i & MLGLData::indicatorColorsMask); }
     static void fillRect(const MLRect& r);
-    static void strokeRect(const MLRect& r);
+    static void strokeRect(const MLRect& r, float viewScale);
     
-    static void drawTextAt(float x, float y, float z, const char* ps);
+    static void drawTextAt(float x, float y, float z, float textScale, float viewScale, const char* ps);
     
     static Vec2 worldToScreen(const Vec3& world);
 

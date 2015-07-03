@@ -7,7 +7,8 @@
 #define _ML_SCALE_H
 
 #include <vector>
-
+#include <iomanip>
+#include <sstream>
 #include "MLDSP.h"
 #include "MLDebug.h"
 

@@ -24,7 +24,6 @@
 #include "MLLookAndFeel.h"
 #include "MLEnvelope.h"
 #include "MLProgressBar.h"
-#include "MLGraph.h"
 #include "MLDebugDisplay.h"
 #include "MLDefaultFileLocations.h"
 #include "MLJuceFilesMac.h"
@@ -44,21 +43,26 @@ public:
 	MLAppView(MLWidget::Listener* pResp, MLReporter* pRep);
     ~MLAppView();
 
+	void initialize();
+	
+	// MLWidget::MLPropertyListener
+	void doPropertyChangeAction(MLSymbol p, const MLProperty & newVal);
+
 	virtual bool isWidgetContainer(void) { return true; }
 
-	// using our Reporter, setup view for param p as attr of widget.
-	void addParamView(MLSymbol p, MLWidget* w, MLSymbol attr);
+	// using our Reporter, setup view for Model Property p as attr of widget.
+	void addPropertyView(MLSymbol p, MLWidget* w, MLSymbol attr);
 
 	// add the widget and add our Responder as a listener. The Responder can then do things in HandleWidgetAction().
 	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);
 	
 	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize);	
 
-	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);	
-	virtual MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	virtual MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		int n, const Colour& color);
-	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		int n, const Colour& color);
 	virtual MLButton* addToggleButton(const char* displayName, const MLRect & r, const MLSymbol name,
                                       const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
@@ -83,18 +87,19 @@ public:
 	MLLabel* addLabelAbove(MLWidget* c, const char* displayName, 
 		const float sizeMultiplier = 1.0f, const int font = eMLCaption, Vec2 offset = Vec2());
 
-	MLGraph* addGraph(const char * name, const Colour& color);
-
 	MLDrawing* addDrawing(const MLRect & r);
 	MLProgressBar* addProgressBar(const MLRect & r);
 
 	void resized();
-	void setPeerBounds(int x, int y, int w, int h);
-	
-	inline MLWidget::Listener* getResponder() { return mpResponder; }
-	inline MLReporter* getReporter() { return mpReporter; }
+	void setViewBoundsProperty();
+	void setWindowBounds(const MLSignal& bounds);
 
+	// sent by the AppWindow 
+	void windowMoved();
+	void windowResized();
+	
 protected:
+	bool mInitialized;
 	float mGridUnitSize;	
 	MLWidget::Listener* mpResponder;
 	MLReporter* mpReporter;

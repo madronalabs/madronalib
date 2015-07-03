@@ -11,10 +11,11 @@
 #include <vector>
 #include <iostream>
 #include <iomanip>
+#include <memory>
 #include "math.h"
 #include "MLDSP.h"
 #include "MLVector.h"
-#include "MLDebug.h"
+// #include "MLDebug.h"
 
 #ifdef DEBUG
 	const int kMLSignalEndSize = 4;
@@ -62,6 +63,7 @@ public:
 	MLSignal();	
 	MLSignal(const MLSignal& b);
 	MLSignal(int width, int height = 1, int depth = 1); 
+	MLSignal (std::initializer_list<float> values);
 
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
@@ -75,6 +77,8 @@ public:
 	{	
 		return mDataAligned;
 	}
+	
+	// TODO make a range accessor so we can write code like for(sample x : mySignal)
 	
 	// 1-D access methods
 	//
@@ -313,8 +317,8 @@ public:
 	void sigMax(const MLSample max);
 
     // 1D convolution
-    void convolve3(const MLSample km, const MLSample k, const MLSample kp);
-    void convolve5(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp);
+    void convolve3x1(const MLSample km, const MLSample k, const MLSample kp);
+    void convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp);
 
 	// Convolve the 2D matrix with a radially symmetric 3x3 matrix defined by coefficients
 	// kc (center), ke (edge), and kk (corner).
@@ -326,7 +330,11 @@ public:
     float getRMS();
     float rmsDiff(const MLSignal& b);
 
-	Vec2 correctPeak(const int ix, const int iy) const;
+	// find the subpixel peak in the neighborhood of the input position, 
+	// by 2D Taylor series expansion of the surface function at (x, y).  
+	// The result is clamped to the input position plus or minus maxCorrect.
+	//
+	Vec2 correctPeak(const int ix, const int iy, const float maxCorrect) const;
 
 	// unary operators on Signals
 	void square();	
@@ -357,8 +365,8 @@ public:
 	float getMean() const;
 	float getMin() const;
 	float getMax() const;
-	void dump(int verbosity = 0) const;
-	void dump(const MLRect& b) const;
+	void dump(std::ostream& s, int verbosity = 0) const;
+	void dump(std::ostream& s, const MLRect& b) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
 	inline bool is2D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
@@ -411,7 +419,7 @@ private:
 	MLSampleRate mRate;
 };
 
-typedef std::tr1::shared_ptr<MLSignal> MLSignalPtr;
+typedef std::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);

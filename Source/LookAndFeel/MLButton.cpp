@@ -19,10 +19,11 @@ MLButton::MLButton () :
     setWantsKeyboardFocus (false);
     setRepaintsOnMouseActivity (false);
 	setOpaque(true);
-	setBufferedToImage(false);
+	
+	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	
 	setProperty("toggle", 1);
-
 	mDoRollover = false;
 	
 	setFillColor (Colours::lightgrey);

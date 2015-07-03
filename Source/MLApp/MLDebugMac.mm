@@ -36,6 +36,5 @@ void MLTextStream::display()
 		}
 	}
 }
-		
 				
 #endif	// ML_MAC

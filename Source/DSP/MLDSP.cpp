@@ -4,7 +4,6 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLDSP.h"
-#include "MLDebug.h"
 
 //	bit 31		bits 30-23		bits 22-0
 //	sign		exponent		significand
@@ -96,7 +95,6 @@ int MLisInfinite(double x)
 #endif
 }
 
-
 static uint32_t gMLRandomSeed = 0;
 
 // return single-precision floating point number on [-1, 1]
@@ -120,7 +118,6 @@ void MLRandReset(void)
 }
 
 const MLRange UnityRange = MLRange(0.f, 1.f);
-
 
 float ampTodB(float a)
 {

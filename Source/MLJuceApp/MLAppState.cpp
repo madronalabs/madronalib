@@ -5,14 +5,20 @@
 
 #include "MLAppState.h"
 
-MLAppState::MLAppState(MLModel* pM, const std::string& name, const std::string& makerName, const std::string& appName, int version) :
+MLAppState::MLAppState(MLPropertySet* pM, const std::string& name, const std::string& makerName, const std::string& appName, int version) :
     MLPropertyListener(pM),
-	mName(name),
+	mExtraName(name),
 	mMakerName(makerName),
 	mAppName(appName),
 	mAppVersion(version),
-	mpModel(pM)
+	mpTarget(pM)
 {
+	// default extra name
+	if(mExtraName.length() == 0)
+	{
+		mExtraName = "App";
+	}
+	
 	updateAllProperties();
 	startTimer(1000);
 }
@@ -25,6 +31,11 @@ MLAppState::~MLAppState()
 void MLAppState::timerCallback()
 {
 	updateChangedProperties();
+}
+
+void MLAppState::ignoreProperty(MLSymbol property)
+{
+	mIgnoredProperties.insert(property);
 }
 
 // MLPropertyListener implementation
@@ -79,7 +90,7 @@ void MLAppState::saveStateToStateFile()
 	{
 		if(!dir.isDirectory())
 		{
-			MLError() << "MLAppState:: file present instead of directory " << 
+			debug() << "MLAppState:: file present instead of directory " << 
 				dir.getFileName() << "!  Aborting.\n";
 		}
 	}
@@ -89,7 +100,7 @@ void MLAppState::saveStateToStateFile()
 		Result r = dir.createDirectory();
 		if(r.failed())
 		{
-			MLError() << "Error creating state directory: " << r.getErrorMessage() << "\n";
+			debug() << "Error creating state directory: " << r.getErrorMessage() << "\n";
 			return;
 		}
 	}
@@ -101,7 +112,7 @@ void MLAppState::saveStateToStateFile()
 		Result r = stateFile.create();
 		if(r.failed())
 		{
-			MLError() << "Error creating state file: " << r.getErrorMessage() << "\n";
+			debug() << "Error creating state file: " << r.getErrorMessage() << "\n";
 			return;
 		}
 	}
@@ -133,37 +144,40 @@ cJSON* MLAppState::getStateAsJSON()
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
 		MLSymbol key = it->first;
-		const char* keyStr = key.getString().c_str();
-		PropertyState& state = it->second;
-		switch(state.mValue.getType())
-		{
-			case MLProperty::kFloatProperty:
-				cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
-				break;
-			case MLProperty::kStringProperty:
-				cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue().c_str());
-				break;
-			case MLProperty::kSignalProperty:
-				{
-					// make and populate JSON object representing signal
-					cJSON* signalObj = cJSON_CreateObject();
-					const MLSignal& sig = state.mValue.getSignalValue();
-					cJSON_AddStringToObject(signalObj, "type", "signal");
-					cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
-					cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
-					cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
-					int size = sig.getSize();
-					float* pSignalData = sig.getBuffer();
-					cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
-					cJSON_AddItemToObject(signalObj, "data", data);
-					
-					// add signal object to state JSON
-					cJSON_AddItemToObject(root, keyStr, signalObj);
-				}
-				break;
-			default:
-				MLError() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
-				break;
+		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
+		{			
+			const char* keyStr = key.getString().c_str();
+			PropertyState& state = it->second;
+			switch(state.mValue.getType())
+			{
+				case MLProperty::kFloatProperty:
+					cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
+					break;
+				case MLProperty::kStringProperty:
+					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue().c_str());
+					break;
+				case MLProperty::kSignalProperty:
+					{
+						// make and populate JSON object representing signal
+						cJSON* signalObj = cJSON_CreateObject();
+						const MLSignal& sig = state.mValue.getSignalValue();
+						cJSON_AddStringToObject(signalObj, "type", "signal");
+						cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
+						cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
+						cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
+						int size = sig.getSize();
+						float* pSignalData = sig.getBuffer();
+						cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
+						cJSON_AddItemToObject(signalObj, "data", data);
+						
+						// add signal object to state JSON
+						cJSON_AddItemToObject(root, keyStr, signalObj);
+					}
+					break;
+				default:
+					debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
+					break;
+			}
 		}
 	}
 	
@@ -229,76 +243,75 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 	cJSON *child = pNode->child;
 	while(child)
 	{
-		switch(child->type & 255)
-		{
-			case cJSON_Number:
-				//debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
-				mpModel->setProperty(MLSymbol(child->string), (float)child->valuedouble);
-				break;
-			case cJSON_String:
-				//debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
-				mpModel->setProperty(MLSymbol(child->string), child->valuestring);
-				break;
-			case cJSON_Object:
-				//debug() << "looking at object: " << child->string << "\n";
-				// see if object is a stored signal
-				if(cJSON* pObjType = cJSON_GetObjectItem(child, "type"))
-				{
-					if(!strcmp(pObjType->valuestring, "signal") )
+		MLSymbol key(child->string);
+		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
+		{							
+			switch(child->type & 255)
+			{
+				case cJSON_Number:
+					//debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
+					mpTarget->setProperty(key, (float)child->valuedouble);
+					break;
+				case cJSON_String:
+					//debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
+					mpTarget->setProperty(key, child->valuestring);
+					break;
+				case cJSON_Object:
+					//debug() << "looking at object: " << child->string << "\n";
+					// see if object is a stored signal
+					if(cJSON* pObjType = cJSON_GetObjectItem(child, "type"))
 					{
-						//debug() << " depth " << depth << " loading signal param " << child->string << "\n";
-						int width = cJSON_GetObjectItem(child, "width")->valueint;
-						int height = cJSON_GetObjectItem(child, "height")->valueint;
-						int sigDepth = cJSON_GetObjectItem(child, "depth")->valueint;
-						
-						// read data into signal and set model param
-						MLSignal signalValue(width, height, sigDepth);
-						float* pSigData = signalValue.getBuffer();
-						if(pSigData)
+						if(!strcmp(pObjType->valuestring, "signal") )
 						{
-							int widthBits = bitsToContain(width);
-							int heightBits = bitsToContain(height);
-							int depthBits = bitsToContain(sigDepth);
-							int size = 1 << widthBits << heightBits << depthBits;
+							//debug() << " depth " << depth << " loading signal param " << child->string << "\n";
+							int width = cJSON_GetObjectItem(child, "width")->valueint;
+							int height = cJSON_GetObjectItem(child, "height")->valueint;
+							int sigDepth = cJSON_GetObjectItem(child, "depth")->valueint;
 							
-							cJSON* pData = cJSON_GetObjectItem(child, "data");
-							int dataSize = cJSON_GetArraySize(pData);
-							if(dataSize == size)
+							// read data into signal and set model param
+							MLSignal signalValue(width, height, sigDepth);
+							float* pSigData = signalValue.getBuffer();
+							if(pSigData)
 							{
-								// read array
-								cJSON *c=pData->child;
-								int i = 0;
-								while (c)
+								int widthBits = bitsToContain(width);
+								int heightBits = bitsToContain(height);
+								int depthBits = bitsToContain(sigDepth);
+								int size = 1 << widthBits << heightBits << depthBits;
+								
+								cJSON* pData = cJSON_GetObjectItem(child, "data");
+								int dataSize = cJSON_GetArraySize(pData);
+								if(dataSize == size)
 								{
-									pSigData[i++] = c->valuedouble;
-									c=c->next;
+									// read array
+									cJSON *c=pData->child;
+									int i = 0;
+									while (c)
+									{
+										pSigData[i++] = c->valuedouble;
+										c=c->next;
+									}
 								}
+								else
+								{
+									debug() << "MLAppState::setStateFromJSON: wrong array size!\n";
+								}
+								mpTarget->setProperty(key, signalValue);
 							}
-							else
-							{
-								MLError() << "MLAppState::setStateFromJSON: wrong array size!\n";
-							}
-							mpModel->setProperty(MLSymbol(child->string), signalValue);
 						}
 					}
-				}
-				else
-				{
-					//debug() << " recursing into object " << child->string << ": \n";
-					setStateFromJSON(child, depth + 1);
-				}
-				break;
-			case cJSON_Array:
-			default:
-				break;
+					else
+					{
+						//debug() << " recursing into object " << child->string << ": \n";
+						setStateFromJSON(child, depth + 1);
+					}
+					break;
+				case cJSON_Array:
+				default:
+					break;
+			}
 		}
 		child = child->next;
 	}
-	
-	// TODO updateAllProperties is needed to make restore state work after MIDI parameter changes,
-	// as opposed to parameter changes from UI. updateChangedProperties should be made to work instead.
-//	mpModel->updateChangedProperties();
-	mpModel->updateAllProperties();
 }
 
 void MLAppState::loadDefaultState()
@@ -337,7 +350,8 @@ File MLAppState::getAppStateFile() const
     String applicationName(mAppName);
 	String extension("txt");
 	File dir(getAppStateDir());
-    return dir.getChildFile(applicationName + "AppState").withFileExtension (extension);
+	std::string extra;
+    return dir.getChildFile(applicationName + mExtraName + "State").withFileExtension (extension);
 }
 
 void MLAppState::clearStateStack()

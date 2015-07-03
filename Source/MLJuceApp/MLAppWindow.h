@@ -15,10 +15,12 @@ class MLAppWindow  : public DocumentWindow
 public:
     MLAppWindow();
     ~MLAppWindow();
+	
+	void initialize();
 
 	void mouseDown (const MouseEvent& e);
 	void mouseDrag (const MouseEvent& e);	
-	void setGridUnits(double gx, double gy);
+	void setGridUnits(int gx, int gy);
 	void setContent(MLAppView* newView);
     void closeButtonPressed();
     void moved();
@@ -28,10 +30,11 @@ public:
 private:
  	ComponentDragger myDragger;
 	
-	float mGridUnitsX;
-	float mGridUnitsY;
+	int mGridUnitsX;
+	int mGridUnitsY;
 	
-	MLAppBorder mBorder;
+	std::unique_ptr<MLAppBorder> mpBorder;
+	MLAppView* mpAppView;
     MLBoundsConstrainer* mpConstrainer;
 	bool mUsingGL;
 	

@@ -47,7 +47,7 @@ MLDial* MLPluginView::addDial(const char * displayName, const MLRect & r,
 {
 	MLDial* dial = MLAppView::addDial(displayName, r, paramName, color);
 	
-	// setup dial attrs from filter parameter
+	// setup dial properties based on the filter parameter
 	MLPluginProcessor* const filter = getProcessor();
 	int idx = filter->getParameterIndex(paramName);
 	if (idx >= 0)
@@ -70,8 +70,6 @@ MLDial* MLPluginView::addDial(const char * displayName, const MLRect & r,
 MLMultiSlider* MLPluginView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, int numSliders, const Colour& color)
 {
 	MLMultiSlider* dial = MLAppView::addMultiSlider(displayName, r, paramName, numSliders, color);
-	
-	// setup dial attrs from filter parameter
 	MLPluginProcessor* const filter = getProcessor();
 	if(filter) 
 	{
@@ -95,8 +93,6 @@ MLMultiSlider* MLPluginView::addMultiSlider(const char * displayName, const MLRe
 MLMultiButton* MLPluginView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, int numButtons, const Colour& color)
 {
 	MLMultiButton* b = MLAppView::addMultiButton(displayName, r, paramName, numButtons, color);
-	
-	// setup dial attrs from filter parameter
 	MLPluginProcessor* const filter = getProcessor();
 	if(filter) 
 	{
@@ -121,8 +117,6 @@ MLButton* MLPluginView::addToggleButton(const char * displayName, const MLRect &
                                         const Colour& color, const float sizeMultiplier)
 {
 	MLButton* b = MLAppView::addToggleButton(displayName, r, paramName, color, sizeMultiplier);
-    
-	// setup button attrs from filter parameter
 	MLPluginProcessor* const filter = getProcessor();
 	int idx = filter->getParameterIndex(paramName);
 	if (idx >= 0)
@@ -167,12 +161,12 @@ MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const MLSymbol paramName
 	MLEnvelope * pE = new MLEnvelope();
     
 	const std::string paramStr = paramName.getString();
-	addParamView(MLSymbol(paramStr + "_delay"), pE, MLSymbol("delay"));
-	addParamView(MLSymbol(paramStr + "_attack"), pE, MLSymbol("attack"));
-	addParamView(MLSymbol(paramStr + "_decay"), pE, MLSymbol("decay"));
-	addParamView(MLSymbol(paramStr + "_sustain"), pE, MLSymbol("sustain"));
-	addParamView(MLSymbol(paramStr + "_release"), pE, MLSymbol("release"));
-	addParamView(MLSymbol(paramStr + "_repeat"), pE, MLSymbol("repeat"));
+	addPropertyView(MLSymbol(paramStr + "_delay"), pE, MLSymbol("delay"));
+	addPropertyView(MLSymbol(paramStr + "_attack"), pE, MLSymbol("attack"));
+	addPropertyView(MLSymbol(paramStr + "_decay"), pE, MLSymbol("decay"));
+	addPropertyView(MLSymbol(paramStr + "_sustain"), pE, MLSymbol("sustain"));
+	addPropertyView(MLSymbol(paramStr + "_release"), pE, MLSymbol("release"));
+	addPropertyView(MLSymbol(paramStr + "_repeat"), pE, MLSymbol("repeat"));
 	
 	addWidgetToView(pE, r, paramName);
 	return(pE);

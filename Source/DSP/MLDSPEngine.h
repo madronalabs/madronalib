@@ -85,22 +85,9 @@ public:
 	void setInputDataRate(int p);
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
 	void clearMIDI();
-    
-    // to individual channels
-	void addNoteOn(int chan, int note, int vel, int time);
-	void addNoteOff(int chan, int note, int vel, int time);
-	void setPitchWheel(int chan, int value, int time);
-	void setAfterTouch(int chan, int note, int value, int time);
-    
-    // to all channels
-	void setController(int controller, int value, int time);
-	void setChannelAfterTouch(int value, int time);
-	void setSustainPedal(int value, int time);
 	
 	// ----------------------------------------------------------------
 	// Process
-	
-public:
 
 	void setCollectStats(bool k);
 

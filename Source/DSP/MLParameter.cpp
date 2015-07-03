@@ -9,7 +9,7 @@
 #pragma mark published parameters
 
 MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
-	mAlias(alias),
+	mPublishedAlias(alias),
 	mIndex(idx),
 	mNeedsQueue(false),
 	mAutomatable(true)

@@ -19,11 +19,12 @@ MLSignalReporter::~MLSignalReporter()
 
 // add another signal view to our map, to be serviced periodically.
 //
-void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority)
+MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
-	if(!pEngine) return;	
-
+	if(!pEngine) return nullptr;	
+	MLSignalView* pNewView = nullptr;
+	
 	// first, find published signal if available and add read buffers. 
 	int bufSize = pEngine->getPublishedSignalBufferSize(alias);
     int voices = pEngine->getPublishedSignalVoices(alias);
@@ -43,7 +44,8 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 		viewSize = min(viewSize, bufSize);
 
         // add the list of widgets and attributes for viewing
-        mSignalViewsMap[alias].push_back(MLSignalViewPtr(new MLSignalView(w, attr, viewSize, priority)));
+		pNewView = new MLSignalView(w, attr, viewSize, priority);
+        mSignalViewsMap[alias].push_back(MLSignalViewPtr(pNewView));
         
         // push name to name vector
         mSignalNames.push_back(alias);
@@ -57,8 +59,9 @@ void MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol 
 	}
 	else
 	{
-		MLError() << "MLSignalReporter::addSignalViewToMap: no published signal " << alias << "!\n";
+		debug() << "MLSignalReporter::addSignalViewToMap: no published signal " << alias << "!\n";
 	}
+	return pNewView;
 }
 
 bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToCompare, int voices)
@@ -91,7 +94,7 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return 0;
-    
+ 
     // get temp buffers
     MLSignal& buffer1 = *(mSignalBuffers[signalName].get());
     MLSignal& buffer2 = *(mSignalBuffers2[signalName].get());
@@ -111,10 +114,10 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
     // if the buffer was full, compare to see if a redraw is needed. 
     if(samplesRead == samplesRequested) 
     {
-        bool changed = signalsAreDifferent(buffer1, buffer2, samplesRead, voices);
+		bool changed = signalsAreDifferent(buffer1, buffer2, samplesRead, voices);
         if(changed || forceView)
         {
-            // send signal to each signal view in its viewer list.
+			// send signal to each signal view in its viewer list.
             MLSignalViewList viewList = mSignalViewsMap[signalName];
             for(MLSignalViewList::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
             {
@@ -133,7 +136,6 @@ int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int pri
     }
     return drawn;
 }
-
 
 void MLSignalReporter::viewSignals()
 {
@@ -159,10 +161,10 @@ void MLSignalReporter::viewChangedSignals()
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return;
     
-    const int maxSignalsToViewPerFrame = 6;
+	const int maxSignalsToViewPerFrame = 6; 
 	MLSymbol signalName;
-    
-    // first service all views that have high priority set
+	
+	// first service all views that have high priority set
     for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
         it != mViewPriorityMap.end(); it++ )
     {
@@ -204,7 +206,7 @@ void MLSignalReporter::viewAllSignals()
     for(int i = 0; i<nSignals; ++i)
     {
         const bool forceView = true;
-        const MLSymbol signalName = mSignalNames[i];
+        const MLSymbol signalName = mSignalNames[i];		
         viewOneSignal(signalName, forceView);
     }
 }

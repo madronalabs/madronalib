@@ -6,6 +6,7 @@
 #ifndef __ML_MODEL__
 #define __ML_MODEL__
 
+#include "JuceHeader.h" // to remove
 #include "MLProperty.h"
 
 // an MLModel is a kind of PropertySet that is also its own PropertyListener.
@@ -33,7 +34,7 @@ private:
 	private:
 		MLModel* mpOwnerModel;
 	};
-	std::tr1::shared_ptr<ModelTimer> mpTimer;
+	std::unique_ptr<ModelTimer> mpTimer;
 };
 
 #endif // __ML_MODEL__

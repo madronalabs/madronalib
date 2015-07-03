@@ -18,17 +18,13 @@ class MLWidgetContainer;
 // this can incorporate our own component class.
 //
 class MLWidget :
-    public OpenGLRenderer, // WAT
+    public OpenGLRenderer,
 	public MLPropertySet,
 	public MLPropertyListener
 {
 friend class MLWidgetContainer;
-//friend class MLPropertyView;
 friend class MLAppView;
 public:
-	MLWidget();
-	virtual ~MLWidget();
-	
 	class Listener
 	{
 		public:
@@ -36,9 +32,12 @@ public:
 		virtual void handleWidgetAction (MLWidget*, MLSymbol action, MLSymbol target, const MLProperty& val) = 0;
 	};
 
+	MLWidget();
+	virtual ~MLWidget();
+	
 	// MLPropertyListener methods.
 	// a Widget's local properties must be set in Immediate mode. There is no timer to propagate changes.
-	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal) {}
+	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
 	
 	// in order to function, a Widget's Component must get set.
 	void setComponent(Component* pC) { pComponent = pC; }
@@ -98,6 +97,7 @@ public:
 	const MLSymbol& getWidgetName() { return mName; }
 
 	void setWidgetVisible(bool v);
+	void setWidgetEnabled(bool v);
     
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(MLSymbol p) { mTargetPropertyName = p; }

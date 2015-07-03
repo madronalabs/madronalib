@@ -28,8 +28,9 @@ protected:
 	void timerCallback();
 
 private:
-	CodeEditorComponent* mpComp;
-	CodeDocument mDoc;	
+	std::unique_ptr<CodeDocument> mpDoc;
+	std::unique_ptr<CodeEditorComponent> mpComp;
+
 	juce::CriticalSection mStreamLock;
 
 };

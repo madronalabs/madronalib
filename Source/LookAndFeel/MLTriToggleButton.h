@@ -16,13 +16,13 @@ public:
     MLTriToggleButton();
     ~MLTriToggleButton();
 	
-	void paintButton(Graphics& g, bool isMouseOverButton, bool isButtonDown);
-    void clicked (const ModifierKeys& modifiers);
-    void resizeWidget(const MLRect& b, const int);
+	void paint(Graphics& g) override;
+    void clicked () override;
+    void resizeWidget(const MLRect& b, const int) override;
+	float getLabelVerticalOffset() override { return 1.f; }
     
 protected:
 	float mLineThickness;
-    int mState;
 private:
  	
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MLTriToggleButton);

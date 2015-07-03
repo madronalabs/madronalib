@@ -26,7 +26,7 @@ private:
 	MLSymbol mAttr;
 };
 
-typedef std::tr1::shared_ptr<MLPropertyView> MLPropertyViewPtr;
+typedef std::shared_ptr<MLPropertyView> MLPropertyViewPtr;
 typedef std::list<MLPropertyViewPtr> MLPropertyViewList;
 typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
 
@@ -51,7 +51,6 @@ protected:
 	MLPropertyViewListMap mPropertyViewsMap;
 	
 private:
-	std::vector<MLPropertyListenerPtr> pListeners;
 	
 	// our subclass of MLPropertyListener that forwards actions to us.
 	class PropertyListener : public MLPropertyListener
@@ -81,10 +80,11 @@ private:
 	
 	void enqueuePropertyChange(MLSymbol property, const MLProperty& newVal);
 
+	std::vector<MLPropertyListenerPtr> pListeners;
 	MLPropertySet mCurrentProperties;
 	std::vector<MLSymbol> mChangeData;
 	PaUtilRingBuffer mChangeQueue;
-	std::tr1::shared_ptr<ReporterTimer> mpTimer;
+	std::unique_ptr<ReporterTimer> mpTimer;
 };
 
 #endif // __ML_REPORTER_H

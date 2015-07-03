@@ -18,6 +18,8 @@
 #include <memory>
 #endif
 
+#include <set>
+
 extern const char* kMLStateDirName;
 
 class MLAppState : 
@@ -25,13 +27,17 @@ class MLAppState :
 	public Timer
 {
 public:
-	MLAppState(MLModel*, const std::string&, const std::string&, const std::string&, int );
+	MLAppState(MLPropertySet*, const std::string& name, const std::string& makerName, 
+	   const std::string& appName, int version);
+
     ~MLAppState();
 	
 	// MLPropertyListener interface
 	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
 	void timerCallback();
+	
+	void ignoreProperty(MLSymbol property);
 	
 	// get and save state
 	// TODO JUCE-free
@@ -56,18 +62,17 @@ public:
 	void returnToFirstSavedState();
 	
 protected:
-	std::string mName;
+	std::string mExtraName;
 	std::string mMakerName;
 	std::string mAppName;
 	int mAppVersion;
 	
 private:
-	MLModel* mpModel;
+	MLPropertySet* mpTarget;
 	File getAppStateDir() const;
 	File getAppStateFile() const;
 	std::vector<juce::MemoryBlock> mStateStack;
+	std::set<MLSymbol> mIgnoredProperties;
 };
-
-typedef std::tr1::shared_ptr<MLAppState> MLAppStatePtr;
 
 #endif // __ML_APP_STATE_H

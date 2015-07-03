@@ -16,6 +16,7 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	mClockDivider(0),
 	mConvertingPresets(false),
 	mFilesConverted(0),
+	mProtocolMenuItemStart(0),
 	mOSCMenuItemStart(0)
 {
 	// initialize reference
@@ -109,14 +110,12 @@ void MLPluginController::timerCallback()
     
 	if(mClockDivider > lessFrequentThingsDivision)
     {
-        // do less frequent things
+        // do less frequent things (unused)
         mClockDivider = 0;
     }
 	
-    if(getView() != nullptr)
-    {
-        viewSignals();
-    }
+	if(getView())
+		viewSignals();
 	
 #if ML_MAC
 	// read from file action queue and do any needed actions
@@ -180,6 +179,13 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 
 static void menuItemChosenCallback (int result, WeakReference<MLPluginController> pC, MLSymbol menuName);
 
+// set the menu map entry for the given name to a new, empty menu.
+MLMenu* MLPluginController::createMenu(MLSymbol menuName)
+{
+	mMenuMap[menuName] = MLMenuPtr(new MLMenu(menuName));
+	return findMenuByName(menuName);
+}
+
 MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)	
 {
 	MLMenu* r = nullptr;
@@ -192,11 +198,16 @@ MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)
 	return r;
 }
 
-// set the menu map entry for the given name to a new, empty menu.
-MLMenu* MLPluginController::createMenu(MLSymbol menuName)
+void MLPluginController::buildMenuFromSymbolVector(MLSymbol menuName, std::vector<std::string> & v)
 {
-	mMenuMap[menuName] = MLMenuPtr(new MLMenu(menuName));
-	return findMenuByName(menuName);
+	if(MLMenu* pMenu = createMenu(menuName))
+	{
+		pMenu->clear();
+		for(auto itemString : v)
+		{
+			pMenu->addItem(itemString);
+		}
+	}
 }
 
 void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
@@ -324,7 +335,7 @@ void MLPluginController::loadPresetByMenuIndex(int result)
 	MLMenu* menu = findMenuByName("preset");
 	if(menu)
 	{
-		const std::string& fullName = menu->getItemFullName(result);
+		const std::string& fullName = menu->getMenuItemPath(result);
 		getProcessor()->loadStateFromPath(fullName);
 	}
 	MLReporter::fetchChangedProperties();
@@ -344,7 +355,7 @@ void MLPluginController::doScaleMenu(int result)
             if (menu)
             {
                 // set model param to the full name of the file in the menu
-                const std::string& fullName = menu->getItemFullName(result);
+                const std::string& fullName = menu->getMenuItemPath(result);
                 mpProcessor->setPropertyImmediate("key_scale", fullName);
             }
             break;
@@ -378,16 +389,17 @@ void MLPluginController::doSettingsMenu(int result)
 			mpProcessor->editorResized(p.x(), p.y());
 			break;
 		}
-        case (4):
+		default:
 		{
-			bool enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
-			mpProcessor->getEnvironment()->setPropertyImmediate("osc_enabled", !enabled);
-			break;
-		}
-        default:
-		{
-			// other items set osc port offset.
-			mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - mOSCMenuItemStart - 1);
+			if(result <= mOSCMenuItemStart)
+			{
+				mpProcessor->getEnvironment()->setPropertyImmediate("protocol", result - mProtocolMenuItemStart - 1);
+			}
+			else
+			{
+				// other items set osc port offset.
+				mpProcessor->getEnvironment()->setPropertyImmediate("osc_port_offset", result - mOSCMenuItemStart - 1);
+			}
 		}
     }
 }
@@ -471,7 +483,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	MLMenu* menu = findMenuByName("preset");
 	if (menu == nullptr)
 	{
-		MLError() << "MLPluginController::populatePresetMenu(): menu not found!\n";
+		debug() << "MLPluginController::populatePresetMenu(): menu not found!\n";
 		return;
 	}			
 	menu->clear();
@@ -528,7 +540,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	menu->buildIndex();
 }
 
-// create a menu of the factory scales.
+// "gear" menu for environment settings.
 //
 void MLPluginController::populateSettingsMenu()
 {
@@ -540,9 +552,24 @@ void MLPluginController::populateSettingsMenu()
 	pMenu->addItem("Show numbers", true, num);
 	pMenu->addItem("Animate dials", true, anim);
 	pMenu->addItem("Reset editor size");
+
+	// protocols
+	const int currProtocol = mpProcessor->getEnvironment()->getFloatProperty("protocol");
+	MLMenuPtr protocolMenu(new MLMenu());
+	{
+		const std::vector<std::string> names ({"MIDI", "MIDI MPE", "OSC"});
+		for(int i=0; i<names.size(); ++i)
+		{
+			bool ticked = (i == currProtocol);
+			protocolMenu->addItem(names[i], true, ticked);
+		}
+	}
 	
-#if ML_MAC
 	pMenu->addSeparator();
+	mProtocolMenuItemStart = pMenu->getSize();
+	pMenu->addSubMenu(protocolMenu, "Input protocol");
+
+#if ML_MAC
 	MLMenuPtr portsMenu(new MLMenu());
 	for(int i=0; i<16; ++i)
 	{
@@ -555,8 +582,6 @@ void MLPluginController::populateSettingsMenu()
 		portsMenu->addItem(iStr, true, ticked);
 	}
 	
-	int enabled = mpProcessor->getEnvironment()->getFloatProperty("osc_enabled");
-	pMenu->addItem("OSC enabled", true, enabled);
 	mOSCMenuItemStart = pMenu->getSize();
 	pMenu->addSubMenu(portsMenu, "OSC port offset");
 #endif
@@ -575,14 +600,14 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 				std::list<std::string>::const_iterator it;
 				const std::list<std::string>& nodeIndex = node->getIndex();
 				
-				int p = 1;
-				for(it = nodeIndex.begin(); it != nodeIndex.end(); it++)
+				int pgm = 0;
+				for(it = nodeIndex.begin(); ((it != nodeIndex.end()) && (pgm <= 127)); it++)
 				{
 					const std::string& name = *it;
 					MLMenu::NodePtr subNode = node->getSubnodeByName(name);
 					{
 						std::ostringstream s;
-						s << p++;
+						s << pgm++;
 						const std::string pStr(s.str());
 						subNode->setDisplayPrefix(std::string("[") + pStr + std::string("] "));
 					}

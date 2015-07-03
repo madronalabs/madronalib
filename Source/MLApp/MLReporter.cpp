@@ -57,7 +57,7 @@ MLReporter::MLReporter()
 	int size = 1 << 10;
 	mChangeData.resize(size);
 	PaUtil_InitializeRingBuffer( &mChangeQueue, sizeof(MLSymbol), size, &(mChangeData[0]) );
-	mpTimer = std::tr1::shared_ptr<ReporterTimer>(new ReporterTimer(this));
+	mpTimer = std::unique_ptr<ReporterTimer>(new ReporterTimer(this));
 }
 
 MLReporter::~MLReporter()
@@ -102,11 +102,11 @@ void MLReporter::fetchAllProperties()
 }
 
 // add a view. This means that:
-// when property p changes, property attr of Widget w will be set to the new property's value.
+// when the Model's Property p changes, Property widgetProp of Widget w will be set to the new property's value.
 //
-void MLReporter::addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr)
+void MLReporter::addPropertyViewToMap(MLSymbol modelProp, MLWidget* w, MLSymbol widgetProp)
 {
-	mPropertyViewsMap[p].push_back(MLPropertyViewPtr(new MLPropertyView(w, attr))); 
+	mPropertyViewsMap[modelProp].push_back(MLPropertyViewPtr(new MLPropertyView(w, widgetProp))); 
 }
 
 void MLReporter::viewProperties()
@@ -116,7 +116,7 @@ void MLReporter::viewProperties()
 		// dequeue name of changed property
 		MLSymbol propName;
 		PaUtil_ReadRingBuffer( &mChangeQueue, &propName, 1 );
-
+		
 		// do we have viewers for this property?
 		MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(propName);
 		if (look != mPropertyViewsMap.end())

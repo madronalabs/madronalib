@@ -31,7 +31,8 @@ namespace
 
 MLProcContainer::MLProcContainer() :
 	theProcFactory(MLProcFactory::theFactory()),
-	mStatsPtr(0)
+	mStatsPtr(0),
+	mMasterVolume(1.0f) // MLTEST really? here and not dspEngine?
 {
 	setParam("ratio", 1.f);
 	setParam("order", 2);
@@ -276,7 +277,7 @@ void MLProcContainer::compile()
         compileOp* pOutputOp = compileOpsMap[outputProcName];
 		if (!pOutputOp)
         {
-            MLError() << "compile error: can’t connect output for proc " << outputProcName << " !\n";
+            debug() << "compile error: can’t connect output for proc " << outputProcName << " !\n";
         }
         else
         {
@@ -365,8 +366,8 @@ void MLProcContainer::compile()
             else
             {
                 // TODO this is not very informative. Try to explain what is happening at a higher level.
-                MLError() << "MLProcContainer::compile(): bad published output in " << getName() << " for signal " << sigName << "\n";
-                MLError() << "    (" << i + 1 << " of " << mPublishedOutputs.size() << ")\n";
+                debug() << "MLProcContainer::compile(): bad published output in " << getName() << " for signal " << sigName << "\n";
+                debug() << "    (" << i + 1 << " of " << mPublishedOutputs.size() << ")\n";
             }
 		}
 		else 
@@ -794,12 +795,18 @@ void MLProcContainer::process(const int extFrames)
 		}
 	}
 
-	// copy to outputs
+	// copy to outputs and scale by master volume
 	for(int i=0; i<(int)mPublishedOutputs.size(); ++i)
 	{
 		MLSignal& outSig = mPublishedOutputs[i]->mProc->getOutput(mPublishedOutputs[i]->mOutput);
 		mOutputs[i]->copy(outSig);
+		mOutputs[i]->scale(mMasterVolume); // TODO lopass filter master vol
 	}
+}
+
+void MLProcContainer::setMasterVolume(float v)
+{
+	mMasterVolume = v;
 }
 
 void MLProcContainer::clearInput(const int idx)
@@ -970,7 +977,7 @@ MLProc::err MLProcContainer::addProc(const MLSymbol className, const MLSymbol pr
 	}
 	else
 	{
-		MLError() << "MLProcContainer: addProc: name " << procName << " already in use!\n";
+		debug() << "MLProcContainer: addProc: name " << procName << " already in use!\n";
 		e = nameInUseErr;
 	}
 	
@@ -1030,7 +1037,7 @@ MLProc::err MLProcContainer::addProcAfter(MLSymbol className, MLSymbol alias, ML
 	}
 	else
 	{
-		MLError() << "MLProcContainer: addProcAfter: name " << alias << " already in use!\n";
+		debug() << "MLProcContainer: addProcAfter: name " << alias << " already in use!\n";
 		e = nameInUseErr;
 	}
 	
@@ -1066,7 +1073,7 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 			}
 			else
 			{
-				MLError() << "ack, head proc in name is not container!\n";
+				debug() << "ack, head proc in name is not container!\n";
 				e = headNotContainerErr;
 			}		
 		}
@@ -1096,8 +1103,8 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 		MLProcPtr proc = getProc(pathI);		
 		if (proc)
 		{
-            // debug() << "MLProcContainer (" << getName() << ") getProcList: added " << (void *)&*proc << " (# " << i << ")\n";
-			pList.push_back(proc);
+ 			if(proc->isEnabled())
+				pList.push_back(proc);
 		}
 	}
 }
@@ -1129,30 +1136,30 @@ void MLProcContainer::addPipe(const MLPath& src, const MLSymbol out, const MLPat
 		}
 		else
 		{
-			MLError() << "MLProcContainer::addPipe failed";
+			debug() << "MLProcContainer::addPipe failed";
 			if (!srcIdx)
 			{
-				MLError() << ": no src output "<< out << " of proc " << src << " in container " << getName();
+				debug() << ": no src output "<< out << " of proc " << src << " in container " << getName();
 			}
 			if (!destIdx)
 			{
-				MLError() << ": no dest input "<< in << " of proc " << dest << " in container " << getName();
+				debug() << ": no dest input "<< in << " of proc " << dest << " in container " << getName();
 			}
-			MLError() << "\n";
+			debug() << "\n";
 		}
 	}
 	else
 	{
-		MLError() << "MLProcContainer::addPipe failed";
+		debug() << "MLProcContainer::addPipe failed";
 		if (!srcProc)
 		{
-			MLError() << ": no src proc "<< src << " in container " << getName();
+			debug() << ": no src proc "<< src << " in container " << getName();
 		}
 		if (!destProc)
 		{
-			MLError() << ": no dest proc "<< dest << " in container " << getName();
+			debug() << ": no dest proc "<< dest << " in container " << getName();
 		}
-		MLError() << "\n";
+		debug() << "\n";
 	}
 }	
 
@@ -1291,7 +1298,7 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 	}
 	else
 	{
-		MLError() << "MLProcContainer::publishInput: proc " << procName << " not found in container " << getName() << "!\n";
+		debug() << "MLProcContainer::publishInput: proc " << procName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
@@ -1363,13 +1370,13 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol o
             }
             else
             {
-                MLError() << "MLProcContainer::publishOutput: alias " << alias << " already in map for container " << getName() << "!\n";
+                debug() << "MLProcContainer::publishOutput: alias " << alias << " already in map for container " << getName() << "!\n";
             }
  		}
 	}
 	else
 	{
-		MLError() << "MLProcContainer::publishOutput: proc " << srcProcName << " not found in container " << getName() << "!\n";
+		debug() << "MLProcContainer::publishOutput: proc " << srcProcName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
@@ -1449,7 +1456,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 			}
 			else
 			{
-				MLError() << "MLProcContainer::addSignalBuffers: ack, head proc " << head << " is not container!\n";
+				debug() << "MLProcContainer::addSignalBuffers: ack, head proc " << head << " is not container!\n";
 			}		
 		}
 		else // create buffers.
@@ -1510,7 +1517,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 			}
 			else
 			{
-				MLError() << "MLProcContainer::gatherSignalBuffers: ack, head proc " << head << " is not container!\n";
+				debug() << "MLProcContainer::gatherSignalBuffers: ack, head proc " << head << " is not container!\n";
 			}		
 		}
 		else 
@@ -1776,7 +1783,7 @@ MLSymbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char
 	}
 	else
 	{
-		MLError() << parent->getTagName() << ": required attribute " << name << " missing \n";
+		debug() << parent->getTagName() << ": required attribute " << name << " missing \n";
 		return MLSymbol();
 	}
 }
@@ -1789,7 +1796,7 @@ MLPath MLProcContainer::RequiredPathAttribute(juce::XmlElement* parent, const ch
 	}
 	else
 	{
-		MLError() << parent->getTagName() << ": required path attribute " << name << " missing \n";
+		debug() << parent->getTagName() << ": required path attribute " << name << " missing \n";
 		return MLPath();
 	}
 }

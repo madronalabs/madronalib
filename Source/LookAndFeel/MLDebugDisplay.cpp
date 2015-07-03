@@ -10,23 +10,25 @@ static const int kMLDebugMaxChars = 32768;
 
 //==============================================================================
 MLDebugDisplay::MLDebugDisplay () :
-	mpComp(0)
+	mpDoc(std::unique_ptr<CodeDocument>(new CodeDocument())),
+	mpComp(std::unique_ptr<CodeEditorComponent>(new CodeEditorComponent(*mpDoc, nullptr)))
 {
-	mpComp = new CodeEditorComponent(mDoc, nullptr);
+	MLWidget::setComponent(this);
+	
+	addAndMakeVisible(mpComp.get());
+    
+    // enable if you want to copy/paste text, but that may screw up keyboard events for plugins.
+    mpComp->setWantsKeyboardFocus(false);
+	mpComp->loadContent("");
 	mpComp->setScrollbarThickness(12);
     
-    // enable if you want to copy/paste text, but that may screw up keyboard events in hosts.
-    mpComp->setWantsKeyboardFocus(false);
-    
-	addAndMakeVisible(mpComp);
- 	MLWidget::setComponent(this);
+	std::cout << "STARTING Timer \n";
 	startTimer(250);
 }
 
 MLDebugDisplay::~MLDebugDisplay()
 {
 	stopTimer();
-	if(mpComp) delete mpComp;
 }
 
 void MLDebugDisplay::display()
@@ -37,6 +39,7 @@ void MLDebugDisplay::display()
 	int selectSize = mpComp->getHighlightedRegion().getLength();
 	if(selectSize > 0) return;
 	
+	std::cout.flush();
 	mStream.flush();
 	std::string outStr = mStream.str();
 	const char* pOutput = outStr.c_str();
@@ -57,7 +60,7 @@ void MLDebugDisplay::display()
 			debug() << "----debug data > " << (int)kMLDebugMaxChars << " bytes, truncated----\n\n";
 		}
 		
-		int lastDocLine = mDoc.getNumLines();
+		int lastDocLine = mpDoc->getNumLines();
 		int startLine = mpComp->getFirstLineOnScreen();
 		int endLine = startLine + mpComp->getNumLinesOnScreen();		
 		mpComp->moveCaretToEnd(false);

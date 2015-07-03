@@ -11,7 +11,6 @@
 #ifndef MLTypes_h
 #define MLTypes_h
 
-
 struct MLStringCompareFn : std::binary_function<std::string, std::string, bool>
 {
     struct caseInsensitiveCompare : public std::binary_function<unsigned char,unsigned char,bool>
@@ -24,8 +23,8 @@ struct MLStringCompareFn : std::binary_function<std::string, std::string, bool>
     bool operator() (const std::string & s1, const std::string & s2) const
     {
         return std::lexicographical_compare
-        (s1.begin (), s1.end (),   // source range
-         s2.begin (), s2.end (),   // dest range
+        (s1.begin(), s1.end(),   // source range
+         s2.begin(), s2.end(),   // dest range
          caseInsensitiveCompare ());  // comparison
     }
 };

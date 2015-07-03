@@ -34,7 +34,7 @@ using namespace juce;
 
 MLPoint adjust(MLPoint p);
 
-typedef std::tr1::shared_ptr<Drawable> DrawablePtr;
+typedef std::shared_ptr<Drawable> DrawablePtr;
 
 const float kPopupMenuTextScale = 0.85f;
 
@@ -456,9 +456,6 @@ public:
 	void setGridUnitSize(float s);
 	float getGridUnitSize();
 	void setGridUnits(double gx, double gy);
-	
-	int getGridUnitsX();
-	int getGridUnitsY();
 
 	float getMargin();
 	float getSmallMargin();

@@ -5,28 +5,31 @@
 
 #include "MLAppWindow.h" 
 
-
 #pragma mark MLAppWindow
 
-MLAppWindow::MLAppWindow()
-	: DocumentWindow (MLProjectInfo::projectName,
-					  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
-					  DocumentWindow::allButtons,
-					  true),
+MLAppWindow::MLAppWindow() :
+	mpAppView(0),
+	DocumentWindow (MLProjectInfo::projectName,
+	  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
+	  DocumentWindow::allButtons,
+	  true),
 	mpConstrainer(0),
-    mUsingGL(false)
+	mUsingGL(false),
+	mGridUnitsX(0.),
+	mGridUnitsY(0.)
 {
     setResizable(true, false);
 	setResizeLimits (400, 300, 8192, 8192);
 
-    //commandManager.registerAllCommandsForTarget (&mBorder);
     commandManager.registerAllCommandsForTarget (JUCEApplication::getInstance());
     
     // this lets the command manager use keypresses that arrive in our window to send
     // out commands
     addKeyListener (commandManager.getKeyMappings());
     
-    setContentOwned(&mBorder, false);
+	mpBorder = std::unique_ptr<MLAppBorder>(new MLAppBorder());
+    setContentOwned(mpBorder.get(), false);
+	
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);
 
@@ -55,6 +58,11 @@ MLAppWindow::~MLAppWindow()
 #endif
 }
 
+void MLAppWindow::initialize()
+{
+	
+}
+
 void MLAppWindow::mouseDown (const MouseEvent& e)
 {
 	myDragger.startDraggingComponent (this, e);
@@ -65,17 +73,18 @@ void MLAppWindow::mouseDrag (const MouseEvent& e)
 	myDragger.dragComponent (this, e, nullptr);
 }
 
-void MLAppWindow::setGridUnits(double gx, double gy)
+void MLAppWindow::setGridUnits(int gx, int gy)
 {
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
-	mpConstrainer->setFixedAspectRatio(gx/gy);	
-    mBorder.setGridUnits(gx, gy);
+	mpConstrainer->setFixedAspectRatio((float)gx/(float)gy);	
+    mpBorder->setGridUnits(gx, gy);
 }
 
-void MLAppWindow::setContent(MLAppView* contentView)
+void MLAppWindow::setContent(MLAppView* appView)
 {
-	mBorder.addMainView(contentView);
+	mpBorder->addMainView(appView);
+	mpAppView = appView;
 }
 
 void MLAppWindow::closeButtonPressed()
@@ -85,19 +94,28 @@ void MLAppWindow::closeButtonPressed()
 
 void MLAppWindow::moved()
 {
-    // repainting here is not quite perfect because
-    // a flash happens when changing between
-    // screens of differing resolution.
-    
+	if(mpAppView)
+	{
+		mpAppView->windowMoved();
+	}
+	
     // TODO could check for move to different display and only repaint in that case
-    repaint();
+    //repaint();
     DocumentWindow::moved();
-    mBorder.moved();
+    //mBorder.moved();
 }
 
 void MLAppWindow::resized()
 {
-    DocumentWindow::resized();
+	if(mpAppView)
+	{
+		mpAppView->windowResized();
+	}	
+
+	if(mGridUnitsX && mGridUnitsY)
+	{
+		DocumentWindow::resized();
+	}
 }
 
 void MLAppWindow::setUsingOpenGL(bool b)
