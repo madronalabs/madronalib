@@ -150,8 +150,9 @@ public:
 		return (mID == b.mID);
 	}	
 	
-	operator bool() const { return mID != 0; }
-	int getID() const { return mID; }
+	inline operator bool() const { return mID != 0; }
+	inline int getID() const { return mID; }
+	
 	const std::string& getString() const;
 	
 	bool beginsWith (const MLSymbol b) const;

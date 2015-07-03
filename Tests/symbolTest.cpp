@@ -189,6 +189,9 @@ int main(int argc, char *argv[])
 	
 	// TODO use assertions, compare results and make this test a thing that can pass or fail in a the context of a real test framework.
 	
+	std::string test;
+	debug() << "string: " << sizeof(test) << "\n";
+	
 	return 0;
 }
 
