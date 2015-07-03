@@ -117,14 +117,8 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
 	// compare the entire string.
 	
-	// or maybe not...
-	// here's an interesting idea: imagine some function hash2 that is orthogonal to the first hash,
-	// in the sense that if a != b and hash(a) = hash(b) (there is a collision), hash2(a) is
-	// guaranteed != hash2(b). if this function is cheap to compute, the strings no longer need 
-	// to be compared entirely.
-	
-	// also if we replace std::string with a custom char * type that stores its length, 
-	// and use SSE to do the compares, they could be awful quick.
+	// if we replace std::string with a custom char * type that stores its length, 
+	// and use SSE to do the compares, they could probably be significantly faster.
 	
 	for(int ID : bin)
 	{

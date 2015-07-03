@@ -10,7 +10,7 @@
 
 // each MLProc-derived class creates static instances of MLSymbolMap so that 
 // its parameters, inputs and outputs can be found by name.  An MLSymbolMap is just
-// a wrapper around std::map for now.
+// a wrapper around std::map with an MLSymbol as its key.
 class MLSymbolMap
 {
 public:	
