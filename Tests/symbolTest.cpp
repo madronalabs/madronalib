@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 		// make a string
 		std::string newString;
 		int stringType = 0;
-		if(stringType)
+		if(stringType) 
 		{		
 			newString = nameMaker.nextNameAsString();
 		}

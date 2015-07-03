@@ -42,33 +42,34 @@ const int kHashTableSize = (1 << kHashTableBits);
 const int kHashTableMask = kHashTableSize - 1;
 
 // symbols are allocated in chunks of this size when needed. 
-const int kTableChunkSize = 1024;
+const int kTableChunkSize = 10;
 
 class MLSymbolTable
 {
+friend class MLSymbol;
 public:
 	MLSymbolTable();
 	~MLSymbolTable();
 	void clear();
-	void allocateChunk();
+	int getSize() { return mSize; }	
+	void dump(void);
+	int audit(void);
 	
-#if USE_ALPHA_SORT	
-	int getSymbolAlphaOrder(const int symID);
-#endif
-	int addEntry(const char * sym, int len);
-	
+protected:
 	// look up a symbol by name and return its ID. Used in MLSymbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
 	
 	const std::string& getSymbolByID(int symID);
-	
-	int getSize() { return mSize; }	
-	void dump(void);
-	int audit(void);
+	int addEntry(const char * sym, int len);
+#if USE_ALPHA_SORT	
+	int getSymbolAlphaOrder(const int symID);
+#endif
 	
 private:
 	
+	void allocateChunk();
+
 	// very simple hash function from Kernighan & Ritchie.
 	inline unsigned KRhash(const char *s)
 	{
@@ -90,6 +91,9 @@ private:
 	// vector of symbols in ID/creation order
 	std::vector<std::string> mSymbolsByID;	
 	
+	// hash table containing indexes to strings
+	std::vector< std::vector<int> > mHashTable;
+	
 #if USE_ALPHA_SORT	
 	// vector of alphabetically sorted indexes into symbol vector, in ID order
 	std::vector<int> mAlphaOrderByID;	
@@ -97,9 +101,7 @@ private:
 	// TEMP set used for sorting.
 	std::set<std::string> mSymbolsByAlphaOrder;
 #endif
-	
-	// hash table containing indexes to strings
-	std::vector< std::vector<int> > mHashTable;
+
 };
 
 inline MLSymbolTable& theSymbolTable()
@@ -134,9 +136,6 @@ public:
 	MLSymbol(const char *sym);
 	MLSymbol(const std::string& str);
 	
-	// compare two symbols:
-	// Must be the fastest. used in std:map all over the place.
-	// bool operator< (const MLSymbol b) const;
 	inline bool operator< (const MLSymbol b) const
 	{
 #if USE_ALPHA_SORT			

@@ -39,12 +39,7 @@ void MLSymbolTable::clear()
 #endif
 	mHashTable.resize(kHashTableSize);
 	mHashTable.clear();
-
-	mMutex.unlock();
-
 	allocateChunk();
-
-	mMutex.lock();
 	addEntry("", 0);
 	mMutex.unlock();
 }
