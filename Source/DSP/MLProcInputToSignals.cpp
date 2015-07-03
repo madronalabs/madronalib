@@ -120,18 +120,20 @@ void MLVoice::zero()
 void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 {
 	int time = e.mTime;
-	int newState;
+	int newState, newChannel;
 	float note, gate, vel;
 	switch(e.mType)
 	{
 		case MLControlEvent::kNoteOn:
 			newState = kOn;
+			newChannel = e.mChannel;
 			note = e.mValue1;
 			gate = 1.f;
 			vel = e.mValue2;
 			break;
 		case MLControlEvent::kNoteSustain:
 			newState = kSustain;
+			newChannel = e.mChannel;
 			note = e.mValue1;
 			gate = 1.f;
 			vel = e.mValue2;
@@ -139,6 +141,7 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 		case MLControlEvent::kNoteOff:
 		default:
 			newState = kOff;
+			newChannel = 0;
 			note = mNote;
 			gate = 0.f;
 			vel = 0.;
@@ -147,16 +150,24 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 	
 	// set immediate state
     mState = newState;
-    mChannel = e.mChannel;
+	mChannel = newChannel;
     mInstigatorID = e.mID;
     mNote = note;
     mAge = 0;
-	
-	// add timed changes to lists
+
+	// add timed changes to lists for note ons/offs
 	if(e.mType != MLControlEvent::kNoteSustain)
 	{
 		mdGate.addChange(gate, time);
 		mdAmp.addChange(vel, time);
+		if(e.mType == MLControlEvent::kNoteOff)
+		{
+			mdNotePressure.addChange(0, time);
+			
+			// for MPE mode when controlling envelopes with aftertouch: ensure 
+			// notes are not sending pressure when off
+			mdChannelPressure.addChange(0, time);
+		}
 		if(e.mType == MLControlEvent::kNoteOn)
 		{
 			mdPitch.addChange(scale.noteToLogPitch(note), time);
@@ -181,8 +192,12 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
     
     if (retrig)
     {
+		
+debug() << "retrig\n";		
         mdGate.addChange(0.f, time - 1);
-        //mdVel.addChange(0.f, time - 1);
+		mdNotePressure.addChange(0.f, time - 1);
+		//mdChannelPressure.addChange(0.f, time - 1);
+		//mdVel.addChange(0.f, time - 1);
     }
 	
     mdGate.addChange(1, time);
@@ -227,7 +242,6 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mPitchWheelSemitones = 7.f;
 	mUnisonMode = false;
 	mRotateMode = true;
-	mAddChannelPressure = true;
 	mEventCounter = 0;
 	mDriftCounter = -1;
 	
@@ -256,6 +270,7 @@ void MLProcInputToSignals::clearChangeLists()
 	{
 		mVoices[v].clearChanges();
 	}
+	mMPEMainVoice.clearChanges();
 }
 
 // set up output buffers
@@ -278,6 +293,7 @@ MLProc::err MLProcInputToSignals::resize()
             break;
         }
 	}
+	mMPEMainVoice.resize(bufSize);
 
 	// make signals that apply to all voices
 	mTempSignal.setDims(vecSize);
@@ -393,6 +409,7 @@ void MLProcInputToSignals::doParams()
 		mVoices[v].mdPitch.setGlideTime(mGlide);
 		mVoices[v].mdPitchBend.setGlideTime(mGlide);
 	}
+	mMPEMainVoice.mdPitchBend.setGlideTime(mGlide);
 	
 	switch(mProtocol)
 	{
@@ -408,7 +425,6 @@ void MLProcInputToSignals::doParams()
 				mVoices[i].mdMod2.setGlideTime(1.f / (float)mOSCDataRate);
 				mVoices[i].mdMod3.setGlideTime(1.f / (float)mOSCDataRate);
 			}
-			mAddChannelPressure = false;
 			break;
 		case kInputProtocolMIDI:	
 		case kInputProtocolMIDI_MPE:	
@@ -423,7 +439,6 @@ void MLProcInputToSignals::doParams()
 				mVoices[i].mdMod2.setGlideTime(0.001f);
 				mVoices[i].mdMod3.setGlideTime(0.001f);
 			}
-			mAddChannelPressure = true;
 			break;
 	}
 	
@@ -494,6 +509,9 @@ void MLProcInputToSignals::clear()
                 mVoices[v].mdMod3.writeToSignal(getOutput(v*kNumVoiceSignals + 9), vecSize);
             }
 		}
+		mMPEMainVoice.clearState();
+		mMPEMainVoice.clearChanges();
+		mMPEMainVoice.zero();
 	}
 	mEventCounter = 0;
 }
@@ -573,6 +591,7 @@ void MLProcInputToSignals::process(const int frames)
     {
 		//dumpEvents();
 		//dumpVoices();
+		//dumpSignals();
         mFrameCounter -= sr;
     }
 }
@@ -595,7 +614,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 	// reading from OSC.
 
 	if(!mpFrameBuf) return;
-	
+
 	// read from mpFrameBuf, which is being filled up by OSC listener thread
 	// we can't simply throw away any frames because they may contain note-ons or note-offs
 	while (PaUtil_GetRingBufferReadAvailable(mpFrameBuf) > 0)
@@ -1003,7 +1022,11 @@ void MLProcInputToSignals::doPitchWheel(const MLControlEvent& event)
 	{
 		if (event.mChannel == mVoices[i].mChannel)
 		{
-            mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
+			mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
+		}
+		else if (event.mChannel == 1) // MPE Main Channel
+		{
+			mMPEMainVoice.mdPitchBend.addChange(bendAdd, event.mTime);
 		}
 	}
 }
@@ -1034,10 +1057,10 @@ void MLProcInputToSignals::doChannelPressure(const MLControlEvent& event)
 //
 void MLProcInputToSignals::writeOutputSignals(const int frames)
 {
-	// save main channel pitch bend for MPE
+	// get main channel pitch bend signal for MPE
 	if(mProtocol == kInputProtocolMIDI_MPE)
 	{
-		mVoices[0].mdPitchBend.writeToSignal(mMainPitchSignal, frames);
+		mMPEMainVoice.mdPitchBend.writeToSignal(mMainPitchSignal, frames);
 	}
 	
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
@@ -1061,6 +1084,9 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 			// add pitch bend to pitch
 			mVoices[v].mdPitchBend.writeToSignal(mTempSignal, frames);
 			pitch.add(mTempSignal);
+			
+			// in plain MIDI mode, all notes are sent on the same channel, 
+			// bend and other controllers are only set from latest voice.
 			
 			// add main channel pitch bend for MPE
 			if(mProtocol == kInputProtocolMIDI_MPE)
@@ -1091,16 +1117,13 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 					break;
 				case kInputProtocolMIDI_MPE:
 					// MPE ignores poly aftertouch.
-					mVoices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
+					mVoices[v].mdChannelPressure.writeToSignal(after, frames);
 					break;
 				case kInputProtocolMIDI:
 					// write channel aftertouch + poly aftertouch.
 					mVoices[v].mdNotePressure.writeToSignal(after, frames);
-					if(mAddChannelPressure)
-					{
-						mVoices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
-						after.add(mTempSignal);
-					}					
+					mVoices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
+					after.add(mTempSignal);			
 					break;
 			}
 			
@@ -1291,11 +1314,15 @@ void MLProcInputToSignals::dumpSignals()
         // changes per voice
         MLSignal& pitch = getOutput(i*kNumVoiceSignals + 1);
         MLSignal& gate = getOutput(i*kNumVoiceSignals + 2);
-        MLSignal& vel = getOutput(i*kNumVoiceSignals + 3);
+		MLSignal& vel = getOutput(i*kNumVoiceSignals + 3);
+		MLSignal& voice = getOutput(i*kNumVoiceSignals + 4);
+		MLSignal& after = getOutput(i*kNumVoiceSignals + 5);
 
         debug() << "[pitch: " << pitch[0] << "] ";
         debug() << "[gate : " << gate[0] << "] ";
-        debug() << "[vel  : " << vel[0] << "] ";
+		debug() << "[vel  : " << vel[0] << "] ";
+		debug() << "[voice: " << voice[0] << "] ";
+		debug() << "[after: " << after[0] << "] ";
         debug() << "\n";
     }
 	debug() << "\n";

@@ -142,7 +142,12 @@ private:
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
     MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
     
+	// the usual voices for each channel
 	MLVoice mVoices[kMLEngineMaxVoices];
+	
+	// a special voice for the MPE "Main Channel"
+	// stores main pitch bend, which is added to other voices. 
+	MLVoice mMPEMainVoice;						
 
 	int mNextEventIdx;
 	int mVoiceRotateOffset;
@@ -162,7 +167,6 @@ private:
 	bool mGlissando;
 	bool mUnisonMode;
 	bool mRotateMode;
-	bool mAddChannelPressure;
 	int mUnisonInputTouch;
 	float mUnisonVel;
 	float mGlide;

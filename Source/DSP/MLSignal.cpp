@@ -67,7 +67,7 @@ mCopyAligned(0)
 {
 	mRate = kMLToBeCalculated;
 	setConstant(false);	
-	setDims(values.size());
+	setDims((int)values.size());
 	int idx = 0;
 	for(float f : values)
 	{

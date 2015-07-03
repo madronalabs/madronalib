@@ -23,6 +23,8 @@ MLT3DHub::MLT3DHub() :
 	// initialize touch frame for output
 	mOutputFrame.setDims(MLT3DHub::kFrameWidth, MLT3DHub::kFrameHeight);
 
+	setShortName("<unnamed hub>");
+	
 	// build touch frame buffer
 	//
 	mFrameBuf.buffer = 0;
@@ -56,9 +58,12 @@ void MLT3DHub::setPortOffset(int offset)
 	{
 		// set default name and port
 		mUDPPortOffset = offset;
+
+		
 		std::stringstream nameStream;
-		nameStream << MLProjectInfo::projectName << " (" << mUDPPortOffset << ")";
+		nameStream << mShortName << " (" << mUDPPortOffset << ")";
 		setName(nameStream.str());
+
 		setPort(kDefaultUDPPort + mUDPPortOffset);
 		
 		// turn it off and back on again

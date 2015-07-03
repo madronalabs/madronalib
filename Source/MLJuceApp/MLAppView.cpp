@@ -300,9 +300,7 @@ void MLAppView::resized()
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int u = myLookAndFeel->getGridUnitSize(); 
 
-	std::map<MLSymbol, MLWidget*>::iterator it;
-
-	for(it = mWidgets.begin(); it != mWidgets.end(); ++it)
+	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();
@@ -314,7 +312,7 @@ void MLAppView::resized()
 		}
 	}
 	
-	for(it = mWidgets.begin(); it != mWidgets.end(); ++it)
+	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();

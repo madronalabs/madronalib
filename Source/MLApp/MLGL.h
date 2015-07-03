@@ -3,6 +3,8 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+// NOTE: this is the old MLGL based on GLUT and immediate mode. Deprecated!
+
 #ifndef _MLGL_
 #define _MLGL_
 

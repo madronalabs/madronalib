@@ -68,17 +68,12 @@ void MLImageBank::paint (Graphics& g)
 	for(unsigned i=0; i<panels; ++i)
 	{
 		Panel& p = mPanels[i];
-		if(p.mPrevIndex != p.mIndex)
+		if ((p.mIndex >= 0) && (mImages[p.mIndex].isValid()))
 		{
-			if ((p.mIndex >= 0) && (mImages[p.mIndex].isValid()))
 			{
-                {
-                    Graphics::ScopedSaveState state(g);
-                    g.reduceClipRegion(p.mLocation.x(), p.mLocation.y(), mWidth, mHeight);
-                    g.drawImageAt (mImages[p.mIndex], p.mLocation.x(), p.mLocation.y(), false);
-                }
-                 
-				p.mPrevIndex = p.mIndex;
+				Graphics::ScopedSaveState state(g);
+				g.reduceClipRegion(p.mLocation.x(), p.mLocation.y(), mWidth, mHeight);
+				g.drawImageAt (mImages[p.mIndex], p.mLocation.x(), p.mLocation.y(), false);
 			}
 		}
 	}
@@ -102,19 +97,9 @@ bool MLImageBank::setPanelValue(unsigned pIdx, float v)
 		Panel& p = mPanels[pIdx];
 		p.mIndex = valueToIndex(v);
 		changed = (p.mPrevIndex != p.mIndex);
+		p.mPrevIndex = p.mIndex;
 	}
 	return changed;
-}
-
-bool MLImageBank::panelIndexChanged(unsigned pIdx)
-{
-	bool r = false;
-	if(pIdx < mPanels.size())
-	{
-		Panel& p = mPanels[pIdx];
-		r = (p.mPrevIndex != p.mIndex);
-	}
-	return r;
 }
 
 void MLImageBank::getPanelRect(unsigned pIdx, MLRect& r)
