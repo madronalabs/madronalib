@@ -25,14 +25,10 @@
 #include <string>
 #include <mutex>
 
-#define debug() std::cout
-
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
 // as well as map lookups will be significantly faster. 
 #define USE_ALPHA_SORT	0
-
-// TODO document with doxygen!!
 
 static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
@@ -116,6 +112,7 @@ inline MLSymbolTable& theSymbolTable()
 class MLSymbol
 {
 	friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
+	
 public:
 	
 	// creating symbols:
@@ -131,7 +128,7 @@ public:
 	//		static const MLSymbol gainSym("gain");
 	//		...
 	//		getParam(gainSym);
-	//
+	
 	MLSymbol();
 	MLSymbol(const char *sym);
 	MLSymbol(const std::string& str);
@@ -172,20 +169,6 @@ private:
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 
-// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
-// which will give each MLSymbol a unique hash.
-namespace std
-{
-	template<>
-	struct hash<MLSymbol>
-	{
-		std::size_t operator()(MLSymbol const& s) const
-		{
-			return s.getID();
-		}
-	};
-}
-
 // ----------------------------------------------------------------
 #pragma mark MLNameMaker
 // a utility to make many short, unique, human-readable names when they are needed. 
@@ -206,7 +189,20 @@ private:
 	int index;
 };
 
+// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
+// which will give each MLSymbol a unique hash.
 
+namespace std
+{
+	template<>
+	struct hash<MLSymbol>
+	{
+		std::size_t operator()(MLSymbol const& s) const
+		{
+			return s.getID();
+		}
+	};
+}
 
 #endif // _ML_SYMBOL_H
 

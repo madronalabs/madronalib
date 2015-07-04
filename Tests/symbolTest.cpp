@@ -1,6 +1,7 @@
 
 //
-//  symbolTest
+// symbolTest
+// a unit test made using the Catch framework in catch.hpp / tests.cpp.
 //
 
 #include <iostream>
@@ -10,29 +11,22 @@
 #include <chrono>
 #include <thread>
 
+#include "catch.hpp"
 #include "../include/madronalib.h"
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
-void threadTest(int threadID)
-{
-	MLNameMaker namer;
-	for(int i=0; i<100; ++i)
-	{
-		MLSymbol sym(namer.nextNameAsString());
-		std::this_thread::yield();
-	}
-}
-
-int main(int argc, char *argv[]) 
+TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
 	const int kTableSize = 100;	
 	const int kTestLength = 1000000;
-
+	
 	// main maps for testing
 	std::map<MLSymbol, float> testMap1;
 	std::map<std::string, float> testMap2;
-
+	std::unordered_map<MLSymbol, float> testMap3;
+	std::unordered_map<std::string, float> testMap4;
+	
 	// make dictionaries of symbols, strings and chars for testing
 	MLNameMaker nameMaker;
 	std::vector<MLSymbol> symbolDict;
@@ -41,27 +35,18 @@ int main(int argc, char *argv[])
 	int p = 0;
 	for(int i=0; i<kTableSize; ++i)
 	{
-		// make a string
+		// make procedural gibberish
 		std::string newString;
-		int stringType = 0;
-		if(stringType) 
-		{		
-			newString = nameMaker.nextNameAsString();
-		}
-		else
+		int length = 3 + (p%8);
+		for(int j=0; j<length; ++j)
 		{
-			// procedural gibberish
-			int length = 3 + (p%8);
-			for(int j=0; j<length; ++j)
-			{
-				p += (i*j + 1);
-				p += i%37;
-				p += j%23;
-				p = abs(p);
-				newString += letters[p % 22];
-			}		
-		}
-		 
+			p += (i*j + 1);
+			p += i%37;
+			p += j%23;
+			p = abs(p);
+			newString += letters[p % 22];
+		}		
+		
 		stringDict.push_back(newString);
 		
 		// add it to symbol table
@@ -72,6 +57,8 @@ int main(int argc, char *argv[])
 		float val = i;
 		testMap1[newSym] = val;
 		testMap2[newString] = val;
+		testMap3[newSym] = val;
+		testMap4[newString] = val;
 	}
 	
 	// make char dict after string dict is complete, otherwise ptrs may change!
@@ -79,99 +66,160 @@ int main(int argc, char *argv[])
 	{
 		charDict.push_back(stringDict[i].c_str());
 	}
-
-	std::chrono::time_point<std::chrono::system_clock> start, end;
-	std::chrono::duration<double> elapsed_seconds;
-	std::time_t end_time;
-	double a, b, c, d;
-	int idx;
-
-	// -------------------------------------
-	// lookup from existing std::strings
-	start = std::chrono::system_clock::now();
-	a = 0.f;
-	idx = 0;
-	for(int i=0; i<kTestLength; ++i)
-	{
-		if(++idx >= kTableSize) idx = 0;	
-		a += testMap2[stringDict[idx]];
-	}	
-	debug() << "\nSUM [std::string]: " << a << "\n";
-	end = std::chrono::system_clock::now();
-	elapsed_seconds = end-start;
-	end_time = std::chrono::system_clock::to_time_t(end);
-	std::cout << "existing strings, elapsed time: " << elapsed_seconds.count() << "s\n";
-	// -------------------------------------
 	
-	// -------------------------------------
-	// lookup from newly made std::strings
-	start = std::chrono::system_clock::now();
-	b = 0.f;
-	idx = 0;
-	for(int i=0; i<kTestLength; ++i)
+	SECTION("test maps")
 	{
-		if(++idx >= kTableSize) idx = 0;	
-		b += testMap2[std::string(charDict[idx])];
-	}	
-	debug() << "\nSUM [std::string]: " << b << "\n";
-	end = std::chrono::system_clock::now();
-	elapsed_seconds = end-start;
-	end_time = std::chrono::system_clock::to_time_t(end);
-	std::cout << "newly made strings, elapsed time: " << elapsed_seconds.count() << "s\n";
-	// -------------------------------------
-	
-	// -------------------------------------
-	// lookup from existing MLSymbols
-	// begin time
-	start = std::chrono::system_clock::now();
-	c = 0.f;
-	idx = 0;
-	for(int i=0; i<kTestLength; ++i)
-	{
-		if(++idx >= kTableSize) idx = 0;	
-		c += testMap1[symbolDict[idx]];
+		std::chrono::time_point<std::chrono::system_clock> start, end;
+		std::chrono::duration<double> elapsed;
+		double symbolSum, stringSum;
+		int idx;
+		
+		// lookup from existing std::strings
+		start = std::chrono::system_clock::now();
+		stringSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			stringSum += testMap2[stringDict[idx]];
+		}	
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
+		
+		// lookup from existing MLSymbols
+		start = std::chrono::system_clock::now();
+		symbolSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			symbolSum += testMap1[symbolDict[idx]];
+		}
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "existing symbols, elapsed time: " << elapsed.count() << "s\n";
+		
+		REQUIRE(stringSum == symbolSum);
+		
+		// lookup from existing std::strings
+		start = std::chrono::system_clock::now();
+		stringSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			stringSum += testMap4[stringDict[idx]];
+		}	
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "existing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
+		
+		// lookup from existing MLSymbols
+		start = std::chrono::system_clock::now();
+		symbolSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			symbolSum += testMap3[symbolDict[idx]];
+		}
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "existing symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
+
+		REQUIRE(stringSum == symbolSum);
+		
+		// lookup from newly made std::strings
+		start = std::chrono::system_clock::now();
+		stringSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			stringSum += testMap2[charDict[idx]];
+		}	
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "constructing strings, elapsed time: " << elapsed.count() << "s\n";
+		
+		// lookup from new MLSymbols made from char * 
+		start = std::chrono::system_clock::now();
+		symbolSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			symbolSum += testMap1[charDict[idx]];
+		}
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "constructing symbols, elapsed time: " << elapsed.count() << "s\n";
+
+		REQUIRE(stringSum == symbolSum);
+				
+		// lookup from newly made std::strings
+		start = std::chrono::system_clock::now();
+		stringSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			stringSum += testMap4[charDict[idx]];
+		}	
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "constructing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
+		
+		// unordered lookup from new MLSymbols made from char * 
+		start = std::chrono::system_clock::now();
+		symbolSum = 0.f;
+		idx = 0;
+		for(int i=0; i<kTestLength; ++i)
+		{
+			if(++idx >= kTableSize) idx = 0;	
+			symbolSum += testMap3[charDict[idx]];
+		}
+		end = std::chrono::system_clock::now();
+		elapsed = end-start;
+		std::cout << "constructing symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
+
+		REQUIRE(stringSum == symbolSum);
+		
+		REQUIRE(theSymbolTable().audit());
 	}
-	debug() << "\nSUM [MLSymbol]: " << c << "\n";
-	end = std::chrono::system_clock::now();
-	elapsed_seconds = end-start;
-	end_time = std::chrono::system_clock::to_time_t(end);
-	std::cout << "existing symbols, elapsed time: " << elapsed_seconds.count() << "s\n";
-	// -------------------------------------
-	
-	// -------------------------------------
-	// lookup from new MLSymbols made from char * 
-	// begin time
-	start = std::chrono::system_clock::now();
-	d = 0.f;
-	idx = 0;
-	for(int i=0; i<kTestLength; ++i)
-	{
-		if(++idx >= kTableSize) idx = 0;	
-		d += testMap1[charDict[idx]];
-	}
-	debug() << "\nSUM [MLSymbol]: " << d << "\n";
-	end = std::chrono::system_clock::now();
-	elapsed_seconds = end-start;
-	std::cout << "newly made symbols, elapsed time: " << elapsed_seconds.count() << "s\n";
-	// -------------------------------------
-	
-	// assert(a == c);
-	
-	theSymbolTable().audit();
+}
 
-	// numbers test
+TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
+{
+	MLNameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
-		MLSymbol testSym = symbolDict[i];
+		MLSymbol testSym = namer.nextNameAsString();
 		MLSymbol testSymWithNum = testSym.withFinalNumber(i);
 		MLSymbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
-		// assert testSym = testSymWithoutNum;
+		REQUIRE(testSym == testSymWithoutNum);
 	}
+	REQUIRE(theSymbolTable().audit());
+}
 
-	theSymbolTable().dump();
-	theSymbolTable().audit();
+static const int kThreadTestSize = 100;
+
+void threadTest(int threadID)
+{
+	MLNameMaker namer;
+	for(int i=0; i<kThreadTestSize; ++i)
+	{
+		MLSymbol sym(namer.nextNameAsString());
+		std::this_thread::yield();
+	}
+}
+
+TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
+{
+	// multithreaded test. multiple nameMakers will try to make duplicate names at about the same time,
+	// which will almost certainly lead to problems unless the symbol library is properly thread-safe.
 	
-	// multithreaded test. 
 	theSymbolTable().clear();
 	int nThreads = 10;
 	std::vector< std::thread > threads;
@@ -183,18 +231,8 @@ int main(int argc, char *argv[])
 	{
 		threads[i].join();
 	}
-	theSymbolTable().dump();
-	theSymbolTable().audit();
-	// assert(theSymbolTable.getSize() == 101);
 	
-	// TODO use assertions, compare results and make this test a thing that can pass or fail in a the context of a real test framework.
-	
-	std::string test;
-	debug() << "string: " << sizeof(test) << "\n";
-	
-	return 0;
+	REQUIRE(theSymbolTable().audit());
+	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
 }
-
-
-
 
