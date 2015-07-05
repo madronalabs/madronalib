@@ -25,14 +25,10 @@
 #include <string>
 #include <mutex>
 
-#define debug() std::cout
-
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
 // as well as map lookups will be significantly faster. 
 #define USE_ALPHA_SORT	0
-
-// TODO document with doxygen!!
 
 static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
@@ -42,33 +38,34 @@ const int kHashTableSize = (1 << kHashTableBits);
 const int kHashTableMask = kHashTableSize - 1;
 
 // symbols are allocated in chunks of this size when needed. 
-const int kTableChunkSize = 1024;
+const int kTableChunkSize = 10;
 
 class MLSymbolTable
 {
+friend class MLSymbol;
 public:
 	MLSymbolTable();
 	~MLSymbolTable();
 	void clear();
-	void allocateChunk();
+	int getSize() { return mSize; }	
+	void dump(void);
+	int audit(void);
 	
-#if USE_ALPHA_SORT	
-	int getSymbolAlphaOrder(const int symID);
-#endif
-	int addEntry(const char * sym, int len);
-	
+protected:
 	// look up a symbol by name and return its ID. Used in MLSymbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
 	
 	const std::string& getSymbolByID(int symID);
-	
-	int getSize() { return mSize; }	
-	void dump(void);
-	int audit(void);
+	int addEntry(const char * sym, int len);
+#if USE_ALPHA_SORT	
+	int getSymbolAlphaOrder(const int symID);
+#endif
 	
 private:
 	
+	void allocateChunk();
+
 	// very simple hash function from Kernighan & Ritchie.
 	inline unsigned KRhash(const char *s)
 	{
@@ -90,6 +87,9 @@ private:
 	// vector of symbols in ID/creation order
 	std::vector<std::string> mSymbolsByID;	
 	
+	// hash table containing indexes to strings
+	std::vector< std::vector<int> > mHashTable;
+	
 #if USE_ALPHA_SORT	
 	// vector of alphabetically sorted indexes into symbol vector, in ID order
 	std::vector<int> mAlphaOrderByID;	
@@ -97,9 +97,7 @@ private:
 	// TEMP set used for sorting.
 	std::set<std::string> mSymbolsByAlphaOrder;
 #endif
-	
-	// hash table containing indexes to strings
-	std::vector< std::vector<int> > mHashTable;
+
 };
 
 inline MLSymbolTable& theSymbolTable()
@@ -114,6 +112,7 @@ inline MLSymbolTable& theSymbolTable()
 class MLSymbol
 {
 	friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
+	
 public:
 	
 	// creating symbols:
@@ -129,14 +128,11 @@ public:
 	//		static const MLSymbol gainSym("gain");
 	//		...
 	//		getParam(gainSym);
-	//
+	
 	MLSymbol();
 	MLSymbol(const char *sym);
 	MLSymbol(const std::string& str);
 	
-	// compare two symbols:
-	// Must be the fastest. used in std:map all over the place.
-	// bool operator< (const MLSymbol b) const;
 	inline bool operator< (const MLSymbol b) const
 	{
 #if USE_ALPHA_SORT			
@@ -151,8 +147,9 @@ public:
 		return (mID == b.mID);
 	}	
 	
-	operator bool() const { return mID != 0; }
-	int getID() const { return mID; }
+	inline operator bool() const { return mID != 0; }
+	inline int getID() const { return mID; }
+	
 	const std::string& getString() const;
 	
 	bool beginsWith (const MLSymbol b) const;
@@ -171,20 +168,6 @@ private:
 };
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
-
-// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
-// which will give each MLSymbol a unique hash.
-namespace std
-{
-	template<>
-	struct hash<MLSymbol>
-	{
-		std::size_t operator()(MLSymbol const& s) const
-		{
-			return s.getID();
-		}
-	};
-}
 
 // ----------------------------------------------------------------
 #pragma mark MLNameMaker
@@ -206,7 +189,20 @@ private:
 	int index;
 };
 
+// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
+// which will give each MLSymbol a unique hash.
 
+namespace std
+{
+	template<>
+	struct hash<MLSymbol>
+	{
+		std::size_t operator()(MLSymbol const& s) const
+		{
+			return s.getID();
+		}
+	};
+}
 
 #endif // _ML_SYMBOL_H
 
