@@ -7,10 +7,10 @@ Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
 
 Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-Design 
+Design Notes
 ------------
 
-To get reliable audio performance in a multiprocessing system, careful attention must be paid to memory allocation, shared object access, and any use of OS calls. Madronalib encapsulates these concerns and provides a simple API to the writers of audio applications. 
+To get reliable audio performance in a multiprocessing system, careful attention must be paid to memory allocation, shared object access, and any use of OS calls. (see: http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing) Madronalib encapsulates these concerns and provides a simple API to the writers of audio applications. 
 
 The most maintainable code is no code. With the advent of C++11, lots of functionality that previously required external libraries became available as part of C++. Madronalib leans on C++11 to reduce its code footprint. 
 
