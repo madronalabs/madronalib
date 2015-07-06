@@ -14,7 +14,7 @@ To get reliable audio performance in a multiprocessing system, careful attention
 
 The most maintainable code is no code. With the advent of C++11, lots of functionality that previously required external libraries became available as part of C++. Madronalib leans on C++11 to reduce its code footprint. 
 
-Making new modules such as oscillators and filters is straightforward. The syntax of the signal library lets the code look like the underlying DSP equations. Math should become code with a minimum of overhead. There are no weird macros to learn. 
+Making new modules such as oscillators and filters is straightforward. The syntax of the signal library encourages code to reflect the underlying DSP equations with a minimum of overhead. There are no weird macros to learn. 
 
 Madronalib makes it possible to do DSP efficiently with very readable code. Where the goals of readability and efficiency are in conflict, madronalib favors readability. 
 
