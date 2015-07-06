@@ -45,7 +45,7 @@ public:
 	{
 		for (MLSymbolMapT::const_iterator i = mMap.begin(); i != mMap.end(); i++)
 		{
-			debug() << "[" << (*i).first << ":" << (*i).second << "] \n";
+			std::cout << "[" << (*i).first << ":" << (*i).second << "] \n";
 		}
 	}
 	
@@ -108,7 +108,7 @@ public:
 						// allocate 2x space needed
 						if (!reallocate((overflowIndex+1)*2))
 						{
-							debug() << "SymbolMappedArray::operator[]: reallocate failed!\n";
+							std::cout << "SymbolMappedArray::operator[]: reallocate failed!\n";
 							return p;
 						}
 					}				
@@ -117,12 +117,12 @@ public:
 			}
 			else
 			{
-				debug() << "SymbolMappedArray::operator[]: bogus key " << key << "!\n";
+				std::cout << "SymbolMappedArray::operator[]: bogus key " << key << "!\n";
 			}
 		}
 		else
 		{
-			debug() << "SymbolMappedArray::operator[]: aiieee, no map!\n";
+			std::cout << "SymbolMappedArray::operator[]: aiieee, no map!\n";
 		}
 		return p;
 	}
