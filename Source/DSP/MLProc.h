@@ -6,7 +6,7 @@
 #ifndef _ML_PROC_H
 #define _ML_PROC_H
 
-#include <assert.h>
+#include <cassert>
 #include <math.h>
 #include <map>
 #include <vector>
