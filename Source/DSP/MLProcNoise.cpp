@@ -14,9 +14,6 @@
 class MLProcNoise : public MLProc
 {
 public:
-	 MLProcNoise();
-	~MLProcNoise();
-	
 	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
@@ -39,14 +36,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcNoise::MLProcNoise()
-{
-}
-
-MLProcNoise::~MLProcNoise()
-{
-}
 
 void MLProcNoise::process(const int samples)
 {	

@@ -235,7 +235,7 @@ public:
 // All inputs and outputs to an MLProc must have the same sampling rate
 // and buffer size.  The one exception is MLProcResample, which is only
 // created by MLProcContainer.  Possibly this means container resamplers 
-// should not really be MLProcs... TODO
+// should not really be MLProcs, but part of containers. TODO
 
 class MLProc
 {
@@ -273,7 +273,7 @@ public:
 		unknownErr
 	};
 
-	MLProc();
+	MLProc() : mpContext(0), mParamsChanged(true), mCopyIndex(0) {}
 	
 	// ----------------------------------------------------------------
 	// wrapper for class static info
@@ -384,7 +384,8 @@ public:
 	inline float getContextInvSampleRate() { return mpContext ? mpContext->getInvSampleRate() : kMLTimeless; }
 	
 protected:	
-	virtual ~MLProc() = 0;	
+	virtual ~MLProc() {}	
+
 	void dumpNode(int indent);
 	void printErr(MLProc::err err);	
 

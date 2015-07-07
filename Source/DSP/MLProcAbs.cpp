@@ -11,8 +11,6 @@
 class MLProcAbs : public MLProc
 {
 public:
-	MLProcAbs();
-	~MLProcAbs();
 	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
@@ -33,14 +31,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcAbs::MLProcAbs()
-{
-}
-
-MLProcAbs::~MLProcAbs()
-{
-}
 
 void MLProcAbs::process(const int frames)
 {
