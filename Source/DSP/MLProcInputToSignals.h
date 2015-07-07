@@ -76,7 +76,7 @@ public:
 };
 
 extern const int kNumVoiceSignals;
-extern const char * voiceSignalNames[];
+extern const MLSymbol voiceSignalNames[];
 
 class MLProcInputToSignals : public MLProc
 {

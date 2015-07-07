@@ -6,7 +6,7 @@
 
 const int kMaxEvents = 64;
 const int kNumVoiceSignals = 8;
-const char * voiceSignalNames[kNumVoiceSignals] = 
+const MLSymbol voiceSignalNames[kNumVoiceSignals] 
 {
 	"pitch",
 	"gate",
@@ -341,13 +341,12 @@ int MLProcInputToSignals::getOutputIndex(const MLSymbol name)
 	int idx = 0;
 	int voice = 0;
 	int sig = 0;
-	const std::string nameStr = name.getString();
 	MLSymbol name0 = name.withoutFinalNumber();
 			
 	// match signal name with symbol text
 	for(int n=0; n<kNumVoiceSignals; ++n)
 	{
-		if(name0 == MLSymbol(voiceSignalNames[n]))
+		if(name0 == voiceSignalNames[n])
 		{			
 			sig = n + 1;
 			break;
