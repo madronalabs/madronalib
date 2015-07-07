@@ -341,16 +341,14 @@ int MLProcInputToSignals::getOutputIndex(const MLSymbol name)
 	int idx = 0;
 	int voice = 0;
 	int sig = 0;
-	int len;
 	const std::string nameStr = name.getString();
-	const char* pName = nameStr.c_str();
-		
+	MLSymbol name0 = name.withoutFinalNumber();
+			
 	// match signal name with symbol text
 	for(int n=0; n<kNumVoiceSignals; ++n)
 	{
-		len = strlen(voiceSignalNames[n]);
-		if (!strncmp(voiceSignalNames[n], pName, len))
-		{
+		if(name0 == MLSymbol(voiceSignalNames[n]))
+		{			
 			sig = n + 1;
 			break;
 		}
@@ -360,11 +358,7 @@ int MLProcInputToSignals::getOutputIndex(const MLSymbol name)
 	if (sig)
 	{
 		voice = name.getFinalNumber();
-	}
-	
-	if (sig && voice)
-	{
-		if (voice <= mCurrentVoices)
+		if ((voice) && (voice <= mCurrentVoices))
 		{
 			idx = (voice - 1)*kNumVoiceSignals + sig;
 		}
