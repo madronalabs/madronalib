@@ -12,10 +12,6 @@
 class MLProcSampleRate : public MLProc
 {
 public:
-	MLProcSampleRate();
-	~MLProcSampleRate();	
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -37,18 +33,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcSampleRate::MLProcSampleRate()
-{
-//	debug() << "MLProcSampleRate constructor\n";
-}
-
-
-MLProcSampleRate::~MLProcSampleRate()
-{
-//	debug() << "MLProcSampleRate destructor\n";
-}
 
 void MLProcSampleRate::process(const int )
 {

@@ -120,20 +120,19 @@ void MLVoice::zero()
 void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 {
 	int time = e.mTime;
-	int newState, newChannel;
+	int newState;
 	float note, gate, vel;
 	switch(e.mType)
 	{
 		case MLControlEvent::kNoteOn:
 			newState = kOn;
-			newChannel = e.mChannel;
+			mChannel = e.mChannel;
 			note = e.mValue1;
 			gate = 1.f;
 			vel = e.mValue2;
 			break;
 		case MLControlEvent::kNoteSustain:
 			newState = kSustain;
-			newChannel = e.mChannel;
 			note = e.mValue1;
 			gate = 1.f;
 			vel = e.mValue2;
@@ -141,7 +140,6 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 		case MLControlEvent::kNoteOff:
 		default:
 			newState = kOff;
-			newChannel = 0;
 			note = mNote;
 			gate = 0.f;
 			vel = 0.;
@@ -150,7 +148,6 @@ void MLVoice::addNoteEvent(const MLControlEvent& e, const MLScale& scale)
 	
 	// set immediate state
     mState = newState;
-	mChannel = newChannel;
     mInstigatorID = e.mID;
     mNote = note;
     mAge = 0;
@@ -191,9 +188,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
     mdPitch.addChange(scale.noteToLogPitch(note), time);
     
     if (retrig)
-    {
-		
-debug() << "retrig\n";		
+    {	
         mdGate.addChange(0.f, time - 1);
 		mdNotePressure.addChange(0.f, time - 1);
 		//mdChannelPressure.addChange(0.f, time - 1);
@@ -980,21 +975,24 @@ void MLProcInputToSignals::doController(const MLControlEvent& event)
 {
     int time = event.mTime;
 	int ctrl = event.mValue1;
+	int chan = event.mChannel;
 	float val = event.mValue2;
 	
 	for (int i=0; i<mCurrentVoices; ++i)
 	{
-		if (event.mChannel == mVoices[i].mChannel)
+		if ((chan == mVoices[i].mChannel) || (!mVoices[i].mChannel))
 		{
 			switch(mProtocol)
 			{
-				case kInputProtocolMIDI:
-					if(ctrl == mControllerNumber)
+				case kInputProtocolMIDI:					
+					if(ctrl == mControllerNumber)						
 						mVoices[i].mdMod.addChange(val, time);
 					else if (ctrl == mControllerNumber + 1)
 						mVoices[i].mdMod2.addChange(val, time);
 					else if (ctrl == mControllerNumber + 2)
 						mVoices[i].mdMod3.addChange(val, time);
+					break;
+					
 				case kInputProtocolMIDI_MPE:
 					if(ctrl == mControllerNumber)
 						mVoices[i].mdMod.addChange(val, time);
@@ -1003,6 +1001,7 @@ void MLProcInputToSignals::doController(const MLControlEvent& event)
 					else if (ctrl == 74) // y always 74
 						mVoices[i].mdMod3.addChange(val, time);
 					break;
+					
 				case kInputProtocolOSC:
 					// currently unimplemented but will be when we do OSC through events
 					break;
@@ -1017,17 +1016,31 @@ void MLProcInputToSignals::doPitchWheel(const MLControlEvent& event)
     float ctr = val - 8192.f;
     float u = ctr / 8191.f;
 	float bendAdd = u * mPitchWheelSemitones / 12.f;
-    
-	for (int i=0; i<mCurrentVoices; ++i)
+	
+	switch(mProtocol)
 	{
-		if (event.mChannel == mVoices[i].mChannel)
-		{
-			mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
-		}
-		else if (event.mChannel == 1) // MPE Main Channel
-		{
-			mMPEMainVoice.mdPitchBend.addChange(bendAdd, event.mTime);
-		}
+		case kInputProtocolMIDI:
+			for (int i=0; i<mCurrentVoices; ++i)
+			{
+				if ((event.mChannel == mVoices[i].mChannel) || (!mVoices[i].mChannel))
+				{
+					mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
+				}
+			}		
+			break;
+		case kInputProtocolMIDI_MPE:
+			for (int i=0; i<mCurrentVoices; ++i)
+			{
+				if ((event.mChannel == mVoices[i].mChannel) || (!mVoices[i].mChannel))
+				{
+					mVoices[i].mdPitchBend.addChange(bendAdd, event.mTime);
+				}
+				else if (event.mChannel == 1) // MPE Main Channel
+				{
+					mMPEMainVoice.mdPitchBend.addChange(bendAdd, event.mTime);
+				}
+			}		
+			break;
 	}
 }
 
@@ -1042,11 +1055,13 @@ void MLProcInputToSignals::doNotePressure(const MLControlEvent& event)
 	}
 }
 
+// MTLEST Aftertouch is not working?!
+
 void MLProcInputToSignals::doChannelPressure(const MLControlEvent& event)
 {
 	for (int i=0; i<mCurrentVoices; ++i)
 	{
-		if (event.mChannel == mVoices[i].mChannel)
+		if ((event.mChannel == mVoices[i].mChannel) || (!mVoices[i].mChannel))
 		{
 			mVoices[i].mdChannelPressure.addChange(event.mValue1, event.mTime);
 		}

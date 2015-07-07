@@ -295,7 +295,7 @@ public:
 
 	// clearProc() is called by engine, procs override clear() to clear histories. 
 	void clearProc();	 
-	virtual void clear() = 0;
+	virtual void clear() {}
 	virtual void clearInputs();	 
 	virtual void clearInput(const int i);
 

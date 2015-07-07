@@ -537,7 +537,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
             type = MLControlEvent::kNoteOff;
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
-            id = (int)v1;
+            id = (int)v1;// 
 			
 			//debug() << "NOTE OFF: " << chan << " " << v1 << " " << v2 << "\n";
 			

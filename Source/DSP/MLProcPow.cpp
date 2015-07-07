@@ -12,10 +12,6 @@
 class MLProcPow : public MLProc
 {
 public:
-	MLProcPow();
-	~MLProcPow();
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -35,17 +31,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcPow::MLProcPow()
-{
-}
-
-
-MLProcPow::~MLProcPow()
-{
-}
-
 
 void MLProcPow::process(const int frames)
 {

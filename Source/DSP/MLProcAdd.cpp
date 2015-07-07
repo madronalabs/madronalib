@@ -11,10 +11,6 @@
 class MLProcAdd : public MLProc
 {
 public:
-	MLProcAdd();
-	~MLProcAdd();
-	
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -34,14 +30,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcAdd::MLProcAdd()
-{
-}
-
-MLProcAdd::~MLProcAdd()
-{
-}
 
 #ifndef __SSE__
 

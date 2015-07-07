@@ -13,10 +13,6 @@
 class MLProcMultiplyAdd : public MLProc
 {
 public:
-	MLProcMultiplyAdd();
-	~MLProcMultiplyAdd();
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
@@ -38,15 +34,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcMultiplyAdd::MLProcMultiplyAdd()
-{
-}
-
-MLProcMultiplyAdd::~MLProcMultiplyAdd()
-{
-}
 
 /*
 

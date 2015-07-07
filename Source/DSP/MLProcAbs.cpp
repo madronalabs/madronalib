@@ -11,7 +11,6 @@
 class MLProcAbs : public MLProc
 {
 public:
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 

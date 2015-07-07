@@ -12,10 +12,6 @@
 class MLProcMultiply : public MLProc
 {
 public:
-	MLProcMultiply();
-	~MLProcMultiply();
-
-	void clear(){};
 	void doParams();
 	void process(const int n);
 	MLProcInfoBase& procInfo() { return mInfo; }
@@ -43,15 +39,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcMultiply::MLProcMultiply()
-{
-}
-
-MLProcMultiply::~MLProcMultiply()
-{
-}
 
 /*
 void MLProcMultiply::process(const int frames)

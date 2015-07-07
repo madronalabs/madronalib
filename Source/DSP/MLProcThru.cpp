@@ -11,17 +11,12 @@
 class MLProcThru : public MLProc
 {
 public:
-	 MLProcThru();
-	~MLProcThru();
-	
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcThru> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -36,14 +31,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcThru::MLProcThru()
-{
-}
-
-MLProcThru::~MLProcThru()
-{
-}
 
 void MLProcThru::process(const int samples)
 {	
