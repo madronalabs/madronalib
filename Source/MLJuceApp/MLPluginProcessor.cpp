@@ -485,10 +485,12 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 		sendProgramChange(r);
 #endif
 	}
+	/*
+	 TODO add to DSP engine
 	else if(action == "volume")
 	{
 		getEngine()->setMasterVolume(prop.getFloatValue());
-	}
+	}*/
 	else if(action == "sequence")
 	{
 		setSequence(prop.getSignalValue());
