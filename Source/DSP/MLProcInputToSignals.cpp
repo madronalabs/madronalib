@@ -584,9 +584,10 @@ void MLProcInputToSignals::process(const int frames)
     }
 }
 
+// get initial velocity from first z for OSC
 float VelocityFromInitialZ(float z)
 {
-	float zc = clamp(z*66.f, 0.4f, 1.f);
+	float zc = clamp(z*128.f, 0.25f, 1.f);
 	return zc*zc;
 }
 
