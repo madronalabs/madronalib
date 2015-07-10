@@ -972,36 +972,49 @@ void MLProcInputToSignals::doController(const MLControlEvent& event)
 	int chan = event.mChannel;
 	float val = event.mValue2;
 	
-	for (int i=0; i<mCurrentVoices; ++i)
+	switch(mProtocol)
 	{
-		if ((chan == mVoices[i].mChannel) || (!mVoices[i].mChannel))
+		case kInputProtocolMIDI:
 		{
-			switch(mProtocol)
+			for (int i=0; i<mCurrentVoices; ++i)
 			{
-				case kInputProtocolMIDI:					
-					if(ctrl == mControllerNumber)						
-						mVoices[i].mdMod.addChange(val, time);
-					else if (ctrl == mControllerNumber + 1)
-						mVoices[i].mdMod2.addChange(val, time);
-					else if (ctrl == mControllerNumber + 2)
-						mVoices[i].mdMod3.addChange(val, time);
-					break;
-					
-				case kInputProtocolMIDI_MPE:
-					if(ctrl == mControllerNumber)
-						mVoices[i].mdMod.addChange(val, time);
-					else if (ctrl == 73) // x always 73
-						mVoices[i].mdMod2.addChange(val, time);
-					else if (ctrl == 74) // y always 74
-						mVoices[i].mdMod3.addChange(val, time);
-					break;
-					
-				case kInputProtocolOSC:
-					// currently unimplemented but will be when we do OSC through events
-					break;
-			}			
-        }
-    }
+				if(ctrl == mControllerNumber)						
+					mVoices[i].mdMod.addChange(val, time);
+				else if (ctrl == mControllerNumber + 1)
+					mVoices[i].mdMod2.addChange(val, time);
+				else if (ctrl == mControllerNumber + 2)
+					mVoices[i].mdMod3.addChange(val, time);
+			}
+			break;
+		}
+		case kInputProtocolMIDI_MPE:
+		{
+			if(chan == 1) // MPE main voice
+			{
+				if (ctrl == 73) // x always 73
+					mMPEMainVoice.mdMod2.addChange(val, time);
+				else if (ctrl == 74) // y always 74
+					mMPEMainVoice.mdMod3.addChange(val, time);
+				else if(ctrl == mControllerNumber)
+					mMPEMainVoice.mdMod.addChange(val, time);
+			}
+			else
+			{
+				int voiceIdx = MPEChannelToVoiceIDX(chan);
+				if (ctrl == 73) // x always 73
+					mVoices[voiceIdx].mdMod2.addChange(val, time);
+				else if (ctrl == 74) // y always 74
+					mVoices[voiceIdx].mdMod3.addChange(val, time);
+				else if(ctrl == mControllerNumber)
+					mVoices[voiceIdx].mdMod.addChange(val, time);
+				break;
+			}
+			break;
+		}
+		case kInputProtocolOSC:
+			// currently unimplemented but will be when we do OSC through events
+			break;
+	}
 }
 
 void MLProcInputToSignals::doPitchWheel(const MLControlEvent& event)
