@@ -57,7 +57,6 @@ private:
 	MLSymbolMapT mMap;
 };
 
-
 // Array class mapped by a single MLSymbolMap per template class.
 // Size is static.  Get and set are by value.
 

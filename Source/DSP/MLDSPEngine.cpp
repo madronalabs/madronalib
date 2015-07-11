@@ -563,7 +563,7 @@ void MLDSPEngine::setCollectStats(bool k)
 // run one buffer of the compiled graph, processing signals from the global inputs (if any)
 // to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
 //
-void MLDSPEngine::processBlock(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {
 	int sr = getSampleRate();
 	int processed = 0;
