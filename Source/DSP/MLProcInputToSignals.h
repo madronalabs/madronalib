@@ -19,8 +19,6 @@
 
 #include "pa_ringbuffer.h"
 
-#include <stdexcept>
-
 // a voice that can play.
 //
 class MLVoice
@@ -47,7 +45,6 @@ public:
 
 	int mState;
     int mInstigatorID; // for matching event sources, could be MIDI key, or touch number.
-    int mChannel;   
 	int mNote;
 	int mAge;	// time active, measured to the end of the current process buffer
 	
@@ -130,6 +127,8 @@ private:
     int findOldestSustainedVoice();
 	int findNearestVoice(int note);
     int findOldestVoice();
+	
+	int MPEChannelToVoiceIDX(int i);
 
 	// OSC, MIDI, MIDI_MPE or nothing
 	// MIDI_MPE enables MPE (Multidimensional Polyphonic Expression) mode via MIDI
@@ -178,7 +177,10 @@ private:
 
 	MLSignal mTempSignal;
 	MLSignal mMainPitchSignal;
-	MLSignal mChannelAfterTouchSignal;
+	MLSignal mMainChannelPressureSignal;
+	MLSignal mMainModSignal;
+	MLSignal mMainMod2Signal;
+	MLSignal mMainMod3Signal;
 
 	float mPitchWheelSemitones;
 	MLScale mScale;
