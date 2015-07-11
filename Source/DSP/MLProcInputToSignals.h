@@ -99,8 +99,9 @@ public:
 	void process(const int n);
     
 	void clearChangeLists();
-    void setEventTimeOffset(int t);
-    void setEventRange(MLControlEventVector::const_iterator start, MLControlEventVector::const_iterator end);
+	
+	void addEvent(MLControlEvent e) { mEvents.push_back(e); }
+	void clearEvents() { mEvents.clear(); }
 	
  	void setup();
  	err resize();
@@ -146,15 +147,16 @@ private:
 	MLVoice mVoices[kMLEngineMaxVoices];
 	
 	// a special voice for the MPE "Main Channel"
-	// stores main pitch bend, which is added to other voices. 
+	// stores main pitch bend and controller inputs, which are added to other voices. 
 	MLVoice mMPEMainVoice;						
 
 	int mNextEventIdx;
 	int mVoiceRotateOffset;
 	
     int mEventTimeOffset;
-    // the range of events [mStartEvent, mEndEvent) will control the next process() call.
-    MLControlEventVector::const_iterator mStartEvent, mEndEvent;
+	
+    // events that will be reflected in the next process() call.
+	std::vector<MLControlEvent> mEvents;
 		
 	int mControllerNumber;
 	int mCurrentVoices;

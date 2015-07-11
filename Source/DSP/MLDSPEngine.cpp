@@ -600,14 +600,18 @@ void MLDSPEngine::processBlock(const int frames, const MLControlEventVector& eve
 
 		if (mpInputToSignalsProc)
 		{
-            // advance iterators into sorted event vector to capture range of events
-            firstEvent = events.begin();
-            
-            for(firstEvent = events.begin(); (!(*firstEvent).isFree()) && ((*firstEvent).mTime < processed); firstEvent++){}
-            for(lastEvent = firstEvent; (!(*lastEvent).isFree()) && ((*lastEvent).mTime < processed + mVectorSize); lastEvent++){}
-
-			mpInputToSignalsProc->setEventTimeOffset(processed);
-			mpInputToSignalsProc->setEventRange(firstEvent, lastEvent);
+			// send events within time [processed, processed + mVectorSize] to processor
+			mpInputToSignalsProc->clearEvents();
+			for(auto& engineEvent : events)
+			{
+				int t = engineEvent.mTime;
+				if(within(t, processed, processed + mVectorSize))
+				{
+					MLControlEvent e = engineEvent;
+					e.mTime -= processed;
+					mpInputToSignalsProc->addEvent(e);
+				}
+			}
 		}
         
 		if (reportStats)

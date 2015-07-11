@@ -770,12 +770,8 @@ void MLProcInputToSignals::processOSC(const int frames)
 //
 void MLProcInputToSignals::processEvents()
 {
-    MLControlEvent e;
-    MLControlEventVector::const_iterator it;
-    for(it = mStartEvent; it != mEndEvent; it++)
+	for(auto& e : mEvents)
     {
-        e = *it;
-        e.mTime -= mEventTimeOffset;
         processEvent(e);
     }
 }
