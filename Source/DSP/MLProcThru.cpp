@@ -11,17 +11,12 @@
 class MLProcThru : public MLProc
 {
 public:
-	 MLProcThru();
-	~MLProcThru();
-	
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcThru> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -37,32 +32,11 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-MLProcThru::MLProcThru()
-{
-}
-
-MLProcThru::~MLProcThru()
-{
-}
-
 void MLProcThru::process(const int samples)
 {	
-	// TODO signal::copy
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
-/*	if (x.isConstant())
-	{
-		y.setToConstant(x[0]);
-	}
-	else
-*/
-	{
-		y.setConstant(false);
-		for (int n=0; n<samples; ++n)
-		{
-			y[n] = x[n];
-		}
-	}
+	y.copy(x);
 }
 
 

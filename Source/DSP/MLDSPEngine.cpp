@@ -563,7 +563,7 @@ void MLDSPEngine::setCollectStats(bool k)
 // run one buffer of the compiled graph, processing signals from the global inputs (if any)
 // to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
 //
-void MLDSPEngine::processBlock(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {
 	int sr = getSampleRate();
 	int processed = 0;
@@ -600,14 +600,18 @@ void MLDSPEngine::processBlock(const int frames, const MLControlEventVector& eve
 
 		if (mpInputToSignalsProc)
 		{
-            // advance iterators into sorted event vector to capture range of events
-            firstEvent = events.begin();
-            
-            for(firstEvent = events.begin(); (!(*firstEvent).isFree()) && ((*firstEvent).mTime < processed); firstEvent++){}
-            for(lastEvent = firstEvent; (!(*lastEvent).isFree()) && ((*lastEvent).mTime < processed + mVectorSize); lastEvent++){}
-
-			mpInputToSignalsProc->setEventTimeOffset(processed);
-			mpInputToSignalsProc->setEventRange(firstEvent, lastEvent);
+			// send events within time [processed, processed + mVectorSize] to processor
+			mpInputToSignalsProc->clearEvents();
+			for(auto& engineEvent : events)
+			{
+				int t = engineEvent.mTime;
+				if(within(t, processed, processed + mVectorSize))
+				{
+					MLControlEvent e = engineEvent;
+					e.mTime -= processed;
+					mpInputToSignalsProc->addEvent(e);
+				}
+			}
 		}
         
 		if (reportStats)

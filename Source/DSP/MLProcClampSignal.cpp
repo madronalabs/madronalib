@@ -16,10 +16,6 @@
 class MLProcClampSignal : public MLProc
 {
 public:
-	MLProcClampSignal();
-	~MLProcClampSignal();
-	
-	void clear(){};
 	void process(const int frames);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -39,21 +35,8 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcClampSignal> outputs[] = {"out"};
 }
 
-
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcClampSignal::MLProcClampSignal()
-{
-//	debug() << "MLProcClampSignal constructor\n";
-}
-
-
-MLProcClampSignal::~MLProcClampSignal()
-{
-//	debug() << "MLProcClampSignal destructor\n";
-}
 
 void MLProcClampSignal::process(const int frames)
 {

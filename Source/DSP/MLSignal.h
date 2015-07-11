@@ -6,7 +6,7 @@
 #ifndef _MLSIGNAL_H
 #define _MLSIGNAL_H
 
-#include <assert.h>
+#include <cassert>
 #include <stdint.h>
 #include <vector>
 #include <iostream>

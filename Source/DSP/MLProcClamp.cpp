@@ -12,17 +12,12 @@
 class MLProcClamp : public MLProc
 {
 public:
-	MLProcClamp();
-	~MLProcClamp();
-	
-	void clear(){};
 	void process(const int frames);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcClamp> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -35,21 +30,8 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcClamp> outputs[] = {"out"};
 }
 
-
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcClamp::MLProcClamp()
-{
-//	debug() << "MLProcClamp constructor\n";
-}
-
-
-MLProcClamp::~MLProcClamp()
-{
-//	debug() << "MLProcClamp destructor\n";
-}
 
 void MLProcClamp::process(const int frames)
 {

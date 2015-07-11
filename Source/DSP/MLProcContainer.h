@@ -233,9 +233,6 @@ public:
 	virtual void process(const int samples);
 	virtual err prepareToProcess();
 
-	// set volume by which the output will be scaled.
-	void setMasterVolume(float v);
-
 	void clear();	// clear buffers, DSP history
 	void clearInput(const int idx);
 	MLProc::err setInput(const int idx, const MLSignal& sig);
@@ -386,8 +383,6 @@ protected:
 	MLSignalStats* mStatsPtr;
 	
 private: // TODO more data should be private
-	
-	float mMasterVolume;
 
 };
 

@@ -26,7 +26,7 @@
 #define SHUFFLE(a, b, c, d) ((a<<6) | (b<<4) | (c<<2) | (d))
 #define SHUFFLE_R(a, b, c, d) ((d<<6) | (c<<4) | (b<<2) | (a))
 
-#include <assert.h>
+#include <cassert>
 #include <iostream>
 #include <stdint.h>
 #include <string>

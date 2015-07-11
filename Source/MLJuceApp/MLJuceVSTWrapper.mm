@@ -213,6 +213,7 @@ void detachComponentFromWindowRef (Component* comp, void* window, bool isNSView)
             [hostWindow release];
 
 			static bool needToRunMessageLoop = false;
+			
 			// MLTEST ! getHostType().isReaper();
 			// the below is often crashing in Live 9.1.7 / 64-bit VST.
 

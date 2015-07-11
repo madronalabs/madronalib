@@ -433,7 +433,6 @@ bool MLSignal::operator==(const MLSignal& b) const
 	return true;
 }
 
-
 void MLSignal::copy(const MLSignal& b)
 {
 	const bool kb = b.isConstant();

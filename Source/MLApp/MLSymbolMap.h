@@ -57,9 +57,9 @@ private:
 	MLSymbolMapT mMap;
 };
 
-
 // Array class mapped by a single MLSymbolMap per template class.
 // Size is static.  Get and set are by value.
+
 // In release code, we fail silently on bad keys? what TODO
 template <class arrayElement, int localStorageSize>
 class SymbolMappedArray
@@ -124,7 +124,7 @@ public:
 		{
 			std::cout << "SymbolMappedArray::operator[]: aiieee, no map!\n";
 		}
-		return p;
+		return p; 
 	}
                 
     arrayElement* getNullElement() const { return &mNullData; }

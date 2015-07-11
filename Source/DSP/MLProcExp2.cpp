@@ -14,7 +14,6 @@ public:
 	MLProcExp2();
 	~MLProcExp2();
 
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 

@@ -9,18 +9,6 @@ const MLParamValueAliasVec MLProcInfoBase::kMLProcNullAliasVec;
 
 #pragma mark MLProc
 
-MLProc::MLProc() :
-    mpContext(0),
-	mParamsChanged(true),
-	mCopyIndex(0)
-{
-}
-
-MLProc::~MLProc()
-{
-//	debug() << "MLProc destructor\n";
-}
-
 // MLProc::prepareToProcess() is called after all connections in DSP graph are made. 
 // This is where sample rates and block sizes propagate through the graph, and 
 // are checked for consistency.
