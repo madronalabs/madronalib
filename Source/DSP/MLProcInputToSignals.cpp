@@ -293,7 +293,10 @@ MLProc::err MLProcInputToSignals::resize()
 	// make signals that apply to all voices
 	mTempSignal.setDims(vecSize);
 	mMainPitchSignal.setDims(vecSize);
-	mChannelAfterTouchSignal.setDims(vecSize);
+	mMainChannelPressureSignal.setDims(vecSize);
+	mMainModSignal.setDims(vecSize);
+	mMainMod2Signal.setDims(vecSize);
+	mMainMod3Signal.setDims(vecSize);
 	
 #if defined (__APPLE__)
 	if (!mLatestFrame.setDims(MLT3DHub::kFrameWidth, MLT3DHub::kFrameHeight))
