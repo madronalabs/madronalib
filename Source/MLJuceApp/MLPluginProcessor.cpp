@@ -31,7 +31,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	// Files are scanned before UI is made in order to get MIDI programs, scales, etc.
     scanAllFilesImmediate();
     
-    mControlEvents.resize(kMaxControlEventsPerBlock);
+    mControlEvents.reserve(kMaxControlEventsPerBlock);
 	
 	// initialize DSP state
 	mpPatchState = std::unique_ptr<MLAppState>(new MLAppState(static_cast<MLModel*>(this),
