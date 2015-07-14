@@ -6,6 +6,7 @@
 #ifndef _ML_PATH_H
 #define _ML_PATH_H
 
+#include "MLDebug.h"
 #include "MLSymbol.h"
 
 // an MLPath describes the address of one or more MLProcs in a graph.
@@ -15,7 +16,8 @@
 // 
 // the copy number lets the path refer to one specific MLProc in a
 // multiple container.
-// TODO the copy nuber cannot possibly handle multis inside multis,
+
+// TODO Design fail: the copy number cannot possibly handle multis inside multis,
 // which need to be possible eventually. Rather there needs to be the
 // possibility of either a wildcard or a copy number at each multi.
 

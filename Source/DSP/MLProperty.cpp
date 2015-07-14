@@ -310,6 +310,7 @@ void MLPropertyListener::updateChangedProperties()
 	{
 		MLSymbol key = it->first;
 		PropertyState& state = it->second;
+		
 		if(state.mChangedSinceUpdate)
 		{
 			const MLProperty& newValue = mpPropertyOwner->getProperty(key);

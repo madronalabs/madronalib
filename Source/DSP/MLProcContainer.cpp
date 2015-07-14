@@ -31,8 +31,7 @@ namespace
 
 MLProcContainer::MLProcContainer() :
 	theProcFactory(MLProcFactory::theFactory()),
-	mStatsPtr(0),
-	mMasterVolume(1.0f) // MLTEST really? here and not dspEngine?
+	mStatsPtr(0)
 {
 	setParam("ratio", 1.f);
 	setParam("order", 2);
@@ -795,18 +794,12 @@ void MLProcContainer::process(const int extFrames)
 		}
 	}
 
-	// copy to outputs and scale by master volume
+	// copy to outputs
 	for(int i=0; i<(int)mPublishedOutputs.size(); ++i)
 	{
 		MLSignal& outSig = mPublishedOutputs[i]->mProc->getOutput(mPublishedOutputs[i]->mOutput);
 		mOutputs[i]->copy(outSig);
-		mOutputs[i]->scale(mMasterVolume); // TODO lopass filter master vol
 	}
-}
-
-void MLProcContainer::setMasterVolume(float v)
-{
-	mMasterVolume = v;
 }
 
 void MLProcContainer::clearInput(const int idx)
@@ -1231,7 +1224,7 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName() + MLSymbol("_resamp_in"));
+			MLSymbol resamplerName(getName().getString() + "_resamp_in");
 			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(inSize + 1));
 			
 			// would be cleaner to use buildProc() here, but right now that adds the new proc
@@ -1322,7 +1315,7 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol o
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName() + MLSymbol("_resamp_out"));
+			MLSymbol resamplerName(getName().getString() + "_resamp_out");
 			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(outSize + 1)); 
 			if (!resamplerProc) { e = newProcErr; goto bail; }
 			

@@ -268,12 +268,11 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 	
 		MLRect rr = r.translated(Vec2(0, -labelHeight*c->getLabelVerticalOffset()) + offset);
 		
-		// MLTEST quantize label top to 1/8 grid
+		// quantize label top to 1/8 unit grid
 		float gridSize = 0.125;
 		float top = rr.top();
 		top = (roundf(top/gridSize))*gridSize;
 		rr.setTop(top);
-		
 		
 		addWidgetToView(label, rr);
 
@@ -300,9 +299,7 @@ void MLAppView::resized()
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	int u = myLookAndFeel->getGridUnitSize(); 
 
-	std::map<MLSymbol, MLWidget*>::iterator it;
-
-	for(it = mWidgets.begin(); it != mWidgets.end(); ++it)
+	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();
@@ -314,7 +311,7 @@ void MLAppView::resized()
 		}
 	}
 	
-	for(it = mWidgets.begin(); it != mWidgets.end(); ++it)
+	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)
 	{
 		MLWidget* w = (*it).second;
 		MLRect r = w->getGridBounds();

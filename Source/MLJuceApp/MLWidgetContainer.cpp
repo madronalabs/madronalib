@@ -22,7 +22,11 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const MLSymbol name)
 	{
 		if(mWidgets.find(name) != mWidgets.end())
 		{
-			debug() << "MLAppView::addWidget: name " << name << "already taken! \n";
+			debug() << "MLWidgetContainer::addWidget: name " << name << " already taken! \n";			
+			debug() << mWidgets.size() << " widgets:\n";
+			dumpWidgets();
+			theSymbolTable().dump();
+			theSymbolTable().audit();
 		}
 		else
 		{

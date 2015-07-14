@@ -1201,7 +1201,6 @@ void saveToFile(const File& f)
         const juce::uint8 data[] = { (juce::uint8) (nStatus | inChannel),
             (juce::uint8) inData1,
             (juce::uint8) inData2 };
-        
         incomingEvents.addEvent (data, 3, (int) inStartFrame);
         return noErr;
        #else

@@ -14,9 +14,7 @@ class MLProcQuantize : public MLProc
 public:
 	MLProcQuantize();
 	~MLProcQuantize();
-	
 
-	void clear(){};
 	void process(const int frames);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 

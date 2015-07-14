@@ -29,7 +29,7 @@ void MLDrawableButton::setImage (const Drawable* img)
 }
 
 void MLDrawableButton::paint (Graphics& g)
-{
+{ 
  	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
     Rectangle<int> imageSpace = getLocalBounds();
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);

@@ -31,7 +31,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	// Files are scanned before UI is made in order to get MIDI programs, scales, etc.
     scanAllFilesImmediate();
     
-    mControlEvents.resize(kMaxControlEventsPerBlock);
+    mControlEvents.reserve(kMaxControlEventsPerBlock);
 	
 	// initialize DSP state
 	mpPatchState = std::unique_ptr<MLAppState>(new MLAppState(static_cast<MLModel*>(this),
@@ -485,10 +485,12 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 		sendProgramChange(r);
 #endif
 	}
+	/*
+	 TODO add to DSP engine
 	else if(action == "volume")
 	{
 		getEngine()->setMasterVolume(prop.getFloatValue());
-	}
+	}*/
 	else if(action == "sequence")
 	{
 		setSequence(prop.getSignalValue());
@@ -503,9 +505,7 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 // Some MIDI messages may also cause major side effects here like changing the program or input type (MPE) 
 void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVector& events)
 {
-    int c = 0;
-    int size = events.size();
-	bool addControlEvent;
+ 	bool addControlEvent;
     
 	MidiBuffer::Iterator i (midiMessages);
     juce::MidiMessage message (0xf4, 0.0);
@@ -513,34 +513,31 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
     int chan = 0;
     int id = 0;
     int time = 0;
+	double timeStamp;
     float v1 = 0.f;
     float v2 = 0.f;
 		
-    while (i.getNextEvent(message, time)) // writes to time
+	while (i.getNextEvent(message, time)) // writes to time
 	{
 		// default: most MIDI messages cause a control event to be made
 		addControlEvent = true; 
 		
         chan = message.getChannel();
+		timeStamp = message.getTimeStamp();
+		
 		if (message.isNoteOn())
 		{
             type = MLControlEvent::kNoteOn;
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
-			
-			// debug() << "NOTE ON : " << chan << " " << v1 << " " << v2 << "\n";
-			
 		}
 		else if(message.isNoteOff())
 		{
             type = MLControlEvent::kNoteOff;
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
-            id = (int)v1;
-			
-			//debug() << "NOTE OFF: " << chan << " " << v1 << " " << v2 << "\n";
-			
+            id = (int)v1;// 
 		}
 		else if (message.isSustainPedalOn())
 		{
@@ -558,8 +555,6 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			v1 = message.getControllerNumber();
 			v2 = message.getControllerValue()/127.f;
 			
-			// debug() << "CONTROL  : " << chan << " " << v1 << " " << v2 << "\n";
-			
 			/*
 			// look for MPE Mode messages
 			if(v1 == 127)
@@ -573,7 +568,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 					getEnvironment()->setPropertyImmediate("protocol", kInputProtocolMIDI_MPE);			
 				}
 			}
-			 */
+			*/
 		}
 		else if (message.isPitchWheel())
 		{
@@ -582,7 +577,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 		}
 		else if (message.isAftertouch())
 		{
-            type = MLControlEvent::kNotePressure;
+			type = MLControlEvent::kNotePressure;
 			v1 = message.getNoteNumber();
 			v2 = message.getAfterTouchValue() / 127.f;
             id = (int)v1;
@@ -610,6 +605,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
             id = chan;
             v1 = (float)pgm;
 		}
+	
 		/*
 		 else if (!message.isMidiClock())
 		// TEST
@@ -625,14 +621,14 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			debug() << std::dec << "]\n";
 		}
 		 */
-        if(addControlEvent && (c < size - 1))
+        if(addControlEvent && (events.size() < kMaxControlEventsPerBlock))
         {
-            events[c++] = MLControlEvent(type, chan, id, time, v1, v2);
+            events.push_back(MLControlEvent(type, chan, id, time, v1, v2));
         }
 	}
     
     // null-terminate new event list
-    events[c] = kMLNullControlEvent;
+    events.push_back(kMLNullControlEvent);
 }
 
 void MLPluginProcessor::setCollectStats(bool k)
@@ -692,11 +688,13 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
         
         if(acceptsMidi())
         {
+			mControlEvents.clear();
             processMIDI(midiMessages, mControlEvents);
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
-        mEngine.processBlock(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+        mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+
 		
 #if OSC_PARAMS
 		// if(osc enabled)

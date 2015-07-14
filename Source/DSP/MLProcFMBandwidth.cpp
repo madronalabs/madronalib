@@ -12,10 +12,6 @@
 class MLProcFMBandwidth : public MLProc
 {
 public:
-	MLProcFMBandwidth();
-	~MLProcFMBandwidth();
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -35,14 +31,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcFMBandwidth::MLProcFMBandwidth()
-{
-}
-
-MLProcFMBandwidth::~MLProcFMBandwidth()
-{
-}
 
 void MLProcFMBandwidth::process(const int frames)
 {

@@ -8,21 +8,15 @@
 // ----------------------------------------------------------------
 // class definition
 
-
 class MLProcSum : public MLProc
 {
 public:
-	MLProcSum();
-	~MLProcSum();
-
-	void clear(){};
 	void process(const int frames);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcSum> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -35,21 +29,8 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcSum> outputs[] = {"out"};
 }
 
-
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcSum::MLProcSum()
-{
-//	debug() << "MLProcSum constructor\n";
-}
-
-
-MLProcSum::~MLProcSum()
-{
-//	debug() << "MLProcSum destructor\n";
-}
 
 void MLProcSum::process(const int frames)
 {

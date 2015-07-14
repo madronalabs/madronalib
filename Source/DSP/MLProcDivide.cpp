@@ -8,21 +8,15 @@
 // ----------------------------------------------------------------
 // class definition
 
-
 class MLProcDivide : public MLProc
 {
 public:
-	MLProcDivide();
-	~MLProcDivide();
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcDivide> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -34,20 +28,8 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcDivide> outputs[] = {"out"};
 }	
 
-
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcDivide::MLProcDivide()
-{
-}
-
-
-MLProcDivide::~MLProcDivide()
-{
-}
-
 
 void MLProcDivide::process(const int frames)
 {

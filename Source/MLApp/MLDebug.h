@@ -6,6 +6,12 @@
 #ifndef _ML_DEBUG_H
 #define _ML_DEBUG_H
 
+#if DEBUG_TO_COUT
+
+#define debug() std::cout
+
+#else
+
 #include "MLPlatform.h"
 #include "MLTextStreamListener.h"
 
@@ -94,10 +100,15 @@ private:
 // in release builds this will be disabled completely.
 //
 // extern MLTextStream& debug(void);
+#ifdef debug
+#undef debug
+#endif
 extern std::ostream& debug();
 
 // Send a message to the application or plugin’s console, if one exists.
 //
 extern MLTextStream& MLConsole(void);
+				
+#endif // DEBUG_TO_COUT
 				
 #endif // _ML_DEBUG_H

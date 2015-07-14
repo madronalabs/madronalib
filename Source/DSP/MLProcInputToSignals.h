@@ -19,8 +19,6 @@
 
 #include "pa_ringbuffer.h"
 
-#include <stdexcept>
-
 // a voice that can play.
 //
 class MLVoice
@@ -47,7 +45,6 @@ public:
 
 	int mState;
     int mInstigatorID; // for matching event sources, could be MIDI key, or touch number.
-    int mChannel;   
 	int mNote;
 	int mAge;	// time active, measured to the end of the current process buffer
 	
@@ -76,7 +73,7 @@ public:
 };
 
 extern const int kNumVoiceSignals;
-extern const char * voiceSignalNames[];
+extern const MLSymbol voiceSignalNames[];
 
 class MLProcInputToSignals : public MLProc
 {
@@ -99,8 +96,9 @@ public:
 	void process(const int n);
     
 	void clearChangeLists();
-    void setEventTimeOffset(int t);
-    void setEventRange(MLControlEventVector::const_iterator start, MLControlEventVector::const_iterator end);
+	
+	void addEvent(MLControlEvent e) { mEvents.push_back(e); }
+	void clearEvents() { mEvents.clear(); }
 	
  	void setup();
  	err resize();
@@ -129,6 +127,8 @@ private:
     int findOldestSustainedVoice();
 	int findNearestVoice(int note);
     int findOldestVoice();
+	
+	int MPEChannelToVoiceIDX(int i);
 
 	// OSC, MIDI, MIDI_MPE or nothing
 	// MIDI_MPE enables MPE (Multidimensional Polyphonic Expression) mode via MIDI
@@ -146,15 +146,16 @@ private:
 	MLVoice mVoices[kMLEngineMaxVoices];
 	
 	// a special voice for the MPE "Main Channel"
-	// stores main pitch bend, which is added to other voices. 
+	// stores main pitch bend and controller inputs, which are added to other voices. 
 	MLVoice mMPEMainVoice;						
 
 	int mNextEventIdx;
 	int mVoiceRotateOffset;
 	
     int mEventTimeOffset;
-    // the range of events [mStartEvent, mEndEvent) will control the next process() call.
-    MLControlEventVector::const_iterator mStartEvent, mEndEvent;
+	
+    // events that will be reflected in the next process() call.
+	std::vector<MLControlEvent> mEvents;
 		
 	int mControllerNumber;
 	int mCurrentVoices;
@@ -176,7 +177,10 @@ private:
 
 	MLSignal mTempSignal;
 	MLSignal mMainPitchSignal;
-	MLSignal mChannelAfterTouchSignal;
+	MLSignal mMainChannelPressureSignal;
+	MLSignal mMainModSignal;
+	MLSignal mMainMod2Signal;
+	MLSignal mMainMod3Signal;
 
 	float mPitchWheelSemitones;
 	MLScale mScale;

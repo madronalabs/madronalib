@@ -67,7 +67,7 @@ mCopyAligned(0)
 {
 	mRate = kMLToBeCalculated;
 	setConstant(false);	
-	setDims(values.size());
+	setDims((int)values.size());
 	int idx = 0;
 	for(float f : values)
 	{
@@ -432,7 +432,6 @@ bool MLSignal::operator==(const MLSignal& b) const
 	}
 	return true;
 }
-
 
 void MLSignal::copy(const MLSignal& b)
 {

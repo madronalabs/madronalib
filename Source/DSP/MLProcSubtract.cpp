@@ -12,10 +12,6 @@
 class MLProcSubtract : public MLProc
 {
 public:
-	MLProcSubtract();
-	~MLProcSubtract();
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -37,16 +33,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcSubtract::MLProcSubtract()
-{
-}
-
-
-MLProcSubtract::~MLProcSubtract()
-{
-}
 
 /*
 // scalar version
