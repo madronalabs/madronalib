@@ -134,8 +134,8 @@ void MLSymbolTable::clear()
 	mAlphaOrderByID.clear();
 	mSymbolsByAlphaOrder.clear();
 #endif
-	mHashTable.resize(kHashTableSize);
 	mHashTable.clear();
+	mHashTable.resize(kHashTableSize);
 	allocateChunk();
 	addEntry("", 0);
 	
@@ -193,7 +193,9 @@ int MLSymbolTable::addEntry(const char * sym, int len)
 	}
 #endif 
 	
-	mHashTable[KRhash(sym)].push_back(newID);	
+	int hash = KRhash(sym);
+	std::cout << sym << " hash: " << hash << "\n";
+	mHashTable[hash].push_back(newID);	
 	mSize++;
 	return newID;
 }

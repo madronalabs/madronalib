@@ -1648,6 +1648,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 	{
 		getEngine()->setEngineInputProtocol(p);
 		
+#if ! ML_WINDOWS
 		if(p == kInputProtocolOSC)
 		{
 			mT3DHub.setEnabled(true);
@@ -1656,6 +1657,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 		{
 			mT3DHub.setEnabled(false);
 		}		
+#endif
 		mInputProtocol = p;
 	}
 }

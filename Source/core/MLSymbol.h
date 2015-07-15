@@ -1,9 +1,6 @@
 
 // MLSymbol.h
 // ----------
-// Madrona Labs C++ framework for DSP applications.
-// Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
-// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 // MLSymbol is designed to be an efficient key in STL containers such as map and
 // unordered_map, that is quick to convert to and from a unique string.  
@@ -24,6 +21,7 @@
 #include <vector>
 #include <string>
 #include <mutex>
+#include <memory>
 
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 

@@ -6,6 +6,7 @@
 #ifndef _MLSIGNAL_H
 #define _MLSIGNAL_H
 
+#include <initializer_list>
 #include <cassert>
 #include <stdint.h>
 #include <vector>
