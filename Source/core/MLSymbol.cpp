@@ -194,7 +194,6 @@ int MLSymbolTable::addEntry(const char * sym, int len)
 #endif 
 	
 	int hash = KRhash(sym);
-	std::cout << sym << " hash: " << hash << "\n";
 	mHashTable[hash].push_back(newID);	
 	mSize++;
 	return newID;
