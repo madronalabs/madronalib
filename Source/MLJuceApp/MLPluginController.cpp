@@ -573,6 +573,7 @@ void MLPluginController::populateSettingsMenu()
 	pMenu->addSeparator();
 	mProtocolMenuItemStart = pMenu->getSize();
 	pMenu->addSubMenu(protocolMenu, "Input protocol");
+	mOSCMenuItemStart = pMenu->getSize();
 
 #if ML_MAC
 	MLMenuPtr portsMenu(new MLMenu());
@@ -586,8 +587,6 @@ void MLPluginController::populateSettingsMenu()
 		const std::string iStr(s.str());
 		portsMenu->addItem(iStr, true, ticked);
 	}
-	
-	mOSCMenuItemStart = pMenu->getSize();
 	pMenu->addSubMenu(portsMenu, "OSC port offset");
 #endif
 }

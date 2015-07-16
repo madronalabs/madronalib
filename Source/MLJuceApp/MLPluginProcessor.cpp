@@ -154,12 +154,14 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 				int p = newVal.getFloatValue();
 				mpOwnerProcessor->setInputProtocol(p);
 			}
+#if ML_MAC
 			else if(propName == "osc_port_offset")
 			{
 				int offset = newVal.getFloatValue();
 				mpOwnerProcessor->mT3DHub.setShortName(MLProjectInfo::projectName);
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
+#endif
 			break;
 		}
 		case MLProperty::kStringProperty:
@@ -1643,7 +1645,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 	{
 		getEngine()->setEngineInputProtocol(p);
 		
-#if ! ML_WINDOWS
+#if ML_MAC
 		if(p == kInputProtocolOSC)
 		{
 			mT3DHub.setEnabled(true);
