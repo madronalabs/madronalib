@@ -557,7 +557,12 @@ void MLPluginController::populateSettingsMenu()
 	const int currProtocol = mpProcessor->getEnvironment()->getFloatProperty("protocol");
 	MLMenuPtr protocolMenu(new MLMenu());
 	{
+		// Mac OS currently has MIDI and MPE and OSC. Windows just MIDI and MPE.
+#if ML_MAC		
 		const std::vector<std::string> names ({"MIDI", "MIDI MPE", "OSC"});
+#else
+		const std::vector<std::string> names ({"MIDI", "MIDI MPE"});
+#endif
 		for(int i=0; i<names.size(); ++i)
 		{
 			bool ticked = (i == currProtocol);

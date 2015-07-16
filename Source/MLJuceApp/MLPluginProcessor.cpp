@@ -142,8 +142,6 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 	
 	switch(propertyType)
 	{
-
-#if defined(__APPLE__) // TODO implement OSC / t3d on Windows
 		case MLProperty::kFloatProperty:
 		{
 			// TODO these were getting reset to redundant values when the editor opens because it calls
@@ -162,14 +160,11 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 				mpOwnerProcessor->mT3DHub.setShortName(MLProjectInfo::projectName);
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
+			break;
 		}
-		break;
-#endif
 		case MLProperty::kStringProperty:
 			break;
 		case MLProperty::kSignalProperty:
-			{
-			}
 			break;
 		default:
 			break;
