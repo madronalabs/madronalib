@@ -203,7 +203,7 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 	REQUIRE(theSymbolTable().audit());
 }
 
-static const int kThreadTestSize = 100;
+static const int kThreadTestSize = 1024;
 
 void threadTest(int threadID)
 {
@@ -221,7 +221,7 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 	// which will almost certainly lead to problems unless the symbol library is properly thread-safe.
 	
 	theSymbolTable().clear();
-	int nThreads = 10;
+	int nThreads = 16;
 	std::vector< std::thread > threads;
 	for(int i=0; i < nThreads; ++i)
 	{
