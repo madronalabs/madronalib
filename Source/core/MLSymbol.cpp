@@ -208,8 +208,6 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	int len = processSymbolText(sym);
 	if(!(len > 0)) return 0;
 	
-	mMutex.lock();
-
 	// look up ID by symbol
 	// This is the fast path, and how we look up symbols from char* in typical code.
 	const std::vector<int>& bin = mHashTable[KRhash(sym)];
@@ -220,6 +218,8 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	
 	// if we replace std::string with a custom char * type that stores its length, 
 	// and use SSE to do the compares, they could probably be significantly faster.
+	
+	mMutex.lock();
 	
 	for(int ID : bin)
 	{
