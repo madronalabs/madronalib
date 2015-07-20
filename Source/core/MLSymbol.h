@@ -31,12 +31,14 @@
 static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
 
-const int kHashTableBits = 16;
+// 8 bits of hash seems intuitively too small. But anything > 8 does not
+// seem to offer a speed gain in testing. 
+const int kHashTableBits = 8;
 const int kHashTableSize = (1 << kHashTableBits);
 const int kHashTableMask = kHashTableSize - 1;
 
 // symbols are allocated in chunks of this size when needed. 
-const int kTableChunkSize = 10;
+const int kTableChunkSize = 1024;
 
 class MLSymbolTable
 {
@@ -76,10 +78,13 @@ private:
 		return hashval & kHashTableMask;
 	}
 	
-	// 2^32 unique symbols are possible. There is no checking for overflow.
+	// 2^31 unique symbols are possible. There is no checking for overflow.
 	int mSize;
 	int mCapacity;
 	
+	// the mutex is used when symbols are created, or when the table is created or cleared. 
+	// so, avoid creating new symbols in DSP processing routines. If we rewrite using lockfree techniques,
+	// that restriction can be removed.
 	std::mutex mMutex;
 	
 	// vector of symbols in ID/creation order
