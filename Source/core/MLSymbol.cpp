@@ -111,8 +111,9 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 
 #pragma mark MLSymbolTable
 
-MLSymbolTable::MLSymbolTable() : mSize(0), mBusyFlag(ATOMIC_FLAG_INIT)
+MLSymbolTable::MLSymbolTable() : mSize(0)
 {
+	mBusyFlag.clear(std::memory_order_release); // stupid Windows-compatible way of doing this
 	clear();
 }
 

@@ -20,8 +20,9 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <mutex>
 #include <memory>
+#include <atomic>
+#include <algorithm>
 
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
