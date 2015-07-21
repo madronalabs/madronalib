@@ -32,7 +32,7 @@ static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
 
 // 8 bits of hash seems intuitively too small. But anything > 8 does not
-// seem to offer a speed gain in testing. 
+// seem to offer a speed gain in testing. YMMV.
 const int kHashTableBits = 8;
 const int kHashTableSize = (1 << kHashTableBits);
 const int kHashTableMask = kHashTableSize - 1;
@@ -64,6 +64,10 @@ protected:
 	
 private:
 	
+	// lock and unlock access using a spinwait on std::atomic_flag.
+	void acquireLock(void);
+	void releaseLock(void);
+	
 	void allocateChunk();
 
 	// very simple hash function from Kernighan & Ritchie.
@@ -81,11 +85,8 @@ private:
 	// 2^31 unique symbols are possible. There is no checking for overflow.
 	int mSize;
 	int mCapacity;
-	
-	// the mutex is used when symbols are created, or when the table is created or cleared. 
-	// so, avoid creating new symbols in DSP processing routines. If we rewrite using lockfree techniques,
-	// that restriction can be removed.
-	std::mutex mMutex;
+
+	std::atomic_flag mBusyFlag;
 	
 	// vector of symbols in ID/creation order
 	std::vector<std::string> mSymbolsByID;	
@@ -97,7 +98,7 @@ private:
 	// vector of alphabetically sorted indexes into symbol vector, in ID order
 	std::vector<int> mAlphaOrderByID;	
 	
-	// TEMP set used for sorting.
+	// std::set is used for sorting.
 	std::set<std::string> mSymbolsByAlphaOrder;
 #endif
 
@@ -148,6 +149,11 @@ public:
 	inline bool operator== (const MLSymbol b) const
 	{
 		return (mID == b.mID);
+	}	
+	
+	inline bool operator!= (const MLSymbol b) const
+	{
+		return (mID != b.mID);
 	}	
 	
 	inline operator bool() const { return mID != 0; }

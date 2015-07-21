@@ -111,7 +111,7 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 
 #pragma mark MLSymbolTable
 
-MLSymbolTable::MLSymbolTable() : mSize(0)
+MLSymbolTable::MLSymbolTable() : mSize(0), mBusyFlag(ATOMIC_FLAG_INIT)
 {
 	clear();
 }
@@ -120,10 +120,20 @@ MLSymbolTable::~MLSymbolTable()
 {
 }
 
+void MLSymbolTable::acquireLock()
+{
+	while(mBusyFlag.test_and_set(std::memory_order_acquire));
+}
+
+void MLSymbolTable::releaseLock()
+{
+	mBusyFlag.clear(std::memory_order_release);
+}
+
 // clear all symbols from the table.
 void MLSymbolTable::clear()
 {
-	mMutex.lock();
+	acquireLock();
 
 	mSize = 0;
 	mCapacity = 0;
@@ -138,8 +148,8 @@ void MLSymbolTable::clear()
 	mHashTable.resize(kHashTableSize);
 	allocateChunk();
 	addEntry("", 0);
-	
-	mMutex.unlock();
+		
+	releaseLock();
 }
 
 // allocate one additional chunk of storage. 
@@ -219,11 +229,13 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	// if we replace std::string with a custom char * type that stores its length, 
 	// and use SSE to do the compares, they could probably be significantly faster.
 	
-	mMutex.lock();
+	acquireLock();
 	
 	for(int ID : bin)
 	{
-		if(!strncmp(sym, mSymbolsByID[ID].c_str(), len))
+		const char* symB = mSymbolsByID[ID].c_str();
+		int lenB = processSymbolText(symB);
+		if(!strncmp(sym, symB, std::max(len, lenB)))
 		{
 			r = ID;
 			found = true;
@@ -235,8 +247,8 @@ int MLSymbolTable::getSymbolID(const char * sym)
 		r = addEntry(sym, len);
 	}
 	
-	mMutex.unlock();
-
+	releaseLock();
+	
 	return r;
 }
 
