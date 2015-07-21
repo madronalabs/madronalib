@@ -32,9 +32,7 @@
 static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
 
-// 8 bits of hash seems intuitively too small. But anything > 8 does not
-// seem to offer a speed gain in testing. YMMV.
-const int kHashTableBits = 8;
+const int kHashTableBits = 12;
 const int kHashTableSize = (1 << kHashTableBits);
 const int kHashTableMask = kHashTableSize - 1;
 
