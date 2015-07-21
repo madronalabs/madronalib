@@ -236,3 +236,13 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
 }
 
+
+TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
+{
+	// things that should and shouldn't be the same as one another.
+	theSymbolTable().clear();
+	MLSymbol a("xxx_yyy");
+	MLSymbol b("xxx");
+	REQUIRE(a != b);
+}
+
