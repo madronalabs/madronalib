@@ -12,6 +12,7 @@
 #include <vector>
 #include <iostream>
 
+#include "MLDebug.h"
 #include "MLDSP.h"
 #include "MLDSPContext.h"
 #include "MLSymbol.h"

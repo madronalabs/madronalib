@@ -6,6 +6,7 @@
 #ifndef _ML_SYMBOL_MAP_H
 #define _ML_SYMBOL_MAP_H
 
+#include "MLDebug.h"
 #include "MLSymbol.h"
 
 // each MLProc-derived class creates static instances of MLSymbolMap so that 

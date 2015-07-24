@@ -3,7 +3,7 @@
 
 project(madronalib CXX)
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1.0)
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.0")
     # Until all major package systems have moved to CMake 3,
@@ -49,16 +49,16 @@ set(madronalib_NAME madrona)
 # Enforce out of source build
 #--------------------------------------------------------------------
 
-
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
-include(MacroOutOfSourceBuild)
-macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
+if(CMAKE_BINARY_DIR EQUAL CMAKE_SOURCE_DIR)
+  message(FATAL_ERROR "Madronalib requires an out of source build")
+endif()
 
 #--------------------------------------------------------------------
 # Add subdirectories
 #--------------------------------------------------------------------
-    
+
 add_subdirectory(source)
+add_subdirectory(external)
 
 
 if (ML_BUILD_TESTS)

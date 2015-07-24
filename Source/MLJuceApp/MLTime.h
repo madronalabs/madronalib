@@ -6,9 +6,6 @@
 #ifndef __ML_TIME_H__
 #define __ML_TIME_H__
 
-//#include "MLPlatform.h"
-#include "JuceHeader.h"
-
 #if WINDOWS
 typedef   signed __int64                int64;
 typedef unsigned __int64                uint64;
@@ -17,7 +14,7 @@ typedef   signed long long              int64;
 typedef unsigned long long              uint64;
 #endif
 
-juce::int64 getMicroseconds(); 
+int64 getMicroseconds();
 
 
 #endif // __ML_TIME_H__
