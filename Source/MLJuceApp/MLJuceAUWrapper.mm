@@ -610,33 +610,31 @@ void saveToFile(const File& f)
 	CFRelease( fileURL );
 }
 
-#pragma mark -
+
+UInt32 SupportedNumChannels (const AUChannelInfo** outInfo) override
+{
+	// If you hit this, then you need to add some configurations to your
+	// JucePlugin_PreferredChannelConfigurations setting..
+	jassert (numChannelConfigs > 0);
 	
-    
-    UInt32 SupportedNumChannels (const AUChannelInfo** outInfo) override
-    {
-        // If you hit this, then you need to add some configurations to your
-        // JucePlugin_PreferredChannelConfigurations setting..
-        jassert (numChannelConfigs > 0);
-        
-        if (outInfo != nullptr)
-        {
-            *outInfo = channelInfo;
-            
-            for (int i = 0; i < numChannelConfigs; ++i)
-            {
+	if (outInfo != nullptr)
+	{
+		*outInfo = channelInfo;
+		
+		for (int i = 0; i < numChannelConfigs; ++i)
+		{
 #if JucePlugin_IsSynth
-                channelInfo[i].inChannels = 0;
+			channelInfo[i].inChannels = 0;
 #else
-                channelInfo[i].inChannels = channelConfigs[i][0];
+			channelInfo[i].inChannels = channelConfigs[i][0];
 #endif
-                channelInfo[i].outChannels = channelConfigs[i][1];
-            }
-        }
-        
-        return numChannelConfigs;
-    }
-    
+			channelInfo[i].outChannels = channelConfigs[i][1];
+		}
+	}
+	
+	return numChannelConfigs;
+}
+
     //==============================================================================
     ComponentResult GetParameterInfo (AudioUnitScope inScope,
                                       AudioUnitParameterID inParameterID,
@@ -727,7 +725,7 @@ void saveToFile(const File& f)
         
         return kAudioUnitErr_InvalidParameter;
     }
-    
+			
     ComponentResult GetParameter (AudioUnitParameterID inID,
                                   AudioUnitScope inScope,
                                   AudioUnitElement inElement,

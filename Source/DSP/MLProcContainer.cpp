@@ -1908,6 +1908,7 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 	const MLSymbol newProcName ((const char *)parent->getStringAttribute("name").toUTF8());
 
 	// debug() << "MLProcContainer::buildProc (class=" << newProcClass << ", name=" << newProcName << ")\n";
+	// debug() << "MLProcContainer::buildProc (class=" << parent->getStringAttribute("class") << ", name=" << parent->getStringAttribute("name") << ")\n";
 
 	// add the specified proc to this container.  if this container is a multiple, 
 	// MLProcMultiple::addProc makes a MultProxy here to manage the copies. 

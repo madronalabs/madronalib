@@ -142,8 +142,6 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 	
 	switch(propertyType)
 	{
-
-#if defined(__APPLE__) // TODO implement OSC / t3d on Windows
 		case MLProperty::kFloatProperty:
 		{
 			// TODO these were getting reset to redundant values when the editor opens because it calls
@@ -156,20 +154,19 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 				int p = newVal.getFloatValue();
 				mpOwnerProcessor->setInputProtocol(p);
 			}
+#if ML_MAC
 			else if(propName == "osc_port_offset")
 			{
 				int offset = newVal.getFloatValue();
 				mpOwnerProcessor->mT3DHub.setShortName(MLProjectInfo::projectName);
 				mpOwnerProcessor->mT3DHub.setPortOffset(offset);
 			}
-		}
-		break;
 #endif
+			break;
+		}
 		case MLProperty::kStringProperty:
 			break;
 		case MLProperty::kSignalProperty:
-			{
-			}
 			break;
 		default:
 			break;
@@ -1137,6 +1134,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 			// .mlpreset files may be XML (old) or JSON (new)
 			setPatchStateFromText(f.getJuceFile().loadFileAsString());
 		}
+#if ML_MAC
 		else if (extension == ".aupreset")
 		{
 			// .aupreset files are XML inside Mac OS Property File wrapper
@@ -1172,7 +1170,7 @@ void MLPluginProcessor::loadPatchStateFromFile(const MLFile& f)
 					break;
 			}
 		}
-		
+#endif
 		// replace app state with new state loaded
 		mpPatchState->updateChangedProperties();
 		mpPatchState->clearStateStack();
@@ -1647,6 +1645,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 	{
 		getEngine()->setEngineInputProtocol(p);
 		
+#if ML_MAC
 		if(p == kInputProtocolOSC)
 		{
 			mT3DHub.setEnabled(true);
@@ -1655,6 +1654,7 @@ void MLPluginProcessor::setInputProtocol(int p)
 		{
 			mT3DHub.setEnabled(false);
 		}		
+#endif
 		mInputProtocol = p;
 	}
 }

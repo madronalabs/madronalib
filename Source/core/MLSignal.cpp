@@ -1216,6 +1216,23 @@ float MLSignal::rmsDiff(const MLSignal& b)
     return sqrtf(d/mSize);
 }
 
+void MLSignal::flipVertical()
+{
+	MLSample* p0 = mDataAligned;
+	for(int j=0; j<(mHeight>>1) - 1; ++j)
+	{
+		MLSample temp;
+		MLSample* p1 = p0 + row(j);
+		MLSample* p2 = p0 + row(mHeight - 1 - j);
+		for(int i=0; i<mWidth; ++i)
+		{
+			temp = p1[i];
+			p1[i] = p2[i];
+			p2[i] = temp;
+		}
+	}
+}
+
 void MLSignal::square()
 {
 	for(int i=0; i<mSize; ++i)
@@ -1420,6 +1437,7 @@ void MLSignal::dump(std::ostream& s, int verbosity) const
 		}
 		else if(is2D())
 		{
+			s << std::setprecision(2);
 			for (int j=0; j<h; ++j)
 			{
 				s << j << " | ";
@@ -1460,6 +1478,26 @@ void MLSignal::dump(std::ostream& s, const MLRect& b) const
 			}
 			s << "\n";
 		}
+	}
+}
+
+
+void MLSignal::dumpASCII(std::ostream& s) const
+{
+	const char* g = " .:;+=xX$&";
+	int w = mWidth;
+	int h = mHeight;
+	const MLSignal& f = *this;
+	const int scale = (int)strlen(g);
+	for (int j=0; j<h; ++j)
+	{
+		s << "|";
+		for(int i=0; i<w; ++i)
+		{
+			int v = (f(i,j)*scale);
+			s << g[clamp(v, 0, scale - 1)];
+		}
+		s << "|\n";
 	}
 }
 

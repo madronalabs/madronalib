@@ -28,9 +28,10 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 
 	listenTo(pProcessor);
 	listenTo(pProcessor->getEnvironment());
-	
+#if ML_MAC
 	mFileActionData.resize(0);
 	PaUtil_InitializeRingBuffer( &mFileActionQueue, sizeof(FileAction), 0, &(mFileActionData[0]) );
+#endif
 }
 
 MLPluginController::~MLPluginController()
@@ -116,6 +117,7 @@ void MLPluginController::timerCallback()
 	if(getView())
 		viewSignals();
 	
+#if ML_MAC
 	// read from file action queue and do any needed actions
 	if(mConvertingPresets)
 	{
@@ -132,6 +134,7 @@ void MLPluginController::timerCallback()
 			if(!filesInQueue) endConvertPresets();
 		}
 	}
+#endif
 }
 
 void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)
@@ -554,7 +557,12 @@ void MLPluginController::populateSettingsMenu()
 	const int currProtocol = mpProcessor->getEnvironment()->getFloatProperty("protocol");
 	MLMenuPtr protocolMenu(new MLMenu());
 	{
+		// Mac OS currently has MIDI and MPE and OSC. Windows just MIDI and MPE.
+#if ML_MAC		
 		const std::vector<std::string> names ({"MIDI", "MIDI MPE", "OSC"});
+#else
+		const std::vector<std::string> names ({"MIDI", "MIDI MPE"});
+#endif
 		for(int i=0; i<names.size(); ++i)
 		{
 			bool ticked = (i == currProtocol);
@@ -565,6 +573,7 @@ void MLPluginController::populateSettingsMenu()
 	pMenu->addSeparator();
 	mProtocolMenuItemStart = pMenu->getSize();
 	pMenu->addSubMenu(protocolMenu, "Input protocol");
+	mOSCMenuItemStart = pMenu->getSize();
 
 #if ML_MAC
 	MLMenuPtr portsMenu(new MLMenu());
@@ -578,8 +587,6 @@ void MLPluginController::populateSettingsMenu()
 		const std::string iStr(s.str());
 		portsMenu->addItem(iStr, true, ticked);
 	}
-	
-	mOSCMenuItemStart = pMenu->getSize();
 	pMenu->addSubMenu(portsMenu, "OSC port offset");
 #endif
 }

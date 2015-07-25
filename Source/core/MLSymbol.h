@@ -1,9 +1,6 @@
 
 // MLSymbol.h
 // ----------
-// Madrona Labs C++ framework for DSP applications.
-// Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
-// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 // MLSymbol is designed to be an efficient key in STL containers such as map and
 // unordered_map, that is quick to convert to and from a unique string.  
@@ -23,7 +20,9 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <mutex>
+#include <memory>
+#include <atomic>
+#include <algorithm>
 
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
@@ -33,12 +32,12 @@
 static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
 
-const int kHashTableBits = 16;
+const int kHashTableBits = 12;
 const int kHashTableSize = (1 << kHashTableBits);
 const int kHashTableMask = kHashTableSize - 1;
 
 // symbols are allocated in chunks of this size when needed. 
-const int kTableChunkSize = 10;
+const int kTableChunkSize = 1024;
 
 class MLSymbolTable
 {
@@ -64,6 +63,10 @@ protected:
 	
 private:
 	
+	// lock and unlock access using a spinwait on std::atomic_flag.
+	void acquireLock(void);
+	void releaseLock(void);
+	
 	void allocateChunk();
 
 	// very simple hash function from Kernighan & Ritchie.
@@ -78,11 +81,11 @@ private:
 		return hashval & kHashTableMask;
 	}
 	
-	// 2^32 unique symbols are possible. There is no checking for overflow.
+	// 2^31 unique symbols are possible. There is no checking for overflow.
 	int mSize;
 	int mCapacity;
-	
-	std::mutex mMutex;
+
+	std::atomic_flag mBusyFlag;
 	
 	// vector of symbols in ID/creation order
 	std::vector<std::string> mSymbolsByID;	
@@ -94,7 +97,7 @@ private:
 	// vector of alphabetically sorted indexes into symbol vector, in ID order
 	std::vector<int> mAlphaOrderByID;	
 	
-	// TEMP set used for sorting.
+	// std::set is used for sorting.
 	std::set<std::string> mSymbolsByAlphaOrder;
 #endif
 
@@ -145,6 +148,11 @@ public:
 	inline bool operator== (const MLSymbol b) const
 	{
 		return (mID == b.mID);
+	}	
+	
+	inline bool operator!= (const MLSymbol b) const
+	{
+		return (mID != b.mID);
 	}	
 	
 	inline operator bool() const { return mID != 0; }
