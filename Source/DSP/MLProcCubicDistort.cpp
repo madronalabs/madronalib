@@ -8,21 +8,15 @@
 // ----------------------------------------------------------------
 // class definition
 
-
 class MLProcCubicDistort : public MLProc
 {
 public:
-	MLProcCubicDistort();
-	~MLProcCubicDistort();
-	
-	void clear(){};
 	void process(const int frames);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
 	MLProcInfo<MLProcCubicDistort> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -34,21 +28,8 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcCubicDistort> outputs[] = {"out"};
 }
 
-
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcCubicDistort::MLProcCubicDistort()
-{
-//	debug() << "MLProcCubicDistort constructor\n";
-}
-
-
-MLProcCubicDistort::~MLProcCubicDistort()
-{
-//	debug() << "MLProcCubicDistort destructor\n";
-}
 
 void MLProcCubicDistort::process(const int frames)
 {

@@ -11,10 +11,7 @@
 class MLProcFadeBipolar : public MLProc
 {
 public:
-	 MLProcFadeBipolar();
-	~MLProcFadeBipolar();	
 	void process(const int n);		
-	void clear();
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
 private:
@@ -34,18 +31,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcFadeBipolar::MLProcFadeBipolar()
-{
-}
-
-MLProcFadeBipolar::~MLProcFadeBipolar()
-{
-}
-
-void MLProcFadeBipolar::clear()
-{
-}
 
 void MLProcFadeBipolar::process(const int frames)
 {	

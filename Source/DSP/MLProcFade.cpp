@@ -11,10 +11,7 @@
 class MLProcFade : public MLProc
 {
 public:
-	 MLProcFade();
-	~MLProcFade();	
 	void process(const int n);		
-	void clear();
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
 private:
@@ -34,18 +31,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcFade::MLProcFade()
-{
-}
-
-MLProcFade::~MLProcFade()
-{
-}
-
-void MLProcFade::clear()
-{
-}
 
 void MLProcFade::process(const int frames)
 {	

@@ -11,14 +11,18 @@ set(madronalib_HEADERS
   )
 
 set(madronalib_SOURCES
+  core/MLDSP.cpp
+  core/MLDSP.h
+  core/MLSignal.cpp
+  core/MLSignal.h
   core/MLSymbol.cpp
   core/MLSymbol.h
+  core/MLVector.cpp
+  core/MLVector.h
   DSP/MLChangeList.cpp
   DSP/MLChangeList.h
   DSP/MLControlEvent.cpp
   DSP/MLControlEvent.h
-  DSP/MLDSP.cpp
-  DSP/MLDSP.h
   DSP/MLDSPContext.cpp
   DSP/MLDSPContext.h
   DSP/MLDSPEngine.cpp
@@ -97,10 +101,6 @@ set(madronalib_SOURCES
   DSP/MLRingBuffer.h
   DSP/MLScale.cpp
   DSP/MLScale.h
-  DSP/MLSignal.cpp
-  DSP/MLSignal.h
-  DSP/MLVector.cpp
-  DSP/MLVector.h
   LookAndFeel/MLButton.cpp
   LookAndFeel/MLButton.h
   LookAndFeel/MLDebugDisplay.cpp

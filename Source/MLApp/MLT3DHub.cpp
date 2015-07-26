@@ -150,8 +150,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 		if (strcmp(addy, "/t3d/frm") == 0)
 		{
 			args >> frameID >> deviceID;
-            mT3DWaitTime = 0;
-			mReceivingT3d = true;
+
  // debug() << "FRM " << frameID << "\n";
 		}
         // match tch[n] message
@@ -181,13 +180,16 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			mOutputFrame(3, touchID) = note;
 		}
         
-		// data rate
+		// data rate message comes every second if t3d is being sent
 		else if (strcmp(addy, "/t3d/dr")==0)
 		{
 			osc::int32 r;
 			args >> r;
 			mDataRate = r;
 			notifyListeners("data_rate", r);
+						
+			mT3DWaitTime = 0;
+			mReceivingT3d = true;
 		}
 		else if (strcmp(addy, "/pgm")==0)
 		{
@@ -201,6 +203,8 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 			args >> v;
 			notifyListeners("volume", v);
 		}
+		
+		// seq message for supporting sequencer pattern changes -- MLTEST
 		else if (strcmp(addy, "/seq")==0)
 		{
 			MLSignal sequence;

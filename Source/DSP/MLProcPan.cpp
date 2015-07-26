@@ -13,10 +13,6 @@
 class MLProcPan : public MLProc
 {
 public:
-	 MLProcPan();
-	~MLProcPan();
-
-	void clear(){};
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -39,14 +35,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-MLProcPan::MLProcPan()
-{
-}
-
-MLProcPan::~MLProcPan()
-{
-}
 
 void MLProcPan::calcCoeffs(void) 
 {

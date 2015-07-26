@@ -59,3 +59,16 @@ and add the line #include "MLPluginProcessor.h" just after the first "namespace 
         -------
     result:
         solved
+
+
+categories of Juce things we are using:
+
+Windows -> GLFW
+Event handling -> GLFW, MLWidgets
+GUI drawing -> GLFW, MLWidgets
+Timing / callbacks -> std::chrono
+threads -> std::thread
+Files -> MLFile
+VST / AU wrapper -> symbiosis
+
+

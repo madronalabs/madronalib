@@ -93,7 +93,7 @@ public:
 
 	// run the compiled graph, processing signals from the global inputs (if any)
 	// to the global outputs. 
-	void processBlock(const int samples, const MLControlEventVector& events, const int64_t samplesPos, const double secs, const double position, const double bpm, bool isPlaying);
+	void processSignalsAndEvents(const int samples, const MLControlEventVector& events, const int64_t samplesPos, const double secs, const double position, const double bpm, bool isPlaying);
 
 private:
 	

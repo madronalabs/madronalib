@@ -31,8 +31,7 @@ namespace
 
 MLProcContainer::MLProcContainer() :
 	theProcFactory(MLProcFactory::theFactory()),
-	mStatsPtr(0),
-	mMasterVolume(1.0f) // MLTEST really? here and not dspEngine?
+	mStatsPtr(0)
 {
 	setParam("ratio", 1.f);
 	setParam("order", 2);
@@ -795,18 +794,12 @@ void MLProcContainer::process(const int extFrames)
 		}
 	}
 
-	// copy to outputs and scale by master volume
+	// copy to outputs
 	for(int i=0; i<(int)mPublishedOutputs.size(); ++i)
 	{
 		MLSignal& outSig = mPublishedOutputs[i]->mProc->getOutput(mPublishedOutputs[i]->mOutput);
 		mOutputs[i]->copy(outSig);
-		mOutputs[i]->scale(mMasterVolume); // TODO lopass filter master vol
 	}
-}
-
-void MLProcContainer::setMasterVolume(float v)
-{
-	mMasterVolume = v;
 }
 
 void MLProcContainer::clearInput(const int idx)
@@ -1915,6 +1908,7 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 	const MLSymbol newProcName ((const char *)parent->getStringAttribute("name").toUTF8());
 
 	// debug() << "MLProcContainer::buildProc (class=" << newProcClass << ", name=" << newProcName << ")\n";
+	// debug() << "MLProcContainer::buildProc (class=" << parent->getStringAttribute("class") << ", name=" << parent->getStringAttribute("name") << ")\n";
 
 	// add the specified proc to this container.  if this container is a multiple, 
 	// MLProcMultiple::addProc makes a MultProxy here to manage the copies. 

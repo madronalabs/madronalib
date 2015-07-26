@@ -13,7 +13,7 @@
 #include "NetService.h"
 #include "NetServiceBrowser.h"
 
-#include <assert.h>
+#include <cassert>
 #include <math.h>
 #include <vector>
 #include <string>

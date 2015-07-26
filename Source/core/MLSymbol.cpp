@@ -113,6 +113,7 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 
 MLSymbolTable::MLSymbolTable() : mSize(0)
 {
+	mBusyFlag.clear(std::memory_order_release); // stupid Windows-compatible way of doing this
 	clear();
 }
 
@@ -120,10 +121,20 @@ MLSymbolTable::~MLSymbolTable()
 {
 }
 
+void MLSymbolTable::acquireLock()
+{
+	while(mBusyFlag.test_and_set(std::memory_order_acquire));
+}
+
+void MLSymbolTable::releaseLock()
+{
+	mBusyFlag.clear(std::memory_order_release);
+}
+
 // clear all symbols from the table.
 void MLSymbolTable::clear()
 {
-	mMutex.lock();
+	acquireLock();
 
 	mSize = 0;
 	mCapacity = 0;
@@ -134,12 +145,12 @@ void MLSymbolTable::clear()
 	mAlphaOrderByID.clear();
 	mSymbolsByAlphaOrder.clear();
 #endif
-	mHashTable.resize(kHashTableSize);
 	mHashTable.clear();
+	mHashTable.resize(kHashTableSize);
 	allocateChunk();
 	addEntry("", 0);
-	
-	mMutex.unlock();
+		
+	releaseLock();
 }
 
 // allocate one additional chunk of storage. 
@@ -193,7 +204,8 @@ int MLSymbolTable::addEntry(const char * sym, int len)
 	}
 #endif 
 	
-	mHashTable[KRhash(sym)].push_back(newID);	
+	int hash = KRhash(sym);
+	mHashTable[hash].push_back(newID);	
 	mSize++;
 	return newID;
 }
@@ -207,8 +219,6 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	int len = processSymbolText(sym);
 	if(!(len > 0)) return 0;
 	
-	mMutex.lock();
-
 	// look up ID by symbol
 	// This is the fast path, and how we look up symbols from char* in typical code.
 	const std::vector<int>& bin = mHashTable[KRhash(sym)];
@@ -220,9 +230,13 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	// if we replace std::string with a custom char * type that stores its length, 
 	// and use SSE to do the compares, they could probably be significantly faster.
 	
+	acquireLock();
+	
 	for(int ID : bin)
 	{
-		if(!strncmp(sym, mSymbolsByID[ID].c_str(), len))
+		const char* symB = mSymbolsByID[ID].c_str();
+		int lenB = processSymbolText(symB);
+		if(!strncmp(sym, symB, std::max(len, lenB)))
 		{
 			r = ID;
 			found = true;
@@ -234,8 +248,8 @@ int MLSymbolTable::getSymbolID(const char * sym)
 		r = addEntry(sym, len);
 	}
 	
-	mMutex.unlock();
-
+	releaseLock();
+	
 	return r;
 }
 

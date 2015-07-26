@@ -19,10 +19,6 @@
 class MLProcInterleave : public MLProc
 {
 public:
-	MLProcInterleave();
-	~MLProcInterleave();
-    
-	void clear(){};
 	void process(const int frames);
 	MLProcInfoBase& procInfo() { return mInfo; }
     
@@ -45,18 +41,6 @@ namespace
 
 // ----------------------------------------------------------------
 // implementation
-
-
-MLProcInterleave::MLProcInterleave()
-{
-    //	debug() << "MLProcInterleave constructor\n";
-}
-
-
-MLProcInterleave::~MLProcInterleave()
-{
-    //	debug() << "MLProcInterleave destructor\n";
-}
 
 void MLProcInterleave::process(const int frames)
 {

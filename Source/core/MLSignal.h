@@ -6,16 +6,15 @@
 #ifndef _MLSIGNAL_H
 #define _MLSIGNAL_H
 
-#include <assert.h>
+#include <initializer_list>
+#include <cassert>
 #include <stdint.h>
 #include <vector>
 #include <iostream>
 #include <iomanip>
 #include <memory>
-#include "math.h"
 #include "MLDSP.h"
 #include "MLVector.h"
-// #include "MLDebug.h"
 
 #ifdef DEBUG
 	const int kMLSignalEndSize = 4;
@@ -329,6 +328,9 @@ public:
     // metrics
     float getRMS();
     float rmsDiff(const MLSignal& b);
+	
+	// spatial
+	void flipVertical();
 
 	// find the subpixel peak in the neighborhood of the input position, 
 	// by 2D Taylor series expansion of the surface function at (x, y).  
@@ -367,6 +369,7 @@ public:
 	float getMax() const;
 	void dump(std::ostream& s, int verbosity = 0) const;
 	void dump(std::ostream& s, const MLRect& b) const;
+	void dumpASCII(std::ostream& s) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
 	inline bool is2D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
