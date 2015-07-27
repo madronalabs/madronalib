@@ -139,6 +139,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 	switch (mWarpMode)
 	{
 		case kJucePluginParam_Linear:
+		default:
 			p = (val - lo) / (hi - lo);
 			break;
 		case kJucePluginParam_Exp:
