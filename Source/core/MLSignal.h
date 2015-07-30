@@ -13,7 +13,7 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
-#include "MLDSP.h"
+
 #include "MLVector.h"
 
 #ifdef DEBUG

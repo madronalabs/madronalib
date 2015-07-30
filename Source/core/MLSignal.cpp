@@ -8,10 +8,12 @@
 
 #include "MLSignal.h"
 
+#ifdef DEBUG
 const MLSample kMLSignalEndSamples[4] = 
 {
 	(MLSample)0x01234567, (MLSample)0x89abcdef, (MLSample)0xfedcba98, (MLSample)0x76543210 
 };
+#endif
 
 // ----------------------------------------------------------------
 #pragma mark MLSignal
@@ -25,7 +27,7 @@ MLSignal::MLSignal() :
 {
 	mRate = kMLToBeCalculated;
 	setConstant(false);
-	setDims(kMLProcessChunkSize);
+	setDims(kMLProcessChunkSize); // TODO rewrite everything to allocate explictly
 }
 
 MLSignal::MLSignal (int width, int height, int depth) : 
@@ -1351,6 +1353,7 @@ Vec3 MLSignal::findPeak() const
 int MLSignal::checkIntegrity() const
 {
 	int ret = true;
+#ifdef DEBUG
 	const MLSample* p = mDataAligned + mSize;
 	for(int i=0; i<kMLSignalEndSize; ++i)
 	{
@@ -1360,8 +1363,10 @@ int MLSignal::checkIntegrity() const
 			break;
 		}
 	}
+#endif 
 	return ret;
 }
+
 
 int MLSignal::checkForNaN() const
 {

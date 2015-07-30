@@ -9,5 +9,6 @@
 #define _madronalib_dot_h
 
 #include "../source/core/MLSymbol.h"
+#include "../source/core/MLSignal.h"
 
 #endif // _madronalib_dot_h

@@ -6,7 +6,9 @@
 #ifndef _ML_DSP_H
 #define _ML_DSP_H
 
-// NOTE should require nothing
+#include <cassert>
+#include <iostream>
+#include <string>
 
 #ifdef _WIN32
 	#include <memory>
@@ -22,14 +24,6 @@
 #ifdef __SSE__
 #include <xmmintrin.h>
 #endif
-
-#define SHUFFLE(a, b, c, d) ((a<<6) | (b<<4) | (c<<2) | (d))
-#define SHUFFLE_R(a, b, c, d) ((d<<6) | (c<<4) | (b<<2) | (a))
-
-#include <cassert>
-#include <iostream>
-#include <stdint.h>
-#include <string>
 
 #ifndef DEBUG
 #define force_inline  inline __attribute__((always_inline))

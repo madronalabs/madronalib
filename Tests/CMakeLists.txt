@@ -28,5 +28,5 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 # Add all the tests.
 #--------------------------------------------------------------------
 
-add_executable(tests catch.hpp tests.cpp symbolTest.cpp)
+add_executable(tests catch.hpp tests.cpp symbolTest.cpp signalTest.cpp)
 
