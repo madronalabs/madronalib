@@ -84,7 +84,6 @@ public:
 	void setEngineInputProtocol(int p);
 	void setInputDataRate(int p);
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
-	void clearMIDI();
 	
 	// ----------------------------------------------------------------
 	// Process

@@ -544,14 +544,6 @@ void MLDSPEngine::setInputFrameBuffer(PaUtilRingBuffer* pBuf)
 	}
 }
 
-void MLDSPEngine::clearMIDI()
-{
-	if (mpInputToSignalsProc)
-	{
-		mpInputToSignalsProc->clearChangeLists();
-	}
-}
-
 // ----------------------------------------------------------------
 #pragma mark Process
 
