@@ -8,6 +8,6 @@
 #ifndef _madronalib_dot_h
 #define _madronalib_dot_h
 
-#include "../source/core/MLSymbol.h"
+#include "MLSymbol.h"
 
 #endif // _madronalib_dot_h
