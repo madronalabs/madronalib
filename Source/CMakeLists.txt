@@ -6,6 +6,11 @@ include_directories("${madronalib_SOURCE_DIR}/src"
 
 #add_definitions(-D_MADRONALIB_USE_CONFIG_H)
 
+if(NOT APPLE)
+  find_package(GLUT REQUIRED)
+  find_package(DNSSD REQUIRED)
+endif()
+
 set(madronalib_HEADERS
   ../include/madronalib.h
   )
@@ -246,9 +251,13 @@ target_link_libraries(madronalib juce_graphics)
 target_link_libraries(madronalib juce_gui_basics)
 target_link_libraries(madronalib juce_gui_extra)
 target_link_libraries(madronalib juce_opengl)
-target_link_libraries(madronalib "-framework Foundation")
-target_link_libraries(madronalib "-framework OpenGL")
-target_link_libraries(madronalib "-framework GLUT")
+if(APPLE)
+  target_link_libraries(madronalib "-framework Foundation")
+  target_link_libraries(madronalib "-framework OpenGL")
+  target_link_libraries(madronalib "-framework GLUT")
+else(APPLE)
+  target_link_libraries(madronalib ${DNSSD_LIBRARIES})
+endif()
 
 if (BUILD_SHARED_LIBS)
     if (WIN32)
