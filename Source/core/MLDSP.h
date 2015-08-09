@@ -19,6 +19,11 @@
 	#define	MAXFLOAT	((float)3.40282346638528860e+38)
 #endif
 
+#ifndef MAXFLOAT
+	#include <float.h>
+	#define MAXFLOAT FLT_MAX
+#endif
+
 #ifdef __SSE__
 #include <xmmintrin.h>
 #endif
@@ -30,6 +35,7 @@
 #include <iostream>
 #include <stdint.h>
 #include <string>
+#include <string.h>
 
 #ifndef DEBUG
 #define force_inline  inline __attribute__((always_inline))

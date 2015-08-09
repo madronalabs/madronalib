@@ -8,6 +8,7 @@
 #include "MLSymbol.h"
 #include <iostream>
 #include <sstream>
+#include <string.h>
 	
 
 #pragma mark utilities
