@@ -90,7 +90,9 @@ target_link_libraries(juce_data_structures juce_events)
 
 add_juce_library(juce_events ${ML_FILE_EXTENSION})
 target_link_libraries(juce_events juce_core)
-target_link_libraries(juce_events X11)
+if(NOT APPLE)
+  target_link_libraries(juce_events X11)
+endif()
 
 add_juce_library(juce_graphics ${ML_FILE_EXTENSION})
 if(APPLE)
