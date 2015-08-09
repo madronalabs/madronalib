@@ -3,7 +3,9 @@
 
 project(madronalib CXX)
 
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 2.8.12)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 if (NOT CMAKE_VERSION VERSION_LESS "3.0")
     # Until all major package systems have moved to CMake 3,
