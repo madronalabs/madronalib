@@ -59,12 +59,12 @@ endif()
 # Add subdirectories
 #--------------------------------------------------------------------
 
-add_subdirectory(source)
+add_subdirectory(Source)
 add_subdirectory(external)
 
 
 if (ML_BUILD_TESTS)
-    add_subdirectory(tests)
+    add_subdirectory(Tests)
 endif()
 
 #if (DOXYGEN_FOUND AND ML_BUILD_DOCS)
