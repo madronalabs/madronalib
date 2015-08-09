@@ -149,7 +149,6 @@ set(madronalib_SOURCES
   LookAndFeel/UIData/MLUIBinaryData/MLUIBinaryData.h
   MLApp/MLDebug.cpp
   MLApp/MLDebug.h
-  MLApp/MLDebugMac.mm
   MLApp/MLGL.cpp
   MLApp/MLGL.h
   MLApp/MLInputProtocols.h
@@ -212,6 +211,12 @@ set(madronalib_SOURCES
   MLJuceApp/MLWidgetContainer.cpp
   MLJuceApp/MLWidgetContainer.h
   )
+
+if(APPLE)
+  list(APPEND madronalib_SOURCES MLApp/MLDebugMac.mm)
+else(APPLE)
+  list(APPEND madronalib_SOURCES MLApp/MLDebug.cpp)
+endif()
 
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
