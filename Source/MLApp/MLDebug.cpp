@@ -80,7 +80,10 @@ void MLTextStream::display()
 #endif // DEBUG
 	}
 }
-#elif ML_MAC
+#elif ML_LINUX
+void MLTextStream::display()
+{
+}
 
 #endif 
 
