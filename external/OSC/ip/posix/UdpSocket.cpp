@@ -35,8 +35,6 @@
 	above license is reproduced.
 */
 
-#if defined(__APPLE__)
-
 #include "UdpSocket.h"
 
 #include <pthread.h>
@@ -601,5 +599,3 @@ void SocketReceiveMultiplexer::AsynchronousBreak()
 {
 	impl_->AsynchronousBreak();
 }
-
-#endif

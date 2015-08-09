@@ -35,8 +35,6 @@
 	above license is reproduced.
 */
 
-#if defined(__APPLE__)
-
 #include "NetworkingUtils.h"
 
 #include <netdb.h>
@@ -66,4 +64,3 @@ unsigned long GetHostByName( const char *name )
     return result;
 }
 
-#endif
