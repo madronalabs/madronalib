@@ -283,7 +283,3 @@ if (BUILD_SHARED_LIBS)
 
     target_link_libraries(madronalib ${madronalib_LIBRARIES})
 endif()
-
-
-install(TARGETS madronalib EXPORT madronalibTargets DESTINATION lib${LIB_SUFFIX})
-
