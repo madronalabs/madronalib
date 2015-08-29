@@ -39,8 +39,5 @@ TEST_CASE("madronalib/core/signal/creation", "[signal][creation]")
 	}
 	
 	std::cout<< "sum: " << sum  << "\n";
-	
-	
-	
 }
 

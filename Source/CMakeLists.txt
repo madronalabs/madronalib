@@ -9,7 +9,7 @@ include_directories("${madronalib_SOURCE_DIR}/src"
 
 set(common_HEADERS ../include/madronalib.h)
 set(madronalib_HEADERS ${common_HEADERS} core/MLSymbol.h)
-set(madronalib_SOURCES core/MLSymbol.cpp)
+set(madronalib_SOURCES core/MLSymbol.cpp core/MLDSP.cpp core/MLVector.cpp core/MLSignal.cpp)
 
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

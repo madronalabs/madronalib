@@ -552,6 +552,8 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			v1 = message.getControllerNumber();
 			v2 = message.getControllerValue()/127.f;
 			
+			// debug() << "CONTROLLER # " << v1 << " : " << message.getControllerValue() << "\n";
+			
 			/*
 			// look for MPE Mode messages
 			if(v1 == 127)

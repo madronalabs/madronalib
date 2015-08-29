@@ -98,7 +98,8 @@ public:
 // ----------------------------------------------------------------
 #pragma mark MLSineOsc
 
-// this sine generator makes a looping counter by letting a 32 bit word overflow.
+// this sine generator makes a looping counter by letting a 32 bit word overflow. The frequency 
+// resolution of this counter is good enough for most uses: around 0.000005 Hz.
 class MLSineOsc
 {
 public:
