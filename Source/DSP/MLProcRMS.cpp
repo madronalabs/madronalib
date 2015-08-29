@@ -45,6 +45,7 @@ float MLProcRMS::getRMS()
 	if(mRMS != mRMS)
 	{
 		debug() << "RMS NaN!\n";
+		clear();
 	}
 	return mRMS; 
 }
