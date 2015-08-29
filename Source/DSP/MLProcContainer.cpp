@@ -1086,7 +1086,8 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 
 // TODO this can't possibly work with multis inside multis, since the copy # is specified
 // for the entire path. Fix with new MLPath structure with copy or wildcard per branch.
-void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, int copies)
+// if enabledOnly is true, return only enabled procs.
+void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, int copies, bool enabledOnly)
 {
 	pList.clear();
 	for(int i=1; i<=copies; ++i)
@@ -1096,8 +1097,10 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 		MLProcPtr proc = getProc(pathI);		
 		if (proc)
 		{
- 			if(proc->isEnabled())
+ 			if(proc->isEnabled() || !enabledOnly)
+			{
 				pList.push_back(proc);
+			}
 		}
 	}
 }

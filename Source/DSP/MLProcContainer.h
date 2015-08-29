@@ -255,7 +255,7 @@ public:
 	virtual MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi);
 	//	
 	virtual MLProcPtr getProc(const MLPath & pathName); 
-	void getProcList(MLProcList& pList, const MLPath & pathName, int copies);
+	void getProcList(MLProcList& pList, const MLPath & pathName, int copies, bool enabledOnly = true);
 	//
 	virtual void publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias);
 	virtual void publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias);	
