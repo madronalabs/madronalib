@@ -162,6 +162,9 @@ public:
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 
+	// interpolators could be lambdas?
+	// play with ideas and benchmark. 
+	
 	inline MLSample getInterpolatedLinear(float fi, float fj) const
     {
         MLSample a, b, c, d;
@@ -381,6 +384,41 @@ public:
 	inline int plane(int i) const { return i<<mWidthBits<<mHeightBits; }
 	inline int getRowStride() const { return 1<<mWidthBits; }
 	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
+	
+	// utilities for getting pointers to the aligned data as other types.
+	uint32_t* asUInt32Ptr(void) const
+	{
+		return reinterpret_cast<uint32_t*>(mDataAligned);
+	}
+	const uint32_t* asConstUInt32Ptr(void) const
+	{
+		return reinterpret_cast<const uint32_t*>(mDataAligned);
+	}
+	int32_t* asInt32Ptr(void) const
+	{
+		return reinterpret_cast<int32_t*>(mDataAligned);
+	}
+	const int32_t* asConstInt32Ptr(void) const
+	{
+		return reinterpret_cast<const int32_t*>(mDataAligned);
+	}
+	__m128* asM128Ptr(void) const
+	{
+		return reinterpret_cast<__m128*>(mDataAligned);
+	}
+	const __m128* asConstM128Ptr(void) const
+	{
+		return reinterpret_cast<const __m128*>(mDataAligned);
+	}
+	__m128i* asM128IPtr(void) const
+	{
+		return reinterpret_cast<__m128i*>(mDataAligned);
+	}
+	const __m128i* asConstM128IPtr(void) const
+	{
+		return reinterpret_cast<const __m128i*>(mDataAligned);
+	}
+	
     
 private:
 	// private signal constructor: make a reference to a frame of the external signal.
@@ -392,7 +430,6 @@ private:
 	MLSample* allocateData(int size);
 	MLSample* initializeData(MLSample* pData, int size);
 
-private:
 	// start of data in memory. 
 	// If this is 0, we do not own any data.  However, in the case of a
 	// reference to another signal mDataAligned may still refer to external data.
