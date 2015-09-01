@@ -34,7 +34,7 @@ File getDefaultFileLocation(eFileTypes whichFiles)
         startStr = String("~/Music/") + String(MLProjectInfo::makerName);
         startDir = File(startStr);
     #elif JUCE_LINUX || JUCE_ANDROID
-        startDir = File("~/" + "." + makerName);
+        startDir = File("~/" "." + String(MLProjectInfo::makerName));
     #elif JUCE_WINDOWS
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
 		startDir = startDir.getChildFile(String(MLProjectInfo::makerName));

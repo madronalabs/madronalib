@@ -34,7 +34,7 @@
 #ifndef JUCE_OPENGL_H_INCLUDED
 #define JUCE_OPENGL_H_INCLUDED
 
-#include "../juce_gui_extra/juce_gui_extra.h"
+#include "modules/juce_gui_extra/juce_gui_extra.h"
 
 #undef JUCE_OPENGL
 #define JUCE_OPENGL 1
@@ -114,26 +114,26 @@ namespace juce
 	class OpenGLTexture;
 	class OpenGLFrameBuffer;
 	class OpenGLShaderProgram;
-	
-#include "geometry/juce_Quaternion.h"
-#include "geometry/juce_Matrix3D.h"
-#include "geometry/juce_Vector3D.h"
-#include "geometry/juce_Draggable3DOrientation.h"
-#include "native/juce_MissingGLDefinitions.h"
-#include "opengl/juce_OpenGLHelpers.h"
-#include "opengl/juce_OpenGLPixelFormat.h"
-#include "native/juce_OpenGLExtensions.h"
-#include "opengl/juce_OpenGLRenderer.h"
-#include "opengl/juce_OpenGLContext.h"
-#include "opengl/juce_OpenGLFrameBuffer.h"
-#include "opengl/juce_OpenGLGraphicsContext.h"
-#include "opengl/juce_OpenGLHelpers.h"
-#include "opengl/juce_OpenGLImage.h"
-#include "opengl/juce_OpenGLRenderer.h"
-#include "opengl/juce_OpenGLShaderProgram.h"
-#include "opengl/juce_OpenGLTexture.h"
-#include "utils/juce_OpenGLAppComponent.h"
-	
+
+#include "modules/juce_opengl/geometry/juce_Quaternion.h"
+#include "modules/juce_opengl/geometry/juce_Matrix3D.h"
+#include "modules/juce_opengl/geometry/juce_Vector3D.h"
+#include "modules/juce_opengl/geometry/juce_Draggable3DOrientation.h"
+#include "modules/juce_opengl/native/juce_MissingGLDefinitions.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLHelpers.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLPixelFormat.h"
+#include "modules/juce_opengl/native/juce_OpenGLExtensions.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLRenderer.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLContext.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLFrameBuffer.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLGraphicsContext.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLHelpers.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLImage.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLRenderer.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLShaderProgram.h"
+#include "modules/juce_opengl/opengl/juce_OpenGLTexture.h"
+#include "modules/juce_opengl/utils/juce_OpenGLAppComponent.h"
+
 }
 
 #endif   // JUCE_OPENGL_H_INCLUDED

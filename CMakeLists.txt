@@ -5,11 +5,7 @@ project(madronalib CXX)
 
 cmake_minimum_required(VERSION 2.8.12)
 
-if (NOT CMAKE_VERSION VERSION_LESS "3.0")
-    # Until all major package systems have moved to CMake 3,
-    # we stick with the older INSTALL_NAME_DIR mechanism
-    cmake_policy(SET CMP0042 OLD)
-endif()
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 set(madronalib_VERSION_MAJOR "0")
 set(madronalib_VERSION_MINOR "1")
@@ -17,14 +13,12 @@ set(madronalib_VERSION_PATCH "0")
 set(madronalib_VERSION_EXTRA "")
 set(madronalib_VERSION "${madronalib_VERSION_MAJOR}.${madronalib_VERSION_MINOR}")
 set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${madronalib_VERSION_EXTRA}")
-set(LIB_SUFFIX "" CACHE STRING "Takes an empty string or 64. Directory where lib will be installed: lib or lib64")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_TESTS "Build the ML test programs" ON)
 option(ML_BUILD_DOCS "Build the ML documentation" OFF)
-option(ML_INSTALL "Generate installation target" ON)
 option(ML_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
 if (ML_BUILD_DOCS)
@@ -49,20 +43,20 @@ set(madronalib_NAME madrona)
 # Enforce out of source build
 #--------------------------------------------------------------------
 
-
-set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
-include(MacroOutOfSourceBuild)
-macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
+if(CMAKE_BINARY_DIR EQUAL CMAKE_SOURCE_DIR)
+  message(FATAL_ERROR "Madronalib requires an out of source build")
+endif()
 
 #--------------------------------------------------------------------
 # Add subdirectories
 #--------------------------------------------------------------------
-    
-add_subdirectory(source)
+
+add_subdirectory(Source)
+add_subdirectory(external)
 
 
 if (ML_BUILD_TESTS)
-    add_subdirectory(tests)
+    add_subdirectory(Tests)
 endif()
 
 #if (DOXYGEN_FOUND AND ML_BUILD_DOCS)

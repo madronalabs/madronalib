@@ -330,7 +330,7 @@ File MLAppState::getAppStateDir() const
     dir = dir.getChildFile (applicationName);
 
    #elif JUCE_LINUX || JUCE_ANDROID
-	File dir ("~/" + "." + makerName + "/" + applicationName);
+	File dir ("~/" "." + makerName + "/" + applicationName);
 
    #elif JUCE_WINDOWS
     File dir (File::getSpecialLocation (File::userApplicationDataDirectory));

@@ -21,6 +21,11 @@
 	#define	MAXFLOAT	((float)3.40282346638528860e+38)
 #endif
 
+#ifndef MAXFLOAT
+	#include <float.h>
+	#define MAXFLOAT FLT_MAX
+#endif
+
 #ifdef __SSE__
 #include <xmmintrin.h>
 #endif

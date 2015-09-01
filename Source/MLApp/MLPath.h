@@ -6,6 +6,8 @@
 #ifndef _ML_PATH_H
 #define _ML_PATH_H
 
+#include <string.h>
+
 #include "MLDebug.h"
 #include "MLSymbol.h"
 

@@ -7,7 +7,7 @@
 #ifndef __ML_OSC_LISTENER_H__
 #define __ML_OSC_LISTENER_H__
 
-#if defined(__APPLE__)
+#if !ML_WINDOWS
 
 #include "MLPlatform.h"
 

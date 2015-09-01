@@ -5,13 +5,16 @@
 
 #include "MLTime.h"
 
-juce::int64 getMicroseconds()
+#include "JuceHeader.h"
+#include "modules/juce_core/time/juce_Time.h"
+
+int64 getMicroseconds()
 {
 
 /*
 #if ML_WINDOWS
-	UInt64 millis = timeGetTime(); 
-	r = millis*1000;	
+	UInt64 millis = timeGetTime();
+	r = millis*1000;
 #elif ML_LINUX
 	timespec t;
     clock_gettime (CLOCK_MONOTONIC, &t);
@@ -25,10 +28,10 @@ juce::int64 getMicroseconds()
 
 */
 
-	juce::int64 now = juce::Time::getHighResolutionTicks();
+	int64 now = juce::Time::getHighResolutionTicks();
 	double t = juce::Time::highResolutionTicksToSeconds (now);
 	double micros = t*1000000.;
-	juce::int64 m = micros;
+	int64 m = micros;
 	return m;
 }
 

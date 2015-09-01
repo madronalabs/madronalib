@@ -39,6 +39,8 @@
 
 #include "MLNetServiceHub.h"
 
+#include <algorithm>
+
 const char * kDomainLocal = "local.";
 const char * kServiceTypeUDP = "_osc._udp";
 
