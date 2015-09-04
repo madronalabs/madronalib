@@ -77,6 +77,29 @@ mCopyAligned(0)
 	}
 }
 
+// constructor for making loops. only one type for now. we could loop in different directions and dimensions.
+MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
+mData(0),
+mDataAligned(0),
+mCopy(0),
+mCopyAligned(0)
+{
+	switch(loopType)
+	{
+		case kLoopType1DEnd:
+		default:
+		{
+			int w = other.getWidth();
+			int loopWidth = clamp(loopSize, 0, w);
+			setDims(w + loopWidth, 1, 1);
+			mRate = other.mRate;
+			std::copy(other.mDataAligned, other.mDataAligned + w, mDataAligned);
+			std::copy(other.mDataAligned, other.mDataAligned + loopWidth, mDataAligned + w);
+		}
+		break;
+	}
+}
+
 MLSignal& MLSignal::operator= (const MLSignal& other)
 {
 	if (this != &other) // protect against self-assignment
@@ -1656,4 +1679,8 @@ std::ostream& operator<< (std::ostream& out, const MLSignal & s)
 	return out;
 }
 
-
+// helper functions
+MLSignal MLSignal::copyWithLoopAtEnd(const MLSignal& src, int loopLength)
+{
+	return MLSignal(src, kLoopType1DEnd, loopLength);
+}

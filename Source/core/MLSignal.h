@@ -24,6 +24,11 @@
 
 extern const MLSample kMLSignalEndSamples[4];
 
+typedef enum
+{
+	kLoopType1DEnd = 0
+} eLoopType;
+
 // ----------------------------------------------------------------
 // A signal. A finite, discrete representation of data we will 
 // generate, modify, look at listen to, etc.
@@ -63,6 +68,9 @@ public:
 	MLSignal(const MLSignal& b);
 	MLSignal(int width, int height = 1, int depth = 1); 
 	MLSignal (std::initializer_list<float> values);
+
+	// create a looped version of the signal argument, according to the loop type
+	MLSignal(MLSignal src, eLoopType loopType, int loopLength); 
 
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
@@ -419,7 +427,9 @@ public:
 		return reinterpret_cast<const __m128i*>(mDataAligned);
 	}
 	
-    
+	// helper functions
+	static MLSignal copyWithLoopAtEnd(const MLSignal& src, int loopLength);
+
 private:
 	// private signal constructor: make a reference to a frame of the external signal.
 	MLSignal(const MLSignal* other, int frame);
