@@ -1897,7 +1897,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 				// make queue if needed
 				if(p->getNeedsQueue())
 				{
-					debug() << "ADDING queue for " << p->getAlias() << "\n";
+					// debug() << "ADDING queue for " << p->getAlias() << "\n";
 				}
 			}
 		}

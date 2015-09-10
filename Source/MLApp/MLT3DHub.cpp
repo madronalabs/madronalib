@@ -47,7 +47,6 @@ MLT3DHub::MLT3DHub() :
 
 MLT3DHub::~MLT3DHub()
 {
-	debug() << "deleting MLT3DHub\n";
 	stopTimer();
 	disconnect();
 }

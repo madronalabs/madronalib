@@ -11,7 +11,6 @@ const char* kUDPAddressName = "localhost";
 #if OSC_PARAMS	
 	const int kSeqInfoPort = 9123;
 	const int kUDPOutputBufferSize = 1024;
-
 	const int kScribbleScenePort = 9223;
 #endif
 
@@ -62,7 +61,6 @@ MLPluginProcessor::MLPluginProcessor() :
 
 MLPluginProcessor::~MLPluginProcessor()
 {
-	debug() << "deleting MLPluginProcessor\n";
 #if defined (__APPLE__)
 	mT3DHub.removeListener(this);
 #endif

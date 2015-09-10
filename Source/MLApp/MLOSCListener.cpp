@@ -20,7 +20,6 @@ MLOSCListener::MLOSCListener() :
 
 MLOSCListener::~MLOSCListener()
 {
-	std::cout << "deleting  MLOSCListener\n";
 	listenToOSC(0);
 }
 

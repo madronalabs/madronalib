@@ -11,6 +11,11 @@
 // about buffer size, sample rate, etc.  MLProc doesn't want to include 
 // MLProcContainer. 
 
+// TODO we would like any proc to be able to look up resources, and for those resources to be
+// shared between procs. To this end make an MLDSPDevice object that will hold all resources.
+// One such object (singleton) services one application in which DSP is happening, essentially. 
+// or it could be called DSPResourceLibrary or something.
+
 #ifndef _ML_DSP_CONTEXT_H
 #define _ML_DSP_CONTEXT_H
 
