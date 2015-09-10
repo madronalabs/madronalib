@@ -22,3 +22,9 @@ MLFile::MLFile(const std::string& path) :
 MLFile::~MLFile()
 {
 }
+
+std::string MLFile::getParentDirectoryName() const
+{
+	// temp
+	return std::string(mJuceFile.getParentDirectory().getFileNameWithoutExtension().toUTF8());
+}

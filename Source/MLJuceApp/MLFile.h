@@ -28,8 +28,10 @@ public:
     bool isDirectory() const { return mJuceFile.isDirectory(); }
 	bool operator== (const MLFile& b) const { return getJuceFile().getFullPathName() == b.getJuceFile().getFullPathName(); }
 	
-    const std::string & getShortName() const { return mShortName; }
+	const std::string & getShortName() const { return mShortName; }
     const std::string & getLongName() const { return mLongName; }
+	
+	std::string getParentDirectoryName() const;
 	juce::File getJuceFile() const { return mJuceFile; }
 	
 	static const MLFile nullObject;
