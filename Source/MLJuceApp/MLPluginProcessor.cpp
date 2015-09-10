@@ -57,9 +57,6 @@ MLPluginProcessor::MLPluginProcessor() :
 	
 	mpOSCVisualsBuf.resize(kUDPOutputBufferSize);
 	mVisualsSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kScribbleScenePort)));		
-		
-	
-	
 #endif		
 }
 

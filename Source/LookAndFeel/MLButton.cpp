@@ -23,7 +23,7 @@ MLButton::MLButton () :
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	
-	setProperty("toggle", 1);
+	setProperty("toggle", true);
 	mDoRollover = false;
 	
 	setFillColor (Colours::lightgrey);
