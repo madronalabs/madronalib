@@ -158,6 +158,8 @@ public:
 	inline operator bool() const { return mID != 0; }
 	inline int getID() const { return mID; }
 	
+	// in order to show the strings in XCode's debugger, instead of the unhelpful mID,
+	// edit the summary format for MLSymbol within XCode to {$VAR.getString()}:s
 	const std::string& getString() const;
 	
 	bool beginsWith (const MLSymbol b) const;
