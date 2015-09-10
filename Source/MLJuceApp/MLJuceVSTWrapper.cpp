@@ -399,21 +399,25 @@ public:
             return 1;
         }
 
-        if (strcmp (text, "openCloseAnyThread") == 0)
-        {
-            // This tells Wavelab to use the UI thread to invoke open/close,
-            // like all other hosts do.
-            return -1;
-        }
-        
-       #if JUCE_MAC
+		if (strcmp (text, "openCloseAnyThread") == 0)
+		{
+			// This tells Wavelab to use the UI thread to invoke open/close,
+			// like all other hosts do.
+			return -1;
+		}
+		
+#if JUCE_MAC
         if (strcmp (text, "hasCockosViewAsConfig") == 0)
         {
             useNSView = true;
             return (VstInt32) 0xbeef0000;
-    }
-       #endif
-    
+		}
+#endif
+		if (strcmp (text, "MPE") == 0)
+		{
+			return 1; // Plugin supports MIDI Polyphonic Expression
+		}
+		    
         return 0;
     }
 
