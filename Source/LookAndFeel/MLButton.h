@@ -38,6 +38,7 @@ public:
 	
     virtual void clicked();
 	void resizeWidget(const MLRect& b, const int u);
+	void setLineThickness(float f);
 	void setToggleValues(float, float);
 
 	// MLPropertyListener

@@ -182,6 +182,11 @@ void MLButton::resizeWidget(const MLRect& b, const int u)
     }
 }
 
+void MLButton::setLineThickness(float f)
+{
+	mLineThickness = f;
+}
+
 void MLButton::setToggleValues(float lo, float hi)
 {
 	mOffValue = lo;
