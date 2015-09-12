@@ -32,10 +32,21 @@ See the issues for planned functionality that is currently not present in any fo
 Building
 ----------
 
-Madronalib can not currently build on its own; it has to be built from within an
+Madronalib is not typically meant to build on its own; it has to be built from within an
 application that includes Madronalib's `CMakeLists.txt` and defines the variable
 `ML_JUCE_HEADER_PATH` to be a path to a directory that contains a JUCE
 `JuceHeader.h` and `AppConfig.h`.
 
-Work is ongoing to remove the JUCE dependency from Madronalib, so hopefully this
-will go away in not too long.
+Work is ongoing to remove the JUCE dependency from Madronalib. For building only the new 
+code independently of JUCE, use the BUILD_NEW_ONLY option in CMake as follows:
+
+	mkdir build-new
+	cd build-new
+	cmake -DBUILD_NEW_ONLY=1 ..
+	make
+
+This will create a command-line build of all the new code with a test executable in 
+madronalib/build-new-Tests. To add files to the new regime they must be added to 
+madronalib_SOURCES; this list can be found in source/CMakeLists.txt.
+
+

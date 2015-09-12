@@ -130,9 +130,3 @@ else(APPLE)
   target_link_libraries(juce_opengl ${OPENGL_LIBRARIES})
 endif()
 
-add_juce_library(juce_tracktion_marketplace cpp)
-target_link_libraries(juce_tracktion_marketplace juce_data_structures)
-target_link_libraries(juce_tracktion_marketplace juce_cryptography)
-
-add_juce_library(juce_video ${ML_FILE_EXTENSION})
-target_link_libraries(juce_video juce_gui_extra)

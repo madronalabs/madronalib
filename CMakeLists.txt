@@ -16,6 +16,11 @@ set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
+# a major rewrite is under way.
+# set BUILD_NEW_ONLY to build the modules that are rewritten.
+# this allows madronalib to be built independently.
+option(BUILD_NEW_ONLY "Build only the modernized codebase" OFF)
+
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_TESTS "Build the ML test programs" ON)
 option(ML_BUILD_DOCS "Build the ML documentation" OFF)
@@ -53,7 +58,6 @@ endif()
 
 add_subdirectory(Source)
 add_subdirectory(external)
-
 
 if (ML_BUILD_TESTS)
     add_subdirectory(Tests)
