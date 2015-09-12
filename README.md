@@ -50,3 +50,28 @@ madronalib/build-new-Tests. To add files to the new regime they must be added to
 madronalib_SOURCES; this list can be found in source/CMakeLists.txt.
 
 
+
+Contents
+--------
+
+/cmake : any modules or tools for the cmake build system
+/examples: example projects
+/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
+/include: madronalib.h
+/source:
+	/core: new files with tests and doxygen documentation, suitable for use outside the Labs. 
+		files in here must not be dependent on JUCE. 
+		files are being moved in as they are cleaned up.
+		all files in core will be included in /include/madronalib.h as they are moved in.
+
+	/DSP: some DSP utils to move to /core. many procs to move to /procs.
+	/LookAndFeel: widgets for JUCE-based display, to convert to OpenGL widgets.
+	/MLApp: current code, MVC framework for apps. to move to /core.
+	/MLJuceApp: current code, adapters to JUCE framework, to remove.
+	/procs: where converted DSP processors will go. 
+	/widgets where new widgets will go.
+
+
+
+
+
