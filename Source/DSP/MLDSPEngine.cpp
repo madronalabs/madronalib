@@ -121,8 +121,8 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
                     publishSignal(procPath, outSym, aliasSym, mode, bufLength);
                 }
             }
-         }
-            
+		}
+		
 		graphOK = true;
 	}
 	
@@ -143,7 +143,7 @@ void MLDSPEngine::removeGraphAndInputs(void)
 	mGraphStatus = unknownErr;
 	mCompileStatus = unknownErr;
 	{
-	// unimplemented
+		// unimplemented
 	}
 }
 

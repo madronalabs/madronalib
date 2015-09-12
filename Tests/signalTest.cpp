@@ -11,7 +11,7 @@
 
 TEST_CASE("madronalib/core/signal/creation", "[signal][creation]")
 {
-	// comparisons are by value
+	// signal comparisons are by value
 	MLSignal a;
 	MLSignal b;
 	REQUIRE(a == b);
@@ -38,6 +38,6 @@ TEST_CASE("madronalib/core/signal/creation", "[signal][creation]")
 		sum += b[i];
 	}
 	
-	std::cout<< "sum: " << sum  << "\n";
+	std::cout << "MLSignal sum: " << sum  << "\n";
 }
 
