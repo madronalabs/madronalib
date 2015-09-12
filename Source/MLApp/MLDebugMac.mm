@@ -6,16 +6,18 @@
 #include "MLPlatform.h"
 #include <Cocoa/Cocoa.h>
 #include "MLDebug.h"
-#include "JuceHeader.h"
+//#include "JuceHeader.h"
 	
 #ifdef ML_MAC
 
 void MLTextStream::display()
 {
+	/*
     if (!(juce::MessageManager::getInstance()->isThisTheMessageThread()))
     {
         return;
     }
+	 */
 	if(mpListener)
 	{
 		mpListener->display();
