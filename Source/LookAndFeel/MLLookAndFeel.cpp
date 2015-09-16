@@ -1130,59 +1130,62 @@ void MLLookAndFeel::drawComboBox (Graphics& g, int width, int height,
                                 int buttonW, int buttonH,
                                 ComboBox& box)
 {
- //   g.fillAll (box.findColour (ComboBox::backgroundColourId));
+	const float alpha = box.isEnabled() ? 1.f : 0.33f;	
+	
+	Colour backgroundColour = box.findColour(MLTextButton::buttonColourId);
+	Colour buttonColor = backgroundColour.withAlpha(alpha);
+	Colour blineColor = findColour(outlineColor).withAlpha(alpha);
+	
+	float outlineThickness = height/20.f;
+	
+	int flair = 0;
+	if (isButtonDown)
+	{
+		flair |= (eMLAdornPressed);
+	}	
+	
+	g.setColour (blineColor);
+	int u = getGridUnitSize();
+	int m = getSmallMargin() * u; 
+	int w = buttonW;
+	int h = buttonH;
+	
+	drawMLButtonShape (g, buttonX + m, buttonY, buttonW - m, buttonH,
+					   0, buttonColor, blineColor, outlineThickness, flair, 0., 0.);
+	
+	
+	// float textSize = getButtonTextSize(button);	
+	float textSize = buttonH*0.66f;
 
-    if (box.isEnabled() && box.hasKeyboardFocus (false))
-    {
-        g.setColour (box.findColour (TextButton::buttonColourId));
-        g.drawRect (0, 0, width, height, 2);
-    }
-    else
-    {
-        g.setColour (box.findColour (ComboBox::outlineColourId));
-        g.drawRect (0, 0, width, height);
-    }
-
-    const float outlineThickness = box.isEnabled() ? (isButtonDown ? 1.2f : 0.5f) : 0.3f;
-
-    const Colour baseColour (createMLBaseColour (box.findColour (ComboBox::buttonColourId),
-                                               box.hasKeyboardFocus (true),
-                                               false, isButtonDown)
-                               .withMultipliedAlpha (box.isEnabled() ? 1.0f : 0.5f));
-
-    drawGlassLozenge (g,
-                      buttonX + outlineThickness, buttonY + outlineThickness,
-                      buttonW - outlineThickness * 2.0f, buttonH - outlineThickness * 2.0f,
-                      baseColour, outlineThickness, -1.0f,
-                      true, true, true, true);
-
-    if (box.isEnabled())
-    {
-        const float arrowX = 0.3f;
-        const float arrowH = 0.2f;
-
-        Path p;
-        p.addTriangle (buttonX + buttonW * 0.5f,            buttonY + buttonH * (0.45f - arrowH),
-                       buttonX + buttonW * (1.0f - arrowX), buttonY + buttonH * 0.45f,
-                       buttonX + buttonW * arrowX,          buttonY + buttonH * 0.45f);
-
-        p.addTriangle (buttonX + buttonW * 0.5f,            buttonY + buttonH * (0.55f + arrowH),
-                       buttonX + buttonW * (1.0f - arrowX), buttonY + buttonH * 0.55f,
-                       buttonX + buttonW * arrowX,          buttonY + buttonH * 0.55f);
-
-        g.setColour (Colour (0x99000000));
-        g.fillPath (p);
-    }
+	Font f(mTitleFont);
+	f.setHeight(floor(textSize) + 0.75f);
+	f.setExtraKerningFactor(getButtonTextKerning(textSize));
+	g.setFont(f);
+	g.drawFittedText (String("Go to..."),
+					  buttonX + m, buttonY, w - m, h,
+					  Justification::centred, 1., 1.);
 }
 
 Font MLLookAndFeel::getComboBoxFont (ComboBox& box)
 {
-     return Font (jmin (18.0f, (float)floor(box.getHeight() * 0.7f)+0.5f));
+	Font f = getFont(eMLPlain);
+	f.setHeight(box.getHeight()*0.8f);
+	return f;	
 }
 
 Label* MLLookAndFeel::createComboBoxTextBox (ComboBox&)
 {
     return new Label (String::empty, String::empty);
+}
+
+void MLLookAndFeel::positionComboBoxText (ComboBox& box, Label& label)
+{
+	int w = box.getWidth();
+	label.setBounds (1, 1,
+					 w - w/5,
+					 box.getHeight() - 2);
+	
+	label.setFont (getComboBoxFont (box));
 }
 
 

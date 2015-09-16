@@ -284,6 +284,7 @@ public:
     Font getComboBoxFont (ComboBox& box);
 
     Label* createComboBoxTextBox (ComboBox& box);
+	void positionComboBoxText (ComboBox& box, Label& label);
 
     
     #pragma mark TreeView
