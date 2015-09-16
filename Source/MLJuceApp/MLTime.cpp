@@ -8,7 +8,7 @@
 #include "JuceHeader.h"
 // #include "modules/juce_core/time/juce_Time.h"
 
-int64 getMicroseconds()
+uint64_t getMicroseconds()
 {
 
 /*
