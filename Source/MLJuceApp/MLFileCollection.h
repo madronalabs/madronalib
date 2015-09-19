@@ -54,18 +54,19 @@ public:
 	
 	// TODO this looks a lot like MLMenu::Node and should use the same Node template or object
 	class TreeNode;
-	typedef std::shared_ptr<TreeNode> TreeNodePtr;
-	typedef std::map<std::string, TreeNodePtr, MLStringCompareFn> StringToNodeMapT;
+	
+	typedef std::map<std::string, TreeNode, MLStringCompareFn> StringToNodeMapT;
 	class TreeNode
 	{
 	public:
-		TreeNode(MLFilePtr f);
+		TreeNode();
+		TreeNode(const MLFile& f);
 		~TreeNode();
 		
 		void clear();
 		
 		// insert a file into the tree, routing by path name relative to collection root.
-		void insertFile(const std::string& relPath, MLFilePtr f);
+		void insertFile(const std::string& relPath, const MLFile& f);
 		
 		// find a file by relative path. TODO this should use symbols.
 		// Would require an unambiguous mapping from UTF-8 to symbols.
@@ -75,12 +76,12 @@ public:
 		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
 		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
 
-		void buildIndex(std::vector<MLFilePtr>& index) const;
+		void buildIndex(std::vector<MLFile>& index) const;
 
-		void dump(int level = 0);
+		void dump(int level = 0) const;
 		
 		StringToNodeMapT mChildren;
-		MLFilePtr mFile;
+		MLFile mFile;
 	};
 	
 	MLFileCollection(MLSymbol name, const File startDir, String extension);
@@ -122,7 +123,7 @@ public:
     const MLFile& getFileByIndex(int idx);
 
     // make a new file. TODO return const MLFile &
-    const MLFilePtr createFile(const std::string& relativePath);
+    const MLFile& createFile(const std::string& relativePath);
 
     // given a full system file name, get its path relative to our starting directory.
     std::string getRelativePathFromName(const std::string& name) const;
@@ -145,10 +146,10 @@ private:
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 	void run();
 	
-    TreeNodePtr mRoot;
+    TreeNode mRoot;
 	
 	// leaf files in collection stored by index.
-    std::vector<MLFilePtr> mFilesByIndex;
+    std::vector<MLFile> mFilesByIndex;
 	
     MLSymbol mName;
     String mExtension;
