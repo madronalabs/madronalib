@@ -1049,13 +1049,13 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 	
     std::string extension (".mlpreset");
     std::string extPath = path + extension;
-    const MLFilePtr f = mPresetFiles->createFile(extPath);
-    if(!f->getJuceFile().exists())
+    const MLFile& f = mPresetFiles->createFile(extPath);
+    if(!f.getJuceFile().exists())
     {
-        f->getJuceFile().create();
+        f.getJuceFile().create();
     }
 	
-    f->getJuceFile().replaceWithText(getStateAsText());
+    f.getJuceFile().replaceWithText(getStateAsText());
 	
 	// reset state stack and push current state for recall
 	mpPatchState->clearStateStack();
