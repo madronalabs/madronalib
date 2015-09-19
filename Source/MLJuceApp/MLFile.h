@@ -14,9 +14,6 @@
 #include "MLMenu.h"
 #include "MLTypes.h"
 
-class MLFile;
-typedef std::shared_ptr<MLFile> MLFilePtr;
-
 class MLFile
 {
 public:
@@ -24,26 +21,21 @@ public:
     MLFile(const std::string& path);
     ~MLFile();
     
-    bool exists() const { return mJuceFile.exists(); }
+	bool exists() const;
     bool isDirectory() const { return mJuceFile.isDirectory(); }
 	bool operator== (const MLFile& b) const { return getJuceFile().getFullPathName() == b.getJuceFile().getFullPathName(); }
+	bool operator!= (const MLFile& b) const { return !(operator==(b)); }
 	
-	const std::string & getShortName() const { return mShortName; }
-    const std::string & getLongName() const { return mLongName; }
+	std::string getShortName() const;
+	std::string getLongName() const;
 	
 	std::string getParentDirectoryName() const;
-	juce::File getJuceFile() const { return mJuceFile; }
+	const juce::File& getJuceFile() const { return mJuceFile; }
 	
 	static const MLFile nullObject;
 	
 private:
 	juce::File mJuceFile;
-
-    // the file's name including prefix.
-	std::string mShortName;
-	
-    // path relative to collection root including name
-    std::string mLongName;
 
 };
 

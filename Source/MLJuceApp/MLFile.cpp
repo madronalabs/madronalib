@@ -10,21 +10,35 @@
 
 const MLFile MLFile::nullObject;
 
-MLFile::MLFile(){}
-
-MLFile::MLFile(const std::string& path) :
-    mJuceFile(path)
+MLFile::MLFile() 
 {
-	mShortName = std::string(mJuceFile.getFileNameWithoutExtension().toUTF8());
-	mLongName = std::string(mJuceFile.getFullPathName().toUTF8());
+}
+
+MLFile::MLFile(const std::string& path)
+{
+	mJuceFile = juce::File(path);
 }
 
 MLFile::~MLFile()
 {
 }
 
+bool MLFile::exists() const 
+{ 
+	return mJuceFile.exists(); 
+}
+
+std::string MLFile::getShortName() const 
+{ 
+	return(std::string(mJuceFile.getFileNameWithoutExtension().toUTF8()));
+}
+
+std::string MLFile::getLongName() const 
+{
+	return(std::string(mJuceFile.getFullPathName().toUTF8()));
+}
+
 std::string MLFile::getParentDirectoryName() const
 {
-	// temp
 	return std::string(mJuceFile.getParentDirectory().getFileNameWithoutExtension().toUTF8());
 }
