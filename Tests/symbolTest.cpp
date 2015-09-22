@@ -283,4 +283,50 @@ TEST_CASE("madronalib/core/symbol/sorting", "[symbol][sorting]")
 
 #endif
 
+// hex char printing
+struct HexCharStruct
+{
+	unsigned char c;
+	HexCharStruct(unsigned char _c) : c(_c) { }
+};
+
+inline std::ostream& operator<<(std::ostream& o, const HexCharStruct& hs)
+{
+	return (o << std::hex << (int)hs.c << std::dec );
+}
+
+inline HexCharStruct hexchar(unsigned char _c)
+{
+	return HexCharStruct(_c);
+}
+
+
+TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
+{
+	theSymbolTable().clear();
+	std::map<MLSymbol, int> sortedMap;
+	const int sortTestSize = 10;
+	int p = 0;
+
+	std::vector< std::string > strings = { u8"Федор", u8"中岡 将二郎", u8"محمد بن سعيد" };
+	
+	for(auto testString : strings)
+	{
+		MLSymbol testSym(testString);
+		std::string strB = testSym.getString();
+		int lenB = strB.length();
+		std::cout << strB << " : ";
+		for(int i=0; i<lenB; ++i)
+		{
+			std::cout << hexchar(strB[i]) << " ";
+		}
+		std::cout << "\n";
+	}
+}
+
+
+// UTF-8: Федор
+// bytes: \xD0\xA4\xD0\xB5\xD0\xB4\xD0\xBE\xD1\x80
+
+
 
