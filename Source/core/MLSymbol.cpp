@@ -6,10 +6,6 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLSymbol.h"
-#include <iostream>
-#include <sstream>
-#include <string.h>
-	
 
 #pragma mark utilities
 
@@ -114,7 +110,6 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 
 MLSymbolTable::MLSymbolTable() : mSize(0)
 {
-	mBusyFlag.clear(std::memory_order_release); // stupid Windows-compatible way of doing this
 	clear();
 }
 
@@ -122,20 +117,10 @@ MLSymbolTable::~MLSymbolTable()
 {
 }
 
-void MLSymbolTable::acquireLock()
-{
-	while(mBusyFlag.test_and_set(std::memory_order_acquire));
-}
-
-void MLSymbolTable::releaseLock()
-{
-	mBusyFlag.clear(std::memory_order_release);
-}
-
 // clear all symbols from the table.
 void MLSymbolTable::clear()
 {
-	acquireLock();
+	MLScopedLock lock(mLock);
 
 	mSize = 0;
 	mCapacity = 0;
@@ -150,8 +135,6 @@ void MLSymbolTable::clear()
 	mHashTable.resize(kHashTableSize);
 	allocateChunk();
 	addEntry("", 0);
-		
-	releaseLock();
 }
 
 // allocate one additional chunk of storage. 
@@ -226,30 +209,28 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	
 	// there should be few collisions, so probably the first ID in the hash bin
 	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
-	// compare the entire string.
-	
+	// compare the entire string.	
 	// if we replace std::string with a custom char * type that stores its length, 
 	// and use SSE to do the compares, they could probably be significantly faster.
-	
-	acquireLock();
-	
-	for(int ID : bin)
 	{
-		const char* symB = mSymbolsByID[ID].c_str();
-		int lenB = processSymbolText(symB);
-		if(!strncmp(sym, symB, std::max(len, lenB)))
+		MLScopedLock lock(mLock);
+				
+		for(int ID : bin)
 		{
-			r = ID;
-			found = true;
-			break;
+			const char* symB = mSymbolsByID[ID].c_str();
+			int lenB = processSymbolText(symB);
+			if(!strncmp(sym, symB, std::max(len, lenB)))
+			{
+				r = ID;
+				found = true;
+				break;
+			}
+		}
+		if(!found)
+		{	
+			r = addEntry(sym, len);
 		}
 	}
-	if(!found)
-	{	
-		r = addEntry(sym, len);
-	}
-	
-	releaseLock();
 	
 	return r;
 }

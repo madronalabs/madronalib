@@ -20,9 +20,10 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <memory>
-#include <atomic>
-#include <algorithm>
+#include <iostream>
+
+#include "MLLocks.h"
+#include "MLStringCompare.h" 
 
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
@@ -62,11 +63,6 @@ protected:
 #endif
 	
 private:
-	
-	// lock and unlock access using a spinwait on std::atomic_flag.
-	void acquireLock(void);
-	void releaseLock(void);
-	
 	void allocateChunk();
 
 	// very simple hash function from Kernighan & Ritchie.
@@ -81,14 +77,15 @@ private:
 		return hashval & kHashTableMask;
 	}
 	
+	// ensure symbol table integrity with simple SpinLock.
+	MLSpinLock mLock;
+	
 	// 2^31 unique symbols are possible. There is no checking for overflow.
 	int mSize;
 	int mCapacity;
-
-	std::atomic_flag mBusyFlag;
 	
 	// vector of symbols in ID/creation order
-	std::vector<std::string> mSymbolsByID;	
+	std::vector< std::string > mSymbolsByID;	
 	
 	// hash table containing indexes to strings
 	std::vector< std::vector<int> > mHashTable;
@@ -98,7 +95,7 @@ private:
 	std::vector<int> mAlphaOrderByID;	
 	
 	// std::set is used for sorting.
-	std::set<std::string> mSymbolsByAlphaOrder;
+	std::set<std::string, MLStringCompareFn> mSymbolsByAlphaOrder;
 #endif
 
 };
