@@ -6,10 +6,6 @@ include_directories("${madronalib_SOURCE_DIR}/src"
 
 #add_definitions(-D_MADRONALIB_USE_CONFIG_H)
 
-if(NOT APPLE)
-  find_package(GLUT REQUIRED)
-  find_package(DNSSD REQUIRED)
-endif()
 
 set(madronalib_HEADERS
   ../include/madronalib.h
@@ -29,6 +25,12 @@ if(BUILD_NEW_ONLY)
     core/MLVector.h
     )
 else(BUILD_NEW_ONLY)
+  
+  if(NOT APPLE)
+    find_package(GLUT REQUIRED)
+    find_package(DNSSD REQUIRED)
+  endif()
+
   set(madronalib_SOURCES
     core/MLDSP.cpp
     core/MLDSP.h
