@@ -180,7 +180,6 @@ void MLProc::setParam(const MLSymbol pname, const MLProperty& val)
 	// TODO rather than setting directly here, the enclosing MLDSPContext can store a list of changes
 	// to take effect before the next process() call. This way all the [if (mParamsChanged) doParams();]
 	// code can be moved out of process() methods and mParamsChanged would not be needed!
-	
 	procInfo().setParamProperty(pname, val);
 	mParamsChanged = true;
 }

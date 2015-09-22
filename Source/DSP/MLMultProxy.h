@@ -52,6 +52,7 @@ public:
 	void clearInputs();
 	void clearInput(int i);	 
 	MLProc::err setInput(const int idx, const MLSignal& srcSig);	
+	
 	void setParam(const MLSymbol p, MLParamValue v);	
 	int getInputIndex(const MLSymbol name);
 	int getOutputIndex(const MLSymbol name);		

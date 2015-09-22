@@ -22,7 +22,7 @@ class MLProcMultiple : public MLProcContainer
 public:
 	MLProcMultiple();
 	~MLProcMultiple();
-
+	
 	void doParams();		
 	void process(const int samples);
 
