@@ -17,10 +17,8 @@ ML_UNUSED MLProcOutput<MLProcMultiple> outputs[] = {"*"};
 
 }	// namespace
 
-
 // ----------------------------------------------------------------
 // implementation
-
 
 MLProcMultiple::MLProcMultiple()
 {
@@ -31,7 +29,6 @@ MLProcMultiple::MLProcMultiple()
 	setParam("down_order", 0);
 //	debug() << "MLProcMultiple constructor\n";
 }
-
 
 MLProcMultiple::~MLProcMultiple()
 {
@@ -205,16 +202,19 @@ MLProcPtr MLProcMultiple::getProc(const MLPath & path)
 }
 
 void MLProcMultiple::doParams()
-{	
+{		
+	// TODO this ordering helps avoid a race on mParamsChanged that was preventing the voices to be enabled properly.
+	// the real fix will be a queue of parameter changes, kept by each container or context.
+	mParamsChanged = false;
+	
 	for (std::list<MLProcPtr>::iterator it = mProcList.begin(); it != mProcList.end(); ++it)
 	{
 		int enabled = (int)getParam("enable");
+
 		MLProcPtr proc = *it;
 		MLMultProxy& proxy = dynamic_cast<MLMultProxy&>(*proc);	
 		proxy.setEnabledCopies(enabled);
 	}	
-
-	mParamsChanged = false;
 }
 
 void MLProcMultiple::process(const int samples)
