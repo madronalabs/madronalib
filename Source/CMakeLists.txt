@@ -19,10 +19,12 @@ if(BUILD_NEW_ONLY)
    set(madronalib_SOURCES
     core/MLDSP.cpp
     core/MLDSP.h
+    core/MLLocks.h
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
+    core/MLStringCompare.h
     core/MLVector.cpp
     core/MLVector.h
     )
@@ -30,10 +32,12 @@ else(BUILD_NEW_ONLY)
   set(madronalib_SOURCES
     core/MLDSP.cpp
     core/MLDSP.h
+    core/MLLocks.h
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
+    core/MLStringCompare.h
     core/MLVector.cpp
     core/MLVector.h
     DSP/MLChangeList.cpp
@@ -186,7 +190,6 @@ else(BUILD_NEW_ONLY)
     MLApp/MLT3DHub.cpp
     MLApp/MLT3DHub.h
     MLApp/MLTextStreamListener.h
-    MLApp/MLTypes.h
     MLJuceApp/MLAppBorder.cpp
     MLJuceApp/MLAppBorder.h
     MLJuceApp/MLAppState.cpp
