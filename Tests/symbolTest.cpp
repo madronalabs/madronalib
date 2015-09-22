@@ -246,3 +246,41 @@ TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
 	REQUIRE(a != b);
 }
 
+#if USE_ALPHA_SORT
+
+TEST_CASE("madronalib/core/symbol/sorting", "[symbol][sorting]")
+{
+	theSymbolTable().clear();
+	std::map<MLSymbol, int> sortedMap;
+	const int sortTestSize = 10;
+	int p = 0;
+
+	// make procedural gibberish as keys for sorted map.
+	for(int i=0; i<sortTestSize; ++i)
+	{
+		std::string newString;
+		int length = 3 + (p%8);
+		for(int j=0; j<length; ++j)
+		{
+			p += (i*j + 1);
+			p += i%37;
+			p += j%23;
+			p = abs(p);
+			newString += letters[p % 22];
+		}		
+		sortedMap[newString] = i;
+	}
+	
+	// make sure each successive pair of keys is in sorted order.
+	MLSymbol symA, symB;
+	for(auto mapEntry : sortedMap)
+	{		
+		symA = symB;
+		symB = mapEntry.first;
+		REQUIRE(symA < symB);
+	}
+}
+
+#endif
+
+
