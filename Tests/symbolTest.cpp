@@ -14,6 +14,12 @@
 #include "catch.hpp"
 #include "../include/madronalib.h"
 
+#if _WIN32
+#define HAVE_U8_LITERALS 0
+#else
+#define HAVE_U8_LITERALS 1
+#endif
+
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
@@ -283,6 +289,7 @@ TEST_CASE("madronalib/core/symbol/sorting", "[symbol][sorting]")
 
 #endif
 
+
 // hex char printing
 struct HexCharStruct
 {
@@ -300,7 +307,6 @@ inline HexCharStruct hexchar(unsigned char _c)
 	return HexCharStruct(_c);
 }
 
-
 TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 {
 	theSymbolTable().clear();
@@ -308,7 +314,14 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	const int sortTestSize = 10;
 	int p = 0;
 
-	std::vector< std::string > strings = { u8"Федор", u8"中岡 将二郎", u8"محمد بن سعيد" };
+#if HAVE_U8_LITERALS
+	std::vector< std::string > strings = { u8"Федор", u8"小林 尊", u8"محمد بن سعيد" };
+#else
+	const char* fedor("\xD0\xA4\xD0\xB5\xD0\xB4\xD0\xBE\xD1\x80");
+	const char* kobayashi("\xE5\xB0\x8F\xE6\x9E\x97\x20\xE5\xB0\x8A");
+	const char* muhammad("\xD9\x85\xD8\xAD\xD9\x85\xD8\xAF\x20\xD8\xA8\xD9\x86\x20\xD8\xB3\xD8\xB9\xD9\x8A\xD8\xAF");
+	std::vector< std::string > strings = { fedor, kobayashi, muhammad};
+#endif	
 	
 	for(auto testString : strings)
 	{
@@ -323,10 +336,6 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 		std::cout << "\n";
 	}
 }
-
-
-// UTF-8: Федор
-// bytes: \xD0\xA4\xD0\xB5\xD0\xB4\xD0\xBE\xD1\x80
 
 
 
