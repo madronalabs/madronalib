@@ -233,9 +233,9 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-	MLFileCollectionPtr mScaleFiles;
-    MLFileCollectionPtr mPresetFiles;
-    MLFileCollectionPtr mMIDIProgramFiles;
+	std::unique_ptr<MLFileCollection> mScaleFiles;
+    std::unique_ptr<MLFileCollection> mPresetFiles;
+    std::unique_ptr<MLFileCollection> mMIDIProgramFiles;
 	
 	// saved state for editor
 	MLRect mEditorRect;

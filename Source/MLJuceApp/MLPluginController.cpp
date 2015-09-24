@@ -714,7 +714,7 @@ void MLPluginController::ConvertProgressDisplayThread::threadComplete (bool user
 	delete this;
 }
 
-// only convert .aupreset (AU) to .mlpreset (VST) now. After Aalto 1.6 there will be no need to convert presets.
+// only convert .aupreset (AU) to .mlpreset (VST) now. After Aalto 1.6 / Kaivo 1.2 there will be no need to convert presets.
 void MLPluginController::convertPresets()
 {
     if(!mpProcessor) return;

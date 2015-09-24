@@ -21,6 +21,9 @@ if(BUILD_NEW_ONLY)
     core/MLSymbol.cpp
     core/MLSymbol.h
     core/MLStringCompare.h
+    core/MLStringUtils.cpp
+    core/MLStringUtils.h
+    core/MLResourceMap.h
     core/MLVector.cpp
     core/MLVector.h
     )
@@ -40,6 +43,9 @@ else(BUILD_NEW_ONLY)
     core/MLSymbol.cpp
     core/MLSymbol.h
     core/MLStringCompare.h
+    core/MLStringUtils.cpp
+    core/MLStringUtils.h
+    core/MLResourceMap.h
     core/MLVector.cpp
     core/MLVector.h
     DSP/MLChangeList.cpp
@@ -186,8 +192,6 @@ else(BUILD_NEW_ONLY)
     MLApp/MLPlatform.h
     MLApp/MLReporter.cpp
     MLApp/MLReporter.h
-    MLApp/MLStringUtils.cpp
-    MLApp/MLStringUtils.h
     MLApp/MLSymbolMap.h
     MLApp/MLT3DHub.cpp
     MLApp/MLT3DHub.h

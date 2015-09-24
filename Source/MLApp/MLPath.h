@@ -11,7 +11,8 @@
 #include "MLDebug.h"
 #include "MLSymbol.h"
 
-// an MLPath describes the address of one or more MLProcs in a graph.
+// an MLPath describes the address of one or more elements in a tree
+// of such elements, for example one or more MLProcs in a graph.
 // it has a list of symbols, each of which the name of a container, 
 // except the last symbol which can be the name of any proc in the 
 // previous container.  
@@ -23,6 +24,7 @@
 // which need to be possible eventually. Rather there needs to be the
 // possibility of either a wildcard or a copy number at each multi.
 
+// TODO dynamic, come on
 const int kMLPathMaxSymbols = 14;
 
 class MLPath

@@ -156,6 +156,7 @@ float scaleForRangeTransform(float a, float b, float c, float d); // TODO replac
 float offsetForRangeTransform(float a, float b, float c, float d);
 
 MLSample MLRand(void);
+uint32_t MLRand32(void);
 void MLRandReset(void);
 
 // ----------------------------------------------------------------
@@ -411,15 +412,6 @@ private:
 };
 
 extern const MLRange UnityRange;
-
-inline char * spaceStr( unsigned int numIndents )
-{
-	static char * pINDENT=(char *)"                                                   ";
-	static int LENGTH= (int)strlen( pINDENT );
-	int n = numIndents*4;
-	if ( n > LENGTH ) n = LENGTH;
-	return &pINDENT[ LENGTH-n ];
-}
 
 #endif // _ML_DSP_H
 

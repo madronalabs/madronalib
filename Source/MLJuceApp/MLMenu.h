@@ -10,10 +10,12 @@
 #include "MLDSP.h"
 #include "MLLookAndFeel.h"
 #include "MLSymbol.h"
-#include "MLTypes.h"
+#include "MLStringCompare.h"
 #include "MLStringUtils.h"
 
 class MLMenu;
+
+// TODO use MLTree!
 
 typedef std::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
@@ -43,7 +45,7 @@ public:
 		const std::list<std::string>& getIndex() { return index; }
 		NodePtr getSubnodeByName(const std::string& name);
 		
-		// TODO use MLSymbols as map keys instead. Return MLSymbols and MLPaths. strings only for display.
+		// TODO use MLSymbols as map keys instead. 
         StringToMenuNodeMapT map;
         std::list<std::string> index;
 		std::string mDisplayPrefix;

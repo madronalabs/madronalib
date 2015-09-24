@@ -378,7 +378,7 @@ void MLProc::dumpProc(int indent)
 	const MLSignal* pNullInput = &(getContext()->getNullInput());
 	const MLSignal* pNullOutput = &(getContext()->getNullOutput());
 		
-	debug() << spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
+	debug() << MLStringUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
 	
 	if (isContainer())
 	{
@@ -386,7 +386,7 @@ void MLProc::dumpProc(int indent)
 		debug() << enabledStr;
 	}
 	debug() << "\n";
-	debug() << spaceStr(indent) << "inputs: ";
+	debug() << MLStringUtils::spaceStr(indent) << "inputs: ";
 	if (ins)
 	{
 		for(int j = 1; j <= ins; ++j)
@@ -408,7 +408,7 @@ void MLProc::dumpProc(int indent)
 		debug() << "(none)";
 	}
 	debug() << "\n";
-	debug() << spaceStr(indent) << "outputs: ";
+	debug() << MLStringUtils::spaceStr(indent) << "outputs: ";
 	if (outs)
 	{
 		for(int j = 1; j <= outs; ++j)

@@ -177,6 +177,48 @@ private:
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 
 // ----------------------------------------------------------------
+#pragma mark MLSymbolVector
+
+// unused, a start.
+
+class MLSymbolVector : public std::vector<MLSymbol> 
+{
+public:
+	MLSymbolVector() {}
+	MLSymbolVector(std::vector<MLSymbol> b) 
+	{
+		for(auto it = b.begin(); it != b.end(); ++it)
+		{
+			push_back(*it);
+		}
+	}
+	~MLSymbolVector() {}
+	
+	inline bool operator< (const MLSymbolVector& b) const
+	{
+		const std::vector<MLSymbol>& a = *this;
+		int aLen = size();
+		int bLen = b.size();
+		int minSize = std::min(aLen, bLen);
+		for(int i=0; i<minSize; ++i)
+		{
+			MLSymbol symA = a[i];
+			MLSymbol symB = b[i];
+			if(symA < symB)
+			{
+				return true;
+			}
+			else if (symB < symA)
+			{
+				return false;
+			}
+		}
+		// at this point the vectors are equal up to min length
+		return aLen < bLen;
+	}		
+};
+
+// ----------------------------------------------------------------
 #pragma mark MLNameMaker
 // a utility to make many short, unique, human-readable names when they are needed. 
 

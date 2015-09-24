@@ -15,6 +15,7 @@
 #include "MLMenu.h"
 #include "MLProperty.h"
 #include "MLStringUtils.h"
+#include "MLTree.h"
 
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
 // to report progress for searches.
@@ -52,38 +53,6 @@ public:
 		std::list<MLFileCollection*> mpCollections;
 	};
 	
-	// TODO this looks a lot like MLMenu::Node and should use the same Node template or object
-	class TreeNode;
-	
-	typedef std::map<std::string, TreeNode, MLStringCompareFn> StringToNodeMapT;
-	class TreeNode
-	{
-	public:
-		TreeNode();
-		TreeNode(const MLFile& f);
-		~TreeNode();
-		
-		void clear();
-		
-		// insert a file into the tree, routing by path name relative to collection root.
-		void insertFile(const std::string& relPath, const MLFile& f);
-		
-		// find a file by relative path. TODO this should use symbols.
-		// Would require an unambiguous mapping from UTF-8 to symbols.
-		const MLFile& find(const std::string& path);
-		
-		void buildMenu(MLMenuPtr m) const;
-		void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
-		void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
-
-		void buildIndex(std::vector<MLFile>& index) const;
-
-		void dump(int level = 0) const;
-		
-		StringToNodeMapT mChildren;
-		MLFile mFile;
-	};
-	
 	MLFileCollection(MLSymbol name, const File startDir, String extension);
     ~MLFileCollection();
 
@@ -114,7 +83,10 @@ public:
 	
 	// will cancel the process thread started by either processFiles() or processFilesInBackground().
     void cancelProcess();
-  
+
+	// insert a file into the collection, routing by path name relative to collection root.
+	const MLFile& insertFile(const std::string& relPath, const MLFile& f);
+	
     // return a file by its path relative to our starting directory.
     const MLFile& getFileByPath(const std::string& path);
     const int getFileIndexByPath(const std::string& path);
@@ -146,7 +118,7 @@ private:
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 	void run();
 	
-    TreeNode mRoot;
+    MLResourceMap< MLFile > mRoot;
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
@@ -156,7 +128,5 @@ private:
 	std::list<Listener*> mpListeners;
 	int mProcessDelay;
 };
-
-typedef std::unique_ptr<MLFileCollection> MLFileCollectionPtr;
 
 #endif 

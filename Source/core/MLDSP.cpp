@@ -97,19 +97,31 @@ int MLisInfinite(double x)
 
 static uint32_t gMLRandomSeed = 0;
 
+inline void MLRandStep()
+{
+	gMLRandomSeed = gMLRandomSeed * 0x0019660D + 0x3C6EF35F;
+}
+
 // return single-precision floating point number on [-1, 1]
 float MLRand()
 {
-	gMLRandomSeed = gMLRandomSeed * 0x0019660D + 0x3C6EF35F;
+	MLRandStep();
 	uint32_t temp = (gMLRandomSeed >> 9) & 0x007FFFFF;
 	temp &= 0x007FFFFF;// DSPConstants.r2;
 	temp |= 0x3F800000; // DSPConstants.r1;
-		
+	
 	float* pf = reinterpret_cast<float*>(&temp);
 	*pf *= 2.f;
 	*pf -= 3.f;
 	
 	return *pf;
+}
+
+// return 32 pseudorandom bits
+uint32_t MLRand32()
+{
+	MLRandStep();
+	return gMLRandomSeed;
 }
 
 void MLRandReset(void)

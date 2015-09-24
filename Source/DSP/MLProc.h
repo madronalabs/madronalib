@@ -18,6 +18,7 @@
 #include "MLSymbol.h"
 #include "MLSymbolMap.h"
 #include "MLProperty.h"
+#include "MLStringUtils.h"
 
 #define CHECK_IO    0
 

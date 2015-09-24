@@ -13,6 +13,7 @@
 
 #include "catch.hpp"
 #include "../include/madronalib.h"
+#include "MLStringUtils.h"
 
 #if _WIN32
 #define HAVE_U8_LITERALS 0
@@ -25,7 +26,7 @@ const char letters[24] = "abcdefghjklmnopqrstuvw";
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
 	const int kTableSize = 100;	
-	const int kTestLength = 1000000;
+	const int kTestLength = 100000;
 	
 	// main maps for testing
 	std::map<MLSymbol, float> testMap1;
@@ -334,8 +335,24 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 			std::cout << hexchar(strB[i]) << " ";
 		}
 		std::cout << "\n";
+		// TODO write some actual test here
 	}
 }
 
+// TEMP to move to new test file about string utils / paths
+TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
+{
+	theSymbolTable().clear();
+	
+	std::vector< MLSymbol > path = MLStringUtils::parsePath(std::string("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it"));
+	
+	std::cout << "as symbols: ";
+	for(MLSymbol sym : path)
+	{
+		std::cout << sym << "/";
+	}
+	std::cout << "\n";
+	theSymbolTable().dump();
+}
 
 

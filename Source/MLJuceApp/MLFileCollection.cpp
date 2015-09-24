@@ -40,185 +40,6 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 	}
 }
 
-// MLFileCollection::TreeNode
-
-MLFileCollection::TreeNode::TreeNode() :
-mFile()
-{
-}
-
-MLFileCollection::TreeNode::TreeNode(const MLFile& f) :
-mFile(f)
-{
-}
-
-MLFileCollection::TreeNode::~TreeNode()
-{
-}
-
-void MLFileCollection::TreeNode::clear()
-{
-    mChildren.clear();
-}
-
-void MLFileCollection::TreeNode::insertFile(const std::string& path, const MLFile& f)
-{
-    int len = path.length();
-    if(len)
-    {
-        int b = path.find_first_of("/");
-        if(b == std::string::npos)
-        {
-            // add file node to map
-            mChildren[path] = MLFileCollection::TreeNode(f);
-        }
-        else
-        {
-            std::string firstDir = path.substr(0, b);
-            std::string restOfDirs = path.substr(b + 1, len - b);
-            
-            // find or add first dir
-            if(firstDir == "")
-            {
-                debug() << "MLFile::insert: empty directory name!\n";
-            }
-            else
-            {
-                if(mChildren.find(firstDir) == mChildren.end())
-                {
-                    mChildren[firstDir] = MLFileCollection::TreeNode(f);
-                }
-                mChildren[firstDir].insertFile(restOfDirs, f);
-            }
-        }
-    }
-    else
-    {
-        debug() << "MLFile::insert: empty file name!\n";
-    }
-}
-
-// TODO use MLPath
-const MLFile& MLFileCollection::TreeNode::find(const std::string& path)
-{
-    int len = path.length();
-    if(len)
-    {
-        int b = path.find_first_of("/");
-        if(b == std::string::npos)
-        {
-			// end of path, this should be the file name.
-			StringToNodeMapT::const_iterator it = mChildren.find(path);
-			if(it != mChildren.end())
-			{
-				// return the found file.
-				return (it->second.mFile);
-			}
-			else
-			{
-				// something went wrong
-				debug() << "ERROR: MLFileCollection::TreeNode::find: " << path << " not found in file tree.\n";
-				return MLFile::nullObject;
-			}
-        }
-        else
-        {
-            std::string firstDir = path.substr(0, b);
-            std::string restOfDirs = path.substr(b + 1, len - b);
-			
-            // find file matching first dir
-            if(firstDir == "")
-            {
-                debug() << "MLFileCollection::TreeNode::find: empty directory name!\n";
-            }
-            else if(mChildren.find(firstDir) != mChildren.end())
-            {
-                // look for rest of dirs in found non-leaf file
-                return mChildren[firstDir].find(restOfDirs);
-            }
-            else
-            {
-				debug() << "MLFileCollection: file not found.\n";
-                return MLFile::nullObject;
-            }
-        }
-    }
-    else
-    {
-        debug() << "MLFile::find: empty file name!\n";
-    }
-    return MLFile::nullObject;
-}
-
-// TODO all these routines have similar traversal code. factor that out into an iterator for TreeNode. 
-// then callers can use the iterator instead to get all these things done.
-
-void MLFileCollection::TreeNode::buildMenu(MLMenuPtr m) const
-{
-	m->clear();
-	StringToNodeMapT::const_iterator it;
-	for(it = mChildren.begin(); it != mChildren.end(); ++it)
-	{
-		const TreeNode& node(it->second);
-		const MLFile& f (node.mFile);
-		
-		if(f.exists())
-		{
-			if(f.isDirectory())
-			{
-				MLMenuPtr subMenu(new MLMenu());
-				node.buildMenu(subMenu);
-				
-				// TODO menu should be based on path, not file name?
-				m->addSubMenu(subMenu, f.getShortName());
-			}
-			else
-			{
-				m->addItem(f.getShortName());
-			}
-		}
-	}
-}
-
-void MLFileCollection::TreeNode::buildIndex(std::vector<MLFile>& index) const
-{
-	StringToNodeMapT::const_iterator it;
-	
-	for(it = mChildren.begin(); it != mChildren.end(); ++it)
-	{
-		const TreeNode& node = it->second;
-		const MLFile& f = node.mFile;
-		
-		if(f.exists())
-		{
-			if(f.isDirectory())
-			{
-				node.buildIndex(index);
-			}
-			else
-			{
-				// push any leaves into node
-				index.push_back(f);
-			}
-		}
-	}
-}
-
-void MLFileCollection::TreeNode::dump(int level) const
-{	
-	StringToNodeMapT::const_iterator it;
-
-	for(it = mChildren.begin(); it != mChildren.end(); ++it)
-    {
-        const std::string& p = it->first;
-        const TreeNode& n = it->second;
-
-		debug() << level << ": " << spaceStr(level) << p << "\n";
-
-		n.dump(level + 1);
-    }
-}
-
 #pragma mark MLFileCollection
 
 MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
@@ -449,10 +270,10 @@ const MLFile& MLFileCollection::createFile(const std::string& relativePathAndNam
 	std::string fullPath = mRoot.mFile.getLongName() + "/" + relativePathAndName;
     
     // insert file into file tree at relative path
-    mRoot.insertFile(relativePathAndName, MLFile(fullPath));
+    return insertFile(relativePathAndName, MLFile(fullPath));
 
 	// TODO return from insertFile
-    return getFileByPath(fullPath);
+    //return getFileByPath(fullPath);
 }
 
 // get part of absolute path p, if any, relative to our root path, without extension.
@@ -506,6 +327,57 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 	
     return MLStringUtils::stripExtension(relPath);
 }
+
+
+/*
+ 
+ // TODO all these routines have similar traversal code. factor that out into an iterator for TreeNode. 
+ // then callers can use the iterator instead to get all these things done.
+ 
+ template<class T>
+ MLTree<T>* MLTree<T>::buildMenu(MLMenuPtr m) const
+ {
+	m->clear();
+	StringToNodeMapT::const_iterator it;
+	for(it = mChildren.begin(); it != mChildren.end(); ++it)
+	{
+ const TreeNode& node(it->second);
+ const MLFile& f (node.mFile);
+ 
+ if(f.exists())
+ {
+ if(f.isDirectory())
+ {
+ MLMenuPtr subMenu(new MLMenu());
+ node.buildMenu(subMenu);
+ 
+ // TODO menu should be based on path, not file name?
+ m->addSubMenu(subMenu, f.getShortName());
+ }
+ else
+ {
+ m->addItem(f.getShortName());
+ }
+ }
+	}
+ }
+ 
+ */
+
+/*
+void dump(int level = 0) const
+{
+	typename MLTree<T>::mapT::const_iterator it;
+	
+	for(it = mChildren.begin(); it != mChildren.end(); ++it)
+	{
+		MLSymbol p = it->first;
+		const MLTree<T> n = it->second;		
+		std::cout << level << ": " << MLStringUtils::spaceStr(level) << p << ":" << n.mValue << "\n";
+		n.dump(level + 1);
+	}
+}
+*/
 
 // make a new menu named after this collection and containing all of the files in it.
 MLMenuPtr MLFileCollection::buildMenu() const
