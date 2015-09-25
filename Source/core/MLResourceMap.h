@@ -27,21 +27,28 @@ public:
 	
 	// our value class must have a default constructor returning a safe null object.
 	MLResourceMap<T>() : mValue() {}
-	MLResourceMap(const T& f);
+	MLResourceMap(const T& v) { mValue = v; }
 	~MLResourceMap() {}
 	
 	void clear() { mChildren.clear(); }
 	const T& getValue() const { return mValue; }
 	void setValue(const T& v) { mValue = v; }
 	int getNumChildren() const { return mChildren.size(); }
-	
+
+	// TODO until we have our own proper iterator, this hack allows recursion from outside
+	const MLResourceMap<T>& getChild(int n) const 
+	{ 
+		typename mapT::const_iterator it = mChildren.begin();
+		std::advance(it, n);
+		return (*it).second; 
+	}
+
 	// find a value by its path.	
-	// if the path exists, returns a reference to the value in the tree.
-	// else, return a reference to a null object of our value type T.
+	// if the path exists, returns the value in the tree.
+	// else, return a null object of our value type T.
 	T findValue(const std::string& path)
 	{
 		MLResourceMap<T>* pNode = findNode(path);
-		
 		if(pNode)
 		{
 			return pNode->getValue();
@@ -52,11 +59,10 @@ public:
 		}
 	}
 	
-	// TODO use MLSymbol vector paths (rewrite MLPath)
+	// TODO also use MLSymbol vector paths
 	void addValue (const std::string& pathStr, const T& v)
 	{
-		MLResourceMap<T>* newNode = addNode(pathStr); 
-		newNode->setValue(v);
+		addNode(pathStr)->setValue(v);
 	}
 	
 	// build a linear index to the leaf nodes of the tree.
@@ -68,7 +74,7 @@ public:
 			const MLResourceMap& node = it->second;
 			if(node.getNumChildren())
 			{
-				node.buildIndex(index);
+				node.buildLeafIndex(index);
 			}
 			else
 			{
@@ -114,8 +120,8 @@ private:
 		return pNode;
 	}
 	
-	// add a Node at the specified path, and any parent nodes necessary in order to put it there.
-	// If a Node already exists at the path, return the existing node,
+	// add a tree node at the specified path, and any parent nodes necessary in order to put it there.
+	// If a tree node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
 	MLResourceMap<T>* addNode(const std::string& pathStr)
 	{
@@ -125,6 +131,7 @@ private:
 		std::vector< MLSymbol >::const_iterator it;
 		int pathDepthFound = 0;
 		
+		// walk the path as long as branches are found in the map
 		for(MLSymbol sym : path)
 		{
 			if(pNode->mChildren.find(sym) != pNode->mChildren.end())
@@ -138,6 +145,7 @@ private:
 			}
 		}
 		
+		// add the remainder of the path to the map.
 		for(it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
 			MLSymbol sym = *it;

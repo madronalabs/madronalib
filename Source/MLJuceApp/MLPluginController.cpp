@@ -474,8 +474,7 @@ void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollectio
     MLMenu* pMenu = findMenuByName("key_scale");
 	pMenu->clear();
  	pMenu->addItem("12-equal");
-    MLMenuPtr p = fileCollection.buildMenu();
-    pMenu->appendMenu(p);
+    pMenu->appendMenu(fileCollection.buildRootMenu());
 }
 
 void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)

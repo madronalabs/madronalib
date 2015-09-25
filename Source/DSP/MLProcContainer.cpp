@@ -2086,27 +2086,27 @@ void MLProcContainer::dumpGraph(int indent)
 	const MLRatio myRatio = getResampleRatio();
 	if (!myRatio.isUnity()) 
 	{
-		debug() << spaceStr(indent) << getName() << " input resamplers: \n";
+		debug() << MLStringUtils::spaceStr(indent) << getName() << " input resamplers: \n";
 		int ins = mPublishedInputs.size();
 		for(int i=0; i<ins; ++i)
 		{
 			MLProcPtr pIn = mInputResamplers[i];
-			debug() << spaceStr(indent) << "in: (" << (void *)&pIn->getInput(1) << ") out: (" << (void *)&pIn->getOutput() << ")\n";
+			debug() << MLStringUtils::spaceStr(indent) << "in: (" << (void *)&pIn->getInput(1) << ") out: (" << (void *)&pIn->getOutput() << ")\n";
 		}
 	}
 	
 	dumpProc(indent);
 
 	// dump children
-	debug() << spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
-	debug() << spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
-	debug() << spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
+	debug() << MLStringUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
+	debug() << MLStringUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
+	debug() << MLStringUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
 
 	int ops = 0;
 	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it, ++ops)
 	{		
 		MLProc* p = (*it);
-		debug() << spaceStr(indent) << ops << ":\n";
+		debug() << MLStringUtils::spaceStr(indent) << ops << ":\n";
 		if (p->isContainer())
 		{
 			MLProcContainer& pc = static_cast<MLProcContainer&>(*p);
@@ -2120,12 +2120,12 @@ void MLProcContainer::dumpGraph(int indent)
 	
 	if (!myRatio.isUnity()) 
 	{
-		debug() << spaceStr(indent) << getName() <<  " output resamplers: \n";
+		debug() << MLStringUtils::spaceStr(indent) << getName() <<  " output resamplers: \n";
 		int outs = (int)mPublishedOutputs.size();
 		for(int i=0; i<outs; ++i)
 		{
 			MLProcPtr pOut = mOutputResamplers[i];
-			debug() << spaceStr(indent) << "in: (" << &pOut->getInput(1) << ") out: (" << &pOut->getOutput() << ")\n";
+			debug() << MLStringUtils::spaceStr(indent) << "in: (" << &pOut->getInput(1) << ") out: (" << &pOut->getOutput() << ")\n";
 		}
 	}
 }

@@ -15,7 +15,7 @@
 #include "MLMenu.h"
 #include "MLProperty.h"
 #include "MLStringUtils.h"
-#include "MLTree.h"
+#include "MLResourceMap.h"
 
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
 // to report progress for searches.
@@ -88,19 +88,21 @@ public:
 	const MLFile& insertFile(const std::string& relPath, const MLFile& f);
 	
     // return a file by its path relative to our starting directory.
-    const MLFile& getFileByPath(const std::string& path);
+    const MLFile getFileByPath(const std::string& path);
     const int getFileIndexByPath(const std::string& path);
 	
     std::string getFilePathByIndex(int idx);
-    const MLFile& getFileByIndex(int idx);
+    const MLFile getFileByIndex(int idx);
 
     // make a new file. TODO return const MLFile &
-    const MLFile& createFile(const std::string& relativePath);
+    const MLFile createFile(const std::string& relativePath);
 
     // given a full system file name, get its path relative to our starting directory.
     std::string getRelativePathFromName(const std::string& name) const;
     
-    MLMenuPtr buildMenu() const;
+    //MLMenuPtr buildMenu() const;
+	MLMenuPtr buildMenu(const MLResourceMap< MLFile > node, MLMenuPtr menu) const;
+	MLMenuPtr buildRootMenu() const;
 	
 	// build a menu of only the files in top-level directories starting with the given prefix.
 	// this adds only directories, not files. Made for adding "factory" presets separately.
@@ -118,7 +120,7 @@ private:
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 	void run();
 	
-    MLResourceMap< MLFile > mRoot;
+    MLResourceMap<MLFile> mRoot;
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
