@@ -62,7 +62,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	bool problem = false;
 	for(int i=0; i < mapSize; ++i)
 	{
-		// some paths are duplicates so some numbers will be overwritten
 		numberMap.addValue(paths[i], i);
 	}
 	for(int i=0; i < mapSize; ++i)
@@ -75,43 +74,50 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		}
 	}
 	REQUIRE(!problem);
+	
+	int bigLeafSum = 0;
+	int maxDepth = 8;
+	const int correctBigLeafSum = 499500;
+	const int correctMaxDepth = 8;
+	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
+	{
+		if(it.isAtLeaf())
+		{		
+			bigLeafSum += it->getValue();
+		}
+		if(it.getDepth() > maxDepth)
+		{
+			maxDepth = it.getDepth();
+		}
+	}
+	REQUIRE(bigLeafSum == correctBigLeafSum);
+	REQUIRE(maxDepth == correctMaxDepth);
+	
 	end = std::chrono::system_clock::now();
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
 	MLResourceMap< int > a;
-	MLResourceMap< int > b;
-	
-//	MLResourceMap< int >::const_iterator ita = a.begin();
-//	MLResourceMap< int >::const_iterator itb = b.begin();
-	
-	
-	a.addValue("this/is/a/test", 1);
-	a.addValue("this/was/a/test", 2);
-	a.addValue("this/was/another", 3);
-	a.addValue("this/was/another/test", 19);
-	a.addValue("this/was/happy", 4);
-	a.addValue("you/are/my/sunshine", 1);
-	a.addValue("you/are/carl's/sunshine", 1);
-	a.addValue("you/are/carl's/jr", 23);
-	
-	
-	a.dump();
-	
+	a.addValue("this/is/a/test", 10);
+	a.addValue("this/was/an/test", 10);
+	a.addValue("this/was/another", 1);
+	a.addValue("this/was/another/test", 10);
+	a.addValue("this/was/happy", 10);
+	a.addValue("you/are/my/sunshine", 10);
+	a.addValue("you/are/carl's/sunshine", 10);
+	a.addValue("you/are/carl's/jr/jam", 10);
+	a.addValue("you/are/carl's/jr", 1);
+	int leafSum = 0;
+	const int correctLeafSum = 70;
 	MLResourceMap< int >::const_iterator it;
 	for(it = a.begin(); it != a.end(); it++)
 	{
-		std::cout << a.getValue() << "\n";
+		if(it.isAtLeaf())
+		{		
+			leafSum += it->getValue();
+		}
 	}
-	
-	
-	bool eq = 0;
-	std::cout << "-=-------------------\n";
-	std::cout << "equal? " << eq << "\n";
-	std::cout << "-=-------------------\n";
-	
-	
-	
+	REQUIRE(leafSum == correctLeafSum);
 	
 }
 

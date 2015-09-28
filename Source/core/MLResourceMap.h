@@ -36,14 +36,6 @@ public:
 	void setValue(const T& v) { mValue = v; }
 	int getNumChildren() const { return mChildren.size(); }
 
-	// TODO until we have our own proper iterator, this hack allows recursion from outside
-	const MLResourceMap<T>& getChild(int n) const 
-	{ 
-		typename mapT::const_iterator it = mChildren.begin();
-		std::advance(it, n);
-		return (*it).second; 
-	}
-
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
 	// else, return a null object of our value type T.
@@ -79,43 +71,12 @@ public:
 		}
 	}
 	
-	// build a linear index to the leaf nodes of the tree.
-	//This is wrong because of empty directories!
-	//Just make our own Iterator.
-	void buildLeafIndex(std::vector<T>& index) const
-	{
-		typename MLResourceMap<T>::mapT::const_iterator it;
-		for(it = mChildren.begin(); it != mChildren.end(); ++it)
-		{
-			const MLResourceMap& node = it->second;
-			if(node.getNumChildren())
-			{
-				node.buildLeafIndex(index);
-			}
-			else
-			{
-				// add leaf nodes to index
-				
-				// TODO leaf only iterator!
-				index.push_back(node.getValue());
-			}
-		}
-	}
-	
 	class const_iterator
 	{
 	public:
 		const_iterator()  {}
 		const_iterator(const MLResourceMap<T>* p)  
 		{
-			std::cout << "new iterator: \n"; 
-			std::cout << "    chillins:\n";
-			const MLResourceMap<T>* test = p;			
-			for(auto mapIter = test->mChildren.begin(); mapIter != test->mChildren.end(); ++mapIter)
-			{
-				std::cout << "    " << mapIter->first << "\n";
-			}
-			
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(p->mChildren.begin());
 		}
@@ -129,8 +90,6 @@ public:
 		
 		bool operator==(const MLResourceMap<T>::const_iterator& b) const 
 		{ 
-			bool eq = (mIteratorStack.back() == b.mIteratorStack.back()); 
-			std::cout << "equals? " << eq << "\n";
 			return (mIteratorStack.back() == b.mIteratorStack.back()); 
 		}
 		
@@ -141,51 +100,48 @@ public:
 				
 		const MLResourceMap<T>& operator*() const 
 		{ 
-			return *mIteratorStack.back(); 
+			return ((*mIteratorStack.back()).second); 
 		}
 		
 		const MLResourceMap<T>* operator->() const 
 		{ 
-			return mIteratorStack.back(); 
+			return &((*mIteratorStack.back()).second);
 		}
-	
+		
 		const MLResourceMap<T>::const_iterator& operator++()
 		{			
-			// MLTEST
-			const MLResourceMap<T>* parentNode = mNodeStack.back();
-			typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
-			
-			//const MLResourceMap<T>* thisNode = &((*currentIterator).second);		
-			
-			std::cout << "iterator++: children " << parentNode->getNumChildren() << "\n";
-			
-			for(auto mapIter = parentNode->mChildren.begin(); mapIter != parentNode->mChildren.end(); ++mapIter)
+			do
 			{
-				std::cout << "    " << mapIter->first << "\n";
+				const MLResourceMap<T>* parentNode = mNodeStack.back();
+				typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+				const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
+				
+				if(currentIterator == parentNode->mChildren.end())
+				{
+					if(mNodeStack.size() > 1)
+					{
+						// up
+						mNodeStack.pop_back();
+						mIteratorStack.pop_back();
+						mIteratorStack.back()++;
+					}
+				}			
+				else if(currentChildNode->getNumChildren())
+				{
+					// down
+					mNodeStack.push_back(currentChildNode);
+					mIteratorStack.push_back(currentChildNode->mChildren.begin());
+				}
+				else 
+				{
+					// across
+					currentIterator++;			
+				}
 			}
-			
-			if(currentIterator == parentNode->mChildren.end())
-			{
-				std::cout << "UP\n";
-				mNodeStack.pop_back();
-				mIteratorStack.pop_back();
-				mIteratorStack.back()++;			
-			}			
-			else if(currentChildNode->getNumChildren())
-			{
-				std::cout << "DOWN\n";
-				mNodeStack.push_back(currentChildNode);
-				mIteratorStack.push_back(currentChildNode->mChildren.begin());
-			}
-			else 
-			{
-				std::cout << "ACROSS\n";
-				currentIterator++;			
-			}
-
-			
-			// if(currentIterator != parentNode->mChildren.end())
+			// keep iterating here when we are at mChildren.end(), 
+			// so that on returning the iterator always points to a valid node
+			// except when we are all done and pointing to the root node's end.
+			while( (mNodeStack.size() > 1) && (mIteratorStack.back() == mNodeStack.back()->mChildren.end()) );
 			 
 			return *this;
 		}
@@ -195,6 +151,15 @@ public:
 			this->operator++();
 			return *this;
 		}
+		
+		bool isAtLeaf() 
+		{ 
+			typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
+			return(currentChildNode->getNumChildren() == 0);
+		}
+		
+		int getDepth() { return mNodeStack.size() - 1; }
 		
 		std::vector< const MLResourceMap<T>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
@@ -210,16 +175,13 @@ public:
 		return const_iterator(this, mChildren.end());
 	}
 	
-	
-	
 private:
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
 	MLResourceMap<T>* findNode(const std::string& pathStr)
 	{
 		MLResourceMap<T>* pNode = this;
-		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);
-		
+		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);		
 		for(MLSymbol sym : path)
 		{
 			if(pNode->mChildren.find(sym) != pNode->mChildren.end())
@@ -241,7 +203,6 @@ private:
 	MLResourceMap<T>* addNode(const std::string& pathStr)
 	{
 		MLResourceMap<T>* pNode = this;
-		
 		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);
 		std::vector< MLSymbol >::const_iterator it;
 		int pathDepthFound = 0;
