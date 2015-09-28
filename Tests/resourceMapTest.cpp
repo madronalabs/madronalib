@@ -78,6 +78,41 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	end = std::chrono::system_clock::now();
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
+	
+	MLResourceMap< int > a;
+	MLResourceMap< int > b;
+	
+//	MLResourceMap< int >::const_iterator ita = a.begin();
+//	MLResourceMap< int >::const_iterator itb = b.begin();
+	
+	
+	a.addValue("this/is/a/test", 1);
+	a.addValue("this/was/a/test", 2);
+	a.addValue("this/was/another", 3);
+	a.addValue("this/was/another/test", 19);
+	a.addValue("this/was/happy", 4);
+	a.addValue("you/are/my/sunshine", 1);
+	a.addValue("you/are/carl's/sunshine", 1);
+	a.addValue("you/are/carl's/jr", 23);
+	
+	
+	a.dump();
+	
+	MLResourceMap< int >::const_iterator it;
+	for(it = a.begin(); it != a.end(); it++)
+	{
+		std::cout << a.getValue() << "\n";
+	}
+	
+	
+	bool eq = 0;
+	std::cout << "-=-------------------\n";
+	std::cout << "equal? " << eq << "\n";
+	std::cout << "-=-------------------\n";
+	
+	
+	
+	
 }
 
 
