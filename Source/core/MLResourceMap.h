@@ -97,12 +97,12 @@ public:
 		}
 		~const_iterator() {}
 		
-		bool operator==(const MLResourceMap<T>::const_iterator& b) const 
+		bool operator==(const const_iterator& b) const 
 		{ 
 			return (mIteratorStack.back() == b.mIteratorStack.back()); 
 		}
 		
-		bool operator!=(const MLResourceMap<T>::const_iterator& b) const 
+		bool operator!=(const const_iterator& b) const 
 		{ 
 			return !(*this == b); 
 		}
@@ -117,7 +117,7 @@ public:
 			return &((*mIteratorStack.back()).second); 
 		}
 		
-		const MLResourceMap<T>::const_iterator& operator++()
+		const const_iterator& operator++()
 		{			
 			typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
@@ -147,7 +147,7 @@ public:
 			return *this;
 		}
 		
-		MLResourceMap<T>::const_iterator& operator++(int)
+		const_iterator& operator++(int)
 		{
 			this->operator++();
 			return *this;
@@ -181,12 +181,12 @@ public:
 		std::vector< typename mapT::const_iterator > mIteratorStack;
 	};	
 		
-	inline MLResourceMap<T>::const_iterator begin() const
+	inline const_iterator begin() const
 	{
 		return const_iterator(this);
 	}
 	
-	inline MLResourceMap<T>::const_iterator end() const
+	inline const_iterator end() const
 	{
 		return const_iterator(this, mChildren.end());
 	}

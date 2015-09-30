@@ -43,6 +43,7 @@ void MLTextStream::flush()
 }
 
 #ifdef ML_WINDOWS
+#define UNICODE
 
 #include <Windows.h>
 const int kWideBufSize = 16384;

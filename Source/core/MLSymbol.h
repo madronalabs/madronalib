@@ -21,6 +21,8 @@
 #include <vector>
 #include <string>
 #include <iostream>
+#include <memory>
+#include <algorithm>
 
 #include "MLLocks.h"
 #include "MLStringCompare.h" 
