@@ -157,7 +157,11 @@ MLResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 void MLFileCollection::buildIndex()
 {	
 	mFilesByIndex.clear();
-	for(auto it = mRoot.begin(); it != mRoot.end(); ++it)
+
+	MLResourceMap<MLFile>::const_iterator beginIter = mRoot.begin();
+	MLResourceMap<MLFile>::const_iterator endIter = mRoot.end();
+
+	for (auto it = beginIter; it != endIter; ++it)
 	{
 		if(it.atLeaf())
 		{

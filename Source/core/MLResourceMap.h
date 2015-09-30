@@ -24,11 +24,10 @@ class MLResourceMap
 {
 public:
 	typedef std::map<MLSymbol, MLResourceMap<T> > mapT;
-	typedef std::map<MLSymbol, const MLResourceMap<T> > constMapT;
-	
+
 	// our value class must have a default constructor returning a safe null object.
-	MLResourceMap<T>() : mValue(), mIsLeaf(false) {}
-	MLResourceMap(const T& v) : mIsLeaf(false) { mValue = v; }
+	MLResourceMap<T>() : mValue(), mChildren(), mIsLeaf(false) {}
+	MLResourceMap(const T& v) : mChildren(), mIsLeaf(false) { mValue = v; }
 	~MLResourceMap() {}
 	
 	void clear() { mChildren.clear(); }
@@ -99,7 +98,14 @@ public:
 		
 		bool operator==(const const_iterator& b) const 
 		{ 
-			return (mIteratorStack.back() == b.mIteratorStack.back()); 
+			// bail out here if possible.
+			if (mNodeStack.size() != b.mNodeStack.size()) 
+				return false;
+			if (mNodeStack.back() != b.mNodeStack.back()) 
+				return false;
+
+			// if the containers are the same, we may compare the iterators.
+			return (mIteratorStack.back() == b.mIteratorStack.back());
 		}
 		
 		bool operator!=(const const_iterator& b) const 
@@ -120,7 +126,6 @@ public:
 		const const_iterator& operator++()
 		{			
 			typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
 			
 			if(atEndOfMap())
 			{
@@ -132,16 +137,20 @@ public:
 					mIteratorStack.back()++;
 				}
 			}			
-			else if(!currentChildNode->isLeaf())
+			else
 			{
-				// down
-				mNodeStack.push_back(currentChildNode);
-				mIteratorStack.push_back(currentChildNode->mChildren.begin());
-			}
-			else 
-			{
-				// across
-				currentIterator++;			
+				const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);
+				if (!currentChildNode->isLeaf())
+				{
+					// down
+					mNodeStack.push_back(currentChildNode);
+					mIteratorStack.push_back(currentChildNode->mChildren.begin());
+				}
+				else
+				{
+					// across
+					currentIterator++;
+				}
 			}
 			 
 			return *this;
@@ -157,24 +166,31 @@ public:
 		{ 
 			const MLResourceMap<T>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);	
 			
-			// not a leaf if at end()
+			// not a leaf (and currentIterator not dereferenceable!) if at end()
 			if(currentIterator == parentNode->mChildren.end()) return false;
 
 			// return(currentChildNode->getNumChildren() == 0);
 			// TODO remove mLeaf when directories are stored implicitly as paths.
+			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);
 			return(currentChildNode->isLeaf());
 		}
 		
 		bool atEndOfMap() const
-		{ 
+		{
 			const MLResourceMap<T>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-			
 			return(currentIterator == parentNode->mChildren.end());
 		}
-		
+
+		// MLTEST
+		void advanceToEnd()
+		{
+			const MLResourceMap<T>* parentNode = mNodeStack.back();
+			mIteratorStack.pop_back();
+			mIteratorStack.push_back(parentNode->mChildren.end());
+		}
+
 		int getDepth() { return mNodeStack.size() - 1; }
 		
 		std::vector< const MLResourceMap<T>* > mNodeStack;
@@ -188,7 +204,9 @@ public:
 	
 	inline const_iterator end() const
 	{
-		return const_iterator(this, mChildren.end());
+		const_iterator it(this);
+		it.advanceToEnd();
+		return it;
 	}
 
 private:
