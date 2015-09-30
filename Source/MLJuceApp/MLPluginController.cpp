@@ -121,16 +121,20 @@ void MLPluginController::timerCallback()
 	// read from file action queue and do any needed actions
 	if(mConvertingPresets)
 	{
-		int filesInQueue = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
-		mMaxFileQueueSize = max(filesInQueue, mMaxFileQueueSize);
-		if(filesInQueue > 0)
+		FileAction a;
+		
+
+		while(PaUtil_ReadRingBuffer( &mFileActionQueue, &a, 1 ));
 		{
-			// dequeue name of changed property
-			FileAction a;
-			PaUtil_ReadRingBuffer( &mFileActionQueue, &a, 1 );
+			
+			debug() << "ACTION " << a.mAction.getString() << "\n";
+			debug() << "    exists? " << a.mFile->exists() << "\n";
+
+			
 			doFileQueueAction(a);
 
-			filesInQueue = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
+			int filesInQueue = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
+			mMaxFileQueueSize = max(filesInQueue, mMaxFileQueueSize);
 			if(!filesInQueue) endConvertPresets();
 		}
 	}
@@ -525,16 +529,12 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	std::string nameWithSpace = MLProjectInfo::projectName + std::string(" ");
 	
     // add factory presets, those starting with the plugin name
-    MLMenuPtr factoryMenu(new MLMenu(presetFiles.getName()));
-	presetFiles.buildMenuIncludingPrefix(factoryMenu, nameWithSpace);
-    menu->appendMenu(factoryMenu);
+    menu->appendMenu(presetFiles.buildMenuIncludingPrefix(nameWithSpace));
 	
 	menu->addSeparator();
     
     // add user presets, all the others
-    MLMenuPtr userMenu(new MLMenu(presetFiles.getName()));
-    presetFiles.buildMenuExcludingPrefix(userMenu, nameWithSpace);
-    menu->appendMenu(userMenu);
+    menu->appendMenu(presetFiles.buildMenuExcludingPrefix(nameWithSpace));
 	
 	menu->buildIndex();
 }
@@ -629,6 +629,10 @@ void MLPluginController::processFileFromCollection (MLSymbol action, const MLFil
 	{
 		if(collectionName.beginsWith(MLSymbol("convert_presets")))
 		{
+			
+			debug() << "ADDING: " << fileToProcess.getShortName() << "\n";
+			
+			
 			// add file action to queue
 			FileAction f(action, &fileToProcess, &collection, idx, size);
 			PaUtil_WriteRingBuffer( &mFileActionQueue, &f, 1 );

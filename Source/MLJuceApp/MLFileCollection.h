@@ -9,6 +9,8 @@
 #ifndef __MLFileCollection__
 #define __MLFileCollection__
 
+#include <functional>
+
 #include "JuceHeader.h"
 #include "MLFile.h"
 #include "MLDefaultFileLocations.h"
@@ -100,23 +102,24 @@ public:
     // given a full system file name, get its path relative to our starting directory.
     std::string getRelativePathFromName(const std::string& name) const;
     
-    //MLMenuPtr buildMenu() const;
-	MLMenuPtr buildMenu(const MLResourceMap< MLFile > node, MLMenuPtr menu) const;
 	MLMenuPtr buildRootMenu() const;
 	
 	// build a menu of only the files in top-level directories starting with the given prefix.
 	// this adds only directories, not files. Made for adding "factory" presets separately.
-	void buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const;
+	MLMenuPtr buildMenuIncludingPrefix(std::string prefix) const;
 
 	// build a menu of only the files not starting with the prefix.
-	void buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const;
+	MLMenuPtr buildMenuExcludingPrefix(std::string prefix) const;
 	
     void dump() const;
     
 private:
-	void insertFileIntoTree(juce::File f);
+	MLMenuPtr buildMenu(const MLResourceMap< MLFile > node, 
+						std::function<bool(MLResourceMap<MLFile>::const_iterator)>) const;
+	
+	MLResourceMap<MLFile>* insertFileIntoMap(juce::File f);
 	void buildIndex();
-    void processFileInTree(int i);
+    void processFileInMap(int i);
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 	void run();
 	

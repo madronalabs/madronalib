@@ -27,14 +27,18 @@ public:
 	typedef std::map<MLSymbol, const MLResourceMap<T> > constMapT;
 	
 	// our value class must have a default constructor returning a safe null object.
-	MLResourceMap<T>() : mValue() {}
-	MLResourceMap(const T& v) { mValue = v; }
+	MLResourceMap<T>() : mValue(), mIsLeaf(false) {}
+	MLResourceMap(const T& v) : mIsLeaf(false) { mValue = v; }
 	~MLResourceMap() {}
 	
 	void clear() { mChildren.clear(); }
 	const T& getValue() const { return mValue; }
 	void setValue(const T& v) { mValue = v; }
-	int getNumChildren() const { return mChildren.size(); }
+	
+	bool isLeaf() const { return mIsLeaf; }
+	void markAsLeaf(bool b) { mIsLeaf = b; }
+	
+//	int getNumChildren() const { return mChildren.size(); }
 
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
@@ -53,9 +57,12 @@ public:
 	}
 	
 	// TODO also use MLSymbol vector paths
-	void addValue (const std::string& pathStr, const T& v)
+	MLResourceMap<T>* addValue (const std::string& pathStr, const T& v, bool isLeaf = false)
 	{
-		addNode(pathStr)->setValue(v);
+		MLResourceMap<T>* newNode = addNode(pathStr);
+		newNode->setValue(v);
+		newNode->markAsLeaf(isLeaf);
+		return newNode;
 	}
 	
 	void dump(int level = 0) const
@@ -71,8 +78,10 @@ public:
 		}
 	}
 	
+	friend class const_iterator;
 	class const_iterator
 	{
+		static const MLResourceMap<T> mNullValue;
 	public:
 		const_iterator()  {}
 		const_iterator(const MLResourceMap<T>* p)  
@@ -105,43 +114,35 @@ public:
 		
 		const MLResourceMap<T>* operator->() const 
 		{ 
-			return &((*mIteratorStack.back()).second);
+			return &((*mIteratorStack.back()).second); 
 		}
 		
 		const MLResourceMap<T>::const_iterator& operator++()
 		{			
-			do
+			typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
+			
+			if(atEndOfMap())
 			{
-				const MLResourceMap<T>* parentNode = mNodeStack.back();
-				typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-				const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
-				
-				if(currentIterator == parentNode->mChildren.end())
+				if(mNodeStack.size() > 1)
 				{
-					if(mNodeStack.size() > 1)
-					{
-						// up
-						mNodeStack.pop_back();
-						mIteratorStack.pop_back();
-						mIteratorStack.back()++;
-					}
-				}			
-				else if(currentChildNode->getNumChildren())
-				{
-					// down
-					mNodeStack.push_back(currentChildNode);
-					mIteratorStack.push_back(currentChildNode->mChildren.begin());
+					// up
+					mNodeStack.pop_back();
+					mIteratorStack.pop_back();
+					mIteratorStack.back()++;
 				}
-				else 
-				{
-					// across
-					currentIterator++;			
-				}
+			}			
+			else if(!currentChildNode->isLeaf())
+			{
+				// down
+				mNodeStack.push_back(currentChildNode);
+				mIteratorStack.push_back(currentChildNode->mChildren.begin());
 			}
-			// keep iterating here when we are at mChildren.end(), 
-			// so that on returning the iterator always points to a valid node
-			// except when we are all done and pointing to the root node's end.
-			while( (mNodeStack.size() > 1) && (mIteratorStack.back() == mNodeStack.back()->mChildren.end()) );
+			else 
+			{
+				// across
+				currentIterator++;			
+			}
 			 
 			return *this;
 		}
@@ -152,19 +153,34 @@ public:
 			return *this;
 		}
 		
-		bool isAtLeaf() 
+		bool atLeaf() const
 		{ 
-			typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);			
-			return(currentChildNode->getNumChildren() == 0);
+			const MLResourceMap<T>* parentNode = mNodeStack.back();
+			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);	
+			
+			// not a leaf if at end()
+			if(currentIterator == parentNode->mChildren.end()) return false;
+
+			// return(currentChildNode->getNumChildren() == 0);
+			// TODO remove mLeaf when directories are stored implicitly as paths.
+			return(currentChildNode->isLeaf());
+		}
+		
+		bool atEndOfMap() const
+		{ 
+			const MLResourceMap<T>* parentNode = mNodeStack.back();
+			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+			
+			return(currentIterator == parentNode->mChildren.end());
 		}
 		
 		int getDepth() { return mNodeStack.size() - 1; }
 		
 		std::vector< const MLResourceMap<T>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
-	};
-	
+	};	
+		
 	inline MLResourceMap<T>::const_iterator begin() const
 	{
 		return const_iterator(this);
@@ -174,8 +190,9 @@ public:
 	{
 		return const_iterator(this, mChildren.end());
 	}
-	
+
 private:
+
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
 	MLResourceMap<T>* findNode(const std::string& pathStr)
@@ -225,6 +242,8 @@ private:
 		for(it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
 			MLSymbol sym = *it;
+			
+			// [] operator crates the new node
 			pNode = &(pNode->mChildren[sym]);
 		}
 		
@@ -233,6 +252,7 @@ private:
 	
 	mapT mChildren;
 	T mValue;
+	bool mIsLeaf;	// TODO remove when directories are stored implicitly as paths.
 };
 
 

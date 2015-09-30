@@ -15,7 +15,9 @@
 
 class MLMenu;
 
-// TODO use MLTree!
+// TODO use MLResourceMap. Possibly just create the menu tree from an external map every time we show the menu. 
+// TODO add forward / back button option and persist a current selection. 
+// Use index or store using new bidirectional MLResourceMap iterator .
 
 typedef std::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
@@ -25,7 +27,6 @@ typedef std::shared_ptr<juce::PopupMenu> JuceMenuPtr;
 class MLMenu
 {
 public:
-    
     class Node;
     typedef std::shared_ptr<Node> NodePtr;
     typedef std::map<std::string, NodePtr, MLStringCompareFn> StringToMenuNodeMapT;
@@ -64,6 +65,7 @@ public:
 	void addSeparator();
 	NodePtr getItem(const std::string& name);
 	void addItems(const std::vector<std::string>& items);
+	void addSubMenu(MLMenuPtr m);
 	void addSubMenu(MLMenuPtr m, const std::string& name);
 	void appendMenu(MLMenuPtr m);
     void buildIndex();

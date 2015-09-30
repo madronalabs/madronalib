@@ -243,11 +243,19 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 	}
 }
 
+void MLMenu::addSubMenu(MLMenuPtr m)
+{
+	// copy NodePtr into our node map
+	const std::string& subMenuName = m->getName().getString();
+	mRoot->map[subMenuName] = m->mRoot;
+	mRoot->index.push_back(subMenuName);
+}
+
 void MLMenu::addSubMenu(MLMenuPtr m, const std::string& name)
 {
-    // copy NodePtr into our node map
-    mRoot->map[name] = m->mRoot;
-    mRoot->index.push_back(name);
+	// copy NodePtr into our node map
+	mRoot->map[name] = m->mRoot;
+	mRoot->index.push_back(name);
 }
 
 // append all items in root to the menu m
