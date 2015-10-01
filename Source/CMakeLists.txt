@@ -268,8 +268,6 @@ else(BUILD_NEW_ONLY)
 endif()
 
 if(BUILD_NEW_ONLY)
-  target_link_libraries(madronalib portaudio)
-  target_link_libraries(madronalib oscpack)
   target_link_libraries(madronalib cjson)
 else(BUILD_NEW_ONLY)
   target_link_libraries(madronalib portaudio)
