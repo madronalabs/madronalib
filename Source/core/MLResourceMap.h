@@ -56,7 +56,8 @@ public:
 	}
 	
 	// TODO also use MLSymbol vector paths
-	MLResourceMap<T>* addValue (const std::string& pathStr, const T& v, bool isLeaf = false)
+	// isLeaf should be true, unless we want to mark the value as a non-leaf, as in the case of a directory
+	MLResourceMap<T>* addValue (const std::string& pathStr, const T& v, bool isLeaf = true)
 	{
 		MLResourceMap<T>* newNode = addNode(pathStr);
 		newNode->setValue(v);
@@ -71,8 +72,9 @@ public:
 		for(it = mChildren.begin(); it != mChildren.end(); ++it)
 		{
 			MLSymbol p = it->first;
-			const MLResourceMap<T> n = it->second;		
-			std::cout << level << ": " << MLStringUtils::spaceStr(level) << p << ":" << n.mValue << "\n";
+			const MLResourceMap<T>& n = it->second;		
+			char leafChar = n.isLeaf() ? 'L' : 'N'; 
+			std::cout << level << leafChar<< ": " << MLStringUtils::spaceStr(level) << p << ":" << n.mValue << "\n";
 			n.dump(level + 1);
 		}
 	}
@@ -82,7 +84,6 @@ public:
 	{
 		static const MLResourceMap<T> mNullValue;
 	public:
-		const_iterator()  {}
 		const_iterator(const MLResourceMap<T>* p)  
 		{
 			mNodeStack.push_back(p); 

@@ -136,9 +136,8 @@ MLResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		std::string fullName(f.getFullPathName().toUTF8());
 		std::string relativePath = getRelativePathFromName(fullName);
 		
-		// passing true because this is a leaf with file value and not just a directory. 
 		// TODO directories will be stored implicitly as paths, only resources will have value. 
-		returnNode = mRoot.addValue(relativePath, MLFile(fullName), true);
+		returnNode = mRoot.addValue(relativePath, MLFile(fullName));
 	}
 	else if (f.isDirectory())
 	{
@@ -146,8 +145,10 @@ MLResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		std::string fullName(f.getFullPathName().toUTF8());
 		std::string relativePath = getRelativePathFromName(fullName);
 		
+		// passing false because this is a directory node. 
+		// TODO directories will be stored implicitly as paths, only resources will have value. 
 		// TODO just addNode
-		returnNode = mRoot.addValue(relativePath, MLFile(fullName));
+		returnNode = mRoot.addValue(relativePath, MLFile(fullName), false);
 	}
 	return returnNode;
 }

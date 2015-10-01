@@ -23,7 +23,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	MLResourceMap< int > numberMap;
 	MLNameMaker namer;
 	const int testSymbols = 100;
-	const int mapSize = 1000;
+	const int mapSize = 100;
 	std::chrono::time_point<std::chrono::system_clock> start, end;	
 	std::chrono::duration<double> elapsed;
 	
@@ -77,11 +77,11 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	
 	int bigLeafSum = 0;
 	int maxDepth = 8;
-	const int correctBigLeafSum = 499500;
+	const int correctBigLeafSum = 4950;
 	const int correctMaxDepth = 8;
 	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
 	{
-		if(it.isAtLeaf())
+		if(it.atLeaf())
 		{		
 			bigLeafSum += it->getValue();
 		}
@@ -97,22 +97,25 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
+	// note that non-leaf nodes added explicitly need the final false argument
+	// this is needed for empty directories, for example
 	MLResourceMap< int > a;
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
-	a.addValue("this/was/another", 1);
+	a.addValue("this/was/another", 1, false);
 	a.addValue("this/was/another/test", 10);
 	a.addValue("this/was/happy", 10);
+	a.addValue("this/is/an/empty/directory", 0, false);
 	a.addValue("you/are/my/sunshine", 10);
 	a.addValue("you/are/carl's/sunshine", 10);
 	a.addValue("you/are/carl's/jr/jam", 10);
-	a.addValue("you/are/carl's/jr", 1);
+	a.addValue("you/are/carl's/jr", 1, false);
 	int leafSum = 0;
 	const int correctLeafSum = 70;
-	MLResourceMap< int >::const_iterator it;
-	for(it = a.begin(); it != a.end(); it++)
+	
+	for(auto it = a.begin(); it != a.end(); it++)
 	{
-		if(it.isAtLeaf())
+		if(it.atLeaf())
 		{		
 			leafSum += it->getValue();
 		}
