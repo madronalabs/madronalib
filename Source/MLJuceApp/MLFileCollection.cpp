@@ -135,8 +135,6 @@ MLResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		// insert file or directory into file tree relative to collection root
 		std::string fullName(f.getFullPathName().toUTF8());
 		std::string relativePath = getRelativePathFromName(fullName);
-		
-		// TODO directories will be stored implicitly as paths, only resources will have value. 
 		returnNode = mRoot.addValue(relativePath, MLFile(fullName));
 	}
 	else if (f.isDirectory())
@@ -146,9 +144,10 @@ MLResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		std::string relativePath = getRelativePathFromName(fullName);
 		
 		// passing false because this is a directory node. 
-		// TODO directories will be stored implicitly as paths, only resources will have value. 
-		// TODO just addNode
-		returnNode = mRoot.addValue(relativePath, MLFile(fullName), false);
+		// TODO directories will be stored without values, only resources will have value. 
+		// we still need value-less nodes to represent (possibly empty) directories.
+		returnNode = mRoot.addNode(relativePath);
+		returnNode->setValue(MLFile(fullName));
 	}
 	return returnNode;
 }
@@ -367,8 +366,39 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
     return MLStringUtils::stripExtension(relPath);
 }
 
-MLMenuPtr MLFileCollection::buildMenu(const MLResourceMap< MLFile > node, 
-					std::function<bool(MLResourceMap<MLFile>::const_iterator)> includeFn) const
+MLMenuPtr MLFileCollection::buildMenu() const
+{
+	MLMenuPtr root(new MLMenu());
+	std::vector<MLMenuPtr> menuStack;
+	menuStack.push_back(root);
+	for(auto it = mRoot.begin(); it != mRoot.end(); ++it)
+	{
+		if(!it.atEndOfMap())
+		{
+			const std::string& itemName = it->getValue().getShortName();
+			if(it.atLeaf())
+			{
+				menuStack.back()->addItem(itemName, true);
+			}
+			else
+			{
+				// add submenu at current depth
+				MLMenuPtr newMenu (new MLMenu(itemName));
+				menuStack.back()->addSubMenu(newMenu);
+				menuStack.push_back(newMenu);
+			}
+		}
+		else
+		{
+			// note that *it will not have a valid value here!
+			MLMenuPtr popped = menuStack.back();
+			menuStack.pop_back();
+		}
+	}
+	return root;
+}
+
+MLMenuPtr MLFileCollection::buildMenu(std::function<bool(MLResourceMap<MLFile>::const_iterator)> includeFn) const
 {
 	MLMenuPtr root(new MLMenu());
 	std::vector<MLMenuPtr> menuStack;
@@ -405,110 +435,6 @@ MLMenuPtr MLFileCollection::buildMenu(const MLResourceMap< MLFile > node,
 	}
 	return root;
 }
-
-MLMenuPtr MLFileCollection::buildRootMenu() const
-{
-	return buildMenu(mRoot, [](MLResourceMap<MLFile>::const_iterator){ return true; });
-}
-
-MLMenuPtr MLFileCollection::buildMenuIncludingPrefix(std::string prefix) const
-{
-	std::function<bool(MLResourceMap<MLFile>::const_iterator)> myIncludeFn = 
-	[=](MLResourceMap<MLFile>::const_iterator it)
-	{
-		if(it.getDepth() > 0)
-		{
-			return true;
-		}
-		else
-		{
-			int prefixLen = prefix.length();
-			std::string filePrefix = it->getValue().getShortName().substr(0, prefixLen);
-			std::cout << "comparing " << filePrefix << " to " << prefix << "\n";
-			return (filePrefix.compare(prefix) == 0);
-		};
-	};
-	return buildMenu(mRoot, myIncludeFn);
-}
-
-MLMenuPtr MLFileCollection::buildMenuExcludingPrefix(std::string prefix) const
-{	
-	std::function<bool(MLResourceMap<MLFile>::const_iterator)> myIncludeFn = 
-	
-	[=](MLResourceMap<MLFile>::const_iterator it)
-	{
-		if(it.getDepth() > 0)
-		{
-			return true;
-		}
-		else
-		{
-			int prefixLen = prefix.length();
-			std::string filePrefix = it->getValue().getShortName().substr(0, prefixLen);
-			return (filePrefix.compare(prefix) != 0);
-		};
-	};
-	return buildMenu(mRoot, myIncludeFn);
-}
-
-/*
-// build a menu of only the files in top-level directories starting with the given prefix.
-// this adds only directories, not files. Made for adding "factory" presets separately.
-void MLFileCollection::buildMenuIncludingPrefix(MLMenuPtr m, std::string prefix) const
-{
-	int prefixLen = prefix.length();
-	m->clear();
-	
-	int rootKids = mRoot.getNumChildren();
-	for(int i=0; i<rootKids; ++i)
-	{
-		const MLResourceMap< MLFile >& childNode = mRoot.getChild(i);
-		const MLFile& f = childNode.getValue();
-		std::string filePrefix = f.getShortName().substr(0, prefixLen);
-		if(filePrefix.compare(prefix) == 0)
-		{
-			if(f.isDirectory())
-			{
-				MLMenuPtr subMenu(new MLMenu());
-				buildMenu(childNode, subMenu);
-				m->addSubMenu(subMenu, f.getShortName());
-			}
-			else
-			{
-				m->addItem(f.getShortName());
-			}
-		}
-	}
-}
-
-// build a menu of only the files not starting with the prefix.
-void MLFileCollection::buildMenuExcludingPrefix(MLMenuPtr m, std::string prefix) const
-{
-	int prefixLen = prefix.length();
-	m->clear();
-	
-	int rootKids = mRoot.getNumChildren();
-	for(int i=0; i<rootKids; ++i)
-	{
-		const MLResourceMap< MLFile >& childNode = mRoot.getChild(i);
-		const MLFile& f = childNode.getValue();
-		std::string filePrefix = f.getShortName().substr(0, prefixLen);
-		if(filePrefix.compare(prefix) != 0)
-		{
-			if(f.isDirectory())
-			{
-				MLMenuPtr subMenu(new MLMenu());
-				buildMenu(childNode, subMenu);
-				m->addSubMenu(subMenu, f.getShortName());
-			}
-			else
-			{
-				m->addItem(f.getShortName());
-			}
-		}
-	}
-}
-*/
 
 void MLFileCollection::run()
 {

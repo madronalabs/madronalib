@@ -478,7 +478,7 @@ void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollectio
     MLMenu* pMenu = findMenuByName("key_scale");
 	pMenu->clear();
  	pMenu->addItem("12-equal");
-    pMenu->appendMenu(fileCollection.buildRootMenu());
+    pMenu->appendMenu(fileCollection.buildMenu());
 }
 
 void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
@@ -526,15 +526,45 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
 	// presets and directories starting with the name of the plugin followed by a space
 	// will be sorted into a separate factory area.
-	std::string nameWithSpace = MLProjectInfo::projectName + std::string(" ");
+	std::string prefix = MLProjectInfo::projectName + std::string(" ");
 	
     // add factory presets, those starting with the plugin name
-    menu->appendMenu(presetFiles.buildMenuIncludingPrefix(nameWithSpace));
+    menu->appendMenu(presetFiles.buildMenu
+		([=](MLResourceMap<MLFile>::const_iterator it)
+			 {
+				 if(it.getDepth() > 0)
+				 {
+					 return true;
+				 }
+				 else
+				 {
+					 int prefixLen = prefix.length();
+					 std::string filePrefix = it->getValue().getShortName().substr(0, prefixLen);
+					 return (filePrefix.compare(prefix) == 0);
+				 };
+			 }
+		 )
+	);
 	
 	menu->addSeparator();
     
     // add user presets, all the others
-    menu->appendMenu(presetFiles.buildMenuExcludingPrefix(nameWithSpace));
+	menu->appendMenu(presetFiles.buildMenu
+					 ([=](MLResourceMap<MLFile>::const_iterator it)
+					  {
+						  if(it.getDepth() > 0)
+						  {
+							  return true;
+						  }
+						  else
+						  {
+							  int prefixLen = prefix.length();
+							  std::string filePrefix = it->getValue().getShortName().substr(0, prefixLen);
+							  return (filePrefix.compare(prefix) != 0);
+						  };
+					  }
+					  )
+					 );
 	
 	menu->buildIndex();
 }

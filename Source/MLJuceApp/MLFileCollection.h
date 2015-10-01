@@ -96,26 +96,23 @@ public:
     std::string getFilePathByIndex(int idx);
     const MLFile getFileByIndex(int idx);
 
-    // make a new file. TODO return const MLFile &
+    // make a new file. 
     const MLFile createFile(const std::string& relativePath);
 
     // given a full system file name, get its path relative to our starting directory.
     std::string getRelativePathFromName(const std::string& name) const;
     
-	MLMenuPtr buildRootMenu() const;
+	// build a menu of all the files. 
+	// TODO no reason to know about menus here. We should be returning a raw tree structure.
+	// or better, the menu just has a reference to a resourceMap, that can be constantly updating itself.
+	MLMenuPtr buildMenu() const;
 	
-	// build a menu of only the files in top-level directories starting with the given prefix.
-	// this adds only directories, not files. Made for adding "factory" presets separately.
-	MLMenuPtr buildMenuIncludingPrefix(std::string prefix) const;
-
-	// build a menu of only the files not starting with the prefix.
-	MLMenuPtr buildMenuExcludingPrefix(std::string prefix) const;
+	// build a menu of the files for which the function returns true.
+	MLMenuPtr buildMenu(std::function<bool(MLResourceMap<MLFile>::const_iterator)>) const;
 	
     void dump() const;
     
 private:
-	MLMenuPtr buildMenu(const MLResourceMap< MLFile > node, 
-						std::function<bool(MLResourceMap<MLFile>::const_iterator)>) const;
 	
 	MLResourceMap<MLFile>* insertFileIntoMap(juce::File f);
 	void buildIndex();

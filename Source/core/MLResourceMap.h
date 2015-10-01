@@ -36,8 +36,6 @@ public:
 	
 	bool isLeaf() const { return mIsLeaf; }
 	void markAsLeaf(bool b) { mIsLeaf = b; }
-	
-//	int getNumChildren() const { return mChildren.size(); }
 
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
@@ -55,13 +53,49 @@ public:
 		}
 	}
 	
+	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
+	// If a node already exists at the path, return the existing node,
+	// else return a pointer to the new node.
+	MLResourceMap<T>* addNode(const std::string& pathStr)
+	{
+		MLResourceMap<T>* pNode = this;
+		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);
+		std::vector< MLSymbol >::const_iterator it;
+		int pathDepthFound = 0;
+		
+		// walk the path as long as branches are found in the map
+		for(MLSymbol sym : path)
+		{
+			if(pNode->mChildren.find(sym) != pNode->mChildren.end())
+			{
+				pNode = &(pNode->mChildren[sym]);
+				pathDepthFound++;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		// add the remainder of the path to the map.
+		for(it = path.begin() + pathDepthFound; it != path.end(); ++it)
+		{
+			MLSymbol sym = *it;
+			
+			// [] operator crates the new node
+			pNode = &(pNode->mChildren[sym]);
+		}
+		
+		return pNode;
+	}
+	
 	// TODO also use MLSymbol vector paths
 	// isLeaf should be true, unless we want to mark the value as a non-leaf, as in the case of a directory
-	MLResourceMap<T>* addValue (const std::string& pathStr, const T& v, bool isLeaf = true)
+	MLResourceMap<T>* addValue (const std::string& pathStr, const T& v)
 	{
 		MLResourceMap<T>* newNode = addNode(pathStr);
 		newNode->setValue(v);
-		newNode->markAsLeaf(isLeaf);
+		newNode->markAsLeaf(true);
 		return newNode;
 	}
 	
@@ -78,6 +112,8 @@ public:
 			n.dump(level + 1);
 		}
 	}
+	
+	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
 	
 	friend class const_iterator;
 	class const_iterator
@@ -230,42 +266,6 @@ private:
 				break;
 			}
 		}
-		return pNode;
-	}
-	
-	// add a tree node at the specified path, and any parent nodes necessary in order to put it there.
-	// If a tree node already exists at the path, return the existing node,
-	// else return a pointer to the new node.
-	MLResourceMap<T>* addNode(const std::string& pathStr)
-	{
-		MLResourceMap<T>* pNode = this;
-		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);
-		std::vector< MLSymbol >::const_iterator it;
-		int pathDepthFound = 0;
-		
-		// walk the path as long as branches are found in the map
-		for(MLSymbol sym : path)
-		{
-			if(pNode->mChildren.find(sym) != pNode->mChildren.end())
-			{
-				pNode = &(pNode->mChildren[sym]);
-				pathDepthFound++;
-			}
-			else
-			{
-				break;
-			}
-		}
-		
-		// add the remainder of the path to the map.
-		for(it = path.begin() + pathDepthFound; it != path.end(); ++it)
-		{
-			MLSymbol sym = *it;
-			
-			// [] operator crates the new node
-			pNode = &(pNode->mChildren[sym]);
-		}
-		
 		return pNode;
 	}
 	
