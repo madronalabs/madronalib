@@ -23,7 +23,9 @@ MLLabel::MLLabel (const char* labelText) :
 	// labels are always opaque for better text rendering
 	setOpaque(true);
 	
+	// MLTEST
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
+	
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
     setRepaintsOnMouseActivity (false);
 	setInterceptsMouseClicks(false, false);
@@ -73,6 +75,21 @@ void MLLabel::setJustification(const Justification& j)
 
 void MLLabel::resized()
 {
+	int w = getWidth();
+	int h = getHeight();
+	if(getWidgetName() == "BO")
+	{
+		debug() << "MLLabel " << getWidgetName() << " resized  " << w << " x " << h << "\n";
+		// get screen coords of gradient
+		Component* wc = getTopLevelComponent();
+		Point<int> windowPos = wc->getScreenPosition();
+		Point<int> compPosInWindow = getScreenPosition() - windowPos;
+		Point<int> gStart = Point<int>(0 ,0) - compPosInWindow;
+		Point<int> gEnd = Point<int>(wc->getWidth(), wc->getHeight()) - compPosInWindow;
+		
+		debug() << "    gStart:	" << gStart.y << "\n";
+		debug() << "    gEnd:	" << gEnd.y << "\n";
+	}
 }
 
 void MLLabel::setDrawable (const Drawable* pD)
@@ -90,9 +107,20 @@ void MLLabel::paint (Graphics& g)
 	const Colour bc (findColour (backgroundColourId));
 	float alpha = isEnabled() ? 1. : 0.25f;
 
-	if (isOpaque())
-		myLookAndFeel->drawBackground(g, this);
-		
+	myLookAndFeel->drawBackground(g, this);
+	
+	// we are in local coords with the origin at the widget's top left
+	myLookAndFeel->drawUnitGrid(g, this);
+	
+	// MLTEST
+	if(getWidgetName() == "BO")
+	{
+		debug() << "MLLabel " << getWidgetName() << " painting " << w << " x " << h << "\n";
+		debug() << getWidgetBoundsInWindow() << "\n";
+		debug() << "    *\n";
+	}
+
+	/*
 	if((bool)getFloatProperty("background"))
 	{
 		g.setColour(bc);
@@ -115,15 +143,40 @@ void MLLabel::paint (Graphics& g)
 		g.drawFittedText (String(text.c_str()), p, p, w - p*2., h - p*2.,
 			mJustification, 2, 1.0);		
 	}
-	
-	if(0)
-    {
-        // TEST show bounds
-        Path tbounds;
-        const Rectangle<int> & boundsRect ( getLocalBounds());	
-        tbounds.addRectangle(boundsRect);
-        g.setColour(Colours::red);	
-        g.strokePath(tbounds, PathStrokeType(0.5f));
+	 */	
+
+	if((getWidgetName() == "B"))
+	{
+		// TEST show bounds
+		Path tbounds;
+		const Rectangle<int> & boundsRect ( getLocalBounds());	
+		tbounds.addRectangle(boundsRect);
+		g.setColour(Colours::red);	
+		g.strokePath(tbounds, PathStrokeType(1.f));
+	}
+	if(getWidgetName() == "BO")
+	{
+		// TEST show bounds
+		Path tbounds;
+		const Rectangle<int> & boundsRect ( getLocalBounds());	
+		tbounds.addRectangle(boundsRect);
+		g.setColour(Colours::green);	
+		g.strokePath(tbounds, PathStrokeType(1.f));
+		
+		// MLTEST recursive
+
+		MLWidget* pC = getContainer();
+		int depth = 0;
+		while(pC)
+		{
+			debug() << MLStringUtils::spaceStr(depth*4);
+			debug() << pC->getWidgetBounds();
+			debug() << "\n";
+			pC = pC->getContainer();
+			depth++;
+		}
+		
+		debug() << "TLB:" << getTopLevelWindowBounds();
 	}
 }
 

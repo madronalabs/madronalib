@@ -447,11 +447,16 @@ public:
 	// background
 	void setGradientMode(int m) { mGradientMode = m;}	
 	void setGradientSize(float f) { mGradientSize = f;}	
-	void setBackgroundGradient(Graphics& g, Point<int>& gStart, Point<int>& gEnd);
+	void setBackgroundGradient(Graphics& g, Point<int> gStart, Point<int> gEnd);
     void drawBackgroundAtOrigin(Graphics& g, juce::Rectangle<int>r);
-	void drawBackground(Graphics& g, Component* pC);
-	void drawBackgroundRect(Graphics& g, Component* pC, MLRect r);
-	void drawUnitGrid(Graphics& g);
+	
+	void drawBackground(Graphics& g, MLWidget* pW);
+	void drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect r);
+	void drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint xyOffset);
+	
+	void drawUnitGrid(Graphics& g, MLWidget* pW);
+	void drawUnitGridRect(Graphics& g, MLWidget* pW, MLRect r);
+	void drawUnitGridRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint offset);
 
 	void setGlobalTextScale(float s);
 	void setGridUnitSize(float s);

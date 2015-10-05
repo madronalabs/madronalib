@@ -7,12 +7,13 @@
 #include "MLDebug.h"
 
 MLWidget::MLWidget() :
+	pComponent(nullptr),
+	mpContainer(nullptr),
 	MLPropertyListener(this),
 	mSize(1.f),
 	mGridBounds(),
 	mGridUnitSize(0),
 	mLabelOffset(),
-	pComponent(nullptr),
 	pGLContext(nullptr),
 	mWantsResizeLast(false)
 {
@@ -125,16 +126,42 @@ MLRect MLWidget::getWidgetLocalBounds()
 	return MLRect();
 }
 
-// get bounds of top-level window containing the widget.
-//
-MLRect MLWidget::getWidgetWindowBounds()
+// relative to enclosing window
+MLRect MLWidget::getWidgetBoundsInWindow()
 {
 	// adapt JUCE rect to MLRect
 	if(pComponent)
 	{
-		ComponentPeer *peer = pComponent->getPeer();
-		MLRect r(juceToMLRect(peer->getBounds()));
-		return r;
+		MLRect bounds = getWidgetBounds();
+		MLWidget* pC = this;
+		MLRect parentBounds = bounds;
+		while(pC->getContainer())
+		{
+			pC = pC->getContainer();
+			parentBounds = pC->getWidgetBounds();
+			bounds += parentBounds.getTopLeft();
+		}
+		return bounds;
+	}
+	return MLRect();
+}
+
+// get bounds of top-level Component containing the widget.
+//
+MLRect MLWidget::getTopLevelWindowBounds()
+{
+	// adapt JUCE rect to MLRect
+	if(pComponent)
+	{
+		MLRect bounds = getWidgetBounds();
+		MLWidget* pC = this;
+		MLRect parentBounds = bounds;
+		while(pC->getContainer())
+		{
+			pC = pC->getContainer();
+			parentBounds = pC->getWidgetBounds();
+		}
+		return parentBounds;
 	}
 	return MLRect();
 }

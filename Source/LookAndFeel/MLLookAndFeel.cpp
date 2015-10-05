@@ -1913,7 +1913,7 @@ void MLLookAndFeel::drawShadowLine  (Graphics& g,
 //==============================================================================
 	
 
-void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int>& gStart, Point<int>& gEnd)
+void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int> gStart, Point<int> gEnd)
 {
 	Colour c1 = findColour (MLLookAndFeel::backgroundColor2);
 	Colour c2 = findColour (MLLookAndFeel::backgroundColor);
@@ -1961,54 +1961,104 @@ void MLLookAndFeel::drawBackgroundAtOrigin(Graphics& g, Rectangle<int>r)
 // so that backgrounds of different components will match each other
 // without seams.
 //
-void MLLookAndFeel::drawBackground(Graphics& g, Component* pC)
+void MLLookAndFeel::drawBackground(Graphics& g, MLWidget* pW)
 {
-	const Rectangle<int> lb = pC->getLocalBounds();
-	
-	// get screen coords of gradient
-	Component* wc = pC->getTopLevelComponent();
-	Point<int> windowPos = wc->getScreenPosition();
-	Point<int> compPosInWindow = pC->getScreenPosition() - windowPos;
-	Point<int> gStart = Point<int>(0 ,0) - compPosInWindow;
-	Point<int> gEnd = Point<int>(wc->getWidth(), wc->getHeight()) - compPosInWindow;
-	
-	setBackgroundGradient(g, gStart, gEnd);
-	g.fillRect (lb);
+	drawBackgroundRect(g, pW, pW->getWidgetLocalBounds());
 }
 
-void MLLookAndFeel::drawBackgroundRect(Graphics& g, Component* pC, MLRect r)
+// used by dial numbers
+void MLLookAndFeel::drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect r)
 {
-	const Rectangle<int> lb = MLToJuceRectInt(r);
+	drawBackgroundRectAtOffset(g, pW, r, MLPoint(0, 0));
+}
 
-	// get screen coords of gradient
-	Component* wc = pC->getTopLevelComponent();
-	Point<int> windowPos = wc->getScreenPosition();
-	Point<int> compPosInWindow = pC->getScreenPosition() - windowPos;
-	Point<int> gStart = Point<int>(0 ,0) - compPosInWindow;
-	Point<int> gEnd = Point<int>(wc->getWidth(), wc->getHeight()) - compPosInWindow;
+// used by dial numbers
+void MLLookAndFeel::drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint offset)
+{
+	MLRect window = pW->getTopLevelWindowBounds();
+	MLRect widget = pW->getWidgetBoundsInWindow();
+	MLPoint windowOffset = window.getTopLeft();
+	MLPoint widgetOffset = widget.getTopLeft();
+	MLPoint totalOffset = windowOffset - widgetOffset + offset;
 	
-	setBackgroundGradient(g, gStart, gEnd);
-	g.fillRect (lb);
+	//	setBackgroundGradient(g, Point<int>(wb.left(), wb.top()), Point<int>(wb.right(), wb.bottom()));
+	
+	Colour c1 = Colours::black;
+	Colour c2 = Colours::white;
+	
+	ColourGradient cg;
+	//int xOffset = (widget.left() - window.left()) + xyOffset.x();
+	int yOffset = totalOffset.y();
+	cg.point1 = Point<float>(window.left(), window.top() - yOffset);
+	cg.point2 = Point<float>(window.left(), window.bottom() - yOffset);
+	cg.isRadial = false;
+	
+	cg.addColour(0., c1);
+	cg.addColour(1., c2);
+	
+	g.setGradientFill(cg);	
+	
+	
+	//	g.setColour(Colours::blue);
+	g.fillRect (MLToJuceRectInt(r));
+	
+	
+	//	g.setColour(Colours::blue);
+	//	g.fillRect(wBounds);
+	
+	// drawUnitGrid(g);
 }
 
 // unit grid for testing
-void MLLookAndFeel::drawUnitGrid(Graphics& g)
+void MLLookAndFeel::drawUnitGrid(Graphics& g, MLWidget* pW)
 {
+	drawUnitGridRect(g, pW, pW->getWidgetLocalBounds());
+}
+
+// unit grid for testing
+void MLLookAndFeel::drawUnitGridRect(Graphics& g, MLWidget* pW, MLRect r)
+{
+	drawUnitGridRectAtOffset(g, pW, r, MLPoint(0, 0));
+}
+
+void MLLookAndFeel::drawUnitGridRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint offset)
+{
+	MLRect window = pW->getTopLevelWindowBounds();
+	MLRect widget = pW->getWidgetBoundsInWindow();
+	
 	int u = getGridUnitSize(); 
 	Path p, q;
 	p.addRectangle(0, 0, u, u);
-	g.setColour(Colours::navy.withAlpha(0.25f));
-	for(int i=0; i<mGridUnitsX; ++i)
+	
+	MLPoint windowOffset = window.getTopLeft();
+	MLPoint widgetOffset = widget.getTopLeft();
+	MLPoint totalOffset = windowOffset - widgetOffset + offset;
+	
+	MLPoint offsetQuantized = totalOffset;
+	offsetQuantized.quantize(u);
+	MLPoint offsetFraction = totalOffset - offsetQuantized;
+
+	MLRect r2 = r;
+	r2.translate(offsetFraction);
+	r2.expand(u*2);
+	for(int j=r2.top(); j<r2.bottom(); j += u)
 	{
-		for(int j=0; j<mGridUnitsY; ++j)
+		for(int i=r2.left(); i<r2.right(); i += u)
 		{
 			q = p;
-			q.applyTransform (AffineTransform::translation (u*i, u*j));
+			q.applyTransform (AffineTransform::translation(i, j));			
+			MLPoint originDistance = widgetOffset - windowOffset + MLPoint(i, j);
+			float cx = originDistance.x();
+			float cy = originDistance.y();
+			float cr = cx / 1000.f;
+			float cg = cy / 1000.f;
+			float cb = 1.;
+			juce::Colour c = juce::Colour::fromFloatRGBA(cr, cg, cb, 1.f);
+			g.setColour(c);
 			g.strokePath(q, PathStrokeType (1.f));	
 		}
 	}
 }
-
 
 //==============================================================================
 void MLLookAndFeel::drawMLButtonShape  (Graphics& g,

@@ -12,22 +12,24 @@ MLAppBorder::MLAppBorder() :
 	mGridUnitsX(0),
 	mGridUnitsY(0)
 {
-	Component::setBounds(0, 0, 0, 0);
+	MLWidget::setComponent(this);
+
+	setWidgetBounds(MLRect(0, 0, 0, 0));
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);	
-	Component::setName("border");
-    Component::setOpaque(true);
+	setWidgetName("border");
+    getComponent()->setOpaque(true);
 }
 
 MLAppBorder::~MLAppBorder()
 {
-	deleteAllChildren();
+	getComponent()->deleteAllChildren();
 }
 
 void MLAppBorder::addMainView(MLAppView* pView)
 {
 	pMainView = pView;
-	addAndMakeVisible(pView);
+	getComponent()->addAndMakeVisible(pView);
 }
 
 // build the resizer for target components that need them.
@@ -36,7 +38,7 @@ void MLAppBorder::addMainView(MLAppView* pView)
 void MLAppBorder::makeResizer(Component* targetComp)
 {
 	// add the triangular resizer component for the bottom-right of the UI
-    addAndMakeVisible (mpResizer = new ResizableCornerComponent (targetComp, &myConstrainer));
+    getComponent()->addAndMakeVisible (mpResizer = new ResizableCornerComponent (targetComp, &myConstrainer));
 	mpResizer->setAlwaysOnTop(true);
 }
 
@@ -46,8 +48,27 @@ void MLAppBorder::paint (Graphics& g)
 	
     // TODO optimize, because this has to be redrawn behind every non-opaque component repaint.
 	// This is where most of the plugin's background is actually painted.
-	myLookAndFeel->drawBackground(g, this);
-    
+		
+	MLRect br = getWidgetLocalBounds(); // top left should be at 0, 0 anyway
+	Rectangle<int> jr = MLToJuceRectInt(br);
+ 
+	/*
+	g.setColour(Colours::red);
+	MLRect localBounds = getWidgetLocalBounds();
+	g.fillRect (MLToJuceRectInt(localBounds));
+	localBounds.shrink(10.f);
+	g.setColour(Colours::blue);
+	g.fillRect (MLToJuceRectInt(localBounds));
+	 */
+	
+	debug() << "MLAppBorder: PAINTING " << br << " border " << mBorderRect << "\n";
+	
+
+	//int yOffset = mBorderRect.top();
+	myLookAndFeel->drawBackgroundRectAtOffset(g, this, br, mBorderRect.getTopLeft());
+	
+	myLookAndFeel->drawUnitGridRectAtOffset(g, this, br, mBorderRect.getTopLeft());
+	
 	/*
 	// TEST outline border areas
 	Path p, p2;
@@ -76,9 +97,9 @@ void MLAppBorder::paint (Graphics& g)
 
 void MLAppBorder::centerMainViewInWindow()
 {
-	Rectangle<int> br = getBounds();
-	int windowWidth = br.getWidth();
-	int windowHeight = br.getHeight();	
+	MLRect br = getWidgetBounds();
+	int windowWidth = br.width();
+	int windowHeight = br.height();	
 	double windowRatio = (double)(windowWidth + 1)/(double)windowHeight;
 	double viewRatio = (double)mGridUnitsX/(double)mGridUnitsY;
 	int u = (int)(windowHeight / mGridUnitsY);
@@ -108,9 +129,13 @@ void MLAppBorder::centerMainViewInWindow()
 	int vwq = viewWidth / u * u;
 	int vhq = viewHeight / u * u;
 	int borderX = (windowWidth - vwq)/2;
-	int borderY = 0;//(windowHeight - vhq)/2;
+	int borderY = (windowHeight - vhq)/2;
 	
-	if (pMainView) pMainView->resizeWidget(MLRect(borderX, borderY, vwq, vhq), u);
+	mBorderRect = MLRect(borderX, borderY, vwq, vhq);
+	if (pMainView) pMainView->resizeWidget(mBorderRect, u);
+	
+	// MLTEST
+	debug() << "MLAppBorder border rect: " << mBorderRect << "\n";
 }
 
 void MLAppBorder::resized()
@@ -120,10 +145,13 @@ void MLAppBorder::resized()
 	// move resizer widget
 	if(mpResizer)
 	{
-		int w = getWidth();
-		int h = getHeight();
+		int w = getWidgetBounds().width();
+		int h = getWidgetBounds().height();
 		mpResizer->setBounds (w - 16, h - 16, 16, 16);
+		// MLTEST
+		debug() << "MLAppBorder: resized to " << w << ", " << h << "\n";
 	}
+	
 }
 
 void MLAppBorder::setGridUnits(int gx, int gy)

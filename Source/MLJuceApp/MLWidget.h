@@ -58,6 +58,7 @@ public:
 	// A signal viewer, not required. This is called repeatedly to view a Signal.
 	virtual void viewSignal(MLSymbol, const MLSignal&, int frames, int voices) {}
 
+	// TODO widgets should not own GL contexts
     void setupGL(Component* pC);
     OpenGLContext* getGLContext() { return pGLContext; }
     
@@ -70,9 +71,18 @@ public:
 	const MLRect& getGridBounds() const;
 	
 	void setWidgetBounds(const MLRect& p);
+	
+	// bounds in immediately enclosing component
 	MLRect getWidgetBounds();
+	
+	// bounds relative to widget itself, so topleft will be (0,0)
 	MLRect getWidgetLocalBounds();
-	MLRect getWidgetWindowBounds();
+	
+	// bounds of widget relative to top level window
+	MLRect getWidgetBoundsInWindow();
+	
+	// bounds of top level window
+	MLRect getTopLevelWindowBounds();
     
     float getRenderingScale() const;
     int getBackingLayerWidth() const;
@@ -102,13 +112,22 @@ public:
 	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(MLSymbol p) { mTargetPropertyName = p; }
 	
+	MLWidget* getContainer() const { return mpContainer; }
+	
 protected:
 	void setWidgetName(const MLSymbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
+	void setContainer(MLWidget* c) { mpContainer = c; }
 
 	std::vector<MLWidget::Listener*> mpListeners;
 
 private:
+	// JUCE component we are using. Not owned. Needs to be set up in ctor of every subclass!
+	Component* pComponent;
+	
+	// must point to enclosing context.
+	MLWidget* mpContainer;
+	
 	MLSymbol mName;
 	
 	// name of the target property of Listeners we would like to affect.
@@ -127,9 +146,6 @@ private:
 	// offset for an external label if there is one
 	Vec2 mLabelOffset;
 	
-	// JUCE component we are using. Not owned. Needs to be set up in ctor of every subclass!
-	Component* pComponent;
-    
     // JUCE GL context, if we have one. Owned.
     OpenGLContext* pGLContext;
 	

@@ -98,7 +98,10 @@ public:
 	inline const MLVec operator* (const float f) const { return MLVec(*this) *= f; }
 
 	virtual float magnitude() const;
-	void normalize();
+	
+	// TODO functions returning values!
+	void normalize();	
+	void quantize(int q);
 	MLVec getIntPart() const;
 	MLVec getFracPart() const;
 	void getIntAndFracParts(MLVec& intPart, MLVec& fracPart) const;
@@ -200,6 +203,7 @@ public:
 	void setToIntersectionWith(const MLRect& b); 
 	void setToUnionWith(const MLRect& b); 
 	
+	// TODO no, write all these returning void() as functions returning values!
 	inline void setOrigin(Vec2 b){ val.f[0] = b.val.f[0]; val.f[1] = b.val.f[1]; }
 	inline void setLeft(float px){ val.f[0] = px; }
 	inline void setTop(float py){ val.f[1] = py; }
@@ -222,8 +226,6 @@ public:
 	inline void expand(const Vec2& b){ stretchWidth(b.x()); stretchHeight(b.y()); }
 	inline void shrink(float d){ expand(-d); }
 	inline void shrink(const Vec2& b){ expand(-b); }
-	
-	void quantize(int q);
 	
 	MLRect translated(const Vec2& b) const;
 	MLRect withCenter(const Vec2& b) const;

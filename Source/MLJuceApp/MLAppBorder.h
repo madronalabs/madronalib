@@ -15,7 +15,8 @@
 // a component for holding a view and resizing other components nicely.
 //
 class MLAppBorder : 
-	public Component
+	public Component,
+	public MLWidget
 {
 public:
     MLAppBorder();
@@ -44,6 +45,8 @@ private:
 	// grid-based view resizing things. 
 	int mGridUnitsX;
 	int mGridUnitsY;	
+	
+	MLRect mBorderRect;
 	
 	bool mZoomable;
 	
