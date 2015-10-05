@@ -49,7 +49,7 @@ public:
 		// end: All files recently changed have been transmitted.
 		//
 		// Note that idx is one-based.
-		virtual void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size) = 0;
+		virtual void processFileFromCollection (MLSymbol action, const MLFile file, const MLFileCollection& collection, int idx, int size) = 0;
 
 	private:
 		std::list<MLFileCollection*> mpCollections;

@@ -35,7 +35,7 @@ public:
 	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
 	
     // MLFileCollection::Listener
-	void processFileFromCollection (MLSymbol action, const MLFile& file, const MLFileCollection& collection, int idx, int size);
+	void processFileFromCollection (MLSymbol action, const MLFile file, const MLFileCollection& collection, int idx, int size);
  	
 	// menus
 	//
@@ -67,6 +67,7 @@ public:
 			myProgress(0.),
 			mFilesConverted(0)
 		{
+			setStatusMessage ("Getting ready...");
 		}
 		
 		void run() override;
@@ -100,13 +101,13 @@ private:
 	{
 	public:
 		FileAction() {}
-		FileAction(MLSymbol action, const MLFile* file, const MLFileCollection* collection, int idx, int size) :
+		FileAction(MLSymbol action, const MLFile file, const MLFileCollection* collection, int idx, int size) :
 			mAction(action), mFile(file), mCollection(collection), mIdx(idx), mSize(size)
 			{}
 		~FileAction() {}
 		
 		MLSymbol mAction;
-		const MLFile* mFile;
+		const MLFile mFile;
 		const MLFileCollection* mCollection;
 		int mIdx;
 		int mSize;

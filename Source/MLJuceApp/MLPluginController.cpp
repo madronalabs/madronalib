@@ -122,17 +122,14 @@ void MLPluginController::timerCallback()
 	if(mConvertingPresets)
 	{
 		FileAction a;
+		int filesRead = 0;
 		
-
-		while(PaUtil_ReadRingBuffer( &mFileActionQueue, &a, 1 ));
+		if((filesRead = PaUtil_ReadRingBuffer( &mFileActionQueue, &a, 1 )))
 		{
-			
-			debug() << "ACTION " << a.mAction.getString() << "\n";
-			debug() << "    exists? " << a.mFile->exists() << "\n";
-
-			
-			doFileQueueAction(a);
-
+			if(a.mFile.exists())
+			{
+				doFileQueueAction(a);
+			}
 			int filesInQueue = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
 			mMaxFileQueueSize = max(filesInQueue, mMaxFileQueueSize);
 			if(!filesInQueue) endConvertPresets();
@@ -530,25 +527,25 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
     // add factory presets, those starting with the plugin name
     menu->appendMenu(presetFiles.buildMenu
-		([=](MLResourceMap<MLFile>::const_iterator it)
-			 {
-				 if(it.getDepth() > 0)
-				 {
-					 return true;
-				 }
-				 else
-				 {
-					 int prefixLen = prefix.length();
-					 std::string filePrefix = it->getValue().getShortName().substr(0, prefixLen);
-					 return (filePrefix.compare(prefix) == 0);
-				 };
-			 }
-		 )
-	);
-	
+					 ([=](MLResourceMap<MLFile>::const_iterator it)
+					  {
+						  if(it.getDepth() > 0)
+						  {
+							  return true;
+						  }
+						  else
+						  {
+							  std::string fileName = it->getValue().getShortName();					 
+							  int prefixLen = prefix.length();
+							  std::string filePrefix = fileName.substr(0, prefixLen);
+							  return (filePrefix.compare(prefix) == 0);
+						  };
+					  }
+					  )
+					 );	
 	menu->addSeparator();
     
-    // add user presets, all the others
+    // add user presets, meaning all the others, but no "Samples"
 	menu->appendMenu(presetFiles.buildMenu
 					 ([=](MLResourceMap<MLFile>::const_iterator it)
 					  {
@@ -558,14 +555,15 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  }
 						  else
 						  {
+							  std::string fileName = it->getValue().getShortName();		
+							  if(fileName.compare("Samples") == 0) return false;
 							  int prefixLen = prefix.length();
-							  std::string filePrefix = it->getValue().getShortName().substr(0, prefixLen);
+							  std::string filePrefix = fileName.substr(0, prefixLen);
 							  return (filePrefix.compare(prefix) != 0);
 						  };
 					  }
 					  )
 					 );
-	
 	menu->buildIndex();
 }
 
@@ -652,19 +650,15 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 
 #pragma mark MLFileCollection::Listener
 
-void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile& fileToProcess, const MLFileCollection& collection, int idx, int size)
+void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
 	MLSymbol collectionName(collection.getName());
 	if(action == "process")
 	{
 		if(collectionName.beginsWith(MLSymbol("convert_presets")))
-		{
-			
-			debug() << "ADDING: " << fileToProcess.getShortName() << "\n";
-			
-			
+		{			
 			// add file action to queue
-			FileAction f(action, &fileToProcess, &collection, idx, size);
+			FileAction f(action, fileToProcess, &collection, idx, size);
 			PaUtil_WriteRingBuffer( &mFileActionQueue, &f, 1 );
 		}
 	}
@@ -682,16 +676,16 @@ void MLPluginController::doFileQueueAction(FileAction a)
 	File destRoot(newPresetsFolder);
 	
 	// get name relative to collection root.
-	const std::string& relativeName = a.mCollection->getRelativePathFromName(a.mFile->getLongName());
+	const std::string& relativeName = a.mCollection->getRelativePathFromName(a.mFile.getLongName());
 	
 	// If file at destination does not exist, or is older than the source, convert
 	// source and overwrite destination.
 	File destFile = destRoot.getChildFile(String(relativeName)).withFileExtension("mlpreset");
 	bool destinationExists = destFile.exists();
-	bool destinationIsOlder =  destFile.getLastModificationTime() < a.mFile->getJuceFile().getLastModificationTime();
+	bool destinationIsOlder =  destFile.getLastModificationTime() < a.mFile.getJuceFile().getLastModificationTime();
 	if((!destinationExists) || (destinationIsOlder))
 	{
-		mpProcessor->loadPatchStateFromFile(*a.mFile);
+		mpProcessor->loadPatchStateFromFile(a.mFile);
 		mpProcessor->saveStateToRelativePath(relativeName);
 		mFilesConverted++;
 	}
@@ -797,7 +791,7 @@ void MLPluginController::convertPresets()
 		
 		(new ConvertProgressDisplayThread(this))->launchThread();
 		
-		startTimer(5); // speed up action for convert
+//		startTimer(5); // speed up action for convert
     }
     else
     {
@@ -815,7 +809,14 @@ float MLPluginController::getConvertProgress()
 	}
 	else if(remaining > 0.f)
 	{
-		p = (float)(mMaxFileQueueSize - remaining) / (float)(mMaxFileQueueSize);
+		if(mMaxFileQueueSize > 0)
+		{
+			p = (float)(mMaxFileQueueSize - remaining) / (float)(mMaxFileQueueSize);
+		}
+		else 
+		{
+			p = 0.f;
+		}
 	}
 	else
 	{
