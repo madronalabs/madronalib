@@ -56,9 +56,9 @@ char * spaceStr( int numIndents )
 	return &pBuf[len - n];
 }
 	
-std::vector< MLSymbol > parsePath(const std::string& pathStr)
+std::vector< std::string > parsePath(const std::string& pathStr)
 {
-	std::vector<MLSymbol> path;
+	std::vector<std::string> path;
 	std::string workingStr = pathStr;
 	int segmentLength;
 	do
@@ -68,7 +68,7 @@ std::vector< MLSymbol > parsePath(const std::string& pathStr)
 		if(segmentLength)
 		{
 			// iterate
-			path.push_back(MLSymbol(workingStr.substr(0, segmentLength)));
+			path.push_back(workingStr.substr(0, segmentLength));
 			workingStr = workingStr.substr(segmentLength + 1, workingStr.length() - segmentLength);
 		}
 		else

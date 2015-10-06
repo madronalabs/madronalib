@@ -17,6 +17,7 @@ class MLMenu;
 
 // TODO use MLResourceMap. Possibly just create the menu tree from an external map every time we show the menu. 
 // or, add method to set contents from a tree / resourceMap value. 
+// need to be able to add arbitrary submaps .
 // TODO add forward / back button option and persist a current selection. 
 // Use index or store using new bidirectional MLResourceMap iterator .
 // TODO think about pie menus!

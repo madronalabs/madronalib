@@ -291,6 +291,7 @@ void MLMenu::clear()
     mFullNamesByIndex.clear();
 }
 
+// TODO use resource map
 const std::string MLMenu::getMenuItemPath(int idx)
 {
     if(!mHasIndex)

@@ -20,7 +20,7 @@
 
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
-	MLResourceMap< int > numberMap;
+	MLResourceMap< MLSymbol, int > numberMap;
 	MLNameMaker namer;
 	const int testSymbols = 100;
 	const int mapSize = 100;
@@ -97,9 +97,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	// note that non-leaf nodes added explicitly need the final false argument
-	// this is needed for empty directories, for example
-	MLResourceMap< int > a;
+	MLResourceMap< MLSymbol, int > a;
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
 	a.addNode("this/was/another");

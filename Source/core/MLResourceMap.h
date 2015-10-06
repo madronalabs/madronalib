@@ -15,60 +15,86 @@
 #include <map>
 #include <vector>
 
-#include "MLSymbol.h"
-#include "MLStringCompare.h" 
 #include "MLStringUtils.h" 
 
-template < class T >
+template < class K, class V >
 class MLResourceMap
 {
 public:
-	typedef std::map<MLSymbol, MLResourceMap<T> > mapT;
+	typedef std::map< K, MLResourceMap<K, V> > mapT;
 
 	// our value class must have a default constructor returning a safe null object.
-	MLResourceMap<T>() : mChildren(), mIsLeaf(false), mValue() {}
-	MLResourceMap(const T& v) : mChildren(), mIsLeaf(false) { mValue = v; }
-	~MLResourceMap() {}
+	MLResourceMap<K, V>() : mChildren(), mIsLeaf(false), mValue() {}
+	MLResourceMap<K, V>(const V& v) : mChildren(), mIsLeaf(false) { mValue = v; }
+	~MLResourceMap<K, V>() {}
 	
 	void clear() { mChildren.clear(); }
-	const T& getValue() const { return mValue; }
-	void setValue(const T& v) { mValue = v; }
+	const V& getValue() const { return mValue; }
+	void setValue(const V& v) { mValue = v; }
 	
 	bool isLeaf() const { return mIsLeaf; }
 	void markAsLeaf(bool b) { mIsLeaf = b; }
 
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
-	// else, return a null object of our value type T.
-	T findValue(const std::string& path)
+	// else, return a null object of our value type V.
+	V findValue(const std::string& path)
 	{
-		MLResourceMap<T>* pNode = findNode(path);
+		MLResourceMap<K, V>* pNode = findNode(path);
 		if(pNode)
 		{
 			return pNode->getValue();
 		}
 		else
 		{
-			return T();
+			return V();
 		}
 	}
-	
+
+	std::vector< K > parsePath(const std::string& pathStr)
+	{
+		std::vector< K > path;
+		std::string workingStr = pathStr;
+		int segmentLength;
+		do
+		{
+			// found a segment
+			segmentLength = workingStr.find_first_of("/");
+			if(segmentLength)
+			{
+				// iterate
+				path.push_back(workingStr.substr(0, segmentLength));
+				workingStr = workingStr.substr(segmentLength + 1, workingStr.length() - segmentLength);
+			}
+			else
+			{
+				// leading slash or null segment
+				workingStr = workingStr.substr(1, workingStr.length());
+			}
+		}
+		while(segmentLength != std::string::npos);
+		return path;
+	}
+
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
-	MLResourceMap<T>* addNode(const std::string& pathStr)
+	MLResourceMap<K, V>* addNode(const std::string& pathStr)
 	{
-		MLResourceMap<T>* pNode = this;
-		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);
-		std::vector< MLSymbol >::const_iterator it;
+		MLResourceMap<K, V>* pNode = this;
+		
+		// TODO using an intermediate std::vector path is convenient but inefficient,
+		// we can just walk pathStr
+		typename std::vector< K > path = parsePath(pathStr);
+		typename std::vector< K >::const_iterator it;
 		int pathDepthFound = 0;
 		
 		// walk the path as long as branches are found in the map
-		for(MLSymbol sym : path)
+		for(K key : path)
 		{
-			if(pNode->mChildren.find(sym) != pNode->mChildren.end())
+			if(pNode->mChildren.find(key) != pNode->mChildren.end())
 			{
-				pNode = &(pNode->mChildren[sym]);
+				pNode = &(pNode->mChildren[key]);
 				pathDepthFound++;
 			}
 			else
@@ -80,10 +106,10 @@ public:
 		// add the remainder of the path to the map.
 		for(it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
-			MLSymbol sym = *it;
+			K key = *it;
 			
 			// [] operator crates the new node
-			pNode = &(pNode->mChildren[sym]);
+			pNode = &(pNode->mChildren[key]);
 		}
 		
 		return pNode;
@@ -91,9 +117,9 @@ public:
 	
 	// TODO also use MLSymbol vector paths
 	// isLeaf should be true, unless we want to mark the value as a non-leaf, as in the case of a directory
-	MLResourceMap<T>* addValue (const std::string& pathStr, const T& v)
+	MLResourceMap<K, V>* addValue (const std::string& pathStr, const V& v)
 	{
-		MLResourceMap<T>* newNode = addNode(pathStr);
+		MLResourceMap<K, V>* newNode = addNode(pathStr);
 		newNode->setValue(v);
 		newNode->markAsLeaf(true);
 		return newNode;
@@ -101,14 +127,14 @@ public:
 	
 	void dump(int level = 0) const
 	{
-		typename MLResourceMap<T>::mapT::const_iterator it;
+		typename MLResourceMap<K, V>::mapT::const_iterator it;
 		
 		for(it = mChildren.begin(); it != mChildren.end(); ++it)
 		{
-			MLSymbol p = it->first;
-			const MLResourceMap<T>& n = it->second;		
+			K key = it->first;
+			const MLResourceMap<K, V>& n = it->second;		
 			char leafChar = n.isLeaf() ? 'L' : 'N'; 
-			std::cout << level << leafChar<< ": " << MLStringUtils::spaceStr(level) << p << ":" << n.mValue << "\n";
+			std::cout << level << leafChar<< ": " << MLStringUtils::spaceStr(level) << key << ":" << n.mValue << "\n";
 			n.dump(level + 1);
 		}
 	}
@@ -118,15 +144,14 @@ public:
 	friend class const_iterator;
 	class const_iterator
 	{
-		static const MLResourceMap<T> mNullValue;
 	public:
-		const_iterator(const MLResourceMap<T>* p)  
+		const_iterator(const MLResourceMap<K, V>* p)  
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(p->mChildren.begin());
 		}
 		
-		const_iterator(const MLResourceMap<T>* p, const typename mapT::const_iterator subIter)
+		const_iterator(const MLResourceMap<K, V>* p, const typename mapT::const_iterator subIter)
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(subIter);
@@ -150,12 +175,12 @@ public:
 			return !(*this == b); 
 		}
 				
-		const MLResourceMap<T>& operator*() const 
+		const MLResourceMap<K, V>& operator*() const 
 		{ 
 			return ((*mIteratorStack.back()).second); 
 		}
 		
-		const MLResourceMap<T>* operator->() const 
+		const MLResourceMap<K, V>* operator->() const 
 		{ 
 			return &((*mIteratorStack.back()).second); 
 		}
@@ -176,7 +201,7 @@ public:
 			}			
 			else
 			{
-				const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);
+				const MLResourceMap<K, V>* currentChildNode = &((*currentIterator).second);
 				if (!currentChildNode->isLeaf())
 				{
 					// down
@@ -201,7 +226,7 @@ public:
 		
 		bool atLeaf() const
 		{ 
-			const MLResourceMap<T>* parentNode = mNodeStack.back();
+			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// not a leaf (and currentIterator not dereferenceable!) if at end()
@@ -209,27 +234,20 @@ public:
 
 			// return(currentChildNode->getNumChildren() == 0);
 			// TODO remove mLeaf when directories are stored implicitly as paths.
-			const MLResourceMap<T>* currentChildNode = &((*currentIterator).second);
+			const MLResourceMap<K, V>* currentChildNode = &((*currentIterator).second);
 			return(currentChildNode->isLeaf());
 		}
 		
 		bool atEndOfMap() const
 		{
-			const MLResourceMap<T>* parentNode = mNodeStack.back();
+			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			return(currentIterator == parentNode->mChildren.end());
 		}
 
-		void advanceToEnd()
-		{
-			const MLResourceMap<T>* parentNode = mNodeStack.back();
-			mIteratorStack.pop_back();
-			mIteratorStack.push_back(parentNode->mChildren.end());
-		}
-
 		int getDepth() { return mNodeStack.size() - 1; }
 		
-		std::vector< const MLResourceMap<T>* > mNodeStack;
+		std::vector< const MLResourceMap<K, V>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
 	};	
 		
@@ -240,24 +258,22 @@ public:
 	
 	inline const_iterator end() const
 	{
-		const_iterator it(this);
-		it.advanceToEnd();
-		return it;
+		return const_iterator(this, mChildren.end());
 	}
 
 private:
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	MLResourceMap<T>* findNode(const std::string& pathStr)
+	MLResourceMap<K, V>* findNode(const std::string& pathStr)
 	{
-		MLResourceMap<T>* pNode = this;
-		std::vector< MLSymbol > path = MLStringUtils::parsePath(pathStr);		
-		for(MLSymbol sym : path)
+		MLResourceMap<K, V>* pNode = this;
+		std::vector< K > path = parsePath(pathStr);		
+		for(K key : path)
 		{
-			if(pNode->mChildren.find(sym) != pNode->mChildren.end())
+			if(pNode->mChildren.find(key) != pNode->mChildren.end())
 			{
-				pNode = &(pNode->mChildren[sym]);
+				pNode = &(pNode->mChildren[key]);
 			}
 			else
 			{
@@ -270,7 +286,7 @@ private:
 	
 	mapT mChildren;
 	bool mIsLeaf;	// TODO remove when directories are stored implicitly as paths.
-	T mValue;
+	V mValue;
 };
 
 
