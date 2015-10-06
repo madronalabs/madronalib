@@ -142,8 +142,16 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 {
 	if(action == "click")
 	{
+		if (targetProperty == "prev")
+		{
+			getProcessor()->prevPreset();
+		}
+		else if (targetProperty == "next")
+		{
+			getProcessor()->nextPreset();
+		}
 		// TODO make this happen like other menus
-		if (targetProperty == "settings")
+		else if (targetProperty == "settings")
 		{
 			showMenu("settings", "settings");
 		}
@@ -527,7 +535,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
     // add factory presets, those starting with the plugin name
     menu->appendMenu(presetFiles.buildMenu
-					 ([=](MLResourceMap<MLFile>::const_iterator it)
+					 ([=](MLResourceMap<std::string, MLFile>::const_iterator it)
 					  {
 						  if(it.getDepth() > 0)
 						  {
@@ -545,7 +553,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     
     // add user presets, meaning all the others, but no "Samples"
 	menu->appendMenu(presetFiles.buildMenu
-					 ([=](MLResourceMap<MLFile>::const_iterator it)
+					 ([=](MLResourceMap<std::string, MLFile>::const_iterator it)
 					  {
 						  if(it.getDepth() > 0)
 						  {

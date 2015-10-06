@@ -143,6 +143,8 @@ private:
 	// todo symbols for menus and get rid of these
 	int mProtocolMenuItemStart;
 	int mOSCMenuItemStart;
+	
+	// TODO store preset menu iterator
 };
 
 
