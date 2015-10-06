@@ -536,9 +536,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  else
 						  {
 							  std::string fileName = it->getValue().getShortName();					 
-							  int prefixLen = prefix.length();
-							  std::string filePrefix = fileName.substr(0, prefixLen);
-							  return (filePrefix.compare(prefix) == 0);
+							  return (prefix.compare(fileName.substr(0, prefix.length())) == 0);
 						  };
 					  }
 					  )
@@ -557,9 +555,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  {
 							  std::string fileName = it->getValue().getShortName();		
 							  if(fileName.compare("Samples") == 0) return false;
-							  int prefixLen = prefix.length();
-							  std::string filePrefix = fileName.substr(0, prefixLen);
-							  return (filePrefix.compare(prefix) != 0);
+							  return (prefix.compare(fileName.substr(0, prefix.length())) != 0);
 						  };
 					  }
 					  )
