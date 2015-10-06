@@ -102,14 +102,14 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	MLResourceMap< int > a;
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
-	a.addValue("this/was/another", 1, false);
+	a.addNode("this/was/another");
 	a.addValue("this/was/another/test", 10);
 	a.addValue("this/was/happy", 10);
-	a.addValue("this/is/an/empty/directory", 0, false);
+	a.addNode("this/is/an/empty/directory");
 	a.addValue("you/are/my/sunshine", 10);
 	a.addValue("you/are/carl's/sunshine", 10);
 	a.addValue("you/are/carl's/jr/jam", 10);
-	a.addValue("you/are/carl's/jr", 1, false);
+	a.addNode("you/are/carl's/jr");
 	int leafSum = 0;
 	const int correctLeafSum = 70;
 	

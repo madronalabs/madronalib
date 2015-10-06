@@ -26,7 +26,7 @@ public:
 	typedef std::map<MLSymbol, MLResourceMap<T> > mapT;
 
 	// our value class must have a default constructor returning a safe null object.
-	MLResourceMap<T>() : mValue(), mChildren(), mIsLeaf(false) {}
+	MLResourceMap<T>() : mChildren(), mIsLeaf(false), mValue() {}
 	MLResourceMap(const T& v) : mChildren(), mIsLeaf(false) { mValue = v; }
 	~MLResourceMap() {}
 	
@@ -269,8 +269,8 @@ private:
 	}
 	
 	mapT mChildren;
-	T mValue;
 	bool mIsLeaf;	// TODO remove when directories are stored implicitly as paths.
+	T mValue;
 };
 
 
