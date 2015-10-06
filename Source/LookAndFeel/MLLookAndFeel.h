@@ -37,6 +37,7 @@ MLPoint adjust(MLPoint p);
 typedef std::shared_ptr<Drawable> DrawablePtr;
 
 const float kPopupMenuTextScale = 0.85f;
+const int kBackgroundBorder = 32;
 
 class MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
 {
@@ -448,11 +449,13 @@ public:
 	void setGradientMode(int m) { mGradientMode = m;}	
 	void setGradientSize(float f) { mGradientSize = f;}	
 	void setBackgroundGradient(Graphics& g, Point<int> gStart, Point<int> gEnd);
-    void drawBackgroundAtOrigin(Graphics& g, juce::Rectangle<int>r);
+ 	
+	void makeBackgroundImage(MLRect r);
 	
 	void drawBackground(Graphics& g, MLWidget* pW);
 	void drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect r);
 	void drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint xyOffset);
+	void drawEntireBackground(Graphics& g, MLPoint offset);
 	
 	void drawUnitGrid(Graphics& g, MLWidget* pW);
 	void drawUnitGridRect(Graphics& g, MLWidget* pW, MLRect r);
@@ -509,6 +512,7 @@ public:
 			
 	float getNumberWidth (const float number, const int digits, const int precision, const bool doSign);
 
+	// NO
     MLLookAndFeel (const MLLookAndFeel&);
     const MLLookAndFeel& operator= (const MLLookAndFeel&);
 
@@ -522,10 +526,12 @@ public:
 	double mGridUnitsY;
 	float mGlobalTextScale;
 	
-		
 	// visual resources for app. 
+	// TODO no L+F class in future, these go into top level drawing Context 
 	void addPicture(MLSymbol name, const void* data, size_t dataSize);	
 	const Drawable* getPicture(MLSymbol name);
+	
+	std::unique_ptr<Image> mBackgroundImage;
 
 	std::map<MLSymbol, DrawablePtr> mPictures;
 	std::map<MLSymbol, void *> mPictureData;

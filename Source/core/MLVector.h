@@ -236,6 +236,7 @@ public:
 	Vec2 getCenter() const;
 	Vec2 getTopLeft() const;
 	Vec2 getBottomRight() const;
+	Vec2 getDims() const;
 	
 	// adapters for JUCE drawing (TODO remove)
 	inline bool contains(int px, int py) const { return (within(px, (int)left(), (int)right()) && within(py, (int)top(), (int)bottom())); }

@@ -50,8 +50,6 @@ public:
 	void setJustification(const Justification& j);
 	void setResizeToText(bool r) { mResizeToText = r; }
 
-	void resized();
-
 protected:
     Font mFont;
 	AttributedString mRichStr;

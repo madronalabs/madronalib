@@ -246,6 +246,11 @@ Vec2 MLRect::getTopLeft() const
 	return Vec2(left(), top());
 }
 
+Vec2 MLRect::getDims() const
+{
+	return Vec2(width(), height());
+}
+
 Vec2 MLRect::getBottomRight() const
 {
 	return Vec2(right(), bottom());
