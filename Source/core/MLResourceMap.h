@@ -220,7 +220,6 @@ public:
 			return(currentIterator == parentNode->mChildren.end());
 		}
 
-		// MLTEST
 		void advanceToEnd()
 		{
 			const MLResourceMap<T>* parentNode = mNodeStack.back();
