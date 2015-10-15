@@ -11,7 +11,6 @@
 MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
 	mPublishedAlias(alias),
 	mIndex(idx),
-	mNeedsQueue(false),
 	mAutomatable(true)
 {
 	setRange(0.f, 1.f, 0.01f, false, 0.f);
@@ -207,21 +206,6 @@ MLParamValue MLPublishedParam::setValueAsLinearProportion (MLParamValue p)
 	return val;
 }
 
-bool MLPublishedParam::getNeedsQueue(void)
-{
-	return mNeedsQueue;
-}
-
-void MLPublishedParam::setNeedsQueue(bool q)
-{
-	mNeedsQueue = q;
-	if(q)
-	{
-		mpValueQueue = MLRingBufferPtr(new MLRingBuffer());
-		mpValueQueue->resize(1024);
-	}
-}
-
 bool MLPublishedParam::getAutomatable(void)
 {
 	return mAutomatable;
@@ -231,25 +215,6 @@ void MLPublishedParam::setAutomatable(bool a)
 {
 	mAutomatable = a;
 }
-
-void MLPublishedParam::pushValue(float v)
-{
-	mTempValue = v;
-	mpValueQueue->write(&mTempValue, 1);
-}
-
-float MLPublishedParam::popValue()
-{
-	mpValueQueue->read(&mTempValue, 1);
-	return mTempValue;
-}
-
-int MLPublishedParam::getQueueValuesRemaining()
-{
-	if(!mNeedsQueue) return 0;
-	return mpValueQueue->getRemaining();
-}
-
 
 // ----------------------------------------------------------------
 #pragma mark named parameter groups

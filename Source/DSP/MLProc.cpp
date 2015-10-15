@@ -104,7 +104,7 @@ void MLProc::clearInput(const int i)
 
 MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 {
-	// debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
+	debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
 
 	MLProc::err e = OK;	
 	if (idx)
@@ -443,6 +443,7 @@ void MLProc::printErr(MLProc::err e)
 			break;		
 		case inputBoundsErr:
 			debug() << "inputBoundsErr\n";
+			debug() << "wha\n";
 			break;		
 		case inputOccupiedErr:
 			debug() << "inputOccupiedErr\n";

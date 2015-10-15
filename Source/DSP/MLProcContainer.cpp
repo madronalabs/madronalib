@@ -1893,12 +1893,6 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 					setPublishedParamAttrs(p, child);
 					mParamGroups.addParamToCurrentGroup(p);
 				}
-				
-				// make queue if needed
-				if(p->getNeedsQueue())
-				{
-					// debug() << "ADDING queue for " << p->getAlias() << "\n";
-				}
 			}
 		}
 	}
@@ -2035,18 +2029,6 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 				int len = 256;
 				len = child->getIntAttribute("length", len);
 				p->setValueProperty(std::string((size_t)len, '\0'));
-			}
-		}
-		else if(child->hasTagName("queue"))
-		{
-			MLSymbol type = p->getType();
-			if(type == "float")
-			{
-				p->setNeedsQueue(child->getIntAttribute("value", 0));
-			}
-			else
-			{
-				debug() << "MLProcContainer::setPublishedParamAttrs: queue only supported for float parameters!\n";
 			}
 		}
 		else if(child->hasTagName("automatable"))

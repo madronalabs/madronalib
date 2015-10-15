@@ -45,6 +45,8 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	mpHostPhasorProc = 0;
 	clear();
 	
+	// MLTEST
+	// inputs are ins of rootproc?
 	if (makeSignalInputs) // TODO for effects
 	{
 		
@@ -69,7 +71,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 			if (pms)
 			{
 				mpInputToSignalsProc = static_cast<MLProcInputToSignals*>(&(*pms));
-				// debug() << "MIDI / OSC input OK.\n";
+				debug() << "MIDI / OSC input OK.\n";
 			}
 		}
 	}	
@@ -125,6 +127,10 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		
 		graphOK = true;
 	}
+	
+	
+	
+	
 	
 	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
 	getProcList(mPatcherList, MLPath(kMLPatcherProcName), kMLEngineMaxVoices);
@@ -200,6 +206,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		{
 			if (!mInputBuffers[i]->resize(bufSize)) 
 			{
+				// TODO use exceptions
 				e = MLProc::memErr; 
 				goto bail;
 			}

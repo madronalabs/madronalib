@@ -100,6 +100,8 @@ private:
 	// data
 	
 	// a pointer to the signal generator we might make in buildGraphAndInputs()
+	// TODO this should be in the graph definition instead
+	// but everything needs hooking up right
 	MLProcInputToSignals* mpInputToSignalsProc;
 	
 	// same for a host sync phasor

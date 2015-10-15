@@ -85,14 +85,9 @@ public:
 
 	int getGroupIndex(void) { return mGroupIndex; }
 	void setGroupIndex(int g) { mGroupIndex = g; }
-	
-	bool getNeedsQueue(void);
-	void setNeedsQueue(bool q);
+
 	bool getAutomatable(void);
 	void setAutomatable(bool q);
-	void pushValue(float v);
-	float popValue();
-	int getQueueValuesRemaining();
 	
 	MLSymbol getAlias(void) { return mPublishedAlias; }
 				
@@ -106,7 +101,6 @@ protected:
 private:
 	std::list<ParamAddress> mAddresses;
 	MLProperty mParamValue;
-	MLRingBufferPtr mpValueQueue;
 	float mTempValue;
 	
 	MLSymbol mPublishedAlias;
@@ -117,7 +111,7 @@ private:
 	MLParamValue mInterval;
 	MLParamValue mZeroThreshold;
 	MLParamValue mDefault;
-	bool mNeedsQueue;
+
 	bool mAutomatable;
 	JucePluginParamUnit mUnit;
 	JucePluginParamWarpMode mWarpMode;

@@ -98,15 +98,8 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 					f = p->getValueAsLinearProportion();
 				}
 				
-				// either enqueue change, or send change immediately to host wrapper
-				if(p->getNeedsQueue())
-				{
-					p->pushValue(f);
-				}
-				else
-				{
-					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
-				}
+				// send change immediately to host wrapper
+				AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
 			}
 		}
 		break;
@@ -334,10 +327,9 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// get the Juce process lock  // TODO ???
 		const juce::ScopedLock sl (getCallbackLock());
 
-		int inChans = getNumInputChannels();
-		int outChans = getNumOutputChannels();
-		mEngine.setInputChannels(inChans);
-		mEngine.setOutputChannels(outChans);
+		// make IO buffers
+		mEngine.setInputChannels(getNumInputChannels());
+		mEngine.setOutputChannels(getNumOutputChannels());
 
 		int bufSize = 0;
 		int chunkSize = 0;
@@ -354,8 +346,8 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		
 		// dsp engine has one chunkSize of latency in order to run constant block size.
 		setLatencySamples(chunkSize);
-		
-		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << ", vector size " << vecSize << ". \n";
+
+		debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << "\n";
 
 #ifdef DEBUG
 		theSymbolTable().audit();
@@ -523,6 +515,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			v1 = message.getNoteNumber();
 			v2 = message.getVelocity() / 127.f;
             id = (int)v1;
+			//debug() << "NOTE ON: " << v1 << "\n";
 		}
 		else if(message.isNoteOff())
 		{
@@ -666,19 +659,6 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			ioMap.outputs[i] = buffer.getWritePointer(i);
 		}
 		mEngine.setIOBuffers(ioMap);
-
-		// for any parameters with queues, send out one queued value per block
-		for(int i = 0; i < mEngine.getPublishedParams(); ++i)
-		{
-			MLPublishedParamPtr p = mEngine.getParamPtr(i);
-			if(p) // TODO clean up null paramater ptrs!
-			{
-				if(p->getQueueValuesRemaining() > 0)
-				{
-					AudioProcessor::sendParamChangeMessageToListeners (i, p->popValue());
-				}
-			}
-		}
         
         if(acceptsMidi())
         {
