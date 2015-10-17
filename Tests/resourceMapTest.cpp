@@ -81,7 +81,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	const int correctMaxDepth = 8;
 	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
 	{
-		if(it.atLeaf())
+		if(it.nodeHasValue())
 		{		
 			bigLeafSum += it->getValue();
 		}
@@ -113,7 +113,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	
 	for(auto it = a.begin(); it != a.end(); it++)
 	{
-		if(it.atLeaf())
+		if(it.nodeHasValue())
 		{		
 			leafSum += it->getValue();
 		}

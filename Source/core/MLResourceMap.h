@@ -17,24 +17,34 @@
 
 #include "MLStringUtils.h" 
 
+// A resource map using a key class K and value class V.
+// The value class must have a default constructor V() returning a safe null object.
+// Note that this makes MLResourceMap<..., int> weird to use, because 0 indicates
+// a null value. However, we are typically interested in more complex value types.
+
 template < class K, class V >
 class MLResourceMap
 {
 public:
 	typedef std::map< K, MLResourceMap<K, V> > mapT;
 
-	// our value class must have a default constructor returning a safe null object.
-	MLResourceMap<K, V>() : mChildren(), mIsLeaf(false), mValue() {}
-	MLResourceMap<K, V>(const V& v) : mChildren(), mIsLeaf(false) { mValue = v; }
+	MLResourceMap<K, V>() : mChildren(), mHasValue(false), mValue() {}
+	MLResourceMap<K, V>(const V& v) : mChildren(), mHasValue(false) { mValue = v; }
 	~MLResourceMap<K, V>() {}
 	
 	void clear() { mChildren.clear(); }
 	const V& getValue() const { return mValue; }
 	void setValue(const V& v) { mValue = v; }
-	
-	bool isLeaf() const { return mIsLeaf; }
-	void markAsLeaf(bool b) { mIsLeaf = b; }
 
+	// TODO remove mHasValue when directories in file maps are stored implicitly as paths.
+	// an empty directory should be implemented as a node whose value is null-- however 
+	// while we are using the value to store the path this can't be done!
+	// 
+	bool hasValue() const { return mHasValue; } // return(currentChildNode->mValue == V());
+	void setHasValue(bool b) { mHasValue = b; } // to remove
+
+	bool isLeaf() const { return mChildren.size() == 0; }
+	
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
 	// else, return a null object of our value type V.
@@ -116,27 +126,13 @@ public:
 	}
 	
 	// TODO also use MLSymbol vector paths
-	// isLeaf should be true, unless we want to mark the value as a non-leaf, as in the case of a directory
+	// mHasValue should be true, unless we want to mark the value as a non-leaf, as in the case of a directory
 	MLResourceMap<K, V>* addValue (const std::string& pathStr, const V& v)
 	{
 		MLResourceMap<K, V>* newNode = addNode(pathStr);
 		newNode->setValue(v);
-		newNode->markAsLeaf(true);
+		newNode->setHasValue(true);
 		return newNode;
-	}
-	
-	void dump(int level = 0) const
-	{
-		typename MLResourceMap<K, V>::mapT::const_iterator it;
-		
-		for(it = mChildren.begin(); it != mChildren.end(); ++it)
-		{
-			K key = it->first;
-			const MLResourceMap<K, V>& n = it->second;		
-			char leafChar = n.isLeaf() ? 'L' : 'N'; 
-			std::cout << level << leafChar<< ": " << MLStringUtils::spaceStr(level) << key << ":" << n.mValue << "\n";
-			n.dump(level + 1);
-		}
 	}
 	
 	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
@@ -224,18 +220,16 @@ public:
 			return *this;
 		}
 		
-		bool atLeaf() const
+		bool nodeHasValue() const
 		{ 
 			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
-			// not a leaf (and currentIterator not dereferenceable!) if at end()
+			// no value (and currentIterator not dereferenceable!) if at end()
 			if(currentIterator == parentNode->mChildren.end()) return false;
 
-			// return(currentChildNode->getNumChildren() == 0);
-			// TODO remove mLeaf when directories are stored implicitly as paths.
 			const MLResourceMap<K, V>* currentChildNode = &((*currentIterator).second);
-			return(currentChildNode->isLeaf());
+			return(currentChildNode->hasValue());
 		}
 		
 		bool atEndOfMap() const
@@ -285,7 +279,7 @@ private:
 	}
 	
 	mapT mChildren;
-	bool mIsLeaf;	// TODO remove when directories are stored implicitly as paths.
+	bool mHasValue;	// TODO remove this when directories are stored implicitly as paths.
 	V mValue;
 };
 

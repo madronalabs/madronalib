@@ -142,10 +142,8 @@ MLResourceMap<std::string, MLFile>* MLFileCollection::insertFileIntoMap(juce::Fi
 		// insert file or directory into file tree relative to collection root
 		std::string fullName(f.getFullPathName().toUTF8());
 		std::string relativePath = getRelativePathFromName(fullName);
-		
-		// passing false because this is a directory node. 
-		// TODO directories will be stored without values, only resources will have value. 
-		// we still need value-less nodes to represent (possibly empty) directories.
+
+		// add a value-less node to represent a (possibly empty) directory.
 		returnNode = mRoot.addNode(relativePath);
 		returnNode->setValue(MLFile(fullName));
 	}
@@ -156,6 +154,11 @@ MLResourceMap<std::string, MLFile>* MLFileCollection::insertFileIntoMap(juce::Fi
 //
 void MLFileCollection::buildIndex()
 {	
+	// MLTEST
+	//debug() << "\n\n\nBUILDING " << mName << "\n";
+	//mRoot.dump(); // MLTEST
+	//return;
+	
 	mFilesByIndex.clear();
 
 	MLResourceMap<std::string, MLFile>::const_iterator beginIter = mRoot.begin();
@@ -163,8 +166,9 @@ void MLFileCollection::buildIndex()
 
 	for (auto it = beginIter; it != endIter; ++it)
 	{
-		if(it.atLeaf())
+		if(it.nodeHasValue())
 		{
+		//	std::cout << "buildIndex adding " << it->getValue().getShortName() << "\n";
 			mFilesByIndex.push_back(it->getValue());
 		}
 	}
@@ -178,13 +182,15 @@ void MLFileCollection::dump() const
 		{
 			int depth = it.getDepth();
 			const std::string depthStr = MLStringUtils::spaceStr(depth);
-			if(it.atLeaf())
+			
+			// TODO will store file and directory names in paths, not values
+			if(it.nodeHasValue())
 			{
-				debug() << depthStr << "leaf: " << it->getValue().getShortName() << "\n";
+				debug() << depthStr << "file: " << it->getValue().getShortName() << "\n";
 			}
 			else
 			{
-				debug() << depthStr << "depth " << depth << ": " << it->getValue().getShortName() << "\n";
+				debug() << depthStr << "dir level " << depth << ": " << it->getValue().getShortName() << "\n";
 			}
 		}
 		else
@@ -368,34 +374,7 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 
 MLMenuPtr MLFileCollection::buildMenu() const
 {
-	MLMenuPtr root(new MLMenu());
-	std::vector<MLMenuPtr> menuStack;
-	menuStack.push_back(root);
-	for(auto it = mRoot.begin(); it != mRoot.end(); ++it)
-	{
-		if(!it.atEndOfMap())
-		{
-			const std::string& itemName = it->getValue().getShortName();
-			if(it.atLeaf())
-			{
-				menuStack.back()->addItem(itemName, true);
-			}
-			else
-			{
-				// add submenu at current depth
-				MLMenuPtr newMenu (new MLMenu(itemName));
-				menuStack.back()->addSubMenu(newMenu);
-				menuStack.push_back(newMenu);
-			}
-		}
-		else
-		{
-			// note that *it will not have a valid value here!
-			MLMenuPtr popped = menuStack.back();
-			menuStack.pop_back();
-		}
-	}
-	return root;
+	return buildMenu([=](MLResourceMap<std::string, MLFile>::const_iterator it){ return true; });
 }
 
 MLMenuPtr MLFileCollection::buildMenu(std::function<bool(MLResourceMap<std::string, MLFile>::const_iterator)> includeFn) const
@@ -408,11 +387,11 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(MLResourceMap<std::stri
 		if(!it.atEndOfMap())
 		{
 			const std::string& itemName = it->getValue().getShortName();
-			if(it.atLeaf())
+			if(it->isLeaf())
 			{
 				if(includeFn(it))
 				{
-					menuStack.back()->addItem(itemName, true);
+					menuStack.back()->addItem(itemName, it.nodeHasValue());
 				}
 			}
 			else
