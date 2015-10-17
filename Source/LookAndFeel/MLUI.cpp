@@ -30,7 +30,7 @@ const juce::Colour createMLBaseColour (const juce::Colour& buttonColour,
 // return brighter, less saturated vesion of thumb-- for drawing lines etc.
 const juce::Colour brightLineColor (const juce::Colour& c)
 {
-	float sat = min(c.getSaturation(), 0.4f);
+	float sat = min(c.getSaturation(), 0.60f);
 	float val = 1.f;
 	return juce::Colour(c.getHue(), sat, val, 1.f);
 }
