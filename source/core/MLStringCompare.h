@@ -29,5 +29,13 @@ struct MLStringCompareFn : std::binary_function<std::string, std::string, bool>
     }
 };
 
+/*
+template <class T> struct less {
+	bool operator() (const T& x, const T& y) const {return x<y;}
+	typedef T first_argument_type;
+	typedef T second_argument_type;
+	typedef bool result_type;
+};
+*/
 
 #endif

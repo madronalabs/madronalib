@@ -144,8 +144,7 @@ MLResourceMap<std::string, MLFile>* MLFileCollection::insertFileIntoMap(juce::Fi
 		std::string relativePath = getRelativePathFromName(fullName);
 
 		// add a value-less node to represent a (possibly empty) directory.
-		returnNode = mRoot.addNode(relativePath);
-		returnNode->setValue(MLFile(fullName));
+		returnNode = mRoot.addNode(relativePath); 
 	}
 	return returnNode;
 }
@@ -154,17 +153,13 @@ MLResourceMap<std::string, MLFile>* MLFileCollection::insertFileIntoMap(juce::Fi
 //
 void MLFileCollection::buildIndex()
 {	
-	// MLTEST
-	//debug() << "\n\n\nBUILDING " << mName << "\n";
-	//mRoot.dump(); // MLTEST
-	//return;
-	
 	mFilesByIndex.clear();
 
+	// MLTEST
 	MLResourceMap<std::string, MLFile>::const_iterator beginIter = mRoot.begin();
 	MLResourceMap<std::string, MLFile>::const_iterator endIter = mRoot.end();
 
-	for (auto it = beginIter; it != endIter; ++it)
+	for (auto it = mRoot.begin(); it != mRoot.end(); ++it)
 	{
 		if(it.nodeHasValue())
 		{
@@ -182,15 +177,15 @@ void MLFileCollection::dump() const
 		{
 			int depth = it.getDepth();
 			const std::string depthStr = MLStringUtils::spaceStr(depth);
+			const std::string& itemName = it.getLeafName();
 			
-			// TODO will store file and directory names in paths, not values
 			if(it.nodeHasValue())
 			{
-				debug() << depthStr << "file: " << it->getValue().getShortName() << "\n";
+				debug() << depthStr << "file: " << itemName << "\n";
 			}
 			else
 			{
-				debug() << depthStr << "dir level " << depth << ": " << it->getValue().getShortName() << "\n";
+				debug() << depthStr << "dir level " << depth << ": " << itemName << "\n";
 			}
 		}
 		else
@@ -386,7 +381,7 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(MLResourceMap<std::stri
 	{
 		if(!it.atEndOfMap())
 		{
-			const std::string& itemName = it->getValue().getShortName();
+			const std::string& itemName = it.getLeafName();
 			if(it->isLeaf())
 			{
 				if(includeFn(it))

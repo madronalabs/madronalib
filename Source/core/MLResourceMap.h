@@ -28,21 +28,14 @@ class MLResourceMap
 public:
 	typedef std::map< K, MLResourceMap<K, V> > mapT;
 
-	MLResourceMap<K, V>() : mChildren(), mHasValue(false), mValue() {}
-	MLResourceMap<K, V>(const V& v) : mChildren(), mHasValue(false) { mValue = v; }
+	MLResourceMap<K, V>() : mChildren(), mValue() {}
+	MLResourceMap<K, V>(const V& val) : mChildren(), mValue(val) {}
 	~MLResourceMap<K, V>() {}
 	
 	void clear() { mChildren.clear(); }
 	const V& getValue() const { return mValue; }
 	void setValue(const V& v) { mValue = v; }
-
-	// TODO remove mHasValue when directories in file maps are stored implicitly as paths.
-	// an empty directory should be implemented as a node whose value is null-- however 
-	// while we are using the value to store the path this can't be done!
-	// 
-	bool hasValue() const { return mHasValue; } // return(currentChildNode->mValue == V());
-	void setHasValue(bool b) { mHasValue = b; } // to remove
-
+	bool hasValue() const {  return mValue != V(); } 
 	bool isLeaf() const { return mChildren.size() == 0; }
 	
 	// find a value by its path.	
@@ -93,8 +86,8 @@ public:
 	{
 		MLResourceMap<K, V>* pNode = this;
 		
-		// TODO using an intermediate std::vector path is convenient but inefficient,
-		// we can just walk pathStr
+		// using an intermediate std::vector path is convenient but inefficient,
+		// we can just walk pathStr directly if more efficiency is wanted here
 		typename std::vector< K > path = parsePath(pathStr);
 		typename std::vector< K >::const_iterator it;
 		int pathDepthFound = 0;
@@ -125,17 +118,16 @@ public:
 		return pNode;
 	}
 	
-	// TODO also use MLSymbol vector paths
-	// mHasValue should be true, unless we want to mark the value as a non-leaf, as in the case of a directory
-	MLResourceMap<K, V>* addValue (const std::string& pathStr, const V& v)
+	// TODO use MLSymbol vector paths
+	MLResourceMap<K, V>* addValue (const std::string& pathStr, const V& val)
 	{
 		MLResourceMap<K, V>* newNode = addNode(pathStr);
-		newNode->setValue(v);
-		newNode->setHasValue(true);
+		newNode->setValue(val);
 		return newNode;
 	}
 	
 	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
+	// add the other methods needed.
 	
 	friend class const_iterator;
 	class const_iterator
@@ -238,6 +230,17 @@ public:
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			return(currentIterator == parentNode->mChildren.end());
 		}
+		
+		K getLeafName() const
+		{
+			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
+			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+			
+			// no value (and currentIterator not dereferenceable!) if at end()
+			if(currentIterator == parentNode->mChildren.end()) return K();
+			
+			return (*currentIterator).first;
+		}
 
 		int getDepth() { return mNodeStack.size() - 1; }
 		
@@ -279,7 +282,6 @@ private:
 	}
 	
 	mapT mChildren;
-	bool mHasValue;	// TODO remove this when directories are stored implicitly as paths.
 	V mValue;
 };
 

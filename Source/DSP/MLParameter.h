@@ -8,7 +8,6 @@
 
 #include <vector>
 #include <list>
-#include <utility>
 
 #include "MLDSP.h"
 #include "MLSymbol.h"
@@ -17,7 +16,14 @@
 #include "MLProperty.h"
 #include "MLRingBuffer.h"
 
-// MLPublishedParam: a parameter of one of the Procs in a DSP graph that is settable 
+// MLPublishedParam: a parameter of one of the Procs in a DSP graph that is settable through the plugin wrapper.
+// There are two concepts wrapped up in this that should be factored out.
+// One is a way to view and manipulate a Property. There is a list of these ways. 
+// The other is publishing properties of multiple procs in a graph as one settable entity. 
+// the Property might be a string, so there is no way to route it to multiple procs within the graph.
+// if there were, we could remove the "alsosets" and use proc connections. 
+// "alsosets" should check to see if Properties are of compatible types... sort of an ugliness point. 
+
 
 typedef enum
 {
@@ -81,6 +87,7 @@ public:
 	MLParamValue getZeroThresh(void) { return mZeroThreshold; }
 	JucePluginParamWarpMode getWarpMode(void) { return mWarpMode; }
 	MLParamValue getDefault(void);
+	
 	JucePluginParamUnit getUnit(void) { return mUnit; }
 
 	int getGroupIndex(void) { return mGroupIndex; }

@@ -104,7 +104,8 @@ void MLProc::clearInput(const int i)
 
 MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 {
-	debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
+	// MLTEST
+	//debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
 
 	MLProc::err e = OK;	
 	if (idx)
