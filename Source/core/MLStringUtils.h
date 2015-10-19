@@ -18,40 +18,38 @@
 #include "MLDSP.h"
 
 namespace ml { namespace stringUtils {
+	
+	// template for case insensitive compares. For case sensitive compares, std::less<K> can be used.
 	template <class K>
-	struct caselessCompare : std::function<bool(K, K)>
+	class caseInsensitiveCompare : std::function<bool(K, K)>
 	{		
+	public:
 		bool operator()(const K& s1, const K& s2) const
 		{
-			bool r = std::lexicographical_compare
+			return std::lexicographical_compare
 			(s1.begin(), s1.end(), s2.begin(), s2.end(), [](const unsigned char& c1, const unsigned char& c2)
 			 {
 				 return tolower(c1) < tolower(c2);
 			 }); 	
-			
-			//std::cout << s1 << " / " << s2 << " : " << r << "\n";
-			return r;
 		}
 	};
-	
-	/*
+
+	// MLSymbol template specialization for case insensitive compares. 	
 	template <>
-	struct caselessCompare : std::function<bool(MLSymbol, MLSymbol)>
-	{		
+	class caseInsensitiveCompare<MLSymbol> : std::function<bool(MLSymbol, MLSymbol)>
+	{
+	public:
 		bool operator()(const MLSymbol& s1, const MLSymbol& s2) const
 		{
-			
-		//	bool r = std::lexicographical_compare
-		//	(s1.begin(), s1.end(), s2.begin(), s2.end(), [](const unsigned char& c1, const unsigned char& c2)
-		//	 {
-		//		 return tolower(c1) < tolower(c2);
-		//	 }); 	
-		
-			std::cout << s1 << " / " << s2 << " : " << r << "\n";
-			return r;
+			const std::string& r1 = s1.getString();
+			const std::string& r2 = s2.getString();
+			return std::lexicographical_compare
+			(r1.begin(), r1.end(), r2.begin(), r2.end(), [](const unsigned char& c1, const unsigned char& c2)
+			 {
+				 return tolower(c1) < tolower(c2);
+			 }); 	
 		}
 	};
-	*/
 	
 	const std::string stripExtension(const std::string& str);
 	const std::string getShortName(const std::string& str);

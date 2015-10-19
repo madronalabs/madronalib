@@ -24,10 +24,8 @@
 // Note that this makes MLResourceMap<..., int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types.
 //
-// caselessCompare is used most commonly in the madronalib code base, so making it
-// the default comparator instead of std::less<K> saves a lot of code.
 
-template < class K, class V, class C = ml::stringUtils::caselessCompare<K> >
+template < class K, class V, class C = ml::stringUtils::caseInsensitiveCompare<K> >
 class MLResourceMap
 {
 public:
