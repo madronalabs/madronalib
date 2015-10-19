@@ -102,7 +102,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	MLSymbol h("this");
 	MLSymbol t("case");	
 	MLResourceMap< MLSymbol, int > a;
-//	MLResourceMap< MLSymbol, int, std::less<MLSymbol> > a;
 
 	a.addValue("case/sensitive/a", 1);
 	a.addValue("case/sensitive/b", 1);
@@ -119,7 +118,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	a.addValue("you/are/carl's/jr/jam", 10);
 	a.addNode("you/are/carl's/jr");
 	int leafSum = 0;
-	const int correctLeafSum = 74;
+	const int correctLeafSum = 73;
 	
 	for(auto it = a.begin(); it != a.end(); it++)
 	{
