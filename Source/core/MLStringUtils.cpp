@@ -10,9 +10,8 @@
 
 #pragma mark string utilities
 
-namespace MLStringUtils
-{
-
+namespace ml { namespace stringUtils {
+	
 const std::string stripExtension(const std::string& str)
 {
     std::string r(str);
@@ -102,5 +101,4 @@ std::vector< std::string > vectorOfNonsenseWords( int len )
 	return words;
 }
 
-	
-}
+} } // ml:stringUtils

@@ -120,7 +120,7 @@ private:
 	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
 	void run();
 	
-    MLResourceMap<std::string, MLFile> mRoot;
+	MLResourceMap<std::string, MLFile> mRoot;
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;

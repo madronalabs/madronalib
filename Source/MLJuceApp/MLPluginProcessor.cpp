@@ -976,7 +976,7 @@ void MLPluginProcessor::saveStateToLongFileName(const std::string& longName)
 		if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
 		
 		// use only the short name as model param.
-		std::string shortName = MLStringUtils::getShortName(longName);
+		std::string shortName = ml::stringUtils::getShortName(longName);
 		setProperty("preset", shortName);
 		
 		std::string extension (".mlpreset");
@@ -1095,7 +1095,7 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         if(f.exists())
         {
             loadPatchStateFromFile(f);
-            std::string shortPath = MLStringUtils::stripExtension(path);
+            std::string shortPath = ml::stringUtils::stripExtension(path);
             setProperty("preset", shortPath);
         }
     }

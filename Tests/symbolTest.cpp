@@ -344,7 +344,7 @@ TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 {
 	theSymbolTable().clear();
 	
-	std::vector< std::string > path = MLStringUtils::parsePath(std::string("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it"));
+	std::vector< std::string > path = ml::stringUtils::parsePath(std::string("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it"));
 	
 	std::cout << "as elements: ";
 	for(auto elem : path)

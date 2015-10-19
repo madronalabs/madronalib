@@ -287,11 +287,11 @@ void MLMultiProc::dumpProc(int indent)
 {
 	const int copies = (int)mCopies.size();	
 
-	debug() << MLStringUtils::spaceStr(indent) << getName() << " (multiproc " << (void *)&(*this) << ")\n";
+	debug() << ml::stringUtils::spaceStr(indent) << getName() << " (multiproc " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-	debug() << MLStringUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";
+	debug() << ml::stringUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";
 	
 		getCopy(i)->dumpProc(indent + 1);
 	}
@@ -703,11 +703,11 @@ void MLMultiContainer::dumpGraph(int indent)
 	
 	dumpProc(indent);
 
-	debug() << MLStringUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
+	debug() << ml::stringUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-		debug() << MLStringUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
+		debug() << ml::stringUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopyAsContainer(i)->dumpGraph(indent + 1);
 	}
 }

@@ -10,7 +10,6 @@
 #include "MLDSP.h"
 #include "MLLookAndFeel.h"
 #include "MLSymbol.h"
-#include "MLStringCompare.h"
 #include "MLStringUtils.h"
 
 class MLMenu;
@@ -20,7 +19,6 @@ class MLMenu;
 // need to be able to add arbitrary submaps .
 // TODO add forward / back button option and persist a current selection. 
 // Use index or store using new bidirectional MLResourceMap iterator .
-// TODO think about pie menus!
 
 typedef std::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
@@ -32,7 +30,7 @@ class MLMenu
 public:
     class Node;
     typedef std::shared_ptr<Node> NodePtr;
-    typedef std::map<std::string, NodePtr, MLStringCompareFn> StringToMenuNodeMapT;
+	typedef std::map<std::string, NodePtr, ml::stringUtils::caselessCompare<std::string> > StringToMenuNodeMapT;
     class Node
     {
     public:

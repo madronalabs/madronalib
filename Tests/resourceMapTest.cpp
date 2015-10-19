@@ -20,7 +20,7 @@
 
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
-	MLResourceMap< MLSymbol, int > numberMap;
+	MLResourceMap< std::string, int > numberMap;
 	MLNameMaker namer;
 	const int testSymbols = 100;
 	const int mapSize = 100;
@@ -28,7 +28,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	std::chrono::duration<double> elapsed;
 	
 	// make random paths out of nonsense symbols
-	auto symbols = MLStringUtils::vectorOfNonsenseWords( testSymbols );
+	auto symbols = ml::stringUtils::vectorOfNonsenseWords( testSymbols );
 	std::vector<std::string> paths;
 	MLNameMaker endNamer;
 	
@@ -97,7 +97,15 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	MLResourceMap< MLSymbol, int > a;
+	// unless a comparison function is specificed, order of map depends on sort order of symbols, which is just creation order
+	MLSymbol h("this");
+	MLSymbol t("case");	
+	MLResourceMap< MLSymbol, int, std::less<MLSymbol> > a;
+	
+	a.addValue("case/sensitive/a", 1);
+	a.addValue("case/sensitive/b", 1);
+	a.addValue("case/sensitive/c", 1);
+	a.addValue("case/sensitive/B", 1); 
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
 	a.addNode("this/was/another");
@@ -109,12 +117,13 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	a.addValue("you/are/carl's/jr/jam", 10);
 	a.addNode("you/are/carl's/jr");
 	int leafSum = 0;
-	const int correctLeafSum = 70;
+	const int correctLeafSum = 74;
 	
 	for(auto it = a.begin(); it != a.end(); it++)
 	{
 		if(it.nodeHasValue())
 		{		
+			std::cout << it.getLeafName() << " " << it->getValue() << "\n";
 			leafSum += it->getValue();
 		}
 	}

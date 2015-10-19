@@ -40,12 +40,12 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 
 MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
 	Thread(name.getString()),
-	mRoot(MLFile(std::string(startDir.getFullPathName().toUTF8()))),
 	mName(name),
 	mExtension(extension),
 	mProcessDelay(0)
 {
-   setProperty("progress", 0.);
+	mRoot.setValue(MLFile(std::string(startDir.getFullPathName().toUTF8())));
+	setProperty("progress", 0.);
 }
 
 MLFileCollection::~MLFileCollection()
@@ -176,7 +176,7 @@ void MLFileCollection::dump() const
 		if(!it.atEndOfMap())
 		{
 			int depth = it.getDepth();
-			const std::string depthStr = MLStringUtils::spaceStr(depth);
+			const std::string depthStr = ml::stringUtils::spaceStr(depth);
 			const std::string& itemName = it.getLeafName();
 			
 			if(it.nodeHasValue())
@@ -364,7 +364,7 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 	
 #endif
 	
-    return MLStringUtils::stripExtension(relPath);
+    return ml::stringUtils::stripExtension(relPath);
 }
 
 MLMenuPtr MLFileCollection::buildMenu() const

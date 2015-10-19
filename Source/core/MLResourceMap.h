@@ -14,23 +14,27 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <functional>
+#include <algorithm>
 
 #include "MLStringUtils.h" 
 
-// A resource map using a key class K and value class V.
+// A resource map using a key class K, value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
 // Note that this makes MLResourceMap<..., int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types.
+//
+// caselessCompare is used most commonly in the madronalib code base, so making it
+// the default comparator instead of std::less<K> saves a lot of code.
 
-template < class K, class V >
+template < class K, class V, class C = ml::stringUtils::caselessCompare<K> >
 class MLResourceMap
 {
 public:
-	typedef std::map< K, MLResourceMap<K, V> > mapT;
+	typedef std::map< K, MLResourceMap<K, V, C>, C > mapT;
 
-	MLResourceMap<K, V>() : mChildren(), mValue() {}
-	MLResourceMap<K, V>(const V& val) : mChildren(), mValue(val) {}
-	~MLResourceMap<K, V>() {}
+	MLResourceMap<K, V, C>() : mChildren(), mValue() { }
+	~MLResourceMap<K, V, C>() {}
 	
 	void clear() { mChildren.clear(); }
 	const V& getValue() const { return mValue; }
@@ -43,7 +47,7 @@ public:
 	// else, return a null object of our value type V.
 	V findValue(const std::string& path)
 	{
-		MLResourceMap<K, V>* pNode = findNode(path);
+		MLResourceMap<K, V, C>* pNode = findNode(path);
 		if(pNode)
 		{
 			return pNode->getValue();
@@ -82,9 +86,9 @@ public:
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
-	MLResourceMap<K, V>* addNode(const std::string& pathStr)
+	MLResourceMap<K, V, C>* addNode(const std::string& pathStr)
 	{
-		MLResourceMap<K, V>* pNode = this;
+		MLResourceMap<K, V, C>* pNode = this;
 		
 		// using an intermediate std::vector path is convenient but inefficient,
 		// we can just walk pathStr directly if more efficiency is wanted here
@@ -119,9 +123,9 @@ public:
 	}
 	
 	// TODO use MLSymbol vector paths
-	MLResourceMap<K, V>* addValue (const std::string& pathStr, const V& val)
+	MLResourceMap<K, V, C>* addValue (const std::string& pathStr, const V& val)
 	{
-		MLResourceMap<K, V>* newNode = addNode(pathStr);
+		MLResourceMap<K, V, C>* newNode = addNode(pathStr);
 		newNode->setValue(val);
 		return newNode;
 	}
@@ -133,13 +137,13 @@ public:
 	class const_iterator
 	{
 	public:
-		const_iterator(const MLResourceMap<K, V>* p)  
+		const_iterator(const MLResourceMap<K, V, C>* p)  
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(p->mChildren.begin());
 		}
 		
-		const_iterator(const MLResourceMap<K, V>* p, const typename mapT::const_iterator subIter)
+		const_iterator(const MLResourceMap<K, V, C>* p, const typename mapT::const_iterator subIter)
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(subIter);
@@ -163,12 +167,12 @@ public:
 			return !(*this == b); 
 		}
 				
-		const MLResourceMap<K, V>& operator*() const 
+		const MLResourceMap<K, V, C>& operator*() const 
 		{ 
 			return ((*mIteratorStack.back()).second); 
 		}
 		
-		const MLResourceMap<K, V>* operator->() const 
+		const MLResourceMap<K, V, C>* operator->() const 
 		{ 
 			return &((*mIteratorStack.back()).second); 
 		}
@@ -189,7 +193,7 @@ public:
 			}			
 			else
 			{
-				const MLResourceMap<K, V>* currentChildNode = &((*currentIterator).second);
+				const MLResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
 				if (!currentChildNode->isLeaf())
 				{
 					// down
@@ -214,26 +218,26 @@ public:
 		
 		bool nodeHasValue() const
 		{ 
-			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
+			const MLResourceMap<K, V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
 			if(currentIterator == parentNode->mChildren.end()) return false;
 
-			const MLResourceMap<K, V>* currentChildNode = &((*currentIterator).second);
+			const MLResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
 			return(currentChildNode->hasValue());
 		}
 		
 		bool atEndOfMap() const
 		{
-			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
+			const MLResourceMap<K, V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			return(currentIterator == parentNode->mChildren.end());
 		}
 		
 		K getLeafName() const
 		{
-			const MLResourceMap<K, V>* parentNode = mNodeStack.back();
+			const MLResourceMap<K, V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
@@ -244,7 +248,7 @@ public:
 
 		int getDepth() { return mNodeStack.size() - 1; }
 		
-		std::vector< const MLResourceMap<K, V>* > mNodeStack;
+		std::vector< const MLResourceMap<K, V, C>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
 	};	
 		
@@ -262,9 +266,9 @@ private:
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	MLResourceMap<K, V>* findNode(const std::string& pathStr)
+	MLResourceMap<K, V, C>* findNode(const std::string& pathStr)
 	{
-		MLResourceMap<K, V>* pNode = this;
+		MLResourceMap<K, V, C>* pNode = this;
 		std::vector< K > path = parsePath(pathStr);		
 		for(K key : path)
 		{
