@@ -97,8 +97,9 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	// with std::less comparison, order of map depends on sort order of symbols, which is just creation order.
-	// default comparison is not case sensitive: case/B and case/b are addresses of the same node. 
+	// this default comparison is not case sensitive: case/B and case/b are addresses of the same node. 
+	// with a MLResourceMap< MLSymbol, int, std::less<MLSymbol> > , the order of map depends on 
+	// the sorted order of symbols, which is just their creation order.
 	MLSymbol h("this");
 	MLSymbol t("case");	
 	MLResourceMap< MLSymbol, int > a;
@@ -124,7 +125,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	{
 		if(it.nodeHasValue())
 		{		
-			std::cout << it.getLeafName() << " " << it->getValue() << "\n";
 			leafSum += it->getValue();
 		}
 	}
