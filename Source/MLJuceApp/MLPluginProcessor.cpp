@@ -73,11 +73,9 @@ MLPluginProcessor::~MLPluginProcessor()
 
 void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
 {
-	// debug() << " doPropertyChangeAction: " << propName << " -> " << newVal << "\n";
-	
 	int propertyType = newVal.getType();
 	int paramIdx = getParameterIndex(propName);
-	if (paramIdx < 0) return;
+	if (!within(paramIdx, 0, getNumParameters())) return; // MLTEST
 	float f = newVal.getFloatValue();
 	
 	switch(propertyType)
@@ -99,7 +97,10 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 				}
 				
 				// send change immediately to host wrapper
-				AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
+				if(within(paramIdx, 0, AudioProcessor::getNumParameters()))
+				{
+					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
+				}
 			}
 		}
 		break;
@@ -213,7 +214,7 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 
 void MLPluginProcessor::initializeProcessor()
 {
-	// debug() <<  "initializing MLProcessor @ " << std::hex << (void*)this << std::dec << "...\n";
+	debug() <<  "initializing MLProcessor @ " << std::hex << (void*)this << std::dec << "...\n";
 	
 #if defined(__APPLE__)
 	// connect t3d hub to DSP engine
@@ -692,7 +693,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 #pragma mark parameters
 //
 
-int MLPluginProcessor::getNumParameters()
+int MLPluginProcessor::getNumParameters() const
 {
 	return mNumParameters;
 }
@@ -704,7 +705,7 @@ int MLPluginProcessor::getParameterIndex (const MLSymbol name)
 
 float MLPluginProcessor::getParameter (int index)
 {
-  	if (index < 0) return(0);
+	if (!within(index, 0, getNumParameters())) return(0);
 	return mEngine.getParamByIndex(index);
 }
 
@@ -713,7 +714,7 @@ float MLPluginProcessor::getParameter (int index)
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
-	if (index < 0) return;
+	if (!within(index, 0, getNumParameters())) return;
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 	
@@ -725,7 +726,12 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 float MLPluginProcessor::getParameterAsLinearProportion (int index)
 {
 	float r = 0;
-  	if (index < 0) return(0);
+  	if (!within(index, 0, getNumParameters())) 
+	{
+		// MLTEST
+		debug() << "WARNING: param " << index << " does not exist!\n";
+		return(0);
+	}
 	MLPublishedParamPtr p = mEngine.getParamPtr(index);
 	if(p)
 	{	
@@ -737,7 +743,7 @@ float MLPluginProcessor::getParameterAsLinearProportion (int index)
 // for VST wrapper.
 void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValue)
 {
-	if (index < 0) return;	
+	if (!within(index, 0, getNumParameters())) return;
 	MLPublishedParamPtr p = mEngine.getParamPtr(index);
 	if(p)
 	{
@@ -755,33 +761,33 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 
 float MLPluginProcessor::getParameterMin (int index)
 {
-	if (index < 0) return(0);
+	if (!within(index, 0, getNumParameters())) return(0);
 	return mEngine.getParamPtr(index)->getRangeLo();
 }
 
 float MLPluginProcessor::getParameterMax (int index)
 {
-	if (index < 0) return(0);
+	if (!within(index, 0, getNumParameters())) return(0);
 	return mEngine.getParamPtr(index)->getRangeHi();
 }
 
 const String MLPluginProcessor::getParameterName (int index)
 {
+	if (!within(index, 0, getNumParameters())) return String();
 	MLSymbol nameSym;
 	const int p = mEngine.getPublishedParams(); 
-	if (index < mNumParameters)
+
+	if (p == 0) // doc has been scanned but not built
 	{
-		if (p == 0) // doc has been scanned but not built
-		{
-			nameSym = MLSymbol("param").withFinalNumber(index);
-		}
-		else
-		{
-			// graph has been built
-			nameSym = mEngine.getParamPtr(index)->getAlias();	
-	//debug() << "getParameterName: " << index << " is " << nameSym.getString().c_str() << ".\n";
-		}
+		nameSym = MLSymbol("param").withFinalNumber(index);
 	}
+	else
+	{
+		// graph has been built
+		nameSym = mEngine.getParamPtr(index)->getAlias();	
+//debug() << "getParameterName: " << index << " is " << nameSym.getString().c_str() << ".\n";
+	}
+
  	return (String(nameSym.getString().c_str()));
 }
 
@@ -827,11 +833,13 @@ const MLSymbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
 
 const MLSymbol MLPluginProcessor::getParameterAlias (int index)
 {
+	if (!within(index, 0, getNumParameters())) return MLSymbol();
  	return mEngine.getParamPtr(index)->getAlias();
 }
 
 float MLPluginProcessor::getParameterDefaultValue (int index)
 {
+	if (!within(index, 0, getNumParameters())) return 0.;
  	return mEngine.getParamPtr(index)->getDefault();
 }
 
@@ -859,6 +867,7 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 bool MLPluginProcessor::isParameterAutomatable (int idx) const
 {
+	if (!within(idx, 0, getNumParameters())) return false;
 	return mEngine.getParamPtr(idx)->getAutomatable();
 }
 
@@ -867,7 +876,7 @@ bool MLPluginProcessor::isParameterAutomatable (int idx) const
 void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (index < 0) return;
+	if (!within(index, 0, getNumParameters())) return;
 	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
@@ -878,8 +887,7 @@ void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float n
 void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (index < 0) return;
-	
+	if (!within(index, 0, getNumParameters())) return;	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 }
@@ -889,7 +897,7 @@ void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, c
 void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (index < 0) return;
+	if (!within(index, 0, getNumParameters())) return;
 	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
