@@ -83,7 +83,7 @@ public:
 	void reset();
 	AudioProcessorEditor* createEditor();
 	bool hasEditor() const { return true; }
-	int getNumParameters();
+	int getNumParameters() const;
     const String getParameterName (int index);
 	float getParameter (int index);
     const String getParameterText (int index);
