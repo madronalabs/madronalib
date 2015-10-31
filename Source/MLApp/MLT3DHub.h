@@ -15,7 +15,7 @@
 
 #include "MLDSP.h"
 #include "MLPlatform.h"
-#include "MLOSCListener.h"
+#include "MLOSCReceiver.h"
 #include "MLNetServiceHub.h"
 #include "MLDebug.h"
 #include "MLSignal.h"
@@ -30,7 +30,6 @@
 
 class MLT3DHub :
 	public MLNetServiceHub,
-	private MLOSCListener,
 	private juce::Timer
 {
 public:
@@ -71,16 +70,17 @@ public:
 	osc::int32 mDataRate;
 	int mT3DWaitTime;
 	
-protected:
-	// MLOSCListener
-	void ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName& remoteEndpoint);
-	void ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName& remoteEndpoint);
-	
 private:
 	void connect();
 	void disconnect();
+	void handleMessage(const osc::ReceivedMessage& m);
+	void endBundle(const osc::ReceivedBundle& b);
+	
+	MLOSCReceiver mOSCReceiver;
 
+	// listeners to this object
 	std::vector<MLT3DHub::Listener*> mpListeners;
+	
 	std::string mShortName; // will append a port # to this to create full name of MLNetServiceHub
 
 	int mEnabled;

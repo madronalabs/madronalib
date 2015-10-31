@@ -58,7 +58,6 @@ void MLT3DHub::setPortOffset(int offset)
 		// set default name and port
 		mUDPPortOffset = offset;
 
-		
 		std::stringstream nameStream;
 		nameStream << mShortName << " (" << mUDPPortOffset << ")";
 		setName(nameStream.str());
@@ -128,7 +127,7 @@ void MLT3DHub::notifyListeners(MLSymbol action, const MLProperty val)
 	}
 }
 
-void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointName&)
+void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 {
 	osc::TimeTag frameTime;
 	osc::int32 frameID, touchID, deviceID;
@@ -142,7 +141,7 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 		osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
 		const char * addy = msg.AddressPattern();
         
-		//debug() << "t3d: " << addy << "\n";
+		debug() << "t3d: " << addy << "\n";
         
 		// frame message.
 		// /t3d/frm (int)frameID int)deviceID
@@ -227,23 +226,9 @@ void MLT3DHub::ProcessMessage(const osc::ReceivedMessage& msg, const IpEndpointN
 	}
 }
 
-void MLT3DHub::ProcessBundle(const osc::ReceivedBundle& b, const IpEndpointName& remoteEndpoint)
+void MLT3DHub::endBundle(const osc::ReceivedBundle& b)
 {
-	// process all messages in bundle
-	//
-	// ignore bundle time tag for now
-	// TODO time stamping
-	
-	for( osc::ReceivedBundle::const_iterator i = b.ElementsBegin(); i != b.ElementsEnd(); ++i )
-	{
-		if( i->IsBundle() )
-			ProcessBundle( osc::ReceivedBundle(*i), remoteEndpoint );
-		else
-			ProcessMessage( osc::ReceivedMessage(*i), remoteEndpoint );
-	}
-	
 	// write output frame of touches to buffer
-	//
 	if(mFrameBuf.buffer)
 		PaUtil_WriteRingBuffer(&mFrameBuf, mOutputFrame.getBuffer(), 1);
 }
@@ -285,8 +270,11 @@ void MLT3DHub::connect()
 {
 	if(!mConnected)
 	{
-		if(listenToOSC(kDefaultUDPPort + mUDPPortOffset))
+		if(mOSCReceiver.open(kDefaultUDPPort + mUDPPortOffset))
 		{
+			mOSCReceiver.setMessageFn( [this](const osc::ReceivedMessage& m){ handleMessage(m); });
+			// TODO set up a startFn to get bundle time tag. 
+			mOSCReceiver.setBundleEndFn( [this](const osc::ReceivedBundle& b){ endBundle(b); });
 			publishUDPService();
 			mConnected = true;
 		}
@@ -298,16 +286,14 @@ void MLT3DHub::disconnect()
 	if(mConnected)
 	{
 		debug() << "MLT3DHub: disconnecting\n";
-		if(listenToOSC(0))
+		mOSCReceiver.close();
+		if(mReceivingT3d)
 		{
-			if(mReceivingT3d)
-			{
-				mReceivingT3d = false;
-				notifyListeners("receiving", 0);
-			}
-			removeUDPService();
-			mConnected = false;
+			mReceivingT3d = false;
+			notifyListeners("receiving", 0);
 		}
+		removeUDPService();
+		mConnected = false;
 	}
 }
 
