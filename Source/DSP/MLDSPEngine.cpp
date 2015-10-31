@@ -195,7 +195,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		// connect input Signals and set sizes.
 		for (int i=0; i < mInputChans; ++i)
 		{
-			mInputSignals[i]->setRate((MLSampleRate)sr);
+			mInputSignals[i]->setRate(sr);
 			mInputSignals[i]->setDims(bufSize);
 			clearInput(i+1);
 			e = setInput(i+1, (*mInputSignals[i]));
@@ -228,7 +228,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		}
 		
 		mSamplesToProcess = 0; // doesn't count delay
-		setSampleRate((MLSampleRate)sr);
+		setSampleRate(sr);
 		setBufferSize(bufSize);
 		setVectorSize(chunkSize);
 

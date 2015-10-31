@@ -58,7 +58,6 @@ inline float log2f(float n)
 
 typedef float MLSample;
 typedef double MLDouble;
-typedef int MLSampleRate;
 typedef float MLParamValue;
 
 // ----------------------------------------------------------------
@@ -84,8 +83,8 @@ const float kMLTwelfthRootOfTwo = 1.05946309436f;
 
 const float kMLMinGain = 0.00001f; // 10e-5 = -120dB
 
-const MLSampleRate kMLTimeless = -1;
-const MLSampleRate kMLToBeCalculated = 0;
+const float kMLTimeless = -1.f;
+const float kMLToBeCalculated = 0.f;
 
 const MLSample kMLMaxSample = MAXFLOAT;
 const MLSample kMLMinSample = -MAXFLOAT;

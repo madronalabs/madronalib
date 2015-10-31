@@ -24,7 +24,7 @@ MLProc::err MLProc::prepareToProcess()
 
 	int ins = getNumInputs();
 	int outs = getNumOutputs();
-	MLSampleRate rate = getContextSampleRate();
+	float rate = getContextSampleRate();
 	int blockSize = getContextVectorSize();
 	
     // debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";

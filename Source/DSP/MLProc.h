@@ -382,7 +382,7 @@ public:
 	MLDSPContext* getContext() const { return mpContext; }
 
 	inline int getContextVectorSize() { return mpContext ? mpContext->getVectorSize() : 0; }	
-	inline MLSampleRate getContextSampleRate() { return mpContext ? mpContext->getSampleRate() : kMLTimeless; }
+	inline float getContextSampleRate() { return mpContext ? mpContext->getSampleRate() : kMLTimeless; }
 	inline float getContextInvSampleRate() { return mpContext ? mpContext->getInvSampleRate() : kMLTimeless; }
 	
 protected:	

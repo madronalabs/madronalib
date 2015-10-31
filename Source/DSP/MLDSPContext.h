@@ -35,14 +35,14 @@ public:
 	const int getResampleUpOrder() { return mResampleUpOrder; }
 	const int getResampleDownOrder() { return mResampleDownOrder; }
 	inline unsigned getVectorSize() { return mVectorSize; }	
-	inline MLSampleRate getSampleRate(void) { return mSampleRate; }
+	inline float getSampleRate(void) { return mSampleRate; }
 	inline float getInvSampleRate(void) { return mInvSampleRate; }
 
 	void setResampleRatio(const MLRatio& r) { mResampleRatio = r; }
 	void setResampleUpOrder(const int d) { mResampleUpOrder = d; }
 	void setResampleDownOrder(const int d) { mResampleDownOrder = d; }
 	int setVectorSize(unsigned newSize);
-	void setSampleRate(MLSampleRate newRate);	
+	void setSampleRate(float newRate);	
 
 	MLSignal& getNullInput();
 	MLSignal& getNullOutput();
@@ -68,7 +68,7 @@ private:
 	int mResampleUpOrder;	
 	int mResampleDownOrder;	
 	int mVectorSize;		
-	MLSampleRate mSampleRate;	
+	float mSampleRate;	
 	float mInvSampleRate;
 };
 

@@ -34,12 +34,12 @@ int MLDSPContext::setVectorSize(unsigned newSize)
 	return retErr;
 }
 
-void MLDSPContext::setSampleRate(MLSampleRate newRate)
+void MLDSPContext::setSampleRate(float newRate)
 {	
 	mSampleRate = newRate;
 	mNullInput.setRate(newRate);
 	mNullOutput.setRate(newRate);
-	mInvSampleRate = 1.0f / (MLSample)mSampleRate;
+	mInvSampleRate = 1.0f / mSampleRate;
 }
 
 MLSignal& MLDSPContext::getNullInput()

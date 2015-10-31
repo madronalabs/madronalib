@@ -290,8 +290,8 @@ public:
 	int getFrames() const;
 	
 	// rate
-	void setRate(MLSampleRate rate){ mRate = rate; }
-	MLSampleRate getRate() const { return mRate; }
+	void setRate(float rate){ mRate = rate; }
+	float getRate() const { return mRate; }
 	
 	// I/O
 	void read(const MLSample *input, const int offset, const int n);
@@ -464,9 +464,9 @@ private:
 	// store log2 of actual size of each dimension.
 	int mWidthBits, mHeightBits, mDepthBits; 
 	
-	// Reciprocal of sample rate in Hz.  if negative, signal is not a time series.
+	// Sample rate in Hz.  if negative, signal is not a time series.
 	// if zero, rate is a positive one that hasn't been calculated by the DSP engine yet.
-	MLSampleRate mRate;
+	float mRate;
 };
 
 typedef std::shared_ptr<MLSignal> MLSignalPtr;

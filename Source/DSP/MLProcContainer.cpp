@@ -636,11 +636,11 @@ MLProc::err MLProcContainer::prepareToProcess()
 	MLProc::err e = MLProc::OK;
 	
 	int containerSize = getContextVectorSize();
-	MLSampleRate containerRate = getContextSampleRate();
+	float containerRate = getContextSampleRate();
 	const MLRatio myRatio = getResampleRatio();
 	
 	int mySize, ins, outs;
-	MLSampleRate myRate;
+	float myRate;
 	MLRatio mySizeAsRatio;
 	mySizeAsRatio = MLRatio(containerSize) * myRatio;
 
@@ -651,7 +651,7 @@ MLProc::err MLProcContainer::prepareToProcess()
 	else
 	{
 		mySize = mySizeAsRatio.top;
-		myRate = (MLSampleRate)(containerRate*myRatio);		
+		myRate = (containerRate*myRatio);		
 		setVectorSize(mySize);
 		setSampleRate(myRate);
 
@@ -1732,7 +1732,7 @@ MLParamValue MLProcContainer::getParamByIndex(int index)
 {
 	MLParamValue r = 0.f;
 	const int size = (int)mPublishedParams.size();
-	if (index < size)
+	if (within(index, 0, size))
 	{
 		MLPublishedParamPtr p = mPublishedParams[index];
 		r = p->getValue();
@@ -2133,7 +2133,7 @@ void MLProcContainer::dumpGraph(int indent)
 // ----------------------------------------------------------------
 #pragma mark buffer pool
 //
-const MLSampleRate kBufferFree = -16;
+const float kBufferFree = -16.f; // ooh, a hack
 
 MLSignal* MLProcContainer::allocBuffer()
 {
