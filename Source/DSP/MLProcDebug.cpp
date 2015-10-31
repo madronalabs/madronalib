@@ -3,8 +3,15 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLProc.h"
 #include <iomanip>
+#include <memory>
+#include <chrono>
+
+#include "MLProc.h"
+#include "MLClock.h"
+#include "MLOSCSender.h"
+
+#define SEND_OSC	0
 
 // ----------------------------------------------------------------
 // class definition
@@ -25,6 +32,11 @@ private:
 	MLProcInfo<MLProcDebug> mInfo;
 	bool mVerbose;
 	int mTemp;
+
+#if SEND_OSC
+	ml::Clock mClock;
+	ml::OSCSender mOSCSender;
+#endif
 };
 
 
@@ -43,10 +55,13 @@ namespace
 // implementation
 
 
-MLProcDebug::MLProcDebug()
+MLProcDebug::MLProcDebug() 
 {
 	mTemp = 0;
 	mVerbose = 0;
+#if SEND_OSC
+	mOSCSender.open(9000);
+#endif
 }
 
 MLProcDebug::~MLProcDebug()
@@ -61,7 +76,7 @@ void MLProcDebug::doParams()
 
 void MLProcDebug::process(const int frames)
 {
-	const int intervalSeconds = 2;
+	const int intervalSeconds = 1;
 	const int intervalFrames = getContextSampleRate() * intervalSeconds;
 	if (mParamsChanged) doParams();
 	mTemp += frames;
@@ -96,6 +111,19 @@ void MLProcDebug::process(const int frames)
 			}
 			debug() << "]\n\n";
 		}
+		
+#if SEND_OSC		
+		uint64_t ntpTime = mClock.now();
+	
+		mOSCSender.getStream() << osc::BeginBundle(ntpTime)
+		<< osc::BeginMessage( "/test1" ) 
+		<< 23 << (float)3.1415 << "test"
+		<< osc::EndMessage
+		<< osc::EndBundle;
+
+		mOSCSender.sendDataToSocket();	
+#endif
+		
 	}
 }
 
