@@ -1956,7 +1956,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		mTrackThickness = (int)((float)kMLTrackThickness * u / 48.);
 		mLineThickness = u/192.f;
 		mTextSize = (float)u*myLookAndFeel->getDialTextSize(*this);
-        mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign)*mTextSize + 2.;
+        mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign, mValueDisplayMode)*mTextSize + 2.;
         mMaxNumberWidth &= (~1); // make even
         
         bool isSmall = (uBounds.height() <= 0.5f);

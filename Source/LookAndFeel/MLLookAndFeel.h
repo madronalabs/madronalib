@@ -501,7 +501,7 @@ public:
                                         const Colour& color,
                                         const int width);
 
-	float calcMaxNumberWidth( const int digits, const int precision, const bool doSign);
+	float calcMaxNumberWidth( const int digits, const int precision, const bool doSign, const MLValueDisplayMode mode);
 	int getDigitsAfterDecimal (const float number, const int digits, const int precision)  throw();
 	
 	char* formatNumber (const float number, const int digits, const int precision, 

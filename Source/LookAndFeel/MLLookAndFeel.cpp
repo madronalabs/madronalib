@@ -252,10 +252,6 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 	tweakedNumber = number;
 	switch(mode)
 	{
-		case eMLNumSeconds:
-		case eMLNumHertz:
-		case eMLNumDecibels:
-		case eMLNumPan:
 		case eMLNumRatio:
 		{
 			bool done = false;
@@ -303,7 +299,25 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			sprintf(numBuf, format, tweakedNumber);		
 		}
 		break;
+			
+		case eMLNumDecibels:
+		{
+			if (doSign)
+			{
+				snprintf(format, bufLength, "X-+0%1d.%1dfdB", m, p);
+			}
+			else
+			{
+				snprintf(format, bufLength, "X-0%1d.%1dfdB", m, p);
+			}
+			format[0] = 37;	// '%'			
+			snprintf(numBuf, bufLength, format, tweakedNumber);
+		}			
+		break;
 		
+		case eMLNumSeconds:
+		case eMLNumHertz:
+		case eMLNumPan:
 		case eMLNumFloat:
 		case eMLNumZeroIsOff:
 		default:
@@ -332,12 +346,22 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			break;
 			case eMLNumZeroIsOff:
 				snprintf(numBuf, bufLength, "off");
+				break;
 			break;
 			default:
-			break;
+				break;
 		}
 	}
 	
+	/*
+	if(mode == eMLNumDecibels)
+	{
+		if (number < -60.5f) 
+		{
+			snprintf(numBuf, bufLength, "-inf.");
+		}
+	}	
+	 */
 	return numBuf;
 }
 
@@ -432,11 +456,18 @@ float MLLookAndFeel::getNumberWidth (const float number, const int digits, const
 
 
 
-float MLLookAndFeel::calcMaxNumberWidth( const int digits, const int precision, const bool doSign)
+float MLLookAndFeel::calcMaxNumberWidth( const int digits, const int precision, const bool doSign, const MLValueDisplayMode mode)
 {
 	int d = 0;
 	int w = maxDigits(digits, precision);
-	if (precision > 0) d++; // dot
+	if (precision > 0) 
+	{
+		d++; // dot	
+	}
+	if(mode == eMLNumDecibels)
+	{
+		w += 2; // dB
+	}
 	return (w*kDigitSize) + d*kDotSize + ((float)doSign)*kSignSize;
 }
 
