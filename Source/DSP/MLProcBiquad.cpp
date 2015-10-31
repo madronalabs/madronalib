@@ -21,6 +21,7 @@ public:
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
+private:
 	typedef enum 
 	{
 		kLowpass = 0,
@@ -28,8 +29,7 @@ public:
 		kBandpass,
 		kNotch
 	}	eBiquadMode;
-
-private:
+	
 	MLProcInfo<MLProcBiquad> mInfo;
 	void calcCoeffs(const int n);
 	
