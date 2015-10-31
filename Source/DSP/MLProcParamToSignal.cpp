@@ -27,6 +27,12 @@ private:
 	MLChangeList mChangeList;
 	MLSample mVal;	
 	float mGlide;
+	
+	typedef enum 
+	{
+		kDefault = 0,
+		kDecibels = 1,
+	}	eLevelMode;	
 };
 
 
@@ -36,7 +42,7 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcParamToSignal> classReg("param_to_sig");
-	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in", "glide"};
+	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in", "glide", "level_mode"};
 	ML_UNUSED MLProcOutput<MLProcParamToSignal> outputs[] = {"out"};
 }
 
@@ -48,6 +54,7 @@ MLProcParamToSignal::MLProcParamToSignal()
 {
 //	debug() << "MLProcParamToSignal constructor\n";
 	setParam("glide", 0.01f);
+	setParam("level_mode", 0);
 }
 
 
@@ -60,13 +67,12 @@ MLProcParamToSignal::~MLProcParamToSignal()
 MLProc::err MLProcParamToSignal::resize()
 {
 	int vecSize = getContextVectorSize();
-	MLSampleRate rate = getContextSampleRate();
-	
+	float rate = getContextSampleRate();
 	mChangeList.setDims(vecSize);
 	mChangeList.setSampleRate(rate);
 	mChangeList.setGlideTime(mGlide);
 
-	// TODO
+	// TODO exception handling
 	return OK;
 }
 
@@ -75,7 +81,17 @@ void MLProcParamToSignal::process(const int frames)
 	MLSignal& y = getOutput();
 	if (mParamsChanged)
 	{
-		mVal = getParam("in");
+		float input = getParam("in");
+		switch (static_cast<int>(getParam("level_mode"))) 
+		{
+			default:
+			case kDefault:
+				mVal = input;
+				break;
+			case kDecibels:
+				mVal = dBToAmp(input);
+				break;
+		}
 		mChangeList.addChange(mVal, 0);
 		mGlide = getParam("glide");
 		mChangeList.setGlideTime(mGlide);
