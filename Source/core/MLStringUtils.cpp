@@ -15,7 +15,7 @@ namespace ml { namespace stringUtils {
 const std::string stripExtension(const std::string& str)
 {
     std::string r(str);
-    int b = r.find_last_of(".");
+    size_t b = r.find_last_of(".");
     if(b != std::string::npos)
     {
         r = r.substr(0, b);
@@ -26,10 +26,10 @@ const std::string stripExtension(const std::string& str)
 const std::string getShortName(const std::string& str)
 {
     std::string r(str);
-    int b = r.find_last_of("/");
+    size_t b = r.find_last_of("/");
     if(b != std::string::npos)
     {
-        int len = r.length();
+        size_t len = r.length();
         r = r.substr(b + 1, len - b);
     }
     return r;
@@ -38,7 +38,7 @@ const std::string getShortName(const std::string& str)
 const std::string getPath(const std::string& str)
 {
     std::string r;
-    int b = str.find_last_of("/");
+    size_t b = str.find_last_of("/");
     if(b != std::string::npos)
     {
         r = str.substr(0, b);
@@ -59,7 +59,7 @@ std::vector< std::string > parsePath(const std::string& pathStr)
 {
 	std::vector<std::string> path;
 	std::string workingStr = pathStr;
-	int segmentLength;
+	size_t segmentLength;
 	do
 	{
 		// found a segment

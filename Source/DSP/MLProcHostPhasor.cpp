@@ -17,7 +17,10 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-MLProcHostPhasor::MLProcHostPhasor()
+MLProcHostPhasor::MLProcHostPhasor() :
+mDpDt(0),
+mPhase1(0.),
+mDt(0)
 {
 	clear();
 //	debug() << "MLProcHostPhasor constructor\n";
@@ -28,10 +31,10 @@ MLProcHostPhasor::~MLProcHostPhasor()
 //	debug() << "MLProcHostPhasor destructor\n";
 }
 
-void MLProcHostPhasor::calcCoeffs(void) 
+void MLProcHostPhasor::doParams(void) 
 {
 	//static const float bpmToHz = 1.f / 240.f * 16.f; // 16th notes
-	//const float invSr = getContextInvSampleRate();
+	// mSr = getContextSampleRate();
 	
 	// new phase
 	//float sixteenths = mTime * 4.f;
@@ -39,10 +42,10 @@ void MLProcHostPhasor::calcCoeffs(void)
 	mParamsChanged = false;
 }
 
-void MLProcHostPhasor::setTimeAndRate(const double secs, const double position, const double bpm, bool isPlaying)
+void MLProcHostPhasor::setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {
 	// working around a bug I can't reproduce, so I'm covering all the bases.
-	if ( ((MLisNaN(position)) || (MLisInfinite(position)))
+	if ( ((MLisNaN(ppqPos)) || (MLisInfinite(ppqPos)))
 		|| ((MLisNaN(bpm)) || (MLisInfinite(bpm)))
 		|| ((MLisNaN(secs)) || (MLisInfinite(secs))) ) 
 	{
@@ -50,14 +53,15 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double position, 
 		return;
 	}
 	
-	double newTime = clamp(position, 0., 100000.);
+	double phase = 0.;
+	double newTime = clamp(ppqPos, 0., 100000.);
 	mActive = (mTime != newTime) && (secs >= 0.);
 	if (mActive)
 	{
 		mTime = newTime;
 		mParamsChanged = true;
 
-		double phase = newTime - int(newTime);
+		phase = newTime - int(newTime);
 		mOmega = (float)phase;
 		double newRate = clamp(bpm, 0., 1000.);
 		if (mRate != newRate)
@@ -65,11 +69,22 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double position, 
 			mRate = newRate;				
 			mParamsChanged = true;
 		}
+		
+		double dPhase = phase - mPhase1;
+		if(dPhase < 0.)
+		{
+			dPhase += 1.;
+		}
+		mDpDt = clamp(dPhase/static_cast<double>(mDt), 0., 1.);	
 	}
 	else
 	{
-		mOmega = -0.01f;
+		mOmega = -0.0001f;
+		mDpDt = 0.;	
 	}
+	
+	mPhase1 = phase;
+	mDt = 0;
 }
 
 void MLProcHostPhasor::clear()
@@ -83,17 +98,23 @@ void MLProcHostPhasor::clear()
 
 void MLProcHostPhasor::process(const int samples)
 {	
-	MLSignal& y = getOutput();
-	
-	// coeffs
 	if (mParamsChanged) 
 	{
-		calcCoeffs();
+		doParams();
 	}
-	
+
+	MLSignal& y = getOutput();
 	for (int n=0; n<samples; ++n)
 	{
-		// step output TODO proper ramp
+		mOmega += mDpDt;
+		if(mOmega > 1.f) 
+		{
+			mOmega -= 1.f;
+			//debug() << ".";
+		}
 		y[n] = mOmega;
 	}
+	mDt += samples;
+	
+	//debug() << y[0] << " -- " << y[samples - 1] << "\n";
 }

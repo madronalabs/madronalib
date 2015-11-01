@@ -198,9 +198,9 @@ public:
 	inline bool operator< (const MLSymbolVector& b) const
 	{
 		const std::vector<MLSymbol>& a = *this;
-		int aLen = size();
-		int bLen = b.size();
-		int minSize = std::min(aLen, bLen);
+		size_t aLen = size();
+		size_t bLen = b.size();
+		size_t minSize = std::min(aLen, bLen);
 		for(int i=0; i<minSize; ++i)
 		{
 			MLSymbol symA = a[i];

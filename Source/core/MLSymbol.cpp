@@ -323,10 +323,10 @@ bool MLSymbol::beginsWith (const MLSymbol b) const
 {
 	const std::string& strA = getString();
 	const char* pa = strA.c_str();
-	const int aLen = strA.length();
+	const size_t aLen = strA.length();
 	const std::string& strB = b.getString();
 	const char* pb = strB.c_str();
-	const int bLen = strB.length();
+	const size_t bLen = strB.length();
 	
 	if(bLen > aLen) return false;
 	for(int i=0; i<bLen; ++i)
@@ -340,15 +340,15 @@ bool MLSymbol::endsWith (const MLSymbol b) const
 {
 	const std::string& strA = getString();
 	const char* pa = strA.c_str();
-	const int aLen = strA.length();
+	const size_t aLen = strA.length();
 	const std::string& strB = b.getString();
 	const char* pb = strB.c_str();
-	const int bLen = strB.length();
+	const size_t bLen = strB.length();
 	
 	if(bLen > aLen) return false;
-	for(int i=bLen - 1; i>=0; --i)
+	for(size_t i = bLen; i > 0; --i)
 	{
-		if(pa[i + aLen - bLen] != pb[i]) return false;
+		if(pa[i + aLen - bLen - 1] != pb[i - 1]) return false;
 	}
 	return true;
 }

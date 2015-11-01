@@ -17,6 +17,7 @@ public:
 	 MLProcHostPhasor();
 	~MLProcHostPhasor();
 
+	// Set the time and bpm. The time refers to the start of the current engine processing block.
 	void setTimeAndRate(const double secs, const double position, const double bpm, bool isPlaying);
 	
 	void clear();
@@ -25,13 +26,18 @@ public:
 
 private:
 	MLProcInfo<MLProcHostPhasor> mInfo;
-	void calcCoeffs(void);
+	void doParams(void);
 	MLSample mOmega;
 	MLSample mdOmega;
 	double mTime;
 	double mRate;
 	bool mPlaying;
 	bool mActive;
+	//float mSr;
+	
+	double mDpDt;
+	double mPhase1;
+	int mDt;
 };
 
 #endif // ML_PROC_HOST_PHASOR_H

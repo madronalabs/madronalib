@@ -11,7 +11,7 @@
 #include "MLClock.h"
 #include "MLOSCSender.h"
 
-#define SEND_OSC	0
+#define SEND_OSC	1
 
 // ----------------------------------------------------------------
 // class definition
