@@ -32,7 +32,7 @@ bool MLOSCReceiver::open(int port)
 
 	try
 	{
-		std::cout << "MLOSCReceiver: trying to receive on port " << port << "...\n";
+		// std::cout << "MLOSCReceiver: trying to receive on port " << port << "...\n";
 		// the new UdpListeningReceiveSocket has this as its listener, so it will call our ProcessMessage()
 		// and ProcessBundle() methods to handle incoming messages.
 		mpSocket = new UdpListeningReceiveSocket(
@@ -54,10 +54,9 @@ bool MLOSCReceiver::open(int port)
 
 	if(mpSocket)
 	{
-		std::cout << "MLOSCReceiver::open: receiving on port " << port << ".\n";
-		
+		// std::cout << "MLOSCReceiver::open: receiving on port " << port << ".\n";		
 		// make thread and send it on its way. It will terminate when mpSocket->Break() is called.
-		// passing this allows the thread to call a member function. Note that this object must be careful
+		// passing "this" allows the thread to call our member function. Note that this object must be careful
 		// to outlive the thread.
 		std::thread t(&MLOSCReceiver::threadFunc, this);
 		t.detach();
@@ -70,7 +69,6 @@ void MLOSCReceiver::close()
 {
 	if(mpSocket)
 	{
-		std::cout << "MLOSCReceiver: closing.\n";
 		mpSocket->Break();
 		delete mpSocket;
 		mpSocket = 0;

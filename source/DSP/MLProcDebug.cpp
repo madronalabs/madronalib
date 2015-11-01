@@ -120,25 +120,11 @@ void MLProcDebug::process(const int frames)
 		
 		// get Blob with signal 
 		// TODO buffer
-		
-		// TODO xmit signal dims
-		
-		MLSignal in2({1, 3, 5, 7, 9});
-		MLSignal in3(3, 4);
-		for(int i=0; i<3; i++)
-		{
-			for(int j=0; j<4; j++)
-			{
-				in3(i, j) = MLRand();
-			}
-		}
-		
-//		osc::Blob b(in2.getBuffer(), in2.getWidth()*sizeof(float));
+
 	
 		mOSCSender.getStream() << osc::BeginBundle(ntpTime)
 		<< osc::BeginMessage( address.c_str() ) 
-
-		<< in3
+		<< in
 		<< osc::EndMessage
 		<< osc::EndBundle;
 
