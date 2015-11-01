@@ -16,12 +16,13 @@
 
 #include "OscTypes.h"
 #include "OscException.h"
-//#include "OscPacketListener.h"
 #include "OscOutboundPacketStream.h"
 #include "UdpSocket.h"
 
-namespace ml {
+#include "MLSignal.h"
 
+namespace ml {
+	
 class OSCSender 
 {
 public:
@@ -32,17 +33,28 @@ public:
 	void open(int port);
 	void close();
 	
-	osc::OutboundPacketStream& getStream();
+private:
+	typedef osc::OutboundPacketStream PacketStream;
+	 
+public:	
+	// TODO better interface. Would like to do something like
+	// OSCSender s;
+	// float f, g, h;
+	// s.sendNow(bundle(message("/a", f), message("/b", g, h, 23)));
+	// This requires a bunch of template cruft I don't have time for right now
+	PacketStream& getStream();
 	void sendDataToSocket();
 	
 private:
 	std::vector<char> mBuffer; 
 	std::unique_ptr<UdpTransmitSocket> mSocket;
-	std::unique_ptr<osc::OutboundPacketStream> mStream;
+	std::unique_ptr<PacketStream> mStream;
 };
 
-}
 
+}	// namespace ml
+
+osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const MLSignal& sig);
 
 
 #endif /* defined(__Aalto__MLOscSender__) */

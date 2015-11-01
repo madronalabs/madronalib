@@ -12,10 +12,12 @@ const int kBufSize = 4096;
 
 namespace ml {
 
+	// OSCSender
+	
 	OSCSender::OSCSender()
 	{
 		mBuffer.resize(kBufSize);
-		mStream = std::unique_ptr<osc::OutboundPacketStream>(new osc::OutboundPacketStream ( mBuffer.data(), kBufSize ));
+		mStream = std::unique_ptr<OSCSender::PacketStream>(new OSCSender::PacketStream(mBuffer.data(), kBufSize));
 	}
 	
 	OSCSender::OSCSender(int port)
@@ -25,7 +27,6 @@ namespace ml {
 
 	OSCSender::~OSCSender()
 	{
-		
 	}
 
 	void OSCSender::open(int port)
@@ -38,16 +39,26 @@ namespace ml {
 		
 	}
 	
-	// TEMP
-	osc::OutboundPacketStream& OSCSender::getStream()
+	OSCSender::PacketStream& OSCSender::getStream()
 	{
 		mStream->Clear();
 		return *mStream;
 	}
 	
-	// TEMP
 	void OSCSender::sendDataToSocket()
 	{
 		mSocket->Send(mStream->Data(), mStream->Size());
 	}
+}	// namespace ml 
+
+
+// stream operators for madronalib types
+
+osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const MLSignal& sig)
+{
+	stream << sig.isConstant();
+	stream << sig.getWidth() << sig.getHeight() << sig.getDepth();
+	stream << osc::Blob(sig.getBuffer(), sig.getSize()*sizeof(float));
+	return stream;
 }
+
