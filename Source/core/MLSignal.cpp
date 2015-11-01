@@ -26,7 +26,6 @@ MLSignal::MLSignal() :
 	mCopyAligned(0)
 {
 	mRate = kMLToBeCalculated;
-	setConstant(false);
 	setDims(kMLProcessChunkSize); // TODO rewrite everything to allocate explictly
 }
 
@@ -37,7 +36,6 @@ MLSignal::MLSignal (int width, int height, int depth) :
 	mCopyAligned(0)
 {
 	mRate = kMLToBeCalculated;
-	setConstant(false);	
 	setDims(width, height, depth);
 }
 
@@ -68,7 +66,6 @@ mCopy(0),
 mCopyAligned(0)
 {
 	mRate = kMLToBeCalculated;
-	setConstant(false);	
 	setDims((int)values.size());
 	int idx = 0;
 	for(float f : values)
@@ -1452,7 +1449,7 @@ float MLSignal::getMax() const
 
 void MLSignal::dump(std::ostream& s, int verbosity) const
 {
-	s << "signal @ " << std::hex << this << std::dec << " [" << mSize << " frames] : sum " << getSum() << "\n";
+	s << "signal @ " << std::hex << this << std::dec << " [" << mWidth*mHeight*mDepth << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;

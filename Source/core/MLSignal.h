@@ -439,8 +439,20 @@ private:
 	inline int padSize(int size) { return size + kMLAlignSize - 1 + kMLSignalEndSize; }
 	MLSample* allocateData(int size);
 	MLSample* initializeData(MLSample* pData, int size);
+	
+	// data	
+	
+	// mask for array lookups. By setting to zero, the signal becomes a constant.
+	int mConstantMask;
+	
+	// store requested size of each dimension. For 1D signals, height is 1, etc.
+	int mWidth, mHeight, mDepth; 
+	
+	// Sample rate in Hz.  if negative, signal is not a time series.
+	// if zero, rate is a positive one that hasn't been calculated by the DSP engine yet.
+	float mRate;	
 
-	// start of data in memory. 
+	// start of signal data in memory. 
 	// If this is 0, we do not own any data.  However, in the case of a
 	// reference to another signal mDataAligned may still refer to external data.
 	MLSample* mData;
@@ -452,21 +464,11 @@ private:
 	MLSample* mCopy;
 	MLSample* mCopyAligned;
 
-	// mask for array lookups. By setting to zero, the signal becomes a constant.
-	int mConstantMask;
-	
 	// total power-of-two size in samples, stored for fast access by clear() etc.
 	int mSize; 
 	
-	// store requested size of each dimension. For 1D signals, height is 1, etc.
-	int mWidth, mHeight, mDepth; 
-	
-	// store log2 of actual size of each dimension.
+	// log2 of actual size of each dimension, stored for fast access.
 	int mWidthBits, mHeightBits, mDepthBits; 
-	
-	// Sample rate in Hz.  if negative, signal is not a time series.
-	// if zero, rate is a positive one that hasn't been calculated by the DSP engine yet.
-	float mRate;
 };
 
 typedef std::shared_ptr<MLSignal> MLSignalPtr;
