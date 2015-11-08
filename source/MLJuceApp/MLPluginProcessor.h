@@ -67,29 +67,38 @@ public:
 	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
 	
 	// juce::AudioProcessor
-	const String getName() const { return MLProjectInfo::projectName; }
-    void prepareToPlay (double sampleRate, int samplesPerBlock);
-    void releaseResources();
-    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages);
-    const String getInputChannelName (const int channelIndex) const;
-    const String getOutputChannelName (const int channelIndex) const;
-    bool isInputChannelStereoPair (int index) const;
-    bool isOutputChannelStereoPair (int index) const;
-	double getTailLengthSeconds() const;
-	bool silenceInProducesSilenceOut() const { return false; }
-	bool acceptsMidi() const;
-    bool producesMidi() const;
+	const String getName() const override { return MLProjectInfo::projectName; }
+    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void releaseResources() override;
+    void processBlock (AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
+
+    const String getInputChannelName (const int channelIndex) const override;
+    const String getOutputChannelName (const int channelIndex) const override;
+    bool isInputChannelStereoPair (int index) const override;
+    bool isOutputChannelStereoPair (int index) const override;
+
+	bool silenceInProducesSilenceOut() const override { return false; }
+	double getTailLengthSeconds() const override;
+
+	bool acceptsMidi() const override;
+    bool producesMidi() const override;
 	
-	void reset();
-	AudioProcessorEditor* createEditor();
-	bool hasEditor() const { return true; }
-	int getNumParameters() const;
-    const String getParameterName (int index);
-	float getParameter (int index);
-    const String getParameterText (int index);
-	float getParameterDefaultValue (int index);
-    void setParameter (int index, float newValue);
-	bool isParameterAutomatable (int idx) const;
+	void reset() override;
+
+	AudioProcessorEditor* createEditor() override;
+
+	bool hasEditor() const override { return true; }
+	int getNumParameters() override;
+	
+	
+    const String getParameterName (int index) override;
+	float getParameter (int index) override;
+
+	const String getParameterText (int index) override;
+	float getParameterDefaultValue (int index) override;
+
+    void setParameter (int index, float newValue) override;
+	bool isParameterAutomatable (int idx) const override;
 	
 	// factory presets - a VST concept - TODO
     int getNumPrograms() { return 1; }

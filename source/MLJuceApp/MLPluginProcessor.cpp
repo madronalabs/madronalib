@@ -75,7 +75,15 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 {
 	int propertyType = newVal.getType();
 	int paramIdx = getParameterIndex(propName);
-	if (!within(paramIdx, 0, getNumParameters())) return; // MLTEST
+	
+	// debug() << "MLPluginProcessor::doPropertyChangeAction: " << propName << " (" << paramIdx << " of " << getNumParameters() << ") \n";
+	
+	if (!within(paramIdx, 0, getNumParameters())) 
+	{
+		return;
+	}
+	
+	
 	float f = newVal.getFloatValue();
 	
 	switch(propertyType)
@@ -97,7 +105,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 				}
 				
 				// send change immediately to host wrapper
-				if(within(paramIdx, 0, AudioProcessor::getNumParameters()))
+				if(within(paramIdx, 0, getNumParameters()))
 				{
 					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
 				}
@@ -693,7 +701,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 #pragma mark parameters
 //
 
-int MLPluginProcessor::getNumParameters() const
+int MLPluginProcessor::getNumParameters() 
 {
 	return mNumParameters;
 }
@@ -776,7 +784,7 @@ const String MLPluginProcessor::getParameterName (int index)
 	if (!within(index, 0, getNumParameters())) return String();
 	MLSymbol nameSym;
 	const int p = mEngine.getPublishedParams(); 
-
+	
 	if (p == 0) // doc has been scanned but not built
 	{
 		nameSym = MLSymbol("param").withFinalNumber(index);
@@ -785,10 +793,10 @@ const String MLPluginProcessor::getParameterName (int index)
 	{
 		// graph has been built
 		nameSym = mEngine.getParamPtr(index)->getAlias();	
-//debug() << "getParameterName: " << index << " is " << nameSym.getString().c_str() << ".\n";
+		//debug() << "getParameterName: " << index << " is " << nameSym.getString().c_str() << ".\n";
 	}
-
- 	return (String(nameSym.getString().c_str()));
+	
+	return (String(nameSym.getString().c_str()));
 }
 
 const String MLPluginProcessor::symbolToXMLAttr(const MLSymbol sym)
@@ -865,9 +873,9 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 	return mEngine.getParamGroupName(index);
 }
 
-bool MLPluginProcessor::isParameterAutomatable (int idx) const
+bool MLPluginProcessor::isParameterAutomatable (int idx) const 
 {
-	if (!within(idx, 0, getNumParameters())) return false;
+	if (!within(idx, 0, mNumParameters)) return false;
 	return mEngine.getParamPtr(idx)->getAutomatable();
 }
 
