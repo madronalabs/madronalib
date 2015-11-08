@@ -76,13 +76,13 @@ void MLProcDebug::doParams()
 
 void MLProcDebug::process(const int frames)
 {
+	const MLSignal& in = getInput(1);
 	const int intervalSeconds = 1;
 	const int intervalFrames = getContextSampleRate() * intervalSeconds;
 	if (mParamsChanged) doParams();
 	mTemp += frames;
 	if (mTemp > intervalFrames)
 	{
-		const MLSignal& in = getInput(1);
 		debug() << std::setw(6);
 		debug() << std::setprecision(2);
 		debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << frames << " = " << std::setprecision(4) << in[0] ;
@@ -111,27 +111,26 @@ void MLProcDebug::process(const int frames)
 			}
 			debug() << "]\n\n";
 		}
-		
+	}
 #if SEND_OSC		
-		uint64_t ntpTime = mClock.now();
-		
-		// send proc name as address
-		std::string address = std::string("/signal/") + getName().getString();
-		
-		// get Blob with signal 
-		// TODO buffer
-
+	uint64_t ntpTime = mClock.now();
 	
-		mOSCSender.getStream() << osc::BeginBundle(ntpTime)
-		<< osc::BeginMessage( address.c_str() ) 
-		<< in
-		<< osc::EndMessage
-		<< osc::EndBundle;
+	// send proc name as address
+	std::string address = std::string("/signal/") + getName().getString();
+	
+	// get Blob with signal 
+	// TODO buffer
 
-		mOSCSender.sendDataToSocket();	
+	mOSCSender.getStream() << osc::BeginBundle(ntpTime)
+	<< osc::BeginMessage( address.c_str() ) 
+	<< in
+	<< osc::EndMessage
+	<< osc::EndBundle;
+
+	mOSCSender.sendDataToSocket();	
 #endif
 		
-	}
+	
 }
 
 
