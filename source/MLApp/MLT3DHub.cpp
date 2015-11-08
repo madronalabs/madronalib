@@ -202,7 +202,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 			notifyListeners("volume", v);
 		}
 		
-		// seq message for supporting sequencer pattern changes -- MLTEST
+		// seq message for supporting sequencer pattern changes
 		else if (strcmp(addy, "/seq")==0)
 		{
 			MLSignal sequence;

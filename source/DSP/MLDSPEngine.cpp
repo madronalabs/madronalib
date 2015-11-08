@@ -45,13 +45,6 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	mpHostPhasorProc = 0;
 	clear();
 	
-	// MLTEST
-	// inputs are ins of rootproc?
-	if (makeSignalInputs) // TODO for effects
-	{
-		
-	}
-	
 	// TODO refactor - paths to proccs are plugin-specific
 	if (makeMidiInput)
  	{

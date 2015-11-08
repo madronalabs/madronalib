@@ -1582,7 +1582,7 @@ MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const
 	const int i = (int)mPublishedParams.size();
 	p = MLPublishedParamPtr(new MLPublishedParam(procPath, param, alias, type, (int)i));
 	mPublishedParams.push_back(p);
-	// debug() << "\nMLProcContainer::publishParam: pushed back " << p->getType() << " param idx " << i << "\n";
+	// debug() << "\nMLProcContainer::publishParam: pushed back " << p->getType() << " param idx " << i << "\n"; /
 	mPublishedParamMap[alias] = p; 
 	return p;
 }

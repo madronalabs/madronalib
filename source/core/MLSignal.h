@@ -61,7 +61,7 @@ typedef enum
 // This allows optimizations to take place downstream, and does not require 
 // conditionals in loops to read the signal.
 
-class MLSignal 
+class MLSignal final
 {	
 public:
 	MLSignal();	
@@ -84,8 +84,6 @@ public:
 	{	
 		return mDataAligned;
 	}
-	
-	// TODO make a range accessor so we can write code like for(sample x : mySignal)
 	
 	// 1-D access methods
 	//

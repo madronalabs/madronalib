@@ -155,10 +155,6 @@ void MLFileCollection::buildIndex()
 {	
 	mFilesByIndex.clear();
 
-	// MLTEST
-	MLResourceMap<std::string, MLFile>::const_iterator beginIter = mRoot.begin();
-	MLResourceMap<std::string, MLFile>::const_iterator endIter = mRoot.end();
-
 	for (auto it = mRoot.begin(); it != mRoot.end(); ++it)
 	{
 		if(it.nodeHasValue())

@@ -58,7 +58,7 @@ namespace
 	MLProcRegistryEntry<MLProcRate> classReg("rate");
 	//	ML_UNUSED MLProcParam<MLProcRate> params[1] = { "frequency" }; // sync mode?
 	ML_UNUSED MLProcInput<MLProcRate> inputs[] = {"in", "ratio"}; 
-	ML_UNUSED MLProcOutput<MLProcRate> outputs[] = {"out"};
+	ML_UNUSED MLProcOutput<MLProcRate> outputs[] = {"out", "thru"};
 }	
 
 // ----------------------------------------------------------------
@@ -110,7 +110,12 @@ void MLProcRate::process(const int samples)
 	
 	const MLSignal& x = getInput(1);
 	const MLSignal& ratio = getInput(2);
-	MLSignal& y = getOutput();
+	MLSignal& y = getOutput(1);
+	MLSignal& thru = getOutput(2);
+	
+	// temp passthru
+	thru = y;
+	
 	float fratio;
 	//float isr = getContextInvSampleRate();
 	int maxRatio = 8;
