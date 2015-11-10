@@ -26,7 +26,7 @@ MLSignal::MLSignal() :
 	mCopyAligned(0)
 {
 	mRate = kMLToBeCalculated;
-	setDims(kMLProcessChunkSize); // TODO rewrite everything to allocate explictly
+	setDims(0);
 }
 
 MLSignal::MLSignal (int width, int height, int depth) : 
