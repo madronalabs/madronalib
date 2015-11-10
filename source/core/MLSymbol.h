@@ -153,7 +153,7 @@ public:
 		return (mID != b.mID);
 	}	
 	
-	inline operator bool() const { return mID != 0; }
+	explicit operator bool() const { return mID != 0; }
 	inline int getID() const { return mID; }
 	
 	// in order to show the strings in XCode's debugger, instead of the unhelpful mID,
