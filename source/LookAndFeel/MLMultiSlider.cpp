@@ -49,7 +49,7 @@ void MLMultiSlider::setNumSliders(int n)
 	resized();
 }
 
-int MLMultiSlider::getNumSliders()
+int MLMultiSlider::getNumSliders() const
 {
 	return mNumSliders;
 }
@@ -88,7 +88,7 @@ const MLRect MLMultiSlider::getActiveRect() const
 {
 	int w = getWidth() - kMLShadowThickness*2;
 	int h = getHeight() - kMLShadowThickness*2;
-	const int dials = getSignalProperty("value").getWidth();
+	const int dials = getNumSliders();
 	w = getSliderWidth() * dials;
 	int x = kMLShadowThickness;
 	int y = kMLShadowThickness;
@@ -98,7 +98,7 @@ const MLRect MLMultiSlider::getActiveRect() const
 int MLMultiSlider::getSliderWidth() const
 {
 	int w = getWidth() - 16;
-	const int dials = getSignalProperty("value").getWidth();
+	const int dials = getNumSliders();
 	const int sw = dials ? (w / dials) : 1;
 	return sw;
 }
@@ -204,7 +204,7 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 	
 	int mx = clamp(e.x, (int)r.left() + 1, (int)(r.left() + w));
 	int my = clamp(e.y, (int)r.top() + 1, (int)(r.top() + h));
-	int dials = getSignalProperty("value").getWidth();
+	int dials = getNumSliders();
 	int s = getSliderUnderPoint(Vec2(mx, my));
 	
     if (isEnabled())

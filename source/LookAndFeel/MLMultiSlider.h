@@ -33,7 +33,7 @@ public:
     };
 
 	void setNumSliders(int n);
-	int getNumSliders();
+	int getNumSliders() const;
 	void setRange(float a, float b, float c);	
 
 	void setFillColor(const Colour& c);
