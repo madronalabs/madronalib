@@ -91,18 +91,6 @@ MLRatio& MLRatio::operator= (const MLRatio& b)
 	bottom = b.bottom;
 	return *this;
 }
-
-float MLRatio::getFloat() const
-{ 
-	if (bottom == 0)
-	{
-		return 0.f;
-	}
-	else
-	{
-		return (float)top / (float)bottom; 
-	}
-}
 	
 MLRatio operator* (const MLRatio& a, const MLRatio& b)
 {

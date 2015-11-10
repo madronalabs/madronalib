@@ -33,7 +33,8 @@ public:
 	MLRatio& operator+= ( const MLRatio& b );
 	MLRatio& operator= ( const MLRatio& b );
 	
-	float getFloat() const;
+	inline float getFloat() const { return (static_cast< float >(top))/(static_cast< float >(bottom)); } 
+	inline explicit operator bool() { return (bottom != 0); }
 
 private:
 	
