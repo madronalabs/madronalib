@@ -264,7 +264,7 @@ void MLDSPEngine::setInputChannels(int c)
 	mInputSignals.clear();
 	for (int i=0; i<mInputChans; i++)
 	{		
-		mInputSignals.push_back(MLSignalPtr(new MLSignal())); 
+		mInputSignals.push_back(MLSignalPtr(new MLSignal(kMLProcessChunkSize))); 
 		mInputBuffers.push_back(MLRingBufferPtr(new MLRingBuffer()));
 	}
 }

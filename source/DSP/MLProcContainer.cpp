@@ -2150,7 +2150,7 @@ MLSignal* MLProcContainer::allocBuffer()
 		}
 	}
 
-	r = new MLSignal();
+	r = new MLSignal(kMLProcessChunkSize);
 	r->setRate(getSampleRate());
 	mBufferPool.push_back(MLSignalPtr(r));
 	return r;
