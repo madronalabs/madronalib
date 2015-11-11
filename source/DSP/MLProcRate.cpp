@@ -21,33 +21,15 @@ public:
 	
 private:
 	MLProcInfo<MLProcRate> mInfo;
-	void doParams(void);
 	
-	// coeffs
-	MLSample mRate;
-	
-	// phasor on 0 - (1/ratio), changes at rate of input phasor
+	// phasor on [0 - 1], changes at rate of input phasor
 	float mOmega;
 	
-	// x in previous vector
-	MLSample mxv;
-	
-	float mRatio1;
-	float mCorrectedRatio;
-	float mFilteredRatio;
-	
-	float mPhaseDiff;
-	
-	MLBiquad mDxFilter;
-	MLBiquad mPhaseFilter;
-	MLBiquad mRatioFilter;
-	int mDoCorrect1;
-	
-	
-	// temp
-	float mpx, mpy;
-	
-	int mTest;
+	MLSample mx1;	
+	float mFloatRatio;
+	MLRatio mCorrectedRatio;
+	float mRatioNumerator;
+	float mRatioNumeratorInv;
 };
 
 // ----------------------------------------------------------------
@@ -56,7 +38,6 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcRate> classReg("rate");
-	//	ML_UNUSED MLProcParam<MLProcRate> params[1] = { "frequency" }; // sync mode?
 	ML_UNUSED MLProcInput<MLProcRate> inputs[] = {"in", "ratio"}; 
 	ML_UNUSED MLProcOutput<MLProcRate> outputs[] = {"out", "thru"};
 }	
@@ -64,16 +45,12 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-
 MLProcRate::MLProcRate() :
-mRate(1.),
-mOmega(0),
-mxv(0),
-mRatio1(1.f),
-mCorrectedRatio(1.f),
-mFilteredRatio(1.f),
-mDoCorrect1(false),
-mTest(0)
+	mOmega(0),
+	mFloatRatio(1.f),
+	mCorrectedRatio(0.f, 0.f),
+	mRatioNumerator(1.f),
+	mRatioNumeratorInv(1.f)
 {
 }
 
@@ -83,245 +60,118 @@ MLProcRate::~MLProcRate()
 
 void MLProcRate::clear()
 {
-	mxv = 0.;
-
 	mOmega = 0.;
-	
-	mDxFilter.clear();
-	mPhaseFilter.clear();
-	mRatioFilter.clear();
 }
 
-void MLProcRate::doParams()
+// if the input is near a low ratio, return the ratio, else return the input unchanged.	
+inline MLRatio correctRatio(float rIn)
 {
-	float sr = getContextSampleRate();
-	mDxFilter.setSampleRate(sr);
-	mDxFilter.setOnePole(100.);
-	mPhaseFilter.setSampleRate(sr);
-	mPhaseFilter.setOnePole(10.);
-	mRatioFilter.setSampleRate(sr);
-	mRatioFilter.setOnePole(100.);
-	mParamsChanged = false;
+	const int kMaxRatio = 8;
+	MLRatio r(0, 0);
+	for(int a=1; a<=kMaxRatio; ++a)
+	{
+		for(int b=1; b<=4; ++b)
+		{
+			if (fabs(rIn - ((float)a/(float)b)) < 0.001f)
+			{
+				return MLRatio(a, b);	
+			}
+		}
+	}
+	return r;
 }
 
 void MLProcRate::process(const int samples)
 {	
-	if(mParamsChanged) doParams();
-	
 	const MLSignal& x = getInput(1);
-	const MLSignal& ratio = getInput(2);
+	const MLSignal& ratioSig = getInput(2);
 	MLSignal& y = getOutput(1);
 	MLSignal& thru = getOutput(2);
+	const float isr = getContextInvSampleRate();
+	const float kFeedback = isr*10.f; 
 	
-	// temp passthru
-	thru = y;
-	
-	float fratio;
-	//float isr = getContextInvSampleRate();
-	int maxRatio = 8;
+	// debug passthru
+	thru = x;
 	
 	// allow ratio change once per buffer
-	fratio = ratio[samples - 1];
-	if (fratio != mRatio1)
-	{		
-		mCorrectedRatio = fratio;	
-		
-		// correct ratio value		
-		bool done = false;
-		float rational;
-		for(int a=1; a<=maxRatio && !done; ++a)
-		{
-			for(int b=1; b<=4 && !done; ++b)
-			{
-				rational = (float)a/(float)b;
-				if (fabs(fratio - rational) < 0.001f)
-				{
-					mCorrectedRatio = rational;
-					done = true;	
-				}
-			}
-		}
-		
-		// set a start seek ratio not quite the target ratio
-		// in order to find a lock.
-		mRatioFilter.setState(mCorrectedRatio);//*0.9f + mRatio1*0.1f);
-		mRatio1 = fratio;
+	float rIn = ratioSig[samples - 1];
+	if (rIn != mFloatRatio)
+	{	
+		mCorrectedRatio = correctRatio(rIn);
+		mFloatRatio = rIn;
+		mRatioNumerator = mCorrectedRatio.top;			
+		mRatioNumeratorInv = 1.0f/mRatioNumerator;
 	}
-	
-	float invRatio = 1.f/mCorrectedRatio;
-	
-	// get distance from 0 phase within which correction will happen
-	//float correctThresh = 1.f / 8.f;//(mCorrectedRatio*4.f); 
-	
-	// get dx per vector
-	float finalX = x[samples - 1];
-	float dx = finalX - mxv;		
-	mxv = finalX;	
-	if(dx < 0.f)
+		
+	// if input phasor is off, reset and return.
+	if(x[0] < 0.f) 
 	{
-		dx += 1.f;
-	}
-	
-	float dxdt = dx / (float)samples;
-	
-	if(finalX < 0.f) // input phasor off or just starting 
-	{
-		if(mOmega > 0.f)
-		{
-			debug() << "STOP: x : " << finalX << " omega: " << mOmega << " \n";
-			x.dump(std::cout, true);
-		}
-		//mDxFilter.setState(0.f);
-		for (int n=0; n<samples; ++n)
-		{
-			y[n] = -0.001f;
-		}
-		mPhaseDiff = 0.f;
-		mxv = 0.f;
 		mOmega = 0.f;
+		y.fill(-0.0001f);
+		return;
 	}
-	else 
+	
+	if(mCorrectedRatio)
 	{
-		//dxdt = dx / (float)samples;
-
-		//dxdt = mDxFilter.processSample(dx / (float)samples);
-		
-		//debug() << "dxdt: " << dxdt  << " x: " << finalX << "\n";		
-		
-		bool doCorrect = false;
-		float dydt = dxdt;
-		
+		// correct.
+		float r = mCorrectedRatio.getFloat();
+		float error;
 		for (int n=0; n<samples; ++n)
 		{
 			float px = x[n];
-			float py = mOmega;
-			
-			mpx = px; mpy = py;
-			
-			// min phase distance from x to 0
-			//float dx0 = min(px, (1.f - px));
-			//float dy0 = min(py, (1.f - py));
-			
-			//float thresh = min(0.5f, invRatio);
-			doCorrect = true;//(px < correctThresh) && (py < correctThresh );
-			
-			//keep track of wraps, always correct.
-			
-			float dxy = 0.f;
+			float dxdt = px - mx1;
+			mx1 = px;
+			float dydt = max(dxdt*r, 0.f);
 
-			if(doCorrect)
-			{
-				/*
-				if(fabs(pyScaled + 1.0f - px) < fabs(pyScaled - px))
-				{
-					pDiff = pyScaled + 1.0f - px;
-				}
-				else
-				{
-					pDiff = pyScaled - px;
-				}
-				*/
-				
-				
-				// get minimum x->y distance wrapping on (0, 1)
-				float dPlus, dMinus, dPlus2, dMinus2;
-				int direction = 0;
-				if(py > px)
-				{
-					direction = 1;
-					
-					 dPlus = py - px;
-					 dMinus = -((1. - py) + px);
-					
-					if(dPlus < -dMinus)
-					{
-						dxy = dPlus;
-					}
-					else
-					{
-						dxy = dMinus;
-					}
-				}
-				else if(py < px)
-				{
-					direction = -1;
-					
-					 dMinus2 = py - px;
-					 dPlus2 = ((1. - px) + py);
-					
-					if(dPlus2 < -dMinus2)
-					{
-						dxy = dPlus2;
-					}
-					else
-					{
-						dxy = dMinus2;
-					}				
-				}
-				
-				if(fabs(dxy) > 0.5f)
-				{
-					debug() << "dxy too big: " << dxy << "  px:" << px << " py: " << py << " invRatio:" << invRatio << "\n";
-					//this happened y was 1.99 rescale
-				}
-				
-				mPhaseDiff = dxy;// mPhaseFilter.processSample(dxy);				
-				// feedback = mPhaseDiff * 1.f * isr;
-				
-				// TEMP
-				float t = 100.f; 
-				//dydt = (t*dxdt - dxy)/t;
-				
-				// try to intersect x with y in t samples, solve for dydt
-				// px + t*dxdt = py + t*dydt;
-				
-				dydt = (t*dxdt - dxy)/t; 
-				
-			}
-			else
-			{
-				dydt = dxdt;
-			}
+			float dxy = px - mOmega/r;
 			
-			// LPF to final seek ratio				
-			// mFilteredRatio = mFilteredRatio*(1.f-isr) + mSeekRatio*isr;
+			// get modOffset, such that phase difference is 0 at each integer value of modOffset
+			float modOffset = dxy*mRatioNumerator;
 			
-			mFilteredRatio = mRatioFilter.processSample(dydt);
+			// get error term, valid at any phase difference.
+			error = roundf(modOffset) - modOffset;
 			
-//			float dydt = (mFilteredRatio)*mDxDt;
-//			dy -= feedback;
-//			mY1 += clamp(dydt, 0.f, 1.f);
+			// convert back to absolute phase difference
+			error *= mRatioNumeratorInv;
 			
+			// feedback = negative error * time constant
+			dydt -= kFeedback*error;
+			
+			// don't ever run clock backwards.
+			dydt = max(dydt, 0.f);
+			
+			// wrap phasor
 			mOmega += dydt;
-			
-			// wrap dx rate phasor
-			if(mOmega > invRatio)
+			if(mOmega >= 1.0f)
 			{
-				mOmega -= invRatio;
+				mOmega -= 1.0f;
 			}		
 						
-			y[n] = mOmega*mCorrectedRatio;
+			y[n] = mOmega;
+			
+			// temp
+			thru[n] = x[n];
 		}
-		
-// 		debug() << mY1 << " ";
-		// doCorrect = true;
-		
-//		debug() << ".";
-		mTest += samples;
-		if(mTest > 10000)
+	}
+	else
+	{
+		// don't correct, just use float ratio.
+		for (int n=0; n<samples; ++n)
 		{
-		if(doCorrect && (!mDoCorrect1)) debug() << "-------->\n";
-		
-		if(doCorrect) debug() << "    dxy: " << std::setprecision(5) << mPhaseDiff << " x: " << mpx << " y: " << mpy << " dy: " << dydt << " dx: " << dxdt << " invratio: " << invRatio << "\n";
-
-		if(!doCorrect && (mDoCorrect1)) debug() << "<--------\n";	
-			mTest = 0;
-
-			debug() << x[0] << " / " << y[0] / mCorrectedRatio << "\n";
+			float px = x[n];
+			float dxdt = px - mx1;
+			mx1 = px;
+			float dydt = max(dxdt*mFloatRatio, 0.f);
+			
+			// wrap phasor
+			mOmega += dydt;
+			if(mOmega >= 1.0f)
+			{
+				mOmega -= 1.0f;
+			}		
+			
+			y[n] = mOmega;
 		}
-		
-		mDoCorrect1 = doCorrect;
-		
 	}
 }
 
