@@ -4,7 +4,6 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLProc.h"
-#include "MLDSPUtils.h"
 
 // ----------------------------------------------------------------
 // class definition
@@ -22,14 +21,12 @@ public:
 private:
 	MLProcInfo<MLProcRate> mInfo;
 	
-	// phasor on [0 - 1], changes at rate of input phasor
+	// phasor on [0 - 1), changes at rate of input phasor
 	float mOmega;
 	
 	MLSample mx1;	
 	float mFloatRatio;
 	MLRatio mCorrectedRatio;
-	float mRatioNumerator;
-	float mRatioNumeratorInv;
 };
 
 // ----------------------------------------------------------------
@@ -39,7 +36,7 @@ namespace
 {
 	MLProcRegistryEntry<MLProcRate> classReg("rate");
 	ML_UNUSED MLProcInput<MLProcRate> inputs[] = {"in", "ratio"}; 
-	ML_UNUSED MLProcOutput<MLProcRate> outputs[] = {"out", "thru"};
+	ML_UNUSED MLProcOutput<MLProcRate> outputs[] = {"out"};
 }	
 
 // ----------------------------------------------------------------
@@ -48,9 +45,7 @@ namespace
 MLProcRate::MLProcRate() :
 	mOmega(0),
 	mFloatRatio(1.f),
-	mCorrectedRatio(0.f, 0.f),
-	mRatioNumerator(1.f),
-	mRatioNumeratorInv(1.f)
+	mCorrectedRatio(0.f, 0.f)
 {
 }
 
@@ -63,7 +58,7 @@ void MLProcRate::clear()
 	mOmega = 0.;
 }
 
-// if the input is near a low ratio, return the ratio, else return the input unchanged.	
+// if the floating-point input is near a low whole-number ratio, return the ratio, else return the null MLRatio.
 inline MLRatio correctRatio(float rIn)
 {
 	const int kMaxRatio = 8;
@@ -86,12 +81,8 @@ void MLProcRate::process(const int samples)
 	const MLSignal& x = getInput(1);
 	const MLSignal& ratioSig = getInput(2);
 	MLSignal& y = getOutput(1);
-	MLSignal& thru = getOutput(2);
 	const float isr = getContextInvSampleRate();
 	const float kFeedback = isr*10.f; 
-	
-	// debug passthru
-	thru = x;
 	
 	// allow ratio change once per buffer
 	float rIn = ratioSig[samples - 1];
@@ -99,8 +90,6 @@ void MLProcRate::process(const int samples)
 	{	
 		mCorrectedRatio = correctRatio(rIn);
 		mFloatRatio = rIn;
-		mRatioNumerator = mCorrectedRatio.top;			
-		mRatioNumeratorInv = 1.0f/mRatioNumerator;
 	}
 		
 	// if input phasor is off, reset and return.
@@ -113,8 +102,11 @@ void MLProcRate::process(const int samples)
 	
 	if(mCorrectedRatio)
 	{
-		// correct.
+		// run the PLL, correcting the output phasor to the input phasor and ratio.
 		float r = mCorrectedRatio.getFloat();
+		float rInv = 1.0f/r;
+		float numerator = mCorrectedRatio.top;			
+		float numeratorInv = 1.0f/numerator;
 		float error;
 		for (int n=0; n<samples; ++n)
 		{
@@ -122,17 +114,16 @@ void MLProcRate::process(const int samples)
 			float dxdt = px - mx1;
 			mx1 = px;
 			float dydt = max(dxdt*r, 0.f);
-
-			float dxy = px - mOmega/r;
+			float dxy = px - mOmega*rInv;
 			
 			// get modOffset, such that phase difference is 0 at each integer value of modOffset
-			float modOffset = dxy*mRatioNumerator;
+			float modOffset = dxy*numerator;
 			
 			// get error term, valid at any phase difference.
 			error = roundf(modOffset) - modOffset;
 			
 			// convert back to absolute phase difference
-			error *= mRatioNumeratorInv;
+			error *= numeratorInv;
 			
 			// feedback = negative error * time constant
 			dydt -= kFeedback*error;
@@ -148,14 +139,11 @@ void MLProcRate::process(const int samples)
 			}		
 						
 			y[n] = mOmega;
-			
-			// temp
-			thru[n] = x[n];
 		}
 	}
 	else
 	{
-		// don't correct, just use float ratio.
+		// don't correct the phase, just run pasor at float ratio of input rate.
 		for (int n=0; n<samples; ++n)
 		{
 			float px = x[n];
