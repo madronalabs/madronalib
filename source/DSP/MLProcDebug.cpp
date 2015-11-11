@@ -128,6 +128,11 @@ void MLProcDebug::process(const int frames)
 	<< osc::EndBundle;
 
 	mOSCSender.sendDataToSocket();	
+	
+	
+	
+	
+//	debug() << address << " : " << in.getWidth() << " frames \n";
 #endif
 		
 	

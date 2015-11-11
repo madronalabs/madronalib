@@ -39,7 +39,7 @@ public:
 	~MLPath();
 	
 	// boolean test.
-	operator bool() const { return !empty(); }
+	explicit operator bool() const { return !empty(); }
 	bool empty() const;
 	int length() const;
 	void addSymbol(MLSymbol sym);

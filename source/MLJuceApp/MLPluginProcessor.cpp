@@ -1584,7 +1584,7 @@ bool MLPluginProcessor::isOutputChannelStereoPair (int ) const
 
 double MLPluginProcessor::getTailLengthSeconds() const
 {
-	return 1.f;
+	return 0.f;
 }
 
 bool MLPluginProcessor::acceptsMidi() const
