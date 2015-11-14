@@ -118,6 +118,7 @@ private:
 	MLParamValue mInterval;
 	MLParamValue mZeroThreshold;
 	MLParamValue mDefault;
+	bool mFlip;
 
 	bool mAutomatable;
 	JucePluginParamUnit mUnit;

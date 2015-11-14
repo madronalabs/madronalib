@@ -11,7 +11,8 @@
 MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
 	mPublishedAlias(alias),
 	mIndex(idx),
-	mAutomatable(true)
+	mAutomatable(true),
+	mFlip(false)
 {
 	setRange(0.f, 1.f, 0.01f, false, 0.f);
 	mUnit = kJucePluginParam_Generic;
@@ -44,6 +45,7 @@ void MLPublishedParam::setRange(MLParamValue low, MLParamValue high, MLParamValu
 	mRangeHi = high; 
 	mInterval = v; 
 	mZeroThreshold = zt;
+	mFlip = (low > high);
 	
 	// TODO take warp mode as arg
 	if (log)
@@ -164,18 +166,23 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			}
 			break;
 	}
+	if(mFlip)
+	{
+		p = 1.0f - p;
+	}
 	
 	//debug() << "val = " << val << " -> prop = " << p << "\n";
 	return p;
 }
 
-MLParamValue MLPublishedParam::setValueAsLinearProportion (MLParamValue p)
+MLParamValue MLPublishedParam::setValueAsLinearProportion (MLParamValue pIn)
 {
 	MLParamValue lo = getRangeLo();
 	MLParamValue hi = getRangeHi();
 	MLParamValue val = 0.f;
 	MLParamValue pBipolar, valExp;
 
+	float p = mFlip ? (1.0f - pIn) : pIn;
 	switch (mWarpMode)
 	{
 		case kJucePluginParam_Linear:
