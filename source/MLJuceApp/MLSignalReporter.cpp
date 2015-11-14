@@ -10,6 +10,7 @@ MLSignalReporter::MLSignalReporter(MLPluginProcessor* p) :
     mViewIndex(0),
 	mNeedsRedraw(true)
 {
+	
 }
 
 MLSignalReporter::~MLSignalReporter()
@@ -76,7 +77,7 @@ bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToComp
             float fb = b(i, j);
             float df = fa - fb;
             totalDiff += df*df;
-            if(totalDiff > 0.01f)
+            if(totalDiff > 0.001f)
             {
                 result = true;
 				goto bail;
