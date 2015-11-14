@@ -380,8 +380,6 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			debug() << "MLPluginProcessor: prepareToPlay error: \n";
 		}
 		
-		// mEngine.dump();
-			
 		// after prepare to play, set state from saved blob if one exists
 		const unsigned blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
@@ -406,6 +404,8 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		}		
 		
 		mEngine.setEnabled(prepareErr == MLProc::OK);
+		
+		// mEngine.dump();		
 	}
 }
 

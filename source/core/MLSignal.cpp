@@ -18,7 +18,7 @@ const MLSample kMLSignalEndSamples[4] =
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
-// no length argument: construct a 1-D Signal of default size and zero it.
+// no length argument: make a null object.
 MLSignal::MLSignal() : 
 	mData(0),
 	mDataAligned(0),

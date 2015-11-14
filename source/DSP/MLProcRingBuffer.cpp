@@ -91,8 +91,6 @@ void MLProcRingBuffer::process(const int frames)
 		{
 			written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)x.getConstBuffer(), frames );	
 		}
-				
-//	debug() << "wrote " << written << " from " << (void *)x.getConstBuffer() << "\n"; 
 	}
 }
 
@@ -144,34 +142,13 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int samples, int row)
 		break;		
 
 		case eMLRingBufferMostRecent:			
-			if (available > samples)
-			{
-				// TODO modify pa ringbuffer instead of reading to trash buffer. 
-				lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, trashBuffer, available - samples );  
-				// skipped += lastRead;
-			}			
+			// TODO modify pa ringbuffer instead of reading to trash buffer. 
+			lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, trashBuffer, available - samples );  
+			// skipped += lastRead;		
 		break;
 	}
 	
     lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, outBuffer, samples );
-
-	// DEBUG
-	/*
-	const MLSymbol& myName = getName();
-	if (!myName.compare("body_position_x_out"))
-	{
-		available = PaUtil_GetRingBufferReadAvailable( &mBuf );
-		if ((skipped == 0) && (lastRead == 0))
-		{
-			debug() << "-";
-		}
-		else
-		{
-	debug() << getName() << " requested " << samples << " read " << lastRead << ", skipped " << skipped << ", avail. " << available << "\n";
-		}
-	}
-	*/
-
 	return lastRead;
 }
 
