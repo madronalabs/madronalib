@@ -147,9 +147,10 @@ public:
 				JucePluginParamWarpMode warpMode = kJucePluginParam_Linear);
 
 	void setDefault (const float newDefault);
-    float getMaximum() const throw()                                       { return maximum; }
-    float getMinimum() const throw()                                       { return minimum; }
-    float getInterval() const throw()                                      { return interval; }
+	
+    float getTopValue() const throw() { return mTopValue; }
+    float getBottomValue() const throw() { return mBottomValue; }
+    float getInterval() const throw() { return interval; }
 
 	void setDoubleClickReturnValue (const bool isDoubleClickEnabled,
                                     const float valueToSetOnDoubleClick) throw();
@@ -256,7 +257,8 @@ protected:
 	WhichDial dialToDrag;
 	bool mGestureInProgress;
 	
-    float minimum, maximum, interval, doubleClickReturnValue;
+	float mBottomValue, mTopValue;
+	float interval, doubleClickReturnValue;
     float valueWhenLastDragged, valueOnMouseDown;
     float rotaryStart, rotaryEnd;
     int numDecimalPlaces;
@@ -264,11 +266,18 @@ protected:
 	bool isMouseDown;
 	bool isMouseWheelMoving;
 	
+	// geometry and behavior
+	JucePluginParamWarpMode mWarpMode;
+	bool			mFlip;
+	float			mZeroThreshold;
+	bool			mTopLeft;
+	bool			mDrawThumb;
+		
 	Time mLastDragTime, mLastWheelTime;
 	int mLastDragX, mLastDragY;
 	float mFilteredMouseSpeed;
 	int mMouseMotionAccum;
-	int mMouseSubValueAccum;
+	int mFineTicksAccum;
 
     int pixelsForFullDragExtent;
     MLDial::DialStyle style;
@@ -288,12 +297,6 @@ protected:
 	Colour			mTrackFillColor;
 	Colour			mTrackDarkColor;
 	Colour			mHilightColor;
-	
-	// geometry and behavior
-	JucePluginParamWarpMode mWarpMode;
-	float			mZeroThreshold;
-	bool			mTopLeft;
-	bool			mDrawThumb;
 	
 	bool mDoSign;
 	bool mDoNumber;

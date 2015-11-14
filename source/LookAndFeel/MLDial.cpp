@@ -26,7 +26,7 @@ MLDial::MLDial () :
 	dialToDrag (kNoDial),
 	mGestureInProgress(false),
 
-    minimum (0), maximum (1), interval (0), doubleClickReturnValue(0.0),
+    mBottomValue (0), mTopValue (1), interval (0), doubleClickReturnValue(0.0),
 	valueWhenLastDragged(0), valueOnMouseDown(0),
     numDecimalPlaces (7),
  	mOverTrack(false),
@@ -37,7 +37,7 @@ MLDial::MLDial () :
 	mLastDragX(0), mLastDragY(0),
 	mFilteredMouseSpeed(0.),
 	mMouseMotionAccum(0),
-	mMouseSubValueAccum(0),
+	mFineTicksAccum(0),
 	//
 	pixelsForFullDragExtent (250),
     style (MLDial::LinearHorizontal),
@@ -159,11 +159,6 @@ void MLDial::setRotaryParameters (const float startAngleRadians,
                                   const float endAngleRadians,
                                   const bool stopAtEnd)
 {
-    // make sure the values are sensible..
-//    jassert (startAngleRadians >= 0 && endAngleRadians >= 0);
-//    jassert (startAngleRadians < float_Pi * 4.0f && rotaryEnd < float_Pi * 4.0f);
-//    jassert (startAngleRadians < rotaryEnd);
-
 	float start = startAngleRadians;
 	float end = endAngleRadians;
 
@@ -175,7 +170,7 @@ void MLDial::setRotaryParameters (const float startAngleRadians,
 	{
 		end += 2*kMLPi;
 	}
-
+	
     rotaryStart = start;
     rotaryEnd = end;
     rotaryStop = stopAtEnd;
@@ -227,18 +222,13 @@ void MLDial::setRange (const float newMin,
                        const float zeroThresh,
 					   JucePluginParamWarpMode warpMode)
 {
-	minimum = newMin;
-	maximum = newMax;
+	mBottomValue = newMin;
+	mTopValue = newMax;
 	interval = newInt;
 	mZeroThreshold = zeroThresh;
 	mWarpMode = warpMode;
-	if (minimum > maximum)
-	{
-		float temp = maximum;
-		maximum = minimum;
-		minimum = temp;
-	}
-
+	mFlip = (mBottomValue > mTopValue);
+	
 	// figure out the number of decimal places needed to display all values at this
 	// interval setting.
 	numDecimalPlaces = 7;
@@ -252,7 +242,7 @@ void MLDial::setRange (const float newMin,
 		}
 	}
 
-	// keep the current values inside the new range..
+	// clip the current values to the new range..
 	if (style != MLDial::TwoValueHorizontal && style != MLDial::TwoValueVertical)
 	{
 		setPropertyImmediate("value", constrainValue(getFloatProperty("value")));
@@ -346,24 +336,10 @@ float MLDial::getValueFromText (const String& text)
 
 float MLDial::proportionOfLengthToValue (float proportion)
 {
-	float min = getMinimum();
-	float max = getMaximum();
+	float min = getBottomValue();
+	float max = getTopValue();
 	float r, rangeExp;
 	float p = proportion;
-	bool flip = false;
-
-	if (min > max)
-	{
-		float temp = max;
-		max = min;
-		min = temp;
-		flip = true;
-	}
-	
-	if (flip)
-	{
-		p = 1. - p;
-	}
 
 	if (mWarpMode == kJucePluginParam_Exp)
 	{
@@ -376,7 +352,7 @@ float MLDial::proportionOfLengthToValue (float proportion)
 	}
 	else
 	{
-		r = minimum + (maximum - minimum) * proportion;
+		r = mBottomValue + (mTopValue - mBottomValue) * p;
 	}
 
 	return r;
@@ -384,19 +360,10 @@ float MLDial::proportionOfLengthToValue (float proportion)
 
 float MLDial::valueToProportionOfLength (float value) const
 {
-	float min = getMinimum();
-	float max = getMaximum();
+	float min = getBottomValue();
+	float max = getTopValue();
 	float x;
-	bool flip = false;
 	
-	if (min > max)
-	{
-		float temp = max;
-		max = min;
-		min = temp;
-		flip = true;
-	}
-    
     if(value > mZeroThreshold)
     {
         if (mWarpMode == kJucePluginParam_Exp)
@@ -406,19 +373,14 @@ float MLDial::valueToProportionOfLength (float value) const
         }
         else
         {
-            x = (value - minimum) / (maximum - minimum);
-        }
-        
-        if (flip)
-        {
-            x = 1. - x;
+            x = (value - mBottomValue) / (mTopValue - mBottomValue);
         }
     }
     else
     {
         x = 0.f;
     }
-
+	
 	return x;
 }
 
@@ -477,45 +439,51 @@ void MLDial::setScrollWheelEnabled (const bool enabled) throw()
 
 float MLDial::constrainValue (float value) const throw()
 {
+	float valueOut = value;
+	float fInt = interval*(mFlip ? -1.f : 1.f);
+	
 	// quantize to chunks of interval
 	int detents = mDetents.size();
-    if ((interval > 0) && (!detents))
+    if (!detents)
 	{
-        value = minimum + interval * floor((value - minimum)/interval + 0.5);
-	}
-	value = clamp(value, minimum, maximum);
-	if (value <= mZeroThreshold)
-	{
-		value = 0.;
+        valueOut = mBottomValue + fInt * floor((valueOut - mBottomValue)/fInt + 0.5f);
 	}
 	
-    return value;
+	if(!mFlip)
+	{
+		valueOut = clamp(value, mBottomValue, mTopValue);
+	}
+	else
+	{
+		valueOut = clamp(value, mTopValue, mBottomValue);
+	}
+	
+	if (valueOut <= mZeroThreshold)
+	{
+		valueOut = 0.;
+	}
+	
+    return valueOut;
 }
 
 float MLDial::getLinearDialPos (const float value)
 {
     float dialPosProportional;
 	float ret = 0.;
-    if (maximum > minimum)
-    {
-        if (value < minimum)
-        {
-            dialPosProportional = 0.0;
-        }
-        else if (value > maximum)
-        {
-            dialPosProportional = 1.0;
-        }
-        else
-        {
-            dialPosProportional = valueToProportionOfLength (value);
-            jassert (dialPosProportional >= 0 && dialPosProportional <= 1.0);
-        }
-    }
-    else
-    {
-        dialPosProportional = 0.5;
-    }
+
+	if (value < mBottomValue)
+	{
+		dialPosProportional = 0.0;
+	}
+	else if (value > mTopValue)
+	{
+		dialPosProportional = 1.0;
+	}
+	else
+	{
+		dialPosProportional = valueToProportionOfLength (value);
+		jassert (dialPosProportional >= 0 && dialPosProportional <= 1.0);
+	}
 
 	float start, extent;
     if (isVertical())
@@ -1205,8 +1173,8 @@ void MLDial::mouseDoubleClick (const MouseEvent&)
 {
     if (doubleClickToValue
          && isEnabled()
-         && minimum <= doubleClickReturnValue
-         && maximum >= doubleClickReturnValue)
+         && mBottomValue <= doubleClickReturnValue
+         && mTopValue >= doubleClickReturnValue)
     {
 		beginGesture();
 		float newValue = constrainValue(doubleClickReturnValue);
@@ -1221,6 +1189,11 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	float val = oldVal;
 	float r = val;
 	int detents = mDetents.size();
+	
+	if(mFlip)
+	{
+		dp = -dp;
+	}
 	if ((val < mZeroThreshold) && (dp > 0))
 	{
 		val = mZeroThreshold;
@@ -1247,54 +1220,53 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
 		d = clamp(d, 0, 3);
 		float minValChange = max(powf(10., -d), interval);		
-
+		
 		// for dials without many possible values, slow down mouse movement
 		// as the inverse proportion to the number of values.
-		int values = max(4, (int)((maximum - minimum)/interval));
+		int ticks;		
+		int values = max(4, (int)(fabs(mTopValue - mBottomValue)/interval));
 		const int valuesThresh = 128;
-		int subValueScale = 1;
-		int subValueMult = 1;
 		if(values < valuesThresh)
+		{			
+			int fineTicksScale = (float)valuesThresh/(float)values;
+			if(doFineAdjust)
+			{
+				fineTicksScale *= 8;
+			}
+			mFineTicksAccum += dp;
+			ticks = mFineTicksAccum/fineTicksScale;
+			mFineTicksAccum -= ticks*fineTicksScale;
+		}
+		else
 		{
-			subValueScale = (float)valuesThresh/(float)values;
-			if(doFineAdjust) subValueScale *= 4;
-			mMouseSubValueAccum += dp;
-			if(abs(mMouseSubValueAccum) > subValueScale)
-			{
-				subValueMult = sign(dp);
-				mMouseSubValueAccum = 0;
-			}
-			else
-			{
-				subValueMult = 0;
-			}
+			ticks = dp;
 		}
 		
-		if(subValueMult != 0)
+		if(ticks != 0)
 		{
 			if(doFineAdjust)
 			{
 				// get minimum visible change as change in position
-				float p2 = valueToProportionOfLength (val + minValChange*(dp));
+				float p2 = valueToProportionOfLength (val + minValChange*ticks);
 				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
 			}
 			else 
 			{
 				// move dial 1/100 of length range * drag distance
 				float p1 = valueToProportionOfLength (val);
-				float p2 = p1 + dp*0.01f;
+				float p2 = p1 + ticks*0.01f;
 				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
 				
 				// if this motion is too small to change the displayed value, 
 				// do the smallest visible change instead
-				if(dp > 0)
+				if(ticks > 0)
 				{
 					if (r < val + minValChange)
 					{
 						r = val + minValChange;
 					}
 				}
-				else if(dp < 0)
+				else if(ticks < 0)
 				{
 					if (r > val - minValChange)
 					{
@@ -1334,8 +1306,8 @@ void MLDial::mouseDrag (const MouseEvent& e)
 		if ((e.mods.isCommandDown()) && doubleClickToValue)
 		{
 			if ( isEnabled()
-				 && minimum <= doubleClickReturnValue
-				 && maximum >= doubleClickReturnValue)
+				 && mBottomValue <= doubleClickReturnValue
+				 && mTopValue >= doubleClickReturnValue)
 			{
 				setPropertyImmediate ("value", doubleClickReturnValue);
 			}
@@ -1427,7 +1399,7 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
 
     if (scrollWheelEnabled && isEnabled())
     {
-        if (maximum > minimum && ! isMouseButtonDownAnywhere())
+        if (!isMouseButtonDownAnywhere())
         {
 			float dpf;
 			if (isHorizontal())
