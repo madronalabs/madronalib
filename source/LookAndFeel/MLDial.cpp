@@ -1194,6 +1194,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	{
 		dp = -dp;
 	}
+	
 	if ((val < mZeroThreshold) && (dp > 0))
 	{
 		val = mZeroThreshold;
@@ -1213,7 +1214,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 			mCurrentDetent = clamp(mCurrentDetent, 0, detents - 1);
 			r = mDetents[mCurrentDetent].mValue;
 		}
-	}
+	} 
 	else 
 	{
 		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
@@ -1253,8 +1254,10 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 			else 
 			{
 				// move dial 1/100 of length range * drag distance
+				float kTickDistance = 0.01f;
+				if(mFlip) kTickDistance *= -1.f;
 				float p1 = valueToProportionOfLength (val);
-				float p2 = p1 + ticks*0.01f;
+				float p2 = p1 + ticks*kTickDistance;
 				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
 				
 				// if this motion is too small to change the displayed value, 
