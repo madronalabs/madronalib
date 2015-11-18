@@ -60,7 +60,7 @@ void MLProcRMS::calcCoeffs(void)
 	mFilter.setSampleRate(sr);
 	mFilter.setOnePole(hz);
 	
-	snapshotSamples = sr / 60;
+	//snapshotSamples = sr / 60;
 	
 	mParamsChanged = false;
 }

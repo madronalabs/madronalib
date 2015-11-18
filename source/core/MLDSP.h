@@ -214,8 +214,15 @@ float inMinusPiToPi(float theta);
 
 // amp <-> dB conversions, where ratio of the given amplitude is to 1.
 
-float ampTodB(float a);
-float dBToAmp(float d);
+inline float ampTodB(float a)
+{
+	return 20.f * log10f(a);
+}	
+
+inline float dBToAmp(float dB)
+{
+	return powf(10.f, dB/20.f);
+}	
 
 #pragma mark smoothstep
 
@@ -242,7 +249,7 @@ inline float fcos1(const float x)
 }
 
 // ----------------------------------------------------------------
-#pragma mark fast exp2 and log2 approx
+#pragma mark fast SSE exp2 and log2 approx
 // Courtesy José Fonseca, http://jrfonseca.blogspot.com/2008/09/fast-sse2-pow-tables-or-polynomials.html
 
 #define EXP_POLY_DEGREE 3

@@ -5,7 +5,7 @@
 
 #include "MLPluginController.h"
 
-const int kControllerTimerRate = 42;
+const int kControllerTimerRate = 33;
 
 MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	MLWidget::Listener(),

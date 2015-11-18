@@ -74,11 +74,16 @@ public:
         y1 = 0.f;
     }
 	void setSampleRate(float sr) { mInvSr = 1.f / sr; }
-    void setCutoffs(float fa, float fb)
-    {
-        ka = clamp(kMLTwoPi*fa*mInvSr, 0.f, 0.25f);
-        kb = clamp(kMLTwoPi*fb*mInvSr, 0.f, 0.25f);
-    }
+	void setCutoffs(float fa, float fb)
+	{
+		ka = clamp(kMLTwoPi*fa*mInvSr, 0.f, 0.25f);
+		kb = clamp(kMLTwoPi*fb*mInvSr, 0.f, 0.25f);
+	}
+	void setAttackAndReleaseTimes(float tAttack, float tRelease)
+	{
+		ka = clamp(kMLTwoPi*(1.0f/tAttack)*mInvSr, 0.f, 0.25f);
+		kb = clamp(kMLTwoPi*(1.0f/tRelease)*mInvSr, 0.f, 0.25f);
+	}
     inline MLSample processSample(float x)
     {
         float dxdt = x - y1;
@@ -93,7 +98,6 @@ public:
 	float y1;
 	float mInvSr;
 };
-
 
 // ----------------------------------------------------------------
 #pragma mark MLSineOsc

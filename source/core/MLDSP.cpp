@@ -131,13 +131,3 @@ void MLRandReset(void)
 
 const MLRange UnityRange = MLRange(0.f, 1.f);
 
-float ampTodB(float a)
-{
-	return 20.f * log10f(a);
-}	
-
-float dBToAmp(float d)
-{
-	return powf(10.f, d/20.f);
-}	
-

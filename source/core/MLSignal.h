@@ -304,6 +304,7 @@ public:
 	void sigLerp(const MLSignal& b, const MLSignal& mix);
 
 	// binary operators on Signals  TODO rewrite standard
+	// TODO should be explicit to prevent e.g. multiply by MLSignal(2) when scale(2) was meant
 	bool operator==(const MLSignal& b) const;
 	bool operator!=(const MLSignal& b) const { return !(operator==(b)); }
 	void copy(const MLSignal& b);
