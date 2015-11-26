@@ -23,9 +23,11 @@ private:
 	MLProcInfo<MLProcEnvelopeFollow> mInfo;
 	void calcCoeffs(void);
 	
-	float mThresh;
+	float mThreshUpper, mThreshLower;
 
-	MLBiquad mEnvFilter;
+	MLAsymmetricOnepole mTrigFilter;
+	MLAsymmetricOnepole mEnvFilter;
+	bool mTrig;
 };
 
 // ----------------------------------------------------------------
@@ -45,6 +47,8 @@ namespace{
 
 MLProcEnvelopeFollow::MLProcEnvelopeFollow()
 {
+	setParam("thresh", -12);
+	clear();
 }
 
 MLProcEnvelopeFollow::~MLProcEnvelopeFollow()
@@ -53,7 +57,7 @@ MLProcEnvelopeFollow::~MLProcEnvelopeFollow()
 
 void MLProcEnvelopeFollow::clear()
 {
-	mThresh = 0.001f;
+	mTrig = false;
 }
 
 // generate envelope output based on gate and control signal inputs.
@@ -66,23 +70,42 @@ void MLProcEnvelopeFollow::process(const int samples)
 	
 	if (mParamsChanged)
 	{
-		static MLSymbol threshSym("thresh");
-		mThresh = getParam(threshSym);
+		const float kLogHysteresis = 18.f;
+		float logThresh = getParam("thresh");
+		mThreshUpper = dBToAmp(logThresh);
+		mThreshLower = dBToAmp(logThresh - kLogHysteresis);
 		int sr = getContextSampleRate();
+		mTrigFilter.setSampleRate(sr);
+		mTrigFilter.setAttackAndReleaseTimes(0.001f, 0.005f);
 		mEnvFilter.setSampleRate(sr);
-		mEnvFilter.setLopass(20.f, 0.707f);
+		mEnvFilter.setAttackAndReleaseTimes(0.01f, 0.5f);
 		mParamsChanged = false;
 	}
 	
 	for (int n=0; n<samples; ++n)
 	{
-		// test
-		float y = in[n];
-		trig[n] = static_cast<float>(y > mThresh);
+		float y = fabs(in[n]);
+		float yf = mTrigFilter.processSample(y);
+		
+		if(mTrig)
+		{
+			if(yf < mThreshLower)
+			{
+				mTrig = false;
+			}
+		}
+		else
+		{
+			if(yf > mThreshUpper)
+			{
+				mTrig = true;
+			}
+		}
+		trig[n] = (mTrig) ? 1.0f : 0.f;
 		
 		// test
 		// use asym filter, vactrol
-		env[n] = sqrtf(mEnvFilter.processSample(y*y));
+		env[n] = (mEnvFilter.processSample(y));
 	}
 	
 	/*
@@ -96,8 +119,6 @@ void MLProcEnvelopeFollow::process(const int samples)
 	 }
 	 */
 }
-
-// TODO envelope sometimes sticks on for very fast gate transients.  Rewrite this thing!
 
 
 

@@ -50,13 +50,24 @@ int MLRingBuffer::write(const MLSample* pSrc, int samples)
 	}
 	return r;
 }
-		
+
 int MLRingBuffer::read(MLSample* pDest, int samples)
 {
 	int r = 0;
 	if (pData)
 	{
 		r = PaUtil_ReadRingBuffer( &mBuf, pDest, samples );
+	}
+	return r;
+}
+
+// TODO nicer abstraction for this
+int MLRingBuffer::readWithOverlap(MLSample* pDest, int samples, int overlap)
+{
+	int r = 0;
+	if (pData)
+	{
+		r = PaUtil_ReadRingBufferWithOverlap( &mBuf, pDest, samples, overlap );
 	}
 	return r;
 }

@@ -298,7 +298,7 @@ float MLScale::noteToPitch(float note) const
 float MLScale::noteToPitch(int note) const
 {
 	int n = clamp(note, 0, kMLNumScaleNotes - 1);
-	return mRatios[n] * (mKeyMap.mTonicFreq/440.0f);
+	return mRatios[n] * (mKeyMap.mTonicFreq/440.0f); 
 }
 
 float MLScale::noteToLogPitch(float note) const

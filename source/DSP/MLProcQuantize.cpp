@@ -4,10 +4,10 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLProc.h"
+#include "MLScale.h"
 
 // ----------------------------------------------------------------
 // class definition
-
 
 class MLProcQuantize : public MLProc
 {
@@ -20,8 +20,12 @@ public:
 
 private:
 	MLProcInfo<MLProcQuantize> mInfo;
+	
+	void doParams();
+	
+	MLScale mScale;
+	std::string mScaleName;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -29,52 +33,53 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcQuantize> classReg("quantize");
-	ML_UNUSED MLProcParam<MLProcQuantize> params[1] = { "on" };	
+	ML_UNUSED MLProcParam<MLProcQuantize> params[2] = { "on", "scale" };	
 	ML_UNUSED MLProcInput<MLProcQuantize> inputs[] = { "in" };	
 	ML_UNUSED MLProcOutput<MLProcQuantize> outputs[] = { "out" };
 }
 
-
 // ----------------------------------------------------------------
 // implementation
-
 
 MLProcQuantize::MLProcQuantize()
 {
 	setParam("on", 1);
-//	debug() << "MLProcQuantize constructor\n";
+	mScale.setDefaults();
 }
-
 
 MLProcQuantize::~MLProcQuantize()
 {
-//	debug() << "MLProcQuantize destructor\n";
+}
+
+void MLProcQuantize::doParams()
+{
+	const std::string& scaleName = getStringParam("scale");
+	if(scaleName != mScaleName)
+	{
+		mScale.loadFromRelativePath(scaleName);
+		mScaleName = scaleName;
+	}
+	mParamsChanged = false;
 }
 
 void MLProcQuantize::process(const int frames)
 {
+	if (mParamsChanged) doParams();
+
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
-	int x12;
-	
-	if (getParam("on"))
+
+	if(getParam("on"))
 	{
-		// quantize to 12-ET
-		// TODO load tuning tables
 		for (int n=0; n < frames; ++n)
 		{
-			MLSample in = x[n];
-			x12 = (float)in*12.f;
-			y[n] = (float)x12 / 12.f;
+			// TODO not every sample OK?
+			y[n] = mScale.quantizePitch(x[n]);
 		}
 	}
 	else
 	{
-		for (int n=0; n < frames; ++n)
-		{
-			MLSample in = x[n];
-			y[n] = in;
-		}
+		y = x;
 	}
 }
 

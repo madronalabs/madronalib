@@ -5,6 +5,12 @@
 
 #include "MLProc.h"
 #include "MLDSPUtils.h"
+#include "MLRingBuffer.h"
+
+#include "ffft/FFTRealFixLen.h"
+
+const int kFFTBits = 10;
+const int kFFTSize = 1 << kFFTBits;
 
 // ----------------------------------------------------------------
 // class definition
@@ -16,6 +22,7 @@ public:
 	~MLProcSpectralPeak();
 	
 	void clear();
+	MLProc::err resize();
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
@@ -25,8 +32,15 @@ private:
 	
 	float mThresh;
 	
-	MLBiquad mEnvFilter;
-	MLSineOsc mTestOsc;
+	// 1024-point (2^10) FFT object constructed.
+	ffft::FFTRealFixLen <kFFTBits> mFFT;
+	
+	MLSignal mFFTIn, mFFTOut;
+
+	
+	MLRingBuffer mRingBuffer;
+	
+
 };
 
 // ----------------------------------------------------------------
@@ -35,7 +49,7 @@ private:
 namespace{
 	
 	MLProcRegistryEntry<MLProcSpectralPeak> classReg("spectral_peak");
-	//ML_UNUSED MLProcParam<MLProcSpectralPeak> params[] = {"thresh"};
+	ML_UNUSED MLProcParam<MLProcSpectralPeak> params[] = {"thresh"};
 	ML_UNUSED MLProcInput<MLProcSpectralPeak> inputs[] = {"in"};
 	ML_UNUSED MLProcOutput<MLProcSpectralPeak> outputs[] = {"peak"};
 	
@@ -46,6 +60,9 @@ namespace{
 
 MLProcSpectralPeak::MLProcSpectralPeak()
 {
+	mRingBuffer.resize(kFFTSize);
+	mFFTIn.setDims(kFFTSize);
+	mFFTOut.setDims(kFFTSize);
 }
 
 MLProcSpectralPeak::~MLProcSpectralPeak()
@@ -57,32 +74,48 @@ void MLProcSpectralPeak::clear()
 	mThresh = 0.001f;
 }
 
+MLProc::err MLProcSpectralPeak::resize()
+{
+	debug() << "MLProcSpectralPeak: RESIZED\n";
+	return OK;// MLTEST
+}
+
 // generate envelope output based on gate and control signal inputs.
-void MLProcSpectralPeak::process(const int samples)
+void MLProcSpectralPeak::process(const int frames)
 {	
 	//float invSr = getContextInvSampleRate();
-//	const MLSignal& in = getInput(1);
+	const MLSignal& in = getInput(1);
 	MLSignal& peak = getOutput(1);	
 	
 	if (mParamsChanged)
 	{
-		static MLSymbol threshSym("thresh");
-		mThresh = getParam(threshSym);
-		int sr = getContextSampleRate();
-		mEnvFilter.setSampleRate(sr);
-		mEnvFilter.setLopass(20.f, 0.707f);
-		
-		mTestOsc.setSampleRate(sr);
-		mTestOsc.setFrequency(1.23f);
-		
 		mParamsChanged = false;
 	}
 	
-	for (int n=0; n<samples; ++n)
+	for (int n = 0; n < frames; n++)
 	{
-		// test
-		peak[n] = MLRand();//mTestOsc.processSample();
-	}
+		float fx = in[n];
+		mRingBuffer.write(&fx, 1);
+		
+		if(mRingBuffer.getRemaining() >= kFFTSize)
+		{
+			mRingBuffer.readWithOverlap(mFFTIn.getBuffer(), kFFTSize, kFFTSize/2);
+			
+			const float* px = mFFTIn.getConstBuffer();
+			float* py = mFFTOut.getBuffer();
+			
+			mFFT.do_fft (py, px);     // x (real) --FFT---> y (complex)
+			
+//			debug() << "MLProcSpectralPeak: PROCESSED " << kFFTSize << " samples: \n";
+//			mFFTOut.dump(debug(), true);
+			
+		}
+		
+		peak[n] = MLRand();
+		
+	}	
+	
+//	debug() << "REM: " << mRingBuffer.getRemaining() << "\n";
 	
 	/*
 	 int sr = getContextSampleRate();

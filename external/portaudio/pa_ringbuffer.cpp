@@ -226,22 +226,43 @@ long PaUtil_WriteRingBufferConstant( PaUtilRingBuffer *rbuf, const float val, lo
 }
 
 /***************************************************************************
-** Return elements read. */
+ ** Return elements read. */
 long PaUtil_ReadRingBuffer( PaUtilRingBuffer *rbuf, void *data, long elementCount )
 {
-    long size1, size2, numRead;
-    void *data1, *data2;
-    numRead = PaUtil_GetRingBufferReadRegions( rbuf, elementCount, &data1, &size1, &data2, &size2 );
-    if( size2 > 0 )
-    {
-        memcpy( data, data1, size1*rbuf->elementSizeBytes );
-        data = ((char *)data) + size1*rbuf->elementSizeBytes;
-        memcpy( data, data2, size2*rbuf->elementSizeBytes );
-    }
-    else
-    {
-        memcpy( data, data1, size1*rbuf->elementSizeBytes );
-    }
-    PaUtil_AdvanceRingBufferReadIndex( rbuf, numRead );
-    return numRead;
+	long size1, size2, numRead;
+	void *data1, *data2;
+	numRead = PaUtil_GetRingBufferReadRegions( rbuf, elementCount, &data1, &size1, &data2, &size2 );
+	if( size2 > 0 )
+	{
+		memcpy( data, data1, size1*rbuf->elementSizeBytes );
+		data = ((char *)data) + size1*rbuf->elementSizeBytes;
+		memcpy( data, data2, size2*rbuf->elementSizeBytes );
+	}
+	else
+	{
+		memcpy( data, data1, size1*rbuf->elementSizeBytes );
+	}
+	PaUtil_AdvanceRingBufferReadIndex( rbuf, numRead );
+	return numRead;
+}
+
+// read but only advance by an overlap amount, in order to facilitate windowing. 
+// The next read will overlap this one by the specified amount.
+long PaUtil_ReadRingBufferWithOverlap( PaUtilRingBuffer *rbuf, void *data, long elementCount, long overlap )
+{
+	long size1, size2, numRead;
+	void *data1, *data2;
+	numRead = PaUtil_GetRingBufferReadRegions( rbuf, elementCount, &data1, &size1, &data2, &size2 );
+	if( size2 > 0 )
+	{
+		memcpy( data, data1, size1*rbuf->elementSizeBytes );
+		data = ((char *)data) + size1*rbuf->elementSizeBytes;
+		memcpy( data, data2, size2*rbuf->elementSizeBytes );
+	}
+	else
+	{
+		memcpy( data, data1, size1*rbuf->elementSizeBytes );
+	}
+	PaUtil_AdvanceRingBufferReadIndex( rbuf, numRead - overlap );
+	return numRead;
 }

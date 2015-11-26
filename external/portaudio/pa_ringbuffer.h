@@ -136,16 +136,21 @@ long PaUtil_WriteRingBuffer( PaUtilRingBuffer *rbuf, const void *data, long elem
 long PaUtil_WriteRingBufferConstant( PaUtilRingBuffer *rbuf, const float val, long elementCount );
 
 /** Read data from the ring buffer.
-
+ 
  @param rbuf The ring buffer.
-
+ 
  @param data The address where the data should be stored.
-
+ 
  @param elementCount The number of elements to be read.
-
+ 
  @return The number of elements read.
-*/
+ */
 long PaUtil_ReadRingBuffer( PaUtilRingBuffer *rbuf, void *data, long elementCount );
+
+// quick hack by randy
+// TODO nicer abstraction for overlap
+long PaUtil_ReadRingBufferWithOverlap( PaUtilRingBuffer *rbuf, void *data, long elementCount, long overlap );
+
 
 /** Get address of region(s) to which we can write data.
 

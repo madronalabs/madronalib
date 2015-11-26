@@ -26,12 +26,13 @@ public:
 		
 	int write(const MLSample* pSrc, int samples);
 	int read(MLSample* pDest, int samples);
+	int readWithOverlap(MLSample* pDest, int samples, int overlap);
 
 	PaUtilRingBuffer mBuf;
 	float* pData;
 };
 
 
-typedef std::shared_ptr<MLRingBuffer> MLRingBufferPtr;
+typedef std::unique_ptr<MLRingBuffer> MLRingBufferPtr;
 
 #endif // _ML_RING_BUFFER_H

@@ -46,7 +46,7 @@ public:
 	{
 		for (MLSymbolMapT::const_iterator i = mMap.begin(); i != mMap.end(); i++)
 		{
-			std::cout << "[" << (*i).first << ":" << (*i).second << "] \n";
+			std::cout << "[" << (*i).first << ":" << (*i).second << "] ";
 		}
 	}
 	
@@ -116,10 +116,15 @@ public:
 					p = mOverflowData + overflowIndex;
 				}
 			}
+#if DEBUG			
 			else
 			{
 				std::cout << "SymbolMappedArray::operator[]: bogus key " << key << "!\n";
+				std::cout << "    map: ";
+				pMap->dump();
+				std::cout << "\n";
 			}
+#endif
 		}
 		else
 		{

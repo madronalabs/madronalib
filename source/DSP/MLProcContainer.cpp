@@ -213,51 +213,58 @@ void MLProcContainer::compile()
 		MLSymbol destName = pipe->mDest->getName();
 		int destIndex = pipe->mDestIndex;
         
-        // debug() << "ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
+		// MLTEST
+        debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
         
 		// resize inputs and outputs if needed for variable i/o procs
 		compileOp* pSrcOp = compileOpsMap[srcName];
 		compileOp* pDestOp = compileOpsMap[destName];
-        
-		if ((int)pSrcOp->outputs.size() < srcIndex)
-		{
-			pSrcOp->outputs.resize(srcIndex);
-		}
-		if ((int)pDestOp->inputs.size() < destIndex)
-		{
-			pDestOp->inputs.resize(destIndex);
-		}
-
-		// if compileOpsMap output corresponding to pipe start has not yet been marked,
-		MLSymbol* pPipeStartSym = &(compileOpsMap[srcName]->outputs[srcIndex - 1]);
-		MLSymbol* pPipeEndSym = &(compileOpsMap[destName]->inputs[destIndex - 1]);
-		MLSymbol sigName;
-
-		if (!*pPipeStartSym)
-		{		
-			// add a new compileSignal to map
-			sigName = nameMaker.nextName();
-			signals[sigName] = (compileSignal());
-
-			// mark the start and end of the pipe with the new signal.
-			*pPipeStartSym = sigName;			
-			*pPipeEndSym = sigName;		
-		}
-		else
-		{
-			sigName = *pPipeStartSym;
-			*pPipeEndSym = *pPipeStartSym;		
-		}
 		
-		// get pipe extent
-		int pipeStartIdx = compileOpsMap[srcName]->listIdx;
-		int pipeEndIdx = compileOpsMap[destName]->listIdx;
+		if((!pSrcOp) || (!pDestOp))
+		{
+			debug() << "compile(): NULL operation!\n";
+		}
+        else
+		{
+			if ((int)pSrcOp->outputs.size() < srcIndex)
+			{
+				pSrcOp->outputs.resize(srcIndex);
+			}
+			if ((int)pDestOp->inputs.size() < destIndex)
+			{
+				pDestOp->inputs.resize(destIndex);
+			}
 
-		// debug() << "adding span for " << sigName << ": [" << pipeStartIdx << ", " <<  pipeEndIdx << "]\n";
-        
-		// set signal lifetime to union of signal lifetime and pipe extent
-		signals[sigName].addLifespan(pipeStartIdx, pipeEndIdx);
-		
+			// if compileOpsMap output corresponding to pipe start has not yet been marked,
+			MLSymbol* pPipeStartSym = &(compileOpsMap[srcName]->outputs[srcIndex - 1]);
+			MLSymbol* pPipeEndSym = &(compileOpsMap[destName]->inputs[destIndex - 1]);
+			MLSymbol sigName;
+
+			if (!*pPipeStartSym)
+			{		
+				// add a new compileSignal to map
+				sigName = nameMaker.nextName();
+				signals[sigName] = (compileSignal());
+
+				// mark the start and end of the pipe with the new signal.
+				*pPipeStartSym = sigName;			
+				*pPipeEndSym = sigName;		
+			}
+			else
+			{
+				sigName = *pPipeStartSym;
+				*pPipeEndSym = *pPipeStartSym;		
+			}
+			
+			// get pipe extent
+			int pipeStartIdx = compileOpsMap[srcName]->listIdx;
+			int pipeEndIdx = compileOpsMap[destName]->listIdx;
+
+			// debug() << "adding span for " << sigName << ": [" << pipeStartIdx << ", " <<  pipeEndIdx << "]\n";
+			
+			// set signal lifetime to union of signal lifetime and pipe extent
+			signals[sigName].addLifespan(pipeStartIdx, pipeEndIdx);
+		}
 		// TODO change MLPipes to store proc name symbols, not procPtrs.
 	}
 	
@@ -669,10 +676,13 @@ MLProc::err MLProcContainer::prepareToProcess()
 		{
 			// leave output alone if marked timeless
 			MLSignal& y = getOutput(i);
-			if (y.getRate() != kMLTimeless)
+			if(&(y) == nullptr) // should be impossible, but happens with bad graphs
 			{
-				y.setDims(containerSize);
-				y.setRate(containerRate);
+				if (y.getRate() != kMLTimeless)
+				{
+					y.setDims(containerSize);
+					y.setRate(containerRate);
+				}
 			}
 		}	
 		
