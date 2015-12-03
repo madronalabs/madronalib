@@ -21,6 +21,7 @@
 
 #include "MLRatio.h"
 #include "MLSignal.h"
+#include "MLClock.h"
 
 class MLProc; // for isProcEnabled. 
 
@@ -35,8 +36,9 @@ public:
 	const int getResampleUpOrder() { return mResampleUpOrder; }
 	const int getResampleDownOrder() { return mResampleDownOrder; }
 	inline unsigned getVectorSize() { return mVectorSize; }	
-	inline float getSampleRate(void) { return mSampleRate; }
-	inline float getInvSampleRate(void) { return mInvSampleRate; }
+	inline float getSampleRate() { return mSampleRate; }
+	inline float getInvSampleRate() { return mInvSampleRate; }
+	ml::Time getTime();
 
 	void setResampleRatio(const MLRatio& r) { mResampleRatio = r; }
 	void setResampleUpOrder(const int d) { mResampleUpOrder = d; }
@@ -55,13 +57,14 @@ public:
 	virtual bool isProcEnabled(const MLProc* p) const = 0;
 
 protected:
-	
 	// two null signals: every context has them.
 	// the null input is for receiving a signal guaranteed to be 0. 
 	// the null output is for dumping unused outputs from procs. 
 	MLSignal mNullInput;
 	MLSignal mNullOutput;	
+	
 	bool mEnabled;
+	ml::Clock mClock;
 	
 private:
 	MLRatio mResampleRatio;	
@@ -70,6 +73,7 @@ private:
 	int mVectorSize;		
 	float mSampleRate;	
 	float mInvSampleRate;
+
 };
 
 

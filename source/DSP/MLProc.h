@@ -19,6 +19,7 @@
 #include "MLSymbolMap.h"
 #include "MLProperty.h"
 #include "MLStringUtils.h"
+#include "MLClock.h"
 
 #define CHECK_IO    0
 
@@ -384,6 +385,7 @@ public:
 	inline int getContextVectorSize() { return mpContext ? mpContext->getVectorSize() : 0; }	
 	inline float getContextSampleRate() { return mpContext ? mpContext->getSampleRate() : kMLTimeless; }
 	inline float getContextInvSampleRate() { return mpContext ? mpContext->getInvSampleRate() : kMLTimeless; }
+	inline ml::Time getContextTime() { return mpContext ? mpContext->getTime() : 0; }
 	
 protected:	
 	virtual ~MLProc() {}	
@@ -415,7 +417,9 @@ private:
 	MLSymbol mName;
 };
 
+// TODO clear up ownership issues and do away with this
 typedef std::shared_ptr<MLProc> MLProcPtr;
+
 typedef std::list<MLProcPtr> MLProcList;
 typedef MLProcList::iterator MLProcListIterator;
 

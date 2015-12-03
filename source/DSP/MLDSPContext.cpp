@@ -51,3 +51,9 @@ MLSignal& MLDSPContext::getNullOutput()
 {
 	return mNullOutput;
 }
+
+ml::Time MLDSPContext::getTime() 
+{ 
+	return mClock.now(); 
+}
+

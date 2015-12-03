@@ -708,6 +708,7 @@ MLProc::err MLProcContainer::prepareToProcess()
 		}
 	}
 	
+	mClock.stop();
 	if (e != OK) printErr(e);
 	return e;
 }
@@ -764,10 +765,12 @@ void MLProcContainer::process(const int extFrames)
 	const MLRatio myRatio = getResampleRatio();
 	const bool resample = !myRatio.isUnity();
 	if (myRatio.isZero()) return;
-
+	
 	jassert((MLRatio(extFrames) * myRatio).isInteger());
 	const int intFrames = (int)(extFrames * myRatio);
 	
+	mClock.advance(ml::samplesAtRateToTime(intFrames, static_cast<int>(getSampleRate())));
+				   
 	if (resample)
 	{
 		int ins = (int)mPublishedInputs.size();
