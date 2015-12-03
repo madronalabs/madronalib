@@ -382,8 +382,8 @@ public:
 	void dumpASCII(std::ostream& s) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
-	inline bool is2D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
-	inline bool is3D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth > 1)); }
+	inline bool is2D() const { return((mHeight > 1) && (mDepth == 1)); }
+	inline bool is3D() const { return((mDepth > 1)); }
 
 	// handy shorthand for row and plane access
     // TODO looking at actual use, would look better to return dataAligned + row, plane.
@@ -449,6 +449,7 @@ private:
 	
 	// Sample rate in Hz.  if negative, signal is not a time series.
 	// if zero, rate is a positive one that hasn't been calculated by the DSP engine yet.
+	// TODO should be int
 	float mRate;	
 
 	// start of signal data in memory. 
