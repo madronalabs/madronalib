@@ -11,6 +11,10 @@
 #include "MLClock.h"
 #include "MLOSCSender.h"
 
+
+// temporary OSC send code. 
+// Procs should really not send OSC from the process thread. Instead the DSP engine can keep track of 
+// some procs and send into out OSC after the main graph processing, from a different thread. 
 #define SEND_OSC	1
 
 // ----------------------------------------------------------------
@@ -77,6 +81,7 @@ void MLProcDebug::doParams()
 void MLProcDebug::process(const int frames)
 {
 	const MLSignal& in = getInput(1);
+	
 	const int intervalSeconds = 1;
 	const int intervalFrames = getContextSampleRate() * intervalSeconds;
 	if (mParamsChanged) doParams();
@@ -96,6 +101,9 @@ void MLProcDebug::process(const int frames)
 		}
 		
 		debug() << "\n";
+		
+//		debug() << "RATE: " << getContextSampleRate() << " / " << in.getRate() << "\n";
+		
 		mTemp -= intervalFrames;
 		
 		if (mVerbose)
@@ -113,24 +121,28 @@ void MLProcDebug::process(const int frames)
 		}
 	}
 #if SEND_OSC		
-	uint64_t ntpTime = mClock.now();
 	
 	// send proc name as address
 	std::string address = std::string("/signal/") + getName().getString();
 	
 	// get Blob with signal 
 	// TODO buffer
+	
+	// make copy of signal to hack rate change
+	MLSignal xmit = in;
+	if(!xmit.getRate())
+	{
+		xmit.setRate(getContextSampleRate());
+	}	
 
-	mOSCSender.getStream() << osc::BeginBundle(ntpTime)
+
+	mOSCSender.getStream() << osc::BeginBundle(getContextTime())
 	<< osc::BeginMessage( address.c_str() ) 
-	<< in
+	<< xmit
 	<< osc::EndMessage
 	<< osc::EndBundle;
 
 	mOSCSender.sendDataToSocket();	
-	
-	
-	
 	
 //	debug() << address << " : " << in.getWidth() << " frames \n";
 #endif
