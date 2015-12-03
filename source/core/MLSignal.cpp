@@ -1462,7 +1462,7 @@ void MLSignal::dump(std::ostream& s, int verbosity) const
 		}
 		else if(is2D())
 		{
-			s << std::setprecision(2);
+			s << std::setprecision(4);
 			for (int j=0; j<h; ++j)
 			{
 				s << j << " | ";
