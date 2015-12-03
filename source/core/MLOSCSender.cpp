@@ -56,9 +56,8 @@ namespace ml {
 
 osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const MLSignal& sig)
 {
-	stream << sig.isConstant();
-	stream << sig.getWidth() << sig.getHeight() << sig.getDepth();
-	stream << osc::Blob(sig.getBuffer(), sig.getSize()*sizeof(float));
+	stream << sig.getWidth() << sig.getHeight() << sig.getDepth() << static_cast<int>(sig.getRate());
+	stream << osc::Blob(sig.getConstBuffer(), sig.getSize()*sizeof(float));
 	return stream;
 }
 
