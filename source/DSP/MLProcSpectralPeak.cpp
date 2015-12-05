@@ -15,7 +15,6 @@ const int kFFTBits = 9;
 const int kFFTSize = 1 << kFFTBits;
 
 #define SEND_OSC	1
-const int kMaxOSCBlobSize = 64;
 
 // ----------------------------------------------------------------
 // class definition
@@ -26,28 +25,22 @@ public:
 	MLProcSpectralPeak();
 	~MLProcSpectralPeak();
 	
-	void clear();
-	MLProc::err resize();
 	void process(const int n);		 
 	MLProcInfoBase& procInfo() { return mInfo; }
 	
 private:
+	void doParams();
+
 	MLProcInfo<MLProcSpectralPeak> mInfo;
-	void calcCoeffs(void);
-	
-	float mThresh;
+	float mCentroid;
 	
 	// 1024-point (2^10) FFT object constructed.
 	ffft::FFTRealFixLen <kFFTBits> mFFT;
 	
-	MLSignal mFFTIn, mFFTOut, mMagnitudes;
-	MLSignal mFFTResult;
-	
+	MLSignal mFFTIn, mFFTOut, mWindow, mMagnitudes;
 	MLRingBuffer mRingBuffer;
-	
-	int mTest;
-	
-	
+	MLBiquad mOutputFilter;
+		
 #if SEND_OSC
 	ml::Clock mClock;
 	ml::OSCSender mOSCSender;
@@ -61,7 +54,7 @@ private:
 namespace{
 	
 	MLProcRegistryEntry<MLProcSpectralPeak> classReg("spectral_peak");
-	ML_UNUSED MLProcParam<MLProcSpectralPeak> params[] = {"thresh"};
+	//ML_UNUSED MLProcParam<MLProcSpectralPeak> params[] = {};
 	ML_UNUSED MLProcInput<MLProcSpectralPeak> inputs[] = {"in"};
 	ML_UNUSED MLProcOutput<MLProcSpectralPeak> outputs[] = {"peak"};
 	
@@ -70,50 +63,53 @@ namespace{
 // ----------------------------------------------------------------
 // implementation
 
-MLProcSpectralPeak::MLProcSpectralPeak()
+MLProcSpectralPeak::MLProcSpectralPeak() :
+	mCentroid(-16.f)
 {
 	mRingBuffer.resize(kFFTSize);
 	mFFTIn.setDims(kFFTSize);
 	mFFTOut.setDims(kFFTSize);
+	mWindow.setDims(kFFTSize);
+	
+	// Generate a Hann window.
+	// TODO move to dsp utils
+	int w = mWindow.getWidth();
+	for (int i = 0; i < w; ++i)
+	{
+		mWindow[i] = 0.5f * (1 - cosf(kMLTwoPi*((float)i/(float)w)));
+	}
+	
+	// vertical signal: 1 frame of FFT data
 	mMagnitudes.setDims(1, kFFTSize/2);
+	
 #if SEND_OSC
 	mOSCSender.open(9000);
 #endif
-	
-	mTest = 0;
 }
 
 MLProcSpectralPeak::~MLProcSpectralPeak()
 {
 }
 
-void MLProcSpectralPeak::clear()
+void MLProcSpectralPeak::doParams()
 {
-	mThresh = 0.001f;
-}
-
-MLProc::err MLProcSpectralPeak::resize()
-{
-	debug() << "MLProcSpectralPeak: RESIZED\n";
-	
-	// 2D signal for results
-	mFFTResult.setDims(kFFTSize);
-
-	return OK;// MLTEST
+	float sr = getContextSampleRate();
+	mOutputFilter.setSampleRate(sr);
+	mOutputFilter.setOnePole(10.f);
 }
 
 // generate envelope output based on gate and control signal inputs.
 void MLProcSpectralPeak::process(const int frames)
 {	
-	//float invSr = getContextInvSampleRate();
+	float sr = getContextSampleRate();
 	const MLSignal& in = getInput(1);
 	MLSignal& peak = getOutput(1);	
 	
 	bool doSend = false;
 	
-	
 	if (mParamsChanged)
 	{
+		doParams();
 		mParamsChanged = false;
 	}
 	
@@ -127,49 +123,59 @@ void MLProcSpectralPeak::process(const int frames)
 		{
 			mRingBuffer.readWithOverlap(mFFTIn.getBuffer(), kFFTSize, kFFTSize/2);
 			
-			const float* px = mFFTIn.getConstBuffer();
+			float* px = mFFTIn.getBuffer();
 			float* py = mFFTOut.getBuffer();
+			
+			// window
+			mFFTIn.multiply(mWindow);
 			
 			// get complex FFT
 			mFFT.do_fft (py, px);     // x (real) --FFT---> y (complex)
 			
 			// get magnitudes
 			int reals = kFFTSize/2;
+			float magSum = 0.000001f;
 			for(int bin=0; bin<reals; ++bin)
 			{
 				float i = py[bin];
 				float j = py[bin+reals];
-				mMagnitudes(0, bin) = sqrtf(i*i + j*j);
+				float mag = sqrtf(i*i + j*j);
+				mMagnitudes(0, bin) = mag;
+				magSum += mag;
 			}
 			
-//			debug() << "MLProcSpectralPeak: PROCESSED " << kFFTSize << " samples: \n";
-//			mFFTOut.dump(debug(), true);
-			
+			// apply threshold, below which centroid does not change
+			if(magSum > 10.f) 
+			{				
+				// compute centroid, offset by 1 so bin 0 can get involved
+				float binSum = 0.0f;
+				for(int bin = 0; bin < reals; ++bin)
+				{
+					float mag = mMagnitudes(0, bin);
+					binSum += mag*(bin + 1);
+				}			
+				float c = binSum/magSum - 1;
+				c = clamp(c, 0.f, (reals + 0.f));
+				float hzPerBin = sr/kFFTSize;
+				float centroidHz = c*hzPerBin;
+				float logPitch = log2f(centroidHz/440.f + 0.000001f);
+				mCentroid = logPitch;
+			}
 			
 			doSend = true;
 		}
 		
-		peak[n] = 0.5f;
+		peak[n] = mOutputFilter.processSample(mCentroid);
 
 //	debug() << "REM: " << mRingBuffer.getRemaining() << "\n";
 	
 	}	
 	
-	
-	int sr = getContextSampleRate();
-	mMagnitudes.setRate(sr);
-	
-	int interval= sr/10;
-	mTest += frames;
-	if (mTest > interval)
-	{
-		mTest -= interval;
-	}
-	
 	if(doSend)
 	{
 #if SEND_OSC		
 //		uint64_t ntpTime = mClock.now();
+		mMagnitudes.setRate(sr);
 		
 		// send proc name as address
 		std::string address = std::string("/signal/FFT");
@@ -184,10 +190,8 @@ void MLProcSpectralPeak::process(const int frames)
 		<< osc::EndBundle;
 		
 		mOSCSender.sendDataToSocket();	
-		debug() << ".";
 #endif
 		
 	}
-
 }
 
