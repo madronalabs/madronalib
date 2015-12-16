@@ -46,16 +46,27 @@ public:
 	// the value f indefinitely. May cause a discontinuity in output.
 	void setState(float f);
 
+	// TODO deprecate in favor of operator()
 	inline MLSample processSample(float x)
-    {
-        const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
-        x2 = x1;
-        x1 = x;
-        y2 = y1;
-        y1 = out;
-        return(out);
-    }
-
+	{
+		const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+		x2 = x1;
+		x1 = x;
+		y2 = y1;
+		y1 = out;
+		return(out);
+	}
+	
+	inline MLSample operator()(float x)
+	{
+		const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+		x2 = x1;
+		x1 = x;
+		y2 = y1;
+		y1 = out;
+		return(out);
+	}
+	
 	float a0, a1, a2, b1, b2;
 	float x1, x2, y1, y2;
 	float mInvSr;
