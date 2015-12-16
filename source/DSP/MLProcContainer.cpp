@@ -183,20 +183,27 @@ void MLProcContainer::compile()
         
 		// set corresponding input of proc in ops map to a new compileSignal.
 		compileOp* pOp = compileOpsMap[pName];
-		if (pOp)
+		if (inputIdx > 0)
 		{
-			MLSymbol sigName = nameMaker.nextName();
-			signals[sigName] = (compileSignal());
-			pOp->inputs[inputIdx - 1] = sigName;
-			
-			// set lifespan of input signal, from start to op position.
-			signals[sigName].setLifespan(0, pOp->listIdx);
-			signals[sigName].mPublishedInput = i + 1;
-			compileInputs.push_back(sigName);
+			if (pOp)
+			{
+				MLSymbol sigName = nameMaker.nextName();
+				signals[sigName] = (compileSignal());
+				pOp->inputs[inputIdx - 1] = sigName;
+				
+				// set lifespan of input signal, from start to op position.
+				signals[sigName].setLifespan(0, pOp->listIdx);
+				signals[sigName].mPublishedInput = i + 1;
+				compileInputs.push_back(sigName);
+			}
+			else
+			{
+				debug() << "error: MLProcContainer " << getName() << " ::compile(): no compile op named " << pName << "\n";
+			}
 		}
 		else
 		{
-			debug() << "error: MLProcContainer " << getName() << " ::compile(): no compile op named " << pName << "\n";
+			debug() << "error: MLProcContainer " << getName() << " ::compile(): bad input for " << pName << "\n";
 		}
 	}
 
@@ -1011,7 +1018,7 @@ MLProc::err MLProcContainer::addProcAfter(MLSymbol className, MLSymbol alias, ML
 	MLProcPtr pNew;
 	err e = OK;
 	
-	// dies afterProc exist?
+	// does afterProc exist?
 	MLSymbolProcMapT::iterator it;
 	it = mProcMap.find(afterProc);
 	if (it == mProcMap.end())
@@ -1433,21 +1440,30 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 {
 	err e = OK;
 	
-// debug() << "add buffer here:" << procName << " called " << alias << " after " << outputName << "\n";
+	debug() << "add buffer here:" << procName << " called " << alias << " after " << outputName << "\n";
 
-	e = addProcAfter("ringbuffer", alias, procName.head());
-	if (e == OK)
+	// hack for spectrum signals: no buffer if length == 1
+	
+	if(bufLength > 1)
 	{
-		MLProcPtr bufferProc = getProc(MLPath(alias));	
-		if (bufferProc)
+		e = addProcAfter("ringbuffer", alias, procName.head());
+		if (e == OK)
 		{
-			bufferProc->setParam("length", bufLength);
-			bufferProc->setParam("mode", trigMode);
-			bufferProc->setup();
-			
-			// connect published output of head proc to ringbuffer input
-			addPipe(procName, outputName, MLPath(alias), MLSymbol("in"));
+			MLProcPtr bufferProc = getProc(MLPath(alias));	
+			if (bufferProc)
+			{
+				bufferProc->setParam("length", bufLength);
+				bufferProc->setParam("mode", trigMode);
+				bufferProc->setup();
+				
+				// connect published output of head proc to ringbuffer input
+				addPipe(procName, outputName, MLPath(alias), MLSymbol("in"));
+			}
 		}
+	}
+	else
+	{
+		debug() << "HEY!!\n";
 	}
 	return e;
 }
@@ -1527,7 +1543,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 	const MLSymbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 
-//	debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
+	debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
 	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);
@@ -1705,7 +1721,7 @@ MLPublishedParamPtr MLProcContainer::getParamPtr(int index) const
 {
 	MLPublishedParamPtr p;
 	const int size = (int)mPublishedParams.size();
-	if (index < size)
+	if (within(index, 0, size))
 	{
 		p = mPublishedParams[index];
 	}
