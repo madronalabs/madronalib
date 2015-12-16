@@ -321,6 +321,25 @@ float MLScale::quantizePitch(float a) const
 	return r;
 }
 
+float MLScale::quantizePitchNearest(float a) const
+{
+	float r = 1.0f;
+	
+	// TEMP TODO something faster
+	float minD = MAXFLOAT;
+	for (int i = 0; i < kMLNumRatios; ++i)
+	{
+		float p = mPitches[i];
+		float d = fabs(p - a);
+		if(d <= minD) 
+		{
+			minD = d;
+			r = p;
+		}
+	}
+	return r;
+}
+
 void MLScale::setName(const std::string& nameStr)
 {
 	mName = nameStr;

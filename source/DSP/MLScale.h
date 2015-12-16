@@ -41,6 +41,7 @@ public:
 
 	// return log pitch of the note of the current scale closest to the input.
 	float quantizePitch(float a) const;
+	float quantizePitchNearest(float a) const;
 	
 	void setName(const std::string& nameStr);
 	void setDescription(const std::string& descStr);

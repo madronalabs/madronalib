@@ -6,6 +6,12 @@
 #include "MLProc.h"
 #include "MLScale.h"
 
+typedef enum
+{
+	kTruncate = 0,
+	kNearest = 1
+} kMLScaleQuantizeMode;
+
 // ----------------------------------------------------------------
 // class definition
 
@@ -24,6 +30,7 @@ private:
 	void doParams();
 	
 	MLScale mScale;
+	kMLScaleQuantizeMode mMode;
 	std::string mScaleName;
 };
 
@@ -33,7 +40,7 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcQuantize> classReg("quantize");
-	ML_UNUSED MLProcParam<MLProcQuantize> params[2] = { "on", "scale" };	
+	ML_UNUSED MLProcParam<MLProcQuantize> params[] = { "on", "scale", "mode" };	
 	ML_UNUSED MLProcInput<MLProcQuantize> inputs[] = { "in" };	
 	ML_UNUSED MLProcOutput<MLProcQuantize> outputs[] = { "out" };
 }
@@ -44,6 +51,7 @@ namespace
 MLProcQuantize::MLProcQuantize()
 {
 	setParam("on", 1);
+	setParam("mode", kTruncate);
 	mScale.setDefaults();
 }
 
@@ -59,6 +67,7 @@ void MLProcQuantize::doParams()
 		mScale.loadFromRelativePath(scaleName);
 		mScaleName = scaleName;
 	}
+	mMode = static_cast<kMLScaleQuantizeMode>(getParam("mode"));
 	mParamsChanged = false;
 }
 
@@ -71,10 +80,22 @@ void MLProcQuantize::process(const int frames)
 
 	if(getParam("on"))
 	{
-		for (int n=0; n < frames; ++n)
+		if(mMode == kTruncate)
 		{
-			// TODO not every sample OK?
-			y[n] = mScale.quantizePitch(x[n]);
+			for (int n=0; n < frames; ++n)
+			{
+				// TODO not every sample OK?
+				y[n] = mScale.quantizePitch(x[n]);
+			}
+		}
+		else
+		{
+			// nearest pitch
+			for (int n=0; n < frames; ++n)
+			{
+				// TODO not every sample OK?
+				y[n] = mScale.quantizePitchNearest(x[n]);
+			}
 		}
 	}
 	else
