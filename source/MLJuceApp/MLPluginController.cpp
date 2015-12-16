@@ -207,7 +207,7 @@ MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)
 	return r;
 }
 
-void MLPluginController::buildMenuFromSymbolVector(MLSymbol menuName, std::vector<std::string> & v)
+void MLPluginController::buildMenuFromSymbolVector(MLSymbol menuName, const std::vector<std::string> & v)
 {
 	if(MLMenu* pMenu = createMenu(menuName))
 	{

@@ -48,7 +48,7 @@ public:
 	MLMenu* findMenuByName(MLSymbol menuName); // TODO move into new controller base class
 	
 	// TODO move menus to MLSymbols internally, with a translation table to turn the symbols into int'l strings
-	void buildMenuFromSymbolVector(MLSymbol menuName, std::vector<std::string> & v);
+	void buildMenuFromSymbolVector(MLSymbol menuName, const std::vector<std::string> & v);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 
