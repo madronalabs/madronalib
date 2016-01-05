@@ -334,13 +334,14 @@ float MLDial::getValueFromText (const String& text)
             .getDoubleValue();
 }
 
-float MLDial::proportionOfLengthToValue (float proportion)
+float MLDial::proportionOfLengthToValue (float p)
 {
 	float min = getBottomValue();
 	float max = getTopValue();
 	float r, rangeExp;
-	float p = proportion;
 
+	// TODO use log range convertor
+	
 	if (mWarpMode == kJucePluginParam_Exp)
 	{
 		rangeExp = p*(log(max)/log(min) - 1) + 1;
@@ -364,7 +365,9 @@ float MLDial::valueToProportionOfLength (float value) const
 	float max = getTopValue();
 	float x;
 	
-    if(value > mZeroThreshold)
+	// TODO use log range convertor
+
+	if(value > mZeroThreshold)
     {
         if (mWarpMode == kJucePluginParam_Exp)
         {
@@ -1220,7 +1223,8 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
 		d = clamp(d, 0, 3);
-		float minValChange = max(powf(10., -d), interval);		
+		float fineInterval = doFineAdjust ? 1.f : interval;
+		float minValChange = max(powf(10., -d), fineInterval);	
 		
 		// for dials without many possible values, slow down mouse movement
 		// as the inverse proportion to the number of values.
