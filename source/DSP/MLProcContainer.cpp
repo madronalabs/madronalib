@@ -104,11 +104,11 @@ void MLProcContainer::makeRoot(const MLSymbol name)
 
 void MLProcContainer::compile()
 {
-	const bool dumpOutputs = false;
-	const bool verbose = false;
+	const bool dumpOutputs = true;
+	const bool verbose = true;
 	err e = OK;
 
-    // debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
+    debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
@@ -271,6 +271,20 @@ void MLProcContainer::compile()
 			
 			// set signal lifetime to union of signal lifetime and pipe extent
 			signals[sigName].addLifespan(pipeStartIdx, pipeEndIdx);
+			
+			// MLTEST
+			// find out from the proc what frame size it will output. 
+			signals[sigName].mFrameSize = pSrcOp->procRef->getOutputFrameSize(srcIndex);			
+			if(signals[sigName].mFrameSize > 1)
+			{
+				debug() << "COMPILING: " << pSrcOp->procRef->getName() << " output frame size " << signals[sigName].mFrameSize << "\n";
+				
+				// set infinite lifespan (don't share)
+				signals[sigName].addLifespan(0, 9000);
+				
+			}
+			
+			
 		}
 		// TODO change MLPipes to store proc name symbols, not procPtrs.
 	}
@@ -350,6 +364,13 @@ void MLProcContainer::compile()
 		compileSignal* pCompileSig = &((*it).second);
 		bool needsBuffer = true;
 		
+		
+		// get frame size for signal by asking proc about output it comes from 
+		if(pCompileSig->mFrameSize > 1)
+		{
+			debug() << "OK...\n";
+		}
+		
 		if (pCompileSig->mPublishedInput > 0) 
 		{		
 			pCompileSig->mpSigBuffer = &getNullInput();
@@ -363,7 +384,7 @@ void MLProcContainer::compile()
             {
                 MLPublishedOutputPtr output = mPublishedOutputs[i - 1];
                 MLProcPtr outputProc = output->mSrc;	
-                int outputIdx = output->mSrcOutputIndex;				
+                int outputIdx = output->mSrcOutputIndex;	
 
                 // has a signal been allocated?
                 if(outputProc->outputIsValid(outputIdx))
@@ -390,8 +411,17 @@ void MLProcContainer::compile()
 		
 		if (needsBuffer)
 		{
-			//packUsingWastefulAlgorithm(pCompileSig, sharedBuffers);
-			packUsingFirstFitAlgorithm(pCompileSig, sharedBuffers);
+			// buffers with frame sizes > 1 can't be shared, because the Proc itself will resize the buffer. 
+			// currently a bit of a hack.
+			if(pCompileSig->mFrameSize > 1)
+			{
+				debug() << "MLProcContainer::compile(): output has frame size " << pCompileSig->mFrameSize << "\n";
+				packUsingWastefulAlgorithm(pCompileSig, sharedBuffers);
+			}
+			else
+			{
+				packUsingFirstFitAlgorithm(pCompileSig, sharedBuffers);
+			}
 		}
 	}
 	
@@ -402,7 +432,12 @@ void MLProcContainer::compile()
 	for (std::list<sharedBuffer>::const_iterator it = sharedBuffers.begin(); it != sharedBuffers.end(); ++it)
 	{
 		const sharedBuffer& buf = (*it);
-		MLSignal* newBuf = allocBuffer();
+		
+		if(buf.mFrameSize > 1)
+		{
+			debug() << "DOING size " << buf.mFrameSize << "\n"; 
+		}
+		MLSignal* newBuf = allocBuffer(buf.mFrameSize);
 		
 		for (std::list<compileSignal*>::const_iterator jt = buf.mSignals.begin(); jt != buf.mSignals.end(); ++jt)
 		{		
@@ -424,7 +459,16 @@ void MLProcContainer::compile()
 	
 		op.procRef->resizeInputs(op.inputs.size());
 		op.procRef->resizeOutputs(op.outputs.size());
-        
+		
+		// MLTEST
+		if (op.procRef->getName() == "formants")
+		{
+			debug() << "SETTING formants I/O\n";
+		}
+		
+
+		
+		
 		// for each output of compile op, set output of proc to allocated buffer or null signal.
 		for(int i=0; i<(int)op.outputs.size(); ++i)
 		{
@@ -439,6 +483,12 @@ void MLProcContainer::compile()
 				pOutSig = &getNullOutput();
 			}
 			op.procRef->setOutput(i + 1, *pOutSig);
+			
+			if (op.procRef->getName() == "formants")
+			{
+				debug() << "SETTING output " << i + 1 << " : frameSize " << pOutSig->getHeight() << " \n";
+				debug() << "wants frame size " << op.procRef->getOutputFrameSize(i + 1);
+			}
 		}
 	}
 	
@@ -446,7 +496,7 @@ void MLProcContainer::compile()
 	// for each pipe		
 	for (std::list<MLPipePtr>::iterator i = mPipeList.begin(); i != mPipeList.end(); ++i)
 	{
-		MLPipePtr pipe = (*i);		// TODO pipes use names, not pointers
+		MLPipePtr pipe = (*i);		// TODO pipes should use names, not pointers
 		connectProcs(pipe->mSrc, pipe->mSrcIndex, pipe->mDest, pipe->mDestIndex);		
 	}	
 
@@ -509,9 +559,11 @@ void MLProcContainer::compile()
     }
 	if (verbose)
 	{
+		debug() << "\n----------------------------------------------------------------";
 		// dump compile graph
 		debug() << "\n\ncontainer " << getNameWithCopyIndex() << "\n";
-		debug() << compileOps.size() << " operations: ----------------------------------------------------------------\n";
+		debug() << "--------\n";
+		debug() << compileOps.size() << " operations: \n";
 		int opIdx = 0;
 		for (std::list<compileOp>::const_iterator it = compileOps.begin(); it != compileOps.end(); ++it)
 		{
@@ -520,13 +572,15 @@ void MLProcContainer::compile()
 		}	
 		
 		// dump signals
-		debug() << signals.size() << " signals: ----------------------------------------------------------------\n";
+		debug() << "--------\n";
+		debug() << signals.size() << " signals: \n";
 		for (std::map<MLSymbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
 		{
 			MLSymbol sigName = ((*it).first);
 			const compileSignal& sig = ((*it).second);
-			debug() << sigName << ": life[" << sig.mLifeStart << ", " << sig.mLifeEnd << "] ";
-			debug() << ", buffer = " <<  static_cast<void *>(sig.mpSigBuffer);
+			debug() << sigName << ": life[" << sig.mLifeStart << ", " << sig.mLifeEnd << "]";
+			debug() << ", size=" << sig.mFrameSize << " ";
+			debug() << ", buffer=" <<  static_cast<void *>(sig.mpSigBuffer);
 			if(sig.mPublishedInput)
 			{
 				debug() << " (input " << sig.mPublishedInput << ")";
@@ -550,7 +604,8 @@ void MLProcContainer::compile()
 		}
 		
 		// dump buffers
-		debug() << sharedBuffers.size() << " buffers: ----------------------------------------------------------------\n";
+		debug() << "--------\n";
+		debug() << sharedBuffers.size() << " buffers: \n";
 		int nBufs = 0;
 		for (std::list<sharedBuffer>::const_iterator it = sharedBuffers.begin(); it != sharedBuffers.end(); ++it)
 		{
@@ -558,6 +613,7 @@ void MLProcContainer::compile()
 			nBufs++;			
 			debug() << "buf " << nBufs << ": " << buf << "\n";
 		}
+		debug() << "----------------------------------------------------------------\n";
 	}
 }
 
@@ -612,8 +668,9 @@ void sharedBuffer::insert(compileSignal* pSig)
 
 void packUsingWastefulAlgorithm(compileSignal* pSig, std::list<sharedBuffer>& bufs)
 {
-	// always make new sharedBuffer.
+	// always make new sharedBuffer. (don't share)
 	sharedBuffer newBuf;
+	newBuf.mFrameSize = pSig->mFrameSize;
 	newBuf.insert(pSig);
 	bufs.push_back(newBuf); // copy
 }
@@ -639,6 +696,7 @@ void packUsingFirstFitAlgorithm(compileSignal* pSig, std::list<sharedBuffer>& bu
 	else
 	{
 		sharedBuffer newBuf;
+		newBuf.mFrameSize = pSig->mFrameSize;
 		newBuf.insert(pSig);
 		bufs.push_back(newBuf); // copy
 	}
@@ -1233,6 +1291,19 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	
 	// TODO fix crashing on ill-formed graphs
 	
+	// MLTEST
+	if(b->getName() == "formants_analysis_out")
+	{
+		debug() << "CONNECTING FORMANTS_BUFFER\n";
+		
+		debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+		debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+		debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+		debug() << "\n\n";		
+		
+		//MLSignal& aOut = a->getOutput(ai);		
+	}
+	
 	e = b->setInput(bi, a->getOutput(ai));
     
 bail:	
@@ -1436,35 +1507,33 @@ MLSymbol MLProcContainer::getOutputName(int index)
 #pragma mark published signals - the recursive part
 
 MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol outputName, MLSymbol alias, 
-	int trigMode, int bufLength)
+	int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
 	
-	debug() << "add buffer here:" << procName << " called " << alias << " after " << outputName << "\n";
+	debug() << "add buffer here from:" << procName << " called " << alias << " output " << outputName << "\n";
 
-	// hack for spectrum signals: no buffer if length == 1
-	
-	if(bufLength > 1)
+	if(frameSize > 1)
 	{
-		e = addProcAfter("ringbuffer", alias, procName.head());
-		if (e == OK)
+		debug() << "FRAME SIZE = " << frameSize << "\n";
+	}
+	
+	e = addProcAfter("ringbuffer", alias, procName.head());
+	if (e == OK)
+	{
+		MLProcPtr bufferProc = getProc(MLPath(alias));	
+		if (bufferProc)
 		{
-			MLProcPtr bufferProc = getProc(MLPath(alias));	
-			if (bufferProc)
-			{
-				bufferProc->setParam("length", bufLength);
-				bufferProc->setParam("mode", trigMode);
-				bufferProc->setup();
-				
-				// connect published output of head proc to ringbuffer input
-				addPipe(procName, outputName, MLPath(alias), MLSymbol("in"));
-			}
+			bufferProc->setParam("frame_size", frameSize);
+			bufferProc->setParam("length", bufLength);
+			bufferProc->setParam("mode", trigMode);
+			bufferProc->setup();
+			
+			// connect published output of head proc to ringbuffer input
+			addPipe(procName, outputName, MLPath(alias), MLSymbol("in"));
 		}
 	}
-	else
-	{
-		debug() << "HEY!!\n";
-	}
+
 	return e;
 }
 
@@ -1472,7 +1541,7 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 // this is necessary to get multiple signals that resolve to the same address.
 //
 MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-	const MLSymbol alias, int trigMode, int bufLength)
+	const MLSymbol alias, int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
 
@@ -1495,7 +1564,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 			{
 				// recurse
 				MLProcContainer& headContainer = static_cast<MLProcContainer&>(*headProc);
-				headContainer.addSignalBuffers(tail, outputName, alias, trigMode, bufLength);
+				headContainer.addSignalBuffers(tail, outputName, alias, trigMode, bufLength, frameSize);
 			}
 			else
 			{
@@ -1512,7 +1581,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 				{				
 					if (headProc->getOutputIndex(outputName.withWildCardNumber(i)))
 					{
-						addBufferHere(MLPath(head), outputName.withWildCardNumber(i), alias.withWildCardNumber(i), trigMode, bufLength);
+						addBufferHere(MLPath(head), outputName.withWildCardNumber(i), alias.withWildCardNumber(i), trigMode, bufLength, frameSize);
 					}
 					else
 					{
@@ -1522,7 +1591,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 			}
 			else
 			{
-				addBufferHere(MLPath(head), outputName, alias, trigMode, bufLength);
+				addBufferHere(MLPath(head), outputName, alias, trigMode, bufLength, frameSize);
 			}
 		}
 	}
@@ -2164,22 +2233,27 @@ void MLProcContainer::dumpGraph(int indent)
 //
 const float kBufferFree = -16.f; // ooh, a hack
 
-MLSignal* MLProcContainer::allocBuffer()
+// allocate a buffer of the standard size, adding a buffer to the pool if none are free. 
+// buffers with frame size > 1 are not shared, currently.
+MLSignal* MLProcContainer::allocBuffer(int frameSize)
 {
-	MLSignal* r = 0;
-	MLSignal* pPoolSig;
-	for(std::list<MLSignalPtr>::iterator it = mBufferPool.begin(); it != mBufferPool.end(); ++it)
+	MLSignal* r = nullptr;
+	if(frameSize == 1)
 	{
-		pPoolSig = &(**it); 
-		// return first free signal.
-		if (pPoolSig->getRate() == kBufferFree) 
+		MLSignal* pPoolSig;
+		for(std::list<MLSignalPtr>::iterator it = mBufferPool.begin(); it != mBufferPool.end(); ++it)
 		{
-			pPoolSig->setRate(getSampleRate());
-			return (pPoolSig);
+			pPoolSig = &(**it); 
+			// return first free signal.e
+			if (pPoolSig->getRate() == kBufferFree) 
+			{
+				pPoolSig->setRate(getSampleRate());
+				return (pPoolSig);
+			}
 		}
 	}
-
-	r = new MLSignal(kMLProcessChunkSize);
+	
+	r = new MLSignal(kMLProcessChunkSize, frameSize);
 	r->setRate(getSampleRate());
 	mBufferPool.push_back(MLSignalPtr(r));
 	return r;
@@ -2218,7 +2292,7 @@ std::ostream& operator<< (std::ostream& out, const sharedBuffer & r)
 	out << "(" << static_cast<void*>((*it)->mpSigBuffer) << ") ";
 	for(it = r.mSignals.begin(); it != r.mSignals.end(); it++)
 	{
-		out << "[" << (*it)->mLifeStart << " " << (*it)->mLifeEnd << "]  ";
+		out << "[" << (*it)->mLifeStart << " " << (*it)->mLifeEnd << "](size " << r.mFrameSize << ") ";
 	}
 	
 	return out;

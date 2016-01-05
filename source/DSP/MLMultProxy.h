@@ -127,7 +127,7 @@ public:
 	//
 	// methods of MLContainerBase
 	MLProc::err addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-		const MLSymbol alias, int trigMode, int bufLength);
+		const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1);
 	void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers);
 	
 	//

@@ -72,10 +72,12 @@ public:
 	// ----------------------------------------------------------------
 	// published signals
 
-	void publishSignal(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias, int trigMode, int bufLength);
-	int getPublishedSignalVoices(const MLSymbol alias);
-	int getPublishedSignalVoicesEnabled(const MLSymbol alias);
+	void publishSignal(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1);
+	
 	int getPublishedSignalBufferSize(const MLSymbol alias);
+	int getPublishedSignalVoices(const MLSymbol alias);
+
+	int getPublishedSignalVoicesEnabled(const MLSymbol alias);
 	int readPublishedSignal(const MLSymbol alias, MLSignal& outSig);
     
 	// ----------------------------------------------------------------

@@ -18,7 +18,6 @@ const int kMLRingBufferDefaultSize = 128;
 enum 
 {
 	eMLRingBufferNoTrash = 0,
-	eMLRingBufferUpTrig = 1,
 	eMLRingBufferMostRecent = 2
 };
 
@@ -35,8 +34,8 @@ public:
 	void clear(){};
 	void process(const int n);		
 
-	// read the buffer contents out to the specified row of the given signal.
-	int readToSignal(MLSignal& outSig, int samples, int row=0);
+	// read the buffer contents out to the specified plane of the given signal.
+	int readToSignal(MLSignal& outSig, int frames, int plane=0);
 	const MLSignal& getOutputSignal();
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -47,6 +46,7 @@ private:
 
 	MLSignal mRing;
 	MLSignal mTrashSignal;	
+	MLSignal mSingleFrameBuffer;
 	PaUtilRingBuffer mBuf;
 	
 	MLSignal test;

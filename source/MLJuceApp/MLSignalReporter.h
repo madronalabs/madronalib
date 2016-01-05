@@ -21,7 +21,7 @@ public:
     ~MLSignalReporter();
     
  	// add a signal view entry to the map and connect it to a new signal viewer.
-	MLSignalView* addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0);
+	MLSignalView* addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0, int frameSize = 1);
 	
 	// view all of the signals in the map.
 	void viewSignals();

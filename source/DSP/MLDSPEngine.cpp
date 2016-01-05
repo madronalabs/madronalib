@@ -104,16 +104,18 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
                 int mode = eMLRingBufferMostRecent;
                 MLPath procArg = RequiredPathAttribute(child, "proc");
                 MLSymbol outArg = RequiredAttribute(child, "output");
-                MLSymbol aliasArg = RequiredAttribute(child, "alias");
+				MLSymbol aliasArg = RequiredAttribute(child, "alias");
                 
                 if (procArg && outArg && aliasArg)
                 {
                     int bufLength = kMLRingBufferDefaultSize;
                     bufLength = child->getIntAttribute("length", bufLength);
+					int frameSize = 1;
+					frameSize = child->getIntAttribute("frame_size", frameSize);
                     MLPath procPath (procArg);
                     MLSymbol outSym (outArg);
                     MLSymbol aliasSym (aliasArg);
-                    publishSignal(procPath, outSym, aliasSym, mode, bufLength);
+                    publishSignal(procPath, outSym, aliasSym, mode, bufLength, frameSize);
                 }
             }
 		}
@@ -355,9 +357,9 @@ void MLDSPEngine::dump()
 #pragma mark published signals
 
 void MLDSPEngine::publishSignal(const MLPath & procAddress, const MLSymbol outputName, const MLSymbol alias,
-                                    int trigMode, int bufLength)
+                                    int trigMode, int bufLength, int frameSize)
 {
-	err e = addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength);
+	err e = addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength, frameSize);
 	if (e == OK)
 	{
 		MLProcList signalBuffers;
@@ -450,7 +452,7 @@ int MLDSPEngine::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	int nVoices = 0;
 	int r;
 	int minSamplesRead = 2<<16;
-	int samples = outSig.getWidth();
+
 	outSig.clear();
 	outSig.setConstant(false);
 	
@@ -483,7 +485,7 @@ int MLDSPEngine::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 				if (proc && proc->isEnabled())
 				{
 					MLProcRingBuffer& bufferProc = static_cast<MLProcRingBuffer&>(*proc);
-					r = bufferProc.readToSignal(outSig, samples, voice);
+					r = bufferProc.readToSignal(outSig, outSig.getWidth(), voice);
 					minSamplesRead = min(r, minSamplesRead);
 					voice++;
 				}

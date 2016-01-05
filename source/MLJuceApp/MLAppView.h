@@ -56,7 +56,7 @@ public:
 	// add the widget and add our Responder as a listener. The Responder can then do things in HandleWidgetAction().
 	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);
 	
-	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize);	
+	//void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize, int priority = 0, int frameSize = 1);	
 
 	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol propName, 
 		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);	

@@ -67,6 +67,8 @@ public:
 		return(out);
 	}
 	
+	inline float getOutput() { return y1; }
+	
 	float a0, a1, a2, b1, b2;
 	float x1, x2, y1, y2;
 	float mInvSr;

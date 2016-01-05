@@ -40,13 +40,14 @@ MLProc::err MLProc::prepareToProcess()
 	}
 	
 	// set size and rate of output signals
+	// TODO it looks like this allocation may be redundant because outputs are allocated in compile() already!?
 	for (int i=1; i<=outs; ++i)
 	{
 		MLSignal& out = getOutput(i);	
 		if (&out)
 		{
 			out.setRate(rate);		
-			MLSample* outData = out.setDims(blockSize);
+			MLSample* outData = out.setDims(blockSize, getOutputFrameSize(i));
 			if (!outData) 
 			{
 				e = memErr;

@@ -20,11 +20,17 @@ MLSignalReporter::~MLSignalReporter()
 
 // add another signal view to our map, to be serviced periodically.
 //
-MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority)
+MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority, int frameSize)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return nullptr;	
 	MLSignalView* pNewView = nullptr;
+	
+	// MLTEST
+	if(frameSize > 1)
+	{
+		debug() << "LOLOL FRAME SIZE > ONE\n";
+	}
 	
 	// first, find published signal if available and add read buffers. 
 	int bufSize = pEngine->getPublishedSignalBufferSize(alias);
@@ -36,9 +42,14 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, 
 		MLSymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
 		if (it == mSignalBuffers.end()) 
 		{
-			// add buffers so we can see if the signal has been changed since the last view
-			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
-			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize, voices));
+			// add buffers so we can read the signal from the buffer and
+			// see if the signal has been changed since the last view
+			// width: samples over time
+			// height: frame size
+			// depth: voices
+			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize, frameSize, voices));
+			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize, frameSize, voices));
+
 			mSignalBuffers2[alias]->fill(-1.f); // force initial view of zero signal
 		}
 		
@@ -69,20 +80,25 @@ bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToComp
 {
     bool result = false;
     float totalDiff = 0.0f;
-    for(int j = 0; j < voices; ++j)
+	int frameSizeToCompare = min(a.getHeight(), b.getHeight());
+	
+    for(int k = 0; k < voices; ++k)
     {
-        for(int i = 0; i<samplesToCompare; ++i)
-        {
-            float fa = a(i, j);
-            float fb = b(i, j);
-            float df = fa - fb;
-            totalDiff += df*df;
-            if(totalDiff > 0.001f)
-            {
-                result = true;
-				goto bail;
-            }
-        }
+		for(int j=0; j<frameSizeToCompare; ++j)
+		{
+			for(int i = 0; i<samplesToCompare; ++i)
+			{
+				float fa = a(i, j, k);
+				float fb = b(i, j, k);
+				float df = fa - fb;
+				totalDiff += df*df;
+				if(totalDiff > 0.00001f)
+				{
+					result = true;
+					goto bail;
+				}
+			}
+		}
     }
     
 bail:

@@ -152,7 +152,7 @@ public:
 	#pragma mark -- signals
 	//	
 	virtual MLProc::err addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-		const MLSymbol alias, int trigMode, int bufLength) = 0;
+		const MLSymbol alias, int trigMode, int bufLength, int frameSize) = 0;
 	virtual void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& buffers) = 0;
 	
 	// ----------------------------------------------------------------
@@ -266,12 +266,12 @@ public:
 	//
 	// methods of MLContainerBase
 	virtual MLProc::err addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-		const MLSymbol alias, int trigMode, int bufLength);
+		const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1);
 	virtual void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& buffers);
 
 private:
 	err addBufferHere(const MLPath & procName, MLSymbol outputName, MLSymbol alias, 
-		int trigMode, int bufLength);
+		int trigMode, int bufLength, int frameSize);
 	MLProc::err addProcAfter(MLSymbol className, MLSymbol alias, MLSymbol afterProc); 
 public:
 
@@ -303,7 +303,7 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark buffer pool
 	//
-	MLSignal* allocBuffer();
+	MLSignal* allocBuffer(int frameSize = 1);
 	void freeBuffer(MLSignal* pBuf);
 	
 protected:
@@ -405,7 +405,8 @@ public:
 		mLifeStart(kNoLife), 
 		mLifeEnd(kNoLife), 
 		mPublishedInput(0), 
-		mPublishedOutput(0) 
+		mPublishedOutput(0),
+		mFrameSize(1)
 		{};
 	~compileSignal(){};
 	
@@ -435,6 +436,7 @@ public:
 	int mLifeEnd;
 	int mPublishedInput;
 	int mPublishedOutput;
+	int mFrameSize;
 };
 
 // a class representing a single processing node with inputs and outputs when compiling.
@@ -459,7 +461,7 @@ public:
 class sharedBuffer
 {
 public:
-	sharedBuffer(){};
+	sharedBuffer() : mFrameSize(1) {};
 	~sharedBuffer(){};
 	bool canFit(compileSignal* sig);
 	void insert(compileSignal* sig);
@@ -467,6 +469,7 @@ public:
 	// which signals are contained in this shared buffer?
 	// sorted by signal lifetime. lifetimes cannot overlap.
 	std::list<compileSignal*> mSignals;
+	int mFrameSize;
 };
 
 // different functions to pack a signal into a list of shared buffers. 

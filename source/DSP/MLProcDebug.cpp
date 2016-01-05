@@ -129,7 +129,8 @@ void MLProcDebug::process(const int frames)
 	// TODO buffer
 	
 	// make copy of signal to hack rate change
-	MLSignal xmit = in;
+	MLSignal xmit;
+	xmit = in;
 	if(!xmit.getRate())
 	{
 		xmit.setRate(getContextSampleRate());

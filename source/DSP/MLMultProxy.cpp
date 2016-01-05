@@ -671,13 +671,13 @@ MLSymbol MLMultiContainer::getOutputName(int index)
 
 // add ring buffers to each copy so that the published signal can be read by clients in different threads.
 MLProc::err MLMultiContainer::addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-	const MLSymbol alias, int trigMode, int bufLength)
+	const MLSymbol alias, int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
-		e = getCopyAsContainer(i)->addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength);
+		e = getCopyAsContainer(i)->addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength, frameSize);
 		if (e != OK) break;
 	}
 	return e;

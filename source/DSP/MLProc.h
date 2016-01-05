@@ -399,6 +399,10 @@ protected:
 	
 	virtual void createInput(const int idx);
 	
+	// most signals have frame size 1. By overriding this a proc can tell the compiler that
+	// it needs output signals of a larger size.
+	virtual int getOutputFrameSize(const int outputIdx) { return 1; }
+	
 	// ----------------------------------------------------------------
 	// data
 	
