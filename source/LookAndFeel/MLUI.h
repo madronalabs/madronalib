@@ -124,12 +124,7 @@ inline juce::Colour signalToJuceColor(const MLSignal& sig)
 
 inline MLSignal juceColorToSignal(const juce::Colour& v)
 {
-	MLSignal s(4);
-	s[0] = v.getFloatRed();
-	s[1] = v.getFloatGreen();
-	s[2] = v.getFloatBlue();
-	s[3] = v.getFloatAlpha();
-	return s;
+	return MLSignal{v.getFloatRed(), v.getFloatGreen(), v.getFloatBlue(), v.getFloatAlpha()};
 }
 
 
