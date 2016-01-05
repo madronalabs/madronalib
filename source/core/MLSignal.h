@@ -64,10 +64,10 @@ typedef enum
 class MLSignal final
 {	
 public:
-	MLSignal();	
+	explicit MLSignal();	
 	MLSignal(const MLSignal& b);
-	MLSignal(int width, int height = 1, int depth = 1); 
-	MLSignal (std::initializer_list<float> values);
+	explicit MLSignal(int width, int height = 1, int depth = 1); 
+	explicit MLSignal (std::initializer_list<float> values);
 
 	// create a looped version of the signal argument, according to the loop type
 	MLSignal(MLSignal src, eLoopType loopType, int loopLength); 

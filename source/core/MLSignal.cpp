@@ -1449,7 +1449,8 @@ float MLSignal::getMax() const
 
 void MLSignal::dump(std::ostream& s, int verbosity) const
 {
-	s << "signal @ " << std::hex << this << std::dec << " [" << mWidth*mHeight*mDepth << " frames] : sum " << getSum() << "\n";
+	s << "signal @ " << std::hex << this << std::dec << 
+		" " << mWidth << "x" << mHeight << "x" << mDepth << " [" << mWidth*mHeight*mDepth << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;
