@@ -105,15 +105,22 @@ void MLProcRingBuffer::process(const int frames)
 				debug() << "MLProcRingBuffer: input size mismatch: " << inputFrameSize << " to our " << frameSize << " \n";
 			}
 			else
-			// write tall signal to 1D buffer, rotating frames
-			for(int i=0; i<framesToProcess; ++i)
 			{
-				// get one frame of source
-				for(int j=0; j<frameSize; ++j)
+				// MLTEST
+				// this is wrong! only writes first column of a 2d signal. HACK while 2d signal inputs are still too big.
+				// TODO fix that issue in compiler. 
+				framesToProcess = 1;
+				
+				// write tall signal to 1D buffer, rotating frames
+				for(int i=0; i<framesToProcess; ++i)
 				{
-					mSingleFrameBuffer[j] = x(i, j);
+					// get one frame of source
+					for(int j=0; j<frameSize; ++j)
+					{
+						mSingleFrameBuffer[j] = x(i, j);
+					}
+					written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)mSingleFrameBuffer.getConstBuffer(), frameSize );	
 				}
-				written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)mSingleFrameBuffer.getConstBuffer(), frameSize );	
 			}
 		}
 	}
@@ -124,24 +131,17 @@ void MLProcRingBuffer::process(const int frames)
 int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 {
 	int lastRead = 0;
-	int skipped = 0;
-	int available = 0;
-	int frameSize = getParam("frame_size");
-	
 	MLSample * outBuffer = outSig.getBuffer() + outSig.plane(plane);
-	
 	void * trashBuffer = (void *)mTrashSignal.getBuffer();
-	MLSample * trashbufferAsSamples = reinterpret_cast<MLSample*>(trashBuffer);
 	static MLSymbol modeSym("mode");
 	int mode = (int)getParam(modeSym);
-	bool underTrigger = false;
-	MLSample triggerVal = 0.f;
 		
+	int frameSize = getParam("frame_size");
 	int framesToRead = min(frames, (int)outSig.getWidth());
-	available = (int)PaUtil_GetRingBufferReadAvailable( &mBuf );
+	int framesAvailable = (int)PaUtil_GetRingBufferReadAvailable( &mBuf )/frameSize;
     
     // return if we have not accumulated enough signal.
-	if (available < framesToRead) return 0;
+	if (framesAvailable < framesToRead) return 0;
 	
 	// depending on trigger mode, trash samples up to the ones we will return.
 	switch(mode)
@@ -152,18 +152,18 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 
 		case eMLRingBufferMostRecent:			
 			// TODO modify pa ringbuffer instead of reading to trash buffer. 
-			PaUtil_ReadRingBuffer( &mBuf, trashBuffer, available - framesToRead*frameSize );  
-
-			// skipped += lastRead;		
+			PaUtil_ReadRingBuffer( &mBuf, trashBuffer, (framesAvailable - framesToRead)*frameSize );  
 		break;
 	}
 	
 	if(frameSize == 1)
 	{
+		// 1D read.
 		lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, outBuffer, framesToRead );
 	}
 	else
 	{
+		// 2D read.
 		int height = outSig.getHeight();
 		if(height < frameSize)
 		{
@@ -171,7 +171,6 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 			return 0;
 		}
 		
-		float* outPtr = outBuffer;		
 		int stride = outSig.getRowStride();
 		for(int i=0; i<framesToRead; ++i)
 		{
@@ -181,7 +180,8 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 				// read to temp buffer
 				PaUtil_ReadRingBuffer( &mBuf, mSingleFrameBuffer.getBuffer(), frameSize );
 				
-				// rotate into destination 
+				// rotate into one column of destination 
+				float* outPtr = outBuffer + i;		
 				for(int j=0; j<frameSize; ++j)
 				{
 					outPtr[j*stride] = mSingleFrameBuffer[j]; 
