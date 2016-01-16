@@ -135,13 +135,15 @@ long PaUtil_GetRingBufferWriteRegions( PaUtilRingBuffer *rbuf, long elementCount
 
 
 /***************************************************************************
-*/
+ */
 long PaUtil_AdvanceRingBufferWriteIndex( PaUtilRingBuffer *rbuf, long elementCount )
 {
-    /* we need to ensure that previous writes are seen before we update the write index */
-    PaUtil_WriteMemoryBarrier();
-    return rbuf->writeIndex = (rbuf->writeIndex + elementCount) & rbuf->bigMask;
+	/* we need to ensure that previous writes are seen before we update the write index */
+	PaUtil_WriteMemoryBarrier();
+	
+	return rbuf->writeIndex = (rbuf->writeIndex + elementCount) & rbuf->bigMask;
 }
+
 
 /***************************************************************************
 ** Get address of region(s) from which we can read data.
@@ -224,6 +226,65 @@ long PaUtil_WriteRingBufferConstant( PaUtilRingBuffer *rbuf, const float val, lo
     PaUtil_AdvanceRingBufferWriteIndex( rbuf, numWritten );
     return numWritten;
 }
+
+// TODO SSE
+inline void addFloatsToBuffer(float* pDest, const float *pSrc, int n)
+{
+	for(int i=0; i<n; ++i)
+	{
+		pDest[i] += pSrc[i];
+	}
+}
+
+inline void clearFloatsInBuffer(float* pDest, int n)
+{
+	for(int i=0; i<n; ++i)
+	{
+		pDest[i] = 0.f;
+	}
+}
+
+long PaUtil_WriteRingBufferWithOverlapAdd( PaUtilRingBuffer *rbuf, const float *srcData, long elementCount, long overlap )
+{
+	long size1, size2, floatsAdded;
+	float *data1, *data2;
+
+	// add elements and advance
+	//long saveIndex = rbuf->writeIndex;
+	floatsAdded = PaUtil_GetRingBufferWriteRegions( rbuf, elementCount, (void**)&data1, &size1, (void**)&data2, &size2 );
+	if( size2 > 0 )
+	{
+		addFloatsToBuffer(data1, srcData, size1);
+		srcData += size1;
+		addFloatsToBuffer(data2, srcData, size2);
+	}
+	else
+	{
+		addFloatsToBuffer(data1, srcData, size1);
+	}
+
+	PaUtil_AdvanceRingBufferWriteIndex( rbuf, elementCount );
+
+	// clear regions for next overlapped add
+	int clearElements = elementCount - overlap;
+	PaUtil_GetRingBufferWriteRegions( rbuf, clearElements, (void**)&data1, &size1, (void**)&data2, &size2 );
+	if( size2 > 0 )
+	{
+		clearFloatsInBuffer(data1, size1);
+		srcData += size1;
+		clearFloatsInBuffer(data2, size2);
+	}
+	else
+	{
+		clearFloatsInBuffer(data1, size1);
+	}
+	
+	// rewind to overlap
+	PaUtil_AdvanceRingBufferWriteIndex(rbuf, -overlap);
+	
+	return floatsAdded;
+}
+
 
 /***************************************************************************
  ** Return elements read. */

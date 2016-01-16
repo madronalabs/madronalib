@@ -135,6 +135,9 @@ long PaUtil_WriteRingBuffer( PaUtilRingBuffer *rbuf, const void *data, long elem
 //
 long PaUtil_WriteRingBufferConstant( PaUtilRingBuffer *rbuf, const float val, long elementCount );
 
+long PaUtil_WriteRingBufferWithOverlapAdd( PaUtilRingBuffer *rbuf, const float *srcData, long elementCount, long overlap );
+
+
 /** Read data from the ring buffer.
  
  @param rbuf The ring buffer.
