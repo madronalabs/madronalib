@@ -6,29 +6,15 @@
 //
 //
 
-#ifndef __Virta__MLProjection__
-#define __Virta__MLProjection__
+#pragma once
 
 #include <functional>
 #include "MLDSP.h"
+#include "MLInterval.h"
 
 // TODO replace MLRange with this stuff
 namespace ml
 {
-	// Intervals
-	
-	class Interval
-	{
-	public:
-		Interval(float x1, float x2) : mX1(x1), mX2(x2) {}
-		Interval(int x1, int x2) : mX1(x1), mX2(x2) {}
-		float mX1, mX2;
-	};
-	
-	inline bool within(float f, const Interval m) { return (f >= m.mX1)&&(f < m.mX2); }
-	
-	// Projections
-	
 	typedef std::function<float(float)> Projection;
 	
 	inline Projection compose(Projection a, Projection b)
@@ -94,5 +80,3 @@ namespace ml
 		}
 	};
 }
-
-#endif /* defined(__Virta__MLProjection__) */
