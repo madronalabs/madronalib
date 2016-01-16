@@ -13,6 +13,7 @@
 
 #include "pa_ringbuffer.h"
 #include "MLDSP.h"
+#include "MLSignal.h"
 
 class MLRingBuffer
 {
@@ -25,13 +26,13 @@ public:
 	int getRemaining();
 		
 	int write(const MLSample* pSrc, int samples);
+	int writeWithOverlapAdd(const MLSample* pSrc, int samples, int overlap);
 	int read(MLSample* pDest, int samples);
 	int readWithOverlap(MLSample* pDest, int samples, int overlap);
 
 	PaUtilRingBuffer mBuf;
-	float* pData;
+	MLSignal mData;
 };
-
 
 typedef std::unique_ptr<MLRingBuffer> MLRingBufferPtr;
 

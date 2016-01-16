@@ -5,14 +5,12 @@
 
 #include "MLRingBuffer.h"
 
-MLRingBuffer::MLRingBuffer() :
-	pData(0)
+MLRingBuffer::MLRingBuffer()
 {
 }
 
 MLRingBuffer::~MLRingBuffer()
 {
-	if (pData) delete[] pData;
 }
 
 void MLRingBuffer::clear()
@@ -22,18 +20,10 @@ void MLRingBuffer::clear()
 
 int MLRingBuffer::resize(int length)
 {
-	int r = 0;
 	int size = 1 << bitsToContain(length);
-	if (pData) delete[] pData;
-	pData = new MLSample[size];
-	
-	if (pData)
-	{
-		r = size;
-		PaUtil_InitializeRingBuffer( &mBuf, sizeof(MLSample), size, pData );	
-	}
-	
-	return r;
+	mData.setDims(size);
+	PaUtil_InitializeRingBuffer( &mBuf, sizeof(MLSample), size, mData.getBuffer() );	
+	return mData.getSize();
 }
 
 int MLRingBuffer::getRemaining()
@@ -44,9 +34,19 @@ int MLRingBuffer::getRemaining()
 int MLRingBuffer::write(const MLSample* pSrc, int samples)
 {
 	int r = 0;
-	if (pData)
+	if (mData.getSize() >= samples)
 	{
 		r = PaUtil_WriteRingBuffer( &mBuf, pSrc, samples );
+	}
+	return r;
+}
+
+int MLRingBuffer::writeWithOverlapAdd(const MLSample* pSrc, int samples, int overlap)
+{
+	int r = 0;
+	if (mData.getSize() >= samples)
+	{
+		r = PaUtil_WriteRingBufferWithOverlapAdd( &mBuf, pSrc, samples, overlap  );
 	}
 	return r;
 }
@@ -54,7 +54,7 @@ int MLRingBuffer::write(const MLSample* pSrc, int samples)
 int MLRingBuffer::read(MLSample* pDest, int samples)
 {
 	int r = 0;
-	if (pData)
+	if (mData.getSize() >= samples)
 	{
 		r = PaUtil_ReadRingBuffer( &mBuf, pDest, samples );
 	}
@@ -65,7 +65,7 @@ int MLRingBuffer::read(MLSample* pDest, int samples)
 int MLRingBuffer::readWithOverlap(MLSample* pDest, int samples, int overlap)
 {
 	int r = 0;
-	if (pData)
+	if (mData.getSize() >= samples)
 	{
 		r = PaUtil_ReadRingBufferWithOverlap( &mBuf, pDest, samples, overlap );
 	}
