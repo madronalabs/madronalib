@@ -1223,8 +1223,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
 		d = clamp(d, 0, 3);
-		float fineInterval = doFineAdjust ? 1.f : interval;
-		float minValChange = max(powf(10., -d), fineInterval);	
+		float minValChange = doFineAdjust ? powf(10., -d) : interval;
 		
 		// for dials without many possible values, slow down mouse movement
 		// as the inverse proportion to the number of values.
