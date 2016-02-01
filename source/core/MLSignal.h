@@ -29,6 +29,7 @@ typedef enum
 	kLoopType1DEnd = 0
 } eLoopType;
 
+
 // ----------------------------------------------------------------
 // A signal. A finite, discrete representation of data we will 
 // generate, modify, look at listen to, etc.

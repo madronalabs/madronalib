@@ -1516,6 +1516,7 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 	if(frameSize > 1)
 	{
 		debug() << "FRAME SIZE = " << frameSize << "\n";
+		debug() << "LENGTH = " << bufLength << "\n";
 	}
 	
 	e = addProcAfter("ringbuffer", alias, procName.head());

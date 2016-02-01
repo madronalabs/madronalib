@@ -16,7 +16,7 @@
 	//#include <tr1/memory>
 #endif
 
-#include "math.h"
+#include <math.h>
 #ifdef _WIN32
 	#define	MAXFLOAT	((float)3.40282346638528860e+38)
 #endif
@@ -112,8 +112,6 @@ MLSample* alignToCacheLine(const MLSample* p);
 int bitsToContain(int n);
 int ilog2(int n);
 
-// TODO make these interpolators lambdas , useful with signals
-
 inline MLSample lerp(const MLSample a, const MLSample b, const MLSample m)
 {
 	return(a + m*(b-a));
@@ -175,6 +173,7 @@ int MLisInfinite(double x);
 
 // ----------------------------------------------------------------
 #pragma mark min, max, clamp
+// TODO this stuff should be in MLMath or something
 // ----------------------------------------------------------------
 
 template <class c>
@@ -338,6 +337,12 @@ inline __m128 log2Approx4(__m128 x)
 #pragma mark  MLRange
 // ----------------------------------------------------------------
 
+// TODO this is not named well becuase a range of values is a common kind of expression. 
+// this is a kind of xform function. 
+// a mapping between intervals. 
+// look at how this got used so far, then decide new syntax based on that. 
+// also this should be a module.
+
 class MLRange
 {
 public:
@@ -360,6 +365,7 @@ public:
 	} 
 	bool getClip() const { return mClip; } 
 	
+	// no
 	void convertFrom(const MLRange& r)
 	{
 		float a, b, c, d;
@@ -372,6 +378,8 @@ public:
 		mMinOutput = min(c, d);
 		mMaxOutput = max(c, d);
 	}
+	
+	// no
 	void convertTo(const MLRange& r)
 	{
 		float a, b, c, d;

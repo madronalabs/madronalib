@@ -95,6 +95,8 @@ int MLisInfinite(double x)
 #endif
 }
 
+// TODO make functor we can easily make more of
+
 static uint32_t gMLRandomSeed = 0;
 
 inline void MLRandStep()
