@@ -9,6 +9,7 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include "MLDSP.h"
 #include "MLInterval.h"
 
@@ -52,6 +53,8 @@ namespace ml
 	// IntervalProjection: a functor that maps one interval to another with
 	// an optional mapping projection defined on (0, 1)->(0,1).
 	
+	// TODO how can we write these functors to be composable as well?
+	
 	class IntervalProjection
 	{
 	public:
@@ -78,5 +81,16 @@ namespace ml
 			mScaleB = (mB.mX2 - mB.mX1);
 			mOffsetB = mB.mX1;
 		}
+	};
+	
+	class TableProjection
+	{
+	public:
+		TableProjection(std::initializer_list<float> values);
+		float operator()(float f) const;
+		
+	private:
+		std::vector<float> mTable;
+	
 	};
 }
