@@ -47,7 +47,7 @@ MLDrawing::MLDrawing()
 	mLineColor = ( myLookAndFeel->findColour(MLLookAndFeel::darkLabelColor));
 	Colour bg = myLookAndFeel->findColour(MLLookAndFeel::backgroundColor);
 	
-	mLightColor =  myLookAndFeel->findColour(MLLookAndFeel::labelColor);
+	mLightColor =  myLookAndFeel->findColour(MLLookAndFeel::lightLabelColor);
 	mDarkColor =  myLookAndFeel->findColour(MLLookAndFeel::darkLabelColor);
 }
 

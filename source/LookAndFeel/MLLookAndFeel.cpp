@@ -373,17 +373,16 @@ void MLLookAndFeel::drawNumber (Graphics& g, const char* number, const int x, co
 	g.setFont (f);
 	g.setColour(c);
 	
-	//TEMP TODO get actual size and position
-	g.drawFittedText (number, x, y, w, h, j, 1, 1.);
+	g.drawFittedText (number, x, y, w, h, j, 1, 1.);	
 	
-	/*
-	// TEST
-	Path tbounds;
-	const Rectangle<float> b (x + 0.5f, y + 0.5f, w - 1., h - 1.);	
-	tbounds.addRectangle(b);
-	g.setColour(Colours::red);	
-	g.strokePath(tbounds, PathStrokeType(0.5f));
-	*/
+	if(0)
+	{
+		Path tbounds;
+		const Rectangle<float> b (x + 0.5f, y + 0.5f, w - 1., h - 1.);	
+		tbounds.addRectangle(b);
+		g.setColour(Colours::blue);	
+		g.strokePath(tbounds, PathStrokeType(0.5f));
+	}
 }
 
 const float kSignSize = 0.65f;

@@ -66,7 +66,10 @@ MLDial::MLDial () :
 	mDoNumber(true),
 	mDigits(3), mPrecision(2),
 	mBipolar(false),
+	mHideZero(false),
+	mCenterNumber(false),
 
+	mTextScale(1.),
 	mTextSize(0.),
 	mMaxNumberWidth(0.),
 
@@ -174,6 +177,11 @@ void MLDial::setRotaryParameters (const float startAngleRadians,
     rotaryStart = start;
     rotaryEnd = end;
     rotaryStop = stopAtEnd;
+}
+
+void MLDial::setNumberPositionOffset(float x, float y)
+{
+	mNumberPositionOffset = MLPoint(x, y);
 }
 
 void MLDial::setVelocityBasedMode (const bool velBased) throw()
@@ -606,10 +614,10 @@ void MLDial::paint (Graphics& g)
     if(0)
     {
         Path P;
-        const Rectangle<int> & br ( getLocalBounds());	
+        const Rectangle<int> & br (getLocalBounds());	
         P.addRectangle(br);
         g.setColour(Colours::red);	
-        g.strokePath(P, PathStrokeType(1.f));
+        g.strokePath(P, PathStrokeType(2.f));
     }
 }
 
@@ -1049,20 +1057,39 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	}
     
 	// draw number text over composited images
-	if (1)//(mParameterLayerNeedsRedraw)
+	bool hide = (mHideZero && (getFloatProperty("value") == 0.f));
+	
+	if(1)//(mParameterLayerNeedsRedraw)
 	{
-		if (myLookAndFeel->mDrawNumbers && mDoNumber)
+		if (myLookAndFeel->mDrawNumbers && mDoNumber && !hide)
 		{
 			// draw background under text
 			if (!isOpaque())
 				myLookAndFeel->drawBackgroundRect(g, this, mRotaryTextRect);
-            
+			
 			float textSize = mTextSize;
 			float op = isEnabled() ? 1.f : 0.4f;
 			const char* numBuf = myLookAndFeel->formatNumber(getFloatProperty("value"), mDigits, mPrecision, mDoSign, mValueDisplayMode);
-			myLookAndFeel->drawNumber(g, numBuf, tleft, ttop, boundsRect.getWidth() - tleft, textSize,
-                                      findColour(MLLookAndFeel::outlineColor).withAlpha(op));
+			
+			const Justification j = mCenterNumber ? Justification::centredTop : Justification::topLeft;
+			
+			int nx = mRotaryTextRect.x();
+			int ny = mRotaryTextRect.y();
+			int nw = mRotaryTextRect.width();
+			
+			myLookAndFeel->drawNumber(g, numBuf, nx, ny, nw, textSize,
+									  findColour(MLLookAndFeel::outlineColor).withAlpha(op), j);
 		}
+	}
+	
+	// draw outline
+	if(0)
+	{
+		Path P;
+		const Rectangle<int> & br (getLocalBounds());	
+		P.addRectangle(br);
+		g.setColour(Colours::red);	
+		g.strokePath(P, PathStrokeType(2.f));
 	}
     
 	mParameterLayerNeedsRedraw = mStaticLayerNeedsRedraw = false;
@@ -1916,6 +1943,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 	if(pC)
 	{
  		MLWidget::resizeWidget(b, u);
+		mNumberPositionOffsetPixels = mNumberPositionOffset*u;
      
 		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 		const MLRect uBounds = getGridBounds();
@@ -1933,10 +1961,18 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		mMargin = myLookAndFeel->getSmallMargin() * u;
 		mTrackThickness = (int)((float)kMLTrackThickness * u / 48.);
 		mLineThickness = u/192.f;
-		mTextSize = (float)u*myLookAndFeel->getDialTextSize(*this);
-        mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign, mValueDisplayMode)*mTextSize + 2.;
-        mMaxNumberWidth &= (~1); // make even
-        
+		mTextSize = (float)u*myLookAndFeel->getDialTextSize(*this)*mTextScale;
+
+		if(mDoNumber)
+		{
+			mMaxNumberWidth = myLookAndFeel->calcMaxNumberWidth(mDigits, mPrecision, mDoSign, mValueDisplayMode)*mTextSize + 2.;
+			mMaxNumberWidth &= (~1); // make even
+		}
+		else
+		{
+			mMaxNumberWidth = 0;
+		}
+			
         bool isSmall = (uBounds.height() <= 0.5f);
 		
 		// get component bounds
@@ -1969,9 +2005,11 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			cy = height/2;//cx;
 			mDialCenter = Vec2(cx, cy);
 
+			/*
             // adjust size to make space for numbers
             float newLeft = left;
-            if(!isSmall)
+			 // MLTEST
+   //         if(!isSmall)
             {
                 if (uBounds.height() <= 0.75f)
                 {
@@ -1991,11 +2029,19 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
                     width = cx + mMaxNumberWidth;
                 }			
 			}
-            
-			cBounds = Rectangle<int>(newLeft, top, (int)width, (int)height);	
-			MLRect tr(newLeft, top, (int)width, (int)height);
+            */
+			
+			mRotaryTextRect = MLRect(cx + mNumberPositionOffsetPixels.x(), cy + mNumberPositionOffsetPixels.y(), mMaxNumberWidth, height - cy);
+			
+			
+			cBounds = Rectangle<int>(left, top, (int)width, (int)height);
+			MLRect tr(left, top, (int)width, (int)height);
+			if(mDoNumber)
+			{
+				cBounds = cBounds.getUnion(MLToJuceRectInt(mRotaryTextRect + MLPoint(left, top)));
+				tr.setToUnionWith(mRotaryTextRect + MLPoint(left, top)); // hmmmm
+			}			
 			trackRect = tr;
-			mRotaryTextRect = MLRect(cx, cy, mMaxNumberWidth, height - cy);
 		}
  		else if(smallThumbs)
         // linear with fixed track size, small thumbs, border expands 

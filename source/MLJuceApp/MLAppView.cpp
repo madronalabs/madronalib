@@ -147,7 +147,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(button, displayName, sizeMultiplier);
+		addLabelAbove(button, displayName, propName.append("_label"), sizeMultiplier);
 	}
     
 	return button;
@@ -165,7 +165,7 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(button, displayName, sizeMultiplier);
+		addLabelAbove(button, displayName, propName.append("_label"), sizeMultiplier);
 	}
     
 	return button;
@@ -246,7 +246,7 @@ MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const fl
 	return label;
 }
 
-MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const float sizeMultiplier, int font, Vec2 offset)
+MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, MLSymbol widgetName, const float sizeMultiplier, int font, Vec2 offset)
 {
 	MLLabel* label = new MLLabel(displayName);
 	if (label)
@@ -274,8 +274,7 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, const fl
 		top = (roundf(top/gridSize))*gridSize;
 		rr.setTop(top);
 		
-		addWidgetToView(label, rr);
-
+		addWidgetToView(label, rr, widgetName);
 	}
 	return label;
 }

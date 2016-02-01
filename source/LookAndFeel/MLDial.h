@@ -130,6 +130,8 @@ public:
                               const float endAngleRadians,
                               const bool stopAtEnd);
 
+	void setNumberPositionOffset(float x, float y);
+	
     void setMouseDragSensitivity (const int distanceForFullScaleDrag);
     void setVelocityBasedMode (const bool isVelocityBased) throw();
     void setVelocityModeParameters (const float sensitivity = 1.0,
@@ -187,6 +189,9 @@ public:
 	void setTopLeft(const bool n) {mTopLeft = n;}
 	void setDoNumber(const bool n) {mDoNumber = n;}
 	void setBipolar(const bool n) {mBipolar = n;}
+	void setHideZero(const bool n) {mHideZero = n;}
+	void setCenterNumber(const bool n) {mCenterNumber = n;}
+	void setTextScale(float f) {mTextScale = f;}
 
 	void addDetent(const float value, const float width = 0.5f);
 	void snapToDetents(const bool snap);
@@ -301,11 +306,16 @@ protected:
 	bool mDoSign;
 	bool mDoNumber;
 	int	mDigits, mPrecision;
-	bool mBipolar;
+	bool mBipolar;	
+	bool mHideZero;
+	bool mCenterNumber;
 	
+	float mTextScale;
 	float mTextSize;
 	int mMaxNumberWidth;
 
+	MLPoint mNumberPositionOffset;
+	MLPoint mNumberPositionOffsetPixels;
 	MLRect trackRect;
 	MLRect mRotaryTextRect;
 	String textSuffix;

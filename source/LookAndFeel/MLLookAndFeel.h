@@ -59,6 +59,7 @@ public:
 		outlineColor					= 0x10A0004,    // outlines of controls
 		labelColor						= 0x10A0005,    // small text labels
 		textHeaderColor					= 0x10A0015,    // big text headers
+		lightLabelColor					= 0x10A0016,    // light drawings
 		darkLabelColor					= 0x10A0006,    // sections outlines, drawings
 		highlightColor					= 0x10A0007,    // color to lighten things
 		shadowColor						= 0x10A0008,    // color to darken things
