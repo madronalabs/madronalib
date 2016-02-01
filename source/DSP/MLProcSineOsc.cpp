@@ -50,7 +50,7 @@ MLProcSineOsc::~MLProcSineOsc()
 
 void MLProcSineOsc::clear()
 {
-    mOsc.clear();
+    mOsc.setPhase(0);
 }
 
 void MLProcSineOsc::doParams()
