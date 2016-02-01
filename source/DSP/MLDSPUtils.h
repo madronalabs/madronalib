@@ -97,6 +97,8 @@ public:
 		ka = clamp(kMLTwoPi*(1.0f/tAttack)*mInvSr, 0.f, 0.25f);
 		kb = clamp(kMLTwoPi*(1.0f/tRelease)*mInvSr, 0.f, 0.25f);
 	}
+	
+	// TODO deprecate
     inline MLSample processSample(float x)
     {
         float dxdt = x - y1;
@@ -106,10 +108,39 @@ public:
         y1 = out;
         return(out);
     }
+	
+	inline MLSample operator()(float x)
+	{
+		float dxdt = x - y1;
+		float s = (dxdt < 0.f ? -1.f : 1.f);
+		float k = ((1.f - s)*kb + (1.f + s)*ka)*0.5f;
+		float out = y1 + k*dxdt;
+		y1 = out;
+		return(out);
+	}	
     
 	float ka, kb;
 	float y1;
 	float mInvSr;
+};
+
+// ----------------------------------------------------------------
+#pragma mark MLDifference
+
+class MLDifference
+{
+public:
+	MLDifference() : mX1(0) {}
+	~MLDifference(){}
+	
+	inline MLSample operator()(float x)
+	{
+		float d = x - mX1;
+		mX1 = x;
+		return d;
+	}
+private:
+	float mX1;
 };
 
 // ----------------------------------------------------------------
@@ -120,13 +151,14 @@ public:
 class MLSineOsc
 {
 public:
-    static const float kIntDomain, kRootX, kOneSixth, kRange, kDomain, kScale, kDomainScale, kFlipOffset;
-    MLSineOsc() : mStep32(0) { clear(); }
+    static const float kIntDomain, kRootX, kOneSixth, kRange, kDomain, kScale, kDomainScale, kPhaseInvScale, kFlipOffset;
+    MLSineOsc() : mStep32(0), mOmega32(0) { }
     ~MLSineOsc(){}
     
-	inline void clear() { mOmega32 = 0; }
     inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
-    inline void setFrequency(MLSample f) { mStep32 = (int)(mInvSrDomain * f); }
+    inline void setFrequency(float f) { mStep32 = (int)(mInvSrDomain * f); }
+	inline void setPhase(float f) { mOmega32 = f*kPhaseInvScale; }
+	
     inline MLSample processSample()
     {
         float x, fOmega;
@@ -137,7 +169,7 @@ public:
         // scale to sin approx domain
         fOmega = mOmega32 * kDomainScale + kRootX;
         
-        // reverse upper half to make triangle wave
+        // reverse upper half to make sin wave approx
         x = fOmega + fSignBit(mOmega32)*(kFlipOffset - fOmega - fOmega);
         
         // sine approx.
@@ -157,35 +189,61 @@ private:
 class MLTriOsc
 {
 public:
-    static const float kIntDomain, kDomainScale;
-    MLTriOsc() : mStep32(0) { clear(); }
-    ~MLTriOsc(){}
-    
+	static const float kIntDomain, kDomainScale;
+	MLTriOsc() : mStep32(0) { clear(); }
+	~MLTriOsc(){}
+	
 	inline void clear() { mOmega32 = 0; }
-    inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
-    inline void setFrequency(MLSample f) { mStep32 = (int)(mInvSrDomain * f); }
-    inline MLSample processSample()
-    {
-        float x, fOmega;
-        
-        // add increment with wrap
-        mOmega32 += mStep32;
-        
-        // scale to [-2, 2]
-        fOmega = mOmega32 * kDomainScale;
-        
-        // reverse upper half to make triangle wave
-        float s = fSignBit(mOmega32);
-        x = 2.f*s*fOmega - fOmega;
-       
-        // and center
-        x -= 1.0f;
-
-        return x;
-    }
+	inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
+	inline void setFrequency(MLSample f) { mStep32 = (int)(mInvSrDomain * f); }
+	inline MLSample processSample()
+	{
+		float x, fOmega;
+		
+		// add increment with wrap
+		mOmega32 += mStep32;
+		
+		// scale to [-2, 2]
+		fOmega = mOmega32 * kDomainScale;
+		
+		// reverse upper half to make triangle wave
+		float s = fSignBit(mOmega32);
+		x = 2.f*s*fOmega - fOmega;
+		
+		// and center
+		x -= 1.0f;
+		
+		return x;
+	}
 private:
 	int32_t mOmega32, mStep32;
-    float mInvSrDomain;
+	float mInvSrDomain;
+};
+
+// ----------------------------------------------------------------
+#pragma mark MLPhaseOsc
+
+class MLPhaseOsc
+{
+public:
+	static const float kIntDomain, kDomainScale;
+	MLPhaseOsc() : mStep32(0) { clear(); }
+	~MLPhaseOsc(){}
+	
+	inline void clear() { mOmega32 = 0; }
+	inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
+	inline void setFrequency(MLSample f) { mStep32 = (int)(mInvSrDomain * f); }
+	inline MLSample processSample()
+	{
+		// add increment with wrap
+		mOmega32 += mStep32;
+		
+		// scale to [0, 1]
+		return mOmega32*kDomainScale + 0.5f;
+	}
+private:
+	int32_t mOmega32, mStep32;
+	float mInvSrDomain;
 };
 
 // ----------------------------------------------------------------

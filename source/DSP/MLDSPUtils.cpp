@@ -216,6 +216,7 @@ const float MLSineOsc::kRange = kRootX - kRootX*kRootX*kRootX*kOneSixth;
 const float MLSineOsc::kDomain = kRootX*4.f;
 const float MLSineOsc::kScale = 1.f/kRange;
 const float MLSineOsc::kDomainScale = kDomain/kIntDomain;
+const float MLSineOsc::kPhaseInvScale = kIntDomain;
 const float MLSineOsc::kFlipOffset = kRootX*2.f;
 
 // ----------------------------------------------------------------
@@ -223,6 +224,12 @@ const float MLSineOsc::kFlipOffset = kRootX*2.f;
 
 const float MLTriOsc::kIntDomain = powf(2.f, 32.f);
 const float MLTriOsc::kDomainScale = 4.f/kIntDomain;
+
+// ----------------------------------------------------------------
+#pragma mark MLPhaseOsc
+
+const float MLPhaseOsc::kIntDomain = powf(2.f, 32.f);
+const float MLPhaseOsc::kDomainScale = 1.f/kIntDomain;
 
 // ----------------------------------------------------------------
 #pragma mark MLLinearDelay
