@@ -353,6 +353,11 @@ bool MLSymbol::endsWith (const MLSymbol b) const
 	return true;
 }
 
+MLSymbol MLSymbol::append(const std::string& b) const
+{
+	return MLSymbol(getString() + std::string(b));
+}
+
 bool MLSymbol::hasWildCard() const
 {
 	const std::string& str = getString();

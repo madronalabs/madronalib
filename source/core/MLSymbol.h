@@ -162,6 +162,7 @@ public:
 	
 	bool beginsWith (const MLSymbol b) const;
 	bool endsWith (const MLSymbol b) const;
+	MLSymbol append(const std::string& b) const;
 	bool hasWildCard() const;
 	MLSymbol withWildCardNumber(int n) const;
 	MLSymbol withFinalNumber(int n) const;
