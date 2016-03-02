@@ -1,12 +1,12 @@
 //
-//  MLInterval.cpp
+//  MLInterpolator.cpp
 //  madronalib
 //
 //  Created by Randy Jones on 12/27/15.
 //
 //
 
-#include "MLInterval.h"
+#include "MLInterpolator.h"
 
 namespace ml
 {
