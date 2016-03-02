@@ -68,7 +68,7 @@ public:
 	MLPublishedParam(const MLPath & address, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx);
 	~MLPublishedParam();
 	
-	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, bool log, MLParamValue zt);
+	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, bool log, MLParamValue zt, MLParamValue offset);
 	void addAddress(const MLPath & address, const MLSymbol name);
 
 	MLSymbol getType() { return mType; }
@@ -117,6 +117,7 @@ private:
 	MLParamValue mRangeHi;
 	MLParamValue mInterval;
 	MLParamValue mZeroThreshold;
+	MLParamValue mOffset;
 	MLParamValue mDefault;
 	bool mFlip;
 

@@ -14,12 +14,13 @@ MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name,
 	mAutomatable(true),
 	mFlip(false)
 {
-	setRange(0.f, 1.f, 0.01f, false, 0.f);
+	setRange(0.f, 1.f, 0.01f, false, 0.f, 0.f);
 	mUnit = kJucePluginParam_Generic;
 	mWarpMode = kJucePluginParam_Linear;
 	mParamValue = 0.f;
 	mDefault = 0.f;
 	mZeroThreshold = 0.f - (MLParamValue)(2 << 16);
+	mOffset = 0;
 	mGroupIndex = -1;
 	addAddress(procPath, name);
 	
@@ -39,12 +40,13 @@ MLPublishedParam::~MLPublishedParam()
 
 }
 
-void MLPublishedParam::setRange(MLParamValue low, MLParamValue high, MLParamValue v, bool log, MLParamValue zt)
+void MLPublishedParam::setRange(MLParamValue low, MLParamValue high, MLParamValue v, bool log, MLParamValue zt, MLParamValue offset)
 { 
 	mRangeLo = low; 
 	mRangeHi = high; 
 	mInterval = v; 
 	mZeroThreshold = zt;
+	mOffset = offset;
 	mFlip = (low > high);
 	
 	// TODO take warp mode as arg
@@ -142,11 +144,13 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 		case kJucePluginParam_Linear:
 		default:
 			p = (val - lo) / (hi - lo);
+			p += mOffset;
 			break;
 		case kJucePluginParam_Exp:
 			val = clamp(val, lo, hi);
 			val = max(mZeroThreshold, val);
 			p = logf(val/lo) / logf(hi/lo);
+			p += mOffset;
 			break;
 		case kJucePluginParam_ExpBipolar:
 			bool positiveHalf = val > 0.;
@@ -183,6 +187,7 @@ MLParamValue MLPublishedParam::setValueAsLinearProportion (MLParamValue pIn)
 	MLParamValue pBipolar, valExp;
 
 	float p = mFlip ? (1.0f - pIn) : pIn;
+	p -= mOffset;
 	switch (mWarpMode)
 	{
 		case kJucePluginParam_Linear:
