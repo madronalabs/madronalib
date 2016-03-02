@@ -13,6 +13,7 @@
 class MLProcPan : public MLProc
 {
 public:
+	MLProc::err resize();
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
@@ -36,13 +37,12 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcPan::calcCoeffs(void) 
+MLProc::err MLProcPan::resize() 
 {
     int sr = getContextSampleRate();
     mSlewLimiter.setSampleRate(sr);
     mSlewLimiter.setOnePole(500);
-	
-	mParamsChanged = false;
+	return MLProc::OK;
 }
 
 void MLProcPan::process(const int samples)
@@ -52,17 +52,12 @@ void MLProcPan::process(const int samples)
 	MLSignal& out1 = getOutput();
 	MLSignal& out2 = getOutput(2);
 	float in, p, pos;
-	const float half = 0.5f;
-    
-	// coeffs
-	if (mParamsChanged) calcCoeffs();
-	calcCoeffs();
-    
+   
 	for (int n=0; n<samples; ++n)
 	{
 		in = x[n];
-        pos = mSlewLimiter.processSample(pan[n]);
-		pos = pos * half + half;
+        pos = mSlewLimiter.processSample(clamp(pan[n], -1.f, 1.f));
+		pos = pos*0.5f + 0.5f;
 		p = in*pos;
 		out1[n] = in - p;
 		out2[n] = p;

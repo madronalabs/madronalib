@@ -104,11 +104,11 @@ void MLProcContainer::makeRoot(const MLSymbol name)
 
 void MLProcContainer::compile()
 {
-	const bool dumpOutputs = true;
-	const bool verbose = true;
+	const bool dumpOutputs = false;
+	const bool verbose = false;
 	err e = OK;
 
-    debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
+    // debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
@@ -1511,12 +1511,12 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 {
 	err e = OK;
 	
-	debug() << "add buffer here from:" << procName << " called " << alias << " output " << outputName << "\n";
+	//debug() << "add buffer here from:" << procName << " called " << alias << " output " << outputName << "\n";
 
 	if(frameSize > 1)
 	{
-		debug() << "FRAME SIZE = " << frameSize << "\n";
-		debug() << "LENGTH = " << bufLength << "\n";
+		//debug() << "FRAME SIZE = " << frameSize << "\n";
+		//debug() << "LENGTH = " << bufLength << "\n";
 	}
 	
 	e = addProcAfter("ringbuffer", alias, procName.head());
@@ -1613,7 +1613,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 	const MLSymbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 
-	debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
+	// debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
 	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);
@@ -2104,6 +2104,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			MLParamValue low = 0.f;
 			MLParamValue high = 1.f;
 			MLParamValue interval = 0.01f;
+			MLParamValue offset = 0.0f;
 			int logAttr = 0;
 			MLParamValue zeroThresh = -2<<16;
 			low = (MLParamValue)child->getDoubleAttribute("low", low);
@@ -2111,7 +2112,8 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			interval = (MLParamValue)child->getDoubleAttribute("interval", interval);
 			logAttr = child->getIntAttribute("log", logAttr);
 			zeroThresh = (MLParamValue)child->getDoubleAttribute("zt", zeroThresh);
-			p->setRange(low, high, max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh);
+			offset = (MLParamValue)child->getDoubleAttribute("offset", offset);
+			p->setRange(low, high, max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh, offset);
 		}
 		else if(child->hasTagName("default"))
 		{

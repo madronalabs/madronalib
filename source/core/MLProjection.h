@@ -62,6 +62,8 @@ namespace ml
 		// projection c is defined on [0, 1)->[0, 1) and can add clipping or nonlinear projections. 
 		IntervalProjection(const Interval a, const Interval b, Projection c = projections::linear) : mA(a), mB(b), mMappingProjection(c) { build(); }
 		
+		// TODO destruction should be trivial but a destructor is being generated, find out why
+		
 		inline float operator()(float f) const 
 		{
 			return mMappingProjection(f*mScaleA + mOffsetA)*mScaleB + mOffsetB;

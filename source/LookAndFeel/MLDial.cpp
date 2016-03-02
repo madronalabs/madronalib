@@ -1654,7 +1654,7 @@ void MLDial::findDialToDrag(const int x, const int y)
 
 void MLDial::addDetent(const float value, const float width)
 {
-    mDetents.push_back(MLDialDetent(value, width));
+	mDetents.push_back(MLDialDetent(value, width));
 }
 
 void MLDial::snapToDetents(const bool snap)

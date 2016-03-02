@@ -93,7 +93,7 @@ void MLProcDelayOutput::doParams()
 	
 	if (myInputProc)
 	{
-//debug() << "MLProcDelayOutput " << getName() << " doParams found delay proc " << delayName << "!\n";
+debug() << "MLProcDelayOutput " << getName() << " doParams found delay proc " << delayName << "!\n";
 		mpDelayInputProc = static_cast<MLProcDelayInput*>(&(*myInputProc));
 		
 		if(mpDelayInputProc)
@@ -102,7 +102,12 @@ void MLProcDelayOutput::doParams()
 			MLSignal& buffer = mpDelayInputProc->getBuffer();
 			mLengthMask = buffer.getWidth() - 1;
 			
-//debug() << "MLProcDelayOutput::doParams found buffer, length mask " << std::hex << mLengthMask << std::dec << "\n";
+			if(buffer.getWidth() == 0)
+			{
+				debug() << "NULL size!\n";
+			}
+			
+debug() << "MLProcDelayOutput::doParams found buffer, length mask " << std::hex << mLengthMask << std::dec << "\n";
 		}
 	}
 	else
@@ -118,7 +123,7 @@ void MLProcDelayOutput::doParams()
 	{
 		mVectorDelay = 0;
 	}
-//debug() << "MLProcDelayOutput: vector delay " << 	mVectorDelay << "\n";
+debug() << "MLProcDelayOutput: vector delay " << 	mVectorDelay << "\n";
 		
 	mParamsChanged = false;
 }

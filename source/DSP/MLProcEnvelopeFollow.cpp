@@ -102,9 +102,6 @@ void MLProcEnvelopeFollow::process(const int samples)
 			}
 		}
 		trig[n] = (mTrig) ? 1.0f : 0.f;
-		
-		// test
-		// use asym filter, vactrol
 		env[n] = (mEnvFilter.processSample(y));
 	}
 	

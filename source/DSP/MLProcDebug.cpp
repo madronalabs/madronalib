@@ -15,7 +15,7 @@
 // temporary OSC send code. 
 // Procs should really not send OSC from the process thread. Instead the DSP engine can keep track of 
 // some procs and send into out OSC after the main graph processing, from a different thread. 
-#define SEND_OSC	1
+#define SEND_OSC	DEBUG
 
 // ----------------------------------------------------------------
 // class definition

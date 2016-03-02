@@ -61,6 +61,7 @@ public:
 			// made visible next time display() is called.
 			else
 			{
+				
 #if defined (NDEBUG) || defined (_WINDOWS)
 				// in case display() is never called, don’t allow local stream
 				// to grow without limit.
@@ -99,7 +100,7 @@ private:
 // Send a message to the application’s or plugin’s debug output stream.
 // in release builds this will be disabled completely.
 //
-// extern MLTextStream& debug(void);
+// extern MLTextStream& debug();
 #ifdef debug
 #undef debug
 #endif
