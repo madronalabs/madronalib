@@ -24,6 +24,7 @@ enum MLValueDisplayMode
 	eMLNumSeconds,
 	eMLNumHertz,
 	eMLNumPitch,
+	eMLNumPitch2,
 	eMLNumDecibels,
 	eMLNumPan,
 	eMLNumRatio

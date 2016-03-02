@@ -235,6 +235,11 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 
 char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, const MLValueDisplayMode mode)  throw()
 {
+	const std::vector<std::string> pitchNames
+	{
+		"A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
+	};
+
 	const int bufLength = 16;
 	static char numBuf[bufLength] = {0};
 	static char format[bufLength] = {0};
@@ -282,6 +287,7 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		}
 		break;
 		
+		// just show As
 		case eMLNumPitch:
 		{
 			int octave = log2(number/(27.5f - 0.01f));
@@ -293,10 +299,30 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 			}
 			else
 			{
+				snprintf(format, bufLength,  "X-0%1d.%1df", m, p);
+			}
+			format[0] = 37;	// '%'			
+			snprintf(numBuf, bufLength, format, tweakedNumber);		
+		}
+		break;
+			
+		// show all notes
+		case eMLNumPitch2:
+		{
+			int note = log2f(number/(27.5f - 0.01f))*12.f;
+			float quantizedNotePitch = (pow(2.f, (float)note/12.f) * 27.5f);
+			float distFromNote = fabs (number - quantizedNotePitch);
+			if (distFromNote < 0.01)
+			{			
+				const int octaveFromC = (note - 3)/12;
+				snprintf(format, bufLength, "X-0%1d.%1df\n%s%d", m, p, pitchNames[note%12].c_str(), octaveFromC);
+			}
+			else
+			{
 				snprintf(format,bufLength,  "X-0%1d.%1df", m, p);
 			}
 			format[0] = 37;	// '%'			
-			sprintf(numBuf, format, tweakedNumber);		
+			snprintf(numBuf, bufLength, format, tweakedNumber);		
 		}
 		break;
 			
