@@ -65,7 +65,7 @@ typedef enum
 class MLSignal final
 {	
 public:
-	explicit MLSignal();	
+	explicit MLSignal(); 
 	MLSignal(const MLSignal& b);
 	explicit MLSignal(int width, int height = 1, int depth = 1); 
 	explicit MLSignal (std::initializer_list<float> values);
@@ -76,12 +76,12 @@ public:
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
 
-	MLSample* getBuffer (void) const
+	float* getBuffer (void) const
 	{	
 		return mDataAligned;
 	}
 
-	const MLSample* getConstBuffer (void) const
+	const float* getConstBuffer (void) const
 	{	
 		return mDataAligned;
 	}
@@ -270,8 +270,14 @@ public:
 	// setFrame() - set the 2D frame i to the incoming signal.
 	void setFrame(int i, const MLSignal& src);
 
+	// return 1, 2 or 3 element matrix with dimensions
+	MLSignal getDims();
+
 	// set dims.  return data ptr, or 0 if out of memory.
 	MLSample* setDims (int width, int height = 1, int depth = 1);
+	
+	// same but with (w, h, d) signal
+	MLSample* setDims (const MLSignal& whd);
 	
 	MLRect getBoundsRect() const { return MLRect(0, 0, mWidth, mHeight); }
 	
@@ -313,6 +319,7 @@ public:
 	void subtract(const MLSignal& b);
 	void multiply(const MLSignal& s);	
 	void divide(const MLSignal& s);	
+
 
 	// signal / scalar operators
 	void fill(const MLSample f);
@@ -393,6 +400,17 @@ public:
 	inline int getRowStride() const { return 1<<mWidthBits; }
 	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
 	
+	// MLTEST new business
+	inline MLSignal getRow(int i)
+	{
+		int w = getWidth();
+		MLSignal r(w);
+		//r.copyFrom( mDataAligned+row(i) );
+		float* pRow = mDataAligned+row(i);
+		std::copy(pRow, pRow+w, r.mDataAligned);
+		return r;
+	}
+	
 	// utilities for getting pointers to the aligned data as other types.
 	uint32_t* asUInt32Ptr(void) const
 	{
@@ -440,6 +458,7 @@ private:
 	MLSample* allocateData(int size);
 	MLSample* initializeData(MLSample* pData, int size);
 	
+	// ----------------------------------------------------------------
 	// data	
 	
 	// mask for array lookups. By setting to zero, the signal becomes a constant.
@@ -476,6 +495,38 @@ typedef std::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);
+
+namespace ml
+{
+	extern MLSignal nullSignal;
+}
+
+#pragma mark new business
+// new MLTEST
+inline MLSignal add(const MLSignal& a, const MLSignal& b)
+{
+	MLSignal r(a);
+	r.add(b);
+	return r;
+}
+
+// return the matrix transpose of a 1D or 2D signal.
+inline MLSignal transpose(const MLSignal& x)
+{
+	// this whole thing could be something like
+	// return MLSignal(float* pDataStart, int w, int h, int rowStride, int colStride);
+	int yh = x.getWidth();
+	int yw = x.getHeight();	
+	MLSignal y(yw, yh);	
+	for(int j=0; j<yh; ++j)
+	{
+		for(int i=0; i<yw; ++i)
+		{
+			y(i, j) = x(j, i);
+		}
+	}
+	return y;
+}
 
 
 #endif // _MLSIGNAL_H

@@ -18,7 +18,9 @@ const MLSample kMLSignalEndSamples[4] =
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
-// no length argument: make a null object.
+MLSignal ml::nullSignal;
+
+// no length argument: make a null object. MLTEST sort out any extant use of nulls and make this return default size with fastest possible ctor.
 MLSignal::MLSignal() : 
 	mData(0),
 	mDataAligned(0),
@@ -144,7 +146,9 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 	return *this;
 }
 
-
+// TODO use row(), column(), plane() submatrix syntax instead. 
+// then current getBuffer().row(1) turns into row(1).getBuffer()
+//
 // private signal constructor: make a reference to a slice of the external signal.
 // of course this object will be meaningless when the other Signal is gone, so
 // use wih care -- only as a temporary, ideally.  Is there a way to force 
@@ -193,6 +197,22 @@ MLSignal::~MLSignal()
 	delete[] mCopy;
 }
 
+MLSignal MLSignal::getDims()
+{
+	if(mDepth > 1)
+	{
+		return MLSignal{static_cast<float>(mWidth), static_cast<float>(mHeight), static_cast<float>(mDepth)};
+	}
+	else if(mHeight > 1)
+	{
+		return MLSignal{static_cast<float>(mWidth), static_cast<float>(mHeight)};
+	}
+	else
+	{
+		return MLSignal{static_cast<float>(mWidth)};
+	}
+}
+
 MLSample* MLSignal::setDims (int width, int height, int depth)
 {
 	mDataAligned = 0;	
@@ -214,6 +234,25 @@ MLSample* MLSignal::setDims (int width, int height, int depth)
 	mConstantMask = mSize - 1;
 	return mDataAligned;
 }
+
+MLSample* MLSignal::setDims(const MLSignal& whd)
+{
+	switch(whd.getWidth())
+	{
+		case 1:
+			setDims(static_cast<int>(whd[0]));
+			break;
+		case 2:
+			setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]));
+			break;
+		case 3:
+			setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]), static_cast<int>(whd[2]));
+			break;
+	}
+}
+
+// TODO this copy stuff is not used enough to warrant being in every signal! 
+// instead a Convolver can be a kind of object that is used by clients. 
 
 // make the copy buffer if needed. 
 // then copy the current data to the copy buffer and return the start of the copy.
@@ -524,7 +563,6 @@ const MLSample MLSignal::operator() (const float i, const float j) const
     return getInterpolatedLinear(i, j);
 
 }*/
-
 
 // TODO SSE
 void MLSignal::add(const MLSignal& b)
@@ -1682,3 +1720,4 @@ MLSignal MLSignal::copyWithLoopAtEnd(const MLSignal& src, int loopLength)
 {
 	return MLSignal(src, kLoopType1DEnd, loopLength);
 }
+
