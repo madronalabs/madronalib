@@ -25,9 +25,11 @@ private:
 	typedef enum 
 	{
 		kLowpass = 0,
-		kHighpass,
-		kBandpass,
-		kNotch
+		kHighpass = 1,
+		kBandpass = 2,
+		kNotch = 3,
+		kLoShelf = 4,
+		kHiShelf = 5
 	}	eBiquadMode;
 	
 	MLProcInfo<MLProcBiquad> mInfo;
@@ -52,7 +54,7 @@ namespace
 {
 	MLProcRegistryEntry<MLProcBiquad> classReg("biquad");
 	ML_UNUSED MLProcParam<MLProcBiquad> params[1] = {"mode"};
-	ML_UNUSED MLProcInput<MLProcBiquad> inputs[] = {"in", "frequency", "q"}; 
+	ML_UNUSED MLProcInput<MLProcBiquad> inputs[] = {"in", "frequency", "q", "gain"}; 
 	ML_UNUSED MLProcOutput<MLProcBiquad> outputs[] = {"out"};
 }
 
@@ -94,6 +96,7 @@ void MLProcBiquad::calcCoeffs(const int frames)
 	int mode = (int)getParam(modeSym);
 	const MLSignal& frequency = getInput(2);
 	const MLSignal& q = getInput(3);
+	const MLSignal& gain = getInput(4);
 	int coeffFrames;
 	
 	float twoPiOverSr = kMLTwoPi*getContextInvSampleRate();		
@@ -121,7 +124,7 @@ void MLProcBiquad::calcCoeffs(const int frames)
 	float highLimit = getContextSampleRate() * 0.33f;
 				
 	// generate coefficient signals
-	// TODO SSE
+	// TODO SSE --  use the DSP Utils library! 
 	for(int n=0; n<coeffFrames; ++n)
 	{
 		qm1 = 1.f/(q[n] + 0.05f);
@@ -135,43 +138,82 @@ void MLProcBiquad::calcCoeffs(const int frames)
 		{
 		default:
 		case kLowpass:
-			a0 = ((1.f - cosOmega) * 0.5f) * b0;
-			a1 = (1.f - cosOmega);
-			a2 = a0;
-			b1 = (-2.f * cosOmega);
-			b2 = (1.f - alpha);		
+			// MLTEST um, it looks like this mistake was in here for a while. 
+				// double multiply of b0.
+			// keeping this note, in case something relies on it. 
+			//	a0 = ((1.f - cosOmega) * 0.5f) * b0;
+			a0 = ((1.f - cosOmega) * 0.5f)*b0;
+			a1 = (1.f - cosOmega)*b0;
+			a2 = a0*b0;
+			b1 = (-2.f * cosOmega)*b0;
+			b2 = (1.f - alpha)*b0;		
 			break;
 				
 		case kHighpass:		
-			a0 = ((1.f + cosOmega) * 0.5f);
-			a1 = -(1.f + cosOmega);
-			a2 = a0;
-			b1 = (-2.f * cosOmega);
-			b2 = (1.f - alpha);
+			a0 = ((1.f + cosOmega) * 0.5f)*b0;
+			a1 = -(1.f + cosOmega)*b0;
+			a2 = a0*b0;
+			b1 = (-2.f * cosOmega)*b0;
+			b2 = (1.f - alpha)*b0;
 			break;
 				
 		case kBandpass:
-			a0 = alpha;
-			a1 = 0.f;
-			a2 = -alpha;
-			b1 = -2.f * cosOmega;
-			b2 = (1.f - alpha);
+			a0 = alpha*b0;
+			a1 = 0.f*b0;
+			a2 = -alpha*b0;
+			b1 = -2.f * cosOmega*b0;
+			b2 = (1.f - alpha)*b0;
 			break;
 			
-		case kNotch:
-			a0 = 1;
-			a1 = -2.f * cosOmega;
-			a2 = 1;
-			b1 = -2.f * cosOmega;
-			b2 = (1.f - alpha);
+			case kNotch:
+				a0 = 1*b0;
+				a1 = -2.f * cosOmega*b0;
+				a2 = 1*b0;
+				b1 = -2.f * cosOmega*b0;
+				b2 = (1.f - alpha)*b0;
+				break;
+				
+			case kLoShelf:
+			{
+				float A = gain[n];
+				float aMinus1 = A - 1.0f;
+				float aPlus1 = A + 1.0f;
+				float alpha2 = sinOmega / (2.f * q[n]);
+				float beta = 2.0f*sqrtf(A)*alpha2;
+				float b00 = 1.0f/(aPlus1 + aMinus1*cosOmega + beta);
+				
+				a0 = (A*(aPlus1 - aMinus1*cosOmega + beta))*b00;
+				a1 = (A*(aPlus1*-2.0f*cosOmega + 2.0f*aMinus1))*b00;
+				a2 = (A*(aPlus1 - aMinus1*cosOmega - beta))*b00;
+				b1 = (aPlus1*-2.0f*cosOmega - 2.0f*aMinus1)*b00;
+				b2 = (aPlus1 + aMinus1*cosOmega - beta)*b00;
+			}
+			break;
+				
+			case kHiShelf:
+			{
+				float A = gain[n];
+				float aMinus1 = A - 1.0f;
+				float aPlus1 = A + 1.0f;
+				float alpha2 = sinOmega / (2.f * q[n]);
+				float beta = 2.0f*sqrtf(A)*alpha2;
+				float b00 = 1.0f/(aPlus1 + aMinus1*cosOmega + beta);
+
+				a0 = (A*(aPlus1 + aMinus1*cosOmega + beta))*b00;
+				a1 = (A*(aPlus1*-2.0f*cosOmega - 2.0f*aMinus1))*b00;
+				a2 = (A*(aPlus1 + aMinus1*cosOmega - beta))*b00;
+				b1 = (aPlus1*-2.0f*cosOmega + 2.0f*aMinus1)*b00;
+				b2 = (aPlus1 - aMinus1*cosOmega - beta)*b00;
+			}
+
 			break;
 		}
 						
-		mA0[n] = a0*b0;
-		mA1[n] = a1*b0;
-		mA2[n] = a2*b0;
-		mB1[n] = b1*b0;
-		mB2[n] = b2*b0;
+		mA0[n] = a0;
+		mA1[n] = a1;
+		mA2[n] = a2;
+		mB1[n] = b1;
+		mB2[n] = b2;
 	}
 }
 
