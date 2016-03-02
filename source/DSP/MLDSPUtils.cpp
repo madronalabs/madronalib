@@ -29,9 +29,24 @@ void MLBiquad::setLopass(float f, float q)
 	
 	a0 = (1.f - cosOmega) * 0.5f * b0;
 	a1 = (1.f - cosOmega) * b0;
-	a2 = a0;
+	a2 = a0 * b0;
 	b1 = -2.f * cosOmega * b0;
 	b2 = (1.f - alpha) * b0;
+}
+
+void MLBiquad::setHipass(float f, float q)
+{
+	//HPF:        H(s) = s^2 / (s^2 + s/Q + 1)
+	float omega = kMLTwoPi * f * mInvSr;
+	float cosOmega = cosf(omega);
+	float alpha = sinf(omega) / (2.f * q);
+	float b0 = 1.0f / (1.f + alpha);
+	
+	a0 = (1.f + cosOmega) * 0.5f *b0;
+	a1 = -(1.f + cosOmega) *b0;
+	a2 = a0*b0;
+	b1 = -2.f * cosOmega *b0;
+	b2 = (1.f - alpha) *b0;
 }
 
 void MLBiquad::setPeakNotch(float f, float q, float gain)
@@ -48,23 +63,8 @@ void MLBiquad::setPeakNotch(float f, float q, float gain)
 	a0 = (1.f + A) * b0;
 	a1 = -2.f * cosOmega * b0;
 	a2 = (1.f - A) * b0;
-	b1 = a1;
+	b1 = a1*b0;
 	b2 = (1.f - alphaOverA) * b0;
-}
-
-void MLBiquad::setHipass(float f, float q)
-{
-	//HPF:        H(s) = s^2 / (s^2 + s/Q + 1)
-	float omega = kMLTwoPi * f * mInvSr;
-	float cosOmega = cosf(omega);
-	float alpha = sinf(omega) / (2.f * q);
-	float b0 = 1.f + alpha;
-	
-	a0 = (1.f + cosOmega) * 0.5f / b0;
-	a1 = -(1.f + cosOmega) / b0;
-	a2 = a0;
-	b1 = -2.f * cosOmega / b0;
-	b2 = (1.f - alpha) / b0;
 }
 
 void MLBiquad::setBandpass(float f, float q)

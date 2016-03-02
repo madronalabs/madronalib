@@ -156,7 +156,8 @@ void MLProcBiquad::calcCoeffs(const int frames)
 			b1 = (-2.f * cosOmega)*b0;
 			b2 = (1.f - alpha)*b0;
 			break;
-				
+
+								
 		case kBandpass:
 			a0 = alpha*b0;
 			a1 = 0.f*b0;
