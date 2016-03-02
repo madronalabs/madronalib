@@ -68,7 +68,6 @@ bail:
 	return e;
 }
 
-
 void MLProc::clearProc()
 {		
 	const int op = getNumOutputs();

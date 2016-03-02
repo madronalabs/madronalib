@@ -3,6 +3,24 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+// MLProcs are DSP objects for dynamic dispatch.
+// MLProcs:
+// - are made by the MLProcFactory 
+// - must have a MLProcRegistryEntry<class> to register the class with the factory
+// - probably have processing methods that are not inlineable
+// - have process() methods that are dynamically dispatched
+// - have names
+// - operate on named signals set with setInput() and setOutput()
+// - use named parameters set with setParam()
+// - can only be made by and run within MLProcContainers
+//
+// for smaller, statically dispatched DSP objects, see DSPUtils.
+//
+// TODO by changing Container to do oversampling with multiple calls to the same process vector size, 
+// instead of one larger call as currently, we can make all MLProcs have chunk sizes that are fixed
+// at compile time. 
+
+
 #ifndef _ML_PROC_H
 #define _ML_PROC_H
 
