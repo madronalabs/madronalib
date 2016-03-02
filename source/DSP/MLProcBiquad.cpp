@@ -144,7 +144,7 @@ void MLProcBiquad::calcCoeffs(const int frames)
 			//	a0 = ((1.f - cosOmega) * 0.5f) * b0;
 			a0 = ((1.f - cosOmega) * 0.5f)*b0;
 			a1 = (1.f - cosOmega)*b0;
-			a2 = a0*b0;
+			a2 = a0;
 			b1 = (-2.f * cosOmega)*b0;
 			b2 = (1.f - alpha)*b0;		
 			break;
@@ -152,11 +152,10 @@ void MLProcBiquad::calcCoeffs(const int frames)
 		case kHighpass:		
 			a0 = ((1.f + cosOmega) * 0.5f)*b0;
 			a1 = -(1.f + cosOmega)*b0;
-			a2 = a0*b0;
+			a2 = a0;
 			b1 = (-2.f * cosOmega)*b0;
 			b2 = (1.f - alpha)*b0;
 			break;
-
 								
 		case kBandpass:
 			a0 = alpha*b0;
@@ -166,13 +165,13 @@ void MLProcBiquad::calcCoeffs(const int frames)
 			b2 = (1.f - alpha)*b0;
 			break;
 			
-			case kNotch:
-				a0 = 1*b0;
-				a1 = -2.f * cosOmega*b0;
-				a2 = 1*b0;
-				b1 = -2.f * cosOmega*b0;
-				b2 = (1.f - alpha)*b0;
-				break;
+		case kNotch:
+			a0 = 1*b0;
+			a1 = -2.f * cosOmega*b0;
+			a2 = 1*b0;
+			b1 = -2.f * cosOmega*b0;
+			b2 = (1.f - alpha)*b0;
+			break;
 				
 			case kLoShelf:
 			{
