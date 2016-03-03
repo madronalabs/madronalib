@@ -98,7 +98,6 @@ inline MLSignal lerp(const MLSignal& b, const MLSignal& c, const MLSignal& m)
 
 inline MLSignal lerpBipolar(const MLSignal& a, const MLSignal& b, const MLSignal& c, const MLSignal& m)
 {
-	
 	int frames = a.getWidth();
 	MLSignal y(frames); 
 	for(int n=0; n<frames; ++n)
@@ -128,8 +127,6 @@ inline MLSignal clamp(const MLSignal& a, const float b, const float c)
 	}
 	return y;
 }		
-
-
 
 // MLTEST
 
@@ -176,8 +173,80 @@ namespace ml
 			return MLSignal{a0, a1, a2, b1, b2};
 		}
 	}
+	
+	
+	namespace svfCoeffs
+	{
+		inline MLSignal bandpass(float fOverSr, float q)
+		{
+			float k = 1.0f/q;
+			float omega = kMLPi*fOverSr;
+			float s1 = sin(omega);
+			float s2 = sin(2.0f*omega);
+			float nrm = 1.0f/(2.f + k*s2);
+			float g0 = s2*nrm;
+			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
+			float g2 = (2.0f*s1*s1)*nrm;
+			
+			return MLSignal{g0, g1, g2};
+		}
+	}
 }	
 	
+
+
+class MLSVF
+{
+public:
+	MLSVF() : g0(0), g1(0), g2(0) { clear(); }
+	void clear()
+	{
+		ic1eq = ic2eq = 0.f;
+	}
+	void setCoefficients(const MLSignal& coeffs)
+	{
+		g0 = coeffs[0];
+		g1 = coeffs[1];
+		g2 = coeffs[2];
+	}
+	inline MLSignal operator()(const MLSignal& in)
+	{
+		int frames = in.getWidth();
+		MLSignal y(frames); 
+		for(int n=0; n<frames; ++n)
+		{
+			float v0 = in[n];
+			float t0 = v0 - ic2eq;
+			float t1 = g0*t0 + g1*ic1eq;
+			float t2 = g2*t0 + g0*ic1eq;
+			float v1 = t1 + ic1eq;
+//			float v2 = t2 + ic2eq;
+			ic1eq += 2.0f*t1;
+			ic2eq += 2.0f*t2;
+			y[n] = v1;
+		}		
+		return y;
+	}
+	
+	inline float processSample(float x)
+	{
+		float v0 = x;
+		float t0 = v0 - ic2eq;
+		float t1 = g0*t0 + g1*ic1eq;
+		float t2 = g2*t0 + g0*ic1eq;
+		float v1 = t1 + ic1eq;
+		//			float v2 = t2 + ic2eq;
+		ic1eq += 2.0f*t1;
+		ic2eq += 2.0f*t2;
+		return v1;
+	}
+	void setSampleRate(float) {} // temp
+	
+	
+	float g0, g1, g2;
+	float ic1eq, ic2eq;
+};
+
 // ----------------------------------------------------------------
 #pragma mark MLBiquad
 

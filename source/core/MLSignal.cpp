@@ -240,6 +240,7 @@ MLSample* MLSignal::setDims(const MLSignal& whd)
 	switch(whd.getWidth())
 	{
 		case 1:
+		default:
 			setDims(static_cast<int>(whd[0]));
 			break;
 		case 2:
@@ -249,6 +250,7 @@ MLSample* MLSignal::setDims(const MLSignal& whd)
 			setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]), static_cast<int>(whd[2]));
 			break;
 	}
+	return mDataAligned;
 }
 
 // TODO this copy stuff is not used enough to warrant being in every signal! 
