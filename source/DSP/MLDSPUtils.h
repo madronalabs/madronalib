@@ -134,6 +134,18 @@ namespace ml
 {
 	namespace biquadCoeffs
 	{
+		inline MLSignal onePole(float omega)
+		{
+			float e = 2.718281828;
+			float x = powf(e, -omega);
+			float a0 = 1.f - x;
+			float a1 = 0.f;
+			float a2 = 0.f;
+			float b1 = -x;
+			float b2 = 0.f;
+			return MLSignal{a0, a1, a2, b1, b2};
+		}
+
 		inline MLSignal loShelf(float omega, float q, float gain)
 		{
 			// lowShelf: H(s) = A * (s^2 + (sqrt(A)/Q)*s + A)/(A*s^2 + (sqrt(A)/Q)*s + 1)
@@ -271,6 +283,14 @@ public:
 	void setLoShelf(float f, float q, float gain);
 	void setHiShelf(float f, float q, float gain);
 	void setCoefficients(float, float, float, float, float);
+	void setCoefficients(const MLSignal& coeffs)
+	{
+		a0 = coeffs[0];
+		a1 = coeffs[1];
+		a2 = coeffs[2];
+		b1 = coeffs[3];
+		b2 = coeffs[4];
+	}
 	
 	// set the internal state of the filter as if the output has been at
 	// the value f indefinitely. May cause a discontinuity in output.
