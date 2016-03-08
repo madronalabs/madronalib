@@ -26,12 +26,6 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, 
 	if(!pEngine) return nullptr;	
 	MLSignalView* pNewView = nullptr;
 	
-	// MLTEST
-	if(frameSize > 1)
-	{
-		debug() << "LOLOL FRAME SIZE > ONE\n";
-	}
-	
 	// first, find published signal if available and add read buffers. 
 	int bufSize = pEngine->getPublishedSignalBufferSize(alias);
     int voices = pEngine->getPublishedSignalVoices(alias);

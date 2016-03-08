@@ -40,7 +40,8 @@ public:
 #ifdef ML_WINDOWS
 		
 		// TODO enable multi-threaded debugging again with some kind of queue on Windows.
-		if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
+	//	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
+		if (0)
 		{
 			printf("Windows: no debugging outside of message thread!\n");
 			return *this;
@@ -100,11 +101,14 @@ private:
 // Send a message to the application’s or plugin’s debug output stream.
 // in release builds this will be disabled completely.
 //
-// extern MLTextStream& debug();
+
 #ifdef debug
 #undef debug
 #endif
-extern std::ostream& debug();
+
+extern MLTextStream& debug();
+
+// extern std::ostream& debug();
 
 // Send a message to the application or plugin’s console, if one exists.
 //

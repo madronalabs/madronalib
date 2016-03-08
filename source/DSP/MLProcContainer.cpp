@@ -221,7 +221,7 @@ void MLProcContainer::compile()
 		int destIndex = pipe->mDestIndex;
         
 		// MLTEST
-        debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
+        // debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
         
 		// resize inputs and outputs if needed for variable i/o procs
 		compileOp* pSrcOp = compileOpsMap[srcName];
