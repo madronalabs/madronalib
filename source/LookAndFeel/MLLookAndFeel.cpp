@@ -226,6 +226,8 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 	{
 		p = precision;
 	}
+
+	p = std::max(p, 0);
 	
 //	printf("---------number: %-+10.2f\n", number);
 //	printf("---------number: %-+10.8f\n", number);
@@ -388,6 +390,9 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 		}
 	}	
 	 */
+
+	// debug() << "N" << numBuf << "\n";
+
 	return numBuf;
 }
 
