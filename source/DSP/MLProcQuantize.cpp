@@ -10,7 +10,7 @@ typedef enum
 {
 	kTruncate = 0,
 	kNearest = 1
-} kMLScaleQuantizeMode;
+} ;
 
 // ----------------------------------------------------------------
 // class definition
@@ -30,7 +30,7 @@ private:
 	void doParams();
 	
 	MLScale mScale;
-	kMLScaleQuantizeMode mMode;
+	int mMode;
 	std::string mScaleName;
 };
 
@@ -67,7 +67,7 @@ void MLProcQuantize::doParams()
 		mScale.loadFromRelativePath(scaleName);
 		mScaleName = scaleName;
 	}
-	mMode = static_cast<kMLScaleQuantizeMode>(getParam("mode"));
+	mMode = static_cast<int>(getParam("mode"));
 	mParamsChanged = false;
 }
 

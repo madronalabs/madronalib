@@ -95,8 +95,8 @@ const MLSample kMLMinSample = -MAXFLOAT;
 
 namespace ml
 {	
-	constexpr int kVectorSize = kMLProcessChunkSize;
-	constexpr int kSSEVectorSize = kMLProcessChunkSize / kSSEVecSize;
+	const int kVectorSize = kMLProcessChunkSize;
+	const int kSSEVectorSize = kMLProcessChunkSize / kSSEVecSize;
 	
 	class DSPVector
 	{

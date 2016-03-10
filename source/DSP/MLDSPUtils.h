@@ -368,7 +368,7 @@ public:
 class MLBandpass
 {
 public:
-	static constexpr int kOversample = 1;
+	static const int kOversample = 1;
 	
 	MLBandpass() { mInvSr = 1.f; clear(); }
 	~MLBandpass() {}
