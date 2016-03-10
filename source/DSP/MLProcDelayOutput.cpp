@@ -93,7 +93,6 @@ void MLProcDelayOutput::doParams()
 	
 	if (myInputProc)
 	{
-debug() << "MLProcDelayOutput " << getName() << " doParams found delay proc " << delayName << "!\n";
 		mpDelayInputProc = static_cast<MLProcDelayInput*>(&(*myInputProc));
 		
 		if(mpDelayInputProc)
@@ -104,10 +103,9 @@ debug() << "MLProcDelayOutput " << getName() << " doParams found delay proc " <<
 			
 			if(buffer.getWidth() == 0)
 			{
-				debug() << "NULL size!\n";
-			}
-			
-debug() << "MLProcDelayOutput::doParams found buffer, length mask " << std::hex << mLengthMask << std::dec << "\n";
+				// we are called once with this null size before real resize. TODO get called only once, clean up and document resize / prepareToPlay / etc
+				//debug() << "NULL size!\n";
+			}			
 		}
 	}
 	else
@@ -123,7 +121,6 @@ debug() << "MLProcDelayOutput::doParams found buffer, length mask " << std::hex 
 	{
 		mVectorDelay = 0;
 	}
-debug() << "MLProcDelayOutput: vector delay " << 	mVectorDelay << "\n";
 		
 	mParamsChanged = false;
 }
