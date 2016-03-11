@@ -411,6 +411,14 @@ public:
 		return r;
 	}
 	
+	inline MLSignal scaleByScalar(float k) // TODO probably use this scale fn instead, rename to scale
+	{
+		MLSignal r(*this);
+		r.scale(k);
+		return r;
+	}
+	
+	
 	// utilities for getting pointers to the aligned data as other types.
 	uint32_t* asUInt32Ptr(void) const
 	{
@@ -509,6 +517,7 @@ inline MLSignal add(const MLSignal& a, const MLSignal& b)
 	r.add(b);
 	return r;
 }
+
 
 // return the matrix transpose of a 1D or 2D signal.
 inline MLSignal transpose(const MLSignal& x)
