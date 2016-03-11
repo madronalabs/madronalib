@@ -111,6 +111,7 @@ void MLPluginController::timerCallback()
 	if(mClockDivider > lessFrequentThingsDivision)
     {
         // do less frequent things (unused)
+		debug().display();
         mClockDivider = 0;
     }
 	

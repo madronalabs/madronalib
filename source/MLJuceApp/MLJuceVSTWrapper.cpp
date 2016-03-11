@@ -367,8 +367,12 @@ public:
 	VstInt32 getVendorVersion() override         { return convertHexVersionToDecimal (JucePlugin_VersionCode); }
 	VstPlugCategory getPlugCategory() override   { return JucePlugin_VSTCategory; }
 	bool keysRequired()                          { return (JucePlugin_EditorRequiresKeyboardFocus) != 0; }
-	
+
+#ifdef ML_WINDOWS 
+	VstInt32 canDo(char* text) override
+#else
 	VstInt32 canDo (const char* text) override
+#endif
 	{
 		if (strcmp (text, "receiveVstEvents") == 0
 			|| strcmp (text, "receiveVstMidiEvent") == 0

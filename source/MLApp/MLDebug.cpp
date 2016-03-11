@@ -62,21 +62,27 @@ void MLTextStream::display()
 	{
 #if DEBUG
 		
-		// no listener, send to output
+		// no listener, send to standard output
 		flush();
 		std::string outStr = mLocalStream.str();
 		int size = outStr.size();
 		if(size > 0)
 		{
-			//if(outStr[size - 1] == '\n')
+		//	if(outStr[size - 1] == '\n')
 			{		
-				mLocalStream.str("");
 				const char* cStr = outStr.c_str();
+				mLocalStream.str("");
 				{
 					MultiByteToWideChar(0, 0, cStr, -1, wideBuf, kWideBufSize);
 					OutputDebugString(wideBuf);
 				}
 			}
+
+						
+		//	Logger::outputDebugString(mLocalStream.str().c_str());
+
+
+
 		}
 #endif // DEBUG
 	}
@@ -94,17 +100,20 @@ void MLTextStream::display()
 // in release builds this will be disabled completely.
 //
 
-std::ostream& debug()
-{
-	return std::cout;
-}
-
 // Send a message to the application or plugin’s console, if one exists. 
 //
 MLTextStream& MLConsole()
 {
 	static MLTextStream theConsoleMessageStream("console");
 	return theConsoleMessageStream;
+}
+
+// Send a message to the application or plugin’s console, if one exists. 
+//
+MLTextStream& debug()
+{
+	static MLTextStream theDebugMessageStream("debug");
+	return theDebugMessageStream;
 }
 
 #if 0
