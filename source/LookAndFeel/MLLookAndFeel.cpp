@@ -230,7 +230,7 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 //	printf("---------number: %-+10.2f\n", number);
 //	printf("---------number: %-+10.8f\n", number);
 //	printf("max: %d, digits: %d, after decimal: %d\n", m, d, p);
-	return p;
+	return max(p, 0);
 }
 
 char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, const MLValueDisplayMode mode)  throw()
