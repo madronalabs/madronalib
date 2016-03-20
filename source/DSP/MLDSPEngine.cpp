@@ -561,8 +561,6 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 	osc::int64 startTime = 0, endTime = 0;
     MLControlEventVector::const_iterator firstEvent, lastEvent;
 		
-	//debug() << "new samples: " << frames << "\n";
-	
     if (mpHostPhasorProc)
 	{	
 		mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
@@ -604,7 +602,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 			}
 		}
         
-		if (reportStats)
+		if (0)// MLTEST (reportStats)
 		{
 			MLSignalStats stats;
 			collectStats(&stats);
@@ -640,7 +638,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
             }
 			
 			process(mVectorSize);  // MLProcContainer::process()
-			
+
 			if (mCollectStats) 
 			{
 				endTime = juce::Time::getHighResolutionTicks();

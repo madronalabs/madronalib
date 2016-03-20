@@ -48,6 +48,11 @@ using namespace ml;
 // - look for difference in generated code of pass by value vs. pointer. 
 // - write one fairly complex object with both value and pointer, compare and time.
 
+// best idea so far?
+// DSPutils can operate on the assumption of default size signals: 16 x 1 or whatever.
+// and, if making default signals is fast enough (TIME IT) we can return new default sigs by value.
+// these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
+
 // ----------------------------------------------------------------
 #pragma mark stateless functions
 
@@ -61,8 +66,6 @@ inline DSPVector add(const DSPVector& x1, const DSPVector& x2)
 	}
 	
 	/*
-
-	 
 	 int c = frames >> kMLSamplesPerSSEVectorBits;
 	 __m128 vx1, vx2, vr; 	
 
@@ -80,8 +83,90 @@ inline DSPVector add(const DSPVector& x1, const DSPVector& x2)
 	return y;
 }
 
+inline MLSignal reciprocalEst(const MLSignal& x)
+{
+	int frames = x.getWidth();
+	MLSignal y(frames); 
+	for(int n=0; n<frames; ++n)
+	{
+		// MLTEST use SSE
+		y[n] = 1.f/x[n];
+	}
+	return y;
+}		
+
+
+inline void scaleAndAccumulate(MLSignal& a, const MLSignal& b, float k)
+{
+	int vectors = a.getSize() >> kMLSamplesPerSSEVectorBits;	
+	float* pa = a.getBuffer();
+	const float* pb = b.getConstBuffer();
+	__m128 va, vb, vk;
+	
+	vk = _mm_set1_ps(k);
+	
+	for(int v=0; v<vectors; ++v)
+	{
+		va = _mm_load_ps(pa);
+		vb = _mm_load_ps(pb);
+		_mm_store_ps(pa, _mm_add_ps(va, _mm_mul_ps(vb, vk)));
+		pa += kSSEVecSize;
+		pb += kSSEVecSize;
+	}
+}
+
+inline void scaleByConstant(MLSignal& a, const MLSignal& b, float k)
+{
+	int vectors = a.getSize() >> kMLSamplesPerSSEVectorBits;	
+	float* pa = a.getBuffer();
+	const float* pb = b.getConstBuffer();
+	__m128 vb, vk;
+	
+	vk = _mm_set1_ps(k);
+	
+	for(int v=0; v<vectors; ++v)
+	{
+		vb = _mm_load_ps(pb);
+		_mm_store_ps(pa, _mm_mul_ps(vb, vk));
+		pa += kSSEVecSize;
+		pb += kSSEVecSize;
+	}
+}
+
+// keep scalar version? make some macros? :-P
+/*
+inline MLSignal abs(const MLSignal& x)
+{
+	int frames = x.getWidth();
+	MLSignal y(frames); 
+	for(int n=0; n<frames; ++n)
+	{
+		y[n] = fabs(x[n]);
+	}
+	return y;
+}		
+*/
+
+inline void abs(MLSignal& x) 
+{
+	int frames = x.getWidth();
+	int vectors = frames >> kMLSamplesPerSSEVectorBits;
+	float* px = x.getBuffer();
+	__m128 vx;
+	
+	static const __m128 sign_mask = _mm_set1_ps(-0.f); // -0.f = 1 << 31
+		
+	for(int v=0; v<vectors; ++v)
+	{
+		vx = _mm_load_ps(px);
+		vx = _mm_andnot_ps(sign_mask, vx);
+		_mm_store_ps(px, vx);
+		px += kSSEVecSize;
+	}
+}
+
 // MLTEST
-// TODO: fixed size DSPVectors
+// TODO: fixed size DSPVectors, SSE
 inline MLSignal lerp(const MLSignal& b, const MLSignal& c, const MLSignal& m)
 {
 	int frames = b.getWidth();
@@ -92,6 +177,19 @@ inline MLSignal lerp(const MLSignal& b, const MLSignal& c, const MLSignal& m)
 		float fc = c[n];
 		float fm = m[n];
 		y[n] = (fb + (fc - fb)*fm);		
+	}
+	return y;
+}		
+
+inline MLSignal lerp(const MLSignal& b, const MLSignal& c, const float m)
+{
+	int frames = b.getWidth();
+	MLSignal y(frames); 
+	for(int n=0; n<frames; ++n)
+	{
+		float fb = b[n];
+		float fc = c[n];
+		y[n] = (fb + (fc - fb)*m);		
 	}
 	return y;
 }		
@@ -127,6 +225,8 @@ inline MLSignal clamp(const MLSignal& a, const float b, const float c)
 	}
 	return y;
 }		
+
+
 
 // MLTEST
 
@@ -189,9 +289,8 @@ namespace ml
 	
 	namespace svfCoeffs
 	{
-		inline MLSignal bandpass(float fOverSr, float q)
+		inline MLSignal bandpass(float fOverSr, float k)
 		{
-			float k = 1.0f/q;
 			float omega = kMLPi*fOverSr;
 			float s1 = sin(omega);
 			float s2 = sin(2.0f*omega);
@@ -202,10 +301,22 @@ namespace ml
 			
 			return MLSignal{g0, g1, g2};
 		}
+		inline MLSignal bandpassApprox(float fOverSr, float k)
+		{
+			float omega = kMLPi*fOverSr;
+			float s1 = fsin1(omega);
+			float s2 = fsin1(2.0f*omega);
+			float nrm = 1.0f/(2.f + k*s2);
+			float g0 = s2*nrm;
+			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
+			float g2 = (2.0f*s1*s1)*nrm;
+			
+			return MLSignal{g0, g1, g2};
+		}
 	}
 }	
 	
-
+// experimental: bandpass only.
 
 class MLSVF
 {
@@ -232,12 +343,30 @@ public:
 			float t1 = g0*t0 + g1*ic1eq;
 			float t2 = g2*t0 + g0*ic1eq;
 			float v1 = t1 + ic1eq;
-//			float v2 = t2 + ic2eq;
+			//			float v2 = t2 + ic2eq;
 			ic1eq += 2.0f*t1;
 			ic2eq += 2.0f*t2;
 			y[n] = v1;
 		}		
 		return y;
+	}
+	
+	// MLTEST
+	inline void processSignal(MLSignal& y)
+	{
+		int frames = y.getWidth();
+		for(int n=0; n<frames; ++n)
+		{
+			float v0 = y[n];
+			float t0 = v0 - ic2eq;
+			float t1 = g0*t0 + g1*ic1eq;
+			float t2 = g2*t0 + g0*ic1eq;
+			float v1 = t1 + ic1eq;
+			//			float v2 = t2 + ic2eq;
+			ic1eq += 2.0f*t1;
+			ic2eq += 2.0f*t2;
+			y[n] = v1;
+		}		
 	}
 	
 	inline float processSample(float x)
@@ -323,6 +452,22 @@ public:
 			y[n] = out;
 		}		
 		return y;
+	}
+	
+	// MLTEST to DSPVector
+	inline void processSignal(MLSignal& in)
+	{
+		int frames = in.getWidth();
+		for(int n=0; n<frames; ++n)
+		{
+			const float x = in[n];
+			const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+			x2 = x1;
+			x1 = x;
+			y2 = y1;
+			y1 = out;
+			in[n] = out;
+		}		
 	}
 	
 	// MLTEST to DSPVector
@@ -580,7 +725,7 @@ public:
 	
 	inline void clear() { mOmega32 = 0; }
 	inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
-	inline void setFrequency(MLSample f) { mStep32 = (int)(mInvSrDomain * f); }
+	inline void setFrequency(float f) { mStep32 = (int)(mInvSrDomain * f); }
 	inline MLSample processSample()
 	{
 		// add increment with wrap

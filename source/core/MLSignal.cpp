@@ -21,6 +21,12 @@ const MLSample kMLSignalEndSamples[4] =
 MLSignal ml::nullSignal;
 
 // no length argument: make a null object. MLTEST sort out any extant use of nulls and make this return default size with fastest possible ctor.
+
+// TODO fast ctors for default size chunks seems a lot more imporant than a null object pattern. Look at where we are using the latter and do it some other way. 
+
+// DSPutils can operate on the assumption of default size signals: 16 x 1 or whatever.
+// these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
+
 MLSignal::MLSignal() : 
 	mData(0),
 	mDataAligned(0),
@@ -511,6 +517,11 @@ void MLSignal::copy(const MLSignal& b)
 	}
 }
 
+void MLSignal::copyFast(const MLSignal& b)
+{
+	std::copy(b.mDataAligned, b.mDataAligned + mSize, mDataAligned);
+}
+
 // add the entire signal b to this signal, at the integer destination offset. 
 // 
 void MLSignal::add2D(const MLSignal& b, int destX, int destY)
@@ -727,14 +738,6 @@ void MLSignal::divide(const MLSignal& b)
 //
 #pragma mark unary ops
 // 
-
-void MLSignal::clear()
-{
-//	std::fill(mDataAligned, mDataAligned+mSize, 0);
-//	setToConstant(0); // TODO 
-	memset((void *)(mDataAligned), 0, (size_t)(mSize*sizeof(MLSample)));
-}
-
 
 void MLSignal::fill(const MLSample f)
 {

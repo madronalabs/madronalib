@@ -287,7 +287,7 @@ public:
 	int getWidthBits() const { return mWidthBits; }
 	int getHeightBits() const { return mHeightBits; }
 	int getDepthBits() const { return mDepthBits; }
-	int getSize() const { return mSize; }
+	inline int getSize() const { return mSize; }
 
 	int getXStride() const { return (int)sizeof(MLSample); }
 	int getYStride() const { return (int)sizeof(MLSample) << mWidthBits; }
@@ -320,6 +320,8 @@ public:
 	void multiply(const MLSignal& s);	
 	void divide(const MLSignal& s);	
 
+	// MLTEST
+	void copyFast(const MLSignal& b);
 
 	// signal / scalar operators
 	void fill(const MLSample f);
@@ -375,8 +377,13 @@ public:
 	void add2D(const MLSignal& b, int destX, int destY);
 	void add2D(const MLSignal& b, const Vec2& destOffset);
 	
-	// transforms
-	void clear();
+	inline void clear()
+	{
+		std::fill(mDataAligned, mDataAligned+mSize, 0);
+		//	setToConstant(0); // TODO 
+		//memset((void *)(mDataAligned), 0, (size_t)(mSize*sizeof(MLSample)));
+	}
+	
 	void invert();
 
 	int checkIntegrity() const;
@@ -400,6 +407,8 @@ public:
 	inline int getRowStride() const { return 1<<mWidthBits; }
 	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
 	
+#pragma mark new methods
+	
 	// MLTEST new business
 	inline MLSignal getRow(int i)
 	{
@@ -411,14 +420,27 @@ public:
 		return r;
 	}
 	
-	inline MLSignal scaleByScalar(float k) // TODO probably use this scale fn instead, rename to scale
+	/*
+	inline void scaleAndAccumulate(const MLSignal& b, float k)
 	{
-		MLSignal r(*this);
-		r.scale(k);
-		return r;
+		int vectors = mSize >> kMLSamplesPerSSEVectorBits;
+		
+		float* pb = b.getBuffer();
+		float* pa = getBuffer();
+		__m128 va, vb, vk;
+		
+		vk = _mm_set1_ps(k);
+
+		for(int v=0; v<vectors; ++v)
+		{
+			va = _mm_load_ps(pa);
+			vb = _mm_load_ps(pb);
+			_mm_store_ps(pa, _mm_add_ps(va, _mm_mul_ps(vb, vk)));
+			pa += kSSEVecSize;
+			pb += kSSEVecSize;
+		}
 	}
-	
-	
+	*/
 	// utilities for getting pointers to the aligned data as other types.
 	uint32_t* asUInt32Ptr(void) const
 	{
@@ -517,7 +539,6 @@ inline MLSignal add(const MLSignal& a, const MLSignal& b)
 	r.add(b);
 	return r;
 }
-
 
 // return the matrix transpose of a 1D or 2D signal.
 inline MLSignal transpose(const MLSignal& x)

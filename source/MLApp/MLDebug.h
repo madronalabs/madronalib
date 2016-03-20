@@ -71,7 +71,8 @@ public:
 					mLocalStream << item;
 				}
 				else
-				{                    
+				{   
+					flush();
 					mLocalStream << "\n******** debug stream full, some items after this will be lost! ********\n\n ";
 				}
 #else

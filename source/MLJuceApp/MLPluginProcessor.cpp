@@ -676,7 +676,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
-        mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
+       mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 
 		
 #if OSC_PARAMS
@@ -691,6 +691,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			mVisSendCounter -= period;
 		}
 #endif		
+		
     }
 	else
 	{

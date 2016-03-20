@@ -11,7 +11,7 @@ typedef enum
 {
 	kTruncate = 0,
 	kNearest = 1
-} ;
+} eQuantizeMode;
 
 // ----------------------------------------------------------------
 // class definition

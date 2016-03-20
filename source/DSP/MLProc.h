@@ -378,11 +378,44 @@ public:
 
 	// MLProcContainer overrides this to return published output names
 	virtual MLSymbol getOutputName(int index);
+		
+	// getNumInputs() and getNumOutputs() are not virtual.  
+	// Proxy classes, for example, override procInfo()
+	// and resize mInputs and mOutputs so that these methods
+	// work for all classes.
+	inline int getNumInputs() 
+	{ 
+		return (int)mInputs.size(); 
+	}
 	
-	int getNumInputs();
-	int getNumRequiredInputs();
-	int getNumOutputs();	
-	int getNumRequiredOutputs();
+	inline int getNumRequiredInputs() 
+	{
+		if (procInfo().hasVariableInputs())
+		{
+			return 0; 
+		}
+		else
+		{
+			return procInfo().getInputMap().getSize();
+		}
+	}
+	
+	inline int getNumOutputs() 
+	{ 
+		return (int)mOutputs.size(); 
+	}
+	
+	inline int getNumRequiredOutputs() 
+	{ 
+		if (procInfo().hasVariableOutputs())
+		{
+			return 0; 
+		}
+		else
+		{
+			return procInfo().getOutputMap().getSize();	
+		}
+	}
 	
 	virtual void resizeInputs(int n);
 	virtual void resizeOutputs(int n);
