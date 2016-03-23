@@ -48,7 +48,7 @@ namespace
 
 MLProcDCBlocker::MLProcDCBlocker()
 {
-	setParam("f", 50.);	// default cutoff
+	setParam("f", 200.);	// default cutoff, not steep
 }
 
 

@@ -286,9 +286,9 @@ namespace ml
 		}
 	}
 	
-	
 	namespace svfCoeffs
 	{
+		// get bandpass coeffs where k = 1/q (damping factor)
 		inline MLSignal bandpass(float fOverSr, float k)
 		{
 			float omega = kMLPi*fOverSr;
@@ -301,18 +301,8 @@ namespace ml
 			
 			return MLSignal{g0, g1, g2};
 		}
-		inline MLSignal bandpassApprox(float fOverSr, float k)
-		{
-			float omega = kMLPi*fOverSr;
-			float s1 = fsin1(omega);
-			float s2 = fsin1(2.0f*omega);
-			float nrm = 1.0f/(2.f + k*s2);
-			float g0 = s2*nrm;
-			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
-			float g2 = (2.0f*s1*s1)*nrm;
-			
-			return MLSignal{g0, g1, g2};
-		}
+		
+		// tried fast sin approx, which did not hold up. try better approximations.
 	}
 }	
 	
@@ -382,7 +372,6 @@ public:
 		return v1;
 	}
 	void setSampleRate(float) {} // temp
-	
 	
 	float g0, g1, g2;
 	float ic1eq, ic2eq;
