@@ -86,7 +86,14 @@ public:
 		
 	MLLabel* addLabelAbove(MLWidget* c, const char* displayName, 
 						   MLSymbol widgetName = "", const float sizeMultiplier = 1.0f, const int font = eMLCaption, Vec2 offset = Vec2());
-
+	
+	// temp hack for older code compatibility
+	MLLabel* addLabelAbove(MLWidget* c, const char* displayName, 
+						  const float sizeMultiplier = 1.0f, const int font = eMLCaption, Vec2 offset = Vec2())
+	{
+		return addLabelAbove(c, displayName, "", sizeMultiplier, font, offset);
+	}
+	
 	MLDrawing* addDrawing(const MLRect & r);
 	MLProgressBar* addProgressBar(const MLRect & r);
 

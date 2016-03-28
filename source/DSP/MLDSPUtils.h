@@ -304,6 +304,21 @@ namespace ml
 		
 		// tried fast sin approx, which did not hold up. try better approximations.
 	}
+	
+	
+	// TODO duh,    all SVF modes have the same coeffs, rename above
+	
+	inline MLSignal getSVFCoeffs(float fOverSr, float k)
+	{
+		float omega = kMLPi*fOverSr;
+		float s1 = sin(omega);
+		float s2 = sin(2.0f*omega);
+		float nrm = 1.0f/(2.f + k*s2);
+		float g0 = s2*nrm;
+		float g1 = (-2.f*s1*s1 - k*s2)*nrm;
+		float g2 = (2.0f*s1*s1)*nrm;		
+		return MLSignal{g0, g1, g2, k};
+	}
 }	
 	
 // experimental: bandpass only.
@@ -311,7 +326,7 @@ namespace ml
 class MLSVF
 {
 public:
-	MLSVF() : g0(0), g1(0), g2(0) { clear(); }
+	MLSVF() : g0(0), g1(0), g2(0), k(1) { clear(); }
 	void clear()
 	{
 		ic1eq = ic2eq = 0.f;
@@ -321,7 +336,9 @@ public:
 		g0 = coeffs[0];
 		g1 = coeffs[1];
 		g2 = coeffs[2];
+		k = coeffs[3];
 	}
+	
 	inline MLSignal operator()(const MLSignal& in)
 	{
 		int frames = in.getWidth();
@@ -337,6 +354,44 @@ public:
 			ic1eq += 2.0f*t1;
 			ic2eq += 2.0f*t2;
 			y[n] = v1;
+		}		
+		return y;
+	}
+	
+	inline MLSignal processLopass(const MLSignal& in)
+	{
+		int frames = in.getWidth();
+		MLSignal y(frames); 
+		for(int n=0; n<frames; ++n)
+		{
+			float v0 = in[n];
+			float t0 = v0 - ic2eq;
+			float t1 = g0*t0 + g1*ic1eq;
+			float t2 = g2*t0 + g0*ic1eq;
+			//float v1 = t1 + ic1eq;
+			float v2 = t2 + ic2eq;
+			ic1eq += 2.0f*t1;
+			ic2eq += 2.0f*t2;
+			y[n] = v2;
+		}		
+		return y;
+	}
+	
+	inline MLSignal processHipass(const MLSignal& in)
+	{
+		int frames = in.getWidth();
+		MLSignal y(frames); 
+		for(int n=0; n<frames; ++n)
+		{
+			float v0 = in[n];
+			float t0 = v0 - ic2eq;
+			float t1 = g0*t0 + g1*ic1eq;
+			float t2 = g2*t0 + g0*ic1eq;
+			float v1 = t1 + ic1eq;
+			float v2 = t2 + ic2eq;
+			ic1eq += 2.0f*t1;
+			ic2eq += 2.0f*t2;
+			y[n] = v0 - k*v1 - v2;
 		}		
 		return y;
 	}
@@ -374,6 +429,7 @@ public:
 	void setSampleRate(float) {} // temp
 	
 	float g0, g1, g2;
+	float k; // needed for high, notch, peak
 	float ic1eq, ic2eq;
 };
 
@@ -444,6 +500,7 @@ public:
 	}
 	
 	// MLTEST to DSPVector
+	// process a signal in place. should be called that?
 	inline void processSignal(MLSignal& in)
 	{
 		int frames = in.getWidth();

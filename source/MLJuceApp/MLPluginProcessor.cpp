@@ -455,6 +455,9 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 
 void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty prop)
 {
+	
+	debug() << "handleHubNotification: " << action << "\n";
+	
 	if(action == "receiving")
 	{
 		// set model property just for viewing. 
@@ -478,12 +481,12 @@ void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty 
 		sendProgramChange(r);
 #endif
 	}
-	/*
-	 TODO add to DSP engine
+	
 	else if(action == "volume")
 	{
 		getEngine()->setMasterVolume(prop.getFloatValue());
-	}*/
+	}
+	
 	else if(action == "sequence")
 	{
 		setSequence(prop.getSignalValue());
@@ -1208,8 +1211,6 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 		
 		// assume JSON
 		bool OK = true;
-		
-//		debug() << "STATES:\n" << pTrimmedStart << "\n";
 		
 		cJSON* root = cJSON_Parse(pTrimmedStart);
 		if(root)

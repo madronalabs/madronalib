@@ -141,7 +141,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 		osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
 		const char * addy = msg.AddressPattern();
         
-		debug() << "t3d: " << addy << "\n";
+		//debug() << "t3d: " << addy << "\n";
         
 		// frame message.
 		// /t3d/frm (int)frameID int)deviceID

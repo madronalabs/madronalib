@@ -278,7 +278,7 @@ protected:
 	bool			mTopLeft;
 	bool			mDrawThumb;
 		
-	Time mLastDragTime, mLastWheelTime;
+	juce::Time mLastDragTime, mLastWheelTime;
 	int mLastDragX, mLastDragY;
 	float mFilteredMouseSpeed;
 	int mMouseMotionAccum;

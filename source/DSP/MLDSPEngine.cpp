@@ -9,11 +9,14 @@ const char * kMLInputToSignalProcName("the_midi_inputs");
 const char * kMLHostPhasorProcName("the_host_phasor");
 const char * kMLPatcherProcName("voices/voice/patcher");
 
+const float kMasterVolumeMaxRate = 5.f;
+
 MLDSPEngine::MLDSPEngine() : 
 	mpInputToSignalsProc(0),
 	mpHostPhasorProc(0),
 	mInputChans(0),
 	mOutputChans(0),
+	mMasterVolume(1.0f),
 	mCollectStats(false),
 	mBufferSize(0),
 	mGraphStatus(unknownErr),
@@ -230,6 +233,11 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 			mpInputToSignalsProc->setParam("bufsize", bufSize);
 			mpInputToSignalsProc->resize();		
 		}
+		
+		// setup volume filter
+		mMasterVolumeFilter.setSampleRate(sr);
+		mMasterVolumeFilter.setOnePole(kMasterVolumeMaxRate);
+		mMasterVolumeSig.setDims(chunkSize);
 				
 		e = prepareToProcess();		
 		clear();
@@ -302,6 +310,16 @@ void MLDSPEngine::readInputBuffers(const int samples)
 		}
 	}
 }
+
+void MLDSPEngine::multiplyOutputBuffersByVolume()
+{
+	int outs = getNumOutputs();
+	for(int i=0; i < outs; ++i)
+	{
+		MLSignal& output = getOutput(i+1);
+		output.multiply(mMasterVolumeSig);
+	}
+} 
 
 // write outputs of root container to ringbuffers
 void MLDSPEngine::writeOutputBuffers(const int samples)
@@ -542,6 +560,11 @@ void MLDSPEngine::setInputFrameBuffer(PaUtilRingBuffer* pBuf)
 	}
 }
 
+void MLDSPEngine::setMasterVolume(float v)
+{
+	mMasterVolume = v;
+}
+
 // ----------------------------------------------------------------
 #pragma mark Process
 
@@ -601,7 +624,11 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 				}
 			}
 		}
-        
+		
+		// generate volume signal
+		mMasterVolumeSig.fill(mMasterVolume);
+		mMasterVolumeFilter.processSignal(mMasterVolumeSig);
+
 		if (0)// MLTEST (reportStats)
 		{
 			MLSignalStats stats;
@@ -647,6 +674,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 			}
 		}		
          
+		multiplyOutputBuffersByVolume();
         writeOutputBuffers(mVectorSize);
 		processed += mVectorSize;
 		mSamplesToProcess -= mVectorSize;
