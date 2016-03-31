@@ -343,9 +343,8 @@ public:
 	// kc (center), ke (edge), and kk (corner).
 	void convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk);
 	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
-	void variance3x3();
 
-    // metrics
+	// metrics
     float getRMS();
     float rmsDiff(const MLSignal& b);
 	
@@ -482,8 +481,6 @@ private:
 	// private signal constructor: make a reference to a frame of the external signal.
 	MLSignal(const MLSignal* other, int frame);
 
-	MLSample* getCopy();
-
 	inline int padSize(int size) { return size + kMLAlignSize - 1 + kMLSignalEndSize; }
 	MLSample* allocateData(int size);
 	MLSample* initializeData(MLSample* pData, int size);
@@ -510,10 +507,6 @@ private:
 	// start of aligned data in memory. 
 	MLSample* mDataAligned;
 	
-	// temporary buffer made if needed for convolution etc.
-	MLSample* mCopy;
-	MLSample* mCopyAligned;
-
 	// total power-of-two size in samples, stored for fast access by clear() etc.
 	int mSize; 
 	
