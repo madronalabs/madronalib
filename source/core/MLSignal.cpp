@@ -246,9 +246,6 @@ MLSample* MLSignal::setDims(const MLSignal& whd)
 	return mDataAligned;
 }
 
-// TODO this copy stuff is not used enough to warrant being in every signal! 
-// instead a Convolver can be a kind of object that is used by clients. 
-
 // allocate unaligned data
 // TODO test cache-friendly distributions
 //

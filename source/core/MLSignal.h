@@ -95,6 +95,8 @@ public:
 	{
         assert(i < mSize);
 		return mDataAligned[i&mConstantMask];
+		// MLTEST 
+	//	return mDataAligned[i];
 	}
 
 	// mutator, called for non-const references 
@@ -108,10 +110,24 @@ public:
 	{
 		mConstantMask = 0;
 		mDataAligned[0] = k;
+		// MLTEST
+	
+		/*
+		for(int n=0; n<mSize; ++n)
+		{
+			mDataAligned[n] = k;
+		}
+		 */
 	}
 	
 	inline void setConstant(bool k)
 	{
+		
+		// MLTEST
+	//	mConstantMask = mSize - 1;
+	//	return;
+		
+	
 		if(k)
 		{
 			// if this is a constant signal, mConstantMask gets 0.
@@ -122,6 +138,7 @@ public:
 			// if this not is a constant signal, mConstantMask gets the mask for the power-of-two size.
 			mConstantMask = mSize - 1;
 		}
+
 	}
 	
 	inline bool isConstant(void) const
