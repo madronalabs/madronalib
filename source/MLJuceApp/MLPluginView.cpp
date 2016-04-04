@@ -145,7 +145,24 @@ MLButton* MLPluginView::addTriToggleButton(const char * displayName, const MLRec
 MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color)
 {
 	MLDial* dial = addDial("", r, paramName, color);
-	dial->setRange(0., 1., 0.01);
+	
+	MLPluginProcessor* const filter = getProcessor();
+	int idx = filter->getParameterIndex(paramName);
+	if (idx >= 0)
+	{
+		MLPublishedParamPtr p = filter->getParameterPtr(idx);
+		if (p)
+		{
+			dial->setRange(p->getRangeLo(), p->getRangeHi(), p->getInterval(), p->getZeroThresh(), p->getWarpMode()); 
+			dial->setDoubleClickReturnValue(true, p->getDefault());
+		}
+	}
+	else
+	{
+		dial->setRange(0., 1., 0.01);
+		debug() << "MLPluginView::addMultDial: parameter " << paramName << " not found!\n";
+	}
+	
 	dial->setBipolar(false);	
 	dial->setDialStyle (MLDial::Rotary);
 	dial->setRotaryParameters ((kMLPi * 1.f),(kMLPi * 3.0f), true);

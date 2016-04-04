@@ -28,7 +28,7 @@ private:
 	// history
 	MLSample xn1;
 	MLSample yn1;
-
+	int mTest;
 };
 
 // ----------------------------------------------------------------
@@ -48,7 +48,7 @@ namespace
 
 MLProcDCBlocker::MLProcDCBlocker()
 {
-	setParam("f", 20.);	// 20 Hz cutoff
+	setParam("f", 200.);	// default cutoff, not steep
 }
 
 

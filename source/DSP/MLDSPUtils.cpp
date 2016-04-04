@@ -29,9 +29,24 @@ void MLBiquad::setLopass(float f, float q)
 	
 	a0 = (1.f - cosOmega) * 0.5f * b0;
 	a1 = (1.f - cosOmega) * b0;
-	a2 = a0;
+	a2 = (1.f - cosOmega) * 0.5f * b0;
 	b1 = -2.f * cosOmega * b0;
 	b2 = (1.f - alpha) * b0;
+}
+
+void MLBiquad::setHipass(float f, float q)
+{
+	//HPF:        H(s) = s^2 / (s^2 + s/Q + 1)
+	float omega = kMLTwoPi * f * mInvSr;
+	float cosOmega = cosf(omega);
+	float alpha = sinf(omega) / (2.f * q);
+	float b0 = 1.0f / (1.f + alpha);
+	
+	a0 = (1.f + cosOmega) * 0.5f *b0;
+	a1 = -(1.f + cosOmega) *b0;
+	a2 = (1.f + cosOmega) * 0.5f *b0;
+	b1 = -2.f * cosOmega *b0;
+	b2 = (1.f - alpha) *b0;
 }
 
 void MLBiquad::setPeakNotch(float f, float q, float gain)
@@ -48,23 +63,8 @@ void MLBiquad::setPeakNotch(float f, float q, float gain)
 	a0 = (1.f + A) * b0;
 	a1 = -2.f * cosOmega * b0;
 	a2 = (1.f - A) * b0;
-	b1 = a1;
+	b1 = a1*b0;
 	b2 = (1.f - alphaOverA) * b0;
-}
-
-void MLBiquad::setHipass(float f, float q)
-{
-	//HPF:        H(s) = s^2 / (s^2 + s/Q + 1)
-	float omega = kMLTwoPi * f * mInvSr;
-	float cosOmega = cosf(omega);
-	float alpha = sinf(omega) / (2.f * q);
-	float b0 = 1.f + alpha;
-	
-	a0 = (1.f + cosOmega) * 0.5f / b0;
-	a1 = -(1.f + cosOmega) / b0;
-	a2 = a0;
-	b1 = -2.f * cosOmega / b0;
-	b2 = (1.f - alpha) / b0;
 }
 
 void MLBiquad::setBandpass(float f, float q)
@@ -119,8 +119,8 @@ void MLBiquad::setLoShelf(float f, float q, float gain)
 	float cosOmega = cosf(omega);
 	float alpha = sinf(omega) / (2.f * q);
     float beta = 2.0f*sqrtf(A)*alpha;
-	float b0 = aPlus1 + aMinus1*cosOmega + beta;
 	
+	float b0 = aPlus1 + aMinus1*cosOmega + beta;
 	a0 = (A*(aPlus1 - aMinus1*cosOmega + beta)) / b0;
 	a1 = (A*(aPlus1*-2.0f*cosOmega + 2.0f*aMinus1)) / b0;
 	a2 = (A*(aPlus1 - aMinus1*cosOmega - beta)) / b0;
@@ -138,9 +138,8 @@ void MLBiquad::setHiShelf(float f, float q, float gain)
 	float cosOmega = cosf(omega);
 	float alpha = sinf(omega) / (2.f * q);
     float beta = 2.0f*sqrtf(A)*alpha;
-    
-	float b0 = aPlus1 - aMinus1*cosOmega + beta;
 	
+	float b0 = aPlus1 - aMinus1*cosOmega + beta;
 	a0 = (A*(aPlus1 + aMinus1*cosOmega + beta)) / b0;
 	a1 = (A*(aPlus1*-2.0f*cosOmega + -2.0f*aMinus1)) / b0;
 	a2 = (A*(aPlus1 + aMinus1*cosOmega - beta)) / b0;
@@ -232,7 +231,7 @@ const float MLPhaseOsc::kIntDomain = powf(2.f, 32.f);
 const float MLPhaseOsc::kDomainScale = 1.f/kIntDomain;
 
 // ----------------------------------------------------------------
-#pragma mark MLLinearDelay
+#pragma mark MLSampleDelay
 
 void MLSampleDelay::resize(float duration)
 {
@@ -240,11 +239,6 @@ void MLSampleDelay::resize(float duration)
     mBuffer.setDims(newSize);
     mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
     clear();
-}
-
-void MLSampleDelay::setDelay(float d)
-{
-    mDelayInSamples = (int)(d*(float)mSR);
 }
 
 // ----------------------------------------------------------------
@@ -258,11 +252,6 @@ void MLLinearDelay::resize(float duration)
     clear();
 }
 
-void MLLinearDelay::setModDelay(float d)
-{
-    mModDelayInSamples = d*(float)mSR;
-}
-
 // ----------------------------------------------------------------
 #pragma mark MLAllpassDelay
 
@@ -272,17 +261,6 @@ void MLAllpassDelay::resize(float duration)
     mBuffer.setDims(newSize);
     mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
     mWriteIndex = 0;
-}
-
-void MLAllpassDelay::setModDelay(float d)
-{
-//    int prevD = mModDelayInSamples;
-
-    mModDelayInSamples = d*(float)mSR;
-    
-//    int newD = mModDelayInSamples;    
-//    if(prevD < newD) debug() << "<";
-//    if(prevD > newD) debug() << ">";
 }
 
 // TODO modulating this allpass is a little bit clicky.
@@ -331,6 +309,7 @@ MLSample MLAllpassDelay::processSample(const MLSample x)
     readIndex &= mLengthMask;
     mFixedTapOut = mBuffer[readIndex];
     
+	// TODO mBlend is not dry blend, see where this is used and correct! 
     return sum*mBlend + modTapOut*mFeedForward;
 }
 
@@ -393,12 +372,12 @@ void MLFDN::setSampleRate(int sr)
     }
 }
 
-// set lengths of delay lines, which will control the reverb density
 void MLFDN::setDelayLengths(float maxLength)
 {
     float t = clamp(maxLength, 0.f, kMaxDelayLength);
     mDelayTime = t;
-    //debug() << " MLFDN delays: \n ";
+	float offset = mDelayTime*0.02f;
+   //debug() << " MLFDN delays: \n ";
     for(int i=0; i<mSize; ++i)
     {
         // clear delay and set to all feedforward, no feedback
@@ -409,9 +388,7 @@ void MLFDN::setDelayLengths(float maxLength)
         //debug() << "    " << i << " : " << t << "\n";
         mDelays[i].setModDelay(t);
         t *= mFreqMul;
-        
-        float offset = mDelayTime*0.02f;
-        t += offset;
+		t += offset;
     }
 }
 
@@ -425,25 +402,37 @@ void MLFDN::setLopass(float f)
 
 MLSample MLFDN::processSample(const MLSample x)
 {
-    float outputSum = 0.f;    
-    for(int j=0; j<mSize; ++j)
-    {
-        // input + feedback
-        float inputSum = x;
-        for(int i=0; i<mSize; ++i)
-        {
-            inputSum += mDelayOutputs[i]*mMatrix(i, j);
-        }
-                
-        // delays
-        mDelayOutputs[j] = mDelays[j].processSample(inputSum);        
-        mDelayOutputs[j] *= mFeedbackAmp;
-        
-        // filters
-        mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);        
-        outputSum += mDelayOutputs[j];
-    }
-    return outputSum;
+	float outputSum = 0.f;    
+	for(int j=0; j<mSize; ++j)
+	{
+		// input + feedback
+		float inputSum = x;
+		for(int i=0; i<mSize; ++i)
+		{
+			inputSum += mDelayOutputs[i]*mMatrix(i, j);
+		}
+		
+		// delays
+		mDelayOutputs[j] = mDelays[j].processSample(inputSum);        
+		mDelayOutputs[j] *= mFeedbackAmp;
+		
+		// filters
+		mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);        
+		outputSum += mDelayOutputs[j];
+	}
+	return outputSum;
+}
+
+// MLTEST
+MLSignal MLFDN::operator()(const MLSignal& x)
+{
+	int frames=x.getWidth();
+	MLSignal y(frames);
+	for(int n=0; n<frames; ++n)
+	{
+		y[n] = processSample(x[n]);
+	}
+	return y;
 }
 
 // ----------------------------------------------------------------

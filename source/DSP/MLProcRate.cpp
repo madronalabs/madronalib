@@ -143,7 +143,7 @@ void MLProcRate::process(const int samples)
 	}
 	else
 	{
-		// don't correct the phase, just run pasor at float ratio of input rate.
+		// don't correct the phase, just run phasor at float ratio of input rate.
 		for (int n=0; n<samples; ++n)
 		{
 			float px = x[n];

@@ -14,6 +14,7 @@
 #include "MLRingBuffer.h"
 #include "MLControlEvent.h"
 #include "OscTypes.h"
+#include "MLDSPUtils.h"
 
 const int kMLEngineMaxChannels = 8;
 
@@ -86,6 +87,7 @@ public:
 	void setEngineInputProtocol(int p);
 	void setInputDataRate(int p);
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
+	void setMasterVolume(float v);
 	
 	// ----------------------------------------------------------------
 	// Process
@@ -115,6 +117,8 @@ private:
 	int mInputChans;
 	int mOutputChans;
 	
+	float mMasterVolume;
+	
     ClientIOMap mIOMap;
 
     // map to published signals by name
@@ -143,8 +147,12 @@ private:
 	void writeInputBuffers(const int samples);
     void clearOutputBuffers();
 	void readInputBuffers(const int samples);
+	void multiplyOutputBuffersByVolume();
 	void writeOutputBuffers(const int samples);
 	void readOutputBuffers(const int samples);
+	
+	MLBiquad mMasterVolumeFilter;
+	MLSignal mMasterVolumeSig;
 };
 
 

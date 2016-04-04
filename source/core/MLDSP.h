@@ -89,6 +89,33 @@ const float kMLToBeCalculated = 0.f;
 const MLSample kMLMaxSample = MAXFLOAT;
 const MLSample kMLMinSample = -MAXFLOAT;
 
+
+// ----------------------------------------------------------------
+// MLTEST experimental signal chunk stuff
+
+namespace ml
+{	
+	const int kVectorSize = kMLProcessChunkSize;
+	const int kSSEVectorSize = kMLProcessChunkSize / kSSEVecSize;
+	
+	class DSPVector
+	{
+	public:
+		DSPVector() {}
+		const DSPVector(const float* pf) { copyFrom(pf); }
+		
+		inline float& operator[](int i) { return mData[i]; }	
+		inline const float operator[](int i) const { return mData[i]; }	
+		
+		// TEMP glue to MLSignal-based graphs
+		inline void copyFrom(const float* pSrc) { std::copy(pSrc, pSrc+kVectorSize, mData); } 
+		inline void copyTo (float* pDest) { std::copy(mData, mData+kVectorSize, pDest); }
+	private:
+		float mData[kMLProcessChunkSize];
+	};
+}
+
+
 // ----------------------------------------------------------------
 #pragma mark utility functions
 // ----------------------------------------------------------------
@@ -155,6 +182,44 @@ float offsetForRangeTransform(float a, float b, float c, float d);
 MLSample MLRand(void);
 uint32_t MLRand32(void);
 void MLRandReset(void);
+
+namespace ml
+{		
+	class RandomSource
+	{
+	public:
+		RandomSource() : mSeed(0) {}
+		~RandomSource() {}
+		
+		inline float getSample()
+		{
+			mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
+			uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
+			temp &= 0x007FFFFF;
+			temp |= 0x3F800000;
+			float* pf = reinterpret_cast<float*>(&temp);
+			return (*pf)*2.f - 3.f;			
+		}
+		
+		// TODO DSPVector operator()()
+		inline DSPVector operator()()
+		{
+			DSPVector y;
+			for(int i=0; i<kVectorSize; ++i)
+			{
+				y[i] = getSample();
+			}
+			return y;
+		}
+
+		void reset() { mSeed = 0; }
+
+	private:
+		uint32_t mSeed = 0;
+		
+	};
+}
+
 
 // ----------------------------------------------------------------
 #pragma mark portable numeric checks
@@ -337,11 +402,7 @@ inline __m128 log2Approx4(__m128 x)
 #pragma mark  MLRange
 // ----------------------------------------------------------------
 
-// TODO this is not named well becuase a range of values is a common kind of expression. 
-// this is a kind of xform function. 
-// a mapping between intervals. 
-// look at how this got used so far, then decide new syntax based on that. 
-// also this should be a module.
+// TODO remove everywhere and use new ml::Interval and ml::IntervalProjection
 
 class MLRange
 {

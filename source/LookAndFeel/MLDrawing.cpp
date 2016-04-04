@@ -122,6 +122,7 @@ void MLDrawing::paint(Graphics& g)
 	// defaults
 	float ft = 1.0f * fu / 64.;
 	float arrowScale = fu / 48.;
+	float dotRadius = fu / 24.;
 	mLineColor = mDarkColor;
 	g.setColour(mLineColor);
 //	int w = getWidth();
@@ -170,6 +171,27 @@ void MLDrawing::paint(Graphics& g)
 				p.lineTo(MLToJucePoint(correctPoint(p2)));
 				g.strokePath(p, PathStrokeType(ft));
 				drawArrowhead(g, p1, p2, arrowScale);
+				break;
+			case drawDot:
+				p1 = mTransformedPoints[(int)op.args[0]];
+				
+				// p.startNewSubPath(MLToJucePoint(correctPoint(p1)));
+				{
+					juce::Point<float> pc = MLToJucePoint(correctPoint(p1));
+					juce::Point<float> pr1 = pc + juce::Point<float>(dotRadius, 0);
+					p.startNewSubPath(pr1);
+					int s = 10;
+					for(int i=0; i<s; ++i)
+					{
+						float omega = i*kMLTwoPi/(s - 1);
+						juce::Point<float> pr = pc + juce::Point<float>(cos(omega)*dotRadius, sin(omega)*dotRadius);
+						p.lineTo(pr);
+					}
+					p.lineTo(pr1);
+					g.fillPath(p);
+				}
+				
+
 				break;
 			case drawLineArrowBoth:
 			break;

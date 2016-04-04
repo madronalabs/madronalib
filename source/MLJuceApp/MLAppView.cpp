@@ -88,7 +88,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(dial, displayName);		
+		addLabelAbove(dial, displayName, "");		
 	}
 	return dial;
 }
@@ -109,7 +109,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(slider, displayName);
+		addLabelAbove(slider, displayName, "");
 	}
 	return slider;
 }
@@ -130,7 +130,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(b, displayName);
+		addLabelAbove(b, displayName, "");
 	}
 	return b;
 }
@@ -219,7 +219,7 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(b, displayName);
+		addLabelAbove(b, displayName, "");
 	}
 	return b;
 }

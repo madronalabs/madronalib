@@ -24,6 +24,7 @@ public:
 		setLineThickness,
 		setLightColor,
 		setDarkColor,
+		drawDot,
 	}	eOperationType;
 	
 	class Operation

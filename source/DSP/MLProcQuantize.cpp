@@ -5,12 +5,13 @@
 
 #include "MLProc.h"
 #include "MLScale.h"
+#include "MLDSPUtils.h"
 
 typedef enum
 {
 	kTruncate = 0,
 	kNearest = 1
-} kMLScaleQuantizeMode;
+} eQuantizeMode;
 
 // ----------------------------------------------------------------
 // class definition
@@ -29,8 +30,12 @@ private:
 	
 	void doParams();
 	
+	MLBiquad mPitchFilter; // TODO onepole
+	
 	MLScale mScale;
-	kMLScaleQuantizeMode mMode;
+	int mMode;
+	int mCounter;
+	float mNewPitch;
 	std::string mScaleName;
 };
 
@@ -53,6 +58,8 @@ MLProcQuantize::MLProcQuantize()
 	setParam("on", 1);
 	setParam("mode", kTruncate);
 	mScale.setDefaults();
+	mCounter = 0;
+	mNewPitch = 0.f;
 }
 
 MLProcQuantize::~MLProcQuantize()
@@ -61,13 +68,14 @@ MLProcQuantize::~MLProcQuantize()
 
 void MLProcQuantize::doParams()
 {
+	
 	const std::string& scaleName = getStringParam("scale");
 	if(scaleName != mScaleName)
 	{
 		mScale.loadFromRelativePath(scaleName);
 		mScaleName = scaleName;
 	}
-	mMode = static_cast<kMLScaleQuantizeMode>(getParam("mode"));
+	mMode = static_cast<int>(getParam("mode"));
 	mParamsChanged = false;
 }
 
@@ -77,30 +85,36 @@ void MLProcQuantize::process(const int frames)
 
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
-
-	if(getParam("on"))
+	
+	if(!getParam("on"))
 	{
-		if(mMode == kTruncate)
-		{
-			for (int n=0; n < frames; ++n)
-			{
-				// TODO not every sample OK?
-				y[n] = mScale.quantizePitch(x[n]);
-			}
-		}
-		else
-		{
-			// nearest pitch
-			for (int n=0; n < frames; ++n)
-			{
-				// TODO not every sample OK?
-				y[n] = mScale.quantizePitchNearest(x[n]);
-			}
-		}
+		y = x; 
+		return;
 	}
-	else
+	
+	// TODO move
+	mPitchFilter.setSampleRate(getContextSampleRate());
+	mPitchFilter.setOnePole(100.f);
+
+	for (int n=0; n < frames; ++n)
 	{
-		y = x;
+		mCounter++;
+		mCounter &= 0xFF;
+		
+		if(!mCounter)
+		{
+			if(mMode == kTruncate)
+			{
+				mNewPitch = mScale.quantizePitch(x[n]);
+			}
+			else
+			{
+				mNewPitch = mScale.quantizePitchNearest(x[n]);
+			}
+		}
+		
+		float r = mPitchFilter.processSample(mNewPitch);
+		y[n] = r;
 	}
 }
 

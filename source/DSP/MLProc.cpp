@@ -68,7 +68,6 @@ bail:
 	return e;
 }
 
-
 void MLProc::clearProc()
 {		
 	const int op = getNumOutputs();
@@ -265,44 +264,6 @@ void MLProc::createInput(const int index)
 	if (index > (int)mInputs.size())
 	{
 		mInputs.resize(index, 0);
-	}
-}
-
-// getNumInputs() and getNumOutputs() are not virtual.  
-// Proxy classes, for example, override procInfo()
-// and resize mInputs and mOutputs so that these methods
-// work for all classes.
-int MLProc::getNumInputs() 
-{ 
-	return (int)mInputs.size(); 
-}
-
-int MLProc::getNumRequiredInputs() 
-{
-	if (procInfo().hasVariableInputs())
-	{
-		return 0; 
-	}
-	else
-	{
-		return procInfo().getInputMap().getSize();
-	}
-}
-
-int MLProc::getNumOutputs() 
-{ 
-	return (int)mOutputs.size(); 
-}
-
-int MLProc::getNumRequiredOutputs() 
-{ 
-	if (procInfo().hasVariableOutputs())
-	{
-		return 0; 
-	}
-	else
-	{
-		return procInfo().getOutputMap().getSize();	
 	}
 }
 

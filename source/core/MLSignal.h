@@ -65,7 +65,7 @@ typedef enum
 class MLSignal final
 {	
 public:
-	explicit MLSignal();	
+	explicit MLSignal(); 
 	MLSignal(const MLSignal& b);
 	explicit MLSignal(int width, int height = 1, int depth = 1); 
 	explicit MLSignal (std::initializer_list<float> values);
@@ -76,12 +76,12 @@ public:
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
 
-	MLSample* getBuffer (void) const
+	float* getBuffer (void) const
 	{	
 		return mDataAligned;
 	}
 
-	const MLSample* getConstBuffer (void) const
+	const float* getConstBuffer (void) const
 	{	
 		return mDataAligned;
 	}
@@ -95,6 +95,8 @@ public:
 	{
         assert(i < mSize);
 		return mDataAligned[i&mConstantMask];
+		// MLTEST 
+	//	return mDataAligned[i];
 	}
 
 	// mutator, called for non-const references 
@@ -108,10 +110,24 @@ public:
 	{
 		mConstantMask = 0;
 		mDataAligned[0] = k;
+		// MLTEST
+	
+		/*
+		for(int n=0; n<mSize; ++n)
+		{
+			mDataAligned[n] = k;
+		}
+		 */
 	}
 	
 	inline void setConstant(bool k)
 	{
+		
+		// MLTEST
+	//	mConstantMask = mSize - 1;
+	//	return;
+		
+	
 		if(k)
 		{
 			// if this is a constant signal, mConstantMask gets 0.
@@ -122,6 +138,7 @@ public:
 			// if this not is a constant signal, mConstantMask gets the mask for the power-of-two size.
 			mConstantMask = mSize - 1;
 		}
+
 	}
 	
 	inline bool isConstant(void) const
@@ -270,8 +287,14 @@ public:
 	// setFrame() - set the 2D frame i to the incoming signal.
 	void setFrame(int i, const MLSignal& src);
 
+	// return 1, 2 or 3 element matrix with dimensions
+	MLSignal getDims();
+
 	// set dims.  return data ptr, or 0 if out of memory.
 	MLSample* setDims (int width, int height = 1, int depth = 1);
+	
+	// same but with (w, h, d) signal
+	MLSample* setDims (const MLSignal& whd);
 	
 	MLRect getBoundsRect() const { return MLRect(0, 0, mWidth, mHeight); }
 	
@@ -281,7 +304,7 @@ public:
 	int getWidthBits() const { return mWidthBits; }
 	int getHeightBits() const { return mHeightBits; }
 	int getDepthBits() const { return mDepthBits; }
-	int getSize() const { return mSize; }
+	inline int getSize() const { return mSize; }
 
 	int getXStride() const { return (int)sizeof(MLSample); }
 	int getYStride() const { return (int)sizeof(MLSample) << mWidthBits; }
@@ -314,6 +337,9 @@ public:
 	void multiply(const MLSignal& s);	
 	void divide(const MLSignal& s);	
 
+	// MLTEST
+	void copyFast(const MLSignal& b);
+
 	// signal / scalar operators
 	void fill(const MLSample f);
 	void scale(const MLSample k);	
@@ -334,9 +360,8 @@ public:
 	// kc (center), ke (edge), and kk (corner).
 	void convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk);
 	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
-	void variance3x3();
 
-    // metrics
+	// metrics
     float getRMS();
     float rmsDiff(const MLSignal& b);
 	
@@ -368,8 +393,13 @@ public:
 	void add2D(const MLSignal& b, int destX, int destY);
 	void add2D(const MLSignal& b, const Vec2& destOffset);
 	
-	// transforms
-	void clear();
+	inline void clear()
+	{
+		std::fill(mDataAligned, mDataAligned+mSize, 0);
+		//	setToConstant(0); // TODO 
+		//memset((void *)(mDataAligned), 0, (size_t)(mSize*sizeof(MLSample)));
+	}
+	
 	void invert();
 
 	int checkIntegrity() const;
@@ -393,6 +423,40 @@ public:
 	inline int getRowStride() const { return 1<<mWidthBits; }
 	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
 	
+#pragma mark new methods
+	
+	// MLTEST new business
+	inline MLSignal getRow(int i)
+	{
+		int w = getWidth();
+		MLSignal r(w);
+		//r.copyFrom( mDataAligned+row(i) );
+		float* pRow = mDataAligned+row(i);
+		std::copy(pRow, pRow+w, r.mDataAligned);
+		return r;
+	}
+	
+	/*
+	inline void scaleAndAccumulate(const MLSignal& b, float k)
+	{
+		int vectors = mSize >> kMLSamplesPerSSEVectorBits;
+		
+		float* pb = b.getBuffer();
+		float* pa = getBuffer();
+		__m128 va, vb, vk;
+		
+		vk = _mm_set1_ps(k);
+
+		for(int v=0; v<vectors; ++v)
+		{
+			va = _mm_load_ps(pa);
+			vb = _mm_load_ps(pb);
+			_mm_store_ps(pa, _mm_add_ps(va, _mm_mul_ps(vb, vk)));
+			pa += kSSEVecSize;
+			pb += kSSEVecSize;
+		}
+	}
+	*/
 	// utilities for getting pointers to the aligned data as other types.
 	uint32_t* asUInt32Ptr(void) const
 	{
@@ -434,12 +498,11 @@ private:
 	// private signal constructor: make a reference to a frame of the external signal.
 	MLSignal(const MLSignal* other, int frame);
 
-	MLSample* getCopy();
-
 	inline int padSize(int size) { return size + kMLAlignSize - 1 + kMLSignalEndSize; }
 	MLSample* allocateData(int size);
 	MLSample* initializeData(MLSample* pData, int size);
 	
+	// ----------------------------------------------------------------
 	// data	
 	
 	// mask for array lookups. By setting to zero, the signal becomes a constant.
@@ -461,10 +524,6 @@ private:
 	// start of aligned data in memory. 
 	MLSample* mDataAligned;
 	
-	// temporary buffer made if needed for convolution etc.
-	MLSample* mCopy;
-	MLSample* mCopyAligned;
-
 	// total power-of-two size in samples, stored for fast access by clear() etc.
 	int mSize; 
 	
@@ -476,6 +535,38 @@ typedef std::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);
+
+namespace ml
+{
+	extern MLSignal nullSignal;
+}
+
+#pragma mark new business
+// new MLTEST
+inline MLSignal add(const MLSignal& a, const MLSignal& b)
+{
+	MLSignal r(a);
+	r.add(b);
+	return r;
+}
+
+// return the matrix transpose of a 1D or 2D signal.
+inline MLSignal transpose(const MLSignal& x)
+{
+	// this whole thing could be something like
+	// return MLSignal(float* pDataStart, int w, int h, int rowStride, int colStride);
+	int yh = x.getWidth();
+	int yw = x.getHeight();	
+	MLSignal y(yw, yh);	
+	for(int j=0; j<yh; ++j)
+	{
+		for(int i=0; i<yw; ++i)
+		{
+			y(i, j) = x(j, i);
+		}
+	}
+	return y;
+}
 
 
 #endif // _MLSIGNAL_H

@@ -11,7 +11,7 @@
 class MLProcAdd : public MLProc
 {
 public:
-	void process(const int n);		
+	void process(const int frames);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
@@ -60,15 +60,13 @@ void MLProcAdd::process(const int frames)
 	const bool k2 = x2.isConstant();
 	const int mode = (k1 << 1) + k2;	
 	
-	y1.setConstant(false);
-	
 	const MLSample* px1 = x1.getConstBuffer();
 	const MLSample* px2 = x2.getConstBuffer();
 	MLSample* py1 = y1.getBuffer();
 	
 	int c = frames >> kMLSamplesPerSSEVectorBits;
 	__m128 vx1, vx2, vr; 	
-
+	
 	switch(mode)
 	{
 		case 0:
@@ -82,7 +80,8 @@ void MLProcAdd::process(const int frames)
 				px2 += kSSEVecSize;
 				py1 += kSSEVecSize;
 			}
-		break;
+			y1.setConstant(false);			
+			break;
 		case 1:
 			vx2 = _mm_set1_ps(x2[0]);
 			for (int n = 0; n < c; ++n)
@@ -93,7 +92,8 @@ void MLProcAdd::process(const int frames)
 				px1 += kSSEVecSize;
 				py1 += kSSEVecSize;
 			}
-		break;
+			y1.setConstant(false);			
+			break;
 		case 2:
 			vx1 = _mm_set1_ps(x1[0]);
 			for (int n = 0; n < c; ++n)
@@ -104,10 +104,11 @@ void MLProcAdd::process(const int frames)
 				px2 += kSSEVecSize;
 				py1 += kSSEVecSize;
 			}
-		break;
+			y1.setConstant(false);			
+			break;
 		case 3: // yay
 			y1.setToConstant(x1[0] + x2[0]);
-		break;
+			break;
 	}
 }
 

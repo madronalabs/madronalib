@@ -1654,7 +1654,7 @@ void MLDial::findDialToDrag(const int x, const int y)
 
 void MLDial::addDetent(const float value, const float width)
 {
-    mDetents.push_back(MLDialDetent(value, width));
+	mDetents.push_back(MLDialDetent(value, width));
 }
 
 void MLDial::snapToDetents(const bool snap)
@@ -1719,8 +1719,10 @@ void MLDial::getDialRect (MLRect& ret,
     int numWidth1, numWidth2;
     if(!smallThumbs)
     {
-        numWidth1 = mTextSize*myLookAndFeel->getNumberWidth(val1, mDigits, mPrecision, mDoSign);
-        numWidth2 = mTextSize*myLookAndFeel->getNumberWidth(val2, mDigits, mPrecision, mDoSign);
+		// MLTEST having Windows problems so fuck it, let text spill over thumb
+		const int spill = 2;
+		numWidth1 = mTextSize*(myLookAndFeel->getNumberWidth(val1, mDigits, mPrecision, mDoSign))*spill;
+		numWidth2 = mTextSize*(myLookAndFeel->getNumberWidth(val2, mDigits, mPrecision, mDoSign))*spill;
         numWidth1 |= 0x1;
         numWidth2 |= 0x1;
     }

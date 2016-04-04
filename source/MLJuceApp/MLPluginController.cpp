@@ -5,7 +5,7 @@
 
 #include "MLPluginController.h"
 
-const int kControllerTimerRate = 33;
+const int kControllerTimerRate = 50;
 
 MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	MLWidget::Listener(),
@@ -111,6 +111,7 @@ void MLPluginController::timerCallback()
 	if(mClockDivider > lessFrequentThingsDivision)
     {
         // do less frequent things (unused)
+		debug().display();
         mClockDivider = 0;
     }
 	

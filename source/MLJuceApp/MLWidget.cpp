@@ -193,6 +193,7 @@ void MLWidget::setWidgetEnabled(bool v)
 	if(pComponent)
 	{
 		pComponent->setEnabled(v);
+		pComponent->repaint();
 	}
 }
 

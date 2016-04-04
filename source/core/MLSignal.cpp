@@ -18,12 +18,18 @@ const MLSample kMLSignalEndSamples[4] =
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
-// no length argument: make a null object.
+MLSignal ml::nullSignal;
+
+// no length argument: make a null object. MLTEST sort out any extant use of nulls and make this return default size with fastest possible ctor.
+
+// TODO fast ctors for default size chunks seems a lot more imporant than a null object pattern. Look at where we are using the latter and do it some other way. 
+
+// DSPutils can operate on the assumption of default size signals: 16 x 1 or whatever.
+// these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
+
 MLSignal::MLSignal() : 
 	mData(0),
-	mDataAligned(0),
-	mCopy(0),
-	mCopyAligned(0)
+	mDataAligned(0)
 {
 	mRate = kMLToBeCalculated;
 	setDims(0);
@@ -31,9 +37,7 @@ MLSignal::MLSignal() :
 
 MLSignal::MLSignal (int width, int height, int depth) : 
 	mData(0),
-	mDataAligned(0),
-	mCopy(0),
-	mCopyAligned(0)
+	mDataAligned(0)
 {
 	mRate = kMLToBeCalculated;
 	setDims(width, height, depth);
@@ -41,9 +45,7 @@ MLSignal::MLSignal (int width, int height, int depth) :
 
 MLSignal::MLSignal(const MLSignal& other) :
 	mData(0),
-	mDataAligned(0),
-	mCopy(0),
-	mCopyAligned(0)
+	mDataAligned(0)
 {
 	mSize = other.mSize;
 	mData = allocateData(mSize);
@@ -61,9 +63,7 @@ MLSignal::MLSignal(const MLSignal& other) :
 
 MLSignal::MLSignal (std::initializer_list<float> values) : 
 mData(0),
-mDataAligned(0),
-mCopy(0),
-mCopyAligned(0)
+mDataAligned(0)
 {
 	mRate = kMLToBeCalculated;
 	setDims((int)values.size());
@@ -77,9 +77,7 @@ mCopyAligned(0)
 // constructor for making loops. only one type for now. we could loop in different directions and dimensions.
 MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
 mData(0),
-mDataAligned(0),
-mCopy(0),
-mCopyAligned(0)
+mDataAligned(0)
 {
 	switch(loopType)
 	{
@@ -144,7 +142,9 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 	return *this;
 }
 
-
+// TODO use row(), column(), plane() submatrix syntax instead. 
+// then current getBuffer().row(1) turns into row(1).getBuffer()
+//
 // private signal constructor: make a reference to a slice of the external signal.
 // of course this object will be meaningless when the other Signal is gone, so
 // use wih care -- only as a temporary, ideally.  Is there a way to force 
@@ -155,9 +155,7 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 //
 MLSignal::MLSignal(const MLSignal* other, int slice) : 
 	mData(0),
-	mDataAligned(0),
-	mCopy(0),
-	mCopyAligned(0)
+	mDataAligned(0)
 {
 	mRate = kMLToBeCalculated;
 	setConstant(false);
@@ -190,7 +188,22 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 MLSignal::~MLSignal() 
 {
 	delete[] mData;
-	delete[] mCopy;
+}
+
+MLSignal MLSignal::getDims()
+{
+	if(mDepth > 1)
+	{
+		return MLSignal{static_cast<float>(mWidth), static_cast<float>(mHeight), static_cast<float>(mDepth)};
+	}
+	else if(mHeight > 1)
+	{
+		return MLSignal{static_cast<float>(mWidth), static_cast<float>(mHeight)};
+	}
+	else
+	{
+		return MLSignal{static_cast<float>(mWidth)};
+	}
 }
 
 MLSample* MLSignal::setDims (int width, int height, int depth)
@@ -215,25 +228,22 @@ MLSample* MLSignal::setDims (int width, int height, int depth)
 	return mDataAligned;
 }
 
-// make the copy buffer if needed. 
-// then copy the current data to the copy buffer and return the start of the copy.
-//
-MLSample* MLSignal::getCopy()
+MLSample* MLSignal::setDims(const MLSignal& whd)
 {
-	if (!mCopy)
+	switch(whd.getWidth())
 	{
-		mCopy = allocateData(mSize);
-		if (mCopy)
-		{
-			mCopyAligned = initializeData(mCopy, mSize);
-		}
-		else
-		{
-			std::cerr << "MLSignal::getCopy: out of memory!\n";
-		}
+		case 1:
+		default:
+			setDims(static_cast<int>(whd[0]));
+			break;
+		case 2:
+			setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]));
+			break;
+		case 3:
+			setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]), static_cast<int>(whd[2]));
+			break;
 	}
-	std::copy(mDataAligned, mDataAligned + mSize, mCopyAligned);
-	return mCopyAligned;
+	return mDataAligned;
 }
 
 // allocate unaligned data
@@ -470,6 +480,11 @@ void MLSignal::copy(const MLSignal& b)
 	}
 }
 
+void MLSignal::copyFast(const MLSignal& b)
+{
+	std::copy(b.mDataAligned, b.mDataAligned + mSize, mDataAligned);
+}
+
 // add the entire signal b to this signal, at the integer destination offset. 
 // 
 void MLSignal::add2D(const MLSignal& b, int destX, int destY)
@@ -524,7 +539,6 @@ const MLSample MLSignal::operator() (const float i, const float j) const
     return getInterpolatedLinear(i, j);
 
 }*/
-
 
 // TODO SSE
 void MLSignal::add(const MLSignal& b)
@@ -688,14 +702,6 @@ void MLSignal::divide(const MLSignal& b)
 #pragma mark unary ops
 // 
 
-void MLSignal::clear()
-{
-//	std::fill(mDataAligned, mDataAligned+mSize, 0);
-//	setToConstant(0); // TODO 
-	memset((void *)(mDataAligned), 0, (size_t)(mSize*sizeof(MLSample)));
-}
-
-
 void MLSignal::fill(const MLSample f)
 {
 	std::fill(mDataAligned, mDataAligned+mSize, f);
@@ -766,42 +772,40 @@ void MLSignal::sigMax(const MLSample m)
 // convolve a 1D signal with a 3-point impulse response.
 void MLSignal::convolve3x1(const MLSample km, const MLSample k, const MLSample kp)
 {
-    // TODO SSE
-	int width = mWidth;
-	MLSample* pIn = getCopy();
-    
-    // left
+	MLSignal copy(*this);
+	float* pIn = copy.getBuffer();
+	
+	// left
     mDataAligned[0] = k*pIn[0] + kp*pIn[1];
     
     // center
-    for(int i=1; i<width - 1; ++i)
+    for(int i=1; i<mWidth - 1; ++i)
     {
         mDataAligned[i] = km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1];
     }
     
     // right
-    mDataAligned[width - 1] = km*pIn[width - 2] + k*pIn[width - 1];
+    mDataAligned[mWidth - 1] = km*pIn[mWidth - 2] + k*pIn[mWidth - 1];
 }
 
 void MLSignal::convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
 {
-    // TODO SSE
-	int width = mWidth;
-	MLSample* pIn = getCopy();
-    
+	MLSignal copy(*this);
+	float* pIn = copy.getBuffer();
+	
     // left
     mDataAligned[0] = k*pIn[0] + kp*pIn[1] + kpp*pIn[2];
     mDataAligned[1] = km*pIn[0] + k*pIn[1] + kp*pIn[2] + kpp*pIn[3];
     
     // center
-    for(int i=2; i<width - 2; ++i)
+    for(int i=2; i<mWidth - 2; ++i)
     {
         mDataAligned[i] = kmm*pIn[i - 2] + km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1] + kpp*pIn[i + 2];
     }
     
     // right
-    mDataAligned[width - 2] = kmm*pIn[width - 4] + km*pIn[width - 3] + k*pIn[width - 2] + kp*pIn[width - 1];
-    mDataAligned[width - 1] = kmm*pIn[width - 4] + km*pIn[width - 3] + k*pIn[width - 2];
+    mDataAligned[mWidth - 2] = kmm*pIn[mWidth - 4] + km*pIn[mWidth - 3] + k*pIn[mWidth - 2] + kp*pIn[mWidth - 1];
+    mDataAligned[mWidth - 1] = kmm*pIn[mWidth - 4] + km*pIn[mWidth - 3] + k*pIn[mWidth - 2];
 }
 
 
@@ -813,7 +817,8 @@ void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample
     float * pr1, * pr2, * pr3; // input row ptrs
     float * prOut; 	
 	
-	MLSample* pIn = getCopy();
+	MLSignal copy(*this);
+	float* pIn = copy.getBuffer();	
 	MLSample* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
@@ -924,7 +929,9 @@ void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSampl
 	float * pr1, * pr2, * pr3; // input row ptrs
 	float * prOut; 	
 	
-	MLSample* pIn = getCopy();
+	MLSignal copy(*this);
+	float* pIn = copy.getBuffer();
+	
 	MLSample* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
@@ -1021,193 +1028,6 @@ void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSampl
 			f += kk * (pr1[i-1] + pr1[i] + pr2[i-1] + pr2[i]);
 			f += kc * pr2[i];
 			prOut[i] = f;		
-		}
-	}
-}
-
-// an operator for 2D signals only
-void MLSignal::variance3x3()
-{
-	MLSample* pIn = getCopy();
-	MLSample* pOut = mDataAligned;
-	int i, j;
-	float f;
-	float * pr1, * pr2, * pr3; // input row ptrs
-	float * prOut; 		
-	int width = mWidth;
-	int height = mHeight;
-	float c, x1, x2, x3, x4, x5, x6, x7, x8;
-	
-	i = 0;	// top row
-	{
-		// row ptrs
-		pr2 = (pIn + row(i));
-		pr3 = (pIn + row(i + 1));
-		prOut = (pOut + row(i));
-		
-		j = 0; // top left corner
-		{
-			c = pr2[j]; x5 = pr2[j+1];
-			x7 = pr3[j]; x8 = pr3[j+1];
-			
-			x5 -= c;
-			x7 -= c; x8 -= c;
-			
-			x5 *= x5;
-			x7 *= x7; x8 *= x8;
-			
-			f = x5 + x7 + x8;
-			f /= 3.f;
-			prOut[j] = sqrtf(f);
-		}
-		for(j = 1; j < width - 1; j++) // top side
-		{
-			x4 = pr2[j-1]; c = pr2[j]; x5 = pr2[j+1];
-			x6 = pr3[j-1]; x7 = pr3[j]; x8 = pr3[j+1];
-			
-			x4 -= c; x5 -= c;
-			x6 -= c; x7 -= c; x8 -= c;
-			
-			x4 *= x4; x5 *= x5;
-			x6 *= x6; x7 *= x7; x8 *= x8;
-			
-			f = x4 + x5 + x6 + x7 + x8;
-			f /= 5.f;
-			prOut[j] = sqrtf(f);
-		}		
-		j = width - 1; // top right corner
-		{
-			x4 = pr2[j-1]; c = pr2[j];
-			x6 = pr3[j-1]; x7 = pr3[j];
-			
-			x4 -= c;
-			x6 -= c; x7 -= c; 
-			
-			x4 *= x4; 
-			x6 *= x6; x7 *= x7; 
-			
-			f = x4 + x6 + x7;
-			f /= 3.f;
-			prOut[j] = sqrtf(f);
-		}
-	}
-	for(i = 1; i < height - 1; i++) // center rows
-	{
-		// row ptrs
-		pr1 = (pIn + row(i - 1));
-		pr2 = (pIn + row(i));
-		pr3 = (pIn + row(i + 1));
-		prOut = (pOut + row(i));
-		
-		j = 0; // left side
-		{
-			x2 = pr1[j]; x3 = pr1[j+1];
-			c = pr2[j]; x5 = pr2[j+1];
-			x7 = pr3[j]; x8 = pr3[j+1];
-			
-			x2 -= c; x3 -= c;
-			x5 -= c;
-			x7 -= c; x8 -= c;
-			
-			x2 *= x2; x3 *= x3;
-			x5 *= x5;
-			x7 *= x7; x8 *= x8;
-			
-			f = x2 + x3 + x5 + x7 + x8;
-			f /= 5.f;
-			prOut[j] = sqrtf(f);
-		}
-		for(j = 1; j < width - 1; j++) // center
-		{
-			x1 = pr1[j-1]; x2 = pr1[j]; x3 = pr1[j+1];
-			x4 = pr2[j-1]; c = pr2[j]; x5 = pr2[j+1];
-			x6 = pr3[j-1]; x7 = pr3[j]; x8 = pr3[j+1];
-			
-			x1 -= c; x2 -= c; x3 -= c;
-			x4 -= c; x5 -= c;
-			x6 -= c; x7 -= c; x8 -= c;
-			
-			x1 *= x1; x2 *= x2; x3 *= x3;
-			x4 *= x4; x5 *= x5;
-			x6 *= x6; x7 *= x7; x8 *= x8;
-			
-			f = x1 + x2 + x3 + x4 + x5 + x6 + x7 + x8;
-			f /= 8.f;
-			prOut[j] = sqrtf(f);
-		}
-		
-		j = width - 1; // right side
-		{
-			x1 = pr1[j-1]; x2 = pr1[j]; 
-			x4 = pr2[j-1]; c = pr2[j]; 
-			x6 = pr3[j-1]; x7 = pr3[j]; 
-			
-			x1 -= c; x2 -= c;
-			x4 -= c; 
-			x6 -= c; x7 -= c; 
-			
-			x1 *= x1; x2 *= x2; 
-			x4 *= x4; 
-			x6 *= x6; x7 *= x7;
-			
-			f = x1 + x2 + x4 + x6 + x7;
-			f /= 5.f;
-			prOut[j] = sqrtf(f);
-		}
-	}
-	i = height - 1;	// bottom row
-	{
-		// row ptrs
-		pr1 = (pIn + row(i - 1));
-		pr2 = (pIn + row(i));
-		prOut = (pOut + row(i));
-		
-		j = 0; // bottom left corner
-		{
-			x2 = pr1[j]; x3 = pr1[j+1];
-			c = pr2[j]; x5 = pr2[j+1];
-			
-			x2 -= c; x3 -= c;
-			x5 -= c;
-			
-			x2 *= x2; x3 *= x3;
-			x5 *= x5;
-			
-			f = x2 + x3 + x5 ;
-			f /= 3.f;
-			prOut[j] = sqrtf(f);
-		}
-			
-		for(j = 1; j < width - 1; j++) // bottom side
-		{
-			x1 = pr1[j-1]; x2 = pr1[j]; x3 = pr1[j+1];
-			x4 = pr2[j-1]; c = pr2[j]; x5 = pr2[j+1];
-			
-			x1 -= c; x2 -= c; x3 -= c;
-			x4 -= c; x5 -= c;
-			
-			x1 *= x1; x2 *= x2; x3 *= x3;
-			x4 *= x4; x5 *= x5;
-			
-			f = x1 + x2 + x3 + x4 + x5 ;
-			f /= 5.f;
-			prOut[j] = sqrtf(f);
-		}
-		
-		j = width - 1; // bottom right corner
-		{
-			x1 = pr1[j-1]; x2 = pr1[j]; 
-			x4 = pr2[j-1]; c = pr2[j]; 
-			
-			x1 -= c; x2 -= c;
-			x4 -= c;
-			
-			x1 *= x1; x2 *= x2; 
-			x4 *= x4; 
-						
-			f = x1 + x2 + x4 ;
-			f /= 3.f;
-			prOut[j] = sqrtf(f);
 		}
 	}
 }
@@ -1592,7 +1412,9 @@ void MLSignal::partialDiffX()
 	float * pr; // input row ptr
 	float * prOut; 	
 	
-	MLSample* pIn = getCopy();
+	MLSignal copy(*this);
+	float* pIn = copy.getBuffer();
+	
 	MLSample* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
@@ -1628,7 +1450,9 @@ void MLSignal::partialDiffY()
 	float * pr1, * pr2, * pr3; // input row ptrs
 	float * prOut; 	
 	
-	MLSample* pIn = getCopy();
+	MLSignal copy(*this);
+	float* pIn = copy.getBuffer();
+	
 	MLSample* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
@@ -1682,3 +1506,4 @@ MLSignal MLSignal::copyWithLoopAtEnd(const MLSignal& src, int loopLength)
 {
 	return MLSignal(src, kLoopType1DEnd, loopLength);
 }
+

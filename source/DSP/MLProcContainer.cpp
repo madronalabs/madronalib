@@ -104,11 +104,11 @@ void MLProcContainer::makeRoot(const MLSymbol name)
 
 void MLProcContainer::compile()
 {
-	const bool dumpOutputs = true;
-	const bool verbose = true;
+	const bool dumpOutputs = false;
+	const bool verbose = false;
 	err e = OK;
 
-    debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
+    // debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
@@ -221,7 +221,7 @@ void MLProcContainer::compile()
 		int destIndex = pipe->mDestIndex;
         
 		// MLTEST
-        debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
+        // debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
         
 		// resize inputs and outputs if needed for variable i/o procs
 		compileOp* pSrcOp = compileOpsMap[srcName];
@@ -277,7 +277,7 @@ void MLProcContainer::compile()
 			signals[sigName].mFrameSize = pSrcOp->procRef->getOutputFrameSize(srcIndex);			
 			if(signals[sigName].mFrameSize > 1)
 			{
-				debug() << "COMPILING: " << pSrcOp->procRef->getName() << " output frame size " << signals[sigName].mFrameSize << "\n";
+				// debug() << "COMPILING: " << pSrcOp->procRef->getName() << " output frame size " << signals[sigName].mFrameSize << "\n";
 				
 				// set infinite lifespan (don't share)
 				signals[sigName].addLifespan(0, 9000);
@@ -364,13 +364,6 @@ void MLProcContainer::compile()
 		compileSignal* pCompileSig = &((*it).second);
 		bool needsBuffer = true;
 		
-		
-		// get frame size for signal by asking proc about output it comes from 
-		if(pCompileSig->mFrameSize > 1)
-		{
-			debug() << "OK...\n";
-		}
-		
 		if (pCompileSig->mPublishedInput > 0) 
 		{		
 			pCompileSig->mpSigBuffer = &getNullInput();
@@ -415,7 +408,7 @@ void MLProcContainer::compile()
 			// currently a bit of a hack.
 			if(pCompileSig->mFrameSize > 1)
 			{
-				debug() << "MLProcContainer::compile(): output has frame size " << pCompileSig->mFrameSize << "\n";
+				// debug() << "MLProcContainer::compile(): output has frame size " << pCompileSig->mFrameSize << "\n";
 				packUsingWastefulAlgorithm(pCompileSig, sharedBuffers);
 			}
 			else
@@ -435,7 +428,7 @@ void MLProcContainer::compile()
 		
 		if(buf.mFrameSize > 1)
 		{
-			debug() << "DOING size " << buf.mFrameSize << "\n"; 
+			// debug() << "DOING size " << buf.mFrameSize << "\n"; 
 		}
 		MLSignal* newBuf = allocBuffer(buf.mFrameSize);
 		
@@ -460,15 +453,6 @@ void MLProcContainer::compile()
 		op.procRef->resizeInputs(op.inputs.size());
 		op.procRef->resizeOutputs(op.outputs.size());
 		
-		// MLTEST
-		if (op.procRef->getName() == "formants")
-		{
-			debug() << "SETTING formants I/O\n";
-		}
-		
-
-		
-		
 		// for each output of compile op, set output of proc to allocated buffer or null signal.
 		for(int i=0; i<(int)op.outputs.size(); ++i)
 		{
@@ -483,12 +467,6 @@ void MLProcContainer::compile()
 				pOutSig = &getNullOutput();
 			}
 			op.procRef->setOutput(i + 1, *pOutSig);
-			
-			if (op.procRef->getName() == "formants")
-			{
-				debug() << "SETTING output " << i + 1 << " : frameSize " << pOutSig->getHeight() << " \n";
-				debug() << "wants frame size " << op.procRef->getOutputFrameSize(i + 1);
-			}
 		}
 	}
 	
@@ -1291,19 +1269,6 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	
 	// TODO fix crashing on ill-formed graphs
 	
-	// MLTEST
-	if(b->getName() == "formants_analysis_out")
-	{
-		debug() << "CONNECTING FORMANTS_BUFFER\n";
-		
-		debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-		debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-		debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-		debug() << "\n\n";		
-		
-		//MLSignal& aOut = a->getOutput(ai);		
-	}
-	
 	e = b->setInput(bi, a->getOutput(ai));
     
 bail:	
@@ -1511,12 +1476,12 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 {
 	err e = OK;
 	
-	debug() << "add buffer here from:" << procName << " called " << alias << " output " << outputName << "\n";
+	//debug() << "add buffer here from:" << procName << " called " << alias << " output " << outputName << "\n";
 
 	if(frameSize > 1)
 	{
-		debug() << "FRAME SIZE = " << frameSize << "\n";
-		debug() << "LENGTH = " << bufLength << "\n";
+		//debug() << "FRAME SIZE = " << frameSize << "\n";
+		//debug() << "LENGTH = " << bufLength << "\n";
 	}
 	
 	e = addProcAfter("ringbuffer", alias, procName.head());
@@ -1613,7 +1578,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 	const MLSymbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 
-	debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
+	// debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
 	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);
@@ -2104,6 +2069,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			MLParamValue low = 0.f;
 			MLParamValue high = 1.f;
 			MLParamValue interval = 0.01f;
+			MLParamValue offset = 0.0f;
 			int logAttr = 0;
 			MLParamValue zeroThresh = -2<<16;
 			low = (MLParamValue)child->getDoubleAttribute("low", low);
@@ -2111,7 +2077,8 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			interval = (MLParamValue)child->getDoubleAttribute("interval", interval);
 			logAttr = child->getIntAttribute("log", logAttr);
 			zeroThresh = (MLParamValue)child->getDoubleAttribute("zt", zeroThresh);
-			p->setRange(low, high, max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh);
+			offset = (MLParamValue)child->getDoubleAttribute("offset", offset);
+			p->setRange(low, high, max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh, offset);
 		}
 		else if(child->hasTagName("default"))
 		{
