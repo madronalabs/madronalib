@@ -713,13 +713,13 @@ MLProc::err MLProcContainer::prepareToProcess()
 			if(e != MLProc::OK)	break;
 		}
 		
-		// prepare all output buffers
+		// prepare all output buffers for this container at our parent container's size and rate
 		outs = getNumOutputs();
 		for (int i=1; i <= outs; ++i)
 		{
 			// leave output alone if marked timeless
 			MLSignal& y = getOutput(i);
-			if(&(y) == nullptr) // should be impossible, but happens with bad graphs
+			if(&(y) != nullptr) // should be impossible, but happens with bad graphs
 			{
 				if (y.getRate() != kMLTimeless)
 				{
