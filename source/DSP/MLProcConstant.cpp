@@ -10,104 +10,53 @@
 // class definition
 
 
-class MLProcParamToSignal : public MLProc
+class MLProcConstant : public MLProc
 {
 public:
-	MLProcParamToSignal();
-	~MLProcParamToSignal();
+	MLProcConstant();
+	~MLProcConstant();
 
-	err resize();
-
-	void clear(){};
+	err prepareToProcess();
 	void process(const int n);		
 	MLProcInfoBase& procInfo() { return mInfo; }
 
 private:
-	MLProcInfo<MLProcParamToSignal> mInfo;
-	MLChangeList mChangeList;
-	MLSample mVal;	
-	float mGlide;
-	
-	typedef enum 
-	{
-		kDefault = 0,
-		kDecibels = 1,
-	}	eLevelMode;	
+	MLProcInfo<MLProcConstant> mInfo;
+	float mVal;	
 };
-
 
 // ----------------------------------------------------------------
 // registry section
 
 namespace
 {
-	MLProcRegistryEntry<MLProcParamToSignal> classReg("param_to_sig");
-	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in", "glide", "level_mode"};
-	ML_UNUSED MLProcOutput<MLProcParamToSignal> outputs[] = {"out"};
+	MLProcRegistryEntry<MLProcConstant> classReg("constant");
+	ML_UNUSED MLProcParam<MLProcConstant> params[] = {"in"};
+	ML_UNUSED MLProcOutput<MLProcConstant> outputs[] = {"out"};
 }
 
 // ----------------------------------------------------------------
 // implementation
 
-
-MLProcParamToSignal::MLProcParamToSignal()
+MLProcConstant::MLProcConstant()
 {
-//	debug() << "MLProcParamToSignal constructor\n";
-	setParam("glide", 0.f); // MLTEST0.01f);
-	setParam("level_mode", 0);
 }
 
-
-MLProcParamToSignal::~MLProcParamToSignal()
+MLProcConstant::~MLProcConstant()
 {
-//	debug() << "MLProcParamToSignal destructor\n";
 }
 
-
-MLProc::err MLProcParamToSignal::resize()
+MLProc::err MLProcConstant::prepareToProcess()
 {
-	int vecSize = getContextVectorSize();
-	float rate = getContextSampleRate();
-	mChangeList.setDims(vecSize);
-	mChangeList.setSampleRate(rate);
-	mChangeList.setGlideTime(mGlide);
-
-	// TODO exception handling
+	mVal = getParam("in");
 	return OK;
 }
 
-void MLProcParamToSignal::process(const int frames)
+void MLProcConstant::process(const int frames)
 {
 	MLSignal& y = getOutput();
-	
-	if (mParamsChanged)
-	{
-		float input = getParam("in");
-		switch (static_cast<int>(getParam("level_mode"))) 
-		{
-			default:
-			case kDefault:
-				mVal = input;
-				break;
-			case kDecibels:
-				mVal = dBToAmp(input);
-				break;
-		}
-		mChangeList.addChange(mVal, 0);
-		mGlide = getParam("glide");
-		mChangeList.setGlideTime(mGlide);
-		mParamsChanged = false;
-	}
-	
-	if (mGlide == 0.f)
-	{
-		y.setToConstant(mVal);
-		// y.setVecToConstant(mVal); // TODO 
-	}
-	else
-	{
-		mChangeList.writeToSignal(y, frames);
-	}
+	y.setToConstant(mVal);
+	// y.setVecToConstant(mVal); // TODO when copmiler has const vec size
 }
 
 
