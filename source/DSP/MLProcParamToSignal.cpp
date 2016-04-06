@@ -80,7 +80,6 @@ void MLProcParamToSignal::process(const int frames)
 {
 	MLSignal& y = getOutput();
 	
-	
 	if (mParamsChanged)
 	{
 		float input = getParam("in");
@@ -102,7 +101,8 @@ void MLProcParamToSignal::process(const int frames)
 	
 	if (mGlide == 0.f)
 	{
-		y.setVecToConstant(mVal);
+		y.setToConstant(mVal);
+		// y.setVecToConstant(mVal); // TODO 
 	}
 	else
 	{
