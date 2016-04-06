@@ -139,7 +139,7 @@ public:
 		}
 	}
 	
-	inline void setVecToConstant(float k)
+	inline void setAsVecToConstant(float k)
 	{
 		ml::DSPVector* pVec = reinterpret_cast<ml::DSPVector*>(mDataAligned);
 		pVec->setToConstant(k);
