@@ -12,8 +12,6 @@
 #include "MLDSP.h"
 #include "MLSignal.h"
 
-using namespace ml;
-
 // ----------------------------------------------------------------
 // DSP utility objects -- some very basic building blocks, not in MLProcs
 // so they can be used more easily in MLProcs and elsewhere.
@@ -53,35 +51,7 @@ using namespace ml;
 // and, if making default signals is fast enough (TIME IT) we can return new default sigs by value.
 // these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
 
-// ----------------------------------------------------------------
-#pragma mark stateless functions
 
-inline DSPVector add(const DSPVector& x1, const DSPVector& x2)
-{
-	DSPVector y;
-
-	for(int n=0; n < ml::kVectorSize; ++n)
-	{
-		y[n] = x1[n] + x2[n]; // TODO SSE
-	}
-	
-	/*
-	 int c = frames >> kMLSamplesPerSSEVectorBits;
-	 __m128 vx1, vx2, vr; 	
-
-	 for (int n = 0; n < c; ++n)
-	 {
-	 vx1 = _mm_load_ps(px1);
-	 vx2 = _mm_load_ps(px2);
-	 vr = _mm_add_ps(vx1, vx2);
-	 _mm_store_ps(py1, vr);
-	 px1 += kSSEVecSize;
-	 px2 += kSSEVecSize;
-	 py1 += kSSEVecSize;
-	 }
-*/
-	return y;
-}
 
 inline MLSignal reciprocalEst(const MLSignal& x)
 {
@@ -1205,6 +1175,46 @@ public:
 private:
     MLHalfBandFilter f;
 };
+
+// ----------------------------------------------------------------
+#pragma mark RandomSource
+
+namespace ml
+{		
+	class RandomSource
+	{
+	public:
+		RandomSource() : mSeed(0) {}
+		~RandomSource() {}
+		
+		inline float getSample()
+		{
+			mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
+			uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
+			temp &= 0x007FFFFF;
+			temp |= 0x3F800000;
+			float* pf = reinterpret_cast<float*>(&temp);
+			return (*pf)*2.f - 3.f;			
+		}
+		
+		// TODO DSPVector operator()()
+		inline DSPVector operator()()
+		{
+			DSPVector y;
+			for(int i=0; i<kDSPVectorSizeFloat; ++i)
+			{
+				y[i] = getSample();
+			}
+			return y;
+		}
+		
+		void reset() { mSeed = 0; }
+		
+	private:
+		uint32_t mSeed = 0;
+		
+	};
+}
 
 
 

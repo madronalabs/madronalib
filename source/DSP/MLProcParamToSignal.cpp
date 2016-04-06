@@ -53,7 +53,7 @@ namespace
 MLProcParamToSignal::MLProcParamToSignal()
 {
 //	debug() << "MLProcParamToSignal constructor\n";
-	setParam("glide", 0.01f);
+	setParam("glide", 0.f); // MLTEST0.01f);
 	setParam("level_mode", 0);
 }
 
@@ -79,6 +79,8 @@ MLProc::err MLProcParamToSignal::resize()
 void MLProcParamToSignal::process(const int frames)
 {
 	MLSignal& y = getOutput();
+	
+	
 	if (mParamsChanged)
 	{
 		float input = getParam("in");
@@ -100,7 +102,7 @@ void MLProcParamToSignal::process(const int frames)
 	
 	if (mGlide == 0.f)
 	{
-		y.setToConstant(mVal);
+		y.setVecToConstant(mVal);
 	}
 	else
 	{

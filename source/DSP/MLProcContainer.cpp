@@ -827,18 +827,8 @@ void MLProcContainer::process(const int extFrames)
 	int numOps = mOpsVec.size();
 	for(int i = 0; i < numOps; ++i)
 	{
-		MLProc* p = mOpsVec[i];
-		
-		// set output buffers to not constant.
-		// with this extra step here every proc can safely assume this condition. 
-		int outs = p->getNumOutputs();
-		for(int i=0; i<outs; ++i)
-		{
-			p->getOutput(i + 1).setConstant(false);
-		}
-		
 		// process all procs!
-		p->process(intFrames);
+		mOpsVec[i]->process(intFrames);
 	}
 	
 	if (resample)

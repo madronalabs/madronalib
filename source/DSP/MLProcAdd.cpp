@@ -56,10 +56,6 @@ void MLProcAdd::process(const int frames)
 	const MLSignal& x2 = getInput(2);
 	MLSignal& y1 = getOutput();
 	
-	const bool k1 = x1.isConstant();
-	const bool k2 = x2.isConstant();
-	const int mode = (k1 << 1) + k2;	
-	
 	const MLSample* px1 = x1.getConstBuffer();
 	const MLSample* px2 = x2.getConstBuffer();
 	MLSample* py1 = y1.getBuffer();
@@ -67,48 +63,15 @@ void MLProcAdd::process(const int frames)
 	int c = frames >> kMLSamplesPerSSEVectorBits;
 	__m128 vx1, vx2, vr; 	
 	
-	switch(mode)
+	for (int n = 0; n < c; ++n)
 	{
-		case 0:
-			for (int n = 0; n < c; ++n)
-			{
-				vx1 = _mm_load_ps(px1);
-				vx2 = _mm_load_ps(px2);
-				vr = _mm_add_ps(vx1, vx2);
-				_mm_store_ps(py1, vr);
-				px1 += kSSEVecSize;
-				px2 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
-			y1.setConstant(false);			
-			break;
-		case 1:
-			vx2 = _mm_set1_ps(x2[0]);
-			for (int n = 0; n < c; ++n)
-			{
-				vx1 = _mm_load_ps(px1);
-				vr = _mm_add_ps(vx1, vx2);
-				_mm_store_ps(py1, vr);
-				px1 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
-			y1.setConstant(false);			
-			break;
-		case 2:
-			vx1 = _mm_set1_ps(x1[0]);
-			for (int n = 0; n < c; ++n)
-			{
-				vx2 = _mm_load_ps(px2);
-				vr = _mm_add_ps(vx1, vx2);
-				_mm_store_ps(py1, vr);
-				px2 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
-			y1.setConstant(false);			
-			break;
-		case 3: // yay
-			y1.setToConstant(x1[0] + x2[0]);
-			break;
+		vx1 = _mm_load_ps(px1);
+		vx2 = _mm_load_ps(px2);
+		vr = _mm_add_ps(vx1, vx2);
+		_mm_store_ps(py1, vr);
+		px1 += kSSEVecSize;
+		px2 += kSSEVecSize;
+		py1 += kSSEVecSize;
 	}
 }
 

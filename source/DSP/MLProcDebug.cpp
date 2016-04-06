@@ -95,14 +95,8 @@ void MLProcDebug::process(const int frames)
 		debug() << std::setw(6);
 		debug() << std::setprecision(2);
 		debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << frames << " = " << std::setprecision(4) << in[0] ;
-		if(in.isConstant()) 
-		{ 
-			debug() << "(const)"; 
-		}
-		else
-		{
-			debug() << " min:" << in.getMin() << ", max:" << in.getMax();
-		}
+
+		debug() << " min:" << in.getMin() << ", max:" << in.getMax();
 		
 		debug() << "\n";
 		

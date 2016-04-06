@@ -8,13 +8,6 @@
 
 #include "MLSignal.h"
 
-#ifdef DEBUG
-const MLSample kMLSignalEndSamples[4] = 
-{
-	(MLSample)0x01234567, (MLSample)0x89abcdef, (MLSample)0xfedcba98, (MLSample)0x76543210 
-};
-#endif
-
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
@@ -50,7 +43,6 @@ MLSignal::MLSignal(const MLSignal& other) :
 	mSize = other.mSize;
 	mData = allocateData(mSize);
 	mDataAligned = initializeData(mData, mSize);
-	mConstantMask = other.mConstantMask;
 	mWidth = other.mWidth;
 	mHeight = other.mHeight;
 	mDepth = other.mDepth;
@@ -113,7 +105,6 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 			// 3: assign the new memory to the object
 			mData = newData;
 			mDataAligned = newDataAligned;
-			mConstantMask = other.mConstantMask;
 			mWidth = other.mWidth;
 			mHeight = other.mHeight;
 			mDepth = other.mDepth;
@@ -129,7 +120,6 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 			std::copy(other.mDataAligned, other.mDataAligned + this->mSize, mDataAligned);
 			
 			// copy other info
-			mConstantMask = other.mConstantMask;
 			mWidth = other.mWidth;
 			mHeight = other.mHeight;
 			mDepth = other.mDepth;
@@ -158,7 +148,6 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 	mDataAligned(0)
 {
 	mRate = kMLToBeCalculated;
-	setConstant(false);
 	if(other->getDepth() > 1) // make 2d slice
 	{
 		mDataAligned = other->mDataAligned + other->plane(slice);
@@ -182,7 +171,6 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 	mHeightBits = bitsToContain(mHeight);
 	mDepthBits = bitsToContain(mDepth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
-	mConstantMask = mSize - 1;
 }
 
 MLSignal::~MLSignal() 
@@ -224,7 +212,6 @@ MLSample* MLSignal::setDims (int width, int height, int depth)
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
 	mData = allocateData(mSize);	
 	mDataAligned = initializeData(mData, mSize);	
-	mConstantMask = mSize - 1;
 	return mDataAligned;
 }
 
@@ -246,29 +233,6 @@ MLSample* MLSignal::setDims(const MLSignal& whd)
 	return mDataAligned;
 }
 
-// allocate unaligned data
-// TODO test cache-friendly distributions
-//
-MLSample* MLSignal::allocateData(int size)
-{
-	MLSample* newData = 0;
-	newData = new MLSample[padSize(size)];
-	return newData;
-}
-
-MLSample* MLSignal::initializeData(MLSample* pData, int size)
-{
-	MLSample* newDataAligned = 0;
-	if(pData)
-	{
-		newDataAligned = alignToCacheLine(pData); 
-		memset((void *)(newDataAligned), 0, (size_t)(size*sizeof(MLSample)));
-#ifdef DEBUG
-		std::copy(kMLSignalEndSamples, kMLSignalEndSamples + kMLSignalEndSize, newDataAligned + size);
-#endif
-	}
-	return newDataAligned;
-}
 
 int MLSignal::getFrames() const
 { 		
@@ -378,7 +342,6 @@ void MLSignal::setFrame(int i, const MLSignal& src)
 //
 void MLSignal::read(const MLSample *input, const int offset, const int n)
 {
-	setConstant(false);
 	std::copy(input + offset, input + offset + n, mDataAligned);
 }
 
@@ -399,7 +362,6 @@ void MLSignal::sigClamp(const MLSignal& a, const MLSignal& b)
 		MLSample f = mDataAligned[i];
 		mDataAligned[i] = clamp(f, a.mDataAligned[i], b.mDataAligned[i]);
 	}
-	setConstant(false);
 }
 
 void MLSignal::sigMin(const MLSignal& b)
@@ -410,7 +372,6 @@ void MLSignal::sigMin(const MLSignal& b)
 		MLSample f = mDataAligned[i];
 		mDataAligned[i] = min(f, b.mDataAligned[i]);
 	}
-	setConstant(false);
 }
 
 void MLSignal::sigMax(const MLSignal& b)
@@ -421,7 +382,6 @@ void MLSignal::sigMax(const MLSignal& b)
 		MLSample f = mDataAligned[i];
 		mDataAligned[i] = max(f, b.mDataAligned[i]);
 	}
-	setConstant(false);
 }
 
 // TODO SSE
@@ -432,7 +392,6 @@ void MLSignal::sigLerp(const MLSignal& b, const MLSample mix)
 	{
 		mDataAligned[i] = lerp(mDataAligned[i], b.mDataAligned[i], mix);
 	}
-	setConstant(false);
 }
 
 // TODO SSE
@@ -444,7 +403,6 @@ void MLSignal::sigLerp(const MLSignal& b, const MLSignal& mix)
 	{
 		mDataAligned[i] = lerp(mDataAligned[i], b.mDataAligned[i], mix.mDataAligned[i]);
 	}
-	setConstant(false);
 }
 
 //
@@ -467,17 +425,8 @@ bool MLSignal::operator==(const MLSignal& b) const
 
 void MLSignal::copy(const MLSignal& b)
 {
-	const bool kb = b.isConstant();
-	if (kb)
-	{
-		setToConstant(b.mDataAligned[0]);
-	}
-	else 
-	{
-		const int n = min(mSize, b.getSize());
-		std::copy(b.mDataAligned, b.mDataAligned + n, mDataAligned);
-		setConstant(false);
-	}
+	const int n = min(mSize, b.getSize());
+	std::copy(b.mDataAligned, b.mDataAligned + n, mDataAligned);
 }
 
 void MLSignal::copyFast(const MLSignal& b)
@@ -500,8 +449,6 @@ void MLSignal::add2D(const MLSignal& b, int destX, int destY)
 			a(i, j) += b(i - destX, j - destY);
 		}
 	}
-
-	setConstant(false);
 }
 
 // add the entire signal b to this signal, at the subpixel destination offset. 
@@ -528,8 +475,6 @@ void MLSignal::add2D(const MLSignal& b, const Vec2& destOffset)
 			a(i, j) += b.getInterpolatedLinear(i - destX - srcPosFX, j - destY - srcPosFY);
 		}
 	}
-
-	setConstant(false);
 }
 
 /*
@@ -543,78 +488,20 @@ const MLSample MLSignal::operator() (const float i, const float j) const
 // TODO SSE
 void MLSignal::add(const MLSignal& b)
 {
-	const bool ka = isConstant();
-	const bool kb = b.isConstant();
-	if (ka && kb)
+	int n = min(mSize, b.mSize);
+	for(int i = 0; i < n; ++i)
 	{
-		setToConstant(mDataAligned[0] + b.mDataAligned[0]);
-	}
-	else 
-	{
-		const int n = min(mSize, b.getSize());
-		if (ka && !kb)
-		{
-			MLSample fa = mDataAligned[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] = fa + b[i];
-			}
-		}
-		else if (!ka && kb)
-		{
-			MLSample fb = b[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] += fb;
-			}
-		}
-		else
-		{
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] += b.mDataAligned[i];
-			}
-		}
-		setConstant(false);
+		mDataAligned[i] += b.mDataAligned[i];
 	}
 }
 
 // TODO SSE
 void MLSignal::subtract(const MLSignal& b)
 {
-	const bool ka = isConstant();
-	const bool kb = b.isConstant();
-	if (ka && kb)
+	int n = min(mSize, b.mSize);
+	for(int i = 0; i < n; ++i)
 	{
-		setToConstant(mDataAligned[0] + b.mDataAligned[0]);
-	}
-	else 
-	{
-		const int n = min(mSize, b.getSize());
-		if (ka && !kb)
-		{
-			MLSample fa = mDataAligned[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] = fa - b[i];
-			}
-		}
-		else if (!ka && kb)
-		{
-			MLSample fb = b[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] -= fb;
-			}
-		}
-		else
-		{
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] -= b.mDataAligned[i];
-			}
-		}
-		setConstant(false);
+		mDataAligned[i] -= b.mDataAligned[i];
 	}
 }
 
@@ -622,78 +509,20 @@ void MLSignal::subtract(const MLSignal& b)
 // TODO SSE
 void MLSignal::multiply(const MLSignal& b)
 {
-	const bool ka = isConstant();
-	const bool kb = b.isConstant();
-	if (ka && kb)
+	int n = min(mSize, b.mSize);
+	for(int i = 0; i < n; ++i)
 	{
-		setToConstant(mDataAligned[0] + b.mDataAligned[0]);
-	}
-	else 
-	{
-		const int n = min(mSize, b.getSize());
-		if (ka && !kb)
-		{
-			MLSample fa = mDataAligned[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] = fa * b[i];
-			}
-		}
-		else if (!ka && kb)
-		{
-			MLSample fb = b[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] *= fb;
-			}
-		}
-		else
-		{
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] *= b.mDataAligned[i];
-			}
-		}
-		setConstant(false);
+		mDataAligned[i] *= b.mDataAligned[i];
 	}
 }
 
 // TODO SSE
 void MLSignal::divide(const MLSignal& b)
 {
-	const bool ka = isConstant();
-	const bool kb = b.isConstant();
-	if (ka && kb)
+	int n = min(mSize, b.mSize);
+	for(int i = 0; i < n; ++i)
 	{
-		setToConstant(mDataAligned[0] + b.mDataAligned[0]);
-	}
-	else 
-	{
-		const int n = min(mSize, b.getSize());
-		if (ka && !kb)
-		{
-			MLSample fa = mDataAligned[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] = fa / b[i];
-			}
-		}
-		else if (!ka && kb)
-		{
-			MLSample fb = b[0];
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] /= fb;
-			}
-		}
-		else
-		{
-			for(int i = 0; i < n; ++i)
-			{
-				mDataAligned[i] /= b.mDataAligned[i];
-			}
-		}
-		setConstant(false);
+		mDataAligned[i] /= b.mDataAligned[i];
 	}
 }
 
@@ -1190,24 +1019,6 @@ Vec3 MLSignal::findPeak() const
 	return Vec3(maxX, maxY, maxZ);
 }
 
-int MLSignal::checkIntegrity() const
-{
-	int ret = true;
-#ifdef DEBUG
-	const MLSample* p = mDataAligned + mSize;
-	for(int i=0; i<kMLSignalEndSize; ++i)
-	{
-		if (p[i] != kMLSignalEndSamples[i])
-		{
-			ret = false;
-			break;
-		}
-	}
-#endif 
-	return ret;
-}
-
-
 int MLSignal::checkForNaN() const
 {
 	int ret = false;
@@ -1277,11 +1088,7 @@ void MLSignal::dump(std::ostream& s, int verbosity) const
 	const MLSignal& f = *this;
 	if(verbosity > 0)
 	{
-		if(isConstant())
-		{
-			s << "constant " << mDataAligned[0] << "\n";
-		}
-		else if(is2D())
+		if(is2D())
 		{
 			s << std::setprecision(4);
 			for (int j=0; j<h; ++j)

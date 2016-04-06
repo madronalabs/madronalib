@@ -88,39 +88,32 @@ void MLProcRingBuffer::process(const int frames)
 
 	if (!mRing.getBuffer()) return;
 
-	if (x.isConstant())
+	if(frameSize == 1)
 	{
-		written = (int)PaUtil_WriteRingBufferConstant( &mBuf, x[0], frameSize*framesToProcess );	
+		written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)x.getConstBuffer(), framesToProcess );	
 	}
 	else
-	{
-		if(frameSize == 1)
+	{			
+		if(inputFrameSize != frameSize)
 		{
-			written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)x.getConstBuffer(), framesToProcess );	
+			debug() << "MLProcRingBuffer: input size mismatch: " << inputFrameSize << " to our " << frameSize << " \n";
 		}
 		else
-		{			
-			if(inputFrameSize != frameSize)
+		{
+			// MLTEST
+			// this is wrong! only writes first column of a 2d signal. HACK while 2d signal inputs are still too big.
+			// TODO fix that issue in compiler. 
+			framesToProcess = 1;
+			
+			// write tall signal to 1D buffer, rotating frames
+			for(int i=0; i<framesToProcess; ++i)
 			{
-				debug() << "MLProcRingBuffer: input size mismatch: " << inputFrameSize << " to our " << frameSize << " \n";
-			}
-			else
-			{
-				// MLTEST
-				// this is wrong! only writes first column of a 2d signal. HACK while 2d signal inputs are still too big.
-				// TODO fix that issue in compiler. 
-				framesToProcess = 1;
-				
-				// write tall signal to 1D buffer, rotating frames
-				for(int i=0; i<framesToProcess; ++i)
+				// get one frame of source
+				for(int j=0; j<frameSize; ++j)
 				{
-					// get one frame of source
-					for(int j=0; j<frameSize; ++j)
-					{
-						mSingleFrameBuffer[j] = x(i, j);
-					}
-					written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)mSingleFrameBuffer.getConstBuffer(), frameSize );	
+					mSingleFrameBuffer[j] = x(i, j);
 				}
+				written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)mSingleFrameBuffer.getConstBuffer(), frameSize );	
 			}
 		}
 	}

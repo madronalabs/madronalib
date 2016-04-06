@@ -17,8 +17,8 @@
 MLSample* alignToCacheLine(const MLSample* p)
 {
 	uintptr_t pM = (uintptr_t)p;
-	pM += (uintptr_t)(kMLAlignSize - 1);
-	pM &= kMLAlignMask;	
+	pM += (uintptr_t)(kMLCacheAlignSize - 1);
+	pM &= kMLCacheAlignMask;	
 	return(MLSample*)pM;
 } 
 

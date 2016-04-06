@@ -44,21 +44,10 @@ void MLProcClampSignal::process(const int frames)
 	const MLSignal& min = getInput(2);
 	const MLSignal& max = getInput(3);
 	MLSignal& y = getOutput();
-//	MLSample fmin, fmax;
-	
-	/*
-	if (x.isConstant())
+
+	for (int n=0; n < frames; ++n)
 	{
-		y.setToConstant(clamp(x[0], fmin, fmax));
-	}
-	else	// TODO SSE
-	*/
-	{
-		y.setConstant(false);
-		for (int n=0; n < frames; ++n)
-		{
-			y[n] = clamp(x[n], min[n], max[n]);
-		}
+		y[n] = clamp(x[n], min[n], max[n]);
 	}
 }
 

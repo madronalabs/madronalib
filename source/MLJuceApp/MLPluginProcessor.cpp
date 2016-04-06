@@ -170,6 +170,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 	}
 }
 
+// TODO move this to DSPEngine
 void MLPluginProcessor::loadPluginDescription(const char* desc)
 {
 	mpPluginDoc = new XmlDocument(String(desc));
@@ -679,8 +680,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
-       mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
-
+		mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 		
 #if OSC_PARAMS
 		// if(osc enabled)

@@ -16,9 +16,9 @@ MLChangeList::MLChangeList() : mSize(0), mChanges(0), mValue(0.f)
 	
 	mSampleRate = 44100;
 	mValue = 0.f;
-	
-		mDebugTest = false;
-		mTheta = 0.;
+
+	mDebugTest = false;
+	mTheta = 0.;
 }
 
 MLChangeList::~MLChangeList()
@@ -75,6 +75,9 @@ void MLChangeList::setSampleRate(unsigned rate)
 }
 
 // add a change: a request to arrive at the given value 
+//
+// NOTE: not thread safe! current use hopefully ensures correct behavior, but 
+// this should be made explicit somehow.
 void MLChangeList::addChange(MLSample val, int time)
 {
 	if (mChanges < mSize)
@@ -109,7 +112,6 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 	size = min(size, frames);
 	int t=0;
 	int changeTime;
-	y.setConstant(false);
 	
 	// no changes, no glide?  mark constant and bail.
 	if (!mChanges && (mGlideCounter <= 0)) 
@@ -132,8 +134,6 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 	}
 	else
 	{
-		y.setConstant(false);
-	
 		// write current value up to each change time, then change current value
 		for(int i = 0; i<mChanges; ++i)
 		{
@@ -143,7 +143,6 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 #ifdef DEBUG
                 debug() << "warning: MLChangeList time (" << changeTime <<  ") > size!\n";
 #endif
-                
                 break;
             }
 			
@@ -184,7 +183,6 @@ void MLChangeList::dump(void)
 {
 	debug() << "MLChangeList:   changes " << mChanges << ", c[0] " << mValueSignal[0] << ", counter " << mGlideCounter << ", value " << mValue << "\n";
 //	debug() << "glide time: " << mGlideTimeInSamples << "inv:" << mInvGlideTimeInSamples << "\n";
-
 
 }
 

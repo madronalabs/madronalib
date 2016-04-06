@@ -59,38 +59,30 @@ void MLProcExp2::process(const int frames)
 	{
 		mPrecise = getParam(preciseSym);
 		mParamsChanged = false;
-	}
-	
-	if (x1.isConstant())
+	}	
+
+	if(mPrecise) // scalar code
 	{
-		y1.setToConstant(pow(2.f, x1[0]));
-	}
-	else
-	{		
-		if(mPrecise) // scalar code
+		for (int n=0; n<frames; ++n)
 		{
-			for (int n=0; n<frames; ++n)
-			{
-				y1[n] = pow(2.f, x1[n]);
-			}
+			y1[n] = pow(2.f, x1[n]);
 		}
-		else 
-		{
-			y1.setConstant(false);
-			const MLSample* px1 = x1.getConstBuffer();
-			MLSample* py1 = y1.getBuffer();
-				
-			int c = frames >> kMLSamplesPerSSEVectorBits;
-			__m128 vx1, vr; 	
+	}
+	else 
+	{
+		const MLSample* px1 = x1.getConstBuffer();
+		MLSample* py1 = y1.getBuffer();
 			
-			for (int n = 0; n < c; ++n)
-			{
-				vx1 = _mm_load_ps(px1);		
-				vr = exp2Approx4(vx1);
-				_mm_store_ps(py1, vr);
-				px1 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
+		int c = frames >> kMLSamplesPerSSEVectorBits;
+		__m128 vx1, vr; 	
+		
+		for (int n = 0; n < c; ++n)
+		{
+			vx1 = _mm_load_ps(px1);		
+			vr = exp2Approx4(vx1);
+			_mm_store_ps(py1, vr);
+			px1 += kSSEVecSize;
+			py1 += kSSEVecSize;
 		}
 	}
 }

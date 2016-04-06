@@ -40,7 +40,6 @@ void MLProcNoise::process(const int samples)
 {	
 	static MLSymbol gainSym("gain");
 	MLSignal& y = getOutput();
-	y.setConstant(false); // ?
 	MLSample gain = getParam(gainSym);
 	
 	for (int n=0; n<samples; ++n)
