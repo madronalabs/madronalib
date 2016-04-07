@@ -20,12 +20,13 @@ if(BUILD_NEW_ONLY)
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
-    core/MLStringCompare.h
     core/MLStringUtils.cpp
     core/MLStringUtils.h
     core/MLResourceMap.h
     core/MLVector.cpp
     core/MLVector.h
+    core/MLVectorOps.cpp
+    core/MLVectorOps.h
     )
 else(BUILD_NEW_ONLY)
   
@@ -42,12 +43,13 @@ else(BUILD_NEW_ONLY)
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
-    core/MLStringCompare.h
     core/MLStringUtils.cpp
     core/MLStringUtils.h
     core/MLResourceMap.h
     core/MLVector.cpp
     core/MLVector.h
+    core/MLVectorOps.cpp
+    core/MLVectorOps.h
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp

@@ -911,12 +911,10 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 			MLProcPtr proc = input->mProc;
 			const int procIdx = input->mProcInputIndex;		
 			
-			
 			if(!idx)
 			{
 				debug() << "input name: " << input->mName << "    " << proc->getName() << " \n"; 
 			}
-			
 			
 			e = proc->setInput(procIdx, sig);
 		}

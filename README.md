@@ -49,6 +49,12 @@ This will create a command-line build of all the new code with a test executable
 madronalib/build-new-Tests. To add files to the new regime they must be added to 
 madronalib_SOURCES; this list can be found in source/CMakeLists.txt.
 
+To build an XCode project, run something like
+
+	mkdir build-xcode
+	cd build-xcode
+	cmake -DBUILD_NEW_ONLY=1 -GXcode ..
+
 
 
 Contents

@@ -139,12 +139,14 @@ public:
 		}
 	}
 	
-	inline void setAsVecToConstant(float k)
+	/*
+	inline void setFirstVecToConstant(float k)
 	{
 		ml::DSPVector* pVec = reinterpret_cast<ml::DSPVector*>(mDataAligned);
 		pVec->setToConstant(k);
 	}
-    
+    */
+	
 	// return signal value at the position p, interpolated linearly.
     // For power-of-two size tables, this will interpolate around the loop.
 	inline MLSample getInterpolatedLinear(float p) const
