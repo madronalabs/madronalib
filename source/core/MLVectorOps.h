@@ -10,7 +10,6 @@
 
 #include "MLDSP.h"
 
-
 // ----------------------------------------------------------------
 // DSP utility objects -- some very basic building blocks, not in MLProcs
 // so they can be used more easily in MLProcs and elsewhere.
@@ -126,84 +125,30 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark binary operators
 	
-	// TODO try different types of arguments (const, &, ) and look at code
-	// DONE: same code results from const DSPVector& and DSPVector args
+	#define DEFINE_OP2(opName, opComputation)				\
+	inline DSPVector (opName)(DSPVector x1, DSPVector x2)	\
+	{														\
+		DSPVector y;										\
+		float* px1 = x1.getBuffer();						\
+		float* px2 = x2.getBuffer();						\
+		float* py1 = y.getBuffer();							\
+		for (int n = 0; n < kDSPVectorSizeSSE; ++n)			\
+		{													\
+			_mm_store_ps(py1, (opComputation));				\
+			px1 += kSSEVecSize;								\
+			px2 += kSSEVecSize;								\
+			py1 += kSSEVecSize;								\
+		}													\
+		return y;											\
+	}	
 	
-	inline DSPVector add(DSPVector x1, DSPVector x2)
-	{		
-		DSPVector y;
-		
-		float* px1 = x1.getBuffer();
-		float* px2 = x2.getBuffer();
-		float* py1 = y.getBuffer();
-		
-		for (int n = 0; n < kDSPVectorSizeSSE; ++n)
-		{
-			_mm_store_ps(py1, _mm_add_ps(_mm_load_ps(px1), _mm_load_ps(px2)));
-			px1 += kSSEVecSize;
-			px2 += kSSEVecSize;
-			py1 += kSSEVecSize;
-		}		
-		
-		return y;
-	}
-	
-	inline DSPVector subtract(DSPVector x1, DSPVector x2)
-	{		
-		DSPVector y;
-		
-		float* px1 = x1.getBuffer();
-		float* px2 = x2.getBuffer();
-		float* py1 = y.getBuffer();
-		
-		for (int n = 0; n < kDSPVectorSizeSSE; ++n)
-		{
-			_mm_store_ps(py1, _mm_sub_ps(_mm_load_ps(px1), _mm_load_ps(px2)));
-			px1 += kSSEVecSize;
-			px2 += kSSEVecSize;
-			py1 += kSSEVecSize;
-		}		
-		
-		return y;
-	}
-	
-	inline DSPVector multiply(DSPVector x1, DSPVector x2)
-	{		
-		DSPVector y;
-		
-		float* px1 = x1.getBuffer();
-		float* px2 = x2.getBuffer();
-		float* py1 = y.getBuffer();
-		
-		for (int n = 0; n < kDSPVectorSizeSSE; ++n)
-		{
-			_mm_store_ps(py1, _mm_mul_ps(_mm_load_ps(px1), _mm_load_ps(px2)));
-			px1 += kSSEVecSize;
-			px2 += kSSEVecSize;
-			py1 += kSSEVecSize;
-		}		
-		
-		return y;
-	}
-	
-	inline DSPVector divide(DSPVector x1, DSPVector x2)
-	{		
-		DSPVector y;
-		
-		float* px1 = x1.getBuffer();
-		float* px2 = x2.getBuffer();
-		float* py1 = y.getBuffer();
-		
-		for (int n = 0; n < kDSPVectorSizeSSE; ++n)
-		{
-			_mm_store_ps(py1, _mm_div_ps(_mm_load_ps(px1), _mm_load_ps(px2)));
-			px1 += kSSEVecSize;
-			px2 += kSSEVecSize;
-			py1 += kSSEVecSize;
-		}		
-		
-		return y;
-	}
+	DEFINE_OP2(add, (_mm_add_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+	DEFINE_OP2(subtract, (_mm_sub_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+	DEFINE_OP2(multiply, (_mm_mul_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+	DEFINE_OP2(divide, (_mm_div_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+	DEFINE_OP2(min, (_mm_min_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+	DEFINE_OP2(max, (_mm_max_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+
 	
 	/*
 	 
@@ -222,10 +167,7 @@ namespace ml
 	 softclip
 	 
 	 binary:
-	 divide / approx / approx2
 	 pow / approx / approx2
-	 min
-	 max
 	 
 	
 	 ternary:
@@ -236,8 +178,6 @@ namespace ml
 	 
 	 4-op:
 	 lerp3
-	 
-	 
 	 
 	 utils (functors)
 	 -----------
