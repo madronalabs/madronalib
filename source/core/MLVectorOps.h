@@ -41,7 +41,7 @@
 // for dynamically dispatched objects, making graphs from JSON, etc, see MLProcs.
 
 // TODO test pass by value everywhere idea: 
-// - look for difference in generated code of pass by value vs. pointer. 
+// - look for difference in generated code of pass by value vs. pointer.  OK 
 // - write one fairly complex object with both value and pointer, compare and time.
 
 // best idea so far?
@@ -123,6 +123,37 @@ namespace ml
 	};
 
 	// ----------------------------------------------------------------
+	#pragma mark unary operators
+	
+	#define DEFINE_OP1(opName, opComputation)				\
+	inline DSPVector (opName)(DSPVector x1)					\
+	{														\
+		DSPVector y;										\
+		float* px1 = x1.getBuffer();						\
+		float* py1 = y.getBuffer();							\
+		for (int n = 0; n < kDSPVectorSizeSSE; ++n)			\
+		{													\
+			__m128 x = _mm_load_ps(px1);					\
+			_mm_store_ps(py1, (opComputation));				\
+			px1 += kSSEVecSize;								\
+			py1 += kSSEVecSize;								\
+		}													\
+		return y;											\
+	}	
+
+	DEFINE_OP1(sqrt, (_mm_sqrt_ps(x)));
+	DEFINE_OP1(sqrtApprox, (_mm_mul_ps(x, _mm_rsqrt_ps(x))));
+	DEFINE_OP1(abs, (_mm_andnot_ps(_mm_set_ps1(-0.0f), x)));
+	DEFINE_OP1(sign, 
+			   (_mm_and_ps(
+					(_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f))),
+				   _mm_cmpneq_ps(_mm_set_ps1(-0.0f), x)
+				))
+			   );
+	
+	
+	
+	// ----------------------------------------------------------------
 	#pragma mark binary operators
 	
 	#define DEFINE_OP2(opName, opComputation)				\
@@ -134,34 +165,34 @@ namespace ml
 		float* py1 = y.getBuffer();							\
 		for (int n = 0; n < kDSPVectorSizeSSE; ++n)			\
 		{													\
+			__m128 x1 = _mm_load_ps(px1);					\
+			__m128 x2 = _mm_load_ps(px2);					\
 			_mm_store_ps(py1, (opComputation));				\
 			px1 += kSSEVecSize;								\
 			px2 += kSSEVecSize;								\
 			py1 += kSSEVecSize;								\
 		}													\
 		return y;											\
-	}	
+		}	
 	
-	DEFINE_OP2(add, (_mm_add_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
-	DEFINE_OP2(subtract, (_mm_sub_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
-	DEFINE_OP2(multiply, (_mm_mul_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
-	DEFINE_OP2(divide, (_mm_div_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
-	DEFINE_OP2(min, (_mm_min_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
-	DEFINE_OP2(max, (_mm_max_ps(_mm_load_ps(px1), _mm_load_ps(px2))));
+	DEFINE_OP2(add, (_mm_add_ps(x1, x2)));
+	DEFINE_OP2(subtract, (_mm_sub_ps(x1, x2)));
+	DEFINE_OP2(multiply, (_mm_mul_ps(x1, x2)));
+	DEFINE_OP2(divide, (_mm_div_ps(x1, x2)));
+	DEFINE_OP2(divideApprox, (_mm_mul_ps(x1, _mm_rcp_ps(x2))));
+	DEFINE_OP2(min, (_mm_min_ps(x1, x2)));
+	DEFINE_OP2(max, (_mm_max_ps(x1, x2)));
 
 	
 	/*
-	 
 	 Vector Ops
 	 =======
 	 
 	 unary:
-	 sqrt / approx / approxRough
 	 sin / approx / approx2
 	 cos / approx / approx2
 	 exp2 / approx / approx2
 	 log2 / approx / approx2
-	 abs
 	 floatSign
 	 saturateBounded
 	 softclip
