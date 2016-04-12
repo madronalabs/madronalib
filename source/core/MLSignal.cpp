@@ -21,24 +21,24 @@ MLSignal ml::nullSignal;
 // these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
 
 MLSignal::MLSignal() : 
-	mData(0),
-	mDataAligned(0)
+	mDataAligned(0),
+	mData(0)
 {
 	mRate = kMLToBeCalculated;
 	setDims(0);
 }
 
 MLSignal::MLSignal (int width, int height, int depth) : 
-	mData(0),
-	mDataAligned(0)
+	mDataAligned(0),
+	mData(0)
 {
 	mRate = kMLToBeCalculated;
 	setDims(width, height, depth);
 }
 
 MLSignal::MLSignal(const MLSignal& other) :
-	mData(0),
-	mDataAligned(0)
+	mDataAligned(0),
+	mData(0)
 {
 	mSize = other.mSize;
 	mData = allocateData(mSize);
@@ -54,8 +54,8 @@ MLSignal::MLSignal(const MLSignal& other) :
 }
 
 MLSignal::MLSignal (std::initializer_list<float> values) : 
-mData(0),
-mDataAligned(0)
+	mDataAligned(0),
+	mData(0)
 {
 	mRate = kMLToBeCalculated;
 	setDims((int)values.size());
@@ -68,8 +68,8 @@ mDataAligned(0)
 
 // constructor for making loops. only one type for now. we could loop in different directions and dimensions.
 MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
-mData(0),
-mDataAligned(0)
+	mDataAligned(0),
+	mData(0)
 {
 	switch(loopType)
 	{
@@ -144,8 +144,8 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 // NOTE this signal will not pass checkIntegrity()!
 //
 MLSignal::MLSignal(const MLSignal* other, int slice) : 
-	mData(0),
-	mDataAligned(0)
+	mDataAligned(0),
+	mData(0)
 {
 	mRate = kMLToBeCalculated;
 	if(other->getDepth() > 1) // make 2d slice

@@ -9,6 +9,7 @@
 #pragma once
 
 #include "MLDSP.h"
+#include "MLVectorPrimsSSE.h"
 
 // ----------------------------------------------------------------
 // DSP utility objects -- some very basic building blocks, not in MLProcs
@@ -144,15 +145,47 @@ namespace ml
 	DEFINE_OP1(sqrt, (_mm_sqrt_ps(x)));
 	DEFINE_OP1(sqrtApprox, (_mm_mul_ps(x, _mm_rsqrt_ps(x))));
 	DEFINE_OP1(abs, (_mm_andnot_ps(_mm_set_ps1(-0.0f), x)));
+	
+	// float sign: -1, 0, or 1
 	DEFINE_OP1(sign, 
-			   (_mm_and_ps(
-					(_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f))),
-				   _mm_cmpneq_ps(_mm_set_ps1(-0.0f), x)
-				))
+			   (_mm_and_ps
+				(
+				 _mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)),
+				 _mm_cmpneq_ps(_mm_set_ps1(-0.0f), x)
+				 )
+				)
 			   );
 	
+	// up/down sign: -1 or 1
+	DEFINE_OP1(signBit, _mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)));
+	
+	// trig, using cephes-derived library
+	DEFINE_OP1(cos, (cos_ps(x)));
+	DEFINE_OP1(sin, (sin_ps(x)));
+	DEFINE_OP1(log, (log_ps(x)));
+	DEFINE_OP1(exp, (exp_ps(x)));
+	
+	// log base b(a) = ln(a)/ln(b)
+	
+	static const float kLogTwo = 0.69314718055994529f;
+	static const float kLogTwoR = 1.4426950408889634f;
+	static const __m128 kLogTwoVec = {kLogTwo, kLogTwo, kLogTwo, kLogTwo};
+	static const __m128 kLogTwoRVec = {kLogTwoR, kLogTwoR, kLogTwoR, kLogTwoR};
 	
 	
+	
+	// ln(2) = 0.69314718055994529
+
+	DEFINE_OP1(log2, ( _mm_mul_ps(log_ps(x), kLogTwoRVec)   ));
+	DEFINE_OP1(exp2, (exp_ps(_mm_mul_ps(kLogTwoVec, x))));
+
+	// log2(x) = ln(x)/ln(2)
+	// 2^x= e^(x ln(2))
+	
+	// fast approximations valid from -pi to pi
+	
+	
+
 	// ----------------------------------------------------------------
 	#pragma mark binary operators
 	
@@ -189,13 +222,14 @@ namespace ml
 	 =======
 	 
 	 unary:
-	 sin / approx / approx2
-	 cos / approx / approx2
-	 exp2 / approx / approx2
-	 log2 / approx / approx2
-	 floatSign
+	 sin / approx / 
+	 cos / approx / 
+	 exp / approx / 
+	 log / approx / 
+
 	 saturateBounded
 	 softclip
+	 
 	 
 	 binary:
 	 pow / approx / approx2
