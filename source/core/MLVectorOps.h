@@ -122,6 +122,19 @@ namespace ml
 		inline void operator/=(DSPVector x1){*this = divide(*this, x1);}
 	};
 
+	#define STATIC_M128_CONST(name, val) \
+	static constexpr __m128 name = {val, val, val, val};		
+	
+	inline __m128 select_ps(__m128 conditionMask, __m128 a, __m128 b)
+	{
+		__m128i zero = _mm_setzero_si128();
+		__m128i ones = _mm_cmpeq_epi32(zero, zero);
+		return _mm_or_ps(
+						 _mm_and_ps(conditionMask, a),
+						 _mm_and_ps(_mm_andnot_ps(conditionMask, ones), b)
+						 );
+	}
+
 	// ----------------------------------------------------------------
 	#pragma mark unary operators
 	
@@ -167,27 +180,37 @@ namespace ml
 	DEFINE_OP1(exp, (exp_ps(x)));
 	
 	// lazy log2 and exp2 from natural log / exp
-	static const float kLogTwo = 0.69314718055994529f;
-	static const float kLogTwoR = 1.4426950408889634f;
-	static const __m128 kLogTwoVec = {kLogTwo, kLogTwo, kLogTwo, kLogTwo};
-	static const __m128 kLogTwoRVec = {kLogTwoR, kLogTwoR, kLogTwoR, kLogTwoR};
+	STATIC_M128_CONST(kLogTwoVec, 0.69314718055994529f);
+	STATIC_M128_CONST(kLogTwoRVec, 1.4426950408889634f);	
 	DEFINE_OP1(log2, (_mm_mul_ps(log_ps(x), kLogTwoRVec)));
 	DEFINE_OP1(exp2, (exp_ps(_mm_mul_ps(kLogTwoVec, x))));
 
-	// fast polynomial approximations for sin and cos valid from -pi to pi
+	// fast polynomial approximations 
 	// from scalar code by Jacques-Henri Jourdan <jourgun@gmail.com>
-	static const float kSinC1 = 0.99997937679290771484375f;
-	static const float kSinC2 = -0.166624367237091064453125f;
-	static const float kSinC3 = 8.30897875130176544189453125e-3f;
-	static const float kSinC4 = -1.92649182281456887722015380859375e-4f;
-	static const float kSinC5 = 2.147840177713078446686267852783203125e-6f;
+	// sin and cos valid from -pi to pi
+	// exp and log polynomials generated using Sollya http://sollya.gforge.inria.fr/
+	/* Generated in Sollya with:
+	 > f=remez(1-x*exp(-(x-1)*log(2)),
+	 [|1,(x-1)*(x-2), (x-1)*(x-2)*x, (x-1)*(x-2)*x*x|],
+	 [1,2], exp(-(x-1)*log(2)));
+	 > plot(exp((x-1)*log(2))/(f+x)-1, [1,2]);
+	 > f+x;
+  */
 	
-	// TODO time _mm_set_ps1 vs. static const
-	static const __m128 kSinC1Vec = {kSinC1, kSinC1, kSinC1, kSinC1};
-	static const __m128 kSinC2Vec = {kSinC2, kSinC2, kSinC2, kSinC2};
-	static const __m128 kSinC3Vec = {kSinC3, kSinC3, kSinC3, kSinC3};
-	static const __m128 kSinC4Vec = {kSinC4, kSinC4, kSinC4, kSinC4};
-	static const __m128 kSinC5Vec = {kSinC5, kSinC5, kSinC5, kSinC5};
+	
+	/* log Generated in Sollya using :
+	 > f = remez(log(x)-(x-1)*log(2),
+	 [|1,(x-1)*(x-2), (x-1)*(x-2)*x, (x-1)*(x-2)*x*x,
+	 (x-1)*(x-2)*x*x*x|], [1,2], 1, 1e-8);
+	 > plot(f+(x-1)*log(2)-log(x), [1,2]);
+	 > f+(x-1)*log(2)
+	 */
+	
+	STATIC_M128_CONST(kSinC1Vec, 0.99997937679290771484375f);
+	STATIC_M128_CONST(kSinC2Vec, -0.166624367237091064453125f);
+	STATIC_M128_CONST(kSinC3Vec, 8.30897875130176544189453125e-3f);
+	STATIC_M128_CONST(kSinC4Vec, -1.92649182281456887722015380859375e-4f);
+	STATIC_M128_CONST(kSinC5Vec, 2.147840177713078446686267852783203125e-6f);
 		
 	inline __m128 sinapprox_ps(__m128 x) 
 	{
@@ -200,17 +223,12 @@ namespace ml
 	}
 	DEFINE_OP1(sinApprox, (sinapprox_ps(x)));
 
-	static const float kCosC1 = 0.999959766864776611328125f;
-	static const float kCosC2 = -0.4997930824756622314453125f;
-	static const float kCosC3 = 4.1496001183986663818359375e-2f;
-	static const float kCosC4 = -1.33926304988563060760498046875e-3f;
-	static const float kCosC5 = 1.8791708498611114919185638427734375e-5f;
-	static const __m128 kCosC1Vec = {kCosC1, kCosC1, kCosC1, kCosC1};
-	static const __m128 kCosC2Vec = {kCosC2, kCosC2, kCosC2, kCosC2};
-	static const __m128 kCosC3Vec = {kCosC3, kCosC3, kCosC3, kCosC3};
-	static const __m128 kCosC4Vec = {kCosC4, kCosC4, kCosC4, kCosC4};
-	static const __m128 kCosC5Vec = {kCosC5, kCosC5, kCosC5, kCosC5};
-	
+	STATIC_M128_CONST(kCosC1Vec, 0.999959766864776611328125f);
+	STATIC_M128_CONST(kCosC2Vec, -0.4997930824756622314453125f);
+	STATIC_M128_CONST(kCosC3Vec, 4.1496001183986663818359375e-2f);
+	STATIC_M128_CONST(kCosC4Vec, -1.33926304988563060760498046875e-3f);
+	STATIC_M128_CONST(kCosC5Vec, 1.8791708498611114919185638427734375e-5f);
+
 	inline __m128 cosapprox_ps(__m128 x) 
 	{
 		__m128 x2 = _mm_mul_ps(x, x);
@@ -220,32 +238,19 @@ namespace ml
 		_mm_add_ps(kCosC4Vec, _mm_mul_ps(x2, kCosC5Vec)) )) )) ));
 	}
 	DEFINE_OP1(cosApprox, (cosapprox_ps(x)));
-
-
 	
+	STATIC_M128_CONST(kExpC1Vec, 2139095040.f);
+	STATIC_M128_CONST(kExpC2Vec, 12102203.1615614f);
+	STATIC_M128_CONST(kExpC3Vec, 1065353216.f);
+	STATIC_M128_CONST(kExpC4Vec, 0.510397365625862338668154f);
+	STATIC_M128_CONST(kExpC5Vec, 0.310670891004095530771135f);
+	STATIC_M128_CONST(kExpC6Vec, 0.168143436463395944830000f);
+	STATIC_M128_CONST(kExpC7Vec, -2.88093587581985443087955e-3f);
+	STATIC_M128_CONST(kExpC8Vec, 1.3671023382430374383648148e-2f);
 	
-	
-	
-	
-	
-	
-	static const float kExpC1 = 2139095040.f;
-	static const float kExpC2 = 12102203.1615614f;
-	static const float kExpC3 = 1065353216.f;
-	static const float kExpC4 = 0.510397365625862338668154f;
-	static const float kExpC5 = 0.310670891004095530771135f;
-	static const float kExpC6 = 0.168143436463395944830000f;
-	static const float kExpC7 = -2.88093587581985443087955e-3f;
-	static const float kExpC8 = 1.3671023382430374383648148e-2f;
-	static const __m128 kExpC1Vec = {kExpC1, kExpC1, kExpC1, kExpC1};
-	static const __m128 kExpC2Vec = {kExpC2, kExpC2, kExpC2, kExpC2};
-	static const __m128 kExpC3Vec = {kExpC3, kExpC3, kExpC3, kExpC3};
-	static const __m128 kExpC4Vec = {kExpC4, kExpC4, kExpC4, kExpC4};
-	static const __m128 kExpC5Vec = {kExpC5, kExpC5, kExpC5, kExpC5};
-	static const __m128 kExpC6Vec = {kExpC6, kExpC6, kExpC6, kExpC6};
-	static const __m128 kExpC7Vec = {kExpC7, kExpC7, kExpC7, kExpC7};
-	static const __m128 kExpC8Vec = {kExpC8, kExpC8, kExpC8, kExpC8};
-	
+	/* Relative error bounded by 1e-5 for normalized outputs
+	 Returns invalid outputs for nan inputs
+	 Continuous error */
 	inline __m128 expapprox_ps(__m128 x) 
 	{
 		const __m128 kZeroVec = _mm_setzero_ps();
@@ -255,69 +260,64 @@ namespace ml
 		__m128i val4i;
 		
 		val2 = _mm_add_ps(_mm_mul_ps(x, kExpC2Vec), kExpC3Vec);
-		
 		val3 = _mm_min_ps(val2, kExpC1Vec);
 		val4 = _mm_max_ps(val3, kZeroVec);
-
 		val4i = _mm_cvttps_epi32(val4);
-
-		xu.vi = _mm_and_ps(val4i, _mm_set1_epi32(0x7F800000)); // xu.i = val4i & 0x7F800000;
-		xu2.vi = _mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)); // xu2.i = (val4i & 0x7FFFFF) | 0x3F800000;
-
+		xu.vi = _mm_and_ps(val4i, _mm_set1_epi32(0x7F800000)); 
+		xu2.vi = _mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
 		b = xu2.vf;
-
 		
 		return _mm_mul_ps(xu.vf,(
 		_mm_add_ps(kExpC4Vec, _mm_mul_ps(b,
 		_mm_add_ps(kExpC5Vec, _mm_mul_ps(b, 
 		_mm_add_ps(kExpC6Vec, _mm_mul_ps(b, 
 		_mm_add_ps(kExpC7Vec, 
-				   _mm_mul_ps(b, kExpC8Vec)) )) )) )) ));
-	
+				   _mm_mul_ps(b, kExpC8Vec)) )) )) )) ));	
 	}
 	
 	DEFINE_OP1(expApprox, (expapprox_ps(x)));
+
+	STATIC_M128_CONST(kLogC1Vec, -89.970756366f);
+	STATIC_M128_CONST(kLogC2Vec, 3.529304993f);
+	STATIC_M128_CONST(kLogC3Vec, -2.461222105f);
+	STATIC_M128_CONST(kLogC4Vec, 1.130626167f);
+	STATIC_M128_CONST(kLogC5Vec, -0.288739945f);
+	STATIC_M128_CONST(kLogC6Vec, 3.110401639e-2f);
+	STATIC_M128_CONST(kLogC7Vec, 0.69314718055995f);
+	
+	inline __m128 logapprox_ps(__m128 val) 
+	{
+		__m128i vZero = _mm_setzero_si128();
+		union { __m128i vi; __m128 vf; } valu;
+
+		__m128 exp, addcst, x;
+		
+		valu.vf = val;
+		
+		exp = _mm_srli_epi32(valu.vi, 23);//exp = valu.vi >> 23;
+			
+		/* 89.970756366f = 127 * log(2) - constant term of polynomial */
+		
+		addcst = select_ps(_mm_cmpge_ps(val, vZero), kLogC1Vec, _mm_set1_ps(-(float)INFINITY));
+		
+		return addcst;
+		/*		valu.i = (valu.i & 0x7FFFFF) | 0x3F800000;
+		x = valu.f;
+		
+
+  return
+		x * (kLogC2Vec + x * (kLogC3Vec +
+								 x * (kLogC4Vec + x * (kLogC5Vec +
+														  x * kLogC6Vec))))
+		+ (addcst + kLogC7Vec*exp);
+	}*/
+	
+	}
+	
+	
 	
 	
 #if 0
-	// fast polynomial approximations for log and exp
-	// from scalar code by Jacques-Henri Jourdan <jourgun@gmail.com>
-	
-	/* Workaround a lack of optimization in gcc */
-	float exp_cst1 = 2139095040.f;
-	float exp_cst2 = 0.f;
-	
-	/* Relative error bounded by 1e-5 for normalized outputs
-	 Returns invalid outputs for nan inputs
-	 Continuous error */
-	inline float expapprox(float val) 
-	{
-		union { int i; float f; } xu, xu2;
-		float val2, val3, val4, b;
-		int val4i;
-		val2 = 12102203.1615614f*val + 1065353216.f;
-		val3 = val2 < exp_cst1 ? val2 : exp_cst1;
-		val4 = val3 > exp_cst2 ? val3 : exp_cst2;
-		val4i = (int) val4;
-		xu.i = val4i & 0x7F800000;
-		xu2.i = (val4i & 0x7FFFFF) | 0x3F800000;
-		b = xu2.f;
-
-		/* Generated in Sollya with:
-		> f=remez(1-x*exp(-(x-1)*log(2)),
-		[|1,(x-1)*(x-2), (x-1)*(x-2)*x, (x-1)*(x-2)*x*x|],
-		[1,2], exp(-(x-1)*log(2)));
-		> plot(exp((x-1)*log(2))/(f+x)-1, [1,2]);
-		> f+x;
-		*/
-		return
-		xu.f * (0.510397365625862338668154f + b *
-				(0.310670891004095530771135f + b *
-				 (0.168143436463395944830000f + b *
-				  (-2.88093587581985443087955e-3f + b *
-				   1.3671023382430374383648148e-2f))));
-	}
-	
 	/* Absolute error bounded by 1e-6 for normalized inputs
 	 Returns a finite number for +inf input
 	 Returns -inf for nan and <= 0 inputs.
@@ -333,6 +333,7 @@ namespace ml
   valu.i = (valu.i & 0x7FFFFF) | 0x3F800000;
   x = valu.f;
 		
+
   /* Generated in Sollya using :
    > f = remez(log(x)-(x-1)*log(2),
    [|1,(x-1)*(x-2), (x-1)*(x-2)*x, (x-1)*(x-2)*x*x,
@@ -349,11 +350,6 @@ namespace ml
 	
 }
 
-inline __m128 logapprox_ps(__m128 x) 
-{
-	
-}
-		
 
 #endif
 
@@ -386,6 +382,42 @@ inline __m128 logapprox_ps(__m128 x)
 	DEFINE_OP2(divideApprox, (_mm_mul_ps(x1, _mm_rcp_ps(x2))));
 	DEFINE_OP2(min, (_mm_min_ps(x1, x2)));
 	DEFINE_OP2(max, (_mm_max_ps(x1, x2)));
+	DEFINE_OP2(equal, (_mm_cmpeq_ps(x1, x2)));
+	DEFINE_OP2(notEqual, (_mm_cmpneq_ps(x1, x2)));
+	DEFINE_OP2(greaterThan, (_mm_cmpgt_ps(x1, x2)));
+	DEFINE_OP2(greaterThanOrEqual, (_mm_cmpge_ps(x1, x2)));
+	DEFINE_OP2(lessThan, (_mm_cmplt_ps(x1, x2)));
+	DEFINE_OP2(lessThanOrEqual, (_mm_cmple_ps(x1, x2)));
+	DEFINE_OP2(eitherIsNaN, (_mm_cmpunord_ps(x1, x2)));
+
+
+	// ----------------------------------------------------------------
+	#pragma mark ternary operators
+	
+	#define DEFINE_OP3(opName, opComputation)				\
+	inline DSPVector (opName)(DSPVector x1, DSPVector x2, DSPVector x3)	\
+	{														\
+		DSPVector y;										\
+		float* px1 = x1.getBuffer();						\
+		float* px2 = x2.getBuffer();						\
+		float* px3 = x3.getBuffer();						\
+		float* py1 = y.getBuffer();							\
+		for (int n = 0; n < kDSPVectorSizeSSE; ++n)			\
+		{													\
+			__m128 x1 = _mm_load_ps(px1);					\
+			__m128 x2 = _mm_load_ps(px2);					\
+			__m128 x3 = _mm_load_ps(px3);					\
+			_mm_store_ps(py1, (opComputation));				\
+			px1 += kSSEVecSize;								\
+			px2 += kSSEVecSize;								\
+			px3 += kSSEVecSize;								\
+			py1 += kSSEVecSize;								\
+		}													\
+		return y;											\
+		}	
+
+
+	DEFINE_OP3(select, select_ps(x1, x2, x3));
 
 	
 	/*
@@ -443,7 +475,21 @@ inline __m128 logapprox_ps(__m128 x)
 	 SVFbank
 	 biquadbank
 	*/
-	
+
+/*
+inline float hadd(const vector4f& rhs)
+{
+#if SSE_INSTR_SET >= 3 // SSE3
+	__m128 tmp0 = _mm_hadd_ps(rhs,rhs);
+	__m128 tmp1 = _mm_hadd_ps(tmp0,tmp0);
+#else
+	__m128 tmp0 = _mm_add_ps(rhs,_mm_movehl_ps(rhs,rhs));
+	__m128 tmp1 = _mm_add_ss(tmp0,_mm_shuffle_ps(tmp0,tmp0,1));
+#endif
+	return _mm_cvtss_f32(tmp1);
+}
+
+*/
 	
 	
 }
