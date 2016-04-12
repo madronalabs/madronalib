@@ -1,4 +1,4 @@
-/* SIMD (SSE1+MMX or SSE2) implementation of sin, cos, exp and log
+/* SIMD (SSE2) implementation of sin, cos, exp and log
  Inspired by Intel Approximate Math library, and based on the
  corresponding algorithms of the cephes math library
  
@@ -23,13 +23,6 @@
  (this is the zlib license)
  */
 
-/*
- Original algorithms from:
- Cephes Math Library Release 2.2:  June, 1992
- Copyright 1985, 1987, 1988, 1992 by Stephen L. Moshier
- Direct inquiries to 30 Frost Street, Cambridge, MA 02140
- */
-
 // Note from author's blog: Of course it is not IEEE compliant, but the max absolute error on sines is 2^-24 on the range [-8192,8192]. 
 
 // This code has been modified by Randy Jones, rej@madronalabs.com:
@@ -48,9 +41,8 @@
 #endif
 
 /* __m128 is ugly to write */
-typedef __m128 v4sf;  // vector of 4 float (sse1)
-typedef __m128i v4si; // vector of 4 int (sse2)
-
+typedef __m128 v4sf;  // vector of 4 float
+typedef __m128i v4si; // vector of 4 int
 
 /* declare some SSE constants -- why can't I figure a better way to do that? */
 #define _PS_CONST(Name, Val)                                            \

@@ -9,18 +9,18 @@ int main()
 	std::cout << "Hello, world!\n";
 	
 	DSPVector a;
-	int size = ml::kDSPVectorSizeFloat;
+	int size = kDSPVectorSizeFloat;
 	
 	for(int i=0; i<size; ++i)
 	{
 		a[i] = i;
 	}
-	
-	DSPVector diff = exp(log(a));
+
+	// 	 x^y = exp(y * log(x))
+
+	DSPVector diff = exp(a) ;
 
 	std::cout << diff;
 		
 	return 0;
 }
-
-// 
