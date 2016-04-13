@@ -13,18 +13,17 @@ int main()
 	
 	for(int i=0; i<size; ++i)
 	{
-		a[i] = i*kMLTwoPi/size - kMLPi;
+		a[i] = i;//*200./size;
 	}
 
 	// 	 x^y = exp(y * log(x))
 
-	DSPVector diff = sin(a) ;
+	DSPVector diff = expApprox(logApprox(a)) ;
+	
+//	diff = select(greaterThan(diff, 5), 3, 2);
+	
 
-	DSPVector b(a);
-	DSPVector c(diff);
-	DSPVector ab = select(greaterThan(diff, DSPVector(0)), b, c);
-
-	std::cout << ab;
-		
+	std::cout << diff;
+	
 	return 0;
 }

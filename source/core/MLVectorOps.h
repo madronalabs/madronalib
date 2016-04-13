@@ -128,10 +128,10 @@ namespace ml
 	inline __m128 select_ps(__m128 conditionMask, __m128 a, __m128 b)
 	{
 		__m128i zero = _mm_setzero_si128();
-		__m128i ones = _mm_cmpeq_epi32(zero, zero);
+		__m128i ones = _mm_set1_epi32(-1);
 		return _mm_or_ps(
 						 _mm_and_ps(conditionMask, a),
-						 _mm_and_ps(_mm_andnot_ps(conditionMask, ones), b)
+						 _mm_and_ps(_mm_xor_ps(conditionMask, ones), b)
 						 );
 	}
 
@@ -255,28 +255,31 @@ namespace ml
 	{
 		const __m128 kZeroVec = _mm_setzero_ps();
 		
-		union { __m128i vi; __m128 vf; } xu, xu2;
-		__m128 val2, val3, val4, b;
+		__m128 val2, val3, val4;
 		__m128i val4i;
 		
 		val2 = _mm_add_ps(_mm_mul_ps(x, kExpC2Vec), kExpC3Vec);
 		val3 = _mm_min_ps(val2, kExpC1Vec);
 		val4 = _mm_max_ps(val3, kZeroVec);
 		val4i = _mm_cvttps_epi32(val4);
-		xu.vi = _mm_and_ps(val4i, _mm_set1_epi32(0x7F800000)); 
-		xu2.vi = _mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
-		b = xu2.vf;
 		
-		return _mm_mul_ps(xu.vf,(
+		__m128 xu = _mm_castsi128_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7F800000))); 
+		__m128 b = _mm_castsi128_ps(_mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)));
+				
+		return _mm_mul_ps(xu, (
 		_mm_add_ps(kExpC4Vec, _mm_mul_ps(b,
 		_mm_add_ps(kExpC5Vec, _mm_mul_ps(b, 
 		_mm_add_ps(kExpC6Vec, _mm_mul_ps(b, 
-		_mm_add_ps(kExpC7Vec, 
-				   _mm_mul_ps(b, kExpC8Vec)) )) )) )) ));	
+		_mm_add_ps(kExpC7Vec, _mm_mul_ps(b, kExpC8Vec)) )) )) )) ));	
 	}
 	
 	DEFINE_OP1(expApprox, (expapprox_ps(x)));
-
+	
+	/* Absolute error bounded by 1e-6 for normalized inputs
+	 Returns a finite number for +inf input
+	 Returns -inf for nan and <= 0 inputs.
+	 Continuous error. */
+	
 	STATIC_M128_CONST(kLogC1Vec, -89.970756366f);
 	STATIC_M128_CONST(kLogC2Vec, 3.529304993f);
 	STATIC_M128_CONST(kLogC3Vec, -2.461222105f);
@@ -288,70 +291,24 @@ namespace ml
 	inline __m128 logapprox_ps(__m128 val) 
 	{
 		__m128i vZero = _mm_setzero_si128();
-		union { __m128i vi; __m128 vf; } valu;
-
-		__m128 exp, addcst, x;
-		
-		valu.vf = val;
-		
-		exp = _mm_srli_epi32(valu.vi, 23);//exp = valu.vi >> 23;
+		__m128i valAsInt = _mm_castps_si128(val);
+		__m128i expi = _mm_srli_epi32(valAsInt, 23);
+		__m128 addcst = select_ps(_mm_cmpgt_ps(val, vZero), kLogC1Vec, _mm_set1_ps(-(float)INFINITY));
+		__m128i valAsIntMasked = _mm_or_ps(_mm_and_ps(valAsInt, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
+		__m128 x = _mm_castsi128_ps(valAsIntMasked);
 			
-		/* 89.970756366f = 127 * log(2) - constant term of polynomial */
+		__m128 poly = 
+		_mm_mul_ps(x, 
+		_mm_add_ps(kLogC2Vec, _mm_mul_ps(x,
+		_mm_add_ps(kLogC3Vec, _mm_mul_ps(x, 
+		_mm_add_ps(kLogC4Vec, _mm_mul_ps(x,
+		_mm_add_ps(kLogC5Vec, _mm_mul_ps(x, kLogC6Vec)) )) )) )) );
 		
-		addcst = select_ps(_mm_cmpge_ps(val, vZero), kLogC1Vec, _mm_set1_ps(-(float)INFINITY));
-		
-		return addcst;
-		/*		valu.i = (valu.i & 0x7FFFFF) | 0x3F800000;
-		x = valu.f;
-		
-
-  return
-		x * (kLogC2Vec + x * (kLogC3Vec +
-								 x * (kLogC4Vec + x * (kLogC5Vec +
-														  x * kLogC6Vec))))
-		+ (addcst + kLogC7Vec*exp);
-	}*/
-	
+		__m128 addCstResult = _mm_add_ps(addcst, _mm_mul_ps(kLogC7Vec, _mm_cvtepi32_ps(expi)));
+		return _mm_add_ps(poly, addCstResult);
 	}
 	
-	
-	
-	
-#if 0
-	/* Absolute error bounded by 1e-6 for normalized inputs
-	 Returns a finite number for +inf input
-	 Returns -inf for nan and <= 0 inputs.
-	 Continuous error. */
-	inline float logapprox(float val) 
-	{
-  union { float f; int i; } valu;
-  float exp, addcst, x;
-  valu.f = val;
-  exp = valu.i >> 23;
-  /* 89.970756366f = 127 * log(2) - constant term of polynomial */
-  addcst = val > 0 ? -89.970756366f : -(float)INFINITY;
-  valu.i = (valu.i & 0x7FFFFF) | 0x3F800000;
-  x = valu.f;
-		
-
-  /* Generated in Sollya using :
-   > f = remez(log(x)-(x-1)*log(2),
-   [|1,(x-1)*(x-2), (x-1)*(x-2)*x, (x-1)*(x-2)*x*x,
-   (x-1)*(x-2)*x*x*x|], [1,2], 1, 1e-8);
-   > plot(f+(x-1)*log(2)-log(x), [1,2]);
-   > f+(x-1)*log(2)
-   */
-  return
-		x * (3.529304993f + x * (-2.461222105f +
-		x * (1.130626167f + x * (-0.288739945f +
-		x * 3.110401639e-2f))))
-		+ (addcst + 0.69314718055995f*exp);
-	}
-	
-}
-
-
-#endif
+	DEFINE_OP1(logApprox, (logapprox_ps(x)));
 
 	// ----------------------------------------------------------------
 	#pragma mark binary operators
@@ -490,6 +447,8 @@ inline float hadd(const vector4f& rhs)
 }
 
 */
+	
+	// static inline functions as template arguments C++11
 	
 	
 }
