@@ -7,6 +7,7 @@
 //
 
 #include "MLStringUtils.h"
+#include "../DSP/MLDSPGens.h" // for RandomSource
 
 #pragma mark string utilities
 
@@ -83,16 +84,17 @@ std::vector< std::string > parsePath(const std::string& pathStr)
 static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";
 std::vector< std::string > vectorOfNonsenseWords( int len )
 {
+	ml::RandomSource randSource;
 	std::vector< std::string > words;
 	for(int i = 0; i < len; ++i)
 	{
 		std::string newStr;
-		uint32_t r32 = MLRand32() >> 16;
+		uint32_t r32 = randSource.getIntSample() >> 16;
 		int wordLen = (r32 & 7) + 3;
 		
 		for(int j=0; j<wordLen; ++j)
 		{
-			r32 = MLRand32() >> 16;
+			r32 = randSource.getIntSample() >> 16;
 			int idx = (r32 & 31);
 			newStr += (kLetters[idx]);
 		}

@@ -3,8 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef _MLSIGNAL_H
-#define _MLSIGNAL_H
+#pragma once
 
 #include <initializer_list>
 #include <cassert>
@@ -14,19 +13,30 @@
 #include <iomanip>
 #include <memory>
 
-#include "MLVector.h" // TO GO
+#include "../DSP/MLDSPMath.h"
+#include "MLScalarMath.h"
 
-#include "../DSP/MLDSPOps.h"
+using namespace ml;
 
-const uintptr_t kMLSignalAlignBits = 4; // cache line is 64 bytes, minimum is 16 bytes (SSE vector)
-const uintptr_t kMLSignalAlignSize = 1 << kMLSignalAlignBits;
-const uintptr_t kMLSignalAlignMask = ~(kMLSignalAlignSize - 1);
-
+const uintptr_t kSignalAlignBits = 4; // cache line is 64 bytes, minimum signal size is one SIMD vector
+const uintptr_t kSignalAlignSize = 1 << kSignalAlignBits;
+const uintptr_t kSignalAlignMask = ~(kSignalAlignSize - 1);
 
 typedef enum
 {
 	kLoopType1DEnd = 0
 } eLoopType;
+
+constexpr float kTimeless = -1.f;
+constexpr float kToBeCalculated = 0.f;
+
+inline int bitsToContain(int n)
+{
+	int exp;
+	for (exp = 0; (1 << exp) < n; exp++);
+	return (exp);
+}
+
 
 
 // ----------------------------------------------------------------
@@ -67,12 +77,12 @@ private:
 	// ----------------------------------------------------------------
 	// data	
 	// start of aligned data in memory. 
-	MLSample* mDataAligned;
+	float* mDataAligned;
 	
 	// start of signal data in memory. 
 	// If this is 0, we do not own any data.  However, in the case of a
 	// reference to another signal mDataAligned may still refer to external data.
-	MLSample* mData;
+	float* mData;
 	
 	// store requested size of each dimension. For 1D signals, height is 1, etc.
 	int mWidth, mHeight, mDepth; 
@@ -113,14 +123,14 @@ public:
 	// 1-D access methods
 	//
 	// inspector applied to const references, typically from getInput()
-	inline MLSample operator[] (int i) const
+	inline float operator[] (int i) const
 	{
         assert(i < mSize);
 		return mDataAligned[i];
 	}
 
 	// mutator, called for non-const references 
-	inline MLSample& operator[] (int i)
+	inline float& operator[] (int i)
 	{	
         assert(i < mSize);
 		return mDataAligned[i];
@@ -128,14 +138,14 @@ public:
 
 	inline void setToConstant(float k)
 	{
-		int c = mSize >> kMLSamplesPerSSEVectorBits;
+		int c = mSize >> kfloatsPerSIMDVectorBits;
 		const __m128 vk = _mm_set1_ps(k); 	
 		float* py1 = mDataAligned;
 		
 		for (int n = 0; n < c; ++n)
 		{
 			_mm_store_ps(py1, vk);
-			py1 += kSSEVecSize;
+			py1 += kSIMDVecSize;
 		}
 	}
 	
@@ -149,7 +159,7 @@ public:
 	
 	// return signal value at the position p, interpolated linearly.
     // For power-of-two size tables, this will interpolate around the loop.
-	inline MLSample getInterpolatedLinear(float p) const
+	inline float getInterpolatedLinear(float p) const
 	{
 		int pi = (int)p;
 		float m = p - pi;
@@ -174,14 +184,14 @@ public:
 	//
 	// mutator, return reference to sample
 	// (TODO) does not work with reference?! (MLSignal& t = mySignal; t(2, 3) = k;)
-	inline MLSample& operator()(const int i, const int j)
+	inline float& operator()(const int i, const int j)
 	{
 		assert((j<<mWidthBits) + i < mSize);
 		return mDataAligned[(j<<mWidthBits) + i];
 	}
 	
 	// inspector, return by value
-	inline const MLSample operator()(const int i, const int j) const
+	inline const float operator()(const int i, const int j) const
 	{
 		assert((j<<mWidthBits) + i < mSize);
 		return mDataAligned[(j<<mWidthBits) + i];
@@ -190,9 +200,9 @@ public:
 	// interpolators could be lambdas?
 	// play with ideas and benchmark. 
 	
-	inline MLSample getInterpolatedLinear(float fi, float fj) const
+	inline float getInterpolatedLinear(float fi, float fj) const
     {
-        MLSample a, b, c, d;
+        float a, b, c, d;
         
         int i = (int)(fi);
         int j = (int)(fj);
@@ -262,21 +272,21 @@ public:
         mDataAligned[(row(pyi + 1) + pxi + 1)] += r11;
     }
 
-	const MLSample operator() (const float i, const float j) const;
-    const MLSample getInterpolatedLinear(const Vec2& pos) const { return getInterpolatedLinear(pos.x(), pos.y()); }
+	const float operator() (const float i, const float j) const;
+ //    const float getInterpolatedLinear(const Vec2& pos) const { return getInterpolatedLinear(pos.x(), pos.y()); }
 	
 	
 	// 3D access methods
 	//
 	// mutator, return sample reference
-	inline MLSample& operator()(const int i, const int j, const int k)
+	inline float& operator()(const int i, const int j, const int k)
 	{
 		assert((k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i < mSize);
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
 	}
 	
 	// inspector, return sample by value
-	inline const MLSample operator()(const int i, const int j, const int k) const
+	inline const float operator()(const int i, const int j, const int k) const
 	{
 		assert((k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i < mSize);
 		return mDataAligned[(k<<mWidthBits<<mHeightBits) + (j<<mWidthBits) + i];
@@ -292,12 +302,12 @@ public:
 	MLSignal getDims();
 
 	// set dims.  return data ptr, or 0 if out of memory.
-	MLSample* setDims (int width, int height = 1, int depth = 1);
+	float* setDims (int width, int height = 1, int depth = 1);
 	
 	// same but with (w, h, d) signal
-	MLSample* setDims (const MLSignal& whd);
+	float* setDims (const MLSignal& whd);
 	
-	MLRect getBoundsRect() const { return MLRect(0, 0, mWidth, mHeight); }
+	//MLRect getBoundsRect() const { return MLRect(0, 0, mWidth, mHeight); }
 	
 	int getWidth() const { return mWidth; }
 	int getHeight() const { return mHeight; }
@@ -307,9 +317,9 @@ public:
 	int getDepthBits() const { return mDepthBits; }
 	inline int getSize() const { return mSize; }
 
-	int getXStride() const { return (int)sizeof(MLSample); }
-	int getYStride() const { return (int)sizeof(MLSample) << mWidthBits; }
-	int getZStride() const { return (int)sizeof(MLSample) << mWidthBits << mHeightBits; }
+	int getXStride() const { return (int)sizeof(float); }
+	int getYStride() const { return (int)sizeof(float) << mWidthBits; }
+	int getZStride() const { return (int)sizeof(float) << mWidthBits << mHeightBits; }
 	int getFrames() const;
 	
 	// rate
@@ -317,15 +327,15 @@ public:
 	float getRate() const { return mRate; }
 	
 	// I/O
-	void read(const MLSample *input, const int offset, const int n);
-	void write(MLSample *output, const int offset, const int n);
+	void read(const float *input, const int offset, const int n);
+	void write(float *output, const int offset, const int n);
 
 	void sigClamp(const MLSignal& a, const MLSignal& b);
 	void sigMin(const MLSignal& b);
 	void sigMax(const MLSignal& b);
 
 	// mix this signal with signal b.
-	void sigLerp(const MLSignal& b, const MLSample mix);
+	void sigLerp(const MLSignal& b, const float mix);
 	void sigLerp(const MLSignal& b, const MLSignal& mix);
 
 	// binary operators on Signals  TODO rewrite standard
@@ -342,25 +352,25 @@ public:
 	void copyFast(const MLSignal& b);
 
 	// signal / scalar operators
-	void fill(const MLSample f);
-	void scale(const MLSample k);	
-	void add(const MLSample k);	
-	void subtract(const MLSample k);	
-	void subtractFrom(const MLSample k);	
+	void fill(const float f);
+	void scale(const float k);	
+	void add(const float k);	
+	void subtract(const float k);	
+	void subtractFrom(const float k);	
 	
 	// should these be friends?  
-	void sigClamp(const MLSample min, const MLSample max);	
-	void sigMin(const MLSample min);
-	void sigMax(const MLSample max);
+	void sigClamp(const float min, const float max);	
+	void sigMin(const float min);
+	void sigMax(const float max);
 
     // 1D convolution
-    void convolve3x1(const MLSample km, const MLSample k, const MLSample kp);
-    void convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp);
+    void convolve3x1(const float km, const float k, const float kp);
+    void convolve5x1(const float kmm, const float km, const float k, const float kp, const float kpp);
 
 	// Convolve the 2D matrix with a radially symmetric 3x3 matrix defined by coefficients
 	// kc (center), ke (edge), and kk (corner).
-	void convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk);
-	void convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk);
+	void convolve3x3r(const float kc, const float ke, const float kk);
+	void convolve3x3rb(const float kc, const float ke, const float kk);
 
 	// metrics
     float getRMS();
@@ -373,7 +383,7 @@ public:
 	// by 2D Taylor series expansion of the surface function at (x, y).  
 	// The result is clamped to the input position plus or minus maxCorrect.
 	//
-	Vec2 correctPeak(const int ix, const int iy, const float maxCorrect) const;
+	 // Vec2 correctPeak(const int ix, const int iy, const float maxCorrect) const;
 
 	// unary operators on Signals
 	void square();	
@@ -381,18 +391,21 @@ public:
 	void abs();	
 	void inv();	
 	void ssign();
-	void log2Approx();
+//	void log2Approx();
 	
 	// 2D signal utils
 	void setIdentity();
 	void makeDuplicateBoundary2D();
 	void partialDiffX();
 	void partialDiffY();
+	
 	// return highest value in signal
-	Vec3 findPeak() const;
+	// Vec3 findPeak() const;
+
+	// TODO different module
     // add (blit) another 2D signal
-	void add2D(const MLSignal& b, int destX, int destY);
-	void add2D(const MLSignal& b, const Vec2& destOffset);
+//	void add2D(const MLSignal& b, int destX, int destY);
+//	void add2D(const MLSignal& b, const Vec2& destOffset);
 	
 	inline void clear()
 	{
@@ -408,7 +421,8 @@ public:
 	float getMin() const;
 	float getMax() const;
 	void dump(std::ostream& s, int verbosity = 0) const;
-	void dump(std::ostream& s, const MLRect& b) const;
+	
+//	void dump(std::ostream& s, const MLRect& b) const;
 	void dumpASCII(std::ostream& s) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
@@ -438,7 +452,7 @@ public:
 	/*
 	inline void scaleAndAccumulate(const MLSignal& b, float k)
 	{
-		int vectors = mSize >> kMLSamplesPerSSEVectorBits;
+		int vectors = mSize >> kfloatsPerSIMDVectorBits;
 		
 		float* pb = b.getBuffer();
 		float* pa = getBuffer();
@@ -451,11 +465,12 @@ public:
 			va = _mm_load_ps(pa);
 			vb = _mm_load_ps(pb);
 			_mm_store_ps(pa, _mm_add_ps(va, _mm_mul_ps(vb, vk)));
-			pa += kSSEVecSize;
-			pb += kSSEVecSize;
+			pa += kSIMDVecSize;
+			pb += kSIMDVecSize;
 		}
 	}
 	*/
+	
 	// utilities for getting pointers to the aligned data as other types.
 	uint32_t* asUInt32Ptr(void) const
 	{
@@ -497,19 +512,19 @@ private:
 	// private signal constructor: make a reference to a frame of the external signal.
 	MLSignal(const MLSignal* other, int frame);
 
-	inline MLSample* allocateData(int size)
+	inline float* allocateData(int size)
 	{
-		MLSample* newData = 0;
-		newData = new MLSample[size + kMLSignalAlignSize - 1];
+		float* newData = 0;
+		newData = new float[size + kSignalAlignSize - 1];
 		return newData;
 	}
 	
-	inline float* alignToSignal(const MLSample* p)
+	inline float* alignToSignal(const float* p)
 	{
 		uintptr_t pM = (uintptr_t)p;
-		pM += (uintptr_t)(kMLSignalAlignSize - 1);
-		pM &= kMLSignalAlignMask;	
-		return(MLSample*)pM;
+		pM += (uintptr_t)(kSignalAlignSize - 1);
+		pM &= kSignalAlignMask;	
+		return(float*)pM;
 	} 
 	
 	inline float* initializeData(float* pData, int size)
@@ -560,6 +575,3 @@ inline MLSignal transpose(const MLSignal& x)
 	}
 	return y;
 }
-
-
-#endif // _MLSIGNAL_H

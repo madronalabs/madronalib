@@ -82,6 +82,7 @@ void MLVec::quantize(int q)
 	val.f[2] = i2;
 	val.f[3] = i3;
 }
+
 float MLVec::magnitude() const
 {
 	float a = val.f[0];

@@ -8,6 +8,8 @@
 
 #include "MLSignal.h"
 
+using namespace ml;
+
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
@@ -24,7 +26,7 @@ MLSignal::MLSignal() :
 	mDataAligned(0),
 	mData(0)
 {
-	mRate = kMLToBeCalculated;
+	mRate = kToBeCalculated;
 	setDims(0);
 }
 
@@ -32,7 +34,7 @@ MLSignal::MLSignal (int width, int height, int depth) :
 	mDataAligned(0),
 	mData(0)
 {
-	mRate = kMLToBeCalculated;
+	mRate = kToBeCalculated;
 	setDims(width, height, depth);
 }
 
@@ -57,7 +59,7 @@ MLSignal::MLSignal (std::initializer_list<float> values) :
 	mDataAligned(0),
 	mData(0)
 {
-	mRate = kMLToBeCalculated;
+	mRate = kToBeCalculated;
 	setDims((int)values.size());
 	int idx = 0;
 	for(float f : values)
@@ -95,8 +97,8 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 		{
 			// 1: allocate new memory and copy the elements
 			mSize = other.mSize;
-			MLSample * newData = allocateData(mSize);
-			MLSample * newDataAligned = initializeData(newData, mSize);
+			float * newData = allocateData(mSize);
+			float * newDataAligned = initializeData(newData, mSize);
 			std::copy(other.mDataAligned, other.mDataAligned + mSize, newDataAligned);
 
 			// 2: deallocate old memory
@@ -147,7 +149,7 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 	mDataAligned(0),
 	mData(0)
 {
-	mRate = kMLToBeCalculated;
+	mRate = kToBeCalculated;
 	if(other->getDepth() > 1) // make 2d slice
 	{
 		mDataAligned = other->mDataAligned + other->plane(slice);
@@ -194,7 +196,7 @@ MLSignal MLSignal::getDims()
 	}
 }
 
-MLSample* MLSignal::setDims (int width, int height, int depth)
+float* MLSignal::setDims (int width, int height, int depth)
 {
 	mDataAligned = 0;	
 	// delete old
@@ -215,7 +217,7 @@ MLSample* MLSignal::setDims (int width, int height, int depth)
 	return mDataAligned;
 }
 
-MLSample* MLSignal::setDims(const MLSignal& whd)
+float* MLSignal::setDims(const MLSignal& whd)
 {
 	switch(whd.getWidth())
 	{
@@ -236,7 +238,7 @@ MLSample* MLSignal::setDims(const MLSignal& whd)
 
 int MLSignal::getFrames() const
 { 		
-	if (mRate != kMLTimeless)
+	if (mRate != kTimeless)
 	{
 		if (mHeightBits) // if 2D
 		{
@@ -256,9 +258,9 @@ int MLSignal::getFrames() const
 
 
 /*
-const MLSample MLSignal::operator()(const float fi, const float fj) const
+const float MLSignal::operator()(const float fi, const float fj) const
 {
-	MLSample a, b, c, d;
+	float a, b, c, d;
 	
 	int i = (int)(fi);
 	int j = (int)(fj);
@@ -286,19 +288,19 @@ const MLSample MLSignal::operator()(const float fi, const float fj) const
 
 /*
 // TODO SSE
-const MLSample MLSignal::operator()(const Vec2& pos) const
+const float MLSignal::operator()(const Vec2& pos) const
 {
 	return operator()(pos.x(), pos.y());
 }
 */
 /*
 // TODO unimplemented
-const MLSample MLSignal::operator() (const float , const float , const float ) const
+const float MLSignal::operator() (const float , const float , const float ) const
 {
 	return 0.;
 }
 
-const MLSample MLSignal::operator() (const Vec3 ) const
+const float MLSignal::operator() (const Vec3 ) const
 {
 	return 0.;
 }
@@ -329,8 +331,8 @@ void MLSignal::setFrame(int i, const MLSignal& src)
 		return;
 	}
 	
-	MLSample* pDestFrame = mDataAligned + plane(i);
-	const MLSample* pSrc = src.getConstBuffer();
+	float* pDestFrame = mDataAligned + plane(i);
+	const float* pSrc = src.getConstBuffer();
 	std::copy(pSrc, pSrc + src.getSize(), pDestFrame);
 }
 
@@ -340,14 +342,14 @@ void MLSignal::setFrame(int i, const MLSignal& src)
 
 // read n samples from an external sample pointer plus a sample offset into start of signal.
 //
-void MLSignal::read(const MLSample *input, const int offset, const int n)
+void MLSignal::read(const float *input, const int offset, const int n)
 {
 	std::copy(input + offset, input + offset + n, mDataAligned);
 }
 
 // write n samples from start of signal to an external sample pointer plus a sample offset.
 //
-void MLSignal::write(MLSample *output, const int offset, const int n)
+void MLSignal::write(float *output, const int offset, const int n)
 {
 	std::copy(mDataAligned, mDataAligned + n, output + offset);
 }
@@ -359,7 +361,7 @@ void MLSignal::sigClamp(const MLSignal& a, const MLSignal& b)
 	n = min(n, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
-		MLSample f = mDataAligned[i];
+		float f = mDataAligned[i];
 		mDataAligned[i] = clamp(f, a.mDataAligned[i], b.mDataAligned[i]);
 	}
 }
@@ -369,7 +371,7 @@ void MLSignal::sigMin(const MLSignal& b)
 	int n = min(mSize, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
-		MLSample f = mDataAligned[i];
+		float f = mDataAligned[i];
 		mDataAligned[i] = min(f, b.mDataAligned[i]);
 	}
 }
@@ -379,13 +381,13 @@ void MLSignal::sigMax(const MLSignal& b)
 	int n = min(mSize, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
-		MLSample f = mDataAligned[i];
+		float f = mDataAligned[i];
 		mDataAligned[i] = max(f, b.mDataAligned[i]);
 	}
 }
 
 // TODO SSE
-void MLSignal::sigLerp(const MLSignal& b, const MLSample mix)
+void MLSignal::sigLerp(const MLSignal& b, const float mix)
 {
 	int n = min(mSize, b.getSize());
 	for(int i = 0; i < n; ++i)
@@ -434,6 +436,7 @@ void MLSignal::copyFast(const MLSignal& b)
 	std::copy(b.mDataAligned, b.mDataAligned + mSize, mDataAligned);
 }
 
+/*
 // add the entire signal b to this signal, at the integer destination offset. 
 // 
 void MLSignal::add2D(const MLSignal& b, int destX, int destY)
@@ -476,10 +479,12 @@ void MLSignal::add2D(const MLSignal& b, const Vec2& destOffset)
 		}
 	}
 }
+*/
+
 
 /*
 // TEMP
-const MLSample MLSignal::operator() (const float i, const float j) const
+const float MLSignal::operator() (const float i, const float j) const
 {
     return getInterpolatedLinear(i, j);
 
@@ -504,7 +509,6 @@ void MLSignal::subtract(const MLSignal& b)
 		mDataAligned[i] -= b.mDataAligned[i];
 	}
 }
-
 
 // TODO SSE
 void MLSignal::multiply(const MLSignal& b)
@@ -531,12 +535,12 @@ void MLSignal::divide(const MLSignal& b)
 #pragma mark unary ops
 // 
 
-void MLSignal::fill(const MLSample f)
+void MLSignal::fill(const float f)
 {
 	std::fill(mDataAligned, mDataAligned+mSize, f);
 }
 
-void MLSignal::scale(const MLSample k)
+void MLSignal::scale(const float k)
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -544,7 +548,7 @@ void MLSignal::scale(const MLSample k)
 	}
 }
 
-void MLSignal::add(const MLSample k)
+void MLSignal::add(const float k)
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -552,7 +556,7 @@ void MLSignal::add(const MLSample k)
 	}
 }
 
-void MLSignal::subtract(const MLSample k)
+void MLSignal::subtract(const float k)
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -560,7 +564,7 @@ void MLSignal::subtract(const MLSample k)
 	}
 }
 
-void MLSignal::subtractFrom(const MLSample k)
+void MLSignal::subtractFrom(const float k)
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -569,7 +573,7 @@ void MLSignal::subtractFrom(const MLSample k)
 }
 
 // name collision with clamp template made this sigClamp
-void MLSignal::sigClamp(const MLSample min, const MLSample max)	
+void MLSignal::sigClamp(const float min, const float max)	
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -579,7 +583,7 @@ void MLSignal::sigClamp(const MLSample min, const MLSample max)
 }
 
 // TODO SSE
-void MLSignal::sigMin(const MLSample m)
+void MLSignal::sigMin(const float m)
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -589,7 +593,7 @@ void MLSignal::sigMin(const MLSample m)
 }
 
 // TODO SSE
-void MLSignal::sigMax(const MLSample m)	
+void MLSignal::sigMax(const float m)	
 {
 	for(int i=0; i<mSize; ++i)
 	{
@@ -599,7 +603,7 @@ void MLSignal::sigMax(const MLSample m)
 }
 
 // convolve a 1D signal with a 3-point impulse response.
-void MLSignal::convolve3x1(const MLSample km, const MLSample k, const MLSample kp)
+void MLSignal::convolve3x1(const float km, const float k, const float kp)
 {
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();
@@ -617,7 +621,7 @@ void MLSignal::convolve3x1(const MLSample km, const MLSample k, const MLSample k
     mDataAligned[mWidth - 1] = km*pIn[mWidth - 2] + k*pIn[mWidth - 1];
 }
 
-void MLSignal::convolve5x1(const MLSample kmm, const MLSample km, const MLSample k, const MLSample kp, const MLSample kpp)
+void MLSignal::convolve5x1(const float kmm, const float km, const float k, const float kp, const float kpp)
 {
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();
@@ -639,7 +643,7 @@ void MLSignal::convolve5x1(const MLSample kmm, const MLSample km, const MLSample
 
 
 // an operator for 2D signals only
-void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample kk)
+void MLSignal::convolve3x3r(const float kc, const float ke, const float kk)
 {
 	int i, j;
     float f;
@@ -648,7 +652,7 @@ void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample
 	
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();	
-	MLSample* pOut = mDataAligned;
+	float* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
 	
@@ -751,7 +755,7 @@ void MLSignal::convolve3x3r(const MLSample kc, const MLSample ke, const MLSample
 
 // an operator for 2D signals only
 // convolve signal with coefficients, duplicating samples at border. 
-void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSample kk)
+void MLSignal::convolve3x3rb(const float kc, const float ke, const float kk)
 {
 	int i, j;
 	float f;
@@ -761,7 +765,7 @@ void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSampl
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();
 	
-	MLSample* pOut = mDataAligned;
+	float* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
 	
@@ -861,6 +865,7 @@ void MLSignal::convolve3x3rb(const MLSample kc, const MLSample ke, const MLSampl
 	}
 }
 
+// TODO SIMD
 float MLSignal::getRMS()
 {
     float d = 0.f;
@@ -889,12 +894,12 @@ float MLSignal::rmsDiff(const MLSignal& b)
 
 void MLSignal::flipVertical()
 {
-	MLSample* p0 = mDataAligned;
+	float* p0 = mDataAligned;
 	for(int j=0; j<(mHeight>>1) - 1; ++j)
 	{
-		MLSample temp;
-		MLSample* p1 = p0 + row(j);
-		MLSample* p2 = p0 + row(mHeight - 1 - j);
+		float temp;
+		float* p1 = p0 + row(j);
+		float* p2 = p0 + row(mHeight - 1 - j);
 		for(int i=0; i<mWidth; ++i)
 		{
 			temp = p1[i];
@@ -941,16 +946,17 @@ void MLSignal::ssign()
 	// TODO SSE
 	for(int i=0; i<mSize; ++i)
 	{
-		MLSample f = mDataAligned[i];
+		float f = mDataAligned[i];
 		mDataAligned[i] = f < 0.f ? -1.f : 1.f;
 	}
 }
 
+/*
 void MLSignal::log2Approx()
 {
-	MLSample* px1 = getBuffer();
+	float* px1 = getBuffer();
     
-	int c = getSize() >> kMLSamplesPerSSEVectorBits;
+	int c = getSize() >> kfloatsPerSIMDVectorBits;
 	__m128 vx1, vy1;
 	
 	for (int n = 0; n < c; ++n)
@@ -958,9 +964,9 @@ void MLSignal::log2Approx()
 		vx1 = _mm_load_ps(px1);
 		vy1 = log2Approx4(vx1); 		
 		_mm_store_ps(px1, vy1);
-		px1 += kSSEVecSize;
+		px1 += kSIMDVecSize;
 	}
-}
+}*/
 
 void MLSignal::setIdentity()
 {
@@ -994,6 +1000,8 @@ void MLSignal::makeDuplicateBoundary2D()
 	}
 }
 
+/*
+
 // return integer coordinates (with float z) of peak value in a 2D signal.
 //
 Vec3 MLSignal::findPeak() const
@@ -1018,11 +1026,12 @@ Vec3 MLSignal::findPeak() const
 	}	
 	return Vec3(maxX, maxY, maxZ);
 }
+*/
 
 int MLSignal::checkForNaN() const
 {
 	int ret = false;
-	const MLSample* p = mDataAligned;
+	const float* p = mDataAligned;
 	for(int i=0; i<mSize; ++i)
 	{
         const float k = p[i];
@@ -1037,7 +1046,7 @@ int MLSignal::checkForNaN() const
 
 float MLSignal::getSum() const
 {
-	MLSample sum = 0.f;
+	float sum = 0.f;
 	for(int i=0; i<mSize; ++i)
 	{
 		sum += mDataAligned[i];
@@ -1052,10 +1061,10 @@ float MLSignal::getMean() const
 
 float MLSignal::getMin() const
 {
-	MLSample fMin = kMLMaxSample;
+	float fMin = MAXFLOAT;
 	for(int i=0; i<mSize; ++i)
 	{
-		MLSample x = mDataAligned[i];
+		float x = mDataAligned[i];
 		if(x < fMin)
 		{
 			fMin = x;
@@ -1066,10 +1075,10 @@ float MLSignal::getMin() const
 
 float MLSignal::getMax() const
 {
-	MLSample fMax = kMLMinSample;
+	float fMax = -MAXFLOAT;
 	for(int i=0; i<mSize; ++i)
 	{
-		MLSample x = mDataAligned[i];
+		float x = mDataAligned[i];
 		if(x > fMax)
 		{
 			fMax = x;
@@ -1117,6 +1126,7 @@ void MLSignal::dump(std::ostream& s, int verbosity) const
 	}
 }
 
+/*
 void MLSignal::dump(std::ostream& s, const MLRect& b) const
 {
 	const MLSignal& f = *this;
@@ -1134,7 +1144,7 @@ void MLSignal::dump(std::ostream& s, const MLRect& b) const
 	}
 }
 
-
+*/
 void MLSignal::dumpASCII(std::ostream& s) const
 {
 	const char* g = " .:;+=xX$&";
@@ -1154,6 +1164,7 @@ void MLSignal::dumpASCII(std::ostream& s) const
 	}
 }
 
+/*
 Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) const
 {		
 	const MLSignal& in = *this;
@@ -1188,6 +1199,7 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) c
 	return pos;
 }
 
+*/
 
 // a simple pixel-by-pixel measure of the distance between two signals.
 //
@@ -1222,7 +1234,7 @@ void MLSignal::partialDiffX()
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();
 	
-	MLSample* pOut = mDataAligned;
+	float* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
 	
@@ -1260,7 +1272,7 @@ void MLSignal::partialDiffY()
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();
 	
-	MLSample* pOut = mDataAligned;
+	float* pOut = mDataAligned;
 	int width = mWidth;
 	int height = mHeight;
 	
