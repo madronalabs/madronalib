@@ -15,7 +15,7 @@
 #include <vector>
 
 #include "MLSymbol.h"
-#include "MLDSP.h"
+#include "../dsp/MLDSP.h"
 
 namespace ml { namespace stringUtils {
 

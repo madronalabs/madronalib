@@ -16,7 +16,7 @@
 
 #include "MLVector.h" // TO GO
 
-#include "MLVectorOps.h"
+#include "../DSP/MLDSPOps.h"
 
 const uintptr_t kMLSignalAlignBits = 4; // cache line is 64 bytes, minimum is 16 bytes (SSE vector)
 const uintptr_t kMLSignalAlignSize = 1 << kMLSignalAlignBits;

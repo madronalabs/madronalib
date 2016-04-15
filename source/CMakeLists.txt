@@ -13,8 +13,14 @@ set(madronalib_HEADERS
 
 if(BUILD_NEW_ONLY)
    set(madronalib_SOURCES
-    core/MLDSP.cpp
-    core/MLDSP.h
+    DSP/MLDSP.cpp
+    DSP/MLDSP.h
+    DSP/MLDSPOps.cpp
+    DSP/MLDSPOps.h
+    DSP/MLDSPGens.cpp
+    DSP/MLDSPGens.h
+    DSP/MLDSPFilters.cpp
+    DSP/MLDSPFilters.h
     core/MLLocks.h
     core/MLSignal.cpp
     core/MLSignal.h
@@ -25,8 +31,6 @@ if(BUILD_NEW_ONLY)
     core/MLResourceMap.h
     core/MLVector.cpp
     core/MLVector.h
-    core/MLVectorOps.cpp
-    core/MLVectorOps.h
     )
 else(BUILD_NEW_ONLY)
   
@@ -36,8 +40,14 @@ else(BUILD_NEW_ONLY)
   endif()
 
   set(madronalib_SOURCES
-    core/MLDSP.cpp
-    core/MLDSP.h
+    DSP/MLDSP.cpp
+    DSP/MLDSP.h
+    DSP/MLDSPOps.cpp
+    DSP/MLDSPOps.h
+    DSP/MLDSPGens.cpp
+    DSP/MLDSPGens.h
+    DSP/MLDSPFilters.cpp
+    DSP/MLDSPFilters.h
     core/MLLocks.h
     core/MLSignal.cpp
     core/MLSignal.h
