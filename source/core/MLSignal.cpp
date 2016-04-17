@@ -964,7 +964,7 @@ void MLSignal::log2Approx()
 		vx1 = _mm_load_ps(px1);
 		vy1 = log2Approx4(vx1); 		
 		_mm_store_ps(px1, vy1);
-		px1 += kSIMDVecSize;
+		px1 += kFloatsPerSIMDVector;
 	}
 }*/
 

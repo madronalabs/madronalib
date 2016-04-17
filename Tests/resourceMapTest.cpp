@@ -17,7 +17,6 @@
 #include "../include/madronalib.h"
 #include "MLStringUtils.h"
 #include "MLResourceMap.h"
-#include "../DSP/MLDSPGens.h" // for RandomSource
 
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
@@ -38,13 +37,13 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	// make test tree with mostly leaf nodes, somewhat mirroring typical use
 	for(int i = 0; i < mapSize; ++i)
 	{
-		int pathDepth = ((randSource.getIntSample() >> 16) & 0x07) + 2;
-		int leaves = ((randSource.getIntSample() >> 16) & 0x07) + 1;
+		int pathDepth = ((ml::rand32() >> 16) & 0x07) + 2;
+		int leaves = ((ml::rand32() >> 16) & 0x07) + 1;
 		std::string pathStr;
 		for(int p=0; p<pathDepth - 1; ++p)
 		{			
 			// 8 possible symbols per level
-			int symbolIdx = (((randSource.getIntSample() >> 16)&0x07) + 8*p) % testSymbols;
+			int symbolIdx = (((ml::rand32() >> 16)&0x07) + 8*p) % testSymbols;
 			pathStr = pathStr + symbols[symbolIdx];
 			if(p < pathDepth - 1)
 			{
@@ -55,7 +54,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		for(int j=0; j<leaves; ++j)
 		{
 			// make resource name with unique end so paths are never duplicates
-			std::string leafName = symbols[(randSource.getIntSample() >> 16) % testSymbols] + endNamer.nextName().getString();
+			std::string leafName = symbols[(ml::rand32() >> 16) % testSymbols] + endNamer.nextName().getString();
 			paths.push_back(pathStr + leafName);
 		}
 	}

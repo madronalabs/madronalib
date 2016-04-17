@@ -138,14 +138,14 @@ public:
 
 	inline void setToConstant(float k)
 	{
-		int c = mSize >> kfloatsPerSIMDVectorBits;
+		int c = mSize >> kFloatsPerSIMDVectorBits;
 		const __m128 vk = _mm_set1_ps(k); 	
 		float* py1 = mDataAligned;
 		
 		for (int n = 0; n < c; ++n)
 		{
 			_mm_store_ps(py1, vk);
-			py1 += kSIMDVecSize;
+			py1 += kFloatsPerSIMDVector;
 		}
 	}
 	
@@ -465,8 +465,8 @@ public:
 			va = _mm_load_ps(pa);
 			vb = _mm_load_ps(pb);
 			_mm_store_ps(pa, _mm_add_ps(va, _mm_mul_ps(vb, vk)));
-			pa += kSIMDVecSize;
-			pb += kSIMDVecSize;
+			pa += kFloatsPerSIMDVector;
+			pb += kFloatsPerSIMDVector;
 		}
 	}
 	*/

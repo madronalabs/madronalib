@@ -4,6 +4,7 @@
 //  Created by Randy Jones on 4/15/16
 //
 // templates for common scalar math functions on int, float, double.
+// other small scalar utilities. 
 
 #pragma once
 #include <math.h>
@@ -107,4 +108,10 @@ namespace ml
 		return powf(10.f, dB/20.f);
 	}	
 	
+	// global random generator
+	float rand(void);
+	uint32_t rand32(void);
+	void randReset(void);
+	
+
 } // namespace ml

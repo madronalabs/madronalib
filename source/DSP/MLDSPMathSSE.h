@@ -1,7 +1,11 @@
-/* SIMD (SSE2) implementation of sin, cos, exp and log
- Inspired by Intel Approximate Math library, and based on the
- corresponding algorithms of the cephes math library
- 
+// madronalib: a C++ framework for DSP applications.
+// Distributed under the MIT license: http://madrona-labs.mit-license.org
+//
+// MLDSPMathSSE.h 
+// SSE implementations of madronalib SIMD primitives
+
+// portions of this code adapted from code by Julien Pommier, licensed as follows:
+/*  
  Copyright (C) 2007  Julien Pommier
  
  This software is provided 'as-is', without any express or implied
@@ -23,12 +27,6 @@
  (this is the zlib license)
  */
 
-// Note from author's blog: Of course it is not IEEE compliant, but the max absolute error on sines is 2^-24 on the range [-8192,8192]. 
-
-// This code has been modified by Randy Jones, rej@madronalabs.com:
-// - code supporting pre-SSE2 processors was removed for clarity.
-// - typenames v4sf, etc. changed to reflect that we may use longer SIMD vectors in the future.
-
 #include <emmintrin.h>
 #include <float.h>
 
@@ -43,8 +41,12 @@
 #endif
 
 // SSE types
-typedef __m128 vecFloat;  // vector of 4 float
-typedef __m128i vecInt; // vector of 4 int
+typedef __m128 SIMDVectorFloat;
+typedef __m128i SIMDVectorInt; 
+
+constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
+constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
+constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
 
 // primitive SSE operations
 #define vecAdd _mm_add_ps
@@ -85,27 +87,29 @@ typedef __m128i vecInt; // vector of 4 int
 
 #define vecWithin(x1, x2, x3) _mm_and_ps(_mm_cmpge_ps(x1, x2), _mm_cmplt_ps(x1, x3)) 
 
-inline float vecSumH(vecFloat v)
+// ----------------------------------------------------------------
+// horizontal operations returning float
+
+inline float vecSumH(SIMDVectorFloat v)
 {
-	vecFloat tmp0 = _mm_add_ps(v, _mm_movehl_ps(v, v));
-	vecFloat tmp1 = _mm_add_ss(tmp0, _mm_shuffle_ps(tmp0, tmp0, 1));
+	SIMDVectorFloat tmp0 = _mm_add_ps(v, _mm_movehl_ps(v, v));
+	SIMDVectorFloat tmp1 = _mm_add_ss(tmp0, _mm_shuffle_ps(tmp0, tmp0, 1));
 	return _mm_cvtss_f32(tmp1);
 }
 
-inline float vecMaxH(vecFloat v)
+inline float vecMaxH(SIMDVectorFloat v)
 {
-	vecFloat tmp0 = _mm_max_ps(v, _mm_movehl_ps(v, v));
-	vecFloat tmp1 = _mm_max_ss(tmp0, _mm_shuffle_ps(tmp0, tmp0, 1));
+	SIMDVectorFloat tmp0 = _mm_max_ps(v, _mm_movehl_ps(v, v));
+	SIMDVectorFloat tmp1 = _mm_max_ss(tmp0, _mm_shuffle_ps(tmp0, tmp0, 1));
 	return _mm_cvtss_f32(tmp1);
 }
 
-inline float vecMinH(vecFloat v)
+inline float vecMinH(SIMDVectorFloat v)
 {
-	vecFloat tmp0 = _mm_min_ps(v, _mm_movehl_ps(v, v));
-	vecFloat tmp1 = _mm_min_ss(tmp0, _mm_shuffle_ps(tmp0, tmp0, 1));
+	SIMDVectorFloat tmp0 = _mm_min_ps(v, _mm_movehl_ps(v, v));
+	SIMDVectorFloat tmp1 = _mm_min_ss(tmp0, _mm_shuffle_ps(tmp0, tmp0, 1));
 	return _mm_cvtss_f32(tmp1);
 }
-
 
 /* declare some SSE constants -- why can't I figure a better way to do that? */
 #define _PS_CONST(Name, Val)                                            \
@@ -148,22 +152,22 @@ _PS_CONST(cephes_log_q2, 0.693359375);
 /* natural logarithm computed for 4 simultaneous float 
  return NaN for x <= 0
  */
-inline vecFloat vecLog(vecFloat x) 
+inline SIMDVectorFloat vecLog(SIMDVectorFloat x) 
 {
-	vecInt emm0;
-	vecFloat one = *(vecFloat*)_ps_1;
-	vecFloat invalid_mask = _mm_cmple_ps(x, _mm_setzero_ps());
+	SIMDVectorInt emm0;
+	SIMDVectorFloat one = *(SIMDVectorFloat*)_ps_1;
+	SIMDVectorFloat invalid_mask = _mm_cmple_ps(x, _mm_setzero_ps());
 	
-	x = _mm_max_ps(x, *(vecFloat*)_ps_min_norm_pos);  /* cut off denormalized stuff */
+	x = _mm_max_ps(x, *(SIMDVectorFloat*)_ps_min_norm_pos);  /* cut off denormalized stuff */
 	
 	emm0 = _mm_srli_epi32(_mm_castps_si128(x), 23);
 
 	/* keep only the fractional part */
-	x = _mm_and_ps(x, *(vecFloat*)_ps_inv_mant_mask);
-	x = _mm_or_ps(x, *(vecFloat*)_ps_0p5);
+	x = _mm_and_ps(x, *(SIMDVectorFloat*)_ps_inv_mant_mask);
+	x = _mm_or_ps(x, *(SIMDVectorFloat*)_ps_0p5);
 
-	emm0 = _mm_sub_epi32(emm0, *(vecInt*)_pi32_0x7f);
-	vecFloat e = _mm_cvtepi32_ps(emm0);
+	emm0 = _mm_sub_epi32(emm0, *(SIMDVectorInt*)_pi32_0x7f);
+	SIMDVectorFloat e = _mm_cvtepi32_ps(emm0);
 	
 	e = _mm_add_ps(e, one);
 	
@@ -173,42 +177,42 @@ inline vecFloat vecLog(vecFloat x)
 	 x = x + x - 1.0;
 	 } else { x = x - 1.0; }
   */
-	vecFloat mask = _mm_cmplt_ps(x, *(vecFloat*)_ps_cephes_SQRTHF);
-	vecFloat tmp = _mm_and_ps(x, mask);
+	SIMDVectorFloat mask = _mm_cmplt_ps(x, *(SIMDVectorFloat*)_ps_cephes_SQRTHF);
+	SIMDVectorFloat tmp = _mm_and_ps(x, mask);
 	x = _mm_sub_ps(x, one);
 	e = _mm_sub_ps(e, _mm_and_ps(one, mask));
 	x = _mm_add_ps(x, tmp);
 	
-	vecFloat z = _mm_mul_ps(x,x);
+	SIMDVectorFloat z = _mm_mul_ps(x,x);
 	
-	vecFloat y = *(vecFloat*)_ps_cephes_log_p0;
+	SIMDVectorFloat y = *(SIMDVectorFloat*)_ps_cephes_log_p0;
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p1);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p2);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p2);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p3);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p3);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p4);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p4);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p5);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p5);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p6);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p6);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p7);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p7);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_log_p8);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_log_p8);
 	y = _mm_mul_ps(y, x);
 	
 	y = _mm_mul_ps(y, z);
 	
-	tmp = _mm_mul_ps(e, *(vecFloat*)_ps_cephes_log_q1);
+	tmp = _mm_mul_ps(e, *(SIMDVectorFloat*)_ps_cephes_log_q1);
 	y = _mm_add_ps(y, tmp);
 	
-	tmp = _mm_mul_ps(z, *(vecFloat*)_ps_0p5);
+	tmp = _mm_mul_ps(z, *(SIMDVectorFloat*)_ps_0p5);
 	y = _mm_sub_ps(y, tmp);
 	
-	tmp = _mm_mul_ps(e, *(vecFloat*)_ps_cephes_log_q2);
+	tmp = _mm_mul_ps(e, *(SIMDVectorFloat*)_ps_cephes_log_q2);
 	x = _mm_add_ps(x, y);
 	x = _mm_add_ps(x, tmp);
 	x = _mm_or_ps(x, invalid_mask); // negative arg will be NAN
@@ -229,54 +233,54 @@ _PS_CONST(cephes_exp_p3, 4.1665795894E-2);
 _PS_CONST(cephes_exp_p4, 1.6666665459E-1);
 _PS_CONST(cephes_exp_p5, 5.0000001201E-1);
 
-inline vecFloat vecExp(vecFloat x) 
+inline SIMDVectorFloat vecExp(SIMDVectorFloat x) 
 {
-	vecFloat tmp = _mm_setzero_ps(), fx;
-	vecInt emm0;
-	vecFloat one = *(vecFloat*)_ps_1;
+	SIMDVectorFloat tmp = _mm_setzero_ps(), fx;
+	SIMDVectorInt emm0;
+	SIMDVectorFloat one = *(SIMDVectorFloat*)_ps_1;
 	
-	x = _mm_min_ps(x, *(vecFloat*)_ps_exp_hi);
-	x = _mm_max_ps(x, *(vecFloat*)_ps_exp_lo);
+	x = _mm_min_ps(x, *(SIMDVectorFloat*)_ps_exp_hi);
+	x = _mm_max_ps(x, *(SIMDVectorFloat*)_ps_exp_lo);
 	
 	/* express exp(x) as exp(g + n*log(2)) */
-	fx = _mm_mul_ps(x, *(vecFloat*)_ps_cephes_LOG2EF);
-	fx = _mm_add_ps(fx, *(vecFloat*)_ps_0p5);
+	fx = _mm_mul_ps(x, *(SIMDVectorFloat*)_ps_cephes_LOG2EF);
+	fx = _mm_add_ps(fx, *(SIMDVectorFloat*)_ps_0p5);
 	
 	/* how to perform a floorf with SSE: just below */
 	emm0 = _mm_cvttps_epi32(fx);
 	tmp  = _mm_cvtepi32_ps(emm0);
 
 	/* if greater, substract 1 */
-	vecFloat mask = _mm_cmpgt_ps(tmp, fx);    
+	SIMDVectorFloat mask = _mm_cmpgt_ps(tmp, fx);    
 	mask = _mm_and_ps(mask, one);
 	fx = _mm_sub_ps(tmp, mask);
 	
-	tmp = _mm_mul_ps(fx, *(vecFloat*)_ps_cephes_exp_C1);
-	vecFloat z = _mm_mul_ps(fx, *(vecFloat*)_ps_cephes_exp_C2);
+	tmp = _mm_mul_ps(fx, *(SIMDVectorFloat*)_ps_cephes_exp_C1);
+	SIMDVectorFloat z = _mm_mul_ps(fx, *(SIMDVectorFloat*)_ps_cephes_exp_C2);
 	x = _mm_sub_ps(x, tmp);
 	x = _mm_sub_ps(x, z);
 	z = _mm_mul_ps(x,x);
 	
-	vecFloat y = *(vecFloat*)_ps_cephes_exp_p0;
+	SIMDVectorFloat y = *(SIMDVectorFloat*)_ps_cephes_exp_p0;
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_exp_p1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_exp_p1);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_exp_p2);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_exp_p2);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_exp_p3);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_exp_p3);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_exp_p4);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_exp_p4);
 	y = _mm_mul_ps(y, x);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_cephes_exp_p5);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_cephes_exp_p5);
 	y = _mm_mul_ps(y, z);
 	y = _mm_add_ps(y, x);
 	y = _mm_add_ps(y, one);
 	
 	/* build 2^n */
 	emm0 = _mm_cvttps_epi32(fx);
-	emm0 = _mm_add_epi32(emm0, *(vecInt*)_pi32_0x7f);
+	emm0 = _mm_add_epi32(emm0, *(SIMDVectorInt*)_pi32_0x7f);
 	emm0 = _mm_slli_epi32(emm0, 23);
-	vecFloat pow2n = _mm_castsi128_ps(emm0);
+	SIMDVectorFloat pow2n = _mm_castsi128_ps(emm0);
 	
 	y = _mm_mul_ps(y, pow2n);
 	return y;
@@ -318,47 +322,47 @@ _PS_CONST(cephes_FOPI, 1.27323954473516); // 4 / M_PI
  Since it is based on SSE intrinsics, it has to be compiled at -O2 to
  deliver full speed.
  */
-inline vecFloat vecSin(vecFloat x) 
+inline SIMDVectorFloat vecSin(SIMDVectorFloat x) 
 {
-	vecFloat xmm1, xmm2 = _mm_setzero_ps(), xmm3, sign_bit, y;
-	vecInt emm0, emm2;
+	SIMDVectorFloat xmm1, xmm2 = _mm_setzero_ps(), xmm3, sign_bit, y;
+	SIMDVectorInt emm0, emm2;
 
 	sign_bit = x;
 	/* take the absolute value */
-	x = _mm_and_ps(x, *(vecFloat*)_ps_inv_sign_mask);
+	x = _mm_and_ps(x, *(SIMDVectorFloat*)_ps_inv_sign_mask);
 	/* extract the sign bit (upper one) */
-	sign_bit = _mm_and_ps(sign_bit, *(vecFloat*)_ps_sign_mask);
+	sign_bit = _mm_and_ps(sign_bit, *(SIMDVectorFloat*)_ps_sign_mask);
 	
 	/* scale by 4/Pi */
-	y = _mm_mul_ps(x, *(vecFloat*)_ps_cephes_FOPI);
+	y = _mm_mul_ps(x, *(SIMDVectorFloat*)_ps_cephes_FOPI);
 	
 	/* store the integer part of y in mm0 */
 	emm2 = _mm_cvttps_epi32(y);
 	/* j=(j+1) & (~1) (see the cephes sources) */
-	emm2 = _mm_add_epi32(emm2, *(vecInt*)_pi32_1);
-	emm2 = _mm_and_si128(emm2, *(vecInt*)_pi32_inv1);
+	emm2 = _mm_add_epi32(emm2, *(SIMDVectorInt*)_pi32_1);
+	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_inv1);
 	y = _mm_cvtepi32_ps(emm2);
 	
 	/* get the swap sign flag */
-	emm0 = _mm_and_si128(emm2, *(vecInt*)_pi32_4);
+	emm0 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_4);
 	emm0 = _mm_slli_epi32(emm0, 29);
 	/* get the polynom selection mask 
 	 there is one polynom for 0 <= x <= Pi/4
 	 and another one for Pi/4<x<=Pi/2	 
 	 Both branches will be computed.
 	*/
-	emm2 = _mm_and_si128(emm2, *(vecInt*)_pi32_2);
+	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_2);
 	emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
 	
-	vecFloat swap_sign_bit = _mm_castsi128_ps(emm0);
-	vecFloat poly_mask = _mm_castsi128_ps(emm2);
+	SIMDVectorFloat swap_sign_bit = _mm_castsi128_ps(emm0);
+	SIMDVectorFloat poly_mask = _mm_castsi128_ps(emm2);
 	sign_bit = _mm_xor_ps(sign_bit, swap_sign_bit);
 	
 	/* The magic pass: "Extended precision modular arithmetic" 
 	 x = ((x - y * DP1) - y * DP2) - y * DP3; */
-	xmm1 = *(vecFloat*)_ps_minus_cephes_DP1;
-	xmm2 = *(vecFloat*)_ps_minus_cephes_DP2;
-	xmm3 = *(vecFloat*)_ps_minus_cephes_DP3;
+	xmm1 = *(SIMDVectorFloat*)_ps_minus_cephes_DP1;
+	xmm2 = *(SIMDVectorFloat*)_ps_minus_cephes_DP2;
+	xmm3 = *(SIMDVectorFloat*)_ps_minus_cephes_DP3;
 	xmm1 = _mm_mul_ps(y, xmm1);
 	xmm2 = _mm_mul_ps(y, xmm2);
 	xmm3 = _mm_mul_ps(y, xmm3);
@@ -367,25 +371,25 @@ inline vecFloat vecSin(vecFloat x)
 	x = _mm_add_ps(x, xmm3);
 	
 	/* Evaluate the first polynom  (0 <= x <= Pi/4) */
-	y = *(vecFloat*)_ps_coscof_p0;
-	vecFloat z = _mm_mul_ps(x,x);
+	y = *(SIMDVectorFloat*)_ps_coscof_p0;
+	SIMDVectorFloat z = _mm_mul_ps(x,x);
 	
 	y = _mm_mul_ps(y, z);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_coscof_p1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_coscof_p1);
 	y = _mm_mul_ps(y, z);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_coscof_p2);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_coscof_p2);
 	y = _mm_mul_ps(y, z);
 	y = _mm_mul_ps(y, z);
-	vecFloat tmp = _mm_mul_ps(z, *(vecFloat*)_ps_0p5);
+	SIMDVectorFloat tmp = _mm_mul_ps(z, *(SIMDVectorFloat*)_ps_0p5);
 	y = _mm_sub_ps(y, tmp);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_1);
 	
 	/* Evaluate the second polynom  (Pi/4 <= x <= 0) */
-	vecFloat y2 = *(vecFloat*)_ps_sincof_p0;
+	SIMDVectorFloat y2 = *(SIMDVectorFloat*)_ps_sincof_p0;
 	y2 = _mm_mul_ps(y2, z);
-	y2 = _mm_add_ps(y2, *(vecFloat*)_ps_sincof_p1);
+	y2 = _mm_add_ps(y2, *(SIMDVectorFloat*)_ps_sincof_p1);
 	y2 = _mm_mul_ps(y2, z);
-	y2 = _mm_add_ps(y2, *(vecFloat*)_ps_sincof_p2);
+	y2 = _mm_add_ps(y2, *(SIMDVectorFloat*)_ps_sincof_p2);
 	y2 = _mm_mul_ps(y2, z);
 	y2 = _mm_mul_ps(y2, x);
 	y2 = _mm_add_ps(y2, x);
@@ -401,40 +405,40 @@ inline vecFloat vecSin(vecFloat x)
 }
 
 /* almost the same as sin_ps */
-inline vecFloat vecCos(vecFloat x) 
+inline SIMDVectorFloat vecCos(SIMDVectorFloat x) 
 { 
-	vecFloat xmm1, xmm2 = _mm_setzero_ps(), xmm3, y;
-	vecInt emm0, emm2;
+	SIMDVectorFloat xmm1, xmm2 = _mm_setzero_ps(), xmm3, y;
+	SIMDVectorInt emm0, emm2;
 
 	/* take the absolute value */
-	x = _mm_and_ps(x, *(vecFloat*)_ps_inv_sign_mask);
+	x = _mm_and_ps(x, *(SIMDVectorFloat*)_ps_inv_sign_mask);
 	
 	/* scale by 4/Pi */
-	y = _mm_mul_ps(x, *(vecFloat*)_ps_cephes_FOPI);
+	y = _mm_mul_ps(x, *(SIMDVectorFloat*)_ps_cephes_FOPI);
 
 	/* store the integer part of y in mm0 */
 	emm2 = _mm_cvttps_epi32(y);
 	/* j=(j+1) & (~1) (see the cephes sources) */
-	emm2 = _mm_add_epi32(emm2, *(vecInt*)_pi32_1);
-	emm2 = _mm_and_si128(emm2, *(vecInt*)_pi32_inv1);
+	emm2 = _mm_add_epi32(emm2, *(SIMDVectorInt*)_pi32_1);
+	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_inv1);
 	y = _mm_cvtepi32_ps(emm2);
-	emm2 = _mm_sub_epi32(emm2, *(vecInt*)_pi32_2);
+	emm2 = _mm_sub_epi32(emm2, *(SIMDVectorInt*)_pi32_2);
 	
 	/* get the swap sign flag */
-	emm0 = _mm_andnot_si128(emm2, *(vecInt*)_pi32_4);
+	emm0 = _mm_andnot_si128(emm2, *(SIMDVectorInt*)_pi32_4);
 	emm0 = _mm_slli_epi32(emm0, 29);
 	/* get the polynom selection mask */
-	emm2 = _mm_and_si128(emm2, *(vecInt*)_pi32_2);
+	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_2);
 	emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
 	
-	vecFloat sign_bit = _mm_castsi128_ps(emm0);
-	vecFloat poly_mask = _mm_castsi128_ps(emm2);
+	SIMDVectorFloat sign_bit = _mm_castsi128_ps(emm0);
+	SIMDVectorFloat poly_mask = _mm_castsi128_ps(emm2);
 
 	/* The magic pass: "Extended precision modular arithmetic" 
 	 x = ((x - y * DP1) - y * DP2) - y * DP3; */
-	xmm1 = *(vecFloat*)_ps_minus_cephes_DP1;
-	xmm2 = *(vecFloat*)_ps_minus_cephes_DP2;
-	xmm3 = *(vecFloat*)_ps_minus_cephes_DP3;
+	xmm1 = *(SIMDVectorFloat*)_ps_minus_cephes_DP1;
+	xmm2 = *(SIMDVectorFloat*)_ps_minus_cephes_DP2;
+	xmm3 = *(SIMDVectorFloat*)_ps_minus_cephes_DP3;
 	xmm1 = _mm_mul_ps(y, xmm1);
 	xmm2 = _mm_mul_ps(y, xmm2);
 	xmm3 = _mm_mul_ps(y, xmm3);
@@ -443,25 +447,25 @@ inline vecFloat vecCos(vecFloat x)
 	x = _mm_add_ps(x, xmm3);
 	
 	/* Evaluate the first polynom  (0 <= x <= Pi/4) */
-	y = *(vecFloat*)_ps_coscof_p0;
-	vecFloat z = _mm_mul_ps(x,x);
+	y = *(SIMDVectorFloat*)_ps_coscof_p0;
+	SIMDVectorFloat z = _mm_mul_ps(x,x);
 	
 	y = _mm_mul_ps(y, z);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_coscof_p1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_coscof_p1);
 	y = _mm_mul_ps(y, z);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_coscof_p2);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_coscof_p2);
 	y = _mm_mul_ps(y, z);
 	y = _mm_mul_ps(y, z);
-	vecFloat tmp = _mm_mul_ps(z, *(vecFloat*)_ps_0p5);
+	SIMDVectorFloat tmp = _mm_mul_ps(z, *(SIMDVectorFloat*)_ps_0p5);
 	y = _mm_sub_ps(y, tmp);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_1);
 	
 	/* Evaluate the second polynom  (Pi/4 <= x <= 0) */
-	vecFloat y2 = *(vecFloat*)_ps_sincof_p0;
+	SIMDVectorFloat y2 = *(SIMDVectorFloat*)_ps_sincof_p0;
 	y2 = _mm_mul_ps(y2, z);
-	y2 = _mm_add_ps(y2, *(vecFloat*)_ps_sincof_p1);
+	y2 = _mm_add_ps(y2, *(SIMDVectorFloat*)_ps_sincof_p1);
 	y2 = _mm_mul_ps(y2, z);
-	y2 = _mm_add_ps(y2, *(vecFloat*)_ps_sincof_p2);
+	y2 = _mm_add_ps(y2, *(SIMDVectorFloat*)_ps_sincof_p2);
 	y2 = _mm_mul_ps(y2, z);
 	y2 = _mm_mul_ps(y2, x);
 	y2 = _mm_add_ps(y2, x);
@@ -479,45 +483,45 @@ inline vecFloat vecCos(vecFloat x)
 
 /* since sin_ps and cos_ps are almost identical, sincos_ps could replace both of them..
  it is almost as fast, and gives you a free cosine with your sine */
-inline void vecSinCos(vecFloat x, vecFloat *s, vecFloat *c) 
+inline void vecSinCos(SIMDVectorFloat x, SIMDVectorFloat *s, SIMDVectorFloat *c) 
 {
-	vecFloat xmm1, xmm2, xmm3 = _mm_setzero_ps(), sign_bit_sin, y;
-	vecInt emm0, emm2, emm4;
+	SIMDVectorFloat xmm1, xmm2, xmm3 = _mm_setzero_ps(), sign_bit_sin, y;
+	SIMDVectorInt emm0, emm2, emm4;
 
 	sign_bit_sin = x;
 	/* take the absolute value */
-	x = _mm_and_ps(x, *(vecFloat*)_ps_inv_sign_mask);
+	x = _mm_and_ps(x, *(SIMDVectorFloat*)_ps_inv_sign_mask);
 	/* extract the sign bit (upper one) */
-	sign_bit_sin = _mm_and_ps(sign_bit_sin, *(vecFloat*)_ps_sign_mask);
+	sign_bit_sin = _mm_and_ps(sign_bit_sin, *(SIMDVectorFloat*)_ps_sign_mask);
 	
 	/* scale by 4/Pi */
-	y = _mm_mul_ps(x, *(vecFloat*)_ps_cephes_FOPI);
+	y = _mm_mul_ps(x, *(SIMDVectorFloat*)_ps_cephes_FOPI);
 	
 	/* store the integer part of y in emm2 */
 	emm2 = _mm_cvttps_epi32(y);
 	
 	/* j=(j+1) & (~1) (see the cephes sources) */
-	emm2 = _mm_add_epi32(emm2, *(vecInt*)_pi32_1);
-	emm2 = _mm_and_si128(emm2, *(vecInt*)_pi32_inv1);
+	emm2 = _mm_add_epi32(emm2, *(SIMDVectorInt*)_pi32_1);
+	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_inv1);
 	y = _mm_cvtepi32_ps(emm2);
 	
 	emm4 = emm2;
 	
 	/* get the swap sign flag for the sine */
-	emm0 = _mm_and_si128(emm2, *(vecInt*)_pi32_4);
+	emm0 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_4);
 	emm0 = _mm_slli_epi32(emm0, 29);
-	vecFloat swap_sign_bit_sin = _mm_castsi128_ps(emm0);
+	SIMDVectorFloat swap_sign_bit_sin = _mm_castsi128_ps(emm0);
 	
 	/* get the polynom selection mask for the sine*/
-	emm2 = _mm_and_si128(emm2, *(vecInt*)_pi32_2);
+	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_2);
 	emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
-	vecFloat poly_mask = _mm_castsi128_ps(emm2);
+	SIMDVectorFloat poly_mask = _mm_castsi128_ps(emm2);
 
 	/* The magic pass: "Extended precision modular arithmetic" 
 	 x = ((x - y * DP1) - y * DP2) - y * DP3; */
-	xmm1 = *(vecFloat*)_ps_minus_cephes_DP1;
-	xmm2 = *(vecFloat*)_ps_minus_cephes_DP2;
-	xmm3 = *(vecFloat*)_ps_minus_cephes_DP3;
+	xmm1 = *(SIMDVectorFloat*)_ps_minus_cephes_DP1;
+	xmm2 = *(SIMDVectorFloat*)_ps_minus_cephes_DP2;
+	xmm3 = *(SIMDVectorFloat*)_ps_minus_cephes_DP3;
 	xmm1 = _mm_mul_ps(y, xmm1);
 	xmm2 = _mm_mul_ps(y, xmm2);
 	xmm3 = _mm_mul_ps(y, xmm3);
@@ -525,41 +529,41 @@ inline void vecSinCos(vecFloat x, vecFloat *s, vecFloat *c)
 	x = _mm_add_ps(x, xmm2);
 	x = _mm_add_ps(x, xmm3);
 	
-	emm4 = _mm_sub_epi32(emm4, *(vecInt*)_pi32_2);
-	emm4 = _mm_andnot_si128(emm4, *(vecInt*)_pi32_4);
+	emm4 = _mm_sub_epi32(emm4, *(SIMDVectorInt*)_pi32_2);
+	emm4 = _mm_andnot_si128(emm4, *(SIMDVectorInt*)_pi32_4);
 	emm4 = _mm_slli_epi32(emm4, 29);
-	vecFloat sign_bit_cos = _mm_castsi128_ps(emm4);
+	SIMDVectorFloat sign_bit_cos = _mm_castsi128_ps(emm4);
 	
 	sign_bit_sin = _mm_xor_ps(sign_bit_sin, swap_sign_bit_sin);
 	
 	/* Evaluate the first polynom  (0 <= x <= Pi/4) */
-	vecFloat z = _mm_mul_ps(x,x);
-	y = *(vecFloat*)_ps_coscof_p0;
+	SIMDVectorFloat z = _mm_mul_ps(x,x);
+	y = *(SIMDVectorFloat*)_ps_coscof_p0;
 	
 	y = _mm_mul_ps(y, z);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_coscof_p1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_coscof_p1);
 	y = _mm_mul_ps(y, z);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_coscof_p2);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_coscof_p2);
 	y = _mm_mul_ps(y, z);
 	y = _mm_mul_ps(y, z);
-	vecFloat tmp = _mm_mul_ps(z, *(vecFloat*)_ps_0p5);
+	SIMDVectorFloat tmp = _mm_mul_ps(z, *(SIMDVectorFloat*)_ps_0p5);
 	y = _mm_sub_ps(y, tmp);
-	y = _mm_add_ps(y, *(vecFloat*)_ps_1);
+	y = _mm_add_ps(y, *(SIMDVectorFloat*)_ps_1);
 	
 	/* Evaluate the second polynom  (Pi/4 <= x <= 0) */
-	vecFloat y2 = *(vecFloat*)_ps_sincof_p0;
+	SIMDVectorFloat y2 = *(SIMDVectorFloat*)_ps_sincof_p0;
 	y2 = _mm_mul_ps(y2, z);
-	y2 = _mm_add_ps(y2, *(vecFloat*)_ps_sincof_p1);
+	y2 = _mm_add_ps(y2, *(SIMDVectorFloat*)_ps_sincof_p1);
 	y2 = _mm_mul_ps(y2, z);
-	y2 = _mm_add_ps(y2, *(vecFloat*)_ps_sincof_p2);
+	y2 = _mm_add_ps(y2, *(SIMDVectorFloat*)_ps_sincof_p2);
 	y2 = _mm_mul_ps(y2, z);
 	y2 = _mm_mul_ps(y2, x);
 	y2 = _mm_add_ps(y2, x);
 	
 	/* select the correct result from the two polynoms */  
 	xmm3 = poly_mask;
-	vecFloat ysin2 = _mm_and_ps(xmm3, y2);
-	vecFloat ysin1 = _mm_andnot_ps(xmm3, y);
+	SIMDVectorFloat ysin2 = _mm_and_ps(xmm3, y2);
+	SIMDVectorFloat ysin1 = _mm_andnot_ps(xmm3, y);
 	y2 = _mm_sub_ps(y2,ysin2);
 	y = _mm_sub_ps(y, ysin1);
 	
@@ -577,7 +581,7 @@ static constexpr __m128 name = {val, val, val, val};
 // ----------------------------------------------------------------
 #pragma mark select
 
-inline vecFloat vecSelect(vecFloat conditionMask, vecFloat a, vecFloat b)
+inline SIMDVectorFloat vecSelect(SIMDVectorFloat conditionMask, SIMDVectorFloat a, SIMDVectorFloat b)
 {
 	__m128i ones = _mm_set1_epi32(-1);
 	return _mm_or_ps(
@@ -626,9 +630,9 @@ STATIC_M128_CONST(kCosC3Vec, 4.1496001183986663818359375e-2f);
 STATIC_M128_CONST(kCosC4Vec, -1.33926304988563060760498046875e-3f);
 STATIC_M128_CONST(kCosC5Vec, 1.8791708498611114919185638427734375e-5f);
 
-inline vecFloat vecCosApprox(vecFloat x) 
+inline SIMDVectorFloat vecCosApprox(SIMDVectorFloat x) 
 {
-	vecFloat x2 = _mm_mul_ps(x, x);
+	SIMDVectorFloat x2 = _mm_mul_ps(x, x);
 	return _mm_add_ps(kCosC1Vec, _mm_mul_ps(x2,
 	_mm_add_ps(kCosC2Vec, _mm_mul_ps(x2, 
 	_mm_add_ps(kCosC3Vec, _mm_mul_ps(x2, 
@@ -643,20 +647,20 @@ STATIC_M128_CONST(kExpC6Vec, 0.168143436463395944830000f);
 STATIC_M128_CONST(kExpC7Vec, -2.88093587581985443087955e-3f);
 STATIC_M128_CONST(kExpC8Vec, 1.3671023382430374383648148e-2f);
 
-inline vecFloat vecExpApprox(vecFloat x) 
+inline SIMDVectorFloat vecExpApprox(SIMDVectorFloat x) 
 {
-	const vecFloat kZeroVec = _mm_setzero_ps();
+	const SIMDVectorFloat kZeroVec = _mm_setzero_ps();
 	
-	vecFloat val2, val3, val4;
-	vecInt val4i;
+	SIMDVectorFloat val2, val3, val4;
+	SIMDVectorInt val4i;
 	
 	val2 = _mm_add_ps(_mm_mul_ps(x, kExpC2Vec), kExpC3Vec);
 	val3 = _mm_min_ps(val2, kExpC1Vec);
 	val4 = _mm_max_ps(val3, kZeroVec);
 	val4i = _mm_cvttps_epi32(val4);
 	
-	vecFloat xu = _mm_castsi128_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7F800000))); 
-	vecFloat b = _mm_castsi128_ps(_mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)));
+	SIMDVectorFloat xu = _mm_castsi128_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7F800000))); 
+	SIMDVectorFloat b = _mm_castsi128_ps(_mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)));
 			
 	return _mm_mul_ps(xu, (
 	_mm_add_ps(kExpC4Vec, _mm_mul_ps(b,
@@ -673,23 +677,23 @@ STATIC_M128_CONST(kLogC5Vec, -0.288739945f);
 STATIC_M128_CONST(kLogC6Vec, 3.110401639e-2f);
 STATIC_M128_CONST(kLogC7Vec, 0.69314718055995f);
 
-inline vecFloat vecLogApprox(vecFloat val) 
+inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val) 
 {
-	vecInt vZero = _mm_setzero_si128();
-	vecInt valAsInt = _mm_castps_si128(val);
-	vecInt expi = _mm_srli_epi32(valAsInt, 23);
-	vecFloat addcst = vecSelect(_mm_cmpgt_ps(val, vZero), kLogC1Vec, _mm_set1_ps(FLT_MIN));
-	vecInt valAsIntMasked = _mm_or_ps(_mm_and_ps(valAsInt, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
-	vecFloat x = _mm_castsi128_ps(valAsIntMasked);
+	SIMDVectorInt vZero = _mm_setzero_si128();
+	SIMDVectorInt valAsInt = _mm_castps_si128(val);
+	SIMDVectorInt expi = _mm_srli_epi32(valAsInt, 23);
+	SIMDVectorFloat addcst = vecSelect(_mm_cmpgt_ps(val, vZero), kLogC1Vec, _mm_set1_ps(FLT_MIN));
+	SIMDVectorInt valAsIntMasked = _mm_or_ps(_mm_and_ps(valAsInt, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
+	SIMDVectorFloat x = _mm_castsi128_ps(valAsIntMasked);
 		
-	vecFloat poly = 
+	SIMDVectorFloat poly = 
 	_mm_mul_ps(x, 
 	_mm_add_ps(kLogC2Vec, _mm_mul_ps(x,
 	_mm_add_ps(kLogC3Vec, _mm_mul_ps(x, 
 	_mm_add_ps(kLogC4Vec, _mm_mul_ps(x,
 	_mm_add_ps(kLogC5Vec, _mm_mul_ps(x, kLogC6Vec)) )) )) )) );
 	
-	vecFloat addCstResult = _mm_add_ps(addcst, _mm_mul_ps(kLogC7Vec, _mm_cvtepi32_ps(expi)));
+	SIMDVectorFloat addCstResult = _mm_add_ps(addcst, _mm_mul_ps(kLogC7Vec, _mm_cvtepi32_ps(expi)));
 	return _mm_add_ps(poly, addCstResult);
 }
 
