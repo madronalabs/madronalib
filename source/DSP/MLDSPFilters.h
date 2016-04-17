@@ -128,11 +128,11 @@ namespace ml
 	};
 	
 	// a simple uninterpolated delay with no feedback.
-	class SampleDelay
+	class FixedDelay
 	{
 	public:
-		SampleDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
-		~SampleDelay() {}
+		FixedDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
+		~FixedDelay() {}
 		
 		void setMaxDelayInSamples(int dMax)
 		{
@@ -223,7 +223,7 @@ namespace ml
 		int mSize;
 		int mSR;
 		//std::vector<MLAllpassDelay> mDelays;
-		std::vector<SampleDelay> mDelays;
+		std::vector<FixedDelay> mDelays;
 		std::vector<MLBiquad> mFilters; // TODO onepole bank object
 		MLSignal mMatrix;
 		MLSignal mDelayOutputs;
@@ -404,7 +404,7 @@ Sean
 		 1 operand (filters)
 		 differentiator
 		 integrator
-		 SampleDelay 
+		 FixedDelay 
 		 LinearDelay
 		 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
 		 FDN	 

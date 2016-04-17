@@ -48,7 +48,7 @@ int main()
 	
 	TickSource ticks(8);
 	Biquad lopass(biquadCoeffs::onePole(10000./sr));
-	SampleDelay delay(1);
+	FixedDelay delay(1);
 	
 	DSPVector t1 = (ticks());
 	DSPVector t2 = lopass(t1);

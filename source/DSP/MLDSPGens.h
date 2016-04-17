@@ -102,7 +102,7 @@ namespace ml
 	 1 operand (filters)
 	 differentiator
 	 integrator
-	 SampleDelay 
+	 FixedDelay 
 	 LinearDelay
 	 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
 	 FDN	 
