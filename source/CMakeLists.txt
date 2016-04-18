@@ -20,7 +20,6 @@ if(BUILD_NEW_ONLY)
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
-    core/MLStringCompare.h
     core/MLStringUtils.cpp
     core/MLStringUtils.h
     core/MLResourceMap.h
@@ -42,7 +41,6 @@ else(BUILD_NEW_ONLY)
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
-    core/MLStringCompare.h
     core/MLStringUtils.cpp
     core/MLStringUtils.h
     core/MLResourceMap.h

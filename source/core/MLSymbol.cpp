@@ -355,6 +355,7 @@ bool MLSymbol::endsWith (const MLSymbol b) const
 
 MLSymbol MLSymbol::append(const std::string& b) const
 {
+	// MLTEST a new string??? why?
 	return MLSymbol(getString() + std::string(b));
 }
 
