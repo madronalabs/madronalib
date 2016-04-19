@@ -71,6 +71,7 @@ inline int bitsToContain(int n)
 // This allows optimizations to take place downstream, and does not require 
 // conditionals in loops to read the signal.
 
+class MLSignal;
 class MLSignal final
 {	
 private:
@@ -78,6 +79,11 @@ private:
 	// data	
 	// start of aligned data in memory. 
 	float* mDataAligned;
+	
+	// TODO
+	// mDataAligned
+	// mWidthBits, mHeightBits, mDepthBits, mDataOffset (data -> aligned) (can also compute)
+	// that's it
 	
 	// start of signal data in memory. 
 	// If this is 0, we do not own any data.  However, in the case of a
@@ -99,6 +105,10 @@ private:
 	int mWidthBits, mHeightBits, mDepthBits; 
 
 public:
+ 
+	static MLSignal nullSignal;
+	
+
 	explicit MLSignal(); 
 	MLSignal(const MLSignal& b);
 	explicit MLSignal(int width, int height = 1, int depth = 1); 
@@ -543,11 +553,6 @@ typedef std::shared_ptr<MLSignal> MLSignalPtr;
 
 float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);
-
-namespace ml
-{
-	extern MLSignal nullSignal;
-}
 
 #pragma mark new business
 // new MLTEST

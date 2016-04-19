@@ -66,6 +66,7 @@ constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVec
 #define vecLessThanOrEqual _mm_cmple_ps
 
 #define vecSet1 _mm_set1_ps
+#define vecSetZero _mm_setzero_ps
 #define vecStore _mm_store_ps
 #define vecLoad _mm_load_ps
 #define vecSqrt _mm_sqrt_ps

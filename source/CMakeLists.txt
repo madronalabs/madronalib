@@ -22,6 +22,7 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
     core/MLLocks.h
+    core/MLScalarMath.cpp
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp

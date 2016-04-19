@@ -132,6 +132,7 @@ namespace ml
 	{
 	public:
 		FixedDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
+		FixedDelay() { }
 		~FixedDelay() {}
 		
 		void setMaxDelayInSamples(int dMax)
@@ -174,6 +175,9 @@ namespace ml
 				uintptr_t readIndex = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
 				mWriteIndex &= mLengthMask;
 				
+				// todo check for contiguous reads, writes
+				// then do SSE read and shift and write tricks
+				
 				mBuffer[mWriteIndex++] = x[n];
 				y[n] = mBuffer[readIndex];
 			}
@@ -188,175 +192,53 @@ namespace ml
 	};
 
 
-	/*
 	 
 	// ----------------------------------------------------------------
-	#pragma mark MLFDN
+	#pragma mark FDN
 
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
 
-	class MLFDN
+	class FDN
 	{
 	public:
-		MLFDN() :
-		mSize(0),
-		mSR(44100),
-		mFeedbackAmp(0),
-		mFreqMul(0.925)
-		{}
-		~MLFDN()
-		{}
+		FDN(int size, int delayLen)
+		{ mVectorSize = 1; setMaxDelayInSamples(delayLen); resize(size); }
+		~FDN(){}
 		
-		// set the number of delay lines.
+		// size could be a template parameter with a specialization for n=4
 		void resize(int n);
-		void setIdentityMatrix();
+		void setMaxDelayInSamples(int n) { mMaxDelayLength = n; }
 		void clear();
-		void setSampleRate(int sr);
-		void setFreqMul(float m) { mFreqMul = m; }
-		void setDelayLengths(float maxLength);
-		void setFeedbackAmp(float f) { mFeedbackAmp = f; }
+		void setDelaysInSamples(MLSignal lengths);
+		void setFeedbackAmps(const MLSignal& f) { mFeedbackAmps = f; }
 		void setLopass(float f);
-		MLSample processSample(const MLSample x);
-		MLSignal operator()(const MLSignal& x);
+		
+		float processSample(float x);
+		DSPVector operator()(DSPVector x);
+		
+		void setVectorSize(int v) { mVectorSize = v; }
 		
 	private:
-		int mSize;
-		int mSR;
-		//std::vector<MLAllpassDelay> mDelays;
+		int mMaxDelayLength;
+		
 		std::vector<FixedDelay> mDelays;
-		std::vector<MLBiquad> mFilters; // TODO onepole bank object
-		MLSignal mMatrix;
+		std::vector<Biquad> mFilters; // TODO onepole bank object
+		
+		MLSignal mFeedbackMatrix;
+		MLSignal mDelayInputs;
 		MLSignal mDelayOutputs;
-		float mDelayTime;
-		float mFeedbackAmp;
-		float mFreqMul;
-		float mInvSr;
+		MLSignal mFeedbackAmps;
+		
+		std::vector<DSPVector> mDelayInputVectors;
+		
+		// temp?
+		int mVectorSize;
+
 	};
 
-	// ----------------------------------------------------------------
-	#pragma mark MLFDN
-
-	static const float kMaxDelayLength = 1.0f;
-
-	void MLFDN::resize(int n)
-	{
-		mDelays.resize(n);
-		for(int i=0; i<n; ++i)
-		{
-			mDelays[i].setSampleRate(mSR);
-			mDelays[i].resize(kMaxDelayLength);
-		}
-		
-		mFilters.resize(n);
-		mDelayOutputs.setDims(n);
-		
-		// make Householder feedback matrix (default)
-		mMatrix.setDims(n, n);
-		mMatrix.setIdentity();
-		mMatrix.subtract(2.0f/(float)n);
-		
-		mSize = n;
-	}
-
-	void MLFDN::setIdentityMatrix()
-	{
-		mMatrix.setIdentity();
-	}
-
-	void MLFDN::clear()
-	{
-		for(int i=0; i<mDelays.size(); ++i)
-		{
-			mDelays[i].clear();
-		}
-		
-		for(int i=0; i<mFilters.size(); ++i)
-		{
-			mFilters[i].clear();
-		}
-		mDelayOutputs.clear();
-	}
-
-	void MLFDN::setSampleRate(int sr)
-	{
-		mSR = sr;
-		mInvSr = 1.0f / (float)sr;
-		// delays samples rates need to be set here so resize calculates correctly
-		for(int i=0; i<mSize; ++i)
-		{
-			mDelays[i].setSampleRate(sr);
-			mDelays[i].resize(kMaxDelayLength);
-			mDelays[i].clear();        
-			mFilters[i].setSampleRate(sr);
-		}
-	}
-
-	void MLFDN::setDelayLengths(float maxLength)
-	{
-		float t = clamp(maxLength, 0.f, kMaxDelayLength);
-		mDelayTime = t;
-		float offset = mDelayTime*0.02f;
-		//debug() << " MLFDN delays: \n ";
-		for(int i=0; i<mSize; ++i)
-		{
-			// clear delay and set to all feedforward, no feedback
-			mDelays[i].setSampleRate(mSR);
-			mDelays[i].setMixParams(0., 1., 0.);
-			mDelays[i].clear();
-			
-			//debug() << "    " << i << " : " << t << "\n";
-			mDelays[i].setModDelay(t);
-			t *= mFreqMul;
-			t += offset;
-		}
-	}
-
-	void MLFDN::setLopass(float f)
-	{
-		for(int i=0; i<mSize; ++i)
-		{
-			mFilters[i].setOnePole(f);
-		}
-	}
-
-	MLSample MLFDN::processSample(const MLSample x)
-	{
-		float outputSum = 0.f;    
-		for(int j=0; j<mSize; ++j)
-		{
-			// input + feedback
-			float inputSum = x;
-			for(int i=0; i<mSize; ++i)
-			{
-				inputSum += mDelayOutputs[i]*mMatrix(i, j);
-			}
-			
-			// delays
-			mDelayOutputs[j] = mDelays[j].processSample(inputSum);        
-			mDelayOutputs[j] *= mFeedbackAmp;
-			
-			// filters
-			mDelayOutputs[j] = mFilters[j].processSample(mDelayOutputs[j]);        
-			outputSum += mDelayOutputs[j];
-		}
-		return outputSum;
-	}
-
 	// MLTEST
-	MLSignal MLFDN::operator()(const MLSignal& x)
-	{
-		int frames=x.getWidth();
-		MLSignal y(frames);
-		for(int n=0; n<frames; ++n)
-		{
-			y[n] = processSample(x[n]);
-		}
-		return y;
-	}
+	MLSignal matrixMultiply2D(MLSignal A, MLSignal B);
 
-*/
-	
-	
 	/*
 // delay[NUM_DELAYS] is an array of my delay line class
 // feedbackMatrix[NUM_DELAYS] is a float vector, used to store the feedback values between each block of samples you process

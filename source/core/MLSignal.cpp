@@ -13,7 +13,8 @@ using namespace ml;
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
-MLSignal ml::nullSignal;
+
+MLSignal MLSignal::nullSignal;
 
 // no length argument: make a null object. MLTEST sort out any extant use of nulls and make this return default size with fastest possible ctor.
 

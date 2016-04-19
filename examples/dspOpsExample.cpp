@@ -46,14 +46,43 @@ int main()
 
 	float sr = 44100.f;
 	
-	TickSource ticks(8);
+	TickSource ticks(7);
 	Biquad lopass(biquadCoeffs::onePole(10000./sr));
 	FixedDelay delay(1);
 	
 	DSPVector t1 = (ticks());
 	DSPVector t2 = lopass(t1);
 
-	std::cout << t1 << "\n";
-	std::cout << t2 << "\n";	
+	std::cout << "\n\nscalar: \n";
+	
+	FDN fdn(4, 10000);
+	MLSignal delayTimes({69, 70, 71, 72});
+	fdn.setDelaysInSamples(delayTimes);	
+	fdn.processSample(1.0);
+	
+	for(int i=0; i<256; ++i)
+	{
+		float y = fdn.processSample(0);
+		std::cout << y << " ";
+	}
+	
+	fdn.clear();
+	
+	std::cout << "\n\nvectors: \n";
+	fdn.setVectorSize(kFloatsPerDSPVector);
+	fdn.setDelaysInSamples(delayTimes);	
 
+	DSPVector input(0);
+	input[0] = 1;
+	
+	DSPVector y = fdn(input);
+	std::cout << y << " ";
+	
+	for(int i=0; i<3; ++i)
+	{
+		DSPVector y = fdn(DSPVector(0));
+		std::cout << y << " ";
+	}
+	
 }
+
