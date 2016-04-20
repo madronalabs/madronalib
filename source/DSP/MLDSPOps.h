@@ -37,9 +37,9 @@ namespace ml
 	
 	class DSPVector
 	{
-	private:
-		DSPVectorData mData;
 	public:
+		DSPVectorData mData;
+
 		// NOTE for efficiency the default ctor does not zero the data!
 		DSPVector() {}
 		DSPVector(float k) { operator=(k); }

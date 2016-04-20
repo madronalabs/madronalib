@@ -132,12 +132,12 @@ namespace ml
 	{
 	public:
 		FixedDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
-		FixedDelay() { }
+		FixedDelay() {}
 		~FixedDelay() {}
 		
 		void setMaxDelayInSamples(int dMax)
 		{
-			mBuffer.setDims(dMax + 1);
+			mBuffer.setDims(dMax + kFloatsPerDSPVector);
 			mLengthMask = (1 << mBuffer.getWidthBits() ) - 1;
 			mWriteIndex = 0;
 			clear();
@@ -148,14 +148,13 @@ namespace ml
 			mBuffer.clear();
 		}
 		
-		inline void setDelayInSamples(float d) 
+		inline void setDelayInSamples(int d) 
 		{ 
-			float delay = clamp(d, 1.f, static_cast<float>(mBuffer.getWidth()));
-			mIntDelayInSamples = floorf(delay); 		
+			int delay = clamp(d, 1, mBuffer.getWidth());
+			mIntDelayInSamples = (delay); 		
 		}
 		
 		// MLTEST towards DSPVectors
-		// TODO this is a nice test of processSample vs chunks for FDN
 		inline float processSample(float x)
 		{
 			// zero order (integer delay)
@@ -167,23 +166,48 @@ namespace ml
 			return mBuffer[readIndex];
 		}	
 		
-		inline DSPVector operator()(const DSPVector& x)
+		inline DSPVector operator()(DSPVector& x)
 		{
-			DSPVector y; 			
-			for (int n=0; n<kFloatsPerDSPVector; ++n)
+			DSPVector y; 
+	
+			// TODO add wrapping / two buf concept to Signal::getWrappedRange() or something.
+			
+			uintptr_t writeEnd = mWriteIndex + kFloatsPerDSPVector;
+			if(writeEnd <= mLengthMask + 1)
 			{
-				uintptr_t readIndex = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
-				mWriteIndex &= mLengthMask;
-				
-				// todo check for contiguous reads, writes
-				// then do SSE read and shift and write tricks
-				
-				mBuffer[mWriteIndex++] = x[n];
-				y[n] = mBuffer[readIndex];
+				std::copy(x.mData.asFloat, x.mData.asFloat + kFloatsPerDSPVector, mBuffer.getBuffer() + mWriteIndex);
 			}
+			else
+			{
+				uintptr_t excess = writeEnd - mLengthMask - 1; 
+				float* srcStart = x.mData.asFloat;
+				float* srcSplice = srcStart + kFloatsPerDSPVector - excess;
+				float* srcEnd = srcStart + kFloatsPerDSPVector;
+				std::copy(srcStart, srcSplice, mBuffer.getBuffer() + mWriteIndex);
+				std::copy(srcSplice, srcEnd, mBuffer.getBuffer());
+			}
+			
+			// read			
+			uintptr_t readStart = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
+			uintptr_t readEnd = readStart + kFloatsPerDSPVector;
+			float* srcBuf = mBuffer.getBuffer();
+			if(readEnd <= mLengthMask + 1)
+			{
+				std::copy(srcBuf + readStart, srcBuf + readEnd, y.mData.asFloat);
+			}
+			else
+			{
+				uintptr_t excess = readEnd - mLengthMask - 1; 
+				uintptr_t readSplice = readStart + kFloatsPerDSPVector - excess;
+				std::copy(srcBuf + readStart, srcBuf + readSplice, y.mData.asFloat);
+				std::copy(srcBuf, srcBuf + excess, y.mData.asFloat + (kFloatsPerDSPVector - excess));
+			}
+			
+			mWriteIndex += kFloatsPerDSPVector;
+			mWriteIndex &= mLengthMask;
 			return y;
 		}
-		
+
 	private:
 		MLSignal mBuffer;
 		int mIntDelayInSamples;
@@ -226,7 +250,6 @@ namespace ml
 		
 		MLSignal mFeedbackMatrix;
 		MLSignal mDelayInputs;
-		MLSignal mDelayOutputs;
 		MLSignal mFeedbackAmps;
 		
 		std::vector<DSPVector> mDelayInputVectors;

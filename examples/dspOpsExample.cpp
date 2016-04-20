@@ -8,11 +8,13 @@
 #include "../include/madronalib.h"
 #include "../source/DSP/MLDSP.h"
 
+#include "../tests/tests.h"
 
 using namespace ml;
 
 int main()
 {
+	
 	std::cout << "DSP Ops:\n";
 	
 	/*
@@ -39,36 +41,50 @@ int main()
 //	std::cout << "\n\n" << q << "\n";
 	std::cout << "min: " << min(q) << "\n";
 	 */
-	
+
+
 	DSPVector a = fill( [](){ return ml::rand(); } );
 	DSPVector b = abs(a);
-	std::cout << b;
 
 	float sr = 44100.f;
 	
-	TickSource ticks(7);
+	TickSource ticks(10);
 	Biquad lopass(biquadCoeffs::onePole(10000./sr));
-	FixedDelay delay(1);
+	FixedDelay delay(99);
 	
 	DSPVector t1 = (ticks());
-	DSPVector t2 = lopass(t1);
-
-	std::cout << "\n\nscalar: \n";
+	DSPVector t2 = delay(t1)*0.5f;
+	DSPVector t3 = t1 + t2;
 	
-	FDN fdn(4, 10000);
+	std::cout << t3 << "\n";	
+	
+	t1 = (ticks());
+	t2 = delay(t1)*0.5f;
+	t3 = t1 + t2;
+
+	std::cout << t3 << "\n";	
+	
+	// ----------------------------------------------------------------
+	// time FDN: scalars
+	int iters = 100;
+	FDN fdn(4, 1000);
 	MLSignal delayTimes({69, 70, 71, 72});
 	fdn.setDelaysInSamples(delayTimes);	
 	fdn.processSample(1.0);
 	
-	for(int i=0; i<256; ++i)
+	auto doFDNScalar = [&](){return fdn.processSample(0);};
+	timedResult<float> fdnTimeScalar = timeIterations<float>(doFDNScalar, iters*kFloatsPerDSPVector - 1);
+	std::cout << "SCALAR time: " << fdnTimeScalar.elapsedTime << "\n";	
+	for(int i=0; i<kFloatsPerDSPVector; ++i)
 	{
-		float y = fdn.processSample(0);
-		std::cout << y << " ";
+		std::cout << fdn.processSample(0) << " ";
 	}
+	std::cout << "\n";
+	
+	// ----------------------------------------------------------------
+	// time FDN: vectors
 	
 	fdn.clear();
-	
-	std::cout << "\n\nvectors: \n";
 	fdn.setVectorSize(kFloatsPerDSPVector);
 	fdn.setDelaysInSamples(delayTimes);	
 
@@ -76,13 +92,12 @@ int main()
 	input[0] = 1;
 	
 	DSPVector y = fdn(input);
-	std::cout << y << " ";
+	input = 0;
 	
-	for(int i=0; i<3; ++i)
-	{
-		DSPVector y = fdn(DSPVector(0));
-		std::cout << y << " ";
-	}
+	auto doFDNVector = [&](){return fdn(input);};
+	timedResult<DSPVector> fdnTimeVector = timeIterations<DSPVector>(doFDNVector, iters);
+	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
+	std::cout << fdnTimeVector.result << "\n";
 	
 }
 

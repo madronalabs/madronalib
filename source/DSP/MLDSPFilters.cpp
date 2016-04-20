@@ -20,15 +20,7 @@ void FDN::resize(int n)
 	
 	mFilters.resize(n);
 	mDelayInputs.setDims(1, n);
-	mDelayOutputs.setDims(1, n);
 	mFeedbackAmps.setDims(1, n);
-	
-	// make Householder feedback matrix (default)
-	mFeedbackMatrix.setDims(n, n);
-	mFeedbackMatrix.setIdentity();
-	mFeedbackMatrix.subtract(2.0f/(float)n);
-	
-	mFeedbackMatrix.dump(std::cout, true);
 	
 	mDelayInputVectors.resize(n);
 }
@@ -44,7 +36,11 @@ void FDN::clear()
 	{
 		mFilters[i].clear();
 	}
-	mDelayOutputs.clear();
+	mDelayInputs.clear();
+	for(int i=0; i<mDelayInputVectors.size(); ++i)
+	{
+		mDelayInputVectors[i] = 0;
+	}
 }
 
 void FDN::setDelaysInSamples(MLSignal lengths)
@@ -128,39 +124,34 @@ float FDN::processSample(const float x)
 	// run delays
 	for(int n=0; n<nDelays; ++n)
 	{
-		mDelayOutputs[n] = mDelays[n].processSample(mDelayInputs[n]);
+		mDelayInputs[n] = mDelays[n].processSample(mDelayInputs[n]);
 	}
 
 	// get output sum
 	float outputSum = 0.f;    
 	for(int n=0; n<nDelays; ++n)
 	{
-		outputSum += mDelayOutputs[n];
+		outputSum += mDelayInputs[n];
 	}
 	
 	// inputs = input gains*input sample + filters(M*delay outputs)
 	// MLSignal feedback = matrixMultiply2D(mFeedbackMatrix, mDelayOutputs);
-
 	float sumOfDelays = 0.f;
 	
 	// TODO sum operator
 	for(int n=0; n<nDelays; ++n)
 	{
-		sumOfDelays += mDelayOutputs[n];
+		sumOfDelays += mDelayInputs[n];
 	}
 	sumOfDelays *= 2.0f/(float)nDelays;
 	
 	for(int n=0; n<nDelays; ++n)
 	{
-		mDelayOutputs[n] -= sumOfDelays;
+		float fx = mDelayInputs[n];
+		
+		// TODO filter
+		mDelayInputs[n] = (fx - sumOfDelays)*0.99f + x;
 	}
-	
-	// TODO filter
-	mDelayOutputs.scale(0.99f);
-	
-	mDelayInputs = addScalar(mDelayOutputs, x);
-	
-	// mDelayOutputs can go away
 		
 	return outputSum;
 }
@@ -170,49 +161,32 @@ DSPVector FDN::operator()(DSPVector x)
 {
 	int nDelays = mDelays.size();
 	
-	std::vector<DSPVector> delayOutputVectors;
-	delayOutputVectors.resize(nDelays);
-	
 	// run delays, getting DSPVector for each delay 
 	for(int n=0; n<nDelays; ++n)
 	{
-		delayOutputVectors[n] = mDelays[n](mDelayInputVectors[n]);
+		mDelayInputVectors[n] = mDelays[n](mDelayInputVectors[n]);
 	}
 
-	
 	// get output sum
 	DSPVector outputSum(0.f);    
 	for(int n=0; n<nDelays; ++n)
 	{
-		outputSum += delayOutputVectors[n];
+		outputSum += mDelayInputVectors[n];
 	}
-	
 
 	// inputs = input gains*input sample + filters(M*delay outputs)
 	// MLSignal feedback = matrixMultiply2D(mFeedbackMatrix, mDelayOutputs);
-	
-	DSPVector sumOfDelays(0);
-	
-	// TODO sum operator
+	DSPVector sumOfDelays(0);	
 	for(int n=0; n<nDelays; ++n)
 	{
-		sumOfDelays += delayOutputVectors[n];
+		sumOfDelays += mDelayInputVectors[n];
 	}
-	sumOfDelays *= DSPVector(2.0f/(float)nDelays);
+	sumOfDelays *= (2.0f/(float)nDelays);  // TODO DSPVector *= float 
 	
 	for(int n=0; n<nDelays; ++n)
 	{
-		delayOutputVectors[n] -= sumOfDelays;
-	}
-	
-	for(int n=0; n<nDelays; ++n)
-	{
-		delayOutputVectors[n] *= 0.99f;
-	}
-	
-	for(int n=0; n<nDelays; ++n)
-	{
-		mDelayInputVectors[n] = delayOutputVectors[n];
+		mDelayInputVectors[n] -= sumOfDelays;
+		mDelayInputVectors[n] *= 0.99f;
 		mDelayInputVectors[n] += x;
 	}	
 
