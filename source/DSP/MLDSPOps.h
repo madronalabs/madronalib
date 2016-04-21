@@ -18,7 +18,7 @@
 // ----------------------------------------------------------------
 // Simple operations on DSPVectors.
 //
-// This module should include any DSP operations that have no state. 
+// This module should include any basic  operations that have no state. 
 
 namespace ml
 {		
@@ -59,6 +59,7 @@ namespace ml
 				py1 += kFloatsPerSIMDVector;
 			}
 		}
+		
 		inline void operator=(DSPVector x1)
 		{
 			float* px1 = x1.getBuffer();
@@ -71,16 +72,35 @@ namespace ml
 				py1 += kFloatsPerSIMDVector;
 			}
 		}
-		inline DSPVector operator+(DSPVector x1){return add(*this, x1);}
-		inline DSPVector operator-(DSPVector x1){return subtract(*this, x1);}
-		inline DSPVector operator*(DSPVector x1){return multiply(*this, x1);}
-		inline DSPVector operator/(DSPVector x1){return divide(*this, x1);}
-		inline void operator+=(DSPVector x1){*this = add(*this, x1);}
-		inline void operator-=(DSPVector x1){*this = subtract(*this, x1);}
-		inline void operator*=(DSPVector x1){*this = multiply(*this, x1);}
-		inline void operator/=(DSPVector x1){*this = divide(*this, x1);}
-	};
 
+		inline DSPVector& operator+=(DSPVector x1){*this = add(*this, x1); return *this;}
+		inline DSPVector& operator-=(DSPVector x1){*this = subtract(*this, x1); return *this;}
+		inline DSPVector& operator*=(DSPVector x1){*this = multiply(*this, x1); return *this;}
+		inline DSPVector& operator/=(DSPVector x1){*this = divide(*this, x1); return *this;}
+	};
+}
+
+inline std::ostream& operator<< (std::ostream& out, ml::DSPVector& v)
+{
+	out << "[";
+	for(int i=0; i<kFloatsPerDSPVector; ++i)
+	{
+		out << v[i] << " ";
+	}
+	out << "]\n";
+	
+	return out;
+}
+
+namespace ml
+{
+	inline DSPVector operator+(DSPVector x1, DSPVector x2){return add(x1, x2);}
+	inline DSPVector operator-(DSPVector x1, DSPVector x2){return subtract(x1, x2);}
+	inline DSPVector operator*(DSPVector x1, DSPVector x2){return multiply(x1, x2);}
+	inline DSPVector operator/(DSPVector x1, DSPVector x2){return divide(x1, x2);}
+
+	// not working inline DSPVector operator+(float x){return add(*this, x);}
+	
 	// ----------------------------------------------------------------
 	#pragma mark index and ranges
 	
@@ -188,7 +208,25 @@ namespace ml
 			py1 += kFloatsPerSIMDVector;					\
 		}													\
 		return vy;											\
+	}														\
+
+	/* an idea, not working
+	inline DSPVector (opName)(DSPVector vx1, float kx2)		\
+	{														\
+		DSPVector vy;										\
+		SIMDVectorFloat x2 = vecSet1(kx2);					\
+		float* px1 = vx1.getBuffer();						\
+		float* py1 = vy.getBuffer();						\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)	\
+		{													\
+			SIMDVectorFloat x1 = vecLoad(px1);				\
+			vecStore(py1, (opComputation));					\
+			px1 += kFloatsPerSIMDVector;					\
+			py1 += kFloatsPerSIMDVector;					\
+		}													\
+		return vy;											\
 	}	
+	*/
 	
 	DEFINE_OP2(add, (vecAdd(x1, x2)));
 	DEFINE_OP2(subtract, (vecSub(x1, x2)));
@@ -239,7 +277,8 @@ namespace ml
 	
 	// within (x, lowerBound, upperBound)
 	// is x in the open interval [x2, x3) ?
-	// returns a bitmask of all ones when true: note that as float this result is a NaN.
+	// returns a bitmask of all ones or zeros for each float, probably to be used with select().
+	// note that as floats the true values are NaNs.
 	DEFINE_OP3(within, vecWithin(x1, x2, x3) );
 	
 	// ----------------------------------------------------------------
@@ -311,6 +350,24 @@ namespace ml
 		}
 		return y;
 	}
+	
+	// ----------------------------------------------------------------
+	#pragma mark for testing
+	inline bool validate(DSPVector x)
+	{
+		bool r = true;
+		for(int n=0; n<kFloatsPerDSPVector; ++n)
+		{
+			if(isNaN(x[n]) || (x[n] > 64.f))
+			{
+				std::cout << "error: " << x[n] << " at index " << n << "\n";
+				std::cout << x << "\n";
+				r = false;
+				break;
+			}
+		}
+		return r;
+	}
+	
+	
 }
-
-std::ostream& operator<< (std::ostream& out, const ml::DSPVector& v);

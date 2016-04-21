@@ -42,10 +42,10 @@ int main()
 	std::cout << "min: " << min(q) << "\n";
 	 */
 
-
 	DSPVector a = fill( [](){ return ml::rand(); } );
-	DSPVector b = abs(a);
-
+	DSPVector b = a + 3;
+	std::cout << b;
+	
 	float sr = 44100.f;
 	
 	TickSource ticks(10);
@@ -70,23 +70,6 @@ int main()
 	FDN fdn(4, 1000);
 	MLSignal delayTimes({69, 70, 71, 72});
 	fdn.setDelaysInSamples(delayTimes);	
-	fdn.processSample(1.0);
-	
-	auto doFDNScalar = [&](){return fdn.processSample(0);};
-	timedResult<float> fdnTimeScalar = timeIterations<float>(doFDNScalar, iters*kFloatsPerDSPVector - 1);
-	std::cout << "SCALAR time: " << fdnTimeScalar.elapsedTime << "\n";	
-	for(int i=0; i<kFloatsPerDSPVector; ++i)
-	{
-		std::cout << fdn.processSample(0) << " ";
-	}
-	std::cout << "\n";
-	
-	// ----------------------------------------------------------------
-	// time FDN: vectors
-	
-	fdn.clear();
-	fdn.setVectorSize(kFloatsPerDSPVector);
-	fdn.setDelaysInSamples(delayTimes);	
 
 	DSPVector input(0);
 	input[0] = 1;
@@ -94,10 +77,11 @@ int main()
 	DSPVector y = fdn(input);
 	input = 0;
 	
+	std::cout << "input: " << input << "\n";
+	
 	auto doFDNVector = [&](){return fdn(input);};
 	timedResult<DSPVector> fdnTimeVector = timeIterations<DSPVector>(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
-	
 }
 

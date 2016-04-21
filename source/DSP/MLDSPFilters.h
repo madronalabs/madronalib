@@ -166,10 +166,37 @@ namespace ml
 			return mBuffer[readIndex];
 		}	
 		
+		/*
+
+		inline DSPVector operator()(DSPVector& x)
+		{
+			if(!validate(x))
+			{
+				std::cout << "x!\n";
+			} // MLTEST
+
+			
+			DSPVector y; 
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				y[n] = processSample(x[n]);	
+			}
+
+			if(!validate(y))
+			{
+				std::cout << "y!\n";
+			} // MLTEST
+
+			
+			return y;
+		}
+		*/
+		
+		
 		inline DSPVector operator()(DSPVector& x)
 		{
 			DSPVector y; 
-	
+
 			// TODO add wrapping / two buf concept to Signal::getWrappedRange() or something.
 			
 			uintptr_t writeEnd = mWriteIndex + kFloatsPerDSPVector;
@@ -205,17 +232,17 @@ namespace ml
 			
 			mWriteIndex += kFloatsPerDSPVector;
 			mWriteIndex &= mLengthMask;
+
 			return y;
 		}
 
+		
 	private:
 		MLSignal mBuffer;
 		int mIntDelayInSamples;
 		uintptr_t mWriteIndex;
 		uintptr_t mLengthMask;
 	};
-
-
 	 
 	// ----------------------------------------------------------------
 	#pragma mark FDN
@@ -226,10 +253,9 @@ namespace ml
 	{
 	public:
 		FDN(int size, int delayLen)
-		{ mVectorSize = 1; setMaxDelayInSamples(delayLen); resize(size); }
+		{ setMaxDelayInSamples(delayLen); resize(size); }
 		~FDN(){}
 		
-		// size could be a template parameter with a specialization for n=4
 		void resize(int n);
 		void setMaxDelayInSamples(int n) { mMaxDelayLength = n; }
 		void clear();
@@ -237,10 +263,7 @@ namespace ml
 		void setFeedbackAmps(const MLSignal& f) { mFeedbackAmps = f; }
 		void setLopass(float f);
 		
-		float processSample(float x);
 		DSPVector operator()(DSPVector x);
-		
-		void setVectorSize(int v) { mVectorSize = v; }
 		
 	private:
 		int mMaxDelayLength;
@@ -253,55 +276,8 @@ namespace ml
 		MLSignal mFeedbackAmps;
 		
 		std::vector<DSPVector> mDelayInputVectors;
-		
-		// temp?
-		int mVectorSize;
-
 	};
 
-	// MLTEST
-	MLSignal matrixMultiply2D(MLSignal A, MLSignal B);
-
-	/*
-// delay[NUM_DELAYS] is an array of my delay line class
-// feedbackMatrix[NUM_DELAYS] is a float vector, used to store the feedback values between each block of samples you process
-
-float delayOut[NUM_DELAYS];	// the size of the matrix should either be a macro, or a const int or unsigned int
-
-for (int j=0;j<numDelays;j++)
-	delay[j].Write(input + feedbackGain*feedbackMatrix[j], 0); // my delay buffers allow me to write at non-zero locations, 
-								   // so I specify 0 as the delay length to write to in the second argument
-
-for (int j=0;j<numDelays;j++)
-	delayOut[j] = delay[j].Read(delayLength[j]);
-
-for (int j=0;j<numDelays;j++)
-	delayOut[j] = filter[j].Process(delayOut[j]);
-
-float sum = 0.f; // you need to declare this for every sample/block, or at least zero it out
-
-for (int j=0;j<numDelays;j++)
-	sum += delayOut[j];
-
-sum *= 2.f/numDelays;
-
-for (int j=0;j<numDelays;j++)
-	feedbackMatrix[j] = delayOut[j] - sum;
-
-for (int j=0;j<numDelays;j++)
-	delay[j].UpdateBasePointer();		// I can have a lot of read/write operations per delay, so I increment the base pointers manually
-
-For a 4x4 FDN, you get a perfectly diffuse matrix. Larger matrices start becoming less and less diffuse, in that most of the feedback per delay comes from that same delay’s output. Permuting the matrix in such a case is useful, so that most of the output of the delay feeds the NEXT delay - kind of like an allpass loop.
-
-For larger FDNs, you can build up Hadamard matrices out of 2x2 rotation matrices. This is a very nice technique, that Miller Puckette covers in his work. 
-
-The pseudocode above works for block based processing as well. If you are working with 1 big block of memory (instead of separate delay buffers), make sure that you have enough room in there for the block size. I have done block based processing with a single delay buffer in the past, but it is really a pain. I’d suggest working with separate delay buffers in this case. The matrix adds/subtracts can be done in block base processing, where the blocks span time (i.e. samples in series) versus parallel delay branches. SSE for parallel delay branches would be useful for the filtering, but I haven’t done this - I tend to SIMD for series samples.
-
-Hope this helps. Feel free to ask any follow up questions.
-
-Sean
-	*/
-	
 	// ----------------------------------------------------------------
 	// Simple time-based filters on DSPVectors.
 	//

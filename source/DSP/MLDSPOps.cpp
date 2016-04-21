@@ -10,14 +10,3 @@
 
 using namespace ml;
 
-std::ostream& operator<< (std::ostream& out, const ml::DSPVector& v)
-{
-	out << "[";
-	for(int i=0; i<kFloatsPerDSPVector; ++i)
-	{
-		out << v[i] << " ";
-	}
-	out << "]\n";
-	
-	return out;
-}

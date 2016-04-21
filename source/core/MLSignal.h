@@ -580,3 +580,33 @@ inline MLSignal transpose(const MLSignal& x)
 	}
 	return y;
 }
+
+inline MLSignal matrixMultiply2D(MLSignal A, MLSignal B)
+{
+	if(A.getWidth() != B.getHeight())
+	{
+		return MLSignal::nullSignal;
+	}
+	
+	int h = A.getHeight();
+	int w = B.getWidth();
+	int m = A.getWidth();
+	MLSignal AB(w, h);
+	
+	for(int j=0; j<h; ++j)
+	{
+		for(int i=0; i<w; ++i)
+		{
+			float ijSum = 0.f;
+			for(int k=0; k<m; ++k)
+			{
+				ijSum += A(k, j)*B(i, k);
+			}
+			AB(i, j) = ijSum;
+		}
+	}
+	return AB;
+}
+
+
+
