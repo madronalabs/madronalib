@@ -84,6 +84,7 @@ private:
 	// mDataAligned
 	// mWidthBits, mHeightBits, mDepthBits, mDataOffset (data -> aligned) (can also compute)
 	// that's it
+	// NO we need width, height, depth independent of ^2 sizes
 	
 	// start of signal data in memory. 
 	// If this is 0, we do not own any data.  However, in the case of a
@@ -112,7 +113,7 @@ public:
 	explicit MLSignal(); 
 	MLSignal(const MLSignal& b);
 	explicit MLSignal(int width, int height = 1, int depth = 1); 
-	explicit MLSignal (std::initializer_list<float> values);
+	MLSignal (std::initializer_list<float> values);
 
 	// create a looped version of the signal argument, according to the loop type
 	MLSignal(MLSignal src, eLoopType loopType, int loopLength); 

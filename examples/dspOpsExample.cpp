@@ -46,7 +46,7 @@ int main()
 	DSPVector b = a + 3;
 	std::cout << b;
 	
-	float sr = 44100.f;
+	const float sr = 44100.f;
 	
 	TickSource ticks(10);
 	Biquad lopass(biquadCoeffs::onePole(10000./sr));
@@ -67,18 +67,22 @@ int main()
 	// ----------------------------------------------------------------
 	// time FDN: scalars
 	int iters = 100;
-	FDN fdn(4, 1000);
-	MLSignal delayTimes({69, 70, 71, 72});
-	fdn.setDelaysInSamples(delayTimes);	
 
+	FDN fdn({69, 70, 71, 72});
+	
+	MLSignal freqs({10000, 11000, 12000, 14000});
+	freqs.scale(kTwoPi/sr);
+	fdn.setFilterCutoffs(freqs);
+//	fdn.setFilterCutoffs(MLSignal({10000, 11000, 12000, 14000})*kTwoPi/sr);
+	
+	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});
+	
 	DSPVector input(0);
 	input[0] = 1;
 	
-	DSPVector y = fdn(input);
+	fdn(input);
 	input = 0;
-	
-	std::cout << "input: " << input << "\n";
-	
+		
 	auto doFDNVector = [&](){return fdn(input);};
 	timedResult<DSPVector> fdnTimeVector = timeIterations<DSPVector>(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";

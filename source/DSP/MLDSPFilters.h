@@ -15,6 +15,16 @@ namespace ml
 {
 	namespace biquadCoeffs
 	{
+		inline MLSignal passthru()
+		{
+			float a0 = 1.f;
+			float a1 = 0.f;
+			float a2 = 0.f;
+			float b1 = 0.f;
+			float b2 = 0.f;
+			return MLSignal{a0, a1, a2, b1, b2};
+		}
+		
 		inline MLSignal onePole(float omega)
 		{
 			float x = expf(-omega);
@@ -65,13 +75,22 @@ namespace ml
 			
 			return MLSignal{a0, a1, a2, b1, b2};
 		}
+		
+		inline MLSignal multiplyGain(MLSignal xc, float g)
+		{
+			MLSignal yc = xc;
+			yc[0] *= g;
+			return yc;
+		}
 	}
 			
 	class Biquad
 	{
 	public:
-		Biquad() { a0 = a1 = a2 = b1 = b2 = 0.f; clear(); }
-		Biquad(const MLSignal& coeffs) { setCoefficients(coeffs); clear(); }
+		// any filter that can be made with a default constructor should default to passthru.
+		Biquad() { setCoeffs(biquadCoeffs::passthru()); clear(); }
+		
+		Biquad(const MLSignal& coeffs) { setCoeffs(coeffs); clear(); }
 		~Biquad() {}
 		
 		void clear()
@@ -79,7 +98,7 @@ namespace ml
 			x2 = x1 = y2 = y1 = 0.f;
 		}
 		
-		void setCoefficients(float pa0, float pa1, float pa2, float pb1, float pb2)
+		void setCoeffs(float pa0, float pa1, float pa2, float pb1, float pb2)
 		{
 			a0 = pa0;
 			a1 = pa1;
@@ -88,7 +107,7 @@ namespace ml
 			b2 = pb2;
 		}
 		
-		void setCoefficients(const MLSignal& coeffs)
+		void setCoeffs(const MLSignal& coeffs)
 		{
 			a0 = coeffs[0];
 			a1 = coeffs[1];
@@ -138,9 +157,13 @@ namespace ml
 		void setMaxDelayInSamples(int dMax)
 		{
 			mBuffer.setDims(dMax + kFloatsPerDSPVector);
-			mLengthMask = (1 << mBuffer.getWidthBits() ) - 1;
+			mLengthMask = (1 << mBuffer.getWidthBits() ) - 1; // TODO MLSignal::getLengthMask?
 			mWriteIndex = 0;
 			clear();
+		}
+		int getMaxDelayInSamples()
+		{
+			return (1 << mBuffer.getWidthBits() ) - 1;
 		}
 		
 		inline void clear()
@@ -166,39 +189,12 @@ namespace ml
 			return mBuffer[readIndex];
 		}	
 		
-		/*
-
-		inline DSPVector operator()(DSPVector& x)
-		{
-			if(!validate(x))
-			{
-				std::cout << "x!\n";
-			} // MLTEST
-
-			
-			DSPVector y; 
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				y[n] = processSample(x[n]);	
-			}
-
-			if(!validate(y))
-			{
-				std::cout << "y!\n";
-			} // MLTEST
-
-			
-			return y;
-		}
-		*/
-		
-		
 		inline DSPVector operator()(DSPVector& x)
 		{
 			DSPVector y; 
 
 			// TODO add wrapping / two buf concept to Signal::getWrappedRange() or something.
-			
+			// write
 			uintptr_t writeEnd = mWriteIndex + kFloatsPerDSPVector;
 			if(writeEnd <= mLengthMask + 1)
 			{
@@ -230,12 +226,12 @@ namespace ml
 				std::copy(srcBuf, srcBuf + excess, y.mData.asFloat + (kFloatsPerDSPVector - excess));
 			}
 			
+			// update index
 			mWriteIndex += kFloatsPerDSPVector;
 			mWriteIndex &= mLengthMask;
 
 			return y;
 		}
-
 		
 	private:
 		MLSignal mBuffer;
@@ -252,30 +248,28 @@ namespace ml
 	class FDN
 	{
 	public:
-		FDN(int size, int delayLen)
-		{ setMaxDelayInSamples(delayLen); resize(size); }
+		FDN(MLSignal delayLengths){ setDelaysInSamples(delayLengths); }
 		~FDN(){}
 		
-		void resize(int n);
-		void setMaxDelayInSamples(int n) { mMaxDelayLength = n; }
-		void clear();
+		// set delay times in samples, resizing delays if needed.
 		void setDelaysInSamples(MLSignal lengths);
-		void setFeedbackAmps(const MLSignal& f) { mFeedbackAmps = f; }
-		void setLopass(float f);
+		
+		// set filter cutoffs without resizing.
+		// FDN does not know its sample rate, so filter cutoffs are set as radial frequencies
+		void setFilterCutoffs(MLSignal filterCutoffs);
+
+		void setFeedbackGains(MLSignal gains);
+
+		// clear state.
+		void clear();
 		
 		DSPVector operator()(DSPVector x);
 		
 	private:
-		int mMaxDelayLength;
-		
 		std::vector<FixedDelay> mDelays;
-		std::vector<Biquad> mFilters; // TODO onepole bank object
-		
-		MLSignal mFeedbackMatrix;
-		MLSignal mDelayInputs;
-		MLSignal mFeedbackAmps;
-		
+		std::vector<Biquad> mFilters; // TODO onepole bank object		
 		std::vector<DSPVector> mDelayInputVectors;
+		std::vector<float> mFeedbackGains;
 	};
 
 	// ----------------------------------------------------------------

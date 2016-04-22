@@ -1074,6 +1074,7 @@ float MLSignal::getMin() const
 	return fMin;
 }
 
+// TODO SIMD
 float MLSignal::getMax() const
 {
 	float fMax = -MAXFLOAT;
