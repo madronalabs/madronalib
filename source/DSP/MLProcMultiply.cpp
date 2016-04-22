@@ -73,56 +73,18 @@ void MLProcMultiply::process(const int frames)
 	const MLSample* px1 = mpFX1;
 	const MLSample* px2 = mpFX2;
 	MLSample* py1 = mpFY1;
-	
-	// get one of four possible constant combinations
-	const bool k1 = mpX1->isConstant();
-	const bool k2 = mpX2->isConstant();
-	int constantMode = (k1 << 1) + k2;	
 
 	int c = frames >> kMLSamplesPerSSEVectorBits;
 	__m128 vx1, vx2, vr; 	
 
-	switch(constantMode)
+	for (int n = 0; n < c; ++n)
 	{
-		case 0:
-            mpY1->setConstant(false);
-			for (int n = 0; n < c; ++n)
-			{
-				vx1 = _mm_load_ps(px1);
-				vx2 = _mm_load_ps(px2);
-				vr = _mm_mul_ps(vx1, vx2);
-				_mm_store_ps(py1, vr);
-				px1 += kSSEVecSize;
-				px2 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
-		break;
-		case 1:
-            mpY1->setConstant(false);
-			vx2 = _mm_set1_ps(px2[0]);
-			for (int n = 0; n < c; ++n)
-			{
-				vx1 = _mm_load_ps(px1);
-				vr = _mm_mul_ps(vx1, vx2);
-				_mm_store_ps(py1, vr);
-				px1 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
-		break;
-		case 2:
-            mpY1->setConstant(false);
-			vx1 = _mm_set1_ps(px1[0]);
-			for (int n = 0; n < c; ++n)
-			{
-				vx2 = _mm_load_ps(px2);
-				vr = _mm_mul_ps(vx1, vx2);
-				_mm_store_ps(py1, vr);
-				px2 += kSSEVecSize;
-				py1 += kSSEVecSize;
-			}
-		break;
-		case 3: // yay
-			mpY1->setToConstant(px1[0] * px2[0]);
-		break;
+		vx1 = _mm_load_ps(px1);
+		vx2 = _mm_load_ps(px2);
+		vr = _mm_mul_ps(vx1, vx2);
+		_mm_store_ps(py1, vr);
+		px1 += kSSEVecSize;
+		px2 += kSSEVecSize;
+		py1 += kSSEVecSize;
 	}
 }

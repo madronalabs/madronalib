@@ -170,6 +170,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol prop
 	}
 }
 
+// TODO move this to DSPEngine
 void MLPluginProcessor::loadPluginDescription(const char* desc)
 {
 	mpPluginDoc = new XmlDocument(String(desc));
@@ -644,7 +645,8 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		// get current time from host.
 		// should refer to the start of the current block.
 		AudioPlayHead::CurrentPositionInfo newTime;
-		if (getPlayHead() != 0 && getPlayHead()->getCurrentPosition (newTime))
+		AudioPlayHead* pPlayHead = getPlayHead();
+		if (pPlayHead != 0 && pPlayHead->getCurrentPosition (newTime))
 		{
 			lastPosInfo = newTime;
 		}
@@ -662,11 +664,13 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			
 		// set Engine I/O.  done here each time because JUCE may change pointers on us.  possibly.
 		MLDSPEngine::ClientIOMap ioMap;
-		for (int i=0; i<getNumInputChannels(); ++i)
+		int inChans = getNumInputChannels();
+		int outChans = getNumOutputChannels();
+		for (int i=0; i<inChans; ++i)
 		{
 			ioMap.inputs[i] = buffer.getReadPointer(i);
 		}		
-		for (int i=0; i<getNumOutputChannels(); ++i)
+		for (int i=0; i<outChans; ++i)
 		{
 			ioMap.outputs[i] = buffer.getWritePointer(i);
 		}
@@ -679,8 +683,7 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
             midiMessages.clear(); // otherwise messages will be passed back to the host
         }
 		
-       mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
-
+		mEngine.processSignalsAndEvents(samples, mControlEvents, samplesPosition, secsPosition, ppqPosition, bpm, isPlaying);
 		
 #if OSC_PARAMS
 		// if(osc enabled)

@@ -472,7 +472,6 @@ int MLDSPEngine::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
 	int minSamplesRead = 2<<16;
 
 	outSig.clear();
-	outSig.setConstant(false);
 	
 	// look up signal container
 	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);

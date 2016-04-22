@@ -97,27 +97,9 @@ void MLProcBiquad::calcCoeffs(const int frames)
 	const MLSignal& frequency = getInput(2);
 	const MLSignal& q = getInput(3);
 	const MLSignal& gain = getInput(4);
-	int coeffFrames;
+	int coeffFrames = frames;
 	
 	float twoPiOverSr = kMLTwoPi*getContextInvSampleRate();		
-
-	bool paramSignalsAreConstant = frequency.isConstant() && q.isConstant();
-	
-	if (paramSignalsAreConstant)
-	{
-		coeffFrames = 1;
-	}
-	else
-	{
-		coeffFrames = frames;
-	}
-	
-	// set proper constant state for coefficient signals
-	mA0.setConstant(paramSignalsAreConstant);
-	mA1.setConstant(paramSignalsAreConstant);
-	mA2.setConstant(paramSignalsAreConstant);
-	mB1.setConstant(paramSignalsAreConstant);
-	mB2.setConstant(paramSignalsAreConstant);
 	
 	float a0, a1, a2, b0, b1, b2;
 	float qm1, omega, alpha, sinOmega, cosOmega;
@@ -223,21 +205,13 @@ void MLProcBiquad::process(const int frames)
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	
-	// const references are necessary to only read first sample
-	// in case coefficients are constant.
-	const MLSignal& A0 = mA0;	
-	const MLSignal& A1 = mA1;
-	const MLSignal& A2 = mA2;
-	const MLSignal& B1 = mB1;
-	const MLSignal& B2 = mB2;
-	
 	calcCoeffs(frames);
 	
 	for (int n=0; n<frames; ++n)
 	{
 		float in, out;
 		in = x[n];
-		out = A0[n]*in + A1[n]*mX1 + A2[n]*mX2 - B1[n]*mY1 - B2[n]*mY2;
+		out = mA0[n]*in + mA1[n]*mX1 + mA2[n]*mX2 - mB1[n]*mY1 - mB2[n]*mY2;
 		mX2 = mX1;
 		mX1 = in;
 		mY2 = mY1;

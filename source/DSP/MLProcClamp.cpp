@@ -42,18 +42,10 @@ void MLProcClamp::process(const int frames)
 	
 	const MLSample fmin = getParam(minSym);
 	const MLSample fmax = getParam(maxSym);
-	
-	if (x.isConstant())
+
+	for (int n=0; n < frames; ++n)
 	{
-		y.setToConstant(clamp(x[0], fmin, fmax));
-	}
-	else	// TODO SSE
-	{
-		y.setConstant(false);
-		for (int n=0; n < frames; ++n)
-		{
-			y[n] = clamp(x[n], fmin, fmax);
-		}
+		y[n] = clamp(x[n], fmin, fmax);
 	}
 }
 

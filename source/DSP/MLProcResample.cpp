@@ -770,71 +770,65 @@ void MLProcResample::process(const int inFrames)
 		return;
 	}
     
-  	if (x.isConstant())
+	// get buffer sizes. the checking in prepareToProcess() should insure
+	// that all these numbers are integers.
+	const int upRatio = mRatio.top;
+	const int downRatio = mRatio.bottom;
+	const int upFrames = inFrames*upRatio;
+	MLSample* pUpSrc, *pUpDest;
+	MLSample* pDownSrc, *pDownDest;
+	
+	// set sources and destinations for resampling operations
+	if (upRatio == 1)
 	{
-		y.setToConstant(x[0]);
+		pDownSrc = x.getBuffer();
+		pDownDest = y.getBuffer();
+	}
+	else if (downRatio == 1)
+	{
+		pUpSrc = x.getBuffer();
+		pUpDest = y.getBuffer();
 	}
 	else
 	{
-		// get buffer sizes. the checking in prepareToProcess() should insure
-		// that all these numbers are integers.
-		const int upRatio = mRatio.top;
-		const int downRatio = mRatio.bottom;
-		const int upFrames = inFrames*upRatio;
-		MLSample* pUpSrc, *pUpDest;
-		MLSample* pDownSrc, *pDownDest;
-		
-		// set sources and destinations for resampling operations
-		if (upRatio == 1)
+		pUpSrc = x.getBuffer();
+		pUpDest = mUp.getBuffer();
+		pDownSrc = mUp.getBuffer();
+		pDownDest = y.getBuffer();
+	}
+	
+	if (upRatio != 1)
+	{
+		switch(mUpOrder)
 		{
-			pDownSrc = x.getBuffer();
-			pDownDest = y.getBuffer();
-		}
-		else if (downRatio == 1)
-		{
-			pUpSrc = x.getBuffer();
-			pUpDest = y.getBuffer();
-		}
-		else
-		{
-			pUpSrc = x.getBuffer();
-			pUpDest = mUp.getBuffer();
-			pDownSrc = mUp.getBuffer();
-			pDownDest = y.getBuffer();
-		}
-		
-		if (upRatio != 1)
-		{
-			switch(mUpOrder)
-			{
-				case 0:
-					upsample0(pUpSrc, pUpDest, inFrames, upRatio);
-				break;
-				case 1:
-					upsample1(pUpSrc, pUpDest, inFrames, upRatio);
-				break;
-				case 2:
-					upsample2(pUpSrc, pUpDest, inFrames, upRatio);
-				break;
-			}
-		}
-		
-		if (downRatio != 1)
-		{
-			switch(mDownOrder)
-			{
-				case 0:
-					downsample0(pDownSrc, pDownDest, upFrames, downRatio);
-				break;
-				case 1:
-					downsample1(pDownSrc, pDownDest, upFrames, downRatio);
-				break;
-				case 2:
-					downsample2(pDownSrc, pDownDest, upFrames, downRatio);
-				break;
-			}
+			case 0:
+				upsample0(pUpSrc, pUpDest, inFrames, upRatio);
+			break;
+			case 1:
+				upsample1(pUpSrc, pUpDest, inFrames, upRatio);
+			break;
+			case 2:
+				upsample2(pUpSrc, pUpDest, inFrames, upRatio);
+			break;
 		}
 	}
+	
+	if (downRatio != 1)
+	{
+		switch(mDownOrder)
+		{
+			case 0:
+				downsample0(pDownSrc, pDownDest, upFrames, downRatio);
+			break;
+			case 1:
+				downsample1(pDownSrc, pDownDest, upFrames, downRatio);
+			break;
+			case 2:
+				downsample2(pDownSrc, pDownDest, upFrames, downRatio);
+			break;
+		}
+	}
+
 }
 
 

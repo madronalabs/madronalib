@@ -14,15 +14,14 @@
 #include <iomanip>
 #include <memory>
 
-#include "MLVector.h"
+#include "MLVector.h" // TO GO
 
-#ifdef DEBUG
-	const int kMLSignalEndSize = 4;
-#else
-	const int kMLSignalEndSize = 0;
-#endif
+#include "MLVectorOps.h"
 
-extern const MLSample kMLSignalEndSamples[4];
+const uintptr_t kMLSignalAlignBits = 4; // cache line is 64 bytes, minimum is 16 bytes (SSE vector)
+const uintptr_t kMLSignalAlignSize = 1 << kMLSignalAlignBits;
+const uintptr_t kMLSignalAlignMask = ~(kMLSignalAlignSize - 1);
+
 
 typedef enum
 {
@@ -64,6 +63,31 @@ typedef enum
 
 class MLSignal final
 {	
+private:
+	// ----------------------------------------------------------------
+	// data	
+	// start of aligned data in memory. 
+	MLSample* mDataAligned;
+	
+	// start of signal data in memory. 
+	// If this is 0, we do not own any data.  However, in the case of a
+	// reference to another signal mDataAligned may still refer to external data.
+	MLSample* mData;
+	
+	// store requested size of each dimension. For 1D signals, height is 1, etc.
+	int mWidth, mHeight, mDepth; 
+	
+	// Sample rate in Hz.  if negative, signal is not a time series.
+	// if zero, rate is a positive one that hasn't been calculated by the DSP engine yet.
+	// TODO should be int
+	float mRate;	
+		
+	// total power-of-two size in samples, stored for fast access by clear() etc.
+	int mSize; 
+	
+	// log2 of actual size of each dimension, stored for fast access.
+	int mWidthBits, mHeightBits, mDepthBits; 
+
 public:
 	explicit MLSignal(); 
 	MLSignal(const MLSignal& b);
@@ -89,14 +113,10 @@ public:
 	// 1-D access methods
 	//
 	// inspector applied to const references, typically from getInput()
-	// when a signal is marked as constant, mConstantMask = 0 and we return
-	// the first value in the array.
 	inline MLSample operator[] (int i) const
 	{
         assert(i < mSize);
-		return mDataAligned[i&mConstantMask];
-		// MLTEST 
-	//	return mDataAligned[i];
+		return mDataAligned[i];
 	}
 
 	// mutator, called for non-const references 
@@ -106,54 +126,35 @@ public:
 		return mDataAligned[i];
 	}
 
-	inline void setToConstant(MLSample k)
+	inline void setToConstant(float k)
 	{
-		mConstantMask = 0;
-		mDataAligned[0] = k;
-		// MLTEST
-	
-		/*
-		for(int n=0; n<mSize; ++n)
-		{
-			mDataAligned[n] = k;
-		}
-		 */
-	}
-	
-	inline void setConstant(bool k)
-	{
+		int c = mSize >> kMLSamplesPerSSEVectorBits;
+		const __m128 vk = _mm_set1_ps(k); 	
+		float* py1 = mDataAligned;
 		
-		// MLTEST
-	//	mConstantMask = mSize - 1;
-	//	return;
-		
-	
-		if(k)
+		for (int n = 0; n < c; ++n)
 		{
-			// if this is a constant signal, mConstantMask gets 0.
-			mConstantMask = 0;
+			_mm_store_ps(py1, vk);
+			py1 += kSSEVecSize;
 		}
-		else
-		{
-			// if this not is a constant signal, mConstantMask gets the mask for the power-of-two size.
-			mConstantMask = mSize - 1;
-		}
-
 	}
 	
-	inline bool isConstant(void) const
+	/*
+	inline void setFirstVecToConstant(float k)
 	{
-		return(mConstantMask == 0);
+		ml::DSPVector* pVec = reinterpret_cast<ml::DSPVector*>(mDataAligned);
+		pVec->setToConstant(k);
 	}
-    
+    */
+	
 	// return signal value at the position p, interpolated linearly.
     // For power-of-two size tables, this will interpolate around the loop.
 	inline MLSample getInterpolatedLinear(float p) const
 	{
 		int pi = (int)p;
 		float m = p - pi;
-        float r0 = mDataAligned[pi&mConstantMask];
-        float r1 = mDataAligned[(pi + 1)&mConstantMask];
+        float r0 = mDataAligned[pi];
+        float r1 = mDataAligned[(pi + 1)];
 		return lerp(r0, r1, m);
 	}
     
@@ -165,8 +166,8 @@ public:
         float pc = min(p, fw);
 		int pi = (int)pc;
 		float m = pc - pi;
-        mDataAligned[pi&mConstantMask] += (1.0f - m)*v;
-        mDataAligned[(pi + 1)&mConstantMask] += (m)*v;
+        mDataAligned[pi] += (1.0f - m)*v;
+        mDataAligned[(pi + 1)] += (m)*v;
     }
     
 	// 2D access methods
@@ -395,9 +396,7 @@ public:
 	
 	inline void clear()
 	{
-		std::fill(mDataAligned, mDataAligned+mSize, 0);
-		//	setToConstant(0); // TODO 
-		//memset((void *)(mDataAligned), 0, (size_t)(mSize*sizeof(MLSample)));
+		setToConstant(0);
 	}
 	
 	void invert();
@@ -498,37 +497,31 @@ private:
 	// private signal constructor: make a reference to a frame of the external signal.
 	MLSignal(const MLSignal* other, int frame);
 
-	inline int padSize(int size) { return size + kMLAlignSize - 1 + kMLSignalEndSize; }
-	MLSample* allocateData(int size);
-	MLSample* initializeData(MLSample* pData, int size);
+	inline MLSample* allocateData(int size)
+	{
+		MLSample* newData = 0;
+		newData = new MLSample[size + kMLSignalAlignSize - 1];
+		return newData;
+	}
 	
-	// ----------------------------------------------------------------
-	// data	
+	inline float* alignToSignal(const MLSample* p)
+	{
+		uintptr_t pM = (uintptr_t)p;
+		pM += (uintptr_t)(kMLSignalAlignSize - 1);
+		pM &= kMLSignalAlignMask;	
+		return(MLSample*)pM;
+	} 
 	
-	// mask for array lookups. By setting to zero, the signal becomes a constant.
-	int mConstantMask;
-	
-	// store requested size of each dimension. For 1D signals, height is 1, etc.
-	int mWidth, mHeight, mDepth; 
-	
-	// Sample rate in Hz.  if negative, signal is not a time series.
-	// if zero, rate is a positive one that hasn't been calculated by the DSP engine yet.
-	// TODO should be int
-	float mRate;	
-
-	// start of signal data in memory. 
-	// If this is 0, we do not own any data.  However, in the case of a
-	// reference to another signal mDataAligned may still refer to external data.
-	MLSample* mData;
-	
-	// start of aligned data in memory. 
-	MLSample* mDataAligned;
-	
-	// total power-of-two size in samples, stored for fast access by clear() etc.
-	int mSize; 
-	
-	// log2 of actual size of each dimension, stored for fast access.
-	int mWidthBits, mHeightBits, mDepthBits; 
+	inline float* initializeData(float* pData, int size)
+	{
+		float* newDataAligned = 0;
+		if(pData)
+		{
+			newDataAligned = alignToSignal(pData); 
+			memset((void *)(newDataAligned), 0, (size_t)(size*sizeof(float)));
+		}
+		return newDataAligned;
+	}
 };
 
 typedef std::shared_ptr<MLSignal> MLSignalPtr;

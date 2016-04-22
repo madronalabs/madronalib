@@ -102,13 +102,15 @@ void MLProcContainer::makeRoot(const MLSymbol name)
 // procs are first, and all connections afterward, breaks the compile when optimizing buffers.
 // revisit this.
 
+
+
 void MLProcContainer::compile()
 {
 	const bool dumpOutputs = false;
 	const bool verbose = false;
 	err e = OK;
 
-    // debug() << "\nCOMPILING MLContainer " << getName() << ": \n";
+    //debug() << "\nCOMPILING MLContainer " << getName() << ":  \n";
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
@@ -160,7 +162,6 @@ void MLProcContainer::compile()
 		
 		// add map entry to reference compileOp by proc name.
 		compileOpsMap[pName] = &compileOps.back();
-
 	}
 
 	// ----------------------------------------------------------------
@@ -283,8 +284,6 @@ void MLProcContainer::compile()
 				signals[sigName].addLifespan(0, 9000);
 				
 			}
-			
-			
 		}
 		// TODO change MLPipes to store proc name symbols, not procPtrs.
 	}
@@ -350,7 +349,7 @@ void MLProcContainer::compile()
 	}
 
 	// ----------------------------------------------------------------
-	// allocate a buffer for each internal or output signal in signal map.
+	// assign a buffer for each internal or output signal in signal map.
 	// if signal is an input, set to null signal awaiting input.
 	//
 	// reads signals, published outputs, procs
@@ -406,6 +405,7 @@ void MLProcContainer::compile()
 		{
 			// buffers with frame sizes > 1 can't be shared, because the Proc itself will resize the buffer. 
 			// currently a bit of a hack.
+			
 			if(pCompileSig->mFrameSize > 1)
 			{
 				// debug() << "MLProcContainer::compile(): output has frame size " << pCompileSig->mFrameSize << "\n";
@@ -680,6 +680,9 @@ void packUsingFirstFitAlgorithm(compileSignal* pSig, std::list<sharedBuffer>& bu
 	}
 }
 
+// TODO rewrite the compiler to work at the top level DSPEngine. This way buffers can be shared between different containers. 
+// TODO rewrite process() to always use constexpr chunk size, allowing many optimizations.
+
 // recurse on containers, preparing each proc.
 MLProc::err MLProcContainer::prepareToProcess()
 {
@@ -705,6 +708,8 @@ MLProc::err MLProcContainer::prepareToProcess()
 		setVectorSize(mySize);
 		setSampleRate(myRate);
 
+		// std::cout << "prepareToProcess " << getName() << ": rate " << myRate << ", size " << mySize << "\n";		
+
 		// prepare all subprocs
 		for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
 		{
@@ -713,13 +718,14 @@ MLProc::err MLProcContainer::prepareToProcess()
 			if(e != MLProc::OK)	break;
 		}
 		
-		// prepare all output buffers
+		// prepare all output buffers for this container at our parent container's size and rate
+		// 
 		outs = getNumOutputs();
 		for (int i=1; i <= outs; ++i)
 		{
 			// leave output alone if marked timeless
 			MLSignal& y = getOutput(i);
-			if(&(y) == nullptr) // should be impossible, but happens with bad graphs
+			if(&(y) != nullptr) // should be impossible, but happens with bad graphs
 			{
 				if (y.getRate() != kMLTimeless)
 				{
@@ -747,6 +753,18 @@ MLProc::err MLProcContainer::prepareToProcess()
 				y.setDims(containerSize);
 				y.setRate(containerRate);
 				mOutputResamplers[i]->resize();
+			}
+		}
+
+		// HACK check buffer sizes and resize if needed to match vector size
+		for(std::list<MLSignalPtr>::iterator it = mBufferPool.begin(); it != mBufferPool.end(); ++it)
+		{
+			MLSignal* pBuf = &(**it); 
+			int w = pBuf->getWidth();
+			int h = pBuf->getHeight();
+			if(w < mySize)
+			{
+				pBuf->setDims(mySize, h);
 			}
 		}
 	}
@@ -827,18 +845,8 @@ void MLProcContainer::process(const int extFrames)
 	int numOps = mOpsVec.size();
 	for(int i = 0; i < numOps; ++i)
 	{
-		MLProc* p = mOpsVec[i];
-		
-		// set output buffers to not constant.
-		// with this extra step here every proc can safely assume this condition. 
-		int outs = p->getNumOutputs();
-		for(int i=0; i<outs; ++i)
-		{
-			p->getOutput(i + 1).setConstant(false);
-		}
-		
 		// process all procs!
-		p->process(intFrames);
+		mOpsVec[i]->process(intFrames);
 	}
 	
 	if (resample)
@@ -903,12 +911,10 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 			MLProcPtr proc = input->mProc;
 			const int procIdx = input->mProcInputIndex;		
 			
-			
 			if(!idx)
 			{
 				debug() << "input name: " << input->mName << "    " << proc->getName() << " \n"; 
 			}
-			
 			
 			e = proc->setInput(procIdx, sig);
 		}
@@ -2221,12 +2227,18 @@ MLSignal* MLProcContainer::allocBuffer(int frameSize)
 		}
 	}
 	
+	// MLTEST 
+	// BUG
+	
 	r = new MLSignal(kMLProcessChunkSize, frameSize);
+	
+	
 	r->setRate(getSampleRate());
 	mBufferPool.push_back(MLSignalPtr(r));
 	return r;
 }
 
+// ?!
 void MLProcContainer::freeBuffer(MLSignal* pBuf)
 {
 	pBuf->setRate(kBufferFree);

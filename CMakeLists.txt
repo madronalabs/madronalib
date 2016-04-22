@@ -36,7 +36,7 @@ endif()
 #--------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-
+set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 
 #--------------------------------------------------------------------
 # Choose library output name
@@ -56,8 +56,9 @@ endif()
 # Add subdirectories
 #--------------------------------------------------------------------
 
-add_subdirectory(Source)
+add_subdirectory(source)
 add_subdirectory(external)
+add_subdirectory(examples)
 
 if (ML_BUILD_TESTS)
     add_subdirectory(Tests)

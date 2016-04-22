@@ -64,17 +64,18 @@ typedef float MLParamValue;
 #pragma mark Engine Constants
 // ----------------------------------------------------------------
 
-const uintptr_t kMLProcessChunkBits = 6;     // signals are always processed in chunks of this size.
-const uintptr_t kMLProcessChunkSize = 1 << kMLProcessChunkBits;
-
 const uintptr_t kMLSamplesPerSSEVectorBits = 2;
 const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
 
+const uintptr_t kMLProcessChunkBits = 6;     // signals are always processed in chunks of this size.
+const uintptr_t kMLProcessChunkSize = 1 << kMLProcessChunkBits;
+const uintptr_t kMLProcessChunkVectors = kMLProcessChunkSize << kMLSamplesPerSSEVectorBits;
+
 const int kMLEngineMaxVoices = 8;
 
-const uintptr_t kMLAlignBits = 6; // cache line is 64 bytes
-const uintptr_t kMLAlignSize = 1 << kMLAlignBits;
-const uintptr_t kMLAlignMask = ~(kMLAlignSize - 1);
+const uintptr_t kMLCacheAlignBits = 6; // cache line is probably 64 bytes
+const uintptr_t kMLCacheAlignSize = 1 << kMLCacheAlignBits;
+const uintptr_t kMLCacheAlignMask = ~(kMLCacheAlignSize - 1);
 
 const float kMLTwoPi = 6.2831853071795864769252867f;
 const float kMLPi = 3.1415926535897932384626433f;
@@ -88,32 +89,6 @@ const float kMLToBeCalculated = 0.f;
 
 const MLSample kMLMaxSample = MAXFLOAT;
 const MLSample kMLMinSample = -MAXFLOAT;
-
-
-// ----------------------------------------------------------------
-// MLTEST experimental signal chunk stuff
-
-namespace ml
-{	
-	const int kVectorSize = kMLProcessChunkSize;
-	const int kSSEVectorSize = kMLProcessChunkSize / kSSEVecSize;
-	
-	class DSPVector
-	{
-	public:
-		DSPVector() {}
-		const DSPVector(const float* pf) { copyFrom(pf); }
-		
-		inline float& operator[](int i) { return mData[i]; }	
-		inline const float operator[](int i) const { return mData[i]; }	
-		
-		// TEMP glue to MLSignal-based graphs
-		inline void copyFrom(const float* pSrc) { std::copy(pSrc, pSrc+kVectorSize, mData); } 
-		inline void copyTo (float* pDest) { std::copy(mData, mData+kVectorSize, pDest); }
-	private:
-		float mData[kMLProcessChunkSize];
-	};
-}
 
 
 // ----------------------------------------------------------------
@@ -182,44 +157,6 @@ float offsetForRangeTransform(float a, float b, float c, float d);
 MLSample MLRand(void);
 uint32_t MLRand32(void);
 void MLRandReset(void);
-
-namespace ml
-{		
-	class RandomSource
-	{
-	public:
-		RandomSource() : mSeed(0) {}
-		~RandomSource() {}
-		
-		inline float getSample()
-		{
-			mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
-			uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
-			temp &= 0x007FFFFF;
-			temp |= 0x3F800000;
-			float* pf = reinterpret_cast<float*>(&temp);
-			return (*pf)*2.f - 3.f;			
-		}
-		
-		// TODO DSPVector operator()()
-		inline DSPVector operator()()
-		{
-			DSPVector y;
-			for(int i=0; i<kVectorSize; ++i)
-			{
-				y[i] = getSample();
-			}
-			return y;
-		}
-
-		void reset() { mSeed = 0; }
-
-	private:
-		uint32_t mSeed = 0;
-		
-	};
-}
-
 
 // ----------------------------------------------------------------
 #pragma mark portable numeric checks

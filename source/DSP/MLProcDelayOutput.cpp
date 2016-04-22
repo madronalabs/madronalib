@@ -142,41 +142,25 @@ void MLProcDelayOutput::process(const int frames)
 	if(mpDelayInputProc)
 	{
 		MLSignal& buffer = mpDelayInputProc->getBuffer();
-		if (delayTime.isConstant())
-		{
-			delay = delayTime[0] * sr - mVectorDelay;
+
+		for (int n=0; n<frames; ++n)
+		{		
+			// read
+			// zero order (integer delay)
+			
+			// get delay time.  
+			// if no signal is attached, 0. should result 
+			// and we get a single-vector delay.
+			delay = delayTime[n] * sr - mVectorDelay;
 			if (delay < mVectorDelay) delay = mVectorDelay;
+			
 			delayInt = (int)(delay);
 			
-			for (int n=0; n<frames; ++n)
-			{
-				delayedIndex = mReadIndex - delayInt;
-				delayedIndex &= mLengthMask;
-				y[n] = buffer[delayedIndex];
-				mReadIndex++;
-			}
-		}
-		else
-		{
-			for (int n=0; n<frames; ++n)
-			{		
-				// read
-				// zero order (integer delay)
-				
-				// get delay time.  
-				// if no signal is attached, 0. should result 
-				// and we get a single-vector delay.
-				delay = delayTime[n] * sr - mVectorDelay;
-				if (delay < mVectorDelay) delay = mVectorDelay;
-				
-				delayInt = (int)(delay);
-				
-				delayedIndex = mReadIndex - delayInt;
-				delayedIndex &= mLengthMask;
-				y[n] = buffer[delayedIndex];
-				mReadIndex++;
-			}
-		}
+			delayedIndex = mReadIndex - delayInt;
+			delayedIndex &= mLengthMask;
+			y[n] = buffer[delayedIndex];
+			mReadIndex++;
+		}	
 	}
 
 	// linear interp:
