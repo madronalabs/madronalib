@@ -27,7 +27,7 @@ http://sam.zoy.org/wtfpl/COPYING for more details.
 
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include	"ffft/def.h"
+#include	"def.h"
 
 
 
@@ -96,7 +96,7 @@ private:
 
 
 
-#include	"ffft/OscSinCos.hpp"
+#include	"OscSinCos.hpp"
 
 
 

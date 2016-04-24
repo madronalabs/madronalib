@@ -977,13 +977,13 @@ public:
 											  filter->getSampleRate(),
 											  filter->getBlockSize());
 				
-				filter->setSpeakerArrangement (getSpeakerArrangementString (speakerIn),
-											   getSpeakerArrangementString (speakerOut));
+				// MLTEST filter->setSpeakerArrangement (getSpeakerArrangementString (speakerIn),
+						//					   getSpeakerArrangementString (speakerOut));
 				return true;
 			}
 		}
 		
-		filter->setSpeakerArrangement (String::empty, String::empty);
+		// MLTEST filter->setSpeakerArrangement (String::empty, String::empty);
 		return false;
 	}
 	

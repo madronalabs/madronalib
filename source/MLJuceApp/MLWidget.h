@@ -18,7 +18,7 @@ class MLWidgetContainer;
 // this can incorporate our own component class.
 //
 class MLWidget :
-    public OpenGLRenderer,
+	public OpenGLRenderer,
 	public MLPropertySet,
 	public MLPropertyListener
 {

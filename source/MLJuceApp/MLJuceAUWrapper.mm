@@ -1145,7 +1145,7 @@ if (juceFilter != nullptr)
 	
 	for (unsigned int i = 0; i < outBuffer.mNumberBuffers; ++i)
 	{
-		AudioBuffer& buf = outBuffer.mBuffers[i];
+		::AudioBuffer& buf = outBuffer.mBuffers[i];
 		
 		if (buf.mNumberChannels == 1)
 		{
@@ -1167,7 +1167,7 @@ if (juceFilter != nullptr)
 	
 	for (unsigned int i = 0; i < inBuffer.mNumberBuffers; ++i)
 	{
-		const AudioBuffer& buf = inBuffer.mBuffers[i];
+		const ::AudioBuffer& buf = inBuffer.mBuffers[i];
 		
 		if (buf.mNumberChannels == 1)
 		{
@@ -1286,7 +1286,7 @@ if (juceFilter != nullptr)
 		
 		for (unsigned int i = 0; i < outBuffer.mNumberBuffers; ++i)
 		{
-			AudioBuffer& buf = outBuffer.mBuffers[i];
+			::AudioBuffer& buf = outBuffer.mBuffers[i];
 			
 			if (buf.mNumberChannels > 1)
 			{

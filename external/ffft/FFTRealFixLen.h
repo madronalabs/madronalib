@@ -27,10 +27,10 @@ http://sam.zoy.org/wtfpl/COPYING for more details.
 
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include	"ffft/Array.h"
-#include	"ffft/DynArray.h"
-#include	"ffft/FFTRealFixLenParam.h"
-#include	"ffft/OscSinCos.h"
+#include	"Array.h"
+#include	"DynArray.h"
+#include	"FFTRealFixLenParam.h"
+#include	"OscSinCos.h"
 
 
 
@@ -120,7 +120,7 @@ private:
 
 
 
-#include	"ffft/FFTRealFixLen.hpp"
+#include	"FFTRealFixLen.hpp"
 
 
 
