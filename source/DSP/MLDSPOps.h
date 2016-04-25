@@ -47,6 +47,8 @@ namespace ml
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
 		inline float* getBuffer() {return mData.asFloat;}
+		inline void load(float* pSrc) { std::copy(pSrc, pSrc + kFloatsPerDSPVector, mData.asFloat); }
+		inline void store(float* pDest) { std::copy(mData.asFloat, mData.asFloat + kFloatsPerDSPVector, pDest); }
 		
 		inline void operator=(float k)
 		{
