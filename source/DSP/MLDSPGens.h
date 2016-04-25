@@ -38,7 +38,6 @@ namespace ml
 		int mPeriod;
 	};
 	
-	
 	class RandomSource
 	{
 	public:
@@ -94,7 +93,6 @@ namespace ml
 	 -----------
 	 
 	 0 operands (generators):
-	 RandomSource
 	 sineOsc
 	 TriOsc
 	 PhaseOsc

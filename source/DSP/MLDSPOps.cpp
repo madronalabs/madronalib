@@ -7,6 +7,3 @@
 //
 
 #include "MLDSPOps.h"
-
-using namespace ml;
-
