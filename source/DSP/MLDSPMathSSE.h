@@ -698,4 +698,16 @@ inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val)
 	return _mm_add_ps(poly, addCstResult);
 }
 
+inline SIMDVectorFloat vecIntPart(SIMDVectorFloat val)
+{
+	SIMDVectorInt vi = _mm_cvttps_epi32(val);	// convert with truncate
+	return (_mm_cvtepi32_ps(vi));
+}
+
+inline SIMDVectorFloat vecFracPart(SIMDVectorFloat val)
+{
+	SIMDVectorInt vi = _mm_cvttps_epi32(val);	// convert with truncate
+	SIMDVectorFloat intPart = _mm_cvtepi32_ps(vi);
+	return _mm_sub_ps(val, intPart);
+}
 

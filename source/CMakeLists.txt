@@ -30,8 +30,6 @@ if(BUILD_NEW_ONLY)
     core/MLStringUtils.cpp
     core/MLStringUtils.h
     core/MLResourceMap.h
-    core/MLVector.cpp
-    core/MLVector.h
     )
 else(BUILD_NEW_ONLY)
   
