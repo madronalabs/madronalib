@@ -85,7 +85,7 @@ void FDN::clear()
 	}
 }
 
-DSPVector FDN::operator()(DSPVector x)
+DSPVector FDN::operator()(DSPVector input)
 {
 	int nDelays = mDelays.size();
 	if(nDelays > 0)
@@ -106,6 +106,10 @@ DSPVector FDN::operator()(DSPVector x)
 		}
 
 		// inputs = input gains*input sample + filters(M*delay outputs)
+		// The feedback matrix M is a unit-gain Householder matrix, which is just 
+		// the identity matrix minus a constant k, where k = 2/size. Since this can be
+		// simplified so much, you just see a few operations here, not a general 
+		// matrix multiply.
 		DSPVector sumOfDelays(0);	
 		for(int n=0; n<nDelays; ++n)
 		{
@@ -117,14 +121,14 @@ DSPVector FDN::operator()(DSPVector x)
 		{
 			mDelayInputVectors[n] -= (sumOfDelays);
 			mDelayInputVectors[n] = mFilters[n](mDelayInputVectors[n]) * mFeedbackGains[n];
-			mDelayInputVectors[n] += x;
+			mDelayInputVectors[n] += input;
 		}	
 
 		return outputSum;
 	}
 	else
 	{
-		return x;
+		return input;
 	}
 }
 

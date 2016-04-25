@@ -1,47 +1,38 @@
 // example of portaudio wrapping low-level madronalib DSP code.
 
-#include <iostream>
-#include <vector>
-#include <chrono>
-#include <thread>
-#include <functional>
-
-#include "../include/madronalib.h"
 #include "../source/DSP/MLDSP.h"
-#include "../tests/tests.h"
 #include "../../portaudio/include/portaudio.h"
 
 using namespace ml;
 
-#define NUM_SECONDS   (5)
-#define SAMPLE_RATE   (44100)
-
+const int kTestSeconds = 5;
+const int kSampleRate = 44100;
 const int kFramesPerBuffer = kFloatsPerDSPVector;
 
-/* This routine will be called by the PortAudio engine when audio is needed.
- ** It may called at interrupt level on some machines so don't do anything
- ** that could mess up the system like calling malloc() or free().
- */
+// portaudio callback function.
+// userData is unused.
 static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  unsigned long framesPerBuffer,
 						  const PaStreamCallbackTimeInfo* timeInfo,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData )
 {
-	static DSPVector silence(0);
-	static TickSource ticksL(SAMPLE_RATE/3);
-	static TickSource ticksR(SAMPLE_RATE/4);
+	static TickSource ticks(kSampleRate);
+	static FDN fdn({33, 149, 1377, 1969});
 	
+	MLSignal freqs({4000, 6000, 9000, 14000});
+	freqs.scale(kTwoPi/kSampleRate);
+	fdn.setFilterCutoffs(freqs);
+	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});
+	
+	// in non-interleaved mode, portaudio passes an array of float pointers
 	float* outL = ((float**)outputBuffer)[0];
 	float* outR = ((float**)outputBuffer)[1];
 
-	ticksL().store(outL);
-	ticksR().store(outR);
-	
-	// Prevent unused variable warnings. 
-	(void) timeInfo; 
-	(void) statusFlags;
-	(void) inputBuffer;
+	// process and store audio
+	DSPVector ticksVec = ticks();
+	ticksVec.store(outL);
+	fdn(ticksVec).store(outR);
 	
 	return paContinue;
 }
@@ -73,7 +64,7 @@ int main()
 						&stream,
 						NULL, /* no input */
 						&outputParameters,
-						SAMPLE_RATE,
+						kSampleRate,
 						kFramesPerBuffer,
 						paClipOff,      /* we won't output out of range samples so don't bother clipping them */
 						patestCallback,	
@@ -83,8 +74,8 @@ int main()
 	err = Pa_StartStream( stream );
 	if( err != paNoError ) goto error;
 	
-	printf("Playing for %d seconds:\n", NUM_SECONDS );
-	Pa_Sleep( NUM_SECONDS * 1000 );
+	printf("Playing for %d seconds:\n", kTestSeconds );
+	Pa_Sleep( kTestSeconds * 1000 );
 	
 	err = Pa_StopStream( stream );
 	if( err != paNoError ) goto error;
@@ -96,12 +87,12 @@ int main()
 	printf("Test finished.\n");
 	
 	return err;
+	
 error:
 	Pa_Terminate();
 	fprintf( stderr, "An error occured while using the portaudio stream\n" );
 	fprintf( stderr, "Error number: %d\n", err );
 	fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
 	return err;
-
 }
 

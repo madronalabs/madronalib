@@ -177,18 +177,6 @@ namespace ml
 			mIntDelayInSamples = (delay); 		
 		}
 		
-		// MLTEST towards DSPVectors
-		inline float processSample(float x)
-		{
-			// zero order (integer delay)
-			uintptr_t readIndex = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
-			mWriteIndex &= mLengthMask;
-			
-			// uninterpolated. 
-			mBuffer[mWriteIndex++] = x;			
-			return mBuffer[readIndex];
-		}	
-		
 		inline DSPVector operator()(DSPVector& x)
 		{
 			DSPVector y; 
@@ -244,7 +232,6 @@ namespace ml
 	#pragma mark FDN
 
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
-
 	class FDN
 	{
 	public:
