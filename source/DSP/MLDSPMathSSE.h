@@ -54,9 +54,25 @@ constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVec
 #define vecMul _mm_mul_ps
 #define vecDiv _mm_div_ps
 #define vecDivApprox(x1, x2) (_mm_mul_ps(x1, _mm_rcp_ps(x2)))
-
 #define vecMin _mm_min_ps
 #define vecMax _mm_max_ps
+
+#define vecSqrt _mm_sqrt_ps
+#define vecSqrtApprox(x) (vecMul(x, vecRSqrt(x))) 
+#define vecRSqrt _mm_rsqrt_ps
+#define vecAbs(x) (_mm_andnot_ps(_mm_set_ps1(-0.0f), x))
+
+#define vecSign(x) \
+(_mm_and_ps\
+	(\
+		_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)),\
+		_mm_cmpneq_ps(_mm_set_ps1(-0.0f), x)\
+	)\
+)
+
+#define vecSignBit(x) (_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)))
+#define vecClamp(x1, x2, x3) _mm_min_ps(_mm_max_ps(x1, x2), x3) 
+#define vecWithin(x1, x2, x3) _mm_and_ps(_mm_cmpge_ps(x1, x2), _mm_cmplt_ps(x1, x3)) 
 
 #define vecEqual _mm_cmpeq_ps
 #define vecNotEqual _mm_cmpneq_ps
@@ -66,27 +82,73 @@ constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVec
 #define vecLessThanOrEqual _mm_cmple_ps
 
 #define vecSet1 _mm_set1_ps
-#define vecSetZero _mm_setzero_ps
 #define vecStore _mm_store_ps
+#define vecStoreUnaligned _mm_storeu_ps
 #define vecLoad _mm_load_ps
-#define vecSqrt _mm_sqrt_ps
-#define vecSqrtApprox(x) (vecMul(x, vecRSqrt(x))) 
-#define vecRSqrt _mm_rsqrt_ps
-#define vecAbs(x) (_mm_andnot_ps(_mm_set_ps1(-0.0f), x))
+#define vecLoadUnaligned _mm_loadu_ps
 
-#define vecSign(x) \
-(_mm_and_ps\
-(\
- _mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)),\
- _mm_cmpneq_ps(_mm_set_ps1(-0.0f), x)\
- )\
-)
+#define vecAnd	_mm_and_ps
+#define vecOr	_mm_or_ps
 
-#define vecSignBit(x) (_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)))
+#define vecZeros _mm_setzero_ps
+#define vecOnes vecEqual(vecZeros, vecZeros)
 
-#define vecClamp(x1, x2, x3) _mm_min_ps(_mm_max_ps(x1, x2), x3) 
+#define vecShiftLeft _mm_slli_si128
+#define vecShiftRight _mm_srli_si128
 
-#define vecWithin(x1, x2, x3) _mm_and_ps(_mm_cmpge_ps(x1, x2), _mm_cmplt_ps(x1, x3)) 
+typedef union 
+{
+	SIMDVectorFloat v;
+	float f[4];
+} SIMDVectorFloatUnion;
+
+static const int XI = 0xFFFFFFFF;
+static const float X = *(reinterpret_cast<const float *>(&XI));
+
+const SIMDVectorFloat vecMask0 = {0, 0, 0, 0};
+const SIMDVectorFloat vecMask1 = {0, 0, 0, X};
+const SIMDVectorFloat vecMask2 = {0, 0, X, 0};
+const SIMDVectorFloat vecMask3 = {0, 0, X, X};
+const SIMDVectorFloat vecMask4 = {0, X, 0, 0};
+const SIMDVectorFloat vecMask5 = {0, X, 0, X};
+const SIMDVectorFloat vecMask6 = {0, X, X, 0};
+const SIMDVectorFloat vecMask7 = {0, X, X, X};
+const SIMDVectorFloat vecMask8 = {X, 0, 0, 0};
+const SIMDVectorFloat vecMask9 = {X, 0, 0, X};
+const SIMDVectorFloat vecMaskA = {X, 0, X, 0};
+const SIMDVectorFloat vecMaskB = {X, 0, X, X};
+const SIMDVectorFloat vecMaskC = {X, X, 0, 0};
+const SIMDVectorFloat vecMaskD = {X, X, 0, X};
+const SIMDVectorFloat vecMaskE = {X, X, X, 0};
+const SIMDVectorFloat vecMaskF = {X, X, X, X};
+
+inline std::ostream& operator<< (std::ostream& out, SIMDVectorFloat v)
+{
+	SIMDVectorFloatUnion u;
+	u.v = v;
+	out << "[";
+	out << u.f[0];
+	out << ", ";
+	out << u.f[1];
+	out << ", ";
+	out << u.f[2];
+	out << ", ";
+	out << u.f[3];
+	out << "]";
+	return out;
+}
+
+// ----------------------------------------------------------------
+#pragma mark select
+
+inline SIMDVectorFloat vecSelect(SIMDVectorFloat conditionMask, SIMDVectorFloat a, SIMDVectorFloat b)
+{
+	__m128i ones = _mm_set1_epi32(-1);
+	return _mm_or_ps(
+					 _mm_and_ps(conditionMask, a),
+					 _mm_and_ps(_mm_xor_ps(conditionMask, ones), b)
+					 );
+}
 
 // ----------------------------------------------------------------
 // horizontal operations returning float
@@ -578,18 +640,6 @@ inline void vecSinCos(SIMDVectorFloat x, SIMDVectorFloat *s, SIMDVectorFloat *c)
 
 #define STATIC_M128_CONST(name, val) \
 static constexpr __m128 name = {val, val, val, val};		
-
-// ----------------------------------------------------------------
-#pragma mark select
-
-inline SIMDVectorFloat vecSelect(SIMDVectorFloat conditionMask, SIMDVectorFloat a, SIMDVectorFloat b)
-{
-	__m128i ones = _mm_set1_epi32(-1);
-	return _mm_or_ps(
-					 _mm_and_ps(conditionMask, a),
-					 _mm_and_ps(_mm_xor_ps(conditionMask, ones), b)
-					 );
-}
 
 // fast polynomial approximations 
 // from scalar code by Jacques-Henri Jourdan <jourgun@gmail.com>

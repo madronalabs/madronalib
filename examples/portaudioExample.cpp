@@ -20,7 +20,7 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	static TickSource ticks(kSampleRate);
 	static FDN fdn({33, 149, 1377, 1969});
 	
-	MLSignal freqs({4000, 6000, 9000, 14000});
+	MLSignal freqs({2000, 3000, 4000, 6000});
 	freqs.scale(kTwoPi/kSampleRate);
 	fdn.setFilterCutoffs(freqs);
 	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});

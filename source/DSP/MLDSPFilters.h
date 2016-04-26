@@ -33,7 +33,7 @@ namespace ml
 			float a2 = 0.f;
 			float b1 = -x;
 			float b2 = 0.f;
-			return MLSignal{a0, a1, a2, b1, b2};
+			return MLSignal{a0, a1, a2, -b1, -b2};
 		}
 		
 		inline MLSignal loShelf(float omega, float q, float gain)
@@ -53,7 +53,7 @@ namespace ml
 			float b1 = (aPlus1*-2.0f*cosOmega - 2.0f*aMinus1) / b0;
 			float b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
 			
-			return MLSignal{a0, a1, a2, b1, b2};
+			return MLSignal{a0, a1, a2, -b1, -b2};
 		}
 		
 		inline MLSignal hiShelf(float omega, float q, float gain)
@@ -73,7 +73,7 @@ namespace ml
 			float b1 = (aPlus1*-2.0f*cosOmega + 2.0f*aMinus1) / b0;
 			float b2 = (aPlus1 - aMinus1*cosOmega - beta) / b0;
 			
-			return MLSignal{a0, a1, a2, b1, b2};
+			return MLSignal{a0, a1, a2, -b1, -b2};
 		}
 		
 		inline MLSignal multiplyGain(MLSignal xc, float g)
@@ -87,7 +87,7 @@ namespace ml
 	class Biquad
 	{
 	public:
-		// any filter that can be made with a default constructor should default to passthru.
+		// any kind of filter that can be made with a default constructor should default to a passthru.
 		Biquad() { setCoeffs(biquadCoeffs::passthru()); clear(); }
 		
 		Biquad(const MLSignal& coeffs) { setCoeffs(coeffs); clear(); }
@@ -96,15 +96,6 @@ namespace ml
 		void clear()
 		{
 			x2 = x1 = y2 = y1 = 0.f;
-		}
-		
-		void setCoeffs(float pa0, float pa1, float pa2, float pb1, float pb2)
-		{
-			a0 = pa0;
-			a1 = pa1;
-			a2 = pa2;
-			b1 = pb1;
-			b2 = pb2;
 		}
 		
 		void setCoeffs(const MLSignal& coeffs)
@@ -116,30 +107,17 @@ namespace ml
 			b2 = coeffs[4];
 		}
 		
-		inline float processSample(float x)
-		{
-			const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
-			x2 = x1;
-			x1 = x;
-			y2 = y1;
-			y1 = out;
-			return(out);
-		}
-		
 		inline DSPVector operator()(const DSPVector& vx)
 		{
-			DSPVector y;
+			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
 			{
-				const float x = vx[n];
-				const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
-				x2 = x1;
-				x1 = x;
-				y2 = y1;
-				y1 = out;
-				y[n] = out;
+				float fx = vx[n];				
+				const float fy = a0*fx + a1*x1 + a2*x2 + b1*y1 + b2*y2;
+				x2 = x1; x1 = fx; y2 = y1; y1 = fy;				
+				vy[n] = fy;
 			}		
-			return y;
+			return vy;
 		}
 		
 		float a0, a1, a2, b1, b2;
@@ -247,7 +225,6 @@ namespace ml
 
 		void setFeedbackGains(MLSignal gains);
 
-		// clear state.
 		void clear();
 		
 		DSPVector operator()(DSPVector x);
@@ -269,7 +246,6 @@ namespace ml
 		 FixedDelay 
 		 LinearDelay
 		 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
-		 FDN	 
 		 Downsampler2
 		 upsampler2
 		 inline DSPVector SVF::operator();

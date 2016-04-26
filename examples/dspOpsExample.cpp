@@ -87,5 +87,11 @@ int main()
 	timedResult<DSPVector> fdnTimeVector = timeIterations<DSPVector>(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
+	
+//	mStateVec = vecOr(mStateVec, u.v);
+	
+
+	
+	
 }
 
