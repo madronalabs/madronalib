@@ -16,56 +16,108 @@
 #include "MLDSPConstants.h"
 
 // ----------------------------------------------------------------
-// Simple operations on DSPVectors.
+// Simple operations on DSPVectorArray.
 //
-// This module should include any basic  operations that have no state. 
+// This module should include any basic operations that have no state. 
 
 namespace ml
-{		
-	typedef union
-	{
-		SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector];
-		float asFloat[kFloatsPerDSPVector];
-	} DSPVectorData;
+{			
+	// this template is not specialized for false, which will generate a
+	// compile-time error if STATIC_CHECK(expr) is not true.
+	template<bool> struct CompileTimeError;
+	template<> struct CompileTimeError<true> {}; 	
+	#define STATIC_CHECK(expr)  (CompileTimeError<(expr) != 0>())
 	
-	// prototypes for math functions used in member operators
-	class DSPVector;
-	inline DSPVector add(DSPVector x1, DSPVector x2);
-	inline DSPVector subtract(DSPVector x1, DSPVector x2);
-	inline DSPVector multiply(DSPVector x1, DSPVector x2);
-	inline DSPVector divide(DSPVector x1, DSPVector x2);
-	
-	class DSPVector
+	template<int VECTORS>
+	class DSPVectorArray
 	{
+		typedef union
+		{
+			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			float asFloat[kFloatsPerDSPVector*VECTORS];
+		} DSPVectorData;
+
 	public:
 		DSPVectorData mData;
 
-		// NOTE for efficiency the default ctor does not zero the data!
-		DSPVector() {}
-		DSPVector(float k) { operator=(k); }
+		DSPVectorArray() { zero(); }
+		DSPVectorArray(float k) { operator=(k); }
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
 		inline float* getBuffer() {return mData.asFloat;}
-		inline void load(float* pSrc) { std::copy(pSrc, pSrc + kFloatsPerDSPVector, mData.asFloat); }
-		inline void store(float* pDest) { std::copy(mData.asFloat, mData.asFloat + kFloatsPerDSPVector, pDest); }
 		
-		inline void operator=(float k)
+		// set each element of the DSPVectorArray to 0.
+		inline DSPVectorArray<VECTORS> zero()
+		{
+			float* py1 = getBuffer();			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(py1, vecZeros());
+				py1 += kFloatsPerSIMDVector;
+			}
+			return *this;
+		}
+		
+		// set each element of the DSPVectorArray to the float value k.
+		inline DSPVectorArray<VECTORS> operator=(float k)
 		{
 			const SIMDVectorFloat vk = vecSet1(k); 	
 			float* py1 = getBuffer();
 			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
 			{
 				vecStore(py1, vk);
 				py1 += kFloatsPerSIMDVector;
 			}
+			return *this;
 		}
 		
-		inline void operator=(DSPVector x1)
+		// DSPVectors are always aligned, take advantage of this for fast copying
+		inline DSPVectorArray<VECTORS> operator=(DSPVectorArray<VECTORS> x1)
 		{
 			float* px1 = x1.getBuffer();
 			float* py1 = getBuffer();
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+			return *this;
+		}
+
+		// ----------------------------------------------------------------
+		#pragma fill
+		
+		// set each DSPVector of this DSPVectorArray to the single DSPVector x1.
+		inline DSPVectorArray<VECTORS> fill(DSPVectorArray<1> x1)
+		{
+			for(int j=0; j<VECTORS; ++j)
+			{
+				float* px1 = x1.getBuffer();
+				float* py1 = getBuffer() + kFloatsPerDSPVector*j;
+				
+				for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+				{
+					vecStore(py1, vecLoad(px1));
+					px1 += kFloatsPerSIMDVector;
+					py1 += kFloatsPerSIMDVector;
+				}
+			}
+			return *this;
+		}
+
+		// return a single DSPVector fomr this DSPVectorArray.
+		template<int I>
+		inline DSPVectorArray<1> getVector()
+		{
+			STATIC_CHECK((I >= 0) && (I < VECTORS)); 
+			
+			DSPVectorArray<1> vy;
+			float* px1 = getBuffer() + kFloatsPerDSPVector*I;
+			float* py1 = vy.getBuffer();
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
 			{
@@ -73,89 +125,70 @@ namespace ml
 				px1 += kFloatsPerSIMDVector;
 				py1 += kFloatsPerSIMDVector;
 			}
+			return vy;
+		}		
+		
+		// set a single DSPVector of this DSPVectorArray to x1.
+		template<int I>
+		inline DSPVectorArray<VECTORS> setVector(DSPVectorArray<1> x1)
+		{
+			STATIC_CHECK((I >= 0) && (I < VECTORS));
+			
+			float* px1 = x1.getBuffer();
+			float* py1 = getBuffer() + kFloatsPerDSPVector*I;
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+			return *this;
 		}
-
-		inline DSPVector& operator+=(DSPVector x1){*this = add(*this, x1); return *this;}
-		inline DSPVector& operator-=(DSPVector x1){*this = subtract(*this, x1); return *this;}
-		inline DSPVector& operator*=(DSPVector x1){*this = multiply(*this, x1); return *this;}
-		inline DSPVector& operator/=(DSPVector x1){*this = divide(*this, x1); return *this;}
+		
+		inline DSPVectorArray& operator+=(DSPVectorArray x1){*this = add(*this, x1); return *this;}
+		inline DSPVectorArray& operator-=(DSPVectorArray x1){*this = subtract(*this, x1); return *this;}
+		inline DSPVectorArray& operator*=(DSPVectorArray x1){*this = multiply(*this, x1); return *this;}
+		inline DSPVectorArray& operator/=(DSPVectorArray x1){*this = divide(*this, x1); return *this;}
 	};
-}
 
-inline std::ostream& operator<< (std::ostream& out, ml::DSPVector& v)
-{
-	out << "[";
-	for(int i=0; i<kFloatsPerDSPVector; ++i)
-	{
-		out << v[i] << " ";
-	}
-	out << "]\n";
-	
-	return out;
-}
-
-namespace ml
-{
-	inline DSPVector operator+(DSPVector x1, DSPVector x2){return add(x1, x2);}
-	inline DSPVector operator-(DSPVector x1, DSPVector x2){return subtract(x1, x2);}
-	inline DSPVector operator*(DSPVector x1, DSPVector x2){return multiply(x1, x2);}
-	inline DSPVector operator/(DSPVector x1, DSPVector x2){return divide(x1, x2);}
-
-	// not working inline DSPVector operator+(float x){return add(*this, x);}
+	typedef DSPVectorArray<1> DSPVector;
 	
 	// ----------------------------------------------------------------
-	#pragma mark index and ranges
-	
-	inline DSPVector index()
-	{
-		static constexpr SIMDVectorFloat intsVec = {0, 1, 2, 3};
-		static constexpr SIMDVectorFloat stepVec = {4, 4, 4, 4};
-		DSPVector vy;																
-		float* py1 = vy.getBuffer();	
-		SIMDVectorFloat indexVec = intsVec;
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)			
-		{													
-			vecStore(py1, indexVec);											
-			py1 += kFloatsPerSIMDVector;		
-			indexVec += stepVec;
-		}													
-		return vy;											
+	#pragma mark load and store
+
+	// loads and stores may be unaligned, let std::copy handle this
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> load(float* pSrc) 
+	{ 
+		DSPVectorArray<VECTORS> v;
+		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, v.mData.asFloat); 
+		return v;
 	}
-	
-	// return a linear sequence from start to end, where end will fall on the first index of the 
-	// next vector.
-	inline DSPVector rangeOpen(float start, float end)
-	{
-		DSPVector vi = index();
-		float interval = (end - start)/(kFloatsPerDSPVector);
-		return vi*interval + start;											
-	}
-	
-	// return a linear sequence from start to end, where end falls on the last index of this vector.
-	inline DSPVector rangeClosed(float start, float end)
-	{
-		DSPVector vi = index();
-		float interval = (end - start)/(kFloatsPerDSPVector - 1.f);
-		return vi*interval + start;											
-	}
-	
+
+	template<int VECTORS>
+	inline void store(const DSPVectorArray<VECTORS>& vecSrc, float* pDest) 
+	{ std::copy(vecSrc.mData.asFloat, vecSrc.mData.asFloat + kFloatsPerDSPVector*VECTORS, pDest); }
+
 	// ----------------------------------------------------------------
 	#pragma mark unary operators
 	
-	#define DEFINE_OP1(opName, opComputation)				\
-	inline DSPVector (opName)(DSPVector vx1)				\
-	{														\
-		DSPVector vy;										\
-		float* px1 = vx1.getBuffer();						\
-		float* py1 = vy.getBuffer();						\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)	\
-		{													\
-			SIMDVectorFloat x = vecLoad(px1);				\
-			vecStore(py1, (opComputation));					\
-			px1 += kFloatsPerSIMDVector;					\
-			py1 += kFloatsPerSIMDVector;					\
-		}													\
-		return vy;											\
+	#define DEFINE_OP1(opName, opComputation)					\
+	template<int VECTORS>										\
+	inline DSPVectorArray<VECTORS>								\
+		(opName)(DSPVectorArray<VECTORS> vx1)					\
+	{															\
+		DSPVectorArray<VECTORS> vy;								\
+		float* px1 = vx1.getBuffer();							\
+		float* py1 = vy.getBuffer();							\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		\
+		{														\
+			SIMDVectorFloat x = vecLoad(px1);					\
+			vecStore(py1, (opComputation));						\
+			px1 += kFloatsPerSIMDVector;						\
+			py1 += kFloatsPerSIMDVector;						\
+		}														\
+		return vy;												\
 	}	
 
 	DEFINE_OP1(sqrt, (vecSqrt(x)));
@@ -193,47 +226,39 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark binary operators
 	
-	#define DEFINE_OP2(opName, opComputation)				\
-	inline DSPVector (opName)(DSPVector vx1, DSPVector vx2)	\
-	{														\
-		DSPVector vy;										\
-		float* px1 = vx1.getBuffer();						\
-		float* px2 = vx2.getBuffer();						\
-		float* py1 = vy.getBuffer();						\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)	\
-		{													\
-			SIMDVectorFloat x1 = vecLoad(px1);				\
-			SIMDVectorFloat x2 = vecLoad(px2);				\
-			vecStore(py1, (opComputation));					\
-			px1 += kFloatsPerSIMDVector;					\
-			px2 += kFloatsPerSIMDVector;					\
-			py1 += kFloatsPerSIMDVector;					\
-		}													\
-		return vy;											\
-	}														\
+	#define DEFINE_OP2(opName, opComputation)					\
+	template<int VECTORS>										\
+	inline DSPVectorArray<VECTORS>(opName)						\
+		(DSPVectorArray<VECTORS> vx1,							\
+		DSPVectorArray<VECTORS> vx2)							\
+	{															\
+		DSPVectorArray<VECTORS> vy;								\
+		float* px1 = vx1.getBuffer();							\
+		float* px2 = vx2.getBuffer();							\
+		float* py1 = vy.getBuffer();							\
+		for (int n = 0;											\
+			n < kSIMDVectorsPerDSPVector*VECTORS; ++n)			\
+		{														\
+			SIMDVectorFloat x1 = vecLoad(px1);					\
+			SIMDVectorFloat x2 = vecLoad(px2);					\
+			vecStore(py1, (opComputation));						\
+			px1 += kFloatsPerSIMDVector;						\
+			px2 += kFloatsPerSIMDVector;						\
+			py1 += kFloatsPerSIMDVector;						\
+		}														\
+		return vy;												\
+	}															\
 
-	/* an idea, not working
-	inline DSPVector (opName)(DSPVector vx1, float kx2)		\
-	{														\
-		DSPVector vy;										\
-		SIMDVectorFloat x2 = vecSet1(kx2);					\
-		float* px1 = vx1.getBuffer();						\
-		float* py1 = vy.getBuffer();						\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)	\
-		{													\
-			SIMDVectorFloat x1 = vecLoad(px1);				\
-			vecStore(py1, (opComputation));					\
-			px1 += kFloatsPerSIMDVector;					\
-			py1 += kFloatsPerSIMDVector;					\
-		}													\
-		return vy;											\
-	}	
-	*/
-	
 	DEFINE_OP2(add, (vecAdd(x1, x2)));
 	DEFINE_OP2(subtract, (vecSub(x1, x2)));
 	DEFINE_OP2(multiply, (vecMul(x1, x2)));
 	DEFINE_OP2(divide, (vecDiv(x1, x2)));
+
+	inline DSPVector operator+(DSPVector x1, DSPVector x2){return add(x1, x2);}
+	inline DSPVector operator-(DSPVector x1, DSPVector x2){return subtract(x1, x2);}
+	inline DSPVector operator*(DSPVector x1, DSPVector x2){return multiply(x1, x2);}
+	inline DSPVector operator/(DSPVector x1, DSPVector x2){return divide(x1, x2);}
+
 	DEFINE_OP2(divideApprox, vecDivApprox(x1, x2) );
 	DEFINE_OP2(pow, (vecExp(vecMul(vecLog(x1), x2))));
 	DEFINE_OP2(powApprox, (vecExpApprox(vecMul(vecLogApprox(x1), x2))));
@@ -249,40 +274,74 @@ namespace ml
 
 	// ----------------------------------------------------------------
 	#pragma mark ternary operators
-	
-	#define DEFINE_OP3(opName, opComputation)				\
-	inline DSPVector (opName)(DSPVector vx1,				\
-		DSPVector vx2, DSPVector vx3)						\
-	{														\
-		DSPVector vy;										\
-		float* px1 = vx1.getBuffer();						\
-		float* px2 = vx2.getBuffer();						\
-		float* px3 = vx3.getBuffer();						\
-		float* py1 = vy.getBuffer();						\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)	\
-		{													\
-			SIMDVectorFloat x1 = vecLoad(px1);				\
-			SIMDVectorFloat x2 = vecLoad(px2);				\
-			SIMDVectorFloat x3 = vecLoad(px3);				\
-			vecStore(py1, (opComputation));					\
-			px1 += kFloatsPerSIMDVector;					\
-			px2 += kFloatsPerSIMDVector;					\
-			px3 += kFloatsPerSIMDVector;					\
-			py1 += kFloatsPerSIMDVector;					\
-		}													\
-		return vy;											\
+
+	#define DEFINE_OP3(opName, opComputation)					\
+	template<int VECTORS>										\
+	inline DSPVectorArray<VECTORS>								\
+		(opName)(DSPVectorArray<VECTORS> vx1,					\
+		DSPVectorArray<VECTORS> vx2,							\
+		DSPVectorArray<VECTORS> vx3)							\
+	{															\
+		DSPVectorArray<VECTORS> vy;								\
+		float* px1 = vx1.getBuffer();							\
+		float* px2 = vx2.getBuffer();							\
+		float* px3 = vx3.getBuffer();							\
+		float* py1 = vy.getBuffer();							\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		\
+		{														\
+			SIMDVectorFloat x1 = vecLoad(px1);					\
+			SIMDVectorFloat x2 = vecLoad(px2);					\
+			SIMDVectorFloat x3 = vecLoad(px3);					\
+			vecStore(py1, (opComputation));						\
+			px1 += kFloatsPerSIMDVector;						\
+			px2 += kFloatsPerSIMDVector;						\
+			px3 += kFloatsPerSIMDVector;						\
+			py1 += kFloatsPerSIMDVector;						\
+		}														\
+		return vy;												\
 	}	
 
-	DEFINE_OP3(select, vecSelect(x1, x2, x3));
-	DEFINE_OP3(lerp, vecAdd(x1, vecMul(x3, vecAdd(x2, x1)))); // x1 + x3*(x2 - x1)
-	DEFINE_OP3(clamp, vecClamp(x1, x2, x3) ); // clamp(x, minBound, maxBound) 
+	DEFINE_OP3(select, vecSelect(x1, x2, x3));					// conditionMask, resultIfTrue, resultIfFalse
+	DEFINE_OP3(lerp, vecAdd(x1, vecMul(x3, vecAdd(x2, x1))));	// x1 + x3*(x2 - x1)
+	DEFINE_OP3(clamp, vecClamp(x1, x2, x3) );					// clamp(x, minBound, maxBound) 
+	DEFINE_OP3(within, vecWithin(x1, x2, x3) );					// is x in the open interval [x2, x3) ?
 	
-	// within (x, lowerBound, upperBound)
-	// is x in the open interval [x2, x3) ?
-	// returns a bitmask of all ones or zeros for each float, probably to be used with select().
-	// note that as floats the true values are NaNs.
-	DEFINE_OP3(within, vecWithin(x1, x2, x3) );
+	// ----------------------------------------------------------------
+	#pragma mark index and range generators
 	
+	inline DSPVector index()
+	{
+		static constexpr SIMDVectorFloat intsVec = {0, 1, 2, 3};
+		static constexpr SIMDVectorFloat stepVec = {4, 4, 4, 4};
+		DSPVector vy;																
+		float* py1 = vy.getBuffer();	
+		SIMDVectorFloat indexVec = intsVec;
+		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)			
+		{													
+			vecStore(py1, indexVec);											
+			py1 += kFloatsPerSIMDVector;		
+			indexVec += stepVec;
+		}													
+		return vy;											
+	}
+	
+	// return a linear sequence from start to end, where end will fall on the first index of the 
+	// next vector.
+	inline DSPVector rangeOpen(float start, float end)
+	{
+		DSPVector vi = index();
+		float interval = (end - start)/(kFloatsPerDSPVector);
+		return vi*interval + start;
+	}
+	
+	// return a linear sequence from start to end, where end falls on the last index of this vector.
+	inline DSPVector rangeClosed(float start, float end)
+	{
+		DSPVector vi = index();
+		float interval = (end - start)/(kFloatsPerDSPVector - 1.f);
+		return vi*interval + start;											
+	}
+		
 	// ----------------------------------------------------------------
 	#pragma mark horizontal operators returning float
 	
@@ -329,24 +388,27 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	#pragma mark functions concerning other functions
+	#pragma mark functional
 	
 	// Apply a function (float)->(float) to each element of the DSPvector and return the result.
-	inline DSPVector map(std::function<float(float)> f, DSPVector x)
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS>& x)
 	{
-		DSPVector y;
-		for(int n=0; n<kFloatsPerDSPVector; ++n)
+		DSPVectorArray<VECTORS> y;
+		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
 		{
 			y[n] = f(x[n]);
 		}
 		return y;
 	}
-
-	// fill the vector with successive runs of a function returning float.
-	inline DSPVector fill(std::function<float()> f)
+	
+	// Evaluate a function (void)->(float), store at each element of the DSPvector and return the result.
+	// x is a dummy argument just used to infer the vector size.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS>& x)
 	{
-		DSPVector y;
-		for(int n=0; n<kFloatsPerDSPVector; ++n)
+		DSPVectorArray<VECTORS> y;
+		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
 		{
 			y[n] = f();
 		}
@@ -355,12 +417,33 @@ namespace ml
 	
 	// ----------------------------------------------------------------
 	#pragma mark for testing
+	
+	template<int VECTORS>
+	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
+	{
+		out << "[   ";
+		for(int v=0; v<VECTORS; ++v)
+		{
+			if(v > 0) out << "\n    ";
+			out << "v" << v << ": ";
+			out << "[";
+			for(int i=0; i<kFloatsPerDSPVector; ++i)
+			{
+				out << vecArray[v*kFloatsPerDSPVector + i] << " ";
+			}
+			out << "] ";
+		}
+		out << "]\n";
+		return out;
+	}	
+	
 	inline bool validate(DSPVector x)
 	{
 		bool r = true;
 		for(int n=0; n<kFloatsPerDSPVector; ++n)
 		{
-			if(isNaN(x[n]) || (x[n] > 64.f))
+			const float maxUsefulValue = 1e8; 
+			if(isNaN(x[n]) || (fabs(x[n]) > maxUsefulValue)) 
 			{
 				std::cout << "error: " << x[n] << " at index " << n << "\n";
 				std::cout << x << "\n";
@@ -370,6 +453,4 @@ namespace ml
 		}
 		return r;
 	}
-	
-	
 }

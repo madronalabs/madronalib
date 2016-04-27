@@ -227,7 +227,7 @@ namespace ml
 
 		void clear();
 		
-		DSPVector operator()(DSPVector x);
+		DSPVectorArray<2> operator()(DSPVector x);
 		
 	private:
 		std::vector<FixedDelay> mDelays;
@@ -237,7 +237,7 @@ namespace ml
 	};
 
 	// ----------------------------------------------------------------
-	// Simple time-based filters on DSPVectors.
+	// Simple time-based filters on DSPVectorArray.
 	//
 	/*	 
 		 1 operand (filters)
@@ -246,10 +246,16 @@ namespace ml
 		 FixedDelay 
 		 LinearDelay
 		 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
-		 Downsampler2
-		 upsampler2
+		 Downsampler2 (2n vectors -> n)
+		 upsampler2 (n -> 2n) 
+		
+	 overlap ( n -> 2n, 4n)
+	 add ( 2, 4 -> 1)
+	 
+	 use templates to make different sized versions if needed so loops are still const iters
+	 
 		 inline DSPVector SVF::operator();
-		 biquad
+
 		 onepole
 		 asymmetriconepole
 		 
@@ -259,7 +265,7 @@ namespace ml
 		 
 		 banks:
 		 ----
-		 sinebank
+		 sinebank -> n vectors, templated size
 		 phasebank
 		 SVFbank
 		 biquadbank

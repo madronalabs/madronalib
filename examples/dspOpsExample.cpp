@@ -7,7 +7,6 @@
 
 #include "../include/madronalib.h"
 #include "../source/DSP/MLDSP.h"
-
 #include "../tests/tests.h"
 
 using namespace ml;
@@ -42,9 +41,26 @@ int main()
 	std::cout << "min: " << min(q) << "\n";
 	 */
 
-	DSPVector a = fill( [](){ return ml::rand(); } );
-	DSPVector b = a + 3;
-	std::cout << b;
+	DSPVector a = map( [](){ return ml::rand(); }, DSPVector() );
+	DSPVector b = 3;
+	DSPVector c = divide(a, b);
+	std::cout << c;
+	
+	DSPVectorArray<3> aa(3);
+	DSPVectorArray<3> bb = aa; //index<2>();
+	
+	DSPVectorArray<4> cc = 0;
+	for(int i=0; i<4; ++i)
+	{
+		cc.setVector<2>(index()*i);
+	}
+	std::cout << cc;
+	
+	DSPVectorArray<4> f;
+	f.fill(index());
+	f = map( [](float x){ return x + ml::rand()*0.01; }, f );
+	std::cout << f;
+	
 	
 	const float sr = 44100.f;
 	
@@ -64,6 +80,9 @@ int main()
 
 	std::cout << t3 << "\n";	
 	
+	
+	
+	
 	// ----------------------------------------------------------------
 	// time FDN: scalars
 	int iters = 100;
@@ -82,16 +101,11 @@ int main()
 	
 	fdn(input);
 	input = 0;
-		
 	auto doFDNVector = [&](){return fdn(input);};
-	timedResult<DSPVector> fdnTimeVector = timeIterations<DSPVector>(doFDNVector, iters);
+
+	// note: fdn returns a DSPVectorArray<2>!
+	auto fdnTimeVector = timeIterations<DSPVectorArray<2>>(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
-	
-//	mStateVec = vecOr(mStateVec, u.v);
-	
-
-	
-	
 }
 

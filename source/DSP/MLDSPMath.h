@@ -8,7 +8,7 @@
 
 #pragma once
 
-// Here is the global process chunk size, an important constant.
+// Here is the DSP vector size, an important constant.
 constexpr int kFloatsPerDSPVector = 64;
 
 // Load definitions for low-level SIMD math. 

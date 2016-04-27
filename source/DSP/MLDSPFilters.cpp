@@ -85,8 +85,9 @@ void FDN::clear()
 	}
 }
 
-DSPVector FDN::operator()(DSPVector input)
+DSPVectorArray<2> FDN::operator()(DSPVector input)
 {
+	DSPVectorArray<2> output(0.f);    
 	int nDelays = mDelays.size();
 	if(nDelays > 0)
 	{	
@@ -97,13 +98,21 @@ DSPVector FDN::operator()(DSPVector input)
 		}
 
 		// get output sum
-		// TODO could use 2D DSPVector type of thing instead of std::vector
-		// TODO make stereo mix w/ parameters
-		DSPVector outputSum(0.f);    
-		for(int n=0; n<nDelays; ++n)
+		DSPVector sumR(0);
+		DSPVector sumL(0);
+		for(int n=0; n<(nDelays&(~1)); ++n)
 		{
-			outputSum += mDelayInputVectors[n];
+			if(n&1)
+			{
+				sumL += mDelayInputVectors[n];
+			}
+			else
+			{
+				sumR += mDelayInputVectors[n];
+			}
 		}
+		output.setVector<0>(sumL);
+		output.setVector<1>(sumR);
 
 		// inputs = input gains*input sample + filters(M*delay outputs)
 		// The feedback matrix M is a unit-gain Householder matrix, which is just 
@@ -124,11 +133,12 @@ DSPVector FDN::operator()(DSPVector input)
 			mDelayInputVectors[n] += input;
 		}	
 
-		return outputSum;
+		return output;
 	}
 	else
 	{
-		return input;
+		output.fill(input);
+		return output;
 	}
 }
 
