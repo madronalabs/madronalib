@@ -13,23 +13,23 @@ using namespace ml;
 
 int main()
 {
-	
 	std::cout << "DSP Ops:\n";
 	
-	/*
 	// generate a vector using map() and index()
-	std::cout << map(([](float x){return x*x;}), index()) << "\n";	
-	
-	// store a lambda on (DSPVector)->(DSPVector) defined using a loop
-	auto sinNative = ([&](DSPVector x){DSPVector v; for(int i=0; i<kFloatsPerDSPVector; ++i){ v[i] = sinf(x[i]); } return v; } );
-	std::cout << sinNative(index());
-	
+	std::cout << "index squared: " << map(([](float x){return x*x;}), index()) << "\n\n";		
+
+	auto sinMadronaLib = sin(rangeClosed(0, kPi));
+	std::cout << "madronalib sin: " << sinMadronaLib << "\n\n";
+	 	
 	// store a lambda on (DSPVector)->(DSPVector) defined using map(float)->(float)
-	auto sinNativeMap = [&](DSPVector x){ return map( [](float x){ return sinf(x); }, x); };
-	std::cout << sinNativeMap(index());
+	auto sinNative = [&](DSPVector x){ return map( [](float x){ return sinf(x*kPi/(kFloatsPerDSPVector - 1)); }, x); }(index());
+	std::cout << "native sin: " << sinNative << "\n\n";	
 	
-	// store a lambda on ()->(DSPVector) defined using fill()->(float)
-	auto randFill = [&](){ return fill( [](){ return ml::rand(); }); };
+	std::cout << "difference: " << sinNative - sinMadronaLib << "\n\n";	
+	
+	/*
+	 // store a lambda on ()->(DSPVector) defined using fill()->(float)
+	auto randFill = [&](){ return map( [](){ return ml::rand(); }); };
 	std::cout << randFill();
 	
 	DSPVector q = randFill();
@@ -40,49 +40,24 @@ int main()
 //	std::cout << "\n\n" << q << "\n";
 	std::cout << "min: " << min(q) << "\n";
 	 */
-
-	DSPVector a = map( [](){ return ml::rand(); }, DSPVector() );
-	DSPVector b = 3;
-	DSPVector c = divide(a, b);
-	std::cout << c;
 	
-	DSPVectorArray<3> aa(3);
-	DSPVectorArray<3> bb = aa; //index<2>();
+//	DSPVectorArray<4> f;
 	
-	DSPVectorArray<4> cc = 0;
-	for(int i=0; i<4; ++i)
-	{
-		cc.setVector<2>(index()*i);
-	}
-	std::cout << cc;
+//	f = repeat<4>(index());
+//	f = map( [](float x){ return x + ml::rand()*0.01; }, f );
+//	f = map( [](DSPVector v, int row){ return v*row; }, f );
+// 	f = row( DSPVectorArray<4>() ) * repeat<4>(index()) ;
 	
-	DSPVectorArray<4> f;
-	f.fill(index());
-	f = map( [](float x){ return x + ml::rand()*0.01; }, f );
+	auto f = map([](DSPVector v, int row){ return sin(rangeClosed(0, kPi))*(row + 1); }, DSPVectorArray<128>() );
+	
+//	auto g = append(append(index(), f), index()*2);
+	
 	std::cout << f;
 	
 	
-	const float sr = 44100.f;
-	
-	TickSource ticks(10);
-	Biquad lopass(biquadCoeffs::onePole(10000./sr));
-	FixedDelay delay(99);
-	
-	DSPVector t1 = (ticks());
-	DSPVector t2 = delay(t1)*0.5f;
-	DSPVector t3 = t1 + t2;
-	
-	std::cout << t3 << "\n";	
-	
-	t1 = (ticks());
-	t2 = delay(t1)*0.5f;
-	t3 = t1 + t2;
 
-	std::cout << t3 << "\n";	
 	
-	
-	
-	
+	/*
 	// ----------------------------------------------------------------
 	// time FDN: scalars
 	int iters = 100;
@@ -103,9 +78,10 @@ int main()
 	input = 0;
 	auto doFDNVector = [&](){return fdn(input);};
 
-	// note: fdn returns a DSPVectorArray<2>!
-	auto fdnTimeVector = timeIterations<DSPVectorArray<2>>(doFDNVector, iters);
+	// note: fdn returns a DSPVectorArray<2>, so we need to pass this template parameter to timeIterations().
+	auto fdnTimeVector = timeIterations< DSPVectorArray<2> >(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
+	 */
 }
 

@@ -1,10 +1,9 @@
+// MLDSPGens.h
+// madronalib
 //
-//  MLDSPGens.h
-//  madronalib
+// Created by Randy Jones on 4/14/2016
 //
-//  Created by Randy Jones on 4/14/2016
-//
-//
+// 
 
 #pragma once
 

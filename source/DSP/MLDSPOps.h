@@ -1,10 +1,10 @@
+// MLDSPOps.h
+// madronalib
 //
-//  MLDSPOps.h
-//  madronalib
+// Created by Randy Jones on 4/5/2016
 //
-//  Created by Randy Jones on 4/5/2016
-//
-//
+// This module contains the DSPVectorArray / DSPVector class and basic operations on it. 
+// Any stateless operations on DSPVectors should be added here.
 
 #pragma once
 
@@ -14,11 +14,6 @@
 #include "MLScalarMath.h"
 #include "MLDSPMath.h"
 #include "MLDSPConstants.h"
-
-// ----------------------------------------------------------------
-// Simple operations on DSPVectorArray.
-//
-// This module should include any basic operations that have no state. 
 
 namespace ml
 {			
@@ -45,7 +40,8 @@ namespace ml
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
-		inline float* getBuffer() {return mData.asFloat;}
+		inline float* getBuffer() {return mData.asFloat;} 
+		inline const float* getConstBuffer() const {return mData.asFloat;}
 		
 		// set each element of the DSPVectorArray to 0.
 		inline DSPVectorArray<VECTORS> zero()
@@ -72,7 +68,7 @@ namespace ml
 			}
 			return *this;
 		}
-		
+				
 		// DSPVectors are always aligned, take advantage of this for fast copying
 		inline DSPVectorArray<VECTORS> operator=(DSPVectorArray<VECTORS> x1)
 		{
@@ -87,36 +83,15 @@ namespace ml
 			}
 			return *this;
 		}
-
-		// ----------------------------------------------------------------
-		#pragma fill
 		
-		// set each DSPVector of this DSPVectorArray to the single DSPVector x1.
-		inline DSPVectorArray<VECTORS> fill(DSPVectorArray<1> x1)
+		// return row J from this DSPVectorArray.
+		template<int J>
+		inline DSPVectorArray<1> getRowVector() const
 		{
-			for(int j=0; j<VECTORS; ++j)
-			{
-				float* px1 = x1.getBuffer();
-				float* py1 = getBuffer() + kFloatsPerDSPVector*j;
-				
-				for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
-				{
-					vecStore(py1, vecLoad(px1));
-					px1 += kFloatsPerSIMDVector;
-					py1 += kFloatsPerSIMDVector;
-				}
-			}
-			return *this;
-		}
-
-		// return a single DSPVector fomr this DSPVectorArray.
-		template<int I>
-		inline DSPVectorArray<1> getVector()
-		{
-			STATIC_CHECK((I >= 0) && (I < VECTORS)); 
+			STATIC_CHECK((J >= 0) && (J < VECTORS)); 
 			
 			DSPVectorArray<1> vy;
-			float* px1 = getBuffer() + kFloatsPerDSPVector*I;
+			const float* px1 = getConstBuffer() + kFloatsPerDSPVector*J;
 			float* py1 = vy.getBuffer();
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
@@ -128,14 +103,14 @@ namespace ml
 			return vy;
 		}		
 		
-		// set a single DSPVector of this DSPVectorArray to x1.
-		template<int I>
-		inline DSPVectorArray<VECTORS> setVector(DSPVectorArray<1> x1)
+		// set row J of this DSPVectorArray to x1.
+		template<int J>
+		inline DSPVectorArray<VECTORS> setRowVector(DSPVectorArray<1> x1)
 		{
-			STATIC_CHECK((I >= 0) && (I < VECTORS));
+			STATIC_CHECK((J >= 0) && (J < VECTORS));
 			
-			float* px1 = x1.getBuffer();
-			float* py1 = getBuffer() + kFloatsPerDSPVector*I;
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer() + kFloatsPerDSPVector*J;
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
 			{
@@ -258,7 +233,16 @@ namespace ml
 	inline DSPVector operator-(DSPVector x1, DSPVector x2){return subtract(x1, x2);}
 	inline DSPVector operator*(DSPVector x1, DSPVector x2){return multiply(x1, x2);}
 	inline DSPVector operator/(DSPVector x1, DSPVector x2){return divide(x1, x2);}
-
+	
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> operator+(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return add(x1, x2);}
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> operator-(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return subtract(x1, x2);}
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> operator*(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return multiply(x1, x2);}
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> operator/(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return divide(x1, x2);}
+	
 	DEFINE_OP2(divideApprox, vecDivApprox(x1, x2) );
 	DEFINE_OP2(pow, (vecExp(vecMul(vecLog(x1), x2))));
 	DEFINE_OP2(powApprox, (vecExpApprox(vecMul(vecLogApprox(x1), x2))));
@@ -390,19 +374,7 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark functional
 	
-	// Apply a function (float)->(float) to each element of the DSPvector and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS>& x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
-		{
-			y[n] = f(x[n]);
-		}
-		return y;
-	}
-	
-	// Evaluate a function (void)->(float), store at each element of the DSPvector and return the result.
+	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
 	// x is a dummy argument just used to infer the vector size.
 	template<int VECTORS>
 	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS>& x)
@@ -414,6 +386,152 @@ namespace ml
 		}
 		return y;
 	}
+
+	// Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS>& x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+		{
+			y[n] = f(x[n]);
+		}
+		return y;
+	}
+	
+	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
+	
+	// iterate
+	template<int J, int VECTORS>
+	class row_map_iter
+	{
+	public:
+		static DSPVectorArray<VECTORS> result(std::function<DSPVector(DSPVector, int)> f, DSPVectorArray<VECTORS> x)
+		{
+			DSPVector rowVec = x.template getRowVector<J - 1>();	
+			rowVec = f(rowVec, J - 1);
+			x.template setRowVector<J - 1>(rowVec);
+			return row_map_iter<J - 1, VECTORS>::result(f, x);
+		}
+	};
+	
+	// partial specialization to end iteration
+	template<int VECTORS>
+	class row_map_iter<0, VECTORS>
+	{
+	public:
+		static DSPVectorArray<VECTORS> result(std::function<DSPVector(DSPVector, int)> f, DSPVectorArray<VECTORS> x)
+		{
+			DSPVector rowVec = x.template getRowVector<0>();	
+			rowVec = f(rowVec, 0);
+			x.template setRowVector<0>(rowVec);
+			return x;
+		}
+	};
+	
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, const DSPVectorArray<VECTORS>& x)
+	{
+		// create the class template and iteration
+		return row_map_iter<VECTORS, VECTORS>::result(f, x);
+	}
+	
+	// ----------------------------------------------------------------
+	#pragma mark row
+	
+	// return a DSPVectorArray with each row filled with its row index.
+	
+	// iterate
+	template<int J, int VECTORS>
+	class row_iter
+	{
+	public:
+		static DSPVectorArray<VECTORS> result(DSPVectorArray<VECTORS> x)
+		{
+			DSPVector rowVec(J - 1);				
+			x.template setRowVector<J - 1>(rowVec);			
+			return row_iter<J - 1, VECTORS>::result(x);
+		}
+	};
+	
+	// partial specialization to end iteration
+	template<int VECTORS>
+	class row_iter<0, VECTORS>
+	{
+	public:
+		static DSPVectorArray<VECTORS> result(DSPVectorArray<VECTORS> x)
+		{
+			DSPVector rowVec(0);				
+			x.template setRowVector<0>(rowVec);			
+			return x;
+		}
+	};
+	
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> row( DSPVectorArray<VECTORS> x)
+	{
+		// create the class template and iteration
+		return row_iter<VECTORS, VECTORS>::result(x);
+	}
+	
+	// ----------------------------------------------------------------
+	#pragma mark repeat
+	
+	// return a DSPVectorArray with each row set to the single DSPVector x1.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> repeat(DSPVectorArray<1> x1)
+	{
+		DSPVectorArray<VECTORS> vy;
+		for(int j=0; j<VECTORS; ++j)
+		{
+			float* px1 = x1.getBuffer();
+			float* py1 = vy.getBuffer() + kFloatsPerDSPVector*j;
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+		}
+		return vy;
+	}
+	
+	// ----------------------------------------------------------------
+	#pragma mark append
+	
+	template<int VECTORSA, int VECTORSB>
+	inline DSPVectorArray<VECTORSA + VECTORSB> append(DSPVectorArray<VECTORSA> x1, DSPVectorArray<VECTORSB> x2)
+	{
+		DSPVectorArray<VECTORSA + VECTORSB> vy;
+
+		for(int j=0; j<VECTORSA; ++j)
+		{
+			float* px1 = x1.getBuffer() + kFloatsPerDSPVector*j;
+			float* py1 = vy.getBuffer() + kFloatsPerDSPVector*j;
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+		}
+		for(int j=VECTORSA; j<VECTORSA + VECTORSB; ++j)
+		{
+			float* px2 = x2.getBuffer() + kFloatsPerDSPVector*(j - VECTORSA);
+			float* py1 = vy.getBuffer() + kFloatsPerDSPVector*j;
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			{
+				vecStore(py1, vecLoad(px2));
+				px2 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+		}
+		
+		return vy;
+	}
 	
 	// ----------------------------------------------------------------
 	#pragma mark for testing
@@ -421,11 +539,11 @@ namespace ml
 	template<int VECTORS>
 	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
 	{
-		out << "[   ";
+		if(VECTORS > 1) out << "[   ";
 		for(int v=0; v<VECTORS; ++v)
 		{
-			if(v > 0) out << "\n    ";
-			out << "v" << v << ": ";
+			if(VECTORS > 1) if(v > 0) out << "\n    ";
+			if(VECTORS > 1) out << "v" << v << ": ";
 			out << "[";
 			for(int i=0; i<kFloatsPerDSPVector; ++i)
 			{
@@ -433,7 +551,7 @@ namespace ml
 			}
 			out << "] ";
 		}
-		out << "]\n";
+		if(VECTORS > 1) out << "]";
 		return out;
 	}	
 	

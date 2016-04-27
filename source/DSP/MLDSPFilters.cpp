@@ -87,7 +87,6 @@ void FDN::clear()
 
 DSPVectorArray<2> FDN::operator()(DSPVector input)
 {
-	DSPVectorArray<2> output(0.f);    
 	int nDelays = mDelays.size();
 	if(nDelays > 0)
 	{	
@@ -98,8 +97,7 @@ DSPVectorArray<2> FDN::operator()(DSPVector input)
 		}
 
 		// get output sum
-		DSPVector sumR(0);
-		DSPVector sumL(0);
+		DSPVector sumR, sumL;
 		for(int n=0; n<(nDelays&(~1)); ++n)
 		{
 			if(n&1)
@@ -111,9 +109,12 @@ DSPVectorArray<2> FDN::operator()(DSPVector input)
 				sumR += mDelayInputVectors[n];
 			}
 		}
-		output.setVector<0>(sumL);
-		output.setVector<1>(sumR);
-
+		/*
+		DSPVectorArray<2> output(0.f);    
+		output.setRowVector<0>(sumL);
+		output.setRowVector<1>(sumR);
+		 */
+		
 		// inputs = input gains*input sample + filters(M*delay outputs)
 		// The feedback matrix M is a unit-gain Householder matrix, which is just 
 		// the identity matrix minus a constant k, where k = 2/size. Since this can be
@@ -133,12 +134,11 @@ DSPVectorArray<2> FDN::operator()(DSPVector input)
 			mDelayInputVectors[n] += input;
 		}	
 
-		return output;
+		return append(sumL, sumR);
 	}
 	else
 	{
-		output.fill(input);
-		return output;
+		return repeat<2>(input);
 	}
 }
 

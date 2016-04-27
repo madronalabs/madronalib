@@ -45,6 +45,7 @@ int main()
 	PaStreamParameters outputParameters;
 	PaStream *stream;
 	PaError err;
+	void* pData = nullptr;
 	
 	std::cout << "portaudio example:\n";
 
@@ -61,17 +62,17 @@ int main()
 	outputParameters.channelCount = 2;  
 	outputParameters.sampleFormat = paFloat32 | paNonInterleaved; 
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
-	outputParameters.hostApiSpecificStreamInfo = NULL;
+	outputParameters.hostApiSpecificStreamInfo = nullptr;
 	
 	err = Pa_OpenStream(
 						&stream,
-						NULL, /* no input */
+						nullptr, // no input 
 						&outputParameters,
 						kSampleRate,
 						kFramesPerBuffer,
-						paClipOff,      /* we won't output out of range samples so don't bother clipping them */
+						paClipOff, 
 						patestCallback,	
-						nullptr); // &data );
+						pData );
 	if( err != paNoError ) goto error;
 
 	err = Pa_StartStream( stream );
