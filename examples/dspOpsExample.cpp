@@ -43,16 +43,29 @@ int main()
 	
 //	DSPVectorArray<4> f;
 	
-//	f = repeat<4>(index());
+//	auto f = repeat<4>(index());
+//	f.setRowVector<1>(index()*2);
+//	f.setRowVectorUnchecked(3, index()*2);
+					  
 //	f = map( [](float x){ return x + ml::rand()*0.01; }, f );
 //	f = map( [](DSPVector v, int row){ return v*row; }, f );
 // 	f = row( DSPVectorArray<4>() ) * repeat<4>(index()) ;
 	
-	auto f = map([](DSPVector v, int row){ return sin(rangeClosed(0, kPi))*(row + 1); }, DSPVectorArray<128>() );
+	constexpr int ROWS = 4;
+	constexpr int iters = 100;
+	
+	auto doFDNVector = [&](){ return map([](DSPVector v, int row){ return sin(rangeClosed(0, kPi))*(row + 1); }, DSPVectorArray<ROWS>() ); } ;
+	
+//	auto doFDNVector = [&](){ return row<ROWS>(DSPVectorArray<ROWS>()); } ;
+	
+	
+	auto fdnTimeVector = timeIterations< DSPVectorArray<ROWS> >(doFDNVector, iters);
+
 	
 //	auto g = append(append(index(), f), index()*2);
 	
-	std::cout << f;
+	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
+	std::cout << fdnTimeVector.result << "\n";
 	
 	
 

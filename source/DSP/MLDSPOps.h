@@ -84,14 +84,10 @@ namespace ml
 			return *this;
 		}
 		
-		// return row J from this DSPVectorArray.
-		template<int J>
-		inline DSPVectorArray<1> getRowVector() const
+		inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
 		{
-			STATIC_CHECK((J >= 0) && (J < VECTORS)); 
-			
 			DSPVectorArray<1> vy;
-			const float* px1 = getConstBuffer() + kFloatsPerDSPVector*J;
+			const float* px1 = getConstBuffer() + kFloatsPerDSPVector*j;
 			float* py1 = vy.getBuffer();
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
@@ -101,26 +97,37 @@ namespace ml
 				py1 += kFloatsPerSIMDVector;
 			}
 			return vy;
+		}
+		
+		// return row J from this DSPVectorArray.
+		template<int J>
+		inline DSPVectorArray<1> getRowVector() const
+		{
+			STATIC_CHECK((J >= 0) && (J < VECTORS)); 
+			return getRowVectorUnchecked(J);
 		}		
 		
-		// set row J of this DSPVectorArray to x1.
-		template<int J>
-		inline DSPVectorArray<VECTORS> setRowVector(DSPVectorArray<1> x1)
+		inline void setRowVectorUnchecked(int j, DSPVectorArray<1> x1)
 		{
-			STATIC_CHECK((J >= 0) && (J < VECTORS));
-			
 			const float* px1 = x1.getConstBuffer();
-			float* py1 = getBuffer() + kFloatsPerDSPVector*J;
+			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
 			{
 				vecStore(py1, vecLoad(px1));
 				px1 += kFloatsPerSIMDVector;
 				py1 += kFloatsPerSIMDVector;
-			}
-			return *this;
+			}	
 		}
-		
+
+		// set row J of this DSPVectorArray to x1.
+		template<int J>
+		inline void setRowVector(DSPVectorArray<1> x1)
+		{
+			STATIC_CHECK((J >= 0) && (J < VECTORS));
+			setRowVectorUnchecked(J, x1);
+		}
+				
 		inline DSPVectorArray& operator+=(DSPVectorArray x1){*this = add(*this, x1); return *this;}
 		inline DSPVectorArray& operator-=(DSPVectorArray x1){*this = subtract(*this, x1); return *this;}
 		inline DSPVectorArray& operator*=(DSPVectorArray x1){*this = multiply(*this, x1); return *this;}
@@ -400,78 +407,32 @@ namespace ml
 	}
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-	
-	// iterate
-	template<int J, int VECTORS>
-	class row_map_iter
-	{
-	public:
-		static DSPVectorArray<VECTORS> result(std::function<DSPVector(DSPVector, int)> f, DSPVectorArray<VECTORS> x)
-		{
-			DSPVector rowVec = x.template getRowVector<J - 1>();	
-			rowVec = f(rowVec, J - 1);
-			x.template setRowVector<J - 1>(rowVec);
-			return row_map_iter<J - 1, VECTORS>::result(f, x);
-		}
-	};
-	
-	// partial specialization to end iteration
-	template<int VECTORS>
-	class row_map_iter<0, VECTORS>
-	{
-	public:
-		static DSPVectorArray<VECTORS> result(std::function<DSPVector(DSPVector, int)> f, DSPVectorArray<VECTORS> x)
-		{
-			DSPVector rowVec = x.template getRowVector<0>();	
-			rowVec = f(rowVec, 0);
-			x.template setRowVector<0>(rowVec);
-			return x;
-		}
-	};
-	
 	template<int VECTORS>
 	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, const DSPVectorArray<VECTORS>& x)
 	{
-		// create the class template and iteration
-		return row_map_iter<VECTORS, VECTORS>::result(f, x);
+		DSPVectorArray<VECTORS> y;
+		for(int j=0; j<VECTORS; ++j)
+		{
+			DSPVector rowVec = x.template getRowVectorUnchecked(j);	
+			rowVec = f(rowVec, j);
+			y.template setRowVectorUnchecked(j, rowVec);
+		}			
+		return y;
 	}
 	
 	// ----------------------------------------------------------------
 	#pragma mark row
 	
-	// return a DSPVectorArray with each row filled with its row index.
-	
-	// iterate
-	template<int J, int VECTORS>
-	class row_iter
-	{
-	public:
-		static DSPVectorArray<VECTORS> result(DSPVectorArray<VECTORS> x)
-		{
-			DSPVector rowVec(J - 1);				
-			x.template setRowVector<J - 1>(rowVec);			
-			return row_iter<J - 1, VECTORS>::result(x);
-		}
-	};
-	
-	// partial specialization to end iteration
-	template<int VECTORS>
-	class row_iter<0, VECTORS>
-	{
-	public:
-		static DSPVectorArray<VECTORS> result(DSPVectorArray<VECTORS> x)
-		{
-			DSPVector rowVec(0);				
-			x.template setRowVector<0>(rowVec);			
-			return x;
-		}
-	};
-	
 	template<int VECTORS>
 	inline DSPVectorArray<VECTORS> row( DSPVectorArray<VECTORS> x)
 	{
-		// create the class template and iteration
-		return row_iter<VECTORS, VECTORS>::result(x);
+		DSPVectorArray<VECTORS> y;
+		for(int j=0; j<VECTORS; ++j)
+		{
+			DSPVector rowVec = j;
+			y.template setRowVectorUnchecked(j, rowVec);
+		}			
+		return y;
 	}
 	
 	// ----------------------------------------------------------------
