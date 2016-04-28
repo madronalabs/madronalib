@@ -384,7 +384,7 @@ namespace ml
 	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
 	// x is a dummy argument just used to infer the vector size.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float()> f, DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS>& x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
@@ -396,7 +396,7 @@ namespace ml
 
 	// Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS>& x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
@@ -408,7 +408,7 @@ namespace ml
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, const DSPVectorArray<VECTORS>& x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
@@ -422,13 +422,12 @@ namespace ml
 	#pragma mark rowIndex
 	
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> rowIndex( DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> rowIndex()
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
 		{
-			DSPVector rowVec = j;
-			y.setRowVectorUnchecked(j, rowVec);
+			y.setRowVectorUnchecked(j, DSPVector(j));
 		}			
 		return y;
 	}
@@ -438,7 +437,7 @@ namespace ml
 	
 	// return a DSPVectorArray with each row set to the single DSPVector x1.
 	template<int COPIES, int VECTORS>
-	inline DSPVectorArray<COPIES*VECTORS> repeat(DSPVectorArray<VECTORS> x1)
+	inline DSPVectorArray<COPIES*VECTORS> repeat(const DSPVectorArray<VECTORS>& x1)
 	{
 		DSPVectorArray<COPIES*VECTORS> vy;
 		for(int copy=0; copy<COPIES; ++copy)
@@ -452,38 +451,24 @@ namespace ml
 	}
 	
 	template<int VECTORSA, int VECTORSB>
-	inline DSPVectorArray<VECTORSA + VECTORSB> append(DSPVectorArray<VECTORSA> x1, DSPVectorArray<VECTORSB> x2)
+	inline DSPVectorArray<VECTORSA + VECTORSB> append(const DSPVectorArray<VECTORSA>& x1, const DSPVectorArray<VECTORSB>& x2)
 	{
 		DSPVectorArray<VECTORSA + VECTORSB> vy;
 		for(int j=0; j<VECTORSA; ++j)
 		{
-			float* px1 = x1.getBuffer() + kFloatsPerDSPVector*j;
-			float* py1 = vy.getBuffer() + kFloatsPerDSPVector*j;
-			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
-			{
-				vecStore(py1, vecLoad(px1));
-				px1 += kFloatsPerSIMDVector;
-				py1 += kFloatsPerSIMDVector;
-			}
+			vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j));
 		}
 		for(int j=VECTORSA; j<VECTORSA + VECTORSB; ++j)
 		{
-			float* px2 = x2.getBuffer() + kFloatsPerDSPVector*(j - VECTORSA);
-			float* py1 = vy.getBuffer() + kFloatsPerDSPVector*j;
-			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
-			{
-				vecStore(py1, vecLoad(px2));
-				px2 += kFloatsPerSIMDVector;
-				py1 += kFloatsPerSIMDVector;
-			}
+			vy.setRowVectorUnchecked(j, x2.getRowVectorUnchecked(j - VECTORSA));
 		}		
 		return vy;
 	}
 	
+	// shuffle two DSPVectorArrays, alternating x1 to even rows of result and x2 to odd rows.
+	// if the sources are different sizes, the excess rows are all appended to the destination after shuffling is done.
 	template<int VECTORSA, int VECTORSB>
-	inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(DSPVectorArray<VECTORSA> x1, DSPVectorArray<VECTORSB> x2)
+	inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(const DSPVectorArray<VECTORSA>& x1, const DSPVectorArray<VECTORSB>& x2)
 	{
 		DSPVectorArray<VECTORSA + VECTORSB> vy;
 		int ja = 0;
@@ -494,14 +479,12 @@ namespace ml
 			if(ja < VECTORSA)
 			{
 				vy.setRowVectorUnchecked(jy, x1.getRowVectorUnchecked(ja));
-				ja++;
-				jy++;
+				ja++; jy++;
 			}
 			if(jb < VECTORSB)
 			{
 				vy.setRowVectorUnchecked(jy, x2.getRowVectorUnchecked(jb));
-				jb++;
-				jy++;
+				jb++; jy++;
 			}
 		}
 		return vy;
@@ -511,7 +494,7 @@ namespace ml
 	#pragma mark separating rows
 	
 	template<int VECTORS>
-	inline DSPVectorArray<(VECTORS + 1)/2> evenRows(DSPVectorArray<VECTORS> x1)
+	inline DSPVectorArray<(VECTORS + 1)/2> evenRows(const DSPVectorArray<VECTORS>& x1)
 	{
 		DSPVectorArray<(VECTORS + 1)/2> vy;		
 		for(int j=0; j<(VECTORS + 1)/2; ++j)
@@ -522,7 +505,7 @@ namespace ml
 	}
 	
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS/2> oddRows(DSPVectorArray<VECTORS> x1)
+	inline DSPVectorArray<VECTORS/2> oddRows(const DSPVectorArray<VECTORS>& x1)
 	{
 		DSPVectorArray<VECTORS/2> vy;		
 		for(int j=0; j<VECTORS/2; ++j)

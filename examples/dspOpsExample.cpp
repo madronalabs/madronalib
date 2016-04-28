@@ -58,7 +58,7 @@ int main()
 //	auto fdnTimeVector = timeIterations< DSPVectorArray<ROWS> >(doFDNVector, iters);
 
 	
-	auto rr = index();
+	auto rr = rowIndex<3>();
 	auto qq = repeat<3>(rr);
 	std::cout << qq << "\n";
 	
