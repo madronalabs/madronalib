@@ -35,21 +35,10 @@ void FDN::setDelaysInSamples(MLSignal lengths)
 		mFeedbackGains[n] = 1.f;
 	}
 	
-	// resize delay buffers if needed. 
-	for(int n=0; n<newSize; ++n)
-	{
-		int newLength = lengths[n]; // todo function instead
-		int currentLength = mDelays[n].getMaxDelayInSamples();
-		if(newLength > currentLength)
-		{
-			mDelays[n].setMaxDelayInSamples(newLength);
-		}
-	}
-	
 	// set delay times.
 	for(int n=0; n<newSize; ++n)
 	{
-		// we have one DSPVector feedback latency, so delay times can't be smaller	
+		// we have one DSPVector feedback latency, so delay times can't be smaller than that
 		int len = lengths[n] - kFloatsPerDSPVector;
 		len = max(1, len);
 		mDelays[n].setDelayInSamples(len);
@@ -109,11 +98,6 @@ DSPVectorArray<2> FDN::operator()(DSPVector input)
 				sumR += mDelayInputVectors[n];
 			}
 		}
-		/*
-		DSPVectorArray<2> output(0.f);    
-		output.setRowVector<0>(sumL);
-		output.setRowVector<1>(sumR);
-		 */
 		
 		// inputs = input gains*input sample + filters(M*delay outputs)
 		// The feedback matrix M is a unit-gain Householder matrix, which is just 
@@ -125,7 +109,7 @@ DSPVectorArray<2> FDN::operator()(DSPVector input)
 		{
 			sumOfDelays += mDelayInputVectors[n];
 		}
-		sumOfDelays *= (2.0f/(float)nDelays);  // TODO DSPVector *= float 
+		sumOfDelays *= (2.0f/(float)nDelays);
 		
 		for(int n=0; n<nDelays; ++n)
 		{

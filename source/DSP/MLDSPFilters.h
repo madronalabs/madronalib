@@ -151,8 +151,11 @@ namespace ml
 		
 		inline void setDelayInSamples(int d) 
 		{ 
-			int delay = clamp(d, 1, mBuffer.getWidth());
-			mIntDelayInSamples = (delay); 		
+			if(d > getMaxDelayInSamples())
+			{
+				setMaxDelayInSamples(d);
+			}
+			mIntDelayInSamples = d; 		
 		}
 		
 		inline DSPVector operator()(DSPVector& x)
@@ -195,7 +198,6 @@ namespace ml
 			// update index
 			mWriteIndex += kFloatsPerDSPVector;
 			mWriteIndex &= mLengthMask;
-
 			return y;
 		}
 		
