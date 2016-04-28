@@ -11,7 +11,6 @@
 
 namespace ml
 {		
-	// MLTEST
 	class TickSource
 	{
 	public:
@@ -85,10 +84,8 @@ namespace ml
 	 Vector Ops
 	 =======	 
 	 
-	 
 	 Vector Gens
 	 utils (functors)
-	 these can use CRTP / operator(). 
 	 -----------
 	 
 	 0 operands (generators):
@@ -100,6 +97,9 @@ namespace ml
 	 differentiator
 	 integrator
 	 FixedDelay 
+	 
+	 VariableDelayWithCrossfade
+	 
 	 LinearDelay
 	 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
 	 FDN	 
@@ -113,13 +113,19 @@ namespace ml
 	 ramp generator
 	 quadratic generator
 	 
-	 
 	 banks:
 	 ----
 	 sinebank
 	 phasebank
 	 SVFbank
 	 biquadbank
+	 delaybank
+	 hooooold on...	 
+	 
+	 a bank of raised cos generators can be for a granulator or shepard tone generator
+	 
+	 
+	 
 	*/
 
 

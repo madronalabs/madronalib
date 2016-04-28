@@ -54,21 +54,17 @@ int main()
 	constexpr int ROWS = 4;
 	constexpr int iters = 100;
 	
-	auto doFDNVector = [&](){ return map([](DSPVector v, int row){ return sin(rangeClosed(0, kPi))*(row + 1); }, DSPVectorArray<ROWS>() ); } ;
+	auto doFDNVector = [&](){ return map([](DSPVector v, int row){ return sin(rangeClosed(0 + row*kPi/2, kPi + row*kPi/2)); }, DSPVectorArray<ROWS>() ); } ;
 	
-//	auto doFDNVector = [&](){ return row<ROWS>(DSPVectorArray<ROWS>()); } ;
-	
-	
+//	auto doFDNVector = [&](){ return row( DSPVectorArray<ROWS>() ); } ;
 	auto fdnTimeVector = timeIterations< DSPVectorArray<ROWS> >(doFDNVector, iters);
 
-	
 //	auto g = append(append(index(), f), index()*2);
 	
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
 	
 	
-
 	
 	/*
 	// ----------------------------------------------------------------

@@ -98,15 +98,7 @@ namespace ml
 			}
 			return vy;
 		}
-		
-		// return row J from this DSPVectorArray.
-		template<int J>
-		inline DSPVectorArray<1> getRowVector() const
-		{
-			STATIC_CHECK((J >= 0) && (J < VECTORS)); 
-			return getRowVectorUnchecked(J);
-		}		
-		
+
 		inline void setRowVectorUnchecked(int j, DSPVectorArray<1> x1)
 		{
 			const float* px1 = x1.getConstBuffer();
@@ -119,7 +111,15 @@ namespace ml
 				py1 += kFloatsPerSIMDVector;
 			}	
 		}
-
+		
+		// return row J from this DSPVectorArray.
+		template<int J>
+		inline DSPVectorArray<1> getRowVector() const
+		{
+			STATIC_CHECK((J >= 0) && (J < VECTORS)); 
+			return getRowVectorUnchecked(J);
+		}		
+		
 		// set row J of this DSPVectorArray to x1.
 		template<int J>
 		inline void setRowVector(DSPVectorArray<1> x1)
@@ -298,7 +298,7 @@ namespace ml
 	DEFINE_OP3(within, vecWithin(x1, x2, x3) );					// is x in the open interval [x2, x3) ?
 	
 	// ----------------------------------------------------------------
-	#pragma mark index and range generators
+	#pragma mark single-vector index and range generators
 	
 	inline DSPVector index()
 	{
@@ -334,7 +334,7 @@ namespace ml
 	}
 		
 	// ----------------------------------------------------------------
-	#pragma mark horizontal operators returning float
+	#pragma mark single-vector horizontal operators returning float
 	
 	inline float sum(DSPVector x)
 	{
@@ -384,7 +384,7 @@ namespace ml
 	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
 	// x is a dummy argument just used to infer the vector size.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS>& x)
+	inline DSPVectorArray<VECTORS> map(std::function<float()> f, DSPVectorArray<VECTORS> x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
@@ -396,7 +396,7 @@ namespace ml
 
 	// Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS>& x)
+	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, DSPVectorArray<VECTORS> x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
@@ -408,14 +408,12 @@ namespace ml
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, const DSPVectorArray<VECTORS>& x)
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, DSPVectorArray<VECTORS> x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
 		{
-			DSPVector rowVec = x.template getRowVectorUnchecked(j);	
-			rowVec = f(rowVec, j);
-			y.template setRowVectorUnchecked(j, rowVec);
+			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j), j));
 		}			
 		return y;
 	}
@@ -430,7 +428,7 @@ namespace ml
 		for(int j=0; j<VECTORS; ++j)
 		{
 			DSPVector rowVec = j;
-			y.template setRowVectorUnchecked(j, rowVec);
+			y.setRowVectorUnchecked(j, rowVec);
 		}			
 		return y;
 	}

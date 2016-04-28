@@ -30,12 +30,13 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	float* outL = ((float**)outputBuffer)[0];
 	float* outR = ((float**)outputBuffer)[1];
 
-	// process and store audio
+	// process audio
 	DSPVector ticksVec = ticks();
 	DSPVectorArray<2> verb = fdn(ticksVec);
 
-	store(verb.getVector<0>(), outL);
-	store(verb.getVector<1>(), outR);
+	// store audio
+	store(verb.getRowVector<0>(), outL);
+	store(verb.getRowVector<1>(), outR);
 	
 	return paContinue;
 }
