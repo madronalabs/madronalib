@@ -419,10 +419,10 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	#pragma mark row
+	#pragma mark rowIndex
 	
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> row( DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> rowIndex( DSPVectorArray<VECTORS> x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
@@ -434,36 +434,27 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	#pragma mark repeat
+	#pragma mark combining rows
 	
 	// return a DSPVectorArray with each row set to the single DSPVector x1.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> repeat(DSPVectorArray<1> x1)
+	template<int COPIES, int VECTORS>
+	inline DSPVectorArray<COPIES*VECTORS> repeat(DSPVectorArray<VECTORS> x1)
 	{
-		DSPVectorArray<VECTORS> vy;
-		for(int j=0; j<VECTORS; ++j)
+		DSPVectorArray<COPIES*VECTORS> vy;
+		for(int copy=0; copy<COPIES; ++copy)
 		{
-			float* px1 = x1.getBuffer();
-			float* py1 = vy.getBuffer() + kFloatsPerDSPVector*j;
-			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			for(int j=0; j<VECTORS; ++j)
 			{
-				vecStore(py1, vecLoad(px1));
-				px1 += kFloatsPerSIMDVector;
-				py1 += kFloatsPerSIMDVector;
+				vy.setRowVectorUnchecked(copy*VECTORS + j, x1.getRowVectorUnchecked(j));
 			}
 		}
 		return vy;
 	}
 	
-	// ----------------------------------------------------------------
-	#pragma mark append
-	
 	template<int VECTORSA, int VECTORSB>
 	inline DSPVectorArray<VECTORSA + VECTORSB> append(DSPVectorArray<VECTORSA> x1, DSPVectorArray<VECTORSB> x2)
 	{
 		DSPVectorArray<VECTORSA + VECTORSB> vy;
-
 		for(int j=0; j<VECTORSA; ++j)
 		{
 			float* px1 = x1.getBuffer() + kFloatsPerDSPVector*j;
@@ -487,8 +478,57 @@ namespace ml
 				px2 += kFloatsPerSIMDVector;
 				py1 += kFloatsPerSIMDVector;
 			}
+		}		
+		return vy;
+	}
+	
+	template<int VECTORSA, int VECTORSB>
+	inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(DSPVectorArray<VECTORSA> x1, DSPVectorArray<VECTORSB> x2)
+	{
+		DSPVectorArray<VECTORSA + VECTORSB> vy;
+		int ja = 0;
+		int jb = 0;
+		int jy = 0;
+		while((ja < VECTORSA) || (jb < VECTORSB))
+		{
+			if(ja < VECTORSA)
+			{
+				vy.setRowVectorUnchecked(jy, x1.getRowVectorUnchecked(ja));
+				ja++;
+				jy++;
+			}
+			if(jb < VECTORSB)
+			{
+				vy.setRowVectorUnchecked(jy, x2.getRowVectorUnchecked(jb));
+				jb++;
+				jy++;
+			}
 		}
-		
+		return vy;
+	}
+	
+	// ----------------------------------------------------------------
+	#pragma mark separating rows
+	
+	template<int VECTORS>
+	inline DSPVectorArray<(VECTORS + 1)/2> evenRows(DSPVectorArray<VECTORS> x1)
+	{
+		DSPVectorArray<(VECTORS + 1)/2> vy;		
+		for(int j=0; j<(VECTORS + 1)/2; ++j)
+		{
+			vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j*2));
+		}		
+		return vy;
+	}
+	
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS/2> oddRows(DSPVectorArray<VECTORS> x1)
+	{
+		DSPVectorArray<VECTORS/2> vy;		
+		for(int j=0; j<VECTORS/2; ++j)
+		{
+			vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j*2 + 1));
+		}		
 		return vy;
 	}
 	
