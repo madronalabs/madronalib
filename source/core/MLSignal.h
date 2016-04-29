@@ -109,7 +109,6 @@ public:
  
 	static MLSignal nullSignal;
 	
-
 	explicit MLSignal(); 
 	MLSignal(const MLSignal& b);
 	explicit MLSignal(int width, int height = 1, int depth = 1); 

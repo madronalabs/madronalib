@@ -8,6 +8,7 @@
 #pragma once
 
 #include "MLDSPOps.h"
+#include "MLSignal.h"
 
 namespace ml
 {		
@@ -77,8 +78,39 @@ namespace ml
 		
 	private:
 		uint32_t mSeed = 0;
-		
 	};
+	
+	// horiz -> vert -> horiz
+	
+	// aligned int32 vector
+	
+	// tiny MLSignal
+	
+	/*
+	template<int VECTORS>
+	class SineBank
+	{
+		// float will be promoted to MLSignal of size 1 for single argument
+		SineBank<VECTORS>(MLSignal f) { setFrequency(f); clear(); }
+		~SineBank<VECTORS>() {}
+		
+		inline DSPVectorArray<VECTORS> operator()()
+		{
+			DSPVectorArray<VECTORS> y;
+			for(int j=0; j<VECTORS; ++j)
+			{
+
+			}			
+			return y;
+		}
+		
+	private:
+		int32_t mOmega32, mStep32;
+		float mInvSrDomain;
+	};
+	
+	typedef SineBank<1> Sine;
+*/
 	
 	/*
 	 Vector Ops
@@ -123,7 +155,6 @@ namespace ml
 	 hooooold on...	 
 	 
 	 a bank of raised cos generators can be for a granulator or shepard tone generator
-	 
 	 
 	 
 	*/
