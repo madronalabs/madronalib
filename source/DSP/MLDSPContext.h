@@ -51,10 +51,17 @@ public:
 
 	// ----------------------------------------------------------------
 	#pragma mark enable / disable
-	//
+
 	virtual void setEnabled(bool t) = 0;
 	virtual bool isEnabled() const = 0;
 	virtual bool isProcEnabled(const MLProc* p) const = 0;
+
+	// ----------------------------------------------------------------
+	#pragma mark input / output limits
+	
+	static const int kMaxSigs = 128;
+	virtual int getMaxInputSignals() { return kMaxSigs; }
+	virtual int getMaxOutputSignals() { return kMaxSigs; }
 
 protected:
 	// two null signals: every context has them.

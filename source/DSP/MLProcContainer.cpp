@@ -822,7 +822,7 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 void MLProcContainer::process(const int extFrames)
 {
 	if (!isEnabled()) return;
-	
+		
 	const MLRatio myRatio = getResampleRatio();
 	const bool resample = !myRatio.isUnity();
 	if (myRatio.isZero()) return;
@@ -831,11 +831,30 @@ void MLProcContainer::process(const int extFrames)
 	const int intFrames = (int)(extFrames * myRatio);
 	
 	mClock.advance(ml::samplesAtRateToTime(intFrames, static_cast<int>(getSampleRate())));
-				   
+	
+	// limit I/O to maximums, in case we are a root Container (DSPEngine).
+	int numInputs = min((int)mPublishedInputs.size(), getMaxInputSignals());
+	int numOutputs = min((int)mPublishedOutputs.size(), getMaxOutputSignals());
+	
+	/*
+	if((numInputs == 1)&&(numOutputs == 1))
+	{
+	}
+	*/
+	
+	// -> ext, intframes always chunk size! 
+	
+	
+	// do resample outside procs.
+	// downsample is trickier:
+	//		resampler: process() // buffers input
+	//		if (resampler.needspull() ) or somehting
+	
+	
+	
 	if (resample)
 	{
-		int ins = (int)mPublishedInputs.size();
-		for(int i=0; i<ins; ++i)
+		for(int i=0; i<numInputs; ++i)
 		{
 			mInputResamplers[i]->process(extFrames);
 		}
@@ -843,23 +862,23 @@ void MLProcContainer::process(const int extFrames)
 	
 	// process ops vector, recursing into containers.
 	int numOps = mOpsVec.size();
+	
 	for(int i = 0; i < numOps; ++i)
 	{
 		// process all procs!
 		mOpsVec[i]->process(intFrames);
 	}
-	
+
 	if (resample)
 	{
-		int outs = (int)mPublishedOutputs.size();
-		for(int i=0; i<outs; ++i)
+		for(int i=0; i<numOutputs; ++i)
 		{
 			mOutputResamplers[i]->process(intFrames);
 		}
 	}
 
 	// copy to outputs
-	for(int i=0; i<(int)mPublishedOutputs.size(); ++i)
+	for(int i=0; i<numOutputs; ++i)
 	{
 		MLSignal& outSig = mPublishedOutputs[i]->mProc->getOutput(mPublishedOutputs[i]->mOutput);
 		mOutputs[i]->copy(outSig);
@@ -951,7 +970,6 @@ int MLProcContainer::getInputIndex(const MLSymbol alias)
 	}
 	return r;
 }
-
 
 // will be > 0 for valid aliases
 int MLProcContainer::getOutputIndex(const MLSymbol alias) 

@@ -20,12 +20,14 @@ MLDSPEngine::MLDSPEngine() :
 	mCollectStats(false),
 	mBufferSize(0),
 	mGraphStatus(unknownErr),
-	mCompileStatus(unknownErr),
+	mCompileStatus(false),
 	mSamplesToProcess(0),
 	mStatsCount(0),
 	mSampleCount(0),
 	mCPUTimeCount(0.)
 {
+	std::cout << "MLDSPEngine::MLDSPEngine: compile " << mCompileStatus << "\n";
+	
 #if defined(DEBUG) || (BETA) || (DEMO)
 	//mCollectStats = true;
 #endif
@@ -34,7 +36,6 @@ MLDSPEngine::MLDSPEngine() :
 
 MLDSPEngine::~MLDSPEngine()
 {
-	removeGraphAndInputs();
 }
 
 // ----------------------------------------------------------------
@@ -138,15 +139,6 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	return r;
 }
 
-void MLDSPEngine::removeGraphAndInputs(void)
-{
-	mGraphStatus = unknownErr;
-	mCompileStatus = unknownErr;
-	{
-		// unimplemented
-	}
-}
-
 // ----------------------------------------------------------------
 #pragma mark compile
 
@@ -164,7 +156,8 @@ void MLDSPEngine::compileEngine()
 	}  
 	else
 	{
-		mCompileStatus = OK;
+		mCompileStatus = true;
+		std::cout << "MLDSPEngine::compileEngine: compile " << mCompileStatus << "\n";
 	}
 }
 
@@ -181,7 +174,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
 	// _mm_setcsr( oldMXCSR ); // restore MXCSR state (needed?)
     
-	if ((mGraphStatus == OK) && (mCompileStatus == OK))
+	if ((mGraphStatus == OK) && (mCompileStatus))
 	{
 		// set self as context to get size and rate chain started.
 		setContext(this);	
@@ -206,7 +199,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 			}
 		}		
 
-		int outs = getNumOutputs();	
+		int outs = mOutputChans;	
 		for(int i=0; i < outs; ++i)
 		{
 			if (!mOutputBuffers[i]->resize(bufSize + chunkSize))
@@ -313,7 +306,7 @@ void MLDSPEngine::readInputBuffers(const int samples)
 
 void MLDSPEngine::multiplyOutputBuffersByVolume()
 {
-	int outs = getNumOutputs();
+	int outs = mOutputChans;
 	for(int i=0; i < outs; ++i)
 	{
 		MLSignal& output = getOutput(i+1);
@@ -324,7 +317,7 @@ void MLDSPEngine::multiplyOutputBuffersByVolume()
 // write outputs of root container to ringbuffers
 void MLDSPEngine::writeOutputBuffers(const int samples)
 {
-	int outs = getNumOutputs();
+	int outs = mOutputChans;
 	for(int i=0; i < outs; ++i)
 	{
 		mOutputBuffers[i]->write(getOutput(i+1).getBuffer(), samples);
@@ -334,7 +327,7 @@ void MLDSPEngine::writeOutputBuffers(const int samples)
 // write outputs of root container to ringbuffers
 void MLDSPEngine::clearOutputBuffers()
 {
-	int outs = getNumOutputs();
+	int outs = mOutputChans;
 	for(int i=0; i < outs; ++i)
 	{
 		mOutputBuffers[i]->clear();
@@ -344,26 +337,35 @@ void MLDSPEngine::clearOutputBuffers()
 // read ringbuffers to client output buffers
 void MLDSPEngine::readOutputBuffers(const int samples)
 {
-	int outs = getNumOutputs();
-    int okToRead = true;
+	int outs = mOutputChans;
+	int okToRead = true;
 	for(int i=0; i < outs; ++i)
 	{
 		if(mOutputBuffers[i]->getRemaining() < samples)
-        {
-            okToRead = false;
-            break;
-        }
+		{
+			okToRead = false;
+			break;
+		}
 	}
-    if(okToRead)
-    {
-        for(int i=0; i < outs; ++i)
-        {
-            if (samples != mOutputBuffers[i]->read(mIOMap.outputs[i], samples))
-            {
-                debug() << "MLDSPEngine: output ringbuffer out of data!\n";
-            }
-        }
-    }
+	if(okToRead)
+	{
+		for(int i=0; i < outs; ++i)
+		{
+			if (samples != mOutputBuffers[i]->read(mIOMap.outputs[i], samples))
+			{
+				debug() << "MLDSPEngine: output ringbuffer out of data!\n";
+			}
+		}
+	}
+}
+
+void MLDSPEngine::clearOutputs(int frames)
+{
+	int outs = mOutputChans;
+	for(int i=0; i < outs; ++i)
+	{
+		(mIOMap.outputs[i])[frames] = 0;
+	}
 }
 
 void MLDSPEngine::dump()
@@ -576,109 +578,121 @@ void MLDSPEngine::setCollectStats(bool k)
 // to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
 //
 void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
-{
+{	
 	int sr = getSampleRate();
 	int processed = 0;
 	bool reportStats = false;
 	osc::int64 startTime = 0, endTime = 0;
     MLControlEventVector::const_iterator firstEvent, lastEvent;
-		
-    if (mpHostPhasorProc)
-	{	
-		mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
-	}	
-
-	// count sample interval to collect stats
-	if (mCollectStats)
+	
+	// hack to set (1, 1) config to clear outputs
+	if((mInputChans == 1)&&(mOutputChans == 1))
 	{
-		mStatsCount += frames;
-		const int statsInterval = 1;
-		if (mStatsCount > sr * statsInterval)
-		{	
-			reportStats = true;
-			mStatsCount -= sr * statsInterval;
-		}
+		clearOutputs(frames);
 	}
-
-	writeInputBuffers(frames);
-	mSamplesToProcess += frames;
-
-	// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
-	while(mSamplesToProcess >= mVectorSize)
+	else
 	{
-		readInputBuffers(mVectorSize);
+			
+		if (mpHostPhasorProc)
+		{	
+			mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
+		}	
 
-		if (mpInputToSignalsProc)
+		// count sample interval to collect stats
+		if (mCollectStats)
 		{
-			// send events within time [processed, processed + mVectorSize] to processor
-			mpInputToSignalsProc->clearEvents();
-			for(auto& engineEvent : events)
+			mStatsCount += frames;
+			const int statsInterval = 1;
+			if (mStatsCount > sr * statsInterval)
+			{	
+				reportStats = true;
+				mStatsCount -= sr * statsInterval;
+			}
+		}
+
+		writeInputBuffers(frames);
+		mSamplesToProcess += frames;
+
+		// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
+		while(mSamplesToProcess >= mVectorSize)
+		{
+			readInputBuffers(mVectorSize);
+
+			if (mpInputToSignalsProc)
 			{
-				int t = engineEvent.mTime;
-				if(within(t, processed, processed + mVectorSize))
+				// send events within time [processed, processed + mVectorSize] to processor
+				mpInputToSignalsProc->clearEvents();
+				for(auto& engineEvent : events)
 				{
-					MLControlEvent e = engineEvent;
-					e.mTime -= processed;
-					mpInputToSignalsProc->addEvent(e);
+					int t = engineEvent.mTime;
+					if(within(t, processed, processed + mVectorSize))
+					{
+						MLControlEvent e = engineEvent;
+						e.mTime -= processed;
+						mpInputToSignalsProc->addEvent(e);
+					}
 				}
 			}
-		}
-		
-		// generate volume signal
-		mMasterVolumeSig.fill(mMasterVolume);
-		mMasterVolumeFilter.processSignal(mMasterVolumeSig);
 
-		if (0)// MLTEST (reportStats)
-		{
-			MLSignalStats stats;
-			collectStats(&stats);
-            
-			process(mVectorSize);  // MLProcContainer::process()
-	
-			debug() << "\n";
-			debug() << "processed " << mSampleCount << " samples in " << mCPUTimeCount << " seconds,"
-				<< "vector size " << mVectorSize << ".\n";
-			double uSecsPerSample = mCPUTimeCount / (double)mSampleCount * 1000000.;
-			double maxuSecsPerSample = getInvSampleRate() * 1000000.;
-			double CPUFrac = uSecsPerSample / maxuSecsPerSample;
-			double percent = CPUFrac * 100.;
-			debug() << (int)(mCPUTimeCount / (double)mVectorSize * 1000000.) << " microseconds per sample (";
-			debug() << std::fixed;
-			debug() << std::setprecision(1);
-			debug() << percent << "\%)\n";
-			
-			// clear time and sample counters
-			mCPUTimeCount = 0.;
-			mSampleCount = 0;
-			
-			collectStats(0); // turn off stats collection
-			debug() << "\n";
-			stats.dump();
-			reportStats = false;
-		}
-		else
-		{
-			if (mCollectStats)
-            {
-                startTime = juce::Time::getHighResolutionTicks();
-            }
-			
-			process(mVectorSize);  // MLProcContainer::process()
+			// generate volume signal
+			mMasterVolumeSig.fill(mMasterVolume);
+			mMasterVolumeFilter.processSignal(mMasterVolumeSig);
 
-			if (mCollectStats) 
+			if(0)// MLTEST (reportStats)
 			{
-				endTime = juce::Time::getHighResolutionTicks();
-				mCPUTimeCount += juce::Time::highResolutionTicksToSeconds (endTime - startTime);
-				mSampleCount += mVectorSize;
+				MLSignalStats stats;
+				collectStats(&stats);
+				
+				process(mVectorSize);  // MLProcContainer::process()
+		
+				debug() << "\n";
+				debug() << "processed " << mSampleCount << " samples in " << mCPUTimeCount << " seconds,"
+					<< "vector size " << mVectorSize << ".\n";
+				double uSecsPerSample = mCPUTimeCount / (double)mSampleCount * 1000000.;
+				double maxuSecsPerSample = getInvSampleRate() * 1000000.;
+				double CPUFrac = uSecsPerSample / maxuSecsPerSample;
+				double percent = CPUFrac * 100.;
+				debug() << (int)(mCPUTimeCount / (double)mVectorSize * 1000000.) << " microseconds per sample (";
+				debug() << std::fixed;
+				debug() << std::setprecision(1);
+				debug() << percent << "\%)\n";
+				
+				// clear time and sample counters
+				mCPUTimeCount = 0.;
+				mSampleCount = 0;
+				
+				collectStats(0); // turn off stats collection
+				debug() << "\n";
+				stats.dump();
+				reportStats = false;
 			}
-		}		
-         
-		multiplyOutputBuffersByVolume();
-        writeOutputBuffers(mVectorSize);
-		processed += mVectorSize;
-		mSamplesToProcess -= mVectorSize;
-	}	
-	readOutputBuffers(frames);
+			else
+			{
+				if (mCollectStats)
+				{
+					startTime = juce::Time::getHighResolutionTicks();
+				}
+				
+				// MLProcContainer::process()
+				process(mVectorSize);  
+
+				if (mCollectStats) 
+				{
+					endTime = juce::Time::getHighResolutionTicks();
+					mCPUTimeCount += juce::Time::highResolutionTicksToSeconds (endTime - startTime);
+					mSampleCount += mVectorSize;
+				}
+			}	
+
+			multiplyOutputBuffersByVolume();
+			writeOutputBuffers(mVectorSize);
+			
+			processed += mVectorSize;
+			mSamplesToProcess -= mVectorSize;
+		}	
+		
+		readOutputBuffers(frames);
+	}
 }
 
 

@@ -90,7 +90,6 @@ public:
 	bool hasEditor() const override { return true; }
 	int getNumParameters() override;
 	
-	
     const String getParameterName (int index) override;
 	float getParameter (int index) override;
 
@@ -274,7 +273,6 @@ private:
 	int mVisSendCounter;
 	MLProcList mSequencerList;
 	
-	
 	// visuals out OSC
 	std::unique_ptr<UdpTransmitSocket> mVisualsSocket;
 	std::vector<char> mpOSCVisualsBuf;
@@ -284,15 +282,9 @@ private:
 	// program out OSC
 	void sendProgramChange(int pgm);
 	
-	
 #endif // OSC_PARAMS
-	
 
-	
 	void setSequence(const MLSignal& seq);
-
-public:
-	
 };
 
 #endif  // __PLUGINPROCESSOR__

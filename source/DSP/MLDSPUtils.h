@@ -140,6 +140,8 @@ inline void abs(MLSignal& x)
 inline MLSignal lerp(const MLSignal& b, const MLSignal& c, const MLSignal& m)
 {
 	int frames = b.getWidth();
+	
+	// SETDIMS
 	MLSignal y(frames); 
 	for(int n=0; n<frames; ++n)
 	{
@@ -167,6 +169,8 @@ inline MLSignal lerp(const MLSignal& b, const MLSignal& c, const float m)
 inline MLSignal lerpBipolar(const MLSignal& a, const MLSignal& b, const MLSignal& c, const MLSignal& m)
 {
 	int frames = a.getWidth();
+	
+	// SETDIMS
 	MLSignal y(frames); 
 	for(int n=0; n<frames; ++n)
 	{
@@ -188,6 +192,8 @@ inline MLSignal lerpBipolar(const MLSignal& a, const MLSignal& b, const MLSignal
 inline MLSignal clamp(const MLSignal& a, const float b, const float c)
 {
 	int frames = a.getWidth();
+	
+	// SETDIMS
 	MLSignal y(frames); 
 	for(int n=0; n<frames; ++n)
 	{
@@ -269,6 +275,7 @@ namespace ml
 			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
 			float g2 = (2.0f*s1*s1)*nrm;
 			
+			// SETDIMS
 			return MLSignal{g0, g1, g2};
 		}
 		
@@ -331,6 +338,8 @@ public:
 	inline MLSignal processLopass(const MLSignal& in)
 	{
 		int frames = in.getWidth();
+		
+		// SETDIMS a problem! 
 		MLSignal y(frames); 
 		for(int n=0; n<frames; ++n)
 		{
@@ -838,6 +847,8 @@ public:
 	inline MLSignal operator()(const MLSignal& x)
 	{
 		int frames = x.getWidth();
+		
+		// SETDIMS
 		MLSignal y(frames); 
 		for(int n=0; n<frames; ++n)
 		{
