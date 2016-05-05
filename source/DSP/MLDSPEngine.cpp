@@ -26,8 +26,6 @@ MLDSPEngine::MLDSPEngine() :
 	mSampleCount(0),
 	mCPUTimeCount(0.)
 {
-	std::cout << "MLDSPEngine::MLDSPEngine: compile " << mCompileStatus << "\n";
-	
 #if defined(DEBUG) || (BETA) || (DEMO)
 	//mCollectStats = true;
 #endif
@@ -153,11 +151,11 @@ void MLDSPEngine::compileEngine()
 	if (e != OK)
 	{
 		printErr(e);	
+		mCompileStatus = false;
 	}  
 	else
 	{
 		mCompileStatus = true;
-		std::cout << "MLDSPEngine::compileEngine: compile " << mCompileStatus << "\n";
 	}
 }
 

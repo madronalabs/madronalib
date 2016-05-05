@@ -93,19 +93,13 @@ public:
 	template <typename T>
 	void setProperty(MLSymbol p, T v)
 	{
-		// MLTEST
-		std::cout << "setProperty " << p << " -> " << v << "\n";
 		if(mAllowNewProperties)
 		{
-			std::cout << "new OK\n";
 			mProperties[p].setValue(v);
 			broadcastProperty(p, false);
 		}
 		else
 		{
-
-			std::cout << "new NO\n";
-
 			std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
 			if(it != mProperties.end())
 			{

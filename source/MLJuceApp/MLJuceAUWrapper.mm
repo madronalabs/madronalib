@@ -170,9 +170,6 @@ public:
 	//==============================================================================
 	ComponentResult Initialize() override
 	{
-		
-		printf("MLJuceAUWrapper::Initialize()\n");
-		
 		ComponentResult err;
 		PluginBusUtilities::ScopedBusRestorer restorer (busUtils);
 		
@@ -415,9 +412,6 @@ public:
 								 AudioUnitElement inElement,
 								 void* outData) override
 	{
-
-printf("JuceAU::GetProperty\n"); // MLTEST
-
 		if (inScope == kAudioUnitScope_Global)
 		{
 			switch (inID)
@@ -572,9 +566,6 @@ printf("JuceAU::GetProperty\n"); // MLTEST
 								 const void* inData,
 								 UInt32 inDataSize) override
 	{
-
-		printf("JuceAU::SetProperty\n");
-		   
 		if (inScope == kAudioUnitScope_Global)
 		{
 			switch (inID)
@@ -970,7 +961,7 @@ ComponentResult GetParameterInfo (AudioUnitScope inScope,
 		outParameterInfo.minValue = paramPtr->getRangeLo();
 		outParameterInfo.maxValue = paramPtr->getRangeHi();
 		outParameterInfo.defaultValue = paramPtr->getDefault();
-		outParameterInfo.unit = paramPtr->getUnit(); // unimplemented
+		outParameterInfo.unit = kAudioUnitParameterUnit_Generic; 
 		
 		if (paramPtr->getWarpMode() == kJucePluginParam_Exp)
 		{
@@ -1016,9 +1007,6 @@ ComponentResult GetParameter (AudioUnitParameterID inID,
 	if (inScope == kAudioUnitScope_Global && juceFilter != nullptr)
 	{
 		outValue = juceFilter->getParameter ((int) inID);
-
-		std::cout << "getParameter: " << inID << " = " << outValue << "\n";
-
 		return noErr;
 	}
 	

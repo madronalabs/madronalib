@@ -334,8 +334,6 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 	MLProc::err prepareErr;
 	MLProc::err r = preflight();
 	
-	printf ("MLPluginProcessor::prepareToPlay\n"); // MLTEST
-	
 	if (!mpPluginDoc.get()) return;
 	
 	if (r == MLProc::OK)
@@ -370,24 +368,6 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		//theSymbolTable().dump();
 #endif
 
-		/*
-		// compile: schedule graph of processors , setup connections, allocate buffers
-		bool compiled = mEngine.getCompileStatus();
-		
-		std::cout << "    compiled? " << compiled << "\n";
-		
-		if (!compiled)
-		{
-			std::cout << ("MLPluginProcessor::COMPILING\n"); // MLTEST
-			mEngine.compileEngine();
-		}
-		else
-		{
-			debug() << "compile OK.\n";
-		}
-*/
-		
-		
 		// prepare to play: resize and clear processors
 		prepareErr = mEngine.prepareEngine(sr, bufSize, chunkSize);
 		if (prepareErr != MLProc::OK)
@@ -398,29 +378,23 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// after prepare to play, set state from saved blob if one exists
 		int blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
-		{
-			
-			std::cout << "LOADING saved blob : size " << blobSize << " \n";
-
+		{			
 			setPatchAndEnvStatesFromBinary (mSavedBinaryState.getData(), blobSize);
 			mSavedBinaryState.setSize(0);
-
-			int newBlobSize = mSavedBinaryState.getSize();
-			
-				std::cout << "CLEARED saved blob : size " << newBlobSize << " \n";
-		
 		}
+		
+		/*
 		else 
 		{
 			mEngine.clear();
 			if (!mHasParametersSet)
-			{
-				
+			{				
 				std::cout << "LOADING default preset \n";
 				
 				loadDefaultPreset();
 			}
-		}		
+		}	*/
+		
 		
 		// after setting state, initialize processor
 		if(!mInitialized)
@@ -437,8 +411,6 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 
 void MLPluginProcessor::reset()
 {
-	std::cout << "\nRESET FILTER\n"; // MLTEST
-	
 	const juce::ScopedLock sl (getCallbackLock());
 	mEngine.clear();
 }
@@ -757,8 +729,6 @@ float MLPluginProcessor::getParameter (int index)
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
-	printf ("MLPluginProcessor::setParameter\n"); // MLTEST
-	
 	if (!within(index, 0, getNumParameters())) return;
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;

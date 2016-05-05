@@ -670,7 +670,7 @@ class MLSineOsc
 {
 public:
     static const float kIntDomain, kRootX, kOneSixth, kRange, kDomain, kScale, kDomainScale, kPhaseInvScale, kFlipOffset;
-    MLSineOsc() : mStep32(0), mOmega32(0) { }
+    MLSineOsc() : mOmega32(0), mStep32(0) { }
     ~MLSineOsc(){}
     
     inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }

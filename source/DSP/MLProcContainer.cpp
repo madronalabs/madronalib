@@ -917,13 +917,6 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 		// leading to possible crash. 
 		int ins = mPublishedInputs.size();  
 		
-		// MLTEST
-		if(!idx)
-		{
-			debug() << "WHOA idx = 0 in " << getName() << " setInput \n"; 
-			dumpGraph(0);
-		}
-		
 		if (idx <= ins)
 		{
 			MLPublishedInputPtr input = mPublishedInputs[idx-1];
