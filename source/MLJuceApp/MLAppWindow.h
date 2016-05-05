@@ -28,18 +28,18 @@ public:
     void setUsingOpenGL(bool);
 
 private:
- 	ComponentDragger myDragger;
-	
-	int mGridUnitsX;
-	int mGridUnitsY;
-	
-	std::unique_ptr<MLAppBorder> mpBorder;
-	MLAppView* mpAppView;
+ 	MLAppView* mpAppView;
     MLBoundsConstrainer* mpConstrainer;
-	bool mUsingGL;
+
+	// the command manager object used to dispatch command events
+	ApplicationCommandManager commandManager;
 	
-    // the command manager object used to dispatch command events
-    ApplicationCommandManager commandManager;
+	ComponentDragger myDragger;	
+	std::unique_ptr<MLAppBorder> mpBorder;
+
+	int mGridUnitsX;
+	int mGridUnitsY;	
+	bool mUsingGL;
 
 #if GLX
     juce::OpenGLContext openGLContext;

@@ -20,9 +20,9 @@ public:
 	MLProcDelayInput();
 	~MLProcDelayInput();
 	
-	err resize();
-	void clear();
-	void process(const int n);		
+	err resize() override;
+	void clear() override;
+	void process(const int frames) override;		
 	
 	int read(MLSample* pOut, int samples);
 	int readToOutputSignal(const int samples);
@@ -32,7 +32,7 @@ public:
 	uintptr_t mWriteIndex;
 	uintptr_t mLengthMask;
 
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProcInfoBase& procInfo() override { return mInfo; }
 private:
 	MLProcInfo<MLProcDelayInput> mInfo;
 

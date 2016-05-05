@@ -7,9 +7,9 @@
 #include "MLDebug.h"
 
 MLWidget::MLWidget() :
+	MLPropertyListener(this),
 	pComponent(nullptr),
 	mpContainer(nullptr),
-	MLPropertyListener(this),
 	mSize(1.f),
 	mGridBounds(),
 	mGridUnitSize(0),

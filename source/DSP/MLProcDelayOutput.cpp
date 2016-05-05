@@ -16,11 +16,11 @@ public:
 	 MLProcDelayOutput();
 	~MLProcDelayOutput();
 	
-	void clear();
-	err resize();
-	void process(const int n);		
+	void clear() override;
+	err resize() override;
+	void process(const int frames) override;		
 	
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProcInfoBase& procInfo() override { return mInfo; }
 private:
 	MLProcInfo<MLProcDelayOutput> mInfo;
 	

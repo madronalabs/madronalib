@@ -19,16 +19,15 @@ public:
 	MLProcMatrix();
 	~MLProcMatrix();
 	
-	MLProc::err resize();
+	MLProc::err resize() override;
 	void clearConnections();
 	void connect(int a, int b);
 	void disconnect(int a, int b);
 	bool getConnection(int a, int b);
 
-	void clear(){};
-	void process(const int frames);		
+	void process(const int frames) override;		
 	void calcCoeffs();
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcMatrix> mInfo;

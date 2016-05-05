@@ -311,8 +311,8 @@ public:
 	virtual err resize() { return OK; }		
 	virtual err prepareToProcess();
     
-    // the process method.
-    virtual void process(const int n) = 0;	
+    // the process method. One is needed!
+    virtual void process(const int frames) = 0;	
 
 	// clearProc() is called by engine, procs override clear() to clear histories. 
 	void clearProc();	 
@@ -367,6 +367,7 @@ public:
 	
 	// get and set parameters
 	virtual void setParam(const MLSymbol p, const MLProperty& val);
+	
 	virtual MLParamValue getParam(const MLSymbol p);
 	virtual const std::string& getStringParam(const MLSymbol p);
 	virtual const MLSignal& getSignalParam(const MLSymbol p);

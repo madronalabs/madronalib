@@ -43,23 +43,26 @@ public:
 	~MLMultiProc();
 	
 	// masquerade as instance of template class
-	MLProcInfoBase& procInfo(); 
+	MLProcInfoBase& procInfo() override;
 	
-	void process(const int n);		
-	err prepareToProcess();	
-	void clear();
+	void process(const int frames) override;		
+	err prepareToProcess() override;	
+	
+	void clear() override;
+	void clearInputs() override;
+	void clearInput(int i) override;	 
 	void clearProc();
-	void clearInputs();
-	void clearInput(int i);	 
-	MLProc::err setInput(const int idx, const MLSignal& srcSig);	
+
+	MLProc::err setInput(const int idx, const MLSignal& srcSig) override;	
 	
-	void setParam(const MLSymbol p, MLParamValue v);	
-	int getInputIndex(const MLSymbol name);
-	int getOutputIndex(const MLSymbol name);		
-	void createInput(const int idx);		
-	void resizeInputs(const int n);
-	void resizeOutputs(const int n);
-	void dumpProc(int indent);
+	void setParam(const MLSymbol p, const MLProperty& val) override;	
+	
+	int getInputIndex(const MLSymbol name) override;
+	int getOutputIndex(const MLSymbol name) override;		
+	void createInput(const int idx) override;		
+	void resizeInputs(const int n) override;
+	void resizeOutputs(const int n) override;
+	void dumpProc(int indent) override;
 	
 private:
 	MLProcInfo<MLMultiProc> mInfo; //  unused except for errors
@@ -76,70 +79,70 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark MLDSPContext methods
 
-	void setEnabled(bool t);
-	bool isEnabled() const;
-	bool isProcEnabled(const MLProc* p) const;
+	void setEnabled(bool t) override;
+	bool isEnabled() const override;
+	bool isProcEnabled(const MLProc* p) const override;
 	
 	// ----------------------------------------------------------------
 	#pragma mark -
 
-	void setup();		
+	void setup() override;		
 
-	void collectStats(MLSignalStats* pStats);
-	void process(const int n);		
-	err prepareToProcess();	
-	void clear();
+	void collectStats(MLSignalStats* pStats) override;
+	void process(const int frames) override;		
+	err prepareToProcess() override;	
+	void clear() override;
 
 	// not in ContainerBase because this is a virtual method of MLProc.
-	bool isContainer(void) { return true; }
+	bool isContainer(void) override { return true; }
 
 	// masquerade as instance of template class
-	MLProcInfoBase& procInfo(); 
+	MLProcInfoBase& procInfo() override; 
 	
 	// ----------------------------------------------------------------
 	#pragma mark graph creation
-	//
-	bool isMultiple(void) { return true; }
 
+	
+	MLProc::err setInput(const int idx, const MLSignal& srcSig) override;	
+	
+	void setParam(const MLSymbol p, const MLProperty& val) override;	
+	
 	//
-	MLProc::err setInput(const int idx, const MLSignal& srcSig);	
-	void setParam(const MLSymbol p, MLParamValue v);	
+	int getInputIndex(const MLSymbol name) override;
+	int getOutputIndex(const MLSymbol name) override;		
 	//
-	int getInputIndex(const MLSymbol name);
-	int getOutputIndex(const MLSymbol name);		
-	//
-	void resizeInputs(const int n);
-	void resizeOutputs(const int n);
+	void resizeInputs(const int n) override;
+	void resizeOutputs(const int n) override;
 
-	MLProcPtr newProc(const MLSymbol className, const MLSymbol procName);
-	MLProcPtr getProc(const MLPath & pathName); 
-	void addPipe(const MLPath& src, const MLSymbol output, const MLPath& dest, const MLSymbol input);
-	MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi);
+	MLProcPtr newProc(const MLSymbol className, const MLSymbol procName) override;
+	MLProcPtr getProc(const MLPath & pathName) override; 
+	void addPipe(const MLPath& src, const MLSymbol output, const MLPath& dest, const MLSymbol input) override;
+	MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi) override;
 	// ----------------------------------------------------------------
 	#pragma mark I/O
 	//
-	void publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias);
-	void publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias);	
-	MLSymbol getOutputName(int index);
+	void publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias) override;
+	void publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias) override;	
+	MLSymbol getOutputName(int index) override;
 	//
 	// ----------------------------------------------------------------
 	#pragma mark signals
 	//
 	// methods of MLContainerBase
 	MLProc::err addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-		const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1);
-	void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers);
+		const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1) override;
+	void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers) override;
 	
 	//
-	MLProc::err buildProc(juce::XmlElement* parent);
-	void dumpGraph(int indent);	
-	void setProcParams(const MLPath& procName, juce::XmlElement* pelem);
-	MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type);
-	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param);
-	void setPublishedParam(int index, const MLProperty& val);
-	void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val);
+	MLProc::err buildProc(juce::XmlElement* parent) override;
+	void dumpGraph(int indent) override;	
+	void setProcParams(const MLPath& procName, juce::XmlElement* pelem) override;
+	MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type) override;
+	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param) override;
+	void setPublishedParam(int index, const MLProperty& val) override;
+	void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val) override;
 	//
-	void compile();
+	void compile() override;
 
 private:
 	MLProcInfo<MLMultiContainer> mInfo; //  unused except for errors

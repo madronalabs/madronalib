@@ -725,13 +725,10 @@ MLProc::err MLProcContainer::prepareToProcess()
 		{
 			// leave output alone if marked timeless
 			MLSignal& y = getOutput(i);
-			if(&(y) != nullptr) // should be impossible, but happens with bad graphs
+			if (y.getRate() != kMLTimeless)
 			{
-				if (y.getRate() != kMLTimeless)
-				{
-					y.setDims(containerSize);
-					y.setRate(containerRate);
-				}
+				y.setDims(containerSize);
+				y.setRate(containerRate);
 			}
 		}	
 		

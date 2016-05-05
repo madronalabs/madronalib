@@ -8,15 +8,15 @@
 #pragma mark MLAppWindow
 
 MLAppWindow::MLAppWindow() :
-	mpAppView(0),
 	DocumentWindow (MLProjectInfo::projectName,
 	  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
 	  DocumentWindow::allButtons,
 	  true),
+	mpAppView(0),
 	mpConstrainer(0),
-	mUsingGL(false),
 	mGridUnitsX(0.),
-	mGridUnitsY(0.)
+	mGridUnitsY(0.),
+	mUsingGL(false)
 {
     setResizable(true, false);
 	setResizeLimits (400, 300, 8192, 8192);

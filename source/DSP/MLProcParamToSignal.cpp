@@ -16,11 +16,10 @@ public:
 	MLProcParamToSignal();
 	~MLProcParamToSignal();
 
-	err resize();
+	err resize() override;
 
-	void clear(){};
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcParamToSignal> mInfo;

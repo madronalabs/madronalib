@@ -17,10 +17,10 @@ const char* kUDPAddressName = "localhost";
 MLPluginProcessor::MLPluginProcessor() : 
 	mInputProtocol(-1),
 	mMLListener(0),
+	mHasParametersSet(false),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
-	mInitialized(false),
-	mHasParametersSet(false)
+	mInitialized(false)
 {
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();

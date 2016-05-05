@@ -24,12 +24,12 @@ public:
 	~MLProcMultiple();
 	
 	void doParams();		
-	void process(const int samples);
+	void process(const int frames) override;
 
-	MLProc::err addProc(const MLSymbol className, const MLSymbol procName);
-	MLProcPtr getProc(const MLPath & pathName);
+	MLProc::err addProc(const MLSymbol className, const MLSymbol procName) override;
+	MLProcPtr getProc(const MLPath & pathName) override;
 	
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProcInfoBase& procInfo() override { return mInfo; }
 protected:	
  	MLProcInfo<MLProcMultiple> mInfo;	
 };

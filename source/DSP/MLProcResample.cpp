@@ -386,11 +386,12 @@ public:
 	MLProcResample();
 	~MLProcResample();
 	
-	void setup();
-	MLProc::err resize();
-	void clear();
-	void process(const int frames);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void setup() override;
+	MLProc::err resize() override;
+	void clear() override;
+	
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcResample> mInfo;

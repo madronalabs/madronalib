@@ -14,9 +14,9 @@ public:
     MLProcTestTone();
 	~MLProcTestTone();
 	
-	void clear();
-	void process(const int n);
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void clear() override;
+	void process(const int frames) override;
+	MLProcInfoBase& procInfo() override { return mInfo; }
     
 private:
 	MLProcInfo<MLProcTestTone> mInfo;

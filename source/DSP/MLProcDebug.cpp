@@ -31,10 +31,9 @@ public:
 	MLProcDebug();
 	~MLProcDebug();
 
-	void clear(){};
 	void doParams();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcDebug> mInfo;

@@ -64,7 +64,7 @@ public:
     ~MLPluginProcessor();
 
 	// MLModel implementation
-	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal) override;
 	
 	// juce::AudioProcessor
 	const String getName() const override { return MLProjectInfo::projectName; }
@@ -100,14 +100,14 @@ public:
 	bool isParameterAutomatable (int idx) const override;
 	
 	// factory presets - a VST concept - TODO
-    int getNumPrograms() { return 1; }
-    int getCurrentProgram() { return 1; }
-    void setCurrentProgram (int) { }
-    const String getProgramName (int) { return String::empty; }
-    void changeProgramName (int, const String&) { }
+    int getNumPrograms() override { return 1; }
+    int getCurrentProgram() override { return 1; }
+    void setCurrentProgram (int) override { }
+    const String getProgramName (int) override { return String::empty; }
+    void changeProgramName (int, const String&) override { }
 	
-	void getStateInformation (juce::MemoryBlock& destData);
-    void setStateInformation (const void* data, int sizeInBytes);
+	void getStateInformation (juce::MemoryBlock& destData) override;
+    void setStateInformation (const void* data, int sizeInBytes) override;
 	
     void editorResized(int w, int h);
     
@@ -129,7 +129,7 @@ public:
 	
 	// MLT3DHub::Listener
 #if ML_MAC
-	void handleHubNotification(MLSymbol action, const MLProperty val);
+	void handleHubNotification(MLSymbol action, const MLProperty val) override;
 #endif
 	
 	void setCollectStats(bool k);

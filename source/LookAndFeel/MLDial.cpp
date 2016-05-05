@@ -33,6 +33,11 @@ MLDial::MLDial () :
 	isMouseDown(false),
 	isMouseWheelMoving(false),
 	//
+	mWarpMode (kJucePluginParam_Linear),
+	mZeroThreshold(0. - (2<<16)),
+	mTopLeft(false),
+	mDrawThumb(true),
+
 	mLastDragTime(0), mLastWheelTime(0),
 	mLastDragX(0), mLastDragY(0),
 	mFilteredMouseSpeed(0.),
@@ -55,13 +60,9 @@ MLDial::MLDial () :
     scrollWheelEnabled (true),
     snapsToMousePos (true),
 	//
+	//
 	mHilightColor(Colours::white),
 	//
-	mWarpMode (kJucePluginParam_Linear),
-	mZeroThreshold(0. - (2<<16)),
-	mTopLeft(false),
-	mDrawThumb(true),
-
 	mDoSign(false),
 	mDoNumber(true),
 	mDigits(3), mPrecision(2),

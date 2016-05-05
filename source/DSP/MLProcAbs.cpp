@@ -11,8 +11,8 @@
 class MLProcAbs : public MLProc
 {
 public:
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcAbs> mInfo;

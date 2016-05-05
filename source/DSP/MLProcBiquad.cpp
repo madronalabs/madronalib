@@ -16,10 +16,10 @@ public:
 	 MLProcBiquad();
 	~MLProcBiquad();
 	
-	err resize();
-	void clear();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	err resize() override;
+	void clear() override;
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	typedef enum 

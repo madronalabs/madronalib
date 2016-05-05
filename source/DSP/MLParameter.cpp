@@ -11,8 +11,8 @@
 MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
 	mPublishedAlias(alias),
 	mIndex(idx),
-	mAutomatable(true),
-	mFlip(false)
+	mFlip(false),
+	mAutomatable(true)
 {
 	setRange(0.f, 1.f, 0.01f, false, 0.f, 0.f);
 	mUnit = kJucePluginParam_Generic;

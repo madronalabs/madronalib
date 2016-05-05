@@ -16,9 +16,9 @@ public:
 	MLProcConstant();
 	~MLProcConstant();
 
-	err prepareToProcess();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	err prepareToProcess() override;
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcConstant> mInfo;

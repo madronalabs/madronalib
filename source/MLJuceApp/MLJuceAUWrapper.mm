@@ -683,7 +683,7 @@ ComponentResult RestoreState (CFPropertyListRef inData) override
 // this code ended up in here because of access to AUBase::RestoreState().  There may be other issues.
 // TODO look at moving this to MLJuceFilesMac.
 
-void loadFile(const File& f)
+void loadFile(const File& f) override
 {
 	String juceName = f.getFullPathName();
 	const char* fileStr = juceName.toUTF8();
@@ -737,7 +737,7 @@ void loadFile(const File& f)
 	CFRelease( fileURL );
 }
 
-void saveToFile(const File& f)
+void saveToFile(const File& f) override
 {
 	String juceName = f.getFullPathName();
 	const char* fileStr = juceName.toUTF8();

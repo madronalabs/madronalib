@@ -14,12 +14,12 @@ public:
 	 MLProcSVF();
 	~MLProcSVF();
 	
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcSVF> mInfo;
-	void clear(void);
+	void clear() override;
 	MLSample mInState;
 	MLSample mLoState;
 	MLSample mBandState;
