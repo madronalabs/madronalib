@@ -1208,17 +1208,6 @@ namespace ml
 			return (*pf)*2.f - 3.f;			
 		}
 		
-		// TODO DSPVector operator()()
-		inline DSPVector operator()()
-		{
-			DSPVector y;
-			for(int i=0; i<kDSPVectorSizeFloat; ++i)
-			{
-				y[i] = getSample();
-			}
-			return y;
-		}
-		
 		void reset() { mSeed = 0; }
 		
 	private:
