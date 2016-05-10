@@ -51,7 +51,7 @@ int main()
 //	f = map( [](DSPVector v, int row){ return v*row; }, f );
 // 	f = row( DSPVectorArray<4>() ) * repeat<4>(index()) ;
 	
-	constexpr int iters = 100;
+//	constexpr int iters = 100;
 	
 //	auto doFDNVector = [&](){ return map([](DSPVector v, int row){ return sin(rangeClosed(0 + row*kPi/2, kPi + row*kPi/2)); }, DSPVectorArray<ROWS>() ); } ;	
 //	auto doFDNVector = [&](){ return rowIndex( DSPVectorArray<ROWS>() ); } ;
@@ -63,10 +63,11 @@ int main()
 	std::cout << qq << "\n";
 	
 	
-	/*
+	
 	// ----------------------------------------------------------------
 	// time FDN: scalars
 	int iters = 100;
+	float sr = 44100.f;
 
 	FDN fdn({69, 70, 71, 72});
 	
@@ -88,6 +89,6 @@ int main()
 	auto fdnTimeVector = timeIterations< DSPVectorArray<2> >(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
-	 */
+	 
 }
 

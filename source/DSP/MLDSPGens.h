@@ -47,16 +47,6 @@ namespace ml
 		{
 			mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
 		}
-
-		inline float getSample()
-		{
-			step();
-			uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
-			temp &= 0x007FFFFF;
-			temp |= 0x3F800000;
-			float* pf = reinterpret_cast<float*>(&temp);
-			return (*pf)*2.f - 3.f;			
-		}
 		
 		inline uint32_t getIntSample()
 		{
@@ -69,7 +59,12 @@ namespace ml
 			DSPVector y;
 			for(int i=0; i<kFloatsPerDSPVector; ++i)
 			{
-				y[i] = getSample();
+				step();
+				uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
+				temp &= 0x007FFFFF;
+				temp |= 0x3F800000;
+				float* pf = reinterpret_cast<float*>(&temp);
+				y[i] = (*pf)*2.f - 3.f;		
 			}
 			return y;
 		}

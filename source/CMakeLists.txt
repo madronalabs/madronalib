@@ -15,7 +15,6 @@ if(BUILD_NEW_ONLY)
    set(madronalib_SOURCES
     DSP/MLDSP.cpp
     DSP/MLDSP.h
-    DSP/MLDSPOps.cpp
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
@@ -41,7 +40,6 @@ else(BUILD_NEW_ONLY)
   set(madronalib_SOURCES
     DSP/MLDSP.cpp
     DSP/MLDSP.h
-    DSP/MLDSPOps.cpp
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
