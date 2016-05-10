@@ -77,13 +77,9 @@ void MLProcDCBlocker::process(const int frames)
 
 	for (int n = 0; n < frames; ++n)
 	{
-		// MLTEST
-		y[n] = x[n];
-
-
-	//	y[n] = x[n] - xn1 + mR*yn1;
-	//	xn1 = x[n];
-	//	yn1 = y[n];
+		y[n] = x[n] - xn1 + mR*yn1;
+		xn1 = x[n];
+		yn1 = y[n];
 	}
 }
 
