@@ -102,14 +102,13 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	// this default comparison is not case sensitive: case/B and case/b are addresses of the same node. 
 	// with a MLResourceMap< MLSymbol, int, std::less<MLSymbol> > , the order of map depends on 
 	// the sorted order of symbols, which is just their creation order.
-	MLSymbol h("this");
-	MLSymbol t("case");	
 	MLResourceMap< MLSymbol, int > a;
 
-	a.addValue("case/sensitive/a", 1);
-	a.addValue("case/sensitive/b", 1);
-	a.addValue("case/sensitive/c", 1);
-	a.addValue("case/sensitive/B", 1); 
+	a.addNode("zzx");
+	a.addValue("case/insensitive/a", 1);
+	a.addValue("case/insensitive/b", 1);
+	a.addValue("case/insensitive/c", 1);
+	a.addValue("case/insensitive/B", 1); 
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
 	a.addNode("this/was/another");
@@ -132,6 +131,19 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	}
 	REQUIRE(leafSum == correctLeafSum);
 	
+	// simple tree dump:
+	if(0)
+	for(auto it = a.begin(); it != a.end(); it++)
+	{
+		if(it.nodeHasValue())
+		{		
+			std::cout << stringUtils::spaceStr(it.getDepth()) << it.getLeafName() << " " << it->getValue() << "\n";
+		}
+		else
+		{
+			std::cout << stringUtils::spaceStr(it.getDepth()) << it.getLeafName() << "\n";
+		}
+	}
 }
 
 

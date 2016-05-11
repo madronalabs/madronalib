@@ -321,7 +321,7 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	const char* fedor("\xD0\xA4\xD0\xB5\xD0\xB4\xD0\xBE\xD1\x80");
 	const char* kobayashi("\xE5\xB0\x8F\xE6\x9E\x97\x20\xE5\xB0\x8A");
 	const char* muhammad("\xD9\x85\xD8\xAD\xD9\x85\xD8\xAF\x20\xD8\xA8\xD9\x86\x20\xD8\xB3\xD8\xB9\xD9\x8A\xD8\xAF");
-	std::vector< std::string > strings = { fedor, kobayashi, muhammad};
+	std::vector< std::string > strings = { fedor, kobayashi, muhammad };
 #endif	
 	
 	for(auto testString : strings)
