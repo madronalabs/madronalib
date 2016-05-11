@@ -16,13 +16,7 @@
 #include "MLDSPConstants.h"
 
 namespace ml
-{			
-	// this template is not specialized for false, which will generate a
-	// compile-time error if STATIC_CHECK(expr) is not true.
-	template<bool> struct CompileTimeError;
-	template<> struct CompileTimeError<true> {}; 	
-	#define STATIC_CHECK(expr)  (CompileTimeError<(expr) != 0>())
-	
+{				
 	template<int VECTORS>
 	class DSPVectorArray
 	{
@@ -116,7 +110,7 @@ namespace ml
 		template<int J>
 		inline DSPVectorArray<1> getRowVector() const
 		{
-			STATIC_CHECK((J >= 0) && (J < VECTORS)); 
+			static_assert((J >= 0) && (J < VECTORS), "getRowVector index out of bounds"); 
 			return getRowVectorUnchecked(J);
 		}		
 		
@@ -124,7 +118,7 @@ namespace ml
 		template<int J>
 		inline void setRowVector(DSPVectorArray<1> x1)
 		{
-			STATIC_CHECK((J >= 0) && (J < VECTORS));
+			static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
 			setRowVectorUnchecked(J, x1);
 		}
 				

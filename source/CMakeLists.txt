@@ -20,6 +20,10 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSPGens.h
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
+    DSP/MLDSPMath.h
+    DSP/MLDSPMathScalar.h
+    DSP/MLDSPMathSSE.h
+    DSP/MLDSPMathNEON.h
     core/MLLocks.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp

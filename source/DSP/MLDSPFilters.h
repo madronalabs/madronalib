@@ -207,6 +207,11 @@ namespace ml
 		uintptr_t mWriteIndex;
 		uintptr_t mLengthMask;
 	};
+	
+	
+	// TODO crossfading allpass delay as described at ICMC97 by Van Duyne et al
+	// class AllpassDelay
+	
 	 
 	// ----------------------------------------------------------------
 	#pragma mark FDN
@@ -229,6 +234,7 @@ namespace ml
 
 		void clear();
 		
+		// stereo output
 		DSPVectorArray<2> operator()(DSPVector x);
 		
 	private:
