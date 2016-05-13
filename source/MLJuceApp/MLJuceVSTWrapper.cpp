@@ -130,6 +130,7 @@ namespace juce
 #endif
 }
 
+#include "MLPluginProcessor.h" 
 
 //==============================================================================
 #if JUCE_WINDOWS
@@ -837,25 +838,33 @@ public:
 		return false;
 	}
 	
+	// ----------------------------------------------------------------
+	// ML
 	//==============================================================================
 	float getParameter (VstInt32 index) override
 	{
 		if (filter == nullptr)
 			return 0.0f;
 		
+		MLPluginProcessor* MLFilter = static_cast<MLPluginProcessor*>(filter);
+		
 		jassert (isPositiveAndBelow (index, filter->getNumParameters()));
-		return filter->getParameter (index);
+		return MLFilter->getParameterAsLinearProportion (index);
 	}
 	
 	void setParameter (VstInt32 index, float value) override
 	{
 		if (filter != nullptr)
 		{
+			MLPluginProcessor* MLFilter = static_cast<MLPluginProcessor*>(filter);
 			jassert (isPositiveAndBelow (index, filter->getNumParameters()));
-			filter->setParameter (index, value);
+			MLFilter->setParameterAsLinearProportion (index, value);
 		}
 	}
 	
+	// ML
+	// ----------------------------------------------------------------
+
 	void getParameterDisplay (VstInt32 index, char* text) override
 	{
 		if (filter != nullptr)

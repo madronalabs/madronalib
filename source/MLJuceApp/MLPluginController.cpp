@@ -103,17 +103,19 @@ void MLPluginController::initialize()
 }
 
 void MLPluginController::timerCallback()
-{
-    const int lessFrequentThingsDivision = 8;
+{	
+	const int lessFrequentThingsDivision = 8;
     mClockDivider++;
 	fetchChangedProperties();
     
+#if DEBUG	
 	if(mClockDivider > lessFrequentThingsDivision)
     {
         // do less frequent things (unused)
 		debug().display();
         mClockDivider = 0;
     }
+#endif
 	
 	if(getView())
 		viewSignals();
