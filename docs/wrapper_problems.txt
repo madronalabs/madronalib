@@ -1,0 +1,75 @@
+   
+	To make MLJuceVSTwrapper.cpp, replace these two JUCE methods with these:
+
+
+    // ----------------------------------------------------------------
+	// ML
+    //==============================================================================
+    float getParameter (VstInt32 index)
+    {
+        if (filter == nullptr)
+            return 0.0f;
+        
+		MLPluginProcessor* MLFilter = static_cast<MLPluginProcessor*>(filter);
+        
+        jassert (isPositiveAndBelow (index, filter->getNumParameters()));
+        return MLFilter->getParameterAsLinearProportion (index);
+    }
+    
+    void setParameter (VstInt32 index, float value)
+    {
+        if (filter != nullptr)
+        {
+			MLPluginProcessor* MLFilter = static_cast<MLPluginProcessor*>(filter);
+            jassert (isPositiveAndBelow (index, filter->getNumParameters()));
+            MLFilter->setParameterAsLinearProportion (index, value);
+        }
+    }
+    
+	// ML
+	// ----------------------------------------------------------------
+
+and add the line #include "MLPluginProcessor.h" just after the first "namespace juce" block.
+
+
+
+
+    Misc. problem notes:
+
+
+    problem: Unknown type name HIViewRef in MLJuceVSTWrapper.mm
+    trying:
+        #define JUCE_SUPPORT_CARBON 1 in AppConfig.h
+        (but see below)
+    result: 
+        solved
+
+    problem:
+        /Users/rej/Dev/juce/modules/juce_audio_plugin_client/utility/juce_CarbonVisibility.h:59:5: Use of undeclared identifier 'GetWindowEventTarget'
+    notes:
+        GetWindowEventTarget is defined in CarbonEvents.h
+        error came from MLJuceVSTWrapper.mm
+    trying:
+        edit AppConfig.h to include
+        ------
+        #ifdef __LP64__
+            #define JUCE_SUPPORT_CARBON 0
+        #else
+            #define JUCE_SUPPORT_CARBON 1
+        #endif
+        -------
+    result:
+        solved
+
+
+categories of Juce things we are using:
+
+Windows -> GLFW
+Event handling -> GLFW, MLWidgets
+GUI drawing -> GLFW, MLWidgets
+Timing / callbacks -> std::chrono
+threads -> std::thread
+Files -> MLFile
+VST / AU wrapper -> symbiosis
+
+
