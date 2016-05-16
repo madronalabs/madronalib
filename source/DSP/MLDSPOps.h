@@ -121,6 +121,16 @@ namespace ml
 			static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
 			setRowVectorUnchecked(J, x1);
 		}
+		
+		// return a pointer to the first element in row J of this DSPVectorArray.
+		template<int J>
+		inline const float* getRowDataConst() const
+		{
+			static_assert((J >= 0) && (J < VECTORS), "getRowDataConst row index out of bounds"); 
+			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*J;
+			return py1;
+		}		
+		
 				
 		inline DSPVectorArray& operator+=(DSPVectorArray x1){*this = add(*this, x1); return *this;}
 		inline DSPVectorArray& operator-=(DSPVectorArray x1){*this = subtract(*this, x1); return *this;}
