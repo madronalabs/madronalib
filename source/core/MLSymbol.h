@@ -8,6 +8,7 @@
 // requirements
 // ---------
 //
+// Symbols are immutable.
 // The value of an MLSymbol must remain valid even after more MLSymbols are created.  
 // This allows MLSymbols to function as correct keys.
 //
@@ -162,18 +163,21 @@ public:
 	
 	bool beginsWith (const MLSymbol b) const;
 	bool endsWith (const MLSymbol b) const;
-	MLSymbol append(const std::string& b) const;
 	bool hasWildCard() const;
+	
+	int getFinalNumber() const;	
+	int compare(const char *str) const;
+	
+	// TODO make free functions
+	MLSymbol append(const std::string& b) const;
 	MLSymbol withWildCardNumber(int n) const;
 	MLSymbol withFinalNumber(int n) const;
 	MLSymbol withoutFinalNumber() const;
-	int getFinalNumber() const;	
-	int compare(const char *str) const;
 	
 private:
 	
 	// the ID equals the order in which the symbol was created.
-	int mID;
+	const int mID;
 };
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);

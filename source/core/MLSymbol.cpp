@@ -298,19 +298,16 @@ int MLSymbolTable::audit()
 
 #pragma mark MLSymbol
 
-MLSymbol::MLSymbol()
+MLSymbol::MLSymbol() : mID(0)
 {
-	mID = 0;
 }
 
-MLSymbol::MLSymbol(const char *sym)
+MLSymbol::MLSymbol(const char *sym) : mID(theSymbolTable().getSymbolID(sym))
 {
-	mID = theSymbolTable().getSymbolID(sym);
 }
 
-MLSymbol::MLSymbol(const std::string& str)
+MLSymbol::MLSymbol(const std::string& str) : mID(theSymbolTable().getSymbolID(str.c_str()))
 {
-	mID = theSymbolTable().getSymbolID(str.c_str());
 }
 
 // return a reference to the symbol's string in the table.
