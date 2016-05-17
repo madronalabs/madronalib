@@ -35,7 +35,7 @@ namespace ml
 		
 		inline MLSignal raisedCosine(int size, int divisions = 1)
 		{
-			auto f = [&](int i){ float x = fabs(unityRange(size, i)*divisions); return 0.5f*(cosf(x*kPi) + 1.0f); };
+			auto f = [&](int i){ float x = fabs(unityRange(size, i)*divisions); return x < 1 ? (0.5f*(cosf(x*kPi) + 1.0f)) : 0; };
 			return MLSignal (size, f);		
 		}
 	}
