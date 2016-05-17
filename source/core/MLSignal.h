@@ -117,6 +117,20 @@ public:
 	// create a looped version of the signal argument, according to the loop type
 	MLSignal(MLSignal src, eLoopType loopType, int loopLength); 
 
+	// MLTEST
+	
+	inline MLSignal(int width, std::function<float(int)> fillFn) :
+	mDataAligned(0),
+	mData(0)
+	{
+		setDims(width);
+		for(int n=0; n<width; ++n)
+		{
+			mDataAligned[n] = fillFn(n);
+		}
+	}
+
+
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
 

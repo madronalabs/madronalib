@@ -567,19 +567,22 @@ namespace ml
 	};
 	
 	// ----------------------------------------------------------------
-	#pragma mark Overlap
+	#pragma mark OverlapAdd
 	
 	template<int LENGTH, int DIVISIONS>
-	class Overlap
+	class OverlapAdd
 	{
 	public:
-		Overlap(std::function<DSPVector(DSPVector)> fn, const DSPVector& w) : mFunction(fn), mWindow(w) 
+		OverlapAdd(std::function<DSPVector(DSPVector)> fn, const DSPVector& w) : mFunction(fn), mWindow(w) 
 		{
 			mHistory.setDims(LENGTH, DIVISIONS);
 		}
-		~Overlap(){}
+		~OverlapAdd(){}
 		
-		DSPVector operator()(DSPVector x);
+		DSPVector operator()(DSPVector x)
+		{
+			
+		}
 		
 	private:
 		MLSignal mHistory;
