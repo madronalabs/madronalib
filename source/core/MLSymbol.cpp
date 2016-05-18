@@ -188,11 +188,21 @@ int MLSymbolTable::addEntry(const char * sym, int len)
 	}
 #endif 
 	
+	// don't hash again here!
 	int hash = KRhash(sym);
+	
 	mHashTable[hash].push_back(newID);	
 	mSize++;
 	return newID;
 }
+
+
+int MLSymbolTable::getSymbolID(HashedStringLiteral hsl)
+{
+	std::cout << "hsl: hash = " << hsl.hash << ", len = " << hsl.len << "\n";
+	return 9;
+}
+
 
 int MLSymbolTable::getSymbolID(const char * sym)
 {
@@ -262,6 +272,23 @@ void MLSymbolTable::dump()
 	{
 		const std::string& sym = mSymbolsByID[i];
 		std::cout << "    ID " << i << " = " << sym << "\n";
+	}	
+	// print nonzero entries in hash table
+	int hash = 0;
+	for(auto idVec : mHashTable)
+	{
+		size_t idVecLen = idVec.size();
+		if(idVecLen > 0)
+		{
+			std::cout << "#" << hash << " ";
+			for(auto id : idVec)
+			{
+				std::cout << id << " ";
+			}
+
+			std::cout << "\n";
+		}
+		hash++;
 	}
 #endif
 	

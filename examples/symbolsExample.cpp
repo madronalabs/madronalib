@@ -46,23 +46,21 @@ int main()
 
 	const char name2[4] = "fxo";
 	
+	// Foo::Foo(const char (&)[N]) [N = 2]
 	std::cout << "frequency " << p.getParam("frequency") << "\n";
+	
+	// Foo::Foo(T, typename IsCharPtr<T>::Type) [T = char *]
 	std::cout << "name1 (not const) " << p.getParam(name1) << "\n";
+	
+	// Foo::Foo(const char (&)[N]) [N = 2]
 	std::cout << "name2 (const) " << p.getParam(name2) << "\n";
-	std::cout << "nothing " << p.getParam("nothing") << "\n";
+	
+	// Foo::Foo(T, typename IsCharPtr<T>::Type) [T = const char *]
+	std::cout << "ff " << p.getParam(b) << "\n";
 		
-  char buffer[10] = "lkj";
-  char* c = buffer;
-  MLSymbol l("x");     // Foo::Foo(const char (&)[N]) [N = 2]
-  MLSymbol aa(a);      // Foo::Foo(const char (&)[N]) [N = 2]
-  MLSymbol bb(b);      // Foo::Foo(T, typename IsCharPtr<T>::Type) [T = const char *]
-  MLSymbol cc(c);      // Foo::Foo(T, typename IsCharPtr<T>::Type) [T = char *]
-  MLSymbol ee(buffer); // Foo::Foo(char (&)[N]) [N = 10]
-  MLSymbol ff(f());    // Foo::Foo(T, typename IsCharPtr<T>::Type) [T = const char *]
-  return 0;
+	theSymbolTable().dump();
 	
-
-	
+	return 0;
 	
 }
 

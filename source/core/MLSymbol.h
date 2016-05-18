@@ -42,6 +42,27 @@ const int kHashTableMask = kHashTableSize - 1;
 // symbols are allocated in chunks of this size when needed. 
 const int kTableChunkSize = 1024;
 
+constexpr uint32_t KRhashConst(const char *s)
+{
+	/*
+	 const unsigned char *p;
+	 unsigned hashval = 0;
+	 for (p = (const unsigned char *) s; *p; p++)
+	 {
+		hashval = *p + 31u * hashval;
+	 }*/
+	return 31;
+}
+
+class HashedStringLiteral
+{
+public:	
+	constexpr HashedStringLiteral(const char *sym) : hash(KRhashConst(sym)), pSym(sym), len(2) {}
+	const int32_t hash;
+	const char* pSym;
+	const size_t len;
+};
+
 class MLSymbolTable
 {
 friend class MLSymbol;
@@ -57,6 +78,8 @@ protected:
 	// look up a symbol by name and return its ID. Used in MLSymbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
+	
+	int getSymbolID(HashedStringLiteral hsl);
 	
 	const std::string& getSymbolByID(int symID);
 	int addEntry(const char * sym, int len);
@@ -111,7 +134,10 @@ inline MLSymbolTable& theSymbolTable()
 // ----------------------------------------------------------------
 #pragma mark MLSymbol
 
-
+// this template juju comes courtesy of ansiwen on stackoverflow.
+// its purpose is to lower the precedence of the const char* constructor
+// in order for us to make a special constructor for string literals,
+// which have type const char (&)[N].
 
 #define BARK std::cout << __PRETTY_FUNCTION__ << std::endl
 
@@ -120,7 +146,8 @@ template<typename T> struct IsCharPtr {};
 template<> struct IsCharPtr<const char *> { typedef Dummy* Type; };
 template<> struct IsCharPtr<char *> { typedef Dummy* Type; };
 
-struct Foo {
+struct Foo 
+{
 	template<int N> Foo(const char (&)[N]) { BARK; }
 	template<int N> Foo(char (&)[N]) { BARK; }
 	template<typename T> Foo(T, typename IsCharPtr<T>::Type=0) { BARK; }
@@ -192,7 +219,7 @@ namespace detail {
 	}
 	
 } //namespace detail
-	
+
 template <size_t len>
 constexpr uint32_t ctcrc32(const char (&str)[len]) 
 {
@@ -223,37 +250,26 @@ public:
 	// can definitely do a constexpr hash at compile time. 
 	// but what about forcing table addition at static init time for const char * ? 
 
-	static constexpr int testConst(void) 
-	{ 
-		return 2; 
-	}
-	
-	constexpr MLSymbol() : mID(0) {}
+	MLSymbol() : mID(0) {}
 	
 	/*
 	MLSymbol(const char* sym) : mID(theSymbolTable().getSymbolID(sym)) { std::cout << " L "; }
 	MLSymbol(char *sym) : mID(theSymbolTable().getSymbolID(sym)) { std::cout << " N "; }
 	*/
 	
-	class HashedStringLiteral
-	{
-	public:	
-		constexpr HashedStringLiteral(const char *sym) : hash(1), pSym(sym), len(2) {}
-
-		int32_t hash;
-		const char* pSym;
-		size_t len;
-	};
-
 	class SymbolID
 	{
 	public:
-		explicit constexpr SymbolID(HashedStringLiteral hsl) : val(3) {}
-		explicit constexpr SymbolID(int id) : val(id) {}
+		explicit SymbolID(HashedStringLiteral hsl) : val(theSymbolTable().getSymbolID(hsl)) {}
+		explicit SymbolID(char* sym) : val(theSymbolTable().getSymbolID(sym)) {}
 		int val;
 	};
 	
-	template<int N> MLSymbol(const char (&sym)[N]) : mID(HashedStringLiteral(sym)) { std::cout << " LIT "; } 
+	// template for creating MLSymbol from a string literal.
+	// creates the hash at compile time.
+	template<int N> MLSymbol(const char (&sym)[N]) : 
+	mID(HashedStringLiteral(sym))
+	{ std::cout << " LIT "; } 
 	
 //	template<int N> constexpr MLSymbol(const char (&sym)[N]) : mID(ctcrc32(sym)) { } 
 //	MLSymbol(HashedStringLiteral hsl) : mID(hsl.hash) { } 
@@ -261,10 +277,14 @@ public:
 	// initfromhash
 	// TODO finish creation after hash
 	
-	template<int N> MLSymbol(char (&sym)[N]) : mID(theSymbolTable().getSymbolID(sym)) {  std::cout << " NC "; }
-	template<typename T> MLSymbol(T sym, typename IsCharPtr<T>::Type=0) : mID(theSymbolTable().getSymbolID(sym)) { std::cout << " O "; BARK; }
+	template<int N> MLSymbol(char (&sym)[N]) : 
+	mID(sym)
+	{  std::cout << " NC "; }
 	
-
+	template<typename T> MLSymbol(T sym, typename IsCharPtr<T>::Type=0) : 
+	mID(sym)
+	{ std::cout << " O "; BARK; }
+	
 	
 //	MLSymbol(const std::string& str);
 	
