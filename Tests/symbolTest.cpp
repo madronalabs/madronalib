@@ -29,10 +29,10 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	const int kTestLength = 100000;
 	
 	// main maps for testing
-	std::map<MLSymbol, float> testMap1;
-	std::map<std::string, float> testMap2;
-	std::unordered_map<MLSymbol, float> testMap3;
-	std::unordered_map<std::string, float> testMap4;
+	std::map<MLSymbol, float> testMapOrderedSym;
+	std::map<std::string, float> testMapOrderedStr;
+	std::unordered_map<MLSymbol, float> testMapUnorderedSym;
+	std::unordered_map<std::string, float> testMapUnorderedStr;
 	
 	// make dictionaries of symbols, strings and chars for testing
 	MLNameMaker nameMaker;
@@ -62,10 +62,10 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		
 		// add an entry to each map
 		float val = i;
-		testMap1[newSym] = val;
-		testMap2[newString] = val;
-		testMap3[newSym] = val;
-		testMap4[newString] = val;
+		testMapOrderedSym[newSym] = val;
+		testMapOrderedStr[newString] = val;
+		testMapUnorderedSym[newSym] = val;
+		testMapUnorderedStr[newString] = val;
 	}
 	
 	// make char dict after string dict is complete, otherwise ptrs may change!
@@ -88,7 +88,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMap2[stringDict[idx]];
+			stringSum += testMapOrderedStr[stringDict[idx]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -101,7 +101,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMap1[symbolDict[idx]];
+			symbolSum += testMapOrderedSym[symbolDict[idx]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -116,7 +116,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMap4[stringDict[idx]];
+			stringSum += testMapUnorderedStr[stringDict[idx]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -129,7 +129,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMap3[symbolDict[idx]];
+			symbolSum += testMapUnorderedSym[symbolDict[idx]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -144,7 +144,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMap2[charDict[idx]];
+			stringSum += testMapOrderedStr[charDict[idx]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -157,7 +157,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMap1[charDict[idx]];
+			symbolSum += testMapOrderedSym[charDict[idx]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -172,7 +172,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMap4[charDict[idx]];
+			stringSum += testMapUnorderedStr[charDict[idx]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -185,7 +185,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		for(int i=0; i<kTestLength; ++i)
 		{
 			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMap3[charDict[idx]];
+			symbolSum += testMapUnorderedSym[charDict[idx]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -202,7 +202,8 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 	MLNameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
-		MLSymbol testSym = namer.nextNameAsString();
+//	MLTEST	MLSymbol testSym = namer.nextNameAsString();
+		MLSymbol testSym ("R");
 		MLSymbol testSymWithNum = testSym.withFinalNumber(i);
 		MLSymbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
 		REQUIRE(testSym == testSymWithoutNum);
@@ -217,7 +218,8 @@ void threadTest(int threadID)
 	MLNameMaker namer;
 	for(int i=0; i<kThreadTestSize; ++i)
 	{
-		MLSymbol sym(namer.nextNameAsString());
+		MLSymbol sym("Y");
+// MLTEST		MLSymbol sym(namer.nextNameAsString());
 		std::this_thread::yield();
 	}
 }
@@ -326,7 +328,8 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	
 	for(auto testString : strings)
 	{
-		MLSymbol testSym(testString);
+		MLSymbol testSym("X");
+// MLTEST		MLSymbol testSym(testString);
 		std::string strB = testSym.getString();
 		int lenB = strB.length();
 		std::cout << strB << " : ";
@@ -354,5 +357,6 @@ TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 	std::cout << "\n";
 	//theSymbolTable().dump();
 }
+
 
 

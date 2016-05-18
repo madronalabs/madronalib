@@ -86,5 +86,6 @@ int main()
 	auto fdnTimeVector = timeIterations< DSPVectorArray<2> >(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
+	
 }
 

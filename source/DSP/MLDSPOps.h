@@ -11,7 +11,7 @@
 #include <functional>
 #include <iostream>
 
-#include "MLScalarMath.h"
+#include "../core/MLScalarMath.h"
 #include "MLDSPMath.h"
 #include "MLDSPConstants.h"
 
@@ -364,7 +364,7 @@ namespace ml
 		float fmax = FLT_MIN;
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		
 		{
-			fmax = ml::max(fmax, vecMaxH(vecLoad(px1)));
+			fmax = std::max(fmax, vecMaxH(vecLoad(px1)));
 			px1 += kFloatsPerSIMDVector;	
 		}
 		return fmax;
@@ -376,7 +376,7 @@ namespace ml
 		float fmin = FLT_MAX;
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		
 		{
-			fmin = ml::min(fmin, vecMinH(vecLoad(px1)));
+			fmin = std::min(fmin, vecMinH(vecLoad(px1)));
 			px1 += kFloatsPerSIMDVector;	
 		}
 		return fmin;
@@ -547,7 +547,7 @@ namespace ml
 		for(int n=0; n<kFloatsPerDSPVector; ++n)
 		{
 			const float maxUsefulValue = 1e8; 
-			if(isNaN(x[n]) || (fabs(x[n]) > maxUsefulValue)) 
+			if(ml::isNaN(x[n]) || (fabs(x[n]) > maxUsefulValue)) 
 			{
 				std::cout << "error: " << x[n] << " at index " << n << "\n";
 				std::cout << x << "\n";

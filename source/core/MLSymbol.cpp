@@ -212,6 +212,11 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	// compare the entire string.	
 	// if we replace std::string with a custom char * type that stores its length, 
 	// and use SSE to do the compares, they could probably be significantly faster.
+	
+	// note that we have the length as a parameter in the string literal version now! use for faster compares.
+	
+	// add quadratic probing
+	
 	{
 		MLScopedLock lock(mLock);
 				
@@ -298,22 +303,22 @@ int MLSymbolTable::audit()
 
 #pragma mark MLSymbol
 
-MLSymbol::MLSymbol() : mID(0)
+/*
+constexpr MLSymbol::MLSymbol(const char *sym) : mID(0) // mID(theSymbolTable().getSymbolID(sym))
 {
 }
+*/
 
-MLSymbol::MLSymbol(const char *sym) : mID(theSymbolTable().getSymbolID(sym))
-{
-}
-
+/*
 MLSymbol::MLSymbol(const std::string& str) : mID(theSymbolTable().getSymbolID(str.c_str()))
 {
 }
+*/
 
 // return a reference to the symbol's string in the table.
 const std::string& MLSymbol::getString() const
 {
-	return theSymbolTable().getSymbolByID(mID);
+	return theSymbolTable().getSymbolByID(mID.val);
 }
 
 bool MLSymbol::beginsWith (const MLSymbol b) const
@@ -350,10 +355,12 @@ bool MLSymbol::endsWith (const MLSymbol b) const
 	return true;
 }
 
+/*
 MLSymbol MLSymbol::append(const std::string& b) const
 {
 	return MLSymbol(getString() + std::string(b));
 }
+*/
 
 bool MLSymbol::hasWildCard() const
 {
