@@ -190,7 +190,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
 		std::cout << "constructing symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
-
+				
 		REQUIRE(stringSum == symbolSum);
 		
 		REQUIRE(theSymbolTable().audit());
@@ -202,8 +202,7 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 	MLNameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
-//	MLTEST	MLSymbol testSym = namer.nextNameAsString();
-		MLSymbol testSym ("R");
+		MLSymbol testSym = namer.nextNameAsString().c_str();
 		MLSymbol testSymWithNum = testSym.withFinalNumber(i);
 		MLSymbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
 		REQUIRE(testSym == testSymWithoutNum);
@@ -218,8 +217,7 @@ void threadTest(int threadID)
 	MLNameMaker namer;
 	for(int i=0; i<kThreadTestSize; ++i)
 	{
-		MLSymbol sym("Y");
-// MLTEST		MLSymbol sym(namer.nextNameAsString());
+		MLSymbol sym(namer.nextNameAsString().c_str());
 		std::this_thread::yield();
 	}
 }
@@ -328,8 +326,7 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	
 	for(auto testString : strings)
 	{
-		MLSymbol testSym("X");
-// MLTEST		MLSymbol testSym(testString);
+		MLSymbol testSym(testString.c_str());
 		std::string strB = testSym.getString();
 		int lenB = strB.length();
 		std::cout << strB << " : ";

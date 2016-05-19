@@ -42,23 +42,48 @@ const int kHashTableMask = kHashTableSize - 1;
 // symbols are allocated in chunks of this size when needed. 
 const int kTableChunkSize = 1024;
 
-constexpr uint32_t KRhashConst(const char *s)
+// very simple hash function from Kernighan & Ritchie.
+constexpr uint32_t KRHashIter(const char *s, std::size_t len)
 {
-	/*
-	 const unsigned char *p;
-	 unsigned hashval = 0;
-	 for (p = (const unsigned char *) s; *p; p++)
-	 {
-		hashval = *p + 31u * hashval;
-	 }*/
-	return 31;
+	return (len > 0) ? ((*s) + 31u*(KRHashIter(s + 1, len - 1))) : 0;
+}
+
+constexpr uint32_t KRHashLen(const char *s, std::size_t len)
+{
+	return KRHashIter(s, len) & kHashTableMask;
+}
+
+inline uint32_t KRHash(const char *s)
+{
+	return KRHashLen(s, strlen(s));
+}
+
+
+// very simple hash function from Kernighan & Ritchie.
+template <size_t N>
+constexpr uint32_t kr2(const char * str) 
+{
+	return (N > 1) ? ((kr2<N - 1>(str + 1))*31u + *str) : 0;
+}
+
+template <>
+constexpr uint32_t kr2<size_t(0)>(const char * str) 
+{
+	return 0;
+}
+
+template <size_t N>
+constexpr uint32_t kr1(const char * str) 
+{
+	return kr2<N>(str) & kHashTableMask;
 }
 
 class HashedStringLiteral
 {
 public:	
-	template<int N>
-	constexpr HashedStringLiteral(const char (&sym)[N]) : hash(KRhashConst(sym)), pSym(sym), len(N) {}
+	template<std::size_t N>
+	constexpr HashedStringLiteral(const char (&sym)[N]) : hash(kr1<N>(sym)), pSym(sym), len(N) { }
+	
 	const int32_t hash;
 	const char* pSym;
 	const size_t len;
@@ -80,28 +105,17 @@ protected:
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
 	
-	int getSymbolID(HashedStringLiteral hsl);
+	int getSymbolID(const HashedStringLiteral& hsl);
 	
 	const std::string& getSymbolByID(int symID);
-	int addEntry(const char * sym, int len);
+	int addEntry(const char * sym, uint32_t hash);
+	
 #if USE_ALPHA_SORT	
 	int getSymbolAlphaOrder(const int symID);
 #endif
 	
 private:
 	void allocateChunk();
-
-	// very simple hash function from Kernighan & Ritchie.
-	inline unsigned KRhash(const char *s)
-	{
-		const unsigned char *p;
-		unsigned hashval = 0;
-		for (p = (const unsigned char *) s; *p; p++)
-		{
-			hashval = *p + 31u * hashval;
-		}
-		return hashval & kHashTableMask;
-	}
 	
 	// ensure symbol table integrity with simple SpinLock.
 	MLSpinLock mLock;
@@ -175,42 +189,32 @@ public:
 	//		getParam(gainSym);
 	
 	// can definitely do a constexpr hash at compile time. 
-	// but what about forcing table addition at static init time for const char * ? 
 
+	// default MLSymbol constructor
 	MLSymbol() : mID(0) {}
 	
-	/*
-	MLSymbol(const char* sym) : mID(theSymbolTable().getSymbolID(sym)) { std::cout << " L "; }
-	MLSymbol(char *sym) : mID(theSymbolTable().getSymbolID(sym)) { std::cout << " N "; }
-	*/
+	MLSymbol(const HashedStringLiteral& hsl) : 
+	mID( theSymbolTable().getSymbolID(hsl) )
+	{ }
 	
-	class SymbolID
-	{
-	public:
-		explicit SymbolID(HashedStringLiteral hsl) : val(theSymbolTable().getSymbolID(hsl)) {}
-		explicit SymbolID(const char* sym) : val(theSymbolTable().getSymbolID(sym)) {}
-		int val;
-	};
-	
-	// template for creating MLSymbol from a string literal.
+
+	// constructor for string literals of any length
 	// creates the hash at compile time.
-	template<int N> MLSymbol(const char (&sym)[N]) : 
-	mID(HashedStringLiteral(sym))
-	{ std::cout << " LIT "; } 
-	
-//	template<int N> constexpr MLSymbol(const char (&sym)[N]) : mID(ctcrc32(sym)) { } 
-//	MLSymbol(HashedStringLiteral hsl) : mID(hsl.hash) { } 
-	
-	// initfromhash
-	// TODO finish creation after hash
+	template<size_t N>
+	MLSymbol(const char (& sym)[N]) : 
+	mID( theSymbolTable().getSymbolID(HashedStringLiteral(sym)) )
+	{ }
+	/*	
 	
 	template<int N> MLSymbol(char (&sym)[N]) : 
-	mID(sym)
-	{  std::cout << " NC "; }
+	mID(theSymbolTable().getSymbolID(sym))
+	{ std::cout << "S" << N ; }
+
 	
 	template<typename T> MLSymbol(T sym, typename IsCharPtr<T>::Type=0) : 
-	mID(sym)
-	{ std::cout << " O "; BARK; }
+	mID(theSymbolTable().getSymbolID(sym))
+	{ std::cout << "X" ; }
+	*/
 	
 	
 //	MLSymbol(const std::string& str);
@@ -220,22 +224,46 @@ public:
 #if USE_ALPHA_SORT			
 		return (theSymbolTable().getSymbolAlphaOrder(mID) < theSymbolTable().getSymbolAlphaOrder(b.mID));
 #else
-		return(mID.val < b.mID.val);
+		return(mID < b.mID);
 #endif
 	}
 	
 	inline bool operator== (const MLSymbol b) const
 	{
-		return (mID.val == b.mID.val);
+		return (mID == b.mID);
 	}	
 	
 	inline bool operator!= (const MLSymbol b) const
 	{
-		return (mID.val != b.mID.val);
+		return (mID != b.mID);
 	}	
 	
-	explicit operator bool() const { return mID.val != 0; }
-	inline int getID() const { return mID.val; }
+	explicit operator bool() const { return mID != 0; }
+	inline int getID() const { return mID; }
+	
+	// search hash table for our id to find our hash.
+	// for testing only! 
+	inline int getHash() const 
+	{ 
+		int hash = 0;
+		for(auto idVec : theSymbolTable().mHashTable)
+		{
+			size_t idVecLen = idVec.size();
+			if(idVecLen > 0)
+			{
+				for(auto id : idVec)
+				{
+					if(id == mID)
+					{
+						return hash;
+					}
+				}
+			}
+			hash++;
+		}		
+		
+		return 0; 
+	}
 	
 	// in order to show the strings in XCode's debugger, instead of the unhelpful mID,
 	// edit the summary format for MLSymbol within XCode to {$VAR.getString()}:s
@@ -257,7 +285,7 @@ public:
 private:
 	
 	// the ID equals the order in which the symbol was created.
-	const SymbolID mID;
+	const int mID;
 };
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
@@ -364,8 +392,18 @@ public:
 	TestProc(){}
 	~TestProc(){}
 	
-	inline void setParam(const MLSymbol name, float val)
+	template<size_t N>
+	inline void setParam(const char(&name)[N], float val)
 	{
+		std::cout << "setParam - HSL\n";
+		HashedStringLiteral hsl(name);
+		MLSymbol m(hsl);
+		map[m] = val;
+	}
+
+	inline void setParam(MLSymbol name, float val)
+	{
+		std::cout << "setParam - MLSymbol\n";
 		map[name] = val;
 	}
 	

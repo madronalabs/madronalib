@@ -68,9 +68,7 @@ public:
 			if(segmentLength)
 			{
 				// iterate
-				path.push_back("Q");
-							   
-// MLTEST				path.push_back(workingStr.substr(0, segmentLength));
+				path.push_back(workingStr.substr(0, segmentLength).c_str());
 				workingStr = workingStr.substr(segmentLength + 1, workingStr.length() - segmentLength);
 			}
 			else

@@ -20,31 +20,32 @@
 
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
-	MLResourceMap< std::string, int > numberMap;
+
 	MLNameMaker namer;
-	const int testSymbols = 100;
+	const int numTestWords = 100;
 	const int mapSize = 100;
 	std::chrono::time_point<std::chrono::system_clock> start, end;	
 	std::chrono::duration<double> elapsed;
 	
 	// make random paths out of nonsense symbols
-	auto symbols = ml::stringUtils::vectorOfNonsenseWords( testSymbols );
+	auto testWords = ml::stringUtils::vectorOfNonsenseWords( numTestWords );
 	std::vector<std::string> paths;
 	MLNameMaker endNamer;
 	
 	ml::RandomSource randSource;
 	
-	// make test tree with mostly leaf nodes, somewhat mirroring typical use
+	// make vector of test paths with mostly leaf nodes, somewhat mirroring typical use
 	for(int i = 0; i < mapSize; ++i)
 	{
 		int pathDepth = ((ml::rand32() >> 16) & 0x07) + 2;
 		int leaves = ((ml::rand32() >> 16) & 0x07) + 1;
+		
 		std::string pathStr;
 		for(int p=0; p<pathDepth - 1; ++p)
 		{			
 			// 8 possible symbols per level
-			int symbolIdx = (((ml::rand32() >> 16)&0x07) + 8*p) % testSymbols;
-			pathStr = pathStr + symbols[symbolIdx];
+			int symbolIdx = (((ml::rand32() >> 16)&0x07) + 8*p) % numTestWords;
+			pathStr = pathStr + testWords[symbolIdx];
 			if(p < pathDepth - 1)
 			{
 				pathStr = pathStr + "/";
@@ -54,18 +55,45 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		for(int j=0; j<leaves; ++j)
 		{
 			// make resource name with unique end so paths are never duplicates
-			std::string leafName = symbols[(ml::rand32() >> 16) % testSymbols] + endNamer.nextName().getString();
+			std::string leafName = testWords[(ml::rand32() >> 16) % numTestWords] + endNamer.nextName().getString();
 			paths.push_back(pathStr + leafName);
 		}
 	}
+	
+	// dump paths
+	if(0)
+	for(auto p : paths)
+	{
+		std::cout << p << "\n";
+	}
+	
+	MLResourceMap< std::string, int > numberMap;
 	
 	// time set nodes tree
 	start = std::chrono::system_clock::now();	
 	bool problem = false;
 	for(int i=0; i < mapSize; ++i)
 	{
+		std::cout << " ADDING " << paths[i] << "\n";
 		numberMap.addValue(paths[i], i);
 	}
+
+	
+	// simple tree dump:
+	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
+	{
+		if(it.nodeHasValue())
+		{		
+			std::cout << stringUtils::spaceStr(it.getDepth()) << it.getLeafName() << " " << it->getValue() << "\n";
+		}
+		else
+		{
+			std::cout << stringUtils::spaceStr(it.getDepth()) << "*" << it.getLeafName() << "\n";
+		}
+	}
+
+	
+	
 	for(int i=0; i < mapSize; ++i)
 	{
 		int v = numberMap.findValue(paths[i]);
@@ -92,6 +120,12 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 			maxDepth = it.getDepth();
 		}
 	}
+
+
+	//theSymbolTable().dump(); // MLTEST
+	
+	
+	
 	REQUIRE(bigLeafSum == correctBigLeafSum);
 	REQUIRE(maxDepth == correctMaxDepth);
 	
