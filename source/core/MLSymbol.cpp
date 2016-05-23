@@ -121,6 +121,7 @@ void MLSymbolTable::clear()
 	mHashTable.clear();
 	mHashTable.resize(kHashTableSize);
 	allocateChunk();
+	
 	addEntry("", 0);
 }
 
@@ -180,11 +181,22 @@ int MLSymbolTable::addEntry(const char * sym, uint32_t hash)
 	return newID;
 }
 
-int MLSymbolTable::getSymbolID(const HashedStringLiteral& hsl)
+int MLSymbolTable::getSymbolID(const HashedCharArray& hsl)
 {
 	int r = 0;
 	bool found = false;
 
+	// there should be few collisions, so probably the first ID in the hash bin
+	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
+	// compare the entire string.	
+	
+	// if we replace std::string with a custom char * type that stores its length, 
+	// and use SSE to do the compares, they could probably be significantly faster.
+	
+	// note that we have the length as a parameter in the string literal version now! use for faster compares.
+	
+	// add quadratic probing?
+	
 	const std::vector<int>& bin = mHashTable[hsl.hash];
 	{
 		MLScopedLock lock(mLock);
@@ -209,53 +221,10 @@ int MLSymbolTable::getSymbolID(const HashedStringLiteral& hsl)
 	return r;
 }
 
-/*
 int MLSymbolTable::getSymbolID(const char * sym)
 {
-	int r = 0;
-	bool found = false;
-	
-	// process characters in place. On failure, return null symbol.
-	std::size_t len = strlen(sym);
-	
-	// look up ID by symbol
-	// This is the fast path, and how we look up symbols from char* in typical code.
-	uint32_t hash = KRHashLen(sym, len);
-	const std::vector<int>& bin = mHashTable[hash];
-	
-	// there should be few collisions, so probably the first ID in the hash bin
-	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
-	// compare the entire string.	
-	// if we replace std::string with a custom char * type that stores its length, 
-	// and use SSE to do the compares, they could probably be significantly faster.
-	
-	// note that we have the length as a parameter in the string literal version now! use for faster compares.
-	
-	// add quadratic probing
-	
-	{
-		MLScopedLock lock(mLock);
-				
-		for(int ID : bin)
-		{
-			const char* symB = mSymbolsByID[ID].c_str();
-			std::size_t lenB = strlen(symB);
-			if(!strncmp(sym, symB, std::max(len, lenB)))
-			{
-				r = ID;
-				found = true;
-				break;
-			}
-		}
-		if(!found)
-		{	
-			r = addEntry(sym, hash);
-		}
-	}
-	
-	return r;
+	return getSymbolID(HashedCharArray (sym, strlen(sym)));
 }
-*/
 
 const std::string& MLSymbolTable::getSymbolByID(int symID)
 {
@@ -312,9 +281,8 @@ int MLSymbolTable::audit()
 	{
 		const std::string& sym = getSymbolByID(i);
 		const char* symChars = sym.c_str();
-// MLTEST		MLSymbol symB(symChars);
+		MLSymbol symB(symChars);
 
-		MLSymbol symB("foo");
 		i2 = symB.getID();
 		if (i != i2)
 		{
@@ -338,18 +306,6 @@ int MLSymbolTable::audit()
 
 
 #pragma mark MLSymbol
-
-/*
-constexpr MLSymbol::MLSymbol(const char *sym) : mID(0) // mID(theSymbolTable().getSymbolID(sym))
-{
-}
-*/
-
-/*
-MLSymbol::MLSymbol(const std::string& str) : mID(theSymbolTable().getSymbolID(str.c_str()))
-{
-}
-*/
 
 // return a reference to the symbol's string in the table.
 const std::string& MLSymbol::getString() const
@@ -538,7 +494,6 @@ int MLSymbol::compare(const char * s) const
 	return getString().compare(s);
 }
 
-
 #pragma mark MLNameMaker
 
 // base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
@@ -577,5 +532,5 @@ std::string MLNameMaker::nextNameAsString()
 
 const MLSymbol MLNameMaker::nextName()
 {
-	return MLSymbol("foo"); // MLTEST nextNameAsString().c_str());
+	return MLSymbol(nextNameAsString().c_str());
 }

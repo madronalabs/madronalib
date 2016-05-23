@@ -26,6 +26,7 @@
 #include <algorithm>
 
 #include "MLLocks.h"
+#include "MLTextFragment.h"
 
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
@@ -42,47 +43,50 @@ const int kHashTableMask = kHashTableSize - 1;
 // symbols are allocated in chunks of this size when needed. 
 const int kTableChunkSize = 1024;
 
-// very simple hash function from Kernighan & Ritchie.
-constexpr uint32_t KRHashIter(const char *s, std::size_t len)
-{
-	return (len > 0) ? ((*s) + 31u*(KRHashIter(s + 1, len - 1))) : 0;
-}
-
-constexpr uint32_t KRHashLen(const char *s, std::size_t len)
-{
-	return KRHashIter(s, len) & kHashTableMask;
-}
-
-inline uint32_t KRHash(const char *s)
-{
-	return KRHashLen(s, strlen(s));
-}
-
-
-// very simple hash function from Kernighan & Ritchie.
+// very simple hash function from Kernighan & Ritchie. Constexpr version.
 template <size_t N>
-constexpr uint32_t kr2(const char * str) 
+constexpr uint32_t krHash2(const char * str) 
 {
-	return (N > 1) ? ((kr2<N - 1>(str + 1))*31u + *str) : 0;
+	return (N > 1) ? ((krHash2<N - 1>(str + 1))*31u + *str) : 0;
 }
 
 template <>
-constexpr uint32_t kr2<size_t(0)>(const char * str) 
+constexpr uint32_t krHash2<size_t(0)>(const char * str) 
 {
 	return 0;
 }
 
 template <size_t N>
-constexpr uint32_t kr1(const char * str) 
+constexpr uint32_t krHash1(const char * str) 
 {
-	return kr2<N>(str) & kHashTableMask;
+	return krHash2<N>(str) & kHashTableMask;
 }
 
-class HashedStringLiteral
+// non-constexpr non-recursive version.
+inline uint32_t krHash0(const char * str, const size_t len) 
+{
+	if(!len) return 0;
+	size_t i = len - 1;
+	uint32_t accum = str[i];
+	while(i > 0)
+	{
+		i--;
+		accum *= 31u;
+		accum += str[i];
+	}
+	return accum & kHashTableMask;
+}
+
+class HashedCharArray
 {
 public:	
-	template<std::size_t N>
-	constexpr HashedStringLiteral(const char (&sym)[N]) : hash(kr1<N>(sym)), pSym(sym), len(N) { }
+	// template ctor from string literals allows hashing for code like Proc::setParam("foo") to be done at compile time.
+	template<size_t N>
+	constexpr HashedCharArray(const char (&sym)[N]) : hash(krHash1<N>(sym)), pSym(sym), len(N) { }
+	
+	// this non-constexpr ctor takes an external length parameter, so that we can have an immutable object
+	// (all data const) and not have to call strlen twice.
+	HashedCharArray(const char* pC, const size_t extLen) : hash(krHash0(pC, extLen)), pSym(pC), len(extLen) {}
 	
 	const int32_t hash;
 	const char* pSym;
@@ -104,8 +108,7 @@ protected:
 	// look up a symbol by name and return its ID. Used in MLSymbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
-	
-	int getSymbolID(const HashedStringLiteral& hsl);
+	int getSymbolID(const HashedCharArray& hsl);
 	
 	const std::string& getSymbolByID(int symID);
 	int addEntry(const char * sym, uint32_t hash);
@@ -149,75 +152,20 @@ inline MLSymbolTable& theSymbolTable()
 // ----------------------------------------------------------------
 #pragma mark MLSymbol
 
-// this template juju comes courtesy of ansiwen on stackoverflow.
-// its purpose is to lower the precedence of the const char* constructor
-// in order for us to make a special constructor for string literals,
-// which have type const char (&)[N].
-
-#define BARK std::cout << __PRETTY_FUNCTION__ << std::endl
-
-struct Dummy {};
-template<typename T> struct IsCharPtr {};
-template<> struct IsCharPtr<const char *> { typedef Dummy* Type; };
-template<> struct IsCharPtr<char *> { typedef Dummy* Type; };
-
-struct Foo 
-{
-	template<int N> Foo(const char (&)[N]) { BARK; }
-	template<int N> Foo(char (&)[N]) { BARK; }
-	template<typename T> Foo(T, typename IsCharPtr<T>::Type=0) { BARK; }
-};
-
 class MLSymbol
 {
 	friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 	
 public:
-	
-	// creating symbols:
-	// Must be reasonably fast.  We will often want to be
-	// lazy and write code like getParam("gain"), even in a DSP method. 
-	// So the constructor must not allocate any heap memory when looking up
-	// a symbol, after the first time a symbol is used.  
-	//
-	// Where the best possible performance is needed, symbols can be
-	// cached like so:
-	//
-	// void myDSPMethod() {
-	//		static const MLSymbol gainSym("gain");
-	//		...
-	//		getParam(gainSym);
-	
-	// can definitely do a constexpr hash at compile time. 
-
-	// default MLSymbol constructor
 	MLSymbol() : mID(0) {}
-	
-	MLSymbol(const HashedStringLiteral& hsl) : 
+
+	MLSymbol(const HashedCharArray& hsl) : 
 	mID( theSymbolTable().getSymbolID(hsl) )
 	{ }
 	
-
-	// constructor for string literals of any length
-	// creates the hash at compile time.
-	template<size_t N>
-	MLSymbol(const char (& sym)[N]) : 
-	mID( theSymbolTable().getSymbolID(HashedStringLiteral(sym)) )
+	MLSymbol(const char* pC) : 
+	mID( theSymbolTable().getSymbolID(pC) )
 	{ }
-	/*	
-	
-	template<int N> MLSymbol(char (&sym)[N]) : 
-	mID(theSymbolTable().getSymbolID(sym))
-	{ std::cout << "S" << N ; }
-
-	
-	template<typename T> MLSymbol(T sym, typename IsCharPtr<T>::Type=0) : 
-	mID(theSymbolTable().getSymbolID(sym))
-	{ std::cout << "X" ; }
-	*/
-	
-	
-//	MLSymbol(const std::string& str);
 	
 	inline bool operator< (const MLSymbol b) const
 	{
@@ -366,8 +314,7 @@ private:
 };
 
 // hashing function for MLSymbol use in unordered STL containers. simply return the ID,
-// which will give each MLSymbol a unique hash.
-
+// which gives each MLSymbol a unique hash.
 namespace std
 {
 	template<>
@@ -380,7 +327,6 @@ namespace std
 	};
 }
 
-
 // MLTEST
 
 #include <map>
@@ -391,12 +337,13 @@ public:
 	
 	TestProc(){}
 	~TestProc(){}
-	
+
+	// template syntax here is needed to get the string literal length N at compile time.
 	template<size_t N>
 	inline void setParam(const char(&name)[N], float val)
 	{
 		std::cout << "setParam - HSL\n";
-		HashedStringLiteral hsl(name);
+		HashedCharArray hsl(name);
 		MLSymbol m(hsl);
 		map[m] = val;
 	}

@@ -353,6 +353,7 @@ TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 	}
 	std::cout << "\n";
 	//theSymbolTable().dump();
+
 }
 
 
