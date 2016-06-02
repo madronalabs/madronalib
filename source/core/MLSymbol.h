@@ -2,17 +2,17 @@
 // MLSymbol.h
 // ----------
 
-// MLSymbol is designed to be an efficient key in STL containers such as map and
+// ml::Symbol is designed to be an efficient key in STL containers such as map and
 // unordered_map, that is quick to convert to and from a unique string.  
 //
 // requirements
 // ---------
 //
 // Symbols are immutable.
-// The value of an MLSymbol must remain valid even after more MLSymbols are created.  
+// The value of an Symbol must remain valid even after more MLSymbols are created.  
 // This allows MLSymbols to function as correct keys.
 //
-// Accessing an MLSymbol must not cause any heap to be allocated if the symbol already exists. 
+// Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
 
 #pragma once
@@ -30,7 +30,7 @@
 
 namespace ml {
 
-// With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
+// With USE_ALPHA_SORT on, a std::map<Symbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
 // as well as map lookups will be significantly faster. 
 #define USE_ALPHA_SORT	0
@@ -84,30 +84,29 @@ class HashedCharArray
 public:	
 	// template ctor from string literals allows hashing for code like Proc::setParam("foo") to be done at compile time.
 	template<size_t N>
-	constexpr HashedCharArray(const char (&sym)[N]) : hash(krHash1<N>(sym)), pSym(sym), len(N) { }
+	constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pSym(sym) { }
 	
-	// this non-constexpr ctor takes an external length parameter, so that we can have an immutable object
-	// (all data const) and not have to call strlen twice.
-	HashedCharArray(const char* pC, const size_t extLen) : hash(krHash0(pC, extLen)), pSym(pC), len(extLen) {}
+	// this non-constexpr ctor counts the string length at runtime.
+	HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pSym(pC) {}
 	
+	const size_t len;
 	const int32_t hash;
 	const char* pSym;
-	const size_t len;
 };
 
-class MLSymbolTable
+class SymbolTable
 {
-friend class MLSymbol;
+friend class Symbol;
 public:
-	MLSymbolTable();
-	~MLSymbolTable();
+	SymbolTable();
+	~SymbolTable();
 	void clear();
 	size_t getSize() { return mSymbolsByID.size(); }	
 	void dump(void);
 	int audit(void);
 	
 protected:
-	// look up a symbol by name and return its ID. Used in MLSymbol constructors.
+	// look up a symbol by name and return its ID. Used in Symbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const char * sym);
 	int getSymbolID(const HashedCharArray& hsl);
@@ -139,27 +138,27 @@ private:
 
 };
 
-inline MLSymbolTable& theSymbolTable()
+inline SymbolTable& theSymbolTable()
 {
-	static std::unique_ptr<MLSymbolTable> t (new MLSymbolTable());
+	static std::unique_ptr<SymbolTable> t (new SymbolTable());
 	return *t;
 }
 
 // ----------------------------------------------------------------
-#pragma mark MLSymbol
+#pragma mark Symbol
 
-class MLSymbol
+class Symbol
 {
-	friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
+	friend std::ostream& operator<< (std::ostream& out, const Symbol r);
 	
 public:
-	MLSymbol() : id(0) {}
+	Symbol() : id(0) {}
 
-	MLSymbol(const HashedCharArray& hsl) : id( theSymbolTable().getSymbolID(hsl) ) { }
+	Symbol(const HashedCharArray& hsl) : id( theSymbolTable().getSymbolID(hsl) ) { }
 	
-	MLSymbol(const char* pC) : id( theSymbolTable().getSymbolID(pC) ) { }
+	Symbol(const char* pC) : id( theSymbolTable().getSymbolID(pC) ) { }
 	
-	inline bool operator< (const MLSymbol b) const
+	inline bool operator< (const Symbol b) const
 	{
 #if USE_ALPHA_SORT			
 		return (theSymbolTable().getSymbolAlphaOrder(id) < theSymbolTable().getSymbolAlphaOrder(b.id));
@@ -168,12 +167,12 @@ public:
 #endif
 	}
 	
-	inline bool operator== (const MLSymbol b) const
+	inline bool operator== (const Symbol b) const
 	{
 		return (id == b.id);
 	}	
 	
-	inline bool operator!= (const MLSymbol b) const
+	inline bool operator!= (const Symbol b) const
 	{
 		return (id != b.id);
 	}	
@@ -206,31 +205,31 @@ public:
 	}
 	
 	// in order to show the strings in XCode's debugger, instead of the unhelpful id,
-	// edit the summary format for MLSymbol within XCode to {$VAR.getString()}:s
+	// edit the summary format for Symbol within XCode to {$VAR.getString()}:s
 	const TextFragment& getTextFragment() const;
 	
-//	bool beginsWith (const MLSymbol b) const;
-//	bool endsWith (const MLSymbol b) const;
+//	bool beginsWith (const Symbol b) const;
+//	bool endsWith (const Symbol b) const;
 	bool hasWildCard() const;
 	
 	int getFinalNumber() const;	
 	int compare(const char *str) const;
 	
 	// TODO make free functions
-	MLSymbol append(const TextFragment& b) const;
-	MLSymbol withWildCardNumber(int n) const;
-	MLSymbol withFinalNumber(int n) const;
-	MLSymbol withoutFinalNumber() const;
+	Symbol append(const TextFragment& b) const;
+	Symbol withWildCardNumber(int n) const;
+	Symbol withFinalNumber(int n) const;
+	Symbol withoutFinalNumber() const;
 	
 	// the ID equals the order in which the symbol was created.
 	// 2^31 unique symbols are possible. There is no checking for overflow.
 	const int id;
 };
 
-std::ostream& operator<< (std::ostream& out, const MLSymbol r);
+std::ostream& operator<< (std::ostream& out, const Symbol r);
 
 // ----------------------------------------------------------------
-#pragma mark MLSymbolVector
+#pragma mark SymbolVector
 
 // unused, a start.
 
@@ -247,29 +246,29 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 // in Chinese each character will be one symbol. 
 // Japanese too (except phonetic characters?) 
 
-class MLSymbolVector : public std::vector<MLSymbol> 
+class SymbolVector : public std::vector<Symbol> 
 {
 public:
-	MLSymbolVector() {}
-	MLSymbolVector(std::vector<MLSymbol> b) 
+	SymbolVector() {}
+	SymbolVector(std::vector<Symbol> b) 
 	{
 		for(auto it = b.begin(); it != b.end(); ++it)
 		{
 			push_back(*it);
 		}
 	}
-	~MLSymbolVector() {}
+	~SymbolVector() {}
 	
-	inline bool operator< (const MLSymbolVector& b) const
+	inline bool operator< (const SymbolVector& b) const
 	{
-		const std::vector<MLSymbol>& a = *this;
+		const std::vector<Symbol>& a = *this;
 		size_t aLen = size();
 		size_t bLen = b.size();
 		size_t minSize = std::min(aLen, bLen);
 		for(int i=0; i<minSize; ++i)
 		{
-			MLSymbol symA = a[i];
-			MLSymbol symB = b[i];
+			Symbol symA = a[i];
+			Symbol symB = b[i];
 			if(symA < symB)
 			{
 				return true;
@@ -295,14 +294,13 @@ public:
 	~MLNameMaker() {};
 	
 	// return the next name as a symbol, having added it to the symbol table. 
-	const MLSymbol nextName();
+	const Symbol nextName();
 	
 private:
 	int index;
 };
 
 // MLTEST
-
 
 class TestProc
 {
@@ -317,22 +315,22 @@ public:
 	{
 		std::cout << "setParam - HSL\n";
 		HashedCharArray hsl(name);
-		MLSymbol m(hsl);
+		Symbol m(hsl);
 		map[m] = val;
 	}
 
-	inline void setParam(MLSymbol name, float val)
+	inline void setParam(Symbol name, float val)
 	{
-		std::cout << "setParam - MLSymbol\n";
+		std::cout << "setParam - Symbol\n";
 		map[name] = val;
 	}
 	
-	inline float getParam(const MLSymbol name)
+	inline float getParam(const Symbol name)
 	{
 		return map[name];
 	}
 	
-	std::map< MLSymbol, float > map;
+	std::map< Symbol, float > map;
 	
 };
 
@@ -340,14 +338,14 @@ public:
 } // namespace ml
 
 
-// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
-// which gives each MLSymbol a unique hash.
+// hashing function for Symbol use in unordered STL containers. simply return the ID,
+// which gives each Symbol a unique hash.
 namespace std
 {
 	template<>
-	struct hash<ml::MLSymbol>
+	struct hash<ml::Symbol>
 	{
-		std::size_t operator()(ml::MLSymbol const& s) const
+		std::size_t operator()(ml::Symbol const& s) const
 		{
 			return s.id;
 		}

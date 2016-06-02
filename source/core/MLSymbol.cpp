@@ -88,26 +88,26 @@ bool isDigit(char c)
 	return false;
 }
 
-std::ostream& operator<< (std::ostream& out, const MLSymbol r)
+std::ostream& operator<< (std::ostream& out, const Symbol r)
 {
 	out << r.getTextFragment();
 	return out;
 }
 
 
-#pragma mark MLSymbolTable
+#pragma mark SymbolTable
 
-MLSymbolTable::MLSymbolTable()
+SymbolTable::SymbolTable()
 {
 	clear();
 }
 
-MLSymbolTable::~MLSymbolTable()
+SymbolTable::~SymbolTable()
 {
 }
 
 // clear all symbols from the table.
-void MLSymbolTable::clear()
+void SymbolTable::clear()
 {
 	MLScopedLock lock(mLock);
 	mSymbolsByID.clear();
@@ -123,7 +123,7 @@ void MLSymbolTable::clear()
 }
 
 #if USE_ALPHA_SORT	
-int MLSymbolTable::getSymbolAlphaOrder(const int symID) 
+int SymbolTable::getSymbolAlphaOrder(const int symID) 
 {
 	return mAlphaOrderByID[symID];
 }
@@ -131,7 +131,7 @@ int MLSymbolTable::getSymbolAlphaOrder(const int symID)
 
 // add an entry to the table. The entry must not already exist in the table.
 // this must be the only way of modifying the symbol table.
-int MLSymbolTable::addEntry(const char * sym, uint32_t hash)
+int SymbolTable::addEntry(const char * sym, uint32_t hash)
 {
 	mSymbolsByID.emplace_back(TextFragment(sym));
 	
@@ -160,7 +160,7 @@ int MLSymbolTable::addEntry(const char * sym, uint32_t hash)
 	return newID;
 }
 
-int MLSymbolTable::getSymbolID(const HashedCharArray& hsl)
+int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 {
 	int r = 0;
 	bool found = false;
@@ -191,17 +191,17 @@ int MLSymbolTable::getSymbolID(const HashedCharArray& hsl)
 	return r;
 }
 
-int MLSymbolTable::getSymbolID(const char * sym)
+int SymbolTable::getSymbolID(const char * sym)
 {
-	return getSymbolID(HashedCharArray (sym, strlen(sym)));
+	return getSymbolID(HashedCharArray(sym));
 }
 
-const TextFragment& MLSymbolTable::getSymbolByID(int symID)
+const TextFragment& SymbolTable::getSymbolByID(int symID)
 {
 	return mSymbolsByID[symID];
 }
 
-void MLSymbolTable::dump()
+void SymbolTable::dump()
 {
 	std::cout << "---------------------------------------------------------\n";
 	std::cout << mSymbolsByID.size() << " symbols:\n";
@@ -240,7 +240,7 @@ void MLSymbolTable::dump()
 	
 }
 
-int MLSymbolTable::audit()
+int SymbolTable::audit()
 {
 	int i=0;
 	int i2 = 0;
@@ -251,7 +251,7 @@ int MLSymbolTable::audit()
 	{
 		const TextFragment& sym = getSymbolByID(i);
 		const char* symChars = sym.text;
-		MLSymbol symB(symChars);
+		Symbol symB(symChars);
 
 		i2 = symB.id;
 		if (i != i2)
@@ -268,23 +268,23 @@ int MLSymbolTable::audit()
 	if (!OK)
 	{
 		const TextFragment& s = getSymbolByID(i);
-		std::cout << "MLSymbolTable: error in symbol table, line " << i << ":\n";
+		std::cout << "SymbolTable: error in symbol table, line " << i << ":\n";
 		std::cout << "    ID " << i << " = " << s << ", ID B = " << i2 << "\n";
 	}
 	return OK;
 }
 
 
-#pragma mark MLSymbol
+#pragma mark Symbol
 
 // return a reference to the symbol's TextFragment in the table.
-const TextFragment& MLSymbol::getTextFragment() const
+const TextFragment& Symbol::getTextFragment() const
 {
 	return theSymbolTable().getSymbolByID(id);
 }
 
 /*
-bool MLSymbol::beginsWith (const MLSymbol b) const
+bool Symbol::beginsWith (const Symbol b) const
 {
 	const std::string& strA = getString();
 	const char* pa = strA.c_str();
@@ -301,7 +301,7 @@ bool MLSymbol::beginsWith (const MLSymbol b) const
 	return true;
 }
 
-bool MLSymbol::endsWith (const MLSymbol b) const
+bool Symbol::endsWith (const Symbol b) const
 {
 	const std::string& strA = getString();
 	const char* pa = strA.c_str();
@@ -320,13 +320,13 @@ bool MLSymbol::endsWith (const MLSymbol b) const
 */
 
 /*
-MLSymbol MLSymbol::append(const std::string& b) const
+Symbol Symbol::append(const std::string& b) const
 {
-	return MLSymbol(getString() + std::string(b));
+	return Symbol(getString() + std::string(b));
 }
 */
 
-bool MLSymbol::hasWildCard() const
+bool Symbol::hasWildCard() const
 {
 	const TextFragment& str = getTextFragment();
 	const char* p = str.text;
@@ -341,7 +341,7 @@ bool MLSymbol::hasWildCard() const
 
 /*
 // replace wild card with the given number.
-MLSymbol MLSymbol::withWildCardNumber(int n) const
+Symbol Symbol::withWildCardNumber(int n) const
 {
 	const std::string& inStr = getString();
 	const char* p = inStr.c_str();
@@ -373,13 +373,13 @@ MLSymbol MLSymbol::withWildCardNumber(int n) const
 		m++;
 	}
 	tempBuf[m] = 0;
-	return MLSymbol(tempBuf);
+	return Symbol(tempBuf);
 }
 */
 
 /*
 // if the symbol's string ends in a number, return that number.
-int MLSymbol::getFinalNumber() const
+int Symbol::getFinalNumber() const
 {
 	const std::string& str = getString();
 	const char* p = str.c_str();
@@ -401,7 +401,7 @@ int MLSymbol::getFinalNumber() const
 
 // add a number n to the end of a symbol after removing any final number.
 // n must be >= 0.
-MLSymbol MLSymbol::withFinalNumber(int n) const
+Symbol Symbol::withFinalNumber(int n) const
 {
 	// *not* static because different threads could collide accesing a single buffer.
 	char tempBuf[kMLMaxSymbolLength + kMLMaxNumberLength] = {0};
@@ -430,12 +430,12 @@ MLSymbol MLSymbol::withFinalNumber(int n) const
 	
 	naturalNumberToDigits(n, tempBuf+j);
 	
-	//debug() << "in: " << n << ", char*: " << tempBuf << ", Symbol " << MLSymbol(tempBuf) << "\n";	
-	return MLSymbol(tempBuf);
+	//debug() << "in: " << n << ", char*: " << tempBuf << ", Symbol " << Symbol(tempBuf) << "\n";	
+	return Symbol(tempBuf);
 }
 
 // remove any final number.
-MLSymbol MLSymbol::withoutFinalNumber() const
+Symbol Symbol::withoutFinalNumber() const
 {
 	// *not* static because different threads could collide accessing a single buffer.
 	char tempBuf[kMLMaxSymbolLength] = {0};
@@ -461,12 +461,12 @@ MLSymbol MLSymbol::withoutFinalNumber() const
 		tempBuf[j] = p[j];
 	}
 	tempBuf[i+1] = 0;
-	return MLSymbol(tempBuf);
+	return Symbol(tempBuf);
 }
 */
 
 /*
-int MLSymbol::compare(const char * s) const
+int Symbol::compare(const char * s) const
 {
 	return getString().compare(s);
 }*/
@@ -475,7 +475,7 @@ int MLSymbol::compare(const char * s) const
 
 
 // base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
-const MLSymbol MLNameMaker::nextName()
+const Symbol MLNameMaker::nextName()
 {
 //	std::string nameStr;
 	std::vector<int> digits;
@@ -511,7 +511,7 @@ const MLSymbol MLNameMaker::nextName()
 		// nameStr += (char)d + baseChar;
 	}
 	// TODO 
-	return MLSymbol(buf);
+	return Symbol(buf);
 }
 	
 } // namespace ml

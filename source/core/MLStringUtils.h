@@ -34,12 +34,12 @@ public:
 	}
 };
 
-// MLSymbol template specialization for case insensitive compares. 	
+// Symbol template specialization for case insensitive compares. 	
 template <>
-class caseInsensitiveCompare<MLSymbol> : std::function<bool(MLSymbol, MLSymbol)>
+class caseInsensitiveCompare<Symbol> : std::function<bool(Symbol, Symbol)>
 {
 public:
-	bool operator()(const MLSymbol& s1, const MLSymbol& s2) const
+	bool operator()(const Symbol& s1, const Symbol& s2) const
 	{
 		const char* r1 = s1.getTextFragment().text;
 		const char* r2 = s2.getTextFragment().text;

@@ -29,14 +29,14 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	const int kTestLength = 100000;
 	
 	// main maps for testing
-	std::map<MLSymbol, float> testMapOrderedSym;
+	std::map<Symbol, float> testMapOrderedSym;
 	std::map<std::string, float> testMapOrderedStr;
-	std::unordered_map<MLSymbol, float> testMapUnorderedSym;
+	std::unordered_map<Symbol, float> testMapUnorderedSym;
 	std::unordered_map<std::string, float> testMapUnorderedStr;
 	
 	// make dictionaries of symbols, strings and chars for testing
 	MLNameMaker nameMaker;
-	std::vector<MLSymbol> symbolDict;
+	std::vector<Symbol> symbolDict;
 	std::vector<std::string> stringDict;
 	std::vector<const char *> charDict;
 	int p = 0;
@@ -57,7 +57,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		stringDict.push_back(newString);
 		
 		// add it to symbol table
-		MLSymbol newSym(newString.c_str());
+		Symbol newSym(newString.c_str());
 		symbolDict.push_back(newSym);
 		
 		// add an entry to each map
@@ -203,9 +203,9 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 	MLNameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
-		MLSymbol testSym = namer.nextName();
-		MLSymbol testSymWithNum = testSym.withFinalNumber(i);
-		MLSymbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
+		Symbol testSym = namer.nextName();
+		Symbol testSymWithNum = testSym.withFinalNumber(i);
+		Symbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
 		REQUIRE(testSym == testSymWithoutNum);
 	}
 	REQUIRE(theSymbolTable().audit());
@@ -219,7 +219,7 @@ void threadTest(int threadID)
 	MLNameMaker namer;
 	for(int i=0; i<kThreadTestSize; ++i)
 	{
-		MLSymbol sym(namer.nextName());
+		Symbol sym(namer.nextName());
 		std::this_thread::yield();
 	}
 }
@@ -250,8 +250,8 @@ TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
 {
 	// things that should and shouldn't be the same as one another.
 	theSymbolTable().clear();
-	MLSymbol a("xxx_yyy");
-	MLSymbol b("xxx");
+	Symbol a("xxx_yyy");
+	Symbol b("xxx");
 	REQUIRE(a != b);
 }
 
@@ -260,7 +260,7 @@ TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
 TEST_CASE("madronalib/core/symbol/sorting", "[symbol][sorting]")
 {
 	theSymbolTable().clear();
-	std::map<MLSymbol, int> sortedMap;
+	std::map<Symbol, int> sortedMap;
 	const int sortTestSize = 10;
 	int p = 0;
 
@@ -281,7 +281,7 @@ TEST_CASE("madronalib/core/symbol/sorting", "[symbol][sorting]")
 	}
 	
 	// make sure each successive pair of keys is in sorted order.
-	MLSymbol symA, symB;
+	Symbol symA, symB;
 	for(auto mapEntry : sortedMap)
 	{		
 		symA = symB;
@@ -313,7 +313,7 @@ inline HexCharStruct hexchar(unsigned char _c)
 TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 {
 	theSymbolTable().clear();
-	std::map<MLSymbol, int> sortedMap;
+	std::map<Symbol, int> sortedMap;
 	const int sortTestSize = 10;
 	int p = 0;
 
@@ -328,7 +328,7 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	
 	for(auto testString : strings)
 	{
-		MLSymbol testSym(testString.c_str());
+		Symbol testSym(testString.c_str());
 		TextFragment strB = testSym.getTextFragment();
 		int lenB = strB.length;
 		std::cout << strB << " : ";

@@ -120,7 +120,7 @@ public:
 		return pNode;
 	}
 	
-	// TODO use MLSymbol vector paths
+	// TODO use Symbol vector paths
 	MLResourceMap<K, V, C>* addValue (const std::string& pathStr, const V& val)
 	{
 		MLResourceMap<K, V, C>* newNode = addNode(pathStr);

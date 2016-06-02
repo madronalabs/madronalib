@@ -137,9 +137,9 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
 	// this default comparison is not case sensitive: case/B and case/b are addresses of the same node. 
-	// with a MLResourceMap< MLSymbol, int, std::less<MLSymbol> > , the order of map depends on 
+	// with a MLResourceMap< Symbol, int, std::less<Symbol> > , the order of map depends on 
 	// the sorted order of symbols, which is just their creation order.
-	MLResourceMap< MLSymbol, int > a;
+	MLResourceMap< Symbol, int > a;
 
 	a.addNode("zzx");
 	a.addValue("case/insensitive/a", 1);
