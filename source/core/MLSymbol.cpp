@@ -112,48 +112,16 @@ void SymbolTable::clear()
 	MLScopedLock lock(mLock);
 	mSymbolsByID.clear();
 	
-#if USE_ALPHA_SORT	
-	mAlphaOrderByID.clear();
-	mSymbolsByAlphaOrder.clear();
-#endif
-	
 	mHashTable.clear();
 	mHashTable.resize(kHashTableSize);	
 	addEntry("", 0);
 }
-
-#if USE_ALPHA_SORT	
-int SymbolTable::getSymbolAlphaOrder(const int symID) 
-{
-	return mAlphaOrderByID[symID];
-}
-#endif
 
 // add an entry to the table. The entry must not already exist in the table.
 // this must be the only way of modifying the symbol table.
 int SymbolTable::addEntry(const char * sym, uint32_t hash)
 {
 	mSymbolsByID.emplace_back(TextFragment(sym));
-	
-#if USE_ALPHA_SORT	
-	// store symbol in set to get alphabetically sorted index of new entry.
-	auto insertReturnVal = mSymbolsByAlphaOrder.insert(mSymbolsByID[newID]); 
-	auto newEntryIter = insertReturnVal.first;
-	auto beginIter = mSymbolsByAlphaOrder.begin();
-	int newIndex = distance(beginIter, newEntryIter);
-	
-	// make new index list entry
-	mAlphaOrderByID[newID] = newIndex;
-
-	// insert into alphabetical order list
-	for(int i=0; i<newID; ++i)
-	{
-		if (mAlphaOrderByID[i] >= newIndex)
-		{
-			mAlphaOrderByID[i]++;
-		}
-	}
-#endif 
 	
 	size_t newID = mSymbolsByID.size() - 1;
 	mHashTable[hash].push_back(newID);	
@@ -206,13 +174,6 @@ void SymbolTable::dump()
 	std::cout << "---------------------------------------------------------\n";
 	std::cout << mSymbolsByID.size() << " symbols:\n";
 		
-#if USE_ALPHA_SORT
-	int i = 0;
-	for(auto sym : mSymbolsByAlphaOrder)
-	{
-		std::cout << "    ID " << i++ << " = " << sym << "\n";
-	}
-#else
 	// print symbols in order of creation. 
 	for(int i=0; i<mSymbolsByID.size(); ++i)
 	{
@@ -236,8 +197,6 @@ void SymbolTable::dump()
 		}
 		hash++;
 	}
-#endif
-	
 }
 
 int SymbolTable::audit()

@@ -30,11 +30,6 @@
 
 namespace ml {
 
-// With USE_ALPHA_SORT on, a std::map<Symbol, ...> will be in alphabetical order.
-// With it off, the symbols will sort into the order they were created, and symbol creation 
-// as well as map lookups will be significantly faster. 
-#define USE_ALPHA_SORT	0
-
 static const int kMLMaxSymbolLength = 56;
 static const int kMLMaxNumberLength = 8;
 
@@ -114,10 +109,6 @@ protected:
 	const TextFragment& getSymbolByID(int symID);
 	int addEntry(const char * sym, uint32_t hash);
 	
-#if USE_ALPHA_SORT	
-	int getSymbolAlphaOrder(const int symID);
-#endif
-	
 private:
 	// ensure symbol table integrity with simple SpinLock.
 	MLSpinLock mLock;
@@ -127,14 +118,6 @@ private:
 	
 	// hash table containing indexes to strings
 	std::vector< std::vector<int> > mHashTable;
-	
-#if USE_ALPHA_SORT	
-	// vector of alphabetically sorted indexes into symbol vector, in ID order
-	std::vector<int> mAlphaOrderByID;	
-	
-	// std::set is used for sorting.
-	std::set< TextFragment, MLStringCompareFn > mSymbolsByAlphaOrder;
-#endif
 
 };
 
@@ -160,11 +143,7 @@ public:
 	
 	inline bool operator< (const Symbol b) const
 	{
-#if USE_ALPHA_SORT			
-		return (theSymbolTable().getSymbolAlphaOrder(id) < theSymbolTable().getSymbolAlphaOrder(b.id));
-#else
 		return(id < b.id);
-#endif
 	}
 	
 	inline bool operator== (const Symbol b) const
