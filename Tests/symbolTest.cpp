@@ -197,18 +197,20 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	}
 }
 
+/*
 TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 {
 	MLNameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
-		MLSymbol testSym = namer.nextNameAsString().c_str();
+		MLSymbol testSym = namer.nextName();
 		MLSymbol testSymWithNum = testSym.withFinalNumber(i);
 		MLSymbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
 		REQUIRE(testSym == testSymWithoutNum);
 	}
 	REQUIRE(theSymbolTable().audit());
 }
+*/
 
 static const int kThreadTestSize = 1024;
 
@@ -217,7 +219,7 @@ void threadTest(int threadID)
 	MLNameMaker namer;
 	for(int i=0; i<kThreadTestSize; ++i)
 	{
-		MLSymbol sym(namer.nextNameAsString().c_str());
+		MLSymbol sym(namer.nextName());
 		std::this_thread::yield();
 	}
 }
@@ -327,12 +329,13 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	for(auto testString : strings)
 	{
 		MLSymbol testSym(testString.c_str());
-		std::string strB = testSym.getString();
-		int lenB = strB.length();
+		TextFragment strB = testSym.getTextFragment();
+		int lenB = strB.length;
 		std::cout << strB << " : ";
 		for(int i=0; i<lenB; ++i)
 		{
-			std::cout << hexchar(strB[i]) << " ";
+			// TODO code points
+			std::cout << hexchar(strB.text[i]) << " ";
 		}
 		std::cout << "\n";
 		// TODO write some actual test here

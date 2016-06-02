@@ -15,9 +15,9 @@
 // Accessing an MLSymbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
 
-#ifndef _ML_SYMBOL_H
-#define _ML_SYMBOL_H
+#pragma once
 
+#include <map>
 #include <set>
 #include <vector>
 #include <string>
@@ -27,6 +27,8 @@
 
 #include "MLLocks.h"
 #include "MLTextFragment.h"
+
+namespace ml {
 
 // With USE_ALPHA_SORT on, a std::map<MLSymbol, ...> will be in alphabetical order.
 // With it off, the symbols will sort into the order they were created, and symbol creation 
@@ -100,7 +102,7 @@ public:
 	MLSymbolTable();
 	~MLSymbolTable();
 	void clear();
-	int getSize() { return mSize; }	
+	size_t getSize() { return mSymbolsByID.size(); }	
 	void dump(void);
 	int audit(void);
 	
@@ -110,7 +112,7 @@ protected:
 	int getSymbolID(const char * sym);
 	int getSymbolID(const HashedCharArray& hsl);
 	
-	const std::string& getSymbolByID(int symID);
+	const TextFragment& getSymbolByID(int symID);
 	int addEntry(const char * sym, uint32_t hash);
 	
 #if USE_ALPHA_SORT	
@@ -118,17 +120,11 @@ protected:
 #endif
 	
 private:
-	void allocateChunk();
-	
 	// ensure symbol table integrity with simple SpinLock.
 	MLSpinLock mLock;
-	
-	// 2^31 unique symbols are possible. There is no checking for overflow.
-	int mSize;
-	int mCapacity;
-	
+		
 	// vector of symbols in ID/creation order
-	std::vector< std::string > mSymbolsByID;	
+	std::vector< TextFragment > mSymbolsByID;	
 	
 	// hash table containing indexes to strings
 	std::vector< std::vector<int> > mHashTable;
@@ -138,7 +134,7 @@ private:
 	std::vector<int> mAlphaOrderByID;	
 	
 	// std::set is used for sorting.
-	std::set<std::string, MLStringCompareFn> mSymbolsByAlphaOrder;
+	std::set< TextFragment, MLStringCompareFn > mSymbolsByAlphaOrder;
 #endif
 
 };
@@ -157,38 +153,34 @@ class MLSymbol
 	friend std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 	
 public:
-	MLSymbol() : mID(0) {}
+	MLSymbol() : id(0) {}
 
-	MLSymbol(const HashedCharArray& hsl) : 
-	mID( theSymbolTable().getSymbolID(hsl) )
-	{ }
+	MLSymbol(const HashedCharArray& hsl) : id( theSymbolTable().getSymbolID(hsl) ) { }
 	
-	MLSymbol(const char* pC) : 
-	mID( theSymbolTable().getSymbolID(pC) )
-	{ }
+	MLSymbol(const char* pC) : id( theSymbolTable().getSymbolID(pC) ) { }
 	
 	inline bool operator< (const MLSymbol b) const
 	{
 #if USE_ALPHA_SORT			
-		return (theSymbolTable().getSymbolAlphaOrder(mID) < theSymbolTable().getSymbolAlphaOrder(b.mID));
+		return (theSymbolTable().getSymbolAlphaOrder(id) < theSymbolTable().getSymbolAlphaOrder(b.id));
 #else
-		return(mID < b.mID);
+		return(id < b.id);
 #endif
 	}
 	
 	inline bool operator== (const MLSymbol b) const
 	{
-		return (mID == b.mID);
+		return (id == b.id);
 	}	
 	
 	inline bool operator!= (const MLSymbol b) const
 	{
-		return (mID != b.mID);
+		return (id != b.id);
 	}	
 	
-	explicit operator bool() const { return mID != 0; }
-	inline int getID() const { return mID; }
+	explicit operator bool() const { return id != 0; }
 	
+	// MLTEST
 	// search hash table for our id to find our hash.
 	// for testing only! 
 	inline int getHash() const 
@@ -199,9 +191,9 @@ public:
 			size_t idVecLen = idVec.size();
 			if(idVecLen > 0)
 			{
-				for(auto id : idVec)
+				for(auto vid : idVec)
 				{
-					if(id == mID)
+					if(vid == id)
 					{
 						return hash;
 					}
@@ -213,27 +205,26 @@ public:
 		return 0; 
 	}
 	
-	// in order to show the strings in XCode's debugger, instead of the unhelpful mID,
+	// in order to show the strings in XCode's debugger, instead of the unhelpful id,
 	// edit the summary format for MLSymbol within XCode to {$VAR.getString()}:s
-	const std::string& getString() const;
+	const TextFragment& getTextFragment() const;
 	
-	bool beginsWith (const MLSymbol b) const;
-	bool endsWith (const MLSymbol b) const;
+//	bool beginsWith (const MLSymbol b) const;
+//	bool endsWith (const MLSymbol b) const;
 	bool hasWildCard() const;
 	
 	int getFinalNumber() const;	
 	int compare(const char *str) const;
 	
 	// TODO make free functions
-	MLSymbol append(const std::string& b) const;
+	MLSymbol append(const TextFragment& b) const;
 	MLSymbol withWildCardNumber(int n) const;
 	MLSymbol withFinalNumber(int n) const;
 	MLSymbol withoutFinalNumber() const;
 	
-private:
-	
 	// the ID equals the order in which the symbol was created.
-	const int mID;
+	// 2^31 unique symbols are possible. There is no checking for overflow.
+	const int id;
 };
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r);
@@ -243,7 +234,7 @@ std::ostream& operator<< (std::ostream& out, const MLSymbol r);
 
 // unused, a start.
 
-// TODO replace all use of std::string with symbol vectors. 
+// TODO replace all use of std::string with TextFragment. 
 
 // store in memory pool, 1Mb or so in 4 byte increments or so. Never delete. When pool is full
 // make another. Or just fail. 1Mb / 8 bytes : 128k strings.
@@ -303,9 +294,6 @@ public:
 	MLNameMaker() : index(0) {};
 	~MLNameMaker() {};
 	
-	// return the next name in the sequence as a string. 
-	std::string nextNameAsString();
-	
 	// return the next name as a symbol, having added it to the symbol table. 
 	const MLSymbol nextName();
 	
@@ -313,23 +301,8 @@ private:
 	int index;
 };
 
-// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
-// which gives each MLSymbol a unique hash.
-namespace std
-{
-	template<>
-	struct hash<MLSymbol>
-	{
-		std::size_t operator()(MLSymbol const& s) const
-		{
-			return s.getID();
-		}
-	};
-}
-
 // MLTEST
 
-#include <map>
 
 class TestProc
 {
@@ -364,7 +337,19 @@ public:
 };
 
 
+} // namespace ml
 
 
-#endif // _ML_SYMBOL_H
-
+// hashing function for MLSymbol use in unordered STL containers. simply return the ID,
+// which gives each MLSymbol a unique hash.
+namespace std
+{
+	template<>
+	struct hash<ml::MLSymbol>
+	{
+		std::size_t operator()(ml::MLSymbol const& s) const
+		{
+			return s.id;
+		}
+	};
+}

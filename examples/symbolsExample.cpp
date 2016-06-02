@@ -73,6 +73,8 @@ int main()
 	
 	std::cout << t << u << v << w << "\n";
 	
+	theTextFragmentPool().dump();
+	
 	/*
 	std::chrono::time_point<std::chrono::system_clock> start, end;	
 	std::chrono::duration<double> elapsed;

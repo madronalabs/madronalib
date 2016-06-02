@@ -55,7 +55,10 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		for(int j=0; j<leaves; ++j)
 		{
 			// make resource name with unique end so paths are never duplicates
-			std::string leafName = testWords[(ml::rand32() >> 16) % numTestWords] + endNamer.nextName().getString();
+			
+			
+			// TODO -> TextFragments
+			std::string leafName = testWords[(ml::rand32() >> 16) % numTestWords] + std::string(endNamer.nextName().getTextFragment().text);
 			paths.push_back(pathStr + leafName);
 		}
 	}

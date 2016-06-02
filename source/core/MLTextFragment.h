@@ -8,9 +8,10 @@
 
 #pragma once
 
-static const int kCharsPerTextChunkBits = 4;
-static const int kCharsPerTextChunk = 1 << kCharsPerTextChunkBits;
-static const int kCharsPerTextChunkMask = kCharsPerTextChunk - 1;
+#include "../DSP/MLDSPMath.h"
+
+static const int kBytesPerTextChunkBits = 4; // must be <= 4 to force SSE alignment
+static const int kBytesPerTextChunk = 1 << kBytesPerTextChunkBits;
 static const int kPoolSizeBits = 17; // 1 M 
 static const int kPoolSize = 1 << kPoolSizeBits; 
 
@@ -18,8 +19,6 @@ namespace ml
 {
 	class TextFragmentPool
 	{
-	public:
-
 		inline char* alignData(const char* p)
 		{
 			const int kCharsPerSSEVector = 16;
@@ -28,45 +27,59 @@ namespace ml
 			pM &= (~(kCharsPerSSEVector - 1));	
 			return(char*)pM;
 		} 
-
-		TextFragmentPool() : pData(0), pNext(0)
+		
+		inline size_t chunkSizeToContain(size_t sizeInBytes, size_t chunkSizeBits)
 		{
-			pData = new char[kPoolSize];
-			pDataAligned = alignData(pData);			
-			pNext = pDataAligned;
+			int sizeMask = (1 << chunkSizeBits) - 1;
+			return (sizeInBytes + sizeMask) & (~sizeMask);
+		}
+
+	public:
+
+		TextFragmentPool() : mpData(0), mpNext(0)
+		{
+			mpData = new char[kPoolSize];
+			mpDataAligned = alignData(mpData);			
+			mpNext = mpDataAligned;
 		}
 		
 		~TextFragmentPool()
 		{
-			delete pData;	
+			delete mpData;	
 		}
 		
-		const char* add(const char* pChars, size_t lengthInBytes)
+		inline const char* add(const char* pChars, size_t lengthInBytes)
 		{
 			// TODO test scopedLock vs. compareAndSwap result
 			MLScopedLock lock(mLock);
 			
-			// get smallest chunk size that will hold lengthInBytes
-			size_t len = (lengthInBytes + kCharsPerTextChunkMask) & (~kCharsPerTextChunkMask);
+			size_t len = chunkSizeToContain(lengthInBytes, kBytesPerTextChunkBits);
+			std::copy(pChars, pChars + lengthInBytes, mpNext);
 			
-			// copy the data
-			for(int n=0; n<len; ++n)
-			{
-				pNext[n] = pChars[n];
-			}
-			
-			char* r = pNext;
-			pNext += len;
-			
-			// MLTEST
-			// std::cout << std::hex << (unsigned long)pNext << std::dec << "\n";
-			
+			char* r = mpNext;
+			mpNext += len;			
 			return r;
 		}
 		
-		char * pData;
-		char * pDataAligned;
-		char * pNext;
+		// MLTEST
+		inline void dump()
+		{
+			size_t len = mpNext - mpDataAligned;
+			size_t frags = len / kBytesPerTextChunk;
+			
+			for(int i=0; i < frags; ++i)
+			{
+				for(int n=0; n < kBytesPerTextChunk; ++n)
+				{
+				std::cout << mpDataAligned[i*kBytesPerTextChunk + n];
+				}
+				std::cout << "\n";
+			}
+		}
+		
+		char * mpData;
+		char * mpDataAligned;
+		char * mpNext;
 		MLSpinLock mLock;
 	};
 	
@@ -79,19 +92,38 @@ namespace ml
 	class TextFragment
 	{
 	public:
-		// copies the null-terminated text fragment pointed to by pChars into
+		// copies the null-terminated characters pointed to by pChars into
 		// the text fragment pool and creates a new immutable object based on it. 
-		TextFragment(const char* pChars) : mLength(strlen(pChars)), mpText(theTextFragmentPool().add(pChars, mLength)){}
+		TextFragment(const char* pChars) : length(strlen(pChars)), text(theTextFragmentPool().add(pChars, length)){}
 		
-		const size_t mLength;
-		const char* mpText;
+		const int length;
+		const char* text; // guaranteed 16-byte aligned
 	};
 	
 	inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)
 	{
-		std::cout << r.mpText;
+		std::cout << r.text << "(" << r.length << ")";
 		return out;
 	}
-
 	
+	inline bool compareTextFragmentToChars(TextFragment txf, const char* pChars)
+	{
+		int len = txf.length; 
+		if(len > 0)
+		{
+			// TODO use aligned text
+			for(int n=0; n<len; ++n)
+			{
+				if(txf.text[n] != pChars[n])
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		else
+		{
+			return (pChars[0] == 0);
+		}
+	}
 } // namespace ml

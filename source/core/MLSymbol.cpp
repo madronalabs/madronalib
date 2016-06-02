@@ -9,6 +9,8 @@
 
 #pragma mark utilities
 
+namespace ml {
+
 const int kMLMaxNumberDigits = 14;
 
 const char *positiveIntToDigits(int i);
@@ -88,14 +90,14 @@ bool isDigit(char c)
 
 std::ostream& operator<< (std::ostream& out, const MLSymbol r)
 {
-	out << r.getString();
+	out << r.getTextFragment();
 	return out;
 }
 
 
 #pragma mark MLSymbolTable
 
-MLSymbolTable::MLSymbolTable() : mSize(0)
+MLSymbolTable::MLSymbolTable()
 {
 	clear();
 }
@@ -108,32 +110,16 @@ MLSymbolTable::~MLSymbolTable()
 void MLSymbolTable::clear()
 {
 	MLScopedLock lock(mLock);
-
-	mSize = 0;
-	mCapacity = 0;
-	
 	mSymbolsByID.clear();
 	
 #if USE_ALPHA_SORT	
 	mAlphaOrderByID.clear();
 	mSymbolsByAlphaOrder.clear();
 #endif
+	
 	mHashTable.clear();
-	mHashTable.resize(kHashTableSize);
-	allocateChunk();
-	
+	mHashTable.resize(kHashTableSize);	
 	addEntry("", 0);
-}
-
-// allocate one additional chunk of storage. 
-void MLSymbolTable::allocateChunk()
-{
-	mCapacity += kTableChunkSize;
-	mSymbolsByID.resize(mCapacity);
-	
-#if USE_ALPHA_SORT	
-	mAlphaOrderByID.resize(mCapacity);
-#endif
 }
 
 #if USE_ALPHA_SORT	
@@ -147,15 +133,8 @@ int MLSymbolTable::getSymbolAlphaOrder(const int symID)
 // this must be the only way of modifying the symbol table.
 int MLSymbolTable::addEntry(const char * sym, uint32_t hash)
 {
-	int newID = mSize;	
+	mSymbolsByID.emplace_back(TextFragment(sym));
 	
-	if(mSize >= mCapacity)
-	{
-		allocateChunk();
-	}
-	
-	mSymbolsByID[newID] = sym;
-
 #if USE_ALPHA_SORT	
 	// store symbol in set to get alphabetically sorted index of new entry.
 	auto insertReturnVal = mSymbolsByAlphaOrder.insert(mSymbolsByID[newID]); 
@@ -176,8 +155,8 @@ int MLSymbolTable::addEntry(const char * sym, uint32_t hash)
 	}
 #endif 
 	
+	size_t newID = mSymbolsByID.size() - 1;
 	mHashTable[hash].push_back(newID);	
-	mSize++;
 	return newID;
 }
 
@@ -186,32 +165,23 @@ int MLSymbolTable::getSymbolID(const HashedCharArray& hsl)
 	int r = 0;
 	bool found = false;
 
-	// there should be few collisions, so probably the first ID in the hash bin
-	// will be the symbol we are looking for. Unfortunately to test for equality we have to 
-	// compare the entire string.	
-	
-	// if we replace std::string with a custom char * type that stores its length, 
-	// and use SSE to do the compares, they could probably be significantly faster.
-	
-	// note that we have the length as a parameter in the string literal version now! use for faster compares.
-	
-	// add quadratic probing?
-	
 	const std::vector<int>& bin = mHashTable[hsl.hash];
 	{
 		MLScopedLock lock(mLock);
 		
 		for(int ID : bin)
 		{
-			const char* symB = mSymbolsByID[ID].c_str();
-			std::size_t lenB = strlen(symB);
-			if(!strncmp(hsl.pSym, symB, std::max(hsl.len, lenB)))
+			// there should be few collisions, so probably the first ID in the hash bin
+			// will be the symbol we are looking for. Unfortunately to test for equality we have to 
+			// compare the entire string.	
+			if(compareTextFragmentToChars(mSymbolsByID[ID], hsl.pSym))
 			{
 				r = ID;
 				found = true;
 				break;
 			}
 		}
+		
 		if(!found)
 		{	
 			r = addEntry(hsl.pSym, hsl.hash);
@@ -226,7 +196,7 @@ int MLSymbolTable::getSymbolID(const char * sym)
 	return getSymbolID(HashedCharArray (sym, strlen(sym)));
 }
 
-const std::string& MLSymbolTable::getSymbolByID(int symID)
+const TextFragment& MLSymbolTable::getSymbolByID(int symID)
 {
 	return mSymbolsByID[symID];
 }
@@ -234,7 +204,7 @@ const std::string& MLSymbolTable::getSymbolByID(int symID)
 void MLSymbolTable::dump()
 {
 	std::cout << "---------------------------------------------------------\n";
-	std::cout << mSize << " symbols:\n";
+	std::cout << mSymbolsByID.size() << " symbols:\n";
 		
 #if USE_ALPHA_SORT
 	int i = 0;
@@ -244,9 +214,9 @@ void MLSymbolTable::dump()
 	}
 #else
 	// print symbols in order of creation. 
-	for(int i=0; i<mSize; ++i)
+	for(int i=0; i<mSymbolsByID.size(); ++i)
 	{
-		const std::string& sym = mSymbolsByID[i];
+		const TextFragment& sym = mSymbolsByID[i];
 		std::cout << "    ID " << i << " = " << sym << "\n";
 	}	
 	// print nonzero entries in hash table
@@ -275,15 +245,15 @@ int MLSymbolTable::audit()
 	int i=0;
 	int i2 = 0;
 	bool OK = true;
-	int size = mSize;
+	size_t size = mSymbolsByID.size();
  
 	for(i=0; i<size; ++i)
 	{
-		const std::string& sym = getSymbolByID(i);
-		const char* symChars = sym.c_str();
+		const TextFragment& sym = getSymbolByID(i);
+		const char* symChars = sym.text;
 		MLSymbol symB(symChars);
 
-		i2 = symB.getID();
+		i2 = symB.id;
 		if (i != i2)
 		{
 			OK = false;
@@ -297,7 +267,7 @@ int MLSymbolTable::audit()
 	}
 	if (!OK)
 	{
-		const std::string& s = getSymbolByID(i);
+		const TextFragment& s = getSymbolByID(i);
 		std::cout << "MLSymbolTable: error in symbol table, line " << i << ":\n";
 		std::cout << "    ID " << i << " = " << s << ", ID B = " << i2 << "\n";
 	}
@@ -307,12 +277,13 @@ int MLSymbolTable::audit()
 
 #pragma mark MLSymbol
 
-// return a reference to the symbol's string in the table.
-const std::string& MLSymbol::getString() const
+// return a reference to the symbol's TextFragment in the table.
+const TextFragment& MLSymbol::getTextFragment() const
 {
-	return theSymbolTable().getSymbolByID(mID);
+	return theSymbolTable().getSymbolByID(id);
 }
 
+/*
 bool MLSymbol::beginsWith (const MLSymbol b) const
 {
 	const std::string& strA = getString();
@@ -346,6 +317,7 @@ bool MLSymbol::endsWith (const MLSymbol b) const
 	}
 	return true;
 }
+*/
 
 /*
 MLSymbol MLSymbol::append(const std::string& b) const
@@ -356,8 +328,8 @@ MLSymbol MLSymbol::append(const std::string& b) const
 
 bool MLSymbol::hasWildCard() const
 {
-	const std::string& str = getString();
-	const char* p = str.c_str();
+	const TextFragment& str = getTextFragment();
+	const char* p = str.text;
 	int l = 0;
 	while(p[l] && (l < kMLMaxSymbolLength-1))
 	{
@@ -367,6 +339,7 @@ bool MLSymbol::hasWildCard() const
 	return false;
 }
 
+/*
 // replace wild card with the given number.
 MLSymbol MLSymbol::withWildCardNumber(int n) const
 {
@@ -402,7 +375,9 @@ MLSymbol MLSymbol::withWildCardNumber(int n) const
 	tempBuf[m] = 0;
 	return MLSymbol(tempBuf);
 }
+*/
 
+/*
 // if the symbol's string ends in a number, return that number.
 int MLSymbol::getFinalNumber() const
 {
@@ -488,21 +463,26 @@ MLSymbol MLSymbol::withoutFinalNumber() const
 	tempBuf[i+1] = 0;
 	return MLSymbol(tempBuf);
 }
+*/
 
+/*
 int MLSymbol::compare(const char * s) const
 {
 	return getString().compare(s);
-}
+}*/
 
 #pragma mark MLNameMaker
 
+
 // base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
-std::string MLNameMaker::nextNameAsString()
+const MLSymbol MLNameMaker::nextName()
 {
-	std::string nameStr;
+//	std::string nameStr;
 	std::vector<int> digits;
 	
 	const int base = 26;
+	const int maxLen = 64;
+	static char buf[maxLen];
 	const char baseChar = 'A';
 	int a, m, d, rem;
 	
@@ -521,16 +501,17 @@ std::string MLNameMaker::nextNameAsString()
 		a = d;
 	}
 	
-	while(digits.size())
+	int c = 0;
+	while(digits.size() && (c < maxLen))
 	{
 		d = digits.back();
 		digits.pop_back();
-		nameStr += (char)d + baseChar;
+		
+		buf[c++] = static_cast<char>(d) + baseChar;
+		// nameStr += (char)d + baseChar;
 	}
-	return nameStr;
+	// TODO 
+	return MLSymbol(buf);
 }
-
-const MLSymbol MLNameMaker::nextName()
-{
-	return MLSymbol(nextNameAsString().c_str());
-}
+	
+} // namespace ml
