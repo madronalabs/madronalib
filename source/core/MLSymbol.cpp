@@ -109,6 +109,7 @@ SymbolTable::~SymbolTable()
 // clear all symbols from the table.
 void SymbolTable::clear()
 {
+	mSize = 0;
 	MLScopedLock lock(mLock);
 	mSymbolsByID.clear();
 	
@@ -121,10 +122,15 @@ void SymbolTable::clear()
 // this must be the only way of modifying the symbol table.
 int SymbolTable::addEntry(const char * sym, uint32_t hash)
 {
+//	std::cout << "***" << mSize << "\n";
+
 	mSymbolsByID.emplace_back(TextFragment(sym));
-	
-	size_t newID = mSymbolsByID.size() - 1;
+	size_t newID = mSize++;
 	mHashTable[hash].push_back(newID);	
+	
+	
+	//std::cout << mSymbolsByID.capacity() << " ADDING *" << sym << "*" << " (" << newID << ")\n";
+	
 	return newID;
 }
 
@@ -134,9 +140,12 @@ int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 	bool found = false;
 
 	const std::vector<int>& bin = mHashTable[hsl.hash];
+	
+	// MLTEST pSym seems to change during this time - what?
+	// HashedCharArray points to old memory.
+	
 	{
 		MLScopedLock lock(mLock);
-		
 		for(int ID : bin)
 		{
 			// there should be few collisions, so probably the first ID in the hash bin
@@ -146,7 +155,12 @@ int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 			{
 				r = ID;
 				found = true;
+//				std::cout << "=";
 				break;
+			}
+			else
+			{
+//				std::cout << "!";
 			}
 		}
 		
@@ -190,7 +204,7 @@ void SymbolTable::dump()
 			std::cout << "#" << hash << " ";
 			for(auto id : idVec)
 			{
-				std::cout << id << " ";
+				std::cout << id << " " << getSymbolByID(id) << " ";
 			}
 
 			std::cout << "\n";
@@ -430,18 +444,14 @@ int Symbol::compare(const char * s) const
 	return getString().compare(s);
 }*/
 
-#pragma mark MLNameMaker
+#pragma mark NameMaker
 
 
 // base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
-const Symbol MLNameMaker::nextName()
+const Symbol NameMaker::nextName()
 {
-//	std::string nameStr;
 	std::vector<int> digits;
-	
 	const int base = 26;
-	const int maxLen = 64;
-	static char buf[maxLen];
 	const char baseChar = 'A';
 	int a, m, d, rem;
 	
@@ -461,7 +471,7 @@ const Symbol MLNameMaker::nextName()
 	}
 	
 	int c = 0;
-	while(digits.size() && (c < maxLen))
+	while(digits.size() && (c < maxLen - 1))
 	{
 		d = digits.back();
 		digits.pop_back();
@@ -469,6 +479,9 @@ const Symbol MLNameMaker::nextName()
 		buf[c++] = static_cast<char>(d) + baseChar;
 		// nameStr += (char)d + baseChar;
 	}
+	
+	buf[c++] = 0;
+	
 	// TODO 
 	return Symbol(buf);
 }

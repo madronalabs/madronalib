@@ -21,6 +21,43 @@
 #define HAVE_U8_LITERALS 1
 #endif
 
+static const int kThreadTestSize = 16; // MLTEST try 1024
+
+void threadTest(int threadID)
+{
+	NameMaker namer;
+	for(int i=0; i<kThreadTestSize; ++i)
+	{
+		Symbol sym(namer.nextName());
+		std::this_thread::yield();
+	}
+}
+
+TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
+{
+	// multithreaded test. multiple nameMakers will try to make duplicate names at about the same time,
+	// which will almost certainly lead to problems unless the symbol library is properly thread-safe.
+	
+	theSymbolTable().clear();
+	int nThreads = 16;
+	std::vector< std::thread > threads;
+	for(int i=0; i < nThreads; ++i)
+	{
+		threads.push_back(std::thread(threadTest, i));
+	}
+	for(int i=0; i < nThreads; ++i)
+	{
+		threads[i].join();
+	}
+	
+	theSymbolTable().dump();
+	
+	REQUIRE(theSymbolTable().audit());
+	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
+}
+
+/*
+
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
@@ -35,7 +72,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	std::unordered_map<std::string, float> testMapUnorderedStr;
 	
 	// make dictionaries of symbols, strings and chars for testing
-	MLNameMaker nameMaker;
 	std::vector<Symbol> symbolDict;
 	std::vector<std::string> stringDict;
 	std::vector<const char *> charDict;
@@ -196,11 +232,14 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		REQUIRE(theSymbolTable().audit());
 	}
 }
+ 
+ */
+
 
 /*
 TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 {
-	MLNameMaker namer;
+	NameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
 		Symbol testSym = namer.nextName();
@@ -211,40 +250,6 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 	REQUIRE(theSymbolTable().audit());
 }
 */
-
-static const int kThreadTestSize = 1024;
-
-void threadTest(int threadID)
-{
-	MLNameMaker namer;
-	for(int i=0; i<kThreadTestSize; ++i)
-	{
-		Symbol sym(namer.nextName());
-		std::this_thread::yield();
-	}
-}
-
-TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
-{
-	// multithreaded test. multiple nameMakers will try to make duplicate names at about the same time,
-	// which will almost certainly lead to problems unless the symbol library is properly thread-safe.
-	
-	theSymbolTable().clear();
-	int nThreads = 16;
-	std::vector< std::thread > threads;
-	for(int i=0; i < nThreads; ++i)
-	{
-		threads.push_back(std::thread(threadTest, i));
-	}
-	for(int i=0; i < nThreads; ++i)
-	{
-		threads[i].join();
-	}
-	
-	REQUIRE(theSymbolTable().audit());
-	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
-}
-
 
 TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
 {
@@ -318,7 +323,6 @@ TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 	}
 	std::cout << "\n";
 	//theSymbolTable().dump();
-
 }
 
 

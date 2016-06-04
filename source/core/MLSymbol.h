@@ -73,6 +73,17 @@ inline uint32_t krHash0(const char * str, const size_t len)
 	}
 	return accum & kHashTableMask;
 }
+	
+inline size_t mystrlen(const char* pC)
+{
+	const char* p = pC;
+	int n = 0;
+	while(p[n])
+	{
+		n++;
+	}
+	return n;
+}
 
 class HashedCharArray
 {
@@ -82,7 +93,7 @@ public:
 	constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pSym(sym) { }
 	
 	// this non-constexpr ctor counts the string length at runtime.
-	HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pSym(pC) {}
+	HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pSym(pC) { }
 	
 	const size_t len;
 	const int32_t hash;
@@ -103,8 +114,8 @@ public:
 protected:
 	// look up a symbol by name and return its ID. Used in Symbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
-	int getSymbolID(const char * sym);
 	int getSymbolID(const HashedCharArray& hsl);
+	int getSymbolID(const char * sym);
 	
 	const TextFragment& getSymbolByID(int symID);
 	int addEntry(const char * sym, uint32_t hash);
@@ -118,7 +129,8 @@ private:
 	
 	// hash table containing indexes to strings
 	std::vector< std::vector<int> > mHashTable;
-
+	
+	int mSize;
 };
 
 inline SymbolTable& theSymbolTable()
@@ -263,23 +275,25 @@ public:
 };
 
 // ----------------------------------------------------------------
-#pragma mark MLNameMaker
+#pragma mark NameMaker
 // a utility to make many short, unique, human-readable names when they are needed. 
 
-class MLNameMaker
+class NameMaker
 {
+	static const int maxLen = 64;
 public:
-	MLNameMaker() : index(0) {};
-	~MLNameMaker() {};
+	NameMaker() : index(0) {};
+	~NameMaker() {};
 	
 	// return the next name as a symbol, having added it to the symbol table. 
 	const Symbol nextName();
 	
 private:
 	int index;
+	char buf[maxLen];
+
 };
 
-// MLTEST
 
 class TestProc
 {
@@ -288,7 +302,9 @@ public:
 	TestProc(){}
 	~TestProc(){}
 
+	// MLTEST
 	// template syntax here is needed to get the string literal length N at compile time.
+	// leave this example until redoing setParam etc. in Procs.
 	template<size_t N>
 	inline void setParam(const char(&name)[N], float val)
 	{

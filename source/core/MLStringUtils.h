@@ -35,6 +35,7 @@ public:
 };
 
 // Symbol template specialization for case insensitive compares. 	
+// Used by ResourceMap by default.
 template <>
 class caseInsensitiveCompare<Symbol> : std::function<bool(Symbol, Symbol)>
 {

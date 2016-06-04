@@ -31,7 +31,7 @@ namespace ml
 		inline size_t chunkSizeToContain(size_t sizeInBytes, size_t chunkSizeBits)
 		{
 			int sizeMask = (1 << chunkSizeBits) - 1;
-			return (sizeInBytes + sizeMask) & (~sizeMask);
+			return (sizeInBytes > 0) ? (sizeInBytes + sizeMask) & (~sizeMask) : (1 << chunkSizeBits);
 		}
 
 	public:
@@ -48,6 +48,8 @@ namespace ml
 			delete mpData;	
 		}
 		
+		// add a fragment to the pool. Return the starting address. The starting address
+		// is guaranteed to be 16-byte aligned.
 		inline const char* add(const char* pChars, size_t lengthInBytes)
 		{
 			// TODO test scopedLock vs. compareAndSwap result
@@ -108,22 +110,37 @@ namespace ml
 	
 	inline bool compareTextFragmentToChars(TextFragment txf, const char* pChars)
 	{
+		bool r = true;
+		
 		int len = txf.length; 
+
 		if(len > 0)
 		{
-			// TODO use aligned text
+			// TODO use aligned text if len >= 4
+//			std::cout << len << ":";
 			for(int n=0; n<len; ++n)
 			{
-				if(txf.text[n] != pChars[n])
+				char pc = pChars[n];
+				
+//				std::cout << " [" << txf.text[n] << "/" << pc << "]" ;
+				if((pc == 0) || (pc != txf.text[n]))
 				{
-					return false;
+					r = false;
+					break;
 				}
 			}
-			return true;
 		}
 		else
 		{
-			return (pChars[0] == 0);
+			r = (pChars[0] == 0);
 		}
+
+//		std::cout << txf.text << " = " << pChars << " ? " << r << "\n";
+		return r;
+		
+		// saw this once: 
+		// !8192 ADDING *YK* (7952)
+		// 2: [Y/Y] [K/K]YK = ZY ? 1
+		
 	}
 } // namespace ml

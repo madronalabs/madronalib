@@ -18,10 +18,22 @@
 #include "MLStringUtils.h"
 #include "MLResourceMap.h"
 
+
+
+#if 0
+// move this -- MLTEST executes first
+TEST_CASE("madronalib/core/collision", "[collision]")
+{
+	Symbol a("mse");
+	Symbol aa("KL");
+	Symbol b("AAAAAAAAAAAAAAwwdmbs");
+	Symbol bb("AAAAAAAAAAAAAAjntepetnj");
+}
+
+
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
-
-	MLNameMaker namer;
+	NameMaker namer;
 	const int numTestWords = 100;
 	const int mapSize = 100;
 	std::chrono::time_point<std::chrono::system_clock> start, end;	
@@ -30,7 +42,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	// make random paths out of nonsense symbols
 	auto testWords = ml::stringUtils::vectorOfNonsenseWords( numTestWords );
 	std::vector<std::string> paths;
-	MLNameMaker endNamer;
+	NameMaker endNamer;
 	
 	ml::RandomSource randSource;
 	
@@ -56,7 +68,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		{
 			// make resource name with unique end so paths are never duplicates
 			
-			
 			// TODO -> TextFragments
 			std::string leafName = testWords[(ml::rand32() >> 16) % numTestWords] + std::string(endNamer.nextName().getTextFragment().text);
 			paths.push_back(pathStr + leafName);
@@ -75,7 +86,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	// time set nodes tree
 	start = std::chrono::system_clock::now();	
 	bool problem = false;
-	for(int i=0; i < mapSize; ++i)
+	for(int i=1; i < mapSize; ++i)
 	{
 		std::cout << " ADDING " << paths[i] << "\n";
 		numberMap.addValue(paths[i], i);
@@ -97,7 +108,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 
 	
 	
-	for(int i=0; i < mapSize; ++i)
+	for(int i=1; i < mapSize; ++i)
 	{
 		int v = numberMap.findValue(paths[i]);
 		if(v != i)
@@ -145,7 +156,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	a.addValue("case/insensitive/a", 1);
 	a.addValue("case/insensitive/b", 1);
 	a.addValue("case/insensitive/c", 1);
-	a.addValue("case/insensitive/B", 1); 
+	a.addValue("case/insensitive/B", 1); // will not be added
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
 	a.addNode("this/was/another");
@@ -169,7 +180,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	REQUIRE(leafSum == correctLeafSum);
 	
 	// simple tree dump:
-	if(0)
+	if(1)
 	for(auto it = a.begin(); it != a.end(); it++)
 	{
 		if(it.nodeHasValue())
@@ -184,5 +195,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 }
 
 
+#endif
 
 
