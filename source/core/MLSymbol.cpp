@@ -138,12 +138,7 @@ int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 {
 	int r = 0;
 	bool found = false;
-
 	const std::vector<int>& bin = mHashTable[hsl.hash];
-	
-	// MLTEST pSym seems to change during this time - what?
-	// HashedCharArray points to old memory.
-	
 	{
 		MLScopedLock lock(mLock);
 		for(int ID : bin)
@@ -155,12 +150,7 @@ int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 			{
 				r = ID;
 				found = true;
-//				std::cout << "=";
 				break;
-			}
-			else
-			{
-//				std::cout << "!";
 			}
 		}
 		
@@ -169,7 +159,6 @@ int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 			r = addEntry(hsl.pSym, hsl.hash);
 		}
 	}
-	
 	return r;
 }
 

@@ -18,7 +18,6 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  void *userData )
 {
 	static TickSource ticks(kSampleRate);
-	static TickSource ticks2(kSampleRate/4);
 	static FDN fdn({33, 149, 1377, 1969});
 	
 	MLSignal freqs({12000, 13000, 14000, 6000});
@@ -31,8 +30,7 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	float* outR = ((float**)outputBuffer)[1];
 
 	// process audio
-	DSPVector ticksVec = ticks();
-	DSPVectorArray<2> verb = fdn(ticksVec);
+	DSPVectorArray<2> verb = fdn(ticks());
 
 	// store audio
 	store(verb.getRowVector<0>(), outL);

@@ -1,27 +1,42 @@
 //
-//  MLStringUtils.cpp
+//  MLTextUtils.cpp
 //  madronalib
 //
 //  Created by Randy Jones on 12/3/14.
 //
 //
 
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 #include "../DSP/MLDSPGens.h" // for RandomSource
 
 #pragma mark string utilities
 
-namespace ml { namespace stringUtils {
+namespace ml { namespace textUtils {
 	
-const std::string stripExtension(const std::string& str)
+const size_t countCodePoints(const TextFragment& frag)
 {
+	utf::stringview<const char*> sv(frag.text, frag.text + frag.length);
+	return sv.codepoints();
+}
+	
+size_t find_last_of(const TextFragment& str)
+{
+	
+}
+	
+const TextFragment stripExtension(const TextFragment& str)
+{
+	/*
     std::string r(str);
     size_t b = r.find_last_of(".");
     if(b != std::string::npos)
     {
         r = r.substr(0, b);
     }
+	
     return r;
+	 */
+	return str;
 }
 
 const std::string getShortName(const std::string& str)
@@ -103,4 +118,4 @@ std::vector< std::string > vectorOfNonsenseWords( int len )
 	return words;
 }
 
-} } // ml:stringUtils
+} } // ml:textUtils

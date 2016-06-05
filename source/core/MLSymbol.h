@@ -9,8 +9,8 @@
 // ---------
 //
 // Symbols are immutable.
-// The value of an Symbol must remain valid even after more MLSymbols are created.  
-// This allows MLSymbols to function as correct keys.
+// The value of a Symbol must remain valid even after more MLSymbols are created.  
+// This allows MLSymbols to function as keys in any kind of data structure.
 //
 // Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
@@ -112,6 +112,7 @@ public:
 	int audit(void);
 	
 protected:
+ 
 	// look up a symbol by name and return its ID. Used in Symbol constructors.
 	// if the symbol already exists, this routine must not allocate any heap memory.
 	int getSymbolID(const HashedCharArray& hsl);
@@ -220,61 +221,6 @@ public:
 std::ostream& operator<< (std::ostream& out, const Symbol r);
 
 // ----------------------------------------------------------------
-#pragma mark SymbolVector
-
-// unused, a start.
-
-// TODO replace all use of std::string with TextFragment. 
-
-// store in memory pool, 1Mb or so in 4 byte increments or so. Never delete. When pool is full
-// make another. Or just fail. 1Mb / 8 bytes : 128k strings.
-
-// paths: will be lists of symbolvectors. Each vector can include spaces or other punctuation. 
-// maybe make ID 1 = " " 
-
-// arbitrary text can go into a symbolvector.
-
-// in Chinese each character will be one symbol. 
-// Japanese too (except phonetic characters?) 
-
-class SymbolVector : public std::vector<Symbol> 
-{
-public:
-	SymbolVector() {}
-	SymbolVector(std::vector<Symbol> b) 
-	{
-		for(auto it = b.begin(); it != b.end(); ++it)
-		{
-			push_back(*it);
-		}
-	}
-	~SymbolVector() {}
-	
-	inline bool operator< (const SymbolVector& b) const
-	{
-		const std::vector<Symbol>& a = *this;
-		size_t aLen = size();
-		size_t bLen = b.size();
-		size_t minSize = std::min(aLen, bLen);
-		for(int i=0; i<minSize; ++i)
-		{
-			Symbol symA = a[i];
-			Symbol symB = b[i];
-			if(symA < symB)
-			{
-				return true;
-			}
-			else if (symB < symA)
-			{
-				return false;
-			}
-		}
-		// at this point the vectors are equal up to min length
-		return aLen < bLen;
-	}		
-};
-
-// ----------------------------------------------------------------
 #pragma mark NameMaker
 // a utility to make many short, unique, human-readable names when they are needed. 
 
@@ -294,55 +240,17 @@ private:
 
 };
 
-
-class TestProc
-{
-public:
-	
-	TestProc(){}
-	~TestProc(){}
-
-	// MLTEST
-	// template syntax here is needed to get the string literal length N at compile time.
-	// leave this example until redoing setParam etc. in Procs.
-	template<size_t N>
-	inline void setParam(const char(&name)[N], float val)
-	{
-		std::cout << "setParam - HSL\n";
-		HashedCharArray hsl(name);
-		Symbol m(hsl);
-		map[m] = val;
-	}
-
-	inline void setParam(Symbol name, float val)
-	{
-		std::cout << "setParam - Symbol\n";
-		map[name] = val;
-	}
-	
-	inline float getParam(const Symbol name)
-	{
-		return map[name];
-	}
-	
-	std::map< Symbol, float > map;
-	
-};
-
-
 } // namespace ml
 
-
-// hashing function for Symbol use in unordered STL containers. simply return the ID,
+// hashing function for ml::Symbol use in unordered STL containers. simply return the ID,
 // which gives each Symbol a unique hash.
-namespace std
+namespace std {
+template<>
+struct hash<ml::Symbol>
 {
-	template<>
-	struct hash<ml::Symbol>
+	std::size_t operator()(ml::Symbol const& s) const
 	{
-		std::size_t operator()(ml::Symbol const& s) const
-		{
-			return s.id;
-		}
-	};
+		return s.id;
+	}
+};
 }

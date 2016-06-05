@@ -4,14 +4,9 @@
 //
 //  Created by Randy Jones on 5/21/16.
 //
-//
 
 #pragma once
 
-#include "../DSP/MLDSPMath.h"
-
-static const int kBytesPerTextChunkBits = 4; // must be <= 4 to force SSE alignment
-static const int kBytesPerTextChunk = 1 << kBytesPerTextChunkBits;
 static const int kPoolSizeBits = 17; // 1 M 
 static const int kPoolSize = 1 << kPoolSizeBits; 
 
@@ -19,28 +14,11 @@ namespace ml
 {
 	class TextFragmentPool
 	{
-		inline char* alignData(const char* p)
-		{
-			const int kCharsPerSSEVector = 16;
-			uintptr_t pM = (uintptr_t)p;
-			pM += (uintptr_t)(kCharsPerSSEVector - 1);
-			pM &= (~(kCharsPerSSEVector - 1));	
-			return(char*)pM;
-		} 
-		
-		inline size_t chunkSizeToContain(size_t sizeInBytes, size_t chunkSizeBits)
-		{
-			int sizeMask = (1 << chunkSizeBits) - 1;
-			return (sizeInBytes > 0) ? (sizeInBytes + sizeMask) & (~sizeMask) : (1 << chunkSizeBits);
-		}
-
 	public:
-
 		TextFragmentPool() : mpData(0), mpNext(0)
 		{
 			mpData = new char[kPoolSize];
-			mpDataAligned = alignData(mpData);			
-			mpNext = mpDataAligned;
+			mpNext = mpData;
 		}
 		
 		~TextFragmentPool()
@@ -48,39 +26,20 @@ namespace ml
 			delete mpData;	
 		}
 		
-		// add a fragment to the pool. Return the starting address. The starting address
-		// is guaranteed to be 16-byte aligned.
+		// Add a new null-terminated text fragment to the pool. Return its starting address. 
 		inline const char* add(const char* pChars, size_t lengthInBytes)
 		{
 			// TODO test scopedLock vs. compareAndSwap result
 			MLScopedLock lock(mLock);
 			
-			size_t len = chunkSizeToContain(lengthInBytes, kBytesPerTextChunkBits);
 			std::copy(pChars, pChars + lengthInBytes, mpNext);
-			
 			char* r = mpNext;
-			mpNext += len;			
+			mpNext[lengthInBytes] = 0;
+			mpNext += lengthInBytes + 1;					
 			return r;
 		}
 		
-		// MLTEST
-		inline void dump()
-		{
-			size_t len = mpNext - mpDataAligned;
-			size_t frags = len / kBytesPerTextChunk;
-			
-			for(int i=0; i < frags; ++i)
-			{
-				for(int n=0; n < kBytesPerTextChunk; ++n)
-				{
-				std::cout << mpDataAligned[i*kBytesPerTextChunk + n];
-				}
-				std::cout << "\n";
-			}
-		}
-		
 		char * mpData;
-		char * mpDataAligned;
 		char * mpNext;
 		MLSpinLock mLock;
 	};
@@ -94,21 +53,23 @@ namespace ml
 	class TextFragment
 	{
 	public:
-		// copies the null-terminated characters pointed to by pChars into
+		// copies the null-terminated character array pointed to by pChars into
 		// the text fragment pool and creates a new immutable object based on it. 
 		TextFragment(const char* pChars) : length(strlen(pChars)), text(theTextFragmentPool().add(pChars, length)){}
 		
 		const int length;
-		const char* text; // guaranteed 16-byte aligned
+		const char* text; 
 	};
 	
 	inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)
 	{
-		std::cout << r.text << "(" << r.length << ")";
+		std::cout << r.text << "(" << r.length << ")"; // MLTEST
 		return out;
 	}
 	
-	inline bool compareTextFragmentToChars(TextFragment txf, const char* pChars)
+	// Compare the TextFragment to a null-terminated character array. 
+	//
+	inline bool compareTextFragmentToChars(TextFragment txf, const char* pCharsB)
 	{
 		bool r = true;
 		
@@ -116,14 +77,14 @@ namespace ml
 
 		if(len > 0)
 		{
-			// TODO use aligned text if len >= 4
-//			std::cout << len << ":";
+			const char* pCharsA = txf.text;
 			for(int n=0; n<len; ++n)
 			{
-				char pc = pChars[n];
+				char ca = pCharsA[n];
+				char cb = pCharsB[n];
 				
-//				std::cout << " [" << txf.text[n] << "/" << pc << "]" ;
-				if((pc == 0) || (pc != txf.text[n]))
+				// We know our text fragment's length so we only need to test for pCharsB ending.
+				if((cb == 0) || (cb != ca))
 				{
 					r = false;
 					break;
@@ -132,15 +93,9 @@ namespace ml
 		}
 		else
 		{
-			r = (pChars[0] == 0);
+			r = (pCharsB[0] == 0);
 		}
-
-//		std::cout << txf.text << " = " << pChars << " ? " << r << "\n";
-		return r;
-		
-		// saw this once: 
-		// !8192 ADDING *YK* (7952)
-		// 2: [Y/Y] [K/K]YK = ZY ? 1
-		
+		return r;		
 	}
+	
 } // namespace ml

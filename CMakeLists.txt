@@ -61,7 +61,7 @@ add_subdirectory(external)
 add_subdirectory(examples)
 
 if (ML_BUILD_TESTS)
-    add_subdirectory(Tests)
+    add_subdirectory(tests)
 endif()
 
 #if (DOXYGEN_FOUND AND ML_BUILD_DOCS)

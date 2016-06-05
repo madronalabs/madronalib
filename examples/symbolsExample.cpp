@@ -13,14 +13,56 @@
 #include <chrono>
 #include <thread>
 
-#include "catch.hpp"
 #include "../include/madronalib.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 
 #include <iostream>
 
-#include "madronalib.h"
 #include "MLTextFragment.h"
+
+// This example class shows how to write a method like setParam() that can accept string literals
+// as parameters so that the symbols are hashed at compile time. 
+class TestProc
+{
+public:
+	
+	TestProc(){}
+	~TestProc(){}
+	
+	// NOTE: template syntax here is needed to get the string literal length N at compile time.
+	template<size_t N>
+	inline void setParam(const char(&name)[N], float val)
+	{
+		std::cout << "setParam - HSL\n";
+		HashedCharArray hsl(name);
+		Symbol m(hsl);
+		map[m] = val;
+	}
+	
+	inline void setParam(const Symbol name, float val)
+	{
+		std::cout << "setParam - Symbol\n";
+		map[name] = val;
+	}
+	
+	template<size_t N>
+	inline float getParam(const char(&name)[N])
+	{
+		std::cout << "getParam - HSL\n";
+		HashedCharArray hsl(name);
+		Symbol m(hsl);
+		return map[m];
+	}
+	
+	inline float getParam(const Symbol name)
+	{
+		std::cout << "getParam - Symbol\n";
+		return map[name];
+	}
+	
+	std::map< Symbol, float > map;
+	
+};
 
 
 const char a[] = "x";
@@ -45,11 +87,13 @@ int main()
 	p.setParam("9xo", 880.f);
 	p.setParam("frequencies", 440.f);
 	p.setParam("frequency", 440.f);
+	p.setParam("fxo", 110.f);
+	p.setParam("fyo", 909);
 	
 	char name1[4] = "foo";
 	name1[1] = 'x';
 
-	const char name2[4] = "fxo";
+	const char name2[4] = "fyo";
 	
 	// Foo::Foo(const char (&)[N]) [N = 2]
 	std::cout << "frequency " << p.getParam("frequency") << "\n";
@@ -65,40 +109,13 @@ int main()
 		
 	theSymbolTable().dump();
 	
-	
 	TextFragment t ("hello");
 	TextFragment u (",");
 	TextFragment v (" ");
 	TextFragment w ("world!");
 	
 	std::cout << t << u << v << w << "\n";
-	
-	theTextFragmentPool().dump();
-	
-	/*
-	std::chrono::time_point<std::chrono::system_clock> start, end;	
-	std::chrono::duration<double> elapsed;
-	start = std::chrono::system_clock::now();	
-	end = std::chrono::system_clock::now();
-	elapsed = end-start;	
-	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
-
-	RandomSource rand;
-	
-	int rs = rand.getIntSample();
-	rs = rand.getIntSample();
-	
-	int q = s1.hash + s2.hash + rs;
-	
-	float r = q + elapsed.count();
-	r *= 0.5f;
-	std::cout << r << "\n";
-	*/
-	
-
-	
-	
-	
+		
 	return 0;
 }
 

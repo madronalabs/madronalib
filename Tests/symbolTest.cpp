@@ -13,7 +13,7 @@
 
 #include "catch.hpp"
 #include "../include/madronalib.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 
 #if _WIN32
 #define HAVE_U8_LITERALS 0
@@ -56,7 +56,14 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
 }
 
-/*
+TEST_CASE("madronalib/core/collision", "[collision]")
+{
+	// nothing is checked here - these are two pairs of colliding symbols for reference
+	Symbol a("mse");
+	Symbol aa("KL");
+	Symbol b("AAAAAAAAAAAAAAwwdmbs");
+	Symbol bb("AAAAAAAAAAAAAAjntepetnj");
+}
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
@@ -233,8 +240,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	}
 }
  
- */
-
 
 /*
 TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
@@ -249,7 +254,8 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 	}
 	REQUIRE(theSymbolTable().audit());
 }
-*/
+
+ */
 
 TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
 {
@@ -304,6 +310,7 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 			// TODO code points
 			std::cout << hexchar(strB.text[i]) << " ";
 		}
+		std::cout << "[" << textUtils::countCodePoints(strB) << "] ";
 		std::cout << "\n";
 		// TODO write some actual test here
 	}
@@ -314,7 +321,7 @@ TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 {
 	theSymbolTable().clear();
 	
-	std::vector< std::string > path = ml::stringUtils::parsePath(std::string("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it"));
+	std::vector< std::string > path = ml::textUtils::parsePath(std::string("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it"));
 	
 	std::cout << "as elements: ";
 	for(auto elem : path)

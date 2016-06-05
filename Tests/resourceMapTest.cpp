@@ -15,21 +15,8 @@
 
 #include "catch.hpp"
 #include "../include/madronalib.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 #include "MLResourceMap.h"
-
-
-
-#if 0
-// move this -- MLTEST executes first
-TEST_CASE("madronalib/core/collision", "[collision]")
-{
-	Symbol a("mse");
-	Symbol aa("KL");
-	Symbol b("AAAAAAAAAAAAAAwwdmbs");
-	Symbol bb("AAAAAAAAAAAAAAjntepetnj");
-}
-
 
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
@@ -40,7 +27,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	std::chrono::duration<double> elapsed;
 	
 	// make random paths out of nonsense symbols
-	auto testWords = ml::stringUtils::vectorOfNonsenseWords( numTestWords );
+	auto testWords = ml::textUtils::vectorOfNonsenseWords( numTestWords );
 	std::vector<std::string> paths;
 	NameMaker endNamer;
 	
@@ -74,13 +61,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		}
 	}
 	
-	// dump paths
-	if(0)
-	for(auto p : paths)
-	{
-		std::cout << p << "\n";
-	}
-	
 	MLResourceMap< std::string, int > numberMap;
 	
 	// time set nodes tree
@@ -88,26 +68,9 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	bool problem = false;
 	for(int i=1; i < mapSize; ++i)
 	{
-		std::cout << " ADDING " << paths[i] << "\n";
 		numberMap.addValue(paths[i], i);
 	}
 
-	
-	// simple tree dump:
-	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
-	{
-		if(it.nodeHasValue())
-		{		
-			std::cout << stringUtils::spaceStr(it.getDepth()) << it.getLeafName() << " " << it->getValue() << "\n";
-		}
-		else
-		{
-			std::cout << stringUtils::spaceStr(it.getDepth()) << "*" << it.getLeafName() << "\n";
-		}
-	}
-
-	
-	
 	for(int i=1; i < mapSize; ++i)
 	{
 		int v = numberMap.findValue(paths[i]);
@@ -134,11 +97,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 			maxDepth = it.getDepth();
 		}
 	}
-
-
-	//theSymbolTable().dump(); // MLTEST
-	
-	
 	
 	REQUIRE(bigLeafSum == correctBigLeafSum);
 	REQUIRE(maxDepth == correctMaxDepth);
@@ -147,16 +105,15 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	// this default comparison is not case sensitive: case/B and case/b are addresses of the same node. 
-	// with a MLResourceMap< Symbol, int, std::less<Symbol> > , the order of map depends on 
+	// with a MLResourceMap< Symbol, int, std::less<Symbol> > , the order of map keys depends on 
 	// the sorted order of symbols, which is just their creation order.
 	MLResourceMap< Symbol, int > a;
 
 	a.addNode("zzx");
-	a.addValue("case/insensitive/a", 1);
-	a.addValue("case/insensitive/b", 1);
-	a.addValue("case/insensitive/c", 1);
-	a.addValue("case/insensitive/B", 1); // will not be added
+	a.addValue("case/sensitive/a", 1);
+	a.addValue("case/sensitive/b", 1);
+	a.addValue("case/sensitive/c", 1);
+	a.addValue("case/sensitive/B", 1); // will be added
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
 	a.addNode("this/was/another");
@@ -168,7 +125,9 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	a.addValue("you/are/carl's/jr/jam", 10);
 	a.addNode("you/are/carl's/jr");
 	int leafSum = 0;
-	const int correctLeafSum = 73;
+	const int correctLeafSum = 74;
+	
+	a.dump();
 	
 	for(auto it = a.begin(); it != a.end(); it++)
 	{
@@ -178,23 +137,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		}
 	}
 	REQUIRE(leafSum == correctLeafSum);
-	
-	// simple tree dump:
-	if(1)
-	for(auto it = a.begin(); it != a.end(); it++)
-	{
-		if(it.nodeHasValue())
-		{		
-			std::cout << stringUtils::spaceStr(it.getDepth()) << it.getLeafName() << " " << it->getValue() << "\n";
-		}
-		else
-		{
-			std::cout << stringUtils::spaceStr(it.getDepth()) << it.getLeafName() << "\n";
-		}
-	}
+
 }
-
-
-#endif
-
 

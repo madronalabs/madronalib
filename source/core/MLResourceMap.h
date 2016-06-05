@@ -17,15 +17,15 @@
 #include <functional>
 #include <algorithm>
 
-#include "MLStringUtils.h" 
+#include "MLTextUtils.h" 
 
 // A resource map using a key class K, value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
 // Note that this makes MLResourceMap<..., int> weird to use, because 0 indicates
-// a null value. However, we are typically interested in more complex value types.
+// a null value. However, we are typically interested in more complex value types like signals or files.
 //
 
-template < class K, class V, class C = ml::stringUtils::caseInsensitiveCompare<K> >
+template < class K, class V, class C = std::less<K> >
 class MLResourceMap
 {
 public:
@@ -260,6 +260,22 @@ public:
 		return const_iterator(this, mChildren.end());
 	}
 
+	inline void dump() const
+	{
+		for(auto it = begin(); it != end(); it++)
+		{
+			if(it.nodeHasValue())
+			{		
+				std::cout << textUtils::spaceStr(it.getDepth()) << it.getLeafName() << " [" << it->getValue() << "]\n";
+			}
+			else
+			{
+				std::cout << textUtils::spaceStr(it.getDepth()) << "/" << it.getLeafName() << "\n";
+			}
+		}
+	}
+	
+				
 private:
 
 	// find a tree node at the specified path. 
