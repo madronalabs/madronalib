@@ -20,6 +20,8 @@
 
 #include "MLTextFragment.h"
 
+using namespace ml;
+
 // This example class shows how to write a method like setParam() that can accept string literals
 // as parameters so that the symbols are hashed at compile time. 
 class TestProc
@@ -115,7 +117,47 @@ int main()
 	TextFragment w ("world!");
 	
 	std::cout << t << u << v << w << "\n";
-		
+	
+	TextFragment test1 ("hello.exe");
+	int dotLoc = textUtils::findLast(test1, 'l');
+	std::cout << "loc: " << dotLoc << "\n";
+
+#if HAVE_U8_LITERALS
+	TextFragment kobayashi(u8"小林 尊");
+#else
+	TextFragment kobayashi("\xE5\xB0\x8F\xE6\x9E\x97\x20\xE5\xB0\x8A");
+#endif	
+	
+	utf::codepoint_type hayashi[1]{0x6797};
+	int hayashiLoc = textUtils::findFirst(kobayashi, hayashi[0]);
+	std::cout << "hayashi loc: " << hayashiLoc << "\n";
+
+	auto first = utf::codepoint_iterator<const char*>(kobayashi.text);
+	auto last = utf::codepoint_iterator<const char*>(kobayashi.text + kobayashi.length);
+
+	for (auto it = first; it != last; ++it) 
+	{
+		std::cout << std::hex << *it << " ";
+	}	
+	std::cout << "\n";
+	
+	// UTF-8 encode a single codepoint to preallocated buffer
+	const int kBufSize = 4;
+	unsigned char buf[kBufSize];
+	auto hv = utf::make_stringview(hayashi);
+	unsigned char* pb = buf;
+	for (utf::codepoint_iterator<const char32_t *> it = hv.begin(); it != hv.end(); ++it) 
+	{
+		pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
+		if((pb - buf) >= kBufSize) break;
+	}
+
+	for(int n = 0; n < kBufSize; ++n)
+	{
+		std::cout << "0x" << std::hex << (unsigned long)buf[n] << std::dec << " ";
+	}
+	std::cout << "\n";	
+	
 	return 0;
 }
 

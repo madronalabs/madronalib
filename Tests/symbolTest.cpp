@@ -312,6 +312,7 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 		}
 		std::cout << "[" << textUtils::countCodePoints(strB) << "] ";
 		std::cout << "\n";
+		textUtils::findLast(strB, '.');
 		// TODO write some actual test here
 	}
 }

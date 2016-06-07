@@ -21,16 +21,17 @@
 namespace ml { namespace textUtils {
 
 	const size_t countCodePoints(const TextFragment& txt);
+
+	int findFirst(const TextFragment& frag, const utf::codepoint_type c);
+	int findLast(const TextFragment& frag, const utf::codepoint_type c);
 	
+	const TextFragment stripExtension(const TextFragment& str);
 	
-	
-const TextFragment stripExtension(const TextFragment& str);
-	
-const std::string getShortName(const std::string& str);
-const std::string getPath(const std::string& str);	
-char * spaceStr( int numIndents );
-std::vector< std::string > parsePath(const std::string& pathStr);
-std::vector< std::string > vectorOfNonsenseWords( int len );
+	const std::string getShortName(const std::string& str);
+	const std::string getPath(const std::string& str);	
+	char * spaceStr( int numIndents );
+	std::vector< std::string > parsePath(const std::string& pathStr);
+	std::vector< std::string > vectorOfNonsenseWords( int len );
 	
 } }
 
