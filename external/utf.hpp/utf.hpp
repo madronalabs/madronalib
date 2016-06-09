@@ -134,7 +134,7 @@ namespace utf {
                 unsigned char res[4] = {};
 
                 // loop to catch remaining
-                for (size_t i = len; i != 1; --i) {
+                for (size_t i = len; i > 1; --i) {
                     // select lower 6 bits
                     res[i-1] = (c & 0x3f) | 0x80;
                     c = c >> 6;
@@ -323,6 +323,11 @@ namespace utf {
         }
         friend bool operator != (codepoint_iterator lhs, codepoint_iterator rhs) { return lhs.pos != rhs.pos; }
         friend bool operator == (codepoint_iterator lhs, codepoint_iterator rhs) { return !(lhs != rhs); }
+		
+		// ML
+		It getPos() const {
+			return pos;
+		}
     };
 
     template <typename Iter, typename E = typename internal::native_encoding<typename std::iterator_traits<Iter>::value_type>::type>

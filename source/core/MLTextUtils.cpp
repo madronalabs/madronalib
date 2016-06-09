@@ -17,14 +17,14 @@ namespace ml { namespace textUtils {
 	
 	const size_t countCodePoints(const TextFragment& frag)
 	{
-		utf::stringview<const char*> sv(frag.text, frag.text + frag.length);
+		utf::stringview<const char*> sv(frag.text, frag.text + frag.lengthInBytes);
 		return sv.codepoints();
 	}
 	
 	int findFirst(const TextFragment& frag, const codepoint_type c)
 	{
 		auto first = codepoint_iterator<const char*>(frag.text);
-		auto last = codepoint_iterator<const char*>(frag.text + frag.length);
+		auto last = codepoint_iterator<const char*>(frag.text + frag.lengthInBytes);
 		int i=0;
 		int r = -1;
 		for (auto it = first; it != last; ++it) 
@@ -42,7 +42,7 @@ namespace ml { namespace textUtils {
 	int findLast(const TextFragment& frag, const codepoint_type c)
 	{
 		auto first = codepoint_iterator<const char*>(frag.text);
-		auto last = codepoint_iterator<const char*>(frag.text + frag.length);
+		auto last = codepoint_iterator<const char*>(frag.text + frag.lengthInBytes);
 		int i=0;
 		int r = -1;
 		for (auto it = first; it != last; ++it) 
@@ -56,52 +56,113 @@ namespace ml { namespace textUtils {
 		return r;
 	}
 	
-	const TextFragment stripExtension(const TextFragment& str)
+	TextFragment subText(const TextFragment& frag, int start, int end)
 	{
-		/*
-		 std::string r(str);
-		 size_t b = r.find_last_of(".");
-		 if(b != std::string::npos)
-		 {
-		 r = r.substr(0, b);
-		 }
-		 
-		 return r;
-		 */
-		return str;
+		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
+		
+		if(start >= end) return TextFragment("");
+		
+		// temp buffer on stack big enough to hold whole input fragment if needed.
+		// we won't know the output fragment size in bytes until iterating the code points. 
+		char buf[frag.lengthInBytes];
+		std::fill(buf, buf+frag.lengthInBytes, 0);
+		char* pb = buf;
+		
+		auto first = codepoint_iterator<const char*>(frag.text);
+		
+		auto it = first;
+		for(int i=0; i<start; ++i)
+		{
+			++it;
+		}
+		
+		for (int i=0; i<end - start; ++i) 
+		{
+			// write the codepoint as UTF-8 to the buffer
+			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
+			++it;
+		}	
+		
+		return TextFragment(buf);
 	}
 	
-	const std::string getShortName(const std::string& str)
+	TextFragment stripExtension(const TextFragment& frag)
 	{
-		std::string r(str);
-		size_t b = r.find_last_of("/");
-		if(b != std::string::npos)
+		int dotLoc = findLast(frag, '.');
+		if(dotLoc >= 0)
 		{
-			size_t len = r.length();
-			r = r.substr(b + 1, len - b);
+			return subText(frag, 0, dotLoc);
 		}
+		
+		return frag;
+	}
+	
+	TextFragment getShortName(const TextFragment& frag)
+	{
+		int slashLoc = findLast(frag, '/');
+		if(slashLoc >= 0)
+		{
+			return subText(frag, slashLoc + 1, countCodePoints(frag));
+		}
+		
+		return frag;
+	}
+	
+	TextFragment getPath(const TextFragment& frag)
+	{
+		int slashLoc = findLast(frag, '/');
+		if(slashLoc >= 0)
+		{
+			return subText(frag, 0, slashLoc);
+		}
+		
+		return frag;
+	}
+	
+	bool beginsWith(TextFragment fa, TextFragment fb)
+	{
+		int lenA = fa.lengthInBytes;
+		int lenB = fb.lengthInBytes;
+		
+		if(lenB > lenA) return false;
+		bool r = true;
+		
+		for(int i=0; i<lenB; ++i)
+		{
+			if(fa.text[i] != fb.text[i])
+			{
+				r = false;
+				break;
+			}
+		}
+
 		return r;
 	}
 	
-	const std::string getPath(const std::string& str)
+	bool endsWith(TextFragment fa, TextFragment fb)
 	{
-		std::string r;
-		size_t b = str.find_last_of("/");
-		if(b != std::string::npos)
+		int lenA = fa.lengthInBytes;
+		int lenB = fb.lengthInBytes;
+		
+		if(lenB > lenA) return false;
+		bool r = true;
+		
+		for(int i=0; i<lenB; ++i)
 		{
-			r = str.substr(0, b);
+			if(fa.text[lenA - lenB + i] != fb.text[i])
+			{
+				r = false;
+				break;
+			}
 		}
+		
 		return r;
 	}
+
+
 	
-	char * spaceStr( int numIndents )
-	{
-		static char * pBuf = (char *)"                                                   ";
-		static int len = (int)strlen(pBuf);
-		int n = numIndents*2;
-		if (n > len) n = len;
-		return &pBuf[len - n];
-	}
+	
+	
 	
 	std::vector< std::string > parsePath(const std::string& pathStr)
 	{
@@ -150,4 +211,14 @@ namespace ml { namespace textUtils {
 		return words;
 	}
 	
+	char * spaceStr( int numIndents )
+	{
+		static char * pBuf = (char *)"                                                   ";
+		static int len = (int)strlen(pBuf);
+		int n = numIndents*2;
+		if (n > len) n = len;
+		return &pBuf[len - n];
+	}
+	
+
 } } // ml:textUtils

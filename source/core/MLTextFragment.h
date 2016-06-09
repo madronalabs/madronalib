@@ -38,7 +38,23 @@ namespace ml
 			mpNext += lengthInBytes + 1;					
 			return r;
 		}
-		
+
+		inline void dump()
+		{
+			char * p = mpData;
+			std::cout << "text fragments: -----------------\n";
+			int n = 0;
+			while(p < mpNext)
+			{
+				int len = strlen(p);
+				std::cout << p << "(" << std::dec << len << ")\n";
+				p += len + 1;
+				n++;
+			}
+			std::cout << "total: " << n << " text fragments, " << (mpNext - mpData) << " bytes.\n";
+
+		}
+
 		char * mpData;
 		char * mpNext;
 		MLSpinLock mLock;
@@ -55,15 +71,36 @@ namespace ml
 	public:
 		// copies the null-terminated character array pointed to by pChars into
 		// the text fragment pool and creates a new immutable object based on it. 
-		TextFragment(const char* pChars) : length(strlen(pChars)), text(theTextFragmentPool().add(pChars, length)){}
+		TextFragment(const char* pChars) : lengthInBytes(strlen(pChars)), text(theTextFragmentPool().add(pChars, lengthInBytes))
+		{ }
 		
-		const int length;
+		// TODO maybe do a little deallocation for recently used fragments.
+		// maybe in the future we make a distinction between temporary and persistent fragments. 
+		// Look at use once apps are running.
+		~TextFragment()
+		{ }
+		
+		const int lengthInBytes;
 		const char* text; 
 	};
-	
+
+	inline TextFragment operator+(TextFragment f1, TextFragment f2)
+	{
+		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
+		
+		int len1 = f1.lengthInBytes;
+		int len2 = f2.lengthInBytes;
+		int totalLength = len1 + len2 + 1; // f1 + f2 + terminating 0
+		char buf[totalLength];
+		std::fill(buf, buf+totalLength, 0);
+		std::copy(f1.text, f1.text + len1, buf);
+		std::copy(f2.text, f2.text + len2, buf + len1);
+		return TextFragment(buf);
+	}
+
 	inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)
 	{
-		std::cout << r.text << "(" << r.length << ")"; // MLTEST
+		std::cout << r.text;
 		return out;
 	}
 	
@@ -73,7 +110,7 @@ namespace ml
 	{
 		bool r = true;
 		
-		int len = txf.length; 
+		int len = txf.lengthInBytes; 
 
 		if(len > 0)
 		{

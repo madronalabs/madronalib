@@ -107,7 +107,7 @@ public:
 	SymbolTable();
 	~SymbolTable();
 	void clear();
-	size_t getSize() { return mSymbolsByID.size(); }	
+	size_t getSize() { return mSymbolTextsByID.size(); }	
 	void dump(void);
 	int audit(void);
 	
@@ -118,7 +118,7 @@ protected:
 	int getSymbolID(const HashedCharArray& hsl);
 	int getSymbolID(const char * sym);
 	
-	const TextFragment& getSymbolByID(int symID);
+	const TextFragment& getSymbolTextByID(int symID);
 	int addEntry(const char * sym, uint32_t hash);
 	
 private:
@@ -126,7 +126,7 @@ private:
 	MLSpinLock mLock;
 		
 	// vector of symbols in ID/creation order
-	std::vector< TextFragment > mSymbolsByID;	
+	std::vector< TextFragment > mSymbolTextsByID;	
 	
 	// hash table containing indexes to strings
 	std::vector< std::vector<int> > mHashTable;

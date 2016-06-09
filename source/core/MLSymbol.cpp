@@ -94,7 +94,6 @@ std::ostream& operator<< (std::ostream& out, const Symbol r)
 	return out;
 }
 
-
 #pragma mark SymbolTable
 
 SymbolTable::SymbolTable()
@@ -111,7 +110,7 @@ void SymbolTable::clear()
 {
 	mSize = 0;
 	MLScopedLock lock(mLock);
-	mSymbolsByID.clear();
+	mSymbolTextsByID.clear();
 	
 	mHashTable.clear();
 	mHashTable.resize(kHashTableSize);	
@@ -124,12 +123,12 @@ int SymbolTable::addEntry(const char * sym, uint32_t hash)
 {
 //	std::cout << "***" << mSize << "\n";
 
-	mSymbolsByID.emplace_back(TextFragment(sym));
+	mSymbolTextsByID.emplace_back(TextFragment(sym));
 	size_t newID = mSize++;
 	mHashTable[hash].push_back(newID);	
 	
 	
-	//std::cout << mSymbolsByID.capacity() << " ADDING *" << sym << "*" << " (" << newID << ")\n";
+	//std::cout << mSymbolTextsByID.capacity() << " ADDING *" << sym << "*" << " (" << newID << ")\n";
 	
 	return newID;
 }
@@ -146,7 +145,7 @@ int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 			// there should be few collisions, so probably the first ID in the hash bin
 			// will be the symbol we are looking for. Unfortunately to test for equality we have to 
 			// compare the entire string.	
-			if(compareTextFragmentToChars(mSymbolsByID[ID], hsl.pSym))
+			if(compareTextFragmentToChars(mSymbolTextsByID[ID], hsl.pSym))
 			{
 				r = ID;
 				found = true;
@@ -167,20 +166,20 @@ int SymbolTable::getSymbolID(const char * sym)
 	return getSymbolID(HashedCharArray(sym));
 }
 
-const TextFragment& SymbolTable::getSymbolByID(int symID)
+const TextFragment& SymbolTable::getSymbolTextByID(int symID)
 {
-	return mSymbolsByID[symID];
+	return mSymbolTextsByID[symID];
 }
 
 void SymbolTable::dump()
 {
 	std::cout << "---------------------------------------------------------\n";
-	std::cout << mSymbolsByID.size() << " symbols:\n";
+	std::cout << mSymbolTextsByID.size() << " symbols:\n";
 		
 	// print symbols in order of creation. 
-	for(int i=0; i<mSymbolsByID.size(); ++i)
+	for(int i=0; i<mSymbolTextsByID.size(); ++i)
 	{
-		const TextFragment& sym = mSymbolsByID[i];
+		const TextFragment& sym = mSymbolTextsByID[i];
 		std::cout << "    ID " << i << " = " << sym << "\n";
 	}	
 	// print nonzero entries in hash table
@@ -193,7 +192,7 @@ void SymbolTable::dump()
 			std::cout << "#" << hash << " ";
 			for(auto id : idVec)
 			{
-				std::cout << id << " " << getSymbolByID(id) << " ";
+				std::cout << id << " " << getSymbolTextByID(id) << " ";
 			}
 
 			std::cout << "\n";
@@ -207,11 +206,11 @@ int SymbolTable::audit()
 	int i=0;
 	int i2 = 0;
 	bool OK = true;
-	size_t size = mSymbolsByID.size();
+	size_t size = mSymbolTextsByID.size();
  
 	for(i=0; i<size; ++i)
 	{
-		const TextFragment& sym = getSymbolByID(i);
+		const TextFragment& sym = getSymbolTextByID(i);
 		const char* symChars = sym.text;
 		Symbol symB(symChars);
 
@@ -229,7 +228,7 @@ int SymbolTable::audit()
 	}
 	if (!OK)
 	{
-		const TextFragment& s = getSymbolByID(i);
+		const TextFragment& s = getSymbolTextByID(i);
 		std::cout << "SymbolTable: error in symbol table, line " << i << ":\n";
 		std::cout << "    ID " << i << " = " << s << ", ID B = " << i2 << "\n";
 	}
@@ -242,51 +241,9 @@ int SymbolTable::audit()
 // return a reference to the symbol's TextFragment in the table.
 const TextFragment& Symbol::getTextFragment() const
 {
-	return theSymbolTable().getSymbolByID(id);
+	return theSymbolTable().getSymbolTextByID(id);
 }
 
-/*
-bool Symbol::beginsWith (const Symbol b) const
-{
-	const std::string& strA = getString();
-	const char* pa = strA.c_str();
-	const size_t aLen = strA.length();
-	const std::string& strB = b.getString();
-	const char* pb = strB.c_str();
-	const size_t bLen = strB.length();
-	
-	if(bLen > aLen) return false;
-	for(int i=0; i<bLen; ++i)
-	{
-		if(pa[i] != pb[i]) return false;
-	}
-	return true;
-}
-
-bool Symbol::endsWith (const Symbol b) const
-{
-	const std::string& strA = getString();
-	const char* pa = strA.c_str();
-	const size_t aLen = strA.length();
-	const std::string& strB = b.getString();
-	const char* pb = strB.c_str();
-	const size_t bLen = strB.length();
-	
-	if(bLen > aLen) return false;
-	for(size_t i = bLen; i > 0; --i)
-	{
-		if(pa[i + aLen - bLen - 1] != pb[i - 1]) return false;
-	}
-	return true;
-}
-*/
-
-/*
-Symbol Symbol::append(const std::string& b) const
-{
-	return Symbol(getString() + std::string(b));
-}
-*/
 
 bool Symbol::hasWildCard() const
 {
