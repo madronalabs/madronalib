@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "MLLocks.h"
+
 static const int kPoolSizeBits = 17; // 1 M 
 static const int kPoolSize = 1 << kPoolSizeBits; 
 
@@ -35,7 +37,13 @@ namespace ml
 			std::copy(pChars, pChars + lengthInBytes, mpNext);
 			char* r = mpNext;
 			mpNext[lengthInBytes] = 0;
-			mpNext += lengthInBytes + 1;					
+			mpNext += lengthInBytes + 1;	
+			
+			if(mpNext >= mpData + kPoolSize)
+			{
+				// TODO something. Try allocating more pool space.
+			}
+			
 			return r;
 		}
 
@@ -71,14 +79,15 @@ namespace ml
 	public:
 		// copies the null-terminated character array pointed to by pChars into
 		// the text fragment pool and creates a new immutable object based on it. 
-		TextFragment(const char* pChars) : lengthInBytes(strlen(pChars)), text(theTextFragmentPool().add(pChars, lengthInBytes))
-		{ }
+		TextFragment(const char* pChars) : lengthInBytes(strlen(pChars)), text(theTextFragmentPool().add(pChars, lengthInBytes)) { }
+		
+		// this ctor can be used to save the work of counting the length if we have a length already.
+		TextFragment(const char* pChars, int len) : lengthInBytes(len), text(theTextFragmentPool().add(pChars, lengthInBytes)) { }
 		
 		// TODO maybe do a little deallocation for recently used fragments.
 		// maybe in the future we make a distinction between temporary and persistent fragments. 
 		// Look at use once apps are running.
-		~TextFragment()
-		{ }
+		~TextFragment() { }
 		
 		const int lengthInBytes;
 		const char* text; 
@@ -95,7 +104,7 @@ namespace ml
 		std::fill(buf, buf+totalLength, 0);
 		std::copy(f1.text, f1.text + len1, buf);
 		std::copy(f2.text, f2.text + len2, buf + len1);
-		return TextFragment(buf);
+		return TextFragment(buf, strlen(buf));
 	}
 
 	inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)

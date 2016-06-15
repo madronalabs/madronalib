@@ -54,14 +54,16 @@ private:
 TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 {
 	RandomSource r;
+	DSPVector x1;
+	x1[0] = 1;
 	
 	Biquad vectorBiquad;
 	scalarBiquadTest scalarBiquad;
 	
 	int frames = kFloatsPerDSPVector;
 	
-	auto callVectorBiquad = ([&](){return (vectorBiquad(r()));});
-	auto callScalarBiquad = ([&](){return (scalarBiquad.test(r(), frames));});
+	auto callVectorBiquad = ([&](){return (vectorBiquad( x1 ));});
+	auto callScalarBiquad = ([&](){return (scalarBiquad.test(x1, frames));});
 	
 	// set coeffs
 	MLSignal c = biquadCoeffs::hiShelf(0.1f, 2.0f, 0.5f);
@@ -85,12 +87,5 @@ TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 
 		REQUIRE(fnTimeVector.elapsedTime < fnTimeScalar.elapsedTime);
 	}
-	
-	MLSignal rect = ml::windows::raisedCosine(64);
-	rect.dump(std::cout, true);
-	rect = ml::windows::triangle(64);
-	rect.dump(std::cout, true);
-	std::cout << "\n\n";
-	
 }
 

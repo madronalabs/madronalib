@@ -20,16 +20,16 @@
 
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
-	NameMaker namer;
+	textUtils::NameMaker namer;
 	const int numTestWords = 100;
 	const int mapSize = 100;
 	std::chrono::time_point<std::chrono::system_clock> start, end;	
 	std::chrono::duration<double> elapsed;
 	
 	// make random paths out of nonsense symbols
-	auto testWords = ml::textUtils::vectorOfNonsenseWords( numTestWords );
-	std::vector<std::string> paths;
-	NameMaker endNamer;
+	auto testWords = ml::textUtils::vectorOfNonsenseSymbols( numTestWords );
+	std::vector< std::vector<Symbol> > pathsVector;
+	ml::textUtils::NameMaker endNamer;
 	
 	ml::RandomSource randSource;
 	
@@ -39,41 +39,37 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		int pathDepth = ((ml::rand32() >> 16) & 0x07) + 2;
 		int leaves = ((ml::rand32() >> 16) & 0x07) + 1;
 		
-		std::string pathStr;
+		std::vector<Symbol> path;
 		for(int p=0; p<pathDepth - 1; ++p)
 		{			
 			// 8 possible symbols per level
 			int symbolIdx = (((ml::rand32() >> 16)&0x07) + 8*p) % numTestWords;
-			pathStr = pathStr + testWords[symbolIdx];
-			if(p < pathDepth - 1)
-			{
-				pathStr = pathStr + "/";
-			}
+			path.push_back(testWords[symbolIdx]);
 		}
 		
 		for(int j=0; j<leaves; ++j)
 		{
-			// make resource name with unique end so paths are never duplicates
-			
-			// TODO -> TextFragments
-			std::string leafName = testWords[(ml::rand32() >> 16) % numTestWords] + std::string(endNamer.nextName().getTextFragment().text);
-			paths.push_back(pathStr + leafName);
+			// make resource path with unique end so paths are never duplicates
+			Symbol leafName = testWords[(ml::rand32() >> 16) % numTestWords] + endNamer.nextName();
+			std::vector<Symbol> newPath = path;
+			newPath.push_back(leafName);
+			pathsVector.push_back(newPath);
 		}
 	}
 	
-	MLResourceMap< std::string, int > numberMap;
+	MLResourceMap< Symbol, int > numberMap;
 	
 	// time set nodes tree
 	start = std::chrono::system_clock::now();	
 	bool problem = false;
 	for(int i=1; i < mapSize; ++i)
 	{
-		numberMap.addValue(paths[i], i);
+		numberMap.addValue(pathsVector[i], i);
 	}
 
 	for(int i=1; i < mapSize; ++i)
 	{
-		int v = numberMap.findValue(paths[i]);
+		int v = numberMap.findValue(pathsVector[i]);
 		if(v != i)
 		{
 			problem = true;			
@@ -83,9 +79,10 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	REQUIRE(!problem);
 	
 	int bigLeafSum = 0;
-	int maxDepth = 8;
+	int maxDepth = 0;
 	const int correctBigLeafSum = 4950;
 	const int correctMaxDepth = 8;
+	
 	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
 	{
 		if(it.nodeHasValue())
@@ -126,8 +123,6 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	a.addNode("you/are/carl's/jr");
 	int leafSum = 0;
 	const int correctLeafSum = 74;
-	
-	a.dump();
 	
 	for(auto it = a.begin(); it != a.end(); it++)
 	{

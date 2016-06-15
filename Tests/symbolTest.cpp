@@ -21,11 +21,11 @@
 #define HAVE_U8_LITERALS 1
 #endif
 
-static const int kThreadTestSize = 16; // MLTEST try 1024
+static const int kThreadTestSize = 1024; 
 
 void threadTest(int threadID)
 {
-	NameMaker namer;
+	textUtils::NameMaker namer;
 	for(int i=0; i<kThreadTestSize; ++i)
 	{
 		Symbol sym(namer.nextName());
@@ -36,7 +36,7 @@ void threadTest(int threadID)
 TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 {
 	// multithreaded test. multiple nameMakers will try to make duplicate names at about the same time,
-	// which will almost certainly lead to problems unless the symbol library is properly thread-safe.
+	// which will almost certainly lead to problems unless the symbol code is properly thread-safe.
 	
 	theSymbolTable().clear();
 	int nThreads = 16;
@@ -49,8 +49,6 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 	{
 		threads[i].join();
 	}
-	
-	theSymbolTable().dump();
 	
 	REQUIRE(theSymbolTable().audit());
 	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
@@ -239,23 +237,22 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		REQUIRE(theSymbolTable().audit());
 	}
 }
- 
 
-/*
 TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
 {
-	NameMaker namer;
+	textUtils::NameMaker namer;
 	for(int i=0; i<10; ++i)
 	{
 		Symbol testSym = namer.nextName();
-		Symbol testSymWithNum = testSym.withFinalNumber(i);
-		Symbol testSymWithoutNum = testSymWithNum.withoutFinalNumber();
+		Symbol testSymWithNum = textUtils::addFinalNumber(testSym, i);
+		Symbol testSymWithoutNum = textUtils::stripFinalNumber(testSym);
+		int j = textUtils::getFinalNumber(testSymWithNum);
+		
 		REQUIRE(testSym == testSymWithoutNum);
+		REQUIRE(i == j);
 	}
 	REQUIRE(theSymbolTable().audit());
 }
-
- */
 
 TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
 {
@@ -299,30 +296,19 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	std::vector< std::string > strings = { fedor, kobayashi, muhammad };
 #endif	
 	
+	int totalPoints = 0;
 	for(auto testString : strings)
 	{
-		Symbol testSym(testString.c_str());
-		TextFragment strB = testSym.getTextFragment();
-		int lenB = strB.length;
-		std::cout << strB << " : ";
-		for(int i=0; i<lenB; ++i)
-		{
-			// TODO code points
-			std::cout << hexchar(strB.text[i]) << " ";
-		}
-		std::cout << "[" << textUtils::countCodePoints(strB) << "] ";
-		std::cout << "\n";
-		textUtils::findLast(strB, '.');
-		// TODO write some actual test here
+		totalPoints += textUtils::countCodePoints(TextFragment(testString.c_str()));
 	}
+	REQUIRE(totalPoints == 21);
 }
 
-// TEMP to move to new test file about string utils / paths
 TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 {
 	theSymbolTable().clear();
 	
-	std::vector< std::string > path = ml::textUtils::parsePath(std::string("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it"));
+	std::vector<Symbol> path = ml::textUtils::parsePath("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it");
 	
 	std::cout << "as elements: ";
 	for(auto elem : path)
@@ -330,7 +316,6 @@ TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
 		std::cout << elem << "/";
 	}
 	std::cout << "\n";
-	//theSymbolTable().dump();
 }
 
 

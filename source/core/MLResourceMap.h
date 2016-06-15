@@ -43,7 +43,7 @@ public:
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
 	// else, return a null object of our value type V.
-	V findValue(const std::string& path)
+	V findValue(std::vector<Symbol> path)
 	{
 		MLResourceMap<K, V, C>* pNode = findNode(path);
 		if(pNode)
@@ -55,42 +55,22 @@ public:
 			return V();
 		}
 	}
-
-	std::vector< K > parsePath(const std::string& pathStr)
+	
+	V findValue(const char* pathStr)
 	{
-		std::vector< K > path;
-		std::string workingStr = pathStr;
-		int segmentLength;
-		do
-		{
-			// found a segment
-			segmentLength = workingStr.find_first_of("/");
-			if(segmentLength)
-			{
-				// iterate
-				path.push_back(workingStr.substr(0, segmentLength).c_str());
-				workingStr = workingStr.substr(segmentLength + 1, workingStr.length() - segmentLength);
-			}
-			else
-			{
-				// leading slash or null segment
-				workingStr = workingStr.substr(1, workingStr.length());
-			}
-		}
-		while(segmentLength != std::string::npos);
-		return path;
+		return findValue(textUtils::parsePath(pathStr));
 	}
+	
+	// WHY SHOULD K BE IN THE TEMPLATE ?
 
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
-	MLResourceMap<K, V, C>* addNode(const std::string& pathStr)
+	
+	MLResourceMap<K, V, C>* addNode(std::vector<Symbol> path)
 	{
 		MLResourceMap<K, V, C>* pNode = this;
 		
-		// using an intermediate std::vector path is convenient but inefficient,
-		// we can just walk pathStr directly if more efficiency is wanted here
-		typename std::vector< K > path = parsePath(pathStr);
 		typename std::vector< K >::const_iterator it;
 		int pathDepthFound = 0;
 		
@@ -120,12 +100,21 @@ public:
 		return pNode;
 	}
 	
-	// TODO use Symbol vector paths
-	MLResourceMap<K, V, C>* addValue (const std::string& pathStr, const V& val)
+	MLResourceMap<K, V, C>* addNode(const std::string& pathStr)
 	{
-		MLResourceMap<K, V, C>* newNode = addNode(pathStr);
+		return addNode(textUtils::parsePath(pathStr.c_str()));
+	}
+	
+	MLResourceMap<K, V, C>* addValue (std::vector<Symbol> path, const V& val)
+	{
+		MLResourceMap<K, V, C>* newNode = addNode(path);
 		newNode->setValue(val);
 		return newNode;
+	}
+	
+	MLResourceMap<K, V, C>* addValue (const std::string& pathStr, const V& val)
+	{
+		return addValue(textUtils::parsePath(pathStr.c_str()), val);
 	}
 	
 	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
@@ -280,10 +269,10 @@ private:
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	MLResourceMap<K, V, C>* findNode(const std::string& pathStr)
+	MLResourceMap<K, V, C>* findNode(std::vector<Symbol> path)
 	{
 		MLResourceMap<K, V, C>* pNode = this;
-		std::vector< K > path = parsePath(pathStr);		
+
 		for(K key : path)
 		{
 			if(pNode->mChildren.find(key) != pNode->mChildren.end())

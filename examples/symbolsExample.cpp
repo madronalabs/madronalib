@@ -67,7 +67,6 @@ public:
 };
 
 
-const char a[] = "x";
 const char* b = "fff";
 const char* c = "fff";
 const char* f() { return b; }
@@ -163,7 +162,21 @@ int main()
 	
 	std::cout << "*" << textUtils::endsWith("hello", "lo") << "*" << "\n";
 	
-	theTextFragmentPool().dump();
+	std::cout << "*" << textUtils::stripFinalNumber("林2") << "*" << "\n";
+	
+	std::cout << "*" << textUtils::addFinalNumber("林asd1", 23) << "*" << "\n";
+	
+	std::cout << "*" << std::dec << textUtils::getFinalNumber("林a1sd531x") << "*" << "\n";
+	
+	
+//	theTextFragmentPool().dump();
+	
+	std::vector< Symbol > pathSymbols = textUtils::parsePath("hello/小林/it's/nice/in/the/café/here");
+	std::cout << "path:\n";
+	for (auto p : pathSymbols)
+	{
+		std::cout << p << "\n";
+	}
 	
 	
 	return 0;
