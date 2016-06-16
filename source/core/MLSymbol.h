@@ -40,7 +40,8 @@ namespace ml {
 	// symbols are allocated in chunks of this size when needed. 
 	const int kTableChunkSize = 1024;
 	
-	// very simple hash function from Kernighan & Ritchie. Constexpr version.
+	// very simple hash function from Kernighan & Ritchie. 
+	// Constexpr version for hashing strings known at compile time.
 	template <size_t N>
 	constexpr uint32_t krHash2(const char * str) 
 	{
@@ -59,12 +60,12 @@ namespace ml {
 		return krHash2<N>(str) & kHashTableMask;
 	}
 	
-	// non-constexpr non-recursive version.
+	// non-recursive hash producing equivalent results to krHash1. 
+	// Non-constexpr version for hashing strings known only at runtime.
 	inline uint32_t krHash0(const char * str, const size_t len) 
 	{
-		if(!len) return 0;
-		size_t i = len - 1;
-		uint32_t accum = str[i];
+		int i = len;
+		uint32_t accum = 0;
 		while(i > 0)
 		{
 			i--;
@@ -72,17 +73,6 @@ namespace ml {
 			accum += str[i];
 		}
 		return accum & kHashTableMask;
-	}
-	
-	inline size_t mystrlen(const char* pC)
-	{
-		const char* p = pC;
-		int n = 0;
-		while(p[n])
-		{
-			n++;
-		}
-		return n;
 	}
 	
 	class HashedCharArray
@@ -221,9 +211,6 @@ namespace ml {
 	}
 }	// namespace ml
 
-
-
-
 // hashing function for ml::Symbol use in unordered STL containers. simply return the ID,
 // which gives each Symbol a unique hash.
 namespace std 
@@ -231,7 +218,7 @@ namespace std
 	template<>
 	struct hash<ml::Symbol>
 	{
-		std::size_t operator()(ml::Symbol const& s) const
+		std::size_t operator()(const ml::Symbol& s) const
 		{
 			return s.id;
 		}

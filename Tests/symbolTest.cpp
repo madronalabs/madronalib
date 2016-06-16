@@ -63,6 +63,30 @@ TEST_CASE("madronalib/core/collision", "[collision]")
 	Symbol bb("AAAAAAAAAAAAAAjntepetnj");
 }
 
+template<size_t N>
+constexpr int hashTest1(const char (&sym)[N]) { return krHash1<N>(sym); }
+
+TEST_CASE("madronalib/core/hashes", "[hashes]")
+{
+	// the compile time and runtime hashes need to be equivalent.
+	
+	const char* str1("hello");
+	const char* str2(u8"محمد بن سعيد");
+	
+	constexpr int a1 = hashTest1("hello");
+	constexpr int a2 = hashTest1(u8"محمد بن سعيد");
+	
+	int b1 = krHash0(str1, strlen(str1));
+	int b2 = krHash0(str2, strlen(str2));
+	
+	REQUIRE(a1 == b1);
+	REQUIRE(a2 == b2);
+	
+	std::cout << a1 << " " << a2 << "\n";
+	std::cout << b1 << " " << b2 << "\n";
+	
+}
+
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")

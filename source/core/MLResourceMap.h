@@ -100,9 +100,9 @@ public:
 		return pNode;
 	}
 	
-	MLResourceMap<K, V, C>* addNode(const std::string& pathStr)
+	MLResourceMap<K, V, C>* addNode(const char* pathStr)
 	{
-		return addNode(textUtils::parsePath(pathStr.c_str()));
+		return addNode(textUtils::parsePath(pathStr));
 	}
 	
 	MLResourceMap<K, V, C>* addValue (std::vector<Symbol> path, const V& val)
@@ -112,9 +112,9 @@ public:
 		return newNode;
 	}
 	
-	MLResourceMap<K, V, C>* addValue (const std::string& pathStr, const V& val)
+	MLResourceMap<K, V, C>* addValue (const char* pathStr, const V& val)
 	{
-		return addValue(textUtils::parsePath(pathStr.c_str()), val);
+		return addValue(textUtils::parsePath(pathStr), val);
 	}
 	
 	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.

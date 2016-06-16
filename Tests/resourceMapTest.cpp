@@ -104,13 +104,14 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	
 	// with a MLResourceMap< Symbol, int, std::less<Symbol> > , the order of map keys depends on 
 	// the sorted order of symbols, which is just their creation order.
+	theSymbolTable().clear();
 	MLResourceMap< Symbol, int > a;
 
 	a.addNode("zzx");
 	a.addValue("case/sensitive/a", 1);
 	a.addValue("case/sensitive/b", 1);
-	a.addValue("case/sensitive/c", 1);
-	a.addValue("case/sensitive/B", 1); // will be added
+	a.addValue("case/sensitive/B", 1);
+	a.addValue("case/sensitive/c", 1); // will be added
 	a.addValue("this/is/a/test", 10);
 	a.addValue("this/was/an/test", 10);
 	a.addNode("this/was/another");
@@ -132,6 +133,8 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		}
 	}
 	REQUIRE(leafSum == correctLeafSum);
+	
+	a.dump();
 
 }
 
