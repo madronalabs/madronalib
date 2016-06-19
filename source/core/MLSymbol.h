@@ -3,7 +3,7 @@
 // ----------
 
 // ml::Symbol is designed to be an efficient key in STL containers such as map and
-// unordered_map, that is quick to convert to and from a unique string.  
+// unordered_map, that is quick to convert to and from a unique UTF-8 string.  
 //
 // requirements
 // ---------
