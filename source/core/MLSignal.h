@@ -66,11 +66,6 @@ inline int bitsToContain(int n)
 // sense for objects that would need those signals to implement them
 // as vectors of 3D signals or some such thing.
 
-// Signals can be marked by their creators as constant over the given size.  
-// In this case the first data element is the constant value. 
-// This allows optimizations to take place downstream, and does not require 
-// conditionals in loops to read the signal.
-
 class MLSignal;
 class MLSignal final
 {	
