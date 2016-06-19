@@ -1,10 +1,11 @@
 //
-//  MLDSPFilters.h
-//  madronalib
+// MLDSPFilters.h
+// madronalib
 //
-//  Created by Randy Jones on 4/14/2016
+// Created by Randy Jones on 4/14/2016
 //
-//
+// DSP filters: functor objects implementing an inline DSPVector operator()(DSPVector input),
+// in order to make filters. All these filters have some state, otherwise they would be DSPOps.
 
 #pragma once
 
@@ -533,7 +534,6 @@ namespace ml
 	
 	// TODO crossfading allpass delay as described at ICMC97 by Van Duyne et al
 	// class AllpassDelay
-	
 	 
 // ----------------------------------------------------------------
 #pragma mark FDN

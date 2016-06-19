@@ -69,7 +69,6 @@ constexpr int hashTest1(const char (&sym)[N]) { return krHash1<N>(sym); }
 TEST_CASE("madronalib/core/hashes", "[hashes]")
 {
 	// the compile time and runtime hashes need to be equivalent.
-	
 	const char* str1("hello");
 	const char* str2(u8"محمد بن سعيد");
 	
@@ -81,10 +80,6 @@ TEST_CASE("madronalib/core/hashes", "[hashes]")
 	
 	REQUIRE(a1 == b1);
 	REQUIRE(a2 == b2);
-	
-	std::cout << a1 << " " << a2 << "\n";
-	std::cout << b1 << " " << b2 << "\n";
-	
 }
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";

@@ -2,8 +2,11 @@
 // madronalib
 //
 // Created by Randy Jones on 4/14/2016
-//
 // 
+// DSP generators: functor objects implementing an inline DSPVector operator()() ,
+// in order to make time-varying signals. Generators all have some state, for example
+// the frequency of an oscillator or the seed in a noise generator. Otherwise they 
+// would be DSPOps. 
 
 #pragma once
 
@@ -106,6 +109,13 @@ namespace ml
 	
 	typedef SineBank<1> Sine;
 */
+	
+	// if up at MLProc level, all outputs have fixed sizes, procs like sine16, sine64, sine256, sine1024 can be used
+	// this is probably not the worst thing
+	// what is penalty of dynamic sizing? 
+	// 
+	// proc can have a "size" switch on it that creates different gens internally. but, resizing graph dynamically is complex.
+	// outputs auto-sum to smaller inputs?
 	
 	/*
 	 Vector Ops

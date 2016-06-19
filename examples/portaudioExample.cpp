@@ -17,24 +17,23 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData )
 {
+	// make a tick every kSampleRate samples(1 second)
 	static TickSource ticks(kSampleRate);
-	static FDN fdn({33, 149, 1377, 1969});
 	
+	// make an FDN with 4 delay lines (times in samples)
+	static FDN fdn({33, 149, 1377, 1969});
 	MLSignal freqs({12000, 13000, 14000, 6000});
 	freqs.scale(kTwoPi/kSampleRate);
 	fdn.setFilterCutoffs(freqs);
 	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});
 	
-	// in non-interleaved mode, portaudio passes an array of float pointers
-	float* outL = ((float**)outputBuffer)[0];
-	float* outR = ((float**)outputBuffer)[1];
-
 	// process audio
 	DSPVectorArray<2> verb = fdn(ticks());
 
 	// store audio
-	store(verb.getRowVector<0>(), outL);
-	store(verb.getRowVector<1>(), outR);
+	// in non-interleaved mode, portaudio passes an array of float pointers
+	store(verb.getRowVector<0>(), ((float**)outputBuffer)[0]);
+	store(verb.getRowVector<1>(), ((float**)outputBuffer)[1]);
 	
 	return paContinue;
 }
