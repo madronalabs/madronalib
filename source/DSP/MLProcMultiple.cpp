@@ -36,7 +36,7 @@ MLProcMultiple::~MLProcMultiple()
 }
 
 // make a new proxy for multiple copies of the named class.
-MLProc::err MLProcMultiple::addProc(const MLSymbol className, const MLSymbol procName)
+MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol procName)
 {
 	MLProc::err e = OK;
 	MLProcPtr pTemplate, pProxyProc;
@@ -52,7 +52,7 @@ MLProc::err MLProcMultiple::addProc(const MLSymbol className, const MLSymbol pro
 				
 //		pTemplate = newProc(className, procName + "#1");		
 
-//		MLSymbol templateName = MLSymbol(procName.getString() + "*");
+//		ml::Symbol templateName = ml::Symbol(procName.getString() + "*");
 //		pTemplate = newProc(className, templateName);
 
 		pTemplate = newProc(className, procName);
@@ -132,7 +132,7 @@ MLProcPtr MLProcMultiple::getProc(const MLPath & path)
 	MLSymbolProcMapT::iterator it;
 	int proxyCopies = (int)getParam("copies");
 	
-	MLSymbol head = path.head();
+	ml::Symbol head = path.head();
 	MLPath tail = path.tail();
 	int copy = path.getCopy();
 	

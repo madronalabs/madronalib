@@ -95,10 +95,10 @@ void MLProcEnvelope::process(const int samples)
 	const MLSignal& vel = getInput(8);
 	MLSignal& y = getOutput();
 	
-	static MLSymbol trigSelectSym("trig_select");
+	static ml::Symbol trigSelectSym("trig_select");
 	const bool trigSelect = getParam(trigSelectSym) > 1.f; // this param is 1 or 2
 	
-	static MLSymbol xvelSym("xvel");
+	static ml::Symbol xvelSym("xvel");
 	const bool doMult = (getParam(xvelSym) > 0.f) && !trigSelect;
     
 	// input change thresholds for state changes
@@ -112,7 +112,7 @@ void MLProcEnvelope::process(const int samples)
         
         // TEMP
         float attackIn = attack[n] - 0.0001f;
-        attackIn = clamp(attackIn, 0.f, 20.f);
+        attackIn = ml::clamp(attackIn, 0.f, 20.f);
 		
 		// TODO make constant coefficient vectors for constant input parameter signals.
 		// TODO mark/write output signal as constant when we know it is.		
@@ -223,7 +223,7 @@ void MLProcEnvelope::process(const int samples)
 		
 		mGate1 = gIn;
 		mY1 = mEnv; // history is of linear ramp, before clip and scale
-		mEnv = clamp(mEnv, 0.f, 1.f); // could be avoided by careful attention to overshoots > 1 and < 0		
+		mEnv = ml::clamp(mEnv, 0.f, 1.f); // could be avoided by careful attention to overshoots > 1 and < 0		
 		y[n] = mEnv * mMult * 2.f;
 	}
 	

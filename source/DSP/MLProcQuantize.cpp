@@ -5,7 +5,7 @@
 
 #include "MLProc.h"
 #include "MLScale.h"
-#include "MLDSPUtils.h"
+#include "MLDSPDeprecated.h"
 
 typedef enum
 {

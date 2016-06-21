@@ -16,8 +16,6 @@
 #include "../DSP/MLDSPMath.h"
 #include "MLScalarMath.h"
 
-using namespace ml;
-
 const uintptr_t kSignalAlignBits = 4; // cache line is 64 bytes, minimum signal size is one SIMD vector
 const uintptr_t kSignalAlignSize = 1 << kSignalAlignBits;
 const uintptr_t kSignalAlignMask = ~(kSignalAlignSize - 1);
@@ -65,6 +63,7 @@ inline int bitsToContain(int n)
 // Signals greater than three dimensions are used so little, it seems to make
 // sense for objects that would need those signals to implement them
 // as vectors of 3D signals or some such thing.
+
 
 class MLSignal;
 class MLSignal final
@@ -184,7 +183,7 @@ public:
 		float m = p - pi;
         float r0 = mDataAligned[pi];
         float r1 = mDataAligned[(pi + 1)];
-		return lerp(r0, r1, m);
+		return ml::lerp(r0, r1, m);
 	}
     
     void addDeinterpolatedLinear(float p, float v)
@@ -192,7 +191,7 @@ public:
         // TODO SSE
         float eps = 0.00001f;
         float fw = (float)mWidth - eps;
-        float pc = min(p, fw);
+		float pc = ml::min(p, fw);
 		int pi = (int)pc;
 		float m = pc - pi;
         mDataAligned[pi] += (1.0f - m)*v;
@@ -234,17 +233,17 @@ public:
         float ri = fi - i;
         float rj = fj - j;
         
-        int i1ok = within(i, 0, mWidth);
-        int i2ok = within(i + 1, 0, mWidth);
-        int j1ok = within(j, 0, mHeight);
-        int j2ok = within(j + 1, 0, mHeight);
+        int i1ok = ml::within(i, 0, mWidth);
+        int i2ok = ml::within(i + 1, 0, mWidth);
+		int j1ok = ml::within(j, 0, mHeight);
+        int j2ok = ml::within(j + 1, 0, mHeight);
         
         a = (j1ok && i1ok) ? mDataAligned[row(j) + i] : 0.f;
         b = (j1ok && i2ok) ? mDataAligned[row(j) + i + 1] : 0.f;
         c = (j2ok && i1ok) ? mDataAligned[row(j + 1) + i] : 0.f;
         d = (j2ok && i2ok) ? mDataAligned[row(j + 1) + i + 1] : 0.f;
         
-        return lerp(lerp(a, b, ri), lerp(c, d, ri), rj);
+        return ml::lerp(ml::lerp(a, b, ri), ml::lerp(c, d, ri), rj);
     }
 
     // NOTE: this code below was added more recently but is breaking Soundplane touches.
@@ -273,8 +272,8 @@ public:
         float eps = 0.00001f;
         float fw = (float)mWidth - eps;
         float fh = (float)mHeight - eps;        
-        float pxc = min(px, fw);
-        float pyc = min(py, fh);
+        float pxc = ml::min(px, fw);
+        float pyc = ml::min(py, fh);
 		int pxi = (int)pxc;
 		int pyi = (int)pyc; 
 		float mx = pxc - pxi;
@@ -564,11 +563,21 @@ float rmsDifference2D(const MLSignal& a, const MLSignal& b);
 std::ostream& operator<< (std::ostream& out, const MLSignal & r);
 
 #pragma mark new business
+// MLTEST not for production!
+// making heap-based signals in audio thread!
+// can work if a signal pool is added.
 // new MLTEST
 inline MLSignal add(const MLSignal& a, const MLSignal& b)
 {
 	MLSignal r(a);
 	r.add(b);
+	return r;
+}
+
+inline MLSignal clampSignal(const MLSignal& x, float a, float b)
+{
+	MLSignal r(a);
+	r.sigClamp(a, b);
 	return r;
 }
 

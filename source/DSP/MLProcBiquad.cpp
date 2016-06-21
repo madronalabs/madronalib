@@ -92,7 +92,7 @@ void MLProcBiquad::clear()
 
 void MLProcBiquad::calcCoeffs(const int frames) 
 {
-	static MLSymbol modeSym("mode");
+	static ml::Symbol modeSym("mode");
 	int mode = (int)getParam(modeSym);
 	const MLSignal& frequency = getInput(2);
 	const MLSignal& q = getInput(3);
@@ -110,7 +110,7 @@ void MLProcBiquad::calcCoeffs(const int frames)
 	for(int n=0; n<coeffFrames; ++n)
 	{
 		qm1 = 1.f/(q[n] + 0.05f);
-		omega = clamp(frequency[n], kLowFrequencyLimit, highLimit) * twoPiOverSr;
+		omega = ml::clamp(frequency[n], kLowFrequencyLimit, highLimit) * twoPiOverSr;
 		sinOmega = fsin1(omega);
 		cosOmega = fcos1(omega);
 		alpha = sinOmega * 0.5f * qm1;

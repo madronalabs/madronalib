@@ -33,11 +33,11 @@ public:
     ~MLAppState();
 	
 	// MLPropertyListener interface
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 	
 	void timerCallback();
 	
-	void ignoreProperty(MLSymbol property);
+	void ignoreProperty(ml::Symbol property);
 	
 	// get and save state
 	// TODO JUCE-free
@@ -72,7 +72,7 @@ private:
 	File getAppStateDir() const;
 	File getAppStateFile() const;
 	std::vector<juce::MemoryBlock> mStateStack;
-	std::set<MLSymbol> mIgnoredProperties;
+	std::set<ml::Symbol> mIgnoredProperties;
 };
 
 #endif // __ML_APP_STATE_H

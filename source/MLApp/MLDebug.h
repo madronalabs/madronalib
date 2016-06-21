@@ -21,7 +21,7 @@
 
 // TODO debug printing should have its own thread and MPSC queue.
 
-#include <iostream>
+#include <sstream>
 
 class MLTextStream
 {

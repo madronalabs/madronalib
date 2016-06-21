@@ -55,7 +55,7 @@ public:
 	public:
 		MLEnvironmentModel(MLPluginProcessor* pProc) : mpOwnerProcessor(pProc) {}
 		~MLEnvironmentModel() {}
-		void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+		void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 		
 		MLPluginProcessor* mpOwnerProcessor;
 	};
@@ -64,7 +64,7 @@ public:
     ~MLPluginProcessor();
 
 	// MLModel implementation
-	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 	
 	// juce::AudioProcessor
 	const String getName() const override { return MLProjectInfo::projectName; }
@@ -130,24 +130,24 @@ public:
 	
 	// MLT3DHub::Listener
 #if ML_MAC
-	void handleHubNotification(MLSymbol action, const MLProperty val);
+	void handleHubNotification(ml::Symbol action, const MLProperty val);
 #endif
 	
 	void setCollectStats(bool k);
 
 	// parameters
-	int getParameterIndex (const MLSymbol name);
+	int getParameterIndex (const ml::Symbol name);
 	float getParameterAsLinearProportion (int index);
 	void setParameterAsLinearProportion (int index, float newValue);
-    const MLSymbol getParameterAlias (int index);
+    const ml::Symbol getParameterAlias (int index);
     float getParameterMin (int index);
 	float getParameterMax (int index);
 	MLPublishedParamPtr getParameterPtr (int index);
-	MLPublishedParamPtr getParameterPtr (MLSymbol sym);
+	MLPublishedParamPtr getParameterPtr (ml::Symbol sym);
 	const std::string& getParameterGroupName (int index);
 
 	// signals
-	int countSignals(const MLSymbol alias);
+	int countSignals(const ml::Symbol alias);
 
 	// get the patch and environment states as a binary blob.
 	void getPatchAndEnvStatesAsBinary (juce::MemoryBlock& destData);
@@ -169,8 +169,8 @@ public:
 	
 	// deprecated - to remove in 2.0
 	virtual void setStateFromXML(const XmlElement& xmlState, bool setViewAttributes);
-	const String symbolToXMLAttr(const MLSymbol sym);
-	const MLSymbol XMLAttrToSymbol(const String& str);
+	const String symbolToXMLAttr(const ml::Symbol sym);
+	const ml::Symbol XMLAttrToSymbol(const String& str);
  
 	// files
 	void createFileCollections();
@@ -206,9 +206,9 @@ protected:
 	void setInputProtocol(int p);
 	
 	// set the parameter of the Engine but not the Model property.
-	void setParameterWithoutProperty (MLSymbol paramName, float newValue);
-	void setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue);
-	void setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue);
+	void setParameterWithoutProperty (ml::Symbol paramName, float newValue);
+	void setStringParameterWithoutProperty (ml::Symbol paramName, const std::string& newValue);
+	void setSignalParameterWithoutProperty (ml::Symbol paramName, const MLSignal& newValue);
 		
 	// Engine creates graphs of Processors, does the work
 	MLDSPEngine	mEngine;	

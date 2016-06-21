@@ -7,7 +7,7 @@
 #define __ML_LABEL_HEADER__
 
 #include "MLUI.h"
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLWidget.h"
 #include <string>
 	

@@ -4,7 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLProc.h"
-#include "MLDSPUtils.h"
+#include "MLDSPDeprecated.h"
 
 // ----------------------------------------------------------------
 // class definition

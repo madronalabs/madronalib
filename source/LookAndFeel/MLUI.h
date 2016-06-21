@@ -11,7 +11,7 @@
 using namespace juce;
 
 #include "MLSignal.h"
-#include "MLVector.h"
+#include "MLVectorDeprecated.h"
 #include <memory>
 
 const int kMLNumChars = 19;

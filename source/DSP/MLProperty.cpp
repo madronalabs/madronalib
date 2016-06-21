@@ -190,11 +190,11 @@ MLPropertySet::~MLPropertySet()
     mpListeners.clear();
 }
 
-const MLProperty& MLPropertySet::getProperty(MLSymbol p) const
+const MLProperty& MLPropertySet::getProperty(ml::Symbol p) const
 {
 	static const MLProperty nullProperty;
 	
-	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
 		return it->second;
@@ -205,11 +205,11 @@ const MLProperty& MLPropertySet::getProperty(MLSymbol p) const
 	}
 }
 
-const float& MLPropertySet::getFloatProperty(MLSymbol p) const
+const float& MLPropertySet::getFloatProperty(ml::Symbol p) const
 {
 	static const float nullFloat = 0.f;
 
-	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
 		return it->second.getFloatValue();
@@ -220,9 +220,9 @@ const float& MLPropertySet::getFloatProperty(MLSymbol p) const
 	}
 }
 
-const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
+const std::string& MLPropertySet::getStringProperty(ml::Symbol p) const
 {
-	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
 		return it->second.getStringValue();
@@ -233,9 +233,9 @@ const std::string& MLPropertySet::getStringProperty(MLSymbol p) const
 	}
 }
 
-const MLSignal& MLPropertySet::getSignalProperty(MLSymbol p) const
+const MLSignal& MLPropertySet::getSignalProperty(ml::Symbol p) const
 {
-	std::map<MLSymbol, MLProperty>::const_iterator it = mProperties.find(p);
+	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
 		return it->second.getSignalValue();
@@ -266,7 +266,7 @@ void MLPropertySet::removePropertyListener(MLPropertyListener* pToRemove)
 	}
 }
 
-void MLPropertySet::broadcastProperty(MLSymbol p, bool immediate)
+void MLPropertySet::broadcastProperty(ml::Symbol p, bool immediate)
 {
 	std::list<MLPropertyListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
@@ -276,7 +276,7 @@ void MLPropertySet::broadcastProperty(MLSymbol p, bool immediate)
 	}
 }
 
-void MLPropertySet::broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude)
+void MLPropertySet::broadcastPropertyExcludingListener(ml::Symbol p, bool immediate, MLPropertyListener* pListenerToExclude)
 {
 	std::list<MLPropertyListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
@@ -291,10 +291,10 @@ void MLPropertySet::broadcastPropertyExcludingListener(MLSymbol p, bool immediat
 
 void MLPropertySet::broadcastAllProperties()
 {
-	std::map<MLSymbol, MLProperty>::const_iterator it;
+	std::map<ml::Symbol, MLProperty>::const_iterator it;
 	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
-		MLSymbol p = it->first;
+		ml::Symbol p = it->first;
 		broadcastProperty(p, false);
 	}
 }
@@ -305,10 +305,10 @@ void MLPropertyListener::updateChangedProperties()
 {
     if(!mpPropertyOwner) return;
 	// for all model parameters we know about
-	std::map<MLSymbol, PropertyState>::iterator it;
+	std::map<ml::Symbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
-		MLSymbol key = it->first;
+		ml::Symbol key = it->first;
 		PropertyState& state = it->second;
 		
 		if(state.mChangedSinceUpdate)
@@ -327,7 +327,7 @@ void MLPropertyListener::updateAllProperties()
 	mpPropertyOwner->broadcastAllProperties();
 
 	// mark all states as changed
-	std::map<MLSymbol, PropertyState>::iterator it;
+	std::map<ml::Symbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
 		PropertyState& state = it->second;
@@ -337,7 +337,7 @@ void MLPropertyListener::updateAllProperties()
 	updateChangedProperties();
 }
 
-void MLPropertyListener::propertyChanged(MLSymbol propName, bool immediate)
+void MLPropertyListener::propertyChanged(ml::Symbol propName, bool immediate)
 {
     if(!mpPropertyOwner) return;
     

@@ -17,7 +17,7 @@ public:
      MLTextButton();
     ~MLTextButton();
 	void paint(Graphics& g);
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& val);
+	void doPropertyChangeAction(ml::Symbol property, const MLProperty& val);
 
     enum ColourIds
     {

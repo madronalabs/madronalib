@@ -19,20 +19,20 @@ friend class MLSignalReporter;
 public:
 	static const char* kViewProcName;
 
-	MLSignalView(MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize, int priority = 0);
+	MLSignalView(MLWidget* w, ml::Symbol attr, int size = kMLSignalViewBufferSize, int priority = 0);
 	~MLSignalView();
-	void setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, int voices);
+	void setupSignalView (MLDSPEngine* pEng, const ml::Symbol sigName, int voices);
 	void sendSignalToWidget(const MLSignal& signal, int samples, int voices);	
 	const MLRect& getRepaintRect() const;	
-	MLSymbol getSignalName() { return mSignalName; }	
+	ml::Symbol getSignalName() { return mSignalName; }	
 
 private:
 	int mVoices;
 	bool mViewingSignal;
 	MLDSPEngine* mpEngine;	
-	MLSymbol mSignalName;
+	ml::Symbol mSignalName;
 	MLWidget* mpWidget;
-	MLSymbol mAttr;
+	ml::Symbol mAttr;
 	int mSize;
     int mPriority;
 };

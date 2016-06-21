@@ -37,15 +37,15 @@ void MLProcClamp::process(const int frames)
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
-	static MLSymbol minSym("min");
-	static MLSymbol maxSym("max");
+	static ml::Symbol minSym("min");
+	static ml::Symbol maxSym("max");
 	
 	const MLSample fmin = getParam(minSym);
 	const MLSample fmax = getParam(maxSym);
 
 	for (int n=0; n < frames; ++n)
 	{
-		y[n] = clamp(x[n], fmin, fmax);
+		y[n] = ml::clamp(x[n], fmin, fmax);
 	}
 }
 

@@ -18,7 +18,7 @@ public:
     ~MLEnvelope();
 	
 	// MLPropertyListener
-	virtual void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 
 	enum ColourIds
     {

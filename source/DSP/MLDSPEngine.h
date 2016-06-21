@@ -14,7 +14,7 @@
 #include "MLRingBuffer.h"
 #include "MLControlEvent.h"
 #include "OscTypes.h"
-#include "MLDSPUtils.h"
+#include "MLDSPDeprecated.h"
 
 const int kMLEngineMaxChannels = 8;
 
@@ -73,13 +73,13 @@ public:
 	// ----------------------------------------------------------------
 	// published signals
 
-	void publishSignal(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1);
+	void publishSignal(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1);
 	
-	int getPublishedSignalBufferSize(const MLSymbol alias);
-	int getPublishedSignalVoices(const MLSymbol alias);
+	int getPublishedSignalBufferSize(const ml::Symbol alias);
+	int getPublishedSignalVoices(const ml::Symbol alias);
 
-	int getPublishedSignalVoicesEnabled(const MLSymbol alias);
-	int readPublishedSignal(const MLSymbol alias, MLSignal& outSig);
+	int getPublishedSignalVoicesEnabled(const ml::Symbol alias);
+	int readPublishedSignal(const ml::Symbol alias, MLSignal& outSig);
     
 	// ----------------------------------------------------------------
 	// control input
@@ -122,7 +122,7 @@ private:
     ClientIOMap mIOMap;
 
     // map to published signals by name
-	typedef std::map<MLSymbol, MLProcList> MLPublishedSignalMapT;
+	typedef std::map<ml::Symbol, MLProcList> MLPublishedSignalMapT;
 	MLPublishedSignalMapT mPublishedSignalMap;
     
 	// input signals that will be sent to the root proc.

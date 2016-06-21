@@ -6,7 +6,7 @@
 
 const int kMaxEvents = 64;
 const int kNumVoiceSignals = 8;
-const MLSymbol voiceSignalNames[kNumVoiceSignals] 
+const ml::Symbol voiceSignalNames[kNumVoiceSignals] 
 {
 	"pitch",
 	"gate",
@@ -336,13 +336,13 @@ MLProc::err MLProcInputToSignals::resize()
 // But unlike overriding MLProc::getOutput, it's possible.
 // we do it here because we have a variable number of outputs and would
 // like to make names for them procedurally.
-int MLProcInputToSignals::getOutputIndex(const MLSymbol name) 
+int MLProcInputToSignals::getOutputIndex(const ml::Symbol name) 
 { 
 	// voice numbers are 1-indexed.
 	int idx = 0;
 	int voice = 0;
 	int sig = 0;
-	MLSymbol name0 = name.withoutFinalNumber();
+	ml::Symbol name0 = name.withoutFinalNumber();
 			
 	// match signal name with symbol text
 	for(int n=0; n<kNumVoiceSignals; ++n)
@@ -381,7 +381,7 @@ void MLProcInputToSignals::setup()
 void MLProcInputToSignals::doParams()
 {
 	int newVoices = (int)getParam("voices");
-	newVoices = clamp(newVoices, 0, 15);
+	newVoices = ml::clamp(newVoices, 0, 15);
     
     // TODO enable / disable voice containers here
 	mOSCDataRate = (int)getParam("data_rate");
@@ -575,7 +575,7 @@ void MLProcInputToSignals::process(const int frames)
 // get initial velocity from first z for OSC
 float VelocityFromInitialZ(float z)
 {
-	float zc = clamp(z*128.f, 0.25f, 1.f);
+	float zc = ml::clamp(z*128.f, 0.25f, 1.f);
 	return zc*zc;
 }
 

@@ -529,13 +529,13 @@ public:
 	
 	// visual resources for app. 
 	// TODO no L+F class in future, these go into top level drawing Context 
-	void addPicture(MLSymbol name, const void* data, size_t dataSize);	
-	const Drawable* getPicture(MLSymbol name);
+	void addPicture(ml::Symbol name, const void* data, size_t dataSize);	
+	const Drawable* getPicture(ml::Symbol name);
 	
 	std::unique_ptr<Image> mBackgroundImage;
 
-	std::map<MLSymbol, DrawablePtr> mPictures;
-	std::map<MLSymbol, void *> mPictureData;
+	std::map<ml::Symbol, DrawablePtr> mPictures;
+	std::map<ml::Symbol, void *> mPictureData;
 	
 	juce_DeclareSingleton_SingleThreaded_Minimal (MLLookAndFeel)
 	

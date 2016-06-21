@@ -69,7 +69,7 @@ void MLProcSVF::process(const int samples)
 
 	for (int n=0; n<samples; ++n)
 	{
-		clampedFreq = clamp(freq[n], 1.f, halfSampleRate);
+		clampedFreq = ml::clamp(freq[n], 1.f, halfSampleRate);
 		oneMinusQ = 1.f - q[n];
 		omega = 2.0f * fsin1(kMLPi * clampedFreq * getContextInvSampleRate() * oversample);
 		
@@ -104,7 +104,7 @@ void MLProcSVF::process(const int samples)
 	
 	{
 	
-		clampedFreq = clamp(freq[0], 1.f, halfSampleRate);
+		clampedFreq = ml::clamp(freq[0], 1.f, halfSampleRate);
 
 debug() << "svf freq: " << omega << "\n";
 debug() << "svf out: " << y[0] << "\n";

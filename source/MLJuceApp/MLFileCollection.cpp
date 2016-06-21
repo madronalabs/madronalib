@@ -38,7 +38,7 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 
 #pragma mark MLFileCollection
 
-MLFileCollection::MLFileCollection(MLSymbol name, const File startDir, String extension):
+MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, String extension):
 	Thread(name.getString()),
 	mName(name),
 	mExtension(extension),
@@ -199,11 +199,11 @@ void MLFileCollection::processFileInMap(int i)
     int size = mFilesByIndex.size();
     if(within(i, 0, size))
     {
-		sendActionToListeners(MLSymbol("process"), i);
+		sendActionToListeners(ml::Symbol("process"), i);
     }
 }
 
-void MLFileCollection::sendActionToListeners(MLSymbol action, int fileIndex)
+void MLFileCollection::sendActionToListeners(ml::Symbol action, int fileIndex)
 {
     int size = mFilesByIndex.size();
     const MLFile& f = getFileByIndex(fileIndex);

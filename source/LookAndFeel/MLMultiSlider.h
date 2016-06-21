@@ -20,7 +20,7 @@ public:
 	MLMultiSlider ();
 	~MLMultiSlider();
 		
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& val);
+	void doPropertyChangeAction(ml::Symbol property, const MLProperty& val);
 	
     enum ColourIds
     {

@@ -8,7 +8,7 @@
 // ----------------------------------------------------------------
 #pragma mark published parameters
 
-MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx) :
+MLPublishedParam::MLPublishedParam(const MLPath & procPath, const ml::Symbol name, const ml::Symbol alias, const ml::Symbol type, int idx) :
 	mPublishedAlias(alias),
 	mIndex(idx),
 	mAutomatable(true),
@@ -25,9 +25,9 @@ MLPublishedParam::MLPublishedParam(const MLPath & procPath, const MLSymbol name,
 	addAddress(procPath, name);
 	
 	// default type is float
-	if(type == MLSymbol())
+	if(type == ml::Symbol())
 	{
-		mType = MLSymbol("float");
+		mType = ml::Symbol("float");
 	}
 	else
 	{
@@ -74,7 +74,7 @@ void MLPublishedParam::setRange(MLParamValue low, MLParamValue high, MLParamValu
 	}
 }
 
-void MLPublishedParam::addAddress(const MLPath & procPath, const MLSymbol name)
+void MLPublishedParam::addAddress(const MLPath & procPath, const ml::Symbol name)
 {
 	mAddresses.push_back(ParamAddress(procPath, name));
 }
@@ -109,7 +109,7 @@ void MLPublishedParam::setValueProperty(const MLProperty& paramProp)
 		case MLProperty::kFloatProperty:
 		{
 			const float val = paramProp.getFloatValue();
-			float clampedVal = clamp(val, mRangeLo, mRangeHi);
+			float clampedVal = ml::clamp(val, mRangeLo, mRangeHi);
 			if (fabs(clampedVal) <= mZeroThreshold)
 			{
 				clampedVal = 0.f;
@@ -147,7 +147,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			p += mOffset;
 			break;
 		case kJucePluginParam_Exp:
-			val = clamp(val, lo, hi);
+			val = ml::clamp(val, lo, hi);
 			val = max(mZeroThreshold, val);
 			p = logf(val/lo) / logf(hi/lo);
 			p += mOffset;
@@ -156,7 +156,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			bool positiveHalf = val > 0.;
 			if (positiveHalf)
 			{
-				val = clamp(val, lo, hi);
+				val = ml::clamp(val, lo, hi);
 				val = max(mZeroThreshold, val);
 				p = logf(val/lo) / logf(hi/lo);
 				p = p*0.5f + 0.5f;
@@ -248,7 +248,7 @@ void MLParamGroupMap::clear()
 	mGroupVec.push_back(std::string("null"));
 }
 
-void MLParamGroupMap::setGroup(const MLSymbol groupSym)
+void MLParamGroupMap::setGroup(const ml::Symbol groupSym)
 {
 	unsigned i = 0;
 	bool found = false;

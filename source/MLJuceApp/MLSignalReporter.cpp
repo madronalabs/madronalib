@@ -20,7 +20,7 @@ MLSignalReporter::~MLSignalReporter()
 
 // add another signal view to our map, to be serviced periodically.
 //
-MLSignalView* MLSignalReporter::addSignalViewToMap(MLSymbol alias, MLWidget* w, MLSymbol attr, int viewSize, int priority, int frameSize)
+MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w, ml::Symbol attr, int viewSize, int priority, int frameSize)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return nullptr;	
@@ -101,7 +101,7 @@ bail:
 
 // for one signal in the map, run all views in the view list matching priority.
 //
-int MLSignalReporter::viewOneSignal(MLSymbol signalName, bool forceView, int priority)
+int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int priority)
 {
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return 0;
@@ -173,7 +173,7 @@ void MLSignalReporter::viewChangedSignals()
 	if(!pEngine) return;
     
 	const int maxSignalsToViewPerFrame = 6; 
-	MLSymbol signalName;
+	ml::Symbol signalName;
 	
 	// first service all views that have high priority set
     for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
@@ -217,7 +217,7 @@ void MLSignalReporter::viewAllSignals()
     for(int i = 0; i<nSignals; ++i)
     {
         const bool forceView = true;
-        const MLSymbol signalName = mSignalNames[i];		
+        const ml::Symbol signalName = mSignalNames[i];		
         viewOneSignal(signalName, forceView);
     }
 }

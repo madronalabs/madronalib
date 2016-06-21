@@ -17,18 +17,18 @@ class MLPropertyView
 {
 	friend class MLReporter;
 public:
-	MLPropertyView(MLWidget* w, MLSymbol attr);
+	MLPropertyView(MLWidget* w, ml::Symbol attr);
 	~MLPropertyView();
 	void view(const MLProperty& v) const;
 	
 private:
 	MLWidget* mpWidget;
-	MLSymbol mAttr;
+	ml::Symbol mAttr;
 };
 
 typedef std::shared_ptr<MLPropertyView> MLPropertyViewPtr;
 typedef std::list<MLPropertyViewPtr> MLPropertyViewList;
-typedef std::map<MLSymbol, MLPropertyViewList> MLPropertyViewListMap;
+typedef std::map<ml::Symbol, MLPropertyViewList> MLPropertyViewListMap;
 
 #pragma mark MLReporter 
 
@@ -44,7 +44,7 @@ public:
 	void listenTo(MLPropertySet* p);
 	void fetchChangedProperties();
 	void fetchAllProperties();
-	void addPropertyViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr);
+	void addPropertyViewToMap(ml::Symbol p, MLWidget* w, ml::Symbol attr);
 	void viewProperties();
 
 protected:
@@ -61,7 +61,7 @@ private:
 			mpOwnerReporter(p)
 			{}
 		~PropertyListener()  {}
-		void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+		void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 
 	private:
 		MLReporter* mpOwnerReporter;
@@ -78,11 +78,11 @@ private:
 		MLReporter* mpOwnerReporter;
 	};
 	
-	void enqueuePropertyChange(MLSymbol property, const MLProperty& newVal);
+	void enqueuePropertyChange(ml::Symbol property, const MLProperty& newVal);
 
 	std::vector<MLPropertyListenerPtr> pListeners;
 	MLPropertySet mCurrentProperties;
-	std::vector<MLSymbol> mChangeData;
+	std::vector<ml::Symbol> mChangeData;
 	PaUtilRingBuffer mChangeQueue;
 	std::unique_ptr<ReporterTimer> mpTimer;
 };

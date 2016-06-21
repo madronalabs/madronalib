@@ -7,7 +7,7 @@
 #define __ML_WIDGET_H__
 
 #include "MLUI.h"
-#include "MLVector.h"
+#include "MLVectorDeprecated.h"
 #include "MLSymbol.h"
 #include "MLSignal.h"
 #include "MLProperty.h"
@@ -29,7 +29,7 @@ public:
 	{
 		public:
 		virtual ~Listener() {}
-		virtual void handleWidgetAction (MLWidget*, MLSymbol action, MLSymbol target, const MLProperty& val) = 0;
+		virtual void handleWidgetAction (MLWidget*, ml::Symbol action, ml::Symbol target, const MLProperty& val) = 0;
 	};
 
 	MLWidget();
@@ -37,7 +37,7 @@ public:
 	
 	// MLPropertyListener methods.
 	// a Widget's local properties must be set in Immediate mode. There is no timer to propagate changes.
-	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(ml::Symbol param, const MLProperty& newVal);
 	
 	// in order to function, a Widget's Component must get set.
 	void setComponent(Component* pC) { pComponent = pC; }
@@ -47,16 +47,16 @@ public:
 	void addListener (MLWidget::Listener* const p);
 	
 	// send an action to all of our listeners.
-	void sendAction(MLSymbol m, MLSymbol target, const MLProperty& val = MLPropertySet::nullProperty);
+	void sendAction(ml::Symbol m, ml::Symbol target, const MLProperty& val = MLPropertySet::nullProperty);
 
 	// return true if this Widget contains other Widgets. Used to search recursively for Widgets.
 	virtual bool isWidgetContainer(void) { return false; }
 	
 	// recursive search for a Widget contained within this one.
-	virtual MLWidget* getWidget(MLSymbol name) { return nullptr; }
+	virtual MLWidget* getWidget(ml::Symbol name) { return nullptr; }
 	
 	// A signal viewer, not required. This is called repeatedly to view a Signal.
-	virtual void viewSignal(MLSymbol, const MLSignal&, int frames, int voices) {}
+	virtual void viewSignal(ml::Symbol, const MLSignal&, int frames, int voices) {}
 
 	// TODO widgets should not own GL contexts
     void setupGL(Component* pC);
@@ -104,18 +104,18 @@ public:
 	void setLabelOffset(const Vec2& p) { mLabelOffset = p; }
 	const Vec2& getLabelOffset() { return mLabelOffset; }
 	
-	const MLSymbol& getWidgetName() { return mName; }
+	const ml::Symbol& getWidgetName() { return mName; }
 
 	void setWidgetVisible(bool v);
 	void setWidgetEnabled(bool v);
     
-	MLSymbol getTargetPropertyName() { return mTargetPropertyName; }
-	void setTargetPropertyName(MLSymbol p) { mTargetPropertyName = p; }
+	ml::Symbol getTargetPropertyName() { return mTargetPropertyName; }
+	void setTargetPropertyName(ml::Symbol p) { mTargetPropertyName = p; }
 	
 	MLWidget* getContainer() const { return mpContainer; }
 	
 protected:
-	void setWidgetName(const MLSymbol& n) { mName = n; }
+	void setWidgetName(const ml::Symbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
 	void setContainer(MLWidget* c) { mpContainer = c; }
 
@@ -128,12 +128,12 @@ private:
 	// must point to enclosing context.
 	MLWidget* mpContainer;
 	
-	MLSymbol mName;
+	ml::Symbol mName;
 	
 	// name of the target property of Listeners we would like to affect.
 	// if a Widget has multiple parts, like a Multislider, this property name can get
 	// a numerical or symbolic suffix to indicate what part was changed.
-	MLSymbol mTargetPropertyName;
+	ml::Symbol mTargetPropertyName;
 	
 	// this is the size of drawn widget parts compared to the usual size.
 	// normally 1.0, set to 0.75 or similar for smaller labels, buttons, etc. 

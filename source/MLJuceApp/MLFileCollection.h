@@ -49,18 +49,18 @@ public:
 		// end: All files recently changed have been transmitted.
 		//
 		// Note that idx is one-based.
-		virtual void processFileFromCollection (MLSymbol action, const MLFile file, const MLFileCollection& collection, int idx, int size) = 0;
+		virtual void processFileFromCollection (ml::Symbol action, const MLFile file, const MLFileCollection& collection, int idx, int size) = 0;
 
 	private:
 		std::list<MLFileCollection*> mpCollections;
 	};
 	
-	MLFileCollection(MLSymbol name, const File startDir, String extension);
+	MLFileCollection(ml::Symbol name, const File startDir, String extension);
     ~MLFileCollection();
 
 	void clear();
     int getSize() const { return mFilesByIndex.size(); }
-    MLSymbol getName() const { return mName; }
+    ml::Symbol getName() const { return mName; }
     //const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
     
     void addListener(Listener* listener);
@@ -117,7 +117,7 @@ private:
 	MLResourceMap<std::string, MLFile>* insertFileIntoMap(juce::File f);
 	void buildIndex();
     void processFileInMap(int i);
-	void sendActionToListeners(MLSymbol action, int fileIndex = -1);
+	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
 	
 	MLResourceMap<std::string, MLFile> mRoot;
@@ -125,7 +125,7 @@ private:
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
 	
-    MLSymbol mName;
+    ml::Symbol mName;
     String mExtension;
 	std::list<Listener*> mpListeners;
 	int mProcessDelay;

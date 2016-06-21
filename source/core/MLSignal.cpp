@@ -8,8 +8,6 @@
 
 #include "MLSignal.h"
 
-using namespace ml;
-
 // ----------------------------------------------------------------
 #pragma mark MLSignal
 
@@ -80,7 +78,7 @@ MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
 		default:
 		{
 			int w = other.getWidth();
-			int loopWidth = clamp(loopSize, 0, w);
+			int loopWidth = ml::clamp(loopSize, 0, w);
 			setDims(w + loopWidth, 1, 1);
 			mRate = other.mRate;
 			std::copy(other.mDataAligned, other.mDataAligned + w, mDataAligned);
@@ -274,10 +272,10 @@ const float MLSignal::operator()(const float fi, const float fj) const
 	float ri = fi - i;
 	float rj = fj - j;
 	
-	int i1ok = within(i, 0, mWidth);
-	int i2ok = within(i + 1, 0, mWidth);
-	int j1ok = within(j, 0, mHeight);
-	int j2ok = within(j + 1, 0, mHeight);
+	int i1ok = ml::within(i, 0, mWidth);
+	int i2ok = ml::within(i + 1, 0, mWidth);
+	int j1ok = ml::within(j, 0, mHeight);
+	int j2ok = ml::within(j + 1, 0, mHeight);
 	
 	a = (j1ok && i1ok) ? mDataAligned[row(j) + i] : 0.f;
 	b = (j1ok && i2ok) ? mDataAligned[row(j) + i + 1] : 0.f;
@@ -363,7 +361,7 @@ void MLSignal::sigClamp(const MLSignal& a, const MLSignal& b)
 	for(int i = 0; i < n; ++i)
 	{
 		float f = mDataAligned[i];
-		mDataAligned[i] = clamp(f, a.mDataAligned[i], b.mDataAligned[i]);
+		mDataAligned[i] = ml::clamp(f, a.mDataAligned[i], b.mDataAligned[i]);
 	}
 }
 
@@ -579,7 +577,7 @@ void MLSignal::sigClamp(const float min, const float max)
 	for(int i=0; i<mSize; ++i)
 	{
 		float f = mDataAligned[i];
-		mDataAligned[i] = clamp(f, (float)min, (float)max);
+		mDataAligned[i] = ml::clamp(f, (float)min, (float)max);
 	}
 }
 
@@ -1172,8 +1170,8 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) c
 	const MLSignal& in = *this;
 	int width = in.getWidth();
 	int height = in.getHeight();
-	int x = clamp(ix, 1, width - 2);
-	int y = clamp(iy, 1, height - 2);
+	int x = ml::clamp(ix, 1, width - 2);
+	int y = ml::clamp(iy, 1, height - 2);
 	Vec2 pos(x, y);
 	
 	// Use centered differences to find derivatives.
@@ -1193,8 +1191,8 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) c
 	//	float fz = dx*fx + dy*fy + 0.5f*(dxx*fx*fx + 2.f*dxy*fx*fy + dyy*fy*fy);
 	//	float z = in(x, y) + fz;
 		
-		fx = clamp(fx, -maxCorrect, maxCorrect);
-		fy = clamp(fy, -maxCorrect, maxCorrect);
+		fx = ml::clamp(fx, -maxCorrect, maxCorrect);
+		fy = ml::clamp(fy, -maxCorrect, maxCorrect);
 			
 		pos -= Vec2(fx, fy);
 	}

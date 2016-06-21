@@ -90,7 +90,7 @@ void MLScale::recalcRatios()
 	if(!notesInOctave) return;
 
 	int ratios = mRatioList.size();
-	int octaveIndex = clamp(mKeyMap.mOctaveScaleDegree, 1, ratios - 1);
+	int octaveIndex = ml::clamp(mKeyMap.mOctaveScaleDegree, 1, ratios - 1);
 	double octaveRatio = mRatioList[octaveIndex];
 	
 	int octave, degree;
@@ -109,7 +109,7 @@ void MLScale::recalcRatios()
 		}
 		double octaveStartRatio = pow(octaveRatio, (double)octave);
 		int ratioIdx = mKeyMap.mNotes[degree];
-		ratioIdx = clamp(ratioIdx, 0, ratios - 1);
+		ratioIdx = ml::clamp(ratioIdx, 0, ratios - 1);
 		mRatios[i] = (float)octaveStartRatio*mRatioList[mKeyMap.mNotes[degree]]*mKeyMap.mTonicFreq/440.0f;
 		mPitches[i] = log2f(mRatios[i]);
 	}
@@ -286,7 +286,7 @@ void MLScale::loadFromRelativePath(const std::string& scaleName)
 
 float MLScale::noteToPitch(float note) const
 {
-	float fn = clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));
+	float fn = ml::clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));
 	int i = fn;
 	float intPart = i;
 	float fracPart = fn - intPart;
@@ -297,7 +297,7 @@ float MLScale::noteToPitch(float note) const
 
 float MLScale::noteToPitch(int note) const
 {
-	int n = clamp(note, 0, kMLNumScaleNotes - 1);
+	int n = ml::clamp(note, 0, kMLNumScaleNotes - 1);
 	return mRatios[n] * (mKeyMap.mTonicFreq/440.0f); 
 }
 

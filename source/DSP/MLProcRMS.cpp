@@ -74,7 +74,7 @@ void MLProcRMS::process(const int samples)
 	
 	for (int n=0; n<samples; ++n)
 	{		
-		float xf = clamp(x[n], -1.f, 1.f);		
+		float xf = ml::clamp(x[n], -1.f, 1.f);		
 		y[n] = mFilter.processSample(xf*xf); // note: no sqrt, not real RMS
 	}	
 

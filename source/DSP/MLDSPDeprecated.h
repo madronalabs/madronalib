@@ -12,45 +12,432 @@
 #include "MLDSP.h"
 #include "MLSignal.h"
 
+#include <cassert>
+#include <iostream>
+#include <string>
+
+#ifdef _WIN32
+#include <memory>
+#else
+//#include <tr1/memory>
+#endif
+
+#include <math.h>
+#ifdef _WIN32
+#define	MAXFLOAT	((float)3.40282346638528860e+38)
+#endif
+
+#ifndef MAXFLOAT
+#include <float.h>
+#define MAXFLOAT FLT_MAX
+#endif
+
+#ifdef __SSE__
+#include <xmmintrin.h>
+#endif
+
+#ifndef DEBUG
+#define force_inline  inline __attribute__((always_inline))
+#else
+#define force_inline  inline
+#endif
+
+// logs for Windows.   
+#ifdef _WIN32
+inline double log2( double n )   
+{       
+	return log( n ) / log( 2. );   
+} 
+inline float log2f(float n)
+{
+	return logf(n) / 0.693147180559945309417232121458176568f;
+}
+#endif
+
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif // _MSC_VER
+
 // ----------------------------------------------------------------
-// DSP utility objects -- some very basic building blocks, not in MLProcs
-// so they can be used more easily in MLProcs and elsewhere.
-//
-// This modules should include any DSP functors that we typically want to use from 
-// C++ code directly. They will typically be used to implement MLProcs, which can
-// be a lot more complicated. 
-//
-// DSPUtils:
-// - are stateless functions if they don't need a sampling rate or memory (add, multiply, etc)
-// - are functors if they need a sampling rate or memory (filters, oscillators etc)
-// - should be inlined
-// - loops should be fixed-sized at compile time and thereby unrollable
-// - should use static binding of operator()
-// - should output a single DSPVector from operator()(const DSPVector& in1 ...)
-// - may need a sample rate to be set
-// - may have static data such as tables, created using a
-//	singleton pattern when the first object is made
-// - do not require any other infrastructure
-//
-// TODO we can make some of these qualities explicit in the code with a templated base class 
-// and CRTP https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern
-// to overload operator() (DSPVector) for each proc class
-// base class will have operator()<T> for each proc.
-// 
-// TODO this is all a statement of intent to refactor things—most
-// of the functions here are not yet in line with the guidelines above
-//
-// for dynamically dispatched objects, making graphs from JSON, etc, see MLProcs.
+#pragma mark Types
+// ----------------------------------------------------------------
 
-// TODO test pass by value everywhere idea: 
-// - look for difference in generated code of pass by value vs. pointer. 
-// - write one fairly complex object with both value and pointer, compare and time.
+typedef float MLSample;
+typedef double MLDouble;
+typedef float MLParamValue;
 
-// best idea so far?
-// DSPutils can operate on the assumption of default size signals: 16 x 1 or whatever.
-// and, if making default signals is fast enough (TIME IT) we can return new default sigs by value.
-// these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
+// ----------------------------------------------------------------
+#pragma mark Engine Constants
+// ----------------------------------------------------------------
 
+const uintptr_t kMLSamplesPerSSEVectorBits = 2;
+const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
+
+const uintptr_t kMLProcessChunkBits = 6;     // signals are always processed in chunks of this size.
+const uintptr_t kMLProcessChunkSize = 1 << kMLProcessChunkBits;
+const uintptr_t kMLProcessChunkVectors = kMLProcessChunkSize << kMLSamplesPerSSEVectorBits;
+
+const int kMLEngineMaxVoices = 8;
+
+const uintptr_t kMLCacheAlignBits = 6; // cache line is probably 64 bytes
+const uintptr_t kMLCacheAlignSize = 1 << kMLCacheAlignBits;
+const uintptr_t kMLCacheAlignMask = ~(kMLCacheAlignSize - 1);
+
+const float kMLTwoPi = 6.2831853071795864769252867f;
+const float kMLPi = 3.1415926535897932384626433f;
+const float kMLOneOverTwoPi = 1.0f / kMLTwoPi;
+const float kMLTwelfthRootOfTwo = 1.05946309436f;
+
+const float kMLMinGain = 0.00001f; // 10e-5 = -120dB
+
+const float kMLTimeless = -1.f;
+const float kMLToBeCalculated = 0.f;
+
+const MLSample kMLMaxSample = MAXFLOAT;
+const MLSample kMLMinSample = -MAXFLOAT;
+
+
+// ----------------------------------------------------------------
+#pragma mark utility functions
+// ----------------------------------------------------------------
+
+// return bool as float 0. or 1.
+inline float boolToFloat(uint32_t b)
+{
+	uint32_t temp = 0x3F800000 & (!b - 1);
+	return *((float*)&temp);
+}
+
+// return sign bit of float as float, 1. for positive, 0. for negative.
+inline float fSignBit(float f)
+{
+	uint32_t a = *((uint32_t*)&f);
+	a = (((a & 0x80000000) >> 31) - 1) & 0x3F800000;
+	return *((float*)&a);
+}
+
+MLSample* alignToCacheLine(const MLSample* p);
+int bitsToContain(int n);
+int ilog2(int n);
+
+inline MLSample lerp(const MLSample a, const MLSample b, const MLSample m)
+{
+	return(a + m*(b-a));
+}
+
+inline MLSample lerpBipolar(const MLSample a, const MLSample b, const MLSample c, const MLSample m)
+{
+	MLSample absm = fabsf(m);	// TODO fast abs etc
+	MLSample pos = m > 0.;
+	MLSample neg = m < 0.;
+	MLSample q = pos*c + neg*a;
+	return (b + (q - b)*absm);
+}		
+
+inline MLSample herp(const MLSample* t, float phase)
+{
+	// 4-point, 3rd-order Hermite interpolation
+	const float c = (t[2] - t[0]) * 0.5f;
+	const float v = t[1] - t[2];
+	const float w = c + v;
+	const float a = w + v + (t[3] - t[1]) * 0.5f;
+	const float b = w + a;
+	return (((a * phase) - b) * phase + c) * phase + t[1];
+}
+
+inline MLSample werp(const MLSample* t, float phase)
+{
+	// 4-point, 2nd-order Watte trilinear interpolation
+	const float threeOverTwo = 1.5f;
+	const float oneHalf = 0.5f;
+	float ym1py2 = t[0] + t[3];
+	float c0 = t[1];
+	float c1 = threeOverTwo * t[2] - oneHalf * (t[1] + ym1py2);
+	float c2 = oneHalf * (ym1py2 - t[1] - t[2]);
+	return (c2 * phase + c1) * phase + c0;
+}
+
+float scaleForRangeTransform(float a, float b, float c, float d); // TODO replace with MLRange object
+float offsetForRangeTransform(float a, float b, float c, float d);
+
+MLSample MLRand(void);
+uint32_t MLRand32(void);
+void MLRandReset(void);
+
+// ----------------------------------------------------------------
+#pragma mark portable numeric checks
+// ----------------------------------------------------------------
+
+#include <cmath>
+
+#ifdef __INTEL_COMPILER
+#include <mathimf.h>
+#endif
+
+int MLisNaN(float x);
+int MLisNaN(double x);
+int MLisInfinite(float x);
+int MLisInfinite(double x);
+
+// ----------------------------------------------------------------
+#pragma mark min, max, clamp
+// TODO this stuff should be in MLMath or something
+// ----------------------------------------------------------------
+
+/*
+template <class c>
+inline c (min)(const c& a, const c& b)
+{
+	return (a < b) ? a : b;
+}
+
+template <class c>
+inline c (max)(const c& a, const c& b)
+{
+	return (a > b) ? a : b;
+}
+
+template <class c>
+inline c (clamp)(const c& x, const c& min, const c& max)
+{
+	return (x < min) ? min : (x > max ? max : x);
+}
+
+
+// within range, including start, excluding end value.
+template <class c>
+inline bool (within)(const c& x, const c& min, const c& max)
+{
+	return ((x >= min) && (x < max));
+}
+*/
+
+template <class c>
+inline int (sign)(const c& x)
+{
+	if (x == 0) return 0;
+	return (x > 0) ? 1 : -1;
+}
+
+float inMinusPiToPi(float theta);
+
+
+// amp <-> dB conversions, where ratio of the given amplitude is to 1.
+
+inline float ampTodB(float a)
+{
+	return 20.f * log10f(a);
+}	
+
+inline float dBToAmp(float dB)
+{
+	return powf(10.f, dB/20.f);
+}	
+
+#pragma mark smoothstep
+
+inline float smoothstep(float a, float b, float x)
+{
+	x = ml::clamp((x - a)/(b - a), 0.f, 1.f); 
+	return x*x*(3.f - 2.f*x);
+}
+
+// ----------------------------------------------------------------
+#pragma mark fast trig approximations
+// ----------------------------------------------------------------
+
+// fastest and worst.  rough approximation sometimes useful in [-pi/2, pi/2].
+inline float fsin1(const float x)
+{
+	return x - (x*x*x*0.15f);
+}
+
+inline float fcos1(const float x)
+{
+	float xx = x*x;
+	return 1.f - xx*0.5f*(1.f - xx*0.08333333f);
+}
+
+// ----------------------------------------------------------------
+#pragma mark fast SSE exp2 and log2 approx
+// Courtesy José Fonseca, http://jrfonseca.blogspot.com/2008/09/fast-sse2-pow-tables-or-polynomials.html
+
+#define EXP_POLY_DEGREE 3
+
+#define POLY0(x, c0) _mm_set1_ps(c0)
+#define POLY1(x, c0, c1) _mm_add_ps(_mm_mul_ps(POLY0(x, c1), x), _mm_set1_ps(c0))
+#define POLY2(x, c0, c1, c2) _mm_add_ps(_mm_mul_ps(POLY1(x, c1, c2), x), _mm_set1_ps(c0))
+#define POLY3(x, c0, c1, c2, c3) _mm_add_ps(_mm_mul_ps(POLY2(x, c1, c2, c3), x), _mm_set1_ps(c0))
+#define POLY4(x, c0, c1, c2, c3, c4) _mm_add_ps(_mm_mul_ps(POLY3(x, c1, c2, c3, c4), x), _mm_set1_ps(c0))
+#define POLY5(x, c0, c1, c2, c3, c4, c5) _mm_add_ps(_mm_mul_ps(POLY4(x, c1, c2, c3, c4, c5), x), _mm_set1_ps(c0))
+
+inline __m128 exp2Approx4(__m128 x)
+{
+	__m128i ipart;
+	__m128 fpart, expipart, expfpart;
+	
+	x = _mm_min_ps(x, _mm_set1_ps( 129.00000f));
+	x = _mm_max_ps(x, _mm_set1_ps(-126.99999f));
+	
+	// ipart = int(x - 0.5) 
+	ipart = _mm_cvtps_epi32(_mm_sub_ps(x, _mm_set1_ps(0.5f)));
+	
+	// fpart = x - ipart 
+	fpart = _mm_sub_ps(x, _mm_cvtepi32_ps(ipart));
+	
+	// expipart = (float) (1 << ipart) 
+	expipart = _mm_castsi128_ps(_mm_slli_epi32(_mm_add_epi32(ipart, _mm_set1_epi32(127)), 23));
+	
+	// minimax polynomial fit of 2**x, in range [-0.5, 0.5[ 
+#if EXP_POLY_DEGREE == 5
+	expfpart = POLY5(fpart, 9.9999994e-1f, 6.9315308e-1f, 2.4015361e-1f, 5.5826318e-2f, 8.9893397e-3f, 1.8775767e-3f);
+#elif EXP_POLY_DEGREE == 4
+	expfpart = POLY4(fpart, 1.0000026f, 6.9300383e-1f, 2.4144275e-1f, 5.2011464e-2f, 1.3534167e-2f);
+#elif EXP_POLY_DEGREE == 3
+	expfpart = POLY3(fpart, 9.9992520e-1f, 6.9583356e-1f, 2.2606716e-1f, 7.8024521e-2f);
+#elif EXP_POLY_DEGREE == 2
+	expfpart = POLY2(fpart, 1.0017247f, 6.5763628e-1f, 3.3718944e-1f);
+#else
+#error
+#endif
+	
+	return _mm_mul_ps(expipart, expfpart);
+}
+
+#define LOG_POLY_DEGREE 5
+
+inline __m128 log2Approx4(__m128 x)
+{
+	__m128i exp = _mm_set1_epi32(0x7F800000);
+	__m128i mant = _mm_set1_epi32(0x007FFFFF);
+	
+	__m128 one = _mm_set1_ps( 1.0f);
+	
+	__m128i i = _mm_castps_si128(x);
+	
+	__m128 e = _mm_cvtepi32_ps(_mm_sub_epi32(_mm_srli_epi32(_mm_and_si128(i, exp), 23), _mm_set1_epi32(127)));
+	
+	__m128 m = _mm_or_ps(_mm_castsi128_ps(_mm_and_si128(i, mant)), one);
+	
+	__m128 p;
+	
+	// Minimax polynomial fit of log2(x)/(x - 1), for x in range [1, 2[ 
+#if LOG_POLY_DEGREE == 6
+	p = POLY5( m, 3.1157899f, -3.3241990f, 2.5988452f, -1.2315303f,  3.1821337e-1f, -3.4436006e-2f);
+#elif LOG_POLY_DEGREE == 5
+	p = POLY4(m, 2.8882704548164776201f, -2.52074962577807006663f, 1.48116647521213171641f, -0.465725644288844778798f, 0.0596515482674574969533f);
+#elif LOG_POLY_DEGREE == 4
+	p = POLY3(m, 2.61761038894603480148f, -1.75647175389045657003f, 0.688243882994381274313f, -0.107254423828329604454f);
+#elif LOG_POLY_DEGREE == 3
+	p = POLY2(m, 2.28330284476918490682f, -1.04913055217340124191f, 0.204446009836232697516f);
+#else
+#error
+#endif
+	
+	// This effectively increases the polynomial degree by one, but ensures that log2(1) == 0
+	p = _mm_mul_ps(p, _mm_sub_ps(m, one));
+	
+	return _mm_add_ps(p, e);
+}
+
+// ----------------------------------------------------------------
+// interpolation
+// ----------------------------------------------------------------
+
+// ----------------------------------------------------------------
+#pragma mark  MLRange
+// ----------------------------------------------------------------
+
+// TODO remove everywhere and use new ml::Interval and ml::IntervalProjection
+
+class MLRange
+{
+public:
+	MLRange() : mA(0.f), mB(1.f), mScale(1.f), mOffset(0.f), mClip(false), mMinOutput(0), mMaxOutput(0) {}
+	MLRange(float a, float b) : mA(a), mB(b), mScale(1.f), mOffset(0.f), mClip(false), mMinOutput(0), mMaxOutput(0) {}
+	MLRange(float a, float b, float c, float d, bool clip = false) : 
+	mA(a), mB(b), mScale(1.f), mOffset(0.f), mClip(clip), mMinOutput(0), mMaxOutput(0) 
+	{
+		convertTo(MLRange(c, d));
+	}
+	~MLRange(){}
+	float getA() const {return mA;}
+	float getB() const {return mB;}
+	void setA(float f){mA = f;} 
+	void setB(float f){mB = f;}  
+	void set(float a, float b){mA = a; mB = b;}
+	void setClip(bool c)
+	{
+		mClip = c;
+	} 
+	bool getClip() const { return mClip; } 
+	
+	// no
+	void convertFrom(const MLRange& r)
+	{
+		float a, b, c, d;
+		a = r.mA;
+		b = r.mB;
+		c = mA;
+		d = mB;
+		mScale = (d - c) / (b - a);
+		mOffset = (a*d - b*c) / (a - b);
+		mMinOutput = ml::min(c, d);
+		mMaxOutput = ml::max(c, d);
+	}
+	
+	// no
+	void convertTo(const MLRange& r)
+	{
+		float a, b, c, d;
+		a = mA;
+		b = mB;
+		c = r.mA;
+		d = r.mB;
+		mScale = (d - c) / (b - a);
+		mOffset = (a*d - b*c) / (a - b);
+		mMinOutput = ml::min(c, d);
+		mMaxOutput = ml::max(c, d);
+	}
+	
+	float operator()(float f) const 
+	{
+		float r = f*mScale + mOffset;
+		if(mClip) r = ml::clamp(r, mMinOutput, mMaxOutput);
+		return r;
+	}
+	
+	inline float convert(float f) const
+	{
+		return f*mScale + mOffset;
+	}
+	
+	inline float convertAndClip(float f) const
+	{
+		return ml::clamp((f*mScale + mOffset), mMinOutput, mMaxOutput);
+	}
+	
+	inline bool contains(float f) const
+	{
+		return ((f > mMinOutput) && (f < mMaxOutput));
+	}
+	
+private:
+	float mA;
+	float mB;
+	float mScale;
+	float mOffset;
+	bool mClip;
+	float mMinOutput;
+	float mMaxOutput;
+};
+
+extern const MLRange UnityRange;
+
+
+
+// ----------------------------------------------------------------
+// old DSPUtils
 
 
 inline MLSignal reciprocalEst(const MLSignal& x)
@@ -175,10 +562,10 @@ inline MLSignal lerpBipolar(const MLSignal& a, const MLSignal& b, const MLSignal
 		float fc = c[n];
 		float fm = m[n];
 		
-		MLSample absm = fabsf(fm);	// TODO fast abs etc
-		MLSample pos = fm > 0.;
-		MLSample neg = fm < 0.;
-		MLSample q = pos*fc + neg*fa;
+		float absm = fabsf(fm);	// TODO fast abs etc
+		float pos = fm > 0.;
+		float neg = fm < 0.;
+		float q = pos*fc + neg*fa;
 		y[n] = (fb + (q - fb)*absm);
 		
 	}
@@ -191,217 +578,12 @@ inline MLSignal clamp(const MLSignal& a, const float b, const float c)
 	MLSignal y(frames); 
 	for(int n=0; n<frames; ++n)
 	{
-		y[n] = clamp(a[n], b, c);		
+		y[n] = ml::clamp(a[n], b, c);		
 	}
 	return y;
 }		
 
 
-
-// MLTEST
-
-namespace ml
-{
-	namespace biquadCoeffs
-	{
-		inline MLSignal onePole(float omega)
-		{
-			float e = 2.718281828;
-			float x = powf(e, -omega);
-			float a0 = 1.f - x;
-			float a1 = 0.f;
-			float a2 = 0.f;
-			float b1 = -x;
-			float b2 = 0.f;
-			return MLSignal{a0, a1, a2, b1, b2};
-		}
-
-		inline MLSignal loShelf(float omega, float q, float gain)
-		{
-			// lowShelf: H(s) = A * (s^2 + (sqrt(A)/Q)*s + A)/(A*s^2 + (sqrt(A)/Q)*s + 1)
-			float A = gain;
-			float aMinus1 = A - 1.0f;
-			float aPlus1 = A + 1.0f;
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float beta = 2.0f*sqrtf(A)*alpha;
-			
-			float b0 = aPlus1 + aMinus1*cosOmega + beta;			
-			float a0 = (A*(aPlus1 - aMinus1*cosOmega + beta)) / b0;
-			float a1 = (A*(aPlus1*-2.0f*cosOmega + 2.0f*aMinus1)) / b0;
-			float a2 = (A*(aPlus1 - aMinus1*cosOmega - beta)) / b0;
-			float b1 = (aPlus1*-2.0f*cosOmega - 2.0f*aMinus1) / b0;
-			float b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
-			
-			return MLSignal{a0, a1, a2, b1, b2};
-		}
-		inline MLSignal hiShelf(float omega, float q, float gain)
-		{
-			// highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
-			float A = gain;
-			float aMinus1 = A - 1.0f;
-			float aPlus1 = A + 1.0f;
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float beta = 2.0f*sqrtf(A)*alpha;
-
-			float b0 = aPlus1 - aMinus1*cosOmega + beta;			
-			float a0 = (A*(aPlus1 + aMinus1*cosOmega + beta)) / b0;
-			float a1 = (A*(aPlus1*-2.0f*cosOmega + -2.0f*aMinus1)) / b0;
-			float a2 = (A*(aPlus1 + aMinus1*cosOmega - beta)) / b0;
-			float b1 = (aPlus1*-2.0f*cosOmega + 2.0f*aMinus1) / b0;
-			float b2 = (aPlus1 - aMinus1*cosOmega - beta) / b0;
-			
-			return MLSignal{a0, a1, a2, b1, b2};
-		}
-	}
-	
-	namespace svfCoeffs
-	{
-		// get bandpass coeffs where k = 1/q (damping factor)
-		inline MLSignal bandpass(float fOverSr, float k)
-		{
-			float omega = kMLPi*fOverSr;
-			float s1 = sin(omega);
-			float s2 = sin(2.0f*omega);
-			float nrm = 1.0f/(2.f + k*s2);
-			float g0 = s2*nrm;
-			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
-			float g2 = (2.0f*s1*s1)*nrm;
-			
-			return MLSignal{g0, g1, g2};
-		}
-		
-		// tried fast sin approx, which did not hold up. try better approximations.
-	}
-	
-	
-	// TODO duh,    all SVF modes have the same coeffs, rename above
-	
-	inline MLSignal getSVFCoeffs(float fOverSr, float k)
-	{
-		float omega = kMLPi*fOverSr;
-		float s1 = sin(omega);
-		float s2 = sin(2.0f*omega);
-		float nrm = 1.0f/(2.f + k*s2);
-		float g0 = s2*nrm;
-		float g1 = (-2.f*s1*s1 - k*s2)*nrm;
-		float g2 = (2.0f*s1*s1)*nrm;		
-		return MLSignal{g0, g1, g2, k};
-	}
-}	
-	
-// experimental: bandpass only.
-
-class MLSVF
-{
-public:
-	MLSVF() : g0(0), g1(0), g2(0), k(1) { clear(); }
-	void clear()
-	{
-		ic1eq = ic2eq = 0.f;
-	}
-	void setCoefficients(const MLSignal& coeffs)
-	{
-		g0 = coeffs[0];
-		g1 = coeffs[1];
-		g2 = coeffs[2];
-		k = coeffs[3];
-	}
-	
-	inline MLSignal operator()(const MLSignal& in)
-	{
-		int frames = in.getWidth();
-		MLSignal y(frames); 
-		for(int n=0; n<frames; ++n)
-		{
-			float v0 = in[n];
-			float t0 = v0 - ic2eq;
-			float t1 = g0*t0 + g1*ic1eq;
-			float t2 = g2*t0 + g0*ic1eq;
-			float v1 = t1 + ic1eq;
-			//			float v2 = t2 + ic2eq;
-			ic1eq += 2.0f*t1;
-			ic2eq += 2.0f*t2;
-			y[n] = v1;
-		}		
-		return y;
-	}
-	
-	inline MLSignal processLopass(const MLSignal& in)
-	{
-		int frames = in.getWidth();
-		MLSignal y(frames); 
-		for(int n=0; n<frames; ++n)
-		{
-			float v0 = in[n];
-			float t0 = v0 - ic2eq;
-			float t1 = g0*t0 + g1*ic1eq;
-			float t2 = g2*t0 + g0*ic1eq;
-			//float v1 = t1 + ic1eq;
-			float v2 = t2 + ic2eq;
-			ic1eq += 2.0f*t1;
-			ic2eq += 2.0f*t2;
-			y[n] = v2;
-		}		
-		return y;
-	}
-	
-	inline MLSignal processHipass(const MLSignal& in)
-	{
-		int frames = in.getWidth();
-		MLSignal y(frames); 
-		for(int n=0; n<frames; ++n)
-		{
-			float v0 = in[n];
-			float t0 = v0 - ic2eq;
-			float t1 = g0*t0 + g1*ic1eq;
-			float t2 = g2*t0 + g0*ic1eq;
-			float v1 = t1 + ic1eq;
-			float v2 = t2 + ic2eq;
-			ic1eq += 2.0f*t1;
-			ic2eq += 2.0f*t2;
-			y[n] = v0 - k*v1 - v2;
-		}		
-		return y;
-	}
-	
-	// MLTEST
-	inline void processSignal(MLSignal& y)
-	{
-		int frames = y.getWidth();
-		for(int n=0; n<frames; ++n)
-		{
-			float v0 = y[n];
-			float t0 = v0 - ic2eq;
-			float t1 = g0*t0 + g1*ic1eq;
-			float t2 = g2*t0 + g0*ic1eq;
-			float v1 = t1 + ic1eq;
-			//			float v2 = t2 + ic2eq;
-			ic1eq += 2.0f*t1;
-			ic2eq += 2.0f*t2;
-			y[n] = v1;
-		}		
-	}
-	
-	inline float processSample(float x)
-	{
-		float v0 = x;
-		float t0 = v0 - ic2eq;
-		float t1 = g0*t0 + g1*ic1eq;
-		float t2 = g2*t0 + g0*ic1eq;
-		float v1 = t1 + ic1eq;
-		//			float v2 = t2 + ic2eq;
-		ic1eq += 2.0f*t1;
-		ic2eq += 2.0f*t2;
-		return v1;
-	}
-	void setSampleRate(float) {} // temp
-	
-	float g0, g1, g2;
-	float k; // needed for high, notch, peak
-	float ic1eq, ic2eq;
-};
 
 // ----------------------------------------------------------------
 #pragma mark MLBiquad
@@ -441,9 +623,9 @@ public:
 	void setState(float f);
 	
 	// TODO deprecate in favor of operator()
-	inline MLSample processSample(float x)
+	inline float processSample(float x)
 	{
-		const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+		const float out = a0*x + a1*x1 + a2*x2 + b1*y1 + b2*y2;
 		x2 = x1;
 		x1 = x;
 		y2 = y1;
@@ -459,7 +641,7 @@ public:
 		for(int n=0; n<frames; ++n)
 		{
 			const float x = in[n];
-			const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+			const float out = a0*x + a1*x1 + a2*x2 + b1*y1 + b2*y2;
 			x2 = x1;
 			x1 = x;
 			y2 = y1;
@@ -477,7 +659,7 @@ public:
 		for(int n=0; n<frames; ++n)
 		{
 			const float x = in[n];
-			const float out = a0*x + a1*x1 + a2*x2 - b1*y1 - b2*y2;
+			const float out = a0*x + a1*x1 + a2*x2 + b1*y1 + b2*y2;
 			x2 = x1;
 			x1 = x;
 			y2 = y1;
@@ -505,7 +687,7 @@ public:
 		{
 			const float x = in[n];
 			// hmm maybe should be horizontal for SSE
-			const float out = pa0[n]*x + pa1[n]*x1 + pa2[n]*x2 - pb1[n]*y1 - pb2[n]*y2;
+			const float out = pa0[n]*x + pa1[n]*x1 + pa2[n]*x2 + pb1[n]*y1 + pb2[n]*y2;
 			x2 = x1;
 			x1 = x;
 			y2 = y1;
@@ -548,9 +730,9 @@ public:
 		const float maxQ = 0.95f;
 		const float maxFreq = mSr*0.5f;
 		
-		float clampedFreq = clamp(f, 20.f, maxFreq);
+		float clampedFreq = ml::clamp(f, 20.f, maxFreq);
 		mOneMinusQ = 1.f - (maxQ*q);
-		mOneMinusQ = clamp(mOneMinusQ, 0.f, 0.9f);
+		mOneMinusQ = ml::clamp(mOneMinusQ, 0.f, 0.9f);
 		mOmega = 2.0f * fsin1(kMLPi * clampedFreq * invOver);		
 	}
 	
@@ -598,17 +780,17 @@ public:
 	void setSampleRate(float sr) { mInvSr = 1.f / sr; }
 	void setCutoffs(float fa, float fb)
 	{
-		ka = clamp(kMLTwoPi*fa*mInvSr, 0.f, 0.25f);
-		kb = clamp(kMLTwoPi*fb*mInvSr, 0.f, 0.25f);
+		ka = ml::clamp(kMLTwoPi*fa*mInvSr, 0.f, 0.25f);
+		kb = ml::clamp(kMLTwoPi*fb*mInvSr, 0.f, 0.25f);
 	}
 	void setAttackAndReleaseTimes(float tAttack, float tRelease)
 	{
-		ka = clamp(kMLTwoPi*(1.0f/tAttack)*mInvSr, 0.f, 0.25f);
-		kb = clamp(kMLTwoPi*(1.0f/tRelease)*mInvSr, 0.f, 0.25f);
+		ka = ml::clamp(kMLTwoPi*(1.0f/tAttack)*mInvSr, 0.f, 0.25f);
+		kb = ml::clamp(kMLTwoPi*(1.0f/tRelease)*mInvSr, 0.f, 0.25f);
 	}
 	
 	// TODO deprecate
-    inline MLSample processSample(float x)
+    inline float processSample(float x)
     {
         float dxdt = x - y1;
         float s = (dxdt < 0.f ? -1.f : 1.f);
@@ -618,7 +800,7 @@ public:
         return(out);
     }
 	
-	inline MLSample operator()(float x)
+	inline float operator()(float x)
 	{
 		float dxdt = x - y1;
 		float s = (dxdt < 0.f ? -1.f : 1.f);
@@ -642,7 +824,7 @@ public:
 	MLDifference() : mX1(0) {}
 	~MLDifference(){}
 	
-	inline MLSample operator()(float x)
+	inline float operator()(float x)
 	{
 		float d = x - mX1;
 		mX1 = x;
@@ -661,14 +843,14 @@ class MLSineOsc
 {
 public:
     static const float kIntDomain, kRootX, kOneSixth, kRange, kDomain, kScale, kDomainScale, kPhaseInvScale, kFlipOffset;
-    MLSineOsc() : mStep32(0), mOmega32(0) { }
+    MLSineOsc() : mOmega32(0), mStep32(0) { }
     ~MLSineOsc(){}
     
     inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
     inline void setFrequency(float f) { mStep32 = (int)(mInvSrDomain * f); }
 	inline void setPhase(float f) { mOmega32 = f*kPhaseInvScale; }
 	
-    inline MLSample processSample()
+    inline float processSample()
     {
         float x, fOmega;
         
@@ -704,8 +886,8 @@ public:
 	
 	inline void clear() { mOmega32 = 0; }
 	inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
-	inline void setFrequency(MLSample f) { mStep32 = (int)(mInvSrDomain * f); }
-	inline MLSample processSample()
+	inline void setFrequency(float f) { mStep32 = (int)(mInvSrDomain * f); }
+	inline float processSample()
 	{
 		float x, fOmega;
 		
@@ -742,7 +924,7 @@ public:
 	inline void clear() { mOmega32 = 0; }
 	inline void setSampleRate(int sr) { mInvSrDomain = (float)kIntDomain / (float)sr; }
 	inline void setFrequency(float f) { mStep32 = (int)(mInvSrDomain * f); }
-	inline MLSample processSample()
+	inline float processSample()
 	{
 		// add increment with wrap
 		mOmega32 += mStep32;
@@ -756,14 +938,14 @@ private:
 };
 
 // ----------------------------------------------------------------
-#pragma mark MLSampleDelay
+#pragma mark floatDelay
 // a simple delay in integer samples with no mixing.
 
-class MLSampleDelay
+class floatDelay
 {
 public:
-    MLSampleDelay() { clear(); }
-	~MLSampleDelay() {}
+    floatDelay() { clear(); }
+	~floatDelay() {}
     
 	void resize(float duration);
 	
@@ -771,7 +953,7 @@ public:
 	inline void setSampleRate(int sr) { mSR = sr; mInvSr = 1.0f / (float)sr; }
     inline void setDelay(float d) { mDelayInSamples = (int)(d*(float)mSR); }
 
-    inline MLSample processSample(const MLSample x)
+    inline float processSample(const float x)
     {
         mWriteIndex &= mLengthMask;
         mBuffer[mWriteIndex] = x;
@@ -821,7 +1003,7 @@ public:
 		mD = mModDelayInSamples - fDelayInt;
 	}
 	
-	inline MLSample processSample(const MLSample x)
+	inline float processSample(const float x)
 	{
 		mBuffer[mWriteIndex & mLengthMask] = x;
 		mWriteIndex++;
@@ -895,7 +1077,7 @@ public:
 	inline void setFixedDelay(float d) { mFixedDelayInSamples = (int)(d*(float)mSR); }
 	inline void setModDelay(float d) { mModDelayInSamples = d*(float)mSR; }
 	
-	inline MLSample processSample(const MLSample x)
+	inline float processSample(const float x)
 	{
 		float fDelayInt, D;
 		float sum;
@@ -944,8 +1126,8 @@ private:
 	int mFixedDelayInSamples;
 	float mModDelayInSamples;
 	
-	MLSample mBlend, mFeedForward, mFeedback;
-	MLSample mFixedTapOut;
+	float mBlend, mFeedForward, mFeedback;
+	float mFixedTapOut;
 };
 
 // ----------------------------------------------------------------
@@ -972,7 +1154,7 @@ public:
     inline void setFixedDelay(float d) { mFixedDelayInSamples = (int)(d*(float)mSR); }
 	inline void setModDelay(float d) { mModDelayInSamples = d*(float)mSR; }
     
-    MLSample processSample(const MLSample x);
+    float processSample(const float x);
 	
 	// MLTEST towards DSPVectors
 	inline MLSignal operator()(const MLSignal& x)
@@ -998,10 +1180,10 @@ private:
     int mFixedDelayInSamples;
     float mModDelayInSamples;
     
-    MLSample mBlend, mFeedForward, mFeedback;	
-	MLSample mFixedTapOut;
-	MLSample mX1;
-	MLSample mY1;
+    float mBlend, mFeedForward, mFeedback;	
+	float mFixedTapOut;
+	float mX1;
+	float mY1;
 };
 
 // ----------------------------------------------------------------
@@ -1030,7 +1212,7 @@ public:
     void setDelayLengths(float maxLength);
     void setFeedbackAmp(float f) { mFeedbackAmp = f; }
     void setLopass(float f);
-	MLSample processSample(const MLSample x);
+	float processSample(const float x);
 	MLSignal operator()(const MLSignal& x);
     
 private:
@@ -1062,7 +1244,7 @@ public:
         ~AllpassSection();
         void clear();
         
-        inline MLSample processSample(const MLSample x)
+        inline float processSample(const float x)
         {
             x1=x0;
             y1=y0;
@@ -1078,9 +1260,9 @@ public:
     MLHalfBandFilter();
     ~MLHalfBandFilter();
     void clear();
-    inline MLSample processSampleDown(const MLSample x)
+    inline float processSampleDown(const float x)
     {
-        MLSample y;
+        float y;
         
         if(k)
         {
@@ -1097,9 +1279,9 @@ public:
         return y;
     }
     
-    inline MLSample processSampleUp(const MLSample x)
+    inline float processSampleUp(const float x)
     {
-        MLSample y;
+        float y;
         
         if(k)
         {
@@ -1175,46 +1357,6 @@ public:
 private:
     MLHalfBandFilter f;
 };
-
-// ----------------------------------------------------------------
-#pragma mark RandomSource
-
-namespace ml
-{		
-	class RandomSource
-	{
-	public:
-		RandomSource() : mSeed(0) {}
-		~RandomSource() {}
-		
-		inline float getSample()
-		{
-			mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
-			uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
-			temp &= 0x007FFFFF;
-			temp |= 0x3F800000;
-			float* pf = reinterpret_cast<float*>(&temp);
-			return (*pf)*2.f - 3.f;			
-		}
-		
-		// TODO DSPVector operator()()
-		inline DSPVector operator()()
-		{
-			DSPVector y;
-			for(int i=0; i<kDSPVectorSizeFloat; ++i)
-			{
-				y[i] = getSample();
-			}
-			return y;
-		}
-		
-		void reset() { mSeed = 0; }
-		
-	private:
-		uint32_t mSeed = 0;
-		
-	};
-}
 
 
 

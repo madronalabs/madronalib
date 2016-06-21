@@ -27,30 +27,30 @@ public:
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; } // TO GO
 
-	void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0, int frameSize = 1);
+	void addSignalView(ml::Symbol p, MLWidget* w, ml::Symbol attr, int size, int priority = 0, int frameSize = 1);
 
 	// component setup 
 	//
-	MLPluginView* addSubView(const MLRect & r, const MLSymbol name);
+	MLPluginView* addSubView(const MLRect & r, const ml::Symbol name);
 
 	// TODO all these methods for adding different kinds of Widgets have a lot of duplication.
 	// instead there should be a Widget factory that can make them by name. 
 	// any extra property connections / other setup can be done in a new virtual initWidget() or something.
 	
-	MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol paramName, 
+	MLDial* addDial(const char * displayName, const MLRect & r, const ml::Symbol paramName, 
 		const Colour& color = defaultColor);	
-	MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, int n, 
+	MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const ml::Symbol paramName, int n, 
 		const Colour& color = defaultColor);
-	MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, int n, 
+	MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const ml::Symbol paramName, int n, 
 		const Colour& color = defaultColor);
 	MLButton* addToggleButton(const char * displayName, const MLRect & r, const char * name,
                               const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 	MLButton* addTriToggleButton(const char * displayName, const MLRect & r, const char * name,
                               const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 
-	MLDial* addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color);
+	MLDial* addMultDial(const MLRect & r, const ml::Symbol paramName, const Colour& color);
 
-	MLEnvelope* addEnvelope(const MLRect & r, const MLSymbol paramName);
+	MLEnvelope* addEnvelope(const MLRect & r, const ml::Symbol paramName);
 
 protected:		
 	MLPluginProcessor* mpProcessor;

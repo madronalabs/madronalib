@@ -27,7 +27,7 @@
 #include "MLDebugDisplay.h"
 #include "MLDefaultFileLocations.h"
 #include "MLJuceFilesMac.h"
-#include "MLVector.h"
+#include "MLVectorDeprecated.h"
 #include "MLSymbol.h"
 
 extern const Colour defaultColor;
@@ -46,27 +46,27 @@ public:
 	void initialize();
 	
 	// MLWidget::MLPropertyListener
-	void doPropertyChangeAction(MLSymbol p, const MLProperty & newVal);
+	void doPropertyChangeAction(ml::Symbol p, const MLProperty & newVal);
 
 	virtual bool isWidgetContainer(void) { return true; }
 
 	// using our Reporter, setup view for Model Property p as attr of widget.
-	void addPropertyView(MLSymbol p, MLWidget* w, MLSymbol attr);
+	void addPropertyView(ml::Symbol p, MLWidget* w, ml::Symbol attr);
 
 	// add the widget and add our Responder as a listener. The Responder can then do things in HandleWidgetAction().
-	void addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name);
+	void addWidgetToView(MLWidget* pW, const MLRect& r, ml::Symbol name);
 	
-	//void addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size = kMLSignalViewBufferSize, int priority = 0, int frameSize = 1);	
+	//void addSignalView(ml::Symbol p, MLWidget* w, ml::Symbol attr, int size = kMLSignalViewBufferSize, int priority = 0, int frameSize = 1);	
 
-	virtual MLDial* addDial(const char * displayName, const MLRect & r, const MLSymbol propName, 
+	virtual MLDial* addDial(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 		const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);	
-	virtual MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol propName, 
+	virtual MLMultiSlider* addMultiSlider(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 		int n, const Colour& color);
-	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const MLSymbol propName, 
+	virtual MLMultiButton* addMultiButton(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 		int n, const Colour& color);
-	virtual MLButton* addToggleButton(const char* displayName, const MLRect & r, const MLSymbol name,
+	virtual MLButton* addToggleButton(const char* displayName, const MLRect & r, const ml::Symbol name,
                                       const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
-	virtual MLButton* addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol name,
+	virtual MLButton* addTriToggleButton(const char* displayName, const MLRect & r, const ml::Symbol name,
                                       const Colour& color = defaultColor, const float sizeMultiplier = 1.0f);
 
 	MLPanel* addPanel(const MLRect & r, const Colour& color = defaultColor);
@@ -85,7 +85,7 @@ public:
 		const float sizeMultiplier = 1.0f, const int font = eMLCaption);
 		
 	MLLabel* addLabelAbove(MLWidget* c, const char* displayName, 
-						   MLSymbol widgetName = "", const float sizeMultiplier = 1.0f, const int font = eMLCaption, Vec2 offset = Vec2());
+						   ml::Symbol widgetName = "", const float sizeMultiplier = 1.0f, const int font = eMLCaption, Vec2 offset = Vec2());
 	
 	// temp hack for older code compatibility
 	MLLabel* addLabelAbove(MLWidget* c, const char* displayName, 

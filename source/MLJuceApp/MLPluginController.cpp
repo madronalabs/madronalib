@@ -96,7 +96,7 @@ void MLPluginController::initialize()
         MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
         if(regLabel)
         {
-            regLabel->setPropertyImmediate(MLSymbol("text"), regStr);
+            regLabel->setPropertyImmediate(ml::Symbol("text"), regStr);
         }
     }
 	startTimer(kControllerTimerRate);
@@ -139,7 +139,7 @@ void MLPluginController::timerCallback()
 #endif
 }
 
-void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSymbol targetProperty, const MLProperty& val)
+void MLPluginController::handleWidgetAction(MLWidget* pw, ml::Symbol action, ml::Symbol targetProperty, const MLProperty& val)
 {
 	if(action == "click")
 	{
@@ -187,16 +187,16 @@ void MLPluginController::handleWidgetAction(MLWidget* pw, MLSymbol action, MLSym
 
 #pragma mark menus
 
-static void menuItemChosenCallback (int result, WeakReference<MLPluginController> pC, MLSymbol menuName);
+static void menuItemChosenCallback (int result, WeakReference<MLPluginController> pC, ml::Symbol menuName);
 
 // set the menu map entry for the given name to a new, empty menu.
-MLMenu* MLPluginController::createMenu(MLSymbol menuName)
+MLMenu* MLPluginController::createMenu(ml::Symbol menuName)
 {
 	mMenuMap[menuName] = MLMenuPtr(new MLMenu(menuName));
 	return findMenuByName(menuName);
 }
 
-MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)	
+MLMenu* MLPluginController::findMenuByName(ml::Symbol menuName)	
 {
 	MLMenu* r = nullptr;
 	MLMenuMapT::iterator menuIter(mMenuMap.find(menuName));		
@@ -208,7 +208,7 @@ MLMenu* MLPluginController::findMenuByName(MLSymbol menuName)
 	return r;
 }
 
-void MLPluginController::buildMenuFromSymbolVector(MLSymbol menuName, const std::vector<std::string> & v)
+void MLPluginController::buildMenuFromSymbolVector(ml::Symbol menuName, const std::vector<std::string> & v)
 {
 	if(MLMenu* pMenu = createMenu(menuName))
 	{
@@ -220,7 +220,7 @@ void MLPluginController::buildMenuFromSymbolVector(MLSymbol menuName, const std:
 	}
 }
 
-void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
+void MLPluginController::showMenu (ml::Symbol menuName, ml::Symbol instigatorName)
 {	
 	if(!mpView) return;
 	
@@ -255,7 +255,7 @@ void MLPluginController::showMenu (MLSymbol menuName, MLSymbol instigatorName)
 			{
                 const int u = pInstigator->getWidgetGridUnitSize();
                 int height = ((float)u)*0.35f;
-                height = clamp(height, 12, 128);
+                height = ml::clamp(height, 12, 128);
 				JuceMenuPtr juceMenu = menu->getJuceMenu();
 				juceMenu->showMenuAsync (PopupMenu::Options().withTargetComponent(pInstComp).withStandardItemHeight(height),
 					ModalCallbackFunction::withParam(menuItemChosenCallback, 
@@ -414,7 +414,7 @@ void MLPluginController::doSettingsMenu(int result)
     }
 }
 
-static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, MLSymbol menuName)
+static void menuItemChosenCallback (int result, WeakReference<MLPluginController> wpC, ml::Symbol menuName)
 {
 	MLPluginController* pC = wpC;
 	
@@ -450,11 +450,11 @@ static void menuItemChosenCallback (int result, WeakReference<MLPluginController
 	}
 }
 
-void MLPluginController::updateMenu(MLSymbol menuName)
+void MLPluginController::updateMenu(ml::Symbol menuName)
 {
 }
 
-void MLPluginController::menuItemChosen(MLSymbol menuName, int result)
+void MLPluginController::menuItemChosen(ml::Symbol menuName, int result)
 {
 	if (result > 0)
 	{
@@ -655,12 +655,12 @@ void MLPluginController::flagMIDIProgramsInPresetMenu()
 
 #pragma mark MLFileCollection::Listener
 
-void MLPluginController::processFileFromCollection (MLSymbol action, const MLFile fileToProcess, const MLFileCollection& collection, int idx, int size)
+void MLPluginController::processFileFromCollection (ml::Symbol action, const MLFile fileToProcess, const MLFileCollection& collection, int idx, int size)
 {
-	MLSymbol collectionName(collection.getName());
+	ml::Symbol collectionName(collection.getName());
 	if(action == "process")
 	{
-		if(collectionName.beginsWith(MLSymbol("convert_presets")))
+		if(collectionName.beginsWith(ml::Symbol("convert_presets")))
 		{			
 			// add file action to queue
 			FileAction f(action, fileToProcess, &collection, idx, size);

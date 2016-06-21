@@ -36,7 +36,7 @@ public:
 	void setStyle(int);
 	
 	// MLPropertyListener
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 	
 protected:
 

@@ -92,7 +92,7 @@ void MLProcContainer::setup()
 }
 
 // mark as own context, so we are the root of the size/rate tree used in prepareToProcess().
-void MLProcContainer::makeRoot(const MLSymbol name)
+void MLProcContainer::makeRoot(const ml::Symbol name)
 {
 	setName(name);
 	setContext(this);
@@ -130,10 +130,10 @@ void MLProcContainer::compile()
 	// translate ops list to compiled signal graph 
 	//
 	std::list<compileOp> compileOps;
-	std::map<MLSymbol, compileOp*> compileOpsMap;	
-	std::vector<MLSymbol> compileInputs;
-	std::vector<MLSymbol> compileOutputs;
-	std::map<MLSymbol, compileSignal> signals;
+	std::map<ml::Symbol, compileOp*> compileOpsMap;	
+	std::vector<ml::Symbol> compileInputs;
+	std::vector<ml::Symbol> compileOutputs;
+	std::map<ml::Symbol, compileSignal> signals;
 	MLNameMaker nameMaker;
 
 	// make compileOps from ops list.
@@ -145,7 +145,7 @@ void MLProcContainer::compile()
         
         // we get each proc name with the copy index attached because in multicontainers we can have
         // multiple procs with the same name.
-		MLSymbol pName = pRef->getName();
+		ml::Symbol pName = pRef->getName();
         
 		// make a new compileOp referencing the proc.
 		compileOp c(pRef);
@@ -180,7 +180,7 @@ void MLProcContainer::compile()
 		// this makes numbered copies of voices resolve to the same compile signal.
 		// this works because these copies are always processed as one chunk.
         // TODO but... what about outputs from an individual copy? this is not working right.
-		MLSymbol pName = proc->getName();
+		ml::Symbol pName = proc->getName();
         
 		// set corresponding input of proc in ops map to a new compileSignal.
 		compileOp* pOp = compileOpsMap[pName];
@@ -188,7 +188,7 @@ void MLProcContainer::compile()
 		{
 			if (pOp)
 			{
-				MLSymbol sigName = nameMaker.nextName();
+				ml::Symbol sigName = nameMaker.nextName();
 				signals[sigName] = (compileSignal());
 				pOp->inputs[inputIdx - 1] = sigName;
 				
@@ -216,9 +216,9 @@ void MLProcContainer::compile()
 	for (std::list<MLPipePtr>::iterator i = mPipeList.begin(); i != mPipeList.end(); ++i)
 	{
 		MLPipePtr pipe = (*i);
-		MLSymbol srcName = pipe->mSrc->getName();
+		ml::Symbol srcName = pipe->mSrc->getName();
 		int srcIndex = pipe->mSrcIndex;
-		MLSymbol destName = pipe->mDest->getName();
+		ml::Symbol destName = pipe->mDest->getName();
 		int destIndex = pipe->mDestIndex;
         
 		// MLTEST
@@ -244,9 +244,9 @@ void MLProcContainer::compile()
 			}
 
 			// if compileOpsMap output corresponding to pipe start has not yet been marked,
-			MLSymbol* pPipeStartSym = &(compileOpsMap[srcName]->outputs[srcIndex - 1]);
-			MLSymbol* pPipeEndSym = &(compileOpsMap[destName]->inputs[destIndex - 1]);
-			MLSymbol sigName;
+			ml::Symbol* pPipeStartSym = &(compileOpsMap[srcName]->outputs[srcIndex - 1]);
+			ml::Symbol* pPipeEndSym = &(compileOpsMap[destName]->inputs[destIndex - 1]);
+			ml::Symbol sigName;
 
 			if (!*pPipeStartSym)
 			{		
@@ -298,7 +298,7 @@ void MLProcContainer::compile()
 		MLPublishedOutputPtr output = mPublishedOutputs[i];
 		MLProcPtr outputProc = output->mSrc;	
 		int outputIdx = output->mSrcOutputIndex;	
-		MLSymbol outputProcName = outputProc->getName();
+		ml::Symbol outputProcName = outputProc->getName();
 
         compileOp* pOutputOp = compileOpsMap[outputProcName];
 		if (!pOutputOp)
@@ -307,7 +307,7 @@ void MLProcContainer::compile()
         }
         else
         {
-            MLSymbol sigName = pOutputOp->outputs[outputIdx - 1];
+            ml::Symbol sigName = pOutputOp->outputs[outputIdx - 1];
             
             // if output wasn't previously connected to anything
             if (!sigName)
@@ -357,9 +357,9 @@ void MLProcContainer::compile()
 	//	
 	std::list<sharedBuffer> sharedBuffers;
 	
-	for (std::map<MLSymbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
+	for (std::map<ml::Symbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
 	{
-		MLSymbol sigName = ((*it).first);
+		ml::Symbol sigName = ((*it).first);
 		compileSignal* pCompileSig = &((*it).second);
 		bool needsBuffer = true;
 		
@@ -456,7 +456,7 @@ void MLProcContainer::compile()
 		// for each output of compile op, set output of proc to allocated buffer or null signal.
 		for(int i=0; i<(int)op.outputs.size(); ++i)
 		{
-			MLSymbol sigName = op.outputs[i];
+			ml::Symbol sigName = op.outputs[i];
 			MLSignal* pOutSig;
 			if(sigName) 
 			{
@@ -487,7 +487,7 @@ void MLProcContainer::compile()
     
 	for(int i=0; i<(int)compileOutputs.size(); ++i)
 	{
-		MLSymbol outName = compileOutputs[i];
+		ml::Symbol outName = compileOutputs[i];
 		
 		if (resampling)
 		{
@@ -528,7 +528,7 @@ void MLProcContainer::compile()
             MLPublishedOutputPtr p = it->second;
             debug() << "[" << p->mName << ": " << p->mProc->getNameWithCopyIndex() << " " << p->mOutput << "] ";
 #if DEBUG
-            MLSymbol name = it->first;
+            ml::Symbol name = it->first;
             assert(name == p->mName);
 #endif
         }
@@ -552,9 +552,9 @@ void MLProcContainer::compile()
 		// dump signals
 		debug() << "--------\n";
 		debug() << signals.size() << " signals: \n";
-		for (std::map<MLSymbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
+		for (std::map<ml::Symbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
 		{
-			MLSymbol sigName = ((*it).first);
+			ml::Symbol sigName = ((*it).first);
 			const compileSignal& sig = ((*it).second);
 			debug() << sigName << ": life[" << sig.mLifeStart << ", " << sig.mLifeEnd << "]";
 			debug() << ", size=" << sig.mFrameSize << " ";
@@ -927,7 +927,7 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 }
 
 // will be > 0 for valid aliases
-int MLProcContainer::getInputIndex(const MLSymbol alias) 
+int MLProcContainer::getInputIndex(const ml::Symbol alias) 
 { 
 	int r = 0;
 	MLPublishedInputPtr p;
@@ -954,7 +954,7 @@ int MLProcContainer::getInputIndex(const MLSymbol alias)
 
 
 // will be > 0 for valid aliases
-int MLProcContainer::getOutputIndex(const MLSymbol alias) 
+int MLProcContainer::getOutputIndex(const ml::Symbol alias) 
 { 
 	int idx = 0;
 	MLPublishedOutputPtr p;	
@@ -999,7 +999,7 @@ void MLProcContainer::dumpMap()
 
 // make a new instance of a named subclass of MLProc. 
 //
-MLProcPtr MLProcContainer::newProc(const MLSymbol className, const MLSymbol procName) 
+MLProcPtr MLProcContainer::newProc(const ml::Symbol className, const ml::Symbol procName) 
 {
 	MLProcPtr pNew;
 	
@@ -1017,7 +1017,7 @@ MLProcPtr MLProcContainer::newProc(const MLSymbol className, const MLSymbol proc
 	return pNew;
 }
 
-MLProc::err MLProcContainer::addProc(const MLSymbol className, const MLSymbol procName)
+MLProc::err MLProcContainer::addProc(const ml::Symbol className, const ml::Symbol procName)
 {
 	MLProcPtr pNew;
 	err e = OK;
@@ -1055,7 +1055,7 @@ MLProc::err MLProcContainer::addProc(const MLSymbol className, const MLSymbol pr
 }
 
 // TODO return MLProcPtr
-MLProc::err MLProcContainer::addProcAfter(MLSymbol className, MLSymbol alias, MLSymbol afterProc)
+MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias, ml::Symbol afterProc)
 {
 	MLProcPtr pNew;
 	err e = OK;
@@ -1121,7 +1121,7 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 	MLSymbolProcMapT::iterator it;
 	err e = OK;
 
-	const MLSymbol head = path.head();
+	const ml::Symbol head = path.head();
 	const MLPath tail = path.tail();
 
 //debug() << "MLProcContainer(" << (void *)this << ") getProc: " << head << " / " << tail << "\n";
@@ -1190,7 +1190,7 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 // otherwise implement anything.  The implementation is done in
 // MLProcContainer::connectProcs().
 //
-void MLProcContainer::addPipe(const MLPath& src, const MLSymbol out, const MLPath& dest, const MLSymbol in)
+void MLProcContainer::addPipe(const MLPath& src, const ml::Symbol out, const MLPath& dest, const ml::Symbol in)
 {
 	MLProcPtr srcProc, destProc;
 	int srcIdx, destIdx;
@@ -1288,7 +1288,7 @@ bail:
 // ----------------------------------------------------------------
 #pragma mark I/O
 
-void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias)
+void MLProcContainer::publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias)
 {
 	err e = OK;
 	MLPublishedInputPtr p;
@@ -1307,8 +1307,8 @@ void MLProcContainer::publishInput(const MLPath & procName, const MLSymbol input
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName().getString() + "_resamp_in");
-			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(inSize + 1));
+			ml::Symbol resamplerName(getName().getString() + "_resamp_in");
+			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), resamplerName.withFinalNumber(inSize + 1));
 			
 			// would be cleaner to use buildProc() here, but right now that adds the new proc
 			// to the ops list by default, and we need resamplers to be first. look at that
@@ -1383,7 +1383,7 @@ bail:
 
 // publish an output of a subproc by setting one of our output ptrs to the subproc's output signal.
 // 
-void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol outputName, const MLSymbol alias)
+void MLProcContainer::publishOutput(const MLPath & srcProcName, const ml::Symbol outputName, const ml::Symbol alias)
 {	
     err e = OK;
 	MLPublishedOutputPtr p;
@@ -1398,8 +1398,8 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const MLSymbol o
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			MLSymbol resamplerName(getName().getString() + "_resamp_out");
-			MLProcPtr resamplerProc = newProc(MLSymbol("resample"), resamplerName.withFinalNumber(outSize + 1)); 
+			ml::Symbol resamplerName(getName().getString() + "_resamp_out");
+			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), resamplerName.withFinalNumber(outSize + 1)); 
 			if (!resamplerProc) { e = newProcErr; goto bail; }
 			
 			// setup resampler i/o
@@ -1459,7 +1459,7 @@ bail:
 	// TODO return err
 }
 
-MLSymbol MLProcContainer::getOutputName(int index)
+ml::Symbol MLProcContainer::getOutputName(int index)
 {	
 	const int size = (int)mPublishedOutputs.size();
 	if (index <= size)
@@ -1471,13 +1471,13 @@ MLSymbol MLProcContainer::getOutputName(int index)
 	{
 		debug() << "MLProcContainer::getOutputName: output " << index << " not found in container " << getName() << "!\n";
 	}
-	return MLSymbol();
+	return ml::Symbol();
 }
 
 // ----------------------------------------------------------------
 #pragma mark published signals - the recursive part
 
-MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol outputName, MLSymbol alias, 
+MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, ml::Symbol outputName, ml::Symbol alias, 
 	int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
@@ -1502,7 +1502,7 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 			bufferProc->setup();
 			
 			// connect published output of head proc to ringbuffer input
-			addPipe(procName, outputName, MLPath(alias), MLSymbol("in"));
+			addPipe(procName, outputName, MLPath(alias), ml::Symbol("in"));
 		}
 	}
 
@@ -1512,15 +1512,15 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, MLSymbol out
 // recurse into graph, adding ring buffers where necessary to capture signals matching procAddress.
 // this is necessary to get multiple signals that resolve to the same address.
 //
-MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-	const MLSymbol alias, int trigMode, int bufLength, int frameSize)
+MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+	const ml::Symbol alias, int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
 
 	MLProcPtr headProc;
 	MLSymbolProcMapT::iterator it;
 
-	const MLSymbol head = procAddress.head();
+	const ml::Symbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 	//const int copy = procAddress.getCopy();
 	//debug() << "MLProcContainer " << getName() << " addSignalBuffers to " << procAddress << "\n";
@@ -1577,11 +1577,11 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 //
 // recurse into graph, gathering signals matching procAddress into a list.
 //
-void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers)
+void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const ml::Symbol alias, MLProcList& signalBuffers)
 {
 	MLProcPtr headProc;
 	MLSymbolProcMapT::iterator it;
-	const MLSymbol head = procAddress.head();
+	const ml::Symbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 
 	// debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
@@ -1646,7 +1646,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSy
 
 // return a new MLPublishedParamPtr that can be called upon to set the given param.
 // 
-MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const MLSymbol param, const MLSymbol alias, const MLSymbol type)
+MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const ml::Symbol param, const ml::Symbol alias, const ml::Symbol type)
 {
 	MLPublishedParamPtr p;	
 	const int i = (int)mPublishedParams.size();
@@ -1657,7 +1657,7 @@ MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const
 	return p;
 }
 
-void MLProcContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol paramName)
+void MLProcContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol paramName)
 {
 	p->addAddress(procName, paramName);
 }
@@ -1680,7 +1680,7 @@ void MLProcContainer::setPublishedParam(int index, const MLProperty& val)
 	}
 }
 
-MLParamValue MLProcContainer::getParam(const MLSymbol alias)
+MLParamValue MLProcContainer::getParam(const ml::Symbol alias)
 {
 	MLParamValue r = 0.f;
 	MLPublishedParamPtr p;	// default constructor sets up bool test
@@ -1708,12 +1708,12 @@ MLParamValue MLProcContainer::getParam(const MLSymbol alias)
 // perform our node's part of sending the parameter to the address.  if the address tail
 // is empty, we are done-- look for the named proc and set the param.
 // TODO verify why this doesn't just use getProcList().
-void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val)
+void MLProcContainer::routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val)
 {
 	MLProcPtr headProc;
 	MLSymbolProcMapT::iterator it;
 
-	const MLSymbol head = procAddress.head();
+	const ml::Symbol head = procAddress.head();
 	const MLPath tail = procAddress.tail();
 	
 	// debug() << "MLProcContainer(" << (void *)this << ") routeParam: " << head << " / " << tail << "\n";
@@ -1744,7 +1744,7 @@ void MLProcContainer::routeParam(const MLPath & procAddress, const MLSymbol para
 	}
 	else 
 	{
-		if (head == MLSymbol("this"))
+		if (head == ml::Symbol("this"))
 		{
 			MLProc::setParam(paramName, val);
 		}
@@ -1769,7 +1769,7 @@ MLPublishedParamPtr MLProcContainer::getParamPtr(int index) const
 	return p;
 }
 
-int MLProcContainer::getParamIndex(const MLSymbol paramName)
+int MLProcContainer::getParamIndex(const ml::Symbol paramName)
 {
 	int r = -1;
 	MLPublishedParamPtr p;	// default constructor sets up bool test
@@ -1825,12 +1825,12 @@ int MLProcContainer::getPublishedParams()
 // TODO go back to tinyXML to got rid of Juce dependencies
 // TODO ditch XML altogether and make scriptable with e.g. Javascript
 
-MLSymbol stringToSymbol(const juce::String& str);
+ml::Symbol stringToSymbol(const juce::String& str);
 MLPath stringToPath(const juce::String& str);
 
-MLSymbol stringToSymbol(const juce::String& str)
+ml::Symbol stringToSymbol(const juce::String& str)
 {
-	return MLSymbol(static_cast<const char *>(str.toUTF8()));
+	return ml::Symbol(static_cast<const char *>(str.toUTF8()));
 }
 
 MLPath stringToPath(const juce::String& str)
@@ -1859,7 +1859,7 @@ void MLProcContainer::scanDoc(juce::XmlDocument* pDoc, int* numParameters)
 	}
 }
 
-MLSymbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char * name)
+ml::Symbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char * name)
 {
 	if (parent->hasAttribute(name))
 	{
@@ -1868,7 +1868,7 @@ MLSymbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const char
 	else
 	{
 		debug() << parent->getTagName() << ": required attribute " << name << " missing \n";
-		return MLSymbol();
+		return ml::Symbol();
 	}
 }
 
@@ -1903,8 +1903,8 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		else if (child->hasTagName("input"))
 		{
 			MLPath arg1 = RequiredPathAttribute(child, "proc");
-			MLSymbol arg2 = RequiredAttribute(child, "input");
-			MLSymbol arg3 = RequiredAttribute(child, "alias");
+			ml::Symbol arg2 = RequiredAttribute(child, "input");
+			ml::Symbol arg3 = RequiredAttribute(child, "alias");
 			if (arg1 && arg2 && arg3)
 			{
 				// add optional copy attribute
@@ -1917,8 +1917,8 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		else if (child->hasTagName("output"))
 		{
 			MLPath arg1 = RequiredPathAttribute(child, "proc");
-			MLSymbol arg2 = RequiredAttribute(child, "output");
-			MLSymbol arg3 = RequiredAttribute(child, "alias");
+			ml::Symbol arg2 = RequiredAttribute(child, "output");
+			ml::Symbol arg3 = RequiredAttribute(child, "alias");
 			if (arg1 && arg2 && arg3)
 			{
 				// add optional copy attribute
@@ -1931,9 +1931,9 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		else if (child->hasTagName("connect"))
 		{
 			MLPath arg1 = RequiredPathAttribute(child, "from");
-			MLSymbol arg2 = RequiredAttribute(child, "output");
+			ml::Symbol arg2 = RequiredAttribute(child, "output");
 			MLPath arg3 = RequiredPathAttribute(child, "to");
-			MLSymbol arg4 = RequiredAttribute(child, "input");
+			ml::Symbol arg4 = RequiredAttribute(child, "input");
 			
 			if (arg1 && arg2 && arg3 && arg4)
 			{
@@ -1942,7 +1942,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("paramgroup"))
 		{
-			MLSymbol arg1 = RequiredAttribute(child, "name");
+			ml::Symbol arg1 = RequiredAttribute(child, "name");
 			if (arg1)
 			{
 				mParamGroups.setGroup(arg1);
@@ -1954,17 +1954,17 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		else if (child->hasTagName("param"))
 		{
 			MLPath arg1 = RequiredPathAttribute(child, "proc");
-			MLSymbol arg2 = RequiredAttribute(child, "param");
-			MLSymbol arg3 = RequiredAttribute(child, "alias");
+			ml::Symbol arg2 = RequiredAttribute(child, "param");
+			ml::Symbol arg3 = RequiredAttribute(child, "alias");
 			
 			if (arg1 && arg2 && arg3)
 			{
 				// optional param type attribute
-				MLSymbol type = stringToSymbol(child->getStringAttribute("type"));
+				ml::Symbol type = stringToSymbol(child->getStringAttribute("type"));
 				
 				// publish param and set attributes
 				MLPublishedParamPtr p = publishParam(arg1, arg2, arg3, type);
-				MLSymbol createdType = p->getType();
+				ml::Symbol createdType = p->getType();
 				if (createdType == "float")
 				{
 					setPublishedParamAttrs(p, child);
@@ -1989,8 +1989,8 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 {
 	err e = OK;
-	const MLSymbol newProcClass ((const char *)parent->getStringAttribute("class").toUTF8());
-	const MLSymbol newProcName ((const char *)parent->getStringAttribute("name").toUTF8());
+	const ml::Symbol newProcClass ((const char *)parent->getStringAttribute("class").toUTF8());
+	const ml::Symbol newProcName ((const char *)parent->getStringAttribute("name").toUTF8());
 
 	// debug() << "MLProcContainer::buildProc (class=" << newProcClass << ", name=" << newProcName << ")\n";
 	// debug() << "MLProcContainer::buildProc (class=" << parent->getStringAttribute("class") << ", name=" << parent->getStringAttribute("name") << ")\n";
@@ -2097,7 +2097,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 		}
 		else if(child->hasTagName("size"))
 		{
-			MLSymbol type = p->getType();
+			ml::Symbol type = p->getType();
 			if(type == "signal")
 			{
 				// create storage for the signal parameter.
@@ -2112,7 +2112,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 		}
 		else if(child->hasTagName("length"))
 		{
-			MLSymbol type = p->getType();
+			ml::Symbol type = p->getType();
 			if(type == "string")
 			{
 				// create storage for the string parameter.
@@ -2250,14 +2250,14 @@ std::ostream& operator<< (std::ostream& out, const compileOp & r)
 	
 	//out << "  " << r.inputs.size() << " inputs, " << r.outputs.size() << " outputs, ";
 	
-	for(std::vector<MLSymbol>::const_iterator it = r.inputs.begin(); it != r.inputs.end(); it++)
+	for(std::vector<ml::Symbol>::const_iterator it = r.inputs.begin(); it != r.inputs.end(); it++)
 	{
 		out << (*it) << " ";
 	}
 	
 	out << "-> ";
 	
-	for(std::vector<MLSymbol>::const_iterator it = r.outputs.begin(); it != r.outputs.end(); it++)
+	for(std::vector<ml::Symbol>::const_iterator it = r.outputs.begin(); it != r.outputs.end(); it++)
 	{
 		out << (*it) << " ";
 	}

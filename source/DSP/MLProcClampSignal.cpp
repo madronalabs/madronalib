@@ -47,7 +47,7 @@ void MLProcClampSignal::process(const int frames)
 
 	for (int n=0; n < frames; ++n)
 	{
-		y[n] = clamp(x[n], min[n], max[n]);
+		y[n] = ml::clamp(x[n], min[n], max[n]);
 	}
 }
 

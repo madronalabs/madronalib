@@ -126,7 +126,7 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 	int lastRead = 0;
 	MLSample * outBuffer = outSig.getBuffer() + outSig.plane(plane);
 	void * trashBuffer = (void *)mTrashSignal.getBuffer();
-	static MLSymbol modeSym("mode");
+	static ml::Symbol modeSym("mode");
 	int mode = (int)getParam(modeSym);
 		
 	int frameSize = getParam("frame_size");

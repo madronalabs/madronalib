@@ -9,14 +9,14 @@
 MLPath::MLPath() :
 	mStart(0), mEnd(0), mCopy(0)
 {	
-	memset(mpData, '\0', kMLPathMaxSymbols*sizeof(MLSymbol));
+	memset(mpData, '\0', kMLPathMaxSymbols*sizeof(ml::Symbol));
 }
 
 // parse an input string into our representation: an array of MLSymbols.
 MLPath::MLPath(const char * str) :
 	mStart(0), mEnd(0), mCopy(0)
 {
-	memset(mpData, '\0', kMLPathMaxSymbols*sizeof(MLSymbol));
+	memset(mpData, '\0', kMLPathMaxSymbols*sizeof(ml::Symbol));
 	unsigned symStart = 0;
 	unsigned symEnd = 0;
 	
@@ -34,16 +34,16 @@ MLPath::MLPath(const char * str) :
 		symEnd = endPos - 1;
 		
 		// make symbol
-		addSymbol(std::string(str+symStart, symEnd - symStart + 1));
+		addSymbol(ml::Symbol(str+symStart, symEnd - symStart + 1));
 		symStart = symEnd + 2;
 	}
 }
 
 // allocate a path with one symbol.
-MLPath::MLPath(const MLSymbol sym) :
+MLPath::MLPath(const ml::Symbol sym) :
 	mStart(0), mEnd(0), mCopy(0)
 {
-	memset(mpData, '\0', kMLPathMaxSymbols*sizeof(MLSymbol));
+	memset(mpData, '\0', kMLPathMaxSymbols*sizeof(ml::Symbol));
 	addSymbol(sym);
 }
 
@@ -62,7 +62,7 @@ MLPath::~MLPath()
 {
 }
 
-void MLPath::addSymbol(MLSymbol sym)
+void MLPath::addSymbol(ml::Symbol sym)
 {
 	if (mEnd < kMLPathMaxSymbols-1)
 	{
@@ -74,7 +74,7 @@ void MLPath::addSymbol(MLSymbol sym)
 	}
 }
 
-MLSymbol MLPath::head() const
+ml::Symbol MLPath::head() const
 {
 	return mpData[mStart];
 }

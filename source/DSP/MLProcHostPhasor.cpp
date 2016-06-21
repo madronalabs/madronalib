@@ -56,7 +56,7 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double ppqPos, co
 	//debug() << "setTimeAndRate: secs " << secs << " ppq: " << ppqPos << " is playing: " << isPlaying << "\n";
 	
 	double phase = 0.;
-	double newTime = clamp(ppqPos, 0., 100000.);
+	double newTime = ml::clamp(ppqPos, 0., 100000.);
 	mActive = (mTime != newTime) && (secs >= 0.) && isPlaying;
 	if (mActive)
 	{
@@ -65,7 +65,7 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double ppqPos, co
 
 		phase = newTime - int(newTime);
 		mOmega = (float)phase;
-		double newRate = clamp(bpm, 0., 1000.);
+		double newRate = ml::clamp(bpm, 0., 1000.);
 		if (mRate != newRate)
 		{
 			mRate = newRate;				
@@ -77,7 +77,7 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double ppqPos, co
 		{
 			dPhase += 1.;
 		}
-		mDpDt = clamp(dPhase/static_cast<double>(mDt), 0., 1.);	
+		mDpDt = ml::clamp(dPhase/static_cast<double>(mDt), 0., 1.);	
 	}
 	else
 	{

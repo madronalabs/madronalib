@@ -24,6 +24,8 @@
 // which need to be possible eventually. Rather there needs to be the
 // possibility of either a wildcard or a copy number at each multi.
 
+// TODO why not just use std::vector<ml::Symbol>?
+
 // TODO dynamic, come on
 const int kMLPathMaxSymbols = 14;
 
@@ -33,7 +35,7 @@ friend std::ostream& operator<< (std::ostream& out, const MLPath & r);
 public:
 	MLPath();	
 	MLPath(const char * str);
-	MLPath(const MLSymbol sym);
+	MLPath(const ml::Symbol sym);
 	MLPath(const MLPath& b);	
 	MLPath(const MLPath& b, int start);
 	~MLPath();
@@ -42,16 +44,16 @@ public:
 	explicit operator bool() const { return !empty(); }
 	bool empty() const;
 	int length() const;
-	void addSymbol(MLSymbol sym);
+	void addSymbol(ml::Symbol sym);
 	
-	MLSymbol head() const;
+	ml::Symbol head() const;
 	const MLPath tail() const;
 		
 	void setCopy(int c) { mCopy = c; }
 	int getCopy() const { return mCopy; }
 	
 private:
-	MLSymbol mpData[kMLPathMaxSymbols];
+	ml::Symbol mpData[kMLPathMaxSymbols];
 	unsigned char mStart;
 	unsigned char mEnd;
 	unsigned char mCopy;

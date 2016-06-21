@@ -17,7 +17,7 @@
 // #include "MLTextFragment.h"
 #include "MLSymbol.h"
 #include "../dsp/MLDSP.h"
-#include "utf.hpp"
+#include "utf.hpp/utf.hpp"
 
 namespace ml { namespace textUtils {
 

@@ -27,7 +27,7 @@ http://sam.zoy.org/wtfpl/COPYING for more details.
 
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include	"ffft/Array.h"
+#include	"Array.h"
 #include	"ffft/DynArray.h"
 #include	"ffft/FFTRealFixLenParam.h"
 #include	"ffft/OscSinCos.h"

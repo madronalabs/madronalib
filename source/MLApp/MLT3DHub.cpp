@@ -117,7 +117,7 @@ void MLT3DHub::removeListener(MLT3DHub::Listener* pL)
 	}
 }
 
-void MLT3DHub::notifyListeners(MLSymbol action, const MLProperty val)
+void MLT3DHub::notifyListeners(ml::Symbol action, const MLProperty val)
 {
 	int nListeners = mpListeners.size();
 	for(int i = 0; i < nListeners; ++i)
@@ -165,7 +165,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
             {
                 touchID = 10*(addy[8] - 48) + (addy[9] - 48);
             }
-            touchID = clamp(touchID - 1, (osc::int32)0, (osc::int32)16);
+            touchID = ml::clamp(touchID - 1, (osc::int32)0, (osc::int32)16);
             
 			// t3d/tch[ID], (float)x, (float)y, (float)z, (float)note
 			args >> x >> y >> z >> note;

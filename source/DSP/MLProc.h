@@ -31,13 +31,14 @@
 #include <iostream>
 
 #include "MLDebug.h"
-#include "MLDSP.h"
 #include "MLDSPContext.h"
 #include "MLSymbol.h"
 #include "MLSymbolMap.h"
 #include "MLProperty.h"
-#include "MLStringUtils.h"
+//#include "MLStringUtils.h"
 #include "MLClock.h"
+
+#include "MLDSPDeprecated.h"
 
 #define CHECK_IO    0
 
@@ -57,8 +58,8 @@ const std::string kMLProcAliasUndefinedStr = "undefined";
 // ----------------------------------------------------------------
 #pragma types
 
-typedef std::vector <std::string> MLParamValueAliasVec;
-typedef std::map<MLSymbol, MLParamValueAliasVec > MLParamValueAliasMap;
+typedef std::vector<std::string> MLParamValueAliasVec;
+typedef std::map<ml::Symbol, MLParamValueAliasVec > MLParamValueAliasMap;
 
 // ----------------------------------------------------------------
 #pragma mark templates
@@ -73,8 +74,8 @@ public:
 	MLProcInfoBase() {};	
 	virtual ~MLProcInfoBase() {};
 	
-	virtual const MLProperty& getParamProperty(const MLSymbol paramName) = 0;
-	virtual void setParamProperty(const MLSymbol paramName, const MLProperty& value) = 0;
+	virtual const MLProperty& getParamProperty(const ml::Symbol paramName) = 0;
+	virtual void setParamProperty(const ml::Symbol paramName, const MLProperty& value) = 0;
 	
 	virtual MLSymbolMap& getParamMap() const = 0;
 	virtual MLSymbolMap& getInputMap() const = 0;
@@ -82,7 +83,7 @@ public:
 	virtual bool hasVariableParams() const = 0;
 	virtual bool hasVariableInputs() const = 0;
 	virtual bool hasVariableOutputs() const = 0;
-	virtual MLSymbol& getClassName() = 0;
+	virtual ml::Symbol getClassName() = 0;
 	
     static const MLParamValueAliasVec kMLProcNullAliasVec;
 
@@ -113,7 +114,7 @@ friend class MLProcFactory;
 	}
 	~MLProcInfo() {};
 
-	const MLProperty& getParamProperty(const MLSymbol paramName)
+	const MLProperty& getParamProperty(const ml::Symbol paramName)
 	{
 		if (hasVariableParams())
 		{
@@ -128,7 +129,7 @@ friend class MLProcFactory;
 		return *(mParams[paramName]);
 	}
 	
-	void setParamProperty(const MLSymbol paramName, const MLProperty& value)
+	void setParamProperty(const ml::Symbol paramName, const MLProperty& value)
 	{
 		if (hasVariableParams())
 		{
@@ -161,14 +162,14 @@ friend class MLProcFactory;
 	inline bool hasVariableInputs() const { return getVariableInputsFlag(); }
 	inline bool hasVariableOutputs() const { return getVariableOutputsFlag(); }
 	
-	MLSymbol& getClassName() { return getClassClassName(); } 
-	static void setClassName(const MLSymbol n) { getClassClassName() = n; }	
+	ml::Symbol getClassName() { return getClassClassNameRef(); } 
+	static void setClassName(const ml::Symbol n) { getClassClassNameRef() = n; }	
 
 	// consider these private-- they are public so the syntax of access from templates isn't ridiculous
 	static MLSymbolMap &getClassParamMap()  { static MLSymbolMap pMap; return pMap; } 
 	static MLSymbolMap &getClassInputMap()  { static MLSymbolMap inMap; return inMap; } 
 	static MLSymbolMap &getClassOutputMap()  { static MLSymbolMap outMap; return outMap; } 
-	static MLSymbol& getClassClassName() { static MLSymbol cName; return cName; } 
+	static ml::Symbol& getClassClassNameRef() { static ml::Symbol cName; return cName; } 
 	
 	// is there a variable number of inputs / outputs for this class?
 	// if so, they can be accessed with names "1", "2"... instead of the map.	
@@ -177,6 +178,7 @@ friend class MLProcFactory;
 	static bool& getVariableOutputsFlag() { static bool mHasVariableInputs; return mHasVariableInputs; }
     
 private:
+
 
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
 	//
@@ -200,7 +202,7 @@ public:
 		{
 			MLProcInfo<MLProcSubclass>::getVariableParamsFlag() = false;
 			MLSymbolMap & pMap = MLProcInfo<MLProcSubclass>::getClassParamMap();
-			pMap.addEntry(MLSymbol(name));
+			pMap.addEntry(ml::Symbol(name));
 		}
 	}
 };
@@ -222,7 +224,7 @@ public:
 		{
 			MLProcInfo<MLProcSubclass>::getVariableInputsFlag() = false;
 			MLSymbolMap & iMap = MLProcInfo<MLProcSubclass>::getClassInputMap();
-			iMap.addEntry(MLSymbol(name));
+			iMap.addEntry(ml::Symbol(name));
 			// debug() << "added input " << name << ", size " << iMap.getSize() << "\n";
 		}
 	}
@@ -243,7 +245,7 @@ public:
 		{
 			MLProcInfo<MLProcSubclass>::getVariableOutputsFlag() = false;
 			MLSymbolMap & oMap = MLProcInfo<MLProcSubclass>::getClassOutputMap();
-			oMap.addEntry(MLSymbol(name));
+			oMap.addEntry(ml::Symbol(name));
 			//		debug() << "added output " << name << ", size " << oMap.getSize() << "\n";
 		}
 	}
@@ -363,21 +365,21 @@ public:
 	void setOutput(const int idx, MLSignal& srcSig);	 
 	
 	// params
-	bool paramExists(const MLSymbol p);
+	bool paramExists(const ml::Symbol p);
 	
 	// get and set parameters
-	virtual void setParam(const MLSymbol p, const MLProperty& val);
-	virtual MLParamValue getParam(const MLSymbol p);
-	virtual const std::string& getStringParam(const MLSymbol p);
-	virtual const MLSignal& getSignalParam(const MLSymbol p);
+	virtual void setParam(const ml::Symbol p, const MLProperty& val);
+	virtual MLParamValue getParam(const ml::Symbol p);
+	virtual const std::string& getStringParam(const ml::Symbol p);
+	virtual const MLSignal& getSignalParam(const ml::Symbol p);
 	
 	// MLProc returns the index to an entry in its proc map.
 	// MLProcContainer returns an index to a published input or output.
-	virtual int getInputIndex(const MLSymbol name);	
-	virtual int getOutputIndex(const MLSymbol name);	
+	virtual int getInputIndex(const ml::Symbol name);	
+	virtual int getOutputIndex(const ml::Symbol name);	
 
 	// MLProcContainer overrides this to return published output names
-	virtual MLSymbol getOutputName(int index);
+	virtual ml::Symbol getOutputName(int index);
 		
 	// getNumInputs() and getNumOutputs() are not virtual.  
 	// Proxy classes, for example, override procInfo()
@@ -423,10 +425,10 @@ public:
 	bool inputIsValid(int idx);
 	bool outputIsValid(int idx);
 	
-	MLSymbol& getClassName() { return procInfo().getClassName(); }
-	const MLSymbol& getName() const { return mName; }
+	ml::Symbol getClassName() { return procInfo().getClassName(); }
+	const ml::Symbol& getName() const { return mName; }
     int getCopyIndex() const { return mCopyIndex; }
-    MLSymbol getNameWithCopyIndex();
+    ml::Symbol getNameWithCopyIndex();
 	void dumpParams();
 	virtual void dumpProc(int indent);
 
@@ -444,7 +446,7 @@ protected:
 	void dumpNode(int indent);
 	void printErr(MLProc::err err);	
 
-	void setName(const MLSymbol name) { mName = name; }
+	void setName(const ml::Symbol name) { mName = name; }
 	void setContext(MLDSPContext* pc) { mpContext = pc; }
     void setCopyIndex(int c)  { mCopyIndex = c; }
 	
@@ -469,7 +471,7 @@ protected:
 	
 private:	
 	int mCopyIndex;		// copy index if in multicontainer, 0 otherwise
-	MLSymbol mName;
+	ml::Symbol mName;
 };
 
 // TODO clear up ownership issues and do away with this
@@ -488,14 +490,14 @@ public:
     static MLProcFactory &theFactory()  { static MLProcFactory f; return f; }
 
 	typedef MLProcPtr (*MLProcCreateFnT)(void);
-    typedef std::map<MLSymbol, MLProcCreateFnT> FnRegistryT;
+    typedef std::map<ml::Symbol, MLProcCreateFnT> FnRegistryT;
     FnRegistryT procRegistry;
  
 	// register an object creation function by the name of the class.
-    void registerFn(const MLSymbol className, MLProcCreateFnT fn);
+    void registerFn(const ml::Symbol className, MLProcCreateFnT fn);
 	
 	// create a new object of the named class.  
-    MLProcPtr create(const MLSymbol className, MLDSPContext* context);
+    MLProcPtr create(const ml::Symbol className, MLDSPContext* context);
 	
 	// debug. 
 	void printRegistry(void);
@@ -518,7 +520,7 @@ class MLProcRegistryEntry
 public:
 	MLProcRegistryEntry(const char* className)
     {
-		MLSymbol classSym(className);
+		ml::Symbol classSym(className);
         MLProcFactory::theFactory().registerFn(classSym, createInstance);	
 		MLProcInfo<MLProcSubclass>::setClassName(classSym);
     }

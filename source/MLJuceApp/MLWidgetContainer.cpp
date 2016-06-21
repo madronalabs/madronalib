@@ -15,9 +15,9 @@ MLWidgetContainer::~MLWidgetContainer()
 
 // add a widget to both the ML and Juce worlds.  The widget is retained by the Juce Component.
 // 
-void MLWidgetContainer::addWidget(MLWidget* pW, const MLSymbol name)
+void MLWidgetContainer::addWidget(MLWidget* pW, const ml::Symbol name)
 {	
-	MLSymbol newName;
+	ml::Symbol newName;
 	if (name)
 	{
 		if(mWidgets.find(name) != mWidgets.end())
@@ -50,10 +50,10 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const MLSymbol name)
     getComponent()->addChildComponent(pW->getComponent());
 }
 
-MLWidget* MLWidgetContainer::getWidget(MLSymbol name)
+MLWidget* MLWidgetContainer::getWidget(ml::Symbol name)
 {
 	MLWidget* result = nullptr;
-	std::map<MLSymbol, MLWidget*>::iterator look = mWidgets.find(name);
+	std::map<ml::Symbol, MLWidget*>::iterator look = mWidgets.find(name);
 	
 	if(look != mWidgets.end())
 	{
@@ -61,7 +61,7 @@ MLWidget* MLWidgetContainer::getWidget(MLSymbol name)
 	}
 	else // look in containers
 	{
-		std::map<MLSymbol, MLWidget*>::iterator it;
+		std::map<ml::Symbol, MLWidget*>::iterator it;
 		for(it = mWidgets.begin(); it != mWidgets.end(); ++it)
 		{
 			MLWidget* subWidget = (it->second);
@@ -77,10 +77,10 @@ MLWidget* MLWidgetContainer::getWidget(MLSymbol name)
 	return result;
 }
 
-void MLWidgetContainer::renameWidget(MLWidget* pW, const MLSymbol newName)
+void MLWidgetContainer::renameWidget(MLWidget* pW, const ml::Symbol newName)
 {
 	bool found = false;
-	std::map<MLSymbol, MLWidget*>::iterator it;
+	std::map<ml::Symbol, MLWidget*>::iterator it;
 	for(it = mWidgets.begin(); it != mWidgets.end(); ++it)
 	{
 		MLWidget* pB = (it->second);
@@ -102,7 +102,7 @@ void MLWidgetContainer::renameWidget(MLWidget* pW, const MLSymbol newName)
 
 void MLWidgetContainer::dumpWidgets(int depth)
 {
-	std::map<MLSymbol, MLWidget*>::iterator it;
+	std::map<ml::Symbol, MLWidget*>::iterator it;
 	
 	std::string spaceStr;
 	for(int i=0; i<depth; ++i)
@@ -112,7 +112,7 @@ void MLWidgetContainer::dumpWidgets(int depth)
 	
 	for(it = mWidgets.begin(); it != mWidgets.end(); it++)
 	{
-		MLSymbol name = it->first;
+		ml::Symbol name = it->first;
 		MLWidget* widget = it->second;
 		
 		debug() << spaceStr	<< name << "\n";

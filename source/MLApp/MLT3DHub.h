@@ -56,12 +56,12 @@ public:
 		Listener() {}
 		virtual ~Listener() {}
 	protected:
-		virtual void handleHubNotification(MLSymbol action, const MLProperty val) = 0;
+		virtual void handleHubNotification(ml::Symbol action, const MLProperty val) = 0;
 	};
 	
 	void addListener(Listener* pL);
 	void removeListener(Listener* pL);
-	void notifyListeners(MLSymbol action, const MLProperty val);
+	void notifyListeners(ml::Symbol action, const MLProperty val);
 	void timerCallback();
 	void setOSCPortOffset(int offset);
 	

@@ -35,7 +35,7 @@ MLMultiSlider::~MLMultiSlider()
 	deleteAllChildren();
 }
 
-void MLMultiSlider::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+void MLMultiSlider::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
 	if (property.withoutFinalNumber() == "value")
 	{
@@ -127,7 +127,7 @@ void MLMultiSlider::paint (Graphics& g)
 	{
 		MLRect sr = (mPos.getElementBounds(i));
 
-		dialY = drawRange(getFloatProperty(MLSymbol("value").withFinalNumber(i)));
+		dialY = drawRange(getFloatProperty(ml::Symbol("value").withFinalNumber(i)));
 		fullRect = sr;
 		emptyRect = sr;		
 		fullRect.setTop(dialY);
@@ -202,8 +202,8 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 	float w = r.width();
 	float h = r.height();
 	
-	int mx = clamp(e.x, (int)r.left() + 1, (int)(r.left() + w));
-	int my = clamp(e.y, (int)r.top() + 1, (int)(r.top() + h));
+	int mx = ml::clamp(e.x, (int)r.left() + 1, (int)(r.left() + w));
+	int my = ml::clamp(e.y, (int)r.top() + 1, (int)(r.top() + h));
 	int dials = getNumSliders();
 	int s = getSliderUnderPoint(Vec2(mx, my));
 	
@@ -278,7 +278,7 @@ float MLMultiSlider::constrainedValue (float value) const throw()
 		rmin = temp;
 	}
 	
-	value = clamp(value, rmin, rmax);
+	value = ml::clamp(value, rmin, rmax);
 	if (value <= mZeroThreshold)
 	{
 		value = 0.f;
@@ -298,7 +298,7 @@ float MLMultiSlider::snapValue (float attemptedValue, const bool)
 	{
 		float rmin = mRange.getA();
 		float rmax = mRange.getB();
-		r = clamp(attemptedValue, rmin, rmax);
+		r = ml::clamp(attemptedValue, rmin, rmax);
 	}
 
 	return r;
@@ -333,7 +333,7 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails
 		int s = getSliderUnderPoint(Vec2(e.x, e.y));
 		if ((s >= 0) && ! isMouseButtonDownAnywhere())
 		{
-			float currentVal = getFloatProperty(MLSymbol("value").withFinalNumber(s));
+			float currentVal = getFloatProperty(ml::Symbol("value").withFinalNumber(s));
 			float minPosDelta = 0.01f;
 			float deltaDir = (wheel.deltaY > 0.f) ? 1.f : -1.f;
 			float posDelta = (wheel.deltaY + deltaDir*minPosDelta)*wheelSpeed*wheelDirection; 			
@@ -379,13 +379,13 @@ int MLMultiSlider::getSliderUnderMouse()
 
 void MLMultiSlider::sendSliderAction (float val, int selector)
 {
-	MLSymbol sliderName = MLSymbol("value").withFinalNumber(selector);
+	ml::Symbol sliderName = ml::Symbol("value").withFinalNumber(selector);
 	float currentValue = getFloatProperty(sliderName);
 	float newValue = constrainedValue(val);
 
     if (currentValue != newValue)
     {
-		MLSymbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
+		ml::Symbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
 		setPropertyImmediate(sliderName, newValue);
 		sendAction("change_property", targetPropertyName, getProperty(sliderName));
     }

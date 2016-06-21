@@ -51,7 +51,7 @@ MLProcExp2::~MLProcExp2()
 // 
 void MLProcExp2::process(const int frames)
 {
-	static const MLSymbol preciseSym("precise");
+	static const ml::Symbol preciseSym("precise");
 	const MLSignal& x1 = getInput(1);
 	MLSignal& y1 = getOutput();
 	

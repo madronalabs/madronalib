@@ -29,7 +29,7 @@ void MLAppView::initialize()
 	mInitialized = true;
 }
 
-void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
+void MLAppView::doPropertyChangeAction(ml::Symbol p, const MLProperty & newVal)
 {
 	int propertyType = newVal.getType();
 	switch(propertyType)
@@ -45,7 +45,7 @@ void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
 		case MLProperty::kSignalProperty:
 		{
 			const MLSignal& sig = newVal.getSignalValue();
-			if(p == MLSymbol("view_bounds"))
+			if(p == ml::Symbol("view_bounds"))
 			{
 				setWindowBounds(sig);
 			}
@@ -56,13 +56,13 @@ void MLAppView::doPropertyChangeAction(MLSymbol p, const MLProperty & newVal)
 	}
 }
 
-void MLAppView::addPropertyView(MLSymbol modelProp, MLWidget* widget, MLSymbol widgetProp)
+void MLAppView::addPropertyView(ml::Symbol modelProp, MLWidget* widget, ml::Symbol widgetProp)
 {
 	if(modelProp && widget && widgetProp)
 		mpReporter->addPropertyViewToMap(modelProp, widget, widgetProp);
 }
 
-void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = MLSymbol())
+void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, ml::Symbol name = ml::Symbol())
 {
 	addWidget(pW, name);
 	pW->setGridBounds(r);
@@ -73,7 +73,7 @@ void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, MLSymbol name = M
 #pragma mark component add utility methods
 //
 
-MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLSymbol p,
+MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const ml::Symbol p,
 	const Colour& color, const float sizeMultiplier)
 {
 	MLDial* dial = new MLDial;
@@ -84,7 +84,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 
 	addWidgetToView(dial, r, p);
 	
-	addPropertyView(p, dial, MLSymbol("value"));
+	addPropertyView(p, dial, ml::Symbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -93,7 +93,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const MLS
 	return dial;
 }
 
-MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol propName, 
+MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 	int numSliders, const Colour& color)
 {
 	MLMultiSlider* slider = new MLMultiSlider;
@@ -104,7 +104,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	
 	for(int i=0; i<numSliders; ++i)
 	{
-		addPropertyView(propName.withFinalNumber(i), slider, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(propName.withFinalNumber(i), slider, ml::Symbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -114,7 +114,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	return slider;
 }
 
-MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol propName, 
+MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 	int n, const Colour& color)
 {
 	MLMultiButton* b = new MLMultiButton;
@@ -125,7 +125,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	
 	for(int i=0; i<n; ++i)
 	{
-		addPropertyView(propName.withFinalNumber(i), b, MLSymbol("value").withFinalNumber(i));
+		addPropertyView(propName.withFinalNumber(i), b, ml::Symbol("value").withFinalNumber(i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -135,7 +135,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	return b;
 }
 
-MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const MLSymbol propName,
+MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const ml::Symbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
 	MLButton* button = new MLToggleButton;
@@ -143,7 +143,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
 	addWidgetToView(button, r, propName);
-	addPropertyView(propName, button, MLSymbol("value"));
+	addPropertyView(propName, button, ml::Symbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -153,7 +153,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	return button;
 }
 
-MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const MLSymbol propName,
+MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const ml::Symbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
 	MLButton* button = new MLTriToggleButton;
@@ -161,7 +161,7 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
 	addWidgetToView(button, r, propName);
-	addPropertyView(propName, button, MLSymbol("value"));
+	addPropertyView(propName, button, ml::Symbol("value"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -215,7 +215,7 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 	b->setFillColor(color);
 	b->setProperty("text", "---");
 	addWidgetToView(b, r, menuName);
-	addPropertyView(menuName, b, MLSymbol("text"));
+	addPropertyView(menuName, b, ml::Symbol("text"));
 	
 	if (strcmp(displayName, ""))
 	{
@@ -246,7 +246,7 @@ MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const fl
 	return label;
 }
 
-MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, MLSymbol widgetName, const float sizeMultiplier, int font, Vec2 offset)
+MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, ml::Symbol widgetName, const float sizeMultiplier, int font, Vec2 offset)
 {
 	MLLabel* label = new MLLabel(displayName);
 	if (label)

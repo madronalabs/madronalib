@@ -29,13 +29,13 @@ MLPluginView::~MLPluginView()
 // size: size of signals to collect
 // priority: at present either 1 for show always, or 0 for normal priority
 //
-void MLPluginView::addSignalView(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority, int frameSize)
+void MLPluginView::addSignalView(ml::Symbol p, MLWidget* w, ml::Symbol attr, int size, int priority, int frameSize)
 {
 	if(p && w && attr)
 		mpController->addSignalViewToMap(p, w, attr, size, priority, frameSize);
 }
 
-MLPluginView* MLPluginView::addSubView(const MLRect & r, const MLSymbol name)
+MLPluginView* MLPluginView::addSubView(const MLRect & r, const ml::Symbol name)
 {
 	MLPluginView* b = new MLPluginView(getProcessor(), mpController);
 	addWidgetToView(b, r, name);
@@ -43,7 +43,7 @@ MLPluginView* MLPluginView::addSubView(const MLRect & r, const MLSymbol name)
 }
 
 MLDial* MLPluginView::addDial(const char * displayName, const MLRect & r, 
-	const MLSymbol paramName, const Colour& color)
+	const ml::Symbol paramName, const Colour& color)
 {
 	MLDial* dial = MLAppView::addDial(displayName, r, paramName, color);
 	
@@ -67,7 +67,7 @@ MLDial* MLPluginView::addDial(const char * displayName, const MLRect & r,
 	return dial;
 }
 
-MLMultiSlider* MLPluginView::addMultiSlider(const char * displayName, const MLRect & r, const MLSymbol paramName, int numSliders, const Colour& color)
+MLMultiSlider* MLPluginView::addMultiSlider(const char * displayName, const MLRect & r, const ml::Symbol paramName, int numSliders, const Colour& color)
 {
 	MLMultiSlider* dial = MLAppView::addMultiSlider(displayName, r, paramName, numSliders, color);
 	MLPluginProcessor* const filter = getProcessor();
@@ -90,7 +90,7 @@ MLMultiSlider* MLPluginView::addMultiSlider(const char * displayName, const MLRe
 	return dial;
 }
 
-MLMultiButton* MLPluginView::addMultiButton(const char * displayName, const MLRect & r, const MLSymbol paramName, int numButtons, const Colour& color)
+MLMultiButton* MLPluginView::addMultiButton(const char * displayName, const MLRect & r, const ml::Symbol paramName, int numButtons, const Colour& color)
 {
 	MLMultiButton* b = MLAppView::addMultiButton(displayName, r, paramName, numButtons, color);
 	MLPluginProcessor* const filter = getProcessor();
@@ -142,7 +142,7 @@ MLButton* MLPluginView::addTriToggleButton(const char * displayName, const MLRec
 	return b;
 }
 
-MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, const Colour& color)
+MLDial* MLPluginView::addMultDial(const MLRect & r, const ml::Symbol paramName, const Colour& color)
 {
 	MLDial* dial = addDial("", r, paramName, color);
 	
@@ -173,17 +173,17 @@ MLDial* MLPluginView::addMultDial(const MLRect & r, const MLSymbol paramName, co
 	return dial;
 }
 
-MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const MLSymbol paramName)
+MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const ml::Symbol paramName)
 {
 	MLEnvelope * pE = new MLEnvelope();
     
 	const std::string paramStr = paramName.getString();
-	addPropertyView(MLSymbol(paramStr + "_delay"), pE, MLSymbol("delay"));
-	addPropertyView(MLSymbol(paramStr + "_attack"), pE, MLSymbol("attack"));
-	addPropertyView(MLSymbol(paramStr + "_decay"), pE, MLSymbol("decay"));
-	addPropertyView(MLSymbol(paramStr + "_sustain"), pE, MLSymbol("sustain"));
-	addPropertyView(MLSymbol(paramStr + "_release"), pE, MLSymbol("release"));
-	addPropertyView(MLSymbol(paramStr + "_repeat"), pE, MLSymbol("repeat"));
+	addPropertyView(ml::Symbol(paramStr + "_delay"), pE, ml::Symbol("delay"));
+	addPropertyView(ml::Symbol(paramStr + "_attack"), pE, ml::Symbol("attack"));
+	addPropertyView(ml::Symbol(paramStr + "_decay"), pE, ml::Symbol("decay"));
+	addPropertyView(ml::Symbol(paramStr + "_sustain"), pE, ml::Symbol("sustain"));
+	addPropertyView(ml::Symbol(paramStr + "_release"), pE, ml::Symbol("release"));
+	addPropertyView(ml::Symbol(paramStr + "_repeat"), pE, ml::Symbol("repeat"));
 	
 	addWidgetToView(pE, r, paramName);
 	return(pE);

@@ -150,7 +150,7 @@ void MLProcAllpass::process(const int frames)
 		float w, xc, xc2, xc4;
 		const float sqrt8 = 2.82842712475f;
 
-		xc = clamp(noiseX, -sqrt8, sqrt8); 
+		xc = ml::clamp(noiseX, -sqrt8, sqrt8); 
 		xc2 = xc*xc;
 		xc4 = xc2 * xc2;
 		w = (1.f - xc2*p25 + xc4*0.015625f) * p25;

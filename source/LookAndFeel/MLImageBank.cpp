@@ -28,8 +28,8 @@ void MLImageBank::buildImages()
 
 void MLImageBank::setImageDims(int w, int h)
 {
-	mWidth = clamp(w, 8, 16384);
-	mHeight = clamp(h, 8, 16384);
+	mWidth = ml::clamp(w, 8, 16384);
+	mHeight = ml::clamp(h, 8, 16384);
 	buildImages();
 }
 

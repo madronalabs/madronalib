@@ -7,7 +7,7 @@
 
 const char* MLSignalView::kViewProcName = "signal_viewer_proc";
 
-MLSignalView::MLSignalView(MLWidget* w, MLSymbol attr, int size, int priority) :
+MLSignalView::MLSignalView(MLWidget* w, ml::Symbol attr, int size, int priority) :
 	mVoices(0),
 	mViewingSignal(false),
 	mpEngine(0),
@@ -22,14 +22,14 @@ MLSignalView::~MLSignalView()
 {
 }
 
-void MLSignalView::setupSignalView (MLDSPEngine* pEng, const MLSymbol sigName, int voices)
+void MLSignalView::setupSignalView (MLDSPEngine* pEng, const ml::Symbol sigName, int voices)
 {
 	mViewingSignal = true;
 	mpEngine = pEng;
 	mSignalName = sigName;
 	if(voices != mVoices)
 	{
-		mpWidget->setProperty(MLSymbol("voices"), voices);
+		mpWidget->setProperty(ml::Symbol("voices"), voices);
 		mVoices = voices;
 	}
 }

@@ -41,7 +41,7 @@ MLAppView* MLPageView::addPage()
 	mPages.push_back(newPage);
 	addChildComponent(newPage);
 	newPage->setBounds(0, 0, getWidth(), getHeight());	
-	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), MLSymbol("page").withFinalNumber(pageNum));
+	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), ml::Symbol("page").withFinalNumber(pageNum));
 	return newPage;
 }
 
@@ -52,7 +52,7 @@ MLAppView* MLPageView::addPage(MLAppView* newPage)
 	newPage->setBounds(0, 0, getWidth(), getHeight());	
 
 	int pageNum = mWidgets.size();
-	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), MLSymbol("page").withFinalNumber(pageNum));	
+	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), ml::Symbol("page").withFinalNumber(pageNum));	
 	return newPage;
 }
 
@@ -96,7 +96,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	// margin between pages prevents invisible components from overlapping
 	// those onscreen
 	int margin = u;
-	int newPage = clamp(destPage, 0, (int)mPages.size() - 1);
+	int newPage = ml::clamp(destPage, 0, (int)mPages.size() - 1);
 
 	animate = true;
 	if ((animate) && (newPage != mCurrPage) && (mCurrPage >= 0))

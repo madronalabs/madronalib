@@ -138,7 +138,7 @@ namespace ml {
 	}
 	
 	// ----------------------------------------------------------------
-#pragma mark Symbol
+	#pragma mark Symbol
 	
 	class Symbol
 	{
@@ -200,9 +200,12 @@ namespace ml {
 			return theSymbolTable().getSymbolTextByID(id);
 		}
 		
+		int getID() const { return id; } 
+	
+	private:
 		// the ID equals the order in which the symbol was created.
 		// 2^31 unique symbols are possible. There is no checking for overflow.
-		const int id;
+		int id;
 	};
 	
 	inline Symbol operator+(Symbol f1, Symbol f2)
@@ -220,7 +223,7 @@ namespace std
 	{
 		std::size_t operator()(const ml::Symbol& s) const
 		{
-			return s.id;
+			return s.getID();
 		}
 	};
 }

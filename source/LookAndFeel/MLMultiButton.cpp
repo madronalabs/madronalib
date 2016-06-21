@@ -26,7 +26,7 @@ MLMultiButton::~MLMultiButton()
 	deleteAllChildren();
 }
 
-void MLMultiButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+void MLMultiButton::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
 	if (property.withoutFinalNumber() == "value")
 	{
@@ -93,7 +93,7 @@ void MLMultiButton::paint (Graphics& g)
 	//
 	for (int i=0; i<mNumButtons; ++i)
 	{
-		on = getFloatProperty(MLSymbol("value").withFinalNumber(i));
+		on = getFloatProperty(ml::Symbol("value").withFinalNumber(i));
 		down = ((i == mButtonUnderMouse) && (mCurrDragButton >= 0));
 
 		flair = eMLAdornShadow | eMLAdornGlow;
@@ -121,7 +121,7 @@ void MLMultiButton::mouseDown (const MouseEvent& e)
 		mCurrDragButton = getButtonUnderPoint(e.getPosition());
 		if(within(mCurrDragButton, 0, mNumButtons))
 		{
-			bool val = getFloatProperty(MLSymbol("value").withFinalNumber(mCurrDragButton));
+			bool val = getFloatProperty(ml::Symbol("value").withFinalNumber(mCurrDragButton));
 	//		val = !val;
 			mCurrDragValue = val;
 	//		setIndexedValue(mCurrDragButton, val, true, true);		
@@ -223,13 +223,13 @@ int MLMultiButton::getButtonUnderMouse()
 
 void MLMultiButton::setSelectedValue (float val, int selector)
 {
-	MLSymbol buttonName = MLSymbol("value").withFinalNumber(selector);
+	ml::Symbol buttonName = ml::Symbol("value").withFinalNumber(selector);
 	float currentValue = getFloatProperty(buttonName);
-	float newValue = clamp(val, 0.f, 1.f);
+	float newValue = ml::clamp(val, 0.f, 1.f);
 	
     if (currentValue != newValue)
     {
-		MLSymbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
+		ml::Symbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
 		setPropertyImmediate(buttonName, newValue);
 		sendAction("change_property", targetPropertyName, getProperty(buttonName));
     }

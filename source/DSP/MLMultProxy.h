@@ -53,9 +53,9 @@ public:
 	void clearInput(int i);	 
 	MLProc::err setInput(const int idx, const MLSignal& srcSig);	
 	
-	void setParam(const MLSymbol p, MLParamValue v);	
-	int getInputIndex(const MLSymbol name);
-	int getOutputIndex(const MLSymbol name);		
+	void setParam(const ml::Symbol p, MLParamValue v);	
+	int getInputIndex(const ml::Symbol name);
+	int getOutputIndex(const ml::Symbol name);		
 	void createInput(const int idx);		
 	void resizeInputs(const int n);
 	void resizeOutputs(const int n);
@@ -103,41 +103,41 @@ public:
 
 	//
 	MLProc::err setInput(const int idx, const MLSignal& srcSig);	
-	void setParam(const MLSymbol p, MLParamValue v);	
+	void setParam(const ml::Symbol p, MLParamValue v);	
 	//
-	int getInputIndex(const MLSymbol name);
-	int getOutputIndex(const MLSymbol name);		
+	int getInputIndex(const ml::Symbol name);
+	int getOutputIndex(const ml::Symbol name);		
 	//
 	void resizeInputs(const int n);
 	void resizeOutputs(const int n);
 
-	MLProcPtr newProc(const MLSymbol className, const MLSymbol procName);
+	MLProcPtr newProc(const ml::Symbol className, const ml::Symbol procName);
 	MLProcPtr getProc(const MLPath & pathName); 
-	void addPipe(const MLPath& src, const MLSymbol output, const MLPath& dest, const MLSymbol input);
+	void addPipe(const MLPath& src, const ml::Symbol output, const MLPath& dest, const ml::Symbol input);
 	MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi);
 	// ----------------------------------------------------------------
 	#pragma mark I/O
 	//
-	void publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias);
-	void publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias);	
-	MLSymbol getOutputName(int index);
+	void publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias);
+	void publishOutput(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias);	
+	ml::Symbol getOutputName(int index);
 	//
 	// ----------------------------------------------------------------
 	#pragma mark signals
 	//
 	// methods of MLContainerBase
-	MLProc::err addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-		const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1);
-	void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers);
+	MLProc::err addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+		const ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1);
+	void gatherSignalBuffers(const MLPath & procAddress, const ml::Symbol alias, MLProcList& signalBuffers);
 	
 	//
 	MLProc::err buildProc(juce::XmlElement* parent);
 	void dumpGraph(int indent);	
 	void setProcParams(const MLPath& procName, juce::XmlElement* pelem);
-	MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const MLSymbol alias, const MLSymbol type);
-	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param);
+	MLPublishedParamPtr publishParam(const MLPath & procName, const ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type);
+	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol param);
 	void setPublishedParam(int index, const MLProperty& val);
-	void routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val);
+	void routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val);
 	//
 	void compile();
 

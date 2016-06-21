@@ -32,23 +32,23 @@ public:
 	void timerCallback();
 
 	// MLWidget::Listener
-	virtual void handleWidgetAction(MLWidget* w, MLSymbol action, MLSymbol target, const MLProperty& val = MLProperty());
+	virtual void handleWidgetAction(MLWidget* w, ml::Symbol action, ml::Symbol target, const MLProperty& val = MLProperty());
 	
     // MLFileCollection::Listener
-	void processFileFromCollection (MLSymbol action, const MLFile file, const MLFileCollection& collection, int idx, int size);
+	void processFileFromCollection (ml::Symbol action, const MLFile file, const MLFileCollection& collection, int idx, int size);
  	
 	// menus
 	//
 	// controllers can override to rebuild menus before showing.
-	virtual void updateMenu(MLSymbol menuName);
+	virtual void updateMenu(ml::Symbol menuName);
 	// controllers override menuItemChosen to respond to menus.
-	virtual void menuItemChosen(MLSymbol menuName, int result);
- 	virtual void showMenu (MLSymbol menuName, MLSymbol instigatorName);
-	MLMenu* createMenu(MLSymbol menuName);
-	MLMenu* findMenuByName(MLSymbol menuName); // TODO move into new controller base class
+	virtual void menuItemChosen(ml::Symbol menuName, int result);
+ 	virtual void showMenu (ml::Symbol menuName, ml::Symbol instigatorName);
+	MLMenu* createMenu(ml::Symbol menuName);
+	MLMenu* findMenuByName(ml::Symbol menuName); // TODO move into new controller base class
 	
 	// TODO move menus to MLSymbols internally, with a translation table to turn the symbols into int'l strings
-	void buildMenuFromSymbolVector(MLSymbol menuName, const std::vector<std::string> & v);
+	void buildMenuFromSymbolVector(ml::Symbol menuName, const std::vector<std::string> & v);
 
 	MLPluginProcessor* getProcessor() const { return mpProcessor; }
 
@@ -101,12 +101,12 @@ private:
 	{
 	public:
 		FileAction() {}
-		FileAction(MLSymbol action, const MLFile file, const MLFileCollection* collection, int idx, int size) :
+		FileAction(ml::Symbol action, const MLFile file, const MLFileCollection* collection, int idx, int size) :
 			mAction(action), mFile(file), mCollection(collection), mIdx(idx), mSize(size)
 			{}
 		~FileAction() {}
 		
-		MLSymbol mAction;
+		ml::Symbol mAction;
 		const MLFile mFile;
 		const MLFileCollection* mCollection;
 		int mIdx;

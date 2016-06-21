@@ -54,24 +54,24 @@ private:
 	class ParamAddress
 	{
 	public:
-		ParamAddress(const MLPath & alias, const MLSymbol name) : procAddress(alias), paramName(name) {}
+		ParamAddress(const MLPath & alias, const ml::Symbol name) : procAddress(alias), paramName(name) {}
 		~ParamAddress() {}
 		
 		// procAddress is where to send the param.  can resolve to a single MLProc,
 		// or a list of processors in the case of multiples.  The address is always relative to
 		// the container that publishes the parameters.
 		MLPath procAddress;
-		MLSymbol paramName;
+		ml::Symbol paramName;
 	};
 
 public:	
-	MLPublishedParam(const MLPath & address, const MLSymbol name, const MLSymbol alias, const MLSymbol type, int idx);
+	MLPublishedParam(const MLPath & address, const ml::Symbol name, const ml::Symbol alias, const ml::Symbol type, int idx);
 	~MLPublishedParam();
 	
 	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, bool log, MLParamValue zt, MLParamValue offset);
-	void addAddress(const MLPath & address, const MLSymbol name);
+	void addAddress(const MLPath & address, const ml::Symbol name);
 
-	MLSymbol getType() { return mType; }
+	ml::Symbol getType() { return mType; }
 	MLParamValue getValue();
 	
 	const MLProperty& getValueProperty();
@@ -96,7 +96,7 @@ public:
 	bool getAutomatable(void);
 	void setAutomatable(bool q);
 	
-	MLSymbol getAlias(void) { return mPublishedAlias; }
+	ml::Symbol getAlias(void) { return mPublishedAlias; }
 				
 	typedef std::list<ParamAddress>::const_iterator AddressIterator;
 	AddressIterator beginAddress() { return mAddresses.begin(); }
@@ -110,8 +110,8 @@ private:
 	MLProperty mParamValue;
 	float mTempValue;
 	
-	MLSymbol mPublishedAlias;
-	MLSymbol mType;
+	ml::Symbol mPublishedAlias;
+	ml::Symbol mType;
 	unsigned mIndex;
 	MLParamValue mRangeLo;
 	MLParamValue mRangeHi;
@@ -141,7 +141,7 @@ public:
 	
 	// set the current group index to the index matching groupSym. 
 	// if an entry for groupSym does not exist, it is made.
-	void setGroup(const MLSymbol groupSym);	
+	void setGroup(const ml::Symbol groupSym);	
 	
 	// mark the ParamPtr as belonging to the current group.
 	void addParamToCurrentGroup(MLPublishedParamPtr p);	

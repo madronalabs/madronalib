@@ -36,8 +36,8 @@ void MLMultProxy::setCopies(const int newSize)
 		{
 			mCopies.resize(newSize);
             // initialize new copies
-            MLSymbol className = mTemplate->getClassName();
-            MLSymbol procName = mTemplate->getName();
+            ml::Symbol className = mTemplate->getClassName();
+            ml::Symbol procName = mTemplate->getName();
             for(int i = 0; i < newSize; ++i)
             {
                 // make new proc.  we use the template object's container for the call to 
@@ -233,7 +233,7 @@ MLProc::err MLMultiProc::setInput(const int idx, const MLSignal& srcSig)
 
 // we override setParam but not getParam.  Since all copies share parameters,
 // we just store them in our MLProc and return those for getParam().
-void MLMultiProc::setParam(const MLSymbol p, MLParamValue v)
+void MLMultiProc::setParam(const ml::Symbol p, MLParamValue v)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
@@ -243,12 +243,12 @@ void MLMultiProc::setParam(const MLSymbol p, MLParamValue v)
 	MLProc::setParam(p, v);
 }	
 
-int MLMultiProc::getInputIndex(const MLSymbol name)
+int MLMultiProc::getInputIndex(const ml::Symbol name)
 {
 	return mTemplate->getInputIndex(name);
 }
 
-int MLMultiProc::getOutputIndex(const MLSymbol name)		
+int MLMultiProc::getOutputIndex(const ml::Symbol name)		
 {
 	return mTemplate->getOutputIndex(name);
 }
@@ -477,7 +477,7 @@ MLProc::err MLMultiContainer::setInput(const int idx, const MLSignal& srcSig)
 // we override setParam but not getParam.  Since all copies share parameters,
 // we just store them in our MLProc and return those for getParam().
 // this is called for "ratio" and any other params added for MLProcContainer itself.
-void MLMultiContainer::setParam(const MLSymbol p, MLParamValue v)
+void MLMultiContainer::setParam(const ml::Symbol p, MLParamValue v)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
@@ -487,13 +487,13 @@ void MLMultiContainer::setParam(const MLSymbol p, MLParamValue v)
 	MLProc::setParam(p, v);
 }	
 
-int MLMultiContainer::getInputIndex(const MLSymbol name)
+int MLMultiContainer::getInputIndex(const ml::Symbol name)
 {
 	return getCopyAsContainer(0)->getInputIndex(name);
 }
 
 
-int MLMultiContainer::getOutputIndex(const MLSymbol name)		
+int MLMultiContainer::getOutputIndex(const ml::Symbol name)		
 {
 	return getCopyAsContainer(0)->getOutputIndex(name);
 }
@@ -524,7 +524,7 @@ void MLMultiContainer::resizeOutputs(const int n)
 
 // make a new instance of a named subclass of MLProc. 
 //
-MLProcPtr MLMultiContainer::newProc(const MLSymbol className, const MLSymbol procName) 
+MLProcPtr MLMultiContainer::newProc(const ml::Symbol className, const ml::Symbol procName) 
 {
 	MLProcPtr pNew;
 	
@@ -547,8 +547,8 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 {
 	err e = OK;
 	const int copies = (int)mCopies.size();	
-	const MLSymbol className(parent->getStringAttribute("class").toUTF8());
-	const MLSymbol procName(parent->getStringAttribute("name").toUTF8());
+	const ml::Symbol className(parent->getStringAttribute("class").toUTF8());
+	const ml::Symbol procName(parent->getStringAttribute("name").toUTF8());
 	// debug() << "MLMultiContainer::buildProc (class=" << className << ", name=" << procName << ")\n";
 
 	for(int i=0; i<copies; i++)
@@ -602,7 +602,7 @@ debug() << "path = " << pathName << "\n";
 // really we should only need to add one pipe per proxy container
 // but let's keep things simple for now.
 //
-void MLMultiContainer::addPipe(const MLPath& src, const MLSymbol out, const MLPath& dest, const MLSymbol in)
+void MLMultiContainer::addPipe(const MLPath& src, const ml::Symbol out, const MLPath& dest, const ml::Symbol in)
 {
 	//debug() << "MLMultiContainer::addPipe " << src << " " << out << " -> " << dest << " " << in << "\n";
 	const int copies = (int)mCopies.size();	
@@ -630,7 +630,7 @@ MLProc::err MLMultiContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int
 // ----------------------------------------------------------------
 #pragma mark I/O
 
-void MLMultiContainer::publishInput(const MLPath & procName, const MLSymbol inputName, const MLSymbol alias)
+void MLMultiContainer::publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
@@ -644,7 +644,7 @@ void MLMultiContainer::publishInput(const MLPath & procName, const MLSymbol inpu
 	createInput(index);
 }
 
-void MLMultiContainer::publishOutput(const MLPath & procName, const MLSymbol outputName, const MLSymbol alias)
+void MLMultiContainer::publishOutput(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias)
 {
  	const int copies = (int)mCopies.size();
 	for(int i=0; i<copies; i++)
@@ -661,7 +661,7 @@ void MLMultiContainer::publishOutput(const MLPath & procName, const MLSymbol out
 }
 
 
-MLSymbol MLMultiContainer::getOutputName(int index)
+ml::Symbol MLMultiContainer::getOutputName(int index)
 {	
 	return (getCopyAsContainer(0)->getOutputName(index));	
 }
@@ -670,8 +670,8 @@ MLSymbol MLMultiContainer::getOutputName(int index)
 #pragma mark signals
 
 // add ring buffers to each copy so that the published signal can be read by clients in different threads.
-MLProc::err MLMultiContainer::addSignalBuffers(const MLPath & procAddress, const MLSymbol outputName, 
-	const MLSymbol alias, int trigMode, int bufLength, int frameSize)
+MLProc::err MLMultiContainer::addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+	const ml::Symbol alias, int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
 	const int copies = (int)mCopies.size();	
@@ -683,7 +683,7 @@ MLProc::err MLMultiContainer::addSignalBuffers(const MLPath & procAddress, const
 	return e;
 }
 
-void MLMultiContainer::gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers)
+void MLMultiContainer::gatherSignalBuffers(const MLPath & procAddress, const ml::Symbol alias, MLProcList& signalBuffers)
 {
     const int hack = 1; // for multiple outputs extra voice
 	const int copies = (int)mCopies.size() - hack;
@@ -722,7 +722,7 @@ void MLMultiContainer::setProcParams(const MLPath& procName, juce::XmlElement* p
 	}
 }
 
-MLPublishedParamPtr MLMultiContainer::publishParam(const MLPath & procName, const MLSymbol param, const MLSymbol alias, const MLSymbol type)
+MLPublishedParamPtr MLMultiContainer::publishParam(const MLPath & procName, const ml::Symbol param, const ml::Symbol alias, const ml::Symbol type)
 {
 	MLPublishedParamPtr p;
 
@@ -738,7 +738,7 @@ MLPublishedParamPtr MLMultiContainer::publishParam(const MLPath & procName, cons
 	return p;
 }
 
-void MLMultiContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const MLSymbol param)
+void MLMultiContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol param)
 {
 	// add setter in containers
 	const int copies = (int)mCopies.size();	
@@ -764,7 +764,7 @@ void MLMultiContainer::setPublishedParam(int index, const MLProperty& val)
 	//MLProcContainer::setPublishedParam(index, val);
 }
 
-void MLMultiContainer::routeParam(const MLPath & procAddress, const MLSymbol paramName, const MLProperty& val)
+void MLMultiContainer::routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val)
 {
 	// set param in containers
 	const int copies = (int)mCopies.size();	

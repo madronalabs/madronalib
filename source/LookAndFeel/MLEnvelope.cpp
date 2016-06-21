@@ -25,7 +25,7 @@ MLEnvelope::~MLEnvelope()
 {
 }
 
-void MLEnvelope::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+void MLEnvelope::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
 	repaint();
 }

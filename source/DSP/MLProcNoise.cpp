@@ -38,7 +38,7 @@ namespace
 
 void MLProcNoise::process(const int samples)
 {	
-	static MLSymbol gainSym("gain");
+	static ml::Symbol gainSym("gain");
 	MLSignal& y = getOutput();
 	MLSample gain = getParam(gainSym);
 	

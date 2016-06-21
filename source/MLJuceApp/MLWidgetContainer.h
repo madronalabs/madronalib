@@ -20,14 +20,14 @@ public:
     ~MLWidgetContainer();
 	
 	bool isWidgetContainer(void) { return true; }
-	void addWidget(MLWidget* pW, const MLSymbol name = MLSymbol());
-	MLWidget* getWidget(MLSymbol name);
-	void renameWidget(MLWidget* pW, const MLSymbol newName);
+	void addWidget(MLWidget* pW, const ml::Symbol name = ml::Symbol());
+	MLWidget* getWidget(ml::Symbol name);
+	void renameWidget(MLWidget* pW, const ml::Symbol newName);
 	void dumpWidgets(int depth = 0);
 
 protected:
 	// currently Widgets are deleted by JUCE views, so don't retain here
-	std::map<MLSymbol, MLWidget*> mWidgets;
+	std::map<ml::Symbol, MLWidget*> mWidgets;
 	
 	MLNameMaker mWidgetNamer;
 };

@@ -54,7 +54,7 @@ void MLMenuButton::clicked ()
 	setPropertyImmediate("value", 1);
 }
 
-void MLMenuButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+void MLMenuButton::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
 	if (property == "text")
 	{

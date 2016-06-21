@@ -73,7 +73,7 @@ public:
 };
 
 extern const int kNumVoiceSignals;
-extern const MLSymbol voiceSignalNames[];
+extern const ml::Symbol voiceSignalNames[];
 
 class MLProcInputToSignals : public MLProc
 {
@@ -88,7 +88,7 @@ public:
     MLProcInputToSignals();
 	~MLProcInputToSignals();
 	MLProcInfoBase& procInfo() { return mInfo; }
-	int getOutputIndex(const MLSymbol name);
+	int getOutputIndex(const ml::Symbol name);
 
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
 	void clear();

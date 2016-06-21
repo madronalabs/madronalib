@@ -203,7 +203,7 @@ MLMenu::MLMenu() :
 {
 }
 
-MLMenu::MLMenu(const MLSymbol name) :
+MLMenu::MLMenu(const ml::Symbol name) :
     mName(name),
     mRoot(new Node()),
     mHasIndex(false)

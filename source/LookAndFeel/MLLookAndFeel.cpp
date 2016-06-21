@@ -686,7 +686,7 @@ float MLLookAndFeel::getButtonTextSize(const MLButton& button)
     if(uh > 0)
     {
         uh *= 0.66f;
-        uh = clamp(uh, 0.25f, 2.f);
+        uh = ml::clamp(uh, 0.25f, 2.f);
         uh *= (float)button.getWidgetGridUnitSize();
     }
     else // hack for buttons not in grid system
@@ -2208,7 +2208,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	const int gradPixels = 2;
 	float gradWidthTop, gradWidthBottom;
 	gradWidthTop = gradPixels * gradPixelY;
-	gradWidthTop = clamp(gradWidthTop, 0.125f, 1.f);
+	gradWidthTop = ml::clamp(gradWidthTop, 0.125f, 1.f);
 	gradWidthBottom = gradWidthTop;
 	
     Path outline;
@@ -2633,7 +2633,7 @@ const Font & MLLookAndFeel::getFont(int style)
 //
 
 // visual resources for app. 
-void MLLookAndFeel::addPicture(MLSymbol name, const void* data, size_t dataSize)
+void MLLookAndFeel::addPicture(ml::Symbol name, const void* data, size_t dataSize)
 {
 	DrawablePtr newPic (Drawable::createFromImageData(data, dataSize));
 	if (newPic != nullptr)
@@ -2643,7 +2643,7 @@ void MLLookAndFeel::addPicture(MLSymbol name, const void* data, size_t dataSize)
 	}
 }
 
-const Drawable* MLLookAndFeel::getPicture(MLSymbol name)
+const Drawable* MLLookAndFeel::getPicture(ml::Symbol name)
 {
 	return &(*mPictures[name]);
 	// TODO add ? for pictures not found. 

@@ -26,7 +26,7 @@ public:
 	void doParams();		
 	void process(const int samples);
 
-	MLProc::err addProc(const MLSymbol className, const MLSymbol procName);
+	MLProc::err addProc(const ml::Symbol className, const ml::Symbol procName);
 	MLProcPtr getProc(const MLPath & pathName);
 	
 	MLProcInfoBase& procInfo() { return mInfo; }

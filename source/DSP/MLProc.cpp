@@ -144,7 +144,7 @@ void MLProc::setOutput(const int idx, MLSignal& srcSig)
 	mOutputs[idx-1] = &srcSig;
 }
 
-bool MLProc::paramExists(const MLSymbol pname)
+bool MLProc::paramExists(const ml::Symbol pname)
 {
 	bool r = false;
 	if (procInfo().hasVariableParams())
@@ -160,22 +160,22 @@ bool MLProc::paramExists(const MLSymbol pname)
 	return r;
 }
 
-MLParamValue MLProc::getParam(const MLSymbol pname)
+MLParamValue MLProc::getParam(const ml::Symbol pname)
 {
 	return procInfo().getParamProperty(pname).getFloatValue();
 }
 
-const std::string& MLProc::getStringParam(const MLSymbol pname)
+const std::string& MLProc::getStringParam(const ml::Symbol pname)
 {
 	return procInfo().getParamProperty(pname).getStringValue();
 }
 
-const MLSignal& MLProc::getSignalParam(const MLSymbol pname)
+const MLSignal& MLProc::getSignalParam(const ml::Symbol pname)
 {
 	return procInfo().getParamProperty(pname).getSignalValue();
 }
 
-void MLProc::setParam(const MLSymbol pname, const MLProperty& val)
+void MLProc::setParam(const ml::Symbol pname, const MLProperty& val)
 {
 	// TODO rather than setting directly here, the enclosing MLDSPContext can store a list of changes
 	// to take effect before the next process() call. This way all the [if (mParamsChanged) doParams();]
@@ -184,7 +184,7 @@ void MLProc::setParam(const MLSymbol pname, const MLProperty& val)
 	mParamsChanged = true;
 }
 
-int MLProc::getInputIndex(const MLSymbol name) 
+int MLProc::getInputIndex(const ml::Symbol name) 
 { 
 	// get index
 	int idx = 0;
@@ -204,7 +204,7 @@ int MLProc::getInputIndex(const MLSymbol name)
 	return idx;
 }
 
-int MLProc::getOutputIndex(const MLSymbol name) 
+int MLProc::getOutputIndex(const ml::Symbol name) 
 { 
 	// get index
 	int idx = 0;
@@ -236,11 +236,11 @@ int MLProc::getOutputIndex(const MLSymbol name)
 }
 
 
-MLSymbol MLProc::getOutputName(int index)
+ml::Symbol MLProc::getOutputName(int index)
 {	
 	if (procInfo().hasVariableOutputs())
 	{
-		return MLSymbol("out").withFinalNumber(index);
+		return ml::Symbol("out").withFinalNumber(index);
 	}
 	else if (index <= (int)mOutputs.size())
 	{		
@@ -254,7 +254,7 @@ MLSymbol MLProc::getOutputName(int index)
 		}
 	} 
 
-	return MLSymbol();
+	return ml::Symbol();
 }
 
 // TODO: sort out createinput / resizeInputs / resizeOutputs
@@ -304,7 +304,7 @@ bool MLProc::outputIsValid(int idx)
 	}
 }
 
-MLSymbol MLProc::getNameWithCopyIndex()
+ml::Symbol MLProc::getNameWithCopyIndex()
 {
     int c = mCopyIndex;
     if(c)
@@ -324,7 +324,7 @@ void MLProc::dumpParams()
 	debug() << getClassName() << "(" << static_cast<void *>(this) << ")" << " params:--------\n";	
 	for (MLSymbolMap::MLSymbolMapIter i = map.begin(); i != map.end(); i++)
 	{
-		const MLSymbol pName = ((*i).first);
+		const ml::Symbol pName = ((*i).first);
 		MLParamValue val = getParam(pName);
 		debug() << "[" << pName << " : " << val << "] ";
 	}
@@ -467,12 +467,12 @@ MLProcFactory::~MLProcFactory()
 {
 }
 
-void MLProcFactory::registerFn(const MLSymbol className, MLProcCreateFnT fn)
+void MLProcFactory::registerFn(const ml::Symbol className, MLProcCreateFnT fn)
 {
     procRegistry[className] = fn;
 }
 
-MLProcPtr MLProcFactory::create(const MLSymbol className, MLDSPContext* context)
+MLProcPtr MLProcFactory::create(const ml::Symbol className, MLDSPContext* context)
 {
 	MLProcCreateFnT fn;
     MLProcPtr resultProc;

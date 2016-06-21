@@ -21,7 +21,7 @@ public:
     ~MLSignalReporter();
     
  	// add a signal view entry to the map and connect it to a new signal viewer.
-	MLSignalView* addSignalViewToMap(MLSymbol p, MLWidget* w, MLSymbol attr, int size, int priority = 0, int frameSize = 1);
+	MLSignalView* addSignalViewToMap(ml::Symbol p, MLWidget* w, ml::Symbol attr, int size, int priority = 0, int frameSize = 1);
 	
 	// view all of the signals in the map.
 	void viewSignals();
@@ -29,14 +29,14 @@ public:
 protected:
 	void viewChangedSignals();	
 	void viewAllSignals();
-	int viewOneSignal(MLSymbol signalName, bool forceView, int priority = 0);
+	int viewOneSignal(ml::Symbol signalName, bool forceView, int priority = 0);
 	void redrawSignals();
 	
 	typedef std::shared_ptr<MLSignalView> MLSignalViewPtr;
 	typedef std::list<MLSignalViewPtr> MLSignalViewList;
-	typedef std::map<MLSymbol, MLSignalViewList> MLSignalViewListMap;
-	typedef std::map<MLSymbol, MLSignalPtr> MLSymbolToSignalMap;
-	typedef std::map<MLSymbol, int> ViewPriorityMap;
+	typedef std::map<ml::Symbol, MLSignalViewList> MLSignalViewListMap;
+	typedef std::map<ml::Symbol, MLSignalPtr> MLSymbolToSignalMap;
+	typedef std::map<ml::Symbol, int> ViewPriorityMap;
 
 	MLPluginProcessor* mpProcessor;
 	MLSymbolToSignalMap mSignalBuffers;
@@ -47,7 +47,7 @@ protected:
 	MLSignalViewListMap mSignalViewsMap;
 
     int mViewIndex;
-    std::vector<MLSymbol> mSignalNames;
+    std::vector<ml::Symbol> mSignalNames;
 	
 	bool mNeedsRedraw;
 };

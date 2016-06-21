@@ -83,15 +83,15 @@ public:
 	MLPropertySet();
 	virtual ~MLPropertySet();
     
-	const MLProperty& getProperty(MLSymbol p) const;
-	const float& getFloatProperty(MLSymbol p) const;
-	const std::string& getStringProperty(MLSymbol p) const;
-	const MLSignal& getSignalProperty(MLSymbol p) const;
+	const MLProperty& getProperty(ml::Symbol p) const;
+	const float& getFloatProperty(ml::Symbol p) const;
+	const std::string& getStringProperty(ml::Symbol p) const;
+	const MLSignal& getSignalProperty(ml::Symbol p) const;
     
 	// set the property and allow it to propagate to Listeners the next time
 	// each Listener calls updateChangedProperties().
 	template <typename T>
-	void setProperty(MLSymbol p, T v)
+	void setProperty(ml::Symbol p, T v)
 	{
 		mProperties[p].setValue(v);
 		broadcastProperty(p, false);
@@ -99,7 +99,7 @@ public:
 
 	// set the property and propagate to Listeners immediately.
 	template <typename T>
-	void setPropertyImmediate(MLSymbol p, T v)
+	void setPropertyImmediate(ml::Symbol p, T v)
 	{
 		mProperties[p].setValue(v);
 		broadcastProperty(p, true);
@@ -108,7 +108,7 @@ public:
 	// set the property and propagate to Listeners immediately,
 	// except for the argument Listener pL
 	template <typename T>
-	void setPropertyImmediateExcludingListener(MLSymbol p, T v, MLPropertyListener* pL)
+	void setPropertyImmediateExcludingListener(ml::Symbol p, T v, MLPropertyListener* pL)
 	{
 		mProperties[p].setValue(v);
 		broadcastPropertyExcludingListener(p, true, pL);
@@ -123,11 +123,11 @@ protected:
 	void removePropertyListener(MLPropertyListener* pToRemove);
 	
 private:
-	std::map<MLSymbol, MLProperty> mProperties;
+	std::map<ml::Symbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
 	
-	void broadcastProperty(MLSymbol p, bool immediate);
-	void broadcastPropertyExcludingListener(MLSymbol p, bool immediate, MLPropertyListener* pListenerToExclude);
+	void broadcastProperty(ml::Symbol p, bool immediate);
+	void broadcastPropertyExcludingListener(ml::Symbol p, bool immediate, MLPropertyListener* pListenerToExclude);
 };
 
 // MLPropertyListeners are notified when a Property of an MLPropertySet changes. They do something in
@@ -151,7 +151,7 @@ public:
     }
     
 	// override to do whatever this PropertyListener needs to do based on the values of properties.
-	virtual void doPropertyChangeAction(MLSymbol param, const MLProperty & newVal) = 0;
+	virtual void doPropertyChangeAction(ml::Symbol param, const MLProperty & newVal) = 0;
 	
 	// call periodically to do actions for any properties that have changed since the last call.
 	void updateChangedProperties();
@@ -164,7 +164,7 @@ protected:
     // called by a PropertySet to notify us that one property has changed.
 	// if the property is new, or the value has changed, we mark the state as changed.
 	// If immediate is true and the state has changed, doPropertyChangeAction() will be called.
-	void propertyChanged(MLSymbol p, bool immediate);
+	void propertyChanged(ml::Symbol p, bool immediate);
     
 	// Must be called by the Property owner to notify us in the event it is going away.
     void propertyOwnerClosing();
@@ -180,7 +180,7 @@ protected:
 		MLProperty mValue;
 	};
     
-	std::map<MLSymbol, PropertyState> mPropertyStates;
+	std::map<ml::Symbol, PropertyState> mPropertyStates;
 	MLPropertySet* mpPropertyOwner;
 };
 

@@ -15,18 +15,18 @@
 class MLSymbolMap
 {
 public:	
-	typedef std::map<MLSymbol, int> MLSymbolMapT;	
+	typedef std::map<ml::Symbol, int> MLSymbolMapT;	
 	typedef MLSymbolMapT::iterator MLSymbolMapIter;
 	
 	// indices start from one
-	void addEntry(const MLSymbol name) 
+	void addEntry(const ml::Symbol name) 
 	{	
 		int i = (int)mMap.size() + 1;
 		mMap[name] = i; 
 	} 
 	
 	// return one-based index of parameter if found, otherwise 0.
-	int getIndex(const MLSymbol paramName)
+	int getIndex(const ml::Symbol paramName)
 	{	
 		int index = 0;
 
@@ -86,7 +86,7 @@ public:
 	}
 	
 	// return element ptr by key.  If key is not found, return safe null ptr.
-	arrayElement * operator[] (const MLSymbol key)
+	arrayElement * operator[] (const ml::Symbol key)
 	{
 		int zeroIndex, overflowIndex;
 		

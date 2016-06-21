@@ -25,7 +25,7 @@ void MLTextButton::paint(Graphics& g)
 	myLookAndFeel->drawButtonText(g, *this, t, mOver, mDown);
 }
 
-void MLTextButton::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+void MLTextButton::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
 	if (property == "text")
 	{

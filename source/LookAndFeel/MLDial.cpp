@@ -113,7 +113,7 @@ MLDial::~MLDial()
 
 // MLWidget methods
 
-void MLDial::doPropertyChangeAction(MLSymbol property, const MLProperty& val)
+void MLDial::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
 	if (property == "value")
 	{
@@ -379,7 +379,7 @@ float MLDial::valueToProportionOfLength (float value) const
     {
         if (mWarpMode == kJucePluginParam_Exp)
         {
-            value = clamp(value, min, max);
+            value = ml::clamp(value, min, max);
             x = log(value/min) / log(max/min);
         }
         else
@@ -462,11 +462,11 @@ float MLDial::constrainValue (float value) const throw()
 	
 	if(!mFlip)
 	{
-		valueOut = clamp(value, mBottomValue, mTopValue);
+		valueOut = ml::clamp(value, mBottomValue, mTopValue);
 	}
 	else
 	{
-		valueOut = clamp(value, mTopValue, mBottomValue);
+		valueOut = ml::clamp(value, mTopValue, mBottomValue);
 	}
 	
 	if (valueOut <= mZeroThreshold)
@@ -1241,7 +1241,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 		{
 			mCurrentDetent = nearestDetent(val);				
 			mCurrentDetent += steps;
-			mCurrentDetent = clamp(mCurrentDetent, 0, detents - 1);
+			mCurrentDetent = ml::clamp(mCurrentDetent, 0, detents - 1);
 			r = mDetents[mCurrentDetent].mValue;
 		}
 	} 
@@ -1249,7 +1249,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	{
 		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
-		d = clamp(d, 0, 3);
+		d = ml::clamp(d, 0, 3);
 		float minValChange = doFineAdjust ? powf(10., -d) : interval;
 		
 		// for dials without many possible values, slow down mouse movement

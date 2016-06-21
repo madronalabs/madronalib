@@ -4,6 +4,9 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLDebug.h"
+
+//#include <ostream>
+
 #include <sstream>
 
 class MLTextStreamListener
@@ -18,6 +21,5 @@ public:
 	
 protected:	
 	std::stringstream mStream;
-
 };
 

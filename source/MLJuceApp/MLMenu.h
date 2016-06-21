@@ -21,7 +21,7 @@ class MLMenu;
 // Use index or store using new bidirectional MLResourceMap iterator .
 
 typedef std::shared_ptr<MLMenu> MLMenuPtr;
-typedef std::map<MLSymbol, MLMenuPtr> MLMenuMapT;
+typedef std::map<ml::Symbol, MLMenuPtr> MLMenuMapT;
 typedef std::shared_ptr<juce::PopupMenu> JuceMenuPtr;
 
 // adapter to Juce menu
@@ -58,7 +58,7 @@ public:
     };
 
 	MLMenu();
-	MLMenu(const MLSymbol name);
+	MLMenu(const ml::Symbol name);
 	~MLMenu();
     
 	void clear();
@@ -71,21 +71,21 @@ public:
 	void appendMenu(MLMenuPtr m);
     void buildIndex();
     
-	MLSymbol getName() { return mName; }
+	ml::Symbol getName() { return mName; }
 	int getSize() { return mRoot->getNodeSize(0); }
 	const std::string getMenuItemPath(int idx);
     
     // build a Juce menu on the fly and return it
 	JuceMenuPtr getJuceMenu();	
 
-	void setInstigator(MLSymbol n) {mInstigatorName = n;}
-	MLSymbol getInstigator() const {return mInstigatorName;}
+	void setInstigator(ml::Symbol n) {mInstigatorName = n;}
+	ml::Symbol getInstigator() const {return mInstigatorName;}
     
     void dump();
 
 private:	
-	MLSymbol mName;
-	MLSymbol mInstigatorName; // name of Widget that triggered us
+	ml::Symbol mName;
+	ml::Symbol mInstigatorName; // name of Widget that triggered us
     NodePtr mRoot;
     bool mHasIndex;
     std::vector<std::string> mFullNamesByIndex;

@@ -33,7 +33,7 @@ void MLAppState::timerCallback()
 	updateChangedProperties();
 }
 
-void MLAppState::ignoreProperty(MLSymbol property)
+void MLAppState::ignoreProperty(ml::Symbol property)
 {
 	mIgnoredProperties.insert(property);
 }
@@ -41,7 +41,7 @@ void MLAppState::ignoreProperty(MLSymbol property)
 // MLPropertyListener implementation
 // an updateChangedProperties() is needed to get these actions sent by the Model.
 // 
-void MLAppState::doPropertyChangeAction(MLSymbol p, const MLProperty & val)
+void MLAppState::doPropertyChangeAction(ml::Symbol p, const MLProperty & val)
 {
     // nothing to do here, but we do need to be an MLPropertyListener in order to
     // know the update states of all the Properties.
@@ -140,10 +140,10 @@ cJSON* MLAppState::getStateAsJSON()
 	cJSON* root = cJSON_CreateObject();
 
 	// get Model parameters
-	std::map<MLSymbol, PropertyState>::iterator it;
+	std::map<ml::Symbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
-		MLSymbol key = it->first;
+		ml::Symbol key = it->first;
 		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
 		{			
 			const char* keyStr = key.getString().c_str();
@@ -243,7 +243,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 	cJSON *child = pNode->child;
 	while(child)
 	{
-		MLSymbol key(child->string);
+		ml::Symbol key(child->string);
 		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
 		{							
 			switch(child->type & 255)

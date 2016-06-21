@@ -118,7 +118,7 @@ public:
     ~MLDial();
 		
 	// MLPropertyListener
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& newVal);
+	void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
 	
     void setDialStyle (const MLDial::DialStyle newStyle);
     MLDial::DialStyle getDialStyle() const throw() { return style; }

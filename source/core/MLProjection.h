@@ -10,8 +10,23 @@
 
 #include <functional>
 #include <vector>
-#include "MLDSP.h"
-#include "MLInterval.h"
+//#include "MLDSP.h"
+//#include "MLInterval.h"
+
+namespace ml
+{
+	class Interval
+	{
+	public:
+		Interval(float x1, float x2) : mX1(x1), mX2(x2) {}
+		Interval(int x1, int x2) : mX1(x1), mX2(x2) {}
+		
+		float mX1, mX2;
+	};
+	
+	inline bool within(float f, const Interval m) { return (f >= m.mX1)&&(f < m.mX2); }
+}
+
 
 // TODO replace MLRange with this stuff
 namespace ml

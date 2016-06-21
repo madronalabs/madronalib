@@ -106,8 +106,8 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
             {
                 int mode = eMLRingBufferMostRecent;
                 MLPath procArg = RequiredPathAttribute(child, "proc");
-                MLSymbol outArg = RequiredAttribute(child, "output");
-				MLSymbol aliasArg = RequiredAttribute(child, "alias");
+                ml::Symbol outArg = RequiredAttribute(child, "output");
+				ml::Symbol aliasArg = RequiredAttribute(child, "alias");
                 
                 if (procArg && outArg && aliasArg)
                 {
@@ -116,8 +116,8 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 					int frameSize = 1;
 					frameSize = child->getIntAttribute("frame_size", frameSize);
                     MLPath procPath (procArg);
-                    MLSymbol outSym (outArg);
-                    MLSymbol aliasSym (aliasArg);
+                    ml::Symbol outSym (outArg);
+                    ml::Symbol aliasSym (aliasArg);
                     publishSignal(procPath, outSym, aliasSym, mode, bufLength, frameSize);
                 }
             }
@@ -374,7 +374,7 @@ void MLDSPEngine::dump()
 // ----------------------------------------------------------------
 #pragma mark published signals
 
-void MLDSPEngine::publishSignal(const MLPath & procAddress, const MLSymbol outputName, const MLSymbol alias,
+void MLDSPEngine::publishSignal(const MLPath & procAddress, const ml::Symbol outputName, const ml::Symbol alias,
                                     int trigMode, int bufLength, int frameSize)
 {
 	err e = addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength, frameSize);
@@ -393,7 +393,7 @@ void MLDSPEngine::publishSignal(const MLPath & procAddress, const MLSymbol outpu
 // return the number of buffers matching alias in the signal list.
 // these are not always copies of a multiple signal, as when a wildcard is used, for example.
 //
-int MLDSPEngine::getPublishedSignalVoices(const MLSymbol alias)
+int MLDSPEngine::getPublishedSignalVoices(const ml::Symbol alias)
 {
 	int nVoices = 0;
 	
@@ -417,7 +417,7 @@ int MLDSPEngine::getPublishedSignalVoices(const MLSymbol alias)
 
 // return the number of currently enabled buffers matching alias in the signal list.
 //
-int MLDSPEngine::getPublishedSignalVoicesEnabled(const MLSymbol alias)
+int MLDSPEngine::getPublishedSignalVoicesEnabled(const ml::Symbol alias)
 {
 	int nVoices = 0;
 	
@@ -443,7 +443,7 @@ int MLDSPEngine::getPublishedSignalVoicesEnabled(const MLSymbol alias)
 // get the buffer size for a published signal by looking at the length parameter
 // of the first attached ring buffer.
 //
-int MLDSPEngine::getPublishedSignalBufferSize(const MLSymbol alias)
+int MLDSPEngine::getPublishedSignalBufferSize(const ml::Symbol alias)
 {
 	int result = 0;
 	
@@ -465,7 +465,7 @@ int MLDSPEngine::getPublishedSignalBufferSize(const MLSymbol alias)
 // read samples from a published signal list into outSig.
 // return the number of samples read.
 //
-int MLDSPEngine::readPublishedSignal(const MLSymbol alias, MLSignal& outSig)
+int MLDSPEngine::readPublishedSignal(const ml::Symbol alias, MLSignal& outSig)
 {
 	int nVoices = 0;
 	int r;

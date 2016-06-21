@@ -21,7 +21,7 @@ public:
 	MLMultiButton ();
 	~MLMultiButton();
 	
-	void doPropertyChangeAction(MLSymbol property, const MLProperty& val);
+	void doPropertyChangeAction(ml::Symbol property, const MLProperty& val);
 
     enum ColourIds
     {

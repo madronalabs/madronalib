@@ -71,7 +71,7 @@ MLPluginProcessor::~MLPluginProcessor()
 // if a parameter of the DSP engine exists matching the property name, set it to the new value.
 // TODO DSP engine can simply have properties.
 
-void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
+void MLPluginProcessor::doPropertyChangeAction(ml::Symbol propName, const MLProperty& newVal)
 {
 	int propertyType = newVal.getType();
 	int paramIdx = getParameterIndex(propName);
@@ -131,7 +131,7 @@ void MLPluginProcessor::doPropertyChangeAction(MLSymbol propName, const MLProper
 	}
 }
 
-void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(MLSymbol propName, const MLProperty& newVal)
+void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(ml::Symbol propName, const MLProperty& newVal)
 {
 	int propertyType = newVal.getType();
 	
@@ -212,8 +212,8 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 		MLPublishedParam* param = &(*p);
 		if(param)
 		{
-			MLSymbol type = param->getType();
-			if((type == "float") || (type == MLSymbol()))
+			ml::Symbol type = param->getType();
+			if((type == "float") || (type == ml::Symbol()))
 			{
 				setProperty(param->getAlias(), param->getDefault());
 			}
@@ -454,7 +454,7 @@ void MLPluginProcessor::addFileCollectionListener(MLFileCollection::Listener* pL
 #if ML_MAC
 #pragma mark MLT3DHub::Listener
 
-void MLPluginProcessor::handleHubNotification(MLSymbol action, const MLProperty prop)
+void MLPluginProcessor::handleHubNotification(ml::Symbol action, const MLProperty prop)
 {
 	
 	debug() << "handleHubNotification: " << action << "\n";
@@ -561,7 +561,7 @@ void MLPluginProcessor::processMIDI(MidiBuffer& midiMessages, MLControlEventVect
 			{
 				// MPE switch, nothing to do in engine.
 				addControlEvent = false; 
-				int chans = clamp(message.getControllerValue(), 0, 15);	
+				int chans = ml::clamp(message.getControllerValue(), 0, 15);	
 				
 				if(chans > 0)
 				{
@@ -713,7 +713,7 @@ int MLPluginProcessor::getNumParameters()
 	return mNumParameters;
 }
 
-int MLPluginProcessor::getParameterIndex (const MLSymbol name)
+int MLPluginProcessor::getParameterIndex (const ml::Symbol name)
 {
  	return mEngine.getParamIndex(name);
 }
@@ -768,7 +768,7 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 		
 		// set MLModel Parameter 
 		// exclude this listener to avoid feedback!
-		MLSymbol paramName = getParameterAlias(index);
+		ml::Symbol paramName = getParameterAlias(index);
 		float realVal = mEngine.getParamByIndex(index);
 		setPropertyImmediateExcludingListener(paramName, realVal, this);
 	}
@@ -789,12 +789,12 @@ float MLPluginProcessor::getParameterMax (int index)
 const String MLPluginProcessor::getParameterName (int index)
 {
 	if (!within(index, 0, getNumParameters())) return String();
-	MLSymbol nameSym;
+	ml::Symbol nameSym;
 	const int p = mEngine.getPublishedParams(); 
 	
 	if (p == 0) // doc has been scanned but not built
 	{
-		nameSym = MLSymbol("param").withFinalNumber(index);
+		nameSym = ml::Symbol("param").withFinalNumber(index);
 	}
 	else
 	{
@@ -806,7 +806,7 @@ const String MLPluginProcessor::getParameterName (int index)
 	return (String(nameSym.getString().c_str()));
 }
 
-const String MLPluginProcessor::symbolToXMLAttr(const MLSymbol sym)
+const String MLPluginProcessor::symbolToXMLAttr(const ml::Symbol sym)
 {
 	std::string nameCopy = sym.getString();
 	
@@ -826,7 +826,7 @@ const String MLPluginProcessor::symbolToXMLAttr(const MLSymbol sym)
  	return (String(nameCopy.c_str()));
 }
 
-const MLSymbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
+const ml::Symbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
 {
 	std::string strCopy(str.toUTF8());
 	
@@ -843,12 +843,12 @@ const MLSymbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
 			strCopy[c] = '*';
 		}
 	}
- 	return (MLSymbol(strCopy.c_str()));
+ 	return (ml::Symbol(strCopy.c_str()));
 }
 
-const MLSymbol MLPluginProcessor::getParameterAlias (int index)
+const ml::Symbol MLPluginProcessor::getParameterAlias (int index)
 {
-	if (!within(index, 0, getNumParameters())) return MLSymbol();
+	if (!within(index, 0, getNumParameters())) return ml::Symbol();
  	return mEngine.getParamPtr(index)->getAlias();
 }
 
@@ -863,7 +863,7 @@ MLPublishedParamPtr MLPluginProcessor::getParameterPtr (int index)
  	return mEngine.getParamPtr(index);
 }
 
-MLPublishedParamPtr MLPluginProcessor::getParameterPtr (MLSymbol sym)
+MLPublishedParamPtr MLPluginProcessor::getParameterPtr (ml::Symbol sym)
 {
  	return mEngine.getParamPtr(mEngine.getParamIndex(sym));
 }
@@ -888,7 +888,7 @@ bool MLPluginProcessor::isParameterAutomatable (int idx) const
 
 // set scalar float plugin parameter by name without setting property.
 //
-void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float newValue)
+void MLPluginProcessor::setParameterWithoutProperty (ml::Symbol paramName, float newValue)
 {
 	int index = getParameterIndex(paramName);
 	if (!within(index, 0, getNumParameters())) return;
@@ -899,7 +899,7 @@ void MLPluginProcessor::setParameterWithoutProperty (MLSymbol paramName, float n
 
 // set string plugin parameter by name without setting property.
 //
-void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, const std::string& newValue)
+void MLPluginProcessor::setStringParameterWithoutProperty (ml::Symbol paramName, const std::string& newValue)
 {
 	int index = getParameterIndex(paramName);
 	if (!within(index, 0, getNumParameters())) return;	
@@ -909,7 +909,7 @@ void MLPluginProcessor::setStringParameterWithoutProperty (MLSymbol paramName, c
 
 // set signal plugin parameter by name without setting property.
 //
-void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, const MLSignal& newValue)
+void MLPluginProcessor::setSignalParameterWithoutProperty (ml::Symbol paramName, const MLSignal& newValue)
 {
 	int index = getParameterIndex(paramName);
 	if (!within(index, 0, getNumParameters())) return;
@@ -919,7 +919,7 @@ void MLPluginProcessor::setSignalParameterWithoutProperty (MLSymbol paramName, c
 }
 
 // count the number of published copies of the signal matching alias.
-int MLPluginProcessor::countSignals(const MLSymbol alias)
+int MLPluginProcessor::countSignals(const ml::Symbol alias)
 {
 	int numSignals = mEngine.getPublishedSignalVoicesEnabled(alias);
 	return numSignals;
@@ -962,7 +962,7 @@ int MLPluginProcessor::saveStateAsVersion()
 	}
 	
 	version++;
-	version = clamp(version, 1, 9999);
+	version = ml::clamp(version, 1, 9999);
 	char vBuf[16];
 	sprintf(vBuf, "[%d]", version);
     std::string newName = noVersionStr + vBuf;
@@ -1258,7 +1258,7 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 
 void MLPluginProcessor::loadPatchStateFromMIDIProgram (const int idx)
 {
-	int pgm = clamp(idx, 0, kMLPluginMIDIPrograms - 1);
+	int pgm = ml::clamp(idx, 0, kMLPluginMIDIPrograms - 1);
 	loadPatchStateFromFile(mMIDIProgramFiles->getFileByIndex(pgm));
 }
 
@@ -1365,7 +1365,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
      */
 	
 	// get plugin-specific translation table for updating older versions of data
-	std::map<MLSymbol, MLSymbol> translationTable;
+	std::map<ml::Symbol, ml::Symbol> translationTable;
 	
 	// TODO move this into Aalto!
 	// make translation tables based on program version.
@@ -1379,10 +1379,10 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			std::stringstream pName2;
 			pName << "seq_value" << n;
 			pName2 << "seq_pulse" << n;
-			MLSymbol oldSym(pName.str());
-			MLSymbol newSym = MLSymbol("seq_value#").withFinalNumber(n);
-			MLSymbol oldSym2(pName2.str());
-			MLSymbol newSym2 = MLSymbol("seq_pulse#").withFinalNumber(n);
+			ml::Symbol oldSym(pName.str());
+			ml::Symbol newSym = ml::Symbol("seq_value#").withFinalNumber(n);
+			ml::Symbol oldSym2(pName2.str());
+			ml::Symbol newSym2 = ml::Symbol("seq_pulse#").withFinalNumber(n);
 			translationTable[oldSym] = newSym;
 			translationTable[oldSym2] = newSym2;
 		}
@@ -1390,20 +1390,20 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	
 	if (blobVersion <= 0x00010200)
 	{
-		MLSymbol oldSym = MLSymbol("seq_value");
-		MLSymbol newSym = MLSymbol("seq_value").withFinalNumber(0);
-		MLSymbol oldSym2 = MLSymbol("seq_pulse");
-		MLSymbol newSym2 = MLSymbol("seq_pulse").withFinalNumber(0);
+		ml::Symbol oldSym = ml::Symbol("seq_value");
+		ml::Symbol newSym = ml::Symbol("seq_value").withFinalNumber(0);
+		ml::Symbol oldSym2 = ml::Symbol("seq_pulse");
+		ml::Symbol newSym2 = ml::Symbol("seq_pulse").withFinalNumber(0);
 		translationTable[oldSym] = newSym;
 		translationTable[oldSym2] = newSym2;
 		
 		// translate seq parameters
 		for(unsigned n=1; n<16; ++n)
 		{
-			oldSym = MLSymbol("seq_value#").withFinalNumber(n);
-			newSym = MLSymbol("seq_value").withFinalNumber(n);
-			oldSym2 = MLSymbol("seq_pulse#").withFinalNumber(n);
-			newSym2 = MLSymbol("seq_pulse").withFinalNumber(n);
+			oldSym = ml::Symbol("seq_value#").withFinalNumber(n);
+			newSym = ml::Symbol("seq_value").withFinalNumber(n);
+			oldSym2 = ml::Symbol("seq_pulse#").withFinalNumber(n);
+			newSym2 = ml::Symbol("seq_pulse").withFinalNumber(n);
 			translationTable[oldSym] = newSym;
 			translationTable[oldSym2] = newSym2;
 		}
@@ -1425,7 +1425,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 		if (!attrName.contains(patcherInputStr))
 		{
 			// see if we have this named parameter in our engine.
-			MLSymbol paramSym = XMLAttrToSymbol(attrName);
+			ml::Symbol paramSym = XMLAttrToSymbol(attrName);
 			const int pIdx = getParameterIndex(paramSym);
 			
 			if (pIdx >= 0)
@@ -1436,11 +1436,11 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			else // try finding a match through translation table.
 			{
 				//debug() << "Looking for parameter " << paramSym << " in table...\n";
-				std::map<MLSymbol, MLSymbol>::iterator it;
+				std::map<ml::Symbol, ml::Symbol>::iterator it;
 				it = translationTable.find(paramSym);
 				if (it != translationTable.end())
 				{
-					const MLSymbol newSym = translationTable[paramSym];
+					const ml::Symbol newSym = translationTable[paramSym];
 					const int pNewIdx = getParameterIndex(newSym);
 					if (pNewIdx >= 0)
 					{
@@ -1540,7 +1540,7 @@ void MLPluginProcessor::setDefaultParameters()
 		for(unsigned i=0; i<numParams; ++i)
 		{
 			MLPublishedParamPtr paramPtr = getParameterPtr(i);
-			MLSymbol paramType = paramPtr->getType();
+			ml::Symbol paramType = paramPtr->getType();
 			if(paramType == "float")
 			{
 				float defaultVal = getParameterDefaultValue(i);
@@ -1693,7 +1693,7 @@ void MLPluginProcessor::sendSeqInfo()
 		{
 			// add bright light for current step of each sequencer
 			int step = pSeq->getStep();
-			step = clamp(step, 0, 15);
+			step = ml::clamp(step, 0, 15);
 			brightLights |= (1 << step);
 			
 			// get pattern (same for all)
@@ -1784,7 +1784,7 @@ void MLPluginProcessor::setSequence(const MLSignal& seq)
 	for(int i=0; i<16; ++i)
 	{
 		float step = seq[i];
-		MLSymbol stepSym = MLSymbol("seq_pulse").withFinalNumber(i);
+		ml::Symbol stepSym = ml::Symbol("seq_pulse").withFinalNumber(i);
 		setPropertyImmediate(stepSym, step);
 	}
 }
