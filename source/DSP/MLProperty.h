@@ -93,16 +93,40 @@ public:
 	template <typename T>
 	void setProperty(ml::Symbol p, T v)
 	{
-		mProperties[p].setValue(v);
-		broadcastProperty(p, false);
+		if(mAllowNewProperties)
+		{
+			mProperties[p].setValue(v);
+			broadcastProperty(p, false);
+		}
+		else
+		{
+			std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
+			if(it != mProperties.end())
+			{
+				mProperties[p].setValue(v);
+				broadcastProperty(p, false);
+			}
+		}
 	}
 
 	// set the property and propagate to Listeners immediately.
 	template <typename T>
 	void setPropertyImmediate(ml::Symbol p, T v)
 	{
-		mProperties[p].setValue(v);
-		broadcastProperty(p, true);
+		if(mAllowNewProperties)
+		{
+			mProperties[p].setValue(v);
+			broadcastProperty(p, true);
+		}
+		else
+		{
+			std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
+			if(it != mProperties.end())
+			{
+				mProperties[p].setValue(v);
+				broadcastProperty(p, true);
+			}
+		}
 	}
 	
 	// set the property and propagate to Listeners immediately,
@@ -110,21 +134,47 @@ public:
 	template <typename T>
 	void setPropertyImmediateExcludingListener(ml::Symbol p, T v, MLPropertyListener* pL)
 	{
-		mProperties[p].setValue(v);
-		broadcastPropertyExcludingListener(p, true, pL);
+		if(mAllowNewProperties)
+		{
+			mProperties[p].setValue(v);
+			broadcastPropertyExcludingListener(p, true, pL);
+		}
+		else
+		{
+			std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
+			if(it != mProperties.end())
+			{
+				mProperties[p].setValue(v);
+				broadcastPropertyExcludingListener(p, true, pL);
+			}
+		}
 	}
 	
     void broadcastAllProperties();
-    
+	void allowNewProperties(bool b) { mAllowNewProperties = b; }
+	
 	static const MLProperty nullProperty;
 
 protected:
 	void addPropertyListener(MLPropertyListener* pL);
 	void removePropertyListener(MLPropertyListener* pToRemove);
 	
+	void dumpProperties()
+	{
+		std::map<ml::Symbol, MLProperty>::const_iterator it;
+		debug() << "\n" << mProperties.size() << " properties: \n";
+		for(it = mProperties.begin(); it != mProperties.end(); it++)
+		{
+			ml::Symbol name = it->first;
+			MLProperty val = it->second;
+			debug() << name << ": " << val << "\n";
+		}		
+	}
+	
 private:
 	std::map<ml::Symbol, MLProperty> mProperties;
 	std::list<MLPropertyListener*> mpListeners;
+	bool mAllowNewProperties;
 	
 	void broadcastProperty(ml::Symbol p, bool immediate);
 	void broadcastPropertyExcludingListener(ml::Symbol p, bool immediate, MLPropertyListener* pListenerToExclude);

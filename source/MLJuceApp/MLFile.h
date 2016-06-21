@@ -12,7 +12,7 @@
 #include "JuceHeader.h"
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 
 class MLFile
 {

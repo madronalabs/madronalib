@@ -211,6 +211,11 @@ float* MLSignal::setDims (int width, int height, int depth)
 	mHeightBits = bitsToContain(height);
 	mDepthBits = bitsToContain(depth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
+
+	// SETDIMS
+	//if(mSize > 64)
+	//	std::cout << ".";
+
 	mData = allocateData(mSize);	
 	mDataAligned = initializeData(mData, mSize);	
 	return mDataAligned;

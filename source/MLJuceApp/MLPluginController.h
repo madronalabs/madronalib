@@ -77,7 +77,7 @@ public:
 		int mFilesConverted;
 		
 		// This method gets called from the message thread to end our thread.
-		void threadComplete (bool userPressedCancel);
+		void threadComplete (bool userPressedCancel) override;
 	};
 
     void convertPresets();

@@ -239,7 +239,7 @@ public:
 	Vec2 getDims() const;
 	
 	// adapters for JUCE drawing (TODO remove)
-	inline bool contains(int px, int py) const { return (ml::within(px, (int)left(), (int)right()) && within(py, (int)top(), (int)bottom())); }
+	inline bool contains(int px, int py) const { return (ml::within(px, (int)left(), (int)right()) && ml::within(py, (int)top(), (int)bottom())); }
 	inline void setBounds(int l, int t, int w, int h) { *this = MLRect((float)l, (float)t, (float)w, (float)h); }
 	inline int x() const { return (int)left(); }
 	inline int y() const { return (int)top(); }

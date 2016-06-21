@@ -175,7 +175,7 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 
 const MLProperty MLPropertySet::nullProperty;
 
-MLPropertySet::MLPropertySet()
+MLPropertySet::MLPropertySet() : mAllowNewProperties(true)
 {
 }
 
@@ -192,7 +192,7 @@ MLPropertySet::~MLPropertySet()
 
 const MLProperty& MLPropertySet::getProperty(ml::Symbol p) const
 {
-	static const MLProperty nullProperty;
+	static const MLProperty nullProperty; // TODO remove this?
 	
 	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
@@ -295,6 +295,10 @@ void MLPropertySet::broadcastAllProperties()
 	for(it = mProperties.begin(); it != mProperties.end(); it++)
 	{
 		ml::Symbol p = it->first;
+		
+		// TODO cut down on some of this broadcasting!
+		// debug() << "BROADCASTING: " << p << "\n";
+
 		broadcastProperty(p, false);
 	}
 }
@@ -324,6 +328,7 @@ void MLPropertyListener::updateChangedProperties()
 void MLPropertyListener::updateAllProperties()
 {
     if(!mpPropertyOwner) return;
+	
 	mpPropertyOwner->broadcastAllProperties();
 
 	// mark all states as changed

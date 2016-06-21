@@ -13,7 +13,7 @@
 
 #include <iostream>
 
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLPlatform.h"
 #include "MLOSCReceiver.h"
 #include "MLNetServiceHub.h"

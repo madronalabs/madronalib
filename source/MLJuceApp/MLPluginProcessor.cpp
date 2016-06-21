@@ -17,11 +17,11 @@ const char* kUDPAddressName = "localhost";
 MLPluginProcessor::MLPluginProcessor() : 
 	mInputProtocol(-1),
 	mMLListener(0),
+	mHasParametersSet(false),
 	mEditorNumbersOn(true),
 	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
-	mHasParametersSet = false;
 	mNumParameters = 0;
 	lastPosInfo.resetToDefault();
     
@@ -57,6 +57,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpOSCVisualsBuf.resize(kUDPOutputBufferSize);
 	mVisualsSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kScribbleScenePort)));		
 #endif		
+		
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -82,7 +83,6 @@ void MLPluginProcessor::doPropertyChangeAction(ml::Symbol propName, const MLProp
 	{
 		return;
 	}
-	
 	
 	float f = newVal.getFloatValue();
 	
@@ -195,15 +195,11 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	}
 
 	// build: turn XML description into graph of processors
-	if (mEngine.getGraphStatus() != MLProc::OK)
-	{
-		int inChans = getNumInputChannels();
-		bool makeSignalInputs = inChans > 0;
-		mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI());
-	}
+	int inChans = getTotalNumInputChannels();
+	bool makeSignalInputs = inChans > 0;
+	mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI());
 
-	loadDefaultPreset();
-	
+	/*
 	// get plugin parameters and initial values and create corresponding model properties.
 	int params = getNumParameters();
 	for(int i=0; i<params; ++i)
@@ -219,6 +215,14 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 			}
 		}
 	}
+	*/
+	
+	mEngine.compileEngine();
+	loadDefaultPreset();
+	
+	// after the default preset is loaded, we don't allow any new properties to be made in the Model.
+	// This lets us filter out random OSC messages etc.
+	allowNewProperties(false);	
 }
 
 void MLPluginProcessor::initializeProcessor()
@@ -338,8 +342,8 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		const juce::ScopedLock sl (getCallbackLock());
 
 		// make IO buffers
-		mEngine.setInputChannels(getNumInputChannels());
-		mEngine.setOutputChannels(getNumOutputChannels());
+		mEngine.setInputChannels(getTotalNumInputChannels());
+		mEngine.setOutputChannels(getTotalNumOutputChannels());
 
 		int bufSize = 0;
 		int chunkSize = 0;
@@ -357,22 +361,12 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// dsp engine has one chunkSize of latency in order to run constant block size.
 		setLatencySamples(chunkSize);
 
-		debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << "\n";
+		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << "\n";
 
 #ifdef DEBUG
 		theSymbolTable().audit();
 		//theSymbolTable().dump();
 #endif
-
-		// compile: schedule graph of processors , setup connections, allocate buffers
-		if (mEngine.getCompileStatus() != MLProc::OK)
-		{
-			mEngine.compileEngine();
-		}
-		else
-		{
-			debug() << "compile OK.\n";
-		}
 
 		// prepare to play: resize and clear processors
 		prepareErr = mEngine.prepareEngine(sr, bufSize, chunkSize);
@@ -382,20 +376,25 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		}
 		
 		// after prepare to play, set state from saved blob if one exists
-		const unsigned blobSize = mSavedBinaryState.getSize();
+		int blobSize = mSavedBinaryState.getSize();
 		if (blobSize > 0)
-		{
+		{			
 			setPatchAndEnvStatesFromBinary (mSavedBinaryState.getData(), blobSize);
 			mSavedBinaryState.setSize(0);
 		}
+		
+		/*
 		else 
 		{
 			mEngine.clear();
 			if (!mHasParametersSet)
-			{
+			{				
+				std::cout << "LOADING default preset \n";
+				
 				loadDefaultPreset();
 			}
-		}		
+		}	*/
+		
 		
 		// after setting state, initialize processor
 		if(!mInitialized)
@@ -432,14 +431,14 @@ void MLPluginProcessor::getStateInformation (MemoryBlock& destData)
 void MLPluginProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
 	// if uninitialized, save blob for later.
-	if (mEngine.getCompileStatus() != MLProc::OK)
+	if (mEngine.getCompileStatus())
 	{
-		mSavedBinaryState.setSize(0);
-		mSavedBinaryState.append(data, sizeInBytes);
+		setPatchAndEnvStatesFromBinary (data, sizeInBytes);
 	}
 	else
 	{
-		setPatchAndEnvStatesFromBinary (data, sizeInBytes);
+		mSavedBinaryState.setSize(0);
+		mSavedBinaryState.append(data, sizeInBytes);
 	}
 }
 
@@ -664,8 +663,9 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			
 		// set Engine I/O.  done here each time because JUCE may change pointers on us.  possibly.
 		MLDSPEngine::ClientIOMap ioMap;
-		int inChans = getNumInputChannels();
-		int outChans = getNumOutputChannels();
+		int inChans = getTotalNumInputChannels();
+		int outChans = getTotalNumOutputChannels();
+		
 		for (int i=0; i<inChans; ++i)
 		{
 			ioMap.inputs[i] = buffer.getReadPointer(i);
@@ -1316,7 +1316,7 @@ void MLPluginProcessor::setPatchStateFromText (const String& stateStr)
 void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setViewAttributes)
 {
 	if (!(xmlState.hasTagName (JucePlugin_Name))) return;
-	if (!(mEngine.getCompileStatus() == MLProc::OK)) return; // TODO revisit need to compile first
+	if (!mEngine.getCompileStatus()) return; // TODO revisit need to compile first
 	
 	// only the differences between default parameters and the program state are saved in an XML program,
 	// so the first step is to set the default parameters.
@@ -1533,7 +1533,7 @@ void MLPluginProcessor::advancePreset(int amount)
 
 void MLPluginProcessor::setDefaultParameters()
 {
-	if (mEngine.getCompileStatus() == MLProc::OK)
+	if (mEngine.getCompileStatus())
 	{
 		// set default for each parameter.
 		const unsigned numParams = getNumParameters();

@@ -15,9 +15,8 @@ public:
 	 MLProcSinePhase();
 	~MLProcSinePhase();
 	
-	void clear(){};
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcSinePhase> mInfo;

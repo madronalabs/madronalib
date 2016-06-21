@@ -8,9 +8,9 @@
 MLAppBorder::MLAppBorder() : 
 	pMainView(0),
     mpResizer(0),
-	mZoomable(false),
 	mGridUnitsX(0),
-	mGridUnitsY(0)
+	mGridUnitsY(0),
+	mZoomable(false)
 {
 	MLWidget::setComponent(this);
 

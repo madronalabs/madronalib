@@ -20,9 +20,9 @@ public:
 	// Set the time and bpm. The time refers to the start of the current engine processing block.
 	void setTimeAndRate(const double secs, const double position, const double bpm, bool isPlaying);
 	
-	void clear();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void clear() override;
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcHostPhasor> mInfo;

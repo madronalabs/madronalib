@@ -87,21 +87,25 @@ public:
 
     MLProcInputToSignals();
 	~MLProcInputToSignals();
-	MLProcInfoBase& procInfo() { return mInfo; }
-	int getOutputIndex(const ml::Symbol name);
+
+	MLProcInfoBase& procInfo() override { return mInfo; }
+	int getOutputIndex(const ml::Symbol name) override;
 
 	void setInputFrameBuffer(PaUtilRingBuffer* pBuf);
-	void clear();
-	MLProc::err prepareToProcess();
-	void process(const int n);
+	
+	// TODO we can't possibly need all of these methods. redo and document clearly the function of each.
+	void clear() override;
+	void setup() override;
+	err resize() override;
+	MLProc::err prepareToProcess() override;
+	
+	void process(const int frames) override;
     
 	void clearChangeLists();
 	
 	void addEvent(MLControlEvent e) { mEvents.push_back(e); }
 	void clearEvents() { mEvents.clear(); }
 	
- 	void setup();
- 	err resize();
 	
 	void doParams();
 

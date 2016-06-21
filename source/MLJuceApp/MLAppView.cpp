@@ -8,9 +8,9 @@
 const Colour defaultColor = Colours::grey;
 
 MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
+	mInitialized(false),
 	mpResponder(pResp),
-	mpReporter(pRep),
-	mInitialized(false)
+	mpReporter(pRep)
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();

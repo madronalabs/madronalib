@@ -16,10 +16,10 @@ public:
 	 MLProcBiquad();
 	~MLProcBiquad();
 	
-	err resize();
-	void clear();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	err resize() override;
+	void clear() override;
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	typedef enum 
@@ -120,10 +120,6 @@ void MLProcBiquad::calcCoeffs(const int frames)
 		{
 		default:
 		case kLowpass:
-			// MLTEST um, it looks like this mistake was in here for a while. 
-				// double multiply of b0.
-			// keeping this note, in case something relies on it. 
-			//	a0 = ((1.f - cosOmega) * 0.5f) * b0;
 			a0 = ((1.f - cosOmega) * 0.5f)*b0;
 			a1 = (1.f - cosOmega)*b0;
 			a2 = a0;

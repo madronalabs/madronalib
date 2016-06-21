@@ -27,10 +27,10 @@ http://sam.zoy.org/wtfpl/COPYING for more details.
 
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include	"ffft/def.h"
-#include	"ffft/FFTRealPassDirect.h"
-#include	"ffft/FFTRealPassInverse.h"
-#include	"ffft/FFTRealSelect.h"
+#include	"def.h"
+#include	"FFTRealPassDirect.h"
+#include	"FFTRealPassInverse.h"
+#include	"FFTRealSelect.h"
 
 #include	<cassert>
 #include	<cmath>

@@ -7,10 +7,10 @@
 #define __MLMenu__
 
 #include "JuceHeader.h"
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLLookAndFeel.h"
 #include "MLSymbol.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 
 class MLMenu;
 

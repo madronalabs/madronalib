@@ -14,9 +14,9 @@
 class MLProcStereoPan : public MLProc
 {
 public:
-	MLProc::err resize();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProc::err resize() override;
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcStereoPan> mInfo;

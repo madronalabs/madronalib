@@ -31,16 +31,16 @@ public:
 	MLProcRingBuffer();
 	~MLProcRingBuffer();
 	
-	void clear(){};
-	void process(const int n);		
+	void clear() override {}; // TODO should this exist?
+	void process(const int frames) override;		
 
 	// read the buffer contents out to the specified plane of the given signal.
 	int readToSignal(MLSignal& outSig, int frames, int plane=0);
 	const MLSignal& getOutputSignal();
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
-	err resize(); // rebuilds buffer 
+	err resize() override; // rebuilds buffer 
 	void doParams(void);	
 	MLProcInfo<MLProcRingBuffer> mInfo;
 

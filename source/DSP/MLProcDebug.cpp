@@ -10,7 +10,10 @@
 #include "MLProc.h"
 #include "MLClock.h"
 
-
+#ifdef _WINDOWS
+#define UNICODE
+#include <Windows.h>
+#endif
 
 // temporary OSC send code. 
 // Procs should really not send OSC from the process thread. Instead the DSP engine can keep track of 
@@ -24,17 +27,15 @@
 // ----------------------------------------------------------------
 // class definition
 
-
 class MLProcDebug : public MLProc
 {
 public:
 	MLProcDebug();
 	~MLProcDebug();
 
-	void clear(){};
 	void doParams();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcDebug> mInfo;
@@ -47,7 +48,6 @@ private:
 #endif
 };
 
-
 // ----------------------------------------------------------------
 // registry section
 
@@ -58,10 +58,8 @@ namespace
 	ML_UNUSED MLProcInput<MLProcDebug> inputs[] = {"in"};
 }	
 
-
 // ----------------------------------------------------------------
 // implementation
-
 
 MLProcDebug::MLProcDebug() 
 {
@@ -95,11 +93,8 @@ void MLProcDebug::process(const int frames)
 		debug() << std::setw(6);
 		debug() << std::setprecision(2);
 		debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << frames << " = " << std::setprecision(4) << in[0] ;
-
 		debug() << " min:" << in.getMin() << ", max:" << in.getMax();
-		
 		debug() << "\n";
-		
 //		debug() << "RATE: " << getContextSampleRate() << " / " << in.getRate() << "\n";
 		
 		mTemp -= intervalFrames;
@@ -117,6 +112,23 @@ void MLProcDebug::process(const int frames)
 			}
 			debug() << "]\n\n";
 		}
+
+#ifdef _WINDOWS
+
+		// TODO dodgy temporary code, fix
+		const int kWideBufSize = 16384;
+		static wchar_t wideBuf[kWideBufSize];
+		const int kMaxChars = 256;
+		static char charBuf[kMaxChars];
+
+		snprintf(charBuf, kMaxChars, "sig %s: min %f, max %f\n\0", getName().getString().c_str(), in.getMin(), in.getMax());
+
+		MultiByteToWideChar(0, 0, charBuf, -1, wideBuf, kWideBufSize);
+		OutputDebugString(wideBuf);
+
+#endif
+
+
 	}
 #if SEND_OSC		
 	

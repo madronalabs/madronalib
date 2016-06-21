@@ -313,8 +313,8 @@ public:
 	virtual err resize() { return OK; }		
 	virtual err prepareToProcess();
     
-    // the process method.
-    virtual void process(const int n) = 0;	
+    // the process method. One is needed!
+    virtual void process(const int frames) = 0;	
 
 	// clearProc() is called by engine, procs override clear() to clear histories. 
 	void clearProc();	 
@@ -372,7 +372,7 @@ public:
 	virtual MLParamValue getParam(const ml::Symbol p);
 	virtual const std::string& getStringParam(const ml::Symbol p);
 	virtual const MLSignal& getSignalParam(const ml::Symbol p);
-	
+
 	// MLProc returns the index to an entry in its proc map.
 	// MLProcContainer returns an index to a published input or output.
 	virtual int getInputIndex(const ml::Symbol name);	

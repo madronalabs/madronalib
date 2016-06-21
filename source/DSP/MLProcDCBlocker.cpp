@@ -14,9 +14,9 @@ public:
 	 MLProcDCBlocker();
 	~MLProcDCBlocker();
 	
-	void clear();
-	void process(const int n);		
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void clear() override;
+	void process(const int frames) override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcDCBlocker> mInfo;
@@ -45,17 +45,14 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-
 MLProcDCBlocker::MLProcDCBlocker()
 {
 	setParam("f", 200.);	// default cutoff, not steep
 }
 
-
 MLProcDCBlocker::~MLProcDCBlocker()
 {
 }
-
 
 void MLProcDCBlocker::calcCoeffs(void) 
 {
@@ -86,6 +83,3 @@ void MLProcDCBlocker::process(const int frames)
 	}
 }
 
-
-
-   

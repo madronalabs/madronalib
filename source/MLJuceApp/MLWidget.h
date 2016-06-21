@@ -18,7 +18,7 @@ class MLWidgetContainer;
 // this can incorporate our own component class.
 //
 class MLWidget :
-    public OpenGLRenderer,
+//	public OpenGLRenderer,
 	public MLPropertySet,
 	public MLPropertyListener
 {
@@ -59,8 +59,8 @@ public:
 	virtual void viewSignal(ml::Symbol, const MLSignal&, int frames, int voices) {}
 
 	// TODO widgets should not own GL contexts
-    void setupGL(Component* pC);
-    OpenGLContext* getGLContext() { return pGLContext; }
+//    void setupGL(Component* pC);
+//    OpenGLContext* getGLContext() { return pGLContext; }
     
     // OpenGLRenderer methods to use if we have one
     virtual void newOpenGLContextCreated() {}
@@ -147,7 +147,7 @@ private:
 	Vec2 mLabelOffset;
 	
     // JUCE GL context, if we have one. Owned.
-    OpenGLContext* pGLContext;
+//    OpenGLContext* pGLContext;
 	
 	bool mWantsResizeLast;
 };

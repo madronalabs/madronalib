@@ -27,9 +27,9 @@ http://sam.zoy.org/wtfpl/COPYING for more details.
 
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include	"ffft/def.h"
-#include	"ffft/FFTRealFixLenParam.h"
-#include	"ffft/OscSinCos.h"
+#include	"def.h"
+#include	"FFTRealFixLenParam.h"
+#include	"OscSinCos.h"
 
 
 
@@ -90,7 +90,7 @@ private:
 
 
 
-#include	"ffft/FFTRealPassInverse.hpp"
+#include	"FFTRealPassInverse.hpp"
 
 
 

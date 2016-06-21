@@ -10,8 +10,8 @@ MLPositioner::MLPositioner(const MLRect& b) :
 	mElements(1),
 	mGeometry(kHorizontal),
 	mSizeFlags(kOdd),
-	mMarginFraction(0.),
-	mElementAspectRatio(1.)
+	mMarginFraction(0.f),
+	mElementAspectRatio(1.f)
 {
 	layout(); 
 }
@@ -21,8 +21,8 @@ MLPositioner::MLPositioner() :
 	mElements(1),
 	mGeometry(kHorizontal),
 	mSizeFlags(kOdd),
-	mMarginFraction(0.),
-	mElementAspectRatio(1.)
+	mMarginFraction(0.f),
+	mElementAspectRatio(1.f)
 {
 	layout(); 
 }
@@ -126,7 +126,8 @@ Vec2 MLPositioner::getElementPositionWithMargin(int elementIdx)
 //
 Vec2 MLPositioner::getElementPosition(int elementIdx)
 {
-	return correctPoint(getElementPositionWithMargin(elementIdx) + mElementMarginSize/Vec2(2.f));
+	Vec2 p = correctPoint(getElementPositionWithMargin(elementIdx) + mElementMarginSize / Vec2(2.f));
+	return p;
 }
 
 // get local bounds of an element and its margin. 

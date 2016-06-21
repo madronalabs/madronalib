@@ -27,17 +27,13 @@ http://sam.zoy.org/wtfpl/COPYING for more details.
 
 /*\\\ INCLUDE FILES \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\*/
 
-#include	"Array.h"
+#include	"ffft/Array.h"
 #include	"ffft/DynArray.h"
 #include	"ffft/FFTRealFixLenParam.h"
 #include	"ffft/OscSinCos.h"
 
-
-
 namespace ffft
 {
-
-
 
 template <int LL2>
 class FFTRealFixLen
@@ -120,7 +116,7 @@ private:
 
 
 
-#include	"ffft/FFTRealFixLen.hpp"
+#include	"FFTRealFixLen.hpp"
 
 
 

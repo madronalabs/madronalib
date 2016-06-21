@@ -233,14 +233,15 @@ MLProc::err MLMultiProc::setInput(const int idx, const MLSignal& srcSig)
 
 // we override setParam but not getParam.  Since all copies share parameters,
 // we just store them in our MLProc and return those for getParam().
+
 void MLMultiProc::setParam(const ml::Symbol p, MLParamValue v)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
-		mCopies[i]->setParam(p, v);
+		mCopies[i]->setParam(p, val);
 	}
-	MLProc::setParam(p, v);
+	MLProc::setParam(p, val);
 }	
 
 int MLMultiProc::getInputIndex(const ml::Symbol name)
@@ -477,14 +478,15 @@ MLProc::err MLMultiContainer::setInput(const int idx, const MLSignal& srcSig)
 // we override setParam but not getParam.  Since all copies share parameters,
 // we just store them in our MLProc and return those for getParam().
 // this is called for "ratio" and any other params added for MLProcContainer itself.
+
 void MLMultiContainer::setParam(const ml::Symbol p, MLParamValue v)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
-		mCopies[i]->setParam(p, v);
+		mCopies[i]->setParam(p, val);
 	}
-	MLProc::setParam(p, v);
+	MLProc::setParam(p, val);
 }	
 
 int MLMultiContainer::getInputIndex(const ml::Symbol name)

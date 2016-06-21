@@ -87,7 +87,7 @@ private:
 
 
 
-#include	"ffft/Array.hpp"
+#include	"Array.hpp"
 
 
 

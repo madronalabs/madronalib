@@ -15,10 +15,9 @@ public:
 	 MLProcSineOsc();
 	~MLProcSineOsc();
 	
-	void clear();
-	void doParams();
-	void process(const int n);
-	MLProcInfoBase& procInfo() { return mInfo; }
+	void clear() override;
+	void process(const int frames) override;
+	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcSineOsc> mInfo;
@@ -53,15 +52,14 @@ void MLProcSineOsc::clear()
     mOsc.setPhase(0);
 }
 
-void MLProcSineOsc::doParams()
-{
-    mOsc.setSampleRate(getContextSampleRate());
-    mParamsChanged = false;
-}
-
 void MLProcSineOsc::process(const int samples)
 {
-	if (mParamsChanged) doParams();
+	if (mParamsChanged) 
+	{
+		mOsc.setSampleRate(getContextSampleRate());
+		mParamsChanged = false;
+	}
+
     const MLSignal& freq = getInput(1);
     MLSignal& out = getOutput(1);
 	

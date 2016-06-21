@@ -14,11 +14,11 @@ public:
 	 MLProcDelay();
 	~MLProcDelay();
 	
-	err resize();
-	void clear();
-	void process(const int n);		
+	err resize() override;
+	void clear() override;
+	void process(const int frames) override;		
 	
-	MLProcInfoBase& procInfo() { return mInfo; }
+	MLProcInfoBase& procInfo() override { return mInfo; }
 private:
 	MLProcInfo<MLProcDelay> mInfo;
 	

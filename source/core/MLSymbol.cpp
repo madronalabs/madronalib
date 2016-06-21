@@ -128,7 +128,7 @@ namespace ml {
 			const char* symChars = sym.text;
 			Symbol symB(symChars);
 
-			i2 = symB.id;
+			i2 = symB.getID();
 			if (i != i2)
 			{
 				OK = false;

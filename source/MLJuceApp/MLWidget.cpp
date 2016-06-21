@@ -7,25 +7,27 @@
 #include "MLDebug.h"
 
 MLWidget::MLWidget() :
+	MLPropertyListener(this),
 	pComponent(nullptr),
 	mpContainer(nullptr),
-	MLPropertyListener(this),
 	mSize(1.f),
 	mGridBounds(),
 	mGridUnitSize(0),
 	mLabelOffset(),
-	pGLContext(nullptr),
+//	pGLContext(nullptr),
 	mWantsResizeLast(false)
 {
 }
 
 MLWidget::~MLWidget()
 {
+	/*
     if(pGLContext)
     {
         pGLContext->detach();
         delete pGLContext;
     }
+	 */
 }
 
 void MLWidget::doPropertyChangeAction(ml::Symbol param, const MLProperty& newVal)
@@ -52,6 +54,7 @@ void MLWidget::sendAction(ml::Symbol msg, ml::Symbol targetProperty, const MLPro
 	}
 }
 
+/*
 // TODO this looks pretty bad! A Widget should not have its own context. There should
 // be something like a Scene object that draws a bunch of GL Widgets. 
 void MLWidget::setupGL(Component* pC)
@@ -64,14 +67,17 @@ void MLWidget::setupGL(Component* pC)
         pGLContext->setContinuousRepainting(true);
     }
 }
+*/
 
 float MLWidget::getRenderingScale() const
 {
     float t = 1.0f;
+	/*
     if(pGLContext)
     {
         t = pGLContext->getRenderingScale();
     }
+	 */
     return t;
 }
 
@@ -172,10 +178,12 @@ void MLWidget::resizeWidget(const MLRect& b, const int)
 	if(pComponent)
 	{
 		pComponent->setBounds(b.left(), b.top(), b.width(), b.height());
+		/*
         if(pGLContext)
         {
             pGLContext->attachTo (*pComponent);
         }
+		 */
 	}
 }
 

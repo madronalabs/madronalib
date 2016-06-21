@@ -40,15 +40,14 @@ public:
 	~MLDSPEngine();	
 	
 	MLProc::err buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeSignalInputs, bool makeMidiInput);
-	void removeGraphAndInputs(void);
 	err getGraphStatus(void) {return mGraphStatus;}
 	
 	// ----------------------------------------------------------------
 	#pragma mark graph dynamics
-	//
 	
 	void compileEngine();
 	bool getCompileStatus(void) {return mCompileStatus;}
+	void setCompileStatus(bool b) {mCompileStatus = b;}
 	MLProc::err prepareEngine(double sr, int bufSize, int chunkSize);
 
 	// ----------------------------------------------------------------
@@ -63,6 +62,10 @@ public:
 	
 	// set external buffers for top level I/O with client
 	void setIOBuffers(const ClientIOMap& pMap);
+	
+	// as a Container, limit signal I/O to outside world connections
+	virtual int getMaxInputSignals() { return mInputChans; }
+	virtual int getMaxOutputSignals() { return mOutputChans; }
 	
 	// ----------------------------------------------------------------
 	// Housekeeping
@@ -136,7 +139,7 @@ private:
 	bool mCollectStats;
 	int mBufferSize;
 	err mGraphStatus;
-	err mCompileStatus;
+	bool mCompileStatus;
 	
 	// keep track of buffered samples to process, not including one-vector delay.
 	int mSamplesToProcess;
@@ -150,6 +153,7 @@ private:
 	void multiplyOutputBuffersByVolume();
 	void writeOutputBuffers(const int samples);
 	void readOutputBuffers(const int samples);
+	void clearOutputs(int frames);
 	
 	MLBiquad mMasterVolumeFilter;
 	MLSignal mMasterVolumeSig;
