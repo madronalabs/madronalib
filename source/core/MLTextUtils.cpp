@@ -103,12 +103,6 @@ namespace ml { namespace textUtils {
 		return v;
 	}
 	
-	const size_t countCodePoints(const TextFragment& frag)
-	{
-		utf::stringview<const char*> sv(frag.text, frag.text + frag.lengthInBytes);
-		return sv.codepoints();
-	}
-	
 	int findFirst(const TextFragment& frag, const codepoint_type c)
 	{
 		auto first = codepoint_iterator<const char*>(frag.text);
@@ -189,7 +183,7 @@ namespace ml { namespace textUtils {
 		int slashLoc = findLast(frag, '/');
 		if(slashLoc >= 0)
 		{
-			return subText(frag, slashLoc + 1, countCodePoints(frag));
+			return subText(frag, slashLoc + 1, frag.lengthInCodePoints());
 		}
 		
 		return frag;

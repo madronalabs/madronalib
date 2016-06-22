@@ -14,7 +14,6 @@
 #include <string>
 #include <vector>
 
-// #include "MLTextFragment.h"
 #include "MLSymbol.h"
 #include "../dsp/MLDSP.h"
 #include "utf.hpp/utf.hpp"
@@ -28,8 +27,6 @@ namespace ml { namespace textUtils {
 	int digitsToPositiveInt(const char32_t* p);
 	const char *naturalNumberToDigits(int value, char* pDest);
 	
-	const size_t countCodePoints(const TextFragment& txt);
-
 	int findFirst(const TextFragment& frag, const utf::codepoint_type c);
 	int findLast(const TextFragment& frag, const utf::codepoint_type c);
 
@@ -60,7 +57,7 @@ namespace ml { namespace textUtils {
 	std::vector<Symbol> vectorOfNonsenseSymbols( int len );
 	
 	// ----------------------------------------------------------------
-#pragma mark NameMaker
+	// NameMaker
 	// a utility to make many short, unique, human-readable names when they are needed. 
 	
 	class NameMaker
