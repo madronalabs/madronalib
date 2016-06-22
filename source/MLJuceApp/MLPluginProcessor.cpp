@@ -351,7 +351,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// choose new buffer size and vector size.
 		{
 			// bufSize is the smallest power of two greater than maxFramesPerBlock.
-			int maxFramesBits = bitsToContain(maxFramesPerBlock);
+			int maxFramesBits = ml::bitsToContain(maxFramesPerBlock);
 			bufSize = 1 << maxFramesBits;
 			
 			// vector size is desired processing block size, set this to default size of signal.
@@ -999,7 +999,7 @@ void MLPluginProcessor::saveStateToLongFileName(const std::string& longName)
 		if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
 		
 		// use only the short name as model param.
-		std::string shortName = ml::stringUtils::getShortName(longName);
+		std::string shortName = ml::textUtils::getShortName(longName);
 		setProperty("preset", shortName);
 		
 		std::string extension (".mlpreset");
@@ -1118,7 +1118,7 @@ void MLPluginProcessor::loadStateFromPath(const std::string& path)
         if(f.exists())
         {
             loadPatchStateFromFile(f);
-            std::string shortPath = ml::stringUtils::stripExtension(path);
+            std::string shortPath = ml::textUtils::stripExtension(path);
             setProperty("preset", shortPath);
         }
     }

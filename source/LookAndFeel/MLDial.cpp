@@ -287,20 +287,20 @@ float MLDial::clipToOtherDialValues(float val, WhichDial s)
 		case kMainDial:
 			if (style == MLDial::ThreeValueHorizontal || style == MLDial::ThreeValueVertical)
 			{
-				newValue = clamp (newValue, vMin, vMax);
+				newValue = ml::clamp (newValue, vMin, vMax);
 			}
 			break;
 		case kMinDial:
 			if (style == MLDial::TwoValueHorizontal || style == MLDial::TwoValueVertical)
-				newValue = min (newValue, vMax);
+				newValue = ml::min (newValue, vMax);
 			else
-				newValue = min (v, newValue);
+				newValue = ml::min (v, newValue);
 			break;
 		case kMaxDial:
 			if (style == MLDial::TwoValueHorizontal || style == MLDial::TwoValueVertical)
-				newValue = max (vMin, newValue);
+				newValue = ml::max (vMin, newValue);
 			else
-				newValue = max (v, newValue);
+				newValue = ml::max (v, newValue);
 			break;
 		default:
 			break;
@@ -1256,7 +1256,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 		// for dials without many possible values, slow down mouse movement
 		// as the inverse proportion to the number of values.
 		int ticks;		
-		int values = max(4, (int)(fabs(mTopValue - mBottomValue)/interval));
+		int values = ml::max(4, (int)(fabs(mTopValue - mBottomValue)/interval));
 		const int valuesThresh = 128;
 		if(values < valuesThresh)
 		{			
@@ -1280,7 +1280,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 			{
 				// get minimum visible change as change in position
 				float p2 = valueToProportionOfLength (val + minValChange*ticks);
-				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
+				r = proportionOfLengthToValue (ml::clamp (p2, 0.0f, 1.0f));
 			}
 			else 
 			{
@@ -1289,7 +1289,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 				if(mFlip) kTickDistance *= -1.f;
 				float p1 = valueToProportionOfLength (val);
 				float p2 = p1 + ticks*kTickDistance;
-				r = proportionOfLengthToValue (clamp (p2, 0.0f, 1.0f));
+				r = proportionOfLengthToValue (ml::clamp (p2, 0.0f, 1.0f));
 				
 				// if this motion is too small to change the displayed value, 
 				// do the smallest visible change instead
@@ -1374,7 +1374,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 						if (angle < rotaryEnd)
 						{
 							const float proportion = (angle - rotaryStart) / (rotaryEnd - rotaryStart);
-							valueWhenLastDragged = proportionOfLengthToValue (clamp (proportion, 0.0f, 1.0f));
+							valueWhenLastDragged = proportionOfLengthToValue (ml::clamp (proportion, 0.0f, 1.0f));
 						}
 					}
 				}
@@ -1393,7 +1393,7 @@ void MLDial::mouseDrag (const MouseEvent& e)
 					{
 						scaledMousePos = 1.0f - scaledMousePos;
 					}
-					valueWhenLastDragged = proportionOfLengthToValue (clamp (scaledMousePos, 0.0f, 1.0f));
+					valueWhenLastDragged = proportionOfLengthToValue (ml::clamp (scaledMousePos, 0.0f, 1.0f));
 				}		
 			}
 			if(detents && mSnapToDetents && !doFineAdjust)
@@ -1448,7 +1448,7 @@ void MLDial::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel
             if(wheel.isReversed) dpf = -dpf;			
 			float val = getFloatProperty("value");
 			int dir = sign(dpf);
-			int dp = dir*max(1, (int)(fabs(dpf)*16.)); // mouse scale for no detents
+			int dp = dir*ml::max(1, (int)(fabs(dpf)*16.)); // mouse scale for no detents
 						
 			float oldVal = valueWhenLastDragged;
 			valueWhenLastDragged = getNextValue(val, dp, doFineAdjust, kMouseWheelStepSize);
@@ -1983,7 +1983,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 		Rectangle<int> cBounds;		
 		if (style == MLDial::Rotary)
 		{
-			float minDim = min(width, height);
+			float minDim = ml::min(width, height);
 			
 			// get diameter.
 			// TODO make this a clearer customization or different class

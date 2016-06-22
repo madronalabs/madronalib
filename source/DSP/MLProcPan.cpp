@@ -56,7 +56,7 @@ void MLProcPan::process(const int samples)
 	for (int n=0; n<samples; ++n)
 	{
 		in = x[n];
-        pos = mSlewLimiter.processSample(clamp(pan[n], -1.f, 1.f));
+		pos = mSlewLimiter.processSample(ml::clamp(pan[n], -1.f, 1.f));
 		pos = pos*0.5f + 0.5f;
 		p = in*pos;
 		out1[n] = in - p;

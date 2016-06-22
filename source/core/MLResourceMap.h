@@ -43,7 +43,7 @@ public:
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
 	// else, return a null object of our value type V.
-	V findValue(std::vector<Symbol> path)
+	V findValue(std::vector<ml::Symbol> path)
 	{
 		MLResourceMap<K, V, C>* pNode = findNode(path);
 		if(pNode)
@@ -58,7 +58,7 @@ public:
 	
 	V findValue(const char* pathStr)
 	{
-		return findValue(textUtils::parsePath(pathStr));
+		return findValue(ml::textUtils::parsePath(pathStr));
 	}
 	
 	// WHY SHOULD K BE IN THE TEMPLATE ?
@@ -67,7 +67,7 @@ public:
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
 	
-	MLResourceMap<K, V, C>* addNode(std::vector<Symbol> path)
+	MLResourceMap<K, V, C>* addNode(std::vector<ml::Symbol> path)
 	{
 		MLResourceMap<K, V, C>* pNode = this;
 		
@@ -102,10 +102,10 @@ public:
 	
 	MLResourceMap<K, V, C>* addNode(const char* pathStr)
 	{
-		return addNode(textUtils::parsePath(pathStr));
+		return addNode(ml::textUtils::parsePath(pathStr));
 	}
 	
-	MLResourceMap<K, V, C>* addValue (std::vector<Symbol> path, const V& val)
+	MLResourceMap<K, V, C>* addValue (std::vector<ml::Symbol> path, const V& val)
 	{
 		MLResourceMap<K, V, C>* newNode = addNode(path);
 		newNode->setValue(val);
@@ -114,7 +114,7 @@ public:
 	
 	MLResourceMap<K, V, C>* addValue (const char* pathStr, const V& val)
 	{
-		return addValue(textUtils::parsePath(pathStr), val);
+		return addValue(ml::textUtils::parsePath(pathStr), val);
 	}
 	
 	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
@@ -255,11 +255,11 @@ public:
 		{
 			if(it.nodeHasValue())
 			{		
-				std::cout << textUtils::spaceStr(it.getDepth()) << it.getLeafName() << " [" << it->getValue() << "]\n";
+				std::cout << ml::textUtils::spaceStr(it.getDepth()) << it.getLeafName() << " [" << it->getValue() << "]\n";
 			}
 			else
 			{
-				std::cout << textUtils::spaceStr(it.getDepth()) << "/" << it.getLeafName() << "\n";
+				std::cout << ml::textUtils::spaceStr(it.getDepth()) << "/" << it.getLeafName() << "\n";
 			}
 		}
 	}
@@ -269,7 +269,7 @@ private:
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	MLResourceMap<K, V, C>* findNode(std::vector<Symbol> path)
+	MLResourceMap<K, V, C>* findNode(std::vector<ml::Symbol> path)
 	{
 		MLResourceMap<K, V, C>* pNode = this;
 

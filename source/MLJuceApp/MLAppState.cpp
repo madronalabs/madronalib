@@ -146,15 +146,15 @@ cJSON* MLAppState::getStateAsJSON()
 		ml::Symbol key = it->first;
 		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
 		{			
-			const char* keyStr = key.getString().c_str();
+			const char* keyStr = key.getSymbol().getTextFragment().text;
 			PropertyState& state = it->second;
 			switch(state.mValue.getType())
 			{
 				case MLProperty::kFloatProperty:
 					cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
 					break;
-				case MLProperty::kStringProperty:
-					cJSON_AddStringToObject(root, keyStr, state.mValue.getStringValue().c_str());
+				case MLProperty::kSymbolProperty:
+					cJSON_AddStringToObject(root, keyStr, state.mValue.getSymbolValue().getTextFragment().text);
 					break;
 				case MLProperty::kSignalProperty:
 					{
@@ -274,9 +274,9 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 							float* pSigData = signalValue.getBuffer();
 							if(pSigData)
 							{
-								int widthBits = bitsToContain(width);
-								int heightBits = bitsToContain(height);
-								int depthBits = bitsToContain(sigDepth);
+								int widthBits = ml::bitsToContain(width);
+								int heightBits = ml::bitsToContain(height);
+								int depthBits = ml::bitsToContain(sigDepth);
 								int size = 1 << widthBits << heightBits << depthBits;
 								
 								cJSON* pData = cJSON_GetObjectItem(child, "data");

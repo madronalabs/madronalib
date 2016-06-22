@@ -131,7 +131,7 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 		t.createLayout(mRichStr, kInfWidth); 
 		float tw = t.getWidth();
 		tw *= 1.33f; // slop
-		tw = max(tw, size); // for very short texts
+		tw = ml::max(tw, size); // for very short texts
 		Component* pC = getComponent();
 		if(pC)
 		{

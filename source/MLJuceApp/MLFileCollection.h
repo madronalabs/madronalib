@@ -16,7 +16,7 @@
 #include "MLDefaultFileLocations.h"
 #include "MLMenu.h"
 #include "MLProperty.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 #include "MLResourceMap.h"
 
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
@@ -108,25 +108,25 @@ public:
 	MLMenuPtr buildMenu() const;
 	
 	// build a menu of the files for which the function returns true.
-	MLMenuPtr buildMenu(std::function<bool(MLResourceMap<std::string, MLFile>::const_iterator)>) const;
+	MLMenuPtr buildMenu(std::function<bool(MLResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;
 	
     void dump() const;
     
 private:
 	
-	MLResourceMap<std::string, MLFile>* insertFileIntoMap(juce::File f);
+	MLResourceMap<ml::Symbol, MLFile>* insertFileIntoMap(juce::File f);
 	void buildIndex();
     void processFileInMap(int i);
 	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
 	
-	MLResourceMap<std::string, MLFile> mRoot;
+	MLResourceMap<ml::Symbol, MLFile> mRoot;
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
 	
     ml::Symbol mName;
-    String mExtension;
+    ml::Symbol mExtension;
 	std::list<Listener*> mpListeners;
 	int mProcessDelay;
 };

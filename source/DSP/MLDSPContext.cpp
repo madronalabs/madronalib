@@ -12,7 +12,7 @@ MLDSPContext::MLDSPContext()
 	: mEnabled(false)
 {
 	mVectorSize = 0;		
-	mSampleRate = kMLToBeCalculated;	
+	mSampleRate = kToBeCalculated;	
 	mInvSampleRate = 1.f;
 	mNullInput.setToConstant(0.f);
 	mResampleRatio = MLRatio(1, 1);

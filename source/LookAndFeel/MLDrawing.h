@@ -6,7 +6,7 @@
 #ifndef __ML_DRAWING_H__
 #define __ML_DRAWING_H__
 
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLUI.h"
 #include "MLLookAndFeel.h"
 

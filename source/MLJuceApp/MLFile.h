@@ -26,10 +26,10 @@ public:
 	bool operator== (const MLFile& b) const { return getJuceFile().getFullPathName() == b.getJuceFile().getFullPathName(); }
 	bool operator!= (const MLFile& b) const { return !(operator==(b)); }
 	
-	std::string getShortName() const;
-	std::string getLongName() const;
+	ml::TextFragment getShortName() const;
+	ml::TextFragment getLongName() const;
+	ml::TextFragment getParentDirectoryName() const;
 	
-	std::string getParentDirectoryName() const;
 	const juce::File& getJuceFile() const { return mJuceFile; }
 	
 	static const MLFile nullObject;

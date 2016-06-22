@@ -12,7 +12,7 @@
 #include <memory>
 
 #include "pa_ringbuffer.h"
-#include "MLDSP.h"
+//#include "MLDSP.h"
 #include "MLSignal.h"
 
 class MLRingBuffer
@@ -25,10 +25,10 @@ public:
 	int resize(int length);
 	int getRemaining();
 		
-	int write(const MLSample* pSrc, int samples);
-	int writeWithOverlapAdd(const MLSample* pSrc, int samples, int overlap);
-	int read(MLSample* pDest, int samples);
-	int readWithOverlap(MLSample* pDest, int samples, int overlap);
+	int write(const float* pSrc, int samples);
+	int writeWithOverlapAdd(const float* pSrc, int samples, int overlap);
+	int read(float* pDest, int samples);
+	int readWithOverlap(float* pDest, int samples, int overlap);
 
 	PaUtilRingBuffer mBuf;
 	MLSignal mData;

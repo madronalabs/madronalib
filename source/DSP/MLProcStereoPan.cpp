@@ -61,7 +61,7 @@ void MLProcStereoPan::process(const int samples)
     
 	for (int n=0; n<samples; ++n)
 	{
-        float pos = mSlewLimiter.processSample(clamp(pan[n], -1.f, 1.f));
+        float pos = mSlewLimiter.processSample(ml::clamp(pan[n], -1.f, 1.f));
 		pos = pos*0.5f + 0.5f; // [-1, 1] -> [0, 1]
 		
 		outL[n] = inL[n]*LToLGain(pos) + inR[n]*RToLGain(pos);

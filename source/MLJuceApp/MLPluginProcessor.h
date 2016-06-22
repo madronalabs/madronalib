@@ -14,7 +14,7 @@
 #include "MLControlEvent.h"
 #include "MLProperty.h" 
 #include "MLAppState.h"
-#include "MLStringUtils.h"
+#include "MLTextUtils.h"
 
 #if ML_MAC
 #include "pa_ringbuffer.h"

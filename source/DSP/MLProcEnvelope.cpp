@@ -120,12 +120,12 @@ void MLProcEnvelope::process(const int samples)
 		// SSE here works on a single instance
 		{
 			mSustain = sustain[n];
-			mDelayStep = invSr / max(delay[n], kMinSegTime); 
-			mRepeatStep = (repeat[n] == 0.f) ? 0.f : invSr / max(repeat[n], kMinSegTime);
-			mCAttack =  kMLTwoPi * invSr / max(attackIn, kMinSegTime);
-			mCDecay = kMLTwoPi * invSr / max(decay[n], kMinSegTime);
+			mDelayStep = invSr / ml::max(delay[n], kMinSegTime); 
+			mRepeatStep = (repeat[n] == 0.f) ? 0.f : invSr / ml::max(repeat[n], kMinSegTime);
+			mCAttack =  kMLTwoPi * invSr / ml::max(attackIn, kMinSegTime);
+			mCDecay = kMLTwoPi * invSr / ml::max(decay[n], kMinSegTime);
 //			mCSustain = kMLTwoPi * invSr / ();
-			mCRelease = kMLTwoPi * invSr / max(release[n], kMinSegTime);
+			mCRelease = kMLTwoPi * invSr / ml::max(release[n], kMinSegTime);
 		}
 		
 		// process gate input

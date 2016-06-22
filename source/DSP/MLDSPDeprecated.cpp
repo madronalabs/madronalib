@@ -25,13 +25,6 @@ MLSample* alignToCacheLine(const MLSample* p)
 	return(MLSample*)pM;
 } 
 
-int bitsToContain(int n)
-{
-	int exp;
-	for (exp = 0; (1 << exp) < n; exp++);
-	return (exp);
-}
-
 int ilog2(int x)
 {
 	int b=0;
@@ -364,6 +357,7 @@ const float MLPhaseOsc::kDomainScale = 1.f/kIntDomain;
 // ----------------------------------------------------------------
 #pragma mark MLSampleDelay
 
+/*
 void MLSampleDelay::resize(float duration)
 {
     int newSize = duration*(float)mSR;
@@ -371,6 +365,7 @@ void MLSampleDelay::resize(float duration)
     mLengthMask = (1 << mBuffer.getWidthBits()) - 1;
     clear();
 }
+*/
 
 // ----------------------------------------------------------------
 #pragma mark MLLinearDelay

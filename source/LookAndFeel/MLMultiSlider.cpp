@@ -37,7 +37,7 @@ MLMultiSlider::~MLMultiSlider()
 
 void MLMultiSlider::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
-	if (property.withoutFinalNumber() == "value")
+	if (ml::textUtils::stripFinalNumber(property) == "value")
 	{
 		repaint();
 	}
@@ -127,7 +127,7 @@ void MLMultiSlider::paint (Graphics& g)
 	{
 		MLRect sr = (mPos.getElementBounds(i));
 
-		dialY = drawRange(getFloatProperty(ml::Symbol("value").withFinalNumber(i)));
+		dialY = drawRange(getFloatProperty(ml::textUtils::addFinalNumber(ml::Symbol("value"), i)));
 		fullRect = sr;
 		emptyRect = sr;		
 		fullRect.setTop(dialY);
@@ -209,7 +209,7 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 	
     if (isEnabled())
     {	
-		if (within(s, 0, dials))
+		if (ml::within(s, 0, dials))
 		{
 			const int mousePos = mVertical ? my : mx;
 			float val;
@@ -333,13 +333,13 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails
 		int s = getSliderUnderPoint(Vec2(e.x, e.y));
 		if ((s >= 0) && ! isMouseButtonDownAnywhere())
 		{
-			float currentVal = getFloatProperty(ml::Symbol("value").withFinalNumber(s));
+			float currentVal = getFloatProperty(ml::textUtils::addFinalNumber(ml::Symbol("value"), s));
 			float minPosDelta = 0.01f;
 			float deltaDir = (wheel.deltaY > 0.f) ? 1.f : -1.f;
 			float posDelta = (wheel.deltaY + deltaDir*minPosDelta)*wheelSpeed*wheelDirection; 			
 			
 			const float currentPos = valueToProportionOfLength (currentVal);
-			const float newPos = clamp (currentPos + posDelta, 0.f, 1.f);
+			const float newPos = ml::clamp (currentPos + posDelta, 0.f, 1.f);
 			float newValue = proportionOfLengthToValue (newPos);
 
 			if(newValue != currentVal)
@@ -379,13 +379,13 @@ int MLMultiSlider::getSliderUnderMouse()
 
 void MLMultiSlider::sendSliderAction (float val, int selector)
 {
-	ml::Symbol sliderName = ml::Symbol("value").withFinalNumber(selector);
+	ml::Symbol sliderName = ml::textUtils::addFinalNumber("value", selector);
 	float currentValue = getFloatProperty(sliderName);
 	float newValue = constrainedValue(val);
 
     if (currentValue != newValue)
     {
-		ml::Symbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
+		ml::Symbol targetPropertyName = ml::textUtils::addFinalNumber(getTargetPropertyName(), selector);
 		setPropertyImmediate(sliderName, newValue);
 		sendAction("change_property", targetPropertyName, getProperty(sliderName));
     }

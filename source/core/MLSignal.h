@@ -28,15 +28,6 @@ typedef enum
 constexpr float kTimeless = -1.f;
 constexpr float kToBeCalculated = 0.f;
 
-inline int bitsToContain(int n)
-{
-	int exp;
-	for (exp = 0; (1 << exp) < n; exp++);
-	return (exp);
-}
-
-
-
 // ----------------------------------------------------------------
 // A signal. A finite, discrete representation of data we will 
 // generate, modify, look at listen to, etc.

@@ -342,7 +342,7 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
 	int idx = 0;
 	int voice = 0;
 	int sig = 0;
-	ml::Symbol name0 = name.withoutFinalNumber();
+	ml::Symbol name0 = ml::textUtils::stripFinalNumber(name);
 			
 	// match signal name with symbol text
 	for(int n=0; n<kNumVoiceSignals; ++n)
@@ -357,7 +357,7 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
 	// get voice number from end of symbol
 	if (sig)
 	{
-		voice = name.getFinalNumber();
+		voice = ml::textUtils::getFinalNumber(name);
 		if ((voice) && (voice <= mCurrentVoices))
 		{
 			idx = (voice - 1)*kNumVoiceSignals + sig;

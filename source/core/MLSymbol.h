@@ -26,7 +26,7 @@
 #include <algorithm>
 
 #include "MLLocks.h"
-#include "MLTextFragment.h"
+#include "MLText.h"
 
 namespace ml {
 	

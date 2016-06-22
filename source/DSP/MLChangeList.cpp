@@ -56,7 +56,7 @@ void MLChangeList::zero()
 void MLChangeList::calcGlide()
 {
 	const unsigned prevGlideTimeInSamples = mGlideTimeInSamples;
-	mGlideTimeInSamples = max(1, (int)(mGlideTime * (float)mSampleRate));
+	mGlideTimeInSamples = ml::max(1, (int)(mGlideTime * (float)mSampleRate));
 	mInvGlideTimeInSamples = 1.f / (float)mGlideTimeInSamples;
 	const float glideFrac = (float)mGlideCounter / (float)prevGlideTimeInSamples;
 	mGlideCounter = (unsigned)(glideFrac*(float)mGlideTimeInSamples);
@@ -108,8 +108,8 @@ inline void MLChangeList::setGlideTarget(float target)
 // 
 void MLChangeList::writeToSignal(MLSignal& y, int frames)
 {
-  	int size = min(y.getWidth(), mValueSignal.getWidth());
-	size = min(size, frames);
+  	int size = ml::min(y.getWidth(), mValueSignal.getWidth());
+	size = ml::min(size, frames);
 	int t=0;
 	int changeTime;
 	

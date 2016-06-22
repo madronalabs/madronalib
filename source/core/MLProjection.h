@@ -8,8 +8,12 @@
 
 #pragma once
 
+#include <math.h>
 #include <functional>
 #include <vector>
+
+#include "MLScalarMath.h"
+
 //#include "MLDSP.h"
 //#include "MLInterval.h"
 

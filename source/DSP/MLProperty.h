@@ -11,21 +11,21 @@
 #include <map>
 #include "MLSignal.h"
 #include "MLSymbol.h"
+#include "MLText.h"
 #include "MLDebug.h"
 
-// MLProperty: a modifiable property. Properties have four types: undefined, float, string, and signal.
+// MLProperty: a modifiable property. Properties have four types: undefined, float, text, and signal.
 
 class MLProperty
 {
 public:
-	static const std::string nullString;
 	static const MLSignal nullSignal;
 
 	enum Type
 	{
 		kUndefinedProperty	= 0,
 		kFloatProperty	= 1,
-		kStringProperty = 2,
+		kTextProperty = 2,
 		kSignalProperty = 3
 	};
 
@@ -33,12 +33,12 @@ public:
 	MLProperty(const MLProperty& other);
 	MLProperty& operator= (const MLProperty & other);
 	MLProperty(float v);
-	MLProperty(const std::string& s);
+	MLProperty(const ml::TextFragment s); // TODO look at auto-pasring TextFragment into Text, a vector of fragments
 	MLProperty(const MLSignal& s);
 	~MLProperty();
     
-	const float& getFloatValue() const;
-	const std::string& getStringValue() const;
+	const float getFloatValue() const;
+	const ml::Text& getTextValue() const;
 	const MLSignal& getSignalValue() const;
     
 	// For each type of property, a setValue method must exist
@@ -49,7 +49,7 @@ public:
 	// This guarantee keeps DSP graphs from allocating memory as they run.
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
-	void setValue(const std::string& v);
+	void setValue(const ml::Text& v);
 	void setValue(const MLSignal& v);
 	
 	bool operator== (const MLProperty& b) const;
@@ -60,10 +60,9 @@ public:
 	
 private:
 	// TODO reduce storage requirements-- this is a minimal-code start
-	// TODO stop using std::string, which seems to be causing threading issues
 	Type mType;
 	float mFloatVal;
-	std::string mStringVal;
+	ml::Text mTextVal;
 	MLSignal mSignalVal;
 };
 
@@ -85,7 +84,7 @@ public:
     
 	const MLProperty& getProperty(ml::Symbol p) const;
 	const float& getFloatProperty(ml::Symbol p) const;
-	const std::string& getStringProperty(ml::Symbol p) const;
+	const ml::Text& getTextProperty(ml::Symbol p) const;
 	const MLSignal& getSignalProperty(ml::Symbol p) const;
     
 	// set the property and allow it to propagate to Listeners the next time

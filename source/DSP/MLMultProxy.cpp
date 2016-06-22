@@ -59,7 +59,7 @@ void MLMultProxy::setCopies(const int newSize)
 void MLMultProxy::setEnabledCopies(const int c)
 {
 	int copies = (int)mCopies.size();
-	mEnabledCopies = min(c, copies);
+	mEnabledCopies = ml::min(c, copies);
 	
 	for (int i=0; i < copies; ++i)
 	{
@@ -234,14 +234,14 @@ MLProc::err MLMultiProc::setInput(const int idx, const MLSignal& srcSig)
 // we override setParam but not getParam.  Since all copies share parameters,
 // we just store them in our MLProc and return those for getParam().
 
-void MLMultiProc::setParam(const ml::Symbol p, MLParamValue v)
+void MLMultiProc::setParam(const ml::Symbol p, const MLProperty& v)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
-		mCopies[i]->setParam(p, val);
+		mCopies[i]->setParam(p, v);
 	}
-	MLProc::setParam(p, val);
+	MLProc::setParam(p, v);
 }	
 
 int MLMultiProc::getInputIndex(const ml::Symbol name)
@@ -288,12 +288,11 @@ void MLMultiProc::dumpProc(int indent)
 {
 	const int copies = (int)mCopies.size();	
 
-	debug() << ml::stringUtils::spaceStr(indent) << getName() << " (multiproc " << (void *)&(*this) << ")\n";
+	debug() << ml::textUtils::spaceStr(indent) << getName() << " (multiproc " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-	debug() << ml::stringUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";
-	
+		debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopy(i)->dumpProc(indent + 1);
 	}
 }
@@ -479,14 +478,14 @@ MLProc::err MLMultiContainer::setInput(const int idx, const MLSignal& srcSig)
 // we just store them in our MLProc and return those for getParam().
 // this is called for "ratio" and any other params added for MLProcContainer itself.
 
-void MLMultiContainer::setParam(const ml::Symbol p, MLParamValue v)
+void MLMultiContainer::setParam(const ml::Symbol p, const MLProperty& v)
 {
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
-		mCopies[i]->setParam(p, val);
+		mCopies[i]->setParam(p, v);
 	}
-	MLProc::setParam(p, val);
+	MLProc::setParam(p, v);
 }	
 
 int MLMultiContainer::getInputIndex(const ml::Symbol name)
@@ -705,11 +704,11 @@ void MLMultiContainer::dumpGraph(int indent)
 	
 	dumpProc(indent);
 
-	debug() << ml::stringUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
+	debug() << ml::textUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-		debug() << ml::stringUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
+		debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopyAsContainer(i)->dumpGraph(indent + 1);
 	}
 }

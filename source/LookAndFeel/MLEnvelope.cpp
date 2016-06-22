@@ -85,10 +85,10 @@ void MLEnvelope::paint (Graphics& g)
 	
 	if (mRepeat > epsilon)
 	{
-		totalTime = max(totalTime, (float)(leadIn + mDelay + mRepeat + leadOut));
+		totalTime = ml::max(totalTime, (float)(leadIn + mDelay + mRepeat + leadOut));
 	}
 	
-	totalTime = max(totalTime, 0.01f);
+	totalTime = ml::max(totalTime, 0.01f);
 	
 	// get dims
 	MLRange vRange(UnityRange);

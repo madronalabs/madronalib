@@ -43,7 +43,7 @@ MLProc::err MLProcRingBuffer::resize()
 {	
 	MLProc::err e = OK;
 	int frameSize = getParam("frame_size");
-	int length = 1 << bitsToContain((int)getParam("length"));
+	int length = 1 << ml::bitsToContain((int)getParam("length"));
 	void * buf;
 	
 	// debug() << "allocating " << size << " samples for ringbuffer " << getName() << "\n";
@@ -81,7 +81,7 @@ void MLProcRingBuffer::process(const int frames)
 	const MLSignal& x = getInput(1);
 	int frameSize = getParam("frame_size");
 	int inputFrameSize = x.getHeight();
-	int framesToProcess = min(frames, x.getWidth());
+	int framesToProcess = ml::min(frames, x.getWidth());
 
 	// build if needed
 	if (mParamsChanged) doParams();
@@ -130,7 +130,7 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 	int mode = (int)getParam(modeSym);
 		
 	int frameSize = getParam("frame_size");
-	int framesToRead = min(frames, (int)outSig.getWidth());
+	int framesToRead = ml::min(frames, (int)outSig.getWidth());
 	int framesAvailable = (int)PaUtil_GetRingBufferReadAvailable( &mBuf )/frameSize;
     
     // return if we have not accumulated enough signal.

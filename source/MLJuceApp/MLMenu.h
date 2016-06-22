@@ -30,7 +30,10 @@ class MLMenu
 public:
     class Node;
     typedef std::shared_ptr<Node> NodePtr;
-	typedef std::map<std::string, NodePtr, ml::stringUtils::caseInsensitiveCompare<std::string> > StringToMenuNodeMapT;
+	
+	// typedef std::map<std::string, NodePtr, ml::textUtils::caseInsensitiveCompare<std::string> > StringToMenuNodeMapT;
+	// MLTEST rewrite with textUtils compare on Symbols
+	typedef std::map<std::string, NodePtr > StringToMenuNodeMapT;
     class Node
     {
     public:

@@ -190,7 +190,7 @@ int MLProc::getInputIndex(const ml::Symbol name)
 	int idx = 0;
 	if (procInfo().hasVariableInputs())
 	{
-		idx = name.getFinalNumber();
+		idx = ml::textUtils::getFinalNumber(name);
 	}
 	else
 	{	
@@ -210,19 +210,8 @@ int MLProc::getOutputIndex(const ml::Symbol name)
 	int idx = 0;
 	if (procInfo().hasVariableOutputs())
 	{
-//		idx = name.getNumber();
 		// variable outputs are indexed by symbols out1, out2, ...
-		const std::string& str = name.getString();
-		if (str[0] == 'o')
-		{
-			idx = atoi(&str[3]);
-		}
-		else
-		{
-            /* TEMP compiler issues
-			debug() << "MLProc::getOutputIndex: bad name for variable output index " << str << "!\n";
-             */
-		}
+		idx = ml::textUtils::getFinalNumber(name);
 	}
 	else
 	{
@@ -240,7 +229,7 @@ ml::Symbol MLProc::getOutputName(int index)
 {	
 	if (procInfo().hasVariableOutputs())
 	{
-		return ml::Symbol("out").withFinalNumber(index);
+		return ml::textUtils::addFinalNumber(ml::Symbol("out"), index);
 	}
 	else if (index <= (int)mOutputs.size())
 	{		
@@ -309,7 +298,7 @@ ml::Symbol MLProc::getNameWithCopyIndex()
     int c = mCopyIndex;
     if(c)
     {
-        return mName.withFinalNumber(mCopyIndex);
+        return ml::textUtils::addFinalNumber(mName, mCopyIndex);
     }
     else
     {
@@ -340,7 +329,7 @@ void MLProc::dumpProc(int indent)
 	const MLSignal* pNullInput = &(getContext()->getNullInput());
 	const MLSignal* pNullOutput = &(getContext()->getNullOutput());
 		
-	debug() << ml::stringUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
+	debug() << ml::textUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
 	
 	if (isContainer())
 	{
@@ -348,7 +337,7 @@ void MLProc::dumpProc(int indent)
 		debug() << enabledStr;
 	}
 	debug() << "\n";
-	debug() << ml::stringUtils::spaceStr(indent) << "inputs: ";
+	debug() << ml::textUtils::spaceStr(indent) << "inputs: ";
 	if (ins)
 	{
 		for(int j = 1; j <= ins; ++j)
@@ -370,7 +359,7 @@ void MLProc::dumpProc(int indent)
 		debug() << "(none)";
 	}
 	debug() << "\n";
-	debug() << ml::stringUtils::spaceStr(indent) << "outputs: ";
+	debug() << ml::textUtils::spaceStr(indent) << "outputs: ";
 	if (outs)
 	{
 		for(int j = 1; j <= outs; ++j)
@@ -499,7 +488,6 @@ MLProcPtr MLProcFactory::create(const ml::Symbol className, MLDSPContext* contex
 
 void MLProcFactory::printRegistry(void)
 {
-	std::string procName;
 	int size = (int)procRegistry.size();
 	
 	debug() << "---------------------------------------\n";
@@ -507,7 +495,6 @@ void MLProcFactory::printRegistry(void)
 	
 	for (FnRegistryT::iterator i = procRegistry.begin(); i != procRegistry.end(); i++)
 	{
-		procName = (*i).first.getString();
-		debug() << procName << "\n";		
+		debug() << (*i).first << "\n";		
 	}
 }

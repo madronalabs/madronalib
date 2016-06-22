@@ -85,10 +85,10 @@ void MLProcDelayOutput::doParams()
 	// is the best I could come up with.
 	
 	MLProcContainer* myContainer = static_cast<MLProcContainer*>(getContext());
-	const std::string myName = getName().getString();
-	int dPos = myName.find('_');
+	const ml::TextFragment myName = getName().getTextFragment();
+	int dPos = ml::textUtils::findFirst(myName, '_');
 	
-	MLPath delayName (myName.substr(0, dPos));
+	MLPath delayName (ml::textUtils::subText(myName, 0, dPos).text);
 	MLProcPtr myInputProc = myContainer->getProc(delayName);
 	
 	if (myInputProc)

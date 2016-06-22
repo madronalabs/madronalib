@@ -172,7 +172,7 @@ void MLFileCollection::dump() const
 		if(!it.atEndOfMap())
 		{
 			int depth = it.getDepth();
-			const std::string depthStr = ml::stringUtils::spaceStr(depth);
+			const std::string depthStr = ml::textUtils::spaceStr(depth);
 			const std::string& itemName = it.getLeafName();
 			
 			if(it.nodeHasValue())
@@ -258,9 +258,9 @@ void MLFileCollection::cancelProcess()
 std::string MLFileCollection::getFilePathByIndex(int idx)
 {
     int size = mFilesByIndex.size();
-    if(within(idx, 0, size))
+	if(ml::within(idx, 0, size))
     {
-		std::string fullName = mFilesByIndex[idx].getLongName();
+		ml::TextFragment fullName = mFilesByIndex[idx].getLongName();
 		return getRelativePathFromName(fullName);
     }
     return std::string();
@@ -360,12 +360,12 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 	
 #endif
 	
-    return ml::stringUtils::stripExtension(relPath);
+    return ml::textUtils::stripExtension(relPath);
 }
 
 MLMenuPtr MLFileCollection::buildMenu() const
 {
-	return buildMenu([=](MLResourceMap<std::string, MLFile>::const_iterator it){ return true; });
+	return buildMenu([=](MLResourceMap<ml::Symbol, MLFile>::const_iterator it){ return true; });
 }
 
 MLMenuPtr MLFileCollection::buildMenu(std::function<bool(MLResourceMap<std::string, MLFile>::const_iterator)> includeFn) const

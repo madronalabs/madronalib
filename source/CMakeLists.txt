@@ -33,7 +33,7 @@ if(BUILD_NEW_ONLY)
     core/MLTextUtils.cpp
     core/MLTextUtils.h
     core/MLResourceMap.h    
-    core/MLTextFragment.h
+    core/MLText.h
     )
 else(BUILD_NEW_ONLY)
   
@@ -55,6 +55,7 @@ else(BUILD_NEW_ONLY)
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
+    core/MLText.h   
     core/MLTextUtils.cpp
     core/MLTextUtils.h
     core/MLResourceMap.h

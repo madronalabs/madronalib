@@ -38,8 +38,8 @@ MLProcMatrix::~MLProcMatrix()
 MLProc::err MLProcMatrix::resize()
 {
 	MLProc::err e = OK;
-	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = ml::min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = ml::min(kMLMatrixMaxOuts, getNumOutputs());
     mInputs = inputs;
     mOutputs = outputs;
 	return e;
@@ -60,8 +60,8 @@ void MLProcMatrix::clearConnections()
 // multiple connections are made here using connect method.
 void MLProcMatrix::connect(int a, int b)
 {
-	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = ml::min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = ml::min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		mGain[a][b] = 1.;
@@ -70,8 +70,8 @@ void MLProcMatrix::connect(int a, int b)
 
 void MLProcMatrix::disconnect(int a, int b)
 {
-	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = ml::min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = ml::min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		mGain[a][b] = 0.;
@@ -82,8 +82,8 @@ void MLProcMatrix::disconnect(int a, int b)
 bool MLProcMatrix::getConnection(int a, int b)
 {
 	bool r = false;
-	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = ml::min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = ml::min(kMLMatrixMaxOuts, getNumOutputs());
 	if ((a <= inputs) && (b <= outputs))
 	{
 		r = (mGain[a][b] > 0.5f);
@@ -124,8 +124,8 @@ void MLProcMatrix::calcCoeffs()
 
 void MLProcMatrix::process(const int frames)
 {
-	const int inputs = min(kMLMatrixMaxIns, getNumInputs());
-	const int outputs = min(kMLMatrixMaxOuts, getNumOutputs());
+	const int inputs = ml::min(kMLMatrixMaxIns, getNumInputs());
+	const int outputs = ml::min(kMLMatrixMaxOuts, getNumOutputs());
 	
     if((inputs != mInputs) || (outputs != mOutputs))
     {

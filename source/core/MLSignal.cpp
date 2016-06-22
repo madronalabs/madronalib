@@ -168,9 +168,9 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 		// signal to take slice of must be 2d or 3d!
 		assert(false);
 	}
-	mWidthBits = bitsToContain(mWidth);
-	mHeightBits = bitsToContain(mHeight);
-	mDepthBits = bitsToContain(mDepth);
+	mWidthBits = ml::bitsToContain(mWidth);
+	mHeightBits = ml::bitsToContain(mHeight);
+	mDepthBits = ml::bitsToContain(mDepth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
 }
 
@@ -207,9 +207,9 @@ float* MLSignal::setDims (int width, int height, int depth)
 	mWidth = width;
 	mHeight = height;
 	mDepth = depth;
-	mWidthBits = bitsToContain(width);
-	mHeightBits = bitsToContain(height);
-	mDepthBits = bitsToContain(depth);
+	mWidthBits = ml::bitsToContain(width);
+	mHeightBits = ml::bitsToContain(height);
+	mDepthBits = ml::bitsToContain(depth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
 
 	// SETDIMS
@@ -361,8 +361,8 @@ void MLSignal::write(float *output, const int offset, const int n)
 // TODO SSE
 void MLSignal::sigClamp(const MLSignal& a, const MLSignal& b)
 {
-	int n = min(mSize, a.getSize());
-	n = min(n, b.getSize());
+	int n = ml::min(mSize, a.getSize());
+	n = ml::min(n, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
 		float f = mDataAligned[i];
@@ -372,42 +372,42 @@ void MLSignal::sigClamp(const MLSignal& a, const MLSignal& b)
 
 void MLSignal::sigMin(const MLSignal& b)
 {
-	int n = min(mSize, b.getSize());
+	int n = ml::min(mSize, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
 		float f = mDataAligned[i];
-		mDataAligned[i] = min(f, b.mDataAligned[i]);
+		mDataAligned[i] = ml::min(f, b.mDataAligned[i]);
 	}
 }
 
 void MLSignal::sigMax(const MLSignal& b)
 {
-	int n = min(mSize, b.getSize());
+	int n = ml::min(mSize, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
 		float f = mDataAligned[i];
-		mDataAligned[i] = max(f, b.mDataAligned[i]);
+		mDataAligned[i] = ml::max(f, b.mDataAligned[i]);
 	}
 }
 
 // TODO SSE
 void MLSignal::sigLerp(const MLSignal& b, const float mix)
 {
-	int n = min(mSize, b.getSize());
+	int n = ml::min(mSize, b.getSize());
 	for(int i = 0; i < n; ++i)
 	{
-		mDataAligned[i] = lerp(mDataAligned[i], b.mDataAligned[i], mix);
+		mDataAligned[i] = ml::lerp(mDataAligned[i], b.mDataAligned[i], mix);
 	}
 }
 
 // TODO SSE
 void MLSignal::sigLerp(const MLSignal& b, const MLSignal& mix)
 {
-	int n = min(mSize, b.getSize());
-	n = min(n, mix.getSize());
+	int n = ml::min(mSize, b.getSize());
+	n = ml::min(n, mix.getSize());
 	for(int i = 0; i < n; ++i)
 	{
-		mDataAligned[i] = lerp(mDataAligned[i], b.mDataAligned[i], mix.mDataAligned[i]);
+		mDataAligned[i] = ml::lerp(mDataAligned[i], b.mDataAligned[i], mix.mDataAligned[i]);
 	}
 }
 
@@ -431,7 +431,7 @@ bool MLSignal::operator==(const MLSignal& b) const
 
 void MLSignal::copy(const MLSignal& b)
 {
-	const int n = min(mSize, b.getSize());
+	const int n = ml::min(mSize, b.getSize());
 	std::copy(b.mDataAligned, b.mDataAligned + n, mDataAligned);
 }
 
@@ -497,7 +497,7 @@ const float MLSignal::operator() (const float i, const float j) const
 // TODO SSE
 void MLSignal::add(const MLSignal& b)
 {
-	int n = min(mSize, b.mSize);
+	int n = ml::min(mSize, b.mSize);
 	for(int i = 0; i < n; ++i)
 	{
 		mDataAligned[i] += b.mDataAligned[i];
@@ -507,7 +507,7 @@ void MLSignal::add(const MLSignal& b)
 // TODO SSE
 void MLSignal::subtract(const MLSignal& b)
 {
-	int n = min(mSize, b.mSize);
+	int n = ml::min(mSize, b.mSize);
 	for(int i = 0; i < n; ++i)
 	{
 		mDataAligned[i] -= b.mDataAligned[i];
@@ -517,7 +517,7 @@ void MLSignal::subtract(const MLSignal& b)
 // TODO SSE
 void MLSignal::multiply(const MLSignal& b)
 {
-	int n = min(mSize, b.mSize);
+	int n = ml::min(mSize, b.mSize);
 	for(int i = 0; i < n; ++i)
 	{
 		mDataAligned[i] *= b.mDataAligned[i];
@@ -527,7 +527,7 @@ void MLSignal::multiply(const MLSignal& b)
 // TODO SSE
 void MLSignal::divide(const MLSignal& b)
 {
-	int n = min(mSize, b.mSize);
+	int n = ml::min(mSize, b.mSize);
 	for(int i = 0; i < n; ++i)
 	{
 		mDataAligned[i] /= b.mDataAligned[i];
@@ -592,7 +592,7 @@ void MLSignal::sigMin(const float m)
 	for(int i=0; i<mSize; ++i)
 	{
 		float f = mDataAligned[i];
-		mDataAligned[i] = min(f, (float)m);
+		mDataAligned[i] = ml::min(f, (float)m);
 	}
 }
 
@@ -602,7 +602,7 @@ void MLSignal::sigMax(const float m)
 	for(int i=0; i<mSize; ++i)
 	{
 		float f = mDataAligned[i];
-		mDataAligned[i] = max(f, (float)m);
+		mDataAligned[i] = ml::max(f, (float)m);
 	}
 }
 
@@ -976,7 +976,7 @@ void MLSignal::setIdentity()
 {
 	MLSignal& a = *this;
     clear();
-    int n = min(mWidth, mHeight);
+    int n = ml::min(mWidth, mHeight);
     for(int i = 0; i < n; ++i)
     {
         a(i, i) = 1;
@@ -1163,7 +1163,7 @@ void MLSignal::dumpASCII(std::ostream& s) const
 		for(int i=0; i<w; ++i)
 		{
 			int v = (f(i,j)*scale);
-			s << g[clamp(v, 0, scale - 1)];
+			s << g[ml::clamp(v, 0, scale - 1)];
 		}
 		s << "|\n";
 	}
@@ -1210,8 +1210,8 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) c
 //
 float rmsDifference2D(const MLSignal& a, const MLSignal& b)
 {
-	int w = min(a.getWidth(), b.getWidth());
-	int h = min(a.getHeight(), b.getHeight());
+	int w = ml::min(a.getWidth(), b.getWidth());
+	int h = ml::min(a.getHeight(), b.getHeight());
 	float sum = 0.;
 	float d;
 	for(int j=0; j<h; ++j)

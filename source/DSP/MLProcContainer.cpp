@@ -134,7 +134,7 @@ void MLProcContainer::compile()
 	std::vector<ml::Symbol> compileInputs;
 	std::vector<ml::Symbol> compileOutputs;
 	std::map<ml::Symbol, compileSignal> signals;
-	MLNameMaker nameMaker;
+	ml::textUtils::NameMaker nameMaker;
 
 	// make compileOps from ops list.
 	// reads ops list, writes compile ops list, compile ops map. 
@@ -830,8 +830,8 @@ void MLProcContainer::process(const int extFrames)
 	mClock.advance(ml::samplesAtRateToTime(intFrames, static_cast<int>(getSampleRate())));
 	
 	// limit I/O to maximums, in case we are a root Container (DSPEngine).
-	int numInputs = min((int)mPublishedInputs.size(), getMaxInputSignals());
-	int numOutputs = min((int)mPublishedOutputs.size(), getMaxOutputSignals());
+	int numInputs = ml::min((int)mPublishedInputs.size(), getMaxInputSignals());
+	int numOutputs = ml::min((int)mPublishedOutputs.size(), getMaxOutputSignals());
 	
 	/*
 	if((numInputs == 1)&&(numOutputs == 1))
@@ -1001,7 +1001,7 @@ void MLProcContainer::dumpMap()
 	debug() << "dumping map: ------------\n";
 	for(MLSymbolProcMapT::iterator it = mProcMap.begin(); it != mProcMap.end(); it++)
 	{
-		debug() << "key " << it->first.getString() << ", proc " << it->second->getName() << "\n";
+		debug() << "key " << it->first << ", proc " << it->second->getName() << "\n";
 	}
 }
 
@@ -1315,8 +1315,8 @@ void MLProcContainer::publishInput(const MLPath & procName, const ml::Symbol inp
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			ml::Symbol resamplerName(getName().getString() + "_resamp_in");
-			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), resamplerName.withFinalNumber(inSize + 1));
+			ml::Symbol resamplerName(getName() + "_resamp_in");
+			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), ml::textUtils::addFinalNumber(resamplerName, inSize + 1));
 			
 			// would be cleaner to use buildProc() here, but right now that adds the new proc
 			// to the ops list by default, and we need resamplers to be first. look at that
@@ -1406,8 +1406,8 @@ void MLProcContainer::publishOutput(const MLPath & srcProcName, const ml::Symbol
 		if (!myRatio.isUnity()) 
 		{
 			// make resampler
-			ml::Symbol resamplerName(getName().getString() + "_resamp_out");
-			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), resamplerName.withFinalNumber(outSize + 1)); 
+			ml::Symbol resamplerName(getName() + "_resamp_out");
+			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), ml::textUtils::addFinalNumber(resamplerName, outSize + 1)); 
 			if (!resamplerProc) { e = newProcErr; goto bail; }
 			
 			// setup resampler i/o
@@ -1551,28 +1551,9 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 				debug() << "MLProcContainer::addSignalBuffers: ack, head proc " << head << " is not container!\n";
 			}		
 		}
-		else // create buffers.
+		else // create buffer.
 		{		
-			if (outputName.hasWildCard())
-			{		
-				// debug() << "addSignalBuffers: wild card\n";
-				// add a buffer for each possible output matching wildcard (quick and dirty)
-				for(int i = 1; i <= kMLEngineMaxVoices; ++i)
-				{				
-					if (headProc->getOutputIndex(outputName.withWildCardNumber(i)))
-					{
-						addBufferHere(MLPath(head), outputName.withWildCardNumber(i), alias.withWildCardNumber(i), trigMode, bufLength, frameSize);
-					}
-					else
-					{
-						break;
-					}
-				}
-			}
-			else
-			{
-				addBufferHere(MLPath(head), outputName, alias, trigMode, bufLength, frameSize);
-			}
+			addBufferHere(MLPath(head), outputName, alias, trigMode, bufLength, frameSize);
 		}
 	}
 	else 
@@ -1616,30 +1597,10 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const ml::
 		{
 			// get container of last head proc
 			MLProcContainer& context = static_cast<MLProcContainer&>(*headProc->getContext());		
-			if (alias.hasWildCard())
-			{		
-				/// debug() << "gatherSignalBuffers: wild card\n";
-				// gather each buffer matching wildcard (quick and dirty)
-				for(int i = 1; i <= kMLEngineMaxVoices; ++i)
-				{
-					MLProcPtr bufferProc = context.getProc(MLPath(alias.withWildCardNumber(i)));		
-					if (bufferProc)	
-					{
-						signalBuffers.push_back(bufferProc);
-					}
-					else
-					{
-						break;
-					}
-				}
-			}
-			else
+			MLProcPtr bufferProc = context.getProc(MLPath(alias));		
+			if (bufferProc)	
 			{
-				MLProcPtr bufferProc = context.getProc(MLPath(alias));		
-				if (bufferProc)	
-				{
-					signalBuffers.push_back(bufferProc);
-				}
+				signalBuffers.push_back(bufferProc);
 			}
 		}
 	}
@@ -1770,7 +1731,7 @@ MLPublishedParamPtr MLProcContainer::getParamPtr(int index) const
 {
 	MLPublishedParamPtr p;
 	const int size = (int)mPublishedParams.size();
-	if (within(index, 0, size))
+	if (ml::within(index, 0, size))
 	{
 		p = mPublishedParams[index];
 	}
@@ -1810,7 +1771,7 @@ MLParamValue MLProcContainer::getParamByIndex(int index)
 {
 	MLParamValue r = 0.f;
 	const int size = (int)mPublishedParams.size();
-	if (within(index, 0, size))
+	if (ml::within(index, 0, size))
 	{
 		MLPublishedParamPtr p = mPublishedParams[index];
 		r = p->getValue();
@@ -2092,7 +2053,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			logAttr = child->getIntAttribute("log", logAttr);
 			zeroThresh = (MLParamValue)child->getDoubleAttribute("zt", zeroThresh);
 			offset = (MLParamValue)child->getDoubleAttribute("offset", offset);
-			p->setRange(low, high, max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh, offset);
+			p->setRange(low, high, ml::max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh, offset);
 		}
 		else if(child->hasTagName("default"))
 		{
@@ -2166,27 +2127,27 @@ void MLProcContainer::dumpGraph(int indent)
 	const MLRatio myRatio = getResampleRatio();
 	if (!myRatio.isUnity()) 
 	{
-		debug() << ml::stringUtils::spaceStr(indent) << getName() << " input resamplers: \n";
+		debug() << ml::textUtils::spaceStr(indent) << getName() << " input resamplers: \n";
 		int ins = mPublishedInputs.size();
 		for(int i=0; i<ins; ++i)
 		{
 			MLProcPtr pIn = mInputResamplers[i];
-			debug() << ml::stringUtils::spaceStr(indent) << "in: (" << (void *)&pIn->getInput(1) << ") out: (" << (void *)&pIn->getOutput() << ")\n";
+			debug() << ml::textUtils::spaceStr(indent) << "in: (" << (void *)&pIn->getInput(1) << ") out: (" << (void *)&pIn->getOutput() << ")\n";
 		}
 	}
 	
 	dumpProc(indent);
 
 	// dump children
-	debug() << ml::stringUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
-	debug() << ml::stringUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
-	debug() << ml::stringUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
+	debug() << ml::textUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
+	debug() << ml::textUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
+	debug() << ml::textUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
 
 	int ops = 0;
 	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it, ++ops)
 	{		
 		MLProc* p = (*it);
-		debug() << ml::stringUtils::spaceStr(indent) << ops << ":\n";
+		debug() << ml::textUtils::spaceStr(indent) << ops << ":\n";
 		if (p->isContainer())
 		{
 			MLProcContainer& pc = static_cast<MLProcContainer&>(*p);
@@ -2200,12 +2161,12 @@ void MLProcContainer::dumpGraph(int indent)
 	
 	if (!myRatio.isUnity()) 
 	{
-		debug() << ml::stringUtils::spaceStr(indent) << getName() <<  " output resamplers: \n";
+		debug() << ml::textUtils::spaceStr(indent) << getName() <<  " output resamplers: \n";
 		int outs = (int)mPublishedOutputs.size();
 		for(int i=0; i<outs; ++i)
 		{
 			MLProcPtr pOut = mOutputResamplers[i];
-			debug() << ml::stringUtils::spaceStr(indent) << "in: (" << &pOut->getInput(1) << ") out: (" << &pOut->getOutput() << ")\n";
+			debug() << ml::textUtils::spaceStr(indent) << "in: (" << &pOut->getInput(1) << ") out: (" << &pOut->getOutput() << ")\n";
 		}
 	}
 }

@@ -7,7 +7,6 @@
 
 #pragma mark MLProperty
 
-const std::string MLProperty::nullString;
 const MLSignal MLProperty::nullSignal;
 
 MLProperty::MLProperty() :
@@ -25,8 +24,8 @@ MLProperty::MLProperty(const MLProperty& other) :
 		case MLProperty::kFloatProperty:
 			mFloatVal = other.getFloatValue();
 			break;
-		case MLProperty::kStringProperty:
-			mStringVal = other.getStringValue().c_str();
+		case MLProperty::kTextProperty:
+			mTextVal = other.getTextValue();
 			break;
 		case MLProperty::kSignalProperty:
 			mSignalVal = other.getSignalValue();
@@ -46,7 +45,7 @@ MLProperty& MLProperty::operator= (const MLProperty& other)
 			mFloatVal = other.getFloatValue();
 			break;
 		case MLProperty::kStringProperty:
-			mStringVal = other.getStringValue().c_str();
+			mSymbolVal = other.getSymbolValue();
 			break;
 		case MLProperty::kSignalProperty:
 			// MLSignal handles copy-in-place when possible
@@ -65,10 +64,10 @@ MLProperty::MLProperty(float v) :
 	mFloatVal = v;
 }
 
-MLProperty::MLProperty(const std::string& s) :
-	mType(kStringProperty)
+MLProperty::MLProperty(const ml::Symbol s) :
+	mType(kSymbolProperty)
 {
-	mStringVal = s.c_str();
+	mSymbolVal = s;
 }
 
 MLProperty::MLProperty(const MLSignal& s) :
@@ -81,15 +80,15 @@ MLProperty::~MLProperty()
 {
 }
 
-const float& MLProperty::getFloatValue() const
+const float MLProperty::getFloatValue() const
 {
 	static const float nullFloat = 0.f;
 	return (mType == kFloatProperty) ? mFloatVal : nullFloat;
 }
 
-const std::string& MLProperty::getStringValue() const
+const ml::TextFragment MLProperty::getTextValue() const
 {
-	return (mType == kStringProperty) ? (mStringVal) : nullString;
+	return (mType == kTextProperty) ? (mTextVal) : ml::TextFragment();
 }
 
 const MLSignal& MLProperty::getSignalValue() const
@@ -103,10 +102,10 @@ void MLProperty::setValue(const float& v)
 	mFloatVal = v;
 }
 
-void MLProperty::setValue(const std::string& v)
+void MLProperty::setValue(const ml::Symbol& v)
 {
-	mType = kStringProperty;
-	mStringVal = v.c_str();
+	mType = kSymbolProperty;
+	mSymbolVal = v;
 }
 
 void MLProperty::setValue(const MLSignal& v)
@@ -133,8 +132,8 @@ bool MLProperty::operator== (const MLProperty& b) const
 			case kFloatProperty:
 				r = (getFloatValue() == b.getFloatValue());
 				break;
-			case kStringProperty:
-				r = (getStringValue() == b.getStringValue());
+			case kSymbolProperty:
+				r = (getSymbolValue() == b.getSymbolValue());
 				break;
 			case kSignalProperty:
 				r = (getSignalValue() == b.getSignalValue());
@@ -161,8 +160,8 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 		case MLProperty::kFloatProperty:
 			out << r.getFloatValue();
 			break;
-		case MLProperty::kStringProperty:
-			out << (r.getStringValue());
+		case MLProperty::kSymbolProperty:
+			out << (r.getSymbolValue());
 			break;
 		case MLProperty::kSignalProperty:
 			out << (r.getSignalValue());
@@ -220,16 +219,16 @@ const float& MLPropertySet::getFloatProperty(ml::Symbol p) const
 	}
 }
 
-const std::string& MLPropertySet::getStringProperty(ml::Symbol p) const
+const ml::Symbol MLPropertySet::getSymbolProperty(ml::Symbol p) const
 {
 	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
-		return it->second.getStringValue();
+		return it->second.getSymbolValue();
 	}
 	else
 	{
-		return MLProperty::nullString;
+		return ml::Symbol();
 	}
 }
 

@@ -87,7 +87,7 @@ void MLProcPhasor::process(const int samples)
 
 	for (int n=0; n<samples; ++n)
 	{
-		fFreq = min(freq[n], sr * 0.5f);
+		fFreq = ml::min(freq[n], sr * 0.5f);
 		MLSample step = (fFreq) * invSr;
 		omega += step;
 		if (omega > 1.f)

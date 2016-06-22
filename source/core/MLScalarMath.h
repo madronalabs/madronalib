@@ -12,6 +12,14 @@
 
 namespace ml 
 {
+	
+	inline int bitsToContain(int n)
+	{
+		int exp;
+		for (exp = 0; (1 << exp) < n; exp++);
+		return (exp);
+	}
+
 	// ----------------------------------------------------------------
 	#pragma mark scalar-type templates
 	

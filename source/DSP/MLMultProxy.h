@@ -55,10 +55,10 @@ public:
 
 	MLProc::err setInput(const int idx, const MLSignal& srcSig) override;	
 	
-	void setParam(const MLSymbol p, const MLProperty& val) override;	
+	void setParam(const ml::Symbol p, const MLProperty& val) override;	
 	
-	int getInputIndex(const MLSymbol name) override;
-	int getOutputIndex(const MLSymbol name) override;		
+	int getInputIndex(const  ml::Symbol name) override;
+	int getOutputIndex(const  ml::Symbol name) override;		
 	void createInput(const int idx) override;		
 	void resizeInputs(const int n) override;
 	void resizeOutputs(const int n) override;
@@ -103,24 +103,24 @@ public:
 	#pragma mark graph creation
 	
 	MLProc::err setInput(const int idx, const MLSignal& srcSig) override;		
-	void setParam(const MLSymbol p, const MLProperty& val) override;		
+	void setParam(const  ml::Symbol p, const MLProperty& val) override;		
 	//
-	int getInputIndex(const MLSymbol name) override;
-	int getOutputIndex(const MLSymbol name) override;		
+	int getInputIndex(const  ml::Symbol name) override;
+	int getOutputIndex(const  ml::Symbol name) override;		
 	//
 	void resizeInputs(const int n) override;
 	void resizeOutputs(const int n) override;
 
 	MLProcPtr newProc(const ml::Symbol className, const ml::Symbol procName) override;
 	MLProcPtr getProc(const MLPath & pathName) override; 
-	void addPipe(const MLPath& src, const MLSymbol output, const MLPath& dest, const MLSymbol input) override;
+	void addPipe(const MLPath& src, const  ml::Symbol output, const MLPath& dest, const  ml::Symbol input) override;
 	MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi) override;
 	// ----------------------------------------------------------------
 	#pragma mark I/O
 	//
 	void publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias) override;
 	void publishOutput(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias) override;	
-	MLSymbol getOutputName(int index) override;
+	 ml::Symbol getOutputName(int index) override;
 
 	//
 	// ----------------------------------------------------------------
@@ -128,14 +128,14 @@ public:
 	//
 	// methods of MLContainerBase
 	MLProc::err addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
-		const MLSymbol alias, int trigMode, int bufLength, int frameSize = 1) override;
-	void gatherSignalBuffers(const MLPath & procAddress, const MLSymbol alias, MLProcList& signalBuffers) override;
+		const  ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1) override;
+	void gatherSignalBuffers(const MLPath & procAddress, const  ml::Symbol alias, MLProcList& signalBuffers) override;
 	
 	//
 	MLProc::err buildProc(juce::XmlElement* parent) override;
 	void dumpGraph(int indent) override;	
 	void setProcParams(const MLPath& procName, juce::XmlElement* pelem) override;
-	MLPublishedParamPtr publishParam(const MLPath & procName, const MLSymbol paramName, const ml::Symbol alias, const ml::Symbol type) override;
+	MLPublishedParamPtr publishParam(const MLPath & procName, const  ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type) override;
 	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol param) override;
 	void setPublishedParam(int index, const MLProperty& val) override;
 	void routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val) override;

@@ -534,11 +534,11 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
 	// presets and directories starting with the name of the plugin followed by a space
 	// will be sorted into a separate factory area.
-	std::string prefix = MLProjectInfo::projectName + std::string(" ");
+	ml::TextFragment prefix = ml::TextFragment(MLProjectInfo::projectName) + (" ");
 	
     // add factory presets, those starting with the plugin name
     menu->appendMenu(presetFiles.buildMenu
-					 ([=](MLResourceMap<std::string, MLFile>::const_iterator it)
+					 ([=](MLResourceMap<ml::Symbol, MLFile>::const_iterator it)
 					  {
 						  if(it.getDepth() > 0)
 						  {
@@ -546,8 +546,8 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  }
 						  else
 						  {
-							  std::string fileName = it->getValue().getShortName();					 
-							  return (prefix.compare(fileName.substr(0, prefix.length())) == 0);
+							  ml::TextFragment fileName = it->getValue().getShortName();	
+							  return (prefix == ml::textUtils::subText(fileName, 0, prefix.lengthInBytes));
 						  };
 					  }
 					  )
@@ -556,7 +556,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     
     // add user presets, meaning all the others, but no "Samples"
 	menu->appendMenu(presetFiles.buildMenu
-					 ([=](MLResourceMap<std::string, MLFile>::const_iterator it)
+					 ([=](MLResourceMap<ml::Symbol, MLFile>::const_iterator it)
 					  {
 						  if(it.getDepth() > 0)
 						  {
@@ -564,9 +564,9 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  }
 						  else
 						  {
-							  std::string fileName = it->getValue().getShortName();		
-							  if(fileName.compare("Samples") == 0) return false;
-							  return (prefix.compare(fileName.substr(0, prefix.length())) != 0);
+							  ml::TextFragment fileName = it->getValue().getShortName();	
+							  if(fileName == "Samples") return false;
+							  return (prefix != ml::textUtils::subText(fileName, 0, prefix.lengthInBytes));
 						  };
 					  }
 					  )
@@ -784,7 +784,7 @@ void MLPluginController::convertPresets()
 		mFilesToProcess += mPresetsToConvertVST1->searchForFilesImmediate();
 		mFilesToProcess += mPresetsToConvertVST2->searchForFilesImmediate();
 		
-		int fileBufferSize = 1 << bitsToContain(mFilesToProcess);
+		int fileBufferSize = 1 << ml::bitsToContain(mFilesToProcess);
 		mFileActionData.resize(fileBufferSize);
 		PaUtil_InitializeRingBuffer( &mFileActionQueue, sizeof(FileAction), fileBufferSize, &(mFileActionData[0]) );
 		

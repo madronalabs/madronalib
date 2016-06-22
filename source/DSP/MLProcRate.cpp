@@ -113,7 +113,7 @@ void MLProcRate::process(const int samples)
 			float px = x[n];
 			float dxdt = px - mx1;
 			mx1 = px;
-			float dydt = max(dxdt*r, 0.f);
+			float dydt = ml::max(dxdt*r, 0.f);
 			float dxy = px - mOmega*rInv;
 			
 			// get modOffset, such that phase difference is 0 at each integer value of modOffset
@@ -129,7 +129,7 @@ void MLProcRate::process(const int samples)
 			dydt -= kFeedback*error;
 			
 			// don't ever run clock backwards.
-			dydt = max(dydt, 0.f);
+			dydt = ml::max(dydt, 0.f);
 			
 			// wrap phasor
 			mOmega += dydt;
@@ -149,7 +149,7 @@ void MLProcRate::process(const int samples)
 			float px = x[n];
 			float dxdt = px - mx1;
 			mx1 = px;
-			float dydt = max(dxdt*mFloatRatio, 0.f);
+			float dydt = ml::max(dxdt*mFloatRatio, 0.f);
 			
 			// wrap phasor
 			mOmega += dydt;

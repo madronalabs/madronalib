@@ -82,7 +82,7 @@ MLProc::err MLProcAllpass::resize()
 	}
 	
 	unsigned noisePeriodSeconds = 30;
-	mNoiseMask = (1 << bitsToContain(noisePeriodSeconds * sr)) - 1; 
+	mNoiseMask = (1 << ml::bitsToContain(noisePeriodSeconds * sr)) - 1; 
 	mOneOverNoiseDomain = 1.f / (float)(mNoiseMask + 1);
 	mNoisePeriodSeconds = (float)(mNoiseMask + 1) / (float)sr;
 

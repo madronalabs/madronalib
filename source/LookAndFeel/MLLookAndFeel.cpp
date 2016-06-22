@@ -232,7 +232,7 @@ int MLLookAndFeel::getDigitsAfterDecimal (const float number, const int digits, 
 //	printf("---------number: %-+10.2f\n", number);
 //	printf("---------number: %-+10.8f\n", number);
 //	printf("max: %d, digits: %d, after decimal: %d\n", m, d, p);
-	return max(p, 0);
+	return ml::max(p, 0);
 }
 
 char* MLLookAndFeel::formatNumber (const float number, const int digits, const int precision, const bool doSign, const MLValueDisplayMode mode)  throw()
@@ -1833,8 +1833,8 @@ static void spikyPathTo(Path& p, const float x2, const float y2, const int doSpi
 		float baseX, baseY;		
 		
 		// set half width of spike base
-		baseX = min((double)std::abs(y3 - sy), std::abs(x2 - x1) / 2.);
-		baseY = min((double)std::abs(x3 - sx), std::abs(y2 - y1) / 2.);
+		baseX = ml::min((double)std::abs(y3 - sy), std::abs(x2 - x1) / 2.);
+		baseY = ml::min((double)std::abs(x3 - sx), std::abs(y2 - y1) / 2.);
 		if (x2 > x1) baseX *= -1;
 		if (y2 > y1) baseY *= -1;
 		baseX = floor(baseX);
@@ -2190,7 +2190,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
  	const Colour whiteAlpha = Colours::white.withAlpha(a);
  	const Colour blackAlpha = Colours::black.withAlpha(a);
 // 	const Colour darkest = baseColor.withSaturation(0.99).withBrightness(0.25);
- 	const Colour darkest = baseColor.withSaturation(min(1., sat*2.)).withBrightness(max(0., b-0.5));
+ 	const Colour darkest = baseColor.withSaturation(ml::min(1., sat*2.)).withBrightness(ml::max(0., b-0.5));
 	
 	const Colour light0Color = baseColor.overlaidWith(whiteAlpha.withMultipliedAlpha(0.1f));
 	const Colour light1Color = baseColor.overlaidWith(whiteAlpha.withMultipliedAlpha(0.2f));
@@ -2277,7 +2277,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	if (pressed)
 	{	
 		Path outline2;
-		int shadowPixels = min(kMLShadowThickness*2.f, w/4);
+		int shadowPixels = ml::min(kMLShadowThickness*2.f, w/4);
 		int thin = shadowPixels*0.25;
 
 		float d, opacity;

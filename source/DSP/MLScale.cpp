@@ -303,7 +303,7 @@ float MLScale::noteToPitch(int note) const
 
 float MLScale::noteToLogPitch(float note) const
 {
-	return log2f(noteToPitch(clamp(note, 0.f, 127.f)));
+	return log2f(noteToPitch(ml::clamp(note, 0.f, 127.f)));
 }
 
 float MLScale::quantizePitch(float a) const

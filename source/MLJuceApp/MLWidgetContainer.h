@@ -29,7 +29,7 @@ protected:
 	// currently Widgets are deleted by JUCE views, so don't retain here
 	std::map<ml::Symbol, MLWidget*> mWidgets;
 	
-	MLNameMaker mWidgetNamer;
+	ml::textUtils::NameMaker mWidgetNamer;
 };
 
 #endif // __ML_WIDGET_CONTAINER_H__

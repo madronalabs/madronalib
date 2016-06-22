@@ -148,7 +148,7 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			break;
 		case kJucePluginParam_Exp:
 			val = ml::clamp(val, lo, hi);
-			val = max(mZeroThreshold, val);
+			val = ml::max(mZeroThreshold, val);
 			p = logf(val/lo) / logf(hi/lo);
 			p += mOffset;
 			break;
@@ -157,14 +157,14 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 			if (positiveHalf)
 			{
 				val = ml::clamp(val, lo, hi);
-				val = max(mZeroThreshold, val);
+				val = ml::max(mZeroThreshold, val);
 				p = logf(val/lo) / logf(hi/lo);
 				p = p*0.5f + 0.5f;
 			}
 			else
 			{
-				val = -clamp(val, -hi, -lo);
-				val = max(mZeroThreshold, val);
+				val = -ml::clamp(val, -hi, -lo);
+				val = ml::max(mZeroThreshold, val);
 				p = logf(val/lo) / logf(hi/lo);
 				p = -p*0.5f + 0.5f;
 			}
@@ -252,7 +252,7 @@ void MLParamGroupMap::setGroup(const ml::Symbol groupSym)
 {
 	unsigned i = 0;
 	bool found = false;
-	std::string groupStr = groupSym.getString();
+	std::string groupStr = std::string(groupSym.getTextFragment().text);
 	for (i=0; i<mGroupVec.size(); i++)
 	{
 		if (!groupStr.compare(mGroupVec[i]))

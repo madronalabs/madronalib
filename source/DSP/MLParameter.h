@@ -9,7 +9,7 @@
 #include <vector>
 #include <list>
 
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLSymbol.h"
 #include "MLPath.h"
 #include "MLSignal.h"

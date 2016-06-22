@@ -3,8 +3,9 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef _ML_DEBUG_H
-#define _ML_DEBUG_H
+#pragma once
+
+#include <iostream>
 
 #if DEBUG_TO_COUT
 
@@ -117,4 +118,3 @@ extern MLTextStream& MLConsole(void);
 				
 #endif // DEBUG_TO_COUT
 				
-#endif // _ML_DEBUG_H

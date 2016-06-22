@@ -28,17 +28,18 @@ bool MLFile::exists() const
 	return mJuceFile.exists(); 
 }
 
-std::string MLFile::getShortName() const 
+ml::TextFragment MLFile::getShortName() const 
 { 
-	return(std::string(mJuceFile.getFileNameWithoutExtension().toUTF8()));
+	return(ml::TextFragment(mJuceFile.getFileNameWithoutExtension().toUTF8()));
 }
 
-std::string MLFile::getLongName() const 
+// TODO return a path?
+ml::TextFragment MLFile::getLongName() const 
 {
-	return(std::string(mJuceFile.getFullPathName().toUTF8()));
+	return(ml::TextFragment(mJuceFile.getFullPathName().toUTF8()));
 }
 
-std::string MLFile::getParentDirectoryName() const
+ml::TextFragment MLFile::getParentDirectoryName() const
 {
-	return std::string(mJuceFile.getParentDirectory().getFileNameWithoutExtension().toUTF8());
+	return ml::TextFragment(mJuceFile.getParentDirectory().getFileNameWithoutExtension().toUTF8());
 }

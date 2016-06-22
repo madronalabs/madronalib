@@ -503,7 +503,7 @@ int MLDSPEngine::readPublishedSignal(const ml::Symbol alias, MLSignal& outSig)
 				{
 					MLProcRingBuffer& bufferProc = static_cast<MLProcRingBuffer&>(*proc);
 					r = bufferProc.readToSignal(outSig, outSig.getWidth(), voice);
-					minSamplesRead = min(r, minSamplesRead);
+					minSamplesRead = ml::min(r, minSamplesRead);
 					voice++;
 				}
 			}
@@ -623,7 +623,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 				for(auto& engineEvent : events)
 				{
 					int t = engineEvent.mTime;
-					if(within(t, processed, processed + mVectorSize))
+					if(ml::within(t, processed, processed + mVectorSize))
 					{
 						MLControlEvent e = engineEvent;
 						e.mTime -= processed;

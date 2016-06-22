@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __MLDSPUtils__
-#define __MLDSPUtils__
+#pragma once
 
 #include "MLDSP.h"
 #include "MLSignal.h"
@@ -117,7 +116,7 @@ inline float fSignBit(float f)
 }
 
 MLSample* alignToCacheLine(const MLSample* p);
-int bitsToContain(int n);
+
 int ilog2(int n);
 
 inline MLSample lerp(const MLSample a, const MLSample b, const MLSample m)
@@ -1365,5 +1364,3 @@ private:
     MLHalfBandFilter f;
 };
 
-
-#endif /* defined(__MLDSPUtils__) */
