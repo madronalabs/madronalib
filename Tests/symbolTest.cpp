@@ -15,7 +15,6 @@
 #include "../include/madronalib.h"
 #include "MLTextUtils.h"
 
-
 #if _WIN32
 #define HAVE_U8_LITERALS 0
 #else
@@ -89,7 +88,7 @@ const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
-	const int kTableSize = 100;	
+	const int kMapSize = 100;	
 	const int kTestLength = 100000;
 	
 	// main maps for testing
@@ -103,7 +102,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	std::vector<std::string> stringDict;
 	std::vector<const char *> charDict;
 	int p = 0;
-	for(int i=0; i<kTableSize; ++i)
+	for(int i=0; i<kMapSize; ++i)
 	{
 		// make procedural gibberish
 		std::string newString;
@@ -144,14 +143,22 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		double symbolSum, stringSum;
 		int idx;
 		
+		std::vector< int > testIndexes;
+		for(int n=0; n<kTestLength; ++n)
+		{
+			int i = fabs(ml::rand())*kMapSize;
+			testIndexes.push_back(i);
+		}
+		
+		// ----------------------------------------------------------------
+		// existing symbols / strings
+
 		// lookup from existing std::strings
 		start = std::chrono::system_clock::now();
 		stringSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMapOrderedStr[stringDict[idx]];
+			stringSum += testMapOrderedStr[stringDict[testIndexes[i]]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -160,11 +167,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// lookup from existing MLSymbols
 		start = std::chrono::system_clock::now();
 		symbolSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMapOrderedSym[symbolDict[idx]];
+			symbolSum += testMapOrderedSym[symbolDict[testIndexes[i]]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -175,11 +180,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// lookup from existing std::strings
 		start = std::chrono::system_clock::now();
 		stringSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMapUnorderedStr[stringDict[idx]];
+			stringSum += testMapUnorderedStr[stringDict[testIndexes[i]]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -188,11 +191,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// lookup from existing MLSymbols
 		start = std::chrono::system_clock::now();
 		symbolSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMapUnorderedSym[symbolDict[idx]];
+			symbolSum += testMapUnorderedSym[symbolDict[testIndexes[i]]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -200,14 +201,15 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 
 		REQUIRE(stringSum == symbolSum);
 		
+		// ----------------------------------------------------------------
+		// constructing symbols / strings
+		
 		// lookup from newly made std::strings
 		start = std::chrono::system_clock::now();
 		stringSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMapOrderedStr[charDict[idx]];
+			stringSum += testMapOrderedStr[charDict[testIndexes[i]]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -216,11 +218,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// lookup from new MLSymbols made from char * 
 		start = std::chrono::system_clock::now();
 		symbolSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMapOrderedSym[charDict[idx]];
+			symbolSum += testMapOrderedSym[charDict[testIndexes[i]]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -231,11 +231,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// lookup from newly made std::strings
 		start = std::chrono::system_clock::now();
 		stringSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			stringSum += testMapUnorderedStr[charDict[idx]];
+			stringSum += testMapUnorderedStr[charDict[testIndexes[i]]];
 		}	
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;
@@ -244,11 +242,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// unordered lookup from new MLSymbols made from char * 
 		start = std::chrono::system_clock::now();
 		symbolSum = 0.f;
-		idx = 0;
 		for(int i=0; i<kTestLength; ++i)
 		{
-			if(++idx >= kTableSize) idx = 0;	
-			symbolSum += testMapUnorderedSym[charDict[idx]];
+			symbolSum += testMapUnorderedSym[charDict[testIndexes[i]]];
 		}
 		end = std::chrono::system_clock::now();
 		elapsed = end-start;

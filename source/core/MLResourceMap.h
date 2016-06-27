@@ -72,7 +72,6 @@ public:
 	{
 		MLResourceMap<K, V, C>* pNode = this;
 		
-//		typename std::vector< K >::const_iterator it;
 		int pathDepthFound = 0;
 		
 		// walk the path as long as branches are found in the map
