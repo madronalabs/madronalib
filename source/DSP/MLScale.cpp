@@ -250,15 +250,15 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 // the impetus is that an object like MLScale really shouldn't know about Files.
 // scales are used by procs, which also shouldn't really have to know about Files. so maybe the MLProc
 // gets the i/o utility through the help of its Context.
-void MLScale::loadFromRelativePath(const std::string& scaleName)
+void MLScale::loadFromRelativePath(ml::Text newPath)
 {
-	if(scaleName != mScalePath)
+	if(newPath != mScalePath)
 	{
 		File scaleRoot = getDefaultFileLocation(kScaleFiles);
 		if (scaleRoot.exists() && scaleRoot.isDirectory())
 		{
-			// TODO add MLFile methods so this can all be done with MLFiles and std::string
-			File scaleFile = scaleRoot.getChildFile(String(scaleName.c_str())).withFileExtension(".scl");
+			// TODO add MLFile methods so this can all be done with MLFiles and ml::Text
+			File scaleFile = scaleRoot.getChildFile(String(newPath.getText())).withFileExtension(".scl");
 			if(scaleFile.exists())
 			{
 				String scaleStr = scaleFile.loadFileAsString();
@@ -279,8 +279,7 @@ void MLScale::loadFromRelativePath(const std::string& scaleName)
 				setDefaults();
 			}
 		}
-		// use of c_str preventing possible move assignment if (= std::string) were used. TODO revisit!
-		mScalePath = scaleName.c_str();
+		mScalePath = newPath;
 	}
 }
 

@@ -8,6 +8,7 @@
 
 #include "JuceHeader.h"
 #include "MLWidget.h"
+#include "MLTextUtils.h"
 
 // maintains a View Component with grid dimensions set by parent. 
 // provides handy UI component creation functions for grid.

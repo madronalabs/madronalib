@@ -375,7 +375,7 @@ void MLPluginController::doScaleMenu(int result)
 }
 
 // TODO menus should respond to symbols when possible, not numbers!!
-// menu should return MLPath to item chosen.
+// menu should return ml::Path to item chosen.
 void MLPluginController::doSettingsMenu(int result)
 {
     switch(result)

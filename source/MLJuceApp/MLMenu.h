@@ -33,7 +33,7 @@ public:
 	
 	// typedef std::map<std::string, NodePtr, ml::textUtils::caseInsensitiveCompare<std::string> > StringToMenuNodeMapT;
 	// MLTEST rewrite with textUtils compare on Symbols
-	typedef std::map<std::string, NodePtr > StringToMenuNodeMapT;
+	typedef std::map< std::string, NodePtr > StringToMenuNodeMapT;
     class Node
     {
     public:
@@ -46,14 +46,14 @@ public:
         int getNodeSize(int n);
         void buildFullNameIndex(std::vector<std::string>& nameVec, const std::string& path);
         void addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, bool root = true);
-        void setDisplayPrefix(const std::string& p) { mDisplayPrefix = p; }
+		void setDisplayPrefix(ml::TextFragment p) { mDisplayPrefix = p; }
 		const std::list<std::string>& getIndex() { return index; }
 		NodePtr getSubnodeByName(const std::string& name);
 		
 		// TODO use MLSymbols as map keys instead. 
         StringToMenuNodeMapT map;
         std::list<std::string> index;
-		std::string mDisplayPrefix;
+		ml::TextFragment mDisplayPrefix;
 		JuceMenuPtr subMenu;
         int mItemNumber;
         bool mEnabled;

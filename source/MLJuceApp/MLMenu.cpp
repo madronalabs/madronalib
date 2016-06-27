@@ -151,7 +151,8 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
     {
         if(name != kSeparatorStr)
         {
-            pMenu->addItem(mItemNumber, mDisplayPrefix + ml::textUtils::stripExtension(ml::textUtils::getShortName(name)), mEnabled, mTicked);
+			ml::TextFragment newItem = mDisplayPrefix + ml::textUtils::stripFileExtension(ml::textUtils::getShortFileName(name.c_str()));
+			pMenu->addItem(mItemNumber, juce::String(newItem.getText()), mEnabled, mTicked);
         }
         else
         {
@@ -246,7 +247,7 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 void MLMenu::addSubMenu(MLMenuPtr m)
 {
 	// copy NodePtr into our node map
-	const std::string& subMenuName = m->getName().getString();
+	const std::string& subMenuName = std::string(m->getName().getTextFragment().getText()); // MLTEST come on now
 	mRoot->map[subMenuName] = m->mRoot;
 	mRoot->index.push_back(subMenuName);
 }
@@ -300,7 +301,7 @@ const std::string MLMenu::getMenuItemPath(int idx)
     }
     int items = mFullNamesByIndex.size();
     // items are 1-indexed
-	if(within(idx, 1, items + 1))
+	if(ml::within(idx, 1, items + 1))
 	{
         return mFullNamesByIndex[idx];
 	}
@@ -311,7 +312,7 @@ JuceMenuPtr MLMenu::getJuceMenu()
 {
     buildIndex();
     JuceMenuPtr jm(new PopupMenu());    
-    mRoot->addToJuceMenu(mName.getString(), jm);
+    mRoot->addToJuceMenu(mName.getTextFragment().getText(), jm);
     return jm;
 }
 

@@ -33,12 +33,12 @@ public:
 	MLProperty(const MLProperty& other);
 	MLProperty& operator= (const MLProperty & other);
 	MLProperty(float v);
-	MLProperty(const ml::TextFragment s); // TODO look at auto-pasring TextFragment into Text, a vector of fragments
+	MLProperty(const ml::Text& t); 
 	MLProperty(const MLSignal& s);
 	~MLProperty();
     
 	const float getFloatValue() const;
-	const ml::Text& getTextValue() const;
+	const ml::Text getTextValue() const;
 	const MLSignal& getSignalValue() const;
     
 	// For each type of property, a setValue method must exist
@@ -83,8 +83,8 @@ public:
 	virtual ~MLPropertySet();
     
 	const MLProperty& getProperty(ml::Symbol p) const;
-	const float& getFloatProperty(ml::Symbol p) const;
-	const ml::Text& getTextProperty(ml::Symbol p) const;
+	const float getFloatProperty(ml::Symbol p) const;
+	const ml::Text getTextProperty(ml::Symbol p) const;
 	const MLSignal& getSignalProperty(ml::Symbol p) const;
     
 	// set the property and allow it to propagate to Listeners the next time

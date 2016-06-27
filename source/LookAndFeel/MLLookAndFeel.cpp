@@ -568,7 +568,7 @@ void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-    g.drawFittedText (button.getStringProperty("processed_text"),
+	g.drawFittedText (juce::String(button.getTextProperty("processed_text").getText()),
                       m, m, w, h,
                       Justification::centred, 1., 1.);
 }
@@ -588,7 +588,7 @@ void MLLookAndFeel::drawMenuButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-	g.drawFittedText (button.getStringProperty("processed_text"),
+	g.drawFittedText (juce::String(button.getTextProperty("processed_text").getText()),
                       h/2, m, w - h, hm,
                       Justification::left, 1., 1.);
 	

@@ -7,7 +7,6 @@
 //
 
 #include "MLTextUtils.h"
-#include "../DSP/MLDSPGens.h" // for RandomSource TODO replace
 
 #pragma mark string utilities
 
@@ -49,7 +48,7 @@ namespace ml { namespace textUtils {
 			i /= 10;
 		} 
 		while (i != 0);
-		return TextFragment(p, end - p);
+		return (TextFragment(p, end - p));
 	}
 	
 	const char* naturalNumberToDigits(int value, char* pDest) 
@@ -105,8 +104,8 @@ namespace ml { namespace textUtils {
 	
 	int findFirst(const TextFragment& frag, const codepoint_type c)
 	{
-		auto first = codepoint_iterator<const char*>(frag.text);
-		auto last = codepoint_iterator<const char*>(frag.text + frag.lengthInBytes);
+		auto first = codepoint_iterator<const char*>(frag.getText());
+		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
 		int r = -1;
 		for (auto it = first; it != last; ++it) 
@@ -123,8 +122,8 @@ namespace ml { namespace textUtils {
 	
 	int findLast(const TextFragment& frag, const codepoint_type c)
 	{
-		auto first = codepoint_iterator<const char*>(frag.text);
-		auto last = codepoint_iterator<const char*>(frag.text + frag.lengthInBytes);
+		auto first = codepoint_iterator<const char*>(frag.getText());
+		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
 		int r = -1;
 		for (auto it = first; it != last; ++it) 
@@ -146,11 +145,11 @@ namespace ml { namespace textUtils {
 		
 		// temp buffer on stack big enough to hold whole input fragment if needed.
 		// we won't know the output fragment size in bytes until iterating the code points. 
-		char buf[frag.lengthInBytes];
-		std::fill(buf, buf+frag.lengthInBytes, 0);
+		char buf[frag.lengthInBytes()];
+		std::fill(buf, buf+frag.lengthInBytes(), 0);
 		char* pb = buf;
 		
-		auto first = codepoint_iterator<const char*>(frag.text);		
+		auto first = codepoint_iterator<const char*>(frag.getText());		
 		auto it = first;
 		for(int i=0; i<start; ++i)
 		{
@@ -167,7 +166,7 @@ namespace ml { namespace textUtils {
 		return TextFragment(buf, pb - buf);
 	}
 	
-	TextFragment stripExtension(const TextFragment& frag)
+	TextFragment stripFileExtension(const TextFragment& frag)
 	{
 		int dotLoc = findLast(frag, '.');
 		if(dotLoc >= 0)
@@ -178,7 +177,7 @@ namespace ml { namespace textUtils {
 		return frag;
 	}
 	
-	TextFragment getShortName(const TextFragment& frag)
+	TextFragment getShortFileName(const TextFragment& frag)
 	{
 		int slashLoc = findLast(frag, '/');
 		if(slashLoc >= 0)
@@ -202,15 +201,15 @@ namespace ml { namespace textUtils {
 	
 	bool beginsWith(TextFragment fa, TextFragment fb)
 	{
-		int lenA = fa.lengthInBytes;
-		int lenB = fb.lengthInBytes;
+		int lenA = fa.lengthInBytes();
+		int lenB = fb.lengthInBytes();
 		
 		if(lenB > lenA) return false;
 		bool r = true;
 		
 		for(int i=0; i<lenB; ++i)
 		{
-			if(fa.text[i] != fb.text[i])
+			if(fa.getText()[i] != fb.getText()[i])
 			{
 				r = false;
 				break;
@@ -222,15 +221,15 @@ namespace ml { namespace textUtils {
 	
 	bool endsWith(TextFragment fa, TextFragment fb)
 	{
-		int lenA = fa.lengthInBytes;
-		int lenB = fb.lengthInBytes;
+		int lenA = fa.lengthInBytes();
+		int lenB = fb.lengthInBytes();
 		
 		if(lenB > lenA) return false;
 		bool r = true;
 		
 		for(int i=0; i<lenB; ++i)
 		{
-			if(fa.text[lenA - lenB + i] != fb.text[i])
+			if(fa.getText()[lenA - lenB + i] != fb.getText()[i])
 			{
 				r = false;
 				break;
@@ -239,27 +238,25 @@ namespace ml { namespace textUtils {
 		
 		return r;
 	}
-
 	
 #pragma mark Symbol utilities
-	
 	
 	Symbol addFinalNumber(Symbol sym, int n)
 	{
 		TextFragment t(sym.getTextFragment() + TextFragment(textUtils::positiveIntToDigits(n)));
-		return Symbol(t.text);
+		return Symbol(t.getText());
 	}
 	
 	Symbol stripFinalNumber(Symbol sym)
 	{
 		const TextFragment& frag = sym.getTextFragment();
-		utf::stringview<const char*> sv(frag.text, frag.text + frag.lengthInBytes);
+		utf::stringview<const char*> sv(frag.getText(), frag.getText() + frag.lengthInBytes());
 		int points = sv.codepoints();
 		char32_t buf[points];
 		
 		// read into char32 array for random access
-		auto first = utf::codepoint_iterator<const char*>(frag.text);
-		auto last = utf::codepoint_iterator<const char*>(frag.text + frag.lengthInBytes);
+		auto first = utf::codepoint_iterator<const char*>(frag.getText());
+		auto last = utf::codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
 		for (auto it = first; it != last; ++it) 
 		{
@@ -281,20 +278,20 @@ namespace ml { namespace textUtils {
 			}
 		}
 		
-		return Symbol(textUtils::subText(frag, 0, firstDigitPos).text);
+		return Symbol(textUtils::subText(frag, 0, firstDigitPos).getText());
 	}
 	
 	// if the symbol's text ends in a natural number, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{
 		const TextFragment& frag = sym.getTextFragment();
-		utf::stringview<const char*> sv(frag.text, frag.text + frag.lengthInBytes);
+		utf::stringview<const char*> sv(frag.getText(), frag.getText() + frag.lengthInBytes());
 		int points = sv.codepoints();
 		char32_t buf[points];
 		
 		// read into char32 array for random access
-		auto first = utf::codepoint_iterator<const char*>(frag.text);
-		auto last = utf::codepoint_iterator<const char*>(frag.text + frag.lengthInBytes);
+		auto first = utf::codepoint_iterator<const char*>(frag.getText());
+		auto last = utf::codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
 		for (auto it = first; it != last; ++it) 
 		{
@@ -318,45 +315,7 @@ namespace ml { namespace textUtils {
 		
 		return digitsToPositiveInt(buf + firstDigitPos);
 	}
-	
-	std::vector<Symbol> parsePath(const char* pathStr)
-	{
-		std::vector<Symbol> path;
-		int pathStrBytes = strlen(pathStr);		
-		char UTF8buf[pathStrBytes];
-		std::fill(UTF8buf, UTF8buf+pathStrBytes, 0);
-		char* beginPoint = UTF8buf;
-		char* beginSymbol = UTF8buf;
-		char* endPoint = UTF8buf;
-		
-		auto first = utf::codepoint_iterator<const char*>(pathStr);		
-		auto it = first;
-		int pointSizeAsUTF8;
-		char c = 0;
-		do
-		{
-			do
-			{
-				// write the codepoint as UTF-8 to the buffer and advance pb
-				endPoint = utf::internal::utf_traits<utf::utf8>::encode(*it, beginPoint);				
-				pointSizeAsUTF8 = endPoint - beginPoint;
-				
-				// if we have a one-byte character, see if it's a slash
-				c = (pointSizeAsUTF8 == 1) ? *it : -1;
-				beginPoint = endPoint;
-				++it;
-			}	
-			while((c != '/') && (c != 0));
-			
-			int newSymbolBytes = (endPoint - beginSymbol) - 1;
-			path.emplace_back(Symbol(beginSymbol, newSymbolBytes));
-			beginSymbol = endPoint;
-		}
-		while(c != 0);
-		
-		return path;
-	}
-	
+
 #pragma mark NameMaker
 	
 	// base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...

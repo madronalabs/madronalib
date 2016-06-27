@@ -8,7 +8,7 @@
 // ----------------------------------------------------------------
 #pragma mark published parameters
 
-MLPublishedParam::MLPublishedParam(const MLPath & procPath, const ml::Symbol name, const ml::Symbol alias, const ml::Symbol type, int idx) :
+MLPublishedParam::MLPublishedParam(const ml::Path & procPath, const ml::Symbol name, const ml::Symbol alias, const ml::Symbol type, int idx) :
 	mPublishedAlias(alias),
 	mIndex(idx),
 	mFlip(false),
@@ -19,7 +19,7 @@ MLPublishedParam::MLPublishedParam(const MLPath & procPath, const ml::Symbol nam
 	mWarpMode = kJucePluginParam_Linear;
 	mParamValue = 0.f;
 	mDefault = 0.f;
-	mZeroThreshold = 0.f - (MLParamValue)(2 << 16);
+	mZeroThreshold = 0.f - (float)(2 << 16);
 	mOffset = 0;
 	mGroupIndex = -1;
 	addAddress(procPath, name);
@@ -40,7 +40,7 @@ MLPublishedParam::~MLPublishedParam()
 
 }
 
-void MLPublishedParam::setRange(MLParamValue low, MLParamValue high, MLParamValue v, bool log, MLParamValue zt, MLParamValue offset)
+void MLPublishedParam::setRange(float low, float high, float v, bool log, float zt, float offset)
 { 
 	mRangeLo = low; 
 	mRangeHi = high; 
@@ -74,22 +74,22 @@ void MLPublishedParam::setRange(MLParamValue low, MLParamValue high, MLParamValu
 	}
 }
 
-void MLPublishedParam::addAddress(const MLPath & procPath, const ml::Symbol name)
+void MLPublishedParam::addAddress(const ml::Path & procPath, const ml::Symbol name)
 {
 	mAddresses.push_back(ParamAddress(procPath, name));
 }
 
-MLParamValue MLPublishedParam::getDefault(void)
+float MLPublishedParam::getDefault(void)
 {
 	return mDefault;
 }
 	
-void MLPublishedParam::setDefault(MLParamValue val)
+void MLPublishedParam::setDefault(float val)
 {
 	mDefault = val;
 }
 
-MLParamValue MLPublishedParam::getValue(void)
+float MLPublishedParam::getValue(void)
 {
 	return mParamValue.getFloatValue();
 }
@@ -117,9 +117,9 @@ void MLPublishedParam::setValueProperty(const MLProperty& paramProp)
 			mParamValue.setValue(clampedVal);
 			break;
 		}
-		case MLProperty::kStringProperty:
+		case MLProperty::kTextProperty:
 		{
-			mParamValue.setValue(paramProp.getStringValue());
+			mParamValue.setValue(paramProp.getTextValue());
 			break;
 		}
 		case MLProperty::kSignalProperty:
@@ -132,12 +132,12 @@ void MLPublishedParam::setValueProperty(const MLProperty& paramProp)
 	}
 }
 
-MLParamValue MLPublishedParam::getValueAsLinearProportion() const
+float MLPublishedParam::getValueAsLinearProportion() const
 {
-	MLParamValue lo = getRangeLo();
-	MLParamValue hi = getRangeHi();
-	MLParamValue p;
-	MLParamValue val = mParamValue.getFloatValue();
+	float lo = getRangeLo();
+	float hi = getRangeHi();
+	float p;
+	float val = mParamValue.getFloatValue();
 	
 	switch (mWarpMode)
 	{
@@ -179,12 +179,12 @@ MLParamValue MLPublishedParam::getValueAsLinearProportion() const
 	return p;
 }
 
-MLParamValue MLPublishedParam::setValueAsLinearProportion (MLParamValue pIn)
+float MLPublishedParam::setValueAsLinearProportion (float pIn)
 {
-	MLParamValue lo = getRangeLo();
-	MLParamValue hi = getRangeHi();
-	MLParamValue val = 0.f;
-	MLParamValue pBipolar, valExp;
+	float lo = getRangeLo();
+	float hi = getRangeHi();
+	float val = 0.f;
+	float pBipolar, valExp;
 
 	float p = mFlip ? (1.0f - pIn) : pIn;
 	p -= mOffset;
@@ -252,7 +252,7 @@ void MLParamGroupMap::setGroup(const ml::Symbol groupSym)
 {
 	unsigned i = 0;
 	bool found = false;
-	std::string groupStr = std::string(groupSym.getTextFragment().text);
+	std::string groupStr = std::string(groupSym.getTextFragment().getText());
 	for (i=0; i<mGroupVec.size(); i++)
 	{
 		if (!groupStr.compare(mGroupVec[i]))

@@ -41,7 +41,7 @@ MLAppView* MLPageView::addPage()
 	mPages.push_back(newPage);
 	addChildComponent(newPage);
 	newPage->setBounds(0, 0, getWidth(), getHeight());	
-	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), ml::Symbol("page").withFinalNumber(pageNum));
+	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), ml::textUtils::addFinalNumber("page", pageNum));
 	return newPage;
 }
 
@@ -52,7 +52,7 @@ MLAppView* MLPageView::addPage(MLAppView* newPage)
 	newPage->setBounds(0, 0, getWidth(), getHeight());	
 
 	int pageNum = mWidgets.size();
-	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), ml::Symbol("page").withFinalNumber(pageNum));	
+	addWidgetToView(newPage, MLRect(0, 0, getWidth(), getHeight()), ml::textUtils::addFinalNumber("page", pageNum));	
 	return newPage;
 }
 
@@ -104,8 +104,8 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 		// line up all pages from new through current offscreen
 		// and make visible all in line up
 		
-		int start = min(mCurrPage, newPage);
-		int end = max(mCurrPage, newPage);
+		int start = ml::min(mCurrPage, newPage);
+		int end = ml::max(mCurrPage, newPage);
 		for(int i=start; i <= end; ++i)
 		{
 			mPages[i]->setBounds(localBounds.translated((w + margin)*(i - mCurrPage), 0));

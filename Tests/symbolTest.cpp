@@ -15,6 +15,7 @@
 #include "../include/madronalib.h"
 #include "MLTextUtils.h"
 
+
 #if _WIN32
 #define HAVE_U8_LITERALS 0
 #else
@@ -22,6 +23,8 @@
 #endif
 
 static const int kThreadTestSize = 1024; 
+
+using namespace ml;
 
 void threadTest(int threadID)
 {
@@ -318,24 +321,8 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	int totalPoints = 0;
 	for(auto testString : strings)
 	{
-		totalPoints += textUtils::countCodePoints(TextFragment(testString.c_str()));
+		totalPoints += TextFragment(testString.c_str()).lengthInCodePoints();
 	}
 	REQUIRE(totalPoints == 21);
 }
-
-TEST_CASE("madronalib/core/symbol/paths", "[symbol][paths]")
-{
-	theSymbolTable().clear();
-	
-	std::vector<Symbol> path = ml::textUtils::parsePath("this/is/a/path/to/a/小林 尊/interesting/Федор/this/has/some spaces in it");
-	
-	std::cout << "as elements: ";
-	for(auto elem : path)
-	{
-		std::cout << elem << "/";
-	}
-	std::cout << "\n";
-}
-
-
 

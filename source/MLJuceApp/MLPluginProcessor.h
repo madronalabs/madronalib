@@ -207,7 +207,7 @@ protected:
 	
 	// set the parameter of the Engine but not the Model property.
 	void setParameterWithoutProperty (ml::Symbol paramName, float newValue);
-	void setStringParameterWithoutProperty (ml::Symbol paramName, const std::string& newValue);
+	void setTextParameterWithoutProperty (ml::Symbol paramName, const ml::Text newValue);
 	void setSignalParameterWithoutProperty (ml::Symbol paramName, const MLSignal& newValue);
 		
 	// Engine creates graphs of Processors, does the work

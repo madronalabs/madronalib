@@ -18,6 +18,8 @@
 #include "MLTextUtils.h"
 #include "MLResourceMap.h"
 
+using namespace ml;
+
 TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 {
 	textUtils::NameMaker namer;
@@ -28,7 +30,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	
 	// make random paths out of nonsense symbols
 	auto testWords = ml::textUtils::vectorOfNonsenseSymbols( numTestWords );
-	std::vector< std::vector<Symbol> > pathsVector;
+	std::vector< Path > pathsVector;
 	ml::textUtils::NameMaker endNamer;
 	
 	ml::RandomSource randSource;
@@ -39,20 +41,20 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		int pathDepth = ((ml::rand32() >> 16) & 0x07) + 2;
 		int leaves = ((ml::rand32() >> 16) & 0x07) + 1;
 		
-		std::vector<Symbol> path;
+		Path testPath;
 		for(int p=0; p<pathDepth - 1; ++p)
 		{			
 			// 8 possible symbols per level
 			int symbolIdx = (((ml::rand32() >> 16)&0x07) + 8*p) % numTestWords;
-			path.push_back(testWords[symbolIdx]);
+			testPath.addSymbol(testWords[symbolIdx]);
 		}
 		
 		for(int j=0; j<leaves; ++j)
 		{
 			// make resource path with unique end so paths are never duplicates
 			Symbol leafName = testWords[(ml::rand32() >> 16) % numTestWords] + endNamer.nextName();
-			std::vector<Symbol> newPath = path;
-			newPath.push_back(leafName);
+			Path newPath = testPath;
+			newPath.addSymbol(leafName);
 			pathsVector.push_back(newPath);
 		}
 	}

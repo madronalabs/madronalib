@@ -25,6 +25,8 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSPMathSSE.h
     DSP/MLDSPMathNEON.h
     core/MLLocks.h
+    core/MLPath.cpp
+    core/MLPath.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp
     core/MLSignal.h
@@ -51,6 +53,8 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
     core/MLLocks.h
+    core/MLPath.cpp
+    core/MLPath.h
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp

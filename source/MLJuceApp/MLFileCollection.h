@@ -55,7 +55,7 @@ public:
 		std::list<MLFileCollection*> mpCollections;
 	};
 	
-	MLFileCollection(ml::Symbol name, const File startDir, String extension);
+	MLFileCollection(ml::Symbol name, const File startDir, ml::TextFragment extension);
     ~MLFileCollection();
 
 	void clear();
@@ -94,6 +94,7 @@ public:
     const int getFileIndexByPath(const std::string& path);
 	
     std::string getFilePathByIndex(int idx);
+	
     const MLFile getFileByIndex(int idx);
 
     // make a new file. 
@@ -115,18 +116,19 @@ public:
 private:
 	
 	MLResourceMap<ml::Symbol, MLFile>* insertFileIntoMap(juce::File f);
+	
 	void buildIndex();
     void processFileInMap(int i);
 	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
 	
-	MLResourceMap<ml::Symbol, MLFile> mRoot;
+	MLResourceMap<ml::Symbol, MLFile> mRoot; 
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
 	
     ml::Symbol mName;
-    ml::Symbol mExtension;
+    ml::TextFragment mExtension;
 	std::list<Listener*> mpListeners;
 	int mProcessDelay;
 };

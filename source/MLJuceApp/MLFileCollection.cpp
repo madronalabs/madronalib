@@ -38,8 +38,8 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 
 #pragma mark MLFileCollection
 
-MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, String extension):
-	Thread(name.getString()),
+MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, ml::TextFragment extension):
+	Thread(name.getTextFragment().getText()),
 	mName(name),
 	mExtension(extension),
 	mProcessDelay(0)
@@ -115,7 +115,7 @@ int MLFileCollection::searchForFilesImmediate()
 	return found;
 }
 
-MLResourceMap<std::string, MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
+MLResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 {
 	MLResourceMap<std::string, MLFile>* returnNode = nullptr; 
 	String shortName = f.getFileNameWithoutExtension();		
@@ -130,12 +130,12 @@ MLResourceMap<std::string, MLFile>* MLFileCollection::insertFileIntoMap(juce::Fi
 		relativePath = parentDir.getRelativePathFrom(mRoot.getValue().getJuceFile());
 	}
 
-	if (f.hasFileExtension(mExtension))
+	if (f.hasFileExtension(mExtension.getText()))
 	{
 		// insert file or directory into file tree relative to collection root
 		std::string fullName(f.getFullPathName().toUTF8());
 		std::string relativePath = getRelativePathFromName(fullName);
-		returnNode = mRoot.addValue(relativePath, MLFile(fullName));
+		returnNode = mRoot.addValue(ml::Symbol(relativePath.c_str()), MLFile(fullName));
 	}
 	else if (f.isDirectory())
 	{
@@ -197,7 +197,7 @@ void MLFileCollection::dump() const
 void MLFileCollection::processFileInMap(int i)
 {
     int size = mFilesByIndex.size();
-    if(within(i, 0, size))
+	if(ml::within(i, 0, size))
     {
 		sendActionToListeners(ml::Symbol("process"), i);
     }
@@ -360,7 +360,7 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 	
 #endif
 	
-    return ml::textUtils::stripExtension(relPath);
+    return ml::textUtils::stripFileExtension(relPath);
 }
 
 MLMenuPtr MLFileCollection::buildMenu() const

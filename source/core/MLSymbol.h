@@ -149,7 +149,7 @@ namespace ml {
 		Symbol(const HashedCharArray& hsl) : id( theSymbolTable().getSymbolID(hsl) ) { }		
 		Symbol(const char* pC) : id( theSymbolTable().getSymbolID(pC) ) { }
 		Symbol(const char* pC, int lengthBytes) : id( theSymbolTable().getSymbolID(pC, lengthBytes) ) { }
-		Symbol(TextFragment frag) : id( theSymbolTable().getSymbolID(frag.text) ) { }
+//		Symbol(TextFragment frag) : id( theSymbolTable().getSymbolID(frag.text) ) { }
 		
 		inline bool operator< (const Symbol b) const
 		{
@@ -210,8 +210,9 @@ namespace ml {
 	
 	inline Symbol operator+(Symbol f1, Symbol f2)
 	{
-		return Symbol(f1.getTextFragment() + f2.getTextFragment());
+		return Symbol((f1.getTextFragment() + f2.getTextFragment()).getText());
 	}
+	
 }	// namespace ml
 
 // hashing function for ml::Symbol use in unordered STL containers. simply return the ID,

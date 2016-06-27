@@ -112,14 +112,14 @@ public:
 	void resizeOutputs(const int n) override;
 
 	MLProcPtr newProc(const ml::Symbol className, const ml::Symbol procName) override;
-	MLProcPtr getProc(const MLPath & pathName) override; 
-	void addPipe(const MLPath& src, const  ml::Symbol output, const MLPath& dest, const  ml::Symbol input) override;
+	MLProcPtr getProc(const ml::Path & pathName) override; 
+	void addPipe(const ml::Path& src, const  ml::Symbol output, const ml::Path& dest, const  ml::Symbol input) override;
 	MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi) override;
 	// ----------------------------------------------------------------
 	#pragma mark I/O
 	//
-	void publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias) override;
-	void publishOutput(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias) override;	
+	void publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias) override;
+	void publishOutput(const ml::Path & procName, const ml::Symbol outputName, const ml::Symbol alias) override;	
 	 ml::Symbol getOutputName(int index) override;
 
 	//
@@ -127,18 +127,18 @@ public:
 	#pragma mark signals
 	//
 	// methods of MLContainerBase
-	MLProc::err addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+	MLProc::err addSignalBuffers(const ml::Path & procAddress, const ml::Symbol outputName, 
 		const  ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1) override;
-	void gatherSignalBuffers(const MLPath & procAddress, const  ml::Symbol alias, MLProcList& signalBuffers) override;
+	void gatherSignalBuffers(const ml::Path & procAddress, const  ml::Symbol alias, MLProcList& signalBuffers) override;
 	
 	//
 	MLProc::err buildProc(juce::XmlElement* parent) override;
 	void dumpGraph(int indent) override;	
-	void setProcParams(const MLPath& procName, juce::XmlElement* pelem) override;
-	MLPublishedParamPtr publishParam(const MLPath & procName, const  ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type) override;
-	void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol param) override;
+	void setProcParams(const ml::Path& procName, juce::XmlElement* pelem) override;
+	MLPublishedParamPtr publishParam(const ml::Path & procName, const  ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type) override;
+	void addSetterToParam(MLPublishedParamPtr p, const ml::Path & procName, const ml::Symbol param) override;
 	void setPublishedParam(int index, const MLProperty& val) override;
-	void routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val) override;
+	void routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val) override;
 	//
 	void compile() override;
 

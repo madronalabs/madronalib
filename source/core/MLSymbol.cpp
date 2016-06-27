@@ -125,7 +125,7 @@ namespace ml {
 		for(i=0; i<size; ++i)
 		{
 			const TextFragment& sym = getSymbolTextByID(i);
-			const char* symChars = sym.text;
+			const char* symChars = sym.getText();
 			Symbol symB(symChars);
 
 			i2 = symB.getID();

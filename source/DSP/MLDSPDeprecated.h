@@ -63,7 +63,6 @@ inline float log2f(float n)
 
 typedef float MLSample;
 typedef double MLDouble;
-typedef float MLParamValue;
 
 // ----------------------------------------------------------------
 #pragma mark Engine Constants

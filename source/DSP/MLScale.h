@@ -11,7 +11,7 @@
 #include <sstream>
 #include "MLDSP.h"
 #include "MLDebug.h"
-
+#include "MLText.h"
 #include "MLDefaultFileLocations.h" // to remove
 
 const int kMLNumRatios = 256;
@@ -30,7 +30,7 @@ public:
 	// load a scale from an input string along with an optional mapping.
 	void loadFromString(const std::string& scaleStr, const std::string& mapStr = "");
 	
-	void loadFromRelativePath(const std::string& path);
+	void loadFromRelativePath(ml::Text path);
 	
 	// convert a note number into a pitch ratio from 440.0 Hz, using the currently loaded scale.
 	float noteToPitch(float note) const;
@@ -102,7 +102,7 @@ private:
 	// pitches stored in linear octave space. pitch = log2(ratio).
 	float mPitches[kMLNumRatios];
 	
-	std::string mScalePath; 
+	ml::Text mScalePath; 
 };
 
 

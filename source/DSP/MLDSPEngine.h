@@ -21,7 +21,6 @@ const int kMLEngineMaxChannels = 8;
 extern const char * kMLInputToSignalProcName;
 extern const char * kMLHostPhasorProcName;
 extern const char * kMLPatcherProcName;
-extern const MLPath kMLPatcherPath;
 
 // MLDSPEngine: the bridge between a top-level MLProcContainer and the outside world.
 // implemented as a special kind of MLProcContainer.  There will probably only be one
@@ -76,7 +75,7 @@ public:
 	// ----------------------------------------------------------------
 	// published signals
 
-	void publishSignal(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1);
+	void publishSignal(const ml::Path & procName, const ml::Symbol outputName, const ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1);
 	
 	int getPublishedSignalBufferSize(const ml::Symbol alias);
 	int getPublishedSignalVoices(const ml::Symbol alias);
@@ -115,7 +114,7 @@ private:
 	MLProcHostPhasor* mpHostPhasorProc;
 	
 	// list of patcher procs
-	MLProcList mPatcherList;
+	// MLProcList mPatcherList; // MLTEST unused?
 
 	int mInputChans;
 	int mOutputChans;

@@ -36,7 +36,7 @@ private:
 	int mMode;
 	int mCounter;
 	float mNewPitch;
-	std::string mScaleName;
+	ml::Text mScaleName;
 };
 
 // ----------------------------------------------------------------
@@ -68,8 +68,7 @@ MLProcQuantize::~MLProcQuantize()
 
 void MLProcQuantize::doParams()
 {
-	
-	const std::string& scaleName = getStringParam("scale");
+	ml::Text scaleName = getTextParam("scale");
 	if(scaleName != mScaleName)
 	{
 		mScale.loadFromRelativePath(scaleName);

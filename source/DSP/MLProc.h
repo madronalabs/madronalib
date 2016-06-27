@@ -58,8 +58,8 @@ const std::string kMLProcAliasUndefinedStr = "undefined";
 // ----------------------------------------------------------------
 #pragma types
 
-typedef std::vector<std::string> MLParamValueAliasVec;
-typedef std::map<ml::Symbol, MLParamValueAliasVec > MLParamValueAliasMap;
+typedef std::vector<std::string> floatAliasVec;
+typedef std::map<ml::Symbol, floatAliasVec > floatAliasMap;
 
 // ----------------------------------------------------------------
 #pragma mark templates
@@ -85,7 +85,7 @@ public:
 	virtual bool hasVariableOutputs() const = 0;
 	virtual ml::Symbol getClassName() = 0;
 	
-    static const MLParamValueAliasVec kMLProcNullAliasVec;
+    static const floatAliasVec kMLProcNullAliasVec;
 
 private:
 	// make uncopyable
@@ -141,7 +141,7 @@ friend class MLProcFactory;
 			}
 		}
 #if CHECK_IO
-        MLParamValue* paramToSet = mParams[paramName];
+        float* paramToSet = mParams[paramName];
         if (paramToSet != mParams.getNullElement())
         {
             *paramToSet = value;
@@ -369,8 +369,8 @@ public:
 	
 	// get and set parameters
 	virtual void setParam(const ml::Symbol p, const MLProperty& val);
-	virtual MLParamValue getParam(const ml::Symbol p);
-	virtual const std::string& getStringParam(const ml::Symbol p);
+	virtual float getParam(const ml::Symbol p);
+	virtual const ml::Text getTextParam(const ml::Symbol p);
 	virtual const MLSignal& getSignalParam(const ml::Symbol p);
 
 	// MLProc returns the index to an entry in its proc map.

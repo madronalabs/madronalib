@@ -38,7 +38,7 @@ void MLAppView::doPropertyChangeAction(ml::Symbol p, const MLProperty & newVal)
 		{
 		}
 		break;
-		case MLProperty::kStringProperty:
+		case MLProperty::kTextProperty:
 		{
 		}
 		break;
@@ -104,7 +104,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 	
 	for(int i=0; i<numSliders; ++i)
 	{
-		addPropertyView(propName.withFinalNumber(i), slider, ml::Symbol("value").withFinalNumber(i));
+		addPropertyView(ml::textUtils::addFinalNumber(propName, i), slider, ml::textUtils::addFinalNumber("value", i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -125,7 +125,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 	
 	for(int i=0; i<n; ++i)
 	{
-		addPropertyView(propName.withFinalNumber(i), b, ml::Symbol("value").withFinalNumber(i));
+		addPropertyView(ml::textUtils::addFinalNumber(propName, i), b, ml::textUtils::addFinalNumber("value", i));
 	}
 	
 	if (strcmp(displayName, ""))
@@ -147,7 +147,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(button, displayName, propName.append("_label"), sizeMultiplier);
+		addLabelAbove(button, displayName, propName+("_label"), sizeMultiplier);
 	}
     
 	return button;
@@ -165,7 +165,7 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 	
 	if (strcmp(displayName, ""))
 	{
-		addLabelAbove(button, displayName, propName.append("_label"), sizeMultiplier);
+		addLabelAbove(button, displayName, propName+("_label"), sizeMultiplier);
 	}
     
 	return button;

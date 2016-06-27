@@ -5,7 +5,7 @@
 
 #include "MLProc.h"
 
-const MLParamValueAliasVec MLProcInfoBase::kMLProcNullAliasVec;
+const floatAliasVec MLProcInfoBase::kMLProcNullAliasVec;
 
 #pragma mark MLProc
 
@@ -160,14 +160,14 @@ bool MLProc::paramExists(const ml::Symbol pname)
 	return r;
 }
 
-MLParamValue MLProc::getParam(const ml::Symbol pname)
+float MLProc::getParam(const ml::Symbol pname)
 {
 	return procInfo().getParamProperty(pname).getFloatValue();
 }
 
-const std::string& MLProc::getStringParam(const ml::Symbol pname)
+const ml::Text MLProc::getTextParam(const ml::Symbol pname)
 {
-	return procInfo().getParamProperty(pname).getStringValue();
+	return procInfo().getParamProperty(pname).getTextValue();
 }
 
 const MLSignal& MLProc::getSignalParam(const ml::Symbol pname)
@@ -314,7 +314,7 @@ void MLProc::dumpParams()
 	for (MLSymbolMap::MLSymbolMapIter i = map.begin(); i != map.end(); i++)
 	{
 		const ml::Symbol pName = ((*i).first);
-		MLParamValue val = getParam(pName);
+		float val = getParam(pName);
 		debug() << "[" << pName << " : " << val << "] ";
 	}
 	debug() << "\n";

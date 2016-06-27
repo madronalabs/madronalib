@@ -146,15 +146,15 @@ cJSON* MLAppState::getStateAsJSON()
 		ml::Symbol key = it->first;
 		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
 		{			
-			const char* keyStr = key.getSymbol().getTextFragment().text;
+			const char* keyStr = key.getTextFragment().getText();
 			PropertyState& state = it->second;
 			switch(state.mValue.getType())
 			{
 				case MLProperty::kFloatProperty:
 					cJSON_AddNumberToObject(root, keyStr, state.mValue.getFloatValue());
 					break;
-				case MLProperty::kSymbolProperty:
-					cJSON_AddStringToObject(root, keyStr, state.mValue.getSymbolValue().getTextFragment().text);
+				case MLProperty::kTextProperty:
+					cJSON_AddStringToObject(root, keyStr, state.mValue.getTextValue().getText());
 					break;
 				case MLProperty::kSignalProperty:
 					{

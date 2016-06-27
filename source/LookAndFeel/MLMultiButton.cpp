@@ -28,7 +28,7 @@ MLMultiButton::~MLMultiButton()
 
 void MLMultiButton::doPropertyChangeAction(ml::Symbol property, const MLProperty& val)
 {
-	if (property.withoutFinalNumber() == "value")
+	if (ml::textUtils::stripFinalNumber(property) == "value")
 	{
 		repaint();
 	}
@@ -93,7 +93,7 @@ void MLMultiButton::paint (Graphics& g)
 	//
 	for (int i=0; i<mNumButtons; ++i)
 	{
-		on = getFloatProperty(ml::Symbol("value").withFinalNumber(i));
+		on = getFloatProperty(ml::textUtils::addFinalNumber("value", i));
 		down = ((i == mButtonUnderMouse) && (mCurrDragButton >= 0));
 
 		flair = eMLAdornShadow | eMLAdornGlow;
@@ -119,9 +119,9 @@ void MLMultiButton::mouseDown (const MouseEvent& e)
     if (isEnabled())
     {		
 		mCurrDragButton = getButtonUnderPoint(e.getPosition());
-		if(within(mCurrDragButton, 0, mNumButtons))
+		if(ml::within(mCurrDragButton, 0, mNumButtons))
 		{
-			bool val = getFloatProperty(ml::Symbol("value").withFinalNumber(mCurrDragButton));
+			bool val = getFloatProperty(ml::textUtils::addFinalNumber("value", mCurrDragButton));
 	//		val = !val;
 			mCurrDragValue = val;
 	//		setIndexedValue(mCurrDragButton, val, true, true);		
@@ -177,7 +177,7 @@ void MLMultiButton::mouseDrag(const MouseEvent& e)
     if (isEnabled())
     {		
 //debug() << "drag:" << mx << "," << my << "dial " << s << "\n";
-		if (within(b, 0, mNumButtons))
+		if (ml::within(b, 0, mNumButtons))
 		{
 //			const int mousePos = isHorizontal() ? mx : my;
 			
@@ -223,13 +223,13 @@ int MLMultiButton::getButtonUnderMouse()
 
 void MLMultiButton::setSelectedValue (float val, int selector)
 {
-	ml::Symbol buttonName = ml::Symbol("value").withFinalNumber(selector);
+	ml::Symbol buttonName = ml::textUtils::addFinalNumber("value", selector);
 	float currentValue = getFloatProperty(buttonName);
 	float newValue = ml::clamp(val, 0.f, 1.f);
 	
     if (currentValue != newValue)
     {
-		ml::Symbol targetPropertyName = getTargetPropertyName().withFinalNumber(selector);
+		ml::Symbol targetPropertyName = ml::textUtils::addFinalNumber(getTargetPropertyName(), selector);
 		setPropertyImmediate(buttonName, newValue);
 		sendAction("change_property", targetPropertyName, getProperty(buttonName));
     }

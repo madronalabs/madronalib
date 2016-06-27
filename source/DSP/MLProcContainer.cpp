@@ -1122,7 +1122,7 @@ MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias
 	return e;
 }
 
-MLProcPtr MLProcContainer::getProc(const MLPath & path)
+MLProcPtr MLProcContainer::getProc(const ml::Path & path)
 {
 	MLProcPtr r;
 	MLProcPtr headProc;
@@ -1130,7 +1130,7 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 	err e = OK;
 
 	const ml::Symbol head = path.head();
-	const MLPath tail = path.tail();
+	const ml::Path tail = path.tail();
 
 //debug() << "MLProcContainer(" << (void *)this << ") getProc: " << head << " / " << tail << "\n";
 //debug() << "      proc map is (" << (void *)&mProcMap << ")\n";
@@ -1142,7 +1142,7 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 	if (it != mProcMap.end())
 	{
 		headProc = it->second;	
-		if (!tail.empty())
+		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
 			{
@@ -1170,14 +1170,14 @@ MLProcPtr MLProcContainer::getProc(const MLPath & path)
 }
 
 // TODO this can't possibly work with multis inside multis, since the copy # is specified
-// for the entire path. Fix with new MLPath structure with copy or wildcard per branch.
+// for the entire path. Fix with new ml::Path structure with copy or wildcard per branch.
 // if enabledOnly is true, return only enabled procs.
-void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, int copies, bool enabledOnly)
+void MLProcContainer::getProcList(MLProcList& pList, const ml::Path & pathName, int copies, bool enabledOnly)
 {
 	pList.clear();
 	for(int i=1; i<=copies; ++i)
 	{
-		MLPath pathI = pathName;
+		ml::Path pathI = pathName;
 		pathI.setCopy(i);
 		MLProcPtr proc = getProc(pathI);		
 		if (proc)
@@ -1198,7 +1198,7 @@ void MLProcContainer::getProcList(MLProcList& pList, const MLPath & pathName, in
 // otherwise implement anything.  The implementation is done in
 // MLProcContainer::connectProcs().
 //
-void MLProcContainer::addPipe(const MLPath& src, const ml::Symbol out, const MLPath& dest, const ml::Symbol in)
+void MLProcContainer::addPipe(const ml::Path& src, const ml::Symbol out, const ml::Path& dest, const ml::Symbol in)
 {
 	MLProcPtr srcProc, destProc;
 	int srcIdx, destIdx;
@@ -1296,7 +1296,7 @@ bail:
 // ----------------------------------------------------------------
 #pragma mark I/O
 
-void MLProcContainer::publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias)
+void MLProcContainer::publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias)
 {
 	err e = OK;
 	MLPublishedInputPtr p;
@@ -1391,7 +1391,7 @@ bail:
 
 // publish an output of a subproc by setting one of our output ptrs to the subproc's output signal.
 // 
-void MLProcContainer::publishOutput(const MLPath & srcProcName, const ml::Symbol outputName, const ml::Symbol alias)
+void MLProcContainer::publishOutput(const ml::Path & srcProcName, const ml::Symbol outputName, const ml::Symbol alias)
 {	
     err e = OK;
 	MLPublishedOutputPtr p;
@@ -1485,7 +1485,7 @@ ml::Symbol MLProcContainer::getOutputName(int index)
 // ----------------------------------------------------------------
 #pragma mark published signals - the recursive part
 
-MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, ml::Symbol outputName, ml::Symbol alias, 
+MLProc::err MLProcContainer::addBufferHere(const ml::Path & procName, ml::Symbol outputName, ml::Symbol alias, 
 	int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
@@ -1501,7 +1501,7 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, ml::Symbol o
 	e = addProcAfter("ringbuffer", alias, procName.head());
 	if (e == OK)
 	{
-		MLProcPtr bufferProc = getProc(MLPath(alias));	
+		MLProcPtr bufferProc = getProc(ml::Path(alias));	
 		if (bufferProc)
 		{
 			bufferProc->setParam("frame_size", frameSize);
@@ -1510,7 +1510,7 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, ml::Symbol o
 			bufferProc->setup();
 			
 			// connect published output of head proc to ringbuffer input
-			addPipe(procName, outputName, MLPath(alias), ml::Symbol("in"));
+			addPipe(procName, outputName, ml::Path(alias), ml::Symbol("in"));
 		}
 	}
 
@@ -1520,7 +1520,7 @@ MLProc::err MLProcContainer::addBufferHere(const MLPath & procName, ml::Symbol o
 // recurse into graph, adding ring buffers where necessary to capture signals matching procAddress.
 // this is necessary to get multiple signals that resolve to the same address.
 //
-MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, const ml::Symbol outputName, 
 	const ml::Symbol alias, int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
@@ -1529,7 +1529,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 	MLSymbolProcMapT::iterator it;
 
 	const ml::Symbol head = procAddress.head();
-	const MLPath tail = procAddress.tail();
+	const ml::Path tail = procAddress.tail();
 	//const int copy = procAddress.getCopy();
 	//debug() << "MLProcContainer " << getName() << " addSignalBuffers to " << procAddress << "\n";
 	
@@ -1553,7 +1553,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 		}
 		else // create buffer.
 		{		
-			addBufferHere(MLPath(head), outputName, alias, trigMode, bufLength, frameSize);
+			addBufferHere(ml::Path(head), outputName, alias, trigMode, bufLength, frameSize);
 		}
 	}
 	else 
@@ -1566,12 +1566,12 @@ MLProc::err MLProcContainer::addSignalBuffers(const MLPath & procAddress, const 
 //
 // recurse into graph, gathering signals matching procAddress into a list.
 //
-void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const ml::Symbol alias, MLProcList& signalBuffers)
+void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml::Symbol alias, MLProcList& signalBuffers)
 {
 	MLProcPtr headProc;
 	MLSymbolProcMapT::iterator it;
 	const ml::Symbol head = procAddress.head();
-	const MLPath tail = procAddress.tail();
+	const ml::Path tail = procAddress.tail();
 
 	// debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
 	
@@ -1597,7 +1597,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const ml::
 		{
 			// get container of last head proc
 			MLProcContainer& context = static_cast<MLProcContainer&>(*headProc->getContext());		
-			MLProcPtr bufferProc = context.getProc(MLPath(alias));		
+			MLProcPtr bufferProc = context.getProc(ml::Path(alias));		
 			if (bufferProc)	
 			{
 				signalBuffers.push_back(bufferProc);
@@ -1615,7 +1615,7 @@ void MLProcContainer::gatherSignalBuffers(const MLPath & procAddress, const ml::
 
 // return a new MLPublishedParamPtr that can be called upon to set the given param.
 // 
-MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const ml::Symbol param, const ml::Symbol alias, const ml::Symbol type)
+MLPublishedParamPtr MLProcContainer::publishParam(const ml::Path & procPath, const ml::Symbol param, const ml::Symbol alias, const ml::Symbol type)
 {
 	MLPublishedParamPtr p;	
 	const int i = (int)mPublishedParams.size();
@@ -1626,7 +1626,7 @@ MLPublishedParamPtr MLProcContainer::publishParam(const MLPath & procPath, const
 	return p;
 }
 
-void MLProcContainer::addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol paramName)
+void MLProcContainer::addSetterToParam(MLPublishedParamPtr p, const ml::Path & procName, const ml::Symbol paramName)
 {
 	p->addAddress(procName, paramName);
 }
@@ -1649,9 +1649,9 @@ void MLProcContainer::setPublishedParam(int index, const MLProperty& val)
 	}
 }
 
-MLParamValue MLProcContainer::getParam(const ml::Symbol alias)
+float MLProcContainer::getParam(const ml::Symbol alias)
 {
-	MLParamValue r = 0.f;
+	float r = 0.f;
 	MLPublishedParamPtr p;	// default constructor sets up bool test
 	MLPublishedParamMapT::const_iterator it = mPublishedParamMap.find(alias);
 	if (it != mPublishedParamMap.end()) 
@@ -1677,13 +1677,13 @@ MLParamValue MLProcContainer::getParam(const ml::Symbol alias)
 // perform our node's part of sending the parameter to the address.  if the address tail
 // is empty, we are done-- look for the named proc and set the param.
 // TODO verify why this doesn't just use getProcList().
-void MLProcContainer::routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val)
+void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val)
 {
 	MLProcPtr headProc;
 	MLSymbolProcMapT::iterator it;
 
 	const ml::Symbol head = procAddress.head();
-	const MLPath tail = procAddress.tail();
+	const ml::Path tail = procAddress.tail();
 	
 	// debug() << "MLProcContainer(" << (void *)this << ") routeParam: " << head << " / " << tail << "\n";
 	
@@ -1767,9 +1767,9 @@ const std::string& MLProcContainer::getParamGroupName(int index)
 	return mParamGroups.getGroupName(index);
 }
 
-MLParamValue MLProcContainer::getParamByIndex(int index)
+float MLProcContainer::getParamByIndex(int index)
 {
-	MLParamValue r = 0.f;
+	float r = 0.f;
 	const int size = (int)mPublishedParams.size();
 	if (ml::within(index, 0, size))
 	{
@@ -1795,16 +1795,16 @@ int MLProcContainer::getPublishedParams()
 // TODO ditch XML altogether and make scriptable with e.g. Javascript
 
 ml::Symbol stringToSymbol(const juce::String& str);
-MLPath stringToPath(const juce::String& str);
+ml::Path stringToPath(const juce::String& str);
 
 ml::Symbol stringToSymbol(const juce::String& str)
 {
 	return ml::Symbol(static_cast<const char *>(str.toUTF8()));
 }
 
-MLPath stringToPath(const juce::String& str)
+ml::Path stringToPath(const juce::String& str)
 {
-	return MLPath(static_cast<const char *>(str.toUTF8()));
+	return ml::Path(static_cast<const char *>(str.toUTF8()));
 }
 
 void MLProcContainer::scanDoc(juce::XmlDocument* pDoc, int* numParameters)
@@ -1841,7 +1841,7 @@ ml::Symbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const ch
 	}
 }
 
-MLPath MLProcContainer::RequiredPathAttribute(juce::XmlElement* parent, const char * name)
+ml::Path MLProcContainer::RequiredPathAttribute(juce::XmlElement* parent, const char * name)
 {
 	if (parent->hasAttribute(name))
 	{
@@ -1850,7 +1850,7 @@ MLPath MLProcContainer::RequiredPathAttribute(juce::XmlElement* parent, const ch
 	else
 	{
 		debug() << parent->getTagName() << ": required path attribute " << name << " missing \n";
-		return MLPath();
+		return ml::Path();
 	}
 }
 
@@ -1871,7 +1871,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("input"))
 		{
-			MLPath arg1 = RequiredPathAttribute(child, "proc");
+			ml::Path arg1 = RequiredPathAttribute(child, "proc");
 			ml::Symbol arg2 = RequiredAttribute(child, "input");
 			ml::Symbol arg3 = RequiredAttribute(child, "alias");
 			if (arg1 && arg2 && arg3)
@@ -1885,7 +1885,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("output"))
 		{
-			MLPath arg1 = RequiredPathAttribute(child, "proc");
+			ml::Path arg1 = RequiredPathAttribute(child, "proc");
 			ml::Symbol arg2 = RequiredAttribute(child, "output");
 			ml::Symbol arg3 = RequiredAttribute(child, "alias");
 			if (arg1 && arg2 && arg3)
@@ -1899,9 +1899,9 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}
 		else if (child->hasTagName("connect"))
 		{
-			MLPath arg1 = RequiredPathAttribute(child, "from");
+			ml::Path arg1 = RequiredPathAttribute(child, "from");
 			ml::Symbol arg2 = RequiredAttribute(child, "output");
-			MLPath arg3 = RequiredPathAttribute(child, "to");
+			ml::Path arg3 = RequiredPathAttribute(child, "to");
 			ml::Symbol arg4 = RequiredAttribute(child, "input");
 			
 			if (arg1 && arg2 && arg3 && arg4)
@@ -1922,7 +1922,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 		}				
 		else if (child->hasTagName("param"))
 		{
-			MLPath arg1 = RequiredPathAttribute(child, "proc");
+			ml::Path arg1 = RequiredPathAttribute(child, "proc");
 			ml::Symbol arg2 = RequiredAttribute(child, "param");
 			ml::Symbol arg3 = RequiredAttribute(child, "alias");
 			
@@ -1970,7 +1970,7 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 	e = addProc(newProcClass, newProcName);		
 	if (e == MLProc::OK)
 	{
-		MLPath newProcPath(newProcName);	
+		ml::Path newProcPath(newProcName);	
 		
 		setProcParams(newProcPath, parent);
 
@@ -1994,7 +1994,7 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 	return e;
 }
 
-void MLProcContainer::setProcParams(const MLPath& procName, juce::XmlElement* parent)
+void MLProcContainer::setProcParams(const ml::Path& procName, juce::XmlElement* parent)
 {
 	MLProcPtr p;
 	int ac = 0;
@@ -2016,11 +2016,11 @@ void MLProcContainer::setProcParams(const MLPath& procName, juce::XmlElement* pa
 			// set
 			bool isClass = (!classStr.compare(attrName.toUTF8()));
 			bool isName = (!nameStr.compare(attrName.toUTF8()));
-			MLParamValue paramVal;
+			float paramVal;
 			
 			if (!isClass && !isName) // TODO a better way of ignoring certain attributes
 			{
-				paramVal = (MLParamValue)parent->getDoubleAttribute(attrName);
+				paramVal = (float)parent->getDoubleAttribute(attrName);
 				p->setParam((const char *)attrName.toUTF8(), paramVal);
 			}
 			++ac;
@@ -2041,23 +2041,23 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 	{
 		if (child->hasTagName("range"))
 		{
-			MLParamValue low = 0.f;
-			MLParamValue high = 1.f;
-			MLParamValue interval = 0.01f;
-			MLParamValue offset = 0.0f;
+			float low = 0.f;
+			float high = 1.f;
+			float interval = 0.01f;
+			float offset = 0.0f;
 			int logAttr = 0;
-			MLParamValue zeroThresh = -2<<16;
-			low = (MLParamValue)child->getDoubleAttribute("low", low);
-			high = (MLParamValue)child->getDoubleAttribute("high", high);
-			interval = (MLParamValue)child->getDoubleAttribute("interval", interval);
+			float zeroThresh = -2<<16;
+			low = (float)child->getDoubleAttribute("low", low);
+			high = (float)child->getDoubleAttribute("high", high);
+			interval = (float)child->getDoubleAttribute("interval", interval);
 			logAttr = child->getIntAttribute("log", logAttr);
-			zeroThresh = (MLParamValue)child->getDoubleAttribute("zt", zeroThresh);
-			offset = (MLParamValue)child->getDoubleAttribute("offset", offset);
-			p->setRange(low, high, ml::max(interval, 0.001f), MLParamValue(logAttr != 0), zeroThresh, offset);
+			zeroThresh = (float)child->getDoubleAttribute("zt", zeroThresh);
+			offset = (float)child->getDoubleAttribute("offset", offset);
+			p->setRange(low, high, ml::max(interval, 0.001f), float(logAttr != 0), zeroThresh, offset);
 		}
 		else if(child->hasTagName("default"))
 		{
-			p->setDefault((MLParamValue)child->getDoubleAttribute("value", 0.f));
+			p->setDefault((float)child->getDoubleAttribute("value", 0.f));
 		}
 		else if(child->hasTagName("alsosets"))
 		{
@@ -2082,12 +2082,9 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 		else if(child->hasTagName("length"))
 		{
 			ml::Symbol type = p->getType();
-			if(type == "string")
+			if(type == "text")
 			{
-				// create storage for the string parameter.
-				int len = 256;
-				len = child->getIntAttribute("length", len);
-				p->setValueProperty(std::string((size_t)len, '\0'));
+				p->setValueProperty(ml::Text());
 			}
 		}
 		else if(child->hasTagName("automatable"))

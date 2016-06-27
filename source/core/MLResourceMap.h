@@ -8,8 +8,7 @@
 //
 //
 
-#ifndef __ResourceMap__
-#define __ResourceMap__
+#pragma once
 
 #include <string>
 #include <map>
@@ -17,13 +16,15 @@
 #include <functional>
 #include <algorithm>
 
+#include "MLPath.h"
 #include "MLTextUtils.h" 
 
 // A resource map using a key class K, value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
 // Note that this makes MLResourceMap<..., int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
-//
+
+namespace ml{
 
 template < class K, class V, class C = std::less<K> >
 class MLResourceMap
@@ -43,9 +44,9 @@ public:
 	// find a value by its path.	
 	// if the path exists, returns the value in the tree.
 	// else, return a null object of our value type V.
-	V findValue(std::vector<ml::Symbol> path)
+	V findValue(Path p)
 	{
-		MLResourceMap<K, V, C>* pNode = findNode(path);
+		MLResourceMap<K, V, C>* pNode = findNode(p);
 		if(pNode)
 		{
 			return pNode->getValue();
@@ -58,7 +59,7 @@ public:
 	
 	V findValue(const char* pathStr)
 	{
-		return findValue(ml::textUtils::parsePath(pathStr));
+		return findValue(ml::Path(pathStr));
 	}
 	
 	// WHY SHOULD K BE IN THE TEMPLATE ?
@@ -67,11 +68,11 @@ public:
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
 	
-	MLResourceMap<K, V, C>* addNode(std::vector<ml::Symbol> path)
+	MLResourceMap<K, V, C>* addNode(ml::Path path)
 	{
 		MLResourceMap<K, V, C>* pNode = this;
 		
-		typename std::vector< K >::const_iterator it;
+//		typename std::vector< K >::const_iterator it;
 		int pathDepthFound = 0;
 		
 		// walk the path as long as branches are found in the map
@@ -89,7 +90,7 @@ public:
 		}
 		
 		// add the remainder of the path to the map.
-		for(it = path.begin() + pathDepthFound; it != path.end(); ++it)
+		for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
 			K key = *it;
 			
@@ -102,10 +103,10 @@ public:
 	
 	MLResourceMap<K, V, C>* addNode(const char* pathStr)
 	{
-		return addNode(ml::textUtils::parsePath(pathStr));
+		return addNode(ml::Path(pathStr));
 	}
 	
-	MLResourceMap<K, V, C>* addValue (std::vector<ml::Symbol> path, const V& val)
+	MLResourceMap<K, V, C>* addValue (ml::Path path, const V& val)
 	{
 		MLResourceMap<K, V, C>* newNode = addNode(path);
 		newNode->setValue(val);
@@ -114,7 +115,7 @@ public:
 	
 	MLResourceMap<K, V, C>* addValue (const char* pathStr, const V& val)
 	{
-		return addValue(ml::textUtils::parsePath(pathStr), val);
+		return addValue(ml::Path(pathStr), val);
 	}
 	
 	// TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
@@ -269,7 +270,7 @@ private:
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	MLResourceMap<K, V, C>* findNode(std::vector<ml::Symbol> path)
+	MLResourceMap<K, V, C>* findNode(Path path)
 	{
 		MLResourceMap<K, V, C>* pNode = this;
 
@@ -292,5 +293,4 @@ private:
 	V mValue;
 };
 
-
-#endif /* defined(__ResourceMap__) */
+} // namespace ml

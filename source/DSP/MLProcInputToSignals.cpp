@@ -386,7 +386,7 @@ void MLProcInputToSignals::doParams()
     // TODO enable / disable voice containers here
 	mOSCDataRate = (int)getParam("data_rate");
 	
-	const std::string& scaleName = getStringParam("scale");
+	const ml::Text& scaleName = getTextParam("scale");
 	mScale.loadFromRelativePath(scaleName);
 	
 	const int newProtocol = (int)getParam("protocol");	

@@ -27,7 +27,7 @@ public:
 	void process(const int frames) override;
 
 	MLProc::err addProc(const ml::Symbol className, const ml::Symbol procName) override;
-	MLProcPtr getProc(const MLPath & pathName) override;
+	MLProcPtr getProc(const ml::Path & pathName) override;
 	
 	MLProcInfoBase& procInfo() override { return mInfo; }
 protected:	

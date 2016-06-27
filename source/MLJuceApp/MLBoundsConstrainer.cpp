@@ -35,8 +35,8 @@ void MLBoundsConstrainer::checkBounds (Rectangle<int>& bounds,
 	double r = getFixedAspectRatio();	
 
 	// clamp dims
-	w = clamp (w, minw, maxw);
-	h = clamp (h, minh, maxh);
+	w = ml::clamp (w, minw, maxw);
+	h = ml::clamp (h, minh, maxh);
 	
 	// fix ratio
 	const int rLimitH = 800;

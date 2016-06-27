@@ -19,6 +19,7 @@
 #include <iostream>
 
 #include "MLText.h"
+#include "MLPath.h"
 
 using namespace ml;
 
@@ -121,8 +122,8 @@ int main()
 #endif	
 	
 	// iterate a UTF-8 text as code points
-	auto first = utf::codepoint_iterator<const char*>(kobayashi.text);
-	auto last = utf::codepoint_iterator<const char*>(kobayashi.text + kobayashi.lengthInBytes);
+	auto first = utf::codepoint_iterator<const char*>(kobayashi.getText());
+	auto last = utf::codepoint_iterator<const char*>(kobayashi.getText() + kobayashi.lengthInBytes());
 	for (auto it = first; it != last; ++it) 
 	{
 		std::cout << std::hex << *it << " "; // code points: 5c0f 6797 20 5c0a 
@@ -147,8 +148,8 @@ int main()
 	
 	TextFragment hello1("hi, how are you?");
 	std::cout << hello1 << " [" << textUtils::subText(hello1, 4, 7) << "] \n"; // hi, how are you? [how] 
-	std::cout << textUtils::stripExtension("example.txt") << "\n"; // example
-	std::cout << textUtils::getShortName("golly/gee/whiz.txt") << "\n"; // whiz.txt
+	std::cout << textUtils::stripFileExtension("example.txt") << "\n"; // example
+	std::cout << textUtils::getShortFileName("golly/gee/whiz.txt") << "\n"; // whiz.txt
 	std::cout << textUtils::getPath("golly/locks/file.txt") << "\n"; // golly/locks
 	
 	TextFragment space("林");
@@ -171,25 +172,40 @@ int main()
 	
 //	theTextFragmentPool().dump();
 	
-	std::vector< Symbol > pathSymbols = textUtils::parsePath("hello/小林/it's/nice/in/the/café/here");
-	std::cout << "path:\n";
-	for (auto p : pathSymbols)
+	ml::Path newPath("hello/小林/it's/nice/in/the/café/here");
+	std::cout << "path: " << newPath << " (" << sizeof(newPath) << " bytes) \n";
+	
 	{
-		std::cout << p << "\n";
+		TextFragment t ("Hello, I'm Rags. ");
+		TextFragment u = t + ("This ") + ("林 ");
+		TextFragment v = u + ("is ") + ("nice! ");
+		std::cout << "new text: " << v << "\n";		
+		std::cout << v + "Hello, world!" << "\n";
+		TextFragment w = v + "Hello, universe!" ;
+		std::cout << "$" << std::string(w.getText()) << "$\n";
+		std::cout << u.lengthInCodePoints() << " code points, " << u.lengthInBytes() << " bytes.\n";
 	}
 	
 	{
-		Text t("Hello, I'm Rags.");
-		t.add("This");
-		t.add("林");
-		t.add("is");
-		t.add("nice!");
-		std::cout << "new text: " << t << "\n";		
-		std::cout << t + "Hello, world!" << "\n";
-		Text u = t + "Hello, universe!" ;
-		std::cout << "$" << makeStdString(u) << "$\n";
-		std::cout << u.lengthInFragments() << " fragments, " << u.lengthInCodePoints() << " code points, " << u.lengthInBytes() << " bytes.\n";
+		ml::RandomSource r;
+		int len = fabs(r.getSample()*29.);
+		std::cout << len << "\n";
+		
+		char test1[100];
+		std::cout << std::hex << (unsigned long *)test1 << std::dec << "\n";
+		char test2[100];
+		std::cout << std::hex << (unsigned long *)test2 << std::dec << "\n";
+		
+		std::vector< ml::Symbol > tv1;
+		std::vector< ml::Symbol > tv2;
+		tv1.emplace_back("hello");
+		tv1.emplace_back("again");
+		std::cout << std::hex << (unsigned long *)(&tv1) << std::dec << " (" << sizeof(tv1) << " bytes) \n";
+		std::cout << std::hex << (unsigned long *)(&tv2) << std::dec << " (" << sizeof(tv2) << " bytes) \n";
+		std::cout << std::hex << (unsigned long *)(&tv1[0]) << std::dec << "\n";
+		std::cout << std::hex << (unsigned long *)(&tv1[1]) << std::dec << "\n";
 	}
+	
 	
 	return 0;
 }

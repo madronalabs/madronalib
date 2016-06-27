@@ -59,11 +59,11 @@ void MLMenuButton::doPropertyChangeAction(ml::Symbol property, const MLProperty&
 	if (property == "text")
 	{
 		// TODO this file-specific stuff should not be here. 
-		ml::Symbol processedText;
-		const ml::Symbol symVal = val.getSymbolValue();
+		ml::Text processedText;
+		const ml::Text symVal = val.getTextValue();
 		if(getFloatProperty("strip"))
 		{
-			processedText = ml::Symbol(ml::textUtils::stripExtension(ml::textUtils::getShortName(symVal.getTextFragment())));
+			processedText = ml::textUtils::stripFileExtension(ml::textUtils::getShortFileName(symVal));
 		}
 		else
 		{

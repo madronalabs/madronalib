@@ -132,11 +132,11 @@ public:
 	
 	// get a procPtr by slash delimited path name, recursively descending into subcontainers.
 	// leaf names can be the same if procs have differently named paths.
-	virtual MLProcPtr getProc(const MLPath & pathName) = 0;
+	virtual MLProcPtr getProc(const ml::Path & pathName) = 0;
 	
 	// connect one signal output to one signal input to make a graph edge. 
 	// The src and dest procs must live in the same container. 
-	virtual void addPipe(const MLPath& src, const ml::Symbol output, const MLPath& dest, const ml::Symbol input) = 0;
+	virtual void addPipe(const ml::Path& src, const ml::Symbol output, const ml::Path& dest, const ml::Symbol input) = 0;
 
 	// build the connection between Procs that a Pipe specifies, by copying
 	// Signal ptrs, adjusting block sizes, and creating resamplers as necessary.
@@ -145,23 +145,25 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark -- I/O
 	//
-	virtual void publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias) = 0;
-	virtual void publishOutput(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias) = 0;
+	virtual void publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias) = 0;
+	virtual void publishOutput(const ml::Path & procName, const ml::Symbol outputName, const ml::Symbol alias) = 0;
 	
 	// ----------------------------------------------------------------
 	#pragma mark -- signals
 	//	
-	virtual MLProc::err addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+	virtual MLProc::err addSignalBuffers(const ml::Path & procAddress, const ml::Symbol outputName, 
 		const ml::Symbol alias, int trigMode, int bufLength, int frameSize) = 0;
-	virtual void gatherSignalBuffers(const MLPath & procAddress, const ml::Symbol alias, MLProcList& buffers) = 0;
+	virtual void gatherSignalBuffers(const ml::Path & procAddress, const ml::Symbol alias, MLProcList& buffers) = 0;
 	
 	// ----------------------------------------------------------------
 	#pragma mark -- parameters
 	// 
-	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type) = 0;
-	virtual void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol param) = 0;
+	virtual MLPublishedParamPtr publishParam(const ml::Path & procName, const ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type) = 0;
+	virtual void addSetterToParam(MLPublishedParamPtr p, const ml::Path & procName, const ml::Symbol param) = 0;
 	virtual void setPublishedParam(int index, const MLProperty& val) = 0;
-	virtual void routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val) = 0;
+	
+	// MLTEST should be protected
+	virtual void routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val) = 0;
 	//	
 	virtual void makeRoot(const ml::Symbol name) = 0;
 	virtual bool isRoot() const = 0;
@@ -172,7 +174,7 @@ public:
 	// 
 	virtual void buildGraph(juce::XmlElement* pDoc) = 0;	
 	virtual void dumpGraph(int indent) = 0;	
-	virtual void setProcParams(const MLPath& procName, juce::XmlElement* pelem) = 0;
+	virtual void setProcParams(const ml::Path& procName, juce::XmlElement* pelem) = 0;
 
 	typedef std::map<ml::Symbol, MLProcPtr> MLSymbolProcMapT;	
 	typedef std::map<ml::Symbol, MLPublishedParamPtr> MLPublishedParamMapT;
@@ -240,7 +242,7 @@ public:
 	virtual int getInputIndex(const ml::Symbol name);
 	virtual int getOutputIndex(const ml::Symbol name);	
 	int getNumProcs();
-	MLParamValue getParam(const ml::Symbol paramName);
+	float getParam(const ml::Symbol paramName);
 	//
 	virtual void makeRoot(const ml::Symbol name); // mark as root context
 	inline virtual bool isRoot() const { return (getContext() == this); }
@@ -251,26 +253,26 @@ public:
 	//
 	MLProcPtr newProc(const ml::Symbol className, const ml::Symbol procName);
 	virtual MLProc::err addProc(const ml::Symbol className, const ml::Symbol procName); 
-	virtual void addPipe(const MLPath& src, const ml::Symbol output, const MLPath& dest, const ml::Symbol input);
+	virtual void addPipe(const ml::Path& src, const ml::Symbol output, const ml::Path& dest, const ml::Symbol input);
 	virtual MLProc::err connectProcs(MLProcPtr a, int ai, MLProcPtr b, int bi);
 	//	
-	virtual MLProcPtr getProc(const MLPath & pathName); 
-	void getProcList(MLProcList& pList, const MLPath & pathName, int copies, bool enabledOnly = true);
+	virtual MLProcPtr getProc(const ml::Path & pathName); 
+	void getProcList(MLProcList& pList, const ml::Path & pathName, int copies, bool enabledOnly = true);
 	//
-	virtual void publishInput(const MLPath & procName, const ml::Symbol inputName, const ml::Symbol alias);
-	virtual void publishOutput(const MLPath & procName, const ml::Symbol outputName, const ml::Symbol alias);	
+	virtual void publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias);
+	virtual void publishOutput(const ml::Path & procName, const ml::Symbol outputName, const ml::Symbol alias);	
 	ml::Symbol getOutputName(int index);
 
 	// ----------------------------------------------------------------
 	#pragma mark signals
 	//
 	// methods of MLContainerBase
-	virtual MLProc::err addSignalBuffers(const MLPath & procAddress, const ml::Symbol outputName, 
+	virtual MLProc::err addSignalBuffers(const ml::Path & procAddress, const ml::Symbol outputName, 
 		const ml::Symbol alias, int trigMode, int bufLength, int frameSize = 1);
-	virtual void gatherSignalBuffers(const MLPath & procAddress, const ml::Symbol alias, MLProcList& buffers);
+	virtual void gatherSignalBuffers(const ml::Path & procAddress, const ml::Symbol alias, MLProcList& buffers);
 
 private:
-	err addBufferHere(const MLPath & procName, ml::Symbol outputName, ml::Symbol alias, 
+	err addBufferHere(const ml::Path & procName, ml::Symbol outputName, ml::Symbol alias, 
 		int trigMode, int bufLength, int frameSize);
 	MLProc::err addProcAfter(ml::Symbol className, ml::Symbol alias, ml::Symbol afterProc); 
 public:
@@ -279,15 +281,15 @@ public:
 	// ----------------------------------------------------------------
 	#pragma mark parameters
 	// 
-	virtual MLPublishedParamPtr publishParam(const MLPath & procName, const ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type);
-	virtual void addSetterToParam(MLPublishedParamPtr p, const MLPath & procName, const ml::Symbol param);
+	virtual MLPublishedParamPtr publishParam(const ml::Path & procName, const ml::Symbol paramName, const ml::Symbol alias, const ml::Symbol type);
+	virtual void addSetterToParam(MLPublishedParamPtr p, const ml::Path & procName, const ml::Symbol param);
 	virtual void setPublishedParam(int index, const MLProperty& val);
-	virtual void routeParam(const MLPath & procAddress, const ml::Symbol paramName, const MLProperty& val);
+	virtual void routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val);
 	
 	MLPublishedParamPtr getParamPtr(int index) const;
 	int getParamIndex(const ml::Symbol name);
 	const std::string& getParamGroupName(int index);	
-	MLParamValue getParamByIndex(int index);
+	float getParamByIndex(int index);
 	int getPublishedParams();
 
 	// ----------------------------------------------------------------
@@ -295,10 +297,10 @@ public:
 	//
 	void scanDoc(juce::XmlDocument* pDoc, int* numParameters);
     ml::Symbol RequiredAttribute(juce::XmlElement* parent, const char * name);
-    MLPath RequiredPathAttribute(juce::XmlElement* parent, const char * name);     
+    ml::Path RequiredPathAttribute(juce::XmlElement* parent, const char * name);     
     void buildGraph(juce::XmlElement* pDoc);
 	virtual void dumpGraph(int indent);			
-	virtual void setProcParams(const MLPath& procName, juce::XmlElement* pelem);	
+	virtual void setProcParams(const ml::Path& procName, juce::XmlElement* pelem);	
 
 	// ----------------------------------------------------------------
 	#pragma mark buffer pool

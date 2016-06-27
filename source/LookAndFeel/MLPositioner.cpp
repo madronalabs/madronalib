@@ -73,7 +73,7 @@ void MLPositioner::layout()
 	//
 	if (mSizeFlags & kSquare)
 	{
-		mElementWithMarginSize[0] = mElementWithMarginSize[1] = min(mElementWithMarginSize[0], mElementWithMarginSize[1]);
+		mElementWithMarginSize[0] = mElementWithMarginSize[1] = ml::min(mElementWithMarginSize[0], mElementWithMarginSize[1]);
 	}
 	
 	mElementMarginSize = (mElementWithMarginSize*Vec2(mMarginFraction)).getIntPart(); 

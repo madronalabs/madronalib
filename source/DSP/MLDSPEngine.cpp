@@ -62,7 +62,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		// save a pointer to it.
 		if (bpe == OK)
 		{
-			MLProcPtr pms = getProc(MLPath(kMLInputToSignalProcName));
+			MLProcPtr pms = getProc(ml::Path(kMLInputToSignalProcName));
 			if (pms)
 			{
 				mpInputToSignalsProc = static_cast<MLProcInputToSignals*>(&(*pms));
@@ -83,7 +83,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		// save a pointer to it.
 		if (bpe == OK)
 		{
-			MLProcPtr pms = getProc(MLPath(kMLHostPhasorProcName));
+			MLProcPtr pms = getProc(ml::Path(kMLHostPhasorProcName));
 			if (pms)
 			{
 				mpHostPhasorProc = static_cast<MLProcHostPhasor*>(&(*pms));
@@ -104,7 +104,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
             if (child->hasTagName("signal"))
             {
                 int mode = eMLRingBufferMostRecent;
-                MLPath procArg = RequiredPathAttribute(child, "proc");
+                ml::Path procArg = RequiredPathAttribute(child, "proc");
                 ml::Symbol outArg = RequiredAttribute(child, "output");
 				ml::Symbol aliasArg = RequiredAttribute(child, "alias");
                 
@@ -114,7 +114,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
                     bufLength = child->getIntAttribute("length", bufLength);
 					int frameSize = 1;
 					frameSize = child->getIntAttribute("frame_size", frameSize);
-                    MLPath procPath (procArg);
+                    ml::Path procPath (procArg);
                     ml::Symbol outSym (outArg);
                     ml::Symbol aliasSym (aliasArg);
                     publishSignal(procPath, outSym, aliasSym, mode, bufLength, frameSize);
@@ -126,7 +126,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	}
 	
 	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
-	getProcList(mPatcherList, MLPath(kMLPatcherProcName), kMLEngineMaxVoices);
+	// getProcList(mPatcherList, ml::Path(kMLPatcherProcName), kMLEngineMaxVoices);
 
 	if (graphOK)
 	{
@@ -374,7 +374,7 @@ void MLDSPEngine::dump()
 // ----------------------------------------------------------------
 #pragma mark published signals
 
-void MLDSPEngine::publishSignal(const MLPath & procAddress, const ml::Symbol outputName, const ml::Symbol alias,
+void MLDSPEngine::publishSignal(const ml::Path & procAddress, const ml::Symbol outputName, const ml::Symbol alias,
                                     int trigMode, int bufLength, int frameSize)
 {
 	err e = addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength, frameSize);

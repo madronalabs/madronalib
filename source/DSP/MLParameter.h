@@ -54,39 +54,39 @@ private:
 	class ParamAddress
 	{
 	public:
-		ParamAddress(const MLPath & alias, const ml::Symbol name) : procAddress(alias), paramName(name) {}
+		ParamAddress(const ml::Path & alias, const ml::Symbol name) : procAddress(alias), paramName(name) {}
 		~ParamAddress() {}
 		
 		// procAddress is where to send the param.  can resolve to a single MLProc,
 		// or a list of processors in the case of multiples.  The address is always relative to
 		// the container that publishes the parameters.
-		MLPath procAddress;
+		ml::Path procAddress;
 		ml::Symbol paramName;
 	};
 
 public:	
-	MLPublishedParam(const MLPath & address, const ml::Symbol name, const ml::Symbol alias, const ml::Symbol type, int idx);
+	MLPublishedParam(const ml::Path & address, const ml::Symbol name, const ml::Symbol alias, const ml::Symbol type, int idx);
 	~MLPublishedParam();
 	
-	void setRange(MLParamValue low, MLParamValue high, MLParamValue interval, bool log, MLParamValue zt, MLParamValue offset);
-	void addAddress(const MLPath & address, const ml::Symbol name);
+	void setRange(float low, float high, float interval, bool log, float zt, float offset);
+	void addAddress(const ml::Path & address, const ml::Symbol name);
 
 	ml::Symbol getType() { return mType; }
-	MLParamValue getValue();
+	float getValue();
 	
 	const MLProperty& getValueProperty();
 	void setValueProperty(const MLProperty& val);
 	
-	MLParamValue getValueAsLinearProportion() const;
-	MLParamValue setValueAsLinearProportion (MLParamValue p);
+	float getValueAsLinearProportion() const;
+	float setValueAsLinearProportion (float p);
 
 	unsigned getIndex(void) { return mIndex; }
-	MLParamValue getRangeLo(void) const { return mRangeLo; }
-	MLParamValue getRangeHi(void) const { return mRangeHi; }
-	MLParamValue getInterval(void) { return mInterval; }
-	MLParamValue getZeroThresh(void) { return mZeroThreshold; }
+	float getRangeLo(void) const { return mRangeLo; }
+	float getRangeHi(void) const { return mRangeHi; }
+	float getInterval(void) { return mInterval; }
+	float getZeroThresh(void) { return mZeroThreshold; }
 	JucePluginParamWarpMode getWarpMode(void) { return mWarpMode; }
-	MLParamValue getDefault(void);
+	float getDefault(void);
 	
 	JucePluginParamUnit getUnit(void) { return mUnit; }
 
@@ -103,7 +103,7 @@ public:
 	AddressIterator endAddress() { return mAddresses.end(); }	
 
 protected:
-	void setDefault(MLParamValue val);
+	void setDefault(float val);
 	
 private:
 	std::list<ParamAddress> mAddresses;
@@ -113,12 +113,12 @@ private:
 	ml::Symbol mPublishedAlias;
 	ml::Symbol mType;
 	unsigned mIndex;
-	MLParamValue mRangeLo;
-	MLParamValue mRangeHi;
-	MLParamValue mInterval;
-	MLParamValue mZeroThreshold;
-	MLParamValue mOffset;
-	MLParamValue mDefault;
+	float mRangeLo;
+	float mRangeHi;
+	float mInterval;
+	float mZeroThreshold;
+	float mOffset;
+	float mDefault;
 	bool mFlip;
 
 	bool mAutomatable;

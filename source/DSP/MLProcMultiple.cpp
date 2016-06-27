@@ -123,7 +123,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
 	return e;
 }
 
-MLProcPtr MLProcMultiple::getProc(const MLPath & path)
+MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 {
 	err e;
 	MLProcPtr r;
@@ -133,7 +133,7 @@ MLProcPtr MLProcMultiple::getProc(const MLPath & path)
 	int proxyCopies = (int)getParam("copies");
 	
 	ml::Symbol head = path.head();
-	MLPath tail = path.tail();
+	ml::Path tail = path.tail();
 	int copy = path.getCopy();
 	
 	// debug() << "MLProcMultiple (" << (void *)this << ") getting Proc " << head << " / " << tail << "\n";

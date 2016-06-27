@@ -37,8 +37,8 @@ void MLTriToggleButton::paint(Graphics& g)
 	int halfSize = toggleSize/2;
 	int sixthSize = halfSize/3;
 	int thirdSize = sixthSize*2 + 1;
-    sixthSize = max(sixthSize, 1);
-    thirdSize = max(thirdSize, 2);
+	sixthSize = ml::max(sixthSize, 1);
+    thirdSize = ml::max(thirdSize, 2);
     
 	// get int center
 	int cx = width/2 - 1;

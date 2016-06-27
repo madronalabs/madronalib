@@ -79,7 +79,7 @@ void MLPluginProcessor::doPropertyChangeAction(ml::Symbol propName, const MLProp
 	
 	// debug() << "MLPluginProcessor::doPropertyChangeAction: " << propName << " (" << paramIdx << " of " << getNumParameters() << ") \n";
 	
-	if (!within(paramIdx, 0, getNumParameters())) 
+	if (!ml::within(paramIdx, 0, getNumParameters())) 
 	{
 		return;
 	}
@@ -105,18 +105,18 @@ void MLPluginProcessor::doPropertyChangeAction(ml::Symbol propName, const MLProp
 				}
 				
 				// send change immediately to host wrapper
-				if(within(paramIdx, 0, getNumParameters()))
+				if(ml::within(paramIdx, 0, getNumParameters()))
 				{
 					AudioProcessor::sendParamChangeMessageToListeners (paramIdx, f);
 				}
 			}
 		}
 		break;
-		case MLProperty::kStringProperty:
+		case MLProperty::kTextProperty:
 		{
 			// set published string parameter in DSP engine.
-			const std::string& stringVal = newVal.getStringValue();
-			setStringParameterWithoutProperty (propName, stringVal);
+			const ml::Text textVal = newVal.getTextValue();
+			setStringParameterWithoutProperty (propName, textVal);
 		}
 		break;
 		case MLProperty::kSignalProperty:
@@ -161,7 +161,7 @@ void MLPluginProcessor::MLEnvironmentModel::doPropertyChangeAction(ml::Symbol pr
 #endif
 			break;
 		}
-		case MLProperty::kStringProperty:
+		case MLProperty::kTextProperty:
 			break;
 		case MLProperty::kSignalProperty:
 			break;
@@ -899,10 +899,11 @@ void MLPluginProcessor::setParameterWithoutProperty (ml::Symbol paramName, float
 
 // set string plugin parameter by name without setting property.
 //
-void MLPluginProcessor::setStringParameterWithoutProperty (ml::Symbol paramName, const std::string& newValue)
+void MLPluginProcessor::setTextParameterWithoutProperty (ml::Symbol paramName, const ml::Text newValue)
 {
 	int index = getParameterIndex(paramName);
 	if (!within(index, 0, getNumParameters())) return;	
+	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 }
@@ -1419,7 +1420,7 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	{
 		// get name / value pair.
 		const String& attrName = xmlState.getAttributeName(i);
-		const MLParamValue paramVal = xmlState.getDoubleAttribute(attrName);
+		const float paramVal = xmlState.getDoubleAttribute(attrName);
 		
 		// if not a patcher input setting,
 		if (!attrName.contains(patcherInputStr))
@@ -1670,7 +1671,7 @@ void MLPluginProcessor::sendSeqInfo()
 	MLDSPEngine* eng = getEngine();
 	
 	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
-	eng->getProcList(mSequencerList, MLPath(kMLStepSeqProcName), kMLEngineMaxVoices);
+	eng->getProcList(mSequencerList, ml::Path(kMLStepSeqProcName), kMLEngineMaxVoices);
 	// debug() << "got " << mSequencerList.size() << "seqs\n";
 	//int nSeqs = mSequencerList.size();
 	
@@ -1729,7 +1730,7 @@ void MLPluginProcessor::sendVisuals()
 	
 	MLDSPEngine* eng = getEngine();
 	
-	eng->getProcList(mRMSProcList, MLPath(kMLRMSProcName), 1);
+	eng->getProcList(mRMSProcList, ml::Path(kMLRMSProcName), 1);
 	
 	// debug() << "got " << mRMSProcList.size() << "RMS procs\n";
 	// int nRMS = mRMSProcList.size();

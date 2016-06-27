@@ -18,14 +18,19 @@
 #include "../dsp/MLDSP.h"
 #include "utf.hpp/utf.hpp"
 
+#include "../DSP/MLDSPGens.h" // for RandomSource TODO replace
+
 namespace ml { namespace textUtils {
 
 	bool isDigit(char32_t c);
 	char * spaceStr( int numIndents );	
-	TextFragment positiveIntToDigits(int i);
-	
 	int digitsToPositiveInt(const char32_t* p);
 	const char *naturalNumberToDigits(int value, char* pDest);
+	
+	// ----------------------------------------------------------------
+	// TextFragment utilities
+
+	TextFragment positiveIntToDigits(int i);	
 	
 	int findFirst(const TextFragment& frag, const utf::codepoint_type c);
 	int findLast(const TextFragment& frag, const utf::codepoint_type c);
@@ -34,27 +39,25 @@ namespace ml { namespace textUtils {
 	TextFragment subText(const TextFragment& frag, int start, int end);
 	
 	// Return the prefix of the input frag as a new TextFragment, stripping the last dot and any codepoints after it. 
-	TextFragment stripExtension(const TextFragment& frag);
+	TextFragment stripFileExtension(const TextFragment& frag);	
 	
 	// If the input fragment contains a slash, return a new TextFragment containing any characters 
 	// after the final slash. Else return the input.
-	TextFragment getShortName(const TextFragment& frag);
+	TextFragment getShortFileName(const TextFragment& frag);
 
 	// Return a new TextFragment containing any characters up to a final slash. 
 	TextFragment getPath(const TextFragment& frag);
 	
 	bool beginsWith (TextFragment fa, TextFragment fb);
 	bool endsWith (TextFragment fa, TextFragment fb);
-	
+
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	
 	Symbol addFinalNumber(Symbol sym, int n);
 	Symbol stripFinalNumber(Symbol sym);
 	int getFinalNumber(Symbol sym);	
-	std::vector< Symbol > parsePath(const char* pathStr);
-
-	std::vector<Symbol> vectorOfNonsenseSymbols( int len );
+	std::vector< Symbol > vectorOfNonsenseSymbols( int len );
 	
 	// ----------------------------------------------------------------
 	// NameMaker

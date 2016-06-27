@@ -99,20 +99,20 @@ void MLLabel::paint (Graphics& g)
 		mpDrawable->draw(g, 1.0f);
 	}
 	
-	const std::string& text = getStringProperty("text");
-	if (text.length() > 0)
+	const ml::Text propText = getTextProperty("text");
+	if (propText.lengthInBytes() > 0)
 	{
 		float p = getFloatProperty("padding");
 		g.setColour (fc.withAlpha (alpha));
 		g.setFont (mFont);
-		g.drawFittedText (String(text.c_str()), p, p, w - p*2., h - p*2.,
+		g.drawFittedText (String(propText.getText()), p, p, w - p*2., h - p*2.,
 			mJustification, 2, 1.0);		
 	}
 }
 
 void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
-	const std::string& labelText = getStringProperty("text");
+	const ml::Text labelText = getTextProperty("text");
 
 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
 	const float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
@@ -120,7 +120,7 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 	
 	mFont.setHeight(size);
 	mFont.setExtraKerningFactor(kern);
-	mRichStr.setText(String(labelText.c_str()));
+	mRichStr.setText(String(labelText.getText()));
 	mRichStr.setJustification(mJustification);
 	mRichStr.setFont(mFont);
 

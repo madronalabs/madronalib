@@ -88,7 +88,7 @@ void MLProcDelayOutput::doParams()
 	const ml::TextFragment myName = getName().getTextFragment();
 	int dPos = ml::textUtils::findFirst(myName, '_');
 	
-	MLPath delayName (ml::textUtils::subText(myName, 0, dPos).text);
+	ml::Path delayName (ml::textUtils::subText(myName, 0, dPos).getText());
 	MLProcPtr myInputProc = myContainer->getProc(delayName);
 	
 	if (myInputProc)
