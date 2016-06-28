@@ -73,7 +73,7 @@ MLMultiSlider* MLPluginView::addMultiSlider(const char * displayName, const MLRe
 	MLPluginProcessor* const filter = getProcessor();
 	if(filter) 
 	{
-		int paramIdx = filter->getParameterIndex(paramName.withFinalNumber(0));
+		int paramIdx = filter->getParameterIndex(ml::textUtils::addFinalNumber(paramName, 0));
 		if (paramIdx >= 0)
 		{
 			MLPublishedParamPtr p = filter->getParameterPtr(paramIdx);
@@ -96,7 +96,7 @@ MLMultiButton* MLPluginView::addMultiButton(const char * displayName, const MLRe
 	MLPluginProcessor* const filter = getProcessor();
 	if(filter) 
 	{
-		int paramIdx = filter->getParameterIndex(paramName.withFinalNumber(0));
+		int paramIdx = filter->getParameterIndex(ml::textUtils::addFinalNumber(paramName, 0));
 		if (paramIdx >= 0)
 		{
 			MLPublishedParamPtr p = filter->getParameterPtr(paramIdx);
@@ -177,13 +177,12 @@ MLEnvelope* MLPluginView::addEnvelope(const MLRect & r, const ml::Symbol paramNa
 {
 	MLEnvelope * pE = new MLEnvelope();
     
-	const std::string paramStr = paramName.getString();
-	addPropertyView(ml::Symbol(paramStr + "_delay"), pE, ml::Symbol("delay"));
-	addPropertyView(ml::Symbol(paramStr + "_attack"), pE, ml::Symbol("attack"));
-	addPropertyView(ml::Symbol(paramStr + "_decay"), pE, ml::Symbol("decay"));
-	addPropertyView(ml::Symbol(paramStr + "_sustain"), pE, ml::Symbol("sustain"));
-	addPropertyView(ml::Symbol(paramStr + "_release"), pE, ml::Symbol("release"));
-	addPropertyView(ml::Symbol(paramStr + "_repeat"), pE, ml::Symbol("repeat"));
+	addPropertyView((paramName + "_delay"), pE, ("delay"));
+	addPropertyView((paramName + "_attack"), pE, ("attack"));
+	addPropertyView((paramName + "_decay"), pE, ("decay"));
+	addPropertyView((paramName + "_sustain"), pE, ("sustain"));
+	addPropertyView((paramName + "_release"), pE, ("release"));
+	addPropertyView((paramName + "_repeat"), pE, ("repeat"));
 	
 	addWidgetToView(pE, r, paramName);
 	return(pE);

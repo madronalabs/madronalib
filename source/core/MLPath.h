@@ -47,6 +47,8 @@ public:
 	inline Symbol getElement(int n) const { return mpData[n]; }
 	inline int getCopy() const { return mCopy; }
 	
+	inline void setCopy(int c) { mCopy = c; } // MLTEST to remove
+	
 	friend class const_iterator;
 	class const_iterator
 	{

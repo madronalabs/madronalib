@@ -143,7 +143,7 @@ void MLMultiProc::process(const int n)
 	const int outs = mTemplate->getNumOutputs();
 	
 	// for each enabled copy, process.  
-	// TODO this can be dispatched to multiple threads.
+	// MLTEST TODO this can be dispatched to multiple threads.
 	for (int i=0; i < mEnabledCopies; ++i)
 	{
 		mCopies[i]->process(n);

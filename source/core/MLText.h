@@ -187,6 +187,8 @@ namespace ml
 			return out;
 		}
 		
+		inline std::string toString() const { return std::string(mText); }
+		
 	private:
 		int mLengthInBytes;
 		char* mText; 

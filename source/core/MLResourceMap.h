@@ -21,19 +21,19 @@
 
 // A resource map using a key class K, value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
-// Note that this makes MLResourceMap<..., int> weird to use, because 0 indicates
+// Note that this makes ResourceMap<..., int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
 namespace ml{
 
 template < class K, class V, class C = std::less<K> >
-class MLResourceMap
+class ResourceMap
 {
 public:
-	typedef std::map< K, MLResourceMap<K, V, C>, C > mapT;
+	typedef std::map< K, ResourceMap<K, V, C>, C > mapT;
 
-	MLResourceMap<K, V, C>() : mChildren(), mValue() { }
-	~MLResourceMap<K, V, C>() {}
+	ResourceMap<K, V, C>() : mChildren(), mValue() { }
+	~ResourceMap<K, V, C>() {}
 	
 	void clear() { mChildren.clear(); }
 	const V& getValue() const { return mValue; }
@@ -46,7 +46,7 @@ public:
 	// else, return a null object of our value type V.
 	V findValue(Path p)
 	{
-		MLResourceMap<K, V, C>* pNode = findNode(p);
+		ResourceMap<K, V, C>* pNode = findNode(p);
 		if(pNode)
 		{
 			return pNode->getValue();
@@ -68,9 +68,9 @@ public:
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.
 	
-	MLResourceMap<K, V, C>* addNode(ml::Path path)
+	ResourceMap<K, V, C>* addNode(ml::Path path)
 	{
-		MLResourceMap<K, V, C>* pNode = this;
+		ResourceMap<K, V, C>* pNode = this;
 		
 		int pathDepthFound = 0;
 		
@@ -100,19 +100,19 @@ public:
 		return pNode;
 	}
 	
-	MLResourceMap<K, V, C>* addNode(const char* pathStr)
+	ResourceMap<K, V, C>* addNode(const char* pathStr)
 	{
 		return addNode(ml::Path(pathStr));
 	}
 	
-	MLResourceMap<K, V, C>* addValue (ml::Path path, const V& val)
+	ResourceMap<K, V, C>* addValue (ml::Path path, const V& val)
 	{
-		MLResourceMap<K, V, C>* newNode = addNode(path);
+		ResourceMap<K, V, C>* newNode = addNode(path);
 		newNode->setValue(val);
 		return newNode;
 	}
 	
-	MLResourceMap<K, V, C>* addValue (const char* pathStr, const V& val)
+	ResourceMap<K, V, C>* addValue (const char* pathStr, const V& val)
 	{
 		return addValue(ml::Path(pathStr), val);
 	}
@@ -124,13 +124,13 @@ public:
 	class const_iterator
 	{
 	public:
-		const_iterator(const MLResourceMap<K, V, C>* p)  
+		const_iterator(const ResourceMap<K, V, C>* p)  
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(p->mChildren.begin());
 		}
 		
-		const_iterator(const MLResourceMap<K, V, C>* p, const typename mapT::const_iterator subIter)
+		const_iterator(const ResourceMap<K, V, C>* p, const typename mapT::const_iterator subIter)
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(subIter);
@@ -154,12 +154,12 @@ public:
 			return !(*this == b); 
 		}
 				
-		const MLResourceMap<K, V, C>& operator*() const 
+		const ResourceMap<K, V, C>& operator*() const 
 		{ 
 			return ((*mIteratorStack.back()).second); 
 		}
 		
-		const MLResourceMap<K, V, C>* operator->() const 
+		const ResourceMap<K, V, C>* operator->() const 
 		{ 
 			return &((*mIteratorStack.back()).second); 
 		}
@@ -180,7 +180,7 @@ public:
 			}			
 			else
 			{
-				const MLResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
+				const ResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
 				if (!currentChildNode->isLeaf())
 				{
 					// down
@@ -205,26 +205,26 @@ public:
 		
 		bool nodeHasValue() const
 		{ 
-			const MLResourceMap<K, V, C>* parentNode = mNodeStack.back();
+			const ResourceMap<K, V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
 			if(currentIterator == parentNode->mChildren.end()) return false;
 
-			const MLResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
+			const ResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
 			return(currentChildNode->hasValue());
 		}
 		
 		bool atEndOfMap() const
 		{
-			const MLResourceMap<K, V, C>* parentNode = mNodeStack.back();
+			const ResourceMap<K, V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			return(currentIterator == parentNode->mChildren.end());
 		}
 		
 		K getLeafName() const
 		{
-			const MLResourceMap<K, V, C>* parentNode = mNodeStack.back();
+			const ResourceMap<K, V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
@@ -235,7 +235,7 @@ public:
 
 		int getDepth() { return mNodeStack.size() - 1; }
 		
-		std::vector< const MLResourceMap<K, V, C>* > mNodeStack;
+		std::vector< const ResourceMap<K, V, C>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
 	};	
 		
@@ -269,9 +269,9 @@ private:
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	MLResourceMap<K, V, C>* findNode(Path path)
+	ResourceMap<K, V, C>* findNode(Path path)
 	{
-		MLResourceMap<K, V, C>* pNode = this;
+		ResourceMap<K, V, C>* pNode = this;
 
 		for(K key : path)
 		{

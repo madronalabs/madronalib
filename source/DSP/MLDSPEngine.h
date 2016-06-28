@@ -113,9 +113,6 @@ private:
 	// same for a host sync phasor
 	MLProcHostPhasor* mpHostPhasorProc;
 	
-	// list of patcher procs
-	// MLProcList mPatcherList; // MLTEST unused?
-
 	int mInputChans;
 	int mOutputChans;
 	

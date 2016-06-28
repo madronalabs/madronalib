@@ -115,8 +115,6 @@ float Vec4::magnitude() const
 	return sqrtf(a*a + b*b + c*c + d*d);
 }
 
-
-//
 #pragma mark MLRect
 
 MLRect::MLRect(float px, float py, float w, float h) 
@@ -130,10 +128,10 @@ MLRect::MLRect(float px, float py, float w, float h)
 MLRect::MLRect(const Vec2& corner1, const Vec2& corner2) 
 { 
 	float x1, x2, y1, y2;
-	x1 = min(corner1.x(), corner2.x());
-	x2 = max(corner1.x(), corner2.x());
-	y1 = min(corner1.y(), corner2.y());
-	y2 = max(corner1.y(), corner2.y());
+	x1 = ml::min(corner1.x(), corner2.x());
+	x2 = ml::max(corner1.x(), corner2.x());
+	y1 = ml::min(corner1.y(), corner2.y());
+	y2 = ml::max(corner1.y(), corner2.y());
 	val.f[0] = x1; 
 	val.f[1] = y1; 
 	val.f[2] = x2 - x1; 
@@ -144,12 +142,12 @@ MLRect MLRect::intersect(const MLRect& b) const
 {
 	MLRect ret;
 	float l, r, t, bot;
-	l = max(left(), b.left());
-	r = min(right(), b.right());
+	l = ml::max(left(), b.left());
+	r = ml::min(right(), b.right());
 	if (r > l)
 	{
-		t = max(top(), b.top());
-		bot = min(bottom(), b.bottom());
+		t = ml::max(top(), b.top());
+		bot = ml::min(bottom(), b.bottom());
 		if (bot > t)
 		{
 			ret = MLRect(l, t, r - l, bot - t);
@@ -170,11 +168,11 @@ MLRect MLRect::unionWith(const MLRect& b) const
 	if (area() > 0.)
 	{
 		float l, r, t, bot;
-		l = min(left(), b.left());
-		r = max(right(), b.right());
+		l = ml::min(left(), b.left());
+		r = ml::max(right(), b.right());
 
-		t = min(top(), b.top());
-		bot = max(bottom(), b.bottom());
+		t = ml::min(top(), b.top());
+		bot = ml::max(bottom(), b.bottom());
 		ret = MLRect(l, t, r - l, bot - t);
 	}
 	else

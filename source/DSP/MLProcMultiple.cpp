@@ -145,7 +145,7 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 	if (it != mProcMap.end())
 	{
 		proxyProc = it->second;	
-		if (!tail.empty())
+		if (tail.getSize() > 0)
 		{
 			if (proxyProc->isContainer()) // proxy is a MultiContainer
 			{			

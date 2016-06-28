@@ -115,20 +115,12 @@ int MLFileCollection::searchForFilesImmediate()
 	return found;
 }
 
-MLResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
+ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 {
-	MLResourceMap<std::string, MLFile>* returnNode = nullptr; 
+	ml::ResourceMap<ml::Symbol, MLFile>* returnNode = nullptr; 
 	String shortName = f.getFileNameWithoutExtension();		
-	String relativePath;
 	juce::File parentDir = f.getParentDirectory();
-	if(parentDir == mRoot.getValue().getJuceFile())
-	{
-		relativePath = "";
-	}
-	else
-	{
-		relativePath = parentDir.getRelativePathFrom(mRoot.getValue().getJuceFile());
-	}
+	
 
 	if (f.hasFileExtension(mExtension.getText()))
 	{
@@ -144,7 +136,7 @@ MLResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::Fil
 		std::string relativePath = getRelativePathFromName(fullName);
 
 		// add a value-less node to represent a (possibly empty) directory.
-		returnNode = mRoot.addNode(relativePath); 
+		returnNode = mRoot.addNode(ml::Path(relativePath.c_str())); 
 	}
 	return returnNode;
 }
@@ -173,7 +165,7 @@ void MLFileCollection::dump() const
 		{
 			int depth = it.getDepth();
 			const std::string depthStr = ml::textUtils::spaceStr(depth);
-			const std::string& itemName = it.getLeafName();
+			const ml::Symbol itemName = it.getLeafName();
 			
 			if(it.nodeHasValue())
 			{
@@ -261,7 +253,7 @@ std::string MLFileCollection::getFilePathByIndex(int idx)
 	if(ml::within(idx, 0, size))
     {
 		ml::TextFragment fullName = mFilesByIndex[idx].getLongName();
-		return getRelativePathFromName(fullName);
+		return getRelativePathFromName(fullName.getText());
     }
     return std::string();
 }
@@ -269,7 +261,7 @@ std::string MLFileCollection::getFilePathByIndex(int idx)
 const MLFile MLFileCollection::getFileByIndex(int idx)
 {
     int size = mFilesByIndex.size();
-    if(within(idx, 0, size))
+	if(ml::within(idx, 0, size))
     {
         return (mFilesByIndex[idx]);
     }
@@ -278,13 +270,13 @@ const MLFile MLFileCollection::getFileByIndex(int idx)
 
 const MLFile MLFileCollection::getFileByPath(const std::string& path)
 {
-    return mRoot.findValue(path);
+	return mRoot.findValue(ml::Path(path.c_str()));
 }
 
 const int MLFileCollection::getFileIndexByPath(const std::string& path)
 {
     int r = -1;
-    const MLFile& f = mRoot.findValue(path);
+    const MLFile& f = mRoot.findValue(ml::Path(path.c_str()));
 
 	int len = mFilesByIndex.size();
 	for(int i = 0; i<len; ++i)
@@ -305,7 +297,7 @@ const int MLFileCollection::getFileIndexByPath(const std::string& path)
 const MLFile MLFileCollection::createFile(const std::string& relativePathAndName)
 {
     // for now, need absolute path to make the Juce file
-	std::string fullPath = mRoot.getValue().getLongName() + "/" + relativePathAndName;
+	std::string fullPath = std::string(mRoot.getValue().getLongName().getText()) + "/" + relativePathAndName;
     
     // insert file into file tree at relative path
 	return insertFileIntoMap(MLFile(fullPath).getJuceFile())->getValue();
@@ -314,7 +306,7 @@ const MLFile MLFileCollection::createFile(const std::string& relativePathAndName
 // get part of absolute path p, if any, relative to our root path, without extension.
 std::string MLFileCollection::getRelativePathFromName(const std::string& f) const
 {
-    std::string rootName = mRoot.getValue().getLongName();
+    std::string rootName = std::string(mRoot.getValue().getLongName().getText());
 	std::string fullName = f;
     std::string relPath;
 	
@@ -360,29 +352,30 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 	
 #endif
 	
-    return ml::textUtils::stripFileExtension(relPath);
+	ml::TextFragment pf(relPath.c_str());
+	return std::string(ml::textUtils::stripFileExtension(pf).getText());
 }
 
 MLMenuPtr MLFileCollection::buildMenu() const
 {
-	return buildMenu([=](MLResourceMap<ml::Symbol, MLFile>::const_iterator it){ return true; });
+	return buildMenu([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it){ return true; });
 }
 
-MLMenuPtr MLFileCollection::buildMenu(std::function<bool(MLResourceMap<std::string, MLFile>::const_iterator)> includeFn) const
+MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)> includeFn) const
 {
 	MLMenuPtr root(new MLMenu());
-	std::vector<MLMenuPtr> menuStack;
+	std::vector< MLMenuPtr > menuStack;
 	menuStack.push_back(root);
 	for(auto it = mRoot.begin(); it != mRoot.end(); ++it)
 	{
 		if(!it.atEndOfMap())
 		{
-			const std::string& itemName = it.getLeafName();
+			ml::Symbol itemName = it.getLeafName();
 			if(it->isLeaf())
 			{
 				if(includeFn(it))
 				{
-					menuStack.back()->addItem(itemName, it.nodeHasValue());
+					menuStack.back()->addItem(itemName.toString(), it.nodeHasValue()); // MLTEST ack
 				}
 			}
 			else

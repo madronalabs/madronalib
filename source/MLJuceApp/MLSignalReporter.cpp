@@ -47,7 +47,7 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w
 			mSignalBuffers2[alias]->fill(-1.f); // force initial view of zero signal
 		}
 		
-		viewSize = min(viewSize, bufSize);
+		viewSize = ml::min(viewSize, bufSize);
 
         // add the list of widgets and attributes for viewing
 		pNewView = new MLSignalView(w, attr, viewSize, priority);
@@ -60,7 +60,7 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w
         if(priority > 0)
         {
             int p = mViewPriorityMap[alias]; // creates and returns 0 if not found
-            mViewPriorityMap[alias] = max(p, priority);
+            mViewPriorityMap[alias] = ml::max(p, priority);
         }
 	}
 	else
@@ -74,7 +74,7 @@ bool signalsAreDifferent(const MLSignal& a, const MLSignal& b, int samplesToComp
 {
     bool result = false;
     float totalDiff = 0.0f;
-	int frameSizeToCompare = min(a.getHeight(), b.getHeight());
+	int frameSizeToCompare = ml::min(a.getHeight(), b.getHeight());
 	
     for(int k = 0; k < voices; ++k)
     {

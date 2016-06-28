@@ -14,11 +14,11 @@
 
 class MLMenu;
 
-// TODO use MLResourceMap. Possibly just create the menu tree from an external map every time we show the menu. 
+// TODO use ml::ResourceMap. Possibly just create the menu tree from an external map every time we show the menu. 
 // or, add method to set contents from a tree / resourceMap value. 
 // need to be able to add arbitrary submaps .
 // TODO add forward / back button option and persist a current selection. 
-// Use index or store using new bidirectional MLResourceMap iterator .
+// Use index or store using new bidirectional ml::ResourceMap iterator .
 
 typedef std::shared_ptr<MLMenu> MLMenuPtr;
 typedef std::map<ml::Symbol, MLMenuPtr> MLMenuMapT;
@@ -46,7 +46,7 @@ public:
         int getNodeSize(int n);
         void buildFullNameIndex(std::vector<std::string>& nameVec, const std::string& path);
         void addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, bool root = true);
-		void setDisplayPrefix(ml::TextFragment p) { mDisplayPrefix = p; }
+		void setDisplayPrefix(std::string p) { mDisplayPrefix = ml::TextFragment(p.c_str()); }
 		const std::list<std::string>& getIndex() { return index; }
 		NodePtr getSubnodeByName(const std::string& name);
 		

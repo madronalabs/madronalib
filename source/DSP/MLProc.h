@@ -474,7 +474,7 @@ private:
 	ml::Symbol mName;
 };
 
-// TODO clear up ownership issues and do away with this
+// MLTEST TODO clear up ownership issues and do away with this
 typedef std::shared_ptr<MLProc> MLProcPtr;
 
 typedef std::list<MLProcPtr> MLProcList;

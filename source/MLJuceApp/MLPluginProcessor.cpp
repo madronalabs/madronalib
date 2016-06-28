@@ -114,9 +114,9 @@ void MLPluginProcessor::doPropertyChangeAction(ml::Symbol propName, const MLProp
 		break;
 		case MLProperty::kTextProperty:
 		{
-			// set published string parameter in DSP engine.
+			// set published text parameter in DSP engine.
 			const ml::Text textVal = newVal.getTextValue();
-			setStringParameterWithoutProperty (propName, textVal);
+			setTextParameterWithoutProperty (propName, textVal);
 		}
 		break;
 		case MLProperty::kSignalProperty:
@@ -355,7 +355,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			bufSize = 1 << maxFramesBits;
 			
 			// vector size is desired processing block size, set this to default size of signal.
-			chunkSize = min((int)bufSize, (int)kMLProcessChunkSize);
+			chunkSize = ml::min((int)bufSize, (int)kMLProcessChunkSize);
 		}	
 		
 		// dsp engine has one chunkSize of latency in order to run constant block size.
@@ -720,7 +720,7 @@ int MLPluginProcessor::getParameterIndex (const ml::Symbol name)
 
 float MLPluginProcessor::getParameter (int index)
 {
-	if (!within(index, 0, getNumParameters())) return(0);
+	if (!ml::within(index, 0, getNumParameters())) return(0);
 	return mEngine.getParamByIndex(index);
 }
 
@@ -729,7 +729,7 @@ float MLPluginProcessor::getParameter (int index)
 //
 void MLPluginProcessor::setParameter (int index, float newValue)
 {
-	if (!within(index, 0, getNumParameters())) return;
+	if (!ml::within(index, 0, getNumParameters())) return;
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
 	
@@ -741,7 +741,7 @@ void MLPluginProcessor::setParameter (int index, float newValue)
 float MLPluginProcessor::getParameterAsLinearProportion (int index)
 {
 	float r = 0;
-  	if (!within(index, 0, getNumParameters())) 
+  	if (!ml::within(index, 0, getNumParameters())) 
 	{
 		// MLTEST
 		debug() << "WARNING: param " << index << " does not exist!\n";
@@ -758,7 +758,7 @@ float MLPluginProcessor::getParameterAsLinearProportion (int index)
 // for VST wrapper.
 void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValue)
 {
-	if (!within(index, 0, getNumParameters())) return;
+	if (!ml::within(index, 0, getNumParameters())) return;
 	MLPublishedParamPtr p = mEngine.getParamPtr(index);
 	if(p)
 	{
@@ -776,25 +776,25 @@ void MLPluginProcessor::setParameterAsLinearProportion (int index, float newValu
 
 float MLPluginProcessor::getParameterMin (int index)
 {
-	if (!within(index, 0, getNumParameters())) return(0);
+	if (!ml::within(index, 0, getNumParameters())) return(0);
 	return mEngine.getParamPtr(index)->getRangeLo();
 }
 
 float MLPluginProcessor::getParameterMax (int index)
 {
-	if (!within(index, 0, getNumParameters())) return(0);
+	if (!ml::within(index, 0, getNumParameters())) return(0);
 	return mEngine.getParamPtr(index)->getRangeHi();
 }
 
 const String MLPluginProcessor::getParameterName (int index)
 {
-	if (!within(index, 0, getNumParameters())) return String();
+	if (!ml::within(index, 0, getNumParameters())) return String();
 	ml::Symbol nameSym;
 	const int p = mEngine.getPublishedParams(); 
 	
 	if (p == 0) // doc has been scanned but not built
 	{
-		nameSym = ml::Symbol("param").withFinalNumber(index);
+		nameSym = ml::textUtils::addFinalNumber("param", index);
 	}
 	else
 	{
@@ -803,12 +803,12 @@ const String MLPluginProcessor::getParameterName (int index)
 		//debug() << "getParameterName: " << index << " is " << nameSym.getString().c_str() << ".\n";
 	}
 	
-	return (String(nameSym.getString().c_str()));
+	return String(nameSym.getTextFragment().getText());
 }
 
 const String MLPluginProcessor::symbolToXMLAttr(const ml::Symbol sym)
 {
-	std::string nameCopy = sym.getString();
+	std::string nameCopy(sym.getTextFragment().getText());
 	
 	unsigned len = nameCopy.length();
 	for(unsigned c = 0; c < len; ++c)
@@ -848,13 +848,13 @@ const ml::Symbol MLPluginProcessor::XMLAttrToSymbol(const String& str)
 
 const ml::Symbol MLPluginProcessor::getParameterAlias (int index)
 {
-	if (!within(index, 0, getNumParameters())) return ml::Symbol();
+	if (!ml::within(index, 0, getNumParameters())) return ml::Symbol();
  	return mEngine.getParamPtr(index)->getAlias();
 }
 
 float MLPluginProcessor::getParameterDefaultValue (int index)
 {
-	if (!within(index, 0, getNumParameters())) return 0.;
+	if (!ml::within(index, 0, getNumParameters())) return 0.;
  	return mEngine.getParamPtr(index)->getDefault();
 }
 
@@ -882,7 +882,7 @@ const std::string& MLPluginProcessor::getParameterGroupName (int index)
 
 bool MLPluginProcessor::isParameterAutomatable (int idx) const 
 {
-	if (!within(idx, 0, mNumParameters)) return false;
+	if (!ml::within(idx, 0, mNumParameters)) return false;
 	return mEngine.getParamPtr(idx)->getAutomatable();
 }
 
@@ -891,7 +891,7 @@ bool MLPluginProcessor::isParameterAutomatable (int idx) const
 void MLPluginProcessor::setParameterWithoutProperty (ml::Symbol paramName, float newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (!within(index, 0, getNumParameters())) return;
+	if (!ml::within(index, 0, getNumParameters())) return;
 	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
@@ -902,7 +902,7 @@ void MLPluginProcessor::setParameterWithoutProperty (ml::Symbol paramName, float
 void MLPluginProcessor::setTextParameterWithoutProperty (ml::Symbol paramName, const ml::Text newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (!within(index, 0, getNumParameters())) return;	
+	if (!ml::within(index, 0, getNumParameters())) return;	
 	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
@@ -913,7 +913,7 @@ void MLPluginProcessor::setTextParameterWithoutProperty (ml::Symbol paramName, c
 void MLPluginProcessor::setSignalParameterWithoutProperty (ml::Symbol paramName, const MLSignal& newValue)
 {
 	int index = getParameterIndex(paramName);
-	if (!within(index, 0, getNumParameters())) return;
+	if (!ml::within(index, 0, getNumParameters())) return;
 	
 	mEngine.setPublishedParam(index, MLProperty(newValue));
 	mHasParametersSet = true;
@@ -933,7 +933,7 @@ int MLPluginProcessor::saveStateAsVersion()
 {
     int r = 0;
 	int version = 0;
-    std::string nameStr(getStringProperty("preset"));
+    std::string nameStr(getTextProperty("preset").getText());
 	std::string noVersionStr;
 	std::string versionStr;
 	int numberStart = 0;
@@ -974,7 +974,7 @@ int MLPluginProcessor::saveStateAsVersion()
 
 int MLPluginProcessor::saveStateOverPrevious()
 {
-    saveStateToRelativePath(getStringProperty("preset"));
+	saveStateToRelativePath(std::string(getTextProperty("preset").getText()));
 	return 0;
 }
 
@@ -1000,7 +1000,7 @@ void MLPluginProcessor::saveStateToLongFileName(const std::string& longName)
 		if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
 		
 		// use only the short name as model param.
-		std::string shortName = ml::textUtils::getShortName(longName);
+		ml::TextFragment shortName = ml::textUtils::getShortFileName(ml::TextFragment(longName.c_str())); // MLTEST fuuuuu
 		setProperty("preset", shortName);
 		
 		std::string extension (".mlpreset");
@@ -1049,7 +1049,7 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 #else
     
     // the Model param contains the file path relative to the root.
-    setProperty("preset", path);
+	setProperty("preset", ml::TextFragment(path.c_str())); // MLTEST
 	
     std::string extension (".mlpreset");
     std::string extPath = path + extension;
@@ -1113,13 +1113,14 @@ void MLPluginProcessor::getPatchAndEnvStatesAsBinary (MemoryBlock& destData)
 
 void MLPluginProcessor::loadStateFromPath(const std::string& path)
 {
-    if(path != std::string())
+	ml::TextFragment pathFrag(path.c_str());
+	if(pathFrag != ml::TextFragment())
     {
         const MLFile& f = mPresetFiles->getFileByPath(path);
         if(f.exists())
         {
             loadPatchStateFromFile(f);
-            std::string shortPath = ml::textUtils::stripExtension(path);
+			ml::TextFragment shortPath(ml::textUtils::stripFileExtension(pathFrag));
             setProperty("preset", shortPath);
         }
     }
@@ -1351,12 +1352,12 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
     {
         fullName = "12-equal";
     }
-    std::string fullScaleName(fullName.toUTF8());
+	ml::TextFragment fullScaleName(fullName.toUTF8());
 	setProperty("key_scale", fullScaleName);
 	
 	// get preset name saved in blob.  when saving from AU host, name will also be set from RestoreState().
 	const String presetName = xmlState.getStringAttribute ("presetName");
-	setProperty("preset", std::string(presetName.toUTF8()));
+	setProperty("preset", ml::TextFragment(presetName.toUTF8()));
     
 	/*
      debug() << "MLPluginProcessor: setStateFromXML: loading program " << presetName << ", version " << std::hex << blobVersion << std::dec << "\n";
@@ -1380,10 +1381,10 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 			std::stringstream pName2;
 			pName << "seq_value" << n;
 			pName2 << "seq_pulse" << n;
-			ml::Symbol oldSym(pName.str());
-			ml::Symbol newSym = ml::Symbol("seq_value#").withFinalNumber(n);
-			ml::Symbol oldSym2(pName2.str());
-			ml::Symbol newSym2 = ml::Symbol("seq_pulse#").withFinalNumber(n);
+			ml::Symbol oldSym(pName.str().c_str());
+			ml::Symbol newSym = ml::textUtils::addFinalNumber("seq_value#", n);
+			ml::Symbol oldSym2(pName2.str().c_str());
+			ml::Symbol newSym2 = ml::textUtils::addFinalNumber("seq_pulse#", n);
 			translationTable[oldSym] = newSym;
 			translationTable[oldSym2] = newSym2;
 		}
@@ -1392,19 +1393,19 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 	if (blobVersion <= 0x00010200)
 	{
 		ml::Symbol oldSym = ml::Symbol("seq_value");
-		ml::Symbol newSym = ml::Symbol("seq_value").withFinalNumber(0);
+		ml::Symbol newSym = ml::textUtils::addFinalNumber("seq_value", 0);
 		ml::Symbol oldSym2 = ml::Symbol("seq_pulse");
-		ml::Symbol newSym2 = ml::Symbol("seq_pulse").withFinalNumber(0);
+		ml::Symbol newSym2 = ml::textUtils::addFinalNumber("seq_pulse", 0);
 		translationTable[oldSym] = newSym;
 		translationTable[oldSym2] = newSym2;
 		
 		// translate seq parameters
 		for(unsigned n=1; n<16; ++n)
 		{
-			oldSym = ml::Symbol("seq_value#").withFinalNumber(n);
-			newSym = ml::Symbol("seq_value").withFinalNumber(n);
-			oldSym2 = ml::Symbol("seq_pulse#").withFinalNumber(n);
-			newSym2 = ml::Symbol("seq_pulse").withFinalNumber(n);
+			oldSym = ml::textUtils::addFinalNumber("seq_value#", n);
+			newSym = ml::textUtils::addFinalNumber("seq_value", n);
+			oldSym2 = ml::textUtils::addFinalNumber("seq_pulse#", n);
+			newSym2 = ml::textUtils::addFinalNumber("seq_pulse", n);
 			translationTable[oldSym] = newSym;
 			translationTable[oldSym2] = newSym2;
 		}
@@ -1508,7 +1509,7 @@ void MLPluginProcessor::nextPreset()
 void MLPluginProcessor::advancePreset(int amount)
 {
     int len = mPresetFiles->getSize();
-    int currIdx = mPresetFiles->getFileIndexByPath(getStringProperty("preset"));
+    int currIdx = mPresetFiles->getFileIndexByPath(getTextProperty("preset").toString());
     
     if(currIdx >= 0)
     {
@@ -1671,7 +1672,10 @@ void MLPluginProcessor::sendSeqInfo()
 	MLDSPEngine* eng = getEngine();
 	
 	// if we made one or more Patchers with the right names in the document, save a list of them for direct access. 
+	
+	// to fix
 	eng->getProcList(mSequencerList, ml::Path(kMLStepSeqProcName), kMLEngineMaxVoices);
+	
 	// debug() << "got " << mSequencerList.size() << "seqs\n";
 	//int nSeqs = mSequencerList.size();
 	
@@ -1785,7 +1789,7 @@ void MLPluginProcessor::setSequence(const MLSignal& seq)
 	for(int i=0; i<16; ++i)
 	{
 		float step = seq[i];
-		ml::Symbol stepSym = ml::Symbol("seq_pulse").withFinalNumber(i);
+		ml::Symbol stepSym = ml::textUtils::addFinalNumber("seq_pulse", i);
 		setPropertyImmediate(stepSym, step);
 	}
 }

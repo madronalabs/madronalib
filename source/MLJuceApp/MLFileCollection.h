@@ -109,20 +109,20 @@ public:
 	MLMenuPtr buildMenu() const;
 	
 	// build a menu of the files for which the function returns true.
-	MLMenuPtr buildMenu(std::function<bool(MLResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;
+	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;
 	
     void dump() const;
     
 private:
 	
-	MLResourceMap<ml::Symbol, MLFile>* insertFileIntoMap(juce::File f);
+	ml::ResourceMap<ml::Symbol, MLFile>* insertFileIntoMap(juce::File f);
 	
 	void buildIndex();
     void processFileInMap(int i);
 	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
 	
-	MLResourceMap<ml::Symbol, MLFile> mRoot; 
+	ml::ResourceMap<ml::Symbol, MLFile> mRoot; 
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;

@@ -36,6 +36,6 @@ void MLSignalView::setupSignalView (MLDSPEngine* pEng, const ml::Symbol sigName,
 
 void MLSignalView::sendSignalToWidget(const MLSignal& signal, int samples, int voices)
 {		
-	const int viewSamples = min(mSize, samples);
+	const int viewSamples = ml::min(mSize, samples);
 	mpWidget->viewSignal(mAttr, signal, viewSamples, voices);
 }

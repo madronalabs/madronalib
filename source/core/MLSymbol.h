@@ -201,6 +201,9 @@ namespace ml {
 		}
 		
 		int getID() const { return id; } 
+		
+		// MLTEST deprecated
+		inline std::string toString() const { return std::string(getTextFragment().getText()); }
 	
 	private:
 		// the ID equals the order in which the symbol was created.

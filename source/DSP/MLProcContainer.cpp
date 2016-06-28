@@ -1538,7 +1538,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 	if (it != mProcMap.end())
 	{
 		headProc = it->second;	
-		if (!tail.empty())
+		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
 			{
@@ -1580,7 +1580,7 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 	if (it != mProcMap.end())
 	{
 		headProc = it->second;	
-		if (!tail.empty())
+		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
 			{
@@ -1693,7 +1693,7 @@ void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol 
 	if (it != mProcMap.end())
 	{
 		headProc = it->second;	
-		if (!tail.empty())
+		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
 			{

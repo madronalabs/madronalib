@@ -25,8 +25,8 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const ml::Symbol name)
 			debug() << "MLWidgetContainer::addWidget: name " << name << " already taken! \n";			
 			debug() << mWidgets.size() << " widgets:\n";
 			dumpWidgets();
-			theSymbolTable().dump();
-			theSymbolTable().audit();
+			ml::theSymbolTable().dump();
+			ml::theSymbolTable().audit();
 		}
 		else
 		{

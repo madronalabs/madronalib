@@ -96,7 +96,7 @@ void MLPluginController::initialize()
         MLLabel* regLabel = static_cast<MLLabel*>(myView->getWidget("reg"));
         if(regLabel)
         {
-            regLabel->setPropertyImmediate(ml::Symbol("text"), regStr);
+			regLabel->setPropertyImmediate(ml::Symbol("text"), ml::TextFragment(regStr.c_str()));
         }
     }
 	startTimer(kControllerTimerRate);
@@ -134,7 +134,7 @@ void MLPluginController::timerCallback()
 				doFileQueueAction(a);
 			}
 			int filesInQueue = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
-			mMaxFileQueueSize = max(filesInQueue, mMaxFileQueueSize);
+			mMaxFileQueueSize = ml::max(filesInQueue, mMaxFileQueueSize);
 			if(!filesInQueue) endConvertPresets();
 		}
 	}
@@ -368,7 +368,7 @@ void MLPluginController::doScaleMenu(int result)
             {
                 // set model param to the full name of the file in the menu
                 const std::string& fullName = menu->getMenuItemPath(result);
-                mpProcessor->setPropertyImmediate("key_scale", fullName);
+				mpProcessor->setPropertyImmediate("key_scale", ml::TextFragment(fullName.c_str()));
             }
             break;
     }
@@ -538,7 +538,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
     // add factory presets, those starting with the plugin name
     menu->appendMenu(presetFiles.buildMenu
-					 ([=](MLResourceMap<ml::Symbol, MLFile>::const_iterator it)
+					 ([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it)
 					  {
 						  if(it.getDepth() > 0)
 						  {
@@ -547,7 +547,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  else
 						  {
 							  ml::TextFragment fileName = it->getValue().getShortName();	
-							  return (prefix == ml::textUtils::subText(fileName, 0, prefix.lengthInBytes));
+							  return (prefix == ml::textUtils::subText(fileName, 0, prefix.lengthInBytes()));
 						  };
 					  }
 					  )
@@ -556,7 +556,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     
     // add user presets, meaning all the others, but no "Samples"
 	menu->appendMenu(presetFiles.buildMenu
-					 ([=](MLResourceMap<ml::Symbol, MLFile>::const_iterator it)
+					 ([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it)
 					  {
 						  if(it.getDepth() > 0)
 						  {
@@ -566,7 +566,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  {
 							  ml::TextFragment fileName = it->getValue().getShortName();	
 							  if(fileName == "Samples") return false;
-							  return (prefix != ml::textUtils::subText(fileName, 0, prefix.lengthInBytes));
+							  return (prefix != ml::textUtils::subText(fileName, 0, prefix.lengthInBytes()));
 						  };
 					  }
 					  )
@@ -662,7 +662,7 @@ void MLPluginController::processFileFromCollection (ml::Symbol action, const MLF
 	ml::Symbol collectionName(collection.getName());
 	if(action == "process")
 	{
-		if(collectionName.beginsWith(ml::Symbol("convert_presets")))
+		if(ml::textUtils::beginsWith(collectionName.getTextFragment(), "convert_presets"))
 		{			
 			// add file action to queue
 			FileAction f(action, fileToProcess, &collection, idx, size);
@@ -683,7 +683,7 @@ void MLPluginController::doFileQueueAction(FileAction a)
 	File destRoot(newPresetsFolder);
 	
 	// get name relative to collection root.
-	const std::string& relativeName = a.mCollection->getRelativePathFromName(a.mFile.getLongName());
+	const std::string& relativeName = a.mCollection->getRelativePathFromName(a.mFile.getLongName().toString());  // MLTEST wat
 	
 	// If file at destination does not exist, or is older than the source, convert
 	// source and overwrite destination.
