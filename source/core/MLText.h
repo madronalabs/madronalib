@@ -10,7 +10,7 @@
 #include "MLLocks.h"
 #include "utf.hpp/utf.hpp"
 
-static const int kPoolSizeBits = 17; // 1 M 
+static const int kPoolSizeBits = 20; // 1 M 
 static const int kPoolSize = 1 << kPoolSizeBits; 
 
 namespace ml
@@ -38,15 +38,17 @@ namespace ml
 			// TODO test scopedLock vs. compareAndSwap result
 			MLScopedLock lock(mLock);
 			
+			if(mpNext >= mpData + kPoolSize)
+			{
+				// TODO something. Try allocating more pool space.
+				std::cout << "TextFragmentPool::add: pool full! (size = " << size_t(mpNext - mpData) << ") \n";
+				return mpData;
+			}
+			
 			std::copy(pChars, pChars + nBytes, mpNext);
 			char* r = mpNext;
 			mpNext[nBytes] = 0;
 			mpNext += nBytes + 1;	
-			
-			if(mpNext >= mpData + kPoolSize)
-			{
-				// TODO something. Try allocating more pool space.
-			}
 			
 			return r;
 		}
@@ -100,6 +102,8 @@ namespace ml
 		// maybe in the future we make a distinction between temporary and persistent fragments. 
 		// Look at use once apps are running.
 		~TextFragment() { }
+		
+		explicit operator bool() const { return mLengthInBytes > 0; }
 		
 		inline int lengthInBytes() const
 		{

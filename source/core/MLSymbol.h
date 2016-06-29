@@ -149,7 +149,7 @@ namespace ml {
 		Symbol(const HashedCharArray& hsl) : id( theSymbolTable().getSymbolID(hsl) ) { }		
 		Symbol(const char* pC) : id( theSymbolTable().getSymbolID(pC) ) { }
 		Symbol(const char* pC, int lengthBytes) : id( theSymbolTable().getSymbolID(pC, lengthBytes) ) { }
-//		Symbol(TextFragment frag) : id( theSymbolTable().getSymbolID(frag.text) ) { }
+//		Symbol(TextFragment frag) : id( theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()) ) { } // needed? 
 		
 		inline bool operator< (const Symbol b) const
 		{

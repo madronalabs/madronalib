@@ -547,7 +547,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  else
 						  {
 							  ml::TextFragment fileName = it->getValue().getShortName();	
-							  return (prefix == ml::textUtils::subText(fileName, 0, prefix.lengthInBytes()));
+							  return (prefix == ml::textUtils::subText(fileName, 0, prefix.lengthInCodePoints()));
 						  };
 					  }
 					  )
@@ -566,7 +566,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 						  {
 							  ml::TextFragment fileName = it->getValue().getShortName();	
 							  if(fileName == "Samples") return false;
-							  return (prefix != ml::textUtils::subText(fileName, 0, prefix.lengthInBytes()));
+							  return (prefix != ml::textUtils::subText(fileName, 0, prefix.lengthInCodePoints()));
 						  };
 					  }
 					  )

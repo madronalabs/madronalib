@@ -14,6 +14,8 @@ namespace ml { namespace textUtils {
 	
 	using namespace utf;
 	
+	static const int npos = -1;
+	
 	bool isDigit(char32_t c)
 	{
 		if (c >= '0' && c <= '9')
@@ -104,10 +106,11 @@ namespace ml { namespace textUtils {
 	
 	int findFirst(const TextFragment& frag, const codepoint_type c)
 	{
+		int r = npos;
+		if(!frag) return r;
 		auto first = codepoint_iterator<const char*>(frag.getText());
 		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
-		int r = -1;
 		for (auto it = first; it != last; ++it) 
 		{
 			if(c == *it)
@@ -122,10 +125,11 @@ namespace ml { namespace textUtils {
 	
 	int findLast(const TextFragment& frag, const codepoint_type c)
 	{
+		int r = npos;
+		if(!frag) return r;
 		auto first = codepoint_iterator<const char*>(frag.getText());
 		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
-		int r = -1;
 		for (auto it = first; it != last; ++it) 
 		{
 			if(c == *it)
@@ -140,8 +144,8 @@ namespace ml { namespace textUtils {
 	TextFragment subText(const TextFragment& frag, int start, int end)
 	{
 		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
-		
-		if(start >= end) return TextFragment("", 0);
+		if(!frag) return TextFragment();
+		if(start >= end) return TextFragment();
 		
 		// temp buffer on stack big enough to hold whole input fragment if needed.
 		// we won't know the output fragment size in bytes until iterating the code points. 
@@ -172,8 +176,7 @@ namespace ml { namespace textUtils {
 		if(dotLoc >= 0)
 		{
 			return subText(frag, 0, dotLoc);
-		}
-		
+		}		
 		return frag;
 	}
 	
