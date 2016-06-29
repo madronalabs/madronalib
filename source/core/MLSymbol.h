@@ -80,20 +80,20 @@ namespace ml {
 	public:	
 		// template ctor from string literals allows hashing for code like Proc::setParam("foo") to be done at compile time.
 		template<size_t N>
-		constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pSym(sym) { }
+		constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pChars(sym) { }
 		
 		// this non-constexpr ctor counts the string length at runtime.
-		HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pSym(pC) { }
+		HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC) { }
 		
 		// this non-constexpr ctor takes a string length parameter at runtime.
-		HashedCharArray(const char* pC, int lengthBytes) : len(lengthBytes), hash(krHash0(pC, len)), pSym(pC) { }
+		HashedCharArray(const char* pC, int lengthBytes) : len(lengthBytes), hash(krHash0(pC, len)), pChars(pC) { }
 		
 		// default, null ctor
-		HashedCharArray() : len(0), hash(0), pSym(nullptr) { }
+		HashedCharArray() : len(0), hash(0), pChars(nullptr) { }
 		
 		const size_t len;
 		const int32_t hash;
-		const char* pSym;
+		const char* pChars;
 	};
 	
 	class SymbolTable

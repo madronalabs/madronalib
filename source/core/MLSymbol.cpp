@@ -36,7 +36,7 @@ namespace ml {
 	// this must be the only way of modifying the symbol table.
 	int SymbolTable::addEntry(const HashedCharArray& hsl)
 	{
-		mSymbolTextsByID.emplace_back(TextFragment(hsl.pSym, hsl.len));
+		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, hsl.len));
 		size_t newID = mSize++;
 		mHashTable[hsl.hash].push_back(newID);			
 		return newID;
@@ -52,9 +52,10 @@ namespace ml {
 			for(int ID : bin)
 			{
 				// there should be few collisions, so probably the first ID in the hash bin
-				// will be the symbol we are looking for. Unfortunately to test for equality we have to 
+				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
 				// compare the entire string.	
-				if(compareTextFragmentToChars(mSymbolTextsByID[ID], hsl.pSym))
+				TextFragment binFragment = mSymbolTextsByID[ID];
+				if(compareSizedCharArrays(binFragment.getText(), binFragment.lengthInBytes(), hsl.pChars, hsl.len))
 				{
 					r = ID;
 					found = true;

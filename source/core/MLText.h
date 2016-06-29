@@ -82,7 +82,7 @@ namespace ml
 	// TextFragment
 
 	class TextFragment;
-	inline bool compareTextFragmentToChars(TextFragment txf, const char* pCharsB);
+	inline bool compareSizedCharArrays(const char* pA, int lenA, const char* pB, int lenB);
 	
 	class TextFragment
 	{
@@ -126,17 +126,6 @@ namespace ml
 			return *this;
 		}
 		
-		inline bool operator==(TextFragment b) const
-		{
-			return compareTextFragmentToChars(*this, b.mText);
-		}
-		
-		inline bool operator!=(TextFragment b) const
-		{
-			return !(*this == b);
-		}
-		
-
 		friend inline TextFragment operator+(TextFragment f1, TextFragment f2)
 		{
 			// TODO this impl does an unneccesary copy to the stack, to keep TextFragment very simple for now.
@@ -150,50 +139,47 @@ namespace ml
 			return TextFragment(buf, strlen(buf));
 		}
 		
-		// Compare the TextFragment to a null-terminated character array. 
-		//
-		friend inline bool compareTextFragmentToChars(TextFragment txf, const char* pCharsB)
-		{
-			bool r = true;
-			
-			int len = txf.lengthInBytes(); 
-			
-			if(len > 0)
-			{
-				const char* pCharsA = txf.mText;
-				for(int n=0; n<len; ++n)
-				{
-					char ca = pCharsA[n];
-					char cb = pCharsB[n];
-					
-					// We know our text fragment's length so we only need to test for pCharsB ending.
-					if((cb == 0) || (cb != ca))
-					{
-						r = false;
-						break;
-					}
-				}
-			}
-			else
-			{
-				r = (pCharsB[0] == 0);
-			}
-			return r;		
-		}
-		
-		friend inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)
-		{
-			std::cout << r.mText;
-			return out;
-		}
-		
 		inline std::string toString() const { return std::string(mText); }
 		
 	private:
 		int mLengthInBytes;
 		char* mText; 
 	};
+
+	// TODO made operator== a free function-	do likewise for other classes
 	
+	inline bool operator==(const TextFragment& a, const TextFragment& b)
+	{
+		return compareSizedCharArrays(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes()); 
+	}
+	
+	inline bool operator!=(TextFragment a, TextFragment b)
+	{
+		return !(a == b);
+	}
+	
+	inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)
+	{
+		std::cout << r.getText();
+		return out;
+	}
+	
+	inline bool compareSizedCharArrays(const char* pA, int lenA, const char* pB, int lenB)
+	{
+		if(lenA != lenB) return false;
+		if((lenA == 0) && (lenB == 0)) return true;
+		
+		for(int n=0; n<lenA; ++n)
+		{
+			if(pA[n] != pB[n])
+			{
+				return false;
+			}
+		}
+		
+		return true;		
+	}
+
 	// ----------------------------------------------------------------
 	// Text - a placeholder for more features later
 	
