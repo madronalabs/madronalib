@@ -151,7 +151,7 @@ void MLDrawing::paint(Graphics& g)
 //debug() << "    painting op " << c++ << "\n";	
 		for(int i=0; i<4; ++i)
 		{
-			assert(within((int)op.args[i], 0, (int)mTransformedPoints.size()));
+			assert(ml::within((int)op.args[i], 0, (int)mTransformedPoints.size()));
 		}
 		
 		switch(op.type)

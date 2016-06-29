@@ -364,7 +364,7 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 		// debug() << "MLPluginProcessor: prepareToPlay: rate " << sr << ", buffer size " << bufSize << "\n";
 
 #ifdef DEBUG
-		theSymbolTable().audit();
+		ml::theSymbolTable().audit();
 		//theSymbolTable().dump();
 #endif
 

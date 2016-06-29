@@ -133,7 +133,7 @@ void MLProcDebug::process(const int frames)
 #if SEND_OSC		
 	
 	// send proc name as address
-	std::string address = std::string("/signal/") + getName().getString();
+	std::string address = std::string("/signal/") + getName().toString();
 	
 	// get Blob with signal 
 	// TODO buffer

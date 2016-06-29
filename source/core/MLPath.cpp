@@ -106,8 +106,8 @@ namespace ml {
 	{
 		for(auto sym : r)
 		{
-			out << sym;
 			out << "/";
+			out << sym;
 		}
 		unsigned copy = r.getCopy();
 		if (copy)
