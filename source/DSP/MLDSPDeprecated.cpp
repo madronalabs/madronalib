@@ -129,9 +129,6 @@ void MLRandReset(void)
 
 const MLRange UnityRange = MLRange(0.f, 1.f);
 
-
-
-
 // ----------------------------------------------------------------
 #pragma mark MLBiquad
 
@@ -156,6 +153,7 @@ void MLBiquad::setLopass(float f, float q)
 	a2 = (1.f - cosOmega) * 0.5f * b0;
 	b1 = -2.f * cosOmega * b0;
 	b2 = (1.f - alpha) * b0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setHipass(float f, float q)
@@ -171,6 +169,7 @@ void MLBiquad::setHipass(float f, float q)
 	a2 = (1.f + cosOmega) * 0.5f *b0;
 	b1 = -2.f * cosOmega *b0;
 	b2 = (1.f - alpha) *b0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setPeakNotch(float f, float q, float gain)
@@ -189,6 +188,7 @@ void MLBiquad::setPeakNotch(float f, float q, float gain)
 	a2 = (1.f - A) * b0;
 	b1 = a1*b0;
 	b2 = (1.f - alphaOverA) * b0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setBandpass(float f, float q)
@@ -205,6 +205,7 @@ void MLBiquad::setBandpass(float f, float q)
 	a2 = -alpha / b0;
 	b1 = -2.f * cosOmega / b0;
 	b2 = (1.f - alpha) / b0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setNotch(float f, float q)
@@ -220,6 +221,7 @@ void MLBiquad::setNotch(float f, float q)
 	a2 = a0;
 	b1 = -2.f * cosOmega / b0;
 	b2 = (1.f - alpha) / b0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setOnePole(float f)
@@ -231,6 +233,7 @@ void MLBiquad::setOnePole(float f)
 	a2 = 0;
 	b1 = -x;
 	b2 = 0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setLoShelf(float f, float q, float gain)
@@ -250,6 +253,7 @@ void MLBiquad::setLoShelf(float f, float q, float gain)
 	a2 = (A*(aPlus1 - aMinus1*cosOmega - beta)) / b0;
     b1 = (aPlus1*-2.0f*cosOmega - 2.0f*aMinus1) / b0;
 	b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setHiShelf(float f, float q, float gain)
@@ -269,6 +273,7 @@ void MLBiquad::setHiShelf(float f, float q, float gain)
 	a2 = (A*(aPlus1 + aMinus1*cosOmega - beta)) / b0;
     b1 = (aPlus1*-2.0f*cosOmega + 2.0f*aMinus1) / b0;
 	b2 = (aPlus1 - aMinus1*cosOmega - beta) / b0;
+	b1 = -b1; b2 = -b2;
 }
 
 // make first order allpass section based on delay parameter d.
@@ -280,6 +285,7 @@ void MLBiquad::setAllpassDelay(float D)
     a2 = 0;
     b1 = alpha;
     b2 = 0;
+	b1 = -b1; b2 = -b2;
 }
 
 // set first order allpass section alpha directly.
@@ -290,6 +296,7 @@ void MLBiquad::setAllpassAlpha(float alpha)
     a2 = 0;
     b1 = alpha;
     b2 = 0;
+	b1 = -b1; b2 = -b2;
 }
 
 // make second order allpass section based on frequency f and pole radius r.
@@ -302,6 +309,7 @@ void MLBiquad::setAllpass2(float f, float r)
 	a2 = 1.f;
 	b1 = -2.f*r*cosOmega;
 	b2 = r*r;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setDifferentiate(void)
@@ -311,6 +319,7 @@ void MLBiquad::setDifferentiate(void)
 	a2 = 0;
 	b1 = 0;
 	b2 = 0;
+	b1 = -b1; b2 = -b2;
 }
 
 void MLBiquad::setCoefficients(float pa0, float pa1, float pa2, float pb1, float pb2)

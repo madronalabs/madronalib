@@ -655,8 +655,7 @@ public:
 	}
 	
 	// MLTEST to DSPVector
-	// process a signal in place. should be called that?
-	inline void processSignal(MLSignal& in)
+	inline void processSignalInPlace(MLSignal& in)
 	{
 		int frames = in.getWidth();
 		for(int n=0; n<frames; ++n)
