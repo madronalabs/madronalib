@@ -66,7 +66,11 @@ namespace ml
 				n++;
 			}
 			std::cout << "total: " << n << " text fragments, " << (mpNext - mpData) << " bytes.\n";
-
+		}
+		
+		inline size_t getSize()
+		{
+			return static_cast< size_t >(mpNext - mpData);
 		}
 
 		char * mpData;
