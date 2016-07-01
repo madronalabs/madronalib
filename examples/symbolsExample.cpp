@@ -162,7 +162,10 @@ int main()
 	std::cout << hello3 << "\n";
 	
 	
-	std::cout << "*" << textUtils::endsWith("hello", "lo") << "*" << "\n";
+	std::cout << "*" << TextFragment("hello").beginsWith("hell") << "*" << "\n";
+	std::cout << "*" << TextFragment("hello").beginsWith("hh") << "*" << "\n";
+	std::cout << "*" << TextFragment("hello").endsWith("lo") << "*" << "\n";
+	std::cout << "*" << TextFragment("hello").endsWith("lxo") << "*" << "\n";
 	
 	std::cout << "*" << textUtils::stripFinalNumber("林2") << "*" << "\n";
 	
@@ -205,7 +208,10 @@ int main()
 		std::cout << std::hex << (unsigned long *)(&tv1[0]) << std::dec << "\n";
 		std::cout << std::hex << (unsigned long *)(&tv1[1]) << std::dec << "\n";
 	}
-	
+	{
+		Symbol p("please");
+		std::cout << p << " " << ml::textUtils::stripFinalCharacter(p) << "\n";
+	}
 	
 	return 0;
 }

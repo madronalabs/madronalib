@@ -13,7 +13,8 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
 	mpProcessor(pProcessor),
-	mClockDivider(0),
+mClockDivider(0),
+mClockDivider2(0),
 	mConvertingPresets(false),
 	mFilesConverted(0),
 	mProtocolMenuItemStart(0),
@@ -105,16 +106,25 @@ void MLPluginController::initialize()
 void MLPluginController::timerCallback()
 {	
 	const int lessFrequentThingsDivision = 8;
-    mClockDivider++;
+	const int muchLessFrequentThingsDivision = 64;
+	mClockDivider++;
+	mClockDivider2++;
 	fetchChangedProperties();
     
 #if DEBUG	
 	if(mClockDivider > lessFrequentThingsDivision)
-    {
-        // do less frequent things (unused)
+	{
+		// do less frequent things
 		debug().display();
-        mClockDivider = 0;
-    }
+		mClockDivider = 0;
+	}
+	
+	if(mClockDivider2 > muchLessFrequentThingsDivision)
+	{
+		// do much less frequent things
+		std::cout << "text pool size: " << ml::theTextFragmentPool().getSize() << "\n";
+		mClockDivider2 = 0;
+	}
 #endif
 	
 	if(getView())
@@ -662,7 +672,7 @@ void MLPluginController::processFileFromCollection (ml::Symbol action, const MLF
 	ml::Symbol collectionName(collection.getName());
 	if(action == "process")
 	{
-		if(ml::textUtils::beginsWith(collectionName.getTextFragment(), "convert_presets"))
+		if(collectionName.beginsWith("convert_presets"))
 		{			
 			// add file action to queue
 			FileAction f(action, fileToProcess, &collection, idx, size);

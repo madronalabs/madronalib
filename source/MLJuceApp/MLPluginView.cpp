@@ -23,7 +23,7 @@ MLPluginView::~MLPluginView()
 #pragma mark component setup 
 
 // add a view to our controller’s map that the controller will service periodically.
-// p: name of signal to view
+// p: name of published signal to view (may contain wildcard)
 // w: widget to do the viewing
 // attr: attr of widget to send the signal to 
 // size: size of signals to collect

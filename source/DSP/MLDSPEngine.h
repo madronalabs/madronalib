@@ -152,7 +152,7 @@ private:
 	void clearOutputs(int frames);
 	
 	MLBiquad mMasterVolumeFilter;
-	MLSignal mMasterVolumeSig;
+	MLSignal mMasterVolumeSig; // MLTEST change to DSPVector
 };
 
 

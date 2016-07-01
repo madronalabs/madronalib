@@ -202,46 +202,6 @@ namespace ml { namespace textUtils {
 		return frag;
 	}
 	
-	bool beginsWith(TextFragment fa, TextFragment fb)
-	{
-		int lenA = fa.lengthInBytes();
-		int lenB = fb.lengthInBytes();
-		
-		if(lenB > lenA) return false;
-		bool r = true;
-		
-		for(int i=0; i<lenB; ++i)
-		{
-			if(fa.getText()[i] != fb.getText()[i])
-			{
-				r = false;
-				break;
-			}
-		}
-
-		return r;
-	}
-	
-	bool endsWith(TextFragment fa, TextFragment fb)
-	{
-		int lenA = fa.lengthInBytes();
-		int lenB = fb.lengthInBytes();
-		
-		if(lenB > lenA) return false;
-		bool r = true;
-		
-		for(int i=0; i<lenB; ++i)
-		{
-			if(fa.getText()[lenA - lenB + i] != fb.getText()[i])
-			{
-				r = false;
-				break;
-			}
-		}
-		
-		return r;
-	}
-	
 #pragma mark Symbol utilities
 	
 	Symbol addFinalNumber(Symbol sym, int n)
@@ -283,7 +243,7 @@ namespace ml { namespace textUtils {
 		
 		return Symbol(textUtils::subText(frag, 0, firstDigitPos).getText());
 	}
-	
+
 	// if the symbol's text ends in a natural number, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{
@@ -319,6 +279,13 @@ namespace ml { namespace textUtils {
 		return digitsToPositiveInt(buf + firstDigitPos);
 	}
 
+	Symbol stripFinalCharacter(Symbol sym)
+	{
+		TextFragment frag = sym.getTextFragment();
+		int len = frag.lengthInCodePoints();
+		return Symbol(subText(frag, 0, len - 1));
+	}
+	
 #pragma mark NameMaker
 	
 	// base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...

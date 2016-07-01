@@ -134,6 +134,39 @@ namespace ml
 			return *this;
 		}
 		
+		bool beginsWith(const TextFragment& fb) const
+		{
+			int lenA = lengthInBytes();
+			int lenB = fb.lengthInBytes();			
+			if(lenB > lenA) return false;
+			for(int i=0; i<lenB; ++i)
+			{
+				if(getText()[i] != fb.getText()[i])
+				{
+					return false;
+				}
+			}			
+			return true;
+		}
+		
+		bool endsWith(const TextFragment& fb) const
+		{
+			int lenA = lengthInBytes();
+			int lenB = fb.lengthInBytes();			
+			if(lenB > lenA) return false;
+			for(int i=0; i<lenB; ++i)
+			{
+				if(getText()[lenA - lenB + i] != fb.getText()[i])
+				{
+					return false;
+				}
+			}			
+			return true;
+		}
+		
+		// deprecated! MLTEST
+		inline std::string toString() const { return std::string(mText); }
+
 		friend inline TextFragment operator+(TextFragment f1, TextFragment f2)
 		{
 			// TODO this impl does an unneccesary copy to the stack, to keep TextFragment very simple for now.
@@ -146,8 +179,6 @@ namespace ml
 			std::copy(f2.mText, f2.mText + len2, buf + len1);
 			return TextFragment(buf, strlen(buf));
 		}
-		
-		inline std::string toString() const { return std::string(mText); }
 		
 	private:
 		int mLengthInBytes;

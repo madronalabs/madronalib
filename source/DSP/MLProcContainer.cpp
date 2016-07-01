@@ -1489,8 +1489,6 @@ MLProc::err MLProcContainer::addBufferHere(const ml::Path & procName, ml::Symbol
 	int trigMode, int bufLength, int frameSize)
 {
 	err e = OK;
-	
-	//debug() << "add buffer here from:" << procName << " called " << alias << " output " << outputName << "\n";
 
 	if(frameSize > 1)
 	{
@@ -1516,6 +1514,11 @@ MLProc::err MLProcContainer::addBufferHere(const ml::Path & procName, ml::Symbol
 
 	return e;
 }
+
+// TODO this add/gatherSignalBuffers stuff is just wrong in a couple of ways. 
+// instead of "wildcards" we can publish a group of signals and explicitly add individual outputs to it.
+// so the graph will decide what to do.
+// separate add then gather is dumb. add should push buffer procs to a vector (mPublishedSignalMap) for quick iteration later.
 
 // recurse into graph, adding ring buffers where necessary to capture signals matching procAddress.
 // this is necessary to get multiple signals that resolve to the same address.
@@ -1553,7 +1556,30 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 		}
 		else // create buffer.
 		{		
-			addBufferHere(ml::Path(head), outputName, alias, trigMode, bufLength, frameSize);
+			if (outputName.endsWith("*"))
+			{						
+				ml::Symbol outputNameWithoutStar = ml::textUtils::stripFinalCharacter(outputName);
+				ml::Symbol aliasWithoutStar = ml::textUtils::stripFinalCharacter(alias);
+				
+				// add a buffer for each possible output matching wildcard (quick and dirty)
+				for(int i = 1; i <= kMLEngineMaxVoices; ++i)
+				{				
+					ml::Symbol numberedOutput = ml::textUtils::addFinalNumber(outputNameWithoutStar, i);
+					ml::Symbol numberedAlias = ml::textUtils::addFinalNumber(aliasWithoutStar, i);
+					if (headProc->getOutputIndex(numberedOutput))
+					{
+						addBufferHere(ml::Path(head), numberedOutput, numberedAlias, trigMode, bufLength, frameSize);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			else
+			{
+				addBufferHere(ml::Path(head), outputName, alias, trigMode, bufLength, frameSize);
+			}
 		}
 	}
 	else 
@@ -1573,8 +1599,6 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 	const ml::Symbol head = procAddress.head();
 	const ml::Path tail = procAddress.tail();
 
-	// debug() << "MLProcContainer " << getName() << " gatherSignalBuffers " << procAddress << " as " << alias << "\n";
-	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);
 	if (it != mProcMap.end())
@@ -1597,10 +1621,32 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 		{
 			// get container of last head proc
 			MLProcContainer& context = static_cast<MLProcContainer&>(*headProc->getContext());		
-			MLProcPtr bufferProc = context.getProc(ml::Path(alias));		
-			if (bufferProc)	
+			
+			if (alias.endsWith("*"))
+			{		
+				ml::Symbol aliasWithoutStar = ml::textUtils::stripFinalCharacter(alias);
+
+				// gather each buffer matching wildcard (quick and dirty)
+				for(int i = 1; i <= kMLEngineMaxVoices; ++i)
+				{
+					MLProcPtr bufferProc = context.getProc(ml::Path(ml::textUtils::addFinalNumber(aliasWithoutStar, i)));		
+					if (bufferProc)	
+					{
+						signalBuffers.push_back(bufferProc);
+					}
+					else
+					{
+						break;
+					}
+				}
+			}
+			else
 			{
-				signalBuffers.push_back(bufferProc);
+				MLProcPtr bufferProc = context.getProc(ml::Path(alias));		
+				if (bufferProc)	
+				{
+					signalBuffers.push_back(bufferProc);
+				}
 			}
 		}
 	}

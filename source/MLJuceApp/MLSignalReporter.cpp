@@ -22,6 +22,13 @@ MLSignalReporter::~MLSignalReporter()
 //
 MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w, ml::Symbol attr, int viewSize, int priority, int frameSize)
 {
+	/* MLTEST
+	if(ml::textUtils::endsWith(alias, ml::Symbol("*")))
+	{
+		std::cout << "ends in *\n";
+	}
+	*/
+	
  	MLDSPEngine* const pEngine = mpProcessor->getEngine();
 	if(!pEngine) return nullptr;	
 	MLSignalView* pNewView = nullptr;
@@ -44,7 +51,8 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w
 			mSignalBuffers[alias] = MLSignalPtr(new MLSignal(bufSize, frameSize, voices));
 			mSignalBuffers2[alias] = MLSignalPtr(new MLSignal(bufSize, frameSize, voices));
 
-			mSignalBuffers2[alias]->fill(-1.f); // force initial view of zero signal
+			// force initial view of zero signal
+			mSignalBuffers2[alias]->fill(-1.f); 
 		}
 		
 		viewSize = ml::min(viewSize, bufSize);
@@ -113,7 +121,15 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
     // TODO revisit this-- we should not need to count the signals each time.
     // only needed when we recompile or turn voices on / off.
     int voices = mpProcessor->countSignals(signalName);
-    
+	
+	/*
+	// MLTEST
+	if(signalName.endsWith("*"))
+	{
+		std::cout << signalName << "\n";
+	}
+    */
+	
     // read signal into buffer and check for change.
     // TODO post ring buffer, we have to look at all the samples in the buffer
     // to detect changes. Instead, the DSP engine can keep track of what

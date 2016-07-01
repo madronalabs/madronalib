@@ -698,6 +698,15 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 		}
 #endif		
 		
+		/*
+		// MLTEST WORKS
+		static ml::RandomSource rand;
+		float* pOut = buffer.getWritePointer(0);
+		for(int n=0; n<buffer.getNumSamples(); ++n)
+		{
+			pOut[n] = rand.getSample()*0.01f;
+		}
+		 */
     }
 	else
 	{

@@ -133,6 +133,7 @@ private:
 
 	MLMenuMapT mMenuMap;
 	int mClockDivider;
+	int mClockDivider2;
 	
 	bool mConvertingPresets;
 	int mFilesToProcess;

@@ -48,17 +48,17 @@ namespace ml { namespace textUtils {
 	// Return a new TextFragment containing any characters up to a final slash. 
 	TextFragment getPath(const TextFragment& frag);
 	
-	bool beginsWith (TextFragment fa, TextFragment fb);
-	bool endsWith (TextFragment fa, TextFragment fb);
-
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	
 	Symbol addFinalNumber(Symbol sym, int n);
 	Symbol stripFinalNumber(Symbol sym);
 	int getFinalNumber(Symbol sym);	
-	std::vector< Symbol > vectorOfNonsenseSymbols( int len );
+
+	Symbol stripFinalCharacter(Symbol sym);
 	
+	std::vector< Symbol > vectorOfNonsenseSymbols( int len );
+
 	// ----------------------------------------------------------------
 	// NameMaker
 	// a utility to make many short, unique, human-readable names when they are needed. 
