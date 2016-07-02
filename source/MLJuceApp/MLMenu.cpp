@@ -247,7 +247,7 @@ void MLMenu::addItems(const std::vector<std::string>& items)
 void MLMenu::addSubMenu(MLMenuPtr m)
 {
 	// copy NodePtr into our node map
-	const std::string& subMenuName = std::string(m->getName().getTextFragment().getText()); // MLTEST come on now
+	std::string subMenuName(m->getName().getTextFragment().getText());
 	mRoot->map[subMenuName] = m->mRoot;
 	mRoot->index.push_back(subMenuName);
 }

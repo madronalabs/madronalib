@@ -252,7 +252,7 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 // gets the i/o utility through the help of its Context.
 void MLScale::loadFromRelativePath(ml::Text newPath)
 {
-// MLTEST to add	if(!newPath) return;
+	if(!newPath) return;
 	if(newPath != mScalePath)
 	{
 		File scaleRoot = getDefaultFileLocation(kScaleFiles);

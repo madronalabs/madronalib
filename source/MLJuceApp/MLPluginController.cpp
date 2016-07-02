@@ -105,13 +105,12 @@ void MLPluginController::initialize()
 
 void MLPluginController::timerCallback()
 {	
+#if DEBUG	
 	const int lessFrequentThingsDivision = 8;
 	const int muchLessFrequentThingsDivision = 64;
 	mClockDivider++;
 	mClockDivider2++;
-	fetchChangedProperties();
     
-#if DEBUG	
 	if(mClockDivider > lessFrequentThingsDivision)
 	{
 		// do less frequent things
@@ -127,6 +126,7 @@ void MLPluginController::timerCallback()
 	}
 #endif
 	
+	fetchChangedProperties();
 	if(getView())
 		viewSignals();
 	
@@ -495,7 +495,10 @@ void MLPluginController::populateScaleMenu(const MLFileCollection& fileCollectio
 {
     MLMenu* pMenu = findMenuByName("key_scale");
 	pMenu->clear();
+	
+	// TODO allow changing default scale
  	pMenu->addItem("12-equal");
+	
     pMenu->appendMenu(fileCollection.buildMenu());
 }
 
@@ -693,7 +696,7 @@ void MLPluginController::doFileQueueAction(FileAction a)
 	File destRoot(newPresetsFolder);
 	
 	// get name relative to collection root.
-	const std::string& relativeName = a.mCollection->getRelativePathFromName(a.mFile.getLongName().toString());  // MLTEST wat
+	std::string relativeName(a.mCollection->getRelativePathFromName(a.mFile.getLongName().toString()));  // MLTEST wat
 	
 	// If file at destination does not exist, or is older than the source, convert
 	// source and overwrite destination.

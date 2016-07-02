@@ -242,7 +242,7 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-	// MLTEST any reason for unique_ptr not just value here??
+	// TODO any reason for unique_ptr not just value here??
 	std::unique_ptr<MLFileCollection> mScaleFiles;
     std::unique_ptr<MLFileCollection> mPresetFiles;
     std::unique_ptr<MLFileCollection> mMIDIProgramFiles;

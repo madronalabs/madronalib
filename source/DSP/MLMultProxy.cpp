@@ -561,7 +561,7 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
             e = pCopy->addProc(className, procName);
             if (e == MLProc::OK)
             {
-                ml::Path procPath(procName);
+				ml::Path procPath(procName);
                 pCopy->setProcParams(procPath, parent);
                 pCopy->setCopyIndex(i + 1);
                 MLProcPtr p = pCopy->getProc(procPath);	

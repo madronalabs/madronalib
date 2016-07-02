@@ -633,7 +633,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 			mMasterVolumeSig.fill(mMasterVolume);
 			mMasterVolumeFilter.processSignalInPlace(mMasterVolumeSig);
 			
-			if(0)// MLTEST (reportStats)
+			if(0)// (reportStats)
 			{
 				MLSignalStats stats;
 				collectStats(&stats);

@@ -121,13 +121,12 @@ ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::F
 	String shortName = f.getFileNameWithoutExtension();		
 	juce::File parentDir = f.getParentDirectory();
 	
-
 	if (f.hasFileExtension(mExtension.getText()))
 	{
 		// insert file or directory into file tree relative to collection root
 		std::string fullName(f.getFullPathName().toUTF8());
 		std::string relativePath = getRelativePathFromName(fullName);
-		returnNode = mRoot.addValue(ml::Symbol(relativePath.c_str()), MLFile(fullName));
+		returnNode = mRoot.addValue(ml::Path(relativePath.c_str()), MLFile(fullName));
 	}
 	else if (f.isDirectory())
 	{
@@ -151,7 +150,6 @@ void MLFileCollection::buildIndex()
 	{
 		if(it.nodeHasValue())
 		{
-		//	std::cout << "buildIndex adding " << it->getValue().getShortName() << "\n";
 			mFilesByIndex.push_back(it->getValue());
 		}
 	}
@@ -356,11 +354,6 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 	return std::string(ml::textUtils::stripFileExtension(pf).getText());
 }
 
-MLMenuPtr MLFileCollection::buildMenu() const
-{
-	return buildMenu([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it){ return true; });
-}
-
 MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)> includeFn) const
 {
 	MLMenuPtr root(new MLMenu());
@@ -375,7 +368,7 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Sym
 			{
 				if(includeFn(it))
 				{
-					menuStack.back()->addItem(itemName.toString(), it.nodeHasValue()); // MLTEST ack
+					menuStack.back()->addItem(itemName.toString(), it.nodeHasValue());
 				}
 			}
 			else
@@ -397,6 +390,11 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Sym
 		}
 	}
 	return root;
+}
+
+MLMenuPtr MLFileCollection::buildMenu() const
+{
+	return buildMenu([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it){ return true; });
 }
 
 void MLFileCollection::run()

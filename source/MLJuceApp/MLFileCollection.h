@@ -103,13 +103,14 @@ public:
     // given a full system file name, get its path relative to our starting directory.
     std::string getRelativePathFromName(const std::string& name) const;
     
+	// build a menu of the files for which the function returns true.
+	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;
+	
 	// build a menu of all the files. 
 	// TODO no reason to know about menus here. We should be returning a raw tree structure.
 	// or better, the menu just has a reference to a resourceMap, that can be constantly updating itself.
 	MLMenuPtr buildMenu() const;
 	
-	// build a menu of the files for which the function returns true.
-	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;
 	
     void dump() const;
     

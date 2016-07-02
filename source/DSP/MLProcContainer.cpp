@@ -221,7 +221,6 @@ void MLProcContainer::compile()
 		ml::Symbol destName = pipe->mDest->getName();
 		int destIndex = pipe->mDestIndex;
         
-		// MLTEST
         // debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
         
 		// resize inputs and outputs if needed for variable i/o procs
@@ -273,7 +272,6 @@ void MLProcContainer::compile()
 			// set signal lifetime to union of signal lifetime and pipe extent
 			signals[sigName].addLifespan(pipeStartIdx, pipeEndIdx);
 			
-			// MLTEST
 			// find out from the proc what frame size it will output. 
 			signals[sigName].mFrameSize = pSrcOp->procRef->getOutputFrameSize(srcIndex);			
 			if(signals[sigName].mFrameSize > 1)
@@ -1301,7 +1299,6 @@ void MLProcContainer::publishInput(const ml::Path & procName, const ml::Symbol i
 	err e = OK;
 	MLPublishedInputPtr p;
 	
-	// MLTEST
 	//debug() << "MLProcContainer::publishInput: publishing input " << inputName << " of " << procName << " as " << alias << "\n"; 
 
 	const MLProcPtr proc = getProc(procName);	
@@ -2240,7 +2237,7 @@ MLSignal* MLProcContainer::allocBuffer(int frameSize)
 	}
 	
 	// MLTEST 
-	// BUG
+	// BUG ?
 	
 	r = new MLSignal(kMLProcessChunkSize, frameSize);
 	

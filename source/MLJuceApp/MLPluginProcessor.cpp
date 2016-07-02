@@ -752,7 +752,6 @@ float MLPluginProcessor::getParameterAsLinearProportion (int index)
 	float r = 0;
   	if (!ml::within(index, 0, getNumParameters())) 
 	{
-		// MLTEST
 		debug() << "WARNING: param " << index << " does not exist!\n";
 		return(0);
 	}
@@ -1009,7 +1008,7 @@ void MLPluginProcessor::saveStateToLongFileName(const std::string& longName)
 		if(! AlertWindow::showOkCancelBox (AlertWindow::NoIcon, String::empty, errStr, "OK", "Cancel")) return;
 		
 		// use only the short name as model param.
-		ml::TextFragment shortName = ml::textUtils::getShortFileName(ml::TextFragment(longName.c_str())); // MLTEST fuuuuu
+		ml::TextFragment shortName = ml::textUtils::getShortFileName(ml::TextFragment(longName.c_str()));
 		setProperty("preset", shortName);
 		
 		std::string extension (".mlpreset");
@@ -1058,7 +1057,7 @@ void MLPluginProcessor::saveStateToRelativePath(const std::string& path)
 #else
     
     // the Model param contains the file path relative to the root.
-	setProperty("preset", ml::TextFragment(path.c_str())); // MLTEST
+	setProperty("preset", ml::TextFragment(path.c_str()));
 	
     std::string extension (".mlpreset");
     std::string extPath = path + extension;
@@ -1498,7 +1497,7 @@ void MLPluginProcessor::createFileCollections()
 void MLPluginProcessor::scanAllFilesImmediate()
 {
     mScaleFiles->processFilesImmediate();
-    mPresetFiles->processFilesImmediate();
+	mPresetFiles->processFilesImmediate();
     mMIDIProgramFiles->processFilesImmediate();
 }
 
