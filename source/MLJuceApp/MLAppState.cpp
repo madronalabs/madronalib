@@ -70,9 +70,11 @@ String MLAppState::getStateAsText()
 	cJSON* root = getStateAsJSON();
 	if(root)
 	{
-		char* stateText = cJSON_Print(root);
-		r = CharPointer_UTF8(stateText);
-		free(stateText);
+		// MLTEST
+	//	char* stateText = cJSON_Print(root);
+	//	r = CharPointer_UTF8(stateText);
+	//	free(stateText);
+		
 		cJSON_Delete(root);
 	}
 	else
@@ -140,14 +142,15 @@ cJSON* MLAppState::getStateAsJSON()
 	cJSON* root = cJSON_CreateObject();
 
 	// get Model parameters
-	std::map<ml::Symbol, PropertyState>::iterator it;
-	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
+	// std::map<ml::Symbol, PropertyState>::iterator it;
+	for(auto it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
 	{
 		ml::Symbol key = it->first;
 		if(mIgnoredProperties.find(key) == mIgnoredProperties.end())
 		{			
-			const char* keyStr = key.getTextFragment().getText();
+			const char* keyStr = key.getUTF8Ptr();
 			PropertyState& state = it->second;
+			
 			switch(state.mValue.getType())
 			{
 				case MLProperty::kFloatProperty:

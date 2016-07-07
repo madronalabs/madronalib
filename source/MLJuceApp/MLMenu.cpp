@@ -151,7 +151,8 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
     {
         if(name != kSeparatorStr)
         {
-			ml::TextFragment newItem = mDisplayPrefix + ml::textUtils::stripFileExtension(ml::textUtils::getShortFileName(name.c_str()));
+			ml::TextFragment newItem(mDisplayPrefix,
+				ml::textUtils::stripFileExtension(ml::textUtils::getShortFileName(name.c_str())));
 			pMenu->addItem(mItemNumber, juce::String(newItem.getText()), mEnabled, mTicked);
         }
         else

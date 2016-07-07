@@ -206,7 +206,7 @@ namespace ml { namespace textUtils {
 	
 	Symbol addFinalNumber(Symbol sym, int n)
 	{
-		TextFragment t(sym.getTextFragment() + TextFragment(textUtils::positiveIntToDigits(n)));
+		TextFragment t(sym.getTextFragment(), textUtils::positiveIntToDigits(n));
 		return Symbol(t.getText());
 	}
 	
@@ -215,7 +215,7 @@ namespace ml { namespace textUtils {
 		const TextFragment& frag = sym.getTextFragment();
 		utf::stringview<const char*> sv(frag.getText(), frag.getText() + frag.lengthInBytes());
 		int points = sv.codepoints();
-		char32_t buf[points];
+		char32_t buf[points + 1];
 		
 		// read into char32 array for random access
 		auto first = utf::codepoint_iterator<const char*>(frag.getText());
@@ -226,6 +226,9 @@ namespace ml { namespace textUtils {
 			char32_t c = *it;
 			buf[i++] = c;
 		}			
+		
+		// null terminate
+		buf[points] = 0;
 		
 		// no final number? return
 		if(!textUtils::isDigit(buf[points - 1])) return sym;
@@ -244,13 +247,14 @@ namespace ml { namespace textUtils {
 		return Symbol(textUtils::subText(frag, 0, firstDigitPos).getText());
 	}
 
+	
 	// if the symbol's text ends in a natural number, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
-	{
+	{		
 		const TextFragment& frag = sym.getTextFragment();
 		utf::stringview<const char*> sv(frag.getText(), frag.getText() + frag.lengthInBytes());
 		int points = sv.codepoints();
-		char32_t buf[points];
+		char32_t buf[points + 1];
 		
 		// read into char32 array for random access
 		auto first = utf::codepoint_iterator<const char*>(frag.getText());
@@ -261,6 +265,9 @@ namespace ml { namespace textUtils {
 			char32_t c = *it;
 			buf[i++] = c;
 		}			
+		
+		// null terminate
+		buf[points] = 0;
 		
 		// no final number? return
 		if(!textUtils::isDigit(buf[points - 1])) return 0;
@@ -275,8 +282,13 @@ namespace ml { namespace textUtils {
 				firstDigitPos = i + 1; break;
 			}
 		}
+
+		// note, null terminated char32_t string needed
+		int r = digitsToPositiveInt(buf + firstDigitPos);
 		
-		return digitsToPositiveInt(buf + firstDigitPos);
+		//std::cout << r << " ";// MLTEST
+		
+		return r;
 	}
 
 	Symbol stripFinalCharacter(Symbol sym)

@@ -198,7 +198,7 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	int inChans = getTotalNumInputChannels();
 	bool makeSignalInputs = inChans > 0;
 	mEngine.buildGraphAndInputs(&*mpPluginDoc, makeSignalInputs, wantsMIDI());
-
+	
 	/*
 	// get plugin parameters and initial values and create corresponding model properties.
 	int params = getNumParameters();
@@ -217,7 +217,12 @@ void MLPluginProcessor::loadPluginDescription(const char* desc)
 	}
 	*/
 	
+	
+	
 	mEngine.compileEngine();
+	
+	std::cout << "MLPluginProcessor::loadPluginDescription: LOADING\n";
+	
 	loadDefaultPreset();
 	
 	// after the default preset is loaded, we don't allow any new properties to be made in the Model.
@@ -382,18 +387,19 @@ void MLPluginProcessor::prepareToPlay (double sr, int maxFramesPerBlock)
 			setPatchAndEnvStatesFromBinary (mSavedBinaryState.getData(), blobSize);
 			mSavedBinaryState.setSize(0);
 		}
-		
-		/*
+
 		else 
 		{
 			mEngine.clear();
 			if (!mHasParametersSet)
 			{				
-				std::cout << "LOADING default preset \n";
+				std::cout << " MLPluginProcessor::prepareToPlay: LOADING default preset \n";
 				
 				loadDefaultPreset();
 			}
-		}	*/
+		}	
+		
+		
 		
 		
 		// after setting state, initialize processor

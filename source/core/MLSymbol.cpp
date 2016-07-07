@@ -26,6 +26,7 @@ namespace ml {
 		mSize = 0;
 		MLScopedLock lock(mLock);
 		mSymbolTextsByID.clear();
+		mSymbolTextsByID.reserve(kDefaultSymbolTableSize);
 		
 		mHashTable.clear();
 		mHashTable.resize(kHashTableSize);	
@@ -37,8 +38,10 @@ namespace ml {
 	int SymbolTable::addEntry(const HashedCharArray& hsl)
 	{
 		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, hsl.len));
+		
 		size_t newID = mSize++;
-		mHashTable[hsl.hash].push_back(newID);			
+		mHashTable[hsl.hash].emplace_back(newID);		
+		
 		return newID;
 	}
 
@@ -54,8 +57,8 @@ namespace ml {
 				// there should be few collisions, so probably the first ID in the hash bin
 				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
 				// compare the entire string.	
-				TextFragment binFragment = mSymbolTextsByID[ID];
-				if(compareSizedCharArrays(binFragment.getText(), binFragment.lengthInBytes(), hsl.pChars, hsl.len))
+				TextFragment* binFragment = &mSymbolTextsByID[ID];
+				if(compareSizedCharArrays(binFragment->getText(), binFragment->lengthInBytes(), hsl.pChars, hsl.len))
 				{
 					r = ID;
 					found = true;

@@ -342,6 +342,7 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
 	int idx = 0;
 	int voice = 0;
 	int sig = 0;
+	
 	ml::Symbol name0 = ml::textUtils::stripFinalNumber(name);
 			
 	// match signal name with symbol text
@@ -358,7 +359,7 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
 	if (sig)
 	{
 		voice = ml::textUtils::getFinalNumber(name);
-		if ((voice) && (voice <= mCurrentVoices))
+		if ((voice) && (voice <= mCurrentVoices)) // MLTEST
 		{
 			idx = (voice - 1)*kNumVoiceSignals + sig;
 		}
@@ -369,7 +370,6 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
 		debug() << "MLProcInputToSignals::getOutputIndex: null output " << name << "\n";	
 	}
 
-	// debug() << "MLProcInputToSignals:getOutputIndex output " << name << 	": " << idx << "\n";
  	return idx;
 }
 

@@ -121,7 +121,7 @@ void MLPluginController::timerCallback()
 	if(mClockDivider2 > muchLessFrequentThingsDivision)
 	{
 		// do much less frequent things
-		std::cout << "text pool size: " << ml::theTextFragmentPool().getSize() << "\n";
+		std::cout << "symbols: " << ml::theSymbolTable().getSize() << "\n";
 		mClockDivider2 = 0;
 	}
 #endif
@@ -547,7 +547,7 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	
 	// presets and directories starting with the name of the plugin followed by a space
 	// will be sorted into a separate factory area.
-	ml::TextFragment prefix = ml::TextFragment(MLProjectInfo::projectName) + (" ");
+	ml::TextFragment prefix (ml::TextFragment(MLProjectInfo::projectName), (" "));
 	
     // add factory presets, those starting with the plugin name
     menu->appendMenu(presetFiles.buildMenu

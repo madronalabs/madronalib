@@ -485,8 +485,17 @@ typedef MLProcList::iterator MLProcListIterator;
 
 class MLProcFactory
 {
+private:
+	MLProcFactory();
+	~MLProcFactory();
+	MLProcFactory(MLProcFactory const&) = delete;             // Copy construct
+	MLProcFactory(MLProcFactory&&) = delete;                  // Move construct
+	MLProcFactory& operator=(MLProcFactory const&) = delete;  // Copy assign
+	MLProcFactory& operator=(MLProcFactory &&) = delete;      // Move assign
+
 public:
 	// singleton: we only want one MLProcFactory, even for multiple MLDSPEngines. 
+	// delete copy and move constructors and assign operators
     static MLProcFactory &theFactory()  { static MLProcFactory f; return f; }
 
 	typedef MLProcPtr (*MLProcCreateFnT)(void);
@@ -501,12 +510,7 @@ public:
 	
 	// debug. 
 	void printRegistry(void);
-	
-private:
-    MLProcFactory();
-    MLProcFactory(const MLProcFactory &); // Not implemented
-    MLProcFactory & operator=(const MLProcFactory &); // Not implemented
-	~MLProcFactory();
+
 };
 
 

@@ -88,7 +88,7 @@ const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
-	const int kMapSize = 100;	
+	const int kMapSize = 16;	
 	const int kTestLength = 100000;
 	
 	// main maps for testing
@@ -106,7 +106,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	{
 		// make procedural gibberish
 		std::string newString;
-		int length = 3 + (p%8);
+		int length = 3 + (i%22);
 		for(int j=0; j<length; ++j)
 		{
 			p += (i*j + 1);
@@ -319,6 +319,9 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	{
 		totalPoints += TextFragment(testString.c_str()).lengthInCodePoints();
 	}
+	
+	TextFragment fff("fff");
+	std::cout << fff << "\n";
 	REQUIRE(totalPoints == 21);
 }
 

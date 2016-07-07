@@ -14,6 +14,10 @@
 //
 // Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
+//
+// Symbols do not ever require any heap as long as they are smaller than a certain size.
+// This relies on the "small string optimization" implementation of TextFragment.
+// Currently the size is 16 bytes.
 
 #pragma once
 
@@ -37,8 +41,9 @@ namespace ml {
 	const int kHashTableSize = (1 << kHashTableBits);
 	const int kHashTableMask = kHashTableSize - 1;
 	
-	// symbols are allocated in chunks of this size when needed. 
-	const int kTableChunkSize = 1024;
+	// initial capacity of symbol table. if this number of symbols is exceeded, the capacity of
+	// the table will have to be increased, which may result in a glitch if called from the audio thread.
+	const int kDefaultSymbolTableSize = 4096;
 	
 	// very simple hash function from Kernighan & Ritchie. 
 	// Constexpr version for hashing strings known at compile time.
@@ -200,6 +205,11 @@ namespace ml {
 			return theSymbolTable().getSymbolTextByID(id);
 		}
 		
+		inline const char* getUTF8Ptr() const
+		{
+			return theSymbolTable().getSymbolTextByID(id).getText();
+		}
+		
 		int getID() const { return id; } 
 
 		inline bool beginsWith(Symbol b) const
@@ -212,7 +222,6 @@ namespace ml {
 			return getTextFragment().endsWith(b.getTextFragment());
 		}
 		
-		
 		// MLTEST deprecated
 		inline std::string toString() const { return std::string(getTextFragment().getText()); }
 	
@@ -224,7 +233,7 @@ namespace ml {
 	
 	inline Symbol operator+(Symbol f1, Symbol f2)
 	{
-		return Symbol((f1.getTextFragment() + f2.getTextFragment()).getText());
+		return Symbol(TextFragment(f1.getTextFragment(), f2.getTextFragment()));
 	}
 	
 }	// namespace ml

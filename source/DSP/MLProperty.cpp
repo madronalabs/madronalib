@@ -161,10 +161,10 @@ std::ostream& operator<< (std::ostream& out, const MLProperty & r)
 			out << r.getFloatValue();
 			break;
 		case MLProperty::kTextProperty:
-			out << (r.getTextValue());
+			out << r.getTextValue();
 			break;
 		case MLProperty::kSignalProperty:
-			out << (r.getSignalValue());
+			out << r.getSignalValue();
             break;
 	}
 	return out;
