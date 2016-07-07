@@ -553,14 +553,14 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
     menu->appendMenu(presetFiles.buildMenu
 					 ([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it)
 					  {
-						  if(it.getDepth() > 0)
-						  {
-							  return true;
-						  }
-						  else
+						  if(it.getDepth() == 0)
 						  {
 							  ml::TextFragment fileName = it->getValue().getShortName();	
 							  return (prefix == ml::textUtils::subText(fileName, 0, prefix.lengthInCodePoints()));
+						  }
+						  else
+						  {
+							  return true;
 						  };
 					  }
 					  )
@@ -571,15 +571,15 @@ void MLPluginController::populatePresetMenu(const MLFileCollection& presetFiles)
 	menu->appendMenu(presetFiles.buildMenu
 					 ([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it)
 					  {
-						  if(it.getDepth() > 0)
-						  {
-							  return true;
-						  }
-						  else
+						  if(it.getDepth() == 0)
 						  {
 							  ml::TextFragment fileName = it->getValue().getShortName();	
 							  if(fileName == "Samples") return false;
 							  return (prefix != ml::textUtils::subText(fileName, 0, prefix.lengthInCodePoints()));
+						  }
+						  else
+						  {
+							  return true;
 						  };
 					  }
 					  )

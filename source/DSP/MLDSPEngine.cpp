@@ -53,7 +53,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		// make XML node describing MIDI to signal processor.
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
-		pElem->setAttribute("name", juce::String(kMLInputToSignalProcName));
+		pElem->setAttribute("name", juce::String(juce::CharPointer_UTF8(kMLInputToSignalProcName)));
 		pElem->setAttribute("voices", (int)kMLEngineMaxVoices);			
 		
 		// build processor object.

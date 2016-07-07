@@ -63,7 +63,7 @@ juce::XmlElement* loadPropertyFileToXML(const juce::File& f)
 				juce::XmlElement* xmlState = juce::XmlDocument::parse (juce::String::fromUTF8 (xmlBytes, xmlLength));
 				if (nameResult)
 				{
-					xmlState->setAttribute ("presetName", juce::String(nameBuf));	
+					xmlState->setAttribute ("presetName", juce::String(juce::CharPointer_UTF8(nameBuf)));	
 				}
 
 				ret = xmlState;

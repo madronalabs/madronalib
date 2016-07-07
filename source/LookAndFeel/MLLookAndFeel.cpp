@@ -564,11 +564,36 @@ void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	int w = button.getWidth() - m*2;
 	int h = button.getHeight() - m*2;
 	float textSize = getButtonTextSize(button);	
-	Font f(mTitleFont);
-	f.setHeight(floor(textSize) + 0.75f);
-	f.setExtraKerningFactor(getButtonTextKerning(textSize));
-	g.setFont(f);
-	g.drawFittedText (juce::String(button.getTextProperty("processed_text").getText()),
+	
+	ml::Text t = button.getTextProperty("processed_text");
+	if(ml::textUtils::onlyHasASCIICharacters(t))
+	{
+		Font f(mTitleFont);
+		f.setHeight(floor(textSize) + 0.75f);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize));
+		g.setFont(f);
+	}
+	else
+	{
+		std::cout << "NON-ASCII!\n";
+		
+		// TODO: select best matching for string
+		// try to identify a few common languages. 
+		// or bail and hand the rendering over to OS. 
+		// look at cocos2d-x solution.
+		String monoFontName = "Hiragino Sans W4";//juce::Font::getDefaultMonospacedFontName();
+		
+		// TODO: and for Windows.
+		
+		Font f(monoFontName, floor(textSize*0.75), juce::Font::plain);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize));
+		
+		std::cout << "using font name: " << f.getTypeface()->getName() << "\n";
+
+		g.setFont(f);
+	}
+	
+	g.drawFittedText (juce::String(juce::CharPointer_UTF8(t.getText())),
                       m, m, w, h,
                       Justification::centred, 1., 1.);
 }
@@ -588,7 +613,8 @@ void MLLookAndFeel::drawMenuButtonText (Graphics& g, MLButton& button,
 	f.setHeight(floor(textSize) + 0.75f);
 	f.setExtraKerningFactor(getButtonTextKerning(textSize));
 	g.setFont(f);
-	g.drawFittedText (juce::String(button.getTextProperty("processed_text").getText()),
+	ml::Text t = button.getTextProperty("processed_text");
+	g.drawFittedText (juce::String(juce::CharPointer_UTF8(t.getText())),
                       h/2, m, w - h, hm,
                       Justification::left, 1., 1.);
 	

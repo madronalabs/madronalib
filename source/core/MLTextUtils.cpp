@@ -201,6 +201,19 @@ namespace ml { namespace textUtils {
 		
 		return frag;
 	}
+
+	bool onlyHasASCIICharacters(const TextFragment& frag)
+	{
+		auto first = codepoint_iterator<const char*>(frag.getText());
+		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
+		for (auto it = first; it != last; ++it) 
+		{
+			const codepoint_type c = *it;
+			if (c > 0x7f) { return false; }
+		}	
+		return true;
+	}
+
 	
 #pragma mark Symbol utilities
 	
@@ -244,7 +257,8 @@ namespace ml { namespace textUtils {
 			}
 		}
 		
-		return Symbol(textUtils::subText(frag, 0, firstDigitPos).getText());
+		ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
+		return subFrag.getText();
 	}
 
 	

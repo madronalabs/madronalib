@@ -48,6 +48,8 @@ namespace ml { namespace textUtils {
 	// Return a new TextFragment containing any characters up to a final slash. 
 	TextFragment getPath(const TextFragment& frag);
 	
+	bool onlyHasASCIICharacters(const TextFragment& frag);
+	
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	

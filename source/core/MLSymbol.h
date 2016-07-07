@@ -223,7 +223,11 @@ namespace ml {
 		}
 		
 		// MLTEST deprecated
-		inline std::string toString() const { return std::string(getTextFragment().getText()); }
+		inline std::string toString() const 
+		{ 
+			return std::string(getUTF8Ptr()); 
+		}
+		
 	
 	private:
 		// the ID equals the order in which the symbol was created.

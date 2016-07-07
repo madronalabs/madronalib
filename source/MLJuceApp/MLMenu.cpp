@@ -153,7 +153,7 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
         {
 			ml::TextFragment newItem(mDisplayPrefix,
 				ml::textUtils::stripFileExtension(ml::textUtils::getShortFileName(name.c_str())));
-			pMenu->addItem(mItemNumber, juce::String(newItem.getText()), mEnabled, mTicked);
+			pMenu->addItem(mItemNumber, juce::String(juce::CharPointer_UTF8(newItem.getText())), mEnabled, mTicked);
         }
         else
         {
@@ -312,8 +312,8 @@ const std::string MLMenu::getMenuItemPath(int idx)
 JuceMenuPtr MLMenu::getJuceMenu()
 {
     buildIndex();
-    JuceMenuPtr jm(new PopupMenu());    
-    mRoot->addToJuceMenu(mName.getTextFragment().getText(), jm);
+    JuceMenuPtr jm(new PopupMenu());  
+    mRoot->addToJuceMenu(mName.getUTF8Ptr(), jm);
     return jm;
 }
 
