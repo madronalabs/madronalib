@@ -17,8 +17,9 @@
 namespace ml
 {
 	// ----------------------------------------------------------------
-	// TextFragment
-
+	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
+	// if the length is below a certain size. 
+	
 	class TextFragment
 	{
 	public:
@@ -82,8 +83,8 @@ namespace ml
 		}
 		
 		// TODO note that writing someSymbol.getTextFragment().getText() will result in a stale pointer
-		// to a temporary object, when the text is longer than the local size. 
-		// I'm not sure what the best way to prevent this misuse is. 
+		// to a temporary object. I'm not sure what the best way to prevent this misuse is. Maybe
+		// return a reference instead?
 		inline const char* getText() const { return mpText; }
 		
 		inline bool beginsWith(const TextFragment& fb) const
@@ -116,9 +117,19 @@ namespace ml
 			return true;
 		}
 		
+		inline utf::codepoint_iterator<const char*> begin() const
+		{
+			return utf::codepoint_iterator<const char*>(getText());
+		}
+		
+		inline utf::codepoint_iterator<const char*> end() const
+		{
+			return utf::codepoint_iterator<const char*>(getText() + lengthInBytes());
+		}
+
 		// deprecated! MLTEST
 		inline std::string toString() const { return std::string(mpText); }
-
+		
 	private:
 
 		void construct (const char* s1, size_t len1,
@@ -172,7 +183,7 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	// Text - a placeholder for more features later
+	// Text - a placeholder for more features later like localization
 	
 	typedef TextFragment Text;
 

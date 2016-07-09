@@ -187,7 +187,7 @@ int main()
 		std::cout << "*" << TextFragment("hello").endsWith("lo") << "*" << "\n";
 		std::cout << "*" << TextFragment("hello").endsWith("lxo") << "*" << "\n";
 		
-		std::cout << "*" << textUtils::stripFinalNumber("林2") << "*" << "\n";
+		std::cout << "*" << textUtils::stripFinalNumber("xx林2") << "*" << "\n";
 		
 		std::cout << "*" << textUtils::addFinalNumber("林asd1", 23) << "*" << "\n";
 		
@@ -207,7 +207,15 @@ int main()
 		std::cout << TextFragment(v, "Hello, world!") << "\n";
 		TextFragment w (v, "Hello, universe!");
 		std::cout << "$" << std::string(w.getText()) << "$\n";
-		std::cout << u.lengthInCodePoints() << " code points, " << u.lengthInBytes() << " bytes.\n";
+		std::cout << w.lengthInCodePoints() << " code points, " << w.lengthInBytes() << " bytes.\n";
+		
+		std::cout << "code points: \n";
+		for (const utf::codepoint_type c : w) 
+		{
+			std::cout << c << " ";
+		}
+		std::cout << "\n";
+		
 	}
 	
 	{
@@ -233,6 +241,7 @@ int main()
 		Symbol p("please");
 		std::cout << p << " " << ml::textUtils::stripFinalCharacter(p) << "\n";
 	}
+	
 	
 //	theSymbolTable().dump();
 

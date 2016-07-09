@@ -553,6 +553,29 @@ void MLLookAndFeel::drawButtonBackground (Graphics& g,
 		0, buttonColor, blineColor, outlineThickness, flair, 0., 0.);
 }
 
+juce::Font MLLookAndFeel::getFontForScript(ml::Symbol script, float textSize)
+{
+	if(script == "latin")
+	{
+		Font f (mTitleFont);
+		f.setHeight(floor(textSize) + 0.75f);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize));
+		return f;
+	}
+	else if(script == "cjk")
+	{
+		// TODO Windows
+		Font f("PingFang SC", floor(textSize*1.125) + 0.75f, juce::Font::plain);
+		return f;
+	}
+	else // unknown - use fallback font
+	{
+		// TODO Windows
+		Font f("PingFang SC", floor(textSize*1.125) + 0.75f, juce::Font::plain);
+		return f;
+	}
+}
+
 void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	const Colour& textColor,
     bool, bool)
@@ -566,33 +589,9 @@ void MLLookAndFeel::drawButtonText (Graphics& g, MLButton& button,
 	float textSize = getButtonTextSize(button);	
 	
 	ml::Text t = button.getTextProperty("processed_text");
-	if(ml::textUtils::onlyHasASCIICharacters(t))
-	{
-		Font f(mTitleFont);
-		f.setHeight(floor(textSize) + 0.75f);
-		f.setExtraKerningFactor(getButtonTextKerning(textSize));
-		g.setFont(f);
-	}
-	else
-	{
-		std::cout << "NON-ASCII!\n";
-		
-		// TODO: select best matching for string
-		// try to identify a few common languages. 
-		// or bail and hand the rendering over to OS. 
-		// look at cocos2d-x solution.
-		String monoFontName = "Hiragino Sans W4";//juce::Font::getDefaultMonospacedFontName();
-		
-		// TODO: and for Windows.
-		
-		Font f(monoFontName, floor(textSize*0.75), juce::Font::plain);
-		f.setExtraKerningFactor(getButtonTextKerning(textSize));
-		
-		std::cout << "using font name: " << f.getTypeface()->getName() << "\n";
-
-		g.setFont(f);
-	}
+	ml::Symbol script(ml::textUtils::bestScriptForTextFragment(t));
 	
+	g.setFont(getFontForScript(script, textSize));		
 	g.drawFittedText (juce::String(juce::CharPointer_UTF8(t.getText())),
                       m, m, w, h,
                       Justification::centred, 1., 1.);
@@ -608,12 +607,13 @@ void MLLookAndFeel::drawMenuButtonText (Graphics& g, MLButton& button,
 	int w = button.getWidth();
 	int h = button.getHeight();
 	int hm = h - m*2;
+	
 	float textSize = getButtonTextSize(button);
-	Font f(mTitleFont);
-	f.setHeight(floor(textSize) + 0.75f);
-	f.setExtraKerningFactor(getButtonTextKerning(textSize));
-	g.setFont(f);
+	
 	ml::Text t = button.getTextProperty("processed_text");
+	ml::Symbol script(ml::textUtils::bestScriptForTextFragment(t));	
+	g.setFont(getFontForScript(script, textSize));		
+	
 	g.drawFittedText (juce::String(juce::CharPointer_UTF8(t.getText())),
                       h/2, m, w - h, hm,
                       Justification::left, 1., 1.);
@@ -985,10 +985,13 @@ int MLLookAndFeel::getScrollbarButtonSize (ScrollBar& scrollbar)
 #pragma mark -
 
 //==============================================================================
-Font MLLookAndFeel::getPopupMenuFont()
+
+
+ Font MLLookAndFeel::getPopupMenuFont()
 {
 	return mTitleFont;
 }
+
 
 void MLLookAndFeel::getIdealPopupMenuItemSize (const String& text,
                                              const bool , // isSeparator TODO
@@ -1089,16 +1092,19 @@ void MLLookAndFeel::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
         
         if (! isActive)
             g.setOpacity (0.3f);
-        
-        Font font (getPopupMenuFont());
-        
-        const float maxFontHeight = area.getHeight() / 1.3f;
 
-        float fh = (float)maxFontHeight;
-		font.setExtraKerningFactor(getButtonTextKerning(fh));
+		ml::Text t (text.toUTF8());
+		ml::Symbol script(ml::textUtils::bestScriptForTextFragment(t));
+		const float maxFontHeight = area.getHeight() / 1.3f;
+        Font font (getFontForScript(script, maxFontHeight));		
+
         
-        if (font.getHeight() > maxFontHeight)
-            font.setHeight (maxFontHeight);
+
+//        float fh = (float)maxFontHeight;
+//		font.setExtraKerningFactor(getButtonTextKerning(fh));
+        
+  //      if (font.getHeight() > maxFontHeight)
+    //        font.setHeight (maxFontHeight);
         
         g.setFont (font);
         
@@ -1352,10 +1358,10 @@ void MLLookAndFeel::drawFileBrowserRow (Graphics& g, int width, int height,
     g.setColour (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::textColourId)
                  : findColour (DirectoryContentsDisplayComponent::textColourId));
     
-    
-    Font f = getFont(eMLTitle);
+	ml::Text t (filename.toUTF8());
+	ml::Symbol script(ml::textUtils::bestScriptForTextFragment(t));
+    Font f = getFontForScript(script, height * 0.8f);	
     g.setFont (f);
-    g.setFont (height * 0.8f);
     
     if (width > 450 && ! isDirectory)
     {

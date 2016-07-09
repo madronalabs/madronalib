@@ -96,7 +96,10 @@ public:
 	// turn signal viewer animations on or off.
 	void setAnimate(bool n);
 	bool getAnimate();	
-	
+
+	// useful thing
+	juce::Font getFontForScript(ml::Symbol script, float textSize);
+
     //==============================================================================
 	// Drawing routines
 	

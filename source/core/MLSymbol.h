@@ -222,7 +222,7 @@ namespace ml {
 			return getTextFragment().endsWith(b.getTextFragment());
 		}
 		
-		// MLTEST deprecated
+		// TODO for existing client code, deprecated
 		inline std::string toString() const 
 		{ 
 			return std::string(getUTF8Ptr()); 

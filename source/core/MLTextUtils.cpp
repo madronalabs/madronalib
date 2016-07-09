@@ -202,18 +202,53 @@ namespace ml { namespace textUtils {
 		return frag;
 	}
 
-	bool onlyHasASCIICharacters(const TextFragment& frag)
+	bool isASCII(codepoint_type c)
 	{
-		auto first = codepoint_iterator<const char*>(frag.getText());
-		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
-		for (auto it = first; it != last; ++it) 
-		{
-			const codepoint_type c = *it;
-			if (c > 0x7f) { return false; }
-		}	
-		return true;
+		return(c < 0x7f);
 	}
-
+	
+	bool isLatin(codepoint_type c)
+	{
+		// includes Latin-1 Supplement
+		return(c <= 0xFF);
+	}
+	
+	bool isSpace(codepoint_type ch)
+	{
+		return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680
+		|| (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 || ch == 0x202F
+		||  ch == 0x205F || ch == 0x3000;
+	}
+	
+	bool isCJK(codepoint_type ch)
+	{
+		return (ch >= 0x4E00 && ch <= 0x9FBF)   // CJK Unified Ideographs
+		|| (ch >= 0x2E80 && ch <= 0x2FDF)   // CJK Radicals Supplement & Kangxi Radicals
+		|| (ch >= 0x2FF0 && ch <= 0x30FF)   // Ideographic Description Characters, CJK Symbols and Punctuation & Japanese
+		|| (ch >= 0x3100 && ch <= 0x31BF)   // Korean
+		|| (ch >= 0xAC00 && ch <= 0xD7AF)   // Hangul Syllables
+		|| (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
+		|| (ch >= 0xFE30 && ch <= 0xFE4F)   // CJK Compatibility Forms
+		|| (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
+	}
+	
+	// TODO extend to recognize Cyrillic and other scripts
+	Symbol bestScriptForTextFragment(const TextFragment& frag)
+	{
+		for (const codepoint_type c : frag) 
+		{
+			// if there are any CJK characters, return CJK
+			if (isCJK(c)) 
+			{ 
+				return "cjk"; 
+			}
+			else if(!isLatin(c))
+			{
+				return "unknown";
+			}
+		}
+		return "latin";
+	}
 	
 #pragma mark Symbol utilities
 	
@@ -225,18 +260,15 @@ namespace ml { namespace textUtils {
 	
 	Symbol stripFinalNumber(Symbol sym)
 	{
+		// make temporary buffer on stack  
 		const TextFragment& frag = sym.getTextFragment();
-		utf::stringview<const char*> sv(frag.getText(), frag.getText() + frag.lengthInBytes());
-		int points = sv.codepoints();
+		int points = frag.lengthInCodePoints();
 		char32_t buf[points + 1];
 		
 		// read into char32 array for random access
-		auto first = utf::codepoint_iterator<const char*>(frag.getText());
-		auto last = utf::codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
-		for (auto it = first; it != last; ++it) 
+		for (codepoint_type c : frag) 
 		{
-			char32_t c = *it;
 			buf[i++] = c;
 		}			
 		
@@ -260,25 +292,21 @@ namespace ml { namespace textUtils {
 		ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
 		return subFrag.getText();
 	}
-
 	
 	// if the symbol's text ends in a natural number, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{		
+		// make temporary buffer on stack  
 		const TextFragment& frag = sym.getTextFragment();
-		utf::stringview<const char*> sv(frag.getText(), frag.getText() + frag.lengthInBytes());
-		int points = sv.codepoints();
+		int points = frag.lengthInCodePoints();
 		char32_t buf[points + 1];
-		
+
 		// read into char32 array for random access
-		auto first = utf::codepoint_iterator<const char*>(frag.getText());
-		auto last = utf::codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
-		for (auto it = first; it != last; ++it) 
+		for (codepoint_type c : frag) 
 		{
-			char32_t c = *it;
 			buf[i++] = c;
-		}			
+		}					
 		
 		// null terminate
 		buf[points] = 0;

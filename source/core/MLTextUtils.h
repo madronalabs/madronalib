@@ -22,6 +22,8 @@
 
 namespace ml { namespace textUtils {
 
+using namespace utf;
+
 	bool isDigit(char32_t c);
 	char * spaceStr( int numIndents );	
 	int digitsToPositiveInt(const char32_t* p);
@@ -47,8 +49,13 @@ namespace ml { namespace textUtils {
 
 	// Return a new TextFragment containing any characters up to a final slash. 
 	TextFragment getPath(const TextFragment& frag);
-	
-	bool onlyHasASCIICharacters(const TextFragment& frag);
+
+	bool isASCII(codepoint_type c);
+	bool isLatin(codepoint_type c);
+	bool isSpace(codepoint_type c);
+	bool isCJK(codepoint_type c);
+		
+	Symbol bestScriptForTextFragment(const TextFragment& frag);
 	
 	// ----------------------------------------------------------------
 	// Symbol utilities
