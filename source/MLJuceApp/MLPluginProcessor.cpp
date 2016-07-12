@@ -1251,6 +1251,7 @@ void MLPluginProcessor::setPatchAndEnvStatesFromBinary (const void* data, int si
 			if(environmentState)
 			{
 				mpEnvironmentState->setStateFromJSON(environmentState);
+				mpEnvironmentState->updateAllProperties();
 			}
 			else
 			{
