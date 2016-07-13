@@ -323,11 +323,7 @@ namespace utf {
         }
         friend bool operator != (codepoint_iterator lhs, codepoint_iterator rhs) { return lhs.pos != rhs.pos; }
         friend bool operator == (codepoint_iterator lhs, codepoint_iterator rhs) { return !(lhs != rhs); }
-		
-		// ML
-		It getPos() const {
-			return pos;
-		}
+
     };
 
     template <typename Iter, typename E = typename internal::native_encoding<typename std::iterator_traits<Iter>::value_type>::type>
