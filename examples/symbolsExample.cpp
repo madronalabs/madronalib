@@ -133,7 +133,8 @@ int main()
 		theSymbolTable().dump();
 		
 		TextFragment test1 ("hello.exe");
-		std::cout << "loc: " << textUtils::findLast(test1, 'l') << "\n"; // 3
+		std::cout << "findLast loc: " << textUtils::findLast(test1, 'l') << "\n"; // 3
+		std::cout << "findLast loc: " << textUtils::findLast(test1, [](utf::codepoint_type c){ return c == 'o'; }) << "\n"; // 4
 
 	#if HAVE_U8_LITERALS
 		TextFragment kobayashi(u8"小林 尊");
@@ -242,6 +243,18 @@ int main()
 		std::cout << p << " " << ml::textUtils::stripFinalCharacter(p) << "\n";
 	}
 	
+	TextFragment input("  \n \n\nabcdEFGHijklMNOP  \t\t ");
+	TextFragment stripped(ml::textUtils::stripWhitespace(input));
+	std::cout << "stripped: *" << stripped << "*\n";
+	std::vector<uint8_t> decoded = ml::textUtils::base64Decode(stripped);
+	std::cout << "decoded: ";
+	for(uint8_t c : decoded)
+	{
+		std::cout << std::hex << (int)c << " ";
+	}
+	std::cout << "\n";
+	ml::TextFragment encoded = ml::textUtils::base64Encode(decoded);
+	std::cout << "re-encoded: *" << encoded << "*\n";
 	
 //	theSymbolTable().dump();
 
