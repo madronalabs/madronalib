@@ -97,9 +97,6 @@ public:
 	void setAnimate(bool n);
 	bool getAnimate();	
 
-	// useful thing
-	juce::Font getFontForScript(ml::Symbol script, float textSize);
-
     //==============================================================================
 	// Drawing routines
 	
@@ -404,6 +401,10 @@ public:
     int getAlertWindowButtonHeight();
     Font getAlertWindowMessageFont();
     Font getAlertWindowFont();
+
+	// useful thing
+	juce::Font getFontForScript(ml::Symbol script, float textSize);
+	
 
     //==============================================================================
     /** Utility function to draw a shiny, glassy circle (for round LED-type buttons). */

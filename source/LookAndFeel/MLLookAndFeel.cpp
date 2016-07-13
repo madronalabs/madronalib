@@ -558,20 +558,24 @@ juce::Font MLLookAndFeel::getFontForScript(ml::Symbol script, float textSize)
 	if(script == "latin")
 	{
 		Font f (mTitleFont);
-		f.setHeight(floor(textSize) + 0.75f);
+		f.setHeight(floor(textSize));
 		f.setExtraKerningFactor(getButtonTextKerning(textSize));
 		return f;
 	}
 	else if(script == "cjk")
 	{
 		// TODO Windows
-		Font f("PingFang SC", floor(textSize*1.125) + 0.75f, juce::Font::plain);
+		Font f("PingFang SC", floor(textSize*1.125), juce::Font::plain);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
+		f.setTypefaceStyle("Semibold");
 		return f;
 	}
 	else // unknown - use fallback font
 	{
 		// TODO Windows
-		Font f("PingFang SC", floor(textSize*1.125) + 0.75f, juce::Font::plain);
+		Font f("PingFang SC", floor(textSize*1.125), juce::Font::plain);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
+		f.setTypefaceStyle("Semibold");
 		return f;
 	}
 }
