@@ -18,8 +18,6 @@ MLPluginProcessor::MLPluginProcessor() :
 	mInputProtocol(-1),
 	mMLListener(0),
 	mHasParametersSet(false),
-	mEditorNumbersOn(true),
-	mEditorAnimationsOn(true),
 	mInitialized(false)
 {
 	mNumParameters = 0;
@@ -57,7 +55,7 @@ MLPluginProcessor::MLPluginProcessor() :
 	mpOSCVisualsBuf.resize(kUDPOutputBufferSize);
 	mVisualsSocket = std::unique_ptr<UdpTransmitSocket>(new UdpTransmitSocket( IpEndpointName(kUDPAddressName, kScribbleScenePort)));		
 #endif		
-		
+	mDebugCounter = 0;
 }
 
 MLPluginProcessor::~MLPluginProcessor()
@@ -264,8 +262,6 @@ juce::AudioProcessorEditor* MLPluginProcessor::createEditor()
 
 void MLPluginProcessor::editorResized(int w, int h)
 {
-    mEditorRect.setWidth(w);
-    mEditorRect.setHeight(h);
 	MLSignal bounds(4);
 	bounds.clear();
 	bounds[2] = w;
@@ -701,6 +697,24 @@ void MLPluginProcessor::processBlock (AudioSampleBuffer& buffer, MidiBuffer& mid
 			sendSeqInfo();
 			sendVisuals();
 			mVisSendCounter -= period;
+		}
+#endif		
+		
+#if DEBUG
+
+		mDebugCounter += samples;
+		int samplesPerSecond = 44100;
+		int period = samplesPerSecond;
+		if(mDebugCounter > period)
+		{
+
+			// MLTEST
+			std::cout << "TEST\n";
+			std::cout << "processor protocol: " << getEnvironment()->getFloatProperty("protocol");
+			
+			
+			
+			mDebugCounter -= period;
 		}
 #endif		
 		
@@ -1477,18 +1491,6 @@ void MLPluginProcessor::setStateFromXML(const XmlElement& xmlState, bool setView
 				}
 			}
 		}
-	}
-	
-	// get editor state from XML
-    if(setViewAttributes)
-	{
-		int x = xmlState.getIntAttribute("editor_x");
-		int y = xmlState.getIntAttribute("editor_y");
-		int width = xmlState.getIntAttribute("editor_width");
-		int height = xmlState.getIntAttribute("editor_height");
-		mEditorRect = MLRect(x, y, width, height);
-		mEditorNumbersOn = xmlState.getIntAttribute("editor_num", 1);
-		mEditorAnimationsOn = xmlState.getIntAttribute("editor_anim", 1);
 	}
 }
 

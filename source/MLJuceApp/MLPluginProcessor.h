@@ -242,15 +242,9 @@ private:
 	String mCurrentPresetName;
 	String mCurrentPresetDir;
 
-	// TODO any reason for unique_ptr not just value here??
 	std::unique_ptr<MLFileCollection> mScaleFiles;
     std::unique_ptr<MLFileCollection> mPresetFiles;
     std::unique_ptr<MLFileCollection> mMIDIProgramFiles;
-	
-	// saved state for editor
-	MLRect mEditorRect;
-	bool mEditorNumbersOn;
-	bool mEditorAnimationsOn;
 	
 	bool mInitialized;
     
@@ -284,6 +278,7 @@ private:
 	void sendProgramChange(int pgm);
 	
 #endif // OSC_PARAMS
+	int mDebugCounter;
 
 	void setSequence(const MLSignal& seq);
 };

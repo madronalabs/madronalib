@@ -13,8 +13,8 @@ MLPluginController::MLPluginController(MLPluginProcessor* pProcessor) :
 	MLSignalReporter(pProcessor),
 	mpView(nullptr),
 	mpProcessor(pProcessor),
-mClockDivider(0),
-mClockDivider2(0),
+	mClockDivider(0),
+	mClockDivider2(0),
 	mConvertingPresets(false),
 	mFilesConverted(0),
 	mProtocolMenuItemStart(0),
@@ -85,11 +85,6 @@ void MLPluginController::initialize()
 	mVersionString += " (" + pluginType + bitsStr + ")";
 	
 	regStr = mVersionString;
-	#if DEMO
-		regStr += " DEMO\n";
-	#else
-		regStr += ", licensed to:\n";
-	#endif
 	
 	MLAppView* myView = getView();
     if(myView)
@@ -121,7 +116,11 @@ void MLPluginController::timerCallback()
 	if(mClockDivider2 > muchLessFrequentThingsDivision)
 	{
 		// do much less frequent things
+		// MLTEST
 		std::cout << "symbols: " << ml::theSymbolTable().getSize() << "\n";
+		std::cout << "MLPluginController protocol: " << getProcessor()->getEnvironment()->getFloatProperty("protocol");
+		
+		
 		mClockDivider2 = 0;
 	}
 #endif
