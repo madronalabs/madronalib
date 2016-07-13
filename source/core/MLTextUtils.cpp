@@ -104,16 +104,14 @@ namespace ml { namespace textUtils {
 		return v;
 	}
 	
-	int findFirst(const TextFragment& frag, const codepoint_type c)
+	int findFirst(const TextFragment& frag, const codepoint_type b)
 	{
 		int r = npos;
 		if(!frag) return r;
-		auto first = codepoint_iterator<const char*>(frag.getText());
-		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
-		for (auto it = first; it != last; ++it) 
+		for (const codepoint_type c : frag) 
 		{
-			if(c == *it)
+			if(c == b)
 			{
 				r = i;
 				break;
@@ -123,16 +121,48 @@ namespace ml { namespace textUtils {
 		return r;
 	}
 	
-	int findLast(const TextFragment& frag, const codepoint_type c)
+	int findLast(const TextFragment& frag, const codepoint_type b)
 	{
 		int r = npos;
 		if(!frag) return r;
-		auto first = codepoint_iterator<const char*>(frag.getText());
-		auto last = codepoint_iterator<const char*>(frag.getText() + frag.lengthInBytes());
 		int i=0;
-		for (auto it = first; it != last; ++it) 
+		for (const codepoint_type c : frag) 
 		{
-			if(c == *it)
+			if(c == b)
+			{
+				r = i;
+			}
+			i++;
+		}	
+		return r;
+	}
+
+	int findFirst(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
+	{
+		int r = npos;
+		if(!frag) return r;
+		int i=0;
+		for (const codepoint_type c : frag) 
+		{
+			if(matchFn(c))
+			{
+				r = i;
+				break;
+			}
+			i++;
+		}	
+		return r;
+	}
+	
+	// TODO dumb, have to call matchFn on each code point because we have no revese iterator 
+	int findLast(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
+	{
+		int r = npos;
+		if(!frag) return r;
+		int i=0;
+		for (const codepoint_type c : frag) 
+		{
+			if(matchFn(c))
 			{
 				r = i;
 			}
@@ -213,7 +243,7 @@ namespace ml { namespace textUtils {
 		return(c <= 0xFF);
 	}
 	
-	bool isSpace(codepoint_type ch)
+	bool isWhitespace(codepoint_type ch)
 	{
 		return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680
 		|| (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 || ch == 0x202F
@@ -249,6 +279,99 @@ namespace ml { namespace textUtils {
 		}
 		return "latin";
 	}
+	
+	static const char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	
+	int indexOf(const char* str, char c)
+	{
+		int r = -1;
+		int len = strlen(str);
+		for(int i=0; i<len; ++i)
+		{
+			if(str[i] == c)
+			{
+				r = i;
+				break;
+			}
+		}
+		return r;
+	}
+	
+	TextFragment base64Encode(const std::vector<uint8_t>& in)
+	{
+		int len = in.size();
+		std::vector<char> out;
+		int b;
+		for (int i = 0; i < len; i += 3)  
+		{
+			b = (in[i] & 0xFC) >> 2;
+			out.push_back(table[b]);
+			b = (in[i] & 0x03) << 4;
+			if (i + 1 < len)      
+			{
+				b |= (in[i + 1] & 0xF0) >> 4;
+				out.push_back(table[b]);
+				b = (in[i + 1] & 0x0F) << 2;
+				if (i + 2 < len)  
+				{
+					b |= (in[i + 2] & 0xC0) >> 6;
+					out.push_back(table[b]);
+					b = in[i + 2] & 0x3F;
+					out.push_back(table[b]);
+				} 
+				else  
+				{
+					out.push_back(table[b]);
+					out.push_back('=');
+				}
+			} 
+			else      
+			{
+				out.push_back(table[b]);
+				out.push_back('=');
+				out.push_back('=');
+			}
+		}
+		out.push_back(0);		
+		return TextFragment(out.data());
+	}
+
+	std::vector<uint8_t> base64Decode(const TextFragment& frag)
+	{
+		int len = frag.lengthInBytes();
+		if(len % 4) return std::vector<uint8_t>();
+		std::vector<uint8_t> decoded;
+		const char * inChars = frag.getText();
+		int b[4];
+		for(int i=0; i<len; i += 4)
+		{
+			for(int j=0; j<4; ++j)
+			{
+				b[j] = indexOf(table, inChars[i + j]);
+			}
+			decoded.push_back((b[0] << 2) | (b[1] >> 4));
+			if(b[2] < 64)
+			{
+				decoded.push_back((b[1] << 4) | (b[2] >> 2));
+				if (b[3] < 64)  
+				{
+					decoded.push_back((b[2] << 6) | b[3]);
+				}
+			}
+		}
+		return decoded;
+	}
+	
+	TextFragment stripWhitespace(const TextFragment& frag)
+	{
+		std::function<bool(codepoint_type)> f([](codepoint_type c){ return !isWhitespace(c); });
+		int first = findFirst(frag, f);
+		int last = findLast(frag, f);
+		if(first == npos) return TextFragment();
+		return(subText(frag, first, last + 1));
+	}
+	
+
 	
 #pragma mark Symbol utilities
 	

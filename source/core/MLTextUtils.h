@@ -36,7 +36,10 @@ using namespace utf;
 	
 	int findFirst(const TextFragment& frag, const utf::codepoint_type c);
 	int findLast(const TextFragment& frag, const utf::codepoint_type c);
-
+	
+	int findFirst(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn);
+	int findLast(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn);
+	
 	// Return a new TextFragment consisting of the codepoints from indices start to (end - 1) in the input frag.
 	TextFragment subText(const TextFragment& frag, int start, int end);
 	
@@ -52,11 +55,16 @@ using namespace utf;
 
 	bool isASCII(codepoint_type c);
 	bool isLatin(codepoint_type c);
-	bool isSpace(codepoint_type c);
+	bool isWhitespace(codepoint_type c);
 	bool isCJK(codepoint_type c);
 		
 	Symbol bestScriptForTextFragment(const TextFragment& frag);
 	
+	TextFragment base64Encode(const std::vector<uint8_t>& b);
+	std::vector<uint8_t> base64Decode(const TextFragment& b);
+
+	TextFragment stripWhitespace(const TextFragment& frag);	
+
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	
