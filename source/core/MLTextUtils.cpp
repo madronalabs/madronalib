@@ -371,6 +371,92 @@ namespace ml { namespace textUtils {
 		return(subText(frag, first, last + 1));
 	}
 	
+	
+#define DUMP(s, i, buf, sz)  {printf(s);                   \
+	for (int qqq = 0; qqq < (sz);qqq++)    \
+		printf("%02x ", buf[qqq]); \
+		printf("\n");}
+	
+	std::vector<uint8_t> AES256ECBEncode(std::vector<uint8_t> plainText, std::vector<uint8_t> key)
+	{
+		aes256_context ctx; 
+		aes256_init(&ctx, key.data());
+		
+		// plain text vector is null terminated
+		int plainTextLen = plainText.size() - 1;
+		int paddedPlainTextLen = chunkSizeToContain(4, plainTextLen);
+
+		// copy plaintext to working vector and pad
+		std::vector<uint8_t> workVector = plainText;
+		workVector.resize(paddedPlainTextLen, 0);
+		
+		// PKCS padding works by adding n padding bytes of value n to make the total length of the encrypted data a multiple of the block size. Padding is always added so if the data is already a multiple of the block size n will equal the block size. For example if the block size is 8 and 11 bytes are to be encrypted then 5 padding bytes of value 5 will be added.
+		
+//		workVector={0};
+		
+		// encrypt in place
+		for (int i = 0; i < paddedPlainTextLen; i += 16)
+		{
+			uint8_t* workingBuf = workVector.data() + i;
+			
+			DUMP("payload : ", i, workingBuf, 16);
+			DUMP("key: ", i, key, 32);
+			aes256_encrypt_ecb(&ctx, workingBuf);
+			DUMP("enc: ", i, workingBuf, 16);
+			std::cout << "\n";
+		}		
+
+		aes256_done(&ctx);
+		return workVector;
+	}
+	
+	std::vector<uint8_t> AES256CBCDecode(std::vector<uint8_t> cipher, std::vector<uint8_t> key, std::vector<uint8_t> iv)
+	{
+		aes256_context ctx; 
+		aes256_init(&ctx, key.data());
+				
+		const int blockSize = 16;
+		int blocks = cipher.size() / blockSize;
+		
+		// decrypt cipher in place
+		std::vector<uint8_t> workVector = cipher;
+		uint8_t currentIV[blockSize];
+		uint8_t nextIV[blockSize];
+
+		for(int i=0; i<blockSize; ++i)
+		{
+			currentIV[i] = iv[i];	
+		}
+
+		for(int b=0; b<blocks; ++b)
+		{
+			std::cout << "\n";
+			uint8_t* workingBuffer = workVector.data() + b*blockSize;
+			
+			// use ciphertext as next IV
+			for(int i=0; i<blockSize; ++i)
+			{
+				nextIV[i] = workingBuffer[i];	
+			}
+			
+			DUMP("enc: ", i, workingBuffer, blockSize);
+			aes256_decrypt_ecb(&ctx, workingBuffer);
+			
+			// XOR plaintext with IV 
+			for(int i=0; i<blockSize; ++i)
+			{
+				workingBuffer[i] ^= currentIV[i];
+				currentIV[i] = nextIV[i];
+			}
+						
+			DUMP("dec: ", i, workingBuffer, blockSize);
+		}
+		
+		aes256_done(&ctx);
+		
+		return workVector;
+
+	}
 
 	
 #pragma mark Symbol utilities

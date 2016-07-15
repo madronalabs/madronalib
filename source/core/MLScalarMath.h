@@ -12,12 +12,20 @@
 
 namespace ml 
 {
-	
-	inline int bitsToContain(int n)
+	// return the exponent of the smallest power of 2 that is >= x.
+	inline int bitsToContain(int x)
 	{
 		int exp;
-		for (exp = 0; (1 << exp) < n; exp++);
+		for (exp = 0; (1 << exp) < x; exp++);
 		return (exp);
+	}
+	
+	// return the smallest multiple of 2^N equal to or larger to x.
+	inline int chunkSizeToContain(int chunkSizeExponent, int x)
+	{
+		const int chunkSize = 1 << chunkSizeExponent;
+		const int chunkMask = ~(chunkSize - 1);
+		return ((x + (chunkSize-1)) & chunkMask);
 	}
 
 	// ----------------------------------------------------------------

@@ -22,6 +22,16 @@
 #include "MLPath.h"
 
 using namespace ml;
+using namespace ml::textUtils;
+
+
+#define DUMP(s, qq, buf, sz)  {printf(s);                   \
+for (qq = 0; qq < (sz);qq++)    \
+printf("%02x ", buf[qq]); \
+printf("\n");}
+
+
+
 
 // This example class shows how to write a method like setParam() that can accept string literals
 // as parameters so that the symbols are hashed at compile time. 
@@ -243,18 +253,115 @@ int main()
 		std::cout << p << " " << ml::textUtils::stripFinalCharacter(p) << "\n";
 	}
 	
-	TextFragment input("  \n \n\nabcdEFGHijklMNOP  \t\t ");
-	TextFragment stripped(ml::textUtils::stripWhitespace(input));
-	std::cout << "stripped: *" << stripped << "*\n";
-	std::vector<uint8_t> decoded = ml::textUtils::base64Decode(stripped);
-	std::cout << "decoded: ";
-	for(uint8_t c : decoded)
 	{
-		std::cout << std::hex << (int)c << " ";
+		// stripping and base64
+		TextFragment input("  \n \n\nabcdEFGHijklMNOP  \t\t ");
+		TextFragment stripped(ml::textUtils::stripWhitespace(input));
+		std::cout << "stripped: *" << stripped << "*\n";
+		std::vector<uint8_t> decoded = ml::textUtils::base64Decode(stripped);
+		std::cout << "decoded: ";
+		for(uint8_t c : decoded)
+		{
+			std::cout << std::hex << (int)c << " ";
+		}
+		std::cout << "\n";
+		ml::TextFragment encoded = ml::textUtils::base64Encode(decoded);
+		std::cout << "re-encoded: *" << encoded << "*\n";
+	}	
+
+	{
+		ml::TextFragment testFrag1("hello/小林/it's/nice/in/the/café/here");
+		std::cout << byteVectorToText(textToByteVector(testFrag1)) << "\n";
+
+		// AES
+		ml::TextFragment plaintextFrag("It was the best of times, it was the würst of times.");
+		std::vector<uint8_t> plaintext(ml::textUtils::textToByteVector(plaintextFrag));
+		
+		std::vector<uint8_t> key(32, 'a');
+		std::vector<uint8_t> iv(32, 'a');
+		
+		std::vector<uint8_t> ciphertext = ml::textUtils::AES256ECBEncode(plaintext, key);
+		
+		std::vector<uint8_t> decodedtext = ml::textUtils::AES256CBCDecode(ciphertext, key, iv);
+		
+		ml::TextFragment decodedFrag(ml::textUtils::byteVectorToText(decodedtext));
+
+		std::cout << "decoded: " << decodedFrag << "\n";
 	}
-	std::cout << "\n";
-	ml::TextFragment encoded = ml::textUtils::base64Encode(decoded);
-	std::cout << "re-encoded: *" << encoded << "*\n";
+
+	{
+		const char* keyStr("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+//		std::vector<uint8_t> key(keyStr, keyStr + 32);
+		std::vector<uint8_t> key(32, 'a');
+		ml::TextFragment keyFrag(ml::textUtils::byteVectorToText(key));
+		
+		///= {"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"};
+		
+		TextFragment helloFrag("abcdabcdabcdabc");
+		//std::vector<uint8_t> plaintext(ml::textUtils::textToByteVector(helloFrag));
+		
+		std::vector<uint8_t> plaintext(16, 0);
+				
+		
+		
+		/*
+		
+		std::cout << "plain: ";
+		for(uint8_t byte : plaintext)
+		{
+			std::cout << std::hex << (int)byte << " " << std::dec ;
+		}
+		std::cout << "\n";
+		std::cout << "crypt: ";
+		for(uint8_t byte : encrypted)
+		{
+			std::cout << std::hex << (int)byte << " " << std::dec ;
+		}
+		std::cout << "\n";
+		
+		std::vector<uint8_t> xx(ml::textUtils::base64Decode("YWJjZGVmZ2g="));
+		ml::TextFragment decodedFrag(ml::textUtils::byteVectorToText(xx));
+		std::cout << "decoded: " << decodedFrag << "\n";
+		
+			
+		TextFragment licenseFrag ("ejFfaLrg+8fLWUO5vpaV2YpWJ9TYJr5s/pKi3aKYsks=");
+		std::vector<uint8_t> license = ml::textUtils::base64Decode(licenseFrag);
+		std::vector<uint8_t> decodedtext = ml::textUtils::AES256ECBDecode(license, key);
+
+		ml::TextFragment decodedFrag(ml::textUtils::byteVectorToText(decodedtext));
+		std::cout << "decoded: " << decodedFrag << "\n";
+		 */
+		
+		std::cout << "\n\n\n\n\n";
+		{
+
+			TextFragment encoded = "JwB0eXieG2RPATn7EHe4HpdRIUX958bEyTVQFXsnEwY=";			
+			
+			std::cout << "encoded: " << encoded << "\n";
+			
+			TextFragment stripped(ml::textUtils::stripWhitespace(encoded));
+			std::cout << "stripped: *" << stripped << "*\n";
+			
+			std::vector<uint8_t> cipher = ml::textUtils::base64Decode(stripped);
+			
+			std::vector<uint8_t> key(32, 'a');
+			std::vector<uint8_t> iv(32, 'a');
+			
+			std::vector<uint8_t> decodedtext = ml::textUtils::AES256CBCDecode(cipher, key, iv);
+
+						
+			// remove PKCS padding
+	//		int padBytes = cipher[cipher.size() - 1];
+	//		cipher.resize(cipher.size() - padBytes);
+
+			TextFragment out = byteVectorToText(decodedtext);
+			std::cout << out << "\n";
+			
+			
+			return 0;
+		} /* main */
+		
+	}
 	
 //	theSymbolTable().dump();
 

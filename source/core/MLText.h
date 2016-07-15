@@ -46,7 +46,7 @@ namespace ml
 		// copies the null-terminated character array pointed to by pChars into
 		// the text fragment pool and creates a new object based on it. 
 		TextFragment(const char* pChars) noexcept;
-		
+
 		// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
 		TextFragment(const char* pChars, int len) noexcept;
 		

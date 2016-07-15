@@ -17,6 +17,7 @@
 #include "MLSymbol.h"
 #include "../dsp/MLDSP.h"
 #include "utf.hpp/utf.hpp"
+#include "aes256/aes256.h"
 
 #include "../DSP/MLDSPGens.h" // for RandomSource TODO replace
 
@@ -60,11 +61,27 @@ using namespace utf;
 		
 	Symbol bestScriptForTextFragment(const TextFragment& frag);
 	
+	TextFragment stripWhitespace(const TextFragment& frag);	
+
 	TextFragment base64Encode(const std::vector<uint8_t>& b);
 	std::vector<uint8_t> base64Decode(const TextFragment& b);
 
-	TextFragment stripWhitespace(const TextFragment& frag);	
+	std::vector<uint8_t> AES256ECBEncode(std::vector<uint8_t> plaintext, std::vector<uint8_t> key);
+	std::vector<uint8_t> AES256CBCDecode(std::vector<uint8_t> ciphertext, std::vector<uint8_t> key, std::vector<uint8_t> iv);
+	
+	inline std::vector<uint8_t> textToByteVector(TextFragment frag)
+	{
+		// return vector of bytes including null terminator
+		return std::vector<uint8_t>(frag.getText(), frag.getText() + frag.lengthInBytes() + 1);
+	}
 
+	inline TextFragment byteVectorToText(const std::vector<uint8_t>& v)
+	{
+		if(!v.size()) return TextFragment();
+		const uint8_t* p = v.data();
+		return TextFragment(reinterpret_cast<const char*>(p), v.size());
+	}
+	
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	
