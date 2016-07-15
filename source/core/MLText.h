@@ -18,7 +18,7 @@ namespace ml
 {
 	// ----------------------------------------------------------------
 	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
-	// if the length is below a certain size. 
+	// if the length is below kShortFragmentSize. 
 	
 	class TextFragment
 	{

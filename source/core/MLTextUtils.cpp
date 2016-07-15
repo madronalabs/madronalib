@@ -8,19 +8,46 @@
 
 #include "MLTextUtils.h"
 
-#pragma mark string utilities
-
 namespace ml { namespace textUtils {
 	
 	using namespace utf;
 	
 	static const int npos = -1;
-	
-	bool isDigit(char32_t c)
+		
+	bool isDigit(codepoint_type c)
 	{
 		if (c >= '0' && c <= '9')
 			return true;
 		return false;
+	}
+	bool isASCII(codepoint_type c)
+	{
+		return(c < 0x7f);
+	}
+	
+	bool isLatin(codepoint_type c)
+	{
+		// includes Latin-1 Supplement
+		return(c <= 0xFF);
+	}
+	
+	bool isWhitespace(codepoint_type ch)
+	{
+		return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680
+		|| (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 || ch == 0x202F
+		||  ch == 0x205F || ch == 0x3000;
+	}
+	
+	bool isCJK(codepoint_type ch)
+	{
+		return (ch >= 0x4E00 && ch <= 0x9FBF)   // CJK Unified Ideographs
+		|| (ch >= 0x2E80 && ch <= 0x2FDF)   // CJK Radicals Supplement & Kangxi Radicals
+		|| (ch >= 0x2FF0 && ch <= 0x30FF)   // Ideographic Description Characters, CJK Symbols and Punctuation & Japanese
+		|| (ch >= 0x3100 && ch <= 0x31BF)   // Korean
+		|| (ch >= 0xAC00 && ch <= 0xD7AF)   // Hangul Syllables
+		|| (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
+		|| (ch >= 0xFE30 && ch <= 0xFE4F)   // CJK Compatibility Forms
+		|| (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
 	}
 	
 	char * spaceStr( int numIndents )
@@ -170,6 +197,31 @@ namespace ml { namespace textUtils {
 		}	
 		return r;
 	}
+		
+	TextFragment map(const TextFragment& frag, std::function<codepoint_type(codepoint_type)> f)
+	{
+		if(!frag) return TextFragment();
+		std::vector<codepoint_type> vec = textToCodePointVector(frag);
+		std::transform(vec.begin(), vec.end(), vec.begin(), f);
+		return codePointVectorToText(vec);
+	}
+	
+	TextFragment reduce(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
+	{
+		if(!frag) return TextFragment();
+		char buf[frag.lengthInBytes()];
+		char* pb = buf;
+		
+		for (const codepoint_type c : frag) 
+		{
+			if(matchFn(c))
+			{
+				pb = utf::internal::utf_traits<utf::utf8>::encode(c, pb);
+			}
+		}	
+		
+		return TextFragment(buf, pb - buf);
+	}
 	
 	TextFragment subText(const TextFragment& frag, int start, int end)
 	{
@@ -231,36 +283,6 @@ namespace ml { namespace textUtils {
 		
 		return frag;
 	}
-
-	bool isASCII(codepoint_type c)
-	{
-		return(c < 0x7f);
-	}
-	
-	bool isLatin(codepoint_type c)
-	{
-		// includes Latin-1 Supplement
-		return(c <= 0xFF);
-	}
-	
-	bool isWhitespace(codepoint_type ch)
-	{
-		return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680
-		|| (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 || ch == 0x202F
-		||  ch == 0x205F || ch == 0x3000;
-	}
-	
-	bool isCJK(codepoint_type ch)
-	{
-		return (ch >= 0x4E00 && ch <= 0x9FBF)   // CJK Unified Ideographs
-		|| (ch >= 0x2E80 && ch <= 0x2FDF)   // CJK Radicals Supplement & Kangxi Radicals
-		|| (ch >= 0x2FF0 && ch <= 0x30FF)   // Ideographic Description Characters, CJK Symbols and Punctuation & Japanese
-		|| (ch >= 0x3100 && ch <= 0x31BF)   // Korean
-		|| (ch >= 0xAC00 && ch <= 0xD7AF)   // Hangul Syllables
-		|| (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
-		|| (ch >= 0xFE30 && ch <= 0xFE4F)   // CJK Compatibility Forms
-		|| (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
-	}
 	
 	// TODO extend to recognize Cyrillic and other scripts
 	Symbol bestScriptForTextFragment(const TextFragment& frag)
@@ -280,7 +302,7 @@ namespace ml { namespace textUtils {
 		return "latin";
 	}
 	
-	static const char table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	static const char base64table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 	
 	int indexOf(const char* str, char c)
 	{
@@ -305,29 +327,29 @@ namespace ml { namespace textUtils {
 		for (int i = 0; i < len; i += 3)  
 		{
 			b = (in[i] & 0xFC) >> 2;
-			out.push_back(table[b]);
+			out.push_back(base64table[b]);
 			b = (in[i] & 0x03) << 4;
 			if (i + 1 < len)      
 			{
 				b |= (in[i + 1] & 0xF0) >> 4;
-				out.push_back(table[b]);
+				out.push_back(base64table[b]);
 				b = (in[i + 1] & 0x0F) << 2;
 				if (i + 2 < len)  
 				{
 					b |= (in[i + 2] & 0xC0) >> 6;
-					out.push_back(table[b]);
+					out.push_back(base64table[b]);
 					b = in[i + 2] & 0x3F;
-					out.push_back(table[b]);
+					out.push_back(base64table[b]);
 				} 
 				else  
 				{
-					out.push_back(table[b]);
+					out.push_back(base64table[b]);
 					out.push_back('=');
 				}
 			} 
 			else      
 			{
-				out.push_back(table[b]);
+				out.push_back(base64table[b]);
 				out.push_back('=');
 				out.push_back('=');
 			}
@@ -347,7 +369,7 @@ namespace ml { namespace textUtils {
 		{
 			for(int j=0; j<4; ++j)
 			{
-				b[j] = indexOf(table, inChars[i + j]);
+				b[j] = indexOf(base64table, inChars[i + j]);
 			}
 			decoded.push_back((b[0] << 2) | (b[1] >> 4));
 			if(b[2] < 64)
@@ -361,67 +383,89 @@ namespace ml { namespace textUtils {
 		}
 		return decoded;
 	}
-	
-	TextFragment stripWhitespace(const TextFragment& frag)
+		
+	TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
 	{
 		std::function<bool(codepoint_type)> f([](codepoint_type c){ return !isWhitespace(c); });
 		int first = findFirst(frag, f);
 		int last = findLast(frag, f);
-		if(first == npos) return TextFragment();
+		if((first == npos) || (last == npos)) return TextFragment();
 		return(subText(frag, first, last + 1));
 	}
 	
-	
-#define DUMP(s, i, buf, sz)  {printf(s);                   \
-	for (int qqq = 0; qqq < (sz);qqq++)    \
-		printf("%02x ", buf[qqq]); \
-		printf("\n");}
-	
-	std::vector<uint8_t> AES256ECBEncode(std::vector<uint8_t> plainText, std::vector<uint8_t> key)
+	TextFragment stripAllWhitespace(const TextFragment& frag)
 	{
+		std::function<bool(codepoint_type)> f([](codepoint_type c){ return !isWhitespace(c); });
+		return reduce(frag, f);
+	}
+	
+	std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& input, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv)
+	{
+		if( !(input.size() > 0) || !(key.size() == 32) || !(iv.size() == 32) ) return std::vector<uint8_t>();
+
 		aes256_context ctx; 
 		aes256_init(&ctx, key.data());
 		
-		// plain text vector is null terminated
-		int plainTextLen = plainText.size() - 1;
-		int paddedPlainTextLen = chunkSizeToContain(4, plainTextLen);
-
-		// copy plaintext to working vector and pad
-		std::vector<uint8_t> workVector = plainText;
-		workVector.resize(paddedPlainTextLen, 0);
+		const int blockSize = 16;
+		int inputSize = input.size();
+		int blocks = inputSize/blockSize + 1;
+		int paddedSize = blockSize*(blocks);
 		
-		// PKCS padding works by adding n padding bytes of value n to make the total length of the encrypted data a multiple of the block size. Padding is always added so if the data is already a multiple of the block size n will equal the block size. For example if the block size is 8 and 11 bytes are to be encrypted then 5 padding bytes of value 5 will be added.
-		
-//		workVector={0};
-		
-		// encrypt in place
-		for (int i = 0; i < paddedPlainTextLen; i += 16)
+		// add PKCS padding 	
+		std::vector<uint8_t> plaintext = input;
+		plaintext.resize(paddedSize);
+		int padBytes = paddedSize - inputSize;
+		for(int i = inputSize; i < paddedSize; ++i)
 		{
-			uint8_t* workingBuf = workVector.data() + i;
+			plaintext[i] = padBytes;
+		}
+		
+		std::vector<uint8_t> ciphertext(paddedSize);
+		uint8_t currentIV[blockSize];
+		uint8_t workVector[blockSize];
+				
+		for(int i=0; i<blockSize; ++i)
+		{
+			currentIV[i] = iv[i];	
+		}
+		
+		for(int b=0; b<blocks; ++b)
+		{
+			// get plaintext XOR IV
+			for(int i=0; i<blockSize; ++i)
+			{
+				workVector[i] = plaintext[b*blockSize + i] ^ currentIV[i];
+			}
 			
-			DUMP("payload : ", i, workingBuf, 16);
-			DUMP("key: ", i, key, 32);
-			aes256_encrypt_ecb(&ctx, workingBuf);
-			DUMP("enc: ", i, workingBuf, 16);
-			std::cout << "\n";
-		}		
-
+			aes256_encrypt_ecb(&ctx, workVector);
+			
+			// write to ciphertext, get new IV
+			for(int i=0; i<blockSize; ++i)
+			{
+				ciphertext[b*blockSize + i] = workVector[i];
+				currentIV[i] = workVector[i];
+			}
+		}
+		
 		aes256_done(&ctx);
-		return workVector;
+		return ciphertext;
 	}
 	
-	std::vector<uint8_t> AES256CBCDecode(std::vector<uint8_t> cipher, std::vector<uint8_t> key, std::vector<uint8_t> iv)
+	std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& cipher, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv)
 	{
+		if( !(cipher.size() > 0) || !(key.size() == 32) || !(iv.size() == 32) ) return std::vector<uint8_t>();
+		
 		aes256_context ctx; 
 		aes256_init(&ctx, key.data());
 				
 		const int blockSize = 16;
 		int blocks = cipher.size() / blockSize;
 		
-		// decrypt cipher in place
-		std::vector<uint8_t> workVector = cipher;
+		std::vector<uint8_t> plaintext(blockSize*blocks);
+		
 		uint8_t currentIV[blockSize];
 		uint8_t nextIV[blockSize];
+		uint8_t workVector[blockSize];
 
 		for(int i=0; i<blockSize; ++i)
 		{
@@ -429,33 +473,39 @@ namespace ml { namespace textUtils {
 		}
 
 		for(int b=0; b<blocks; ++b)
-		{
-			std::cout << "\n";
-			uint8_t* workingBuffer = workVector.data() + b*blockSize;
-			
-			// use ciphertext as next IV
+		{			
+			// get next cipher block and use ciphertext as next IV
 			for(int i=0; i<blockSize; ++i)
 			{
-				nextIV[i] = workingBuffer[i];	
+				workVector[i] = cipher[b*blockSize + i];
+				nextIV[i] = workVector[i];	
 			}
+
+			aes256_decrypt_ecb(&ctx, workVector);
 			
-			DUMP("enc: ", i, workingBuffer, blockSize);
-			aes256_decrypt_ecb(&ctx, workingBuffer);
-			
-			// XOR plaintext with IV 
+			// write to plaintext, XOR work vector with IV
 			for(int i=0; i<blockSize; ++i)
 			{
-				workingBuffer[i] ^= currentIV[i];
+				workVector[i] ^= currentIV[i];
+				plaintext[b*blockSize + i] = workVector[i];
 				currentIV[i] = nextIV[i];
 			}
-						
-			DUMP("dec: ", i, workingBuffer, blockSize);
 		}
 		
 		aes256_done(&ctx);
 		
-		return workVector;
-
+		// remove PKCS padding
+		int paddedSize = plaintext.size();
+		if(paddedSize % blockSize == 0)
+		{
+			int padBytes = plaintext[paddedSize - 1];
+			if((padBytes <= 16) && (padBytes < paddedSize))
+			{
+				plaintext.resize(paddedSize - padBytes);
+			}
+		}
+		
+		return plaintext;
 	}
 
 	
