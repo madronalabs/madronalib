@@ -6,6 +6,8 @@
 //
 //
 
+// dumping a lot of ideas here -- TODO turn some into proper tests
+
 #include <iostream>
 #include <vector>
 #include <map>
@@ -68,29 +70,11 @@ public:
 	
 };
 
-void hexdump(const char * label, const std::vector<uint8_t>& vec)
-{
-	int len = vec.size();
-	std::cout << label << ": " << "(size = " << std::dec << len << ")"; 
-	for(int i=0; i<len; ++i)
-	{
-		if(i % 16 == 0)
-		{
-			printf(" \n");
-		}
-		printf("%02x ", vec[i]);
-	}
-	printf("\n\n");
-}
-
-
-
-const char* b = "fff";
-const char* c = "fff";
-const char* f() { return b; }
 
 int main()
 {
+	const char* fff = "fff";
+
 	{
 		TextFragment first("test");
 		std::cout << first << "\n";
@@ -145,7 +129,7 @@ int main()
 		std::cout << "name2 (const) " << p.getParam(name2) << "\n";
 		
 		// Foo::Foo(T, typename IsCharPtr<T>::Type) [T = const char *]
-		std::cout << "ff " << p.getParam(b) << "\n";
+		std::cout << "fff " << p.getParam(fff) << "\n";
 			
 		theSymbolTable().dump();
 		
@@ -209,6 +193,7 @@ int main()
 		
 		std::cout << "*" << textUtils::addFinalNumber("林asd1", 23) << "*" << "\n";
 		
+		std::cout << "*" << std::dec << textUtils::getFinalNumber("林a1sd531") << "*" << "\n";
 		std::cout << "*" << std::dec << textUtils::getFinalNumber("林a1sd531x") << "*" << "\n";
 		
 	//	theTextFragmentPool().dump();
@@ -304,33 +289,59 @@ int main()
 	}
 
 	{
-		TextFragment encoded = "  d40rG5u5jnNfyNJYbffRgGfzBFtdamdQBW2UYTQBPOX\nDlV2r7fXj0oy7Y5Hucfb0    ";			
-		
-		std::cout << "encoded: " << encoded << "\n";
-		
-		TextFragment stripped(ml::textUtils::stripAllWhitespace(encoded));
-		std::cout << "stripped: *" << stripped << "*\n";
-		
-		std::vector<uint8_t> cipher = ml::textUtils::base64Decode(stripped);
-		
-		hexdump("cipher", cipher);
-		
-		std::vector<uint8_t> key(32, 'a');
-		std::vector<uint8_t> iv(32, 'a');
-		
-		std::vector<uint8_t> decodedtext = ml::textUtils::AES256CBCDecode(cipher, key, iv);
-
-		TextFragment out = byteVectorToText(decodedtext);
-		std::cout << out << "\n";
-	}
-	{
-		// map
+		// map, reduce
 		TextFragment frag("It was the best of times, it was the würst of times.");
 		TextFragment f2 = map(frag, [](codepoint_type c){ return (c + 291); });
 		std::cout << f2 << "\n";
 		TextFragment f3 = map(f2, [](codepoint_type c){ return (c - 291); });
 		std::cout << f3 << "\n";
+		TextFragment f4 = reduce(f3, [](codepoint_type c){ return (c != 's'); });
+		std::cout << f4 << "\n";
 	}
+	
+	{
+		// split, join
+		TextFragment t("  hello world it  is me, Randy.\n  ");
+		auto lines = ml::textUtils::split(t, ' ');
+		for(auto line : lines)
+		{
+			std::cout << "[" << line << "]" << "\n";
+		}
+		std::cout << join(lines);
+		std::cout << join(lines, ' ');
+	}
+	
+	{
+		// test bogus UTF-8
+		int bogusSize = 32;
+		char bogus[bogusSize];
+		for(int i=0; i<bogusSize; ++i)
+		{
+			bogus[i] = ((uint8_t)i*111 + 11);
+		}
+		TextFragment b (bogus, bogusSize);		
+		std::cout << "A bogus fragment: " << bogus << "\n";	
+		
+		int fragsOK = 0;
+		for(int i=0; i<25; ++i)
+		{
+			TextFragment bs = ml::textUtils::subText(bogus, 0, i);
+			fragsOK += (bs != TextFragment());
+		}
+		std::cout << fragsOK << " subtexts OK, remainder bogus.\n"; 
+	}
+	
+	{
+		// codepoint ctor
+		TextFragment a('!');
+		TextFragment b(0x00dc); // Ü
+		TextFragment c(0x6797); // 林
+		TextFragment d(0xd900); // an invalid codepoint
+		
+		std::cout << TextFragment(a, b, c, d) << "\n";
+	}
+
+	
 	
 //	theSymbolTable().dump();
 

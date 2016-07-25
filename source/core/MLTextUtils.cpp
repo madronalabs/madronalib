@@ -59,25 +59,27 @@ namespace ml { namespace textUtils {
 		return &pBuf[len - n];
 	}
 	
-	TextFragment positiveIntToDigits(int i)
+	int digitsToNaturalNumber(const char32_t* p)
 	{
+		if(!p) return 0;
+		int v = 0;
+		int l = 0;
+		int d;
+		char c;
+		
 		const int kMLMaxNumberDigits = 14;
 		
-		char buf[kMLMaxNumberDigits + 2] = {0};
-		char *p = buf + kMLMaxNumberDigits + 1;	
-		char *end = p;
-		
-		// null-terminate the string
-		*end = 0;
-		
-		// work backwards
-		do 
+		while (p[l] && (l < kMLMaxNumberDigits-1))
 		{
-			*--p = '0' + (i % 10);
-			i /= 10;
-		} 
-		while (i != 0);
-		return (TextFragment(p, end - p));
+			c = p[l];
+			if (c >= '0' && c <= '9')
+				d = (c - '0');
+			else
+				break;
+			v = (v * 10) + d;
+			l++;
+		}
+		return v;
 	}
 	
 	const char* naturalNumberToDigits(int value, char* pDest) 
@@ -109,27 +111,33 @@ namespace ml { namespace textUtils {
 		return pDest;
 	}
 	
-	int digitsToPositiveInt(const char32_t* p)
+	int textToNaturalNumber(const TextFragment& frag)
 	{
-		int v = 0;
-		int l = 0;
-		int d;
-		char c;
-		
+		std::vector<codepoint_type> vec = textToCodePointVector(frag);
+		return digitsToNaturalNumber(vec.data());
+	}
+	
+	TextFragment naturalNumberToText(int i)
+	{
 		const int kMLMaxNumberDigits = 14;
 		
-		while (p[l] && (l < kMLMaxNumberDigits-1))
+		char buf[kMLMaxNumberDigits + 2] = {0};
+		char *p = buf + kMLMaxNumberDigits + 1;	
+		char *end = p;
+		
+		// null-terminate the string
+		*end = 0;
+		
+		// work backwards
+		do 
 		{
-			c = p[l];
-			if (c >= '0' && c <= '9')
-				d = (c - '0');
-			else
-				break;
-			v = (v * 10) + d;
-			l++;
-		}
-		return v;
+			*--p = '0' + (i % 10);
+			i /= 10;
+		} 
+		while (i != 0);
+		return (TextFragment(p, end - p));
 	}
+	
 	
 	int findFirst(const TextFragment& frag, const codepoint_type b)
 	{
@@ -138,6 +146,7 @@ namespace ml { namespace textUtils {
 		int i=0;
 		for (const codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return r;
 			if(c == b)
 			{
 				r = i;
@@ -155,6 +164,7 @@ namespace ml { namespace textUtils {
 		int i=0;
 		for (const codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return r;
 			if(c == b)
 			{
 				r = i;
@@ -171,6 +181,7 @@ namespace ml { namespace textUtils {
 		int i=0;
 		for (const codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return r;
 			if(matchFn(c))
 			{
 				r = i;
@@ -189,6 +200,7 @@ namespace ml { namespace textUtils {
 		int i=0;
 		for (const codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return r;
 			if(matchFn(c))
 			{
 				r = i;
@@ -214,6 +226,7 @@ namespace ml { namespace textUtils {
 		
 		for (const codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return TextFragment();
 			if(matchFn(c))
 			{
 				pb = utf::internal::utf_traits<utf::utf8>::encode(c, pb);
@@ -223,8 +236,65 @@ namespace ml { namespace textUtils {
 		return TextFragment(buf, pb - buf);
 	}
 	
-	TextFragment subText(const TextFragment& frag, int start, int end)
+	std::vector< TextFragment > split(TextFragment frag, codepoint_type delimiter)
 	{
+		std::vector<TextFragment> output;
+		int start = 0;
+		int end = 0;
+		int pieceLen = 0;
+		for (const codepoint_type c : frag) 
+		{
+			if(!utf::internal::validate_codepoint(c)) return std::vector< TextFragment >();
+			pieceLen++;
+			end++;
+			if(c == delimiter)
+			{			
+				if(pieceLen > 1)
+				{
+					output.push_back(subText(frag, start, end - 1));
+				}
+				start = end;
+				pieceLen = 0;
+			}
+		}	
+		if(pieceLen > 0)
+		{
+			output.push_back(subText(frag, start, end));
+		}
+		return output;
+	}
+	
+	TextFragment join(const std::vector<TextFragment>& vec)
+	{
+		TextFragment sum;
+		int len = vec.size();	 
+		for(int i=0; i<len; ++i)
+		{
+			TextFragment frag = vec[i];
+			sum = TextFragment(sum, vec[i]);			
+		}
+		return sum;
+	}
+	
+	TextFragment join(const std::vector<TextFragment>& vec, codepoint_type delimiter)
+	{
+		TextFragment delimFrag(delimiter);
+		TextFragment sum;
+		int len = vec.size();	 
+		for(int i=0; i<len; ++i)
+		{
+			TextFragment frag = vec[i];
+			sum = TextFragment(sum, vec[i]);	
+			if(ml::within(i, 0, len - 1))
+			{
+				sum = TextFragment(sum, delimFrag);
+			}
+		}
+		return sum;
+	}
+	
+	TextFragment subText(const TextFragment& frag, int start, int end)
+	{		
 		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
 		if(!frag) return TextFragment();
 		if(start >= end) return TextFragment();
@@ -245,6 +315,7 @@ namespace ml { namespace textUtils {
 		for (int i=0; i<end - start; ++i) 
 		{
 			// write the codepoint as UTF-8 to the buffer
+			if(!utf::internal::validate_codepoint(*it)) return TextFragment();
 			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
 			++it;
 		}	
@@ -269,7 +340,6 @@ namespace ml { namespace textUtils {
 		{
 			return subText(frag, slashLoc + 1, frag.lengthInCodePoints());
 		}
-		
 		return frag;
 	}
 	
@@ -280,7 +350,6 @@ namespace ml { namespace textUtils {
 		{
 			return subText(frag, 0, slashLoc);
 		}
-		
 		return frag;
 	}
 	
@@ -289,6 +358,7 @@ namespace ml { namespace textUtils {
 	{
 		for (const codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return "unknown";
 			// if there are any CJK characters, return CJK
 			if (isCJK(c)) 
 			{ 
@@ -303,7 +373,6 @@ namespace ml { namespace textUtils {
 	}
 	
 	static const char base64table[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-	
 	int indexOf(const char* str, char c)
 	{
 		int r = -1;
@@ -453,7 +522,7 @@ namespace ml { namespace textUtils {
 	
 	std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& cipher, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv)
 	{
-		if( !(cipher.size() > 0) || !(key.size() == 32) || !(iv.size() == 32) ) return std::vector<uint8_t>();
+		if( !(cipher.size() > 0) || (key.size() < 32) || (iv.size() < 32) ) return std::vector<uint8_t>();
 		
 		aes256_context ctx; 
 		aes256_init(&ctx, key.data());
@@ -513,7 +582,7 @@ namespace ml { namespace textUtils {
 	
 	Symbol addFinalNumber(Symbol sym, int n)
 	{
-		TextFragment t(sym.getTextFragment(), textUtils::positiveIntToDigits(n));
+		TextFragment t(sym.getTextFragment(), textUtils::naturalNumberToText(n));
 		return Symbol(t.getText());
 	}
 	
@@ -528,6 +597,7 @@ namespace ml { namespace textUtils {
 		int i=0;
 		for (codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return Symbol();
 			buf[i++] = c;
 		}			
 		
@@ -552,7 +622,7 @@ namespace ml { namespace textUtils {
 		return subFrag.getText();
 	}
 	
-	// if the symbol's text ends in a natural number, return that number. Otherwise return 0.
+	// if the symbol's text ends in a positive integer, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{		
 		// make temporary buffer on stack  
@@ -564,6 +634,7 @@ namespace ml { namespace textUtils {
 		int i=0;
 		for (codepoint_type c : frag) 
 		{
+			if(!utf::internal::validate_codepoint(c)) return 0;
 			buf[i++] = c;
 		}					
 		
@@ -585,7 +656,7 @@ namespace ml { namespace textUtils {
 		}
 
 		// note, null terminated char32_t string needed
-		int r = digitsToPositiveInt(buf + firstDigitPos);
+		int r = digitsToNaturalNumber(buf + firstDigitPos);
 		
 		//std::cout << r << " ";// MLTEST
 		

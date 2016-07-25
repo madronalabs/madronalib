@@ -22,7 +22,9 @@ enum eFileTypes
     
     // previous location of presets, for converting to Aalto 1.6. Then let's stop the madness.
 	kOldPresetFiles,
-	kOldPresetFiles2
+	kOldPresetFiles2,
+
+	kLicenseFiles
 };
 
 // get the default location for saving files of the given type.

@@ -38,7 +38,52 @@ namespace ml
 			nullTerminate();
 		}		
 	}
+
+	TextFragment::TextFragment(utf::codepoint_type c) noexcept
+	{
+		if(!utf::internal::validate_codepoint(c))
+		{
+			c = 0x2639; // sad face
+		}
+		// all possible codepoints fit into local text
+		char* end = utf::internal::utf_traits<utf::utf8>::encode(c, mLocalText);
+		mSize = end - mLocalText;
+		mpText = mLocalText;			
+		nullTerminate();
+	}
 	
+	TextFragment subText(const TextFragment& frag, int start, int end)
+	{		
+		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
+		if(!frag) return TextFragment();
+		if(start >= end) return TextFragment();
+		
+		// temp buffer on stack big enough to hold whole input fragment if needed.
+		// we won't know the output fragment size in bytes until iterating the code points. 
+		char buf[frag.lengthInBytes()];
+		std::fill(buf, buf+frag.lengthInBytes(), 0);
+		char* pb = buf;
+		
+		auto first = codepoint_iterator<const char*>(frag.getText());		
+		auto it = first;
+		for(int i=0; i<start; ++i)
+		{
+			++it;
+		}
+		
+		for (int i=0; i<end - start; ++i) 
+		{
+			// write the codepoint as UTF-8 to the buffer
+			if(!utf::internal::validate_codepoint(*it)) return TextFragment();
+			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
+			++it;
+		}	
+		
+		return TextFragment(buf, pb - buf);
+	}
+	
+	
+
 	TextFragment::TextFragment(const TextFragment& a) noexcept
 	{
 		construct(a.getText(), a.lengthInBytes());
@@ -84,6 +129,12 @@ namespace ml
 	TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3) noexcept
 	{
 		construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(), t3.lengthInBytes());
+	}
+	
+	TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3, const TextFragment& t4) noexcept
+	{
+		construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), 
+				  t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 	}
 	
 	TextFragment::~TextFragment() noexcept

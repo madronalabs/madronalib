@@ -32,13 +32,14 @@ using namespace utf;
 	bool isCJK(codepoint_type c);
 
 	char * spaceStr( int numIndents );	
-	int digitsToPositiveInt(const char32_t* p);
+	int digitsToNaturalNumber(const char32_t* p);
 	const char *naturalNumberToDigits(int value, char* pDest);
 	
 	// ----------------------------------------------------------------
 	// TextFragment utilities
 
-	TextFragment positiveIntToDigits(int i);	
+	TextFragment naturalNumberToText(int i);	
+	int textToNaturalNumber(const TextFragment& frag);	
 	
 	int findFirst(const TextFragment& frag, const utf::codepoint_type c);
 	int findLast(const TextFragment& frag, const utf::codepoint_type c);
@@ -49,6 +50,14 @@ using namespace utf;
 	TextFragment map(const TextFragment& frag, std::function<codepoint_type(codepoint_type)> f);
 	TextFragment reduce(const TextFragment& frag, std::function<bool(codepoint_type)> f);
 
+	std::vector< TextFragment > split(TextFragment frag, codepoint_type delimiter = '\n');
+	
+	// join a vector of fragments into one fragment.
+	TextFragment join(const std::vector<TextFragment>& vec);
+	
+	// join a vector of fragments into one fragment, with delimiter added in between.
+	TextFragment join(const std::vector<TextFragment>& vec, codepoint_type delimiter);
+	
 	// Return a new TextFragment consisting of the codepoints from indices start to (end - 1) in the input frag.
 	TextFragment subText(const TextFragment& frag, int start, int end);
 	
@@ -73,9 +82,9 @@ using namespace utf;
 	std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& plaintext, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv);
 	std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& ciphertext, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv);
 	
+	// return UTF-8 encoded vector of bytes without null terminator
 	inline std::vector<uint8_t> textToByteVector(TextFragment frag)
 	{
-		// return vector of bytes without null terminator
 		return std::vector<uint8_t>(frag.getText(), frag.getText() + frag.lengthInBytes());
 	}
 
@@ -103,6 +112,7 @@ using namespace utf;
 		sv.to<utf::utf8>(std::back_inserter(outVec));
 		return TextFragment(outVec.data(), outVec.size());		
 	}
+	
 	
 	// ----------------------------------------------------------------
 	// Symbol utilities
@@ -134,6 +144,16 @@ using namespace utf;
 		char buf[maxLen];
 		
 	};
+	
+	// ----------------------------------------------------------------
+	// std library helpers
+
+	template< typename T >
+	T getElementChecked( const std::vector< T > vec, int index ) noexcept
+	{
+		return (vec.size() > index ? vec[index] :  T());
+	}
+	
 		
 } } // ml::textUtils
 

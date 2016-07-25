@@ -13,6 +13,7 @@
 #include "utf.hpp/utf.hpp"
 #include <iostream>
 
+using namespace utf;
 
 namespace ml
 {
@@ -50,6 +51,9 @@ namespace ml
 		// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
 		TextFragment(const char* pChars, int len) noexcept;
 		
+		// single code point ctor
+		TextFragment(utf::codepoint_type c) noexcept;
+
 		// copy ctor
 		TextFragment(const TextFragment& a) noexcept;
 		

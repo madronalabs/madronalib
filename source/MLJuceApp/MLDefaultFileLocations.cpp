@@ -65,6 +65,9 @@ File getDefaultFileLocation(eFileTypes whichFiles)
             case kAppPresetFiles:
                 destStr = String(MLProjectInfo::projectName);
                 break;
+			case kLicenseFiles:
+				destStr = ("Licenses");
+				break;
         }
 
         childDir = startDir.getChildFile(destStr);
