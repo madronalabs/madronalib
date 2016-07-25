@@ -48,7 +48,7 @@ namespace ml
 		// all possible codepoints fit into local text
 		char* end = utf::internal::utf_traits<utf::utf8>::encode(c, mLocalText);
 		mSize = end - mLocalText;
-		mpText = mLocalText;			
+		mpText = mLocalText;	
 		nullTerminate();
 	}
 	

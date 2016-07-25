@@ -333,9 +333,9 @@ int main()
 	
 	{
 		// codepoint ctor
-		TextFragment a('!');
-		TextFragment b(0x00dc); // Ü
-		TextFragment c(0x6797); // 林
+		TextFragment a('!'); // size 1
+		TextFragment b(0x00dc); // Ü, size 2
+		TextFragment c(0x6797); // 林, size 3
 		TextFragment d(0xd900); // an invalid codepoint
 		
 		std::cout << TextFragment(a, b, c, d) << "\n";
