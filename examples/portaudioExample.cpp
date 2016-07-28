@@ -2,10 +2,11 @@
 
 #include "../source/DSP/MLDSP.h"
 #include "../../portaudio/include/portaudio.h"
+#include "MLProperty.h"
 
 using namespace ml;
 
-const int kTestSeconds = 5;
+const int kTestSeconds = 1;
 const int kSampleRate = 44100;
 const int kFramesPerBuffer = kFloatsPerDSPVector;
 
@@ -20,15 +21,26 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	// make a tick every kSampleRate samples(1 second)
 	static TickSource ticks(kSampleRate);
 	
+	
 	// make an FDN with 4 delay lines (times in samples)
 	static FDN fdn({33, 149, 1377, 1969});
 	MLSignal freqs({12000, 13000, 14000, 6000});
 	freqs.scale(kTwoPi/kSampleRate);
 	fdn.setFilterCutoffs(freqs);
 	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});
+
+	// TODO want to write the following:
 	
+	// static FDN fdn({"times", {33, 149, 1377, 1969}}, {"cutoffs", Signal({12000, 13000, 14000, 6000}).scale(kTwoPi/kSampleRate)}, {"gains", {0.99, 0.99, 0.99, 0.99}});
+	// static FDN fdn("times", {33, 149, 1377, 1969}, "cutoffs", Signal({12000, 13000, 14000, 6000}).scale(kTwoPi/kSampleRate), "gains", {0.99, 0.99, 0.99, 0.99});
+	// FDN will have setParameter(Symbol, Property)
+	// and ctor that sets Properties from map in the right order, makes right # of delays 
+	
+	// property ctor from param list makes signal only
+	
+
 	// process audio
-	DSPVectorArray<2> verb = fdn(ticks());
+	auto verb = fdn(ticks()); // returns a DSPVectorArray<2>
 
 	// store audio
 	// in non-interleaved mode, portaudio passes an array of float pointers
@@ -46,6 +58,14 @@ int main()
 	void* pData = nullptr;
 	
 	std::cout << "portaudio example:\n";
+	
+	// MLTEST
+	
+	MLProperty test({0.1f, 0.2f, 0.3f});
+	std::cout << test << "\n";
+	
+
+	
 
 	err = Pa_Initialize();
 	if( err != paNoError ) goto error;
