@@ -5,6 +5,10 @@
 //
 // This module contains the DSPVectorArray / DSPVector class and basic operations on it. 
 // Any stateless operations on DSPVectors should be added here.
+// 
+// These objects are for building fixed DSP graphs in a functional style. The compiler should 
+// have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,
+// see MLProcs. In general MLProcs will be written using DSPGens, DSPOps, DSPFilters.
 
 #pragma once
 
@@ -78,6 +82,23 @@ namespace ml
 			return *this;
 		}
 		
+		// return row J from this DSPVectorArray, when J is known at compile time. 
+		template<int J>
+		inline DSPVectorArray<1> getRowVector() const
+		{
+			static_assert((J >= 0) && (J < VECTORS), "getRowVector index out of bounds"); 
+			return getRowVectorUnchecked(J);
+		}		
+		
+		// set row J of this DSPVectorArray to x1, when J is known at compile time. 
+		template<int J>
+		inline void setRowVector(DSPVectorArray<1> x1)
+		{
+			static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
+			setRowVectorUnchecked(J, x1);
+		}
+			
+		// get a row vector j when j is not known at compile time. 
 		inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
 		{
 			DSPVectorArray<1> vy;
@@ -92,7 +113,8 @@ namespace ml
 			}
 			return vy;
 		}
-
+		
+		// set a row vector j when j is not known at compile time. 
 		inline void setRowVectorUnchecked(int j, DSPVectorArray<1> x1)
 		{
 			const float* px1 = x1.getConstBuffer();
@@ -106,22 +128,6 @@ namespace ml
 			}	
 		}
 		
-		// return row J from this DSPVectorArray.
-		template<int J>
-		inline DSPVectorArray<1> getRowVector() const
-		{
-			static_assert((J >= 0) && (J < VECTORS), "getRowVector index out of bounds"); 
-			return getRowVectorUnchecked(J);
-		}		
-		
-		// set row J of this DSPVectorArray to x1.
-		template<int J>
-		inline void setRowVector(DSPVectorArray<1> x1)
-		{
-			static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
-			setRowVectorUnchecked(J, x1);
-		}
-		
 		// return a pointer to the first element in row J of this DSPVectorArray.
 		template<int J>
 		inline const float* getRowDataConst() const
@@ -130,12 +136,18 @@ namespace ml
 			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*J;
 			return py1;
 		}		
-		
-				
+						
 		inline DSPVectorArray& operator+=(DSPVectorArray x1){*this = add(*this, x1); return *this;}
 		inline DSPVectorArray& operator-=(DSPVectorArray x1){*this = subtract(*this, x1); return *this;}
 		inline DSPVectorArray& operator*=(DSPVectorArray x1){*this = multiply(*this, x1); return *this;}
 		inline DSPVectorArray& operator/=(DSPVectorArray x1){*this = divide(*this, x1); return *this;}
+		
+		// declare as friends any templates or functions that need to use get/setRowVectorUnchecked
+		template<int C, int V>
+		friend DSPVectorArray<C*V> repeat(const DSPVectorArray<V>& x1);
+
+		template<int VA, int VB>
+		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 	};
 
 	typedef DSPVectorArray<1> DSPVector;
@@ -154,7 +166,9 @@ namespace ml
 
 	template<int VECTORS>
 	inline void store(const DSPVectorArray<VECTORS>& vecSrc, float* pDest) 
-	{ std::copy(vecSrc.mData.asFloat, vecSrc.mData.asFloat + kFloatsPerDSPVector*VECTORS, pDest); }
+	{ 
+		std::copy(vecSrc.mData.asFloat, vecSrc.mData.asFloat + kFloatsPerDSPVector*VECTORS, pDest); 
+	}
 
 	// ----------------------------------------------------------------
 	#pragma mark unary operators
@@ -304,7 +318,7 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark single-vector index and range generators
 	
-	inline DSPVector index()
+	inline DSPVector columnIndex()
 	{
 		static constexpr SIMDVectorFloat intsVec = {0, 1, 2, 3};
 		static constexpr SIMDVectorFloat stepVec = {4, 4, 4, 4};
@@ -324,7 +338,7 @@ namespace ml
 	// next vector.
 	inline DSPVector rangeOpen(float start, float end)
 	{
-		DSPVector vi = index();
+		DSPVector vi = columnIndex();
 		float interval = (end - start)/(kFloatsPerDSPVector);
 		return vi*interval + start;
 	}
@@ -332,7 +346,7 @@ namespace ml
 	// return a linear sequence from start to end, where end falls on the last index of this vector.
 	inline DSPVector rangeClosed(float start, float end)
 	{
-		DSPVector vi = index();
+		DSPVector vi = columnIndex();
 		float interval = (end - start)/(kFloatsPerDSPVector - 1.f);
 		return vi*interval + start;											
 	}

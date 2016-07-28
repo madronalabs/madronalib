@@ -7,6 +7,10 @@
 // in order to make time-varying signals. Generators all have some state, for example
 // the frequency of an oscillator or the seed in a noise generator. Otherwise they 
 // would be DSPOps. 
+// 
+// These objects are for building fixed DSP graphs in a functional style. The compiler should 
+// have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,
+// see MLProcs. In general MLProcs will be written using DSPGens, DSPOps, DSPFilters.
 
 #pragma once
 

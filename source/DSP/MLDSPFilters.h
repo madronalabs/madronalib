@@ -6,6 +6,10 @@
 //
 // DSP filters: functor objects implementing an inline DSPVector operator()(DSPVector input),
 // in order to make filters. All these filters have some state, otherwise they would be DSPOps.
+// 
+// These objects are for building fixed DSP graphs in a functional style. The compiler should 
+// have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,
+// see MLProcs. In general MLProcs will be written using DSPGens, DSPOps, DSPFilters.
 
 #pragma once
 
