@@ -15,14 +15,14 @@ int main()
 {
 	std::cout << "DSP Ops:\n";
 	
-	// generate a vector using map() and index()
-	std::cout << "index squared: " << map(([](float x){return x*x;}), index()) << "\n\n";		
+	// generate a vector using map() and columnIndex()
+	std::cout << "index squared: " << map(([](float x){return x*x;}), columnIndex()) << "\n\n";		
 
 	auto sinMadronaLib = sin(rangeClosed(0, kPi));
 	std::cout << "madronalib sin: " << sinMadronaLib << "\n\n";
 	 	
 	// store a lambda on (DSPVector)->(DSPVector) defined using map(float)->(float)
-	auto sinNative = [&](DSPVector x){ return map( [](float x){ return sinf(x*kPi/(kFloatsPerDSPVector - 1)); }, x); }(index());
+	auto sinNative = [&](DSPVector x){ return map( [](float x){ return sinf(x*kPi/(kFloatsPerDSPVector - 1)); }, x); }(columnIndex());
 	std::cout << "native sin: " << sinNative << "\n\n";	
 	
 	std::cout << "difference: " << sinNative - sinMadronaLib << "\n\n";	
@@ -43,13 +43,13 @@ int main()
 	
 //	DSPVectorArray<4> f;
 	
-//	auto f = repeat<4>(index());
-//	f.setRowVector<1>(index()*2);
-//	f.setRowVectorUnchecked(3, index()*2);
+//	auto f = repeat<4>(columnIndex());
+//	f.setRowVector<1>(columnIndex()*2);
+//	f.setRowVector(3, columnIndex()*2);
 					  
 //	f = map( [](float x){ return x + ml::rand()*0.01; }, f );
 //	f = map( [](DSPVector v, int row){ return v*row; }, f );
-// 	f = row( DSPVectorArray<4>() ) * repeat<4>(index()) ;
+// 	f = row( DSPVectorArray<4>() ) * repeat<4>(columnIndex()) ;
 	
 //	constexpr int iters = 100;
 	
@@ -86,9 +86,5 @@ int main()
 	auto fdnTimeVector = timeIterations< DSPVectorArray<2> >(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
-<<<<<<< HEAD
-	
-=======
->>>>>>> origin
 }
 
