@@ -27,15 +27,18 @@ if(BUILD_NEW_ONLY)
     core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
+    core/MLProperty.cpp
+    core/MLProperty.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
+    core/MLText.h
+    core/MLText.cpp
     core/MLTextUtils.cpp
     core/MLTextUtils.h
     core/MLResourceMap.h    
-    core/MLText.h
     )
 else(BUILD_NEW_ONLY)
   
@@ -55,11 +58,14 @@ else(BUILD_NEW_ONLY)
     core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
+    core/MLProperty.cpp
+    core/MLProperty.h
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp
     core/MLSymbol.h
-    core/MLText.h   
+    core/MLText.h
+    core/MLText.cpp
     core/MLTextUtils.cpp
     core/MLTextUtils.h
     core/MLResourceMap.h
