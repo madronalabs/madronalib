@@ -10,57 +10,67 @@
 
 using namespace ml;
 
-void FDN::setDelaysInSamples(MLSignal lengths)
+FDN::FDN(std::initializer_list<MLPropertyChange> p)
 {
-	int newSize = lengths.getWidth();
-	
-	// setting number of delays outside of bounds will turn object into a passthru
-	if(!within(newSize, 3, 17))
+	for(auto change : p)
 	{
-		newSize = 0;
-	}
-	
-	// resize if needed.
-	if(newSize != mDelays.size())
-	{
-		mDelays.resize(newSize);
-		mFilters.resize(newSize);
-		mDelayInputVectors.resize(newSize);
-		mFeedbackGains.resize(newSize);
-	}
-	
-	// set default feedbacks.
-	for(int n=0; n<newSize; ++n)
-	{
-		mFeedbackGains[n] = 1.f;
-	}
-	
-	// set delay times.
-	for(int n=0; n<newSize; ++n)
-	{
-		// we have one DSPVector feedback latency, so delay times can't be smaller than that
-		int len = lengths[n] - kFloatsPerDSPVector;
-		len = max(1, len);
-		mDelays[n].setDelayInSamples(len);
-	}
-	clear();
-}
-
-void FDN::setFilterCutoffs(MLSignal filterCutoffs)
-{
-	int newValues = min(filterCutoffs.getWidth(), (int)mFilters.size());
-	for(int i=0; i<newValues; ++i)
-	{
-		mFilters[i].setCoeffs(biquadCoeffs::onePole(filterCutoffs[i]));
+		setProperty(change.mName, change.mValue);
 	}
 }
 
-void FDN::setFeedbackGains(MLSignal gains)
+// note: order of properties is important! delays property will set
+// the number of delays and clear other peoperties.
+void FDN::setProperty(Symbol name, MLProperty value)
 {
-	int newValues = min(gains.getWidth(), (int)mFilters.size());
-	for(int i=0; i<newValues; ++i)
+	MLSignal sigVal = value.getSignalValue();
+	int currentSize = mDelays.size();
+	int newSize = sigVal.getWidth();
+	
+	if(name == "delays")
 	{
-		mFeedbackGains[i] = gains[i];
+		// setting number of delays outside of bounds will turn object into a passthru
+		if(!within(newSize, 3, 17))
+		{
+			newSize = 0;
+		}
+		
+		// resize if needed.
+		if(newSize != currentSize)
+		{
+			mDelays.resize(newSize);
+			mFilters.resize(newSize);
+			mDelayInputVectors.resize(newSize);
+			mFeedbackGains.setDims(newSize);
+		}
+		
+		// set default feedbacks.
+		for(int n=0; n<newSize; ++n)
+		{
+			mFeedbackGains[n] = 1.f;
+		}
+		
+		// set delay times.
+		for(int n=0; n<newSize; ++n)
+		{
+			// we have one DSPVector feedback latency, so delay times can't be smaller than that
+			int len = sigVal[n] - kFloatsPerDSPVector;
+			len = max(1, len);
+			mDelays[n].setDelayInSamples(len);
+		}
+		clear();
+	}
+	else if(name == "cutoffs")
+	{
+		// compute coefficients from cutoffs
+		int newValues = min(currentSize, newSize);
+		for(int n=0; n<newValues; ++n)
+		{
+			mFilters[n].setCoeffs(biquadCoeffs::onePole(sigVal[n]));
+		}
+	}
+	else if(name == "gains")
+	{
+		mFeedbackGains.copy(sigVal);
 	}
 }
 
