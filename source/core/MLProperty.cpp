@@ -65,7 +65,7 @@ MLProperty::MLProperty(float v) :
 }
 
 MLProperty::MLProperty(const ml::Text& t) :
-	mType(kTextProperty)
+mType(kTextProperty)
 {
 	mTextVal = t;
 }

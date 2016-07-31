@@ -13,6 +13,8 @@
 #include "MLText.h"
 
 // MLProperty: a modifiable property. Properties have four types: undefined, float, text, and signal.
+// TODO rename to "Value"?
+// Value / ValueSet / 
 
 class MLProperty
 {
@@ -35,7 +37,7 @@ public:
 	MLProperty(const MLSignal& s);
 
 	// signal type constructor via initializer_list
-	explicit MLProperty (std::initializer_list<float> values)
+	MLProperty (std::initializer_list<float> values)
 	{
 		*this = MLProperty(MLSignal(values));
 	}
@@ -74,3 +76,11 @@ private:
 // utilities
 
 std::ostream& operator<< (std::ostream& out, const MLProperty & r);
+
+struct MLPropertyChange
+{
+	ml::Symbol mName;
+	MLProperty mValue;
+};
+
+
