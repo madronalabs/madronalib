@@ -65,8 +65,16 @@ include_directories(
 #--------------------------------------------------------------------
 
 add_subdirectory(source)
-add_subdirectory(external)
 add_subdirectory(examples)
+add_subdirectory(external/aes256)
+add_subdirectory(external/cJSON)
+add_subdirectory(external/OSC)
+add_subdirectory(external/portaudio)
+add_subdirectory(external/utf)
+
+if(!BUILD_NEW_ONLY)
+	add_subdirectory(external/juce)
+endif()
 
 if (ML_BUILD_TESTS)
     add_subdirectory(tests)
