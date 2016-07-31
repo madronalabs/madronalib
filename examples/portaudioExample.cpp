@@ -3,10 +3,11 @@
 #include "../source/DSP/MLDSP.h"
 #include "../../portaudio/include/portaudio.h"
 #include "MLProperty.h"
+#include "MLPropertySet.h"
 
 using namespace ml;
 
-const int kTestSeconds = 1;
+const int kTestSeconds = 4;
 const int kSampleRate = 44100;
 const int kFramesPerBuffer = kFloatsPerDSPVector;
 
@@ -21,23 +22,17 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	// make a tick every kSampleRate samples(1 second)
 	static TickSource ticks(kSampleRate);
 	
-	
-	// make an FDN with 4 delay lines (times in samples)
-	static FDN fdn({33, 149, 1377, 1969});
+	// make freqs signal
 	MLSignal freqs({12000, 13000, 14000, 6000});
 	freqs.scale(kTwoPi/kSampleRate);
-	fdn.setFilterCutoffs(freqs);
-	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});
 
-	// TODO want to write the following:
-	
-	// static FDN fdn({"times", {33, 149, 1377, 1969}}, {"cutoffs", Signal({12000, 13000, 14000, 6000}).scale(kTwoPi/kSampleRate)}, {"gains", {0.99, 0.99, 0.99, 0.99}});
-	// static FDN fdn("times", {33, 149, 1377, 1969}, "cutoffs", Signal({12000, 13000, 14000, 6000}).scale(kTwoPi/kSampleRate), "gains", {0.99, 0.99, 0.99, 0.99});
-	// FDN will have setParameter(Symbol, Property)
-	// and ctor that sets Properties from map in the right order, makes right # of delays 
-	
-	// property ctor from param list makes signal only
-	
+	// make an FDN with 4 delay lines (times in samples)
+	static FDN fdn
+	{ 
+		{"delays", {33.f, 149.f, 1377.f, 1969.f} },
+		{"cutoffs", freqs } , // TODO more functional rewrite of MLSignal so we can create freqs inline
+		{"gains", {0.99, 0.99, 0.99, 0.99} }
+	};
 
 	// process audio
 	auto verb = fdn(ticks()); // returns a DSPVectorArray<2>
@@ -59,12 +54,12 @@ int main()
 	
 	std::cout << "portaudio example:\n";
 	
+	
 	// MLTEST
-	
-	MLProperty test({0.1f, 0.2f, 0.3f});
-	std::cout << test << "\n";
-	
-
+	MLPropertyChange dx{"toad", {1.f, 2.f, 3.f}};
+	MLPropertyChange dy{"toad", 23};
+	MLPropertyChange dz{"toad", "wet"};
+	std::vector<MLPropertyChange> dv = { {"toad", {1.f, 2.f, 3.f}}, {"todd", 23.f} };
 	
 
 	err = Pa_Initialize();
