@@ -3,7 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLPropertyListener.h"
+#include "MLPropertySet.h"
 
 #pragma mark MLPropertySet
 
@@ -15,13 +15,13 @@ MLPropertySet::MLPropertySet() : mAllowNewProperties(true)
 
 MLPropertySet::~MLPropertySet()
 {
-    std::list<MLPropertyListener*>::iterator it;
+	std::list<MLPropertyListener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		MLPropertyListener* pL = *it;
 		pL->propertyOwnerClosing();
-    }
-    mpListeners.clear();
+	}
+	mpListeners.clear();
 }
 
 const MLProperty& MLPropertySet::getProperty(ml::Symbol p) const
@@ -42,7 +42,7 @@ const MLProperty& MLPropertySet::getProperty(ml::Symbol p) const
 const float MLPropertySet::getFloatProperty(ml::Symbol p) const
 {
 	static const float nullFloat = 0.f;
-
+	
 	std::map<ml::Symbol, MLProperty>::const_iterator it = mProperties.find(p);
 	if(it != mProperties.end())
 	{
@@ -132,7 +132,7 @@ void MLPropertySet::broadcastAllProperties()
 		
 		// TODO cut down on some of this broadcasting!
 		// debug() << "BROADCASTING: " << p << "\n";
-
+		
 		broadcastProperty(p, false);
 	}
 }
@@ -141,7 +141,7 @@ void MLPropertySet::broadcastAllProperties()
 
 void MLPropertyListener::updateChangedProperties()
 {
-    if(!mpPropertyOwner) return;
+	if(!mpPropertyOwner) return;
 	// for all model parameters we know about
 	std::map<ml::Symbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
@@ -161,10 +161,10 @@ void MLPropertyListener::updateChangedProperties()
 
 void MLPropertyListener::updateAllProperties()
 {
-    if(!mpPropertyOwner) return;
+	if(!mpPropertyOwner) return;
 	
 	mpPropertyOwner->broadcastAllProperties();
-
+	
 	// mark all states as changed
 	std::map<ml::Symbol, PropertyState>::iterator it;
 	for(it = mPropertyStates.begin(); it != mPropertyStates.end(); it++)
@@ -178,15 +178,15 @@ void MLPropertyListener::updateAllProperties()
 
 void MLPropertyListener::propertyChanged(ml::Symbol propName, bool immediate)
 {
-    if(!mpPropertyOwner) return;
-    
+	if(!mpPropertyOwner) return;
+	
 	// if the property does not exist in the map yet, this lookup will add it.
 	PropertyState& state = mPropertyStates[propName];
 	
 	// check for change in property. Note that this also compares signals and strings, which may possibly be slow.
-    const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);	
+	const MLProperty& ownerValue = mpPropertyOwner->getProperty(propName);	
 	if(ownerValue != state.mValue)
-    {
+	{
 		if(immediate)
 		{
 			doPropertyChangeAction(propName, ownerValue);
@@ -196,12 +196,12 @@ void MLPropertyListener::propertyChanged(ml::Symbol propName, bool immediate)
 		{
 			state.mChangedSinceUpdate = true;
 		}
-    }
+	}
 }
 
 void MLPropertyListener::propertyOwnerClosing()
 {
-    if(!mpPropertyOwner) return;
-    mpPropertyOwner = nullptr;
+	if(!mpPropertyOwner) return;
+	mpPropertyOwner = nullptr;
 }
 

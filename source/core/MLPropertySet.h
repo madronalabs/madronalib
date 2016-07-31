@@ -3,8 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef __ML_PROPERTY__
-#define __ML_PROPERTY__
+#pragma once
 
 #include <string>
 #include <list>
@@ -12,7 +11,7 @@
 #include "MLSignal.h"
 #include "MLSymbol.h"
 #include "MLText.h"
-#include "MLDebug.h"
+//#include "MLDebug.h"
 #include "MLProperty.h"
 
 // MLPropertySet: a Set of Properties. Property names are stored as keys to the property map.
@@ -26,26 +25,25 @@
 // d(data)/d(time) = changes in data. Reversible. must be lossless.
 // think of change recorder as a kind of filter. Then transmitter is another generic thing that can be composed with it.
 
-
 class MLPropertyListener;
 
 class MLPropertySet
 {	
-    friend class MLPropertyListener;
+	friend class MLPropertyListener;
 	
 public:
 	MLPropertySet();
 	virtual ~MLPropertySet();
-    
+
 	const MLProperty& getProperty(ml::Symbol p) const;
 	const float getFloatProperty(ml::Symbol p) const;
 	const ml::Text getTextProperty(ml::Symbol p) const;
 	const MLSignal& getSignalProperty(ml::Symbol p) const;
-    
+	
 	// set the property and allow it to propagate to Listeners the next time
 	// each Listener calls updateChangedProperties().
 	template <typename T>
-	void setProperty(ml::Symbol p, T v)
+	void setProperty(ml::Symbol p, const T& v)
 	{
 		if(mAllowNewProperties)
 		{
@@ -62,10 +60,10 @@ public:
 			}
 		}
 	}
-
+	
 	// set the property and propagate to Listeners immediately.
 	template <typename T>
-	void setPropertyImmediate(ml::Symbol p, T v)
+	void setPropertyImmediate(ml::Symbol p, const T& v)
 	{
 		if(mAllowNewProperties)
 		{
@@ -86,7 +84,7 @@ public:
 	// set the property and propagate to Listeners immediately,
 	// except for the argument Listener pL
 	template <typename T>
-	void setPropertyImmediateExcludingListener(ml::Symbol p, T v, MLPropertyListener* pL)
+	void setPropertyImmediateExcludingListener(ml::Symbol p, const T& v, MLPropertyListener* pL)
 	{
 		if(mAllowNewProperties)
 		{
@@ -109,26 +107,26 @@ public:
 		}
 	}
 	
-    void broadcastAllProperties();
+	void broadcastAllProperties();
 	void allowNewProperties(bool b) { mAllowNewProperties = b; }
 	
 	static const MLProperty nullProperty;
-
-protected:
-	void addPropertyListener(MLPropertyListener* pL);
-	void removePropertyListener(MLPropertyListener* pToRemove);
 	
 	void dumpProperties()
 	{
 		std::map<ml::Symbol, MLProperty>::const_iterator it;
-		debug() << "\n" << mProperties.size() << " properties: \n";
+		std::cout<< "\n" << mProperties.size() << " properties: \n";
 		for(it = mProperties.begin(); it != mProperties.end(); it++)
 		{
 			ml::Symbol name = it->first;
 			MLProperty val = it->second;
-			debug() << name << ": " << val << "\n";
+			std::cout << name << ": " << val << "\n";
 		}		
 	}
+	
+protected:
+	void addPropertyListener(MLPropertyListener* pL);
+	void removePropertyListener(MLPropertyListener* pToRemove);
 	
 private:
 	std::map<ml::Symbol, MLProperty> mProperties;
@@ -142,23 +140,27 @@ private:
 // MLPropertyListeners are notified when a Property of an MLPropertySet changes. They do something in
 // response by overriding doPropertyChangeAction().
 
+// TODO make generic message passing implementation!
+
+
+
 class MLPropertyListener
 {
-    friend class MLPropertySet;
+	friend class MLPropertySet;
 public:
 	MLPropertyListener(MLPropertySet* m) : mpPropertyOwner(m)
-    {
-        mpPropertyOwner->addPropertyListener(this);
-    }
-    
-    virtual ~MLPropertyListener()
-    {
+	{
+		mpPropertyOwner->addPropertyListener(this);
+	}
+	
+	virtual ~MLPropertyListener()
+	{
 		if(mpPropertyOwner)
 		{
 			mpPropertyOwner->removePropertyListener(this);
 		}
-    }
-    
+	}
+	
 	// override to do whatever this PropertyListener needs to do based on the values of properties.
 	virtual void doPropertyChangeAction(ml::Symbol param, const MLProperty & newVal) = 0;
 	
@@ -167,17 +169,17 @@ public:
 	
 	// force an update of all properties.
 	void updateAllProperties();
-    
+	
 protected:
-
-    // called by a PropertySet to notify us that one property has changed.
+	
+	// called by a PropertySet to notify us that one property has changed.
 	// if the property is new, or the value has changed, we mark the state as changed.
 	// If immediate is true and the state has changed, doPropertyChangeAction() will be called.
 	void propertyChanged(ml::Symbol p, bool immediate);
-    
+	
 	// Must be called by the Property owner to notify us in the event it is going away.
-    void propertyOwnerClosing();
-    
+	void propertyOwnerClosing();
+	
 	// PropertyStates represent the state of a single property relative to updates.
 	class PropertyState
 	{
@@ -188,12 +190,9 @@ protected:
 		bool mChangedSinceUpdate;
 		MLProperty mValue;
 	};
-    
+	
 	std::map<ml::Symbol, PropertyState> mPropertyStates;
 	MLPropertySet* mpPropertyOwner;
 };
 
 typedef std::shared_ptr<MLPropertyListener> MLPropertyListenerPtr;
-
-#endif // __ML_PROPERTY__
-
