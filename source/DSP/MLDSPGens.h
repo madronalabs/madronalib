@@ -22,7 +22,7 @@ namespace ml
 	class TickSource
 	{
 	public:
-		TickSource(int p) : mCounter(0), mPeriod(p) {}
+		TickSource(int p) : mCounter(p), mPeriod(p) {}
 		~TickSource() {}
 		
 		inline DSPVector operator()()

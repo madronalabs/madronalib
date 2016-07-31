@@ -15,6 +15,7 @@
 
 #include "MLDSPOps.h"
 #include "MLSignal.h"
+#include "MLProperty.h"
 
 namespace ml
 {
@@ -546,8 +547,10 @@ namespace ml
 	class FDN
 	{
 	public:
-		FDN(MLSignal delayLengths){ setDelaysInSamples(delayLengths); }
+		FDN(std::initializer_list<MLPropertyChange> p);
 		~FDN(){}
+
+		void setProperty(Symbol name, MLProperty value);
 		
 		// set delay times in samples, resizing delays if needed.
 		void setDelaysInSamples(MLSignal lengths);
@@ -567,7 +570,7 @@ namespace ml
 		std::vector<FixedDelay> mDelays;
 		std::vector<Biquad> mFilters; // TODO onepole bank object		
 		std::vector<DSPVector> mDelayInputVectors;
-		std::vector<float> mFeedbackGains;
+		MLSignal mFeedbackGains;
 	};
 	
 	// ----------------------------------------------------------------
@@ -585,7 +588,7 @@ namespace ml
 		
 		DSPVector operator()(DSPVector x)
 		{
-			
+			// work in progress
 		}
 		
 	private:
