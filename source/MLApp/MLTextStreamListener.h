@@ -3,7 +3,9 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLDebug.h"
+#pragma once
+
+// TODO this goes away to be replaced by generic message listener.
 
 //#include <ostream>
 

@@ -71,7 +71,7 @@ void MLReporter::enqueuePropertyChange(ml::Symbol prop, const MLProperty& newVal
 	int written = PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
 	if(written < 1)
 	{
-		debug() << "MLReporter::doPropertyChangeAction: ring buffer full! \n";
+		std::cout << "MLReporter::doPropertyChangeAction: ring buffer full! \n"; // TODO something
 	}
 #else
 	PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );

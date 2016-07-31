@@ -6,6 +6,7 @@
 #ifndef __ML_DEBUG_DISPLAY_HEADER__
 #define __ML_DEBUG_DISPLAY_HEADER__
 
+#include "MLTextStreamListener.h"
 #include "JuceHeader.h"
 #include "MLUI.h"
 #include "MLWidget.h"

@@ -10,7 +10,7 @@
 #include "MLVectorDeprecated.h"
 #include "MLSymbol.h"
 #include "MLSignal.h"
-#include "MLPropertyListener.h"
+#include "MLPropertySet.h"
 
 class MLWidgetContainer;
 
