@@ -8,8 +8,9 @@
 
 #pragma mark MLDSPContext
 
-MLDSPContext::MLDSPContext()
-	: mEnabled(false)
+MLDSPContext::MLDSPContext() : 
+	mEnabled(false),
+	mpEngine(nullptr)
 {
 	mVectorSize = 0;		
 	mSampleRate = kToBeCalculated;	
@@ -18,7 +19,6 @@ MLDSPContext::MLDSPContext()
 	mResampleRatio = MLRatio(1, 1);
 	mResampleUpOrder = 0;
 	mResampleDownOrder = 0;
-	// mTestSignal.clear();
 }
 
 MLDSPContext::~MLDSPContext()

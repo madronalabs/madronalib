@@ -24,6 +24,7 @@
 #include "MLClock.h"
 
 class MLProc; // for isProcEnabled. 
+class MLDSPEngine;
 
 class MLDSPContext
 {
@@ -63,6 +64,13 @@ public:
 	virtual int getMaxInputSignals() { return kMaxSigs; }
 	virtual int getMaxOutputSignals() { return kMaxSigs; }
 
+	// ----------------------------------------------------------------
+	#pragma engine pointer
+	
+	void setEngine(MLDSPEngine* pEng) { mpEngine = pEng; }
+	MLDSPEngine* getEngine() { return mpEngine; }
+	
+
 protected:
 	// two null signals: every context has them.
 	// the null input is for receiving a signal guaranteed to be 0. 
@@ -72,6 +80,9 @@ protected:
 	
 	bool mEnabled;
 	ml::Clock mClock;
+	
+	// every context has a pointer up to its root engine.
+	MLDSPEngine* mpEngine;
 	
 private:
 	MLRatio mResampleRatio;	
