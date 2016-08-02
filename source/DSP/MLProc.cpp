@@ -20,14 +20,14 @@ MLProc::err MLProc::prepareToProcess()
 {
 	MLProc::err e = OK;
 	
-    // debug() << "preparing " << getClassName() << " \"" << getName() << "\" : " ;
-
+	// debug() << "preparing " << getClassName() << " \"" << getName() << "\" : " ;
+	
 	int ins = getNumInputs();
 	int outs = getNumOutputs();
 	float rate = getContextSampleRate();
 	int blockSize = getContextVectorSize();
 	
-    // debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
+	// debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
 	
 	// All inputs must have a signal connected.	
 	// So connect unconnected inputs to null input signal.
@@ -58,7 +58,7 @@ MLProc::err MLProc::prepareToProcess()
 		{
 			debug() << "MLProc::prepareToProcess: null output " << i << " for " << getName() << "! \n";
 		}
-//debug() << "    out " << i << ": " << (void *)(MLSignal*)(&out) << ", " << out.getSize() << " samples.\n";
+		//debug() << "    out " << i << ": " << (void *)(MLSignal*)(&out) << ", " << out.getSize() << " samples.\n";
 	}
 	e = resize();
 	
@@ -71,7 +71,7 @@ bail:
 void MLProc::clearProc()
 {		
 	const int op = getNumOutputs();
-
+	
  //debug() << "clearing " << getName() << " (" << getClassName() << ")\n";
 	
 	// clear anything left in outputs
@@ -79,10 +79,10 @@ void MLProc::clearProc()
 	{
 		mOutputs[i]->clear();
 	}
-
+	
 	// let subclass clear filter histories etc.
 	clear();
-
+	
 }
 
 void MLProc::clearInputs()
@@ -105,7 +105,7 @@ void MLProc::clearInput(const int i)
 MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 {
 	//debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
-
+	
 	MLProc::err e = OK;	
 	if (idx)
 	{
@@ -116,15 +116,15 @@ MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 		}
 		else if (mInputs[idx - 1])
 		{
-            if(mInputs[idx - 1] == &(getContext()->getNullInput()))
-            {
-                mInputs[idx - 1] = &srcSig;
-            }
-            else
-            {
-                // TODO this condition can cause crashes down the road, fix
-                e = inputOccupiedErr;
-            }
+			if(mInputs[idx - 1] == &(getContext()->getNullInput()))
+			{
+				mInputs[idx - 1] = &srcSig;
+			}
+			else
+			{
+				// TODO this condition can cause crashes down the road, fix
+				e = inputOccupiedErr;
+			}
 		}
 		else
 		{
@@ -242,7 +242,7 @@ ml::Symbol MLProc::getOutputName(int index)
 			}
 		}
 	} 
-
+	
 	return ml::Symbol();
 }
 
@@ -295,15 +295,15 @@ bool MLProc::outputIsValid(int idx)
 
 ml::Symbol MLProc::getNameWithCopyIndex()
 {
-    int c = mCopyIndex;
-    if(c)
-    {
-        return ml::textUtils::addFinalNumber(mName, mCopyIndex);
-    }
-    else
-    {
-        return mName;
-    }
+	int c = mCopyIndex;
+	if(c)
+	{
+		return ml::textUtils::addFinalNumber(mName, mCopyIndex);
+	}
+	else
+	{
+		return mName;
+	}
 }
 
 void MLProc::dumpParams()
@@ -328,7 +328,7 @@ void MLProc::dumpProc(int indent)
 	int outs = getNumOutputs();
 	const MLSignal* pNullInput = &(getContext()->getNullInput());
 	const MLSignal* pNullOutput = &(getContext()->getNullOutput());
-		
+	
 	debug() << ml::textUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
 	
 	if (isContainer())
@@ -451,39 +451,39 @@ void MLProc::printErr(MLProc::err e)
 MLProcFactory::MLProcFactory()
 {
 }
-	
+
 MLProcFactory::~MLProcFactory()
 {
 }
 
 void MLProcFactory::registerFn(const ml::Symbol className, MLProcCreateFnT fn)
 {
-    procRegistry[className] = fn;
+	procRegistry[className] = fn;
 }
 
 MLProcPtr MLProcFactory::create(const ml::Symbol className, MLDSPContext* context)
 {
 	MLProcCreateFnT fn;
-    MLProcPtr resultProc;
+	MLProcPtr resultProc;
 	
 	// get named entry from registry
-    FnRegistryT::const_iterator regEntry = procRegistry.find(className);
+	FnRegistryT::const_iterator regEntry = procRegistry.find(className);
 	
-    if (regEntry != procRegistry.end()) 
-    {
+	if (regEntry != procRegistry.end()) 
+	{
 		// get creator fn from entry
 		fn = regEntry->second;
 		// call creator fn returning new MLProc subclass instance
-        resultProc = fn();
+		resultProc = fn();
 		resultProc->setContext(context);
-    }
+	}
 	else
 	{
-		 // TODO anything? 
+		// TODO anything? 
 		debug() << "MLProcFactory::create: class " << className << " not found!!";
 	}
-
-    return resultProc;
+	
+	return resultProc;
 }
 
 void MLProcFactory::printRegistry(void)

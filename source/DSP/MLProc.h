@@ -20,7 +20,9 @@
 // instead of one larger call as currently, we can make all MLProcs have chunk sizes that are fixed
 // at compile time. 
 
-#pragma once
+
+#ifndef _ML_PROC_H
+#define _ML_PROC_H
 
 #include <cassert>
 #include <math.h>
@@ -41,9 +43,9 @@
 #define CHECK_IO    0
 
 #ifdef	__GNUC__
-	#define	ML_UNUSED	__attribute__ (( __unused__ )) 
+#define	ML_UNUSED	__attribute__ (( __unused__ )) 
 #else
-	#define	ML_UNUSED 
+#define	ML_UNUSED 
 #endif
 
 // ----------------------------------------------------------------
@@ -67,7 +69,7 @@ typedef std::map<ml::Symbol, floatAliasVec > floatAliasMap;
 // object of unknown derived type.
 class MLProcInfoBase
 {    
-
+	
 public:
 	MLProcInfoBase() {};	
 	virtual ~MLProcInfoBase() {};
@@ -83,13 +85,13 @@ public:
 	virtual bool hasVariableOutputs() const = 0;
 	virtual ml::Symbol getClassName() = 0;
 	
-    static const floatAliasVec kMLProcNullAliasVec;
-
+	static const floatAliasVec kMLProcNullAliasVec;
+	
 private:
 	// make uncopyable
-    MLProcInfoBase (const MLProcInfoBase&); // unimplemented
-    const MLProcInfoBase& operator= (const MLProcInfoBase&); // unimplemented
-
+	MLProcInfoBase (const MLProcInfoBase&); // unimplemented
+	const MLProcInfoBase& operator= (const MLProcInfoBase&); // unimplemented
+	
 };
 
 // Static member functions can't be virtual, so to provide access to 
@@ -103,15 +105,15 @@ template <class MLProcSubclass>
 class MLProcInfo : public MLProcInfoBase
 {
 public:
-friend class MLProcFactory;
-
+	friend class MLProcFactory;
+	
 	MLProcInfo()
 	{ 
 		// set up SymbolMappedArray for parameters
 		mParams.setMap(getClassParamMap()); 
 	}
 	~MLProcInfo() {};
-
+	
 	const MLProperty& getParamProperty(const ml::Symbol paramName)
 	{
 		if (hasVariableParams())
@@ -139,15 +141,15 @@ friend class MLProcFactory;
 			}
 		}
 #if CHECK_IO
-        float* paramToSet = mParams[paramName];
-        if (paramToSet != mParams.getNullElement())
-        {
-            *paramToSet = value;
-        }
-        else
-        {
-            debug() << "setParam: " << getClassName() << " has no parameter " << paramName << "!\n";
-        }
+		float* paramToSet = mParams[paramName];
+		if (paramToSet != mParams.getNullElement())
+		{
+			*paramToSet = value;
+		}
+		else
+		{
+			debug() << "setParam: " << getClassName() << " has no parameter " << paramName << "!\n";
+		}
 #else
 		*(mParams[paramName]) = value;
 #endif
@@ -162,7 +164,7 @@ friend class MLProcFactory;
 	
 	ml::Symbol getClassName() { return getClassClassNameRef(); } 
 	static void setClassName(const ml::Symbol n) { getClassClassNameRef() = n; }	
-
+	
 	// consider these private-- they are public so the syntax of access from templates isn't ridiculous
 	static MLSymbolMap &getClassParamMap()  { static MLSymbolMap pMap; return pMap; } 
 	static MLSymbolMap &getClassInputMap()  { static MLSymbolMap inMap; return inMap; } 
@@ -174,9 +176,10 @@ friend class MLProcFactory;
 	static bool& getVariableParamsFlag() { static bool mHasVariableParams; return mHasVariableParams; }
 	static bool& getVariableInputsFlag() { static bool mHasVariableInputs; return mHasVariableInputs; }
 	static bool& getVariableOutputsFlag() { static bool mHasVariableInputs; return mHasVariableInputs; }
-    
+	
 private:
-
+	
+	
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
 	//
 	SymbolMappedArray<MLProperty, kMLProcLocalParams> mParams;
@@ -190,7 +193,7 @@ class MLProcParam
 {
 public:
 	MLProcParam(const char * name)
-    {
+	{
 		if (!std::string(name).compare("*"))
 		{
 			MLProcInfo<MLProcSubclass>::getVariableParamsFlag() = true;
@@ -211,7 +214,7 @@ class MLProcInput
 {
 public:
 	MLProcInput(const char *name)
-    {
+	{
 		if (!std::string(name).compare("*"))
 		{
 			MLProcInfo<MLProcSubclass>::getVariableInputsFlag() = true;
@@ -232,7 +235,7 @@ class MLProcOutput
 {
 public:
 	MLProcOutput(const char *name)
-    {
+	{
 		if (!std::string(name).compare("*"))
 		{
 			MLProcInfo<MLProcSubclass>::getVariableOutputsFlag() = true;
@@ -259,14 +262,14 @@ public:
 
 class MLProc
 {
-friend class MLProcContainer;
-friend class MLProcMultiple;
-friend class MLMultProxy;
-friend class MLMultiProc;
-friend class MLMultiContainer;
-friend class MLProcFactory;
+	friend class MLProcContainer;
+	friend class MLProcMultiple;
+	friend class MLMultProxy;
+	friend class MLMultiProc;
+	friend class MLMultiContainer;
+	friend class MLProcFactory;
 public:
-    enum err
+	enum err
 	{
 		OK = 0,
 		memErr,
@@ -292,7 +295,7 @@ public:
 		SSE3RequiredErr,
 		unknownErr
 	};
-
+	
 	MLProc() : mpContext(0), mParamsChanged(true), mCopyIndex(0) {}
 	
 	// ----------------------------------------------------------------
@@ -309,16 +312,16 @@ public:
 	// for subclasses to set up buffers, etc.  Can be left at this if there is nothing to resize.
 	virtual err resize() { return OK; }		
 	virtual err prepareToProcess();
-    
-    // the process method. One is needed!
-    virtual void process(const int frames) = 0;	
-
+	
+	// the process method. One is needed!
+	virtual void process(const int frames) = 0;	
+	
 	// clearProc() is called by engine, procs override clear() to clear histories. 
 	void clearProc();	 
 	virtual void clear() {}
 	virtual void clearInputs();	 
 	virtual void clearInput(const int i);
-
+	
 	// getInput and getOutput get references to I/O signals.
 	// used commonly in process(), so non-virtual and inline.
 	// They do no checking in a release build. 
@@ -328,7 +331,7 @@ public:
 	// connections are made in the DSP graph.   
 	
 	// TODO making all inputs and outputs 0-indexed would save a little time. 
-
+	
 	inline const MLSignal& getInput(const int idx)
 	{ 	
 #if CHECK_IO
@@ -340,7 +343,7 @@ public:
 #endif
 		return (*mInputs[idx-1]); 
 	}
-
+	
 	inline MLSignal& getOutput(const int idx) 
 	{	
 #if CHECK_IO
@@ -352,12 +355,12 @@ public:
 #endif
 		return (*mOutputs[idx-1]); 
 	}
-
+	
 	inline MLSignal& getOutput() 
 	{	
 		return (*mOutputs[0]); 
 	}
-
+	
 	virtual err setInput(const int idx, const MLSignal& srcSig);	 
 	void setOutput(const int idx, MLSignal& srcSig);	 
 	
@@ -369,15 +372,15 @@ public:
 	virtual float getParam(const ml::Symbol p);
 	virtual const ml::Text getTextParam(const ml::Symbol p);
 	virtual const MLSignal& getSignalParam(const ml::Symbol p);
-
+	
 	// MLProc returns the index to an entry in its proc map.
 	// MLProcContainer returns an index to a published input or output.
 	virtual int getInputIndex(const ml::Symbol name);	
 	virtual int getOutputIndex(const ml::Symbol name);	
-
+	
 	// MLProcContainer overrides this to return published output names
 	virtual ml::Symbol getOutputName(int index);
-		
+	
 	// getNumInputs() and getNumOutputs() are not virtual.  
 	// Proxy classes, for example, override procInfo()
 	// and resize mInputs and mOutputs so that these methods
@@ -418,17 +421,17 @@ public:
 	
 	virtual void resizeInputs(int n);
 	virtual void resizeOutputs(int n);
-
+	
 	bool inputIsValid(int idx);
 	bool outputIsValid(int idx);
 	
 	ml::Symbol getClassName() { return procInfo().getClassName(); }
 	const ml::Symbol& getName() const { return mName; }
-    int getCopyIndex() const { return mCopyIndex; }
-    ml::Symbol getNameWithCopyIndex();
+	int getCopyIndex() const { return mCopyIndex; }
+	ml::Symbol getNameWithCopyIndex();
 	void dumpParams();
 	virtual void dumpProc(int indent);
-
+	
 	// get enclosing DSP context
 	MLDSPContext* getContext() const { return mpContext; }
 	
@@ -437,18 +440,15 @@ public:
 	inline float getContextInvSampleRate() { return mpContext ? mpContext->getInvSampleRate() : kMLTimeless; }
 	inline ml::Time getContextTime() { return mpContext ? mpContext->getTime() : 0; }
 	
-	// TODO this is currently needed for making root procs outside of Factories
-	// TODO add factory method for making a new container root proc with the given name.
-	void setName(const ml::Symbol name) { mName = name; }
-	
 protected:	
 	virtual ~MLProc() {}	
-
+	
 	void dumpNode(int indent);
 	void printErr(MLProc::err err);	
-
+	
+	void setName(const ml::Symbol name) { mName = name; }
 	void setContext(MLDSPContext* pc) { mpContext = pc; }
-    void setCopyIndex(int c)  { mCopyIndex = c; }
+	void setCopyIndex(int c)  { mCopyIndex = c; }
 	
 	virtual void createInput(const int idx);
 	
@@ -462,7 +462,7 @@ protected:
 protected:
 	MLDSPContext* mpContext;		// set by our enclosing context to itself on creation
 	bool mParamsChanged;			// set by setParam() // TODO Context stores list of Parameter changes
-
+	
 	// pointers to input signals.  A subclass of MLProc will get data from these
 	// signals directly in its process() method.  A subclass of MLProcContainer
 	// will pass the pointers to the inputs of its subprocs.
@@ -480,3 +480,64 @@ typedef std::shared_ptr<MLProc> MLProcPtr;
 typedef std::list<MLProcPtr> MLProcList;
 typedef MLProcList::iterator MLProcListIterator;
 
+// ----------------------------------------------------------------
+#pragma mark factory
+
+class MLProcFactory
+{
+private:
+	MLProcFactory();
+	~MLProcFactory();
+	MLProcFactory(MLProcFactory const&) = delete;             // Copy construct
+	MLProcFactory(MLProcFactory&&) = delete;                  // Move construct
+	MLProcFactory& operator=(MLProcFactory const&) = delete;  // Copy assign
+	MLProcFactory& operator=(MLProcFactory &&) = delete;      // Move assign
+	
+public:
+	// singleton: we only want one MLProcFactory, even for multiple MLDSPEngines. 
+	// delete copy and move constructors and assign operators
+	static MLProcFactory &theFactory()  { static MLProcFactory f; return f; }
+	
+	typedef MLProcPtr (*MLProcCreateFnT)(void);
+	typedef std::map<ml::Symbol, MLProcCreateFnT> FnRegistryT;
+	FnRegistryT procRegistry;
+ 
+	// register an object creation function by the name of the class.
+	void registerFn(const ml::Symbol className, MLProcCreateFnT fn);
+	
+	// create a new object of the named class.  
+	MLProcPtr create(const ml::Symbol className, MLDSPContext* context);
+	
+	// debug. 
+	void printRegistry(void);
+	
+};
+
+
+// Subclasses of MLProc make an MLProcRegistryEntry object.
+// This class is passed a className and links a creation function 
+// for the subclass to the className in the registry.  This way the MLProcFactory
+// knows how to make them.
+template <class MLProcSubclass>
+class MLProcRegistryEntry
+{
+public:
+	MLProcRegistryEntry(const char* className)
+	{
+		ml::Symbol classSym(className);
+		MLProcFactory::theFactory().registerFn(classSym, createInstance);	
+		MLProcInfo<MLProcSubclass>::setClassName(classSym);
+	}
+	
+	// return shared_ptr to a new MLProc instance. 
+	static MLProcPtr createInstance()
+	{
+		MLProcPtr pNew(new MLProcSubclass);
+		return pNew;
+	}
+};
+
+
+
+
+#endif // _ML_PROC_H
