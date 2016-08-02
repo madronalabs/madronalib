@@ -20,9 +20,7 @@
 // instead of one larger call as currently, we can make all MLProcs have chunk sizes that are fixed
 // at compile time. 
 
-
-#ifndef _ML_PROC_H
-#define _ML_PROC_H
+#pragma once
 
 #include <cassert>
 #include <math.h>
@@ -51,7 +49,7 @@
 // ----------------------------------------------------------------
 #pragma mark important constants
 
- // keep this small.
+// keep this small.
 const int kMLProcLocalParams = 16; // TODO band-aid!  this should be 4 or something.  crashing evil threading(?) bug.
 const std::string kMLProcAliasUndefinedStr = "undefined";
 
@@ -178,7 +176,6 @@ friend class MLProcFactory;
 	static bool& getVariableOutputsFlag() { static bool mHasVariableInputs; return mHasVariableInputs; }
     
 private:
-
 
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
 	//
@@ -434,11 +431,15 @@ public:
 
 	// get enclosing DSP context
 	MLDSPContext* getContext() const { return mpContext; }
-
+	
 	inline int getContextVectorSize() { return mpContext ? mpContext->getVectorSize() : 0; }	
 	inline float getContextSampleRate() { return mpContext ? mpContext->getSampleRate() : kMLTimeless; }
 	inline float getContextInvSampleRate() { return mpContext ? mpContext->getInvSampleRate() : kMLTimeless; }
 	inline ml::Time getContextTime() { return mpContext ? mpContext->getTime() : 0; }
+	
+	// TODO this is currently needed for making root procs outside of Factories
+	// TODO add factory method for making a new container root proc with the given name.
+	void setName(const ml::Symbol name) { mName = name; }
 	
 protected:	
 	virtual ~MLProc() {}	
@@ -446,7 +447,6 @@ protected:
 	void dumpNode(int indent);
 	void printErr(MLProc::err err);	
 
-	void setName(const ml::Symbol name) { mName = name; }
 	void setContext(MLDSPContext* pc) { mpContext = pc; }
     void setCopyIndex(int c)  { mCopyIndex = c; }
 	
@@ -480,64 +480,3 @@ typedef std::shared_ptr<MLProc> MLProcPtr;
 typedef std::list<MLProcPtr> MLProcList;
 typedef MLProcList::iterator MLProcListIterator;
 
-// ----------------------------------------------------------------
-#pragma mark factory
-
-class MLProcFactory
-{
-private:
-	MLProcFactory();
-	~MLProcFactory();
-	MLProcFactory(MLProcFactory const&) = delete;             // Copy construct
-	MLProcFactory(MLProcFactory&&) = delete;                  // Move construct
-	MLProcFactory& operator=(MLProcFactory const&) = delete;  // Copy assign
-	MLProcFactory& operator=(MLProcFactory &&) = delete;      // Move assign
-
-public:
-	// singleton: we only want one MLProcFactory, even for multiple MLDSPEngines. 
-	// delete copy and move constructors and assign operators
-    static MLProcFactory &theFactory()  { static MLProcFactory f; return f; }
-
-	typedef MLProcPtr (*MLProcCreateFnT)(void);
-    typedef std::map<ml::Symbol, MLProcCreateFnT> FnRegistryT;
-    FnRegistryT procRegistry;
- 
-	// register an object creation function by the name of the class.
-    void registerFn(const ml::Symbol className, MLProcCreateFnT fn);
-	
-	// create a new object of the named class.  
-    MLProcPtr create(const ml::Symbol className, MLDSPContext* context);
-	
-	// debug. 
-	void printRegistry(void);
-
-};
-
-
-// Subclasses of MLProc make an MLProcRegistryEntry object.
-// This class is passed a className and links a creation function 
-// for the subclass to the className in the registry.  This way the MLProcFactory
-// knows how to make them.
-template <class MLProcSubclass>
-class MLProcRegistryEntry
-{
-public:
-	MLProcRegistryEntry(const char* className)
-    {
-		ml::Symbol classSym(className);
-        MLProcFactory::theFactory().registerFn(classSym, createInstance);	
-		MLProcInfo<MLProcSubclass>::setClassName(classSym);
-    }
-
-	// return shared_ptr to a new MLProc instance. 
-	static MLProcPtr createInstance()
-    {
-		MLProcPtr pNew(new MLProcSubclass);
-		return pNew;
-    }
-};
-
-
-
-
-#endif // _ML_PROC_H

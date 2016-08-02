@@ -99,15 +99,7 @@ void MLProcAllpass::clear()
 void MLProcAllpass::calcCoeffs() 
 {
 	mGain = getParam("gain");
-	
-#if DEMO
-	if (mGain == 0.6255f)
-	{
-		mNoiseGain = 0.5;		
-	}
-#endif	
 	resize();
-
 	mParamsChanged = false;
 }
 
@@ -120,13 +112,7 @@ void MLProcAllpass::process(const int frames)
 
 	uintptr_t readIndex;
 	MLSample fxn, v;
-#if DEMO
-	unsigned sr = getContextSampleRate();
-	float invSr = getContextInvSampleRate();
-	MLSample noise = 0.f;
-	float noiseX = 0.f;
-	int noiseOffset;	
-#endif
+
 
 	if (mParamsChanged) calcCoeffs();
 	
@@ -137,27 +123,6 @@ void MLProcAllpass::process(const int frames)
 		readIndex = mWriteIndex - mTimeInSamples;
 		readIndex &= mLengthMask;
 		mWriteIndex &= mLengthMask;
-	
-#if DEMO
-		mNoiseIndex &= mNoiseMask;
-		float p25 = 0.25f;
-		
-		// scale [0-sr] -> [0, 1]
-		// window fn is in seconds from -sqrt8 to sqrt8.
-		noiseOffset = ((int)mNoiseIndex) - (sr << 4);
-		noiseX = (float)(noiseOffset) * invSr;
-	
-		float w, xc, xc2, xc4;
-		const float sqrt8 = 2.82842712475f;
-
-		xc = ml::clamp(noiseX, -sqrt8, sqrt8); 
-		xc2 = xc*xc;
-		xc4 = xc2 * xc2;
-		w = (1.f - xc2*p25 + xc4*0.015625f) * p25;
-		
-		noise = MLRand() * w;		
-		mNoiseIndex++;
-#endif		
 		
 		// uninterpolated. 
 		fxn = mX[readIndex];
@@ -167,9 +132,6 @@ void MLProcAllpass::process(const int frames)
 		MLSample noiseHack = MLRand() * noiseAmp;
 		v += noiseHack;
 
-#if DEMO
-		v += mNoiseGain*noise;
-#endif
 		y[n] = fxn - mGain*v;	
 		mX[mWriteIndex++] = v;
 	}
