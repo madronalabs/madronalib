@@ -359,7 +359,7 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
 	if (sig)
 	{
 		voice = ml::textUtils::getFinalNumber(name);
-		if ((voice) && (voice <= mCurrentVoices)) // MLTEST
+		if ((voice) && (voice <= mCurrentVoices))
 		{
 			idx = (voice - 1)*kNumVoiceSignals + sig;
 		}

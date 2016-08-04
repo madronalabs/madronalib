@@ -10,7 +10,7 @@
 
 MLDSPContext::MLDSPContext() : 
 	mEnabled(false),
-	mpEngine(nullptr)
+	mpRootContext(nullptr)
 {
 	mVectorSize = 0;		
 	mSampleRate = kToBeCalculated;	

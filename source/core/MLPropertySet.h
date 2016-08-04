@@ -99,11 +99,6 @@ public:
 				mProperties[p].setValue(v);
 				broadcastPropertyExcludingListener(p, true, pL);
 			}
-			else
-			{
-				// MLTEST
-				std::cout << "property not found: " << p << "\n";
-			}
 		}
 	}
 	

@@ -22,11 +22,13 @@
 #include "MLRatio.h"
 #include "MLSignal.h"
 #include "MLClock.h"
+#include "MLPropertySet.h"
 
 class MLProc; // for isProcEnabled. 
 class MLDSPEngine;
 
-class MLDSPContext
+class MLDSPContext : 
+public MLPropertySet // DSPResourceLibrary placeholder
 {
 friend class MLDSPEngine;
 public:
@@ -65,10 +67,15 @@ public:
 	virtual int getMaxOutputSignals() { return kMaxSigs; }
 
 	// ----------------------------------------------------------------
-	#pragma engine pointer
+	#pragma root context pointer
 	
-	void setEngine(MLDSPEngine* pEng) { mpEngine = pEng; }
-	MLDSPEngine* getEngine() { return mpEngine; }
+	void setRootContext(MLDSPContext* pC) { mpRootContext = pC; }
+	MLDSPContext* getRootContext() { return mpRootContext; }
+	
+	// ----------------------------------------------------------------
+	#pragma resources
+	
+	
 	
 
 protected:
@@ -82,7 +89,7 @@ protected:
 	ml::Clock mClock;
 	
 	// every context has a pointer up to its root engine.
-	MLDSPEngine* mpEngine;
+	MLDSPContext* mpRootContext;
 	
 private:
 	MLRatio mResampleRatio;	

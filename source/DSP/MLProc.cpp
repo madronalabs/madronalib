@@ -4,6 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLProc.h"
+#include "MLProcContainer.h"
 
 const floatAliasVec MLProcInfoBase::kMLProcNullAliasVec;
 
@@ -476,6 +477,13 @@ MLProcPtr MLProcFactory::create(const ml::Symbol className, MLDSPContext* contex
 		// call creator fn returning new MLProc subclass instance
 		resultProc = fn();
 		resultProc->setContext(context);
+		
+		// give root context pointer to new containers
+		if(resultProc->isContainer())
+		{
+			MLProcContainer& resultContainer = static_cast<MLProcContainer&>(*resultProc);
+			resultContainer.setRootContext(context->getRootContext());
+		}
 	}
 	else
 	{

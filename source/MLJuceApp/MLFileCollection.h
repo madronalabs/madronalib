@@ -111,7 +111,6 @@ public:
 	// or better, the menu just has a reference to a resourceMap, that can be constantly updating itself.
 	MLMenuPtr buildMenu() const;
 	
-	
     void dump() const;
     
 private:

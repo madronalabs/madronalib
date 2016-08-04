@@ -26,10 +26,8 @@ MLDSPEngine::MLDSPEngine() :
 	mSampleCount(0),
 	mCPUTimeCount(0.)
 {
-#if defined(DEBUG) || (BETA) || (DEMO)
-	//mCollectStats = true;
-#endif
 	setName("dspengine");
+	setPropertyImmediate("demo", 1.f);
 }
 
 MLDSPEngine::~MLDSPEngine()
@@ -95,6 +93,9 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 
 	if (pRootElem)
 	{	
+		// sets root of this container to itself, which will be passed to children in buildGraph() / buildProc().
+		setRootContext(this);
+
 		makeRoot("root");
 		buildGraph(pRootElem);
         

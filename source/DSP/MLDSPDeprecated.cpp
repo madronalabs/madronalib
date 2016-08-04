@@ -558,7 +558,6 @@ MLSample MLFDN::processSample(const MLSample x)
 	return outputSum;
 }
 
-// MLTEST
 MLSignal MLFDN::operator()(const MLSignal& x)
 {
 	int frames=x.getWidth();

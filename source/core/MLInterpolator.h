@@ -54,6 +54,7 @@ namespace ml
 				pLastCol[j << strideBits] = target(0, j);
 			}
 
+			// MLTEST this is allocating in DSP! FIX
 			// SETDIMS 64x5
 			MLSignal y(frames, frameSize);
 			IntervalProjection frameToUnity({0, frames - 1}, {0, 1});

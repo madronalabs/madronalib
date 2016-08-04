@@ -47,7 +47,7 @@ public:
 	inline Symbol getElement(int n) const { return mpData[n]; }
 	inline int getCopy() const { return mCopy; }
 	
-	inline void setCopy(int c) { mCopy = c; } // MLTEST to remove
+	inline void setCopy(int c) { mCopy = c; } // MLTEST to remove, use ctor only?
 	
 	friend class const_iterator;
 	class const_iterator

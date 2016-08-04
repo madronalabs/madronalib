@@ -564,7 +564,7 @@ juce::Font MLLookAndFeel::getFontForScript(ml::Symbol script, float textSize)
 	}
 	else if(script == "cjk")
 	{
-		// TODO Windows
+		// MLTEST Windows needed
 		Font f("PingFang SC", floor(textSize*1.125), juce::Font::plain);
 		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
 		f.setTypefaceStyle("Semibold");
@@ -572,7 +572,7 @@ juce::Font MLLookAndFeel::getFontForScript(ml::Symbol script, float textSize)
 	}
 	else // unknown - use fallback font
 	{
-		// TODO Windows
+		// MLTEST Windows needed
 		Font f("PingFang SC", floor(textSize*1.125), juce::Font::plain);
 		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
 		f.setTypefaceStyle("Semibold");

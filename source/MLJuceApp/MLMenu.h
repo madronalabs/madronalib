@@ -31,10 +31,18 @@ public:
     class Node;
     typedef std::shared_ptr<Node> NodePtr;
 	
-	// typedef std::map<std::string, NodePtr, ml::textUtils::caseInsensitiveCompare<std::string> > StringToMenuNodeMapT;
 	// MLTEST rewrite with textUtils compare on Symbols
-	typedef std::map< std::string, NodePtr > StringToMenuNodeMapT;
-    class Node
+	struct collator 
+	{
+		bool operator()(const std::string& a, const std::string& b) const 
+		{
+			return ml::textUtils::collate(ml::TextFragment(a.c_str()), ml::TextFragment(b.c_str()));
+		}
+	};
+	
+	typedef std::map< std::string, NodePtr, collator > StringToMenuNodeMapT;
+  
+	class Node
     {
     public:
         Node();

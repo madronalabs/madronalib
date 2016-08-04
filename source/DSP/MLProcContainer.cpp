@@ -2025,6 +2025,9 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 			if (p->isContainer())
 			{		
 				MLProcContainer* pc = static_cast<MLProcContainer*>(&(*p));
+				
+				// pass root context to child
+				pc->setRootContext(mpRootContext);
 				pc->buildGraph(parent);
 			}
 		}		

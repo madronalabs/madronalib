@@ -70,11 +70,11 @@ String MLAppState::getStateAsText()
 	cJSON* root = getStateAsJSON();
 	if(root)
 	{
-		// MLTEST
-	//	char* stateText = cJSON_Print(root);
-	//	r = CharPointer_UTF8(stateText);
-	//	free(stateText);
+		// this calls malloc!
+		char* stateText = cJSON_Print(root);
 		
+		r = String(CharPointer_UTF8(stateText));
+		free(stateText);
 		cJSON_Delete(root);
 	}
 	else

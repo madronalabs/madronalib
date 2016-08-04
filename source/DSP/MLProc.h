@@ -474,7 +474,7 @@ private:
 	ml::Symbol mName;
 };
 
-// MLTEST TODO clear up ownership issues and do away with this
+// TODO clear up ownership issues and do away with this, Procs should be owned by containers only
 typedef std::shared_ptr<MLProc> MLProcPtr;
 
 typedef std::list<MLProcPtr> MLProcList;

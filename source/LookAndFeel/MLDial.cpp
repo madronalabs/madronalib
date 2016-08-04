@@ -1720,7 +1720,7 @@ void MLDial::getDialRect (MLRect& ret,
     int numWidth1, numWidth2;
     if(!smallThumbs)
     {
-		// MLTEST having Windows problems so fuck it, let text spill over thumb
+		// having Windows problems so fuck it, let text spill over thumb
 		const int spill = 2;
 		numWidth1 = mTextSize*(myLookAndFeel->getNumberWidth(val1, mDigits, mPrecision, mDoSign))*spill;
 		numWidth2 = mTextSize*(myLookAndFeel->getNumberWidth(val2, mDigits, mPrecision, mDoSign))*spill;
@@ -2007,35 +2007,8 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			cx = width/2;//mDiameter/2 + max(mShadowSize, (int)mTickSize);
 			cy = height/2;//cx;
 			mDialCenter = Vec2(cx, cy);
-
-			/*
-            // adjust size to make space for numbers
-            float newLeft = left;
-			 // MLTEST
-   //         if(!isSmall)
-            {
-                if (uBounds.height() <= 0.75f)
-                {
-                    height = cy*2;
-                }
-                else
-                {
-                    // cut off bottom
-                    height = (float)cy*1.8f ;
-                }
-                            
-                newLeft = bCenter.x() - cx;
-                width = cx*2 + 1; 
-                int rightHalf = width - cx;
-                if (mMaxNumberWidth > rightHalf)
-                {
-                    width = cx + mMaxNumberWidth;
-                }			
-			}
-            */
 			
 			mRotaryTextRect = MLRect(cx + mNumberPositionOffsetPixels.x(), cy + mNumberPositionOffsetPixels.y(), mMaxNumberWidth, height - cy);
-			
 			
 			cBounds = Rectangle<int>(left, top, (int)width, (int)height);
 			MLRect tr(left, top, (int)width, (int)height);

@@ -162,13 +162,13 @@ public:
 	virtual void addSetterToParam(MLPublishedParamPtr p, const ml::Path & procName, const ml::Symbol param) = 0;
 	virtual void setPublishedParam(int index, const MLProperty& val) = 0;
 	
-	// MLTEST should be protected
+protected:
 	virtual void routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val) = 0;
-	//	
 	virtual void makeRoot(const ml::Symbol name) = 0;
 	virtual bool isRoot() const = 0;
 	virtual void compile() = 0;
 
+public:
 	// ----------------------------------------------------------------
 	#pragma mark -- building
 	// 
