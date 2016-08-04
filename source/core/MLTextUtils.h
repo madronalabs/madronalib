@@ -113,7 +113,10 @@ using namespace utf;
 		return TextFragment(outVec.data(), outVec.size());		
 	}
 	
-	
+	// perform case-insensitive compare of fragments and return (a < b).
+	// TODO collate other languages better using miniutf library.
+	bool collate(const TextFragment& a, const TextFragment& b);
+
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	

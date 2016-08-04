@@ -576,8 +576,71 @@ namespace ml { namespace textUtils {
 		
 		return plaintext;
 	}
-
 	
+	bool collate(const TextFragment& a, const TextFragment& b)
+	{
+		auto ia = a.begin();
+		auto ib = b.begin();
+		
+		int iterEnds = 0;		
+		while(!iterEnds)
+		{
+			codepoint_type ca = *ia;
+			codepoint_type cb = *ib;
+			
+			if(!utf::internal::validate_codepoint(ca)) return false;
+			if(!utf::internal::validate_codepoint(cb)) return false;
+
+			if(ca != cb)
+			{
+				// the code points differ.
+				// compare codepoints, produce a result and bail.
+				if(isLatin(ca) && isLatin(cb))
+				{
+					char la = tolower(ca);
+					char lb = tolower(cb);
+					
+					if(la != lb)
+					{
+						// different letters
+						return la < lb;
+					}
+					else
+					{
+						// different cases but same letter. define lower case as less within letter.
+						return ca > cb;
+					}
+				}
+				else
+				{
+					// TODO collate other languages better using miniutf library.
+					return ca < cb;
+				}
+			}
+			else
+			{
+				++ia;
+				++ib;
+			}
+			
+			int aEnd = (ia == a.end());
+			int bEnd = (ib == b.end());
+			iterEnds = (aEnd << 1) | bEnd;
+		}
+		
+		switch(iterEnds)
+		{
+			case 1: // b ended but not a: a > b.
+				return false;
+			case 2: // a ended but not b: a < b.
+				return true;
+			case 3: // both ended, a == b.
+			default: // impossible
+				return false;
+		}
+		return false;
+	}
+
 #pragma mark Symbol utilities
 	
 	Symbol addFinalNumber(Symbol sym, int n)
@@ -656,10 +719,7 @@ namespace ml { namespace textUtils {
 		}
 
 		// note, null terminated char32_t string needed
-		int r = digitsToNaturalNumber(buf + firstDigitPos);
-		
-		//std::cout << r << " ";// MLTEST
-		
+		int r = digitsToNaturalNumber(buf + firstDigitPos);		
 		return r;
 	}
 

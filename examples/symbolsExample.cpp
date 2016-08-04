@@ -337,10 +337,50 @@ int main()
 		TextFragment b(0x00dc); // Ü, size 2
 		TextFragment c(0x6797); // 林, size 3
 		TextFragment d(0xd900); // an invalid codepoint
-		
 		std::cout << TextFragment(a, b, c, d) << "\n";
 	}
 
+	{
+		// collate
+		std::cout << collate("hik", "hi") << "\n";
+		
+		struct collateFragments 
+		{
+			bool operator()(const TextFragment& a, const TextFragment& b) const 
+			{
+				return collate(a, b);
+			}
+		};
+		
+		std::map<TextFragment, TextFragment, collateFragments> myMap;
+		
+		auto wat = vectorOfNonsenseSymbols( 50 );
+		for(auto sym : wat)
+		{
+			TextFragment symFrag = sym.getTextFragment();
+			myMap[symFrag] = "test";
+		}
+		
+		NameMaker names;
+		for(int n=0; n<50; ++n)
+		{
+			myMap[names.nextName().getTextFragment()] = "test";
+		}
+		
+		TextFragment a('!'); // size 1
+		TextFragment b(0x00dc); // Ü, size 2
+		TextFragment c(0x6797); // 林, size 3
+		TextFragment d(0xd900); // an invalid codepoint
+		myMap[a] = "test";
+		myMap[b] = "test";
+		myMap[c] = "test";
+		myMap[d] = "test";
+		
+		for(auto mapEntry : myMap)
+		{
+			std::cout << mapEntry.first << "\n";
+		}
+	}
 	
 	
 //	theSymbolTable().dump();
