@@ -67,19 +67,16 @@ int MLMenu::Node::renumberItems(int n)
     }
     else
     {
+		//StringToMenuNodeMapT::const_iterator it;
+		//for(it = map.begin(); it != map.end(); it++)
 
-		std::cout << "-------------------\n";
-
-		StringToMenuNodeMapT::const_iterator it;
-		for(it = map.begin(); it != map.end(); it++)
-
-			//std::list<std::string>::const_iterator it;			
-		//for(it = index.begin(); it != index.end(); it++)
+		std::list<std::string>::const_iterator it;			
+		for(it = index.begin(); it != index.end(); it++)
         {
-			// const std::string& name = *it;
-			const std::string& name = it->first;
+			const std::string& name = *it;
+			// const std::string& name = it->first;
 			
-			std::cout << name << "\n";
+			// std::cout << name << "\n";
 			
             if(name != kSeparatorStr)
             {
@@ -136,15 +133,15 @@ void MLMenu::Node::buildFullNameIndex(std::vector<std::string>& nameVec, const s
     }
     else
     {
-		StringToMenuNodeMapT::const_iterator it;
-		for(it = map.begin(); it != map.end(); it++)
+//		StringToMenuNodeMapT::const_iterator it;
+//		for(it = map.begin(); it != map.end(); it++)
 
 			// MLTEST
-//		std::list<std::string>::const_iterator it;
-//		for(it = index.begin(); it != index.end(); it++)
+		std::list<std::string>::const_iterator it;
+		for(it = index.begin(); it != index.end(); it++)
         {
-//			const std::string& name = *it;
-			const std::string& name = it->first;
+			const std::string& name = *it;
+//			const std::string& name = it->first;
 			
             StringToMenuNodeMapT::const_iterator it2 = map.find(name);
             const std::string& nodeName = it2->first;
@@ -201,16 +198,16 @@ void MLMenu::Node::addToJuceMenu(const std::string& name, JuceMenuPtr pMenu, boo
         subMenu = JuceMenuPtr(new juce::PopupMenu);
         
         // iterate through children and add to submenu
-		//		std::list<std::string>::const_iterator it;
-		//		for(it = index.begin(); it != index.end(); it++)
+				std::list<std::string>::const_iterator it;
+				for(it = index.begin(); it != index.end(); it++)
 		
-		StringToMenuNodeMapT::const_iterator it;
-		for(it = map.begin(); it != map.end(); it++)
+	//	StringToMenuNodeMapT::const_iterator it;
+	//	for(it = map.begin(); it != map.end(); it++)
 
 		{
 			// MLTEST
-			// const std::string& name = *it;
-			const std::string& name = it->first;
+			const std::string& name = *it;
+			//const std::string& name = it->first;
 
 			StringToMenuNodeMapT::const_iterator it2 = map.find(name);
             const std::string& nodeName = it2->first;
@@ -303,6 +300,7 @@ void MLMenu::appendMenu(MLMenuPtr m)
 
 void MLMenu::buildIndex()
 {
+	debug() << "BUILD\n";
     mRoot->renumberItems();
     std::string startPath("");
     mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
