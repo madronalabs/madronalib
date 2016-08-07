@@ -176,7 +176,7 @@ public:
 	virtual void dumpGraph(int indent) = 0;	
 	virtual void setProcParams(const ml::Path& procName, juce::XmlElement* pelem) = 0;
 
-	typedef std::map<ml::Symbol, MLProcPtr> MLSymbolProcMapT;	
+	typedef std::map<ml::Symbol, MLProcPtr> SymbolProcMapT;	
 	typedef std::map<ml::Symbol, MLPublishedParamPtr> MLPublishedParamMapT;
 	typedef std::map<ml::Symbol, MLPublishedInputPtr> MLPublishedInputMapT;
 	typedef std::map<ml::Symbol, MLPublishedOutputPtr> MLPublishedOutputMapT;
@@ -364,7 +364,7 @@ protected:
 	std::vector<MLProc*> mOpsVec;
 		
 	// map to processors by name.   
-	MLSymbolProcMapT mProcMap;
+	SymbolProcMapT mProcMap;
 	
 	// list of processors in order of creation. 
 	std::list<MLProcPtr> mProcList;

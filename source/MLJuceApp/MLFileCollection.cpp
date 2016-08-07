@@ -8,6 +8,8 @@
 
 #include "MLFileCollection.h"
 
+using namespace ml;
+
 MLFileCollection::Listener::~Listener()
 {
 	for(std::list<MLFileCollection*>::iterator it = mpCollections.begin(); it != mpCollections.end(); it++)
@@ -124,18 +126,18 @@ ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::F
 	if (f.hasFileExtension(mExtension.getText()))
 	{
 		// insert file or directory into file tree relative to collection root
-		std::string fullName(f.getFullPathName().toUTF8());
-		std::string relativePath = getRelativePathFromName(fullName);
-		returnNode = mRoot.addValue(ml::Path(relativePath.c_str()), MLFile(fullName));
+		TextFragment fullName(f.getFullPathName().toUTF8());
+		TextFragment relativePath = getRelativePathFromName(fullName);
+		returnNode = mRoot.addValue(ml::Path(relativePath), MLFile(fullName.toString()));
 	}
 	else if (f.isDirectory())
 	{
 		// insert file or directory into file tree relative to collection root
-		std::string fullName(f.getFullPathName().toUTF8());
-		std::string relativePath = getRelativePathFromName(fullName);
+		TextFragment fullName(f.getFullPathName().toUTF8());
+		TextFragment relativePath = getRelativePathFromName(fullName);
 
 		// add a value-less node to represent a (possibly empty) directory.
-		returnNode = mRoot.addNode(ml::Path(relativePath.c_str())); 
+		returnNode = mRoot.addNode(ml::Path(relativePath)); 
 	}
 	return returnNode;
 }
@@ -251,7 +253,7 @@ std::string MLFileCollection::getFilePathByIndex(int idx)
 	if(ml::within(idx, 0, size))
     {
 		ml::TextFragment fullName = mFilesByIndex[idx].getLongName();
-		return getRelativePathFromName(fullName.getText());
+		return getRelativePathFromName(fullName).toString();
     }
     return std::string();
 }
@@ -302,10 +304,11 @@ const MLFile MLFileCollection::createFile(const std::string& relativePathAndName
 }
 
 // get part of absolute path p, if any, relative to our root path, without extension.
-std::string MLFileCollection::getRelativePathFromName(const std::string& f) const
+ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragment& f) const
 {
-    std::string rootName = std::string(mRoot.getValue().getLongName().getText());
-	std::string fullName = f;
+	//MLTEST aagh! TODO write find and replace for TextFragments
+	std::string rootName = (mRoot.getValue().getLongName().toString());
+	std::string fullName(f.toString());
     std::string relPath;
 	
 	// convert case in the weird scenario the user has the home directory renamed.
@@ -351,7 +354,7 @@ std::string MLFileCollection::getRelativePathFromName(const std::string& f) cons
 #endif
 	
 	ml::TextFragment pf(relPath.c_str());
-	return std::string(ml::textUtils::stripFileExtension(pf).getText());
+	return (ml::textUtils::stripFileExtension(pf));
 }
 
 MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)> includeFn) const

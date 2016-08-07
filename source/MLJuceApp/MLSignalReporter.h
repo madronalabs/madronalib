@@ -35,12 +35,12 @@ protected:
 	typedef std::shared_ptr<MLSignalView> MLSignalViewPtr;
 	typedef std::list<MLSignalViewPtr> MLSignalViewList;
 	typedef std::map<ml::Symbol, MLSignalViewList> MLSignalViewListMap;
-	typedef std::map<ml::Symbol, MLSignalPtr> MLSymbolToSignalMap;
+	typedef std::map<ml::Symbol, MLSignalPtr> SymbolToSignalMap;
 	typedef std::map<ml::Symbol, int> ViewPriorityMap;
 
 	MLPluginProcessor* mpProcessor;
-	MLSymbolToSignalMap mSignalBuffers;
-	MLSymbolToSignalMap mSignalBuffers2;
+	SymbolToSignalMap mSignalBuffers;
+	SymbolToSignalMap mSignalBuffers2;
     ViewPriorityMap mViewPriorityMap;
     
     // map of view lists

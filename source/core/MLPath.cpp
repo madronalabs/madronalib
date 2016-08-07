@@ -14,7 +14,7 @@ namespace ml {
 		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
 	}
 
-	// parse an input string into our representation: an array of MLSymbols.
+	// parse an input string into our representation: an array of ml::Symbols.
 	Path::Path(const char * str) :
 		mSize(0), mCopy(0)
 	{

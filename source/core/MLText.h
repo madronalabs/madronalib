@@ -170,7 +170,7 @@ namespace ml
 	
 	// TODO made operator== a free function-	do likewise for other classes
 	
-	inline bool operator==(const TextFragment& a, const TextFragment& b)
+	inline bool operator==(const TextFragment a, const TextFragment b)
 	{
 		return compareSizedCharArrays(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes()); 
 	}

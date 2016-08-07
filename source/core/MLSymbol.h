@@ -1,5 +1,5 @@
 
-// MLSymbol.h
+// ml::Symbol.h
 // ----------
 
 // ml::Symbol is designed to be an efficient key in STL containers such as map and
@@ -9,8 +9,8 @@
 // ---------
 //
 // Symbols are immutable.
-// The value of a Symbol must remain valid even after more MLSymbols are created.  
-// This allows MLSymbols to function as keys in any kind of data structure.
+// The value of a Symbol must remain valid even after more ml::Symbols are created.  
+// This allows ml::Symbols to function as keys in any kind of data structure.
 //
 // Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.

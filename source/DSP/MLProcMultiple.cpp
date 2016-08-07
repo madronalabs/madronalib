@@ -43,7 +43,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
 	int proxyCopies = (int)getParam("copies");
 
 	// is name in map already?
-	MLSymbolProcMapT::iterator it = mProcMap.find(procName);
+	SymbolProcMapT::iterator it = mProcMap.find(procName);
 	if (it == mProcMap.end())
 	{
 		// new template proc
@@ -129,7 +129,7 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 	MLProcPtr r;
 	MLProcPtr proxyProc; // proxy proc in our container
 	MLProcContainer* copyAsContainer;	// owned by proxy
-	MLSymbolProcMapT::iterator it;
+	SymbolProcMapT::iterator it;
 	int proxyCopies = (int)getParam("copies");
 	
 	ml::Symbol head = path.head();

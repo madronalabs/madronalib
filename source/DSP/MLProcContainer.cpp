@@ -997,7 +997,7 @@ int MLProcContainer::getNumProcs()
 void MLProcContainer::dumpMap()
 {
 	debug() << "dumping map: ------------\n";
-	for(MLSymbolProcMapT::iterator it = mProcMap.begin(); it != mProcMap.end(); it++)
+	for(SymbolProcMapT::iterator it = mProcMap.begin(); it != mProcMap.end(); it++)
 	{
 		debug() << "key " << it->first << ", proc " << it->second->getName() << "\n";
 	}
@@ -1029,7 +1029,7 @@ MLProc::err MLProcContainer::addProc(const ml::Symbol className, const ml::Symbo
 	err e = OK;
 		
 	// is name in map already?
-	MLSymbolProcMapT::iterator it = mProcMap.find(procName);
+	SymbolProcMapT::iterator it = mProcMap.find(procName);
 	if (it == mProcMap.end())
 	{
 		// if not, call factory to get instance of processor class
@@ -1067,7 +1067,7 @@ MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias
 	err e = OK;
 	
 	// does afterProc exist?
-	MLSymbolProcMapT::iterator it;
+	SymbolProcMapT::iterator it;
 	it = mProcMap.find(afterProc);
 	if (it == mProcMap.end())
 	{
@@ -1124,7 +1124,7 @@ MLProcPtr MLProcContainer::getProc(const ml::Path & path)
 {
 	MLProcPtr r;
 	MLProcPtr headProc;
-	MLSymbolProcMapT::iterator it;
+	SymbolProcMapT::iterator it;
 	err e = OK;
 
 	const ml::Symbol head = path.head();
@@ -1526,7 +1526,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 	err e = OK;
 
 	MLProcPtr headProc;
-	MLSymbolProcMapT::iterator it;
+	SymbolProcMapT::iterator it;
 
 	const ml::Symbol head = procAddress.head();
 	const ml::Path tail = procAddress.tail();
@@ -1592,7 +1592,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml::Symbol alias, MLProcList& signalBuffers)
 {
 	MLProcPtr headProc;
-	MLSymbolProcMapT::iterator it;
+	SymbolProcMapT::iterator it;
 	const ml::Symbol head = procAddress.head();
 	const ml::Path tail = procAddress.tail();
 
@@ -1723,7 +1723,7 @@ float MLProcContainer::getParam(const ml::Symbol alias)
 void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val)
 {
 	MLProcPtr headProc;
-	MLSymbolProcMapT::iterator it;
+	SymbolProcMapT::iterator it;
 
 	const ml::Symbol head = procAddress.head();
 	const ml::Path tail = procAddress.tail();

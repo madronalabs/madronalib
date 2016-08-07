@@ -101,7 +101,7 @@ public:
     const MLFile createFile(const std::string& relativePath);
 
     // given a full system file name, get its path relative to our starting directory.
-    std::string getRelativePathFromName(const std::string& name) const;
+    ml::TextFragment getRelativePathFromName(const ml::TextFragment& name) const;
     
 	// build a menu of the files for which the function returns true.
 	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;

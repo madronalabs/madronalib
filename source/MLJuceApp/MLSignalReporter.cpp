@@ -33,7 +33,7 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w
 	{
 		// if signal buffer does not already exist, add one.
         // Allocates a signal with one row per voice. 
-		MLSymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
+		SymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
 		if (it == mSignalBuffers.end()) 
 		{
 			// add buffers so we can read the signal from the buffer and
