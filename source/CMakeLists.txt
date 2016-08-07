@@ -42,10 +42,6 @@ if(BUILD_NEW_ONLY)
     )
 else(BUILD_NEW_ONLY)
   
-  if(NOT APPLE)
-    find_package(GLUT REQUIRED)
-    find_package(DNSSD REQUIRED)
-  endif()
 
   set(madronalib_SOURCES
     DSP/MLDSP.cpp
@@ -310,9 +306,8 @@ endif()
 if(APPLE)
   target_link_libraries(madronalib "-framework Foundation")
   target_link_libraries(madronalib "-framework OpenGL")
-  target_link_libraries(madronalib "-framework GLUT")
 else(APPLE)
-  target_link_libraries(madronalib ${DNSSD_LIBRARIES})
+  #target_link_libraries(madronalib ${DNSSD_LIBRARIES})
 endif()
 
 if (BUILD_SHARED_LIBS)
