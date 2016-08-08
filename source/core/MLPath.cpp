@@ -34,17 +34,25 @@ namespace ml {
 	{
 		const int pathStrBytes = strlen(pathStr);	
 
-		// TODO this allocates heap. fix
-		std::vector<char> UTF8buf;
-		UTF8buf.resize(pathStrBytes);
-
-		//char UTF8buf[pathStrBytes];
-		//std::fill(UTF8buf, UTF8buf+pathStrBytes, 0);
-
-		char* beginPoint = UTF8buf.data();
-		char* beginSymbol = beginPoint;
-		char* endPoint = beginPoint;
+		// TODO this small-local alloc could be a pattern
+		constexpr int kLocalBufSize = 128;
+		char UTF8buf[kLocalBufSize] = {0};	
+		std::vector<char> UTF8Vec; // used only if length > kLocalBufSize
 		
+		char* pBuf;
+		if(pathStrBytes < kLocalBufSize)
+		{
+			pBuf = UTF8buf;
+		}
+		else
+		{
+			UTF8Vec.resize(pathStrBytes + 1, 0);
+			pBuf = UTF8Vec.data();
+		}
+		char* beginPoint = pBuf;
+		char* beginSymbol = pBuf;
+		char* endPoint = pBuf;			
+
 		auto first = utf::codepoint_iterator<const char*>(pathStr);		
 		auto it = first;
 		int pointSizeAsUTF8;
