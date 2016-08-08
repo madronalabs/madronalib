@@ -50,7 +50,7 @@ namespace ml
 		
 		T* mpData;
 		T mLocalData[kLocalDataSize];
-		std::vector<T> mVec;
+		std::vector< typename T > mVec;
 	};
 	
 	
