@@ -22,6 +22,7 @@ namespace ml
 	class Interval
 	{
 	public:
+		Interval() : mX1(0.f), mX2(1.f) {}
 		Interval(float x1, float x2) : mX1(x1), mX2(x2) {}
 		Interval(int x1, int x2) : mX1(x1), mX2(x2) {}
 		

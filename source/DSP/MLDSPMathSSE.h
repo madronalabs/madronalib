@@ -44,6 +44,10 @@
 typedef __m128 SIMDVectorFloat;
 typedef __m128i SIMDVectorInt; 
 
+// SSE casts
+#define VecF2I _mm_castps_si128
+#define VecI2F _mm_castsi128_ps
+
 constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
 constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
 constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
@@ -223,7 +227,7 @@ inline SIMDVectorFloat vecLog(SIMDVectorFloat x)
 	
 	x = _mm_max_ps(x, *(SIMDVectorFloat*)_ps_min_norm_pos);  /* cut off denormalized stuff */
 	
-	emm0 = _mm_srli_epi32(_mm_castps_si128(x), 23);
+	emm0 = _mm_srli_epi32(VecF2I(x), 23);
 
 	/* keep only the fractional part */
 	x = _mm_and_ps(x, *(SIMDVectorFloat*)_ps_inv_mant_mask);
@@ -343,7 +347,7 @@ inline SIMDVectorFloat vecExp(SIMDVectorFloat x)
 	emm0 = _mm_cvttps_epi32(fx);
 	emm0 = _mm_add_epi32(emm0, *(SIMDVectorInt*)_pi32_0x7f);
 	emm0 = _mm_slli_epi32(emm0, 23);
-	SIMDVectorFloat pow2n = _mm_castsi128_ps(emm0);
+	SIMDVectorFloat pow2n = VecI2F(emm0);
 	
 	y = _mm_mul_ps(y, pow2n);
 	return y;
@@ -417,8 +421,8 @@ inline SIMDVectorFloat vecSin(SIMDVectorFloat x)
 	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_2);
 	emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
 	
-	SIMDVectorFloat swap_sign_bit = _mm_castsi128_ps(emm0);
-	SIMDVectorFloat poly_mask = _mm_castsi128_ps(emm2);
+	SIMDVectorFloat swap_sign_bit = VecI2F(emm0);
+	SIMDVectorFloat poly_mask = VecI2F(emm2);
 	sign_bit = _mm_xor_ps(sign_bit, swap_sign_bit);
 	
 	/* The magic pass: "Extended precision modular arithmetic" 
@@ -494,8 +498,8 @@ inline SIMDVectorFloat vecCos(SIMDVectorFloat x)
 	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_2);
 	emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
 	
-	SIMDVectorFloat sign_bit = _mm_castsi128_ps(emm0);
-	SIMDVectorFloat poly_mask = _mm_castsi128_ps(emm2);
+	SIMDVectorFloat sign_bit = VecI2F(emm0);
+	SIMDVectorFloat poly_mask = VecI2F(emm2);
 
 	/* The magic pass: "Extended precision modular arithmetic" 
 	 x = ((x - y * DP1) - y * DP2) - y * DP3; */
@@ -573,12 +577,12 @@ inline void vecSinCos(SIMDVectorFloat x, SIMDVectorFloat *s, SIMDVectorFloat *c)
 	/* get the swap sign flag for the sine */
 	emm0 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_4);
 	emm0 = _mm_slli_epi32(emm0, 29);
-	SIMDVectorFloat swap_sign_bit_sin = _mm_castsi128_ps(emm0);
+	SIMDVectorFloat swap_sign_bit_sin = VecI2F(emm0);
 	
 	/* get the polynom selection mask for the sine*/
 	emm2 = _mm_and_si128(emm2, *(SIMDVectorInt*)_pi32_2);
 	emm2 = _mm_cmpeq_epi32(emm2, _mm_setzero_si128());
-	SIMDVectorFloat poly_mask = _mm_castsi128_ps(emm2);
+	SIMDVectorFloat poly_mask = VecI2F(emm2);
 
 	/* The magic pass: "Extended precision modular arithmetic" 
 	 x = ((x - y * DP1) - y * DP2) - y * DP3; */
@@ -595,7 +599,7 @@ inline void vecSinCos(SIMDVectorFloat x, SIMDVectorFloat *s, SIMDVectorFloat *c)
 	emm4 = _mm_sub_epi32(emm4, *(SIMDVectorInt*)_pi32_2);
 	emm4 = _mm_andnot_si128(emm4, *(SIMDVectorInt*)_pi32_4);
 	emm4 = _mm_slli_epi32(emm4, 29);
-	SIMDVectorFloat sign_bit_cos = _mm_castsi128_ps(emm4);
+	SIMDVectorFloat sign_bit_cos = VecI2F(emm4);
 	
 	sign_bit_sin = _mm_xor_ps(sign_bit_sin, swap_sign_bit_sin);
 	
@@ -710,8 +714,8 @@ inline SIMDVectorFloat vecExpApprox(SIMDVectorFloat x)
 	val4 = _mm_max_ps(val3, kZeroVec);
 	val4i = _mm_cvttps_epi32(val4);
 	
-	SIMDVectorFloat xu = _mm_castsi128_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7F800000))); 
-	SIMDVectorFloat b = _mm_castsi128_ps(_mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)));
+	SIMDVectorFloat xu = VecI2F(_mm_and_ps(val4i, _mm_set1_epi32(0x7F800000))); 
+	SIMDVectorFloat b = VecI2F(_mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)));
 			
 	return _mm_mul_ps(xu, (
 	_mm_add_ps(kExpC4Vec, _mm_mul_ps(b,
@@ -731,11 +735,11 @@ STATIC_M128_CONST(kLogC7Vec, 0.69314718055995f);
 inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val) 
 {
 	SIMDVectorInt vZero = _mm_setzero_si128();
-	SIMDVectorInt valAsInt = _mm_castps_si128(val);
+	SIMDVectorInt valAsInt = VecF2I(val);
 	SIMDVectorInt expi = _mm_srli_epi32(valAsInt, 23);
 	SIMDVectorFloat addcst = vecSelect(_mm_cmpgt_ps(val, vZero), kLogC1Vec, _mm_set1_ps(FLT_MIN));
 	SIMDVectorInt valAsIntMasked = _mm_or_ps(_mm_and_ps(valAsInt, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
-	SIMDVectorFloat x = _mm_castsi128_ps(valAsIntMasked);
+	SIMDVectorFloat x = VecI2F(valAsIntMasked);
 		
 	SIMDVectorFloat poly = 
 	_mm_mul_ps(x, 
