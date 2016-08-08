@@ -150,7 +150,7 @@ inline SIMDVectorFloat vecSelect(SIMDVectorFloat conditionMask, SIMDVectorFloat 
 	__m128i ones = _mm_set1_epi32(-1);
 	return _mm_or_ps(
 					 _mm_and_ps(conditionMask, a),
-					 _mm_and_ps(_mm_xor_ps(conditionMask, ones), b)
+					 _mm_and_ps(_mm_xor_ps(conditionMask, VecI2F(ones)), b)
 					 );
 }
 
@@ -714,8 +714,8 @@ inline SIMDVectorFloat vecExpApprox(SIMDVectorFloat x)
 	val4 = _mm_max_ps(val3, kZeroVec);
 	val4i = _mm_cvttps_epi32(val4);
 	
-	SIMDVectorFloat xu = VecI2F(_mm_and_ps(val4i, _mm_set1_epi32(0x7F800000))); 
-	SIMDVectorFloat b = VecI2F(_mm_or_ps(_mm_and_ps(val4i, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000)));
+	SIMDVectorFloat xu = _mm_and_ps(VecI2F(val4i), VecI2F(_mm_set1_epi32(0x7F800000)));
+	SIMDVectorFloat b = _mm_or_ps(_mm_and_ps(VecI2F(val4i), VecI2F(_mm_set1_epi32(0x7FFFFF))), VecI2F(_mm_set1_epi32(0x3F800000)));
 			
 	return _mm_mul_ps(xu, (
 	_mm_add_ps(kExpC4Vec, _mm_mul_ps(b,
@@ -737,8 +737,8 @@ inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val)
 	SIMDVectorInt vZero = _mm_setzero_si128();
 	SIMDVectorInt valAsInt = VecF2I(val);
 	SIMDVectorInt expi = _mm_srli_epi32(valAsInt, 23);
-	SIMDVectorFloat addcst = vecSelect(_mm_cmpgt_ps(val, vZero), kLogC1Vec, _mm_set1_ps(FLT_MIN));
-	SIMDVectorInt valAsIntMasked = _mm_or_ps(_mm_and_ps(valAsInt, _mm_set1_epi32(0x7FFFFF)), _mm_set1_epi32(0x3F800000));
+	SIMDVectorFloat addcst = vecSelect(_mm_cmpgt_ps(val, VecI2F(vZero)), kLogC1Vec, _mm_set1_ps(FLT_MIN));
+	SIMDVectorInt valAsIntMasked = VecF2I(_mm_or_ps(_mm_and_ps(VecI2F(valAsInt), VecI2F(_mm_set1_epi32(0x7FFFFF))), VecI2F(_mm_set1_epi32(0x3F800000))));
 	SIMDVectorFloat x = VecI2F(valAsIntMasked);
 		
 	SIMDVectorFloat poly = 

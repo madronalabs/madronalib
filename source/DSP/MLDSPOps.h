@@ -68,7 +68,7 @@ namespace ml
 		}
 				
 		// DSPVectors are always aligned, take advantage of this for fast copying
-		inline DSPVectorArray<VECTORS> operator=(DSPVectorArray<VECTORS> x1)
+		inline DSPVectorArray<VECTORS> operator=(const DSPVectorArray<VECTORS>& x1)
 		{
 			float* px1 = x1.getBuffer();
 			float* py1 = getBuffer();
@@ -92,7 +92,7 @@ namespace ml
 		
 		// set row J of this DSPVectorArray to x1, when J is known at compile time. 
 		template<int J>
-		inline void setRowVector(DSPVectorArray<1> x1)
+		inline void setRowVector(const DSPVectorArray<1>& x1)
 		{
 			static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
 			setRowVectorUnchecked(J, x1);
@@ -115,7 +115,7 @@ namespace ml
 		}
 		
 		// set a row vector j when j is not known at compile time. 
-		inline void setRowVectorUnchecked(int j, DSPVectorArray<1> x1)
+		inline void setRowVectorUnchecked(int j, const DSPVectorArray<1>& x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
@@ -137,10 +137,10 @@ namespace ml
 			return py1;
 		}		
 						
-		inline DSPVectorArray& operator+=(DSPVectorArray x1){*this = add(*this, x1); return *this;}
-		inline DSPVectorArray& operator-=(DSPVectorArray x1){*this = subtract(*this, x1); return *this;}
-		inline DSPVectorArray& operator*=(DSPVectorArray x1){*this = multiply(*this, x1); return *this;}
-		inline DSPVectorArray& operator/=(DSPVectorArray x1){*this = divide(*this, x1); return *this;}
+		inline DSPVectorArray& operator+=(const DSPVectorArray& x1){*this = add(*this, x1); return *this;}
+		inline DSPVectorArray& operator-=(const DSPVectorArray& x1){*this = subtract(*this, x1); return *this;}
+		inline DSPVectorArray& operator*=(const DSPVectorArray& x1){*this = multiply(*this, x1); return *this;}
+		inline DSPVectorArray& operator/=(const DSPVectorArray& x1){*this = divide(*this, x1); return *this;}
 		
 		// declare as friends any templates or functions that need to use get/setRowVectorUnchecked
 		template<int C, int V>
@@ -229,12 +229,12 @@ namespace ml
 	#define DEFINE_OP2(opName, opComputation)					\
 	template<int VECTORS>										\
 	inline DSPVectorArray<VECTORS>(opName)						\
-		(DSPVectorArray<VECTORS> vx1,							\
-		DSPVectorArray<VECTORS> vx2)							\
+		(const DSPVectorArray<VECTORS>& vx1,							\
+		const DSPVectorArray<VECTORS>& vx2)							\
 	{															\
 		DSPVectorArray<VECTORS> vy;								\
-		float* px1 = vx1.getBuffer();							\
-		float* px2 = vx2.getBuffer();							\
+		const float* px1 = vx1.getConstBuffer();							\
+		const float* px2 = vx2.getConstBuffer();							\
 		float* py1 = vy.getBuffer();							\
 		for (int n = 0;											\
 			n < kSIMDVectorsPerDSPVector*VECTORS; ++n)			\
@@ -254,10 +254,10 @@ namespace ml
 	DEFINE_OP2(multiply, (vecMul(x1, x2)));
 	DEFINE_OP2(divide, (vecDiv(x1, x2)));
 
-	inline DSPVector operator+(DSPVector x1, DSPVector x2){return add(x1, x2);}
-	inline DSPVector operator-(DSPVector x1, DSPVector x2){return subtract(x1, x2);}
-	inline DSPVector operator*(DSPVector x1, DSPVector x2){return multiply(x1, x2);}
-	inline DSPVector operator/(DSPVector x1, DSPVector x2){return divide(x1, x2);}
+	inline DSPVector operator+(const DSPVector& x1, const DSPVector& x2){return add(x1, x2);}
+	inline DSPVector operator-(const DSPVector& x1, const DSPVector& x2){return subtract(x1, x2);}
+	inline DSPVector operator*(const DSPVector& x1, const DSPVector& x2){return multiply(x1, x2);}
+	inline DSPVector operator/(const DSPVector& x1, const DSPVector& x2){return divide(x1, x2);}
 	
 	template<int VECTORS>
 	inline DSPVectorArray<VECTORS> operator+(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return add(x1, x2);}
@@ -329,7 +329,7 @@ namespace ml
 		{													
 			vecStore(py1, indexVec);											
 			py1 += kFloatsPerSIMDVector;		
-			indexVec += stepVec;
+			indexVec = vecAdd(indexVec, stepVec);
 		}													
 		return vy;											
 	}
@@ -354,9 +354,9 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark single-vector horizontal operators returning float
 	
-	inline float sum(DSPVector x)
+	inline float sum(const DSPVector& x)
 	{
-		float* px1 = x.getBuffer();
+		const float* px1 = x.getConstBuffer();
 		float sum = 0;
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		
 		{
@@ -366,31 +366,31 @@ namespace ml
 		return sum;
 	}
 	
-	inline float mean(DSPVector x)
+	inline float mean(const DSPVector& x)
 	{
 		constexpr float kGain = 1.0f/kFloatsPerDSPVector;
 		return sum(x)*kGain;
 	}
 	
-	inline float max(DSPVector x)
+	inline float max(const DSPVector& x)
 	{
-		float* px1 = x.getBuffer();
+		const float* px1 = x.getConstBuffer();
 		float fmax = FLT_MIN;
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		
 		{
-			fmax = std::max(fmax, vecMaxH(vecLoad(px1)));
+			fmax = ml::max(fmax, vecMaxH(vecLoad(px1)));
 			px1 += kFloatsPerSIMDVector;	
 		}
 		return fmax;
 	}
 	
-	inline float min(DSPVector x)
+	inline float min(const DSPVector& x)
 	{
-		float* px1 = x.getBuffer();
+		const float* px1 = x.getConstBuffer();
 		float fmin = FLT_MAX;
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		
 		{
-			fmin = std::min(fmin, vecMinH(vecLoad(px1)));
+			fmin = ml::min(fmin, vecMinH(vecLoad(px1)));
 			px1 += kFloatsPerSIMDVector;	
 		}
 		return fmin;
@@ -426,7 +426,7 @@ namespace ml
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(DSPVector, int)> f, const DSPVectorArray<VECTORS>& x)
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&, int)> f, const DSPVectorArray<VECTORS>& x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
@@ -435,7 +435,7 @@ namespace ml
 		}			
 		return y;
 	}
-	
+
 	// ----------------------------------------------------------------
 	#pragma mark rowIndex
 	
@@ -555,7 +555,7 @@ namespace ml
 		return out;
 	}	
 	
-	inline bool validate(DSPVector x)
+	inline bool validate(const DSPVector& x)
 	{
 		bool r = true;
 		for(int n=0; n<kFloatsPerDSPVector; ++n)

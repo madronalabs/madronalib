@@ -564,7 +564,7 @@ namespace ml
 		void clear();
 		
 		// stereo output
-		DSPVectorArray<2> operator()(DSPVector x);
+		DSPVectorArray<2> operator()(const DSPVector& x);
 		
 	private:
 		std::vector<FixedDelay> mDelays;
@@ -580,20 +580,20 @@ namespace ml
 	class OverlapAdd
 	{
 	public:
-		OverlapAdd(std::function<DSPVector(DSPVector)> fn, const DSPVector& w) : mFunction(fn), mWindow(w) 
+		OverlapAdd(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& w) : mFunction(fn), mWindow(w)
 		{
 			mHistory.setDims(LENGTH, DIVISIONS);
 		}
 		~OverlapAdd(){}
 		
-		DSPVector operator()(DSPVector x)
+		DSPVector operator()(const DSPVector& x)
 		{
 			// work in progress
 		}
 		
 	private:
 		MLSignal mHistory;
-		std::function<DSPVector(DSPVector)> mFunction;
+		std::function<DSPVector(const DSPVector&)> mFunction;
 		const DSPVector& mWindow;
 	};
 	

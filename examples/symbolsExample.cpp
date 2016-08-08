@@ -313,7 +313,7 @@ int main()
 	
 	{
 		// test bogus UTF-8
-		int bogusSize = 32;
+		constexpr int bogusSize = 32;
 		char bogus[bogusSize];
 		for(int i=0; i<bogusSize; ++i)
 		{
