@@ -221,7 +221,9 @@ namespace ml { namespace textUtils {
 	TextFragment reduce(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
 	{
 		if(!frag) return TextFragment();
-		char buf[frag.lengthInBytes()];
+		int len = frag.lengthInBytes();
+		SmallStackBuffer<char> temp(len);
+		char* buf = temp.data();
 		char* pb = buf;
 		
 		for (const codepoint_type c : frag) 
@@ -302,7 +304,7 @@ namespace ml { namespace textUtils {
 		// temp buffer big enough to hold whole input fragment if needed.
 		// we won't know the output fragment size in bytes until iterating the code points. 
 		int len = frag.lengthInBytes();
-		SmallStackBuffer temp(len);
+		SmallStackBuffer<char> temp(len);
 		char* buf = temp.data();
 		char* pb = buf;
 		
@@ -652,10 +654,11 @@ namespace ml { namespace textUtils {
 	
 	Symbol stripFinalNumber(Symbol sym)
 	{
-		// make temporary buffer on stack  
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
-		char32_t buf[points + 1];
+				
+		SmallStackBuffer<codepoint_type> temp(points + 1);
+		codepoint_type* buf = temp.data();
 		
 		// read into char32 array for random access
 		int i=0;
@@ -692,8 +695,10 @@ namespace ml { namespace textUtils {
 		// make temporary buffer on stack  
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
-		char32_t buf[points + 1];
 
+		SmallStackBuffer<codepoint_type> temp(points + 1);
+		codepoint_type* buf = temp.data();
+		
 		// read into char32 array for random access
 		int i=0;
 		for (codepoint_type c : frag) 

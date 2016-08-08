@@ -22,10 +22,12 @@ namespace ml
 	// SmallStackBuffer - allocate some memory on the stack if we don't need much,
 	// otherwise use the heap.
 
+	template< typename T >
 	class SmallStackBuffer
 	{
 	public:
-		static const int kLocalDataSize = 128;
+		// max elements on stack
+		static const int kLocalDataSize = 128; 
 		SmallStackBuffer(int size)
 		{
 			if(size < kLocalDataSize)
@@ -44,11 +46,11 @@ namespace ml
 		}
 		~SmallStackBuffer(){}
 		
-		char* data() { return mpData; }
+		T* data() { return mpData; }
 		
-		char* mpData;
-		char mLocalData[kLocalDataSize];
-		std::vector<char> mVec;
+		T* mpData;
+		T mLocalData[kLocalDataSize];
+		std::vector<T> mVec;
 	};
 	
 	

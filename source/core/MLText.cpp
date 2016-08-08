@@ -61,7 +61,7 @@ namespace ml
 		
 		// we won't know the output fragment size in bytes until iterating the code points. 
 		int len = frag.lengthInBytes();
-		SmallStackBuffer temp(len);
+		SmallStackBuffer<char> temp(len);
 		char* buf = temp.data();
 		char* pb = buf;
 		
