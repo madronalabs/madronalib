@@ -34,25 +34,11 @@ namespace ml {
 	{
 		const int pathStrBytes = strlen(pathStr);	
 
-		// TODO this small-local alloc could be a pattern
-		constexpr int kLocalBufSize = 128;
-		char UTF8buf[kLocalBufSize] = {0};	
-		std::vector<char> UTF8Vec; // used only if length > kLocalBufSize
-		
-		char* pBuf;
-		if(pathStrBytes < kLocalBufSize)
-		{
-			pBuf = UTF8buf;
-		}
-		else
-		{
-			UTF8Vec.resize(pathStrBytes + 1, 0);
-			pBuf = UTF8Vec.data();
-		}
-		char* beginPoint = pBuf;
-		char* beginSymbol = pBuf;
-		char* endPoint = pBuf;			
-
+		SmallStackBuffer buf(pathStrBytes);
+		char* beginPoint = buf.data();
+		char* beginSymbol = beginPoint;
+		char* endPoint = beginPoint;			
+				
 		auto first = utf::codepoint_iterator<const char*>(pathStr);		
 		auto it = first;
 		int pointSizeAsUTF8;

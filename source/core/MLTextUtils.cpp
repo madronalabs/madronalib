@@ -299,10 +299,11 @@ namespace ml { namespace textUtils {
 		if(!frag) return TextFragment();
 		if(start >= end) return TextFragment();
 		
-		// temp buffer on stack big enough to hold whole input fragment if needed.
+		// temp buffer big enough to hold whole input fragment if needed.
 		// we won't know the output fragment size in bytes until iterating the code points. 
-		char buf[frag.lengthInBytes()];
-		std::fill(buf, buf+frag.lengthInBytes(), 0);
+		int len = frag.lengthInBytes();
+		SmallStackBuffer temp(len);
+		char* buf = temp.data();
 		char* pb = buf;
 		
 		auto first = codepoint_iterator<const char*>(frag.getText());		

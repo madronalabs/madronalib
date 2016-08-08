@@ -12,11 +12,46 @@
 #include "MLLocks.h"
 #include "utf/utf.hpp"
 #include <iostream>
+#include <vector>
 
 using namespace utf;
 
 namespace ml
 {
+	// ----------------------------------------------------------------
+	// SmallStackBuffer - allocate some memory on the stack if we don't need much,
+	// otherwise use the heap.
+
+	class SmallStackBuffer
+	{
+	public:
+		static const int kLocalDataSize = 128;
+		SmallStackBuffer(int size)
+		{
+			if(size < kLocalDataSize)
+			{
+				// use stack if > kLocalDataSize
+				// leave room for null termination
+				mpData = mLocalData;
+				std::fill(mpData, mpData + size, 0);
+			}
+			else
+			{
+				// get heap if > kLocalDataSize
+				mVec.resize(size + 1, 0);
+				mpData = mVec.data();
+			}
+		}
+		~SmallStackBuffer(){}
+		
+		char* data() { return mpData; }
+		
+		char* mpData;
+		char mLocalData[kLocalDataSize];
+		std::vector<char> mVec;
+	};
+	
+	
 	// ----------------------------------------------------------------
 	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
 	// if the length is below kShortFragmentSize. 
