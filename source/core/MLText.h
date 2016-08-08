@@ -22,7 +22,7 @@ namespace ml
 	// SmallStackBuffer - allocate some memory on the stack if we don't need much,
 	// otherwise use the heap.
 
-	template< typename T >
+	template< class T >
 	class SmallStackBuffer
 	{
 	public:
@@ -50,7 +50,7 @@ namespace ml
 		
 		T* mpData;
 		T mLocalData[kLocalDataSize];
-		std::vector< typename T > mVec;
+		std::vector< T > mVec;
 	};
 	
 	
