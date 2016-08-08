@@ -50,10 +50,12 @@ const int kWideBufSize = 16384;
 static wchar_t wideBuf[kWideBufSize];
 void MLTextStream::display()
 {
+	/*
 	if (!(juce::MessageManager::getInstance()->isThisTheMessageThread())) 
 	{
 		return;
 	}
+	*/
 	if(mpListener)
 	{
 		mpListener->display();

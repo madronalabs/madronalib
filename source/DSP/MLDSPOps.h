@@ -70,7 +70,7 @@ namespace ml
 		// DSPVectors are always aligned, take advantage of this for fast copying
 		inline DSPVectorArray<VECTORS> operator=(const DSPVectorArray<VECTORS>& x1)
 		{
-			float* px1 = x1.getBuffer();
+			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer();
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)

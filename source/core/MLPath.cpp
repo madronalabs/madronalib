@@ -32,12 +32,18 @@ namespace ml {
 
 	void Path::parsePathString(const char* pathStr)
 	{
-		int pathStrBytes = strlen(pathStr);		
-		char UTF8buf[pathStrBytes];
-		std::fill(UTF8buf, UTF8buf+pathStrBytes, 0);
-		char* beginPoint = UTF8buf;
-		char* beginSymbol = UTF8buf;
-		char* endPoint = UTF8buf;
+		const int pathStrBytes = strlen(pathStr);	
+
+		// TODO this allocates heap. fix
+		std::vector<char> UTF8buf;
+		UTF8buf.resize(pathStrBytes);
+
+		//char UTF8buf[pathStrBytes];
+		//std::fill(UTF8buf, UTF8buf+pathStrBytes, 0);
+
+		char* beginPoint = UTF8buf.data();
+		char* beginSymbol = beginPoint;
+		char* endPoint = beginPoint;
 		
 		auto first = utf::codepoint_iterator<const char*>(pathStr);		
 		auto it = first;

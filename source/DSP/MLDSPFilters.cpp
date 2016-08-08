@@ -84,7 +84,7 @@ void FDN::clear()
 	}
 }
 
-DSPVectorArray<2> FDN::operator()(DSPVector input)
+DSPVectorArray<2> FDN::operator()(const DSPVector& input)
 {
 	int nDelays = mDelays.size();
 	if(nDelays > 0)

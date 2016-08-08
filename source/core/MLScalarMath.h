@@ -8,6 +8,7 @@
 
 #pragma once
 #include <math.h>
+#include <float.h>
 #include <stdint.h>
 
 namespace ml 

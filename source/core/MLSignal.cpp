@@ -1065,7 +1065,7 @@ float MLSignal::getMean() const
 
 float MLSignal::getMin() const
 {
-	float fMin = MAXFLOAT;
+	float fMin = FLT_MAX;
 	for(int i=0; i<mSize; ++i)
 	{
 		float x = mDataAligned[i];
@@ -1080,7 +1080,7 @@ float MLSignal::getMin() const
 // TODO SIMD
 float MLSignal::getMax() const
 {
-	float fMax = -MAXFLOAT;
+	float fMax = -FLT_MAX;
 	for(int i=0; i<mSize; ++i)
 	{
 		float x = mDataAligned[i];

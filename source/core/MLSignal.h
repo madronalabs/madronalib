@@ -12,6 +12,7 @@
 #include <iostream>
 #include <iomanip>
 #include <memory>
+#include <functional>
 
 #include "../DSP/MLDSPMath.h"
 #include "MLScalarMath.h"

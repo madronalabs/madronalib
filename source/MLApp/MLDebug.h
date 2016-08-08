@@ -17,7 +17,7 @@
 #include "MLTextStreamListener.h"
 
 #ifdef ML_WINDOWS
-	#include "JuceHeader.h" // requires JUCE only for message thread checking
+	//#include "JuceHeader.h" // requires JUCE only for message thread checking
 #endif
 
 // TODO debug printing should have its own thread and MPSC queue.
