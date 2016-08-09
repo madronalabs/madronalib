@@ -385,6 +385,10 @@ int main()
 	
 //	theSymbolTable().dump();
 
+#ifdef _WINDOWS
+	system("pause");
+#endif
+
 	return 0;
 }
 

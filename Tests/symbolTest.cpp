@@ -86,6 +86,12 @@ TEST_CASE("madronalib/core/hashes", "[hashes]")
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
+myTimePoint now()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
 	const int kMapSize = 16;	
@@ -135,10 +141,10 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	{
 		charDict.push_back(stringDict[i].c_str());
 	}
-	
+
 	SECTION("test maps")
 	{
-		std::chrono::time_point<std::chrono::system_clock> start, end;
+		myTimePoint start, end;
 		std::chrono::duration<double> elapsed;
 		double symbolSum, stringSum;
 		int idx;
@@ -154,48 +160,48 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// existing symbols / strings
 
 		// lookup from existing std::strings
-		start = std::chrono::system_clock::now();
+		start = now();
 		stringSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			stringSum += testMapOrderedStr[stringDict[testIndexes[i]]];
 		}	
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
 		
 		// lookup from existing MLSymbols
-		start = std::chrono::system_clock::now();
+		start = now();
 		symbolSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			symbolSum += testMapOrderedSym[symbolDict[testIndexes[i]]];
 		}
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "existing symbols, elapsed time: " << elapsed.count() << "s\n";
 		
 		REQUIRE(stringSum == symbolSum);
 		
 		// lookup from existing std::strings
-		start = std::chrono::system_clock::now();
+		start = now();
 		stringSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			stringSum += testMapUnorderedStr[stringDict[testIndexes[i]]];
 		}	
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "existing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
 		
 		// lookup from existing MLSymbols
-		start = std::chrono::system_clock::now();
+		start = now();
 		symbolSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			symbolSum += testMapUnorderedSym[symbolDict[testIndexes[i]]];
 		}
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "existing symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
 
@@ -205,48 +211,48 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		// constructing symbols / strings
 		
 		// lookup from newly made std::strings
-		start = std::chrono::system_clock::now();
+		start = now();
 		stringSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			stringSum += testMapOrderedStr[charDict[testIndexes[i]]];
 		}	
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "constructing strings, elapsed time: " << elapsed.count() << "s\n";
 		
 		// lookup from new MLSymbols made from char * 
-		start = std::chrono::system_clock::now();
+		start = now();
 		symbolSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			symbolSum += testMapOrderedSym[charDict[testIndexes[i]]];
 		}
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "constructing symbols, elapsed time: " << elapsed.count() << "s\n";
 
 		REQUIRE(stringSum == symbolSum);
 				
 		// lookup from newly made std::strings
-		start = std::chrono::system_clock::now();
+		start = now();
 		stringSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			stringSum += testMapUnorderedStr[charDict[testIndexes[i]]];
 		}	
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "constructing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
 		
 		// unordered lookup from new MLSymbols made from char * 
-		start = std::chrono::system_clock::now();
+		start = now();
 		symbolSum = 0.f;
 		for(int i=0; i<kTestLength; ++i)
 		{
 			symbolSum += testMapUnorderedSym[charDict[testIndexes[i]]];
 		}
-		end = std::chrono::system_clock::now();
+		end = now();
 		elapsed = end-start;
 		std::cout << "constructing symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
 				

@@ -21,7 +21,7 @@ using namespace ml;
 class scalarBiquadTest
 {
 public:
-	DSPVector test(DSPVector vx, int frames)
+	DSPVector test(const DSPVector& vx, int frames)
 	{
 		DSPVector vy;
 		for (int n=0; n<frames; ++n)
