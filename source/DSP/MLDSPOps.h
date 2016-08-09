@@ -176,10 +176,10 @@ namespace ml
 	#define DEFINE_OP1(opName, opComputation)					\
 	template<int VECTORS>										\
 	inline DSPVectorArray<VECTORS>								\
-		(opName)(DSPVectorArray<VECTORS> vx1)					\
+		(opName)(const DSPVectorArray<VECTORS>& vx1)					\
 	{															\
 		DSPVectorArray<VECTORS> vy;								\
-		float* px1 = vx1.getBuffer();							\
+		const float* px1 = vx1.getConstBuffer();							\
 		float* py1 = vy.getBuffer();							\
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		\
 		{														\
@@ -229,12 +229,12 @@ namespace ml
 	#define DEFINE_OP2(opName, opComputation)					\
 	template<int VECTORS>										\
 	inline DSPVectorArray<VECTORS>(opName)						\
-		(const DSPVectorArray<VECTORS>& vx1,							\
-		const DSPVectorArray<VECTORS>& vx2)							\
+		(const DSPVectorArray<VECTORS>& vx1,					\
+		const DSPVectorArray<VECTORS>& vx2)						\
 	{															\
 		DSPVectorArray<VECTORS> vy;								\
-		const float* px1 = vx1.getConstBuffer();							\
-		const float* px2 = vx2.getConstBuffer();							\
+		const float* px1 = vx1.getConstBuffer();				\
+		const float* px2 = vx2.getConstBuffer();				\
 		float* py1 = vy.getBuffer();							\
 		for (int n = 0;											\
 			n < kSIMDVectorsPerDSPVector*VECTORS; ++n)			\
@@ -287,14 +287,14 @@ namespace ml
 	#define DEFINE_OP3(opName, opComputation)					\
 	template<int VECTORS>										\
 	inline DSPVectorArray<VECTORS>								\
-		(opName)(DSPVectorArray<VECTORS> vx1,					\
-		DSPVectorArray<VECTORS> vx2,							\
-		DSPVectorArray<VECTORS> vx3)							\
+		(opName)(const DSPVectorArray<VECTORS>& vx1,			\
+		const DSPVectorArray<VECTORS>& vx2,						\
+		const DSPVectorArray<VECTORS>& vx3)						\
 	{															\
 		DSPVectorArray<VECTORS> vy;								\
-		float* px1 = vx1.getBuffer();							\
-		float* px2 = vx2.getBuffer();							\
-		float* px3 = vx3.getBuffer();							\
+		const float* px1 = vx1.getConstBuffer();				\
+		const float* px2 = vx2.getConstBuffer();				\
+		const float* px3 = vx3.getConstBuffer();				\
 		float* py1 = vy.getBuffer();							\
 		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		\
 		{														\

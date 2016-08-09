@@ -22,7 +22,7 @@ int main()
 	std::cout << "madronalib sin: " << sinMadronaLib << "\n\n";
 	 	
 	// store a lambda on (DSPVector)->(DSPVector) defined using map(float)->(float)
-	auto sinNative = [&](DSPVector x){ return map( [](float x){ return sinf(x*kPi/(kFloatsPerDSPVector - 1)); }, x); }(columnIndex());
+	auto sinNative = [&](const DSPVector& x){ return map( [](float x){ return sinf(x*kPi/(kFloatsPerDSPVector - 1)); }, x); }(columnIndex());
 	std::cout << "native sin: " << sinNative << "\n\n";	
 	
 	std::cout << "difference: " << sinNative - sinMadronaLib << "\n\n";	
