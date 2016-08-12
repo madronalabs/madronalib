@@ -121,7 +121,8 @@ void MLProcDebug::process(const int frames)
 		const int kMaxChars = 256;
 		static char charBuf[kMaxChars];
 
-		snprintf(charBuf, kMaxChars, "sig %s: min %f, max %f\n\0", getName().getString().c_str(), in.getMin(), in.getMax());
+		ml::TextFragment t(getName().getTextFragment());
+		snprintf(charBuf, kMaxChars, "sig %s: min %f, max %f\n\0", t.getText(), in.getMin(), in.getMax());
 
 		MultiByteToWideChar(0, 0, charBuf, -1, wideBuf, kWideBufSize);
 		OutputDebugString(wideBuf);

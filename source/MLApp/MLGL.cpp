@@ -3,7 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLVector.h"
+#include "MLVectorDeprecated.h"
 #include "MLGL.h"
 
 void MLGL::orthoView(int width, int height)

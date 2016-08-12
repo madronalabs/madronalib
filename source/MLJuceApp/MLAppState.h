@@ -10,7 +10,7 @@
 #include "MLModel.h"
 #include "MLWidget.h"
 #include "MLAppView.h"
-#include "cJSON.h"
+#include "cJSON/cJSON.h"
 
 #ifdef _WIN32
 #include <memory>

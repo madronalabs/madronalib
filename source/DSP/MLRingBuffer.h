@@ -11,7 +11,7 @@
 
 #include <memory>
 
-#include "pa_ringbuffer.h"
+#include "portaudio/pa_ringbuffer.h"
 //#include "MLDSP.h"
 #include "MLSignal.h"
 

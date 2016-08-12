@@ -17,7 +17,7 @@
 #include "MLT3DHub.h"
 #include "MLDefaultFileLocations.h"
 
-#include "pa_ringbuffer.h"
+#include "portaudio/pa_ringbuffer.h"
 
 // a voice that can play.
 //

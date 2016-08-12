@@ -22,7 +22,7 @@
 #include "MLSymbol.h"
 #include "MLProperty.h"
 
-#include "pa_ringbuffer.h"
+#include "portaudio/pa_ringbuffer.h"
 #include "pthread.h"
 #include <stdexcept>
 

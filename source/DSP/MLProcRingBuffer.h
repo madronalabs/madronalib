@@ -7,7 +7,7 @@
 #define ML_PROC_RINGBUFFER_H
 
 #include "MLProc.h"
-#include "pa_ringbuffer.h"
+#include "portaudio/pa_ringbuffer.h"
 
 extern const uint32_t RingBufferConstants[16];
 

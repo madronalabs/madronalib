@@ -9,7 +9,7 @@
 #include "MLModel.h"
 #include "MLWidget.h"
 #include <map>
-#include "pa_ringbuffer.h"
+#include "portaudio/pa_ringbuffer.h"
 
 #pragma mark property viewing
 
