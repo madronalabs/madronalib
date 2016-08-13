@@ -19,7 +19,7 @@ MLTriToggleButton::~MLTriToggleButton()
 
 void MLTriToggleButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int state = getFloatProperty("value");
 	
 	// colors

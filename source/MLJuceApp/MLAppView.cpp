@@ -13,7 +13,7 @@ MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
 	mpReporter(pRep)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
 	setOpaque(false);
 	setInterceptsMouseClicks (false, true);
@@ -229,7 +229,7 @@ MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const fl
 	MLLabel* label = new MLLabel(displayName);
 	if (label)
 	{
-		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+		MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 		
 		if (strcmp(displayName, ""))
 		{
@@ -251,7 +251,7 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, ml::Symb
 	MLLabel* label = new MLLabel(displayName);
 	if (label)
 	{
-		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+		MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 		float labelHeight = myLookAndFeel->getLabelHeight()*sizeMultiplier;
 		
 		//float m = myLookAndFeel->getMargin();
@@ -295,7 +295,7 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 
 void MLAppView::resized()
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int u = myLookAndFeel->getGridUnitSize(); 
 
 	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)

@@ -8,7 +8,7 @@
 // JUCE is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
+// GNU General Public License for mo.re details.
 
 #include "MLLookAndFeel.h"
 
@@ -18,10 +18,6 @@ MLPoint adjust(MLPoint p)
 	float y = floor(p.y()) + 0.5f;
 	return MLPoint(x, y);
 }
-
-#pragma mark -
-
-juce_ImplementSingleton_SingleThreaded (MLLookAndFeel)
 
 MLLookAndFeel::MLLookAndFeel()
 {
@@ -101,14 +97,14 @@ MLLookAndFeel::MLLookAndFeel()
     sendMLColorsToJUCE();
 	
 	bool clearIt = true;
-	mBackgroundImage = std::unique_ptr<Image>(new Image(Image::ARGB, 640, 480, clearIt));
+	mBackgroundImage = Image(Image::ARGB, 640, 480, clearIt);
 
 }
 
 
 MLLookAndFeel::~MLLookAndFeel()
 {
-	clearSingletonInstance();
+
 }
 
 void MLLookAndFeel::sendMLColorsToJUCE()
@@ -2023,8 +2019,9 @@ void MLLookAndFeel::makeBackgroundImage(MLRect r)
 	// allocate image
 	bool clearIt = false;
 	MLRect rb(r.x(), r.y(), r.width() + + kBackgroundBorder*2, r.height() + kBackgroundBorder*2);
-	mBackgroundImage = std::unique_ptr<Image>(new Image(Image::ARGB, rb.width(), rb.height(), clearIt));
-	Graphics bg(*mBackgroundImage);
+
+	mBackgroundImage = Image(Image::ARGB, rb.width(), rb.height(), clearIt);
+	Graphics bg(mBackgroundImage);
 	
 	// draw background
 	setBackgroundGradient(bg, Point<int>(0, 0), Point<int>(0, r.height()));
@@ -2119,11 +2116,16 @@ void MLLookAndFeel::drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect
 	
 	MLRect r2 = r;
 	r2.translate(totalOffset);
-	
+
+	if (!mBackgroundImage.isValid())
+	{
+		return;
+	}
+
 	// get background image from r2, blit to r.
 	// note that offscreen r will be moved onscreen by this call, not clipped! aarrrgh.
 	// so we have to have drawEntireBackground as well.
-	g.drawImage (*mBackgroundImage,
+	g.drawImage (mBackgroundImage,
 					r.x(), r.y(), r.width(), r.height(),
 					r2.x(), r2.y(), r2.width(), r2.height());	
 	
@@ -2134,9 +2136,8 @@ void MLLookAndFeel::drawEntireBackground(Graphics& g, MLPoint offset)
 {	
 	// get background image from r2, blit to r.
 	bool fillAlphaChannel = false;
-	g.drawImageAt (*mBackgroundImage,
-				   offset.x() - kBackgroundBorder, offset.y() - kBackgroundBorder, fillAlphaChannel);	
-	
+	g.drawImageAt (mBackgroundImage,
+				   offset.x() - kBackgroundBorder, offset.y() - kBackgroundBorder, fillAlphaChannel);		
 }
 
 // unit grid for testing
@@ -2368,7 +2369,7 @@ AlertWindow* MLLookAndFeel::createAlertWindow (const String& title, const String
     AlertWindow* aw = new AlertWindow (title, message, iconType, associatedComponent);
 	
 	aw->setSize(aw->getWidth(), 350);
-    MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+    MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
     aw->setLookAndFeel(myLookAndFeel);
     setDefaultLookAndFeel(myLookAndFeel);
     

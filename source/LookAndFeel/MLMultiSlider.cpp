@@ -16,7 +16,7 @@ MLMultiSlider::MLMultiSlider () :
 	mpTimer = std::unique_ptr<GestureTimer>(new GestureTimer(this));
 	
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -107,7 +107,7 @@ int MLMultiSlider::getSliderWidth() const
 
 void MLMultiSlider::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
 	float outlineThickness = myLookAndFeel->getGridUnitSize() / 64.f;
 	MLRect r = mPos.getLocalOutline();
@@ -428,7 +428,7 @@ void MLMultiSlider::setWave(int w)
 
 void MLMultiSlider::resizeWidget(const MLRect& b, const int )
 {
-//	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+//	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 
 	Component* pC = getComponent();
 	mPos.setBounds(b);

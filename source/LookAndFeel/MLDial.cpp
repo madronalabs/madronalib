@@ -95,7 +95,7 @@ MLDial::MLDial () :
 	mpTimer = std::unique_ptr<GestureTimer>(new GestureTimer(this));
 
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	setOpaque(myLookAndFeel->getDefaultOpacity());
     
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
@@ -572,7 +572,7 @@ void MLDial::paint (Graphics& g)
 	const int height = getHeight();
 	float currentValue = getFloatProperty("value");
 
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 
 	if (isOpaque()) 
 		myLookAndFeel->drawBackground(g, this);	
@@ -752,7 +752,7 @@ void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
 	int thumbAdorn1, thumbAdorn2;
 	int glow1 = false, glow2 = false;
 	float val1, val2;
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 
     const Colour thumb_normal = (mFillColor.withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour outline = findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f);
@@ -861,7 +861,7 @@ void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
 
 void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float dialPos)
 {	
- 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+ 	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	const MLRect uBounds = getGridBounds();
 	const MLRect boundsRect = getWidgetLocalBounds();
 
@@ -1248,7 +1248,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	} 
 	else 
 	{
-		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+		MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
 		d = ml::clamp(d, 0, 3);
 		float minValChange = doFineAdjust ? powf(10., -d) : interval;
@@ -1672,7 +1672,7 @@ void MLDial::getDialRect (MLRect& ret,
 	const MLDial::DialRect whichRect,
 	const float dialPos, const float minDialPos, const float maxDialPos) 
 {
- 	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+ 	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
     bool smallThumbs = getFloatProperty("small_thumbs");
 	bool multi = (isTwoOrThreeValued());
 		
@@ -1948,7 +1948,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
  		MLWidget::resizeWidget(b, u);
 		mNumberPositionOffsetPixels = mNumberPositionOffset*u;
      
-		MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+		MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 		const MLRect uBounds = getGridBounds();
 		bool multi = (isTwoOrThreeValued());
         bool smallThumbs = getFloatProperty("small_thumbs");

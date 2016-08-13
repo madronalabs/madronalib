@@ -33,7 +33,7 @@ void MLPolynomialWidget::setPolyCoeffs(std::vector<float>& coeffs )
 
 void MLPolynomialWidget::resized()
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int m = myLookAndFeel->getSmallMargin();
 	int w = getWidth();
 	int h = getHeight();
@@ -47,7 +47,7 @@ void MLPolynomialWidget::resized()
 
 void MLPolynomialWidget::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int m = myLookAndFeel->getSmallMargin();
 	int w = getWidth();
 	int h = getHeight();

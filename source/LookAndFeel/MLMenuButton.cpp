@@ -24,7 +24,7 @@ void MLMenuButton::setStyle(int t)
 
 void MLMenuButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	const Colour c (findColour (MLTextButton::buttonColourId));
 	const Colour t (findColour (MLTextButton::textColourId));
 	myLookAndFeel->drawBackground(g, this);

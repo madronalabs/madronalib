@@ -18,7 +18,7 @@ MLToggleButton::~MLToggleButton()
 
 void MLToggleButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	
 	// colors	
 	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));		

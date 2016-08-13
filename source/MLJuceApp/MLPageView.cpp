@@ -61,7 +61,7 @@ void MLPageView::resized()
 	int w = getWidth();
 	int h = getHeight();
 	Rectangle<int> myBounds(0, 0, w, h);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int u = myLookAndFeel->getGridUnitSize(); 
 	int margin = u;
 
@@ -90,7 +90,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 	if(!pages) return;
     if(mCurrPage == destPage) return;
 
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int u = myLookAndFeel->getGridUnitSize(); 
 	
 	// margin between pages prevents invisible components from overlapping

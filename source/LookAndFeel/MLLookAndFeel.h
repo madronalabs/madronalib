@@ -39,13 +39,13 @@ typedef std::shared_ptr<Drawable> DrawablePtr;
 const float kPopupMenuTextScale = 0.85f;
 const int kBackgroundBorder = 32;
 
-class MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
+class MLLookAndFeel : public LookAndFeel_V3
 {
 public:
     //==============================================================================
     MLLookAndFeel();
     ~MLLookAndFeel();
-    
+
     // call this after setting up an application's custom colors to spread them
     // back to the JUCE defaults. 
     void sendMLColorsToJUCE();
@@ -430,7 +430,7 @@ public:
                                   const bool flatOnLeft, const bool flatOnRight,
                                   const bool flatOnTop, const bool flatOnBottom) throw();
 
-	static void createMLRectangle (Path& p,
+	static void createMLRectangle (juce::Path& p,
                                const float x, const float y,
                                const float w, const float h,
                                const float cs,
@@ -536,13 +536,17 @@ public:
 	void addPicture(ml::Symbol name, const void* data, size_t dataSize);	
 	const Drawable* getPicture(ml::Symbol name);
 	
-	std::unique_ptr<Image> mBackgroundImage;
+	Image mBackgroundImage;
 
 	std::map<ml::Symbol, DrawablePtr> mPictures;
 	std::map<ml::Symbol, void *> mPictureData;
-	
-	juce_DeclareSingleton_SingleThreaded_Minimal (MLLookAndFeel)
-	
 };
+
+inline MLLookAndFeel& theMLLookAndFeel()
+{
+	static std::unique_ptr<MLLookAndFeel> t(new MLLookAndFeel());
+	return *t;
+}
+
 
 #endif // __ML_LOOKANDFEEL_H__

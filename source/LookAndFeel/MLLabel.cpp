@@ -18,7 +18,7 @@ MLLabel::MLLabel (const char* labelText) :
 	mSizeMultiplier(1.0f)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 		
 	// labels are always opaque for better text rendering
 	setOpaque(true);
@@ -79,13 +79,16 @@ void MLLabel::setDrawable (const Drawable* pD)
 
 void MLLabel::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	int w = getWidth();
 	int h = getHeight();
 	
 	const Colour fc (findColour (textColourId));	
 	const Colour bc (findColour (backgroundColourId));
 	float alpha = isEnabled() ? 1. : 0.25f;
+
+	printf("YX\n");
+	std::cout << "DRAWING label " << getWidgetName() << "\n";
 
 	myLookAndFeel->drawBackground(g, this);
 	
@@ -114,7 +117,7 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	const ml::Text labelText = getTextProperty("text");
 
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	const float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
 	const float kern = myLookAndFeel->getLabelTextKerning(size);
 	

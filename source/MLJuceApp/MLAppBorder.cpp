@@ -18,7 +18,7 @@ MLAppBorder::MLAppBorder() :
 	setBufferedToImage(false);
 	
 	setWidgetBounds(MLRect(0, 0, 0, 0));
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);	
 	setWidgetName("border");
     getComponent()->setOpaque(true);
@@ -48,7 +48,7 @@ void MLAppBorder::makeResizer(Component* targetComp)
 void MLAppBorder::paint (Graphics& g)
 {    
 	// This is where most of the plugin's background is actually painted.
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	myLookAndFeel->drawEntireBackground(g, mBorderRect.getTopLeft());
 }
 
@@ -79,7 +79,7 @@ void MLAppBorder::centerMainViewInWindow()
 		u = viewWidth / mGridUnitsX;
 	}
     
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	myLookAndFeel->setGridUnitSize(u);	
 
 	if ((!viewWidth) || (!viewHeight) || !u) return;
@@ -107,14 +107,14 @@ void MLAppBorder::resized()
 	
 	if(borderDims1 != mBorderRect.getDims())
 	{
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	myLookAndFeel->makeBackgroundImage(getWidgetLocalBounds());
 	}
 }
 
 void MLAppBorder::setGridUnits(int gx, int gy)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	myLookAndFeel->setGridUnits(gx, gy);	
 	myConstrainer.setFixedAspectRatio((float)gx/(float)gy);	
 	mGridUnitsX = gx;

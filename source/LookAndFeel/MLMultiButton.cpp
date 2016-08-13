@@ -9,7 +9,7 @@
 MLMultiButton::MLMultiButton()
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -70,7 +70,7 @@ void MLMultiButton::setFillColor (const Colour& c)
 
 void MLMultiButton::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
 
     // colors

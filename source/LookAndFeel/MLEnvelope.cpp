@@ -11,7 +11,7 @@ static const float kMinDecay = 0.0001;
 MLEnvelope::MLEnvelope ()
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -50,7 +50,7 @@ void MLEnvelope::paint (Graphics& g)
 	float r = getFloatProperty("repeat");
 	float mRepeat = (r > 0.f) ? (1.f / (r + 0.0001f)) : 0.f;
 
-	MLLookAndFeel* myLookAndFeel = MLLookAndFeel::getInstance();
+	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
 	if (isOpaque()) 
 		myLookAndFeel->drawBackground(g, this);	
 	
