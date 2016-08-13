@@ -87,9 +87,6 @@ void MLLabel::paint (Graphics& g)
 	const Colour bc (findColour (backgroundColourId));
 	float alpha = isEnabled() ? 1. : 0.25f;
 
-	printf("YX\n");
-	std::cout << "DRAWING label " << getWidgetName() << "\n";
-
 	myLookAndFeel->drawBackground(g, this);
 	
 	// we are in local coords with the origin at the widget's top left

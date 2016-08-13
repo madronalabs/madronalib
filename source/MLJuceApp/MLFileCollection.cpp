@@ -46,6 +46,9 @@ MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, ml::Tex
 	mExtension(extension),
 	mProcessDelay(0)
 {
+	std::string rootStr(startDir.getFullPathName().toUTF8());
+	std::cout << "ROOT: " <<  rootStr << "\n"; // MLTEST
+	
 	mRoot.setValue(MLFile(std::string(startDir.getFullPathName().toUTF8())));
 	setProperty("progress", 0.);
 }
@@ -122,6 +125,8 @@ ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::F
 	ml::ResourceMap<ml::Symbol, MLFile>* returnNode = nullptr; 
 	String shortName = f.getFileNameWithoutExtension();		
 	juce::File parentDir = f.getParentDirectory();
+	
+	std::cout << "INSERTING: " << shortName << "\n";
 	
 	if (f.hasFileExtension(mExtension.getText()))
 	{

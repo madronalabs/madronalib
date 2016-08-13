@@ -234,7 +234,6 @@ void MLDrawing::resizeWidget(const MLRect& b, const int u)
 		pC->setBounds(c);
 	}
 	
-//debug() << "RESIZING DRAWING " << getWidgetName() << ":\n";
 	// iterate over points
 	int size = mGridPoints.size();
 	for(int i = 0; i<size; ++i)
