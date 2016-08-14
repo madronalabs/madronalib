@@ -39,7 +39,7 @@ typedef std::shared_ptr<Drawable> DrawablePtr;
 const float kPopupMenuTextScale = 0.85f;
 const int kBackgroundBorder = 32;
 
-class MLLookAndFeel : public LookAndFeel_V3
+class MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
 {
 public:
     //==============================================================================
@@ -517,10 +517,10 @@ public:
 			
 	float getNumberWidth (const float number, const int digits, const int precision, const bool doSign);
 
-	// NO
-    MLLookAndFeel (const MLLookAndFeel&);
-    const MLLookAndFeel& operator= (const MLLookAndFeel&);
-
+	// disallow copying
+    MLLookAndFeel (const MLLookAndFeel&) = delete;
+	MLLookAndFeel& operator= (const MLLookAndFeel&) = delete;
+ 
 	bool mDrawNumbers;
 	bool mAnimate;
 	int mGradientMode;
@@ -544,8 +544,11 @@ public:
 
 inline MLLookAndFeel& theMLLookAndFeel()
 {
-	static std::unique_ptr<MLLookAndFeel> t(new MLLookAndFeel());
+	// this is destroyed by juce::DeletedAtShutdown
+	static MLLookAndFeel* t(new MLLookAndFeel());
 	return *t;
+	
+	// TODO instead of Singleton, use one L+F object per root (app window.) 
 }
 
 

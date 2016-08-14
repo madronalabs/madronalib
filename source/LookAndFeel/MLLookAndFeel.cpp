@@ -104,7 +104,6 @@ MLLookAndFeel::MLLookAndFeel()
 
 MLLookAndFeel::~MLLookAndFeel()
 {
-
 }
 
 void MLLookAndFeel::sendMLColorsToJUCE()
