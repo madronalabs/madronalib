@@ -299,18 +299,26 @@ int main()
 		std::cout << f4 << "\n";
 	}
 	
+
 	{
 		// split, join
 		TextFragment t("  hello world it  is me, Randy.\n  ");
 		auto lines = ml::textUtils::split(t, ' ');
-		for(auto line : lines)
+		for (auto line : lines)
 		{
 			std::cout << "[" << line << "]" << "\n";
 		}
 		std::cout << join(lines);
 		std::cout << join(lines, ' ');
+
+		TextFragment t2("////////////////\n////////////\n////////\n");
+		auto lines2 = ml::textUtils::split(t2, '\n');
+		for (auto line : lines2)
+		{
+			std::cout << "[" << line << "] " << std::dec << line.lengthInBytes() << "\n";
+		}
 	}
-	
+
 	{
 		// test bogus UTF-8
 		constexpr int bogusSize = 32;

@@ -559,18 +559,28 @@ juce::Font MLLookAndFeel::getFontForScript(ml::Symbol script, float textSize)
 	}
 	else if(script == "cjk")
 	{
-		// MLTEST Windows needed
+#ifdef _WINDOWS
+		Font f("Microsoft JhengHei", floor(textSize), juce::Font::plain);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
+		f.setTypefaceStyle("Bold");
+#else
 		Font f("PingFang SC", floor(textSize*1.125), juce::Font::plain);
 		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
 		f.setTypefaceStyle("Semibold");
+#endif
 		return f;
 	}
 	else // unknown - use fallback font
 	{
-		// MLTEST Windows needed
+#ifdef _WINDOWS
+		Font f("Arial", floor(textSize*0.925), juce::Font::plain);
+		f.setExtraKerningFactor(getButtonTextKerning(textSize));
+		//f.setTypefaceStyle("Bold");
+#else
 		Font f("PingFang SC", floor(textSize*1.125), juce::Font::plain);
 		f.setExtraKerningFactor(getButtonTextKerning(textSize) + 0.06f);
 		f.setTypefaceStyle("Semibold");
+#endif
 		return f;
 	}
 }
