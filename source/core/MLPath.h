@@ -33,6 +33,7 @@ public:
 	Path();	
 	Path(const char * str);
 	Path(const Symbol sym);
+	Path(const TextFragment frag);
 	Path(const Path& b);		
 	~Path();
 

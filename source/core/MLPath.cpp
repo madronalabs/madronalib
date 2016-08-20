@@ -24,12 +24,20 @@ namespace ml {
 
 	// allocate a path with one symbol.
 	Path::Path(const ml::Symbol sym) :
-		mSize(0), mCopy(0)
+	mSize(0), mCopy(0)
 	{
 		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
 		addSymbol(sym);
 	}
-
+	
+	// allocate a path with one TextFragment.
+	Path::Path(const ml::TextFragment frag) :
+	mSize(0), mCopy(0)
+	{
+		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
+		parsePathString(frag.getText());
+	}
+	
 	void Path::parsePathString(const char* pathStr)
 	{
 		const int pathStrBytes = strlen(pathStr);	

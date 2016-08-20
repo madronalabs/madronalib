@@ -126,8 +126,6 @@ ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::F
 	String shortName = f.getFileNameWithoutExtension();		
 	juce::File parentDir = f.getParentDirectory();
 	
-	std::cout << "INSERTING: " << shortName << "\n";
-	
 	if (f.hasFileExtension(mExtension.getText()))
 	{
 		// insert file or directory into file tree relative to collection root
