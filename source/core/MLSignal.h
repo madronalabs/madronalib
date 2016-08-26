@@ -14,6 +14,8 @@
 #include <memory>
 #include <functional>
 
+// TODO should be in DSP?
+
 #include "../DSP/MLDSPMath.h"
 #include "MLScalarMath.h"
 
@@ -90,6 +92,10 @@ private:
 	
 	// log2 of actual size of each dimension, stored for fast access.
 	int mWidthBits, mHeightBits, mDepthBits; 
+	
+	static constexpr int kSmallSignalSize = 64; // TODO this should be equal to the fixed DSP vector size
+
+	float mLocalData[kSmallSignalSize + kSignalAlignSize - 1];
 
 public:
  
@@ -445,9 +451,7 @@ public:
 	inline int plane(int i) const { return i<<mWidthBits<<mHeightBits; }
 	inline int getRowStride() const { return 1<<mWidthBits; }
 	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
-	
-#pragma mark new methods
-	
+		
 	// MLTEST new business
 	inline MLSignal getRow(int i)
 	{
@@ -524,9 +528,21 @@ private:
 
 	inline float* allocateData(int size)
 	{
-		float* newData = 0;
-		newData = new float[size + kSignalAlignSize - 1];
-		return newData;
+		if(size <= kSmallSignalSize)
+		{
+			return mLocalData;
+		}
+		return new float[size + kSignalAlignSize - 1];
+	}
+	
+	inline void freeData()
+	{
+		if(!(mData == mLocalData))
+		{
+			delete[] mData;
+			mData = nullptr;
+			mDataAligned = nullptr;
+		}
 	}
 	
 	inline float* alignToSignal(const float* p)
@@ -558,7 +574,7 @@ std::ostream& operator<< (std::ostream& out, const MLSignal & r);
 // MLTEST not for production!
 // making heap-based signals in audio thread!
 // can work if a signal pool is added.
-// new MLTEST
+// MLTEST
 inline MLSignal add(const MLSignal& a, const MLSignal& b)
 {
 	MLSignal r(a);

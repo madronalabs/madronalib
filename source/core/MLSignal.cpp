@@ -93,19 +93,17 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 	if (this != &other) // protect against self-assignment
 	{
 		if (mSize != other.mSize)
-		{
+		{			
+			// 0: free old data
+			freeData();
+			
 			// 1: allocate new memory and copy the elements
 			mSize = other.mSize;
-			float * newData = allocateData(mSize);
-			float * newDataAligned = initializeData(newData, mSize);
-			std::copy(other.mDataAligned, other.mDataAligned + mSize, newDataAligned);
-
-			// 2: deallocate old memory
-			delete[] mData;
+			mData = allocateData(mSize);
+			mDataAligned = initializeData(mData, mSize);
+			std::copy(other.mDataAligned, other.mDataAligned + mSize, mDataAligned);
 			
-			// 3: assign the new memory to the object
-			mData = newData;
-			mDataAligned = newDataAligned;
+			// 3: copy other information
 			mWidth = other.mWidth;
 			mHeight = other.mHeight;
 			mDepth = other.mDepth;
@@ -176,7 +174,7 @@ MLSignal::MLSignal(const MLSignal* other, int slice) :
 
 MLSignal::~MLSignal() 
 {
-	delete[] mData;
+	freeData();
 }
 
 MLSignal MLSignal::getDims()
@@ -197,13 +195,8 @@ MLSignal MLSignal::getDims()
 
 float* MLSignal::setDims (int width, int height, int depth)
 {
-	mDataAligned = 0;	
-	// delete old
-	if (mData)
-	{
-		delete[] mData;
-	}
-
+	freeData();
+	
 	mWidth = width;
 	mHeight = height;
 	mDepth = depth;
