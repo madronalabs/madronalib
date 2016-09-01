@@ -31,6 +31,7 @@ void FDN::setProperty(Symbol name, MLProperty value)
 		// setting number of delays outside of bounds will turn object into a passthru
 		if(!within(newSize, 3, 17))
 		{
+			// TODO report error
 			newSize = 0;
 		}
 		

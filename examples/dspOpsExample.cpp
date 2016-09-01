@@ -57,24 +57,28 @@ int main()
 //	auto doFDNVector = [&](){ return rowIndex( DSPVectorArray<ROWS>() ); } ;
 //	auto fdnTimeVector = timeIterations< DSPVectorArray<ROWS> >(doFDNVector, iters);
 	
+	/*
 	auto rr = rowIndex<3>();
 	auto qq = repeat<3>(rr);
 	std::cout << qq << "\n";
-
+*/
+	
+	/*
 	// ----------------------------------------------------------------
 	// time FDN: scalars
-	int iters = 100;
+	int iters = 10;
 	float sr = 44100.f;
-
-	FDN fdn({69, 70, 71, 72});
 	
 	MLSignal freqs({10000, 11000, 12000, 14000});
 	freqs.scale(kTwoPi/sr);
-	fdn.setFilterCutoffs(freqs);
-//	fdn.setFilterCutoffs(MLSignal({10000, 11000, 12000, 14000})*kTwoPi/sr);
-	
-	fdn.setFeedbackGains({0.99, 0.99, 0.99, 0.99});
-	
+
+	static FDN fdn
+	{ 
+		{"delays", {69, 70, 71, 72} },
+		{"cutoffs", freqs } , // TODO more functional rewrite of MLSignal so we can create freqs inline
+		{"gains", {0.99, 0.99, 0.99, 0.99} }
+	};
+
 	DSPVector input(0);
 	input[0] = 1;
 	
@@ -86,5 +90,16 @@ int main()
 	auto fdnTimeVector = timeIterations< DSPVectorArray<2> >(doFDNVector, iters);
 	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
 	std::cout << fdnTimeVector.result << "\n";
+	 */
+	
+	RandomSource r;
+	DSPVector a = 2;
+	DSPVector m = 3;
+	DSPVector n = r();
+	
+	a = m + n;
+	
+	std::cout << "sum: " << a << "\n";
+	
 }
 

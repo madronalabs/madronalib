@@ -432,6 +432,10 @@ public:
 	void dumpParams();
 	virtual void dumpProc(int indent);
 	
+	// set enclosing DSP context. This should be protected, but some procs are using others directly in a
+	// functional style now, and they need to share context. TODO step back and look at this
+	void setContext(MLDSPContext* pc) { mpContext = pc; }
+
 	// get enclosing DSP context
 	MLDSPContext* getContext() const { return mpContext; }
 	
@@ -447,7 +451,6 @@ protected:
 	void printErr(MLProc::err err);	
 	
 	void setName(const ml::Symbol name) { mName = name; }
-	void setContext(MLDSPContext* pc) { mpContext = pc; }
 	void setCopyIndex(int c)  { mCopyIndex = c; }
 	
 	virtual void createInput(const int idx);

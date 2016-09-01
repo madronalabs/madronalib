@@ -48,6 +48,7 @@ namespace ml
 		
 		T* data() { return mpData; }
 		
+	private:
 		T* mpData;
 		T mLocalData[kLocalDataSize];
 		std::vector< T > mVec;

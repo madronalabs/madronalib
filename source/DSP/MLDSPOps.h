@@ -66,6 +66,14 @@ namespace ml
 			}
 			return *this;
 		}
+		
+		// TODO a move constructor might help efficiency but is quite different from the current design. 
+		// for moving to make sense, the data can't be on the stack. instead of the current stack-based approach
+		// there could be a memory pool for all DSPVector data. some kind of allocator would be needed, which
+		// would be a pain but then it would be possible to write e.g. DSPVector c = a + b without having to 
+		// copy the temporary (a + b) as we do now. 
+		//
+		// a move ctor should be marked noexcept.
 				
 		// DSPVectors are always aligned, take advantage of this for fast copying
 		inline DSPVectorArray<VECTORS> operator=(const DSPVectorArray<VECTORS>& x1)

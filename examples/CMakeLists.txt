@@ -40,5 +40,6 @@ endif (PORTAUDIO_FOUND)
 
 add_executable(dsp_ops_example dspOpsExample.cpp)
 add_executable(symbols_example symbolsExample.cpp)
+add_executable(symbols_example portaudioExample.cpp)
 
 

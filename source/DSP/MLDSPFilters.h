@@ -164,30 +164,6 @@ namespace ml
 		}
 	}
 	
-	namespace svfCoeffs
-	{
-		inline MLSignal passthru()
-		{
-			return MLSignal{1.f, 0.f, 0.f};
-		}
-		
-		// get SVF coefficients, which are the same for all modes at the given frequency and q.
-		// k = 1/q (damping factor).
-		inline MLSignal atOmegaAndK(float omega, float k)
-		{
-			float s1 = sinf(omega);
-			float s2 = sinf(2.0f*omega);
-			float nrm = 1.0f/(2.f + k*s2);
-			float g0 = s2*nrm;
-			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
-			float g2 = (2.0f*s1*s1)*nrm;
-			
-			return MLSignal{g0, g1, g2, k};
-			
-			// tried fast sin approx, which did not hold up. try better approximations.		
-		}
-	}
-			
 	class OnePole
 	{
 	public:
@@ -301,7 +277,32 @@ namespace ml
 	};
 	
 // --------------------------------------------------------------------------------
-#pragma mark SVF variations
+// SVF variations
+// Thanks to Andrew Simper [www.cytomic.com] for sharing his work.
+	
+	namespace svfCoeffs
+	{
+		inline MLSignal passthru()
+		{
+			return MLSignal{1.f, 0.f, 0.f};
+		}
+		
+		// get SVF coefficients, which are the same for all modes at the given frequency and q.
+		// k = 1/q (damping factor). 
+		//
+		// NOTE: omega is defined here as pi*cutoff / sr, not the more usual 2pi*cutoff/sr. 
+		// MLTEST to avoid confusion across filter types, use common parameter of just cutoff/sr for all filters. 
+		inline MLSignal atOmegaAndK(float omega, float k)
+		{
+			float s1 = sinf(omega);
+			float s2 = sinf(2.0f*omega);
+			float nrm = 1.0f/(2.f + k*s2);
+			float g0 = s2*nrm;
+			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
+			float g2 = (2.0f*s1*s1)*nrm;			
+			return MLSignal{g0, g1, g2, k};
+		}
+	}
 	
 	class SVFBandpass
 	{
@@ -449,6 +450,7 @@ namespace ml
 		float ic1eq, ic2eq;
 	};
 
+	// TODO SVF Lo shelf, hi shelf
 	
 // --------------------------------------------------------------------------------
 #pragma mark fixed delay
@@ -551,15 +553,6 @@ namespace ml
 		~FDN(){}
 
 		void setProperty(Symbol name, MLProperty value);
-		
-		// set delay times in samples, resizing delays if needed.
-		void setDelaysInSamples(MLSignal lengths);
-		
-		// set filter cutoffs without resizing.
-		// FDN does not know its sample rate, so filter cutoffs are set as radial frequencies
-		void setFilterCutoffs(MLSignal filterCutoffs);
-		
-		void setFeedbackGains(MLSignal gains);
 		
 		void clear();
 		

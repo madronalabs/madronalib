@@ -31,9 +31,19 @@ namespace ml
 			mTargetFrameIdx = f;
 		}
 		
-		MLSignal operator()(const MLSignal& target, int frames)
+		void resize(int frames, int frameSize)
 		{
-			int frameSize = target.getHeight();
+			y.setDims(frames, frameSize);
+		}
+		
+		// interpolate from current internal state to the target state, over n frames.
+		
+		// currently takes dest argument y. 
+		void process(const MLSignal& target, MLSignal& y)
+		{
+			int frameSize = min(target.getHeight(), y.getHeight());
+			int frames = y.getWidth();
+			
 			MLSignal requiredDims{static_cast<float>(kInterpolationDegree + 1), static_cast<float>(frameSize)};
 			
 			if(mHistory.getDims() != requiredDims)
@@ -56,7 +66,15 @@ namespace ml
 
 			// MLTEST this is allocating in DSP! FIX
 			// SETDIMS 64x5
-			MLSignal y(frames, frameSize);
+			// MLSignal y(frames, frameSize);
+			
+			// store output in this functor for now.
+			// with a memory pool allocator for MLSignals we can reuse storage just by virtue of
+			// using the same size output signal. Then we can just write
+			// MLSignal y(frames, frameSize); // TODO
+			// and get all the benefits of cache locality etc that we can write into the allocator.
+			// but for now:
+			
 			IntervalProjection frameToUnity({0, frames - 1}, {0, 1});
 			
 			// MLTEST linear mapping, ignore target frames and use current frames
@@ -78,7 +96,8 @@ namespace ml
 			y.dump(debug(), true);
 				mTest = 0;
 			}*/
-			return y;
+			
+			//return y; // TODO
 		}
 		
 	private:
@@ -86,6 +105,8 @@ namespace ml
 		// history-- enough frames to satisfy degree of chosen interpolator fn are needed. 
 		// vertical size will be the size of whatever target was last received.
 		MLSignal mHistory;
+		
+		MLSignal y; // temp TODO
 		
 		int mCurrentFrameIdx;
 		int mTargetFrameIdx;

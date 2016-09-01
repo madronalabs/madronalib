@@ -7,6 +7,7 @@
 
 #include <iostream>
 
+#define DEBUG_TO_COUT 1 // MLTEST
 #if DEBUG_TO_COUT
 
 #define debug() std::cout

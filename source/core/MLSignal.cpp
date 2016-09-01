@@ -23,7 +23,8 @@ MLSignal MLSignal::nullSignal;
 
 MLSignal::MLSignal() : 
 	mDataAligned(0),
-	mData(0)
+	mData(0),
+	mWidth(0), mHeight(0), mDepth(0)
 {
 	mRate = kToBeCalculated;
 	setDims(0);
@@ -31,7 +32,8 @@ MLSignal::MLSignal() :
 
 MLSignal::MLSignal (int width, int height, int depth) : 
 	mDataAligned(0),
-	mData(0)
+	mData(0),
+	mWidth(0), mHeight(0), mDepth(0)
 {
 	mRate = kToBeCalculated;
 	setDims(width, height, depth);
@@ -39,7 +41,8 @@ MLSignal::MLSignal (int width, int height, int depth) :
 
 MLSignal::MLSignal(const MLSignal& other) :
 	mDataAligned(0),
-	mData(0)
+	mData(0),
+	mWidth(0), mHeight(0), mDepth(0)
 {
 	mSize = other.mSize;
 	mData = allocateData(mSize);
@@ -56,7 +59,8 @@ MLSignal::MLSignal(const MLSignal& other) :
 
 MLSignal::MLSignal (std::initializer_list<float> values) : 
 	mDataAligned(0),
-	mData(0)
+	mData(0),
+	mWidth(0), mHeight(0), mDepth(0)
 {
 	mRate = kToBeCalculated;
 	setDims((int)values.size());
@@ -70,7 +74,8 @@ MLSignal::MLSignal (std::initializer_list<float> values) :
 // constructor for making loops. only one type for now. we could loop in different directions and dimensions.
 MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
 	mDataAligned(0),
-	mData(0)
+	mData(0),
+	mWidth(0), mHeight(0), mDepth(0)
 {
 	switch(loopType)
 	{
@@ -130,6 +135,9 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 	}
 	return *this;
 }
+
+// MLTEST TODO move ctor!
+// mark noexcept
 
 // TODO use row(), column(), plane() submatrix syntax instead. 
 // then current getBuffer().row(1) turns into row(1).getBuffer()
@@ -195,6 +203,11 @@ MLSignal MLSignal::getDims()
 
 float* MLSignal::setDims (int width, int height, int depth)
 {
+	if((mWidth == width) && (mHeight == height) && (mDepth == depth))
+	{
+		return mDataAligned;
+	}
+		
 	freeData();
 	
 	mWidth = width;
@@ -204,10 +217,6 @@ float* MLSignal::setDims (int width, int height, int depth)
 	mHeightBits = ml::bitsToContain(height);
 	mDepthBits = ml::bitsToContain(depth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
-
-	// SETDIMS
-	//if(mSize > 64)
-	//	std::cout << ".";
 
 	mData = allocateData(mSize);	
 	mDataAligned = initializeData(mData, mSize);	

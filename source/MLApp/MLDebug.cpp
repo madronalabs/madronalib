@@ -5,6 +5,9 @@
 
 #include "MLDebug.h"
 
+#if DEBUG_TO_COUT
+#else
+
 MLTextStream::MLTextStream(const char* name) : 
 	mName(name), 
 	mActive(true),
@@ -118,6 +121,8 @@ MLTextStream& debug()
 	return theDebugMessageStream;
 }
 
+
+#endif // DBEUG_TO_COUT
 #if 0
 
 class MLDebugThread : public juce::Thread

@@ -154,6 +154,7 @@ public:
 
 	inline void setToConstant(float k)
 	{
+		/*
 		int c = mSize >> kFloatsPerSIMDVectorBits;
 		const __m128 vk = _mm_set1_ps(k); 	
 		float* py1 = mDataAligned;
@@ -162,7 +163,15 @@ public:
 		{
 			_mm_store_ps(py1, vk);
 			py1 += kFloatsPerSIMDVector;
+		}*/
+		
+		// TEMP
+		int frames = getSize();
+		for (int n = 0; n < frames; ++n)
+		{
+			mDataAligned[n] = k;
 		}
+		
 	}
 	
 	/*
@@ -528,11 +537,18 @@ private:
 
 	inline float* allocateData(int size)
 	{
+		mSize = size;
 		if(size <= kSmallSignalSize)
 		{
 			return mLocalData;
 		}
-		return new float[size + kSignalAlignSize - 1];
+
+		// SETDIMS MLTEST
+		std::cout << ".";
+		
+		float* newData = new float[size + kSignalAlignSize - 1];
+		if(!newData) mSize = 0;
+		return newData;
 	}
 	
 	inline void freeData()
@@ -575,6 +591,7 @@ std::ostream& operator<< (std::ostream& out, const MLSignal & r);
 // making heap-based signals in audio thread!
 // can work if a signal pool is added.
 // MLTEST
+
 inline MLSignal add(const MLSignal& a, const MLSignal& b)
 {
 	MLSignal r(a);

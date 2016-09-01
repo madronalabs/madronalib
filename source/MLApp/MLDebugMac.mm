@@ -10,6 +10,8 @@
 	
 #ifdef ML_MAC
 
+#if !DEBUG_TO_COUT
+
 void MLTextStream::display()
 {
 	/*
@@ -38,5 +40,7 @@ void MLTextStream::display()
 		}
 	}
 }
-				
+			
+#endif
+
 #endif	// ML_MAC
