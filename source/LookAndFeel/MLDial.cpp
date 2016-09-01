@@ -2008,7 +2008,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
 			cy = height/2;//cx;
 			mDialCenter = Vec2(cx, cy);
 			
-			mRotaryTextRect = MLRect(cx + mNumberPositionOffsetPixels.x(), cy + mNumberPositionOffsetPixels.y(), mMaxNumberWidth, height - cy);
+			mRotaryTextRect = MLRect(cx + mNumberPositionOffsetPixels.x(), cy + mNumberPositionOffsetPixels.y(), mMaxNumberWidth, height - cy - mMargin);
 			
 			cBounds = Rectangle<int>(left, top, (int)width, (int)height);
 			MLRect tr(left, top, (int)width, (int)height);
