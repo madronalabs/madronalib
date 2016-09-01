@@ -180,7 +180,7 @@ public:
 		int pi = (int)p;
 		float m = p - pi;
         float r0 = mDataAligned[pi];
-        float r1 = mDataAligned[(pi + 1)];
+        float r1 = mDataAligned[(pi + 1)&mSize];
 		return ml::lerp(r0, r1, m);
 	}
     
@@ -193,7 +193,7 @@ public:
 		int pi = (int)pc;
 		float m = pc - pi;
         mDataAligned[pi] += (1.0f - m)*v;
-        mDataAligned[(pi + 1)] += (m)*v;
+        mDataAligned[(pi + 1)&mSize] += (m)*v;
     }
     
 	// 2D access methods
