@@ -51,6 +51,8 @@ namespace ml {
 		auto it = first;
 		int pointSizeAsUTF8;
 		char c = 0;
+		char separator = '/';
+
 		do
 		{
 			do
@@ -64,7 +66,7 @@ namespace ml {
 				beginPoint = endPoint;
 				++it;
 			}	
-			while((c != '/') && (c != 0));
+			while((c != separator) && (c != 0));
 			
 			int newSymbolBytes = (endPoint - beginSymbol) - 1;
 			addSymbol(ml::Symbol(beginSymbol, newSymbolBytes));
