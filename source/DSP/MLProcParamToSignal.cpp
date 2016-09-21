@@ -52,7 +52,7 @@ namespace
 MLProcParamToSignal::MLProcParamToSignal()
 {
 //	debug() << "MLProcParamToSignal constructor\n";
-	setParam("glide", 0.f); // MLTEST0.01f);
+	setParam("glide", 0.01f);
 	setParam("level_mode", 0);
 }
 
