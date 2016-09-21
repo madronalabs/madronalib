@@ -22,27 +22,27 @@ MLSignal MLSignal::nullSignal;
 // these can coexist with slower matrix-like MLSignal methods that actually do range checking. 
 
 MLSignal::MLSignal() : 
-	mDataAligned(0),
-	mData(0),
-	mWidth(0), mHeight(0), mDepth(0)
+mDataAligned(0),
+mData(0),
+mWidth(0), mHeight(0), mDepth(0)
 {
 	mRate = kToBeCalculated;
 	setDims(0);
 }
 
 MLSignal::MLSignal (int width, int height, int depth) : 
-	mDataAligned(0),
-	mData(0),
-	mWidth(0), mHeight(0), mDepth(0)
+mDataAligned(0),
+mData(0),
+mWidth(0), mHeight(0), mDepth(0)
 {
 	mRate = kToBeCalculated;
 	setDims(width, height, depth);
 }
 
 MLSignal::MLSignal(const MLSignal& other) :
-	mDataAligned(0),
-	mData(0),
-	mWidth(0), mHeight(0), mDepth(0)
+mDataAligned(0),
+mData(0),
+mWidth(0), mHeight(0), mDepth(0)
 {
 	mSize = other.mSize;
 	mData = allocateData(mSize);
@@ -58,9 +58,9 @@ MLSignal::MLSignal(const MLSignal& other) :
 }
 
 MLSignal::MLSignal (std::initializer_list<float> values) : 
-	mDataAligned(0),
-	mData(0),
-	mWidth(0), mHeight(0), mDepth(0)
+mDataAligned(0),
+mData(0),
+mWidth(0), mHeight(0), mDepth(0)
 {
 	mRate = kToBeCalculated;
 	setDims((int)values.size());
@@ -73,9 +73,9 @@ MLSignal::MLSignal (std::initializer_list<float> values) :
 
 // constructor for making loops. only one type for now. we could loop in different directions and dimensions.
 MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
-	mDataAligned(0),
-	mData(0),
-	mWidth(0), mHeight(0), mDepth(0)
+mDataAligned(0),
+mData(0),
+mWidth(0), mHeight(0), mDepth(0)
 {
 	switch(loopType)
 	{
@@ -89,7 +89,7 @@ MLSignal::MLSignal(MLSignal other, eLoopType loopType, int loopSize) :
 			std::copy(other.mDataAligned, other.mDataAligned + w, mDataAligned);
 			std::copy(other.mDataAligned, other.mDataAligned + loopWidth, mDataAligned + w);
 		}
-		break;
+			break;
 	}
 }
 
@@ -151,8 +151,8 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 // NOTE this signal will not pass checkIntegrity()!
 //
 MLSignal::MLSignal(const MLSignal* other, int slice) : 
-	mDataAligned(0),
-	mData(0)
+mDataAligned(0),
+mData(0)
 {
 	mRate = kToBeCalculated;
 	if(other->getDepth() > 1) // make 2d slice
@@ -207,7 +207,7 @@ float* MLSignal::setDims (int width, int height, int depth)
 	{
 		return mDataAligned;
 	}
-		
+	
 	freeData();
 	
 	mWidth = width;
@@ -217,7 +217,7 @@ float* MLSignal::setDims (int width, int height, int depth)
 	mHeightBits = ml::bitsToContain(height);
 	mDepthBits = ml::bitsToContain(depth);
 	mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
-
+	
 	mData = allocateData(mSize);	
 	mDataAligned = initializeData(mData, mSize);	
 	return mDataAligned;
@@ -264,8 +264,8 @@ int MLSignal::getFrames() const
 
 
 /*
-const float MLSignal::operator()(const float fi, const float fj) const
-{
+ const float MLSignal::operator()(const float fi, const float fj) const
+ {
 	float a, b, c, d;
 	
 	int i = (int)(fi);
@@ -290,27 +290,27 @@ const float MLSignal::operator()(const float fi, const float fj) const
 	d = (j2ok && i2ok) ? mDataAligned[row(j + 1) + i + 1] : 0.f;
 	
 	return lerp(lerp(a, b, ri), lerp(c, d, ri), rj);
-}*/
+ }*/
 
 /*
-// TODO SSE
-const float MLSignal::operator()(const Vec2& pos) const
-{
+ // TODO SSE
+ const float MLSignal::operator()(const Vec2& pos) const
+ {
 	return operator()(pos.x(), pos.y());
-}
-*/
+ }
+ */
 /*
-// TODO unimplemented
-const float MLSignal::operator() (const float , const float , const float ) const
-{
+ // TODO unimplemented
+ const float MLSignal::operator() (const float , const float , const float ) const
+ {
 	return 0.;
-}
-
-const float MLSignal::operator() (const Vec3 ) const
-{
+ }
+ 
+ const float MLSignal::operator() (const Vec3 ) const
+ {
 	return 0.;
-}
-*/
+ }
+ */
 
 // return const 2D signal made from a slice of the 3D data in place. 
 const MLSignal MLSignal::getFrame(int i) const
@@ -443,29 +443,29 @@ void MLSignal::copyFast(const MLSignal& b)
 }
 
 /*
-// add the entire signal b to this signal, at the integer destination offset. 
-// 
-void MLSignal::add2D(const MLSignal& b, int destX, int destY)
-{
+ // add the entire signal b to this signal, at the integer destination offset. 
+ // 
+ void MLSignal::add2D(const MLSignal& b, int destX, int destY)
+ {
 	MLSignal& a = *this;
 	MLRect srcRect(0, 0, b.getWidth(), b.getHeight());
 	MLRect destRect = srcRect.translated(Vec2(destX, destY)).intersect(getBoundsRect());
 	
 	for(int j=destRect.top(); j<destRect.bottom(); ++j)
 	{
-		for(int i=destRect.left(); i<destRect.right(); ++i)
-		{
-			a(i, j) += b(i - destX, j - destY);
-		}
+ for(int i=destRect.left(); i<destRect.right(); ++i)
+ {
+ a(i, j) += b(i - destX, j - destY);
+ }
 	}
-}
-
-// add the entire signal b to this signal, at the subpixel destination offset. 
-// 
-void MLSignal::add2D(const MLSignal& b, const Vec2& destOffset)
-{
+ }
+ 
+ // add the entire signal b to this signal, at the subpixel destination offset. 
+ // 
+ void MLSignal::add2D(const MLSignal& b, const Vec2& destOffset)
+ {
 	MLSignal& a = *this;
-		
+ 
 	Vec2 iDestOffset, fDestOffset;
 	destOffset.getIntAndFracParts(iDestOffset, fDestOffset);
 	
@@ -479,22 +479,22 @@ void MLSignal::add2D(const MLSignal& b, const Vec2& destOffset)
 	
 	for(int j=destRect.top(); j<destRect.bottom(); ++j)
 	{
-		for(int i=destRect.left(); i<destRect.right(); ++i)
-		{
-			a(i, j) += b.getInterpolatedLinear(i - destX - srcPosFX, j - destY - srcPosFY);
-		}
+ for(int i=destRect.left(); i<destRect.right(); ++i)
+ {
+ a(i, j) += b.getInterpolatedLinear(i - destX - srcPosFX, j - destY - srcPosFY);
+ }
 	}
-}
-*/
+ }
+ */
 
 
 /*
-// TEMP
-const float MLSignal::operator() (const float i, const float j) const
-{
-    return getInterpolatedLinear(i, j);
-
-}*/
+ // TEMP
+ const float MLSignal::operator() (const float i, const float j) const
+ {
+ return getInterpolatedLinear(i, j);
+ 
+ }*/
 
 // TODO SSE
 void MLSignal::add(const MLSignal& b)
@@ -615,16 +615,16 @@ void MLSignal::convolve3x1(const float km, const float k, const float kp)
 	float* pIn = copy.getBuffer();
 	
 	// left
-    mDataAligned[0] = k*pIn[0] + kp*pIn[1];
-    
-    // center
-    for(int i=1; i<mWidth - 1; ++i)
-    {
-        mDataAligned[i] = km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1];
-    }
-    
-    // right
-    mDataAligned[mWidth - 1] = km*pIn[mWidth - 2] + k*pIn[mWidth - 1];
+	mDataAligned[0] = k*pIn[0] + kp*pIn[1];
+	
+	// center
+	for(int i=1; i<mWidth - 1; ++i)
+	{
+		mDataAligned[i] = km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1];
+	}
+	
+	// right
+	mDataAligned[mWidth - 1] = km*pIn[mWidth - 2] + k*pIn[mWidth - 1];
 }
 
 void MLSignal::convolve5x1(const float kmm, const float km, const float k, const float kp, const float kpp)
@@ -632,19 +632,19 @@ void MLSignal::convolve5x1(const float kmm, const float km, const float k, const
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();
 	
-    // left
-    mDataAligned[0] = k*pIn[0] + kp*pIn[1] + kpp*pIn[2];
-    mDataAligned[1] = km*pIn[0] + k*pIn[1] + kp*pIn[2] + kpp*pIn[3];
-    
-    // center
-    for(int i=2; i<mWidth - 2; ++i)
-    {
-        mDataAligned[i] = kmm*pIn[i - 2] + km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1] + kpp*pIn[i + 2];
-    }
-    
-    // right
-    mDataAligned[mWidth - 2] = kmm*pIn[mWidth - 4] + km*pIn[mWidth - 3] + k*pIn[mWidth - 2] + kp*pIn[mWidth - 1];
-    mDataAligned[mWidth - 1] = kmm*pIn[mWidth - 4] + km*pIn[mWidth - 3] + k*pIn[mWidth - 2];
+	// left
+	mDataAligned[0] = k*pIn[0] + kp*pIn[1] + kpp*pIn[2];
+	mDataAligned[1] = km*pIn[0] + k*pIn[1] + kp*pIn[2] + kpp*pIn[3];
+	
+	// center
+	for(int i=2; i<mWidth - 2; ++i)
+	{
+		mDataAligned[i] = kmm*pIn[i - 2] + km*pIn[i - 1] + k*pIn[i] + kp*pIn[i + 1] + kpp*pIn[i + 2];
+	}
+	
+	// right
+	mDataAligned[mWidth - 2] = kmm*pIn[mWidth - 4] + km*pIn[mWidth - 3] + k*pIn[mWidth - 2] + kp*pIn[mWidth - 1];
+	mDataAligned[mWidth - 1] = kmm*pIn[mWidth - 4] + km*pIn[mWidth - 3] + k*pIn[mWidth - 2];
 }
 
 
@@ -652,9 +652,9 @@ void MLSignal::convolve5x1(const float kmm, const float km, const float k, const
 void MLSignal::convolve3x3r(const float kc, const float ke, const float kk)
 {
 	int i, j;
-    float f;
-    float * pr1, * pr2, * pr3; // input row ptrs
-    float * prOut; 	
+	float f;
+	float * pr1, * pr2, * pr3; // input row ptrs
+	float * prOut; 	
 	
 	MLSignal copy(*this);
 	float* pIn = copy.getBuffer();	
@@ -676,7 +676,7 @@ void MLSignal::convolve3x3r(const float kc, const float ke, const float kk)
 			f += kc * pr2[i];
 			prOut[i] = f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; i++) // top side
 		{
 			f = ke * (pr2[i-1] + pr2[i+1] + pr3[i]);
@@ -708,7 +708,7 @@ void MLSignal::convolve3x3r(const float kc, const float ke, const float kk)
 			f += kc * pr2[i];
 			prOut[i] = f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; i++) // center
 		{
 			f = ke * (pr2[i-1] + pr1[i] + pr2[i+1] + pr3[i]);
@@ -739,7 +739,7 @@ void MLSignal::convolve3x3r(const float kc, const float ke, const float kk)
 			f += kc * pr2[i];
 			prOut[i] = f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; i++) // bottom side
 		{
 			f = ke * (pr2[i-1] + pr1[i] + pr2[i+1]);
@@ -789,7 +789,7 @@ void MLSignal::convolve3x3rb(const float kc, const float ke, const float kk)
 			f += kc * pr2[i];
 			prOut[i] = f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; i++) // top side
 		{
 			f = ke * (pr2[i-1] + pr2[i+1] + pr3[i] + pr2[i]);
@@ -821,7 +821,7 @@ void MLSignal::convolve3x3rb(const float kc, const float ke, const float kk)
 			f += kc * pr2[i];
 			prOut[i] = f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; i++) // center
 		{
 			f = ke * (pr2[i-1] + pr1[i] + pr2[i+1] + pr3[i]);
@@ -852,7 +852,7 @@ void MLSignal::convolve3x3rb(const float kc, const float ke, const float kk)
 			f += kc * pr2[i];
 			prOut[i] = f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; i++) // bottom side
 		{
 			f = ke * (pr2[i-1] + pr1[i] + pr2[i+1] + pr2[i]);
@@ -874,28 +874,28 @@ void MLSignal::convolve3x3rb(const float kc, const float ke, const float kk)
 // TODO SIMD
 float MLSignal::getRMS()
 {
-    float d = 0.f;
-    for(int i=0; i<mSize; ++i)
-    {
-        const float v = (mDataAligned[i]);
-        d += v*v;
-    }
-    return sqrtf(d/mSize);
+	float d = 0.f;
+	for(int i=0; i<mSize; ++i)
+	{
+		const float v = (mDataAligned[i]);
+		d += v*v;
+	}
+	return sqrtf(d/mSize);
 }
 
 float MLSignal::rmsDiff(const MLSignal& b)
 {
-    float d = 0.f;
-    if(mWidth != b.mWidth) return -1.f;
-    if(mHeight != b.mHeight) return -1.f;
-    if(mDepth != b.mDepth) return -1.f;
-    
-    for(int i=0; i<mSize; ++i)
-    {
-        float v = (mDataAligned[i] - b.mDataAligned[i]);
-        d += v*v;
-    }
-    return sqrtf(d/mSize);
+	float d = 0.f;
+	if(mWidth != b.mWidth) return -1.f;
+	if(mHeight != b.mHeight) return -1.f;
+	if(mDepth != b.mDepth) return -1.f;
+	
+	for(int i=0; i<mSize; ++i)
+	{
+		float v = (mDataAligned[i] - b.mDataAligned[i]);
+		d += v*v;
+	}
+	return sqrtf(d/mSize);
 }
 
 void MLSignal::flipVertical()
@@ -958,31 +958,31 @@ void MLSignal::ssign()
 }
 
 /*
-void MLSignal::log2Approx()
-{
+ void MLSignal::log2Approx()
+ {
 	float* px1 = getBuffer();
-    
+ 
 	int c = getSize() >> kfloatsPerSIMDVectorBits;
 	__m128 vx1, vy1;
 	
 	for (int n = 0; n < c; ++n)
 	{
-		vx1 = _mm_load_ps(px1);
-		vy1 = log2Approx4(vx1); 		
-		_mm_store_ps(px1, vy1);
-		px1 += kFloatsPerSIMDVector;
+ vx1 = _mm_load_ps(px1);
+ vy1 = log2Approx4(vx1); 		
+ _mm_store_ps(px1, vy1);
+ px1 += kFloatsPerSIMDVector;
 	}
-}*/
+ }*/
 
 void MLSignal::setIdentity()
 {
 	MLSignal& a = *this;
-    clear();
-    int n = ml::min(mWidth, mHeight);
-    for(int i = 0; i < n; ++i)
-    {
-        a(i, i) = 1;
-    }
+	clear();
+	int n = ml::min(mWidth, mHeight);
+	for(int i = 0; i < n; ++i)
+	{
+		a(i, i) = 1;
+	}
 }
 
 // make a boundary useful for DSP and other operations by writing the 
@@ -1007,11 +1007,11 @@ void MLSignal::makeDuplicateBoundary2D()
 }
 
 /*
-
-// return integer coordinates (with float z) of peak value in a 2D signal.
-//
-Vec3 MLSignal::findPeak() const
-{
+ 
+ // return integer coordinates (with float z) of peak value in a 2D signal.
+ //
+ Vec3 MLSignal::findPeak() const
+ {
 	int maxX = -1;
 	int maxY = -1;
 	float z = -1.f;
@@ -1019,20 +1019,20 @@ Vec3 MLSignal::findPeak() const
 	
 	for (int j=0; j < mHeight; ++j)
 	{
-		for (int i=0; i < mWidth; i++)
-		{
-			z = operator()(i, j);
-			if(z > maxZ)
-			{
-				maxZ = z;
-				maxX = i;
-				maxY = j;
-			}
-		}
+ for (int i=0; i < mWidth; i++)
+ {
+ z = operator()(i, j);
+ if(z > maxZ)
+ {
+ maxZ = z;
+ maxX = i;
+ maxY = j;
+ }
+ }
 	}	
 	return Vec3(maxX, maxY, maxZ);
-}
-*/
+ }
+ */
 
 int MLSignal::checkForNaN() const
 {
@@ -1040,7 +1040,7 @@ int MLSignal::checkForNaN() const
 	const float* p = mDataAligned;
 	for(int i=0; i<mSize; ++i)
 	{
-        const float k = p[i];
+		const float k = p[i];
 		if (k != k)
 		{
 			ret = true;
@@ -1097,7 +1097,7 @@ float MLSignal::getMax() const
 void MLSignal::dump(std::ostream& s, int verbosity) const
 {
 	s << "signal @ " << std::hex << this << std::dec << 
-		" " << mWidth << "x" << mHeight << "x" << mDepth << " [" << mWidth*mHeight*mDepth << " frames] : sum " << getSum() << "\n";
+	" " << mWidth << "x" << mHeight << "x" << mDepth << " [" << mWidth*mHeight*mDepth << " frames] : sum " << getSum() << "\n";
 	
 	int w = mWidth;
 	int h = mHeight;
@@ -1122,11 +1122,11 @@ void MLSignal::dump(std::ostream& s, int verbosity) const
 			s << std::setprecision(5);
 			for (int i=0; i<w; ++i)
 			{
-                if(verbosity > 1)
-                {
-                    s << "[" << i << "]";
-                }
-                s << mDataAligned[i] << " ";
+				if(verbosity > 1)
+				{
+					s << "[" << i << "]";
+				}
+				s << mDataAligned[i] << " ";
 			}
 			s << "\n";
 		}
@@ -1134,24 +1134,24 @@ void MLSignal::dump(std::ostream& s, int verbosity) const
 }
 
 /*
-void MLSignal::dump(std::ostream& s, const MLRect& b) const
-{
+ void MLSignal::dump(std::ostream& s, const MLRect& b) const
+ {
 	const MLSignal& f = *this;
 	{
-        s << std::fixed << std::setprecision(3);
-		for (int j=b.top(); j< b.bottom(); ++j)
-		{
-			s << j << " | ";
-			for(int i=b.left(); i< b.right(); ++i)
-			{
-				s << f(i, j) << " ";
-			}
-			s << "\n";
-		}
+ s << std::fixed << std::setprecision(3);
+ for (int j=b.top(); j< b.bottom(); ++j)
+ {
+ s << j << " | ";
+ for(int i=b.left(); i< b.right(); ++i)
+ {
+ s << f(i, j) << " ";
+ }
+ s << "\n";
+ }
 	}
-}
-
-*/
+ }
+ 
+ */
 void MLSignal::dumpASCII(std::ostream& s) const
 {
 	const char* g = " .:;+=xX$&";
@@ -1172,8 +1172,8 @@ void MLSignal::dumpASCII(std::ostream& s) const
 }
 
 /*
-Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) const
-{		
+ Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) const
+ {		
 	const MLSignal& in = *this;
 	int width = in.getWidth();
 	int height = in.getHeight();
@@ -1190,23 +1190,23 @@ Vec2 MLSignal::correctPeak(const int ix, const int iy, const float maxCorrect) c
 	
 	if((dxx != 0.f)&&(dxx != 0.f)&&(dxx != 0.f))
 	{
-		float oneOverDiscriminant = 1.f/(dxx*dyy - dxy*dxy);
-		float fx = (dyy*dx - dxy*dy) * oneOverDiscriminant;
-		float fy = (dxx*dy - dxy*dx) * oneOverDiscriminant;
-		
-		// here is the code to return the z approximaton if needed. 
+ float oneOverDiscriminant = 1.f/(dxx*dyy - dxy*dxy);
+ float fx = (dyy*dx - dxy*dy) * oneOverDiscriminant;
+ float fy = (dxx*dy - dxy*dx) * oneOverDiscriminant;
+ 
+ // here is the code to return the z approximaton if needed. 
 	//	float fz = dx*fx + dy*fy + 0.5f*(dxx*fx*fx + 2.f*dxy*fx*fy + dyy*fy*fy);
 	//	float z = in(x, y) + fz;
-		
-		fx = ml::clamp(fx, -maxCorrect, maxCorrect);
-		fy = ml::clamp(fy, -maxCorrect, maxCorrect);
-			
-		pos -= Vec2(fx, fy);
+ 
+ fx = ml::clamp(fx, -maxCorrect, maxCorrect);
+ fy = ml::clamp(fy, -maxCorrect, maxCorrect);
+ 
+ pos -= Vec2(fx, fy);
 	}
 	return pos;
-}
-
-*/
+ }
+ 
+ */
 
 // a simple pixel-by-pixel measure of the distance between two signals.
 //
@@ -1255,7 +1255,7 @@ void MLSignal::partialDiffX()
 		{
 			prOut[i] = (pr[i+1]) / 2.f;		
 		}
-			
+		
 		for(i = 1; i < width - 1; ++i) 
 		{
 			prOut[i] = (pr[i+1] - pr[i-1]) / 2.f;
@@ -1288,13 +1288,13 @@ void MLSignal::partialDiffY()
 		pr2 = (pIn + row(j));
 		pr3 = (pIn + row(j + 1));
 		prOut = (pOut + row(j));
-
+		
 		for(i = 0; i < width; ++i) 
 		{
 			prOut[i] = (pr3[i]) / 2.f;
 		}
 	}
-
+	
 	for(j = 1; j < height - 1; ++j) // center rows
 	{
 		pr1 = (pIn + row(j - 1));
