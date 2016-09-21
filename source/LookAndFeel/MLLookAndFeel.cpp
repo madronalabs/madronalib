@@ -21,6 +21,8 @@ MLPoint adjust(MLPoint p)
 
 MLLookAndFeel::MLLookAndFeel()
 {
+	// debug() << "CREATING MLLookAndFeel\n";
+
 	mGridUnitSize = 24.f;
 	mGradientMode = 0;
 	mGradientSize = 0.25f;
@@ -104,6 +106,7 @@ MLLookAndFeel::MLLookAndFeel()
 
 MLLookAndFeel::~MLLookAndFeel()
 {
+	// debug() << "DELETING MLLookAndFeel\n";
 }
 
 void MLLookAndFeel::sendMLColorsToJUCE()
@@ -2378,7 +2381,7 @@ AlertWindow* MLLookAndFeel::createAlertWindow (const String& title, const String
     AlertWindow* aw = new AlertWindow (title, message, iconType, associatedComponent);
 	
 	aw->setSize(aw->getWidth(), 350);
-    MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+    MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
     aw->setLookAndFeel(myLookAndFeel);
     setDefaultLookAndFeel(myLookAndFeel);
     
@@ -2671,7 +2674,6 @@ const Font & MLLookAndFeel::getFont(int style)
 		default:
 		return mFallbackFont;	
 	}
-
 }
 
 
@@ -2684,8 +2686,8 @@ void MLLookAndFeel::addPicture(ml::Symbol name, const void* data, size_t dataSiz
 	DrawablePtr newPic (Drawable::createFromImageData(data, dataSize));
 	if (newPic != nullptr)
 	{
+		// debug() << "ADDING picture " << name << "\n";
 		mPictures[name] = newPic;
-		mPictureData[name] = (void *)data;
 	}
 }
 

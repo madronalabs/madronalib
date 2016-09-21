@@ -39,13 +39,19 @@ typedef std::shared_ptr<Drawable> DrawablePtr;
 const float kPopupMenuTextScale = 0.85f;
 const int kBackgroundBorder = 32;
 
-class MLLookAndFeel : public LookAndFeel_V3, public DeletedAtShutdown
+class MLLookAndFeel : public LookAndFeel_V3 // MLTEST , public DeletedAtShutdown
 {
 public:
     //==============================================================================
     MLLookAndFeel();
     ~MLLookAndFeel();
 
+	// delete copy and move constructors and assign operators
+	MLLookAndFeel(MLLookAndFeel const&) = delete;             // Copy construct
+	MLLookAndFeel(MLLookAndFeel&&) = delete;                  // Move construct
+	MLLookAndFeel& operator=(MLLookAndFeel const&) = delete;  // Copy assign
+	MLLookAndFeel& operator=(MLLookAndFeel &&) = delete;      // Move assign
+	
     // call this after setting up an application's custom colors to spread them
     // back to the JUCE defaults. 
     void sendMLColorsToJUCE();
@@ -517,9 +523,6 @@ public:
 			
 	float getNumberWidth (const float number, const int digits, const int precision, const bool doSign);
 
-	// disallow copying
-    MLLookAndFeel (const MLLookAndFeel&) = delete;
-	MLLookAndFeel& operator= (const MLLookAndFeel&) = delete;
  
 	bool mDrawNumbers;
 	bool mAnimate;
@@ -539,17 +542,27 @@ public:
 	Image mBackgroundImage;
 
 	std::map<ml::Symbol, DrawablePtr> mPictures;
-	std::map<ml::Symbol, void *> mPictureData;
+	
+	// singleton: we only want one MLLookAndFeel, even for multiple app windows. 
+	// TODO no Singleton, create one L+F per app.
+	static MLLookAndFeel* theMLLookAndFeel()  { static MLLookAndFeel f; return &f; }
+	
 };
 
+/*
 inline MLLookAndFeel& theMLLookAndFeel()
 {
 	// this is destroyed by juce::DeletedAtShutdown
 	static MLLookAndFeel* t(new MLLookAndFeel());
+	
+	// debug() << "L+F:" << std::hex << (t) << "\n";
+	
+	// MLTEST WOW, L+F is deleted then not created again
+	
 	return *t;
 	
 	// TODO instead of Singleton, use one L+F object per root (app window.) 
 }
-
+*/
 
 #endif // __ML_LOOKANDFEEL_H__

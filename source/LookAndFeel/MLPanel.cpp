@@ -10,7 +10,7 @@
 MLPanel::MLPanel ()
 {
  	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -31,7 +31,7 @@ MLPanel::~MLPanel()
 
 void MLPanel::paint (Graphics&)
 {
-//	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+//	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 //	myLookAndFeel->drawBackground(g, this);
 
 //	const Colour fc = findColour(foregroundColourId);	

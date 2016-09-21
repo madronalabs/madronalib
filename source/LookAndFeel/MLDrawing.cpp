@@ -33,7 +33,7 @@ MLDrawing::Operation::~Operation()
 MLDrawing::MLDrawing()
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -113,7 +113,7 @@ void MLDrawing::drawArrowhead(Graphics& g, const Vec2& p1, const Vec2& p2, float
 
 void MLDrawing::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	float fu = myLookAndFeel->getGridUnitSize();
 
 	if (isOpaque())

@@ -105,11 +105,25 @@ public:
 	void windowMoved();
 	void windowResized();
 	
+	int getViewResources() { return mResources; }
+	
 protected:
 	bool mInitialized;
 	float mGridUnitSize;	
 	MLWidget::Listener* mpResponder;
 	MLReporter* mpReporter;
+	
+	// resources
+	int mResources;
+	
 };
 
+/*
+inline int getRootResources(MLWidget* pW)
+{
+	MLWidgetContainer* pC = static_cast<MLWidgetContainer*>(pW->getContainer());
+	MLAppView* pV = static_cast<MLAppView*>(pC->getRootView());
+	return pV->getViewResources();
+}
+MLTEST */
 #endif // __ML_APP_VIEW_H__

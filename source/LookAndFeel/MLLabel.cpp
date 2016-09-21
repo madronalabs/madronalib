@@ -18,7 +18,7 @@ MLLabel::MLLabel (const char* labelText) :
 	mSizeMultiplier(1.0f)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 		
 	// labels are always opaque for better text rendering
 	setOpaque(true);
@@ -79,7 +79,7 @@ void MLLabel::setDrawable (const Drawable* pD)
 
 void MLLabel::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	int w = getWidth();
 	int h = getHeight();
 	
@@ -114,7 +114,7 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	const ml::Text labelText = getTextProperty("text");
 
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	const float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
 	const float kern = myLookAndFeel->getLabelTextKerning(size);
 	

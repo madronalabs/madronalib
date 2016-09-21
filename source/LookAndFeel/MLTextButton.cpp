@@ -17,7 +17,7 @@ MLTextButton::~MLTextButton()
 
 void MLTextButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (MLTextButton::buttonColourId));	
 	const Colour t (findColour (MLTextButton::textColourId));	

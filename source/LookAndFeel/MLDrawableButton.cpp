@@ -30,7 +30,7 @@ void MLDrawableButton::setImage (const Drawable* img)
 
 void MLDrawableButton::paint (Graphics& g)
 { 
- 	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+ 	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
     Rectangle<int> imageSpace = getLocalBounds();
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (TextButton::buttonColourId));

@@ -8,12 +8,14 @@
 const Colour defaultColor = Colours::grey;
 
 MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
+	MLWidgetContainer(this), // MLAppView is its own widget root. TODO use external structure for tree, share w procs
 	mInitialized(false),
 	mpResponder(pResp),
-	mpReporter(pRep)
+	mpReporter(pRep),
+	mResources(3)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
 	setOpaque(false);
 	setInterceptsMouseClicks (false, true);
@@ -229,7 +231,7 @@ MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const fl
 	MLLabel* label = new MLLabel(displayName);
 	if (label)
 	{
-		MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+		MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 		
 		if (strcmp(displayName, ""))
 		{
@@ -251,7 +253,7 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, ml::Symb
 	MLLabel* label = new MLLabel(displayName);
 	if (label)
 	{
-		MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+		MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 		float labelHeight = myLookAndFeel->getLabelHeight()*sizeMultiplier;
 		
 		//float m = myLookAndFeel->getMargin();
@@ -295,7 +297,7 @@ MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 
 void MLAppView::resized()
 {
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	int u = myLookAndFeel->getGridUnitSize(); 
 
 	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)

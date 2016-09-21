@@ -5,7 +5,7 @@
 
 #include "MLWidgetContainer.h"
 
-MLWidgetContainer::MLWidgetContainer()
+MLWidgetContainer::MLWidgetContainer(MLWidget* pRoot) : mpRootWidget(pRoot)
 {
 }
 
@@ -45,6 +45,15 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const ml::Symbol name)
 	}
     
 	pW->setContainer(this);
+	
+	// give root context pointer to all new containers
+	if(pW->isWidgetContainer())
+	{
+		MLWidgetContainer& resultContainer = static_cast<MLWidgetContainer&>(*pW);
+		
+		// all Containers in a tree of Widgets have pointers to the same root context. 
+		resultContainer.setRootView(getRootView());
+	}
 	
     // add parent JUCE component 
     getComponent()->addChildComponent(pW->getComponent());

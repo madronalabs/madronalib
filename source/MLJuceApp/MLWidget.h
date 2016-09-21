@@ -112,8 +112,12 @@ public:
 	ml::Symbol getTargetPropertyName() { return mTargetPropertyName; }
 	void setTargetPropertyName(ml::Symbol p) { mTargetPropertyName = p; }
 	
+	// this can't return a widgetContainer because that type is incomplete.
+	// this is a good argument for keeping all the container stuff external (non-intrusive).
+	// that and reusing it.
 	MLWidget* getContainer() const { return mpContainer; }
-	
+
+
 protected:
 	void setWidgetName(const ml::Symbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }

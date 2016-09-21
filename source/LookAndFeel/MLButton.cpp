@@ -20,7 +20,7 @@ MLButton::MLButton () :
     setRepaintsOnMouseActivity (false);
 	setOpaque(true);
 	
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	
 	setProperty("toggle", true);
@@ -33,7 +33,7 @@ MLButton::MLButton () :
 
 void MLButton::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = &(theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
 	int d = myLookAndFeel->getToggleButtonSize() * getSizeMultiplier();
 
 	myLookAndFeel->drawBackground(g, this);
