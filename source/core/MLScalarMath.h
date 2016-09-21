@@ -32,6 +32,7 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark scalar-type templates
 	
+
 	template <class c>
 	inline c (min)(const c& a, const c& b)
 	{
@@ -61,6 +62,7 @@ namespace ml
 	{
 		return ((x >= min) && (x < max));
 	}
+
 	
 	// ----------------------------------------------------------------
 	#pragma mark utility functions on scalars
