@@ -439,6 +439,7 @@ public:
 	// get enclosing DSP context
 	MLDSPContext* getContext() const { return mpContext; }
 	
+	// TODO how could there be no context? correct any possibility of that. 
 	inline int getContextVectorSize() { return mpContext ? mpContext->getVectorSize() : 0; }	
 	inline float getContextSampleRate() { return mpContext ? mpContext->getSampleRate() : kMLTimeless; }
 	inline float getContextInvSampleRate() { return mpContext ? mpContext->getInvSampleRate() : kMLTimeless; }
@@ -491,6 +492,8 @@ class MLProcFactory
 private:
 	MLProcFactory();
 	~MLProcFactory();
+
+	// delete copy and move constructors and assign operators
 	MLProcFactory(MLProcFactory const&) = delete;             // Copy construct
 	MLProcFactory(MLProcFactory&&) = delete;                  // Move construct
 	MLProcFactory& operator=(MLProcFactory const&) = delete;  // Copy assign
@@ -498,7 +501,6 @@ private:
 	
 public:
 	// singleton: we only want one MLProcFactory, even for multiple MLDSPEngines. 
-	// delete copy and move constructors and assign operators
 	static MLProcFactory &theFactory()  { static MLProcFactory f; return f; }
 	
 	typedef MLProcPtr (*MLProcCreateFnT)(void);
@@ -513,9 +515,7 @@ public:
 	
 	// debug. 
 	void printRegistry(void);
-	
 };
-
 
 // Subclasses of MLProc make an MLProcRegistryEntry object.
 // This class is passed a className and links a creation function 
@@ -539,8 +539,5 @@ public:
 		return pNew;
 	}
 };
-
-
-
 
 #endif // _ML_PROC_H
