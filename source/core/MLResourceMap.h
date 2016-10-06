@@ -64,46 +64,6 @@ public:
 	
 	// WHY SHOULD K BE IN THE TEMPLATE ?
 
-	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
-	// If a node already exists at the path, return the existing node,
-	// else return a pointer to the new node.
-	
-	ResourceMap<K, V, C>* addNode(ml::Path path)
-	{
-		ResourceMap<K, V, C>* pNode = this;
-		
-		int pathDepthFound = 0;
-		
-		// walk the path as long as branches are found in the map
-		for(K key : path)
-		{
-			if(pNode->mChildren.find(key) != pNode->mChildren.end())
-			{
-				pNode = &(pNode->mChildren[key]);
-				pathDepthFound++;
-			}
-			else
-			{
-				break;
-			}
-		}
-		
-		// add the remainder of the path to the map.
-		for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
-		{
-			K key = *it;
-			
-			// [] operator crates the new node
-			pNode = &(pNode->mChildren[key]);
-		}
-		
-		return pNode;
-	}
-	
-	ResourceMap<K, V, C>* addNode(const char* pathStr)
-	{
-		return addNode(ml::Path(pathStr));
-	}
 	
 	ResourceMap<K, V, C>* addValue (ml::Path path, const V& val)
 	{
@@ -266,6 +226,45 @@ public:
 	
 				
 private:
+	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
+	// If a node already exists at the path, return the existing node,
+	// else return a pointer to the new node.	
+	ResourceMap<K, V, C>* addNode(ml::Path path)
+	{
+		ResourceMap<K, V, C>* pNode = this;
+		
+		int pathDepthFound = 0;
+		
+		// walk the path as long as branches are found in the map
+		for(K key : path)
+		{
+			if(pNode->mChildren.find(key) != pNode->mChildren.end())
+			{
+				pNode = &(pNode->mChildren[key]);
+				pathDepthFound++;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		// add the remainder of the path to the map.
+		for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
+		{
+			K key = *it;
+			
+			// [] operator crates the new node
+			pNode = &(pNode->mChildren[key]);
+		}
+		
+		return pNode;
+	}
+	
+	ResourceMap<K, V, C>* addNode(const char* pathStr)
+	{
+		return addNode(ml::Path(pathStr));
+	}
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.

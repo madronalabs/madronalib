@@ -136,8 +136,8 @@ ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::F
 		TextFragment fullName(f.getFullPathName().toUTF8());
 		TextFragment relativePath = getRelativePathFromName(fullName);
 
-		// add a value-less node to represent a (possibly empty) directory.
-		returnNode = mRoot.addNode(ml::Path(relativePath)); 
+		// add a null File to represent a (possibly empty) directory.
+		returnNode = mRoot.addValue(ml::Path(relativePath), MLFile()); 
 	}
 	return returnNode;
 }
