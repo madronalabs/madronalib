@@ -109,21 +109,19 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	theSymbolTable().clear();
 	ResourceMap< Symbol, int > a;
 
-	a.addNode("zzx");
 	a.addValue("case/sensitive/a", 1);
 	a.addValue("case/sensitive/b", 1);
 	a.addValue("case/sensitive/B", 1);
-	a.addValue("case/sensitive/c", 1); // will be added
-	a.addValue("this/is/a/test", 10);
+	a.addValue("case/sensitive/c", 1);
+	a.addValue("this/is/a/test", 5); // note that non-leaf nodes may have values
+	a.addValue("this/is/a/test/jam", 5);
 	a.addValue("this/was/an/test", 10);
-	a.addNode("this/was/another");
 	a.addValue("this/was/another/test", 10);
-	a.addValue("this/was/happy", 10);
-	a.addNode("this/is/an/empty/directory");
+	a.addValue("this/was/happy", 100);
+	a.addValue("this/was/happy", 10); // duplicate addresses are overwritten
 	a.addValue("you/are/my/sunshine", 10);
 	a.addValue("you/are/carl's/sunshine", 10);
 	a.addValue("you/are/carl's/jr/jam", 10);
-	a.addNode("you/are/carl's/jr");
 	int leafSum = 0;
 	const int correctLeafSum = 74;
 	
