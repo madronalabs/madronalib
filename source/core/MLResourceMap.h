@@ -19,21 +19,21 @@
 #include "MLPath.h"
 #include "MLTextUtils.h" 
 
-// A resource map using a key class K, value class V, and optional comparator class C.
+// A recursive resource map using Symbol keys, a value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
 // Note that this makes ResourceMap<..., int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
 namespace ml{
 
-template < class K, class V, class C = std::less<K> >
+	template < class V, class C = std::less<ml::Symbol> >
 class ResourceMap
 {
 public:
-	typedef std::map< K, ResourceMap<K, V, C>, C > mapT;
+	typedef std::map< Symbol, ResourceMap<V, C>, C > mapT;
 
-	ResourceMap<K, V, C>() : mChildren(), mValue() { }
-	~ResourceMap<K, V, C>() {}
+	ResourceMap<V, C>() : mChildren(), mValue() { }
+	~ResourceMap<V, C>() {}
 	
 	void clear() { mChildren.clear(); }
 	const V& getValue() const { return mValue; }
@@ -46,7 +46,7 @@ public:
 	// else, return a null object of our value type V.
 	V findValue(Path p)
 	{
-		ResourceMap<K, V, C>* pNode = findNode(p);
+		ResourceMap<V, C>* pNode = findNode(p);
 		if(pNode)
 		{
 			return pNode->getValue();
@@ -62,17 +62,14 @@ public:
 		return findValue(ml::Path(pathStr));
 	}
 	
-	// WHY SHOULD K BE IN THE TEMPLATE ?
-
-	
-	ResourceMap<K, V, C>* addValue (ml::Path path, const V& val)
+	ResourceMap<V, C>* addValue (ml::Path path, const V& val)
 	{
-		ResourceMap<K, V, C>* newNode = addNode(path);
+		ResourceMap<V, C>* newNode = addNode(path);
 		newNode->setValue(val);
 		return newNode;
 	}
 	
-	ResourceMap<K, V, C>* addValue (const char* pathStr, const V& val)
+	ResourceMap<V, C>* addValue (const char* pathStr, const V& val)
 	{
 		return addValue(ml::Path(pathStr), val);
 	}
@@ -84,13 +81,13 @@ public:
 	class const_iterator
 	{
 	public:
-		const_iterator(const ResourceMap<K, V, C>* p)  
+		const_iterator(const ResourceMap<V, C>* p)  
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(p->mChildren.begin());
 		}
 		
-		const_iterator(const ResourceMap<K, V, C>* p, const typename mapT::const_iterator subIter)
+		const_iterator(const ResourceMap<V, C>* p, const typename mapT::const_iterator subIter)
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(subIter);
@@ -114,12 +111,12 @@ public:
 			return !(*this == b); 
 		}
 				
-		const ResourceMap<K, V, C>& operator*() const 
+		const ResourceMap<V, C>& operator*() const 
 		{ 
 			return ((*mIteratorStack.back()).second); 
 		}
 		
-		const ResourceMap<K, V, C>* operator->() const 
+		const ResourceMap<V, C>* operator->() const 
 		{ 
 			return &((*mIteratorStack.back()).second); 
 		}
@@ -140,7 +137,7 @@ public:
 			}			
 			else
 			{
-				const ResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
+				const ResourceMap<V, C>* currentChildNode = &((*currentIterator).second);
 				if (!currentChildNode->isLeaf())
 				{
 					// down
@@ -165,37 +162,37 @@ public:
 		
 		bool nodeHasValue() const
 		{ 
-			const ResourceMap<K, V, C>* parentNode = mNodeStack.back();
+			const ResourceMap<V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
 			if(currentIterator == parentNode->mChildren.end()) return false;
 
-			const ResourceMap<K, V, C>* currentChildNode = &((*currentIterator).second);
+			const ResourceMap<V, C>* currentChildNode = &((*currentIterator).second);
 			return(currentChildNode->hasValue());
 		}
 		
 		bool atEndOfMap() const
 		{
-			const ResourceMap<K, V, C>* parentNode = mNodeStack.back();
+			const ResourceMap<V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			return(currentIterator == parentNode->mChildren.end());
 		}
 		
-		K getLeafName() const
+		Symbol getLeafName() const
 		{
-			const ResourceMap<K, V, C>* parentNode = mNodeStack.back();
+			const ResourceMap<V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
-			if(currentIterator == parentNode->mChildren.end()) return K();
+			if(currentIterator == parentNode->mChildren.end()) return Symbol();
 			
 			return (*currentIterator).first;
 		}
 
 		int getDepth() { return mNodeStack.size() - 1; }
 		
-		std::vector< const ResourceMap<K, V, C>* > mNodeStack;
+		std::vector< const ResourceMap<V, C>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
 	};	
 		
@@ -229,14 +226,14 @@ private:
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.	
-	ResourceMap<K, V, C>* addNode(ml::Path path)
+	ResourceMap<V, C>* addNode(ml::Path path)
 	{
-		ResourceMap<K, V, C>* pNode = this;
+		ResourceMap<V, C>* pNode = this;
 		
 		int pathDepthFound = 0;
 		
 		// walk the path as long as branches are found in the map
-		for(K key : path)
+		for(Symbol key : path)
 		{
 			if(pNode->mChildren.find(key) != pNode->mChildren.end())
 			{
@@ -252,7 +249,7 @@ private:
 		// add the remainder of the path to the map.
 		for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
-			K key = *it;
+			Symbol key = *it;
 			
 			// [] operator crates the new node
 			pNode = &(pNode->mChildren[key]);
@@ -261,18 +258,18 @@ private:
 		return pNode;
 	}
 	
-	ResourceMap<K, V, C>* addNode(const char* pathStr)
+	ResourceMap<V, C>* addNode(const char* pathStr)
 	{
 		return addNode(ml::Path(pathStr));
 	}
 
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	ResourceMap<K, V, C>* findNode(Path path)
+	ResourceMap<V, C>* findNode(Path path)
 	{
-		ResourceMap<K, V, C>* pNode = this;
+		ResourceMap<V, C>* pNode = this;
 
-		for(K key : path)
+		for(Symbol key : path)
 		{
 			if(pNode->mChildren.find(key) != pNode->mChildren.end())
 			{

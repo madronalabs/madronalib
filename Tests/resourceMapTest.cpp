@@ -59,7 +59,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		}
 	}
 	
-	ResourceMap< Symbol, int > numberMap;
+	ResourceMap< int > numberMap;
 	
 	// time set nodes tree
 	start = std::chrono::system_clock::now();	
@@ -104,10 +104,10 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	// with a ResourceMap< Symbol, int, std::less<Symbol> > , the order of map keys depends on 
+	// with a ResourceMap< int, std::less<Symbol> > , the order of map keys depends on 
 	// the sorted order of symbols, which is just their creation order.
 	theSymbolTable().clear();
-	ResourceMap< Symbol, int > a;
+	ResourceMap< int > a;
 
 	a.addValue("case/sensitive/a", 1);
 	a.addValue("case/sensitive/b", 1);
