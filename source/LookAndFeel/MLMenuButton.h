@@ -15,7 +15,7 @@ class MLMenuButton :
 	public MLButton
 {
 public:
-     MLMenuButton();
+     MLMenuButton(MLWidget* pContainer);
     ~MLMenuButton();
 
     enum ColourIds

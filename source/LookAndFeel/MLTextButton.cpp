@@ -5,9 +5,10 @@
 
 #include "MLTextButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
-MLTextButton::MLTextButton()
-    : MLButton ()
+MLTextButton::MLTextButton(MLWidget* pContainer)
+    : MLButton (pContainer)
 {
 }
 
@@ -17,7 +18,7 @@ MLTextButton::~MLTextButton()
 
 void MLTextButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (MLTextButton::buttonColourId));	
 	const Colour t (findColour (MLTextButton::textColourId));	

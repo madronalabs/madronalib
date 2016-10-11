@@ -14,7 +14,7 @@ class MLEnvelope  :
 	public MLWidget
 {
 public:
-    MLEnvelope();
+    MLEnvelope(MLWidget* pContainer);
     ~MLEnvelope();
 	
 	// MLPropertyListener

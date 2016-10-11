@@ -5,9 +5,10 @@
 
 #include "MLToggleButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
-MLToggleButton::MLToggleButton()
-    : MLButton()
+MLToggleButton::MLToggleButton(MLWidget* pContainer)
+    : MLButton(pContainer)
 {
     setOpaque(false);
 }
@@ -18,10 +19,10 @@ MLToggleButton::~MLToggleButton()
 
 void MLToggleButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	
 	// colors	
-	const Colour offColor (findColour (MLLookAndFeel::darkFillColor));		
+	const Colour offColor (myLookAndFeel->findColour (MLLookAndFeel::darkFillColor));		
 	const Colour onColor (findColour (MLButton::buttonOnColourId));
 	const Colour bc = (mToggleState ? onColor : offColor);
     
@@ -93,7 +94,6 @@ void MLToggleButton::paint(Graphics& g)
 	g.setColour(Colours::red);	
 	g.strokePath(bounds, PathStrokeType(1.0f));
 	*/
-	
 }
 
 void MLToggleButton::resizeWidget(const MLRect& b, const int u)

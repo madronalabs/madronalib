@@ -5,10 +5,12 @@
 
 #include "MLMultiSlider.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
 const int kWheelTimeoutDuration = 250;
 
-MLMultiSlider::MLMultiSlider () :
+MLMultiSlider::MLMultiSlider (MLWidget* pContainer) :
+	MLWidget(pContainer),
 	mVertical(true),
 	isMouseWheelMoving(false),
 	mGestureInProgress(false)
@@ -16,7 +18,7 @@ MLMultiSlider::MLMultiSlider () :
 	mpTimer = std::unique_ptr<GestureTimer>(new GestureTimer(this));
 	
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -72,8 +74,9 @@ void MLMultiSlider::setFillColor (const Colour& c)
 	// bright line
 	setColour(indicatorColor, Colour(c.getHue(), jmax(c.getSaturation() - (b*0.05), 0.), jmin((c.getBrightness() + b*2.f), 1.f), 1.f));
 
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	// track background plain
-	setColour(trackEmptyDarkColor, findColour(MLLookAndFeel::darkestFillColor));
+	setColour(trackEmptyDarkColor, myLookAndFeel->findColour(MLLookAndFeel::darkestFillColor));
 	// dial fill selected 
 	setColour(trackFullLightColor, findColour(fillColor).overlaidWith(findColour(indicatorColor).withAlpha(0.15f)));
 	// track fill 
@@ -107,7 +110,7 @@ int MLMultiSlider::getSliderWidth() const
 
 void MLMultiSlider::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
 	float outlineThickness = myLookAndFeel->getGridUnitSize() / 64.f;
 	MLRect r = mPos.getLocalOutline();
@@ -428,7 +431,7 @@ void MLMultiSlider::setWave(int w)
 
 void MLMultiSlider::resizeWidget(const MLRect& b, const int )
 {
-//	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+//	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 
 	Component* pC = getComponent();
 	mPos.setBounds(b);

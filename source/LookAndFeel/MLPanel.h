@@ -14,7 +14,7 @@ class MLPanel :
 	public MLWidget
 {
 public:
-    MLPanel();
+    MLPanel(MLWidget* pContainer);
     ~MLPanel();
 
     void setText (const String& text);

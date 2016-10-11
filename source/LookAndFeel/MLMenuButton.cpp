@@ -5,9 +5,10 @@
 
 #include "MLMenuButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
-MLMenuButton::MLMenuButton () :
-    MLButton (),
+MLMenuButton::MLMenuButton (MLWidget* pContainer) :
+    MLButton (pContainer),
 	mStyle(kRightArrowStyle)
 {
 	mTriggerOnMouseDown = true;
@@ -24,7 +25,7 @@ void MLMenuButton::setStyle(int t)
 
 void MLMenuButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	const Colour c (findColour (MLTextButton::buttonColourId));
 	const Colour t (findColour (MLTextButton::textColourId));
 	myLookAndFeel->drawBackground(g, this);

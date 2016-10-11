@@ -114,7 +114,7 @@ public:
         trackDarkColor		= 0x1001206,
     };
 
-	MLDial();
+	MLDial(MLWidget* pContainer);
     ~MLDial();
 		
 	// MLPropertyListener

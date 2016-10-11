@@ -5,10 +5,11 @@
 
 #include "MLDrawableButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
 
-MLDrawableButton::MLDrawableButton ()
-    : MLButton ()
+MLDrawableButton::MLDrawableButton (MLWidget* pContainer) : 
+    MLButton (pContainer)
 {
 	backgroundOff = Colours::transparentBlack;
 	backgroundOn = findColour(MLLookAndFeel::backgroundColor);
@@ -30,11 +31,11 @@ void MLDrawableButton::setImage (const Drawable* img)
 
 void MLDrawableButton::paint (Graphics& g)
 { 
- 	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+ 	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
     Rectangle<int> imageSpace = getLocalBounds();
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);
 	const Colour c (findColour (TextButton::buttonColourId));
-
+	
 	float u = myLookAndFeel->getGridUnitSize();
 	if (mDown)
 	{

@@ -3,8 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef __ML_APP_VIEW_H__
-#define __ML_APP_VIEW_H__
+#pragma once
 
 #include "JuceHeader.h"
 #include "MLUIBinaryData.h"
@@ -31,6 +30,18 @@
 #include "MLSymbol.h"
 
 extern const Colour defaultColor;
+
+class AppViewResources
+{
+public:
+	
+	AppViewResources() : mTest(fabs(MLRand()) * 200.f) {}
+	
+	
+	MLLookAndFeel mLookAndFeel;
+	int mTest;
+};
+
 
 // maintains a View Component with grid dimensions set by parent. 
 // provides handy UI component creation functions for grid.
@@ -105,7 +116,10 @@ public:
 	void windowMoved();
 	void windowResized();
 	
-	int getViewResources() { return mResources; }
+	// MLTEST
+	
+	AppViewResources& getViewResources() { return mResources; }
+
 	
 protected:
 	bool mInitialized;
@@ -113,17 +127,17 @@ protected:
 	MLWidget::Listener* mpResponder;
 	MLReporter* mpReporter;
 	
-	// resources
-	int mResources;
+	// resources MLTEST
+	AppViewResources mResources;
 	
 };
 
-/*
-inline int getRootResources(MLWidget* pW)
+
+inline AppViewResources& getRootViewResources(MLWidget* pW)
 {
-	MLWidgetContainer* pC = static_cast<MLWidgetContainer*>(pW->getContainer());
+	MLWidget* pContainer = pW->getContainer();
+	const MLWidgetContainer* pC = static_cast<const MLWidgetContainer*>(pContainer);
 	MLAppView* pV = static_cast<MLAppView*>(pC->getRootView());
 	return pV->getViewResources();
 }
-MLTEST */
-#endif // __ML_APP_VIEW_H__
+

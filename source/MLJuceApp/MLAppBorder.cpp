@@ -5,34 +5,20 @@
 
 #include "MLAppBorder.h"
 
-MLAppBorder::MLAppBorder() : 
-	pMainView(0),
+MLAppBorder::MLAppBorder(MLAppView* pV) : 
+	pMainView(pV),
     mpResizer(0),
 	mGridUnitsX(0),
 	mGridUnitsY(0),
 	mZoomable(false)
 {
-	MLWidget::setComponent(this);
-
 	// don't buffer this big guy
 	setBufferedToImage(false);
-	
-	setWidgetBounds(MLRect(0, 0, 0, 0));
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);	
-	setWidgetName("border");
-    getComponent()->setOpaque(true);
+    setOpaque(true);
 }
 
 MLAppBorder::~MLAppBorder()
 {
-	getComponent()->deleteAllChildren();
-}
-
-void MLAppBorder::addMainView(MLAppView* pView)
-{
-	pMainView = pView;
-	getComponent()->addAndMakeVisible(pView);
 }
 
 // build the resizer for target components that need them.
@@ -41,27 +27,36 @@ void MLAppBorder::addMainView(MLAppView* pView)
 void MLAppBorder::makeResizer(Component* targetComp)
 {
 	// add the triangular resizer component for the bottom-right of the UI
-    getComponent()->addAndMakeVisible (mpResizer = new ResizableCornerComponent (targetComp, &myConstrainer));
+	//getComponent()->addAndMakeVisible (mpResizer = new ResizableCornerComponent (targetComp, &myConstrainer));
+	
+	addAndMakeVisible (mpResizer = new ResizableCornerComponent (targetComp, &myConstrainer));
 	mpResizer->setAlwaysOnTop(true);
 }
 
 void MLAppBorder::paint (Graphics& g)
 {    
 	// This is where most of the plugin's background is actually painted.
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-	myLookAndFeel->drawEntireBackground(g, mBorderRect.getTopLeft());
+	pMainView->getViewResources().mLookAndFeel.drawEntireBackground(g, mBorderRect.getTopLeft());
 }
 
-void MLAppBorder::centerMainViewInWindow()
+int MLAppBorder::getHeightUnit()
 {
-	MLRect br = getWidgetBounds();
+	MLRect br = juceToMLRect(getBounds());	
+	int windowHeight = br.height();		
+	return (windowHeight / mGridUnitsY);
+}
+
+MLRect MLAppBorder::centerMainViewInWindow(int u)
+{
+	MLRect br = juceToMLRect(getBounds());
+	
 	int windowWidth = br.width();
 	int windowHeight = br.height();	
 	double windowRatio = (double)(windowWidth + 1)/(double)windowHeight;
 	double viewRatio = (double)mGridUnitsX/(double)mGridUnitsY;
-	int u = (int)(windowHeight / mGridUnitsY);
+	
 	int viewWidth, viewHeight;
-	if ((!windowWidth) || (!windowHeight) || !u) return;
+	if ((!windowWidth) || (!windowHeight) || !u) return MLRect(0, 0, 64, 64);
 	
 	// TODO different modes: fit fixed scale, quantize only. 
 	// This is fit fixed scale, good for static layouts.
@@ -79,52 +74,51 @@ void MLAppBorder::centerMainViewInWindow()
 		u = viewWidth / mGridUnitsX;
 	}
     
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-	myLookAndFeel->setGridUnitSize(u);	
-
-	if ((!viewWidth) || (!viewHeight) || !u) return;
+	pMainView->getViewResources().mLookAndFeel.setGridUnitSize(u);	
+	
+	if ((!viewWidth) || (!viewHeight) || !u) return MLRect(0, 0, 64, 64);
 	int vwq = viewWidth / u * u;
 	int vhq = viewHeight / u * u;
 	int borderX = (windowWidth - vwq)/2;
 	int borderY = (windowHeight - vhq)/2;
 	
-	mBorderRect = MLRect(borderX, borderY, vwq, vhq);
-	if (pMainView) pMainView->resizeWidget(mBorderRect, u);
+	return MLRect(borderX, borderY, vwq, vhq);
 }
 
 void MLAppBorder::resized()
 {
 	MLPoint borderDims1 = mBorderRect.getDims();
-	centerMainViewInWindow();
-	
+	int u = getHeightUnit();
+	mBorderRect = centerMainViewInWindow(u); 
+	if (pMainView) pMainView->resizeWidget(mBorderRect, u);
+
+	Rectangle<int> b = getBounds();
+	MLRect br = juceToMLRect(b);
+
+	int w = br.width();
+	int h = br.height();
+
 	// move resizer widget
 	if(mpResizer)
 	{
-		int w = getWidgetBounds().width();
-		int h = getWidgetBounds().height();
 		mpResizer->setBounds (w - 16, h - 16, 16, 16);
 	}
 	
+	AppViewResources& resources = pMainView->getViewResources();
+	
 	if(borderDims1 != mBorderRect.getDims())
 	{
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-	myLookAndFeel->makeBackgroundImage(getWidgetLocalBounds());
+		resources.mLookAndFeel.makeBackgroundImage(br);
 	}
 }
 
 void MLAppBorder::setGridUnits(int gx, int gy)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-	myLookAndFeel->setGridUnits(gx, gy);	
+	AppViewResources& resources = pMainView->getViewResources();
+	resources.mLookAndFeel.setGridUnits(gx, gy);	
 	myConstrainer.setFixedAspectRatio((float)gx/(float)gy);	
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
-}
-
-void MLAppBorder::setContent(MLAppView* contentView)
-{
-	// set content of border to view
-	addMainView(contentView);
 }
 
 void MLAppBorder::setZoomable(bool z)

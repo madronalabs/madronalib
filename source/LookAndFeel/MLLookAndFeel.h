@@ -535,7 +535,9 @@ public:
 	float mGlobalTextScale;
 	
 	// visual resources for app. 
-	// TODO no L+F class in future, these go into top level drawing Context 
+	// TODO no L+F class in future, these go into top level drawing Context along with any scripts to override standard UI scripts
+	// (we do our own inheritance in scripting)
+	
 	void addPicture(ml::Symbol name, const void* data, size_t dataSize);	
 	const Drawable* getPicture(ml::Symbol name);
 	
@@ -545,7 +547,9 @@ public:
 	
 	// singleton: we only want one MLLookAndFeel, even for multiple app windows. 
 	// TODO no Singleton, create one L+F per app.
-	static MLLookAndFeel* theMLLookAndFeel()  { static MLLookAndFeel f; return &f; }
+	
+	// MLTEST
+	// static MLLookAndFeel* theMLLookAndFeel()  { static MLLookAndFeel f; return &f; }
 	
 };
 

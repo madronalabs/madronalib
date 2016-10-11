@@ -14,7 +14,7 @@ class MLTextButton :
 	public MLButton
 {
 public:
-     MLTextButton();
+     MLTextButton(MLWidget* pContainer);
     ~MLTextButton();
 	void paint(Graphics& g);
 	void doPropertyChangeAction(ml::Symbol property, const MLProperty& val);

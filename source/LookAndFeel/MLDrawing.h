@@ -40,7 +40,7 @@ public:
 		float args [4];
 	};
 	
-	MLDrawing();
+	MLDrawing(MLWidget* pContainer);
 	~MLDrawing();
 	
 	// add point and return point index

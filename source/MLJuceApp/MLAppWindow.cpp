@@ -27,8 +27,9 @@ MLAppWindow::MLAppWindow() :
     // out commands
     addKeyListener (commandManager.getKeyMappings());
     
-	mpBorder = std::unique_ptr<MLAppBorder>(new MLAppBorder());
-    setContentOwned(mpBorder.get()->getComponent(), false);
+	// MLTEST
+//	mpBorder = std::unique_ptr<MLAppBorder>(new MLAppBorder(this));
+  //  setContentOwned(mpBorder.get()->getComponent(), false);
 	
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);
@@ -81,11 +82,6 @@ void MLAppWindow::setGridUnits(int gx, int gy)
     mpBorder->setGridUnits(gx, gy);
 }
 
-void MLAppWindow::setContent(MLAppView* appView)
-{
-	mpBorder->addMainView(appView);
-	mpAppView = appView;
-}
 
 void MLAppWindow::closeButtonPressed()
 {

@@ -14,7 +14,7 @@ class  MLDrawableButton :
 {
 public:
 
-    MLDrawableButton();
+    MLDrawableButton(MLWidget* pContainer);
     ~MLDrawableButton();
 
 	void paint (Graphics& g);

@@ -5,8 +5,10 @@
 
 #include "MLButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
-MLButton::MLButton () :
+MLButton::MLButton (MLWidget* pContainer, const String label) : 
+	MLWidget(pContainer),
 	mLabelOffset(MLPoint(0, 0)),
 	mOffValue(0.f),
 	mOnValue(1.f),
@@ -20,7 +22,7 @@ MLButton::MLButton () :
     setRepaintsOnMouseActivity (false);
 	setOpaque(true);
 	
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	
 	setProperty("toggle", true);
@@ -33,15 +35,14 @@ MLButton::MLButton () :
 
 void MLButton::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	int d = myLookAndFeel->getToggleButtonSize() * getSizeMultiplier();
 
 	myLookAndFeel->drawBackground(g, this);
 
 	// colors
-	const Colour bgColor (findColour (MLLookAndFeel::backgroundColor));	
-	const Colour offColor (findColour (MLButton::buttonOffColourId));	
-	const Colour onColor (findColour (MLButton::buttonOnColourId));	
+	const Colour offColor (myLookAndFeel->findColour (MLButton::buttonOffColourId));	
+	const Colour onColor (myLookAndFeel->findColour (MLButton::buttonOnColourId));	
 	const Colour offBrightColor (offColor.getHue(), offColor.getSaturation(), jmin(offColor.getBrightness() + 0.1, 1.), offColor.getFloatAlpha());		
 	const Colour onBrightColor (onColor.getHue(), onColor.getSaturation(), jmin(onColor.getBrightness() + 0.1, 1.), onColor.getFloatAlpha());		
 	const Colour offOverColor ((mDoRollover && mOver) ? offBrightColor : offColor);
@@ -49,14 +50,14 @@ void MLButton::paint (Graphics& g)
 	const Colour bc = (mToggleState ? onOverColor : offOverColor);
 
 	const float alpha = isEnabled() ? 1.f : 0.25f;	
-	const Colour textColor (findColour (MLButton::textColourId).withMultipliedAlpha (alpha));	
-	const Colour track_hard (findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha));	
+	const Colour textColor (myLookAndFeel->findColour (MLButton::textColourId).withMultipliedAlpha (alpha));	
+	const Colour track_hard (myLookAndFeel->findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha));	
 	const Colour brightColor = Colour(bc.getHue(), bc.getSaturation(), jmin(bc.getBrightness() + 0.1, 1.), bc.getFloatAlpha());				
 	Colour buttonColor = bc.withMultipliedAlpha (isEnabled() ? 1.f : 0.25f);
 	
 	Colour outlineColor, outlineOnColor, outlineOffColor;
-	outlineOnColor = findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.5f));
-	outlineOffColor = findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha);
+	outlineOnColor = myLookAndFeel->findColour(MLLookAndFeel::outlineColor).overlaidWith(onOverColor.withMultipliedAlpha(0.5f));
+	outlineOffColor = myLookAndFeel->findColour(MLLookAndFeel::outlineColor).withMultipliedAlpha (alpha);
 	outlineColor = mToggleState ? outlineOnColor : outlineOffColor;
 	
 	if (mImage.isValid())
@@ -88,7 +89,7 @@ void MLButton::paint (Graphics& g)
 	{
 		float imageAlpha = mToggleState ? 0.5f : 1.f;
 
-		g.setColour(findColour(MLLookAndFeel::labelColor).withMultipliedAlpha(imageAlpha));
+		g.setColour(myLookAndFeel->findColour(MLLookAndFeel::labelColor).withMultipliedAlpha(imageAlpha));
 		
 		int ww = mImage.getWidth();
 		int hh = mImage.getHeight();

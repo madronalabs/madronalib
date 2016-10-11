@@ -17,7 +17,7 @@ class MLMultiSlider :
 	public MLWidget
 {
 public:
-	MLMultiSlider ();
+	MLMultiSlider (MLWidget* pContainer);
 	~MLMultiSlider();
 		
 	void doPropertyChangeAction(ml::Symbol property, const MLProperty& val);

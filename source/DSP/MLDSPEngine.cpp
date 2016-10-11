@@ -64,7 +64,6 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 			if (pms)
 			{
 				mpInputToSignalsProc = static_cast<MLProcInputToSignals*>(&(*pms));
-				debug() << "MIDI / OSC input OK.\n";
 			}
 		}
 	}	
@@ -96,7 +95,9 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		// sets root of this container to itself, which will be passed to children in buildGraph() / buildProc().
 		setRootContext(this);
 
+		// TODO what does this do different from the above, sort it out
 		makeRoot("root");
+		
 		buildGraph(pRootElem);
         
         // make any published signal outputs at top level only

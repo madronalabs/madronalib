@@ -193,12 +193,16 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 		{
 			osc::int32 pgm;
 			args >> pgm;
+			
+			// debug() << "PGM " << mUDPPortOffset << ": " << pgm << "\n";
 			notifyListeners("program", pgm);
 		}
 		else if (strcmp(addy, "/vol")==0)
 		{
 			float v;
 			args >> v;
+
+			// debug() << "VOL " << mUDPPortOffset << ": " << v << "\n";
 			notifyListeners("volume", v);
 		}
 		

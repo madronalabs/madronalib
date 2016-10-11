@@ -18,7 +18,7 @@ class MLMultiButton :
 	public MLWidget
 {
 public:
-	MLMultiButton ();
+	MLMultiButton (MLWidget* pContainer);
 	~MLMultiButton();
 	
 	void doPropertyChangeAction(ml::Symbol property, const MLProperty& val);

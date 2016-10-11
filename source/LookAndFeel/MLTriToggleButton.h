@@ -13,7 +13,7 @@ class MLTriToggleButton :
 public MLButton
 {
 public:
-    MLTriToggleButton();
+    MLTriToggleButton(MLWidget* pContainer);
     ~MLTriToggleButton();
 	
 	void paint(Graphics& g) override;

@@ -4,14 +4,16 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLEnvelope.h"
+#include "MLAppView.h"
 
 static const float kMinAttack = 0.0001;
 static const float kMinDecay = 0.0001;
 
-MLEnvelope::MLEnvelope ()
+MLEnvelope::MLEnvelope (MLWidget* pC) :
+	MLWidget(pC)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -50,7 +52,7 @@ void MLEnvelope::paint (Graphics& g)
 	float r = getFloatProperty("repeat");
 	float mRepeat = (r > 0.f) ? (1.f / (r + 0.0001f)) : 0.f;
 
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	if (isOpaque()) 
 		myLookAndFeel->drawBackground(g, this);	
 	

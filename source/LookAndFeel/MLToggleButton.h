@@ -13,7 +13,7 @@ class MLToggleButton :
 	public MLButton
 {
 public:
-     MLToggleButton();
+     MLToggleButton(MLWidget* pContainer);
     ~MLToggleButton();
 	
 	void paint(Graphics& g);

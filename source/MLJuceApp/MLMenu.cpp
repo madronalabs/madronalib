@@ -300,8 +300,7 @@ void MLMenu::appendMenu(MLMenuPtr m)
 
 void MLMenu::buildIndex()
 {
-	debug() << "BUILD\n";
-    mRoot->renumberItems();
+	mRoot->renumberItems();
     std::string startPath("");
     mRoot->buildFullNameIndex(mFullNamesByIndex, startPath);
     mHasIndex = true;

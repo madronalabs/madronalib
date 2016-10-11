@@ -32,7 +32,7 @@ public:
 		virtual void handleWidgetAction (MLWidget*, ml::Symbol action, ml::Symbol target, const MLProperty& val) = 0;
 	};
 
-	MLWidget();
+	MLWidget(MLWidget* pC);
 	virtual ~MLWidget();
 	
 	// MLPropertyListener methods.
@@ -117,11 +117,12 @@ public:
 	// that and reusing it.
 	MLWidget* getContainer() const { return mpContainer; }
 
+	// TEMP working around widget / view hierarchy problems
+	void setContainer(MLWidget* c) { mpContainer = c; }
 
 protected:
 	void setWidgetName(const ml::Symbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
-	void setContainer(MLWidget* c) { mpContainer = c; }
 
 	std::vector<MLWidget::Listener*> mpListeners;
 

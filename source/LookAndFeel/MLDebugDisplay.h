@@ -19,7 +19,7 @@ class MLDebugDisplay :
 	public Timer
 {
 public:
-    MLDebugDisplay();
+    MLDebugDisplay(MLWidget* pContainer);
     ~MLDebugDisplay();
 
 	void display();

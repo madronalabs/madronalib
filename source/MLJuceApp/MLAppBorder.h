@@ -15,24 +15,22 @@
 // a component for holding a view and resizing other components nicely.
 //
 class MLAppBorder : 
-	public Component,
-	public MLWidget
+	public Component
 {
 public:
-    MLAppBorder();
+	MLAppBorder(MLAppView* pV);
     ~MLAppBorder();
 
-	void addMainView(MLAppView* pC);
 	void makeResizer(Component* targetComp);
 	void paint (Graphics& g);
-    void centerMainViewInWindow();
-    void resized();
+	void resized();
 
 	void setGridUnits(int w, int h);
-	void setContent(MLAppView* contentView);
 	void setZoomable(bool z);
 
 private:
+	int getHeightUnit();
+	MLRect centerMainViewInWindow(int u);
 
     // (prevent copy constructor and operator= being generated..)
     MLAppBorder (const MLAppBorder&);
@@ -49,7 +47,6 @@ private:
 	MLRect mBorderRect;
 	
 	bool mZoomable;
-	
 };
 
 #endif // __ML_JUCE_APP_BORDER__

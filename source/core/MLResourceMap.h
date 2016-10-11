@@ -21,7 +21,7 @@
 
 // A recursive resource map using Symbol keys, a value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
-// Note that this makes ResourceMap<..., int> weird to use, because 0 indicates
+// Note that this makes ResourceMap<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
 namespace ml{

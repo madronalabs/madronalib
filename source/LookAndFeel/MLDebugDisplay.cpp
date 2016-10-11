@@ -9,7 +9,8 @@
 static const int kMLDebugMaxChars = 32768;
 
 //==============================================================================
-MLDebugDisplay::MLDebugDisplay () :
+MLDebugDisplay::MLDebugDisplay (MLWidget* pContainer) : 
+	MLWidget(pContainer),
 	mpDoc(std::unique_ptr<CodeDocument>(new CodeDocument())),
 	mpComp(std::unique_ptr<CodeEditorComponent>(new CodeEditorComponent(*mpDoc, nullptr)))
 {
@@ -22,7 +23,6 @@ MLDebugDisplay::MLDebugDisplay () :
 	mpComp->loadContent("");
 	mpComp->setScrollbarThickness(12);
     
-	std::cout << "STARTING Timer \n";
 	startTimer(250);
 }
 

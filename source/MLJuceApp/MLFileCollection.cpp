@@ -117,9 +117,9 @@ int MLFileCollection::searchForFilesImmediate()
 	return found;
 }
 
-ml::ResourceMap<ml::Symbol, MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
+ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 {
-	ml::ResourceMap<ml::Symbol, MLFile>* returnNode = nullptr; 
+	ml::ResourceMap<MLFile>* returnNode = nullptr; 
 	String shortName = f.getFileNameWithoutExtension();		
 	juce::File parentDir = f.getParentDirectory();
 	
@@ -357,7 +357,7 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
 	return (ml::textUtils::stripFileExtension(pf));
 }
 
-MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)> includeFn) const
+MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<MLFile>::const_iterator)> includeFn) const
 {
 	MLMenuPtr root(new MLMenu());
 	std::vector< MLMenuPtr > menuStack;
@@ -397,7 +397,7 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<ml::Sym
 
 MLMenuPtr MLFileCollection::buildMenu() const
 {
-	return buildMenu([=](ml::ResourceMap<ml::Symbol, MLFile>::const_iterator it){ return true; });
+	return buildMenu([=](ml::ResourceMap<MLFile>::const_iterator it){ return true; });
 }
 
 void MLFileCollection::run()

@@ -21,7 +21,7 @@ public:
 	void mouseDown (const MouseEvent& e);
 	void mouseDrag (const MouseEvent& e);	
 	void setGridUnits(int gx, int gy);
-	void setContent(MLAppView* newView);
+//	void setContent(MLAppView* newView);
     void closeButtonPressed();
     void moved();
     void resized();

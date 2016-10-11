@@ -546,7 +546,7 @@ private:
 		}
 		
 		// SETDIMS MLTEST
-		std::cout << ".";
+		// std::cout << ".";
 		
 		float* newData = new float[size + kSignalAlignSize - 1];
 		if(!newData) mSize = 0;

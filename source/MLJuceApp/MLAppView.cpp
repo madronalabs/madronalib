@@ -8,15 +8,17 @@
 const Colour defaultColor = Colours::grey;
 
 MLAppView::MLAppView(MLWidget::Listener* pResp, MLReporter* pRep) :
-	MLWidgetContainer(this), // MLAppView is its own widget root. TODO use external structure for tree, share w procs
+	MLWidgetContainer(this, this), // MLAppView is its own widget root. TODO use external structure for tree, share w procs
 	mInitialized(false),
 	mpResponder(pResp),
-	mpReporter(pRep),
-	mResources(3)
+	mpReporter(pRep)
 {
+	//setContainer(this);
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-	LookAndFeel::setDefaultLookAndFeel (myLookAndFeel);		
+	
+	LookAndFeel::setDefaultLookAndFeel (&(mResources.mLookAndFeel));		
+	Desktop::getInstance().setDefaultLookAndFeel(&(mResources.mLookAndFeel));
+	
 	setOpaque(false);
 	setInterceptsMouseClicks (false, true);
 }
@@ -66,6 +68,7 @@ void MLAppView::addPropertyView(ml::Symbol modelProp, MLWidget* widget, ml::Symb
 
 void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, ml::Symbol name = ml::Symbol())
 {
+	//debug() << "ADDING widget: " << name << "\n";
 	addWidget(pW, name);
 	pW->setGridBounds(r);
 	pW->addListener(mpResponder);
@@ -78,7 +81,7 @@ void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, ml::Symbol name =
 MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const ml::Symbol p,
 	const Colour& color, const float sizeMultiplier)
 {
-	MLDial* dial = new MLDial;
+	MLDial* dial = new MLDial(this);
 	dial->setTargetPropertyName(p);
 	dial->setSizeMultiplier(sizeMultiplier);
 	dial->setDialStyle (MLDial::Rotary);
@@ -98,7 +101,7 @@ MLDial* MLAppView::addDial(const char * displayName, const MLRect & r, const ml:
 MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 	int numSliders, const Colour& color)
 {
-	MLMultiSlider* slider = new MLMultiSlider;
+	MLMultiSlider* slider = new MLMultiSlider(this);
 	slider->setNumSliders(numSliders);
 	slider->setTargetPropertyName(propName);
 	slider->setFillColor(color);
@@ -119,7 +122,7 @@ MLMultiSlider* MLAppView::addMultiSlider(const char * displayName, const MLRect 
 MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect & r, const ml::Symbol propName, 
 	int n, const Colour& color)
 {
-	MLMultiButton* b = new MLMultiButton;
+	MLMultiButton* b = new MLMultiButton(this);
 	b->setNumButtons(n);
 	b->setTargetPropertyName(propName);
 	b->setFillColor(color);
@@ -140,7 +143,7 @@ MLMultiButton* MLAppView::addMultiButton(const char * displayName, const MLRect 
 MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, const ml::Symbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
-	MLButton* button = new MLToggleButton;
+	MLButton* button = new MLToggleButton(this);
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
@@ -158,7 +161,7 @@ MLButton* MLAppView::addToggleButton(const char* displayName, const MLRect & r, 
 MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & r, const ml::Symbol propName,
                                      const Colour& color, const float sizeMultiplier)
 {
-	MLButton* button = new MLTriToggleButton;
+	MLButton* button = new MLTriToggleButton(this);
 	button->setSizeMultiplier(sizeMultiplier);
 	button->setTargetPropertyName(propName);
 	button->setFillColor(color);
@@ -175,7 +178,7 @@ MLButton* MLAppView::addTriToggleButton(const char* displayName, const MLRect & 
 
 MLPanel* MLAppView::addPanel(const MLRect & r, const Colour& color)
 {
-	MLPanel* b = new MLPanel;
+	MLPanel* b = new MLPanel(this);
 	b->setBackgroundColor(color);
 	addWidgetToView(b, r);
 	return b;
@@ -183,7 +186,7 @@ MLPanel* MLAppView::addPanel(const MLRect & r, const Colour& color)
 
 MLDebugDisplay* MLAppView::addDebugDisplay(const MLRect & r)
 {
-	MLDebugDisplay* b = new MLDebugDisplay();
+	MLDebugDisplay* b = new MLDebugDisplay(this);
 	addWidgetToView(b, r);
 	return b;
 }
@@ -191,7 +194,7 @@ MLDebugDisplay* MLAppView::addDebugDisplay(const MLRect & r)
 MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * name, 
 	const Colour& color, const Drawable* normalImg)
 {
-	MLDrawableButton* b = new MLDrawableButton;
+	MLDrawableButton* b = new MLDrawableButton(this);
 	b->setTargetPropertyName(name);
 	b->setProperty("toggle", false);
 	b->setImage(normalImg);
@@ -201,7 +204,7 @@ MLDrawableButton* MLAppView::addRawImageButton(const MLRect & r, const char * na
 
 MLTextButton* MLAppView::addTextButton(const char * displayName, const MLRect & r, const char * name, const Colour& color)
 {	
-	MLTextButton* b = new MLTextButton();
+	MLTextButton* b = new MLTextButton(this);
 	b->setTargetPropertyName(name);
 	b->setProperty("toggle", false);
 	b->setFillColor(color);
@@ -212,7 +215,7 @@ MLTextButton* MLAppView::addTextButton(const char * displayName, const MLRect & 
 
 MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & r, const char * menuName, const Colour& color)
 {	
-	MLMenuButton* b = new MLMenuButton();
+	MLMenuButton* b = new MLMenuButton(this);
 	b->setTargetPropertyName(menuName);
 	b->setFillColor(color);
 	b->setProperty("text", "---");
@@ -228,10 +231,10 @@ MLMenuButton* MLAppView::addMenuButton(const char * displayName, const MLRect & 
 
 MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const float sizeMultiplier, int font)
 {
-	MLLabel* label = new MLLabel(displayName);
+	MLLabel* label = new MLLabel(this, displayName);
 	if (label)
 	{
-		MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+		MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 		
 		if (strcmp(displayName, ""))
 		{
@@ -250,10 +253,10 @@ MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const fl
 
 MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, ml::Symbol widgetName, const float sizeMultiplier, int font, Vec2 offset)
 {
-	MLLabel* label = new MLLabel(displayName);
+	MLLabel* label = new MLLabel(this, displayName);
 	if (label)
 	{
-		MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+		MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 		float labelHeight = myLookAndFeel->getLabelHeight()*sizeMultiplier;
 		
 		//float m = myLookAndFeel->getMargin();
@@ -283,21 +286,21 @@ MLLabel* MLAppView::addLabelAbove(MLWidget* c, const char* displayName, ml::Symb
 
 MLDrawing* MLAppView::addDrawing(const MLRect & r)
 {
-	MLDrawing* drawing = new MLDrawing;
+	MLDrawing* drawing = new MLDrawing(this);
 	addWidgetToView(drawing, r);
 	return drawing;
 }
 
 MLProgressBar* MLAppView::addProgressBar(const MLRect & r)
 {
-	MLProgressBar* pb = new MLProgressBar;
+	MLProgressBar* pb = new MLProgressBar(this);
 	addWidgetToView(pb, r);
 	return pb;
 }
 
 void MLAppView::resized()
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	int u = myLookAndFeel->getGridUnitSize(); 
 
 	for(auto it = mWidgets.begin(); it != mWidgets.end(); ++it)

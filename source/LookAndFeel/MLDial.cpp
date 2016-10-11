@@ -12,6 +12,7 @@
 
 #include "MLDial.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
 const int kDragStepSize = 16;
 const int kMinGestureDuration = 250;
@@ -21,7 +22,8 @@ static const float kRotaryStartDefault = kMLPi*-0.75f;
 static const float kRotaryEndDefault = kMLPi*0.5f;
 
 //==============================================================================
-MLDial::MLDial () : 
+MLDial::MLDial (MLWidget* pContainer) : 
+	MLWidget(pContainer),
 	dialBeingDragged (kNoDial),
 	dialToDrag (kNoDial),
 	mGestureInProgress(false),
@@ -95,7 +97,7 @@ MLDial::MLDial () :
 	mpTimer = std::unique_ptr<GestureTimer>(new GestureTimer(this));
 
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setOpaque(myLookAndFeel->getDefaultOpacity());
     
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
@@ -572,7 +574,7 @@ void MLDial::paint (Graphics& g)
 	const int height = getHeight();
 	float currentValue = getFloatProperty("value");
 
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 
 	if (isOpaque()) 
 		myLookAndFeel->drawBackground(g, this);	
@@ -671,7 +673,9 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 	{
 		Graphics sg(mStaticImage);	
 		mStaticImage.clear(Rectangle<int>(0, 0, compWidth, compHeight), Colours::transparentBlack);
-		const Colour label_color = (findColour(MLLookAndFeel::labelColor).withAlpha (isEnabled() ? 1.f : 0.5f));	
+
+		MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
+		const Colour label_color = (myLookAndFeel->findColour(MLLookAndFeel::labelColor).withAlpha (isEnabled() ? 1.f : 0.5f));	
         
 		// detents 
         if (isHorizontal())
@@ -752,10 +756,10 @@ void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
 	int thumbAdorn1, thumbAdorn2;
 	int glow1 = false, glow2 = false;
 	float val1, val2;
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 
     const Colour thumb_normal = (mFillColor.withAlpha (isEnabled() ? 1.f : 0.5f));
-	const Colour outline = findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f);
+	const Colour outline = myLookAndFeel->findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f);
 	const Colour textColor = outline;
 
 	MLRect nfr1, nfr2, fr, tr, thumb1, thumb2, tip1, tip2, text1, text2;
@@ -861,14 +865,14 @@ void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
 
 void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float dialPos)
 {	
- 	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+ 	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	const MLRect uBounds = getGridBounds();
 	const MLRect boundsRect = getWidgetLocalBounds();
 
 	// Colors 
 	const Colour trackDark = (mTrackDarkColor.withMultipliedAlpha (isEnabled() ? 1.f : 0.5f));					
-	const Colour shadow (findColour(MLLookAndFeel::shadowColor).withAlpha (isEnabled() ? 1.f : 0.5f));
-	const Colour outline_color (findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f));
+	const Colour shadow (myLookAndFeel->findColour(MLLookAndFeel::shadowColor).withAlpha (isEnabled() ? 1.f : 0.5f));
+	const Colour outline_color (myLookAndFeel->findColour(MLLookAndFeel::outlineColor).withAlpha (isEnabled() ? 1.f : 0.5f));
 	const Colour fill_color (mTrackFillColor.withAlpha (isEnabled() ? 1.0f : 0.5f));
 	const Colour indicator_color (mIndicatorColor.withAlpha (isEnabled() ? 1.f : 0.5f));
 
@@ -973,7 +977,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	// static layer
 	if (mStaticLayerNeedsRedraw)
     {
-		const Colour label_color = (findColour(MLLookAndFeel::labelColor).withAlpha (isEnabled() ? 1.f : 0.5f));	
+		const Colour label_color = (myLookAndFeel->findColour(MLLookAndFeel::labelColor).withAlpha (isEnabled() ? 1.f : 0.5f));	
 		mStaticImage.clear(MLToJuceRectInt(boundsRect), Colours::transparentBlack);
 
 		Graphics sg(mStaticImage);	
@@ -1079,7 +1083,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 			int nw = mRotaryTextRect.width();
 			
 			myLookAndFeel->drawNumber(g, numBuf, nx, ny, nw, textSize,
-									  findColour(MLLookAndFeel::outlineColor).withAlpha(op), j);
+									  myLookAndFeel->findColour(MLLookAndFeel::outlineColor).withAlpha(op), j);
 		}
 	}
 	
@@ -1248,7 +1252,7 @@ float MLDial::getNextValue(float oldVal, int dp, bool doFineAdjust, int stepSize
 	} 
 	else 
 	{
-		MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+		MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 		int d = myLookAndFeel->getDigitsAfterDecimal(val, mDigits, mPrecision);
 		d = ml::clamp(d, 0, 3);
 		float minValChange = doFineAdjust ? powf(10., -d) : interval;
@@ -1496,6 +1500,8 @@ void MLDial::setTicksOffsetAngle (float t)
 // the colors for different MLDial parts are generated algorithmically.
 void MLDial::setFillColor (const Colour& color)
 {
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
+
 	// fill for thumb
     mFillColor = color;
 	
@@ -1509,7 +1515,7 @@ void MLDial::setFillColor (const Colour& color)
 	mGlowColor = mFillColor.overlaidWith(mIndicatorColor.withAlpha(0.10f));
 	mThumbGlowColor = mFillColor.overlaidWith(mIndicatorColor.withAlpha(0.75f));
 	
-	mTrackDarkColor = findColour(MLLookAndFeel::darkFillColor);	
+	mTrackDarkColor = myLookAndFeel->findColour(MLLookAndFeel::darkFillColor);	
 
 	//lookAndFeelChanged();
 }
@@ -1672,7 +1678,7 @@ void MLDial::getDialRect (MLRect& ret,
 	const MLDial::DialRect whichRect,
 	const float dialPos, const float minDialPos, const float maxDialPos) 
 {
- 	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+ 	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
     bool smallThumbs = getFloatProperty("small_thumbs");
 	bool multi = (isTwoOrThreeValued());
 		
@@ -1948,7 +1954,7 @@ void MLDial::resizeWidget(const MLRect& b, const int u)
  		MLWidget::resizeWidget(b, u);
 		mNumberPositionOffsetPixels = mNumberPositionOffset*u;
      
-		MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+		MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 		const MLRect uBounds = getGridBounds();
 		bool multi = (isTwoOrThreeValued());
         bool smallThumbs = getFloatProperty("small_thumbs");

@@ -2093,7 +2093,7 @@ void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int> gStart, Point<
 
 // sound be drawWidgetBackground
 void MLLookAndFeel::drawBackground(Graphics& g, MLWidget* pW)
-{
+{	
 	drawBackgroundRect(g, pW, pW->getWidgetLocalBounds());
 }
 
@@ -2381,9 +2381,7 @@ AlertWindow* MLLookAndFeel::createAlertWindow (const String& title, const String
     AlertWindow* aw = new AlertWindow (title, message, iconType, associatedComponent);
 	
 	aw->setSize(aw->getWidth(), 350);
-    MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
-    aw->setLookAndFeel(myLookAndFeel);
-    setDefaultLookAndFeel(myLookAndFeel);
+    aw->setLookAndFeel(this);
     
     if (numButtons == 1)
     {
@@ -2686,13 +2684,14 @@ void MLLookAndFeel::addPicture(ml::Symbol name, const void* data, size_t dataSiz
 	DrawablePtr newPic (Drawable::createFromImageData(data, dataSize));
 	if (newPic != nullptr)
 	{
-		// debug() << "ADDING picture " << name << "\n";
+		// debug() << "L+F@" << std::hex << (long)this << std::dec << " ADDING picture " << name << "\n";
 		mPictures[name] = newPic;
 	}
 }
 
 const Drawable* MLLookAndFeel::getPicture(ml::Symbol name)
 {
+	//debug() << "L+F@" << std::hex << (long)this << std::dec << " GETTING picture " << name << "\n";
 	return &(*mPictures[name]);
 	// TODO add ? for pictures not found. 
 }

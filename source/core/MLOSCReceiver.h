@@ -9,10 +9,10 @@
 #include <iostream>
 #include <thread>
 
-#include "OscTypes.h"
-#include "OscException.h"
-#include "OscPacketListener.h"
-#include "UdpSocket.h"
+#include "OSC/osc/OscTypes.h"
+#include "OSC/osc/OscException.h"
+#include "OSC/osc/OscPacketListener.h"
+#include "OSC/ip/UdpSocket.h"
 
 class MLOSCReceiver : public osc::OscPacketListener
 {

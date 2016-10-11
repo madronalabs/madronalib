@@ -5,9 +5,10 @@
 
 #include "MLTriToggleButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
-MLTriToggleButton::MLTriToggleButton() :
-    MLButton()
+MLTriToggleButton::MLTriToggleButton(MLWidget* pContainer) :
+    MLButton(pContainer)
 {
     setProperty("tri_button", true);
     setOpaque(false);
@@ -19,7 +20,7 @@ MLTriToggleButton::~MLTriToggleButton()
 
 void MLTriToggleButton::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	int state = getFloatProperty("value");
 	
 	// colors

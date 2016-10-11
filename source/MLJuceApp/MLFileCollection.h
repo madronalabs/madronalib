@@ -104,7 +104,7 @@ public:
     ml::TextFragment getRelativePathFromName(const ml::TextFragment& name) const;
     
 	// build a menu of the files for which the function returns true.
-	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<ml::Symbol, MLFile>::const_iterator)>) const;
+	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<MLFile>::const_iterator)>) const;
 	
 	// build a menu of all the files. 
 	// TODO no reason to know about menus here. We should be returning a raw tree structure.
@@ -115,14 +115,14 @@ public:
     
 private:
 	
-	ml::ResourceMap<ml::Symbol, MLFile>* insertFileIntoMap(juce::File f);
+	ml::ResourceMap<MLFile>* insertFileIntoMap(juce::File f);
 	
 	void buildIndex();
     void processFileInMap(int i);
 	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
 	
-	ml::ResourceMap<ml::Symbol, MLFile> mRoot; 
+	ml::ResourceMap<MLFile> mRoot; 
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;

@@ -5,12 +5,14 @@
 
 #include "MLProgressBar.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
 //==============================================================================
-MLProgressBar::MLProgressBar ()
+MLProgressBar::MLProgressBar (MLWidget* pContainer) :
+	MLWidget(pContainer)
 {
  	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());

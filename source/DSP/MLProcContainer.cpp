@@ -2028,6 +2028,7 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 				
 				// pass root context to child
 				pc->setRootContext(mpRootContext);
+				
 				pc->buildGraph(parent);
 			}
 		}		

@@ -5,11 +5,12 @@
 
 #include "MLWidget.h"
 #include "MLDebug.h"
+#include "MLAppView.h"
 
-MLWidget::MLWidget() :
+MLWidget::MLWidget(MLWidget* pC) :
 	MLPropertyListener(this),
 	pComponent(nullptr),
-	mpContainer(nullptr),
+	mpContainer(pC),
 	mSize(1.f),
 	mGridBounds(),
 	mGridUnitSize(0),
@@ -132,44 +133,32 @@ MLRect MLWidget::getWidgetLocalBounds()
 	return MLRect();
 }
 
-// relative to enclosing window
+// walk upwards and add widget locations to get bounds relative to enclosing window
 MLRect MLWidget::getWidgetBoundsInWindow()
 {
-	// adapt JUCE rect to MLRect
-	if(pComponent)
+	MLRect bounds = getWidgetBounds();	
+	MLWidget* pC = this;
+	MLRect parentBounds = bounds;
+	
+	while(1)
 	{
-		MLRect bounds = getWidgetBounds();
-		MLWidget* pC = this;
-		MLRect parentBounds = bounds;
-		while(pC->getContainer())
-		{
-			pC = pC->getContainer();
-			parentBounds = pC->getWidgetBounds();
-			bounds += parentBounds.getTopLeft();
-		}
-		return bounds;
+		MLWidget* pParent = pC->getContainer();
+		parentBounds = pParent->getWidgetBounds();
+		if(pC == pParent) break;
+
+		bounds += parentBounds.getTopLeft();
+		pC = pParent;
 	}
-	return MLRect();
+	
+	return bounds;
 }
 
 // get bounds of top-level Component containing the widget.
 //
 MLRect MLWidget::getTopLevelWindowBounds()
 {
-	// adapt JUCE rect to MLRect
-	if(pComponent)
-	{
-		MLRect bounds = getWidgetBounds();
-		MLWidget* pC = this;
-		MLRect parentBounds = bounds;
-		while(pC->getContainer())
-		{
-			pC = pC->getContainer();
-			parentBounds = pC->getWidgetBounds();
-		}
-		return parentBounds;
-	}
-	return MLRect();
+	MLWidgetContainer* pC = static_cast<MLWidgetContainer*>(getContainer());		
+	return juceToMLRect(pC->getRootView()->getBounds());
 }
 
 void MLWidget::resizeWidget(const MLRect& b, const int)

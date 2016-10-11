@@ -32,7 +32,7 @@ public:
 
 	static const int kInfWidth = 100000;
 	
-    MLLabel (const char* labelText = 0);
+    MLLabel (MLWidget* pContainer, const char* labelText = 0);
     ~MLLabel();
 
     void setFont (const Font& newFont);

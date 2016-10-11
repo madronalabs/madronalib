@@ -4,6 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLDrawing.h"
+#include "MLAppView.h"
 
 MLDrawing::Operation::Operation(eOperationType typeParam, float a0, float a1, float a2, float a3)
 {
@@ -30,10 +31,12 @@ MLDrawing::Operation::~Operation()
 
 //
 
-MLDrawing::MLDrawing()
+MLDrawing::MLDrawing(MLWidget* pContainer) :
+	MLWidget(pContainer)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
+		
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -44,11 +47,9 @@ MLDrawing::MLDrawing()
 	
 	// set default drawing state
 	mLineThickness = 1.0f;
-	mLineColor = ( myLookAndFeel->findColour(MLLookAndFeel::darkLabelColor));
-	Colour bg = myLookAndFeel->findColour(MLLookAndFeel::backgroundColor);
-	
-	mLightColor =  myLookAndFeel->findColour(MLLookAndFeel::lightLabelColor);
-	mDarkColor =  myLookAndFeel->findColour(MLLookAndFeel::darkLabelColor);
+	mDarkColor = mLineColor = myLookAndFeel->findColour(MLLookAndFeel::darkLabelColor);
+	mLightColor = myLookAndFeel->findColour(MLLookAndFeel::lightLabelColor);
+
 }
 
 MLDrawing::~MLDrawing()
@@ -113,7 +114,7 @@ void MLDrawing::drawArrowhead(Graphics& g, const Vec2& p1, const Vec2& p2, float
 
 void MLDrawing::paint(Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	float fu = myLookAndFeel->getGridUnitSize();
 
 	if (isOpaque())

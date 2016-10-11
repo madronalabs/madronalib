@@ -5,11 +5,13 @@
 
 #include "MLLabel.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
 // a Label text that is not editable.
 
 //==============================================================================
-MLLabel::MLLabel (const char* labelText) :
+MLLabel::MLLabel (MLWidget* pContainer, const char* labelText) :
+	MLWidget(pContainer), 
 	mInverse(0), 
 	mDrawImage(0), 
 	mImageMode(imageModeOpaque),
@@ -18,14 +20,14 @@ MLLabel::MLLabel (const char* labelText) :
 	mSizeMultiplier(1.0f)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 		
 	// labels are always opaque for better text rendering
 	setOpaque(true);
 	
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
-	
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
+	
     setRepaintsOnMouseActivity (false);
 	setInterceptsMouseClicks(false, false);
 	setJustification(Justification::centred);
@@ -79,7 +81,7 @@ void MLLabel::setDrawable (const Drawable* pD)
 
 void MLLabel::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	int w = getWidth();
 	int h = getHeight();
 	
@@ -114,7 +116,7 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	const ml::Text labelText = getTextProperty("text");
 
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	const float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
 	const float kern = myLookAndFeel->getLabelTextKerning(size);
 	

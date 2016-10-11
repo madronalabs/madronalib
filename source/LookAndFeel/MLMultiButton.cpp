@@ -5,11 +5,13 @@
 
 #include "MLMultiButton.h"
 #include "MLLookAndFeel.h"
+#include "MLAppView.h"
 
-MLMultiButton::MLMultiButton()
+MLMultiButton::MLMultiButton(MLWidget* pContainer) :
+	MLWidget(pContainer)
 {
 	MLWidget::setComponent(this);
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setOpaque(myLookAndFeel->getDefaultOpacity());
 	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
@@ -70,7 +72,7 @@ void MLMultiButton::setFillColor (const Colour& c)
 
 void MLMultiButton::paint (Graphics& g)
 {
-	MLLookAndFeel* myLookAndFeel = (MLLookAndFeel::theMLLookAndFeel());
+	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	if (isOpaque()) myLookAndFeel->drawBackground(g, this);	
 
     // colors

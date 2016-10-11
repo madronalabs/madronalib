@@ -14,7 +14,7 @@ class MLProgressBar :
 	public MLWidget
 {
 public:
-    MLProgressBar();
+    MLProgressBar(MLWidget* pContainer);
     ~MLProgressBar();
 
 protected:

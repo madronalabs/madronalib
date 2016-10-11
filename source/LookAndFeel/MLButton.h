@@ -17,8 +17,7 @@ class MLButton :
 {
 friend class MLLookAndFeel;
 public:
-	MLButton (const String& label);
-	MLButton ();
+	MLButton (MLWidget* pContainer, const String label = "");
 	
     enum ColourIds
     {
