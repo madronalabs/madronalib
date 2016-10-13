@@ -105,6 +105,7 @@ namespace ml {
 	Path Path::tail() const
 	{
 		Path r;
+		r.setCopy(getCopy());
 		for(int n=1; n<mSize; ++n)
 		{
 			r.addSymbol(mpData[n]);
