@@ -2093,7 +2093,7 @@ void MLProcContainer::setPublishedParamAttrs(MLPublishedParamPtr p, juce::XmlEle
 			float interval = 0.01f;
 			float offset = 0.0f;
 			int logAttr = 0;
-			float zeroThresh = -1.0f;
+			float zeroThresh = -MAXFLOAT;
 			low = (float)child->getDoubleAttribute("low", low);
 			high = (float)child->getDoubleAttribute("high", high);
 			interval = (float)child->getDoubleAttribute("interval", interval);
