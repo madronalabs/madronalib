@@ -40,6 +40,7 @@ public:
     bool isFree() const {return mType == kNull;}
 	
     EventType mType;
+	
 	int mChannel;
     int mID; // the MIDI key or touch number that created the event. a note-off can match a note-on by ID.
 	float mValue1;

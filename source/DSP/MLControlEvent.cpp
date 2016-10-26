@@ -109,7 +109,6 @@ void MLControlEventStack::clearEventsMatchingID(int id)
 
 			mSize--;
 			if(mSize <= 0) return;
-
         }
     }
 }

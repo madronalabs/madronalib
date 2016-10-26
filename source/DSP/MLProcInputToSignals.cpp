@@ -4,7 +4,7 @@
 
 #include "MLProcInputToSignals.h"
 
-const int kMaxEvents = 64;
+const int kMaxEvents = 1 << 8; // max events per signal vector
 const int kNumVoiceSignals = 8;
 const ml::Symbol voiceSignalNames[kNumVoiceSignals] 
 {
@@ -106,6 +106,19 @@ void MLVoice::zero()
 	mdDrift.zero();
 	mdPitch.zero();
 	mdPitchBend.zero();
+	mdGate.zero();
+	mdAmp.zero();
+	mdVel.zero();
+	mdNotePressure.zero();
+	mdChannelPressure.zero();
+	mdMod.zero();
+	mdMod2.zero();
+	mdMod3.zero();
+}
+
+void MLVoice::zeroExceptPitch()
+{
+	mdDrift.zero();
 	mdGate.zero();
 	mdAmp.zero();
 	mdVel.zero();
@@ -241,8 +254,40 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	temp = 0;
 	mOSCDataRate = 100;
     
-    mNoteEventsPlaying.resize(kMaxEvents);
-    mNoteEventsPending.resize(kMaxEvents);
+	// TODO lockfree queue template
+	mEventData.resize(kMaxEvents);
+	PaUtil_InitializeRingBuffer( &mEventQueue, sizeof(MLControlEvent), kMaxEvents, &(mEventData[0]) );
+	
+	
+	/*
+	 int remaining = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
+
+	 FileAction a;
+		int filesRead = 0;
+		
+	 
+		if((filesRead = PaUtil_ReadRingBuffer( &mFileActionQueue, &a, 1 )))
+		{
+	 if(a.mFile.exists())
+	 {
+	 doFileQueueAction(a);
+	 }
+	 int filesInQueue = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
+	 mMaxFileQueueSize = ml::max(filesInQueue, mMaxFileQueueSize);
+	 if(!filesInQueue) endConvertPresets();
+		}
+	 
+
+	 // add file action to queue
+	 FileAction f(action, fileToProcess, &collection, idx, size);
+	 PaUtil_WriteRingBuffer( &mFileActionQueue, &f, 1 );
+
+	 
+	 */
+	
+	
+	mNoteEventsPlaying.resize(kMaxEvents);
+	mNoteEventsPending.resize(kMaxEvents);
 }
 
 MLProcInputToSignals::~MLProcInputToSignals()
@@ -462,10 +507,10 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 
 void MLProcInputToSignals::clear()
 {
-	//int bufSize = (int)getParam("bufsize");
+	int bufSize = (int)getParam("bufsize");
 	int vecSize = getContextVectorSize();
 	
-	// debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
+	debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
 	
     clearChangeLists();
 	
@@ -565,9 +610,9 @@ void MLProcInputToSignals::process(const int frames)
     mFrameCounter += frames;
     if(mFrameCounter > sr)
     {
-		//dumpEvents();
-		//dumpVoices();
-		//dumpSignals();
+		dumpEvents();
+		dumpVoices();
+		dumpSignals();
         mFrameCounter -= sr;
     }
 }
@@ -757,10 +802,11 @@ void MLProcInputToSignals::processOSC(const int frames)
 //
 void MLProcInputToSignals::processEvents()
 {
-	for(auto& e : mEvents)
-    {
-        processEvent(e);
-    }
+	MLControlEvent e;
+	while(PaUtil_ReadRingBuffer( &mEventQueue, &e, 1 ))
+	{
+		processEvent(e);
+	}
 }
 
 // process one incoming event by making the appropriate changes in state and change lists.

@@ -38,6 +38,7 @@ public:
 	void clearChanges();
 	MLProc::err resize(int size);
 	void zero();
+	void zeroExceptPitch();
 
 	// send a note on, off or sustain event to the voice.
 	void addNoteEvent(const MLControlEvent& e, const MLScale& scale);
@@ -103,9 +104,16 @@ public:
     
 	void clearChangeLists();
 	
-	void addEvent(MLControlEvent e) { mEvents.push_back(e); }
-	void clearEvents() { mEvents.clear(); }
-	
+	inline void addEvent(MLControlEvent e) 
+	{ 
+		PaUtil_WriteRingBuffer( &mEventQueue, &e, 1 );
+	}
+		
+	void clearEvents() 
+	{ 
+		int remaining = PaUtil_GetRingBufferReadAvailable(&mEventQueue);
+		PaUtil_AdvanceRingBufferReadIndex(&mEventQueue, remaining);
+	}
 	
 	void doParams();
 
@@ -143,6 +151,12 @@ private:
 	MLSignal mLatestFrame;
 	MLSignal mPreviousFrame;
     
+	// events that will be reflected in the next process() call.
+	// TODO lock-free queue template
+	std::vector<MLControlEvent> mEventData;	
+	PaUtilRingBuffer mEventQueue;
+	
+	// TODO remove these custom container types
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
     MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
     
@@ -158,8 +172,6 @@ private:
 	
     int mEventTimeOffset;
 	
-    // events that will be reflected in the next process() call.
-	std::vector<MLControlEvent> mEvents;
 		
 	int mControllerNumber;
 	int mCurrentVoices;
