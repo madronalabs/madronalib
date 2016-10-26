@@ -82,6 +82,7 @@ void MLChangeList::addChange(MLSample val, int time)
 {
 	if (mChanges < mSize)
 	{
+		/*
 		if (mChanges > 0)
 		{
 			int prevTime = (int)mTimeSignal[mChanges - 1];			
@@ -90,6 +91,7 @@ void MLChangeList::addChange(MLSample val, int time)
 				mChanges--;
 			}
 		}
+		 */
 		mValueSignal[mChanges] = val;
 		mTimeSignal[mChanges] = time;
 //	debug() << "MLChangeList(" << static_cast<void*>(this) << ") add changes:" << mChanges << " time:" << time  << " val:" << val << " glide:" << mGlideTimeInSamples << "\n";
@@ -105,6 +107,7 @@ inline void MLChangeList::setGlideTarget(float target)
 }
 
 // write the input change list from the given offset into the output signal y .
+// TODO no glide should be a special case, simpler loop.
 // 
 void MLChangeList::writeToSignal(MLSignal& y, int frames)
 {
@@ -113,7 +116,7 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 	int t=0;
 	int changeTime;
 	
-	// no changes, no glide?  mark constant and bail.
+	// no changes, no glide?  set output signal to constant and bail.
 	if (!mChanges && (mGlideCounter <= 0)) 
 	{
 		y.setToConstant(mValue);		
@@ -135,9 +138,12 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 	else
 	{
 		// write current value up to each change time, then change current value
+		int prevChangeTime = -1;
+		float prevTarget = 0.f;
 		for(int i = 0; i<mChanges; ++i)
 		{
 			changeTime = (int)mTimeSignal[i];
+			
 			if (changeTime >= size)
             {
 #ifdef DEBUG
@@ -159,8 +165,31 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 				y[t] = mValue;			
 			}
 			
-			float nextTarget = mValueSignal[i];
-			setGlideTarget(nextTarget);
+			float changeTarget = mValueSignal[i];
+
+			// handle multiple changes at same time, a special case for making sure gate signals
+			// get retriggered by simultaneous off/on. TODO this smells, redesign some things			
+			if(changeTime == prevChangeTime)
+			{
+				if(changeTime > 0)
+				{
+					// arrive at first change a sample early
+					y[changeTime - 1] = prevTarget;
+					y[changeTime] = changeTarget;
+					t = changeTime + 1;
+				}
+				else
+				{
+					// no room, arrive at most recently added change a sample late
+					y[changeTime] = prevTarget;
+					y[changeTime + 1] = changeTarget;
+					t = changeTime + 2;
+				}				
+			}
+
+			setGlideTarget(changeTarget);
+			prevChangeTime = changeTime;
+			prevTarget = changeTarget;
 		}
 		
 		// tick out to end

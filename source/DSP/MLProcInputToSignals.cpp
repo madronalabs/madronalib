@@ -610,9 +610,9 @@ void MLProcInputToSignals::process(const int frames)
     mFrameCounter += frames;
     if(mFrameCounter > sr)
     {
-		dumpEvents();
-		dumpVoices();
-		dumpSignals();
+		//dumpEvents();
+		//dumpVoices();
+		//dumpSignals();
         mFrameCounter -= sr;
     }
 }
@@ -873,6 +873,7 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 				if(v >= 0)
 				{
 					mVoices[v].addNoteEvent(event, mScale);
+					
 				}
 				else
 				{
@@ -891,6 +892,7 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 					mVoices[v].stealNoteEvent(event, mScale, true);			
 				}
 				break;
+				
 			case kInputProtocolMIDI_MPE:
 				chan = event.mChannel;
 				if(chan > 1)
