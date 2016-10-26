@@ -507,10 +507,10 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 
 void MLProcInputToSignals::clear()
 {
-	int bufSize = (int)getParam("bufsize");
 	int vecSize = getContextVectorSize();
 	
-	debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
+	// int bufSize = (int)getParam("bufsize");
+	//debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
 	
     clearChangeLists();
 	
@@ -527,7 +527,7 @@ void MLProcInputToSignals::clear()
 		{
 			mVoices[v].clearState();
 			mVoices[v].clearChanges();
-			mVoices[v].zero();
+			mVoices[v].zeroExceptPitch();
             
             if((v*kNumVoiceSignals + 9) < outs)
             {                
@@ -545,7 +545,7 @@ void MLProcInputToSignals::clear()
 		}
 		mMPEMainVoice.clearState();
 		mMPEMainVoice.clearChanges();
-		mMPEMainVoice.zero();
+		mMPEMainVoice.zeroExceptPitch();
 	}
 	mEventCounter = 0;
 }
