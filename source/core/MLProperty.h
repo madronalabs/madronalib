@@ -34,6 +34,7 @@ public:
 	MLProperty& operator= (const MLProperty & other);
 	MLProperty(float v);
 	MLProperty(const ml::Text& t); 
+	MLProperty(const char* t); 
 	MLProperty(const MLSignal& s);
 
 	// signal type constructor via initializer_list
