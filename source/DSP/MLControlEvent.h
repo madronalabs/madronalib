@@ -35,7 +35,7 @@ public:
 
 	MLControlEvent();
 	MLControlEvent(EventType type, int channel, int id, int time, float value, float value2);
-	~MLControlEvent();
+
     void clear();
     bool isFree() const {return mType == kNull;}
 	

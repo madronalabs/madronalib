@@ -100,12 +100,21 @@ public:
 	err resize() override;
 	MLProc::err prepareToProcess() override;
 	
-	void process(const int frames) override;
-    
-	void clearChangeLists();
+	// set a range of events, owned by caller, to use for the next process() call.
+	// a lock should not be needed as this will always be called by the engine just prior to process().
+	inline void setEventRange(MLControlEvent* start, MLControlEvent* end)
+	{
+		mpStartEvent = start;
+		mpEndEvent = end;
+	}
 	
+	void process(const int frames) override;
+	void clearChangeLists();
+
+	/*
 	inline void addEvent(MLControlEvent e) 
 	{ 
+		debug() << "ADDING event: " << e.mType << ", " << e.mID << " @ " << e.mTime << " " << "\n"; 
 		PaUtil_WriteRingBuffer( &mEventQueue, &e, 1 );
 	}
 		
@@ -114,6 +123,7 @@ public:
 		int remaining = PaUtil_GetRingBufferReadAvailable(&mEventQueue);
 		PaUtil_AdvanceRingBufferReadIndex(&mEventQueue, remaining);
 	}
+	*/
 	
 	void doParams();
 
@@ -151,10 +161,9 @@ private:
 	MLSignal mLatestFrame;
 	MLSignal mPreviousFrame;
     
-	// events that will be reflected in the next process() call.
-	// TODO lock-free queue template
-	std::vector<MLControlEvent> mEventData;	
-	PaUtilRingBuffer mEventQueue;
+	// range of events that will be used in the next process() call.	
+	MLControlEvent* mpStartEvent;
+	MLControlEvent* mpEndEvent;
 	
 	// TODO remove these custom container types
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding

@@ -255,8 +255,8 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mOSCDataRate = 100;
     
 	// TODO lockfree queue template
-	mEventData.resize(kMaxEvents);
-	PaUtil_InitializeRingBuffer( &mEventQueue, sizeof(MLControlEvent), kMaxEvents, &(mEventData[0]) );
+//	mEventData.resize(kMaxEvents);
+//	PaUtil_InitializeRingBuffer( &mEventQueue, sizeof(MLControlEvent), kMaxEvents, &(mEventData[0]) );
 	
 	
 	/*
@@ -802,10 +802,9 @@ void MLProcInputToSignals::processOSC(const int frames)
 //
 void MLProcInputToSignals::processEvents()
 {
-	MLControlEvent e;
-	while(PaUtil_ReadRingBuffer( &mEventQueue, &e, 1 ))
+	for(MLControlEvent* p = mpStartEvent; p != mpEndEvent; ++p)
 	{
-		processEvent(e);
+		processEvent(*p);
 	}
 }
 

@@ -1,44 +1,98 @@
 //
-//  signalTest.cpp
+//  ringBufferTest.cpp
 //  madronalib
 //
-//  Created by Randy Jones on 7/30/15.
+//  Created by Randy Jones on 11/8/2016
 //
 //
 
 #include "catch.hpp"
 #include "../include/madronalib.h"
+#include "pa_ringbuffer.h" // TODO make templated version
 
-TEST_CASE("madronalib/core/signal/creation", "[signal][creation]")
+class TestEvent
 {
-	// signal comparisons are by value
-	MLSignal a;
-	MLSignal b;
-	REQUIRE(a == b);
-	
-	// 
-	const int testSize(16);
-	a.setDims(testSize);
-	b.setDims(testSize);
-	REQUIRE(a == b);
+public:	
+	TestEvent();
+	TestEvent(int time, float value);
 
-	for(int i=0; i<testSize; ++i)
-	{
-		a[i] = 0.5f;
-	}
-	
-	for(int i=0; i<testSize; ++i)
-	{
-		b[i] = a[i]*2.f;
-	}
-	
-	float sum = 0;
-	for(int i=0; i<testSize; ++i)
-	{
-		sum += b[i];
-	}
-	
-	std::cout << "MLSignal sum: " << sum  << "\n";
+	float mValue1;
+	int mTime;
+};
 
+const int kMaxControlEventsPerBlock = 1024;
+
+TestEvent::TestEvent() :
+mValue1(0.),
+mTime(0)
+{
+}
+
+TestEvent::TestEvent(int time, float value) :
+mValue1(value),
+mTime(time)
+{
+}
+
+TEST_CASE("madronalib/core/ringbuffer", "[ringbuffer]")
+{
+	// TODO lock-free queue template
+	std::vector<TestEvent> eventData;	
+	PaUtilRingBuffer eventQueue;
+	
+	// setup event queue
+	eventData.resize(kMaxControlEventsPerBlock);
+	PaUtil_InitializeRingBuffer( &eventQueue, sizeof(TestEvent), kMaxControlEventsPerBlock, &(eventData[0]) );
+
+	int remaining = PaUtil_GetRingBufferReadAvailable(&eventQueue);
+	
+	// write some events
+	int elems = 20;
+	for(int i=0; i<elems; ++i)
+	{
+		int time = i;
+		float v1 = (time > 8) ? (36.2 - i + 0.5f) : 99.;
+		TestEvent e(time, v1);
+		PaUtil_WriteRingBuffer( &eventQueue, &e, 1 );
+	}
+	
+	AvailableElementsVector<TestEvent> v(&eventQueue);
+	
+	std::cout << "size: " << v.size() << "\n";
+	
+	AvailableElementsVector<TestEvent>::iterator i1 = v.begin();
+	AvailableElementsVector<TestEvent>::iterator i2 = i1;
+	i1 += 1;
+	i2 += 5;
+
+	std::cout << "---------------------------\n\n";
+				
+	std::cout << (*i1).mTime << " : " << (*i1).mValue1 << "\n";
+
+	std::cout << "---------------------------\n\n";
+
+//	TestEvent* pi2 = static_cast<TestEvent*>(*i2);		
+//	std::cout << i2->mTime << " : " << i2->mValue1 << "\n";
+
+	std::cout << "---------------------------\n\n";
+
+	std::iter_swap(i1, i2);
+	
+	std::sort(v.begin(), v.end(), [](TestEvent a, TestEvent b){ return a.mValue1 < b.mValue1; });
+ 
+	for(AvailableElementsVector<TestEvent>::iterator it = v.begin(); it != v.end(); it++)
+	{
+		// TEMP
+		TestEvent& pE = (*it);		
+		std::cout << pE.mTime << " : " << pE.mValue1 << "\n";
+	}
+	
+	
+	std::cout << "---------------------------\n\n";
+	
+	
+	
+	
+	std::cout << "OKX\n";
 }
 

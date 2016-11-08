@@ -574,7 +574,7 @@ void MLDSPEngine::setCollectStats(bool k)
 // run one buffer of the compiled graph, processing signals from the global inputs (if any)
 // to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
 //
-void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEventVector& events, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* eventQueue, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {	
 	int sr = getSampleRate();
 	int processed = 0;
@@ -589,7 +589,6 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 	}
 	else
 	{
-			
 		if (mpHostPhasorProc)
 		{	
 			mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
@@ -610,26 +609,58 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, const MLControlEvent
 		writeInputBuffers(frames);
 		mSamplesToProcess += frames;
 
+		// sort all events in-place
+		// TODO this whole thing can be improved with a template element argument
+//		AvailableElementsVector<MLControlEvent> v(eventQueue);
+		
+		/*
+		ml::sort(
+				 [&](int a, int b){
+					 MLControlEvent* pA = static_cast<MLControlEvent*>(v.getElementPtr(a));
+					 MLControlEvent* pB = static_cast<MLControlEvent*>(v.getElementPtr(b));
+					 return pA->mTime > pB->mTime;
+					}, 
+				 [&](int a, int b){v.swap(a, b);}
+				 );
+		*/
+		
+		
 		// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
 		while(mSamplesToProcess >= mVectorSize)
 		{
 			readInputBuffers(mVectorSize);
 
+			int total = 0;
+			
 			if (mpInputToSignalsProc)
 			{
+
 				// send events within time [processed, processed + mVectorSize] to processor
-				mpInputToSignalsProc->clearEvents();
-				for(auto& engineEvent : events)
+				//mpInputToSignalsProc->clearEvents();
+				
+				MLControlEvent e;
+				MLControlEvent nullEvent(kMLNullControlEvent);
+				while(PaUtil_ReadRingBuffer(eventQueue, &e, 1 ))
 				{
-					int t = engineEvent.mTime;
-					if(ml::within(t, processed, processed + mVectorSize))
+					total++;
+					//if(engineEvent.isFree()) break;
+					
+					debug() << "MLDSPEngine READING: " << e.mType << ", " << e.mID << " @ " << e.mTime << " " << "\n"; 
+					
+					if(ml::within(e.mTime, processed, processed + mVectorSize))
 					{
-						MLControlEvent e = engineEvent;
 						e.mTime -= processed;
-						mpInputToSignalsProc->addEvent(e);
+			//			mpInputToSignalsProc->addEvent(e);
+					}
+					else
+					{
+						debug() << "NOPE: " << e.mTime << " not in [" << processed << ", " << processed + mVectorSize << "] \n";
 					}
 				}
-			}
+			} 
+			
+			if(total > 0)
+			debug() << "total events: " << total << "\n";
 
 			// generate volume signal
 			mMasterVolumeSig.fill(mMasterVolume);

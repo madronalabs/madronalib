@@ -28,10 +28,6 @@ MLControlEvent::MLControlEvent(MLControlEvent::EventType type, int channel, int 
 {
 }
 
-MLControlEvent::~MLControlEvent()
-{
-}
-
 void MLControlEvent::clear()
 {
     *this = kMLNullControlEvent;

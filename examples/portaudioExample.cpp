@@ -29,7 +29,7 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	// make an FDN with 4 delay lines (times in samples)
 	static FDN fdn
 	{ 
-		{"delays", {33.f, 149.f, 1377.f, 1969.f} },
+		{"delays", {33.f, 149.f, 1390.f, 1400.f} },
 		{"cutoffs", freqs } , // TODO more functional rewrite of MLSignal so we can create freqs inline
 		{"gains", {0.99, 0.99, 0.99, 0.99} }
 	};
@@ -54,14 +54,12 @@ int main()
 	
 	std::cout << "portaudio example:\n";
 	
-	
 	// MLTEST
 	MLPropertyChange dx{"toad", {1.f, 2.f, 3.f}};
 	MLPropertyChange dy{"toad", 23};
 	MLPropertyChange dz{"toad", "wet"};
 	std::vector<MLPropertyChange> dv = { {"toad", {1.f, 2.f, 3.f}}, {"todd", 23.f} };
 	
-
 	err = Pa_Initialize();
 	if( err != paNoError ) goto error;
 	

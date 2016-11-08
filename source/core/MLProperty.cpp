@@ -70,11 +70,13 @@ mType(kTextProperty)
 	mTextVal = t;
 }
 
+/*
 MLProperty::MLProperty(const char* t) :
 mType(kTextProperty)
 {
 	mTextVal = ml::Text(t);
 }
+*/
 
 MLProperty::MLProperty(const MLSignal& s) :
 	mType(kSignalProperty)

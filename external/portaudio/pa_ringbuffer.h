@@ -224,4 +224,196 @@ long PaUtil_GetRingBufferReadRegions( PaUtilRingBuffer *rbuf, long elementCount,
 long PaUtil_AdvanceRingBufferReadIndex( PaUtilRingBuffer *rbuf, long elementCount );
 
 
+// MLTEST - define a fixed vector of elements, which may wrap around the end of the buffer.
+// the vector will be valid as long as the parent ringbuffer does not wrap and overwrite 
+// the available elements. 
+//
+// TODO this whole thing can be improved with a template element argument
+
+#include <iterator>
+
+template< class T >
+class AvailableElementsVector
+{
+public:
+	
+//	typedef ptrdiff_t difference_type;
+	
+	long mSize1, mSize2, mNumRead, mReadIndex, mNumAvailable, mSmallMask, mElementSizeBytes;
+	char *mData1, *mData2, *mBuffer;
+	
+	AvailableElementsVector< T >(PaUtilRingBuffer *rbuf)
+	{
+		// int elementCount = PaUtil_GetRingBufferReadAvailable(rbuf);
+		// mNumRead = PaUtil_GetRingBufferReadRegions( rbuf, elementCount, &mData1, &mSize1, &mData2, &mSize2 );
+		
+		mReadIndex = rbuf->readIndex;
+		mSmallMask = rbuf->smallMask;
+		
+		mNumAvailable = PaUtil_GetRingBufferReadAvailable(rbuf);
+		
+		mElementSizeBytes = rbuf->elementSizeBytes; // sizeof(< T >)
+		
+		mBuffer = rbuf->buffer;
+	}
+	
+	inline int size() { return mNumAvailable; }
+
+	
+	/*
+	inline T operator[](int n)
+	{
+		long elementIndex = (mReadIndex + n) & mSmallMask;
+		return *(static_cast<T*>(mBuffer + elementIndex*mElementSizeBytes));
+	}
+	*/
+	
+	void* getElementPtr(int n)
+	{
+		long elementIndex = (mReadIndex + n) & mSmallMask;
+		return mBuffer + elementIndex*mElementSizeBytes;
+	}
+	
+	/*
+	inline void swap(int a, int b)
+	{
+		// TODO XOR, SSE
+		char temp[mElementSizeBytes];
+		
+		char* pA = static_cast<char*>(getElementPtr(a));
+		char* pB = static_cast<char*>(getElementPtr(b));
+		
+		memcpy(temp, pA, mElementSizeBytes);
+		memcpy(pA, pB, mElementSizeBytes);
+		memcpy(pB, temp, mElementSizeBytes);
+	}
+	*/
+	
+	// baah
+	
+	// make iterator that is ValueSwappable
+	
+	friend class iterator;
+	class iterator : public std::iterator<std::random_access_iterator_tag, T>
+	{
+		int mIndex;
+		AvailableElementsVector< T >* mpVector;
+		
+	public:
+		iterator( AvailableElementsVector< T >* p) : mIndex(0), mpVector(p){}
+		
+		iterator( AvailableElementsVector< T >* p, int i) : mIndex(i), mpVector(p){}
+		
+		bool operator==(const iterator& b) const 
+		{ 
+			return (mIndex == b.mIndex);
+		}
+		
+		bool operator!=(const iterator& b) const 
+		{ 
+			return (mIndex != b.mIndex);
+		}
+		
+		T& operator*() const 
+		{ 
+			void* pVoid = mpVector->getElementPtr(mIndex);
+			T* pElem = static_cast<T*>(pVoid);
+			return *pElem;
+		}
+		
+		// prefix increment
+		iterator& operator++()
+		{			
+			mIndex++;
+			return *this;
+		}
+		
+		// postfix increment
+		iterator operator++(int dummy)
+		{			
+			iterator ret = *this;
+			mIndex++;
+			return ret;
+		}
+		
+		// prefix decrement
+		iterator& operator--()
+		{			
+			mIndex--;
+			return *this;
+		}
+		
+		// postfix increment
+		iterator operator--(int dummy)
+		{			
+			iterator ret = *this;
+			mIndex--;
+			return ret;
+		}
+		
+		// satisfying the requirements for RandomAccessIterator
+		
+		iterator& operator+=(int n)
+		{			
+			mIndex += n;
+			return *this;
+		}
+		
+		iterator operator+(int n)
+		{
+			iterator ret = *this;
+			ret += n;
+			return ret;
+		}
+		
+		// how to do n + a ??
+		
+		iterator& operator-=(int n)
+		{			
+			mIndex -= n;
+			return *this;
+		}
+		
+		iterator operator-(int n)
+		{
+			iterator ret = *this;
+			ret -= n;
+			return ret;
+		}
+		
+		ptrdiff_t operator-(const iterator b)
+		{
+			return mIndex - b.mIndex;
+		}
+		
+		bool operator<(const iterator b)
+		{
+			return mIndex < b.mIndex;
+		}
+		bool operator>(const iterator b)
+		{
+			return mIndex > b.mIndex;
+		}
+		bool operator<=(const iterator b)
+		{
+			return mIndex <= b.mIndex;
+		}
+		bool operator>=(const iterator b)
+		{
+			return mIndex >= b.mIndex;
+		}
+	};	
+	
+	iterator begin() 
+	{
+		return iterator(this);
+	}
+	
+	iterator end() 
+	{
+		return iterator(this, mNumAvailable);
+	}
+};
+
+
 #endif /* PA_RINGBUFFER_H */
