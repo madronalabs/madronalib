@@ -102,10 +102,10 @@ public:
 	
 	// set a range of events, owned by caller, to use for the next process() call.
 	// a lock should not be needed as this will always be called by the engine just prior to process().
-	inline void setEventRange(MLControlEvent* start, MLControlEvent* end)
+	inline void setEventRange(RingBufferElementsVector<MLControlEvent>::iterator* first, RingBufferElementsVector<MLControlEvent>::iterator* last)
 	{
-		mpStartEvent = start;
-		mpEndEvent = end;
+		mFirstEvent = first;
+		mLastEvent = last;
 	}
 	
 	void process(const int frames) override;
@@ -162,8 +162,8 @@ private:
 	MLSignal mPreviousFrame;
     
 	// range of events that will be used in the next process() call.	
-	MLControlEvent* mpStartEvent;
-	MLControlEvent* mpEndEvent;
+	RingBufferElementsVector<MLControlEvent>::iterator* mFirstEvent;
+	RingBufferElementsVector<MLControlEvent>::iterator* mLastEvent;
 	
 	// TODO remove these custom container types
     MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding

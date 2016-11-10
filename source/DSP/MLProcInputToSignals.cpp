@@ -235,7 +235,9 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mGlissando(false),
 	mUnisonInputTouch(-1),
 	mUnisonVel(0.),
-	mSustainPedal(false)
+	mSustainPedal(false),
+	mFirstEvent(nullptr),
+	mLastEvent(nullptr)
 {
 	setParam("voices", 0);	// default
 	setParam("protocol", kInputProtocolMIDI);	// default
@@ -802,9 +804,10 @@ void MLProcInputToSignals::processOSC(const int frames)
 //
 void MLProcInputToSignals::processEvents()
 {
-	for(MLControlEvent* p = mpStartEvent; p != mpEndEvent; ++p)
+	if((!mFirstEvent) || (!mLastEvent)) return;
+	for(auto it=*mFirstEvent; it <= *mLastEvent; it++)
 	{
-		processEvent(*p);
+		processEvent(*it);
 	}
 }
 

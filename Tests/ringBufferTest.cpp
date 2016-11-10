@@ -8,19 +8,18 @@
 
 #include "catch.hpp"
 #include "../include/madronalib.h"
-#include "pa_ringbuffer.h" // TODO make templated version
+#include "pa_ringbuffer.h" // TODO make templated version of ringbuffer
 
 class TestEvent
 {
 public:	
 	TestEvent();
 	TestEvent(int time, float value);
-
 	float mValue1;
 	int mTime;
 };
 
-const int kMaxControlEventsPerBlock = 1024;
+const int kMaxControlEventsPerBlock = 64; // must be power of two!
 
 TestEvent::TestEvent() :
 mValue1(0.),
@@ -44,9 +43,22 @@ TEST_CASE("madronalib/core/ringbuffer", "[ringbuffer]")
 	eventData.resize(kMaxControlEventsPerBlock);
 	PaUtil_InitializeRingBuffer( &eventQueue, sizeof(TestEvent), kMaxControlEventsPerBlock, &(eventData[0]) );
 
-	int remaining = PaUtil_GetRingBufferReadAvailable(&eventQueue);
+	// write and read some events
+	int padding = kMaxControlEventsPerBlock - 10;
+	for(int i=0; i<padding; ++i)
+	{
+		TestEvent e(i, 23.0);
+		PaUtil_WriteRingBuffer( &eventQueue, &e, 1 );
+	}
 	
-	// write some events
+	while(PaUtil_GetRingBufferReadAvailable(&eventQueue))
+	{
+		TestEvent e;
+		PaUtil_ReadRingBuffer( &eventQueue, &e, 1 );
+		std::cout << e.mTime << "\n";
+	}
+	
+	// write some events wrapped around buffer end 
 	int elems = 20;
 	for(int i=0; i<elems; ++i)
 	{
@@ -65,34 +77,20 @@ TEST_CASE("madronalib/core/ringbuffer", "[ringbuffer]")
 	i1 += 1;
 	i2 += 5;
 
-	std::cout << "---------------------------\n\n";
-				
-	std::cout << (*i1).mTime << " : " << (*i1).mValue1 << "\n";
-
-	std::cout << "---------------------------\n\n";
-
-//	TestEvent* pi2 = static_cast<TestEvent*>(*i2);		
-//	std::cout << i2->mTime << " : " << i2->mValue1 << "\n";
-
-	std::cout << "---------------------------\n\n";
-
 	std::iter_swap(i1, i2);
+	
+	std::cout << "---------------------------\n\n";
+	for(auto it = v.begin(); it != v.end(); it++)
+	{	
+		std::cout << (*it).mTime << " : " << (*it).mValue1 << "\n";
+	}
 	
 	std::sort(v.begin(), v.end(), [](TestEvent a, TestEvent b){ return a.mValue1 < b.mValue1; });
  
-	for(AvailableElementsVector<TestEvent>::iterator it = v.begin(); it != v.end(); it++)
-	{
-		// TEMP
-		TestEvent& pE = (*it);		
-		std::cout << pE.mTime << " : " << pE.mValue1 << "\n";
-	}
-	
-	
 	std::cout << "---------------------------\n\n";
-	
-	
-	
-	
-	std::cout << "OKX\n";
+	for(auto it = v.begin(); it != v.end(); it++)
+	{	
+		std::cout << (*it).mTime << " : " << (*it).mValue1 << "\n";
+	}
 }
 

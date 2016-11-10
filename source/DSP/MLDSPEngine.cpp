@@ -609,59 +609,47 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 		writeInputBuffers(frames);
 		mSamplesToProcess += frames;
 
-		// sort all events in-place
-		// TODO this whole thing can be improved with a template element argument
-//		AvailableElementsVector<MLControlEvent> v(eventQueue);
-		
-		/*
-		ml::sort(
-				 [&](int a, int b){
-					 MLControlEvent* pA = static_cast<MLControlEvent*>(v.getElementPtr(a));
-					 MLControlEvent* pB = static_cast<MLControlEvent*>(v.getElementPtr(b));
-					 return pA->mTime > pB->mTime;
-					}, 
-				 [&](int a, int b){v.swap(a, b);}
-				 );
-		*/
-		
+		// sort all events in-place. This is needed because some hosts will send events out of time order.
+		RingBufferElementsVector<MLControlEvent> v(eventQueue);
+		std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b){ return a.mTime < b.mTime; });
 		
 		// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
 		while(mSamplesToProcess >= mVectorSize)
 		{
 			readInputBuffers(mVectorSize);
-
-			int total = 0;
+			MLControlEvent e;
 			
 			if (mpInputToSignalsProc)
-			{
-
-				// send events within time [processed, processed + mVectorSize] to processor
-				//mpInputToSignalsProc->clearEvents();
+			{				
+				// find range(s) of events within time [processed, processed + mVectorSize] 
+				auto itFirst = v.begin();
+				auto itLast = --v.end();
 				
-				MLControlEvent e;
-				MLControlEvent nullEvent(kMLNullControlEvent);
-				while(PaUtil_ReadRingBuffer(eventQueue, &e, 1 ))
+				// get first event in time range
+				for(; itFirst < v.end(); itFirst++)
+					if(ml::within((*itFirst).mTime, processed, processed + mVectorSize))
+						break;
+				
+				// get last event in time range
+				for(; itLast >= itFirst; itLast--)
+					if(ml::within((*itLast).mTime, processed, processed + mVectorSize))
+						break;
+				
+				// if we have some events in the range, subtract the time offset in place and send the iterators to the processor					
+				if(itFirst < v.end())
 				{
-					total++;
-					//if(engineEvent.isFree()) break;
-					
-					debug() << "MLDSPEngine READING: " << e.mType << ", " << e.mID << " @ " << e.mTime << " " << "\n"; 
-					
-					if(ml::within(e.mTime, processed, processed + mVectorSize))
+					for(auto it = itFirst; it <= itLast; it++)
 					{
-						e.mTime -= processed;
-			//			mpInputToSignalsProc->addEvent(e);
-					}
-					else
-					{
-						debug() << "NOPE: " << e.mTime << " not in [" << processed << ", " << processed + mVectorSize << "] \n";
-					}
+						(*it).mTime -= processed;
+					}					
+					mpInputToSignalsProc->setEventRange(&itFirst, &itLast);											
+				}
+				else
+				{
+					mpInputToSignalsProc->setEventRange(nullptr, nullptr);
 				}
 			} 
 			
-			if(total > 0)
-			debug() << "total events: " << total << "\n";
-
 			// generate volume signal
 			mMasterVolumeSig.fill(mMasterVolume);
 			mMasterVolumeFilter.processSignalInPlace(mMasterVolumeSig);

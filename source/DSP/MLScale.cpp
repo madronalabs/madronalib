@@ -286,6 +286,7 @@ void MLScale::loadFromRelativePath(ml::Text newPath)
 
 float MLScale::noteToPitch(float note) const
 {
+	if(ml::isNaN(note)) return 0.f;
 	float fn = ml::clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));
 	int i = fn;
 	float intPart = i;

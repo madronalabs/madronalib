@@ -233,76 +233,45 @@ long PaUtil_AdvanceRingBufferReadIndex( PaUtilRingBuffer *rbuf, long elementCoun
 #include <iterator>
 
 template< class T >
-class AvailableElementsVector
+class RingBufferElementsVector
 {
 public:
+	long mReadIndex, mNumAvailable, mSmallMask, mElementSizeBytes;
+	char *mBuffer;
 	
-//	typedef ptrdiff_t difference_type;
-	
-	long mSize1, mSize2, mNumRead, mReadIndex, mNumAvailable, mSmallMask, mElementSizeBytes;
-	char *mData1, *mData2, *mBuffer;
-	
-	AvailableElementsVector< T >(PaUtilRingBuffer *rbuf)
+	RingBufferElementsVector< T >(PaUtilRingBuffer *rbuf)
 	{
-		// int elementCount = PaUtil_GetRingBufferReadAvailable(rbuf);
-		// mNumRead = PaUtil_GetRingBufferReadRegions( rbuf, elementCount, &mData1, &mSize1, &mData2, &mSize2 );
-		
 		mReadIndex = rbuf->readIndex;
-		mSmallMask = rbuf->smallMask;
-		
-		mNumAvailable = PaUtil_GetRingBufferReadAvailable(rbuf);
-		
-		mElementSizeBytes = rbuf->elementSizeBytes; // sizeof(< T >)
-		
+		mSmallMask = rbuf->smallMask;		
+		mNumAvailable = PaUtil_GetRingBufferReadAvailable(rbuf);		
+		mElementSizeBytes = rbuf->elementSizeBytes; // must equal sizeof(< T >)
 		mBuffer = rbuf->buffer;
 	}
 	
 	inline int size() { return mNumAvailable; }
-
 	
-	/*
-	inline T operator[](int n)
-	{
-		long elementIndex = (mReadIndex + n) & mSmallMask;
-		return *(static_cast<T*>(mBuffer + elementIndex*mElementSizeBytes));
-	}
-	*/
-	
-	void* getElementPtr(int n)
+	void* getElementPtr(int n) const
 	{
 		long elementIndex = (mReadIndex + n) & mSmallMask;
 		return mBuffer + elementIndex*mElementSizeBytes;
 	}
 	
-	/*
-	inline void swap(int a, int b)
+	const T& operator[](int n) const
 	{
-		// TODO XOR, SSE
-		char temp[mElementSizeBytes];
-		
-		char* pA = static_cast<char*>(getElementPtr(a));
-		char* pB = static_cast<char*>(getElementPtr(b));
-		
-		memcpy(temp, pA, mElementSizeBytes);
-		memcpy(pA, pB, mElementSizeBytes);
-		memcpy(pB, temp, mElementSizeBytes);
+		void* pVoid = getElementPtr(n);
+		T* pElem = static_cast<T*>(pVoid);
+		return *pElem;
 	}
-	*/
-	
-	// baah
-	
-	// make iterator that is ValueSwappable
 	
 	friend class iterator;
 	class iterator : public std::iterator<std::random_access_iterator_tag, T>
 	{
 		int mIndex;
-		AvailableElementsVector< T >* mpVector;
+		RingBufferElementsVector< T >* mpVector;
 		
 	public:
-		iterator( AvailableElementsVector< T >* p) : mIndex(0), mpVector(p){}
-		
-		iterator( AvailableElementsVector< T >* p, int i) : mIndex(i), mpVector(p){}
+		iterator(RingBufferElementsVector< T >* p) : mIndex(0), mpVector(p){}
+		iterator(RingBufferElementsVector< T >* p, int i) : mIndex(i), mpVector(p){}
 		
 		bool operator==(const iterator& b) const 
 		{ 
@@ -343,15 +312,13 @@ public:
 			return *this;
 		}
 		
-		// postfix increment
+		// postfix decrement
 		iterator operator--(int dummy)
 		{			
 			iterator ret = *this;
 			mIndex--;
 			return ret;
 		}
-		
-		// satisfying the requirements for RandomAccessIterator
 		
 		iterator& operator+=(int n)
 		{			
@@ -366,8 +333,6 @@ public:
 			return ret;
 		}
 		
-		// how to do n + a ??
-		
 		iterator& operator-=(int n)
 		{			
 			mIndex -= n;
@@ -381,27 +346,11 @@ public:
 			return ret;
 		}
 		
-		ptrdiff_t operator-(const iterator b)
-		{
-			return mIndex - b.mIndex;
-		}
-		
-		bool operator<(const iterator b)
-		{
-			return mIndex < b.mIndex;
-		}
-		bool operator>(const iterator b)
-		{
-			return mIndex > b.mIndex;
-		}
-		bool operator<=(const iterator b)
-		{
-			return mIndex <= b.mIndex;
-		}
-		bool operator>=(const iterator b)
-		{
-			return mIndex >= b.mIndex;
-		}
+		ptrdiff_t operator-(const iterator b) { return mIndex - b.mIndex;}
+		bool operator<(const iterator b) { return mIndex < b.mIndex; }
+		bool operator>(const iterator b) { return mIndex > b.mIndex; }
+		bool operator<=(const iterator b) { return mIndex <= b.mIndex; }
+		bool operator>=(const iterator b) { return mIndex >= b.mIndex; }
 	};	
 	
 	iterator begin() 
