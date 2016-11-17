@@ -611,7 +611,10 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 
 		// sort all events in-place. This is needed because some hosts will send events out of time order.
 		RingBufferElementsVector<MLControlEvent> v(eventQueue);
-		std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b){ return a.mTime < b.mTime; });
+		std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b)
+				  // ensure that note-offs at a given time are processed before note-ons
+				  { if(a.mTime == b.mTime) return a.mType < b.mType; else return a.mTime < b.mTime; }
+				  );
 		
 		// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
 		while(mSamplesToProcess >= mVectorSize)
