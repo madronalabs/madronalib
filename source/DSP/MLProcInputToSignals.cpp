@@ -890,7 +890,8 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 					}
 					
 					// push note we are stealing to pending list and steal it
-					mNoteEventsPending.push(mVoices[v].mCurrentNoteEvent);
+					// MLTEST: no pending
+					// mNoteEventsPending.push(mVoices[v].mCurrentNoteEvent);
 					mVoices[v].stealNoteEvent(event, mScale, true);			
 				}
 				break;
