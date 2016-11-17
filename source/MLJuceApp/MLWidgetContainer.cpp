@@ -58,8 +58,6 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const ml::Symbol name)
 		pW->setWidgetName(newName);
 	}
     
-
-	
     // add parent JUCE component 
     getComponent()->addChildComponent(pW->getComponent());
 }

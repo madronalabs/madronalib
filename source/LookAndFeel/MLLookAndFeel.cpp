@@ -2030,7 +2030,7 @@ void MLLookAndFeel::makeBackgroundImage(MLRect r)
 {
 	// allocate image
 	bool clearIt = false;
-	MLRect rb(r.x(), r.y(), r.width() + + kBackgroundBorder*2, r.height() + kBackgroundBorder*2);
+	MLRect rb(r.x(), r.y(), r.width() + kBackgroundBorder*2, r.height() + kBackgroundBorder*2);
 
 	mBackgroundImage = Image(Image::ARGB, rb.width(), rb.height(), clearIt);
 	Graphics bg(mBackgroundImage);
@@ -2039,18 +2039,20 @@ void MLLookAndFeel::makeBackgroundImage(MLRect r)
 	setBackgroundGradient(bg, Point<int>(0, 0), Point<int>(0, r.height()));
 	bg.fillRect(MLToJuceRectInt(rb));
 	
-	/*
-	Path randPath;
-	for(int i=0; i<100; ++i)
+	if(/* DISABLES CODE */ (0))
 	{
-		MLPoint p(fabs(MLRand())*rb.width(), fabs(MLRand())*rb.height());
+		Path randPath;
+		for(int i=0; i<100; ++i)
 		{
-			randPath.lineTo(p.x(), p.y());
+			MLPoint p(fabs(MLRand())*rb.width(), fabs(MLRand())*rb.height());
+			{
+				randPath.lineTo(p.x(), p.y());
+			}
 		}
+		bg.setColour(Colours::blue);
+		bg.strokePath(randPath, PathStrokeType (1.f));		
+		std::cout << "new bg image: " << r.width() << " x " << r.height() << "\n";
 	}
-	bg.setColour(Colours::blue);
-	bg.strokePath(randPath, PathStrokeType (1.f));		
-	 */
 }
 
 void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int> gStart, Point<int> gEnd)
@@ -2091,7 +2093,7 @@ void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int> gStart, Point<
 // without seams.
 //
 
-// sound be drawWidgetBackground
+// should be drawWidgetBackground
 void MLLookAndFeel::drawBackground(Graphics& g, MLWidget* pW)
 {	
 	drawBackgroundRect(g, pW, pW->getWidgetLocalBounds());
@@ -2103,36 +2105,32 @@ void MLLookAndFeel::drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect r)
 	drawBackgroundRectAtOffset(g, pW, r, MLPoint(0, 0));
 }
 
-juce::Colour pointToColorTest(MLPoint p)
-{
-	float cr = 0.5;//p.x() / 1000.f;
-	float cg = p.y() / 600.f;
-	float cb = 1.;	
-	return juce::Colour::fromFloatRGBA(cr, cg, cb, 1.f);	
-}
-
 // used by dial numbers
 void MLLookAndFeel::drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint offset)
 {
-	MLRect window = pW->getTopLevelWindowBounds();
+	MLRect wBounds = pW->getTopLevelWindowBounds();
+	
+	if (!mBackgroundImage.isValid())
+	{
+		g.setColour(Colour::fromRGB(220, 220, 220));
+		g.fillRect (r.left(), r.top(), r.width(), r.height());	
+		return;
+	}
+
+	MLRect bgb = juceToMLRect(mBackgroundImage.getBounds());
 	MLRect widget = pW->getWidgetBoundsInWindow();
 	
 	int u = getGridUnitSize(); 
 	Path p, q;
 	p.addRectangle(0, 0, u, u);
 	
-	MLPoint windowOffset = window.getTopLeft();
+	MLPoint windowOffset = wBounds.getTopLeft();
 	MLPoint widgetOffset = widget.getTopLeft();
 	MLPoint borderOffset(kBackgroundBorder, kBackgroundBorder);
 	MLPoint totalOffset = widgetOffset - windowOffset - offset + borderOffset;
 	
 	MLRect r2 = r;
 	r2.translate(totalOffset);
-
-	if (!mBackgroundImage.isValid())
-	{
-		return;
-	}
 
 	// get background image from r2, blit to r.
 	// note that offscreen r will be moved onscreen by this call, not clipped! aarrrgh.
@@ -2162,6 +2160,14 @@ void MLLookAndFeel::drawUnitGrid(Graphics& g, MLWidget* pW)
 void MLLookAndFeel::drawUnitGridRect(Graphics& g, MLWidget* pW, MLRect r)
 {
 	drawUnitGridRectAtOffset(g, pW, r, MLPoint(0, 0));
+}
+
+juce::Colour pointToColorTest(MLPoint p)
+{
+	float cr = 0.5;//p.x() / 1000.f;
+	float cg = p.y() / 600.f;
+	float cb = 1.;	
+	return juce::Colour::fromFloatRGBA(cr, cg, cb, 1.f);	
 }
 
 void MLLookAndFeel::drawUnitGridRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint offset)

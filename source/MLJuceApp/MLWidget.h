@@ -119,9 +119,9 @@ public:
 
 	// TEMP working around widget / view hierarchy problems
 	void setContainer(MLWidget* c) { mpContainer = c; }
+	void setWidgetName(const ml::Symbol& n) { mName = n; }
 
 protected:
-	void setWidgetName(const ml::Symbol& n) { mName = n; }
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
 
 	std::vector<MLWidget::Listener*> mpListeners;
