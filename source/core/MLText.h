@@ -220,7 +220,7 @@ namespace ml
 	
 	inline std::ostream& operator<< (std::ostream& out, const TextFragment & r)
 	{
-		std::cout << r.getText();
+		out << r.getText();
 		return out;
 	}
 	
