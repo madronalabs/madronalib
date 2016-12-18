@@ -934,9 +934,15 @@ public:
 		return filter != nullptr && filter->isParameterAutomatable ((int) index);
 	}
 	
+	/*
 	bool setSpeakerArrangement (VstSpeakerArrangement* pluginInput,
 								VstSpeakerArrangement* pluginOutput) override
 	{
+		
+		// ML
+		return false;
+		
+		
 		if (pluginInput != nullptr && filter->busArrangement.inputBuses.size() == 0)
 			return false;
 		
@@ -1006,7 +1012,9 @@ public:
 		
 		return true;
 	}
+	*/
 	
+	/*
 	bool getSpeakerArrangement (VstSpeakerArrangement** pluginInput, VstSpeakerArrangement** pluginOutput) override
 	{
 		*pluginInput = 0;
@@ -1044,6 +1052,7 @@ public:
 		
 		return true;
 	}
+	*/
 	
 	bool getInputProperties (VstInt32 index, VstPinProperties* properties) override
 	{
