@@ -30,7 +30,16 @@ bool MLFile::exists() const
 
 ml::TextFragment MLFile::getShortName() const 
 { 
-	return(ml::TextFragment(mJuceFile.getFileNameWithoutExtension().toUTF8()));
+	if(isDirectory())
+	{
+		std::cout << "dir\n";
+		std::cout << mJuceFile.getFileName() << "\n";
+		return(ml::TextFragment(mJuceFile.getFileName().toUTF8()));
+	}
+	else
+	{
+		return(ml::TextFragment(mJuceFile.getFileNameWithoutExtension().toUTF8()));
+	}
 }
 
 // TODO return a path?
