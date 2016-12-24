@@ -380,7 +380,10 @@ void MLProcContainer::compile()
                 if(outputProc->outputIsValid(outputIdx))
                 {
                     pCompileSig->mpSigBuffer = &outputProc->getOutput(outputIdx);
-                    needsBuffer = false;
+					
+					// MLTEST PATCHER different outputs were using same signal. Always make an output buffer.
+					needsBuffer = true;
+					// needsBuffer = false;
                 }
                 else
                 {
@@ -464,6 +467,7 @@ void MLProcContainer::compile()
 			{
 				pOutSig = &getNullOutput();
 			}
+			
 			op.procRef->setOutput(i + 1, *pOutSig);
 		}
 	}
