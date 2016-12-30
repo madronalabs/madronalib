@@ -60,7 +60,9 @@ MLProcGlide::~MLProcGlide()
 
 void MLProcGlide::calcCoeffs(void) 
 {
-	const float t = getParam("time") + 0.001f;
+	static const ml::Symbol timeSym("time");
+
+	const float t = getParam(timeSym) + 0.001f;
 	const float sr = getContextSampleRate();
 	mRampTimeInSamples = (int)(sr*t);
 	mInvRampTimeInSamples = 1.f / (float)mRampTimeInSamples;

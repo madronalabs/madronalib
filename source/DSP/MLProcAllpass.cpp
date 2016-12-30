@@ -65,9 +65,11 @@ MLProcAllpass::~MLProcAllpass()
 
 MLProc::err MLProcAllpass::resize() 
 {	
+	static const ml::Symbol timeSym("time");
+
 	MLProc::err e = OK;
 	unsigned sr = getContextSampleRate();
-	mTimeInSamples = (int)(getParam("time") * (float)sr);
+	mTimeInSamples = (int)(getParam(timeSym) * (float)sr);
 // debug() << "allpass::resize: " << 	mTimeInSamples << " samples.\n";
 	unsigned bufferLength = mTimeInSamples;
 	
@@ -98,7 +100,9 @@ void MLProcAllpass::clear()
 
 void MLProcAllpass::calcCoeffs() 
 {
-	mGain = getParam("gain");
+	static const ml::Symbol gainSym("gain");
+
+	mGain = getParam(gainSym);
 	resize();
 	mParamsChanged = false;
 }
@@ -112,7 +116,6 @@ void MLProcAllpass::process(const int frames)
 
 	uintptr_t readIndex;
 	MLSample fxn, v;
-
 
 	if (mParamsChanged) calcCoeffs();
 	

@@ -348,11 +348,6 @@ bool MLMultiContainer::isProcEnabled(const MLProc* p) const
 
 void MLMultiContainer::setup()
 {
-//	float fr;
-//	fr = getParam("ratio");
-//	setResampleRatio(theCommonRatios.getClosest(fr));
-//debug() << "***setup multicontainer " << getName() << ": ratio " << getResampleRatio() << " (" << fr << ") \n";
-
 	const int copies = (int)mCopies.size();	
 	for (int i=0; i < copies; ++i)
 	{
@@ -360,7 +355,6 @@ void MLMultiContainer::setup()
 	}
 	
 	MLProcContainer::setup();
-
 }
 
 // recurse into containers, setting stats ptr and collecting number of procs.

@@ -77,12 +77,16 @@ MLProc::err MLProcParamToSignal::resize()
 
 void MLProcParamToSignal::process(const int frames)
 {
+	static const ml::Symbol levelModeSym("level_mode");
+	static const ml::Symbol glideSym("glide");
+	static const ml::Symbol inSym("in");
+	
 	MLSignal& y = getOutput();
 	
 	if (mParamsChanged)
 	{
-		float input = getParam("in");
-		switch (static_cast<int>(getParam("level_mode"))) 
+		float input = getParam(inSym);
+		switch (static_cast<int>(getParam(levelModeSym))) 
 		{
 			default:
 			case kDefault:
@@ -93,7 +97,7 @@ void MLProcParamToSignal::process(const int frames)
 				break;
 		}
 		mChangeList.addChange(mVal, 0);
-		mGlide = getParam("glide");
+		mGlide = getParam(glideSym);
 		mChangeList.setGlideTime(mGlide);
 		mParamsChanged = false;
 	}

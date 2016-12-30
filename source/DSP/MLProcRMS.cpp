@@ -52,7 +52,9 @@ float MLProcRMS::getRMS()
 
 void MLProcRMS::calcCoeffs(void) 
 {
-	MLSample t = getParam("time");
+	static const ml::Symbol timeSym("time");
+
+	MLSample t = getParam(timeSym);
 	MLSample hz = 1.f / t;
 	
 	mFilter.clear();

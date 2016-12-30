@@ -58,7 +58,9 @@ void MLProcPeak::clear(void)
 
 void MLProcPeak::calcCoeffs(void) 
 {
-	MLSample t = getParam("time");
+	static const ml::Symbol timeSym("time");
+
+	MLSample t = getParam(timeSym);
 	mC1 = kMLTwoPi * getContextInvSampleRate() / t; 
 	mParamsChanged = false;
 }

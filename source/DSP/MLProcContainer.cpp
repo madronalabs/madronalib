@@ -80,13 +80,17 @@ bool MLProcContainer::isProcEnabled(const MLProc* p) const
 
 void MLProcContainer::setup()
 {
+	static const ml::Symbol rSym("ratio");
+	static const ml::Symbol uSym("up_order");
+	static const ml::Symbol dSym("down_order");
+
 	float fr;
-	fr = getParam("ratio");
+	fr = getParam(rSym);
+	int u = (int)getParam(uSym);
+	int d = (int)getParam(dSym);
+
 	MLRatio r = getCommonRatios().getClosest(fr);	
 	setResampleRatio(r);
-	
-	int u = (int)getParam("up_order");
-	int d = (int)getParam("down_order");
 	setResampleUpOrder(u);
 	setResampleDownOrder(d);
 }

@@ -38,9 +38,11 @@ MLProcMultiple::~MLProcMultiple()
 // make a new proxy for multiple copies of the named class.
 MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol procName)
 {
+	static const ml::Symbol copiesSym("copies");
+
 	MLProc::err e = OK;
 	MLProcPtr pTemplate, pProxyProc;
-	int proxyCopies = (int)getParam("copies");
+	int proxyCopies = (int)getParam(copiesSym);
 
 	// is name in map already?
 	SymbolProcMapT::iterator it = mProcMap.find(procName);
@@ -125,12 +127,14 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
 
 MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 {
+	static const ml::Symbol copiesSym("copies");
+
 	err e;
 	MLProcPtr r;
 	MLProcPtr proxyProc; // proxy proc in our container
 	MLProcContainer* copyAsContainer;	// owned by proxy
 	SymbolProcMapT::iterator it;
-	int proxyCopies = (int)getParam("copies");
+	int proxyCopies = (int)getParam(copiesSym);
 	
 	ml::Symbol head = path.head();
 	ml::Path tail = path.tail();
@@ -203,13 +207,15 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 
 void MLProcMultiple::doParams()
 {		
+	static const ml::Symbol enableSym("enable");
+
 	// TODO this ordering helps avoid a race on mParamsChanged that was preventing the voices to be enabled properly.
 	// the real fix will be a queue of parameter changes, kept by each container or context.
 	mParamsChanged = false;
 	
 	for (std::list<MLProcPtr>::iterator it = mProcList.begin(); it != mProcList.end(); ++it)
 	{
-		int enabled = (int)getParam("enable");
+		int enabled = (int)getParam(enableSym);
 
 		MLProcPtr proc = *it;
 		MLMultProxy& proxy = dynamic_cast<MLMultProxy&>(*proc);	

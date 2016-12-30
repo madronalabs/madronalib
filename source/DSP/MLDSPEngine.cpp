@@ -444,8 +444,9 @@ int MLDSPEngine::getPublishedSignalVoicesEnabled(const ml::Symbol alias)
 //
 int MLDSPEngine::getPublishedSignalBufferSize(const ml::Symbol alias)
 {
-	int result = 0;
+	static const ml::Symbol lengthSym("length");
 	
+	int result = 0;
 	// look up signal container
 	MLPublishedSignalMapT::const_iterator it = mPublishedSignalMap.find(alias);
 	if (it != mPublishedSignalMap.end())
@@ -455,7 +456,7 @@ int MLDSPEngine::getPublishedSignalBufferSize(const ml::Symbol alias)
 		MLProcPtr proc = (*jt);
 		if (proc)
 		{
-			result = proc->getParam("length");
+			result = proc->getParam(lengthSym);
 		}
 	}
 	return result;

@@ -54,9 +54,11 @@ MLProcDelay::~MLProcDelay()
 
 MLProc::err MLProcDelay::resize() 
 {	
+	static const ml::Symbol lengthSym("length");
+
 	MLProc::err e = OK;
 	const float sr = getContextSampleRate();
-	int lenBits = ml::bitsToContain((int)(getParam("length") * sr));
+	int lenBits = ml::bitsToContain((int)(getParam(lengthSym) * sr));
 	int length = 1 << lenBits;
 	mLengthMask = length - 1;
 	
