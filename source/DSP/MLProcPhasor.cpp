@@ -52,14 +52,6 @@ MLProcPhasor::~MLProcPhasor()
 //	debug() << "MLProcPhasor destructor\n";
 }
 
-/*
-void MLProcPhasor::calcCoeffs(void) 
-{
-	MLSample f = getParam("freq");
-	mCoeffs[0] = kMLTwoPi * f * getInvSampleRate();
-	mParamsChanged = false;
-}
-*/
 
 void MLProcPhasor::clear()
 {	

@@ -63,6 +63,8 @@ void MLProcEnvelopeFollow::clear()
 // generate envelope output based on gate and control signal inputs.
 void MLProcEnvelopeFollow::process(const int samples)
 {	
+	static const ml::Symbol threshSym("thresh");
+
 	//float invSr = getContextInvSampleRate();
 	const MLSignal& in = getInput(1);
 	MLSignal& trig = getOutput(1);	
@@ -71,7 +73,7 @@ void MLProcEnvelopeFollow::process(const int samples)
 	if (mParamsChanged)
 	{
 		const float kLogHysteresis = 18.f;
-		float logThresh = getParam("thresh");
+		float logThresh = getParam(threshSym);
 		mThreshUpper = dBToAmp(logThresh);
 		mThreshLower = dBToAmp(logThresh - kLogHysteresis);
 		int sr = getContextSampleRate();

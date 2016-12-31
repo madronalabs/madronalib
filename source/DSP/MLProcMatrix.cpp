@@ -94,8 +94,11 @@ bool MLProcMatrix::getConnection(int a, int b)
 // single connections are made here by parameters.
 void MLProcMatrix::calcCoeffs()
 {
-	const int in = (int)getParam("in");
-	const int out = (int)getParam("out");
+	static const ml::Symbol inSym("in");
+	static const ml::Symbol outSym("out");
+
+	const int in = (int)getParam(inSym);
+	const int out = (int)getParam(outSym);
 	const int use_in = (in > 0);
 	const int use_out = (out > 0);
 	const int mode = (use_in << 1) + use_out;

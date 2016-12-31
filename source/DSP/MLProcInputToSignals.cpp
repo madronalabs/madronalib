@@ -316,11 +316,13 @@ void MLProcInputToSignals::clearChangeLists()
 // set up output buffers
 MLProc::err MLProcInputToSignals::resize() 
 {
- 	MLProc::err re = OK;
+	static const ml::Symbol bufsizeSym("bufsize");
+
+	MLProc::err re = OK;
 
 	// resize voices
 	//
-	int bufSize = (int)getParam("bufsize");
+	int bufSize = (int)getParam(bufsizeSym);
 	int vecSize = getContextVectorSize();
     
 	MLProc::err r;
@@ -427,16 +429,24 @@ void MLProcInputToSignals::setup()
 
 void MLProcInputToSignals::doParams()
 {
-	int newVoices = (int)getParam("voices");
+	static const ml::Symbol voicesSym("voices");
+	static const ml::Symbol data_rateSym("data_rate");
+	static const ml::Symbol scaleSym("scale");
+	static const ml::Symbol protocolSym("protocol");
+	static const ml::Symbol bendSym("bend");
+	static const ml::Symbol modSym("mod");
+	static const ml::Symbol unisonSym("unison");
+
+	int newVoices = (int)getParam(voicesSym);
 	newVoices = ml::clamp(newVoices, 0, 15);
     
     // TODO enable / disable voice containers here
-	mOSCDataRate = (int)getParam("data_rate");
+	mOSCDataRate = (int)getParam(data_rateSym);
 	
-	const ml::Text& scaleName = getTextParam("scale");
+	const ml::Text& scaleName = getTextParam(scaleSym);
 	mScale.loadFromRelativePath(scaleName);
 	
-	const int newProtocol = (int)getParam("protocol");	
+	const int newProtocol = (int)getParam(protocolSym);	
 	mProtocol = newProtocol;
 	
 	mGlide = getParam("glide");
@@ -485,12 +495,12 @@ void MLProcInputToSignals::doParams()
 	}
 	
 	// pitch wheel mult
-	mPitchWheelSemitones = getParam("bend");
+	mPitchWheelSemitones = getParam(bendSym);
 	
 	// listen to controller number mod
-	mControllerNumber = (int)getParam("mod");
+	mControllerNumber = (int)getParam(modSym);
 	
-	int unison = (int)getParam("unison");
+	int unison = (int)getParam(unisonSym);
 	if (mUnisonMode != unison)
 	{
 		mUnisonMode = unison;
@@ -510,10 +520,6 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 void MLProcInputToSignals::clear()
 {
 	int vecSize = getContextVectorSize();
-	
-	// int bufSize = (int)getParam("bufsize");
-	//debug() << "clearing MLProcInputToSignals: bufsize" << bufSize << ", vecSize " << vecSize << "\n";
-	
     clearChangeLists();
 	
 	for(int i=0; i<kMaxEvents; ++i)

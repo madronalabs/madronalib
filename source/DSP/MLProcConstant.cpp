@@ -48,7 +48,9 @@ MLProcConstant::~MLProcConstant()
 
 MLProc::err MLProcConstant::prepareToProcess()
 {
-	mVal = getParam("in");
+	static const ml::Symbol inSym("in");
+
+	mVal = getParam(inSym);
 	return OK;
 }
 

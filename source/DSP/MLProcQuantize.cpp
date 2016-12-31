@@ -68,24 +68,29 @@ MLProcQuantize::~MLProcQuantize()
 
 void MLProcQuantize::doParams()
 {
-	ml::Text scaleName = getTextParam("scale");
+	static const ml::Symbol scaleSym("scale");
+	static const ml::Symbol modeSym("mode");
+
+	ml::Text scaleName = getTextParam(scaleSym);
 	if(scaleName != mScaleName)
 	{
 		mScale.loadFromRelativePath(scaleName);
 		mScaleName = scaleName;
 	}
-	mMode = static_cast<int>(getParam("mode"));
+	mMode = static_cast<int>(getParam(modeSym));
 	mParamsChanged = false;
 }
 
 void MLProcQuantize::process(const int frames)
 {
+	static const ml::Symbol onSym("on");
+	
 	if (mParamsChanged) doParams();
 
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	
-	if(!getParam("on"))
+	if(!getParam(onSym))
 	{
 		y = x; 
 		return;

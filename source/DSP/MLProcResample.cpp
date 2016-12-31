@@ -459,11 +459,16 @@ MLProcResample::~MLProcResample()
 // set changes based on startup parameters, before prepareToProcess() is called.
 void MLProcResample::setup()
 {
-	const int up = (int)getParam("ratio_top");
-	const int down = (int)getParam("ratio_bottom");
+	static const ml::Symbol ratio_topSym("ratio_top");
+	static const ml::Symbol ratio_bottomSym("ratio_bottom");
+	static const ml::Symbol up_orderSym("up_order");
+	static const ml::Symbol down_orderSym("down_order");
+
+	const int up = (int)getParam(ratio_topSym);
+	const int down = (int)getParam(ratio_bottomSym);
 	mRatio.set(up, down);
-	mUpOrder = (int)getParam("up_order");
-	mDownOrder = (int)getParam("down_order");
+	mUpOrder = (int)getParam(up_orderSym);
+	mDownOrder = (int)getParam(down_orderSym);
 }
 
 MLProc::err MLProcResample::resize() 
@@ -660,18 +665,18 @@ void MLProcResample::downsample1(MLSample* pSrc, MLSample* pDest, int inFrames, 
 void MLProcResample::downsample2(MLSample* pSrc, MLSample* pDest, int inFrames, int ratio)
 {
 	int m=0;
-	// TEMP 
+	// MLTEST 
 	// TODO rewrite to figure out denorm problems and get rid of this hack.
-	static const float noiseAmp = dBToAmp(-120.f);
+	// static const float noiseAmp = dBToAmp(-120.f);
 
 	switch(ratio)
 	{
 		case 2:
 			for (int n = 0; n < inFrames; n += 2)
 			{
-				MLSample sss = MLRand() * noiseAmp;
-				mFilters[0]->process(pSrc[n] + sss);
-				pDest[m++] = mFilters[0]->process(pSrc[n + 1] + sss);	
+				 // MLTEST MLSample sss = MLRand() * noiseAmp;
+				mFilters[0]->process(pSrc[n]); //  + sss);
+				pDest[m++] = mFilters[0]->process(pSrc[n + 1]); //  + sss);	
 			}
 		break;
 		case 4:

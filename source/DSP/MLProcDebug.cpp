@@ -76,7 +76,9 @@ MLProcDebug::~MLProcDebug()
 
 void MLProcDebug::doParams()
 {
-	mVerbose = getParam("verbose");
+	static const ml::Symbol vSym("verbose");
+
+	mVerbose = getParam(vSym);
 	mParamsChanged = false;
 }
 

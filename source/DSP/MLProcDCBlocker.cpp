@@ -56,7 +56,9 @@ MLProcDCBlocker::~MLProcDCBlocker()
 
 void MLProcDCBlocker::calcCoeffs(void) 
 {
-	const float f = getParam("f");
+	static const ml::Symbol fSym("f");
+
+	const float f = getParam(fSym);
 	const double omega = f * kMLTwoPi / getContextSampleRate();
 	mR = cos(omega);
 	mParamsChanged = false;

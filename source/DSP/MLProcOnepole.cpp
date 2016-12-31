@@ -57,7 +57,9 @@ MLProcOnepole::~MLProcOnepole()
 
 void MLProcOnepole::doParams(void) 
 {
-	const float f = ml::clamp(getParam("frequency"), 50.f, getContextSampleRate() * 0.25f);
+	static const ml::Symbol frequencySym("frequency");
+
+	const float f = ml::clamp(getParam(frequencySym), 50.f, getContextSampleRate() * 0.25f);
 	const float invSr = getContextInvSampleRate();
 	mK = fsin1(kMLTwoPi * f * invSr);
 	assert(!MLisNaN(mK));

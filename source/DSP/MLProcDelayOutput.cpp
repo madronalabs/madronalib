@@ -79,6 +79,8 @@ MLProc::err MLProcDelayOutput::resize()
 
 void MLProcDelayOutput::doParams() 
 {
+	static const ml::Symbol backwardsSym("backwards");
+
 	// first get delay input.  That's the MLProcDelayInput object with 
 	// the same name as us before the underscore.  This is fairly brittle and
 	// hackish.  We don't have something like string parameters, so this
@@ -113,7 +115,7 @@ void MLProcDelayOutput::doParams()
 		debug() << "MLProcDelayOutput::doParams: couldn't find delay proc " << delayName << "\n";
 	}
 	
-	if(getParam("backwards"))
+	if(getParam(backwardsSym))
 	{
 		mVectorDelay = getContextVectorSize();
 	}

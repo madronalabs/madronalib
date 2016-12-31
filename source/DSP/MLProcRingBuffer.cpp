@@ -41,9 +41,13 @@ MLProcRingBuffer::~MLProcRingBuffer()
 
 MLProc::err MLProcRingBuffer::resize() 
 {	
+	static const ml::Symbol frame_sizeSym("frame_size");
+	static const ml::Symbol lengthSym("length");
+	static const ml::Symbol modeSym("mode");
+
 	MLProc::err e = OK;
-	int frameSize = getParam("frame_size");
-	int length = 1 << ml::bitsToContain((int)getParam("length"));
+	int frameSize = getParam(frame_sizeSym);
+	int length = 1 << ml::bitsToContain((int)getParam(lengthSym));
 	void * buf;
 	
 	// debug() << "allocating " << size << " samples for ringbuffer " << getName() << "\n";
@@ -61,7 +65,7 @@ MLProc::err MLProcRingBuffer::resize()
 		PaUtil_InitializeRingBuffer( &mBuf, sizeof(MLSample), length*frameSize, buf );
         
 		// get trash signal
-		if (getParam("mode") != eMLRingBufferNoTrash)
+		if (getParam(modeSym) != eMLRingBufferNoTrash)
 		{
 			mTrashSignal.setDims(length, frameSize);	
 		}
@@ -77,9 +81,11 @@ void MLProcRingBuffer::doParams(void)
 
 void MLProcRingBuffer::process(const int frames)
 {
+	static ml::Symbol frameSym("frame_size");
+
 	int written;
 	const MLSignal& x = getInput(1);
-	int frameSize = getParam("frame_size");
+	int frameSize = getParam(frameSym);
 	int inputFrameSize = x.getHeight();
 	int framesToProcess = ml::min(frames, x.getWidth());
 
@@ -123,13 +129,15 @@ void MLProcRingBuffer::process(const int frames)
 //
 int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 {
+	static ml::Symbol modeSym("mode");
+	static ml::Symbol frameSym("frame_size");
+
 	int lastRead = 0;
 	MLSample * outBuffer = outSig.getBuffer() + outSig.plane(plane);
 	void * trashBuffer = (void *)mTrashSignal.getBuffer();
-	static ml::Symbol modeSym("mode");
+	
 	int mode = (int)getParam(modeSym);
-		
-	int frameSize = getParam("frame_size");
+	int frameSize = getParam(frameSym);
 	int framesToRead = ml::min(frames, (int)outSig.getWidth());
 	int framesAvailable = (int)PaUtil_GetRingBufferReadAvailable( &mBuf )/frameSize;
     
