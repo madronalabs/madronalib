@@ -37,11 +37,11 @@ namespace ml {
 	// add an entry to the table. The entry must not already exist in the table.
 	// this must be the only way of modifying the symbol table.
 	int SymbolTable::addEntry(const HashedCharArray& hsl)
-	{
-		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, hsl.len));
+	{		
+		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
 		
-		size_t newID = mSize++;
-		mHashTable[hsl.hash].emplace_back(newID);		
+		int newID = mSize++;
+		mHashTable[hsl.hash].emplace_back(static_cast<size_t>(newID));		
 		
 		return newID;
 	}
@@ -54,13 +54,14 @@ namespace ml {
 		// get the vector of symbol IDs matching this hash. It probably has one entry but may have more. 
 		const std::vector<int>& bin = mHashTable[hsl.hash];
 		{
-			std::unique_lock<std::mutex> lock(mMutex);
-
+			std::unique_lock<std::mutex> lock(mMutex);			
+			
 			for(int ID : bin)
 			{
 				// there should be few collisions, so probably the first ID in the hash bin
 				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
 				// compare the entire string.	
+
 				TextFragment* binFragment = &mSymbolTextsByID[ID];
 				if(compareSizedCharArrays(binFragment->getText(), binFragment->lengthInBytes(), hsl.pChars, hsl.len))
 				{
@@ -106,7 +107,7 @@ namespace ml {
 		}	
 		// print nonzero entries in hash table
 		int hash = 0;
-		for(auto idVec : mHashTable)
+		for(auto& idVec : mHashTable)
 		{
 			size_t idVecLen = idVec.size();
 			if(idVecLen > 0)

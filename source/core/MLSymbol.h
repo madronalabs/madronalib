@@ -32,11 +32,8 @@
 #include "MLLocks.h"
 #include "MLText.h"
 
-namespace ml {
-	
-	static const int kMLMaxSymbolLength = 56;
-	static const int kMLMaxNumberLength = 8;
-	
+namespace ml 
+{	
 	const int kHashTableBits = 12;
 	const int kHashTableSize = (1 << kHashTableBits);
 	const int kHashTableMask = kHashTableSize - 1;

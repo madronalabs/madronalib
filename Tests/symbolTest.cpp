@@ -259,6 +259,8 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		REQUIRE(stringSum == symbolSum);
 		
 		REQUIRE(theSymbolTable().audit());
+		
+		//theSymbolTable().dump();
 	}
 }
 
@@ -326,8 +328,6 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 		totalPoints += TextFragment(testString.c_str()).lengthInCodePoints();
 	}
 	
-	TextFragment fff("fff");
-	std::cout << fff << "\n";
 	REQUIRE(totalPoints == 21);
 }
 
