@@ -124,12 +124,8 @@ namespace ml {
 		int addEntry(const HashedCharArray& hsl);
 		
 	private:
-		// ensure symbol table integrity with simple SpinLock.
-		// TODO alternative to spinlock
-		
-		// MLTEST
-		MLSpinLock mLock;
-		// std::mutex mMutex;
+		// ensure symbol table integrity with simple mutex.
+		std::mutex mMutex;
 		
 		// vector of symbols in ID/creation order
 		std::vector< TextFragment > mSymbolTextsByID;	

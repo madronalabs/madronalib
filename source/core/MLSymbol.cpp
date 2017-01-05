@@ -23,11 +23,8 @@ namespace ml {
 	// clear all symbols from the table.
 	void SymbolTable::clear()
 	{
-		mSize = 0;
-		
-		// MLTEST
-		MLScopedLock lock(mLock);
-		//std::unique_lock<std::mutex>(mMutex);
+		mSize = 0;		
+		std::unique_lock<std::mutex> lock(mMutex);
 		
 		mSymbolTextsByID.clear();
 		mSymbolTextsByID.reserve(kDefaultSymbolTableSize);
@@ -57,8 +54,8 @@ namespace ml {
 		// get the vector of symbol IDs matching this hash. It probably has one entry but may have more. 
 		const std::vector<int>& bin = mHashTable[hsl.hash];
 		{
-			// TODO alternative to spinlock
-			MLScopedLock lock(mLock);
+			std::unique_lock<std::mutex> lock(mMutex);
+
 			for(int ID : bin)
 			{
 				// there should be few collisions, so probably the first ID in the hash bin
