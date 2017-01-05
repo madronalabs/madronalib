@@ -6,12 +6,16 @@
 #pragma once
 
 #include <iostream>
+#include "MLPlatform.h"
 
-#define DEBUG_TO_COUT 1 // MLTEST
+#ifdef ML_WINDOWS
+	#define DEBUG_TO_COUT 0
+#else
+	#define DEBUG_TO_COUT 1
+#endif 
+
 #if DEBUG_TO_COUT
-
 #define debug() std::cout
-
 #else
 
 #include "MLPlatform.h"
