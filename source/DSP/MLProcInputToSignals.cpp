@@ -436,6 +436,7 @@ void MLProcInputToSignals::doParams()
 	static const ml::Symbol bendSym("bend");
 	static const ml::Symbol modSym("mod");
 	static const ml::Symbol unisonSym("unison");
+	static const ml::Symbol glideSym("glide");
 
 	int newVoices = (int)getParam(voicesSym);
 	newVoices = ml::clamp(newVoices, 0, 15);
@@ -449,7 +450,7 @@ void MLProcInputToSignals::doParams()
 	const int newProtocol = (int)getParam(protocolSym);	
 	mProtocol = newProtocol;
 	
-	mGlide = getParam("glide");
+	mGlide = getParam(glideSym);
 	for (int v=0; v<kMLEngineMaxVoices; ++v)
 	{
 		mVoices[v].mdPitch.setGlideTime(mGlide);

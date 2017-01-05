@@ -126,7 +126,7 @@ void MLProcContainer::compile()
 	// reads proc list, writes ops list
 	for (std::list<MLProcPtr>::iterator it = mProcList.begin(); it != mProcList.end(); ++it)
 	{
-		MLProcPtr p = (*it);		
+		MLProcPtr p = (*it);
 		mOpsVec.push_back(p.get());
 	}
 
@@ -139,7 +139,7 @@ void MLProcContainer::compile()
 	std::vector<ml::Symbol> compileOutputs;
 	std::map<ml::Symbol, compileSignal> signals;
 	ml::textUtils::NameMaker nameMaker;
-
+	
 	// make compileOps from ops list.
 	// reads ops list, writes compile ops list, compile ops map. 
 	// for each proc in ops list, 
@@ -846,14 +846,11 @@ void MLProcContainer::process(const int extFrames)
 	*/
 	
 	// -> ext, intframes always chunk size! 
-	
-	
+		
 	// do resample outside procs.
 	// downsample is trickier:
 	//		resampler: process() // buffers input
 	//		if (resampler.needspull() ) or somehting
-	
-	
 	
 	if (resample)
 	{
@@ -866,9 +863,9 @@ void MLProcContainer::process(const int extFrames)
 	// process ops vector, recursing into containers.
 	int numOps = mOpsVec.size();
 	
+	// process all procs!
 	for(int i = 0; i < numOps; ++i)
 	{
-		// process all procs!
 		mOpsVec[i]->process(intFrames);
 	}
 
