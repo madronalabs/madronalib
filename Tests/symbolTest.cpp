@@ -59,10 +59,10 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 TEST_CASE("madronalib/core/collision", "[collision]")
 {
 	// nothing is checked here - these are two pairs of colliding symbols for reference
-	Symbol a("mse");
-	Symbol aa("KL");
-	Symbol b("AAAAAAAAAAAAAAwwdmbs");
-	Symbol bb("AAAAAAAAAAAAAAjntepetnj");
+	Symbol a("KP");
+	Symbol aa("BAZ");
+	Symbol b("KL");
+	Symbol bb("mse");
 }
 
 template<size_t N>
@@ -260,7 +260,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		
 		REQUIRE(theSymbolTable().audit());
 		
-		//theSymbolTable().dump();
+		theSymbolTable().dump();
 	}
 }
 

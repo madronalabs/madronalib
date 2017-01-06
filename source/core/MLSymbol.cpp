@@ -18,6 +18,7 @@ namespace ml {
 
 	SymbolTable::~SymbolTable()
 	{
+		std::unique_lock<std::mutex> lock(mMutex);
 	}
 
 	// clear all symbols from the table.

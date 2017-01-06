@@ -23,6 +23,7 @@
 
 #include <map>
 #include <set>
+#include <array>
 #include <vector>
 #include <string>
 #include <iostream>
@@ -47,7 +48,8 @@ namespace ml
 	template <size_t N>
 	constexpr uint32_t krHash2(const char * str) 
 	{
-		return (N > 1) ? ((krHash2<N - 1>(str + 1))*31u + *str) : 0;
+//		return (N > 1) ? ((krHash2<N - 1>(str + 1))*31u + *str) : 0;
+		return (N > 1) ? ((krHash2<N - 1>(str + 1)) + *str)*31u : 0;
 	}
 	
 	template <>
@@ -71,8 +73,10 @@ namespace ml
 		while(i > 0)
 		{
 			i--;
-			accum *= 31u;
+//			accum *= 31u;
+//			accum += str[i];
 			accum += str[i];
+			accum *= 31u;
 		}
 		return accum & kHashTableMask;
 	}
