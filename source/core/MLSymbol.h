@@ -49,7 +49,6 @@ namespace ml
 	template <size_t N>
 	constexpr uint32_t krHash2(const char * str) 
 	{
-//		return (N > 1) ? ((krHash2<N - 1>(str + 1))*31u + *str) : 0;
 		return (N > 1) ? ((krHash2<N - 1>(str + 1)) + *str)*31u : 0;
 	}
 	
@@ -74,8 +73,6 @@ namespace ml
 		while(i > 0)
 		{
 			i--;
-//			accum *= 31u;
-//			accum += str[i];
 			accum += str[i];
 			accum *= 31u;
 		}
@@ -131,13 +128,6 @@ namespace ml
 		std::vector< TextFragment > mSymbolTextsByID;	
 		
 		// hash table containing indexes to strings
-	
-#define OLD_TABLE 1
-#if OLD_TABLE // MLTEST	
-		
-		// ensure symbol table integrity with simple mutex.
-		//std::mutex mMutex;
-
 		struct TableEntry
 		{
 			std::mutex mMutex; // to move to write protect only - concurrent reads are fine
@@ -151,12 +141,7 @@ namespace ml
 		}
 		
 		std::array< TableEntry, kHashTableSize > mHashTable;
-		
-#else 
-		std::array< std::atomic<int>, kHashTableSize > mHashTable;
-		
-#endif
-		
+
 		int mSize;
 	};
 	
@@ -199,13 +184,13 @@ namespace ml
 		
 		// search hash table for our id to find our hash.
 		// for testing only! 
-		/*
 		inline int getHash() const 
 		{ 
 			int hash = 0;
 			
-			for(auto idVec : theSymbolTable().mHashTable)
+			for(auto& entry : theSymbolTable().mHashTable)
 			{
+				auto idVec = entry.mIDVector;
 				size_t idVecLen = idVec.size();
 				if(idVecLen > 0)
 				{
@@ -221,8 +206,7 @@ namespace ml
 			}		
 			return 0; 
 		}
-		*/
-		
+
 		// return the symbol's TextFragment in the table.
 		// in order to show the strings in XCode's debugger, instead of the unhelpful id,
 		// edit the summary format for Symbol within XCode to {$VAR.getTextFragment().text}:s
