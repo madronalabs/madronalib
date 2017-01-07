@@ -35,10 +35,21 @@ void threadTest(int threadID)
 	}
 }
 
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
+myTimePoint now()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
 TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 {
 	// multithreaded test. multiple nameMakers will try to make duplicate names at about the same time,
 	// which will almost certainly lead to problems unless the symbol code is properly thread-safe.
+	
+	// start timing
+	myTimePoint start, end;
+	std::chrono::duration<double> elapsed;
+	start = now();
 	
 	theSymbolTable().clear();
 	int nThreads = 16;
@@ -51,6 +62,10 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 	{
 		threads[i].join();
 	}
+	
+	end = now();
+	elapsed = end-start;
+	std::cout << "multithreaded test, elapsed time: " << elapsed.count() << "s\n";
 	
 	REQUIRE(theSymbolTable().audit());
 	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
@@ -85,12 +100,6 @@ TEST_CASE("madronalib/core/hashes", "[hashes]")
 }
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
-
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
-myTimePoint now()
-{
-	return std::chrono::high_resolution_clock::now();
-}
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
