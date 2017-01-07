@@ -13,27 +13,39 @@ namespace ml {
 
 	SymbolTable::SymbolTable()
 	{
+
+		
 		clear();
 	}
 
 	SymbolTable::~SymbolTable()
 	{
+		// TODO better protection on delete
+		// can this be avoided with more explicit setup / shutdown
+		// (RAII in main() )
+		// std::unique_lock<std::mutex> lock(mMutex);
+
 	}
 
 	// clear all symbols from the table.
 	void SymbolTable::clear()
 	{
 		mSize = 0;		
-		std::unique_lock<std::mutex> lock(mMutex);
+		// std::unique_lock<std::mutex> lock(mMutex);
 		
 		mSymbolTextsByID.clear();
 		mSymbolTextsByID.reserve(kDefaultSymbolTableSize);
+
+		for(int i=0; i<kHashTableSize; ++i)
+		{
+			clearEntry(mHashTable[i]);
+		}		
 		
-		mHashTable.clear();
-		mHashTable.resize(kHashTableSize);	
+		// add null entry - why?
 		addEntry(HashedCharArray());
 	}
 
+	
 	// add an entry to the table. The entry must not already exist in the table.
 	// this must be the only way of modifying the symbol table.
 	int SymbolTable::addEntry(const HashedCharArray& hsl)
@@ -41,44 +53,46 @@ namespace ml {
 		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
 		
 		int newID = mSize++;
-		mHashTable[hsl.hash].emplace_back(static_cast<size_t>(newID));		
-		
+		mHashTable[hsl.hash].mIDVector.emplace_back(newID);		
 		return newID;
 	}
-
+	
 	int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 	{
 		int r = 0;
-		bool found = false;
 		
 		// get the vector of symbol IDs matching this hash. It probably has one entry but may have more. 
-		const std::vector<int>& bin = mHashTable[hsl.hash];
+		const std::vector<int>& bin = mHashTable[hsl.hash].mIDVector;
 		{
-			std::unique_lock<std::mutex> lock(mMutex);			
+			bool found = false;
 			
-			for(int ID : bin)
-			{
+			std::unique_lock<std::mutex> lock(mHashTable[hsl.hash].mMutex);			
+
+			 for(int ID : bin)
+			 {
 				// there should be few collisions, so probably the first ID in the hash bin
 				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
 				// compare the entire string.	
-
+			 
 				TextFragment* binFragment = &mSymbolTextsByID[ID];
 				if(compareSizedCharArrays(binFragment->getText(), binFragment->lengthInBytes(), hsl.pChars, hsl.len))
 				{
-					r = ID;
-					found = true;
-					break;
+					 r = ID;
+					 found = true;
+					 break;
 				}
-			}
+			 }
 			
 			if(!found)
 			{	
-				r = addEntry(hsl);
+				mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
+				r = mSize++;
+				mHashTable[hsl.hash].mIDVector.emplace_back(r);		
 			}
 		}
 		return r;
 	}
-
+	
 	int SymbolTable::getSymbolID(const char * sym)
 	{
 		return getSymbolID(HashedCharArray(sym));
@@ -107,8 +121,9 @@ namespace ml {
 		}	
 		// print nonzero entries in hash table
 		int hash = 0;
-		for(auto& idVec : mHashTable)
+		for(auto& tableEntry : mHashTable)
 		{
+			auto idVec = tableEntry.mIDVector;
 			size_t idVecLen = idVec.size();
 			if(idVecLen > 0)
 			{
@@ -117,13 +132,14 @@ namespace ml {
 				{
 					std::cout << id << " " << getSymbolTextByID(id) << " ";
 				}
-
+				
 				std::cout << "\n";
 			}
 			hash++;
 		}
 	}
 
+	
 	int SymbolTable::audit()
 	{
 		int i=0;
@@ -157,6 +173,7 @@ namespace ml {
 		}
 		return OK;
 	}
+	
 	
 	std::ostream& operator<< (std::ostream& out, const Symbol r)
 	{

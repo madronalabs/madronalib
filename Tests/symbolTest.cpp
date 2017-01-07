@@ -25,6 +25,12 @@ static const int kThreadTestSize = 1024;
 
 using namespace ml;
 
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
+myTimePoint now()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
 void threadTest(int threadID)
 {
 	textUtils::NameMaker namer;
@@ -35,11 +41,29 @@ void threadTest(int threadID)
 	}
 }
 
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
-myTimePoint now()
+
+TEST_CASE("madronalib/core/symbol/simple", "[symbol][simple]")
 {
-	return std::chrono::high_resolution_clock::now();
+	Symbol a("hello");
+	Symbol b("world");
+	Symbol c("hello");
+	
+	REQUIRE(a.getID() == c.getID());
+	
+	if(a.getID() != c.getID())
+	{
+		std::cout << "WTF\n";
+	}
+	
+	else 
+	{
+		std::cout << a << ", " << b << "!\n";
+	}
+	
+	theSymbolTable().dump();
+	
 }
+
 
 TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 {
@@ -71,13 +95,18 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
 }
 
+
 TEST_CASE("madronalib/core/collision", "[collision]")
 {
 	// nothing is checked here - these are two pairs of colliding symbols for reference
-	Symbol a("mse");
-	Symbol aa("KL");
-	Symbol b("AAAAAAAAAAAAAAwwdmbs");
-	Symbol bb("AAAAAAAAAAAAAAjntepetnj");
+	// with 12-bit hash:
+	Symbol a("KP");
+	Symbol aa("BAZ");
+	Symbol b("KL");
+	Symbol bb("mse");
+	// 16-bit hash:
+	Symbol c("FB");
+	Symbol cc("hombfbmohqqhombf");
 }
 
 template<size_t N>
@@ -103,7 +132,7 @@ const char letters[24] = "abcdefghjklmnopqrstuvw";
 
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
-	const int kMapSize = 16;	
+	const int kMapSize = 100;	
 	const int kTestLength = 100000;
 	
 	// main maps for testing
@@ -121,7 +150,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	{
 		// make procedural gibberish
 		std::string newString;
-		int length = 3 + (i%22);
+		int length = 3 + (i%12);
 		for(int j=0; j<length; ++j)
 		{
 			p += (i*j + 1);
@@ -339,4 +368,3 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	
 	REQUIRE(totalPoints == 21);
 }
-
