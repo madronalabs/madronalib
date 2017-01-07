@@ -25,6 +25,12 @@ static const int kThreadTestSize = 1024;
 
 using namespace ml;
 
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
+myTimePoint now()
+{
+	return std::chrono::high_resolution_clock::now();
+}
+
 void threadTest(int threadID)
 {
 	textUtils::NameMaker namer;
@@ -35,10 +41,38 @@ void threadTest(int threadID)
 	}
 }
 
+TEST_CASE("madronalib/core/symbol/simple", "[symbol][simple]")
+{
+	Symbol a("hello");
+	Symbol b("world");
+	Symbol c("hello");
+	
+	REQUIRE(a.getID() == c.getID());
+	
+	if(a.getID() != c.getID())
+	{
+		std::cout << "WTF\n";
+	}
+	
+	else 
+	{
+		std::cout << a << ", " << b << "!\n";
+	}
+	
+	theSymbolTable().dump();
+	
+}
+
+
 TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 {
 	// multithreaded test. multiple nameMakers will try to make duplicate names at about the same time,
 	// which will almost certainly lead to problems unless the symbol code is properly thread-safe.
+	
+	// start timing
+	myTimePoint start, end;
+	std::chrono::duration<double> elapsed;
+	start = now();
 	
 	theSymbolTable().clear();
 	int nThreads = 16;
@@ -52,17 +86,29 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 		threads[i].join();
 	}
 	
+	end = now();
+	elapsed = end-start;
+	std::cout << "multithreaded test, elapsed time: " << elapsed.count() << "s\n";
+	
 	REQUIRE(theSymbolTable().audit());
 	REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
 }
 
+
+#if 1 // MLTEST
+
+
 TEST_CASE("madronalib/core/collision", "[collision]")
 {
 	// nothing is checked here - these are two pairs of colliding symbols for reference
+	// with 12-bit hash:
 	Symbol a("KP");
 	Symbol aa("BAZ");
 	Symbol b("KL");
 	Symbol bb("mse");
+	// 16-bit hash:
+	Symbol c("FB");
+	Symbol cc("hombfbmohqqhombf");
 }
 
 template<size_t N>
@@ -86,15 +132,9 @@ TEST_CASE("madronalib/core/hashes", "[hashes]")
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
 
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
-myTimePoint now()
-{
-	return std::chrono::high_resolution_clock::now();
-}
-
 TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 {
-	const int kMapSize = 16;	
+	const int kMapSize = 100;	
 	const int kTestLength = 100000;
 	
 	// main maps for testing
@@ -112,7 +152,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 	{
 		// make procedural gibberish
 		std::string newString;
-		int length = 3 + (i%22);
+		int length = 3 + (i%12);
 		for(int j=0; j<length; ++j)
 		{
 			p += (i*j + 1);
@@ -260,7 +300,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		
 		REQUIRE(theSymbolTable().audit());
 		
-		theSymbolTable().dump();
+		//theSymbolTable().dump();
 	}
 }
 
@@ -331,3 +371,6 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	REQUIRE(totalPoints == 21);
 }
 
+
+
+#endif // MLTEST

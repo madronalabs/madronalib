@@ -13,28 +13,48 @@ namespace ml {
 
 	SymbolTable::SymbolTable()
 	{
+
+		
 		clear();
 	}
 
 	SymbolTable::~SymbolTable()
 	{
-		std::unique_lock<std::mutex> lock(mMutex);
+		// TODO better protection on delete
+		// can this be avoided with more explicit setup / shutdown
+		// (RAII in main() )
+		// std::unique_lock<std::mutex> lock(mMutex);
+
 	}
 
 	// clear all symbols from the table.
 	void SymbolTable::clear()
 	{
 		mSize = 0;		
-		std::unique_lock<std::mutex> lock(mMutex);
+		// std::unique_lock<std::mutex> lock(mMutex);
 		
 		mSymbolTextsByID.clear();
 		mSymbolTextsByID.reserve(kDefaultSymbolTableSize);
-		
-		mHashTable.clear();
-		mHashTable.resize(kHashTableSize);	
+
+#if OLD_TABLE
+//		mHashTable.clear();
+//		mHashTable.resize(kHashTableSize);	
+		for(int i=0; i<kHashTableSize; ++i)
+		{
+			clearEntry(mHashTable[i]);
+		}		
+#else
+		for(int i=0; i<kHashTableSize; ++i)
+		{
+			mHashTable[i] = 0; // clear entry
+		}
+
+#endif		
+		// add null entry - why?
 		addEntry(HashedCharArray());
 	}
 
+	
 	// add an entry to the table. The entry must not already exist in the table.
 	// this must be the only way of modifying the symbol table.
 	int SymbolTable::addEntry(const HashedCharArray& hsl)
@@ -42,35 +62,88 @@ namespace ml {
 		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
 		
 		int newID = mSize++;
-		mHashTable[hsl.hash].emplace_back(static_cast<size_t>(newID));		
 		
+#if OLD_TABLE	
+		
+		// std::cout << "adding " << newID << " at " << hsl.hash << "\n";
+		mHashTable[hsl.hash].mIDVector.emplace_back(newID);
+		
+#else
+		
+		// look for empty bin in hash table
+		int idx = hsl.hash;
+		
+		// MLTEST
+		int tryCount = 0;
+		
+		while(1)
+		{
+			tryCount++;
+						
+			int expected = 0;
+			bool exchanged = false;
+			
+			// test
+			// std::atomic<int> t;
+			
+			exchanged = mHashTable[idx].compare_exchange_strong(expected, newID);//, std::memory_order_relaxed);
+			
+			int prevID = expected;
+			
+			// we want to end on two conditions: either a successful swap with a free entry, or 
+			// a failure because the table is full.
+			
+			if(exchanged) 
+			{
+				// std::cout << prevID << " -> " << newID << "\n"; 
+			//	if(tryCount > 1)
+				{
+					std::cout << "success: " << prevID << " -> " << newID << " at " << idx <<  " tryCount: " << tryCount << "\n";
+				}
+				break;	
+			}
+			else
+			{
+				std::cout << "fail: " << prevID << " was home at " << idx << "\n";
+			}
+			idx++;
+			idx &= kHashTableMask;
+			
+			// need to fail here if full
+		}
+		// set empty bin to ID of new entry
+		// mHashTable[idx] = newID;
+#endif		
 		return newID;
 	}
 
+#if OLD_TABLE	
+	
 	int SymbolTable::getSymbolID(const HashedCharArray& hsl)
 	{
 		int r = 0;
-		bool found = false;
 		
 		// get the vector of symbol IDs matching this hash. It probably has one entry but may have more. 
-		const std::vector<int>& bin = mHashTable[hsl.hash];
+		const std::vector<int>& bin = mHashTable[hsl.hash].mIDVector;
 		{
-			std::unique_lock<std::mutex> lock(mMutex);			
+			bool found = false;
 			
-			for(int ID : bin)
-			{
+			std::unique_lock<std::mutex> lock(mHashTable[hsl.hash].mMutex);			
+
+			 for(int ID : bin)
+			 {
 				// there should be few collisions, so probably the first ID in the hash bin
 				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
 				// compare the entire string.	
-
+			 
 				TextFragment* binFragment = &mSymbolTextsByID[ID];
 				if(compareSizedCharArrays(binFragment->getText(), binFragment->lengthInBytes(), hsl.pChars, hsl.len))
 				{
-					r = ID;
-					found = true;
-					break;
+					 r = ID;
+					 found = true;
+					 break;
 				}
-			}
+			 }
 			
 			if(!found)
 			{	
@@ -80,6 +153,55 @@ namespace ml {
 		return r;
 	}
 
+	
+#else
+	
+	int SymbolTable::getSymbolID(const HashedCharArray& hsl)
+	{
+		int r = 0;
+		
+		// get the vector of symbol IDs matching this hash. It probably has one entry but may have more. 
+		int idx = hsl.hash;
+	//	{
+	////		std::unique_lock<std::mutex> lock(mMutex);			
+			
+			// advance while not found and not free (0)
+			while(1)
+			{				
+				int ID = mHashTable[idx].load(std::memory_order_seq_cst);
+				
+				// int ID = mHashTable[idx];
+				
+				//if(0 == ID) break;
+				
+				if(ID != 0)
+				{
+					TextFragment* binFragment = &mSymbolTextsByID[ID];
+					if(compareSizedCharArrays(binFragment->getText(), binFragment->lengthInBytes(), hsl.pChars, hsl.len))
+					{
+						return ID;
+					}
+				}
+				else
+				{
+					break;
+				}
+				
+				idx++;
+				idx &= kHashTableMask;
+
+				// need to fail here if full
+			}
+
+
+			r = addEntry(hsl);
+			
+	//	}
+		return r;
+	}
+	
+#endif
+	
 	int SymbolTable::getSymbolID(const char * sym)
 	{
 		return getSymbolID(HashedCharArray(sym));
@@ -108,8 +230,11 @@ namespace ml {
 		}	
 		// print nonzero entries in hash table
 		int hash = 0;
-		for(auto& idVec : mHashTable)
+
+#if OLD_TABLE
+		for(auto& tableEntry : mHashTable)
 		{
+			auto idVec = tableEntry.mIDVector;
 			size_t idVecLen = idVec.size();
 			if(idVecLen > 0)
 			{
@@ -118,15 +243,31 @@ namespace ml {
 				{
 					std::cout << id << " " << getSymbolTextByID(id) << " ";
 				}
-
+				
 				std::cout << "\n";
 			}
 			hash++;
 		}
+#else
+		
+		for(int i=0; i<kHashTableSize; ++i)
+		{
+			int id = mHashTable[i];
+			if(id)
+			{
+				std::cout << i << ": " << id << " " << getSymbolTextByID(id) << " \n";
+			}
+		}
+		
+#endif		
 	}
 
+	
 	int SymbolTable::audit()
 	{
+		// MLTEST
+		return true;
+
 		int i=0;
 		int i2 = 0;
 		bool OK = true;
@@ -158,6 +299,7 @@ namespace ml {
 		}
 		return OK;
 	}
+	
 	
 	std::ostream& operator<< (std::ostream& out, const Symbol r)
 	{

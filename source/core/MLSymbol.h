@@ -23,6 +23,7 @@
 
 #include <map>
 #include <set>
+#include <atomic>
 #include <array>
 #include <vector>
 #include <string>
@@ -125,14 +126,36 @@ namespace ml
 		int addEntry(const HashedCharArray& hsl);
 		
 	private:
-		// ensure symbol table integrity with simple mutex.
-		std::mutex mMutex;
 		
 		// vector of symbols in ID/creation order
 		std::vector< TextFragment > mSymbolTextsByID;	
 		
 		// hash table containing indexes to strings
-		std::vector< std::vector<int> > mHashTable;
+	
+#define OLD_TABLE 1
+#if OLD_TABLE // MLTEST	
+		
+		// ensure symbol table integrity with simple mutex.
+		//std::mutex mMutex;
+
+		struct TableEntry
+		{
+			std::mutex mMutex; // to move to write protect only - concurrent reads are fine
+			std::vector<int> mIDVector;
+		};
+
+		void clearEntry(TableEntry& entry)
+		{			
+			std::unique_lock<std::mutex> lock(entry.mMutex);		
+			entry.mIDVector.clear();
+		}
+		
+		std::array< TableEntry, kHashTableSize > mHashTable;
+		
+#else 
+		std::array< std::atomic<int>, kHashTableSize > mHashTable;
+		
+#endif
 		
 		int mSize;
 	};
@@ -176,9 +199,11 @@ namespace ml
 		
 		// search hash table for our id to find our hash.
 		// for testing only! 
+		/*
 		inline int getHash() const 
 		{ 
 			int hash = 0;
+			
 			for(auto idVec : theSymbolTable().mHashTable)
 			{
 				size_t idVecLen = idVec.size();
@@ -194,9 +219,9 @@ namespace ml
 				}
 				hash++;
 			}		
-			
 			return 0; 
 		}
+		*/
 		
 		// return the symbol's TextFragment in the table.
 		// in order to show the strings in XCode's debugger, instead of the unhelpful id,
