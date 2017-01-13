@@ -6,8 +6,6 @@
 #include "MLProc.h"
 #include "MLProcContainer.h"
 
-const floatAliasVec MLProcInfoBase::kMLProcNullAliasVec;
-
 #pragma mark MLProc
 
 // MLProc::prepareToProcess() is called after all connections in DSP graph are made. 

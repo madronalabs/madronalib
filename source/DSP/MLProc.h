@@ -56,12 +56,6 @@ const int kMLProcLocalParams = 16; // TODO band-aid!  this should be 4 or someth
 const std::string kMLProcAliasUndefinedStr = "undefined";
 
 // ----------------------------------------------------------------
-#pragma types
-
-typedef std::vector<std::string> floatAliasVec;
-typedef std::map<ml::Symbol, floatAliasVec > floatAliasMap;
-
-// ----------------------------------------------------------------
 #pragma mark templates
 
 
@@ -84,14 +78,11 @@ public:
 	virtual bool hasVariableInputs() const = 0;
 	virtual bool hasVariableOutputs() const = 0;
 	virtual ml::Symbol getClassName() = 0;
-	
-	static const floatAliasVec kMLProcNullAliasVec;
-	
+		
 private:
 	// make uncopyable
 	MLProcInfoBase (const MLProcInfoBase&); // unimplemented
 	const MLProcInfoBase& operator= (const MLProcInfoBase&); // unimplemented
-	
 };
 
 // Static member functions can't be virtual, so to provide access to 
