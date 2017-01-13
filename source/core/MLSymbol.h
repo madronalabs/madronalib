@@ -103,7 +103,9 @@ namespace ml
 	class SymbolTable
 	{
 		friend class Symbol;
+		
 	public:
+		
 		SymbolTable();
 		~SymbolTable();
 		void clear();
@@ -127,10 +129,10 @@ namespace ml
 		// vector of symbols in ID/creation order
 		std::vector< TextFragment > mSymbolTextsByID;	
 		
-		// hash table containing indexes to strings
+		// hash table containing indexes to strings for a given hash value.
 		struct TableEntry
 		{
-			std::mutex mMutex; // to move to write protect only - concurrent reads are fine
+			std::mutex mMutex; 
 			std::vector<int> mIDVector;
 		};
 
@@ -143,7 +145,7 @@ namespace ml
 		std::array< TableEntry, kHashTableSize > mHashTable;
 
 		int mSize;
-	};
+	}; 
 	
 	inline SymbolTable& theSymbolTable()
 	{

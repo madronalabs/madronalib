@@ -20,7 +20,7 @@ public:
 	
 	// indices start from one
 	void addEntry(const ml::Symbol name) 
-	{	
+	{	 
 		int i = (int)mMap.size() + 1;
 		mMap[name] = i; 
 	} 

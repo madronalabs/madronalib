@@ -107,7 +107,6 @@ void MLProcContainer::makeRoot(const ml::Symbol name)
 // revisit this.
 
 
-
 void MLProcContainer::compile()
 {
 	const bool dumpOutputs = false;
@@ -860,15 +859,14 @@ void MLProcContainer::process(const int extFrames)
 		}
 	}
 	
-	// process ops vector, recursing into containers.
-	int numOps = mOpsVec.size();
-	
 	// process all procs!
+	// don't use the prettier "for(auto op : mOpsVec)" as it's significantly slower.
+	int numOps = mOpsVec.size();
 	for(int i = 0; i < numOps; ++i)
 	{
 		mOpsVec[i]->process(intFrames);
 	}
-
+	
 	if (resample)
 	{
 		for(int i=0; i<numOutputs; ++i)
@@ -1725,6 +1723,8 @@ float MLProcContainer::getParam(const ml::Symbol alias)
 // perform our node's part of sending the parameter to the address.  if the address tail
 // is empty, we are done-- look for the named proc and set the param.
 // TODO verify why this doesn't just use getProcList().
+//
+// TODO rewrite - store a list of parameter changes to take effect before next process()
 void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol paramName, const MLProperty& val)
 {
 	MLProcPtr headProc;

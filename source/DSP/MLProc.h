@@ -179,7 +179,6 @@ public:
 	
 private:
 	
-	
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
 	//
 	SymbolMappedArray<MLProperty, kMLProcLocalParams> mParams;
