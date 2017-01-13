@@ -245,16 +245,9 @@ ml::Symbol MLProc::getOutputName(int index)
 	{
 		return ml::textUtils::addFinalNumber(ml::Symbol("out"), index);
 	}
-	else if (index <= (int)mOutputs.size())
+	else
 	{		
-		MLSymbolMap& map = procInfo().getOutputMap();
-		for (MLSymbolMap::MLSymbolMapIter i = map.begin(); i != map.end(); i++)
-		{
-			if ((*i).second == index)
-			{
-				return ((*i).first);
-			}
-		}
+        return procInfo().getOutputMap().getSymbolAtIndex(index);
 	} 
 	
 	return ml::Symbol();
@@ -323,11 +316,11 @@ ml::Symbol MLProc::getNameWithCopyIndex()
 void MLProc::dumpParams()
 {
 	MLSymbolMap& map = procInfo().getParamMap();
-	
+    int v = map.getSize();
 	debug() << getClassName() << "(" << static_cast<void *>(this) << ")" << " params:--------\n";	
-	for (MLSymbolMap::MLSymbolMapIter i = map.begin(); i != map.end(); i++)
+    for (int i=0; i<v; ++i)
 	{
-		const ml::Symbol pName = ((*i).first);
+        const ml::Symbol pName = map.getSymbolAtIndex(i);
 		float val = getParam(pName);
 		debug() << "[" << pName << " : " << val << "] ";
 	}
