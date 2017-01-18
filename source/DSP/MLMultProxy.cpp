@@ -85,6 +85,9 @@ void MLMultProxy::setEnabledCopies(const int c)
 
 MLProcContainer* MLMultProxy::getCopyAsContainer(int c)
 {
+	int copies = (int)mCopies.size();
+	if(c >= copies) return nullptr;
+	
 	MLProcPtr p = mCopies[c];
 	if (p->isContainer())
 	{
