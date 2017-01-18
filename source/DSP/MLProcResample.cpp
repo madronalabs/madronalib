@@ -665,18 +665,13 @@ void MLProcResample::downsample1(MLSample* pSrc, MLSample* pDest, int inFrames, 
 void MLProcResample::downsample2(MLSample* pSrc, MLSample* pDest, int inFrames, int ratio)
 {
 	int m=0;
-	// MLTEST 
-	// TODO rewrite to figure out denorm problems and get rid of this hack.
-	// static const float noiseAmp = dBToAmp(-120.f);
-
 	switch(ratio)
 	{
 		case 2:
 			for (int n = 0; n < inFrames; n += 2)
 			{
-				 // MLTEST MLSample sss = MLRand() * noiseAmp;
-				mFilters[0]->process(pSrc[n]); //  + sss);
-				pDest[m++] = mFilters[0]->process(pSrc[n + 1]); //  + sss);	
+				mFilters[0]->process(pSrc[n]);
+				pDest[m++] = mFilters[0]->process(pSrc[n + 1]);
 			}
 		break;
 		case 4:
