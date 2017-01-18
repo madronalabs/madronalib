@@ -74,9 +74,6 @@ public:
 	
 	// ----------------------------------------------------------------
 	#pragma resources
-	
-	
-	
 
 protected:
 	// two null signals: every context has them.

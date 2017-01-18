@@ -54,7 +54,6 @@ namespace ml
 		std::vector< T > mVec;
 	};
 	
-	
 	// ----------------------------------------------------------------
 	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
 	// if the length is below kShortFragmentSize. 

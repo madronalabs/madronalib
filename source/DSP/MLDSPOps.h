@@ -54,6 +54,7 @@ namespace ml
 		}
 		
 		// set each element of the DSPVectorArray to the float value k.
+		// or should this be fill() instead?
 		inline DSPVectorArray<VECTORS> operator=(float k)
 		{
 			const SIMDVectorFloat vk = vecSet1(k); 	
