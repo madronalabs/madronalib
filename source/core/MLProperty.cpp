@@ -59,7 +59,25 @@ MLProperty& MLProperty::operator= (const MLProperty& other)
 }
 
 MLProperty::MLProperty(float v) :
-	mType(kFloatProperty)
+mType(kFloatProperty)
+{
+	mFloatVal = v;
+}
+
+MLProperty::MLProperty(int v) :
+mType(kFloatProperty)
+{
+	mFloatVal = v;
+}
+
+MLProperty::MLProperty(long v) :
+mType(kFloatProperty)
+{
+	mFloatVal = v;
+}
+
+MLProperty::MLProperty(double v) :
+mType(kFloatProperty)
 {
 	mFloatVal = v;
 }
@@ -70,13 +88,11 @@ mType(kTextProperty)
 	mTextVal = t;
 }
 
-/*
 MLProperty::MLProperty(const char* t) :
 mType(kTextProperty)
 {
 	mTextVal = ml::Text(t);
 }
-*/
 
 MLProperty::MLProperty(const MLSignal& s) :
 	mType(kSignalProperty)
@@ -110,7 +126,31 @@ void MLProperty::setValue(const float& v)
 	mFloatVal = v;
 }
 
+void MLProperty::setValue(const int& v)
+{
+	mType = kFloatProperty;
+	mFloatVal = v;
+}
+
+void MLProperty::setValue(const long& v)
+{
+	mType = kFloatProperty;
+	mFloatVal = v;
+}
+
+void MLProperty::setValue(const double& v)
+{
+	mType = kFloatProperty;
+	mFloatVal = v;
+}
+
 void MLProperty::setValue(const ml::Text& v)
+{
+	mType = kTextProperty;
+	mTextVal = v;
+}
+
+void MLProperty::setValue(const char* const v)
 {
 	mType = kTextProperty;
 	mTextVal = v;

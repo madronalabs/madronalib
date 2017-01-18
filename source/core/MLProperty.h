@@ -33,8 +33,11 @@ public:
 	MLProperty(const MLProperty& other);
 	MLProperty& operator= (const MLProperty & other);
 	MLProperty(float v);
+	MLProperty(int v);
+	MLProperty(long v);
+	MLProperty(double v);
 	MLProperty(const ml::Text& t); 
-//	MLProperty(const char* t); 
+	MLProperty(const char* t); 
 	MLProperty(const MLSignal& s);
 
 	// signal type constructor via initializer_list
@@ -57,7 +60,11 @@ public:
 	// This guarantee keeps DSP graphs from allocating memory as they run.
 	void setValue(const MLProperty& v);
 	void setValue(const float& v);
+	void setValue(const int& v);
+	void setValue(const long& v);
+	void setValue(const double& v);
 	void setValue(const ml::Text& v);
+	void setValue(const char* const v);
 	void setValue(const MLSignal& v);
 	
 	bool operator== (const MLProperty& b) const;
