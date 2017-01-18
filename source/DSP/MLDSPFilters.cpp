@@ -19,7 +19,7 @@ FDN::FDN(std::initializer_list<MLPropertyChange> p)
 }
 
 // note: order of properties is important! delays property will set
-// the number of delays and clear other peoperties.
+// the number of delays and clear other properties.
 void FDN::setProperty(Symbol name, MLProperty value)
 {
 	MLSignal sigVal = value.getSignalValue();
