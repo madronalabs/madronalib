@@ -271,7 +271,6 @@ long PaUtil_WriteRingBufferWithOverlapAdd( PaUtilRingBuffer *rbuf, const float *
 	if( size2 > 0 )
 	{
 		clearFloatsInBuffer(data1, size1);
-		srcData += size1;
 		clearFloatsInBuffer(data2, size2);
 	}
 	else
