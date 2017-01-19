@@ -140,7 +140,7 @@ using namespace utf;
 		~NameMaker() {};
 		
 		// return the next name as a symbol, having added it to the symbol table. 
-		const Symbol nextName();
+		const TextFragment nextName();
 		
 	private:
 		int index;

@@ -739,7 +739,7 @@ namespace ml { namespace textUtils {
 #pragma mark NameMaker
 	
 	// base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
-	const Symbol NameMaker::nextName()
+	const TextFragment NameMaker::nextName()
 	{
 		std::vector<int> digits;
 		const int base = 26;
@@ -771,7 +771,7 @@ namespace ml { namespace textUtils {
 		}
 		
 		buf[c++] = 0;
-		return Symbol(buf);
+		return TextFragment(buf);
 	}
 	
 	static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";

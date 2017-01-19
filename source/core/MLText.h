@@ -185,8 +185,8 @@ namespace ml
 		void moveDataFromOther(TextFragment& b);
 		
 		char* mpText; 
-		int mSize;
 		char mLocalText[kShortFragmentSize];
+		int mSize;
 	};
 
 	inline bool compareSizedCharArrays(const char* pA, int lenA, const char* pB, int lenB)

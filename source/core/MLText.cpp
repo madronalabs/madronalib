@@ -82,8 +82,6 @@ namespace ml
 		
 		return TextFragment(buf, pb - buf);
 	}
-	
-	
 
 	TextFragment::TextFragment(const TextFragment& a) noexcept
 	{

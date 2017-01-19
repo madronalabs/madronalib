@@ -6,55 +6,77 @@
 #include "MLProperty.h"
 #include "MLPropertySet.h"
 #include "MLProc.h"
+#include "MLText.h"
 
 using namespace ml;
 
-
 class ProcMultiply : public Proc
 {
+public:	
+		
+	static constexpr constStr paramNames[]{ "a", "b", "c" };
+	static constexpr constStr textParamNames[]{ "mode" };
+	static constexpr constStr inputNames[]{ "foo", "bar" };
+	static constexpr constStr outputNames[]{ "baz" };
 	
-public:
+	// Proc boilerplate
+	static constexpr constStrArray pn_{paramNames};
+	static constexpr constStrArray tn_{textParamNames};
+	static constexpr constStrArray in_{inputNames};
+	static constexpr constStrArray on_{outputNames};
+	virtual const constStrArray& getParamNames() override { return pn_; }
+	virtual const constStrArray& getTextParamNames() override { return tn_; }
+	virtual const constStrArray& getInputNames() override { return in_; }
+	virtual const constStrArray& getOutputNames() override { return on_; }
 	
-	//	MLProcInfoBase& procInfo() override { return mInfo; }
-	
-	static constexpr str_const paramNames[]{ "a", "b", "c" };
-	static constexpr str_const inputNames[]{ "foo", "bar" };
-	static constexpr str_const outputNames[]{ "baz" };
-	
-	// + 1 leaves room for setting when names are not found
-	float params[countof(paramNames) + 1];
-	DSPVector* inputs[countof(inputNames) + 1];
-	DSPVector* outputs[countof(outputNames) + 1];
-	
-	inline float& param(str_const str)
+	// + 1 leaves room for setting when keys are not found.
+	float params[constCount(paramNames) + 1];
+	ml::TextFragment textParams[constCount(textParamNames) + 1];
+	DSPVector* inputs[constCount(inputNames) + 1];
+	DSPVector* outputs[constCount(outputNames) + 1];
+
+	inline float& param(constStr str)
 	{
-		return params[find(paramNames, str)];
+		return params[constFind(paramNames, str)];
 	}
 	
-	inline DSPVector& input(str_const str)
+	inline const TextFragment& textParam(constStr str)
 	{
-		return *inputs[find(inputNames, str)];
+		return textParams[constFind(textParamNames, str)];
 	}
 	
-	inline void setInput(str_const str, DSPVector &v) override
-	{
-		inputs[find(inputNames, str)] = &v;
+	inline DSPVector& input(constStr str) 
+	{ 
+		return *inputs[constFind(inputNames, str)]; 
 	}
 	
-	inline DSPVector& output(str_const str)
+	inline DSPVector& output(constStr str)
 	{
-		return *outputs[find(outputNames, str)];
+		return *outputs[constFind(outputNames, str)];
 	}
 	
-	inline void setOutput(str_const str, DSPVector &v) override
+	// MLProc implementation (more boilerplate)
+	virtual void setParam(constStr str, float v) override
 	{
-		outputs[find(outputNames, str)] = &v;
+		params[constFind(paramNames, str)] = v;
+	}
+	virtual void setTextParam(constStr str, TextFragment v) override
+	{
+		textParams[constFind(textParamNames, str)] = v;
+	}
+	void setInput(constStr str, DSPVector &v) override
+	{
+		inputs[constFind(inputNames, str)] = &v;
+	}
+	void setOutput(constStr str, DSPVector &v) override
+	{
+		outputs[constFind(outputNames, str)] = &v;
 	}
 	
-	void test ()
+	void test()
 	{
-		std::cout << "counts: " << countof(ProcMultiply::paramNames) << " " << countof(ProcMultiply::inputNames) << "\n";
-		std::cout << "finds: " << find(ProcMultiply::inputNames, "bar") << "\n";
+		std::cout << "counts: " << constCount(ProcMultiply::paramNames) << " " << constCount(ProcMultiply::inputNames) << "\n";
+		std::cout << "finds: " << constFind(ProcMultiply::inputNames, "bar") << "\n";
 		std::cout << paramNames[1] << paramNames[2] << "\n";
 		
 		std::cout << "params: " << param("a") << " " << param("b") << " " << param("c") << " " << param("d") << " " << "\n";
@@ -66,10 +88,6 @@ public:
 	}
 	
 	void process() override;
-	
-private:
-	
-	//	MLProcInfo<MLProcMultiplyAdd> mInfo;
 	
 };
 

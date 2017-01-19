@@ -4,6 +4,7 @@
 #include "../../portaudio/include/portaudio.h"
 #include "MLProperty.h"
 #include "MLPropertySet.h"
+#include "MLTextUtils.h"
 
 #include "../source/procs/MLProcMultiply.h"
 
@@ -24,7 +25,8 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 {
 	// MLTEST
 	static ProcMultiply pm;
-	
+	static textUtils::NameMaker namer;
+
 	// make a tick every kSampleRate samples(1 second)
 	static TickSource ticks(kSampleRate);
 	
@@ -57,9 +59,11 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	
 	pm.setOutput("baz", vc);
 	
+	pm.setTextParam("mode", TextFragment(namer.nextName()));
+	
 	pm.process();
 	
-	std::cout << vc << "\n";
+//	std::cout << vc << "\n";
 
 	
 	return paContinue;
@@ -74,25 +78,24 @@ int main()
 	
 	std::cout << "portaudio example:\n";
 	
+	/*
 	// MLTEST Property changes
 	MLPropertyChange dx{"toad", {1.f, 2.f, 3.f}};
 	MLPropertyChange dy{"toad", 23};
 	MLPropertyChange dz{"toad", "wet"};
 	std::vector<MLPropertyChange> dv = { {"toad", {1.f, 2.f, 3.f} }, {"todd", 23.f} };
+	*/
 	
 	// MLTEST constexpr Proc setup
-	str_const a("hello");
-	str_const b("world");
-	str_const c("hello");
+	constStr a("hello");
+	constStr b("world");
+	constStr c("hello");
 	std::cout << a << ", " << b << "!\n";
 	std::cout << " a, b: " << ( a == b )  << "\n";
 	std::cout << " a, c: " << ( a == c )  << "\n";
 	
-	
 	// test access from Proc ptr
-	std::unique_ptr<Proc> pm (new ProcMultiply());
-	// ProcMultiply pm;
-	
+	std::unique_ptr<Proc> pm (new ProcMultiply());	
 	
 	DSPVector va, vb, vc;
 	va = 2;
@@ -102,7 +105,22 @@ int main()
 	pm->setInput("bar", vb);
 	pm->setOutput("baz", vc);
 	
+	pm->setParam("a", 4.5);
+	pm->setTextParam("mode", "cosmic");
+	
+	
 	pm->process();
+	
+	const constStrArray& paramNames = pm->getParamNames();
+	
+	
+	int v = paramNames.size();
+	std::cout << v << " params: ";
+	for(int i=0; i<v; ++i)
+	{
+		std::cout << paramNames[i] << " ";
+	}
+	std::cout << "\n";
 	
 	std::cout << vc << "\n";
 	
