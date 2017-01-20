@@ -6,7 +6,7 @@
 #include "MLPropertySet.h"
 #include "MLTextUtils.h"
 
-#include "../source/procs/MLProcMultiply.h"
+#include "../source/procs/MLProcFactory.h"
 
 using namespace ml;
 
@@ -23,8 +23,7 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData )
 {
-	// MLTEST
-	static ProcMultiply pm;
+	static std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
 	static textUtils::NameMaker namer;
 
 	// make a tick every kSampleRate samples(1 second)
@@ -54,16 +53,16 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	va = 2;
 	vb = 3;
 	
-	pm.setInput("foo", va);
-	pm.setInput("bar", vb);
+	pm->setInput("foo", va);
+	pm->setInput("bar", vb);
 	
-	pm.setOutput("baz", vc);
+	pm->setOutput("baz", vc);
 	
-	pm.setTextParam("mode", TextFragment(namer.nextName()));
+	pm->setTextParam("mode", TextFragment(namer.nextName()));
 	
-	pm.process();
+	pm->process();
 	
-//	std::cout << vc << "\n";
+	std::cout << vc << "\n";
 
 	
 	return paContinue;
@@ -94,8 +93,7 @@ int main()
 	std::cout << " a, b: " << ( a == b )  << "\n";
 	std::cout << " a, c: " << ( a == c )  << "\n";
 	
-	// test access from Proc ptr
-	std::unique_ptr<Proc> pm (new ProcMultiply());	
+	std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
 	
 	DSPVector va, vb, vc;
 	va = 2;
@@ -108,11 +106,9 @@ int main()
 	pm->setParam("a", 4.5);
 	pm->setTextParam("mode", "cosmic");
 	
-	
 	pm->process();
 	
 	const constStrArray& paramNames = pm->getParamNames();
-	
 	
 	int v = paramNames.size();
 	std::cout << v << " params: ";

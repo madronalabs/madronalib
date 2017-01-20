@@ -15,12 +15,6 @@ constexpr constStrArray ProcMultiply::on_;
 void ProcMultiply::process() 
 {
 	output("baz") = multiply(input("foo"), input("bar"));
-	
-
-// should fail at compile time ?!	std::cout << paramNames[5];
-	
-//	int q = getQ();
-//	std::cout << q << "\n";
 }
 
 

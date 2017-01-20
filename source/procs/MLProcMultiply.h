@@ -5,7 +5,7 @@
 #include "../source/DSP/MLDSP.h"
 #include "MLProperty.h"
 #include "MLPropertySet.h"
-#include "MLProc.h"
+#include "MLProcFactory.h"
 #include "MLText.h"
 
 using namespace ml;
@@ -13,7 +13,6 @@ using namespace ml;
 class ProcMultiply : public Proc
 {
 public:	
-		
 	static constexpr constStr paramNames[]{ "a", "b", "c" };
 	static constexpr constStr textParamNames[]{ "mode" };
 	static constexpr constStr inputNames[]{ "foo", "bar" };
@@ -24,6 +23,7 @@ public:
 	static constexpr constStrArray tn_{textParamNames};
 	static constexpr constStrArray in_{inputNames};
 	static constexpr constStrArray on_{outputNames};
+	
 	virtual const constStrArray& getParamNames() override { return pn_; }
 	virtual const constStrArray& getTextParamNames() override { return tn_; }
 	virtual const constStrArray& getInputNames() override { return in_; }
@@ -73,22 +73,12 @@ public:
 		outputs[constFind(outputNames, str)] = &v;
 	}
 	
-	void test()
-	{
-		std::cout << "counts: " << constCount(ProcMultiply::paramNames) << " " << constCount(ProcMultiply::inputNames) << "\n";
-		std::cout << "finds: " << constFind(ProcMultiply::inputNames, "bar") << "\n";
-		std::cout << paramNames[1] << paramNames[2] << "\n";
-		
-		std::cout << "params: " << param("a") << " " << param("b") << " " << param("c") << " " << param("d") << " " << "\n";
-		param("a") = 1.29f;
-		param("b") = 2.29f;
-		param("c") = 3.29f;
-		param("d") = 4.29f;
-		std::cout << "params: " << param("a") << " " << param("b") << " " << param("c") << " " << param("d") << " " << "\n";
-	}
-	
 	void process() override;
-	
 };
+
+namespace
+{
+	ProcRegistryEntry<ProcMultiply> classReg("multiply");
+}
 
 

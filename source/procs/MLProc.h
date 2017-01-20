@@ -124,27 +124,3 @@ public:
 	virtual const constStrArray& getInputNames() = 0;
 	virtual const constStrArray& getOutputNames() = 0;
 };
-
-/*
- 
- class MLProcAdd : public MLProc
- {
- public:
-	void process(const int frames) override;		
-	MLProcInfoBase& procInfo() override { return mInfo; }
- 
- private:
-	MLProcInfo<MLProcAdd> mInfo;
- };
- 
- // ----------------------------------------------------------------
- // registry section
- 
- namespace
- {
-	MLProcRegistryEntry<MLProcAdd> classReg("add");
-	ML_UNUSED MLProcInput<MLProcAdd> inputs[] = {"in1", "in2"};
-	ML_UNUSED MLProcOutput<MLProcAdd> outputs[] = {"out"};
- }	
- 
- */
