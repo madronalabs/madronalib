@@ -122,16 +122,15 @@ public:
 		}
 	}
 	
-	
 	~MLSignal();
 	MLSignal & operator= (const MLSignal & other); 
 	
-	float* getBuffer (void) const
+	inline float* getBuffer (void) const
 	{	
 		return mDataAligned;
 	}
 	
-	const float* getConstBuffer (void) const
+	inline const float* getConstBuffer (void) const
 	{	
 		return mDataAligned;
 	}

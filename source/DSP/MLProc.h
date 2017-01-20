@@ -81,8 +81,8 @@ public:
 		
 private:
 	// make uncopyable
-	MLProcInfoBase (const MLProcInfoBase&); // unimplemented
-	const MLProcInfoBase& operator= (const MLProcInfoBase&); // unimplemented
+	MLProcInfoBase (const MLProcInfoBase&) = delete;
+	const MLProcInfoBase& operator= (const MLProcInfoBase&) = delete;
 };
 
 // Static member functions can't be virtual, so to provide access to 
@@ -146,9 +146,9 @@ public:
 #endif
 	}
 	
-	MLSymbolMap& getParamMap() const { return getClassParamMap(); }
-	MLSymbolMap& getInputMap() const { return getClassInputMap(); } 
-	MLSymbolMap& getOutputMap() const { return getClassOutputMap(); } 
+	inline MLSymbolMap& getParamMap() const { return getClassParamMap(); }
+	inline MLSymbolMap& getInputMap() const { return getClassInputMap(); } 
+	inline MLSymbolMap& getOutputMap() const { return getClassOutputMap(); } 
 	inline bool hasVariableParams() const { return getVariableParamsFlag(); }
 	inline bool hasVariableInputs() const { return getVariableInputsFlag(); }
 	inline bool hasVariableOutputs() const { return getVariableOutputsFlag(); }
@@ -359,7 +359,11 @@ public:
 	
 	// get and set parameters
 	virtual void setParam(const ml::Symbol p, const MLProperty& val);
+	
+	// MLTEST
+	//float getParam(const ml::Symbol p);
 	virtual float getParam(const ml::Symbol p);
+	
 	virtual const ml::Text getTextParam(const ml::Symbol p);
 	virtual const MLSignal& getSignalParam(const ml::Symbol p);
 	
