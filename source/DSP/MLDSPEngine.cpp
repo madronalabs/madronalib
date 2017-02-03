@@ -212,10 +212,18 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		}
 		
 		mSamplesToProcess = 0; // doesn't count delay
+		int currSampleRate = getSampleRate();
+		bool needsRebuild = (currSampleRate != sr);
+		
 		setSampleRate(sr);
 		setBufferSize(bufSize);
 		setVectorSize(chunkSize);
-
+		
+		if(needsRebuild)
+		{
+			// TODO rebuild
+		}
+		
 		// after setVectorSize, set midiToSignals input buffer size.
 		if (mpInputToSignalsProc)
 		{
