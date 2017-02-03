@@ -115,17 +115,17 @@ DSPVectorArray<2> FDN::operator()(const DSPVector& input)
 		// the identity matrix minus a constant k, where k = 2/size. Since this can be
 		// simplified so much, you just see a few operations here, not a general 
 		// matrix multiply.
-		DSPVector sumOfDelays(0);	
+		DSPVector sumOfDelays;	
 		for(int n=0; n<nDelays; ++n)
 		{
 			sumOfDelays += mDelayInputVectors[n];
 		}
-		sumOfDelays *= (2.0f/(float)nDelays);
+		sumOfDelays *= DSPVector(2.0f/(float)nDelays);
 		
 		for(int n=0; n<nDelays; ++n)
 		{
 			mDelayInputVectors[n] -= (sumOfDelays);
-			mDelayInputVectors[n] = mFilters[n](mDelayInputVectors[n]) * mFeedbackGains[n];
+			mDelayInputVectors[n] = mFilters[n](mDelayInputVectors[n]) * DSPVector(mFeedbackGains[n]);
 			mDelayInputVectors[n] += input;
 		}	
 
@@ -135,6 +135,53 @@ DSPVectorArray<2> FDN::operator()(const DSPVector& input)
 	{
 		return repeat<2>(input);
 	}
+}
+
+
+// ----------------------------------------------------------------
+#pragma mark HalfBandFilter
+
+const float HalfBandFilter::ka0 = 0.07986642623635751;
+const float HalfBandFilter::ka1 = 0.5453536510711322;
+const float HalfBandFilter::kb0 = 0.28382934487410993;
+const float HalfBandFilter::kb1 = 0.8344118914807379;
+
+HalfBandFilter::AllpassSection::AllpassSection() :
+	a(0)
+{
+	clear();
+}
+
+HalfBandFilter::AllpassSection::~AllpassSection()
+{
+}
+
+void HalfBandFilter::AllpassSection::clear()
+{
+	x0 = x1 = y0 = y1 = 0.f;
+}
+
+HalfBandFilter::HalfBandFilter()
+{
+	apa0.a = ka0;
+	apa1.a = ka1;
+	apb0.a = kb0;
+	apb1.a = kb1;
+	x0 = x1 = a0 = b0 = b1 = 0.f;
+	k = 0;
+	clear();
+}
+
+HalfBandFilter::~HalfBandFilter()
+{
+}
+
+void HalfBandFilter::clear()
+{
+	apa0.clear();
+	apa1.clear();
+	apb0.clear();
+	apb1.clear();
 }
 
 

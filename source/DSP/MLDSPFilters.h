@@ -14,6 +14,7 @@
 #pragma once
 
 #include "MLDSPOps.h"
+#include "MLDSPGens.h" // MLTEST
 #include "MLSignal.h"
 #include "MLProperty.h"
 
@@ -164,6 +165,28 @@ namespace ml
 		}
 	}
 	
+	// TODO : time-carying coeffs generating DSPVectorArray<5>
+	namespace biquadCoeffsVarying
+	{
+		inline DSPVectorArray<5> lopass(const DSPVector& omega, const DSPVector& q)
+		{
+			/*
+			//LPF:        H(s) = 1 / (s^2 + s/Q + 1)
+			float cosOmega = cosf(omega);
+			float alpha = sinf(omega) / (2.f * q);
+			float b0 = 1.f / (1.f + alpha);
+			
+			float a0 = (1.f - cosOmega) * 0.5f * b0;
+			float a1 = (1.f - cosOmega) * b0;
+			float a2 = (1.f - cosOmega) * 0.5f * b0;
+			float b1 = -2.f * cosOmega * b0;
+			float b2 = (1.f - alpha) * b0;
+			return MLSignal{a0, a1, a2, -b1, -b2};
+			*/
+			return DSPVectorArray<5>();
+		}
+	}
+	
 	class OnePole
 	{
 	public:
@@ -221,6 +244,8 @@ namespace ml
 	{
 	public:
 		// any kind of filter that can be made with a default constructor should default to a passthru.
+		
+		// TODO filter coeffs should not be signals, rather custom types! 
 		Biquad() { setCoeffs(biquadCoeffs::passthru()); clear(); }
 		
 		Biquad(const MLSignal& coeffs) { setCoeffs(coeffs); clear(); }
@@ -240,6 +265,7 @@ namespace ml
 			b2 = coeffs[4];
 		}
 		
+		// process one DSPVector of data with constant coefficients. 
 		inline DSPVector operator()(const DSPVector& vx)
 		{
 			DSPVector vy;
@@ -253,6 +279,18 @@ namespace ml
 			return vy;
 		}
 		
+		inline void processTest(const DSPVector& vx, DSPVector& vy)
+		{
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				float fx = vx[n];				
+				const float fy = a0*fx + a1*x1 + a2*x2 + b1*y1 + b2*y2;
+				x2 = x1; x1 = fx; y2 = y1; y1 = fy;				
+				vy[n] = fy;
+			}		
+		}
+		
+		// process one DSPVector of data with time-varying coefficients. 
 		inline DSPVector operator()(const DSPVector& vx, const DSPVectorArray<5>& vc)
 		{
 			DSPVector vy;
@@ -279,6 +317,8 @@ namespace ml
 // --------------------------------------------------------------------------------
 // SVF variations
 // Thanks to Andrew Simper [www.cytomic.com] for sharing his work.
+	
+	// TODO: time-varying coefficients, time-varying operators for each SVF type
 	
 	namespace svfCoeffs
 	{
@@ -590,6 +630,167 @@ namespace ml
 		const DSPVector& mWindow;
 	};
 	
+	// ----------------------------------------------------------------
+	#pragma mark Resampling
+	
+
+	
+	// ----------------------------------------------------------------
+	#pragma mark HalfBandFilter
+	
+	class HalfBandFilter
+	{
+	public:
+		static const float ka0, ka1, kb0, kb1;
+		
+		class AllpassSection
+		{
+		public:
+			AllpassSection();
+			~AllpassSection();
+			void clear();
+			
+			inline float processSample(const float x)
+			{
+				x1=x0;
+				y1=y0;
+				x0=x;
+				y0 = x1 + (x0 - y1)*a;            
+				return y0;
+			}
+			
+			float x0, x1, y0, y1;
+			float a;        
+		};
+		
+		HalfBandFilter();
+		~HalfBandFilter();
+		void clear();
+		inline float processSampleDown(float x1, float x2)
+		{
+			float y;
+			
+			a0 = apa1.processSample(apa0.processSample(x1));
+			b0 = apb1.processSample(apb0.processSample(x2));
+			y = (a0 + b1)*0.5f;
+			b1 = b0;
+			return y;
+		}
+		
+		inline float processSampleUp(const float x)
+		{
+			float y;
+			
+			if(k)
+			{
+				a0 = apa1.processSample(apa0.processSample(x));
+				y = a0;
+			}
+			else
+			{
+				b0 = apb1.processSample(apb0.processSample(x));
+				y = b1;
+			}
+			
+			b1 = b0;
+			k = !k;
+			return y;
+		}
+		
+	private:
+		AllpassSection apa0, apa1, apb0, apb1;
+		float x0, x1;
+		float a0, b0, b1;
+		bool k;
+	};
+	
+	
+	
+	inline DSPVector half1Up2(DSPVector x)
+	{
+		DSPVector y;
+		// TODO SSE
+		int j = 0;
+		for(int i=0; i<kFloatsPerDSPVector/2; ++i)
+		{
+			y[j++] = x[i];
+			y[j++] = x[i];		
+		}
+		return y;
+	}
+	
+	inline DSPVector half2Up2(DSPVector x)
+	{
+		DSPVector y;
+		// TODO SSE
+		int j = 0;
+		for(int i=kFloatsPerDSPVector/2; i<kFloatsPerDSPVector; ++i)
+		{
+			y[j++] = x[i];
+			y[j++] = x[i];		
+		}
+		return y;
+	}
+	
+
+	// WIP TODO multiple params as rows of DSPVectorArray<>
+	class Upsample2
+	{
+	public:
+		Upsample2(){}
+		~Upsample2(){}
+				
+		// upsample the input x, apply a function <DSPVector(const DSPVector&)>, downsample the result and return the output.
+		// note that this could be written
+		// DSPVector test1(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& x)
+		// but the template version allows the function parameter to be inlined.
+		
+		template <typename FN>
+		inline DSPVector operator()(FN fn, const DSPVector x)
+		{
+			// up to 2x buffers
+			int j = 0;
+			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
+			{
+				mUpX1[j++] = mUpper.processSampleUp(x[i]);
+				mUpX1[j++] = mUpper.processSampleUp(x[i]);
+			}		
+			j = 0;
+			for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
+			{
+				mUpX2[j++] = mUpper.processSampleUp(x[i]);
+				mUpX2[j++] = mUpper.processSampleUp(x[i]);
+			}		
+			
+			// call fn (would in place be OK?)
+			mUpY1 = fn(mUpX1);
+			mUpY2 = fn(mUpX2);
+			
+			// down to 1x output
+			DSPVector y;
+			j = 0;
+			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
+			{
+				y[i] = mDowner.processSampleDown(mUpY1[j], mUpY1[j + 1]);
+				j += 2;
+			}	
+			j = 0;
+			for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
+			{
+				y[i] = mDowner.processSampleDown(mUpY2[j], mUpY2[j + 1]);
+				j += 2;
+			}	
+			
+			return y;
+		}
+		
+	private:
+		HalfBandFilter mUpper;
+		HalfBandFilter mDowner;
+		DSPVector mUpX1, mUpX2, mUpY1, mUpY2;
+	};
+	
+
 	// ----------------------------------------------------------------
 	// Simple time-based filters on DSPVectorArray.
 	//
