@@ -26,6 +26,8 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	static std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
 	static textUtils::NameMaker namer;
 
+	static OnePole noiseFreqFilter(onePoleCoeffs::onePole(5000.f*kTwoPi/kSampleRate));
+	
 	// make a tick every kSampleRate samples(1 second)
 	static TickSource ticks(kSampleRate);
 	
@@ -42,28 +44,23 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	};
 
 	// process audio
-	auto verb = fdn(ticks()); // returns a DSPVectorArray<2>
+	auto verb = fdn(noiseFreqFilter(ticks())); // returns a DSPVectorArray<2>
 
 	// store audio
 	// in non-interleaved mode, portaudio passes an array of float pointers
 	store(verb.getRowVector<0>(), ((float**)outputBuffer)[0]);
 	store(verb.getRowVector<1>(), ((float**)outputBuffer)[1]);
 	
+	/*
 	DSPVector va, vb, vc;
 	va = 2;
 	vb = 3;
-	
 	pm->setInput("foo", va);
 	pm->setInput("bar", vb);
-	
-	pm->setOutput("baz", vc);
-	
+	pm->setOutput("baz", vc);	
 	pm->setTextParam("mode", TextFragment(namer.nextName()));
-	
 	pm->process();
-	
-	std::cout << vc << "\n";
-
+	*/
 	
 	return paContinue;
 }
@@ -117,7 +114,6 @@ int main()
 		std::cout << paramNames[i] << " ";
 	}
 	std::cout << "\n";
-	
 	std::cout << vc << "\n";
 	
 //	pm->test();

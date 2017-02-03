@@ -21,10 +21,10 @@ using namespace ml;
 class scalarBiquadTest
 {
 public:
-	DSPVector test(const DSPVector& vx, int frames)
+	DSPVector test(const DSPVector& vx)
 	{
 		DSPVector vy;
-		for (int n=0; n<frames; ++n)
+		for (int n=0; n<kFloatsPerDSPVector; ++n)
 		{
 			float in, out;
 			in = vx[n];
@@ -53,17 +53,17 @@ private:
 
 TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 {
-	RandomSource r;
 	DSPVector x1;
 	x1[0] = 1;
 	
-	Biquad vectorBiquad;
+	ml::Biquad vectorBiquad;
 	scalarBiquadTest scalarBiquad;
 	
-	int frames = kFloatsPerDSPVector;
-	
-	auto callVectorBiquad = ([&](){return (vectorBiquad( x1 ));});
-	auto callScalarBiquad = ([&](){return (scalarBiquad.test(x1, frames));});
+	// these tests need to return results and do something with them, otherwise our
+	// very smart compiler will just optimize the calls out
+	auto callScalarBiquad = ([&](){return (scalarBiquad.test(x1));});
+	auto callVectorBiquad = ([&](){return (vectorBiquad(x1));});
+	auto callVectorBiquadTest = ([&](){ (vectorBiquad.processTest(x1, x1));});
 	
 	// set coeffs
 	MLSignal c = biquadCoeffs::hiShelf(0.1f, 2.0f, 0.5f);
@@ -78,13 +78,14 @@ TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 	
 		timedResult<DSPVector> fnTimeScalar = timeIterations<DSPVector>(callScalarBiquad, iters);
 		timedResult<DSPVector> fnTimeVector = timeIterations<DSPVector>(callVectorBiquad, iters);
-	
+		
 		std::cout << "scalar: " << fnTimeScalar.elapsedTime << " seconds for " << iters << " iterations:\n";
 		std::cout << "samples / sec: " << iters*kFloatsPerDSPVector/fnTimeScalar.elapsedTime << "\n";	
 
 		std::cout << "vector: " << fnTimeVector.elapsedTime << " seconds for " << iters << " iterations:\n";
 		std::cout << "samples / sec: " << iters*kFloatsPerDSPVector/fnTimeVector.elapsedTime << "\n";	
 
+		// really not a good test because individual runs may differdue to CPU throttling and such
 		REQUIRE(fnTimeVector.elapsedTime < fnTimeScalar.elapsedTime);
 	}
 }
