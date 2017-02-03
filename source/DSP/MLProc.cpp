@@ -236,7 +236,7 @@ int MLProc::getOutputIndex(const ml::Symbol name)
 	return idx; 
 }
 
-
+/*
 ml::Symbol MLProc::getOutputName(int index)
 {	
 	if (procInfo().hasVariableOutputs())
@@ -250,6 +250,7 @@ ml::Symbol MLProc::getOutputName(int index)
 	
 	return ml::Symbol();
 }
+*/
 
 // TODO: sort out createinput / resizeInputs / resizeOutputs
 // just creates room for Signal pointer and nulls it

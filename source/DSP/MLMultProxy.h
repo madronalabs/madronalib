@@ -120,7 +120,7 @@ public:
 	//
 	void publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias) override;
 	void publishOutput(const ml::Path & procName, const ml::Symbol outputName, const ml::Symbol alias) override;	
-	 ml::Symbol getOutputName(int index) override;
+	// ml::Symbol getOutputName(int index) override;
 
 	//
 	// ----------------------------------------------------------------

@@ -261,7 +261,8 @@ public:
 	//
 	virtual void publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias);
 	virtual void publishOutput(const ml::Path & procName, const ml::Symbol outputName, const ml::Symbol alias);	
-	ml::Symbol getOutputName(int index);
+	
+	//ml::Symbol getOutputName(int index);
 
 	// ----------------------------------------------------------------
 	#pragma mark signals

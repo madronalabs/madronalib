@@ -658,11 +658,12 @@ void MLMultiContainer::publishOutput(const ml::Path & procName, const ml::Symbol
 
 }
 
-
+/*
 ml::Symbol MLMultiContainer::getOutputName(int index)
 {	
 	return (getCopyAsContainer(0)->getOutputName(index));	
 }
+*/
 
 // ----------------------------------------------------------------
 #pragma mark signals
