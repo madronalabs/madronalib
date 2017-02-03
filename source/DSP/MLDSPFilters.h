@@ -731,9 +731,9 @@ namespace ml
 		}
 		return y;
 	}
-	
 
-	// WIP TODO multiple params as rows of DSPVectorArray<>
+	// WIP TODO multiple params using vriadic template maybe
+	// can't use rows because we woud like multi-row params
 	class Upsample2
 	{
 	public:
