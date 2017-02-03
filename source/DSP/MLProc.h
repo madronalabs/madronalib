@@ -48,16 +48,54 @@
 #define	ML_UNUSED 
 #endif
 
+class ProcParamMap
+{
+public:
+	ProcParamMap() {};
+	
+	MLProperty& operator[] (ml::Symbol key)
+	{
+		int v = keys.size();
+		
+		for(int i=0; i<v; ++i)
+		{
+			if(keys[i] == key)
+			{
+				return values[i];
+			}
+		}
+
+		keys.emplace_back(key);
+		values.emplace_back(MLProperty());
+		return values[v];
+	}
+	
+	inline float getFloatParam(ml::Symbol key) const
+	{
+		int v = keys.size();
+		for(int i=0; i<v; ++i)
+		{
+			if(keys[i] == key)
+			{
+				return values[i].getFloatValue();
+			}
+		}
+		return 0.f;
+	}
+	
+	std::vector< ml::Symbol > keys;
+	std::vector< MLProperty > values;
+};
 // ----------------------------------------------------------------
 #pragma mark important constants
 
 // keep this small.
 const int kMLProcLocalParams = 16; // TODO band-aid!  this should be 4 or something.  crashing evil threading(?) bug.
+
 const std::string kMLProcAliasUndefinedStr = "undefined";
 
 // ----------------------------------------------------------------
 #pragma mark templates
-
 
 // virtual base class allows templated functions to be called from an 
 // object of unknown derived type.
@@ -173,6 +211,7 @@ private:
 	// parameter storage per MLProc subclass instance, each must own an MLProcInfo<MLProcSubclass>.
 	//
 	SymbolMappedArray<MLProperty, kMLProcLocalParams> mParams;
+	
 };
 
 // an MLProcParam creates a single indexed parameter that is shared by all
@@ -355,25 +394,28 @@ public:
 	void setOutput(const int idx, MLSignal& srcSig);	 
 	
 	// params
+	/*
 	bool paramExists(const ml::Symbol p);
+	*/
 	
 	// get and set parameters
 	virtual void setParam(const ml::Symbol p, const MLProperty& val);
 	
-	// MLTEST
-	//float getParam(const ml::Symbol p);
-	virtual float getParam(const ml::Symbol p);
-	
+	inline float getParam(const ml::Symbol pname)
+	{
+		return procInfo().getParamProperty(pname).getFloatValue();
+	}
+
 	virtual const ml::Text getTextParam(const ml::Symbol p);
 	virtual const MLSignal& getSignalParam(const ml::Symbol p);
-	
+
 	// MLProc returns the index to an entry in its proc map.
 	// MLProcContainer returns an index to a published input or output.
 	virtual int getInputIndex(const ml::Symbol name);	
 	virtual int getOutputIndex(const ml::Symbol name);	
 	
 	// MLProcContainer overrides this to return published output names
-	virtual ml::Symbol getOutputName(int index);
+	// virtual ml::Symbol getOutputName(int index);
 	
 	// getNumInputs() and getNumOutputs() are not virtual.  
 	// Proxy classes, for example, override procInfo()

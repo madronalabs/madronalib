@@ -25,7 +25,6 @@ public:
         //int i = (int)mMap.size() + 1;
         //mMap[name] = i;
         mSymbols.emplace_back(name);
-        
     }
     
     // return one-based index of symbol if found, otherwise 0.

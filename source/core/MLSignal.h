@@ -58,7 +58,6 @@ constexpr float kToBeCalculated = 0.f;
 // sense for objects that would need those signals to implement them
 // as vectors of 3D signals or some such thing.
 
-
 class MLSignal;
 class MLSignal final
 {	
@@ -417,7 +416,7 @@ public:
 	void abs();	
 	void inv();	
 	void ssign();
-	//	void log2Approx();
+	void exp2();
 	
 	// 2D signal utils
 	void setIdentity();
@@ -543,9 +542,6 @@ private:
 		{
 			return mLocalData;
 		}
-		
-		// SETDIMS MLTEST
-		// std::cout << ".";
 		
 		float* newData = new float[size + kSignalAlignSize - 1];
 		if(!newData) mSize = 0;

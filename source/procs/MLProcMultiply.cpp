@@ -12,9 +12,21 @@ constexpr constStrArray ProcMultiply::tn_;
 constexpr constStrArray ProcMultiply::in_;
 constexpr constStrArray ProcMultiply::on_;
 
+/*
+// output function that requires a compile-time constant, for testing
+template<int n>
+struct constTest
+{
+	constTest() { std::cout << n << '\n'; }
+};
+*/
+
+
 void ProcMultiply::process() 
 {
 	output("baz") = multiply(input("foo"), input("bar"));
+	
+//	constTest< constFind(paramNames, "c") >();	
 }
 
 

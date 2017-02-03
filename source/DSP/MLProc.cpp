@@ -151,11 +151,11 @@ void MLProc::setOutput(const int idx, MLSignal& srcSig)
 		if(idx == 44)
 		{
 			debug() << "****\n";
-			
 		}
 	}
 }
 
+/*
 bool MLProc::paramExists(const ml::Symbol pname)
 {
 	bool r = false;
@@ -171,11 +171,7 @@ bool MLProc::paramExists(const ml::Symbol pname)
 	}
 	return r;
 }
-
-float MLProc::getParam(const ml::Symbol pname)
-{
-	return procInfo().getParamProperty(pname).getFloatValue();
-}
+*/
 
 const ml::Text MLProc::getTextParam(const ml::Symbol pname)
 {
@@ -192,6 +188,7 @@ void MLProc::setParam(const ml::Symbol pname, const MLProperty& val)
 	// TODO rather than setting directly here, the enclosing MLDSPContext can store a list of changes
 	// to take effect before the next process() call. This way all the [if (mParamsChanged) doParams();]
 	// code can be moved out of process() methods and mParamsChanged would not be needed!
+
 	procInfo().setParamProperty(pname, val);
 	mParamsChanged = true;
 }
@@ -261,7 +258,6 @@ void MLProc::createInput(const int index)
 		mInputs.resize(index, 0);
 	}
 }
-
 
 // TODO there is some inconsistency with how these and setOutput() are used --  clean up
 

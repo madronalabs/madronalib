@@ -384,7 +384,7 @@ void MLProcContainer::compile()
                 {
                     pCompileSig->mpSigBuffer = &outputProc->getOutput(outputIdx);
 					
-					// MLTEST PATCHER different outputs were using same signal. Always make an output buffer.
+					// different patcher outputs were using the same signal. As workaround until rewrite, lways make an output buffer.
 					needsBuffer = true;
 					// needsBuffer = false;
                 }
@@ -1245,7 +1245,6 @@ void MLProcContainer::addPipe(const ml::Path& src, const ml::Symbol out, const m
 	}
 }	
 
-
 // check that Pipe is doing something reasonable and setup connection
 // between procs.
 //
@@ -1289,8 +1288,6 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 bail:	
 	return e;
 }
-
-
 
 // TODO inputs look just like outputs, refactor
 
@@ -1467,6 +1464,7 @@ bail:
 	// TODO return err
 }
 
+/*
 ml::Symbol MLProcContainer::getOutputName(int index)
 {	
 	const int size = (int)mPublishedOutputs.size();
@@ -1481,6 +1479,7 @@ ml::Symbol MLProcContainer::getOutputName(int index)
 	}
 	return ml::Symbol();
 }
+*/
 
 // ----------------------------------------------------------------
 #pragma mark published signals - the recursive part
@@ -2245,11 +2244,7 @@ MLSignal* MLProcContainer::allocBuffer(int frameSize)
 		}
 	}
 	
-	// MLTEST 
-	// BUG ?
-	
 	r = new MLSignal(kMLProcessChunkSize, frameSize);
-	
 	
 	r->setRate(getSampleRate());
 	mBufferPool.push_back(MLSignalPtr(r));

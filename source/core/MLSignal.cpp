@@ -241,7 +241,6 @@ float* MLSignal::setDims(const MLSignal& whd)
 	return mDataAligned;
 }
 
-
 int MLSignal::getFrames() const
 { 		
 	if (mRate != kTimeless)
@@ -954,6 +953,16 @@ void MLSignal::ssign()
 	{
 		float f = mDataAligned[i];
 		mDataAligned[i] = f < 0.f ? -1.f : 1.f;
+	}
+}
+
+void MLSignal::exp2()
+{
+	// TODO SSE
+	for(int i=0; i<mSize; ++i)
+	{
+		float f = mDataAligned[i];
+		mDataAligned[i] = exp2f(f);
 	}
 }
 
