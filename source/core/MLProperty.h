@@ -47,11 +47,24 @@ public:
 	}
 
 	~MLProperty();
-    
-	const float getFloatValue() const;
-	const ml::Text getTextValue() const;
-	const MLSignal& getSignalValue() const;
-    
+    	
+	inline const float getFloatValue() const
+	{
+		return mFloatVal;
+		// static const float nullFloat = 0.f;
+		// return (mType == kFloatProperty) ? mFloatVal : nullFloat;
+	}
+	
+	inline const ml::Text getTextValue() const
+	{
+		return (mType == kTextProperty) ? (mTextVal) : ml::Text();
+	}
+	
+	inline const MLSignal& getSignalValue() const
+	{
+		return (mType == kSignalProperty) ? (mSignalVal) : nullSignal;
+	}
+	
 	// For each type of property, a setValue method must exist
 	// to set the value of the property to that of the argument.
 	//

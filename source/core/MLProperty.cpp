@@ -104,22 +104,6 @@ MLProperty::~MLProperty()
 {
 }
 
-const float MLProperty::getFloatValue() const
-{
-	static const float nullFloat = 0.f;
-	return (mType == kFloatProperty) ? mFloatVal : nullFloat;
-}
-
-const ml::Text MLProperty::getTextValue() const
-{
-	return (mType == kTextProperty) ? (mTextVal) : ml::Text();
-}
-
-const MLSignal& MLProperty::getSignalValue() const
-{
-	return (mType == kSignalProperty) ? (mSignalVal) : nullSignal;
-}
-
 void MLProperty::setValue(const float& v)
 {
 	mType = kFloatProperty;
