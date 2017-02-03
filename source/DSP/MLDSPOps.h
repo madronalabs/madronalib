@@ -319,8 +319,8 @@ namespace ml
 		return vy;												\
 	}	
 
-	DEFINE_OP3(select, vecSelect(x1, x2, x3));					// conditionMask, resultIfTrue, resultIfFalse
-	DEFINE_OP3(lerp, vecAdd(x1, vecMul(x3, vecAdd(x2, x1))));	// x1 + x3*(x2 - x1)
+	DEFINE_OP3(select, vecSelect(x1, x2, x3));					// bitwise select(resultIfTrue, resultIfFalse, conditionMask)
+	DEFINE_OP3(lerp, (x1 + (x3 * (x2 - x1))));					// lerp(a, b, mix)
 	DEFINE_OP3(clamp, vecClamp(x1, x2, x3) );					// clamp(x, minBound, maxBound) 
 	DEFINE_OP3(within, vecWithin(x1, x2, x3) );					// is x in the open interval [x2, x3) ?
 	

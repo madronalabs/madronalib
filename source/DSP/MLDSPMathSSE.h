@@ -145,7 +145,7 @@ inline std::ostream& operator<< (std::ostream& out, SIMDVectorFloat v)
 // ----------------------------------------------------------------
 #pragma mark select
 
-inline SIMDVectorFloat vecSelect(SIMDVectorFloat conditionMask, SIMDVectorFloat a, SIMDVectorFloat b)
+inline SIMDVectorFloat vecSelect(SIMDVectorFloat a, SIMDVectorFloat b, SIMDVectorFloat conditionMask)
 {
 	__m128i ones = _mm_set1_epi32(-1);
 	return _mm_or_ps(
@@ -737,7 +737,7 @@ inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val)
 	SIMDVectorInt vZero = _mm_setzero_si128();
 	SIMDVectorInt valAsInt = VecF2I(val);
 	SIMDVectorInt expi = _mm_srli_epi32(valAsInt, 23);
-	SIMDVectorFloat addcst = vecSelect(_mm_cmpgt_ps(val, VecI2F(vZero)), kLogC1Vec, _mm_set1_ps(FLT_MIN));
+	SIMDVectorFloat addcst = vecSelect(kLogC1Vec, _mm_set1_ps(FLT_MIN), _mm_cmpgt_ps(val, VecI2F(vZero)));
 	SIMDVectorInt valAsIntMasked = VecF2I(_mm_or_ps(_mm_and_ps(VecI2F(valAsInt), VecI2F(_mm_set1_epi32(0x7FFFFF))), VecI2F(_mm_set1_epi32(0x3F800000))));
 	SIMDVectorFloat x = VecI2F(valAsIntMasked);
 		
