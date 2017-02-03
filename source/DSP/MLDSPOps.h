@@ -34,7 +34,8 @@ namespace ml
 		DSPVectorData mData;
 
 		DSPVectorArray() { zero(); }
-		DSPVectorArray(float k) { operator=(k); }
+		explicit DSPVectorArray(float k) { operator=(k); }
+		explicit DSPVectorArray(float * pData) { load(*this, pData); }
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
@@ -166,11 +167,9 @@ namespace ml
 
 	// loads and stores may be unaligned, let std::copy handle this
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> load(float* pSrc) 
+	inline void load(DSPVectorArray<VECTORS>& vecDest, float* pSrc) 
 	{ 
-		DSPVectorArray<VECTORS> v;
-		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, v.mData.asFloat); 
-		return v;
+		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, vecDest.mData.asFloat); 
 	}
 
 	template<int VECTORS>
@@ -288,7 +287,7 @@ namespace ml
 	DEFINE_OP2(greaterThan, (vecGreaterThan(x1, x2)));
 	DEFINE_OP2(greaterThanOrEqual, (vecGreaterThanOrEqual(x1, x2)));
 	DEFINE_OP2(lessThan, (vecLessThan(x1, x2)));
-	DEFINE_OP2(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));
+	DEFINE_OP2(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));	
 
 	// ----------------------------------------------------------------
 	#pragma mark ternary operators
@@ -349,7 +348,7 @@ namespace ml
 	{
 		DSPVector vi = columnIndex();
 		float interval = (end - start)/(kFloatsPerDSPVector);
-		return vi*interval + start;
+		return vi*DSPVector(interval) + DSPVector(start);
 	}
 	
 	// return a linear sequence from start to end, where end falls on the last index of this vector.
@@ -357,7 +356,7 @@ namespace ml
 	{
 		DSPVector vi = columnIndex();
 		float interval = (end - start)/(kFloatsPerDSPVector - 1.f);
-		return vi*interval + start;											
+		return vi*DSPVector(interval) + DSPVector(start);											
 	}
 		
 	// ----------------------------------------------------------------
