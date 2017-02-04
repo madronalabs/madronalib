@@ -33,9 +33,6 @@ MLProcContainer::MLProcContainer() :
 	theProcFactory(MLProcFactory::theFactory()),
 	mStatsPtr(0)
 {
-	setParam("ratio", 1.f);
-	setParam("order", 2);
-//	debug() << "MLProcContainer constructor\n";
 }
 
 
@@ -76,23 +73,6 @@ bool MLProcContainer::isProcEnabled(const MLProc* p) const
 {
 	#pragma unused(p)
 	return mEnabled;
-}
-
-void MLProcContainer::setup()
-{
-	static const ml::Symbol rSym("ratio");
-	static const ml::Symbol uSym("up_order");
-	static const ml::Symbol dSym("down_order");
-
-	float fr;
-	fr = getParam(rSym);
-	int u = (int)getParam(uSym);
-	int d = (int)getParam(dSym);
-
-	MLRatio r = getCommonRatios().getClosest(fr);	
-	setResampleRatio(r);
-	setResampleUpOrder(u);
-	setResampleDownOrder(d);
 }
 
 // mark as own context, so we are the root of the size/rate tree used in prepareToProcess().
@@ -482,9 +462,6 @@ void MLProcContainer::compile()
 		MLPipePtr pipe = (*i);		// TODO pipes should use names, not pointers
 		connectProcs(pipe->mSrc, pipe->mSrcIndex, pipe->mDest, pipe->mDestIndex);		
 	}	
-
-	const MLRatio myRatio = getResampleRatio();
-	bool resampling = (!myRatio.isUnity());
 	
 	// setup this container's published outputs
 	// reads compileoutputs, signals
@@ -494,30 +471,9 @@ void MLProcContainer::compile()
 	{
 		ml::Symbol outName = compileOutputs[i];
 		
-		if (resampling)
-		{
-			// set up output resampler connection to allocated buffer
-			MLProcPtr pR = mOutputResamplers[i];
-			pR->setInput(1, *signals[outName].mpSigBuffer);
-			
-			// make new buffer for output
-			pR->setOutput(1, *allocBuffer());
-			
-			// set resampler to inverse of our ratio
-			pR->setParam("ratio_top", (float)myRatio.bottom);
-			pR->setParam("ratio_bottom", (float)myRatio.top);
-			pR->setParam("up_order", (float)getResampleUpOrder());
-			pR->setParam("down_order", (float)getResampleDownOrder());
-			pR->setup();
-			
-			// connect resampler output to main output
-			setOutput(i + 1, pR->getOutput());
-		}
-		else
-		{
-			// connect src proc to main output
-			setOutput(i + 1, *signals[outName].mpSigBuffer);
-        }
+		// connect src proc to main output
+		setOutput(i + 1, *signals[outName].mpSigBuffer);
+
 	}
     
 	// ----------------------------------------------------------------
@@ -695,81 +651,52 @@ MLProc::err MLProcContainer::prepareToProcess()
 	
 	int containerSize = getContextVectorSize();
 	float containerRate = getContextSampleRate();
-	const MLRatio myRatio = getResampleRatio();
 	
 	int mySize, ins, outs;
 	float myRate;
-	MLRatio mySizeAsRatio;
-	mySizeAsRatio = MLRatio(containerSize) * myRatio;
 
-	if (!mySizeAsRatio.isInteger())
+	mySize = containerSize;
+	myRate = containerRate;		
+	setVectorSize(mySize);
+	setSampleRate(myRate);
+
+	// std::cout << "prepareToProcess " << getName() << ": rate " << myRate << ", size " << mySize << "\n";		
+
+	// prepare all subprocs
+	for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
 	{
-		e = fractionalBlockSizeErr;
+		MLProc* p = (*i);
+		e = p->prepareToProcess();
+		if(e != MLProc::OK)	break;
 	}
-	else
+	
+	// prepare all output buffers for this container at our parent container's size and rate
+	// 
+	outs = getNumOutputs();
+	for (int i=1; i <= outs; ++i)
 	{
-		mySize = mySizeAsRatio.top;
-		myRate = (containerRate*myRatio);		
-		setVectorSize(mySize);
-		setSampleRate(myRate);
-
-		// std::cout << "prepareToProcess " << getName() << ": rate " << myRate << ", size " << mySize << "\n";		
-
-		// prepare all subprocs
-		for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
+		// leave output alone if marked timeless
+		MLSignal& y = getOutput(i);
+		if (y.getRate() != kMLTimeless)
 		{
-			MLProc* p = (*i);
-			e = p->prepareToProcess();
-			if(e != MLProc::OK)	break;
+			y.setDims(containerSize);
+			y.setRate(containerRate);
 		}
-		
-		// prepare all output buffers for this container at our parent container's size and rate
-		// 
-		outs = getNumOutputs();
-		for (int i=1; i <= outs; ++i)
-		{
-			// leave output alone if marked timeless
-			MLSignal& y = getOutput(i);
-			if (y.getRate() != kMLTimeless)
-			{
-				y.setDims(containerSize);
-				y.setRate(containerRate);
-			}
-		}	
-		
-		// resize resampler buffers // TODO this undoes prep above, make flag or something
-		if (!myRatio.isUnity())
-		{
-			ins = mPublishedInputs.size();
-			outs = mPublishedOutputs.size();
-			for(int i=0; i<ins; ++i)
-			{
-				MLSignal& y = mInputResamplers[i]->getOutput();
-				y.setDims(mySize);
-				y.setRate(myRate);
-				mInputResamplers[i]->resize();
-			}
-			for(int i=0; i<outs; ++i)
-			{
-				MLSignal& y = mOutputResamplers[i]->getOutput();
-				y.setDims(containerSize);
-				y.setRate(containerRate);
-				mOutputResamplers[i]->resize();
-			}
-		}
+	}	
+	
 
-		// HACK check buffer sizes and resize if needed to match vector size
-		for(std::list<MLSignalPtr>::iterator it = mBufferPool.begin(); it != mBufferPool.end(); ++it)
+	// HACK check buffer sizes and resize if needed to match vector size
+	for(std::list<MLSignalPtr>::iterator it = mBufferPool.begin(); it != mBufferPool.end(); ++it)
+	{
+		MLSignal* pBuf = &(**it); 
+		int w = pBuf->getWidth();
+		int h = pBuf->getHeight();
+		if(w < mySize)
 		{
-			MLSignal* pBuf = &(**it); 
-			int w = pBuf->getWidth();
-			int h = pBuf->getHeight();
-			if(w < mySize)
-			{
-				pBuf->setDims(mySize, h);
-			}
+			pBuf->setDims(mySize, h);
 		}
 	}
+
 	
 	mClock.stop();
 	if (e != OK) printErr(e);
@@ -778,11 +705,6 @@ MLProc::err MLProcContainer::prepareToProcess()
  
 void MLProcContainer::clear()
 {
-	// clear input resamplers.
-	for (std::vector<MLProcPtr>::iterator i = mInputResamplers.begin(); i != mInputResamplers.end(); ++i)
-	{
-		(*i)->clearProc();
-	}
 	// iterate through ops list, clearing Processors.
 	for (std::vector<MLProc*>::iterator i = mOpsVec.begin(); i != mOpsVec.end(); ++i)
 	{
@@ -821,18 +743,11 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 #pragma mark process
 
 // process signals.
-void MLProcContainer::process(const int extFrames)
+void MLProcContainer::process(const int frames)
 {
 	if (!isEnabled()) return;
-		
-	const MLRatio myRatio = getResampleRatio();
-	const bool resample = !myRatio.isUnity();
-	if (myRatio.isZero()) return;
 	
-	jassert((MLRatio(extFrames) * myRatio).isInteger());
-	const int intFrames = (int)(extFrames * myRatio);
-	
-	mClock.advance(ml::samplesAtRateToTime(intFrames, static_cast<int>(getSampleRate())));
+	mClock.advance(ml::samplesAtRateToTime(frames, static_cast<int>(getSampleRate())));
 	
 	// limit I/O to maximums, in case we are a root Container (DSPEngine).
 	int numInputs = ml::min((int)mPublishedInputs.size(), getMaxInputSignals());
@@ -851,30 +766,15 @@ void MLProcContainer::process(const int extFrames)
 	//		resampler: process() // buffers input
 	//		if (resampler.needspull() ) or somehting
 	
-	if (resample)
-	{
-		for(int i=0; i<numInputs; ++i)
-		{
-			mInputResamplers[i]->process(extFrames);
-		}
-	}
 	
 	// process all procs!
 	// don't use the prettier "for(auto op : mOpsVec)" as it's significantly slower.
 	int numOps = mOpsVec.size();
 	for(int i = 0; i < numOps; ++i)
 	{
-		mOpsVec[i]->process(intFrames);
+		mOpsVec[i]->process(frames);
 	}
 	
-	if (resample)
-	{
-		for(int i=0; i<numOutputs; ++i)
-		{
-			mOutputResamplers[i]->process(intFrames);
-		}
-	}
-
 	// copy to outputs
 	for(int i=0; i<numOutputs; ++i)
 	{
@@ -1297,71 +1197,19 @@ bail:
 void MLProcContainer::publishInput(const ml::Path & procName, const ml::Symbol inputName, const ml::Symbol alias)
 {
 	err e = OK;
-	MLPublishedInputPtr p;
 	
 	//debug() << "MLProcContainer::publishInput: publishing input " << inputName << " of " << procName << " as " << alias << "\n"; 
 
 	const MLProcPtr proc = getProc(procName);	
-	const MLRatio myRatio = getResampleRatio();
 
 	if (proc)
 	{	
 		int inSize = (int)mPublishedInputs.size();
 		const int inIndex = proc->getInputIndex(inputName);
 					
-		if (!myRatio.isUnity()) 
-		{
-			// make resampler
-			ml::Symbol resamplerName(getName() + "_resamp_in");
-			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), ml::textUtils::addFinalNumber(resamplerName, inSize + 1));
-			
-			// would be cleaner to use buildProc() here, but right now that adds the new proc
-			// to the ops list by default, and we need resamplers to be first. look at that
-			// mess later.
-			if (!resamplerProc) { e = newProcErr; goto bail; }
-			
-			int resamplerInIndex = resamplerProc->getInputIndex("in");
-			int resamplerOutIndex = resamplerProc->getOutputIndex("out");
-			
-			// make output buffer and set resampler output to proc input
-			resamplerProc->resizeInputs(resamplerInIndex);			
-			resamplerProc->resizeOutputs(resamplerOutIndex);			
-			resamplerProc->setOutput(resamplerOutIndex, *allocBuffer());						
-			connectProcs(resamplerProc, resamplerOutIndex, proc, inIndex);
-			
-			// set resampler ratio to our ratio
-			resamplerProc->setParam("ratio_top", myRatio.top);
-			resamplerProc->setParam("ratio_bottom", myRatio.bottom);
-			resamplerProc->setParam("up_order", getResampleUpOrder());
-			resamplerProc->setParam("down_order", getResampleDownOrder());
-			resamplerProc->setup();
-							
-			if (resamplerProc)
-			{
-				// save resampler for use in process()
-				mInputResamplers.push_back(resamplerProc);
-				resamplerProc->createInput(resamplerInIndex);
-				
-				// set to a valid input in case graph ends up incomplete
-                // TODO: investigate: this is causing inputOccupiedErr sometimes?!
-				resamplerProc->setContext(this);
-				resamplerProc->setInput(resamplerInIndex, getNullInput());
-				
-				// publish resampler input
-				p = MLPublishedInputPtr(new MLPublishedInput(resamplerProc, resamplerInIndex, inSize + 1));
-				
-				// set post-resampling destination
-				if (p)
-				{
-					p->setDest(proc, inIndex);	
-				}
-			}
-		}
-		else // publish direct link to internal proc.
-		{
-			p = MLPublishedInputPtr(new MLPublishedInput(proc, inIndex, inSize + 1));
-			proc->createInput(inIndex);	
-		}
+		// publish direct link to internal proc.
+		MLPublishedInputPtr p (new MLPublishedInput(proc, inIndex, inSize + 1));
+		proc->createInput(inIndex);	
 		
 		if (p)
 		{
@@ -1391,52 +1239,23 @@ bail:
 void MLProcContainer::publishOutput(const ml::Path & srcProcName, const ml::Symbol outputName, const ml::Symbol alias)
 {	
     err e = OK;
-	MLPublishedOutputPtr p;
 	const MLProcPtr sourceProc = getProc(srcProcName);
-	const MLRatio myRatio = getResampleRatio();
+
 	if (sourceProc)
 	{	 
 		int outSize = (int)mPublishedOutputs.size();
 		const int srcProcOutputIndex = sourceProc->getOutputIndex(outputName);
 		if (!srcProcOutputIndex) { e = badIndexErr; goto bail; }
 		
-		if (!myRatio.isUnity()) 
-		{
-			// make resampler
-			ml::Symbol resamplerName(getName() + "_resamp_out");
-			MLProcPtr resamplerProc = newProc(ml::Symbol("resample"), ml::textUtils::addFinalNumber(resamplerName, outSize + 1)); 
-			if (!resamplerProc) { e = newProcErr; goto bail; }
-			
-			// setup resampler i/o
-			int resamplerInIndex = resamplerProc->getInputIndex("in");
-			int resamplerOutIndex = resamplerProc->getOutputIndex("out");
-			resamplerProc->resizeInputs(resamplerInIndex);			
-			resamplerProc->resizeOutputs(resamplerOutIndex);
-			
-			// save resampler for use in process()
-			mOutputResamplers.push_back(resamplerProc);
-			
-			// publish resampler output
-			p = MLPublishedOutputPtr(new MLPublishedOutput(resamplerProc, resamplerOutIndex, outSize + 1));	
-	
-			// set pre-resampling source
-			if (p)
-			{
-				p->setSrc(sourceProc, srcProcOutputIndex);	
-			}
-		}
-		else
-		{
 			// publish source proc output
- 			p = MLPublishedOutputPtr(new MLPublishedOutput(sourceProc, srcProcOutputIndex, outSize + 1));
+ 			MLPublishedOutputPtr p(new MLPublishedOutput(sourceProc, srcProcOutputIndex, outSize + 1));
             
             // make outputs in the source proc if needed
 			if (srcProcOutputIndex > (int)sourceProc->mOutputs.size())
 			{
 				sourceProc->resizeOutputs(srcProcOutputIndex);	
 			}			
-		}
-		
+
 		if (p)
 		{
 			// store by alias for getOutputIndex()
@@ -2172,17 +1991,6 @@ int MLProcContainer::countPublishedParamsInDoc(juce::XmlElement* parent)
 
 void MLProcContainer::dumpGraph(int indent)
 {
-	const MLRatio myRatio = getResampleRatio();
-	if (!myRatio.isUnity()) 
-	{
-		debug() << ml::textUtils::spaceStr(indent) << getName() << " input resamplers: \n";
-		int ins = mPublishedInputs.size();
-		for(int i=0; i<ins; ++i)
-		{
-			MLProcPtr pIn = mInputResamplers[i];
-			debug() << ml::textUtils::spaceStr(indent) << "in: (" << (void *)&pIn->getInput(1) << ") out: (" << (void *)&pIn->getOutput() << ")\n";
-		}
-	}
 	
 	dumpProc(indent);
 
@@ -2204,17 +2012,6 @@ void MLProcContainer::dumpGraph(int indent)
 		else
 		{
 			p->dumpProc(indent+1);
-		}
-	}
-	
-	if (!myRatio.isUnity()) 
-	{
-		debug() << ml::textUtils::spaceStr(indent) << getName() <<  " output resamplers: \n";
-		int outs = (int)mPublishedOutputs.size();
-		for(int i=0; i<outs; ++i)
-		{
-			MLProcPtr pOut = mOutputResamplers[i];
-			debug() << ml::textUtils::spaceStr(indent) << "in: (" << &pOut->getInput(1) << ") out: (" << &pOut->getOutput() << ")\n";
 		}
 	}
 }

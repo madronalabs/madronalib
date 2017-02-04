@@ -16,9 +16,6 @@ MLDSPContext::MLDSPContext() :
 	mSampleRate = kToBeCalculated;	
 	mInvSampleRate = 1.f;
 	mNullInput.setToConstant(0.f);
-	mResampleRatio = MLRatio(1, 1);
-	mResampleUpOrder = 0;
-	mResampleDownOrder = 0;
 }
 
 MLDSPContext::~MLDSPContext()

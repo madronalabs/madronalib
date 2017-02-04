@@ -228,8 +228,7 @@ public:
 	#pragma mark MLProc methods
 	//
 	bool isContainer(void) { return true; }
-	
-	void setup();	
+		
 	virtual void collectStats(MLSignalStats* pStats);
 
 	virtual void process(const int samples);
@@ -372,10 +371,6 @@ protected:
 
 	// List of Pipes created by addPipe().  Pipes are not named. 
 	std::list<MLPipePtr> mPipeList; 
-
-	// procs for resampling
-	std::vector<MLProcPtr> mInputResamplers;
-	std::vector<MLProcPtr> mOutputResamplers;
 
 	// signal buffers for running procs.
 	std::list<MLSignalPtr> mBufferPool;

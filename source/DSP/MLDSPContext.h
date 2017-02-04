@@ -35,17 +35,11 @@ public:
 	MLDSPContext();
 	virtual ~MLDSPContext();
 
-	const MLRatio& getResampleRatio() { return mResampleRatio; }
-	const int getResampleUpOrder() { return mResampleUpOrder; }
-	const int getResampleDownOrder() { return mResampleDownOrder; }
 	inline unsigned getVectorSize() { return mVectorSize; }	
 	inline float getSampleRate() { return mSampleRate; }
 	inline float getInvSampleRate() { return mInvSampleRate; }
 	ml::Time getTime();
 
-	void setResampleRatio(const MLRatio& r) { mResampleRatio = r; }
-	void setResampleUpOrder(const int d) { mResampleUpOrder = d; }
-	void setResampleDownOrder(const int d) { mResampleDownOrder = d; }
 	int setVectorSize(unsigned newSize);
 	void setSampleRate(float newRate);	
 
@@ -89,9 +83,6 @@ protected:
 	MLDSPContext* mpRootContext;
 	
 private:
-	MLRatio mResampleRatio;	
-	int mResampleUpOrder;	
-	int mResampleDownOrder;	
 	int mVectorSize;		
 	float mSampleRate;	
 	float mInvSampleRate;
