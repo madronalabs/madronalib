@@ -15,7 +15,7 @@ public:
 	~MLProcPhasor();
 
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -60,7 +60,7 @@ void MLProcPhasor::clear()
 }
 
 
-void MLProcPhasor::process(const int samples)
+void MLProcPhasor::process()
 {	
 	const MLSignal& freq = getInput(1);
 //	const MLSignal& reset = getInput(2);
@@ -77,7 +77,7 @@ void MLProcPhasor::process(const int samples)
 
 	// TODO reset
 
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		fFreq = ml::min(freq[n], sr * 0.5f);
 		MLSample step = (fFreq) * invSr;

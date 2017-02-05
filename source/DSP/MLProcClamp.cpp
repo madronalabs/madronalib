@@ -12,7 +12,7 @@
 class MLProcClamp : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -33,7 +33,7 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcClamp::process(const int frames)
+void MLProcClamp::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
@@ -43,7 +43,7 @@ void MLProcClamp::process(const int frames)
 	const MLSample fmin = getParam(minSym);
 	const MLSample fmax = getParam(maxSym);
 
-	for (int n=0; n < frames; ++n)
+	for (int n=0; n < kFloatsPerDSPVector; ++n)
 	{
 		y[n] = ml::clamp(x[n], fmin, fmax);
 	}

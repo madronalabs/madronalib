@@ -15,7 +15,7 @@ public:
 	~MLProcEnvelope();
 	
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -82,7 +82,7 @@ void MLProcEnvelope::clear()
 }
 
 // generate envelope output based on gate and control signal inputs.
-void MLProcEnvelope::process(const int samples)
+void MLProcEnvelope::process()
 {	
 	float invSr = getContextInvSampleRate();
 	const MLSignal& gate = getInput(1);
@@ -104,7 +104,7 @@ void MLProcEnvelope::process(const int samples)
 	// input change thresholds for state changes
 	const float inputThresh = 0.001f;
 
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
         float bias = 0.05f;
         float dxdt, gIn, velIn;

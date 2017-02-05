@@ -14,7 +14,7 @@ class MLProcPan : public MLProc
 {
 public:
 	MLProc::err resize() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -45,7 +45,7 @@ MLProc::err MLProcPan::resize()
 	return MLProc::OK;
 }
 
-void MLProcPan::process(const int samples)
+void MLProcPan::process()
 {	
 	const MLSignal& x = getInput(1);
 	const MLSignal& pan = getInput(2);
@@ -53,7 +53,7 @@ void MLProcPan::process(const int samples)
 	MLSignal& out2 = getOutput(2);
 	float in, p, pos;
    
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		in = x[n];
 		pos = mSlewLimiter.processSample(ml::clamp(pan[n], -1.f, 1.f));

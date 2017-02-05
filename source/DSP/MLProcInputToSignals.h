@@ -108,7 +108,7 @@ public:
 		mLastEvent = last;
 	}
 	
-	void process(const int frames) override;
+	void process() override;
 	void clearChangeLists();
 
 	/*

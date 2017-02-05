@@ -14,7 +14,7 @@
 class MLProcNoise : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -36,13 +36,13 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcNoise::process(const int samples)
+void MLProcNoise::process()
 {	
 	static ml::Symbol gainSym("gain");
 	MLSignal& y = getOutput();
 	MLSample gain = getParam(gainSym);
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		y[n] = MLRand() * gain;
 	}

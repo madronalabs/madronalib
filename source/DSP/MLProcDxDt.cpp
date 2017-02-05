@@ -13,7 +13,7 @@ class MLProcDxDt : public MLProc
 public:
 	
 	void clear() override;		
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -39,13 +39,14 @@ void MLProcDxDt::clear()
 	xn1 = 0.;
 }
 
-void MLProcDxDt::process(const int frames)
+void MLProcDxDt::process()
 {	
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	MLSample fs;
 
-	for (int n = 0; n < frames; ++n)
+	// TODO SIMD
+	for (int n = 0; n < kFloatsPerDSPVector; ++n)
 	{
 		fs = (x[n] * getContextSampleRate());
 		y[n] = fs - xn1;

@@ -141,7 +141,7 @@ MLProcInfoBase& MLMultiProc::procInfo()
 }
 
 
-void MLMultiProc::process(const int n)
+void MLMultiProc::process()
 {
 	const int outs = mTemplate->getNumOutputs();
 	
@@ -149,7 +149,7 @@ void MLMultiProc::process(const int n)
 	// TODO this can be dispatched to multiple threads.
 	for (int i=0; i < mEnabledCopies; ++i)
 	{
-		mCopies[i]->process(n);
+		mCopies[i]->process();
 	}
 	
 	// TODO create a voice in/out fade interval, and fade instead of just adding during change. 
@@ -370,7 +370,7 @@ void MLMultiContainer::collectStats(MLSignalStats* pStats)
 	}
 }
 
-void MLMultiContainer::process(const int n)
+void MLMultiContainer::process()
 {
 	const int outs = getNumOutputs();
 	
@@ -378,7 +378,7 @@ void MLMultiContainer::process(const int n)
 	// TODO this can be dispatched to multiple threads.
 	for (int i=0; i < mEnabledCopies; ++i)
 	{
-		getCopyAsContainer(i)->process(n);
+		getCopyAsContainer(i)->process();
 	}
     
 	// for each of our outputs,

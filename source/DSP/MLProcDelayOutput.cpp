@@ -18,7 +18,7 @@ public:
 	
 	void clear() override;
 	err resize() override;
-	void process(const int frames) override;		
+	void process() override;		
 	
 	MLProcInfoBase& procInfo() override { return mInfo; }
 private:
@@ -128,7 +128,7 @@ void MLProcDelayOutput::doParams()
 }
 
 
-void MLProcDelayOutput::process(const int frames)
+void MLProcDelayOutput::process()
 {
 	const MLSignal& delayTime = getInput(1);
 	MLSignal& y = getOutput();
@@ -145,7 +145,7 @@ void MLProcDelayOutput::process(const int frames)
 	{
 		MLSignal& buffer = mpDelayInputProc->getBuffer();
 
-		for (int n=0; n<frames; ++n)
+		for (int n=0; n<kFloatsPerDSPVector; ++n)
 		{		
 			// read
 			// zero order (integer delay)

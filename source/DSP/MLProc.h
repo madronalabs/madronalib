@@ -343,7 +343,7 @@ public:
 	virtual err prepareToProcess();
 	
 	// the process method. One is needed!
-	virtual void process(const int frames) = 0;	
+	virtual void process() = 0;	
 	
 	// clearProc() is called by engine, procs override clear() to clear histories. 
 	void clearProc();	 
@@ -462,8 +462,8 @@ public:
 	bool outputIsValid(int idx);
 	
 	ml::Symbol getClassName() { return procInfo().getClassName(); }
-	const ml::Symbol& getName() const { return mName; }
-	int getCopyIndex() const { return mCopyIndex; }
+	inline const ml::Symbol& getName() const { return mName; }
+	inline int getCopyIndex() const { return mCopyIndex; }
 	ml::Symbol getNameWithCopyIndex();
 	void dumpParams();
 	virtual void dumpProc(int indent);

@@ -15,7 +15,7 @@ public:
 	 MLProcSinePhase();
 	~MLProcSinePhase();
 	
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -55,7 +55,7 @@ MLProcSinePhase::~MLProcSinePhase()
 //	debug() << "MLProcSinePhase destructor\n";
 }
 
-void MLProcSinePhase::process(const int samples)
+void MLProcSinePhase::process()
 {	
 	MLSample g = mScale;
 	const MLSignal& phase = getInput(1);
@@ -70,7 +70,7 @@ void MLProcSinePhase::process(const int samples)
 	
 	float x, x2, flip, fOmega, fFrac;	
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		// input on [0, 1] = domain of [-pi, pi] for actual sin fn.
 		fOmega = phase[n];

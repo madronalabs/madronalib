@@ -15,7 +15,7 @@ public:
 	~MLProcDCBlocker();
 	
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -70,14 +70,14 @@ void MLProcDCBlocker::clear()
 	yn1 = 0.;
 }
 
-void MLProcDCBlocker::process(const int frames)
+void MLProcDCBlocker::process()
 {	
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 
 	if (mParamsChanged) calcCoeffs();
 
-	for (int n = 0; n < frames; ++n)
+	for (int n = 0; n < kFloatsPerDSPVector; ++n)
 	{
 		y[n] = x[n] - xn1 + mR*yn1;
 		xn1 = x[n];

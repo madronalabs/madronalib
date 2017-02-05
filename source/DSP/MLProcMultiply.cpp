@@ -13,7 +13,7 @@ class MLProcMultiply : public MLProc
 {
 public:
 	void doParams();
-	void process(const int frames) override;
+	void process() override;
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -41,12 +41,12 @@ namespace
 // implementation
 
 /*
-void MLProcMultiply::process(const int frames)
+void MLProcMultiply::process()
 {
 	const MLSignal& x1 = getInput(1);
 	const MLSignal& x2 = getInput(2);
 	MLSignal& y1 = getOutput();
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		y1[n] = x1[n]*x2[n];
 	}
@@ -66,7 +66,7 @@ void MLProcMultiply::doParams()
     mParamsChanged = false;
 }
 
-void MLProcMultiply::process(const int frames)
+void MLProcMultiply::process()
 {
     if(mParamsChanged) doParams();
 	
@@ -74,7 +74,7 @@ void MLProcMultiply::process(const int frames)
 	const MLSample* px2 = mpFX2;
 	MLSample* py1 = mpFY1;
 
-	int c = frames >> kMLSamplesPerSSEVectorBits;
+	int c = kSIMDVectorsPerDSPVector; // SIMD
 	__m128 vx1, vx2, vr; 	
 
 	for (int n = 0; n < c; ++n)

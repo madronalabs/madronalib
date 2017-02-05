@@ -12,7 +12,7 @@
 class MLProcSampleRate : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -34,7 +34,7 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcSampleRate::process(const int )
+void MLProcSampleRate::process()
 {
 	MLSignal& y1 = getOutput();
 	MLSignal& y2 = getOutput(2);

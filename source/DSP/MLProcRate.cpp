@@ -15,7 +15,7 @@ public:
 	~MLProcRate();
 	
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 	
 private:
@@ -76,7 +76,7 @@ inline MLRatio correctRatio(float rIn)
 	return r;
 }
 
-void MLProcRate::process(const int samples)
+void MLProcRate::process()
 {	
 	const MLSignal& x = getInput(1);
 	const MLSignal& ratioSig = getInput(2);
@@ -85,7 +85,7 @@ void MLProcRate::process(const int samples)
 	const float kFeedback = isr*10.f; 
 	
 	// allow ratio change once per buffer
-	float rIn = ratioSig[samples - 1];
+	float rIn = ratioSig[kFloatsPerDSPVector - 1];
 	if (rIn != mFloatRatio)
 	{	
 		mCorrectedRatio = correctRatio(rIn);
@@ -108,7 +108,7 @@ void MLProcRate::process(const int samples)
 		float numerator = mCorrectedRatio.top;			
 		float numeratorInv = 1.0f/numerator;
 		float error;
-		for (int n=0; n<samples; ++n)
+		for (int n=0; n<kFloatsPerDSPVector; ++n)
 		{
 			float px = x[n];
 			float dxdt = px - mx1;
@@ -144,7 +144,7 @@ void MLProcRate::process(const int samples)
 	else
 	{
 		// don't correct the phase, just run phasor at float ratio of input rate.
-		for (int n=0; n<samples; ++n)
+		for (int n=0; n<kFloatsPerDSPVector; ++n)
 		{
 			float px = x[n];
 			float dxdt = px - mx1;

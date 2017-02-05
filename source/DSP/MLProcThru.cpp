@@ -11,7 +11,7 @@
 class MLProcThru : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -32,7 +32,7 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcThru::process(const int samples)
+void MLProcThru::process()
 {	
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();

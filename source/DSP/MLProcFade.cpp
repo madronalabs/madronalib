@@ -11,7 +11,7 @@
 class MLProcFade : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 	
 private:
@@ -32,14 +32,14 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcFade::process(const int frames)
+void MLProcFade::process()
 {	
 	const MLSignal& in1 = getInput(1);
 	const MLSignal& in2 = getInput(2);
 	const MLSignal& mix = getInput(3);
 	MLSignal& out = getOutput();
 	
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		const MLSample a = in1[n];
 		const MLSample b = in2[n];

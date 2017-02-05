@@ -18,7 +18,7 @@ public:
 
 	err resize() override;
 
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -75,7 +75,7 @@ MLProc::err MLProcParamToSignal::resize()
 	return OK;
 }
 
-void MLProcParamToSignal::process(const int frames)
+void MLProcParamToSignal::process()
 {
 	static const ml::Symbol levelModeSym("level_mode");
 	static const ml::Symbol glideSym("glide");
@@ -109,7 +109,7 @@ void MLProcParamToSignal::process(const int frames)
 	}
 	else
 	{
-		mChangeList.writeToSignal(y, frames);
+		mChangeList.writeToSignal(y, kFloatsPerDSPVector);
 	}
 }
 

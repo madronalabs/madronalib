@@ -231,7 +231,7 @@ public:
 		
 	virtual void collectStats(MLSignalStats* pStats);
 
-	virtual void process(const int samples);
+	virtual void process();
 	virtual err prepareToProcess();
 
 	void clear();	// clear buffers, DSP history

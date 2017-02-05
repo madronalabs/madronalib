@@ -11,7 +11,7 @@
 class MLProcSum : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -32,7 +32,7 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcSum::process(const int frames)
+void MLProcSum::process()
 {
 	const int inputs = getNumInputs();
 	MLSignal& y = getOutput();
@@ -44,7 +44,7 @@ void MLProcSum::process(const int frames)
 	for (int i=1; i <= inputs; ++i)
 	{
 		const MLSignal& xi = getInput(i);
-		for (int n=0; n < frames; ++n)
+		for (int n=0; n < kFloatsPerDSPVector; ++n)
 		{
 			y[n] += xi[n];
 		}

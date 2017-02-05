@@ -24,7 +24,7 @@ public:
 	~MLProcRMS();
 	
 	void clear(void) override;		
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 	
 	// volume accessor TODO make generic getter via symbol

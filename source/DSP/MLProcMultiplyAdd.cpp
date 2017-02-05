@@ -13,7 +13,7 @@
 class MLProcMultiplyAdd : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 	
 private:
@@ -37,14 +37,14 @@ namespace
 
 /*
 
-void MLProcMultiplyAdd::process(const int frames)
+void MLProcMultiplyAdd::process()
 {
 	const MLSignal& m1 = getInput(1);
 	const MLSignal& m2 = getInput(2);
 	const MLSignal& a1 = getInput(3);
 	MLSignal& out = getOutput();
 
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		out[n] = m1[n]*m2[n] + a1[n];
 	}
@@ -54,7 +54,7 @@ void MLProcMultiplyAdd::process(const int frames)
 */
 
 /*
-void MLProcMultiplyAdd::process(const int frames)
+void MLProcMultiplyAdd::process()
 {
 	const MLSignal& m1 = getInput(1);
 	const MLSignal& m2 = getInput(2);
@@ -69,7 +69,7 @@ void MLProcMultiplyAdd::process(const int frames)
 
 	if (km1 || km2 || ka1) // can't use SSE if we have any constant signals.
 	{	
-		for (int n=0; n<frames; ++n)
+		for (int n=0; n<kFloatsPerDSPVector; ++n)
 		{
 			out[n] = m1[n]*m2[n] + a1[n];
 		}
@@ -101,7 +101,7 @@ void MLProcMultiplyAdd::process(const int frames)
 */
 
 
-void MLProcMultiplyAdd::process(const int frames)
+void MLProcMultiplyAdd::process()
 {
 	const MLSignal& m1 = getInput(1);
 	const MLSignal& m2 = getInput(2);
@@ -114,7 +114,7 @@ void MLProcMultiplyAdd::process(const int frames)
 	MLSample* pout = out.getBuffer();
 	__m128 vm1, vm2, va1, vr; 
 	
-	int c = frames >> kMLSamplesPerSSEVectorBits;
+	int c = kSIMDVectorsPerDSPVector; // SIMD
 	for (int v = 0; v < c; ++v)
 	{
 		vm1 = _mm_load_ps(pm1);

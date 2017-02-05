@@ -15,7 +15,7 @@ public:
 	~MLProcPeak();
 	
 	void clear() override;		
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -65,13 +65,13 @@ void MLProcPeak::calcCoeffs(void)
 	mParamsChanged = false;
 }
 
-void MLProcPeak::process(const int samples)
+void MLProcPeak::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	if (mParamsChanged) calcCoeffs();
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{	
 		MLSample in = x[n];
 			

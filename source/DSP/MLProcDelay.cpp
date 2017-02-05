@@ -16,7 +16,7 @@ public:
 	
 	err resize() override;
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	
 	MLProcInfoBase& procInfo() override { return mInfo; }
 private:
@@ -79,7 +79,7 @@ void MLProcDelay::clear()
 }
 
 
-void MLProcDelay::process(const int frames)
+void MLProcDelay::process()
 {
 	const MLSignal& x = getInput(1);
 	const MLSignal& delaySig = getInput(2);
@@ -87,7 +87,7 @@ void MLProcDelay::process(const int frames)
 	uintptr_t readIndex;
 	const float sr = getContextSampleRate();
 	
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		mWriteIndex &= mLengthMask;
 		mBuffer[mWriteIndex] = x[n];

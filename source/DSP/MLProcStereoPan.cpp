@@ -15,7 +15,7 @@ class MLProcStereoPan : public MLProc
 {
 public:
 	MLProc::err resize() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -46,7 +46,7 @@ MLProc::err MLProcStereoPan::resize()
 	return MLProc::OK;
 }
 
-void MLProcStereoPan::process(const int samples)
+void MLProcStereoPan::process()
 {	
 	const MLSignal& inL = getInput(1);
 	const MLSignal& inR = getInput(2);
@@ -59,7 +59,7 @@ void MLProcStereoPan::process(const int samples)
 	ml::TableProjection RToLGain {1, 0, 0};
 	ml::TableProjection RToRGain {0, 1, 0};
     
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
         float pos = mSlewLimiter.processSample(ml::clamp(pan[n], -1.f, 1.f));
 		pos = pos*0.5f + 0.5f; // [-1, 1] -> [0, 1]

@@ -16,7 +16,7 @@ public:
 	~MLProcEnvelopeFollow();
 	
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 	
 private:
@@ -61,7 +61,7 @@ void MLProcEnvelopeFollow::clear()
 }
 
 // generate envelope output based on gate and control signal inputs.
-void MLProcEnvelopeFollow::process(const int samples)
+void MLProcEnvelopeFollow::process()
 {	
 	static const ml::Symbol threshSym("thresh");
 
@@ -84,7 +84,7 @@ void MLProcEnvelopeFollow::process(const int samples)
 		mParamsChanged = false;
 	}
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		float y = fabs(in[n]);
 		float yf = mTrigFilter.processSample(y);

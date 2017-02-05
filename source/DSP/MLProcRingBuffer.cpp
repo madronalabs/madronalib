@@ -79,7 +79,7 @@ void MLProcRingBuffer::doParams(void)
 	mParamsChanged = false;
 }
 
-void MLProcRingBuffer::process(const int frames)
+void MLProcRingBuffer::process()
 {
 	static ml::Symbol frameSym("frame_size");
 
@@ -87,7 +87,7 @@ void MLProcRingBuffer::process(const int frames)
 	const MLSignal& x = getInput(1);
 	int frameSize = getParam(frameSym);
 	int inputFrameSize = x.getHeight();
-	int framesToProcess = ml::min(frames, x.getWidth());
+	int framesToProcess = ml::min(kFloatsPerDSPVector, x.getWidth());
 
 	// build if needed
 	if (mParamsChanged) doParams();

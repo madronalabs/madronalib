@@ -15,7 +15,7 @@ public:
 	~MLProcTestTone();
 	
 	void clear() override;
-	void process(const int frames) override;
+	void process() override;
 	MLProcInfoBase& procInfo() override { return mInfo; }
     
 private:
@@ -57,7 +57,7 @@ void MLProcTestTone::clear()
 }
 
 // this sine generator makes a looping counter by letting a 32 bit word overflow.
-void MLProcTestTone::process(const int samples)
+void MLProcTestTone::process()
 {
 	MLSample f;
 	MLSignal& y = getOutput();
@@ -73,7 +73,7 @@ void MLProcTestTone::process(const int samples)
 	float x, fOmega;
 	float kFreq = 440.;
     
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		f = kFreq;
 		

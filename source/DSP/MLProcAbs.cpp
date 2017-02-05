@@ -11,7 +11,7 @@
 class MLProcAbs : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -31,12 +31,12 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcAbs::process(const int frames)
+void MLProcAbs::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		y[n] = fabsf(x[n]);
 	}

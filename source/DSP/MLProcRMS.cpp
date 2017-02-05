@@ -67,14 +67,14 @@ void MLProcRMS::calcCoeffs(void)
 	mParamsChanged = false;
 }
 
-void MLProcRMS::process(const int samples)
+void MLProcRMS::process()
 {
 	if (mParamsChanged) calcCoeffs();
 
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{		
 		float xf = ml::clamp(x[n], -1.f, 1.f);		
 		y[n] = mFilter.processSample(xf*xf); // note: no sqrt, not real RMS

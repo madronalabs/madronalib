@@ -11,7 +11,7 @@
 class MLProcAdd : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -35,7 +35,7 @@ namespace
 
 // scalar fallback code
 //
-void MLProcAdd::process(const int frames)
+void MLProcAdd::process()
 {
 	const MLSignal& x1 = getInput(1);
 	const MLSignal& x2 = getInput(2);
@@ -50,7 +50,7 @@ void MLProcAdd::process(const int frames)
 
 // SSE version with optimizations for constant inputs
 //
-void MLProcAdd::process(const int frames)
+void MLProcAdd::process()
 {
 	const MLSignal& x1 = getInput(1);
 	const MLSignal& x2 = getInput(2);
@@ -60,7 +60,7 @@ void MLProcAdd::process(const int frames)
 	const MLSample* px2 = x2.getConstBuffer();
 	MLSample* py1 = y1.getBuffer();
 	
-	int c = frames >> kMLSamplesPerSSEVectorBits;
+	int c = kSIMDVectorsPerDSPVector;
 	__m128 vx1, vx2, vr; 	
 	
 	for (int n = 0; n < c; ++n)

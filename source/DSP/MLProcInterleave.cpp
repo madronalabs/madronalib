@@ -19,7 +19,7 @@
 class MLProcInterleave : public MLProc
 {
 public:
-	void process(const int frames) override;
+	void process() override;
 	MLProcInfoBase& procInfo() override { return mInfo; }
     
 private:
@@ -42,13 +42,13 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcInterleave::process(const int frames)
+void MLProcInterleave::process()
 {
     const MLSignal& x1 = getInput(1);
     const MLSignal& x2 = getInput(2);
 	MLSignal& y = getOutput();
     
-    for(int i=0; i<frames; i+= 2)
+    for(int i=0; i<kFloatsPerDSPVector; i+= 2) // 
     {
         y[i] = x1[i];
         y[i + 1] = x2[i];

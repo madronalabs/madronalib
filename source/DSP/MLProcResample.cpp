@@ -15,6 +15,11 @@
 // For the above code, this would entail creating an alternative allpass process function, 
 // that uses the z^-1 for its states, and then rearranging some of the operations.
 
+
+// UNUSED
+
+#if 0
+
 #include "MLProc.h"
 
 // ----------------------------------------------------------------
@@ -390,7 +395,7 @@ public:
 	MLProc::err resize() override;
 	void clear() override;
 	
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -761,7 +766,7 @@ void MLProcResample::downsample2(MLSample* pSrc, MLSample* pDest, int inFrames, 
 	}
 }
 
-void MLProcResample::process(const int inFrames)
+void MLProcResample::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
@@ -803,7 +808,7 @@ void MLProcResample::process(const int inFrames)
 		switch(mUpOrder)
 		{
 			case 0:
-				upsample0(pUpSrc, pUpDest, inFrames, upRatio);
+				upsample0(pUpSrc, pUpDest, kFloatsPerDSPVector, upRatio);
 			break;
 			case 1:
 				upsample1(pUpSrc, pUpDest, inFrames, upRatio);
@@ -877,3 +882,4 @@ void MLProcResample::process(const int inFrames)
 >
 */
 
+#endif

@@ -162,7 +162,7 @@ void MLDSPEngine::compileEngine()
 //
 MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 {
-	// debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
+	debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
     
 	// set denormal state
@@ -268,7 +268,7 @@ void MLDSPEngine::setInputChannels(int c)
 	mInputSignals.clear();
 	for (int i=0; i<mInputChans; i++)
 	{		
-		mInputSignals.push_back(MLSignalPtr(new MLSignal(kMLProcessChunkSize))); 
+		mInputSignals.push_back(MLSignalPtr(new MLSignal(kFloatsPerDSPVector))); // SIMD
 		mInputBuffers.push_back(MLRingBufferPtr(new MLRingBuffer()));
 	}
 }
@@ -671,7 +671,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 				MLSignalStats stats;
 				collectStats(&stats);
 				
-				process(mVectorSize);  // MLProcContainer::process()
+				process();  // MLProcContainer::process()
 		
 				debug() << "\n";
 				debug() << "processed " << mSampleCount << " samples in " << mCPUTimeCount << " seconds,"
@@ -702,7 +702,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 				}
 				
 				// MLProcContainer::process()
-				process(mVectorSize);  
+				process();  
 
 				if (mCollectStats) 
 				{

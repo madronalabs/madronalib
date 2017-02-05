@@ -16,7 +16,7 @@
 class MLProcClampSignal : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -38,14 +38,14 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcClampSignal::process(const int frames)
+void MLProcClampSignal::process()
 {
 	const MLSignal& x = getInput(1);
 	const MLSignal& min = getInput(2);
 	const MLSignal& max = getInput(3);
 	MLSignal& y = getOutput();
 
-	for (int n=0; n < frames; ++n)
+	for (int n=0; n < kFloatsPerDSPVector; ++n)
 	{
 		y[n] = ml::clamp(x[n], min[n], max[n]);
 	}

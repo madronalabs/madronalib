@@ -24,7 +24,7 @@ public:
 	~MLProcMultiple();
 	
 	void doParams();		
-	void process(const int frames) override;
+	void process() override;
 
 	MLProc::err addProc(const ml::Symbol className, const ml::Symbol procName) override;
 	MLProcPtr getProc(const ml::Path & pathName) override;

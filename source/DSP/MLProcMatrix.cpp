@@ -125,7 +125,7 @@ void MLProcMatrix::calcCoeffs()
 	mParamsChanged = false;
 }
 
-void MLProcMatrix::process(const int frames)
+void MLProcMatrix::process()
 {
 	const int inputs = ml::min(kMLMatrixMaxIns, getNumInputs());
 	const int outputs = ml::min(kMLMatrixMaxOuts, getNumOutputs());
@@ -151,7 +151,7 @@ void MLProcMatrix::process(const int frames)
 			const MLSignal& x = getInput(i);
 			if (mGain[i][j] > 0.)
 			{
-				for (int n=0; n < frames; ++n)
+				for (int n=0; n < kFloatsPerDSPVector; ++n) // SIMD
 				{
 					y[n] += x[n];
 				}

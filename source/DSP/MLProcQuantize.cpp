@@ -22,7 +22,7 @@ public:
 	MLProcQuantize();
 	~MLProcQuantize();
 
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -81,7 +81,7 @@ void MLProcQuantize::doParams()
 	mParamsChanged = false;
 }
 
-void MLProcQuantize::process(const int frames)
+void MLProcQuantize::process()
 {
 	static const ml::Symbol onSym("on");
 	
@@ -100,7 +100,7 @@ void MLProcQuantize::process(const int frames)
 	mPitchFilter.setSampleRate(getContextSampleRate());
 	mPitchFilter.setOnePole(100.f);
 
-	for (int n=0; n < frames; ++n)
+	for (int n=0; n < kFloatsPerDSPVector; ++n)
 	{
 		mCounter++;
 		mCounter &= 0xFF;

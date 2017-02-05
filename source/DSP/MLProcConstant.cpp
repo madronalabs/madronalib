@@ -17,7 +17,7 @@ public:
 	~MLProcConstant();
 
 	err prepareToProcess() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -54,7 +54,7 @@ MLProc::err MLProcConstant::prepareToProcess()
 	return OK;
 }
 
-void MLProcConstant::process(const int frames)
+void MLProcConstant::process()
 {
 	MLSignal& y = getOutput();
 	y.setToConstant(mVal);

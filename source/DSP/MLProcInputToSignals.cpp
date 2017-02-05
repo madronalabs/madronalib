@@ -572,7 +572,7 @@ void MLProcInputToSignals::clear()
 // display OSC: pitch gate vel(constant during hold) voice(touch) after(z) dx dy x y
 
 
-void MLProcInputToSignals::process(const int frames)
+void MLProcInputToSignals::process()
 {	
 	if (mParamsChanged) doParams();
     int sr = getContextSampleRate();
@@ -589,7 +589,7 @@ void MLProcInputToSignals::process(const int frames)
 		}		
 		mDriftCounter = 0;
 	}	
-	mDriftCounter += frames;
+	mDriftCounter += kFloatsPerDSPVector;
 #endif
     
 	// update age for each voice
@@ -597,7 +597,7 @@ void MLProcInputToSignals::process(const int frames)
 	{
 		if(mVoices[v].mAge >= 0)
 		{
-			mVoices[v].mAge += frames;
+			mVoices[v].mAge += kFloatsPerDSPVector;
 		}
 	}		
 
@@ -605,7 +605,7 @@ void MLProcInputToSignals::process(const int frames)
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
-			processOSC(frames);
+			processOSC(kFloatsPerDSPVector);
 			break;
 		case kInputProtocolMIDI:	
 		case kInputProtocolMIDI_MPE:	
@@ -614,9 +614,9 @@ void MLProcInputToSignals::process(const int frames)
 	}
     
 	// generate output signals from change lists
-    writeOutputSignals(frames);
+    writeOutputSignals(kFloatsPerDSPVector);
     
-    mFrameCounter += frames;
+    mFrameCounter += kFloatsPerDSPVector;
     if(mFrameCounter > sr)
     {
 		//dumpEvents();

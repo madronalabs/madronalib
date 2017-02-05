@@ -22,7 +22,7 @@ public:
 	
 	err resize() override;
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	
 	int read(MLSample* pOut, int samples);
 	int readToOutputSignal(const int samples);

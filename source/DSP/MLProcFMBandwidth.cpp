@@ -12,7 +12,7 @@
 class MLProcFMBandwidth : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -32,14 +32,14 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcFMBandwidth::process(const int frames)
+void MLProcFMBandwidth::process()
 {
 	const MLSignal& c = getInput(1);
 	const MLSignal& m = getInput(2);
 	const MLSignal& i = getInput(3);
 	MLSignal& out = getOutput();
 	
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
         float fc = c[n];
         float fm = m[n];

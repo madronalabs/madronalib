@@ -18,7 +18,7 @@ public:
 	
 	err resize() override;
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -196,14 +196,14 @@ void MLProcBiquad::calcCoeffs(const int frames)
 }
 
 
-void MLProcBiquad::process(const int frames)
+void MLProcBiquad::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
 	
-	calcCoeffs(frames);
+	calcCoeffs(kFloatsPerDSPVector);
 	
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		float in, out;
 		in = x[n];

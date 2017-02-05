@@ -21,7 +21,7 @@ public:
 	void setTimeAndRate(const double secs, const double position, const double bpm, bool isPlaying);
 	
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:

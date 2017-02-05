@@ -743,21 +743,15 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 #pragma mark process
 
 // process signals.
-void MLProcContainer::process(const int frames)
+void MLProcContainer::process()
 {
 	if (!isEnabled()) return;
 	
-	mClock.advance(ml::samplesAtRateToTime(frames, static_cast<int>(getSampleRate())));
+	mClock.advance(ml::samplesAtRateToTime(kFloatsPerDSPVector, static_cast<int>(getSampleRate())));
 	
 	// limit I/O to maximums, in case we are a root Container (DSPEngine).
-	int numInputs = ml::min((int)mPublishedInputs.size(), getMaxInputSignals());
+	// int numInputs = ml::min((int)mPublishedInputs.size(), getMaxInputSignals());
 	int numOutputs = ml::min((int)mPublishedOutputs.size(), getMaxOutputSignals());
-	
-	/*
-	if((numInputs == 1)&&(numOutputs == 1))
-	{
-	}
-	*/
 	
 	// -> ext, intframes always chunk size! 
 		
@@ -772,7 +766,7 @@ void MLProcContainer::process(const int frames)
 	int numOps = mOpsVec.size();
 	for(int i = 0; i < numOps; ++i)
 	{
-		mOpsVec[i]->process(frames);
+		mOpsVec[i]->process();
 	}
 	
 	// copy to outputs
@@ -2041,7 +2035,7 @@ MLSignal* MLProcContainer::allocBuffer(int frameSize)
 		}
 	}
 	
-	r = new MLSignal(kMLProcessChunkSize, frameSize);
+	r = new MLSignal(kFloatsPerDSPVector, frameSize); // SIMD
 	
 	r->setRate(getSampleRate());
 	mBufferPool.push_back(MLSignalPtr(r));

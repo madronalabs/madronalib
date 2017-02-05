@@ -16,7 +16,7 @@ public:
 	~MLProcSineOsc();
 	
 	void clear() override;
-	void process(const int frames) override;
+	void process() override;
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -52,7 +52,7 @@ void MLProcSineOsc::clear()
     mOsc.setPhase(0);
 }
 
-void MLProcSineOsc::process(const int samples)
+void MLProcSineOsc::process()
 {
 	if (mParamsChanged) 
 	{
@@ -63,7 +63,7 @@ void MLProcSineOsc::process(const int samples)
     const MLSignal& freq = getInput(1);
     MLSignal& out = getOutput(1);
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
         mOsc.setFrequency(freq[n]);
         out[n] = mOsc.processSample();

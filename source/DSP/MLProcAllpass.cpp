@@ -16,7 +16,7 @@ public:
 	
 	err resize() override;
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -108,7 +108,7 @@ void MLProcAllpass::calcCoeffs()
 }
 
 
-void MLProcAllpass::process(const int frames)
+void MLProcAllpass::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
@@ -120,7 +120,7 @@ void MLProcAllpass::process(const int frames)
 	if (mParamsChanged) calcCoeffs();
 	
 	// write
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		// zero order (integer delay)
 		readIndex = mWriteIndex - mTimeInSamples;

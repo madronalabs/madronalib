@@ -34,7 +34,7 @@ public:
 	~MLProcDebug();
 
 	void doParams();
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -82,19 +82,19 @@ void MLProcDebug::doParams()
 	mParamsChanged = false;
 }
 
-void MLProcDebug::process(const int frames)
+void MLProcDebug::process()
 {
 	const MLSignal& in = getInput(1);
 	
 	const int intervalSeconds = 1;
 	const int intervalFrames = getContextSampleRate() * intervalSeconds;
 	if (mParamsChanged) doParams();
-	mTemp += frames;
+	mTemp += kFloatsPerDSPVector;
 	if (mTemp > intervalFrames)
 	{
 		debug() << std::setw(6);
 		debug() << std::setprecision(2);
-		debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << frames << " = " << std::setprecision(4) << in[0] ;
+		debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << kFloatsPerDSPVector << " = " << std::setprecision(4) << in[0] ;
 		debug() << " min:" << in.getMin() << ", max:" << in.getMax();
 		debug() << "\n";
 //		debug() << "RATE: " << getContextSampleRate() << " / " << in.getRate() << "\n";
@@ -103,14 +103,14 @@ void MLProcDebug::process(const int frames)
 		
 		if (mVerbose)
 		{
-			debug() << frames << " frames\n";
+			debug() << kFloatsPerDSPVector << " frames\n";
 			debug() << "[";
 			debug() << std::setw(6);
 			debug() << std::setprecision(2);
-			for(int j=0; j<frames; ++j)
+			for(int j=0; j<kFloatsPerDSPVector; ++j)
 			{
 				debug() << in[j] << " " ;		
-				if ((j%8 == 7) && (j < frames-1)) debug() << "\n";	
+				if ((j%8 == 7) && (j < kFloatsPerDSPVector-1)) debug() << "\n";	
 			}
 			debug() << "]\n\n";
 		}

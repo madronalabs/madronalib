@@ -32,7 +32,7 @@ public:
 	~MLProcRingBuffer();
 	
 	void clear() override {}; // TODO should this exist?
-	void process(const int frames) override;		
+	void process() override;		
 
 	// read the buffer contents out to the specified plane of the given signal.
 	int readToSignal(MLSignal& outSig, int frames, int plane=0);

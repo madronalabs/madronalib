@@ -60,12 +60,12 @@ void MLProcDelayInput::clear()
 	mWriteIndex = 0;
 }
 
-void MLProcDelayInput::process(const int frames)
+void MLProcDelayInput::process()
 {
 	const MLSignal& x = getInput(1);
 	
 	// write input to delay line
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		mWriteIndex &= mLengthMask;
 		mBuffer[mWriteIndex] = x[n];

@@ -14,7 +14,7 @@ public:
 	MLProcExp2();
 	~MLProcExp2();
 
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -49,7 +49,7 @@ MLProcExp2::~MLProcExp2()
 
 // calculate 2^n for each input sample.
 // 
-void MLProcExp2::process(const int frames)
+void MLProcExp2::process()
 {
 	static const ml::Symbol preciseSym("precise");
 	const MLSignal& x1 = getInput(1);
@@ -63,7 +63,7 @@ void MLProcExp2::process(const int frames)
 
 	if(mPrecise) // scalar code
 	{
-		for (int n=0; n<frames; ++n)
+		for (int n=0; n<kFloatsPerDSPVector; ++n)
 		{
 			y1[n] = pow(2.f, x1[n]);
 		}
@@ -73,7 +73,7 @@ void MLProcExp2::process(const int frames)
 		const MLSample* px1 = x1.getConstBuffer();
 		MLSample* py1 = y1.getBuffer();
 			
-		int c = frames >> kMLSamplesPerSSEVectorBits;
+		int c = kSIMDVectorsPerDSPVector; // SIMD
 		__m128 vx1, vr; 	
 		
 		for (int n = 0; n < c; ++n)

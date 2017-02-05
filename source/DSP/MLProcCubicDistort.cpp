@@ -11,7 +11,7 @@
 class MLProcCubicDistort : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -31,13 +31,13 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcCubicDistort::process(const int frames)
+void MLProcCubicDistort::process()
 {
 	const MLSignal& x = getInput(1);
 	const MLSignal& d = getInput(2);
 	MLSignal& y = getOutput();
 	
-	for (int n=0; n < frames; ++n)
+	for (int n=0; n < kFloatsPerDSPVector; ++n)
 	{
 		MLSample in = x[n];
 		y[n] = lerp(in, (0.5f*in)*(3.0f - in*in), d[n]);

@@ -25,7 +25,7 @@ public:
 	void disconnect(int a, int b);
 	bool getConnection(int a, int b);
 
-	void process(const int frames) override;		
+	void process() override;		
 	void calcCoeffs();
 	MLProcInfoBase& procInfo() override { return mInfo; }
 

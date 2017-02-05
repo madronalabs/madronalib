@@ -15,7 +15,7 @@ public:
 	~MLProcOnepole();
 	
 	void clear() override;
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -72,7 +72,7 @@ void MLProcOnepole::clear()
 }
 
 
-void MLProcOnepole::process(const int samples)
+void MLProcOnepole::process()
 {	
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
@@ -80,7 +80,7 @@ void MLProcOnepole::process(const int samples)
 	
 	if (mParamsChanged) doParams();
 	
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		dxdt = x[n] - mY1;
 		mY1 += mK*dxdt;

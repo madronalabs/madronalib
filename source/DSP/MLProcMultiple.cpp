@@ -223,7 +223,7 @@ void MLProcMultiple::doParams()
 	}	
 }
 
-void MLProcMultiple::process(const int samples)
+void MLProcMultiple::process()
 {
 	if (mParamsChanged) 
 	{
@@ -231,5 +231,5 @@ void MLProcMultiple::process(const int samples)
 		doParams();
 	}
 	
-	MLProcContainer::process(samples);
+	MLProcContainer::process();
 }

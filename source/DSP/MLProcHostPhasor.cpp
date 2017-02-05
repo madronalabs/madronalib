@@ -98,7 +98,7 @@ void MLProcHostPhasor::clear()
 	mPlaying = 0;
 }
 
-void MLProcHostPhasor::process(const int samples)
+void MLProcHostPhasor::process()
 {	
 	if (mParamsChanged) 
 	{
@@ -106,7 +106,7 @@ void MLProcHostPhasor::process(const int samples)
 	}
 
 	MLSignal& y = getOutput();
-	for (int n=0; n<samples; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		mOmega += mDpDt;
 		if(mOmega > 1.f) 
@@ -116,6 +116,6 @@ void MLProcHostPhasor::process(const int samples)
 		}
 		y[n] = mOmega;
 	}
-	mDt += samples;
+	mDt += kFloatsPerDSPVector;
 	//debug() << y[0] << " -- " << y[samples - 1] << "\n";
 }

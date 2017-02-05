@@ -45,7 +45,7 @@ public:
 	// masquerade as instance of template class
 	MLProcInfoBase& procInfo() override;
 	
-	void process(const int frames) override;		
+	void process() override;		
 	err prepareToProcess() override;	
 	
 	void clear() override;
@@ -89,7 +89,7 @@ public:
 	void setup() override;		
 
 	void collectStats(MLSignalStats* pStats) override;
-	void process(const int frames) override;		
+	void process() override;		
 	err prepareToProcess() override;	
 	void clear() override;
 

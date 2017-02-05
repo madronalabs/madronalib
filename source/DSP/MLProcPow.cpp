@@ -12,7 +12,7 @@
 class MLProcPow : public MLProc
 {
 public:
-	void process(const int frames) override;		
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
@@ -32,13 +32,13 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-void MLProcPow::process(const int frames)
+void MLProcPow::process()
 {
 	const MLSignal& base = getInput(1);
 	const MLSignal& exp = getInput(2);
 	MLSignal& out = getOutput();
 	
-	for (int n=0; n<frames; ++n)
+	for (int n=0; n<kFloatsPerDSPVector; ++n)
 	{
 		out[n] = powf(base[n], exp[n]);
 	}
