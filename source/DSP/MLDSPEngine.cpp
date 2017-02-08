@@ -268,7 +268,7 @@ void MLDSPEngine::setInputChannels(int c)
 	mInputSignals.clear();
 	for (int i=0; i<mInputChans; i++)
 	{		
-		mInputSignals.push_back(MLSignalPtr(new MLSignal(kFloatsPerDSPVector))); // SIMD
+		mInputSignals.push_back(MLSignalPtr(new MLSignal(kFloatsPerDSPVector)));
 		mInputBuffers.push_back(MLRingBufferPtr(new MLRingBuffer()));
 	}
 }

@@ -2035,7 +2035,7 @@ MLSignal* MLProcContainer::allocBuffer(int frameSize)
 		}
 	}
 	
-	r = new MLSignal(kFloatsPerDSPVector, frameSize); // SIMD
+	r = new MLSignal(kFloatsPerDSPVector, frameSize);
 	
 	r->setRate(getSampleRate());
 	mBufferPool.push_back(MLSignalPtr(r));

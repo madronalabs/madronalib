@@ -1,4 +1,4 @@
-// example of portaudio wrapping low-level madronalib DSP code.
+// 
 
 #pragma once
 

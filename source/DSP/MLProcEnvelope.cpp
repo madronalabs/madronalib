@@ -81,6 +81,9 @@ void MLProcEnvelope::clear()
 	mT = 0;
 }
 
+static ml::Symbol trigSelectSym("trig_select");
+static ml::Symbol xvelSym("xvel");
+
 // generate envelope output based on gate and control signal inputs.
 void MLProcEnvelope::process()
 {	
@@ -95,10 +98,8 @@ void MLProcEnvelope::process()
 	const MLSignal& vel = getInput(8);
 	MLSignal& y = getOutput();
 	
-	static ml::Symbol trigSelectSym("trig_select");
 	const bool trigSelect = getParam(trigSelectSym) > 1.f; // this param is 1 or 2
 	
-	static ml::Symbol xvelSym("xvel");
 	const bool doMult = (getParam(xvelSym) > 0.f) && !trigSelect;
     
 	// input change thresholds for state changes

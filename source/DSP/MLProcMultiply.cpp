@@ -8,26 +8,18 @@
 // ----------------------------------------------------------------
 // class definition
 
-
 class MLProcMultiply : public MLProc
 {
 public:
-	void doParams();
-	void process() override;
+	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
-
+	
 private:
 	MLProcInfo<MLProcMultiply> mInfo;
-    int mConstantMode;
-    const MLSignal* mpX1, *mpX2;
-    MLSignal *mpY1;
-    const MLSample* mpFX1, *mpFX2;
-    MLSample* mpFY1;
 };
 
-
 // ----------------------------------------------------------------
-// registry section
+// registry
 
 namespace
 {
@@ -36,55 +28,16 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcMultiply> outputs[] = {"out"};
 }	
 
-
 // ----------------------------------------------------------------
 // implementation
 
-/*
-void MLProcMultiply::process()
-{
-	const MLSignal& x1 = getInput(1);
-	const MLSignal& x2 = getInput(2);
-	MLSignal& y1 = getOutput();
-	for (int n=0; n<kFloatsPerDSPVector; ++n)
-	{
-		y1[n] = x1[n]*x2[n];
-	}
-}
-*/
-
-void MLProcMultiply::doParams()
-{
-	mpX1 = &getInput(1);
-	mpX2 = &getInput(2);
-	mpY1 = &(getOutput());
-
-	mpFX1 = mpX1->getConstBuffer();
-	mpFX2 = mpX2->getConstBuffer();
-	mpFY1 = mpY1->getBuffer();
-    
-    mParamsChanged = false;
-}
+using namespace ml;
 
 void MLProcMultiply::process()
 {
-    if(mParamsChanged) doParams();
-	
-	const MLSample* px1 = mpFX1;
-	const MLSample* px2 = mpFX2;
-	MLSample* py1 = mpFY1;
-
-	int c = kSIMDVectorsPerDSPVector; // SIMD
-	__m128 vx1, vx2, vr; 	
-
-	for (int n = 0; n < c; ++n)
-	{
-		vx1 = _mm_load_ps(px1);
-		vx2 = _mm_load_ps(px2);
-		vr = _mm_mul_ps(vx1, vx2);
-		_mm_store_ps(py1, vr);
-		px1 += kSSEVecSize;
-		px2 += kSSEVecSize;
-		py1 += kSSEVecSize;
-	}
+	const DSPVector* pvm1 = reinterpret_cast<const DSPVector*>(getInput(1).getConstBuffer());
+	const DSPVector* pvm2 = reinterpret_cast<const DSPVector*>(getInput(2).getConstBuffer());
+	DSPVector* pvout = reinterpret_cast<DSPVector*>(getOutput().getBuffer());
+	(*pvout) = (*pvm1)*(*pvm2);
 }
+

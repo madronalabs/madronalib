@@ -90,9 +90,10 @@ void MLProcBiquad::clear()
 	mX1 = mX2 = mY1 = mY2 = 0.f;
 }
 
+static ml::Symbol modeSym("mode");
+
 void MLProcBiquad::calcCoeffs(const int frames) 
 {
-	static ml::Symbol modeSym("mode");
 	int mode = (int)getParam(modeSym);
 	const MLSignal& frequency = getInput(2);
 	const MLSignal& q = getInput(3);

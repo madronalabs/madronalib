@@ -462,7 +462,7 @@ public:
 	bool outputIsValid(int idx);
 	
 	ml::Symbol getClassName() { return procInfo().getClassName(); }
-	inline const ml::Symbol& getName() const { return mName; }
+	inline const ml::Symbol getName() const { return mName; }
 	inline int getCopyIndex() const { return mCopyIndex; }
 	ml::Symbol getNameWithCopyIndex();
 	void dumpParams();

@@ -8,6 +8,8 @@
 #include <math.h>
 #include "MLProc.h"
 
+using namespace ml;
+
 // ----------------------------------------------------------------
 // class definition
 
@@ -18,9 +20,9 @@ public:
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
+	RandomSource mRandomSource;
 	MLProcInfo<MLProcNoise> mInfo;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -33,19 +35,15 @@ namespace
 	ML_UNUSED MLProcOutput<MLProcNoise> outputs[] = {"out"};
 }
 
+static ml::Symbol gainSym("gain");
+
 // ----------------------------------------------------------------
 // implementation
 
 void MLProcNoise::process()
 {	
-	static ml::Symbol gainSym("gain");
-	MLSignal& y = getOutput();
-	MLSample gain = getParam(gainSym);
-	
-	for (int n=0; n<kFloatsPerDSPVector; ++n)
-	{
-		y[n] = MLRand() * gain;
-	}
+	DSPVector* pvout = reinterpret_cast<DSPVector*>(getOutput().getBuffer());
+	(*pvout) = mRandomSource();
 }
 
 

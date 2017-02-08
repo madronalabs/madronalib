@@ -145,7 +145,7 @@ void MLDrawing::paint(Graphics& g)
 
 	for(auto op : mOperations)
 	{
-		Path p;
+		juce::Path p;
 		Vec2 p1, p2;
 		//const MLDrawing::Operation& op = *it;
 

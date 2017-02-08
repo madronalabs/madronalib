@@ -406,7 +406,7 @@ void MLLookAndFeel::drawNumber (Graphics& g, const char* number, const int x, co
 	
 	if(0)
 	{
-		Path tbounds;
+		juce::Path tbounds;
 		const Rectangle<float> b (x + 0.5f, y + 0.5f, w - 1., h - 1.);	
 		tbounds.addRectangle(b);
 		g.setColour(Colours::blue);	
@@ -631,7 +631,7 @@ void MLLookAndFeel::drawMenuButtonText (Graphics& g, MLButton& button,
                       Justification::left, 1., 1.);
 	
 	// draw arrow
-	Path a;
+	juce::Path a;
 	int td = h/6;
 	float txc = w - h + h/2 + 0.5f;
 	float tyc = h/2 + h/8;

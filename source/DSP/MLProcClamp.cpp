@@ -33,12 +33,13 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
+static ml::Symbol minSym("min");
+static ml::Symbol maxSym("max");
+
 void MLProcClamp::process()
 {
 	const MLSignal& x = getInput(1);
 	MLSignal& y = getOutput();
-	static ml::Symbol minSym("min");
-	static ml::Symbol maxSym("max");
 	
 	const MLSample fmin = getParam(minSym);
 	const MLSample fmax = getParam(maxSym);

@@ -19,6 +19,9 @@ namespace
 	ML_UNUSED MLProcInput<MLProcRingBuffer> inputs[] = {"in"};
 }	
 
+static ml::Symbol frameSym("frame_size");
+static ml::Symbol modeSym("mode");
+
 // ----------------------------------------------------------------
 // implementation
 
@@ -79,9 +82,9 @@ void MLProcRingBuffer::doParams(void)
 	mParamsChanged = false;
 }
 
+
 void MLProcRingBuffer::process()
 {
-	static ml::Symbol frameSym("frame_size");
 
 	int written;
 	const MLSignal& x = getInput(1);
@@ -129,9 +132,6 @@ void MLProcRingBuffer::process()
 //
 int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 {
-	static ml::Symbol modeSym("mode");
-	static ml::Symbol frameSym("frame_size");
-
 	int lastRead = 0;
 	MLSample * outBuffer = outSig.getBuffer() + outSig.plane(plane);
 	void * trashBuffer = (void *)mTrashSignal.getBuffer();
