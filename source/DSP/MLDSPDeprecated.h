@@ -31,9 +31,7 @@
 #define MAXFLOAT FLT_MAX
 #endif
 
-#ifdef __SSE__
-#include <xmmintrin.h>
-#endif
+#include <emmintrin.h>
 
 #ifndef DEBUG
 #define force_inline  inline __attribute__((always_inline))

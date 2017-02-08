@@ -706,7 +706,7 @@ namespace ml
 	
 	
 	
-	inline DSPVector half1Up2(DSPVector x)
+	inline DSPVector half1Up2(const DSPVector& x)
 	{
 		DSPVector y;
 		// TODO SSE
@@ -719,7 +719,7 @@ namespace ml
 		return y;
 	}
 	
-	inline DSPVector half2Up2(DSPVector x)
+	inline DSPVector half2Up2(const DSPVector& x)
 	{
 		DSPVector y;
 		// TODO SSE
@@ -746,7 +746,7 @@ namespace ml
 		// but the template version allows the function parameter to be inlined.
 		
 		template <typename FN>
-		inline DSPVector operator()(FN fn, const DSPVector x)
+		inline DSPVector operator()(FN fn, const DSPVector& x)
 		{
 			// up to 2x buffers
 			int j = 0;

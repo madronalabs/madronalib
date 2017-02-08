@@ -63,9 +63,10 @@ namespace ml
 	{
 		typedef union 			
 		{
-			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
-			float asFloat[kFloatsPerDSPVector*VECTORS];
+	//		std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			float asFloat[kFloatsPerDSPVector*VECTORS];
+
 		} DSPVectorData;
  
 	public:
@@ -369,7 +370,7 @@ namespace ml
 	}	
 
 	DEFINE_OP3(select, vecSelect(x1, x2, x3));					// bitwise select(resultIfTrue, resultIfFalse, conditionMask)
-	DEFINE_OP3(lerp, (x1 + (x3 * (x2 - x1))));					// lerp(a, b, mix)
+	DEFINE_OP3(lerp, vecAdd(x1, (vecMul(x3, vecSub(x2, x1)))));	// lerp(a, b, mix). NB: "(x1 + (x3 * (x2 - x1)))" would be pretty but does not work on Windows
 	DEFINE_OP3(clamp, vecClamp(x1, x2, x3) );					// clamp(x, minBound, maxBound) 
 	DEFINE_OP3(within, vecWithin(x1, x2, x3) );					// is x in the open interval [x2, x3) ?
 	

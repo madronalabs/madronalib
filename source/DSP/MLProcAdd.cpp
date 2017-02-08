@@ -31,50 +31,13 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-#ifndef __SSE__
+using namespace ml;
 
-// scalar fallback code
-//
 void MLProcAdd::process()
 {
-	const MLSignal& x1 = getInput(1);
-	const MLSignal& x2 = getInput(2);
-	MLSignal& y1 = getOutput();
-	for(int n=0; n<frames; ++n)
-	{
-		y1[n] = x1[n] + x2[n];
-	}
+	const DSPVector* pvm1 = reinterpret_cast<const DSPVector*>(getInput(1).getConstBuffer());
+	const DSPVector* pvm2 = reinterpret_cast<const DSPVector*>(getInput(2).getConstBuffer());
+	DSPVector* pvout = reinterpret_cast<DSPVector*>(getOutput().getBuffer());
+	(*pvout) = (*pvm1) + (*pvm2);
 }
-
-#else
-
-// SSE version with optimizations for constant inputs
-//
-void MLProcAdd::process()
-{
-	const MLSignal& x1 = getInput(1);
-	const MLSignal& x2 = getInput(2);
-	MLSignal& y1 = getOutput();
-	
-	const MLSample* px1 = x1.getConstBuffer();
-	const MLSample* px2 = x2.getConstBuffer();
-	MLSample* py1 = y1.getBuffer();
-	
-	int c = kSIMDVectorsPerDSPVector;
-	__m128 vx1, vx2, vr; 	
-	
-	for (int n = 0; n < c; ++n)
-	{
-		vx1 = _mm_load_ps(px1);
-		vx2 = _mm_load_ps(px2);
-		vr = _mm_add_ps(vx1, vx2);
-		_mm_store_ps(py1, vr);
-		px1 += kSSEVecSize;
-		px2 += kSSEVecSize;
-		py1 += kSSEVecSize;
-	}
-}
-
-#endif
- 
 

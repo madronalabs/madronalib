@@ -30,6 +30,8 @@
 #include <iostream>
 #include <memory>
 #include <algorithm>
+#include <thread>
+#include <mutex>
 
 #include "MLLocks.h"
 #include "MLText.h"
