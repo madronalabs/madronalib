@@ -82,6 +82,22 @@ int main()
 	std::vector<MLPropertyChange> dv = { {"toad", {1.f, 2.f, 3.f} }, {"todd", 23.f} };
 	*/
 	
+	// MLTEST constexpr DSPVector
+	
+//	constexpr foo<float, kFloatsPerDSPVector> f(2.3f);
+	
+//	constexpr DSPVector g( DSPVectorArrayConst(2.3f));
+
+	DSPVectorConst q(23.f);
+	
+
+	
+	std::cout  << q.data << ("\n");
+	
+
+	std::cout << "size = " << sizeof(DSPVector) << "\n";
+	
+	
 	// MLTEST constexpr Proc setup
 	constStr a("hello");
 	constStr b("world");

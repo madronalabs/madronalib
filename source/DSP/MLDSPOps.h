@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <array>
 #include <functional>
 #include <iostream>
 
@@ -21,21 +22,61 @@
 
 namespace ml
 {				
+	// constexpr std::array fill machinery
+	template <size_t N>
+	struct bar 
+	{
+		template <typename T, typename ...Tn>
+		static constexpr auto apply(T v, Tn ...vs)
+		-> decltype(bar<N - 1>::apply(v, v, vs...))
+		{
+			return bar<N - 1>::apply(v, v, vs...);
+		}
+	};
+	
+	template <>
+	struct bar<1> 
+	{
+		template <typename T, typename ...Tn>
+		static constexpr auto apply(T v, Tn ...vs)
+		-> std::array<T, sizeof...(vs) + 1>
+		{
+			return std::array<T, sizeof...(vs) + 1> {v, vs...};
+		}
+	};
+	
+	template <typename T, size_t N>
+	struct foo {
+		std::array<T, N> data;
+		constexpr foo(T val) : data(bar<N>::apply(val)) {}
+	};
+
+	template<int VECTORS> 
+	struct DSPVectorArrayConst
+	{
+		foo<float, kFloatsPerDSPVector*VECTORS> constData;		
+		constexpr DSPVectorArrayConst(float f) : constData(f) {}
+	};
+	
 	template<int VECTORS>
 	class DSPVectorArray
 	{
-		typedef union
+		typedef union 			
 		{
-			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			float asFloat[kFloatsPerDSPVector*VECTORS];
+			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
 		} DSPVectorData;
-
+ 
 	public:
 		DSPVectorData mData;
 
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
+		
+		constexpr DSPVectorArray(DSPVectorArrayConst<VECTORS> v) : mData{{v.constData.data}} {}
+		
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
@@ -159,8 +200,15 @@ namespace ml
 		template<int VA, int VB>
 		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 	};
-
+	
 	typedef DSPVectorArray<1> DSPVector;
+	
+	class DSPVectorConst
+	{
+	public:
+		DSPVector data;
+		constexpr DSPVectorConst(float f) : data(DSPVectorArrayConst<1>(f)){}
+	};
 	
 	// ----------------------------------------------------------------
 	#pragma mark load and store
@@ -189,7 +237,7 @@ namespace ml
 		DSPVectorArray<VECTORS> vy;								\
 		const float* px1 = vx1.getConstBuffer();							\
 		float* py1 = vy.getBuffer();							\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
 		{														\
 			SIMDVectorFloat x = vecLoad(px1);					\
 			vecStore(py1, (opComputation));						\
@@ -304,7 +352,7 @@ namespace ml
 		const float* px2 = vx2.getConstBuffer();				\
 		const float* px3 = vx3.getConstBuffer();				\
 		float* py1 = vy.getBuffer();							\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)		\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
 		{														\
 			SIMDVectorFloat x1 = vecLoad(px1);					\
 			SIMDVectorFloat x2 = vecLoad(px2);					\
@@ -579,4 +627,82 @@ namespace ml
 		}
 		return r;
 	}
-}
+	
+	// ----------------------------------------------------------------
+	// integer DSPVector
+	
+	typedef DSPVectorArray<1> DSPVector;
+	
+	constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
+	
+	template<int VECTORS>
+	class DSPVectorArrayInt
+	{
+		typedef union
+		{
+			SIMDVectorInt asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			int32_t asInt[kFloatsPerDSPVector*VECTORS];
+		} DSPVectorData;
+		
+	public:
+		DSPVectorData mData;
+		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
+		inline const int32_t operator[](int i) const { return mData.asInt[i]; }			
+		inline float* getBufferInt() {return (mData.asInt);} 
+		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
+		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
+		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
+	};
+	
+	typedef DSPVectorArrayInt<1> DSPVectorInt;
+
+	// ----------------------------------------------------------------
+	#pragma mark unary float -> int operators 
+		
+	#define DEFINE_OP1_F2I(opName, opComputation)				\
+	template<int VECTORS>										\
+	inline DSPVectorArrayInt<VECTORS>							\
+		(opName)(const DSPVectorArray<VECTORS>& vx1)			\
+	{															\
+		DSPVectorArrayInt<VECTORS> vy;							\
+		const float* px1 = vx1.getConstBuffer();				\
+		float* py1 = vy.getBuffer();							\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
+		{														\
+			SIMDVectorFloat x = vecLoad(px1);					\
+			vecStore((py1), (opComputation));						\
+			px1 += kFloatsPerSIMDVector;						\
+			py1 += kIntsPerSIMDVector;							\
+		}														\
+		return vy;												\
+	}	
+
+	DEFINE_OP1_F2I(roundFloatToInt, (vecFloatToIntRound(x)));
+	DEFINE_OP1_F2I(truncateFloatToInt, (vecFloatToIntTruncate(x)));
+
+	// ----------------------------------------------------------------
+	#pragma mark unary int -> float operators 
+		
+	#define DEFINE_OP1_I2F(opName, opComputation)				\
+	template<int VECTORS>										\
+	inline DSPVectorArray<VECTORS>								\
+		(opName)(const DSPVectorArrayInt<VECTORS>& vx1)			\
+	{															\
+		DSPVectorArray<VECTORS> vy;							\
+		const float* px1 = vx1.getConstBuffer();				\
+		float* py1 = vy.getBuffer();							\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
+		{														\
+			SIMDVectorInt x = VecF2I(vecLoad(px1));						\
+			vecStore((py1), (opComputation));						\
+			px1 += kIntsPerSIMDVector;							\
+			py1 += kFloatsPerSIMDVector;						\
+		}														\
+		return vy;												\
+	}	
+	
+	DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
+
+} // namespace ml
+
+
