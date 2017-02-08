@@ -52,6 +52,9 @@ constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
 constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
 constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
 
+constexpr uintptr_t kIntsPerSIMDVectorBits = 2;
+constexpr uintptr_t kIntsPerSIMDVector = 1 << kIntsPerSIMDVectorBits;
+
 // primitive SSE operations
 #define vecAdd _mm_add_ps
 #define vecSub _mm_sub_ps
@@ -99,6 +102,11 @@ constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVec
 
 #define vecShiftLeft _mm_slli_si128
 #define vecShiftRight _mm_srli_si128
+
+#define vecFloatToIntRound _mm_cvtps_epi32
+#define vecFloatToIntTruncate _mm_cvttps_epi32
+#define vecIntToFloat _mm_cvtepi32_ps
+
 
 typedef union 
 {
