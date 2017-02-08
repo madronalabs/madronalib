@@ -10,6 +10,7 @@
 #include <math.h>
 #include <float.h>
 #include <stdint.h>
+#include <limits>   
 
 namespace ml 
 {
@@ -132,5 +133,25 @@ namespace ml
 	uint32_t rand32(void);
 	void randReset(void);
 	
+	// ----------------------------------------------------------------
+	// constexpr sqrt via Newton-Raphson via Alex on Stack Overflow
+	
+	namespace Detail
+	{
+		float constexpr sqrtNewtonRaphson(float x, float curr, float prev)
+		{
+			return curr == prev
+			? curr
+			: sqrtNewtonRaphson(x, 0.5f * (curr + x / curr), curr);
+		}
+	}
+	
+	float constexpr sqrtf_const(float x)
+	{
+		return x >= 0 && x < std::numeric_limits<float>::infinity()
+		? Detail::sqrtNewtonRaphson(x, x, 0.f)
+		: std::numeric_limits<float>::quiet_NaN();
+	}
+
 
 } // namespace ml

@@ -24,18 +24,18 @@ namespace ml
 {				
 	// constexpr std::array fill machinery
 	template <size_t N>
-	struct bar 
+	struct constArrayRecursion 
 	{
 		template <typename T, typename ...Tn>
 		static constexpr auto apply(T v, Tn ...vs)
-		-> decltype(bar<N - 1>::apply(v, v, vs...))
+		-> decltype(constArrayRecursion<N - 1>::apply(v, v, vs...))
 		{
-			return bar<N - 1>::apply(v, v, vs...);
+			return constArrayRecursion<N - 1>::apply(v, v, vs...);
 		}
 	};
 	
 	template <>
-	struct bar<1> 
+	struct constArrayRecursion<1> 
 	{
 		template <typename T, typename ...Tn>
 		static constexpr auto apply(T v, Tn ...vs)
@@ -46,15 +46,15 @@ namespace ml
 	};
 	
 	template <typename T, size_t N>
-	struct foo {
+	struct constArray {
 		std::array<T, N> data;
-		constexpr foo(T val) : data(bar<N>::apply(val)) {}
+		constexpr constArray(T val) : data(constArrayRecursion<N>::apply(val)) {}
 	};
 
 	template<int VECTORS> 
 	struct DSPVectorArrayConst
 	{
-		foo<float, kFloatsPerDSPVector*VECTORS> constData;		
+		constArray<float, kFloatsPerDSPVector*VECTORS> constData;		
 		constexpr DSPVectorArrayConst(float f) : constData(f) {}
 	};
 	
@@ -74,9 +74,7 @@ namespace ml
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
-		
 		constexpr DSPVectorArray(DSPVectorArrayConst<VECTORS> v) : mData{{v.constData.data}} {}
-		
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
@@ -201,14 +199,18 @@ namespace ml
 		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 	};
 	
-	typedef DSPVectorArray<1> DSPVector;
 	
-	class DSPVectorConst
+	template<int VECTORS>
+	class DSPVectorArrayConstTest : public DSPVectorArray<VECTORS>
 	{
 	public:
-		DSPVector data;
-		constexpr DSPVectorConst(float f) : data(DSPVectorArrayConst<1>(f)){}
+		// DSPVectorArray<VECTORS> data;
+		constexpr DSPVectorArrayConstTest(float f) : DSPVectorArray<VECTORS>(DSPVectorArrayConst<VECTORS>(f)){}
 	};
+	
+	typedef DSPVectorArray<1> DSPVector;
+	typedef DSPVectorArrayConstTest<1> DSPVectorConst;
+
 	
 	// ----------------------------------------------------------------
 	#pragma mark load and store
