@@ -8,8 +8,7 @@
 MLSignalReporter::MLSignalReporter(MLPluginProcessor* p) :
 	mpProcessor(p),
     mViewIndex(0),
-	mNeedsRedraw(true),
-	mVoices(0)
+	mNeedsRedraw(true)
 {
 	
 }
@@ -34,7 +33,7 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w
 	{
 		// if signal buffer does not already exist, add one.
         // Allocates a signal with one row per voice. 
-		SymbolToSignalMap::const_iterator it = mSignalBuffers.find(alias);
+		std::map<ml::Symbol, MLSignalPtr>::const_iterator it = mSignalBuffers.find(alias);
 		if (it == mSignalBuffers.end()) 
 		{
 			// add buffers so we can read the signal from the buffer and
@@ -64,6 +63,9 @@ MLSignalView* MLSignalReporter::addSignalViewToMap(ml::Symbol alias, MLWidget* w
             int p = mViewPriorityMap[alias]; // creates and returns 0 if not found
             mViewPriorityMap[alias] = ml::max(p, priority);
         }
+		
+		// init voices
+		mVoicesBySignalName[alias] = 0;
 	}
 	else
 	{
@@ -116,14 +118,6 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
     // only needed when we recompile or turn voices on / off.
     int voices = mpProcessor->countSignals(signalName);
 	
-	// MLTEST counting 8 signals for key_modc_out* etc. 
-	// 8 outputs of same proc
-	if(voices == 8)
-	{
-		debug() << "wat " << signalName << " \n";
-		int voices2 = mpProcessor->countSignals(signalName);
-	}
-	
     // read signal into buffer and check for change.
     // TODO post ring buffer, we have to look at all the samples in the buffer
     // to detect changes. Instead, the DSP engine can keep track of what
@@ -135,16 +129,13 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
     // if the buffer was full, compare to see if a redraw is needed. 
     if(samplesRead == samplesRequested) 
     {
-		bool voicesChanged = (voices != mVoices);
-		
-		if(voicesChanged) debug() << "!" << voices << "\n"; // MLTEST
-		
+		bool voicesChanged = (voices != mVoicesBySignalName[signalName]);		
 		bool changed = signalsAreDifferent(buffer1, buffer2, samplesRead, voices);
         if(changed || forceView || voicesChanged)
         {
 			// send signal to each signal view in its viewer list.
-            MLSignalViewList viewList = mSignalViewsMap[signalName];
-            for(MLSignalViewList::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
+            std::list<MLSignalViewPtr> viewList = mSignalViewsMap[signalName];
+            for(std::list<MLSignalViewPtr>::iterator it2 = viewList.begin(); it2 != viewList.end(); it2++)
             {
                 // send engine and signal information to viewer proc.  
                 MLSignalViewPtr pV = *it2;
@@ -157,7 +148,7 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
                 }
             }
 			buffer2 = buffer1;
-			mVoices = voices;
+			mVoicesBySignalName[signalName] = voices;
         }
     }
     return drawn;
@@ -191,7 +182,7 @@ void MLSignalReporter::viewChangedSignals()
 	ml::Symbol signalName;
 	
 	// first service all views that have high priority set
-    for(ViewPriorityMap::iterator it = mViewPriorityMap.begin();
+    for(std::map<ml::Symbol, int>::iterator it = mViewPriorityMap.begin();
         it != mViewPriorityMap.end(); it++ )
     {
         signalName = it->first;

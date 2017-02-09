@@ -33,24 +33,21 @@ protected:
 	void redrawSignals();
 	
 	typedef std::shared_ptr<MLSignalView> MLSignalViewPtr;
-	typedef std::list<MLSignalViewPtr> MLSignalViewList;
-	typedef std::map<ml::Symbol, MLSignalViewList> MLSignalViewListMap;
-	typedef std::map<ml::Symbol, MLSignalPtr> SymbolToSignalMap;
-	typedef std::map<ml::Symbol, int> ViewPriorityMap;
 
 	MLPluginProcessor* mpProcessor;
-	SymbolToSignalMap mSignalBuffers;
-	SymbolToSignalMap mSignalBuffers2;
-    ViewPriorityMap mViewPriorityMap;
+	std::map<ml::Symbol, MLSignalPtr> mSignalBuffers;
+	std::map<ml::Symbol, MLSignalPtr> mSignalBuffers2;
+    std::map<ml::Symbol, int> mViewPriorityMap;
     
     // map of view lists
-	MLSignalViewListMap mSignalViewsMap;
+	std::map<ml::Symbol, std::list<MLSignalViewPtr> > mSignalViewsMap;
 
     int mViewIndex;
     std::vector<ml::Symbol> mSignalNames;
 	
+	std::map<ml::Symbol, int> mVoicesBySignalName;
+	
 	bool mNeedsRedraw;
-	int mVoices;
 };
 
 #endif // __ML_SIGNAL_REPORTER_H
