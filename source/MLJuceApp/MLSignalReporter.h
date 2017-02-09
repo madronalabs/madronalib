@@ -50,6 +50,7 @@ protected:
     std::vector<ml::Symbol> mSignalNames;
 	
 	bool mNeedsRedraw;
+	int mVoices;
 };
 
 #endif // __ML_SIGNAL_REPORTER_H

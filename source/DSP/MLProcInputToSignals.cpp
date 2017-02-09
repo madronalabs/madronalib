@@ -288,6 +288,7 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	 */
 	
 	
+	
 	mNoteEventsPlaying.resize(kMaxEvents);
 	mNoteEventsPending.resize(kMaxEvents);
 }
@@ -306,7 +307,8 @@ void MLProcInputToSignals::setInputFrameBuffer(PaUtilRingBuffer* pBuf)
 void MLProcInputToSignals::clearChangeLists()
 {
 	// things per voice
-	for (int v=0; v<kMLEngineMaxVoices; ++v)
+	int maxVoices = getContext()->getRootContext()->getMaxVoices();
+	for (int v=0; v<maxVoices; ++v)
 	{
 		mVoices[v].clearChanges();
 	}
@@ -325,8 +327,11 @@ MLProc::err MLProcInputToSignals::resize()
 	int bufSize = (int)getParam(bufsizeSym);
 	int vecSize = getContextVectorSize();
     
+	int maxVoices = getContext()->getRootContext()->getMaxVoices();
+	mVoices.resize(maxVoices);
+
 	MLProc::err r;
-	for(int i=0; i<kMLEngineMaxVoices; ++i)
+	for(int i=0; i<maxVoices; ++i)
 	{
 		r = mVoices[i].resize(bufSize);
 		if (!(r == OK))
@@ -354,7 +359,7 @@ MLProc::err MLProcInputToSignals::resize()
 
 	// make outputs
 	//
-	for(int i=1; i <= kMLEngineMaxVoices * kNumVoiceSignals; ++i)
+	for(int i=1; i <= maxVoices * kNumVoiceSignals; ++i)
 	{
 		if (!outputIsValid(i))
 		{
@@ -364,7 +369,7 @@ MLProc::err MLProcInputToSignals::resize()
 
 	// do voice params
 	//
-	for(int i=0; i<kMLEngineMaxVoices; ++i)
+	for(int i=0; i<maxVoices; ++i)
 	{
         if((i*kNumVoiceSignals + 1) < getNumOutputs())
         {
@@ -438,6 +443,7 @@ void MLProcInputToSignals::doParams()
 	static const ml::Symbol unisonSym("unison");
 	static const ml::Symbol glideSym("glide");
 
+	int maxVoices = getContext()->getRootContext()->getMaxVoices();
 	int newVoices = (int)getParam(voicesSym);
 	newVoices = ml::clamp(newVoices, 0, 15);
     
@@ -451,7 +457,7 @@ void MLProcInputToSignals::doParams()
 	mProtocol = newProtocol;
 	
 	mGlide = getParam(glideSym);
-	for (int v=0; v<kMLEngineMaxVoices; ++v)
+	for (int v=0; v<maxVoices; ++v)
 	{
 		mVoices[v].mdPitch.setGlideTime(mGlide);
 		mVoices[v].mdPitchBend.setGlideTime(mGlide);
@@ -461,7 +467,7 @@ void MLProcInputToSignals::doParams()
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
-			for(int i=0; i<kMLEngineMaxVoices; ++i)
+			for(int i=0; i<maxVoices; ++i)
 			{
 				mVoices[i].mdGate.setGlideTime(0.0f);
 				mVoices[i].mdAmp.setGlideTime(1.f / (float)mOSCDataRate);
@@ -475,7 +481,7 @@ void MLProcInputToSignals::doParams()
 			break;
 		case kInputProtocolMIDI:	
 		case kInputProtocolMIDI_MPE:	
-			for(int i=0; i<kMLEngineMaxVoices; ++i)
+			for(int i=0; i<maxVoices; ++i)
 			{
 				mVoices[i].mdGate.setGlideTime(0.f);
 				mVoices[i].mdAmp.setGlideTime(0.001f);
@@ -521,6 +527,13 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 void MLProcInputToSignals::clear()
 {
 	int vecSize = getContextVectorSize();
+	int maxVoices = getContext()->getRootContext()->getMaxVoices();
+	
+	// resize if needed, a hack
+	if(mVoices.size() != maxVoices)
+	{
+		resize();
+	}
     clearChangeLists();
 	
 	for(int i=0; i<kMaxEvents; ++i)
@@ -532,7 +545,7 @@ void MLProcInputToSignals::clear()
 	int outs = getNumOutputs();
 	if (outs)
 	{
-		for (int v=0; v<kMLEngineMaxVoices; ++v)
+		for (int v=0; v<maxVoices; ++v)
 		{
 			mVoices[v].clearState();
 			mVoices[v].clearChanges();
@@ -1208,7 +1221,8 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 		mMPEMainVoice.mdMod3.writeToSignal(mMainMod3Signal, frames);
 	}
 	
-	for (int v=0; v<kMLEngineMaxVoices; ++v)
+	int maxVoices = getContext()->getRootContext()->getMaxVoices();
+	for (int v=0; v<maxVoices; ++v)
 	{
 		// changes per voice
 		MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);

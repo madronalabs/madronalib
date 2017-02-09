@@ -652,7 +652,7 @@ MLProc::err MLProcContainer::prepareToProcess()
 	int containerSize = getContextVectorSize();
 	float containerRate = getContextSampleRate();
 	
-	int mySize, ins, outs;
+	int mySize, outs;
 	float myRate;
 
 	mySize = containerSize;
@@ -1374,7 +1374,8 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 				ml::Symbol aliasWithoutStar = ml::textUtils::stripFinalCharacter(alias);
 				
 				// add a buffer for each possible output matching wildcard (quick and dirty)
-				for(int i = 1; i <= kMLEngineMaxVoices; ++i)
+				int maxVoices = getContext()->getRootContext()->getMaxVoices();
+				for(int i = 1; i <= maxVoices; ++i)
 				{				
 					ml::Symbol numberedOutput = ml::textUtils::addFinalNumber(outputNameWithoutStar, i);
 					ml::Symbol numberedAlias = ml::textUtils::addFinalNumber(aliasWithoutStar, i);
@@ -1439,7 +1440,10 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 				ml::Symbol aliasWithoutStar = ml::textUtils::stripFinalCharacter(alias);
 
 				// gather each buffer matching wildcard (quick and dirty)
-				for(int i = 1; i <= kMLEngineMaxVoices; ++i)
+				int maxVoices = getContext()->getRootContext()->getMaxVoices();
+				
+				debug() << "GATHERING max voics: " << maxVoices << "\n";
+				for(int i = 1; i <= maxVoices; ++i)
 				{
 					MLProcPtr bufferProc = context.getProc(ml::Path(ml::textUtils::addFinalNumber(aliasWithoutStar, i)));		
 					if (bufferProc)	
@@ -1719,6 +1723,8 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 {
 	if (!parent) return;
 
+	
+	
 	forEachXmlChildElement(*parent, child)	
 	{
 		if (child->hasTagName("rootproc"))

@@ -131,6 +131,7 @@ private:
 	Component* pComponent;
 	
 	// must point to enclosing context.
+	// TODO this should not be a Widget but a widget container type!
 	MLWidget* mpContainer;
 	
 	ml::Symbol mName;

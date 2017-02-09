@@ -9,6 +9,7 @@
 #pragma mark MLDSPContext
 
 MLDSPContext::MLDSPContext() : 
+	mMaxVoices(1),
 	mEnabled(false),
 	mpRootContext(nullptr)
 {

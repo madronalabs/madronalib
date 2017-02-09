@@ -8,7 +8,8 @@
 MLSignalReporter::MLSignalReporter(MLPluginProcessor* p) :
 	mpProcessor(p),
     mViewIndex(0),
-	mNeedsRedraw(true)
+	mNeedsRedraw(true),
+	mVoices(0)
 {
 	
 }
@@ -115,6 +116,14 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
     // only needed when we recompile or turn voices on / off.
     int voices = mpProcessor->countSignals(signalName);
 	
+	// MLTEST counting 8 signals for key_modc_out* etc. 
+	// 8 outputs of same proc
+	if(voices == 8)
+	{
+		debug() << "wat " << signalName << " \n";
+		int voices2 = mpProcessor->countSignals(signalName);
+	}
+	
     // read signal into buffer and check for change.
     // TODO post ring buffer, we have to look at all the samples in the buffer
     // to detect changes. Instead, the DSP engine can keep track of what
@@ -126,8 +135,12 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
     // if the buffer was full, compare to see if a redraw is needed. 
     if(samplesRead == samplesRequested) 
     {
+		bool voicesChanged = (voices != mVoices);
+		
+		if(voicesChanged) debug() << "!" << voices << "\n"; // MLTEST
+		
 		bool changed = signalsAreDifferent(buffer1, buffer2, samplesRead, voices);
-        if(changed || forceView)
+        if(changed || forceView || voicesChanged)
         {
 			// send signal to each signal view in its viewer list.
             MLSignalViewList viewList = mSignalViewsMap[signalName];
@@ -144,6 +157,7 @@ int MLSignalReporter::viewOneSignal(ml::Symbol signalName, bool forceView, int p
                 }
             }
 			buffer2 = buffer1;
+			mVoices = voices;
         }
     }
     return drawn;

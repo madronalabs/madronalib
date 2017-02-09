@@ -66,6 +66,13 @@ public:
 	void setRootContext(MLDSPContext* pC) { mpRootContext = pC; }
 	MLDSPContext* getRootContext() { return mpRootContext; }
 	
+	
+	// only used for root engine. TODO move to Engine.
+	
+	void setMaxVoices(int v) { mMaxVoices = v; }
+	int getMaxVoices() { return mMaxVoices; }
+
+	
 	// ----------------------------------------------------------------
 	#pragma resources
 
@@ -76,6 +83,8 @@ protected:
 	MLSignal mNullInput;
 	MLSignal mNullOutput;	
 	
+	int mMaxVoices;
+
 	bool mEnabled;
 	ml::Clock mClock;
 	

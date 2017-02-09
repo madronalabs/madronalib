@@ -45,6 +45,24 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	mpHostPhasorProc = 0;
 	clear();
 	
+	juce::ScopedPointer<juce::XmlElement> pRootElem (pDoc->getDocumentElement());
+	
+	if (pRootElem)
+	{	
+		// sets root of this container to itself, which will be passed to children in buildGraph() / buildProc().
+		setRootContext(this);
+		
+		// TODO what does this do different from the above, sort it out
+		makeRoot("root");
+		
+		constexpr int kDefaultMaxVoices = 8;
+		int maxVoices = pRootElem->getIntAttribute("max_voices", kDefaultMaxVoices);
+		setMaxVoices(maxVoices);
+		debug() << "MAX Voices: " << maxVoices << "\n";
+		
+	}
+	
+	
 	// TODO refactor - paths to proccs are plugin-specific
 	if (makeMidiInput)
  	{
@@ -52,7 +70,11 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
 		pElem->setAttribute("name", juce::String(juce::CharPointer_UTF8(kMLInputToSignalProcName)));
-		pElem->setAttribute("voices", (int)kMLEngineMaxVoices);			
+
+		int maxVoices = getContext()->getRootContext()->getMaxVoices();
+		
+		
+		pElem->setAttribute("voices", maxVoices);			
 		
 		// build processor object.
 		MLProc::err bpe = buildProc(pElem);
@@ -88,16 +110,9 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		}
 	}
 	
-	juce::ScopedPointer<juce::XmlElement> pRootElem (pDoc->getDocumentElement());
-
+	// make rest of graph
 	if (pRootElem)
 	{	
-		// sets root of this container to itself, which will be passed to children in buildGraph() / buildProc().
-		setRootContext(this);
-
-		// TODO what does this do different from the above, sort it out
-		makeRoot("root");
-		
 		buildGraph(pRootElem);
         
         // make any published signal outputs at top level only
@@ -391,6 +406,10 @@ void MLDSPEngine::publishSignal(const ml::Path & procAddress, const ml::Symbol o
 		gatherSignalBuffers(procAddress, alias, signalBuffers);
 		if (signalBuffers.size() > 0)
 		{
+			
+			// MLTEST
+			debug() << "PUBBING " << alias << ": " <<   signalBuffers.size() << " buffers\n";
+			
 			// TODO list copy is unnecessary here -- turn this around
 			mPublishedSignalMap[alias] = signalBuffers;
 		}

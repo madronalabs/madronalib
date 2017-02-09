@@ -170,7 +170,7 @@ private:
     MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed
     
 	// the usual voices for each channel
-	MLVoice mVoices[kMLEngineMaxVoices];
+	std::vector<MLVoice> mVoices;
 	
 	// a special voice for the MPE "Main Channel"
 	// stores main pitch bend and controller inputs, which are added to other voices. 

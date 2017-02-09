@@ -73,7 +73,7 @@ const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
 //const uintptr_t kMLProcessChunkSize = 1 << kMLProcessChunkBits;
 //const uintptr_t kMLProcessChunkVectors = kMLProcessChunkSize << kMLSamplesPerSSEVectorBits;
 
-const int kMLEngineMaxVoices = 8;
+//const int kMLEngineMaxVoices = 8;
 
 const uintptr_t kMLCacheAlignBits = 6; // cache line is probably 64 bytes
 const uintptr_t kMLCacheAlignSize = 1 << kMLCacheAlignBits;
