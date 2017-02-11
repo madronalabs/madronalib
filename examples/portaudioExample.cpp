@@ -10,10 +10,19 @@
 
 using namespace ml;
 
-const int kTestSeconds = 4;
+const int kTestSeconds = 2;
 const int kSampleRate = 44100;
 const int kFramesPerBuffer = kFloatsPerDSPVector;
 
+
+uint64_t rdtsc()
+{
+	unsigned int lo,hi;
+	__asm__ __volatile__ ("rdtsc" : "=a" (lo), "=d" (hi));
+	return ((uint64_t)hi << 32) | lo;
+}
+
+int kTotalSamples = 0;
 
 // portaudio callback function.
 // userData is unused.
@@ -62,6 +71,8 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	pm->process();
 	*/
 	
+	kTotalSamples += kFloatsPerDSPVector;
+	
 	return paContinue;
 }
 
@@ -82,13 +93,15 @@ int main()
 	std::vector<MLPropertyChange> dv = { {"toad", {1.f, 2.f, 3.f} }, {"todd", 23.f} };
 	*/
 	
+	uint64_t startCycles = rdtsc();
+	
 	// MLTEST constexpr DSPVector
 
 	DSPVectorConst q(23.f);
 	DSPVectorArrayConst<2> qq(24.f);
 
-	std::cout  << (q) << ("\n");
-	std::cout  << DSPVectorArray<2>(qq) << ("\n");
+//	std::cout  << (q) << ("\n");
+//	std::cout  << DSPVectorArray<2>(qq) << ("\n");
 
 	std::cout << "size = " << sizeof(DSPVector) << "\n";
 	std::cout << "const size = " << sizeof(DSPVectorConst) << "\n";
@@ -111,13 +124,23 @@ int main()
 	pm->setInput("bar", vb);
 	pm->setOutput("baz", vc);
 	
+	/*
+	 TODO make non-const versions
+	 and integrate the parameter list stuff in FDN
+	 
+	int k = fabs(ml::rand()*15.);
+	std::cout << "rand number: " << k  << "\n";
+	Symbol randSym = ("rand") + ml::textUtils::naturalNumberToText(k);
+	std::cout << "random symbol: " << randSym << "\n";
+	pm->setParam(randSym, 23.);
+	*/
+	
 	pm->setParam("a", 4.5);
 	pm->setTextParam("mode", "cosmic");
-	
 	pm->process();
 	
-	const constStrArray& paramNames = pm->getParamNames();
 	
+	const constStrArray& paramNames = pm->getParamNames();
 	int v = paramNames.size();
 	std::cout << v << " params: ";
 	for(int i=0; i<v; ++i)
@@ -169,6 +192,16 @@ int main()
 	
 	Pa_Terminate();
 	printf("Test finished.\n");
+	
+	{
+		uint64_t endCycles = rdtsc();
+		uint64_t diff = endCycles - startCycles;
+		std::cout << "cycles used: " << diff << "\n";
+		std::cout << "samples processed: " << kTotalSamples << "\n";
+		double samplesPerCycle = (double)kTotalSamples / (double)diff;
+		std::cout << samplesPerCycle << " samples / cycle.\n";
+	}
+
 	
 	return err;
 	
