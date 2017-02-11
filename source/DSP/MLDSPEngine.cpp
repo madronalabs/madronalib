@@ -58,10 +58,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		constexpr int kDefaultMaxVoices = 8;
 		int maxVoices = pRootElem->getIntAttribute("max_voices", kDefaultMaxVoices);
 		setMaxVoices(maxVoices);
-		debug() << "MAX Voices: " << maxVoices << "\n";
-		
 	}
-	
 	
 	// TODO refactor - paths to proccs are plugin-specific
 	if (makeMidiInput)
@@ -70,11 +67,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
 		pElem->setAttribute("name", juce::String(juce::CharPointer_UTF8(kMLInputToSignalProcName)));
-
-		int maxVoices = getContext()->getRootContext()->getMaxVoices();
-		
-		
-		pElem->setAttribute("voices", maxVoices);			
+		pElem->setAttribute("voices", getMaxVoices());			
 		
 		// build processor object.
 		MLProc::err bpe = buildProc(pElem);
@@ -406,10 +399,6 @@ void MLDSPEngine::publishSignal(const ml::Path & procAddress, const ml::Symbol o
 		gatherSignalBuffers(procAddress, alias, signalBuffers);
 		if (signalBuffers.size() > 0)
 		{
-			
-			// MLTEST
-			debug() << "PUBBING " << alias << ": " <<   signalBuffers.size() << " buffers\n";
-			
 			// TODO list copy is unnecessary here -- turn this around
 			mPublishedSignalMap[alias] = signalBuffers;
 		}
