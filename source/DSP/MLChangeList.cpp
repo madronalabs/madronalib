@@ -11,7 +11,7 @@ MLChangeList::MLChangeList() : mSize(0), mChanges(0), mValue(0.f)
 	mGlideCounter = 0;
 	mGlideTimeInSamples = 1;
 	mInvGlideTimeInSamples = 1.f;
-	mGlideTime = 0.f;
+	mGlideTime = 0.01f;
 	mGlideStartValue = mGlideEndValue = 0.f;
 	
 	mSampleRate = 44100;
@@ -19,6 +19,7 @@ MLChangeList::MLChangeList() : mSize(0), mChanges(0), mValue(0.f)
 
 	mDebugTest = false;
 	mTheta = 0.;
+	calcGlide();
 }
 
 MLChangeList::~MLChangeList()
@@ -53,15 +54,6 @@ void MLChangeList::zero()
 	addChange(0.f, 0);
 }
 
-void MLChangeList::calcGlide()
-{
-	const unsigned prevGlideTimeInSamples = mGlideTimeInSamples;
-	mGlideTimeInSamples = ml::max(1, (int)(mGlideTime * (float)mSampleRate));
-	mInvGlideTimeInSamples = 1.f / (float)mGlideTimeInSamples;
-	const float glideFrac = (float)mGlideCounter / (float)prevGlideTimeInSamples;
-	mGlideCounter = (unsigned)(glideFrac*(float)mGlideTimeInSamples);
-}
-
 void MLChangeList::setGlideTime(float time)
 {
 	mGlideTime = time;
@@ -72,6 +64,15 @@ void MLChangeList::setSampleRate(unsigned rate)
 {
 	mSampleRate = rate;
 	calcGlide();
+}
+
+void MLChangeList::calcGlide()
+{
+	const unsigned prevGlideTimeInSamples = mGlideTimeInSamples;
+	mGlideTimeInSamples = ml::max(1, (int)(mGlideTime * (float)mSampleRate));
+	mInvGlideTimeInSamples = 1.f / (float)mGlideTimeInSamples;
+	const float glideFrac = (float)mGlideCounter / (float)prevGlideTimeInSamples;
+	mGlideCounter = (unsigned)(glideFrac*(float)mGlideTimeInSamples);
 }
 
 // add a change: a request to arrive at the given value 
@@ -107,7 +108,6 @@ inline void MLChangeList::setGlideTarget(float target)
 }
 
 // write the input change list from the given offset into the output signal y .
-// TODO no glide should be a special case, simpler loop.
 // 
 void MLChangeList::writeToSignal(MLSignal& y, int frames)
 {

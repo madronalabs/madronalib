@@ -44,6 +44,21 @@ MLVoice::MLVoice()
 	clearChanges();
 }
 
+void MLVoice::setSampleRate(float sr)
+{
+	mdDrift.setSampleRate(sr);
+	mdPitch.setSampleRate(sr);
+	mdPitchBend.setSampleRate(sr);
+	mdGate.setSampleRate(sr);
+	mdAmp.setSampleRate(sr);
+	mdVel.setSampleRate(sr);
+	mdNotePressure.setSampleRate(sr);
+	mdChannelPressure.setSampleRate(sr);
+	mdMod.setSampleRate(sr);
+	mdMod2.setSampleRate(sr);
+	mdMod3.setSampleRate(sr);
+}
+	
 MLProc::err MLVoice::resize(int bufSize)
 {
 	MLProc::err ret = MLProc::OK;
@@ -98,7 +113,7 @@ void MLVoice::clearChanges()
 	mdChannelPressure.clearChanges();
 	mdMod.clearChanges();
 	mdMod2.clearChanges();
-	mdMod2.clearChanges();
+	mdMod3.clearChanges();
 }
 
 void MLVoice::zero()
@@ -318,6 +333,7 @@ void MLProcInputToSignals::clearChangeLists()
 // set up output buffers
 MLProc::err MLProcInputToSignals::resize() 
 {
+	float sr = getContextSampleRate();
 	static const ml::Symbol bufsizeSym("bufsize");
 
 	MLProc::err re = OK;
@@ -333,6 +349,7 @@ MLProc::err MLProcInputToSignals::resize()
 	MLProc::err r;
 	for(int i=0; i<maxVoices; ++i)
 	{
+		mVoices[i].setSampleRate(sr);
 		r = mVoices[i].resize(bufSize);
 		if (!(r == OK))
         {

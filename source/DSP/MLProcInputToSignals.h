@@ -36,6 +36,7 @@ public:
 	~MLVoice() {} ;
 	void clearState();
 	void clearChanges();
+	void setSampleRate(float sr);
 	MLProc::err resize(int size);
 	void zero();
 	void zeroExceptPitch();
