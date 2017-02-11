@@ -55,6 +55,7 @@ public:
 		return *outputs[constFind(outputNames, str)];
 	}
 	
+	// TODO remove and make non-const versions for external use
 	// MLProc implementation (more boilerplate)
 	virtual void setParam(constStr str, float v) override
 	{
@@ -72,6 +73,8 @@ public:
 	{
 		outputs[constFind(outputNames, str)] = &v;
 	}
+	
+	
 	
 	void process() override;
 };

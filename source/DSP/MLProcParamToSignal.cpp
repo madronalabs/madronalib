@@ -6,6 +6,7 @@
 #include "MLProc.h"
 #include "MLChangeList.h"
 
+using namespace ml;
 // ----------------------------------------------------------------
 // class definition
 
@@ -14,24 +15,15 @@ class MLProcParamToSignal : public MLProc
 {
 public:
 	MLProcParamToSignal();
-	~MLProcParamToSignal();
 
 	err resize() override;
-
 	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
 	MLProcInfo<MLProcParamToSignal> mInfo;
-	MLChangeList mChangeList;
 	MLSample mVal;	
-	float mGlide;
-	
-	typedef enum 
-	{
-		kDefault = 0,
-		kDecibels = 1,
-	}	eLevelMode;	
+	MLChangeList mChangeList;
 };
 
 
@@ -41,7 +33,7 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcParamToSignal> classReg("param_to_sig");
-	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in", "glide", "level_mode"};
+	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in"};
 	ML_UNUSED MLProcOutput<MLProcParamToSignal> outputs[] = {"out"};
 }
 
@@ -51,66 +43,32 @@ namespace
 
 MLProcParamToSignal::MLProcParamToSignal()
 {
-//	debug() << "MLProcParamToSignal constructor\n";
-	setParam("glide", 0.01f);
-	setParam("level_mode", 0);
+
 }
-
-
-MLProcParamToSignal::~MLProcParamToSignal()
-{
-//	debug() << "MLProcParamToSignal destructor\n";
-}
-
 
 MLProc::err MLProcParamToSignal::resize()
 {
-	int vecSize = getContextVectorSize();
-	float rate = getContextSampleRate();
-	mChangeList.setDims(vecSize);
-	mChangeList.setSampleRate(rate);
-	mChangeList.setGlideTime(mGlide);
-
-	// TODO exception handling
+	float sr = getContextSampleRate();
+	mChangeList.setDims(kFloatsPerDSPVector);
+	mChangeList.setSampleRate(sr);
+	mChangeList.setGlideTime(0.01f);
 	return OK;
 }
 
+static const ml::Symbol inSym("in");
+
 void MLProcParamToSignal::process()
 {
-	static const ml::Symbol levelModeSym("level_mode");
-	static const ml::Symbol glideSym("glide");
-	static const ml::Symbol inSym("in");
-	
 	MLSignal& y = getOutput();
 	
 	if (mParamsChanged)
 	{
-		float input = getParam(inSym);
-		switch (static_cast<int>(getParam(levelModeSym))) 
-		{
-			default:
-			case kDefault:
-				mVal = input;
-				break;
-			case kDecibels:
-				mVal = dBToAmp(input);
-				break;
-		}
+		mVal = getParam(inSym);
 		mChangeList.addChange(mVal, 0);
-		mGlide = getParam(glideSym);
-		mChangeList.setGlideTime(mGlide);
 		mParamsChanged = false;
 	}
-	
-	if (mGlide == 0.f)
-	{
-		y.setToConstant(mVal);
-		// y.setVecToConstant(mVal); // TODO 
-	}
-	else
-	{
-		mChangeList.writeToSignal(y, kFloatsPerDSPVector);
-	}
+
+	mChangeList.writeToSignal(y, kFloatsPerDSPVector);
 }
 
 

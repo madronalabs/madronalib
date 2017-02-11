@@ -63,7 +63,7 @@ namespace ml
 	{
 		typedef union 			
 		{
-	//		std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
+			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
 			float asFloat[kFloatsPerDSPVector*VECTORS];
 
@@ -95,7 +95,6 @@ namespace ml
 		}
 		
 		// set each element of the DSPVectorArray to the float value k.
-		// or should this be fill() instead?
 		inline DSPVectorArray<VECTORS> operator=(float k)
 		{
 			const SIMDVectorFloat vk = vecSet1(k); 	
@@ -592,44 +591,7 @@ namespace ml
 		return vy;
 	}
 	
-	// ----------------------------------------------------------------
-	#pragma mark for testing
-	
-	template<int VECTORS>
-	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
-	{
-		if(VECTORS > 1) out << "[   ";
-		for(int v=0; v<VECTORS; ++v)
-		{
-			if(VECTORS > 1) if(v > 0) out << "\n    ";
-			if(VECTORS > 1) out << "v" << v << ": ";
-			out << "[";
-			for(int i=0; i<kFloatsPerDSPVector; ++i)
-			{
-				out << vecArray[v*kFloatsPerDSPVector + i] << " ";
-			}
-			out << "] ";
-		}
-		if(VECTORS > 1) out << "]";
-		return out;
-	}	
-	
-	inline bool validate(const DSPVector& x)
-	{
-		bool r = true;
-		for(int n=0; n<kFloatsPerDSPVector; ++n)
-		{
-			const float maxUsefulValue = 1e8; 
-			if(ml::isNaN(x[n]) || (fabs(x[n]) > maxUsefulValue)) 
-			{
-				std::cout << "error: " << x[n] << " at index " << n << "\n";
-				std::cout << x << "\n";
-				r = false;
-				break;
-			}
-		}
-		return r;
-	}
+
 	
 	// ----------------------------------------------------------------
 	// integer DSPVector
@@ -649,12 +611,29 @@ namespace ml
 		
 	public:
 		DSPVectorData mData;
+		explicit DSPVectorArrayInt() { }
+		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
+		
 		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
 		inline const int32_t operator[](int i) const { return mData.asInt[i]; }			
-		inline float* getBufferInt() {return (mData.asInt);} 
+		inline int32_t* getBufferInt() {return (mData.asInt);} 
 		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
 		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
 		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
+
+		// set each element of the DSPVectorArray to the int32_t value k.
+		inline DSPVectorArrayInt<VECTORS> operator=(int32_t k)
+		{
+			const SIMDVectorInt vk = vecSetInt1(k); 	
+			int32_t* py1 = getBufferInt();
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(reinterpret_cast<float*>(py1), (vk));
+				py1 += kIntsPerSIMDVector;
+			}
+			return *this;
+		}
 	};
 	
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
@@ -706,6 +685,65 @@ namespace ml
 	
 	DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
 
+#pragma mark for testing
+	
+	template<int VECTORS>
+	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
+	{
+		if(VECTORS > 1) out << "[   ";
+		for(int v=0; v<VECTORS; ++v)
+		{
+			if(VECTORS > 1) if(v > 0) out << "\n    ";
+			if(VECTORS > 1) out << "v" << v << ": ";
+			out << "[";
+			for(int i=0; i<kFloatsPerDSPVector; ++i)
+			{
+				out << vecArray[v*kFloatsPerDSPVector + i] << " ";
+			}
+			out << "] ";
+		}
+		if(VECTORS > 1) out << "]";
+		return out;
+	}	
+	
+	template<int VECTORS>
+	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArrayInt<VECTORS>& vecArray)
+	{
+		if(VECTORS > 1) out << "[   ";
+		for(int v=0; v<VECTORS; ++v)
+		{
+			if(VECTORS > 1) if(v > 0) out << "\n    ";
+			if(VECTORS > 1) out << "v" << v << ": ";
+			out << "[";
+			for(int i=0; i<kIntsPerDSPVector; ++i)
+			{
+				out << vecArray[v*kIntsPerDSPVector + i] << " ";
+			}
+			out << "] ";
+		}
+		if(VECTORS > 1) out << "]";
+		return out;
+	}	
+	
+	// ----------------------------------------------------------------
+	
+	
+	inline bool validate(const DSPVector& x)
+	{
+		bool r = true;
+		for(int n=0; n<kFloatsPerDSPVector; ++n)
+		{
+			const float maxUsefulValue = 1e8; 
+			if(ml::isNaN(x[n]) || (fabs(x[n]) > maxUsefulValue)) 
+			{
+				std::cout << "error: " << x[n] << " at index " << n << "\n";
+				std::cout << x << "\n";
+				r = false;
+				break;
+			}
+		}
+		return r;
+	}	
 } // namespace ml
 
 

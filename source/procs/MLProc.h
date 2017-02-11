@@ -1,3 +1,5 @@
+// new proc. work in progress!
+
 
 #pragma once
 
@@ -78,6 +80,8 @@ public:
 	{ 
 		return size_; 
 	}
+	
+	
 };
 
 // constexpr array count function
@@ -105,7 +109,6 @@ constexpr int constFind(constStr const(&array)[N], constStr str)
 // compiler needs to be able to query the functor / proc about its i/o size possibilities
 // to turn bytecode into a list of process() calls
 
-
 class Proc
 {
 public:
@@ -114,10 +117,27 @@ public:
 	// These methods are the public interface to set a Proc's instance variables. 
 	// From inside a Proc subclass, the inline methods input(), output() and so on should be used instead.
 	
+	// constStr methods
 	virtual void setParam(constStr str, float f) = 0;
 	virtual void setTextParam(constStr str, TextFragment) = 0;
 	virtual void setInput(constStr str, DSPVector &v) = 0;
 	virtual void setOutput(constStr str, DSPVector &v) = 0;
+
+	
+	// the problem is the ambiguity between const / non-const methods.
+	// are the const ones really needed from outside procs?
+	// linear search seems fine. think uses. 
+ 
+	// make iterators and non-const find.
+	
+	/* TODO
+	// Symbol methods
+	inline void setParam(Symbol name, float val)
+	{
+		// find name, linear OK
+		// set it
+	}
+	*/
 	
 	virtual const constStrArray& getParamNames() = 0;
 	virtual const constStrArray& getTextParamNames() = 0;

@@ -1440,9 +1440,9 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 				ml::Symbol aliasWithoutStar = ml::textUtils::stripFinalCharacter(alias);
 
 				// gather each buffer matching wildcard (quick and dirty)
+				// TODO wildcards will be implemented across the board in resource maps / getResources
 				int maxVoices = getContext()->getRootContext()->getMaxVoices();
 				
-				debug() << "GATHERING max voics: " << maxVoices << "\n";
 				for(int i = 1; i <= maxVoices; ++i)
 				{
 					MLProcPtr bufferProc = context.getProc(ml::Path(ml::textUtils::addFinalNumber(aliasWithoutStar, i)));		

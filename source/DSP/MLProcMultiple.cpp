@@ -50,7 +50,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
 	{
 		// new template proc
 		
-debug() << "MLProcMultiple (" << (void *)this << ") ADDING proc " << procName << " \n";
+		// debug() << "MLProcMultiple (" << (void *)this << ") ADDING proc " << procName << " \n";
 				
 //		pTemplate = newProc(className, procName + "#1");		
 
