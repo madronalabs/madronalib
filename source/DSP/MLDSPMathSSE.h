@@ -107,12 +107,30 @@ constexpr uintptr_t kIntsPerSIMDVector = 1 << kIntsPerSIMDVectorBits;
 #define vecFloatToIntTruncate _mm_cvttps_epi32
 #define vecIntToFloat _mm_cvtepi32_ps
 
+#define vecAddInt _mm_add_epi32
+#define vecSet1Int _mm_set1_epi32
 
 typedef union 
 {
 	SIMDVectorFloat v;
 	float f[4];
 } SIMDVectorFloatUnion;
+
+typedef union 
+{
+	SIMDVectorInt v;
+	uint32_t i[4];
+} SIMDVectorIntUnion;
+
+inline SIMDVectorInt vecSetInt1(uint32_t a)
+{
+	return _mm_set1_epi32(a);
+}
+
+inline SIMDVectorInt vecSetInt4(uint32_t a, uint32_t b, uint32_t c, uint32_t d)
+{
+	return _mm_set_epi32(d, c, b, a);
+}
 
 static const int XI = 0xFFFFFFFF;
 static const float X = *(reinterpret_cast<const float *>(&XI));
@@ -134,6 +152,12 @@ const SIMDVectorFloat vecMaskD = {X, X, 0, X};
 const SIMDVectorFloat vecMaskE = {X, X, X, 0};
 const SIMDVectorFloat vecMaskF = {X, X, X, X};
 
+#define SHUFFLE(a, b, c, d) ((a<<6) | (b<<4) | (c<<2) | (d))
+#define vecBroadcast3(x1) _mm_shuffle_ps(x1, x1, SHUFFLE(3, 3, 3, 3))
+
+#define vecShiftElementsLeft(x1, i) _mm_slli_si128(x1, 4*i);
+#define vecShiftElementsRight(x1, i) _mm_srli_si128(x1, 4*i);
+
 inline std::ostream& operator<< (std::ostream& out, SIMDVectorFloat v)
 {
 	SIMDVectorFloatUnion u;
@@ -146,6 +170,22 @@ inline std::ostream& operator<< (std::ostream& out, SIMDVectorFloat v)
 	out << u.f[2];
 	out << ", ";
 	out << u.f[3];
+	out << "]";
+	return out;
+}
+
+inline std::ostream& operator<< (std::ostream& out, SIMDVectorInt v)
+{
+	SIMDVectorIntUnion u;
+	u.v = v;
+	out << "[";
+	out << u.i[0];
+	out << ", ";
+	out << u.i[1];
+	out << ", ";
+	out << u.i[2];
+	out << ", ";
+	out << u.i[3];
 	out << "]";
 	return out;
 }
