@@ -259,16 +259,16 @@ namespace ml
 	DEFINE_OP1(signBit, vecSignBit(x));
 	
 	// trig, log and exp, using accurate cephes-derived library
-	DEFINE_OP1(cos, (vecCos(x)));
 	DEFINE_OP1(sin, (vecSin(x)));
+	DEFINE_OP1(cos, (vecCos(x)));
 	DEFINE_OP1(log, (vecLog(x)));
 	DEFINE_OP1(exp, (vecExp(x)));
 	
 	// lazy log2 and exp2 from natural log / exp
 	STATIC_M128_CONST(kLogTwoVec, 0.69314718055994529f);
 	STATIC_M128_CONST(kLogTwoRVec, 1.4426950408889634f);	
-	DEFINE_OP1(vecLog2, (vecMul(vecLog(x), kLogTwoRVec)));
-	DEFINE_OP1(vecExp2, (vecExp(vecMul(kLogTwoVec, x))));
+	DEFINE_OP1(log2, (vecMul(vecLog(x), kLogTwoRVec)));
+	DEFINE_OP1(exp2, (vecExp(vecMul(kLogTwoVec, x))));
 
 	// trig, log and exp, using polynomial approximations
 	DEFINE_OP1(sinApprox, (vecSinApprox(x)));
