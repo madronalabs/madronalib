@@ -66,8 +66,7 @@ namespace ml
 			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
 			float asFloat[kFloatsPerDSPVector*VECTORS];
-
-		} DSPVectorData;
+		}	DSPVectorData;
  
 	public:
 		DSPVectorData mData;
@@ -212,8 +211,8 @@ namespace ml
 	typedef DSPVectorArrayConstTest<1> DSPVectorConst;
 
 	
-	// ----------------------------------------------------------------
-	#pragma mark load and store
+// ----------------------------------------------------------------
+// load and store
 
 	// loads and stores may be unaligned, let std::copy handle this
 	template<int VECTORS>
@@ -228,8 +227,8 @@ namespace ml
 		std::copy(vecSrc.mData.asFloat, vecSrc.mData.asFloat + kFloatsPerDSPVector*VECTORS, pDest); 
 	}
 
-	// ----------------------------------------------------------------
-	#pragma mark unary operators
+// ----------------------------------------------------------------
+// unary operators
 	
 	#define DEFINE_OP1(opName, opComputation)					\
 	template<int VECTORS>										\
@@ -281,8 +280,8 @@ namespace ml
 	DEFINE_OP1(log2Approx, (vecMul(vecLogApprox(x), kLogTwoRVec)));
 	DEFINE_OP1(exp2Approx, (vecExpApprox(vecMul(kLogTwoVec, x))));
 
-	// ----------------------------------------------------------------
-	#pragma mark binary operators
+// ----------------------------------------------------------------
+// binary operators
 	
 	#define DEFINE_OP2(opName, opComputation)					\
 	template<int VECTORS>										\
@@ -338,10 +337,10 @@ namespace ml
 	DEFINE_OP2(greaterThanOrEqual, (vecGreaterThanOrEqual(x1, x2)));
 	DEFINE_OP2(lessThan, (vecLessThan(x1, x2)));
 	DEFINE_OP2(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));	
-
+	
 	// ----------------------------------------------------------------
-	#pragma mark ternary operators
-
+	// ternary operators
+	
 	#define DEFINE_OP3(opName, opComputation)					\
 	template<int VECTORS>										\
 	inline DSPVectorArray<VECTORS>								\
@@ -374,7 +373,7 @@ namespace ml
 	DEFINE_OP3(within, vecWithin(x1, x2, x3) );					// is x in the open interval [x2, x3) ?
 	
 	// ----------------------------------------------------------------
-	#pragma mark single-vector index and range generators
+	// single-vector index and range generators
 	
 	inline DSPVector columnIndex()
 	{
@@ -410,7 +409,7 @@ namespace ml
 	}
 		
 	// ----------------------------------------------------------------
-	#pragma mark single-vector horizontal operators returning float
+	// single-vector horizontal operators returning float
 	
 	inline float sum(const DSPVector& x)
 	{
@@ -455,7 +454,7 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	#pragma mark functional
+	// functional
 	
 	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
 	// x is a dummy argument just used to infer the vector size.
@@ -495,7 +494,7 @@ namespace ml
 	}
 
 	// ----------------------------------------------------------------
-	#pragma mark rowIndex
+	// rowIndex
 	
 	template<int VECTORS>
 	inline DSPVectorArray<VECTORS> rowIndex()
@@ -509,7 +508,7 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	#pragma mark combining rows
+	// combining rows
 	
 	// return a DSPVectorArray with each row set to the single DSPVector x1.
 	template<int COPIES, int VECTORS>
@@ -567,7 +566,7 @@ namespace ml
 	}
 	
 	// ----------------------------------------------------------------
-	#pragma mark separating rows
+	// separating rows
 	
 	template<int VECTORS>
 	inline DSPVectorArray<(VECTORS + 1)/2> evenRows(const DSPVectorArray<VECTORS>& x1)
@@ -590,8 +589,6 @@ namespace ml
 		}		
 		return vy;
 	}
-	
-
 	
 	// ----------------------------------------------------------------
 	// integer DSPVector
@@ -639,7 +636,7 @@ namespace ml
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
 
 	// ----------------------------------------------------------------
-	#pragma mark unary float -> int operators 
+	// unary float -> int operators 
 		
 	#define DEFINE_OP1_F2I(opName, opComputation)				\
 	template<int VECTORS>										\
@@ -663,7 +660,7 @@ namespace ml
 	DEFINE_OP1_F2I(truncateFloatToInt, (vecFloatToIntTruncate(x)));
 
 	// ----------------------------------------------------------------
-	#pragma mark unary int -> float operators 
+	// unary int -> float operators 
 		
 	#define DEFINE_OP1_I2F(opName, opComputation)				\
 	template<int VECTORS>										\
@@ -685,7 +682,24 @@ namespace ml
 	
 	DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
 
-#pragma mark for testing
+	// ----------------------------------------------------------------
+	// generators of DSPVector constants
+	
+	inline DSPVector unityInterpVector()
+	{
+		DSPVector y;
+		float fn = kFloatsPerDSPVector;
+		for(int i=0; i < kFloatsPerDSPVector; ++i)
+		{
+			float fi = i;
+			y[i] = fi / fn;
+		}
+		return y;
+	}
+	
+	
+	// ----------------------------------------------------------------
+	// for testing
 	
 	template<int VECTORS>
 	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
@@ -724,9 +738,6 @@ namespace ml
 		if(VECTORS > 1) out << "]";
 		return out;
 	}	
-	
-	// ----------------------------------------------------------------
-	
 	
 	inline bool validate(const DSPVector& x)
 	{
