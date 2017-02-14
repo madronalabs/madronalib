@@ -465,11 +465,11 @@ float MLDial::constrainValue (float value) const throw()
 	
 	if(!mFlip)
 	{
-		valueOut = ml::clamp(value, mBottomValue, mTopValue);
+		valueOut = ml::clamp(valueOut, mBottomValue, mTopValue);
 	}
 	else
 	{
-		valueOut = ml::clamp(value, mTopValue, mBottomValue);
+		valueOut = ml::clamp(valueOut, mTopValue, mBottomValue);
 	}
 	
 	if (valueOut <= mZeroThreshold)
