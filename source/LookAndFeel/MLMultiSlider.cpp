@@ -268,6 +268,9 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 //--------------------------------------------------------------------------------
 #pragma mark -
 
+// TODO  slider and dial should use the same functions for value constraints! map user input to controls through spatial map...
+// possibly all this in the lua domain.
+
 // all value changes should pass through here.
 // 
 float MLMultiSlider::constrainedValue (float value) const throw()
@@ -280,6 +283,13 @@ float MLMultiSlider::constrainedValue (float value) const throw()
 		rmax = rmin;
 		rmin = temp;
 	}
+	
+	// quantize to chunks of interval (unused)
+	/*
+	int flip = 0;
+	float fInt = mInterval*(flip ? -1.f : 1.f);
+	value = rmin + fInt * floor((value - rmin)/fInt + 0.5f);
+	*/
 	
 	value = ml::clamp(value, rmin, rmax);
 	if (value <= mZeroThreshold)
