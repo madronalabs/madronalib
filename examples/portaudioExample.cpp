@@ -15,6 +15,7 @@ const int kSampleRate = 44100;
 const int kFramesPerBuffer = kFloatsPerDSPVector;
 
 
+
 uint64_t rdtsc()
 {
 	unsigned int lo,hi;
@@ -31,7 +32,7 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  const PaStreamCallbackTimeInfo* timeInfo,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData )
-{
+{	
 	static std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
 	static textUtils::NameMaker namer;
 
@@ -76,6 +77,8 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	return paContinue;
 }
 
+constexpr float myFillFn(int c){ return c*0.1f;  }
+
 int main()
 {
 	PaStreamParameters outputParameters;
@@ -84,6 +87,14 @@ int main()
 	void* pData = nullptr;
 	
 	std::cout << "portaudio example:\n";
+
+
+
+	// unfortunately this will not work with a lambda. Otherwise, quite nice.
+	constexpr DSPVector cTest(FillDSPVector(myFillFn));
+	
+	std::cout << cTest;
+	
 	
 	/*
 	// MLTEST Property changes
@@ -95,16 +106,6 @@ int main()
 	
 	uint64_t startCycles = rdtsc();
 	
-	// MLTEST constexpr DSPVector
-
-	DSPVectorConst q(23.f);
-	DSPVectorArrayConst<2> qq(24.f);
-
-//	std::cout  << (q) << ("\n");
-//	std::cout  << DSPVectorArray<2>(qq) << ("\n");
-
-	std::cout << "size = " << sizeof(DSPVector) << "\n";
-	std::cout << "const size = " << sizeof(DSPVectorConst) << "\n";
 	
 	// MLTEST constexpr Proc setup
 	constStr a("hello");
@@ -135,10 +136,15 @@ int main()
 	pm->setParam(randSym, 23.);
 	*/
 	
+/*	DSPVector x = unityInterpVector()*DSPVector(20.f);
+	std::cout << "exp2  : " << exp2(x) << "\n";
+	std::cout << "exp2 a: " << exp2Approx(x) << "\n";
+*/	
+	
 	pm->setParam("a", 4.5);
 	pm->setTextParam("mode", "cosmic");
 	pm->process();
-	
+		
 	
 	const constStrArray& paramNames = pm->getParamNames();
 	int v = paramNames.size();

@@ -21,43 +21,39 @@
 #include "MLDSPConstants.h"
 
 namespace ml
-{				
-	// constexpr std::array fill machinery
-	template <size_t N>
-	struct constArrayRecursion 
-	{
-		template <typename T, typename ...Tn>
-		static constexpr auto apply(T v, Tn ...vs)
-		-> decltype(constArrayRecursion<N - 1>::apply(v, v, vs...))
-		{
-			return constArrayRecursion<N - 1>::apply(v, v, vs...);
-		}
-	};
-	
-	template <>
-	struct constArrayRecursion<1> 
-	{
-		template <typename T, typename ...Tn>
-		static constexpr auto apply(T v, Tn ...vs)
-		-> std::array<T, sizeof...(vs) + 1>
-		{
-			return std::array<T, sizeof...(vs) + 1> {v, vs...};
-		}
-	};
-	
-	template <typename T, size_t N>
-	struct constArray {
-		std::array<T, N> data;
-		constexpr constArray(T val) : data(constArrayRecursion<N>::apply(val)) {}
-	};
+{		
+	// constexpr index generators
+	template<unsigned... Is> struct seq{};
+	template<unsigned N, unsigned... Is>
+	struct gen_seq : gen_seq<N-1, N-1, Is...>{};
+	template<unsigned... Is>
+	struct gen_seq<0, Is...> : seq<Is...>{};
 
+	// fill std::array using indices
 	template<int VECTORS> 
-	struct DSPVectorArrayConst
+	struct DSPVectorArrayData 
 	{
-		constArray<float, kFloatsPerDSPVector*VECTORS> constData;		
-		constexpr DSPVectorArrayConst(float f) : constData(f) {}
+		std::array<float, kFloatsPerDSPVector*VECTORS> data;		
 	};
 	
+	template<int VECTORS, typename FuncType, unsigned... Is>
+	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(seq<Is...>, FuncType func)
+	{
+		return { { func(Is)... } };
+	}
+	
+	// make a std::array from a function at compile time. usage example:
+	// float myFillFn(int i) { return i*0.3f; }
+	// constexpr DSPVector myConstVector(FillDSPVector(myFillFn));
+	// where myFillFn takes some args and returns float.
+	// unfortunately this will not work with a lambda in C++11.
+	template<int VECTORS, typename FuncType>
+	constexpr DSPVectorArrayData<VECTORS> FillDSPVectorArray(FuncType func)
+	{
+		return DSPVectorArrayIter<VECTORS>(gen_seq<kFloatsPerDSPVector*VECTORS>{}, func);
+	}	
+	#define FillDSPVector	FillDSPVectorArray<1>
+
 	template<int VECTORS>
 	class DSPVectorArray
 	{
@@ -74,7 +70,7 @@ namespace ml
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
-		constexpr DSPVectorArray(DSPVectorArrayConst<VECTORS> v) : mData{{v.constData.data}} {}
+		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData{{v.data}} {}
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
 		inline const float operator[](int i) const { return mData.asFloat[i]; }			
@@ -198,18 +194,9 @@ namespace ml
 		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 	};
 	
-	
-	template<int VECTORS>
-	class DSPVectorArrayConstTest : public DSPVectorArray<VECTORS>
-	{
-	public:
-		// DSPVectorArray<VECTORS> data;
-		constexpr DSPVectorArrayConstTest(float f) : DSPVectorArray<VECTORS>(DSPVectorArrayConst<VECTORS>(f)){}
-	};
-	
+		
 	typedef DSPVectorArray<1> DSPVector;
-	typedef DSPVectorArrayConstTest<1> DSPVectorConst;
-
+	
 	
 // ----------------------------------------------------------------
 // load and store
@@ -691,7 +678,7 @@ namespace ml
 		float fn = kFloatsPerDSPVector;
 		for(int i=0; i < kFloatsPerDSPVector; ++i)
 		{
-			float fi = i;
+			float fi = i + 1;
 			y[i] = fi / fn;
 		}
 		return y;
