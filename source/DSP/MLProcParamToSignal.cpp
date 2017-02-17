@@ -5,11 +5,9 @@
 
 #include "MLProc.h"
 #include "MLChangeList.h"
+#include "MLDSPPrivate.h"
 
 using namespace ml;
-// ----------------------------------------------------------------
-// class definition
-
 
 class MLProcParamToSignal : public MLProc
 {
@@ -22,10 +20,10 @@ public:
 
 private:
 	MLProcInfo<MLProcParamToSignal> mInfo;
-	MLSample mVal;	
-	MLChangeList mChangeList;
+	
+	LinearGlide mParamToVectorProc;
+	DSPVector mParamVector;
 };
-
 
 // ----------------------------------------------------------------
 // registry section
@@ -40,18 +38,14 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-
 MLProcParamToSignal::MLProcParamToSignal()
 {
-
 }
 
 MLProc::err MLProcParamToSignal::resize()
 {
-	float sr = getContextSampleRate();
-	mChangeList.setDims(kFloatsPerDSPVector);
-	mChangeList.setSampleRate(sr);
-	mChangeList.setGlideTime(0.01f);
+	// using default glide time
+	mParamToVectorProc.setSampleRate(getContextSampleRate());
 	return OK;
 }
 
@@ -59,16 +53,15 @@ static const ml::Symbol inSym("in");
 
 void MLProcParamToSignal::process()
 {
-	MLSignal& y = getOutput();
+	DSPVector* pOut = reinterpret_cast<DSPVector*>(getOutput(1).getBuffer());
 	
 	if (mParamsChanged)
 	{
-		mVal = getParam(inSym);
-		mChangeList.addChange(mVal, 0);
+		mParamToVectorProc.setInput(getParam(inSym));
 		mParamsChanged = false;
 	}
-
-	mChangeList.writeToSignal(y, kFloatsPerDSPVector);
+	
+	*pOut = mParamToVectorProc();
 }
 
 
