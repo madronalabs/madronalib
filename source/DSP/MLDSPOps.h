@@ -23,11 +23,11 @@
 namespace ml
 {		
 	// constexpr index generators
-	template<unsigned... Is> struct seq{};
+	template<unsigned... Is> struct indexSeq{};
 	template<unsigned N, unsigned... Is>
-	struct gen_seq : gen_seq<N-1, N-1, Is...>{};
+	struct genSequence : genSequence<N-1, N-1, Is...>{};
 	template<unsigned... Is>
-	struct gen_seq<0, Is...> : seq<Is...>{};
+	struct genSequence<0, Is...> : indexSeq<Is...>{};
 
 	// fill std::array using indices
 	template<int VECTORS> 
@@ -37,7 +37,7 @@ namespace ml
 	};
 	
 	template<int VECTORS, typename FuncType, unsigned... Is>
-	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(seq<Is...>, FuncType func)
+	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(indexSeq<Is...>, FuncType func)
 	{
 		return { { func(Is)... } };
 	}
@@ -50,7 +50,7 @@ namespace ml
 	template<int VECTORS, typename FuncType>
 	constexpr DSPVectorArrayData<VECTORS> FillDSPVectorArray(FuncType func)
 	{
-		return DSPVectorArrayIter<VECTORS>(gen_seq<kFloatsPerDSPVector*VECTORS>{}, func);
+		return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*VECTORS>{}, func);
 	}	
 	#define FillDSPVector	FillDSPVectorArray<1>
 
@@ -669,21 +669,6 @@ namespace ml
 	
 	DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
 
-	// ----------------------------------------------------------------
-	// generators of DSPVector constants
-	
-	inline DSPVector unityInterpVector()
-	{
-		DSPVector y;
-		float fn = kFloatsPerDSPVector;
-		for(int i=0; i < kFloatsPerDSPVector; ++i)
-		{
-			float fi = i + 1;
-			y[i] = fi / fn;
-		}
-		return y;
-	}
-	
 	// ----------------------------------------------------------------
 	// for testing
 	
