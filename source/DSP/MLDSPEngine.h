@@ -96,10 +96,19 @@ public:
 
 	void setCollectStats(bool k);
 
+	// to remove - for AudioProcessor only
+	void writeInputBuffers(const int samples);
+	void readOutputBuffers(const int samples);
+	int getInputBufferFramesRemaining();
+
+	
+
 	// run the compiled graph, processing signals from the global inputs (if any)
 	// to the global outputs. 
 	void processSignalsAndEvents(const int samples, PaUtilRingBuffer* eventQueue, const int64_t samplesPos, const double secs, const double position, const double bpm, bool isPlaying);
-
+	
+	void processDSPVector(PaUtilRingBuffer* eventQueue, const int64_t samplesPos, const double secs, const double position, const double bpm, bool isPlaying);
+	
 private:
 	
 	// ----------------------------------------------------------------
@@ -143,12 +152,10 @@ private:
 	int mSampleCount;
 	double mCPUTimeCount;
 		
-	void writeInputBuffers(const int samples);
-    void clearOutputBuffers();
+	void clearOutputBuffers();
 	void readInputBuffers(const int samples);
 	void multiplyOutputBuffersByVolume();
 	void writeOutputBuffers(const int samples);
-	void readOutputBuffers(const int samples);
 	void clearOutputs(int frames);
 	
 	MLBiquad mMasterVolumeFilter;

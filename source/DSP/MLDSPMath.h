@@ -9,7 +9,7 @@
 #pragma once
 
 // Here is the DSP vector size, an important constant.
-constexpr int kFloatsPerDSPVector = 64;
+constexpr int kFloatsPerDSPVector = 8;
 
 // Load definitions for low-level SIMD math. 
 // These must define SIMDVectorFloat, SIMDVectorInt, their sizes, and a bunch of operations on them.

@@ -317,6 +317,18 @@ void MLDSPEngine::readInputBuffers(const int samples)
 	}
 }
 
+int MLDSPEngine::getInputBufferFramesRemaining()
+{
+	if(mInputChans > 0)
+	{
+		return mInputBuffers[0]->getRemaining();
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 void MLDSPEngine::multiplyOutputBuffersByVolume()
 {
 	int outs = mOutputChans;
@@ -360,6 +372,7 @@ void MLDSPEngine::readOutputBuffers(const int samples)
 			break;
 		}
 	}
+	
 	if(okToRead)
 	{
 		for(int i=0; i < outs; ++i)
@@ -370,6 +383,19 @@ void MLDSPEngine::readOutputBuffers(const int samples)
 			}
 		}
 	}
+	else
+	{
+		// clear outputs
+		for(int i=0; i < outs; ++i)
+		{
+			// yuk, why do we have a raw float* here
+			float * buf = mIOMap.outputs[i];
+			for(int j=0; j<samples; ++j)
+			{
+				buf[j] = 0.f;
+			}
+		}		
+	}
 }
 
 void MLDSPEngine::clearOutputs(int frames)
@@ -377,7 +403,7 @@ void MLDSPEngine::clearOutputs(int frames)
 	int outs = mOutputChans;
 	for(int i=0; i < outs; ++i)
 	{
-		(mIOMap.outputs[i])[frames] = 0;
+		(mIOMap.outputs[i])[frames] = 0; // MLTEST WAT
 	}
 }
 
@@ -597,7 +623,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 	int processed = 0;
 	bool reportStats = false;
 	osc::int64 startTime = 0, endTime = 0;
-    MLControlEventVector::const_iterator firstEvent, lastEvent;
+	MLControlEventVector::const_iterator firstEvent, lastEvent;
 	
 	// hack to set (1, 1) config to clear outputs
 	if((mInputChans == 1)&&(mOutputChans == 1))
@@ -610,7 +636,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 		{	
 			mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
 		}	
-
+		
 		// count sample interval to collect stats
 		if (mCollectStats)
 		{
@@ -622,10 +648,10 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 				mStatsCount -= sr * statsInterval;
 			}
 		}
-
+		
 		writeInputBuffers(frames);
 		mSamplesToProcess += frames;
-
+		
 		// sort all events in-place. This is needed because some hosts will send events out of time order.
 		RingBufferElementsVector<MLControlEvent> v(eventQueue);
 		std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b)
@@ -680,10 +706,10 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 				collectStats(&stats);
 				
 				process();  // MLProcContainer::process()
-		
+				
 				debug() << "\n";
 				debug() << "processed " << mSampleCount << " samples in " << mCPUTimeCount << " seconds,"
-					<< "vector size " << mVectorSize << ".\n";
+				<< "vector size " << mVectorSize << ".\n";
 				double uSecsPerSample = mCPUTimeCount / (double)mSampleCount * 1000000.;
 				double maxuSecsPerSample = getInvSampleRate() * 1000000.;
 				double CPUFrac = uSecsPerSample / maxuSecsPerSample;
@@ -711,7 +737,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 				
 				// MLProcContainer::process()
 				process();  
-
+				
 				if (mCollectStats) 
 				{
 					endTime = juce::Time::getHighResolutionTicks();
@@ -719,7 +745,7 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 					mSampleCount += mVectorSize;
 				}
 			}	
-
+			
 			multiplyOutputBuffersByVolume();
 			writeOutputBuffers(mVectorSize);
 			
@@ -729,6 +755,74 @@ void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* ev
 		
 		readOutputBuffers(frames);
 	}
+}
+
+
+// run one buffer of the compiled graph, processing signals from the global inputs (if any)
+// to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
+//
+void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+{	
+	int sr = getSampleRate();
+	int processed = 0;
+	bool reportStats = false;
+	osc::int64 startTime = 0, endTime = 0;
+	MLControlEventVector::const_iterator firstEvent, lastEvent;
+	
+	if (mpHostPhasorProc)
+	{	
+		mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
+	}	
+
+	// sort all events in-place. This is needed because some hosts will send events out of time order.
+	RingBufferElementsVector<MLControlEvent> v(eventQueue);
+	std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b)
+			  // ensure that note-offs at a given time are processed before note-ons
+			  { if(a.mTime == b.mTime) return a.mType < b.mType; else return a.mTime < b.mTime; }
+			  );
+	
+	readInputBuffers(kFloatsPerDSPVector);
+	
+	if (mpInputToSignalsProc)
+	{				
+		// find range(s) of events within time [processed, processed + mVectorSize] 
+		auto itFirst = v.begin();
+		auto itLast = --v.end();
+		
+		// get first event in time range
+		for(; itFirst < v.end(); itFirst++)
+			if(ml::within((*itFirst).mTime, processed, processed + mVectorSize))
+				break;
+		
+		// get last event in time range
+		for(; itLast >= itFirst; itLast--)
+			if(ml::within((*itLast).mTime, processed, processed + mVectorSize))
+				break;
+		
+		// if we have some events in the range, subtract the time offset in place and send the iterators to the processor					
+		if(itFirst < v.end())
+		{
+			for(auto it = itFirst; it <= itLast; it++)
+			{
+				(*it).mTime -= processed;
+			}					
+			mpInputToSignalsProc->setEventRange(&itFirst, &itLast);											
+		}
+		else
+		{
+			mpInputToSignalsProc->setEventRange(nullptr, nullptr);
+		}
+	} 
+	
+	// generate volume signal
+	mMasterVolumeSig.fill(mMasterVolume);
+	mMasterVolumeFilter.processSignalInPlace(mMasterVolumeSig);
+	
+	// MLProcContainer::process()
+	process();  
+
+	multiplyOutputBuffersByVolume();
+	writeOutputBuffers(kFloatsPerDSPVector);
 }
 
 
