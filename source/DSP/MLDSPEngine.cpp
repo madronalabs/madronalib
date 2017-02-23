@@ -170,7 +170,7 @@ void MLDSPEngine::compileEngine()
 //
 MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 {
-	debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
+	//debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
     
 	// set denormal state
@@ -628,10 +628,6 @@ void MLDSPEngine::setCollectStats(bool k)
 //
 void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime, const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {	
-	int sr = getSampleRate();
-	int processed = 0;
-	bool reportStats = false;
-	osc::int64 startTime = 0, endTime = 0;
 	MLControlEventVector::const_iterator firstEvent, lastEvent;
 	
 	if (mpHostPhasorProc)
@@ -656,41 +652,11 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t 
 	auto itBegin = v.begin();
 	auto itEnd = v.end();
 
-	if(itEnd - itBegin > 0)
-	{
-	debug() << "times: [";
-	for(auto it = v.begin(); it != v.end(); it++)
-	{
-		debug() << (*it).mTime - vectorStartTime << " ";
-		
-	}
-	debug() << "]\n";
-	}
-	
 	// we may not be processing all events in the buffer, so find last event that should happen in this vector
 	// assuming sorted!
-	
-	/*
-	for(; itLast > itFirst; itLast--)
-	{
-		int t = (*itLast).mTime;
-		debug() << " t : " << t; 
-		if(t < vectorStartTime + kFloatsPerDSPVector)
-		{
-			debug() << " (in)" ; 
-			
-			break;
-		}
-	}
-	*/
-
 	auto itLast = itEnd - 1;
-//	uint64_t lastEventTime = (*itLast).mTime;
-//	debug() << "LAST time: " << (*itLast).mTime << "\n";
-//	debug() << "LAST position: " << itLast - itBegin << "\n";
 	while((itLast >= itBegin) && ((*itLast).mTime >= vectorStartTime + kFloatsPerDSPVector))
 	{
-		debug() << "*";
 		itLast--;
 	}
 	itEnd = itLast + 1;
@@ -702,7 +668,6 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t 
 		// if we have some events in the range, send the iterators to the processor					
 		if(itBegin < itEnd)
 		{			
-			debug() << "(" << itEnd - itBegin <<  ")";
 			mpInputToSignalsProc->setEventRange(&itBegin, &itEnd);											
 		}
 		else
@@ -719,11 +684,11 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t 
 	process();  
 	
 	// remove used events from buffer
+	// TODO refactor
 	int distance = itEnd - itBegin;
 	if(distance > 0)
 	{
-	PaUtil_AdvanceRingBufferReadIndex(eventQueue, itEnd - itBegin);
-	debug() << "REMOVING " << itEnd - itBegin << " events\n";
+		PaUtil_AdvanceRingBufferReadIndex(eventQueue, itEnd - itBegin);
 	}
 
 	multiplyOutputBuffersByVolume();

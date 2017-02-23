@@ -542,10 +542,7 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 }
 
 void MLProcInputToSignals::clear()
-{
-	
-	debug() << "MLProcInputToSignals:: CLEARING\n";
-	
+{	
 	int vecSize = getContextVectorSize();
 	int maxVoices = getContext()->getRootContext()->getMaxVoices();
 	
@@ -612,7 +609,6 @@ void MLProcInputToSignals::clear()
 // display MIDI: pitch gate vel voice after mod -2 -3 -4
 // display OSC: pitch gate vel(constant during hold) voice(touch) after(z) dx dy x y
 
-
 void MLProcInputToSignals::process()
 {	
 	if (mParamsChanged) doParams();
@@ -661,9 +657,9 @@ void MLProcInputToSignals::process()
     mFrameCounter += kFloatsPerDSPVector;
     if(mFrameCounter > sr)
     {
-		dumpEvents();
-		dumpVoices();
-		dumpSignals();
+		//dumpEvents();
+		//dumpVoices();
+		//dumpSignals();
         mFrameCounter -= sr;
     }
 }
@@ -866,8 +862,6 @@ void MLProcInputToSignals::processEvent(const MLControlEvent &eventParam)
 	MLControlEvent event = eventParam;
 	event.mTime -= mVectorStartTime; 
 	
-	debug() << "PROCESSING EVENT @  " << mVectorStartTime << " + " << event.mTime << "\n";
-	
     switch(event.mType)
     {
         case MLControlEvent::kNoteOn:
@@ -899,9 +893,6 @@ void MLProcInputToSignals::processEvent(const MLControlEvent &eventParam)
 
 void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 {
-
-	debug() << "ON " << event.mTime << " \n";
-	
 	// find free event or bail
     int freeEventIdx = mNoteEventsPlaying.findFreeEvent();
     if(freeEventIdx < 0) return;
@@ -974,8 +965,6 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 
 void MLProcInputToSignals::doNoteOff(const MLControlEvent& event)
 {
-	debug() << "OFF @time:" << event.mTime << " id:" << event.mID << " chan:"   << event.mChannel << " \n";
-
 	// clear all events matching instigator
     int instigator = event.mID;
 	int chan = event.mChannel;
@@ -983,7 +972,6 @@ void MLProcInputToSignals::doNoteOff(const MLControlEvent& event)
 	{
 		if(mNoteEventsPlaying[i].mID == instigator)
 		{
-			debug() << "CLEARING: " << instigator << "\n";
 			mNoteEventsPlaying[i].clear();
 		}
 	}
