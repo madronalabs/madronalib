@@ -34,19 +34,21 @@ public:
     };
 
 	MLControlEvent();
-	MLControlEvent(EventType type, int channel, int id, int time, float value, float value2);
+	MLControlEvent(EventType type, int channel, int id, uint64_t time, float value, float value2);
 
     void clear();
     bool isFree() const {return mType == kNull;}
 	
-    EventType mType;
+	// time in samples since DSP engine restart.
+	uint64_t mTime;
+	
+	EventType mType;
 	
 	int mChannel;
     int mID; // the MIDI key or touch number that created the event. a note-off can match a note-on by ID.
 	float mValue1;
 	float mValue2;
-    // TODO make MLTime class and use global timestamp in events. Currently used as sample offset from block start.
-    int mTime;
+
 };
 
 const MLControlEvent kMLNullControlEvent;

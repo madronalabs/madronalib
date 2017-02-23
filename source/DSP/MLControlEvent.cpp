@@ -18,13 +18,13 @@ MLControlEvent::MLControlEvent() :
 {
 }
 
-MLControlEvent::MLControlEvent(MLControlEvent::EventType type, int channel, int id, int time, float value, float value2) :
+MLControlEvent::MLControlEvent(MLControlEvent::EventType type, int channel, int id, uint64_t time, float value, float value2) :
+	mTime(time),
     mType(type),
     mChannel(channel),
     mID(id),
     mValue1(value),
-    mValue2(value2),
-	mTime(time)
+    mValue2(value2)
 {
 }
 

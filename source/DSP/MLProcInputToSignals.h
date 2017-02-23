@@ -74,7 +74,6 @@ public:
 	MLControlEvent mCurrentNoteEvent;
 };
 
-extern const int kNumVoiceSignals;
 extern const ml::Symbol voiceSignalNames[];
 
 class MLProcInputToSignals : public MLProc
@@ -127,6 +126,8 @@ public:
 	*/
 	
 	void doParams();
+	
+	void setVectorStartTime(uint64_t t) { mVectorStartTime = t; }
 
 private:
     void processOSC(const int n);
@@ -214,6 +215,8 @@ private:
 	int temp;
 	bool mSustainPedal;
 	std::string mScalePath;
+	
+	uint64_t mVectorStartTime;
 };
 
 

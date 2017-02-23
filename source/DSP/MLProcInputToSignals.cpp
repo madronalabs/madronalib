@@ -4,8 +4,8 @@
 
 #include "MLProcInputToSignals.h"
 
-const int kMaxEvents = 1 << 8; // max events per signal vector
-const int kNumVoiceSignals = 8;
+const int kMaxEvents = 1 << 4;//1 << 8; // max events per signal vector
+static const int kNumVoiceSignals = 8;
 const ml::Symbol voiceSignalNames[kNumVoiceSignals] 
 {
 	"pitch",
@@ -532,7 +532,7 @@ void MLProcInputToSignals::doParams()
 	}
 	
 	mParamsChanged = false;
-//dumpParams();	// DEBUG
+	//dumpParams();	// DEBUG
 }
 
 MLProc::err MLProcInputToSignals::prepareToProcess()
@@ -543,6 +543,9 @@ MLProc::err MLProcInputToSignals::prepareToProcess()
 
 void MLProcInputToSignals::clear()
 {
+	
+	debug() << "MLProcInputToSignals:: CLEARING\n";
+	
 	int vecSize = getContextVectorSize();
 	int maxVoices = getContext()->getRootContext()->getMaxVoices();
 	
@@ -568,19 +571,27 @@ void MLProcInputToSignals::clear()
 			mVoices[v].clearChanges();
 			mVoices[v].zeroExceptPitch();
             
-            if((v*kNumVoiceSignals + 9) < outs)
-            {                
-                mVoices[v].mdPitch.writeToSignal(getOutput(v*kNumVoiceSignals + 1), vecSize);
-                mVoices[v].mdGate.writeToSignal(getOutput(v*kNumVoiceSignals + 2), vecSize);
-                mVoices[v].mdAmp.writeToSignal(getOutput(v*kNumVoiceSignals + 3), vecSize);
-                mVoices[v].mdVel.writeToSignal(getOutput(v*kNumVoiceSignals + 4), vecSize);
-                getOutput(v*kNumVoiceSignals + 5).setToConstant(v);
-                mVoices[v].mdNotePressure.writeToSignal(getOutput(v*kNumVoiceSignals + 6), vecSize);
-                mVoices[v].mdChannelPressure.writeToSignal(getOutput(v*kNumVoiceSignals + 6), vecSize);
-                mVoices[v].mdMod.writeToSignal(getOutput(v*kNumVoiceSignals + 7), vecSize);
-                mVoices[v].mdMod2.writeToSignal(getOutput(v*kNumVoiceSignals + 8), vecSize);
-                mVoices[v].mdMod3.writeToSignal(getOutput(v*kNumVoiceSignals + 9), vecSize);
-            }
+			MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
+			MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
+			MLSignal& velSig = getOutput(v*kNumVoiceSignals + 3);
+			MLSignal& voiceSig = getOutput(v*kNumVoiceSignals + 4);
+			MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
+			MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
+			MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
+			MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
+		  
+			mVoices[v].mdPitch.writeToSignal(pitch, vecSize);
+			mVoices[v].mdGate.writeToSignal(gate, vecSize);
+			mVoices[v].mdVel.writeToSignal(velSig, vecSize);
+			voiceSig.setToConstant(v);
+			
+			mVoices[v].mdNotePressure.writeToSignal(after, vecSize);
+			mVoices[v].mdChannelPressure.writeToSignal(after, vecSize);
+			mVoices[v].mdAmp.writeToSignal(after, vecSize);
+			
+			mVoices[v].mdMod.writeToSignal(mod, vecSize);
+			mVoices[v].mdMod2.writeToSignal(mod2, vecSize);
+			mVoices[v].mdMod3.writeToSignal(mod3, vecSize); 
 		}
 		mMPEMainVoice.clearState();
 		mMPEMainVoice.clearChanges();
@@ -632,6 +643,7 @@ void MLProcInputToSignals::process()
 	}		
 
 	// generate change lists
+	// TODO osc becomes events
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
@@ -649,9 +661,9 @@ void MLProcInputToSignals::process()
     mFrameCounter += kFloatsPerDSPVector;
     if(mFrameCounter > sr)
     {
-		//dumpEvents();
-		//dumpVoices();
-		//dumpSignals();
+		dumpEvents();
+		dumpVoices();
+		dumpSignals();
         mFrameCounter -= sr;
     }
 }
@@ -842,15 +854,20 @@ void MLProcInputToSignals::processOSC(const int frames)
 void MLProcInputToSignals::processEvents()
 {
 	if((!mFirstEvent) || (!mLastEvent)) return;
-	for(auto it=*mFirstEvent; it <= *mLastEvent; it++)
+	for(auto it=*mFirstEvent; it < *mLastEvent; it++)
 	{
 		processEvent(*it);
 	}
 }
 
 // process one incoming event by making the appropriate changes in state and change lists.
-void MLProcInputToSignals::processEvent(const MLControlEvent &event)
+void MLProcInputToSignals::processEvent(const MLControlEvent &eventParam)
 {
+	MLControlEvent event = eventParam;
+	event.mTime -= mVectorStartTime; 
+	
+	debug() << "PROCESSING EVENT @  " << mVectorStartTime << " + " << event.mTime << "\n";
+	
     switch(event.mType)
     {
         case MLControlEvent::kNoteOn:
@@ -882,6 +899,9 @@ void MLProcInputToSignals::processEvent(const MLControlEvent &event)
 
 void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 {
+
+	debug() << "ON " << event.mTime << " \n";
+	
 	// find free event or bail
     int freeEventIdx = mNoteEventsPlaying.findFreeEvent();
     if(freeEventIdx < 0) return;
@@ -954,6 +974,8 @@ void MLProcInputToSignals::doNoteOn(const MLControlEvent& event)
 
 void MLProcInputToSignals::doNoteOff(const MLControlEvent& event)
 {
+	debug() << "OFF @time:" << event.mTime << " id:" << event.mID << " chan:"   << event.mChannel << " \n";
+
 	// clear all events matching instigator
     int instigator = event.mID;
 	int chan = event.mChannel;
@@ -961,6 +983,7 @@ void MLProcInputToSignals::doNoteOff(const MLControlEvent& event)
 	{
 		if(mNoteEventsPlaying[i].mID == instigator)
 		{
+			debug() << "CLEARING: " << instigator << "\n";
 			mNoteEventsPlaying[i].clear();
 		}
 	}

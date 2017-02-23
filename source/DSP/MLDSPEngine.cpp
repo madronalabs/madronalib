@@ -407,6 +407,14 @@ void MLDSPEngine::clearOutputs(int frames)
 	}
 }
 
+void MLDSPEngine::reset()
+{
+	if (mpInputToSignalsProc) // TODO inputToSignals need not be a kind of Proc
+	{		
+		mpInputToSignalsProc->clear();
+	}
+}
+
 void MLDSPEngine::dump()
 {
 	dumpGraph(0);
@@ -614,154 +622,11 @@ void MLDSPEngine::setCollectStats(bool k)
 	mCollectStats = k;
 }
 
-// run one buffer of the compiled graph, processing signals from the global inputs (if any)
-// to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
-//
-void MLDSPEngine::processSignalsAndEvents(const int frames, PaUtilRingBuffer* eventQueue, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
-{	
-	int sr = getSampleRate();
-	int processed = 0;
-	bool reportStats = false;
-	osc::int64 startTime = 0, endTime = 0;
-	MLControlEventVector::const_iterator firstEvent, lastEvent;
-	
-	// hack to set (1, 1) config to clear outputs
-	if((mInputChans == 1)&&(mOutputChans == 1))
-	{
-		clearOutputs(frames);
-	}
-	else
-	{
-		if (mpHostPhasorProc)
-		{	
-			mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
-		}	
-		
-		// count sample interval to collect stats
-		if (mCollectStats)
-		{
-			mStatsCount += frames;
-			const int statsInterval = 1;
-			if (mStatsCount > sr * statsInterval)
-			{	
-				reportStats = true;
-				mStatsCount -= sr * statsInterval;
-			}
-		}
-		
-		writeInputBuffers(frames);
-		mSamplesToProcess += frames;
-		
-		// sort all events in-place. This is needed because some hosts will send events out of time order.
-		RingBufferElementsVector<MLControlEvent> v(eventQueue);
-		std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b)
-				  // ensure that note-offs at a given time are processed before note-ons
-				  { if(a.mTime == b.mTime) return a.mType < b.mType; else return a.mTime < b.mTime; }
-				  );
-		
-		// mVectorSize is set in MLPluginProcessor::prepareToPlay to kMLProcessChunkSize
-		while(mSamplesToProcess >= mVectorSize)
-		{
-			readInputBuffers(mVectorSize);
-			MLControlEvent e;
-			
-			if (mpInputToSignalsProc)
-			{				
-				// find range(s) of events within time [processed, processed + mVectorSize] 
-				auto itFirst = v.begin();
-				auto itLast = --v.end();
-				
-				// get first event in time range
-				for(; itFirst < v.end(); itFirst++)
-					if(ml::within((*itFirst).mTime, processed, processed + mVectorSize))
-						break;
-				
-				// get last event in time range
-				for(; itLast >= itFirst; itLast--)
-					if(ml::within((*itLast).mTime, processed, processed + mVectorSize))
-						break;
-				
-				// if we have some events in the range, subtract the time offset in place and send the iterators to the processor					
-				if(itFirst < v.end())
-				{
-					for(auto it = itFirst; it <= itLast; it++)
-					{
-						(*it).mTime -= processed;
-					}					
-					mpInputToSignalsProc->setEventRange(&itFirst, &itLast);											
-				}
-				else
-				{
-					mpInputToSignalsProc->setEventRange(nullptr, nullptr);
-				}
-			} 
-			
-			// generate volume signal
-			mMasterVolumeSig.fill(mMasterVolume);
-			mMasterVolumeFilter.processSignalInPlace(mMasterVolumeSig);
-			
-			if(0)// (reportStats)
-			{
-				MLSignalStats stats;
-				collectStats(&stats);
-				
-				process();  // MLProcContainer::process()
-				
-				debug() << "\n";
-				debug() << "processed " << mSampleCount << " samples in " << mCPUTimeCount << " seconds,"
-				<< "vector size " << mVectorSize << ".\n";
-				double uSecsPerSample = mCPUTimeCount / (double)mSampleCount * 1000000.;
-				double maxuSecsPerSample = getInvSampleRate() * 1000000.;
-				double CPUFrac = uSecsPerSample / maxuSecsPerSample;
-				double percent = CPUFrac * 100.;
-				debug() << (int)(mCPUTimeCount / (double)mVectorSize * 1000000.) << " microseconds per sample (";
-				debug() << std::fixed;
-				debug() << std::setprecision(1);
-				debug() << percent << "\%)\n";
-				
-				// clear time and sample counters
-				mCPUTimeCount = 0.;
-				mSampleCount = 0;
-				
-				collectStats(0); // turn off stats collection
-				debug() << "\n";
-				stats.dump();
-				reportStats = false;
-			}
-			else
-			{
-				if (mCollectStats)
-				{
-					startTime = juce::Time::getHighResolutionTicks();
-				}
-				
-				// MLProcContainer::process()
-				process();  
-				
-				if (mCollectStats) 
-				{
-					endTime = juce::Time::getHighResolutionTicks();
-					mCPUTimeCount += juce::Time::highResolutionTicksToSeconds (endTime - startTime);
-					mSampleCount += mVectorSize;
-				}
-			}	
-			
-			multiplyOutputBuffersByVolume();
-			writeOutputBuffers(mVectorSize);
-			
-			processed += mVectorSize;
-			mSamplesToProcess -= mVectorSize;
-		}	
-		
-		readOutputBuffers(frames);
-	}
-}
 
-
-// run one buffer of the compiled graph, processing signals from the global inputs (if any)
-// to the global outputs.  Processes sub-procs in chunks of our preferred vector size.
+// produce one signal vector of the compiled graph's output, processing signals from the global inputs (if any)
+// to the global outputs. 
 //
-void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const int64_t , const double secs, const double ppqPos, const double bpm, bool isPlaying)
+void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime, const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {	
 	int sr = getSampleRate();
 	int processed = 0;
@@ -775,38 +640,70 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const int64_t ,
 	}	
 
 	// sort all events in-place. This is needed because some hosts will send events out of time order.
+	// change to : auto v = eventQueue.getElementsVector()
 	RingBufferElementsVector<MLControlEvent> v(eventQueue);
+	
+	/*
 	std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b)
 			  // ensure that note-offs at a given time are processed before note-ons
 			  { if(a.mTime == b.mTime) return a.mType < b.mType; else return a.mTime < b.mTime; }
 			  );
+	*/
 	
 	readInputBuffers(kFloatsPerDSPVector);
 	
-	if (mpInputToSignalsProc)
-	{				
-		// find range(s) of events within time [processed, processed + mVectorSize] 
-		auto itFirst = v.begin();
-		auto itLast = --v.end();
+	// find range of events within time [processed, processed + mVectorSize] 
+	auto itBegin = v.begin();
+	auto itEnd = v.end();
+
+	if(itEnd - itBegin > 0)
+	{
+	debug() << "times: [";
+	for(auto it = v.begin(); it != v.end(); it++)
+	{
+		debug() << (*it).mTime - vectorStartTime << " ";
 		
-		// get first event in time range
-		for(; itFirst < v.end(); itFirst++)
-			if(ml::within((*itFirst).mTime, processed, processed + mVectorSize))
-				break;
-		
-		// get last event in time range
-		for(; itLast >= itFirst; itLast--)
-			if(ml::within((*itLast).mTime, processed, processed + mVectorSize))
-				break;
-		
-		// if we have some events in the range, subtract the time offset in place and send the iterators to the processor					
-		if(itFirst < v.end())
+	}
+	debug() << "]\n";
+	}
+	
+	// we may not be processing all events in the buffer, so find last event that should happen in this vector
+	// assuming sorted!
+	
+	/*
+	for(; itLast > itFirst; itLast--)
+	{
+		int t = (*itLast).mTime;
+		debug() << " t : " << t; 
+		if(t < vectorStartTime + kFloatsPerDSPVector)
 		{
-			for(auto it = itFirst; it <= itLast; it++)
-			{
-				(*it).mTime -= processed;
-			}					
-			mpInputToSignalsProc->setEventRange(&itFirst, &itLast);											
+			debug() << " (in)" ; 
+			
+			break;
+		}
+	}
+	*/
+
+	auto itLast = itEnd - 1;
+//	uint64_t lastEventTime = (*itLast).mTime;
+//	debug() << "LAST time: " << (*itLast).mTime << "\n";
+//	debug() << "LAST position: " << itLast - itBegin << "\n";
+	while((itLast >= itBegin) && ((*itLast).mTime >= vectorStartTime + kFloatsPerDSPVector))
+	{
+		debug() << "*";
+		itLast--;
+	}
+	itEnd = itLast + 1;
+	
+	if (mpInputToSignalsProc) // TODO inputToSignals need not be a kind of Proc
+	{						
+		mpInputToSignalsProc->setVectorStartTime(vectorStartTime);
+
+		// if we have some events in the range, send the iterators to the processor					
+		if(itBegin < itEnd)
+		{			
+			debug() << "(" << itEnd - itBegin <<  ")";
+			mpInputToSignalsProc->setEventRange(&itBegin, &itEnd);											
 		}
 		else
 		{
@@ -820,6 +717,14 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const int64_t ,
 	
 	// MLProcContainer::process()
 	process();  
+	
+	// remove used events from buffer
+	int distance = itEnd - itBegin;
+	if(distance > 0)
+	{
+	PaUtil_AdvanceRingBufferReadIndex(eventQueue, itEnd - itBegin);
+	debug() << "REMOVING " << itEnd - itBegin << " events\n";
+	}
 
 	multiplyOutputBuffersByVolume();
 	writeOutputBuffers(kFloatsPerDSPVector);

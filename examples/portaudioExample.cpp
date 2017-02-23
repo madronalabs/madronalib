@@ -173,6 +173,7 @@ int main()
 	outputParameters.suggestedLatency = Pa_GetDeviceInfo( outputParameters.device )->defaultLowOutputLatency;
 	outputParameters.hostApiSpecificStreamInfo = nullptr;
 	
+	// MLTEST who decides buffer size?
 	err = Pa_OpenStream(
 						&stream,
 						nullptr, // no input 
