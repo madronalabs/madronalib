@@ -643,8 +643,8 @@ namespace ml
 		return vy;												\
 	}	
 
-	DEFINE_OP1_F2I(roundFloatToInt, (vecFloatToIntRound(x)));
-	DEFINE_OP1_F2I(truncateFloatToInt, (vecFloatToIntTruncate(x)));
+	DEFINE_OP1_F2I(roundFloatToInt, (VecI2F(vecFloatToIntRound(x))));
+	DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
 
 	// ----------------------------------------------------------------
 	// unary int -> float operators 
