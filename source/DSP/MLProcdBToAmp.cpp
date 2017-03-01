@@ -12,6 +12,7 @@ using namespace ml;
 class MLProcdBToAmp : public MLProc
 {
 public:
+	MLProcdBToAmp() {}
 	void process() override;		
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
@@ -25,7 +26,7 @@ private:
 namespace
 {
 	MLProcRegistryEntry<MLProcdBToAmp> classReg("db_to_amp");
-	ML_UNUSED MLProcParam<MLProcdBToAmp> params[] = { };
+//	ML_UNUSED MLProcParam<MLProcdBToAmp> params[] = { };
 	ML_UNUSED MLProcInput<MLProcdBToAmp> inputs[] = { "in" };
 	ML_UNUSED MLProcOutput<MLProcdBToAmp> outputs[] = {"out"};
 }	
