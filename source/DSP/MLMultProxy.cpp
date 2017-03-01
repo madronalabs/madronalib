@@ -528,7 +528,7 @@ MLProcPtr MLMultiContainer::newProc(const ml::Symbol className, const ml::Symbol
 	
 	// call factory to get instance of processor class
 	// sets context of new proc to this.
-	pNew = theProcFactory.create(className, this);	
+	pNew = theProcFactory.createProc(className, this);	
 	if (!pNew)
 	{
 		debug() << "MLMultiContainer: newProc: couldn't create!\n";

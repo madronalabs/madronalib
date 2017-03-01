@@ -547,7 +547,7 @@ public:
 	void registerFn(const ml::Symbol className, MLProcCreateFnT fn);
 	
 	// create a new object of the named class.  
-	MLProcPtr create(const ml::Symbol className, MLDSPContext* context);
+	MLProcPtr createProc(const ml::Symbol className, MLDSPContext* context);
 	
 	// debug. 
 	void printRegistry(void);
@@ -564,12 +564,12 @@ public:
 	MLProcRegistryEntry(const char* className)
 	{
 		ml::Symbol classSym(className);
-		MLProcFactory::theFactory().registerFn(classSym, createInstance);	
+		MLProcFactory::theFactory().registerFn(classSym, createProcInstance);	
 		MLProcInfo<MLProcSubclass>::setClassName(classSym);
 	}
 	
 	// return shared_ptr to a new MLProc instance. 
-	static MLProcPtr createInstance()
+	static MLProcPtr createProcInstance()
 	{
 		MLProcPtr pNew(new MLProcSubclass);
 		return pNew;

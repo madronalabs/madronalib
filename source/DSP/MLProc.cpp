@@ -463,7 +463,7 @@ void MLProcFactory::registerFn(const ml::Symbol className, MLProcCreateFnT fn)
 	procRegistry[className] = fn;
 }
 
-MLProcPtr MLProcFactory::create(const ml::Symbol className, MLDSPContext* context)
+MLProcPtr MLProcFactory::createProc(const ml::Symbol className, MLDSPContext* context)
 {
 	MLProcCreateFnT fn;
 	MLProcPtr resultProc;
@@ -489,7 +489,7 @@ MLProcPtr MLProcFactory::create(const ml::Symbol className, MLDSPContext* contex
 	else
 	{
 		// TODO anything? 
-		debug() << "MLProcFactory::create: class " << className << " not found!!";
+		debug() << "MLProcFactory::createProc: class " << className << " not found!!";
 	}
 	
 	return resultProc;

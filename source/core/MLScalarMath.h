@@ -134,10 +134,11 @@ namespace ml
 	void randReset(void);
 	
 	// ----------------------------------------------------------------
-	// constexpr sqrt via Newton-Raphson via Alex on Stack Overflow
+	// constexpr math functions
 	
-	namespace Detail
+	namespace constexprMath
 	{
+		// sqrt via Alex on Stack Overflow
 		float constexpr sqrtNewtonRaphson(float x, float curr, float prev)
 		{
 			return curr == prev
@@ -149,7 +150,7 @@ namespace ml
 	float constexpr sqrtf_const(float x)
 	{
 		return x >= 0 && x < std::numeric_limits<float>::infinity()
-		? Detail::sqrtNewtonRaphson(x, x, 0.f)
+		? constexprMath::sqrtNewtonRaphson(x, x, 0.f)
 		: std::numeric_limits<float>::quiet_NaN();
 	}
 
