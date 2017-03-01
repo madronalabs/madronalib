@@ -48,12 +48,14 @@ typedef __m128i SIMDVectorInt;
 #define VecF2I _mm_castps_si128
 #define VecI2F _mm_castsi128_ps
 
-constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
-constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
+// TODO int or uintptr_t?
+constexpr int kFloatsPerSIMDVectorBits = 2;
+constexpr int kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
 constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
+constexpr int kBytesPerSIMDVector = kFloatsPerSIMDVector * sizeof(float);
 
-constexpr uintptr_t kIntsPerSIMDVectorBits = 2;
-constexpr uintptr_t kIntsPerSIMDVector = 1 << kIntsPerSIMDVectorBits;
+constexpr int kIntsPerSIMDVectorBits = 2;
+constexpr int kIntsPerSIMDVector = 1 << kIntsPerSIMDVectorBits;
 
 // primitive SSE operations
 #define vecAdd _mm_add_ps

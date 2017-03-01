@@ -11,6 +11,8 @@
 
 using namespace ml;
 
+constexpr float myFillFn(int c){ return sqrtf_const(c*16.f/(kFloatsPerDSPVector - 1));  }
+	
 int main()
 {
 	std::cout << "DSP Ops:\n";
@@ -26,6 +28,10 @@ int main()
 	std::cout << "native sin: " << sinNative << "\n\n";	
 	
 	std::cout << "difference: " << sinNative - sinMadronaLib << "\n\n";	
+	
+	// constexpr fill. unfortunately this can not be made to work with a lambda in C++11.
+	constexpr DSPVector cTest(myFillFn);
+	std::cout << "constexpr sqrt fill: " << cTest << "\n\n";
 	
 	/*
 	 // store a lambda on ()->(DSPVector) defined using fill()->(float)
@@ -92,10 +98,12 @@ int main()
 	std::cout << fdnTimeVector.result << "\n";
 	 */
 	
+	
+	
 	RandomSource r;
-	DSPVector a = 2;
-	DSPVector m = 3;
-	DSPVector n = r();
+	DSPVector a(2.f);
+	DSPVector m(3.f);
+	DSPVector n(r());
 	
 	a = m + n;
 	

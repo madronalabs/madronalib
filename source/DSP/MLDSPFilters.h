@@ -531,38 +531,39 @@ namespace ml
 		
 		inline DSPVector operator()(DSPVector& x)
 		{
-			DSPVector y; 
-
 			// write
 			uintptr_t writeEnd = mWriteIndex + kFloatsPerDSPVector;
 			if(writeEnd <= mLengthMask + 1)
 			{
-				std::copy(x.mData.asFloat, x.mData.asFloat + kFloatsPerDSPVector, mBuffer.getBuffer() + mWriteIndex);
+				const float* srcStart = x.getConstBuffer();
+				std::copy(srcStart, srcStart + kFloatsPerDSPVector, mBuffer.getBuffer() + mWriteIndex);
 			}
 			else
 			{
 				uintptr_t excess = writeEnd - mLengthMask - 1; 
-				float* srcStart = x.mData.asFloat;
-				float* srcSplice = srcStart + kFloatsPerDSPVector - excess;
-				float* srcEnd = srcStart + kFloatsPerDSPVector;
+				const float* srcStart = x.getConstBuffer();
+				const float* srcSplice = srcStart + kFloatsPerDSPVector - excess;
+				const float* srcEnd = srcStart + kFloatsPerDSPVector;
 				std::copy(srcStart, srcSplice, mBuffer.getBuffer() + mWriteIndex);
 				std::copy(srcSplice, srcEnd, mBuffer.getBuffer());
 			}
 			
 			// read			
+			DSPVector y; 
 			uintptr_t readStart = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
 			uintptr_t readEnd = readStart + kFloatsPerDSPVector;
 			float* srcBuf = mBuffer.getBuffer();
 			if(readEnd <= mLengthMask + 1)
 			{
-				std::copy(srcBuf + readStart, srcBuf + readEnd, y.mData.asFloat);
+				std::copy(srcBuf + readStart, srcBuf + readEnd, y.getBuffer());
 			}
 			else
 			{
 				uintptr_t excess = readEnd - mLengthMask - 1; 
 				uintptr_t readSplice = readStart + kFloatsPerDSPVector - excess;
-				std::copy(srcBuf + readStart, srcBuf + readSplice, y.mData.asFloat);
-				std::copy(srcBuf, srcBuf + excess, y.mData.asFloat + (kFloatsPerDSPVector - excess));
+				float* pDest = y.getBuffer();
+				std::copy(srcBuf + readStart, srcBuf + readSplice, pDest);
+				std::copy(srcBuf, srcBuf + excess, pDest + (kFloatsPerDSPVector - excess));
 			}
 			
 			// update index

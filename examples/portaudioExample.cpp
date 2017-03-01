@@ -33,6 +33,9 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData )
 {	
+	// NOTE
+	// C++11 adds a runtime check to access static data like this! It is very convenient
+	// but do something else to initialize performance-critical code.
 	static std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
 	static textUtils::NameMaker namer;
 
@@ -77,8 +80,6 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 	return paContinue;
 }
 
-constexpr float myFillFn(int c){ return c*0.1f;  }
-
 int main()
 {
 	PaStreamParameters outputParameters;
@@ -87,14 +88,6 @@ int main()
 	void* pData = nullptr;
 	
 	std::cout << "portaudio example:\n";
-
-
-
-	// unfortunately this will not work with a lambda. Otherwise, quite nice.
-	constexpr DSPVector cTest(FillDSPVector(myFillFn));
-	
-	std::cout << cTest;
-	
 	
 	/*
 	// MLTEST Property changes

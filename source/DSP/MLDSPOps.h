@@ -39,20 +39,19 @@ namespace ml
 	template<int VECTORS, typename FuncType, unsigned... Is>
 	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(indexSeq<Is...>, FuncType func)
 	{
-		return { { func(Is)... } };
+		return { {func(Is)...} };
 	}
 	
-	// make a std::array from a function at compile time. usage example:
+	// template for a function to fill a DSPVector at compile time. usage example:
 	// float myFillFn(int i) { return i*0.3f; }
-	// constexpr DSPVector myConstVector(FillDSPVector(myFillFn));
+	// constexpr DSPVector v(ConstDSPVectorFiller(myFillFn));
 	// where myFillFn takes some args and returns float.
 	// unfortunately this will not work with a lambda in C++11.
 	template<int VECTORS, typename FuncType>
-	constexpr DSPVectorArrayData<VECTORS> FillDSPVectorArray(FuncType func)
+	constexpr DSPVectorArrayData<VECTORS> ConstDSPVectorArrayFiller(FuncType func)
 	{
 		return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*VECTORS>{}, func);
 	}	
-	#define FillDSPVector	FillDSPVectorArray<1>
 
 	template<int VECTORS>
 	class DSPVectorArray
@@ -60,20 +59,24 @@ namespace ml
 		typedef union 			
 		{
 			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
-			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
 			float asFloat[kFloatsPerDSPVector*VECTORS];
 		}	DSPVectorData;
  
-	public:
 		DSPVectorData mData;
 
+	public:
+		
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
+		
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData{{v.data}} {}
+		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
-		inline const float operator[](int i) const { return mData.asFloat[i]; }			
+		inline const float operator[](int i) const { return mData.asFloat[i]; }		
+		
 		inline float* getBuffer() {return mData.asFloat;} 
 		inline const float* getConstBuffer() const {return mData.asFloat;}
 		
@@ -194,7 +197,6 @@ namespace ml
 		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 	};
 	
-		
 	typedef DSPVectorArray<1> DSPVector;
 	
 	
@@ -205,13 +207,13 @@ namespace ml
 	template<int VECTORS>
 	inline void load(DSPVectorArray<VECTORS>& vecDest, float* pSrc) 
 	{ 
-		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, vecDest.mData.asFloat); 
+		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, vecDest.getBuffer()); 
 	}
 
 	template<int VECTORS>
 	inline void store(const DSPVectorArray<VECTORS>& vecSrc, float* pDest) 
 	{ 
-		std::copy(vecSrc.mData.asFloat, vecSrc.mData.asFloat + kFloatsPerDSPVector*VECTORS, pDest); 
+		std::copy(vecSrc.getConstBuffer(), vecSrc.getConstBuffer() + kFloatsPerDSPVector*VECTORS, pDest); 
 	}
 
 // ----------------------------------------------------------------
