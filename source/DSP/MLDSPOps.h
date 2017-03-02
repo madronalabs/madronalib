@@ -10,7 +10,10 @@
 // have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,
 // see MLProcs. In general MLProcs will be written using DSPGens, DSPOps, DSPFilters.
 
-#pragma once
+//#pragma once
+
+#ifndef __ML_DSP_OPS__
+#define __ML_DSP_OPS__
 
 #include <array>
 #include <functional>
@@ -56,6 +59,9 @@ namespace ml
 	template<int VECTORS>
 	class DSPVectorArray
 	{
+
+#ifndef _WIN32
+
 		typedef union 			
 		{
 			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
@@ -66,21 +72,55 @@ namespace ml
 		DSPVectorData mData;
 
 	public:
-		
+
+		inline float* getBuffer() { return mData.asFloat; }
+		inline const float* getConstBuffer() const { return mData.asFloat; }
+
+		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData{ { v.data } } {}
+
+#else
+		// padded sizes and aligned buffer accessor for win32 version
+		union DSPVectorData
+		{
+			std::array<float, kFloatsPerDSPVector*VECTORS + kBytesPerSIMDVector> mArrayData; // for constexpr ctor
+			float asFloat[kFloatsPerDSPVector*VECTORS + kBytesPerSIMDVector];
+
+			DSPVectorData() {}
+			constexpr DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
+		};
+
+		DSPVectorData mData;
+
+	public:
+
+		inline float* getBuffer()
+		{
+			uintptr_t pD = reinterpret_cast<uintptr_t>(mData.asFloat);
+			pD += (kBytesPerSIMDVector - 1);
+			pD &= (~(kBytesPerSIMDVector - 1));
+			return reinterpret_cast<float*>(pD);
+		}
+		inline const float* getConstBuffer() const
+		{ 
+			uintptr_t pD = reinterpret_cast<uintptr_t>(mData.asFloat);
+			pD += (kBytesPerSIMDVector - 1);
+			pD &= (~(kBytesPerSIMDVector - 1));
+			return reinterpret_cast<const float*>(pD);
+		}
+
+		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+
+#endif
+
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
-		
-		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData{{v.data}} {}
-		
+				
 		// sugar for less verbose constexpr ctor using (int -> float) function
 		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 		
-		inline float& operator[](int i) { return mData.asFloat[i]; }	
-		inline const float operator[](int i) const { return mData.asFloat[i]; }		
-		
-		inline float* getBuffer() {return mData.asFloat;} 
-		inline const float* getConstBuffer() const {return mData.asFloat;}
+		inline float& operator[](int i) { return getBuffer()[i]; }	
+		inline const float operator[](int i) const { return getConstBuffer()[i]; }		
 		
 		// set each element of the DSPVectorArray to 0.
 		inline DSPVectorArray<VECTORS> zero()
@@ -102,7 +142,7 @@ namespace ml
 			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
 			{
-				vecStore(py1, vk);
+  				vecStore(py1, vk);
 				py1 += kFloatsPerSIMDVector;
 			}
 			return *this;
@@ -731,3 +771,4 @@ namespace ml
 } // namespace ml
 
 
+#endif // __ML_DSP_OPS__

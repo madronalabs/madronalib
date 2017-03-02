@@ -12,6 +12,8 @@
 #include <stdint.h>
 #include <limits>   
 
+#include "MLDSPConstants.h"
+
 namespace ml 
 {
 	// return the exponent of the smallest power of 2 that is >= x.
@@ -167,7 +169,7 @@ namespace ml
 		
 		constexpr
 		double sin(const double x) {
-			return sin_helper(x < 0 ? -x+M_PI : x);
+			return sin_helper(x < 0 ? -x+kPi : x);
 		}
 		
 		//sinh 3x = 3 sinh x + 4 sinh ^3 x
@@ -182,7 +184,7 @@ namespace ml
 			return x < 0 ? -sinh_helper(-x) : sinh_helper(x);
 		}
 		
-		constexpr double cos (const double x) { return sin(M_PI_2 - x); }
+		constexpr double cos (const double x) { return sin(kTwoPi - x); }
 		
 		constexpr double cosh(const double x) { return sqrt(1.0 + square(sinh(x))); }
 		
@@ -213,12 +215,12 @@ namespace ml
 		constexpr
 		double atan_identity(const double x) {
 			return x <= (2. - sqrt(3.)) ? atan_poly(x) :
-			(M_PI_2 / 3.) + atan_poly((sqrt(3.)*x-1)/(sqrt(3.)+x));
+			(kTwoPi / 3.) + atan_poly((sqrt(3.)*x-1)/(sqrt(3.)+x));
 		}
 		
 		constexpr
 		double atan_cmplmntry(const double x) {
-			return (x < 1) ? atan_identity(x) : M_PI_2 - atan_identity(1/x);
+			return (x < 1) ? atan_identity(x) : kTwoPi - atan_identity(1/x);
 		}
 		
 		constexpr
@@ -229,10 +231,10 @@ namespace ml
 		constexpr
 		double atan2(const double y, const double x) {
 			return           x >  0 ? atan(y/x)        : 
-			y >= 0 && x <  0 ? atan(y/x) + M_PI :
-			y <  0 && x <  0 ? atan(y/x) - M_PI :
-			y >  0 && x == 0 ?  M_PI_2          :
-			y <  0 && x == 0 ? -M_PI_2          : 0;   // 0 == undefined
+			y >= 0 && x <  0 ? atan(y/x) + kPi :
+			y <  0 && x <  0 ? atan(y/x) - kPi :
+			y >  0 && x == 0 ? kTwoPi :
+			y <  0 && x == 0 ? -kTwoPi : 0;   // 0 == undefined
 		}
 		
 		constexpr
@@ -256,7 +258,7 @@ namespace ml
 		// exp(r) = e^r = 1 + r + r^2/2 + r^3/6 + r^4/24 + r^5/120
 		constexpr
 		double exp(const double x) {
-			return pow(M_E,nearest(x)) * exp_helper(fraction(x));
+			return pow(kE,nearest(x)) * exp_helper(fraction(x));
 		}
 		
 		constexpr
