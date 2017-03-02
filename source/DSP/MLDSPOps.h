@@ -72,6 +72,8 @@ namespace ml
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
 		
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData{{v.data}} {}
+		
+		// sugar for less verbose constexpr ctor using (int -> float) function
 		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 		
 		inline float& operator[](int i) { return mData.asFloat[i]; }	
@@ -199,6 +201,48 @@ namespace ml
 	
 	typedef DSPVectorArray<1> DSPVector;
 	
+	// ----------------------------------------------------------------
+	// integer DSPVector
+	
+	constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
+	
+	template<int VECTORS>
+	class DSPVectorArrayInt
+	{
+		typedef union
+		{
+			SIMDVectorInt asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			int32_t asInt[kFloatsPerDSPVector*VECTORS];
+		} DSPVectorData;
+		
+	public:
+		DSPVectorData mData;
+		explicit DSPVectorArrayInt() { }
+		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
+		
+		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
+		inline const int32_t operator[](int i) const { return mData.asInt[i]; }			
+		inline int32_t* getBufferInt() {return (mData.asInt);} 
+		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
+		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
+		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
+		
+		// set each element of the DSPVectorArray to the int32_t value k.
+		inline DSPVectorArrayInt<VECTORS> operator=(int32_t k)
+		{
+			const SIMDVectorInt vk = vecSetInt1(k); 	
+			int32_t* py1 = getBufferInt();
+			
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(reinterpret_cast<float*>(py1), (vk));
+				py1 += kIntsPerSIMDVector;
+			}
+			return *this;
+		}
+	};
+	
+	typedef DSPVectorArrayInt<1> DSPVectorInt;
 	
 // ----------------------------------------------------------------
 // load and store
@@ -579,50 +623,6 @@ namespace ml
 		return vy;
 	}
 	
-	// ----------------------------------------------------------------
-	// integer DSPVector
-	
-	typedef DSPVectorArray<1> DSPVector;
-	
-	constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
-	
-	template<int VECTORS>
-	class DSPVectorArrayInt
-	{
-		typedef union
-		{
-			SIMDVectorInt asVector[kSIMDVectorsPerDSPVector*VECTORS];
-			int32_t asInt[kFloatsPerDSPVector*VECTORS];
-		} DSPVectorData;
-		
-	public:
-		DSPVectorData mData;
-		explicit DSPVectorArrayInt() { }
-		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
-		
-		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
-		inline const int32_t operator[](int i) const { return mData.asInt[i]; }			
-		inline int32_t* getBufferInt() {return (mData.asInt);} 
-		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
-		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
-		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
-
-		// set each element of the DSPVectorArray to the int32_t value k.
-		inline DSPVectorArrayInt<VECTORS> operator=(int32_t k)
-		{
-			const SIMDVectorInt vk = vecSetInt1(k); 	
-			int32_t* py1 = getBufferInt();
-			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
-			{
-				vecStore(reinterpret_cast<float*>(py1), (vk));
-				py1 += kIntsPerSIMDVector;
-			}
-			return *this;
-		}
-	};
-	
-	typedef DSPVectorArrayInt<1> DSPVectorInt;
 
 	// ----------------------------------------------------------------
 	// unary float -> int operators 
