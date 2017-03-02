@@ -12,7 +12,7 @@
 #include <stdint.h>
 #include <limits>   
 
-#include "MLDSPConstants.h"
+#include "MLScalarConstants.h"
 
 namespace ml 
 {
