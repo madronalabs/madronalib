@@ -571,7 +571,12 @@ public:
 	// return shared_ptr to a new MLProc instance. 
 	static MLProcPtr createProcInstance()
 	{
-		MLProcPtr pNew(new MLProcSubclass);
+		debug() << " size = " << sizeof(MLProcSubclass) << "\n";
+		
+		void* newMem = malloc(sizeof(MLProcSubclass));
+		
+		
+		MLProcPtr pNew(new(newMem) MLProcSubclass);
 		return pNew;
 	}
 };

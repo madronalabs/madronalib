@@ -11,7 +11,6 @@
 
 using namespace ml;
 
-constexpr float myFillFn(int n){ return const_math::sqrt(n*16.f/(kFloatsPerDSPVector - 1));  }
 constexpr float mySinFillFn(int n){ return const_math::sin(n*kTwoPi/(kFloatsPerDSPVector));  }
 	
 int main()
@@ -31,8 +30,8 @@ int main()
 	std::cout << "difference: " << sinNative - sinMadronaLib << "\n\n";	
 	
 	// constexpr fill. unfortunately this can not be made to work with a lambda in C++11.
-	constexpr DSPVector cTest(mySinFillFn);
-	std::cout << "constexpr sqrt fill: " << cTest << "\n\n";
+	constexpr DSPVector kSinVec(mySinFillFn);
+	std::cout << "constexpr sin table: " << kSinVec << "\n\n";
 	
 	/*
 	 // store a lambda on ()->(DSPVector) defined using fill()->(float)

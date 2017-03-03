@@ -21,7 +21,6 @@
 
 #include "../core/MLScalarMath.h"
 #include "MLDSPMath.h"
-#include "MLDSPConstants.h"
 
 namespace ml
 {		
@@ -59,15 +58,15 @@ namespace ml
 	template<int VECTORS>
 	class DSPVectorArray
 	{
-
-#ifndef _WIN32
-
-		typedef union 			
+		union DSPVectorData		
 		{
-			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
+			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			float asFloat[kFloatsPerDSPVector*VECTORS];
-		}	DSPVectorData;
+			
+			DSPVectorData() {}
+			constexpr DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
+		};
  
 		DSPVectorData mData;
 
@@ -76,48 +75,14 @@ namespace ml
 		inline float* getBuffer() { return mData.asFloat; }
 		inline const float* getConstBuffer() const { return mData.asFloat; }
 
-		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData{ { v.data } } {}
-
-#else
-		// padded sizes and aligned buffer accessor for win32 version
-		union DSPVectorData
-		{
-			std::array<float, kFloatsPerDSPVector*VECTORS + kBytesPerSIMDVector> mArrayData; // for constexpr ctor
-			float asFloat[kFloatsPerDSPVector*VECTORS + kBytesPerSIMDVector];
-
-			DSPVectorData() {}
-			constexpr DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
-		};
-
-		DSPVectorData mData;
-
-	public:
-
-		inline float* getBuffer()
-		{
-			uintptr_t pD = reinterpret_cast<uintptr_t>(mData.asFloat);
-			pD += (kBytesPerSIMDVector - 1);
-			pD &= (~(kBytesPerSIMDVector - 1));
-			return reinterpret_cast<float*>(pD);
-		}
-		inline const float* getConstBuffer() const
-		{ 
-			uintptr_t pD = reinterpret_cast<uintptr_t>(mData.asFloat);
-			pD += (kBytesPerSIMDVector - 1);
-			pD &= (~(kBytesPerSIMDVector - 1));
-			return reinterpret_cast<const float*>(pD);
-		}
-
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 
-#endif
+		// sugar for less verbose constexpr ctor using (int -> float) function
+		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
-				
-		// sugar for less verbose constexpr ctor using (int -> float) function
-		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 		
 		inline float& operator[](int i) { return getBuffer()[i]; }	
 		inline const float operator[](int i) const { return getConstBuffer()[i]; }		

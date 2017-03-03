@@ -475,8 +475,14 @@ MLProcPtr MLProcFactory::createProc(const ml::Symbol className, MLDSPContext* co
 	{
 		// get creator fn from entry
 		fn = regEntry->second;
+		
+		// get memory
+		
+		
 		// call creator fn returning new MLProc subclass instance
+		debug() << "proc " << className << ":";
 		resultProc = fn();
+		
 		resultProc->setContext(context);
 		
 		// give root context pointer to new containers
