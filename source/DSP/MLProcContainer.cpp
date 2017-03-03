@@ -106,7 +106,7 @@ void MLProcContainer::compile()
 	for (std::list<MLProcPtr>::iterator it = mProcList.begin(); it != mProcList.end(); ++it)
 	{
 		MLProcPtr p = (*it);
-		mOpsVec.push_back(p.get());
+		mOpsVec.push_back(p);
 	}
 
 	// ----------------------------------------------------------------
@@ -904,7 +904,7 @@ void MLProcContainer::dumpMap()
 //
 MLProcPtr MLProcContainer::newProc(const ml::Symbol className, const ml::Symbol procName) 
 {
-	MLProcPtr pNew;
+	MLProcPtr pNew = nullptr;
 	
 	// call factory to get instance of processor class in this context
 	pNew = theProcFactory.createProc(className, this);	
@@ -922,7 +922,7 @@ MLProcPtr MLProcContainer::newProc(const ml::Symbol className, const ml::Symbol 
 
 MLProc::err MLProcContainer::addProc(const ml::Symbol className, const ml::Symbol procName)
 {
-	MLProcPtr pNew;
+	MLProcPtr pNew = nullptr;
 	err e = OK;
 		
 	// is name in map already?
@@ -933,7 +933,7 @@ MLProc::err MLProcContainer::addProc(const ml::Symbol className, const ml::Symbo
 		pNew = newProc(className, procName);
 		if (pNew)
 		{
-			mProcMap[procName] = pNew;
+			mProcMap[procName] = MLProcOwner(pNew);
 			mProcList.push_back(pNew);
 			
 			// add inputs and outputs to proc if needed. 
@@ -993,7 +993,7 @@ MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias
 				// advance one to add after named proc.
 				jt++;
 			}
-			mProcMap[alias] = pNew;
+			mProcMap[alias] = MLProcOwner(pNew);
 			mProcList.insert(jt, pNew);
 				
 			// add inputs and outputs to proc if needed. 
@@ -1019,7 +1019,7 @@ MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias
 
 MLProcPtr MLProcContainer::getProc(const ml::Path & path)
 {
-	MLProcPtr r;
+	MLProcPtr r = nullptr;
 	MLProcPtr headProc;
 	SymbolProcMapT::iterator it;
 	err e = OK;
@@ -1036,7 +1036,7 @@ MLProcPtr MLProcContainer::getProc(const ml::Path & path)
 	// if found,
 	if (it != mProcMap.end())
 	{
-		headProc = it->second;	
+		headProc = it->second.get();	
 		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
@@ -1352,7 +1352,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 	it = mProcMap.find(head);
 	if (it != mProcMap.end())
 	{
-		headProc = it->second;	
+		headProc = it->second.get();	
 		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
@@ -1416,7 +1416,7 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 	it = mProcMap.find(head);
 	if (it != mProcMap.end())
 	{
-		headProc = it->second;	
+		headProc = it->second.get();	
 		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  
@@ -1556,7 +1556,7 @@ void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol 
 	// if found,
 	if (it != mProcMap.end())
 	{
-		headProc = it->second;	
+		headProc = it->second.get();	
 		if (tail.getSize() > 0)
 		{
 			if (headProc->isContainer())  

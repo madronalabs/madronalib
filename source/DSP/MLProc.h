@@ -40,6 +40,8 @@
 
 #include "MLDSPDeprecated.h"
 
+#include "MLMemory.h"
+
 #define CHECK_IO    0
 
 #ifdef	__GNUC__
@@ -326,6 +328,11 @@ public:
 	};
 	
 	MLProc() : mpContext(0), mParamsChanged(true), mCopyIndex(0) {}
+	virtual ~MLProc() {}	
+	
+	// ----------------------------------------------------------------
+	// allocators
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	
 	// ----------------------------------------------------------------
 	// wrapper for class static info
@@ -482,7 +489,6 @@ public:
 	inline ml::Time getContextTime() { return mpContext ? mpContext->getTime() : 0; }
 	
 protected:	
-	virtual ~MLProc() {}	
 	
 	void dumpNode(int indent);
 	void printErr(MLProc::err err);	
@@ -514,9 +520,10 @@ private:
 	ml::Symbol mName;
 };
 
-// TODO clear up ownership issues and do away with this, Procs should be owned by containers only
-typedef std::shared_ptr<MLProc> MLProcPtr;
 
+typedef std::unique_ptr<MLProc> MLProcOwner;
+
+typedef MLProc* MLProcPtr;
 typedef std::list<MLProcPtr> MLProcList;
 typedef MLProcList::iterator MLProcListIterator;
 
@@ -571,13 +578,14 @@ public:
 	// return shared_ptr to a new MLProc instance. 
 	static MLProcPtr createProcInstance()
 	{
-		debug() << " size = " << sizeof(MLProcSubclass) << "\n";
+		// NOTE sizes are quite large! 
+// 		debug() << " size = " << sizeof(MLProcSubclass) << "\n";
 		
-		void* newMem = malloc(sizeof(MLProcSubclass));
+//		void* newMem = malloc(sizeof(MLProcSubclass));		
+//		MLProcPtr pNew(new(newMem) MLProcSubclass);		
+//		return pNew;
 		
-		
-		MLProcPtr pNew(new(newMem) MLProcSubclass);
-		return pNew;
+		return new MLProcSubclass;
 	}
 };
 

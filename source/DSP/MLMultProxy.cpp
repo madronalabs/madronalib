@@ -589,7 +589,7 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 // only in our template and copies. 
 MLProcPtr MLMultiContainer::getProc(const ml::Path & pathName)
 {
-	MLProcPtr r;
+	MLProcPtr r = nullptr;
 debug() << "*************** ACK:	MLMultiContainer::getProc called!\n";
 debug() << "path = " << pathName << "\n"; 
 	return r;

@@ -176,7 +176,8 @@ public:
 	virtual void dumpGraph(int indent) = 0;	
 	virtual void setProcParams(const ml::Path& procName, juce::XmlElement* pelem) = 0;
 
-	typedef std::map<ml::Symbol, MLProcPtr> SymbolProcMapT;	
+	typedef std::map<ml::Symbol, MLProcOwner> SymbolProcMapT;	
+	
 	typedef std::map<ml::Symbol, MLPublishedParamPtr> MLPublishedParamMapT;
 	typedef std::map<ml::Symbol, MLPublishedInputPtr> MLPublishedInputMapT;
 	typedef std::map<ml::Symbol, MLPublishedOutputPtr> MLPublishedOutputMapT;
@@ -363,6 +364,7 @@ protected:
 	// This is what gets iterated on during process().
 	std::vector<MLProc*> mOpsVec;
 		
+	// MLTEST PROCS ARE OWNED HERE
 	// map to processors by name.   
 	SymbolProcMapT mProcMap;
 	

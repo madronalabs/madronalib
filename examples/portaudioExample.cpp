@@ -14,6 +14,8 @@ const int kTestSeconds = 2;
 const int kSampleRate = 44100;
 const int kFramesPerBuffer = kFloatsPerDSPVector;
 
+// TEST
+#include "../source/procs/MLProcMultiply.h"
 
 
 uint64_t rdtsc()
@@ -25,6 +27,14 @@ uint64_t rdtsc()
 
 int kTotalSamples = 0;
 
+std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
+textUtils::NameMaker namer;
+
+OnePole noiseFreqFilter(onePoleCoeffs::onePole(5000.f*kTwoPi/kSampleRate));
+
+// make a tick every kSampleRate samples(1 second)
+TickSource ticks(kSampleRate);
+
 // portaudio callback function.
 // userData is unused.
 static int patestCallback( const void *inputBuffer, void *outputBuffer,
@@ -33,26 +43,18 @@ static int patestCallback( const void *inputBuffer, void *outputBuffer,
 						  PaStreamCallbackFlags statusFlags,
 						  void *userData )
 {	
-	// NOTE
-	// C++11 adds a runtime check to access static data like this! It is very convenient
-	// but do something else to initialize performance-critical code.
-	static std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
-	static textUtils::NameMaker namer;
-
-	static OnePole noiseFreqFilter(onePoleCoeffs::onePole(5000.f*kTwoPi/kSampleRate));
-	
-	// make a tick every kSampleRate samples(1 second)
-	static TickSource ticks(kSampleRate);
-	
 	// make freqs signal
 	MLSignal freqs({12000, 13000, 14000, 6000});
 	freqs.scale(kTwoPi/kSampleRate);
 
+	// NOTE
+	// C++11 adds a runtime check to access static data like this! It is very convenient
+	// but do something else to initialize performance-critical code.
 	// make an FDN with 4 delay lines (times in samples)
 	static FDN fdn
 	{ 
 		{"delays", {33.f, 149.f, 1390.f, 1400.f} },
-		{"cutoffs", freqs } , // TODO more functional rewrite of MLSignal so we can create freqs inline
+		{"cutoffs", freqs } , // TODO more functional rewrite of MLSignal so we can create freqs statically
 		{"gains", {0.99, 0.99, 0.99, 0.99} }
 	};
 
@@ -88,6 +90,11 @@ int main()
 	void* pData = nullptr;
 	
 	std::cout << "portaudio example:\n";
+	
+	
+	// size = 128. why was size of old procs > 6kb?
+	std::cout << "size of multiply:" << sizeof(ProcMultiply) << "\n";
+	
 	
 	/*
 	// MLTEST Property changes

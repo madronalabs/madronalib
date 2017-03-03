@@ -466,7 +466,7 @@ void MLProcFactory::registerFn(const ml::Symbol className, MLProcCreateFnT fn)
 MLProcPtr MLProcFactory::createProc(const ml::Symbol className, MLDSPContext* context)
 {
 	MLProcCreateFnT fn;
-	MLProcPtr resultProc;
+	MLProcPtr resultProc = nullptr;
 	
 	// get named entry from registry
 	FnRegistryT::const_iterator regEntry = procRegistry.find(className);
@@ -476,20 +476,19 @@ MLProcPtr MLProcFactory::createProc(const ml::Symbol className, MLDSPContext* co
 		// get creator fn from entry
 		fn = regEntry->second;
 		
-		// get memory
-		
-		
 		// call creator fn returning new MLProc subclass instance
-		debug() << "proc " << className << ":";
 		resultProc = fn();
 		
-		resultProc->setContext(context);
-		
-		// give root context pointer to new containers
-		if(resultProc->isContainer())
+		if(resultProc)
 		{
-			MLProcContainer& resultContainer = static_cast<MLProcContainer&>(*resultProc);
-			resultContainer.setRootContext(context->getRootContext());
+			resultProc->setContext(context);
+			
+			// give root context pointer to new containers
+			if(resultProc->isContainer())
+			{
+				MLProcContainer& resultContainer = static_cast<MLProcContainer&>(*resultProc);
+				resultContainer.setRootContext(context->getRootContext());
+			}
 		}
 	}
 	else

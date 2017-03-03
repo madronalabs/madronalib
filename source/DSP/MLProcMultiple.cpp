@@ -108,7 +108,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
             }
             
 			// add proxy to this container.
-			mProcMap[procName] = pProxyProc;
+			mProcMap[procName] = MLProcOwner(pProxyProc);
 			mProcList.push_back(pProxyProc);
 		}
 		else
@@ -130,7 +130,7 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 	static const ml::Symbol copiesSym("copies");
 
 	err e;
-	MLProcPtr r;
+	MLProcPtr r = nullptr;
 	MLProcPtr proxyProc; // proxy proc in our container
 	MLProcContainer* copyAsContainer;	// owned by proxy
 	SymbolProcMapT::iterator it;
@@ -148,7 +148,7 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 	// if found,
 	if (it != mProcMap.end())
 	{
-		proxyProc = it->second;	
+		proxyProc = it->second.get();	
 		if (tail.getSize() > 0)
 		{
 			if (proxyProc->isContainer()) // proxy is a MultiContainer
