@@ -11,12 +11,23 @@
 
 #include "../source/core/MLMemory.h"
 
+#ifdef _WINDOWS
+#include "Windows.h"
+#endif
+
 using namespace ml;
 
 constexpr float mySinFillFn(int n){ return const_math::sin(n*kTwoPi/(kFloatsPerDSPVector));  }
 	
 int main()
 {
+#ifdef _WINDOWS
+	AllocConsole();
+	freopen("CONOUT$", "w", stdout);
+	freopen("CONOUT$", "w", stderr);
+#endif
+
+
 	std::cout << "DSP Ops:\n";
 	
 	// generate a vector using map() and columnIndex()
@@ -112,5 +123,12 @@ int main()
 	std::cout << "sum: " << a << "\n";
 		
 	std::cout << "aligned? " << EIGEN_MALLOC_ALREADY_ALIGNED << "\n";
+
+
+
+#ifdef _WINDOWS
+	system("pause");
+#endif
+
 }
 
