@@ -331,9 +331,11 @@ public:
 	virtual ~MLProc() {}	
 	
 	// ----------------------------------------------------------------
-	// allocators
-	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-	
+	// custom allocators for 32-bit Windows. 
+	#if(_WIN32 && (!_WIN64))
+		EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+	#endif
+
 	// ----------------------------------------------------------------
 	// wrapper for class static info
 	virtual MLProcInfoBase& procInfo() = 0; 	

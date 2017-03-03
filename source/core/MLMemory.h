@@ -11,6 +11,7 @@
 // macros to compile the Eigen functions we are using
 
 #define EIGEN_DEVICE_FUNC
+#define EIGEN_MAX_ALIGN_BYTES 16
 #define EIGEN_DEFAULT_ALIGN_BYTES 16
 
 // Suppresses 'unused variable' warnings.
@@ -45,6 +46,8 @@ namespace Eigen {
 	}
 	#define eigen_assert(x) assert(x)
 #endif
+
+#define EIGEN_NO_THROW noexcept(true)
 
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
