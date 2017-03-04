@@ -8,7 +8,7 @@
 
 #pragma once
 
-// macros to compile the Eigen functions we are using
+// Here are just enough macros to compile the Eigen functions we are using. 
 
 #define EIGEN_DEVICE_FUNC
 #define EIGEN_MAX_ALIGN_BYTES 16
@@ -48,6 +48,9 @@ namespace Eigen {
 #endif
 
 #define EIGEN_NO_THROW noexcept(true)
+
+
+// The following Eigen license applies to the remainder of this file:
 
 // This file is part of Eigen, a lightweight C++ template library
 // for linear algebra.
@@ -286,8 +289,6 @@ namespace Eigen {
 	} // end namespace internal
 	
 	
-	
-	
 	/*****************************************************************************
 	 *** Implementation of EIGEN_MAKE_ALIGNED_OPERATOR_NEW [_IF]                ***
 	 *****************************************************************************/
@@ -334,3 +335,4 @@ EIGEN_MAKE_ALIGNED_OPERATOR_NEW_IF(bool(((Size)!=Eigen::Dynamic) && ((sizeof(Sca
 } // end namespace Eigen
 
 
+#define ML_MAKE_ALIGNED_OPERATOR_NEW EIGEN_MAKE_ALIGNED_OPERATOR_NEW

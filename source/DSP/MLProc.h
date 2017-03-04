@@ -331,9 +331,12 @@ public:
 	virtual ~MLProc() {}	
 	
 	// ----------------------------------------------------------------
-	// custom allocators for 32-bit Windows. 
+	// Custom allocators for 32-bit Windows. This should be sufficient to allow use of 
+	// DSPVectors within Procs on the heap. There may still be cases where DSPVectors 
+	// are not aligned properly, such as STL containers. Test and tread carefully.
+	
 	#if(_WIN32 && (!_WIN64))
-		EIGEN_MAKE_ALIGNED_OPERATOR_NEW;
+		ML_MAKE_ALIGNED_OPERATOR_NEW;
 	#endif
 
 	// ----------------------------------------------------------------
