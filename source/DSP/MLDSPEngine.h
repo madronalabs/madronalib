@@ -102,8 +102,13 @@ public:
 	int getInputBufferFramesRemaining();
 
 	void reset();
+
+	// set time and rate for internal clock.
+	void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying);
 	
-	void processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime, const double secs, const double position, const double bpm, bool isPlaying);
+	// produce one signal vector of the compiled graph's output, processing signals from the global inputs (if any)
+	// to the global outputs. 
+	void processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime);
 	
 private:
 	
@@ -131,6 +136,7 @@ private:
     
 	// input signals that will be sent to the root proc.
 	std::vector<MLSignalPtr> mInputSignals;
+	MLSignal mNullInputSignal;
 
 	// ring buffers so that processing can always
 	// be done in multiples of 4 samples.

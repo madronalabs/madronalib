@@ -184,14 +184,22 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		// set self as context to get size and rate chain started.
 		setContext(this);	
 
+		int graphInputs = getNumInputs();
+		
 		// connect input Signals and set sizes.
-		for (int i=0; i < mInputChans; ++i)
+		for (int i=0; i < graphInputs; ++i)
 		{
-			mInputSignals[i]->setRate(sr);
-			mInputSignals[i]->setDims(bufSize);
-			clearInput(i+1);
-			e = setInput(i+1, (*mInputSignals[i]));
-			if (e != OK) goto bail;
+			if(i < mInputChans)
+			{
+				mInputSignals[i]->setRate(sr);
+				clearInput(i+1);
+				e = setInput(i+1, (*mInputSignals[i]));
+				if (e != OK) goto bail;
+			}
+			else
+			{
+				setInput(i+1, getContext()->getNullInput());				
+			}
 		}		
 
 		for (int i=0; i < mInputChans; ++i)
@@ -279,6 +287,8 @@ void MLDSPEngine::setInputChannels(int c)
 		mInputSignals.push_back(MLSignalPtr(new MLSignal(kFloatsPerDSPVector)));
 		mInputBuffers.push_back(MLRingBufferPtr(new MLRingBuffer()));
 	}
+	mNullInputSignal.setDims(kFloatsPerDSPVector);
+	mNullInputSignal.clear();
 }
 
 void MLDSPEngine::setOutputChannels(int c) 
@@ -623,18 +633,21 @@ void MLDSPEngine::setCollectStats(bool k)
 }
 
 
-// produce one signal vector of the compiled graph's output, processing signals from the global inputs (if any)
-// to the global outputs. 
-//
-void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime, const double secs, const double ppqPos, const double bpm, bool isPlaying)
-{	
-	MLControlEventVector::const_iterator firstEvent, lastEvent;
-	
+void MLDSPEngine::setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying)
+{
 	if (mpHostPhasorProc)
 	{	
 		mpHostPhasorProc->setTimeAndRate(secs, ppqPos, bpm, isPlaying);
 	}	
+}
 
+// produce one signal vector of the compiled graph's output, processing signals from the global inputs (if any)
+// to the global outputs. 
+//
+void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime)
+{	
+	MLControlEventVector::const_iterator firstEvent, lastEvent;
+	
 	// sort all events in-place. This is needed because some hosts will send events out of time order.
 	// change to : auto v = eventQueue.getElementsVector()
 	RingBufferElementsVector<MLControlEvent> v(eventQueue);

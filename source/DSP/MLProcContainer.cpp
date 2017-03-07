@@ -62,7 +62,6 @@ void MLProcContainer::setEnabled(bool t)
 	mEnabled = t;
 }
 
-
 bool MLProcContainer::isEnabled() const
 {
 	return mEnabled;
@@ -364,7 +363,7 @@ void MLProcContainer::compile()
                 {
                     pCompileSig->mpSigBuffer = &outputProc->getOutput(outputIdx);
 					
-					// different patcher outputs were using the same signal. As workaround until rewrite, lways make an output buffer.
+					// different patcher outputs were using the same signal. As workaround until rewrite, always make an output buffer.
 					needsBuffer = true;
 					// needsBuffer = false;
                 }
