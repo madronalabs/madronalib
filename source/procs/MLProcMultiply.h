@@ -1,4 +1,5 @@
-// 
+// TEMP - procs will just have a .cpp
+// TODO make this a template
 
 #pragma once
 

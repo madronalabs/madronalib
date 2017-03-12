@@ -372,7 +372,7 @@ int main()
 		NameMaker names;
 		for(int n=0; n<50; ++n)
 		{
-			myMap[names.nextName().getTextFragment()] = "test";
+			myMap[names.nextName()] = "test";
 		}
 		
 		TextFragment a('!'); // size 1
