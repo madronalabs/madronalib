@@ -7,18 +7,23 @@ Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
 
 Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+Status
+------------
+
+As of Jan. 2017 things are still in a lot of flux. A rewrite is in progress and the old version, relied on in parts by shipping products, is still present. The examples and tests are the places to start looking at the new code. 
+
 Design Notes
 ------------
 
+Madronalib is designed to enable efficient audio DSP on SIMD processors with very readable code.
+
+With the advent of C++11, new functionality became available as part of the standard library, and new syntax has provided clearer ways to express abstractions with no overhead. Madronalib leans on C++11 to reduce its code footprint and increase readability.
+
 To get reliable audio performance in a multiprocessing system, careful attention must be paid to memory allocation, shared object access, and any use of OS calls. (see: http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing) Madronalib encapsulates these concerns and provides a simple API to the writers of audio applications.
 
-The most maintainable code is no code. With the advent of C++11, lots of functionality that previously required external libraries became available as part of C++. Madronalib leans on C++11 to reduce its code footprint.
+Adding new DSP modules is straightforward. The syntax of the signal library encourages code to "read like the math." There are no weird macros to learn.
 
-Making new modules such as oscillators and filters is straightforward. The syntax of the signal library encourages code to reflect the underlying DSP equations with a minimum of overhead. There are no weird macros to learn.
-
-Madronalib makes it possible to do DSP efficiently with very readable code. Where the goals of readability and efficiency are in conflict, madronalib favors readability.
-
-The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/trunk/cppguide.html) are followed, for the most part. Any exceptions are well documented.
+The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/trunk/cppguide.html) are followed, for the most part. 
 
 
 Status
@@ -32,13 +37,7 @@ See the issues for planned functionality that is currently not present in any fo
 Building
 ----------
 
-Madronalib is not typically meant to build on its own; it has to be built from within an
-application that includes Madronalib's `CMakeLists.txt` and defines the variable
-`ML_JUCE_HEADER_PATH` to be a path to a directory that contains a JUCE
-`JuceHeader.h` and `AppConfig.h`.
-
-Work is ongoing to remove the JUCE dependency from Madronalib. For building only the new 
-code independently of JUCE, use the BUILD_NEW_ONLY option in CMake as follows:
+Madronalib is currently used alongside the JUCE library to build the Madrona Labs plugins and the Soundplane application. Work is ongoing to remove the JUCE dependencies. For building only the new code independently of JUCE, use the BUILD_NEW_ONLY option in CMake as follows:
 
 	mkdir build-new
 	cd build-new
@@ -76,7 +75,7 @@ Contents
 	/MLJuceApp: current code, adapters to JUCE framework, to remove.
 	/procs: where converted DSP processors will go. 
 	/widgets where new widgets will go.
-
+/tests
 
 
 
