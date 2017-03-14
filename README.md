@@ -15,9 +15,9 @@ As of Jan. 2017 things are still in a lot of flux. A rewrite is in progress and 
 Design Notes
 ------------
 
-Madronalib is designed to enable efficient audio DSP on SIMD processors with very readable code.
+Madronalib is designed to enable efficient audio DSP on SIMD processors with readable code.
 
-With the advent of C++11, new functionality became available as part of the standard library, and new syntax has provided clearer ways to express abstractions with no overhead. Madronalib leans on C++11 to reduce its code footprint and increase readability.
+With the advent of C++11, new functionality became available as part of the standard library, and new syntax has provided clearer ways to express abstractions with no overhead. Madronalib leans on C++11 to reduce its code footprint and increase clarity.
 
 To get reliable audio performance in a multiprocessing system, careful attention must be paid to memory allocation, shared object access, and any use of OS calls. (see: http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing) Madronalib encapsulates these concerns and provides a simple API to the writers of audio applications.
 
@@ -51,23 +51,23 @@ To build an XCode project, run something like
 Contents
 --------
 
-/cmake : any modules or tools for the cmake build system
-/examples: example projects
-/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
-/include: madronalib.h
-/source:
-	/core: new files with tests and doxygen documentation, suitable for use outside the Labs. 
-		files in here must not be dependent on JUCE. 
-		files are being moved in as they are cleaned up.
-		all files in core will be included in /include/madronalib.h as they are moved in.
+	/cmake : any modules or tools for the cmake build system
+	/examples: example projects
+	/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
+	/include: madronalib.h
+	/source:
+		/core: new files with tests and doxygen documentation, suitable for use outside the Labs. 
+			files in here must not be dependent on JUCE. 
+			files are being moved in as they are cleaned up.
+			all files in core will be included in /include/madronalib.h as they are moved in.
 
-	/DSP: some DSP utils to move to /core. many procs to move to /procs.
-	/LookAndFeel: widgets for JUCE-based display, to convert to OpenGL widgets.
-	/MLApp: current code, MVC framework for apps. to move to /core.
-	/MLJuceApp: current code, adapters to JUCE framework, to remove.
-	/procs: where converted DSP processors will go. 
-	/widgets where new widgets will go.
-/tests
+		/DSP: some DSP utils to move to /core. many procs to move to /procs.
+		/LookAndFeel: widgets for JUCE-based display, to convert to OpenGL widgets.
+		/MLApp: current code, MVC framework for apps. to move to /core.
+		/MLJuceApp: current code, adapters to JUCE framework, to remove.
+		/procs: where converted DSP processors will go. 
+		/widgets where new widgets will go.
+	/tests
 
 
 
