@@ -26,14 +26,6 @@ Adding new DSP modules is straightforward. The syntax of the signal library enco
 The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/trunk/cppguide.html) are followed, for the most part. 
 
 
-Status
-----------
-
-Madronalib began as the common code supporting the Madrona Labs synthesizer products Aalto and Kaivo, as well as the open-source application for the Soundplane controller. All of this support code is currently present in the repository, but most is not part of the library build. Individual modules are being brought into the library as they are being reviewed, modernized and documented.
-
-See the issues for planned functionality that is currently not present in any form.
-
-
 Building
 ----------
 
