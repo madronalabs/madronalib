@@ -15,6 +15,7 @@
 #include "MLDefaultFileLocations.h" // to remove
 
 const int kMLNumRatios = 256;
+const int kMLUnmappedNote = kMLNumRatios + 1;
 const int kMLNumScaleNotes = 128;
 
 class MLScale
@@ -49,23 +50,16 @@ public:
 
 private:
 	void clear();
-	
-	// add a ratio expressed as a rational number.
 	void addRatio(int n, int d);
-	
-	// add a ratio expressed in cents.
-	void addRatio(double c);
-	
-	// recalculate of all ratios in mRatios.
+	void addRatioInCents(double c);
+	double middleNoteRatio(int n);
 	void recalcRatios();
-
-	// load a map from an input string.
-	// returns the number of notes in the map.
 	int loadMappingFromString(const std::string& mapStr);
 	void setDefaultMapping();
-
 	void setDefaultScale();
-
+	
+	// key map structure and utility functions
+	static const int kMaxMappingSize = 128;
 	struct keyMap
 	{
 		int mMapSize;
@@ -73,19 +67,38 @@ private:
 		int mNoteEnd;
 		
 		// Middle note where the first entry of the mapping is placed
-		int mFirstMapNote;
+		int mMiddleNote;
 		
-		// note that points to the ratio 1/1
-		int mTonicNote;
+		// note that is defined to be the reference frequency
+		int mReferenceNote;
 		
-		// absolute frequency of tonic
-		float mTonicFreq;
+		// reference frequency
+		float mReferenceFreq;
 		
 		// Scale degree to consider as formal octave
 		int mOctaveScaleDegree;
 		
-		std::vector<int> mNotes;
+		std::array<int, kMaxMappingSize> mNoteIndexes;
 	};
+	
+	
+	inline void clearKeyMap(keyMap& map)
+	{
+		map.mNoteIndexes.fill(-1);
+	}
+	
+	inline void addIndexToKeyMap(keyMap& map, int newIdx)
+	{
+		// overwrite last element, or fail
+		for(auto& idx : map.mNoteIndexes)
+		{
+			if(idx == -1)
+			{
+				idx = newIdx;
+				break;
+			}
+		}
+	}
 
 	keyMap mKeyMap;
 
@@ -96,11 +109,11 @@ private:
 	// For scales that repeat on 2/1 octaves the last entry will always be 2.  
 	std::vector<double> mRatioList;
 	
-	// all possible pitches stored as ratios of pitch to the tonic frequency.
-	float mRatios[kMLNumRatios];	
+	// all possible pitches stored as ratios of pitch to 440.0 Hz.
+	double mRatios[kMLNumRatios];	
 	
 	// pitches stored in linear octave space. pitch = log2(ratio).
-	float mPitches[kMLNumRatios];
+	double mPitches[kMLNumRatios];
 	
 	ml::Text mScalePath; 
 };
