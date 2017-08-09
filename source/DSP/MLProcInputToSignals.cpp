@@ -1268,7 +1268,7 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
 			// write pitch
 			mVoices[v].mdPitch.writeToSignal(pitch, frames);
 			
-			// add pitch bend to pitch
+			// add pitch bend in semitones to pitch
 			mVoices[v].mdPitchBend.writeToSignal(mTempSignal, frames);
 			pitch.add(mTempSignal);
 			

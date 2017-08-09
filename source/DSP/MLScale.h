@@ -16,7 +16,6 @@
 
 const int kMLNumRatios = 256;
 const int kMLUnmappedNote = kMLNumRatios + 1;
-const int kMLNumScaleNotes = 128;
 
 class MLScale
 {
@@ -50,8 +49,8 @@ public:
 
 private:
 	void clear();
-	void addRatio(int n, int d);
-	void addRatioInCents(double c);
+	void addRatioAsFraction(int n, int d);
+	void addRatioAsCents(double c);
 	double middleNoteRatio(int n);
 	void recalcRatios();
 	int loadMappingFromString(const std::string& mapStr);
@@ -81,7 +80,6 @@ private:
 		std::array<int, kMaxMappingSize> mNoteIndexes;
 	};
 	
-	
 	inline void clearKeyMap(keyMap& map)
 	{
 		map.mNoteIndexes.fill(-1);
@@ -107,13 +105,45 @@ private:
 			
 	// list of ratios forming a scale.  The first entry is always 1.0, or 0 cents. 
 	// For scales that repeat on 2/1 octaves the last entry will always be 2.  
-	std::vector<double> mRatioList;
+	std::array<double, kMLNumRatios> mScaleRatios;
+	
+	inline void addRatio(double newRatio)
+	{
+		// overwrite last element, or fail
+		for(auto& r : mScaleRatios)
+		{
+			if(r == 0.)
+			{
+				r = newRatio;
+				break;
+			}
+		}
+	}
+	
+	inline int countRatios()
+	{
+		int n = 0;
+		for(auto& r : mScaleRatios)
+		{
+			if(r == 0.)
+			{
+				break;
+			}
+			else
+			{
+				n++;
+			}
+		}
+		return n;
+	}
+	
+	std::array<bool, kMLNumRatios> mNoteIsMapped;	
 	
 	// all possible pitches stored as ratios of pitch to 440.0 Hz.
-	double mRatios[kMLNumRatios];	
+	std::array<double, kMLNumRatios> mRatios;	
 	
 	// pitches stored in linear octave space. pitch = log2(ratio).
-	double mPitches[kMLNumRatios];
+	std::array<double, kMLNumRatios> mPitches;	
 	
 	ml::Text mScalePath; 
 };

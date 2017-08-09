@@ -271,23 +271,13 @@ namespace ml
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
 			{
-				float fx = vx[n];				
+				const float fx = vx[n];				
 				const float fy = a0*fx + a1*x1 + a2*x2 + b1*y1 + b2*y2;
-				x2 = x1; x1 = fx; y2 = y1; y1 = fy;				
+				x2 = x1; x1 = fx; 
+				y2 = y1; y1 = fy;				
 				vy[n] = fy;
 			}		
 			return vy;
-		}
-		
-		inline void processTest(const DSPVector& vx, DSPVector& vy)
-		{
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				float fx = vx[n];				
-				const float fy = a0*fx + a1*x1 + a2*x2 + b1*y1 + b2*y2;
-				x2 = x1; x1 = fx; y2 = y1; y1 = fy;				
-				vy[n] = fy;
-			}		
 		}
 		
 		// process one DSPVector of data with time-varying coefficients. 
@@ -303,7 +293,8 @@ namespace ml
 			{
 				float fx = vx[n];				
 				const float fy = pA0[n]*fx + pA1[n]*x1 + pA2[n]*x2 + pB1[n]*y1 + pB2[n]*y2;
-				x2 = x1; x1 = fx; y2 = y1; y1 = fy;				
+				x2 = x1; x1 = fx; 
+				y2 = y1; y1 = fy;				
 				vy[n] = fy;
 			}		
 			return vy;

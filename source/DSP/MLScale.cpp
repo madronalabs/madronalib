@@ -19,12 +19,11 @@ void MLScale::operator= (const MLScale& b)
 {
 	mName = b.mName;
 	mDescription = b.mDescription;
-	mRatioList = b.mRatioList;
-	for(int p=0; p<kMLNumRatios; ++p)
-	{
-		mRatios[p] = b.mRatios[p];
-		mPitches[p] = b.mPitches[p];
-	}
+	mScaleRatios = b.mScaleRatios;
+	
+	mNoteIsMapped = b.mNoteIsMapped;
+	mRatios = b.mRatios;
+	mPitches = b.mPitches;
 }
 
 void MLScale::setDefaults()
@@ -42,13 +41,13 @@ void MLScale::setDefaultScale()
 	// make 12-ET scale	
 	for(int i=1; i<=12; ++i)
 	{
-		addRatioInCents(100.0 * i);
+		addRatioAsCents(100.0 * i);
 	}
 }
 
 void MLScale::setDefaultMapping()
 {
-	int scaleSize = static_cast<int>(mRatioList.size()) - 1;
+	int scaleSize = countRatios() - 1;
 	mKeyMap.mMapSize = scaleSize;
 	mKeyMap.mNoteStart = 0;
 	mKeyMap.mNoteEnd = 127;
@@ -66,38 +65,34 @@ void MLScale::setDefaultMapping()
 
 void MLScale::clear()
 {
-	mRatioList.clear();
+	mScaleRatios = {0.};
 	
 	// index 0 of a scale is always 1/1
-	addRatio(1, 1);
+	addRatioAsFraction(1, 1);
 }
 
-void MLScale::addRatio(int n, int d)
+void MLScale::addRatioAsFraction(int n, int d)
 {
-	double ratio = ((double)n / (double)d);
-	mRatioList.push_back(ratio);
+	addRatio((double)n / (double)d);
 }
 
-void MLScale::addRatioInCents(double cents)
+void MLScale::addRatioAsCents(double cents)
 {
-	double ratio = pow(2., cents / 1200.);
-	mRatioList.push_back(ratio);
+	addRatio(pow(2., cents / 1200.));
 }
-
 
 // get the given note frequency as a fraction of the middle note 1/1.
-// unmapped keys will return 1.
 //
 double MLScale::middleNoteRatio(int n)
 {
-	double r = 1.;
+	double r;
 	
 	int notesInOctave = static_cast<int>(mKeyMap.mMapSize);
 	if(!notesInOctave) return 1.f;
 	
-	int ratios = static_cast<int>(mRatioList.size()); // includes beginning 1/1
+	int ratios = static_cast<int>(mScaleRatios.size()); // includes beginning 1/1
 	int octaveIndex = ml::clamp(mKeyMap.mOctaveScaleDegree, 1, ratios);
-	double octaveRatio = mRatioList[octaveIndex];
+	double octaveRatio = mScaleRatios[octaveIndex];
 
 	int octave, degree;
 	
@@ -117,7 +112,11 @@ double MLScale::middleNoteRatio(int n)
 	
 	if(ml::within(ratioIdx, 0, kMLNumRatios))
 	{	
-		r = octaveStartRefRatio*mRatioList[ratioIdx];
+		r = octaveStartRefRatio*mScaleRatios[ratioIdx];
+	}
+	else
+	{
+		r = 0.;
 	}
 
 	return r;
@@ -133,8 +132,20 @@ void MLScale::recalcRatios()
 	int mapEnd = ml::clamp(mKeyMap.mNoteEnd, 0, 127);
 	for (int i = mapStart; i <= mapEnd; ++i)
 	{
-		mRatios[i] = middleNoteRatio(i)*refFreqRatio;
-		mPitches[i] = log2(mRatios[i]);
+		double r = middleNoteRatio(i);
+		if(r > 0.)
+		{
+			mNoteIsMapped[i] = true;
+			mRatios[i] = r*refFreqRatio;			
+			mPitches[i] = log2(mRatios[i]);
+		}
+		else
+		{
+			// unmapped note
+			mNoteIsMapped[i] = false;
+			mRatios[i] = 0.;
+			mPitches[i] = 0.;
+		}
 	}
 }
 
@@ -167,7 +178,7 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 						double ratio;
 						lineInputStream >> ratio;
 						ratios++;
-						addRatioInCents(ratio);
+						addRatioAsCents(ratio);
 					}
 					else if (inputLine.find("/") != std::string::npos)
 					{
@@ -178,7 +189,7 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 						if ((num > 0) && (denom > 0))
 						{
 							ratios++;
-							addRatio(num, denom);
+							addRatioAsFraction(num, denom);
 						}
 					}
 					else
@@ -189,7 +200,7 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 						if (num > 0)
 						{
 							ratios++;
-							addRatio(num, 1);
+							addRatioAsFraction(num, 1);
 						}
 					}
 					break;
@@ -273,8 +284,6 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 			contentLines++;
 			std::stringstream lineInputStream(trimmedLine);
 
-			debug() << "kbm line: " << trimmedLine << " \n";
-
 			switch(contentLines)
 			{
 				case 1:
@@ -303,15 +312,12 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 					int note = 0;
 					if(toLower(trimmedLine) == "x")
 					{
-						debug() << " got x \n";
 						note = kMLUnmappedNote;
 					}
 					else
 					{
 						lineInputStream >> note;
 					}
-					
-					debug() << "kbm note: " << note << " \n";
 										
 					addIndexToKeyMap(mKeyMap, note);
 					notes++;
@@ -326,7 +332,6 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 	{
 		addIndexToKeyMap(mKeyMap, kMLUnmappedNote);	
 	}
-		
 
 	return notes;
 }
@@ -369,25 +374,26 @@ void MLScale::loadFromRelativePath(ml::Text newPath)
 	}
 }
 
-// return the pitch of the given note as a ratio p/k, where k = 440Hz.
+// return the pitch of the given fractional note as a ratio p/k, where k = 440Hz.
 //
 float MLScale::noteToPitch(float note) const
 {
 	if(ml::isNaN(note)) return 0.f;
-	float fn = ml::clamp(note, 0.f, (float)(kMLNumScaleNotes - 1));
+	
+	float fn = ml::clamp(note, 0.f, (float)(kMLNumRatios - 1));
 	int i = fn;
 	float intPart = i;
 	float fracPart = fn - intPart;
-	float a = mRatios[i];
-	float b = mRatios[i + 1];
 	
-	
-	float m = lerp(a, b, fracPart);
-	debug() << "note: " << note << " -> pitch ratio: " << m;
-
-	
-	
-	
+	float m = 1.f;
+	if(mNoteIsMapped[i] && mNoteIsMapped[i + 1])
+	{
+		m = lerp(mRatios[i], mRatios[i + 1], fracPart);
+	}
+	else if(mNoteIsMapped[i])
+	{
+		m = mRatios[i];
+	}
 	return m;
 }
 
@@ -395,30 +401,33 @@ float MLScale::noteToPitch(float note) const
 //
 float MLScale::noteToPitch(int note) const
 {
+	float r = 1.f;
 	int n = ml::clamp(note, 0, kMLNumRatios - 1);
-	
-	debug() << "note: " << note << " -> pitch ratio: " << mRatios[n];
-
-	return mRatios[n]; 
+	if(mNoteIsMapped[n])
+	{
+		r = mRatios[n];
+	}
+	return r;
 }
 
 float MLScale::noteToLogPitch(float note) const
 {
 	return log2f(noteToPitch(note));
-	
-	
 }
 
 float MLScale::quantizePitch(float a) const
 {
-	float r = 1.0f;
+	float r = 0.f;
 	for (int i = kMLNumRatios - 1; i > 0; i--)
 	{
-		float p = mPitches[i];
-		if(p <= a) 
+		if(mNoteIsMapped[i])
 		{
-			r = p;
-			break;
+			float p = mPitches[i];
+			if(p <= a) 
+			{
+				r = p;
+				break;
+			}
 		}
 	}
 	return r;
@@ -432,12 +441,15 @@ float MLScale::quantizePitchNearest(float a) const
 	float minD = MAXFLOAT;
 	for (int i = 0; i < kMLNumRatios; ++i)
 	{
-		float p = mPitches[i];
-		float d = fabs(p - a);
-		if(d <= minD) 
+		if(mNoteIsMapped[i])
 		{
-			minD = d;
-			r = p;
+			float p = mPitches[i];
+			float d = fabs(p - a);
+			if(d <= minD) 
+			{
+				minD = d;
+				r = p;
+			}
 		}
 	}
 	return r;
@@ -456,10 +468,12 @@ void MLScale::setDescription(const std::string& descStr)
 void MLScale::dump()
 {
 	debug() << "scale " << mName << ":\n";
-	int n = mRatioList.size();
-	for(int i = 0; i<n; ++i)
+	for(int i = 0; i<kMLNumRatios; ++i)
 	{
-		debug() << "    " << i << " : " << mRatioList[i] << "\n";
+		if(mNoteIsMapped[i])
+		{
+			debug() << "    " << i << " : " << mScaleRatios[i] << "\n";
+		}
 	}
 }
 

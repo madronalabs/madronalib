@@ -63,7 +63,6 @@ TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 	// very smart compiler will just optimize the calls out
 	auto callScalarBiquad = ([&](){return (scalarBiquad.test(x1));});
 	auto callVectorBiquad = ([&](){return (vectorBiquad(x1));});
-	auto callVectorBiquadTest = ([&](){ (vectorBiquad.processTest(x1, x1));});
 	
 	// set coeffs
 	MLSignal c = biquadCoeffs::hiShelf(0.1f, 2.0f, 0.5f);
