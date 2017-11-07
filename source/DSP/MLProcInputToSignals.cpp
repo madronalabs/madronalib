@@ -786,6 +786,37 @@ void MLProcInputToSignals::processOSC(const int frames)
 		}
 		else 
 		{
+			
+			// examine all possible touches to find maximum pressure set
+			// shuffle with hysteresis into mCurrentVoices
+			
+			// move rotate option to instruments?
+			
+			/*
+			 
+			 
+			 
+			 
+			 
+			 
+			 */
+			
+			
+			
+			
+			
+	//		for (int v=0; v<kMaxTouches; ++v)
+			{
+				// get hash of active touches
+				
+				// if hash has changed, 
+				// if there is a new active touch, find free slot for new touch with rotate
+				
+				// (generates new shuffle order)
+				
+				
+			}
+			
 			for (int v=0; v<mCurrentVoices; ++v)
 			{
 				x = mLatestFrame(0, v);
