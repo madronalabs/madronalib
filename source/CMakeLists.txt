@@ -75,10 +75,6 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPContext.h
     DSP/MLDSPEngine.cpp
     DSP/MLDSPEngine.h
-    DSP/MLDSPUtils.cpp
-    DSP/MLDSPUtils.h
-    DSP/MLFFT.cpp
-    DSP/MLFFT.h
     DSP/MLMultProxy.cpp
     DSP/MLMultProxy.h
     DSP/MLParameter.cpp
@@ -138,11 +134,8 @@ else(BUILD_NEW_ONLY)
     DSP/MLProcSinePhase.cpp
     DSP/MLProcSubtract.cpp
     DSP/MLProcSum.cpp
-    DSP/MLProcSVF.cpp
     DSP/MLProcTestTone.cpp
     DSP/MLProcThru.cpp
-    DSP/MLProperty.cpp
-    DSP/MLProperty.h
     DSP/MLRatio.cpp
     DSP/MLRatio.h
     DSP/MLRingBuffer.cpp
@@ -175,8 +168,6 @@ else(BUILD_NEW_ONLY)
     LookAndFeel/MLMultiSlider.h
     LookAndFeel/MLPanel.cpp
     LookAndFeel/MLPanel.h
-    LookAndFeel/MLPolynomialWidget.cpp
-    LookAndFeel/MLPolynomialWidget.h
     LookAndFeel/MLPositioner.cpp
     LookAndFeel/MLPositioner.h
     LookAndFeel/MLProgressBar.cpp
@@ -204,10 +195,6 @@ else(BUILD_NEW_ONLY)
     MLApp/MLModel.h
     MLApp/MLNetServiceHub.cpp
     MLApp/MLNetServiceHub.h
-    MLApp/MLOSCListener.cpp
-    MLApp/MLOSCListener.h
-    MLApp/MLPath.cpp
-    MLApp/MLPath.h
     MLApp/MLPlatform.h
     MLApp/MLReporter.cpp
     MLApp/MLReporter.h
@@ -240,17 +227,10 @@ else(BUILD_NEW_ONLY)
     MLJuceApp/MLMenu.h
     MLJuceApp/MLPageView.cpp
     MLJuceApp/MLPageView.h
-    MLJuceApp/MLPluginController.cpp
-    MLJuceApp/MLPluginController.h
-    MLJuceApp/MLPluginFormats.h
-    MLJuceApp/MLPluginView.cpp
-    MLJuceApp/MLPluginView.h
     MLJuceApp/MLSignalReporter.cpp
     MLJuceApp/MLSignalReporter.h
     MLJuceApp/MLSignalView.cpp
     MLJuceApp/MLSignalView.h
-    MLJuceApp/MLTime.cpp
-    MLJuceApp/MLTime.h
     MLJuceApp/MLWidget.cpp
     MLJuceApp/MLWidget.h
     MLJuceApp/MLWidgetContainer.cpp
