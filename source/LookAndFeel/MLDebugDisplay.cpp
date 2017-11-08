@@ -19,7 +19,7 @@ MLDebugDisplay::MLDebugDisplay (MLWidget* pContainer) :
 	addAndMakeVisible(mpComp.get());
     
     // enable if you want to copy/paste text, but that may screw up keyboard events for plugins.
-    mpComp->setWantsKeyboardFocus(false);
+    mpComp->setWantsKeyboardFocus(true);
 	mpComp->loadContent("");
 	mpComp->setScrollbarThickness(12);
     

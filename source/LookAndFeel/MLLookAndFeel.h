@@ -21,12 +21,12 @@
 #include "MLWidget.h"
 #include "MLSeparator.h"
 #include "MLLabel.h"
-//#include "MLDial.h"
 #include "MLMultiSlider.h"
 #include "MLButton.h"
 #include "MLDrawableButton.h"
 #include "MLTextButton.h"
 #include "MLUIBinaryData.h"
+#include "MLVectorDeprecated.h"
 
 #include <vector>
 

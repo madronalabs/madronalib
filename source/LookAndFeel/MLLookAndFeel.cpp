@@ -30,8 +30,8 @@ MLLookAndFeel::MLLookAndFeel()
 	
 	// default Madrona theme (B/W)
     // change these to set up the application's color scheme.	
-	setColour(backgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.75f, 1.f));   
-	setColour(backgroundColor2, Colour::fromHSV(0.5f, 0.00f, 0.70f, 1.f)); 
+	setColour(backgroundColor, Colour::fromHSV(0.5f, 0.0f, 0.70f, 1.f));   
+	setColour(backgroundColor2, Colour::fromHSV(0.5f, 0.00f, 0.65f, 1.f)); 
 	setColour(defaultFillColor, Colour::fromHSV(0.5f, 0.0f, 0.95f, 1.f));  
 	//
 	setColour(outlineColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
@@ -40,10 +40,10 @@ MLLookAndFeel::MLLookAndFeel()
 	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
 	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.99f, 1.f));
 	setColour(shadowColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
-	setColour(markColor, Colour::fromHSV(0.5f, 0.0f, 0.05f, 1.f));
+	setColour(markColor, Colour::fromHSV(0.5f, 0.9f, 0.05f, 1.f));
 	//
 	setColour(lightFillColor, findColour(backgroundColor).overlaidWith(findColour(highlightColor).withAlpha(0.25f)));
-	setColour(darkFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.10f)));
+	setColour(darkFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.05f)));
 	setColour(darkerFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.5f)));
 	setColour(darkestFillColor, findColour(backgroundColor).overlaidWith(findColour(shadowColor).withAlpha(0.75f)));
 

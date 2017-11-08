@@ -9,7 +9,7 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLDebug.h"
 #include "MLText.h"
 #include "MLDefaultFileLocations.h" // to remove

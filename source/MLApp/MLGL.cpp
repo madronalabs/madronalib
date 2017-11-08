@@ -3,7 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLVectorDeprecated.h"
+#include "MLVector.h"
 #include "MLGL.h"
 
 void MLGL::orthoView(int width, int height)
@@ -11,14 +11,14 @@ void MLGL::orthoView(int width, int height)
     glViewport(0,0,width,height);    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();    
-    glOrtho(0.0f,width,height,0.0f,-1.0f,1.0f);    
+	glOrtho(0.0f, width, 0.0f, height, -1.0f, 1.0f);    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
 void MLGL::orthoView2(int width, int height)
 {
-    glViewport(0,0,width,height);
+    glViewport(0,0,width*2,height*2);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0.0f, width, 0.0f, height, -1.0f, 1.0f);    
@@ -63,13 +63,14 @@ void MLGL::strokeRect(const MLRect& r, float viewScale)
 	glLineWidth(1.0*viewScale);
 	
 	glBegin(GL_LINE_LOOP);
-//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
+	//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
 	glVertex2f(r.left(), r.top());
 	glVertex2f(r.right(), r.top());
 	glVertex2f(r.right(), r.bottom());
 	glVertex2f(r.left(), r.bottom());
 	glEnd();
 }
+
 
 // TEMP
 void MLGL::drawLine(float x1, float y1, float x2, float y2, float viewScale)

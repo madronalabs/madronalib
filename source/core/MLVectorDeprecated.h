@@ -7,42 +7,55 @@
 #define __ML_VECTOR__
 
 #define MLVECTOR_SSE 0
- 
+
 // vector classes for small objects with fixed sizes, where the overhead
 // of MLSignals would be too big. 
 
-#include "MLDSPDeprecated.h"
+#include "MLDSP.h"
+#include "MLScalarMath.h"
 
 #if MLVECTOR_SSE
 
 typedef union 
 {
-    __m128 v;
+	__m128 v;
 	float f[4];
 } MLV4;
 
 #else
 
-typedef struct 
+struct MLV4
 {
 	float f[4];
-}	MLV4;
+	bool operator==(const MLV4& b) const
+	{
+		return (*f == *b.f);
+	}
+};
 
 #endif
 
 class MLVec
 {
 public:
-	MLVec() { clear(); }
+	static const MLV4 kZeroValue; 
+	static const MLV4 kNullValue; 
+	
+	MLVec() : val(kZeroValue) {}
+	MLVec(MLV4 v) : val(v) {}
+	
+	static MLVec null() { return MLVec(kNullValue); }
+	explicit operator bool() const { return !(val == kNullValue); }
+	
 	MLVec(const float f) { set(f); }
 	
 	virtual ~MLVec(){};
-
+	
 #if MLVECTOR_SSE
 	
 	MLVec(const MLVec& b) : val(b.val) {}
 	MLVec(const float a, const float b, const float c, const float d)
-		{ val.f[0] = a; val.f[1] = b; val.f[2] = c; val.f[3] = d; }
+	{ val.f[0] = a; val.f[1] = b; val.f[2] = c; val.f[3] = d; }
 	MLVec(const float* fb) : val(fb[0], fb[1], fb[2], fb[3]) {}
 	inline MLVec(__m128 vk) { val.v = vk; }
 	inline void clear() { val.v = _mm_setzero_ps(); }
@@ -52,40 +65,40 @@ public:
 	inline MLVec & operator*=(const MLVec& b) { val.v = _mm_mul_ps(val.v, b.val.v); return *this; }
 	inline MLVec & operator/=(const MLVec& b) { val.v = _mm_div_ps(val.v, b.val.v); return *this; }
 	inline const MLVec operator-() const { return MLVec(_mm_sub_ps(_mm_setzero_ps(), val.v)); }
-
+	
 #else
-
+	
 	MLVec(const MLVec& b) { val = b.val; }
 	MLVec(const float a, const float b, const float c, const float d)
-		{ val.f[0] = a; val.f[1] = b; val.f[2] = c; val.f[3] = d; }
+	{ val.f[0] = a; val.f[1] = b; val.f[2] = c; val.f[3] = d; }
 	MLVec(const float* fb) 
-        { val.f[0] = fb[0]; val.f[1] = fb[1]; val.f[2] = fb[2]; val.f[3] = fb[3]; }
+	{ val.f[0] = fb[0]; val.f[1] = fb[1]; val.f[2] = fb[2]; val.f[3] = fb[3]; }
 	inline void clear()
-		{ val.f[0] = val.f[1] = val.f[2] = val.f[3] = 0.f; }
+	{ val.f[0] = val.f[1] = val.f[2] = val.f[3] = 0.f; }
 	inline void set(float f) 
-		{ val.f[0] = val.f[1] = val.f[2] = val.f[3] = f; }
+	{ val.f[0] = val.f[1] = val.f[2] = val.f[3] = f; }
 	inline MLVec & operator+=(const MLVec& b) 
-		{ val.f[0]+=b.val.f[0]; val.f[1]+=b.val.f[1]; val.f[2]+=b.val.f[2]; val.f[3]+=b.val.f[3]; 
+	{ val.f[0]+=b.val.f[0]; val.f[1]+=b.val.f[1]; val.f[2]+=b.val.f[2]; val.f[3]+=b.val.f[3]; 
 		return *this; }
 	inline MLVec & operator-=(const MLVec& b) 
-		{ val.f[0]-=b.val.f[0]; val.f[1]-=b.val.f[1]; val.f[2]-=b.val.f[2]; val.f[3]-=b.val.f[3]; 
+	{ val.f[0]-=b.val.f[0]; val.f[1]-=b.val.f[1]; val.f[2]-=b.val.f[2]; val.f[3]-=b.val.f[3]; 
 		return *this; }
 	inline MLVec & operator*=(const MLVec& b) 
-		{ val.f[0]*=b.val.f[0]; val.f[1]*=b.val.f[1]; val.f[2]*=b.val.f[2]; val.f[3]*=b.val.f[3]; 
+	{ val.f[0]*=b.val.f[0]; val.f[1]*=b.val.f[1]; val.f[2]*=b.val.f[2]; val.f[3]*=b.val.f[3]; 
 		return *this; }
 	inline MLVec & operator/=(const MLVec& b)
-		{ val.f[0]/=b.val.f[0]; val.f[1]/=b.val.f[1]; val.f[2]/=b.val.f[2]; val.f[3]/=b.val.f[3]; 
+	{ val.f[0]/=b.val.f[0]; val.f[1]/=b.val.f[1]; val.f[2]/=b.val.f[2]; val.f[3]/=b.val.f[3]; 
 		return *this; }
 	inline const MLVec operator-() const 
-		{ return MLVec(-val.f[0], -val.f[1], -val.f[2], -val.f[3]); }
-
+	{ return MLVec(-val.f[0], -val.f[1], -val.f[2], -val.f[3]); }
+	
 #endif
-
+	
 	// inspector, return by value
 	inline float operator[] (int i) const { return val.f[i]; }
 	// mutator, return by reference
 	inline float& operator[] (int i) { return val.f[i]; }
-
+	
 	bool operator==(const MLVec& b) const;
 	bool operator!=(const MLVec& b) const;
  
@@ -93,19 +106,19 @@ public:
 	inline const MLVec operator- (const MLVec& b) const { return MLVec(*this) -= b; }
 	inline const MLVec operator* (const MLVec& b) const { return MLVec(*this) *= b; }
 	inline const MLVec operator/ (const MLVec& b) const { return MLVec(*this) /= b; }
-
-	inline MLVec & operator*=(const float f) { (*this) *= MLVec(f); return *this; }
-	inline const MLVec operator* (const float f) const { return MLVec(*this) *= f; }
-
-	virtual float magnitude() const;
 	
-	// TODO functions returning values!
-	void normalize();	
+	inline MLVec & operator*=(const float f) { (*this) *= MLVec(f); return *this; }
+	inline const MLVec operator* (const float f) const { return MLVec(*this) *= MLVec(f, f, f, f); }
+	inline const MLVec operator/ (const float f) const { return MLVec(*this) /= MLVec(f, f, f, f); }
+	
+	virtual float magnitude() const;
+	void normalize();
 	void quantize(int q);
+	
 	MLVec getIntPart() const;
 	MLVec getFracPart() const;
 	void getIntAndFracParts(MLVec& intPart, MLVec& fracPart) const;
-
+	
 	MLV4 val;
 };
 
@@ -120,17 +133,17 @@ inline const MLVec vsqrt(const MLVec& a) { return MLVec(_mm_sqrt_ps(a.val.v)); }
 #else
 
 inline const MLVec vmin(const MLVec&a, const MLVec&b) 
-	{ return MLVec(ml::min(a.val.f[0],b.val.f[0]),ml::min(a.val.f[1],b.val.f[1]),
-				   ml::min(a.val.f[2],b.val.f[2]),ml::min(a.val.f[3],b.val.f[3])); }
+{ return MLVec(std::min(a.val.f[0],b.val.f[0]),std::min(a.val.f[1],b.val.f[1]),
+			   std::min(a.val.f[2],b.val.f[2]),std::min(a.val.f[3],b.val.f[3])); }
 inline const MLVec vmax(const MLVec&a, const MLVec&b) 
-	{ return MLVec(ml::max(a.val.f[0],b.val.f[0]),ml::max(a.val.f[1],b.val.f[1]),
-		ml::max(a.val.f[2],b.val.f[2]),ml::max(a.val.f[3],b.val.f[3])); }
+{ return MLVec(std::max(a.val.f[0],b.val.f[0]),std::max(a.val.f[1],b.val.f[1]),
+			   std::max(a.val.f[2],b.val.f[2]),std::max(a.val.f[3],b.val.f[3])); }
 inline const MLVec vclamp(const MLVec&a, const MLVec&b, const MLVec&c) { return vmin(c, vmax(a, b)); }
 inline const MLVec vsqrt(const MLVec& a) 
-	{ return MLVec(sqrt(a.val.f[0]), sqrt(a.val.f[1]), sqrt(a.val.f[2]), sqrt(a.val.f[3])); }
+{ return MLVec(sqrt(a.val.f[0]), sqrt(a.val.f[1]), sqrt(a.val.f[2]), sqrt(a.val.f[3])); }
 inline const MLVec vlerp(const MLVec& a, const MLVec&b, const float m) 
-	{ return a + MLVec(m)*(b - a); }
-	
+{ return a + MLVec(m)*(b - a); }
+
 
 #endif
 
@@ -145,6 +158,7 @@ public:
 	void setX(float f) { val.f[0] = f; }
 	void setY(float f) { val.f[1] = f; }
 	float magnitude() const;
+	
 };
 
 class Vec3 : public MLVec 
@@ -155,6 +169,7 @@ public:
 	Vec3(float px, float py, float pz) { val.f[0] = px; val.f[1] = py; val.f[2] = pz; val.f[3] = 0.; }
 	float x() const { return val.f[0]; }
 	float y() const { return val.f[1]; }
+	Vec2 xy() const { return Vec2(val.f[0], val.f[1]); }
 	float z() const { return val.f[2]; }
 	void setX(float f) { val.f[0] = f; }
 	void setY(float f) { val.f[1] = f; }
@@ -170,6 +185,7 @@ public:
 	Vec4(float px, float py, float pz, float pw) { val.f[0] = px; val.f[1] = py; val.f[2] = pz; val.f[3] = pw; }
 	float x() const { return val.f[0]; }
 	float y() const { return val.f[1]; }
+	Vec2 xy() const { return Vec2(val.f[0], val.f[1]); }
 	float z() const { return val.f[2]; }
 	float w() const { return val.f[3]; }
 	void setX(float f) { val.f[0] = f; }
@@ -179,6 +195,46 @@ public:
 	float magnitude() const;
 };
 
+struct LineSegment
+{
+	LineSegment(Vec2 a, Vec2 b) : start(a), end(b) {}
+	Vec2 start;
+	Vec2 end;
+};
+
+struct Mat22
+{
+	Mat22(float a, float b, float c, float d) : a00(a), a10(b), a01(c), a11(d) {}
+	float a00, a10, a01, a11;
+};
+
+inline Vec2 multiply(Mat22 m, Vec2 a)
+{
+	return Vec2(m.a00*a.x() + m.a10*a.y(), m.a01*a.x() + m.a11*a.y());
+}
+
+inline LineSegment multiply(Mat22 m, LineSegment a)
+{
+	return LineSegment(multiply(m, a.start), multiply(m, a.end));
+}
+
+inline LineSegment translate(LineSegment a, Vec2 p)
+{
+	return LineSegment(a.start + p, a.end + p);
+}
+
+inline bool lengthIsZero(LineSegment a)
+{
+	return((a.start.x() == a.end.x())&&(a.start.y() == a.end.y()));
+}
+
+inline float length(LineSegment a)
+{
+	return (a.end - a.start).magnitude();
+}
+
+Vec2 intersect(const LineSegment& a, const LineSegment& b); 
+
 // rectangle stored in left / top / width / height format.
 class MLRect : public MLVec 
 {
@@ -187,7 +243,7 @@ public:
 	MLRect(const MLVec& b) : MLVec(b) {};
 	MLRect(float x, float y, float width, float height); 
 	MLRect(const Vec2& corner1, const Vec2& corner2);
-    float left() const { return val.f[0]; }
+	float left() const { return val.f[0]; }
 	float top() const { return val.f[1]; }	
 	float right() const { return val.f[0] + val.f[2]; }
 	float bottom() const { return val.f[1] + val.f[3]; }	
@@ -199,11 +255,10 @@ public:
 	MLRect intersect(const MLRect& b) const;
 	MLRect unionWith(const MLRect& b) const;
 	bool intersects(const MLRect& p) const;
-
+	
 	void setToIntersectionWith(const MLRect& b); 
 	void setToUnionWith(const MLRect& b); 
 	
-	// TODO no, write all these returning void() as functions returning values!
 	inline void setOrigin(Vec2 b){ val.f[0] = b.val.f[0]; val.f[1] = b.val.f[1]; }
 	inline void setLeft(float px){ val.f[0] = px; }
 	inline void setTop(float py){ val.f[1] = py; }
@@ -215,7 +270,7 @@ public:
 	void translate(const Vec2& b);
 	void setCenter(const Vec2& b);
 	void centerInRect(const MLRect& b);
-
+	
 	inline void stretchWidth(float d){ val.f[0] -= d*0.5f; val.f[2] += d; }
 	inline void stretchHeight(float d){ val.f[1] -= d*0.5f; val.f[3] += d; }
 	
@@ -232,7 +287,7 @@ public:
 	MLRect withCenter(const float cx, const float cy);
 	MLRect withTopLeft(const Vec2& b) const;
 	MLRect withTopLeft(const float cx, const float cy);
-
+	
 	Vec2 getCenter() const;
 	Vec2 getTopLeft() const;
 	Vec2 getBottomRight() const;
