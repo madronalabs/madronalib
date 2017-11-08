@@ -67,8 +67,6 @@ else(BUILD_NEW_ONLY)
     core/MLResourceMap.h
     core/MLVectorDeprecated.cpp
     core/MLVectorDeprecated.h
-    core/MLVectorOps.cpp
-    core/MLVectorOps.h
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp
