@@ -121,8 +121,11 @@ public:
     static void strokeRect(const MLRect& r, float viewScale);
     
     static void drawTextAt(float x, float y, float z, float textScale, float viewScale, const char* ps);
-    
-    static Vec2 worldToScreen(const Vec3& world);
+ 
+	// TEMP
+	static void drawLine(float x1, float y1, float x2, float y2, float viewScale);
+
+	static Vec2 worldToScreen(const Vec3& world);
 
     static void drawDot(Vec2 pos, float r); // TEMP
 

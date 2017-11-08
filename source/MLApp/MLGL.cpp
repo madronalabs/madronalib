@@ -72,6 +72,21 @@ void MLGL::strokeRect(const MLRect& r, float viewScale)
 }
 
 // TEMP
+void MLGL::drawLine(float x1, float y1, float x2, float y2, float viewScale)
+{	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+	glLineWidth(1.0*viewScale);
+	
+	glBegin(GL_LINES);
+	//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
+	glEnd();
+}
+
+// TEMP
 void MLGL::drawTextAt(float x, float y, float z, float textScale, float viewScale, const char* ps)
 {
 #ifdef ML_MAC
