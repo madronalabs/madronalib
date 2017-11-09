@@ -20,7 +20,7 @@
 #define _ML_DSP_CONTEXT_H
 
 #include "MLRatio.h"
-#include "MLSignal.h"
+#include "core/MLSignal.h"
 #include "MLClock.h"
 #include "MLPropertySet.h"
 

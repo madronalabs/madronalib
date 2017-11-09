@@ -3,7 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLVector.h"
+#include "MLVectorDeprecated.h"
 #include "MLGL.h"
 
 void MLGL::orthoView(int width, int height)
@@ -149,7 +149,7 @@ void MLGL::drawDot(Vec2 pos, float r)
 	glVertex2f(x, y);
 	for(int i=0; i<=steps; ++i)
 	{
-		float theta = kMLTwoPi * (float)i / (float)steps;
+		float theta = ml::kTwoPi * (float)i / (float)steps;
 		float rx = r*cosf(theta);
 		float ry = r*sinf(theta);
 		glVertex3f(x + rx, y + ry, 0.f);

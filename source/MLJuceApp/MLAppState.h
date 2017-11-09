@@ -8,7 +8,7 @@
 
 #include "JuceHeader.h"
 #include "MLModel.h"
-#include "MLWidget.h"
+#include "MLJuceApp/MLWidget.h"
 #include "MLAppView.h"
 #include "cJSON/cJSON.h"
 

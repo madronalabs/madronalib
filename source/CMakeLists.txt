@@ -227,10 +227,6 @@ else(BUILD_NEW_ONLY)
     MLJuceApp/MLMenu.h
     MLJuceApp/MLPageView.cpp
     MLJuceApp/MLPageView.h
-    MLJuceApp/MLSignalReporter.cpp
-    MLJuceApp/MLSignalReporter.h
-    MLJuceApp/MLSignalView.cpp
-    MLJuceApp/MLSignalView.h
     MLJuceApp/MLWidget.cpp
     MLJuceApp/MLWidget.h
     MLJuceApp/MLWidgetContainer.cpp

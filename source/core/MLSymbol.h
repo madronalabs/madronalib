@@ -128,7 +128,7 @@ namespace ml
 		
 	private:
 		
-		// vector of symbols in ID/creation order
+		// vector of text fragments in ID/creation order
 		std::vector< TextFragment > mSymbolTextsByID;	
 		
 		// hash table containing indexes to strings for a given hash value.

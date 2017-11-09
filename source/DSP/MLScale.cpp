@@ -336,6 +336,11 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 	return notes;
 }
 
+void MLScale::setRootPath(String root)
+{
+	mRootPath = root;
+}
+
 // TODO: look at moving this code and similar kinds to a loader utilities / file helpers object or something.
 // the impetus is that an object like MLScale really shouldn't know about Files.
 // scales are used by procs, which also shouldn't really have to know about Files. so maybe the MLProc
@@ -343,9 +348,11 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 void MLScale::loadFromRelativePath(ml::Text newPath)
 {
 	if(!newPath) return;
-	if(newPath != mScalePath)
+	if(newPath != mRelativePath)
 	{
-		File scaleRoot = getDefaultFileLocation(kScaleFiles);
+		// TODO migrate to ml::File 
+		File scaleRoot(mRootPath);// = getDefaultFileLocation(kScaleFiles);
+		
 		if (scaleRoot.exists() && scaleRoot.isDirectory())
 		{
 			// TODO add MLFile methods so this can all be done with MLFiles and ml::Text
@@ -370,7 +377,7 @@ void MLScale::loadFromRelativePath(ml::Text newPath)
 				setDefaults();
 			}
 		}
-		mScalePath = newPath;
+		mRelativePath = newPath;
 	}
 }
 

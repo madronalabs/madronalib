@@ -13,8 +13,8 @@
 #ifndef __ML_DIAL_HEADER__
 #define __ML_DIAL_HEADER__
 
-#include "MLUI.h"
-#include "MLWidget.h"
+#include "LookAndFeel/MLUI.h"
+#include "MLJuceApp/MLWidget.h"
 #include "MLProc.h"
 #include "MLParameter.h"
 #include "MLProcContainer.h"

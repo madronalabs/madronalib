@@ -3,7 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLWidget.h"
+#include "MLJuceApp/MLWidget.h"
 #include "MLDebug.h"
 #include "MLAppView.h"
 
@@ -55,7 +55,7 @@ void MLWidget::sendAction(ml::Symbol msg, ml::Symbol targetProperty, const MLPro
 	}
 }
 
-/*
+
 // TODO this looks pretty bad! A Widget should not have its own context. There should
 // be something like a Scene object that draws a bunch of GL Widgets. 
 void MLWidget::setupGL(Component* pC)
@@ -68,7 +68,7 @@ void MLWidget::setupGL(Component* pC)
         pGLContext->setContinuousRepainting(true);
     }
 }
-*/
+
 
 float MLWidget::getRenderingScale() const
 {

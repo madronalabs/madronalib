@@ -84,6 +84,8 @@ public:
     
 	ml::Symbol getName() { return mName; }
 	int getSize() { return mRoot->getNodeSize(0); }
+	
+	// TODO return TextFragment
 	const std::string getMenuItemPath(int idx);
     
     // build a Juce menu on the fly and return it

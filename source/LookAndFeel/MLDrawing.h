@@ -7,7 +7,7 @@
 #define __ML_DRAWING_H__
 
 #include "MLDSPDeprecated.h"
-#include "MLUI.h"
+#include "LookAndFeel/MLUI.h"
 #include "MLLookAndFeel.h"
 
 class MLDrawing :

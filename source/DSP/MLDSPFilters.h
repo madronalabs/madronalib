@@ -15,8 +15,8 @@
 
 #include "MLDSPOps.h"
 #include "MLDSPGens.h" // MLTEST
-#include "MLSignal.h"
-#include "MLProperty.h"
+#include "core/MLSignal.h"
+#include "core/MLProperty.h"
 
 namespace ml
 {
