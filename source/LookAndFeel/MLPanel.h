@@ -6,8 +6,8 @@
 #ifndef __ML_PANEL_HEADER__
 #define __ML_PANEL_HEADER__
 
-#include "MLUI.h"
-#include "MLWidget.h"
+#include "LookAndFeel/MLUI.h"
+#include "MLJuceApp/MLWidget.h"
 
 class MLPanel : 
 	public Component,

@@ -5,7 +5,7 @@
 
 #include "MLProc.h"
 #include "MLChangeList.h"
-#include "MLDSPPrivate.h"
+#include "MLDSP.h"
 
 using namespace ml;
 

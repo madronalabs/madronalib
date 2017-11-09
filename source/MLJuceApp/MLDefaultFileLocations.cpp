@@ -4,8 +4,9 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLDefaultFileLocations.h"
+//#include "MLProjectInfo.h"
 
-File getDefaultFileLocation(eFileTypes whichFiles)
+File getDefaultFileLocation(eFileTypes whichFiles, String makerName, String appName)
 {
 	File result = File::nonexistent;
 	String startStr, destStr;
@@ -31,13 +32,13 @@ File getDefaultFileLocation(eFileTypes whichFiles)
     {
     #if JUCE_MAC || JUCE_IOS
         // everything else is now in ~/Music/Madrona Labs on Mac
-        startStr = String("~/Music/") + String(MLProjectInfo::makerName);
+        startStr = String("~/Music/") + makerName;
         startDir = File(startStr);
     #elif JUCE_LINUX || JUCE_ANDROID
-        startDir = File("~/" "." + String(MLProjectInfo::makerName));
+        startDir = File("~/" "." + makerName);
     #elif JUCE_WINDOWS
         startDir = File::getSpecialLocation (File::userApplicationDataDirectory);
-		startDir = startDir.getChildFile(String(MLProjectInfo::makerName));
+		startDir = startDir.getChildFile(makerName);
     #endif
     }
 	
@@ -52,18 +53,18 @@ File getDefaultFileLocation(eFileTypes whichFiles)
         switch(whichFiles)
         {
             case kSampleFiles:
-                destStr = String(MLProjectInfo::projectName) + "/Samples";
+                destStr = appName + "/Samples";
                 break;
             case kScaleFiles:
                 destStr = ("Scales");
                 break;
             case kOldPresetFiles:
             case kOldPresetFiles2:
-                destStr = String("Audio/Presets/") + String(MLProjectInfo::makerName) + String("/") + String(MLProjectInfo::projectName);
+                destStr = String("Audio/Presets/") + makerName + String("/") + appName;
                 break;
             case kPresetFiles:
             case kAppPresetFiles:
-                destStr = String(MLProjectInfo::projectName);
+                destStr = appName;
                 break;
 			case kLicenseFiles:
 				destStr = ("Licenses");

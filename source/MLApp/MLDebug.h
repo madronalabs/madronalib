@@ -6,19 +6,7 @@
 #pragma once
 
 #include <iostream>
-#include "MLPlatform.h"
-
-#ifdef ML_WINDOWS
-	#define DEBUG_TO_COUT 0
-#else
-	#define DEBUG_TO_COUT 1
-#endif 
-
-#if DEBUG_TO_COUT
-#define debug() std::cout
-#else
-
-#include "MLPlatform.h"
+#include "MLApp/MLPlatform.h"
 #include "MLTextStreamListener.h"
 
 #ifdef ML_WINDOWS
@@ -109,9 +97,9 @@ private:
 // in release builds this will be disabled completely.
 //
 
-#ifdef debug
-#undef debug
-#endif
+//#ifdef debug
+//#undef debug
+//#endif
 
 extern MLTextStream& debug();
 
@@ -120,6 +108,4 @@ extern MLTextStream& debug();
 // Send a message to the application or plugin’s console, if one exists.
 //
 extern MLTextStream& MLConsole(void);
-				
-#endif // DEBUG_TO_COUT
 				

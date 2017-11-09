@@ -10,10 +10,10 @@
 #include "MLProcInputToSignals.h"
 #include "MLInputProtocols.h"
 #include "MLProcHostPhasor.h"
-#include "MLSignal.h"
+#include "core/MLSignal.h"
 #include "MLRingBuffer.h"
 #include "MLControlEvent.h"
-#include "OscTypes.h"
+#include "OSC/osc/OscTypes.h"
 #include "MLDSPDeprecated.h"
 
 const int kMLEngineMaxChannels = 8;

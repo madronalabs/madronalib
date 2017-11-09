@@ -8,8 +8,8 @@
 
 #include "MLTextStreamListener.h"
 #include "JuceHeader.h"
-#include "MLUI.h"
-#include "MLWidget.h"
+#include "LookAndFeel/MLUI.h"
+#include "MLJuceApp/MLWidget.h"
 #include <sstream>
 
 class MLDebugDisplay : 

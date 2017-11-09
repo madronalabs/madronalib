@@ -6,7 +6,7 @@
 #ifndef __ML_JUCE_APP_BORDER__
 #define __ML_JUCE_APP_BORDER__
 
-#include "MLWidget.h"
+#include "MLJuceApp/MLWidget.h"
 #include "MLAppView.h"
 #include "MLBoundsConstrainer.h"
 

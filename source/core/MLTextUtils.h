@@ -15,11 +15,11 @@
 #include <vector>
 
 #include "MLSymbol.h"
-#include "../dsp/MLDSP.h"
 #include "utf/utf.hpp"
 #include "aes256/aes256.h"
 
 #include "../DSP/MLDSPGens.h" // for RandomSource TODO replace
+#include "../dsp/MLDSP.h" // wat TODO
 
 namespace ml { namespace textUtils {
 
@@ -123,7 +123,6 @@ using namespace utf;
 	Symbol addFinalNumber(Symbol sym, int n);
 	Symbol stripFinalNumber(Symbol sym);
 	int getFinalNumber(Symbol sym);	
-
 	Symbol stripFinalCharacter(Symbol sym);
 	
 	std::vector< Symbol > vectorOfNonsenseSymbols( int len );

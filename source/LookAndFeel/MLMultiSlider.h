@@ -6,7 +6,7 @@
 #ifndef __ML_MULTI_SLIDER_HEADER__
 #define __ML_MULTI_SLIDER_HEADER__
 
-#include "MLUI.h"
+#include "LookAndFeel/MLUI.h"
 #include "MLDial.h"
 #include "MLProc.h"
 #include "MLPositioner.h"

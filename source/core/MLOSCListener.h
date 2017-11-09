@@ -9,12 +9,12 @@
 
 #if !ML_WINDOWS
 
-#include "MLPlatform.h"
+#include "MLApp/MLPlatform.h"
 
-#include "OscTypes.h"
-#include "OscException.h"
-#include "OscPacketListener.h"
-#include "UdpSocket.h"
+#include "OSC/osc/OscTypes.h"
+#include "OSC/osc/OscException.h"
+#include "OSC/osc/OscPacketListener.h"
+#include "OSC/ip/UdpSocket.h"
 
 #include <stdexcept>
 #include <iostream>

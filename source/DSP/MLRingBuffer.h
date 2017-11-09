@@ -13,7 +13,7 @@
 
 #include "portaudio/pa_ringbuffer.h"
 //#include "MLDSP.h"
-#include "MLSignal.h"
+#include "core/MLSignal.h"
 
 class MLRingBuffer
 {

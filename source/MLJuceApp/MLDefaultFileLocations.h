@@ -6,9 +6,8 @@
 #ifndef __ML_DEFAULTFILELOCATIONS_H__
 #define __ML_DEFAULTFILELOCATIONS_H__
 
-#include "MLUI.h"
+#include "LookAndFeel/MLUI.h"
 #include "MLDebug.h"
-#include "MLProjectInfo.h"
 
 enum eFileTypes
 {
@@ -30,6 +29,6 @@ enum eFileTypes
 // get the default location for saving files of the given type.
 // Creates any needed directories if they do not exist.
 // TODO should be MLFile!
-File getDefaultFileLocation(eFileTypes whichFiles);
+File getDefaultFileLocation(eFileTypes whichFiles, String makerName, String appName);
 
 #endif // __ML_DEFAULTFILELOCATIONS_H__
