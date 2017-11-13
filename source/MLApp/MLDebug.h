@@ -6,7 +6,7 @@
 #pragma once
 
 #include <iostream>
-#include "MLApp/MLPlatform.h"
+#include "MLPlatform.h"
 #include "MLTextStreamListener.h"
 
 #ifdef ML_WINDOWS

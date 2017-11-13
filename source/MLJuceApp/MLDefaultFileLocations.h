@@ -6,7 +6,7 @@
 #ifndef __ML_DEFAULTFILELOCATIONS_H__
 #define __ML_DEFAULTFILELOCATIONS_H__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include "MLDebug.h"
 
 enum eFileTypes

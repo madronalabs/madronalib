@@ -13,7 +13,7 @@
 
 #include "catch.hpp"
 #include "../include/madronalib.h"
-#include "../DSP/MLDSP.h"
+#include "MLDSP.h"
 #include "tests.h"
 
 using namespace ml;

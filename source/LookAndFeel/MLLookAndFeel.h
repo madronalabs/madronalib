@@ -17,8 +17,8 @@
 #define __ML_LOOKANDFEEL_H__
 
 #include "JuceHeader.h"
-#include "LookAndFeel/MLUI.h"
-#include "MLJuceApp/MLWidget.h"
+#include "MLUI.h"
+#include "MLWidget.h"
 #include "MLSeparator.h"
 #include "MLLabel.h"
 #include "MLMultiSlider.h"

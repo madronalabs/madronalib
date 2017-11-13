@@ -6,7 +6,7 @@
 #ifndef __ML_SEPARATOR_HEADER__
 #define __ML_SEPARATOR_HEADER__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 
 
 class MLSeparator  : public Component, public SettableTooltipClient

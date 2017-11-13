@@ -6,7 +6,7 @@
 #ifndef __ML_AUDIOPROCESSORLISTENER_HEADER__
 #define __ML_AUDIOPROCESSORLISTENER_HEADER__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 
 // our AU wrapper is a member of this class.  The interface is used to load and save AU preset files.
 

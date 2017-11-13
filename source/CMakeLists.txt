@@ -12,18 +12,8 @@ set(madronalib_HEADERS
   )
 
 if(BUILD_NEW_ONLY)
+
    set(madronalib_SOURCES
-    DSP/MLDSP.cpp
-    DSP/MLDSP.h
-    DSP/MLDSPOps.h
-    DSP/MLDSPGens.cpp
-    DSP/MLDSPGens.h
-    DSP/MLDSPFilters.cpp
-    DSP/MLDSPFilters.h
-    DSP/MLDSPMath.h
-    DSP/MLDSPMathScalar.h
-    DSP/MLDSPMathSSE.h
-    DSP/MLDSPMathNEON.h
     core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
@@ -38,12 +28,7 @@ if(BUILD_NEW_ONLY)
     core/MLText.cpp
     core/MLTextUtils.cpp
     core/MLTextUtils.h
-    core/MLResourceMap.h    
-    )
-else(BUILD_NEW_ONLY)
-  
-
-  set(madronalib_SOURCES
+    core/MLResourceMap.h   
     DSP/MLDSP.cpp
     DSP/MLDSP.h
     DSP/MLDSPOps.h
@@ -51,6 +36,16 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPGens.h
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
+    DSP/MLDSPMath.h
+    DSP/MLDSPMathScalar.h
+    DSP/MLDSPMathSSE.h
+    DSP/MLDSPMathNEON.h
+ 
+    )
+else(BUILD_NEW_ONLY)
+
+  set(madronalib_SOURCES
+
     core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
@@ -67,6 +62,13 @@ else(BUILD_NEW_ONLY)
     core/MLResourceMap.h
     core/MLVectorDeprecated.cpp
     core/MLVectorDeprecated.h
+    DSP/MLDSP.cpp
+    DSP/MLDSP.h
+    DSP/MLDSPOps.h
+    DSP/MLDSPGens.cpp
+    DSP/MLDSPGens.h
+    DSP/MLDSPFilters.cpp
+    DSP/MLDSPFilters.h   
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp
@@ -244,7 +246,7 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
-add_library(madronalib ${madronalib_HEADERS} ${madronalib_SOURCES})
+add_library(madronalib STATIC ${madronalib_SOURCES})
 set_target_properties(madronalib PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
                       VERSION ${madronalib_VERSION}

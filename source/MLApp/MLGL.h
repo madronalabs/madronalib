@@ -8,8 +8,8 @@
 #ifndef _MLGL_
 #define _MLGL_
 
-#include "core/MLVectorDeprecated.h"
-#include "MLApp/MLPlatform.h"
+#include "MLVectorDeprecated.h"
+#include "MLPlatform.h"
 
 
 #undef JUCE_OPENGL

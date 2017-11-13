@@ -5,11 +5,11 @@
 
 #pragma once
 
-#include "LookAndFeel/MLUI.h"
-#include "core/MLVectorDeprecated.h"
-#include "core/MLSymbol.h"
-#include "core/MLSignal.h"
-#include "core/MLPropertySet.h"
+#include "MLUI.h"
+#include "MLVectorDeprecated.h"
+#include "MLSymbol.h"
+#include "MLSignal.h"
+#include "MLPropertySet.h"
 #include "JuceHeader.h"
 
 class MLWidgetContainer;

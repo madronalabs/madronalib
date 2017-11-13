@@ -11,7 +11,7 @@
 // vector classes for small objects with fixed sizes, where the overhead
 // of MLSignals would be too big. 
 
-#include "DSP/MLDSP.h"
+#include "MLDSP.h"
 #include "MLScalarMath.h"
 
 #if MLVECTOR_SSE

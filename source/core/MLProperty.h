@@ -8,7 +8,7 @@
 #include <string>
 #include <list>
 #include <map>
-#include "core/MLSignal.h"
+#include "MLSignal.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 

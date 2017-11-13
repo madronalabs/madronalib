@@ -9,7 +9,7 @@
 
 #if !ML_WINDOWS
 
-#include "MLApp/MLPlatform.h"
+#include "MLPlatform.h"
 
 #include "OSC/osc/OscTypes.h"
 #include "OSC/osc/OscException.h"

@@ -6,7 +6,7 @@
 #ifndef __ML_ENVELOPE_HEADER__
 #define __ML_ENVELOPE_HEADER__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include "MLLookAndFeel.h"
 
 class MLEnvelope  : 

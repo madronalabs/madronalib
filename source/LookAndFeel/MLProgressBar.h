@@ -6,8 +6,8 @@
 #ifndef __ML_PROGRESS_BAR__
 #define __ML_PROGRESS_BAR__
 
-#include "LookAndFeel/MLUI.h"
-#include "MLJuceApp/MLWidget.h"
+#include "MLUI.h"
+#include "MLWidget.h"
 
 class MLProgressBar : 
 	public Component,

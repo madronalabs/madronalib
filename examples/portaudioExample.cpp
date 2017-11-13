@@ -1,7 +1,7 @@
 // example of portaudio wrapping low-level madronalib DSP code.
 
-#include "../source/DSP/MLDSP.h"
-#include "../../portaudio/include/portaudio.h"
+#include "MLDSP.h"
+#include "../../../../portaudio/include/portaudio.h"
 #include "MLProperty.h"
 #include "MLPropertySet.h"
 #include "MLTextUtils.h"

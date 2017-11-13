@@ -7,7 +7,7 @@
 #define __ML_TEXT_BUTTON_HEADER__
 
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include "MLButton.h"
 
 class MLTextButton : 

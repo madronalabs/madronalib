@@ -7,7 +7,7 @@
 #define __ML_REPORTER_H
 
 #include "MLModel.h"
-#include "MLJuceApp/MLWidget.h"
+#include "MLWidget.h"
 #include <map>
 #include "portaudio/pa_ringbuffer.h"
 

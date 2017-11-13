@@ -7,7 +7,7 @@
 #define __ML_WIDGET_CONTAINER_H__
 
 #include "JuceHeader.h"
-#include "MLJuceApp/MLWidget.h"
+#include "MLWidget.h"
 #include "MLTextUtils.h"
 
 class MLAppView;

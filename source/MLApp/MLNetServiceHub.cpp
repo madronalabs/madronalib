@@ -31,13 +31,13 @@
 	WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "MLApp/MLPlatform.h"
+#include "MLPlatform.h"
 
 #if ML_WINDOWS
 	// TODO
 #else
 
-#include "MLApp/MLNetServiceHub.h"
+#include "MLNetServiceHub.h"
 
 #include <algorithm>
 

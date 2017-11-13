@@ -6,9 +6,9 @@
 #ifndef __ML_LABEL_HEADER__
 #define __ML_LABEL_HEADER__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include "MLDSPDeprecated.h"
-#include "MLJuceApp/MLWidget.h"
+#include "MLWidget.h"
 #include <string>
 	
 typedef enum

@@ -9,7 +9,7 @@
 using namespace juce;
 
 #include "MLDSP.h"
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include "MLDebug.h"
 
 //#include "juce_ComponentBoundsConstrainer.h"

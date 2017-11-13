@@ -6,7 +6,7 @@
 #ifndef __ML_TRITOGGLE_BUTTON_HEADER__
 #define __ML_TRITOGGLE_BUTTON_HEADER__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include "MLButton.h"
 
 class MLTriToggleButton :

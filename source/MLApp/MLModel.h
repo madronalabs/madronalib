@@ -6,8 +6,8 @@
 #ifndef __ML_MODEL__
 #define __ML_MODEL__
 
-#include "MLJuceApp/JuceHeader.h" // to remove
-#include "core/MLPropertySet.h"
+#include "JuceHeader.h" // to remove
+#include "MLPropertySet.h"
 
 // an MLModel is a kind of PropertySet that is also its own PropertyListener.
 // Subclasses override doPropertyChangeAction to propagate any changes from Properties to the core logic.

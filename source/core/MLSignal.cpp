@@ -6,7 +6,7 @@
 // various operations on signals
 // TODO organize
 
-#include "core/MLSignal.h"
+#include "MLSignal.h"
 
 // ----------------------------------------------------------------
 #pragma mark MLSignal

@@ -6,8 +6,8 @@
 #ifndef __ML_BUTTON_HEADER__
 #define __ML_BUTTON_HEADER__
 
-#include "LookAndFeel/MLUI.h"
-#include "MLJuceApp/MLWidget.h"
+#include "MLUI.h"
+#include "MLWidget.h"
 #include "MLSymbol.h"
 #include "MLLabel.h"
 

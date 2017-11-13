@@ -12,7 +12,7 @@
 #include "MLDSPDeprecated.h"
 #include "MLSymbol.h"
 #include "MLPath.h"
-#include "core/MLSignal.h"
+#include "MLSignal.h"
 #include "MLProperty.h"
 #include "MLRingBuffer.h"
 

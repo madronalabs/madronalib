@@ -14,11 +14,11 @@
 #include <iostream>
 
 #include "MLDSPDeprecated.h"
-#include "MLApp/MLPlatform.h"
+#include "MLPlatform.h"
 #include "MLOSCReceiver.h"
-#include "MLApp/MLNetServiceHub.h"
+#include "MLNetServiceHub.h"
 #include "MLDebug.h"
-#include "core/MLSignal.h"
+#include "MLSignal.h"
 #include "MLSymbol.h"
 #include "MLProperty.h"
 

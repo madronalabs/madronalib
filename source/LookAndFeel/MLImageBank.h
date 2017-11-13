@@ -6,7 +6,7 @@
 #ifndef __ML_IMAGE_BANK__
 #define __ML_IMAGE_BANK__
 
-#include "LookAndFeel/MLUI.h"
+#include "MLUI.h"
 #include <vector>
 
 class MLImageBank

@@ -11,5 +11,6 @@
 #include "../source/DSP/MLDSP.h"
 #include "../source/core/MLSymbol.h"
 #include "../source/core/MLSignal.h"
+#include "../source/MLApp/MLDebug.h"
 
 #endif // _madronalib_dot_h

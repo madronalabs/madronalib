@@ -9,7 +9,7 @@
 #ifndef MLDSPWindows_h
 #define MLDSPWindows_h
 
-#include "core/MLSignal.h"
+#include "MLSignal.h"
 
 namespace ml
 {

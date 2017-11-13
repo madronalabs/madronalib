@@ -58,7 +58,6 @@ endif()
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/external
-  ${CMAKE_CURRENT_SOURCE_DIR}/source
 )
 
 #--------------------------------------------------------------------

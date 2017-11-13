@@ -6,12 +6,12 @@
 #ifndef __ML_UI__
 #define __ML_UI__
 
-#include "MLJuceApp/JuceHeader.h"
+#include "JuceHeader.h"
 
 using namespace juce;
 
-#include "core/MLSignal.h"
-#include "core/MLVectorDeprecated.h"
+#include "MLSignal.h"
+#include "MLVectorDeprecated.h"
 #include <memory>
 
 const int kMLNumChars = 19;
