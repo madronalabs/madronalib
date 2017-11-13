@@ -1,12 +1,12 @@
 // example of portaudio wrapping low-level madronalib DSP code.
 
 #include "MLDSP.h"
-#include "../../../../portaudio/include/portaudio.h"
+#include "portaudio.h"
 #include "MLProperty.h"
 #include "MLPropertySet.h"
 #include "MLTextUtils.h"
 
-#include "../source/procs/MLProcFactory.h"
+#include "MLProcFactory.h"
 
 using namespace ml;
 
@@ -91,10 +91,8 @@ int main()
 	
 	std::cout << "portaudio example:\n";
 	
-	
 	// size = 128. why was size of old procs > 6kb?
 	std::cout << "size of multiply:" << sizeof(ProcMultiply) << "\n";
-	
 	
 	/*
 	// MLTEST Property changes

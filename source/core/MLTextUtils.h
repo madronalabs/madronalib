@@ -18,7 +18,7 @@
 #include "utf/utf.hpp"
 #include "aes256/aes256.h"
 
-#include "../DSP/MLDSPGens.h" // for RandomSource TODO replace
+#include "MLDSPGens.h" // for RandomSource TODO replace
 #include "MLDSP.h" // wat TODO
 
 namespace ml { namespace textUtils {

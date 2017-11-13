@@ -40,7 +40,13 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSPMathScalar.h
     DSP/MLDSPMathSSE.h
     DSP/MLDSPMathNEON.h
- 
+    procs/MLProc.cpp
+    procs/MLProc.h
+    procs/MLProcFactory.cpp
+    procs/MLProcFactory.h
+    procs/MLProcMultiply.cpp
+    procs/MLProcMultiply.h
+
     )
 else(BUILD_NEW_ONLY)
 
@@ -242,6 +248,26 @@ else(APPLE)
   list(APPEND madronalib_SOURCES MLApp/MLDebug.cpp)
 endif()
 
+
+# add frameworks
+
+#if(APPLE)
+ #  FIND_LIBRARY(CARBON_LIBRARY Carbon)
+ #  FIND_LIBRARY(QUICKTIME_LIBRARY QuickTime )
+ #  FIND_LIBRARY(APP_SERVICES_LIBRARY ApplicationServices )
+ #  SET(FRAMEWORKS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY})
+#endif(APPLE)
+
+
+# add portaudio utilities
+
+list(APPEND madronalib_SOURCES 
+    ../external/portaudio/pa_memorybarrier.h
+    ../external/portaudio/pa_ringbuffer.cpp
+    ../external/portaudio/pa_ringbuffer.h
+
+    )
+
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -256,6 +282,9 @@ set_target_properties(madronalib PROPERTIES
 
 if(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC core)
+  target_include_directories(madronalib PUBLIC DSP)
+  target_include_directories(madronalib PUBLIC procs)
+
 else(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC core)
   target_include_directories(madronalib PUBLIC MLJuceApp)
@@ -264,10 +293,12 @@ else(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC LookAndFeel)
 endif()
 
-target_link_libraries(madronalib portaudio)
+
 # target_link_libraries(madronalib oscpack)
+
 target_link_libraries(madronalib cjson)
 target_link_libraries(madronalib aes256)
+# NO target_link_libraries(madronalib pautil)
 
 if(!BUILD_NEW_ONLY)
   target_link_libraries(madronalib juce_audio_basics)
@@ -279,7 +310,17 @@ if(!BUILD_NEW_ONLY)
   target_link_libraries(madronalib juce_opengl)
 endif()
 
+
+target_include_directories(madronalib PUBLIC "../external/portaudio")
+target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
+
+
 if(APPLE)
+  target_link_libraries(madronalib "-framework Carbon")
+  target_link_libraries(madronalib "-framework CoreServices")
+  target_link_libraries(madronalib "-framework AudioToolbox")
+  target_link_libraries(madronalib "-framework AudioUnit")
+  target_link_libraries(madronalib "-framework CoreAudio")
   target_link_libraries(madronalib "-framework Foundation")
   target_link_libraries(madronalib "-framework OpenGL")
 else(APPLE)
