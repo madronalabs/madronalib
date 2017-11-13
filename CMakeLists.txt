@@ -23,10 +23,11 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 # a major rewrite is under way.
 # set BUILD_NEW_ONLY to build the modules that are rewritten.
 # this allows madronalib to be built independently.
-option(BUILD_NEW_ONLY "Build only the modernized codebase" OFF)
+option(BUILD_NEW_ONLY "Build only the modernized codebase" ON)
 
-option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
+option(ML_BUILD_EXAMPLES "Build the examples" ON)
 option(ML_BUILD_TESTS "Build the ML test programs" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_DOCS "Build the ML documentation" OFF)
 option(ML_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
@@ -71,7 +72,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
 #--------------------------------------------------------------------
 
 add_subdirectory(source)
-add_subdirectory(examples)
 add_subdirectory(external/aes256)
 add_subdirectory(external/cJSON)
 add_subdirectory(external/OSC)
@@ -80,6 +80,10 @@ add_subdirectory(external/utf)
 
 if(!BUILD_NEW_ONLY)
 	add_subdirectory(external/juce)
+endif()
+
+if (ML_BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()
 
 if (ML_BUILD_TESTS)
