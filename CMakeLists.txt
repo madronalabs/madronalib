@@ -78,8 +78,6 @@ add_subdirectory(external/OSC)
 add_subdirectory(external/portaudio)
 add_subdirectory(external/utf)
 
-#add_subdirectory(external/juce)
-
 
 if (ML_BUILD_EXAMPLES)
     add_subdirectory(examples)
