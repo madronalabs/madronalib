@@ -9,8 +9,6 @@
 #include "MLDSP.h"
 #include "../tests/tests.h"
 
-#include "../source/core/MLMemory.h"
-
 #ifdef _WINDOWS
 #include "Windows.h"
 #endif
@@ -121,9 +119,6 @@ int main()
 	
 	std::cout << "sum: " << a << "\n";
 		
-	std::cout << "aligned? " << EIGEN_MALLOC_ALREADY_ALIGNED << "\n";
-
-
 
 #ifdef _WINDOWS
 	system("pause");
