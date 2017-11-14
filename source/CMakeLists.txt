@@ -55,8 +55,28 @@ else(BUILD_NEW_ONLY)
     core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
+    core/MLOSCListener.cpp
+   core/MLOSCListener.h
+    core/MLOSCReceiver.cpp
+    core/MLOSCReceiver.h
+    core/MLOSCSender.cpp
+    core/MLOSCSender.h
+    core/MLPath.cpp
+   core/MLPath.h
+    core/MLProjection.cpp
+    core/MLProjection.h
     core/MLProperty.cpp
     core/MLProperty.h
+    core/MLPropertyListener.cpp
+    core/MLPropertyListener.h
+    core/MLPropertySet.cpp
+    core/MLPropertySet.h
+
+    core/MLResourceMap.cpp
+core/MLScalarConstants.h
+core/MLScalarMath.cpp
+core/MLScalarMath.h
+
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp

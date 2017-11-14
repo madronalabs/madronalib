@@ -1,4 +1,0 @@
-//
-//  MLMessage.cpp
-//  madronalib
-//
