@@ -34,12 +34,8 @@ extern const Colour defaultColor;
 class AppViewResources
 {
 public:
-	
-	AppViewResources() : mTest(fabs(MLRand()) * 200.f) {}
-	
-	
+	AppViewResources() {}	
 	MLLookAndFeel mLookAndFeel;
-	int mTest;
 };
 
 

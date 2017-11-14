@@ -36,8 +36,9 @@ MLLookAndFeel::MLLookAndFeel()
 	//
 	setColour(outlineColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
     setColour(labelColor, Colour::fromHSV(0.5f, 0.f, 0.15f, 1.f));
-	setColour(textHeaderColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
 	setColour(darkLabelColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
+	setColour(lightLabelColor, Colour::fromHSV(0.5f, 0.f, 0.40f, 1.f));
+	setColour(textHeaderColor, Colour::fromHSV(0.5f, 0.f, 0.10f, 1.f));
 	setColour(highlightColor, Colour::fromHSV(0.58f, 0.f, 0.99f, 1.f));
 	setColour(shadowColor, Colour::fromHSV(0.5f, 0.f, 0.0f, 1.f));
 	setColour(markColor, Colour::fromHSV(0.5f, 0.9f, 0.05f, 1.f));
@@ -2038,21 +2039,6 @@ void MLLookAndFeel::makeBackgroundImage(MLRect r)
 	// draw background
 	setBackgroundGradient(bg, Point<int>(0, 0), Point<int>(0, r.height()));
 	bg.fillRect(MLToJuceRectInt(rb));
-	
-	if(/* DISABLES CODE */ (0))
-	{
-		Path randPath;
-		for(int i=0; i<100; ++i)
-		{
-			MLPoint p(fabs(MLRand())*rb.width(), fabs(MLRand())*rb.height());
-			{
-				randPath.lineTo(p.x(), p.y());
-			}
-		}
-		bg.setColour(Colours::blue);
-		bg.strokePath(randPath, PathStrokeType (1.f));		
-		std::cout << "new bg image: " << r.width() << " x " << r.height() << "\n";
-	}
 }
 
 void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int> gStart, Point<int> gEnd)

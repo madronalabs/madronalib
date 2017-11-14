@@ -33,6 +33,8 @@ private:
 	float mNoiseGain;
 	float mNoisePeriodSeconds;
 	float mOneOverNoiseDomain;
+	
+	ml::RandomSource mRand;
 };
 
 
@@ -132,7 +134,7 @@ void MLProcAllpass::process()
 		v = x[n] + mGain*fxn;
 
 		// TODO remove this, again mystery denormal workaround!
-		MLSample noiseHack = MLRand() * noiseAmp;
+		MLSample noiseHack = mRand.getSample() * noiseAmp;
 		v += noiseHack;
 
 		y[n] = fxn - mGain*v;	

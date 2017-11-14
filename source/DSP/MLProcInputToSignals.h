@@ -217,6 +217,7 @@ private:
 	std::string mScalePath;
 	
 	uint64_t mVectorStartTime;
+	ml::RandomSource mRand;
 };
 
 

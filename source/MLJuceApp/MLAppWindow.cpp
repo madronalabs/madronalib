@@ -27,9 +27,8 @@ MLAppWindow::MLAppWindow() :
     // out commands
     addKeyListener (commandManager.getKeyMappings());
     
-	// MLTEST
-//	mpBorder = std::unique_ptr<MLAppBorder>(new MLAppBorder(this));
-  //  setContentOwned(mpBorder.get()->getComponent(), false);
+	mpBorder = std::unique_ptr<MLAppBorder>(new MLAppBorder(this));
+    setContentOwned(mpBorder.get()->getComponent(), false);
 	
 	mpConstrainer = new MLBoundsConstrainer();
 	setConstrainer (mpConstrainer);

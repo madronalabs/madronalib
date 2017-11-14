@@ -279,8 +279,7 @@ endif()
 #endif(APPLE)
 
 
-# add portaudio utilities
-
+# add portaudio utilities as source
 list(APPEND madronalib_SOURCES 
     ../external/portaudio/pa_memorybarrier.h
     ../external/portaudio/pa_ringbuffer.cpp
@@ -314,13 +313,14 @@ else(BUILD_NEW_ONLY)
 endif()
 
 
-# target_link_libraries(madronalib oscpack)
-
-target_link_libraries(madronalib cjson)
 target_link_libraries(madronalib aes256)
-# NO target_link_libraries(madronalib pautil)
+target_link_libraries(madronalib cjson)
+target_link_libraries(madronalib oscpack)
 
-if(!BUILD_NEW_ONLY)
+
+if(BUILD_NEW_ONLY)
+else(BUILD_NEW_ONLY)
+
   target_link_libraries(madronalib juce_audio_basics)
   target_link_libraries(madronalib juce_audio_devices)
   target_link_libraries(madronalib juce_core)
@@ -334,8 +334,6 @@ endif()
 target_include_directories(madronalib PUBLIC "../external/portaudio")
 target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
 
-target_link_libraries(madronalib oscpack)
-
 
 if(APPLE)
   target_link_libraries(madronalib "-framework Carbon")
@@ -345,6 +343,7 @@ if(APPLE)
   target_link_libraries(madronalib "-framework CoreAudio")
   target_link_libraries(madronalib "-framework Foundation")
   target_link_libraries(madronalib "-framework OpenGL")
+  target_link_libraries(madronalib "-framework GLUT")
 else(APPLE)
   #target_link_libraries(madronalib ${DNSSD_LIBRARIES})
 endif()

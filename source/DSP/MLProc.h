@@ -40,7 +40,7 @@
 
 #include "MLDSPDeprecated.h"
 
-#include "MLMemory.h"
+//#include "MLMemory.h"
 
 #define CHECK_IO    0
 

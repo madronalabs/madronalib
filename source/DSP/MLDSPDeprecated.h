@@ -431,7 +431,6 @@ private:
 extern const MLRange UnityRange;
 
 
-
 // ----------------------------------------------------------------
 // old DSPUtils
 
@@ -1177,7 +1176,6 @@ private:
     
 	uintptr_t mWriteIndex;
 	uintptr_t mLengthMask;
-	int mCounter;
     
     int mFixedDelayInSamples;
     float mModDelayInSamples;

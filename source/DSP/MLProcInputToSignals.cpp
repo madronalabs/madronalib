@@ -621,7 +621,7 @@ void MLProcInputToSignals::process()
 	{
 		for (int v=0; v<mCurrentVoices; ++v)
 		{
-			float drift = (kDriftConstants[v] * kDriftConstantsAmount) + (MLRand()*kDriftRandomAmount);
+			float drift = (kDriftConstants[v] * kDriftConstantsAmount) + (mRand.getSample()*kDriftRandomAmount);
 			mVoices[v].mdDrift.addChange(drift, 1);
 		}		
 		mDriftCounter = 0;
