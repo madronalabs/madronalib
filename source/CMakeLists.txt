@@ -88,6 +88,8 @@ else(BUILD_NEW_ONLY)
     core/MLVectorDeprecated.h
     DSP/MLDSP.cpp
     DSP/MLDSP.h
+    DSP/MLDSPDeprecated.cpp
+    DSP/MLDSPDeprecated.h
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
@@ -331,6 +333,8 @@ endif()
 
 target_include_directories(madronalib PUBLIC "../external/portaudio")
 target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
+
+target_link_libraries(madronalib oscpack)
 
 
 if(APPLE)
