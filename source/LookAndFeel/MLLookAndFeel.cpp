@@ -2082,27 +2082,49 @@ void MLLookAndFeel::setBackgroundGradient(Graphics& g, Point<int> gStart, Point<
 // should be drawWidgetBackground
 void MLLookAndFeel::drawBackground(Graphics& g, MLWidget* pW)
 {	
+	// MLTEST
+	{
+		MLRect r = pW->getWidgetLocalBounds();
+		g.setColour(Colour::fromRGB(220, 90, 90));
+		g.fillRect (r.left(), r.top(), r.width(), r.height());	
+		return;
+	}
+
+	
+	
 	drawBackgroundRect(g, pW, pW->getWidgetLocalBounds());
 }
 
 // used by dial numbers
 void MLLookAndFeel::drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect r)
 {
+	// MLTEST
+	{
+		MLRect r = pW->getWidgetLocalBounds();
+		g.setColour(Colour::fromRGB(220, 220, 90));
+		g.fillRect (r.left(), r.top(), r.width(), r.height());	
+		return;
+	}
+	
+
 	drawBackgroundRectAtOffset(g, pW, r, MLPoint(0, 0));
+
 }
 
-// used by dial numbers
+//
 void MLLookAndFeel::drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint offset)
 {
 	MLRect wBounds = pW->getTopLevelWindowBounds();
 	
-	if (!mBackgroundImage.isValid())
+	// MLTEST
+	if (1)//(!mBackgroundImage.isValid())
 	{
-		g.setColour(Colour::fromRGB(220, 220, 220));
+		g.setColour(Colour::fromRGB(90, 90, 220));
 		g.fillRect (r.left(), r.top(), r.width(), r.height());	
 		return;
 	}
 
+	
 	MLRect bgb = juceToMLRect(mBackgroundImage.getBounds());
 	MLRect widget = pW->getWidgetBoundsInWindow();
 	
@@ -2130,8 +2152,16 @@ void MLLookAndFeel::drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect
 // used by app border
 void MLLookAndFeel::drawEntireBackground(Graphics& g, MLPoint offset)
 {	
+	if (1)//(!mBackgroundImage.isValid())
+	{
+		g.setColour(Colour::fromRGB(90, 220, 220));
+		g.fillAll();// (r.left(), r.top(), r.width(), r.height());	
+		return;
+	}
+
 	// get background image from r2, blit to r.
 	bool fillAlphaChannel = false;
+	g.setOpacity(1.0f);
 	g.drawImageAt (mBackgroundImage,
 				   offset.x() - kBackgroundBorder, offset.y() - kBackgroundBorder, fillAlphaChannel);		
 }
@@ -2164,6 +2194,8 @@ void MLLookAndFeel::drawUnitGridRectAtOffset(Graphics& g, MLWidget* pW, MLRect r
 	int u = getGridUnitSize(); 
 	Path p, q;
 	p.addRectangle(0, 0, u, u);
+	
+	std::cout << "grid: " << u << "\n"; // MLTEST
 	
 	MLPoint windowOffset = window.getTopLeft();
 	MLPoint widgetOffset = widget.getTopLeft();

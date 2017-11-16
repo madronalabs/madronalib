@@ -19,6 +19,7 @@ MLAppBorder::MLAppBorder(MLAppView* pV) :
 
 MLAppBorder::~MLAppBorder()
 {
+	delete mpResizer;
 }
 
 // build the resizer for target components that need them.
@@ -90,6 +91,7 @@ void MLAppBorder::resized()
 	MLPoint borderDims1 = mBorderRect.getDims();
 	int u = getHeightUnit();
 	mBorderRect = centerMainViewInWindow(u); 
+	
 	if (pMainView) pMainView->resizeWidget(mBorderRect, u);
 
 	Rectangle<int> b = getBounds();
@@ -106,8 +108,11 @@ void MLAppBorder::resized()
 	
 	AppViewResources& resources = pMainView->getViewResources();
 	
-	if(borderDims1 != mBorderRect.getDims())
+	MLPoint newDims = mBorderRect.getDims();
+	if(borderDims1 != newDims)
 	{
+		
+		debug() << "making bg: "  << borderDims1 << " -> " << newDims << "\n";
 		resources.mLookAndFeel.makeBackgroundImage(br);
 	}
 }

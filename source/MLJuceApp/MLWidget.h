@@ -18,9 +18,9 @@ class MLWidgetContainer;
 // this can incorporate our own component class.
 //
 class MLWidget :
-	public juce::OpenGLRenderer,
 	public MLPropertySet,
-	public MLPropertyListener
+	public MLPropertyListener,
+	public juce::OpenGLRenderer
 {
 friend class MLWidgetContainer;
 friend class MLAppView;
@@ -59,13 +59,12 @@ public:
 	virtual void viewSignal(ml::Symbol, const MLSignal&, int frames, int voices) {}
 
 	// TODO widgets should not own GL contexts
-	void setupGL(Component* pC);
-	juce::OpenGLContext* getGLContext() { return pGLContext; }
+	void setupGL();
     
     // OpenGLRenderer methods to use if we have one
-    virtual void newOpenGLContextCreated() {}
-    virtual void openGLContextClosing() {}
-    virtual void renderOpenGL() {}
+    virtual void newOpenGLContextCreated() override {}
+    virtual void openGLContextClosing() override {}
+    virtual void renderOpenGL() override {}
     
 	void setGridBounds(const MLRect& p);
 	const MLRect& getGridBounds() const;
@@ -125,6 +124,9 @@ protected:
 	void setWidgetGridUnitSize(const int w) { mGridUnitSize = w; }
 
 	std::vector<MLWidget::Listener*> mpListeners;
+	
+	// JUCE GL context, if we have one. Owned.
+	juce::OpenGLContext* mpGLContext;
 
 private:
 	// JUCE component we are using. Not owned. Needs to be set up in ctor of every subclass!
@@ -151,9 +153,6 @@ private:
 	
 	// offset for an external label if there is one
 	Vec2 mLabelOffset;
-	
-    // JUCE GL context, if we have one. Owned.
-	OpenGLContext* pGLContext;
 	
 	bool mWantsResizeLast;
 };

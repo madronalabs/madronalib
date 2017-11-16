@@ -27,6 +27,8 @@ public:
 
 	void setGridUnits(int w, int h);
 	void setZoomable(bool z);
+	
+	MLBoundsConstrainer* getConstrainer() { return &myConstrainer; }
 
 private:
 	int getHeightUnit();

@@ -15,20 +15,21 @@ MLWidget::MLWidget(MLWidget* pC) :
 	mGridBounds(),
 	mGridUnitSize(0),
 	mLabelOffset(),
-//	pGLContext(nullptr),
+	mpGLContext(nullptr),
 	mWantsResizeLast(false)
 {
 }
 
 MLWidget::~MLWidget()
 {
-	/*
-    if(pGLContext)
+
+    if(mpGLContext)
     {
-        pGLContext->detach();
-        delete pGLContext;
+        mpGLContext->detach();
     }
-	 */
+
+	delete mpGLContext;
+
 }
 
 void MLWidget::doPropertyChangeAction(ml::Symbol param, const MLProperty& newVal)
@@ -58,14 +59,19 @@ void MLWidget::sendAction(ml::Symbol msg, ml::Symbol targetProperty, const MLPro
 
 // TODO this looks pretty bad! A Widget should not have its own context. There should
 // be something like a Scene object that draws a bunch of GL Widgets. 
-void MLWidget::setupGL(Component* pC)
+void MLWidget::setupGL()
 {
-    if(pComponent)
+	// MLTEST
+	debug() << "setupGL for " << getWidgetName() << "\n";
+	
+	if(pComponent)
     {
-        pGLContext = new OpenGLContext();
-        pGLContext->setRenderer (this);
-        pGLContext->setComponentPaintingEnabled (false);
-        pGLContext->setContinuousRepainting(true);
+        mpGLContext = new OpenGLContext();
+		mpGLContext->attachTo(*pComponent);
+		
+        mpGLContext->setRenderer (this);
+		mpGLContext->setComponentPaintingEnabled (false);
+		mpGLContext->setContinuousRepainting(true);
     }
 }
 
@@ -73,12 +79,12 @@ void MLWidget::setupGL(Component* pC)
 float MLWidget::getRenderingScale() const
 {
     float t = 1.0f;
-	/*
-    if(pGLContext)
+	
+    if(mpGLContext)
     {
-        t = pGLContext->getRenderingScale();
+        t = mpGLContext->getRenderingScale();
     }
-	 */
+	
     return t;
 }
 
@@ -167,11 +173,12 @@ void MLWidget::resizeWidget(const MLRect& b, const int)
 	if(pComponent)
 	{
 		pComponent->setBounds(b.left(), b.top(), b.width(), b.height());
+	
 		/*
-        if(pGLContext)
+        if(mpGLContext)
         {
-            pGLContext->attachTo (*pComponent);
-        }
+            mpGLContext->attachTo (*pComponent);
+		}
 		 */
 	}
 }
@@ -183,7 +190,6 @@ void MLWidget::setWidgetVisible(bool v)
 		pComponent->setVisible(v);
 	}
 }
-
 
 void MLWidget::setWidgetEnabled(bool v)
 {
