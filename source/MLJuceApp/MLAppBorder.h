@@ -47,6 +47,7 @@ private:
 	int mGridUnitsY;	
 	
 	MLRect mBorderRect;
+	MLRect mBoundsRect;
 	
 	bool mZoomable;
 };

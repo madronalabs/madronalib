@@ -37,7 +37,8 @@ void MLAppBorder::makeResizer(Component* targetComp)
 void MLAppBorder::paint (Graphics& g)
 {    
 	// This is where most of the plugin's background is actually painted.
-	pMainView->getViewResources().mLookAndFeel.drawEntireBackground(g, mBorderRect.getTopLeft());
+	// debug() << "MLAppBorder::paint\n";
+	pMainView->getViewResources().mLookAndFeel.drawEntireBackground(g, mBorderRect);
 }
 
 int MLAppBorder::getHeightUnit()
@@ -88,17 +89,15 @@ MLRect MLAppBorder::centerMainViewInWindow(int u)
 
 void MLAppBorder::resized()
 {
-	MLPoint borderDims1 = mBorderRect.getDims();
 	int u = getHeightUnit();
 	mBorderRect = centerMainViewInWindow(u); 
-	
 	if (pMainView) pMainView->resizeWidget(mBorderRect, u);
 
-	Rectangle<int> b = getBounds();
-	MLRect br = juceToMLRect(b);
+	Rectangle<int> bounds = getBounds();
+	MLRect newBounds = juceToMLRect(bounds);
 
-	int w = br.width();
-	int h = br.height();
+	int w = newBounds.width();
+	int h = newBounds.height();
 
 	// move resizer widget
 	if(mpResizer)
@@ -107,14 +106,12 @@ void MLAppBorder::resized()
 	}
 	
 	AppViewResources& resources = pMainView->getViewResources();
-	
-	MLPoint newDims = mBorderRect.getDims();
-	if(borderDims1 != newDims)
-	{
-		
-		debug() << "making bg: "  << borderDims1 << " -> " << newDims << "\n";
-		resources.mLookAndFeel.makeBackgroundImage(br);
+	if(mBoundsRect != newBounds)
+	{		
+		resources.mLookAndFeel.makeBackgroundImage(newBounds, mBorderRect);
 	}
+	
+	mBoundsRect = newBounds;
 }
 
 void MLAppBorder::setGridUnits(int gx, int gy)
