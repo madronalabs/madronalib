@@ -33,7 +33,6 @@
 #include <thread>
 #include <mutex>
 
-#include "MLLocks.h"
 #include "MLText.h"
 
 namespace ml 
@@ -148,10 +147,10 @@ namespace ml
 
 		int mSize;
 	}; 
-	
+		
 	inline SymbolTable& theSymbolTable()
 	{
-		static std::unique_ptr<SymbolTable> t (new SymbolTable());
+		static const std::unique_ptr<SymbolTable> t (new SymbolTable());
 		return *t;
 	}
 	
@@ -214,7 +213,7 @@ namespace ml
 		// return the symbol's TextFragment in the table.
 		// in order to show the strings in XCode's debugger, instead of the unhelpful id,
 		// edit the summary format for Symbol within XCode to {$VAR.getTextFragment().text}:s
-		inline const TextFragment getTextFragment() const
+		inline const TextFragment& getTextFragment() const
 		{
 			return theSymbolTable().getSymbolTextByID(id);
 		}
@@ -242,7 +241,6 @@ namespace ml
 			return std::string(getUTF8Ptr()); 
 		}
 		
-	
 	private:
 		// the ID equals the order in which the symbol was created.
 		// 2^31 unique symbols are possible. There is no checking for overflow.
