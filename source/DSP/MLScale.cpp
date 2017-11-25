@@ -5,6 +5,13 @@
 
 #include "MLScale.h"
 
+String MLScale::mRootPath;
+void MLScale::setRootPath(String root)
+{
+	mRootPath = root;
+}
+
+
 MLScale::MLScale()
 {
 	setDefaults();
@@ -334,11 +341,6 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 	}
 
 	return notes;
-}
-
-void MLScale::setRootPath(String root)
-{
-	mRootPath = root;
 }
 
 // TODO: look at moving this code and similar kinds to a loader utilities / file helpers object or something.

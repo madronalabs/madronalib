@@ -152,7 +152,7 @@ private:
 	std::array<double, kMLNumRatios> mPitches;	
 	
 	// the currently loaded scale's path relative to the the root set by setRootPath().
-	static ml::Text mRelativePath;
+	ml::Text mRelativePath;
 
 };
 
