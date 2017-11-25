@@ -93,7 +93,7 @@ namespace ml {
 		else 
 		{
 			// TODO something!
-			//debug() << "Path::addSymbol: max path length exceeded!\n";
+			// debug() << "Path::addSymbol: max path length exceeded!\n";
 		}
 	}
 

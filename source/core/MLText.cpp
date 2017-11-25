@@ -29,7 +29,7 @@ namespace ml
 	}
 	
 	// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
-	TextFragment::TextFragment(const char* pChars, int len) noexcept : mSize(len)
+	TextFragment::TextFragment(const char* pChars, size_t len) noexcept : mSize(len)
 	{
 		create();
 		if(mpText)
@@ -57,7 +57,6 @@ namespace ml
 		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
 		if(!frag) return TextFragment();
 		if(start >= end) return TextFragment();
-		
 		
 		// we won't know the output fragment size in bytes until iterating the code points. 
 		int len = frag.lengthInBytes();

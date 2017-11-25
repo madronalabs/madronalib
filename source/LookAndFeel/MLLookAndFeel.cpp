@@ -2027,8 +2027,6 @@ void MLLookAndFeel::makeBackgroundImage(MLRect bounds, MLRect borderRect)
 		// draw background
 		setBackgroundGradient(bg, bounds, borderRect);
 		bg.fillAll();
-		
-
 	}
 	else
 	{

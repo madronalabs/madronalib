@@ -55,7 +55,7 @@ namespace ml
 	
 	// ----------------------------------------------------------------
 	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
-	// if the length is below kShortFragmentSize. 
+	// if the length in chars is below kShortFragmentSize. 
 	
 	class TextFragment
 	{
@@ -85,7 +85,7 @@ namespace ml
 		TextFragment(const char* pChars) noexcept;
 
 		// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
-		TextFragment(const char* pChars, int len) noexcept;
+		TextFragment(const char* pChars, size_t len) noexcept;
 		
 		// single code point ctor
 		TextFragment(utf::codepoint_type c) noexcept;
@@ -183,6 +183,7 @@ namespace ml
 		void dispose() noexcept;
 		void moveDataFromOther(TextFragment& b);
 		
+		// TODO these things could share space
 		char* mpText; 
 		char mLocalText[kShortFragmentSize];
 		int mSize;

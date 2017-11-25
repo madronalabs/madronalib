@@ -9,12 +9,12 @@
 #include "MLControlEvent.h"
 
 MLControlEvent::MLControlEvent() :
+    mTime(0),
     mType(kNull),
     mChannel(0),
     mID(0),
     mValue1(0.),
-    mValue2(0.),
-    mTime(0)
+    mValue2(0.)
 {
 }
 

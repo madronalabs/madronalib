@@ -24,9 +24,11 @@
 // Note that this makes ResourceMap<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
+// TODO why not just call this ResourceTree, or even Tree?
+
 namespace ml{
 
-	template < class V, class C = std::less<ml::Symbol> >
+	template < class V, class C = std::less<Symbol> >
 class ResourceMap
 {
 public:
@@ -249,20 +251,13 @@ private:
 		// add the remainder of the path to the map.
 		for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
-			Symbol key = *it;
-			
 			// [] operator crates the new node
-			pNode = &(pNode->mChildren[key]);
+			pNode = &(pNode->mChildren[*it]);
 		}
 		
 		return pNode;
 	}
 	
-	ResourceMap<V, C>* addNode(const char* pathStr)
-	{
-		return addNode(ml::Path(pathStr));
-	}
-
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
 	ResourceMap<V, C>* findNode(Path path)

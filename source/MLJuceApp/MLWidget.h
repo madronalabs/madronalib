@@ -37,7 +37,7 @@ public:
 	
 	// MLPropertyListener methods.
 	// a Widget's local properties must be set in Immediate mode. There is no timer to propagate changes.
-	virtual void doPropertyChangeAction(ml::Symbol param, const MLProperty& newVal);
+	virtual void doPropertyChangeAction(ml::Symbol param, const MLProperty& newVal) override;
 	
 	// in order to function, a Widget's Component must get set.
 	void setComponent(Component* pC) { pComponent = pC; }

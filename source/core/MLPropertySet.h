@@ -25,6 +25,8 @@
 // d(data)/d(time) = changes in data. Reversible. must be lossless.
 // think of change recorder as a kind of filter. Then transmitter is another generic thing that can be composed with it.
 
+// FURTHERMORE: This is all starting to look like ResourceMaps, i.e. Tree< Resource >.  
+
 class MLPropertyListener;
 
 class MLPropertySet

@@ -250,9 +250,9 @@ MLProcInputToSignals::MLProcInputToSignals() :
 	mGlissando(false),
 	mUnisonInputTouch(-1),
 	mUnisonVel(0.),
-	mSustainPedal(false),
 	mFirstEvent(nullptr),
-	mLastEvent(nullptr)
+	mLastEvent(nullptr),
+	mSustainPedal(false)
 {
 	setParam("voices", 0);	// default
 	setParam("protocol", kInputProtocolMIDI);	// default

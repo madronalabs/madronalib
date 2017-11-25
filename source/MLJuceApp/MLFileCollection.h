@@ -22,9 +22,10 @@
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
 // to report progress for searches.
 
+// TODO what if this class does not exist, and simply becomes ResourceMap< File > or Tree< File > ? 
+
 class MLFileCollection :
-	public MLPropertySet,
-	private Thread
+	public MLPropertySet
 {
 public:
     class Listener
@@ -49,7 +50,7 @@ public:
 		// end: All files recently changed have been transmitted.
 		//
 		// Note that idx is one-based.
-		virtual void processFileFromCollection (ml::Symbol action, const MLFile file, const MLFileCollection& collection, int idx, int size) = 0;
+		virtual void processFileFromCollection(ml::Symbol action, const MLFile& file, const MLFileCollection& collection, int idx, size_t size) = 0;
 
 	private:
 		std::list<MLFileCollection*> mpCollections;
@@ -59,7 +60,7 @@ public:
     ~MLFileCollection();
 
 	void clear();
-    int getSize() const { return mFilesByIndex.size(); }
+    size_t getSize() const { return mFilesByIndex.size(); }
     ml::Symbol getName() const { return mName; }
     //const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
     
@@ -121,6 +122,9 @@ private:
     void processFileInMap(int i);
 	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
+	
+	void runThread();
+//	std::thread mRunThread;
 	
 	ml::ResourceMap<MLFile> mRoot; 
 	

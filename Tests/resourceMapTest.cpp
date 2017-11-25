@@ -104,7 +104,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	// with a ResourceMap< int, std::less<Symbol> > , the order of map keys depends on 
+	// with a ResourceMap< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on 
 	// the sorted order of symbols, which is just their creation order.
 	theSymbolTable().clear();
 	ResourceMap< int > a;
@@ -135,6 +135,10 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	REQUIRE(leafSum == correctLeafSum);
 	
 	a.dump();
+	
+	// pass a different functor to get lexicographical sorting. 
+	
+	
 
 }
 

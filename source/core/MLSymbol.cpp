@@ -10,11 +10,9 @@
 namespace ml {
 
 	#pragma mark SymbolTable
-
+	
 	SymbolTable::SymbolTable()
 	{
-
-		
 		clear();
 	}
 
@@ -24,7 +22,6 @@ namespace ml {
 		// can this be avoided with more explicit setup / shutdown
 		// (RAII in main() )
 		// std::unique_lock<std::mutex> lock(mMutex);
-
 	}
 
 	// clear all symbols from the table.
@@ -44,7 +41,6 @@ namespace ml {
 		// add null entry - why?
 		addEntry(HashedCharArray());
 	}
-
 	
 	// add an entry to the table. The entry must not already exist in the table.
 	// this must be the only way of modifying the symbol table.
@@ -73,7 +69,6 @@ namespace ml {
 				// there should be few collisions, so probably the first ID in the hash bin
 				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
 				// compare the entire string.	
-			 
 				TextFragment* binFragment = &mSymbolTextsByID[ID];
 				if(compareSizedCharArrays(binFragment->getText(), binFragment->lengthInBytes(), hsl.pChars, hsl.len))
 				{
