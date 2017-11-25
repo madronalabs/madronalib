@@ -128,8 +128,8 @@ void MLScale::recalcRatios()
 	double refKeyRatio = middleNoteRatio(mKeyMap.mReferenceNote);
 	double refFreqRatio = mKeyMap.mReferenceFreq/(refKeyRatio*440.0);
 	
-	int mapStart = ml::clamp(mKeyMap.mNoteStart, 0, 127);
-	int mapEnd = ml::clamp(mKeyMap.mNoteEnd, 0, 127);
+	int mapStart = 0;
+	int mapEnd = kMLNumRatios - 1;
 	for (int i = mapStart; i <= mapEnd; ++i)
 	{
 		double r = middleNoteRatio(i);
