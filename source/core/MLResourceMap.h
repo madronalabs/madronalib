@@ -25,6 +25,13 @@
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
 // TODO why not just call this ResourceTree, or even Tree?
+// TODO hooks for change callbacks and undoable actions using an undo manager
+
+// some use cases:
+// - tree of Procs 
+// - key/value store
+// - tree of UI Widgets
+// - tree of Files
 
 namespace ml{
 

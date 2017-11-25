@@ -116,7 +116,7 @@ using namespace utf;
 	// perform case-insensitive compare of fragments and return (a < b).
 	// TODO collate other languages better using miniutf library.
 	bool collate(const TextFragment& a, const TextFragment& b);
-
+	
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	
@@ -127,6 +127,14 @@ using namespace utf;
 	
 	std::vector< Symbol > vectorOfNonsenseSymbols( int len );
 
+	struct SymbolCollator 
+	{
+		bool operator()(const Symbol& a, const Symbol& b) const 
+		{
+			return collate(a.getTextFragment(), b.getTextFragment());
+		}
+	};
+	
 	// ----------------------------------------------------------------
 	// NameMaker
 	// a utility to make many short, unique, human-readable names when they are needed. 

@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __MLFileCollection__
-#define __MLFileCollection__
+#pragma once
 
 #include <functional>
 
@@ -23,6 +22,12 @@
 // to report progress for searches.
 
 // TODO what if this class does not exist, and simply becomes ResourceMap< File > or Tree< File > ? 
+// right now we own a tree of files. If a few things were added to Tree / ResourceMap we could simply be one instead. 
+
+namespace ml
+{
+	
+typedef ResourceMap<MLFile, textUtils::SymbolCollator> FileTree; 
 
 class MLFileCollection :
 	public MLPropertySet
@@ -105,7 +110,7 @@ public:
     ml::TextFragment getRelativePathFromName(const ml::TextFragment& name) const;
     
 	// build a menu of the files for which the function returns true.
-	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<MLFile>::const_iterator)>) const;
+	MLMenuPtr buildMenu(std::function<bool(FileTree::const_iterator)>) const;
 	
 	// build a menu of all the files. 
 	// TODO no reason to know about menus here. We should be returning a raw tree structure.
@@ -116,7 +121,7 @@ public:
     
 private:
 	
-	ml::ResourceMap<MLFile>* insertFileIntoMap(juce::File f);
+	void insertFileIntoMap(juce::File f);
 	
 	void buildIndex();
     void processFileInMap(int i);
@@ -126,7 +131,7 @@ private:
 	void runThread();
 //	std::thread mRunThread;
 	
-	ml::ResourceMap<MLFile> mRoot; 
+	FileTree mRoot; 
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
@@ -136,5 +141,4 @@ private:
 	std::list<Listener*> mpListeners;
 	int mProcessDelay;
 };
-
-#endif 
+}
