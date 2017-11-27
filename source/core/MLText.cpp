@@ -55,7 +55,6 @@ namespace ml
 	TextFragment subText(const TextFragment& frag, int start, int end)
 	{		
 		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
-		if(!frag) return TextFragment();
 		if(start >= end) return TextFragment();
 		
 		// we won't know the output fragment size in bytes until iterating the code points. 
@@ -64,7 +63,7 @@ namespace ml
 		char* buf = temp.data();
 		char* pb = buf;
 		
-		auto first = codepoint_iterator<const char*>(frag.getText());		
+		auto first = utf::codepoint_iterator<const char*>(frag.getText());		
 		auto it = first;
 		for(int i=0; i<start; ++i)
 		{
