@@ -14,7 +14,6 @@ set(madronalib_HEADERS
 if(BUILD_NEW_ONLY)
 
    set(madronalib_SOURCES
-    core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
     core/MLProperty.cpp
@@ -51,8 +50,6 @@ if(BUILD_NEW_ONLY)
 else(BUILD_NEW_ONLY)
 
   set(madronalib_SOURCES
-
-    core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
     core/MLOSCListener.cpp
@@ -331,8 +328,8 @@ else(BUILD_NEW_ONLY)
 endif()
 
 
-target_include_directories(madronalib PUBLIC "../external/portaudio")
-target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
+# target_include_directories(madronalib PUBLIC "../external/portaudio")
+# target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
 
 
 if(APPLE)
