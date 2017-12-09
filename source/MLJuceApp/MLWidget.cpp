@@ -61,9 +61,6 @@ void MLWidget::sendAction(ml::Symbol msg, ml::Symbol targetProperty, const MLPro
 // be something like a Scene object that draws a bunch of GL Widgets. 
 void MLWidget::setupGL()
 {
-	// MLTEST
-	debug() << "setupGL for " << getWidgetName() << "\n";
-	
 	if(pComponent)
     {
         mpGLContext = new OpenGLContext();
