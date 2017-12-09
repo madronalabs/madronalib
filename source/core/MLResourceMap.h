@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <string>
 #include <map>
 #include <vector>
 #include <functional>
@@ -25,10 +24,20 @@
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
 // TODO why not just call this ResourceTree, or even Tree?
+// TODO hooks for change callbacks and undoable actions using an undo manager
+
+// notes:
+// some use cases:
+// - tree of Procs (with multicontainer / polyphonic functionality?) - make V = std::vector< Proc >.
+// 	   A path to poly procs would nbeed to be superscripted with the copy# at each node. Each poly node along the way 
+// would multiply the size of all subnode vectors.
+// - key/value store as in Model 
+// - tree of UI Widgets
+// - tree of Files
 
 namespace ml{
 
-	template < class V, class C = std::less<Symbol> >
+template < class V, class C = std::less<Symbol> >
 class ResourceMap
 {
 public:
@@ -222,7 +231,6 @@ public:
 			}
 		}
 	}
-	
 				
 private:
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.

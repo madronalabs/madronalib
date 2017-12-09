@@ -287,7 +287,7 @@ namespace ml { namespace textUtils {
 		{
 			TextFragment frag = vec[i];
 			sum = TextFragment(sum, vec[i]);	
-			if(ml::within(i, 0, len - 1))
+			if((i >= 0)&&(i < len - 1))
 			{
 				sum = TextFragment(sum, delimFrag);
 			}
@@ -692,10 +692,9 @@ namespace ml { namespace textUtils {
 	// if the symbol's text ends in a positive integer, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{		
-		// make temporary buffer on stack  
+		// make temporary buffer, hopefully on stack
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
-
 		SmallStackBuffer<codepoint_type> temp(points + 1);
 		codepoint_type* buf = temp.data();
 		
@@ -774,10 +773,33 @@ namespace ml { namespace textUtils {
 		return TextFragment(buf);
 	}
 	
+	class RandomSource
+	{
+	public:
+		RandomSource() : mSeed(0) {}
+		~RandomSource() {}
+		
+		inline void step()
+		{
+			mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
+		}
+		
+		inline uint32_t getIntSample()
+		{
+			step();
+			return mSeed;
+		}
+		
+		void reset() { mSeed = 0; }
+		
+	private:
+		uint32_t mSeed = 0;
+	};
+	
 	static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";
 	std::vector<Symbol> vectorOfNonsenseSymbols( int len )
 	{
-		ml::RandomSource randSource;
+		RandomSource randSource;
 		std::vector<Symbol> words;
 		for(int i = 0; i < len; ++i)
 		{

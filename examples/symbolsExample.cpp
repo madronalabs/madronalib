@@ -67,7 +67,6 @@ public:
 	}
 	
 	std::map< Symbol, float > map;
-	
 };
 
 

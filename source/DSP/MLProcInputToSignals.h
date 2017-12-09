@@ -183,7 +183,6 @@ private:
 	
     int mEventTimeOffset;
 	
-		
 	int mControllerNumber;
 	int mCurrentVoices;
 	int mDriftCounter;

@@ -15,22 +15,15 @@
 // Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
 //
-// Symbols do not ever require any heap as long as they are smaller than a certain size.
-// This relies on the "small string optimization" implementation of TextFragment.
+// Symbols must not ever require any heap as long as they are smaller than a certain size.
+// Currently this relies on the "small string optimization" implementation of TextFragment.
 // Currently the size is 16 bytes.
 
 #pragma once
 
-#include <map>
-#include <set>
-#include <atomic>
 #include <array>
 #include <vector>
-#include <string>
 #include <iostream>
-#include <memory>
-#include <algorithm>
-#include <thread>
 #include <mutex>
 
 #include "MLText.h"
@@ -143,6 +136,7 @@ namespace ml
 			entry.mIDVector.clear();
 		}
 		
+		// since the maximum hash value is known, there will be no need to resize this array.
 		std::array< TableEntry, kHashTableSize > mHashTable;
 
 		int mSize;

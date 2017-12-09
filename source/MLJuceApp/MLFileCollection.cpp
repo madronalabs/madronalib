@@ -124,9 +124,8 @@ int MLFileCollection::searchForFilesImmediate()
 	return found;
 }
 
-ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
+void MLFileCollection::insertFileIntoMap(juce::File f)
 {
-	ml::ResourceMap<MLFile>* returnNode = nullptr; 
 	String shortName = f.getFileNameWithoutExtension();		
 	juce::File parentDir = f.getParentDirectory();
 	
@@ -150,7 +149,7 @@ ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		ml::Path p(relativePath);
 		MLFile f(fullName.toString());
 		
-		returnNode = mRoot.addValue(p, f);
+		mRoot.addValue(p, f);
 	}
 	else if (f.isDirectory())
 	{
@@ -159,9 +158,8 @@ ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		TextFragment relativePath = getRelativePathFromName(fullName);
 
 		// add a null File to represent a (possibly empty) directory.
-		returnNode = mRoot.addValue(ml::Path(relativePath), MLFile()); 
+		mRoot.addValue(ml::Path(relativePath), MLFile()); 
 	}
-	return returnNode;
 }
 
 // build the linear index of files in the tree.
@@ -318,8 +316,7 @@ const int MLFileCollection::getFileIndexByPath(const std::string& path)
     int r = -1;
     const MLFile& f = mRoot.findValue(ml::Path(path.c_str()));
 
-	int len = mFilesByIndex.size();
-	for(int i = 0; i<len; ++i)
+	for(int i = 0; i<mFilesByIndex.size(); ++i)
 	{
 		const MLFile& g = (mFilesByIndex[i]);
 		if(f == g)
@@ -340,7 +337,9 @@ const MLFile MLFileCollection::createFile(const std::string& relativePathAndName
 	std::string fullPath = std::string(mRoot.getValue().getLongName().getText()) + "/" + relativePathAndName;
     
     // insert file into file tree at relative path
-	return insertFileIntoMap(MLFile(fullPath).getJuceFile())->getValue();
+	MLFile f(fullPath);
+	insertFileIntoMap(f.getJuceFile());
+	return f;
 }
 
 // get part of absolute path p, if any, relative to our root path, without extension.
@@ -372,9 +371,7 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
     size_t rootPos = fullName.find(rootName);
     if(rootPos == 0)
     {
-        int rLen = rootName.length();
-        int pLen = fullName.length();
-        relPath = fullName.substr(rLen + 1, pLen - rLen - 1);
+        relPath = fullName.substr(rootName.length() + 1, fullName.length() - rootName.length() - 1);
     }
 	
 #ifdef ML_WINDOWS
@@ -397,7 +394,7 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
 	return (ml::textUtils::stripFileExtension(pf));
 }
 
-MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<MLFile>::const_iterator)> includeFn) const
+MLMenuPtr MLFileCollection::buildMenu(std::function<bool(FileTree::const_iterator)> includeFn) const
 {
 	MLMenuPtr root(new MLMenu());
 	std::vector< MLMenuPtr > menuStack;
@@ -412,8 +409,6 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<MLFile>
 				if(includeFn(it))
 				{
 					menuStack.back()->addItem(itemName.toString(), it.nodeHasValue());
-					
-					std::cout << "buildMenu: additem " << itemName << "\n";
 				}
 			}
 			else
@@ -439,6 +434,6 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<MLFile>
 
 MLMenuPtr MLFileCollection::buildMenu() const
 {
-	return buildMenu([=](ml::ResourceMap<MLFile>::const_iterator it){ return true; });
+	return buildMenu([=](ml::FileTree::const_iterator it){ return true; });
 }
 
