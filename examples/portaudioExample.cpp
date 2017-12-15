@@ -1,11 +1,13 @@
 // example of portaudio wrapping low-level madronalib DSP code.
+// TODO shelved for now, pending probable use of ISA-licensed JUCE code instead of portaudio.
+
+#if 0
 
 #include "MLDSP.h"
 #include "portaudio.h"
 #include "MLProperty.h"
 #include "MLPropertySet.h"
 #include "MLTextUtils.h"
-
 #include "MLProcFactory.h"
 
 using namespace ml;
@@ -217,4 +219,6 @@ error:
 	fprintf( stderr, "Error message: %s\n", Pa_GetErrorText( err ) );
 	return err;
 }
+
+#endif // 0
 

@@ -18,9 +18,11 @@ set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-# a major rewrite is under way.
-# set BUILD_NEW_ONLY to build the modules that are rewritten.
-# this allows madronalib to be built independently.
+# with BUILD_NEW_ONLY on (the default), only new modules not dependent
+# on dual-licensed JUCE code will be compiled. For use in the Soundplane
+# app, which currently relies on JUCE for graphics, set BUILD_NEW_ONLY to OFF.
+# Either way madronalib may be built independently.
+
 option(BUILD_NEW_ONLY "Build only the modernized codebase" ON)
 
 option(ML_BUILD_EXAMPLES "Build the examples" ON)
@@ -60,6 +62,16 @@ endif()
 #--------------------------------------------------------------------
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/fix_str)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/OSC)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/portaudio)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/tinyxml) # to remove
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/core)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
@@ -75,8 +87,12 @@ add_subdirectory(external/OSC)
 add_subdirectory(external/portaudio)
 add_subdirectory(external/utf)
 
-if(!BUILD_NEW_ONLY)
+if(BUILD_NEW_ONLY)
+else()
+	set(ML_JUCE_HEADER_PATH "/external/juce")
 	add_subdirectory(external/juce)
+	#target_link_libraries(madronalib external/juce)
+
 endif()
 
 if (ML_BUILD_EXAMPLES)

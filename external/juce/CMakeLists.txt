@@ -1,5 +1,8 @@
+# madronalib/external/juce/CMakeLists.txt
+# root CMake file for madronalib project.
+
 cmake_minimum_required(VERSION 2.8.12)
-project(JUCE)
+# project(JUCE)
 
 if(NOT ML_JUCE_DIR)
   set(ML_JUCE_DIR "${CMAKE_CURRENT_LIST_DIR}/JUCE")
@@ -70,17 +73,11 @@ target_link_libraries(juce_audio_utils juce_audio_devices)
 target_link_libraries(juce_audio_utils juce_audio_processors)
 target_link_libraries(juce_audio_utils juce_audio_formats)
 
-add_juce_library(juce_box2d cpp)
-target_link_libraries(juce_box2d juce_graphics)
-
 add_juce_library(juce_core ${ML_FILE_EXTENSION})
 if(NOT APPLE)
   target_link_libraries(juce_core dl)
   target_link_libraries(juce_core pthread)
 endif()
-
-add_juce_library(juce_cryptography ${ML_FILE_EXTENSION})
-target_link_libraries(juce_cryptography juce_core)
 
 add_juce_library(juce_data_structures ${ML_FILE_EXTENSION})
 target_link_libraries(juce_data_structures juce_core)
