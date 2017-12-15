@@ -10,7 +10,6 @@
 
 #pragma once
 
-#include <string>
 #include <map>
 #include <vector>
 #include <functional>
@@ -24,9 +23,21 @@
 // Note that this makes ResourceMap<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
+// TODO why not just call this ResourceTree, or even Tree?
+// TODO hooks for change callbacks and undoable actions using an undo manager
+
+// notes:
+// some use cases:
+// - tree of Procs (with multicontainer / polyphonic functionality?) - make V = std::vector< Proc >.
+// 	   A path to poly procs would nbeed to be superscripted with the copy# at each node. Each poly node along the way 
+// would multiply the size of all subnode vectors.
+// - key/value store as in Model 
+// - tree of UI Widgets
+// - tree of Files
+
 namespace ml{
 
-	template < class V, class C = std::less<ml::Symbol> >
+template < class V, class C = std::less<Symbol> >
 class ResourceMap
 {
 public:
@@ -220,7 +231,6 @@ public:
 			}
 		}
 	}
-	
 				
 private:
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
@@ -249,20 +259,13 @@ private:
 		// add the remainder of the path to the map.
 		for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
 		{
-			Symbol key = *it;
-			
 			// [] operator crates the new node
-			pNode = &(pNode->mChildren[key]);
+			pNode = &(pNode->mChildren[*it]);
 		}
 		
 		return pNode;
 	}
 	
-	ResourceMap<V, C>* addNode(const char* pathStr)
-	{
-		return addNode(ml::Path(pathStr));
-	}
-
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
 	ResourceMap<V, C>* findNode(Path path)

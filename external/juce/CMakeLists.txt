@@ -5,8 +5,6 @@ if(NOT ML_JUCE_DIR)
   set(ML_JUCE_DIR "${CMAKE_CURRENT_LIST_DIR}/JUCE")
 endif()
 
-target_include_directories(madronalib PUBLIC "${ML_JUCE_DIR}")
-
 if(NOT ML_JUCE_HEADER_PATH)
   message(FATAL_ERROR "Madronalib requires ML_JUCE_HEADER_PATH to be set")
 endif()

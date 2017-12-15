@@ -6,10 +6,8 @@
 #include <thread>
 
 #include "../include/madronalib.h"
-#include "../source/DSP/MLDSP.h"
+#include "MLDSP.h"
 #include "../tests/tests.h"
-
-#include "../source/core/MLMemory.h"
 
 #ifdef _WINDOWS
 #include "Windows.h"
@@ -26,7 +24,6 @@ int main()
 	freopen("CONOUT$", "w", stdout);
 	freopen("CONOUT$", "w", stderr);
 #endif
-
 
 	std::cout << "DSP Ops:\n";
 	
@@ -122,9 +119,6 @@ int main()
 	
 	std::cout << "sum: " << a << "\n";
 		
-	std::cout << "aligned? " << EIGEN_MALLOC_ALREADY_ALIGNED << "\n";
-
-
 
 #ifdef _WINDOWS
 	system("pause");

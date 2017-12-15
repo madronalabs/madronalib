@@ -10,10 +10,10 @@
 #include "MLAppBorder.h"
 #include "MLBoundsConstrainer.h"
 
-class MLAppWindow  : public DocumentWindow
+class MLAppWindow : public DocumentWindow
 {
 public:
-    MLAppWindow();
+	MLAppWindow();
     ~MLAppWindow();
 	
 	void initialize();
@@ -21,6 +21,7 @@ public:
 	void mouseDown (const MouseEvent& e);
 	void mouseDrag (const MouseEvent& e);	
 	void setGridUnits(int gx, int gy);
+	
 //	void setContent(MLAppView* newView);
     void closeButtonPressed();
     void moved();
@@ -29,21 +30,18 @@ public:
 
 private:
  	MLAppView* mpAppView;
-    MLBoundsConstrainer* mpConstrainer;
 
 	// the command manager object used to dispatch command events
 	ApplicationCommandManager commandManager;
 	
 	ComponentDragger myDragger;	
-	std::unique_ptr<MLAppBorder> mpBorder;
 
 	int mGridUnitsX;
 	int mGridUnitsY;	
 	bool mUsingGL;
 
-#if GLX
     juce::OpenGLContext openGLContext;
-#endif
+
  };
 
 

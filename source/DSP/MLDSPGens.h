@@ -15,7 +15,6 @@
 #pragma once
 
 #include "MLDSPOps.h"
-#include "MLSignal.h"
 
 namespace ml
 {		
@@ -177,6 +176,108 @@ namespace ml
 	 
 	 
 	*/
+	
+	// ----------------------------------------------------------------
+	// LinearGlide
+	
+	// convert a scalar float input into a DSPVector with linear slew.
+	// to allow optimization, glide time is quantized to DSPVectors.
+	// Note that a onepole or similar is not used because we must reach 
+	// the actual value in a finite time.
+	
+	constexpr float unityRampFn(int i){ return (i + 1)/static_cast<float>(kFloatsPerDSPVector);  }
+	constexpr DSPVector kUnityRampVec(unityRampFn);
+	
+	class LinearGlide
+	{
+	public:
+		LinearGlide() : 
+		mCurrVec(0.f),
+		mStepVec(0.f),
+		mSecondsPerGlide(0.01f), 
+		mTargetValue(0.f),
+		mVectorsRemaining(0)
+		{
+			calcParams();
+		}
+		
+		void calcParams()
+		{
+			float samplesPerGlide = mSecondsPerGlide*mSr;
+			mVectorsPerGlide = samplesPerGlide/kFloatsPerDSPVector;
+			if(mVectorsPerGlide < 1) mVectorsPerGlide = 1;
+			mDyPerVector = 1.0f/(mVectorsPerGlide + 0.f);
+		}
+		
+		void setSampleRate(float sr) 
+		{ 
+			mSr = sr; 
+			calcParams();
+		}
+		
+		void setGlideTime(float t)
+		{ 
+			mSecondsPerGlide = t;
+			calcParams();
+		}
+		
+		void setInput(float f)
+		{
+			// because the last element of kUnityRampVec is 1, the last element
+			// of mCurrVec at the end of a glide should be the target value.
+			float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
+			if(f != currentValue)
+			{
+				mTargetValue = f;
+				
+				// start counter
+				mVectorsRemaining = mVectorsPerGlide;	
+			}
+		}
+		
+		DSPVector operator()()
+		{
+			if(mVectorsRemaining <= 0)
+			{
+				return DSPVector(mTargetValue);	
+			}
+			else if(mVectorsRemaining == mVectorsPerGlide)
+			{
+				// start glide: get change in output value per vector
+				float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
+				float dydv = (mTargetValue - currentValue)*mDyPerVector;
+				
+				// get constant step vector
+				mStepVec = DSPVector(dydv);
+				
+				// setup current vector with first interpolation ramp. 
+				mCurrVec = DSPVector(currentValue) + kUnityRampVec*DSPVector(dydv);
+				
+				mVectorsRemaining--;
+			}
+			else 
+			{
+				// continue glide
+				// Note that repeated adding will create some error in target value. Because
+				// we return the target value explicity when we are done, this won't be a problem in 
+				// reasonably short glides.
+				mCurrVec += mStepVec;
+				mVectorsRemaining--;
+			}
+			
+			return mCurrVec;
+		}
+		
+		DSPVector mCurrVec;
+		DSPVector mStepVec;
+		
+		float mSecondsPerGlide;
+		float mTargetValue;
+		float mSr;
+		float mDyPerVector;
+		int mVectorsPerGlide;	
+		int mVectorsRemaining;
+	};
 
 
 }

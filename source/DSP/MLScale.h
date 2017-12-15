@@ -9,18 +9,24 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
-#include "MLDSP.h"
+#include "MLDSPDeprecated.h"
 #include "MLDebug.h"
 #include "MLText.h"
-#include "MLDefaultFileLocations.h" // to remove
+
+#include "MLFile.h" // TODO shouldn't know about files here
+//#include "MLDefaultFileLocations.h" // to remove
 
 const int kMLNumRatios = 256;
 const int kMLUnmappedNote = kMLNumRatios + 1;
 
 class MLScale
 {
-
 public:
+	// a path for all class members to treat as root.
+	// TDO migrate to ml::Text
+	static void setRootPath(String root);
+	static String mRootPath;
+
 	MLScale();
 	~MLScale();
 
@@ -145,7 +151,9 @@ private:
 	// pitches stored in linear octave space. pitch = log2(ratio).
 	std::array<double, kMLNumRatios> mPitches;	
 	
-	ml::Text mScalePath; 
+	// the currently loaded scale's path relative to the the root set by setRootPath().
+	ml::Text mRelativePath;
+
 };
 
 

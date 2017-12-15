@@ -5,6 +5,10 @@
 
 #include "MLVectorDeprecated.h"
 
+constexpr float kMLMinSample = -MAXFLOAT;
+const MLV4 MLVec::kZeroValue = { {0, 0, 0, 0} }; 
+const MLV4 MLVec::kNullValue = { {kMLMinSample, kMLMinSample, kMLMinSample, kMLMinSample} }; 
+
 #if MLVECTOR_SSE
 
 MLVec MLVec::getIntPart() const
@@ -82,6 +86,7 @@ void MLVec::quantize(int q)
 	val.f[2] = i2;
 	val.f[3] = i3;
 }
+
 float MLVec::magnitude() const
 {
 	float a = val.f[0];
@@ -115,6 +120,41 @@ float Vec4::magnitude() const
 	return sqrtf(a*a + b*b + c*c + d*d);
 }
 
+// line segment intersection.
+// returns Vec2::null() if no intersection exists.
+
+Vec2 intersect(const LineSegment& a, const LineSegment& b)
+{
+	if((lengthIsZero(a)) || (lengthIsZero(b)))
+	{
+		return Vec2::null();
+	}
+	
+	if( (a.start == b.start) || (a.start == b.end) || 
+	   (a.end == b.start) || (a.end == b.end) )
+	{
+		return Vec2::null();
+	}
+	
+	LineSegment a2 = translate(a, -a.start);
+	LineSegment b2 = translate(b, -a.start);
+	
+	float aLen = length(a2);
+	float cosTheta = a2.end.x()/aLen;
+	float sinTheta = -(a2.end.y()/aLen);
+	
+	LineSegment b3 = multiply(Mat22(cosTheta, -sinTheta, sinTheta, cosTheta), b2);
+	
+	if(ml::sign(b3.start.y()) == ml::sign(b3.end.y())) return Vec2::null();
+	
+	float sectX = b3.end.x() + (b3.start.x() - b3.end.x())*b3.end.y()/(b3.end.y() - b3.start.y());
+	
+	if(!ml::within(sectX, 0.f, aLen)) return Vec2::null();
+	
+	return Vec2(a.start + Vec2(sectX*cosTheta, sectX*-sinTheta));
+}
+
+//
 #pragma mark MLRect
 
 MLRect::MLRect(float px, float py, float w, float h) 
@@ -170,7 +210,7 @@ MLRect MLRect::unionWith(const MLRect& b) const
 		float l, r, t, bot;
 		l = ml::min(left(), b.left());
 		r = ml::max(right(), b.right());
-
+		
 		t = ml::min(top(), b.top());
 		bot = ml::max(bottom(), b.bottom());
 		ret = MLRect(l, t, r - l, bot - t);
@@ -205,7 +245,7 @@ void MLRect::setCenter(const Vec2& b)
 
 void MLRect::centerInRect(const MLRect& b)
 {
-    setCenter(b.getCenter());
+	setCenter(b.getCenter());
 }
 
 MLRect MLRect::translated(const Vec2& b) const
@@ -244,14 +284,14 @@ Vec2 MLRect::getTopLeft() const
 	return Vec2(left(), top());
 }
 
-Vec2 MLRect::getDims() const
-{
-	return Vec2(width(), height());
-}
-
 Vec2 MLRect::getBottomRight() const
 {
 	return Vec2(right(), bottom());
+}
+
+Vec2 MLRect::getDims() const
+{
+	return Vec2(width(), height());
 }
 
 std::ostream& operator<< (std::ostream& out, const Vec2& r)

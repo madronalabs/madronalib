@@ -183,7 +183,6 @@ private:
 	
     int mEventTimeOffset;
 	
-		
 	int mControllerNumber;
 	int mCurrentVoices;
 	int mDriftCounter;
@@ -217,6 +216,7 @@ private:
 	std::string mScalePath;
 	
 	uint64_t mVectorStartTime;
+	ml::RandomSource mRand;
 };
 
 

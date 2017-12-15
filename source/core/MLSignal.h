@@ -273,6 +273,87 @@ public:
 	 */
 	
 	
+	
+	inline float cubic(float y0, float y1, float y2, float y3, float m) const
+	{
+		float mm = m*m;
+		float a0 = y3 - y2 - y0 + y1;
+		float a1 = y0 - y1 - a0;
+		float a2 = y2 - y0;
+		float a3 = y1;
+		return(a0*m*mm + a1*mm + a2*m + a3);		
+	}
+	
+	inline float getInterpolatedCubic(float fi, float fj) const
+	{
+		float p00, p01, p02, p03;
+		float p10, p11, p12, p13;
+		float p20, p21, p22, p23;
+		float p30, p31, p32, p33;
+		
+		int i = (int)(fi);
+		int j = (int)(fj);
+		// get truncate down for inputs < 0
+		// TODO use vectors with _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+		// _MM_SET_ROUNDING_MODE(_MM_ROUND_DOWN);
+		if (fi < 0) i--;
+		if (fj < 0) j--;
+		float ri = fi - i;
+		float rj = fj - j;
+		
+		int x0, x1, x2, x3;
+		int y0, y1, y2, y3;
+		
+		x0 = i - 1;
+		x1 = i;
+		x2 = i + 1;
+		x3 = i + 2;
+		
+		y0 = j - 1;
+		y1 = j;
+		y2 = j + 1;
+		y3 = j + 2;
+		
+		int w = getWidth();
+		int h = getHeight();
+		x0 = ml::clamp(x0, 0, w);
+		x1 = ml::clamp(x1, 0, w);
+		x2 = ml::clamp(x2, 0, w);
+		x3 = ml::clamp(x3, 0, w);
+		y0 = ml::clamp(y0, 0, h);
+		y1 = ml::clamp(y1, 0, h);
+		y2 = ml::clamp(y2, 0, h);
+		y3 = ml::clamp(y3, 0, h);
+		
+		p00 = mDataAligned[row(y0) + x0];
+		p01 = mDataAligned[row(y1) + x0];
+		p02 = mDataAligned[row(y2) + x0];
+		p03 = mDataAligned[row(y3) + x0];
+		
+		p10 = mDataAligned[row(y0) + x1];
+		p11 = mDataAligned[row(y1) + x1];
+		p12 = mDataAligned[row(y2) + x1];
+		p13 = mDataAligned[row(y3) + x1];
+		
+		p20 = mDataAligned[row(y0) + x2];
+		p21 = mDataAligned[row(y1) + x2];
+		p22 = mDataAligned[row(y2) + x2];
+		p23 = mDataAligned[row(y3) + x2];
+		
+		p30 = mDataAligned[row(y0) + x3];
+		p31 = mDataAligned[row(y1) + x3];
+		p32 = mDataAligned[row(y2) + x3];
+		p33 = mDataAligned[row(y3) + x3];
+		
+		return cubic(
+					 cubic(p00, p01, p02, p03, ri),
+					 cubic(p10, p11, p12, p13, ri),
+					 cubic(p20, p21, p22, p23, ri),
+					 cubic(p30, p31, p32, p33, ri),
+					 rj);
+		
+	}
+	
 	void addDeinterpolatedLinear(float px, float py, float v)
 	{
 		// TODO SSE

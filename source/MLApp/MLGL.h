@@ -85,23 +85,21 @@
  #include <GLUT/glut.h>
 #endif
 
-
-
 namespace MLGLData
 {
     static const int indicatorColorsSize = 1 << 3;
     static const int indicatorColorsMask = indicatorColorsSize - 1;
     const float indicatorColors[indicatorColorsSize*4] =
     {
-        0.0705, 0.501, 0.670, 1.,
-        0.352, 0.4, 0.647, 1.,
-        0.623, 0.341, 0.623, 1.,
-        0.701, 0.286, 0.243, 1.,
-        0.788, 0.435, 0.223, 1.,
-        0.784, 0.592, 0.278, 1.,
-        0.737, 0.647, 0.494, 1.,
-        0.415, 0.454, 0.231, 1.
-    };
+		0.35, 0.50, 0.45, 1.,		
+		0.30, 0.45, 0.62, 1.,
+		0.55, 0.38, 0.60, 1.,
+		0.62, 0.30, 0.50, 1.,
+		0.701, 0.22, 0.243, 1.,
+		0.788, 0.435, 0.223, 1.,
+		0.65, 0.550, 0.20, 1.,
+		0.44, 0.500, 0.231, 1.
+	};
 };
 
 class MLGL
@@ -116,9 +114,14 @@ public:
     static void worldView(float aspect);
 #endif
    
-    static const float* getIndicatorColor(int i) { return MLGLData::indicatorColors + 4*(i & MLGLData::indicatorColorsMask); }
+    static const float* getIndicatorColor(int i) 
+	{ 
+		return (MLGLData::indicatorColors + 4*(i & MLGLData::indicatorColorsMask));
+	}
+	
     static void fillRect(const MLRect& r);
     static void strokeRect(const MLRect& r, float viewScale);
+	static void drawLine(float x1, float y1, float x2, float y2, float viewScale);
     
     static void drawTextAt(float x, float y, float z, float textScale, float viewScale, const char* ps);
     

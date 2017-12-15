@@ -42,24 +42,26 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 	auto expA = ([&](){return expApprox(a);});
 	std::vector<std::function<DSPVector(void)> > expFunctions {expN, expP, expA};
 	
-	std::vector<std::vector<std::function<DSPVector(void)> > > functionVectors{sinFunctions, cosFunctions, logFunctions, expFunctions};
-
+	std::vector< std::pair<std::string, std::vector<std::function<DSPVector(void)> > > > functionVectors
+	{ {"sin", sinFunctions}, {"cos", cosFunctions}, {"log", logFunctions}, {"exp", expFunctions} };
+	
 	SECTION("precision")
 	{
 		// test precision of sin, cos, log, exp and approximations
 		// use native math as reference		
 		std::cout << "max differences from reference:\n";
+
 		for(auto fnVec : functionVectors)
 		{						
-			DSPVector native = fnVec[0]();
-			DSPVector precise = fnVec[1]();
-			DSPVector approx = fnVec[2]();
+			DSPVector native = fnVec.second[0]();
+			DSPVector precise = fnVec.second[1]();
+			DSPVector approx = fnVec.second[2]();
 			
 			float nativeMaxDiff = max(abs(native - native));
 			float preciseMaxDiff = max(abs(native - precise));
 			float approxMaxDiff = max(abs(native - approx));
 			
-			std::cout << "native: " << nativeMaxDiff << ", precis: " << preciseMaxDiff << ", approx: " << approxMaxDiff << " \n";	
+			std::cout << fnVec.first << " native: " << nativeMaxDiff << ", precis: " << preciseMaxDiff << ", approx: " << approxMaxDiff << " \n";	
 			
 			// these differences are to accommodate the exp functions, the other ones are a lot more precise.
 			REQUIRE(preciseMaxDiff < 2e-6f);
@@ -75,14 +77,16 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 		int iters = 100000;
 		
 		std::cout << "seconds for " << iters << " iterations:\n";
+		int i = 0;
 		for(auto fnVec : functionVectors)
 		{			
-			timedResult<DSPVector> fnTimeNative = timeIterations<DSPVector>(fnVec[0], iters);
-			timedResult<DSPVector> fnTimePrecise = timeIterations<DSPVector>(fnVec[1], iters);
-			timedResult<DSPVector> fnTimeApprox = timeIterations<DSPVector>(fnVec[2], iters);
-			std::cout << "native: " << fnTimeNative.elapsedTime << ", precise: " << fnTimePrecise.elapsedTime << ", approx: " << fnTimeApprox.elapsedTime << " \n";			
+			timedResult<DSPVector> fnTimeNative = timeIterations<DSPVector>(fnVec.second[0], iters);
+			timedResult<DSPVector> fnTimePrecise = timeIterations<DSPVector>(fnVec.second[1], iters);
+			timedResult<DSPVector> fnTimeApprox = timeIterations<DSPVector>(fnVec.second[2], iters);
+			std::cout << fnVec.first << " native: " << fnTimeNative.elapsedTime << ", precise: " << fnTimePrecise.elapsedTime << ", approx: " << fnTimeApprox.elapsedTime << " \n";			
 			REQUIRE(fnTimeApprox.elapsedTime < fnTimePrecise.elapsedTime);
 			REQUIRE(fnTimePrecise.elapsedTime < fnTimeNative.elapsedTime);
+			i++;
 		}		
 	}
 }

@@ -15,25 +15,17 @@
 // Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
 //
-// Symbols do not ever require any heap as long as they are smaller than a certain size.
-// This relies on the "small string optimization" implementation of TextFragment.
+// Symbols must not ever require any heap as long as they are smaller than a certain size.
+// Currently this relies on the "small string optimization" implementation of TextFragment.
 // Currently the size is 16 bytes.
 
 #pragma once
 
-#include <map>
-#include <set>
-#include <atomic>
 #include <array>
 #include <vector>
-#include <string>
 #include <iostream>
-#include <memory>
-#include <algorithm>
-#include <thread>
 #include <mutex>
 
-#include "MLLocks.h"
 #include "MLText.h"
 
 namespace ml 
@@ -128,7 +120,7 @@ namespace ml
 		
 	private:
 		
-		// vector of symbols in ID/creation order
+		// vector of text fragments in ID/creation order
 		std::vector< TextFragment > mSymbolTextsByID;	
 		
 		// hash table containing indexes to strings for a given hash value.
@@ -144,14 +136,15 @@ namespace ml
 			entry.mIDVector.clear();
 		}
 		
+		// since the maximum hash value is known, there will be no need to resize this array.
 		std::array< TableEntry, kHashTableSize > mHashTable;
 
 		int mSize;
 	}; 
-	
+		
 	inline SymbolTable& theSymbolTable()
 	{
-		static std::unique_ptr<SymbolTable> t (new SymbolTable());
+		static const std::unique_ptr<SymbolTable> t (new SymbolTable());
 		return *t;
 	}
 	
@@ -214,7 +207,7 @@ namespace ml
 		// return the symbol's TextFragment in the table.
 		// in order to show the strings in XCode's debugger, instead of the unhelpful id,
 		// edit the summary format for Symbol within XCode to {$VAR.getTextFragment().text}:s
-		inline const TextFragment getTextFragment() const
+		inline const TextFragment& getTextFragment() const
 		{
 			return theSymbolTable().getSymbolTextByID(id);
 		}
@@ -242,7 +235,6 @@ namespace ml
 			return std::string(getUTF8Ptr()); 
 		}
 		
-	
 	private:
 		// the ID equals the order in which the symbol was created.
 		// 2^31 unique symbols are possible. There is no checking for overflow.

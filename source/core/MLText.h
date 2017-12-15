@@ -5,16 +5,13 @@
 //  Created by Randy Jones on 5/21/16.
 //
 
-// assignable but otherwise immutable string class 
+// assignable but otherwise immutable UTF-8 text object class 
 
 #pragma once
 
-#include "MLLocks.h"
 #include "utf/utf.hpp"
 #include <iostream>
 #include <vector>
-
-using namespace utf;
 
 namespace ml
 {
@@ -35,7 +32,7 @@ namespace ml
 				// use stack if > kLocalDataSize
 				// leave room for null termination
 				mpData = mLocalData;
-				std::fill(mpData, mpData + size, 0);
+				std::fill(mpData, mpData + size, T());
 			}
 			else
 			{
@@ -56,7 +53,7 @@ namespace ml
 	
 	// ----------------------------------------------------------------
 	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
-	// if the length is below kShortFragmentSize. 
+	// if the length in bytes is below kShortFragmentSize. 
 	
 	class TextFragment
 	{
@@ -81,12 +78,11 @@ namespace ml
 		}
 		 */
 		
-		// copies the null-terminated character array pointed to by pChars into
-		// the text fragment pool and creates a new object based on it. 
+		// 
 		TextFragment(const char* pChars) noexcept;
 
 		// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
-		TextFragment(const char* pChars, int len) noexcept;
+		TextFragment(const char* pChars, size_t len) noexcept;
 		
 		// single code point ctor
 		TextFragment(utf::codepoint_type c) noexcept;
@@ -184,6 +180,7 @@ namespace ml
 		void dispose() noexcept;
 		void moveDataFromOther(TextFragment& b);
 		
+		// TODO these things could share space
 		char* mpText; 
 		char mLocalText[kShortFragmentSize];
 		int mSize;

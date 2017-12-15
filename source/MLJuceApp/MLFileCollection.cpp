@@ -41,13 +41,19 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 #pragma mark MLFileCollection
 
 MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, ml::TextFragment extension):
-	Thread(name.getTextFragment().getText()),
 	mName(name),
 	mExtension(extension),
 	mProcessDelay(0)
 {
 	mRoot.setValue(MLFile(std::string(startDir.getFullPathName().toUTF8())));
 	setProperty("progress", 0.);
+
+	//mRunThread = std::thread(&MLFileCollection::runThread, this);
+}
+
+
+void MLFileCollection::runThread()
+{
 }
 
 MLFileCollection::~MLFileCollection()
@@ -103,10 +109,11 @@ int MLFileCollection::searchForFilesImmediate()
 		// robust against this kind of problem. Move to our own file code.
 		juce::File root = mRoot.getValue().getJuceFile();
 		
-        DirectoryIterator di (root, recurse, wildCard, whatToLookFor);
+		juce::DirectoryIterator di (root, recurse, wildCard, whatToLookFor);
         while (di.next())
         {
-			insertFileIntoMap(di.getFile());
+			const juce::File& f = di.getFile(); 
+			insertFileIntoMap(f);
 			found++;
         }
     }
@@ -117,9 +124,8 @@ int MLFileCollection::searchForFilesImmediate()
 	return found;
 }
 
-ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
+void MLFileCollection::insertFileIntoMap(juce::File f)
 {
-	ml::ResourceMap<MLFile>* returnNode = nullptr; 
 	String shortName = f.getFileNameWithoutExtension();		
 	juce::File parentDir = f.getParentDirectory();
 	
@@ -128,7 +134,22 @@ ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		// insert file or directory into file tree relative to collection root
 		TextFragment fullName(f.getFullPathName().toUTF8());
 		TextFragment relativePath = getRelativePathFromName(fullName);
-		returnNode = mRoot.addValue(ml::Path(relativePath), MLFile(fullName.toString()));
+		
+		// MLTEST
+		juce::String fStr = f.getFileNameWithoutExtension();
+		TextFragment shortName (fStr.toUTF8());
+		if (shortName.lengthInCodePoints() == 1)
+		{
+			debug() << "insertFileIntoMap :one char: " << shortName << "\n";			
+		}
+		
+		// MLTEST verbose
+		// returnNode = mRoot.addValue(ml::Path(relativePath), MLFile(fullName.toString()));
+		
+		ml::Path p(relativePath);
+		MLFile f(fullName.toString());
+		
+		mRoot.addValue(p, f);
 	}
 	else if (f.isDirectory())
 	{
@@ -137,9 +158,8 @@ ml::ResourceMap<MLFile>* MLFileCollection::insertFileIntoMap(juce::File f)
 		TextFragment relativePath = getRelativePathFromName(fullName);
 
 		// add a null File to represent a (possibly empty) directory.
-		returnNode = mRoot.addValue(ml::Path(relativePath), MLFile()); 
+		mRoot.addValue(ml::Path(relativePath), MLFile()); 
 	}
-	return returnNode;
 }
 
 // build the linear index of files in the tree.
@@ -188,8 +208,7 @@ void MLFileCollection::dump() const
 //
 void MLFileCollection::processFileInMap(int i)
 {
-    int size = mFilesByIndex.size();
-	if(ml::within(i, 0, size))
+ 	if(ml::within(static_cast<size_t>(i), size_t(0), mFilesByIndex.size()))
     {
 		sendActionToListeners(ml::Symbol("process"), i);
     }
@@ -197,14 +216,13 @@ void MLFileCollection::processFileInMap(int i)
 
 void MLFileCollection::sendActionToListeners(ml::Symbol action, int fileIndex)
 {
-    int size = mFilesByIndex.size();
     const MLFile& f = getFileByIndex(fileIndex);
 	
 	std::list<Listener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
 	{
 		Listener* pL = *it;
-		pL->processFileFromCollection (action, f, *this, fileIndex + 1, size);
+		pL->processFileFromCollection(action, f, *this, fileIndex + 1, mFilesByIndex.size());
 	}
 }
 
@@ -221,7 +239,9 @@ int MLFileCollection::processFilesImmediate(int delay)
 	{
 		setProperty("progress", (float)(i) / (float)t);
 		processFileInMap(i);
-		Thread::wait(mProcessDelay);
+		
+//		Thread::wait(mProcessDelay);
+		// MLTEST
 	}
 	setProperty("progress", 1.);
 	sendActionToListeners("end");
@@ -233,7 +253,25 @@ int MLFileCollection::processFiles(int delay)
 	cancelProcess();
 	int found = searchForFilesImmediate();
 	mProcessDelay = delay;
-	startThread(); // calls run()
+	
+	// MLTEST
+	buildIndex();
+	
+	sendActionToListeners("begin");
+	int t = getSize();
+	for(int i=0; i<t; i++)
+	{
+		//       if (threadShouldExit())
+		
+		
+		// return;
+		setProperty("progress", (float)(i) / (float)t);
+		processFileInMap(i);
+		//        wait(mProcessDelay);
+	}
+	setProperty("progress", 1.);
+	sendActionToListeners("end");
+	
 	return found;
 }
 
@@ -244,7 +282,7 @@ void MLFileCollection::processFilesInBackground(int delay)
 
 void MLFileCollection::cancelProcess()
 {
-	stopThread(1000);
+//	stopThread(1000);
 }
 
 std::string MLFileCollection::getFilePathByIndex(int idx)
@@ -278,8 +316,7 @@ const int MLFileCollection::getFileIndexByPath(const std::string& path)
     int r = -1;
     const MLFile& f = mRoot.findValue(ml::Path(path.c_str()));
 
-	int len = mFilesByIndex.size();
-	for(int i = 0; i<len; ++i)
+	for(int i = 0; i<mFilesByIndex.size(); ++i)
 	{
 		const MLFile& g = (mFilesByIndex[i]);
 		if(f == g)
@@ -300,7 +337,9 @@ const MLFile MLFileCollection::createFile(const std::string& relativePathAndName
 	std::string fullPath = std::string(mRoot.getValue().getLongName().getText()) + "/" + relativePathAndName;
     
     // insert file into file tree at relative path
-	return insertFileIntoMap(MLFile(fullPath).getJuceFile())->getValue();
+	MLFile f(fullPath);
+	insertFileIntoMap(f.getJuceFile());
+	return f;
 }
 
 // get part of absolute path p, if any, relative to our root path, without extension.
@@ -332,9 +371,7 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
     size_t rootPos = fullName.find(rootName);
     if(rootPos == 0)
     {
-        int rLen = rootName.length();
-        int pLen = fullName.length();
-        relPath = fullName.substr(rLen + 1, pLen - rLen - 1);
+        relPath = fullName.substr(rootName.length() + 1, fullName.length() - rootName.length() - 1);
     }
 	
 #ifdef ML_WINDOWS
@@ -357,7 +394,7 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
 	return (ml::textUtils::stripFileExtension(pf));
 }
 
-MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<MLFile>::const_iterator)> includeFn) const
+MLMenuPtr MLFileCollection::buildMenu(std::function<bool(FileTree::const_iterator)> includeFn) const
 {
 	MLMenuPtr root(new MLMenu());
 	std::vector< MLMenuPtr > menuStack;
@@ -397,24 +434,6 @@ MLMenuPtr MLFileCollection::buildMenu(std::function<bool(ml::ResourceMap<MLFile>
 
 MLMenuPtr MLFileCollection::buildMenu() const
 {
-	return buildMenu([=](ml::ResourceMap<MLFile>::const_iterator it){ return true; });
-}
-
-void MLFileCollection::run()
-{
-	buildIndex();
-
-	sendActionToListeners("begin");
-    int t = getSize();
-    for(int i=0; i<t; i++)
-    {
-        if (threadShouldExit())
-            return;
-        setProperty("progress", (float)(i) / (float)t);
-        processFileInMap(i);
-        wait(mProcessDelay);
-    }
-    setProperty("progress", 1.);
-	sendActionToListeners("end");
+	return buildMenu([=](ml::FileTree::const_iterator it){ return true; });
 }
 

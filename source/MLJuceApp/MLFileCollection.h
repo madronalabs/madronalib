@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __MLFileCollection__
-#define __MLFileCollection__
+#pragma once
 
 #include <functional>
 
@@ -22,9 +21,16 @@
 // a collection of files matching some kind of criteria. Uses the PropertySet interface
 // to report progress for searches.
 
+// TODO what if this class does not exist, and simply becomes ResourceMap< File > or Tree< File > ? 
+// right now we own a tree of files. If a few things were added to Tree / ResourceMap we could simply be one instead. 
+
+namespace ml
+{
+	
+typedef ResourceMap<MLFile, textUtils::SymbolCollator> FileTree; 
+
 class MLFileCollection :
-	public MLPropertySet,
-	private Thread
+	public MLPropertySet
 {
 public:
     class Listener
@@ -49,7 +55,7 @@ public:
 		// end: All files recently changed have been transmitted.
 		//
 		// Note that idx is one-based.
-		virtual void processFileFromCollection (ml::Symbol action, const MLFile file, const MLFileCollection& collection, int idx, int size) = 0;
+		virtual void processFileFromCollection(ml::Symbol action, const MLFile& file, const MLFileCollection& collection, int idx, size_t size) = 0;
 
 	private:
 		std::list<MLFileCollection*> mpCollections;
@@ -59,7 +65,7 @@ public:
     ~MLFileCollection();
 
 	void clear();
-    int getSize() const { return mFilesByIndex.size(); }
+    size_t getSize() const { return mFilesByIndex.size(); }
     ml::Symbol getName() const { return mName; }
     //const MLFile* getRoot() const { return (const_cast<const MLFile *>(&mRoot)); }
     
@@ -104,7 +110,7 @@ public:
     ml::TextFragment getRelativePathFromName(const ml::TextFragment& name) const;
     
 	// build a menu of the files for which the function returns true.
-	MLMenuPtr buildMenu(std::function<bool(ml::ResourceMap<MLFile>::const_iterator)>) const;
+	MLMenuPtr buildMenu(std::function<bool(FileTree::const_iterator)>) const;
 	
 	// build a menu of all the files. 
 	// TODO no reason to know about menus here. We should be returning a raw tree structure.
@@ -115,14 +121,17 @@ public:
     
 private:
 	
-	ml::ResourceMap<MLFile>* insertFileIntoMap(juce::File f);
+	void insertFileIntoMap(juce::File f);
 	
 	void buildIndex();
     void processFileInMap(int i);
 	void sendActionToListeners(ml::Symbol action, int fileIndex = -1);
 	void run();
 	
-	ml::ResourceMap<MLFile> mRoot; 
+	void runThread();
+//	std::thread mRunThread;
+	
+	FileTree mRoot; 
 	
 	// leaf files in collection stored by index.
     std::vector<MLFile> mFilesByIndex;
@@ -132,5 +141,4 @@ private:
 	std::list<Listener*> mpListeners;
 	int mProcessDelay;
 };
-
-#endif 
+}

@@ -13,18 +13,6 @@ set(madronalib_HEADERS
 
 if(BUILD_NEW_ONLY)
    set(madronalib_SOURCES
-    DSP/MLDSP.cpp
-    DSP/MLDSP.h
-    DSP/MLDSPOps.h
-    DSP/MLDSPGens.cpp
-    DSP/MLDSPGens.h
-    DSP/MLDSPFilters.cpp
-    DSP/MLDSPFilters.h
-    DSP/MLDSPMath.h
-    DSP/MLDSPMathScalar.h
-    DSP/MLDSPMathSSE.h
-    DSP/MLDSPMathNEON.h
-    core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
     core/MLProperty.cpp
@@ -38,17 +26,49 @@ if(BUILD_NEW_ONLY)
     core/MLText.cpp
     core/MLTextUtils.cpp
     core/MLTextUtils.h
-    core/MLResourceMap.h    
+    core/MLResourceMap.h   
+    DSP/MLDSP.cpp
+    DSP/MLDSP.h
+    DSP/MLDSPOps.h
+    DSP/MLDSPGens.cpp
+    DSP/MLDSPGens.h
+    DSP/MLDSPFilters.cpp
+    DSP/MLDSPFilters.h
+    DSP/MLDSPMath.h
+    DSP/MLDSPMathScalar.h
+    DSP/MLDSPMathSSE.h
+    DSP/MLDSPMathNEON.h
+    procs/MLProc.cpp
+    procs/MLProc.h
+    procs/MLProcFactory.cpp
+    procs/MLProcFactory.h
+    procs/MLProcMultiply.cpp
+    procs/MLProcMultiply.h
     )
 else(BUILD_NEW_ONLY)
-  
-
   set(madronalib_SOURCES
-    core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
+    core/MLOSCListener.cpp
+    core/MLOSCListener.h
+    core/MLOSCReceiver.cpp
+    core/MLOSCReceiver.h
+    core/MLOSCSender.cpp
+    core/MLOSCSender.h
+    core/MLPath.cpp
+    core/MLPath.h
+    core/MLProjection.cpp
+    core/MLProjection.h
     core/MLProperty.cpp
     core/MLProperty.h
+    core/MLPropertyListener.cpp
+    core/MLPropertyListener.h
+    core/MLPropertySet.cpp
+    core/MLPropertySet.h
+    core/MLResourceMap.h
+    core/MLScalarConstants.h
+    core/MLScalarMath.cpp
+    core/MLScalarMath.h
     core/MLSignal.cpp
     core/MLSignal.h
     core/MLSymbol.cpp
@@ -62,6 +82,8 @@ else(BUILD_NEW_ONLY)
     core/MLVectorDeprecated.h
     DSP/MLDSP.cpp
     DSP/MLDSP.h
+    DSP/MLDSPDeprecated.cpp
+    DSP/MLDSPDeprecated.h
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
@@ -227,10 +249,6 @@ else(BUILD_NEW_ONLY)
     MLJuceApp/MLMenu.h
     MLJuceApp/MLPageView.cpp
     MLJuceApp/MLPageView.h
-    MLJuceApp/MLSignalReporter.cpp
-    MLJuceApp/MLSignalReporter.h
-    MLJuceApp/MLSignalView.cpp
-    MLJuceApp/MLSignalView.h
     MLJuceApp/MLWidget.cpp
     MLJuceApp/MLWidget.h
     MLJuceApp/MLWidgetContainer.cpp
@@ -244,11 +262,30 @@ else(APPLE)
   list(APPEND madronalib_SOURCES MLApp/MLDebug.cpp)
 endif()
 
+
+# add frameworks
+
+#if(APPLE)
+ #  FIND_LIBRARY(CARBON_LIBRARY Carbon)
+ #  FIND_LIBRARY(QUICKTIME_LIBRARY QuickTime )
+ #  FIND_LIBRARY(APP_SERVICES_LIBRARY ApplicationServices )
+ #  SET(FRAMEWORKS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY})
+#endif(APPLE)
+
+
+# add portaudio utilities as source
+list(APPEND madronalib_SOURCES 
+    ../external/portaudio/pa_memorybarrier.h
+    ../external/portaudio/pa_ringbuffer.cpp
+    ../external/portaudio/pa_ringbuffer.h
+
+    )
+
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
-add_library(madronalib ${madronalib_HEADERS} ${madronalib_SOURCES})
+add_library(madronalib STATIC ${madronalib_SOURCES})
 set_target_properties(madronalib PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
                       VERSION ${madronalib_VERSION}
@@ -258,6 +295,9 @@ set_target_properties(madronalib PROPERTIES
 
 if(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC core)
+  target_include_directories(madronalib PUBLIC DSP)
+  target_include_directories(madronalib PUBLIC procs)
+
 else(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC core)
   target_include_directories(madronalib PUBLIC MLJuceApp)
@@ -269,12 +309,15 @@ else(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC ../external/juce)
 endif()
 
-target_link_libraries(madronalib portaudio)
-# target_link_libraries(madronalib oscpack)
-target_link_libraries(madronalib cjson)
-target_link_libraries(madronalib aes256)
 
-if(!BUILD_NEW_ONLY)
+target_link_libraries(madronalib aes256)
+target_link_libraries(madronalib cjson)
+target_link_libraries(madronalib oscpack)
+
+
+if(BUILD_NEW_ONLY)
+else(BUILD_NEW_ONLY)
+
   target_link_libraries(madronalib juce_audio_basics)
   target_link_libraries(madronalib juce_audio_devices)
   target_link_libraries(madronalib juce_core)
@@ -284,9 +327,20 @@ if(!BUILD_NEW_ONLY)
   target_link_libraries(madronalib juce_opengl)
 endif()
 
+
+# target_include_directories(madronalib PUBLIC "../external/portaudio")
+# target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
+
+
 if(APPLE)
+  target_link_libraries(madronalib "-framework Carbon")
+  target_link_libraries(madronalib "-framework CoreServices")
+  target_link_libraries(madronalib "-framework AudioToolbox")
+  target_link_libraries(madronalib "-framework AudioUnit")
+  target_link_libraries(madronalib "-framework CoreAudio")
   target_link_libraries(madronalib "-framework Foundation")
   target_link_libraries(madronalib "-framework OpenGL")
+  target_link_libraries(madronalib "-framework GLUT")
 else(APPLE)
   #target_link_libraries(madronalib ${DNSSD_LIBRARIES})
 endif()

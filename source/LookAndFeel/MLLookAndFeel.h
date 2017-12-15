@@ -21,12 +21,12 @@
 #include "MLWidget.h"
 #include "MLSeparator.h"
 #include "MLLabel.h"
-//#include "MLDial.h"
 #include "MLMultiSlider.h"
 #include "MLButton.h"
 #include "MLDrawableButton.h"
 #include "MLTextButton.h"
 #include "MLUIBinaryData.h"
+#include "MLVectorDeprecated.h"
 
 #include <vector>
 
@@ -335,11 +335,7 @@ public:
                                     int w, int h,
                                     const BorderSize<int>& borders);
     
-    void fillResizableWindowBackground (Graphics& g,
-                                    int w, int h,
-                                        const BorderSize<int>& /*border*/, ResizableWindow& window);
-
-    void drawResizableWindowBorder (Graphics& g,
+     void drawResizableWindowBorder (Graphics& g,
                                             int w, int h,
                                             const BorderSize<int>& border,
                                             ResizableWindow& window);
@@ -459,14 +455,13 @@ public:
 	// background
 	void setGradientMode(int m) { mGradientMode = m;}	
 	void setGradientSize(float f) { mGradientSize = f;}	
-	void setBackgroundGradient(Graphics& g, Point<int> gStart, Point<int> gEnd);
+	void setBackgroundGradient(Graphics& g, MLRect bounds, MLRect borderRect);
  	
-	void makeBackgroundImage(MLRect r);
+	void makeBackgroundImage(MLRect bounds, MLRect border);
 	
 	void drawBackground(Graphics& g, MLWidget* pW);
 	void drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect r);
-	void drawBackgroundRectAtOffset(Graphics& g, MLWidget* pW, MLRect r, MLPoint xyOffset);
-	void drawEntireBackground(Graphics& g, MLPoint offset);
+	void drawEntireBackground(Graphics& g, MLRect border);
 	
 	void drawUnitGrid(Graphics& g, MLWidget* pW);
 	void drawUnitGridRect(Graphics& g, MLWidget* pW, MLRect r);

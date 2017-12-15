@@ -15,11 +15,8 @@
 #include <vector>
 
 #include "MLSymbol.h"
-#include "../dsp/MLDSP.h"
 #include "utf/utf.hpp"
 #include "aes256/aes256.h"
-
-#include "../DSP/MLDSPGens.h" // for RandomSource TODO replace
 
 namespace ml { namespace textUtils {
 
@@ -116,18 +113,25 @@ using namespace utf;
 	// perform case-insensitive compare of fragments and return (a < b).
 	// TODO collate other languages better using miniutf library.
 	bool collate(const TextFragment& a, const TextFragment& b);
-
+	
 	// ----------------------------------------------------------------
 	// Symbol utilities
 	
 	Symbol addFinalNumber(Symbol sym, int n);
 	Symbol stripFinalNumber(Symbol sym);
 	int getFinalNumber(Symbol sym);	
-
 	Symbol stripFinalCharacter(Symbol sym);
 	
 	std::vector< Symbol > vectorOfNonsenseSymbols( int len );
 
+	struct SymbolCollator 
+	{
+		bool operator()(const Symbol& a, const Symbol& b) const 
+		{
+			return collate(a.getTextFragment(), b.getTextFragment());
+		}
+	};
+	
 	// ----------------------------------------------------------------
 	// NameMaker
 	// a utility to make many short, unique, human-readable names when they are needed. 

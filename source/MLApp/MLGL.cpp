@@ -11,14 +11,14 @@ void MLGL::orthoView(int width, int height)
     glViewport(0,0,width,height);    
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();    
-    glOrtho(0.0f,width,height,0.0f,-1.0f,1.0f);    
+	glOrtho(0.0f, width, 0.0f, height, -1.0f, 1.0f);    
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 }
 
 void MLGL::orthoView2(int width, int height)
 {
-    glViewport(0,0,width,height);
+    glViewport(0,0,width*2,height*2);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     glOrtho(0.0f, width, 0.0f, height, -1.0f, 1.0f);    
@@ -63,11 +63,27 @@ void MLGL::strokeRect(const MLRect& r, float viewScale)
 	glLineWidth(1.0*viewScale);
 	
 	glBegin(GL_LINE_LOOP);
-//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
+	//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
 	glVertex2f(r.left(), r.top());
 	glVertex2f(r.right(), r.top());
 	glVertex2f(r.right(), r.bottom());
 	glVertex2f(r.left(), r.bottom());
+	glEnd();
+}
+
+
+// TEMP
+void MLGL::drawLine(float x1, float y1, float x2, float y2, float viewScale)
+{	
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_BLEND);
+	glDisable(GL_LINE_SMOOTH);
+	glLineWidth(1.0*viewScale);
+	
+	glBegin(GL_LINES);
+	//	const MLRect tr = r.translated(Vec2(0.5f, 0.5f));
+	glVertex2f(x1, y1);
+	glVertex2f(x2, y2);
 	glEnd();
 }
 
@@ -133,7 +149,7 @@ void MLGL::drawDot(Vec2 pos, float r)
 	glVertex2f(x, y);
 	for(int i=0; i<=steps; ++i)
 	{
-		float theta = kMLTwoPi * (float)i / (float)steps;
+		float theta = ml::kTwoPi * (float)i / (float)steps;
 		float rx = r*cosf(theta);
 		float ry = r*sinf(theta);
 		glVertex3f(x + rx, y + ry, 0.f);

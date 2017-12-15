@@ -5,20 +5,15 @@
 
 #pragma once
 
-#include <string.h>
-
 #include "MLSymbol.h"
 
-// an Path describes the address of one or more elements in a tree
+// a Path describes the address of one or more elements in a tree
 // of such elements, for example one or more MLProcs in a graph.
-// it has a list of symbols, each of which the name of a container, 
-// except the last symbol which can be the name of any proc in the 
-// previous container.  
 // 
-// the copy number lets the path refer to one specific MLProc in a
-// multiple container if the Path ends on that container. Copies are 
+// the copy number lets the path refer to one specific element in a
+// multi-container if the Path ends on that container. Copies are 
 // indexed starting at 1. If the copy number is 0, the Path refers
-// to all the copies.
+// to all the elements.
 
 // Maximum path depth allows stack allocation / use in audio threads.
 const int kPathMaxSymbols = 15;

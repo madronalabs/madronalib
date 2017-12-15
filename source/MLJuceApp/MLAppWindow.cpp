@@ -8,12 +8,11 @@
 #pragma mark MLAppWindow
 
 MLAppWindow::MLAppWindow() :
-	DocumentWindow (MLProjectInfo::projectName,
+	DocumentWindow ("untitled",
 	  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
 	  DocumentWindow::allButtons,
 	  true),
-	mpAppView(0),
-	mpConstrainer(0),
+	mpAppView(0), // MLTEST NX
 	mGridUnitsX(0.),
 	mGridUnitsY(0.),
 	mUsingGL(false)
@@ -27,13 +26,9 @@ MLAppWindow::MLAppWindow() :
     // out commands
     addKeyListener (commandManager.getKeyMappings());
     
-	// MLTEST
-//	mpBorder = std::unique_ptr<MLAppBorder>(new MLAppBorder(this));
-  //  setContentOwned(mpBorder.get()->getComponent(), false);
+//	mpBorder = (new MLAppBorder(mpAppView));
+//	setContentNonOwned(mpAppView, false);
 	
-	mpConstrainer = new MLBoundsConstrainer();
-	setConstrainer (mpConstrainer);
-
 	setUsingNativeTitleBar (true);
         
     // tells our menu bar model that it should watch this command manager for
@@ -50,10 +45,7 @@ MLAppWindow::~MLAppWindow()
 	//  TODO  bool restoreWindowStateFromString (const String& previousState);
 	// (the content component will be deleted automatically, so no need to do it here)
 
-	if (mpConstrainer)
-	{
-		delete mpConstrainer;
-	}
+	
 #if GLX
     openGLContext.detach();
 #endif
@@ -78,8 +70,8 @@ void MLAppWindow::setGridUnits(int gx, int gy)
 {
 	mGridUnitsX = gx;
 	mGridUnitsY = gy;
-	mpConstrainer->setFixedAspectRatio((float)gx/(float)gy);	
-    mpBorder->setGridUnits(gx, gy);
+
+//    mpBorder->setGridUnits(gx, gy);
 }
 
 

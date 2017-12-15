@@ -5,6 +5,13 @@
 
 #include "MLScale.h"
 
+String MLScale::mRootPath;
+void MLScale::setRootPath(String root)
+{
+	mRootPath = root;
+}
+
+
 MLScale::MLScale()
 {
 	setDefaults();
@@ -128,8 +135,8 @@ void MLScale::recalcRatios()
 	double refKeyRatio = middleNoteRatio(mKeyMap.mReferenceNote);
 	double refFreqRatio = mKeyMap.mReferenceFreq/(refKeyRatio*440.0);
 	
-	int mapStart = ml::clamp(mKeyMap.mNoteStart, 0, 127);
-	int mapEnd = ml::clamp(mKeyMap.mNoteEnd, 0, 127);
+	int mapStart = 0;
+	int mapEnd = kMLNumRatios - 1;
 	for (int i = mapStart; i <= mapEnd; ++i)
 	{
 		double r = middleNoteRatio(i);
@@ -343,9 +350,11 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 void MLScale::loadFromRelativePath(ml::Text newPath)
 {
 	if(!newPath) return;
-	if(newPath != mScalePath)
+	if(newPath != mRelativePath)
 	{
-		File scaleRoot = getDefaultFileLocation(kScaleFiles);
+		// TODO migrate to ml::File 
+		File scaleRoot(mRootPath);// = getDefaultFileLocation(kScaleFiles);
+		
 		if (scaleRoot.exists() && scaleRoot.isDirectory())
 		{
 			// TODO add MLFile methods so this can all be done with MLFiles and ml::Text
@@ -370,7 +379,7 @@ void MLScale::loadFromRelativePath(ml::Text newPath)
 				setDefaults();
 			}
 		}
-		mScalePath = newPath;
+		mRelativePath = newPath;
 	}
 }
 

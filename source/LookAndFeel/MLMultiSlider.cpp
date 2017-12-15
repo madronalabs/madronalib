@@ -424,7 +424,7 @@ void MLMultiSlider::setWave(int w)
 				val = (float)i / (float)(mNumSliders - 1);
 			break;
 			case 4: // random
-				val = MLRand();
+				val = mRand.getSample();
 			break;
 			default:
 				val = 0.5;
