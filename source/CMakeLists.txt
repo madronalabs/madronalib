@@ -44,13 +44,6 @@ else(BUILD_NEW_ONLY)
   
 
   set(madronalib_SOURCES
-    DSP/MLDSP.cpp
-    DSP/MLDSP.h
-    DSP/MLDSPOps.h
-    DSP/MLDSPGens.cpp
-    DSP/MLDSPGens.h
-    DSP/MLDSPFilters.cpp
-    DSP/MLDSPFilters.h
     core/MLLocks.h
     core/MLPath.cpp
     core/MLPath.h
@@ -67,8 +60,13 @@ else(BUILD_NEW_ONLY)
     core/MLResourceMap.h
     core/MLVectorDeprecated.cpp
     core/MLVectorDeprecated.h
-    core/MLVectorOps.cpp
-    core/MLVectorOps.h
+    DSP/MLDSP.cpp
+    DSP/MLDSP.h
+    DSP/MLDSPOps.h
+    DSP/MLDSPGens.cpp
+    DSP/MLDSPGens.h
+    DSP/MLDSPFilters.cpp
+    DSP/MLDSPFilters.h
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp
@@ -77,10 +75,6 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPContext.h
     DSP/MLDSPEngine.cpp
     DSP/MLDSPEngine.h
-    DSP/MLDSPUtils.cpp
-    DSP/MLDSPUtils.h
-    DSP/MLFFT.cpp
-    DSP/MLFFT.h
     DSP/MLMultProxy.cpp
     DSP/MLMultProxy.h
     DSP/MLParameter.cpp
@@ -140,11 +134,8 @@ else(BUILD_NEW_ONLY)
     DSP/MLProcSinePhase.cpp
     DSP/MLProcSubtract.cpp
     DSP/MLProcSum.cpp
-    DSP/MLProcSVF.cpp
     DSP/MLProcTestTone.cpp
     DSP/MLProcThru.cpp
-    DSP/MLProperty.cpp
-    DSP/MLProperty.h
     DSP/MLRatio.cpp
     DSP/MLRatio.h
     DSP/MLRingBuffer.cpp
@@ -177,8 +168,6 @@ else(BUILD_NEW_ONLY)
     LookAndFeel/MLMultiSlider.h
     LookAndFeel/MLPanel.cpp
     LookAndFeel/MLPanel.h
-    LookAndFeel/MLPolynomialWidget.cpp
-    LookAndFeel/MLPolynomialWidget.h
     LookAndFeel/MLPositioner.cpp
     LookAndFeel/MLPositioner.h
     LookAndFeel/MLProgressBar.cpp
@@ -206,10 +195,6 @@ else(BUILD_NEW_ONLY)
     MLApp/MLModel.h
     MLApp/MLNetServiceHub.cpp
     MLApp/MLNetServiceHub.h
-    MLApp/MLOSCListener.cpp
-    MLApp/MLOSCListener.h
-    MLApp/MLPath.cpp
-    MLApp/MLPath.h
     MLApp/MLPlatform.h
     MLApp/MLReporter.cpp
     MLApp/MLReporter.h
@@ -242,17 +227,10 @@ else(BUILD_NEW_ONLY)
     MLJuceApp/MLMenu.h
     MLJuceApp/MLPageView.cpp
     MLJuceApp/MLPageView.h
-    MLJuceApp/MLPluginController.cpp
-    MLJuceApp/MLPluginController.h
-    MLJuceApp/MLPluginFormats.h
-    MLJuceApp/MLPluginView.cpp
-    MLJuceApp/MLPluginView.h
     MLJuceApp/MLSignalReporter.cpp
     MLJuceApp/MLSignalReporter.h
     MLJuceApp/MLSignalView.cpp
     MLJuceApp/MLSignalView.h
-    MLJuceApp/MLTime.cpp
-    MLJuceApp/MLTime.h
     MLJuceApp/MLWidget.cpp
     MLJuceApp/MLWidget.h
     MLJuceApp/MLWidgetContainer.cpp
@@ -285,7 +263,10 @@ else(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC MLJuceApp)
   target_include_directories(madronalib PUBLIC MLApp)
   target_include_directories(madronalib PUBLIC DSP)
-  target_include_directories(madronalib PUBLIC LookAndFeel)
+  target_include_directories(madronalib PUBLIC LookAndFeel)  
+
+  #include our AppConfig.h and JuceHeader.h
+  target_include_directories(madronalib PUBLIC ../external/juce)
 endif()
 
 target_link_libraries(madronalib portaudio)

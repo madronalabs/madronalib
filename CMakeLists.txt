@@ -72,9 +72,10 @@ add_subdirectory(external/OSC)
 add_subdirectory(external/portaudio)
 add_subdirectory(external/utf)
 
-if(!BUILD_NEW_ONLY)
-	add_subdirectory(external/juce)
-endif()
+# MLTEST JUCE must be included separately in apps wiching to use it
+# if(!BUILD_NEW_ONLY)
+#	add_subdirectory(external/juce)
+# endif()
 
 if (ML_BUILD_TESTS)
     add_subdirectory(tests)
