@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __MLT3DHUB__
-#define __MLT3DHUB__
+#pragma once
 
 #if defined (__APPLE__)
 
@@ -21,6 +20,8 @@
 #include "MLSignal.h"
 #include "MLSymbol.h"
 #include "MLProperty.h"
+
+#include "MLT3D.h"
 
 #include "portaudio/pa_ringbuffer.h"
 #include "pthread.h"
@@ -36,7 +37,6 @@ public:
 	static const int kFrameWidth = 4;
 	static const int kFrameHeight = 16;
 	static const int kFrameBufferSize = 128;
-	static const int kDefaultUDPPort = 3123;
 
 	MLT3DHub();
 	~MLT3DHub();
@@ -95,9 +95,7 @@ private:
 	MLSignal mTouchFrames;
 	PaUtilRingBuffer mFrameBuf;
 	MLSignal mOutputFrame;
-	
 };
 
 #endif // APPLE
 
-#endif /* defined(__MLT3DHub__) */
