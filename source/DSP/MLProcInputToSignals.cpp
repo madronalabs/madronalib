@@ -678,8 +678,8 @@ void MLProcInputToSignals::processOSC(const int frames)
 {	
 	float x, y, z, note;
 	float dx, dy;
-	
-	// TODO this code only updates every signal vector (64 samples).  Add sample-accurate
+    
+    // TODO this code only updates every signal vector (64 samples).  Add sample-accurate
 	// reading from OSC.
 
 	if(!mpFrameBuf) return;
@@ -817,8 +817,31 @@ void MLProcInputToSignals::processOSC(const int frames)
 				
 			}
 			
+     // MLTEST       we are hving to cross a zone for x to change.
+                
+                
+  
+/*
+            
+            if( (mLatestFrame(2, 0) > 0.f) || (mLatestFrame(2, 1) > 0.f) )
+            {
+               // MLTEST
+               std::cout << "-----------------------------------\n";
+               int j = 0;
+               std::cout << j << " | " << "x:" << mLatestFrame(0, j) << " y:" <<  mLatestFrame(1, j) << " z:" << mLatestFrame(2, j) << "\n";
+               j = 1;
+               std::cout << j << " | " << "x:" << mLatestFrame(0, j) << " y:" <<  mLatestFrame(1, j) << " z:" << mLatestFrame(2, j) << "\n";
+               
+            }
+
+  */
+            
 			for (int v=0; v<mCurrentVoices; ++v)
 			{
+                
+                
+                
+                
 				x = mLatestFrame(0, v);
 				y = mLatestFrame(1, v);
 				z = mLatestFrame(2, v);
@@ -830,7 +853,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 				{
 					if (mVoices[v].mZ1 <= 0.)
 					{
-						// process note on
+ 						// process note on
 						mVoices[v].mStartX = x;
 						mVoices[v].mStartY = y;
 						mVoices[v].mPitch = mScale.noteToLogPitch(note);
@@ -839,9 +862,18 @@ void MLProcInputToSignals::processOSC(const int frames)
 						mVoices[v].mStartVel = VelocityFromInitialZ(z);
 						dx = 0.f;
 						dy = 0.f;
-					}
+
+                    
+                        // MLTEST
+    //                    std::cout << "ON voice " << v << ", note " << note << " x = " << x << "\n";
+                    }
 					else
 					{
+                        
+      //                  std::cout << "   voice " << v << ", note " << note << " x = " << x << "\n";
+
+
+                        
 						// note continues
 						mVoices[v].mPitch = mScale.noteToLogPitch(note);
 						dx = x - mVoices[v].mStartX;
@@ -854,6 +886,13 @@ void MLProcInputToSignals::processOSC(const int frames)
 				{
 					if (mVoices[v].mZ1 > 0.)
 					{
+                        
+                        
+                        // MLTEST
+                       std::cout << "OFF " << v << "\n";
+
+                        
+                        
 						// process note off, set pitch for release
 						x = mVoices[v].mX1;
 						y = mVoices[v].mY1;

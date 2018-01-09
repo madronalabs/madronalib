@@ -141,7 +141,9 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 		osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
 		const char * addy = msg.AddressPattern();
         
-		//debug() << "t3d: " << addy << "\n";
+        
+        // MLTEST
+		// debug() << "t3d: " << addy << "\n";
         
 		// frame message.
 		// /t3d/frm (int)frameID int)deviceID
@@ -239,7 +241,7 @@ void MLT3DHub::endBundle(const osc::ReceivedBundle& b)
 
 void MLT3DHub::timerCallback()
 {
-	static const int kT3DTimeout = 2; // 2 cycles of this timer
+	static const int kT3DTimeout = 4; // 2 cycles of this timer
 	
 	if(mShouldDisconnect)
 	{
