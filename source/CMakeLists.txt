@@ -17,6 +17,7 @@ if(BUILD_NEW_ONLY)
     core/MLPath.h
     core/MLProperty.cpp
     core/MLProperty.h
+    core/MLQueue.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp
     core/MLSignal.h
@@ -65,6 +66,7 @@ else(BUILD_NEW_ONLY)
     core/MLPropertyListener.h
     core/MLPropertySet.cpp
     core/MLPropertySet.h
+    core/MLQueue.h
     core/MLResourceMap.h
     core/MLScalarConstants.h
     core/MLScalarMath.cpp

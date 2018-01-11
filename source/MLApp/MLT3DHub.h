@@ -74,8 +74,9 @@ private:
 	void connect();
 	void disconnect();
 	void handleMessage(const osc::ReceivedMessage& m);
-	void endBundle(const osc::ReceivedBundle& b);
-	
+    void startBundle(const osc::ReceivedBundle& b);
+    void endBundle(const osc::ReceivedBundle& b);
+
 	MLOSCReceiver mOSCReceiver;
 
 	// listeners to this object

@@ -33,26 +33,26 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	std::vector< Path > pathsVector;
 	ml::textUtils::NameMaker endNamer;
 	
-	ml::RandomSource randSource;
+	RandomScalarSource randSource;
 	
 	// make vector of test paths with mostly leaf nodes, somewhat mirroring typical use
 	for(int i = 0; i < mapSize; ++i)
 	{
-		int pathDepth = ((ml::rand32() >> 16) & 0x07) + 2;
-		int leaves = ((ml::rand32() >> 16) & 0x07) + 1;
+		int pathDepth = ((randSource.getUInt32() >> 16) & 0x07) + 2;
+		int leaves = ((randSource.getUInt32() >> 16) & 0x07) + 1;
 		
 		Path testPath;
 		for(int p=0; p<pathDepth - 1; ++p)
 		{			
 			// 8 possible symbols per level
-			int symbolIdx = (((ml::rand32() >> 16)&0x07) + 8*p) % numTestWords;
+			int symbolIdx = (((randSource.getUInt32() >> 16)&0x07) + 8*p) % numTestWords;
 			testPath.addSymbol(testWords[symbolIdx]);
 		}
 		
 		for(int j=0; j<leaves; ++j)
 		{
 			// make resource path with unique end so paths are never duplicates
-			Symbol leafName = testWords[(ml::rand32() >> 16) % numTestWords] + endNamer.nextName();
+			Symbol leafName = testWords[(randSource.getUInt32() >> 16) % numTestWords] + endNamer.nextName();
 			Path newPath = testPath;
 			newPath.addSymbol(leafName);
 			pathsVector.push_back(newPath);

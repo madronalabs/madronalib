@@ -172,7 +172,9 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 			// t3d/tch[ID], (float)x, (float)y, (float)z, (float)note
 			args >> x >> y >> z >> note;
 			
-			// debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
+            
+            // MLTEST
+			debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
             
 			mOutputFrame(0, touchID) = x;
 			mOutputFrame(1, touchID) = y;
@@ -232,16 +234,21 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 	}
 }
 
+void MLT3DHub::startBundle(const osc::ReceivedBundle& b)
+{
+    // get bundle timestamp
+}
+
 void MLT3DHub::endBundle(const osc::ReceivedBundle& b)
 {
-	// write output frame of touches to buffer
-	if(mFrameBuf.buffer)
-		PaUtil_WriteRingBuffer(&mFrameBuf, mOutputFrame.getBuffer(), 1);
+    // write output frame of touches to buffer
+    if(mFrameBuf.buffer)
+        PaUtil_WriteRingBuffer(&mFrameBuf, mOutputFrame.getBuffer(), 1);
 }
 
 void MLT3DHub::timerCallback()
 {
-	static const int kT3DTimeout = 4; // 2 cycles of this timer
+	static const int kT3DTimeout = 4; // in cycles of this timer
 	
 	if(mShouldDisconnect)
 	{
@@ -278,8 +285,10 @@ void MLT3DHub::connect()
 	{
 		if(mOSCReceiver.open(kDefaultUDPPort + mUDPPortOffset))
 		{
-			mOSCReceiver.setMessageFn( [this](const osc::ReceivedMessage& m){ handleMessage(m); });
-			// TODO set up a startFn to get bundle time tag. 
+            mOSCReceiver.setBundleStartFn( [this](const osc::ReceivedBundle& b){ startBundle(b); });
+
+            mOSCReceiver.setMessageFn( [this](const osc::ReceivedMessage& m){ handleMessage(m); });
+            
 			mOSCReceiver.setBundleEndFn( [this](const osc::ReceivedBundle& b){ endBundle(b); });
 			publishUDPService();
 			mConnected = true;

@@ -144,12 +144,40 @@ namespace ml
 	inline float dBToAmp(float dB)
 	{
 		return powf(10.f, dB/20.f);
-	}	
-	
-	// global random generator
-	float rand(void);
-	uint32_t rand32(void);
-	void randReset(void);
+	}
+    
+	// tiny, bad random generator
+    class RandomScalarSource
+    {
+    public:
+        RandomScalarSource() : mSeed(0) {}
+        ~RandomScalarSource() {}
+        inline void step()
+        {
+            mSeed = mSeed * 0x0019660D + 0x3C6EF35F;
+        }
+        
+        // return single-precision floating point number on [-1, 1]
+        float getFloat()
+        {
+            step();
+            uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
+            temp &= 0x007FFFFF;
+            temp |= 0x3F800000;
+            float* pf = reinterpret_cast<float*>(&temp);
+            *pf *= 2.f;
+            *pf -= 3.f;
+            return *pf;
+        }
+        
+        // return 32 pseudorandom bits
+        uint32_t getUInt32()
+        {
+            step();
+            return mSeed;
+        }
+        uint32_t mSeed;
+    };
 	
 	// ----------------------------------------------------------------
 	// constexpr math functions

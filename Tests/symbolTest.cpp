@@ -186,11 +186,12 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 		std::chrono::duration<double> elapsed;
 		double symbolSum, stringSum;
 		int idx;
-		
+        RandomScalarSource randSource;
+        
 		std::vector< int > testIndexes;
 		for(int n=0; n<kTestLength; ++n)
 		{
-			int i = fabs(ml::rand())*kMapSize;
+			int i = fabs(randSource.getFloat())*kMapSize;
 			testIndexes.push_back(i);
 		}
 		

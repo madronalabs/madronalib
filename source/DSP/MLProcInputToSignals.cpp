@@ -689,6 +689,8 @@ void MLProcInputToSignals::processOSC(const int frames)
 	while (PaUtil_GetRingBufferReadAvailable(mpFrameBuf) > 0)
 	{
 		PaUtil_ReadRingBuffer(mpFrameBuf, mLatestFrame.getBuffer(), 1);
+        
+       //   mLatestFrame.dump(std::cout, true);
 
 		// First turn touch frames into change lists, either in unison mode or not.
 		if (mUnisonMode)

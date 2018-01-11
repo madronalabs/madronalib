@@ -109,7 +109,6 @@ int main()
 	 */
 	
 	
-	
 	RandomSource r;
 	DSPVector a(2.f);
 	DSPVector m(3.f);
@@ -118,7 +117,6 @@ int main()
 	a = m + n;
 	
 	std::cout << "sum: " << a << "\n";
-		
 
 #ifdef _WINDOWS
 	system("pause");

@@ -53,38 +53,5 @@ namespace ml
 		return isinf(x);
 	#endif
 	}
-		
-	static uint32_t gRandomSeed = 0;
-
-	inline void randStep()
-	{
-		gRandomSeed = gRandomSeed * 0x0019660D + 0x3C6EF35F;
-	}
-
-	// return single-precision floating point number on [-1, 1]
-	float rand()
-	{
-		randStep();
-		uint32_t temp = (gRandomSeed >> 9) & 0x007FFFFF;
-		temp &= 0x007FFFFF;// DSPConstants.r2;
-		temp |= 0x3F800000; // DSPConstants.r1;
-		
-		float* pf = reinterpret_cast<float*>(&temp);
-		*pf *= 2.f;
-		*pf -= 3.f;
-		
-		return *pf;
-	}
-
-	// return 32 pseudorandom bits
-	uint32_t rand32()
-	{
-		randStep();
-		return gRandomSeed;
-	}
-
-	void randReset(void)
-	{
-		gRandomSeed = 0;
-	}
+    
 }

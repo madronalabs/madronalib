@@ -33,7 +33,7 @@ add_executable(tests
 	dspFiltersTest.cpp 
 	dspOpsTest.cpp
 	resourceMapTest.cpp 
-	ringBufferTest.cpp
+	queueTest.cpp
 	signalTest.cpp 
 	symbolTest.cpp 
 	tests.cpp tests.h )

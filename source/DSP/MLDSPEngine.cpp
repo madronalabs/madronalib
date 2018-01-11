@@ -667,6 +667,8 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t 
 
 	// we may not be processing all events in the buffer, so find last event that should happen in this vector
 	// assuming sorted!
+    
+    // TODO while eventQueue.elementsAvailable() && eventQueue.peekLast().mTime ...
 	auto itLast = itEnd - 1;
 	while((itLast >= itBegin) && ((*itLast).mTime >= vectorStartTime + kFloatsPerDSPVector))
 	{
