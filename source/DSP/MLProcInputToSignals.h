@@ -197,6 +197,7 @@ private:
 	int mUnisonInputTouch;
 	float mUnisonVel;
 	float mGlide;
+    
 	int mOSCDataRate;
 	
 	float mUnisonPitch1;

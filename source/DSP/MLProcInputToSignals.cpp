@@ -4,6 +4,17 @@
 
 #include "MLProcInputToSignals.h"
 
+const ml::Symbol voicesSym("voices");
+const ml::Symbol data_rateSym("data_rate");
+const ml::Symbol scaleSym("scale");
+const ml::Symbol protocolSym("protocol");
+const ml::Symbol bendSym("bend");
+const ml::Symbol modSym("mod");
+const ml::Symbol unisonSym("unison");
+const ml::Symbol glideSym("glide");
+
+
+
 const int kMaxEvents = 1 << 4;//1 << 8; // max events per signal vector
 static const int kNumVoiceSignals = 8;
 const ml::Symbol voiceSignalNames[kNumVoiceSignals] 
@@ -451,15 +462,6 @@ void MLProcInputToSignals::setup()
 
 void MLProcInputToSignals::doParams()
 {
-	static const ml::Symbol voicesSym("voices");
-	static const ml::Symbol data_rateSym("data_rate");
-	static const ml::Symbol scaleSym("scale");
-	static const ml::Symbol protocolSym("protocol");
-	static const ml::Symbol bendSym("bend");
-	static const ml::Symbol modSym("mod");
-	static const ml::Symbol unisonSym("unison");
-	static const ml::Symbol glideSym("glide");
-
 	int maxVoices = getContext()->getRootContext()->getMaxVoices();
 	int newVoices = (int)getParam(voicesSym);
 	newVoices = ml::clamp(newVoices, 0, 15);
@@ -480,20 +482,23 @@ void MLProcInputToSignals::doParams()
 		mVoices[v].mdPitchBend.setGlideTime(mGlide);
 	}
 	mMPEMainVoice.mdPitchBend.setGlideTime(mGlide);
+    
+    float oscGlide = (1.f / std::max(100.f, (float)mOSCDataRate));
 	
+    std::cout << "OSC glide: " << oscGlide << "\n";
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
 			for(int i=0; i<maxVoices; ++i)
 			{
 				mVoices[i].mdGate.setGlideTime(0.0f);
-				mVoices[i].mdAmp.setGlideTime(1.f / (float)mOSCDataRate);
+				mVoices[i].mdAmp.setGlideTime(oscGlide);
 				mVoices[i].mdVel.setGlideTime(0.0f);
-				mVoices[i].mdNotePressure.setGlideTime(1.f / (float)mOSCDataRate);
-				mVoices[i].mdChannelPressure.setGlideTime(1.f / (float)mOSCDataRate);
-				mVoices[i].mdMod.setGlideTime(1.f / (float)mOSCDataRate);
-				mVoices[i].mdMod2.setGlideTime(1.f / (float)mOSCDataRate);
-				mVoices[i].mdMod3.setGlideTime(1.f / (float)mOSCDataRate);
+				mVoices[i].mdNotePressure.setGlideTime(oscGlide);
+				mVoices[i].mdChannelPressure.setGlideTime(oscGlide);
+				mVoices[i].mdMod.setGlideTime(oscGlide);
+				mVoices[i].mdMod2.setGlideTime(oscGlide);
+				mVoices[i].mdMod3.setGlideTime(oscGlide);
 			}
 			break;
 		case kInputProtocolMIDI:	
@@ -786,7 +791,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 			
 			mUnisonPitch1 = upitch;	
 		}
-		else 
+		else // unison
 		{
 			
 			// examine all possible touches to find maximum pressure set
@@ -802,7 +807,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 			 
 			 
 			 */
-			
 			
 			
 			
@@ -867,7 +871,7 @@ void MLProcInputToSignals::processOSC(const int frames)
 
                     
                         // MLTEST
-    //                    std::cout << "ON voice " << v << ", note " << note << " x = " << x << "\n";
+                        std::cout << "ON voice " << v << ", note " << note << " x = " << x << "\n";
                     }
 					else
 					{
@@ -908,6 +912,8 @@ void MLProcInputToSignals::processOSC(const int frames)
 				mVoices[v].mdGate.addChange((int)(z > 0.), frameTime);
 				mVoices[v].mdVel.addChange(mVoices[v].mStartVel, frameTime);
 				mVoices[v].mdAmp.addChange(z, frameTime);
+                
+                
 				mVoices[v].mdNotePressure.addChange(dx, frameTime);
 				mVoices[v].mdMod.addChange(dy, frameTime);
 				mVoices[v].mdMod2.addChange(x*2.f - 1.f, frameTime);

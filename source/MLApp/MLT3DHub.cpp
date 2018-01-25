@@ -141,9 +141,8 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 		osc::ReceivedMessageArgumentStream args = msg.ArgumentStream();
 		const char * addy = msg.AddressPattern();
         
-        
         // MLTEST
-		// debug() << "t3d: " << addy << "\n";
+    debug() << "t3d: " << addy << "\n";
         
 		// frame message.
 		// /t3d/frm (int)frameID int)deviceID
@@ -151,7 +150,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 		{
 			args >> frameID >> deviceID;
 
- // debug() << "FRM " << frameID << "\n";
+    debug() << "   FRM " << frameID << "\n";
 		}
         // match tch[n] message
         else if (strncmp(addy, "/t3d/tch", 8) == 0)
@@ -172,9 +171,8 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 			// t3d/tch[ID], (float)x, (float)y, (float)z, (float)note
 			args >> x >> y >> z >> note;
 			
-            
             // MLTEST
-			debug() << "TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
+            std::cout << "   TCH " << touchID << " " << x << " " << y << " " << z << " " << note << "\n";
             
 			mOutputFrame(0, touchID) = x;
 			mOutputFrame(1, touchID) = y;
