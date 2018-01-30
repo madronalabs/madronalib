@@ -413,20 +413,11 @@ namespace ml
 	// ----------------------------------------------------------------
 	// single-vector index and range generators
 	
+    constexpr float castFn(int i) { return i; }
 	inline DSPVector columnIndex()
 	{
-		static constexpr SIMDVectorFloat intsVec = {0, 1, 2, 3};
-		static constexpr SIMDVectorFloat stepVec = {4, 4, 4, 4};
-		DSPVector vy;																
-		float* py1 = vy.getBuffer();	
-		SIMDVectorFloat indexVec = intsVec;
-		for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)			
-		{													
-			vecStore(py1, indexVec);											
-			py1 += kFloatsPerSIMDVector;		
-			indexVec = vecAdd(indexVec, stepVec);
-		}													
-		return vy;											
+        constexpr DSPVector indices(castFn);
+        return indices;
 	}
 	
 	// return a linear sequence from start to end, where end will fall on the first index of the 
