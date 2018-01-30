@@ -485,7 +485,6 @@ void MLProcInputToSignals::doParams()
     
     float oscGlide = (1.f / std::max(100.f, (float)mOSCDataRate));
 	
-    std::cout << "OSC glide: " << oscGlide << "\n";
 	switch(mProtocol)
 	{
 		case kInputProtocolOSC:	
@@ -844,10 +843,6 @@ void MLProcInputToSignals::processOSC(const int frames)
             
 			for (int v=0; v<mCurrentVoices; ++v)
 			{
-                
-                
-                
-                
 				x = mLatestFrame(0, v);
 				y = mLatestFrame(1, v);
 				z = mLatestFrame(2, v);
@@ -868,19 +863,10 @@ void MLProcInputToSignals::processOSC(const int frames)
 						mVoices[v].mStartVel = VelocityFromInitialZ(z);
 						dx = 0.f;
 						dy = 0.f;
-
-                    
-                        // MLTEST
-                        std::cout << "ON voice " << v << ", note " << note << " x = " << x << "\n";
                     }
 					else
 					{
-                        
-      //                  std::cout << "   voice " << v << ", note " << note << " x = " << x << "\n";
-
-
-                        
-						// note continues
+ 						// note continues
 						mVoices[v].mPitch = mScale.noteToLogPitch(note);
 						dx = x - mVoices[v].mStartX;
 						dy = y - mVoices[v].mStartY;
@@ -892,13 +878,6 @@ void MLProcInputToSignals::processOSC(const int frames)
 				{
 					if (mVoices[v].mZ1 > 0.)
 					{
-                        
-                        
-                        // MLTEST
-                       std::cout << "OFF " << v << "\n";
-
-                        
-                        
 						// process note off, set pitch for release
 						x = mVoices[v].mX1;
 						y = mVoices[v].mY1;
