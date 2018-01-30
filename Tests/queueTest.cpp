@@ -117,7 +117,4 @@ TEST_CASE("madronalib/core/queue/threads", "[queue][threads]")
 
 }
 
-    
-    
-
 
