@@ -103,7 +103,7 @@ void MLDrawing::drawArrowhead(Graphics& g, const Vec2& p1, const Vec2& p2, float
 	Vec2 p1c = p1.getIntPart() + Vec2(0.5f, 0.5f);
 	Vec2 p2c = p2.getIntPart() + Vec2(0.5f, 0.5f);
 	float angle = atan2(-(p2c.x() - p1c.x()), (p2c.y() - p1c.y()));
-	Path head;
+	juce::Path head;
 	head.startNewSubPath(0, 0);
 	head.lineTo(-2.25*scale, -5.5*scale);
 	head.lineTo(2.25*scale, -5.5*scale);
@@ -131,7 +131,7 @@ void MLDrawing::paint(Graphics& g)
 	
 	/*
 	// TEST TODO auto border / background?
-	Path tbounds;
+	juce::Path tbounds;
 	const MLRect boundsRect ( getLocalBounds());	
 	tbounds.addRectangle(boundsRect);
 	g.setColour(Colours::blue.withAlpha(0.5f));	

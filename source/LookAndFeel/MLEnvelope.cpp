@@ -110,7 +110,7 @@ void MLEnvelope::paint (Graphics& g)
 	susHeight = vRange(susLevel);
 		
 	// draw env shape
-	Path envPath;
+    juce::Path envPath;
 	envPath.startNewSubPath(startX,  floor(h - margin) + 0.5);
 	envPath.lineTo(delX,  floor(h - margin) + 0.5);
 	envPath.quadraticTo(delX,  floor(margin) + 0.5, attX, floor(margin) + 0.5); // up

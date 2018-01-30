@@ -69,6 +69,9 @@ void MLWidget::setupGL()
         mpGLContext->setRenderer (this);
 		mpGLContext->setComponentPaintingEnabled (false);
 		mpGLContext->setContinuousRepainting(true);
+        
+        // would like to reduce GL frame rate but this does not seem to work.
+        // mpGLContext->setSwapInterval(2);
     }
 }
 

@@ -118,7 +118,7 @@ void MLMultiSlider::paint (Graphics& g)
 	
 	// draw fills
 	// vertical only
-	Path full, empty;
+	juce::Path full, empty;
 	Colour fullColor, emptyColor;
 	MLRect fullRect, emptyRect;
 	float dialY;

@@ -553,3 +553,47 @@ void cJSON_ReplaceOrAddItemToObject(cJSON *object,const char *string,cJSON *newi
 	}
 	cJSON_AddItemToObject(object, string, newitem);
 }
+
+const char * kNullValueString = "";
+
+const char * getJSONString(cJSON* pNode, const char* name)
+{
+    cJSON* pItem = cJSON_GetObjectItem(pNode, name);
+    if(pItem)
+    {
+        if(pItem->type == cJSON_String)
+        {
+            return pItem->valuestring;
+        }
+    }
+    return kNullValueString;
+}
+
+double getJSONDouble(cJSON* pNode, const char* name)
+{
+    cJSON* pItem = cJSON_GetObjectItem(pNode, name);
+    if(pItem)
+    {
+        if(pItem->type == cJSON_Number)
+        {
+            return pItem->valuedouble;
+        }
+    }
+    return 0.;
+}
+
+int getJSONInt(cJSON* pNode, const char* name)
+{
+    cJSON* pItem = cJSON_GetObjectItem(pNode, name);
+    if(pItem)
+    {
+        if(pItem->type == cJSON_Number)
+        {
+            return pItem->valueint;
+        }
+    }
+    return 0;
+}
+
+
+

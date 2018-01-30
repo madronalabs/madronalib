@@ -13,7 +13,7 @@
 class MLAppWindow : public DocumentWindow
 {
 public:
-	MLAppWindow();
+	MLAppWindow(MLAppView* v);
     ~MLAppWindow();
 	
 	void initialize();
@@ -22,7 +22,7 @@ public:
 	void mouseDrag (const MouseEvent& e);	
 	void setGridUnits(int gx, int gy);
 	
-//	void setContent(MLAppView* newView);
+//    void setContent(MLAppView* v) { mpAppView = v; }
     void closeButtonPressed();
     void moved();
     void resized();

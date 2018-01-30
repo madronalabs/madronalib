@@ -14,8 +14,7 @@
 #include <cstddef>
 #include <iterator>
 
-namespace ml
-{
+namespace ml {
     
 template<typename Element>
 class Queue final
@@ -60,7 +59,7 @@ public:
   
     // useful for reading elements while a criteria is met. Can be used like
     // while queue.elementsAvailable() && q.peek().mTime < 100 { elem = q.pop() ... }
-    const Element& peek() const
+    const Element& peek()
     {
         const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);
         return mData[currentReadIndex];
@@ -88,5 +87,5 @@ private:
     std::atomic<size_t> mReadIndex{0};
 
 };
+};
 
-} // namespace ml

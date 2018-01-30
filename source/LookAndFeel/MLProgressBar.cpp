@@ -28,14 +28,14 @@ void MLProgressBar::paint (Graphics& g)
 	const Colour fc = findColour(MLLookAndFeel::labelColor);	
 	const float progress = getFloatProperty("progress");
 
-	Path gbounds;
+	juce::Path gbounds;
 	const Rectangle<int> & boundsRect (getLocalBounds());	
 	gbounds.addRectangle(boundsRect);
 	MLRange xRange(0., 1., boundsRect.getX(), boundsRect.getRight());
 	MLRect progressRect = juceToMLRect(boundsRect);
 	progressRect.setRight(xRange(progress));
 	Rectangle<int> fullRect = MLToJuceRectInt(progressRect);
-	Path fullBounds;
+	juce::Path fullBounds;
 	fullBounds.addRectangle(fullRect);
 	g.setColour(fc);	
 	g.fillPath(fullBounds);	

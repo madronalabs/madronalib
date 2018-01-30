@@ -10,6 +10,8 @@
 
 #include "MLDSP.h"
 #include "MLSignal.h"
+#include "MLScalarMath.h"
+using namespace ml;
 
 #include <cassert>
 #include <iostream>
@@ -104,14 +106,6 @@ inline float boolToFloat(uint32_t b)
 	return *((float*)&temp);
 }
 
-// return sign bit of float as float, 1. for positive, 0. for negative.
-inline float fSignBit(float f)
-{
-	uint32_t a = *((uint32_t*)&f);
-	a = (((a & 0x80000000) >> 31) - 1) & 0x3F800000;
-	return *((float*)&a);
-}
-
 MLSample* alignToCacheLine(const MLSample* p);
 
 int ilog2(int n);
@@ -176,67 +170,9 @@ int MLisInfinite(float x);
 int MLisInfinite(double x);
 
 // ----------------------------------------------------------------
-#pragma mark min, max, clamp
-// TODO this stuff should be in MLMath or something
-// ----------------------------------------------------------------
-
-/*
-template <class c>
-inline c (min)(const c& a, const c& b)
-{
-	return (a < b) ? a : b;
-}
-
-template <class c>
-inline c (max)(const c& a, const c& b)
-{
-	return (a > b) ? a : b;
-}
-
-template <class c>
-inline c (clamp)(const c& x, const c& min, const c& max)
-{
-	return (x < min) ? min : (x > max ? max : x);
-}
-
-
-// within range, including start, excluding end value.
-template <class c>
-inline bool (within)(const c& x, const c& min, const c& max)
-{
-	return ((x >= min) && (x < max));
-}
-*/
-
-template <class c>
-inline int (sign)(const c& x)
-{
-	if (x == 0) return 0;
-	return (x > 0) ? 1 : -1;
-}
 
 float inMinusPiToPi(float theta);
 
-
-// amp <-> dB conversions, where ratio of the given amplitude is to 1.
-
-inline float ampTodB(float a)
-{
-	return 20.f * log10f(a);
-}	
-
-inline float dBToAmp(float dB)
-{
-	return powf(10.f, dB/20.f);
-}	
-
-#pragma mark smoothstep
-
-inline float smoothstep(float a, float b, float x)
-{
-	x = ml::clamp((x - a)/(b - a), 0.f, 1.f); 
-	return x*x*(3.f - 2.f*x);
-}
 
 // ----------------------------------------------------------------
 #pragma mark fast trig approximations

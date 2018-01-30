@@ -40,7 +40,7 @@ void MLSeparator::paint (Graphics& g)
 	int w = getWidth();
 	int h = getHeight();
 	const bool vertical = w < h;
-	Path p;
+	juce::Path p;
 	
 	g.setColour (fc); 
 	if (vertical)

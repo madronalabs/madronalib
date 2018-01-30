@@ -590,7 +590,7 @@ void MLDial::paint (Graphics& g)
 	
 	if(0)
 	{
-		Path P;
+        juce::Path P;
 		Rectangle<int> br = ( getLocalBounds());	
 		br.expand(1, 1);
 		P.addRectangle(br);
@@ -616,7 +616,7 @@ void MLDial::paint (Graphics& g)
 	
     if(0)
     {
-        Path P;
+        juce::Path P;
         const Rectangle<int> & br (getLocalBounds());	
         P.addRectangle(br);
         g.setColour(Colours::red);	
@@ -636,7 +636,7 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 	const int compWidth = getWidth();
 	const int compHeight = getHeight();
 	
-	Path full, not_full, thumb;	
+	juce::Path full, not_full, thumb;
 	MLRect sr(getWidgetLocalBounds());	
 
 	const Colour trackDark (mTrackDarkColor);		
@@ -689,7 +689,7 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 			{
 				float td = valueToProportionOfLength(mDetents[i].mValue); 
 				float xx = (tX + (td * tW));	
-				Path J;
+				juce::Path J;
 
 				// draw tick
 				x1 = xx;
@@ -716,7 +716,7 @@ void MLDial::drawLinearDial (Graphics& g, int , int , int , int ,
 			{
 				float td = valueToProportionOfLength(mDetents[i].mValue);
 				float yy = (tY + (td * tH));
-				Path J;
+				juce::Path J;
                 
 				// draw tick
 				x1 = tX - mMargin;
@@ -807,7 +807,7 @@ void MLDial::drawLinearDialOverlay (Graphics& g, int , int , int , int ,
 		
 		// draw track outline
 		{
-			Path track;
+			juce::Path track;
 			MLRect tra = tr;
 			tra.shrink(0.5f);
 			track.addRectangle (MLToJuceRect(tra));
@@ -936,7 +936,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		
 		// unfilled area(s)
 		{	
-            Path track;
+            juce::Path track;
 			pg.setColour (trackDark);
             track.addPieSegment (rx1, ry1, mDiameter, mDiameter, rotaryStart, angleA, 0.);
             track.addPieSegment (rx1, ry1, mDiameter, mDiameter, angleB, rotaryEnd, 0.);
@@ -945,7 +945,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		
 		// big fill area
 		{	
-            Path filledArc;
+            juce::Path filledArc;
 			pg.setColour (fill_color);
             filledArc.addPieSegment (rx1, ry1 , mDiameter, mDiameter, angleA, angleB, 0.);
             pg.fillPath (filledArc);
@@ -954,7 +954,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		// indicator line
 		if (do_indicator)
 		{	
-			Path indicator;
+			juce::Path indicator;
 			indicator.startNewSubPath(0., 0.);
 			indicator.lineTo(0., -r1+0.5);
 			pg.setColour (indicator_color);
@@ -966,7 +966,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		{
 			const float m = mLineThickness*10.;
 			const float mh = m / 2.;
-            Path track;
+            juce::Path track;
 			Colour hc = signalToJuceColor(getSignalProperty("highlight_color"));
 			pg.setColour (hc);
             track.addArc(rx1-mh, ry1-mh, mDiameter+m, mDiameter+m, 0.f, kMLTwoPi, true);
@@ -983,7 +983,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		Graphics sg(mStaticImage);	
 		{	
 			// outer shadow
-			Path outline;
+			juce::Path outline;
 			float d, opacity;
 			for (int i=0; i<mShadowSize; i++)
 			{
@@ -998,7 +998,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		
 		{	
 			// track outline
-			Path outline;
+			juce::Path outline;
 			outline.addCentredArc(cx, cy, r1, r1, 0., rotaryStart, rotaryEnd, true);			
 			sg.setColour (outline_color.withAlpha(0.25f));
 			sg.strokePath (outline, PathStrokeType (mLineThickness));
@@ -1009,7 +1009,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 		if (do_ticks)
 		{
 			float angle;
-			Path tick;
+			juce::Path tick;
 			tick.startNewSubPath(0, -r1);
 			tick.lineTo(0, -r1-mTickSize);
 			sg.setColour (outline_color);
@@ -1035,7 +1035,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 				bool coveringEnd = approxEqual(theta, rotaryStart) || approxEqual(theta, rotaryEnd);
 				if (!coveringEnd)
 				{
-					Path J;
+					juce::Path J;
 
 					// draw detent - outer edge lines up with tick
 					AffineTransform t1 = AffineTransform::rotation(theta).translated(cx, cy);
@@ -1090,7 +1090,7 @@ void MLDial::drawRotaryDial (Graphics& g, int rx, int ry, int rw, int rh, float 
 	// draw outline
 	if(0)
 	{
-		Path P;
+		juce::Path P;
 		const Rectangle<int> & br (getLocalBounds());	
 		P.addRectangle(br);
 		g.setColour(Colours::red);	
@@ -1149,7 +1149,7 @@ void MLDial::mouseDown (const MouseEvent& e)
 			beginGesture();
 			mLastDragX = e.x;
 			mLastDragY = e.y;
-			mLastDragTime = Time(e.eventTime.toMilliseconds());
+            mLastDragTime = juce::Time(e.eventTime.toMilliseconds());
 			mFilteredMouseSpeed = 0.;
 			mMouseMotionAccum = 0;
 			

@@ -176,13 +176,16 @@ namespace ml
 
 	void TextFragment::dispose() noexcept
 	{
-		assert(mpText[mSize] == 0);		
-		if(mpText != mLocalText)	
-		{
-			// free an external text. If the alloc has failed the ptr might be 0, which is OK
-			free(mpText);
-		}
-		mpText = 0;
+        if(mpText)
+        {
+            assert(mpText[mSize] == 0);
+            if(mpText != mLocalText)
+            {
+                // free an external text. If the alloc has failed the ptr might be 0, which is OK
+                free(mpText);
+            }
+            mpText = 0;
+        }
 	}
 	
 	void TextFragment::moveDataFromOther(TextFragment& b)

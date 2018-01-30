@@ -123,6 +123,11 @@ extern void cJSON_ReplaceItemInObject(cJSON *object,const char *string,cJSON *ne
 // ML
 void cJSON_ReplaceOrAddItemToObject(cJSON *object,const char *string,cJSON *newitem);
 
+extern const char * kNullValueString;
+const char * getJSONString(cJSON* pNode, const char* name);
+double getJSONDouble(cJSON* pNode, const char* name);
+int getJSONInt(cJSON* pNode, const char* name);
+
 #ifdef __cplusplus
 }
 #endif

@@ -7,12 +7,12 @@
 
 #pragma mark MLAppWindow
 
-MLAppWindow::MLAppWindow() :
+MLAppWindow::MLAppWindow(MLAppView* v) :
 	DocumentWindow ("untitled",
 	  Colour::fromHSV(0.5f, 0.0f, 0.30f, 1.f),
 	  DocumentWindow::allButtons,
 	  true),
-	mpAppView(0), // MLTEST NX
+	mpAppView(v), 
 	mGridUnitsX(0.),
 	mGridUnitsY(0.),
 	mUsingGL(false)

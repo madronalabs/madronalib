@@ -65,24 +65,14 @@ namespace ml
 	{
 		return ((x >= min) && (x < max));
 	}
-	
-	template <class c>
-	inline c (sign)(const c& x)
-	{
-		c c0(0.f);
-		c r(0.f);
-		if(x > c0) 
-		{
-			r = c(1.f);
-		}
-		else if(x < c0)
-		{
-			r = c(-1.f);	
-		}
-		return r;
-	}
-	
-	
+
+    template <class c>
+    inline int (sign)(const c& x)
+    {
+        if (x == 0) return 0;
+        return (x > 0) ? 1 : -1;
+    }
+
 	// ----------------------------------------------------------------
 	#pragma mark utility functions on scalars
 

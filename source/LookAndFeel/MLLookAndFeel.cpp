@@ -516,7 +516,7 @@ void MLLookAndFeel::drawButtonGlow (Graphics& g,
 	
 	const Colour glow2Color = glowColor.withMultipliedAlpha(0.f);
 	
-	Path outline;
+    juce::Path outline;
 	juce::Rectangle<int> bbox = button.getLocalBounds();
 	outline.addRectangle(bbox);
 
@@ -762,7 +762,7 @@ void MLLookAndFeel::drawTickBox (Graphics& g,
 
     if (ticked)
     {
-        Path tick;
+        juce::Path tick;
         tick.startNewSubPath (1.5f, 3.0f);
         tick.lineTo (3.0f, 6.0f);
         tick.lineTo (6.0f, 0.0f);
@@ -857,7 +857,7 @@ void MLLookAndFeel::drawScrollbarButton (Graphics& g,
                                        bool /*isMouseOverButton*/,
                                        bool isButtonDown)
 {
-    Path p;
+    juce::Path p;
 
     if (buttonDirection == 0)
         p.addTriangle (width * 0.5f, height * 0.2f,
@@ -899,7 +899,7 @@ void MLLookAndFeel::drawScrollbar (Graphics& g,
 {
  //   g.fillAll (scrollbar.findColour (ScrollBar::backgroundColourId));
 
-    Path slotPath, thumbPath;
+    juce::Path slotPath, thumbPath;
 
     const float slotIndent = jmin (width, height) > 15 ? 1.0f : 0.0f;
     const float slotIndentx2 = slotIndent * 2.0f;
@@ -1057,7 +1057,7 @@ void MLLookAndFeel::drawPopupMenuUpDownArrow (Graphics& g,
     const float y1 = height * (isScrollUpArrow ? 0.6f : 0.3f);
     const float y2 = height * (isScrollUpArrow ? 0.3f : 0.6f);
 
-    Path p;
+    juce::Path p;
     p.addTriangle (hw - arrowW, y1,
                    hw + arrowW, y1,
                    hw, y2);
@@ -1129,7 +1129,7 @@ void MLLookAndFeel::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
         }
         else if (isTicked)
         {
-            const Path tick (getTickShape (1.0f));
+            const juce::Path tick (getTickShape (1.0f));
             g.fillPath (tick, tick.getTransformToScaleToFit (iconArea, true));
         }
         
@@ -1140,7 +1140,7 @@ void MLLookAndFeel::drawPopupMenuItem (Graphics& g, const Rectangle<int>& area,
             const float x = (float) r.removeFromRight ((int) arrowH).getX();
             const float halfH = (float) r.getCentreY();
             
-            Path p;
+            juce::Path p;
             p.addTriangle (x, halfH - arrowH * 0.5f,
                            x, halfH + arrowH * 0.5f,
                            x + arrowH * 0.6f, halfH);
@@ -1612,7 +1612,7 @@ void MLLookAndFeel::drawGroupComponentOutline (Graphics& g, int width, int heigh
 
     Font f (textH);
 
-    Path p;
+    juce::Path p;
     float x = indent;
     float y = f.getAscent() - 3.0f;
     float w = jmax (0.0f, width - x * 2.0f);
@@ -1730,7 +1730,7 @@ MLButton* MLLookAndFeel::createFileBrowserGoUpButton()
 {
     MLDrawableButton* goUpButton = new MLDrawableButton ("up", MLDrawableButton::ImageOnButtonBackground);
 
-    Path arrowPath;
+    juce::Path arrowPath;
     arrowPath.addArrow (Line<float>(50.0f, 100.0f, 50.0f, 0.0f), 40.0f, 100.0f, 50.0f);
 
     DrawablePath arrowImage;
@@ -1788,7 +1788,7 @@ void MLLookAndFeel::layoutFileBrowserComponent (FileBrowserComponent& browserCom
 
 
 //==============================================================================
-static void createRoundedPath (Path& p,
+static void createRoundedPath (juce::Path& p,
                                const float x, const float y,
                                const float w, const float h,
                                const float cs,
@@ -1847,8 +1847,8 @@ static inline float distance(const float x1, const float y1, const float x2, con
 	return (sqrt((x2 - x1)*(x2 - x1) + (y2 - y1)*(y2 - y1)));
 }
 
-static void spikyPathTo(Path& p, const float x2, const float y2, const int doSpike,  float sx,  float sy);
-static void spikyPathTo(Path& p, const float x2, const float y2, const int doSpike,  float sx,  float sy)
+static void spikyPathTo(juce::Path& p, const float x2, const float y2, const int doSpike,  float sx,  float sy);
+static void spikyPathTo(juce::Path& p, const float x2, const float y2, const int doSpike,  float sx,  float sy)
 {
 	if (doSpike)
 	{
@@ -1890,7 +1890,7 @@ static void spikyPathTo(Path& p, const float x2, const float y2, const int doSpi
 
 
 // create a rectangular path with optional rounded corners and spikes. 
-void MLLookAndFeel::createMLRectangle (Path& p,
+void MLLookAndFeel::createMLRectangle (juce::Path& p,
                                const float x, const float y,
                                const float w, const float h,
                                const float cs,
@@ -1988,7 +1988,7 @@ void MLLookAndFeel::drawShadowLine  (Graphics& g,
 	const float oneOverWidth = 1.0 / width;
 	float pax, pay, pbx, pby;
 	
-	Path outline;	
+	juce::Path outline;
 	float d, opacity;
 	pax = ax;
 	pay = ay;
@@ -2156,7 +2156,7 @@ void MLLookAndFeel::drawUnitGridRectAtOffset(Graphics& g, MLWidget* pW, MLRect r
 	MLRect widget = pW->getWidgetBoundsInWindow();
 	
 	int u = getGridUnitSize(); 
-	Path p, q;
+	juce::Path p, q;
 	p.addRectangle(0, 0, u, u);
 	
 	std::cout << "grid: " << u << "\n"; // MLTEST
@@ -2248,7 +2248,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	gradWidthTop = ml::clamp(gradWidthTop, 0.125f, 1.f);
 	gradWidthBottom = gradWidthTop;
 	
-    Path outline;
+    juce::Path outline;
     createMLRectangle (outline, x, y, w, h, maxCornerSize, flair, sx, sy, true);
     
 //    outline.addRectangle(x, y, w, h);
@@ -2313,7 +2313,7 @@ void MLLookAndFeel::drawMLButtonShape  (Graphics& g,
 	// shadow 
 	if (pressed)
 	{	
-		Path outline2;
+		juce::Path outline2;
 		int shadowPixels = ml::min(kMLShadowThickness*2.f, w/4);
 		int thin = shadowPixels*0.25;
 
@@ -2448,7 +2448,7 @@ void MLLookAndFeel::drawGlassSphere (Graphics& g,
     if (diameter <= outlineThickness)
         return;
 
-    Path p;
+    juce::Path p;
     p.addEllipse (x, y, diameter, diameter);
 
     {
@@ -2495,7 +2495,7 @@ void MLLookAndFeel::drawGlassPointer (Graphics& g,
     if (diameter <= outlineThickness)
         return;
 
-    Path p;
+    juce::Path p;
     p.startNewSubPath (x + diameter * 0.5f, y);
     p.lineTo (x + diameter, y + diameter * 0.6f);
     p.lineTo (x + diameter, y + diameter);
@@ -2556,7 +2556,7 @@ void MLLookAndFeel::drawGlassLozenge (Graphics& g,
     const float edgeBlurRadius = height * 0.75f + (height - cs * 2.0f);
     const int intEdge = (int) edgeBlurRadius;
 
-    Path outline;
+    juce::Path outline;
     createRoundedPath (outline, x, y, width, height, cs,
                         ! (flatOnLeft || flatOnTop),
                         ! (flatOnRight || flatOnTop),
@@ -2606,7 +2606,7 @@ void MLLookAndFeel::drawGlassLozenge (Graphics& g,
         const float leftIndent = flatOnLeft ? 0.0f : cs * 0.4f;
         const float rightIndent = flatOnRight ? 0.0f : cs * 0.4f;
 
-        Path highlight;
+        juce::Path highlight;
         createRoundedPath (highlight,
                            x + leftIndent,
                            y + cs * 0.1f,
