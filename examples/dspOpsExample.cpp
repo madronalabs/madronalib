@@ -30,20 +30,22 @@ int main()
 	// generate a vector using map() and columnIndex()
 	std::cout << "index squared: " << map(([](float x){return x*x;}), columnIndex()) << "\n\n";		
 
-	auto sinMadronaLib = sin(rangeClosed(0, kPi));
+	auto sinMadronaLib = sin(rangeOpen(0, kTwoPi));
 	std::cout << "madronalib sin: " << sinMadronaLib << "\n\n";
 	 	
 	// store a lambda on (DSPVector)->(DSPVector) defined using map(float)->(float)
-	auto sinNative = [&](const DSPVector& x){ return map( [](float x){ return sinf(x*kPi/(kFloatsPerDSPVector - 1)); }, x); }(columnIndex());
+	auto sinNative = [&](const DSPVector& x){ return map( [](float x){ return sinf(x*kTwoPi/(kFloatsPerDSPVector)); }, x); }(columnIndex());
 	std::cout << "native sin: " << sinNative << "\n\n";	
 	
-	std::cout << "difference: " << sinNative - sinMadronaLib << "\n\n";	
+	std::cout << "difference from native: " << sinNative - sinMadronaLib << "\n\n";
 	
-	// constexpr fill. unfortunately this can not be made to work with a lambda in C++11.
+	// constexpr fill. unfortunately this cannot be made to work with a lambda in C++11.
 	constexpr DSPVector kSinVec(mySinFillFn);
 	std::cout << "constexpr sin table: " << kSinVec << "\n\n";
 	
-	/*
+    std::cout << "difference from native: " << sinNative - kSinVec << "\n\n";
+
+    /*
 	 // store a lambda on ()->(DSPVector) defined using fill()->(float)
 	auto randFill = [&](){ return map( [](){ return ml::rand(); }); };
 	std::cout << randFill();
@@ -110,11 +112,10 @@ int main()
 	
 	
 	RandomSource r;
-	DSPVector a(2.f);
 	DSPVector m(3.f);
 	DSPVector n(r());
 	
-	a = m + n;
+	DSPVector a = m + n;
 	
 	std::cout << "sum: " << a << "\n";
 
