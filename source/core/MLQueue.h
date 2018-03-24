@@ -59,7 +59,7 @@ public:
   
     // useful for reading elements while a criteria is met. Can be used like
     // while queue.elementsAvailable() && q.peek().mTime < 100 { elem = q.pop() ... }
-    const Element& peek()
+    const Element& peek() const
     {
         const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);
         return mData[currentReadIndex];
