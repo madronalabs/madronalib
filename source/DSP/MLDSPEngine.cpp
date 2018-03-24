@@ -607,7 +607,7 @@ void MLDSPEngine::setInputDataRate(int p)
 }
 
 // set frame buffer for OSC inputs
-void MLDSPEngine::setInputFrameBuffer(PaUtilRingBuffer* pBuf)
+void MLDSPEngine::setInputFrameBuffer(Queue<MLT3DHub::TouchFrame>* pBuf)
 {
 	if (mpInputToSignalsProc)
 	{

@@ -115,15 +115,6 @@ inline MLSample lerp(const MLSample a, const MLSample b, const MLSample m)
 	return(a + m*(b-a));
 }
 
-inline MLSample lerpBipolar(const MLSample a, const MLSample b, const MLSample c, const MLSample m)
-{
-	MLSample absm = fabsf(m);	// TODO fast abs etc
-	MLSample pos = m > 0.;
-	MLSample neg = m < 0.;
-	MLSample q = pos*c + neg*a;
-	return (b + (q - b)*absm);
-}		
-
 inline MLSample herp(const MLSample* t, float phase)
 {
 	// 4-point, 3rd-order Hermite interpolation
