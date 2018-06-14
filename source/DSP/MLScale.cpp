@@ -11,7 +11,6 @@ void MLScale::setRootPath(String root)
 	mRootPath = root;
 }
 
-
 MLScale::MLScale()
 {
 	setDefaults();
@@ -27,9 +26,6 @@ void MLScale::operator= (const MLScale& b)
 	mName = b.mName;
 	mDescription = b.mDescription;
 	mScaleRatios = b.mScaleRatios;
-	
-	mNoteIsMapped = b.mNoteIsMapped;
-	mRatios = b.mRatios;
 	mPitches = b.mPitches;
 }
 
@@ -37,7 +33,8 @@ void MLScale::setDefaults()
 {
 	setDefaultScale();
 	setDefaultMapping();
-	recalcRatios();
+	recalcRatiosAndPitches();
+	dump();
 }
 
 void MLScale::setDefaultScale()
@@ -54,24 +51,22 @@ void MLScale::setDefaultScale()
 
 void MLScale::setDefaultMapping()
 {
-	int scaleSize = countRatios() - 1;
-	mKeyMap.mMapSize = scaleSize;
-	mKeyMap.mNoteStart = 0;
-	mKeyMap.mNoteEnd = 127;
-	mKeyMap.mMiddleNote = 69;	
+	clearKeyMap(mKeyMap);
+	
+	mKeyMap.mMiddleNote = 69;	// arbitrary in equal-tempered scale
 	mKeyMap.mReferenceNote = 69; // A3
 	mKeyMap.mReferenceFreq = 440.0f;
-	mKeyMap.mOctaveScaleDegree = scaleSize; // 1-indexed, as in Scala format
+	mKeyMap.mOctaveScaleDegree = mScaleSize - 1;
 
-	clearKeyMap(mKeyMap);
-	for(int i = 0; i < scaleSize; ++i)
+	for(int i = 0; i < mScaleSize; ++i)
 	{
-		mKeyMap.mNoteIndexes[i] = i;
+		addNoteToKeyMap(mKeyMap, i);
 	}
 }
 
 void MLScale::clear()
 {
+	mScaleSize = 0;
 	mScaleRatios = {0.};
 	
 	// index 0 of a scale is always 1/1
@@ -92,74 +87,51 @@ void MLScale::addRatioAsCents(double cents)
 //
 double MLScale::middleNoteRatio(int n)
 {
-	double r;
-	
-	int notesInOctave = static_cast<int>(mKeyMap.mMapSize);
-	if(!notesInOctave) return 1.f;
-	
-	int ratios = static_cast<int>(mScaleRatios.size()); // includes beginning 1/1
-	int octaveIndex = ml::clamp(mKeyMap.mOctaveScaleDegree, 1, ratios);
-	double octaveRatio = mScaleRatios[octaveIndex];
+	int notesInOctave = static_cast<int>(mKeyMap.mSize - 1);
+	int octaveDegree = clamp(mKeyMap.mOctaveScaleDegree, 0, mScaleSize);
+	double octaveRatio = mScaleRatios[octaveDegree];
 
-	int octave, degree;
-	
+	// get note map index and octave from map.
+	int octave, mapIndex;
 	int middleRelativeRefNote = n - mKeyMap.mMiddleNote;
 	if (middleRelativeRefNote >= 0)
 	{
 		octave = middleRelativeRefNote / notesInOctave;
-		degree = middleRelativeRefNote % notesInOctave;
+		mapIndex = middleRelativeRefNote % notesInOctave;
 	}
 	else
 	{
 		octave = ((middleRelativeRefNote + 1) / notesInOctave) - 1;
-		degree = notesInOctave - 1 + ((middleRelativeRefNote + 1) % notesInOctave);
+		mapIndex = notesInOctave - 1 + ((middleRelativeRefNote + 1) % notesInOctave);
 	}
-	double octaveStartRefRatio = pow(octaveRatio, (double)octave);
-	int ratioIdx = mKeyMap.mNoteIndexes[degree];
 	
-	if(ml::within(ratioIdx, 0, kMLNumRatios))
-	{	
-		r = octaveStartRefRatio*mScaleRatios[ratioIdx];
-	}
-	else
-	{
-		r = 0.;
-	}
-
-	return r;
+	// get middle-note relative ratio
+	int noteDegree = clamp(mKeyMap.mNoteDegrees[mapIndex], 0, mScaleSize);
+	double noteScaleRatio = mScaleRatios[noteDegree];
+	double noteOctaveRatio = pow(octaveRatio, octave);
+	
+	return noteScaleRatio*noteOctaveRatio;
 }
 
 // calculate a ratio for each note. key map size, start and end are ignored.
-void MLScale::recalcRatios()
-{	
+void MLScale::recalcRatiosAndPitches()
+{
+	// get ratio of reference note to middle note
 	double refKeyRatio = middleNoteRatio(mKeyMap.mReferenceNote);
 	double refFreqRatio = mKeyMap.mReferenceFreq/(refKeyRatio*440.0);
-	
-	int mapStart = 0;
-	int mapEnd = kMLNumRatios - 1;
-	for (int i = mapStart; i <= mapEnd; ++i)
+
+	for (int i = 0; i < kMLNumNotes; ++i)
 	{
 		double r = middleNoteRatio(i);
-		if(r > 0.)
-		{
-			mNoteIsMapped[i] = true;
-			mRatios[i] = r*refFreqRatio;			
-			mPitches[i] = log2(mRatios[i]);
-		}
-		else
-		{
-			// unmapped note
-			mNoteIsMapped[i] = false;
-			mRatios[i] = 0.;
-			mPitches[i] = 0.;
-		}
+		mRatios[i] = (r*refFreqRatio);
+		mPitches[i] = log2(mRatios[i]);
 	}
 }
 
-void MLScale::loadFromString(const std::string& scaleStr, const std::string& mapStr)
+void MLScale::loadScaleFromString(const std::string& scaleStr, const std::string& mapStr)
 {
 	int contentLines = 0;
-	int ratios = 0;
+
 	std::stringstream fileInputStream(scaleStr);
 	std::string inputLine;
 	while (std::getline(fileInputStream, inputLine))
@@ -184,7 +156,6 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 						// input is a decimal ratio
 						double ratio;
 						lineInputStream >> ratio;
-						ratios++;
 						addRatioAsCents(ratio);
 					}
 					else if (inputLine.find("/") != std::string::npos)
@@ -195,7 +166,6 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 						lineInputStream >> num >> slash >> denom;
 						if ((num > 0) && (denom > 0))
 						{
-							ratios++;
 							addRatioAsFraction(num, denom);
 						}
 					}
@@ -206,7 +176,6 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 						lineInputStream >> num;
 						if (num > 0)
 						{
-							ratios++;
 							addRatioAsFraction(num, 1);
 						}
 					}
@@ -215,7 +184,7 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 		}
 	}
 	
-	if (ratios > 0)
+	if (mScaleSize > 1)
 	{
 		int notes = 0;
 		if(!mapStr.empty())
@@ -226,14 +195,13 @@ void MLScale::loadFromString(const std::string& scaleStr, const std::string& map
 		{
 			setDefaultMapping();
 		}
-		recalcRatios();
+		recalcRatiosAndPitches();
 	}
 	else
 	{
 		setDefaultScale();
 	}
 }
-
 
 #include <algorithm> 
 #include <cctype>
@@ -266,7 +234,6 @@ std::string toLower(std::string s) {
 	return s;
 }
 
-
 // loads .kbm note mapping, as specified at http://www.huygens-fokker.org/scala/help.htm#mappings
 // returns the number of notes in the resulting key map.
 //
@@ -291,16 +258,17 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 			contentLines++;
 			std::stringstream lineInputStream(trimmedLine);
 
+			int unused;
 			switch(contentLines)
 			{
 				case 1:
-					lineInputStream >> mKeyMap.mMapSize;
+					lineInputStream >> unused; // size of map
 					break;
 				case 2:
-					lineInputStream >> mKeyMap.mNoteStart;
+					lineInputStream >> unused; // start note
 					break;
 				case 3:
-					lineInputStream >> mKeyMap.mNoteEnd;
+					lineInputStream >> unused; // end note
 					break;
 				case 4:
 					lineInputStream >> mKeyMap.mMiddleNote;
@@ -326,7 +294,7 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 						lineInputStream >> note;
 					}
 										
-					addIndexToKeyMap(mKeyMap, note);
+					addNoteToKeyMap(mKeyMap, note);
 					notes++;
 				}
 				break;
@@ -334,12 +302,9 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 		}
 	}
 	
-	// pad map if needed
-	while(mKeyMap.mNoteIndexes.size() < mKeyMap.mMapSize)
-	{
-		addIndexToKeyMap(mKeyMap, kMLUnmappedNote);	
-	}
-
+	// add octave degree at end of map
+	addNoteToKeyMap(mKeyMap, mKeyMap.mOctaveScaleDegree);
+	
 	return notes;
 }
 
@@ -350,93 +315,75 @@ int MLScale::loadMappingFromString(const std::string& mapStr)
 void MLScale::loadFromRelativePath(ml::Text newPath)
 {
 	if(!newPath) return;
-	if(newPath != mRelativePath)
+
+	// TODO migrate to ml::File
+	File scaleRoot(mRootPath);// = getDefaultFileLocation(kScaleFiles);
+	
+	if (scaleRoot.exists() && scaleRoot.isDirectory())
 	{
-		// TODO migrate to ml::File 
-		File scaleRoot(mRootPath);// = getDefaultFileLocation(kScaleFiles);
-		
-		if (scaleRoot.exists() && scaleRoot.isDirectory())
+		// TODO add MLFile methods so this can all be done with MLFiles and ml::Text
+		File newFile = scaleRoot.getChildFile(String(newPath.getText()));
+		String newName = newFile.getFileNameWithoutExtension();
+		File scaleFile = newFile.withFileExtension(".scl");
+		if(scaleFile.exists())
 		{
-			// TODO add MLFile methods so this can all be done with MLFiles and ml::Text
-			File scaleFile = scaleRoot.getChildFile(String(newPath.getText())).withFileExtension(".scl");
-			if(scaleFile.exists())
+			mName = newName.toUTF8();
+			String scaleStr = scaleFile.loadFileAsString();
+			
+			// look for .kbm mapping file
+			String mapStr;
+			File mappingFile = scaleFile.withFileExtension(".kbm");
+			if(mappingFile.exists())
 			{
-				String scaleStr = scaleFile.loadFileAsString();
-				
-				// look for .kbm mapping file
-				String mapStr;
-				File mappingFile = scaleFile.withFileExtension(".kbm");
-				if(mappingFile.exists())
-				{
-					mapStr = mappingFile.loadFileAsString();
-				}
-				
-				loadFromString(std::string(scaleStr.toUTF8()), std::string(mapStr.toUTF8()));
+				mapStr = mappingFile.loadFileAsString();
 			}
-			else
-			{
-				// default is 12-equal
-				setDefaults();
-			}
+			
+			loadScaleFromString(std::string(scaleStr.toUTF8()), std::string(mapStr.toUTF8()));
 		}
-		mRelativePath = newPath;
+		else
+		{
+			// default is 12-equal
+			setDefaults();
+		}
 	}
 }
 
-// return the pitch of the given fractional note as a ratio p/k, where k = 440Hz.
+// return the pitch of the given fractional note as log2(p/k), where k = 440Hz.
 //
-float MLScale::noteToPitch(float note) const
+float MLScale::noteToLogPitch(float note) const
 {
 	if(ml::isNaN(note)) return 0.f;
 	
-	float fn = ml::clamp(note, 0.f, (float)(kMLNumRatios - 1));
+	float fn = ml::clamp(note, 0.f, (float)(kMLNumNotes - 1));
 	int i = fn;
 	float intPart = i;
 	float fracPart = fn - intPart;
 	
 	float m = 1.f;
-	if(mNoteIsMapped[i] && mNoteIsMapped[i + 1])
+	double r0 = mRatios[i];
+	double r1 = mRatios[i + 1];
+	
+	if((r0 > 0.) && (r1 > 0.))
 	{
-		m = lerp(mRatios[i], mRatios[i + 1], fracPart);
+		m = lerp(r0, r1, fracPart);
 	}
-	else if(mNoteIsMapped[i])
+	else if(r0 > 0.)
 	{
-		m = mRatios[i];
+		m = r0;
 	}
-	return m;
-}
-
-// return the pitch of the given note as a ratio p/k, where k = 440Hz.
-//
-float MLScale::noteToPitch(int note) const
-{
-	float r = 1.f;
-	int n = ml::clamp(note, 0, kMLNumRatios - 1);
-	if(mNoteIsMapped[n])
-	{
-		r = mRatios[n];
-	}
-	return r;
-}
-
-float MLScale::noteToLogPitch(float note) const
-{
-	return log2f(noteToPitch(note));
+	return log2f(m);
 }
 
 float MLScale::quantizePitch(float a) const
 {
 	float r = 0.f;
-	for (int i = kMLNumRatios - 1; i > 0; i--)
+	for (int i = kMLNumNotes - 1; i > 0; i--)
 	{
-		if(mNoteIsMapped[i])
+		float p = mPitches[i];
+		if(p <= a)
 		{
-			float p = mPitches[i];
-			if(p <= a) 
-			{
-				r = p;
-				break;
-			}
+			r = p;
+			break;
 		}
 	}
 	return r;
@@ -448,18 +395,16 @@ float MLScale::quantizePitchNearest(float a) const
 	
 	// TEMP TODO something faster
 	float minD = MAXFLOAT;
-	for (int i = 0; i < kMLNumRatios; ++i)
+	for (int i = 0; i < kMLNumNotes; ++i)
 	{
-		if(mNoteIsMapped[i])
+		float p = mPitches[i];
+		float d = fabs(p - a);
+		if(d <= minD)
 		{
-			float p = mPitches[i];
-			float d = fabs(p - a);
-			if(d <= minD) 
-			{
-				minD = d;
-				r = p;
-			}
+			minD = d;
+			r = p;
 		}
+
 	}
 	return r;
 }
@@ -477,12 +422,21 @@ void MLScale::setDescription(const std::string& descStr)
 void MLScale::dump()
 {
 	debug() << "scale " << mName << ":\n";
-	for(int i = 0; i<kMLNumRatios; ++i)
+	for(int i = 0; i<mScaleSize; ++i)
 	{
-		if(mNoteIsMapped[i])
-		{
-			debug() << "    " << i << " : " << mScaleRatios[i] << "\n";
-		}
+		float r = mScaleRatios[i];
+		debug() << "    " << i << " : " << r << "\n";
+	}
+	debug() << "key map :\n";
+	for(int i = 0; i<mKeyMap.mSize; ++i)
+	{
+		float r = mKeyMap.mNoteDegrees[i];
+		debug() << "    " << i << " : " << r << "\n";
+	}
+	debug() << "ratios:\n";
+	for(int i = 0; i<kMLNumNotes; ++i)
+	{
+		debug() << "    " << i << " : " << mRatios[i] << " / " << mPitches[i] << " (" << mRatios[i]*440. << ") \n";
 	}
 }
 

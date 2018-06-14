@@ -9,21 +9,19 @@
 #include <vector>
 #include <iomanip>
 #include <sstream>
-#include "MLDSPDeprecated.h"
 #include "MLDebug.h"
 #include "MLText.h"
 
 #include "MLFile.h" // TODO shouldn't know about files here
-//#include "MLDefaultFileLocations.h" // to remove
 
-const int kMLNumRatios = 256;
-const int kMLUnmappedNote = kMLNumRatios + 1;
+const int kMLNumNotes = 128;
+const int kMLUnmappedNote = kMLNumNotes + 1;
 
 class MLScale
 {
 public:
 	// a path for all class members to treat as root.
-	// TDO migrate to ml::Text
+	// TODO migrate to ml::Text
 	static void setRootPath(String root);
 	static String mRootPath;
 
@@ -34,14 +32,10 @@ public:
 	void setDefaults();
 
 	// load a scale from an input string along with an optional mapping.
-	void loadFromString(const std::string& scaleStr, const std::string& mapStr = "");
+	void loadScaleFromString(const std::string& scaleStr, const std::string& mapStr = "");
 	
 	void loadFromRelativePath(ml::Text path);
 	
-	// convert a note number into a pitch ratio from 440.0 Hz, using the currently loaded scale.
-	float noteToPitch(float note) const;
-	float noteToPitch(int note) const;
-
 	// return pitch of the given note in log pitch (1.0 per octave) space with 440.0Hz = 0.
 	float noteToLogPitch(float note) const;
 
@@ -54,22 +48,23 @@ public:
 	void dump();
 
 private:
+
+	float noteToPitch(float note) const;
+
 	void clear();
 	void addRatioAsFraction(int n, int d);
 	void addRatioAsCents(double c);
 	double middleNoteRatio(int n);
-	void recalcRatios();
+	void recalcRatiosAndPitches();
 	int loadMappingFromString(const std::string& mapStr);
 	void setDefaultMapping();
 	void setDefaultScale();
 	
 	// key map structure and utility functions
-	static const int kMaxMappingSize = 128;
+
 	struct keyMap
 	{
-		int mMapSize;
-		int mNoteStart;
-		int mNoteEnd;
+		int mSize;
 		
 		// Middle note where the first entry of the mapping is placed
 		int mMiddleNote;
@@ -83,24 +78,21 @@ private:
 		// Scale degree to consider as formal octave
 		int mOctaveScaleDegree;
 		
-		std::array<int, kMaxMappingSize> mNoteIndexes;
+		// scale degree for each note
+		std::array<int, kMLNumNotes> mNoteDegrees;
 	};
 	
 	inline void clearKeyMap(keyMap& map)
 	{
-		map.mNoteIndexes.fill(-1);
+		map.mNoteDegrees.fill(-1);
+		map.mSize = 0;
 	}
 	
-	inline void addIndexToKeyMap(keyMap& map, int newIdx)
+	inline void addNoteToKeyMap(keyMap& map, int newIdx)
 	{
-		// overwrite last element, or fail
-		for(auto& idx : map.mNoteIndexes)
+		if(map.mSize < kMLNumNotes)
 		{
-			if(idx == -1)
-			{
-				idx = newIdx;
-				break;
-			}
+			map.mNoteDegrees[map.mSize++] = newIdx;
 		}
 	}
 
@@ -108,51 +100,25 @@ private:
 
 	std::string mName;
 	std::string mDescription;
-			
-	// list of ratios forming a scale.  The first entry is always 1.0, or 0 cents. 
-	// For scales that repeat on 2/1 octaves the last entry will always be 2.  
-	std::array<double, kMLNumRatios> mScaleRatios;
 	
+	// list of ratios forming a scale.  The first entry is always 1.0, or 0 cents.
+	// The last entry is the ratio of an octave, typically but not always 2.
+	std::array<double, kMLNumNotes> mScaleRatios;
+	
+	int mScaleSize;
 	inline void addRatio(double newRatio)
 	{
-		// overwrite last element, or fail
-		for(auto& r : mScaleRatios)
+		if(mScaleSize < kMLNumNotes)
 		{
-			if(r == 0.)
-			{
-				r = newRatio;
-				break;
-			}
+			mScaleRatios[mScaleSize++] = newRatio;
 		}
 	}
 	
-	inline int countRatios()
-	{
-		int n = 0;
-		for(auto& r : mScaleRatios)
-		{
-			if(r == 0.)
-			{
-				break;
-			}
-			else
-			{
-				n++;
-			}
-		}
-		return n;
-	}
+	// pitch for each integer note number stored in as a ratio p/k where k = 440.0 Hz
+	std::array<double, kMLNumNotes> mRatios;
 	
-	std::array<bool, kMLNumRatios> mNoteIsMapped;	
-	
-	// all possible pitches stored as ratios of pitch to 440.0 Hz.
-	std::array<double, kMLNumRatios> mRatios;	
-	
-	// pitches stored in linear octave space. pitch = log2(ratio).
-	std::array<double, kMLNumRatios> mPitches;	
-	
-	// the currently loaded scale's path relative to the the root set by setRootPath().
-	ml::Text mRelativePath;
+	// pitch for each integer note number stored in linear octave space. pitch = log2(ratio).
+	std::array<double, kMLNumNotes> mPitches;
 
 };
 
