@@ -205,28 +205,30 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 	float w = r.width();
 	float h = r.height();
 	
-	int mx = ml::clamp(e.x, (int)r.left() + 1, (int)(r.left() + w));
-	int my = ml::clamp(e.y, (int)r.top() + 1, (int)(r.top() + h));
+	int mx = ml::clamp(e.x, 1, (int)(w - 1));
+	int my = ml::clamp(e.y, 1, (int)(h - 1));
+	
 	int dials = getNumSliders();
 	int s = getSliderUnderPoint(Vec2(mx, my));
 	
-    if (isEnabled())
-    {	
+	if (isEnabled())
+	{
 		if (ml::within(s, 0, dials))
 		{
 			const int mousePos = mVertical ? my : mx;
 			float val;
 			MLRange posRange;
+			int bias = 2; // ensure we can get to min / max values
 			if (mVertical)
 			{
-				posRange.set(h, 1);
+				posRange.set(h - bias, bias);
 			}
 			else
 			{
-				posRange.set(1, w);
+				posRange.set(bias, w - bias);
 			}
 			posRange.convertTo(mRange);
-			val = posRange(mousePos);
+			val = posRange.convertAndClip(mousePos);
 			
 			// if dial changed in drag, interpolate, setting dials in between
 			if((mCurrDragSlider >= 0) && (mCurrDragSlider != s)) 			
@@ -262,7 +264,7 @@ void MLMultiSlider::mouseDrag(const MouseEvent& e)
 			mCurrDragSlider = s;
 			mCurrDragValue = val;
 		}	
-    }
+	}
 }
 
 //--------------------------------------------------------------------------------
