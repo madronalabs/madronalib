@@ -1146,15 +1146,43 @@ void MLProcInputToSignals::doController(const MLControlEvent& event)
   {
     case kInputProtocolMIDI:
     {
-      for (int i=0; i<mCurrentVoices; ++i)
-      {
-        if(ctrl == mControllerNumber)
-          mVoices[i].mdMod.addChange(val, time);
-        else if (ctrl == mControllerNumber + 1)
-          mVoices[i].mdMod2.addChange(val, time);
-        else if (ctrl == mControllerNumber + 2)
-          mVoices[i].mdMod3.addChange(val, time);
-      }
+			if(ctrl == 120)
+			{
+				if(val == 0)
+				{
+					// all sound off
+					clear();
+				}
+			}
+			else if(ctrl == 123)
+			{
+				if(val == 0)
+				{
+					// all notes off
+					for(int v=0; v<mCurrentVoices; ++v)
+					{
+						MLVoice& voice = mVoices[v];
+						if(voice.mState != MLVoice::kOff)
+						{
+							MLControlEvent eventToSend = event;
+							eventToSend.mType = MLControlEvent::kNoteOff;
+							voice.addNoteEvent(eventToSend, mScale);
+						}
+					}
+				}
+			}
+			else
+			{
+				for (int i=0; i<mCurrentVoices; ++i)
+				{
+					if(ctrl == mControllerNumber)
+						mVoices[i].mdMod.addChange(val, time);
+					else if (ctrl == mControllerNumber + 1)
+						mVoices[i].mdMod2.addChange(val, time);
+					else if (ctrl == mControllerNumber + 2)
+						mVoices[i].mdMod3.addChange(val, time);
+				}
+			}
       break;
     }
     case kInputProtocolMIDI_MPE:
