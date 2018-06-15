@@ -1501,7 +1501,6 @@ void MLProcContainer::setPublishedParam(int index, const MLProperty& val)
 		if (p)
 		{
 			p->setValueProperty(val);
-			
 			for(MLPublishedParam::AddressIterator it = p->beginAddress(); it != p->endAddress(); ++it)
 			{		
 				routeParam(it->procAddress, it->paramName, p->getValueProperty());
@@ -1805,7 +1804,7 @@ void MLProcContainer::buildGraph(juce::XmlElement* parent)
 					setPublishedParam(p->mIndex, MLProperty(p->getDefault()));
 					mParamGroups.addParamToCurrentGroup(p);
 				}
-				else if (createdType == "string")
+				else if (createdType == "text")
 				{
 					setPublishedParamAttrs(p, child);
 					mParamGroups.addParamToCurrentGroup(p);
