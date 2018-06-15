@@ -12,7 +12,7 @@
 // The value of a Symbol must remain valid even after more ml::Symbols are created.  
 // This allows ml::Symbols to function as keys in any kind of data structure.
 //
-// Accessing an Symbol must not cause any heap to be allocated if the symbol already exists. 
+// Accessing a Symbol must not cause any heap to be allocated if the symbol already exists.
 // This allows use in DSP code, assuming that the signal graph or whatever has already been parsed.
 //
 // Symbols must not ever require any heap as long as they are smaller than a certain size.
@@ -36,6 +36,7 @@ namespace ml
 	
 	// initial capacity of symbol table. if this number of symbols is exceeded, the capacity of
 	// the table will have to be increased, which may result in a glitch if called from the audio thread.
+	// TODO these constants that tune different parts of madronalib for space use etc. should all be in one header.
 	const int kDefaultSymbolTableSize = 4096;
 	
 	// very simple hash function from Kernighan & Ritchie. 

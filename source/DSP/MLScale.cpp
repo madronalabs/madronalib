@@ -34,7 +34,6 @@ void MLScale::setDefaults()
 	setDefaultScale();
 	setDefaultMapping();
 	recalcRatiosAndPitches();
-	dump();
 }
 
 void MLScale::setDefaultScale()

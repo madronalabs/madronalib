@@ -16,6 +16,7 @@
 // to all the elements.
 
 // Maximum path depth allows stack allocation / use in audio threads.
+// TODO move to core constants header
 const int kPathMaxSymbols = 15;
 
 namespace ml {

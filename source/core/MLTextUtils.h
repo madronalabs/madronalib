@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef __MLStringUtils__
-#define __MLStringUtils__
+#pragma once
 
 #include <functional>
 #include <iostream>
@@ -164,4 +163,3 @@ using namespace utf;
 		
 } } // ml::textUtils
 
-#endif /* defined(__MLStringUtils__) */
