@@ -14,7 +14,10 @@
 
 #include "MLFile.h" // TODO shouldn't know about files here
 
-const int kMLNumNotes = 128;
+// number of notes to calculate. While only 1-127 are needed for MIDI notes,
+// the higher ones are used in Virta to quantize partials.
+const int kMLNumNotes = 256;
+
 const int kMLUnmappedNote = kMLNumNotes + 1;
 
 class MLScale
