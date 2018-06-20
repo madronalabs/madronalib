@@ -1,12 +1,12 @@
 //
-//  MLOscSender.cpp
+//  MLOSCSender.cpp
 //  Aalto
 //
 //  Created by Randy Jones on 10/30/15.
 //
 //
 
-#include "MLOscSender.h"
+#include "MLOSCSender.h"
 
 const int kBufSize = 4096;
 
