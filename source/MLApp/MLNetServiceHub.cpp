@@ -67,7 +67,7 @@ void MLNetServiceHub::startBrowseThread(const char *type)
 	mServiceNames.clear();
 	
 	// launch a thread that searches for services.
-	browser->searchForServicesOfType(type);
+	browser->searchForServicesOfType(type, kDomainLocal);
 }
 
 bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err)
