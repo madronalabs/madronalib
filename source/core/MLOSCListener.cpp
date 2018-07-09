@@ -4,8 +4,6 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPlatform.h"
-
-// MLTEST
 #include "MLDebug.h"
 
 #if ML_WINDOWS

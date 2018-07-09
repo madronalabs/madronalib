@@ -1,5 +1,5 @@
 //
-//  MLT3DReceiver.cpp
+//  MLT3DHub.cpp
 //  MadronaLib
 //
 //  Created by Randy Jones on 11/7/14.
@@ -72,7 +72,6 @@ void MLT3DHub::setEnabled(int e)
 void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
   MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService, moreServicesComing);
-  // debug() << "FOUND net service " << pNetService->getName() << "\n*****\n";
 }
 
 void MLT3DHub::addListener(MLT3DHub::Listener* pL)
@@ -231,8 +230,6 @@ void MLT3DHub::timerCallback()
     mShouldConnect = false;
   }
   
-  PollNetServices();
-  
   // if we are connected and get no pings for a while, disconnect
   // assuming Soundplane or t3d device was disconnected. The plugin will be notified
   // and can revert to MIDI mode.
@@ -269,7 +266,6 @@ void MLT3DHub::disconnect()
 {
   if(mConnected)
   {
-    debug() << "MLT3DHub: disconnecting\n";
     mOSCReceiver.close();
     if(mReceivingT3d)
     {

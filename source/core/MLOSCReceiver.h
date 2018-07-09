@@ -23,12 +23,12 @@ public:
 	
 	bool open(int port);
 	void close();
-		
-    void setBundleStartFn(std::function<void(const osc::ReceivedBundle&)> bundleFn)
-    {
-        mBundleStartFn = bundleFn;
-    }
-    
+	
+	void setBundleStartFn(std::function<void(const osc::ReceivedBundle&)> bundleFn)
+	{
+		mBundleStartFn = bundleFn;
+	}
+	
 	void setMessageFn(std::function<void(const osc::ReceivedMessage&)> messageFn)
 	{
 		mMessageFn = messageFn;
@@ -48,10 +48,11 @@ private:
 	UdpListeningReceiveSocket* mpSocket;
 	std::thread mListenerThread;
 	std::function<void(const osc::ReceivedBundle&)> mBundleStartFn;
-    std::function<void(const osc::ReceivedMessage&)> mMessageFn;
+	std::function<void(const osc::ReceivedMessage&)> mMessageFn;
 	std::function<void(const osc::ReceivedBundle&)> mBundleEndFn;
-
-	void threadFunc();	
+	
+	void threadFunc();
 };
 
 #endif // __ML_OSC_LISTENER_H__
+

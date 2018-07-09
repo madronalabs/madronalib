@@ -283,7 +283,6 @@ mSustainPedal(false)
   //  mEventData.resize(kMaxEvents);
   //  PaUtil_InitializeRingBuffer( &mEventQueue, sizeof(MLControlEvent), kMaxEvents, &(mEventData[0]) );
   
-  
   /*
    int remaining = PaUtil_GetRingBufferReadAvailable(&mFileActionQueue);
    
@@ -309,9 +308,7 @@ mSustainPedal(false)
    
    
    */
-  
-  
-  
+	
   mNoteEventsPlaying.resize(kMaxEvents);
   mNoteEventsPending.resize(kMaxEvents);
 }
@@ -1158,6 +1155,8 @@ void MLProcInputToSignals::doController(const MLControlEvent& event)
 			{
 				if(val == 0)
 				{
+					
+					debug() << "OFF!\n";
 					// all notes off
 					for(int v=0; v<mCurrentVoices; ++v)
 					{

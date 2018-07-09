@@ -60,7 +60,6 @@ void IpEndpointName::AddressAsString( char *s ) const
 	}
 }
 
-
 void IpEndpointName::AddressAndPortAsString( char *s ) const
 {
 	if( port == ANY_PORT ){

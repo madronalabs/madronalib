@@ -158,7 +158,6 @@ private:
   void readInputBuffers(const int samples);
   void multiplyOutputBuffersByVolume();
   void writeOutputBuffers(const int samples);
-  void clearOutputs(int frames);
   
   MLBiquad mMasterVolumeFilter;
   MLSignal mMasterVolumeSig; // MLTEST change to DSPVector or use a Proc

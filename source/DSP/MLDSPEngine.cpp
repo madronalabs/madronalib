@@ -408,15 +408,6 @@ void MLDSPEngine::readOutputBuffers(const int samples)
 	}
 }
 
-void MLDSPEngine::clearOutputs(int frames)
-{
-	int outs = mOutputChans;
-	for(int i=0; i < outs; ++i)
-	{
-		(mIOMap.outputs[i])[frames] = 0; // MLTEST WAT
-	}
-}
-
 void MLDSPEngine::reset()
 {
 	if (mpInputToSignalsProc) // TODO inputToSignals need not be a kind of Proc

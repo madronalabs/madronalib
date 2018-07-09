@@ -38,45 +38,36 @@
 #else
 
 #include "MLNetServiceHub.h"
+#include "MLT3DPorts.h"
 
 #include <algorithm>
 
+//const char * kDefaultService = "default";
 const char * kDomainLocal = "local.";
 const char * kServiceTypeUDP = "_osc._udp";
 
 MLNetServiceHub::MLNetServiceHub() :
-	browser(0),
-	resolver(0),
 	service(0),
 	mPort(0)
 {
+	// start browsing for UDP services on all local domains
+	startBrowseThread(kServiceTypeUDP);
 }
 
 MLNetServiceHub::~MLNetServiceHub()
 {
-	if(browser) delete browser;
-	if(resolver)delete resolver;
 	if(service) delete service;
 }
 
-void MLNetServiceHub::Browse(const char *domain, const char *type)
+void MLNetServiceHub::startBrowseThread(const char *type)
 {
-	if(browser) delete browser;
-	browser = 0;
-	browser = new NetServiceBrowser();
+	browser = std::unique_ptr<NetServiceBrowser> (new NetServiceBrowser());
 	browser->setListener(this);
 	
+	mServiceNames.clear();
+	
 	// launch a thread that searches for services.
-	browser->searchForServicesOfType(type, domain);
-}
-
-void MLNetServiceHub::Resolve(const char *domain, const char *type, const char *name)
-{
-	if(resolver) delete resolver;
-	resolver = 0;
-	resolver = new NetService(domain,type,name);
-	resolver->setListener(this);
-	resolver->resolveWithTimeout(10.0, false);  // ML temp
+	browser->searchForServicesOfType(type);
 }
 
 bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err)
@@ -106,14 +97,19 @@ bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInS
 	return false;
 }
 
+// for each unique service that the browser has returned, try to find the port.
+// a resolver will exist if resolveWithTimeout() has been called.
 void MLNetServiceHub::PollNetServices()
 {
-	if(resolver && resolver->getDNSServiceRef())
+	for(auto resolver : mUniqueServices)
 	{
-		DNSServiceErrorType err = kDNSServiceErr_NoError;
-		if(pollService(resolver->getDNSServiceRef(), 0.001, err))
+		if(resolver && resolver->getDNSServiceRef())
 		{
-			resolver->stop();
+			DNSServiceErrorType err = kDNSServiceErr_NoError;
+			if(pollService(resolver->getDNSServiceRef(), 0.001, err))
+			{
+				resolver->stop();
+			}
 		}
 	}
 }
@@ -152,31 +148,93 @@ void MLNetServiceHub::removeUDPService()
 
 void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
-	// debug() << "FOUND service: " << pNetService->getName() << "\n";
+	MLConsole() << "FOUND service: " << pNetService->getDomain() << " " << pNetService->getType() << " " << pNetService->getName() << " " << pNetService->getPort() << "\n";
 
-	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
-	if(it!=mServices.end()) return; // we already have it
-	mServices.push_back(pNetService->getName());
+	auto newServiceName = pNetService->getName();
+	bool found = false;
+	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
+	{
+		if((*it)->getName() == newServiceName)
+		{
+			found = true;
+			break;
+		}
+	}
+	
+	if(!found)
+	{
+		mUniqueServices.push_back(pNetService);
+		
+		// now resolve the service using PollNetServices()
+		pNetService->setListener(this);
+		pNetService->resolveWithTimeout(2.0, false);
+	}
 }
 
 void MLNetServiceHub::didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing)
 {
-	// debug() << "REMOVED service: " << pNetService->getName() << "\n";
+	MLConsole() << "REMOVING service: " << pNetService->getName() << "\n";
 
-	veciterator it = std::find(mServices.begin(),mServices.end(), pNetService->getName());
-	if(it==mServices.end()) return;      // we don't have it
-	//long index = it-mServices.begin();   // store the position
-	mServices.erase(it);
+	const std::string& nameOfServiceToDelete = pNetService->getName();
+
+	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
+	{
+		if((*it)->getName() == nameOfServiceToDelete)
+		{
+			mUniqueServices.erase(it);
+			break;
+		}
+	}
 }
 
+// called asynchronously after Resolve() when host and port are found by the resolver.
+// requires that PollNetServices() be called periodically.
 void MLNetServiceHub::didResolveAddress(NetService *pNetService)
 {
-//	const std::string& hostName = pNetService->getHostName();
-//	int port = pNetService->getPort();
+	const std::string name = pNetService->getName();
+	int port = pNetService->getPort();
+	
+	MLConsole() << "MLNetServiceHub::didResolveAddress: " << name << " = port " << port << "\n";
 }
 
-void MLNetServiceHub::didPublish(NetService *pNetService)
+const std::vector<std::string>& MLNetServiceHub::getServiceNames()
 {
+	// push default service
+	mServiceNames.clear();
+	{
+		std::stringstream nameStream;
+		nameStream << "default" << " (" << kDefaultUDPPort << ")";
+		mServiceNames.push_back(nameStream.str());
+	}
+
+	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
+	{
+		const std::string name = (*it)->getName();
+		int portNum = (*it)->getPort();
+		
+		// if we have resolved the port for the service, push it to the list.
+		if(portNum > 0)
+		{
+			std::stringstream nameStream;
+			nameStream << name << " (" << portNum << ")";
+			mServiceNames.push_back(nameStream.str());
+		}
+	}
+	return mServiceNames;
 }
+
+std::string MLNetServiceHub::getHostName(const std::string& serviceName)
+{
+	std::string hostName("local."); // this may allow default port to work if resolve fails
+	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
+	{
+		if(serviceName == (*it)->getName())
+		{
+			return (*it)->getHostName();
+		}
+	}
+	return hostName;
+}
+
 
 #endif // ML_WINDOWS

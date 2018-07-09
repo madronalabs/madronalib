@@ -51,7 +51,8 @@ public:
   void setEnabled(int e);
   int getPortOffset() { return mUDPPortOffset; }
   void setPortOffset(int offset);
-  
+	
+	// MLNetServiceHub
   void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
   
   Queue<TouchFrame>* getFrameBuffer() { return &mTouchFrames; }

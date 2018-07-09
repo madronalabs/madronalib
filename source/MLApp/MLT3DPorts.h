@@ -1,9 +1,11 @@
 //
-// MLT3D.h
+// MLT3DPorts.h
 // madronalib
 //
 
 #pragma once
+
+// const std::string kDefaultServiceName{"default"};
 
 // default port for t3d plugin communication. Plugins may be receiving on different ports.
 const int kDefaultUDPPort = 3123;

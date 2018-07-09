@@ -3,8 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef __ML_NET_SERVICE_HUB_H_
-#define __ML_NET_SERVICE_HUB_H_
+#pragma once
 
 #if ML_WINDOWS
 	// TODO
@@ -37,17 +36,13 @@ class MLNetServiceHub :
 	public NetServiceBrowserListener
 {
 public:
-	NetServiceBrowser *browser;
-	NetService *resolver;
+	std::unique_ptr<NetServiceBrowser> browser;
 	NetService *service;
-	std::vector<std::string> mServices;
-	typedef std::vector<std::string>::iterator veciterator;
 
 	MLNetServiceHub();
 	~MLNetServiceHub();
 
-	virtual void Browse(const char *domain, const char *type);
-	virtual void Resolve(const char *domain, const char *type, const char *name);
+	virtual void startBrowseThread(const char *type);
 	
 	virtual void publishUDPService();
 	virtual void removeUDPService();
@@ -56,30 +51,36 @@ public:
 	void setPort(int port);
 
 	bool pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err);
-	void PollNetServices(); // ML
+	void PollNetServices();
+	
+	const std::vector<std::string>& getServiceNames();
+	std::string getHostName(const std::string& serviceName);
 
-	virtual void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
-	virtual void didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
-
-	virtual void didResolveAddress(NetService *pNetService);
-	virtual void didPublish(NetService *pNetService);
+	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
+	void didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
+	void didResolveAddress(NetService *pNetService);
 
 private:
-	virtual void willPublish(NetService *) {}
-	virtual void didNotPublish(NetService *) {}
-	virtual void willResolve(NetService *) {}
-	virtual void didNotResolve(NetService *) {}
-	virtual void didUpdateTXTRecordData(NetService *) {}		
-	virtual void didStop(NetService *) {}
-	virtual void didFindDomain(NetServiceBrowser *, const std::string &, bool ) {}
-	virtual void didRemoveDomain(NetServiceBrowser *, const std::string &, bool ) {}		
-	virtual void willSearch(NetServiceBrowser *) {}
-	virtual void didNotSearch(NetServiceBrowser *) {}
-	virtual void didStopSearch(NetServiceBrowser *) {}
+	void willPublish(NetService *) {}
+	void didNotPublish(NetService *) {}
+	void didPublish(NetService *pNetService) {}
+	
+	void willResolve(NetService *) {}
+	
+	void didNotResolve(NetService *) {}
+	void didUpdateTXTRecordData(NetService *) {}
+	void didStop(NetService *) {}
+	void didFindDomain(NetServiceBrowser *, const std::string &, bool ) {}
+	void didRemoveDomain(NetServiceBrowser *, const std::string &, bool ) {}
+	void willSearch(NetServiceBrowser *) {}
+	void didNotSearch(NetServiceBrowser *) {}
+	void didStopSearch(NetServiceBrowser *) {}
 
+	std::vector<NetService*> mUniqueServices;
+	std::vector<std::string> mServiceNames;
 	std::string mName;
 	int mPort;
 };
 
 #endif // ML_WINDOWS
-#endif // __ML_NET_SERVICE_HUB_H_
+
