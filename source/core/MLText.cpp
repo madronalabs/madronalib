@@ -86,6 +86,16 @@ namespace ml
 		construct(a.getText(), a.lengthInBytes());
 	}
 	
+	utf::codepoint_iterator<const char*> TextFragment::begin() const
+	{
+		return utf::codepoint_iterator<const char*>(getText());
+	}
+	
+	utf::codepoint_iterator<const char*> TextFragment::end() const
+	{
+		return utf::codepoint_iterator<const char*>(getText() + lengthInBytes());
+	}
+
 	// just copy the data. If we want to optimize and use reference-counted strings at some point,
 	// look at fix_str for ideas.
 	TextFragment& TextFragment::operator=(const TextFragment& b) noexcept

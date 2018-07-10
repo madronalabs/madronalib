@@ -86,6 +86,7 @@ add_subdirectory(external/cJSON)
 add_subdirectory(external/OSC)
 add_subdirectory(external/portaudio)
 add_subdirectory(external/utf)
+add_subdirectory(external)
 
 if(BUILD_NEW_ONLY)
 else()

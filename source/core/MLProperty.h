@@ -10,7 +10,6 @@
 #include <map>
 #include "MLSignal.h"
 #include "MLSymbol.h"
-#include "MLText.h"
 
 // MLProperty: a modifiable property. Properties have four types: undefined, float, text, and signal.
 // TODO rename to "Value"?

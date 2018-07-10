@@ -39,6 +39,7 @@
 
 #include "MLNetServiceHub.h"
 #include "MLT3DPorts.h"
+#include "MLTextUtils.h"
 
 #include <algorithm>
 
@@ -197,7 +198,7 @@ void MLNetServiceHub::didResolveAddress(NetService *pNetService)
 	MLConsole() << "MLNetServiceHub::didResolveAddress: " << name << " = port " << port << "\n";
 }
 
-const std::vector<std::string>& MLNetServiceHub::getServiceNames()
+const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
 {
 	// push default service
 	mServiceNames.clear();
@@ -223,9 +224,28 @@ const std::vector<std::string>& MLNetServiceHub::getServiceNames()
 	return mServiceNames;
 }
 
+std::string MLNetServiceHub::unformatServiceName(const std::string& formattedServiceName)
+{
+	// NOTE: lots of string <-> text conversion now is ugly. Make ml::Text based UDP library someday.
+	ml::Text nameTxt(formattedServiceName.c_str());
+
+	// "unformat" the text by removing port number in parens
+	if(nameTxt.endsWith(')'))
+	{
+		int pIdx = ml::textUtils::findLast(nameTxt, '(');
+		if(pIdx > 1)
+		{
+			nameTxt = ml::textUtils::subText(nameTxt, 0, pIdx - 1);
+		}
+	}
+	return nameTxt.toString();
+}
+
 std::string MLNetServiceHub::getHostName(const std::string& serviceName)
 {
-	std::string hostName("local."); // this may allow default port to work if resolve fails
+	std::string hostName("localhost"); // this may allow default port to work if resolve has failed
+	if(serviceName == "default") return hostName;
+	
 	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
 	{
 		if(serviceName == (*it)->getName())
@@ -234,6 +254,20 @@ std::string MLNetServiceHub::getHostName(const std::string& serviceName)
 		}
 	}
 	return hostName;
+}
+
+int MLNetServiceHub::getPort(const std::string& serviceName)
+{
+	if(serviceName == "default") return kDefaultUDPPort;
+	
+	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
+	{
+		if(serviceName == (*it)->getName())
+		{
+			return (*it)->getPort();
+		}
+	}
+	return kDefaultUDPPort;
 }
 
 

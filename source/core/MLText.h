@@ -9,7 +9,7 @@
 
 #pragma once
 
-#include "utf/utf.hpp"
+#include "utf.hpp"
 #include <iostream>
 #include <vector>
 
@@ -154,16 +154,8 @@ namespace ml
 			return true;
 		}
 		
-		inline utf::codepoint_iterator<const char*> begin() const
-		{
-			return utf::codepoint_iterator<const char*>(getText());
-		}
-		
-		inline utf::codepoint_iterator<const char*> end() const
-		{
-			return utf::codepoint_iterator<const char*>(getText() + lengthInBytes());
-		}
-
+		utf::codepoint_iterator<const char*> begin() const;
+		utf::codepoint_iterator<const char*> end() const;
 		// deprecated! MLTEST
 		inline std::string toString() const { return std::string(mpText); }
 		

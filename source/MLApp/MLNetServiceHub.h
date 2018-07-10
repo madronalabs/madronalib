@@ -53,8 +53,10 @@ public:
 	bool pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds, DNSServiceErrorType &err);
 	void PollNetServices();
 	
-	const std::vector<std::string>& getServiceNames();
+	const std::vector<std::string>& getFormattedServiceNames();
+	std::string unformatServiceName(const std::string& formattedServiceName);
 	std::string getHostName(const std::string& serviceName);
+	int getPort(const std::string& serviceName);
 
 	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
 	void didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);

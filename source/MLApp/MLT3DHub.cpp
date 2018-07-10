@@ -42,7 +42,7 @@ void MLT3DHub::setPortOffset(int offset)
     mUDPPortOffset = offset;
     
     std::stringstream nameStream;
-    nameStream << mShortName << " (" << mUDPPortOffset << ")";
+    nameStream << mShortName << " " << mUDPPortOffset;
     setName(nameStream.str());
     
     setPort(kDefaultUDPPort + mUDPPortOffset);
