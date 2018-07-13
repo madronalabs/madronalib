@@ -770,7 +770,7 @@ void MLProcInputToSignals::processOSC(const int frames)
       
       mUnisonPitch1 = upitch;
     }
-    else // unison
+    else // unisonMode
     {
       
       // examine all possible touches to find maximum pressure set

@@ -112,7 +112,6 @@ void MLProcHostPhasor::process()
 		if(mOmega > 1.f) 
 		{
 			mOmega -= 1.f;
-			//debug() << ".";
 		}
 		y[n] = mOmega;
 	}
