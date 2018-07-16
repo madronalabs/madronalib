@@ -8,6 +8,8 @@
 
 #include "MLT3DHub.h"
 
+using namespace std::chrono;
+
 #ifdef ML_MAC
 
 MLT3DHub::MLT3DHub() :
@@ -111,7 +113,6 @@ void MLT3DHub::notifyListeners(ml::Symbol action, const MLProperty val)
 
 void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 {
-  osc::TimeTag frameTime;
   osc::int32 frameID, touchID, deviceID;
   //float x, y, z, note;
   Touch newTouch;
@@ -126,7 +127,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
     
     // frame message.
     // /t3d/frm (int)frameID int)deviceID
-    if (strcmp(addy, "/t3d/frm") == 0)
+    if (strncmp(addy, "/t3d/frm", 8) == 0)
     {
       args >> frameID >> deviceID;
     }
@@ -206,7 +207,21 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 
 void MLT3DHub::startBundle(const osc::ReceivedBundle& b)
 {
-  // TODO get bundle timestamp
+	// work in progress
+  // get bundle timestamp
+	/*
+	osc::uint64 bundleMicros = b.TimeTag();
+	if(bundleMicros <= 1)
+	{
+		// immediate bundle was received
+		return;
+	}
+	time_point<system_clock> now = system_clock::now();
+	system_clock::duration dtn = now.time_since_epoch();
+	osc::uint64 nowMicros = duration_cast<microseconds>(dtn).count();
+	osc::uint64 latency = nowMicros - bundleMicros;
+	std::cout << bundleMicros << " / " << latency << "\n";
+*/
 }
 
 void MLT3DHub::endBundle(const osc::ReceivedBundle& b)
