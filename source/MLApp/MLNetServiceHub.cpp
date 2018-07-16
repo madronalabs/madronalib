@@ -192,10 +192,17 @@ void MLNetServiceHub::didRemoveService(NetServiceBrowser *pNetServiceBrowser, Ne
 // requires that PollNetServices() be called periodically.
 void MLNetServiceHub::didResolveAddress(NetService *pNetService)
 {
+	const std::string hostName = pNetService->getHostName();
 	const std::string name = pNetService->getName();
 	int port = pNetService->getPort();
 	
-	MLConsole() << "MLNetServiceHub::didResolveAddress: " << name << " = port " << port << "\n";
+	MLConsole() << "MLNetServiceHub::didResolveAddress: " << hostName << " " << name << " = port " << port << "\n";
+}
+
+inline bool endsWith(std::string const & value, std::string const & ending)
+{
+	if (ending.size() > value.size()) return false;
+	return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
 const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
@@ -210,7 +217,8 @@ const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
 
 	for(auto it = mUniqueServices.begin(); it != mUniqueServices.end(); ++it)
 	{
-		const std::string name = (*it)->getName();
+		std::string hostName = (*it)->getHostName();
+		std::string name = (*it)->getName();
 		int portNum = (*it)->getPort();
 		
 		// if we have resolved the port for the service, push it to the list.
@@ -218,6 +226,18 @@ const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
 		{
 			std::stringstream nameStream;
 			nameStream << name << " (" << portNum << ")";
+			
+			if(hostName != "localhost")
+			{
+				// remove ".local."
+				std::string endStr(".local.");
+				if (endsWith(hostName, endStr))
+				{
+					hostName = hostName.substr(0, hostName.length() - endStr.length());
+				}
+					
+				nameStream << " @ " << hostName;
+			}
 			mServiceNames.push_back(nameStream.str());
 		}
 	}
@@ -229,8 +249,8 @@ std::string MLNetServiceHub::unformatServiceName(const std::string& formattedSer
 	// NOTE: lots of string <-> text conversion now is ugly. Make ml::Text based UDP library someday.
 	ml::Text nameTxt(formattedServiceName.c_str());
 
-	// "unformat" the text by removing port number in parens
-	if(nameTxt.endsWith(')'))
+	int pEndIdx = ml::textUtils::findLast(nameTxt, ')');
+	if(pEndIdx > 1)
 	{
 		int pIdx = ml::textUtils::findLast(nameTxt, '(');
 		if(pIdx > 1)
