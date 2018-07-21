@@ -11,24 +11,24 @@
 
 //==============================================================================
 MLLabel::MLLabel (MLWidget* pContainer, const char* labelText) :
-	MLWidget(pContainer), 
-	mInverse(0), 
-	mDrawImage(0), 
-	mImageMode(imageModeOpaque),
-	mJustification (Justification::centredTop),
-	mResizeToText(true),
-	mSizeMultiplier(1.0f)
+MLWidget(pContainer),
+mInverse(0),
+mDrawImage(0),
+mImageMode(imageModeOpaque),
+mJustification (Justification::centredTop),
+mResizeToText(true),
+mSizeMultiplier(1.0f)
 {
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
-		
+	
 	// labels are always opaque for better text rendering
 	setOpaque(true);
 	
-	setBufferedToImage(myLookAndFeel->getDefaultBufferMode());
+	setBufferedToImage(false);//(myLookAndFeel->getDefaultBufferMode());
 	setPaintingIsUnclipped(myLookAndFeel->getDefaultUnclippedMode());
 	
-    setRepaintsOnMouseActivity (false);
+	setRepaintsOnMouseActivity (false);
 	setInterceptsMouseClicks(false, false);
 	setJustification(Justification::centred);
 	
@@ -85,19 +85,19 @@ void MLLabel::paint (Graphics& g)
 	int w = getWidth();
 	int h = getHeight();
 	
-	const Colour fc (findColour (textColourId));	
+	const Colour fc (findColour (textColourId));
 	const Colour bc (findColour (backgroundColourId));
 	float alpha = isEnabled() ? 1. : 0.25f;
-
+	
 	myLookAndFeel->drawBackground(g, this);
 	
 	// we are in local coords with the origin at the widget's top left
 	// myLookAndFeel->drawUnitGrid(g, this);
-
+	
 	// draw image
 	if (mpDrawable)
 	{
-        // nothing special for disabled here
+		// nothing special for disabled here
 		mpDrawable->draw(g, 1.0f);
 	}
 	
@@ -108,14 +108,14 @@ void MLLabel::paint (Graphics& g)
 		g.setColour (fc.withAlpha (alpha));
 		g.setFont (mFont);
 		g.drawFittedText (String(propText.getText()), p, p, w - p*2., h - p*2.,
-			mJustification, 2, 1.0);		
+											mJustification, 2, 1.0);
 	}
 }
 
 void MLLabel::resizeWidget(const MLRect& b, const int u)
 {
 	const ml::Text labelText = getTextProperty("text");
-
+	
 	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	const float size = myLookAndFeel->getLabelTextSize() * mSizeMultiplier;
 	const float kern = myLookAndFeel->getLabelTextKerning(size);
@@ -125,12 +125,12 @@ void MLLabel::resizeWidget(const MLRect& b, const int u)
 	mRichStr.setText(String(labelText.getText()));
 	mRichStr.setJustification(mJustification);
 	mRichStr.setFont(mFont);
-
+	
 	if (mResizeToText && !mpDrawable)
-	{	
+	{
 		// get text width by creating a text layout
 		TextLayout t;
-		t.createLayout(mRichStr, kInfWidth); 
+		t.createLayout(mRichStr, kInfWidth);
 		float tw = t.getWidth();
 		tw *= 1.33f; // slop
 		tw = ml::max(tw, size); // for very short texts

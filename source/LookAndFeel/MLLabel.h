@@ -10,7 +10,7 @@
 #include "MLDSPDeprecated.h"
 #include "MLWidget.h"
 #include <string>
-	
+
 typedef enum
 {
 	imageModeOpaque = 0,
@@ -18,57 +18,58 @@ typedef enum
 	imageModeMultiply
 }	eMLImageMode;
 
-class MLLabel : 
-	public Component,
-	public MLWidget
+class MLLabel :
+public Component,
+public MLWidget
 {
-friend class MLLookAndFeel;
+	friend class MLLookAndFeel;
 public:
-    enum ColourIds
-    {
-        backgroundColourId     = 0x1000980, 
-        textColourId           = 0x1000981, 
-    };
-
+	enum ColourIds
+	{
+		backgroundColourId     = 0x1000980,
+		textColourId           = 0x1000981,
+	};
+	
 	static const int kInfWidth = 100000;
 	
-    MLLabel (MLWidget* pContainer, const char* labelText = 0);
-    ~MLLabel();
-
-    void setFont (const Font& newFont);
- 	
+	MLLabel (MLWidget* pContainer, const char* labelText = 0);
+	~MLLabel();
+	
+	void setFont (const Font& newFont);
+	
 	void setSizeMultiplier(float f) { mSizeMultiplier = f; }
 	void resizeWidget(const MLRect& b, const int u);
 	
 	void setInverse(bool i);
 	void setImage(const Image& m);
 	void setImageData(const void* m) {mImageData = (char *)m;}
-
+	
 	void setDrawable (const Drawable* pImg);
 	
 	void setImageMode(eMLImageMode mode);
 	void setJustification(const Justification& j);
 	void setResizeToText(bool r) { mResizeToText = r; }
-
+	
 protected:
-    Font mFont;
+	Font mFont;
 	AttributedString mRichStr;
-
+	
 	bool mInverse;
 	bool mDrawImage;
 	eMLImageMode mImageMode;
-    Justification mJustification;
+	Justification mJustification;
 	bool mResizeToText;
 	float mSizeMultiplier;
 	void paint (Graphics& g);
 	Image mImage;
-	char* mImageData;	
+	char* mImageData;
 	ScopedPointer<Drawable> mpDrawable;
 	MLRect mTextRect;
-
+	
 private:
 };
 
 
 
 #endif
+
