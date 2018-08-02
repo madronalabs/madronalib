@@ -27,6 +27,7 @@ namespace ml
 			return MLSignal{1.f, 0.f};
 		}
 		
+		//TODO this can just return a float
 		inline MLSignal onePole(float omega)
 		{
 			float x = expf(-omega);
@@ -190,7 +191,6 @@ namespace ml
 	class OnePole
 	{
 	public:
-		// any kind of filter that can be made with a default constructor should default to a passthru.
 		OnePole() { setCoeffs(onePoleCoeffs::passthru()); clear(); }
 		
 		OnePole(const MLSignal& coeffs) { setCoeffs(coeffs); clear(); }
@@ -212,11 +212,11 @@ namespace ml
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
 			{
-				float fx = vx[n];				
+				float fx = vx[n];
 				const float fy = a0*fx + b1*y1;
-				y1 = fy;				
+				y1 = fy;
 				vy[n] = fy;
-			}		
+			}
 			return vy;
 		}
 		
@@ -227,17 +227,51 @@ namespace ml
 			const float * pB1 = vc.getRowDataConst<1>();
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
 			{
-				float fx = vx[n];				
+				float fx = vx[n];
 				const float fy = pA0[n]*fx + pB1[n]*y1;
-				y1 = fy;				
+				y1 = fy;
 				vy[n] = fy;
-			}		
+			}
 			return vy;
 		}
 		
 	private:
 		float a0, b1;
 		float y1;
+	};
+
+	class DCBlocker
+	{
+	public:
+		DCBlocker() { mR = 0.999f; clear(); }
+		
+		void clear()
+		{
+			x1 = y1 = 0.f;
+		}
+		
+		void setOmega(float omega)
+		{
+			mR = cosf(omega);
+		}
+		
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				const float fx = vx[n];
+				const float fy = fx - x1 + mR*y1;
+				y1 = fy;
+				x1 = fx;
+				vy[n] = fy;
+			}
+			return vy;
+		}
+
+	private:
+		float mR;
+		float x1, y1;
 	};
 
 	class Biquad
@@ -313,20 +347,21 @@ namespace ml
 	
 	namespace svfCoeffs
 	{
-		inline MLSignal passthru()
+		inline MLSignal silent()
 		{
-			return MLSignal{1.f, 0.f, 0.f};
+			return MLSignal{0.f, 0.f, 0.f};
 		}
 		
 		// get SVF coefficients, which are the same for all modes at the given frequency and q.
 		// k = 1/q (damping factor). 
 		//
-		// NOTE: omega is defined here as pi*cutoff / sr, not the more usual 2pi*cutoff/sr. 
-		// MLTEST to avoid confusion across filter types, use common parameter of just cutoff/sr for all filters. 
+		// NOTE: omega is defined here as cutoff / sr, not the more usual 2pi*cutoff/sr.
+		//
 		inline MLSignal atOmegaAndK(float omega, float k)
 		{
-			float s1 = sinf(omega);
-			float s2 = sinf(2.0f*omega);
+			float piOmega = kPi*omega;
+			float s1 = sinf(piOmega);
+			float s2 = sinf(2.0f*piOmega);
 			float nrm = 1.0f/(2.f + k*s2);
 			float g0 = s2*nrm;
 			float g1 = (-2.f*s1*s1 - k*s2)*nrm;
@@ -338,8 +373,7 @@ namespace ml
 	class SVFBandpass
 	{
 	public:
-		// any kind of filter that can be made with a default constructor should default to a passthru.
-		SVFBandpass() { setCoeffs(svfCoeffs::passthru()); clear(); }
+		SVFBandpass() { setCoeffs(svfCoeffs::silent()); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const MLSignal& coeffs) { g0 = coeffs[0]; g1 = coeffs[1]; g2 = coeffs[2]; }
 		
@@ -368,8 +402,7 @@ namespace ml
 	class SVFLopass
 	{
 	public:
-		// any kind of filter that can be made with a default constructor should default to a passthru.
-		SVFLopass() { setCoeffs(svfCoeffs::passthru()); clear(); }
+		SVFLopass() { setCoeffs(svfCoeffs::silent()); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const MLSignal& coeffs) { g0 = coeffs[0]; g1 = coeffs[1]; g2 = coeffs[2]; }
 		
@@ -385,8 +418,8 @@ namespace ml
 				float v2 = t2 + ic2eq;
 				ic1eq += 2.0f*t1;
 				ic2eq += 2.0f*t2;
-				vy[n] = v2; 
-			}		
+				vy[n] = v2;
+			}
 			return vy;
 		}
 		
@@ -397,8 +430,7 @@ namespace ml
 	class SVFHipass
 	{
 	public:
-		// any kind of filter that can be made with a default constructor should default to a passthru.
-		SVFHipass() { setCoeffs(svfCoeffs::passthru()); clear(); }
+		SVFHipass() { setCoeffs(svfCoeffs::silent()); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const MLSignal& coeffs) { g0 = coeffs[0]; g1 = coeffs[1]; g2 = coeffs[2]; k = coeffs[3]; }
 		
@@ -427,7 +459,7 @@ namespace ml
 	class SVFPeak
 	{
 	public:
-		SVFPeak() { setCoeffs(svfCoeffs::passthru()); clear(); }
+		SVFPeak() { setCoeffs(svfCoeffs::silent()); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const MLSignal& coeffs) { g0 = coeffs[0]; g1 = coeffs[1]; g2 = coeffs[2]; k = coeffs[3]; }
 		
@@ -456,7 +488,7 @@ namespace ml
 	class SVFNotch
 	{
 	public:
-		SVFNotch() { setCoeffs(svfCoeffs::passthru()); clear(); }
+		SVFNotch() { setCoeffs(svfCoeffs::silent()); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const MLSignal& coeffs) { g0 = coeffs[0]; g1 = coeffs[1]; g2 = coeffs[2]; k = coeffs[3]; }
 		
