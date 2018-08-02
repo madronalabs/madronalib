@@ -74,18 +74,18 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 		// test speed of precise functions relative to native ones.
 		// test speed of approximate functions relative to precise ones.
 		// approximate ones should be faster!
-		int iters = 100000;
+		int iters = 1000;
 		
-		std::cout << "seconds for " << iters << " iterations:\n";
+		std::cout << "nanoseconds for " << iters << " iterations:\n";
 		int i = 0;
 		for(auto fnVec : functionVectors)
 		{			
 			timedResult<DSPVector> fnTimeNative = timeIterations<DSPVector>(fnVec.second[0], iters);
 			timedResult<DSPVector> fnTimePrecise = timeIterations<DSPVector>(fnVec.second[1], iters);
 			timedResult<DSPVector> fnTimeApprox = timeIterations<DSPVector>(fnVec.second[2], iters);
-			std::cout << fnVec.first << " native: " << fnTimeNative.elapsedTime << ", precise: " << fnTimePrecise.elapsedTime << ", approx: " << fnTimeApprox.elapsedTime << " \n";			
-			REQUIRE(fnTimeApprox.elapsedTime < fnTimePrecise.elapsedTime);
-			REQUIRE(fnTimePrecise.elapsedTime < fnTimeNative.elapsedTime);
+			std::cout << fnVec.first << " native: " << fnTimeNative.ns << ", precise: " << fnTimePrecise.ns << ", approx: " << fnTimeApprox.ns << " \n";
+			REQUIRE(fnTimeApprox.ns <= fnTimePrecise.ns);
+			REQUIRE(fnTimePrecise.ns <= fnTimeNative.ns);
 			i++;
 		}		
 	}
