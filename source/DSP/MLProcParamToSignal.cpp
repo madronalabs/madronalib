@@ -46,6 +46,7 @@ MLProc::err MLProcParamToSignal::resize()
 {
 	// using default glide time
 	mParamToVectorProc.setSampleRate(getContextSampleRate());
+	mParamToVectorProc.setGlideTime(0.05f);
 	return OK;
 }
 
