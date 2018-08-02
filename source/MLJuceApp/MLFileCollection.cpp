@@ -135,6 +135,7 @@ void MLFileCollection::insertFileIntoMap(juce::File f)
 		TextFragment fullName(f.getFullPathName().toUTF8());
 		TextFragment relativePath = getRelativePathFromName(fullName);
 		
+		/*
 		// MLTEST
 		juce::String fStr = f.getFileNameWithoutExtension();
 		TextFragment shortName (fStr.toUTF8());
@@ -142,6 +143,7 @@ void MLFileCollection::insertFileIntoMap(juce::File f)
 		{
 			debug() << "insertFileIntoMap :one char: " << shortName << "\n";			
 		}
+		*/
 		
 		// MLTEST verbose
 		// returnNode = mRoot.addValue(ml::Path(relativePath), MLFile(fullName.toString()));

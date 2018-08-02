@@ -14,7 +14,7 @@
 #include <vector>
 
 #include "MLSymbol.h"
-#include "utf.hpp"
+#include "utf/utf.hpp"
 #include "aes256.h"
 
 namespace ml { namespace textUtils {

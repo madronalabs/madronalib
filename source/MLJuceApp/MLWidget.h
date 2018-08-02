@@ -86,7 +86,8 @@ public:
     float getRenderingScale() const;
     int getBackingLayerWidth() const;
     int getBackingLayerHeight() const;
-    
+	
+	// TODO remove, in Context only
 	int getWidgetGridUnitSize(void) const { return mGridUnitSize; }
 	void setSizeMultiplier(float f) { mSize = f; }
 	float getSizeMultiplier() { return mSize; }

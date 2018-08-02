@@ -221,6 +221,7 @@ namespace ml
 			calcParams();
 		}
 		
+		// TODO rename
 		void setInput(float f)
 		{
 			// because the last element of kUnityRampVec is 1, the last element
