@@ -15,6 +15,8 @@
 #include "MLControlEvent.h"
 #include "OSC/osc/OscTypes.h"
 #include "MLDSPDeprecated.h"
+#include "MLQueue.h"
+#include "MLT3DHub.h"
 
 const int kMLEngineMaxChannels = 8;
 
@@ -88,7 +90,7 @@ public:
   
   void setEngineInputProtocol(int p);
   void setInputDataRate(int p);
-  void setInputFrameBuffer(Queue<MLT3DHub::TouchFrame>* pBuf);
+  void setInputFrameBuffer(ml::Queue<MLT3DHub::TouchFrame>* pBuf);
   void setMasterVolume(float v);
   
   // ----------------------------------------------------------------
