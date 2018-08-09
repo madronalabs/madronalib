@@ -5,7 +5,9 @@
 
 #include "MLVectorDeprecated.h"
 
-constexpr float kMLMinSample = -MAXFLOAT;
+#include <limits>
+
+const float kMLMinSample = std::numeric_limits<float>::lowest();
 const MLV4 MLVec::kZeroValue = { {0, 0, 0, 0} }; 
 const MLV4 MLVec::kNullValue = { {kMLMinSample, kMLMinSample, kMLMinSample, kMLMinSample} }; 
 
