@@ -40,10 +40,10 @@ int main()
 	std::cout << "difference from native: " << sinNative - sinMadronaLib << "\n\n";
 	
 	// constexpr fill. unfortunately this cannot be made to work with a lambda in C++11.
-	constexpr DSPVector kSinVec(mySinFillFn);
+	CompileTimeDSPVector kSinVec(mySinFillFn);
 	std::cout << "constexpr sin table: " << kSinVec << "\n\n";
 	
-    std::cout << "difference from native: " << sinNative - kSinVec << "\n\n";
+	std::cout << "difference from native: " << sinNative - kSinVec << "\n\n";
 
     /*
 	 // store a lambda on ()->(DSPVector) defined using fill()->(float)
@@ -118,7 +118,7 @@ int main()
 	DSPVector a = m + n;
 	
 	std::cout << "sum: " << a << "\n";
-
+	
 #ifdef _WINDOWS
 	system("pause");
 #endif
