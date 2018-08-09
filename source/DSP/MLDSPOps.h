@@ -22,6 +22,12 @@
 #include "../core/MLScalarMath.h"
 #include "MLDSPMath.h"
 
+#if(_WIN32 && (!_WIN64))
+	#define MANUAL_ALIGN_DSPVECTOR
+#endif
+
+	#define MANUAL_ALIGN_DSPVECTOR // MLTEST
+
 namespace ml
 {		
 	// constexpr index generators
@@ -53,21 +59,73 @@ namespace ml
 	constexpr DSPVectorArrayData<VECTORS> ConstDSPVectorArrayFiller(FuncType func)
 	{
 		return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*VECTORS>{}, func);
-	}	
+	}
+	
+#ifdef MANUAL_ALIGN_DSPVECTOR
+	#define CompileTimeDSPVector static DSPVector // not sure the constexpr stuff can compile with manual alignment
+	
+	static constexpr uintptr_t kAlignBytes = 16;
+	static constexpr uintptr_t kAlignMask = ~(kAlignBytes - 1);
+	
 
+	inline float* alignToSignal(const float* p)
+	{
+		uintptr_t pM = (uintptr_t)p;
+		pM += (uintptr_t)(kAlignBytes - 1);
+		pM &= kAlignMask;
+		return reinterpret_cast<float*>(pM);
+	}
+	
+	
 	template<int VECTORS>
 	class DSPVectorArray
 	{
-		union DSPVectorData		
+		
+		union DSPVectorData
 		{
-			SIMDVectorFloat asVector[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
+			std::array<float, kFloatsPerDSPVector*VECTORS + kAlignBytes> mArrayData; // for constexpr ctor
+			float asFloat[kFloatsPerDSPVector*VECTORS + kAlignBytes];
+			
+			DSPVectorData() {}
+			
+			DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a)
+			{
+				float *py = alignToSignal(this->asFloat);
+				for(int i=0; i<kFloatsPerDSPVector*VECTORS; ++i)
+				{
+					py[i] = a[i];
+				}
+			}
+		};
+		
+		DSPVectorData mData;
+		
+
+		
+	public:
+		
+		inline float* getBuffer() { return alignToSignal(mData.asFloat); }
+		inline const float* getConstBuffer() const { return alignToSignal(mData.asFloat); }
+		
+		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+#else
+		
+	#define CompileTimeDSPVector constexpr DSPVector
+		
+	template<int VECTORS>
+	class DSPVectorArray
+	{
+		
+		union DSPVectorData
+		{
+			SIMDVectorFloat _align[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
 			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
 			float asFloat[kFloatsPerDSPVector*VECTORS];
 			
 			DSPVectorData() {}
 			constexpr DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
 		};
- 
+		
 		DSPVectorData mData;
 
 	public:
@@ -77,6 +135,8 @@ namespace ml
 
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 
+#endif // MANUAL_ALIGN
+		
 		// sugar for less verbose constexpr ctor using (int -> float) function
 		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 
@@ -214,20 +274,34 @@ namespace ml
 	template<int VECTORS>
 	class DSPVectorArrayInt
 	{
+#ifdef MANUAL_ALIGN
 		typedef union
 		{
-			SIMDVectorInt asVector[kSIMDVectorsPerDSPVector*VECTORS];
+			SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // used to force alignment
 			int32_t asInt[kFloatsPerDSPVector*VECTORS];
 		} DSPVectorData;
 		
 	public:
 		DSPVectorData mData;
+#else
+		typedef union
+		{
+			SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // used to force alignment
+			int32_t asInt[kFloatsPerDSPVector*VECTORS];
+		} DSPVectorData;
+		
+	public:
+		DSPVectorData mData;
+		
+#endif
+		
 		explicit DSPVectorArrayInt() { }
 		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
 		
 		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
 		inline const int32_t operator[](int i) const { return mData.asInt[i]; }			
-		inline int32_t* getBufferInt() {return (mData.asInt);} 
+		inline int32_t* getBufferInt() {return (mData.asInt);}
+		
 		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
 		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
 		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
@@ -413,12 +487,16 @@ namespace ml
 	// ----------------------------------------------------------------
 	// single-vector index and range generators
 	
-    constexpr float castFn(int i) { return i; }
+	constexpr float castFn(int i) { return i; }
+		
+	
 	inline DSPVector columnIndex()
 	{
-        constexpr DSPVector indices(castFn);
-        return indices;
+		CompileTimeDSPVector indices(castFn);
+		return indices;
 	}
+
+		
 	
 	// return a linear sequence from start to end, where end will fall on the first index of the 
 	// next vector.

@@ -184,9 +184,9 @@ namespace ml
 	// to allow optimization, glide time is quantized to DSPVectors.
 	// Note that a onepole or similar is not used because we must reach 
 	// the actual value in a finite time.
-	
+
 	constexpr float unityRampFn(int i){ return (i + 1)/static_cast<float>(kFloatsPerDSPVector);  }
-    constexpr DSPVector kUnityRampVec{unityRampFn};
+	CompileTimeDSPVector kUnityRampVec{unityRampFn};
 	
 	class LinearGlide
 	{
