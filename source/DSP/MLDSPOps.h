@@ -26,8 +26,6 @@
 	#define MANUAL_ALIGN_DSPVECTOR
 #endif
 
-	#define MANUAL_ALIGN_DSPVECTOR // MLTEST
-
 namespace ml
 {		
 	// constexpr index generators
