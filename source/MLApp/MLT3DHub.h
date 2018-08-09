@@ -8,8 +8,6 @@
 
 #pragma once
 
-#if defined (__APPLE__)
-
 #include <iostream>
 
 #include "MLDSPDeprecated.h"
@@ -23,7 +21,6 @@
 #include "MLQueue.h"
 #include "MLT3DPorts.h"
 
-//#include "pthread.h"
 #include <stdexcept>
 #include <chrono>
 
@@ -31,21 +28,24 @@
 
 #include <array>
 
+static const int kMaxTouches = 16;
+static const int kFrameBufferSize = 128;
+
+struct Touch
+{
+	float x, y, z, note;
+};
+
+typedef std::array<Touch, kMaxTouches> TouchFrame;
+
+#if defined (__APPLE__)
+
+
 class MLT3DHub :
 public MLNetServiceHub,
 private juce::Timer
 {
 public:
-  static const int kMaxTouches = 16;
-  static const int kFrameBufferSize = 128;
-  
-  struct Touch
-  {
-    float x, y, z, note;
-  };
-
-  typedef std::array<Touch, kMaxTouches> TouchFrame;
-
   MLT3DHub();
   ~MLT3DHub();
   

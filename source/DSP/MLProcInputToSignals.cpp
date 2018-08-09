@@ -318,7 +318,7 @@ MLProcInputToSignals::~MLProcInputToSignals()
 }
 
 // set frame buffer for OSC inputs
-void MLProcInputToSignals::setInputFrameBuffer(Queue<MLT3DHub::TouchFrame>* pBuf)
+void MLProcInputToSignals::setInputFrameBuffer(Queue<TouchFrame>* pBuf)
 {
   mpFrameBuf = pBuf;
 }
@@ -697,7 +697,7 @@ void MLProcInputToSignals::processOSC(const int frames)
       
       for (int v=0; v<mCurrentVoices; ++v)
       {
-        MLT3DHub::Touch t = mLatestTouchFrame[v];
+        Touch t = mLatestTouchFrame[v];
         
         if (t.z > 0.f)
         {
@@ -723,7 +723,7 @@ void MLProcInputToSignals::processOSC(const int frames)
       // update unison input touch.
       if(mUnisonInputTouch >= 0)
       {
-        MLT3DHub::Touch ut = mLatestTouchFrame[mUnisonInputTouch];
+        Touch ut = mLatestTouchFrame[mUnisonInputTouch];
         
         // if touch is removed, fall back to touch with maximum z
         if(ut.z <= 0.f)
@@ -823,7 +823,7 @@ void MLProcInputToSignals::processOSC(const int frames)
       
       for (int v=0; v<mCurrentVoices; ++v)
       {
-        MLT3DHub::Touch t = mLatestTouchFrame[v];
+        Touch t = mLatestTouchFrame[v];
         
         dx = 0.;
         dy = 0.;

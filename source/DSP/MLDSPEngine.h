@@ -90,7 +90,7 @@ public:
   
   void setEngineInputProtocol(int p);
   void setInputDataRate(int p);
-  void setInputFrameBuffer(ml::Queue<MLT3DHub::TouchFrame>* pBuf);
+  void setInputFrameBuffer(ml::Queue<TouchFrame>* pBuf);
   void setMasterVolume(float v);
   
   // ----------------------------------------------------------------

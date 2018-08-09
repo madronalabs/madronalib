@@ -92,7 +92,7 @@ public:
   MLProcInfoBase& procInfo() override { return mInfo; }
   int getOutputIndex(const ml::Symbol name) override;
   
-  void setInputFrameBuffer(Queue<MLT3DHub::TouchFrame>* pBuf);
+  void setInputFrameBuffer(Queue<TouchFrame>* pBuf);
   
   // TODO we can't possibly need all of these methods. redo and document clearly the function of each.
   void clear() override;
@@ -144,8 +144,8 @@ private:
   int mProtocol;
   
   MLProcInfo<MLProcInputToSignals> mInfo;
-  Queue<MLT3DHub::TouchFrame>* mpFrameBuf{nullptr};
-  MLT3DHub::TouchFrame mLatestTouchFrame;
+  Queue<TouchFrame>* mpFrameBuf{nullptr};
+  TouchFrame mLatestTouchFrame;
   
   // range of events that will be used in the next process() call.
   RingBufferElementsVector<MLControlEvent>::iterator* mFirstEvent;
