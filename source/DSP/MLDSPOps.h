@@ -91,7 +91,7 @@ namespace ml
 			
 			DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a)
 			{
-				float *py = DSPVectorAlignFloatPointer(this->asFloat);
+				float *py = DSPVectorAlignFloatPointer(this->asFloat); 
 				for(int i=0; i<kFloatsPerDSPVector*VECTORS; ++i)
 				{
 					py[i] = a[i];
@@ -115,7 +115,7 @@ namespace ml
 				py[i] = v.data[i];
 			}
 		}
-#else
+#else 
 		 
 
 	template<int VECTORS>
