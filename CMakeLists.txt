@@ -83,10 +83,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
 add_subdirectory(source)
 add_subdirectory(external/aes256)
 add_subdirectory(external/cJSON)
-add_subdirectory(external/OSC)
+# add_subdirectory(external/OSC)
 add_subdirectory(external/portaudio)
 add_subdirectory(external/utf)
-add_subdirectory(external)
+
 
 if(BUILD_NEW_ONLY)
 else()
