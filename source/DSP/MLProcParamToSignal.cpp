@@ -54,15 +54,13 @@ static const ml::Symbol inSym("in");
 
 void MLProcParamToSignal::process()
 {
-	DSPVector* pOut = reinterpret_cast<DSPVector*>(getOutput(1).getBuffer());
-	
 	if (mParamsChanged)
 	{
 		mParamToVectorProc.setInput(getParam(inSym));
 		mParamsChanged = false;
 	}
 	
-	*pOut = mParamToVectorProc();
+	store(mParamToVectorProc(), getOutput(1).getBuffer());
 }
 
 

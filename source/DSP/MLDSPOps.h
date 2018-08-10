@@ -60,35 +60,38 @@ namespace ml
 	}
 	
 #ifdef MANUAL_ALIGN_DSPVECTOR
-	#define CompileTimeDSPVector static DSPVector // not sure the constexpr stuff can compile with manual alignment
-	
-	static constexpr uintptr_t kAlignBytes = 16;
-	static constexpr uintptr_t kAlignMask = ~(kAlignBytes - 1);
-	
+	// it seems unlikely that the constexpr ctors can be made to compile with manual alignment,
+	//so we give up on that for win32 api.
+	#define ConstDSPVector static DSPVector
+	#define ConstDSPVectorArray static DSPVectorArray
 
-	inline float* alignToSignal(const float* p)
-	{
-		uintptr_t pM = (uintptr_t)p;
-		pM += (uintptr_t)(kAlignBytes - 1);
-		pM &= kAlignMask;
-		return reinterpret_cast<float*>(pM);
-	}
-	
-	
+	const uintptr_t kDSPVectorAlignBytes = 16;
+	const uintptr_t kDSPVectorAlignFloats = kDSPVectorAlignBytes / sizeof(float);
+	const uintptr_t kDSPVectorAlignInts = kDSPVectorAlignBytes / sizeof(int);
+	const uintptr_t kDSPVectorAlignMask = ~(kDSPVectorAlignBytes - 1);
+
+	float* DSPVectorAlignFloatPointer(const float* p);
+	int* DSPVectorAlignIntPointer(const int* p);
+#else
+	#define ConstDSPVector constexpr DSPVector
+	#define ConstDSPVectorArray constexpr DSPVectorArray
+#endif
+
+
+#ifdef MANUAL_ALIGN_DSPVECTOR
 	template<int VECTORS>
 	class DSPVectorArray
 	{
-		
 		union DSPVectorData
 		{
-			std::array<float, kFloatsPerDSPVector*VECTORS + kAlignBytes> mArrayData; // for constexpr ctor
-			float asFloat[kFloatsPerDSPVector*VECTORS + kAlignBytes];
+			std::array<float, kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats> mArrayData; // for constexpr ctor
+			float asFloat[kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats];
 			
 			DSPVectorData() {}
 			
 			DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a)
 			{
-				float *py = alignToSignal(this->asFloat);
+				float *py = DSPVectorAlignFloatPointer(this->asFloat);
 				for(int i=0; i<kFloatsPerDSPVector*VECTORS; ++i)
 				{
 					py[i] = a[i];
@@ -98,18 +101,23 @@ namespace ml
 		
 		DSPVectorData mData;
 		
-
-		
 	public:
 		
-		inline float* getBuffer() { return alignToSignal(mData.asFloat); }
-		inline const float* getConstBuffer() const { return alignToSignal(mData.asFloat); }
+		inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
+		inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
 		
-		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+		//constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+		DSPVectorArray(DSPVectorArrayData<VECTORS> v)
+		{
+			float *py = DSPVectorAlignFloatPointer(this->mData.asFloat);
+			for (int i = 0; i<kFloatsPerDSPVector*VECTORS; ++i)
+			{
+				py[i] = v.data[i];
+			}
+		}
 #else
-		
-	#define CompileTimeDSPVector constexpr DSPVector
-		
+		 
+
 	template<int VECTORS>
 	class DSPVectorArray
 	{
@@ -133,7 +141,7 @@ namespace ml
 
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 
-#endif // MANUAL_ALIGN
+#endif // MANUAL_ALIGN_DSPVECTOR
 		
 		// sugar for less verbose constexpr ctor using (int -> float) function
 		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
@@ -141,7 +149,8 @@ namespace ml
 		DSPVectorArray() { zero(); }
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
-		
+		explicit const DSPVectorArray(const float * pData) { load(*this, pData); }
+
 		inline float& operator[](int i) { return getBuffer()[i]; }	
 		inline const float operator[](int i) const { return getConstBuffer()[i]; }		
 		
@@ -269,10 +278,12 @@ namespace ml
 	
 	constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
 	
+#ifdef MANUAL_ALIGN_DSPVECTOR
+
+
 	template<int VECTORS>
 	class DSPVectorArrayInt
 	{
-#ifdef MANUAL_ALIGN
 		typedef union
 		{
 			SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // used to force alignment
@@ -281,26 +292,22 @@ namespace ml
 		
 	public:
 		DSPVectorData mData;
+
 #else
-		typedef union
-		{
-			SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // used to force alignment
-			int32_t asInt[kFloatsPerDSPVector*VECTORS];
-		} DSPVectorData;
-		
-	public:
-		DSPVectorData mData;
-		
-#endif
-		
+
+
+#endif // MANUAL_ALIGN_DSPVECTOR
+
+
 		explicit DSPVectorArrayInt() { }
 		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
 		
 		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
-		inline const int32_t operator[](int i) const { return mData.asInt[i]; }			
+		inline const int32_t operator[](int i) const { return mData.asInt[i]; }	
+
 		inline int32_t* getBufferInt() {return (mData.asInt);}
-		
 		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
+
 		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
 		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
 		
@@ -320,13 +327,15 @@ namespace ml
 	};
 	
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
+
+	
 	
 // ----------------------------------------------------------------
 // load and store
 
 	// loads and stores may be unaligned, let std::copy handle this
 	template<int VECTORS>
-	inline void load(DSPVectorArray<VECTORS>& vecDest, float* pSrc) 
+	inline void load(DSPVectorArray<VECTORS>& vecDest, const float* pSrc) 
 	{ 
 		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, vecDest.getBuffer()); 
 	}
@@ -490,7 +499,7 @@ namespace ml
 	
 	inline DSPVector columnIndex()
 	{
-		CompileTimeDSPVector indices(castFn);
+		ConstDSPVector indices(castFn);
 		return indices;
 	}
 

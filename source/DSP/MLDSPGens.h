@@ -186,7 +186,7 @@ namespace ml
 	// the actual value in a finite time.
 
 	constexpr float unityRampFn(int i){ return (i + 1)/static_cast<float>(kFloatsPerDSPVector);  }
-	CompileTimeDSPVector kUnityRampVec{unityRampFn};
+	ConstDSPVector kUnityRampVec{unityRampFn};
 	
 	class LinearGlide
 	{

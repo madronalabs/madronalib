@@ -42,8 +42,7 @@ static ml::Symbol gainSym("gain");
 
 void MLProcNoise::process()
 {	
-	DSPVector* pvout = reinterpret_cast<DSPVector*>(getOutput().getBuffer());
-	(*pvout) = mRandomSource();
+	store(mRandomSource(), getOutput().getBuffer());
 }
 
 

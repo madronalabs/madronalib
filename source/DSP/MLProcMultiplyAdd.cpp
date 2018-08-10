@@ -35,10 +35,10 @@ using namespace ml;
 
 void MLProcMultiplyAdd::process()
 {
-	const DSPVector* pvm1 = reinterpret_cast<const DSPVector*>(getInput(1).getConstBuffer());
-	const DSPVector* pvm2 = reinterpret_cast<const DSPVector*>(getInput(2).getConstBuffer());
-	const DSPVector* pva1 = reinterpret_cast<const DSPVector*>(getInput(3).getConstBuffer());
-	DSPVector* pvout = reinterpret_cast<DSPVector*>(getOutput().getBuffer());
-	(*pvout) = (*pvm1)*(*pvm2) + (*pva1);
+	const DSPVector va(getInput(1).getConstBuffer());
+	const DSPVector vb(getInput(2).getConstBuffer());
+	const DSPVector vc(getInput(3).getConstBuffer());
+	DSPVector vp = va * vb + vc;
+	store(vp, getOutput().getBuffer());
 }
 

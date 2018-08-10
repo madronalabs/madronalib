@@ -336,7 +336,7 @@ public:
 	// are not aligned properly, such as STL containers. Test and tread carefully.
 	
 	#if(_WIN32 && (!_WIN64))
-		ML_MAKE_ALIGNED_OPERATOR_NEW;
+	//	ML_MAKE_ALIGNED_OPERATOR_NEW;
 	#endif
 
 	// ----------------------------------------------------------------
