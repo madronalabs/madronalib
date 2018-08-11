@@ -30,6 +30,7 @@ if(BUILD_NEW_ONLY)
     core/MLResourceMap.h   
     DSP/MLDSP.cpp
     DSP/MLDSP.h
+    DSP/MLDSPOps.cpp
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
@@ -86,6 +87,7 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSP.h
     DSP/MLDSPDeprecated.cpp
     DSP/MLDSPDeprecated.h
+    DSP/MLDSPOps.cpp
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
@@ -311,10 +313,11 @@ else(BUILD_NEW_ONLY)
   target_include_directories(madronalib PUBLIC ../external/juce)
 endif()
 
-
 target_link_libraries(madronalib aes256)
 target_link_libraries(madronalib cjson)
-target_link_libraries(madronalib oscpack)
+
+# TODO OSC for WIndows
+# target_link_libraries(madronalib oscpack)
 
 
 if(BUILD_NEW_ONLY)

@@ -14,10 +14,10 @@ using namespace ml;
 class ProcMultiply : public Proc
 {
 public:	
-	static constexpr constStr paramNames[]{ "a", "b", "c" };
-	static constexpr constStr textParamNames[]{ "mode" };
-	static constexpr constStr inputNames[]{ "foo", "bar" };
-	static constexpr constStr outputNames[]{ "baz" };
+	static constexpr constStr paramNames[3]{ "a", "b", "c" };
+	static constexpr constStr textParamNames[1]{ "mode" };
+	static constexpr constStr inputNames[2]{ "foo", "bar" };
+	static constexpr constStr outputNames[1]{ "baz" };
 	
 	// Proc boilerplate
 	static constexpr constStrArray pn_{paramNames};

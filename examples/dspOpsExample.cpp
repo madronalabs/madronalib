@@ -14,7 +14,7 @@
 #endif
 
 using namespace ml;
-
+ 
 constexpr float mySinFillFn(int n){ return const_math::sin(n*kTwoPi/(kFloatsPerDSPVector));  }
 	
 int main()
@@ -27,8 +27,12 @@ int main()
 
 	std::cout << "DSP Ops:\n";
 	
+ 	// columnIndex()
+	DSPVector ci = columnIndex();
+	std::cout << "index: " << ci << "\n\n";
+
 	// generate a vector using map() and columnIndex()
-	std::cout << "index squared: " << map(([](float x){return x*x;}), columnIndex()) << "\n\n";		
+	std::cout << "index squared: " << map(([](float x) {return x*x;}), ci) << "\n\n";
 
 	auto sinMadronaLib = sin(rangeOpen(0, kTwoPi));
 	std::cout << "madronalib sin: " << sinMadronaLib << "\n\n";
@@ -40,25 +44,21 @@ int main()
 	std::cout << "difference from native: " << sinNative - sinMadronaLib << "\n\n";
 	
 	// constexpr fill. unfortunately this cannot be made to work with a lambda in C++11.
-	CompileTimeDSPVector kSinVec(mySinFillFn);
+	ConstDSPVector kSinVec(mySinFillFn);
 	std::cout << "constexpr sin table: " << kSinVec << "\n\n";
 	
 	std::cout << "difference from native: " << sinNative - kSinVec << "\n\n";
 
-    /*
-	 // store a lambda on ()->(DSPVector) defined using fill()->(float)
-	auto randFill = [&](){ return map( [](){ return ml::rand(); }); };
-	std::cout << randFill();
-	
-	DSPVector q = randFill();
-	std::cout << "\n\n" << q << "\n";
-	std::cout << "max: " << max(q) << "\n";
-	
-//	DSPVector q = sin(rangeOpen(-kMLPi, kMLPi));
-//	std::cout << "\n\n" << q << "\n";
-	std::cout << "min: " << min(q) << "\n";
-	 */
-	
+	DSPVectorInt iv1(23);
+	std::cout << "int fill: " << iv1 << "\n\n";
+
+	DSPVectorInt iv2(truncateFloatToInt(columnIndex()));
+	std::cout << "int index: " << iv2 << "\n\n";
+
+	RandomSource r;
+	DSPVectorInt iv3(truncateFloatToInt(r()*DSPVector(64.f)));
+	std::cout << "rand ints: " << iv3 << "\n\n";
+
 //	DSPVectorArray<4> f;
 	
 //	auto f = repeat<4>(columnIndex());
@@ -111,7 +111,7 @@ int main()
 	 */
 	
 	
-	RandomSource r;
+
 	DSPVector m(3.f);
 	DSPVector n(r());
 	

@@ -28,37 +28,32 @@
 
 namespace ml
 {		
+
 	// constexpr index generators
-	template<unsigned... Is> struct indexSeq{};
+	template<unsigned... Is> struct indexSeq {};
 	template<unsigned N, unsigned... Is>
-	struct genSequence : genSequence<N-1, N-1, Is...>{};
+	struct genSequence : genSequence<N - 1, N - 1, Is...> {};
 	template<unsigned... Is>
-	struct genSequence<0, Is...> : indexSeq<Is...>{};
+	struct genSequence<0, Is...> : indexSeq<Is...> {};
 
 	// fill std::array using indices
-	template<int VECTORS> 
-	struct DSPVectorArrayData 
+	template<int VECTORS>
+	struct DSPVectorArrayData
 	{
-		std::array<float, kFloatsPerDSPVector*VECTORS> data;		
+		std::array<float, kFloatsPerDSPVector*VECTORS> data;
 	};
-	
+
 	template<int VECTORS, typename FuncType, unsigned... Is>
 	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(indexSeq<Is...>, FuncType func)
 	{
-		return { {func(Is)...} };
+		return{ { func(Is)... } };
 	}
-	
-	// template for a function to fill a DSPVector at compile time. usage example:
-	// float myFillFn(int i) { return i*0.3f; }
-	// constexpr DSPVector v(ConstDSPVectorFiller(myFillFn));
-	// where myFillFn takes some args and returns float.
-	// unfortunately this will not work with a lambda in C++11.
-	template<int VECTORS, typename FuncType>
-	constexpr DSPVectorArrayData<VECTORS> ConstDSPVectorArrayFiller(FuncType func)
-	{
-		return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*VECTORS>{}, func);
-	}
-	
+
+#ifdef MANUAL_ALIGN_DSPVECTOR
+#else
+
+#endif
+
 #ifdef MANUAL_ALIGN_DSPVECTOR
 	// it seems unlikely that the constexpr ctors can be made to compile with manual alignment,
 	//so we give up on that for win32 api.
@@ -77,19 +72,21 @@ namespace ml
 	#define ConstDSPVectorArray constexpr DSPVectorArray
 #endif
 
-
-#ifdef MANUAL_ALIGN_DSPVECTOR
+	// ------------------------------
+	// hey a big template is starting
 	template<int VECTORS>
 	class DSPVectorArray
 	{
-		union DSPVectorData
+		// union def'n
+#ifdef MANUAL_ALIGN_DSPVECTOR
+		union _Data
 		{
 			std::array<float, kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats> mArrayData; // for constexpr ctor
 			float asFloat[kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats];
 			
-			DSPVectorData() {}
+			_Data() {}
 			
-			DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a)
+			_Data(std::array<float, kFloatsPerDSPVector*VECTORS> a)
 			{
 				float *py = DSPVectorAlignFloatPointer(this->asFloat); 
 				for(int i=0; i<kFloatsPerDSPVector*VECTORS; ++i)
@@ -98,11 +95,26 @@ namespace ml
 				}
 			}
 		};
+#else
+		union _Data
+		{
+			SIMDVectorFloat _align[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
+			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
+			float asFloat[kFloatsPerDSPVector*VECTORS];
+
+			_Data() {}
+			constexpr _Data(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
+		};
+
+#endif
+
 		
-		DSPVectorData mData;
+		_Data mData;
 		
 	public:
 		
+		// getBuffer, getConstBuffer, DSPVectorArrayData<VECTORS> ctor
+#ifdef MANUAL_ALIGN_DSPVECTOR
 		inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
 		inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
 		
@@ -115,94 +127,121 @@ namespace ml
 				py[i] = v.data[i];
 			}
 		}
-#else 
-		 
-
-	template<int VECTORS>
-	class DSPVectorArray
-	{
-		
-		union DSPVectorData
-		{
-			SIMDVectorFloat _align[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
-			std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
-			float asFloat[kFloatsPerDSPVector*VECTORS];
-			
-			DSPVectorData() {}
-			constexpr DSPVectorData(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
-		};
-		
-		DSPVectorData mData;
-
-	public:
-
+#else
 		inline float* getBuffer() { return mData.asFloat; }
 		inline const float* getConstBuffer() const { return mData.asFloat; }
-
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
-
 #endif // MANUAL_ALIGN_DSPVECTOR
 		
-		// sugar for less verbose constexpr ctor using (int -> float) function
-		constexpr DSPVectorArray(float (*fn)(int)) : DSPVectorArray(ConstDSPVectorArrayFiller<VECTORS>(fn)) {}
 
-		DSPVectorArray() { zero(); }
+		// ctor taking an int->float function
+#ifdef MANUAL_ALIGN_DSPVECTOR
+		DSPVectorArray(float(*fn)(int))
+		{
+			std::cout << "filling with fn:  \n";
+			float *py = DSPVectorAlignFloatPointer(mData.asFloat);
+			for (int i = 0; i<kFloatsPerDSPVector*VECTORS; ++i)
+			{
+				py[i] = fn(i);
+			}
+		}
+#else
+		// template for a function to fill a DSPVector at compile time. usage example:
+		// float myFillFn(int i) { return i*0.3f; }
+		// constexpr DSPVector v(_fillerFn(myFillFn));
+		// where myFillFn takes some args and returns float.
+		// unfortunately this will not work with a lambda in C++11.
+		template<int VECTORS, typename FuncType>
+		constexpr DSPVectorArrayData<VECTORS> _fillerFn(FuncType func)
+		{
+			return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*VECTORS>{}, func);
+		}
+
+		// sugar for less verbose constexpr ctor using (int -> float) function
+		constexpr DSPVectorArray(float(*fn)(int)) : DSPVectorArray(_fillerFn<VECTORS>(fn)) {}
+#endif
+
+		// default ctor:
+		// in debug: fill (including unaligned junk space) with debug const
+		DSPVectorArray() 
+		{ 
+#if _DEBUG
+			const float kDebugConst = 1.111f;
+			mData.mArrayData.fill(kDebugConst);
+#endif
+		}
+
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
 		explicit const DSPVectorArray(const float * pData) { load(*this, pData); }
 
 		inline float& operator[](int i) { return getBuffer()[i]; }	
-		inline const float operator[](int i) const { return getConstBuffer()[i]; }		
-		
+		inline const float operator[](int i) const { return getConstBuffer()[i]; }	
+
+		// = float: set each element of the DSPVectorArray to the float value k.
+		inline DSPVectorArray<VECTORS> operator=(float k)
+		{
+			const SIMDVectorFloat vk = vecSet1(k);
+			float* py1 = getBuffer();
+
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(py1, vk);
+				py1 += kFloatsPerSIMDVector;
+			}
+			return *this;
+		}
+
 		// set each element of the DSPVectorArray to 0.
 		inline DSPVectorArray<VECTORS> zero()
 		{
-			float* py1 = getBuffer();			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
-			{
-				vecStore(py1, vecZeros());
-				py1 += kFloatsPerSIMDVector;
-			}
-			return *this;
-		}
-		
-		// set each element of the DSPVectorArray to the float value k.
-		inline DSPVectorArray<VECTORS> operator=(float k)
-		{
-			const SIMDVectorFloat vk = vecSet1(k); 	
-			float* py1 = getBuffer();
-			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
-			{
-  				vecStore(py1, vk);
-				py1 += kFloatsPerSIMDVector;
-			}
-			return *this;
-		}
+			return operator=(0.f);
+		}		
 		
 		// TODO a move constructor might help efficiency but is quite different from the current design. 
 		// for moving to make sense, the data can't be on the stack. instead of the current stack-based approach
 		// there could be a memory pool for all DSPVector data. some kind of allocator would be needed, which
 		// would be a pain but then it would be possible to write e.g. DSPVector c = a + b without having to 
 		// copy the temporary (a + b) as we do now. 
-		//
 		// a move ctor should be marked noexcept.
-				
-		// DSPVectors are always aligned, take advantage of this for fast copying
-		inline DSPVectorArray<VECTORS> operator=(const DSPVectorArray<VECTORS>& x1)
+
+		// copy ctor
+#ifdef MANUAL_ALIGN_DSPVECTOR
+		// unaligned copy
+		inline DSPVectorArray<VECTORS> (const DSPVectorArray<VECTORS>& x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer();
-			
+			for (int n = 0; n < kFloatsPerDSPVector*VECTORS; ++n)
+			{
+				py1[n] = px1[n];
+			}
+		}
+
+#else
+		// aligned copy
+		inline DSPVectorArray<VECTORS>(const DSPVectorArray<VECTORS>& x1)
+		{
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer();
+
 			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
 			{
 				vecStore(py1, vecLoad(px1));
 				px1 += kFloatsPerSIMDVector;
 				py1 += kFloatsPerSIMDVector;
 			}
+		}
+#endif
+
+		// copy assignment operator
+		inline DSPVectorArray<VECTORS>& operator=(const DSPVectorArray<VECTORS>& x1)
+		{
+			DSPVectorArray<VECTORS> r(x1);
+			*this = std::move(r);
 			return *this;
 		}
-		
+
 		// return row J from this DSPVectorArray, when J is known at compile time. 
 		template<int J>
 		inline DSPVectorArray<1> getRowVector() const
@@ -219,6 +258,8 @@ namespace ml
 			setRowVectorUnchecked(J, x1);
 		}
 			
+
+#ifdef MANUAL_ALIGN_DSPVECTOR
 		// get a row vector j when j is not known at compile time. 
 		inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
 		{
@@ -226,11 +267,9 @@ namespace ml
 			const float* px1 = getConstBuffer() + kFloatsPerDSPVector*j;
 			float* py1 = vy.getBuffer();
 			
-			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			for (int n = 0; n < kFloatsPerDSPVector; ++n)
 			{
-				vecStore(py1, vecLoad(px1));
-				px1 += kFloatsPerSIMDVector;
-				py1 += kFloatsPerSIMDVector;
+				py1[n] = px1[n];
 			}
 			return vy;
 		}
@@ -241,14 +280,43 @@ namespace ml
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
 			
+			for (int n = 0; n < kFloatsPerDSPVector; ++n)
+			{
+				py1[n] = px1[n];
+			}	
+		}
+#else
+		// get a row vector j when j is not known at compile time. 
+		inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
+		{
+			DSPVectorArray<1> vy;
+			const float* px1 = getConstBuffer() + kFloatsPerDSPVector*j;
+			float* py1 = vy.getBuffer();
+
 			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
 			{
 				vecStore(py1, vecLoad(px1));
 				px1 += kFloatsPerSIMDVector;
 				py1 += kFloatsPerSIMDVector;
-			}	
+			}
+			return vy;
 		}
-		
+
+		// set a row vector j when j is not known at compile time. 
+		inline void setRowVectorUnchecked(int j, const DSPVectorArray<1>& x1)
+		{
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
+
+			for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+		}
+#endif
+
 		// return a pointer to the first element in row J of this DSPVectorArray.
 		template<int J>
 		inline const float* getRowDataConst() const
@@ -275,55 +343,125 @@ namespace ml
 	
 	// ----------------------------------------------------------------
 	// integer DSPVector
-	
 	constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
-	
-#ifdef MANUAL_ALIGN_DSPVECTOR
-
 
 	template<int VECTORS>
 	class DSPVectorArrayInt
 	{
-		typedef union
+
+#ifdef MANUAL_ALIGN_DSPVECTOR
+		union _Data
 		{
-			SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // used to force alignment
-			int32_t asInt[kFloatsPerDSPVector*VECTORS];
-		} DSPVectorData;
-		
-	public:
-		DSPVectorData mData;
+			std::array<int, kIntsPerDSPVector*VECTORS + kDSPVectorAlignInts> mArrayData; 
+			int32_t asInt[kIntsPerDSPVector*VECTORS + kDSPVectorAlignInts];
+			float asFloat[kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats];
 
+			_Data() {}
+
+			_Data(std::array<int, kIntsPerDSPVector*VECTORS> a)
+			{
+				float *py = DSPVectorAlignIntPointer(this->asFloat);
+				for (int i = 0; i < kIntsPerDSPVector*VECTORS; ++i)
+				{
+					py[i] = a[i];
+				}
+			}
+		};
 #else
+		union _Data
+		{
+			SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
+			std::array<int32_t, kIntsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
+			int32_t asInt[kIntsPerDSPVector*VECTORS];
+			float asFloat[kFloatsPerDSPVector*VECTORS];
 
-
+			_Data() {}
+			constexpr _Data(std::array<int32_t, kIntsPerDSPVector*VECTORS> a) : mArrayData(a) {}
+		};
 #endif // MANUAL_ALIGN_DSPVECTOR
 
+	public:
+		_Data mData;
+
+		// getBuffer, getConstBuffer, DSPVectorArrayData<VECTORS> ctor
+#ifdef MANUAL_ALIGN_DSPVECTOR
+		inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
+		inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
+		inline int32_t* getBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
+		inline const int32_t* getConstBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
+
+		//constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+		DSPVectorArrayInt(DSPVectorArrayData<VECTORS> v)
+		{
+			float *py = DSPVectorAlignFloatPointer(this->mData.asFloat);
+			for (int i = 0; i<kFloatsPerDSPVector*VECTORS; ++i)
+			{
+				py[i] = v.data[i];
+			}
+		}
+#else
+		inline float* getBuffer() { return mData.asFloat; }
+		inline const float* getConstBuffer() const { return mData.asFloat; }
+		inline int32_t* getBufferInt() { return mData.asInt; }
+		inline const int32_t* getConstBufferInt() const { return mData.asInt; }
+		constexpr DSPVectorArrayInt(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+#endif // MANUAL_ALIGN_DSPVECTOR
 
 		explicit DSPVectorArrayInt() { }
 		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
 		
-		inline int32_t& operator[](int i) { return mData.asInt[i]; }	
-		inline const int32_t operator[](int i) const { return mData.asInt[i]; }	
-
-		inline int32_t* getBufferInt() {return (mData.asInt);}
-		inline const int32_t* getConstBufferInt() const {return (mData.asInt);}
-
-		inline float* getBuffer() {return reinterpret_cast<float*>(mData.asInt);} 
-		inline const float* getConstBuffer() const {return reinterpret_cast<const float*>(mData.asInt);}
+		inline int32_t& operator[](int i) { return getBufferInt()[i]; }	
+		inline const int32_t operator[](int i) const { return getConstBufferInt()[i]; }	
 		
 		// set each element of the DSPVectorArray to the int32_t value k.
 		inline DSPVectorArrayInt<VECTORS> operator=(int32_t k)
 		{
-			const SIMDVectorInt vk = vecSetInt1(k); 	
+			SIMDVectorFloat vk = VecI2F(vecSetInt1(k));
 			int32_t* py1 = getBufferInt();
-			
+
 			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
 			{
-				vecStore(reinterpret_cast<float*>(py1), (vk));
+				vecStore(reinterpret_cast<float*>(py1), vk);
 				py1 += kIntsPerSIMDVector;
 			}
 			return *this;
 		}
+
+		// copy ctor
+#ifdef MANUAL_ALIGN_DSPVECTOR
+		// unaligned copy
+		inline DSPVectorArrayInt<VECTORS>(const DSPVectorArrayInt<VECTORS>& x1)
+		{
+			const int* px1 = x1.getConstBufferInt();
+			int* py1 = getBufferInt();
+			for (int n = 0; n < kIntsPerDSPVector*VECTORS; ++n)
+			{
+				py1[n] = px1[n];
+			}
+		}
+#else
+		// aligned copy
+		inline DSPVectorArrayInt<VECTORS>(const DSPVectorArrayInt<VECTORS>& x1)
+		{
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer();
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
+		}
+#endif
+
+		// copy assignment operator
+		inline DSPVectorArrayInt<VECTORS>& operator=(const DSPVectorArrayInt<VECTORS>& x1)
+		{
+			DSPVectorArrayInt<VECTORS> r(x1);
+			*this = std::move(r);
+			return *this;
+		}
+
 	};
 	
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
@@ -495,15 +633,12 @@ namespace ml
 	// single-vector index and range generators
 	
 	constexpr float castFn(int i) { return i; }
-		
 	
 	inline DSPVector columnIndex()
 	{
 		ConstDSPVector indices(castFn);
 		return indices;
 	}
-
-		
 	
 	// return a linear sequence from start to end, where end will fall on the first index of the 
 	// next vector.
@@ -758,6 +893,8 @@ namespace ml
 	template<int VECTORS>
 	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
 	{
+		out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << " ";
+
 		if(VECTORS > 1) out << "[   ";
 		for(int v=0; v<VECTORS; ++v)
 		{
@@ -777,6 +914,7 @@ namespace ml
 	template<int VECTORS>
 	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArrayInt<VECTORS>& vecArray)
 	{
+		out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << " ";
 		if(VECTORS > 1) out << "[   ";
 		for(int v=0; v<VECTORS; ++v)
 		{
