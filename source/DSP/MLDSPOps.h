@@ -205,10 +205,9 @@ namespace ml
 		// copy the temporary (a + b) as we do now. 
 		// a move ctor should be marked noexcept.
 
-		// copy ctor
+		// copy ctor and copy assignment operator
 #ifdef MANUAL_ALIGN_DSPVECTOR
-		// unaligned copy
-		inline DSPVectorArray<VECTORS> (const DSPVectorArray<VECTORS>& x1)
+		DSPVectorArray<VECTORS> (const DSPVectorArray<VECTORS>& x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer();
@@ -217,10 +216,18 @@ namespace ml
 				py1[n] = px1[n];
 			}
 		}
-
+		DSPVectorArray<VECTORS>& operator=(const DSPVectorArray<VECTORS>& x1)
+		{
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer();
+			for (int n = 0; n < kFloatsPerDSPVector*VECTORS; ++n)
+			{
+				py1[n] = px1[n];
+			}
+			return *this;
+		}
 #else
-		// aligned copy
-		inline DSPVectorArray<VECTORS>(const DSPVectorArray<VECTORS>& x1)
+		DSPVectorArray<VECTORS>(const DSPVectorArray<VECTORS>& x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer();
@@ -232,15 +239,22 @@ namespace ml
 				py1 += kFloatsPerSIMDVector;
 			}
 		}
-#endif
-
-		// copy assignment operator
-		inline DSPVectorArray<VECTORS>& operator=(const DSPVectorArray<VECTORS>& x1)
+		DSPVectorArray<VECTORS>& operator=(const DSPVectorArray<VECTORS>& x1)
 		{
-			DSPVectorArray<VECTORS> r(x1);
-			*this = std::move(r);
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer();
+
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
 			return *this;
 		}
+#endif
+
+
 
 		// return row J from this DSPVectorArray, when J is known at compile time. 
 		template<int J>
@@ -427,10 +441,9 @@ namespace ml
 			return *this;
 		}
 
-		// copy ctor
+		// copy ctor and copy assignment operator
 #ifdef MANUAL_ALIGN_DSPVECTOR
-		// unaligned copy
-		inline DSPVectorArrayInt<VECTORS>(const DSPVectorArrayInt<VECTORS>& x1)
+		DSPVectorArrayInt<VECTORS>(const DSPVectorArrayInt<VECTORS>& x1)
 		{
 			const int* px1 = x1.getConstBufferInt();
 			int* py1 = getBufferInt();
@@ -439,9 +452,18 @@ namespace ml
 				py1[n] = px1[n];
 			}
 		}
+		DSPVectorArrayInt<VECTORS>& operator=(const DSPVectorArrayInt<VECTORS>& x1)
+		{
+			const int* px1 = x1.getConstBufferInt();
+			int* py1 = getBufferInt();
+			for (int n = 0; n < kIntsPerDSPVector*VECTORS; ++n)
+			{
+				py1[n] = px1[n];
+			}
+			return *this;
+		}
 #else
-		// aligned copy
-		inline DSPVectorArrayInt<VECTORS>(const DSPVectorArrayInt<VECTORS>& x1)
+		DSPVectorArrayInt<VECTORS>(const DSPVectorArrayInt<VECTORS>& x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer();
@@ -452,22 +474,24 @@ namespace ml
 				py1 += kFloatsPerSIMDVector;
 			}
 		}
-#endif
-
-		// copy assignment operator
 		inline DSPVectorArrayInt<VECTORS>& operator=(const DSPVectorArrayInt<VECTORS>& x1)
 		{
-			DSPVectorArrayInt<VECTORS> r(x1);
-			*this = std::move(r);
+			const float* px1 = x1.getConstBuffer();
+			float* py1 = getBuffer();
+			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+			{
+				vecStore(py1, vecLoad(px1));
+				px1 += kFloatsPerSIMDVector;
+				py1 += kFloatsPerSIMDVector;
+			}
 			return *this;
 		}
+#endif
 
 	};
 	
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
 
-	
-	
 // ----------------------------------------------------------------
 // load and store
 
