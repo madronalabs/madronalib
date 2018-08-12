@@ -148,7 +148,7 @@ namespace ml
 		// where myFillFn takes some args and returns float.
 		// unfortunately this will not work with a lambda in C++11.
 		template<int FVECTORS, typename FuncType>
-		constexpr DSPVectorArrayData<VECTORS> _fillerFn(FuncType func)
+		constexpr DSPVectorArrayData<VECTORS> _fillerFn(FuncType func) const
 		{
 			return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*FVECTORS>{}, func);
 		}
@@ -169,6 +169,7 @@ namespace ml
 
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
+		explicit DSPVectorArray(const float * pData) { load(*this, pData); }
 		
 		inline float& operator[](int i) { return getBuffer()[i]; }	
 		inline const float operator[](int i) const { return getConstBuffer()[i]; }	
