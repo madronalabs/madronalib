@@ -147,10 +147,10 @@ namespace ml
 		// constexpr DSPVector v(_fillerFn(myFillFn));
 		// where myFillFn takes some args and returns float.
 		// unfortunately this will not work with a lambda in C++11.
-		template<int VECTORS, typename FuncType>
+		template<int FVECTORS, typename FuncType>
 		constexpr DSPVectorArrayData<VECTORS> _fillerFn(FuncType func)
 		{
-			return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*VECTORS>{}, func);
+			return DSPVectorArrayIter<VECTORS>(genSequence<kFloatsPerDSPVector*FVECTORS>{}, func);
 		}
 
 		// sugar for less verbose constexpr ctor using (int -> float) function
@@ -169,8 +169,7 @@ namespace ml
 
 		explicit DSPVectorArray(float k) { operator=(k); }
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
-		explicit const DSPVectorArray(const float * pData) { load(*this, pData); }
-
+		
 		inline float& operator[](int i) { return getBuffer()[i]; }	
 		inline const float operator[](int i) const { return getConstBuffer()[i]; }	
 
