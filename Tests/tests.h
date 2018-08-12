@@ -77,6 +77,10 @@ public:
 	T result;
 };
 
+// TODO: timing one call of func() as below does not work well, expecially on Windows.
+// first do a rough guess at the execution time and then come up with a number of iterations that
+// will roughly equal the time period that gives the most accurate results - .5ms or so, anecdotally.
+
 template <class T> inline timedResult<T> timeIterations(std::function<T(void)> func, int iters)
 {
 	std::chrono::time_point<std::chrono::high_resolution_clock> startOne, endOne;

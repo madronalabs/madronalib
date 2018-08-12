@@ -238,9 +238,6 @@ namespace ml
 		
 		DSPVector operator()()
 		{
-			// MLTEST
-			return DSPVector(mTargetValue);
-
 			if(mVectorsRemaining <= 0)
 			{
 				return DSPVector(mTargetValue);	

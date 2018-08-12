@@ -56,7 +56,7 @@ namespace ml
 
 #ifdef MANUAL_ALIGN_DSPVECTOR
 	// it seems unlikely that the constexpr ctors can be made to compile with manual alignment,
-	//so we give up on that for win32 api.
+	// so we give up on constexpr for win32 api.
 	#define ConstDSPVector static DSPVector
 	#define ConstDSPVectorArray static DSPVectorArray
 
@@ -107,7 +107,6 @@ namespace ml
 		};
 
 #endif
-
 		
 		_Data mData;
 		
@@ -118,7 +117,6 @@ namespace ml
 		inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
 		inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
 		
-		//constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 		DSPVectorArray(DSPVectorArrayData<VECTORS> v)
 		{
 			float *py = DSPVectorAlignFloatPointer(this->mData.asFloat);
@@ -133,12 +131,10 @@ namespace ml
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 #endif // MANUAL_ALIGN_DSPVECTOR
 		
-
 		// ctor taking an int->float function
 #ifdef MANUAL_ALIGN_DSPVECTOR
 		DSPVectorArray(float(*fn)(int))
 		{
-			std::cout << "filling with fn:  \n";
 			float *py = DSPVectorAlignFloatPointer(mData.asFloat);
 			for (int i = 0; i<kFloatsPerDSPVector*VECTORS; ++i)
 			{
@@ -404,7 +400,6 @@ namespace ml
 		inline int32_t* getBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
 		inline const int32_t* getConstBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
 
-		//constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 		DSPVectorArrayInt(DSPVectorArrayData<VECTORS> v)
 		{
 			float *py = DSPVectorAlignFloatPointer(this->mData.asFloat);
