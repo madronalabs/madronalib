@@ -35,9 +35,13 @@ using namespace ml;
 
 void MLProcAdd::process()
 {
+	// TEMP
 	DSPVector va(getInput(1).getConstBuffer());
 	DSPVector vb(getInput(2).getConstBuffer());
 	DSPVector vsum = va + vb;
 	store(vsum, getOutput().getBuffer());
+	
+	// TODO DSPVector i/o to Procs.
+	// output() = input(1) + input(2);
 }
 

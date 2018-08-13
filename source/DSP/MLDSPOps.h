@@ -27,8 +27,7 @@
 #endif
 
 namespace ml
-{		
-
+{
 	// constexpr index generators
 	template<unsigned... Is> struct indexSeq {};
 	template<unsigned N, unsigned... Is>
@@ -48,11 +47,6 @@ namespace ml
 	{
 		return{ { func(Is)... } };
 	}
-
-#ifdef MANUAL_ALIGN_DSPVECTOR
-#else
-
-#endif
 
 #ifdef MANUAL_ALIGN_DSPVECTOR
 	// it seems unlikely that the constexpr ctors can be made to compile with manual alignment,

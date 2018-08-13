@@ -70,6 +70,7 @@ namespace ml
 			return (*pf)*2.f - 3.f;	
 		}
 		
+		// TODO SIMD
 		inline DSPVector operator()()
 		{
 			DSPVector y;
@@ -174,7 +175,6 @@ namespace ml
 	 
 	 a bank of raised cos generators can be for a granulator or shepard tone generator
 	 
-	 
 	*/
 	
 	// ----------------------------------------------------------------
@@ -182,7 +182,7 @@ namespace ml
 	
 	// convert a scalar float input into a DSPVector with linear slew.
 	// to allow optimization, glide time is quantized to DSPVectors.
-	// Note that a onepole or similar is not used because we must reach 
+	// Note that a onepole or other IIR filter is not used because we must reach
 	// the actual value in a finite time.
 
 	constexpr float unityRampFn(int i){ return (i + 1)/static_cast<float>(kFloatsPerDSPVector);  }
