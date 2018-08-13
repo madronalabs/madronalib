@@ -59,8 +59,22 @@ namespace ml
 	const uintptr_t kDSPVectorAlignInts = kDSPVectorAlignBytes / sizeof(int);
 	const uintptr_t kDSPVectorAlignMask = ~(kDSPVectorAlignBytes - 1);
 
-	float* DSPVectorAlignFloatPointer(const float* p);
-	int* DSPVectorAlignIntPointer(const int* p);
+	inline float* DSPVectorAlignFloatPointer(const float* p)
+	{
+		uintptr_t pM = (uintptr_t)p;
+		pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
+		pM &= ml::kDSPVectorAlignMask;
+		return reinterpret_cast<float*>(pM);
+	}
+
+	inline int* DSPVectorAlignIntPointer(const int* p)
+	{
+		uintptr_t pM = (uintptr_t)p;
+		pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
+		pM &= ml::kDSPVectorAlignMask;
+		return reinterpret_cast<int*>(pM);
+	}
+
 #else
 	#define ConstDSPVector constexpr DSPVector
 	#define ConstDSPVectorArray constexpr DSPVectorArray
