@@ -195,6 +195,8 @@ private:
   
   float mPitchWheelSemitones;
   MLScale mScale;
+	float mMasterTune {440.f};
+	float mMasterPitchOffset {0.f};
   
   int temp;
   bool mSustainPedal;

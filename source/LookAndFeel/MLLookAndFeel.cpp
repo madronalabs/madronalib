@@ -2159,8 +2159,6 @@ void MLLookAndFeel::drawUnitGridRectAtOffset(Graphics& g, MLWidget* pW, MLRect r
 	juce::Path p, q;
 	p.addRectangle(0, 0, u, u);
 	
-	std::cout << "grid: " << u << "\n"; // MLTEST
-	
 	MLPoint windowOffset = window.getTopLeft();
 	MLPoint widgetOffset = widget.getTopLeft();
 	MLPoint totalOffset = windowOffset - widgetOffset + offset;

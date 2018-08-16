@@ -245,7 +245,7 @@ void MLVoice::stealNoteEvent(const MLControlEvent& e, const MLScale& scale, bool
 namespace
 {
   MLProcRegistryEntry<MLProcInputToSignals> classReg("midi_to_signals");
-  ML_UNUSED MLProcParam<MLProcInputToSignals> params[9] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate" , "scale"};
+  ML_UNUSED MLProcParam<MLProcInputToSignals> params[10] = { "bufsize", "voices", "bend", "mod", "unison", "glide", "protocol", "data_rate" , "scale", "master_tune"};
   // no input signals.
   ML_UNUSED MLProcOutput<MLProcInputToSignals> outputs[] = {"*"};  // variable outputs
 }
@@ -459,7 +459,13 @@ void MLProcInputToSignals::doParams()
   
   const ml::Text& scaleName = getTextParam(scaleSym);
   mScale.loadFromRelativePath(scaleName);
-  
+	
+	mMasterTune = getParam("master_tune");
+	if(within(mMasterTune, 220.f, 880.f))
+	{
+		mMasterPitchOffset = log2f(mMasterTune/440.f);
+	}
+
   const int newProtocol = (int)getParam(protocolSym);
   mProtocol = newProtocol;
   
@@ -1377,6 +1383,11 @@ void MLProcInputToSignals::writeOutputSignals(const int frames)
       mVoices[v].mdDrift.writeToSignal(mTempSignal, frames);
       pitch.add(mTempSignal);
 #endif
+			
+			// write master_tune param offset
+			mTempSignal.fill(mMasterPitchOffset);
+			pitch.add(mTempSignal);
+			
       mVoices[v].mdGate.writeToSignal(gate, frames);
       
       // initial velocity output
