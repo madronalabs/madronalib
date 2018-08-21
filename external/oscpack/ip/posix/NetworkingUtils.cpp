@@ -35,7 +35,7 @@
 	above license is reproduced.
 */
 
-#include "OSC/ip/NetworkingUtils.h"
+#include "ip/NetworkingUtils.h"
 
 #include <netdb.h>
 #include <sys/socket.h>

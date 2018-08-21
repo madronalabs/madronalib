@@ -6,6 +6,9 @@
 //
 //
 
+// DEPRECATED
+// signals moving to DSPVectors
+
 #include "catch.hpp"
 #include "../include/madronalib.h"
 
