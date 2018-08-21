@@ -316,9 +316,10 @@ endif()
 target_link_libraries(madronalib aes256)
 target_link_libraries(madronalib cjson)
 
-# TODO OSC for WIndows
-# target_link_libraries(madronalib oscpack)
-
+# TODO OSC support for Windows
+#if(APPLE)
+target_link_libraries(madronalib oscpack)
+#endif(APPLE)
 
 if(BUILD_NEW_ONLY)
 else(BUILD_NEW_ONLY)

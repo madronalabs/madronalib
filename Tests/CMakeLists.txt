@@ -32,6 +32,7 @@ add_executable(tests
 	catch.hpp 
 	dspFiltersTest.cpp 
 	dspOpsTest.cpp
+	OSCTest.cpp
 	resourceMapTest.cpp 
 	queueTest.cpp
 	signalTest.cpp 

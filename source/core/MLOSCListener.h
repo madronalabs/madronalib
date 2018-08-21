@@ -7,14 +7,14 @@
 #ifndef __ML_OSC_LISTENER_H__
 #define __ML_OSC_LISTENER_H__
 
-#if !ML_WINDOWS
-
 #include "MLPlatform.h"
 
-#include "OSC/osc/OscTypes.h"
-#include "OSC/osc/OscException.h"
-#include "OSC/osc/OscPacketListener.h"
-#include "OSC/ip/UdpSocket.h"
+#if !ML_WINDOWS
+
+#include "OscTypes.h"
+#include "OscException.h"
+#include "OscPacketListener.h"
+#include "UdpSocket.h"
 
 #include <stdexcept>
 #include <iostream>

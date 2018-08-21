@@ -13,7 +13,7 @@
 #include "MLSignal.h"
 #include "MLRingBuffer.h"
 #include "MLControlEvent.h"
-#include "OSC/osc/OscTypes.h"
+#include "osc/OscTypes.h"
 #include "MLDSPDeprecated.h"
 #include "MLQueue.h"
 #include "MLT3DHub.h"
