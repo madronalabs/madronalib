@@ -50,9 +50,7 @@ bool NetServiceThread::poll(DNSServiceRef dnsServiceRef, double timeOutInSeconds
 
 void NetServiceThread::run()
 {
-	std::cout << "NetServiceThread::start()" << std::endl;
-
-	while (!threadShouldExit()) 
+	while (!threadShouldExit())
 	{
 		DNSServiceErrorType err = kDNSServiceErr_NoError;
 		if(poll(mDNSServiceRef, mTimeOut, err))
@@ -63,5 +61,4 @@ void NetServiceThread::run()
 			}
 		}
 	}
-	std::cout << "NetServiceThread::stop()" << std::endl;
 }
