@@ -14,13 +14,10 @@
 
 #include "MLDSP.h"
 #include "MLProc.h"
-#include "MLProcRingBuffer.h"
 #include "MLParameter.h"
 #include "MLRatio.h"
 
 #include "JuceHeader.h" // used only for XML loading now. TODO move to creation by scripting and remove.
-
-class MLProcRingBuffer;
 
 class MLPublishedInput
 {

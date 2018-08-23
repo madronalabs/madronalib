@@ -16,8 +16,8 @@
 #include "MLControlEvent.h"
 #include "MLT3DHub.h"
 #include "MLDefaultFileLocations.h"
+#include "MLProcRingBuffer.h"
 
-//#include "portaudio/pa_ringbuffer.h"
 
 // a voice that can play.
 //
@@ -83,9 +83,7 @@ public:
   static const float kControllerScale;
   static const float kDriftConstantsAmount;
   static const float kDriftRandomAmount;
-  
-  static const int kFrameBufferSize = 128;
-  
+	
   MLProcInputToSignals();
   ~MLProcInputToSignals();
   
@@ -99,16 +97,17 @@ public:
   void setup() override;
   err resize() override;
   MLProc::err prepareToProcess() override;
-  
-  // set a range of events, owned by caller, to use for the next process() call.
-  // a lock should not be needed as this will always be called by the engine just prior to process().
-  inline void setEventRange(RingBufferElementsVector<MLControlEvent>::iterator* first, RingBufferElementsVector<MLControlEvent>::iterator* last)
-  {
-    mFirstEvent = first;
-    mLastEvent = last;
-  }
-  
+	
+	// TEMP MLTEST
+	// TODO make this not a Proc use processEvent() API in parent
+	Queue<MLControlEvent>* mEventQueue{nullptr};
+	void setQueue(Queue<MLControlEvent>* q)
+	{
+		mEventQueue = q;
+	}
+	
   void process() override;
+	
   void clearChangeLists();
   void doParams();
   
@@ -146,11 +145,7 @@ private:
   MLProcInfo<MLProcInputToSignals> mInfo;
   Queue<TouchFrame>* mpFrameBuf{nullptr};
   TouchFrame mLatestTouchFrame;
-  
-  // range of events that will be used in the next process() call.
-  RingBufferElementsVector<MLControlEvent>::iterator* mFirstEvent;
-  RingBufferElementsVector<MLControlEvent>::iterator* mLastEvent;
-  
+	
   // TODO remove these custom container types
   MLControlEventVector mNoteEventsPlaying;    // notes with keys held down and sounding
   MLControlEventStack mNoteEventsPending;    // notes stolen that may play again when voices are freed

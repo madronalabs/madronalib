@@ -14,7 +14,6 @@
 #include "MLPath.h"
 #include "MLSignal.h"
 #include "MLProperty.h"
-#include "MLRingBuffer.h"
 
 // MLPublishedParam: a parameter of one of the Procs in a DSP graph that is settable through the plugin wrapper.
 // There are two concepts wrapped up in this that should be factored out.

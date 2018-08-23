@@ -258,8 +258,8 @@ mFrameCounter(0),
 mGlissando(false),
 mUnisonInputTouch(-1),
 mUnisonVel(0.),
-mFirstEvent(nullptr),
-mLastEvent(nullptr),
+//mFirstEvent(nullptr),
+//mLastEvent(nullptr),
 mSustainPedal(false)
 {
   setParam("voices", 0);  // default
@@ -889,11 +889,23 @@ void MLProcInputToSignals::processOSC(const int frames)
 //
 void MLProcInputToSignals::processEvents()
 {
-  if((!mFirstEvent) || (!mLastEvent)) return;
-  for(auto it=*mFirstEvent; it < *mLastEvent; it++)
-  {
-    processEvent(*it);
-  }
+	if(mEventQueue)
+	{
+		int n = mEventQueue->elementsAvailable();
+		for(int i=0; i<n; ++i)
+		{
+			MLControlEvent e = mEventQueue->peek();
+			uint64_t eventTimeInVector = e.mTime - mVectorStartTime;
+			if(eventTimeInVector < kFloatsPerDSPVector)
+			{
+				processEvent(mEventQueue->pop());
+			}
+			else
+			{
+				break; // assuming events are in time order
+			}
+		}
+	}
 }
 
 // process one incoming event by making the appropriate changes in state and change lists.

@@ -13,7 +13,7 @@
 #include "MLSignal.h"
 #include "MLRingBuffer.h"
 #include "MLControlEvent.h"
-#include "osc/OscTypes.h"
+#include "OscTypes.h"
 #include "MLDSPDeprecated.h"
 #include "MLQueue.h"
 #include "MLT3DHub.h"
@@ -110,7 +110,7 @@ public:
   
   // produce one signal vector of the compiled graph's output, processing signals from the global inputs (if any)
   // to the global outputs.
-  void processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime);
+  void processDSPVector(Queue<MLControlEvent>& eventQueue, const uint64_t vectorStartTime);
   
 private:
   

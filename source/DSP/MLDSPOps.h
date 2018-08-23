@@ -45,7 +45,7 @@ namespace ml
 	template<int VECTORS, typename FuncType, unsigned... Is>
 	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(indexSeq<Is...>, FuncType func)
 	{
-		return{ { func(Is)... } };
+		return{ func(Is)... };
 	}
 
 #ifdef MANUAL_ALIGN_DSPVECTOR

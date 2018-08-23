@@ -35,8 +35,10 @@ public:
   
   MLControlEvent();
   MLControlEvent(EventType type, int channel, int id, uint64_t time, float value, float value2);
-  
-  void clear();
+	
+	explicit operator bool() const { return mType != kNull; }
+
+	void clear();
   bool isFree() const {return mType == kNull;}
   
   // time in samples since DSP engine restart.
@@ -50,7 +52,7 @@ public:
   float mValue2;
 };
 
-const MLControlEvent kMLNullControlEvent;
+const MLControlEvent kMLNullControlEvent{};
 
 class MLControlEventVector :
 public std::vector<MLControlEvent>

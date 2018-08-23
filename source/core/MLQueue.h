@@ -52,6 +52,18 @@ namespace ml {
 			return true;
 		}
 		
+		Element pop()
+		{
+			const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);
+			if(currentReadIndex == mWriteIndex.load(std::memory_order_acquire))
+			{
+				return Element(); // empty queue, return null object
+			}
+			Element r = mData[currentReadIndex];
+			mReadIndex.store(increment(currentReadIndex), std::memory_order_release);
+			return r;
+		}
+		
 		void clear()
 		{
 			Element dummy;
@@ -63,8 +75,8 @@ namespace ml {
 			return (mWriteIndex.load(std::memory_order_acquire) - mReadIndex.load(std::memory_order_relaxed))%mData.size();
 		}
 		
-		// useful for reading elements while a criteria is met. Can be used like
-		// while queue.elementsAvailable() && q.peek().mTime < 100 { elem = q.pop() ... }
+		// useful for reading elements while a criterion is met. Can be used like
+		// while queue.elementsAvailable() && q.peek().mTime < 100 { q.pop(elem) ... }
 		const Element& peek() const
 		{
 			const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);

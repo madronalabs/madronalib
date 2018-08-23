@@ -4,6 +4,8 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLDSPEngine.h"
+#include "MLProcRingBuffer.h"
+
 
 const char * kMLInputToSignalProcName("the_midi_inputs");
 const char * kMLHostPhasorProcName("the_host_phasor");
@@ -530,7 +532,7 @@ int MLDSPEngine::readPublishedSignal(const ml::Symbol alias, MLSignal& outSig)
 	{
 		const MLProcList& bufList = it->second;
 		
-        // TODO why all this counting
+		// TODO why all this counting
 		// iterate buffer list and count enabled ring buffers.
 		for (MLProcList::const_iterator jt = bufList.begin(); jt != bufList.end(); jt++)
 		{
@@ -542,7 +544,7 @@ int MLDSPEngine::readPublishedSignal(const ml::Symbol alias, MLSignal& outSig)
 		}
 		
 		// read from enabled ring buffers into the destination signal.
-        // if more than one voice is found, each voice goes into one row of the signal.
+		// if more than one voice is found, each voice goes into one row of the signal.
 		// need to iterate here again so we can pass nVoices to readToSignal().
 		if (nVoices > 0)
 		{
@@ -623,7 +625,6 @@ void MLDSPEngine::setCollectStats(bool k)
 	mCollectStats = k;
 }
 
-
 void MLDSPEngine::setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying)
 {
 	if (mpHostPhasorProc)
@@ -635,52 +636,18 @@ void MLDSPEngine::setTimeAndRate(const double secs, const double ppqPos, const d
 // produce one signal vector of the compiled graph's output, processing signals from the global inputs (if any)
 // to the global outputs. 
 //
-void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t vectorStartTime)
+void MLDSPEngine::processDSPVector(Queue<MLControlEvent>& eventQueue, const uint64_t vectorStartTime)
 {	
-	MLControlEventVector::const_iterator firstEvent, lastEvent;
-	
-	// sort all events in-place. This is needed because some hosts will send events out of time order.
-	// change to : auto v = eventQueue.getElementsVector()
-	RingBufferElementsVector<MLControlEvent> v(eventQueue);
-	
-	/*
-	std::sort(v.begin(), v.end(), [](MLControlEvent a, MLControlEvent b)
-			  // ensure that note-offs at a given time are processed before note-ons
-			  { if(a.mTime == b.mTime) return a.mType < b.mType; else return a.mTime < b.mTime; }
-			  );
-	*/
-	
 	readInputBuffers(kFloatsPerDSPVector);
-	
-	// find range of events within time [processed, processed + mVectorSize] 
-	auto itBegin = v.begin();
-	auto itEnd = v.end();
-
-	// we may not be processing all events in the buffer, so find last event that should happen in this vector
-	// assuming sorted!
-    
-    // TODO while eventQueue.elementsAvailable() && eventQueue.peekLast().mTime ...
-	auto itLast = itEnd - 1;
-	while((itLast >= itBegin) && ((*itLast).mTime >= vectorStartTime + kFloatsPerDSPVector))
-	{
-		itLast--;
-	}
-	itEnd = itLast + 1;
 	
 	if (mpInputToSignalsProc) // TODO inputToSignals need not be a kind of Proc
 	{						
 		mpInputToSignalsProc->setVectorStartTime(vectorStartTime);
 
-		// if we have some events in the range, send the iterators to the processor					
-		if(itBegin < itEnd)
-		{			
-			mpInputToSignalsProc->setEventRange(&itBegin, &itEnd);											
-		}
-		else
-		{
-			mpInputToSignalsProc->setEventRange(nullptr, nullptr);
-		}
-	} 
+		// MLTEST this mpInputToSignalsProc Object / API will go away
+		mpInputToSignalsProc->setQueue(&eventQueue);
+		// when the queue can be a parameter in process(...) a reference can be used, not a pointer
+	}
 	
 	// generate volume signal
 	mMasterVolumeSig.fill(mMasterVolume);
@@ -688,14 +655,6 @@ void MLDSPEngine::processDSPVector(PaUtilRingBuffer* eventQueue, const uint64_t 
 	
 	// MLProcContainer::process()
 	process();  
-	
-	// remove used events from buffer
-	// TODO refactor
-	int distance = itEnd - itBegin;
-	if(distance > 0)
-	{
-		PaUtil_AdvanceRingBufferReadIndex(eventQueue, itEnd - itBegin);
-	}
 
 	multiplyOutputBuffersByVolume();
 	writeOutputBuffers(kFloatsPerDSPVector);
