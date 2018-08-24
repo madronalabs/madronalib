@@ -55,8 +55,10 @@ void MLReporter::ReporterTimer::timerCallback()
 MLReporter::MLReporter()
 {
 	int size = 1 << 10;
-	mChangeData.resize(size);
-	PaUtil_InitializeRingBuffer( &mChangeQueue, sizeof(ml::Symbol), size, &(mChangeData[0]) );
+	
+	// setup event queue
+	mChangeQueue = std::unique_ptr< Queue<Symbol> >(new Queue<Symbol>(size));
+
 	mpTimer = std::unique_ptr<ReporterTimer>(new ReporterTimer(this));
 }
 
@@ -68,13 +70,12 @@ void MLReporter::enqueuePropertyChange(ml::Symbol prop, const MLProperty& newVal
 {
 	// enqueue change
 #if DEBUG
-	int written = PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
-	if(written < 1)
+	if(!mChangeQueue->push(prop))
 	{
 		std::cout << "MLReporter::doPropertyChangeAction: ring buffer full! \n"; // TODO something
 	}
 #else
-	PaUtil_WriteRingBuffer( &mChangeQueue, &prop, 1 );
+	mChangeQueue->push(prop);
 #endif
 	// store changed value
 	mCurrentProperties.setProperty(prop, newVal);
@@ -111,12 +112,8 @@ void MLReporter::addPropertyViewToMap(ml::Symbol modelProp, MLWidget* w, ml::Sym
 
 void MLReporter::viewProperties()
 {
-	while(PaUtil_GetRingBufferReadAvailable(&mChangeQueue) > 0)
+	while(Symbol propName = mChangeQueue->pop())
 	{
-		// dequeue name of changed property
-		ml::Symbol propName;
-		PaUtil_ReadRingBuffer( &mChangeQueue, &propName, 1 );
-		
 		// do we have viewers for this property?
 		MLPropertyViewListMap::iterator look = mPropertyViewsMap.find(propName);
 		if (look != mPropertyViewsMap.end())

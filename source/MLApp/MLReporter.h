@@ -9,7 +9,9 @@
 #include "MLModel.h"
 #include "MLWidget.h"
 #include <map>
-#include "portaudio/pa_ringbuffer.h"
+#include "MLQueue.h"
+
+using namespace ml;
 
 #pragma mark property viewing
 
@@ -82,8 +84,9 @@ private:
 
 	std::vector<MLPropertyListenerPtr> pListeners;
 	MLPropertySet mCurrentProperties;
-	std::vector<ml::Symbol> mChangeData;
-	PaUtilRingBuffer mChangeQueue;
+	
+	std::unique_ptr< Queue< Symbol > > mChangeQueue;
+	
 	std::unique_ptr<ReporterTimer> mpTimer;
 };
 
