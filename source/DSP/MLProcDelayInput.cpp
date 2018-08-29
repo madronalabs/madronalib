@@ -23,12 +23,10 @@ namespace
 // ----------------------------------------------------------------
 // implementation
 
-
 MLProcDelayInput::MLProcDelayInput()
 {
 	setParam("length", 0.1f);	
 }
-
 
 MLProcDelayInput::~MLProcDelayInput()
 {

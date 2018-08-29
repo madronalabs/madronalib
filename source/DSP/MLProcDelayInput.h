@@ -35,16 +35,6 @@ public:
 	MLProcInfoBase& procInfo() override { return mInfo; }
 private:
 	MLProcInfo<MLProcDelayInput> mInfo;
-
-	class Tap
-	{
-	public:
-		MLSignal mRingSig;
-		PaUtilRingBuffer mRingBuf;
-		float mDelayTime;
-	};
-	
-	std::vector<Tap> mTaps;
 	
 	void doParams(void);	// rebuilds buffer 
 

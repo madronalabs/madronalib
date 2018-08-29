@@ -25,7 +25,6 @@ static ml::Symbol modeSym("mode");
 // ----------------------------------------------------------------
 // implementation
 
-
 MLProcRingBuffer::MLProcRingBuffer()
 {
 	// defaults

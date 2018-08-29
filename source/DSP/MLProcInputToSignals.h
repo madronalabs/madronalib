@@ -16,8 +16,6 @@
 #include "MLControlEvent.h"
 #include "MLT3DHub.h"
 #include "MLDefaultFileLocations.h"
-#include "MLProcRingBuffer.h"
-
 
 // a voice that can play.
 //
