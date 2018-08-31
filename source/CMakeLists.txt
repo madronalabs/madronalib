@@ -40,6 +40,8 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSPMathScalar.h
     DSP/MLDSPMathSSE.h
     DSP/MLDSPMathNEON.h
+    DSP/MLSignalBuffer.cpp
+    DSP/MLSignalBuffer.h
     procs/MLProc.cpp
     procs/MLProc.h
     procs/MLProcFactory.cpp
@@ -168,6 +170,8 @@ else(BUILD_NEW_ONLY)
     DSP/MLRingBuffer.h
     DSP/MLScale.cpp
     DSP/MLScale.h
+    DSP/MLSignalBuffer.cpp
+    DSP/MLSignalBuffer.h
     LookAndFeel/MLButton.cpp
     LookAndFeel/MLButton.h
     LookAndFeel/MLDebugDisplay.cpp

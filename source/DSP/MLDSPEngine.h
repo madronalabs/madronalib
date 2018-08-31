@@ -141,7 +141,7 @@ private:
   MLSignal mNullInputSignal;
   
   // ring buffers so that processing can always
-  // be done in multiples of 4 samples.
+  // be done in DSPVectors though host may ask for or provide fewer samples.
   std::vector<MLRingBufferPtr> mInputBuffers;
   std::vector<MLRingBufferPtr> mOutputBuffers;
   

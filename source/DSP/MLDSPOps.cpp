@@ -11,7 +11,7 @@ float* ml::DSPVectorAlignFloatPointer(const float* p)
 {
 	uintptr_t pM = (uintptr_t)p;
 	pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
-	pM &= ml::kDSPVectorAlignMask;
+	pM &= ml::kDSPVectorBytesAlignMask;
 	return reinterpret_cast<float*>(pM);
 }
 
@@ -20,7 +20,7 @@ int* ml::DSPVectorAlignIntPointer(const int* p)
 {
 	uintptr_t pM = (uintptr_t)p;
 	pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
-	pM &= ml::kDSPVectorAlignMask;
+	pM &= ml::kDSPVectorBytesAlignMask;
 	return reinterpret_cast<int*>(pM);
 }
 

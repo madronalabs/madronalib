@@ -53,9 +53,18 @@ constexpr int kFloatsPerSIMDVectorBits = 2;
 constexpr int kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
 constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
 constexpr int kBytesPerSIMDVector = kFloatsPerSIMDVector * sizeof(float);
+constexpr int kSIMDVectorMask = ~(kBytesPerSIMDVector - 1);
 
 constexpr int kIntsPerSIMDVectorBits = 2;
 constexpr int kIntsPerSIMDVector = 1 << kIntsPerSIMDVectorBits;
+
+inline bool isSIMDAligned(float* p)
+{
+	uintptr_t pM = (uintptr_t)p;
+	return ((pM&kSIMDVectorMask) == 0);
+}
+
+
 
 // primitive SSE operations
 #define vecAdd _mm_add_ps
@@ -91,9 +100,15 @@ constexpr int kIntsPerSIMDVector = 1 << kIntsPerSIMDVectorBits;
 #define vecLessThanOrEqual _mm_cmple_ps
 
 #define vecSet1 _mm_set1_ps
+
+// low-level store and load a vector to/from a float*.
+// the pointer must be aligned or the program will crash!
+// void vecStore(float* pDest, DSPVector v);
+// DSPVector vecLoad(float* pSrc);
 #define vecStore _mm_store_ps
-#define vecStoreUnaligned _mm_storeu_ps
 #define vecLoad _mm_load_ps
+
+#define vecStoreUnaligned _mm_storeu_ps
 #define vecLoadUnaligned _mm_loadu_ps
 
 #define vecAnd	_mm_and_ps
