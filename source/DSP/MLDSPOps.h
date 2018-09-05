@@ -251,7 +251,7 @@ namespace ml
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer();
-
+			
 			for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
 			{
 				vecStore(py1, vecLoad(px1));
@@ -260,8 +260,22 @@ namespace ml
 			}
 			return *this;
 		}
+
 #endif
 
+		// equality
+		bool operator==(const DSPVectorArray<VECTORS>& x1)
+		{
+			const float* px1 = x1.getConstBuffer();
+			const float* py1 = getConstBuffer();
+
+			for (int n = 0; n < kFloatsPerDSPVector*VECTORS; ++n)
+			{
+				if(py1[n] != px1[n]) return false;
+			}
+			return true;
+		}
+		
 		// return row J from this DSPVectorArray, when J is known at compile time. 
 		template<int J>
 		inline DSPVectorArray<1> getRowVector() const
@@ -502,20 +516,20 @@ namespace ml
 
 	// some loads and stores may be unaligned, let std::copy handle this
 	template<int VECTORS>
-	inline void load(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
+	inline void loadDSPVector(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
 	{
 		std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, vecDest.getBuffer());
 	}
 	
 	template<int VECTORS>
-	inline void store(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
+	inline void storeDSPVector(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
 	{
 		std::copy(vecSrc.getConstBuffer(), vecSrc.getConstBuffer() + kFloatsPerDSPVector*VECTORS, pDest);
 	}
 
 	// if the pointers are known to be aligned, copy as SIMD vectors
 	template<int VECTORS>
-	inline void loadAligned(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
+	inline void loadDSPVectorAligned(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
 	{
 		const float* px1 = pSrc;
 		float* py1 = vecDest.getBuffer();
@@ -533,7 +547,7 @@ namespace ml
 	}
 	
 	template<int VECTORS>
-	inline void storeAligned(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
+	inline void storeDSPVectorAligned(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
 	{
 		const float* px1 = vecSrc.getConstBuffer();
 		float* py1 = pDest;
