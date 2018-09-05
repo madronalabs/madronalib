@@ -45,16 +45,11 @@ int SignalBuffer::getWriteAvailable()
 
 void SignalBuffer::write(const float* pSrc, size_t samples)
 {
-	// debug version check for bad writes
-	assert(samples < mSize);
-	
 	// runtime clamp write size
 	size_t available = getWriteAvailable(); // TODO does this need fence?
-	
 	samples = std::min(samples, available);
 	
 	const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
-
 	DataRegions dr = getDataRegions(currentWriteIndex, samples, available);
 	
 	std::copy(pSrc, pSrc + dr.size1, dr.p1);
@@ -68,16 +63,11 @@ void SignalBuffer::write(const float* pSrc, size_t samples)
 
 void SignalBuffer::read(float* pDest, size_t samples)
 {
-	// debug version check for bad writes
-	assert(samples < mSize);
-	
-	// runtime clamp write size
+	// runtime clamp read size
 	size_t available = getReadAvailable(); // TODO does this need fence?
-	
 	samples = std::min(samples, available);
 	
 	const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-	
 	DataRegions dr = getDataRegions(currentReadIndex, samples, available);
 	
 	std::copy(dr.p1, dr.p1 + dr.size1, pDest);
@@ -88,8 +78,6 @@ void SignalBuffer::read(float* pDest, size_t samples)
 	
 	mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
 }
-
-// private
 
 size_t SignalBuffer::advanceDataIndex(size_t start, size_t samples)
 {

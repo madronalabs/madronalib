@@ -14,9 +14,6 @@
 
 #include "MLScalarMath.h"
 
-//#include "MLDSP.h"
-//#include "MLInterval.h"
-
 namespace ml
 {
 	class Interval
@@ -32,8 +29,8 @@ namespace ml
 	inline bool within(float f, const Interval m) { return (f >= m.mX1)&&(f < m.mX2); }
 }
 
+// TODO replace MLRange (deprecated) with this everywhere
 
-// TODO replace MLRange with this stuff
 namespace ml
 {
 	typedef std::function<float(float)> Projection;

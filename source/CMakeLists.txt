@@ -15,8 +15,10 @@ if(BUILD_NEW_ONLY)
    set(madronalib_SOURCES
     core/MLPath.cpp
     core/MLPath.h
-    core/MLProperty.cpp
-    core/MLProperty.h
+		core/MLProjection.cpp
+		core/MLProjection.h
+		core/MLProperty.cpp
+		core/MLProperty.h
     core/MLQueue.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp
