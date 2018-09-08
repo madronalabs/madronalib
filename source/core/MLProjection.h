@@ -11,6 +11,7 @@
 #include <math.h>
 #include <functional>
 #include <vector>
+#include <iostream>
 
 #include "MLScalarMath.h"
 
@@ -45,11 +46,12 @@ namespace ml
 	namespace projections
 	{
 		// constant projections 		
-		extern const Projection linear;
-		extern const Projection flip;
-		extern const Projection clip;
-		extern const Projection smoothstep;
-		extern const Projection bell;
+		const Projection linear{ [](float x){return x;} };
+		const Projection flip{ [](float x){return 1 - x;} };
+		const Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
+		const Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };
+		const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
+
 		
 		// functions returning projections
 		
@@ -78,7 +80,9 @@ namespace ml
 	public:
 		// define a projection from interval a to interval b.
 		// projection c is defined on [0, 1)->[0, 1) and can add clipping or nonlinear projections. 
-		IntervalProjection(const Interval a, const Interval b, Projection c = projections::linear) : mA(a), mB(b), mMappingProjection(c) { build(); }
+		//explicit IntervalProjection(const Interval a, const Interval b);
+		
+		explicit IntervalProjection(const Interval a, const Interval b, Projection c = projections::linear) : mA(a), mB(b), mMappingProjection(c) { build(); }
 		
 		// TODO destruction should be trivial but a destructor is being generated, find out why
 		
@@ -88,8 +92,8 @@ namespace ml
 		}	
 		
 	private:
-		const Interval mA, mB;
-		const Projection mMappingProjection;
+		Interval mA, mB;
+		Projection mMappingProjection { projections::linear };
 		float mScaleA, mOffsetA, mScaleB, mOffsetB;
 		
 		void build()
