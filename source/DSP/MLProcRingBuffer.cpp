@@ -50,29 +50,10 @@ MLProc::err MLProcRingBuffer::resize()
 	MLProc::err e = OK;
 	int frameSize = getParam(frame_sizeSym);
 	int length = 1 << ml::bitsToContain((int)getParam(lengthSym));
-	void * buf;
 	
-	// debug() << "allocating " << size << " samples for ringbuffer " << getName() << "\n";
-
 	mSingleFrameBuffer.setDims(frameSize);
-	buf = mRing.setDims(length, frameSize);
+	mBuf.resize(length*frameSize);
 	
-	if (!buf)
-	{
-		debug() << "MLRingBuffer: allocate failed!\n";
-		e = memErr;
-	}
-	else
-	{	
-		PaUtil_InitializeRingBuffer( &mBuf, sizeof(MLSample), length*frameSize, buf );
-        
-		// get trash signal
-		if (getParam(modeSym) != eMLRingBufferNoTrash)
-		{
-			mTrashSignal.setDims(length, frameSize);	
-		}
-	}
-
 	return e;
 }
 
@@ -81,11 +62,9 @@ void MLProcRingBuffer::doParams(void)
 	mParamsChanged = false;
 }
 
-
 void MLProcRingBuffer::process()
 {
 
-	int written;
 	const MLSignal& x = getInput(1);
 	int frameSize = getParam(frameSym);
 	int inputFrameSize = x.getHeight();
@@ -94,14 +73,12 @@ void MLProcRingBuffer::process()
 	// build if needed
 	if (mParamsChanged) doParams();
 
-	if (!mRing.getBuffer()) return;
-
 	if(frameSize == 1)
 	{
-		written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)x.getConstBuffer(), framesToProcess );	
+		mBuf.write(x.getConstBuffer(), framesToProcess);
 	}
 	else
-	{			
+	{
 		if(inputFrameSize != frameSize)
 		{
 			debug() << "MLProcRingBuffer: input size mismatch: " << inputFrameSize << " to our " << frameSize << " \n";
@@ -121,7 +98,7 @@ void MLProcRingBuffer::process()
 				{
 					mSingleFrameBuffer[j] = x(i, j);
 				}
-				written = (int)PaUtil_WriteRingBuffer(&mBuf, (void *)mSingleFrameBuffer.getConstBuffer(), frameSize );	
+				mBuf.write(mSingleFrameBuffer.getConstBuffer(), frameSize);
 			}
 		}
 	}
@@ -131,35 +108,30 @@ void MLProcRingBuffer::process()
 //
 int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 {
-	int lastRead = 0;
 	MLSample * outBuffer = outSig.getBuffer() + outSig.plane(plane);
-	void * trashBuffer = (void *)mTrashSignal.getBuffer();
-	
+
 	int mode = (int)getParam(modeSym);
 	int frameSize = getParam(frameSym);
 	int framesToRead = ml::min(frames, (int)outSig.getWidth());
-	int framesAvailable = (int)PaUtil_GetRingBufferReadAvailable( &mBuf )/frameSize;
+	int framesAvailable = mBuf.getReadAvailable()/frameSize;
     
-    // return if we have not accumulated enough signal.
+	// return if we have not accumulated enough signal.
 	if (framesAvailable < framesToRead) return 0;
 	
 	// depending on trigger mode, trash samples up to the ones we will return.
 	switch(mode)
 	{
+		case eMLRingBufferMostRecent:
+			mBuf.discard((framesAvailable - framesToRead)*frameSize);
+			break;
 		default:
-		case eMLRingBufferNoTrash:
-		break;
-
-		case eMLRingBufferMostRecent:			
-			// TODO modify pa ringbuffer instead of reading to trash buffer. 
-			PaUtil_ReadRingBuffer( &mBuf, trashBuffer, (framesAvailable - framesToRead)*frameSize );  
-		break;
+			break;
 	}
 	
 	if(frameSize == 1)
 	{
 		// 1D read.
-		lastRead = (int)PaUtil_ReadRingBuffer( &mBuf, outBuffer, framesToRead );
+		mBuf.read(outBuffer, framesToRead);
 	}
 	else
 	{
@@ -174,11 +146,11 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 		int stride = outSig.getRowStride();
 		for(int i=0; i<framesToRead; ++i)
 		{
-			int avail = (int)PaUtil_GetRingBufferReadAvailable( &mBuf );
+			int avail = mBuf.getReadAvailable();
 			if(avail >= frameSize)
 			{
 				// read to temp buffer
-				PaUtil_ReadRingBuffer( &mBuf, mSingleFrameBuffer.getBuffer(), frameSize );
+				mBuf.read(mSingleFrameBuffer.getBuffer(), frameSize);
 				
 				// rotate into one column of destination 
 				float* outPtr = outBuffer + i;		
@@ -187,10 +159,9 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 					outPtr[j*stride] = mSingleFrameBuffer[j]; 
 				}
 				outPtr++;
-				lastRead++;
 			}
 		}
 	}
-	return lastRead;
+	return frames;
 }
 

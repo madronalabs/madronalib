@@ -54,20 +54,19 @@ namespace signalBufferTest
 	// buffer shared between threads
 	SignalBuffer testBuf;
 	
-	DSPVector inputVec, outputVec;
-	
 	size_t samplesTransmitted = 0;
 	size_t maxSamplesInBuffer = 0;
 	size_t samplesReceived = 0;
 	float kEndFlag = 99;
 
+	RandomScalarSource rr;
+	const int kMaxReadWriteSize = 16;
+	IntervalProjection randToLength{ {-1, 1}, {1, kMaxReadWriteSize} };
+
 	void transmitTest()
 	{
 		testBuf.resize(kTestBufferSize);
-		RandomScalarSource rr;
-		
-		float data[10];
-		IntervalProjection randToLength{ {-1, 1}, {3, 6} };
+		float data[kMaxReadWriteSize];
 		
 		for(int i=0; i<kTestWrites; ++i)
 		{
@@ -81,10 +80,10 @@ namespace signalBufferTest
 			}
 			
 			testBuf.write(data, writeLen);
+			std::cout << "+"; // show write
 			samplesTransmitted += writeLen;
 
-			std::cout << "+";
-			std::this_thread::sleep_for(milliseconds(5));
+			std::this_thread::sleep_for(milliseconds(2));
 		}
 
 		data[0] = kEndFlag;
@@ -94,7 +93,8 @@ namespace signalBufferTest
 	void receiveTest()
 	{
 		bool done = false;
-		
+		float data[kMaxReadWriteSize];
+
 		while(!done)
 		{
 			if(size_t k = testBuf.getReadAvailable())
@@ -103,31 +103,39 @@ namespace signalBufferTest
 				{
 					maxSamplesInBuffer = k;
 				}
-				float f;
-				testBuf.read(&f, 1);
-				if(f == kEndFlag)
+
+				size_t readLen = randToLength(rr.getFloat());
+				readLen = std::min(readLen, k);
+				testBuf.read(data, std::min(readLen, k));
+				std::cout << "-"; // show read
+
+				for(int i=0; i<readLen; ++i)
 				{
-					done = true;
-				}
-				else
-				{
-					samplesReceived++;
-					receiveSum += f;
+					float f = data[i];
+					if(f == kEndFlag)
+					{
+						done = true;
+						break;
+					}
+					else
+					{
+						samplesReceived++;
+						receiveSum += f;
+					}
 				}
 			}
-			
-			std::cout << "-";
+			else
+			{
+				std::cout << "."; // show wait
+			}
 			std::this_thread::sleep_for(milliseconds(1));
 		}
 	}
 	
 	TEST_CASE("madronalib/core/signalbuffer/threads", "[signalbuffer][threads]")
 	{
-		// start writing to queue and let writer get ahead a bit
+		// start threads
 		std::thread transmit(transmitTest);
-		std::this_thread::sleep_for(milliseconds(25));
-		
-		// start reading
 		std::thread receive(receiveTest);
 		
 		// wait for threads to finish
@@ -142,5 +150,32 @@ namespace signalBufferTest
 
 		REQUIRE(testBuf.getReadAvailable() == 0);
 		REQUIRE(transmitSum == receiveSum);
+		REQUIRE(samplesTransmitted == samplesReceived);
 	}
+	
+	TEST_CASE("madronalib/core/signalbuffer/overlap", "[signalbuffer][overlap]")
+	{
+		SignalBuffer buf;
+		buf.resize(256);
+		
+		DSPVector windowVec, outputVec, outputVec2;
+	 	int overlap = kFloatsPerDSPVector/2;
+		
+		// write overlapping triangle windows
+		makeWindow(windowVec.getBuffer(), kFloatsPerDSPVector, windows::triangle);
+		for(int i=0; i<8; ++i)
+		{
+			buf.writeWithOverlapAdd(windowVec.getBuffer(), kFloatsPerDSPVector, overlap);
+		}
+		
+		// read past startup
+		buf.read(outputVec.getBuffer(), kFloatsPerDSPVector);
+		
+		// after startup, sums of windows should be constant
+		buf.read(outputVec.getBuffer(), kFloatsPerDSPVector);
+		buf.read(outputVec2.getBuffer(), kFloatsPerDSPVector);
+
+		REQUIRE(outputVec == outputVec2);
+	}
+	
 }

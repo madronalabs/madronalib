@@ -11,12 +11,12 @@
 #include "MLInputProtocols.h"
 #include "MLProcHostPhasor.h"
 #include "MLSignal.h"
-#include "MLRingBuffer.h"
 #include "MLControlEvent.h"
 #include "OscTypes.h"
 #include "MLDSPDeprecated.h"
 #include "MLQueue.h"
 #include "MLT3DHub.h"
+#include "MLSignalBuffer.h"
 
 const int kMLEngineMaxChannels = 8;
 
@@ -101,7 +101,6 @@ public:
   // to remove - for AudioProcessor only
   void writeInputBuffers(const int samples);
   void readOutputBuffers(const int samples);
-  int getInputBufferFramesRemaining();
   
   void reset();
   
@@ -142,8 +141,8 @@ private:
   
   // ring buffers so that processing can always
   // be done in DSPVectors though host may ask for or provide fewer samples.
-  std::vector<MLRingBufferPtr> mInputBuffers;
-  std::vector<MLRingBufferPtr> mOutputBuffers;
+	std::vector< std::unique_ptr< SignalBuffer > > mInputBuffers;
+  std::vector< std::unique_ptr< SignalBuffer > > mOutputBuffers;
   
   bool mCollectStats;
   int mBufferSize;

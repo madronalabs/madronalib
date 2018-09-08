@@ -41,7 +41,8 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSPMath.h
     DSP/MLDSPMathScalar.h
     DSP/MLDSPMathSSE.h
-    DSP/MLDSPMathNEON.h
+		DSP/MLDSPMathNEON.h
+		DSP/MLDSPUtils.h
     DSP/MLSignalBuffer.cpp
     DSP/MLSignalBuffer.h
     procs/MLProc.cpp
@@ -97,6 +98,13 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPGens.h
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
+		DSP/MLDSPMath.h
+		DSP/MLDSPMathScalar.h
+		DSP/MLDSPMathSSE.h
+		DSP/MLDSPMathNEON.h
+		DSP/MLDSPUtils.h
+		DSP/MLSignalBuffer.cpp
+		DSP/MLSignalBuffer.h
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp
@@ -281,15 +289,6 @@ endif()
  #  FIND_LIBRARY(APP_SERVICES_LIBRARY ApplicationServices )
  #  SET(FRAMEWORKS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY})
 #endif(APPLE)
-
-
-# add portaudio utilities as source
-list(APPEND madronalib_SOURCES 
-    ../external/portaudio/pa_memorybarrier.h
-    ../external/portaudio/pa_ringbuffer.cpp
-    ../external/portaudio/pa_ringbuffer.h
-
-    )
 
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)

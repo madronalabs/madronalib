@@ -7,7 +7,9 @@
 #define ML_PROC_RINGBUFFER_H
 
 #include "MLProc.h"
-#include "portaudio/pa_ringbuffer.h"
+#include "MLSignalBuffer.h"
+
+using namespace ml;
 
 // default size in samples.  should equal kMLSignalViewBufferSize. (MLUI.h)
 // But we don't want to refer to UI code here.
@@ -21,7 +23,6 @@ enum
 
 // ----------------------------------------------------------------
 // class definition
-
 
 class MLProcRingBuffer : public MLProc
 {
@@ -42,12 +43,9 @@ private:
 	void doParams(void);	
 	MLProcInfo<MLProcRingBuffer> mInfo;
 
-	MLSignal mRing;
-	MLSignal mTrashSignal;	
 	MLSignal mSingleFrameBuffer;
-	PaUtilRingBuffer mBuf;
+	SignalBuffer mBuf;
 	
-	MLSignal test;
 	MLSample mTrig1;
 };
 

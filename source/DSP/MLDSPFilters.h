@@ -630,8 +630,9 @@ namespace ml
 		MLSignal mFeedbackGains;
 	};
 	
+	
 	// ----------------------------------------------------------------
-	#pragma mark OverlapAdd
+#pragma mark OverlapAdd
 	
 	template<int LENGTH, int DIVISIONS>
 	class OverlapAdd
@@ -645,7 +646,7 @@ namespace ml
 		
 		DSPVector operator()(const DSPVector& x)
 		{
-			// work in progress
+			// work in progress, use SignalBuffer?
 		}
 		
 	private:

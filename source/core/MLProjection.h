@@ -40,6 +40,7 @@ namespace ml
 		return( [=](float x){return a(b(x));} );
 	}
 	
+
 	// useful projections defined on (0, 1)
 	namespace projections
 	{

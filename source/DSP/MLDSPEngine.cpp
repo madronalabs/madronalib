@@ -285,9 +285,11 @@ void MLDSPEngine::setInputChannels(int c)
 	mInputChans = c;
 	mInputSignals.clear();
 	for (int i=0; i<mInputChans; i++)
-	{		
+	{
+		// TODO not MLSignals
 		mInputSignals.push_back(MLSignalPtr(new MLSignal(kFloatsPerDSPVector)));
-		mInputBuffers.push_back(MLRingBufferPtr(new MLRingBuffer()));
+		
+		mInputBuffers.push_back(std::unique_ptr<SignalBuffer>(new SignalBuffer()));
 	}
 	mNullInputSignal.setDims(kFloatsPerDSPVector);
 	mNullInputSignal.clear();
@@ -298,7 +300,7 @@ void MLDSPEngine::setOutputChannels(int c)
 	mOutputChans = c;
 	for (int i=0; i<mOutputChans; i++)
 	{		
-		mOutputBuffers.push_back(MLRingBufferPtr(new MLRingBuffer()));
+		mOutputBuffers.push_back(std::unique_ptr<SignalBuffer>(new SignalBuffer()));
 	}
 }
 
@@ -322,22 +324,7 @@ void MLDSPEngine::readInputBuffers(const int samples)
 {
 	for(int i=0; i<mInputChans; ++i)
 	{
-		if (samples != mInputBuffers[i]->read(mInputSignals[i]->getBuffer(), samples))
-		{
-			debug() << "MLDSPEngine: input ringbuffer out of data!\n";
-		}
-	}
-}
-
-int MLDSPEngine::getInputBufferFramesRemaining()
-{
-	if(mInputChans > 0)
-	{
-		return mInputBuffers[0]->getRemaining();
-	}
-	else
-	{
-		return 0;
+		mInputBuffers[i]->read(mInputSignals[i]->getBuffer(), samples);
 	}
 }
 
@@ -378,7 +365,7 @@ void MLDSPEngine::readOutputBuffers(const int samples)
 	int okToRead = true;
 	for(int i=0; i < outs; ++i)
 	{
-		if(mOutputBuffers[i]->getRemaining() < samples)
+		if(mOutputBuffers[i]->getReadAvailable() < samples)
 		{
 			okToRead = false;
 			break;
@@ -389,10 +376,7 @@ void MLDSPEngine::readOutputBuffers(const int samples)
 	{
 		for(int i=0; i < outs; ++i)
 		{
-			if (samples != mOutputBuffers[i]->read(mIOMap.outputs[i], samples))
-			{
-				debug() << "MLDSPEngine: output ringbuffer out of data!\n";
-			}
+			mOutputBuffers[i]->read(mIOMap.outputs[i], samples);
 		}
 	}
 	else

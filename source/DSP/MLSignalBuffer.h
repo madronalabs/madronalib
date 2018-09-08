@@ -19,18 +19,15 @@ public:
 	~SignalBuffer() {}
 	
 	void clear();
-	int resize(int length);
+	size_t resize(int length);
 	
-	int getReadAvailable();
-	int getWriteAvailable();
+	size_t getReadAvailable();
+	size_t getWriteAvailable();
 
 	void write(const float* src, size_t samples);
 	void read(float* pDest, size_t samples);
+	void discard(size_t samples);
 
-	// TODO, maybe?
-//	void write(const DSPVector& src);
-//	DSPVector read();
-	
 	void writeWithOverlapAdd(const float* src, size_t samples, int overlap);
 	void readWithOverlap(float* pDest, size_t samples, int overlap);
 	
@@ -53,8 +50,8 @@ private:
 		size_t size2;
 	};
 	
-	size_t advanceDataIndex(size_t start, size_t samples);
-	size_t advanceDistanceIndex(size_t start, size_t samples);
+	size_t advanceDataIndex(size_t start, int samples);
+	size_t advanceDistanceIndex(size_t start, int samples);
 	DataRegions getDataRegions(size_t currentIdx, size_t elems, size_t available);
 };
 
@@ -63,4 +60,5 @@ private:
 
 
 // TODO multiple vectors as template!
+// TODO try small-local-storage optimization
 
