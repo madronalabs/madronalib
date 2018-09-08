@@ -68,7 +68,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/fix_str)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/portaudio)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/tinyxml) # to remove
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
@@ -84,7 +83,6 @@ add_subdirectory(source)
 add_subdirectory(external/aes256)
 add_subdirectory(external/cJSON)
 add_subdirectory(external/oscpack)
-add_subdirectory(external/portaudio)
 add_subdirectory(external/utf)
 
 
