@@ -11,54 +11,69 @@
 
 namespace ml
 {
-
-class SignalBuffer
-{
-public:
-	SignalBuffer() {}
-	~SignalBuffer() {}
+	// SignalBuffer is a single producer, single consumer, lock-free ring buffer for audio.
+	// Some nice implementation details come from Portaudio's pa_ringbuffer by Phil Burk and others.
+	// C++11 atomics are used to implement the lockfree algorithm.
 	
-	void clear();
-	size_t resize(int length);
-	
-	size_t getReadAvailable();
-	size_t getWriteAvailable();
-
-	void write(const float* src, size_t samples);
-	void read(float* pDest, size_t samples);
-	void discard(size_t samples);
-
-	void writeWithOverlapAdd(const float* src, size_t samples, int overlap);
-	void readWithOverlap(float* pDest, size_t samples, int overlap);
-	
-private:
-	
-	std::vector<float> mData;
-	float* mDataBuffer;
-	size_t mSize{0};
-	size_t mDataMask{0};
-	size_t mDistanceMask{0};
-
-	std::atomic<size_t> mWriteIndex{0};
-	std::atomic<size_t> mReadIndex{0};
-	
-	struct DataRegions
+	class SignalBuffer
 	{
-		float* p1;
-		size_t size1;
-		float* p2;
-		size_t size2;
+	public:
+		SignalBuffer() {}
+		~SignalBuffer() {}
+		
+		// clear the buffer.
+		void clear();
+		
+		// resize the buffer, allocating 2^n samples sufficient to contain the requested length.
+		size_t resize(int length);
+		
+		// return the number of samples available for reading.
+		size_t getReadAvailable();
+		
+		// return the samples of free space available for writing.
+		size_t getWriteAvailable();
+		
+		// write n samples to the buffer, advancing the write index.
+		void write(const float* src, size_t n);
+		
+		// read n samples from the buffer, advancing the read index.
+		void read(float* pDest, size_t n);
+		
+		// discard n samples by advancing the read index.
+		void discard(size_t n);
+		
+		// add n samples to the buffer and advance the write index by (samples - overlap)
+		void writeWithOverlapAdd(const float* src, size_t n, int overlap);
+		
+		// read n samples from buffer then rewind read point by overlap.
+		void readWithOverlap(float* pDest, size_t n, int overlap);
+		
+	private:
+		std::vector<float> mData;
+		float* mDataBuffer;
+		size_t mSize{0};
+		size_t mDataMask{0};
+		size_t mDistanceMask{0};
+		
+		std::atomic<size_t> mWriteIndex{0};
+		std::atomic<size_t> mReadIndex{0};
+		
+		struct DataRegions
+		{
+			float* p1;
+			size_t size1;
+			float* p2;
+			size_t size2;
+		};
+		
+		size_t advanceDataIndex(size_t start, int samples);
+		size_t advanceDistanceIndex(size_t start, int samples);
+		DataRegions getDataRegions(size_t currentIdx, size_t elems, size_t available);
 	};
-	
-	size_t advanceDataIndex(size_t start, int samples);
-	size_t advanceDistanceIndex(size_t start, int samples);
-	DataRegions getDataRegions(size_t currentIdx, size_t elems, size_t available);
-};
-
 }
 
 
 
-// TODO multiple vectors as template!
+// TODO multiple column DSPVectors as template!
 // TODO try small-local-storage optimization
 

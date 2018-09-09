@@ -31,7 +31,12 @@ size_t SignalBuffer::resize(int sizeInSamples)
 	}
 	
 	mDataBuffer = mData.data();
+	
 	mDataMask = mSize - 1;
+	
+	// The distance mask idea is based on code from PortAudio's ringbuffer by Phil Burk.
+	// By keeping the read and write pointers constrained to size*2 instead of size, the full state
+	// (write - read = size) can be distinguished from the empty state (write - read = 0).
 	mDistanceMask = mSize*2 - 1;
 
 	return mSize;
@@ -108,7 +113,7 @@ void SignalBuffer::writeWithOverlapAdd(const float* pSrc, size_t samples, int ov
 
 	size_t currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
 	
-	// add samples
+	// add samples to data in buffer
 	DataRegions dr = getDataRegions(currentWriteIndex, samples, available);
 	addSamples(pSrc, pSrc + dr.size1, dr.p1);
 	if(dr.p2)
@@ -132,14 +137,9 @@ void SignalBuffer::writeWithOverlapAdd(const float* pSrc, size_t samples, int ov
 	mWriteIndex.store(currentWriteIndex, std::memory_order_release);
 }
 
-
-
-
-
-
 void SignalBuffer::readWithOverlap(float* pDest, size_t samples, int overlap)
 {
-	size_t available = getReadAvailable() + overlap; // TODO does this need fence?
+	size_t available = getReadAvailable() + overlap;
 	samples = std::min(samples, available);
 
 	const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);

@@ -18,7 +18,6 @@ using namespace ml;
 
 namespace signalBufferTest
 {
-	
 	TEST_CASE("madronalib/core/signalbuffer", "[signalbuffer]")
 	{
 		std::cout << "\nSIGNALBUFFER\n";
@@ -61,6 +60,7 @@ namespace signalBufferTest
 
 	RandomScalarSource rr;
 	const int kMaxReadWriteSize = 16;
+	
 	IntervalProjection randToLength{ {-1, 1}, {1, kMaxReadWriteSize} };
 
 	void transmitTest()
@@ -174,7 +174,6 @@ namespace signalBufferTest
 		// after startup, sums of windows should be constant
 		buf.read(outputVec.getBuffer(), kFloatsPerDSPVector);
 		buf.read(outputVec2.getBuffer(), kFloatsPerDSPVector);
-
 		REQUIRE(outputVec == outputVec2);
 	}
 	
