@@ -7,7 +7,6 @@
 
 #include "../include/madronalib.h"
 #include "MLDSP.h"
-#include "../tests/tests.h"
 
 #ifdef _WINDOWS
 #include "Windows.h"
