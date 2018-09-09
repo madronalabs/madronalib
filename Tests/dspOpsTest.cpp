@@ -84,8 +84,11 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 			timedResult<DSPVector> fnTimePrecise = timeIterations<DSPVector>(fnVec.second[1], iters);
 			timedResult<DSPVector> fnTimeApprox = timeIterations<DSPVector>(fnVec.second[2], iters);
 			std::cout << fnVec.first << " native: " << fnTimeNative.ns << ", precise: " << fnTimePrecise.ns << ", approx: " << fnTimeApprox.ns << " \n";
+			
+#ifdef NDEBUG
 			REQUIRE(fnTimeApprox.ns <= fnTimePrecise.ns);
 			REQUIRE(fnTimePrecise.ns <= fnTimeNative.ns);
+#endif
 			i++;
 		}		
 	}

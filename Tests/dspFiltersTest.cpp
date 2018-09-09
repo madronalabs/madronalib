@@ -131,7 +131,9 @@ TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 		std::cout << "vector biquad: " << fnTimeVector.ns << " nanoseconds for " << iters << " iterations:\n";
 		std::cout << "samples / ns: " << iters*kFloatsPerDSPVector/fnTimeVector.ns << "\n";
 		
+#ifdef NDEBUG
 		REQUIRE(fnTimeVector.ns <= fnTimeScalar.ns);
+#endif
 	}
 		
 	SECTION("time SVF")
@@ -147,7 +149,9 @@ TEST_CASE("madronalib/core/dsp_filters", "[dsp_filters]")
 		std::cout << "vector SVF: " << fnTimeVectorSVF.ns << " nanoseconds for " << iters << " iterations:\n";
 		std::cout << "samples / ns: " << iters*kFloatsPerDSPVector/fnTimeVectorSVF.ns << "\n";
 		
+#ifdef NDEBUG
 		REQUIRE(fnTimeVectorSVF.ns <= fnTimeScalarSVF.ns);
+#endif
 	}
 }
 
