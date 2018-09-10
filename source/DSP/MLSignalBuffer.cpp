@@ -60,7 +60,7 @@ void SignalBuffer::write(const float* pSrc, size_t samples)
 	samples = std::min(samples, available);
 
 	const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
-	DataRegions dr = getDataRegions(currentWriteIndex, samples, available);
+	DataRegions dr = getDataRegions(currentWriteIndex, samples);
 	
 	std::copy(pSrc, pSrc + dr.size1, dr.p1);
 	if(dr.p2)
@@ -75,9 +75,9 @@ void SignalBuffer::read(float* pDest, size_t samples)
 {
 	size_t available = getReadAvailable();
 	samples = std::min(samples, available);
-
+	
 	const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-	DataRegions dr = getDataRegions(currentReadIndex, samples, available);
+	DataRegions dr = getDataRegions(currentReadIndex, samples);
 	
 	std::copy(dr.p1, dr.p1 + dr.size1, pDest);
 	if(dr.p2)
@@ -161,12 +161,14 @@ void SignalBuffer::writeWithOverlapAdd(const float* pSrc, size_t samples, int ov
 	size_t available = getWriteAvailable();
 	
 	int samplesRequired = samples*2 - overlap;
+	
+	// don't write partial windows.
 	if(available < samplesRequired) return;
 
 	size_t currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
 	
 	// add samples to data in buffer
-	DataRegions dr = getDataRegions(currentWriteIndex, samples, available);
+	DataRegions dr = getDataRegions(currentWriteIndex, samples);
 	addSamples(pSrc, pSrc + dr.size1, dr.p1);
 	if(dr.p2)
 	{
@@ -176,7 +178,7 @@ void SignalBuffer::writeWithOverlapAdd(const float* pSrc, size_t samples, int ov
 	// clear samples for next overlapped add
 	currentWriteIndex = advanceDistanceIndex(currentWriteIndex, samples);
 	int samplesToClear = samples - overlap;
-	dr = getDataRegions(currentWriteIndex, samplesToClear, available - samples);
+	dr = getDataRegions(currentWriteIndex, samplesToClear);
 
 	std::fill(dr.p1, dr.p1 + dr.size1, 0.f);
 	if(dr.p2)
@@ -195,7 +197,7 @@ void SignalBuffer::readWithOverlap(float* pDest, size_t samples, int overlap)
 	samples = std::min(samples, available);
 
 	const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-	DataRegions dr = getDataRegions(currentReadIndex, samples, available);
+	DataRegions dr = getDataRegions(currentReadIndex, samples);
 	
 	std::copy(dr.p1, dr.p1 + dr.size1, pDest);
 	if(dr.p2)
@@ -216,10 +218,8 @@ size_t SignalBuffer::advanceDistanceIndex(size_t start, int samples)
 	return (start + samples) & mDistanceMask;
 }
 
-SignalBuffer::DataRegions SignalBuffer::getDataRegions(size_t currentIdx, size_t elems, size_t available)
+SignalBuffer::DataRegions SignalBuffer::getDataRegions(size_t currentIdx, size_t elems)
 {
-	elems = std::min(elems, available);
-
 	size_t startIdx = currentIdx & mDataMask;
 	if(startIdx + elems > mSize)
 	{

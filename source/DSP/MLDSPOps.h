@@ -164,7 +164,7 @@ namespace ml
 #endif
 
 		// default ctor:
-		// in debug: fill (including unaligned junk space) with debug const
+		// in debug builds: fill (including unaligned junk space) with debug const
 		DSPVectorArray() 
 		{ 
 #if _DEBUG

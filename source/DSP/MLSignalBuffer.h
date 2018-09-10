@@ -74,7 +74,7 @@ namespace ml
 		
 		size_t advanceDataIndex(size_t start, int samples);
 		size_t advanceDistanceIndex(size_t start, int samples);
-		DataRegions getDataRegions(size_t currentIdx, size_t elems, size_t available);
+		DataRegions getDataRegions(size_t currentIdx, size_t elems);
 	};
 }
 
