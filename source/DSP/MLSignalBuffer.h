@@ -39,6 +39,12 @@ namespace ml
 		// read n samples from the buffer, advancing the read index.
 		void read(float* pDest, size_t n);
 		
+		// write a single DSPVector to the buffer, advancing the write index.
+		void write(const DSPVector& v);
+		
+		// read a single DSPVector from the buffer, advancing the read index.
+		DSPVector read();
+		
 		// discard n samples by advancing the read index.
 		void discard(size_t n);
 		

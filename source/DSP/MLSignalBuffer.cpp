@@ -88,6 +88,58 @@ void SignalBuffer::read(float* pDest, size_t samples)
 	mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
 }
 
+void SignalBuffer::write(const DSPVector& srcVec)
+{
+	if(getWriteAvailable() < kFloatsPerDSPVector)
+	{
+		return;
+	}
+
+	const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
+	DataRegions dr = getDataRegions(currentWriteIndex, kFloatsPerDSPVector);
+	
+	if(!dr.p2)
+	{
+		// we have only one region, so we can copy a number of samples known at compile time.
+		store(srcVec, dr.p1);
+		mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, kFloatsPerDSPVector), std::memory_order_release);
+	}
+	else
+	{
+		const float* pSrc = srcVec.getConstBuffer();
+		std::copy(pSrc, pSrc + dr.size1, dr.p1);
+		std::copy(pSrc + dr.size1, pSrc + dr.size1 + dr.size2, dr.p2);
+		mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, kFloatsPerDSPVector), std::memory_order_release);
+	}
+}
+
+DSPVector SignalBuffer::read()
+{
+	if(getReadAvailable() < kFloatsPerDSPVector)
+	{
+		return DSPVector(0.f);
+	}
+	
+	const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+	DataRegions dr = getDataRegions(currentReadIndex, kFloatsPerDSPVector);
+	
+	if(!dr.p2)
+	{
+		// we have only one region, so we can copy a number of samples known at compile time.
+		mReadIndex.store(advanceDistanceIndex(currentReadIndex, kFloatsPerDSPVector), std::memory_order_release);
+		return DSPVector(dr.p1);
+	}
+	else
+	{
+		DSPVector r;
+		float* pDest = r.getBuffer();
+		std::copy(dr.p1, dr.p1 + dr.size1, pDest);
+		std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
+		mReadIndex.store(advanceDistanceIndex(currentReadIndex, kFloatsPerDSPVector), std::memory_order_release);
+		return r;
+	}
+}
+
 void SignalBuffer::discard(size_t samples)
 {
 	size_t available = getReadAvailable();

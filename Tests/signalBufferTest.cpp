@@ -169,12 +169,12 @@ namespace signalBufferTest
 		}
 		
 		// read past startup
-		buf.read(outputVec.getBuffer(), kFloatsPerDSPVector);
+		outputVec = buf.read();
 		
 		// after startup, sums of windows should be constant
-		buf.read(outputVec.getBuffer(), kFloatsPerDSPVector);
-		buf.read(outputVec2.getBuffer(), kFloatsPerDSPVector);
+		outputVec = buf.read();
+		outputVec2 = buf.read();
+
 		REQUIRE(outputVec == outputVec2);
 	}
-	
 }
