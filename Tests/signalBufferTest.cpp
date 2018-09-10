@@ -159,7 +159,7 @@ namespace signalBufferTest
 		buf.resize(256);
 		
 		DSPVector windowVec, outputVec, outputVec2;
-	 	int overlap = kFloatsPerDSPVector/2;
+		int overlap = kFloatsPerDSPVector/2;
 		
 		// write overlapping triangle windows
 		makeWindow(windowVec.getBuffer(), kFloatsPerDSPVector, windows::triangle);
@@ -169,12 +169,33 @@ namespace signalBufferTest
 		}
 		
 		// read past startup
-		outputVec = buf.read();
+		buf.read(outputVec);
 		
 		// after startup, sums of windows should be constant
-		outputVec = buf.read();
-		outputVec2 = buf.read();
-
+		buf.read(outputVec);
+		buf.read(outputVec2);
+		
 		REQUIRE(outputVec == outputVec2);
+	}
+	
+	TEST_CASE("madronalib/core/signalbuffer/vectors", "[signalbuffer][vectors]")
+	{
+		SignalBuffer buf;
+		buf.resize(256);
+		
+		constexpr int kRows = 3;
+		DSPVectorArray<kRows> inputVec, outputVec;
+
+		// make a DSPVectorArray with a unique int at each sample
+		inputVec = map( [](DSPVector v, int row){ return v + DSPVector(kFloatsPerDSPVector*row); }, repeat<kRows>(columnIndex()) );
+		
+		// write long enough that we will wrap
+		for(int i=0; i<4; ++i)
+		{
+			buf.write(inputVec);
+			buf.read(outputVec);
+		}
+		
+		REQUIRE(inputVec == outputVec);
 	}
 }
