@@ -3,11 +3,10 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef __ML_MODEL__
-#define __ML_MODEL__
+#pragma once
 
-#include "JuceHeader.h" // to remove
 #include "MLPropertySet.h"
+#include "MLTimer.h"
 
 // an MLModel is a kind of PropertySet that is also its own PropertyListener.
 // Subclasses override doPropertyChangeAction to propagate any changes from Properties to the core logic.
@@ -24,18 +23,5 @@ public:
 	void startModelTimer();
 	
 private:
-	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
-	class ModelTimer : public juce::Timer
-	{
-	public:
-		ModelTimer(MLModel*);
-		~ModelTimer();
-		void timerCallback();
-	private:
-		MLModel* mpOwnerModel;
-	};
-	std::unique_ptr<ModelTimer> mpTimer;
+	ml::Timer mTimer;
 };
-
-#endif // __ML_MODEL__
-

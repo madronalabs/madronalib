@@ -233,7 +233,7 @@ static Array<void*> activePlugins;
 class JuceVSTWrapper  : public AudioEffectX,
 public AudioProcessorListener,
 public AudioPlayHead,
-private Timer,
+private juce::Timer,
 private AsyncUpdater
 {
 private:
@@ -1356,7 +1356,7 @@ public:
 			
 			JUCE_AUTORELEASEPOOL
 			{
-				Timer::callPendingTimersSynchronously();
+				juce::Timer::callPendingTimersSynchronously();
 				
 				for (int i = ComponentPeer::getNumPeers(); --i >= 0;)
 					if (ComponentPeer* p = ComponentPeer::getPeer(i))

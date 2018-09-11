@@ -16,7 +16,7 @@ class MLDebugDisplay :
 	public Component,
 	public MLWidget,
 	public MLTextStreamListener,
-	public Timer
+	public juce::Timer
 {
 public:
     MLDebugDisplay(MLWidget* pContainer);
