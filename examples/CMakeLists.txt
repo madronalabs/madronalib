@@ -39,5 +39,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
 add_executable(dsp_ops_example dspOpsExample.cpp)
 add_executable(symbols_example symbolsExample.cpp)
+add_executable(timer_example timerExample.cpp)
 
 

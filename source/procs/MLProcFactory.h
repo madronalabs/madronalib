@@ -53,7 +53,7 @@ public:
 		//		ProcInfo< T >::setClassName(classSym);
 	}
 	
-	// return shared_ptr to a new MLProc instance. 
+	// return pointer to a new MLProc instance.
 	static Proc* createInstance()
 	{
 		// TODO move semantics here?

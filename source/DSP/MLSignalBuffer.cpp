@@ -31,7 +31,6 @@ size_t SignalBuffer::resize(int sizeInSamples)
 	}
 	
 	mDataBuffer = mData.data();
-	
 	mDataMask = mSize - 1;
 	
 	// The distance mask idea is based on code from PortAudio's ringbuffer by Phil Burk.
@@ -88,35 +87,6 @@ void SignalBuffer::read(float* pDest, size_t samples)
 	mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
 }
 
-
-/*
-DSPVector SignalBuffer::read()
-{
-	if(getReadAvailable() < kFloatsPerDSPVector)
-	{
-		return DSPVector(0.f);
-	}
-	
-	const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-	DataRegions dr = getDataRegions(currentReadIndex, kFloatsPerDSPVector);
-	
-	if(!dr.p2)
-	{
-		// we have only one region, so we can copy a number of samples known at compile time.
-		mReadIndex.store(advanceDistanceIndex(currentReadIndex, kFloatsPerDSPVector), std::memory_order_release);
-		return DSPVector(dr.p1);
-	}
-	else
-	{
-		DSPVector r;
-		float* pDest = r.getBuffer();
-		std::copy(dr.p1, dr.p1 + dr.size1, pDest);
-		std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-		mReadIndex.store(advanceDistanceIndex(currentReadIndex, kFloatsPerDSPVector), std::memory_order_release);
-		return r;
-	}
-}
-*/
 void SignalBuffer::discard(size_t samples)
 {
 	size_t available = getReadAvailable();
@@ -183,11 +153,6 @@ void SignalBuffer::readWithOverlap(float* pDest, size_t samples, int overlap)
 	}
 	
 	mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples - overlap), std::memory_order_release);
-}
-
-size_t SignalBuffer::advanceDataIndex(size_t start, int samples)
-{
-	return (start + samples) & mDataMask;
 }
 
 size_t SignalBuffer::advanceDistanceIndex(size_t start, int samples)

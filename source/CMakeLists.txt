@@ -20,6 +20,7 @@ if(BUILD_NEW_ONLY)
 		core/MLProperty.cpp
 		core/MLProperty.h
     core/MLQueue.h
+		core/MLResourceMap.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp
     core/MLSignal.h
@@ -28,8 +29,8 @@ if(BUILD_NEW_ONLY)
     core/MLText.h
     core/MLText.cpp
     core/MLTextUtils.cpp
-    core/MLTextUtils.h
-    core/MLResourceMap.h   
+		core/MLTimer.cpp
+		core/MLTimer.h
     DSP/MLDSP.cpp
     DSP/MLDSP.h
     DSP/MLDSPOps.cpp
@@ -85,7 +86,8 @@ else(BUILD_NEW_ONLY)
     core/MLText.cpp
     core/MLTextUtils.cpp
     core/MLTextUtils.h
-    core/MLResourceMap.h
+		core/MLTimer.cpp
+		core/MLTimer.h
     core/MLVectorDeprecated.cpp
     core/MLVectorDeprecated.h
     DSP/MLDSP.cpp
@@ -103,8 +105,6 @@ else(BUILD_NEW_ONLY)
 		DSP/MLDSPMathSSE.h
 		DSP/MLDSPMathNEON.h
 		DSP/MLDSPUtils.h
-		DSP/MLSignalBuffer.cpp
-		DSP/MLSignalBuffer.h
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp
@@ -176,9 +176,7 @@ else(BUILD_NEW_ONLY)
     DSP/MLProcThru.cpp
     DSP/MLRatio.cpp
     DSP/MLRatio.h
-    DSP/MLRingBuffer.cpp
-    DSP/MLRingBuffer.h
-    DSP/MLScale.cpp
+		DSP/MLScale.cpp
     DSP/MLScale.h
     DSP/MLSignalBuffer.cpp
     DSP/MLSignalBuffer.h

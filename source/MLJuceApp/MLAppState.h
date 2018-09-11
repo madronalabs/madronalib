@@ -24,7 +24,7 @@ extern const char* kMLStateDirName;
 
 class MLAppState : 
     public MLPropertyListener,
-	public Timer
+		public juce::Timer
 {
 public:
 	MLAppState(MLPropertySet*, const std::string& name, const std::string& makerName, 

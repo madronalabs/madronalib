@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <vector>
 
 #include "MLDSP.h"
@@ -53,10 +54,7 @@ namespace ml
 		void write(const DSPVectorArray<VECTORS>& srcVec)
 		{
 			constexpr int samples = kFloatsPerDSPVector*VECTORS;
-			if(getWriteAvailable() < samples)
-			{
-				return;
-			}
+			if(getWriteAvailable() < samples) return;
 			
 			const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
 			DataRegions dr = getDataRegions(currentWriteIndex, samples);
@@ -64,8 +62,8 @@ namespace ml
 			if(!dr.p2)
 			{
 				// we have only one region, so we can copy a number of samples known at compile time.
-				store(srcVec, dr.p1);
 				mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
+				store(srcVec, dr.p1);
 			}
 			else
 			{
@@ -81,10 +79,7 @@ namespace ml
 		void read(DSPVectorArray<VECTORS>& destVec)
 		{
 			constexpr int samples = kFloatsPerDSPVector*VECTORS;
-			if(getReadAvailable() < samples)
-			{
-				return;
-			}
+			if(getReadAvailable() < samples) return;
 			
 			const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
 			DataRegions dr = getDataRegions(currentReadIndex, samples);
@@ -122,14 +117,11 @@ namespace ml
 			size_t size2;
 		};
 		
-		size_t advanceDataIndex(size_t start, int samples);
 		size_t advanceDistanceIndex(size_t start, int samples);
 		DataRegions getDataRegions(size_t currentIdx, size_t elems);
 	};
 }
 
 
-
-// TODO multiple column DSPVectors as template!
 // TODO try small-local-storage optimization
 

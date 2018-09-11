@@ -7,7 +7,6 @@
 #define ML_PROC_DELAY_INPUT_H
 
 #include "MLProc.h"
-#include "portaudio/pa_ringbuffer.h"
 #include <vector>
 
 // ----------------------------------------------------------------

@@ -13,6 +13,8 @@
 // We need a ringbuffer if we are transferring signals backwards in the DSP graph, because we may be run 
 // with varying vector sizes.
 
+// TODO get rid of this object and have the DSP compiler add SignalBuffer objects where needed.
+
 namespace
 {
 	MLProcRegistryEntry<MLProcDelayInput> classReg("delay_input");

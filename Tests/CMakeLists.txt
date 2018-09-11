@@ -37,8 +37,9 @@ add_executable(tests
 	resourceMapTest.cpp 
 	signalTest.cpp 
 	signalBufferTest.cpp 
-	symbolTest.cpp 
-	tests.cpp 
+	symbolTest.cpp
+	timerTest.cpp
+	tests.cpp
 	tests.h 
 
 	)

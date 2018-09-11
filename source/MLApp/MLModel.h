@@ -24,7 +24,7 @@ public:
 	void startModelTimer();
 	
 private:
-    // TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
+	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
 	class ModelTimer : public juce::Timer
 	{
 	public:
