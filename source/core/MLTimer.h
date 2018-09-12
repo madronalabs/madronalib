@@ -64,18 +64,13 @@ namespace ml
 			mPreviousCall = system_clock::now();
 		}
 
-		// stop
-		void stop()
-		{
-			mCounter = 0;
-		}
-		
 		bool isActive()
 		{
 			return mCounter != 0;
 		}
 		
-
+		void stop();
+		
 	private:
 		int mCounter{0};
 		std::function<void(void)> myFunc;

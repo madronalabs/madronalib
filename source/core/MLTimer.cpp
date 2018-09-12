@@ -89,5 +89,13 @@ namespace ml
 		std::unique_lock<std::mutex> lock(Timers::theTimers().mSetMutex);
 		Timers::theTimers().erase(this);
 	}
+	
+	void Timer::stop()
+	{
+		// More lightweight ways of handling a race on mCounter are possible, but as
+		// stopping a timer is an infrequent operation we use the mutex for laziness and brevity.
+		std::unique_lock<std::mutex> lock(Timers::theTimers().mSetMutex);
+		mCounter = 0;
+	}
 
 } // namespace ml
