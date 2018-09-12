@@ -17,6 +17,12 @@ using namespace std::chrono;
 
 namespace ml
 {
+	// A simple, low-resolution timer for doing applicaton and UI tasks.
+	// Any callbacks are called synchronously from the main run loop so
+	// callbacks should not take too much time. To trigger an action
+	// that might take longer, send a message from the callback and
+	// then receive it and do the action in a private thread.
+	
 	class Timer
 	{
 		friend class Timers;
@@ -40,6 +46,15 @@ namespace ml
 			mPreviousCall = system_clock::now();
 		}
 		
+		// call the function n times, waiting the specified interval before each.
+		void callNTimes(std::function<void(void)> f, const milliseconds period, int n)
+		{
+			mCounter = n;
+			myFunc = f;
+			mPeriod = period;
+			mPreviousCall = system_clock::now();
+		}
+		
 		// start calling the function periodically. the wait period happens before the first call.
 		void start(std::function<void(void)> f, const milliseconds period)
 		{
@@ -54,6 +69,12 @@ namespace ml
 		{
 			mCounter = 0;
 		}
+		
+		bool isActive()
+		{
+			return mCounter != 0;
+		}
+		
 
 	private:
 		int mCounter{0};

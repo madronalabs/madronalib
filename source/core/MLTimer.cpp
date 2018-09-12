@@ -22,7 +22,8 @@ namespace ml
 		Timers() { }
 		~Timers() { running = false; runThread.join(); }
 		
-		// singleton: we only want one Timers instance.
+		// singleton: we only want one Timers instance. The first time a Timer object is made,
+		// this object is made and the run thread is started.
 		static Timers &theTimers()  { static Timers t; return t; }
 
 		// delete copy and move constructors and assign operators

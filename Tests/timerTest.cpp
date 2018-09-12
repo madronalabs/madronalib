@@ -18,24 +18,28 @@
 using namespace ml;
 using namespace std::chrono;
 
-/*
-typedef time_point<high_resolution_clock> myTimePoint;
-myTimePoint now()
-{
-	return high_resolution_clock::now();
-}
-*/
-
-int functionA(void)
-{
-	std::cout << "TICK\n";
-	return true;
-}
-
 
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
+
+	int sum = 0;
 	
+	// print some numbers
+	int n = 10;
+	std::vector< std::unique_ptr< Timer > > v;
+	for(int i=0; i<n; ++i)
+	{
+		v.emplace_back( std::unique_ptr< Timer > (new Timer));
+		v[i]->callNTimes([&sum](){sum += 1; std::cout << ".";}, milliseconds(100 + 20*n), 2);
+	}
+	std::this_thread::sleep_for(milliseconds(1000));
+
+	std::cout << "timer sum: " << sum << "\n";
 	
+	REQUIRE(sum == 20);
 	
+#ifdef _WINDOWS
+	system("pause");
+#endif
+
 }

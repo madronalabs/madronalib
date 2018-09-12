@@ -35,14 +35,28 @@ int main()
 	u.start(functionB, milliseconds(200));
 
 	{
-		Timer t;
-		
 		// call from lambda
+		Timer t;
 		t.start([](){ return functionA(); }, milliseconds(50));
 		std::this_thread::sleep_for(milliseconds(1000));
 	}
 	
 	u.stop();
+	std::this_thread::sleep_for(milliseconds(100));
+	
+	// print some newlines
+	Timer newlines;
+	newlines.start([=](){std::cout << "\n";}, milliseconds(100));
+	
+	// print some numbers
+	int n = 10;
+	std::vector< std::unique_ptr< Timer > > v;
+	for(int i=0; i<n; ++i)
+	{
+		v.emplace_back( std::unique_ptr< Timer > (new Timer));
+		v[i]->start([=](){std::cout << i << " ";}, milliseconds(100 + 10*n));
+		std::this_thread::sleep_for(milliseconds(100));
+	}
 	std::this_thread::sleep_for(milliseconds(1000));
 
 	std::cout << "/main\n";
