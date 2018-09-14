@@ -51,20 +51,25 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 	// test stopping timers while running
 	const int test3Size = 10;
 	{
+		int sum{0};
 		std::cout << "\n----\n";
 		std::vector< std::unique_ptr< Timer > > v3;
 		for(int i=0; i<test3Size; ++i)
 		{
 			v3.emplace_back( std::unique_ptr< Timer > (new Timer));
-			v3[i]->start([=](){std::cout << i << " ";}, milliseconds(10));
+			v3[i]->start([&sum, i](){sum++; std::cout << i << " ";}, milliseconds(10));
 		}
 		for(int i=0; i<test3Size; ++i)
 		{
 			std::this_thread::sleep_for(milliseconds(10));
 			v3[i]->stop();
 		}
+		
+		// make sure all timers have stopped
 		std::this_thread::sleep_for(milliseconds(100));
-		std::cout << "\n----\n";
+		sum = 0;
+		std::this_thread::sleep_for(milliseconds(100));
+		REQUIRE(sum == 0);
 	}
 	
 #ifdef _WINDOWS
