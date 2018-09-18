@@ -22,8 +22,8 @@
  ==============================================================================
  */
 
-#include "../../../JUCE/modules/juce_core/system/juce_TargetPlatform.h"
-#include "../../../JUCE/modules/juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
+#include "../../external/juce/JUCE/modules/juce_core/system/juce_TargetPlatform.h"
+#include "../../external/juce/JUCE/modules/juce_audio_plugin_client/utility/juce_CheckSettingMacros.h"
 
 #if JucePlugin_Build_VST
 
@@ -31,7 +31,7 @@
 #pragma warning (disable : 4996 4100)
 #endif
 
-#include "../../../JUCE/modules/juce_audio_plugin_client/utility/juce_IncludeSystemHeaders.h"
+#include "../../external/juce/JUCE/modules/juce_audio_plugin_client/utility/juce_IncludeSystemHeaders.h"
 
 #ifdef PRAGMA_ALIGN_SUPPORTED
 #undef PRAGMA_ALIGN_SUPPORTED

@@ -22,7 +22,7 @@
  ==============================================================================
  */
 
-#include "../../../JUCE/modules/juce_core/system/juce_TargetPlatform.h"
+#include "../../external/juce/JUCE/modules/juce_core/system/juce_TargetPlatform.h"
 #include "../utility/juce_CheckSettingMacros.h"
 
 #if JucePlugin_Build_AU
