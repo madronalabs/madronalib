@@ -17,8 +17,6 @@ MLChangeList::MLChangeList() : mSize(0), mChanges(0), mValue(0.f)
 	mSampleRate = 44100;
 	mValue = 0.f;
 
-	mDebugTest = false;
-	mTheta = 0.;
 	calcGlide();
 }
 

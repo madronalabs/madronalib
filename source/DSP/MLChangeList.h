@@ -50,8 +50,5 @@ private:
 	MLSample mGlideEndValue;
 	MLSignal mValueSignal;
 	MLSignal mTimeSignal;
-	
-	bool mDebugTest;
-	float mTheta;
 };
 

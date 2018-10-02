@@ -76,7 +76,6 @@ public:
 	}
 	
 	
-	
 	void process() override;
 };
 

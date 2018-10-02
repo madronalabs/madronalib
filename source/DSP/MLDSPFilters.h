@@ -515,6 +515,30 @@ namespace ml
 
 	// TODO SVF Lo shelf, hi shelf
 	
+#if 0
+	
+	// TODO try this topology-preserving transform variation from Vadim Zavalishin
+	const float g = tanf(kPi*f/sr);
+	const float h = 1.f / ( 1 + g / Q + g*g);
+	
+	for( int i=0; i < n; ++i)
+	{
+		const float in = in[i];
+		const float yH = h*(in - (1.f / Q + g) * s1 - s2);
+		
+		const float yB = g*yH + s1;
+		s1 = g*yH + yB;
+		
+		const float yL = g*yB + s2;
+		s2 = g*yB + yL;
+		
+		out[i] = yL;
+	}
+	
+	
+#endif
+	
+	
 // --------------------------------------------------------------------------------
 #pragma mark fixed delay
 	
