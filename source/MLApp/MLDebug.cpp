@@ -115,14 +115,24 @@ MLTextStream& MLConsole()
 
 // Send a message to the application or plugin’s console, if one exists. 
 //
+#if DEBUG
 MLTextStream& debug()
 {
 	static MLTextStream theDebugMessageStream("debug");
 	return theDebugMessageStream;
 }
+#else
 
+MLDummyStream::MLDummyStream(const char* name)  {}
+MLDummyStream::~MLDummyStream()  {}
+MLDummyStream& debug()
+{
+	static MLDummyStream theDebugMessageStream("dummy");
+	return theDebugMessageStream;
+}
+#endif 
 
-#endif // DBEUG_TO_COUT
+#endif // DEBUG_TO_COUT
 #if 0
 
 class MLDebugThread : public juce::Thread

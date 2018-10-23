@@ -17,6 +17,21 @@
 
 #include <sstream>
 
+class MLDummyStream
+{
+public:
+	MLDummyStream(const char* name);
+	~MLDummyStream();
+	
+	// send item to dummy stream
+	template<typename itemType>
+	MLDummyStream& (operator<<)(itemType const& item)
+	{
+		// do nothing
+		return *this;
+	}
+};
+
 class MLTextStream
 {
 public:
@@ -100,9 +115,12 @@ private:
 //#ifdef debug
 //#undef debug
 //#endif
-
-extern MLTextStream& debug();
-
+#if DEBUG
+				extern MLTextStream& debug();
+#else
+				extern MLDummyStream& debug();
+#endif // DEBUG
+				
 // extern std::ostream& debug();
 
 // Send a message to the application or plugin’s console, if one exists.
