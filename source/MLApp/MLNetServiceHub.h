@@ -23,10 +23,10 @@
 
 #include "MLDebug.h" // TEMP
 
-#define NetServiceListener ZeroConf::NetServiceListener
-#define NetServiceBrowserListener ZeroConf::NetServiceBrowserListener
-#define NetService ZeroConf::NetService
-#define NetServiceBrowser ZeroConf::NetServiceBrowser
+using ZeroConf::NetServiceListener;
+using ZeroConf::NetServiceBrowserListener;
+using ZeroConf::NetService;
+using ZeroConf::NetServiceBrowser;
 
 extern const char * kDomainLocal;
 extern const char * kServiceTypeUDP;
@@ -58,22 +58,27 @@ public:
 	std::string getHostName(const std::string& serviceName);
 	int getPort(const std::string& serviceName);
 
-	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
-	void didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
-	void didResolveAddress(NetService *pNetService);
-
-private:
+protected:
+	
+	// ZeroConf::NetServiceListener
 	void willPublish(NetService *) {}
 	void didNotPublish(NetService *) {}
 	void didPublish(NetService *pNetService) {}
 	
 	void willResolve(NetService *) {}
-	
 	void didNotResolve(NetService *) {}
+	void didResolveAddress(NetService *pNetService);
+	
 	void didUpdateTXTRecordData(NetService *) {}
 	void didStop(NetService *) {}
+	
+	// ZeroConf::NetServiceBrowserListener
 	void didFindDomain(NetServiceBrowser *, const std::string &, bool ) {}
 	void didRemoveDomain(NetServiceBrowser *, const std::string &, bool ) {}
+
+	void didFindService(NetServiceBrowser* pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
+	void didRemoveService(NetServiceBrowser *pNetServiceBrowser, NetService *pNetService, bool moreServicesComing);
+
 	void willSearch(NetServiceBrowser *) {}
 	void didNotSearch(NetServiceBrowser *) {}
 	void didStopSearch(NetServiceBrowser *) {}
