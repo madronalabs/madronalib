@@ -657,7 +657,7 @@ void MLProcInputToSignals::process()
   {
     //dumpEvents();
     //dumpVoices();
-    //dumpSignals();
+    dumpSignals();
     mFrameCounter -= sr;
   }
 }
@@ -685,204 +685,78 @@ void MLProcInputToSignals::processOSC(const int frames)
   while (mpFrameBuf->elementsAvailable() > 0)
   {
     (mpFrameBuf->pop(mLatestTouchFrame));
-    
-    // First turn touch frames into change lists, either in unison mode or not.
-    if (mUnisonMode)
-    {
-      // unison mode:
-      // on any note-on for voice v, set mUnisonInputTouch to v and all voices to track voice v.
-      // if triggerVoice = 0, retrigger envelopes.
-      // on a note-off,
-      // if v = mUnisonInputTouch, turn off all voices.
-      float ux = 0.;
-      float uy = 0.;
-      float uz = 0.;
-      float upitch = mUnisonPitch1;
-      float udx = 0.;
-      float udy = 0.;
-      
-      for (int v=0; v<mCurrentVoices; ++v)
-      {
-        Touch t = mLatestTouchFrame[v];
-        
-        if (t.z > 0.f)
-        {
-          if (mVoices[v].mZ1 <= 0.)
-          {
-            // turn unison voices on or change unison touch to newest
-            mUnisonInputTouch = v;
-            ux = mVoices[v].mStartX = t.x;
-            uy = mVoices[v].mStartY = t.y;
-            upitch = mVoices[v].mPitch = mScale.noteToLogPitch(t.note);
-            udx = 0.f;
-            udy = 0.f;
-            
-            mVoices[v].mStartVel = VelocityFromInitialZ(t.z);
-            
-            // store most recent unison start velocity
-            mUnisonVel = mVoices[v].mStartVel;
-          }
-        }
-        mVoices[v].mZ1 = t.z;
-      }
-      
-      // update unison input touch.
-      if(mUnisonInputTouch >= 0)
-      {
-        Touch ut = mLatestTouchFrame[mUnisonInputTouch];
-        
-        // if touch is removed, fall back to touch with maximum z
-        if(ut.z <= 0.f)
-        {
-          // turn unison touch off
-          mUnisonInputTouch = -1;
-          
-          float maxZ = 0;
-          for (int v=0; v<mCurrentVoices; ++v)
-          {
-            float zz = mLatestTouchFrame[v].z;
-            if(zz > maxZ)
-            {
-              maxZ = zz;
-              // found a fallback touch
-              mUnisonInputTouch = v;
-            }
-          }
-        }
-        
-        if(mUnisonInputTouch >= 0)
-        {
-          // unison continues
-          ux = ut.x;
-          uy = ut.y;
-          upitch = mScale.noteToLogPitch(ut.note);
-          udx = ux - mVoices[mUnisonInputTouch].mStartX;
-          udy = uy - mVoices[mUnisonInputTouch].mStartY;
-        }
-      }
-      
-      for (int v=0; v<mCurrentVoices; ++v)
-      {
-        const int frameTime = 1;
-        mVoices[v].mdPitch.addChange(upitch, frameTime);
-        mVoices[v].mdGate.addChange((int)(uz > 0.), frameTime);
-        mVoices[v].mdAmp.addChange(uz, frameTime);
-        mVoices[v].mdVel.addChange(mUnisonVel, frameTime);
-        mVoices[v].mdNotePressure.addChange(udx, frameTime);
-        mVoices[v].mdMod.addChange(udy, frameTime);
-        mVoices[v].mdMod2.addChange(ux*2.f - 1.f, frameTime);
-        mVoices[v].mdMod3.addChange(uy*2.f - 1.f, frameTime);
-      }
-      
-      mUnisonPitch1 = upitch;
-    }
-    else // unisonMode
-    {
-      
-      // examine all possible touches to find maximum pressure set
-      // shuffle with hysteresis into mCurrentVoices
-      
-      // move rotate option to instruments?
-      
-      /*
-       
-       
-       
-       
-       
-       
-       */
-      
-      
-      
-      
-      //    for (int v=0; v<kMaxTouches; ++v)
-      {
-        // get hash of active touches
-        
-        // if hash has changed,
-        // if there is a new active touch, find free slot for new touch with rotate
-        
-        // (generates new shuffle order)
-        
-        
-      }
-      
-      // MLTEST       we are hving to cross a zone for x to change.
-      
-      
-      
-      /*
-       
-       if( (mLatestFrame(2, 0) > 0.f) || (mLatestFrame(2, 1) > 0.f) )
-       {
-       // MLTEST
-       std::cout << "-----------------------------------\n";
-       int j = 0;
-       std::cout << j << " | " << "x:" << mLatestFrame(0, j) << " y:" <<  mLatestFrame(1, j) << " z:" << mLatestFrame(2, j) << "\n";
-       j = 1;
-       std::cout << j << " | " << "x:" << mLatestFrame(0, j) << " y:" <<  mLatestFrame(1, j) << " z:" << mLatestFrame(2, j) << "\n";
-       
-       }
-       
-       */
-      
-      for (int v=0; v<mCurrentVoices; ++v)
-      {
-        Touch t = mLatestTouchFrame[v];
-        
-        dx = 0.;
-        dy = 0.;
-        
-        if (t.z > 0.f)
-        {
-          if (mVoices[v].mZ1 <= 0.)
-          {
-            // process note on
-            mVoices[v].mStartX = t.x;
-            mVoices[v].mStartY = t.y;
-            mVoices[v].mPitch = mScale.noteToLogPitch(t.note);
-            
-            // start velocity is sent as first z value over t3d
-            mVoices[v].mStartVel = VelocityFromInitialZ(t.z);
-            dx = 0.f;
-            dy = 0.f;
-          }
-          else
-          {
-            // note continues
-            mVoices[v].mPitch = mScale.noteToLogPitch(t.note);
-            dx = t.x - mVoices[v].mStartX;
-            dy = t.y - mVoices[v].mStartY;
-          }
-          mVoices[v].mX1 = t.x;
-          mVoices[v].mY1 = t.y;
-        }
-        else
-        {
-          if (mVoices[v].mZ1 > 0.)
-          {
-            // process note off, set pitch for release
-            t.x = mVoices[v].mX1;
-            t.y = mVoices[v].mY1;
-          }
-        }
-        
-        mVoices[v].mZ1 = t.z;
-        
-        const int frameTime = 1;
-        mVoices[v].mdPitch.addChange(mVoices[v].mPitch, frameTime);
-        mVoices[v].mdGate.addChange((int)(t.z > 0.), frameTime);
-        mVoices[v].mdVel.addChange(mVoices[v].mStartVel, frameTime);
-        mVoices[v].mdAmp.addChange(t.z, frameTime);
-        
-        mVoices[v].mdNotePressure.addChange(dx, frameTime);
-        mVoices[v].mdMod.addChange(dy, frameTime);
-        mVoices[v].mdMod2.addChange(t.x*2.f - 1.f, frameTime);
-        mVoices[v].mdMod3.addChange(t.y*2.f - 1.f, frameTime);
-      }
-    }
-  }
+		Touch maxTouch{};
+		
+		if(mUnisonMode)
+		{
+			float maxZ = 0.f;
+			for (int v=0; v<mCurrentVoices; ++v)
+			{
+				Touch t = mLatestTouchFrame[v];
+				if(t.z > maxZ)
+				{
+					maxTouch = t;
+				}
+			}
+		}
+	
+		
+		for (int v=0; v<mCurrentVoices; ++v)
+		{
+			Touch t = mUnisonMode ? maxTouch : mLatestTouchFrame[v];
+			
+			dx = 0.;
+			dy = 0.;
+			
+			if (t.z > 0.f)
+			{
+				if (mVoices[v].mZ1 <= 0.)
+				{
+					// process note on
+					mVoices[v].mStartX = t.x;
+					mVoices[v].mStartY = t.y;
+					mVoices[v].mPitch = mScale.noteToLogPitch(t.note);
+					
+					// start velocity is sent as first z value over t3d
+					mVoices[v].mStartVel = VelocityFromInitialZ(t.z);
+					dx = 0.f;
+					dy = 0.f;
+				}
+				else
+				{
+					// note continues
+					mVoices[v].mPitch = mScale.noteToLogPitch(t.note);
+					dx = t.x - mVoices[v].mStartX;
+					dy = t.y - mVoices[v].mStartY;
+				}
+				mVoices[v].mX1 = t.x;
+				mVoices[v].mY1 = t.y;
+			}
+			else
+			{
+				if (mVoices[v].mZ1 > 0.)
+				{
+					// process note off, set pitch for release
+					t.x = mVoices[v].mX1;
+					t.y = mVoices[v].mY1;
+				}
+			}
+			
+			mVoices[v].mZ1 = t.z;
+			
+			const int frameTime = 1;
+			mVoices[v].mdPitch.addChange(mVoices[v].mPitch, frameTime);
+			mVoices[v].mdGate.addChange((int)(t.z > 0.), frameTime);
+			mVoices[v].mdVel.addChange(mVoices[v].mStartVel, frameTime);
+			mVoices[v].mdAmp.addChange(t.z, frameTime);
+			
+			mVoices[v].mdNotePressure.addChange(dx, frameTime);
+			mVoices[v].mdMod.addChange(dy, frameTime);
+			mVoices[v].mdMod2.addChange(t.x*2.f - 1.f, frameTime);
+			mVoices[v].mdMod3.addChange(t.y*2.f - 1.f, frameTime);
+		}
+	}
+  
 }
 
 // process control events to make change lists
