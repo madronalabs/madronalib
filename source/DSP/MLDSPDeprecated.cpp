@@ -104,10 +104,7 @@ inline void MLRandStep()
 float MLRand()
 {
 	MLRandStep();
-	uint32_t temp = (gMLRandomSeed >> 9) & 0x007FFFFF;
-	temp &= 0x007FFFFF;// DSPConstants.r2;
-	temp |= 0x3F800000; // DSPConstants.r1;
-	
+	uint32_t temp = ((gMLRandomSeed >> 9) & 0x007FFFFF) | 0x3F800000; 
 	float* pf = reinterpret_cast<float*>(&temp);
 	*pf *= 2.f;
 	*pf -= 3.f;

@@ -63,11 +63,8 @@ namespace ml
 		inline float getSample()
 		{
 			step();
-			uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
-			temp &= 0x007FFFFF;
-			temp |= 0x3F800000;
-			float* pf = reinterpret_cast<float*>(&temp);
-			return (*pf)*2.f - 3.f;	
+			uint32_t temp = ((mSeed >> 9) & 0x007FFFFF) | 0x3F800000;
+			return (*reinterpret_cast<float*>(&temp))*2.f - 3.f;	
 		}
 		
 		// TODO SIMD
@@ -77,11 +74,8 @@ namespace ml
 			for(int i=0; i<kFloatsPerDSPVector; ++i)
 			{
 				step();
-				uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
-				temp &= 0x007FFFFF;
-				temp |= 0x3F800000;
-				float* pf = reinterpret_cast<float*>(&temp);
-				y[i] = (*pf)*2.f - 3.f;		
+				uint32_t temp = ((mSeed >> 9) & 0x007FFFFF) | 0x3F800000;
+				y[i] = (*reinterpret_cast<float*>(&temp))*2.f - 3.f;		
 			}
 			return y;
 		}
