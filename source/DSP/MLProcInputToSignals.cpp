@@ -657,7 +657,7 @@ void MLProcInputToSignals::process()
   {
     //dumpEvents();
     //dumpVoices();
-    dumpSignals();
+    //dumpSignals();
     mFrameCounter -= sr;
   }
 }
