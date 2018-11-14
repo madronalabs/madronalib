@@ -86,7 +86,7 @@ template <class T> inline timedResult<T> timeIterations(std::function<T(void)> f
 	std::chrono::time_point<std::chrono::high_resolution_clock> startOne, endOne;
 	
 	T result{};
-	std::vector<double> times, goodTimes;
+	std::vector<double> times;
 	Stats<double> durationStats;
 	
 	// run once in order to prime cache
@@ -117,8 +117,11 @@ template <class T> inline timedResult<T> timeIterations(std::function<T(void)> f
 	double loBounds = mean - stdDev*0.5;
 	double hiBounds = mean + stdDev*0.5;
 	
+	// make vector of good times without outliers
+	std::vector<double> goodTimes;
 	std::copy_if(times.cbegin(), times.cend(), std::back_inserter(goodTimes), [=](double x){ return (x >= loBounds)&&(x <= hiBounds); });
 	
+	// get median of good times
 	double medianTime = 0.;
 	if(goodTimes.size() > 1)
 	{

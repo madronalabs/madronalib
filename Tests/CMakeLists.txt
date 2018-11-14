@@ -33,9 +33,9 @@ add_executable(tests
 	dspFiltersTest.cpp 
 	dspOpsTest.cpp
 	OSCTest.cpp
+	procsTest.cpp
 	queueTest.cpp
 	resourceMapTest.cpp 
-	signalTest.cpp 
 	signalBufferTest.cpp 
 	symbolTest.cpp
 	timerTest.cpp
