@@ -77,6 +77,6 @@ namespace ml
 		milliseconds mPeriod;
 		time_point<system_clock> mPreviousCall;
 	};
-
 } // namespace ml
+
 

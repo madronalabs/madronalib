@@ -28,8 +28,8 @@ TEST_CASE("madronalib/core/procs", "[procs]")
 	pm->setInput("foo", va);
 	pm->setInput("bar", vb);
 	pm->setOutput("baz", vc);
-	
 	pm->process();
+	
 	REQUIRE(vc == multiply(va, vb));
 	
 	std::cout << "output: " << vc << "\n";	
