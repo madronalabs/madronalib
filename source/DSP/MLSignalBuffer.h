@@ -99,6 +99,32 @@ namespace ml
 			}
 		}
 		
+		// read a single DSPVector from the buffer, advancing the read index.
+		DSPVector read()
+		{
+			DSPVector destVec;
+			constexpr int samples = kFloatsPerDSPVector;
+			if(getReadAvailable() < samples) return DSPVector{};
+			
+			const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+			DataRegions dr = getDataRegions(currentReadIndex, samples);
+			
+			if(!dr.p2)
+			{
+				// we have only one region, so we can copy a number of samples known at compile time.
+				mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+				load(destVec, dr.p1);
+			}
+			else
+			{
+				float* pDest = destVec.getBuffer();
+				std::copy(dr.p1, dr.p1 + dr.size1, pDest);
+				std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
+				mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+			}
+			return destVec;
+		}
+		
 	private:
 		std::vector<float> mData;
 		float* mDataBuffer;

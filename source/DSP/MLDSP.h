@@ -19,6 +19,7 @@
 #define snprintf _snprintf
 #endif 
 
+#include "../core/MLProperty.h"
 #include "MLDSPOps.h"
 #include "MLDSPFilters.h"
 #include "MLDSPGens.h"

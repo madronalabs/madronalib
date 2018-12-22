@@ -15,12 +15,12 @@ if(BUILD_NEW_ONLY)
    set(madronalib_SOURCES
     core/MLPath.cpp
     core/MLPath.h
-		core/MLProjection.cpp
-		core/MLProjection.h
-		core/MLProperty.cpp
-		core/MLProperty.h
+    core/MLProjection.cpp
+    core/MLProjection.h
+    core/MLProperty.cpp
+    core/MLProperty.h
     core/MLQueue.h
-		core/MLResourceMap.h
+    core/MLResourceMap.h
     core/MLScalarMath.cpp
     core/MLSignal.cpp
     core/MLSignal.h
@@ -29,21 +29,21 @@ if(BUILD_NEW_ONLY)
     core/MLText.h
     core/MLText.cpp
     core/MLTextUtils.cpp
-		core/MLTimer.cpp
-		core/MLTimer.h
+    core/MLTimer.cpp
+    core/MLTimer.h
     DSP/MLDSP.cpp
     DSP/MLDSP.h
+		DSP/MLDSPFilters.cpp
+		DSP/MLDSPFilters.h
+		DSP/MLDSPGens.cpp
+		DSP/MLDSPGens.h
+		DSP/MLDSPMath.h
+		DSP/MLDSPMathNEON.h
+		DSP/MLDSPMathScalar.h
+		DSP/MLDSPMathSSE.h
     DSP/MLDSPOps.cpp
     DSP/MLDSPOps.h
-    DSP/MLDSPGens.cpp
-    DSP/MLDSPGens.h
-    DSP/MLDSPFilters.cpp
-    DSP/MLDSPFilters.h
-    DSP/MLDSPMath.h
-    DSP/MLDSPMathScalar.h
-    DSP/MLDSPMathSSE.h
-		DSP/MLDSPMathNEON.h
-		DSP/MLDSPUtils.h
+    DSP/MLDSPUtils.h
     DSP/MLSignalBuffer.cpp
     DSP/MLSignalBuffer.h
     procs/MLProc.cpp
@@ -86,8 +86,8 @@ else(BUILD_NEW_ONLY)
     core/MLText.cpp
     core/MLTextUtils.cpp
     core/MLTextUtils.h
-		core/MLTimer.cpp
-		core/MLTimer.h
+    core/MLTimer.cpp
+    core/MLTimer.h
     core/MLVectorDeprecated.cpp
     core/MLVectorDeprecated.h
     DSP/MLDSP.cpp
@@ -100,11 +100,11 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPGens.h
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
-		DSP/MLDSPMath.h
-		DSP/MLDSPMathScalar.h
-		DSP/MLDSPMathSSE.h
-		DSP/MLDSPMathNEON.h
-		DSP/MLDSPUtils.h
+    DSP/MLDSPMath.h
+    DSP/MLDSPMathScalar.h
+    DSP/MLDSPMathSSE.h
+    DSP/MLDSPMathNEON.h
+    DSP/MLDSPUtils.h
     DSP/MLChangeList.cpp
     DSP/MLChangeList.h
     DSP/MLControlEvent.cpp
@@ -176,7 +176,7 @@ else(BUILD_NEW_ONLY)
     DSP/MLProcThru.cpp
     DSP/MLRatio.cpp
     DSP/MLRatio.h
-		DSP/MLScale.cpp
+    DSP/MLScale.cpp
     DSP/MLScale.h
     DSP/MLSignalBuffer.cpp
     DSP/MLSignalBuffer.h

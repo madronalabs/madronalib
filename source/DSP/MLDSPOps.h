@@ -359,7 +359,7 @@ namespace ml
 			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*J;
 			return py1;
 		}		
-						
+		
 		inline DSPVectorArray& operator+=(const DSPVectorArray& x1){*this = add(*this, x1); return *this;}
 		inline DSPVectorArray& operator-=(const DSPVectorArray& x1){*this = subtract(*this, x1); return *this;}
 		inline DSPVectorArray& operator*=(const DSPVectorArray& x1){*this = multiply(*this, x1); return *this;}

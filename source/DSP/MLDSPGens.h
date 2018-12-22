@@ -43,11 +43,11 @@ namespace ml
 		int mPeriod;
 	};
 	
-	class RandomSource
+	class NoiseGen
 	{
 	public:
-		RandomSource() : mSeed(0) {}
-		~RandomSource() {}
+		NoiseGen() : mSeed(0) {}
+		~NoiseGen() {}
 		
 		inline void step()
 		{
