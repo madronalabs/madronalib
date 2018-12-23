@@ -8,7 +8,7 @@
 #include <atomic>
 #include <vector>
 
-#include "MLDSP.h"
+#include "MLDSPOps.h"
 
 namespace ml
 {

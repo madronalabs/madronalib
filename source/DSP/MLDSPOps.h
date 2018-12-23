@@ -355,10 +355,26 @@ namespace ml
 		template<int J>
 		inline const float* getRowDataConst() const
 		{
-			static_assert((J >= 0) && (J < VECTORS), "getRowDataConst row index out of bounds"); 
+			static_assert((J >= 0) && (J < VECTORS), "getRowDataConst row index out of bounds");
 			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*J;
 			return py1;
-		}		
+		}
+		
+		// return a reference to a row of this DSPVectorArray.
+		inline DSPVectorArray<1>& row(int j)
+		{
+			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
+			DSPVectorArray<1>* pRow = reinterpret_cast<DSPVectorArray<1>*>(py1);
+			return *pRow;
+		}
+		
+		// return a reference to a row of this DSPVectorArray.
+		inline const DSPVectorArray<1>& constRow(int j) const
+		{
+			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*j;
+			const DSPVectorArray<1>* pRow = reinterpret_cast<const DSPVectorArray<1>*>(py1);
+			return *pRow;
+		}
 		
 		inline DSPVectorArray& operator+=(const DSPVectorArray& x1){*this = add(*this, x1); return *this;}
 		inline DSPVectorArray& operator-=(const DSPVectorArray& x1){*this = subtract(*this, x1); return *this;}
@@ -804,16 +820,28 @@ namespace ml
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
 	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&)> f, const DSPVectorArray<VECTORS>& x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int j=0; j<VECTORS; ++j)
+		{
+			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j)));
+		}
+		return y;
+	}
+	
+	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
+	template<int VECTORS>
 	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&, int)> f, const DSPVectorArray<VECTORS>& x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
 		{
 			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j), j));
-		}			
+		}
 		return y;
 	}
-
+	
 	// ----------------------------------------------------------------
 	// rowIndex
 	

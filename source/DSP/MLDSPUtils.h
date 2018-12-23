@@ -6,6 +6,8 @@
 #pragma once
 
 #include "../core/MLProjection.h"
+#include "MLSignalBuffer.h"
+#include <array>
 
 namespace ml
 {
@@ -38,5 +40,63 @@ namespace ml
 			const float a4 = 0.006947368;
 			return a0 - a1*cosf(kTwoPi*x) + a2*cosf(2.f*kTwoPi*x) - a3*cosf(3.f*kTwoPi*x) + a4*cosf(4.f*kTwoPi*x); } );
 	}
+	
+	// VectorProcessBuffer: utility class to serve a main loop with varying arbitrary chunk sizes, buffer inputs and outputs,
+	// and compute DSP in DSPVector-sized chunks
+	template<int VECTORS, int MAX_FRAMES>
+	class VectorProcessBuffer
+	{
+	public:
+		VectorProcessBuffer()
+		{
+			for(int i=0; i < VECTORS; ++i)
+			{
+				mInputBuffers[i].resize(MAX_FRAMES);
+				mOutputBuffers[i].resize(MAX_FRAMES);
+			}
+		}
+		
+		~VectorProcessBuffer(){}
+		
+		void process(float** inputs, float** outputs, int nChans, int nFrames, std::function<DSPVectorArray<VECTORS>(const DSPVectorArray<VECTORS>&, int chans)> fn)
+		{
+			// write
+			for(int c = 0; c < nChans; c++)
+			{
+				mInputBuffers[c].write(inputs[c], nFrames);
+			}
+			
+			// process
+			DSPVectorArray<VECTORS> inputVectors;
+			DSPVectorArray<VECTORS> outputVectors;
+			while(mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
+			{
+				// buffers to process input
+				for(int c = 0; c < nChans; c++)
+				{
+					inputVectors.setRowVectorUnchecked(c, mInputBuffers[c].read());
+				}
+				
+				outputVectors = fn(inputVectors, nChans);
+				
+				for(int c = 0; c < nChans; c++)
+				{
+					mOutputBuffers[c].write(outputVectors.getRowVectorUnchecked(c));
+				}
+			}
+			
+			// read
+			for(int c = 0; c < nChans; c++)
+			{
+				mOutputBuffers[c].read(outputs[c], nFrames);
+			}
+		}
+		
+	private:
+		std::array<ml::SignalBuffer, VECTORS> mInputBuffers;
+		std::array<ml::SignalBuffer, VECTORS> mOutputBuffers;
+		
+	};
+	
 }
 
