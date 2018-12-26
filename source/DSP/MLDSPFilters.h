@@ -505,42 +505,10 @@ namespace ml
 		{
 			float a1, a2, a3, m1, m2;
 		};
-		inline coeffs atOmegaKAndGain(float omega, float k, float gain)
-		{
-			float piOmega = kPi*omega;
-			float A = powf(10.f, gain/40.f);
-			float g = tanf(piOmega)/sqrtf(A);
-			
-			float a1 = 1.f/(1.f + g*(g + k));
-			float a2 = g*a1;
-			float a3 = g*a2;
-			
-			float m1 = k*(A - 1.f);
-			float m2 = (A*A - 1.f);
-			
-			return {a1, a2, a3, m1, m2};
-		}
 		
 		LoShelf() { setCoeffs({0.}); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const coeffs& c) { mC = c; }
-		
-		// MLTEST
-		inline float processSample(float x)
-		{
-				float v0 = x;
-				float v3 = v0 - ic2eq;
-				
-				float v1 = mC.a1*ic1eq + mC.a2*v3;
-				float v2 = ic2eq + mC.a2*ic1eq + mC.a3*v3;
-				
-				ic1eq = 2*v1 - ic1eq;
-				ic2eq = 2*v2 - ic2eq;				
-				
-				float y = v0 + mC.m1*v1 + mC.m2*v2;
-				
-			return y;
-		}
 		
 		inline DSPVector operator()(const DSPVector& vx)
 		{
@@ -565,6 +533,22 @@ namespace ml
 		float ic1eq, ic2eq;
 	};
 	
+	inline LoShelf::coeffs LoShelfCoeffs(float omega, float k, float gain)
+	{
+		float piOmega = kPi*omega;
+		float A = powf(10.f, gain/40.f);
+		float g = tanf(piOmega)/sqrtf(A);
+		
+		float a1 = 1.f/(1.f + g*(g + k));
+		float a2 = g*a1;
+		float a3 = g*a2;
+		
+		float m1 = k*(A - 1.f);
+		float m2 = (A*A - 1.f);
+		
+		return {a1, a2, a3, m1, m2};
+	}
+
 	
 	class HiShelf
 	{
@@ -577,24 +561,7 @@ namespace ml
 		HiShelf() { setCoeffs({0.}); clear(); }
 		void clear() { ic1eq = ic2eq = 0.f; }
 		void setCoeffs(const coeffs& c) { mC = c; }
-		
-		// MLTEST
-		inline float processSample(float x)
-		{
 
-				float v0 = x;
-				float v3 = v0 - ic2eq;
-				
-				float v1 = mC.a1*ic1eq + mC.a2*v3;
-				float v2 = ic2eq + mC.a2*ic1eq + mC.a3*v3;
-				
-				ic1eq = 2*v1 - ic1eq;
-				ic2eq = 2*v2 - ic2eq;				
-				
-				float y = mC.m0*v0 + mC.m1*v1 + mC.m2*v2;
-	
-			return y;
-		}
 		inline DSPVector operator()(const DSPVector& vx)
 		{
 			DSPVector vy;

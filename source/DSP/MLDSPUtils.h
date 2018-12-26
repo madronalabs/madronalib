@@ -66,9 +66,10 @@ namespace ml
 				mInputBuffers[c].write(inputs[c], nFrames);
 			}
 			
-			// process
 			DSPVectorArray<VECTORS> inputVectors;
 			DSPVectorArray<VECTORS> outputVectors;
+			
+			// process
 			while(mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
 			{
 				// buffers to process input
@@ -95,7 +96,6 @@ namespace ml
 	private:
 		std::array<ml::SignalBuffer, VECTORS> mInputBuffers;
 		std::array<ml::SignalBuffer, VECTORS> mOutputBuffers;
-		
 	};
 	
 }
