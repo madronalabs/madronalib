@@ -18,6 +18,7 @@
 
 namespace ml
 {		
+	// TODO replace with antialiased ImpulseGen
 	class TickSource
 	{
 	public:

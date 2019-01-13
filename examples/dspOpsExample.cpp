@@ -54,69 +54,28 @@ int main()
 	DSPVectorInt iv2(truncateFloatToInt(columnIndex()));
 	std::cout << "int index: " << iv2 << "\n\n";
 
-	RandomSource r;
-	DSPVectorInt iv3(truncateFloatToInt(r()*DSPVector(64.f)));
-	std::cout << "rand ints: " << iv3 << "\n\n";
-
-//	DSPVectorArray<4> f;
+	NoiseGen r;
+	DSPVectorInt iv3(truncateFloatToInt(r()*DSPVector(64)));
+	std::cout << "rand ints in [-64, 64]: " << iv3 << "\n\n";
 	
-//	auto f = repeat<4>(columnIndex());
-//	f.setRowVector<1>(columnIndex()*2);
-//	f.setRowVector(3, columnIndex()*2);
-					  
-//	f = map( [](float x){ return x + ml::rand()*0.01; }, f );
-//	f = map( [](DSPVector v, int row){ return v*row; }, f );
-// 	f = row( DSPVectorArray<4>() ) * repeat<4>(columnIndex()) ;
+	// for filters example / test
+	FDN<4> f;
+	// NOTE: the minimum possible delay time is kFloatsPerDSPVector.
+	f.setDelayTimesInSamples({{67, 73, 91, 103}}); 
+	f.setFilterCutoffs({{0.1f, 0.2, 0.3f, 0.4f}});
+	f.mFeedbackGains = {{0.5f, 0.5f, 0.5f, 0.5f}};
+	DSPVector silence, impulse;
+	impulse[0] = 1.f;
+	std::cout << "silence:" << silence << "\n";
+	std::cout << "impulse:" << impulse << "\n";
+	std::cout << f(impulse) << "\n";
+	std::cout << f(impulse) << "\n";
+	std::cout << f(impulse) << "\n";
 	
-//	constexpr int iters = 100;
+	OnePole op;
+	op.mCoeffs = OnePole::coeffs(0.5f*kTwoPi);
+	std::cout << op(impulse) << "\n";
 	
-//	auto doFDNVector = [&](){ return map([](DSPVector v, int row){ return sin(rangeClosed(0 + row*kPi/2, kPi + row*kPi/2)); }, DSPVectorArray<ROWS>() ); } ;	
-//	auto doFDNVector = [&](){ return rowIndex( DSPVectorArray<ROWS>() ); } ;
-//	auto fdnTimeVector = timeIterations< DSPVectorArray<ROWS> >(doFDNVector, iters);
-	
-	/*
-	auto rr = rowIndex<3>();
-	auto qq = repeat<3>(rr);
-	std::cout << qq << "\n";
-*/
-	
-	/*
-	// ----------------------------------------------------------------
-	// time FDN: scalars
-	int iters = 10;
-	float sr = 44100.f;
-	
-	MLSignal freqs({10000, 11000, 12000, 14000});
-	freqs.scale(kTwoPi/sr);
-
-	static FDN fdn
-	{ 
-		{"delays", {69, 70, 71, 72} },
-		{"cutoffs", freqs } , // TODO more functional rewrite of MLSignal so we can create freqs inline
-		{"gains", {0.99, 0.99, 0.99, 0.99} }
-	};
-
-	DSPVector input(0);
-	input[0] = 1;
-	
-	fdn(input);
-	input = 0;
-	auto doFDNVector = [&](){return fdn(input);};
-
-	// note: fdn returns a DSPVectorArray<2>, so we need to pass this template parameter to timeIterations().
-	auto fdnTimeVector = timeIterations< DSPVectorArray<2> >(doFDNVector, iters);
-	std::cout << "VECTOR time: " << fdnTimeVector.elapsedTime << "\n";
-	std::cout << fdnTimeVector.result << "\n";
-	 */
-	
-	
-
-	DSPVector m(3.f);
-	DSPVector n(r());
-	
-	DSPVector a = m + n;
-	
-	std::cout << "sum: " << a << "\n";
 	
 #ifdef _WINDOWS
 	system("pause");

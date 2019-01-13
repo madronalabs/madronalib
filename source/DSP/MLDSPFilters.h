@@ -15,12 +15,11 @@
 
 #include "MLDSPOps.h"
 #include "MLDSPGens.h" // MLTEST
-//#include "MLSignal.h" // MLTEST make new class!
+//#include "MLSignal.h" // MLTEST make new class! only FDN properties are left --- remove Symbols / Signals from FDN.
 #include "../core/MLProperty.h"
 
 namespace ml
 {
-	
 	class Biquad
 	{
 	public:
@@ -101,58 +100,7 @@ namespace ml
 			float b2 = (1.f - alpha) / b0;
 			return coeffs{a0, a1, a2, -b1, -b2};
 		}
-		
-		inline coeffs onePole(float omega)
-		{
-			float x = expf(-omega);
-			float a0 = 1.f - x;
-			float a1 = 0.f;
-			float a2 = 0.f;
-			float b1 = -x;
-			float b2 = 0.f;
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-		
-		inline coeffs loShelf(float omega, float q, float gain)
-		{
-			// lowShelf: H(s) = A * (s^2 + (sqrt(A)/Q)*s + A)/(A*s^2 + (sqrt(A)/Q)*s + 1)
-			float A = gain;
-			float aMinus1 = A - 1.0f;
-			float aPlus1 = A + 1.0f;
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float beta = 2.0f*sqrtf(A)*alpha;
-			
-			float b0 = aPlus1 + aMinus1*cosOmega + beta;			
-			float a0 = (A*(aPlus1 - aMinus1*cosOmega + beta)) / b0;
-			float a1 = (A*(aPlus1*-2.0f*cosOmega + 2.0f*aMinus1)) / b0;
-			float a2 = (A*(aPlus1 - aMinus1*cosOmega - beta)) / b0;
-			float b1 = (aPlus1*-2.0f*cosOmega - 2.0f*aMinus1) / b0;
-			float b2 = (aPlus1 + aMinus1*cosOmega - beta) / b0;
-			
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-		
-		inline coeffs hiShelf(float omega, float q, float gain)
-		{
-			// highShelf: H(s) = A * (A*s^2 + (sqrt(A)/Q)*s + 1)/(s^2 + (sqrt(A)/Q)*s + A)
-			float A = gain;
-			float aMinus1 = A - 1.0f;
-			float aPlus1 = A + 1.0f;
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float beta = 2.0f*sqrtf(A)*alpha;
-			
-			float b0 = aPlus1 - aMinus1*cosOmega + beta;			
-			float a0 = (A*(aPlus1 + aMinus1*cosOmega + beta)) / b0;
-			float a1 = (A*(aPlus1*-2.0f*cosOmega + -2.0f*aMinus1)) / b0;
-			float a2 = (A*(aPlus1 + aMinus1*cosOmega - beta)) / b0;
-			float b1 = (aPlus1*-2.0f*cosOmega + 2.0f*aMinus1) / b0;
-			float b2 = (aPlus1 - aMinus1*cosOmega - beta) / b0;
-			
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-		
+
 		inline coeffs multiplyGain(coeffs xc, float g)
 		{
 			coeffs yc = xc;
@@ -243,75 +191,6 @@ namespace ml
 		float x1, x2, y1, y2;
 	};
 	
-	namespace onePoleCoeffs
-	{
-		inline MLSignal passthru()
-		{
-			return MLSignal{1.f, 0.f};
-		}
-		
-		//TODO this can just return a float
-		inline MLSignal onePole(float omega)
-		{
-			float x = expf(-omega);
-			float a0 = 1.f - x;
-			float b1 = -x;
-			return MLSignal{a0, -b1};
-		}
-	}
-	
-	class OnePole
-	{
-	public:
-		OnePole() { setCoeffs(onePoleCoeffs::passthru()); clear(); }
-		
-		OnePole(const MLSignal& coeffs) { setCoeffs(coeffs); clear(); }
-		~OnePole() {}
-		
-		void clear()
-		{
-			y1 = 0.f;
-		}
-		
-		void setCoeffs(const MLSignal& coeffs)
-		{
-			a0 = coeffs[0];
-			b1 = coeffs[1];
-		}
-		
-		inline DSPVector operator()(const DSPVector& vx)
-		{
-			DSPVector vy;
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				float fx = vx[n];
-				const float fy = a0*fx + b1*y1;
-				y1 = fy;
-				vy[n] = fy;
-			}
-			return vy;
-		}
-		
-		inline DSPVector operator()(const DSPVector& vx, const DSPVectorArray<2>& vc)
-		{
-			DSPVector vy;
-			const float * pA0 = vc.getRowDataConst<0>();
-			const float * pB1 = vc.getRowDataConst<1>();
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				float fx = vx[n];
-				const float fy = pA0[n]*fx + pB1[n]*y1;
-				y1 = fy;
-				vy[n] = fy;
-			}
-			return vy;
-		}
-		
-	private:
-		float a0, b1;
-		float y1;
-	};
-	
 	class DCBlocker
 	{
 	public:
@@ -348,7 +227,7 @@ namespace ml
 	
 	// --------------------------------------------------------------------------------
 	// SVF variations
-	// Thanks to Andrew Simper [www.cytomic.com] for sharing his work.
+	// Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the years.
 	
 	// TODO: time-varying coefficients, time-varying operators for each SVF type
 	
@@ -500,15 +379,29 @@ namespace ml
 	
 	class LoShelf
 	{
-	public:				
-		struct coeffs
+	private:	
+		struct _coeffs
 		{
 			float a1, a2, a3, m1, m2;
 		};
 		
-		LoShelf() { setCoeffs({0.}); clear(); }
-		void clear() { ic1eq = ic2eq = 0.f; }
-		void setCoeffs(const coeffs& c) { mC = c; }
+		float ic1eq{0};
+		float ic2eq{0};		
+		
+	public:						
+		_coeffs mCoeffs{0};
+
+		static _coeffs coeffs (float omega, float k, float A)
+		{
+			float piOmega = kPi*omega;
+			float g = tanf(piOmega)/sqrtf(A);
+			float a1 = 1.f/(1.f + g*(g + k));
+			float a2 = g*a1;
+			float a3 = g*a2;
+			float m1 = k*(A - 1.f);
+			float m2 = (A*A - 1.f);
+			return {a1, a2, a3, m1, m2};
+		}
 		
 		inline DSPVector operator()(const DSPVector& vx)
 		{
@@ -517,93 +410,92 @@ namespace ml
 			{
 				float v0 = vx[n];
 				float v3 = v0 - ic2eq;
-				
-				float v1 = mC.a1*ic1eq + mC.a2*v3;
-				float v2 = ic2eq + mC.a2*ic1eq + mC.a3*v3;
-				
+				float v1 = mCoeffs.a1*ic1eq + mCoeffs.a2*v3;
+				float v2 = ic2eq + mCoeffs.a2*ic1eq + mCoeffs.a3*v3;
 				ic1eq = 2*v1 - ic1eq;
 				ic2eq = 2*v2 - ic2eq;				
-				
-				vy[n] = v0 + mC.m1*v1 + mC.m2*v2;
+				vy[n] = v0 + mCoeffs.m1*v1 + mCoeffs.m2*v2;
 			}		
 			return vy;
 		}
-	private:	
-		coeffs mC;
-		float ic1eq, ic2eq;
 	};
-	
-	inline LoShelf::coeffs LoShelfCoeffs(float omega, float k, float gain)
-	{
-		float piOmega = kPi*omega;
-		float A = powf(10.f, gain/40.f);
-		float g = tanf(piOmega)/sqrtf(A);
-		
-		float a1 = 1.f/(1.f + g*(g + k));
-		float a2 = g*a1;
-		float a3 = g*a2;
-		
-		float m1 = k*(A - 1.f);
-		float m2 = (A*A - 1.f);
-		
-		return {a1, a2, a3, m1, m2};
-	}
-
 	
 	class HiShelf
 	{
-	public:				
-		struct coeffs
+	private:
+		float ic1eq{0};
+		float ic2eq{0};		
+
+		struct _coeffs
 		{
 			float a1, a2, a3, m0, m1, m2;
 		};
 				
-		HiShelf() { setCoeffs({0.}); clear(); }
-		void clear() { ic1eq = ic2eq = 0.f; }
-		void setCoeffs(const coeffs& c) { mC = c; }
+	public:			
+		_coeffs mCoeffs{0};
 
+		static _coeffs coeffs (float omega, float k, float A)
+		{
+			float piOmega = kPi*omega;
+			float g = tanf(piOmega)*sqrtf(A);
+			float a1 = 1.f/(1.f + g*(g + k));
+			float a2 = g*a1;
+			float a3 = g*a2;
+			float m0 = A*A;
+			float m1 = k*(1.f - A)*A;
+			float m2 = (1.f - A*A);
+			return {a1, a2, a3, m0, m1, m2};
+		}
+		
 		inline DSPVector operator()(const DSPVector& vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
 			{
 				float v0 = vx[n];
-				float v3 = v0 - ic2eq;
-				
-				float v1 = mC.a1*ic1eq + mC.a2*v3;
-				float v2 = ic2eq + mC.a2*ic1eq + mC.a3*v3;
-				
+				float v3 = v0 - ic2eq;				
+				float v1 = mCoeffs.a1*ic1eq + mCoeffs.a2*v3;
+				float v2 = ic2eq + mCoeffs.a2*ic1eq + mCoeffs.a3*v3;				
 				ic1eq = 2*v1 - ic1eq;
-				ic2eq = 2*v2 - ic2eq;				
-				
-				vy[n] = mC.m0*v0 + mC.m1*v1 + mC.m2*v2;
+				ic2eq = 2*v2 - ic2eq;								
+				vy[n] = mCoeffs.m0*v0 + mCoeffs.m1*v1 + mCoeffs.m2*v2;
 			}		
 			return vy;
 		}
-	private:	
-		coeffs mC;
-		float ic1eq, ic2eq;
 	};
 	
-	inline HiShelf::coeffs HiShelfCoeffs(float omega, float k, float gain)
+	class OnePole
 	{
-		float piOmega = kPi*omega;
-		float A = powf(10.f, gain/40.f);
-		float g = tanf(piOmega)*sqrtf(A);
+	private:
+		float mY1{0};
+		struct _coeffs
+		{
+			float a0, b1;
+		};
 		
-		float a1 = 1.f/(1.f + g*(g + k));
-		float a2 = g*a1;
-		float a3 = g*a2;
+	public:
+		_coeffs mCoeffs{0};
 		
-		float m0 = A*A;
-		float m1 = k*(1.f - A)*A;
-		float m2 = (1.f - A*A);
+		static _coeffs coeffs (float omega)
+		{
+			float x = expf(-omega*kTwoPi);
+			return {1.f - x, x};
+		}
 		
-		return {a1, a2, a3, m0, m1, m2};
-	}
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				mY1 = mCoeffs.a0*vx[n] + mCoeffs.b1*mY1;
+				vy[n] = mY1;
+			}
+			return vy;
+		}
+	};
 	
 	// --------------------------------------------------------------------------------
-	// a simple uninterpolated delay with no feedback.
+	// FixedDelay: a simple uninterpolated delay with no feedback.
 	
 	class FixedDelay
 	{
@@ -688,37 +580,95 @@ namespace ml
 		uintptr_t mLengthMask;
 	};
 	
-	
 	// TODO crossfading allpass delay as described at ICMC97 by Van Duyne et al
 	// class AllpassDelay
 	
 	// ----------------------------------------------------------------
-#pragma mark FDN
-	
+	// FDN	
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
+	
+	template<int SIZE>
 	class FDN
 	{
 	public:
-		FDN(std::initializer_list<MLPropertyChange> p);
-		~FDN(){}
+		void setDelayTimesInSamples(std::array<float, SIZE> times)
+		{			
+			for(int n=0; n<SIZE; ++n)
+			{
+				// we have one DSPVector feedback latency, so compensate delay times for that.
+				int len = times[n] - kFloatsPerDSPVector;
+				len = max(1, len);
+				mDelays[n].setDelayInSamples(len);
+			}
+		}
 		
-		void setProperty(Symbol name, MLProperty value);
-		
-		void clear();
+		void setFilterCutoffs(std::array<float, SIZE> omegas)
+		{
+			for(int n=0; n<SIZE; ++n)
+			{
+				mFilters[n].mCoeffs = ml::OnePole::coeffs(omegas[n]);
+			}
+		}
 		
 		// stereo output
-		DSPVectorArray<2> operator()(const DSPVector& x);
-		
+		DSPVectorArray<2> operator()(const DSPVector x)
+		{
+			// run delays, getting DSPVector for each delay 
+			for(int n=0; n<SIZE; ++n)
+			{
+				mDelayInputVectors[n] = mDelays[n](mDelayInputVectors[n]);
+			}
+			
+			// get output sum
+			DSPVector sumR, sumL;
+			for(int n=0; n<(SIZE&(~1)); ++n)
+			{
+				if(n&1)
+				{
+					sumL += mDelayInputVectors[n];
+				}
+				else
+				{
+					sumR += mDelayInputVectors[n];
+				}
+			}
+			
+			// inputs = input gains*input sample + filters(M*delay outputs)
+			// The feedback matrix M is a unit-gain Householder matrix, which is just 
+			// the identity matrix minus a constant k, where k = 2/size. Since this can be
+			// simplified so much, you just see a few operations here, not a general 
+			// matrix multiply.
+			
+			DSPVector sumOfDelays;	
+			for(int n=0; n<SIZE; ++n)
+			{
+				sumOfDelays += mDelayInputVectors[n];
+			}
+			sumOfDelays *= DSPVector(2.0f/SIZE);
+			
+			for(int n=0; n<SIZE; ++n)
+			{
+				mDelayInputVectors[n] -= (sumOfDelays);
+				mDelayInputVectors[n] = mFilters[n](mDelayInputVectors[n]) * DSPVector(mFeedbackGains[n]);
+				mDelayInputVectors[n] += x;
+			}	
+			
+			return append(sumL, sumR);
+		}
+
+		// feedback gains array is public—just copy values to set. 
+		std::array<float, SIZE> mFeedbackGains{{0}};
+
 	private:
-		std::vector<FixedDelay> mDelays;
-		std::vector<Biquad> mFilters; // TODO onepole bank object		
-		std::vector<DSPVector> mDelayInputVectors;
-		MLSignal mFeedbackGains;
+		std::array<FixedDelay, SIZE> mDelays;
+		std::array<OnePole, SIZE> mFilters; 
+		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
 	};
 	
 	
+	
 	// ----------------------------------------------------------------
-#pragma mark OverlapAdd
+	// OverlapAdd
 	
 	template<int LENGTH, int DIVISIONS>
 	class OverlapAdd
@@ -742,12 +692,12 @@ namespace ml
 	};
 	
 	// ----------------------------------------------------------------
-#pragma mark Resampling
+	// Resampling
+		
 	
-	
-	
+		
 	// ----------------------------------------------------------------
-#pragma mark HalfBandFilter
+	// Half Band Filter
 	
 	class HalfBandFilter
 	{
@@ -841,7 +791,7 @@ namespace ml
 		return y;
 	}
 	
-	// WIP TODO multiple params using vriadic template maybe
+	// WIP TODO multiple params using variadic template maybe
 	// can't use rows because we woud like multi-row params
 	class Upsample2
 	{

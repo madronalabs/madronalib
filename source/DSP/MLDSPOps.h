@@ -163,14 +163,10 @@ namespace ml
 		constexpr DSPVectorArray(float(*fn)(int)) : DSPVectorArray(_fillerFn<VECTORS>(fn)) {}
 #endif
 
-		// default ctor:
-		// in debug builds: fill (including unaligned junk space) with debug const
+		// default ctor: zero 
 		DSPVectorArray() 
 		{ 
-#if _DEBUG
-			const float kDebugConst = 1.111f;
-			mData.mArrayData.fill(kDebugConst);
-#endif
+			mData.mArrayData.fill(0.f);
 		}
 
 		explicit DSPVectorArray(float k) { operator=(k); }
