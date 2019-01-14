@@ -73,9 +73,12 @@ int main()
 	std::cout << f(impulse) << "\n";
 	
 	OnePole op;
-	op.mCoeffs = OnePole::coeffs(0.5f*kTwoPi);
+	op.mCoeffs = OnePole::coeffs(0.005f*kTwoPi);
 	std::cout << op(impulse) << "\n";
 	
+	// does op = OnePole() work as clear() ? 
+	op = OnePole();
+	std::cout << op(silence) << "\n";
 	
 #ifdef _WINDOWS
 	system("pause");

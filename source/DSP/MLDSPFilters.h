@@ -10,14 +10,14 @@
 // These objects are for building fixed DSP graphs in a functional style. The compiler should 
 // have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,
 // see MLProcs. In general MLProcs will be written using DSPGens, DSPOps, DSPFilters.
+//
+// Filter cutoffs are set by a parameter omega, equal to frequency / sample rate. This lets
+// filter objects be unaware of the sample rate, resulting in less code overall.
 
 #pragma once
 
 #include "MLDSPOps.h"
-#include "MLDSPGens.h" // MLTEST
-//#include "MLSignal.h" // MLTEST make new class! only FDN properties are left --- remove Symbols / Signals from FDN.
-#include "../core/MLProperty.h"
-
+#include <vector>
 namespace ml
 {
 	class Biquad
@@ -500,30 +500,27 @@ namespace ml
 	class FixedDelay
 	{
 	public:
-		FixedDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
+		FixedDelay(int d) { setDelayInSamples(d); }
 		FixedDelay() {}
 		~FixedDelay() {}
 		
 		void setMaxDelayInSamples(int dMax)
 		{
-			mBuffer.setDims(dMax + kFloatsPerDSPVector);
-			mLengthMask = (1 << mBuffer.getWidthBits() ) - 1; // TODO MLSignal::getLengthMask?
+			int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
+			mBuffer.resize(newSize);
+			mLengthMask = newSize - 1;
 			mWriteIndex = 0;
 			clear();
-		}
-		int getMaxDelayInSamples()
-		{
-			return (1 << mBuffer.getWidthBits() ) - 1;
 		}
 		
 		inline void clear()
 		{
-			mBuffer.clear();
+			std::fill(mBuffer.begin(), mBuffer.end(), 0.f);
 		}
 		
 		inline void setDelayInSamples(int d) 
 		{ 
-			if(d > getMaxDelayInSamples())
+			if(d > mBuffer.size())
 			{
 				setMaxDelayInSamples(d);
 			}
@@ -537,7 +534,7 @@ namespace ml
 			if(writeEnd <= mLengthMask + 1)
 			{
 				const float* srcStart = x.getConstBuffer();
-				std::copy(srcStart, srcStart + kFloatsPerDSPVector, mBuffer.getBuffer() + mWriteIndex);
+				std::copy(srcStart, srcStart + kFloatsPerDSPVector, mBuffer.data() + mWriteIndex);
 			}
 			else
 			{
@@ -545,15 +542,15 @@ namespace ml
 				const float* srcStart = x.getConstBuffer();
 				const float* srcSplice = srcStart + kFloatsPerDSPVector - excess;
 				const float* srcEnd = srcStart + kFloatsPerDSPVector;
-				std::copy(srcStart, srcSplice, mBuffer.getBuffer() + mWriteIndex);
-				std::copy(srcSplice, srcEnd, mBuffer.getBuffer());
+				std::copy(srcStart, srcSplice, mBuffer.data() + mWriteIndex);
+				std::copy(srcSplice, srcEnd, mBuffer.data());
 			}
 			
 			// read			
 			DSPVector y; 
 			uintptr_t readStart = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
 			uintptr_t readEnd = readStart + kFloatsPerDSPVector;
-			float* srcBuf = mBuffer.getBuffer();
+			float* srcBuf = mBuffer.data();
 			if(readEnd <= mLengthMask + 1)
 			{
 				std::copy(srcBuf + readStart, srcBuf + readEnd, y.getBuffer());
@@ -574,7 +571,7 @@ namespace ml
 		}
 		
 	private:
-		MLSignal mBuffer;
+		std::vector<float> mBuffer;
 		int mIntDelayInSamples;
 		uintptr_t mWriteIndex;
 		uintptr_t mLengthMask;
@@ -676,7 +673,7 @@ namespace ml
 	public:
 		OverlapAdd(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& w) : mFunction(fn), mWindow(w)
 		{
-			mHistory.setDims(LENGTH, DIVISIONS);
+			//mHistory.setDims(LENGTH, DIVISIONS);
 		}
 		~OverlapAdd(){}
 		
@@ -686,7 +683,7 @@ namespace ml
 		}
 		
 	private:
-		MLSignal mHistory;
+		//MLSignal mHistory;
 		std::function<DSPVector(const DSPVector&)> mFunction;
 		const DSPVector& mWindow;
 	};
