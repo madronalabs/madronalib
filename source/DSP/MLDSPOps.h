@@ -4,7 +4,7 @@
 // Created by Randy Jones on 4/5/2016
 //
 // This module contains the DSPVectorArray / DSPVector class and basic operations on it. 
-// Any stateless operations on DSPVectors should be added here.
+// Any stateless operations on DSPVectors should also be added here.
 // 
 // These objects are for building fixed DSP graphs in a functional style. The compiler should 
 // have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,

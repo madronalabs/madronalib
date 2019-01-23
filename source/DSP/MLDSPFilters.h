@@ -4,8 +4,8 @@
 //
 // Created by Randy Jones on 4/14/2016
 //
-// DSP filters: functor objects implementing an inline DSPVector operator()(DSPVector input),
-// in order to make filters. All these filters have some state, otherwise they would be DSPOps.
+// DSP filters: functor objects implementing an operator()(DSPVector input).
+// All these filters have some state, otherwise they would be DSPOps.
 // 
 // These objects are for building fixed DSP graphs in a functional style. The compiler should 
 // have many opportunities to optimize these graphs. For dynamic graphs changeable at runtime,
@@ -13,6 +13,8 @@
 //
 // Filter cutoffs are set by a parameter omega, equal to frequency / sample rate. This lets
 // filter objects be unaware of the sample rate, resulting in less code overall.
+// For all filters, k is a damping parameter equal to 1/Q where Q is the analog filter "quality."
+// For bell and shelf filters, gain is specified as an output / input ratio A. 
 
 #pragma once
 
@@ -20,232 +22,33 @@
 #include <vector>
 namespace ml
 {
-	class Biquad
+	// use this, not dBToAmp for calculating filter gain parameter A.
+	float dBToGain(float dB)
 	{
-	public:
-		struct coeffs
-		{
-			float a0, a1, a2, b1, b2;
-		};
-		
-		inline coeffs passthru()
-		{
-			return coeffs{1.f, 0.f, 0.f, 0.f, 0.f};
-		}
-		
-		inline coeffs silence()
-		{
-			return coeffs{0.f, 0.f, 0.f, 0.f, 0.f};
-		}
-		
-		inline coeffs lopass(float omega, float q)
-		{
-			//LPF:        H(s) = 1 / (s^2 + s/Q + 1)
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float b0 = 1.f / (1.f + alpha);
-			
-			float a0 = (1.f - cosOmega) * 0.5f * b0;
-			float a1 = (1.f - cosOmega) * b0;
-			float a2 = (1.f - cosOmega) * 0.5f * b0;
-			float b1 = -2.f * cosOmega * b0;
-			float b2 = (1.f - alpha) * b0;
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-		
-		inline coeffs hipass(float omega, float q)
-		{
-			//HPF:        H(s) = s^2 / (s^2 + s/Q + 1)
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float b0 = 1.0f / (1.f + alpha);
-			
-			float a0 = (1.f + cosOmega) * 0.5f *b0;
-			float a1 = -(1.f + cosOmega) *b0;
-			float a2 = (1.f + cosOmega) * 0.5f *b0;
-			float b1 = -2.f * cosOmega *b0;
-			float b2 = (1.f - alpha) *b0;
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-		
-		inline coeffs peakNotch(float omega, float q, float gain)
-		{
-			//notch: H(s) = (s^2 + 1) / (s^2 + s/Q + 1)
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float A = sqrtf(gain);
-			float alphaOverA = alpha/A;
-			A *= alpha;
-			float b0 = 1.f / (1.f + alphaOverA);
-			
-			float a0 = (1.f + A) * b0;
-			float a1 = -2.f * cosOmega * b0;
-			float a2 = (1.f - A) * b0;
-			float b1 = a1*b0;
-			float b2 = (1.f - alphaOverA) * b0;
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-		
-		inline coeffs bandpass(float omega, float q)
-		{
-			//BPF: H(s) = s / (s^2 + s/Q + 1)  (constant skirt gain, peak gain = Q)
-			float cosOmega = cosf(omega);
-			float alpha = sinf(omega) / (2.f * q);
-			float b0 = 1.f + alpha;
-			
-			float a0 = alpha / b0;
-			float a1 = 0.;
-			float a2 = -alpha / b0;
-			float b1 = -2.f * cosOmega / b0;
-			float b2 = (1.f - alpha) / b0;
-			return coeffs{a0, a1, a2, -b1, -b2};
-		}
-
-		inline coeffs multiplyGain(coeffs xc, float g)
-		{
-			coeffs yc = xc;
-			yc.a0 *= g;
-			return yc;
-		}
-		
-		struct perSampleCoeffs
-		// or typedef DSPVectorArray<5> ? test.
-		{
-			DSPVector a0, a1, a2, b1, b2;
-		};
-		
-		inline perSampleCoeffs lopass(const DSPVector& omega, const DSPVector& q)
-		{			
-			// TODO
-			
-			/*
-			 //LPF:        H(s) = 1 / (s^2 + s/Q + 1)
-			 float cosOmega = cosf(omega);
-			 float alpha = sinf(omega) / (2.f * q);
-			 float b0 = 1.f / (1.f + alpha);
-			 
-			 float a0 = (1.f - cosOmega) * 0.5f * b0;
-			 float a1 = (1.f - cosOmega) * b0;
-			 float a2 = (1.f - cosOmega) * 0.5f * b0;
-			 float b1 = -2.f * cosOmega * b0;
-			 float b2 = (1.f - alpha) * b0;
-			 return MLSignal{a0, a1, a2, -b1, -b2};
-			 */
-			
-			//return DSPVectorArray<5>();
-			return perSampleCoeffs{0};
-		}
-		
-		Biquad() : mCoeffs(silence()) { clear(); }
-		Biquad(const coeffs& c) : mCoeffs(c) { clear(); }
-		~Biquad() {}
-		
-		void setCoeffs(const coeffs& c) { mCoeffs = c; }
-		
-		void clear()
-		{
-			x2 = x1 = y2 = y1 = 0.f;
-		}
-		
-		// process one DSPVector of data with constant coefficients. 
-		inline DSPVector operator()(const DSPVector& vx)
-		{
-			DSPVector vy;
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				const float fx = vx[n];				
-				const float fy = mCoeffs.a0*fx + mCoeffs.a1*x1 + mCoeffs.a2*x2 + mCoeffs.b1*y1 + mCoeffs.b2*y2;
-				x2 = x1; x1 = fx; 
-				y2 = y1; y1 = fy;				
-				vy[n] = fy;
-			}		
-			return vy;
-		}
-		
-		// process one DSPVector of data with time-varying coefficients. 
-		inline DSPVector operator()(const DSPVector& vx, const perSampleCoeffs& vc)
-		{
-			DSPVector vy;
-			
-			/*
-			 const float * pA0 = vc.getRowDataConst<0>();
-			 const float * pA1 = vc.getRowDataConst<1>();
-			 const float * pA2 = vc.getRowDataConst<2>();
-			 const float * pB1 = vc.getRowDataConst<3>();
-			 const float * pB2 = vc.getRowDataConst<4>();
-			 */
-			
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				float fx = vx[n];				
-				const float fy = vc.a0[n]*fx + vc.a1[n]*x1 + vc.a2[n]*x2 + vc.b1[n]*y1 + vc.b2[n]*y2;
-				x2 = x1; x1 = fx; 
-				y2 = y1; y1 = fy;				
-				vy[n] = fy;
-			}		
-			return vy;
-		}
-		
-	private:
-		coeffs mCoeffs;
-		float x1, x2, y1, y2;
-	};
-	
-	class DCBlocker
-	{
-	public:
-		DCBlocker() { mR = 0.999f; clear(); }
-		
-		void clear()
-		{
-			x1 = y1 = 0.f;
-		}
-		
-		void setOmega(float omega)
-		{
-			mR = cosf(omega);
-		}
-		
-		inline DSPVector operator()(const DSPVector& vx)
-		{
-			DSPVector vy;
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				const float fx = vx[n];
-				const float fy = fx - x1 + mR*y1;
-				y1 = fy;
-				x1 = fx;
-				vy[n] = fy;
-			}
-			return vy;
-		}
-		
-	private:
-		float mR;
-		float x1, y1;
-	};
+		return powf(10.f, dB/40.f);
+	}
 	
 	// --------------------------------------------------------------------------------
-	// SVF variations
+	// utility filters implemented as SVF variations
 	// Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the years.
 	
 	// TODO: time-varying coefficients, time-varying operators for each SVF type
-	
-	// get SVF coefficients, which are the same for all modes at the given frequency and q.
-	// k = 1/q (damping factor). 
-	//
-	// NOTE: omega is defined here as cutoff / sr, not the more usual 2pi*cutoff/sr.
-	//
-	
+
 	class Lopass
 	{
-	public:
-		struct coeffs
+	private:
+		struct _coeffs
 		{
 			float g0, g1, g2;
 		};
 		
-		inline coeffs atOmegaAndK(float omega, float k)
+		float ic1eq{0};
+		float ic2eq{0};
+		
+	public:						
+		_coeffs mCoeffs{0};
+		
+		static _coeffs coeffs (float omega, float k)
 		{
 			float piOmega = kPi*omega;
 			float s1 = sinf(piOmega);
@@ -256,11 +59,7 @@ namespace ml
 			float g2 = (2.0f*s1*s1)*nrm;			
 			return {g0, g1, g2};
 		}
-		
-		Lopass() { setCoeffs({0.}); clear(); }
-		void clear() { ic1eq = ic2eq = 0.f; }
-		void setCoeffs(const coeffs& c) { mC = c; }
-		
+
 		inline DSPVector operator()(const DSPVector& vx)
 		{
 			DSPVector vy;
@@ -268,8 +67,8 @@ namespace ml
 			{
 				float v0 = vx[n];
 				float t0 = v0 - ic2eq;
-				float t1 = mC.g0*t0 + mC.g1*ic1eq;
-				float t2 = mC.g2*t0 + mC.g0*ic1eq;
+				float t1 = mCoeffs.g0*t0 + mCoeffs.g1*ic1eq;
+				float t2 = mCoeffs.g2*t0 + mCoeffs.g0*ic1eq;
 				float v2 = t2 + ic2eq;
 				ic1eq += 2.0f*t1;
 				ic2eq += 2.0f*t2;
@@ -277,21 +76,23 @@ namespace ml
 			}
 			return vy;
 		}
-		
-	private:
-		coeffs mC;
-		float ic1eq, ic2eq;
 	};
 	
 	class Hipass
 	{
-	public:
-		struct coeffs
+	private:
+		struct _coeffs
 		{
 			float g0, g1, g2, k;
 		};
 		
-		inline coeffs atOmegaAndK(float omega, float k)
+		float ic1eq{0};
+		float ic2eq{0};
+		
+	public:						
+		_coeffs mCoeffs{0};
+
+		static _coeffs coeffs (float omega, float k)
 		{
 			float piOmega = kPi*omega;
 			float s1 = sinf(piOmega);
@@ -303,10 +104,6 @@ namespace ml
 			return {g0, g1, g2, k};
 		}
 		
-		Hipass() { setCoeffs({0.}); clear(); }
-		void clear() { ic1eq = ic2eq = 0.f; }
-		void setCoeffs(const coeffs& c) { mC = c; }
-		
 		inline DSPVector operator()(const DSPVector& vx)
 		{
 			DSPVector vy;
@@ -314,32 +111,33 @@ namespace ml
 			{
 				float v0 = vx[n];
 				float t0 = v0 - ic2eq;
-				float t1 = mC.g0*t0 + mC.g1*ic1eq;
-				float t2 = mC.g2*t0 + mC.g0*ic1eq;
+				float t1 = mCoeffs.g0*t0 + mCoeffs.g1*ic1eq;
+				float t2 = mCoeffs.g2*t0 + mCoeffs.g0*ic1eq;
 				float v1 = t1 + ic1eq;
 				float v2 = t2 + ic2eq;
 				ic1eq += 2.0f*t1;
 				ic2eq += 2.0f*t2;
-				vy[n] = v0 - mC.k*v1 - v2; 
+				vy[n] = v0 - mCoeffs.k*v1 - v2; 
 			}		
 			return vy;
 		}
-		
-	private:
-		coeffs mC;
-		float ic1eq, ic2eq;
 	};
-	
 	
 	class Bandpass
 	{
-	public:		
-		struct coeffs
+	private:		
+		struct _coeffs
 		{
 			float g0, g1, g2;
 		};
+				
+		float ic1eq{0};
+		float ic2eq{0};
 		
-		inline coeffs atOmegaAndK(float omega, float k)
+	public:						
+		_coeffs mCoeffs{0};
+
+		static _coeffs coeffs (float omega, float k)
 		{
 			float piOmega = kPi*omega;
 			float s1 = sinf(piOmega);
@@ -351,10 +149,6 @@ namespace ml
 			return {g0, g1, g2};
 		}
 		
-		Bandpass() { setCoeffs({0.}); clear(); }
-		void clear() { ic1eq = ic2eq = 0.f; }
-		void setCoeffs(const coeffs& c) { mC = c; }
-		
 		inline DSPVector operator()(const DSPVector& vx)
 		{
 			DSPVector vy;
@@ -362,19 +156,15 @@ namespace ml
 			{
 				float v0 = vx[n];
 				float t0 = v0 - ic2eq;
-				float t1 = mC.g0*t0 + mC.g1*ic1eq;
-				float t2 = mC.g2*t0 + mC.g0*ic1eq;
+				float t1 = mCoeffs.g0*t0 + mCoeffs.g1*ic1eq;
+				float t2 = mCoeffs.g2*t0 + mCoeffs.g0*ic1eq;
 				float v1 = t1 + ic1eq;
-				//			float v2 = t2 + ic2eq; // for hipass
 				ic1eq += 2.0f*t1;
 				ic2eq += 2.0f*t2;
 				vy[n] = v1; 
 			}		
 			return vy;
 		}
-	private:	
-		coeffs mC;
-		float ic1eq, ic2eq;
 	};
 	
 	class LoShelf
@@ -423,17 +213,17 @@ namespace ml
 	class HiShelf
 	{
 	private:
-		float ic1eq{0};
-		float ic2eq{0};		
-
 		struct _coeffs
 		{
 			float a1, a2, a3, m0, m1, m2;
 		};
-				
+		
+		float ic1eq{0};
+		float ic2eq{0};		
+		
 	public:			
 		_coeffs mCoeffs{0};
-
+		
 		static _coeffs coeffs (float omega, float k, float A)
 		{
 			float piOmega = kPi*omega;
@@ -464,15 +254,61 @@ namespace ml
 		}
 	};
 	
+	class Bell
+	{
+	private:
+		struct _coeffs
+		{
+			float a1, a2, a3, m1;
+		};
+		
+		float ic1eq{0};
+		float ic2eq{0};		
+		
+	public:			
+		_coeffs mCoeffs{0};
+		
+		static _coeffs coeffs (float omega, float k, float A)
+		{
+			float kc = k/A; // correct k 
+			float piOmega = kPi*omega;
+			float g = tanf(piOmega);
+			float a1 = 1.f/(1.f + g*(g + kc));
+			float a2 = g*a1;
+			float a3 = g*a2;
+			float m1 = kc*(A*A - 1.f);
+			return {a1, a2, a3, m1};
+		}
+		
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				float v0 = vx[n];
+				float v3 = v0 - ic2eq;				
+				float v1 = mCoeffs.a1*ic1eq + mCoeffs.a2*v3;
+				float v2 = ic2eq + mCoeffs.a2*ic1eq + mCoeffs.a3*v3;				
+				ic1eq = 2*v1 - ic1eq;
+				ic2eq = 2*v2 - ic2eq;								
+				vy[n] = v0 + mCoeffs.m1*v1;
+			}		
+			return vy;
+		}
+	};
+
+	// A one pole filter. see https://ccrma.stanford.edu/~jos/fp/One_Pole.html
+	
 	class OnePole
 	{
 	private:
-		float mY1{0};
 		struct _coeffs
 		{
 			float a0, b1;
 		};
 		
+		float y1{0};
+
 	public:
 		_coeffs mCoeffs{0};
 		
@@ -487,22 +323,57 @@ namespace ml
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
 			{
-				mY1 = mCoeffs.a0*vx[n] + mCoeffs.b1*mY1;
-				vy[n] = mY1;
+				y1 = mCoeffs.a0*vx[n] + mCoeffs.b1*y1;
+				vy[n] = y1;
 			}
 			return vy;
 		}
 	};
 	
-	// --------------------------------------------------------------------------------
-	// FixedDelay: a simple uninterpolated delay with no feedback.
+
+	// A one-pole, one-zero filter to attenuate DC. 
+	// Works well, but beware of its effects on bass sounds. An omega of 0.05 is a good starting point.
+	// see https://ccrma.stanford.edu/~jos/fp/DC_Blocker.html for more. 
+
+	class DCBlocker
+	{
+	private:
+		typedef float _coeffs;
+		float x1{0};
+		float y1{0};
+		
+	public:
+		_coeffs mCoeffs{0};
+
+		static _coeffs coeffs (float omega)
+		{
+			return cosf(omega);
+		}
+		
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				const float x0 = vx[n];
+				const float y0 = x0 - x1 + mCoeffs*y1;
+				y1 = y0;
+				x1 = x0;
+				vy[n] = y0;
+			}
+			return vy;
+		}
+	};
+
 	
-	class FixedDelay
+	// IntegerDelay delays a signal a whole number of samples.
+	
+	class IntegerDelay
 	{
 	public:
-		FixedDelay(int d) { setDelayInSamples(d); }
-		FixedDelay() {}
-		~FixedDelay() {}
+		IntegerDelay(int d) { setDelayInSamples(d); }
+		IntegerDelay() {}
+		~IntegerDelay() {}
 		
 		void setMaxDelayInSamples(int dMax)
 		{
@@ -571,15 +442,180 @@ namespace ml
 		}
 		
 	private:
+		// TODO look at small size stack optimization here
 		std::vector<float> mBuffer;
 		int mIntDelayInSamples;
 		uintptr_t mWriteIndex;
 		uintptr_t mLengthMask;
 	};
 	
-	// TODO crossfading allpass delay as described at ICMC97 by Van Duyne et al
-	// class AllpassDelay
+
+	// First order allpass section
 	
+	class AllpassSection
+	{		
+	private:
+		float x0{0}, x1{0}, y0{0}, y1{0};
+		
+	public:
+		float mCoeffs;
+		
+		AllpassSection(float a) : mCoeffs(a){}
+		~AllpassSection(){}
+		
+		// get allpass coefficient from the delay fraction d.
+		// to minimize modulation noise, d should be in the range [0.618 - 1.618].
+		static float coeffs (float d)
+		{
+			// return (1.f - d) / (1.f + d); // exact
+			float xm1 = (d - 1.f);
+			return -0.53f*xm1 + 0.24f*xm1*xm1; // 2nd order approx around 1			
+		}
+		
+		// needed?
+		inline float processSample(const float x)
+		{
+			x1=x0;
+			y1=y0;
+			x0=x;
+			y0 = x1 + (x0 - y1)*mCoeffs;            
+			return y0;
+		}
+		
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				x1=x0; 
+				y1=y0;
+				x0=vx[n];
+				y0 = x1 + (x0 - y1)*mCoeffs;            
+				vy[n] = y0;
+			}
+			return vy;
+		}
+	};
+
+	// ----------------------------------------------------------------
+	// Combining the fixed delay and first order allpass section 
+	// gives us an allpass-interpolated delay. In general, modulating the delay time 
+	// will change the allpass coefficient, producing clicks in the output.
+	
+	class AllpassDelay
+	{
+	public:
+	public:
+		IntegerDelay(float d) { setDelayInSamples(d); }
+		IntegerDelay() {}
+		~IntegerDelay() {}
+		
+		void setMaxDelayInSamples(int dMax)
+		{
+			int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
+			mBuffer.resize(newSize);
+			mLengthMask = newSize - 1;
+			mWriteIndex = 0;
+			clear();
+		}
+		
+		inline void clear()
+		{
+			std::fill(mBuffer.begin(), mBuffer.end(), 0.f);
+		}
+		
+		inline void setDelayInSamples(float d) 
+		{ 
+			if(d > mBuffer.size())
+			{
+				setMaxDelayInSamples(d);
+			}
+			mIntDelayInSamples = d; 		
+		}
+		
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			return mFractionalDelay(mIntegerDelay(vx));
+		}
+
+	private:
+		IntegerDelay mIntegerDelay;
+		AllpassSection mFractionalDelay;
+	};
+	
+// OLD
+	
+	// TODO modulating this allpass is a little bit clicky.
+	// add history crossfading to address this. 
+	MLSample MLAllpassDelay::processSample(const MLSample x)
+	{
+		float fDelayInt, D;
+		float alpha, allpassIn;
+		float sum;
+		int delayInt;
+		
+		mWriteIndex &= mLengthMask;
+		sum = x - mFeedback*mFixedTapOut;
+		
+		mBuffer[mWriteIndex] = sum;
+		mWriteIndex++;
+		
+		// get modulation tap
+		fDelayInt = floorf(mModDelayInSamples);
+		delayInt = (int)fDelayInt;
+		
+		// get allpass interpolation coefficient D
+		D = mModDelayInSamples - fDelayInt;
+		
+		// constrain D to [0.5 - 1.5];
+		if (D < 0.5f)
+		{
+			D += 1.f;
+			delayInt -= 1;
+		}
+		
+		alpha = (1.f - D) / (1.f + D); // exact
+		// TODO try this or Taylor approx. in van Duyne thesis
+		//float xm1 = (D - 1.f);
+		//alpha = -0.53f*xm1 + 0.25f*xm1*xm1; // approx on [0.5, 1.5]
+		
+		uintptr_t readIndex = mWriteIndex - (uintptr_t)delayInt;
+		readIndex &= mLengthMask;
+		allpassIn = mBuffer[readIndex];
+		float modTapOut = alpha*allpassIn + mX1 - alpha*mY1;
+		mX1 = allpassIn;
+		mY1 = modTapOut;
+		
+		// get fixed tap
+		readIndex = mWriteIndex - (uintptr_t)mFixedDelayInSamples;
+		readIndex &= mLengthMask;
+		mFixedTapOut = mBuffer[readIndex];
+		
+		// TODO mBlend is not dry blend, see where this is used and correct! 
+		return sum*mBlend + modTapOut*mFeedForward;
+	}
+	
+
+	
+	
+	
+	// Crossfading two allpass-interpolated delays allows modulating the delay 
+	// time without clicks. See "A Lossless, Click-free, Pitchbend-able Delay Line Loop Interpolation Scheme", 
+	// Van Duyne, Jaffe, Scandalis, Stilson, ICMC 1997.
+	
+	
+	class PitchbendableDelay
+	{
+	public:
+		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
+		{
+		}
+		
+	private:
+		AllpassDelay mDelay1, mDelay2;
+	};
+	
+
 	// ----------------------------------------------------------------
 	// FDN	
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
@@ -657,7 +693,7 @@ namespace ml
 		std::array<float, SIZE> mFeedbackGains{{0}};
 
 	private:
-		std::array<FixedDelay, SIZE> mDelays;
+		std::array<IntegerDelay, SIZE> mDelays;
 		std::array<OnePole, SIZE> mFilters; 
 		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
 	};
@@ -690,44 +726,25 @@ namespace ml
 	
 	// ----------------------------------------------------------------
 	// Resampling
-		
 	
-		
+	
 	// ----------------------------------------------------------------
 	// Half Band Filter
+	// polyphase two-path structure due to fred harris, A. G. Constantinides and Valenzuela.
+	// adapted from code by Dave Waugh of Muon Software.
+	// order=4, rejection=70dB, transition band=0.1
 	
 	class HalfBandFilter
 	{
 	public:
-		static const float ka0, ka1, kb0, kb1;
+		static constexpr float ka0 = 0.07986642623635751;
+		static constexpr float ka1 = 0.5453536510711322;
+		static constexpr float kb0 = 0.28382934487410993;
+		static constexpr float kb1 = 0.8344118914807379;
 		
-		class AllpassSection
-		{
-		public:
-			AllpassSection();
-			~AllpassSection();
-			void clear();
-			
-			inline float processSample(const float x)
-			{
-				x1=x0;
-				y1=y0;
-				x0=x;
-				y0 = x1 + (x0 - y1)*a;            
-				return y0;
-			}
-			
-			float x0, x1, y0, y1;
-			float a;        
-		};
-		
-		HalfBandFilter();
-		~HalfBandFilter();
-		void clear();
 		inline float processSampleDown(float x1, float x2)
 		{
 			float y;
-			
 			a0 = apa1.processSample(apa0.processSample(x1));
 			b0 = apb1.processSample(apb0.processSample(x2));
 			y = (a0 + b1)*0.5f;
@@ -738,7 +755,6 @@ namespace ml
 		inline float processSampleUp(const float x)
 		{
 			float y;
-			
 			if(k)
 			{
 				a0 = apa1.processSample(apa0.processSample(x));
@@ -756,40 +772,16 @@ namespace ml
 		}
 		
 	private:
-		AllpassSection apa0, apa1, apb0, apb1;
-		float x0, x1;
-		float a0, b0, b1;
-		bool k;
+		AllpassSection apa0{ka0}, apa1{ka1}, apb0{kb0}, apb1{kb1};
+		float x0{0}, x1{0};		
+		float a0{0}, b0{0}, b1{0};
+		bool k{false};
 	};
 	
-	inline DSPVector half1Up2(const DSPVector& x)
-	{
-		DSPVector y;
-		// TODO SSE
-		int j = 0;
-		for(int i=0; i<kFloatsPerDSPVector/2; ++i)
-		{
-			y[j++] = x[i];
-			y[j++] = x[i];		
-		}
-		return y;
-	}
+	// WIP TODO multiple inputs/outputs of different sizes using variadic template maybe
+	// can't use DSPVectorArray rows for multipls sources because we would like multi-row sources
 	
-	inline DSPVector half2Up2(const DSPVector& x)
-	{
-		DSPVector y;
-		// TODO SSE
-		int j = 0;
-		for(int i=kFloatsPerDSPVector/2; i<kFloatsPerDSPVector; ++i)
-		{
-			y[j++] = x[i];
-			y[j++] = x[i];		
-		}
-		return y;
-	}
-	
-	// WIP TODO multiple params using variadic template maybe
-	// can't use rows because we woud like multi-row params
+	// what about adding INROWS, OUTROWS to template ?
 	class Upsample2
 	{
 	public:
@@ -804,7 +796,12 @@ namespace ml
 		template <typename FN>
 		inline DSPVector operator()(FN fn, const DSPVector& x)
 		{
-			// up to 2x buffers
+			
+			// TODO rearrange
+			
+			
+			// upsample to 2x buffers
+			// TODO look at allpass interpolation here (see below)
 			int j = 0;
 			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
 			{
@@ -818,11 +815,11 @@ namespace ml
 				mUpX2[j++] = mUpper.processSampleUp(x[i]);
 			}		
 			
-			// call fn (would in place be OK?)
+			// process
 			mUpY1 = fn(mUpX1);
 			mUpY2 = fn(mUpX2);
 			
-			// down to 1x output
+			// downsample to 1x output
 			DSPVector y;
 			j = 0;
 			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
@@ -847,6 +844,49 @@ namespace ml
 	};
 	
 	
+	/*
+	 > ===== Fractional Delay 2X Upsampling =====
+	 >
+	 > Tested one more upsampling permutation, which worked the best, at 
+	 > least when paired with the polyphase halfband filter. Very clean!
+	 >
+	 > Used JOS's simple fractional sample Allpass delay to guestimate the 
+	 > intermediate samples. Something like this--
+	 >
+	 > //globals or class properties
+	 > //Allpass delay vars
+	 > double LastAPIn;
+	 > double LastAPOut;
+	 >
+	 > //locals
+	 > double tmpAPIn;
+	 > double tmpAPOut;
+	 > //buffer pointers
+	 > float *PIndx;
+	 > float *POutdx;
+	 > float *PIndxTop;
+	 >
+	 > while (PIndx < PIndxTop) //oversample 2X
+	 > {
+	 >  tmpAPIn = *PIndx; //fetch insample
+	 >  tmpAPOut = 0.33333333 * (tmpAPIn - LastAPOut) + LastAPIn;
+	 >  //allpass delay by one-half sample
+	 >  LastAPIn = tmpAPIn; //save previous values
+	 >  LastAPOut = tmpAPOut;
+	 >  *POutdx = tmpAPOut;
+	 >  //write delay-interpolated insample to out
+	 >  POutdx += 1; //inc out ptr
+	 >  *POutdx = tmpAPIn;
+	 >  //write original insample to out
+	 >  POutdx += 1; //inc out ptr
+	 >  PIndx += 1; //inc in ptr
+	 > }
+	 >
+	 > When paired with the polyphase halfband filter, dunno why the 
+	 > half-sample Allpass delay works all that much better than 
+	 > zero-stuffing or repeat-sample.
+	 >
+	 */
 	// ----------------------------------------------------------------
 	// Simple time-based filters on DSPVectorArray.
 	//
@@ -854,7 +894,7 @@ namespace ml
 	 1 operand (filters)
 	 differentiator
 	 integrator
-	 FixedDelay 
+	 IntegerDelay 
 	 LinearDelay
 	 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
 	 Downsampler2 (2n vectors -> n)

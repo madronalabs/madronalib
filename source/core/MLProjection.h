@@ -8,7 +8,6 @@
 
 #pragma once
 
-#include <math.h>
 #include <functional>
 #include <vector>
 #include <iostream>
@@ -20,9 +19,11 @@ namespace ml
 	class Interval
 	{
 	public:
+		/*
 		Interval() : mX1(0.f), mX2(1.f) {}
 		Interval(float x1, float x2) : mX1(x1), mX2(x2) {}
 		Interval(int x1, int x2) : mX1(x1), mX2(x2) {}
+		*/
 		
 		float mX1, mX2;
 	};
@@ -41,19 +42,19 @@ namespace ml
 		return( [=](float x){return a(b(x));} );
 	}
 	
-
 	// useful projections defined on (0, 1)
 	namespace projections
 	{
-		// constant projections 		
-		const Projection linear{ [](float x){return x;} };
-		const Projection flip{ [](float x){return 1 - x;} };
-		const Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
-		const Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };
-		const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
-
+		// projections with no parameters	
 		
-		// functions returning projections
+		Projection linear{ [](float x){return x;} };
+		Projection flip{ [](float x){return 1 - x;} };
+		Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
+		Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };
+		Projection flatcenter{ [](float x){float c = (x - 0.5f); return 4*c*c*c + 0.5f;} };
+		Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
+
+		// functions taking one or more parameters and returning projections
 		
 		// returns a projection that will be logarithmic when scaled and offset to (a, b).
 		// works for positive a, b with a < b only.
@@ -68,12 +69,80 @@ namespace ml
 		{
 			return( [=](float x){float a = m.mX1; float b = m.mX2; return logf((x*(b - a) + a)/a)/logf(b/a);} );
 		}
+		
+		// a projection mapping an interval to another interval 
+		inline Projection intervalMap(const Interval a, const Interval b)
+		{
+			return( [=](float x)
+						 {
+							 // project interval a to interval (0,1)
+							 float m = (b.mX2 - b.mX1)/(a.mX2 - a.mX1);
+							 return m*(x - a.mX1) + b.mX1;
+						 }
+						 );
+		}
+		
+		// a projection mapping an interval to another interval with an intermediate shaping projection on [0, 1]
+		inline Projection intervalMap(const Interval a, const Interval b, Projection c)
+		{
+			return( [=](float x)
+						 {
+							 // project interval a to interval (0,1)
+							 const float scaleA = 1/(a.mX2 - a.mX1);
+							 const float offsetA = (-a.mX1) / (a.mX2 - a.mX1);
+							 // project interval (0, 1) to interval b
+							 const float scaleB = (b.mX2 - b.mX1);
+							 const float offsetB = b.mX1;
+							 return c(x*scaleA + offsetA)*scaleB + offsetB;
+						 }
+						 );
+		}
+		
+		inline Projection piecewiseLinear(std::initializer_list<float> values)
+		{
+			const std::vector<float> table(values);		
+			
+			if(table.size() > 1)
+			{
+				return( [=](float x)
+							 {
+								 float ni = table.size() - 1;
+								 float nf = static_cast<float>(ni);
+								 float xf = nf*clamp(x, 0.f, 1.f);		
+								 int xi = static_cast<int>(xf);
+								 float xr = xf - xi;
+								 
+								 if(x < 1.0f)
+								 {
+									 return lerp(table[xi], table[xi + 1], xr);
+								 }
+								 else
+								 {
+									 return table[ni];
+								 }
+							 }
+							 );
+			}
+			else if(table.size() == 1)
+			{
+				return ( [=](float x){ return table[0]; } );
+			}
+			else
+			{
+				return ( [=](float x){ return 0.f; } );
+			}
+		}
 	}
+	
+	// TODO maps on DSPVectors?
+	
+// TODO rename: m, n, p
+	
 	
 	// IntervalProjection: a functor that maps one interval to another with
 	// an optional mapping projection defined on (0, 1)->(0,1).
 	
-	// TODO how can we write these functors to be composable as well?
+	// TODO DEPRECATED	
 	
 	class IntervalProjection
 	{
@@ -83,8 +152,6 @@ namespace ml
 		//explicit IntervalProjection(const Interval a, const Interval b);
 		
 		explicit IntervalProjection(const Interval a, const Interval b, Projection c = projections::linear) : mA(a), mB(b), mMappingProjection(c) { build(); }
-		
-		// TODO destruction should be trivial but a destructor is being generated, find out why
 		
 		inline float operator()(float f) const 
 		{
@@ -106,6 +173,9 @@ namespace ml
 			mOffsetB = mB.mX1;
 		}
 	};
+	
+	// DEPRECATED	
+	
 	
 	class TableProjection
 	{

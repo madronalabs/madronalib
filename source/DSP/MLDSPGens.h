@@ -18,12 +18,12 @@
 
 namespace ml
 {		
-	// TODO replace with antialiased ImpulseGen
-	class TickSource
+	// TODO replace with or add antialiased ImpulseGen
+	class TickGen
 	{
 	public:
-		TickSource(int p) : mCounter(p), mPeriod(p) {}
-		~TickSource() {}
+		TickGen(int p) : mCounter(p), mPeriod(p) {}
+		~TickGen() {}
 		
 		inline DSPVector operator()()
 		{
@@ -142,7 +142,7 @@ namespace ml
 	 1 operand (filters)
 	 differentiator
 	 integrator
-	 FixedDelay 
+	 IntegerDelay 
 	 
 	 VariableDelayWithCrossfade
 	 

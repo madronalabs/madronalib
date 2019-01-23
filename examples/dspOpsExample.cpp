@@ -69,16 +69,58 @@ int main()
 	std::cout << "silence:" << silence << "\n";
 	std::cout << "impulse:" << impulse << "\n";
 	std::cout << f(impulse) << "\n";
-	std::cout << f(impulse) << "\n";
-	std::cout << f(impulse) << "\n";
+	std::cout << f(silence) << "\n";
+	std::cout << f(silence) << "\n";
 	
 	OnePole op;
-	op.mCoeffs = OnePole::coeffs(0.005f*kTwoPi);
+	op.mCoeffs = OnePole::coeffs(0.15f);
+	std::cout << op(impulse) << "\n";
+	std::cout << op(silence) << "\n";
+	std::cout << op(silence) << "\n";
+	
+	// clear filter 
+	op = OnePole();
+	// restore coeffs
+	op.mCoeffs = OnePole::coeffs(0.15f);
+	std::cout << op(silence) << "\n";
 	std::cout << op(impulse) << "\n";
 	
-	// does op = OnePole() work as clear() ? 
-	op = OnePole();
-	std::cout << op(silence) << "\n";
+	/*
+	
+	// TEMP -> projections example
+	Projection p1(projections::intervalMap({0, 10}, {10, 1000}));
+	std::cout << "\n\n";
+	for(int i=0; i<=10; ++i)
+	{
+		std::cout << i << " : " << p1(i) << "\n";
+	}
+	
+	Projection p(projections::intervalMap({0, 10}, {10, 1000}, projections::log({10, 1000})));
+	std::cout << "\n\n";
+	for(int i=0; i<=10; ++i)
+	{
+		std::cout << i << " : " << p(i) << "\n";
+	}
+	
+	Projection pp(projections::intervalMap({0, 10}, {10, 1000}, projections::flatcenter));
+	std::cout << "\n\n";
+	for(int i=0; i<=10; ++i)
+	{
+		std::cout << i << " : " << pp(i) << "\n";
+	}
+	
+	Projection q(compose(projections::piecewiseLinear({1, 97, 2}), projections::intervalMap({0, 10}, {0, 1})));
+	std::cout << "\n\n";
+	for(int i=0; i<=10; ++i)
+	{
+		std::cout << i << " : " << q(i) << "\n";
+	}
+	
+	*/
+	
+	NoiseGen noiser;
+	Upsample2 upper;
+	
 	
 #ifdef _WINDOWS
 	system("pause");

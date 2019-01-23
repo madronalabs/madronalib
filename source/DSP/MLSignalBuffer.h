@@ -13,7 +13,7 @@
 namespace ml
 {
 	// SignalBuffer is a single producer, single consumer, lock-free ring buffer for audio.
-	// Some nice implementation details come from Portaudio's pa_ringbuffer by Phil Burk and others.
+	// Some nice implementation details are borrowed from Portaudio's pa_ringbuffer by Phil Burk and others.
 	// C++11 atomics are used to implement the lockfree algorithm.
 	
 	class SignalBuffer
