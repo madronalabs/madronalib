@@ -59,7 +59,7 @@ namespace ml
 		
 		// we won't know the output fragment size in bytes until iterating the code points. 
 		int len = frag.lengthInBytes();
-		SmallStackBuffer<char> temp(len);
+		SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
 		char* buf = temp.data();
 		char* pb = buf;
 		
@@ -169,7 +169,7 @@ namespace ml
 	
 	void TextFragment::create() noexcept
 	{
-		if(mSize >= kShortFragmentSize)
+		if(mSize >= kShortFragmentSizeInChars)
 		{
 			mpText = static_cast<char *>(malloc(mSize + 1));
 		}
@@ -201,7 +201,7 @@ namespace ml
 	void TextFragment::moveDataFromOther(TextFragment& b)
 	{
 		mSize = b.mSize;
-		if(mSize >= kShortFragmentSize)
+		if(mSize >= kShortFragmentSizeInChars)
 		{
 			// move the data
 			mpText = b.mpText; 

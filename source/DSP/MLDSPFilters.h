@@ -23,7 +23,7 @@
 namespace ml
 {
 	// use this, not dBToAmp for calculating filter gain parameter A.
-	float dBToGain(float dB)
+	inline float dBToGain(float dB)
 	{
 		return powf(10.f, dB/40.f);
 	}
@@ -398,7 +398,7 @@ namespace ml
 			mIntDelayInSamples = d; 		
 		}
 		
-		inline DSPVector operator()(DSPVector& x)
+		inline DSPVector operator()(const DSPVector x)
 		{
 			// write
 			uintptr_t writeEnd = mWriteIndex + kFloatsPerDSPVector;
@@ -505,32 +505,23 @@ namespace ml
 	class AllpassDelay
 	{
 	public:
-	public:
-		IntegerDelay(float d) { setDelayInSamples(d); }
-		IntegerDelay() {}
-		~IntegerDelay() {}
+		AllpassDelay(float d) : mFractionalDelay(0.f) { setDelayInSamples(d); }
+		~AllpassDelay() {}
 		
-		void setMaxDelayInSamples(int dMax)
-		{
-			int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
-			mBuffer.resize(newSize);
-			mLengthMask = newSize - 1;
-			mWriteIndex = 0;
-			clear();
-		}
 		
 		inline void clear()
 		{
-			std::fill(mBuffer.begin(), mBuffer.end(), 0.f);
+			mIntegerDelay.clear();
 		}
 		
 		inline void setDelayInSamples(float d) 
 		{ 
-			if(d > mBuffer.size())
-			{
-				setMaxDelayInSamples(d);
-			}
-			mIntDelayInSamples = d; 		
+			
+			
+			// TODO
+			
+			
+			
 		}
 		
 		inline DSPVector operator()(const DSPVector& vx)
@@ -545,6 +536,7 @@ namespace ml
 	
 // OLD
 	
+	/*
 	// TODO modulating this allpass is a little bit clicky.
 	// add history crossfading to address this. 
 	MLSample MLAllpassDelay::processSample(const MLSample x)
@@ -594,7 +586,7 @@ namespace ml
 		// TODO mBlend is not dry blend, see where this is used and correct! 
 		return sum*mBlend + modTapOut*mFeedForward;
 	}
-	
+	*/
 
 	
 	
@@ -609,6 +601,8 @@ namespace ml
 	public:
 		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
 		{
+			
+			return vInput; // temp
 		}
 		
 	private:
@@ -773,7 +767,7 @@ namespace ml
 		
 	private:
 		AllpassSection apa0{ka0}, apa1{ka1}, apb0{kb0}, apb1{kb1};
-		float x0{0}, x1{0};		
+		//float x0{0}, x1{0};		
 		float a0{0}, b0{0}, b1{0};
 		bool k{false};
 	};

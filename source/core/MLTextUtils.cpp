@@ -222,7 +222,7 @@ namespace ml { namespace textUtils {
 	{
 		if(!frag) return TextFragment();
 		int len = frag.lengthInBytes();
-		SmallStackBuffer<char> temp(len);
+		SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
 		char* buf = temp.data();
 		char* pb = buf;
 		
@@ -304,7 +304,7 @@ namespace ml { namespace textUtils {
 		// temp buffer big enough to hold whole input fragment if needed.
 		// we won't know the output fragment size in bytes until iterating the code points. 
 		int len = frag.lengthInBytes();
-		SmallStackBuffer<char> temp(len);
+		SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
 		char* buf = temp.data();
 		char* pb = buf;
 		
@@ -657,7 +657,7 @@ namespace ml { namespace textUtils {
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
 				
-		SmallStackBuffer<codepoint_type> temp(points + 1);
+		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
 		codepoint_type* buf = temp.data();
 		
 		// read into char32 array for random access
@@ -695,7 +695,7 @@ namespace ml { namespace textUtils {
 		// make temporary buffer, hopefully on stack
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
-		SmallStackBuffer<codepoint_type> temp(points + 1);
+		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
 		codepoint_type* buf = temp.data();
 		
 		// read into char32 array for random access

@@ -42,7 +42,7 @@ namespace ml {
 	{
 		const int pathStrBytes = strlen(pathStr);	
 
-		SmallStackBuffer<char> buf(pathStrBytes);
+		SmallStackBuffer<char, kShortFragmentSizeInChars> buf(pathStrBytes);
 		char* beginPoint = buf.data();
 		char* beginSymbol = beginPoint;
 		char* endPoint = beginPoint;			

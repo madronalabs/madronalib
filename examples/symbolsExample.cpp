@@ -221,7 +221,7 @@ int main()
 	}
 	
 	{
-		ml::RandomSource r;
+		ml::NoiseGen r;
 		int len = fabs(r.getSample()*29.);
 		std::cout << len << "\n";
 		

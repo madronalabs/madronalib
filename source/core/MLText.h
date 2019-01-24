@@ -10,56 +10,25 @@
 #pragma once
 
 #include "../../external/utf/utf.hpp"
+#include "MLMemoryUtils.h"
 #include <iostream>
 #include <vector>
 
 namespace ml
 {
-	// ----------------------------------------------------------------
-	// SmallStackBuffer - allocate some memory on the stack if we don't need much,
-	// otherwise use the heap.
-
-	template< class T >
-	class SmallStackBuffer
-	{
-	public:
-		// max elements on stack
-		static const int kLocalDataSize = 128; 
-		SmallStackBuffer(int size)
-		{
-			if(size < kLocalDataSize)
-			{
-				// use stack if > kLocalDataSize
-				// leave room for null termination
-				mpData = mLocalData;
-				std::fill(mpData, mpData + size, T());
-			}
-			else
-			{
-				// get heap if > kLocalDataSize
-				mVec.resize(size + 1, 0);
-				mpData = mVec.data();
-			}
-		}
-		~SmallStackBuffer(){}
-		
-		T* data() { return mpData; }
-		
-	private:
-		T* mpData;
-		T mLocalData[kLocalDataSize];
-		std::vector< T > mVec;
-	};
 	
+	typedef utf::codepoint_type CodepointType;
+
 	// ----------------------------------------------------------------
-	// TextFragment - a sort of minimal string class. Guaranteed not to allocate heap
+	// TextFragment - a minimal, immutable string class. Guaranteed not to allocate heap
 	// if the length in bytes is below kShortFragmentSize. 
+	
+	static constexpr int kShortFragmentSizeInCodePoints = 16;
+	static constexpr int kShortFragmentSizeInChars = kShortFragmentSizeInCodePoints*4;
 	
 	class TextFragment
 	{
 	public:
-				
-		static const int kShortFragmentSize = 16;
 		
 		TextFragment() noexcept;
 
@@ -174,7 +143,7 @@ namespace ml
 		
 		// TODO these things could share space
 		char* mpText; 
-		char mLocalText[kShortFragmentSize];
+		char mLocalText[kShortFragmentSizeInChars];
 		int mSize;
 	};
 

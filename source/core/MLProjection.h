@@ -47,12 +47,12 @@ namespace ml
 	{
 		// projections with no parameters	
 		
-		Projection linear{ [](float x){return x;} };
-		Projection flip{ [](float x){return 1 - x;} };
-		Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
-		Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };
-		Projection flatcenter{ [](float x){float c = (x - 0.5f); return 4*c*c*c + 0.5f;} };
-		Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
+		static const Projection linear{ [](float x){return x;} };
+		static const Projection flip{ [](float x){return 1 - x;} };
+		static const Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
+		static const Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };
+		static const Projection flatcenter{ [](float x){float c = (x - 0.5f); return 4*c*c*c + 0.5f;} };
+		static const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
 
 		// functions taking one or more parameters and returning projections
 		

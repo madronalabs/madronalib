@@ -55,8 +55,6 @@ if(BUILD_NEW_ONLY)
     )
 else(BUILD_NEW_ONLY)
   set(madronalib_SOURCES
-    core/MLPath.cpp
-    core/MLPath.h
     core/MLOSCListener.cpp
     core/MLOSCListener.h
     core/MLOSCReceiver.cpp
