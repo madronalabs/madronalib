@@ -346,7 +346,25 @@ namespace ml
 			}
 		}
 #endif
+		
+		// return a const pointer to the first element in row J of this DSPVectorArray.
+		inline const float* getRowDataConst(int j) const
+		{
+	//		static_assert((J >= 0) && (J < VECTORS), "getRowDataConst row index out of bounds");
+			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*j;
+			return py1;
+		}
+		
+		// return a pointer to the first element in row J of this DSPVectorArray.
+		inline float* getRowData(int j)
+		{
+			//static_assert((J >= 0) && (J < VECTORS), "getRowData row index out of bounds");
+			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
+			return py1;
+		}
+		
 
+/*
 		// return a pointer to the first element in row J of this DSPVectorArray.
 		template<int J>
 		inline const float* getRowDataConst() const
@@ -355,6 +373,7 @@ namespace ml
 			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*J;
 			return py1;
 		}
+*/
 		
 		// return a reference to a row of this DSPVectorArray.
 		inline DSPVectorArray<1>& row(int j)
@@ -991,11 +1010,11 @@ namespace ml
 	{
 		out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << " ";
 
-		if(VECTORS > 1) out << "[   ";
+//		if(VECTORS > 1) out << "[   ";
 		for(int v=0; v<VECTORS; ++v)
 		{
-			if(VECTORS > 1) if(v > 0) out << "\n    ";
-			if(VECTORS > 1) out << "v" << v << ": ";
+		//	if(VECTORS > 1) if(v > 0) out << "\n    ";
+			if(VECTORS > 1) out << "\n    v" << v << ": ";
 			out << "[";
 			for(int i=0; i<kFloatsPerDSPVector; ++i)
 			{
@@ -1003,15 +1022,15 @@ namespace ml
 			}
 			out << "] ";
 		}
-		if(VECTORS > 1) out << "]";
+//		if(VECTORS > 1) out << "]";
 		return out;
 	}	
 	
 	template<int VECTORS>
 	inline std::ostream& operator<< (std::ostream& out, const DSPVectorArrayInt<VECTORS>& vecArray)
 	{
-		out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << " ";
-		if(VECTORS > 1) out << "[   ";
+		out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << "\n ";
+//		if(VECTORS > 1) out << "[   ";
 		for(int v=0; v<VECTORS; ++v)
 		{
 			if(VECTORS > 1) if(v > 0) out << "\n    ";
@@ -1023,7 +1042,7 @@ namespace ml
 			}
 			out << "] ";
 		}
-		if(VECTORS > 1) out << "]";
+//		if(VECTORS > 1) out << "]";
 		return out;
 	}	
 	

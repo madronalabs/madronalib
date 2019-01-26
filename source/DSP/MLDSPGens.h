@@ -25,6 +25,11 @@ namespace ml
 		TickGen(int p) : mCounter(p), mPeriod(p) {}
 		~TickGen() {}
 		
+		inline void setPeriod(int p)
+		{
+			mPeriod = p;
+		}
+		
 		inline DSPVector operator()()
 		{
 			DSPVector vy;

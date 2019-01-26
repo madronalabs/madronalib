@@ -72,6 +72,19 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 		REQUIRE(sum == 0);
 	}
 	
+	
+	// temp
+	typedef SmallStackBuffer<float, 64> vBuf;
+	vBuf va(16);
+	vBuf vb(128);
+	vBuf *pvc = new vBuf(16);
+	vBuf *pvd = new vBuf(128);
+	
+	
+	std::cout << "\n\n a: " << &va << " b: " << &vb << " c: " << pvc << " d: " << pvd << "\n";
+	std::cout << "\n\n a: " << va.data() << " b: " << vb.data() << " c: " << pvc->data() << " d: " << pvd->data() << "\n";
+	
+	
 #ifdef _WINDOWS
 	system("pause");
 #endif

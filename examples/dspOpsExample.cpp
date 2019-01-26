@@ -118,8 +118,20 @@ int main()
 	
 	*/
 	
-	NoiseGen noiser;
-	Upsample2 upper;
+	TickGen ticks(20);
+	
+	Lopass lp1;
+	lp1.mCoeffs = Lopass::coeffs(0.25, 1.0);
+	
+	DSPVector ticksLo = (ticks());
+	
+	UpsampledProcess<1, 2> upper([&](DSPVector v){return repeat<2>((v));});
+	
+	
+	std::cout << "\n\n";
+	std::cout << ticksLo << "\n\n";
+	std::cout << ( upper(ticksLo) ) << "\n";
+
 	
 	
 #ifdef _WINDOWS

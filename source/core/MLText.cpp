@@ -208,6 +208,10 @@ namespace ml
 		}
 		else
 		{
+			/*
+			TODO use SmallStackBuffer! and test
+			*/
+			
 			// point to local storage and copy data
 			mpText = mLocalText; 
 			std::copy(b.mLocalText, b.mLocalText + mSize, mLocalText);

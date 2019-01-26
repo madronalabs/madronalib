@@ -16,7 +16,6 @@
 
 namespace ml
 {
-	
 	typedef utf::codepoint_type CodepointType;
 
 	// ----------------------------------------------------------------

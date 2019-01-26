@@ -24,13 +24,10 @@ namespace ml
 			}
 			else
 			{
-				if(mpData != mLocalData) 
-				{
-					delete mpData;
-				}
 				mpData = new T[size];
 			}
 		}
+		
 		~SmallStackBuffer()
 		{
 			if(mpData != mLocalData) 
