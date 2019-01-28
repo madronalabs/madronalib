@@ -125,7 +125,7 @@ int main()
 	
 	DSPVector ticksLo = (ticks());
 	
-	UpsampledProcess<1, 2> upper([&](DSPVector v){return repeat<2>((v));});
+	UpsampleProcess<1, 2> upper([&](DSPVector v){return repeat<2>((v));});
 	
 	
 	std::cout << "\n\n";

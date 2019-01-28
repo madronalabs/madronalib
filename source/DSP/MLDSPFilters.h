@@ -464,7 +464,7 @@ namespace ml
 		AllpassSection(float a) : mCoeffs(a){}
 		~AllpassSection(){}
 		
-		// get allpass coefficient from the delay fraction d.
+		// get allpass coefficient from a delay fraction d.
 		// to minimize modulation noise, d should be in the range [0.618 - 1.618].
 		static float coeffs (float d)
 		{
@@ -473,8 +473,6 @@ namespace ml
 			return -0.53f*xm1 + 0.24f*xm1*xm1; // 2nd order approx around 1			
 		}
 		
-		
-		// needed?
 		inline float processSample(const float x)
 		{
 			x1=x0;
@@ -488,12 +486,8 @@ namespace ml
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				x1=x0; 
-				y1=y0;
-				x0=vx[n];
-				y0 = x1 + (x0 - y1)*mCoeffs;            
-				vy[n] = y0;
+			{          
+				vy[n] = processSample(vx[n]);
 			}
 			return vy;
 		}
@@ -639,7 +633,7 @@ namespace ml
 			}
 		}
 		
-		// stereo output
+		// stereo output function
 		DSPVectorArray<2> operator()(const DSPVector x)
 		{
 			// run delays, getting DSPVector for each delay 
@@ -694,20 +688,154 @@ namespace ml
 		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
 	};
 	
+
+	// ----------------------------------------------------------------
+	// Resampling
+	
+	
+	// ----------------------------------------------------------------
+	// Half Band Filter
+	// Polyphase allpass filter to upsample or downsample a signal by 2x.
+	// Structure due to fred harris, A. G. Constantinides and Valenzuela.
+	
+	class HalfBandFilter
+	{
+	public:
+		
+		inline DSPVector upsampleFirstHalf(const DSPVector vx)
+		{
+			// TODO look at allpass interpolation here instead of repeat sample(see below)
+			DSPVector vy;
+			int i2 = 0;
+			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
+			{
+				float a0 = apa1.processSample(apa0.processSample(vx[i]));
+				vy[i2++] = a0;
+				float b0 = apb1.processSample(apb0.processSample(vx[i]));
+				vy[i2++] = b1;
+				b1 = b0;
+			}		
+			return vy;
+		}
+		
+		inline DSPVector upsampleSecondHalf(const DSPVector vx)
+		{
+			// TODO look at allpass interpolation here instead of repeat sample(see below)
+			DSPVector vy;
+			int i2 = 0;
+			for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
+			{
+				float a0 = apa1.processSample(apa0.processSample(vx[i]));
+				vy[i2++] = a0;
+				float b0 = apb1.processSample(apb0.processSample(vx[i]));
+				vy[i2++] = b1;
+				b1 = b0;
+			}		
+			return vy;
+		}
+		
+		inline DSPVector downsample(const DSPVector vx1, const DSPVector vx2)
+		{
+			// TODO look at allpass interpolation here instead of repeat sample(see below)
+			DSPVector vy;
+			int i2 = 0;
+			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
+			{
+				float a0 = apa1.processSample(apa0.processSample(vx1[i2]));
+				float b0 = apb1.processSample(apb0.processSample(vx1[i2 + 1]));
+				vy[i] = (a0 + b1)*0.5f;
+				b1 = b0;
+				i2 += 2;
+			}	
+			i2 = 0;			
+			for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
+			{
+				float a0 = apa1.processSample(apa0.processSample(vx2[i2]));
+				float b0 = apb1.processSample(apb0.processSample(vx2[i2 + 1]));
+				vy[i] = (a0 + b1)*0.5f;
+				b1 = b0;
+				i2 += 2;
+			}	
+			return vy;
+		}
+		
+	private:
+		
+		// order=4, rejection=70dB, transition band=0.1. 
+		AllpassSection apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
+		float b1{0};
+	};
+	
+	
+	// move to MLDSPFunctions?
+
+
+	// Here are some function objects that take DSP functions as constructor parameters and apply
+	// the function in a different context, such as upsampled, overlap-added or in the frequency domain.
+	
+	
+	// UpsampleProcess is a function object that given a process function f, 
+	// upsamples the input x, applies f, downsamples and returns the result.
+	// the total delay from the resampling filters used is about 3 samples.	
+	
+	template<int IN_ROWS, int OUT_ROWS>
+	class UpsampleProcess
+	{
+		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
+		
+	public:
+		UpsampleProcess(ProcessFn fn): _fn(fn){}
+		~UpsampleProcess(){}
+		
+		inline DSPVectorArray<OUT_ROWS> operator()(const DSPVectorArray<IN_ROWS> x)
+		{
+			// upsample each row of input to 2x buffers			
+			for(int j=0; j < IN_ROWS; ++j)
+			{
+				// TODO look at allpass interpolation here instead of repeat sample(see below)
+				DSPVector x1a = mUppers[j].upsampleFirstHalf(x.constRow(j));				
+				DSPVector x1b = mUppers[j].upsampleSecondHalf(x.constRow(j));
+				mUpX1.row(j) = x1a;
+				mUpX2.row(j) = x1b;
+			}
+			
+			// process upsampled input
+			mUpY1 = _fn(mUpX1);
+			mUpY2 = _fn(mUpX2);
+			
+			// downsample each processed row to 1x output 
+			DSPVectorArray<OUT_ROWS> y;
+			for(int j=0; j < OUT_ROWS; ++j)
+			{
+				y.row(j) = mDowners[j].downsample(mUpY1.constRow(j), mUpY2.constRow(j));
+			}
+			return y;
+		}
+		
+	private:
+		ProcessFn _fn;
+		std::array<HalfBandFilter, IN_ROWS> mUppers;
+		std::array<HalfBandFilter, OUT_ROWS> mDowners;
+		
+		// upsampled input
+		DSPVectorArray<IN_ROWS> mUpX1, mUpX2;
+		// upsampled output
+		DSPVectorArray<OUT_ROWS> mUpY1, mUpY2;
+	};
 	
 	
 	// ----------------------------------------------------------------
 	// OverlapAdd
 	
 	template<int LENGTH, int DIVISIONS>
-	class OverlapAdd
+	class OverlapAddProcess
 	{
 	public:
-		OverlapAdd(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& w) : mFunction(fn), mWindow(w)
+		OverlapAddProcess(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& w) : mFunction(fn), mWindow(w)
 		{
 			//mHistory.setDims(LENGTH, DIVISIONS);
 		}
-		~OverlapAdd(){}
+		~OverlapAddProcess(){}
 		
 		DSPVector operator()(const DSPVector& x)
 		{
@@ -718,153 +846,6 @@ namespace ml
 		//MLSignal mHistory;
 		std::function<DSPVector(const DSPVector&)> mFunction;
 		const DSPVector& mWindow;
-	};
-	
-	// ----------------------------------------------------------------
-	// Resampling
-	
-	
-	// ----------------------------------------------------------------
-	// Half Band Filter
-	// polyphase two-path structure due to fred harris, A. G. Constantinides and Valenzuela.
-	// adapted from code by Dave Waugh of Muon Software.
-	// order=4, rejection=70dB, transition band=0.1. 
-	
-	class HalfBandFilter
-	{
-	public:
-		static constexpr float ka0 = 0.07986642623635751;
-		static constexpr float ka1 = 0.5453536510711322;
-		static constexpr float kb0 = 0.28382934487410993;
-		static constexpr float kb1 = 0.8344118914807379;
-		
-		inline float processSampleDown(float x1, float x2)
-		{
-			float y;
-			a0 = apa1.processSample(apa0.processSample(x1));
-			b0 = apb1.processSample(apb0.processSample(x2));
-			y = (a0 + b1)*0.5f;
-			b1 = b0;
-			return y;
-		}
-		
-		inline float processSampleUp(const float x)
-		{
-			float y;
-			if(k)
-			{
-				a0 = apa1.processSample(apa0.processSample(x));
-				y = a0;
-			}
-			else
-			{
-				b0 = apb1.processSample(apb0.processSample(x));
-				y = b1;
-			}
-			
-			b1 = b0;
-			k = !k;
-			return y;
-		}
-		
-	private:
-		AllpassSection apa0{ka0}, apa1{ka1}, apb0{kb0}, apb1{kb1};
-		//float x0{0}, x1{0};		
-		float a0{0}, b0{0}, b1{0};
-		bool k{false};
-	};
-	
-	// WIP TODO multiple inputs/outputs of different sizes using variadic template maybe
-	// can't use DSPVectorArray rows for multipls sources because we would like multi-row sources
-	
-	
-	// TODO
-	// what about adding INROWS, OUTROWS to template ?
-	
-	// the total delay is about 3.5 samples.
-	
-	template<int IN_ROWS, int OUT_ROWS>
-	class UpsampledProcess
-	{
-		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
-		
-	public:
-		UpsampledProcess(ProcessFn fn): _fn(fn){}
-		~UpsampledProcess(){}
-		
-		// upsample the input x, apply a function <DSPVector(const DSPVector&)>, downsample the result and return the output.
-		// note that this could be written
-		// DSPVector test1(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& x)
-		// but the template version allows the function parameter to be inlined.
-		
-		inline DSPVectorArray<OUT_ROWS> operator()(const DSPVectorArray<IN_ROWS> x)
-		{
-			
-			// TODO rearrange and remove processSample()
-						
-			// upsample each row of input to 2x buffers
-			
-			for(int j=0; j < IN_ROWS; ++j)
-			{
-				const float *pSrc = x.getRowDataConst(j); 
-				float *pDest1 = mUpX1.getRowData(j); 
-				float *pDest2 = mUpX2.getRowData(j); 
-				
-				int i2 = 0;
-				for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
-				{
-					pDest1[i2++] = mUppers[j].processSampleUp(pSrc[i]);
-					
-					// TODO look at allpass interpolation here instead of repeat sample(see below)
-					pDest1[i2++] = mUppers[j].processSampleUp(pSrc[i]);
-				}		
-				i2 = 0;
-				for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
-				{
-					pDest2[i2++] = mUppers[j].processSampleUp(pSrc[i]);
-					pDest2[i2++] = mUppers[j].processSampleUp(pSrc[i]);
-				}		
-			}
-			
-			// process
-			
-			mUpY1 = _fn(mUpX1);
-			mUpY2 = _fn(mUpX2);
-			
-			// downsample each row to 1x output 
-			DSPVectorArray<OUT_ROWS> y;
-			for(int j=0; j < OUT_ROWS; ++j)
-			{
-				
-				const float *pSrc1 = mUpY1.getRowDataConst(j); 
-				const float *pSrc2 = mUpY2.getRowDataConst(j); 
-				float *pDest = y.getRowData(j); 
-				
-				
-				int i2 = 0;
-				for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
-				{
-					pDest[i] = mDowners[j].processSampleDown(pSrc1[i2], pSrc1[i2 + 1]);
-					i2 += 2;
-				}	
-				i2 = 0;
-			
-				for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
-				{
-					pDest[i] = mDowners[j].processSampleDown(pSrc2[i2], pSrc2[i2 + 1]);
-					i2 += 2;
-				}	
-			}
-			
-			return y;
-		}
-		
-	private:
-		ProcessFn _fn;
-		std::array<HalfBandFilter, IN_ROWS> mUppers;
-		std::array<HalfBandFilter, OUT_ROWS> mDowners;
-		DSPVectorArray<IN_ROWS> mUpX1, mUpX2;
-		DSPVectorArray<OUT_ROWS> mUpY1, mUpY2;
 	};
 	
 	

@@ -132,7 +132,7 @@ namespace ml
 			}
 		}
 #else
-		inline float* getBuffer() { return mData.asFloat; }
+		inline float* getBuffer() { return mData.asFloat; } 
 		inline const float* getConstBuffer() const { return mData.asFloat; }
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 #endif // MANUAL_ALIGN_DSPVECTOR
@@ -259,7 +259,7 @@ namespace ml
 
 #endif
 
-		// equality
+		// equality by value
 		bool operator==(const DSPVectorArray<VECTORS>& x1)
 		{
 			const float* px1 = x1.getConstBuffer();
@@ -272,6 +272,9 @@ namespace ml
 			return true;
 		}
 		
+		
+	private:
+		
 		// return row J from this DSPVectorArray, when J is known at compile time. 
 		template<int J>
 		inline DSPVectorArray<1> getRowVector() const
@@ -282,7 +285,7 @@ namespace ml
 		
 		// set row J of this DSPVectorArray to x1, when J is known at compile time. 
 		template<int J>
-		inline void setRowVector(const DSPVectorArray<1>& x1)
+		inline void setRowVector(const DSPVectorArray<1> x1)
 		{
 			static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
 			setRowVectorUnchecked(J, x1);
@@ -305,7 +308,7 @@ namespace ml
 		}
 		
 		// set a row vector j when j is not known at compile time. 
-		inline void setRowVectorUnchecked(int j, const DSPVectorArray<1>& x1)
+		inline void setRowVectorUnchecked(int j, const DSPVectorArray<1> x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
@@ -333,7 +336,7 @@ namespace ml
 		}
 
 		// set a row vector j when j is not known at compile time. 
-		inline void setRowVectorUnchecked(int j, const DSPVectorArray<1>& x1)
+		inline void setRowVectorUnchecked(int j, const DSPVectorArray<1> x1)
 		{
 			const float* px1 = x1.getConstBuffer();
 			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
@@ -350,7 +353,6 @@ namespace ml
 		// return a const pointer to the first element in row J of this DSPVectorArray.
 		inline const float* getRowDataConst(int j) const
 		{
-	//		static_assert((J >= 0) && (J < VECTORS), "getRowDataConst row index out of bounds");
 			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*j;
 			return py1;
 		}
@@ -358,10 +360,11 @@ namespace ml
 		// return a pointer to the first element in row J of this DSPVectorArray.
 		inline float* getRowData(int j)
 		{
-			//static_assert((J >= 0) && (J < VECTORS), "getRowData row index out of bounds");
 			float* py1 = getBuffer() + kFloatsPerDSPVector*j;
 			return py1;
 		}
+		
+	public:
 		
 
 /*
@@ -398,10 +401,10 @@ namespace ml
 		
 		// declare as friends any templates or functions that need to use get/setRowVectorUnchecked
 		template<int C, int V>
-		friend DSPVectorArray<C*V> repeat(const DSPVectorArray<V>& x1);
+		friend DSPVectorArray<C*V> repeat(const DSPVectorArray<V> x1);
 
 		template<int VA, int VB>
-		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
+		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA> x1, const DSPVectorArray<VB> x2);
 	};
 	
 	typedef DSPVectorArray<1> DSPVector;
@@ -876,7 +879,7 @@ namespace ml
 	
 	// return a DSPVectorArray with each row set to the single DSPVector x1.
 	template<int COPIES, int VECTORS>
-	inline DSPVectorArray<COPIES*VECTORS> repeat(const DSPVectorArray<VECTORS>& x1)
+	inline DSPVectorArray<COPIES*VECTORS> repeat(const DSPVectorArray<VECTORS> x1)
 	{
 		DSPVectorArray<COPIES*VECTORS> vy;
 		for(int copy=0; copy<COPIES; ++copy)
@@ -890,7 +893,7 @@ namespace ml
 	}
 	
 	template<int VECTORSA, int VECTORSB>
-	inline DSPVectorArray<VECTORSA + VECTORSB> append(const DSPVectorArray<VECTORSA>& x1, const DSPVectorArray<VECTORSB>& x2)
+	inline DSPVectorArray<VECTORSA + VECTORSB> append(const DSPVectorArray<VECTORSA> x1, const DSPVectorArray<VECTORSB> x2)
 	{
 		DSPVectorArray<VECTORSA + VECTORSB> vy;
 		for(int j=0; j<VECTORSA; ++j)
@@ -907,7 +910,7 @@ namespace ml
 	// shuffle two DSPVectorArrays, alternating x1 to even rows of result and x2 to odd rows.
 	// if the sources are different sizes, the excess rows are all appended to the destination after shuffling is done.
 	template<int VECTORSA, int VECTORSB>
-	inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(const DSPVectorArray<VECTORSA>& x1, const DSPVectorArray<VECTORSB>& x2)
+	inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(const DSPVectorArray<VECTORSA> x1, const DSPVectorArray<VECTORSB> x2)
 	{
 		DSPVectorArray<VECTORSA + VECTORSB> vy;
 		int ja = 0;
