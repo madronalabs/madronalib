@@ -125,14 +125,22 @@ int main()
 	
 	DSPVector ticksLo = (ticks());
 	
-	UpsampleProcess<1, 2> upper([&](DSPVector v){return repeat<2>((v));});
 	
+	HalfBandFilter f2;
+	DSPVector ticks2 = f2.downsample(ticks(), ticks());
 	
 	std::cout << "\n\n";
 	std::cout << ticksLo << "\n\n";
-	std::cout << ( upper(ticksLo) ) << "\n";
+	Upsampler2x<1, 2> upper;
+	std::cout << upper( [&](const DSPVector v){return repeat<2>(v);}, ticksLo) << "\n\n\n";
 
+	Downsampler2x<1, 1> downer;
 	
+	DSPVector tick;
+	tick[4] = 1.0f;
+	auto identity = ([&](DSPVector v){return v;});
+	std::cout << downer(identity, tick) << "\n" << downer(identity, DSPVector()) << "\n\n";
+
 	
 #ifdef _WINDOWS
 	system("pause");

@@ -75,14 +75,17 @@ namespace ml
 				// buffers to process input
 				for(int c = 0; c < nChans; c++)
 				{
-					inputVectors.setRowVectorUnchecked(c, mInputBuffers[c].read());
+					//inputVectors.setRowVectorUnchecked(c, mInputBuffers[c].read());
+					
+					inputVectors.row(c) = mInputBuffers[c].read();
 				}
 				
 				outputVectors = fn(inputVectors, nChans);
 				
 				for(int c = 0; c < nChans; c++)
 				{
-					mOutputBuffers[c].write(outputVectors.getRowVectorUnchecked(c));
+					//mOutputBuffers[c].write(outputVectors.getRowVectorUnchecked(c));
+					mOutputBuffers[c].write(outputVectors.row(c));
 				}
 			}
 			

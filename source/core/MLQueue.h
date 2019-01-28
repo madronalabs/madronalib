@@ -22,11 +22,16 @@ namespace ml {
 	public:
 		Queue(size_t size)
 		{
-			mData.resize(size + 1);
+			resize(size);
 		}
 		
 		~Queue(){}
 		
+		resize(size_t size)
+		{
+			mData.resize(size + 1);
+		}
+
 		bool push(const Element& item)
 		{
 			const auto currentWriteIndex = mWriteIndex.load(std::memory_order_relaxed);

@@ -774,53 +774,102 @@ namespace ml
 	// the function in a different context, such as upsampled, overlap-added or in the frequency domain.
 	
 	
-	// UpsampleProcess is a function object that given a process function f, 
-	// upsamples the input x, applies f, downsamples and returns the result.
+	// Upsampler2x is a function object that given a process function f, 
+	// upsamples the input x by 2, applies f, downsamples and returns the result.
 	// the total delay from the resampling filters used is about 3 samples.	
 	
 	template<int IN_ROWS, int OUT_ROWS>
-	class UpsampleProcess
+	class Upsampler2x
 	{
 		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
 		
-	public:
-		UpsampleProcess(ProcessFn fn): _fn(fn){}
-		~UpsampleProcess(){}
-		
-		inline DSPVectorArray<OUT_ROWS> operator()(const DSPVectorArray<IN_ROWS> x)
+	public:		
+		inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn, const DSPVectorArray<IN_ROWS> vx)
 		{
 			// upsample each row of input to 2x buffers			
 			for(int j=0; j < IN_ROWS; ++j)
 			{
-				// TODO look at allpass interpolation here instead of repeat sample(see below)
-				DSPVector x1a = mUppers[j].upsampleFirstHalf(x.constRow(j));				
-				DSPVector x1b = mUppers[j].upsampleSecondHalf(x.constRow(j));
-				mUpX1.row(j) = x1a;
-				mUpX2.row(j) = x1b;
+				DSPVector x1a = mUppers[j].upsampleFirstHalf(vx.constRow(j));				
+				DSPVector x1b = mUppers[j].upsampleSecondHalf(vx.constRow(j));
+				mUpsampledInput1.row(j) = x1a;
+				mUpsampledInput2.row(j) = x1b;
 			}
 			
 			// process upsampled input
-			mUpY1 = _fn(mUpX1);
-			mUpY2 = _fn(mUpX2);
+			mUpsampledOutput1 = fn(mUpsampledInput1);
+			mUpsampledOutput2 = fn(mUpsampledInput2);
 			
 			// downsample each processed row to 1x output 
-			DSPVectorArray<OUT_ROWS> y;
+			DSPVectorArray<OUT_ROWS> vy;
 			for(int j=0; j < OUT_ROWS; ++j)
 			{
-				y.row(j) = mDowners[j].downsample(mUpY1.constRow(j), mUpY2.constRow(j));
+				vy.row(j) = mDowners[j].downsample(mUpsampledOutput1.constRow(j), mUpsampledOutput2.constRow(j));
 			}
-			return y;
+			return vy;
 		}
 		
 	private:
-		ProcessFn _fn;
 		std::array<HalfBandFilter, IN_ROWS> mUppers;
 		std::array<HalfBandFilter, OUT_ROWS> mDowners;
+		DSPVectorArray<IN_ROWS> mUpsampledInput1, mUpsampledInput2;
+		DSPVectorArray<OUT_ROWS> mUpsampledOutput1, mUpsampledOutput2;
+	};
+	
+	
+	// Downsampler2x is a function object that given a process function f, 
+	// downsamples the input x by 2, applies f, upsamples and returns the result.
+	// Since two DSPVectors of input are needed to create a single vector of downsampled input
+	// to the wrapped function, this function has an entire DSPVector of delay.
+
+	template<int IN_ROWS, int OUT_ROWS>
+	class Downsampler2x
+	{
+		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
 		
-		// upsampled input
-		DSPVectorArray<IN_ROWS> mUpX1, mUpX2;
-		// upsampled output
-		DSPVectorArray<OUT_ROWS> mUpY1, mUpY2;
+	public:
+		inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn, const DSPVectorArray<IN_ROWS> vx)
+		{
+			DSPVectorArray<OUT_ROWS> vy;
+			if(mPhase)
+			{				
+				// downsample each row of input to 1/2x buffers			
+				for(int j=0; j < IN_ROWS; ++j)
+				{
+					mDownsampledInput.row(j) = mDowners[j].downsample(mInputBuffer.constRow(j), vx.constRow(j));
+				}
+				
+				// process downsampled input
+				mDownsampledOutput = fn(mDownsampledInput);
+				
+				// upsample each processed row to output 
+				for(int j=0; j < OUT_ROWS; ++j)
+				{
+					// first half is returned
+					vy.row(j) = mUppers[j].upsampleFirstHalf(mDownsampledOutput.constRow(j));		
+					
+					// second half is buffered
+					mOutputBuffer.row(j) = mUppers[j].upsampleSecondHalf(mDownsampledOutput.constRow(j));	
+				}
+			}
+			else
+			{
+				// store input
+				mInputBuffer = vx;
+				// return buffer
+				vy = mOutputBuffer;
+			}
+			mPhase = !mPhase;
+			return vy;
+		}
+		
+	private:
+		std::array<HalfBandFilter, IN_ROWS> mDowners;
+		std::array<HalfBandFilter, OUT_ROWS> mUppers;
+		DSPVectorArray<IN_ROWS> mInputBuffer;
+		DSPVectorArray<OUT_ROWS> mOutputBuffer;
+		DSPVectorArray<IN_ROWS> mDownsampledInput;
+		DSPVectorArray<OUT_ROWS> mDownsampledOutput;
+		bool mPhase{false};
 	};
 	
 	
@@ -900,7 +949,6 @@ namespace ml
 	 differentiator
 	 integrator
 	 IntegerDelay 
-	 LinearDelay
 	 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
 	 Downsampler2 (2n vectors -> n)
 	 upsampler2 (n -> 2n) 
@@ -913,7 +961,7 @@ namespace ml
 	 inline DSPVector SVF::operator();
 	 
 	 onepole
-	 asymmetriconepole
+	 asymmetriconepole 
 	 
 	 ramp generator
 	 quadratic generator
@@ -923,7 +971,9 @@ namespace ml
 	 sinebank -> n vectors, templated size
 	 phasebank
 	 SVFbank
-	 biquadbank
+	 
+	 
+	 
 	 */
 	
 } // namespace ml
