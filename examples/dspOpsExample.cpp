@@ -132,12 +132,12 @@ int main()
 	std::cout << "\n\n";
 	std::cout << ticksLo << "\n\n";
 	Upsampler2x<1, 2> upper;
-	std::cout << upper( [&](const DSPVector v){return repeat<2>(v);}, ticksLo) << "\n\n\n";
+	auto repeatFn ([&](const DSPVector v){return repeat<2>(v);});
+	std::cout << upper(repeatFn, ticksLo) << "\n\n\n";
 
-	Downsampler2x<1, 1> downer;
-	
 	DSPVector tick;
 	tick[4] = 1.0f;
+	Downsampler2x<1, 1> downer;
 	auto identity = ([&](DSPVector v){return v;});
 	std::cout << downer(identity, tick) << "\n" << downer(identity, DSPVector()) << "\n\n";
 

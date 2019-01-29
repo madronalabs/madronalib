@@ -704,39 +704,30 @@ namespace ml
 		
 		inline DSPVector upsampleFirstHalf(const DSPVector vx)
 		{
-			// TODO look at allpass interpolation here instead of repeat sample(see below)
 			DSPVector vy;
 			int i2 = 0;
 			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
 			{
-				float a0 = apa1.processSample(apa0.processSample(vx[i]));
-				vy[i2++] = a0;
-				float b0 = apb1.processSample(apb0.processSample(vx[i]));
-				vy[i2++] = b1;
-				b1 = b0;
+				vy[i2++] = apa1.processSample(apa0.processSample(vx[i]));				
+				vy[i2++] = apb1.processSample(apb0.processSample(vx[i]));
 			}		
 			return vy;
 		}
 		
 		inline DSPVector upsampleSecondHalf(const DSPVector vx)
 		{
-			// TODO look at allpass interpolation here instead of repeat sample(see below)
 			DSPVector vy;
 			int i2 = 0;
 			for(int i = kFloatsPerDSPVector/2; i < kFloatsPerDSPVector; ++i)
 			{
-				float a0 = apa1.processSample(apa0.processSample(vx[i]));
-				vy[i2++] = a0;
-				float b0 = apb1.processSample(apb0.processSample(vx[i]));
-				vy[i2++] = b1;
-				b1 = b0;
+				vy[i2++] = apa1.processSample(apa0.processSample(vx[i]));				
+				vy[i2++] = apb1.processSample(apb0.processSample(vx[i]));
 			}		
 			return vy;
 		}
 		
 		inline DSPVector downsample(const DSPVector vx1, const DSPVector vx2)
 		{
-			// TODO look at allpass interpolation here instead of repeat sample(see below)
 			DSPVector vy;
 			int i2 = 0;
 			for(int i = 0; i < kFloatsPerDSPVector/2; ++i)
@@ -763,7 +754,7 @@ namespace ml
 		
 		// order=4, rejection=70dB, transition band=0.1. 
 		AllpassSection apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
-		float b1{0};
+		float a1{0}, b1{0};
 	};
 	
 	
@@ -898,49 +889,6 @@ namespace ml
 	};
 	
 	
-	/*
-	 > ===== Fractional Delay 2X Upsampling =====
-	 >
-	 > Tested one more upsampling permutation, which worked the best, at 
-	 > least when paired with the polyphase halfband filter. Very clean!
-	 >
-	 > Used JOS's simple fractional sample Allpass delay to guestimate the 
-	 > intermediate samples. Something like this--
-	 >
-	 > //globals or class properties
-	 > //Allpass delay vars
-	 > double LastAPIn;
-	 > double LastAPOut;
-	 >
-	 > //locals
-	 > double tmpAPIn;
-	 > double tmpAPOut;
-	 > //buffer pointers
-	 > float *PIndx;
-	 > float *POutdx;
-	 > float *PIndxTop;
-	 >
-	 > while (PIndx < PIndxTop) //oversample 2X
-	 > {
-	 >  tmpAPIn = *PIndx; //fetch insample
-	 >  tmpAPOut = 0.33333333 * (tmpAPIn - LastAPOut) + LastAPIn;
-	 >  //allpass delay by one-half sample
-	 >  LastAPIn = tmpAPIn; //save previous values
-	 >  LastAPOut = tmpAPOut;
-	 >  *POutdx = tmpAPOut;
-	 >  //write delay-interpolated insample to out
-	 >  POutdx += 1; //inc out ptr
-	 >  *POutdx = tmpAPIn;
-	 >  //write original insample to out
-	 >  POutdx += 1; //inc out ptr
-	 >  PIndx += 1; //inc in ptr
-	 > }
-	 >
-	 > When paired with the polyphase halfband filter, dunno why the 
-	 > half-sample Allpass delay works all that much better than 
-	 > zero-stuffing or repeat-sample.
-	 >
-	 */
 	// ----------------------------------------------------------------
 	// Simple time-based filters on DSPVectorArray.
 	//

@@ -177,6 +177,94 @@ namespace ml
 	 
 	*/
 	
+	
+	// super slow SineGen for testing
+	
+	class TestSineGen
+	{		
+		float mOmega{0};
+		
+	public:
+		void clear()
+		{
+			mOmega = 0;
+		}
+		
+		DSPVector operator()(const DSPVector freq)
+		{	
+			DSPVector vy;
+			
+			for(int i=0; i<kFloatsPerDSPVector; ++i)
+			{
+				float step = ml::kTwoPi*freq[i];
+				mOmega += step;
+				if(mOmega > ml::kTwoPi) mOmega -= ml::kTwoPi;
+				vy[i] = sinf(mOmega);
+			}
+			return vy;
+		}
+	};
+	
+	
+	// FastSineGen approximates a sine using Taylor series. There is distortion in odd harmonics
+	// only, with the 3rd harmonic at about -40dB.
+	
+	class FastSineGen
+	{		
+		static constexpr int32_t kZeroPhase = -(2<<29);
+		
+		int32_t mOmega32{kZeroPhase};
+		
+	public:
+		void clear()
+		{
+			mOmega32 = kZeroPhase;
+		}
+		
+		// this sine generator makes a looping counter by letting a 32 bit word overflow.
+		DSPVector operator()(const DSPVector freq)
+		{	
+			constexpr float sqrt2(const_math::sqrt(2.0f));
+			constexpr float range(sqrt2 - sqrt2*sqrt2*sqrt2/6.f);
+			constexpr float domain(sqrt2*4.f);
+			constexpr float intDomain(const_math::pow(2., 32.));
+			
+			// TODO verify constexpr
+			DSPVector domainScaleV(domain/intDomain);
+			DSPVector domainOffsetV(sqrt2);
+			DSPVector flipOffsetV(sqrt2*2.f);
+			DSPVector oneSixthV(1.0f/6.f);
+			DSPVector scaleV(1.0f/range);
+			DSPVector zeroV(0.f);
+			DSPVector oneV(1.f);
+			
+			DSPVector srDomainFreq = freq*DSPVector(intDomain);
+			DSPVectorInt step32V = roundFloatToInt(srDomainFreq); 
+			DSPVectorInt omega32V;
+			
+			// accumulate 32-bit phase with wrap
+			for (int n = 0; n < kIntsPerDSPVector; ++n)
+			{
+				mOmega32 += step32V[n];
+				omega32V[n] = mOmega32;
+			}
+			
+			DSPVector phaseV = intToFloat(omega32V);	
+			DSPVector omegaV = phaseV*(domainScaleV) + (domainOffsetV);
+			
+			// reverse upper half of phasor to get triangle
+			// equivalent to: if (mOmega32 > 0) x = flipOffset - fOmega; else x = fOmega;
+			DSPVector maskV = greaterThan(phaseV, zeroV);
+			omegaV = select((flipOffsetV) - omegaV, omegaV, maskV); 
+			
+			// convert triangle to sine approx. 
+			return scaleV*omegaV*(oneV - omegaV*omegaV*oneSixthV);
+		}
+	};
+	
+	
+
+	
 	// ----------------------------------------------------------------
 	// LinearGlide
 	
