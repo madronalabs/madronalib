@@ -6,7 +6,7 @@
 #include <thread>
 
 #include "../include/madronalib.h"
-#include "MLDSP.h"
+#include "MLDSP.h" // TODO -> "core"
 
 #ifdef _WINDOWS
 #include "Windows.h"
@@ -118,7 +118,7 @@ int main()
 	
 	*/
 	
-	TickGen ticks(20);
+	TickGen ticks(5);
 	
 	Lopass lp1;
 	lp1.mCoeffs = Lopass::coeffs(0.25, 1.0);
@@ -131,15 +131,18 @@ int main()
 	
 	std::cout << "\n\n";
 	std::cout << ticksLo << "\n\n";
-	Upsampler2x<1, 2> upper;
+	Upsample2x<1, 2> upper;
 	auto repeatFn ([&](const DSPVector v){return repeat<2>(v);});
 	std::cout << upper(repeatFn, ticksLo) << "\n\n\n";
 
 	DSPVector tick;
-	tick[4] = 1.0f;
-	Downsampler2x<1, 1> downer;
+	tick[0] = 1.0f;
+	Downsample2x<0, 1> downer; // 0 ins, 1 outs for downsampled generator fn
 	auto identity = ([&](DSPVector v){return v;});
-	std::cout << downer(identity, tick) << "\n" << downer(identity, DSPVector()) << "\n\n";
+	
+	auto ticksFn = ([&](DSPVectorArray<0> v){return ticks();});
+	
+	std::cout << downer(ticksFn) << "\n" << downer(ticksFn) << "\n\n";
 
 	
 #ifdef _WINDOWS

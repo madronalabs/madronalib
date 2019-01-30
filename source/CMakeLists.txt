@@ -35,6 +35,7 @@ if(BUILD_NEW_ONLY)
     DSP/MLDSP.h
 		DSP/MLDSPFilters.cpp
 		DSP/MLDSPFilters.h
+		DSP/MLDSPFunctional.h
 		DSP/MLDSPGens.cpp
 		DSP/MLDSPGens.h
 		DSP/MLDSPMath.h
@@ -98,6 +99,7 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPGens.h
     DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
+		DSP/MLDSPFunctional.h
     DSP/MLDSPMath.h
     DSP/MLDSPMathScalar.h
     DSP/MLDSPMathSSE.h

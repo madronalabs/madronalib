@@ -16,7 +16,6 @@
 #define __ML_DSP_OPS__
 
 #include <array>
-#include <functional>
 #include <iostream>
 
 #include "../core/MLScalarMath.h"
@@ -366,18 +365,6 @@ namespace ml
 		
 	public:
 		
-
-/*
-		// return a pointer to the first element in row J of this DSPVectorArray.
-		template<int J>
-		inline const float* getRowDataConst() const
-		{
-			static_assert((J >= 0) && (J < VECTORS), "getRowDataConst row index out of bounds");
-			const float* py1 = getConstBuffer() + kFloatsPerDSPVector*J;
-			return py1;
-		}
-*/
-		
 		// return a reference to a row of this DSPVectorArray.
 		inline DSPVectorArray<1>& row(int j)
 		{
@@ -405,7 +392,7 @@ namespace ml
 
 		template<int VA, int VB>
 		friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA> x1, const DSPVectorArray<VB> x2);
-	};
+	}; // class DSPVectorArray
 	
 	typedef DSPVectorArray<1> DSPVector;
 	
@@ -541,7 +528,7 @@ namespace ml
 		}
 #endif
 
-	};
+	}; // class DSPVectorArrayInt
 	
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
 
@@ -806,58 +793,6 @@ namespace ml
 			px1 += kFloatsPerSIMDVector;	
 		}
 		return fmin;
-	}
-	
-	// ----------------------------------------------------------------
-	// functional
-	
-	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
-	// x is a dummy argument just used to infer the vector size.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS>& x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
-		{
-			y[n] = f();
-		}
-		return y;
-	}
-
-	// Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS>& x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
-		{
-			y[n] = f(x[n]);
-		}
-		return y;
-	}
-	
-	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&)> f, const DSPVectorArray<VECTORS>& x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int j=0; j<VECTORS; ++j)
-		{
-			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j)));
-		}
-		return y;
-	}
-	
-	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&, int)> f, const DSPVectorArray<VECTORS>& x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int j=0; j<VECTORS; ++j)
-		{
-			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j), j));
-		}
-		return y;
 	}
 	
 	// ----------------------------------------------------------------

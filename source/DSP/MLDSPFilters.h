@@ -33,8 +33,6 @@ namespace ml
 	// --------------------------------------------------------------------------------
 	// utility filters implemented as SVF variations
 	// Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the years.
-	
-	// TODO: time-varying coefficients, time-varying operators for each SVF type
 
 	class Lopass
 	{
@@ -754,140 +752,8 @@ namespace ml
 		
 		// order=4, rejection=70dB, transition band=0.1. 
 		AllpassSection apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
-		float a1{0}, b1{0};
+		float b1{0};
 	};
-	
-	
-	// move to MLDSPFunctions?
-
-
-	// Here are some function objects that take DSP functions as constructor parameters and apply
-	// the function in a different context, such as upsampled, overlap-added or in the frequency domain.
-	
-	
-	// Upsampler2x is a function object that given a process function f, 
-	// upsamples the input x by 2, applies f, downsamples and returns the result.
-	// the total delay from the resampling filters used is about 3 samples.	
-	
-	template<int IN_ROWS, int OUT_ROWS>
-	class Upsampler2x
-	{
-		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
-		
-	public:		
-		inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn, const DSPVectorArray<IN_ROWS> vx)
-		{
-			// upsample each row of input to 2x buffers			
-			for(int j=0; j < IN_ROWS; ++j)
-			{
-				DSPVector x1a = mUppers[j].upsampleFirstHalf(vx.constRow(j));				
-				DSPVector x1b = mUppers[j].upsampleSecondHalf(vx.constRow(j));
-				mUpsampledInput1.row(j) = x1a;
-				mUpsampledInput2.row(j) = x1b;
-			}
-			
-			// process upsampled input
-			mUpsampledOutput1 = fn(mUpsampledInput1);
-			mUpsampledOutput2 = fn(mUpsampledInput2);
-			
-			// downsample each processed row to 1x output 
-			DSPVectorArray<OUT_ROWS> vy;
-			for(int j=0; j < OUT_ROWS; ++j)
-			{
-				vy.row(j) = mDowners[j].downsample(mUpsampledOutput1.constRow(j), mUpsampledOutput2.constRow(j));
-			}
-			return vy;
-		}
-		
-	private:
-		std::array<HalfBandFilter, IN_ROWS> mUppers;
-		std::array<HalfBandFilter, OUT_ROWS> mDowners;
-		DSPVectorArray<IN_ROWS> mUpsampledInput1, mUpsampledInput2;
-		DSPVectorArray<OUT_ROWS> mUpsampledOutput1, mUpsampledOutput2;
-	};
-	
-	
-	// Downsampler2x is a function object that given a process function f, 
-	// downsamples the input x by 2, applies f, upsamples and returns the result.
-	// Since two DSPVectors of input are needed to create a single vector of downsampled input
-	// to the wrapped function, this function has an entire DSPVector of delay.
-
-	template<int IN_ROWS, int OUT_ROWS>
-	class Downsampler2x
-	{
-		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
-		
-	public:
-		inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn, const DSPVectorArray<IN_ROWS> vx)
-		{
-			DSPVectorArray<OUT_ROWS> vy;
-			if(mPhase)
-			{				
-				// downsample each row of input to 1/2x buffers			
-				for(int j=0; j < IN_ROWS; ++j)
-				{
-					mDownsampledInput.row(j) = mDowners[j].downsample(mInputBuffer.constRow(j), vx.constRow(j));
-				}
-				
-				// process downsampled input
-				mDownsampledOutput = fn(mDownsampledInput);
-				
-				// upsample each processed row to output 
-				for(int j=0; j < OUT_ROWS; ++j)
-				{
-					// first half is returned
-					vy.row(j) = mUppers[j].upsampleFirstHalf(mDownsampledOutput.constRow(j));		
-					
-					// second half is buffered
-					mOutputBuffer.row(j) = mUppers[j].upsampleSecondHalf(mDownsampledOutput.constRow(j));	
-				}
-			}
-			else
-			{
-				// store input
-				mInputBuffer = vx;
-				// return buffer
-				vy = mOutputBuffer;
-			}
-			mPhase = !mPhase;
-			return vy;
-		}
-		
-	private:
-		std::array<HalfBandFilter, IN_ROWS> mDowners;
-		std::array<HalfBandFilter, OUT_ROWS> mUppers;
-		DSPVectorArray<IN_ROWS> mInputBuffer;
-		DSPVectorArray<OUT_ROWS> mOutputBuffer;
-		DSPVectorArray<IN_ROWS> mDownsampledInput;
-		DSPVectorArray<OUT_ROWS> mDownsampledOutput;
-		bool mPhase{false};
-	};
-	
-	
-	// ----------------------------------------------------------------
-	// OverlapAdd
-	
-	template<int LENGTH, int DIVISIONS>
-	class OverlapAddProcess
-	{
-	public:
-		OverlapAddProcess(std::function<DSPVector(const DSPVector&)> fn, const DSPVector& w) : mFunction(fn), mWindow(w)
-		{
-			//mHistory.setDims(LENGTH, DIVISIONS);
-		}
-		~OverlapAddProcess(){}
-		
-		DSPVector operator()(const DSPVector& x)
-		{
-			// work in progress, use SignalBuffer?
-		}
-		
-	private:
-		//MLSignal mHistory;
-		std::function<DSPVector(const DSPVector&)> mFunction;
-		const DSPVector& mWindow;
-	};
-	
 	
 	// ----------------------------------------------------------------
 	// Simple time-based filters on DSPVectorArray.
@@ -896,13 +762,6 @@ namespace ml
 	 1 operand (filters)
 	 differentiator
 	 integrator
-	 IntegerDelay 
-	 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
-	 Downsampler2 (2n vectors -> n)
-	 upsampler2 (n -> 2n) 
-	 
-	 overlap ( n -> 2n, 4n)
-	 add ( 2, 4 -> 1)
 	 
 	 use templates to make different sized versions if needed so loops are still const iters
 	 

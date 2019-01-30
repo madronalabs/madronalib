@@ -1217,6 +1217,12 @@ public:
         }
         else
         {
+					
+					// FIXME this is a bug!
+					// fix is y = b0 but testing of all affected stuff is needed
+					
+					
+					
             b0 = apb1.processSample(apb0.processSample(x));
             y = b1;
         }

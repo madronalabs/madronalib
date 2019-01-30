@@ -22,6 +22,7 @@
 #include "../core/MLProperty.h"
 #include "MLDSPOps.h"
 #include "MLDSPFilters.h"
+#include "MLDSPFunctional.h"
 #include "MLDSPGens.h"
 #include "MLDSPUtils.h"
 
