@@ -118,31 +118,19 @@ int main()
 	
 	*/
 	
-	TickGen ticks(5);
+	TickGen ticks(16);
+	
+	TestSineGen sine;
+	DSPVector sinewave = sine(DSPVector(440.f/44100.f));
 	
 	Lopass lp1;
 	lp1.mCoeffs = Lopass::coeffs(0.25, 1.0);
 	
-	DSPVector ticksLo = (ticks());
+	AllpassDelay delay(1000);
+	delay.setDelayInSamples(3.5);
 	
-	
-	HalfBandFilter f2;
-	DSPVector ticks2 = f2.downsample(ticks(), ticks());
-	
-	std::cout << "\n\n";
-	std::cout << ticksLo << "\n\n";
-	Upsample2x<1, 2> upper;
-	auto repeatFn ([&](const DSPVector v){return repeat<2>(v);});
-	std::cout << upper(repeatFn, ticksLo) << "\n\n\n";
-
-	DSPVector tick;
-	tick[0] = 1.0f;
-	Downsample2x<0, 1> downer; // 0 ins, 1 outs for downsampled generator fn
-	auto identity = ([&](DSPVector v){return v;});
-	
-	auto ticksFn = ([&](DSPVectorArray<0> v){return ticks();});
-	
-	std::cout << downer(ticksFn) << "\n" << downer(ticksFn) << "\n\n";
+	std::cout << "\n\n" << sinewave << "\n\n";
+	std::cout << "\n\n" << delay(sinewave) << "\n\n";
 
 	
 #ifdef _WINDOWS

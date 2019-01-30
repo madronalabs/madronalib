@@ -18,7 +18,6 @@
 
 namespace ml
 {		
-	// TODO replace with or add antialiased ImpulseGen
 	class TickGen
 	{
 	public:
@@ -48,6 +47,10 @@ namespace ml
 		int mCounter;
 		int mPeriod;
 	};
+	
+	
+	// antialiased ImpulseGen TODO 
+	
 	
 	class NoiseGen
 	{
@@ -91,38 +94,6 @@ namespace ml
 	private:
 		uint32_t mSeed = 0;
 	};
-	
-	// horiz -> vert -> horiz
-	
-	// aligned int32 vector
-	
-	// tiny MLSignal
-	
-	/*
-	template<int VECTORS>
-	class SineBank
-	{
-		// float will be promoted to MLSignal of size 1 for single argument
-		SineBank<VECTORS>(MLSignal f) { setFrequency(f); clear(); }
-		~SineBank<VECTORS>() {}
-		
-		inline DSPVectorArray<VECTORS> operator()()
-		{
-			DSPVectorArray<VECTORS> y;
-			for(int j=0; j<VECTORS; ++j)
-			{
-
-			}			
-			return y;
-		}
-		
-	private:
-		int32_t mOmega32, mStep32;
-		float mInvSrDomain;
-	};
-	
-	typedef SineBank<1> Sine;
-*/
 	
 	// if up at MLProc level, all outputs have fixed sizes, procs like sine16, sine64, sine256, sine1024 can be used
 	// this is probably not the worst thing
@@ -205,7 +176,6 @@ namespace ml
 		}
 	};
 	
-	
 	// FastSineGen approximates a sine using Taylor series. There is distortion in odd harmonics
 	// only, with the 3rd harmonic at about -40dB.
 	
@@ -229,7 +199,7 @@ namespace ml
 			constexpr float domain(sqrt2*4.f);
 			constexpr float intDomain(const_math::pow(2., 32.));
 			
-			// TODO verify constexpr
+			// TODO verify compile time creation 
 			DSPVector domainScaleV(domain/intDomain);
 			DSPVector domainOffsetV(sqrt2);
 			DSPVector flipOffsetV(sqrt2*2.f);
@@ -262,8 +232,6 @@ namespace ml
 		}
 	};
 	
-	
-
 	
 	// ----------------------------------------------------------------
 	// LinearGlide
@@ -368,4 +336,42 @@ namespace ml
 		int mVectorsRemaining;
 	};
 
+	
+	// GenBanks can go here
+	
+	/*
+	 banks:
+	----
+	sinebank
+noisebank
+	 oscbank
+
+	 
+	 
+	 template<int VECTORS>
+	 class SineBank
+	 {
+	 // float will be promoted to MLSignal of size 1 for single argument
+	 SineBank<VECTORS>(MLSignal f) { setFrequency(f); clear(); }
+	 ~SineBank<VECTORS>() {}
+	 
+	 inline DSPVectorArray<VECTORS> operator()()
+	 {
+	 DSPVectorArray<VECTORS> y;
+	 for(int j=0; j<VECTORS; ++j)
+	 {
+	 
+	 }			
+	 return y;
+	 }
+	 
+	 private:
+	 int32_t mOmega32, mStep32;
+	 float mInvSrDomain;
+	 };
+	 
+	 typedef SineBank<1> Sine;
+	 */
+	
+	// 
 }

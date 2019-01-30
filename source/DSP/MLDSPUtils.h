@@ -43,13 +43,13 @@ namespace ml
 	
 	// VectorProcessBuffer: utility class to serve a main loop with varying arbitrary chunk sizes, buffer inputs and outputs,
 	// and compute DSP in DSPVector-sized chunks
-	template<int VECTORS, int MAX_FRAMES>
+	template<int CHANNELS, int MAX_FRAMES>
 	class VectorProcessBuffer
 	{
 	public:
 		VectorProcessBuffer()
 		{
-			for(int i=0; i < VECTORS; ++i)
+			for(int i=0; i < CHANNELS; ++i)
 			{
 				mInputBuffers[i].resize(MAX_FRAMES);
 				mOutputBuffers[i].resize(MAX_FRAMES);
@@ -58,7 +58,7 @@ namespace ml
 		
 		~VectorProcessBuffer(){}
 		
-		void process(float** inputs, float** outputs, int nChans, int nFrames, std::function<DSPVectorArray<VECTORS>(const DSPVectorArray<VECTORS>&, int chans)> fn)
+		void process(float** inputs, float** outputs, int nChans, int nFrames, std::function<DSPVectorArray<CHANNELS>(const DSPVectorArray<CHANNELS>&, int chans)> fn)
 		{
 			// write
 			for(int c = 0; c < nChans; c++)
@@ -66,8 +66,8 @@ namespace ml
 				mInputBuffers[c].write(inputs[c], nFrames);
 			}
 			
-			DSPVectorArray<VECTORS> inputVectors;
-			DSPVectorArray<VECTORS> outputVectors;
+			DSPVectorArray<CHANNELS> inputVectors;
+			DSPVectorArray<CHANNELS> outputVectors;
 			
 			// process
 			while(mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
@@ -75,8 +75,6 @@ namespace ml
 				// buffers to process input
 				for(int c = 0; c < nChans; c++)
 				{
-					//inputVectors.setRowVectorUnchecked(c, mInputBuffers[c].read());
-					
 					inputVectors.row(c) = mInputBuffers[c].read();
 				}
 				
@@ -84,7 +82,6 @@ namespace ml
 				
 				for(int c = 0; c < nChans; c++)
 				{
-					//mOutputBuffers[c].write(outputVectors.getRowVectorUnchecked(c));
 					mOutputBuffers[c].write(outputVectors.row(c));
 				}
 			}
@@ -97,9 +94,14 @@ namespace ml
 		}
 		
 	private:
-		std::array<ml::SignalBuffer, VECTORS> mInputBuffers;
-		std::array<ml::SignalBuffer, VECTORS> mOutputBuffers;
+		std::array<ml::SignalBuffer, CHANNELS> mInputBuffers;
+		std::array<ml::SignalBuffer, CHANNELS> mOutputBuffers;
 	};
+	
+	
+	// horiz -> vert -> horiz adapters can go here
+	
+
 	
 }
 

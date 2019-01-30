@@ -330,6 +330,10 @@ namespace ml
 		}
 	};
 	
+	
+	// TODO asymmetriconepole 
+	
+
 
 	// A one-pole, one-zero filter to attenuate DC. 
 	// Works well, but beware of its effects on bass sounds. An omega of 0.05 is a good starting point.
@@ -365,6 +369,9 @@ namespace ml
 		}
 	};
 
+	// Differentiator TODO
+	// Integrator TODO
+	
 	
 	// IntegerDelay delays a signal a whole number of samples.
 	
@@ -501,21 +508,26 @@ namespace ml
 	public:
 		AllpassDelay(float d) : mFractionalDelay(0.f) { setDelayInSamples(d); }
 		~AllpassDelay() {}
-		
-		
+				
 		inline void clear()
 		{
 			mIntegerDelay.clear();
 		}
 		
 		inline void setDelayInSamples(float d) 
-		{ 
+		{ 			
+			float fDelayInt = floorf(d);
+			int delayInt = fDelayInt;
+			float delayFrac = d - fDelayInt;
 			
-			
-			// TODO
-			
-			
-			
+			// constrain D to [0.618 - 1.618];
+			if (delayFrac < 0.618f)
+			{
+				delayFrac += 1.f;
+				delayInt -= 1;
+			}
+			mIntegerDelay.setDelayInSamples(delayInt);
+			mFractionalDelay.mCoeffs = AllpassSection::coeffs(delayFrac);
 		}
 		
 		inline DSPVector operator()(const DSPVector& vx)
@@ -527,61 +539,6 @@ namespace ml
 		IntegerDelay mIntegerDelay;
 		AllpassSection mFractionalDelay;
 	};
-	
-// OLD
-	
-	/*
-	// TODO modulating this allpass is a little bit clicky.
-	// add history crossfading to address this. 
-	MLSample MLAllpassDelay::processSample(const MLSample x)
-	{
-		float fDelayInt, D;
-		float alpha, allpassIn;
-		float sum;
-		int delayInt;
-		
-		mWriteIndex &= mLengthMask;
-		sum = x - mFeedback*mFixedTapOut;
-		
-		mBuffer[mWriteIndex] = sum;
-		mWriteIndex++;
-		
-		// get modulation tap
-		fDelayInt = floorf(mModDelayInSamples);
-		delayInt = (int)fDelayInt;
-		
-		// get allpass interpolation coefficient D
-		D = mModDelayInSamples - fDelayInt;
-		
-		// constrain D to [0.5 - 1.5];
-		if (D < 0.5f)
-		{
-			D += 1.f;
-			delayInt -= 1;
-		}
-		
-		alpha = (1.f - D) / (1.f + D); // exact
-		// TODO try this or Taylor approx. in van Duyne thesis
-		//float xm1 = (D - 1.f);
-		//alpha = -0.53f*xm1 + 0.25f*xm1*xm1; // approx on [0.5, 1.5]
-		
-		uintptr_t readIndex = mWriteIndex - (uintptr_t)delayInt;
-		readIndex &= mLengthMask;
-		allpassIn = mBuffer[readIndex];
-		float modTapOut = alpha*allpassIn + mX1 - alpha*mY1;
-		mX1 = allpassIn;
-		mY1 = modTapOut;
-		
-		// get fixed tap
-		readIndex = mWriteIndex - (uintptr_t)mFixedDelayInSamples;
-		readIndex &= mLengthMask;
-		mFixedTapOut = mBuffer[readIndex];
-		
-		// TODO mBlend is not dry blend, see where this is used and correct! 
-		return sum*mBlend + modTapOut*mFeedForward;
-	}
-	*/
-
 	
 	
 	
@@ -685,15 +642,10 @@ namespace ml
 		std::array<OnePole, SIZE> mFilters; 
 		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
 	};
-	
-
-	// ----------------------------------------------------------------
-	// Resampling
-	
-	
+		
 	// ----------------------------------------------------------------
 	// Half Band Filter
-	// Polyphase allpass filter to upsample or downsample a signal by 2x.
+	// Polyphase allpass filter used to upsample or downsample a signal by 2x.
 	// Structure due to fred harris, A. G. Constantinides and Valenzuela.
 	
 	class HalfBandFilter
@@ -755,33 +707,22 @@ namespace ml
 		float b1{0};
 	};
 	
-	// ----------------------------------------------------------------
-	// Simple time-based filters on DSPVectorArray.
-	//
+
 	/*	 
-	 1 operand (filters)
-	 differentiator
-	 integrator
+
+	
+	 // FilterBanks can go here
 	 
-	 use templates to make different sized versions if needed so loops are still const iters
-	 
-	 inline DSPVector SVF::operator();
-	 
-	 onepole
-	 asymmetriconepole 
-	 
-	 ramp generator
-	 quadratic generator
-	 
-	 banks:
 	 ----
-	 sinebank -> n vectors, templated size
-	 phasebank
 	 SVFbank
-	 
+	 allpassbank 
+	 delaybank
+
 	 
 	 
 	 */
+	
+	
 	
 } // namespace ml
 
