@@ -218,7 +218,7 @@ namespace ml
 			return x < 0 ? -sinh_helper(-x) : sinh_helper(x);
 		}
 		
-		constexpr double cos (const double x) { return sin(kTwoPi - x); }
+		constexpr double cos (const double x) { return sin(kPi*0.5 - x); }
 		
 		constexpr double cosh(const double x) { return sqrt(1.0 + square(sinh(x))); }
 		
