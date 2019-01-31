@@ -9,63 +9,13 @@
 #pragma once
 
 #include "MLDSPOps.h"
+#include "MLDSPFilters.h"
 
 #include <functional>
 
 namespace ml
 {
-	
-	// ----------------------------------------------------------------
-	// functional
-	
-	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
-	// x is a dummy argument just used to infer the vector size.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS> x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
-		{
-			y[n] = f();
-		}
-		return y;
-	}
-	
-	// Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS> x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
-		{
-			y[n] = f(x[n]);
-		}
-		return y;
-	}
-	
-	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&)> f, const DSPVectorArray<VECTORS> x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int j=0; j<VECTORS; ++j)
-		{
-			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j)));
-		}
-		return y;
-	}
-	
-	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&, int)> f, const DSPVectorArray<VECTORS> x)
-	{
-		DSPVectorArray<VECTORS> y;
-		for(int j=0; j<VECTORS; ++j)
-		{
-			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j), j));
-		}
-		return y;
-	}
+
 	
 	// Here are some function objects that take DSP functions as parameters to operator() and apply
 	// the function in a different context, such as upsampled, overlap-added or in the frequency domain.

@@ -210,12 +210,12 @@ inline std::ostream& operator<< (std::ostream& out, SIMDVectorInt v)
 // ----------------------------------------------------------------
 #pragma mark select
 
-inline SIMDVectorFloat vecSelect(SIMDVectorFloat a, SIMDVectorFloat b, SIMDVectorFloat conditionMask)
+inline SIMDVectorFloat vecSelect(SIMDVectorFloat a, SIMDVectorFloat b, SIMDVectorInt conditionMask)
 {
 	__m128i ones = _mm_set1_epi32(-1);
 	return _mm_or_ps(
-					 _mm_and_ps(conditionMask, a),
-					 _mm_and_ps(_mm_xor_ps(conditionMask, VecI2F(ones)), b)
+					 _mm_and_ps(VecI2F(conditionMask), a),
+					 _mm_and_ps(_mm_xor_ps(VecI2F(conditionMask), VecI2F(ones)), b)
 					 );
 }
 

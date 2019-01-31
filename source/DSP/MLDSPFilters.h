@@ -19,6 +19,7 @@
 #pragma once
 
 #include "MLDSPOps.h"
+#include "MLDSPGens.h"
 
 #include <vector>
 
@@ -375,24 +376,33 @@ namespace ml
 	
 	// IntegerDelay delays a signal a whole number of samples.
 	
+	static constexpr int kDefaultDelaySize = 1024;
+	
 	class IntegerDelay
 	{
+		std::vector<float> mBuffer;
+		int mIntDelayInSamples;
+		uintptr_t mWriteIndex;
+		uintptr_t mLengthMask;
+		
 	public:
+		IntegerDelay() { setDelayInSamples(kDefaultDelaySize); }
 		IntegerDelay(int d) { setDelayInSamples(d); }
-		IntegerDelay() {}
 		~IntegerDelay() {}
 		
 		inline void setDelayInSamples(int d) 
 		{ 
-			if(d > mBuffer.size())
+			int dd = std::max(d, 0); 	
+			if(dd > mBuffer.size())
 			{
-				setMaxDelayInSamples(d);
+				setMaxDelayInSamples(dd);
 			}
-			mIntDelayInSamples = d; 		
+			mIntDelayInSamples = dd;
 		}
 		
 		void setMaxDelayInSamples(int dMax)
 		{
+			std::cout << "MAX: " << dMax << "\n";
 			int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
 			mBuffer.resize(newSize);
 			mLengthMask = newSize - 1;
@@ -405,19 +415,19 @@ namespace ml
 			std::fill(mBuffer.begin(), mBuffer.end(), 0.f);
 		}
 		
-		inline DSPVector operator()(const DSPVector x)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			// write
 			uintptr_t writeEnd = mWriteIndex + kFloatsPerDSPVector;
 			if(writeEnd <= mLengthMask + 1)
 			{
-				const float* srcStart = x.getConstBuffer();
+				const float* srcStart = vx.getConstBuffer();
 				std::copy(srcStart, srcStart + kFloatsPerDSPVector, mBuffer.data() + mWriteIndex);
 			}
 			else
 			{
 				uintptr_t excess = writeEnd - mLengthMask - 1; 
-				const float* srcStart = x.getConstBuffer();
+				const float* srcStart = vx.getConstBuffer();
 				const float* srcSplice = srcStart + kFloatsPerDSPVector - excess;
 				const float* srcEnd = srcStart + kFloatsPerDSPVector;
 				std::copy(srcStart, srcSplice, mBuffer.data() + mWriteIndex);
@@ -425,19 +435,19 @@ namespace ml
 			}
 			
 			// read			
-			DSPVector y; 
+			DSPVector vy; 
 			uintptr_t readStart = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
 			uintptr_t readEnd = readStart + kFloatsPerDSPVector;
 			float* srcBuf = mBuffer.data();
 			if(readEnd <= mLengthMask + 1)
 			{
-				std::copy(srcBuf + readStart, srcBuf + readEnd, y.getBuffer());
+				std::copy(srcBuf + readStart, srcBuf + readEnd, vy.getBuffer());
 			}
 			else
 			{
 				uintptr_t excess = readEnd - mLengthMask - 1; 
 				uintptr_t readSplice = readStart + kFloatsPerDSPVector - excess;
-				float* pDest = y.getBuffer();
+				float* pDest = vy.getBuffer();
 				std::copy(srcBuf + readStart, srcBuf + readSplice, pDest);
 				std::copy(srcBuf, srcBuf + excess, pDest + (kFloatsPerDSPVector - excess));
 			}
@@ -445,14 +455,24 @@ namespace ml
 			// update index
 			mWriteIndex += kFloatsPerDSPVector;
 			mWriteIndex &= mLengthMask;
+			return vy;
+		}
+
+		inline float processSample(float x)
+		{
+			// write
+			mBuffer[mWriteIndex] = x;
+			
+			// read			
+			uintptr_t readIndex = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
+			float y = mBuffer[readIndex];
+			
+			// update index
+			mWriteIndex++;
+			mWriteIndex &= mLengthMask;
+			
 			return y;
 		}
-		
-	private:
-		std::vector<float> mBuffer;
-		int mIntDelayInSamples;
-		uintptr_t mWriteIndex;
-		uintptr_t mLengthMask;
 	};
 	
 
@@ -466,6 +486,7 @@ namespace ml
 	public:
 		float mCoeffs;
 		
+		AllpassSection() : mCoeffs(0.f){}
 		AllpassSection(float a) : mCoeffs(a){}
 		~AllpassSection(){}
 		
@@ -473,9 +494,8 @@ namespace ml
 		// to minimize modulation noise, d should be in the range [0.618 - 1.618].
 		static float coeffs (float d)
 		{
-			// return (1.f - d) / (1.f + d); // exact
 			float xm1 = (d - 1.f);
-			return -0.53f*xm1 + 0.24f*xm1*xm1; // 2nd order approx around 1			
+			return -0.53f*xm1 + 0.24f*xm1*xm1; // 2nd order approx around 1 to (1.f - d) / (1.f + d)
 		}
 		
 		inline float processSample(const float x)
@@ -498,16 +518,21 @@ namespace ml
 		}
 	};
 
-	// ----------------------------------------------------------------
-	// Combining the fixed delay and first order allpass section 
-	// gives us an allpass-interpolated delay. In general, modulating the delay time 
+
+	// Combining the integer delay and first order allpass section 
+	// gives us an allpass-interpolated fractional delay. In general, modulating the delay time 
 	// will change the allpass coefficient, producing clicks in the output.
 	
-	class AllpassDelay
+	class FractionalDelay
 	{
+		IntegerDelay mIntegerDelay;
+		AllpassSection mAllpassSection;
+		float mDelayInSamples;
+		
 	public:
-		AllpassDelay(float d) : mFractionalDelay(0.f) { setDelayInSamples(d); }
-		~AllpassDelay() {}
+		FractionalDelay() { setDelayInSamples(kDefaultDelaySize); }
+		FractionalDelay(float d) { setDelayInSamples(d); }
+		~FractionalDelay() {}
 				
 		inline void clear()
 		{
@@ -516,6 +541,7 @@ namespace ml
 		
 		inline void setDelayInSamples(float d) 
 		{ 			
+			mDelayInSamples = d;
 			float fDelayInt = floorf(d);
 			int delayInt = fDelayInt;
 			float delayFrac = d - fDelayInt;
@@ -527,37 +553,80 @@ namespace ml
 				delayInt -= 1;
 			}
 			mIntegerDelay.setDelayInSamples(delayInt);
-			mFractionalDelay.mCoeffs = AllpassSection::coeffs(delayFrac);
+			mAllpassSection.mCoeffs = AllpassSection::coeffs(delayFrac);
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		// return the input signal, delayed by the constant delay time mDelayInSamples.
+		inline DSPVector operator()(const DSPVector vx)
 		{
-			return mFractionalDelay(mIntegerDelay(vx));
+			return mAllpassSection(mIntegerDelay(vx));
 		}
-
-	private:
-		IntegerDelay mIntegerDelay;
-		AllpassSection mFractionalDelay;
+		
+		// return the input signal, delayed by the varying delay time vDelayInSamples.
+		inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				setDelayInSamples(vDelayInSamples[n]);
+				vy[n] = mAllpassSection.processSample(mIntegerDelay.processSample(vx[n]));
+			}
+			return vy;
+		}
+		
+		// return the input signal, delayed by the varying delay time vDelayInSamples, but only allow changes
+		// to the delay time when vChangeTicks is nonzero.
+		inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples, const DSPVectorInt vChangeTicks)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				if(vChangeTicks[n] != 0)
+				{		
+					setDelayInSamples(vDelayInSamples[n]);
+				}
+				
+				vy[n] = mAllpassSection.processSample(mIntegerDelay.processSample(vx[n]));
+			}
+			return vy;
+		}
 	};
-	
 	
 	
 	// Crossfading two allpass-interpolated delays allows modulating the delay 
 	// time without clicks. See "A Lossless, Click-free, Pitchbend-able Delay Line Loop Interpolation Scheme", 
 	// Van Duyne, Jaffe, Scandalis, Stilson, ICMC 1997.
-	
-	
+	static constexpr int kFadePeriod = 32; 
+
+	static constexpr std::array<int, kFadePeriod> kFadeTable{ {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+		16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1} };
+	const float kFadeMax = 16.f;
+
 	class PitchbendableDelay
 	{
+		FractionalDelay mDelay1, mDelay2;
+		ml::RampGen rampFn{kFadePeriod};		
+		
 	public:
+		PitchbendableDelay() : mDelay1(kDefaultDelaySize), mDelay2(kDefaultDelaySize){}
+		PitchbendableDelay(float d) : mDelay1(d), mDelay2(d){}
+		~PitchbendableDelay() {}
+		
 		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
 		{
+			// get fade function
+			DSPVectorInt vIntRamp = rampFn();
+			DSPVector vFade = map([&](int f){ return kFadeTable[f]/kFadeMax; }, vIntRamp); // triangular
 			
-			return vInput; // temp
+			// generate vectors of ticks indicating when delays can change
+			// equality operators on vectors return 0 or 0xFFFFFFFF 
+			DSPVectorInt vDelay1Changes, vDelay2Changes;			
+			vDelay1Changes = equal(intToFloat(vIntRamp), DSPVector(kFadePeriod/2.f));
+			vDelay2Changes = equal(intToFloat(vIntRamp), DSPVector(0.f));
+			
+			// run the fractional delays and crossfade the results.
+			return lerp(mDelay1(vInput, vDelayInSamples, vDelay1Changes), mDelay2(vInput, vDelayInSamples, vDelay2Changes), vFade);
 		}
-		
-	private:
-		AllpassDelay mDelay1, mDelay2;
 	};
 	
 
@@ -643,6 +712,7 @@ namespace ml
 		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
 	};
 		
+	
 	// ----------------------------------------------------------------
 	// Half Band Filter
 	// Polyphase allpass filter used to upsample or downsample a signal by 2x.

@@ -120,18 +120,27 @@ int main()
 	
 	TickGen ticks(16);
 	
-	TestSineGen sine;
-	DSPVector sinewave = sine(DSPVector(440.f/44100.f));
+	TestSineGen sineGen;
+	DSPVector sinewave = sineGen(DSPVector(110.f/44100.f));
+	
+	TestSineGen sineModGen;
+	DSPVector sineMod = sineModGen(DSPVector(1.f/44100.f));
 	
 	Lopass lp1;
 	lp1.mCoeffs = Lopass::coeffs(0.25, 1.0);
 	
-	AllpassDelay delay(1000);
-	delay.setDelayInSamples(3.5);
 	
-	std::cout << "\n\n" << sinewave << "\n\n";
-	std::cout << "\n\n" << delay(sinewave) << "\n\n";
+	DSPVector tick;
+	tick[0] = 1;
+	
+	PitchbendableDelay d1;
+	DSPVector vDelayTime = sineModGen(DSPVector(1.f/44100.f));
+	//d1.setDelayInSamples(34.0);
+	std::cout << "\n\n" << d1(tick, vDelayTime) << "\n\n";
 
+IntegerDelay p(100);
+	//std::cout << "\n\n" << p(DSPVector(), DSPVector()) << "\n" << p(DSPVector(), DSPVector()) << "\n\n";
+	
 	
 #ifdef _WINDOWS
 	system("pause");

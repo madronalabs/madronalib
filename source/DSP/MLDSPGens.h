@@ -18,6 +18,8 @@
 
 namespace ml
 {		
+	// generate a single-sample tick every n samples.
+	
 	class TickGen
 	{
 	public:
@@ -41,6 +43,38 @@ namespace ml
 					fy = 1;
 				}
 				vy[i] = fy;
+			}
+			return vy;
+		}
+		int mCounter;
+		int mPeriod;
+	};
+	
+	// generate an integer ramp repeating every n samples.
+
+	class RampGen
+	{
+	public:
+		RampGen(int p) : mCounter(p), mPeriod(p) {}
+		~RampGen() {}
+		
+		inline void setPeriod(int p)
+		{
+			mPeriod = p;
+		}
+		
+		inline DSPVectorInt operator()()
+		{
+			DSPVectorInt vy;
+			for(int i=0; i<kFloatsPerDSPVector; ++i)
+			{
+				float fy = 0;
+				if(++mCounter >= mPeriod)
+				{
+					mCounter = 0; 
+					fy = 1;
+				}
+				vy[i] = mCounter;
 			}
 			return vy;
 		}
@@ -103,34 +137,11 @@ namespace ml
 	// outputs auto-sum to smaller inputs?
 	
 	/*
-	 Vector Ops
-	 =======	 
-	 
-	 Vector Gens
-	 utils (functors)
-	 -----------
 	 
 	 0 operands (generators):
 	 sineOsc
 	 TriOsc
 	 PhaseOsc
-	 
-	 1 operand (filters)
-	 differentiator
-	 integrator
-	 IntegerDelay 
-	 
-	 VariableDelayWithCrossfade
-	 
-	 LinearDelay
-	 AllpassDelay (or, interp. set by function? allpass interp. has state. )	 
-	 FDN	 
-	 Downsampler2
-	 upsampler2
-	 inline DSPVector SVF::operator();
-	 biquad
-	 onepole
-	 asymmetriconepole
 	 
 	 ramp generator
 	 quadratic generator
@@ -224,7 +235,7 @@ namespace ml
 			
 			// reverse upper half of phasor to get triangle
 			// equivalent to: if (mOmega32 > 0) x = flipOffset - fOmega; else x = fOmega;
-			DSPVector maskV = greaterThan(phaseV, zeroV);
+			DSPVectorInt maskV = greaterThan(phaseV, zeroV);
 			omegaV = select((flipOffsetV) - omegaV, omegaV, maskV); 
 			
 			// convert triangle to sine approx. 

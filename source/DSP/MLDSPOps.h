@@ -271,7 +271,6 @@ namespace ml
 			return true;
 		}
 		
-		
 	private:
 		
 		// return row J from this DSPVectorArray, when J is known at compile time. 
@@ -461,7 +460,7 @@ namespace ml
 		constexpr DSPVectorArrayInt(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
 #endif // MANUAL_ALIGN_DSPVECTOR
 
-		explicit DSPVectorArrayInt() { }
+		explicit DSPVectorArrayInt() { operator=(0); }
 		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
 		
 		inline int32_t& operator[](int i) { return getBufferInt()[i]; }	
@@ -527,7 +526,21 @@ namespace ml
 			return *this;
 		}
 #endif
+		
+		// equality by value
+		bool operator==(const DSPVectorArrayInt<VECTORS>& x1)
+		{
+			const int* px1 = x1.getConstBufferInt();
+			const int* py1 = getConstBufferInt();
+			
+			for (int n = 0; n < kIntsPerDSPVector*VECTORS; ++n)
+			{
+				if(py1[n] != px1[n]) return false;
+			}
+			return true;
+		}
 
+		
 	}; // class DSPVectorArrayInt
 	
 	typedef DSPVectorArrayInt<1> DSPVectorInt;
@@ -680,13 +693,6 @@ namespace ml
 	DEFINE_OP2(powApprox, (vecExpApprox(vecMul(vecLogApprox(x1), x2))));
 	DEFINE_OP2(min, (vecMin(x1, x2)));
 	DEFINE_OP2(max, (vecMax(x1, x2)));
-
-	DEFINE_OP2(equal, (vecEqual(x1, x2)));
-	DEFINE_OP2(notEqual, (vecNotEqual(x1, x2)));
-	DEFINE_OP2(greaterThan, (vecGreaterThan(x1, x2)));
-	DEFINE_OP2(greaterThanOrEqual, (vecGreaterThanOrEqual(x1, x2)));
-	DEFINE_OP2(lessThan, (vecLessThan(x1, x2)));
-	DEFINE_OP2(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));	
 	
 	// ----------------------------------------------------------------
 	// ternary operators
@@ -717,11 +723,121 @@ namespace ml
 		return vy;												\
 	}	
 
-	DEFINE_OP3(select, vecSelect(x1, x2, x3));					// bitwise select(resultIfTrue, resultIfFalse, conditionMask)
 	DEFINE_OP3(lerp, vecAdd(x1, (vecMul(x3, vecSub(x2, x1)))));	// lerp(a, b, mix). NB: "(x1 + (x3 * (x2 - x1)))" would be pretty but does not work on Windows
 	DEFINE_OP3(clamp, vecClamp(x1, x2, x3) );					// clamp(x, minBound, maxBound) 
 	DEFINE_OP3(within, vecWithin(x1, x2, x3) );					// is x in the open interval [x2, x3) ?
 	
+	// ----------------------------------------------------------------
+	// unary float -> int operators 
+		
+	#define DEFINE_OP1_F2I(opName, opComputation)				\
+	template<int VECTORS>										\
+	inline DSPVectorArrayInt<VECTORS>							\
+		(opName)(const DSPVectorArray<VECTORS>& vx1)			\
+	{															\
+		DSPVectorArrayInt<VECTORS> vy;							\
+		const float* px1 = vx1.getConstBuffer();				\
+		float* py1 = vy.getBuffer();							\
+		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
+		{														\
+			SIMDVectorFloat x = vecLoad(px1);					\
+			vecStore((py1), (opComputation));						\
+			px1 += kFloatsPerSIMDVector;						\
+			py1 += kIntsPerSIMDVector;							\
+		}														\
+		return vy;												\
+	}	
+
+	DEFINE_OP1_F2I(roundFloatToInt, (VecI2F(vecFloatToIntRound(x))));
+	DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
+
+	// ----------------------------------------------------------------
+	// unary int -> float operators 
+		
+	#define DEFINE_OP1_I2F(opName, opComputation)				\
+	template<int VECTORS>										\
+	inline DSPVectorArray<VECTORS>								\
+	(opName)(const DSPVectorArrayInt<VECTORS>& vx1)			\
+	{															\
+	DSPVectorArray<VECTORS> vy;							\
+	const float* px1 = vx1.getConstBuffer();				\
+	float* py1 = vy.getBuffer();							\
+	for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
+	{														\
+	SIMDVectorInt x = VecF2I(vecLoad(px1));						\
+	vecStore((py1), (opComputation));						\
+	px1 += kIntsPerSIMDVector;							\
+	py1 += kFloatsPerSIMDVector;						\
+	}														\
+	return vy;												\
+	}	
+		
+	DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
+	
+	// ----------------------------------------------------------------
+	// binary float, float -> int operators 
+	
+	#define DEFINE_OP2_FF2I(opName, opComputation)				\
+	template<int VECTORS>										\
+	inline DSPVectorArrayInt<VECTORS>							\
+	(opName)(const DSPVectorArray<VECTORS>& vx1,			\
+	const DSPVectorArray<VECTORS>& vx2)						\
+	{															\
+	DSPVectorArrayInt<VECTORS> vy;							\
+const float* px1 = vx1.getConstBuffer();				\
+const float* px2 = vx2.getConstBuffer();				\
+	float* py1 = vy.getBuffer();							\
+	for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
+	{														\
+	SIMDVectorFloat x1 = vecLoad(px1);					\
+	SIMDVectorFloat x2 = vecLoad(px2);					\
+	vecStore((py1), (opComputation));						\
+	px1 += kFloatsPerSIMDVector;						\
+px2 += kFloatsPerSIMDVector;						\
+	py1 += kIntsPerSIMDVector;							\
+	}														\
+	return vy;												\
+	}	
+	
+	DEFINE_OP2_FF2I(equal, (vecEqual(x1, x2)));
+	DEFINE_OP2_FF2I(notEqual, (vecNotEqual(x1, x2)));
+	DEFINE_OP2_FF2I(greaterThan, (vecGreaterThan(x1, x2)));
+	DEFINE_OP2_FF2I(greaterThanOrEqual, (vecGreaterThanOrEqual(x1, x2)));
+	DEFINE_OP2_FF2I(lessThan, (vecLessThan(x1, x2)));
+	DEFINE_OP2_FF2I(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));	
+
+	// ----------------------------------------------------------------
+	// ternary operators float, float int -> float
+		
+	#define DEFINE_OP3_FFI2F(opName, opComputation)					\
+	template<int VECTORS>										\
+	inline DSPVectorArray<VECTORS>								\
+	(opName)(const DSPVectorArray<VECTORS>& vx1,			\
+	const DSPVectorArray<VECTORS>& vx2,						\
+	const DSPVectorArrayInt<VECTORS>& vx3)						\
+	{															\
+	DSPVectorArray<VECTORS> vy;								\
+	const float* px1 = vx1.getConstBuffer();				\
+	const float* px2 = vx2.getConstBuffer();				\
+	const float* px3 = vx3.getConstBuffer();				\
+	float* py1 = vy.getBuffer();							\
+	for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
+	{														\
+	SIMDVectorFloat x1 = vecLoad(px1);					\
+	SIMDVectorFloat x2 = vecLoad(px2);					\
+	SIMDVectorInt x3 = VecF2I(vecLoad(px3));						\
+	vecStore(py1, (opComputation));						\
+	px1 += kFloatsPerSIMDVector;						\
+	px2 += kFloatsPerSIMDVector;						\
+	px3 += kFloatsPerSIMDVector;						\
+	py1 += kFloatsPerSIMDVector;						\
+	}														\
+	return vy;												\
+	}	
+	
+	DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));					// bitwise select(resultIfTrue, resultIfFalse, conditionMask)
+	
+
 	// ----------------------------------------------------------------
 	// single-vector index and range generators
 	
@@ -749,7 +865,7 @@ namespace ml
 		float interval = (end - start)/(kFloatsPerDSPVector - 1.f);
 		return vi*DSPVector(interval) + DSPVector(start);											
 	}
-		
+	
 	// ----------------------------------------------------------------
 	// single-vector horizontal operators returning float
 	
@@ -894,52 +1010,68 @@ namespace ml
 	
 
 	// ----------------------------------------------------------------
-	// unary float -> int operators 
-		
-	#define DEFINE_OP1_F2I(opName, opComputation)				\
-	template<int VECTORS>										\
-	inline DSPVectorArrayInt<VECTORS>							\
-		(opName)(const DSPVectorArray<VECTORS>& vx1)			\
-	{															\
-		DSPVectorArrayInt<VECTORS> vy;							\
-		const float* px1 = vx1.getConstBuffer();				\
-		float* py1 = vy.getBuffer();							\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
-		{														\
-			SIMDVectorFloat x = vecLoad(px1);					\
-			vecStore((py1), (opComputation));						\
-			px1 += kFloatsPerSIMDVector;						\
-			py1 += kIntsPerSIMDVector;							\
-		}														\
-		return vy;												\
-	}	
+	// low-level functional
 
-	DEFINE_OP1_F2I(roundFloatToInt, (VecI2F(vecFloatToIntRound(x))));
-	DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
-
-	// ----------------------------------------------------------------
-	// unary int -> float operators 
-		
-	#define DEFINE_OP1_I2F(opName, opComputation)				\
-	template<int VECTORS>										\
-	inline DSPVectorArray<VECTORS>								\
-		(opName)(const DSPVectorArrayInt<VECTORS>& vx1)			\
-	{															\
-		DSPVectorArray<VECTORS> vy;							\
-		const float* px1 = vx1.getConstBuffer();				\
-		float* py1 = vy.getBuffer();							\
-		for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)		\
-		{														\
-			SIMDVectorInt x = VecF2I(vecLoad(px1));						\
-			vecStore((py1), (opComputation));						\
-			px1 += kIntsPerSIMDVector;							\
-			py1 += kFloatsPerSIMDVector;						\
-		}														\
-		return vy;												\
-	}	
+	// Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
+	// x is a dummy argument just used to infer the vector size.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS> x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+		{
+			y[n] = f();
+		}
+		return y;
+	}
 	
-	DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
-
+	// Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS> x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+		{
+			y[n] = f(x[n]);
+		}
+		return y;
+	}
+	
+	// Apply a function (int)->(float) to each element of the DSPVectorArrayInt x and return the result.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArrayInt<VECTORS> x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+		{
+			y[n] = f(x[n]);
+		}
+		return y;
+	}
+	
+	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&)> f, const DSPVectorArray<VECTORS> x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int j=0; j<VECTORS; ++j)
+		{
+			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j)));
+		}
+		return y;
+	}
+	
+	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
+	template<int VECTORS>
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&, int)> f, const DSPVectorArray<VECTORS> x)
+	{
+		DSPVectorArray<VECTORS> y;
+		for(int j=0; j<VECTORS; ++j)
+		{
+			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j), j));
+		}
+		return y;
+	}
 	// ----------------------------------------------------------------
 	// for testing
 	
