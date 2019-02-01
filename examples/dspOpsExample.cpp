@@ -134,11 +134,17 @@ int main()
 	tick[0] = 1;
 	
 	PitchbendableDelay d1;
-	DSPVector vDelayTime = sineModGen(DSPVector(1.f/44100.f));
+	DSPVector vDelayTime = DSPVector(16.f);//sineModGen(DSPVector(1.f/44100.f));
 	//d1.setDelayInSamples(34.0);
 	std::cout << "\n\n" << d1(tick, vDelayTime) << "\n\n";
+	
+	// upsampler for a generator with 1 input row, 1 output row
+	Upsample2x<1, 1> upper;
+	
+	std::cout << "\n\n" << upper([&](const DSPVector x){ return sineGen(x); }, DSPVector(440.f/44100.f))  << "\n\n";
+	
 
-IntegerDelay p(100);
+	// IntegerDelay p(100);
 	//std::cout << "\n\n" << p(DSPVector(), DSPVector()) << "\n" << p(DSPVector(), DSPVector()) << "\n\n";
 	
 	

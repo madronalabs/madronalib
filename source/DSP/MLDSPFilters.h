@@ -476,35 +476,36 @@ namespace ml
 	};
 	
 
-	// First order allpass section
+	// First order allpass section with a single sample of delay.
 	
-	class AllpassSection
+	class AllpassSection1
 	{		
 	private:
-		float x0{0}, x1{0}, y0{0}, y1{0};
+		float x1{0}, y1{0};
 		
 	public:
 		float mCoeffs;
 		
-		AllpassSection() : mCoeffs(0.f){}
-		AllpassSection(float a) : mCoeffs(a){}
-		~AllpassSection(){}
+		AllpassSection1() : mCoeffs(0.f){}
+		AllpassSection1(float a) : mCoeffs(a){}
+		~AllpassSection1(){}
 		
 		// get allpass coefficient from a delay fraction d.
 		// to minimize modulation noise, d should be in the range [0.618 - 1.618].
 		static float coeffs (float d)
 		{
+			// return 2nd order approx around 1 to (1.f - d) / (1.f + d)
 			float xm1 = (d - 1.f);
-			return -0.53f*xm1 + 0.24f*xm1*xm1; // 2nd order approx around 1 to (1.f - d) / (1.f + d)
+			return -0.53f*xm1 + 0.24f*xm1*xm1; 
 		}
 		
 		inline float processSample(const float x)
 		{
-			x1=x0;
-			y1=y0;
-			x0=x;
-			y0 = x1 + (x0 - y1)*mCoeffs;            
-			return y0;
+			// one-multiply form. see https://ccrma.stanford.edu/~jos/pasp/One_Multiply_Scattering_Junctions.html
+			float y = x1 + (x - y1)*mCoeffs;            
+			x1=x;
+			y1=y;
+			return y;
 		}
 		
 		inline DSPVector operator()(const DSPVector& vx)
@@ -526,7 +527,7 @@ namespace ml
 	class FractionalDelay
 	{
 		IntegerDelay mIntegerDelay;
-		AllpassSection mAllpassSection;
+		AllpassSection1 mAllpassSection;
 		float mDelayInSamples;
 		
 	public:
@@ -553,7 +554,7 @@ namespace ml
 				delayInt -= 1;
 			}
 			mIntegerDelay.setDelayInSamples(delayInt);
-			mAllpassSection.mCoeffs = AllpassSection::coeffs(delayFrac);
+			mAllpassSection.mCoeffs = AllpassSection1::coeffs(delayFrac);
 		}
 		
 		// return the input signal, delayed by the constant delay time mDelayInSamples.
@@ -596,16 +597,16 @@ namespace ml
 	// Crossfading two allpass-interpolated delays allows modulating the delay 
 	// time without clicks. See "A Lossless, Click-free, Pitchbend-able Delay Line Loop Interpolation Scheme", 
 	// Van Duyne, Jaffe, Scandalis, Stilson, ICMC 1997.
-	static constexpr int kFadePeriod = 32; 
-
-	static constexpr std::array<int, kFadePeriod> kFadeTable{ {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
+	
+	static constexpr int kPBDFadePeriod = 32; 
+	static constexpr std::array<int, kPBDFadePeriod> kPBDFadeTable{ {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
 		16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1} };
-	const float kFadeMax = 16.f;
+	static constexpr float kPBDFadeMax = 16.f;
 
 	class PitchbendableDelay
 	{
 		FractionalDelay mDelay1, mDelay2;
-		ml::RampGen rampFn{kFadePeriod};		
+		ml::RampGen rampFn{kPBDFadePeriod};		
 		
 	public:
 		PitchbendableDelay() : mDelay1(kDefaultDelaySize), mDelay2(kDefaultDelaySize){}
@@ -616,13 +617,12 @@ namespace ml
 		{
 			// get fade function
 			DSPVectorInt vIntRamp = rampFn();
-			DSPVector vFade = map([&](int f){ return kFadeTable[f]/kFadeMax; }, vIntRamp); // triangular
+			DSPVector vFade = map([&](int f){ return kPBDFadeTable[f]/kPBDFadeMax; }, vIntRamp); // triangular
 			
 			// generate vectors of ticks indicating when delays can change
 			// equality operators on vectors return 0 or 0xFFFFFFFF 
-			DSPVectorInt vDelay1Changes, vDelay2Changes;			
-			vDelay1Changes = equal(intToFloat(vIntRamp), DSPVector(kFadePeriod/2.f));
-			vDelay2Changes = equal(intToFloat(vIntRamp), DSPVector(0.f));
+			DSPVectorInt vDelay1Changes = equal(intToFloat(vIntRamp), DSPVector(kPBDFadePeriod/2.f));
+			DSPVectorInt vDelay2Changes = equal(intToFloat(vIntRamp), DSPVector(0.f));
 			
 			// run the fractional delays and crossfade the results.
 			return lerp(mDelay1(vInput, vDelayInSamples, vDelay1Changes), mDelay2(vInput, vDelayInSamples, vDelay2Changes), vFade);
@@ -630,7 +630,6 @@ namespace ml
 	};
 	
 
-	// ----------------------------------------------------------------
 	// FDN	
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
 	
@@ -773,7 +772,7 @@ namespace ml
 	private:
 		
 		// order=4, rejection=70dB, transition band=0.1. 
-		AllpassSection apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
+		AllpassSection1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
 		float b1{0};
 	};
 	

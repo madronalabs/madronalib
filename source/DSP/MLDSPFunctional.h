@@ -4,6 +4,10 @@
 //
 // Created by Randy Jones on 4/14/2016
 //
+// Here are some function objects that take DSP functions as parameters to operator() and apply
+// the function in a different context, such as upsampled, overlap-added or in the frequency domain.
+
+// TODO in DSPOps improve pack / unpack of rows for sending multiple sources to functions
 
 
 #pragma once
@@ -15,13 +19,6 @@
 
 namespace ml
 {
-
-	
-	// Here are some function objects that take DSP functions as parameters to operator() and apply
-	// the function in a different context, such as upsampled, overlap-added or in the frequency domain.
-
-	// TODO improve pack / unpack of rows for sending multiple sources to functions
-
 	// Upsample2x is a function object that given a process function f, 
 	// upsamples the input x by 2, applies f, downsamples and returns the result.
 	// the total delay from the resampling filters used is about 3 samples.	
@@ -126,23 +123,44 @@ namespace ml
 	};
 	
 	
-	// ----------------------------------------------------------------
 	// OverlapAdd TODO
 	
 	template<int LENGTH, int DIVISIONS, int IN_ROWS, int OUT_ROWS>
 	class OverlapAdd
 	{
 		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
-
+		
 	public:
 		inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn, const DSPVectorArray<IN_ROWS> vx)
 		{
 		}
-
-
+		
+		
 	private:
 		//MLSignal mHistory;
 		const DSPVector& mWindow;
+	};
+	
+	
+	// FeedbackDelay TODO
+	// wraps a function in a pitch-bendable delay with feedback. 
+	// Since the feedback adds the output of the function to its input, the function must input and output
+	// the same number of rows.
+	
+	template<int ROWS>
+	class FeedbackDelay
+	{
+		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>)> ProcessFn;
+		
+	public:
+		inline DSPVectorArray<ROWS> operator()(ProcessFn fn, const DSPVectorArray<ROWS> vx)
+		{
+		}
+		
+		
+	private:
+
+		std::array<PitchbendableDelay, ROWS> mDelays;
 	};
 	
 	

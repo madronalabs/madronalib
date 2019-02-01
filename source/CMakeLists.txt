@@ -33,7 +33,6 @@ if(BUILD_NEW_ONLY)
     core/MLTimer.h
     DSP/MLDSP.cpp
     DSP/MLDSP.h
-		DSP/MLDSPFilters.cpp
 		DSP/MLDSPFilters.h
 		DSP/MLDSPFunctional.h
 		DSP/MLDSPGens.cpp
@@ -97,7 +96,6 @@ else(BUILD_NEW_ONLY)
     DSP/MLDSPOps.h
     DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
-    DSP/MLDSPFilters.cpp
     DSP/MLDSPFilters.h
 		DSP/MLDSPFunctional.h
     DSP/MLDSPMath.h
