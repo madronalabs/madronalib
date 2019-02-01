@@ -37,7 +37,6 @@ namespace ml
 
 	class Lopass
 	{
-	private:
 		struct _coeffs
 		{
 			float g0, g1, g2;
@@ -81,7 +80,6 @@ namespace ml
 	
 	class Hipass
 	{
-	private:
 		struct _coeffs
 		{
 			float g0, g1, g2, k;
@@ -126,7 +124,6 @@ namespace ml
 	
 	class Bandpass
 	{
-	private:		
 		struct _coeffs
 		{
 			float g0, g1, g2;
@@ -170,7 +167,6 @@ namespace ml
 	
 	class LoShelf
 	{
-	private:	
 		struct _coeffs
 		{
 			float a1, a2, a3, m1, m2;
@@ -213,7 +209,6 @@ namespace ml
 	
 	class HiShelf
 	{
-	private:
 		struct _coeffs
 		{
 			float a1, a2, a3, m0, m1, m2;
@@ -257,7 +252,6 @@ namespace ml
 	
 	class Bell
 	{
-	private:
 		struct _coeffs
 		{
 			float a1, a2, a3, m1;
@@ -302,7 +296,6 @@ namespace ml
 	
 	class OnePole
 	{
-	private:
 		struct _coeffs
 		{
 			float a0, b1;
@@ -330,11 +323,6 @@ namespace ml
 			return vy;
 		}
 	};
-	
-	
-	// TODO asymmetriconepole 
-	
-
 
 	// A one-pole, one-zero filter to attenuate DC. 
 	// Works well, but beware of its effects on bass sounds. An omega of 0.05 is a good starting point.
@@ -342,7 +330,6 @@ namespace ml
 
 	class DCBlocker
 	{
-	private:
 		typedef float _coeffs;
 		float x1{0};
 		float y1{0};
@@ -370,8 +357,50 @@ namespace ml
 		}
 	};
 
-	// Differentiator TODO
-	// Integrator TODO
+	
+	// Differentiator 
+	
+	class Differentiator
+	{
+		float x1{0};
+		
+	public:
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			vy[0] = x1 - vx[0];
+			for(int n=1; n<kFloatsPerDSPVector; ++n)
+			{
+				vy[n] = vx[n - 1] - vx[n];
+			}
+			x1 = vx[kFloatsPerDSPVector];
+			return vy;
+		}
+	};
+
+	
+	// Integrator 
+	
+	class Integrator
+	{
+		float y1{0};
+		
+	public:
+		// set leak to a value such as 0.001 for stability
+		float mLeak{0};
+		
+		inline DSPVector operator()(const DSPVector& vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				y1 -= y1*mLeak;
+				y1 += vx[n];
+				vy[n] = y1;
+			}
+			return vy;
+		}
+	};
 	
 	
 	// IntegerDelay delays a signal a whole number of samples.
@@ -402,7 +431,6 @@ namespace ml
 		
 		void setMaxDelayInSamples(int dMax)
 		{
-			std::cout << "MAX: " << dMax << "\n";
 			int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
 			mBuffer.resize(newSize);
 			mLengthMask = newSize - 1;
@@ -470,7 +498,6 @@ namespace ml
 			// update index
 			mWriteIndex++;
 			mWriteIndex &= mLengthMask;
-			
 			return y;
 		}
 	};
@@ -648,6 +675,7 @@ namespace ml
 			mDelay.setDelayInSamples(d);
 		}
 		
+		// use with constant delay time.
 		inline DSPVector operator()(const DSPVector vInput)
 		{	
 			DSPVector vGain(mGain);
@@ -812,23 +840,6 @@ namespace ml
 		Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
 		float b1{0};
 	};
-	
-
-	/*	 
-
-	
-	 // FilterBanks can go here
-	 
-	 ----
-	 SVFbank
-	 allpassbank 
-	 delaybank
-
-	 
-	 
-	 */
-	
-	
 	
 } // namespace ml
 

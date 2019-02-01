@@ -19,12 +19,12 @@
 
 namespace ml
 {
-	// Upsample2x is a function object that given a process function f, 
+	// Upsample2xFunction is a function object that given a process function f, 
 	// upsamples the input x by 2, applies f, downsamples and returns the result.
 	// the total delay from the resampling filters used is about 3 samples.	
 	
 	template<int IN_ROWS, int OUT_ROWS>
-	class Upsample2x
+	class Upsample2xFunction
 	{
 		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
 		
@@ -63,14 +63,14 @@ namespace ml
 	};
 	
 	
-	// Downsample2x is a function object that given a process function f, 
+	// Downsample2xFunction is a function object that given a process function f, 
 	// downsamples the input x by 2, applies f, upsamples and returns the result.
 	// Since two DSPVectors of input are needed to create a single vector of downsampled input
 	// to the wrapped function, this function has an entire DSPVector of delay in addition to 
 	// the group delay of the allpass interpolation (about 6 samples).
 
 	template<int IN_ROWS, int OUT_ROWS>
-	class Downsample2x
+	class Downsample2xFunction
 	{
 		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
 		
@@ -123,10 +123,10 @@ namespace ml
 	};
 	
 	
-	// OverlapAdd TODO
+	// OverlapAddFunction TODO
 	
 	template<int LENGTH, int DIVISIONS, int IN_ROWS, int OUT_ROWS>
-	class OverlapAdd
+	class OverlapAddFunction
 	{
 		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
 		
@@ -135,32 +135,40 @@ namespace ml
 		{
 		}
 		
-		
 	private:
 		//MLSignal mHistory;
 		const DSPVector& mWindow;
 	};
 	
 	
-	// FeedbackDelay TODO
-	// wraps a function in a pitch-bendable delay with feedback. 
+	// FeedbackDelayFunction
+	// Wraps a function in a pitchbendable delay with feedback per row. 
 	// Since the feedback adds the output of the function to its input, the function must input and output
 	// the same number of rows.
 	
 	template<int ROWS>
-	class FeedbackDelay
+	class FeedbackDelayFunction
 	{
 		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>)> ProcessFn;
-		
+	
 	public:
-		inline DSPVectorArray<ROWS> operator()(ProcessFn fn, const DSPVectorArray<ROWS> vx)
-		{
+		float feedbackGain{0};
+		
+		inline DSPVectorArray<ROWS> operator()(ProcessFn fn, const DSPVectorArray<ROWS> vx, const DSPVector vDelayTime)
+		{				
+			DSPVectorArray<ROWS> vy;
+			DSPVectorArray<ROWS> vInputSum;
+			for(int j=0; j < ROWS; ++j)
+			{
+				vy.row(j) = mDelays[j](fn(vx.constRow(j) + vy1.row(j)*DSPVector(feedbackGain)), vDelayTime);				
+			}
+			vy1 = vy;
+			return vy + vx;
 		}
 		
-		
 	private:
-
 		std::array<PitchbendableDelay, ROWS> mDelays;
+		DSPVectorArray<ROWS> vy1;
 	};
 	
 	
