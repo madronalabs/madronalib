@@ -156,14 +156,14 @@ namespace ml
 		
 		inline DSPVectorArray<ROWS> operator()(ProcessFn fn, const DSPVectorArray<ROWS> vx, const DSPVector vDelayTime)
 		{				
-			DSPVectorArray<ROWS> vy;
-			DSPVectorArray<ROWS> vInputSum;
+			DSPVectorArray<ROWS> vFnOutput;						
+			vFnOutput = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain));
+			
 			for(int j=0; j < ROWS; ++j)
 			{
-				vy.row(j) = mDelays[j](fn(vx.constRow(j) + vy1.row(j)*DSPVector(feedbackGain)), vDelayTime);				
+				vy1.row(j) = mDelays[j](vFnOutput.row(j), vDelayTime);				
 			}
-			vy1 = vy;
-			return vy + vx;
+			return vFnOutput;
 		}
 		
 	private:
