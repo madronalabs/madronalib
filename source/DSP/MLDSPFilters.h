@@ -478,7 +478,7 @@ namespace ml
 
 	// First order allpass section with a single sample of delay.
 	
-	class AllpassSection1
+	class Allpass1
 	{		
 	private:
 		float x1{0}, y1{0};
@@ -486,9 +486,9 @@ namespace ml
 	public:
 		float mCoeffs;
 		
-		AllpassSection1() : mCoeffs(0.f){}
-		AllpassSection1(float a) : mCoeffs(a){}
-		~AllpassSection1(){}
+		Allpass1() : mCoeffs(0.f){}
+		Allpass1(float a) : mCoeffs(a){}
+		~Allpass1(){}
 		
 		// get allpass coefficient from a delay fraction d.
 		// to minimize modulation noise, d should be in the range [0.618 - 1.618].
@@ -518,8 +518,8 @@ namespace ml
 			return vy;
 		}
 	};
-
-
+	
+	
 	// Combining the integer delay and first order allpass section 
 	// gives us an allpass-interpolated fractional delay. In general, modulating the delay time 
 	// will change the allpass coefficient, producing clicks in the output.
@@ -527,7 +527,7 @@ namespace ml
 	class FractionalDelay
 	{
 		IntegerDelay mIntegerDelay;
-		AllpassSection1 mAllpassSection;
+		Allpass1 mAllpassSection;
 		float mDelayInSamples;
 		
 	public:
@@ -554,7 +554,7 @@ namespace ml
 				delayInt -= 1;
 			}
 			mIntegerDelay.setDelayInSamples(delayInt);
-			mAllpassSection.mCoeffs = AllpassSection1::coeffs(delayFrac);
+			mAllpassSection.mCoeffs = Allpass1::coeffs(delayFrac);
 		}
 		
 		// return the input signal, delayed by the constant delay time mDelayInSamples.
@@ -629,6 +629,43 @@ namespace ml
 		}
 	};
 	
+	
+	// General purpose allpass filter with arbitrary delay length.
+	// For efficiency, the minimum delay time is one DSPVector.
+	
+	template<typename DELAY_TYPE>
+	class Allpass
+	{
+		DELAY_TYPE mDelay{kDefaultDelaySize};
+		DSPVector vy1;
+		
+	public:
+		float mGain{0.f};
+		
+		// use setDelayInSamples to set a constant delay time with DELAY_TYPE of IntegerDelay or FractionalDelay.
+		inline void setDelayInSamples(float d) 
+		{ 			
+			mDelay.setDelayInSamples(d);
+		}
+		
+		inline DSPVector operator()(const DSPVector vInput)
+		{	
+			DSPVector vGain(mGain);
+			DSPVector vDelayInput = vInput - vy1*vGain;
+			vy1 = mDelay(vDelayInput);
+			return vDelayInput*vGain + vy1;
+		}
+		
+		// use vDelayInSamples parameter to set a varying delay time with DELAY_TYPE = PitchbendableDelay.
+		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
+		{	
+			DSPVector vGain(mGain);
+			DSPVector vDelayInput = vInput - vy1*vGain;
+			vy1 = mDelay(vDelayInput, vDelayInSamples);
+			return vDelayInput*vGain + vy1;
+		}
+	};
+
 
 	// FDN	
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
@@ -636,7 +673,15 @@ namespace ml
 	template<int SIZE>
 	class FDN
 	{
+		std::array<IntegerDelay, SIZE> mDelays;
+		std::array<OnePole, SIZE> mFilters; 
+		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
+
 	public:
+
+		// feedback gains array is public—just copy values to set. 
+		std::array<float, SIZE> mFeedbackGains{{0}};
+		
 		void setDelayTimesInSamples(std::array<float, SIZE> times)
 		{			
 			for(int n=0; n<SIZE; ++n)
@@ -681,7 +726,7 @@ namespace ml
 			
 			// inputs = input gains*input sample + filters(M*delay outputs)
 			// The feedback matrix M is a unit-gain Householder matrix, which is just 
-			// the identity matrix minus a constant k, where k = 2/size. Since this can be
+			// the identity matrix minus a constant k, where k = 2/size. Since multiplying this can be
 			// simplified so much, you just see a few operations here, not a general 
 			// matrix multiply.
 			
@@ -701,14 +746,6 @@ namespace ml
 			
 			return append(sumL, sumR);
 		}
-
-		// feedback gains array is public—just copy values to set. 
-		std::array<float, SIZE> mFeedbackGains{{0}};
-
-	private:
-		std::array<IntegerDelay, SIZE> mDelays;
-		std::array<OnePole, SIZE> mFilters; 
-		std::array<DSPVector, SIZE> mDelayInputVectors{ { {DSPVector(0.f)} } }; 
 	};
 		
 	
@@ -772,7 +809,7 @@ namespace ml
 	private:
 		
 		// order=4, rejection=70dB, transition band=0.1. 
-		AllpassSection1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
+		Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};	
 		float b1{0};
 	};
 	
