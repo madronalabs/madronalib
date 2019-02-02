@@ -108,7 +108,7 @@ public:
 	// create a looped version of the signal argument, according to the loop type
 	MLSignal(MLSignal src, eLoopType loopType, int loopLength); 
 	
-	// MLTEST
+
 	
 	inline MLSignal(int width, std::function<float(int)> fillFn) :
 	mDataAligned(0),
@@ -446,7 +446,6 @@ public:
 	void multiply(const MLSignal& s);	
 	void divide(const MLSignal& s);	
 	
-	// MLTEST
 	void copyFast(const MLSignal& b);
 	
 	// signal / scalar operators
@@ -534,7 +533,6 @@ public:
 	inline int getRowStride() const { return 1<<mWidthBits; }
 	inline int getPlaneStride() const { return 1<<mWidthBits<<mHeightBits; }
 	
-	// MLTEST new business
 	inline MLSignal getRow(int i)
 	{
 		int w = getWidth();

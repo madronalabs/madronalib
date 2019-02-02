@@ -20,7 +20,7 @@ public:
 	MLProcInfoBase& procInfo() override { return mInfo; }
 
 private:
-	RandomSource mRandomSource;
+	NoiseGen mNoiseGen;
 	MLProcInfo<MLProcNoise> mInfo;
 };
 
@@ -42,7 +42,7 @@ static ml::Symbol gainSym("gain");
 
 void MLProcNoise::process()
 {	
-	store(mRandomSource(), getOutput().getBuffer());
+	store(mNoiseGen(), getOutput().getBuffer());
 }
 
 

@@ -34,7 +34,7 @@ private:
 	float mNoisePeriodSeconds;
 	float mOneOverNoiseDomain;
 	
-	ml::RandomSource mRand;
+	ml::NoiseGen mRand;
 };
 
 

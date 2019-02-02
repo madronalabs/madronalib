@@ -773,11 +773,11 @@ namespace ml { namespace textUtils {
 		return TextFragment(buf);
 	}
 	
-	class RandomSource
+	class NoiseGen
 	{
 	public:
-		RandomSource() : mSeed(0) {}
-		~RandomSource() {}
+		NoiseGen() : mSeed(0) {}
+		~NoiseGen() {}
 		
 		inline void step()
 		{
@@ -799,7 +799,7 @@ namespace ml { namespace textUtils {
 	static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";
 	std::vector<Symbol> vectorOfNonsenseSymbols( int len )
 	{
-		RandomSource randSource;
+		NoiseGen randSource;
 		std::vector<Symbol> words;
 		for(int i = 0; i < len; ++i)
 		{

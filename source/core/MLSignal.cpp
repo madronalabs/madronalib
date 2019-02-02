@@ -14,7 +14,7 @@
 
 MLSignal MLSignal::nullSignal;
 
-// no length argument: make a null object. MLTEST sort out any extant use of nulls and make this return default size with fastest possible ctor.
+// no length argument: make a null object. 
 
 // TODO fast ctors for default size chunks seems a lot more imporant than a null object pattern. Look at where we are using the latter and do it some other way. 
 
@@ -136,8 +136,8 @@ MLSignal& MLSignal::operator= (const MLSignal& other)
 	return *this;
 }
 
-// MLTEST TODO move ctor!
-// mark noexcept
+
+// TODO mark noexcept
 
 // TODO use row(), column(), plane() submatrix syntax instead. 
 // then current getBuffer().row(1) turns into row(1).getBuffer()

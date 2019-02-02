@@ -103,7 +103,7 @@ private:
 		MLMultiSlider* mpOwner;
 	};
 	std::unique_ptr<GestureTimer> mpTimer;
-	ml::RandomSource mRand;
+	ml::NoiseGen mRand;
 };
 
 #endif // __ML_MULTI_SLIDER_HEADER__

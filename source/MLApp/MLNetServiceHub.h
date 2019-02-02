@@ -9,8 +9,8 @@
 	// TODO
 #else
 
-#include "NetService.h"
-#include "NetServiceBrowser.h"
+#include "oscpack/zeroconf/NetService.h"
+#include "oscpack/zeroconf/NetServiceBrowser.h"
 
 #include <cassert>
 #include <math.h>

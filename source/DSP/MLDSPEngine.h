@@ -12,11 +12,12 @@
 #include "MLProcHostPhasor.h"
 #include "MLSignal.h"
 #include "MLControlEvent.h"
-#include "OscTypes.h"
 #include "MLDSPDeprecated.h"
 #include "MLQueue.h"
 #include "MLT3DHub.h"
 #include "MLSignalBuffer.h"
+
+#include "oscpack/osc/OscTypes.h"
 
 const int kMLEngineMaxChannels = 8;
 

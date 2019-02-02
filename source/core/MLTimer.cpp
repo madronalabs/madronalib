@@ -5,6 +5,12 @@
 //  Created by Randy Jones on 9/10/2018
 //
 
+#define USE_JUCE	1
+
+#if USE_JUCE
+#include "JuceHeader.h"
+#endif
+
 #include "MLTimer.h"
 
 #include <set>
@@ -17,10 +23,23 @@ namespace ml
 	}
 
 	class Timers
+#if USE_JUCE
+	: private juce::Timer
+#endif
+	
+
 	{
 	public:
+		
+#if USE_JUCE
+
+		Timers() { startTimer(Time::kMillisecondsResolution); }
+		~Timers() { running = false; stopTimer(); }
+		
+#else
 		Timers() { }
 		~Timers() { running = false; runThread.join(); }
+#endif
 		
 		// singleton: we only want one Timers instance. The first time a Timer object is made,
 		// this object is made and the run thread is started.
@@ -32,12 +51,12 @@ namespace ml
 		Timers& operator=(Timers const&) = delete;  // Copy assign
 		Timers& operator=(Timers &&) = delete;      // Move assign
 		
-		void insert(Timer* t)
+		void insert(ml::Timer* t)
 		{
 			timerPtrs.insert(t);
 		}
 		
-		void erase(Timer* t)
+		void erase(ml::Timer* t)
 		{
 			timerPtrs.erase(t);
 		}
@@ -46,37 +65,52 @@ namespace ml
 
 	private:
 		bool running { true };
-		std::set< Timer* > timerPtrs;
-		std::thread runThread { [&](){ run(); } };
+		std::set< ml::Timer* > timerPtrs;
+
+		
+#if USE_JUCE
+		void timerCallback()
+		{
+			runNow();
+		}
+#else
+
+		 std::thread runThread { [&](){ run(); } };
+
+#endif
+		
+		
+		void runNow(void)
+		{
+			time_point<system_clock> now = system_clock::now();
+			std::unique_lock<std::mutex> lock(mSetMutex);
+			for(auto t : timerPtrs)
+			{
+				if(t->mCounter != 0)
+				{
+					if(now - t->mPreviousCall > t->mPeriod)
+					{
+						t->myFunc();
+						if(t->mCounter > 0)
+						{
+							t->mCounter--;
+						}
+						t->mPreviousCall = now;
+					}
+				}
+			}
+		}
 		
 		void run(void)
 		{
 			while(running)
 			{
 				std::this_thread::sleep_for(milliseconds(Time::kMillisecondsResolution));
-				
-				time_point<system_clock> now = system_clock::now();
-				{
-					std::unique_lock<std::mutex> lock(mSetMutex);
-					for(auto t : timerPtrs)
-					{
-						if(t->mCounter != 0)
-						{
-							if(now - t->mPreviousCall > t->mPeriod)
-							{
-								t->myFunc();
-								if(t->mCounter > 0)
-								{
-									t->mCounter--;
-								}
-								t->mPreviousCall = now;
-							}
-						}
-					}
-				}
+				runNow();
 			}
 		}
-	};
+		
+	}; // class Timers
 	
 	Timer::Timer() noexcept
 	{

@@ -75,7 +75,11 @@ namespace ml
 			// and get all the benefits of cache locality etc that we can write into the allocator.
 			// but for now:
 			
-			IntervalProjection frameToUnity({0, frames - 1}, {0, 1});
+//			auto frameToUnity = ml::projections::intervalMap{{0, (frames - 1)}, {0, 1}};
+			
+			Projection frameToUnity(projections::intervalMap({0., (frames - 1.f)}, {0., 1.}));
+
+			
 			
 			// MLTEST linear mapping, ignore target frames and use current frames
 			for(int j=0; j<frameSize; ++j)
