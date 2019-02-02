@@ -27,9 +27,10 @@ namespace ml {
 		
 		~Queue(){}
 		
-		resize(size_t size)
+		void resize(size_t size)
 		{
 			mData.resize(size + 1);
+			clear();
 		}
 
 		bool push(const Element& item)
