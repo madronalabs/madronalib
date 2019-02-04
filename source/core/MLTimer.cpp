@@ -5,6 +5,9 @@
 //  Created by Randy Jones on 9/10/2018
 //
 
+// for use with the JUCE framework: https://github.com/WeAreROLI
+// JUCE does not allow many display functions to be called from what it considers the wrong thread,
+// so turn this on to start all our Timers from juce's message thread. 
 #define USE_JUCE	1
 
 #if USE_JUCE
@@ -27,15 +30,12 @@ namespace ml
 	: private juce::Timer
 #endif
 	
-
 	{
 	public:
 		
 #if USE_JUCE
-
 		Timers() { startTimer(Time::kMillisecondsResolution); }
 		~Timers() { running = false; stopTimer(); }
-		
 #else
 		Timers() { }
 		~Timers() { running = false; runThread.join(); }
@@ -67,18 +67,14 @@ namespace ml
 		bool running { true };
 		std::set< ml::Timer* > timerPtrs;
 
-		
 #if USE_JUCE
 		void timerCallback()
 		{
 			runNow();
 		}
 #else
-
 		 std::thread runThread { [&](){ run(); } };
-
 #endif
-		
 		
 		void runNow(void)
 		{
