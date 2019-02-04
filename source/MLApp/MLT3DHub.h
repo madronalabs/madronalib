@@ -20,11 +20,10 @@
 #include "MLProperty.h"
 #include "MLQueue.h"
 #include "MLT3DPorts.h"
+#include "MLTimer.h"
 
 #include <stdexcept>
 #include <chrono>
-
-#include "JuceHeader.h" // just for timer?
 
 #include <array>
 
@@ -42,8 +41,7 @@ typedef std::array<Touch, kMaxTouches> TouchFrame;
 
 
 class MLT3DHub :
-public MLNetServiceHub,
-private juce::Timer
+public MLNetServiceHub
 {
 public:
   MLT3DHub();
@@ -72,7 +70,7 @@ public:
   void removeListener(Listener* pL);
   void notifyListeners(ml::Symbol action, const MLProperty val);
   
-  void timerCallback(); // TODO no JUCE
+  void timerCallback();
   
   void setOSCPortOffset(int offset);
   
@@ -107,6 +105,7 @@ private:
 
   Queue<TouchFrame> mTouchFrames{kFrameBufferSize};
   TouchFrame mLatestTouchFrame;
+	ml::Timer mTimer;
 };
 
 #endif // APPLE

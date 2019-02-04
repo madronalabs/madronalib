@@ -10,6 +10,7 @@
 #include "MLDial.h"
 #include "MLProc.h"
 #include "MLPositioner.h"
+#include "MLTimer.h"
 #include <vector>
 
 class MLMultiSlider : 
@@ -92,17 +93,7 @@ private:
 	bool isMouseWheelMoving;
 	bool mGestureInProgress;
 	
-	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
-	class GestureTimer : public juce::Timer
-	{
-	public:
-		GestureTimer(MLMultiSlider*);
-		~GestureTimer();
-		void timerCallback();
-	private:
-		MLMultiSlider* mpOwner;
-	};
-	std::unique_ptr<GestureTimer> mpTimer;
+	ml::Timer mTimer;
 	ml::NoiseGen mRand;
 };
 

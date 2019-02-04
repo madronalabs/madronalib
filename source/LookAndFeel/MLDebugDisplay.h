@@ -10,13 +10,13 @@
 #include "JuceHeader.h"
 #include "MLUI.h"
 #include "MLWidget.h"
+#include "MLTimer.h"
 #include <sstream>
 
 class MLDebugDisplay : 
 	public Component,
 	public MLWidget,
-	public MLTextStreamListener,
-	public juce::Timer
+	public MLTextStreamListener
 {
 public:
     MLDebugDisplay(MLWidget* pContainer);
@@ -26,14 +26,13 @@ public:
 
 protected:
 	void resizeWidget(const MLRect& b, const int);
-	void timerCallback();
 
 private:
 	std::unique_ptr<CodeDocument> mpDoc;
 	std::unique_ptr<CodeEditorComponent> mpComp;
 
 	juce::CriticalSection mStreamLock;
-
+	ml::Timer mTimer;
 };
 
 

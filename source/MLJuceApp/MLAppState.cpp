@@ -20,17 +20,12 @@ MLAppState::MLAppState(MLPropertySet* pM, const std::string& name, const std::st
 	}
 	
 	updateAllProperties();
-	startTimer(1000);
+	mTimer.start([&](){ updateChangedProperties(); }, milliseconds(1000));
+
 }
 
 MLAppState::~MLAppState()
 {
-	stopTimer();
-}
-
-void MLAppState::timerCallback()
-{
-	updateChangedProperties();
 }
 
 void MLAppState::ignoreProperty(ml::Symbol property)

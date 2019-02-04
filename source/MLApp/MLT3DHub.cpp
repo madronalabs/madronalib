@@ -27,12 +27,11 @@ mShouldDisconnect(false)
   setPortOffset(0);
   
   // start protocol polling
-  startTimer(500);
+	mTimer.start([&](){ timerCallback(); }, milliseconds(500));
 }
 
 MLT3DHub::~MLT3DHub()
 {
-  stopTimer();
   disconnect();
 }
 

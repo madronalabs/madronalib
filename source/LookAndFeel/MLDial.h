@@ -19,6 +19,7 @@
 #include "MLParameter.h"
 #include "MLProcContainer.h"
 #include "MLLabel.h"
+#include "MLTimer.h"
 
 class MLDialDetent
 {
@@ -346,19 +347,8 @@ protected:
 	Image mParameterImage;
 	Image mStaticImage;
 	Image mThumbImage;
-	
-	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
-	class GestureTimer : private juce::Timer
-	{
-	public:
-		GestureTimer(MLDial*);
-		~GestureTimer();
-		void timerCallback();
-		void scheduleEndGesture(int timeFromNow);
-	private:
-		MLDial* mpOwner;
-	};
-	std::unique_ptr<GestureTimer> mpTimer;
+
+	ml::Timer mTimer;
 };
 
 #endif // __ML_DIAL_HEADER__

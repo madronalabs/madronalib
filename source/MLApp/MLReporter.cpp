@@ -32,34 +32,13 @@ void MLReporter::PropertyListener::doPropertyChangeAction(ml::Symbol property, c
 	mpOwnerReporter->enqueuePropertyChange(property, newVal);
 }
 
-// MLReporter::ReporterTimer
-
-MLReporter::ReporterTimer::ReporterTimer(MLReporter* pR) :
-mpOwnerReporter(pR)
-{
-	startTimer(33);
-}
-
-MLReporter::ReporterTimer::~ReporterTimer()
-{
-	stopTimer();
-}
-
-void MLReporter::ReporterTimer::timerCallback()
-{
-	mpOwnerReporter->viewProperties();
-}
-
 // MLReporter
 	
 MLReporter::MLReporter()
 {
 	int size = 1 << 10;
-	
-	// setup event queue
 	mChangeQueue = std::unique_ptr< Queue<Symbol> >(new Queue<Symbol>(size));
-
-	mpTimer = std::unique_ptr<ReporterTimer>(new ReporterTimer(this));
+	mTimer.start([&](){ viewProperties(); }, milliseconds(33));
 }
 
 MLReporter::~MLReporter()

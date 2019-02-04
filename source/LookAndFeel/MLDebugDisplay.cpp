@@ -23,12 +23,13 @@ MLDebugDisplay::MLDebugDisplay (MLWidget* pContainer) :
 	mpComp->loadContent("");
 	mpComp->setScrollbarThickness(12);
     
-	startTimer(250);
+	mTimer.start([&](){ display(); }, milliseconds(250));
+
 }
 
 MLDebugDisplay::~MLDebugDisplay()
 {
-	stopTimer();
+
 }
 
 void MLDebugDisplay::display()
@@ -86,10 +87,6 @@ void MLDebugDisplay::resizeWidget(const MLRect& b, const int)
 	}
 }
 
-void MLDebugDisplay::timerCallback()
-{
-	display();
-}
 
 /*
 

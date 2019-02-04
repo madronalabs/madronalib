@@ -69,17 +69,6 @@ private:
 		MLReporter* mpOwnerReporter;
 	};
 	
-	// TODO write a Timer class. juce::Timer is the only reason Juce is needed here. temporary.
-	class ReporterTimer : public juce::Timer
-	{
-	public:
-		ReporterTimer(MLReporter*);
-		~ReporterTimer();
-		void timerCallback();
-	private:
-		MLReporter* mpOwnerReporter;
-	};
-	
 	void enqueuePropertyChange(ml::Symbol property, const MLProperty& newVal);
 
 	std::vector<MLPropertyListenerPtr> pListeners;
@@ -87,7 +76,7 @@ private:
 	
 	std::unique_ptr< Queue< Symbol > > mChangeQueue;
 	
-	std::unique_ptr<ReporterTimer> mpTimer;
+	ml::Timer mTimer;
 };
 
 #endif // __ML_REPORTER_H

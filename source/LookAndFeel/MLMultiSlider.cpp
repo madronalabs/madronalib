@@ -15,8 +15,6 @@ MLMultiSlider::MLMultiSlider (MLWidget* pContainer) :
 	isMouseWheelMoving(false),
 	mGestureInProgress(false)
 {
-	mpTimer = std::unique_ptr<GestureTimer>(new GestureTimer(this));
-	
 	MLWidget::setComponent(this);
 	MLLookAndFeel* myLookAndFeel = (&(getRootViewResources(this).mLookAndFeel));
 	setOpaque(myLookAndFeel->getDefaultOpacity());
@@ -364,11 +362,11 @@ void MLMultiSlider::mouseWheelMove (const MouseEvent& e, const MouseWheelDetails
 					isMouseWheelMoving = true;
 					beginGesture();
 				}
-				mpTimer->startTimer(kWheelTimeoutDuration);
+
+				mTimer.callOnce([&](){ endGesture(); }, milliseconds(kWheelTimeoutDuration));
 
 				mCurrDragSlider = s;
 				sendSliderAction(snapValue (newValue, false), s);
-				mpTimer->startTimer(kWheelTimeoutDuration);
 				mCurrDragSlider = -1;
 			}
         }
@@ -519,23 +517,4 @@ void MLMultiSlider::endGesture()
 		mGestureInProgress = false;
 	}
 }
-
-#pragma mark MLMultiSlider::GestureTimer
-
-MLMultiSlider::GestureTimer::GestureTimer(MLMultiSlider* pM) :
-mpOwner(pM)
-{
-}
-
-MLMultiSlider::GestureTimer::~GestureTimer()
-{
-	stopTimer();
-}
-
-void MLMultiSlider::GestureTimer::timerCallback()
-{
-	stopTimer();
-    mpOwner->endGesture();
-}
-
 

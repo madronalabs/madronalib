@@ -10,6 +10,7 @@
 #include "MLModel.h"
 #include "MLWidget.h"
 #include "MLAppView.h"
+#include "MLTimer.h"
 #include "cJSON/cJSON.h"
 
 #ifdef _WIN32
@@ -23,19 +24,16 @@
 extern const char* kMLStateDirName;
 
 class MLAppState : 
-    public MLPropertyListener,
-		public juce::Timer
+    public MLPropertyListener
 {
 public:
 	MLAppState(MLPropertySet*, const std::string& name, const std::string& makerName, 
 	   const std::string& appName, int version);
 
-    ~MLAppState();
+	~MLAppState();
 	
 	// MLPropertyListener interface
 	void doPropertyChangeAction(ml::Symbol property, const MLProperty& newVal);
-	
-	void timerCallback();
 	
 	void ignoreProperty(ml::Symbol property);
 	
@@ -73,6 +71,7 @@ private:
 	File getAppStateFile() const;
 	std::vector<juce::MemoryBlock> mStateStack;
 	std::set<ml::Symbol> mIgnoredProperties;
+	ml::Timer mTimer;
 };
 
 #endif // __ML_APP_STATE_H
