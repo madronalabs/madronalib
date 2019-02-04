@@ -32,8 +32,8 @@ ml::TextFragment MLFile::getShortName() const
 { 
 	if(isDirectory())
 	{
-		std::cout << "dir\n";
-		std::cout << mJuceFile.getFileName() << "\n";
+		//std::cout << "dir\n";
+		//std::cout << mJuceFile.getFileName() << "\n";
 		return(ml::TextFragment(mJuceFile.getFileName().toUTF8()));
 	}
 	else

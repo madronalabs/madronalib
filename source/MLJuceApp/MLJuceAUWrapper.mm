@@ -727,7 +727,7 @@ void loadFile(const File& f) override
 		const bool errResult = (CFStringGetCString(errorString, errBuf, 255, kCFStringEncodingASCII));
 		if (errResult)
 		{
-			std::cout << errBuf << "\n";
+			//std::cout << errBuf << "\n";
 			CFRelease( errorString );
 		}
 	}

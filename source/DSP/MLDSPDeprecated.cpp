@@ -566,6 +566,7 @@ MLSignal MLFDN::operator()(const MLSignal& x)
 	return y;
 }
 
+
 // ----------------------------------------------------------------
 #pragma mark MLHalfBandFilter
 
@@ -627,3 +628,4 @@ void MLUpsample2x::clear()
 {
     f.clear();
 }
+

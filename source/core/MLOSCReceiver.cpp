@@ -32,7 +32,6 @@ bool MLOSCReceiver::open(int port)
 
 	try
 	{
-		// std::cout << "MLOSCReceiver: trying to receive on port " << port << "...\n";
 		// the new UdpListeningReceiveSocket has this as its listener, so it will call our ProcessMessage()
 		// and ProcessBundle() methods to handle incoming messages.
 		mpSocket = new UdpListeningReceiveSocket(

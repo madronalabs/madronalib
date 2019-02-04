@@ -1156,6 +1156,7 @@ private:
     float mInvSr;
 };
 
+
 // ----------------------------------------------------------------
 #pragma mark MLHalfBandFilter
 
@@ -1212,22 +1213,13 @@ public:
         
         if(k)
         {
-            a0 = apa1.processSample(apa0.processSample(x));
-            y = a0;
+            y = apa1.processSample(apa0.processSample(x));
         }
         else
         {
-					
-					// FIXME this is a bug!
-					// fix is y = b0 but testing of all affected stuff is needed
-					
-					
-					
-            b0 = apb1.processSample(apb0.processSample(x));
-            y = b1;
+            y = apb1.processSample(apb0.processSample(x));
         }
 
-        b1 = b0;
         k = !k;
         return y;
     }
@@ -1290,4 +1282,5 @@ public:
 private:
     MLHalfBandFilter f;
 };
+
 

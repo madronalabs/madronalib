@@ -72,7 +72,7 @@ void MLReporter::enqueuePropertyChange(ml::Symbol prop, const MLProperty& newVal
 #if DEBUG
 	if(!mChangeQueue->push(prop))
 	{
-		std::cout << "MLReporter::doPropertyChangeAction: ring buffer full! \n"; // TODO something
+		// std::cout << "MLReporter::doPropertyChangeAction: ring buffer full! \n"; // TODO something
 	}
 #else
 	mChangeQueue->push(prop);

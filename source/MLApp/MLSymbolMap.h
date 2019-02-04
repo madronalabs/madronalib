@@ -116,7 +116,7 @@ public:
                         // allocate 2x space needed
                         if (!reallocate((overflowIndex+1)*2))
                         {
-                            std::cout << "SymbolMappedArray::operator[]: reallocate failed!\n";
+                            //std::cout << "SymbolMappedArray::operator[]: reallocate failed!\n";
                             return p;
                         }
                     }
@@ -126,16 +126,16 @@ public:
 #if DEBUG
             else
             {
-                std::cout << "SymbolMappedArray::operator[]: bogus key " << key << "!\n";
-                std::cout << "    map: ";
+                //std::cout << "SymbolMappedArray::operator[]: bogus key " << key << "!\n";
+                //std::cout << "    map: ";
                 pMap->dump();
-                std::cout << "\n";
+                //std::cout << "\n";
             }
 #endif
         }
         else
         {
-            std::cout << "SymbolMappedArray::operator[]: aiieee, no map!\n";
+            //std::cout << "SymbolMappedArray::operator[]: aiieee, no map!\n";
         }
         return p;
     }
