@@ -6,8 +6,7 @@
 //
 //
 
-#ifndef MLTimeUtils_h
-#define MLTimeUtils_h
+#pragma once
 
 #include <chrono>
 #include <cmath>
@@ -61,4 +60,3 @@ private:
 	
 } 
 
-#endif

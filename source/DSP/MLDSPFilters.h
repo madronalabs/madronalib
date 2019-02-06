@@ -485,7 +485,28 @@ namespace ml
 			mWriteIndex &= mLengthMask;
 			return vy;
 		}
-
+		
+		inline DSPVector operator()(const DSPVector x, const DSPVector delay)
+		{
+			DSPVector y;
+			
+			for (int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				// write
+				mBuffer[mWriteIndex] = x[n];
+				
+				// read
+				mIntDelayInSamples = static_cast<int>(delay[n]);
+				uintptr_t readIndex = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
+				
+				y[n] = mBuffer[readIndex];
+				mWriteIndex++;
+				mWriteIndex &= mLengthMask;
+			}
+						
+			return y;			
+		}
+		
 		inline float processSample(float x)
 		{
 			// write

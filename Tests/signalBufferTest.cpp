@@ -11,7 +11,7 @@ using namespace std::chrono;
 #include "catch.hpp"
 #include "../include/madronalib.h"
 
-#include "MLSignalBuffer.h"
+#include "MLDSPBuffer.h"
 #include "MLProjection.h"
 
 using namespace ml;

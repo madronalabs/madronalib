@@ -3,14 +3,15 @@ Madronalib
 
 A C++ framework for DSP applications.
 
-Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
+Copyright (c) 2015-2019 Madrona Labs LLC. http://www.madronalabs.com
 
 Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 Status
 ------------
 
-As of Jan. 2017 things are still in a lot of flux. A rewrite is in progress and the old version, relied on in parts by shipping products, is still present. The examples and tests are the places to start looking at the new code. 
+As of Jan. 2019 a rewrite is in progress and some old code relied on by shipping products is still present. The examples and tests are the places to start looking at the new code. 
+
 
 Design Notes
 ------------
@@ -61,20 +62,23 @@ Contents
 	/cmake : any modules or tools for the cmake build system
 	/examples: example projects
 	/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
-	/include: madronalib.h
+	/include: MLDSP.h, madronalib.h
 	/source:
-		/core: new files with tests and doxygen documentation, suitable for use outside the Labs. 
-			files in here must not be dependent on JUCE. 
-			files are being moved in as they are cleaned up.
-			all files in core will be included in /include/madronalib.h as they are moved in.
-
-		/DSP: some DSP utils to move to /core. many procs to move to /procs.
-		/LookAndFeel: widgets for JUCE-based display, to convert to OpenGL widgets.
-		/MLApp: current code, MVC framework for apps. to move to /core.
-		/MLJuceApp: current code, adapters to JUCE framework, to remove.
-		/procs: where converted DSP processors will go. 
+		/core: utilities for low-level application support: timers, queues, data structures, etc.
+			these modules shall only depend on other code in /core.
+		/deprecated: code from the Juce-based app and the older dynamic DSP graph code.
+		/DSP: functions for making DSP graphs including SSE/NEON math libraries. 
+			These modules shall only depend on code in /DSP, with 
+			the exception of the externals/ffft library.
+		/JuceApp: current code, adapters to JUCE framework, to remove.
+		/JuceLookAndFeel: widgets for JUCE-based display.
+		
+		/matrix: matrix and vector data and functions. To depend only on /DSP.
+		/model: app framework code--properties, data, models, etc. To depend only on /core.
+		/networking: OSC and MIDI support.
+		/procs: where new dynamic DSP graph code will go. 
 		/widgets where new widgets will go.
-	/tests
+	/tests: tests for all new code.
 
 
 

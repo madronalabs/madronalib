@@ -15,10 +15,26 @@
 #ifndef __ML_DSP_OPS__
 #define __ML_DSP_OPS__
 
+
+#ifdef _WIN32
+#include <memory>
+#else
+//#include <tr1/memory>
+#endif
+
+#ifdef __INTEL_COMPILER
+#include <mathimf.h>
+#endif
+
+#ifdef _MSC_VER
+#define snprintf _snprintf
+#endif 
+
+
 #include <array>
 #include <iostream>
 
-#include "../core/MLScalarMath.h"
+#include "MLScalarMath.h"
 #include "MLDSPMath.h"
 
 #if(_WIN32 && (!_WIN64))
@@ -386,6 +402,7 @@ namespace ml
 		inline DSPVectorArray& operator/=(const DSPVectorArray& x1){*this = divide(*this, x1); return *this;}
 		
 		// declare as friends any templates or functions that need to use get/setRowVectorUnchecked
+		// but maybe they should just use row()? 
 		template<int C, int V>
 		friend DSPVectorArray<C*V> repeat(const DSPVectorArray<V> x1);
 
@@ -1051,24 +1068,24 @@ px2 += kFloatsPerSIMDVector;						\
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&)> f, const DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector)> f, const DSPVectorArray<VECTORS> x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
 		{
-			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j)));
+			y.row(j) = f(x.constRow(j)); // untested
 		}
 		return y;
 	}
 	
 	// Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
 	template<int VECTORS>
-	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector&, int)> f, const DSPVectorArray<VECTORS> x)
+	inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector, int)> f, const DSPVectorArray<VECTORS> x)
 	{
 		DSPVectorArray<VECTORS> y;
 		for(int j=0; j<VECTORS; ++j)
 		{
-			y.setRowVectorUnchecked(j, f(x.getRowVectorUnchecked(j), j));
+			y.row(j) = f(x.constRow(j), j);
 		}
 		return y;
 	}

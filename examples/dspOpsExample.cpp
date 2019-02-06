@@ -5,8 +5,8 @@
 #include <chrono>
 #include <thread>
 
-#include "../include/madronalib.h"
-#include "MLDSP.h" // TODO -> "core"
+#include "MLDSP.h" 
+//#include "madronalib.h"
 
 #ifdef _WINDOWS
 #include "Windows.h"

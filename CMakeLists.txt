@@ -61,6 +61,8 @@ endif()
 # Add include directories
 #--------------------------------------------------------------------
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
@@ -71,6 +73,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/tinyxml) # to remove
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/core)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)

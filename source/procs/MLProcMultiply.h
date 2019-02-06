@@ -3,9 +3,8 @@
 
 #pragma once
 
-#include "../source/DSP/MLDSP.h"
-#include "MLProperty.h"
-#include "MLPropertySet.h"
+#include "MLDSP.h"
+#include "model/MLPropertySet.h"
 #include "MLProcFactory.h"
 #include "MLText.h"
 

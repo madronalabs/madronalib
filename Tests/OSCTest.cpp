@@ -5,7 +5,7 @@
 
 
 #include "catch.hpp"
-#include "../include/madronalib.h"
+#include "madronalib.h"
 
 #include "osc/OscOutboundPacketStream.h"
 

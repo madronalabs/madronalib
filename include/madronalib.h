@@ -8,9 +8,7 @@
 #ifndef _madronalib_dot_h
 #define _madronalib_dot_h
 
-#include "../source/DSP/MLDSP.h"
-#include "../source/core/MLSymbol.h"
-#include "../source/core/MLSignal.h"
-#include "../source/MLApp/MLDebug.h"
+#include "MLDSP.h"
+#include "MLCore.h"
 
 #endif // _madronalib_dot_h

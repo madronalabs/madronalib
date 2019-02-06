@@ -5,8 +5,8 @@
 
 #pragma once
 
-#include "../core/MLProjection.h"
-#include "MLSignalBuffer.h"
+#include "MLProjection.h"
+#include "MLDSPBuffer.h"
 #include <array>
 
 namespace ml
