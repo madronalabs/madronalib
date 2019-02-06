@@ -8,7 +8,10 @@
 // for use with the JUCE framework: https://github.com/WeAreROLI
 // JUCE does not allow many display functions to be called from what it considers the wrong thread,
 // so turn this on to start all our Timers from juce's message thread. 
-//#define MADRONALIB_TIMERS_USE_JUCE	1
+
+#ifdef JUCE_APP_VERSION
+#define MADRONALIB_TIMERS_USE_JUCE 1
+#endif
 
 #if MADRONALIB_TIMERS_USE_JUCE
 #include "JuceHeader.h"

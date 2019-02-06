@@ -1,0 +1,67 @@
+
+// MadronaLib: a C++ framework for DSP applications.
+// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+#include "MLProc.h"
+#include "MLChangeList.h"
+#include "MLDSP.h"
+
+using namespace ml;
+
+class MLProcParamToSignal : public MLProc
+{
+public:
+	MLProcParamToSignal();
+
+	err resize() override;
+	void process() override;		
+	MLProcInfoBase& procInfo() override { return mInfo; }
+
+private:
+	MLProcInfo<MLProcParamToSignal> mInfo;
+	
+	LinearGlide mParamToVectorProc;
+	DSPVector mParamVector;
+};
+
+// ----------------------------------------------------------------
+// registry section
+
+namespace
+{
+	MLProcRegistryEntry<MLProcParamToSignal> classReg("param_to_sig");
+	ML_UNUSED MLProcParam<MLProcParamToSignal> params[] = {"in"};
+	ML_UNUSED MLProcOutput<MLProcParamToSignal> outputs[] = {"out"};
+}
+
+// ----------------------------------------------------------------
+// implementation
+
+MLProcParamToSignal::MLProcParamToSignal()
+{
+}
+
+MLProc::err MLProcParamToSignal::resize()
+{
+	// using default glide time
+	mParamToVectorProc.setSampleRate(getContextSampleRate());
+	mParamToVectorProc.setGlideTime(0.05f);
+	return OK;
+}
+
+static const ml::Symbol inSym("in");
+
+void MLProcParamToSignal::process()
+{
+	if (mParamsChanged)
+	{
+		mParamToVectorProc.setInput(getParam(inSym));
+		mParamsChanged = false;
+	}
+	
+	store(mParamToVectorProc(), getOutput(1).getBuffer());
+}
+
+
+
