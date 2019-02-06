@@ -4,11 +4,11 @@
 //
 //  Created by Randy Jones on 4/14/2016
 //
-//
+// 
 
 #pragma once
 
-// Here is the DSP vector size, an important constant.
+// Here is the DSP vector size, an important constant. 
 constexpr int kFloatsPerDSPVector = 64;
 
 // Load definitions for low-level SIMD math. 
@@ -19,6 +19,7 @@ constexpr int kFloatsPerDSPVector = 64;
 
 // NEON 
 
+// TODO
 #include "MLDSPMathNEON.h"
 
 #else 

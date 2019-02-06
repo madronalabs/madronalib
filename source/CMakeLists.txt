@@ -49,8 +49,6 @@ set(NEW_SOURCES
     DSP/MLScalarConstants.h
     DSP/MLScalarMath.cpp
     DSP/MLScalarMath.h
-    DSP/MLScale.cpp
-    DSP/MLScale.h
 
     matrix/MLInterpolator.cpp
     matrix/MLInterpolator.h

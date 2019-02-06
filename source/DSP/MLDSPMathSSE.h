@@ -4,7 +4,7 @@
 // MLDSPMathSSE.h 
 // SSE implementations of madronalib SIMD primitives
 
-// portions of this code adapted from code by Julien Pommier, licensed as follows:
+// cephes-derived approximate math functions adapted from code by Julien Pommier, licensed as follows:
 /*  
  Copyright (C) 2007  Julien Pommier
  
@@ -430,6 +430,7 @@ _PS_CONST(coscof_p2,  4.166664568298827E-002);
 _PS_CONST(cephes_FOPI, 1.27323954473516); // 4 / M_PI
 
 /*
+ Julien Pommier:
  The code is the exact rewriting of the cephes sinf function.
  Precision is excellent as long as x < 8192 (I did not bother to
  take into account the special handling they have for greater values
