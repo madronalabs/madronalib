@@ -65,16 +65,36 @@ Contents
 	/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
 	/include: MLDSP.h, madronalib.h
 	/source:
-		/core: utilities for low-level application support: symbols, timers, queues, data structures, etc. these modules shall only depend on other code in /core.
-		/deprecated: code from the Juce-based app and the older dynamic DSP graph code.
-		/DSP: functions for making DSP objects including SSE/NEON math libraries. These modules shall only depend on code in /DSP, with the exception of the externals/ffft library. Include MLDSP.h to include all DSP files. NEON code is work in progress.
-		/JuceApp: current code, adapters to JUCE framework, to remove.
+		/core: utilities for low-level application support: symbols, 
+			timers, queues, data structures, etc. these modules shall 
+			only depend on other code in /core.
+
+		/deprecated: code from the Juce-based app and the older dynamic 
+			DSP graph code.
+
+		/DSP: functions for making DSP objects including SSE/NEON math 
+			libraries. These modules shall only depend on code in /DSP, 
+			with the exception of the externals/ffft library. Include 
+			MLDSP.h to include all DSP files. NEON code is work 
+			in progress.
+
+		/JuceApp: current code, adapters to JUCE framework.
+
 		/JuceLookAndFeel: widgets for JUCE-based display.
-		/matrix: matrix and vector data and functions. To depend only on /DSP.
-		/model: app framework code--properties, data, models, etc. To depend only on /core.
+
+		/matrix: matrix and vector data and functions. To depend only on 
+			/DSP.
+
+		/model: app framework code--properties, data, models, etc. 
+
 		/networking: OSC and MIDI support.
-		/procs: higher level DSP code designed to support dynamic graphs (changing at runtime.) These rely on code in /DSP as well as the symbolic code in /core. work in progress.
+
+		/procs: higher level DSP code designed to support dynamic graphs
+			(changing at runtime.) These rely on code in /DSP as well as
+			the symbolic code in /core. work in progress.
+
 		/widgets where new UI widgets will go.
+
 	/tests: tests for all new code.
 
 
