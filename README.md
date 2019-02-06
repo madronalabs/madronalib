@@ -12,11 +12,12 @@ Status
 
 As of Jan. 2019 a rewrite is in progress and some old code relied on by shipping products is still present. The examples and tests are the places to start looking at the new code. 
 
+The files in /source/DSP are a useful standalone DSP library and can be included without other dependencies:  `#include MLDSP.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations.  An SSE version is complete, NEON support is a work in progress. 
 
 Design Notes
 ------------
 
-Madronalib is designed to enable efficient audio DSP on SIMD processors with readable code.
+Madronalib is designed to enable efficient audio DSP on SIMD processors with readable, brief code.
 
 With the advent of C++11, new functionality became available as part of the standard library, and new syntax has provided clearer ways to express abstractions with no overhead. Madronalib leans on C++11 to reduce its code footprint and increase clarity.
 
@@ -64,20 +65,16 @@ Contents
 	/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
 	/include: MLDSP.h, madronalib.h
 	/source:
-		/core: utilities for low-level application support: timers, queues, data structures, etc.
-			these modules shall only depend on other code in /core.
+		/core: utilities for low-level application support: symbols, timers, queues, data structures, etc. these modules shall only depend on other code in /core.
 		/deprecated: code from the Juce-based app and the older dynamic DSP graph code.
-		/DSP: functions for making DSP graphs including SSE/NEON math libraries. 
-			These modules shall only depend on code in /DSP, with 
-			the exception of the externals/ffft library.
+		/DSP: functions for making DSP objects including SSE/NEON math libraries. These modules shall only depend on code in /DSP, with the exception of the externals/ffft library. Include MLDSP.h to include all DSP files. NEON code is work in progress.
 		/JuceApp: current code, adapters to JUCE framework, to remove.
 		/JuceLookAndFeel: widgets for JUCE-based display.
-		
 		/matrix: matrix and vector data and functions. To depend only on /DSP.
-		/model: app framework code--properties, data, models, etc. To depend only on /core.
+		/model: app framework code--properties, data, models, etc. 
 		/networking: OSC and MIDI support.
-		/procs: where new dynamic DSP graph code will go. 
-		/widgets where new widgets will go.
+		/procs: higher level DSP code designed to support dynamic graphs (changing at runtime.) These rely on code in /DSP as well as the symbolic code in /core.
+		/widgets where new UI widgets will go.
 	/tests: tests for all new code.
 
 

@@ -4,7 +4,7 @@
 // MLDSPMathSSE.h 
 // SSE implementations of madronalib SIMD primitives
 
-// portions of this code adapted from code by Julien Pommier, licensed as follows:
+// cephes-derived approximate math functions adapted from code by Julien Pommier, licensed as follows:
 /*  
  Copyright (C) 2007  Julien Pommier
  
