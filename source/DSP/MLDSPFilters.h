@@ -693,25 +693,27 @@ namespace ml
 		// use setDelayInSamples to set a constant delay time with DELAY_TYPE of IntegerDelay or FractionalDelay.
 		inline void setDelayInSamples(float d) 
 		{ 			
-			mDelay.setDelayInSamples(d);
+			mDelay.setDelayInSamples(d - kFloatsPerDSPVector);
 		}
 		
 		// use with constant delay time.
 		inline DSPVector operator()(const DSPVector vInput)
 		{	
-			DSPVector vGain(mGain);
+			DSPVector vGain(-mGain);
 			DSPVector vDelayInput = vInput - vy1*vGain;
+			DSPVector y = vDelayInput*vGain + vy1;
 			vy1 = mDelay(vDelayInput);
-			return vDelayInput*vGain + vy1;
+			return y;
 		}
 		
 		// use vDelayInSamples parameter to set a varying delay time with DELAY_TYPE = PitchbendableDelay.
 		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
 		{	
-			DSPVector vGain(mGain);
+			DSPVector vGain(-mGain);
 			DSPVector vDelayInput = vInput - vy1*vGain;
-			vy1 = mDelay(vDelayInput, vDelayInSamples);
-			return vDelayInput*vGain + vy1;
+			DSPVector y = vDelayInput*vGain + vy1;
+			vy1 = mDelay(vDelayInput, vDelayInSamples - DSPVector(kFloatsPerDSPVector));
+			return y;
 		}
 	};
 
