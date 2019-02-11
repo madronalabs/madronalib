@@ -731,7 +731,7 @@ namespace ml
 		// feedback gains array is public—just copy values to set. 
 		std::array<float, SIZE> mFeedbackGains{{0}};
 		
-		void setDelayTimesInSamples(std::array<float, SIZE> times)
+		void setDelaysInSamples(std::array<float, SIZE> times)
 		{			
 			for(int n=0; n<SIZE; ++n)
 			{

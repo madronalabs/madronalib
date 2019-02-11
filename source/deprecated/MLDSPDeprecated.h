@@ -69,7 +69,7 @@ typedef float MLSample;
 // ----------------------------------------------------------------
 
 const uintptr_t kMLSamplesPerSSEVectorBits = 2;
-//const uintptr_t kSSEVecSize = 1 << kMLSamplesPerSSEVectorBits;
+//const uintptr_t kFloatsPerSIMDVector = 1 << kMLSamplesPerSSEVectorBits;
 
 //const uintptr_t kMLProcessChunkBits = 6;     // signals are always processed in chunks of this size.
 //const uintptr_t kMLProcessChunkSize = 1 << kMLProcessChunkBits;

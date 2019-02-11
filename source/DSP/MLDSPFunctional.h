@@ -154,7 +154,7 @@ namespace ml
 	public:
 		float feedbackGain{0};
 		
-		inline DSPVectorArray<ROWS> operator()(ProcessFn fn, const DSPVectorArray<ROWS> vx, const DSPVector vDelayTime)
+		inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn, const DSPVector vDelayTime)
 		{				
 			DSPVectorArray<ROWS> vFnOutput;						
 			vFnOutput = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain));
