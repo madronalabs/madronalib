@@ -152,7 +152,7 @@ namespace ml
 		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>)> ProcessFn;
 	
 	public:
-		float feedbackGain{0};
+		float feedbackGain{1.f};
 		
 		inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn, const DSPVector vDelayTime)
 		{				
