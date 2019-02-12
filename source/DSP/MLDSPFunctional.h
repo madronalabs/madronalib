@@ -150,7 +150,7 @@ namespace ml
 	class FeedbackDelayFunction
 	{
 		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>)> ProcessFn;
-	
+		
 	public:
 		float feedbackGain{1.f};
 		
@@ -161,9 +161,41 @@ namespace ml
 			
 			for(int j=0; j < ROWS; ++j)
 			{
-				vy1.row(j) = mDelays[j](vFnOutput.row(j), vDelayTime);				
+				vy1.row(j) = mDelays[j](vFnOutput.row(j), vDelayTime - DSPVector(kFloatsPerDSPVector));				
 			}
 			return vFnOutput;
+		}
+		
+	private:
+		std::array<PitchbendableDelay, ROWS> mDelays;
+		DSPVectorArray<ROWS> vy1;
+	};
+	
+	
+	// FeedbackDelayFunctionWithTap
+	// Wraps a function in a pitchbendable delay with feedback per row. 
+	// Since the feedback adds the output of the function to its input, the function must input and output
+	// the same number of rows.
+	
+	template<int ROWS>
+	class FeedbackDelayFunctionWithTap
+	{
+		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>, DSPVectorArray<ROWS>& )> ProcessFn;
+		
+	public:
+		float feedbackGain{1.f};
+		
+		inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn, const DSPVector vDelayTime)
+		{				
+			DSPVectorArray<ROWS> vFeedback;						
+			DSPVectorArray<ROWS> vOutputTap;						
+			vFeedback = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain), vOutputTap);
+			
+			for(int j=0; j < ROWS; ++j)
+			{
+				vy1.row(j) = mDelays[j](vFeedback.row(j), vDelayTime - DSPVector(kFloatsPerDSPVector));				
+			}
+			return vOutputTap;
 		}
 		
 	private:
