@@ -60,7 +60,7 @@ namespace ml
 			return {g0, g1, g2};
 		}
 
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -103,7 +103,7 @@ namespace ml
 			return {g0, g1, g2, k};
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -147,7 +147,7 @@ namespace ml
 			return {g0, g1, g2};
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -233,7 +233,7 @@ namespace ml
 			return {a1, a2, a3, m0, m1, m2};
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -275,7 +275,7 @@ namespace ml
 			return {a1, a2, a3, m1};
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -342,7 +342,7 @@ namespace ml
 			return cosf(omega);
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -365,7 +365,7 @@ namespace ml
 		float x1{0};
 		
 	public:
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			vy[0] = x1 - vx[0];
@@ -389,7 +389,7 @@ namespace ml
 		// set leak to a value such as 0.001 for stability
 		float mLeak{0};
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -657,8 +657,18 @@ namespace ml
 		ml::RampGen rampFn{kPBDFadePeriod};		
 		
 	public:
-		PitchbendableDelay() : mDelay1(kDefaultDelaySize), mDelay2(kDefaultDelaySize){}
-		PitchbendableDelay(float d) : mDelay1(d), mDelay2(d){}
+		PitchbendableDelay() : mDelay1(kDefaultDelaySize), mDelay2(kDefaultDelaySize)
+		{
+			mDelay1.setDelayInSamples(0);
+			mDelay2.setDelayInSamples(0);
+		}
+		
+		PitchbendableDelay(float d) : mDelay1(d), mDelay2(d)
+		{
+			mDelay1.setDelayInSamples(0);
+			mDelay2.setDelayInSamples(0);
+		}
+		
 		~PitchbendableDelay() {}
 		
 		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
@@ -669,6 +679,8 @@ namespace ml
 			
 			// generate vectors of ticks indicating when delays can change
 			// equality operators on vectors return 0 or 0xFFFFFFFF 
+			// note: mDelay1's delay time will be 0 when the object is created and before the first half fade period.
+			// so there is a warmup time of one half fade period: any input before this will be attenuated.
 			DSPVectorInt vDelay1Changes = equal(intToFloat(vIntRamp), DSPVector(kPBDFadePeriod/2.f));
 			DSPVectorInt vDelay2Changes = equal(intToFloat(vIntRamp), DSPVector(0.f));
 			
