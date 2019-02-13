@@ -165,6 +165,7 @@ namespace ml
 		}
 	};
 	
+	/*
 	class LoShelf
 	{
 		struct _coeffs
@@ -190,7 +191,7 @@ namespace ml
 			return {a1, a2, a3, m1, m2};
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -206,13 +207,13 @@ namespace ml
 			return vy;
 		}
 	};
+	*/
 	
-	class HiShelf
+	class LoShelf
 	{
-		struct _coeffs
-		{
-			float a1, a2, a3, m0, m1, m2;
-		};
+		enum coeffnames{a1, a2, a3, m1, m2, COEFFS_SIZE};
+		typedef std::array<float, COEFFS_SIZE> _coeffs;
+		typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
 		
 		float ic1eq{0};
 		float ic2eq{0};		
@@ -222,15 +223,112 @@ namespace ml
 		
 		static _coeffs coeffs (float omega, float k, float A)
 		{
+			_coeffs r;
+			float piOmega = kPi*omega;
+			float g = tanf(piOmega)/sqrtf(A);
+			r[a1] = 1.f/(1.f + g*(g + k));
+			r[a2] = g*r[a1];
+			r[a3] = g*r[a2];
+			r[m1] = k*(A - 1.f);
+			r[m2]= (A*A - 1.f);
+			return r;
+		}
+		static _vcoeffs vcoeffs (float omega0, float k0, float A0, float omega1, float k1, float A1)
+		{
+			_vcoeffs vy;
+			
+			const _coeffs c0 = coeffs(omega0, k0, A0);
+			const _coeffs c1 = coeffs(omega1, k1, A1);
+			
+			for(int i=0; i<COEFFS_SIZE; ++i)
+			{
+				// TODO lerpVec
+				for(int j=0; j<kFloatsPerDSPVector; ++j)
+				{
+					float m = (j + 1.f)/(kFloatsPerDSPVector + 0.f);
+					vy.row(i)[j] = lerp(c0[i], c1[i], m);
+				}
+			}
+			
+			return vy;			
+		}
+		
+		inline DSPVector operator()(const DSPVector vx)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				float v0 = vx[n];
+				float v3 = v0 - ic2eq;
+				float v1 = mCoeffs[a1]*ic1eq + mCoeffs[a2]*v3;
+				float v2 = ic2eq + mCoeffs[a2]*ic1eq + mCoeffs[a3]*v3;
+				ic1eq = 2*v1 - ic1eq;
+				ic2eq = 2*v2 - ic2eq;				
+				vy[n] = v0 + mCoeffs[m1]*v1 + mCoeffs[m2]*v2;
+			}		
+			return vy;
+		}
+		
+		inline DSPVector operator()(const DSPVector vx, const _vcoeffs vc)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				float v0 = vx[n];
+				float v3 = v0 - ic2eq;
+				float v1 = vc.constRow(a1)[n]*ic1eq + vc.constRow(a2)[n]*v3;
+				float v2 = ic2eq + vc.constRow(a2)[n]*ic1eq + vc.constRow(a3)[n]*v3;
+				ic1eq = 2*v1 - ic1eq;
+				ic2eq = 2*v2 - ic2eq;				
+				vy[n] = v0 + vc.constRow(m1)[n]*v1 + vc.constRow(m2)[n]*v2;
+			}		
+			return vy;
+		}
+	};
+	
+	class HiShelf
+	{
+		enum coeffnames{a1, a2, a3, m0, m1, m2, COEFFS_SIZE};
+		typedef std::array<float, COEFFS_SIZE> _coeffs;
+		typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
+		
+		float ic1eq{0};
+		float ic2eq{0};		
+		
+	public:			
+		_coeffs mCoeffs{0};
+		
+		static _coeffs coeffs (float omega, float k, float A)
+		{
+			_coeffs r;
 			float piOmega = kPi*omega;
 			float g = tanf(piOmega)*sqrtf(A);
-			float a1 = 1.f/(1.f + g*(g + k));
-			float a2 = g*a1;
-			float a3 = g*a2;
-			float m0 = A*A;
-			float m1 = k*(1.f - A)*A;
-			float m2 = (1.f - A*A);
-			return {a1, a2, a3, m0, m1, m2};
+			r[a1] = 1.f/(1.f + g*(g + k));
+			r[a2] = g*r[a1];
+			r[a3] = g*r[a2];
+			r[m0] = A*A;
+			r[m1] = k*(1.f - A)*A;
+			r[m2] = (1.f - A*A);
+			return r;
+		}
+		
+		static _vcoeffs vcoeffs (float omega0, float k0, float A0, float omega1, float k1, float A1)
+		{
+			_vcoeffs vy;
+			
+			const _coeffs c0 = coeffs(omega0, k0, A0);
+			const _coeffs c1 = coeffs(omega1, k1, A1);
+			
+			for(int i=0; i<COEFFS_SIZE; ++i)
+			{
+				for(int j=0; j<kFloatsPerDSPVector; ++j)
+				{
+					float m = (j + 1.f)/(kFloatsPerDSPVector + 0.f);
+					vy.row(i)[j] = lerp(c0[i], c1[i], m);
+				}
+			}
+			
+			return vy;			
 		}
 		
 		inline DSPVector operator()(const DSPVector vx)
@@ -240,11 +338,27 @@ namespace ml
 			{
 				float v0 = vx[n];
 				float v3 = v0 - ic2eq;				
-				float v1 = mCoeffs.a1*ic1eq + mCoeffs.a2*v3;
-				float v2 = ic2eq + mCoeffs.a2*ic1eq + mCoeffs.a3*v3;				
+				float v1 = mCoeffs[a1]*ic1eq + mCoeffs[a2]*v3;
+				float v2 = ic2eq + mCoeffs[a2]*ic1eq + mCoeffs[a3]*v3;				
 				ic1eq = 2*v1 - ic1eq;
 				ic2eq = 2*v2 - ic2eq;								
-				vy[n] = mCoeffs.m0*v0 + mCoeffs.m1*v1 + mCoeffs.m2*v2;
+				vy[n] = mCoeffs[m0]*v0 + mCoeffs[m1]*v1 + mCoeffs[m2]*v2;
+			}		
+			return vy;
+		}
+		
+		inline DSPVector operator()(const DSPVector vx, const _vcoeffs vc)
+		{
+			DSPVector vy;
+			for(int n=0; n<kFloatsPerDSPVector; ++n)
+			{
+				float v0 = vx[n];
+				float v3 = v0 - ic2eq;				
+				float v1 = vc.constRow(a1)[n]*ic1eq + vc.constRow(a2)[n]*v3;
+				float v2 = ic2eq + vc.constRow(a2)[n]*ic1eq + vc.constRow(a3)[n]*v3;				
+				ic1eq = 2*v1 - ic1eq;
+				ic2eq = 2*v2 - ic2eq;								
+				vy[n] = vc.constRow(m0)[n]*v0 + vc.constRow(m1)[n]*v1 + vc.constRow(m2)[n]*v2;
 			}		
 			return vy;
 		}
@@ -312,7 +426,7 @@ namespace ml
 			return {1.f - x, x};
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)
@@ -369,6 +483,8 @@ namespace ml
 		{
 			DSPVector vy;
 			vy[0] = x1 - vx[0];
+			
+			// TODO SIMD
 			for(int n=1; n<kFloatsPerDSPVector; ++n)
 			{
 				vy[n] = vx[n - 1] - vx[n];
@@ -556,7 +672,7 @@ namespace ml
 			return y;
 		}
 		
-		inline DSPVector operator()(const DSPVector& vx)
+		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
 			for(int n=0; n<kFloatsPerDSPVector; ++n)

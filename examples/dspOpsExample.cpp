@@ -61,7 +61,7 @@ int main()
 	// for filters example / test
 	FDN<4> f;
 	// NOTE: the minimum possible delay time is kFloatsPerDSPVector.
-	f.setDelayTimesInSamples({{67, 73, 91, 103}}); 
+	f.setDelaysInSamples({{67, 73, 91, 103}}); 
 	f.setFilterCutoffs({{0.1f, 0.2, 0.3f, 0.4f}});
 	f.mFeedbackGains = {{0.5f, 0.5f, 0.5f, 0.5f}};
 	DSPVector silence, impulse;
@@ -133,19 +133,46 @@ int main()
 	DSPVector tick;
 	tick[0] = 1;
 	
-	PitchbendableDelay d1;
-	DSPVector vDelayTime = DSPVector(16.f);//sineModGen(DSPVector(1.f/44100.f));
-	//d1.setDelayInSamples(34.0);
-	std::cout << "\n\n" << d1(tick, vDelayTime) << "\n\n";
-	
+
 	// upsampler for a generator with 1 input row, 1 output row
-	Upsample2xFunction<1, 1> upper;
-	
+	Upsample2xFunction<1, 1> upper;	
 	std::cout << "\n\n" << upper([&](const DSPVector x){ return sineGen(x); }, DSPVector(440.f/44100.f))  << "\n\n";
 	
 
 	// IntegerDelay p(100);
 	//std::cout << "\n\n" << p(DSPVector(), DSPVector()) << "\n" << p(DSPVector(), DSPVector()) << "\n\n";
+	
+//	DSPVector y = lp1(tick);
+	auto lpTestFn = [&](const DSPVector x){ return (x); };
+	
+	FeedbackDelayFunction<1> feedbackFn;
+	
+	// set the delay time. a time < kFloatsPerDSPVector will not work.
+	DSPVector vDelayTime2(65.f);
+	std::cout << feedbackFn(tick, lpTestFn, vDelayTime2 ) << "\n";
+	for(int i=0; i<4; ++i)
+	{
+		std::cout << feedbackFn(DSPVector(), lpTestFn, vDelayTime2 ) << "\n";
+	}
+	
+	std::cout << "\n\n\n\n";
+	
+	DSPVector tick2;
+	tick2[20] = 1; // after PitchbendableDelay warmup
+
+	PitchbendableDelay pd1;	
+	DSPVector vDelayTime3(4.f);
+	std::cout << pd1(tick2, vDelayTime3) << "\n";
+	for(int i=0; i<4; ++i)
+	{
+		std::cout << pd1(DSPVector(), vDelayTime3) << "\n";
+	}
+	std::cout << pd1(tick2, vDelayTime3) << "\n";
+	
+	std::cout << "\n\n\n";
+	
+	auto vHiCoeffs = HiShelf::vcoeffs(0.25, 1., 1., 0.3, 1., 2.);
+	std::cout << vHiCoeffs;
 	
 	
 #ifdef _WINDOWS

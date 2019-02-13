@@ -72,7 +72,6 @@ MLProc::err MLProcAllpass::resize()
 	MLProc::err e = OK;
 	unsigned sr = getContextSampleRate();
 	mTimeInSamples = (int)(getParam(timeSym) * (float)sr);
-// debug() << "allpass::resize: " << 	mTimeInSamples << " samples.\n";
 	unsigned bufferLength = mTimeInSamples;
 	
 	if (!mX.setDims(bufferLength + 1))

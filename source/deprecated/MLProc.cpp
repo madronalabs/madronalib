@@ -145,18 +145,6 @@ void MLProc::setOutput(const int idx, MLSignal& srcSig)
 		mOutputs.resize(idx, 0);
 	}	
 	mOutputs[idx-1] = &srcSig;
-	
-	// MLTEST
-	if(0)
-	if(getName() == "patcher_outputs")
-	{
-		long sigPtr = reinterpret_cast<long>(&srcSig);
-		debug() << "SETTING output " << idx << " to [" << std::hex << sigPtr << std::dec << "] \n";
-		if(idx == 44)
-		{
-			debug() << "****\n";
-		}
-	}
 }
 
 /*
