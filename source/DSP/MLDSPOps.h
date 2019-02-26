@@ -184,7 +184,10 @@ namespace ml
 			mData.mArrayData.fill(0.f);
 		}
 
-		explicit DSPVectorArray(float k) { operator=(k); }
+		// This constructor is not marked explicit, and thereby allows promoting floats to DSPVectors
+		// silently. This keeps the syntax of common DSP code shorter: "va + DSPVector(1.f)" becomes
+		// just "va + 1.f". TODO create some functions like DSPVector::operator+(float) if that's a win.
+		DSPVectorArray(float k) { operator=(k); }
 		
 		// unaligned data * ctors
 		explicit DSPVectorArray(float * pData) { load(*this, pData); }
@@ -856,7 +859,7 @@ px2 += kFloatsPerSIMDVector;						\
 	
 
 	// ----------------------------------------------------------------
-	// single-vector index and range generators
+	// single-vector index and sequence generators
 	
 	constexpr float castFn(int i) { return i; }
 	
@@ -870,17 +873,23 @@ px2 += kFloatsPerSIMDVector;						\
 	// next vector.
 	inline DSPVector rangeOpen(float start, float end)
 	{
-		DSPVector vi = columnIndex();
 		float interval = (end - start)/(kFloatsPerDSPVector);
-		return vi*DSPVector(interval) + DSPVector(start);
+		return columnIndex()*DSPVector(interval) + DSPVector(start);
 	}
 	
 	// return a linear sequence from start to end, where end falls on the last index of this vector.
 	inline DSPVector rangeClosed(float start, float end)
 	{
-		DSPVector vi = columnIndex();
 		float interval = (end - start)/(kFloatsPerDSPVector - 1.f);
-		return vi*DSPVector(interval) + DSPVector(start);											
+		return columnIndex()*DSPVector(interval) + DSPVector(start);											
+	}
+	
+	// return a linear sequence from start to end, where start falls one sample "before"
+	// this vector and end falls on the last index of this vector.
+	inline DSPVector interpolateDSPVectorLinear(float start, float end)
+	{
+		float interval = (end - start)/(kFloatsPerDSPVector);
+		return columnIndex()*DSPVector(interval) + DSPVector(start + interval);											
 	}
 	
 	// ----------------------------------------------------------------

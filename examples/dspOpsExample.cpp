@@ -168,10 +168,11 @@ int main()
 		std::cout << pd1(DSPVector(), vDelayTime3) << "\n";
 	}
 	std::cout << pd1(tick2, vDelayTime3) << "\n";
+	std::cout << pd1(tick2, 4.f) << "\n";
 	
 	std::cout << "\n\n\n";
 	
-	auto vHiCoeffs = HiShelf::vcoeffs(0.25, 1., 1., 0.3, 1., 2.);
+	auto vHiCoeffs = HiShelf::vcoeffs({{0.25, 1., 1.}}, {{0.3, 1., 2.}}); // why two sets? see aaltoverb
 	std::cout << vHiCoeffs;
 	
 	

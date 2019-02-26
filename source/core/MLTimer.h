@@ -7,7 +7,6 @@
 
 #pragma once
 
-#include "utf/utf.hpp"
 #include <iostream>
 #include <vector>
 #include <chrono>
