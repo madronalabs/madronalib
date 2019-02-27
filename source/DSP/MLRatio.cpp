@@ -145,8 +145,8 @@ bool operator<= (const MLRatio& a,  const MLRatio& b)
 // ----------------------------------------------------------------
 // MLCommonRatios
 
-const int kRecips = 16;
-static const int recips[kRecips] = {12, 14, 15, 16, 20, 25, 32, 36, 42, 50, 64, 100, 128, 256, 512, 1024}; 
+static constexpr size_t kRecips = 16;
+static constexpr int recips[kRecips]  {12, 14, 15, 16, 20, 25, 32, 36, 42, 50, 64, 100, 128, 256, 512, 1024};
 
 MLCommonRatios::MLCommonRatios() :
 	mRatios(std::list<MLRatio>())

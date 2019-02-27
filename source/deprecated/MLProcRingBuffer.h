@@ -7,7 +7,7 @@
 #define ML_PROC_RINGBUFFER_H
 
 #include "MLProc.h"
-#include "DSP/MLDSPBuffer.h"
+#include "MLDSPBuffer.h"
 
 using namespace ml;
 

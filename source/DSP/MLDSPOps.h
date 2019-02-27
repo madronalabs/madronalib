@@ -33,6 +33,7 @@
 
 #include <array>
 #include <iostream>
+#include <functional>
 
 #include "MLScalarMath.h"
 #include "MLDSPMath.h"

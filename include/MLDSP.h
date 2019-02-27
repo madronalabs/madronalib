@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include "DSP/MLDSPOps.h"
-#include "DSP/MLDSPFilters.h"
-#include "DSP/MLDSPGens.h"
-#include "DSP/MLDSPBuffer.h"
-#include "DSP/MLDSPFunctional.h"
-#include "DSP/MLDSPUtils.h"
-#include "DSP/MLRatio.h"
+#include "MLDSPOps.h"
+#include "MLDSPFilters.h"
+#include "MLDSPGens.h"
+#include "MLDSPBuffer.h"
+#include "MLDSPFunctional.h"
+#include "MLDSPUtils.h"
+#include "MLRatio.h"
 
 // TODO replace when loading code is updated #include "DSP/MLScale.h"
 
