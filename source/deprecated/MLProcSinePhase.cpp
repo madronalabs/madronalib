@@ -52,7 +52,7 @@ MLProcSinePhase::MLProcSinePhase()
 
 MLProcSinePhase::~MLProcSinePhase()
 {
-//	debug() << "MLProcSinePhase destructor\n";
+//	//debug() << "MLProcSinePhase destructor\n";
 }
 
 void MLProcSinePhase::process()

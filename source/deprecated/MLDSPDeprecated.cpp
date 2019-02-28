@@ -509,7 +509,7 @@ void MLFDN::setDelayLengths(float maxLength)
     float t = ml::clamp(maxLength, 0.f, kMaxDelayLength);
     mDelayTime = t;
 	float offset = mDelayTime*0.02f;
-   //debug() << " MLFDN delays: \n ";
+   ////debug() << " MLFDN delays: \n ";
     for(int i=0; i<mSize; ++i)
     {
         // clear delay and set to all feedforward, no feedback
@@ -517,7 +517,7 @@ void MLFDN::setDelayLengths(float maxLength)
         mDelays[i].setMixParams(0., 1., 0.);
         mDelays[i].clear();
         
-        //debug() << "    " << i << " : " << t << "\n";
+        ////debug() << "    " << i << " : " << t << "\n";
         mDelays[i].setModDelay(t);
         t *= mFreqMul;
 		t += offset;

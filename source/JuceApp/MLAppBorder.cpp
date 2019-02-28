@@ -37,7 +37,7 @@ void MLAppBorder::makeResizer(Component* targetComp)
 void MLAppBorder::paint (Graphics& g)
 {    
 	// This is where most of the plugin's background is actually painted.
-	// debug() << "MLAppBorder::paint\n";
+	// //debug() << "MLAppBorder::paint\n";
 	pMainView->getViewResources().mLookAndFeel.drawEntireBackground(g, mBorderRect);
 }
 

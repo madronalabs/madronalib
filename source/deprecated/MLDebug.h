@@ -116,12 +116,12 @@ private:
 //#undef debug
 //#endif
 #if DEBUG
-				extern MLTextStream& debug();
+				extern MLTextStream& //debug();
 #else
-				extern MLDummyStream& debug();
+				extern MLDummyStream& //debug();
 #endif // DEBUG
 				
-// extern std::ostream& debug();
+// extern std::ostream& //debug();
 
 // Send a message to the application or plugin’s console, if one exists.
 //

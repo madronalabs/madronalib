@@ -168,7 +168,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       osc::int32 pgm;
       args >> pgm;
       
-      // debug() << "PGM " << mUDPPortOffset << ": " << pgm << "\n";
+      // //debug() << "PGM " << mUDPPortOffset << ": " << pgm << "\n";
       notifyListeners("program", pgm);
     }
     else if (strcmp(addy, "/vol")==0)
@@ -176,7 +176,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       float v;
       args >> v;
       
-      // debug() << "VOL " << mUDPPortOffset << ": " << v << "\n";
+      // //debug() << "VOL " << mUDPPortOffset << ": " << v << "\n";
       notifyListeners("volume", v);
     }
     
@@ -200,7 +200,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
   }
   catch( osc::Exception& e )
   {
-    // debug() << "error parsing t3d message: " << e.what() << "\n";
+    // //debug() << "error parsing t3d message: " << e.what() << "\n";
   }
 }
 

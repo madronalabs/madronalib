@@ -52,7 +52,7 @@ public:
 	
 	void setName(const std::string& nameStr);
 	void setDescription(const std::string& descStr);
-	void dump();
+//	void dump();
 
 private:
 

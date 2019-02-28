@@ -96,7 +96,7 @@ namespace ml
 			mTest++;
 			if(mTest > 1000)
 			{
-			y.dump(debug(), true);
+			y.dump(//debug(), true);
 				mTest = 0;
 			}*/
 			

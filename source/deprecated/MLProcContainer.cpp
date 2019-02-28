@@ -8,7 +8,7 @@
 
 void MLSignalStats::dump()
 {
-	debug() << "PROCS:  " << mProcs 
+	//debug() << "PROCS:  " << mProcs 
 	<< "  BUFS:   " << mSignalBuffers
 	<< "  CONSTS: " << mConstantSignals 
 	<< "  NAN: " << mNanSignals << "\n";
@@ -39,7 +39,7 @@ MLProcContainer::MLProcContainer() :
 
 MLProcContainer::~MLProcContainer()
 {
-//	debug() << "    ~MLProcContainer destructor\n";
+//	//debug() << "    ~MLProcContainer destructor\n";
 }
 
 // ----------------------------------------------------------------
@@ -48,7 +48,7 @@ MLProcContainer::~MLProcContainer()
 
 void MLProcContainer::setEnabled(bool t)
 {	
-	// debug() << "enabling container " << getName() << "\n";
+	// //debug() << "enabling container " << getName() << "\n";
 	
 	// set enabled states of children
 	for (std::list<MLProcPtr>::iterator it = mProcList.begin(); it != mProcList.end(); ++it)
@@ -93,7 +93,7 @@ void MLProcContainer::compile()
 	const bool verbose = false;
 	err e = OK;
 
-    //debug() << "\nCOMPILING MLContainer " << getName() << ":  \n";
+    ////debug() << "\nCOMPILING MLContainer " << getName() << ":  \n";
 
 	// TODO: this block will determine order of operations from graph.
 	// currently Procs are added to ops list in order of creation,
@@ -182,12 +182,12 @@ void MLProcContainer::compile()
 			}
 			else
 			{
-				debug() << "error: MLProcContainer " << getName() << " ::compile(): no compile op named " << pName << "\n";
+				//debug() << "error: MLProcContainer " << getName() << " ::compile(): no compile op named " << pName << "\n";
 			}
 		}
 		else
 		{
-			debug() << "error: MLProcContainer " << getName() << " ::compile(): bad input for " << pName << "\n";
+			//debug() << "error: MLProcContainer " << getName() << " ::compile(): bad input for " << pName << "\n";
 		}
 	}
 
@@ -204,7 +204,7 @@ void MLProcContainer::compile()
 		ml::Symbol destName = pipe->mDest->getName();
 		int destIndex = pipe->mDestIndex;
         
-        // debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
+        // //debug() << "compile() ADDING pipe: " << srcName << " (" << srcIndex << ")  -> " << destName << " (" << destIndex << ")\n";
         
 		// resize inputs and outputs if needed for variable i/o procs
 		compileOp* pSrcOp = compileOpsMap[srcName];
@@ -212,7 +212,7 @@ void MLProcContainer::compile()
 		
 		if((!pSrcOp) || (!pDestOp))
 		{
-			debug() << "compile(): NULL operation!\n";
+			//debug() << "compile(): NULL operation!\n";
 		}
         else
 		{
@@ -250,7 +250,7 @@ void MLProcContainer::compile()
 			int pipeStartIdx = compileOpsMap[srcName]->listIdx;
 			int pipeEndIdx = compileOpsMap[destName]->listIdx;
 
-			// debug() << "adding span for " << sigName << ": [" << pipeStartIdx << ", " <<  pipeEndIdx << "]\n";
+			// //debug() << "adding span for " << sigName << ": [" << pipeStartIdx << ", " <<  pipeEndIdx << "]\n";
 			
 			// set signal lifetime to union of signal lifetime and pipe extent
 			signals[sigName].addLifespan(pipeStartIdx, pipeEndIdx);
@@ -259,7 +259,7 @@ void MLProcContainer::compile()
 			signals[sigName].mFrameSize = pSrcOp->procRef->getOutputFrameSize(srcIndex);			
 			if(signals[sigName].mFrameSize > 1)
 			{
-				// debug() << "COMPILING: " << pSrcOp->procRef->getName() << " output frame size " << signals[sigName].mFrameSize << "\n";
+				// //debug() << "COMPILING: " << pSrcOp->procRef->getName() << " output frame size " << signals[sigName].mFrameSize << "\n";
 				
 				// set infinite lifespan (don't share)
 				signals[sigName].addLifespan(0, 9000);
@@ -284,7 +284,7 @@ void MLProcContainer::compile()
         compileOp* pOutputOp = compileOpsMap[outputProcName];
 		if (!pOutputOp)
         {
-            debug() << "compile error: can’t connect output for proc " << outputProcName << " !\n";
+            //debug() << "compile error: can’t connect output for proc " << outputProcName << " !\n";
         }
         else
         {
@@ -307,7 +307,7 @@ void MLProcContainer::compile()
 
             // set lifespan of output signal, from op's position to end.
             signals[sigName].addLifespan(pOp->listIdx, mOpsVec.size() - 1);
-            // debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsVec.size() - 1 << "]\n";
+            // //debug() << "    adding output span for " << sigName << ": [" << 0 << ", " <<  mOpsVec.size() - 1 << "]\n";
             
             // add published output to list
             signals[sigName].mPublishedOutput = i + 1;
@@ -376,8 +376,8 @@ void MLProcContainer::compile()
             else
             {
                 // TODO this is not very informative. Try to explain what is happening at a higher level.
-                debug() << "MLProcContainer::compile(): bad published output in " << getName() << " for signal " << sigName << "\n";
-                debug() << "    (" << i + 1 << " of " << mPublishedOutputs.size() << ")\n";
+                //debug() << "MLProcContainer::compile(): bad published output in " << getName() << " for signal " << sigName << "\n";
+                //debug() << "    (" << i + 1 << " of " << mPublishedOutputs.size() << ")\n";
             }
 		}
 		else 
@@ -392,7 +392,7 @@ void MLProcContainer::compile()
 			
 			if(pCompileSig->mFrameSize > 1)
 			{
-				// debug() << "MLProcContainer::compile(): output has frame size " << pCompileSig->mFrameSize << "\n";
+				// //debug() << "MLProcContainer::compile(): output has frame size " << pCompileSig->mFrameSize << "\n";
 				packUsingWastefulAlgorithm(pCompileSig, sharedBuffers);
 			}
 			else
@@ -412,7 +412,7 @@ void MLProcContainer::compile()
 		
 		if(buf.mFrameSize > 1)
 		{
-			// debug() << "DOING size " << buf.mFrameSize << "\n"; 
+			// //debug() << "DOING size " << buf.mFrameSize << "\n"; 
 		}
 		MLSignal* newBuf = allocBuffer(buf.mFrameSize);
 		
@@ -483,52 +483,52 @@ void MLProcContainer::compile()
 	{
         // MLPublishedOutput
         MLPublishedOutputMapT::const_iterator it = mPublishedOutputMap.begin();
-        debug() << mPublishedOutputMap.size() << " outputs:\n";
+        //debug() << mPublishedOutputMap.size() << " outputs:\n";
         for(; it != mPublishedOutputMap.end(); it++)
         {
             MLPublishedOutputPtr p = it->second;
-            debug() << "[" << p->mName << ": " << p->mProc->getNameWithCopyIndex() << " " << p->mOutput << "] ";
+            //debug() << "[" << p->mName << ": " << p->mProc->getNameWithCopyIndex() << " " << p->mOutput << "] ";
 #if DEBUG
             ml::Symbol name = it->first;
             assert(name == p->mName);
 #endif
         }
-        debug() << "NULL: " << &getNullOutput() << "\n";
-        debug() << "\n";
+        //debug() << "NULL: " << &getNullOutput() << "\n";
+        //debug() << "\n";
     }
 	if (verbose)
 	{
-		debug() << "\n----------------------------------------------------------------";
+		//debug() << "\n----------------------------------------------------------------";
 		// dump compile graph
-		debug() << "\n\ncontainer " << getNameWithCopyIndex() << "\n";
-		debug() << "--------\n";
-		debug() << compileOps.size() << " operations: \n";
+		//debug() << "\n\ncontainer " << getNameWithCopyIndex() << "\n";
+		//debug() << "--------\n";
+		//debug() << compileOps.size() << " operations: \n";
 		int opIdx = 0;
 		for (std::list<compileOp>::const_iterator it = compileOps.begin(); it != compileOps.end(); ++it)
 		{
 			const compileOp& op = (*it);
-			debug() << opIdx++ << ": " << op << "\n";
+			//debug() << opIdx++ << ": " << op << "\n";
 		}	
 		
 		// dump signals
-		debug() << "--------\n";
-		debug() << signals.size() << " signals: \n";
+		//debug() << "--------\n";
+		//debug() << signals.size() << " signals: \n";
 		for (std::map<ml::Symbol, compileSignal>::iterator it = signals.begin(); it != signals.end(); ++it)
 		{
 			ml::Symbol sigName = ((*it).first);
 			const compileSignal& sig = ((*it).second);
-			debug() << sigName << ": life[" << sig.mLifeStart << ", " << sig.mLifeEnd << "]";
-			debug() << ", size=" << sig.mFrameSize << " ";
-			debug() << ", buffer=" <<  static_cast<void *>(sig.mpSigBuffer);
+			//debug() << sigName << ": life[" << sig.mLifeStart << ", " << sig.mLifeEnd << "]";
+			//debug() << ", size=" << sig.mFrameSize << " ";
+			//debug() << ", buffer=" <<  static_cast<void *>(sig.mpSigBuffer);
 			if(sig.mPublishedInput)
 			{
-				debug() << " (input " << sig.mPublishedInput << ")";
+				//debug() << " (input " << sig.mPublishedInput << ")";
 			}
 			if(sig.mPublishedOutput)
 			{
-				debug() << " (output " << sig.mPublishedOutput << ")";
+				//debug() << " (output " << sig.mPublishedOutput << ")";
 			}
-			debug() << "\n";
+			//debug() << "\n";
 		}
 		
 		// dump stats
@@ -539,20 +539,20 @@ void MLProcContainer::compile()
 		else
 		{
 	//		setEnabled(true); // WAT
-			debug() << "compile done: " << mOpsVec.size() << " subprocs.\n";
+			//debug() << "compile done: " << mOpsVec.size() << " subprocs.\n";
 		}
 		
 		// dump buffers
-		debug() << "--------\n";
-		debug() << sharedBuffers.size() << " buffers: \n";
+		//debug() << "--------\n";
+		//debug() << sharedBuffers.size() << " buffers: \n";
 		int nBufs = 0;
 		for (std::list<sharedBuffer>::const_iterator it = sharedBuffers.begin(); it != sharedBuffers.end(); ++it)
 		{
 			const sharedBuffer& buf = (*it);
 			nBufs++;			
-			debug() << "buf " << nBufs << ": " << buf << "\n";
+			//debug() << "buf " << nBufs << ": " << buf << "\n";
 		}
-		debug() << "----------------------------------------------------------------\n";
+		//debug() << "----------------------------------------------------------------\n";
 	}
 }
 
@@ -723,7 +723,7 @@ void MLProcContainer::collectStats(MLSignalStats* pStats)
 	{
 		int ops = mOpsVec.size();
 		pStats->mProcs += ops;
-//		debug() << getName() << ": added " << ops << " ops \n";
+//		//debug() << getName() << ": added " << ops << " ops \n";
 	}
 
 	// recurse, setting pointer to stats block in DSPEngine
@@ -817,7 +817,7 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 			
 			if(!idx)
 			{
-				debug() << "input name: " << input->mName << "    " << proc->getName() << " \n"; 
+				//debug() << "input name: " << input->mName << "    " << proc->getName() << " \n"; 
 			}
 			
 			e = proc->setInput(procIdx, sig);
@@ -846,12 +846,12 @@ int MLProcContainer::getInputIndex(const ml::Symbol alias)
 		}
 		else
 		{
-			debug() << "getInputIndex: null ptr for input " << alias << " of proc " << getName() << "\n";
+			//debug() << "getInputIndex: null ptr for input " << alias << " of proc " << getName() << "\n";
 		}
 	}
 	else
 	{
-		debug() << "getInputIndex: input " << alias << " of proc " << getName() <<  " not found\n";
+		//debug() << "getInputIndex: input " << alias << " of proc " << getName() <<  " not found\n";
 	}
 	return r;
 }
@@ -872,12 +872,12 @@ int MLProcContainer::getOutputIndex(const ml::Symbol alias)
 		}
 		else
 		{
-			debug() << "MLProcContainer::getOutputIndex: null ptr for output " << alias << " of proc " << getName() << "\n";
+			//debug() << "MLProcContainer::getOutputIndex: null ptr for output " << alias << " of proc " << getName() << "\n";
 		}
 	}
 	else
 	{
-		debug() << "MLProcContainer::getOutputIndex: output " << alias << " of proc " << getName() << " not found\n";
+		//debug() << "MLProcContainer::getOutputIndex: output " << alias << " of proc " << getName() << " not found\n";
 	}
 	return idx;
 }
@@ -893,10 +893,10 @@ int MLProcContainer::getNumProcs()
 // test
 void MLProcContainer::dumpMap()
 {
-	debug() << "dumping map: ------------\n";
+	//debug() << "dumping map: ------------\n";
 	for(SymbolProcMapT::iterator it = mProcMap.begin(); it != mProcMap.end(); it++)
 	{
-		debug() << "key " << it->first << ", proc " << it->second->getName() << "\n";
+		//debug() << "key " << it->first << ", proc " << it->second->getName() << "\n";
 	}
 }
 
@@ -910,7 +910,7 @@ MLProcPtr MLProcContainer::newProc(const ml::Symbol className, const ml::Symbol 
 	pNew = theProcFactory.createProc(className, this);	
 	if (!pNew)
 	{
-		debug() << "MLProcContainer: newProc: couldn't create!\n";
+		//debug() << "MLProcContainer: newProc: couldn't create!\n";
 	}
 	else
 	{
@@ -950,7 +950,7 @@ MLProc::err MLProcContainer::addProc(const ml::Symbol className, const ml::Symbo
 	}
 	else
 	{
-		debug() << "MLProcContainer: addProc: name " << procName << " already in use!\n";
+		//debug() << "MLProcContainer: addProc: name " << procName << " already in use!\n";
 		e = nameInUseErr;
 	}
 	
@@ -968,7 +968,7 @@ MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias
 	it = mProcMap.find(afterProc);
 	if (it == mProcMap.end())
 	{
-		debug() << "MLProcContainer::addProcAfter: " << afterProc << " not found in container " << getName() << "!\n";
+		//debug() << "MLProcContainer::addProcAfter: " << afterProc << " not found in container " << getName() << "!\n";
 		return unknownErr;
 	}
 	
@@ -1010,7 +1010,7 @@ MLProc::err MLProcContainer::addProcAfter(ml::Symbol className, ml::Symbol alias
 	}
 	else
 	{
-		debug() << "MLProcContainer: addProcAfter: name " << alias << " already in use!\n";
+		//debug() << "MLProcContainer: addProcAfter: name " << alias << " already in use!\n";
 		e = nameInUseErr;
 	}
 	
@@ -1027,8 +1027,8 @@ MLProcPtr MLProcContainer::getProc(const ml::Path & path)
 	const ml::Symbol head = path.head();
 	const ml::Path tail = path.tail();
 
-//debug() << "MLProcContainer(" << (void *)this << ") getProc: " << head << " / " << tail << "\n";
-//debug() << "      proc map is (" << (void *)&mProcMap << ")\n";
+////debug() << "MLProcContainer(" << (void *)this << ") getProc: " << head << " / " << tail << "\n";
+////debug() << "      proc map is (" << (void *)&mProcMap << ")\n";
 //dumpMap();
 
 	// look up head Proc in current scope's map
@@ -1046,13 +1046,13 @@ MLProcPtr MLProcContainer::getProc(const ml::Path & path)
 			}
 			else
 			{
-				debug() << "ack, head proc in name is not container!\n";
+				//debug() << "ack, head proc in name is not container!\n";
 				e = headNotContainerErr;
 			}		
 		}
 		else // done.
 		{
-//debug() << "     found proc " << headProc->getName() << " (" << (void *)&*headProc << ")\n";
+////debug() << "     found proc " << headProc->getName() << " (" << (void *)&*headProc << ")\n";
 			r = headProc;
 		}
 	}
@@ -1112,30 +1112,30 @@ void MLProcContainer::addPipe(const ml::Path& src, const ml::Symbol out, const m
 		}
 		else
 		{
-			debug() << "MLProcContainer::addPipe failed";
+			//debug() << "MLProcContainer::addPipe failed";
 			if (!srcIdx)
 			{
-				debug() << ": no src output "<< out << " of proc " << src << " in container " << getName();
+				//debug() << ": no src output "<< out << " of proc " << src << " in container " << getName();
 			}
 			if (!destIdx)
 			{
-				debug() << ": no dest input "<< in << " of proc " << dest << " in container " << getName();
+				//debug() << ": no dest input "<< in << " of proc " << dest << " in container " << getName();
 			}
-			debug() << "\n";
+			//debug() << "\n";
 		}
 	}
 	else
 	{
-		debug() << "MLProcContainer::addPipe failed";
+		//debug() << "MLProcContainer::addPipe failed";
 		if (!srcProc)
 		{
-			debug() << ": no src proc "<< src << " in container " << getName();
+			//debug() << ": no src proc "<< src << " in container " << getName();
 		}
 		if (!destProc)
 		{
-			debug() << ": no dest proc "<< dest << " in container " << getName();
+			//debug() << ": no dest proc "<< dest << " in container " << getName();
 		}
-		debug() << "\n";
+		//debug() << "\n";
 	}
 }	
 
@@ -1165,10 +1165,10 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	if (e != OK)
 	{
 		printErr(e);
-        debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-        debug() << "\n\n";
+        //debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+        //debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+        //debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+        //debug() << "\n\n";
 	}
 #endif
     
@@ -1192,7 +1192,7 @@ void MLProcContainer::publishInput(const ml::Path & procName, const ml::Symbol i
 {
 	err e = OK;
 	
-	//debug() << "MLProcContainer::publishInput: publishing input " << inputName << " of " << procName << " as " << alias << "\n"; 
+	////debug() << "MLProcContainer::publishInput: publishing input " << inputName << " of " << procName << " as " << alias << "\n"; 
 
 	const MLProcPtr proc = getProc(procName);	
 
@@ -1221,7 +1221,7 @@ void MLProcContainer::publishInput(const ml::Path & procName, const ml::Symbol i
 	}
 	else
 	{
-		debug() << "MLProcContainer::publishInput: proc " << procName << " not found in container " << getName() << "!\n";
+		//debug() << "MLProcContainer::publishInput: proc " << procName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
@@ -1264,13 +1264,13 @@ void MLProcContainer::publishOutput(const ml::Path & srcProcName, const ml::Symb
             }
             else
             {
-                debug() << "MLProcContainer::publishOutput: alias " << alias << " already in map for container " << getName() << "!\n";
+                //debug() << "MLProcContainer::publishOutput: alias " << alias << " already in map for container " << getName() << "!\n";
             }
  		}
 	}
 	else
 	{
-		debug() << "MLProcContainer::publishOutput: proc " << srcProcName << " not found in container " << getName() << "!\n";
+		//debug() << "MLProcContainer::publishOutput: proc " << srcProcName << " not found in container " << getName() << "!\n";
 	}
 bail:
 	if (e != OK) printErr(e);
@@ -1288,7 +1288,7 @@ ml::Symbol MLProcContainer::getOutputName(int index)
 	}
 	else
 	{
-		debug() << "MLProcContainer::getOutputName: output " << index << " not found in container " << getName() << "!\n";
+		//debug() << "MLProcContainer::getOutputName: output " << index << " not found in container " << getName() << "!\n";
 	}
 	return ml::Symbol();
 }
@@ -1304,8 +1304,8 @@ MLProc::err MLProcContainer::addBufferHere(const ml::Path & procName, ml::Symbol
 
 	if(frameSize > 1)
 	{
-		//debug() << "FRAME SIZE = " << frameSize << "\n";
-		//debug() << "LENGTH = " << bufLength << "\n";
+		////debug() << "FRAME SIZE = " << frameSize << "\n";
+		////debug() << "LENGTH = " << bufLength << "\n";
 	}
 	
 	e = addProcAfter("ringbuffer", alias, procName.head());
@@ -1346,7 +1346,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 	const ml::Symbol head = procAddress.head();
 	const ml::Path tail = procAddress.tail();
 	//const int copy = procAddress.getCopy();
-	//debug() << "MLProcContainer " << getName() << " addSignalBuffers to " << procAddress << "\n";
+	////debug() << "MLProcContainer " << getName() << " addSignalBuffers to " << procAddress << "\n";
 	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);
@@ -1363,7 +1363,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 			}
 			else
 			{
-				debug() << "MLProcContainer::addSignalBuffers: ack, head proc " << head << " is not container!\n";
+				//debug() << "MLProcContainer::addSignalBuffers: ack, head proc " << head << " is not container!\n";
 			}		
 		}
 		else // create buffer.
@@ -1397,7 +1397,7 @@ MLProc::err MLProcContainer::addSignalBuffers(const ml::Path & procAddress, cons
 	}
 	else 
 	{
-		debug() << "MLProcContainer::addSignalBuffers: proc " << head << " not found in container " << getName() << "!\n";
+		//debug() << "MLProcContainer::addSignalBuffers: proc " << head << " not found in container " << getName() << "!\n";
 	}
 	return e;
 }
@@ -1427,7 +1427,7 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 			}
 			else
 			{
-				debug() << "MLProcContainer::gatherSignalBuffers: ack, head proc " << head << " is not container!\n";
+				//debug() << "MLProcContainer::gatherSignalBuffers: ack, head proc " << head << " is not container!\n";
 			}		
 		}
 		else 
@@ -1468,7 +1468,7 @@ void MLProcContainer::gatherSignalBuffers(const ml::Path & procAddress, const ml
 	}
 	else 
 	{
-		debug() << "MLProcContainer::gatherSignalBuffers: proc " << head << " not found in container " << getName() << "!\n";
+		//debug() << "MLProcContainer::gatherSignalBuffers: proc " << head << " not found in container " << getName() << "!\n";
 	}
 }
 
@@ -1483,7 +1483,7 @@ MLPublishedParamPtr MLProcContainer::publishParam(const ml::Path & procPath, con
 	const int i = (int)mPublishedParams.size();
 	p = MLPublishedParamPtr(new MLPublishedParam(procPath, param, alias, type, (int)i));
 	mPublishedParams.push_back(p);
-	// debug() << "\nMLProcContainer::publishParam: pushed back " << p->getType() << " param idx " << i << "\n"; /
+	// //debug() << "\nMLProcContainer::publishParam: pushed back " << p->getType() << " param idx " << i << "\n"; /
 	mPublishedParamMap[alias] = p; 
 	return p;
 }
@@ -1524,7 +1524,7 @@ float MLProcContainer::getParam(const ml::Symbol alias)
 		}
 		else
 		{
-			debug() << "MLProcContainer::getParam: null param ptr for " << alias << "\n";
+			//debug() << "MLProcContainer::getParam: null param ptr for " << alias << "\n";
 		}
 	}
 	else // use our own param map.
@@ -1548,7 +1548,7 @@ void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol 
 	const ml::Symbol head = procAddress.head();
 	const ml::Path tail = procAddress.tail();
 	
-	// debug() << "MLProcContainer(" << (void *)this << ") routeParam: " << head << " / " << tail << "\n";
+	// //debug() << "MLProcContainer(" << (void *)this << ") routeParam: " << head << " / " << tail << "\n";
 	
 	// look up head Proc in current scope's map
 	it = mProcMap.find(head);
@@ -1566,7 +1566,7 @@ void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol 
 			}
 			else
 			{
-				debug() << "ack, head proc in param address is not container!\n";
+				//debug() << "ack, head proc in param address is not container!\n";
 			}		
 		}
 		else // should be done.
@@ -1582,7 +1582,7 @@ void MLProcContainer::routeParam(const ml::Path & procAddress, const ml::Symbol 
 		}
 		else
 		{
-			debug() << "MLProcContainer::routeParam: proc " << head << " not found in container " << getName() << "!\n";
+			//debug() << "MLProcContainer::routeParam: proc " << head << " not found in container " << getName() << "!\n";
 		}
 	}
 }
@@ -1615,12 +1615,12 @@ int MLProcContainer::getParamIndex(const ml::Symbol paramName)
 		}
 		else
 		{
-			debug() << "MLProcContainer::getParamIndex: null param ptr for " << paramName << "\n";
+			//debug() << "MLProcContainer::getParamIndex: null param ptr for " << paramName << "\n";
 		}
 	}
 	else
 	{
-		// debug() << "MLProcContainer::getParamIndex: param " << paramName << " not found!\n";
+		// //debug() << "MLProcContainer::getParamIndex: param " << paramName << " not found!\n";
 	}
 	return r;
 }
@@ -1638,11 +1638,11 @@ float MLProcContainer::getParamByIndex(int index)
 	{
 		MLPublishedParamPtr p = mPublishedParams[index];
 		r = p->getValue();
-//		debug() << "param " << index << " is " << r << "\n";	
+//		//debug() << "param " << index << " is " << r << "\n";	
 	}
 	else
 	{
-		debug() << "MLProcContainer::getParamByIndex *** param index out of range!\n";
+		//debug() << "MLProcContainer::getParamByIndex *** param index out of range!\n";
 	}
 	return r;
 }
@@ -1680,8 +1680,8 @@ void MLProcContainer::scanDoc(juce::XmlDocument* pDoc, int* numParameters)
 		/*
 		/// TEST dump parsed XML
 		String test = pElem->createDocument("TEST");
-		debug() << "**************\n";
-		debug() << test;
+		//debug() << "**************\n";
+		//debug() << test;
 		*/
 	}
 	else
@@ -1699,7 +1699,7 @@ ml::Symbol MLProcContainer::RequiredAttribute(juce::XmlElement* parent, const ch
 	}
 	else
 	{
-		debug() << parent->getTagName() << ": required attribute " << name << " missing \n";
+		//debug() << parent->getTagName() << ": required attribute " << name << " missing \n";
 		return ml::Symbol();
 	}
 }
@@ -1712,7 +1712,7 @@ ml::Path MLProcContainer::RequiredPathAttribute(juce::XmlElement* parent, const 
 	}
 	else
 	{
-		debug() << parent->getTagName() << ": required path attribute " << name << " missing \n";
+		//debug() << parent->getTagName() << ": required path attribute " << name << " missing \n";
 		return ml::Path();
 	}
 }
@@ -1826,8 +1826,8 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 	const ml::Symbol newProcClass ((const char *)parent->getStringAttribute("class").toUTF8());
 	const ml::Symbol newProcName ((const char *)parent->getStringAttribute("name").toUTF8());
 
-	// debug() << "MLProcContainer::buildProc (class=" << newProcClass << ", name=" << newProcName << ")\n";
-	// debug() << "MLProcContainer::buildProc (class=" << parent->getStringAttribute("class") << ", name=" << parent->getStringAttribute("name") << ")\n";
+	// //debug() << "MLProcContainer::buildProc (class=" << newProcClass << ", name=" << newProcName << ")\n";
+	// //debug() << "MLProcContainer::buildProc (class=" << parent->getStringAttribute("class") << ", name=" << parent->getStringAttribute("name") << ")\n";
 
 	// add the specified proc to this container.  if this container is a multiple, 
 	// MLProcMultiple::addProc makes a MultProxy here to manage the copies. 
@@ -1856,7 +1856,7 @@ MLProc::err MLProcContainer::buildProc(juce::XmlElement* parent)
 		}		
 		else
 		{
-			debug() << "MLProcContainer::buildProc: getProc failed for new proc!\n";
+			//debug() << "MLProcContainer::buildProc: getProc failed for new proc!\n";
 		}
 	}
 	
@@ -1897,7 +1897,7 @@ void MLProcContainer::setProcParams(const ml::Path& procName, juce::XmlElement* 
 	}
 	else
 	{
-		debug() << "MLProcContainer::setProcParams: getProc failed!\n";
+		//debug() << "MLProcContainer::setProcParams: getProc failed!\n";
 	}
 }
 
@@ -1994,15 +1994,15 @@ void MLProcContainer::dumpGraph(int indent)
 	dumpProc(indent);
 
 	// dump children
-	debug() << ml::textUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
-	debug() << ml::textUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
-	debug() << ml::textUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
+	//debug() << ml::textUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
+	//debug() << ml::textUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
+	//debug() << ml::textUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
 
 	int ops = 0;
 	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it, ++ops)
 	{		
 		MLProc* p = (*it);
-		debug() << ml::textUtils::spaceStr(indent) << ops << ":\n";
+		//debug() << ml::textUtils::spaceStr(indent) << ops << ":\n";
 		if (p->isContainer())
 		{
 			MLProcContainer& pc = static_cast<MLProcContainer&>(*p);

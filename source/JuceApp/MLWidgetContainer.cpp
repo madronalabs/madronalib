@@ -36,8 +36,8 @@ void MLWidgetContainer::addWidget(MLWidget* pW, const ml::Symbol name)
 	{
 		if(mWidgets.find(name) != mWidgets.end())
 		{
-			//debug() << "MLWidgetContainer::addWidget: name " << name << " already taken! \n";			
-			//debug() << mWidgets.size() << " widgets:\n";
+			////debug() << "MLWidgetContainer::addWidget: name " << name << " already taken! \n";			
+			////debug() << mWidgets.size() << " widgets:\n";
 			dumpWidgets();
 			ml::theSymbolTable().dump();
 			ml::theSymbolTable().audit();
@@ -107,7 +107,7 @@ void MLWidgetContainer::renameWidget(MLWidget* pW, const ml::Symbol newName)
 	
 	if (!found)
 	{
-		//debug() << " MLWidgetContainer::renameWidget: widget not found!\n";
+		////debug() << " MLWidgetContainer::renameWidget: widget not found!\n";
 	}
 }
 
@@ -127,10 +127,10 @@ void MLWidgetContainer::dumpWidgets(int depth)
 		//ml::Symbol name = it->first;
 		MLWidget* widget = it->second;
 		
-		//debug() << spaceStr	<< name << "\n";
+		////debug() << spaceStr	<< name << "\n";
 		if (widget->isWidgetContainer())
 		{
-			//debug() << spaceStr << "contains:\n";
+			////debug() << spaceStr << "contains:\n";
 			MLWidgetContainer* pC = static_cast<MLWidgetContainer*>(widget);
 			pC->dumpWidgets(depth + 1);
 		}

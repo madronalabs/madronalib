@@ -718,7 +718,7 @@ void loadFile(const File& f) override
 		err = RestoreState (propertyList);
 		if (err != noErr)
 		{
-			debug() << "error: " << err << "loading preset file.\n";
+			//debug() << "error: " << err << "loading preset file.\n";
 		}
 	}
 	else
@@ -900,23 +900,23 @@ ComponentResult GetParameterInfo (AudioUnitScope inScope,
 
 	if (!paramPtr)
 	{
-		debug() << "parameter #" << index << ": null parameter ptr!\n";
+		//debug() << "parameter #" << index << ": null parameter ptr!\n";
 		return kAudioUnitErr_InvalidParameter;
 	}
 		
 	if (inScope != kAudioUnitScope_Global)
 	{
-		debug() << "parameter #" << index << ": invalid scope!\n";
+		//debug() << "parameter #" << index << ": invalid scope!\n";
 	}
 	
 	if (juceFilter == nullptr)
 	{
-		debug() << "parameter #" << index << ": no audio processor!\n";
+		//debug() << "parameter #" << index << ": no audio processor!\n";
 	}
 	
 	if (index >= madronaFilter->getNumParameters())
 	{
-		debug() << "parameter #" << index << ": index too big, max " << madronaFilter->getNumParameters() << "!\n";
+		//debug() << "parameter #" << index << ": index too big, max " << madronaFilter->getNumParameters() << "!\n";
 	}
 	
 	// ML
@@ -974,13 +974,13 @@ ComponentResult GetParameterInfo (AudioUnitScope inScope,
 		}
 		
 		/*
-		 debug() << "parameter #" << index << " (" << paramPtr->getAlias() << ") : ";
-		 debug() << "min " << outParameterInfo.minValue;
-		 debug() << " max " << outParameterInfo.maxValue;
-		 debug() << " dflt " << outParameterInfo.defaultValue;
-		 debug() << " unit " << outParameterInfo.unit;
-		 debug() << " flgs " << outParameterInfo.flags;
-		 debug() << "\n";
+		 //debug() << "parameter #" << index << " (" << paramPtr->getAlias() << ") : ";
+		 //debug() << "min " << outParameterInfo.minValue;
+		 //debug() << " max " << outParameterInfo.maxValue;
+		 //debug() << " dflt " << outParameterInfo.defaultValue;
+		 //debug() << " unit " << outParameterInfo.unit;
+		 //debug() << " flgs " << outParameterInfo.flags;
+		 //debug() << "\n";
 		 */
 		
 		// Another important issue here is to make sure that if a parameter sets

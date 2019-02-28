@@ -38,7 +38,7 @@ MLProcRingBuffer::MLProcRingBuffer()
 
 MLProcRingBuffer::~MLProcRingBuffer()
 {
-//	debug() << "MLProcRingBuffer destructor\n";
+//	//debug() << "MLProcRingBuffer destructor\n";
 }
 
 MLProc::err MLProcRingBuffer::resize() 
@@ -81,7 +81,7 @@ void MLProcRingBuffer::process()
 	{
 		if(inputFrameSize != frameSize)
 		{
-			debug() << "MLProcRingBuffer: input size mismatch: " << inputFrameSize << " to our " << frameSize << " \n";
+			//debug() << "MLProcRingBuffer: input size mismatch: " << inputFrameSize << " to our " << frameSize << " \n";
 		}
 		else
 		{
@@ -139,7 +139,7 @@ int MLProcRingBuffer::readToSignal(MLSignal& outSig, int frames, int plane)
 		int height = outSig.getHeight();
 		if(height < frameSize)
 		{
-			debug() << " MLProcRingBuffer::readToSignal: signal too small! ( frame size " << frameSize << ", height " << height << " )\n";
+			//debug() << " MLProcRingBuffer::readToSignal: signal too small! ( frame size " << frameSize << ", height " << height << " )\n";
 			return 0;
 		}
 		

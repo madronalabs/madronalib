@@ -92,27 +92,27 @@ void MLProcDebug::process()
 	mTemp += kFloatsPerDSPVector;
 	if (mTemp > intervalFrames)
 	{
-		debug() << std::setw(6);
-		debug() << std::setprecision(2);
-		debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << kFloatsPerDSPVector << " = " << std::setprecision(4) << in[0] ;
-		debug() << " min:" << in.getMin() << ", max:" << in.getMax();
-		debug() << "\n";
-//		debug() << "RATE: " << getContextSampleRate() << " / " << in.getRate() << "\n";
+		//debug() << std::setw(6);
+		//debug() << std::setprecision(2);
+		//debug() << "sig " << getName() << " (" << static_cast<const void *>(&in) << "), n=" << kFloatsPerDSPVector << " = " << std::setprecision(4) << in[0] ;
+		//debug() << " min:" << in.getMin() << ", max:" << in.getMax();
+		//debug() << "\n";
+//		//debug() << "RATE: " << getContextSampleRate() << " / " << in.getRate() << "\n";
 		
 		mTemp -= intervalFrames;
 		
 		if (mVerbose)
 		{
-			debug() << kFloatsPerDSPVector << " frames\n";
-			debug() << "[";
-			debug() << std::setw(6);
-			debug() << std::setprecision(2);
+			//debug() << kFloatsPerDSPVector << " frames\n";
+			//debug() << "[";
+			//debug() << std::setw(6);
+			//debug() << std::setprecision(2);
 			for(int j=0; j<kFloatsPerDSPVector; ++j)
 			{
-				debug() << in[j] << " " ;		
-				if ((j%8 == 7) && (j < kFloatsPerDSPVector-1)) debug() << "\n";	
+				//debug() << in[j] << " " ;		
+				if ((j%8 == 7) && (j < kFloatsPerDSPVector-1)) //debug() << "\n";	
 			}
-			debug() << "]\n\n";
+			//debug() << "]\n\n";
 		}
 
 #ifdef _WINDOWS
@@ -158,7 +158,7 @@ void MLProcDebug::process()
 
 	mOSCSender.sendDataToSocket();	
 	
-//	debug() << address << " : " << in.getWidth() << " frames \n";
+//	//debug() << address << " : " << in.getWidth() << " frames \n";
 #endif
 		
 	

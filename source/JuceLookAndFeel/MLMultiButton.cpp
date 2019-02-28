@@ -107,7 +107,7 @@ void MLMultiButton::paint (Graphics& g)
 		myLookAndFeel->drawMLButtonShape (g, mPos.getElementBounds(i),
 			cornerSize, buttonColor, outlineColor, mLineThickness, flair, 0., 0.);
 			
-		//debug() << "elem " << i << ": " << mPos.getElementBounds(i) << "\n";
+		////debug() << "elem " << i << ": " << mPos.getElementBounds(i) << "\n";
 			
 	}
 }
@@ -178,14 +178,14 @@ void MLMultiButton::mouseDrag(const MouseEvent& e)
 	
     if (isEnabled())
     {		
-//debug() << "drag:" << mx << "," << my << "dial " << s << "\n";
+////debug() << "drag:" << mx << "," << my << "dial " << s << "\n";
 		if (ml::within(b, 0, mNumButtons))
 		{
 //			const int mousePos = isHorizontal() ? mx : my;
 			
-//debug() << "pos range: " << posRange.getLow() << ", " << posRange.getHigh() << "\n";
-//debug() << "my range: " << mRange.getLow() << ", " << mRange.getHigh() << "\n";
-//debug() << "pos:" << mousePos << " range:" << scaledMousePos << "\n";
+////debug() << "pos range: " << posRange.getLow() << ", " << posRange.getHigh() << "\n";
+////debug() << "my range: " << mRange.getLow() << ", " << mRange.getHigh() << "\n";
+////debug() << "pos:" << mousePos << " range:" << scaledMousePos << "\n";
 
 			if((mCurrDragButton >= 0) && (mCurrDragButton != b)) // set buttons under drag
 			{

@@ -82,18 +82,18 @@ void MLDrawing::addOperation(eOperationType op, int arg1, int arg2, int arg3, in
 
 void MLDrawing::dumpOperations()
 {
-	debug() << "MLDrawing " << getWidgetName() << ": \n";
+	//debug() << "MLDrawing " << getWidgetName() << ": \n";
 	int c = 0;
 	for(std::vector<MLDrawing::Operation>::iterator it = mOperations.begin(); it != mOperations.end(); it++)
 	{
 		const MLDrawing::Operation& op = *it;
-		debug() << "    op" << c++ << ": " << op.type << "\n";
-		debug() << "        args: ";
+		//debug() << "    op" << c++ << ": " << op.type << "\n";
+		//debug() << "        args: ";
 		for (int i=0; i<4; ++i)
 		{
-			debug() << op.args[i] << " ";
+			//debug() << op.args[i] << " ";
 		}
-		debug() << "\n";
+		//debug() << "\n";
 
 	}
 }
@@ -140,7 +140,7 @@ void MLDrawing::paint(Graphics& g)
 	g.strokePath(tbounds, PathStrokeType(1.0f));
 	*/
 	
-//debug() << "painting MLDrawing " << getWidgetName() << "\n";
+////debug() << "painting MLDrawing " << getWidgetName() << "\n";
 //int c = 0;	
 
 	for(auto op : mOperations)
@@ -149,7 +149,7 @@ void MLDrawing::paint(Graphics& g)
 		Vec2 p1, p2;
 		//const MLDrawing::Operation& op = *it;
 
-//debug() << "    painting op " << c++ << "\n";	
+////debug() << "    painting op " << c++ << "\n";	
 		for(int i=0; i<4; ++i)
 		{
 			assert(ml::within((int)op.args[i], 0, (int)mTransformedPoints.size()));
@@ -212,10 +212,10 @@ void MLDrawing::paint(Graphics& g)
 
 void MLDrawing::setPixelOffset(const Vec2& f) 
 { 
-//	debug() << "BEFORE: ";
+//	//debug() << "BEFORE: ";
 //	dumpOperations();
 	mPixelOffset = f; 
-//	debug() << "AFTER: ";
+//	//debug() << "AFTER: ";
 //	dumpOperations();
 }
 	
@@ -240,8 +240,8 @@ void MLDrawing::resizeWidget(const MLRect& b, const int u)
 	for(int i = 0; i<size; ++i)
 	{
 		mTransformedPoints[i] = mGridPoints[i]*u;
-//debug() << "pt. " << i << ":" << mTransformedPoints[i] <<  " ";
+////debug() << "pt. " << i << ":" << mTransformedPoints[i] <<  " ";
 	}
-//debug() << "\n";
+////debug() << "\n";
 }
  

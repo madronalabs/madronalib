@@ -91,7 +91,7 @@ void MLChangeList::addChange(MLSample val, int time)
 		 */
 		mValueSignal[mChanges] = val;
 		mTimeSignal[mChanges] = time;
-//	debug() << "MLChangeList(" << static_cast<void*>(this) << ") add changes:" << mChanges << " time:" << time  << " val:" << val << " glide:" << mGlideTimeInSamples << "\n";
+//	//debug() << "MLChangeList(" << static_cast<void*>(this) << ") add changes:" << mChanges << " time:" << time  << " val:" << val << " glide:" << mGlideTimeInSamples << "\n";
 		mChanges++;
 	}
 }
@@ -144,7 +144,7 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 			if (changeTime >= size)
             {
 #ifdef DEBUG
-               // debug() << "warning: MLChangeList time (" << changeTime <<  ") > size!\n";
+               // //debug() << "warning: MLChangeList time (" << changeTime <<  ") > size!\n";
 #endif
                 break;
             }
@@ -208,8 +208,8 @@ void MLChangeList::writeToSignal(MLSignal& y, int frames)
 
 void MLChangeList::dump(void)
 {
-//	debug() << "MLChangeList:   changes " << mChanges << ", c[0] " << mValueSignal[0] << ", counter " << mGlideCounter << ", value " << mValue << "\n";
-//	debug() << "glide time: " << mGlideTimeInSamples << "inv:" << mInvGlideTimeInSamples << "\n";
+//	//debug() << "MLChangeList:   changes " << mChanges << ", c[0] " << mValueSignal[0] << ", counter " << mGlideCounter << ", value " << mValue << "\n";
+//	//debug() << "glide time: " << mGlideTimeInSamples << "inv:" << mInvGlideTimeInSamples << "\n";
 
 }
 

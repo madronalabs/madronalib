@@ -172,7 +172,7 @@ void MLDSPEngine::compileEngine()
 //
 MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 {
-	//debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
+	////debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
     
 	// set denormal state
@@ -245,7 +245,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		// after setVectorSize, set midiToSignals input buffer size.
 		if (mpInputToSignalsProc)
 		{
-            //debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
+            ////debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
 			mpInputToSignalsProc->setParam("bufsize", bufSize);
 			mpInputToSignalsProc->resize();		
 		}
@@ -472,7 +472,7 @@ int MLDSPEngine::getPublishedSignalVoicesEnabled(const ml::Symbol alias)
 			}
 		}
 	}
-    //debug() << "getPublishedSignalVoicesEnabled: " << alias << ": " << nVoices << "\n";
+    ////debug() << "getPublishedSignalVoicesEnabled: " << alias << ": " << nVoices << "\n";
 	return nVoices;
 }
 
@@ -549,7 +549,7 @@ int MLDSPEngine::readPublishedSignal(const ml::Symbol alias, MLSignal& outSig)
 #ifdef ML_DEBUG
 	else
 	{
-		debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found in container " << getName() << "!\n";
+		////debug() << "MLProcContainer::readPublishedSignal: signal " << alias << " not found in container " << getName() << "!\n";
 	}
 #endif
 	return minSamplesRead;
@@ -592,7 +592,7 @@ void MLDSPEngine::setInputFrameBuffer(Queue<TouchFrame>* pBuf)
 	}
 	else 
 	{
-		debug() << "MLDSPEngine::setInputFrameBuffer: no mpInputToSignalsProc!\n";
+		////debug() << "MLDSPEngine::setInputFrameBuffer: no mpInputToSignalsProc!\n";
 	}
 }
 

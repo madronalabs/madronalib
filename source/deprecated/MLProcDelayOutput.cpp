@@ -106,13 +106,13 @@ void MLProcDelayOutput::doParams()
 			if(buffer.getWidth() == 0)
 			{
 				// we are called once with this null size before real resize. TODO get called only once, clean up and document resize / prepareToPlay / etc
-				//debug() << "NULL size!\n";
+				////debug() << "NULL size!\n";
 			}			
 		}
 	}
 	else
 	{
-		debug() << "MLProcDelayOutput::doParams: couldn't find delay proc " << delayName << "\n";
+		//debug() << "MLProcDelayOutput::doParams: couldn't find delay proc " << delayName << "\n";
 	}
 	
 	if(getParam(backwardsSym))

@@ -45,12 +45,12 @@ void MLMenu::Node::dump(int level)
         NodePtr node = it2->second;
         for(int i=0; i<level*4; ++i)
         {
-            debug() << " ";
+            //debug() << " ";
         }
-		debug() << name << " #" << node->mItemNumber << ", (" << node->index.size() << ")\n";
+		//debug() << name << " #" << node->mItemNumber << ", (" << node->index.size() << ")\n";
         node->dump(level + 1);
 	}
-    debug() << "\n";
+    //debug() << "\n";
 }
 
 MLMenu::NodePtr MLMenu::Node::getSubnodeByName(const std::string& name)
@@ -343,8 +343,8 @@ JuceMenuPtr MLMenu::getJuceMenu()
 
 void MLMenu::dump()
 {
-    debug() << " dump of menu " << mName << ":\n";
+    //debug() << " dump of menu " << mName << ":\n";
     mRoot->dump();
-    debug() << "\n";
+    //debug() << "\n";
 }
 

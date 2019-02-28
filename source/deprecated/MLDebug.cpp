@@ -116,7 +116,7 @@ MLTextStream& MLConsole()
 // Send a message to the application or plugin’s console, if one exists. 
 //
 #if DEBUG
-MLTextStream& debug()
+MLTextStream& //debug()
 {
 	static MLTextStream theDebugMessageStream("debug");
 	return theDebugMessageStream;
@@ -125,7 +125,7 @@ MLTextStream& debug()
 
 MLDummyStream::MLDummyStream(const char* name)  {}
 MLDummyStream::~MLDummyStream()  {}
-MLDummyStream& debug()
+MLDummyStream& //debug()
 {
 	static MLDummyStream theDebugMessageStream("dummy");
 	return theDebugMessageStream;
@@ -154,7 +154,7 @@ public:
 		{
 			if (threadShouldExit())
 				return;
-			//debug().display();
+			////debug().display();
 			wait(10);
 		}
 	}

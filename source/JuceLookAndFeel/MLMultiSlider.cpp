@@ -305,7 +305,7 @@ float MLMultiSlider::snapValue (float attemptedValue, const bool)
 	float r = 0.;
 	if (attemptedValue != attemptedValue)
 	{
-		debug() << "dial " << getName() << ": not a number!\n";
+		//debug() << "dial " << getName() << ": not a number!\n";
 	}
 	else 
 	{

@@ -42,7 +42,7 @@ mSizeMultiplier(1.0f)
 
 MLLabel::~MLLabel()
 {
-	//debug() << "deleting MLLabel " << getName() << "\n";
+	////debug() << "deleting MLLabel " << getName() << "\n";
 }
 
 void MLLabel::setFont (const Font& newFont)

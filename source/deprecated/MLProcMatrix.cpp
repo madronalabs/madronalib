@@ -25,13 +25,13 @@ MLProcMatrix::MLProcMatrix()
 	setParam("in", 0.);
 	setParam("out", 0.);
     mInputs = mOutputs = 0;
-//	debug() << "MLProcMatrix constructor\n";
+//	//debug() << "MLProcMatrix constructor\n";
 	clearConnections();
 }
 
 MLProcMatrix::~MLProcMatrix()
 {
-//	debug() << "MLProcMatrix destructor\n";
+//	//debug() << "MLProcMatrix destructor\n";
 }
 
 
@@ -47,7 +47,7 @@ MLProc::err MLProcMatrix::resize()
 
 void MLProcMatrix::clearConnections()
 {
-//debug() << "MLProcMatrix::MLProcMatrix::clearConnections! \n";
+////debug() << "MLProcMatrix::MLProcMatrix::clearConnections! \n";
 	for (int i=1; i <= kMLMatrixMaxIns; ++i)
 	{
 		for (int j=1; j <= kMLMatrixMaxOuts; ++j)

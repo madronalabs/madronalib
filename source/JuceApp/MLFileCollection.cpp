@@ -141,7 +141,7 @@ void MLFileCollection::insertFileIntoMap(juce::File f)
 		TextFragment shortName (fStr.toUTF8());
 		if (shortName.lengthInCodePoints() == 1)
 		{
-			debug() << "insertFileIntoMap :one char: " << shortName << "\n";			
+			//debug() << "insertFileIntoMap :one char: " << shortName << "\n";			
 		}
 		*/
 		
@@ -191,16 +191,16 @@ void MLFileCollection::dump() const
 			
 			if(it.nodeHasValue())
 			{
-				debug() << depthStr << "file: " << itemName << "\n";
+				//debug() << depthStr << "file: " << itemName << "\n";
 			}
 			else
 			{
-				debug() << depthStr << "dir level " << depth << ": " << itemName << "\n";
+				//debug() << depthStr << "dir level " << depth << ": " << itemName << "\n";
 			}
 		}
 		else
 		{
-			debug() << "end\n";
+			//debug() << "end\n";
 		}
 	}
 }

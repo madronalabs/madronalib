@@ -554,7 +554,7 @@ inline MLLookAndFeel& theMLLookAndFeel()
 	// this is destroyed by juce::DeletedAtShutdown
 	static MLLookAndFeel* t(new MLLookAndFeel());
 	
-	// debug() << "L+F:" << std::hex << (t) << "\n";
+	// //debug() << "L+F:" << std::hex << (t) << "\n";
 	
 	// MLTEST WOW, L+F is deleted then not created again
 	

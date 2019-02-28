@@ -41,7 +41,7 @@ void MLAppState::doPropertyChangeAction(ml::Symbol p, const MLProperty & val)
     // nothing to do here, but we do need to be an MLPropertyListener in order to
     // know the update states of all the Properties.
 	
-	// debug() << "MLAppState " << mName << ": doPropertyChangeAction: " << p << " to " << val << "\n";
+	// //debug() << "MLAppState " << mName << ": doPropertyChangeAction: " << p << " to " << val << "\n";
 }
 
 #pragma mark get and save state
@@ -74,7 +74,7 @@ String MLAppState::getStateAsText()
 	}
 	else
 	{
-		debug() << "MLAppState::getStateAsText: couldn't create JSON object!\n";
+		//debug() << "MLAppState::getStateAsText: couldn't create JSON object!\n";
 	}
 	return r;
 }
@@ -87,7 +87,7 @@ void MLAppState::saveStateToStateFile()
 	{
 		if(!dir.isDirectory())
 		{
-			debug() << "MLAppState:: file present instead of directory " << 
+			//debug() << "MLAppState:: file present instead of directory " << 
 				dir.getFileName() << "!  Aborting.\n";
 		}
 	}
@@ -97,7 +97,7 @@ void MLAppState::saveStateToStateFile()
 		Result r = dir.createDirectory();
 		if(r.failed())
 		{
-			debug() << "Error creating state directory: " << r.getErrorMessage() << "\n";
+			//debug() << "Error creating state directory: " << r.getErrorMessage() << "\n";
 			return;
 		}
 	}
@@ -109,7 +109,7 @@ void MLAppState::saveStateToStateFile()
 		Result r = stateFile.create();
 		if(r.failed())
 		{
-			debug() << "Error creating state file: " << r.getErrorMessage() << "\n";
+			//debug() << "Error creating state file: " << r.getErrorMessage() << "\n";
 			return;
 		}
 	}
@@ -126,7 +126,7 @@ void MLAppState::saveStateToStateFile()
 	}
 	else		
 	{
-		debug() << "MLAppState::saveStateToStateFile: couldn't create JSON object!\n";
+		//debug() << "MLAppState::saveStateToStateFile: couldn't create JSON object!\n";
 	}
 }
 
@@ -173,7 +173,7 @@ cJSON* MLAppState::getStateAsJSON()
 					}
 					break;
 				default:
-					debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
+					//debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
 					break;
 			}
 		}
@@ -213,7 +213,7 @@ bool MLAppState::loadStateFromAppStateFile()
 	}
 	else
 	{
-		debug() << "MLAppState::loadStateFromAppStateFile: couldn't open file!\n";
+		//debug() << "MLAppState::loadStateFromAppStateFile: couldn't open file!\n";
 	}
 	return r;
 }
@@ -230,7 +230,7 @@ bool MLAppState::setStateFromText(String stateStr)
 	}
 	else
 	{
-		debug() << "MLAppState::setStateFromText: couldn't create JSON object!\n";
+		//debug() << "MLAppState::setStateFromText: couldn't create JSON object!\n";
 	}
 	return r;
 }
@@ -247,22 +247,22 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 			switch(child->type & 255)
 			{
 				case cJSON_Number:
-//		debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
+//		//debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
 					mpTarget->setProperty(key, (float)child->valuedouble);
 					break;
 				case cJSON_String:
-//		debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
+//		//debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
 
 					mpTarget->setProperty(key, child->valuestring);
 					break;
 				case cJSON_Object:
-					//debug() << "looking at object: " << child->string << "\n";
+					////debug() << "looking at object: " << child->string << "\n";
 					// see if object is a stored signal
 					if(cJSON* pObjType = cJSON_GetObjectItem(child, "type"))
 					{
 						if(!strcmp(pObjType->valuestring, "signal") )
 						{
-							//debug() << " depth " << depth << " loading signal param " << child->string << "\n";
+							////debug() << " depth " << depth << " loading signal param " << child->string << "\n";
 							int width = cJSON_GetObjectItem(child, "width")->valueint;
 							int height = cJSON_GetObjectItem(child, "height")->valueint;
 							int sigDepth = cJSON_GetObjectItem(child, "depth")->valueint;
@@ -292,7 +292,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 								}
 								else
 								{
-									debug() << "MLAppState::setStateFromJSON: wrong array size!\n";
+									//debug() << "MLAppState::setStateFromJSON: wrong array size!\n";
 								}
 								mpTarget->setProperty(key, signalValue);
 							}
@@ -300,7 +300,7 @@ void MLAppState::setStateFromJSON(cJSON* pNode, int depth)
 					}
 					else
 					{
-						//debug() << " recursing into object " << child->string << ": \n";
+						////debug() << " recursing into object " << child->string << ": \n";
 						setStateFromJSON(child, depth + 1);
 					}
 					break;

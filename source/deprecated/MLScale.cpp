@@ -426,26 +426,28 @@ void MLScale::setDescription(const std::string& descStr)
 
 // TODO flatten instead
 
+/*
 void MLScale::dump()
 {
-	debug() << "scale " << mName << ":\n";
+	//debug() << "scale " << mName << ":\n";
 	for(int i = 0; i<mScaleSize; ++i)
 	{
 		float r = mScaleRatios[i];
-		debug() << "    " << i << " : " << r << "\n";
+		//debug() << "    " << i << " : " << r << "\n";
 	}
-	debug() << "key map :\n";
+	//debug() << "key map :\n";
 	for(int i = 0; i<mKeyMap.mSize; ++i)
 	{
 		float r = mKeyMap.mNoteDegrees[i];
-		debug() << "    " << i << " : " << r << "\n";
+		//debug() << "    " << i << " : " << r << "\n";
 	}
-	debug() << "ratios:\n";
+	//debug() << "ratios:\n";
 	for(int i = 0; i<kMLNumNotes; ++i)
 	{
-		debug() << "    " << i << " : " << mRatios[i] << " / " << mPitches[i] << " (" << mRatios[i]*440. << ") \n";
+		//debug() << "    " << i << " : " << mRatios[i] << " / " << mPitches[i] << " (" << mRatios[i]*440. << ") \n";
 	}
 }
 
 
 
+*/

@@ -424,7 +424,7 @@ int MLProcInputToSignals::getOutputIndex(const ml::Symbol name)
   
   if (!idx)
   {
-    debug() << "MLProcInputToSignals::getOutputIndex: null output " << name << "\n";
+    //debug() << "MLProcInputToSignals::getOutputIndex: null output " << name << "\n";
   }
   
   return idx;
@@ -1436,27 +1436,27 @@ void MLProcInputToSignals::dumpEvents()
     switch(type)
     {
       case MLControlEvent::kNull:
-        debug() << "-";
+        //debug() << "-";
         break;
       case MLControlEvent::kNoteOn:
-        debug() << "N";
+        //debug() << "N";
         break;
       default:
-        debug() << "?";
+        //debug() << "?";
         break;
     }
   }
-  debug() << "\n";
+  //debug() << "\n";
   int pendingSize = mNoteEventsPending.getSize();
-  debug() << pendingSize << " events pending: ";
+  //debug() << pendingSize << " events pending: ";
   if(pendingSize > 0)
   {
     for(int i = 0; i < pendingSize; ++i)
     {
-      debug() << mNoteEventsPending[i].mID << " ";
+      //debug() << mNoteEventsPending[i].mID << " ";
     }
   }
-  debug() << "\n";
+  //debug() << "\n";
 }
 
 void MLProcInputToSignals::dumpVoices()
@@ -1467,27 +1467,27 @@ void MLProcInputToSignals::dumpVoices()
     switch(voice.mState)
     {
       case MLVoice::kOff:
-        debug() << ".";
+        //debug() << ".";
         break;
       case MLVoice::kOn:
-        debug() << "*";
+        //debug() << "*";
         break;
       case MLVoice::kSustain:
-        debug() << "s";
+        //debug() << "s";
         break;
       default:
-        debug() << " ";
+        //debug() << " ";
         break;
     }
   }
-  debug() << "\n";
+  //debug() << "\n";
 }
 
 void MLProcInputToSignals::dumpSignals()
 {
   for (int i=0; i<mCurrentVoices; ++i)
   {
-    debug() << "voice " << i << ": ";
+    //debug() << "voice " << i << ": ";
     
     // changes per voice
     MLSignal& pitch = getOutput(i*kNumVoiceSignals + 1);
@@ -1496,13 +1496,13 @@ void MLProcInputToSignals::dumpSignals()
     MLSignal& voice = getOutput(i*kNumVoiceSignals + 4);
     MLSignal& after = getOutput(i*kNumVoiceSignals + 5);
     
-    debug() << "[pitch: " << pitch[0] << "] ";
-    debug() << "[gate : " << gate[0] << "] ";
-    debug() << "[vel  : " << vel[0] << "] ";
-    debug() << "[voice: " << voice[0] << "] ";
-    debug() << "[after: " << after[0] << "] ";
-    debug() << "\n";
+    //debug() << "[pitch: " << pitch[0] << "] ";
+    //debug() << "[gate : " << gate[0] << "] ";
+    //debug() << "[vel  : " << vel[0] << "] ";
+    //debug() << "[voice: " << voice[0] << "] ";
+    //debug() << "[after: " << after[0] << "] ";
+    //debug() << "\n";
   }
-  debug() << "\n";
+  //debug() << "\n";
 }
 

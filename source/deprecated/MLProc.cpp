@@ -19,14 +19,14 @@ MLProc::err MLProc::prepareToProcess()
 {
 	MLProc::err e = OK;
 	
-	// debug() << "preparing " << getClassName() << " \"" << getName() << "\" : " ;
+	// //debug() << "preparing " << getClassName() << " \"" << getName() << "\" : " ;
 	
 	int ins = getNumInputs();
 	int outs = getNumOutputs();
 	float rate = getContextSampleRate();
 	int blockSize = getContextVectorSize();
 	
-	// debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
+	// //debug() << ins << " ins, " << outs << " outs, rate " << rate << ", blockSize " << blockSize << "\n";
 	
 	// All inputs must have a signal connected.	
 	// So connect unconnected inputs to null input signal.
@@ -55,9 +55,9 @@ MLProc::err MLProc::prepareToProcess()
 		}
 		else
 		{
-			debug() << "MLProc::prepareToProcess: null output " << i << " for " << getName() << "! \n";
+			//debug() << "MLProc::prepareToProcess: null output " << i << " for " << getName() << "! \n";
 		}
-		//debug() << "    out " << i << ": " << (void *)(MLSignal*)(&out) << ", " << out.getSize() << " samples.\n";
+		////debug() << "    out " << i << ": " << (void *)(MLSignal*)(&out) << ", " << out.getSize() << " samples.\n";
 	}
 	e = resize();
 	
@@ -71,7 +71,7 @@ void MLProc::clearProc()
 {		
 	const int op = getNumOutputs();
 	
- //debug() << "clearing " << getName() << " (" << getClassName() << ")\n";
+ ////debug() << "clearing " << getName() << " (" << getClassName() << ")\n";
 	
 	// clear anything left in outputs
 	for (int i=0; i<op; i++)
@@ -103,7 +103,7 @@ void MLProc::clearInput(const int i)
 
 MLProc::err MLProc::setInput(const int idx, const MLSignal& srcSig)
 {
-	//debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
+	////debug() << "setInput " << idx << " of " << getName() << " to " << (void *)(&srcSig) << "\n";
 	
 	MLProc::err e = OK;	
 	if (idx)
@@ -200,7 +200,7 @@ int MLProc::getInputIndex(const ml::Symbol name)
 	}
 	if (!idx)
 	{
-		debug() << "MLProc::getInputIndex: proc " << getName() << " has no input " << name << "\n";	
+		//debug() << "MLProc::getInputIndex: proc " << getName() << " has no input " << name << "\n";	
 	}
 	return idx;
 }
@@ -220,7 +220,7 @@ int MLProc::getOutputIndex(const ml::Symbol name)
 	}
 	if (!idx)
 	{
-		debug() << "MLProc::getOutputIndex: null output index!\n";	
+		//debug() << "MLProc::getOutputIndex: null output index!\n";	
 	}
 	return idx; 
 }
@@ -304,14 +304,14 @@ void MLProc::dumpParams()
 {
 	MLSymbolMap& map = procInfo().getParamMap();
     int v = map.getSize();
-	debug() << getClassName() << "(" << static_cast<void *>(this) << ")" << " params:--------\n";	
+	//debug() << getClassName() << "(" << static_cast<void *>(this) << ")" << " params:--------\n";	
     for (int i=0; i<v; ++i)
 	{
         const ml::Symbol pName = map.getSymbolAtIndex(i);
 		float val = getParam(pName);
-		debug() << "[" << pName << " : " << val << "] ";
+		//debug() << "[" << pName << " : " << val << "] ";
 	}
-	debug() << "\n";
+	//debug() << "\n";
 }
 
 // TODO null signals function but are not printed out quite right
@@ -323,117 +323,117 @@ void MLProc::dumpProc(int indent)
 	const MLSignal* pNullInput = &(getContext()->getNullInput());
 	const MLSignal* pNullOutput = &(getContext()->getNullOutput());
 	
-	debug() << ml::textUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
+	//debug() << ml::textUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
 	
 	if (isContainer())
 	{
 		std::string enabledStr = isEnabled() ? " [ENABLED] " : " [DISABLED] ";
-		debug() << enabledStr;
+		//debug() << enabledStr;
 	}
-	debug() << "\n";
-	debug() << ml::textUtils::spaceStr(indent) << "inputs: ";
+	//debug() << "\n";
+	//debug() << ml::textUtils::spaceStr(indent) << "inputs: ";
 	if (ins)
 	{
 		for(int j = 1; j <= ins; ++j)
 		{
-			debug() << "[" << j << "] ";
+			//debug() << "[" << j << "] ";
 			const MLSignal* pIn = &getInput(j);
 			if (pIn == pNullInput)
 			{
-				debug() << "(null)  ";
+				//debug() << "(null)  ";
 			}
 			else
 			{
-				debug() << "(" << (void *)(pIn) << ")  ";
+				//debug() << "(" << (void *)(pIn) << ")  ";
 			}
 		}
 	}
 	else
 	{
-		debug() << "(none)";
+		//debug() << "(none)";
 	}
-	debug() << "\n";
-	debug() << ml::textUtils::spaceStr(indent) << "outputs: ";
+	//debug() << "\n";
+	//debug() << ml::textUtils::spaceStr(indent) << "outputs: ";
 	if (outs)
 	{
 		for(int j = 1; j <= outs; ++j)
 		{
-			debug() << "[" << j << "] ";
+			//debug() << "[" << j << "] ";
 			const MLSignal* pOut = &getOutput(j);
 			if(pOut == pNullOutput)
 			{
-				debug() << "(null)  ";
+				//debug() << "(null)  ";
 			}
 			else
 			{
 				// can no longer determine isConstant here because signals are shared.
-				debug() << "(" << (void *)(pOut)  << ")  ";
+				//debug() << "(" << (void *)(pOut)  << ")  ";
 			}
 		}
 	}
 	else
 	{
-		debug() << "(none)";
+		//debug() << "(none)";
 	}
-	debug() << "\n";
+	//debug() << "\n";
 }
 
 void MLProc::printErr(MLProc::err e)
 {
-	debug() << "*** proc " << getName() << " error: ";
+	//debug() << "*** proc " << getName() << " error: ";
 	switch(e)
 	{
 		case memErr:
-			debug() << "memErr\n";
+			//debug() << "memErr\n";
 			break;		
 		case inputBoundsErr:
-			debug() << "inputBoundsErr\n";
-			debug() << "wha\n";
+			//debug() << "inputBoundsErr\n";
+			//debug() << "wha\n";
 			break;		
 		case inputOccupiedErr:
-			debug() << "inputOccupiedErr\n";
+			//debug() << "inputOccupiedErr\n";
 			break;		
 		case inputRateErr:
-			debug() << "inputRateErr\n";
+			//debug() << "inputRateErr\n";
 			break;		
 		case noInputErr:
-			debug() << "noInputErr\n";
+			//debug() << "noInputErr\n";
 			break;		
 		case inputMismatchErr:
-			debug() << "inputMismatchErr\n";
+			//debug() << "inputMismatchErr\n";
 			break;		
 		case fractionalBlockSizeErr:
-			debug() << "fractionalBlockSizeErr\n";
+			//debug() << "fractionalBlockSizeErr\n";
 			break;		
 		case connectScopeErr:
-			debug() << "connectScopeErr\n";
+			//debug() << "connectScopeErr\n";
 			break;		
 		case nameInUseErr:
-			debug() << "nameInUseErr\n";
+			//debug() << "nameInUseErr\n";
 			break;
 		case headNotContainerErr:
-			debug() << "headNotContainerErr\n";
+			//debug() << "headNotContainerErr\n";
 			break;
 		case nameNotFoundErr:
-			debug() << "nameNotFoundErr\n";
+			//debug() << "nameNotFoundErr\n";
 			break;
 		case fileOpenErr:
-			debug() << "fileOpenErr\n";
+			//debug() << "fileOpenErr\n";
 			break;
 		case docSyntaxErr:
-			debug() << "docSyntaxErr\n";
+			//debug() << "docSyntaxErr\n";
 			break;
 		case newProcErr:
-			debug() << "newProcErr\n";
+			//debug() << "newProcErr\n";
 			break;
 		case SSE2RequiredErr:
-			debug() << "SSE2RequiredErr\n";
+			//debug() << "SSE2RequiredErr\n";
 			break;
 		case OK:
-			debug() << "OK\n";
+			//debug() << "OK\n";
 			break;
 		default:
-			debug() << "unknown error " << e << "\n";
+			//debug() << "unknown error " << e << "\n";
 			break;
 	}
 }
@@ -486,7 +486,7 @@ MLProcPtr MLProcFactory::createProc(const ml::Symbol className, MLDSPContext* co
 	else
 	{
 		// TODO anything? 
-		debug() << "MLProcFactory::createProc: class " << className << " not found!!";
+		//debug() << "MLProcFactory::createProc: class " << className << " not found!!";
 	}
 	
 	return resultProc;
@@ -496,11 +496,11 @@ void MLProcFactory::printRegistry(void)
 {
 	int size = (int)procRegistry.size();
 	
-	debug() << "---------------------------------------\n";
-	debug() << "MLProc registry: " << size << " members\n";
+	//debug() << "---------------------------------------\n";
+	//debug() << "MLProc registry: " << size << " members\n";
 	
 	for (FnRegistryT::iterator i = procRegistry.begin(); i != procRegistry.end(); i++)
 	{
-		debug() << (*i).first << "\n";		
+		//debug() << (*i).first << "\n";		
 	}
 }

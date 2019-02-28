@@ -32,7 +32,7 @@ MLProcDelayInput::MLProcDelayInput()
 
 MLProcDelayInput::~MLProcDelayInput()
 {
-//	debug() << "MLProcDelayInput destructor\n";
+//	//debug() << "MLProcDelayInput destructor\n";
 }
 
 MLProc::err MLProcDelayInput::resize() 

@@ -175,7 +175,7 @@ float MLPublishedParam::getValueAsLinearProportion() const
 		p = 1.0f - p;
 	}
 	
-	//debug() << "val = " << val << " -> prop = " << p << "\n";
+	////debug() << "val = " << val << " -> prop = " << p << "\n";
 	return p;
 }
 
@@ -213,7 +213,7 @@ float MLPublishedParam::setValueAsLinearProportion (float pIn)
 			break;
 	}
 	
-	//debug() << " prop = " << p <<  " -> val = " << val << "\n";
+	////debug() << " prop = " << p <<  " -> val = " << val << "\n";
 	mParamValue = val;
 	return val;
 }

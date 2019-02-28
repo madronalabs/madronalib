@@ -181,7 +181,7 @@ public:
 		}
 		else
 		{
-			debug() << "setParam: " << getClassName() << " has no parameter " << paramName << "!\n";
+			//debug() << "setParam: " << getClassName() << " has no parameter " << paramName << "!\n";
 		}
 #else
 		*(mParams[paramName]) = value;
@@ -251,14 +251,14 @@ public:
 		if (!std::string(name).compare("*"))
 		{
 			MLProcInfo<MLProcSubclass>::getVariableInputsFlag() = true;
-			// debug() << "added input " << name << ", variable size \n";
+			// //debug() << "added input " << name << ", variable size \n";
 		}
 		else
 		{
 			MLProcInfo<MLProcSubclass>::getVariableInputsFlag() = false;
 			MLSymbolMap & iMap = MLProcInfo<MLProcSubclass>::getClassInputMap();
 			iMap.addEntry(ml::Symbol(name));
-			// debug() << "added input " << name << ", size " << iMap.getSize() << "\n";
+			// //debug() << "added input " << name << ", size " << iMap.getSize() << "\n";
 		}
 	}
 };
@@ -272,14 +272,14 @@ public:
 		if (!std::string(name).compare("*"))
 		{
 			MLProcInfo<MLProcSubclass>::getVariableOutputsFlag() = true;
-			// debug() << "added output " << name << ", variable size \n";
+			// //debug() << "added output " << name << ", variable size \n";
 		}
 		else
 		{
 			MLProcInfo<MLProcSubclass>::getVariableOutputsFlag() = false;
 			MLSymbolMap & oMap = MLProcInfo<MLProcSubclass>::getClassOutputMap();
 			oMap.addEntry(ml::Symbol(name));
-			//		debug() << "added output " << name << ", size " << oMap.getSize() << "\n";
+			//		//debug() << "added output " << name << ", size " << oMap.getSize() << "\n";
 		}
 	}
 };
@@ -371,7 +371,7 @@ public:
 #if CHECK_IO
 		if (idx > (int)mInputs.size())
 		{
-			debug() << "MLProc::getInput: no input " << idx << " of proc " << getName() << "!\n";
+			//debug() << "MLProc::getInput: no input " << idx << " of proc " << getName() << "!\n";
 			return (getContext()->getNullInput());
 		}
 #endif
@@ -383,7 +383,7 @@ public:
 #if CHECK_IO
 		if (idx > (int)mOutputs.size())
 		{
-			debug() << "MLProc::getOutput: no output " << idx << " of proc " << getName() << "!\n";
+			//debug() << "MLProc::getOutput: no output " << idx << " of proc " << getName() << "!\n";
 			return (getContext()->getNullOutput());
 		}
 #endif
@@ -577,7 +577,7 @@ public:
 	static MLProcPtr createProcInstance()
 	{
 		// NOTE sizes are quite large! 
-// 		debug() << " size = " << sizeof(MLProcSubclass) << "\n";
+// 		//debug() << " size = " << sizeof(MLProcSubclass) << "\n";
 		
 //		void* newMem = malloc(sizeof(MLProcSubclass));		
 //		MLProcPtr pNew(new(newMem) MLProcSubclass);		

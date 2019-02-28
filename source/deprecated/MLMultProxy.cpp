@@ -52,7 +52,7 @@ void MLMultProxy::setCopies(const int newSize)
 	}
 	else
 	{
-		debug() << "MLMultProxy: no template for setCopies()!\n";
+		//debug() << "MLMultProxy: no template for setCopies()!\n";
 	}
 }
 
@@ -95,7 +95,7 @@ MLProcContainer* MLMultProxy::getCopyAsContainer(int c)
 	}
 	else
 	{
-		debug() << "MLMultProxy::getCopyAsContainer: error, copy " << c << " of template " << mTemplate->getName() << "is not container!\n";
+		//debug() << "MLMultProxy::getCopyAsContainer: error, copy " << c << " of template " << mTemplate->getName() << "is not container!\n";
 		return 0;
 	}
 }
@@ -124,7 +124,7 @@ MLMultiProc::MLMultiProc()
 
 MLMultiProc::~MLMultiProc()
 {
-//	debug() << "~MLMultiProc destructor\n";
+//	//debug() << "~MLMultiProc destructor\n";
 }
 
 MLProcInfoBase& MLMultiProc::procInfo()
@@ -135,7 +135,7 @@ MLProcInfoBase& MLMultiProc::procInfo()
 	}
 	else
 	{
-		debug() << "MLMultiProc::procInfo(): no template!\n";
+		////debug() << "MLMultiProc::procInfo(): no template!\n";
 		return mInfo; 
 	}
 }
@@ -218,7 +218,7 @@ void MLMultiProc::clearInput(int idx)
 MLProc::err MLMultiProc::setInput(const int idx, const MLSignal& srcSig)
 {
 	err e = OK;
-//debug() << "MLMultiProc::setInput (" << getName() << ")\n";
+////debug() << "MLMultiProc::setInput (" << getName() << ")\n";
 
 	e = MLProc::setInput(idx, srcSig);
 	const int copies = (int)mCopies.size();	
@@ -226,7 +226,7 @@ MLProc::err MLMultiProc::setInput(const int idx, const MLSignal& srcSig)
 	{
 		for(int i=0; i<copies; i++)
 		{
-//debug() << "                setInput #" << i << "\n";
+////debug() << "                setInput #" << i << "\n";
 			e = mCopies[i]->setInput(idx, srcSig);
 			if (e != OK) break;
 		}
@@ -291,11 +291,11 @@ void MLMultiProc::dumpProc(int indent)
 {
 	const int copies = (int)mCopies.size();	
 
-	debug() << ml::textUtils::spaceStr(indent) << getName() << " (multiproc " << (void *)&(*this) << ")\n";
+	////debug() << ml::textUtils::spaceStr(indent) << getName() << " (multiproc " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-		debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
+		////debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopy(i)->dumpProc(indent + 1);
 	}
 }
@@ -318,7 +318,7 @@ MLMultiContainer::MLMultiContainer() //: theProcFactory(MLProcFactory::theFactor
 
 MLMultiContainer::~MLMultiContainer()
 {
-//	debug() << "~MLMultiContainer destructor\n";
+//	//debug() << "~MLMultiContainer destructor\n";
 }
 
 // ----------------------------------------------------------------
@@ -342,9 +342,9 @@ bool MLMultiContainer::isEnabled() const
 
 bool MLMultiContainer::isProcEnabled(const MLProc* p) const
 {
-//debug() << "MLMultiContainer::isProcEnabled, copy " << p->mCopyIndex << " ? " <<
+////debug() << "MLMultiContainer::isProcEnabled, copy " << p->mCopyIndex << " ? " <<
 //	(int)((p->mCopyIndex < mEnabledCopies) && (getContext()->isEnabled())) << "\n";
-//debug() << "index " << p->mCopyIndex << ", " << mEnabledCopies << " enabled.\n";
+////debug() << "index " << p->mCopyIndex << ", " << mEnabledCopies << " enabled.\n";
 	
 	return mEnabled && (p->mCopyIndex <= mEnabledCopies);
 }
@@ -400,7 +400,7 @@ void MLMultiContainer::process()
             }
             else
             {
-                debug() << "MLMultiContainer: null copy in process()!\n";
+                ////debug() << "MLMultiContainer: null copy in process()!\n";
             }
  		}
     }
@@ -445,7 +445,7 @@ MLProcInfoBase& MLMultiContainer::procInfo()
 	}
 	else
 	{
-		debug() << "MLMultiContainer::procInfo(): no template!\n";
+		////debug() << "MLMultiContainer::procInfo(): no template!\n";
 		return mInfo; 
 	}
 }
@@ -531,7 +531,7 @@ MLProcPtr MLMultiContainer::newProc(const ml::Symbol className, const ml::Symbol
 	pNew = theProcFactory.createProc(className, this);	
 	if (!pNew)
 	{
-		debug() << "MLMultiContainer: newProc: couldn't create!\n";
+		////debug() << "MLMultiContainer: newProc: couldn't create!\n";
 	}
 	else
 	{
@@ -547,7 +547,7 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 	const int copies = (int)mCopies.size();	
 	const ml::Symbol className(parent->getStringAttribute("class").toUTF8());
 	const ml::Symbol procName(parent->getStringAttribute("name").toUTF8());
-	// debug() << "MLMultiContainer::buildProc (class=" << className << ", name=" << procName << ")\n";
+	// //debug() << "MLMultiContainer::buildProc (class=" << className << ", name=" << procName << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
@@ -573,13 +573,13 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
                 }		
                 else
                 {
-                    debug() << "MLMultiContainer::buildProc: getProc failed for new proc!\n";
+                    ////debug() << "MLMultiContainer::buildProc: getProc failed for new proc!\n";
                 }
             }
         }
         else
         {
-            debug() << "MLMultiContainer: null copy in buildProc ()!\n";
+            ////debug() << "MLMultiContainer: null copy in buildProc ()!\n";
         }
 	}
 	return e;
@@ -590,8 +590,8 @@ MLProc::err MLMultiContainer::buildProc(juce::XmlElement* parent)
 MLProcPtr MLMultiContainer::getProc(const ml::Path & pathName)
 {
 	MLProcPtr r = nullptr;
-debug() << "*************** ACK:	MLMultiContainer::getProc called!\n";
-debug() << "path = " << pathName << "\n"; 
+////debug() << "*************** ACK:	MLMultiContainer::getProc called!\n";
+////debug() << "path = " << pathName << "\n"; 
 	return r;
 }
 
@@ -602,7 +602,7 @@ debug() << "path = " << pathName << "\n";
 //
 void MLMultiContainer::addPipe(const ml::Path& src, const ml::Symbol out, const ml::Path& dest, const ml::Symbol in)
 {
-	//debug() << "MLMultiContainer::addPipe " << src << " " << out << " -> " << dest << " " << in << "\n";
+	////debug() << "MLMultiContainer::addPipe " << src << " " << out << " -> " << dest << " " << in << "\n";
 	const int copies = (int)mCopies.size();	
 	for(int i=0; i<copies; i++)
 	{
@@ -702,11 +702,11 @@ void MLMultiContainer::dumpGraph(int indent)
 	
 	dumpProc(indent);
 
-	debug() << ml::textUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
+	//debug() << ml::textUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-		debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
+		//debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopyAsContainer(i)->dumpGraph(indent + 1);
 	}
 }

@@ -112,8 +112,8 @@ void MLProcEnvelopeFollow::process()
 	 mT += samples;
 	 if (mT > sr)
 	 {
-	 //	debug() << getName() << " state: " << mState << " env: " << mEnv << "\n";
-		debug() << "trig: " << trigSelect << "\n";
+	 //	//debug() << getName() << " state: " << mState << " env: " << mEnv << "\n";
+		//debug() << "trig: " << trigSelect << "\n";
 		mT -= sr;
 	 }
 	 */

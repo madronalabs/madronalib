@@ -21,7 +21,7 @@ MLPoint adjust(MLPoint p)
 
 MLLookAndFeel::MLLookAndFeel()
 {
-	// debug() << "CREATING MLLookAndFeel\n";
+	// //debug() << "CREATING MLLookAndFeel\n";
 
 	mGridUnitSize = 24.f;
 	mGradientMode = 0;
@@ -107,7 +107,7 @@ MLLookAndFeel::MLLookAndFeel()
 
 MLLookAndFeel::~MLLookAndFeel()
 {
-	// debug() << "DELETING MLLookAndFeel\n";
+	// //debug() << "DELETING MLLookAndFeel\n";
 }
 
 void MLLookAndFeel::sendMLColorsToJUCE()
@@ -390,7 +390,7 @@ char* MLLookAndFeel::formatNumber (const float number, const int digits, const i
 	}	
 	 */
 
-	// debug() << "N" << numBuf << "\n";
+	// //debug() << "N" << numBuf << "\n";
 
 	return numBuf;
 }
@@ -2109,7 +2109,7 @@ void MLLookAndFeel::drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect destRec
 	if(0)
 	if(pW->getWidgetName() == "touches")
 	{
-		debug() << "source: " << sourceRect << ", dest: " << destRect << "\n";
+		//debug() << "source: " << sourceRect << ", dest: " << destRect << "\n";
 	}
 }
 
@@ -2670,14 +2670,14 @@ void MLLookAndFeel::addPicture(ml::Symbol name, const void* data, size_t dataSiz
 	DrawablePtr newPic (Drawable::createFromImageData(data, dataSize));
 	if (newPic != nullptr)
 	{
-		// debug() << "L+F@" << std::hex << (long)this << std::dec << " ADDING picture " << name << "\n";
+		// //debug() << "L+F@" << std::hex << (long)this << std::dec << " ADDING picture " << name << "\n";
 		mPictures[name] = newPic;
 	}
 }
 
 const Drawable* MLLookAndFeel::getPicture(ml::Symbol name)
 {
-	//debug() << "L+F@" << std::hex << (long)this << std::dec << " GETTING picture " << name << "\n";
+	////debug() << "L+F@" << std::hex << (long)this << std::dec << " GETTING picture " << name << "\n";
 	return &(*mPictures[name]);
 	// TODO add ? for pictures not found. 
 }

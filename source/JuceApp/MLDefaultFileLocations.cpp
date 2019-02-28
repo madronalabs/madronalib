@@ -82,11 +82,11 @@ File getDefaultFileLocation(eFileTypes whichFiles, String makerName, String appN
 	/*
     if(result == File::nonexistent)
     {
-        debug() << "failed to find location: " << startStr << " / " << destStr << "\n";
+        //debug() << "failed to find location: " << startStr << " / " << destStr << "\n";
     }
     else
     {
-        debug() << "found location: " << startStr << " / " << destStr << "\n";
+        //debug() << "found location: " << startStr << " / " << destStr << "\n";
     }
     */
 	return result;

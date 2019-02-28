@@ -37,7 +37,7 @@ MLAppView* MLPageView::addPage()
     String pageStr = String("page") + String(pageNum);
     newPage->setName(pageStr);
     
-    // debug() << "ADDING page " << pageStr << "\n";
+    // //debug() << "ADDING page " << pageStr << "\n";
 	mPages.push_back(newPage);
 	addChildComponent(newPage);
 	newPage->setBounds(0, 0, getWidth(), getHeight());	
@@ -141,7 +141,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 			targetAlpha = (newPage > 0) ? 1.f : 0.f;
 			mAnimator.animateComponent (prevButton, prevButton->getBounds(), 
 				targetAlpha, duration, proxy, 1.0, 1.0);
-//	debug() << "prev alpha: " << targetAlpha << "\n";
+//	//debug() << "prev alpha: " << targetAlpha << "\n";
 		}
 
 		// animate buttons 
@@ -152,7 +152,7 @@ void MLPageView::goToPage (int destPage, bool animate, Component* prevButton, Co
 			mAnimator.animateComponent (nextButton, nextButton->getBounds(),
 				targetAlpha, duration, proxy, 1.0, 1.0);
 				
-//	debug() << "next alpha: " << targetAlpha << "\n";
+//	//debug() << "next alpha: " << targetAlpha << "\n";
 		}
 	}
     else
@@ -183,11 +183,11 @@ void MLPageView::changeListenerCallback (ChangeBroadcaster* pSender)
 		{
 			// animation start
 			// turn off openGL timers
-//debug() << "anim off\n"		;
+////debug() << "anim off\n"		;
 		}
 		else
 		{
-//debug() << "anim on\n"	;		
+////debug() << "anim on\n"	;		
 			// animation end
 			// make invisible all but new page
 			int numPages = getNumPages();

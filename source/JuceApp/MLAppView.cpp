@@ -68,7 +68,7 @@ void MLAppView::addPropertyView(ml::Symbol modelProp, MLWidget* widget, ml::Symb
 
 void MLAppView::addWidgetToView(MLWidget* pW, const MLRect& r, ml::Symbol name = ml::Symbol())
 {
-	//debug() << "ADDING widget: " << name << "\n";
+	////debug() << "ADDING widget: " << name << "\n";
 	addWidget(pW, name);
 	pW->setGridBounds(r);
 	pW->addListener(mpResponder);
@@ -247,7 +247,7 @@ MLLabel* MLAppView::addLabel(const char* displayName, const MLRect & r, const fl
 		label->setResizeToText(true);
 		addWidgetToView(label, r, "");
 	}
-//debug() << "added label " << displayName << ", rect" << r << "\n";
+////debug() << "added label " << displayName << ", rect" << r << "\n";
 	return label;
 }
 

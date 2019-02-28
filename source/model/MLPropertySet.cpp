@@ -131,7 +131,7 @@ void MLPropertySet::broadcastAllProperties()
 		ml::Symbol p = it->first;
 		
 		// TODO cut down on some of this broadcasting!
-		// debug() << "BROADCASTING: " << p << "\n";
+		// //debug() << "BROADCASTING: " << p << "\n";
 		
 		broadcastProperty(p, false);
 	}

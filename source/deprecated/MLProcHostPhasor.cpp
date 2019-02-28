@@ -23,12 +23,12 @@ mPhase1(0.),
 mDt(0)
 {
 	clear();
-//	debug() << "MLProcHostPhasor constructor\n";
+//	//debug() << "MLProcHostPhasor constructor\n";
 }
 
 MLProcHostPhasor::~MLProcHostPhasor()
 {
-//	debug() << "MLProcHostPhasor destructor\n";
+//	//debug() << "MLProcHostPhasor destructor\n";
 }
 
 void MLProcHostPhasor::doParams(void) 
@@ -49,11 +49,11 @@ void MLProcHostPhasor::setTimeAndRate(const double secs, const double ppqPos, co
 		|| ((ml::isNaN(bpm)) || (ml::isInfinite(bpm)))
 		|| ((ml::isNaN(secs)) || (ml::isInfinite(secs))) ) 
 	{
-		debug() << "MLProcHostPhasor::setTimeAndRate: bad input! \n";
+		//debug() << "MLProcHostPhasor::setTimeAndRate: bad input! \n";
 		return;
 	}
 	
-	//debug() << "setTimeAndRate: secs " << secs << " ppq: " << ppqPos << " is playing: " << isPlaying << "\n";
+	////debug() << "setTimeAndRate: secs " << secs << " ppq: " << ppqPos << " is playing: " << isPlaying << "\n";
 	
 	double phase = 0.;
 	double newTime = ml::clamp(ppqPos, 0., 100000.);
@@ -116,5 +116,5 @@ void MLProcHostPhasor::process()
 		y[n] = mOmega;
 	}
 	mDt += kFloatsPerDSPVector;
-	//debug() << y[0] << " -- " << y[samples - 1] << "\n";
+	////debug() << y[0] << " -- " << y[samples - 1] << "\n";
 }

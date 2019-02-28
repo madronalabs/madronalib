@@ -29,7 +29,7 @@ MLProcRMS::MLProcRMS() : sampleCounter(0)
 
 MLProcRMS::~MLProcRMS()
 {
-//	debug() << "MLProcRMS destructor\n";
+//	//debug() << "MLProcRMS destructor\n";
 }
 
 void MLProcRMS::clear(void) 
@@ -40,11 +40,11 @@ void MLProcRMS::clear(void)
 // volume accessor TODO make generic getter via symbol
 float MLProcRMS::getRMS() 
 { 
-	//debug() << "RMS: " << mRMS << "\n";
+	////debug() << "RMS: " << mRMS << "\n";
 	
 	if(mRMS != mRMS)
 	{
-		debug() << "RMS NaN!\n";
+		//debug() << "RMS NaN!\n";
 		clear();
 	}
 	return mRMS; 

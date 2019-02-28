@@ -27,12 +27,12 @@ MLProcMultiple::MLProcMultiple()
 	setParam("ratio", 1);
 	setParam("up_order", 0);
 	setParam("down_order", 0);
-//	debug() << "MLProcMultiple constructor\n";
+//	//debug() << "MLProcMultiple constructor\n";
 }
 
 MLProcMultiple::~MLProcMultiple()
 {
-//	debug() << "MLProcMultiple destructor\n";
+//	//debug() << "MLProcMultiple destructor\n";
 }
 
 // make a new proxy for multiple copies of the named class.
@@ -50,7 +50,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
 	{
 		// new template proc
 		
-		// debug() << "MLProcMultiple (" << (void *)this << ") ADDING proc " << procName << " \n";
+		// //debug() << "MLProcMultiple (" << (void *)this << ") ADDING proc " << procName << " \n";
 				
 //		pTemplate = newProc(className, procName + "#1");		
 
@@ -81,7 +81,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
                     
                     mProcMap[proxy.getCopy(i)->getNameWithCopyIndex()] = proxy.getCopy(i);
                     mProcList.push_back(proxy.getCopy(i));
-                    debug() << "PUSHING multicontainer " << proxy.getCopy(i)->getNameWithCopyIndex() << "\n";
+                    //debug() << "PUSHING multicontainer " << proxy.getCopy(i)->getNameWithCopyIndex() << "\n";
                     
                 }
                  */
@@ -102,7 +102,7 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
                 {
                     mProcMap[proxy.getCopy(i)->getNameWithCopyIndex()] = proxy.getCopy(i); 
                     mProcList.push_back(proxy.getCopy(i));                    
-                    debug() << "PUSHING multiproc " << proxy.getCopy(i)->getNameWithCopyIndex() << "\n";                    
+                    //debug() << "PUSHING multiproc " << proxy.getCopy(i)->getNameWithCopyIndex() << "\n";                    
                 }
                  */
             }
@@ -113,13 +113,13 @@ MLProc::err MLProcMultiple::addProc(const ml::Symbol className, const ml::Symbol
 		}
 		else
 		{
-			debug() << "MLProcMultiple: addProc: couldn't make proc!\n";
+			//debug() << "MLProcMultiple: addProc: couldn't make proc!\n";
 			e = newProcErr;
 		}
 	}
 	else
 	{
-		debug() << "MLProcMultiple: addProc: name " << procName << " already in use!\n";
+		//debug() << "MLProcMultiple: addProc: name " << procName << " already in use!\n";
 		e = nameInUseErr;
 	}
 	return e;
@@ -140,7 +140,7 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 	ml::Path tail = path.tail();
 	int copy = path.getCopy();
 	
-	// debug() << "MLProcMultiple (" << (void *)this << ") getting Proc " << head << " / " << tail << "\n";
+	// //debug() << "MLProcMultiple (" << (void *)this << ") getting Proc " << head << " / " << tail << "\n";
 		
 	// get the proxy proc we contain, matching head name
 	it = mProcMap.find(head);
@@ -173,13 +173,13 @@ MLProcPtr MLProcMultiple::getProc(const ml::Path & path)
 				/*
 				else // tail not empty and no copy number is an error
 				{
-					debug() << " MLProcMultiple::getProc: error: no copy specified for proxy " << head << "\n";
+					//debug() << " MLProcMultiple::getProc: error: no copy specified for proxy " << head << "\n";
 				}
 				*/
 			}
 			else // proxy is a MultiProc
 			{
-				debug() << "ack, head proc in name is not container!\n";
+				//debug() << "ack, head proc in name is not container!\n";
 				e = headNotContainerErr;
 			}		
 		}

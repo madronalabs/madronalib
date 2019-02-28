@@ -136,10 +136,10 @@ void MLDial::sendValueOfDial(WhichDial s, float val)
 {
 	// TODO min and max thumbs are unimplemented
 	
-	//debug() << "in constrain: " << newValue << "\n";
+	////debug() << "in constrain: " << newValue << "\n";
 	float oldValue = getFloatProperty("value");
 	float newValue = constrainValue (val);
-	//debug() << "    out constrain: " << newValue << "\n";
+	////debug() << "    out constrain: " << newValue << "\n";
 	
 	if(newValue != oldValue)
 	{
@@ -266,8 +266,8 @@ void MLDial::setRange (const float newMin,
 	mDoSign = ((newMax < 0) || (newMin < 0));
 	mPrecision = ceil(log10(1. / newInt) - 0.0001);	
 	
-	// debug() << getWidgetName() << "SET RANGE: digits: " << mDigits << " precision: " << 	mPrecision << " sign: " << mDoSign << "\n";
-	// debug() << "PRECISION:" << mPrecision << ", INTERVAL:" << newInt << "\n";
+	// //debug() << getWidgetName() << "SET RANGE: digits: " << mDigits << " precision: " << 	mPrecision << " sign: " << mDoSign << "\n";
+	// //debug() << "PRECISION:" << mPrecision << ", INTERVAL:" << newInt << "\n";
 
 }
 

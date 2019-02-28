@@ -43,20 +43,20 @@ namespace
 
 MLProcPhasor::MLProcPhasor()
 {
-//	debug() << "MLProcPhasor constructor\n";
+//	//debug() << "MLProcPhasor constructor\n";
 }
 
 
 MLProcPhasor::~MLProcPhasor()
 {
-//	debug() << "MLProcPhasor destructor\n";
+//	//debug() << "MLProcPhasor destructor\n";
 }
 
 
 void MLProcPhasor::clear()
 {	
 	omega = 0.f;
-//	debug() << "phasor clear!~!\n";
+//	//debug() << "phasor clear!~!\n";
 }
 
 

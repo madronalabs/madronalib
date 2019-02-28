@@ -147,8 +147,8 @@ void MLEnvelope::paint (Graphics& g)
 
 	}
 
-//debug() << "DEL " << mDelay << " ATT " << attTime << " DEC " << decTime << " SUS " << susTime << " REL " << relTime << " REP " << mRepeat << "\n";
-//debug() << "repeatX: " << repX << " delayX: " << delX << "\n";
+////debug() << "DEL " << mDelay << " ATT " << attTime << " DEC " << decTime << " SUS " << susTime << " REL " << relTime << " REP " << mRepeat << "\n";
+////debug() << "repeatX: " << repX << " delayX: " << delX << "\n";
 
 	/*
 	// TEST

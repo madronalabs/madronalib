@@ -58,7 +58,7 @@ void MLDebugDisplay::display()
 		if (tc > kMLDebugMaxChars)
 		{
 			mpComp->loadContent("");
-			debug() << "----debug data > " << (int)kMLDebugMaxChars << " bytes, truncated----\n\n";
+			//debug() << "----debug data > " << (int)kMLDebugMaxChars << " bytes, truncated----\n\n";
 		}
 		
 		int lastDocLine = mpDoc->getNumLines();
