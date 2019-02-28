@@ -20,9 +20,9 @@
 //#include "MLDebug.h"
 //#include "MLSignal.h"
 
-#include "model/MLProperty.h"
-#include "core/MLSymbol.h"
-#include "core/MLQueue.h"
+#include "MLProperty.h"
+#include "MLSymbol.h"
+#include "MLQueue.h"
 
 
 #include <stdexcept>

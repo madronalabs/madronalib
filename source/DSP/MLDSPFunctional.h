@@ -23,6 +23,7 @@ namespace ml
 	// upsamples the input x by 2, applies f, downsamples and returns the result.
 	// the total delay from the resampling filters used is about 3 samples.	
 	
+	/*
 	template<int IN_ROWS, int OUT_ROWS>
 	class Upsample2xFunction
 	{
@@ -121,10 +122,16 @@ namespace ml
 		DSPVectorArray<OUT_ROWS> mDownsampledOutput;
 		bool mPhase{false};
 	};
-	
+	*/
+
+// MLTEST: these are not compiling in MSVC
 	
 	// OverlapAddFunction TODO
 	
+
+/*
+MLTEST
+
 	template<int LENGTH, int DIVISIONS, int IN_ROWS, int OUT_ROWS>
 	class OverlapAddFunction
 	{
@@ -202,7 +209,9 @@ namespace ml
 		std::array<PitchbendableDelay, ROWS> mDelays;
 		DSPVectorArray<ROWS> vy1;
 	};
-	
+	*/
+// MLTEST
+
 	
 } // namespace ml
 

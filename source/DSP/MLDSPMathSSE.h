@@ -803,7 +803,7 @@ inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val)
 	SIMDVectorInt vZero = _mm_setzero_si128();
 	SIMDVectorInt valAsInt = VecF2I(val);
 	SIMDVectorInt expi = _mm_srli_epi32(valAsInt, 23);
-	SIMDVectorFloat addcst = vecSelect(kLogC1Vec, _mm_set1_ps(FLT_MIN), _mm_cmpgt_ps(val, VecI2F(vZero)));
+	SIMDVectorFloat addcst = vecSelect(kLogC1Vec, _mm_set1_ps(FLT_MIN), VecF2I(_mm_cmpgt_ps(val, VecI2F(vZero))));
 	SIMDVectorInt valAsIntMasked = VecF2I(_mm_or_ps(_mm_and_ps(VecI2F(valAsInt), VecI2F(_mm_set1_epi32(0x7FFFFF))), VecI2F(_mm_set1_epi32(0x3F800000))));
 	SIMDVectorFloat x = VecI2F(valAsIntMasked);
 		

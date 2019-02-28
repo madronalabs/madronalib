@@ -12,9 +12,9 @@
 #include "MLProc.h"
 #include "MLScale.h"
 #include "MLChangeList.h"
-#include "networking/MLInputProtocols.h"
+#include "MLInputProtocols.h"
 #include "MLControlEvent.h"
-#include "networking/MLT3DHub.h"
+#include "MLT3DHub.h"
 #include "MLDefaultFileLocations.h"
 
 // a voice that can play.

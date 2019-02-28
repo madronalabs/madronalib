@@ -2106,11 +2106,7 @@ void MLLookAndFeel::drawBackgroundRect(Graphics& g, MLWidget* pW, MLRect destRec
 					destRect.left(), destRect.top(), destRect.width(), destRect.height(),
 					sourceRect.x(), sourceRect.y(), sourceRect.width(), sourceRect.height());
 	
-	if(0)
-	if(pW->getWidgetName() == "touches")
-	{
-		//debug() << "source: " << sourceRect << ", dest: " << destRect << "\n";
-	}
+
 }
 
 // used by app border

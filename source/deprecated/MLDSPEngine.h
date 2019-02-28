@@ -8,14 +8,14 @@
 
 #include "MLProcContainer.h"
 #include "MLProcInputToSignals.h"
-#include "networking/MLInputProtocols.h"
+#include "MLInputProtocols.h"
 #include "MLProcHostPhasor.h"
 #include "MLSignal.h"
 #include "MLControlEvent.h"
 #include "MLDSPDeprecated.h"
 #include "MLQueue.h"
-#include "networking/MLT3DHub.h"
-#include "DSP/MLDSPBuffer.h"
+#include "MLT3DHub.h"
+#include "MLDSPBuffer.h"
 
 #include "oscpack/osc/OscTypes.h"
 
