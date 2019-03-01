@@ -9,9 +9,9 @@
 void MLSignalStats::dump()
 {
 	//debug() << "PROCS:  " << mProcs 
-	<< "  BUFS:   " << mSignalBuffers
-	<< "  CONSTS: " << mConstantSignals 
-	<< "  NAN: " << mNanSignals << "\n";
+//	<< "  BUFS:   " << mSignalBuffers
+//	<< "  CONSTS: " << mConstantSignals 
+//	<< "  NAN: " << mNanSignals << "\n";
 }
 
 // ----------------------------------------------------------------

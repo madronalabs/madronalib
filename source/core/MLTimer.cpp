@@ -8,7 +8,6 @@
 // for use with the JUCE framework: https://github.com/WeAreROLI
 // JUCE does not allow many display functions to be called from what it considers the wrong thread,
 // so turn this on to start all our Timers from juce's message thread. 
-
 #ifdef JUCE_APP_VERSION
 #define MADRONALIB_TIMERS_USE_JUCE 1
 #endif
@@ -26,7 +25,7 @@ namespace ml
 {
 	namespace Time
 	{
-		const int kMillisecondsResolution = 10;
+		const int kMillisecondsResolution = 16;
 	}
 
 	class Timers
@@ -114,7 +113,8 @@ namespace ml
 	
 	Timer::Timer() noexcept
 	{
-		std::unique_lock<std::mutex> lock(Timers::theTimers().mSetMutex);
+		Timers& t{Timers::theTimers()};
+		std::unique_lock<std::mutex> lock(t.mSetMutex);
 		Timers::theTimers().insert(this);
 	}
 	

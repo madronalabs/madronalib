@@ -88,7 +88,7 @@ void MLAppState::saveStateToStateFile()
 		if(!dir.isDirectory())
 		{
 			//debug() << "MLAppState:: file present instead of directory " << 
-				dir.getFileName() << "!  Aborting.\n";
+				//dir.getFileName() << "!  Aborting.\n";
 		}
 	}
 	else 

@@ -110,7 +110,7 @@ void MLProcDebug::process()
 			for(int j=0; j<kFloatsPerDSPVector; ++j)
 			{
 				//debug() << in[j] << " " ;		
-				if ((j%8 == 7) && (j < kFloatsPerDSPVector-1)) //debug() << "\n";	
+				//if ((j%8 == 7) && (j < kFloatsPerDSPVector-1)) //debug() << "\n";	
 			}
 			//debug() << "]\n\n";
 		}
