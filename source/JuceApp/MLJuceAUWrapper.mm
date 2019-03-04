@@ -735,6 +735,7 @@ void loadFile(const File& f) override
 	CFRelease( resourceData );
 	CFRelease( propertyList );
 	CFRelease( fileURL );
+	CFRelease( nameString );
 }
 
 void saveToFile(const File& f) override
@@ -744,7 +745,8 @@ void saveToFile(const File& f) override
 	String shortName = f.getFileNameWithoutExtension();
 	
 	// get URL from Juce File
-	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8), kCFURLPOSIXPathStyle, false);
+	CFStringRef nameString = CFStringCreateWithCString(NULL, fileStr, kCFStringEncodingUTF8);
+	CFURLRef fileURL = CFURLCreateWithFileSystemPath(NULL, nameString, kCFURLPOSIXPathStyle, false);
 	
 	// get property list.
 	CFPropertyListRef myPropsRef;
@@ -792,6 +794,7 @@ void saveToFile(const File& f) override
 	}
 	CFRelease(myPropsRef);
 	CFRelease( fileURL );
+	CFRelease( nameString );
 }
 // ML
 // ----------------------------------------------------------------
@@ -1255,7 +1258,7 @@ for (unsigned int i = 0; i < numInputBuses; ++i)
 		AUInputElement*  input  = (busIdx < numInputBuses)  ? GetInput (busIdx)  : nullptr;
 		AUOutputElement* output = (busIdx < numOutputBuses) ? GetOutput (busIdx) : nullptr;
 		
-		const unsigned int numInChannels  = (input != nullptr  ? input ->GetStreamFormat().mChannelsPerFrame : 0);
+		const unsigned int numInChannels  = (input != nullptr  ? input->GetStreamFormat().mChannelsPerFrame : 0);
 		const unsigned int numOutChannels = (output != nullptr ? output->GetStreamFormat().mChannelsPerFrame : 0);
 		
 		if (numOutChannels > numInChannels)
@@ -1296,27 +1299,30 @@ for (unsigned int i = 0; i < numInputBuses; ++i)
 		}
 		else
 		{
-			const AudioBufferList& inBuffer = input->GetBufferList();
-			const bool isInputInterleaved = (numInChannels > 1) && (inBuffer.mNumberBuffers == 1);
-			
-			for (unsigned int chIdx = 0; chIdx < numInChannels; ++chIdx)
+			if(input)
 			{
-				int mappedInChIdx = inputLayoutMap.getReference (static_cast<int> (busIdx))[static_cast<int> (chIdx)];
+				const AudioBufferList& inBuffer = input->GetBufferList();
+				const bool isInputInterleaved = (numInChannels > 1) && (inBuffer.mNumberBuffers == 1);
 				
-				float* buffer = isInputInterleaved ? scratchBuffers[scratchIdx++]
-				: static_cast<float*> (inBuffer.mBuffers[mappedInChIdx].mData);
-				
-				if (isInputInterleaved)
+				for (unsigned int chIdx = 0; chIdx < numInChannels; ++chIdx)
 				{
-					const float* inData = static_cast<float*> (inBuffer.mBuffers[0].mData);
-					for (unsigned int i = 0; i < nFrames; ++i)
+					int mappedInChIdx = inputLayoutMap.getReference (static_cast<int> (busIdx))[static_cast<int> (chIdx)];
+					
+					float* buffer = isInputInterleaved ? scratchBuffers[scratchIdx++]
+					: static_cast<float*> (inBuffer.mBuffers[mappedInChIdx].mData);
+					
+					if (isInputInterleaved)
 					{
-						buffer [i] = inData [mappedInChIdx];
-						inData += numInChannels;
+						const float* inData = static_cast<float*> (inBuffer.mBuffers[0].mData);
+						for (unsigned int i = 0; i < nFrames; ++i)
+						{
+							buffer [i] = inData [mappedInChIdx];
+							inData += numInChannels;
+						}
 					}
+					
+					channels[idx++] = buffer;
 				}
-				
-				channels[idx++] = buffer;
 			}
 		}
 	}

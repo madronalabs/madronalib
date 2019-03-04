@@ -692,11 +692,12 @@ namespace ml { namespace textUtils {
 	// if the symbol's text ends in a positive integer, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{		
-		// make temporary buffer, hopefully on stack
+		// make temporary buffer of decoded code points, hopefully on stack
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
-		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
-		codepoint_type* buf = temp.data();
+		
+		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
+		codepoint_type* buf = decodedPoints.data();
 		
 		// read into char32 array for random access
 		int i=0;
@@ -706,7 +707,7 @@ namespace ml { namespace textUtils {
 			buf[i++] = c;
 		}					
 		
-		// null terminate
+		// null terminate char32_t string
 		buf[points] = 0;
 		
 		// no final number? return

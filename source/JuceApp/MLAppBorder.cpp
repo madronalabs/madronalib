@@ -6,15 +6,15 @@
 #include "MLAppBorder.h"
 
 MLAppBorder::MLAppBorder(MLAppView* pV) : 
-	pMainView(pV),
-    mpResizer(0),
-	mGridUnitsX(0),
-	mGridUnitsY(0),
-	mZoomable(false)
+pMainView(pV),
+mpResizer(0),
+mGridUnitsX(0),
+mGridUnitsY(0),
+mZoomable(false)
 {
 	// don't buffer this big guy
 	setBufferedToImage(false);
-    setOpaque(true);
+	setOpaque(true);
 }
 
 MLAppBorder::~MLAppBorder()
@@ -35,7 +35,9 @@ void MLAppBorder::makeResizer(Component* targetComp)
 }
 
 void MLAppBorder::paint (Graphics& g)
-{    
+{ 
+	if (!pMainView) return;
+	
 	// This is where most of the plugin's background is actually painted.
 	// //debug() << "MLAppBorder::paint\n";
 	pMainView->getViewResources().mLookAndFeel.drawEntireBackground(g, mBorderRect);
@@ -50,6 +52,8 @@ int MLAppBorder::getHeightUnit()
 
 MLRect MLAppBorder::centerMainViewInWindow(int u)
 {
+	if (!pMainView) return MLRect();
+	
 	MLRect br = juceToMLRect(getBounds());
 	
 	int windowWidth = br.width();
@@ -75,7 +79,7 @@ MLRect MLAppBorder::centerMainViewInWindow(int u)
 		viewHeight = floor((double)windowWidth/viewRatio);
 		u = viewWidth / mGridUnitsX;
 	}
-    
+	
 	pMainView->getViewResources().mLookAndFeel.setGridUnitSize(u);	
 	
 	if ((!viewWidth) || (!viewHeight) || !u) return MLRect(0, 0, 64, 64);
@@ -89,16 +93,18 @@ MLRect MLAppBorder::centerMainViewInWindow(int u)
 
 void MLAppBorder::resized()
 {
+	if (!pMainView) return;
+	
 	int u = getHeightUnit();
 	mBorderRect = centerMainViewInWindow(u); 
-	if (pMainView) pMainView->resizeWidget(mBorderRect, u);
-
+	pMainView->resizeWidget(mBorderRect, u);
+	
 	Rectangle<int> bounds = getBounds();
 	MLRect newBounds = juceToMLRect(bounds);
-
+	
 	int w = newBounds.width();
 	int h = newBounds.height();
-
+	
 	// move resizer widget
 	if(mpResizer)
 	{
@@ -116,6 +122,8 @@ void MLAppBorder::resized()
 
 void MLAppBorder::setGridUnits(int gx, int gy)
 {
+	if (!pMainView) return;
+	
 	AppViewResources& resources = pMainView->getViewResources();
 	resources.mLookAndFeel.setGridUnits(gx, gy);	
 	myConstrainer.setFixedAspectRatio((float)gx/(float)gy);	
@@ -128,4 +136,5 @@ void MLAppBorder::setZoomable(bool z)
 	mZoomable = z;
 	myConstrainer.setZoomable(z); 
 }
+
 

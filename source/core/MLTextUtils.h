@@ -90,6 +90,7 @@ using namespace utf;
 		return TextFragment(reinterpret_cast<const char*>(p), v.size());
 	}
 
+	// TODO small stack objects here to make random access class, don't use vector
 	inline std::vector<codepoint_type> textToCodePointVector(TextFragment frag)
 	{
 		std::vector<codepoint_type> r;
