@@ -696,6 +696,8 @@ namespace ml { namespace textUtils {
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
 		
+		// TODO make more readble using random access fragment class
+		
 		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
 		codepoint_type* buf = decodedPoints.data();
 		
@@ -708,14 +710,14 @@ namespace ml { namespace textUtils {
 		}					
 		
 		// null terminate char32_t string
-		buf[points] = 0;
+		buf[i] = 0;
 		
 		// no final number? return
-		if(!textUtils::isDigit(buf[points - 1])) return 0;
+		if(!textUtils::isDigit(buf[i - 1])) return 0;
 		
 		// read backwards until non-digit
 		int firstDigitPos = 0;
-		for(int i=points - 2; i >= 0; --i)
+		for(i--; i >= 0; --i)
 		{
 			char32_t c = buf[i];
 			if(!textUtils::isDigit(c))
