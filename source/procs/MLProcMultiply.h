@@ -4,7 +4,7 @@
 #pragma once
 
 #include "MLDSP.h"
-#include "model/MLPropertySet.h"
+#include "MLPropertySet.h"
 #include "MLProcFactory.h"
 #include "MLText.h"
 

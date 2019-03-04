@@ -17,6 +17,10 @@
 // TODO rename to "Value"?
 // Value / ValueSet / 
 
+// TODO: instead of using MLSignal directly here as a type, make a blob type
+// and utilities (in MLSignal) for conversion. This lets the current "model" code go into "app"
+// because it doesn't depend on DSP math anymore, and increases reusability.
+
 class MLProperty
 {
 public:

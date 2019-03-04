@@ -65,14 +65,14 @@ Contents
 	/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
 	/include: MLDSP.h, madronalib.h
 	/source:
-		/core: utilities for low-level application support: symbols, 
-			timers, queues, data structures, etc. these modules shall 
-			only depend on other code in /core.
+		/app: utilities for low-level application support: symbols, 
+			timers, queues, data structures, models, etc. these modules shall 
+			only depend on other code in /app.
 
 		/deprecated: code from the Juce-based app and the older dynamic 
 			DSP graph code.
 
-		/DSP: functions for making DSP objects including SSE/NEON math 
+		/DSP: functions for making DSP objects including SIMD math 
 			libraries. These modules shall only depend on code in /DSP, 
 			with the exception of the externals/ffft library. Include 
 			MLDSP.h to include all DSP files. NEON code is work 
@@ -82,16 +82,14 @@ Contents
 
 		/JuceLookAndFeel: widgets for JUCE-based display.
 
-		/matrix: matrix and vector data and functions. To depend only on 
-			/DSP.
-
-		/model: app framework code--properties, data, models, etc. 
+		/matrix: matrix and vector data and functions. Depends only on 
+			/DSP, for SIMD math.
 
 		/networking: OSC and MIDI support.
 
 		/procs: higher level DSP code designed to support dynamic graphs
 			(changing at runtime.) These rely on code in /DSP as well as
-			the symbolic code in /core. work in progress.
+			the symbolic code in /app. work in progress.
 
 		/widgets where new UI widgets will go.
 
