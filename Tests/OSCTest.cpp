@@ -3,6 +3,9 @@
 //  madronalib
 //
 
+#ifdef __WIN32__
+// TODO OSC for windows
+
 
 #include "catch.hpp"
 #include "madronalib.h"
@@ -14,7 +17,6 @@
 
 
 #define IP_MTU_SIZE 1536
-
 
 TEST_CASE("madronalib/core/OSC/send", "[OSC][send]")
 {
@@ -40,3 +42,4 @@ TEST_CASE("madronalib/core/OSC/send", "[OSC][send]")
 	
 }
 
+#endif // WIN32

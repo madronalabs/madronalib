@@ -11,23 +11,44 @@ set(madronalib_HEADERS
   ../include/madronalib.h
   )
 
+set(OSC_SOURCES
+    networking/MLInputProtocols.h
+    networking/MLNetServiceHub.cpp
+    networking/MLNetServiceHub.h
+    networking/MLOSCListener.cpp
+    networking/MLOSCListener.h
+    networking/MLOSCReceiver.cpp
+    networking/MLOSCReceiver.h
+    networking/MLOSCSender.cpp
+    networking/MLOSCSender.h
+    networking/MLT3DHub.cpp
+    networking/MLT3DHub.h
+    networking/MLT3DPorts.h
+)
+
 set(NEW_SOURCES
-    core/MLClock.cpp      
-    core/MLPath.h         
-    core/MLSymbol.cpp     
-    core/MLTextUtils.cpp
-    core/MLClock.h        
-    core/MLPlatform.h     
-    core/MLSymbol.h       
-    core/MLTextUtils.h
-    core/MLMemoryUtils.h  
-    core/MLQueue.h        
-    core/MLText.cpp       
-    core/MLTimer.cpp
-    core/MLPath.cpp       
-    core/MLResourceMap.h  
-    core/MLText.h         
-    core/MLTimer.h
+    app/MLClock.cpp      
+    app/MLPath.h         
+    app/MLSymbol.cpp     
+    app/MLTextUtils.cpp
+    app/MLClock.h        
+    app/MLPlatform.h     
+    app/MLSymbol.h       
+    app/MLTextUtils.h
+    app/MLMemoryUtils.h  
+    app/MLQueue.h        
+    app/MLText.cpp       
+    app/MLTimer.cpp
+    app/MLPath.cpp       
+    app/MLResourceMap.h  
+    app/MLText.h         
+    app/MLTimer.h
+    app/MLModel.cpp
+    app/MLModel.h
+    app/MLProperty.cpp
+    app/MLProperty.h
+    app/MLPropertySet.cpp
+    app/MLPropertySet.h
 
     DSP/MLDSPBuffer.cpp
     DSP/MLDSPBuffer.h
@@ -39,7 +60,6 @@ set(NEW_SOURCES
     DSP/MLDSPMathNEON.h
     DSP/MLDSPMathSSE.h
     DSP/MLDSPMathScalar.h
-    DSP/MLDSPOps.cpp
     DSP/MLDSPOps.h
     DSP/MLDSPUtils.h
     DSP/MLProjection.cpp
@@ -54,26 +74,6 @@ set(NEW_SOURCES
     matrix/MLInterpolator.h
     matrix/MLSignal.cpp
     matrix/MLSignal.h
-
-    model/MLModel.cpp
-    model/MLModel.h
-    model/MLProperty.cpp
-    model/MLProperty.h
-    model/MLPropertySet.cpp
-    model/MLPropertySet.h
-
-    networking/MLInputProtocols.h
-    networking/MLNetServiceHub.cpp
-    networking/MLNetServiceHub.h
-    networking/MLOSCListener.cpp
-    networking/MLOSCListener.h
-    networking/MLOSCReceiver.cpp
-    networking/MLOSCReceiver.h
-    networking/MLOSCSender.cpp
-    networking/MLOSCSender.h
-    networking/MLT3DHub.cpp
-    networking/MLT3DHub.h
-    networking/MLT3DPorts.h
 
     procs/MLProc.cpp
     procs/MLProc.h
@@ -98,9 +98,6 @@ else(BUILD_NEW_ONLY)
     deprecated/MLProcFactory.h
     deprecated/MLProcMultiply.cpp
     deprecated/MLProcMultiply.h
-    deprecated/CreakyBook:procs rej$ cd ..
-    deprecated/CreakyBook:source rej$ cd deprecated/
-    deprecated/CreakyBook:deprecated rej$ ls -1
     deprecated/MLChangeList.cpp
     deprecated/MLChangeList.h
     deprecated/MLControlEvent.cpp
@@ -268,12 +265,13 @@ endif()
 
 if(APPLE)
   list(APPEND madronalib_SOURCES deprecated/MLDebugMac.mm)
-else(APPLE)
+  list(APPEND madronalib_SOURCES OSC_SOURCES)
+else()
   list(APPEND madronalib_SOURCES deprecated/MLDebug.cpp)
 endif()
 
 
-# add frameworks
+# Frameworks
 
 #if(APPLE)
  #  FIND_LIBRARY(CARBON_LIBRARY Carbon)
@@ -286,6 +284,8 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 
+# Create Library
+
 add_library(madronalib STATIC ${madronalib_SOURCES})
 set_target_properties(madronalib PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
@@ -294,33 +294,51 @@ set_target_properties(madronalib PROPERTIES
                       POSITION_INDEPENDENT_CODE ON
                       FOLDER "madronalib")
 
-if(BUILD_NEW_ONLY)
-  target_include_directories(madronalib PUBLIC core)
-  target_include_directories(madronalib PUBLIC DSP)
-  target_include_directories(madronalib PUBLIC procs)
 
+# Include Directories
+
+target_include_directories(madronalib PUBLIC app)
+target_include_directories(madronalib PUBLIC DSP)
+target_include_directories(madronalib PUBLIC matrix)
+target_include_directories(madronalib PUBLIC networking)
+target_include_directories(madronalib PUBLIC procs)
+
+if(BUILD_NEW_ONLY)
 else(BUILD_NEW_ONLY)
-  target_include_directories(madronalib PUBLIC core)
-  target_include_directories(madronalib PUBLIC MLJuceApp)
-  target_include_directories(madronalib PUBLIC MLApp)
-  target_include_directories(madronalib PUBLIC DSP)
-  target_include_directories(madronalib PUBLIC LookAndFeel)  
+  target_include_directories(madronalib PUBLIC deprecated)
+  target_include_directories(madronalib PUBLIC JuceApp)
+  target_include_directories(madronalib PUBLIC JuceLookAndFeel)  
 
   #include our AppConfig.h and JuceHeader.h
   target_include_directories(madronalib PUBLIC ../external/juce)
 endif()
 
+
+#--------------------------------------------------------------------
+# Add libraries
+#--------------------------------------------------------------------
+
+
+#if (DOXYGEN_FOUND AND ML_BUILD_DOCS)
+#    add_subdirectory(docs)
+#endif()
+
+
+
 target_link_libraries(madronalib aes256)
 target_link_libraries(madronalib cjson)
+# note: ffft is header-only
+target_link_libraries(madronalib utf)
 
-# TODO OSC support for Windows
-#if(APPLE)
-target_link_libraries(madronalib oscpack)
-#endif(APPLE)
+if(APPLE)
+    target_link_libraries(madronalib oscpack)
+else()
+endif()
+
+# Juce Libraries
 
 if(BUILD_NEW_ONLY)
 else(BUILD_NEW_ONLY)
-
   target_link_libraries(madronalib juce_audio_basics)
   target_link_libraries(madronalib juce_audio_devices)
   target_link_libraries(madronalib juce_core)
@@ -329,11 +347,6 @@ else(BUILD_NEW_ONLY)
   target_link_libraries(madronalib juce_gui_extra)
   target_link_libraries(madronalib juce_opengl)
 endif()
-
-
-# target_include_directories(madronalib PUBLIC "../external/portaudio")
-# target_link_libraries(madronalib ${PORTAUDIO_LIBRARIES})
-
 
 if(APPLE)
   target_link_libraries(madronalib "-framework Carbon")

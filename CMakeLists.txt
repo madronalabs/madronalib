@@ -44,7 +44,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 
 #--------------------------------------------------------------------
-# Choose library output name
+# Choose library output names
 #--------------------------------------------------------------------
 
 set(madronalib_NAME madrona)
@@ -63,14 +63,11 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/fix_str)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/tinyxml) # to remove
+
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
@@ -84,18 +81,23 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
 
 add_subdirectory(source)
 add_subdirectory(external/aes256)
+add_subdirectory(external/ffft)
 add_subdirectory(external/cJSON)
-add_subdirectory(external/oscpack)
-add_subdirectory(external/utf)
 
+if(APPLE)
+	add_subdirectory(external/oscpack)
+else()
+endif()
+
+add_subdirectory(external/utf)
 
 if(BUILD_NEW_ONLY)
 else()
 	set(ML_JUCE_HEADER_PATH "/external/juce")
 	add_subdirectory(external/juce)
-	#target_link_libraries(madronalib external/juce)
-
 endif()
+
+
 
 if (ML_BUILD_EXAMPLES)
     add_subdirectory(examples)
@@ -104,9 +106,3 @@ endif()
 if (ML_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
-
-#if (DOXYGEN_FOUND AND ML_BUILD_DOCS)
-#    add_subdirectory(docs)
-#endif()
-
-

@@ -5,10 +5,17 @@
 // Copyright (c) 2015 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef _madronalib_dot_h
-#define _madronalib_dot_h
+#pragma once
 
 #include "MLDSP.h"
-#include "MLCore.h"
 
-#endif // _madronalib_dot_h
+#include "MLClock.h"
+#include "MLMemoryUtils.h"
+#include "MLPath.h"
+#include "MLPlatform.h"
+#include "MLQueue.h"
+#include "MLResourceMap.h"
+#include "MLSymbol.h"
+#include "MLText.h"
+#include "MLTextUtils.h"
+#include "MLTimer.h"
