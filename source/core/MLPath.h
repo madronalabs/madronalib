@@ -110,6 +110,7 @@ protected:
 	void parsePathString(const char* pathStr);
 
 	Symbol mpData[kPathMaxSymbols];
+//	std::array<Symbol, kPathMaxSymbols> mpData; 
 	unsigned char mSize;
 	unsigned char mCopy;
 	unsigned char _dummy; 

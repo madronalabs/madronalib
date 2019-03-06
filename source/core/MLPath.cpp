@@ -4,6 +4,8 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPath.h"
+#include "MLTextUtils.h"
+
 
 namespace ml {
 
@@ -38,41 +40,36 @@ namespace ml {
 		parsePathString(frag.getText());
 	}
 	
+
 	void Path::parsePathString(const char* pathStr)
 	{
-		const int pathStrBytes = strlen(pathStr);	
-
-		SmallStackBuffer<char, kShortFragmentSizeInChars> buf(pathStrBytes);
-		char* beginPoint = buf.data();
-		char* beginSymbol = beginPoint;
-		char* endPoint = beginPoint;			
-				
-		auto first = utf::codepoint_iterator<const char*>(pathStr);		
-		auto it = first;
-		int pointSizeAsUTF8;
-		char c = 0;
+		auto it = utf::codepoint_iterator<const char*>(pathStr);		
+		char c;
 		char separator = '/';
-
+		size_t symbolSizeInBytes;		
+		const char* symbolStartPtr = pathStr;
+		
+		bool finishedString, charIsSeparator, finishedSymbol;
 		do
 		{
+			symbolSizeInBytes = 0;
 			do
 			{
-				// write the codepoint as UTF-8 to the buffer and advance pb
-				endPoint = utf::internal::utf_traits<utf::utf8>::encode(*it, beginPoint);				
-				pointSizeAsUTF8 = endPoint - beginPoint;
-				
-				// if we have a one-byte character, see if it's a slash
-				c = (pointSizeAsUTF8 == 1) ? *it : -1;
-				beginPoint = endPoint;
-				++it;
+				utf::codepoint_type cp = *it;
+				size_t codePointSize = utf::internal::utf_traits<utf::utf8>::write_length(cp);				
+				charIsSeparator = (codePointSize == 1) && (cp == separator);
+				finishedString = (cp == '\0');
+				finishedSymbol = charIsSeparator || finishedString;
+				++it;				
+				if(!finishedSymbol)
+					symbolSizeInBytes += codePointSize;
 			}	
-			while((c != separator) && (c != 0));
-			
-			int newSymbolBytes = (endPoint - beginSymbol) - 1;
-			addSymbol(ml::Symbol(beginSymbol, newSymbolBytes));
-			beginSymbol = endPoint;
+			while(!finishedSymbol);
+
+			addSymbol(ml::Symbol(symbolStartPtr, symbolSizeInBytes));
+			symbolStartPtr += symbolSizeInBytes + 1;
 		}
-		while(c != 0);
+		while(!finishedString);
 	}
 
 	Path::Path(const Path& b)
