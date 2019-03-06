@@ -657,6 +657,8 @@ namespace ml { namespace textUtils {
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
 				
+		// TODO make more readble using random access fragment class
+		
 		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
 		codepoint_type* buf = temp.data();
 		

@@ -41,13 +41,13 @@ void MLFileCollection::Listener::removeCollection(MLFileCollection* pCollectionT
 #pragma mark MLFileCollection
 
 MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, ml::TextFragment extension):
-	mName(name),
-	mExtension(extension),
-	mProcessDelay(0)
+mName(name),
+mExtension(extension),
+mProcessDelay(0)
 {
 	mRoot.setValue(MLFile(std::string(startDir.getFullPathName().toUTF8())));
 	setProperty("progress", 0.);
-
+	
 	//mRunThread = std::thread(&MLFileCollection::runThread, this);
 }
 
@@ -67,13 +67,13 @@ MLFileCollection::~MLFileCollection()
 
 void MLFileCollection::clear()
 {
-    mRoot.clear();
-    mFilesByIndex.clear();
+	mRoot.clear();
+	mFilesByIndex.clear();
 }
 
 void MLFileCollection::addListener(Listener* pL)
 {
-    mpListeners.push_back(pL);
+	mpListeners.push_back(pL);
 	pL->addCollection(this);
 }
 
@@ -96,31 +96,31 @@ void MLFileCollection::removeListener(Listener* pToRemove)
 //
 int MLFileCollection::searchForFilesImmediate()
 {
-    int found = 0;
+	int found = 0;
 	clear();
 	
 	if (mRoot.getValue().exists() && mRoot.getValue().isDirectory())
-    {		
-        const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
-        const String& wildCard = "*";
-        bool recurse = true;
-        
+	{		
+		const int whatToLookFor = File::findFilesAndDirectories | File::ignoreHiddenFiles;
+		const String& wildCard = "*";
+		bool recurse = true;
+		
 		// TODO searching directories like / by mistake can take unacceptably long. Make this more
 		// robust against this kind of problem. Move to our own file code.
 		juce::File root = mRoot.getValue().getJuceFile();
 		
 		juce::DirectoryIterator di (root, recurse, wildCard, whatToLookFor);
-        while (di.next())
-        {
+		while (di.next())
+		{
 			const juce::File& f = di.getFile(); 
 			insertFileIntoMap(f);
 			found++;
-        }
-    }
-    else
-    {
-        found = -1;
-    }
+		}
+	}
+	else
+	{
+		found = -1;
+	}
 	return found;
 }
 
@@ -136,14 +136,14 @@ void MLFileCollection::insertFileIntoMap(juce::File f)
 		TextFragment relativePath = getRelativePathFromName(fullName);
 		
 		/*
-		// MLTEST
-		juce::String fStr = f.getFileNameWithoutExtension();
-		TextFragment shortName (fStr.toUTF8());
-		if (shortName.lengthInCodePoints() == 1)
-		{
-			//debug() << "insertFileIntoMap :one char: " << shortName << "\n";			
-		}
-		*/
+		 // MLTEST
+		 juce::String fStr = f.getFileNameWithoutExtension();
+		 TextFragment shortName (fStr.toUTF8());
+		 if (shortName.lengthInCodePoints() == 1)
+		 {
+		 //debug() << "insertFileIntoMap :one char: " << shortName << "\n";			
+		 }
+		 */
 		
 		// MLTEST verbose
 		// returnNode = mRoot.addValue(ml::Path(relativePath), MLFile(fullName.toString()));
@@ -158,7 +158,7 @@ void MLFileCollection::insertFileIntoMap(juce::File f)
 		// insert file or directory into file tree relative to collection root
 		TextFragment fullName(f.getFullPathName().toUTF8());
 		TextFragment relativePath = getRelativePathFromName(fullName);
-
+		
 		// add a null File to represent a (possibly empty) directory.
 		mRoot.addValue(ml::Path(relativePath), MLFile()); 
 	}
@@ -169,7 +169,7 @@ void MLFileCollection::insertFileIntoMap(juce::File f)
 void MLFileCollection::buildIndex()
 {	
 	mFilesByIndex.clear();
-
+	
 	for (auto it = mRoot.begin(); it != mRoot.end(); ++it)
 	{
 		if(it.nodeHasValue())
@@ -210,15 +210,15 @@ void MLFileCollection::dump() const
 //
 void MLFileCollection::processFileInMap(int i)
 {
- 	if(ml::within(static_cast<size_t>(i), size_t(0), mFilesByIndex.size()))
-    {
+	if(ml::within(static_cast<size_t>(i), size_t(0), mFilesByIndex.size()))
+	{
 		sendActionToListeners(ml::Symbol("process"), i);
-    }
+	}
 }
 
 void MLFileCollection::sendActionToListeners(ml::Symbol action, int fileIndex)
 {
-    const MLFile& f = getFileByIndex(fileIndex);
+	const MLFile& f = getFileByIndex(fileIndex);
 	
 	std::list<Listener*>::iterator it;
 	for(it = mpListeners.begin(); it != mpListeners.end(); it++)
@@ -242,7 +242,7 @@ int MLFileCollection::processFilesImmediate(int delay)
 		setProperty("progress", (float)(i) / (float)t);
 		processFileInMap(i);
 		
-//		Thread::wait(mProcessDelay);
+		//		Thread::wait(mProcessDelay);
 		// MLTEST
 	}
 	setProperty("progress", 1.);
@@ -279,33 +279,33 @@ int MLFileCollection::processFiles(int delay)
 
 void MLFileCollection::processFilesInBackground(int delay)
 {
-    // TODO
+	// TODO
 }
 
 void MLFileCollection::cancelProcess()
 {
-//	stopThread(1000);
+	//	stopThread(1000);
 }
 
 std::string MLFileCollection::getFilePathByIndex(int idx)
 {
-    int size = mFilesByIndex.size();
+	int size = mFilesByIndex.size();
 	if(ml::within(idx, 0, size))
-    {
+	{
 		ml::TextFragment fullName = mFilesByIndex[idx].getLongName();
 		return getRelativePathFromName(fullName).toString();
-    }
-    return std::string();
+	}
+	return std::string();
 }
 
 const MLFile MLFileCollection::getFileByIndex(int idx)
 {
-    int size = mFilesByIndex.size();
+	int size = mFilesByIndex.size();
 	if(ml::within(idx, 0, size))
-    {
-        return (mFilesByIndex[idx]);
-    }
-    return MLFile::nullObject;
+	{
+		return (mFilesByIndex[idx]);
+	}
+	return MLFile::nullObject;
 }
 
 const MLFile MLFileCollection::getFileByPath(const std::string& path)
@@ -315,9 +315,9 @@ const MLFile MLFileCollection::getFileByPath(const std::string& path)
 
 const int MLFileCollection::getFileIndexByPath(const std::string& path)
 {
-    int r = -1;
-    const MLFile& f = mRoot.findValue(ml::Path(path.c_str()));
-
+	int r = -1;
+	const MLFile& f = mRoot.findValue(ml::Path(path.c_str()));
+	
 	for(int i = 0; i<mFilesByIndex.size(); ++i)
 	{
 		const MLFile& g = (mFilesByIndex[i]);
@@ -327,7 +327,7 @@ const int MLFileCollection::getFileIndexByPath(const std::string& path)
 			break;
 		}
 	}
-    return r;
+	return r;
 }
 
 // TODO intelligent re-index and update can be done after this.
@@ -335,10 +335,10 @@ const int MLFileCollection::getFileIndexByPath(const std::string& path)
 //
 const MLFile MLFileCollection::createFile(const std::string& relativePathAndName)
 {
-    // for now, need absolute path to make the Juce file
+	// for now, need absolute path to make the Juce file
 	std::string fullPath = std::string(mRoot.getValue().getLongName().getText()) + "/" + relativePathAndName;
-    
-    // insert file into file tree at relative path
+	
+	// insert file into file tree at relative path
 	MLFile f(fullPath);
 	insertFileIntoMap(f.getJuceFile());
 	return f;
@@ -350,7 +350,7 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
 	//MLTEST aagh! TODO write find and replace for TextFragments
 	std::string rootName = (mRoot.getValue().getLongName().toString());
 	std::string fullName(f.toString());
-    std::string relPath;
+	std::string relPath;
 	
 	// convert case in the weird scenario the user has the home directory renamed.
 	// this should only do anything on English MacOS systems.
@@ -367,14 +367,14 @@ ml::TextFragment MLFileCollection::getRelativePathFromName(const ml::TextFragmen
 			fullName.replace(7, 1, &cfl, 1);
 		}
 	}
- 
-    // p should begin with root. if this is true, the relative path is the
+	
+	// p should begin with root. if this is true, the relative path is the
 	// part of p after root.
-    size_t rootPos = fullName.find(rootName);
-    if(rootPos == 0)
-    {
-        relPath = fullName.substr(rootName.length() + 1, fullName.length() - rootName.length() - 1);
-    }
+	size_t rootPos = fullName.find(rootName);
+	if(rootPos == 0)
+	{
+		relPath = fullName.substr(rootName.length() + 1, fullName.length() - rootName.length() - 1);
+	}
 	
 #ifdef ML_WINDOWS
 	// convert into path format.
@@ -438,4 +438,5 @@ MLMenuPtr MLFileCollection::buildMenu() const
 {
 	return buildMenu([=](ml::FileTree::const_iterator it){ return true; });
 }
+
 

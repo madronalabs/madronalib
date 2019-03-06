@@ -41,11 +41,6 @@ using namespace utf;
 	
 	int findFirst(const TextFragment& frag, std::function<bool(codepoint_type)> f);
 	int findLast(const TextFragment& frag, std::function<bool(codepoint_type)> f);
-
-	TextFragment map(const TextFragment& frag, std::function<codepoint_type(codepoint_type)> f);
-	TextFragment reduce(const TextFragment& frag, std::function<bool(codepoint_type)> f);
-
-	std::vector< TextFragment > split(TextFragment frag, codepoint_type delimiter = '\n');
 	
 	// join a vector of fragments into one fragment.
 	TextFragment join(const std::vector<TextFragment>& vec);
@@ -55,6 +50,18 @@ using namespace utf;
 	
 	// Return a new TextFragment consisting of the codepoints from indices start to (end - 1) in the input frag.
 	TextFragment subText(const TextFragment& frag, int start, int end);
+	
+	// given a fragment and a mapping function on code points, return a new fragment with the
+	// function applied to each code point. 
+	TextFragment map(const TextFragment& frag, std::function<codepoint_type(codepoint_type)> f);
+	
+	// given a fragment and a reducing function on code points, return a new fragment with only the
+	// code points for which the function returns true.
+	TextFragment reduce(const TextFragment& frag, std::function<bool(codepoint_type)> f);
+	
+	// given a fragment and a delimiter, return a std::vector of fragments containing the texts between
+	// instances of the delimiter. If no delimiters are found the original fragment is returned.
+	std::vector< TextFragment > split(TextFragment frag, codepoint_type delimiter = '\n');
 	
 	// Return the prefix of the input frag as a new TextFragment, stripping the last dot and any codepoints after it. 
 	TextFragment stripFileExtension(const TextFragment& frag);	
@@ -90,7 +97,8 @@ using namespace utf;
 		return TextFragment(reinterpret_cast<const char*>(p), v.size());
 	}
 
-	// TODO small stack objects here to make random access class, don't use vector
+	// MLTEST
+	// TODO small stack objects here to make random access class, don't use std::vector
 	inline std::vector<codepoint_type> textToCodePointVector(TextFragment frag)
 	{
 		std::vector<codepoint_type> r;

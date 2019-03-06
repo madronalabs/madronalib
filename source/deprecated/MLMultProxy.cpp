@@ -295,7 +295,7 @@ void MLMultiProc::dumpProc(int indent)
 
 	for(int i=0; i<copies; i++)
 	{
-		////debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
+		debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopy(i)->dumpProc(indent + 1);
 	}
 }
@@ -702,11 +702,11 @@ void MLMultiContainer::dumpGraph(int indent)
 	
 	dumpProc(indent);
 
-	//debug() << ml::textUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
+	debug() << ml::textUtils::spaceStr(indent) << getName() << " (multicontainer " << (void *)&(*this) << ")\n";
 
 	for(int i=0; i<copies; i++)
 	{
-		//debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
+		debug() << ml::textUtils::spaceStr(indent) <<  " copy " << i + 1 << ": \n";	
 		getCopyAsContainer(i)->dumpGraph(indent + 1);
 	}
 }
