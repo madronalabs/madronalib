@@ -6,45 +6,29 @@
 #include "MLPath.h"
 #include "MLTextUtils.h"
 
-
 namespace ml {
 
-	// an empty path
-	Path::Path() :
-		mSize(0), mCopy(0)
-	{	
-		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
-	}
-
 	// parse an input string into our representation: an array of ml::Symbols.
-	Path::Path(const char * str) :
-		mSize(0), mCopy(0)
+	Path::Path(const char * str)
 	{
-		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
 		parsePathString(str);
 	}
 
 	// allocate a path with one symbol.
-	Path::Path(const ml::Symbol sym) :
-	mSize(0), mCopy(0)
+	Path::Path(const ml::Symbol sym)
 	{
-		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
 		addSymbol(sym);
 	}
 	
 	// allocate a path with one TextFragment.
-	Path::Path(const ml::TextFragment frag) :
-	mSize(0), mCopy(0)
+	Path::Path(const ml::TextFragment frag)
 	{
-		memset(mpData, '\0', kPathMaxSymbols*sizeof(ml::Symbol));
 		parsePathString(frag.getText());
 	}
 	
-
 	void Path::parsePathString(const char* pathStr)
 	{
 		auto it = utf::codepoint_iterator<const char*>(pathStr);		
-		char c;
 		char separator = '/';
 		size_t symbolSizeInBytes;		
 		const char* symbolStartPtr = pathStr;
@@ -70,15 +54,6 @@ namespace ml {
 			symbolStartPtr += symbolSizeInBytes + 1;
 		}
 		while(!finishedString);
-	}
-
-	Path::Path(const Path& b)
-	{	
-		memcpy(mpData, b.mpData, sizeof(Path));
-	}
-
-	Path::~Path() 
-	{
 	}
 
 	void Path::addSymbol(ml::Symbol sym)

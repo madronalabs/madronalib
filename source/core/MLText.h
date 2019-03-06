@@ -85,9 +85,6 @@ namespace ml
 			return static_cast<int>(sv.codepoints());
 		}
 		
-		// TODO note that writing someSymbol.getTextFragment().getText() will result in a stale pointer
-		// to a temporary object. I'm not sure what the best way to prevent this misuse is. Maybe
-		// return a reference instead?
 		inline const char* getText() const { return mpText; }
 		
 		inline bool beginsWith(const TextFragment& fb) const
@@ -133,17 +130,20 @@ namespace ml
 			const char* s4 = nullptr, size_t len4 = 0
 						) noexcept;
 		
-		void create() noexcept;
+		void create(size_t size) noexcept;
 		void nullTerminate() noexcept;
 		void dispose() noexcept;
 		void moveDataFromOther(TextFragment& b);
 		
-		// TODO these things could share space - use SmallStackBuffer! 
+		// TODO these things could share space, as in SmallStackBuffer 
 		char* mpText; 
 		char mLocalText[kShortFragmentSizeInChars];
+		
+		// size of data in bytes, without null terminator
 		int mSize;
 	};
 
+	// MLTEST strlen computing different lengths from utf8?! 
 	inline bool compareSizedCharArrays(const char* pA, int lenA, const char* pB, int lenB)
 	{
 		if(lenA != lenB) return false;
