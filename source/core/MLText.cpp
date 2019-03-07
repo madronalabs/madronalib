@@ -171,7 +171,6 @@ namespace ml
 		const size_t nullTerminatedSize = size + 1;
 		if(nullTerminatedSize > kShortFragmentSizeInChars)
 		{
-			// allocate space for characters plus null terminator
 			mpText = static_cast<char *>(malloc(nullTerminatedSize));
 		}
 		else

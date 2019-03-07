@@ -143,7 +143,6 @@ namespace ml
 		int mSize;
 	};
 
-	// MLTEST strlen computing different lengths from utf8?! 
 	inline bool compareSizedCharArrays(const char* pA, int lenA, const char* pB, int lenB)
 	{
 		if(lenA != lenB) return false;

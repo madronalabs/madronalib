@@ -7,6 +7,7 @@
 //
 
 #include "MLTextUtils.h"
+#include "MLScalarMath.h"
 
 namespace ml { namespace textUtils {
 	
@@ -55,7 +56,7 @@ namespace ml { namespace textUtils {
 		static char * pBuf = (char *)"                                                   ";
 		static int len = (int)strlen(pBuf);
 		int n = numIndents*2;
-		if (n > len) n = len;
+		n = ml::clamp(n, 0, len);
 		return &pBuf[len - n];
 	}
 	
@@ -379,8 +380,8 @@ namespace ml { namespace textUtils {
 	int indexOf(const char* str, char c)
 	{
 		int r = -1;
-		int len = strlen(str);
-		for(int i=0; i<len; ++i)
+		size_t len = strlen(str);
+		for(size_t i=0; i<len; ++i)
 		{
 			if(str[i] == c)
 			{
@@ -393,10 +394,10 @@ namespace ml { namespace textUtils {
 	
 	TextFragment base64Encode(const std::vector<uint8_t>& in)
 	{
-		int len = in.size();
+		size_t len = in.size();
 		std::vector<char> out;
 		int b;
-		for (int i = 0; i < len; i += 3)  
+		for (size_t i = 0; i < len; i += 3)  
 		{
 			b = (in[i] & 0xFC) >> 2;
 			out.push_back(base64table[b]);
