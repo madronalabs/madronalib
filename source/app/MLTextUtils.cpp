@@ -7,6 +7,7 @@
 //
 
 #include "MLTextUtils.h"
+#include "MLScalarMath.h"
 
 namespace ml { namespace textUtils {
 	
@@ -55,7 +56,7 @@ namespace ml { namespace textUtils {
 		static char * pBuf = (char *)"                                                   ";
 		static int len = (int)strlen(pBuf);
 		int n = numIndents*2;
-		if (n > len) n = len;
+		n = ml::clamp(n, 0, len);
 		return &pBuf[len - n];
 	}
 	
@@ -379,8 +380,8 @@ namespace ml { namespace textUtils {
 	int indexOf(const char* str, char c)
 	{
 		int r = -1;
-		int len = strlen(str);
-		for(int i=0; i<len; ++i)
+		size_t len = strlen(str);
+		for(size_t i=0; i<len; ++i)
 		{
 			if(str[i] == c)
 			{
@@ -393,10 +394,10 @@ namespace ml { namespace textUtils {
 	
 	TextFragment base64Encode(const std::vector<uint8_t>& in)
 	{
-		int len = in.size();
+		size_t len = in.size();
 		std::vector<char> out;
 		int b;
-		for (int i = 0; i < len; i += 3)  
+		for (size_t i = 0; i < len; i += 3)  
 		{
 			b = (in[i] & 0xFC) >> 2;
 			out.push_back(base64table[b]);
@@ -657,6 +658,8 @@ namespace ml { namespace textUtils {
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
 				
+		// TODO make more readble using random access fragment class
+		
 		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
 		codepoint_type* buf = temp.data();
 		
@@ -692,11 +695,14 @@ namespace ml { namespace textUtils {
 	// if the symbol's text ends in a positive integer, return that number. Otherwise return 0.
 	int getFinalNumber(Symbol sym)
 	{		
-		// make temporary buffer, hopefully on stack
+		// make temporary buffer of decoded code points, hopefully on stack
 		const TextFragment& frag = sym.getTextFragment();
 		int points = frag.lengthInCodePoints();
-		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
-		codepoint_type* buf = temp.data();
+		
+		// TODO make more readble using random access fragment class
+		
+		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
+		codepoint_type* buf = decodedPoints.data();
 		
 		// read into char32 array for random access
 		int i=0;
@@ -706,15 +712,15 @@ namespace ml { namespace textUtils {
 			buf[i++] = c;
 		}					
 		
-		// null terminate
-		buf[points] = 0;
+		// null terminate char32_t string
+		buf[i] = 0;
 		
 		// no final number? return
-		if(!textUtils::isDigit(buf[points - 1])) return 0;
+		if(!textUtils::isDigit(buf[i - 1])) return 0;
 		
 		// read backwards until non-digit
 		int firstDigitPos = 0;
-		for(int i=points - 2; i >= 0; --i)
+		for(i--; i >= 0; --i)
 		{
 			char32_t c = buf[i];
 			if(!textUtils::isDigit(c))

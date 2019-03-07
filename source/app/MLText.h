@@ -16,8 +16,6 @@
 
 namespace ml
 {
-	typedef utf::codepoint_type CodepointType;
-
 	// ----------------------------------------------------------------
 	// TextFragment - a minimal, immutable string class. Guaranteed not to allocate heap
 	// if the length in bytes is below kShortFragmentSize. 
@@ -49,7 +47,7 @@ namespace ml
 		// 
 		TextFragment(const char* pChars) noexcept;
 
-		// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
+		// this ctor can be used to save the work of counting the length of the input if we know it already, as with static HashedCharArrays.
 		TextFragment(const char* pChars, size_t len) noexcept;
 		
 		// single code point ctor
@@ -84,12 +82,9 @@ namespace ml
 		inline int lengthInCodePoints() const
 		{
 			utf::stringview<const char*> sv(mpText, mpText + mSize);
-			return sv.codepoints();
+			return static_cast<int>(sv.codepoints());
 		}
 		
-		// TODO note that writing someSymbol.getTextFragment().getText() will result in a stale pointer
-		// to a temporary object. I'm not sure what the best way to prevent this misuse is. Maybe
-		// return a reference instead?
 		inline const char* getText() const { return mpText; }
 		
 		inline bool beginsWith(const TextFragment& fb) const
@@ -135,14 +130,16 @@ namespace ml
 			const char* s4 = nullptr, size_t len4 = 0
 						) noexcept;
 		
-		void create() noexcept;
+		void create(size_t size) noexcept;
 		void nullTerminate() noexcept;
 		void dispose() noexcept;
 		void moveDataFromOther(TextFragment& b);
 		
-		// TODO these things could share space
+		// TODO these things could share space, as in SmallStackBuffer 
 		char* mpText; 
 		char mLocalText[kShortFragmentSizeInChars];
+		
+		// size of data in bytes, without null terminator
 		int mSize;
 	};
 

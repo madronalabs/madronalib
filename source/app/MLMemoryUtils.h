@@ -32,7 +32,7 @@ namespace ml
 		{
 			if(mpData != mLocalData) 
 			{
-				delete mpData;
+				delete[] mpData;
 			}
 		}
 		

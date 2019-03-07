@@ -16,9 +16,9 @@ namespace ml
 		nullTerminate();
 	}
 	
-	TextFragment::TextFragment(const char* pChars) noexcept : mSize(strlen(pChars))
+	TextFragment::TextFragment(const char* pChars) noexcept
 	{
-		create();
+		create(strlen(pChars));
 		// a bad alloc will result in this being a null object.
 		// copy the input string into local storage
 		if(mpText)
@@ -29,16 +29,16 @@ namespace ml
 	}
 	
 	// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
-	TextFragment::TextFragment(const char* pChars, size_t len) noexcept : mSize(len)
+	TextFragment::TextFragment(const char* pChars, size_t len) noexcept
 	{
-		create();
+		create(len);
 		if(mpText)
 		{
 			std::copy(pChars, pChars + mSize, mpText);
 			nullTerminate();
 		}		
 	}
-
+	
 	TextFragment::TextFragment(utf::codepoint_type c) noexcept
 	{
 		if(!utf::internal::validate_codepoint(c))
@@ -80,7 +80,7 @@ namespace ml
 		
 		return TextFragment(buf, pb - buf);
 	}
-
+	
 	TextFragment::TextFragment(const TextFragment& a) noexcept
 	{
 		construct(a.getText(), a.lengthInBytes());
@@ -95,7 +95,7 @@ namespace ml
 	{
 		return utf::codepoint_iterator<const char*>(getText() + lengthInBytes());
 	}
-
+	
 	// just copy the data. If we want to optimize and use reference-counted strings at some point,
 	// look at fix_str for ideas.
 	TextFragment& TextFragment::operator=(const TextFragment& b) noexcept
@@ -103,8 +103,7 @@ namespace ml
 		if(this != &b)
 		{
 			dispose();
-			mSize = b.mSize;
-			create();
+			create(b.mSize);
 			if(mpText)
 			{
 				const char* bText = b.mpText;
@@ -141,7 +140,7 @@ namespace ml
 	TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3, const TextFragment& t4) noexcept
 	{
 		construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), 
-				  t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
+							t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 	}
 	
 	TextFragment::~TextFragment() noexcept
@@ -150,13 +149,12 @@ namespace ml
 	}	
 	
 	void TextFragment::construct (const char* s1, size_t len1,
-									  const char* s2 , size_t len2 ,
-									  const char* s3 , size_t len3 ,
-									  const char* s4 , size_t len4 
-									  ) noexcept 
+																const char* s2 , size_t len2 ,
+																const char* s3 , size_t len3 ,
+																const char* s4 , size_t len4 
+																) noexcept 
 	{
-		mSize = (len1 + len2 + len3 + len4);
-		create();
+		create(len1 + len2 + len3 + len4);
 		if(mpText)
 		{
 			if(len1) std::copy (s1, s1 + len1, mpText);
@@ -167,11 +165,13 @@ namespace ml
 		}
 	}
 	
-	void TextFragment::create() noexcept
+	void TextFragment::create(size_t size) noexcept
 	{
-		if(mSize >= kShortFragmentSizeInChars)
+		mSize = size;
+		const size_t nullTerminatedSize = size + 1;
+		if(nullTerminatedSize > kShortFragmentSizeInChars)
 		{
-			mpText = static_cast<char *>(malloc(mSize + 1));
+			mpText = static_cast<char *>(malloc(nullTerminatedSize));
 		}
 		else
 		{
@@ -183,19 +183,19 @@ namespace ml
 	{
 		mpText[mSize] = 0;
 	}
-
+	
 	void TextFragment::dispose() noexcept
 	{
-        if(mpText)
-        {
-            assert(mpText[mSize] == 0);
-            if(mpText != mLocalText)
-            {
-                // free an external text. If the alloc has failed the ptr might be 0, which is OK
-                free(mpText);
-            }
-            mpText = 0;
-        }
+		if(mpText)
+		{
+			assert(mpText[mSize] == 0);
+			if(mpText != mLocalText)
+			{
+				// free an external text. If the alloc has failed the ptr might be 0, which is OK
+				free(mpText);
+			}
+			mpText = 0;
+		}
 	}
 	
 	void TextFragment::moveDataFromOther(TextFragment& b)
@@ -209,8 +209,8 @@ namespace ml
 		else
 		{
 			/*
-			TODO use SmallStackBuffer! and test
-			*/
+			 TODO use SmallStackBuffer! and test
+			 */
 			
 			// point to local storage and copy data
 			mpText = mLocalText; 
@@ -225,3 +225,4 @@ namespace ml
 	}
 	
 } // namespace ml
+

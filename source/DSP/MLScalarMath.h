@@ -50,6 +50,7 @@ namespace ml
 		return (a > b) ? a : b;
 	}
 	
+	// clamp to closed interval [min, max].
 	template <class c>
 	inline c (clamp)(const c& x, const c& min, const c& max)
 	{
@@ -62,6 +63,7 @@ namespace ml
 		return(a + m*(b-a));
 	}
 	
+	// return bool value of within half-open interval [min, max).
 	template <class c>
 	inline bool (within)(const c& x, const c& min, const c& max)
 	{
