@@ -9,7 +9,6 @@
 
 // TODO in DSPOps improve pack / unpack of rows for sending multiple sources to functions
 
-
 #pragma once
 
 #include "MLDSPOps.h"
@@ -22,17 +21,24 @@ namespace ml
 	// Upsample2xFunction is a function object that given a process function f, 
 	// upsamples the input x by 2, applies f, downsamples and returns the result.
 	// the total delay from the resampling filters used is about 3 samples.	
-	
-	/*
-	template<int IN_ROWS, int OUT_ROWS>
+
+	// NOTE: all these templates were written with separate in and out rows
+	// template<int IN_ROWS, int OUT_ROWS>
+	// but a compiler bug is preventing it from working on Windows.
+	// TODO revisit
+
+	template<int IN_ROWS>
 	class Upsample2xFunction
 	{
-		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
-		
+		static constexpr int OUT_ROWS = 1; // see above
+
+		using inputType = const DSPVectorArray< IN_ROWS >;
+		using outputType = DSPVectorArray< 1 >; // OUT_ROWS
+		using ProcessFn = std::function< outputType(inputType) >;
+
 	public:		
 		// operator() takes two arguments: a process function and an input DSPVectorArray. 
-		// The optional argument DSPVectorArray<0>() allows passing only one argument in the case of a generator with 0 input rows.
-		inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn, const DSPVectorArray<IN_ROWS> vx = DSPVectorArray<0>())
+		inline outputType operator()(ProcessFn fn, inputType vx)
 		{
 			// upsample each row of input to 2x buffers			
 			for(int j=0; j < IN_ROWS; ++j)
@@ -48,7 +54,7 @@ namespace ml
 			mUpsampledOutput2 = fn(mUpsampledInput2);
 			
 			// downsample each processed row to 1x output 
-			DSPVectorArray<OUT_ROWS> vy;
+			outputType vy;
 			for(int j=0; j < OUT_ROWS; ++j)
 			{
 				vy.row(j) = mDowners[j].downsample(mUpsampledOutput1.constRow(j), mUpsampledOutput2.constRow(j));
@@ -63,18 +69,23 @@ namespace ml
 		DSPVectorArray<OUT_ROWS> mUpsampledOutput1, mUpsampledOutput2;
 	};
 	
-	
+
 	// Downsample2xFunction is a function object that given a process function f, 
 	// downsamples the input x by 2, applies f, upsamples and returns the result.
 	// Since two DSPVectors of input are needed to create a single vector of downsampled input
 	// to the wrapped function, this function has an entire DSPVector of delay in addition to 
 	// the group delay of the allpass interpolation (about 6 samples).
 
-	template<int IN_ROWS, int OUT_ROWS>
+	//template<int IN_ROWS, int OUT_ROWS>
+	template<int IN_ROWS>
 	class Downsample2xFunction
 	{
-		typedef std::function<DSPVectorArray<OUT_ROWS>(const DSPVectorArray<IN_ROWS>)> ProcessFn;
-		
+		static constexpr int OUT_ROWS = 1; // see above
+
+		using inputType = const DSPVectorArray< IN_ROWS >;
+		using outputType = DSPVectorArray< 1 >; // OUT_ROWS
+		using ProcessFn = std::function< outputType(inputType) >;
+
 	public:
 		// operator() takes two arguments: a process function and an input DSPVectorArray. 
 		// The optional argument DSPVectorArray<0>() allows passing only one argument in the case of a generator with 0 input rows.
@@ -122,16 +133,10 @@ namespace ml
 		DSPVectorArray<OUT_ROWS> mDownsampledOutput;
 		bool mPhase{false};
 	};
-	*/
-
-// MLTEST: these are not compiling in MSVC
 	
+
 	// OverlapAddFunction TODO
-	
-
-/*
-MLTEST
-
+	/*
 	template<int LENGTH, int DIVISIONS, int IN_ROWS, int OUT_ROWS>
 	class OverlapAddFunction
 	{
@@ -146,25 +151,28 @@ MLTEST
 		//MLSignal mHistory;
 		const DSPVector& mWindow;
 	};
-	
+	*/
 	
 	// FeedbackDelayFunction
 	// Wraps a function in a pitchbendable delay with feedback per row. 
 	// Since the feedback adds the output of the function to its input, the function must input and output
 	// the same number of rows.
 	
-	template<int ROWS>
+	//template<int ROWS>
 	class FeedbackDelayFunction
 	{
-		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>)> ProcessFn;
-		
+		static constexpr int ROWS = 1; // see above
+		using inputType = const DSPVectorArray< ROWS >;
+		using outputType = DSPVectorArray< 1 >; // ROWS
+		using ProcessFn = std::function< outputType(inputType) >;
+
 	public:
 		float feedbackGain{1.f};
 		
 		inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn, const DSPVector vDelayTime)
 		{				
 			DSPVectorArray<ROWS> vFnOutput;						
-			vFnOutput = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain));
+			vFnOutput = fn(vx + vy1*feedbackGain);
 			
 			for(int j=0; j < ROWS; ++j)
 			{
@@ -180,15 +188,20 @@ MLTEST
 	
 	
 	// FeedbackDelayFunctionWithTap
-	// Wraps a function in a pitchbendable delay with feedback per row. 
+	// Wraps a function in a pitchbendable delay with feedback per row. The function outputs a tap that
+	// can be different from the feedback signal sent to the input.
 	// Since the feedback adds the output of the function to its input, the function must input and output
 	// the same number of rows.
 	
-	template<int ROWS>
+	//template<int ROWS>
 	class FeedbackDelayFunctionWithTap
 	{
-		typedef std::function<DSPVectorArray<ROWS>(const DSPVectorArray<ROWS>, DSPVectorArray<ROWS>& )> ProcessFn;
-		
+		static constexpr int ROWS = 1; // see above
+		using inputType = const DSPVectorArray< ROWS >;
+		using tapType = DSPVectorArray< ROWS >&;
+		using outputType = DSPVectorArray< 1 >; // ROWS
+		using ProcessFn = std::function< outputType(inputType, tapType) >;
+
 	public:
 		float feedbackGain{1.f};
 		
@@ -196,7 +209,7 @@ MLTEST
 		{				
 			DSPVectorArray<ROWS> vFeedback;						
 			DSPVectorArray<ROWS> vOutputTap;						
-			vFeedback = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain), vOutputTap);
+			vFeedback = fn(vx + vy1*feedbackGain, vOutputTap);
 			
 			for(int j=0; j < ROWS; ++j)
 			{
@@ -209,8 +222,7 @@ MLTEST
 		std::array<PitchbendableDelay, ROWS> mDelays;
 		DSPVectorArray<ROWS> vy1;
 	};
-	*/
-// MLTEST
+
 
 	
 } // namespace ml
