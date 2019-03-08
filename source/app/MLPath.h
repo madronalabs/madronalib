@@ -15,23 +15,26 @@
 // indexed starting at 1. If the copy number is 0, the Path refers
 // to all the elements.
 
+// TODO in v.2 allow a copy number at each path level
+// also consider whether the final symbol (object name or short file name) should be a Symbol or rather just a TextFragment
+
 // Maximum path depth allows stack allocation / use in audio threads.
 // TODO move to core constants header
 const int kPathMaxSymbols = 15;
 
 namespace ml {
 	
-class Path
+class Path final
 {
 friend std::ostream& operator<< (std::ostream& out, const Path & r);
 	
 public:
-	Path();	
+	Path() = default;	
 	Path(const char * str);
-	Path(const Symbol sym);
+	Path(const Symbol sym); 
 	Path(const TextFragment frag);
-	Path(const Path& b);		
-	~Path();
+	Path(const Path& b) = default;
+	~Path() = default;
 
 	// boolean test.
 	explicit operator bool() const { return (mSize != 0); }
@@ -106,12 +109,12 @@ public:
 		return const_iterator(this, static_cast<int> (mSize) );
 	}
 	
-protected:
+private:
 	void parsePathString(const char* pathStr);
 
-	Symbol mpData[kPathMaxSymbols];
-	unsigned char mSize;
-	unsigned char mCopy;
+	std::array<Symbol, kPathMaxSymbols> mpData{}; 
+	unsigned char mSize{0};
+	unsigned char mCopy{0};
 	unsigned char _dummy; 
 	unsigned char _dummy2; 
 	// sizeof(Path) = 64

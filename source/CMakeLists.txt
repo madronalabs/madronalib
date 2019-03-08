@@ -7,6 +7,7 @@ include_directories("${madronalib_SOURCE_DIR}/src"
 #add_definitions(-D_MADRONALIB_USE_CONFIG_H)
 
 
+
 set(madronalib_HEADERS
   ../include/madronalib.h
   )
@@ -283,8 +284,19 @@ endif()
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
+# set source groups
+
+source_group(dsp REGULAR_EXPRESSION "DSP/.*")
+source_group(app REGULAR_EXPRESSION "app/.*")
+source_group(deprecated REGULAR_EXPRESSION "deprecated/.*")
+source_group(JuceApp REGULAR_EXPRESSION "JuceApp/.*")
+source_group(JuceLookAndFeel REGULAR_EXPRESSION "JuceLookAndFeel/.*")
+source_group(matrix REGULAR_EXPRESSION "matrix/.*")
+source_group(networking REGULAR_EXPRESSION "networking/.*")
+source_group(procs REGULAR_EXPRESSION "procs/.*")
 
 # Create Library
+
 
 add_library(madronalib STATIC ${madronalib_SOURCES})
 set_target_properties(madronalib PROPERTIES
@@ -315,7 +327,7 @@ endif()
 
 
 #--------------------------------------------------------------------
-# Add libraries
+# Make docs (someday)
 #--------------------------------------------------------------------
 
 
@@ -324,11 +336,15 @@ endif()
 #endif()
 
 
+#--------------------------------------------------------------------
+# Add libraries
+#--------------------------------------------------------------------
+
+
 
 target_link_libraries(madronalib aes256)
 target_link_libraries(madronalib cjson)
-# note: ffft is header-only
-target_link_libraries(madronalib utf)
+# note: ffft and utf are header-only
 
 if(APPLE)
     target_link_libraries(madronalib oscpack)

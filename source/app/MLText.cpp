@@ -16,9 +16,9 @@ namespace ml
 		nullTerminate();
 	}
 	
-	TextFragment::TextFragment(const char* pChars) noexcept : mSize(strlen(pChars))
+	TextFragment::TextFragment(const char* pChars) noexcept
 	{
-		create();
+		create(strlen(pChars));
 		// a bad alloc will result in this being a null object.
 		// copy the input string into local storage
 		if(mpText)
@@ -29,9 +29,9 @@ namespace ml
 	}
 	
 	// this ctor can be used to save the work of counting the length if we have a length already, as with static HashedCharArrays.
-	TextFragment::TextFragment(const char* pChars, size_t len) noexcept : mSize(len)
+	TextFragment::TextFragment(const char* pChars, size_t len) noexcept
 	{
-		create();
+		create(len);
 		if(mpText)
 		{
 			std::copy(pChars, pChars + mSize, mpText);
@@ -103,8 +103,7 @@ namespace ml
 		if(this != &b)
 		{
 			dispose();
-			mSize = b.mSize;
-			create();
+			create(b.mSize);
 			if(mpText)
 			{
 				const char* bText = b.mpText;
@@ -155,8 +154,7 @@ namespace ml
 																const char* s4 , size_t len4 
 																) noexcept 
 	{
-		mSize = (len1 + len2 + len3 + len4);
-		create();
+		create(len1 + len2 + len3 + len4);
 		if(mpText)
 		{
 			if(len1) std::copy (s1, s1 + len1, mpText);
@@ -167,11 +165,13 @@ namespace ml
 		}
 	}
 	
-	void TextFragment::create() noexcept
+	void TextFragment::create(size_t size) noexcept
 	{
-		if(mSize >= kShortFragmentSizeInChars)
+		mSize = size;
+		const size_t nullTerminatedSize = size + 1;
+		if(nullTerminatedSize > kShortFragmentSizeInChars)
 		{
-			mpText = static_cast<char *>(malloc(mSize + 1));
+			mpText = static_cast<char *>(malloc(nullTerminatedSize));
 		}
 		else
 		{

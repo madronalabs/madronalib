@@ -14,19 +14,19 @@ const char * kMLPatcherProcName("voices/voice/patcher");
 const float kMasterVolumeMaxRate = 5.f;
 
 MLDSPEngine::MLDSPEngine() : 
-	mpInputToSignalsProc(0),
-	mpHostPhasorProc(0),
-	mInputChans(0),
-	mOutputChans(0),
-	mMasterVolume(1.0f),
-	mCollectStats(false),
-	mBufferSize(0),
-	mGraphStatus(unknownErr),
-	mCompileStatus(false),
-	mSamplesToProcess(0),
-	mStatsCount(0),
-	mSampleCount(0),
-	mCPUTimeCount(0.)
+mpInputToSignalsProc(0),
+mpHostPhasorProc(0),
+mInputChans(0),
+mOutputChans(0),
+mMasterVolume(1.0f),
+mCollectStats(false),
+mBufferSize(0),
+mGraphStatus(unknownErr),
+mCompileStatus(false),
+mSamplesToProcess(0),
+mStatsCount(0),
+mSampleCount(0),
+mCPUTimeCount(0.)
 {
 	setName("dspengine");
 	setPropertyImmediate("demo", 1.f);
@@ -64,7 +64,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	
 	// TODO refactor - paths to proccs are plugin-specific
 	if (makeMidiInput)
- 	{
+	{
 		// make XML node describing MIDI to signal processor.
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
@@ -73,7 +73,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		
 		// build processor object.
 		MLProc::err bpe = buildProc(pElem);
-				
+		
 		// save a pointer to it.
 		if (bpe == OK)
 		{
@@ -84,7 +84,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 			}
 		}
 	}	
-
+	
 	// make host sync phasor
 	{
 		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
@@ -93,7 +93,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 		
 		// build processor object.
 		MLProc::err bpe = buildProc(pElem);
-				
+		
 		// save a pointer to it.
 		if (bpe == OK)
 		{
@@ -109,29 +109,29 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	if (pRootElem)
 	{	
 		buildGraph(pRootElem);
-        
-        // make any published signal outputs at top level only
-        forEachXmlChildElement(*pRootElem, child)
-        { 
-            if (child->hasTagName("signal"))
-            {
-                int mode = eMLRingBufferMostRecent;
-                ml::Path procArg = RequiredPathAttribute(child, "proc");
-                ml::Symbol outArg = RequiredAttribute(child, "output");
+		
+		// make any published signal outputs at top level only
+		forEachXmlChildElement(*pRootElem, child)
+		{ 
+			if (child->hasTagName("signal"))
+			{
+				int mode = eMLRingBufferMostRecent;
+				ml::Path procArg = RequiredPathAttribute(child, "proc");
+				ml::Symbol outArg = RequiredAttribute(child, "output");
 				ml::Symbol aliasArg = RequiredAttribute(child, "alias");
-                
-                if (procArg && outArg && aliasArg)
-                {
-                    int bufLength = kMLRingBufferDefaultSize;
-                    bufLength = child->getIntAttribute("length", bufLength);
+				
+				if (procArg && outArg && aliasArg)
+				{
+					int bufLength = kMLRingBufferDefaultSize;
+					bufLength = child->getIntAttribute("length", bufLength);
 					int frameSize = 1;
 					frameSize = child->getIntAttribute("frame_size", frameSize);
-                    ml::Path procPath (procArg);
-                    ml::Symbol outSym (outArg);
-                    ml::Symbol aliasSym (aliasArg);
-                    publishSignal(procPath, outSym, aliasSym, mode, bufLength, frameSize);
-                }
-            }
+					ml::Path procPath (procArg);
+					ml::Symbol outSym (outArg);
+					ml::Symbol aliasSym (aliasArg);
+					publishSignal(procPath, outSym, aliasSym, mode, bufLength, frameSize);
+				}
+			}
 		}
 		
 		graphOK = true;
@@ -174,18 +174,18 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 {
 	////debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
-    
+	
 	// set denormal state
 	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
 	int newMXCSR = oldMXCSR | 0x8040; // set DAZ and FZ bits
 	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
 	// _mm_setcsr( oldMXCSR ); // restore MXCSR state (needed?)
-    
+	
 	if ((mGraphStatus == OK) && (mCompileStatus))
 	{
 		// set self as context to get size and rate chain started.
 		setContext(this);	
-
+		
 		int graphInputs = getNumInputs();
 		
 		// connect input Signals and set sizes.
@@ -203,7 +203,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 				setInput(i+1, getContext()->getNullInput());				
 			}
 		}		
-
+		
 		for (int i=0; i < mInputChans; ++i)
 		{
 			if (!mInputBuffers[i]->resize(bufSize)) 
@@ -213,7 +213,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 				goto bail;
 			}
 		}		
-
+		
 		int outs = mOutputChans;	
 		for(int i=0; i < outs; ++i)
 		{
@@ -245,7 +245,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		// after setVectorSize, set midiToSignals input buffer size.
 		if (mpInputToSignalsProc)
 		{
-            ////debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
+			////debug() << "MLDSPEngine::prepareEngine: bufsize: " << bufSize << ", vecSize: " << vecSize << "\n";
 			mpInputToSignalsProc->setParam("bufsize", bufSize);
 			mpInputToSignalsProc->resize();		
 		}
@@ -254,7 +254,7 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 		mMasterVolumeFilter.setSampleRate(sr);
 		mMasterVolumeFilter.setOnePole(kMasterVolumeMaxRate);
 		mMasterVolumeSig.setDims(chunkSize);
-				
+		
 		e = prepareToProcess();		
 		clear();
 	}
@@ -264,11 +264,11 @@ bail:
 		printErr(e);	
 	} 
 	/* 
-	else
-	{
-		setEnabled(true);
-	}
-	*/
+	 else
+	 {
+	 setEnabled(true);
+	 }
+	 */
 	return e;
 }
 
@@ -307,7 +307,7 @@ void MLDSPEngine::setOutputChannels(int c)
 // set pointers to client signal buffers.
 void MLDSPEngine::setIOBuffers(const ClientIOMap& pMap)
 {
-    mIOMap = pMap;
+	mIOMap = pMap;
 }
 
 // read from client input buffers to input ringbuffers.
@@ -411,7 +411,7 @@ void MLDSPEngine::dump()
 #pragma mark published signals
 
 void MLDSPEngine::publishSignal(const ml::Path & procAddress, const ml::Symbol outputName, const ml::Symbol alias,
-                                    int trigMode, int bufLength, int frameSize)
+																int trigMode, int bufLength, int frameSize)
 {
 	err e = addSignalBuffers(procAddress, outputName, alias, trigMode, bufLength, frameSize);
 	if (e == OK)
@@ -472,7 +472,7 @@ int MLDSPEngine::getPublishedSignalVoicesEnabled(const ml::Symbol alias)
 			}
 		}
 	}
-    ////debug() << "getPublishedSignalVoicesEnabled: " << alias << ": " << nVoices << "\n";
+	////debug() << "getPublishedSignalVoicesEnabled: " << alias << ": " << nVoices << "\n";
 	return nVoices;
 }
 
@@ -507,7 +507,7 @@ int MLDSPEngine::readPublishedSignal(const ml::Symbol alias, MLSignal& outSig)
 	int nVoices = 0;
 	int r;
 	int minSamplesRead = 2<<16;
-
+	
 	outSig.clear();
 	
 	// look up signal container
@@ -627,7 +627,7 @@ void MLDSPEngine::processDSPVector(Queue<MLControlEvent>& eventQueue, const uint
 	if (mpInputToSignalsProc) // TODO inputToSignals need not be a kind of Proc
 	{						
 		mpInputToSignalsProc->setVectorStartTime(vectorStartTime);
-
+		
 		// MLTEST this mpInputToSignalsProc Object / API will go away
 		mpInputToSignalsProc->setQueue(&eventQueue);
 		// when the queue can be a parameter in process(...) a reference can be used, not a pointer
@@ -639,10 +639,11 @@ void MLDSPEngine::processDSPVector(Queue<MLControlEvent>& eventQueue, const uint
 	
 	// MLProcContainer::process()
 	process();  
-
+	
 	multiplyOutputBuffersByVolume();
 	writeOutputBuffers(kFloatsPerDSPVector);
 }
+
 
 
 

@@ -1,12 +1,13 @@
 # madronalib/CMakeLists.txt
 # root CMake file for madronalib project.
 
+# Windows: cmake .. -G "Visual Studio 14 2015 Win64"
+
 project(madronalib CXX)
 
 cmake_minimum_required(VERSION 2.8.12)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
-
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 set(madronalib_VERSION_MAJOR "0")
@@ -16,7 +17,7 @@ set(madronalib_VERSION_EXTRA "")
 set(madronalib_VERSION "${madronalib_VERSION_MAJOR}.${madronalib_VERSION_MINOR}")
 set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${madronalib_VERSION_EXTRA}")
 
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+# set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 # with BUILD_NEW_ONLY on (the default), only new modules not dependent
 # on dual-licensed JUCE code will be compiled. For use in the Soundplane
@@ -96,8 +97,6 @@ else()
 	set(ML_JUCE_HEADER_PATH "/external/juce")
 	add_subdirectory(external/juce)
 endif()
-
-
 
 if (ML_BUILD_EXAMPLES)
     add_subdirectory(examples)

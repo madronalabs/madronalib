@@ -323,59 +323,59 @@ void MLProc::dumpProc(int indent)
 	const MLSignal* pNullInput = &(getContext()->getNullInput());
 	const MLSignal* pNullOutput = &(getContext()->getNullOutput());
 	
-	//debug() << ml::textUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
+	debug() << ml::textUtils::spaceStr(indent) << getName() << " (" << getClassName() << " " << (void *)&(*this) << ")";
 	
 	if (isContainer())
 	{
 		std::string enabledStr = isEnabled() ? " [ENABLED] " : " [DISABLED] ";
-		//debug() << enabledStr;
+		debug() << enabledStr;
 	}
-	//debug() << "\n";
-	//debug() << ml::textUtils::spaceStr(indent) << "inputs: ";
+	debug() << "\n";
+	debug() << ml::textUtils::spaceStr(indent) << "inputs: ";
 	if (ins)
 	{
 		for(int j = 1; j <= ins; ++j)
 		{
-			//debug() << "[" << j << "] ";
+			debug() << "[" << j << "] ";
 			const MLSignal* pIn = &getInput(j);
 			if (pIn == pNullInput)
 			{
-				//debug() << "(null)  ";
+				debug() << "(null)  ";
 			}
 			else
 			{
-				//debug() << "(" << (void *)(pIn) << ")  ";
+				debug() << "(" << (void *)(pIn) << ")  ";
 			}
 		}
 	}
 	else
 	{
-		//debug() << "(none)";
+		debug() << "(none)";
 	}
-	//debug() << "\n";
-	//debug() << ml::textUtils::spaceStr(indent) << "outputs: ";
+	debug() << "\n";
+	debug() << ml::textUtils::spaceStr(indent) << "outputs: ";
 	if (outs)
 	{
 		for(int j = 1; j <= outs; ++j)
 		{
-			//debug() << "[" << j << "] ";
+			debug() << "[" << j << "] ";
 			const MLSignal* pOut = &getOutput(j);
 			if(pOut == pNullOutput)
 			{
-				//debug() << "(null)  ";
+				debug() << "(null)  ";
 			}
 			else
 			{
 				// can no longer determine isConstant here because signals are shared.
-				//debug() << "(" << (void *)(pOut)  << ")  ";
+				debug() << "(" << (void *)(pOut)  << ")  ";
 			}
 		}
 	}
 	else
 	{
-		//debug() << "(none)";
+		debug() << "(none)";
 	}
-	//debug() << "\n";
+	debug() << "\n";
 }
 
 void MLProc::printErr(MLProc::err e)

@@ -1994,15 +1994,16 @@ void MLProcContainer::dumpGraph(int indent)
 	dumpProc(indent);
 
 	// dump children
-	//debug() << ml::textUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
-	//debug() << ml::textUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
-	//debug() << ml::textUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
+	debug() << ml::textUtils::spaceStr(indent) << "null input: (" << (void *)&getNullInput() << ") \n";	
+	debug() << ml::textUtils::spaceStr(indent) << "null output: (" << (void *)&getNullOutput() << ") \n";	
+	debug() << ml::textUtils::spaceStr(indent) << "ops list: " << mOpsVec.size() << " elements: \n";	
 
 	int ops = 0;
 	for (std::vector<MLProc*>::iterator it = mOpsVec.begin(); it != mOpsVec.end(); ++it, ++ops)
 	{		
 		MLProc* p = (*it);
-		//debug() << ml::textUtils::spaceStr(indent) << ops << ":\n";
+		
+		debug() << ml::textUtils::spaceStr(indent) << ops << ":\n";
 		if (p->isContainer())
 		{
 			MLProcContainer& pc = static_cast<MLProcContainer&>(*p);
