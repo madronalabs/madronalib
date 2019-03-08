@@ -62,7 +62,7 @@ int main()
 	FDN<4> f;
 	// NOTE: the minimum possible delay time is kFloatsPerDSPVector.
 	f.setDelaysInSamples({{67, 73, 91, 103}}); 
-	f.setFilterCutoffs({{0.1f, 0.2, 0.3f, 0.4f}});
+	f.setFilterCutoffs({{0.1f, 0.2f, 0.3f, 0.4f}});
 	f.mFeedbackGains = {{0.5f, 0.5f, 0.5f, 0.5f}};
 	DSPVector silence, impulse;
 	impulse[0] = 1.f;
@@ -134,10 +134,10 @@ int main()
 	tick[0] = 1;
 	
 
-	// upsampler for a generator with 1 input row, 1 output row
-	Upsample2xFunction<1, 1> upper;	
-	std::cout << "\n\n" << upper([&](const DSPVector x){ return sineGen(x); }, DSPVector(440.f/44100.f))  << "\n\n";
-	
+	// upsampler for a generator with 1 input row
+	Upsample2xFunction<1> upper;
+	std::cout << "\n\n" << upper([&](const DSPVector x) { return sineGen(x); }, DSPVector(440.f / 44100.f)) << "\n\n";
+
 
 	// IntegerDelay p(100);
 	//std::cout << "\n\n" << p(DSPVector(), DSPVector()) << "\n" << p(DSPVector(), DSPVector()) << "\n\n";
@@ -145,7 +145,8 @@ int main()
 //	DSPVector y = lp1(tick);
 	auto lpTestFn = [&](const DSPVector x){ return (x); };
 	
-	FeedbackDelayFunction<1> feedbackFn;
+
+	FeedbackDelayFunction feedbackFn;
 	
 	// set the delay time. a time < kFloatsPerDSPVector will not work.
 	DSPVector vDelayTime2(65.f);
@@ -172,10 +173,11 @@ int main()
 	
 	std::cout << "\n\n\n";
 	
-	auto vHiCoeffs = HiShelf::vcoeffs({{0.25, 1., 1.}}, {{0.3, 1., 2.}}); // why two sets? see aaltoverb
+	auto vHiCoeffs = HiShelf::vcoeffs({{0.25f, 1.f, 1.f}}, {{0.3f, 1.f, 2.f}}); // why two sets of braces? see aaltoverb
 	std::cout << vHiCoeffs;
-	
-	
+
+
+
 #ifdef _WINDOWS
 	system("pause");
 #endif
