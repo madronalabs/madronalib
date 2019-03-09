@@ -190,7 +190,7 @@ namespace ml
 	public:			
 		enum paramNames{omega, k, A, PARAMS_SIZE};
 		typedef std::array<float, PARAMS_SIZE> params;
-		_coeffs mCoeffs{0};
+		_coeffs mCoeffs{};
 		
 		static _coeffs coeffs (params p)
 		{
@@ -256,7 +256,7 @@ namespace ml
 	public:			
 		enum paramnames{omega, k, A, PARAMS_SIZE};
 		typedef std::array<float, PARAMS_SIZE> params;
-		_coeffs mCoeffs{0};
+		_coeffs mCoeffs{};
 		
 		static _coeffs coeffs (params p)
 		{
@@ -395,7 +395,7 @@ namespace ml
 		float y1{0};
 		
 	public:
-		_coeffs mCoeffs{0};
+		_coeffs mCoeffs{};
 
 		static _coeffs coeffs (float omega)
 		{

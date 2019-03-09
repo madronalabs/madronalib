@@ -14,10 +14,10 @@
 #include <thread>
 #include <vector>
 
-#include "oscpack/osc/OscTypes.h"
-#include "oscpack/osc/OscException.h"
-#include "oscpack/osc/OscOutboundPacketStream.h"
-#include "oscpack/ip/UdpSocket.h"
+#include "osc/OscTypes.h"
+#include "osc/OscException.h"
+#include "osc/OscOutboundPacketStream.h"
+#include "ip/UdpSocket.h"
 
 #include "../matrix/MLSignal.h"
 

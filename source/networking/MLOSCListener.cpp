@@ -44,7 +44,7 @@ void * MLOSCListenerStartThread(void *arg)
 		// MLConsole() << "MLOSCListener caught runtime_error exception: " << e.what() << "\n";
 	}
 	
-	MLOSCListener* pListener = static_cast<MLOSCListener*>(arg);
+	// MLOSCListener* pListener = static_cast<MLOSCListener*>(arg);
 	
 	// // MLConsole() << "MLOSCListener: listener thread on port " << pListener->getPort() << " terminated.\n";
 	return 0;

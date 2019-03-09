@@ -20,8 +20,7 @@ namespace ml
 	class Interpolator
 	{
 	public:
-		Interpolator() : mCurrentFrameIdx(0), mTargetFrameIdx(0), mTest(0)
-		{}
+		Interpolator() : mCurrentFrameIdx(0), mTargetFrameIdx(0){}
 		~Interpolator() {}
 		
 		void setTargetFrames(int f)
@@ -113,6 +112,5 @@ namespace ml
 		
 		int mCurrentFrameIdx;
 		int mTargetFrameIdx;
-		int mTest;
 	};
 }

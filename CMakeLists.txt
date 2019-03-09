@@ -49,6 +49,7 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 #--------------------------------------------------------------------
 
 set(madronalib_NAME madrona)
+set(mldsp_NAME mldsp)
 
 #--------------------------------------------------------------------
 # Enforce out of source build
@@ -68,13 +69,18 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/core)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
+
+
+if(APPLE)
+	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack)
+else()
+endif()
 
 #--------------------------------------------------------------------
 # Add subdirectories

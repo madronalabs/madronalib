@@ -27,7 +27,31 @@ set(OSC_SOURCES
     networking/MLT3DPorts.h
 )
 
+set(mldsp_SOURCES
+    DSP/MLDSPBuffer.cpp
+    DSP/MLDSPBuffer.h
+    DSP/MLDSPFilters.h
+    DSP/MLDSPFunctional.h
+    DSP/MLDSPGens.cpp
+    DSP/MLDSPGens.h
+    DSP/MLDSPMath.h
+    DSP/MLDSPMathNEON.h
+    DSP/MLDSPMathSSE.h
+    DSP/MLDSPMathScalar.h
+    DSP/MLDSPOps.h
+    DSP/MLDSPUtils.h
+    DSP/MLProjection.cpp
+    DSP/MLProjection.h
+    DSP/MLRatio.cpp
+    DSP/MLRatio.h
+    DSP/MLScalarConstants.h
+    DSP/MLScalarMath.cpp
+    DSP/MLScalarMath.h
+)
+
 set(NEW_SOURCES
+    ${mldsp_SOURCES}
+    
     app/MLClock.cpp      
     app/MLPath.h         
     app/MLSymbol.cpp     
@@ -50,26 +74,6 @@ set(NEW_SOURCES
     app/MLProperty.h
     app/MLPropertySet.cpp
     app/MLPropertySet.h
-
-    DSP/MLDSPBuffer.cpp
-    DSP/MLDSPBuffer.h
-    DSP/MLDSPFilters.h
-    DSP/MLDSPFunctional.h
-    DSP/MLDSPGens.cpp
-    DSP/MLDSPGens.h
-    DSP/MLDSPMath.h
-    DSP/MLDSPMathNEON.h
-    DSP/MLDSPMathSSE.h
-    DSP/MLDSPMathScalar.h
-    DSP/MLDSPOps.h
-    DSP/MLDSPUtils.h
-    DSP/MLProjection.cpp
-    DSP/MLProjection.h
-    DSP/MLRatio.cpp
-    DSP/MLRatio.h
-    DSP/MLScalarConstants.h
-    DSP/MLScalarMath.cpp
-    DSP/MLScalarMath.h
 
     matrix/MLInterpolator.cpp
     matrix/MLInterpolator.h
@@ -266,7 +270,7 @@ endif()
 
 if(APPLE)
   list(APPEND madronalib_SOURCES deprecated/MLDebugMac.mm)
-  list(APPEND madronalib_SOURCES OSC_SOURCES)
+  list(APPEND madronalib_SOURCES ${OSC_SOURCES} )
 else()
   list(APPEND madronalib_SOURCES deprecated/MLDebug.cpp)
 endif()
@@ -284,7 +288,9 @@ endif()
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# set source groups
+#--------------------------------------------------------------------
+# set source groups for source above
+#--------------------------------------------------------------------
 
 source_group(dsp REGULAR_EXPRESSION "DSP/.*")
 source_group(app REGULAR_EXPRESSION "app/.*")
@@ -295,7 +301,18 @@ source_group(matrix REGULAR_EXPRESSION "matrix/.*")
 source_group(networking REGULAR_EXPRESSION "networking/.*")
 source_group(procs REGULAR_EXPRESSION "procs/.*")
 
-# Create Library
+#--------------------------------------------------------------------
+# create and install libraries
+#--------------------------------------------------------------------
+
+
+add_library(mldsp STATIC ${mldsp_SOURCES})
+set_target_properties(mldsp PROPERTIES
+                      OUTPUT_NAME "${mldsp_NAME}"
+                      VERSION ${madronalib_VERSION}
+                      SOVERSION ${madronalib_VERSION_MAJOR}
+                      POSITION_INDEPENDENT_CODE ON
+                      FOLDER "madronalib")
 
 
 add_library(madronalib STATIC ${madronalib_SOURCES})
@@ -306,8 +323,24 @@ set_target_properties(madronalib PROPERTIES
                       POSITION_INDEPENDENT_CODE ON
                       FOLDER "madronalib")
 
+include(GNUInstallDirs)
 
-# Include Directories
+
+install(
+    TARGETS madronalib
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(FILES ../include/mldsp.h ../include/madronalib.h DESTINATION include)
+
+
+
+
+#--------------------------------------------------------------------
+# Add include Directories
+#--------------------------------------------------------------------
 
 target_include_directories(madronalib PUBLIC app)
 target_include_directories(madronalib PUBLIC DSP)

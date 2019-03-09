@@ -192,9 +192,9 @@ void MLNetServiceHub::didRemoveService(NetServiceBrowser *pNetServiceBrowser, Ne
 // requires that PollNetServices() be called periodically.
 void MLNetServiceHub::didResolveAddress(NetService *pNetService)
 {
-	const std::string hostName = pNetService->getHostName();
-	const std::string name = pNetService->getName();
-	int port = pNetService->getPort();
+	// const std::string hostName = pNetService->getHostName();
+	// const std::string name = pNetService->getName();
+	// int port = pNetService->getPort();
 	
 	// MLConsole() << "MLNetServiceHub::didResolveAddress: " << hostName << " " << name << " = port " << port << "\n";
 }
