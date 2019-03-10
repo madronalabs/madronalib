@@ -49,7 +49,6 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 #--------------------------------------------------------------------
 
 set(madronalib_NAME madrona)
-set(mldsp_NAME mldsp)
 
 #--------------------------------------------------------------------
 # Enforce out of source build

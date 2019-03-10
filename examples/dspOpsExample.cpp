@@ -85,38 +85,6 @@ int main()
 	std::cout << op(silence) << "\n";
 	std::cout << op(impulse) << "\n";
 	
-	/*
-	
-	// TEMP -> projections example
-	Projection p1(projections::intervalMap({0, 10}, {10, 1000}));
-	std::cout << "\n\n";
-	for(int i=0; i<=10; ++i)
-	{
-		std::cout << i << " : " << p1(i) << "\n";
-	}
-	
-	Projection p(projections::intervalMap({0, 10}, {10, 1000}, projections::log({10, 1000})));
-	std::cout << "\n\n";
-	for(int i=0; i<=10; ++i)
-	{
-		std::cout << i << " : " << p(i) << "\n";
-	}
-	
-	Projection pp(projections::intervalMap({0, 10}, {10, 1000}, projections::flatcenter));
-	std::cout << "\n\n";
-	for(int i=0; i<=10; ++i)
-	{
-		std::cout << i << " : " << pp(i) << "\n";
-	}
-	
-	Projection q(compose(projections::piecewiseLinear({1, 97, 2}), projections::intervalMap({0, 10}, {0, 1})));
-	std::cout << "\n\n";
-	for(int i=0; i<=10; ++i)
-	{
-		std::cout << i << " : " << q(i) << "\n";
-	}
-	
-	*/
 	
 	TickGen ticks(16);
 	
@@ -175,8 +143,6 @@ int main()
 	
 	auto vHiCoeffs = HiShelf::vcoeffs({{0.25f, 1.f, 1.f}}, {{0.3f, 1.f, 2.f}}); // why two sets of braces? see aaltoverb
 	std::cout << vHiCoeffs;
-
-
 
 #ifdef _WINDOWS
 	system("pause");

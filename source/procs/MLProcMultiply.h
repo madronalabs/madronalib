@@ -74,7 +74,6 @@ public:
 		outputs[constFind(outputNames, str)] = &v;
 	}
 	
-	
 	void process() override;
 };
 

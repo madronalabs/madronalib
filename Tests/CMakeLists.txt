@@ -35,7 +35,7 @@ add_executable(tests
 	procsTest.cpp
 	queueTest.cpp
 	resourceMapTest.cpp 
-	signalBufferTest.cpp 
+	dspBufferTest.cpp 
 	symbolTest.cpp
 	timerTest.cpp
 	tests.cpp

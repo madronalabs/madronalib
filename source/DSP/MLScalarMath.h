@@ -80,11 +80,53 @@ namespace ml
 	// ----------------------------------------------------------------
 	#pragma mark utility functions on scalars
 
-	int ilog2(int x);
-	int isNaN(float x) ;
-	int isNaN(double x) ;
-	int isInfinite(float x); 
-	int isInfinite(double x) ;
+	inline int ilog2(int x)
+	{
+		int b=0;
+		if(x >= 1<<16) { x >>= 16; b |= 16; }
+		if(x >= 1<<8) { x >>= 8; b |= 8; }
+		if(x >= 1<<4) { x >>= 4; b |= 4; }
+		if(x >= 1<<2) { x >>= 2; b |= 2; }
+		if(x >= 1<<1) b |= 1;
+		return b;
+	}
+	
+	inline int isNaN(float x) 
+	{ 
+#ifdef _WIN32
+		return (x != x);
+#else
+		return isnan(x);
+#endif
+	}
+	
+	inline int isNaN(double x) 
+	{ 
+#ifdef _WIN32
+		return (x != x);
+#else
+		return isnan(x);
+#endif
+	}
+	
+	inline int isInfinite(float x) 
+	{ 
+#ifdef _WIN32
+		return ((x > FLT_MAX) || (x < -FLT_MAX));
+#else
+		return isinf(x);
+#endif
+	}
+	
+	inline int isInfinite(double x) 
+	{ 
+#ifdef _WIN32
+		return ((x > DBL_MAX) || (x < -DBL_MAX));
+#else
+		return isinf(x);
+#endif
+	}
+	
 
 	inline float smoothstep(float a, float b, float x)
 	{
@@ -106,8 +148,6 @@ namespace ml
 		a = (((a & 0x80000000) >> 31) - 1) & 0x3F800000;
 		return *((float*)&a);
 	}
-	
-	int ilog2(int n);
 	
 	inline float lerpBipolar(const float a, const float b, const float c, const float m)
 	{

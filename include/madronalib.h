@@ -7,15 +7,29 @@
 
 #pragma once
 
+// dsp
 #include "MLDSP.h"
 
+// app
 #include "MLClock.h"
 #include "MLMemoryUtils.h"
+#include "MLModel.h"
 #include "MLPath.h"
 #include "MLPlatform.h"
+#include "MLProperty.h"
+#include "MLPropertySet.h"
 #include "MLQueue.h"
 #include "MLResourceMap.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 #include "MLTextUtils.h"
 #include "MLTimer.h"
+
+// matrix
+#include "MLInterpolator.h"
+#include "MLSignal.h"
+
+// procs
+#include "MLProc.h"
+#include "MLProcFactory.h"
+#include "MLProcMultiply.h"

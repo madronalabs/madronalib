@@ -94,8 +94,8 @@ namespace ml
 		}
 		
 	private:
-		std::array<ml::SignalBuffer, CHANNELS> mInputBuffers;
-		std::array<ml::SignalBuffer, CHANNELS> mOutputBuffers;
+		std::array<ml::DSPBuffer, CHANNELS> mInputBuffers;
+		std::array<ml::DSPBuffer, CHANNELS> mOutputBuffers;
 	};
 	
 	

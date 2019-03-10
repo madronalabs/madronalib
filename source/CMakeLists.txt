@@ -27,12 +27,10 @@ set(OSC_SOURCES
     networking/MLT3DPorts.h
 )
 
-set(mldsp_SOURCES
-    DSP/MLDSPBuffer.cpp
+set(DSP_SOURCES
     DSP/MLDSPBuffer.h
     DSP/MLDSPFilters.h
     DSP/MLDSPFunctional.h
-    DSP/MLDSPGens.cpp
     DSP/MLDSPGens.h
     DSP/MLDSPMath.h
     DSP/MLDSPMathNEON.h
@@ -40,17 +38,14 @@ set(mldsp_SOURCES
     DSP/MLDSPMathScalar.h
     DSP/MLDSPOps.h
     DSP/MLDSPUtils.h
-    DSP/MLProjection.cpp
     DSP/MLProjection.h
-    DSP/MLRatio.cpp
     DSP/MLRatio.h
     DSP/MLScalarConstants.h
-    DSP/MLScalarMath.cpp
     DSP/MLScalarMath.h
 )
 
 set(NEW_SOURCES
-    ${mldsp_SOURCES}
+    ${DSP_SOURCES}
     
     app/MLClock.cpp      
     app/MLPath.h         
@@ -305,14 +300,6 @@ source_group(procs REGULAR_EXPRESSION "procs/.*")
 # create and install libraries
 #--------------------------------------------------------------------
 
-
-add_library(mldsp STATIC ${mldsp_SOURCES})
-set_target_properties(mldsp PROPERTIES
-                      OUTPUT_NAME "${mldsp_NAME}"
-                      VERSION ${madronalib_VERSION}
-                      SOVERSION ${madronalib_VERSION_MAJOR}
-                      POSITION_INDEPENDENT_CODE ON
-                      FOLDER "madronalib")
 
 
 add_library(madronalib STATIC ${madronalib_SOURCES})

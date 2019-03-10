@@ -3,14 +3,8 @@
 //  madronalib
 //
 
-
 #include "catch.hpp"
-#include "../include/madronalib.h"
-
-// TODO clean up includes
-#include "../source/procs/MLProc.h"
-#include "../source/procs/MLProcFactory.h"
-#include "../source/procs/MLProcMultiply.h"
+#include "madronalib.h"
 
 using namespace ml;
 TEST_CASE("madronalib/core/procs", "[procs]")
