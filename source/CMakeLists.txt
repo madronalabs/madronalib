@@ -107,12 +107,9 @@ else(BUILD_NEW_ONLY)
     add_definitions(-D_MADRONALIB_TIMERS_USE_JUCE)
   set(madronalib_SOURCES
     ${NEW_SOURCES}
-    MLProc.cpp
-    deprecated/MLProc.h
     deprecated/MLProcFactory.cpp
     deprecated/MLProcFactory.h
-    deprecated/MLProcMultiply.cpp
-    deprecated/MLProcMultiply.h
+
     deprecated/MLChangeList.cpp
     deprecated/MLChangeList.h
     deprecated/MLControlEvent.cpp
@@ -346,7 +343,7 @@ install(FILES
     ${app_HEADERS}     
     ${matrix_HEADERS}
     ${proc_HEADERS} 
-DESTINATION include/madronalib)
+    DESTINATION include/madronalib)
 
 if(APPLE)
     install(FILES ${NETWORKING_HEADERS} DESTINATION include/madronalib)

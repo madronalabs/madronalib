@@ -14,9 +14,7 @@
 #include <memory>
 #include <functional>
 
-// TODO should be in DSP?
-
-#include "../DSP/MLDSPMath.h"
+#include "MLDSPMath.h"
 #include "MLScalarMath.h"
 
 const uintptr_t kSignalAlignBits = 4; // cache line is 64 bytes, minimum signal size is one SIMD vector

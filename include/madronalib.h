@@ -8,7 +8,7 @@
 #pragma once
 
 // dsp
-#include "MLDSP.h"
+#include "mldsp.h"
 
 // app
 #include "MLClock.h"

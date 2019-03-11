@@ -8,9 +8,9 @@
 #include <string>
 #include <list>
 #include <map>
-#include "../matrix/MLSignal.h"
-#include "MLSymbol.h"
 
+#include "MLSignal.h"
+#include "MLSymbol.h"
 #include "MLText.h"
 
 // MLProperty: a modifiable property. Properties have four types: undefined, float, text, and signal.
