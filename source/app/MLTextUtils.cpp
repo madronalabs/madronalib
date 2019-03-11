@@ -8,38 +8,39 @@
 
 #include "MLTextUtils.h"
 #include "MLScalarMath.h"
+#include "MLMemoryUtils.h"
+
+#include "utf.hpp"
 
 namespace ml { namespace textUtils {
 	
-	using namespace utf;
-	
 	static const int npos = -1;
 		
-	bool isDigit(codepoint_type c)
+	bool isDigit(CodePoint c)
 	{
 		if (c >= '0' && c <= '9')
 			return true;
 		return false;
 	}
-	bool isASCII(codepoint_type c)
+	bool isASCII(CodePoint c)
 	{
 		return(c < 0x7f);
 	}
 	
-	bool isLatin(codepoint_type c)
+	bool isLatin(CodePoint c)
 	{
 		// includes Latin-1 Supplement
 		return(c <= 0xFF);
 	}
 	
-	bool isWhitespace(codepoint_type ch)
+	bool isWhitespace(CodePoint ch)
 	{
 		return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 || ch == 0x1680
 		|| (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 || ch == 0x202F
 		||  ch == 0x205F || ch == 0x3000;
 	}
 	
-	bool isCJK(codepoint_type ch)
+	bool isCJK(CodePoint ch)
 	{
 		return (ch >= 0x4E00 && ch <= 0x9FBF)   // CJK Unified Ideographs
 		|| (ch >= 0x2E80 && ch <= 0x2FDF)   // CJK Radicals Supplement & Kangxi Radicals
@@ -114,7 +115,7 @@ namespace ml { namespace textUtils {
 	
 	int textToNaturalNumber(const TextFragment& frag)
 	{
-		std::vector<codepoint_type> vec = textToCodePointVector(frag);
+		std::vector<CodePoint> vec = textToCodePoints(frag);
 		return digitsToNaturalNumber(vec.data());
 	}
 	
@@ -140,14 +141,14 @@ namespace ml { namespace textUtils {
 	}
 	
 	
-	int findFirst(const TextFragment& frag, const codepoint_type b)
+	int findFirst(const TextFragment& frag, const CodePoint b)
 	{
 		int r = npos;
 		if(!frag) return r;
 		int i=0;
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return r;
+			if(!validateCodePoint(c)) return r;
 			if(c == b)
 			{
 				r = i;
@@ -158,14 +159,14 @@ namespace ml { namespace textUtils {
 		return r;
 	}
 	
-	int findLast(const TextFragment& frag, const codepoint_type b)
+	int findLast(const TextFragment& frag, const CodePoint b)
 	{
 		int r = npos;
 		if(!frag) return r;
 		int i=0;
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return r;
+			if(!validateCodePoint(c)) return r;
 			if(c == b)
 			{
 				r = i;
@@ -175,14 +176,14 @@ namespace ml { namespace textUtils {
 		return r;
 	}
 
-	int findFirst(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
+	int findFirst(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
 	{
 		int r = npos;
 		if(!frag) return r;
 		int i=0;
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return r;
+			if(!validateCodePoint(c)) return r;
 			if(matchFn(c))
 			{
 				r = i;
@@ -194,14 +195,14 @@ namespace ml { namespace textUtils {
 	}
 	
 	// TODO dumb, have to call matchFn on each code point because we have no revese iterator 
-	int findLast(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
+	int findLast(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
 	{
 		int r = npos;
 		if(!frag) return r;
 		int i=0;
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return r;
+			if(!validateCodePoint(c)) return r;
 			if(matchFn(c))
 			{
 				r = i;
@@ -211,15 +212,15 @@ namespace ml { namespace textUtils {
 		return r;
 	}
 		
-	TextFragment map(const TextFragment& frag, std::function<codepoint_type(codepoint_type)> f)
+	TextFragment map(const TextFragment& frag, std::function<CodePoint(CodePoint)> f)
 	{
 		if(!frag) return TextFragment();
-		std::vector<codepoint_type> vec = textToCodePointVector(frag);
+		std::vector<CodePoint> vec = textToCodePoints(frag);
 		std::transform(vec.begin(), vec.end(), vec.begin(), f);
-		return codePointVectorToText(vec);
+		return codePointsToText(vec);
 	}
 	
-	TextFragment reduce(const TextFragment& frag, std::function<bool(codepoint_type)> matchFn)
+	TextFragment reduce(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
 	{
 		if(!frag) return TextFragment();
 		int len = frag.lengthInBytes();
@@ -227,9 +228,9 @@ namespace ml { namespace textUtils {
 		char* buf = temp.data();
 		char* pb = buf;
 		
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return TextFragment();
+			if(!validateCodePoint(c)) return TextFragment();
 			if(matchFn(c))
 			{
 				pb = utf::internal::utf_traits<utf::utf8>::encode(c, pb);
@@ -239,15 +240,15 @@ namespace ml { namespace textUtils {
 		return TextFragment(buf, pb - buf);
 	}
 	
-	std::vector< TextFragment > split(TextFragment frag, codepoint_type delimiter)
+	std::vector< TextFragment > split(TextFragment frag, CodePoint delimiter)
 	{
 		std::vector<TextFragment> output;
 		int start = 0;
 		int end = 0;
 		int pieceLen = 0;
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return std::vector< TextFragment >();
+			if(!validateCodePoint(c)) return std::vector< TextFragment >();
 			pieceLen++;
 			end++;
 			if(c == delimiter)
@@ -279,7 +280,7 @@ namespace ml { namespace textUtils {
 		return sum;
 	}
 	
-	TextFragment join(const std::vector<TextFragment>& vec, codepoint_type delimiter)
+	TextFragment join(const std::vector<TextFragment>& vec, CodePoint delimiter)
 	{
 		TextFragment delimFrag(delimiter);
 		TextFragment sum;
@@ -309,7 +310,7 @@ namespace ml { namespace textUtils {
 		char* buf = temp.data();
 		char* pb = buf;
 		
-		auto first = codepoint_iterator<const char*>(frag.getText());		
+		auto first = TextFragment::Iterator(frag.getText());		
 		auto it = first;
 		for(int i=0; i<start; ++i)
 		{
@@ -319,7 +320,7 @@ namespace ml { namespace textUtils {
 		for (int i=0; i<end - start; ++i) 
 		{
 			// write the codepoint as UTF-8 to the buffer
-			if(!utf::internal::validate_codepoint(*it)) return TextFragment();
+			if(!validateCodePoint(*it)) return TextFragment();
 			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
 			++it;
 		}	
@@ -360,9 +361,9 @@ namespace ml { namespace textUtils {
 	// TODO extend to recognize Cyrillic and other scripts
 	Symbol bestScriptForTextFragment(const TextFragment& frag)
 	{
-		for (const codepoint_type c : frag) 
+		for (const CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return "unknown";
+			if(!validateCodePoint(c)) return "unknown";
 			// if there are any CJK characters, return CJK
 			if (isCJK(c)) 
 			{ 
@@ -459,7 +460,7 @@ namespace ml { namespace textUtils {
 		
 	TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
 	{
-		std::function<bool(codepoint_type)> f([](codepoint_type c){ return !isWhitespace(c); });
+		std::function<bool(CodePoint)> f([](CodePoint c){ return !isWhitespace(c); });
 		int first = findFirst(frag, f);
 		int last = findLast(frag, f);
 		if((first == npos) || (last == npos)) return TextFragment();
@@ -468,7 +469,7 @@ namespace ml { namespace textUtils {
 	
 	TextFragment stripAllWhitespace(const TextFragment& frag)
 	{
-		std::function<bool(codepoint_type)> f([](codepoint_type c){ return !isWhitespace(c); });
+		std::function<bool(CodePoint)> f([](CodePoint c){ return !isWhitespace(c); });
 		return reduce(frag, f);
 	}
 	
@@ -589,11 +590,11 @@ namespace ml { namespace textUtils {
 		int iterEnds = 0;		
 		while(!iterEnds)
 		{
-			codepoint_type ca = *ia;
-			codepoint_type cb = *ib;
+			CodePoint ca = *ia;
+			CodePoint cb = *ib;
 			
-			if(!utf::internal::validate_codepoint(ca)) return false;
-			if(!utf::internal::validate_codepoint(cb)) return false;
+			if(!validateCodePoint(ca)) return false;
+			if(!validateCodePoint(cb)) return false;
 
 			if(ca != cb)
 			{
@@ -660,14 +661,14 @@ namespace ml { namespace textUtils {
 				
 		// TODO make more readble using random access fragment class
 		
-		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> temp(points + 1);
-		codepoint_type* buf = temp.data();
+		SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> temp(points + 1);
+		CodePoint* buf = temp.data();
 		
 		// read into char32 array for random access
 		int i=0;
-		for (codepoint_type c : frag) 
+		for (CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return Symbol();
+			if(!validateCodePoint(c)) return Symbol();
 			buf[i++] = c;
 		}			
 		
@@ -701,14 +702,14 @@ namespace ml { namespace textUtils {
 		
 		// TODO make more readble using random access fragment class
 		
-		SmallStackBuffer<codepoint_type, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
-		codepoint_type* buf = decodedPoints.data();
+		SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
+		CodePoint* buf = decodedPoints.data();
 		
 		// read into char32 array for random access
 		int i=0;
-		for (codepoint_type c : frag) 
+		for (CodePoint c : frag) 
 		{
-			if(!utf::internal::validate_codepoint(c)) return 0;
+			if(!validateCodePoint(c)) return 0;
 			buf[i++] = c;
 		}					
 		

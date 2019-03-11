@@ -5,10 +5,79 @@
 //  Created by Randy Jones on 5/21/16.
 //
 
+#include <iostream>
+#include <vector>
+
+#include "MLMemoryUtils.h"
 #include "MLText.h"
+
+#include "utf.hpp"
+
 
 namespace ml
 {
+	
+	// Iterator::Impl
+	
+	class TextFragment::Iterator::Impl
+	{
+		friend class TextFragment::Iterator;
+		friend bool operator!= (Iterator lhs, Iterator rhs);
+		friend bool operator== (Iterator lhs, Iterator rhs);
+		
+		utf::codepoint_iterator<const char*> _utf8Iter;
+		
+	public:
+		Impl(const char* pos) : 
+		_utf8Iter(utf::codepoint_iterator<const char*>(pos)){}
+		Impl(const utf::codepoint_iterator<const char*> &utf_iter) : 
+		_utf8Iter(utf_iter){}
+	};
+	
+	
+	// Iterator
+	
+	TextFragment::Iterator::Iterator(const char* pos)
+	{
+		pImpl = std::unique_ptr<Impl>(new Impl(pos));		
+	}
+	
+	TextFragment::Iterator::Iterator(const Iterator& it)// = default;
+	{
+		pImpl = std::unique_ptr<Impl>(new Impl(it.pImpl->_utf8Iter));	
+	}
+	
+	TextFragment::Iterator::~Iterator() = default;
+	
+	CodePoint TextFragment::Iterator::operator*() 
+	{ 
+		return pImpl->_utf8Iter.operator*(); 
+	}
+	
+	//		CodePoint operator->() { return _utf8Iter.operator->(); }
+	
+	TextFragment::Iterator& TextFragment::Iterator::operator++() 
+	{ 
+		pImpl->_utf8Iter.operator++(); 
+		return *this;
+	}
+	
+	//CodePoint operator++(int i) { return _utf8Iter.operator++(i); } // needed?
+	
+	
+	bool operator!= (TextFragment::Iterator lhs, TextFragment::Iterator rhs) 
+	{ 
+		return lhs.pImpl->_utf8Iter != rhs.pImpl->_utf8Iter; 
+	}
+	
+	bool operator== (TextFragment::Iterator lhs, TextFragment::Iterator rhs) 
+	{ 
+		return !(lhs.pImpl->_utf8Iter != rhs.pImpl->_utf8Iter); 
+	}
+	
+	
+	// TextFragment
+	
 	TextFragment::TextFragment() noexcept
 	{
 		mSize = 0;
@@ -39,9 +108,9 @@ namespace ml
 		}		
 	}
 	
-	TextFragment::TextFragment(utf::codepoint_type c) noexcept
+	TextFragment::TextFragment(CodePoint c) noexcept
 	{
-		if(!utf::internal::validate_codepoint(c))
+		if(!validateCodePoint(c))
 		{
 			c = 0x2639; // sad face
 		}
@@ -50,6 +119,27 @@ namespace ml
 		mSize = end - mLocalText;
 		mpText = mLocalText;	
 		nullTerminate();
+	}
+	
+	int TextFragment::lengthInBytes() const
+	{
+		return mSize;
+	}
+	
+	int TextFragment::lengthInCodePoints() const
+	{
+		utf::stringview<const char*> sv(mpText, mpText + mSize);
+		return static_cast<int>(sv.codepoints());
+	}
+	
+	TextFragment::Iterator TextFragment::begin() const
+	{
+		return TextFragment::Iterator(getText());
+	}
+	
+	TextFragment::Iterator TextFragment::end() const
+	{
+		return Iterator(getText() + lengthInBytes());
 	}
 	
 	TextFragment subText(const TextFragment& frag, int start, int end)
@@ -73,7 +163,7 @@ namespace ml
 		for (int i=0; i<end - start; ++i) 
 		{
 			// write the codepoint as UTF-8 to the buffer
-			if(!utf::internal::validate_codepoint(*it)) return TextFragment();
+			if(!validateCodePoint(*it)) return TextFragment();
 			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
 			++it;
 		}	
@@ -84,16 +174,6 @@ namespace ml
 	TextFragment::TextFragment(const TextFragment& a) noexcept
 	{
 		construct(a.getText(), a.lengthInBytes());
-	}
-	
-	utf::codepoint_iterator<const char*> TextFragment::begin() const
-	{
-		return utf::codepoint_iterator<const char*>(getText());
-	}
-	
-	utf::codepoint_iterator<const char*> TextFragment::end() const
-	{
-		return utf::codepoint_iterator<const char*>(getText() + lengthInBytes());
 	}
 	
 	// just copy the data. If we want to optimize and use reference-counted strings at some point,
@@ -224,5 +304,31 @@ namespace ml
 		b.nullTerminate();
 	}
 	
+	bool validateCodePoint(CodePoint c)
+	{
+		return utf::internal::validate_codepoint(c);
+	}
+	
+	// TODO small stack objects here to make random access class, don't use std::vector
+	std::vector<CodePoint> textToCodePoints(TextFragment frag)
+	{
+		std::vector<CodePoint> r;
+		for(CodePoint c : frag)
+		{
+			r.push_back(c);
+		}
+		return r;
+	}
+	
+	TextFragment codePointsToText(std::vector<CodePoint> cv)
+	{
+		auto sv = utf::make_stringview(cv.begin(), cv.end());
+		std::vector<char> outVec;
+		sv.to<utf::utf8>(std::back_inserter(outVec));
+		return TextFragment(outVec.data(), outVec.size());		
+	}
+	
 } // namespace ml
+
+
 

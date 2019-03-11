@@ -9,11 +9,6 @@
 
 #pragma once
 
-#include "../../external/utf/utf.hpp"
-#include "MLMemoryUtils.h"
-#include <iostream>
-#include <vector>
-
 namespace ml
 {
 	// ----------------------------------------------------------------
@@ -23,9 +18,35 @@ namespace ml
 	static constexpr int kShortFragmentSizeInCodePoints = 16;
 	static constexpr int kShortFragmentSizeInChars = kShortFragmentSizeInCodePoints*4;
 	
+	using CodePoint = char32_t;
+	
 	class TextFragment
 	{
 	public:
+		
+		
+		class Iterator
+		{
+			class Impl;
+			std::unique_ptr<Impl> pImpl;
+			
+		public:
+			Iterator(const char* pos);			
+			
+			~Iterator(); // defined in the implementation file, where impl is a complete type
+			//	Iterator(Iterator&&) = default;
+			Iterator(const Iterator&);
+			//	Iterator& operator=(Iterator&&); // defined in the implementation file
+			Iterator& operator=(const Iterator&) = delete;
+			
+			CodePoint operator*();
+			//		CodePoint operator->() { return _utf8Iter.operator->(); }
+			Iterator& operator++();
+			CodePoint operator++(int i);
+			
+			friend bool operator!= (Iterator lhs, Iterator rhs);
+			friend bool operator== (Iterator lhs, Iterator rhs);
+		};
 		
 		TextFragment() noexcept;
 
@@ -51,7 +72,7 @@ namespace ml
 		TextFragment(const char* pChars, size_t len) noexcept;
 		
 		// single code point ctor
-		TextFragment(utf::codepoint_type c) noexcept;
+		TextFragment(CodePoint c) noexcept;
 
 		// copy ctor
 		TextFragment(const TextFragment& a) noexcept;
@@ -74,16 +95,12 @@ namespace ml
 		
 		explicit operator bool() const { return mSize > 0; }
 		
-		inline int lengthInBytes() const
-		{
-			return mSize;
-		}
+		int lengthInBytes() const;
 		
-		inline int lengthInCodePoints() const
-		{
-			utf::stringview<const char*> sv(mpText, mpText + mSize);
-			return static_cast<int>(sv.codepoints());
-		}
+		int lengthInCodePoints() const;
+		
+		Iterator begin() const;
+		Iterator end() const;
 		
 		inline const char* getText() const { return mpText; }
 		
@@ -117,8 +134,6 @@ namespace ml
 			return true;
 		}
 		
-		utf::codepoint_iterator<const char*> begin() const;
-		utf::codepoint_iterator<const char*> end() const;
 		// deprecated! MLTEST
 		inline std::string toString() const { return std::string(mpText); }
 		
@@ -181,6 +196,15 @@ namespace ml
 	// Text - a placeholder for more features later like localization
 	
 	typedef TextFragment Text;
+	
+	// ----------------------------------------------------------------
+	// functions
+	
+	bool validateCodePoint(CodePoint c);
 
+	std::vector<CodePoint> textToCodePoints(TextFragment frag);
+	TextFragment codePointsToText(std::vector<CodePoint> cv);
+
+	
 } // namespace ml
 

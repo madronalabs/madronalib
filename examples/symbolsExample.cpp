@@ -134,7 +134,7 @@ int main()
 		
 		TextFragment test1 ("hello.exe");
 		std::cout << "findLast loc: " << textUtils::findLast(test1, 'l') << "\n"; // 3
-		std::cout << "findLast loc: " << textUtils::findLast(test1, [](utf::codepoint_type c){ return c == 'o'; }) << "\n"; // 4
+		std::cout << "findLast loc: " << textUtils::findLast(test1, [](CodePoint c){ return c == 'o'; }) << "\n"; // 4
 
 	#if HAVE_U8_LITERALS
 		TextFragment kobayashi(u8"小林 尊");
@@ -143,8 +143,8 @@ int main()
 	#endif	
 		
 		// iterate a UTF-8 text as code points
-		auto first = utf::codepoint_iterator<const char*>(kobayashi.getText());
-		auto last = utf::codepoint_iterator<const char*>(kobayashi.getText() + kobayashi.lengthInBytes());
+		auto first = TextFragment::Iterator(kobayashi.getText());
+		auto last = TextFragment::Iterator(kobayashi.getText() + kobayashi.lengthInBytes());
 		for (auto it = first; it != last; ++it) 
 		{
 			std::cout << std::hex << *it << " "; // code points: 5c0f 6797 20 5c0a 
@@ -152,20 +152,9 @@ int main()
 		std::cout << "\n";
 		
 		// find a code point in a UTF-8 text
-		utf::codepoint_type hayashi[1]{0x6797};
+		CodePoint hayashi[1]{0x6797};
 		std::cout << "hayashi loc: " << textUtils::findFirst(kobayashi, hayashi[0]) << "\n"; // 1
 		
-		// UTF-8 encode a single codepoint to preallocated buffer
-		const int kBufSize = 4;
-		unsigned char buf[kBufSize];
-		auto hv = utf::make_stringview(hayashi);
-		unsigned char* pb = buf;
-		for (utf::codepoint_iterator<const char32_t *> it = hv.begin(); it != hv.end(); ++it) 
-		{
-			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
-			if((pb - buf) >= kBufSize) break;
-		}
-		std::cout << buf << "\n"; // 林
 		
 		TextFragment hello1("hi, how are you?");
 		std::cout << hello1 << " [" << textUtils::subText(hello1, 4, 7) << "] \n"; // hi, how are you? [how] 
@@ -212,7 +201,7 @@ int main()
 		std::cout << w.lengthInCodePoints() << " code points, " << w.lengthInBytes() << " bytes.\n";
 		
 		std::cout << "code points: \n";
-		for (const utf::codepoint_type c : w) 
+		for (const CodePoint c : w) 
 		{
 			std::cout << c << " ";
 		}
@@ -290,11 +279,11 @@ int main()
 	{
 		// map, reduce
 		TextFragment frag("It was the best of times, it was the würst of times.");
-		TextFragment f2 = map(frag, [](codepoint_type c){ return (c + 291); });
+		TextFragment f2 = map(frag, [](CodePoint c){ return (c + 291); });
 		std::cout << f2 << "\n";
-		TextFragment f3 = map(f2, [](codepoint_type c){ return (c - 291); });
+		TextFragment f3 = map(f2, [](CodePoint c){ return (c - 291); });
 		std::cout << f3 << "\n";
-		TextFragment f4 = reduce(f3, [](codepoint_type c){ return (c != 's'); });
+		TextFragment f4 = reduce(f3, [](CodePoint c){ return (c != 's'); });
 		std::cout << f4 << "\n";
 	}
 	

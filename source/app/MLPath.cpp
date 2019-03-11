@@ -5,6 +5,7 @@
 
 #include "MLPath.h"
 #include "MLTextUtils.h"
+#include "utf.hpp"
 
 namespace ml {
 
@@ -26,9 +27,10 @@ namespace ml {
 		parsePathString(frag.getText());
 	}
 	
+
 	void Path::parsePathString(const char* pathStr)
 	{
-		auto it = utf::codepoint_iterator<const char*>(pathStr);		
+		auto it = TextFragment::Iterator(pathStr);		
 		char separator = '/';
 		size_t symbolSizeInBytes;		
 		const char* symbolStartPtr = pathStr;
@@ -39,7 +41,7 @@ namespace ml {
 			symbolSizeInBytes = 0;
 			do
 			{
-				utf::codepoint_type cp = *it;
+				CodePoint cp = *it;
 				size_t codePointSize = utf::internal::utf_traits<utf::utf8>::write_length(cp);				
 				charIsSeparator = (codePointSize == 1) && (cp == separator);
 				finishedString = (cp == '\0');
@@ -56,6 +58,7 @@ namespace ml {
 		while(!finishedString);
 	}
 
+	
 	void Path::addSymbol(ml::Symbol sym)
 	{
 		if (mSize < kPathMaxSymbols)

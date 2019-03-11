@@ -12,22 +12,25 @@ set(madronalib_HEADERS
   ../include/madronalib.h
   )
 
-set(OSC_SOURCES
-    networking/MLInputProtocols.h
+set(NETWORKING_SOURCES
     networking/MLNetServiceHub.cpp
-    networking/MLNetServiceHub.h
     networking/MLOSCListener.cpp
-    networking/MLOSCListener.h
     networking/MLOSCReceiver.cpp
-    networking/MLOSCReceiver.h
     networking/MLOSCSender.cpp
-    networking/MLOSCSender.h
     networking/MLT3DHub.cpp
+)
+
+set(NETWORKING_HEADERS
+    networking/MLInputProtocols.h
+    networking/MLNetServiceHub.h
+    networking/MLOSCListener.h
+    networking/MLOSCReceiver.h
+    networking/MLOSCSender.h
     networking/MLT3DHub.h
     networking/MLT3DPorts.h
 )
 
-set(DSP_SOURCES
+set(DSP_HEADERS
     DSP/MLDSPBuffer.h
     DSP/MLDSPFilters.h
     DSP/MLDSPFunctional.h
@@ -44,43 +47,55 @@ set(DSP_SOURCES
     DSP/MLScalarMath.h
 )
 
+set(app_HEADERS
+    app/MLClock.h        
+    app/MLMemoryUtils.h  
+    app/MLModel.h
+    app/MLPath.h         
+    app/MLPlatform.h     
+    app/MLProperty.h
+    app/MLPropertySet.h
+    app/MLQueue.h        
+    app/MLResourceMap.h  
+    app/MLSymbol.h       
+    app/MLText.h         
+    app/MLTextUtils.h
+    app/MLTimer.h
+)
+
+set(matrix_HEADERS
+    matrix/MLInterpolator.h
+    matrix/MLSignal.h
+)
+
+set(proc_HEADERS
+    procs/MLProc.h
+    procs/MLProcFactory.h
+    procs/MLProcMultiply.h
+)
+
 set(NEW_SOURCES
-    ${DSP_SOURCES}
+    ${DSP_HEADERS}
+    ${app_HEADERS}
+    ${matrix_HEADERS}
+    ${proc_HEADERS}
     
     app/MLClock.cpp      
-    app/MLPath.h         
+    app/MLModel.cpp
+    app/MLPath.cpp       
+    app/MLProperty.cpp
+    app/MLPropertySet.cpp
     app/MLSymbol.cpp     
     app/MLTextUtils.cpp
-    app/MLClock.h        
-    app/MLPlatform.h     
-    app/MLSymbol.h       
-    app/MLTextUtils.h
-    app/MLMemoryUtils.h  
-    app/MLQueue.h        
     app/MLText.cpp       
     app/MLTimer.cpp
-    app/MLPath.cpp       
-    app/MLResourceMap.h  
-    app/MLText.h         
-    app/MLTimer.h
-    app/MLModel.cpp
-    app/MLModel.h
-    app/MLProperty.cpp
-    app/MLProperty.h
-    app/MLPropertySet.cpp
-    app/MLPropertySet.h
 
     matrix/MLInterpolator.cpp
-    matrix/MLInterpolator.h
     matrix/MLSignal.cpp
-    matrix/MLSignal.h
 
     procs/MLProc.cpp
-    procs/MLProc.h
     procs/MLProcFactory.cpp
-    procs/MLProcFactory.h
     procs/MLProcMultiply.cpp
-    procs/MLProcMultiply.h
     )
 
 if(BUILD_NEW_ONLY)
@@ -265,7 +280,9 @@ endif()
 
 if(APPLE)
   list(APPEND madronalib_SOURCES deprecated/MLDebugMac.mm)
-  list(APPEND madronalib_SOURCES ${OSC_SOURCES} )
+
+  #TODO OSC for windows
+  list(APPEND madronalib_SOURCES ${NETWORKING_SOURCES} )
 else()
   list(APPEND madronalib_SOURCES deprecated/MLDebug.cpp)
 endif()
@@ -301,7 +318,6 @@ source_group(procs REGULAR_EXPRESSION "procs/.*")
 #--------------------------------------------------------------------
 
 
-
 add_library(madronalib STATIC ${madronalib_SOURCES})
 set_target_properties(madronalib PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
@@ -320,9 +336,22 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(FILES ../include/mldsp.h ../include/madronalib.h DESTINATION include)
+install(FILES ../include/mldsp.h DESTINATION include/madronalib)
 
+install(FILES ${DSP_HEADERS} DESTINATION include/madronalib)
 
+install(FILES ../include/madronalib.h DESTINATION include/madronalib)
+
+install(FILES 
+    ${app_HEADERS}     
+    ${matrix_HEADERS}
+    ${proc_HEADERS} 
+DESTINATION include/madronalib)
+
+if(APPLE)
+    install(FILES ${NETWORKING_HEADERS} DESTINATION include/madronalib)
+else()
+endif()
 
 
 #--------------------------------------------------------------------
