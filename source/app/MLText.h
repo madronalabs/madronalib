@@ -202,6 +202,9 @@ namespace ml
 	
 	bool validateCodePoint(CodePoint c);
 
+	std::vector<uint8_t> textToByteVector(TextFragment frag);
+	TextFragment byteVectorToText(const std::vector<uint8_t>& v);
+
 	std::vector<CodePoint> textToCodePoints(TextFragment frag);
 	TextFragment codePointsToText(std::vector<CodePoint> cv);
 

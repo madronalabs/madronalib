@@ -155,7 +155,6 @@ int main()
 		CodePoint hayashi[1]{0x6797};
 		std::cout << "hayashi loc: " << textUtils::findFirst(kobayashi, hayashi[0]) << "\n"; // 1
 		
-		
 		TextFragment hello1("hi, how are you?");
 		std::cout << hello1 << " [" << textUtils::subText(hello1, 4, 7) << "] \n"; // hi, how are you? [how] 
 		std::cout << textUtils::stripFileExtension("example.txt") << "\n"; // example
@@ -206,7 +205,6 @@ int main()
 			std::cout << c << " ";
 		}
 		std::cout << "\n";
-		
 	}
 	
 	{
@@ -259,7 +257,7 @@ int main()
 		// AES and base64
 		ml::TextFragment plaintextFrag("It was the best of times, it was the würst of times.");
 		
-		std::vector<uint8_t> plaintextBytes(ml::textUtils::textToByteVector(plaintextFrag));
+		std::vector<uint8_t> plaintextBytes(ml::textToByteVector(plaintextFrag));
 		std::vector<uint8_t> key(32, 'a');
 		std::vector<uint8_t> iv(32, 'a');
 		
@@ -271,7 +269,7 @@ int main()
 		std::vector<uint8_t> ciphertextBytesDecoded = ml::textUtils::base64Decode(ciphertextBase64);
 		std::vector<uint8_t> plaintextBytesDecoded = ml::textUtils::AES256CBCDecode(ciphertextBytesDecoded, key, iv);
 
-		ml::TextFragment decodedFrag(ml::textUtils::byteVectorToText(plaintextBytesDecoded));
+		ml::TextFragment decodedFrag(ml::byteVectorToText(plaintextBytesDecoded));
 
 		std::cout << "decoded: *" << decodedFrag << "*" << "\n";
 	}

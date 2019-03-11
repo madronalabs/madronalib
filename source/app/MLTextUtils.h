@@ -14,11 +14,8 @@
 #include <vector>
 
 #include "MLSymbol.h"
-#include "../../external/aes256/aes256.h"
 
 namespace ml { namespace textUtils {
-
-//using namespace utf;
 
 	bool isDigit(CodePoint c);	
 	bool isASCII(CodePoint c);
@@ -83,19 +80,6 @@ namespace ml { namespace textUtils {
 
 	std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& plaintext, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv);
 	std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& ciphertext, const std::vector<uint8_t>& key, const std::vector<uint8_t>& iv);
-	
-	// return UTF-8 encoded vector of bytes without null terminator
-	inline std::vector<uint8_t> textToByteVector(TextFragment frag)
-	{
-		return std::vector<uint8_t>(frag.getText(), frag.getText() + frag.lengthInBytes());
-	}
-
-	inline TextFragment byteVectorToText(const std::vector<uint8_t>& v)
-	{
-		if(!v.size()) return TextFragment();
-		const uint8_t* p = v.data();
-		return TextFragment(reinterpret_cast<const char*>(p), v.size());
-	}
 	
 	// perform case-insensitive compare of fragments and return (a < b).
 	// TODO collate other languages better using miniutf library.

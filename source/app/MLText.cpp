@@ -309,6 +309,19 @@ namespace ml
 		return utf::internal::validate_codepoint(c);
 	}
 	
+	// return UTF-8 encoded vector of bytes without null terminator
+	std::vector<uint8_t> textToByteVector(TextFragment frag)
+	{
+		return std::vector<uint8_t>(frag.getText(), frag.getText() + frag.lengthInBytes());
+	}
+	
+	TextFragment byteVectorToText(const std::vector<uint8_t>& v)
+	{
+		if(!v.size()) return TextFragment();
+		const uint8_t* p = v.data();
+		return TextFragment(reinterpret_cast<const char*>(p), v.size());
+	}
+	
 	// TODO small stack objects here to make random access class, don't use std::vector
 	std::vector<CodePoint> textToCodePoints(TextFragment frag)
 	{
