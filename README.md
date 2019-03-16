@@ -3,7 +3,7 @@ Madronalib
 
 A C++ framework for DSP applications.
 
-Copyright (c) 2015-2019 Madrona Labs LLC. http://www.madronalabs.com
+Copyright (c) 2019 Madrona Labs LLC. http://www.madronalabs.com
 
 Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
@@ -12,7 +12,7 @@ Status
 
 As of Jan. 2019 a rewrite is in progress and some old code relied on by shipping products is still present. The examples and tests are the places to start looking at the new code. 
 
-The files in /source/DSP are a useful standalone DSP library and can be included without other dependencies:  `#include MLDSP.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations.  An SSE version is complete, NEON support is a work in progress. 
+The files in /source/DSP are a useful standalone DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations.  An SSE version is complete, NEON support is a work in progress. 
 
 Design Notes
 ------------
@@ -31,7 +31,7 @@ The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/tr
 Building
 ----------
 
-Madronalib is currently used alongside the JUCE library to build the Madrona Labs plugins and the Soundplane application. Work is ongoing to remove the dual-licensed JUCE dependencies. The default build does not include these modules. For building only the new code independently of JUCE, use the default settings as follows:
+Madronalib can be built with the default settings as follows:
 
 	mkdir build
 	cd build
@@ -39,22 +39,15 @@ Madronalib is currently used alongside the JUCE library to build the Madrona Lab
 	make
     
 This will create a command-line build of all the new code.
-
-To build with JUCE app support, first get the JUCE submodule then turn the BUILD_NEW_ONLY option off in CMake as follows:
-
-    git submodule update --init --recursive
-    mkdir build
-    cd build
-    cmake -DBUILD_NEW_ONLY=OFF ..
-    make
-
-
 To build an XCode project with JUCE support, run something like
 
 	mkdir build-xcode
 	cd build-xcode
-	cmake -DBUILD_NEW_ONLY=OFF -GXcode ..
+	cmake -GXcode ..
 
+To build a VS2015 project for a 64-bit Windows app I'm currently using the command 
+
+	cmake .. -G "Visual Studio 14 2015 Win64"
 
 
 Contents
@@ -62,25 +55,18 @@ Contents
 
 	/cmake : any modules or tools for the cmake build system
 	/examples: example projects
-	/external: small supporting code projects included in their entirety. TinyXML, cJSON, portaudio etc. 
-	/include: MLDSP.h, madronalib.h
+	/external: small supporting code projects included as source. cJSON, oscpack etc. 
+	/include: top-level public headers: mldsp.h, madronalib.h
 	/source:
 		/app: utilities for low-level application support: symbols, 
 			timers, queues, data structures, models, etc. these modules shall 
 			only depend on other code in /app.
 
-		/deprecated: code from the Juce-based app and the older dynamic 
-			DSP graph code.
-
 		/DSP: functions for making DSP objects including SIMD math 
 			libraries. These modules shall only depend on code in /DSP, 
 			with the exception of the externals/ffft library. Include 
-			MLDSP.h to include all DSP files. NEON code is work 
+			mldsp.h to include all DSP files. NEON code is work 
 			in progress.
-
-		/JuceApp: current code, adapters to JUCE framework.
-
-		/JuceLookAndFeel: widgets for JUCE-based display.
 
 		/matrix: matrix and vector data and functions. Depends only on 
 			/DSP, for SIMD math.

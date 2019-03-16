@@ -1,7 +1,7 @@
 # madronalib/CMakeLists.txt
 # root CMake file for madronalib project.
 
-# Windows: cmake .. -G "Visual Studio 14 2015 Win64"
+# Windows cmd line: cmake .. -G "Visual Studio 14 2015 Win64"
 
 project(madronalib CXX)
 
@@ -45,7 +45,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 
 #--------------------------------------------------------------------
-# Choose library output names
+# Choose library output name
 #--------------------------------------------------------------------
 
 set(madronalib_NAME madrona)
@@ -89,13 +89,13 @@ add_subdirectory(source)
 add_subdirectory(external/aes256)
 add_subdirectory(external/ffft)
 add_subdirectory(external/cJSON)
+add_subdirectory(external/utf)
 
 if(APPLE)
 	add_subdirectory(external/oscpack)
 else()
+  #TODO OSC for Windows / Linux
 endif()
-
-add_subdirectory(external/utf)
 
 if(BUILD_NEW_ONLY)
 else()

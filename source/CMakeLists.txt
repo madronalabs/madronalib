@@ -74,7 +74,7 @@ set(proc_HEADERS
     procs/MLProcMultiply.h
 )
 
-set(NEW_SOURCES
+set(madronalib_SOURCES
     ${DSP_HEADERS}
     ${app_HEADERS}
     ${matrix_HEADERS}
@@ -98,201 +98,20 @@ set(NEW_SOURCES
     procs/MLProcMultiply.cpp
     )
 
-if(BUILD_NEW_ONLY)
-   set(madronalib_SOURCES
-    ${NEW_SOURCES}
-    )
+# TODO ml-juce Timer integration
+#    add_definitions(-D_MADRONALIB_TIMERS_USE_JUCE)
 
-else(BUILD_NEW_ONLY)
-    add_definitions(-D_MADRONALIB_TIMERS_USE_JUCE)
-  set(madronalib_SOURCES
-    ${NEW_SOURCES}
-    deprecated/MLProcFactory.cpp
-    deprecated/MLProcFactory.h
 
-    deprecated/MLChangeList.cpp
-    deprecated/MLChangeList.h
-    deprecated/MLControlEvent.cpp
-    deprecated/MLControlEvent.h
-    deprecated/MLDSPContext.cpp
-    deprecated/MLDSPContext.h
-    deprecated/MLDSPDeprecated.cpp
-    deprecated/MLDSPDeprecated.h
-    deprecated/MLDSPEngine.cpp
-    deprecated/MLDSPEngine.h
-    deprecated/MLDebug.cpp
-    deprecated/MLDebug.h
-    deprecated/MLDebugMac.mm
-    deprecated/MLGL.cpp
-    deprecated/MLGL.h
-    deprecated/MLMultProxy.cpp
-    deprecated/MLMultProxy.h
-    deprecated/MLParameter.cpp
-    deprecated/MLParameter.h
-    deprecated/MLProc.cpp
-    deprecated/MLProc.h
-    deprecated/MLProcAbs.cpp
-    deprecated/MLProcAdd.cpp
-    deprecated/MLProcAllpass.cpp
-    deprecated/MLProcBiquad.cpp
-    deprecated/MLProcClamp.cpp
-    deprecated/MLProcClampSignal.cpp
-    deprecated/MLProcConstant.cpp
-    deprecated/MLProcContainer.cpp
-    deprecated/MLProcContainer.h
-    deprecated/MLProcCubicDistort.cpp
-    deprecated/MLProcDCBlocker.cpp
-    deprecated/MLProcDebug.cpp
-    deprecated/MLProcDelay.cpp
-    deprecated/MLProcDelayInput.cpp
-    deprecated/MLProcDelayInput.h
-    deprecated/MLProcDelayOutput.cpp
-    deprecated/MLProcDivide.cpp
-    deprecated/MLProcDxDt.cpp
-    deprecated/MLProcEnvelope.cpp
-    deprecated/MLProcEnvelopeFollow.cpp
-    deprecated/MLProcExp2.cpp
-    deprecated/MLProcFMBandwidth.cpp
-    deprecated/MLProcFade.cpp
-    deprecated/MLProcFadeBipolar.cpp
-    deprecated/MLProcGlide.cpp
-    deprecated/MLProcHostPhasor.cpp
-    deprecated/MLProcHostPhasor.h
-    deprecated/MLProcInputToSignals.cpp
-    deprecated/MLProcInputToSignals.h
-    deprecated/MLProcInterleave.cpp
-    deprecated/MLProcMatrix.cpp
-    deprecated/MLProcMatrix.h
-    deprecated/MLProcMultiple.cpp
-    deprecated/MLProcMultiple.h
-    deprecated/MLProcMultiply.cpp
-    deprecated/MLProcMultiplyAdd.cpp
-    deprecated/MLProcNoise.cpp
-    deprecated/MLProcOnepole.cpp
-    deprecated/MLProcPan.cpp
-    deprecated/MLProcParamToSignal.cpp
-    deprecated/MLProcPeak.cpp
-    deprecated/MLProcPhasor.cpp
-    deprecated/MLProcPow.cpp
-    deprecated/MLProcQuantize.cpp
-    deprecated/MLProcRMS.cpp
-    deprecated/MLProcRMS.h
-    deprecated/MLProcRate.cpp
-    deprecated/MLProcResample.cpp
-    deprecated/MLProcRingBuffer.cpp
-    deprecated/MLProcRingBuffer.h
-    deprecated/MLProcSampleRate.cpp
-    deprecated/MLProcSineOsc.cpp
-    deprecated/MLProcSinePhase.cpp
-    deprecated/MLProcStereoPan.cpp
-    deprecated/MLProcSubtract.cpp
-    deprecated/MLProcSum.cpp
-    deprecated/MLProcTestTone.cpp
-    deprecated/MLProcThru.cpp
-    deprecated/MLProcdBToAmp.cpp
-    deprecated/MLSymbolMap.h
-    deprecated/MLTextStreamListener.h
-    deprecated/MLVectorDeprecated.cpp
-    deprecated/MLVectorDeprecated.h
-
-    JuceApp/MLAppBorder.cpp
-    JuceApp/MLAppBorder.h
-    JuceApp/MLAppState.cpp
-    JuceApp/MLAppState.h
-    JuceApp/MLAppView.cpp
-    JuceApp/MLAppView.h
-    JuceApp/MLAppWindow.cpp
-    JuceApp/MLAppWindow.h
-    JuceApp/MLAudioProcessorListener.h
-    JuceApp/MLBoundsConstrainer.cpp
-    JuceApp/MLBoundsConstrainer.h
-    JuceApp/MLDefaultFileLocations.cpp
-    JuceApp/MLDefaultFileLocations.h
-    JuceApp/MLFile.cpp
-    JuceApp/MLFile.h
-    JuceApp/MLFileCollection.cpp
-    JuceApp/MLFileCollection.h
-    JuceApp/MLJuceAUWrapper.mm
-    JuceApp/MLJuceFilesMac.cpp
-    JuceApp/MLJuceFilesMac.h
-    JuceApp/MLJuceInclude.h
-    JuceApp/MLJuceOpenGL.h
-    JuceApp/MLJuceVSTWrapper.cpp
-    JuceApp/MLMenu.cpp
-    JuceApp/MLMenu.h
-    JuceApp/MLPageView.cpp
-    JuceApp/MLPageView.h
-    JuceApp/MLReporter.cpp
-    JuceApp/MLReporter.h
-    JuceApp/MLWidget.cpp
-    JuceApp/MLWidget.h
-    JuceApp/MLWidgetContainer.cpp
-    JuceApp/MLWidgetContainer.h
-
-    JuceLookAndFeel/MLButton.cpp
-    JuceLookAndFeel/MLButton.h
-    JuceLookAndFeel/MLDebugDisplay.cpp
-    JuceLookAndFeel/MLDebugDisplay.h
-    JuceLookAndFeel/MLDial.cpp
-    JuceLookAndFeel/MLDial.h
-    JuceLookAndFeel/MLDrawableButton.cpp
-    JuceLookAndFeel/MLDrawableButton.h
-    JuceLookAndFeel/MLDrawing.cpp
-    JuceLookAndFeel/MLDrawing.h
-    JuceLookAndFeel/MLEnvelope.cpp
-    JuceLookAndFeel/MLEnvelope.h
-    JuceLookAndFeel/MLImageBank.cpp
-    JuceLookAndFeel/MLImageBank.h
-    JuceLookAndFeel/MLLabel.cpp
-    JuceLookAndFeel/MLLabel.h
-    JuceLookAndFeel/MLLookAndFeel.cpp
-    JuceLookAndFeel/MLLookAndFeel.h
-    JuceLookAndFeel/MLMenuButton.cpp
-    JuceLookAndFeel/MLMenuButton.h
-    JuceLookAndFeel/MLMultiButton.cpp
-    JuceLookAndFeel/MLMultiButton.h
-    JuceLookAndFeel/MLMultiSlider.cpp
-    JuceLookAndFeel/MLMultiSlider.h
-    JuceLookAndFeel/MLPanel.cpp
-    JuceLookAndFeel/MLPanel.h
-    JuceLookAndFeel/MLPositioner.cpp
-    JuceLookAndFeel/MLPositioner.h
-    JuceLookAndFeel/MLProgressBar.cpp
-    JuceLookAndFeel/MLProgressBar.h
-    JuceLookAndFeel/MLSeparator.cpp
-    JuceLookAndFeel/MLSeparator.h
-    JuceLookAndFeel/MLTextButton.cpp
-    JuceLookAndFeel/MLTextButton.h
-    JuceLookAndFeel/MLToggleButton.cpp
-    JuceLookAndFeel/MLToggleButton.h
-    JuceLookAndFeel/MLTriToggleButton.cpp
-    JuceLookAndFeel/MLTriToggleButton.h
-    JuceLookAndFeel/MLUI.cpp
-    JuceLookAndFeel/MLUI.h
-    JuceLookAndFeel/MLUIBinaryData.cpp
-    JuceLookAndFeel/MLUIBinaryData.h
-
-    )
-endif()
 
 if(APPLE)
-  list(APPEND madronalib_SOURCES deprecated/MLDebugMac.mm)
-
-  #TODO OSC for windows
   list(APPEND madronalib_SOURCES ${NETWORKING_SOURCES} )
 else()
-  list(APPEND madronalib_SOURCES deprecated/MLDebug.cpp)
+  #TODO OSC for windows
 endif()
 
 
 # Frameworks
 
-#if(APPLE)
- #  FIND_LIBRARY(CARBON_LIBRARY Carbon)
- #  FIND_LIBRARY(QUICKTIME_LIBRARY QuickTime )
- #  FIND_LIBRARY(APP_SERVICES_LIBRARY ApplicationServices )
- #  SET(FRAMEWORKS ${CARBON_LIBRARY} ${QUICKTIME_LIBRARY} ${APP_SERVICES_LIBRARY})
-#endif(APPLE)
 
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
@@ -325,7 +144,6 @@ set_target_properties(madronalib PROPERTIES
 
 include(GNUInstallDirs)
 
-
 install(
     TARGETS madronalib
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -336,6 +154,8 @@ install(
 install(FILES ../include/mldsp.h DESTINATION include/madronalib)
 
 install(FILES ${DSP_HEADERS} DESTINATION include/madronalib)
+
+install(FILES ../external/cJSON/cJSON.h DESTINATION include/madronalib)
 
 install(FILES ../include/madronalib.h DESTINATION include/madronalib)
 
@@ -348,6 +168,7 @@ install(FILES
 if(APPLE)
     install(FILES ${NETWORKING_HEADERS} DESTINATION include/madronalib)
 else()
+    #TODO OSC For win / Linux
 endif()
 
 

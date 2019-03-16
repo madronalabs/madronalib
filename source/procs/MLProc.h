@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "MLDSP.h"
+#include "mldsp.h"
 #include "MLPropertySet.h"
 
 using namespace ml;
