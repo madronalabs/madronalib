@@ -1,5 +1,5 @@
 //
-//  MLResourceMap.h
+//  MLTree.h
 //  madronaib
 //
 //  Created by Randy Jones on 9/22/15.
@@ -20,7 +20,7 @@
 
 // A recursive resource map using Symbol keys, a value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
-// Note that this makes ResourceMap<int> weird to use, because 0 indicates
+// Note that this makes Tree<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
 // TODO why not just call this ResourceTree, or even Tree?
@@ -38,13 +38,13 @@
 namespace ml{
 
 template < class V, class C = std::less<Symbol> >
-class ResourceMap
+class Tree
 {
 public:
-	typedef std::map< Symbol, ResourceMap<V, C>, C > mapT;
+	typedef std::map< Symbol, Tree<V, C>, C > mapT;
 
-	ResourceMap<V, C>() : mChildren(), mValue() { }
-	~ResourceMap<V, C>() {}
+	Tree<V, C>() : mChildren(), mValue() { }
+	~Tree<V, C>() {}
 	
 	void clear() { mChildren.clear(); }
 	const V& getValue() const { return mValue; }
@@ -57,7 +57,7 @@ public:
 	// else, return a null object of our value type V.
 	V findValue(Path p)
 	{
-		ResourceMap<V, C>* pNode = findNode(p);
+		Tree<V, C>* pNode = findNode(p);
 		if(pNode)
 		{
 			return pNode->getValue();
@@ -73,14 +73,14 @@ public:
 		return findValue(ml::Path(pathStr));
 	}
 	
-	ResourceMap<V, C>* addValue (ml::Path path, const V& val)
+	Tree<V, C>* addValue (ml::Path path, const V& val)
 	{
-		ResourceMap<V, C>* newNode = addNode(path);
+		Tree<V, C>* newNode = addNode(path);
 		newNode->setValue(val);
 		return newNode;
 	}
 	
-	ResourceMap<V, C>* addValue (const char* pathStr, const V& val)
+	Tree<V, C>* addValue (const char* pathStr, const V& val)
 	{
 		return addValue(ml::Path(pathStr), val);
 	}
@@ -92,13 +92,13 @@ public:
 	class const_iterator
 	{
 	public:
-		const_iterator(const ResourceMap<V, C>* p)  
+		const_iterator(const Tree<V, C>* p)  
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(p->mChildren.begin());
 		}
 		
-		const_iterator(const ResourceMap<V, C>* p, const typename mapT::const_iterator subIter)
+		const_iterator(const Tree<V, C>* p, const typename mapT::const_iterator subIter)
 		{
 			mNodeStack.push_back(p); 
 			mIteratorStack.push_back(subIter);
@@ -122,12 +122,12 @@ public:
 			return !(*this == b); 
 		}
 				
-		const ResourceMap<V, C>& operator*() const 
+		const Tree<V, C>& operator*() const 
 		{ 
 			return ((*mIteratorStack.back()).second); 
 		}
 		
-		const ResourceMap<V, C>* operator->() const 
+		const Tree<V, C>* operator->() const 
 		{ 
 			return &((*mIteratorStack.back()).second); 
 		}
@@ -148,7 +148,7 @@ public:
 			}			
 			else
 			{
-				const ResourceMap<V, C>* currentChildNode = &((*currentIterator).second);
+				const Tree<V, C>* currentChildNode = &((*currentIterator).second);
 				if (!currentChildNode->isLeaf())
 				{
 					// down
@@ -173,26 +173,26 @@ public:
 		
 		bool nodeHasValue() const
 		{ 
-			const ResourceMap<V, C>* parentNode = mNodeStack.back();
+			const Tree<V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
 			if(currentIterator == parentNode->mChildren.end()) return false;
 
-			const ResourceMap<V, C>* currentChildNode = &((*currentIterator).second);
+			const Tree<V, C>* currentChildNode = &((*currentIterator).second);
 			return(currentChildNode->hasValue());
 		}
 		
 		bool atEndOfMap() const
 		{
-			const ResourceMap<V, C>* parentNode = mNodeStack.back();
+			const Tree<V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			return(currentIterator == parentNode->mChildren.end());
 		}
 		
 		Symbol getLeafName() const
 		{
-			const ResourceMap<V, C>* parentNode = mNodeStack.back();
+			const Tree<V, C>* parentNode = mNodeStack.back();
 			const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
 			
 			// no value (and currentIterator not dereferenceable!) if at end()
@@ -203,7 +203,7 @@ public:
 
 		int getDepth() { return mNodeStack.size() - 1; }
 		
-		std::vector< const ResourceMap<V, C>* > mNodeStack;
+		std::vector< const Tree<V, C>* > mNodeStack;
 		std::vector< typename mapT::const_iterator > mIteratorStack;
 	};	
 		
@@ -236,9 +236,9 @@ private:
 	// add a map node at the specified path, and any parent nodes necessary in order to put it there.
 	// If a node already exists at the path, return the existing node,
 	// else return a pointer to the new node.	
-	ResourceMap<V, C>* addNode(ml::Path path)
+	Tree<V, C>* addNode(ml::Path path)
 	{
-		ResourceMap<V, C>* pNode = this;
+		Tree<V, C>* pNode = this;
 		
 		int pathDepthFound = 0;
 		
@@ -268,9 +268,9 @@ private:
 	
 	// find a tree node at the specified path. 
 	// if successful, return a pointer to the node. If unsuccessful, return nullptr.
-	ResourceMap<V, C>* findNode(Path path)
+	Tree<V, C>* findNode(Path path)
 	{
-		ResourceMap<V, C>* pNode = this;
+		Tree<V, C>* pNode = this;
 
 		for(Symbol key : path)
 		{

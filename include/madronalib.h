@@ -19,11 +19,11 @@
 #include "MLProperty.h"
 #include "MLPropertySet.h"
 #include "MLQueue.h"
-#include "MLResourceMap.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 #include "MLTextUtils.h"
 #include "MLTimer.h"
+#include "MLTree.h"
 
 // matrix
 #include "MLInterpolator.h"

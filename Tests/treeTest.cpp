@@ -1,5 +1,5 @@
 //
-//  resourceMapTest.cpp
+//  treeTest.cpp
 //  madronalib
 //
 //  Created by Randy Jones on 9/23/15.
@@ -14,13 +14,13 @@
 #include <thread>
 
 #include "catch.hpp"
-#include "../include/madronalib.h"
+#include "madronalib.h"
 #include "MLTextUtils.h"
-#include "MLResourceMap.h"
+#include "MLTree.h"
 
 using namespace ml;
 
-TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
+TEST_CASE("madronalib/core/tree", "[tree]")
 {
 	textUtils::NameMaker namer;
 	const int numTestWords = 100;
@@ -59,7 +59,7 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 		}
 	}
 	
-	ResourceMap< int > numberMap;
+	Tree< int > numberMap;
 	
 	// time set nodes tree
 	start = std::chrono::system_clock::now();	
@@ -104,10 +104,10 @@ TEST_CASE("madronalib/core/resourceMap", "[resourceMap]")
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
 	
-	// with a ResourceMap< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on 
+	// with a Tree< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on 
 	// the sorted order of symbols, which is just their creation order.
 	theSymbolTable().clear();
-	ResourceMap< int > a;
+	Tree< int > a;
 
 	a.addValue("case/sensitive/a", 1);
 	a.addValue("case/sensitive/b", 1);

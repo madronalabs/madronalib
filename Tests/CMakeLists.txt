@@ -34,7 +34,7 @@ add_executable(tests
 	OSCTest.cpp
 	procsTest.cpp
 	queueTest.cpp
-	resourceMapTest.cpp 
+	treeTest.cpp 
 	dspBufferTest.cpp 
 	symbolTest.cpp
 	timerTest.cpp

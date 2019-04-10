@@ -55,12 +55,12 @@ set(app_HEADERS
     app/MLPlatform.h     
     app/MLProperty.h
     app/MLPropertySet.h
-    app/MLQueue.h        
-    app/MLResourceMap.h  
+    app/MLQueue.h
     app/MLSymbol.h       
     app/MLText.h         
     app/MLTextUtils.h
     app/MLTimer.h
+    app/MLTree.h
 )
 
 set(matrix_HEADERS
