@@ -8,7 +8,7 @@
 #include <chrono>
 #include <thread>
 
-#include "../include/madronalib.h"
+#include "madronalib.h"
 #include "MLTimer.h"
 
 using namespace ml;
@@ -28,6 +28,8 @@ int functionB(void)
 int main()
 {
 	std::cout << "main\n";
+
+  Timers::theTimers().start();
 	
 	Timer u;
 	

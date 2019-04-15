@@ -3,12 +3,7 @@
 
 #pragma once
 
-#include "MLDSP.h"
-#include "MLPropertySet.h"
 #include "MLProcFactory.h"
-#include "MLText.h"
-
-using namespace ml;
 
 class ProcMultiply : public Proc
 {
@@ -76,10 +71,3 @@ public:
 	
 	void process() override;
 };
-
-namespace
-{
-	ProcRegistryEntry<ProcMultiply> classReg("multiply");
-}
-
-

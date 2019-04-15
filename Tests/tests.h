@@ -2,7 +2,7 @@
 //  tests.h
 
 #include <chrono>
-#include "../DSP/MLDSPOps.h"
+#include "mldsp.h"
 
 using namespace ml;
 using namespace std::chrono;

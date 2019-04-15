@@ -1,13 +1,11 @@
 // new proc. work in progress!
 
-
 #pragma once
 
+#include "madronalib.h"
 #include "mldsp.h"
-#include "MLPropertySet.h"
 
-using namespace ml;
-
+namespace ml {
 
 // constexpr string courtesy of Scott Schurr
 class constStr 
@@ -80,7 +78,6 @@ public:
 		return size_; 
 	}
 	
-	
 };
 
 // constexpr array count function
@@ -145,3 +142,5 @@ public:
 	virtual const constStrArray& getInputNames() = 0;
 	virtual const constStrArray& getOutputNames() = 0;
 };
+
+} // namespace ml

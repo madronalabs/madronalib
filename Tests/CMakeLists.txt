@@ -2,27 +2,20 @@
 # madronalib/tests/CMakeLists.txt
 # CMake file for madronalib project tests.
 
-link_libraries(madronalib)
+#--------------------------------------------------------------------
+# set min version and deployment target -- before project
+#--------------------------------------------------------------------
 
-if (BUILD_SHARED_LIBS)
-    add_definitions(-DMADRONALIB_DLL)
-    link_libraries("${OPENGL_gl_LIBRARY}" "${MATH_LIBRARY}")
-else()
-    link_libraries(${madronalib_LIBRARIES})
-endif()
+cmake_minimum_required(VERSION 2.8.12)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version")
 
-include_directories("${MADRONALIB_SOURCE_DIR}/include"
-                    "${MADRONALIB_SOURCE_DIR}/deps")
-
-if ("${OPENGL_INCLUDE_DIR}")
-    include_directories("${OPENGL_INCLUDE_DIR}")
-endif()
 
 #--------------------------------------------------------------------
 # Compiler flags
 #--------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+
 
 #--------------------------------------------------------------------
 # Add all the tests.
@@ -40,6 +33,44 @@ add_executable(tests
 	timerTest.cpp
 	tests.cpp
 	tests.h 
-
 	)
+
+
+#--------------------------------------------------------------------
+# Add include Directories
+#--------------------------------------------------------------------
+
+target_include_directories(tests PUBLIC "/usr/local/include/madronalib")
+
+#--------------------------------------------------------------------
+# Add include Directories
+#--------------------------------------------------------------------
+
+target_include_directories(tests PUBLIC ../source/app)
+target_include_directories(tests PUBLIC ../source/DSP)
+target_include_directories(tests PUBLIC ../source/matrix)
+target_include_directories(tests PUBLIC ../source/networking)
+target_include_directories(tests PUBLIC ../source/procs)
+
+target_include_directories(tests PUBLIC "../external/aes256")
+target_include_directories(tests PUBLIC "../external/cJSON")
+target_include_directories(tests PUBLIC "../external/ffft")
+target_include_directories(tests PUBLIC "../external/oscpack")
+target_include_directories(tests PUBLIC "../external/utf")
+
+target_include_directories(tests PUBLIC "../include")
+
+#--------------------------------------------------------------------
+# Link with libraries
+#--------------------------------------------------------------------
+
+# madronalib
+find_library(MADRONA_LIB madrona)
+target_link_libraries(tests "${MADRONA_LIB}")
+
+# TEMP
+message("tests->madronalib:" ${MADRONA_LIB} )
+
+link_libraries(madronalib)
+
 

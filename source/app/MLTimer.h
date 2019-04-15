@@ -11,6 +11,7 @@
 #include <vector>
 #include <chrono>
 #include <thread>
+#include <set>
 
 using namespace std::chrono;
 
@@ -21,7 +22,49 @@ namespace ml
 	// callbacks should not take too much time. To trigger an action
 	// that might take longer, send a message from the callback and
 	// then receive it and do the action in a private thread.
-	
+
+  class Timer;
+
+  class Timers
+  {
+  public:
+    static const int kMillisecondsResolution;
+
+    Timers() { }
+    ~Timers() { if(running) { running = false; runThread.join(); } }
+
+    // singleton: we only want one Timers instance. The first time a Timer object is made,
+    // this object is made and the run thread is started.
+    static Timers &theTimers()  { static Timers t; return t; }
+    // delete copy and move constructors and assign operators
+    Timers(Timers const&) = delete;             // Copy construct
+    Timers(Timers&&) = delete;                  // Move construct
+    Timers& operator=(Timers const&) = delete;  // Copy assign
+    Timers& operator=(Timers &&) = delete;      // Move assign
+
+    void insert(Timer* t)
+    {
+      timerPtrs.insert(t);
+    }
+
+    void erase(Timer* t)
+    {
+      timerPtrs.erase(t);
+    }
+
+    void tick(void);
+    void run(void);
+    inline void start() { runThread = std::thread { [&](){ run(); } }; }
+
+    std::mutex mSetMutex;
+
+  private:
+    bool running { false };
+    std::set< Timer* > timerPtrs;
+    std::thread runThread;
+  }; // class Timers
+
+
 	class Timer
 	{
 		friend class Timers;

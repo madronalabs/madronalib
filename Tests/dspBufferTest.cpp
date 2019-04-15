@@ -9,7 +9,7 @@ using namespace std::chrono;
 #include <thread>
 
 #include "catch.hpp"
-#include "MLDSP.h"
+#include "mldsp.h"
 
 #include "MLDSPBuffer.h"
 #include "MLProjection.h"

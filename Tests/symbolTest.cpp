@@ -12,7 +12,7 @@
 #include <thread>
 
 #include "catch.hpp"
-#include "../include/madronalib.h"
+#include "madronalib.h"
 #include "MLTextUtils.h"
 
 #if _WIN32

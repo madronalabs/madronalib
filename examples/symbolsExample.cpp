@@ -15,8 +15,8 @@
 #include <chrono>
 #include <thread>
 
-#include "../include/madronalib.h"
-#include "MLTextUtils.h"
+#include "madronalib.h"
+#include "mldsp.h"
 
 #include <iostream>
 

@@ -3,12 +3,22 @@
 
 # Windows cmd line: cmake .. -G "Visual Studio 14 2015 Win64"
 
-project(madronalib CXX)
+
+#--------------------------------------------------------------------
+# set min version and deployment target -- before project
+#--------------------------------------------------------------------
 
 cmake_minimum_required(VERSION 2.8.12)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
+
+#--------------------------------------------------------------------
+# project and version
+#--------------------------------------------------------------------
+
+project(madronalib CXX)
 
 set(madronalib_VERSION_MAJOR "0")
 set(madronalib_VERSION_MINOR "1")
@@ -62,18 +72,18 @@ endif()
 # Add include directories
 #--------------------------------------------------------------------
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/core)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/core)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
+# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
 
 
 if(APPLE)
@@ -86,10 +96,7 @@ endif()
 #--------------------------------------------------------------------
 
 add_subdirectory(source)
-add_subdirectory(external/aes256)
-add_subdirectory(external/ffft)
-add_subdirectory(external/cJSON)
-add_subdirectory(external/utf)
+
 
 if(APPLE)
 	add_subdirectory(external/oscpack)
@@ -97,16 +104,10 @@ else()
   #TODO OSC for Windows / Linux
 endif()
 
-if(BUILD_NEW_ONLY)
-else()
-	set(ML_JUCE_HEADER_PATH "/external/juce")
-	add_subdirectory(external/juce)
-endif()
-
 if (ML_BUILD_EXAMPLES)
-    add_subdirectory(examples)
+  add_subdirectory(examples)
 endif()
 
 if (ML_BUILD_TESTS)
-    add_subdirectory(tests)
+   add_subdirectory(tests)
 endif()

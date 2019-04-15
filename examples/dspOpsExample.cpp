@@ -5,8 +5,7 @@
 #include <chrono>
 #include <thread>
 
-#include "MLDSP.h" 
-//#include "madronalib.h"
+#include "mldsp.h"
 
 #ifdef _WINDOWS
 #include "Windows.h"

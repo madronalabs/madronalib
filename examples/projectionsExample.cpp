@@ -8,8 +8,7 @@
 #include <chrono>
 #include <thread>
 
-#include "madronalib.h"
-
+#include "mldsp.h"
 
 using namespace ml;
 

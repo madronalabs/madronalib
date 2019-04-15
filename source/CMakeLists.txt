@@ -7,11 +7,6 @@ include_directories("${madronalib_SOURCE_DIR}/src"
 #add_definitions(-D_MADRONALIB_USE_CONFIG_H)
 
 
-
-set(madronalib_HEADERS
-  ../include/madronalib.h
-  )
-
 set(NETWORKING_SOURCES
     networking/MLNetServiceHub.cpp
     networking/MLOSCListener.cpp
@@ -20,88 +15,47 @@ set(NETWORKING_SOURCES
     networking/MLT3DHub.cpp
 )
 
-set(NETWORKING_HEADERS
-    networking/MLInputProtocols.h
-    networking/MLNetServiceHub.h
-    networking/MLOSCListener.h
-    networking/MLOSCReceiver.h
-    networking/MLOSCSender.h
-    networking/MLT3DHub.h
-    networking/MLT3DPorts.h
-)
 
-set(DSP_HEADERS
-    DSP/MLDSPBuffer.h
-    DSP/MLDSPFilters.h
-    DSP/MLDSPFunctional.h
-    DSP/MLDSPGens.h
-    DSP/MLDSPMath.h
-    DSP/MLDSPMathNEON.h
-    DSP/MLDSPMathSSE.h
-    DSP/MLDSPMathScalar.h
-    DSP/MLDSPOps.h
-    DSP/MLDSPUtils.h
-    DSP/MLProjection.h
-    DSP/MLRatio.h
-    DSP/MLScalarConstants.h
-    DSP/MLScalarMath.h
-)
 
-set(app_HEADERS
-    app/MLClock.h        
-    app/MLMemoryUtils.h  
-    app/MLModel.h
-    app/MLPath.h         
-    app/MLPlatform.h     
-    app/MLProperty.h
-    app/MLPropertySet.h
-    app/MLQueue.h
-    app/MLSymbol.h       
-    app/MLText.h         
-    app/MLTextUtils.h
-    app/MLTimer.h
-    app/MLTree.h
-)
+#--------------------------------------------------------------------
+# collect sources and headers
+#--------------------------------------------------------------------
 
-set(matrix_HEADERS
-    matrix/MLInterpolator.h
-    matrix/MLSignal.h
-)
+file(GLOB APP_SOURCES "app/*.cpp")
+file(GLOB APP_HEADERS "app/*.h")
 
-set(proc_HEADERS
-    procs/MLProc.h
-    procs/MLProcFactory.h
-    procs/MLProcMultiply.h
+# DSP code is headers-only
+file(GLOB DSP_HEADERS "DSP/*.h")
+
+file(GLOB MATRIX_SOURCES "matrix/*.cpp")
+file(GLOB MATRIX_HEADERS "matrix/*.h")
+
+file(GLOB NETWORKING_SOURCES "networking/*.cpp")
+file(GLOB NETWORKING_HEADERS "networking/*.h")
+
+file(GLOB PROC_SOURCES "procs/*.cpp")
+file(GLOB PROC_HEADERS "procs/*.h")
+
+set(AES_SOURCES "../external/aes256/aes256.cpp")
+set(JSON_SOURCES "../external/cJSON/cJSON.c")
+
+file(GLOB OSC_HEADERS_IP "../external/oscpack/ip/*.h")
+file(GLOB OSC_HEADERS_OSC "../external/oscpack/osc/*.h")
+file(GLOB OSC_HEADERS_ZEROCONF "../external/oscpack/zeroconf/*.h")
+
+set(OSC_HEADERS
+    ${OSC_HEADERS_IP}
+    ${OSC_HEADERS_OSC}
+    ${OSC_HEADERS_ZEROCONF}
 )
 
 set(madronalib_SOURCES
-    ${DSP_HEADERS}
-    ${app_HEADERS}
-    ${matrix_HEADERS}
-    ${proc_HEADERS}
-    
-    app/MLClock.cpp      
-    app/MLModel.cpp
-    app/MLPath.cpp       
-    app/MLProperty.cpp
-    app/MLPropertySet.cpp
-    app/MLSymbol.cpp     
-    app/MLTextUtils.cpp
-    app/MLText.cpp       
-    app/MLTimer.cpp
-
-    matrix/MLInterpolator.cpp
-    matrix/MLSignal.cpp
-
-    procs/MLProc.cpp
-    procs/MLProcFactory.cpp
-    procs/MLProcMultiply.cpp
+    ${APP_SOURCES}
+    ${MATRIX_SOURCES}
+    ${PROC_SOURCES}
+    ${AES_SOURCES}
+    ${JSON_SOURCES}
     )
-
-# TODO ml-juce Timer integration
-#    add_definitions(-D_MADRONALIB_TIMERS_USE_JUCE)
-
-
 
 if(APPLE)
   list(APPEND madronalib_SOURCES ${NETWORKING_SOURCES} )
@@ -109,8 +63,6 @@ else()
   #TODO OSC for windows
 endif()
 
-
-# Frameworks
 
 
 # send binary output to the current build/bin
@@ -122,15 +74,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 source_group(dsp REGULAR_EXPRESSION "DSP/.*")
 source_group(app REGULAR_EXPRESSION "app/.*")
-source_group(deprecated REGULAR_EXPRESSION "deprecated/.*")
-source_group(JuceApp REGULAR_EXPRESSION "JuceApp/.*")
-source_group(JuceLookAndFeel REGULAR_EXPRESSION "JuceLookAndFeel/.*")
 source_group(matrix REGULAR_EXPRESSION "matrix/.*")
 source_group(networking REGULAR_EXPRESSION "networking/.*")
 source_group(procs REGULAR_EXPRESSION "procs/.*")
 
 #--------------------------------------------------------------------
-# create and install libraries
+# create and install library
 #--------------------------------------------------------------------
 
 
@@ -151,19 +100,25 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-install(FILES ../include/mldsp.h DESTINATION include/madronalib)
+#--------------------------------------------------------------------
+# install headers
+#--------------------------------------------------------------------
 
-install(FILES ${DSP_HEADERS} DESTINATION include/madronalib)
-
-install(FILES ../external/cJSON/cJSON.h DESTINATION include/madronalib)
 
 install(FILES ../include/madronalib.h DESTINATION include/madronalib)
 
+install(FILES ../include/mldsp.h DESTINATION include/madronalib)
+
+install(FILES ../external/cJSON/cJSON.h DESTINATION include/madronalib)
+
 install(FILES 
-    ${app_HEADERS}     
-    ${matrix_HEADERS}
-    ${proc_HEADERS} 
-    DESTINATION include/madronalib)
+    ${APP_HEADERS}     
+    ${DSP_HEADERS}
+    ${MATRIX_HEADERS} 
+    ${PROC_HEADERS} 
+    ${OSC_HEADERS}
+    DESTINATION include/madronalib
+  )
 
 if(APPLE)
     install(FILES ${NETWORKING_HEADERS} DESTINATION include/madronalib)
@@ -182,16 +137,13 @@ target_include_directories(madronalib PUBLIC matrix)
 target_include_directories(madronalib PUBLIC networking)
 target_include_directories(madronalib PUBLIC procs)
 
-if(BUILD_NEW_ONLY)
-else(BUILD_NEW_ONLY)
-  target_include_directories(madronalib PUBLIC deprecated)
-  target_include_directories(madronalib PUBLIC JuceApp)
-  target_include_directories(madronalib PUBLIC JuceLookAndFeel)  
+target_include_directories(madronalib PUBLIC "../external/aes256")
+target_include_directories(madronalib PUBLIC "../external/cJSON")
+target_include_directories(madronalib PUBLIC "../external/ffft")
+target_include_directories(madronalib PUBLIC "../external/oscpack")
+target_include_directories(madronalib PUBLIC "../external/utf")
 
-  #include our AppConfig.h and JuceHeader.h
-  target_include_directories(madronalib PUBLIC ../external/juce)
-endif()
-
+target_include_directories(madronalib PUBLIC "../include")
 
 #--------------------------------------------------------------------
 # Make docs (someday)
@@ -208,10 +160,13 @@ endif()
 #--------------------------------------------------------------------
 
 
+# MLTEST - switching to source
+# target_link_libraries(madronalib aes256)
+# target_link_libraries(madronalib cjson)
 
-target_link_libraries(madronalib aes256)
-target_link_libraries(madronalib cjson)
 # note: ffft and utf are header-only
+
+
 
 if(APPLE)
     target_link_libraries(madronalib oscpack)

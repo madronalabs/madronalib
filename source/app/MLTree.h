@@ -23,9 +23,6 @@
 // Note that this makes Tree<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
 
-// TODO why not just call this ResourceTree, or even Tree?
-// TODO hooks for change callbacks and undoable actions using an undo manager
-
 // notes:
 // some use cases:
 // - tree of Procs (with multicontainer / polyphonic functionality?) - make V = std::vector< Proc >.

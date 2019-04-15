@@ -11,9 +11,10 @@
 #include <chrono>
 #include <thread>
 
+#include "madronalib.h"
+#include "mldsp.h"
+
 #include "catch.hpp"
-#include "../include/madronalib.h"
-#include "../DSP/MLDSPOps.h"
 #include "tests.h"
 
 using namespace ml;

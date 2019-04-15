@@ -12,8 +12,7 @@
 #include <thread>
 
 #include "catch.hpp"
-#include "../include/madronalib.h"
-#include "MLTimer.h"
+#include "madronalib.h"
 
 using namespace ml;
 using namespace std::chrono;
@@ -21,6 +20,7 @@ using namespace std::chrono;
 
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
+  ml::Timers::theTimers().start();
 
 	int sum = 0;
 	
