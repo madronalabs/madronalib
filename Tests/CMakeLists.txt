@@ -40,12 +40,6 @@ add_executable(tests
 # Add include Directories
 #--------------------------------------------------------------------
 
-target_include_directories(tests PUBLIC "/usr/local/include/madronalib")
-
-#--------------------------------------------------------------------
-# Add include Directories
-#--------------------------------------------------------------------
-
 target_include_directories(tests PUBLIC ../source/app)
 target_include_directories(tests PUBLIC ../source/DSP)
 target_include_directories(tests PUBLIC ../source/matrix)

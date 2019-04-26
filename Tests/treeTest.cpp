@@ -58,7 +58,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 			pathsVector.push_back(newPath);
 		}
 	}
-	
+	/*
 	Tree< int > numberMap;
 	
 	// time set nodes tree
@@ -80,30 +80,43 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 	}
 	REQUIRE(!problem);
 	
-	int bigLeafSum = 0;
+  int bigLeafSum = 0;
+  int bigLeafSum2 = 0;
 	int maxDepth = 0;
 	const int correctBigLeafSum = 4950;
 	const int correctMaxDepth = 8;
-	
-	for(auto it = numberMap.begin(); it != numberMap.end(); it++)
-	{
-		if(it.nodeHasValue())
-		{		
-			bigLeafSum += it->getValue();
-		}
-		if(it.getDepth() > maxDepth)
-		{
-			maxDepth = it.getDepth();
-		}
-	}
-	
-	REQUIRE(bigLeafSum == correctBigLeafSum);
+
+  numberMap.dump();
+
+
+  for(auto it = numberMap.begin(); it != numberMap.end(); it++)
+  {
+    int val = *it;
+
+    std::cout << "[" << val << "]";
+    bigLeafSum += val;
+
+    if(it.getDepth() > maxDepth)
+    {
+      maxDepth = it.getDepth();
+    }
+  }
+
+  for(auto val : numberMap)
+  {
+    bigLeafSum2 += val;
+  }
+
+  REQUIRE(bigLeafSum == correctBigLeafSum);
 	REQUIRE(maxDepth == correctMaxDepth);
-	
+  REQUIRE(bigLeafSum2 == correctBigLeafSum);
+
 	end = std::chrono::system_clock::now();
 	elapsed = end-start;	
 	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
-	
+
+ */
+
 	// with a Tree< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on 
 	// the sorted order of symbols, which is just their creation order.
 	theSymbolTable().clear();
@@ -113,28 +126,38 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 	a.addValue("case/sensitive/b", 1);
 	a.addValue("case/sensitive/B", 1);
 	a.addValue("case/sensitive/c", 1);
-	a.addValue("this/is/a/test", 5); // note that non-leaf nodes may have values
-	a.addValue("this/is/a/test/jam", 5);
+
+  // note that non-leaf nodes may have values
+	a.addValue("this/is/a/test", 5);
+  
 	a.addValue("this/was/an/test", 10);
 	a.addValue("this/was/another/test", 10);
+  a.addValue("this/is/a/test/jam", 5);
+
+  // duplicate addresses are overwritten
 	a.addValue("this/was/happy", 100);
-	a.addValue("this/was/happy", 10); // duplicate addresses are overwritten
+	a.addValue("this/was/happy", 10);
+
 	a.addValue("you/are/my/sunshine", 10);
 	a.addValue("you/are/carl's/sunshine", 10);
 	a.addValue("you/are/carl's/jr/jam", 10);
+
 	int leafSum = 0;
 	const int correctLeafSum = 74;
-	
-	for(auto it = a.begin(); it != a.end(); it++)
+
+  a.dump();
+
+  std::cout << "\n\n----------------------\n\n";
+
+  for(auto val : a)
 	{
-		if(it.nodeHasValue())
-		{		
-			leafSum += it->getValue();
-		}
+    //int val = *it;
+    std::cout << "[" << val << "]";
+    leafSum += val;
 	}
 	REQUIRE(leafSum == correctLeafSum);
 	
-	a.dump();
+
 	
 	// pass a different functor to get lexicographical sorting. 
 	
