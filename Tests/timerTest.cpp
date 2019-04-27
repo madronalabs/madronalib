@@ -17,7 +17,7 @@
 using namespace ml;
 using namespace std::chrono;
 
-
+#if 0
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
   ml::Timers::theTimers().start();
@@ -90,3 +90,4 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 #endif
 
 }
+#endif

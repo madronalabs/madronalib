@@ -10,7 +10,6 @@
 #include <vector>
 #include <map>
 #include <unordered_map>
-#include <chrono>
 #include <thread>
 
 #include "catch.hpp"
@@ -25,8 +24,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 	textUtils::NameMaker namer;
 	const int numTestWords = 100;
 	const int mapSize = 100;
-	std::chrono::time_point<std::chrono::system_clock> start, end;	
-	std::chrono::duration<double> elapsed;
 	
 	// make random paths out of nonsense symbols
 	auto testWords = ml::textUtils::vectorOfNonsenseSymbols( numTestWords );
@@ -58,12 +55,10 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 			pathsVector.push_back(newPath);
 		}
 	}
-	/*
+
 	Tree< int > numberMap;
-	
-	// time set nodes tree
-	start = std::chrono::system_clock::now();	
-	bool problem = false;
+
+  bool problem = false;
 	for(int i=1; i < mapSize; ++i)
 	{
 		numberMap.addValue(pathsVector[i], i);
@@ -71,7 +66,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
 	for(int i=1; i < mapSize; ++i)
 	{
-		int v = numberMap.findValue(pathsVector[i]);
+		int v = numberMap.getValue(pathsVector[i]);
 		if(v != i)
 		{
 			problem = true;			
@@ -80,48 +75,40 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 	}
 	REQUIRE(!problem);
 	
-  int bigLeafSum = 0;
-  int bigLeafSum2 = 0;
+  int bigValueSum = 0;
+  int bigValueSum2 = 0;
 	int maxDepth = 0;
-	const int correctBigLeafSum = 4950;
+	const int correctSum = 4950;
 	const int correctMaxDepth = 8;
 
-  numberMap.dump();
-
-
-  for(auto it = numberMap.begin(); it != numberMap.end(); it++)
+  // use iterator explicitly to keep track of depth.
+  for(auto it = numberMap.begin(); it != numberMap.end(); ++it)
   {
-    int val = *it;
-
-    std::cout << "[" << val << "]";
-    bigLeafSum += val;
-
-    if(it.getDepth() > maxDepth)
+    bigValueSum += *it;
+    if(it.getCurrentDepth() > maxDepth)
     {
-      maxDepth = it.getDepth();
+      maxDepth = it.getCurrentDepth();
     }
   }
 
+  // use range-based for to add up values
   for(auto val : numberMap)
   {
-    bigLeafSum2 += val;
+    bigValueSum2 += val;
   }
 
-  REQUIRE(bigLeafSum == correctBigLeafSum);
+  REQUIRE(bigValueSum == correctSum);
 	REQUIRE(maxDepth == correctMaxDepth);
-  REQUIRE(bigLeafSum2 == correctBigLeafSum);
+  REQUIRE(bigValueSum2 == correctSum);
 
-	end = std::chrono::system_clock::now();
-	elapsed = end-start;	
-	std::cout << "resource map elapsed time: " << elapsed.count() << "s\n";
+	// with a Tree< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on
+  // the sorted order of symbols, which is just their creation order.  Pass a different sorting functor
+  // than the default to get lexicographical or other sorting.
 
- */
-
-	// with a Tree< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on 
-	// the sorted order of symbols, which is just their creation order.
 	theSymbolTable().clear();
 	Tree< int > a;
 
+  // note that the root node (case) has no value.
 	a.addValue("case/sensitive/a", 1);
 	a.addValue("case/sensitive/b", 1);
 	a.addValue("case/sensitive/B", 1);
@@ -129,7 +116,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // note that non-leaf nodes may have values
 	a.addValue("this/is/a/test", 5);
-  
 	a.addValue("this/was/an/test", 10);
 	a.addValue("this/was/another/test", 10);
   a.addValue("this/is/a/test/jam", 5);
@@ -147,21 +133,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   a.dump();
 
-  std::cout << "\n\n----------------------\n\n";
-
   for(auto val : a)
 	{
-    //int val = *it;
-    std::cout << "[" << val << "]";
     leafSum += val;
 	}
-	REQUIRE(leafSum == correctLeafSum);
-	
 
-	
-	// pass a different functor to get lexicographical sorting. 
-	
-	
+	REQUIRE(leafSum == correctLeafSum);
 
 }
 

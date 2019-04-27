@@ -18,6 +18,7 @@
 
 #define IP_MTU_SIZE 1536
 
+#if 0
 TEST_CASE("madronalib/core/OSC/send", "[OSC][send]")
 {
 
@@ -41,5 +42,6 @@ TEST_CASE("madronalib/core/OSC/send", "[OSC][send]")
 	std::cout << "OSC (TBD)\n";
 	
 }
+#endif
 
 #endif // WIN32

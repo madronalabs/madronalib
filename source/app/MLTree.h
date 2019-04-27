@@ -20,8 +20,9 @@
 
 // A recursive resource map using Symbol keys, a value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
-// Note that this makes Tree<int> weird to use, because 0 indicates
+// Note that this makes (for example) Tree<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like signals or files.
+// heavyweight objects in a Tree should be held by unique_ptrs.
 
 // notes:
 // some use cases:
@@ -37,29 +38,24 @@ namespace ml{
   template < class V, class C = std::less<Symbol> >
   class Tree
   {
-    typedef std::map< Symbol, Tree<V, C>, C > mapT;
-    mapT mChildren;
-    V mValue{};
+    // recursive definition: a Tree has a map of Symbols to Trees, and a value.
+    using mapT = std::map< Symbol, Tree<V, C>, C >;
+    mapT mChildren{};
+    V _value{};
 
   public:
+    Tree<V, C>() = default;
+    ~Tree<V, C>() = default;
 
-    Tree<V, C>() : mChildren(), mValue() { }
-    ~Tree<V, C>() {}
-
-    void clear() { mChildren.clear(); }
-
-    const V& getValue() const { return mValue; }
-    void setValue(const V& v) { mValue = v; }
-    bool hasValue() const {  return mValue != V(); }
-
+    void clear() { mChildren.clear(); _value = V(); }
+    bool hasValue() const {  return _value != V(); }
     bool isLeaf() const { return mChildren.size() == 0; }
 
     // find a tree node at the specified path.
     // if successful, return a pointer to the node. If unsuccessful, return nullptr.
-    Tree<V, C>* findNode(Path path)
+    Tree<V, C>* getNode(Path path)
     {
-      Tree<V, C>* pNode = this;
-
+      auto pNode = this;
       for(Symbol key : path)
       {
         if(pNode->mChildren.find(key) != pNode->mChildren.end())
@@ -75,15 +71,14 @@ namespace ml{
       return pNode;
     }
 
-    // find a value by its path.
-    // if the path exists, returns the value in the tree.
+    // if the path exists, returns the value in the tree at the path.
     // else, return a null object of our value type V.
-    V findValue(Path p)
+    V getValue(Path p)
     {
-      Tree<V, C>* pNode = findNode(p);
+      auto pNode = getNode(p);
       if(pNode)
       {
-        return pNode->getValue();
+        return pNode->_value;
       }
       else
       {
@@ -91,29 +86,16 @@ namespace ml{
       }
     }
 
-    /*
-     V findValue(const char* pathStr)
-     {
-     return findValue(ml::Path(pathStr));
-     }
-     */
-
     Tree<V, C>* addValue (ml::Path path, const V& val)
     {
-      Tree<V, C>* newNode = addNode(path);
-      newNode->setValue(val);
+      auto newNode = addNode(path);
+      newNode->_value = val;
       return newNode;
     }
 
-    /*
-     Tree<V, C>* addValue (const char* pathStr, const V& val)
-     {
-     return addValue(ml::Path(pathStr), val);
-     }
-     */
-
-    // TODO this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
-    // add the other methods needed.
+    // NOTE this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
+    // This is enough to support the range-based for syntax.
+    // post-increment(operator++(int)) is not defined. Instead use pre-increment form ++it.
 
     friend class const_iterator;
     class const_iterator
@@ -136,19 +118,6 @@ namespace ml{
 
       ~const_iterator() {}
 
-      bool nodeHasValue() const
-      {
-        const Tree<V, C>* parentNode = mNodeStack.back();
-        const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-
-        // no value (and currentIterator not dereferenceable!) if at end()
-        if(currentIterator == parentNode->mChildren.end()) return false;
-
-        const Tree<V, C>* currentChildNode = &((*currentIterator).second);
-        return(currentChildNode->hasValue());
-      }
-
-
       bool operator==(const const_iterator& b) const
       {
         // bail out here if possible.
@@ -168,32 +137,35 @@ namespace ml{
 
       const V& operator*() const
       {
-        return ((*mIteratorStack.back()).second).getValue();
+        return ((*mIteratorStack.back()).second)._value;
       }
-
-
-      /*
-       const Tree<V, C>* operator->() const
-       {
-       return &((*mIteratorStack.back()).second);
-       }
-       */
 
       // advance to the next leaf that has a value
       const const_iterator& operator++()
       {
-        while(1)
+        do
         {
-          typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+          auto& currentIterator = mIteratorStack.back();
 
-          std::cout << "nodes: " << mNodeStack.size() << ", iterators: " <<  mIteratorStack.size();
-
-          if(atEndOfMap())
+          if(!atEndOfMap(currentIterator))
+          {
+            auto currentChildNodePtr = &((*currentIterator).second);
+            if (!currentChildNodePtr->isLeaf())
+            {
+              // down
+              mNodeStack.push_back(currentChildNodePtr);
+              mIteratorStack.push_back(currentChildNodePtr->mChildren.begin());
+            }
+            else
+            {
+              // across
+              currentIterator++;
+            }
+          }
+          else
           {
             if(mNodeStack.size() > 1)
             {
-              std::cout << " up ";
-
               // up
               mNodeStack.pop_back();
               mIteratorStack.pop_back();
@@ -201,52 +173,32 @@ namespace ml{
             }
             else
             {
-              std::cout << " end ";
               break;
             }
           }
-          else
-          {
-            const Tree<V, C>* currentChildNode = &((*currentIterator).second);
-            if (!currentChildNode->isLeaf())
-            {
-              std::cout << " down ";
-
-              // down
-              mNodeStack.push_back(currentChildNode);
-              mIteratorStack.push_back(currentChildNode->mChildren.begin());
-            }
-            else
-            {
-              std::cout << " across ";
-
-              // across
-              currentIterator++;
-            }
-          }
-          if(nodeHasValue()) break;
         }
-
-        std::cout << "\n";
+        while(!currentNodeHasValue());
 
         return *this;
-
       }
       
-      const_iterator& operator++(int)
+      bool currentNodeHasValue() const
       {
-        this->operator++();
-        return *this;
+        auto parentNode = mNodeStack.back();
+        auto& currentIterator = mIteratorStack.back();
+
+        // no value (and currentIterator not dereferenceable!) if at end()
+        if(currentIterator == parentNode->mChildren.end()) return false;
+
+        return(((*currentIterator).second).hasValue());
       }
 
-      bool atEndOfMap() const
+      bool atEndOfMap(const typename mapT::const_iterator& currentIterator) const
       {
-        const Tree<V, C>* parentNode = mNodeStack.back();
-        const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
-        return(currentIterator == parentNode->mChildren.end());
+        return(currentIterator == (mNodeStack.back())->mChildren.end());
       }
 
-      Symbol getLeafName() const
+      Symbol getCurrentNodeName() const
       {
         const Tree<V, C>* parentNode = mNodeStack.back();
         const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
@@ -257,18 +209,18 @@ namespace ml{
         return (*currentIterator).first;
       }
 
-      int getDepth() { return mNodeStack.size() - 1; }
+      int getCurrentDepth() const { return mNodeStack.size() - 1; }
     };
 
+    // start at beginning, then advance until a node with a value is reached.
     inline const_iterator begin() const
     {
       auto it = const_iterator(this);
-      while(!it.nodeHasValue())
+      while(!it.currentNodeHasValue())
       {
-        it++;
+        ++it;
       }
-
-      return it;// const_iterator(this);
+      return it;
     }
 
     inline const_iterator end() const
@@ -276,37 +228,24 @@ namespace ml{
       return const_iterator(this, mChildren.end());
     }
 
+    // using an iterator, dump only the nodes with values.
+    // to dump all nodes another API could be added, but it this really needed?
     inline void dump() const
     {
-      for(auto it = begin(); it != end(); it++)
+      for(auto it = begin(); it != end(); ++it)
       {
-        std::cout << ml::textUtils::spaceStr(it.getDepth()) << it.getLeafName() << " [" << *it << "]\n";
-
-        /*
-         if(it.nodeHasValue())
-         {
-         std::cout << ml::textUtils::spaceStr(it.getDepth()) << it.getLeafName() << " [" << it->getValue() << "]\n";
-         }
-         else
-         {
-
-         // TODO can use getDepth() to restore the pretty slashes
-         std::cout << ml::textUtils::spaceStr(it.getDepth()) << "/" << it.getLeafName() << "\n";
-         }
-         */
-
+        std::cout << ml::textUtils::spaceStr(it.getCurrentDepth()) << it.getCurrentNodeName() << " [" << *it << "]\n";
       }
     }
 
   private:
 
     // add a map node at the specified path, and any parent nodes necessary in order to put it there.
-    // If a node already exists at the path, return the existing node,
-    // else return a pointer to the new node.
+    // If a node already exists at the path, return the existing node, else return a pointer to the new node.
+
     Tree<V, C>* addNode(ml::Path path)
     {
-      Tree<V, C>* pNode = this;
-
+      auto pNode = this;
       int pathDepthFound = 0;
 
       // walk the path as long as branches are found in the map
@@ -326,13 +265,12 @@ namespace ml{
       // add the remainder of the path to the map.
       for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
       {
-        // [] operator crates the new node
+        // [] operator creates the new node
         pNode = &(pNode->mChildren[*it]);
       }
 
       return pNode;
     }
-
   };
 
 } // namespace ml
