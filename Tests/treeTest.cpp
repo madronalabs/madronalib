@@ -23,7 +23,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 {
 	textUtils::NameMaker namer;
 	const int numTestWords = 100;
-	const int mapSize = 100;
+	const int mapSize = 100; // MLTEST
 	
 	// make random paths out of nonsense symbols
 	auto testWords = ml::textUtils::vectorOfNonsenseSymbols( numTestWords );
@@ -56,6 +56,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 		}
 	}
 
+
 	Tree< int > numberMap;
 
   bool problem = false;
@@ -64,11 +65,15 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 		numberMap.addValue(pathsVector[i], i);
 	}
 
+  numberMap.dump();
+
 	for(int i=1; i < mapSize; ++i)
 	{
 		int v = numberMap.getValue(pathsVector[i]);
 		if(v != i)
 		{
+
+      std::cout << "problem at " <<pathsVector[i] << ": expected " << i << ", found " << v << "\n";
 			problem = true;			
 			break;
 		}
@@ -97,10 +102,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     bigValueSum2 += val;
   }
 
+
   REQUIRE(bigValueSum == correctSum);
 	REQUIRE(maxDepth == correctMaxDepth);
   REQUIRE(bigValueSum2 == correctSum);
 
+  
 	// with a Tree< int, std::less<Symbol> > , (default sorting class), the order of map keys depends on
   // the sorted order of symbols, which is just their creation order.  Pass a different sorting functor
   // than the default to get lexicographical or other sorting.
@@ -138,7 +145,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     leafSum += val;
 	}
 
-	REQUIRE(leafSum == correctLeafSum);
+  REQUIRE(leafSum == correctLeafSum);
 
 }
 
