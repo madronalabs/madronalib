@@ -65,8 +65,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 		numberMap.addValue(pathsVector[i], i);
 	}
 
-  numberMap.dump();
-
 	for(int i=1; i < mapSize; ++i)
 	{
 		int v = numberMap.getValue(pathsVector[i]);

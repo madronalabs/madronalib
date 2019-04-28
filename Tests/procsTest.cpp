@@ -9,7 +9,7 @@
 
 using namespace ml;
 
-#if 0
+
 TEST_CASE("madronalib/core/procs", "[procs]")
 {
 	std::cout << "\nPROCS:\n";
@@ -31,5 +31,3 @@ TEST_CASE("madronalib/core/procs", "[procs]")
 	
 	std::cout << "output: " << vc << "\n";	
 }
-
-#endif

@@ -45,7 +45,7 @@ namespace ml{
 
   public:
     Tree<V, C>() = default;
-    Tree<V, C>(V val) : _value(std::move(val)) { std::cout << "moving " << val << "\n"; }
+    Tree<V, C>(V val) : _value(std::move(val)) { }
     ~Tree<V, C>() = default;
 
     void clear() { mChildren.clear(); _value = V(); }
@@ -56,13 +56,9 @@ namespace ml{
     // if successful, return a pointer to the node. If unsuccessful, return nullptr.
     Tree<V, C>* getNode(Path path)
     {
-      std::cout << "\n ->";
-
       auto pNode = this;
       for(Symbol key : path)
       {
-
-        std::cout << key << " ";
         if(pNode->mChildren.find(key) != pNode->mChildren.end())
         {
           pNode = &(pNode->mChildren[key]);
@@ -73,8 +69,6 @@ namespace ml{
           break;
         }
       }
-
-      std::cout << "\n";
       return pNode;
     }
 
@@ -93,9 +87,55 @@ namespace ml{
       }
     }
 
-    Tree<V, C>* addValue (ml::Path path, V val)
+    // add a value V to the Tree such that getValue(path) will return V.
+    // add any intermediate nodes necessary in order to put it there.
+    Tree<V, C>* addValue(ml::Path path, V val)
     {
-      return addNode(path, val);
+      auto pNode = this;
+      int pathSize = path.getSize();
+      int pathDepthFound = 0;
+
+      // walk the tree up to, but not including, the last node, as long as branches matching the path are found
+      for(Symbol key : path)
+      {
+        // break if at last node
+        if(pathDepthFound >= pathSize - 1) break;
+
+        if(pNode->mChildren.find(key) != pNode->mChildren.end())
+        {
+          pNode = &(pNode->mChildren[key]);
+          pathDepthFound++;
+        }
+        else
+        {
+          // break if not found
+          break;
+        }
+      }
+
+      // add the remainder of the path to the map, again up to, but not including, the last node
+      for(int i = pathDepthFound; i < pathSize - 1; ++i)
+      {
+        // [] operator creates the new node
+        auto newNodeName = path.getElement(i);
+        pNode = &(pNode->mChildren[newNodeName]);
+      }
+
+      // search for last node
+      auto lastNodeName = path.getElement(pathSize - 1);
+      if(pNode->mChildren.find(lastNodeName) == pNode->mChildren.end())
+      {
+        // if last node does not exist, emplace new value
+        pNode->mChildren.emplace(lastNodeName, val);
+      }
+      else
+      {
+        // overwrite existing value using std::move
+        // this allows the value to be some unique_ptr<stuff> .
+        pNode->mChildren[lastNodeName]._value = std::move(val);
+      }
+
+      return pNode;
     }
 
     // NOTE this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.
@@ -151,8 +191,8 @@ namespace ml{
         do
         {
           auto& currentIterator = mIteratorStack.back();
-
-          if(!atEndOfMap(currentIterator))
+          bool atEndOfMap = (currentIterator == (mNodeStack.back())->mChildren.end());
+          if(!atEndOfMap)
           {
             auto currentChildNodePtr = &((*currentIterator).second);
             if (!currentChildNodePtr->isLeaf())
@@ -198,11 +238,6 @@ namespace ml{
         return(((*currentIterator).second).hasValue());
       }
 
-      bool atEndOfMap(const typename mapT::const_iterator& currentIterator) const
-      {
-        return(currentIterator == (mNodeStack.back())->mChildren.end());
-      }
-
       Symbol getCurrentNodeName() const
       {
         const Tree<V, C>* parentNode = mNodeStack.back();
@@ -234,83 +269,14 @@ namespace ml{
     }
 
     // using an iterator, dump only the nodes with values.
-    // to dump all nodes another API could be added, but it this really needed?
+    // to visualize all nodes another interface would need to be added, because the iterator
+    // only stops on nodes with values.
     inline void dump() const
     {
       for(auto it = begin(); it != end(); ++it)
       {
         std::cout << ml::textUtils::spaceStr(it.getCurrentDepth()) << it.getCurrentNodeName() << " [" << *it << "]\n";
       }
-    }
-
-  private:
-
-    // add a map node at the specified path, and any parent nodes necessary in order to put it there.
-    // If a node already exists at the path, return the existing node, else return a pointer to the new node.
-
-    Tree<V, C>* addNode(ml::Path path, V val)
-    {
-
-      std::cout <<  "adding " << path << "\n";
-      auto pNode = this;
-      int pathSize = path.getSize();
-      int pathDepthFound = 0;
-
-      // walk the tree up to, but not including, the last node, as long as branches matching the path are found
-      for(Symbol key : path)
-      {
-        // break if at last node
-        if(pathDepthFound >= pathSize - 1) break;
-
-        if(pNode->mChildren.find(key) != pNode->mChildren.end())
-        {
-          pNode = &(pNode->mChildren[key]);
-          pathDepthFound++;
-
-
-          std::cout << "[" << key << "] ";
-        }
-        else
-        {
-          // break if not found
-          break;
-        }
-      }
-
-
-      // if all found previously this loop below would be none
-
-      // add the remainder of the path to the map, again up to, but not including, the last node
-//      for(auto it = path.begin() + pathDepthFound; it != path.end(); ++it)
-      for(int i = pathDepthFound; i < pathSize - 1; ++i)
-      {
-        // [] operator creates the new node
-        auto newNodeName = path.getElement(i);
-        pNode = &(pNode->mChildren[newNodeName]);
-
-                  std::cout << "(" << newNodeName << ") ";
-      }
-
-      // search for last node
-      auto lastNodeName = path.getElement(pathSize - 1);
-      std::cout << "{" << lastNodeName << "} ";
-
-      if(pNode->mChildren.find(lastNodeName) == pNode->mChildren.end())
-      {
-        // if last node does not exist, emplace new value
-        std::cout << "emplace " << val << "\n";
-        pNode->mChildren.emplace(lastNodeName, val);
-      }
-      else
-      {
-        // overwrite existing value using std::move
-        // this allows the value to be some unique_ptr<stuff> .
-        std::cout << "overwrite " << val << "\n";
-        pNode->mChildren[lastNodeName]._value = std::move(val);
-      }
-
-
-      return pNode;
     }
   };
 

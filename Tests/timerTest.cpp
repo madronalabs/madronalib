@@ -17,7 +17,6 @@
 using namespace ml;
 using namespace std::chrono;
 
-#if 0
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
   ml::Timers::theTimers().start();
@@ -30,9 +29,9 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 	for(int i=0; i<testSize; ++i)
 	{
 		v.emplace_back( std::unique_ptr< Timer > (new Timer));
-		v[i]->callNTimes([&sum](){sum += 1; std::cout << ".";}, milliseconds(100 + 20*i), 2);
+		v[i]->callNTimes([&sum](){sum += 1; std::cout << ".";}, milliseconds(10 + 20*i), 2);
 	}
-	std::this_thread::sleep_for(milliseconds(1000));
+	std::this_thread::sleep_for(milliseconds(500));
 	std::cout << "timer sum: " << sum << "\n";
 	REQUIRE(sum == 20);
 	
@@ -45,7 +44,7 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 			v2.emplace_back( std::unique_ptr< Timer > (new Timer));
 			v2[i]->start([=](){std::cout << i << " ";}, milliseconds(10*i));
 		}
-		std::this_thread::sleep_for(milliseconds(1000));
+		std::this_thread::sleep_for(milliseconds(500));
 	}
 	
 	// test stopping timers while running
@@ -90,4 +89,3 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 #endif
 
 }
-#endif

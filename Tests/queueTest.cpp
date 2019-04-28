@@ -25,7 +25,6 @@ using namespace ml;
 const int kTestBufferSize = 100;
 
 
-#if 0
 namespace queueTest{
 	
 	TEST_CASE("madronalib/core/queue", "[queue]")
@@ -117,6 +116,3 @@ namespace queueTest{
 		REQUIRE(transmitSum == receiveSum);
 	}
 }
-
-
-#endif
