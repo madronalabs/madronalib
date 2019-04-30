@@ -15,6 +15,7 @@
 #include <functional>
 #include <algorithm>
 
+
 #include "MLPath.h"
 #include "MLTextUtils.h"
 
@@ -36,7 +37,7 @@
 namespace ml{
 
   template < class V, class C = std::less<Symbol> >
-  class Tree
+  class Tree final
   {
     // recursive definition: a Tree has a map of Symbols to Trees, and a value.
     using mapT = std::map< Symbol, Tree<V, C>, C >;
@@ -44,9 +45,23 @@ namespace ml{
     V _value{};
 
   public:
+
     Tree<V, C>() = default;
     Tree<V, C>(V val) : _value(std::move(val)) { }
-    ~Tree<V, C>() = default;
+
+    /*
+    Tree<V, C>() : _value(V()) { std::cout << "      NEW tree () " << "\n"; }
+
+    ~Tree<V, C>() { std::cout << "      DELETE tree " << "\n";  } // = default; // deallocate
+*/
+
+    /*
+    Tree<V, C>(const Tree<V, C>& other) : _value(std::move(other._value)) { std::cout << "      COPY tree " << "\n";  }  // {}//= default; // copy ctor
+    Tree<V, C>(Tree<V, C>&& other) : _value(std::move(other._value)) { std::cout << "      MOVE tree " << "\n";  } // {}// = default; // move ctor
+    Tree<V, C>& operator=(const Tree<V, C>& other) { std::cout << "      COPY_ASSIGN tree " << "\n";       return *this = Tree<V, C>(other); }//= default; // copy assignment
+    Tree<V, C>& operator=(Tree<V, C>&& other) { std::cout << "      MOVE_ASSIGN tree " << "\n";       std::swap(_value, other._value); }//= default; // move assignment
+*/
+
 
     void clear() { mChildren.clear(); _value = V(); }
     bool hasValue() const {  return _value != V(); }
@@ -84,6 +99,21 @@ namespace ml{
       else
       {
         return V();
+      }
+    }
+
+    // if the path exists, returns a reference to the value in the tree at the path.
+    // else, inserts a new default value with that path and returns a reference to it.
+    V& operator[](Path p)
+    {
+      auto pNode = getNode(p);
+      if(pNode)
+      {
+        return pNode->_value;
+      }
+      else
+      {
+        return addValue(p, V())->_value;
       }
     }
 
@@ -126,7 +156,7 @@ namespace ml{
       if(pNode->mChildren.find(lastNodeName) == pNode->mChildren.end())
       {
         // if last node does not exist, emplace new value
-        pNode->mChildren.emplace(lastNodeName, val);
+        pNode->mChildren.emplace(lastNodeName, std::move(val)); // TODO should std::move be needed?
       }
       else
       {
@@ -279,6 +309,5 @@ namespace ml{
       }
     }
   };
-
 } // namespace ml
 
