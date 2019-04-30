@@ -149,10 +149,17 @@ set(OSC_HEADERS
     ${OSC_HEADERS_ZEROCONF}
 )
 
+# set the sources - we include the headers only to make them 
+# navigable within IDEs
+
 set(madronalib_SOURCES
     ${APP_SOURCES}
+    ${APP_HEADERS}
+    ${DSP_HEADERS}
     ${MATRIX_SOURCES}
+    ${MATRIX_HEADERS}
     ${PROC_SOURCES}
+    ${PROC_HEADERS}
     ${AES_SOURCES}
     ${JSON_SOURCES}
     )

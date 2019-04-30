@@ -106,8 +106,6 @@ public:
 	// create a looped version of the signal argument, according to the loop type
 	MLSignal(MLSignal src, eLoopType loopType, int loopLength); 
 	
-
-	
 	inline MLSignal(int width, std::function<float(int)> fillFn) :
 	mDataAligned(0),
 	mData(0)
@@ -167,7 +165,6 @@ public:
 		{
 			mDataAligned[n] = k;
 		}
-		
 	}
 	
 	// return signal value at the position p, interpolated linearly.

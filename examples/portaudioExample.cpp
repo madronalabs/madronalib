@@ -1,5 +1,7 @@
 // example of portaudio wrapping low-level madronalib DSP code.
+
 // TODO shelved for now, pending probable use of ISA-licensed JUCE code instead of portaudio.
+// keeping around for reference 
 
 #if 0
 

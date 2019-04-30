@@ -20,7 +20,7 @@
 //#include "MLDebug.h"
 //#include "MLSignal.h"
 
-#include "MLProperty.h"
+#include "MLValue.h"
 #include "MLSymbol.h"
 #include "MLQueue.h"
 
@@ -66,12 +66,12 @@ public:
     Listener() {}
     virtual ~Listener() {}
   protected:
-    virtual void handleHubNotification(ml::Symbol action, const MLProperty val) = 0;
+    virtual void handleHubNotification(ml::Symbol action, const ml::Value val) = 0;
   };
   
   void addListener(Listener* pL);
   void removeListener(Listener* pL);
-  void notifyListeners(ml::Symbol action, const MLProperty val);
+  void notifyListeners(ml::Symbol action, const ml::Value val);
   
   void timerCallback();
   

@@ -22,8 +22,8 @@
 // A recursive resource map using Symbol keys, a value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
 // Note that this makes (for example) Tree<int> weird to use, because 0 indicates
-// a null value. However, we are typically interested in more complex value types like signals or files.
-// heavyweight objects in a Tree should be held by unique_ptrs.
+// a null value. However, we are typically interested in more complex value types like Values or Widgets.
+// Heavyweight objects in a Tree should be held by unique_ptrs.
 
 // notes:
 // some use cases:
@@ -45,23 +45,8 @@ namespace ml{
     V _value{};
 
   public:
-
     Tree<V, C>() = default;
     Tree<V, C>(V val) : _value(std::move(val)) { }
-
-    /*
-    Tree<V, C>() : _value(V()) { std::cout << "      NEW tree () " << "\n"; }
-
-    ~Tree<V, C>() { std::cout << "      DELETE tree " << "\n";  } // = default; // deallocate
-*/
-
-    /*
-    Tree<V, C>(const Tree<V, C>& other) : _value(std::move(other._value)) { std::cout << "      COPY tree " << "\n";  }  // {}//= default; // copy ctor
-    Tree<V, C>(Tree<V, C>&& other) : _value(std::move(other._value)) { std::cout << "      MOVE tree " << "\n";  } // {}// = default; // move ctor
-    Tree<V, C>& operator=(const Tree<V, C>& other) { std::cout << "      COPY_ASSIGN tree " << "\n";       return *this = Tree<V, C>(other); }//= default; // copy assignment
-    Tree<V, C>& operator=(Tree<V, C>&& other) { std::cout << "      MOVE_ASSIGN tree " << "\n";       std::swap(_value, other._value); }//= default; // move assignment
-*/
-
 
     void clear() { mChildren.clear(); _value = V(); }
     bool hasValue() const {  return _value != V(); }

@@ -100,7 +100,7 @@ void MLT3DHub::removeListener(MLT3DHub::Listener* pL)
   }
 }
 
-void MLT3DHub::notifyListeners(ml::Symbol action, const MLProperty val)
+void MLT3DHub::notifyListeners(ml::Symbol action, const ml::Value val)
 {
   int nListeners = mpListeners.size();
   for(int i = 0; i < nListeners; ++i)

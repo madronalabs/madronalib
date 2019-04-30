@@ -11,6 +11,7 @@
 #include <map>
 #include <unordered_map>
 #include <thread>
+#include <memory>
 
 #include "catch.hpp"
 #include "madronalib.h"
@@ -18,6 +19,15 @@
 #include "MLTree.h"
 
 using namespace ml;
+
+class TestResource
+{
+public:
+  TestResource() { std::cout << " NEW TestResource " << std::hex << reinterpret_cast<unsigned long>(this) << std::dec << "\n"; data[10] = 2.0f;}
+  ~TestResource() { std::cout << " DELETE TestResource @ " << std::hex << reinterpret_cast<unsigned long>(this) << std::dec << " (" << data[10] << ")\n"; }
+
+  std::array<float, 1000> data{};
+};
 
 TEST_CASE("madronalib/core/tree", "[tree]")
 {
@@ -133,6 +143,10 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 	a.addValue("you/are/carl's/sunshine", 10);
 	a.addValue("you/are/carl's/jr/jam", 10);
 
+  // looking up a nonexistent node should add it and return a reference
+  std::cout << "sunshine:" << a["you/are/my/sunshine"] << "\n";
+  std::cout << "nonexistent:" << a["you/are/here/just/to/return/a/reference"] << "\n";
+
 	int leafSum = 0;
 	const int correctLeafSum = 74;
 
@@ -145,5 +159,65 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   REQUIRE(leafSum == correctLeafSum);
 
+
+  std::cout << "sizeof a: " << sizeof(a) << "\n";
+
+  Tree< int > b;
+
+  std::cout << "sizeof b: " << sizeof(b) << "\n";
+
+
+  // Tree example using unique_ptr to manage heavyweight objects.
+  Tree< std::unique_ptr<TestResource> > t;
+
+  t.addValue("nodes/in/path", make_unique< TestResource >() );
+  std::cout << "test data: " << t["nodes/in/path"]->data[10] << "\n";
+
+  // if no value is found, a default value is added to the tree and returned.
+  // in this case, that value is a unique_ptr to null. so failed lookups don't result in a new resource being made.
+  auto& tr = t["nowhere/in/path"];
+  REQUIRE(tr == nullptr);
+
+
+
+  // Value tree example
+
+  Tree< Value > properties;
+  properties.addValue("size", "big");
+  properties.addValue("shape", "square");
+  properties.addValue("corners", 4);
+  properties.addValue("melody/1", {0, 4, 3, 5, 3, 4, 2} );
+  properties.addValue("melody/2", {3, 4, 3, 5, 3, 4, 2} );
+
+  properties["corners"] = 5;
+
+  // use iterator explicitly to get property names.
+  for(auto it = properties.begin(); it != properties.end(); ++it)
+  {
+    std::cout << it.getCurrentNodeName() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
+  }
+
+
+  /*
+  std::cout << "wrong: \n";
+
+  // Tree BAD example with heavyweight objects used directly.
+  Tree< TestResource > t2;
+
+  t2.addValue("nodes/in/path", TestResource() );
+ // std::cout << "test data 2: " << t2["nodes/in/path"].data[10] << "\n";
+
+
+  std::cout << "hi\n";
+
+  // if no value is found, a default value is added to the tree and returned.
+  // in this case, that value is whole new resource.
+//  auto& tr2 = t2["nowhere/in/path"];
+//  std::cout << "default data 2 : " << tr2.data[10] << "\n";
+
+*/
+
 }
+
+
 
