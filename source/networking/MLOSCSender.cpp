@@ -54,7 +54,7 @@ namespace ml {
 
 // stream operators for madronalib types
 
-osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const MLSignal& sig)
+osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const ml::Matrix& sig)
 {
 	stream << sig.getWidth() << sig.getHeight() << sig.getDepth() << static_cast<int>(sig.getRate());
 	stream << osc::Blob(sig.getConstBuffer(), sig.getSize()*sizeof(float));

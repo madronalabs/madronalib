@@ -17,6 +17,7 @@
 #include "madronalib.h"
 #include "MLTextUtils.h"
 #include "MLTree.h"
+#include "MLValue.h"
 
 using namespace ml;
 
@@ -81,7 +82,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 		if(v != i)
 		{
 
-      std::cout << "problem at " <<pathsVector[i] << ": expected " << i << ", found " << v << "\n";
+      std::cout << "problem at " << pathsVector[i] << ": expected " << i << ", found " << v << "\n";
 			problem = true;			
 			break;
 		}
@@ -189,33 +190,17 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties.addValue("melody/1", {0, 4, 3, 5, 3, 4, 2} );
   properties.addValue("melody/2", {3, 4, 3, 5, 3, 4, 2} );
 
-  properties["corners"] = 5;
+  // nonexistent properties refer to the same null object, which can be confusing
+  properties["nonexistent"] = 5;
+  std::cout << "another missing property: " << properties["this/is/awesome"] << "\n";
 
-  // use iterator explicitly to get property names.
+  // use iterator explicitly to get property names / types.
   for(auto it = properties.begin(); it != properties.end(); ++it)
   {
     std::cout << it.getCurrentNodeName() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
   }
 
 
-  /*
-  std::cout << "wrong: \n";
-
-  // Tree BAD example with heavyweight objects used directly.
-  Tree< TestResource > t2;
-
-  t2.addValue("nodes/in/path", TestResource() );
- // std::cout << "test data 2: " << t2["nodes/in/path"].data[10] << "\n";
-
-
-  std::cout << "hi\n";
-
-  // if no value is found, a default value is added to the tree and returned.
-  // in this case, that value is whole new resource.
-//  auto& tr2 = t2["nowhere/in/path"];
-//  std::cout << "default data 2 : " << tr2.data[10] << "\n";
-
-*/
 
 }
 

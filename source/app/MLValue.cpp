@@ -7,7 +7,7 @@
 
 using namespace ml;
 
-const MLSignal Value::nullSignal;
+const Matrix Value::nullSignal;
 
 Value::Value() :
 	mType(kUndefinedValue),
@@ -47,7 +47,7 @@ Value& Value::operator= (const Value& other)
       mTextVal = other.getTextValue();
       break;
     case Value::kSignalValue:
-      // MLSignal handles copy-in-place when possible
+      // Matrix handles copy-in-place when possible
       mSignalVal = other.getSignalValue();
       break;
     default:
@@ -93,7 +93,7 @@ mType(kTextValue)
 	mTextVal = ml::Text(t);
 }
 
-Value::Value(const MLSignal& s) :
+Value::Value(const ml::Matrix& s) :
 	mType(kSignalValue)
 {
 	mSignalVal = s;
@@ -139,7 +139,7 @@ void Value::setValue(const char* const v)
 	mTextVal = v;
 }
 
-void Value::setValue(const MLSignal& v)
+void Value::setValue(const Matrix& v)
 {
 	mType = kSignalValue;
 	mSignalVal = v;

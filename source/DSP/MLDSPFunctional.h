@@ -148,7 +148,7 @@ namespace ml
 		}
 		
 	private:
-		//MLSignal mHistory;
+		//Matrix mHistory;
 		const DSPVector& mWindow;
 	};
 	*/

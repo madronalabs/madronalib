@@ -9,14 +9,14 @@
 #include <list>
 #include <map>
 
-#include "MLSignal.h"
+#include "MLMatrix.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 
 // Value: a modifiable property. Properties have four types: undefined, float, text, and signal.
 
-// TODO: instead of using MLSignal directly here as a type, make a blob type
-// and utilities (in MLSignal) for conversion. This lets the current "model" code go into "app"
+// TODO: instead of using Matrix directly here as a type, make a blob type
+// and utilities (in Matrix) for conversion. This lets the current "model" code go into "app"
 // because it doesn't depend on DSP math anymore, and increases reusability.
 
 namespace ml{
@@ -24,7 +24,7 @@ namespace ml{
 class Value
 {
 public:
-	static const MLSignal nullSignal;
+	static const Matrix nullSignal;
 
 	enum Type
 	{
@@ -44,12 +44,12 @@ public:
 	Value(double v);
 	Value(const ml::Text& t);
 	Value(const char* t);
-	Value(const MLSignal& s);
+  Value(const ml::Matrix& s);
 
 	// signal type constructor via initializer_list
 	Value (std::initializer_list<float> values)
 	{
-		*this = Value(MLSignal(values));
+		*this = Value(Matrix(values));
 	}
 
 	~Value();
@@ -66,7 +66,7 @@ public:
 		return (mType == kTextValue) ? (mTextVal) : ml::Text();
 	}
 	
-	inline const MLSignal& getSignalValue() const
+	inline const Matrix& getSignalValue() const
 	{
 		return (mType == kSignalValue) ? (mSignalVal) : nullSignal;
 	}
@@ -84,7 +84,7 @@ public:
 	void setValue(const double& v);
 	void setValue(const ml::Text& v);
 	void setValue(const char* const v);
-	void setValue(const MLSignal& v);
+	void setValue(const Matrix& v);
 	
 	bool operator== (const Value& b) const;
 	bool operator!= (const Value& b) const;
@@ -103,7 +103,7 @@ private:
 	Type mType;
 	float mFloatVal;
 	ml::Text mTextVal;
-	MLSignal mSignalVal;
+	Matrix mSignalVal;
 };
 
 // utilities

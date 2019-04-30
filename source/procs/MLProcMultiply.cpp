@@ -1,6 +1,8 @@
 
 #include "MLProcMultiply.h"
 
+using namespace ml;
+
 // definition of static constexpr data members at namespace scope is still required, until C++17
 constexpr constStr ProcMultiply::paramNames[];
 constexpr constStr ProcMultiply::textParamNames[];

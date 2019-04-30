@@ -362,8 +362,8 @@ noisebank
 	 template<int VECTORS>
 	 class SineBank
 	 {
-	 // float will be promoted to MLSignal of size 1 for single argument
-	 SineBank<VECTORS>(MLSignal f) { setFrequency(f); clear(); }
+	 // float will be promoted to Matrix of size 1 for single argument
+	 SineBank<VECTORS>(Matrix f) { setFrequency(f); clear(); }
 	 ~SineBank<VECTORS>() {}
 	 
 	 inline DSPVectorArray<VECTORS> operator()()

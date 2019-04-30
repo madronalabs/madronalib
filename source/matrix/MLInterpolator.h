@@ -12,7 +12,7 @@
 
 const int kInterpolationDegree = 1;
 
-#include "MLSignal.h"
+#include "MLMatrix.h"
 #include "MLProjection.h"
 
 namespace ml
@@ -37,12 +37,12 @@ namespace ml
 		// interpolate from current internal state to the target state, over n frames.
 		
 		// currently takes dest argument y. 
-		void process(const MLSignal& target, MLSignal& y)
+		void process(const Matrix& target, Matrix& y)
 		{
 			int frameSize = min(target.getHeight(), y.getHeight());
 			int frames = y.getWidth();
 			
-			MLSignal requiredDims{static_cast<float>(kInterpolationDegree + 1), static_cast<float>(frameSize)};
+			Matrix requiredDims{static_cast<float>(kInterpolationDegree + 1), static_cast<float>(frameSize)};
 			
 			if(mHistory.getDims() != requiredDims)
 			{
@@ -64,12 +64,12 @@ namespace ml
 
 			// MLTEST this is allocating in DSP! FIX
 			// SETDIMS 64x5
-			// MLSignal y(frames, frameSize);
+			// Matrix y(frames, frameSize);
 			
 			// store output in this functor for now.
 			// with a memory pool allocator for MLSignals we can reuse storage just by virtue of
 			// using the same size output signal. Then we can just write
-			// MLSignal y(frames, frameSize); // TODO
+			// Matrix y(frames, frameSize); // TODO
 			// and get all the benefits of cache locality etc that we can write into the allocator.
 			// but for now:
 			
@@ -90,7 +90,7 @@ namespace ml
 			}
 			
 			// TODO another way to use signal ctor as return statement:
-			// MLSignal(float*, int w, int h, int stridex, int stridey, std::function<float(float)> const& f)
+			// Matrix(float*, int w, int h, int stridex, int stridey, std::function<float(float)> const& f)
 			/*
 			mTest++;
 			if(mTest > 1000)
@@ -106,9 +106,9 @@ namespace ml
 		
 		// history-- enough frames to satisfy degree of chosen interpolator fn are needed. 
 		// vertical size will be the size of whatever target was last received.
-		MLSignal mHistory;
+		Matrix mHistory;
 		
-		MLSignal y; // temp TODO
+		Matrix y; // temp TODO
 		
 		int mCurrentFrameIdx;
 		int mTargetFrameIdx;

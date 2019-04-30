@@ -58,6 +58,9 @@ target_include_directories(tests PUBLIC "../include")
 # Link with libraries
 #--------------------------------------------------------------------
 
+
+add_dependencies(tests madronalib)
+
 # madronalib
 find_library(MADRONA_LIB madrona)
 target_link_libraries(tests "${MADRONA_LIB}")

@@ -72,9 +72,15 @@ namespace ml{
       return pNode;
     }
 
+    V& getNullValue()
+    {
+      static V nullValue{};
+      return nullValue;
+    }
+
     // if the path exists, returns the value in the tree at the path.
     // else, return a null object of our value type V.
-    V getValue(Path p)
+    V& getValue(Path p)
     {
       auto pNode = getNode(p);
       if(pNode)
@@ -83,12 +89,12 @@ namespace ml{
       }
       else
       {
-        return V();
+        return getNullValue();//V();
       }
     }
 
     // if the path exists, returns a reference to the value in the tree at the path.
-    // else, inserts a new default value with that path and returns a reference to it.
+    // else, return a null object of our value type V.
     V& operator[](Path p)
     {
       auto pNode = getNode(p);
@@ -98,7 +104,7 @@ namespace ml{
       }
       else
       {
-        return addValue(p, V())->_value;
+        return getNullValue();//addValue(p, V())->_value;
       }
     }
 

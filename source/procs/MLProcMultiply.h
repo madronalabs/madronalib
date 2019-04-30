@@ -5,6 +5,8 @@
 
 #include "MLProcFactory.h"
 
+namespace ml{
+
 class ProcMultiply : public Proc
 {
 public:	
@@ -71,3 +73,5 @@ public:
 	
 	void process() override;
 };
+
+} // namespace ml

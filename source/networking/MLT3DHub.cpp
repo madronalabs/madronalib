@@ -9,6 +9,7 @@
 #include "MLT3DHub.h"
 
 using namespace std::chrono;
+using namespace ml;
 
 #ifdef ML_MAC
 
@@ -183,7 +184,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
     // seq message for supporting sequencer pattern changes
     else if (strcmp(addy, "/seq")==0)
     {
-      MLSignal sequence;
+      Matrix sequence;
       sequence.setDims(16);
       osc::int32 seqWord;
       args >> seqWord;
