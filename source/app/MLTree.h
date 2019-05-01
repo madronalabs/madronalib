@@ -15,7 +15,6 @@
 #include <functional>
 #include <algorithm>
 
-
 #include "MLPath.h"
 #include "MLTextUtils.h"
 

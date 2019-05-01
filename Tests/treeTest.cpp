@@ -12,6 +12,7 @@
 #include <unordered_map>
 #include <thread>
 #include <memory>
+#include <numeric>
 
 #include "catch.hpp"
 #include "madronalib.h"
@@ -171,8 +172,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     {
       leafSum += val;
     }
-
     REQUIRE(leafSum == correctLeafSum);
+
+    REQUIRE(std::accumulate(a.begin(), a.end(), 0) == correctLeafSum);
   }
 
 
@@ -188,9 +190,13 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // *** heavies["x"] = r;
     // *** heavies.add("nodes/in/path",  r);
 
+    // we can check to see if an object exists without making one
+    REQUIRE(heavies.valueExists("x") == false);
+
     // either add() or operator[] can be used to assign a new unique_ptr
     heavies.add("x", make_unique< TestResource >(8) );
     heavies["x"] = make_unique< TestResource >(10);
+    REQUIRE(heavies.valueExists("x") == true);
 
     // when overwriting nodes, unique_ptr handles deletion
     heavies.add("duplicate/nodes/in/path", make_unique< TestResource >(4) );
@@ -198,9 +204,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     // note, this intentionally generates a compile-time error when using unique_ptrs
     // *** auto failedLookup = heavies["nowhere/in/path"];
-
-    // we can check to see if an object exists without making one
-    REQUIRE(heavies.valueExists("x") == true);
 
     // instead, a reference must be used.
     // if no value is found, a new node with default value is added and returned.
