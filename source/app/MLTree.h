@@ -25,15 +25,6 @@
 // a null value. However, we are typically interested in more complex value types like Values or Widgets.
 // Heavyweight objects in a Tree should be held by unique_ptrs.
 
-// notes:
-// some use cases:
-// - tree of Procs (with multicontainer / polyphonic functionality?) - make V = std::vector< Proc >.
-//      A path to poly procs would nbeed to be superscripted with the copy# at each node. Each poly node along the way
-// would multiply the size of all subnode vectors.
-// - key/value store as in Model
-// - tree of UI Widgets
-// - tree of Files
-
 namespace ml{
 
   template < class V, class C = std::less<Symbol> >
@@ -65,11 +56,15 @@ namespace ml{
         }
         else
         {
-          pNode = nullptr;
-          break;
+          return nullptr;
         }
       }
       return pNode;
+    }
+
+    bool valueExists(Path path)
+    {
+      return (getNode(path) != nullptr);
     }
 
     V& getNullValue()
@@ -89,12 +84,12 @@ namespace ml{
       }
       else
       {
-        return getNullValue();//V();
+        return getNullValue();
       }
     }
 
     // if the path exists, returns a reference to the value in the tree at the path.
-    // else, return a null object of our value type V.
+    // else, add a new default object of our value type V.
     V& operator[](Path p)
     {
       auto pNode = getNode(p);
@@ -104,13 +99,13 @@ namespace ml{
       }
       else
       {
-        return getNullValue();//addValue(p, V())->_value;
+        return add(p, V())->_value;
       }
     }
 
     // add a value V to the Tree such that getValue(path) will return V.
     // add any intermediate nodes necessary in order to put it there.
-    Tree<V, C>* addValue(ml::Path path, V val)
+    Tree<V, C>* add(ml::Path path, V val)
     {
       auto pNode = this;
       int pathSize = path.getSize();
@@ -147,7 +142,7 @@ namespace ml{
       if(pNode->mChildren.find(lastNodeName) == pNode->mChildren.end())
       {
         // if last node does not exist, emplace new value
-        pNode->mChildren.emplace(lastNodeName, std::move(val)); // TODO should std::move be needed?
+        pNode->mChildren.emplace(lastNodeName, std::move(val));
       }
       else
       {
@@ -156,6 +151,7 @@ namespace ml{
         pNode->mChildren[lastNodeName]._value = std::move(val);
       }
 
+      pNode = &(pNode->mChildren[lastNodeName]);
       return pNode;
     }
 
@@ -261,13 +257,18 @@ namespace ml{
 
       Symbol getCurrentNodeName() const
       {
-        const Tree<V, C>* parentNode = mNodeStack.back();
-        const typename mapT::const_iterator& currentIterator = mIteratorStack.back();
+        return (*(mIteratorStack.back())).first;
+      }
 
-        // no value (and currentIterator not dereferenceable!) if at end()
-        if(currentIterator == parentNode->mChildren.end()) return Symbol();
-
-        return (*currentIterator).first;
+      // return entire path to the current node. If any iterator is not referenceable this will fail.
+      Path getCurrentNodePath() const
+      {
+        Path p;
+        for(auto currentIterator : mIteratorStack)
+        {
+          p.addSymbol((*currentIterator).first);
+        }
+        return p;
       }
 
       int getCurrentDepth() const { return mNodeStack.size() - 1; }
