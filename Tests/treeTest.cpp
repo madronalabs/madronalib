@@ -197,6 +197,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     heavies.add("x", make_unique< TestResource >(8) );
     heavies["x"] = make_unique< TestResource >(10);
     REQUIRE(heavies.valueExists("x") == true);
+    REQUIRE(heavies["x"]); // shorthand courtesy of unique_ptr operator bool
 
     // when overwriting nodes, unique_ptr handles deletion
     heavies.add("duplicate/nodes/in/path", make_unique< TestResource >(4) );
@@ -210,6 +211,10 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // in this case, that value is a unique_ptr to null. so failed lookups don't result in a new resource being made.
     auto& failedLookup = heavies["nowhere/in/path"];
     REQUIRE(failedLookup.get() == nullptr);
+    REQUIRE(!failedLookup); // shorthand courtesy of unique_ptr operator bool
+
+    // overwrite data
+    heavies["x"]->data[10] = 100;
 
     // dump() works because we have declared operator<< (std::ostream& out, const std::unique_ptr< TestResource >& p) above
     heavies.dump();
