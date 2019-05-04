@@ -201,14 +201,16 @@ namespace ml{
         return ((*mIteratorStack.back()).second)._value;
       }
 
+      bool atEndOfMap() { return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end()); }
+
       // advance to the next leaf that has a value
       const const_iterator& operator++()
       {
         do
         {
           auto& currentIterator = mIteratorStack.back();
-          bool atEndOfMap = (currentIterator == (mNodeStack.back())->mChildren.end());
-          if(!atEndOfMap)
+         // bool atEndOfMap = (currentIterator == (mNodeStack.back())->mChildren.end());
+          if(!atEndOfMap())
           {
             auto currentChildNodePtr = &((*currentIterator).second);
             if (!currentChildNodePtr->isLeaf())
@@ -277,7 +279,7 @@ namespace ml{
     inline const_iterator begin() const
     {
       auto it = const_iterator(this);
-      while(!it.currentNodeHasValue())
+      while(!it.currentNodeHasValue() && !it.atEndOfMap())
       {
         ++it;
       }

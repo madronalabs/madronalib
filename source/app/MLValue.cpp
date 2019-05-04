@@ -28,7 +28,7 @@ Value::Value(const Value& other) :
 			mTextVal = other.getTextValue();
 			break;
 		case Value::kMatrixValue:
-			mSignalVal = other.getSignalValue();
+			mMatrixVal = other.getMatrixValue();
 			break;
 		default:
 			break;
@@ -48,7 +48,7 @@ Value& Value::operator= (const Value& other)
       break;
     case Value::kMatrixValue:
       // Matrix handles copy-in-place when possible
-      mSignalVal = other.getSignalValue();
+      mMatrixVal = other.getMatrixValue();
       break;
     default:
       break;
@@ -96,7 +96,7 @@ mType(kTextValue)
 Value::Value(const ml::Matrix& s) :
 	mType(kMatrixValue)
 {
-	mSignalVal = s;
+	mMatrixVal = s;
 }
 
 Value::~Value()
@@ -142,7 +142,7 @@ void Value::setValue(const char* const v)
 void Value::setValue(const Matrix& v)
 {
 	mType = kMatrixValue;
-	mSignalVal = v;
+	mMatrixVal = v;
 }
 
 void Value::setValue(const Value& v)
@@ -167,7 +167,7 @@ bool Value::operator== (const Value& b) const
 				r = (getTextValue() == b.getTextValue());
 				break;
 			case kMatrixValue:
-				r = (getSignalValue() == b.getSignalValue());
+				r = (getMatrixValue() == b.getMatrixValue());
 				break;
 		}
 	}
@@ -195,7 +195,7 @@ std::ostream& operator<< (std::ostream& out, const Value & r)
 			out << r.getTextValue();
 			break;
 		case Value::kMatrixValue:
-			out << r.getSignalValue();
+			out << r.getMatrixValue();
             break;
 	}
 	return out;

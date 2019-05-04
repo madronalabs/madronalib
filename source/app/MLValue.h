@@ -66,9 +66,9 @@ namespace ml{
       return (mType == kTextValue) ? (mTextVal) : ml::Text();
     }
 
-    inline const Matrix& getSignalValue() const
+    inline const Matrix& getMatrixValue() const
     {
-      return (mType == kMatrixValue) ? (mSignalVal) : nullSignal;
+      return (mType == kMatrixValue) ? (mMatrixVal) : nullSignal;
     }
 
     // For each type of property, a setValue method must exist
@@ -108,7 +108,7 @@ namespace ml{
     Type mType;
     float mFloatVal;
     ml::Text mTextVal;
-    Matrix mSignalVal;
+    Matrix mMatrixVal;
   };
 
 

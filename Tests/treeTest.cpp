@@ -245,6 +245,24 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   {
     std::cout << it.getCurrentNodePath() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
   }
+
+
+  //  Empty Tree test
+  Tree< Value > emptyTree;
+  int count{0};
+  for(auto it = emptyTree.begin(); it != emptyTree.end(); ++it)
+  {
+    count++;
+  }
+  REQUIRE(count == 0);
+  emptyTree["this/is/a/test"] = Value{2, 3, 4, 5};
+  for(auto it = emptyTree.begin(); it != emptyTree.end(); ++it)
+  {
+    count++;
+  }
+  REQUIRE(count == 1);
+
+
 }
 
 
