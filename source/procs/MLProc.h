@@ -110,6 +110,8 @@ constexpr int constFind(constStr const(&array)[N], constStr str)
 class Proc
 {
 public:
+  virtual ~Proc() = 0;
+
 	virtual void process() = 0;
 
 	// These methods are the public interface to set a Proc's instance variables. 

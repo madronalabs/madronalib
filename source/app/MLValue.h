@@ -57,8 +57,11 @@ namespace ml{
     inline const float getFloatValue() const
     {
       return mFloatVal;
-      // static const float nullFloat = 0.f;
-      // return (mType == kFloatValue) ? mFloatVal : nullFloat;
+    }
+
+    inline const float getFloatValueWithDefault(float d) const
+    {
+      return (mType == kFloatValue) ? mFloatVal : d;
     }
 
     inline const ml::Text getTextValue() const
@@ -105,10 +108,10 @@ namespace ml{
   private:
     // TODO reduce storage requirements and reduce copying!
     // -- this is a minimal-code start
-    Type mType;
-    float mFloatVal;
-    ml::Text mTextVal;
-    Matrix mMatrixVal;
+    Type mType{kUndefinedValue};
+    float mFloatVal{};
+    ml::Text mTextVal{};
+    Matrix mMatrixVal{};
   };
 
 

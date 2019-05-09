@@ -87,12 +87,7 @@ int main()
 	
 	TickGen ticks(16);
 	
-	TestSineGen sineGen;
-	DSPVector sinewave = sineGen(DSPVector(110.f/44100.f));
-	
-	TestSineGen sineModGen;
-	DSPVector sineMod = sineModGen(DSPVector(1.f/44100.f));
-	
+
 	Lopass lp1;
 	lp1.mCoeffs = Lopass::coeffs(0.25, 1.0);
 	
@@ -102,6 +97,7 @@ int main()
 	
 
 	// upsampler for a generator with 1 input row
+  TestSineGen sineGen;
 	Upsample2xFunction<1> upper;
 	std::cout << "\n\n" << upper([&](const DSPVector x) { return sineGen(x); }, DSPVector(440.f / 44100.f)) << "\n\n";
 

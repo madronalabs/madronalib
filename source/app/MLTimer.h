@@ -64,7 +64,6 @@ namespace ml
     std::thread runThread;
   }; // class Timers
 
-
 	class Timer
 	{
 		friend class Timers;

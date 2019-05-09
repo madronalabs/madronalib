@@ -47,7 +47,8 @@ namespace ml
 	{
 		// projections with no parameters	
 		
-		static const Projection linear{ [](float x){return x;} };
+    static const Projection linear{ [](float x){return x;} };
+    static const Projection squared{ [](float x){return x*x;} };
 		static const Projection flip{ [](float x){return 1 - x;} };
 		static const Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
 		static const Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };

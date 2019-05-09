@@ -24,7 +24,8 @@ struct constTest
 */
 
 
-void ProcMultiply::process() 
+
+void ProcMultiply::process()
 {
 	output("baz") = multiply(input("foo"), input("bar"));
 	

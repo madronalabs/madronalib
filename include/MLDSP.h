@@ -11,6 +11,7 @@
 #include "MLDSPBuffer.h"
 #include "MLDSPFunctional.h"
 #include "MLDSPUtils.h"
+#include "MLProjection.h"
 #include "MLRatio.h"
 
 // TODO replace when loading code is updated #include "DSP/MLScale.h"

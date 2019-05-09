@@ -19,6 +19,7 @@ using namespace std::chrono;
 
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
+  // call this once in an application.
   ml::Timers::theTimers().start();
 
 	int sum = 0;

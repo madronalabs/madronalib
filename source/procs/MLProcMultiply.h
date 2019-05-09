@@ -32,6 +32,10 @@ public:
 	DSPVector* inputs[constCount(inputNames) + 1];
 	DSPVector* outputs[constCount(outputNames) + 1];
 
+
+  ~ProcMultiply() = default;
+
+
 	inline float& param(constStr str)
 	{
 		return params[constFind(paramNames, str)];

@@ -9,7 +9,6 @@
 
 using namespace ml;
 
-
 TEST_CASE("madronalib/core/procs", "[procs]")
 {
 	std::cout << "\nPROCS:\n";
