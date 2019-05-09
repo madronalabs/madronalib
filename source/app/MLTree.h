@@ -49,9 +49,10 @@ namespace ml{
       auto pNode = this;
       for(Symbol key : path)
       {
-        if(pNode->mChildren.find(key) != pNode->mChildren.end())
+        auto it = pNode->mChildren.find(key);
+        if(it != pNode->mChildren.end())
         {
-          pNode = &(pNode->mChildren[key]);
+          pNode = &(it->second);
         }
         else
         {
@@ -61,12 +62,32 @@ namespace ml{
       return pNode;
     }
 
-    bool valueExists(Path path)
+    // find a tree node at the specified path.
+    // if successful, return a pointer to the node. If unsuccessful, return nullptr.
+    const Tree<V, C>* getConstNode(Path path) const
     {
-      return (getNode(path) != nullptr);
+      auto pNode = this;
+      for(Symbol key : path)
+      {
+        auto it = pNode->mChildren.find(key);
+        if(it != pNode->mChildren.end())
+        {
+          pNode = &(it->second);
+        }
+        else
+        {
+          return nullptr;
+        }
+      }
+      return pNode;
     }
 
-    V& getNullValue()
+    bool valueExists(Path path) const
+    {
+      return (getConstNode(path) != nullptr);
+    }
+
+    const V& getNullValue() const
     {
       static V nullValue{};
       return nullValue;
@@ -74,9 +95,9 @@ namespace ml{
 
     // if the path exists, returns the value in the tree at the path.
     // else, return a null object of our value type V.
-    V& getValue(Path p)
+    const V& getValue(Path p) const
     {
-      auto pNode = getNode(p);
+      auto pNode = getConstNode(p);
       if(pNode)
       {
         return pNode->_value;
