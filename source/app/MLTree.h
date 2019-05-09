@@ -34,6 +34,12 @@ namespace ml{
     mapT mChildren{};
     V _value{};
 
+    const V& getNullValue() const
+    {
+      static V nullValue{};
+      return nullValue;
+    }
+
   public:
     Tree<V, C>() = default;
     Tree<V, C>(V val) : _value(std::move(val)) { }
@@ -87,27 +93,6 @@ namespace ml{
       return (getConstNode(path) != nullptr);
     }
 
-    const V& getNullValue() const
-    {
-      static V nullValue{};
-      return nullValue;
-    }
-
-    // if the path exists, returns the value in the tree at the path.
-    // else, return a null object of our value type V.
-    const V& getValue(Path p) const
-    {
-      auto pNode = getConstNode(p);
-      if(pNode)
-      {
-        return pNode->_value;
-      }
-      else
-      {
-        return getNullValue();
-      }
-    }
-
     // if the path exists, returns a reference to the value in the tree at the path.
     // else, add a new default object of our value type V.
     V& operator[](Path p)
@@ -120,6 +105,21 @@ namespace ml{
       else
       {
         return add(p, V())->_value;
+      }
+    }
+
+    // if the path exists, returns a const reference to the value in the tree at the path.
+    // Otherwise, a null value is returned.
+    const V& operator[](Path p) const
+    {
+      auto pNode = getConstNode(p);
+      if(pNode)
+      {
+        return pNode->_value;
+      }
+      else
+      {
+        return getNullValue();
       }
     }
 

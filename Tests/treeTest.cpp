@@ -89,9 +89,13 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       numberMap.add(pathsVector[i], i);
     }
 
+    // using a const reference will prevent the Tree from being modified.
+    const auto& constNumberMap(numberMap);
+    // *** constNumberMap["foo"] = 2;
+    
     for(int i=1; i < mapSize; ++i)
     {
-      int v = numberMap.getValue(pathsVector[i]);
+      int v = constNumberMap[pathsVector[i]];
       if(v != i)
       {
         std::cout << "problem at " << pathsVector[i] << ": expected " << i << ", found " << v << "\n";
