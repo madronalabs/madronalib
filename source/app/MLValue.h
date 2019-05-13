@@ -45,6 +45,11 @@ namespace ml{
     Value(const char* t);
     Value(const ml::Matrix& s);
 
+    explicit operator bool() const
+    {
+      return mType != kUndefinedValue;
+    }
+
     // signal type constructor via initializer_list
     Value (std::initializer_list<float> values)
     {
