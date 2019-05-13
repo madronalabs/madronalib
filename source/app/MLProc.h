@@ -110,7 +110,7 @@ constexpr int constFind(constStr const(&array)[N], constStr str)
 class Proc
 {
 public:
-  virtual ~Proc() = 0;
+  virtual ~Proc() = default;
 
 	virtual void process() = 0;
 

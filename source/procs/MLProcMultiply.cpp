@@ -37,11 +37,13 @@ void ProcMultiply::process()
 
 // proc name as parameter.
 
-// While there is no "master list" of Proces that needs to be updated when new ones
+// While there is no "master list" of Procs that needs to be updated when new ones
 // are added, each Proc's ProcRegistryEntry needs to be linked with the executable that
 // is trying to make Procs.
+
 namespace
 {
-  ProcRegistryEntry<ProcMultiply> classReg("multiply");
+  static ProcRegistryEntry<ProcMultiply> classReg("multiply");
 }
+
 

@@ -14,23 +14,27 @@ using namespace ml;
 class ProcFactory
 {
 private:
-	ProcFactory();
-	~ProcFactory();
-	
+
 	// delete copy and move constructors and assign operators
-	ProcFactory(ProcFactory const&) = delete;             // Copy construct
-	ProcFactory(ProcFactory&&) = delete;                  // Move construct
-	ProcFactory& operator=(ProcFactory const&) = delete;  // Copy assign
-	ProcFactory& operator=(ProcFactory &&) = delete;      // Move assign
-	
+  ProcFactory(ProcFactory const&) = delete;             // Copy construct
+  ProcFactory(ProcFactory&&) = delete;                  // Move construct
+  ProcFactory& operator=(ProcFactory const&) = delete;  // Copy assign
+  ProcFactory& operator=(ProcFactory &&) = delete;      // Move assign
+
+  typedef Proc*(*MLProcCreateFnT)(void);
+  typedef std::map<ml::Symbol, MLProcCreateFnT> FnRegistryT;
+  FnRegistryT procRegistry;
+
 public:
-	// singleton: we only want one ProcFactory, even for multiple DSPEngines. 
+  ProcFactory() = default;
+  ~ProcFactory() = default;
+
+  // singleton: we only want one ProcFactory, even for multiple DSPEngines. 
 	static ProcFactory &theFactory()  { static ProcFactory f; return f; }
+
+  size_t registeredClasses() { return procRegistry.size(); }
 	
-	typedef Proc*(*MLProcCreateFnT)(void);
-	typedef std::map<ml::Symbol, MLProcCreateFnT> FnRegistryT;
-	FnRegistryT procRegistry;
- 
+
 	// register an object creation function by the name of the class.
 	void registerFn(const ml::Symbol className, MLProcCreateFnT fn);
 	
@@ -63,5 +67,7 @@ public:
 		
 		return new T;
 	}
+
+  int dummy{4};
 };
 
