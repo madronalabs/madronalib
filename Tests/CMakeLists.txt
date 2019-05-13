@@ -9,19 +9,23 @@
 cmake_minimum_required(VERSION 2.8.12)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version")
 
-
 #--------------------------------------------------------------------
 # Compiler flags
 #--------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+#--------------------------------------------------------------------
+# get proc sources, which must be included as source
+#--------------------------------------------------------------------
+
+file(GLOB PROC_SOURCES "../source/procs/*.*")
 
 #--------------------------------------------------------------------
 # Add all the tests.
 #--------------------------------------------------------------------
 
-add_executable(tests 
+set(test_sources
 	catch.hpp 
 	dspOpsTest.cpp
 	OSCTest.cpp
@@ -33,8 +37,16 @@ add_executable(tests
 	timerTest.cpp
 	tests.cpp
 	tests.h 
-	)
+	${PROC_SOURCES}
+    )
 
+add_executable(tests ${test_sources})
+
+#--------------------------------------------------------------------
+# set properties
+#--------------------------------------------------------------------
+
+set_target_properties(tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
 
 #--------------------------------------------------------------------
 # Add include Directories

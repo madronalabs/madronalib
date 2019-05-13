@@ -29,7 +29,7 @@ set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${
 
 # set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-option(ML_BUILD_EXAMPLES "Build the examples" ON)
+option(ML_BUILD_EXAMPLES "Build the examples" OFF)
 option(ML_BUILD_TESTS "Build the ML test programs" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_DOCS "Build the ML documentation" OFF)

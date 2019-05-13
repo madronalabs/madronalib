@@ -13,8 +13,13 @@ TEST_CASE("madronalib/core/procs", "[procs]")
 {
 	std::cout << "\nPROCS:\n";
 
-	// create will return nullptr if a ProcRegistryEntry for the proc name is not declared
-	std::unique_ptr<Proc> pm (ProcFactory::theFactory().create("multiply")); 
+  // factory gets a name, only for testing
+  auto& factory(ProcFactory::theFactory());
+
+  std::cout << factory.registeredClasses() << " proc classes registered.\n";
+  
+  // create will return nullptr if a ProcRegistryEntry for the proc name is not declared
+	std::unique_ptr<Proc> pm (factory.create("multiply"));
 	REQUIRE(pm != nullptr);
 	
 	DSPVector va, vb, vc;
