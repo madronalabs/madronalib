@@ -9,6 +9,7 @@
 #include "MLPath.h"
 #include "MLPlatform.h"
 #include "MLValue.h"
+#include "MLValueChange.h"
 #include "MLQueue.h"
 #include "MLSymbol.h"
 #include "MLText.h"

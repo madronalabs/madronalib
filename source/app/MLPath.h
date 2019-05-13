@@ -6,6 +6,7 @@
 #pragma once
 
 #include "MLSymbol.h"
+#include "MLValue.h"
 
 // a Path describes the address of one or more elements in a tree
 // of such elements, for example one or more MLProcs in a graph.
@@ -30,10 +31,11 @@ friend std::ostream& operator<< (std::ostream& out, const Path & r);
 	
 public:
 	Path() = default;	
+  Path(const Path& b) = default;
 	Path(const char * str);
 	Path(const Symbol sym); 
 	Path(const TextFragment frag);
-	Path(const Path& b) = default;
+  Path(const Value& b);
 	~Path() = default;
 
 	// boolean test.

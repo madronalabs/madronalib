@@ -26,7 +26,12 @@ namespace ml {
 	{
 		parsePathString(frag.getText());
 	}
-	
+
+  Path::Path(const Value& v)
+  {
+    parsePathString(v.getTextValue().getText());
+  }
+
 	void Path::parsePathString(const char* pathStr)
 	{
 		auto it = TextFragment::Iterator(pathStr);		

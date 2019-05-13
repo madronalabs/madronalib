@@ -12,7 +12,6 @@
 #include "MLMatrix.h"
 #include "MLSymbol.h"
 #include "MLText.h"
-#include "MLPath.h"
 
 // Value: a modifiable property. Properties have four types: undefined, float, text, and signal.
 
@@ -117,31 +116,12 @@ namespace ml{
 
   // utilities
 
-  struct ValueChange
-  {
-    ml::Path name;
-
-    // note: the order of the values is important for creating Values from initializer lists.
-    Value newValue;
-    Value oldValue;
-
-    explicit operator bool() const
-    {
-      return ((oldValue == Value()) && (newValue == Value()));
-    }
-  };
-
   // note: this implementation does not disable this overload for array types
   template<typename T, typename... Args>
   std::unique_ptr<T> make_unique(Args&&... args)
   {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
   }
-
-  // Define a type for initializing a new object with a list of ValueChanges.
-  // The name is potentially misleading but reads clearly. This is really only needed
-  // in concert with make_unique, thus the underscore.
-  using with_values = std::initializer_list<ValueChange>;
 
 } // namespace ml
 
