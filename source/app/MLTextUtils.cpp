@@ -825,4 +825,124 @@ namespace ml { namespace textUtils {
 		}
 		return words;
 	}
+
+
+
+  ml::Text formatNumber (const float number, const int digits, const int precision, const bool doSign, Symbol mode)  throw()
+  {
+    const std::vector<ml::Text> pitchNames
+    {
+      "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#"
+    };
+
+    const int bufLength = 16;
+    char numBuf[bufLength] = {0};
+    char format[bufLength] = {0};
+    float tweakedNumber;
+
+    // get digits to display
+    int m = (precision > 0) ? std::max(digits, precision+1) : digits;
+    int d = ceil(log10f(fabs(number)+1.));
+    int p = (d + precision > m) ? m-d : precision;
+    p = std::max(p, 0);
+
+    //  printf("---------number: %-+10.2f\n", number);
+    //  printf("---------number: %-+10.8f\n", number);
+    //  printf("max: %d, digits: %d, after decimal: %d\n", m, d, p);
+
+    tweakedNumber = number;
+    if(mode == "default")
+    {
+      if (doSign)
+      {
+        snprintf(format, bufLength, "X-+0%1d.%1df", m, p);
+      }
+      else
+      {
+        snprintf(format, bufLength, "X-0%1d.%1df", m, p);
+      }
+      format[0] = 37;  // '%'
+      snprintf(numBuf, bufLength, format, tweakedNumber);
+    }
+    else if (mode == "ratio")
+    {
+      bool done = false;
+      for(int a=1; a<=8 && !done; ++a)
+      {
+        for(int b=1; b<=4 && !done; ++b)
+        {
+          if (fabs(number - (float)a/(float)b) < 0.001)
+          {
+            snprintf(numBuf, bufLength, "%d/%d", a, b);
+            done = true;
+          }
+        }
+      }
+      if (!done)
+      {
+        if (doSign)
+        {
+          snprintf(format, bufLength, "X-+0%1d.%1df", m, p);
+        }
+        else
+        {
+          snprintf(format, bufLength, "X-0%1d.%1df", m, p);
+        }
+        format[0] = 37;  // '%'
+        snprintf(numBuf, bufLength, format, tweakedNumber);
+      }
+    }
+    else if (mode == "pitch1") // just show As
+    {
+      int octave = log2(number/(27.5f - 0.01f));
+      float quant = (pow(2.f, (float)octave) * 27.5f);
+      float distFromOctave = fabs (number - quant);
+      if (distFromOctave < 0.01)
+      {
+        snprintf(format, bufLength, "X-0%1d.%1df\nA%d", m, p, octave);
+      }
+      else
+      {
+        snprintf(format, bufLength,  "X-0%1d.%1df", m, p);
+      }
+      format[0] = 37;  // '%'
+      snprintf(numBuf, bufLength, format, tweakedNumber);
+    }
+    else if (mode == "pitch2") // show all notes
+    {
+      int note = log2f(number/(27.5f - 0.01f))*12.f;
+      float quantizedNotePitch = (pow(2.f, (float)note/12.f) * 27.5f);
+      float distFromNote = fabs (number - quantizedNotePitch);
+      if (distFromNote < 0.01)
+      {
+        const int octaveFromC = (note - 3)/12;
+        snprintf(format, bufLength, "X-0%1d.%1df\n%s%d", m, p, pitchNames[note%12].getText(), octaveFromC);
+      }
+      else
+      {
+        snprintf(format,bufLength,  "X-0%1d.%1df", m, p);
+      }
+      format[0] = 37;  // '%'
+      snprintf(numBuf, bufLength, format, tweakedNumber);
+    }
+    else if (mode == "db")
+    {
+      if (doSign)
+      {
+        snprintf(format, bufLength, "X-+0%1d.%1dfdB", m, p);
+      }
+      else
+      {
+        snprintf(format, bufLength, "X-0%1d.%1dfdB", m, p);
+      }
+      format[0] = 37;  // '%'
+      snprintf(numBuf, bufLength, format, tweakedNumber);
+    }
+
+    return Text(numBuf);
+  }
+
+
+
+
 } } // ml:textUtils
