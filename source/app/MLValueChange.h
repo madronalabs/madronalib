@@ -21,11 +21,22 @@ namespace ml
 
   struct ValueChange
   {
-    ml::Path name;
+    // the path to a change value in a tree
+    ml::Path name{};
 
-    // note: the order of the values is important for creating Values from initializer lists.
-    Value newValue;
-    Value oldValue;
+    // note: the order of the members is important for creating Values from initializer lists.
+    // value after the change
+    Value newValue{};
+
+    // value before the change
+    Value oldValue{};
+
+    bool startGesture{false};
+    bool endGesture{false};
+
+    ValueChange() = default;
+    ValueChange(ml::Path np, Value nv, Value ov = Value(), bool start = false, bool end = false) :
+    name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end) {}
 
     explicit operator bool() const
     {
