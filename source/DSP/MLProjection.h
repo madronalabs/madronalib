@@ -10,21 +10,14 @@
 
 #include <functional>
 #include <vector>
-#include <iostream>
+//#include <iostream>
 
 #include "MLScalarMath.h"
 
 namespace ml
 {
-	class Interval
+	struct Interval
 	{
-	public:
-		/*
-		Interval() : mX1(0.f), mX2(1.f) {}
-		Interval(float x1, float x2) : mX1(x1), mX2(x2) {}
-		Interval(int x1, int x2) : mX1(x1), mX2(x2) {}
-		*/
-		
 		float mX1, mX2;
 	};
 	
@@ -41,11 +34,11 @@ namespace ml
 	{
 		return( [=](float x){return a(b(x));} );
 	}
-	
-	// useful projections defined on (0, 1)
+
+  // useful projections defined on (0, 1)
 	namespace projections
 	{
-		// projections with no parameters	
+		// projections with no parameters
 		
     static const Projection linear{ [](float x){return x;} };
     static const Projection squared{ [](float x){return x*x;} };
