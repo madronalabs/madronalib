@@ -174,5 +174,6 @@ namespace ml {
 	{
 		out << r.getTextFragment();
 		return out;
-	}	
+	}
+
 } // namespace ml

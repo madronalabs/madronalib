@@ -246,7 +246,7 @@ namespace ml
 	{
 		return Symbol(TextFragment(f1.getTextFragment(), f2.getTextFragment()));
 	}
-	
+
 }	// namespace ml
 
 // hashing function for ml::Symbol use in unordered STL containers. simply return the ID,

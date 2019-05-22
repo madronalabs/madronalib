@@ -3,6 +3,8 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+#include <numeric>
+
 #include "MLPath.h"
 #include "MLTextUtils.h"
 #include "utf.hpp"
@@ -62,7 +64,6 @@ namespace ml {
 		while(!finishedString);
 	}
 
-	
 	void Path::addSymbol(ml::Symbol sym)
 	{
 		if (mSize < kPathMaxSymbols)
@@ -106,6 +107,12 @@ namespace ml {
 		}
 		return out;
 	}
+
+  TextFragment pathToText(Path p, const char* separator)
+  {
+    auto concat = [&](Symbol a, Symbol b) { return TextFragment(a.getTextFragment(), TextFragment(separator), b.getTextFragment()); } ;
+    return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
+  }
 
 } // namespace ml
 

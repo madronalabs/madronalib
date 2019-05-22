@@ -6,6 +6,7 @@
 
 #include <iostream>
 #include <vector>
+#include <numeric>
 #include <map>
 #include <unordered_map>
 #include <chrono>
@@ -391,4 +392,17 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 	}
 	
 	REQUIRE(totalPoints == 21);
+}
+
+
+// TODO move
+TEST_CASE("madronalib/core/symbol/path", "[symbol][path]")
+{
+  Path p("hello/world/a/b/c/d/e/f/g");
+
+  auto concat = [](Symbol a, Symbol b) { return TextFragment(a.getTextFragment(), TextFragment("+"), b.getTextFragment()); } ;
+  TextFragment pa = std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
+
+  std::cout << "pa: " << pa << "\n";
+
 }

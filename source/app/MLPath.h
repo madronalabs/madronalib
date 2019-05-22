@@ -110,7 +110,7 @@ public:
 	{
 		return const_iterator(this, static_cast<int> (mSize) );
 	}
-	
+
 private:
 	void parsePathString(const char* pathStr);
 
@@ -121,6 +121,8 @@ private:
 	unsigned char _dummy2; 
 	// sizeof(Path) = 64
 };
+
+  TextFragment pathToText(Path p, const char* separator);
 
 } // namespace ml
 
