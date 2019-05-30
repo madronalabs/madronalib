@@ -40,7 +40,7 @@ namespace ml
 	{
 		// projections with no parameters
 		
-    static const Projection linear{ [](float x){return x;} };
+    static const Projection unity{ [](float x){return x;} };
     static const Projection squared{ [](float x){return x*x;} };
 		static const Projection flip{ [](float x){return 1 - x;} };
 		static const Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
@@ -145,7 +145,7 @@ namespace ml
 		// projection c is defined on [0, 1)->[0, 1) and can add clipping or nonlinear projections. 
 		//explicit IntervalProjection(const Interval a, const Interval b);
 		
-		explicit IntervalProjection(const Interval a, const Interval b, Projection c = projections::linear) : mA(a), mB(b), mMappingProjection(c) { build(); }
+		explicit IntervalProjection(const Interval a, const Interval b, Projection c = projections::unity) : mA(a), mB(b), mMappingProjection(c) { build(); }
 		
 		inline float operator()(float f) const 
 		{
@@ -154,7 +154,7 @@ namespace ml
 		
 	private:
 		Interval mA, mB;
-		Projection mMappingProjection { projections::linear };
+		Projection mMappingProjection { projections::unity };
 		float mScaleA, mOffsetA, mScaleB, mOffsetB;
 		
 		void build()
