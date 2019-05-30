@@ -78,6 +78,12 @@ namespace ml{
       return (mType == kMatrixValue) ? (mMatrixVal) : nullSignal;
     }
 
+    inline const Matrix getMatrixValueWithDefault(Matrix d) const
+    {
+      return (mType == kMatrixValue) ? (mMatrixVal) : d;
+    }
+
+
     // For each type of property, a setValue method must exist
     // to set the value of the property to that of the argument.
     //
