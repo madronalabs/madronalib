@@ -5,20 +5,14 @@
 
 #pragma once
 
-#include <string>
-#include <list>
-#include <map>
+#include <iostream>
+#include <initializer_list>
 
-#include "MLMatrix.h"
-#include "MLSymbol.h"
-#include "MLText.h"
+#include "MLValue.h"
 #include "MLPath.h"
 
 namespace ml
 {
-
-  // utilities
-
   struct ValueChange
   {
     // the path to a change value in a tree
@@ -48,3 +42,10 @@ namespace ml
   using withValues = std::initializer_list<ValueChange>;
 
 } // namespace ml
+
+inline std::ostream& operator<< (std::ostream& out, const ml::ValueChange& r)
+{
+  std::cout << "[" << r.name << ": " << r.oldValue << " -> " << r.newValue << "]";
+  return out;
+}
+
