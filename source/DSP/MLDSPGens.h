@@ -160,7 +160,7 @@ namespace ml
 	*/
 	
 	
-	// super slow SineGen for testing
+	// super slow + accurate sine generator for testing
 	
 	class TestSineGen
 	{		
@@ -186,11 +186,12 @@ namespace ml
 			return vy;
 		}
 	};
+  
 	
-	// FastSineGen approximates a sine using Taylor series. There is distortion in odd harmonics
+	// SineGen approximates a sine using Taylor series. There is distortion in odd harmonics
 	// only, with the 3rd harmonic at about -40dB.
 	
-	class FastSineGen
+	class SineGen
 	{		
 		static constexpr int32_t kZeroPhase = -(2<<29);
 		
