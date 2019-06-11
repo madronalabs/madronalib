@@ -70,27 +70,41 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 		}
 	}
 
-	SECTION("time")
-	{
-		// test speed of precise functions relative to native ones.
-		// test speed of approximate functions relative to precise ones.
-		// approximate ones should be faster!
-		int iters = 1000;
-		
-		std::cout << "nanoseconds for " << iters << " iterations:\n";
-		int i = 0;
-		for(auto fnVec : functionVectors)
-		{			
-			timedResult<DSPVector> fnTimeNative = timeIterations<DSPVector>(fnVec.second[0], iters);
-			timedResult<DSPVector> fnTimePrecise = timeIterations<DSPVector>(fnVec.second[1], iters);
-			timedResult<DSPVector> fnTimeApprox = timeIterations<DSPVector>(fnVec.second[2], iters);
-			std::cout << fnVec.first << " native: " << fnTimeNative.ns << ", precise: " << fnTimePrecise.ns << ", approx: " << fnTimeApprox.ns << " \n";
-			
+  SECTION("time")
+  {
+    // test speed of precise functions relative to native ones.
+    // test speed of approximate functions relative to precise ones.
+    // approximate ones should be faster!
+    int iters = 1000;
+
+    std::cout << "nanoseconds for " << iters << " iterations:\n";
+    int i = 0;
+    for(auto fnVec : functionVectors)
+    {
+      timedResult<DSPVector> fnTimeNative = timeIterations<DSPVector>(fnVec.second[0], iters);
+      timedResult<DSPVector> fnTimePrecise = timeIterations<DSPVector>(fnVec.second[1], iters);
+      timedResult<DSPVector> fnTimeApprox = timeIterations<DSPVector>(fnVec.second[2], iters);
+      std::cout << fnVec.first << " native: " << fnTimeNative.ns << ", precise: " << fnTimePrecise.ns << ", approx: " << fnTimeApprox.ns << " \n";
+
 #ifdef NDEBUG
-			REQUIRE(fnTimeApprox.ns <= fnTimePrecise.ns);
-			REQUIRE(fnTimePrecise.ns <= fnTimeNative.ns);
+      REQUIRE(fnTimeApprox.ns <= fnTimePrecise.ns);
+      REQUIRE(fnTimePrecise.ns <= fnTimeNative.ns);
 #endif
-			i++;
-		}		
-	}
+      i++;
+    }
+  }
+
+  SECTION("gens") // TODO DSPGens test
+  {
+
+    int kGlideSamples{150};
+    LinearGlide g;
+    g.setGlideTimeInSamples(kGlideSamples);
+    for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
+    {
+      std::cout << i << ": " << g(1.0f) << "\n";
+    }
+  }
+
+
 }

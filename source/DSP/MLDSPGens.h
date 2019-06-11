@@ -257,54 +257,45 @@ namespace ml
 	
 	class LinearGlide
 	{
+    DSPVector mCurrVec;
+    DSPVector mStepVec;
+    float mSamplesPerGlide;
+    float mTargetValue;
+    float mDyPerVector;
+    int mVectorsPerGlide;
+    int mVectorsRemaining;
+
 	public:
 		LinearGlide() : 
 		mCurrVec(0.f),
 		mStepVec(0.f),
-		mSecondsPerGlide(0.01f), 
+		mSamplesPerGlide(1000.f),
 		mTargetValue(0.f),
 		mVectorsRemaining(0)
 		{
 			calcParams();
 		}
 		
-		void calcParams()
+		void setGlideTimeInSamples(float t)
 		{
-			float samplesPerGlide = mSecondsPerGlide*mSr;
-			mVectorsPerGlide = samplesPerGlide/kFloatsPerDSPVector;
-			if(mVectorsPerGlide < 1) mVectorsPerGlide = 1;
-			mDyPerVector = 1.0f/(mVectorsPerGlide + 0.f);
+      mVectorsPerGlide = t/kFloatsPerDSPVector;
+      if(mVectorsPerGlide < 1) mVectorsPerGlide = 1;
+      mDyPerVector = 1.0f/(mVectorsPerGlide + 0.f);
 		}
-		
-		void setSampleRate(float sr) 
-		{ 
-			mSr = sr; 
-			calcParams();
-		}
-		
-		void setGlideTime(float t)
-		{ 
-			mSecondsPerGlide = t;
-			calcParams();
-		}
-		
-		// TODO rename
-		void setInput(float f)
+
+		DSPVector operator()(float f)
 		{
-			// because the last element of kUnityRampVec is 1, the last element
-			// of mCurrVec at the end of a glide should be the target value.
-			float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
-			if(f != currentValue)
-			{
-				mTargetValue = f;
-				
-				// start counter
-				mVectorsRemaining = mVectorsPerGlide;	
-			}
-		}
-		
-		DSPVector operator()()
-		{
+      // set target value if different from current value.
+      const float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
+      if(f != currentValue)
+      {
+        mTargetValue = f;
+
+        // start counter
+        mVectorsRemaining = mVectorsPerGlide;
+      }
+
+      // process glide
 			if(mVectorsRemaining <= 0)
 			{
 				return DSPVector(mTargetValue);	
@@ -335,16 +326,6 @@ namespace ml
 			
 			return mCurrVec;
 		}
-		
-		DSPVector mCurrVec;
-		DSPVector mStepVec;
-		
-		float mSecondsPerGlide;
-		float mTargetValue;
-		float mSr;
-		float mDyPerVector;
-		int mVectorsPerGlide;	
-		int mVectorsRemaining;
 	};
 
 	
