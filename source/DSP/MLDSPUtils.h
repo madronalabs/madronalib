@@ -58,12 +58,15 @@ namespace ml
 		
 		~VectorProcessBuffer(){}
 		
-		void process(float** inputs, float** outputs, int nChans, int nFrames, std::function<DSPVectorArray<CHANNELS>(const DSPVectorArray<CHANNELS>&, int chans)> fn)
+		void process(const float** inputs, float** outputs, int nChans, int nFrames, std::function<DSPVectorArray<CHANNELS>(const DSPVectorArray<CHANNELS>&, int chans)> fn)
 		{
-			// write
-			for(int c = 0; c < nChans; c++)
+      // write from inputs to inputBuffers
+      for(int c = 0; c < nChans; c++)
 			{
-				mInputBuffers[c].write(inputs[c], nFrames);
+        if(inputs[c])
+        {
+          mInputBuffers[c].write(inputs[c], nFrames);
+        }
 			}
 			
 			DSPVectorArray<CHANNELS> inputVectors;
@@ -86,10 +89,13 @@ namespace ml
 				}
 			}
 			
-			// read
+			// read from outputBuffers to outputs
 			for(int c = 0; c < nChans; c++)
 			{
-				mOutputBuffers[c].read(outputs[c], nFrames);
+        if(outputs[c])
+        {
+          mOutputBuffers[c].read(outputs[c], nFrames);
+        }
 			}
 		}
 		

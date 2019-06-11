@@ -872,7 +872,6 @@ namespace ml
 			return append(sumL, sumR);
 		}
 	};
-		
 	
 	// ----------------------------------------------------------------
 	// Half Band Filter

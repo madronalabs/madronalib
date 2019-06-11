@@ -90,8 +90,9 @@ namespace ml
 			mDataMask = mSize - 1;
 			
 			// The distance mask idea is based on code from PortAudio's ringbuffer by Phil Burk.
-			// By keeping the read and write pointers constrained to size*2 instead of size, the full state
+			// By keeping the read and write indices constrained to size*2 instead of size, the full state
 			// (write - read = size) can be distinguished from the empty state (write - read = 0).
+      // getDataRegions() is always used to generate the raw data pointers for reading / writing.
 			mDistanceMask = mSize*2 - 1;
 			
 			return mSize;

@@ -645,8 +645,6 @@ private:
 	}
 };
 
-typedef std::shared_ptr<Matrix> MLSignalPtr;
-
 float rmsDifference2D(const Matrix& a, const Matrix& b);
 
 #pragma mark new business
