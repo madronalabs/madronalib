@@ -260,22 +260,19 @@ namespace ml
 	{
     DSPVector mCurrVec;
     DSPVector mStepVec;
-    float mSamplesPerGlide;
     float mTargetValue;
     float mDyPerVector;
     int mVectorsPerGlide;
     int mVectorsRemaining;
 
 	public:
-		LinearGlide() : 
-		mCurrVec(0.f),
-		mStepVec(0.f),
-		mSamplesPerGlide(1000.f),
-		mTargetValue(0.f),
-		mVectorsRemaining(0)
-		{
-			calcParams();
-		}
+    LinearGlide() :
+    mCurrVec(0.f),
+    mStepVec(0.f),
+    mTargetValue(0.f),
+    mVectorsPerGlide(32),
+    mVectorsRemaining(0)
+    {}
 		
 		void setGlideTimeInSamples(float t)
 		{
