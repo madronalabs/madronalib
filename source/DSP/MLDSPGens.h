@@ -294,9 +294,11 @@ namespace ml
       }
 
       // process glide
-			if(mVectorsRemaining <= 0)
+			if(mVectorsRemaining == 0)
 			{
-				return DSPVector(mTargetValue);	
+        // end glide: write target value to output vector
+				mCurrVec = DSPVector(mTargetValue);
+        mVectorsRemaining--;
 			}
 			else if(mVectorsRemaining == mVectorsPerGlide)
 			{

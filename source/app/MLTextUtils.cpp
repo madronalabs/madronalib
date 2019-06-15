@@ -64,15 +64,15 @@ namespace ml { namespace textUtils {
 	
 	int digitsToNaturalNumber(const char32_t* p)
 	{
+    constexpr int kMaxDigits = 16;
+
 		if(!p) return 0;
 		int v = 0;
 		int l = 0;
 		int d;
 		char c;
 		
-		const int kMLMaxNumberDigits = 14;
-		
-		while (p[l] && (l < kMLMaxNumberDigits-1))
+		while (p[l])
 		{
 			c = p[l];
 			if (c >= '0' && c <= '9')
@@ -81,10 +81,13 @@ namespace ml { namespace textUtils {
 				break;
 			v = (v * 10) + d;
 			l++;
+      if(l >= kMaxDigits) return -1;
 		}
 		return v;
 	}
-	
+
+  /*
+   unsafe. unused?
 	const char* naturalNumberToDigits(int value, char* pDest) 
 	{
 		const int base = 10;
@@ -105,43 +108,129 @@ namespace ml { namespace textUtils {
 		} while ( value > 0 );
 		
 		*ptr-- = '\0';
-		while(ptr1 < ptr) 
-		{
-			tmp_char = *ptr;
-			*ptr-- = *ptr1;
-			*ptr1++ = tmp_char;
-		}
+
 		return pDest;
 	}
-	
+	*/
+
 	int textToNaturalNumber(const TextFragment& frag)
 	{
 		std::vector<CodePoint> vec = textToCodePoints(frag);
 		return digitsToNaturalNumber(vec.data());
 	}
-	
-	TextFragment naturalNumberToText(int i)
-	{
-		const int kMLMaxNumberDigits = 14;
-		
-		char buf[kMLMaxNumberDigits + 2] = {0};
-		char *p = buf + kMLMaxNumberDigits + 1;	
-		char *end = p;
-		
-		// null-terminate the string
-		*end = 0;
-		
-		// work backwards
-		do 
-		{
-			*--p = '0' + (i % 10);
-			i /= 10;
-		} 
-		while (i != 0);
-		return (TextFragment(p, end - p));
-	}
-	
-	
+
+
+
+
+
+  TextFragment naturalNumberToText(int i)
+  {
+    constexpr int kMaxDigits = 16;
+
+    char buf[kMaxDigits]{};
+    char *p = buf + kMaxDigits - 1;
+    char *end = p;
+
+    // null-terminate the string
+    *end = 0;
+
+    // work backwards
+    do
+    {
+      p--;
+      if(p < buf) return "overflow";
+      *p = '0' + (i % 10);
+      i /= 10;
+    }
+    while (i != 0);
+    return (TextFragment(p, end - p));
+  }
+
+
+  TextFragment floatNumberToText(float f, int precision)
+  {
+    constexpr int kMaxPrecision = 16;
+    constexpr int kMaxDigits = 38;
+    constexpr int base = 10;
+
+    constexpr float powersOfTen[]
+    {
+      1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33,
+      1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26, 1e-25,
+      1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17,
+      1e-16, 1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-09,
+      1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01,
+      1e+00, 1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07,
+      1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13, 1e+14, 1e+15,
+      1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23,
+      1e+24, 1e+25, 1e+26, 1e+27, 1e+28, 1e+29, 1e+30, 1e+31,
+      1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38
+    };
+
+    constexpr int kTableSize{70};
+    constexpr int kTableZeroOffset{38};
+
+    bool writtenPoint{false};
+    float tmp_value;
+    float value = f;
+    float remainder;
+    bool negative{false};
+    char buf[kMaxDigits];
+    char* writePtr = buf;
+
+    const int p = std::min(precision, kMaxPrecision);
+    const float epsilon = fabs(f/powf(10.f, p));
+
+    if(value < 0)
+    {
+      value = -f;
+      negative = true;
+      *writePtr++ = '-';
+    }
+
+    int maxExp = log10f(value);
+
+    // write leading zeroes
+    if(maxExp < -1)
+    {
+      *writePtr++ = '.';
+      int zeroes = -maxExp - 1;
+      for(int i=0; i<zeroes; ++i)
+      {
+        *writePtr++ = '0';
+      }
+      writtenPoint = true;
+    }
+
+    int exponent = maxExp;
+    do
+    {
+      if((exponent < 0) && (!writtenPoint))
+      {
+        *writePtr++ = '.';
+        writtenPoint = true;
+      }
+
+      int onesInt = value / powersOfTen[kTableZeroOffset + exponent]; // powf(10.f, exponent);
+
+      *writePtr++ = '0' + onesInt;
+
+      value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
+
+      exponent--;
+
+      if(writePtr - buf > kMaxDigits) return TextFragment{"overflow"};
+
+    } while ( (value > epsilon) || (exponent >= 0) );
+
+    return TextFragment(buf, writePtr - buf);
+  }
+
+
+  float textToFloatNumber(const TextFragment& frag)
+  {
+  }
+
 	int findFirst(const TextFragment& frag, const CodePoint b)
 	{
 		int r = npos;

@@ -1345,3 +1345,13 @@ std::ostream& operator<< (std::ostream& out, const Matrix & s)
   s.dump(out);
   return out;
 }
+
+TextFragment matrixToText(const Matrix v)
+{
+  return TextFragment{};
+}
+
+Matrix textToMatrix(const Text v)
+{
+  return Matrix{};
+}

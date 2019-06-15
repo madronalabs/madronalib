@@ -13,7 +13,7 @@
 #include "MLSymbol.h"
 #include "MLText.h"
 
-// Value: a modifiable property. Properties have four types: undefined, float, text, and signal.
+// Value: a modifiable property. Properties have four types: undefined, float, text, and matrix.
 
 // TODO: instead of using Matrix directly here as a type, make a blob type
 // and utilities (in Matrix) for conversion. This lets the current "model" code go into "app"
@@ -124,7 +124,6 @@ namespace ml{
     Matrix mMatrixVal{};
   };
 
-
   // utilities
 
   // note: this implementation does not disable this overload for array types
@@ -137,4 +136,7 @@ namespace ml{
 } // namespace ml
 
 std::ostream& operator<< (std::ostream& out, const ml::Value & r);
+
+ml::TextFragment valueToText(const ml::Value v);
+ml::Value textToValue(const ml::Text v);
 

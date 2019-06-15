@@ -30,9 +30,12 @@ namespace ml { namespace textUtils {
 	// ----------------------------------------------------------------
 	// TextFragment utilities
 
-	TextFragment naturalNumberToText(int i);	
-	int textToNaturalNumber(const TextFragment& frag);	
-	
+  TextFragment naturalNumberToText(int i);
+  int textToNaturalNumber(const TextFragment& frag);
+
+  TextFragment floatNumberToText(float f, int precision = 5);
+  float textToFloatNumber(const TextFragment& frag);
+
 	int findFirst(const TextFragment& frag, const CodePoint c);
 	int findLast(const TextFragment& frag, const CodePoint c);
 	

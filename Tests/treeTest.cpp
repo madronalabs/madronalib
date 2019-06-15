@@ -14,6 +14,7 @@
 #include <memory>
 #include <numeric>
 
+#include "mldsp.h"
 #include "catch.hpp"
 #include "madronalib.h"
 #include "MLTextUtils.h"
@@ -232,8 +233,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties.add("size", "big");
   properties.add("shape", "square");
   properties.add("corners", 4);
-  properties.add("melody/1", {0, 4, 3, 5, 3, 4, 2} );
-  properties.add("melody/2", {3, 4, 3, 5, 3, 4, 2} );
+  properties.add("melodies/1", {0, 4, 3, 5, 3, 4, 2} );
+  properties.add("melodies/2", {3, 4, 3, 5, 3, 4, 2} );
 
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
@@ -250,6 +251,15 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     std::cout << it.getCurrentNodePath() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
   }
 
+  // use iterator to serialize tree
+  for(auto it = properties.begin(); it != properties.end(); ++it)
+  {
+    std::cout << it.getCurrentNodePath() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
+  }
+
+
+
+
 
   //  Empty Tree test
   Tree< Value > emptyTree;
@@ -265,6 +275,31 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     count++;
   }
   REQUIRE(count == 1);
+
+  std::cout << "\n\n";
+
+  // TEMP
+  NoiseGen n;
+  for(int i=0; i<40; ++i)
+  {
+
+    float v = n.getSample() * exp(i - 30 + 0.f);
+    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 5) << "\n";
+  }
+
+  std::cout << "\n\n";
+
+  std::vector<float> vf {1000000, 32768, 10000, 100, 13.00700, 1.004, 1.00001, 1, 0.125};
+  for(auto v : vf)
+  {
+    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 5) << "\n";
+  }
+
+  std::vector<float> vf2 {MAXFLOAT, MAXFLOAT/10, MAXFLOAT/1000};
+  for(auto v : vf2)
+  {
+    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v) << "\n";
+  }
 
 
 }

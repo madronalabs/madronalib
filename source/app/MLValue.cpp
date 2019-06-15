@@ -4,6 +4,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLValue.h"
+#include "MLTextUtils.h"
 
 using namespace ml;
 
@@ -185,6 +186,7 @@ std::ostream& operator<< (std::ostream& out, const Value & r)
 {
 	switch(r.getType())
 	{
+    default:
 		case Value::kUndefinedValue:
 			out << "[undefined]";
 			break;
@@ -196,7 +198,34 @@ std::ostream& operator<< (std::ostream& out, const Value & r)
 			break;
 		case Value::kMatrixValue:
 			out << r.getMatrixValue();
-            break;
+      break;
 	}
 	return out;
+}
+
+TextFragment valueToText(Value& v)
+{
+
+  TextFragment t;
+  switch(v.getType())
+  {
+    default:
+    case Value::kUndefinedValue:
+      return TextFragment{"U"};
+      break;
+    case Value::kFloatValue:
+      return TextFragment{"F", textUtils::floatNumberToText(v.getFloatValue())};
+      break;
+    case Value::kTextValue:
+      return TextFragment{"T", v.getTextValue()};
+      break;
+    case Value::kMatrixValue:
+      return TextFragment{"M", matrixToText(v.getMatrixValue())};
+      break;
+  }
+}
+
+Value textToValue(const Text v)
+{
+
 }

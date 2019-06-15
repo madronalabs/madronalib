@@ -16,6 +16,7 @@
 
 #include "MLDSPMath.h"
 #include "MLScalarMath.h"
+#include "MLText.h"
 
 namespace ml{
 
@@ -711,3 +712,6 @@ inline Matrix matrixMultiply2D(Matrix A, Matrix B)
 } // namespace ml
 
 std::ostream& operator<< (std::ostream& out, const ml::Matrix & r);
+
+ml::TextFragment matrixToText(const ml::Matrix v);
+ml::Matrix textToMatrix(const ml::Text v);
