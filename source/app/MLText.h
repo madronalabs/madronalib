@@ -23,8 +23,7 @@ namespace ml
 	class TextFragment
 	{
 	public:
-		
-		
+
 		class Iterator
 		{
 			class Impl;

@@ -53,7 +53,19 @@ namespace ml{
     // signal type constructor via initializer_list
     Value (std::initializer_list<float> values)
     {
-      *this = Value(Matrix(values));
+      auto size = values.size();
+      if(size == 0)
+      {
+        *this = Value();
+      }
+      else if (size == 1)
+      {
+        *this = Value(*values.begin());
+      }
+      else
+      {
+        *this = Value(Matrix(values));
+      }
     }
 
     ~Value();
@@ -133,10 +145,6 @@ namespace ml{
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
   }
 
+  std::ostream& operator<< (std::ostream& out, const ml::Value & r);
+  
 } // namespace ml
-
-std::ostream& operator<< (std::ostream& out, const ml::Value & r);
-
-ml::TextFragment valueToText(const ml::Value v);
-ml::Value textToValue(const ml::Text v);
-

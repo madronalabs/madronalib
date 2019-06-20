@@ -313,7 +313,7 @@ namespace ml{
     }
 
     // using an iterator, dump only the nodes with values.
-    // to visualize all nodes another interface would need to be added, because the iterator
+    // to visualize intermediate nodes without values another interface would need to be added, because the iterator
     // only stops on nodes with values.
     inline void dump() const
     {
@@ -323,4 +323,6 @@ namespace ml{
       }
     }
   };
+
 } // namespace ml
+

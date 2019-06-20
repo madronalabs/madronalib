@@ -102,7 +102,8 @@ public:
 	
 	explicit Matrix(); 
 	Matrix(const Matrix& b);
-	explicit Matrix(int width, int height = 1, int depth = 1); 
+  explicit Matrix(int width, int height = 1, int depth = 1);
+  explicit Matrix(int width, int height, int depth, const float* pData);
 	Matrix (std::initializer_list<float> values);
 	
 	// create a looped version of the signal argument, according to the loop type
@@ -424,7 +425,9 @@ public:
 	// I/O
 	void read(const float *input, const int offset, const int n);
 	void write(float *output, const int offset, const int n);
-	
+  void readFromPackedData(const float *input);
+  void writeToPackedData(float *pDest);
+
 	void sigClamp(const Matrix& a, const Matrix& b);
 	void sigMin(const Matrix& b);
 	void sigMax(const Matrix& b);
@@ -520,8 +523,8 @@ public:
 	void dumpASCII(std::ostream& s) const;
 	
 	inline bool is1D() const { return((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
-	inline bool is2D() const { return((mHeight > 1) && (mDepth == 1)); }
-	inline bool is3D() const { return((mDepth > 1)); }
+	inline bool is2D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
+	inline bool is3D() const { return((mWidth > 1) && (mHeight > 1) && (mDepth > 1)); }
 	
 	// handy shorthand for row and plane access
 	// TODO looking at actual use, would look better to return dataAligned + row, plane.
@@ -709,9 +712,6 @@ inline Matrix matrixMultiply2D(Matrix A, Matrix B)
 	return AB;
 }
 
+  std::ostream& operator<< (std::ostream& out, const ml::Matrix & r);
+
 } // namespace ml
-
-std::ostream& operator<< (std::ostream& out, const ml::Matrix & r);
-
-ml::TextFragment matrixToText(const ml::Matrix v);
-ml::Matrix textToMatrix(const ml::Text v);

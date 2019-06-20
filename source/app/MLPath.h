@@ -122,7 +122,5 @@ private:
 	// sizeof(Path) = 64
 };
 
-  TextFragment pathToText(Path p, const char* separator);
-
 } // namespace ml
 

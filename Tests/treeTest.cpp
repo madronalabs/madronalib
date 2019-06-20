@@ -20,6 +20,7 @@
 #include "MLTextUtils.h"
 #include "MLTree.h"
 #include "MLValue.h"
+#include "MLSerialization.h"
 
 using namespace ml;
 
@@ -227,40 +228,45 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(TestResource::instances == 0);
 
 
-  // Value tree example
+  // Value tree tests
 
   Tree< Value > properties;
   properties.add("size", "big");
   properties.add("shape", "square");
   properties.add("corners", 4);
-  properties.add("melodies/1", {0, 4, 3, 5, 3, 4, 2} );
-  properties.add("melodies/2", {3, 4, 3, 5, 3, 4, 2} );
+
+  // add 1D matrices
+  properties.add("melodies/1", {1, 2, 3, 4, 5, 6, 7} );
+  properties.add("melodies/2", {8, 7, 6, 5, 4, 3, 2} );
+
+  // add a 3D matrix
+  Matrix melody3(4, 5, 2);
+  melody3.fill(9.f);
+  properties.add("melodies/3", melody3 );
 
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
   REQUIRE(!properties.valueExists("x"));
   properties["x"] = 24;
+  REQUIRE(properties.valueExists("x"));
 
-  // looking up a Value directly is fine
+  // failed lookup returns a null Value
   auto failedLookup = properties["nowhere/in/path"];
   REQUIRE(failedLookup == Value());
 
-  // use iterator explicitly to get property names / types.
-  for(auto it = properties.begin(); it != properties.end(); ++it)
-  {
-    std::cout << it.getCurrentNodePath() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
-  }
+  // a tree converted to binary and back should result in the original value
+  auto b = valueTreeToBinary(properties);
+  auto b2 = valueTreeToBinary(binaryToValueTree(b->data()));
+  REQUIRE(*(b->data()) == *(b2->data()));
 
-  // use iterator to serialize tree
-  for(auto it = properties.begin(); it != properties.end(); ++it)
-  {
-    std::cout << it.getCurrentNodePath() << " = (" << (*it).getTypeAsSymbol() << ") " << *it << "\n";
-  }
-
+  // trees converted to binary should differ after adding a property to one
+  auto t2 = binaryToValueTree(b->data());
+  auto t3 = t2;
+  t3["new_property"] = 1;
+  REQUIRE(*(valueTreeToBinary(t2)->data()) != *(valueTreeToBinary(t3)->data()));
 
 
-
-
+/*
   //  Empty Tree test
   Tree< Value > emptyTree;
   int count{0};
@@ -278,29 +284,22 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   std::cout << "\n\n";
 
-  // TEMP
+
+  // floatNumberToText tests
   NoiseGen n;
   for(int i=0; i<40; ++i)
   {
-
     float v = n.getSample() * exp(i - 30 + 0.f);
-    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 5) << "\n";
+    std::cout << std::setprecision(10) << v << " -> " << floatNumberToText(v, 5) << "\n";
   }
 
-  std::cout << "\n\n";
-
-  std::vector<float> vf {1000000, 32768, 10000, 100, 13.00700, 1.004, 1.00001, 1, 0.125};
+  std::vector<float> vf {MAXFLOAT, MAXFLOAT/10, MAXFLOAT/1000, 10000001, 32768, 10000, 100, 13.00700, 1.004, 1.00001, 1, 0.1250001, 0.125, 0.1249999, 3.004e-02, 3.004e-07, std::numeric_limits<float>::min()};
   for(auto v : vf)
   {
-    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 5) << "\n";
+    std::cout << std::setprecision(10) << v << " -> " << floatNumberToText(v, 8) << "\n";
   }
 
-  std::vector<float> vf2 {MAXFLOAT, MAXFLOAT/10, MAXFLOAT/1000};
-  for(auto v : vf2)
-  {
-    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v) << "\n";
-  }
-
+*/
 
 }
 

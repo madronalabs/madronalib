@@ -11,7 +11,7 @@
 // ----------------------------------------------------------------
 #pragma mark Matrix
 
-using namespace ml;
+namespace ml {
 
 Matrix Matrix::nullSignal;
 
@@ -31,13 +31,24 @@ mWidth(0), mHeight(0), mDepth(0)
 	setDims(0);
 }
 
-Matrix::Matrix (int width, int height, int depth) : 
+Matrix::Matrix (int width, int height, int depth) :
 mDataAligned(0),
 mData(0),
 mWidth(0), mHeight(0), mDepth(0)
 {
-	mRate = kToBeCalculated;
-	setDims(width, height, depth);
+  mRate = kToBeCalculated;
+  setDims(width, height, depth);
+}
+
+
+Matrix::Matrix (int width, int height, int depth, const float* pData) :
+mDataAligned(0),
+mData(0),
+mWidth(0), mHeight(0), mDepth(0)
+{
+  mRate = kToBeCalculated;
+  setDims(width, height, depth);
+  read(pData, 0, mSize);
 }
 
 Matrix::Matrix(const Matrix& other) :
@@ -350,8 +361,9 @@ void Matrix::setFrame(int i, const Matrix& src)
 //
 void Matrix::read(const float *input, const int offset, const int n)
 {
-	std::copy(input + offset, input + offset + n, mDataAligned);
+  std::copy(input + offset, input + offset + n, mDataAligned);
 }
+
 
 // write n samples from start of signal to an external sample pointer plus a sample offset.
 //
@@ -359,6 +371,88 @@ void Matrix::write(float *output, const int offset, const int n)
 {
 	std::copy(mDataAligned, mDataAligned + n, output + offset);
 }
+
+
+void Matrix::readFromPackedData(const float *pSrc)
+{
+  size_t srcRowStride = mWidth;
+  size_t srcPlaneStride = mWidth*mHeight;
+
+  float *pDest{mDataAligned};
+  size_t destRowBits = mWidthBits;
+  size_t destPlaneBits = mHeightBits + mWidthBits;
+
+  for(int i=0; i<mDepth; ++i)
+  {
+    for(int j=0; j<mHeight; ++j)
+    {
+      // write a row of src data (packed) to matrix (padded to 2^n)
+      const float* pSrcRow = pSrc + (j*srcRowStride) + (i*srcPlaneStride);
+      float* pDestRow = pDest + (j << destRowBits) + (i << destPlaneBits);
+      std::copy(pSrcRow, pSrcRow + srcRowStride, pDestRow);
+
+/*
+      std::cout << "read src row: " ;
+      for(int k=0; k<mWidth; ++k)
+      {
+        std::cout << pSrcRow[k] << " ";
+      }
+      std::cout << "\n";
+
+      std::cout << "read dest row: " ;
+      for(int k=0; k<mWidth; ++k)
+      {
+        std::cout << pDestRow[k] << " ";
+      }
+      std::cout << "\n";
+
+*/
+
+
+    }
+  }
+}
+
+void Matrix::writeToPackedData(float *pDest)
+{
+  float* pSrc{mDataAligned};
+  size_t srcRowBits = getWidthBits();
+  size_t srcPlaneBits = getHeightBits() + getWidthBits();
+
+  size_t destRowStride = mWidth;
+  size_t destPlaneStride = mWidth*mHeight;
+
+  for(int i=0; i<mDepth; ++i)
+  {
+    for(int j=0; j<mHeight; ++j)
+    {
+      // write a row of internal data (padded to 2^n) to dest (packed)
+      float* pSrcRow = pSrc + (j << srcRowBits) + (i << srcPlaneBits);
+      float* pDestRow = pDest + (j*destRowStride) + (i*destPlaneStride);
+      std::copy(pSrcRow, pSrcRow + destRowStride, pDestRow);
+
+/*
+      std::cout << "src row: " ;
+      for(int k=0; k<mWidth; ++k)
+      {
+        std::cout << pSrcRow[k] << " ";
+      }
+      std::cout << "\n";
+
+      std::cout << "dest row: " ;
+      for(int k=0; k<mWidth; ++k)
+      {
+        std::cout << pDestRow[k] << " ";
+      }
+      std::cout << "\n";
+*/
+
+
+
+    }
+  }
+}
+
 
 // TODO SSE
 void Matrix::sigClamp(const Matrix& a, const Matrix& b)
@@ -543,7 +637,21 @@ void Matrix::divide(const Matrix& b)
 
 void Matrix::fill(const float f)
 {
-	std::fill(mDataAligned, mDataAligned+mSize, f);
+  // std::fill also fills into padding, which throws off getSum() getRMS() and so on.
+	// std::fill(mDataAligned, mDataAligned+mSize, f);
+
+  // slow, revisit
+  auto& m = *this;
+  for(int i=0; i<mDepth; ++i)
+  {
+    for(int j=0; j<mHeight; ++j)
+    {
+      for(int k=0; k<mWidth; ++k)
+      {
+        m(k, j, i) = f;
+      }
+    }
+  }
 }
 
 void Matrix::scale(const float k)
@@ -1090,13 +1198,16 @@ float Matrix::getMax() const
 
 void Matrix::dump(std::ostream& s, int verbosity) const
 {
+  // TODO cleanup
+
   int w = mWidth;
   int h = mHeight;
   int d = mDepth;
   const Matrix& f = *this;
   int size = w*h*d;
 
-  s << mWidth << "x" << mHeight << "x" << mDepth << ": ";
+  s << w << "x" << h << "x" << d << ": ";
+
   if(size <= 16)
   {
     s << "[";
@@ -1117,7 +1228,25 @@ void Matrix::dump(std::ostream& s, int verbosity) const
 
 	if(verbosity > 0)
 	{
-		if(is2D())
+    if(is3D())
+    {
+      s << std::setprecision(4);
+      s << "\n";
+      for(int i=0; i<d; ++i)
+      {
+        for(int j=0; j<h; ++j)
+        {
+          for(int k=0; k<w; ++k)
+          {
+            s << f(k, j, i) << " ";
+          }
+          s << "\n";
+        }
+        s << "\n";
+      }
+    }
+
+		else if(is2D())
 		{
 			s << std::setprecision(4);
 			for (int j=0; j<h; ++j)
@@ -1346,12 +1475,4 @@ std::ostream& operator<< (std::ostream& out, const Matrix & s)
   return out;
 }
 
-TextFragment matrixToText(const Matrix v)
-{
-  return TextFragment{};
-}
-
-Matrix textToMatrix(const Text v)
-{
-  return Matrix{};
-}
+} // namespace ml

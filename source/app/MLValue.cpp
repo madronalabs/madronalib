@@ -6,7 +6,7 @@
 #include "MLValue.h"
 #include "MLTextUtils.h"
 
-using namespace ml;
+namespace ml {
 
 const Matrix Value::nullSignal;
 
@@ -203,29 +203,4 @@ std::ostream& operator<< (std::ostream& out, const Value & r)
 	return out;
 }
 
-TextFragment valueToText(Value& v)
-{
-
-  TextFragment t;
-  switch(v.getType())
-  {
-    default:
-    case Value::kUndefinedValue:
-      return TextFragment{"U"};
-      break;
-    case Value::kFloatValue:
-      return TextFragment{"F", textUtils::floatNumberToText(v.getFloatValue())};
-      break;
-    case Value::kTextValue:
-      return TextFragment{"T", v.getTextValue()};
-      break;
-    case Value::kMatrixValue:
-      return TextFragment{"M", matrixToText(v.getMatrixValue())};
-      break;
-  }
-}
-
-Value textToValue(const Text v)
-{
-
-}
+} // namespace ml

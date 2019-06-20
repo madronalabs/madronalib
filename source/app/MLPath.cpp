@@ -107,13 +107,6 @@ namespace ml {
 		}
 		return out;
 	}
-
-  TextFragment pathToText(Path p, const char* separator)
-  {
-    auto concat = [&](Symbol a, Symbol b) { return TextFragment(a.getTextFragment(), TextFragment(separator), b.getTextFragment()); } ;
-    return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
-  }
-
 } // namespace ml
 
 
