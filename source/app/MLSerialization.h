@@ -44,11 +44,8 @@ namespace ml{
 
 
   // numeric
-  
-  TextFragment naturalNumberToText(int i);
-  int textToNaturalNumber(const TextFragment& frag);
 
-  TextFragment floatNumberToText(float f, int precision = 5)
+  inline TextFragment floatNumberToText(float f, int precision = 5)
   {
     constexpr int kMaxPrecision = 10;
     constexpr int kScientificStart = 5;
@@ -144,7 +141,7 @@ namespace ml{
     return TextFragment(buf, writePtr - buf);
   }
 
-  float textToFloatNumber(const TextFragment& frag)
+  inline float textToFloatNumber(const TextFragment& frag)
   {
     // TODO
     return 0.f;
@@ -153,7 +150,7 @@ namespace ml{
 
   // Text
 
-  TextFragment valueToText(const Value v)
+  inline TextFragment valueToText(const Value v)
   {
     // TODO
 
@@ -178,12 +175,12 @@ namespace ml{
     return t;
   }
 
-  Value textToValue(const Text v)
+  inline Value textToValue(const Text v)
   {
     return Value(); // TODO
   }
 
-  std::unique_ptr< std::vector<uint8_t> > valueToBinary(Value v)
+  inline std::unique_ptr< std::vector<uint8_t> > valueToBinary(Value v)
   {
     std::vector<unsigned char> outputVector;
     auto headerSize = sizeof(BinaryChunkHeader);
@@ -241,15 +238,15 @@ namespace ml{
         BinaryMatrixHeader* header {reinterpret_cast<BinaryMatrixHeader*>(outputVector.data())};
         *header = BinaryMatrixHeader{'M', dataSize, width, height, depth};
         float* pDest{reinterpret_cast< float* >(outputVector.data() + matrixHeaderSize)};
-        
+
         matrixVal.writeToPackedData(pDest);
         break;
       }
     }
-    return make_unique< std::vector<unsigned char> >(outputVector);
+    return ml::make_unique< std::vector<unsigned char> >(outputVector);
   }
 
-  Value binaryToValue(const unsigned char* p)
+  inline Value binaryToValue(const unsigned char* p)
   {
     Value returnValue{};
     auto header {reinterpret_cast<const BinaryChunkHeader*>(p)};
@@ -293,13 +290,13 @@ namespace ml{
 
   // Path
 
-  TextFragment pathToText(Path p, const char separator)
+  inline TextFragment pathToText(Path p, const char separator)
   {
     auto concat = [&](Symbol a, Symbol b) { return TextFragment(a.getTextFragment(), TextFragment(separator), b.getTextFragment()); } ;
     return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
   }
 
-  std::unique_ptr< std::vector<unsigned char> > pathToBinary(Path p)
+  inline std::unique_ptr< std::vector<unsigned char> > pathToBinary(Path p)
   {
     std::vector<unsigned char> outputVector;
     auto t = pathToText(p, '/');
@@ -314,10 +311,10 @@ namespace ml{
     auto pSrc{t.getText()};
     std::copy(pSrc, pSrc + dataSize, pDest);
 
-    return make_unique< std::vector<unsigned char> >(outputVector);
+    return ml::make_unique< std::vector<unsigned char> >(outputVector);
   }
 
-  Path binaryToPath(const uint8_t* p)
+  inline Path binaryToPath(const uint8_t* p)
   {
     BinaryChunkHeader pathHeader {*reinterpret_cast<const BinaryChunkHeader*>(p)};
     auto headerSize = sizeof(BinaryChunkHeader);
@@ -338,15 +335,11 @@ namespace ml{
 
   // Tree< Value >
 
-  std::unique_ptr< std::vector<unsigned char> > valueTreeToBinary(Tree< Value > t)
+  inline std::unique_ptr< std::vector<unsigned char> > valueTreeToBinary(Tree< Value > t)
   {
     std::vector<unsigned char> returnVector;
-    size_t currentSize{0};
-
-    int count{0};
 
     // allocate group header
-    BinaryGroupHeader groupHeader{};
     returnVector.resize(sizeof(BinaryGroupHeader));
 
     // use iterator to serialize tree
@@ -361,8 +354,6 @@ namespace ml{
 
       Path p = it.getCurrentNodePath();
       Value v = (*it);
-
-      auto itemStart = returnVector.size();
 
       // add path header
 
@@ -408,10 +399,10 @@ namespace ml{
 
     //std::cout << "elements: " << elements << " total size: " << returnVector.size() << "\n";
 
-    return make_unique< std::vector<unsigned char> > ( returnVector );
+    return ml::make_unique< std::vector<unsigned char> > ( returnVector );
   }
 
-  Tree< Value > binaryToValueTree(const uint8_t* p)
+  inline Tree< Value > binaryToValueTree(const uint8_t* p)
   {
     Tree< Value > outputTree;
     const uint8_t* pData{p};
