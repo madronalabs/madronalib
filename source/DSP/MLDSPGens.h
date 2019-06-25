@@ -284,8 +284,8 @@ namespace ml
 		DSPVector operator()(float f)
 		{
       // set target value if different from current value.
-      const float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
-      if(f != currentValue)
+      //const float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
+      if(f != mTargetValue)
       {
         mTargetValue = f;
 
@@ -298,6 +298,7 @@ namespace ml
 			{
         // end glide: write target value to output vector
 				mCurrVec = DSPVector(mTargetValue);
+        mStepVec = DSPVector(0.f);
         mVectorsRemaining--;
 			}
 			else if(mVectorsRemaining == mVectorsPerGlide)
