@@ -371,7 +371,12 @@ namespace ml
 			float x = expf(-omega*kTwoPi);
 			return {1.f - x, x};
 		}
-		
+
+    static _coeffs passthru ()
+    {
+      return {1.f, 0.f};
+    }
+    
 		inline DSPVector operator()(const DSPVector vx)
 		{
 			DSPVector vy;
