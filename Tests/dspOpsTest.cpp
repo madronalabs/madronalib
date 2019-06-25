@@ -96,6 +96,7 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
   SECTION("gens") // TODO DSPGens test
   {
+    std::cout << "\n\nGENS\n";
 
     int kGlideSamples{150};
     LinearGlide g;
@@ -103,6 +104,14 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
     {
       std::cout << i << ": " << g(1.0f) << "\n";
+    }
+    for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
+    {
+      std::cout << i << ": " << g(1.0f) << "\n";
+    }
+    for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
+    {
+      std::cout << i << ": " << g(0.0f) << "\n";
     }
   }
 
