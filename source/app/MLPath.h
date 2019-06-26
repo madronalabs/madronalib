@@ -6,7 +6,6 @@
 #pragma once
 
 #include "MLSymbol.h"
-#include "MLValue.h"
 
 // a Path describes the address of one or more elements in a tree
 // of such elements, for example one or more MLProcs in a graph.
@@ -35,7 +34,6 @@ public:
 	Path(const char * str);
 	Path(const Symbol sym); 
 	Path(const TextFragment frag);
-  Path(const Value& b);
 	~Path() = default;
 
 	// boolean test.

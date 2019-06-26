@@ -3,10 +3,8 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include <numeric>
 
 #include "MLPath.h"
-#include "MLTextUtils.h"
 #include "utf.hpp"
 
 namespace ml {
@@ -28,11 +26,6 @@ namespace ml {
 	{
 		parsePathString(frag.getText());
 	}
-
-  Path::Path(const Value& v)
-  {
-    parsePathString(v.getTextValue().getText());
-  }
 
 	void Path::parsePathString(const char* pathStr)
 	{

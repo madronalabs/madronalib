@@ -13,10 +13,8 @@
 
 #include "utf.hpp"
 
-
 namespace ml
 {
-	
 	// Iterator::Impl
 	
 	class TextFragment::Iterator::Impl

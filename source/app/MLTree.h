@@ -4,21 +4,18 @@
 //
 //  Created by Randy Jones on 9/22/15.
 //
-//  A map to a hierarchical container of resources, such as a directory structure.
-//
-//
+
 
 #pragma once
 
 #include <map>
 #include <vector>
 #include <functional>
-#include <algorithm>
+#include <utility>
 
 #include "MLPath.h"
-#include "MLTextUtils.h"
 
-// A recursive resource map using Symbol keys, a value class V, and optional comparator class C.
+// A recursive map from Paths to values using Symbol keys, a value class V, and optional comparator class C.
 // The value class must have a default constructor V() returning a safe null object.
 // Note that this makes (for example) Tree<int> weird to use, because 0 indicates
 // a null value. However, we are typically interested in more complex value types like Values or Widgets.
