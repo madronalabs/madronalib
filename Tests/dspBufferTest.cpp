@@ -198,4 +198,36 @@ namespace dspBufferTest
 		
 		REQUIRE(inputVec == outputVec);
 	}
+
+  TEST_CASE("madronalib/core/dspbuffer/peek", "[dspbuffer][peek]")
+  {
+    // buffer should be next larger power-of-two size
+    DSPBuffer buf;
+    buf.resize(256);
+
+    // write to near end
+    std::vector<float> nines;
+    nines.resize(256);
+    std::fill(nines.begin(), nines.end(), 9.f);
+    buf.write(nines.data(), 203);
+    buf.read(nines.data(), 203);
+
+    // write DSPVectors with wrap
+    DSPVector v1(columnIndex());
+    buf.write(v1);
+    v1 += DSPVector(kFloatsPerDSPVector);
+    buf.write(v1);
+
+    // write one more sample
+    float f{128};
+    buf.write(&f, 1);
+
+    // peek data regions to buffer
+    std::vector<float> floatVec;
+    floatVec.resize(200);
+    buf.peekMostRecent(20, floatVec.data());
+
+    REQUIRE(floatVec[0] == 109);
+    REQUIRE(floatVec[19] == 128);
+  }
 }

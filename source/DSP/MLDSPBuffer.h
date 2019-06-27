@@ -286,6 +286,48 @@ namespace ml
 			}
 			return destVec;
 		}
+
+    // write most recent samples from the buffer to the destination without updating the read index.
+    void peekMostRecent(int samples, float* pDest)
+    {
+      int avail = getReadAvailable();
+      if(avail < samples) return;
+
+      const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+      DataRegions dr = getDataRegions(currentReadIndex, avail);
+
+      if(!dr.p2)
+      {
+        // we have only one region. copy most recent samples from it.
+        // mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+        assert(dr.size1 >= samples);
+        float* pSrc = dr.p1 + dr.size1 - samples;
+        std::copy(pSrc, pSrc + samples, pDest);
+      }
+      else
+      {
+        if(dr.size2 >= samples)
+        {
+          // enough samples are in region 2
+          float* pSrc = dr.p2 + dr.size2 - samples;
+          std::copy(pSrc, pSrc + samples, pDest);
+        }
+        else
+        {
+          // we need samples from both regions.
+
+          // write r1 samples from end
+          auto r1Samples = samples - dr.size2;
+          float* pSrc1 = dr.p1 + dr.size1 - r1Samples;
+          std::copy(pSrc1, pSrc1 + r1Samples, pDest);
+
+          // write all r2 samples after r1 samples
+          auto r2Samples = dr.size2;
+          float* pSrc2 = dr.p2;
+          std::copy(pSrc2, pSrc2 + r2Samples, pDest + r1Samples);
+        }
+      }
+    }
 		
 	private:
 		std::vector<float> mData;
