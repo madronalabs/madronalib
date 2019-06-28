@@ -115,9 +115,8 @@ namespace ml
 		// write n samples to the buffer, advancing the write index.
 		void write(const float* pSrc, size_t samples)
 		{
-			size_t available = getWriteAvailable();
-			samples = std::min(samples, available);
-			
+			bool full = (getWriteAvailable() < samples);
+
 			const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
 			DataRegions dr = getDataRegions(currentWriteIndex, samples);
 			
@@ -128,8 +127,45 @@ namespace ml
 			}
 			
 			mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
+      
+      if(full)
+      {
+        // oldest data was clobbered by write. set read index to indicate we are full
+        mReadIndex.store(advanceDistanceIndex(mWriteIndex, -mSize), std::memory_order_release);
+      }
 		}
-		
+
+    // write a single DSPVectorArray to the buffer, advancing the write index.
+    template<int VECTORS>
+    void write(const DSPVectorArray<VECTORS>& srcVec)
+    {
+      constexpr int samples = kFloatsPerDSPVector*VECTORS;
+      bool full = (getWriteAvailable() < samples);
+
+      const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
+      DataRegions dr = getDataRegions(currentWriteIndex, samples);
+
+      if(!dr.p2)
+      {
+        // we have only one region, so we can copy a number of samples known at compile time.
+        mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
+        store(srcVec, dr.p1);
+      }
+      else
+      {
+        const float* pSrc = srcVec.getConstBuffer();
+        std::copy(pSrc, pSrc + dr.size1, dr.p1);
+        std::copy(pSrc + dr.size1, pSrc + dr.size1 + dr.size2, dr.p2);
+        mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
+      }
+
+      if(full)
+      {
+        // oldest data was clobbered by write. set read index to indicate we are full
+        mReadIndex.store(advanceDistanceIndex(mWriteIndex, -mSize), std::memory_order_release);
+      }
+    }
+
 		// read n samples from the buffer, advancing the read index.
 		void read(float* pDest, size_t samples)
 		{
@@ -147,7 +183,58 @@ namespace ml
 			
 			mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
 		}
-		
+
+    // read a single DSPVectorArray from the buffer, advancing the read index.
+    template<int VECTORS>
+    void read(DSPVectorArray<VECTORS>& destVec)
+    {
+      constexpr int samples = kFloatsPerDSPVector*VECTORS;
+      if(getReadAvailable() < samples) return;
+
+      const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+      DataRegions dr = getDataRegions(currentReadIndex, samples);
+
+      if(!dr.p2)
+      {
+        // we have only one region, so we can copy a number of samples known at compile time.
+        mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+        load(destVec, dr.p1);
+      }
+      else
+      {
+        float* pDest = destVec.getBuffer();
+        std::copy(dr.p1, dr.p1 + dr.size1, pDest);
+        std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
+        mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      }
+    }
+
+    // read a single DSPVector from the buffer, advancing the read index.
+    DSPVector read()
+    {
+      DSPVector destVec;
+      constexpr int samples = kFloatsPerDSPVector;
+      if(getReadAvailable() < samples) return DSPVector{};
+
+      const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+      DataRegions dr = getDataRegions(currentReadIndex, samples);
+
+      if(!dr.p2)
+      {
+        // we have only one region, so we can copy a number of samples known at compile time.
+        mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+        load(destVec, dr.p1);
+      }
+      else
+      {
+        float* pDest = destVec.getBuffer();
+        std::copy(dr.p1, dr.p1 + dr.size1, pDest);
+        std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
+        mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      }
+      return destVec;
+    }
+
 		// discard n samples by advancing the read index.
 		void discard(size_t samples)
 		{
@@ -209,82 +296,6 @@ namespace ml
 			}
 			
 			mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples - overlap), std::memory_order_release);
-		}
-		
-		// write a single DSPVectorArray to the buffer, advancing the write index.
-		template<int VECTORS>
-		void write(const DSPVectorArray<VECTORS>& srcVec)
-		{
-			constexpr int samples = kFloatsPerDSPVector*VECTORS;
-			if(getWriteAvailable() < samples) return;
-			
-			const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
-			DataRegions dr = getDataRegions(currentWriteIndex, samples);
-			
-			if(!dr.p2)
-			{
-				// we have only one region, so we can copy a number of samples known at compile time.
-				mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
-				store(srcVec, dr.p1);
-			}
-			else
-			{
-				const float* pSrc = srcVec.getConstBuffer();
-				std::copy(pSrc, pSrc + dr.size1, dr.p1);
-				std::copy(pSrc + dr.size1, pSrc + dr.size1 + dr.size2, dr.p2);
-				mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
-			}
-		}
-		
-		// read a single DSPVectorArray from the buffer, advancing the read index.
-		template<int VECTORS>
-		void read(DSPVectorArray<VECTORS>& destVec)
-		{
-			constexpr int samples = kFloatsPerDSPVector*VECTORS;
-			if(getReadAvailable() < samples) return;
-			
-			const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-			DataRegions dr = getDataRegions(currentReadIndex, samples);
-			
-			if(!dr.p2)
-			{
-				// we have only one region, so we can copy a number of samples known at compile time.
-				mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
-				load(destVec, dr.p1);
-			}
-			else
-			{
-				float* pDest = destVec.getBuffer();
-				std::copy(dr.p1, dr.p1 + dr.size1, pDest);
-				std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-				mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
-			}
-		}
-		
-		// read a single DSPVector from the buffer, advancing the read index.
-		DSPVector read()
-		{
-			DSPVector destVec;
-			constexpr int samples = kFloatsPerDSPVector;
-			if(getReadAvailable() < samples) return DSPVector{};
-			
-			const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-			DataRegions dr = getDataRegions(currentReadIndex, samples);
-			
-			if(!dr.p2)
-			{
-				// we have only one region, so we can copy a number of samples known at compile time.
-				mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
-				load(destVec, dr.p1);
-			}
-			else
-			{
-				float* pDest = destVec.getBuffer();
-				std::copy(dr.p1, dr.p1 + dr.size1, pDest);
-				std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-				mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
-			}
-			return destVec;
 		}
 
     // write most recent samples from the buffer to the destination without updating the read index.
