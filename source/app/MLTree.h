@@ -47,7 +47,8 @@ namespace ml{
 
     // find a tree node at the specified path.
     // if successful, return a pointer to the node. If unsuccessful, return nullptr.
-    Tree<V, C>* getNode(Path path)
+    // const version.
+    const Tree<V, C>* getConstNode(Path path) const
     {
       auto pNode = this;
       for(Symbol key : path)
@@ -67,27 +68,9 @@ namespace ml{
 
     // find a tree node at the specified path.
     // if successful, return a pointer to the node. If unsuccessful, return nullptr.
-    const Tree<V, C>* getConstNode(Path path) const
+    Tree<V, C>* getNode(Path path)
     {
-      auto pNode = this;
-      for(Symbol key : path)
-      {
-        auto it = pNode->mChildren.find(key);
-        if(it != pNode->mChildren.end())
-        {
-          pNode = &(it->second);
-        }
-        else
-        {
-          return nullptr;
-        }
-      }
-      return pNode;
-    }
-
-    bool valueExists(Path path) const
-    {
-      return (getConstNode(path) != nullptr);
+       return const_cast<Tree<V, C>*>(const_cast<const Tree<V, C>*>(this)->getConstNode(path));
     }
 
     // if the path exists, returns a reference to the value in the tree at the path.
@@ -320,6 +303,13 @@ namespace ml{
       }
     }
   };
+
+  // utilities
+  template < class V, class C = std::less<Symbol> >
+  bool treeNodeExists(const Tree<V, C>& t, Path path)
+  {
+    return (t.getConstNode(path) != nullptr);
+  }
 
 } // namespace ml
 

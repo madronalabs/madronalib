@@ -197,13 +197,14 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // *** heavies.add("nodes/in/path",  r);
 
     // we can check to see if an object exists without making one
-    REQUIRE(heavies.valueExists("x") == false);
+    REQUIRE(!treeNodeExists(heavies,"x"));
 
     // either add() or operator[] can be used to assign a new unique_ptr
     heavies.add("x", make_unique< TestResource >(8) );
     heavies["x"] = make_unique< TestResource >(10);
-    REQUIRE(heavies.valueExists("x") == true);
-    REQUIRE(heavies["x"]); // shorthand courtesy of unique_ptr operator bool
+    REQUIRE(treeNodeExists(heavies, "x"));
+
+    // REQUIRE(heavies["x"]); // shorthand courtesy of unique_ptr operator bool
 
     // when overwriting nodes, unique_ptr handles deletion
     heavies.add("duplicate/nodes/in/path", make_unique< TestResource >(4) );
@@ -246,9 +247,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
-  REQUIRE(!properties.valueExists("x"));
+  REQUIRE(!treeNodeExists(properties, "x"));
   properties["x"] = 24;
-  REQUIRE(properties.valueExists("x"));
+  REQUIRE(treeNodeExists(properties, "x"));
 
   // failed lookup returns a null Value
   auto failedLookup = properties["nowhere/in/path"];

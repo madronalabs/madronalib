@@ -288,7 +288,7 @@ namespace ml
 		}
 
     // write most recent samples from the buffer to the destination without updating the read index.
-    void peekMostRecent(int samples, float* pDest)
+    void peekMostRecent(float* pDest, int samples)
     {
       int avail = getReadAvailable();
       if(avail < samples) return;

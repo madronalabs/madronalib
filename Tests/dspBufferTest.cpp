@@ -225,7 +225,7 @@ namespace dspBufferTest
     // peek data regions to buffer
     std::vector<float> floatVec;
     floatVec.resize(200);
-    buf.peekMostRecent(20, floatVec.data());
+    buf.peekMostRecent(floatVec.data(), 20);
 
     REQUIRE(floatVec[0] == 109);
     REQUIRE(floatVec[19] == 128);
