@@ -73,9 +73,9 @@ namespace ml
 			// and get all the benefits of cache locality etc that we can write into the allocator.
 			// but for now:
 			
-//			auto frameToUnity = ml::projections::intervalMap{{0, (frames - 1)}, {0, 1}};
+//			auto frameToUnity = ml::projections::linear{{0, (frames - 1)}, {0, 1}};
 			
-			Projection frameToUnity(projections::intervalMap({0., (frames - 1.f)}, {0., 1.}));
+			Projection frameToUnity(projections::linear({0., (frames - 1.f)}, {0., 1.}));
 
 			
 			

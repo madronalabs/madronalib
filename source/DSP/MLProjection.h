@@ -64,8 +64,8 @@ namespace ml
 			return( [=](float x){float a = m.mX1; float b = m.mX2; return logf((x*(b - a) + a)/a)/logf(b/a);} );
 		}
 		
-		// a projection mapping an interval to another interval 
-		inline Projection intervalMap(const Interval a, const Interval b)
+		// linear projection mapping an interval to another interval
+		inline Projection linear(const Interval a, const Interval b)
 		{
 			return( [=](float x)
 						 {
