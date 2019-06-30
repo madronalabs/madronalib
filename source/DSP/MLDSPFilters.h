@@ -468,8 +468,108 @@ namespace ml
 			return vy;
 		}
 	};
-	
-	
+
+
+  // Peak with exponential decay
+
+  class Peak
+  {
+    struct _coeffs
+    {
+      float a0, b1;
+    };
+
+    float y1{0};
+    int peakHoldCounter{0};
+
+  public:
+    _coeffs mCoeffs{0};
+    int peakHoldSamples{44100};
+
+    static _coeffs coeffs (float omega)
+    {
+      float x = expf(-omega*kTwoPi);
+      return {1.f - x, x};
+    }
+
+    static _coeffs passthru ()
+    {
+      return {1.f, 0.f};
+    }
+
+    inline DSPVector operator()(const DSPVector vx)
+    {
+      DSPVector vy;
+      DSPVector vxSquared = vx*vx;
+      for(int n=0; n<kFloatsPerDSPVector; ++n)
+      {
+        if(vxSquared[n] > y1)
+        {
+          // set peak and reset counter
+          y1 = vxSquared[n];
+          peakHoldCounter = peakHoldSamples;
+        }
+        else
+        {
+          // decay
+          if(peakHoldCounter <= 0)
+          {
+            y1 = mCoeffs.a0*vxSquared[n] + mCoeffs.b1*y1;
+          }
+        }
+        vy[n] = y1;
+      }
+
+      if(peakHoldCounter > 0)
+      {
+        peakHoldCounter -= kFloatsPerDSPVector;
+      }
+      return sqrt(vy);
+    }
+  };
+
+
+  // filtered RMS
+
+  class RMS
+  {
+    struct _coeffs
+    {
+      float a0, b1;
+    };
+
+    float y1{0};
+
+  public:
+    _coeffs mCoeffs{0};
+
+    static _coeffs coeffs (float omega)
+    {
+      float x = expf(-omega*kTwoPi);
+      return {1.f - x, x};
+    }
+
+    static _coeffs passthru ()
+    {
+      return {1.f, 0.f};
+    }
+
+    inline DSPVector operator()(const DSPVector vx)
+    {
+      DSPVector vy;
+      DSPVector vxSquared = vx*vx;
+
+      for(int n=0; n<kFloatsPerDSPVector; ++n)
+      {
+        y1 = mCoeffs.a0*vxSquared[n] + mCoeffs.b1*y1;
+        vy[n] = y1;
+      }
+
+      return sqrt(vy);
+    }
+  };
+
+
 	// IntegerDelay delays a signal a whole number of samples.
 	
 	static constexpr int kDefaultDelaySize = 1024;

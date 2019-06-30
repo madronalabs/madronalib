@@ -140,6 +140,7 @@ namespace ml
     void write(const DSPVectorArray<VECTORS>& srcVec)
     {
       constexpr int samples = kFloatsPerDSPVector*VECTORS;
+
       bool full = (getWriteAvailable() < samples);
 
       const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
