@@ -312,7 +312,6 @@ namespace ml
       {
         // we have only one region. copy most recent samples from it.
         // mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
-        assert(dr.size1 >= samples);
         float* pSrc = dr.p1 + dr.size1 - samples;
         std::copy(pSrc, pSrc + samples, pDest);
       }

@@ -50,7 +50,10 @@ public:
 	inline void setCopy(int c) { mCopy = c; } // MLTEST to remove, use ctor only?
 	
 	friend class const_iterator;
-	class const_iterator
+	class const_iterator : 
+		public std::iterator<
+			std::forward_iterator_tag, 
+			ml::Symbol >
 	{
 	public:
 		const_iterator(const Path* p) : mpPath(p), mIndex(0) { }		
@@ -108,6 +111,7 @@ public:
 	{
 		return const_iterator(this, static_cast<int> (mSize) );
 	}
+	
 
 private:
 	void parsePathString(const char* pathStr);

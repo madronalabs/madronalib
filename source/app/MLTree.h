@@ -160,7 +160,10 @@ namespace ml{
     // post-increment(operator++(int)) is not defined. Instead use pre-increment form ++it.
 
     friend class const_iterator;
-    class const_iterator
+    class const_iterator :
+		public std::iterator<
+		std::forward_iterator_tag,
+		const V >
     {
       std::vector< const Tree<V, C>* > mNodeStack;
       std::vector< typename mapT::const_iterator > mIteratorStack;
