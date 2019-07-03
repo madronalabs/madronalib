@@ -207,6 +207,10 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
+
+message("madronalib destination: " ${CMAKE_INSTALL_LIBDIR} )
+
+
 #--------------------------------------------------------------------
 # install headers
 #--------------------------------------------------------------------
@@ -267,12 +271,7 @@ endif()
 #--------------------------------------------------------------------
 
 
-# MLTEST - switching to source
-# target_link_libraries(madronalib aes256)
-# target_link_libraries(madronalib cjson)
-
 # note: ffft and utf are header-only
-
 
 
 if(APPLE)

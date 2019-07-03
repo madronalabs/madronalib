@@ -74,12 +74,15 @@ target_include_directories(tests PUBLIC "../include")
 add_dependencies(tests madronalib)
 
 # madronalib
-#find_library(MADRONA_LIB madrona)
+#find_library(MADRONA_LIB NAMES madrona)
+
 #target_link_libraries(tests "${MADRONA_LIB}")
+
+target_link_libraries(tests madronalib)
 
 # TEMP
 #message("tests->madronalib:" ${MADRONA_LIB} )
 
-#link_libraries(madronalib)
+#link_libraries(madrona)
 
 
