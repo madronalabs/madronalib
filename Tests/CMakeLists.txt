@@ -56,7 +56,7 @@ target_include_directories(tests PUBLIC ../source/app)
 target_include_directories(tests PUBLIC ../source/DSP)
 target_include_directories(tests PUBLIC ../source/matrix)
 target_include_directories(tests PUBLIC ../source/networking)
-target_include_directories(tests PUBLIC ../source/procs)
+target_include_directories(tests PUBLIC ../source/procs) 
 
 target_include_directories(tests PUBLIC "../external/aes256")
 target_include_directories(tests PUBLIC "../external/cJSON")
