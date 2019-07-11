@@ -14,6 +14,11 @@
 
 #include "MLScalarConstants.h"
 
+#ifdef WIN32
+#undef min
+#undef max
+#endif
+
 typedef float MLSample;
 
 namespace ml 
