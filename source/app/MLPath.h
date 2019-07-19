@@ -33,8 +33,9 @@ public:
   Path(const Path& b) = default;
 	Path(const char * str);
 	Path(const Symbol sym); 
-	Path(const TextFragment frag);
-	~Path() = default;
+  Path(const TextFragment frag);
+  Path(const TextFragment frag, const char separator);
+  ~Path() = default;
 
 	// boolean test.
 	explicit operator bool() const { return (mSize != 0); }
@@ -114,7 +115,7 @@ public:
 	
 
 private:
-	void parsePathString(const char* pathStr);
+	void parsePathString(const char* pathStr, const char delimiter = '/');
 
 	std::array<Symbol, kPathMaxSymbols> mpData{}; 
 	unsigned char mSize{0};

@@ -20,17 +20,21 @@ namespace ml {
 	{
 		addSymbol(sym);
 	}
-	
-	// allocate a path with one TextFragment.
-	Path::Path(const ml::TextFragment frag)
-	{
-		parsePathString(frag.getText());
-	}
 
-	void Path::parsePathString(const char* pathStr)
+  Path::Path(const ml::TextFragment frag)
+  {
+    parsePathString(frag.getText());
+  }
+
+  Path::Path(const ml::TextFragment frag, const char separator)
+  {
+    parsePathString(frag.getText(), separator);
+  }
+
+	void Path::parsePathString(const char* pathStr, const char separator)
 	{
 		auto it = TextFragment::Iterator(pathStr);		
-		char separator = '/';
+
 		size_t symbolSizeInBytes;		
 		const char* symbolStartPtr = pathStr;
 		
