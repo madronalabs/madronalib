@@ -74,3 +74,4 @@ add_dependencies(tests madronalib)
 
 target_link_libraries(tests madronalib)
 
+ 
