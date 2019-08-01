@@ -19,6 +19,34 @@
 
 using namespace ml;
 
+
+// TEMP
+DSPVector shaper (DSPVector x)
+{
+  // shaper
+  const DSPVector fx = x * DSPVector(1.f);  // prescale
+
+  //float w, c, xc, xc2, xc4;
+  const DSPVector sqrt8 {2.82842712475f};
+  const DSPVector wscale = {1.30612244898f}; // 1/w(1).
+  const DSPVector drive = {0.5f}; // 1/w(1).
+
+  // TODO add unary - for DSPVector
+  const DSPVector minusSqrt8 {-2.82842712475f};
+
+  const DSPVector xc = clamp(fx, minusSqrt8, sqrt8);
+  const DSPVector xc2 = xc*xc;
+  const DSPVector c = 0.5f*fx*(3.f - xc2);
+  const DSPVector xc4 = xc2 * xc2;
+  const DSPVector w = (1.f - xc2*0.25f + xc4*0.015625f) * wscale;
+  const DSPVector shaperOut = w*(c*xc2)*(1.f);
+
+  return shaperOut * DSPVector(1.f);  // post_scale
+}
+
+
+
+
 TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 {
 	DSPVector a(rangeClosed(-kPi, kPi));
@@ -98,15 +126,23 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     g.setGlideTimeInSamples(kGlideSamples);
     for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
     {
-      std::cout << i << ": " << g(1.0f) << "\n";
+      auto v = g(1.0f);
+      std::cout << i << ": " << v << "\n";
+      std::cout << i << "s: " << shaper(v) << "\n";
     }
     for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
     {
-      std::cout << i << ": " << g(1.0f) << "\n";
+      auto v = g(1.0f);
+      std::cout << i << ": " << v << "\n";
+      std::cout << i << "s: " << shaper(v) << "\n";
     }
     for(int i=0; i<kGlideSamples/kFloatsPerDSPVector + 1; ++i)
     {
-      std::cout << i << ": " << g(0.0f) << "\n";
+      auto v = g(0.0f);
+      std::cout << i << ": " << v << "\n";
+      std::cout << i << "s: " << shaper(v) << "\n";
     }
+
+
   }
 }
