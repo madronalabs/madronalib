@@ -181,8 +181,12 @@ namespace ml { namespace textUtils {
       *writePtr++ = '-';
     }
 
-    int maxExp = log10f(value);
-    if(value < 1.0f) maxExp -= 1;
+    int maxExp = 0;
+    if(value != 0.f)
+    {
+      int maxExp = log10f(value);
+      if(value < 1.0f) maxExp -= 1;
+    }
 
     if(std::abs(maxExp) < kScientificStart)
     {
