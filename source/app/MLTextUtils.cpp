@@ -150,7 +150,6 @@ namespace ml { namespace textUtils {
     constexpr int kMaxPrecision = 10;
     constexpr int kScientificStart = 5;
     constexpr int kMaxDigits = 32;
-    constexpr int kTableSize = 77;
     constexpr float powersOfTen[]
     {
       1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33,
@@ -181,10 +180,14 @@ namespace ml { namespace textUtils {
       *writePtr++ = '-';
     }
 
-    int maxExp = 0;
-    if(value != 0.f)
+    int maxExp;
+    if(value == 0)
     {
-      int maxExp = log10f(value);
+      maxExp = 0;
+    }
+    else
+    {
+      maxExp = log10f(value);
       if(value < 1.0f) maxExp -= 1;
     }
 

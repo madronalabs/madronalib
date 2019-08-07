@@ -46,7 +46,9 @@ namespace ml
 		static const Projection clip{ [](float x){return ml::clamp(x, 0.f, 1.f);} };
 		static const Projection smoothstep{ [](float x){return 3*x*x - 2*x*x*x;} };
 		static const Projection flatcenter{ [](float x){float c = (x - 0.5f); return 4*c*c*c + 0.5f;} };
-		static const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
+    static const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
+    static const Projection easeOut{ [](float x){float m = x - 1; return 1 - m*m*m*m;} };
+    static const Projection easeIn{ [](float x){return x*x*x*x;} };
 
 		// functions taking one or more parameters and returning projections
 		
@@ -92,42 +94,92 @@ namespace ml
 						 );
 		}
 		
-		inline Projection piecewiseLinear(std::initializer_list<float> values)
-		{
-			const std::vector<float> table(values);		
-			
-			if(table.size() > 1)
-			{
-				return( [=](float x)
-							 {
-								 float ni = table.size() - 1;
-								 float nf = static_cast<float>(ni);
-								 float xf = nf*clamp(x, 0.f, 1.f);		
-								 int xi = static_cast<int>(xf);
-								 float xr = xf - xi;
-								 
-								 if(x < 1.0f)
-								 {
-									 return lerp(table[xi], table[xi + 1], xr);
-								 }
-								 else
-								 {
-									 return table[ni];
-								 }
-							 }
-							 );
-			}
-			else if(table.size() == 1)
-			{
-				return ( [=](float x){ return table[0]; } );
-			}
-			else
-			{
-				return ( [=](float x){ return 0.f; } );
-			}
-		}
-	}
-	
+    inline Projection piecewiseLinear(std::initializer_list<float> values)
+    {
+      const std::vector<float> table(values);
+
+      if(table.size() > 1)
+      {
+        return( [=](float x)
+               {
+                 float ni = table.size() - 1;
+                 float nf = static_cast<float>(ni);
+                 float xf = nf*clamp(x, 0.f, 1.f);
+                 int xi = static_cast<int>(xf);
+                 float xr = xf - xi;
+
+                 if(x < 1.0f)
+                 {
+                   return lerp(table[xi], table[xi + 1], xr);
+                 }
+                 else
+                 {
+                   return table[ni];
+                 }
+               }
+               );
+      }
+      else if(table.size() == 1)
+      {
+        return ( [=](float x){ return table[0]; } );
+      }
+      else
+      {
+        return ( [=](float x){ return 0.f; } );
+      }
+    }
+
+
+    // like piecewiseLinear, but with a shape for each segment for easing and such
+    //
+    inline Projection piecewise(std::initializer_list<float> valueList, std::initializer_list<Projection> shapeList)
+    {
+      assert(shapeList.size() == valueList.size() - 1);
+      const std::vector<float> table(valueList);
+      const std::vector<Projection> shapeTable(shapeList);
+
+      if(table.size() > 1)
+      {
+        return( [=](float x)
+               {
+                 float ni = table.size() - 1;
+                 float nf = static_cast<float>(ni);
+                 float xf = nf*clamp(x, 0.f, 1.f);
+                 int xi = static_cast<int>(xf);
+                 float xr = xf - xi;
+
+                 if(x < 1.0f)
+                 {
+                   // map xr to shape
+                   float xrm = shapeTable[xi](xr);
+                   return lerp(table[xi], table[xi + 1], xrm);
+                 }
+                 else
+                 {
+                   return table[ni];
+                 }
+               }
+               );
+      }
+      else if(table.size() == 1)
+      {
+        return ( [=](float x){ return table[0]; } );
+      }
+      else
+      {
+        return ( [=](float x){ return 0.f; } );
+      }
+    }
+  }
+
+  /*
+  // TODO
+  inline Projection cubicBezier(float x1, float y1, float x2, float y2)
+  {
+// see https://github.com/gre/bezier-easing
+  }
+*/
+
 	// TODO maps on DSPVectors?
 	
 // TODO rename: m, n, p

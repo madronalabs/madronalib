@@ -146,3 +146,31 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
   }
 }
+
+// TODO tests into units
+
+TEST_CASE("madronalib/core/projections", "[projections]")
+{
+  std::cout << "\n\nPROJECTIONS\n";
+
+  {
+    auto pa = projections::piecewiseLinear({3, 5, 8});
+    int size = 20;
+    for(int i=0; i<=size; ++i)
+    {
+      float fx = i/(size + 0.f);
+      std::cout << fx << " -> " << pa(fx) << "\n";
+    }
+  }
+
+  {
+    auto pa = projections::piecewise({1, 2, 3}, {projections::easeIn, projections::easeOut});
+    int size = 20;
+    for(int i=0; i<=size; ++i)
+    {
+      float fx = i/(size + 0.f);
+      std::cout << fx << " -> " << pa(fx) << "\n";
+    }
+  }
+}
+
