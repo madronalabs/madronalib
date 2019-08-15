@@ -31,6 +31,18 @@ namespace ml {
     parsePathString(frag.getText(), separator);
   }
 
+  Path::Path(const Path& a, const Path& b)
+  {
+    for(Symbol s : a)
+    {
+      addSymbol(s);
+    }
+    for(Symbol s : b)
+    {
+      addSymbol(s);
+    }
+  }
+
 	void Path::parsePathString(const char* pathStr, const char separator)
 	{
 		auto it = TextFragment::Iterator(pathStr);		

@@ -35,12 +35,17 @@ public:
 	Path(const Symbol sym); 
   Path(const TextFragment frag);
   Path(const TextFragment frag, const char separator);
+  Path(const Path& a, const Path& b);
+
   ~Path() = default;
 
 	// boolean test.
 	explicit operator bool() const { return (mSize != 0); }
+
+  // TODO Path should be immutable—refactor this
 	void addSymbol(Symbol sym);
-	
+
+
 	Symbol head() const;
 	Path tail() const;
 		
