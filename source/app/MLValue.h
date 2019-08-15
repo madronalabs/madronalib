@@ -39,6 +39,7 @@ namespace ml{
     Value& operator= (const Value & other);
     Value(float v);
     Value(int v);
+    Value(bool v);
     Value(long v);
     Value(double v);
     Value(const ml::Text& t);
@@ -80,6 +81,26 @@ namespace ml{
       return (mType == kFloatValue) ? mFloatVal : d;
     }
 
+    inline const float getBoolValue() const
+    {
+      return static_cast<bool>(mFloatVal);
+    }
+
+    inline const bool getBoolValueWithDefault(bool b) const
+    {
+      return (mType == kFloatValue) ? static_cast<bool>(mFloatVal) : b;
+    }
+
+    inline const float getIntValue() const
+    {
+      return static_cast<int>(mFloatVal);
+    }
+
+    inline const int getIntValueWithDefault(int d) const
+    {
+      return (mType == kFloatValue) ? static_cast<int>(mFloatVal) : d;
+    }
+
     inline const ml::Text getTextValue() const
     {
       return (mType == kTextValue) ? (mTextVal) : ml::Text();
@@ -105,6 +126,7 @@ namespace ml{
     void setValue(const Value& v);
     void setValue(const float& v);
     void setValue(const int& v);
+    void setValue(const bool& v);
     void setValue(const long& v);
     void setValue(const double& v);
     void setValue(const ml::Text& v);

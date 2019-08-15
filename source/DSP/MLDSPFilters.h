@@ -807,8 +807,7 @@ namespace ml
 			return vy;
 		}
 	};
-	
-	
+
 	// Crossfading two allpass-interpolated delays allows modulating the delay 
 	// time without clicks. See "A Lossless, Click-free, Pitchbend-able Delay Line Loop Interpolation Scheme", 
 	// Van Duyne, Jaffe, Scandalis, Stilson, ICMC 1997.
