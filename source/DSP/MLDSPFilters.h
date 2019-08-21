@@ -823,6 +823,7 @@ namespace ml
 		ml::RampGen rampFn{kPBDFadePeriod};		
 		
 	public:
+    // TODO re-examine default delay size and allocation, maybe there should be no default (0)
 		PitchbendableDelay() : mDelay1(kDefaultDelaySize), mDelay2(kDefaultDelaySize)
 		{
 			mDelay1.setDelayInSamples(0);
@@ -834,7 +835,13 @@ namespace ml
 			mDelay1.setDelayInSamples(0);
 			mDelay2.setDelayInSamples(0);
 		}
-		
+
+    inline void setDelayInSamples(float d)
+    {
+      mDelay1.setDelayInSamples(d);
+      mDelay2.setDelayInSamples(d);
+    }
+
 		~PitchbendableDelay() {}
 		
 		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
@@ -898,6 +905,7 @@ namespace ml
 
 	// FDN	
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
+  // TODO DELAY_TYPE for modulation?
 	
 	template<int SIZE>
 	class FDN
