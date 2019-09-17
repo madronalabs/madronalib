@@ -134,7 +134,8 @@ namespace ml
     //
     inline Projection piecewise(std::initializer_list<float> valueList, std::initializer_list<Projection> shapeList)
     {
-      assert(shapeList.size() == valueList.size() - 1);
+      // TODO asserts not working on Windows
+      // assert(shapeList.size() == valueList.size() - 1);
       const std::vector<float> table(valueList);
       const std::vector<Projection> shapeTable(shapeList);
 
