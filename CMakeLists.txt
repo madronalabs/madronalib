@@ -29,7 +29,7 @@ set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${
 
 # set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-option(ML_BUILD_EXAMPLES "Build the examples" OFF)
+option(BUILD_EXAMPLES "Build the examples" ON)
 option(ML_BUILD_TESTS "Build the ML test programs" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_DOCS "Build the ML documentation" OFF)
@@ -60,6 +60,8 @@ set(madronalib_NAME madrona)
 if(CMAKE_BINARY_DIR EQUAL CMAKE_SOURCE_DIR)
   message(FATAL_ERROR "Madronalib requires an out of source build")
 endif()
+
+
 
 #--------------------------------------------------------------------
 # Add include directories
@@ -99,22 +101,6 @@ if(APPLE)
 else()
   #TODO OSC for Windows / Linux
 endif()
-
-if (ML_BUILD_EXAMPLES)
-  add_subdirectory(examples)
-endif()
-
-if (ML_BUILD_TESTS)
-   add_subdirectory(tests)
-endif()
-
-# madronalib/source/CMakeLists.txt
-
-#include_directories("${madronalib_SOURCE_DIR}/src"
- #                   "${madronalib_BINARY_DIR}/src"
-  #                  ${madronalib_INCLUDE_DIRS})
-
-#	add_definitions(-D_MADRONALIB_USE_CONFIG_H)
 
 
 #--------------------------------------------------------------------
@@ -239,22 +225,86 @@ endif()
 
 
 #--------------------------------------------------------------------
-# Add include Directories
+# build examples
 #--------------------------------------------------------------------
 
-# target_include_directories(madronalib PUBLIC source/app)
-# target_include_directories(madronalib PUBLIC source/DSP)
-# target_include_directories(madronalib PUBLIC source/matrix)
-# target_include_directories(madronalib PUBLIC source/networking)
-# target_include_directories(madronalib PUBLIC source/procs)
-# 
-# target_include_directories(madronalib PUBLIC "external/aes256")
-# target_include_directories(madronalib PUBLIC "external/cJSON")
-# target_include_directories(madronalib PUBLIC "external/ffft")
-# target_include_directories(madronalib PUBLIC "external/oscpack")
-# target_include_directories(madronalib PUBLIC "external/utf")
-# 
-# target_include_directories(madronalib PUBLIC "include")
+set(ML_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
+
+if(BUILD_EXAMPLES)
+
+    set(EXAMPLE_APP_NAME "ReverbExample")
+
+    set(
+        EXAMPLE_SOURCES
+        ${ML_ROOT}/examples/source/reverb.cpp
+        ${ML_ROOT}/external/rtaudio/RtAudio.cpp
+    )
+
+    add_executable(${EXAMPLE_APP_NAME} ${EXAMPLE_SOURCES})
+
+    if(WIN32)
+        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __WINDOWS_WASAPI__)
+    elseif(APPLE)
+        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __MACOSX_CORE__)
+    elseif(LINUX_JACK)
+        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __UNIX_JACK__)
+        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE jack pthread)
+    elseif(LINUX_PULSE)
+        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __LINUX_PULSE__)
+        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE pulse pthread)
+    elseif(LINUX_ASOUND)
+        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __LINUX_ALSA__)
+        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE asound pthread)
+    else()
+        message(FATAL, "On Linux, one of LINUX_JACK, LINUX_PULSE, or LINUX_ASOUND must be set.")
+    endif()
+
+    target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
+        ${ML_ROOT}/examples/source
+        ${ML_ROOT}/external/rtaudio
+    )
+    target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)
+
+    set_target_properties(${EXAMPLE_APP_NAME}
+        PROPERTIES
+         MACOSX_BUNDLE TRUE
+
+        # not working, see below for workaround adding to plist 
+        # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in 
+
+        MACOSX_BUNDLE_BUNDLE_NAME ${EXAMPLE_APP_NAME}
+        MACOSX_BUNDLE_BUNDLE_VERSION "0.9.0"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+    )
+
+    # duplicates madronalib links, revisit
+    if(APPLE)
+        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE
+            "-framework AudioToolbox"
+            "-framework AudioUnit"
+            "-framework Accelerate"
+            "-framework CoreAudio"
+            "-framework Cocoa"
+        )
+    ENDIF(APPLE)
+
+    # get directory of .app package Contents
+    set(PACKAGE_DIR
+        "${CMAKE_CURRENT_SOURCE_DIR}/build/bin/$<CONFIG>/${EXAMPLE_APP_NAME}.app/Contents"
+        )    
+
+    # add missing keys to plist
+    set(ADD_PLIST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/add-plist-value.sh")
+    set(RATIONALE "This app requires microphone access.")
+    add_custom_command(
+        TARGET ${EXAMPLE_APP_NAME} POST_BUILD
+        COMMAND ${ADD_PLIST_SCRIPT} NSMicrophoneUsageDescription "This app requires microphone access." "${PACKAGE_DIR}/Info.plist"
+        VERBATIM
+    )
+
+endif()
 
 #--------------------------------------------------------------------
 # Make docs (someday)
@@ -292,6 +342,7 @@ if(APPLE)
 else(APPLE)
   # target_link_libraries(madronalib ${DNSSD_LIBRARIES})
 endif()
+
 
 
 #--------------------------------------------------------------------
