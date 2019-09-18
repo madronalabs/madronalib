@@ -1,26 +1,19 @@
-// example of portaudio wrapping low-level madronalib DSP code.
-
-// TODO ISA-licensed JUCE example
+// example of RtAudio wrapping low-level madronalib DSP code.
+// The reverb in this example is the Aaltoverb algorithm (madronalabs.com/products/Aaltoverb) without the tone control.
 
 #include "mldsp.h"
 #include "RtAudio.h"
 
 using namespace ml;
 
-
 constexpr int kProcessChannels = 2;
 constexpr int kSampleRate = 44100;
 constexpr int kMaxProcessBlockFrames = 4096;
 
-
 // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
 VectorProcessBuffer<kProcessChannels, kMaxProcessBlockFrames> processBuffer;
 
-// SineGen s1, s2;
-
-// projections for size and decay parameters
-constexpr float kSizeLo = 2, kSizeHi = 40;
-ml::Projection unityToSize(ml::projections::linear({0, 1}, {kSizeLo, kSizeHi}));
+// log projection for decay parameter
 constexpr float kDecayLo = 0.8, kDecayHi = 20;
 ml::Projection unityToDecay(ml::projections::intervalMap({0, 1}, {kDecayLo, kDecayHi}, ml::projections::log({kDecayLo, kDecayHi})));
 
@@ -34,8 +27,9 @@ ml::Allpass<ml::PitchbendableDelay> mAp1, mAp2, mAp3, mAp4;
 ml::Allpass<ml::PitchbendableDelay> mAp5, mAp6, mAp7, mAp8, mAp9, mAp10;
 ml::PitchbendableDelay mDelayL, mDelayR;
 ml::OnePole mLp2, mLp3;
-DSPVector mvFeedbackL, mvFeedbackR;
 
+// feedback storage
+DSPVector mvFeedbackL, mvFeedbackR;
 
 void initializeReverb()
 {
@@ -78,58 +72,54 @@ DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chan
   const float sr = kSampleRate;
   const float RT60const = 0.001f;
 
-  float delayTimeU = 0.5f;
+  // size and decay parameters from 0-1.
+  float sizeU = 0.5f;
   float decayU = 0.5f;
+
+  // generate delay and feedback scalars
   float decayTime = unityToDecay(decayU);
-  float decayIterations = decayTime/(delayTimeU*0.5f);
+  float decayIterations = decayTime/(sizeU);
   float feedback = (decayU < 1.0f) ? powf(RT60const, 1.0f/decayIterations) : 1.0f;
 
-  DSPVector vSmoothDelay = mSmoothDelay(delayTimeU*2.0f);
+  // generate smoothed delay and feedback vectors
+  DSPVector vSmoothDelay = mSmoothDelay(sizeU*2.0f);
   DSPVector vSmoothFeedback = mSmoothFeedback(feedback);
 
   // get smoothed allpass times
   DSPVector vt1 {0.00476*sr*vSmoothDelay};
-  DSPVector vt2 = DSPVector(0.00358*sr)*vSmoothDelay;
-  DSPVector vt3 = DSPVector(0.00973*sr)*vSmoothDelay;
-  DSPVector vt4 = DSPVector(0.00830*sr)*vSmoothDelay;
-  DSPVector vt5 = DSPVector(0.029*sr)*vSmoothDelay;
-  DSPVector vt6 = DSPVector(0.021*sr)*vSmoothDelay;
-  DSPVector vt7 = DSPVector(0.078*sr)*vSmoothDelay;
-  DSPVector vt8 = DSPVector(0.090*sr)*vSmoothDelay;
-  DSPVector vt9 = DSPVector(0.111*sr)*vSmoothDelay;
-  DSPVector vt10 = DSPVector(0.096*sr)*vSmoothDelay;
+  DSPVector vt2 {0.00358*sr*vSmoothDelay};
+  DSPVector vt3 {0.00973*sr*vSmoothDelay};
+  DSPVector vt4 {0.00830*sr*vSmoothDelay};
+  DSPVector vt5 {0.029*sr*vSmoothDelay};
+  DSPVector vt6 {0.021*sr*vSmoothDelay};
+  DSPVector vt7 {0.078*sr*vSmoothDelay};
+  DSPVector vt8 {0.090*sr*vSmoothDelay};
+  DSPVector vt9 {0.111*sr*vSmoothDelay};
+  DSPVector vt10 {0.096*sr*vSmoothDelay};
 
   // sum stereo inputs and diffuse with allpass filters
-  const DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
-  const DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
+  DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
+  DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
 
   // get delay times in samples, subtracting the minimum delay of one DSPVector
   DSPVector vDelayTimeL = vSmoothDelay*DSPVector(0.0313*sr) - DSPVector(kFloatsPerDSPVector);
   DSPVector vDelayTimeR = vSmoothDelay*DSPVector(0.0371*sr) - DSPVector(kFloatsPerDSPVector);
 
-
-  DSPVector vLateInputSumL = diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL);
-  DSPVector vLateInputSumR = diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR);
-
-  // late diffusion taps
-  DSPVector vTapL = mHipassR(mAp7(mAp5(vLateInputSumL, vt5), vt7));
-  DSPVector vTapR = mHipassL(mAp8(mAp6(vLateInputSumR, vt6), vt8));
+  // sum diffused input with feedback, and apply late diffusion
+  DSPVector vTapL = mHipassR(mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7));
+  DSPVector vTapR = mHipassL(mAp8(mAp6(diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR), vt6), vt8));
 
   // remove lowpass filters when sustain = infinite
-  float feedbackCutoff;
   if(feedback == 1.0f)
   {
-    feedbackCutoff = 20000.f;
     mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::passthru();
   }
   else
   {
-    // TEST vary lp cutoff with decay
-    feedbackCutoff = 20000.f*(decayU*decayU);
-    mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::coeffs(feedbackCutoff/sr);
+    mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::coeffs(20000.f*(decayU*decayU)/sr);
   }
 
-  // cross over late diffusion taps to feedback
+  // cross over late diffusion taps to feedback with lowpass filters
   mvFeedbackR = (mLp2(mAp9(vTapL, vt9))) * vSmoothFeedback;
   mvFeedbackL = (mLp3(mAp10(vTapR, vt10))) * vSmoothFeedback;
 
