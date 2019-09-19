@@ -49,7 +49,6 @@ namespace ml{
   {
     // TODO
 
-
     TextFragment t;
     switch(v.getType())
     {

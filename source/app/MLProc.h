@@ -119,7 +119,6 @@ public:
 	
 	// constStr methods
 	virtual void setParam(constStr str, float f) = 0;
-	virtual void setTextParam(constStr str, TextFragment) = 0;
 	virtual void setInput(constStr str, DSPVector &v) = 0;
 	virtual void setOutput(constStr str, DSPVector &v) = 0;
 
@@ -140,7 +139,6 @@ public:
 	*/
 	
 	virtual const constStrArray& getParamNames() = 0;
-	virtual const constStrArray& getTextParamNames() = 0;
 	virtual const constStrArray& getInputNames() = 0;
 	virtual const constStrArray& getOutputNames() = 0;
 };

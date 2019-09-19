@@ -33,7 +33,6 @@ public:
 	static ProcFactory &theFactory()  { static ProcFactory f; return f; }
 
   size_t registeredClasses() { return procRegistry.size(); }
-	
 
 	// register an object creation function by the name of the class.
 	void registerFn(const ml::Symbol className, MLProcCreateFnT fn);
@@ -53,6 +52,7 @@ template <class T>
 class ProcRegistryEntry
 {
 public:
+  // TODO add optional categories and other info
 	ProcRegistryEntry(const char* className)
 	{
 		Symbol classSym(className);

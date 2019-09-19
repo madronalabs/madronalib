@@ -5,12 +5,10 @@ using namespace ml;
 
 // definition of static constexpr data members at namespace scope is still required, until C++17
 constexpr constStr ProcMultiply::paramNames[];
-constexpr constStr ProcMultiply::textParamNames[];
 constexpr constStr ProcMultiply::inputNames[];
 constexpr constStr ProcMultiply::outputNames[];
 
 constexpr constStrArray ProcMultiply::pn_;
-constexpr constStrArray ProcMultiply::tn_;
 constexpr constStrArray ProcMultiply::in_;
 constexpr constStrArray ProcMultiply::on_;
 
@@ -24,9 +22,13 @@ struct constTest
 */
 
 
-
 void ProcMultiply::process()
 {
+
+  // test params
+  auto q = param("a").getFloatValue();
+  std::cout << "q: " << q << "\n";
+
 	output("baz") = multiply(input("foo"), input("bar"));
 	
 //	constTest< constFind(paramNames, "c") >();	

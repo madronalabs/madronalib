@@ -51,7 +51,7 @@ namespace ml{
       return mType != kUndefinedValue;
     }
 
-    // signal type constructor via initializer_list
+    // matrix type constructor via initializer_list
     Value (std::initializer_list<float> values)
     {
       auto size = values.size();
