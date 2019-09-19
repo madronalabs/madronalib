@@ -15,18 +15,18 @@ VectorProcessBuffer<kProcessChannels, kMaxProcessBlockFrames> processBuffer;
 
 // log projection for decay parameter
 constexpr float kDecayLo = 0.8, kDecayHi = 20;
-ml::Projection unityToDecay(ml::projections::intervalMap({0, 1}, {kDecayLo, kDecayHi}, ml::projections::log({kDecayLo, kDecayHi})));
+Projection unityToDecay(projections::intervalMap({0, 1}, {kDecayLo, kDecayHi}, projections::log({kDecayLo, kDecayHi})));
 
 // parameter smoothers
-ml::LinearGlide mSmoothFeedback;
-ml::LinearGlide mSmoothDelay;
+LinearGlide mSmoothFeedback;
+LinearGlide mSmoothDelay;
 
 // reverb machinery
-ml::Hipass mHipassL, mHipassR;
-ml::Allpass<ml::PitchbendableDelay> mAp1, mAp2, mAp3, mAp4;
-ml::Allpass<ml::PitchbendableDelay> mAp5, mAp6, mAp7, mAp8, mAp9, mAp10;
-ml::PitchbendableDelay mDelayL, mDelayR;
-ml::OnePole mLp2, mLp3;
+Hipass mHipassL, mHipassR;
+Allpass<PitchbendableDelay> mAp1, mAp2, mAp3, mAp4;
+Allpass<PitchbendableDelay> mAp5, mAp6, mAp7, mAp8, mAp9, mAp10;
+PitchbendableDelay mDelayL, mDelayR;
+OnePole mLp2, mLp3;
 
 // feedback storage
 DSPVector mvFeedbackL, mvFeedbackR;
@@ -61,10 +61,9 @@ void initializeReverb()
   mDelayR.setMaxDelayInSamples(3500.f);
 
   // set fixed filter coefficients
-  mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::coeffs(20000.f/kSampleRate);
-  mHipassL.mCoeffs = mHipassR.mCoeffs = ml::Hipass::coeffs(20.f/kSampleRate, 1.414f);
+  mLp2.mCoeffs = mLp3.mCoeffs = OnePole::coeffs(20000.f/kSampleRate);
+  mHipassL.mCoeffs = mHipassR.mCoeffs = Hipass::coeffs(20.f/kSampleRate, 1.414f);
 }
-
 
 // do filter processing in DSPVector-sized chunks.
 DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chans)
@@ -72,7 +71,7 @@ DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chan
   const float sr = kSampleRate;
   const float RT60const = 0.001f;
 
-  // size and decay parameters from 0-1.
+  // size and decay parameters from 0-1. It will be more interesting to change these over time in some way.
   float sizeU = 0.5f;
   float decayU = 0.5f;
 
@@ -86,37 +85,39 @@ DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chan
   DSPVector vSmoothFeedback = mSmoothFeedback(feedback);
 
   // get smoothed allpass times
-  DSPVector vt1 {0.00476*sr*vSmoothDelay};
-  DSPVector vt2 {0.00358*sr*vSmoothDelay};
-  DSPVector vt3 {0.00973*sr*vSmoothDelay};
-  DSPVector vt4 {0.00830*sr*vSmoothDelay};
-  DSPVector vt5 {0.029*sr*vSmoothDelay};
-  DSPVector vt6 {0.021*sr*vSmoothDelay};
-  DSPVector vt7 {0.078*sr*vSmoothDelay};
-  DSPVector vt8 {0.090*sr*vSmoothDelay};
-  DSPVector vt9 {0.111*sr*vSmoothDelay};
-  DSPVector vt10 {0.096*sr*vSmoothDelay};
+  DSPVector vMin(kFloatsPerDSPVector);
+  DSPVector vt1 = max(DSPVector(0.00476*sr*vSmoothDelay), vMin);
+  DSPVector vt2 = max(DSPVector(0.00358*sr*vSmoothDelay), vMin);
+  DSPVector vt3 = max(DSPVector(0.00973*sr*vSmoothDelay), vMin);
+  DSPVector vt4 = max(DSPVector(0.00830*sr*vSmoothDelay), vMin);
+  DSPVector vt5 = max(DSPVector(0.029*sr*vSmoothDelay), vMin);
+  DSPVector vt6 = max(DSPVector(0.021*sr*vSmoothDelay), vMin);
+  DSPVector vt7 = max(DSPVector(0.078*sr*vSmoothDelay), vMin);
+  DSPVector vt8 = max(DSPVector(0.090*sr*vSmoothDelay), vMin);
+  DSPVector vt9 = max(DSPVector(0.111*sr*vSmoothDelay), vMin);
+  DSPVector vt10 = max(DSPVector(0.096*sr*vSmoothDelay), vMin);
+
 
   // sum stereo inputs and diffuse with allpass filters
   DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
   DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
 
-  // get delay times in samples, subtracting the minimum delay of one DSPVector
-  DSPVector vDelayTimeL = vSmoothDelay*DSPVector(0.0313*sr) - DSPVector(kFloatsPerDSPVector);
-  DSPVector vDelayTimeR = vSmoothDelay*DSPVector(0.0371*sr) - DSPVector(kFloatsPerDSPVector);
+  // get delay times in samples, subtracting the constant delay of one DSPVector and clamping
+  DSPVector vDelayTimeL = max(vSmoothDelay*DSPVector(0.0313*sr) - vMin, DSPVector(0.f));
+  DSPVector vDelayTimeR = max(vSmoothDelay*DSPVector(0.0371*sr) - vMin, DSPVector(0.f));
 
   // sum diffused input with feedback, and apply late diffusion
   DSPVector vTapL = mHipassR(mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7));
   DSPVector vTapR = mHipassL(mAp8(mAp6(diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR), vt6), vt8));
 
-  // remove lowpass filters when sustain = infinite
+  // get lowpass filter coeffs (passthru when decay = infinite)
   if(feedback == 1.0f)
   {
-    mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::passthru();
+    mLp2.mCoeffs = mLp3.mCoeffs = OnePole::passthru();
   }
   else
   {
-    mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::coeffs(20000.f*(decayU*decayU)/sr);
+    mLp2.mCoeffs = mLp3.mCoeffs = OnePole::coeffs(20000.f*(decayU*decayU)/sr);
   }
 
   // cross over late diffusion taps to feedback with lowpass filters
@@ -126,18 +127,6 @@ DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chan
   auto stereoOutput = append(vTapL, vTapR);
   return stereoOutput;
 }
-
-
-/*
-// do filter processing in DSPVector-sized chunks.
-DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chans)
-{
-  // return inputVectors;
-
-  return(append(s1(220.f/kSampleRate), s2(242.f/kSampleRate)));
-
-}
-*/
 
 // adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
 int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
@@ -162,7 +151,6 @@ int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned 
                         {
                           return processVectors(inputVectors, chans);
                         } );
-
   return 0;
 }
 
