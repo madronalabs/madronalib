@@ -572,32 +572,26 @@ namespace ml
 
 	// IntegerDelay delays a signal a whole number of samples.
 	
-	static constexpr int kDefaultDelaySize = 1024;
-	
 	class IntegerDelay
 	{
 		std::vector<float> mBuffer;
-		int mIntDelayInSamples;
-		uintptr_t mWriteIndex;
-		uintptr_t mLengthMask;
+    int mIntDelayInSamples{0};
+		uintptr_t mWriteIndex{0};
+		uintptr_t mLengthMask{0};
 		
 	public:
-		IntegerDelay() { setDelayInSamples(kDefaultDelaySize); }
-		IntegerDelay(int d) { setDelayInSamples(d); }
-		~IntegerDelay() {}
+    IntegerDelay() = default;
+		IntegerDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
+		~IntegerDelay() = default;
 		
 		inline void setDelayInSamples(int d) 
 		{ 
-			int dd = std::max(d, 0); 	
-			if(dd > mBuffer.size())
-			{
-				setMaxDelayInSamples(dd);
-			}
-			mIntDelayInSamples = dd;
+			mIntDelayInSamples = max(d, 0);
 		}
 		
-		void setMaxDelayInSamples(int dMax)
+		void setMaxDelayInSamples(float d)
 		{
+      int dMax = floorf(d);
 			int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
 			mBuffer.resize(newSize);
 			mLengthMask = newSize - 1;
@@ -743,12 +737,12 @@ namespace ml
 	{
 		IntegerDelay mIntegerDelay;
 		Allpass1 mAllpassSection;
-		float mDelayInSamples;
+    float mDelayInSamples{};
 		
 	public:
-		FractionalDelay() { setDelayInSamples(kDefaultDelaySize); }
-		FractionalDelay(float d) { setDelayInSamples(d); }
-		~FractionalDelay() {}
+    FractionalDelay() = default;
+		FractionalDelay(float d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
+		~FractionalDelay() = default;
 				
 		inline void clear()
 		{
@@ -771,7 +765,12 @@ namespace ml
 			mIntegerDelay.setDelayInSamples(delayInt);
 			mAllpassSection.mCoeffs = Allpass1::coeffs(delayFrac);
 		}
-		
+
+    inline void setMaxDelayInSamples(float d)
+    {
+      mIntegerDelay.setMaxDelayInSamples(floorf(d));
+    }
+
 		// return the input signal, delayed by the constant delay time mDelayInSamples.
 		inline DSPVector operator()(const DSPVector vx)
 		{
@@ -789,76 +788,73 @@ namespace ml
 			}
 			return vy;
 		}
-		
-		// return the input signal, delayed by the varying delay time vDelayInSamples, but only allow changes
-		// to the delay time when vChangeTicks is nonzero.
-		inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples, const DSPVectorInt vChangeTicks)
-		{
-			DSPVector vy;
-			for(int n=0; n<kFloatsPerDSPVector; ++n)
-			{
-				if(vChangeTicks[n] != 0)
-				{		
-					setDelayInSamples(vDelayInSamples[n]);
-				}
-				
-				vy[n] = mAllpassSection.processSample(mIntegerDelay.processSample(vx[n]));
-			}
-			return vy;
-		}
+
+    // return the input signal, delayed by the varying delay time vDelayInSamples, but only allow changes
+    // to the delay time when vChangeTicks is nonzero.
+    inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples, const DSPVectorInt vChangeTicks)
+    {
+      DSPVector vy;
+      for(int n=0; n<kFloatsPerDSPVector; ++n)
+      {
+        if(vChangeTicks[n] != 0)
+        {
+          setDelayInSamples(vDelayInSamples[n]);
+        }
+
+        vy[n] = mAllpassSection.processSample(mIntegerDelay.processSample(vx[n]));
+      }
+      return vy;
+    }
 	};
 
 	// Crossfading two allpass-interpolated delays allows modulating the delay 
 	// time without clicks. See "A Lossless, Click-free, Pitchbend-able Delay Line Loop Interpolation Scheme", 
 	// Van Duyne, Jaffe, Scandalis, Stilson, ICMC 1997.
-	
-	static constexpr int kPBDFadePeriod = 32; 
-	static constexpr std::array<int, kPBDFadePeriod> kPBDFadeTable{ {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-		16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1} };
-	static constexpr float kPBDFadeMax = 16.f;
+
+  namespace PitchbendableDelayConsts
+  {
+    // period in samples of allpass fade cycle. must be a power of 2 less than or equal to kFloatsPerDSPVector.
+    // 32 sounds good.
+    constexpr int kFadePeriod{32};
+    constexpr int fadeRamp(int n){return n&(kFadePeriod - 1);}
+    constexpr int ticks1(int n){return fadeRamp(n) == 0;}
+    constexpr int ticks2(int n){return fadeRamp(n) == kFadePeriod/2;}
+    constexpr float fadeFn(int n)
+    {
+      // triangle from 0 to 1 to 0
+      return 2.f*((fadeRamp(n)) > kFadePeriod/2 ? 1.0f - (fadeRamp(n))/(kFadePeriod + 0.f) : (fadeRamp(n))/(kFadePeriod + 0.f));
+    }
+
+    // generate vectors of ticks indicating when delays can change
+    // equality operators on vectors return 0 or 0xFFFFFFFF
+    // note: mDelay1's delay time will be 0 when the object is created and before the first half fade period.
+    // so there is a warmup time of one half fade period: any input before this will be attenuated.
+    //
+    // constexpr fill is used. unfortunately this cannot be made to work with a lambda in C++11. TODO Revisit.
+    constexpr DSPVectorInt kvDelay1Changes(ticks1);
+    constexpr DSPVectorInt kvDelay2Changes(ticks2);
+    constexpr DSPVector kvFade(fadeFn);
+  };
 
 	class PitchbendableDelay
 	{
 		FractionalDelay mDelay1, mDelay2;
-		ml::RampGen rampFn{kPBDFadePeriod};		
-		
-	public:
-    // TODO re-examine default delay size and allocation, maybe there should be no default (0)
-		PitchbendableDelay() : mDelay1(kDefaultDelaySize), mDelay2(kDefaultDelaySize)
-		{
-			mDelay1.setDelayInSamples(0);
-			mDelay2.setDelayInSamples(0);
-		}
-		
-		PitchbendableDelay(float d) : mDelay1(d), mDelay2(d)
-		{
-			mDelay1.setDelayInSamples(0);
-			mDelay2.setDelayInSamples(0);
-		}
 
-    inline void setDelayInSamples(float d)
+	public:
+    PitchbendableDelay() = default;
+
+    inline void setMaxDelayInSamples(float d)
     {
-      mDelay1.setDelayInSamples(d);
-      mDelay2.setDelayInSamples(d);
+      mDelay1.setMaxDelayInSamples(d);
+      mDelay2.setMaxDelayInSamples(d);
     }
 
-		~PitchbendableDelay() {}
-		
 		inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
 		{
-			// get fade function
-			DSPVectorInt vIntRamp = rampFn();
-			DSPVector vFade = map([&](int f){ return kPBDFadeTable[f]/kPBDFadeMax; }, vIntRamp); // triangular
-			
-			// generate vectors of ticks indicating when delays can change
-			// equality operators on vectors return 0 or 0xFFFFFFFF 
-			// note: mDelay1's delay time will be 0 when the object is created and before the first half fade period.
-			// so there is a warmup time of one half fade period: any input before this will be attenuated.
-			DSPVectorInt vDelay1Changes = equal(intToFloat(vIntRamp), DSPVector(kPBDFadePeriod/2.f));
-			DSPVectorInt vDelay2Changes = equal(intToFloat(vIntRamp), DSPVector(0.f));
-			
+      using namespace PitchbendableDelayConsts;
+
 			// run the fractional delays and crossfade the results.
-			return lerp(mDelay1(vInput, vDelayInSamples, vDelay1Changes), mDelay2(vInput, vDelayInSamples, vDelay2Changes), vFade);
+      return lerp(mDelay1(vInput, vDelayInSamples, kvDelay1Changes), mDelay2(vInput, vDelayInSamples, kvDelay2Changes), kvFade);
 		}
 	};
 	
@@ -869,18 +865,23 @@ namespace ml
 	template<typename DELAY_TYPE>
 	class Allpass
 	{
-		DELAY_TYPE mDelay{kDefaultDelaySize};
-		DSPVector vy1;
+		DELAY_TYPE mDelay;
+    DSPVector vy1{};
 		
 	public:
 		float mGain{0.f};
 		
 		// use setDelayInSamples to set a constant delay time with DELAY_TYPE of IntegerDelay or FractionalDelay.
-		inline void setDelayInSamples(float d) 
-		{ 			
-			mDelay.setDelayInSamples(d - kFloatsPerDSPVector);
-		}
-		
+    inline void setDelayInSamples(float d)
+    {
+      mDelay.setDelayInSamples(d - kFloatsPerDSPVector);
+    }
+
+    inline void setMaxDelayInSamples(float d)
+    {
+      mDelay.setMaxDelayInSamples(d - kFloatsPerDSPVector);
+    }
+
 		// use with constant delay time.
 		inline DSPVector operator()(const DSPVector vInput)
 		{	
@@ -905,7 +906,7 @@ namespace ml
 
 	// FDN	
 	// A general Feedback Delay Network with N delay lines connected in an NxN matrix.
-  // TODO DELAY_TYPE for modulation?
+  // TODO DELAY_TYPE parameter for modulation?
 	
 	template<int SIZE>
 	class FDN

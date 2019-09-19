@@ -46,19 +46,19 @@ void initializeReverb()
   mAp7.mGain = mAp8.mGain = 0.6f;
   mAp9.mGain = mAp10.mGain = 0.5f;
 
-  // set initial delays to allocate delay memory
-  mAp1.setDelayInSamples(500.f);
-  mAp2.setDelayInSamples(500.f);
-  mAp3.setDelayInSamples(1000.f);
-  mAp4.setDelayInSamples(1000.f);
-  mAp5.setDelayInSamples(2600.f);
-  mAp6.setDelayInSamples(2600.f);
-  mAp7.setDelayInSamples(8000.f);
-  mAp8.setDelayInSamples(8000.f);
-  mAp9.setDelayInSamples(10000.f);
-  mAp10.setDelayInSamples(10000.f);
-  mDelayL.setDelayInSamples(3500.f);
-  mDelayR.setDelayInSamples(3500.f);
+  // allocate delay memory
+  mAp1.setMaxDelayInSamples(500.f);
+  mAp2.setMaxDelayInSamples(500.f);
+  mAp3.setMaxDelayInSamples(1000.f);
+  mAp4.setMaxDelayInSamples(1000.f);
+  mAp5.setMaxDelayInSamples(2600.f);
+  mAp6.setMaxDelayInSamples(2600.f);
+  mAp7.setMaxDelayInSamples(8000.f);
+  mAp8.setMaxDelayInSamples(8000.f);
+  mAp9.setMaxDelayInSamples(10000.f);
+  mAp10.setMaxDelayInSamples(10000.f);
+  mDelayL.setMaxDelayInSamples(3500.f);
+  mDelayR.setMaxDelayInSamples(3500.f);
 
   // set fixed filter coefficients
   mLp2.mCoeffs = mLp3.mCoeffs = ml::OnePole::coeffs(20000.f/kSampleRate);
@@ -78,7 +78,7 @@ DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chan
 
   // generate delay and feedback scalars
   float decayTime = unityToDecay(decayU);
-  float decayIterations = decayTime/(sizeU);
+  float decayIterations = decayTime/(sizeU*0.5);
   float feedback = (decayU < 1.0f) ? powf(RT60const, 1.0f/decayIterations) : 1.0f;
 
   // generate smoothed delay and feedback vectors
