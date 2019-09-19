@@ -30,7 +30,7 @@ set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${
 # set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(BUILD_EXAMPLES "Build the examples" ON)
-option(ML_BUILD_TESTS "Build the ML test programs" ON)
+option(BUILD_TESTS "Build the ML test programs" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 option(ML_BUILD_DOCS "Build the ML documentation" OFF)
 option(ML_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
@@ -61,21 +61,15 @@ if(CMAKE_BINARY_DIR EQUAL CMAKE_SOURCE_DIR)
   message(FATAL_ERROR "Madronalib requires an out of source build")
 endif()
 
-
-
 #--------------------------------------------------------------------
 # Add include directories
 #--------------------------------------------------------------------
 
-
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
 # include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/juce)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/app)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/matrix)
@@ -92,9 +86,6 @@ endif()
 #--------------------------------------------------------------------
 # Add subdirectories
 #--------------------------------------------------------------------
-
-# add_subdirectory(source)
-
 
 if(APPLE)
 	add_subdirectory(external/oscpack)
@@ -193,9 +184,7 @@ install(
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-
 message("madronalib destination: " ${CMAKE_INSTALL_LIBDIR} )
-
 
 #--------------------------------------------------------------------
 # install headers
@@ -223,6 +212,30 @@ else()
     #TODO OSC For win / Linux
 endif()
 
+
+#--------------------------------------------------------------------
+# Add libraries
+#--------------------------------------------------------------------
+
+# note: ffft and utf are header-only
+
+if(APPLE)
+    target_link_libraries(madronalib oscpack)
+else()
+endif()
+
+if(APPLE)
+  target_link_libraries(madronalib "-framework Carbon")
+  target_link_libraries(madronalib "-framework CoreServices")
+  target_link_libraries(madronalib "-framework AudioToolbox")
+  target_link_libraries(madronalib "-framework AudioUnit")
+  target_link_libraries(madronalib "-framework CoreAudio")
+  target_link_libraries(madronalib "-framework Foundation")
+  target_link_libraries(madronalib "-framework OpenGL")
+  target_link_libraries(madronalib "-framework GLUT")
+else(APPLE)
+  # target_link_libraries(madronalib ${DNSSD_LIBRARIES})
+endif()
 
 #--------------------------------------------------------------------
 # build examples
@@ -279,17 +292,6 @@ if(BUILD_EXAMPLES)
         RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
     )
 
-    # duplicates madronalib links, revisit
-    if(APPLE)
-        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE
-            "-framework AudioToolbox"
-            "-framework AudioUnit"
-            "-framework Accelerate"
-            "-framework CoreAudio"
-            "-framework Cocoa"
-        )
-    ENDIF(APPLE)
-
     # get directory of .app package Contents
     set(PACKAGE_DIR
         "${CMAKE_CURRENT_SOURCE_DIR}/build/bin/$<CONFIG>/${EXAMPLE_APP_NAME}.app/Contents"
@@ -307,72 +309,22 @@ if(BUILD_EXAMPLES)
 endif()
 
 #--------------------------------------------------------------------
-# Make docs (someday)
+# build tests
 #--------------------------------------------------------------------
 
+if(BUILD_TESTS)
 
-#if (DOXYGEN_FOUND AND ML_BUILD_DOCS)
-#    add_subdirectory(docs)
-#endif()
+    # madronalib procs need to be included in projects as source.
+    file(GLOB PROC_SOURCES "source/procs/*.*")
 
-
-#--------------------------------------------------------------------
-# Add libraries
-#--------------------------------------------------------------------
+   file(GLOB TEST_SOURCES "tests/*.*")
 
 
-# note: ffft and utf are header-only
 
+    add_executable(tests ${PROC_SOURCES} ${TEST_SOURCES})
+    set_target_properties(tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
+    add_dependencies(tests madronalib)
 
-if(APPLE)
-    target_link_libraries(madronalib oscpack)
-else()
+    target_link_libraries(tests madronalib)
+
 endif()
-
-
-if(APPLE)
-  target_link_libraries(madronalib "-framework Carbon")
-  target_link_libraries(madronalib "-framework CoreServices")
-  target_link_libraries(madronalib "-framework AudioToolbox")
-  target_link_libraries(madronalib "-framework AudioUnit")
-  target_link_libraries(madronalib "-framework CoreAudio")
-  target_link_libraries(madronalib "-framework Foundation")
-  target_link_libraries(madronalib "-framework OpenGL")
-  target_link_libraries(madronalib "-framework GLUT")
-else(APPLE)
-  # target_link_libraries(madronalib ${DNSSD_LIBRARIES})
-endif()
-
-
-
-#--------------------------------------------------------------------
-# unused
-#--------------------------------------------------------------------
-
-if (BUILD_SHARED_LIBS)
-    if (WIN32)
-        # The MADRONALIB DLL needs a special compile-time macro and import library name
-        set_target_properties(madronalib PROPERTIES PREFIX "" IMPORT_PREFIX "")
-
-        if (MINGW)
-            set_target_properties(madronalib PROPERTIES IMPORT_SUFFIX "dll.a")
-        else()
-            set_target_properties(madronalib PROPERTIES IMPORT_SUFFIX "dll.lib")
-        endif()
-    elseif (APPLE)
-        # Append -fno-common to the compile flags to work around a bug in
-        # Apple's GCC
-        get_target_property(madronalib_CFLAGS madronalib COMPILE_FLAGS)
-        if (NOT madronalib_CFLAGS)
-            set(madronalib_CFLAGS "")
-        endif()
-        set_target_properties(madronalib PROPERTIES
-                              COMPILE_FLAGS "${madronalib_CFLAGS} -fno-common"
-                              INSTALL_NAME_DIR "${CMAKE_INSTALL_PREFIX}/lib${LIB_SUFFIX}")
-    endif()
-
-    target_link_libraries(madronalib ${madronalib_LIBRARIES})
-endif()
-
-
-
