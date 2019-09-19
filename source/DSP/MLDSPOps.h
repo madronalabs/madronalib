@@ -52,17 +52,29 @@ namespace ml
 	struct genSequence<0, Is...> : indexSeq<Is...> {};
 
 	// fill std::array using indices
-	template<int VECTORS>
-	struct DSPVectorArrayData
-	{
-		std::array<float, kFloatsPerDSPVector*VECTORS> data;
-	};
+  template<int VECTORS>
+  struct DSPVectorArrayData
+  {
+    std::array<float, kFloatsPerDSPVector*VECTORS> data;
+  };
 
-	template<int VECTORS, typename FuncType, unsigned... Is>
-	constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(indexSeq<Is...>, FuncType func)
-	{
-		return{{{ func(Is)... }}};
-	}
+  template<int VECTORS, typename FuncType, unsigned... Is>
+  constexpr DSPVectorArrayData<VECTORS> DSPVectorArrayIter(indexSeq<Is...>, FuncType func)
+  {
+    return{{{ func(Is)... }}};
+  }
+
+  template<int VECTORS>
+  struct DSPVectorArrayDataInt
+  {
+    std::array<int, kFloatsPerDSPVector*VECTORS> data;
+  };
+
+  template<int VECTORS, typename FuncType, unsigned... Is>
+  constexpr DSPVectorArrayDataInt<VECTORS> DSPVectorArrayIterInt(indexSeq<Is...>, FuncType func)
+  {
+    return{{{ func(Is)... }}};
+  }
 
 #ifdef MANUAL_ALIGN_DSPVECTOR
 	// it seems unlikely that the constexpr ctors can be made to compile with manual alignment,
@@ -151,6 +163,7 @@ namespace ml
 		inline float* getBuffer() { return mData.asFloat; } 
 		inline const float* getConstBuffer() const { return mData.asFloat; }
 		constexpr DSPVectorArray(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+
 #endif // MANUAL_ALIGN_DSPVECTOR
 		
 		// ctor taking an int->float function
@@ -478,10 +491,11 @@ namespace ml
 		inline const float* getConstBuffer() const { return mData.asFloat; }
 		inline int32_t* getBufferInt() { return mData.asInt; }
 		inline const int32_t* getConstBufferInt() const { return mData.asInt; }
-		constexpr DSPVectorArrayInt(DSPVectorArrayData<VECTORS> v) : mData(v.data) {}
+		constexpr DSPVectorArrayInt(DSPVectorArrayDataInt<VECTORS> v) : mData(v.data) {}
 #endif // MANUAL_ALIGN_DSPVECTOR
 
-		explicit DSPVectorArrayInt() { operator=(0); }
+
+    explicit DSPVectorArrayInt() { operator=(0); }
 		explicit DSPVectorArrayInt(int32_t k) { operator=(k); }
 		
 		inline int32_t& operator[](int i) { return getBufferInt()[i]; }	
@@ -500,6 +514,32 @@ namespace ml
 			}
 			return *this;
 		}
+
+    // ctor taking an int->int function
+#ifdef MANUAL_ALIGN_DSPVECTOR
+    DSPVectorArrayInt(int(*fn)(int))
+    {
+      int *py = DSPVectorAlignIntPointer(mData.asInt);
+      for (int i = 0; i<kFloatsPerDSPVector*VECTORS; ++i)
+      {
+        py[i] = fn(i);
+      }
+    }
+#else
+    // template for a function to fill a DSPVector at compile time. usage example:
+    // int myFillFn(int i) { return i/2; }
+    // constexpr DSPVectorInt v(_fillerFn(myFillFn));
+    // where myFillFn takes some args and returns int.
+    // unfortunately this will not work with a lambda in C++11.
+    template<int FVECTORS, typename FuncType>
+    constexpr DSPVectorArrayDataInt<VECTORS> _fillerFn(FuncType func) const
+    {
+      return DSPVectorArrayIterInt<VECTORS>(genSequence<kFloatsPerDSPVector*FVECTORS>{}, func);
+    }
+
+    // sugar for less verbose constexpr ctor using (int -> int) function
+    constexpr DSPVectorArrayInt(int(*fn)(int)) : DSPVectorArrayInt(_fillerFn<VECTORS>(fn)) {}
+#endif
 
 		// copy ctor and copy assignment operator
 #ifdef MANUAL_ALIGN_DSPVECTOR
