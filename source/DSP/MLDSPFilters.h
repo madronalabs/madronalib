@@ -583,10 +583,13 @@ namespace ml
     IntegerDelay() = default;
 		IntegerDelay(int d) { setMaxDelayInSamples(d); setDelayInSamples(d); }
 		~IntegerDelay() = default;
-		
+
+    // for efficiency, no bounds checking is done. Because mLengthMask is used to constrain
+    // all reads, bad values here may make bad sounds (buffer wraps) but will not attempt to read
+    // from outside the buffer.
 		inline void setDelayInSamples(int d) 
 		{ 
-			mIntDelayInSamples = max(d, 0);
+			mIntDelayInSamples = d;
 		}
 		
 		void setMaxDelayInSamples(float d)
@@ -755,13 +758,13 @@ namespace ml
 			float fDelayInt = floorf(d);
 			int delayInt = fDelayInt;
 			float delayFrac = d - fDelayInt;
-			
-			// constrain D to [0.618 - 1.618];
-			if (delayFrac < 0.618f)
-			{
-				delayFrac += 1.f;
-				delayInt -= 1;
-			}
+
+      // constrain D to [0.618 - 1.618] if possible
+      if ((delayFrac < 0.618f) && (delayInt > 0))
+      {
+        delayFrac += 1.f;
+        delayInt -= 1;
+      }
 			mIntegerDelay.setDelayInSamples(delayInt);
 			mAllpassSection.mCoeffs = Allpass1::coeffs(delayFrac);
 		}
@@ -898,7 +901,7 @@ namespace ml
 			DSPVector vGain(-mGain);
 			DSPVector vDelayInput = vInput - vy1*vGain;
 			DSPVector y = vDelayInput*vGain + vy1;
-			vy1 = mDelay(vDelayInput, max(vDelayInSamples - DSPVector(kFloatsPerDSPVector), DSPVector(0.f)));
+			vy1 = mDelay(vDelayInput, vDelayInSamples - DSPVector(kFloatsPerDSPVector));
 			return y;
 		}
 	};
