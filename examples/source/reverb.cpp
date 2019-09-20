@@ -56,7 +56,7 @@ void initializeReverb()
 }
 
 // do filter processing in DSPVector-sized chunks.
-DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors)
+DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
 {
   const float sr = kSampleRate;
   const float RT60const = 0.001f;

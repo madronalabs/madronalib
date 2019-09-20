@@ -243,13 +243,11 @@ endif()
 
 set(ML_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
-if(BUILD_EXAMPLES)
-
-    set(EXAMPLE_APP_NAME "ReverbExample")
+function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     set(
         EXAMPLE_SOURCES
-        ${ML_ROOT}/examples/source/reverb.cpp
+        ${ML_ROOT}/examples/source/${EXAMPLE_SOURCE_FILE}
         ${ML_ROOT}/external/rtaudio/RtAudio.cpp
     )
 
@@ -280,7 +278,7 @@ if(BUILD_EXAMPLES)
 
     set_target_properties(${EXAMPLE_APP_NAME}
         PROPERTIES
-         MACOSX_BUNDLE TRUE
+        MACOSX_BUNDLE TRUE
 
         # not working, see below for workaround adding to plist 
         # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in 
@@ -305,6 +303,12 @@ if(BUILD_EXAMPLES)
         COMMAND ${ADD_PLIST_SCRIPT} NSMicrophoneUsageDescription "This app requires microphone access." "${PACKAGE_DIR}/Info.plist"
         VERBATIM
     )
+endfunction()
+
+
+if(BUILD_EXAMPLES)
+    make_example(ReverbExample reverb.cpp)
+    make_example(SineExample sine.cpp)
 
 endif()
 
@@ -316,10 +320,7 @@ if(BUILD_TESTS)
 
     # madronalib procs need to be included in projects as source.
     file(GLOB PROC_SOURCES "source/procs/*.*")
-
-   file(GLOB TEST_SOURCES "tests/*.*")
-
-
+    file(GLOB TEST_SOURCES "tests/*.*")
 
     add_executable(tests ${PROC_SOURCES} ${TEST_SOURCES})
     set_target_properties(tests PROPERTIES EXCLUDE_FROM_ALL TRUE)

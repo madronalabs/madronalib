@@ -84,7 +84,14 @@ int RunRtAudioExample(int exampleInputChannels, int exampleOutputChannels, int s
 
   try
   {
-    adac.openStream( &oParams, &iParams, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, callbackFn, callbackData, &options );
+    if(exampleInputChannels > 0)
+    {
+      adac.openStream( &oParams, &iParams, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, callbackFn, callbackData, &options );
+    }
+    else
+    {
+      adac.openStream( &oParams, nullptr, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, callbackFn, callbackData, &options );
+    }
   }
   catch ( RtAudioError& e )
   {
