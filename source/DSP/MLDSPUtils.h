@@ -1,6 +1,6 @@
 
 // MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2018 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2019 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -39,29 +39,32 @@ namespace ml
 			const float a3 = 0.083578947;
 			const float a4 = 0.006947368;
 			return a0 - a1*cosf(kTwoPi*x) + a2*cosf(2.f*kTwoPi*x) - a3*cosf(3.f*kTwoPi*x) + a4*cosf(4.f*kTwoPi*x); } );
-	}
+	} 
 	
 	// VectorProcessBuffer: utility class to serve a main loop with varying arbitrary chunk sizes, buffer inputs and outputs,
 	// and compute DSP in DSPVector-sized chunks
-	template<int CHANNELS, int MAX_FRAMES>
+	template<int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 	class VectorProcessBuffer
 	{
 	public:
 		VectorProcessBuffer()
 		{
-			for(int i=0; i < CHANNELS; ++i)
-			{
-				mInputBuffers[i].resize(MAX_FRAMES);
-				mOutputBuffers[i].resize(MAX_FRAMES);
-			}
-		}
+      for (int i = 0; i < IN_CHANNELS; ++i)
+      {
+        mInputBuffers[i].resize(MAX_FRAMES);
+      }
+      for (int i = 0; i < OUT_CHANNELS; ++i)
+      {
+        mOutputBuffers[i].resize(MAX_FRAMES);
+      }
+    }
 		
 		~VectorProcessBuffer(){}
 		
-		void process(const float** inputs, float** outputs, int nChans, int nFrames, std::function<DSPVectorArray<CHANNELS>(const DSPVectorArray<CHANNELS>&, int chans)> fn)
+		void process(const float** inputs, float** outputs, int nFrames, std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)> fn)
 		{
       // write from inputs to inputBuffers
-      for(int c = 0; c < nChans; c++)
+      for(int c = 0; c < IN_CHANNELS; c++)
 			{
         if(inputs[c])
         {
@@ -69,28 +72,28 @@ namespace ml
         }
 			}
 			
-			DSPVectorArray<CHANNELS> inputVectors;
-			DSPVectorArray<CHANNELS> outputVectors;
+			DSPVectorArray<IN_CHANNELS> inputVectors;
+			DSPVectorArray<OUT_CHANNELS> outputVectors;
 			
 			// process
 			while(mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
 			{
 				// buffers to process input
-				for(int c = 0; c < nChans; c++)
+				for(int c = 0; c < IN_CHANNELS; c++)
 				{
 					inputVectors.row(c) = mInputBuffers[c].read();
 				}
 				
-				outputVectors = fn(inputVectors, nChans);
+				outputVectors = fn(inputVectors);
 				
-				for(int c = 0; c < nChans; c++)
+				for(int c = 0; c < OUT_CHANNELS; c++)
 				{
 					mOutputBuffers[c].write(outputVectors.row(c));
 				}
 			}
 			
 			// read from outputBuffers to outputs
-			for(int c = 0; c < nChans; c++)
+			for(int c = 0; c < OUT_CHANNELS; c++)
 			{
         if(outputs[c])
         {
@@ -100,8 +103,8 @@ namespace ml
 		}
 		
 	private:
-		std::array<ml::DSPBuffer, CHANNELS> mInputBuffers;
-		std::array<ml::DSPBuffer, CHANNELS> mOutputBuffers;
+		std::array<ml::DSPBuffer, IN_CHANNELS> mInputBuffers;
+		std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
 	};
 	
 	

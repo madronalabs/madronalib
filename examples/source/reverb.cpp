@@ -6,12 +6,13 @@
 
 using namespace ml;
 
-constexpr int kProcessChannels = 2;
+constexpr int kInputChannels = 2;
+constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;
 constexpr int kMaxProcessBlockFrames = 4096;
 
 // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
-VectorProcessBuffer<kProcessChannels, kMaxProcessBlockFrames> processBuffer;
+VectorProcessBuffer<kInputChannels, kOutputChannels, kMaxProcessBlockFrames> processBuffer;
 
 // log projection for decay parameter
 constexpr float kDecayLo = 0.8, kDecayHi = 20;
@@ -66,7 +67,7 @@ void initializeReverb()
 }
 
 // do filter processing in DSPVector-sized chunks.
-DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chans)
+DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors)
 {
   const float sr = kSampleRate;
   const float RT60const = 0.001f;
@@ -130,7 +131,7 @@ DSPVectorArray<2> processVectors(const DSPVectorArray<2>& inputVectors, int chan
 
 // adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
 int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-          double /*streamTime*/, RtAudioStreamStatus status, void *data )
+          double /*streamTime*/, RtAudioStreamStatus status , void *data )
 {
   const float *pInputBuffer = reinterpret_cast<const float *>(inputBuffer);
   float *pOutputBuffer = reinterpret_cast<float *>(outputBuffer);
@@ -138,18 +139,21 @@ int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned 
   if ( status ) std::cout << "Stream over/underflow detected." << std::endl;
 
   // get pointers to uninterlaced input and output frames for each channel.
-  const float* inputs[kProcessChannels]{};
-  float* outputs[kProcessChannels]{};
-  for(int i=0; i<kProcessChannels; ++i)
+  const float* inputs[kInputChannels]{};
+  float* outputs[kOutputChannels]{};
+  for (int i = 0; i<kInputChannels; ++i)
   {
     inputs[i] = pInputBuffer + i*nBufferFrames;
+  }
+  for (int i = 0; i<kOutputChannels; ++i)
+  {
     outputs[i] = pOutputBuffer + i*nBufferFrames;
   }
 
-  processBuffer.process(inputs, outputs, kProcessChannels, nBufferFrames,
-                        [&](const DSPVectorArray<2> inputVectors, int chans)
+  processBuffer.process(inputs, outputs, nBufferFrames,
+                        [&](const DSPVectorArray<2> inputVectors)
                         {
-                          return processVectors(inputVectors, chans);
+                          return processVectors(inputVectors);
                         } );
   return 0;
 }
@@ -184,27 +188,30 @@ int main( int argc, char *argv[] )
   // Set the same number of channels for both input and output.
   unsigned int bufferFrames = 512;
   RtAudio::StreamParameters iParams, oParams;
-  iParams.deviceId = adac.getDefaultInputDevice();
-  iParams.nChannels = kProcessChannels;
+  iParams.deviceId = 0;// adac.getDefaultInputDevice();
+  iParams.nChannels = 0;// kInputChannels;
   iParams.firstChannel = 0;
   oParams.deviceId = adac.getDefaultOutputDevice();
-  oParams.nChannels = kProcessChannels;
+  oParams.nChannels = kOutputChannels;
   oParams.firstChannel = 0;
 
   RtAudio::StreamOptions options;
   options.flags |= RTAUDIO_NONINTERLEAVED;
 
-  auto bufferBytes = bufferFrames*kProcessChannels*sizeof(float);
 
   initializeReverb();
 
   try
   {
-    adac.openStream( &oParams, &iParams, RTAUDIO_FLOAT32, kSampleRate, &bufferFrames, &callProcessVectorsBuffered, (void *)&bufferBytes, &options );
+    adac.openStream( &oParams, /*&iParams*/ 0, RTAUDIO_FLOAT32, kSampleRate, &bufferFrames, &callProcessVectorsBuffered, nullptr, &options );
   }
   catch ( RtAudioError& e )
   {
     std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+
+#ifdef _WINDOWS
+    system("pause");
+#endif
     exit( 1 );
   }
 
@@ -229,5 +236,8 @@ int main( int argc, char *argv[] )
 
 cleanup:
   if ( adac.isStreamOpen() ) adac.closeStream();
+#ifdef _WINDOWS
+  system("pause");
+#endif
   return 0;
 }
