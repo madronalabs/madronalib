@@ -63,43 +63,60 @@ namespace ml
 		
 		void process(const float** inputs, float** outputs, int nFrames, std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)> fn)
 		{
-      // write from inputs to inputBuffers
-      for(int c = 0; c < IN_CHANNELS; c++)
-			{
-        if(inputs[c])
+      DSPVectorArray<IN_CHANNELS> inputVectors;
+      DSPVectorArray<OUT_CHANNELS> outputVectors;
+
+      if(IN_CHANNELS > 0)
+      {
+        // write from inputs to inputBuffers
+        for(int c = 0; c < IN_CHANNELS; c++)
         {
-          mInputBuffers[c].write(inputs[c], nFrames);
+          if(inputs[c])
+          {
+            mInputBuffers[c].write(inputs[c], nFrames);
+          }
         }
-			}
-			
-			DSPVectorArray<IN_CHANNELS> inputVectors;
-			DSPVectorArray<OUT_CHANNELS> outputVectors;
-			
-			// process
-			while(mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
-			{
-				// buffers to process input
-				for(int c = 0; c < IN_CHANNELS; c++)
-				{
-					inputVectors.row(c) = mInputBuffers[c].read();
-				}
-				
-				outputVectors = fn(inputVectors);
-				
-				for(int c = 0; c < OUT_CHANNELS; c++)
-				{
-					mOutputBuffers[c].write(outputVectors.row(c));
-				}
-			}
-			
-			// read from outputBuffers to outputs
-			for(int c = 0; c < OUT_CHANNELS; c++)
-			{
+
+        // process
+        while(mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
+        {
+          // buffers to process input
+          for(int c = 0; c < IN_CHANNELS; c++)
+          {
+            inputVectors.row(c) = mInputBuffers[c].read();
+          }
+
+          outputVectors = fn(inputVectors);
+
+          for(int c = 0; c < OUT_CHANNELS; c++)
+          {
+            mOutputBuffers[c].write(outputVectors.row(c));
+          }
+        }
+
+       }
+      else
+      {
+        // no inputs, process until we have nFrames of output
+        while(mOutputBuffers[0].getReadAvailable() < nFrames)
+        {
+          outputVectors = fn(inputVectors);
+
+          for(int c = 0; c < OUT_CHANNELS; c++)
+          {
+            mOutputBuffers[c].write(outputVectors.row(c));
+          }
+        }
+      }
+
+      // read from outputBuffers to outputs
+      for(int c = 0; c < OUT_CHANNELS; c++)
+      {
         if(outputs[c])
         {
           mOutputBuffers[c].read(outputs[c], nFrames);
         }
-			}
+      }
 		}
 		
 	private:
