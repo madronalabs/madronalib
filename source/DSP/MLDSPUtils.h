@@ -46,7 +46,10 @@ namespace ml
 	template<int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 	class VectorProcessBuffer
 	{
-	public:
+    DSPVectorArray<IN_CHANNELS> _inputVectors;
+    DSPVectorArray<OUT_CHANNELS> _outputVectors;
+
+  public:
 		VectorProcessBuffer()
 		{
       for (int i = 0; i < IN_CHANNELS; ++i)
@@ -63,9 +66,6 @@ namespace ml
 		
 		void process(const float** inputs, float** outputs, int nFrames, std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)> fn)
 		{
-      DSPVectorArray<IN_CHANNELS> inputVectors;
-      DSPVectorArray<OUT_CHANNELS> outputVectors;
-
       if(IN_CHANNELS > 0)
       {
         // write from inputs to inputBuffers
@@ -83,28 +83,27 @@ namespace ml
           // buffers to process input
           for(int c = 0; c < IN_CHANNELS; c++)
           {
-            inputVectors.row(c) = mInputBuffers[c].read();
+            _inputVectors.row(c) = mInputBuffers[c].read();
           }
 
-          outputVectors = fn(inputVectors);
+          _outputVectors = fn(_inputVectors);
 
           for(int c = 0; c < OUT_CHANNELS; c++)
           {
-            mOutputBuffers[c].write(outputVectors.row(c));
+            mOutputBuffers[c].write(_outputVectors.row(c));
           }
         }
-
        }
       else
       {
         // no inputs, process until we have nFrames of output
         while(mOutputBuffers[0].getReadAvailable() < nFrames)
         {
-          outputVectors = fn(inputVectors);
+          _outputVectors = fn(_inputVectors);
 
           for(int c = 0; c < OUT_CHANNELS; c++)
           {
-            mOutputBuffers[c].write(outputVectors.row(c));
+            mOutputBuffers[c].write(_outputVectors.row(c));
           }
         }
       }
@@ -128,6 +127,5 @@ namespace ml
 	// horiz -> vert -> horiz adapters can go here
 	
 
-	
 }
 

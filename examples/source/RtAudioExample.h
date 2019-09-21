@@ -12,12 +12,12 @@ template<int IN_CHANS, int OUT_CHANS>
 int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
                                double /*streamTime*/, RtAudioStreamStatus status , void *callbackData )
 {
+  // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
+  static VectorProcessBuffer<IN_CHANS, OUT_CHANS, kMaxProcessBlockFrames> processBuffer;
+
   // get std::function ptr from callback data
   using processFnType = std::function<DSPVectorArray<OUT_CHANS>(const DSPVectorArray<IN_CHANS>&)>;
   auto fp = reinterpret_cast<processFnType *>(callbackData);
-
-  // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
-  static VectorProcessBuffer<IN_CHANS, OUT_CHANS, kMaxProcessBlockFrames> processBuffer;
 
   const float *pInputBuffer = reinterpret_cast<const float *>(inputBuffer);
   float *pOutputBuffer = reinterpret_cast<float *>(outputBuffer);

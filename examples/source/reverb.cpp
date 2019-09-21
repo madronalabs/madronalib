@@ -55,7 +55,8 @@ void initializeReverb()
   mDelayR.setMaxDelayInSamples(3500.f);
 }
 
-// do filter processing in DSPVector-sized chunks.
+// processVectors() does all of the audio processing, in DSPVector-sized chunks.
+// It is called every time a new buffer of audio is needed.
 DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
 {
   const float sr = kSampleRate;
@@ -87,7 +88,7 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   DSPVector vt9 = max(DSPVector(0.111*sr*vSmoothDelay), vMin);
   DSPVector vt10 = max(DSPVector(0.096*sr*vSmoothDelay), vMin);
 
-  // sum stereo inputs and diffuse with allpass filters
+  // sum stereo inputs and diffuse with four allpass filters in series
   DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
   DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
 
@@ -95,7 +96,7 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   DSPVector vDelayTimeL = max(vSmoothDelay*DSPVector(0.0313*sr) - vMin, DSPVector(0.f));
   DSPVector vDelayTimeR = max(vSmoothDelay*DSPVector(0.0371*sr) - vMin, DSPVector(0.f));
 
-  // sum diffused input with feedback, and apply late diffusion
+  // sum diffused input with feedback, and apply late diffusion of two more allpass filters to each channel
   DSPVector vTapL = mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7);
   DSPVector vTapR = mAp8(mAp6(diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR), vt6), vt8);
 
@@ -107,11 +108,10 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
 
 int main( int argc, char *argv[] )
 {
-  using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
-
   initializeReverb();
 
+  // This code adapts the RtAudio loop to our buffered processing and runs the example.
+  using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
   processFnType processFn([&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); });
-
   return RunRtAudioExample(kInputChannels, kOutputChannels, kSampleRate, &callProcessVectorsBuffered<kInputChannels, kOutputChannels>, &processFn);
 }
