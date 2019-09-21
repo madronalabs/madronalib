@@ -6,6 +6,8 @@
 // various operations on signals
 // TODO organize
 
+#include <cstring>
+
 #include "MLMatrix.h"
 
 // ----------------------------------------------------------------

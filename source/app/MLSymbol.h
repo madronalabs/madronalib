@@ -24,6 +24,7 @@
 #include <array>
 #include <vector>
 #include <iostream>
+#include <cstring>
 #include <mutex>
 
 #include "MLText.h"
