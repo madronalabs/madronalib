@@ -7,6 +7,7 @@
 
 #include <initializer_list>
 #include <cassert>
+#include <cstring>
 #include <stdint.h>
 #include <vector>
 #include <iostream>

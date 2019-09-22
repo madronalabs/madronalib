@@ -6,6 +6,8 @@
 //
 //
 
+#include <cstring>
+
 #include "MLTextUtils.h"
 #include "MLScalarMath.h"
 #include "MLMemoryUtils.h"

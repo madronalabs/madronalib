@@ -6,6 +6,7 @@
 //
 
 #include <iostream>
+#include <cstring>
 #include <vector>
 
 #include "MLMemoryUtils.h"
