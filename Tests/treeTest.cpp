@@ -13,6 +13,7 @@
 #include <thread>
 #include <memory>
 #include <numeric>
+#include <limits>
 
 #include "mldsp.h"
 #include "catch.hpp"
@@ -288,22 +289,11 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // floatNumberToText tests
   NoiseGen n;
-  for(int i=0; i<40; ++i)
+  for(int i=0; i<80; ++i)
   {
-    float v = n.getSample() * exp(i - 30 + 0.f);
+    float v = (1.0f + fabs(n.getSample())*9.f) * powf(10.f, i - 40 + 0.f) * (i&1 ? -1 : 1);
     std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 5) << "\n";
   }
-
-  /*
-  TODO MAXFLOAT on Windows
-  std::vector<float> vf {MAXFLOAT, MAXFLOAT/10, MAXFLOAT/1000, 10000001, 32768, 10000, 100, 13.00700, 1.004, 1.00001, 1, 0.1250001, 0.125, 0.1249999, 0., 3.004e-02, 3.004e-07, std::numeric_limits<float>::min()};
-  for(auto v : vf)
-  {
-    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 8) << "\n";
-  }
-  */
-
-
 }
 
 
