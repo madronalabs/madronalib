@@ -18,7 +18,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 # project and version
 #--------------------------------------------------------------------
 
-project(madronalib CXX)
+project(madronalib) 
 
 set(madronalib_VERSION_MAJOR "0")
 set(madronalib_VERSION_MINOR "1")
@@ -26,8 +26,6 @@ set(madronalib_VERSION_PATCH "0")
 set(madronalib_VERSION_EXTRA "")
 set(madronalib_VERSION "${madronalib_VERSION_MAJOR}.${madronalib_VERSION_MINOR}")
 set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${madronalib_VERSION_EXTRA}")
-
-# set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 option(BUILD_EXAMPLES "Build the examples" ON)
 option(BUILD_TESTS "Build the ML test programs" ON)
@@ -79,18 +77,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 if(APPLE)
-	include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack/ip)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack/osc)
+    include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/oscpack/zeroconf)
 else()
-endif()
-
-#--------------------------------------------------------------------
-# Add subdirectories
-#--------------------------------------------------------------------
-
-if(APPLE)
-	add_subdirectory(external/oscpack)
-else()
-  #TODO OSC for Windows / Linux
 endif()
 
 
@@ -107,9 +97,6 @@ file(GLOB DSP_HEADERS "source/DSP/*.h")
 file(GLOB MATRIX_SOURCES "source/matrix/*.cpp")
 file(GLOB MATRIX_HEADERS "source/matrix/*.h")
 
-file(GLOB NETWORKING_SOURCES "source/networking/*.cpp")
-file(GLOB NETWORKING_HEADERS "source/networking/*.h")
-
 file(GLOB PROC_SOURCES "source/procs/*.cpp")
 file(GLOB PROC_HEADERS "source/procs/*.h")
 
@@ -119,6 +106,20 @@ set(JSON_SOURCES "external/cJSON/cJSON.c")
 file(GLOB OSC_HEADERS_IP "external/oscpack/ip/*.h")
 file(GLOB OSC_HEADERS_OSC "external/oscpack/osc/*.h")
 file(GLOB OSC_HEADERS_ZEROCONF "external/oscpack/zeroconf/*.h")
+
+file(GLOB OSC_SOURCES_IP "external/oscpack/ip/*.cpp")
+file(GLOB OSC_SOURCES_OSC "external/oscpack/osc/*.cpp")
+file(GLOB OSC_SOURCES_ZEROCONF "external/oscpack/zeroconf/*.cpp")
+
+if(APPLE)
+    file(GLOB OSC_SOURCES_NATIVE "external/oscpack/ip/posix/*.cpp")
+else()
+   #TODO OSC for windows
+   file(GLOB OSC_SOURCES_NATIVE "external/oscpack/ip/win32/*.cpp")
+endif()
+
+file(GLOB NETWORKING_SOURCES "source/networking/*.cpp")
+file(GLOB NETWORKING_HEADERS "source/networking/*.h")
 
 set(OSC_HEADERS
     ${OSC_HEADERS_IP}
@@ -137,23 +138,26 @@ set(madronalib_SOURCES
     ${MATRIX_HEADERS}
     ${PROC_SOURCES}
     ${PROC_HEADERS}
-    ${AES_SOURCES}
     ${JSON_SOURCES}
+    ${AES_SOURCES}
     )
 
 if(APPLE)
   list(APPEND madronalib_SOURCES ${NETWORKING_SOURCES} )
+  list(APPEND madronalib_SOURCES ${OSC_SOURCES_IP} )
+  list(APPEND madronalib_SOURCES ${OSC_SOURCES_OSC} )
+  list(APPEND madronalib_SOURCES ${OSC_SOURCES_ZEROCONF} )
+  list(APPEND madronalib_SOURCES ${OSC_SOURCES_NATIVE} )
 else()
   #TODO OSC for windows
 endif()
-
 
 
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 #--------------------------------------------------------------------
-# set source groups for source above
+# set source groups for some source above
 #--------------------------------------------------------------------
 
 source_group(dsp REGULAR_EXPRESSION "DSP/.*")
@@ -218,11 +222,7 @@ endif()
 #--------------------------------------------------------------------
 
 # note: ffft and utf are header-only
-
-if(APPLE)
-    target_link_libraries(madronalib oscpack)
-else()
-endif()
+# cJSON, aes256 and others added as source
 
 if(APPLE)
   target_link_libraries(madronalib "-framework Carbon")

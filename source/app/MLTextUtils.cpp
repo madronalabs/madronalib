@@ -167,10 +167,9 @@ namespace ml { namespace textUtils {
       1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38
     };
 
-    float value = f;
     char buf[kMaxDigits];
     char* writePtr = buf;
-
+    float value = f;
     const int p = std::min(precision, kMaxPrecision);
     const float epsilon = std::max(fabs(f*powersOfTen[kTableZeroOffset - p]), std::numeric_limits<float>::min());
 
@@ -201,8 +200,9 @@ namespace ml { namespace textUtils {
       int absExponent = std::abs(exponent);
 
       if(absExponent < kScientificStart)
+      // write in decimal notation
       {
-        // write any leading zeroes
+        // first write any leading zeroes
         if(exponent < -1)
         {
           *writePtr++ = '0';
@@ -218,6 +218,7 @@ namespace ml { namespace textUtils {
           *writePtr++ = '0';
         }
         
+        // then write nonzero digits
         do
         {
           if(exponent == -1)
@@ -226,13 +227,13 @@ namespace ml { namespace textUtils {
           }
           int onesInt = value * powersOfTen[kTableZeroOffset - exponent];
           *writePtr++ = '0' + onesInt;
-          if(writePtr - buf > kMaxDigits) return TextFragment{"overflow"};
           value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
           exponent--;
         }
         while ((value > epsilon) || (exponent >= 0));
       }
-      else // scientific notation
+      else
+      // write in scientific notation
       {
         const char exponentSign = exponent >= 0 ? '+' : '-';
 
