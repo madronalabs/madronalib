@@ -247,7 +247,7 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     set(
         EXAMPLE_SOURCES
-        ${ML_ROOT}/examples/source/${EXAMPLE_SOURCE_FILE}
+        ${ML_ROOT}/examples/rtaudio/${EXAMPLE_SOURCE_FILE}
         ${ML_ROOT}/external/rtaudio/RtAudio.cpp
     )
 
@@ -271,7 +271,7 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     endif()
 
     target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
-        ${ML_ROOT}/examples/source
+        ${ML_ROOT}/examples/rtaudio
         ${ML_ROOT}/external/rtaudio
     )
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)

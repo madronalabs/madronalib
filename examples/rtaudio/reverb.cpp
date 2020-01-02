@@ -100,9 +100,11 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   DSPVector vTapL = mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7);
   DSPVector vTapR = mAp8(mAp6(diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR), vt6), vt8);
 
+  // apply final allpass filter and gain, and store the feedback
   mvFeedbackR = mAp9(vTapL, vt9)*vSmoothFeedback;
   mvFeedbackL = mAp10(vTapR, vt10)*vSmoothFeedback;
 
+  // append the left and right taps and return the stereo output
   return append(vTapL, vTapR);
 }
 
