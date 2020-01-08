@@ -32,38 +32,51 @@ namespace ml {
 class TrackerController : public EditControllerEx1, public IMidiMapping
 {
 public:
+  // create function required for Plug-in factory,
+  // it will be called to create new instances of this controller
+  static FUnknown* createInstance (void*) { return (IEditController*)new TrackerController; }
+
 	TrackerController ();
 	~TrackerController ();
 	
-	tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;
+  //---from IPluginBase--------
+  tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;
 	tresult PLUGIN_API terminate () SMTG_OVERRIDE;
+  
+  //---from EditController-----
+  tresult PLUGIN_API setComponentState (IBStream* state) SMTG_OVERRIDE;
+
 
 	tresult PLUGIN_API getParamStringByValue (ParamID tag, ParamValue valueNormalized, String128 string) SMTG_OVERRIDE;
 	tresult PLUGIN_API getParamValueByString (ParamID tag, TChar* string, ParamValue& valueNormalized) SMTG_OVERRIDE;
 
 //-----------------------------------------------------------------------------
-	static FUnknown* createInstance (void*) { return (IEditController*)new TrackerController; }
 	static FUID uid;
   
   
-  // from BaseController
 
-  tresult PLUGIN_API setComponentState (IBStream* state) SMTG_OVERRIDE;
   tresult PLUGIN_API notify (IMessage* message) SMTG_OVERRIDE;
-  
-  int32 PLUGIN_API getProgramListCount () SMTG_OVERRIDE;
-  tresult PLUGIN_API getProgramListInfo (int32 listIndex, ProgramListInfo& info /*out*/) SMTG_OVERRIDE;
-  tresult PLUGIN_API getProgramName (ProgramListID listId, int32 programIndex, String128 name /*out*/) SMTG_OVERRIDE;
-  
+   
   tresult PLUGIN_API getMidiControllerAssignment (int32 busIndex, int16 channel, CtrlNumber midiControllerNumber, ParamID& tag/*out*/) SMTG_OVERRIDE;
   
-  ParameterContainer& getParameters () { return parameters; }
+  ParameterContainer& getParameters () { return EditController::parameters; }
   
   //-----------------------------
   DELEGATE_REFCOUNT (EditControllerEx1)
   tresult PLUGIN_API queryInterface (const char* iid, void** obj) SMTG_OVERRIDE;
   //-----------------------------
   
+  
+  //-----------------------------------------------------------------------------
+  // parameter IDs
+  enum
+  {
+    kGainId = 0,  ///< for the gain value (is automatable)
+    kVuPPMId,    ///< for the Vu value return to host (ReadOnly parameter for our UI)
+    kBypassId    ///< Bypass value (we will handle the bypass process) (is automatable)
+  };
+
+  /*
   enum {
     kMagicNumber = 9999999,
     kBypassParam = 'bpas',
@@ -76,7 +89,7 @@ public:
     kSustainParam = 'sust',
     kAftertouchParam = 'aftt',
   };
-
+*/
   
 protected:
   double getSampleRate () const { return sampleRate; }

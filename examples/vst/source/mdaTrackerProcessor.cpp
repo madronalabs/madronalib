@@ -1,23 +1,16 @@
-/*
- *  mdaTrackerProcessor.cpp
- *  mda-vst3
- *
- *  Created by Arne Scheffler on 6/14/08.
- *
- *  mda VST Plug-ins
- *
- *  Copyright (c) 2008 Paul Kellett
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
+// VST3 example code for madronalib
+// (c) 2020, Madrona Labs LLC, all rights reserved
+// see LICENSE.txt for details
+
 
 #include "mdaTrackerProcessor.h"
 #include "mdaTrackerController.h"
 
+#include "public.sdk/source/vst/vstaudioprocessoralgo.h"
+
+
 #include "pluginterfaces/vst/ivstparameterchanges.h"
+#include "pluginterfaces/vst/vstpresetkeys.h"  // for use of IStreamAttributes
 #include "pluginterfaces/base/ibstream.h"
 
 #include <cmath>
@@ -32,25 +25,15 @@ namespace Vst {
 namespace ml {
 
 //-----------------------------------------------------------------------------
-FUID TrackerProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21B8B40);
-
-//-----------------------------------------------------------------------------
-void TrackerProcessor::allocParameters (int32 _numParams)
-{
-  if (params)
-    return;
-  numParams = _numParams;
-  params = new ParamValue[numParams];
-}
+FUID TrackerProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21A7B40);
 
 //-----------------------------------------------------------------------------
 TrackerProcessor::TrackerProcessor ()
 {
+  // register its editor class (the same than used in againentry.cpp)
 	setControllerClass (TrackerController::uid);
-	allocParameters (8);
 }
 
-//-----------------------------------------------------------------------------
 TrackerProcessor::~TrackerProcessor ()
 {
 }
@@ -58,111 +41,123 @@ TrackerProcessor::~TrackerProcessor ()
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API TrackerProcessor::initialize (FUnknown* context)
 {
-	tresult res = AudioEffect::initialize (context);
-	if (res == kResultTrue)
-	{
-		addAudioInput (USTRING("Stereo In"), SpeakerArr::kStereo);
-		addAudioOutput (USTRING("Stereo Out"), SpeakerArr::kStereo);
+  //---always initialize the parent-------
+  tresult result = AudioEffect::initialize (context);
 
-		params[0] = (float)0.00; //Mode
-		params[1] = (float)1.00; //Dynamics
-		params[2] = (float)1.00; //Mix
-		params[3] = (float)0.97; //Tracking
-		params[4] = (float)0.50; //Trnspose
-		params[5] = (float)0.80; //Maximum Hz
-		params[6] = (float)0.50; //Trigger dB
-		params[7] = (float)0.50; //Output
-
-	}
-	return res;
-}
-
-
-//-----------------------------------------------------------------------------
-void TrackerProcessor::setBypass (bool state, int32 sampleOffset)
-{
-  if (state != bypassState)
+  if (result != kResultOk)
   {
-    bypassState = state;
+    return result;
   }
+  
+  //---create Audio In/Out buses------
+  // we want a stereo Input and a Stereo Output
+  addAudioInput (STR16 ("Stereo In"), SpeakerArr::kStereo);
+  addAudioOutput (STR16 ("Stereo Out"), SpeakerArr::kStereo);
+  
+  return kResultOk;
 }
 
-//-----------------------------------------------------------------------------
-void TrackerProcessor::setParameter (ParamID index, ParamValue newValue, int32 sampleOffset)
+tresult PLUGIN_API TrackerProcessor::terminate ()
 {
-  if (numParams > index)
-    params[index] = newValue;
+  return AudioEffect::terminate ();
 }
 
-bool TrackerProcessor::processParameterChanges (IParameterChanges* changes)
+tresult PLUGIN_API TrackerProcessor::setActive (TBool state)
 {
-  if (changes)
-  {
-    int32 count = changes->getParameterCount ();
-    if (count > 0)
-    {
-      for (int32 i = 0; i < count; i++)
-      {
-        IParamValueQueue* queue = changes->getParameterData (i);
-        if (!queue)
-          continue;
-        ParamID paramId = queue->getParameterId ();
-        int32 pointCount = queue->getPointCount ();
-        int32 sampleOffset;
-        ParamValue value;
-        queue->getPoint (pointCount - 1, sampleOffset, value);
-        if (paramId == TrackerController::kBypassParam)
-          setBypass (value >= 0.5, sampleOffset);
-        else if (paramId == TrackerController::kPresetParam)
-          setCurrentProgramNormalized (value);
-        else
-          setParameter (paramId, value, sampleOffset);
-      }
-      return true;
-    }
-  }
-  return false;
+  return AudioEffect::setActive (state);
 }
-
 
 tresult PLUGIN_API TrackerProcessor::process (ProcessData& data)
 {
-  if (processParameterChanges (data.inputParameterChanges))
-  {
-    // recalc internal coeffs from param— TODO only on change
-    wet = (float)pow (10.0, 2.0*params[7] - 1.0);
-  }
+  processParameterChanges (data.inputParameterChanges);
   
   // TODO for instruments
   // processEvents (data.inputEvents);
   
-  if (data.numSamples > 0)
-  {
-    doProcessing (data);
-  }
+  processSignals(data);
+  
   return kResultTrue;
 }
 
 
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerProcessor::terminate ()
+tresult PLUGIN_API TrackerProcessor::setState (IBStream* state)
 {
-	return AudioEffect::terminate ();
-}
-
-//-----------------------------------------------------------------------------
-
-tresult PLUGIN_API TrackerProcessor::setActive (TBool state)
-{
-  if (state)
+  // called when we load a preset, the model has to be reloaded
+  
+  IBStreamer streamer (state, kLittleEndian);
+  float savedGain = 0.f;
+  if (streamer.readFloat (savedGain) == false)
+    return kResultFalse;
+  
+  float savedGainReduction = 0.f;
+  if (streamer.readFloat (savedGainReduction) == false)
+    return kResultFalse;
+  
+  int32 savedBypass = 0;
+  if (streamer.readInt32 (savedBypass) == false)
+    return kResultFalse;
+  
+  fGain = savedGain;
+  fGainReduction = savedGainReduction;
+  bBypass = savedBypass > 0;
+  
+  // Example of using the IStreamAttributes interface
+  FUnknownPtr<IStreamAttributes> stream (state);
+  if (stream)
   {
-    // dphi = 100.f/getSampleRate (); //initial pitch
+    IAttributeList* list = stream->getAttributes ();
+    if (list)
+    {
+      // get the current type (project/Default..) of this state
+      String128 string = {0};
+      if (list->getString (PresetAttributes::kStateType, string, 128 * sizeof (TChar)) ==
+          kResultTrue)
+      {
+        UString128 tmp (string);
+        char ascii[128];
+        tmp.toAscii (ascii, 128);
+        if (!strncmp (ascii, StateType::kProject, strlen (StateType::kProject)))
+        {
+          // we are in project loading context...
+        }
+      }
+      
+      // get the full file path of this state
+      TChar fullPath[1024];
+      memset (fullPath, 0, 1024 * sizeof (TChar));
+      if (list->getString (PresetAttributes::kFilePathStringType, fullPath,
+                           1024 * sizeof (TChar)) == kResultTrue)
+      {
+        // here we have the full path ...
+      }
+    }
   }
-  return AudioEffect::setActive (state);
+  
+  return kResultOk;
 }
 
+tresult PLUGIN_API TrackerProcessor::getState (IBStream* state)
+{
+  // here we need to save the model
+  
+  IBStreamer streamer (state, kLittleEndian);
+  
+  streamer.writeFloat (fGain);
+  streamer.writeFloat (fGainReduction);
+  streamer.writeInt32 (bBypass ? 1 : 0);
+  
+  return kResultOk;
+}
 
-//-----------------------------------------------------------------------------
+tresult PLUGIN_API TrackerProcessor::setupProcessing (ProcessSetup& newSetup)
+{
+  // called before the process call, always in a disable state (not active)
+  // here we could keep a trace of the processing mode (offline,...) for example.
+  // currentProcessMode = newSetup.processMode;
+  
+  return AudioEffect::setupProcessing (newSetup);
+}
+
 tresult PLUGIN_API TrackerProcessor::setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts)
 {
   if (numIns)
@@ -178,103 +173,156 @@ tresult PLUGIN_API TrackerProcessor::setBusArrangements (SpeakerArrangement* inp
   return kResultTrue;
 }
 
-
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerProcessor::setState (IBStream* state)
+tresult PLUGIN_API TrackerProcessor::canProcessSampleSize (int32 symbolicSampleSize)
 {
-  if (!state)
-    return kResultFalse;
+  if (symbolicSampleSize == kSample32)
+    return kResultTrue;
   
-  IBStreamer streamer (state, kLittleEndian);
+  // we support double processing
+  if (symbolicSampleSize == kSample64)
+    return kResultTrue;
   
-  uint32 temp;
-  streamer.readInt32u (temp); // numParams or Header
-  
-  if (temp == TrackerController::kMagicNumber)
-  {
-    // read current Program
-    streamer.readInt32u (temp);
-    setCurrentProgram (temp);
-    
-    streamer.readInt32u (temp);
-  }
-  
-  // read each parameter
-  for (uint32 i = 0; i < temp, i < numParams; i++)
-  {
-    streamer.readDouble (params[i]);
-  }
-  
-  // bypass
-  streamer.readInt32u (temp);
-  bypassState = temp > 0;
-  
-  return kResultTrue;
+  return kResultFalse;
 }
 
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerProcessor::getState (IBStream* state)
+tresult PLUGIN_API TrackerProcessor::notify (IMessage* message)
 {
-  if (!state)
-    return kResultFalse;
-  
-  IBStreamer streamer (state, kLittleEndian);
-  
-  if (hasProgram ())
-  {
-    // save header key
-    uint32 temp = TrackerController::kMagicNumber;
-    streamer.writeInt32u (temp);
-    
-    // save program
-    temp = getCurrentProgram ();
-    streamer.writeInt32u (temp);
-  }
-  
-  // save number of parameter
-  streamer.writeInt32u (numParams);
-  
-  // save each parameter
-  for (uint32 i = 0; i < numParams; i++)
-  {
-    streamer.writeDouble (params[i]);
-  }
-  
-  // save bypass
-  streamer.writeInt32u (bypassState ? 1 : 0);
-  
-  return kResultTrue;
+  // we could respond to messages here
+  return AudioEffect::notify (message);
 }
 
-//-----------------------------------------------------------------------------
-void TrackerProcessor::doProcessing (ProcessData& data)
+// --------------------------------------------------------------------------------
+// private implementation
+
+
+bool TrackerProcessor::processParameterChanges (IParameterChanges* changes)
 {
-	int32 sampleFrames = data.numSamples;
-	
-	float* in1 = data.inputs[0].channelBuffers32[0];
-	float* in2 = data.inputs[0].channelBuffers32[1];
-	float* out1 = data.outputs[0].channelBuffers32[0];
-	float* out2 = data.outputs[0].channelBuffers32[1];
-
-  for(int i=0; i<sampleFrames; ++i)
+  if (changes)
   {
-    out1[i] = in1[i]*wet;
-    out2[i] = in2[i]*wet;
+    int32 numParamsChanged = changes->getParameterCount ();
+    // for each parameter which are some changes in this audio block:
+    for (int32 i = 0; i < numParamsChanged; i++)
+    {
+      IParamValueQueue* paramQueue = changes->getParameterData (i);
+      if (paramQueue)
+      {
+        ParamValue value;
+        int32 sampleOffset;
+        int32 numPoints = paramQueue->getPointCount ();
+        switch (paramQueue->getParameterId ())
+        {
+          case TrackerController::kGainId:
+            // we use in this example only the last point of the queue.
+            // in some wanted case for specific kind of parameter it makes sense to
+            // retrieve all points and process the whole audio block in small blocks.
+            if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
+                kResultTrue)
+            {
+              fGain = (float)value;
+            }
+            break;
+            
+          case TrackerController::kBypassId:
+            if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
+                kResultTrue)
+            {
+              bBypass = (value > 0.5f);
+            }
+            break;
+        }
+      }
+    }
+  }
+  return false;
+}
+
+void TrackerProcessor::processSignals (ProcessData& data)
+{
+  if (data.numInputs == 0 || data.numOutputs == 0)
+  {
+    // nothing to do
+    return;
   }
   
+  // (simplification) we suppose in this example that we have the same input channel count than
+  // the output
+  int32 numChannels = data.inputs[0].numChannels;
   
-  // MLTEST
-  static uint32_t counter{0};
-  counter += sampleFrames;
-  if(counter > 44100)
+  //---get audio buffers----------------
+  uint32 sampleFramesSize = getSampleFramesSizeInBytes (processSetup, data.numSamples);
+  uint32 frames = data.numSamples;
+  
+  void** in = getChannelBuffersPointer (processSetup, data.inputs[0]);
+  void** out = getChannelBuffersPointer (processSetup, data.outputs[0]);
+  
+  //---check if silence---------------
+  // normally we have to check each channel (simplification)
+  if (data.inputs[0].silenceFlags != 0)
   {
-    counter -= 44100;
-    std::cout << "param: " << params[7]  << " wet: " << wet << "\n";
+    // mark output silence too
+    data.outputs[0].silenceFlags = data.inputs[0].silenceFlags;
+    
+    // the Plug-in has to be sure that if it sets the flags silence that the output buffer are
+    // clear
+    for (int32 i = 0; i < numChannels; i++)
+    {
+      // do not need to be cleared if the buffers are the same (in this case input buffer are
+      // already cleared by the host)
+      if (in[i] != out[i])
+      {
+        memset (out[i], 0, sampleFramesSize);
+      }
+    }
+    
+    // nothing to do at this point
+    return;
   }
   
+  // mark our outputs has not silent
+  data.outputs[0].silenceFlags = 0;
   
-  return;
+  
+  //---in bypass mode outputs should be like inputs-----
+  if (bBypass)
+  {
+    for (int32 i = 0; i < numChannels; i++)
+    {
+      // do not need to be copied if the buffers are the same
+      if (in[i] != out[i])
+      {
+        memcpy (out[i], in[i], sampleFramesSize);
+      }
+    }
+  }
+  else
+  {
+    //---apply gain factor----------
+    float gain = (fGain - fGainReduction);
 
+    // if the applied gain is nearly zero, we could say that the outputs are zeroed and we set
+    // the silence flags.
+    if (gain < 0.0000001)
+    {
+      for (int32 i = 0; i < numChannels; i++)
+      {
+        memset (out[i], 0, sampleFramesSize);
+      }
+      data.outputs[0].silenceFlags = (1 << numChannels) - 1; // this will set to 1 all channels
+    }
+    else
+    {
+      // in real Plug-in it would be better to do dezippering to avoid jump (click) in gain value
+      for (int32 i = 0; i < numChannels; i++)
+      {
+        float* pSrc = static_cast<float*>(in[i]);
+        float* pDest = static_cast<float*>(out[i]);
+        for(int i=0; i<frames; ++i)
+        {
+          pDest[i] = pSrc[i]*gain;
+        }
+      }
+    }
+  }
 }
 
 }}} // namespaces

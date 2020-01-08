@@ -1,18 +1,6 @@
-/*
- *  mdaTrackerController.cpp
- *  mda-vst3
- *
- *  Created by Arne Scheffler on 6/14/08.
- *
- *  mda VST Plug-ins
- *
- *  Copyright (c) 2008 Paul Kellett
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
- *  The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
- *  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- *
- */
+// VST3 example code for madronalib
+// (c) 2020, Madrona Labs LLC, all rights reserved
+// see LICENSE.txt for details
 
 
 #include "mdaParameter.h"
@@ -21,132 +9,79 @@
 
 #include "mdaTrackerController.h"
 
+#include <cmath>
+
 namespace Steinberg {
 namespace Vst {
 namespace ml {
 
 
 //-----------------------------------------------------------------------------
-FUID TrackerController::uid (0xBBF731F0, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
+FUID TrackerController::uid (0xBBF70390, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
 
-//-----------------------------------------------------------------------------
-int32 PLUGIN_API TrackerController::getProgramListCount ()
+
+//------------------------------------------------------------------------
+// GainParameter Declaration
+// example of custom parameter (overwriting to and fromString)
+
+class GainParameter : public Parameter
 {
-  if (parameters.getParameter (kPresetParam))
-    return 1;
-  return 0;
+public:
+  GainParameter (int32 flags, int32 id);
+  
+  void toString (ParamValue normValue, String128 string) const SMTG_OVERRIDE;
+  bool fromString (const TChar* string, ParamValue& normValue) const SMTG_OVERRIDE;
+};
+
+//------------------------------------------------------------------------
+// GainParameter Implementation
+
+GainParameter::GainParameter (int32 flags, int32 id)
+{
+  Steinberg::UString (info.title, USTRINGSIZE (info.title)).assign (USTRING ("Gain"));
+  Steinberg::UString (info.units, USTRINGSIZE (info.units)).assign (USTRING ("dB"));
+  
+  info.flags = flags;
+  info.id = id;
+  info.stepCount = 0;
+  info.defaultNormalizedValue = 0.5f;
+  info.unitId = kRootUnitId;
+  
+  setNormalized (1.f);
 }
 
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getProgramListInfo (int32 listIndex,
-                                                       ProgramListInfo& info /*out*/)
+void GainParameter::toString (ParamValue normValue, String128 string) const
 {
-  Parameter* param = parameters.getParameter (kPresetParam);
-  if (param && listIndex == 0)
+  char text[32];
+  if (normValue > 0.0001)
   {
-    info.id = kPresetParam;
-    info.programCount = (int32)param->toPlain (1) + 1;
-    UString name (info.name, 128);
-    name.fromAscii ("Presets");
-    return kResultTrue;
+    sprintf (text, "%.2f", 20 * log10f ((float)normValue));
   }
-  return kResultFalse;
+  else
+  {
+    strcpy (text, "-oo");
+  }
+  
+  Steinberg::UString (string, 128).fromAscii (text);
 }
 
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getProgramName (ProgramListID listId, int32 programIndex,
-                                                   String128 name /*out*/)
+bool GainParameter::fromString (const TChar* string, ParamValue& normValue) const
 {
-  if (listId == kPresetParam)
+  String wrapper ((TChar*)string); // don't know buffer size here!
+  double tmp = 0.0;
+  if (wrapper.scanFloat (tmp))
   {
-    Parameter* param = parameters.getParameter (kPresetParam);
-    if (param)
+    // allow only values between -oo and 0dB
+    if (tmp > 0.0)
     {
-      ParamValue normalized = param->toNormalized (programIndex);
-      param->toString (normalized, name);
-      return kResultTrue;
+      tmp = -tmp;
     }
-  }
-  return kResultFalse;
-}
-
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::notify (IMessage* message)
-{
-  if (strcmp (message->getMessageID (), "activated") == 0)
-  {
-    message->getAttributes ()->getFloat ("SampleRate", sampleRate);
-    return kResultTrue;
-  }
-  return EditControllerEx1::notify (message);
-}
-
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::setComponentState (IBStream* state)
-{
-  if (!state)
-    return kResultFalse;
-  
-  IBStreamer streamer (state, kLittleEndian);
-  
-  uint32 temp;
-  streamer.readInt32u (temp); // numParams or Header
-  
-  if (temp == kMagicNumber)
-  {
-    // read current Program
-    streamer.readInt32u (temp);
-    Parameter* param = parameters.getParameter (kPresetParam);
-    if (param)
-      param->setNormalized (param->toNormalized (temp));
     
-    // numParams
-    streamer.readInt32u (temp);
+    normValue = expf (logf (10.f) * (float)tmp / 20.f);
+    return true;
   }
-  
-  // read each parameter
-  for (uint32 i = 0; i < temp; i++)
-  {
-    ParamValue value;
-    if (streamer.readDouble (value) == false)
-      return kResultFalse;
-    setParamNormalized (i, value);
-  }
-  
-  // bypass
-  uint32 bypassState;
-  if (streamer.readInt32u (bypassState) == false)
-    return kResultFalse;
-  
-  Parameter* bypassParam = parameters.getParameter (kBypassParam);
-  if (bypassParam)
-    bypassParam->setNormalized (bypassState);
-  
-  return kResultTrue;
+  return false;
 }
-
-//------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getMidiControllerAssignment (int32 busIndex, int16 channel,
-                                                                CtrlNumber midiControllerNumber,
-                                                                ParamID& tag /*out*/)
-{
-  if (busIndex == 0 && midiControllerNumber < kCountCtrlNumber && midiCCParamID[midiControllerNumber] != -1)
-  {
-    tag = midiCCParamID[midiControllerNumber];
-    return kResultTrue;
-  }
-  return kResultFalse;
-}
-
-//------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** obj)
-{
-  QUERY_INTERFACE (iid, obj, IMidiMapping::iid, IMidiMapping)
-  return EditControllerEx1::queryInterface (iid, obj);
-}
-
-
-
 
 //-----------------------------------------------------------------------------
 TrackerController::TrackerController () : sampleRate (44100)
@@ -164,45 +99,59 @@ TrackerController::~TrackerController ()
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
 {
-  tresult res = EditControllerEx1::initialize (context);
-  if (res == kResultOk)
+  tresult result = EditControllerEx1::initialize (context);
+  if (result != kResultOk)
   {
-    UnitInfo uinfo;
-    uinfo.id = kRootUnitId;
-    uinfo.parentUnitId = kNoParentUnitId;
-    uinfo.programListId = kPresetParam;
-    UString name (uinfo.name, 128);
-    name.fromAscii ("Root");
-    addUnit (new Unit (uinfo));
-    
-    // add bypass parameter
-    IndexedParameter* bypassParam = new IndexedParameter (USTRING ("Bypass"), 0, 1, 0, ParameterInfo::kIsBypass | ParameterInfo::kCanAutomate,
-                                                          kBypassParam);
-    bypassParam->setIndexString (0, UString128 ("off"));
-    bypassParam->setIndexString (1, UString128 ("on"));
-    parameters.addParameter (bypassParam);
-  
+    return result;
   }
   
-	if (res == kResultTrue)
-	{
-		ParamID pid = 0;
-		IndexedParameter* modeParam = new IndexedParameter (USTRING("Mode"), USTRING(""), 4, 0.15, ParameterInfo::kCanAutomate | ParameterInfo::kIsList, pid++);
-		modeParam->setIndexString (0, UString128("SINE"));
-		modeParam->setIndexString (1, UString128("SQUARE"));
-		modeParam->setIndexString (2, UString128("SAW"));
-		modeParam->setIndexString (3, UString128("RING"));
-		modeParam->setIndexString (4, UString128("EQ"));
-		parameters.addParameter (modeParam);
-		parameters.addParameter (new ScaledParameter (USTRING("Dynamics"), USTRING("%"), 0, 0.6, ParameterInfo::kCanAutomate, pid++, 0, 100, true));
-		parameters.addParameter (new ScaledParameter (USTRING("Mix"), USTRING("%"), 0, 0.5, ParameterInfo::kCanAutomate, pid++, 0, 100, true));
-		parameters.addParameter (new ScaledParameter (USTRING("Glide"), USTRING("%"), 0, 0.5, ParameterInfo::kCanAutomate, pid++, 0, 100, true));
-		parameters.addParameter (new ScaledParameter (USTRING("Trnspose"), USTRING("semi"), 0, 0.5, ParameterInfo::kCanAutomate, pid++, -36, 36, true));
-		parameters.addParameter (new ScaledParameter (USTRING("Maximum"), USTRING("%"), 0, 0.5, ParameterInfo::kCanAutomate, pid++, 0, 100, true));
-		parameters.addParameter (new ScaledParameter (USTRING("Trigger"), USTRING("dB"), 0, 0.5, ParameterInfo::kCanAutomate, pid++, -60, 0, true));
-		parameters.addParameter (new ScaledParameter (USTRING("Output"), USTRING("dB"), 0, 0.5, ParameterInfo::kCanAutomate, pid++, -20, 20, true));
-	}
-	return res;
+  //--- Create Units-------------
+  UnitInfo unitInfo;
+  Unit* unit;
+  
+  // create root only if you want to use the programListId
+  /*  unitInfo.id = kRootUnitId;  // always for Root Unit
+   unitInfo.parentUnitId = kNoParentUnitId;  // always for Root Unit
+   Steinberg::UString (unitInfo.name, USTRINGSIZE (unitInfo.name)).assign (USTRING ("Root"));
+   unitInfo.programListId = kNoProgramListId;
+   
+   unit = new Unit (unitInfo);
+   addUnitInfo (unit);*/
+  
+  // create a unit1 for the gain
+  unitInfo.id = 1;
+  unitInfo.parentUnitId = kRootUnitId; // attached to the root unit
+  
+  Steinberg::UString (unitInfo.name, USTRINGSIZE (unitInfo.name)).assign (USTRING ("Unit1"));
+  
+  unitInfo.programListId = kNoProgramListId;
+  
+  unit = new Unit (unitInfo);
+  addUnit (unit);
+  
+  //---Create Parameters------------
+  
+  //---Gain parameter--
+  auto* gainParam = new GainParameter (ParameterInfo::kCanAutomate, kGainId);
+  parameters.addParameter (gainParam);
+  
+  gainParam->setUnitID (1);
+  
+  //---VuMeter parameter---
+  int32 stepCount = 0;
+  ParamValue defaultVal = 0;
+  int32 flags = ParameterInfo::kIsReadOnly;
+  int32 tag = kVuPPMId;
+  parameters.addParameter (STR16 ("VuPPM"), nullptr, stepCount, defaultVal, flags, tag);
+  
+  //---Bypass parameter---
+  stepCount = 1;
+  defaultVal = 0;
+  flags = ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass;
+  tag = kBypassId;
+  parameters.addParameter (STR16 ("Bypass"), nullptr, stepCount, defaultVal, flags, tag);
+  
+  return result;
 }
 
 //-----------------------------------------------------------------------------
@@ -211,35 +160,109 @@ tresult PLUGIN_API TrackerController::terminate ()
 	return EditControllerEx1::terminate ();
 }
 
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getParamStringByValue (ParamID tag, ParamValue valueNormalized, String128 string)
+//------------------------------------------------------------------------
+tresult PLUGIN_API TrackerController::getParamStringByValue (ParamID tag, ParamValue valueNormalized,
+                                                           String128 string)
 {
-	return EditControllerEx1::getParamStringByValue (tag, valueNormalized, string);
+  /* example, but better to use a custom Parameter as seen in GainParameter
+   switch (tag)
+   {
+   case kGainId:
+   {
+   char text[32];
+   if (valueNormalized > 0.0001)
+   {
+   sprintf (text, "%.2f", 20 * log10f ((float)valueNormalized));
+   }
+   else
+   strcpy (text, "-oo");
+   
+   Steinberg::UString (string, 128).fromAscii (text);
+   
+   return kResultTrue;
+   }
+   }*/
+  return EditControllerEx1::getParamStringByValue (tag, valueNormalized, string);
+}
 
-	/*
-	UString128 result;
-	 	switch (tag)
-	 	{
-			default:
-				return BaseController::getParamStringByValue (tag, valueNormalized, string);
-		}
-		result.copyTo (string, 128);
-		return kResultTrue;*/
+//------------------------------------------------------------------------
+tresult PLUGIN_API TrackerController::getParamValueByString (ParamID tag, TChar* string,
+                                                           ParamValue& valueNormalized)
+{
+  /* example, but better to use a custom Parameter as seen in GainParameter
+   switch (tag)
+   {
+   case kGainId:
+   {
+   Steinberg::UString wrapper ((TChar*)string, -1); // don't know buffer size here!
+   double tmp = 0.0;
+   if (wrapper.scanFloat (tmp))
+   {
+   valueNormalized = expf (logf (10.f) * (float)tmp / 20.f);
+   return kResultTrue;
+   }
+   return kResultFalse;
+   }
+   }*/
+  return EditControllerEx1::getParamValueByString (tag, string, valueNormalized);
 }
 
 //-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getParamValueByString (ParamID tag, TChar* string, ParamValue& valueNormalized)
+tresult PLUGIN_API TrackerController::notify (IMessage* message)
 {
-	// TODO
-	return EditControllerEx1::getParamValueByString (tag, string, valueNormalized);
-	
-	/*
-	switch (tag)
-		{
-			default:
-				return BaseController::getParamValueByString (tag, string, valueNormalized);
-		}
-		return kResultFalse;*/	
+  if (strcmp (message->getMessageID (), "activated") == 0)
+  {
+    message->getAttributes ()->getFloat ("SampleRate", sampleRate);
+    return kResultTrue;
+  }
+  return EditControllerEx1::notify (message);
 }
+
+//-----------------------------------------------------------------------------
+tresult PLUGIN_API TrackerController::setComponentState (IBStream* state)
+{
+  // we receive the current state of the component (processor part)
+  // we read only the gain and bypass value...
+  if (!state)
+    return kResultFalse;
+  
+  IBStreamer streamer (state, kLittleEndian);
+  float savedGain = 0.f;
+  if (streamer.readFloat (savedGain) == false)
+    return kResultFalse;
+  setParamNormalized (kGainId, savedGain);
+  
+  // jump the GainReduction
+  streamer.seek (sizeof (float), kSeekCurrent);
+  
+  int32 bypassState = 0;
+  if (streamer.readInt32 (bypassState) == false)
+    return kResultFalse;
+  setParamNormalized (kBypassId, bypassState ? 1 : 0);
+  
+  return kResultOk;
+}
+
+//------------------------------------------------------------------------
+tresult PLUGIN_API TrackerController::getMidiControllerAssignment (int32 busIndex, int16 channel,
+                                                                   CtrlNumber midiControllerNumber,
+                                                                   ParamID& tag /*out*/)
+{
+  if (busIndex == 0 && midiControllerNumber < kCountCtrlNumber && midiCCParamID[midiControllerNumber] != -1)
+  {
+    tag = midiCCParamID[midiControllerNumber];
+    return kResultTrue;
+  }
+  return kResultFalse;
+}
+
+//------------------------------------------------------------------------
+tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** obj)
+{
+  QUERY_INTERFACE (iid, obj, IMidiMapping::iid, IMidiMapping)
+  return EditControllerEx1::queryInterface (iid, obj);
+}
+
+
 
 }}} // namespaces

@@ -1,9 +1,8 @@
-# root CMakeLists.txt for vst3 sample built out of source.
+# root CMakeLists.txt for madronalib vst3 sample built out of source.
 # to run, set VST3_SDK_ROOT to inform CMake where the VST3 SDK is, for example:
 # mkdir build
 # cd build
 # cmake -DVST3_SDK_ROOT=/Users/randy/dev/vst3sdk -DCMAKE_BUILD_TYPE=Debug -GXcode ..
-#
 
 cmake_minimum_required (VERSION 3.9)
 
@@ -86,8 +85,8 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH)
 
 #    execute_process(COMMAND xcrun --find Rez OUTPUT_VARIABLE OSX_REZ_COMMAND OUTPUT_STRIP_TRAILING_WHITESPACE)
 #    set(OSX_REZ_COMMAND "/usr/bin/Rez")
-
 #    add_custom_command(TARGET ${target} POST_BUILD COMMAND "${OSX_REZ_COMMAND}"
+
     add_custom_command(TARGET ${target} POST_BUILD COMMAND "/usr/bin/Rez"
         "-d" "SystemSevenOrLater=1"
         "-script" "Roman"
