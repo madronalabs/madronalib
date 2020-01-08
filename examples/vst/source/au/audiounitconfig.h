@@ -37,7 +37,7 @@
 // AUWRAPPER_CHANGE
 
 /* Bundle Identifier */
-#define kAudioUnitBundleIdentifier	com.madronalabs.vst3plugin.gain.audiounit
+#define kAudioUnitBundleIdentifier	com.madronalabs.vst3plugin.again.audiounit
 /* Version Number (needs to be in hex)*/
 #define kAudioUnitVersion			0x01010100
 /* Company Name + Effect Name */

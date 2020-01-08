@@ -58,7 +58,7 @@ public:
   //-----------------------------------------------------------------------------
   float wet;
   
-  ParamValue* params;
+  ParamValue* params{0};
   size_t numParams{0};
   
   bool bypassState{false};

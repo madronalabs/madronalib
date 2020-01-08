@@ -62,7 +62,7 @@
 	/*
 		The "AudioUnit SupportedNumChannels" key is only necessary if you build an effect not an instrument.
 		You should describe all supported channel configurations.
-		This example says that it supports Stereo/Stereo or Mono/Mono.
+		This example says that it supports Stereo/Stereo only. 
 	*/
 
 	<key>AudioUnit SupportedNumChannels</key>
@@ -72,18 +72,6 @@
 			<string>2</string>
 			<key>Inputs</key>
 			<string>2</string>
-		</dict>
-		<dict>
-			<key>Outputs</key>
-			<string>0</string>
-			<key>Inputs</key>
-			<string>1</string>
-		</dict>
-		<dict>
-			<key>Outputs</key>
-			<string>1</string>
-			<key>Inputs</key>
-			<string>1</string>
 		</dict>
 	</array>
 
