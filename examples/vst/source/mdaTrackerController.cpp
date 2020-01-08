@@ -14,9 +14,9 @@
  *
  */
 
-#include "mdaBaseController.h"
+
 #include "mdaParameter.h"
-#include "helpers.h"
+//#include "helpers.h"
 #include "pluginterfaces/base/ibstream.h"
 #include "base/source/fstreamer.h"
 
@@ -24,16 +24,9 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace mda {
-
-
+namespace ml {
 
 const TChar TrackerController::kMicroSecondsString[] = {0x00b5, 0x0073, 0x0};
-
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-
 
 //-----------------------------------------------------------------------------
 int32 PLUGIN_API TrackerController::getProgramListCount ()
@@ -98,7 +91,7 @@ tresult PLUGIN_API TrackerController::setComponentState (IBStream* state)
   uint32 temp;
   streamer.readInt32u (temp); // numParams or Header
   
-  if (temp == BaseController::kMagicNumber)
+  if (temp == kMagicNumber)
   {
     // read current Program
     streamer.readInt32u (temp);
@@ -172,7 +165,7 @@ tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** ob
 FUID TrackerController::uid (0xBBF731F0, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
 
 //-----------------------------------------------------------------------------
-TrackerController::TrackerController () : sampleRate (44100), addBypassParameter (true)
+TrackerController::TrackerController () : sampleRate (44100)
 {
   for (int32 i = 0; i < kCountCtrlNumber; i++)
     midiCCParamID[i] = -1;
@@ -187,7 +180,6 @@ TrackerController::~TrackerController ()
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
 {
-
   tresult res = EditControllerEx1::initialize (context);
   if (res == kResultOk)
   {
@@ -199,18 +191,16 @@ tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
     name.fromAscii ("Root");
     addUnit (new Unit (uinfo));
     
-    if (addBypassParameter)
-    {
-      IndexedParameter* bypassParam = new IndexedParameter (
-                                                            USTRING ("Bypass"), 0, 1, 0, ParameterInfo::kIsBypass | ParameterInfo::kCanAutomate,
-                                                            kBypassParam);
-      bypassParam->setIndexString (0, UString128 ("off"));
-      bypassParam->setIndexString (1, UString128 ("on"));
-      parameters.addParameter (bypassParam);
-    }
+    // add bypass parameter
+    IndexedParameter* bypassParam = new IndexedParameter (USTRING ("Bypass"), 0, 1, 0, ParameterInfo::kIsBypass | ParameterInfo::kCanAutomate,
+                                                          kBypassParam);
+    bypassParam->setIndexString (0, UString128 ("off"));
+    bypassParam->setIndexString (1, UString128 ("on"));
+    parameters.addParameter (bypassParam);
+  
   }
   
-	if (res == kResultTrue) // fucking steinberg
+	if (res == kResultTrue)
 	{
 		ParamID pid = 0;
 		IndexedParameter* modeParam = new IndexedParameter (USTRING("Mode"), USTRING(""), 4, 0.15, ParameterInfo::kCanAutomate | ParameterInfo::kIsList, pid++);

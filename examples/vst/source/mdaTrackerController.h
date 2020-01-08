@@ -22,12 +22,11 @@
 #include "pluginterfaces/base/ustring.h"
 #include "mdaParameter.h"
 
-// #include "mdaBaseController.h"
 #include "mdaTrackerProcessor.h"
 
 namespace Steinberg {
 namespace Vst {
-namespace mda {
+namespace ml {
 
 //-----------------------------------------------------------------------------
 class TrackerController : public EditControllerEx1, public IMidiMapping
@@ -47,8 +46,7 @@ public:
 	static FUID uid;
   
   
-  // BaseController
-  
+  // from BaseController
 
   tresult PLUGIN_API setComponentState (IBStream* state) SMTG_OVERRIDE;
   tresult PLUGIN_API notify (IMessage* message) SMTG_OVERRIDE;
@@ -68,7 +66,6 @@ public:
   
   enum {
     kMagicNumber = 9999999,
-    
     kBypassParam = 'bpas',
     kPresetParam = 'prst',
     kModWheelParam = 'modw',
@@ -80,11 +77,12 @@ public:
     kAftertouchParam = 'aftt',
   };
   static const TChar kMicroSecondsString[];
+  
 protected:
   double getSampleRate () const { return sampleRate; }
   int32 midiCCParamID[kCountCtrlNumber];
   double sampleRate;
-  bool addBypassParameter;
+
 };
 
 }}} // namespaces

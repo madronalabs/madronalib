@@ -17,7 +17,7 @@
 #include "mdaTrackerProcessor.h"
 #include "mdaTrackerController.h"
 
-#include "helpers.h"
+//#include "helpers.h"
 #include "pluginterfaces/vst/ivstparameterchanges.h"
 #include "pluginterfaces/base/ibstream.h"
 
@@ -25,17 +25,15 @@
 #include <cstdlib>
 #include "base/source/fstreamer.h"
 
-
 #include <math.h>
 #include <iostream>
 
 namespace Steinberg {
 namespace Vst {
-namespace mda {
+namespace ml {
 
 //-----------------------------------------------------------------------------
 FUID TrackerProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21B8B40);
-
 
 //-----------------------------------------------------------------------------
 void TrackerProcessor::allocParameters (int32 _numParams)
@@ -45,7 +43,6 @@ void TrackerProcessor::allocParameters (int32 _numParams)
   numParams = _numParams;
   params = new ParamValue[numParams];
 }
-
 
 //-----------------------------------------------------------------------------
 TrackerProcessor::TrackerProcessor ()
@@ -212,8 +209,6 @@ tresult PLUGIN_API TrackerProcessor::setState (IBStream* state)
   // bypass
   streamer.readInt32u (temp);
   bypassState = temp > 0;
-  
-  //recalculate ();
   
   return kResultTrue;
 }

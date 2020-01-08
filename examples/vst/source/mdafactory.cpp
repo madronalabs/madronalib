@@ -18,7 +18,6 @@
 
 #include "mdaTrackerController.h"
 
-#include "helpers.h"
 #include "version.h"
 
 //-----------------------------------------------------------------------------
@@ -36,7 +35,7 @@ BEGIN_FACTORY_DEF (stringCompanyName,
 
 //-----------------------------------------------------------------------------
 // -- Again
-DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerProcessor::uid),
+DEF_CLASS2 (INLINE_UID_FROM_FUID (ml::TrackerProcessor::uid),
 			PClassInfo::kManyInstances,
 			kVstAudioEffectClass,
 			"Again",
@@ -44,9 +43,9 @@ DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerProcessor::uid),
 			Vst::PlugType::kFx,
 			kVersionString,
 			kVstVersionString,
-			mda::TrackerProcessor::createInstance)
+			ml::TrackerProcessor::createInstance)
 
-DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerController::uid),
+DEF_CLASS2 (INLINE_UID_FROM_FUID (ml::TrackerController::uid),
 			PClassInfo::kManyInstances,
 			kVstComponentControllerClass,
 			"Again",
@@ -54,7 +53,7 @@ DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerController::uid),
 			"",
 			kVersionString,
 			kVstVersionString,
-			mda::TrackerController::createInstance)
+			ml::TrackerController::createInstance)
 //-----------------------------------------------------------------------------
  
 END_FACTORY

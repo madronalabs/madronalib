@@ -7,23 +7,15 @@
 
 cmake_minimum_required (VERSION 3.9)
 
-
 set(VST3_SDK_ROOT "" CACHE PATH "Location of VST3 SDK")
 set(public_sdk_SOURCE_DIR ${VST3_SDK_ROOT}/public.sdk)
 
 project(MLVSTSample)
 
-include(VST3_SDK.cmake)
-
-
 set(again_sources
-    source/helpers.h
-
     source/mdafactory.cpp
-
     source/mdaParameter.cpp
     source/mdaParameter.h
-
     source/mdaTrackerController.cpp
     source/mdaTrackerController.h
     source/mdaTrackerProcessor.cpp
@@ -32,9 +24,21 @@ set(again_sources
 )
 
 set(target again)
+
+SET(SMTG_ADD_VSTGUI OFF CACHE BOOL "Add VSTGUI support")
+SET(VSTGUI_TOOLS OFF CACHE BOOL "Build VSTGUI Tools")
+
+include(VST3_SDK.cmake)
+
 smtg_add_vst3plugin(${target} ${again_sources})
 set_target_properties(${target} PROPERTIES ${SDK_IDE_PLUGIN_EXAMPLES_FOLDER})
 target_link_libraries(${target} PRIVATE base sdk)
+
+if(SMTG_ADD_VSTGUI)
+    target_include_directories(${target} PUBLIC ${VSTGUI_ROOT}/vstgui4)
+    target_link_libraries(${target} PRIVATE base sdk vstgui_support)
+endif()
+
 if(SMTG_MAC)
     smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
 elseif(SMTG_WIN)
@@ -42,12 +46,13 @@ elseif(SMTG_WIN)
 endif()
 
 
+source_group(vstsdk REGULAR_EXPRESSION "vst3sdk+")
 
 
 #---------------------------------------------------------
 # add au target using auwrapper.
 
-if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
+if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH)
 
 	# TODO: VST3_OUTPUT_DIR should be declared somewhere more globally.
 	set(VST3_OUTPUT_DIR ${CMAKE_BINARY_DIR}/VST3)
@@ -80,7 +85,9 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
 	    COMMAND ditto "-v" "${outputdir}/${target}.component" "~/Library/Audio/Plug-Ins/Components/${target}.component"
     )
 
-    execute_process(COMMAND xcrun --find Rez OUTPUT_VARIABLE OSX_REZ_COMMAND OUTPUT_STRIP_TRAILING_WHITESPACE)
+#    execute_process(COMMAND xcrun --find Rez OUTPUT_VARIABLE OSX_REZ_COMMAND OUTPUT_STRIP_TRAILING_WHITESPACE)
+    set(OSX_REZ_COMMAND "/usr/bin/Rez")
+
     add_custom_command(TARGET ${target} POST_BUILD COMMAND "${OSX_REZ_COMMAND}"
         "-d" "SystemSevenOrLater=1"
         "-script" "Roman"
@@ -98,7 +105,3 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
          "${CMAKE_CURRENT_LIST_DIR}/source/auresource.r"
     )
 endif()
-
-
-
-#

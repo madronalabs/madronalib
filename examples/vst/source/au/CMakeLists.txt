@@ -33,7 +33,6 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
 
         # namevar
         COMMAND /bin/ln "-svfF" "${outputdir}/again.vst3" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
-
         COMMAND /bin/ln "-svfF" "${outputdir}/${target}.component" "~/Library/Audio/Plug-Ins/Components/"
     )
 

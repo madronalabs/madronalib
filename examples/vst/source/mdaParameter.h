@@ -23,7 +23,7 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace mda {
+namespace ml {
 
 //-----------------------------------------------------------------------------
 class BaseParameter : public Parameter

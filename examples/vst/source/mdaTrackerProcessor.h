@@ -20,7 +20,7 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace mda {
+namespace ml {
 
 //-----------------------------------------------------------------------------
 class TrackerProcessor : public AudioEffect
@@ -55,13 +55,12 @@ public:
   //-----------------------------------------------------------------------------
   static FUnknown* createInstance (void*) { return (IAudioProcessor*)new TrackerProcessor; }
   static FUID uid;
+  
   //-----------------------------------------------------------------------------
-  
+  // data
   float wet{0.f};
-  
   ParamValue* params{0};
   size_t numParams{0};
-  
   bool bypassState{false};
 };
 

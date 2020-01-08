@@ -19,7 +19,7 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace mda {
+namespace ml {
 
 //-----------------------------------------------------------------------------
 BaseParameter::BaseParameter (const TChar* title, const TChar* units, int32 stepCount, ParamValue defaultValueNormalized, int32 flags, int32 tag, UnitID unitID)
