@@ -37,25 +37,25 @@
 // AUWRAPPER_CHANGE
 
 /* Bundle Identifier */
-#define kAudioUnitBundleIdentifier	com.steinberg.vst3plugin.again.audiounit
+#define kAudioUnitBundleIdentifier	com.madronalabs.vst3plugin.gain.audiounit
 /* Version Number (needs to be in hex)*/
-#define kAudioUnitVersion			0xFFFFFFFF
+#define kAudioUnitVersion			0x01010100
 /* Company Name + Effect Name */
-#define kAUPluginName 				Steinberg: AGain
+#define kAUPluginName 				Madrona Labs: Gain
 /* Effect Description */
-#define kAUPluginDescription 		AGain
+#define kAUPluginDescription 		Gain
 /* Audio Unit Type */
 #define kAUPluginType 				aufx
 /* Unique ID */
 #define kAUPluginSubType 			gain
 /* Registered Company ID */
-#define kAUPluginManufacturer 		Stgb
+#define kAUPluginManufacturer 		MLbs
 
 // Definitions for the resource file
-#define kAudioUnitName				"Steinberg: AGain"	// same as kAUPluginName
-#define kAudioUnitDescription		"AGain"	// same as kAUPluginDescription
+#define kAudioUnitName				"Madrona Labs: Gain"	// same as kAUPluginName
+#define kAudioUnitDescription		"Gain"	// same as kAUPluginDescription
 #define kAudioUnitType				'aufx'	//kAudioUnitType_Effect // same as kAUPluginType
 #define kAudioUnitComponentSubType	'gain'	// same as kAUPluginSubType
-#define kAudioUnitComponentManuf	'Stgb'	// same as kAUPluginManufacturer
+#define kAudioUnitComponentManuf	'MLbs'	// same as kAUPluginManufacturer
 
 #define kAudioUnitCarbonView		1		// if 0 no Carbon view support will be added

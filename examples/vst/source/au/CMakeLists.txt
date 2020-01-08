@@ -2,7 +2,9 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
 	# TODO: VST3_OUTPUT_DIR should be declared somewhere more globally.
 	set(VST3_OUTPUT_DIR ${CMAKE_BINARY_DIR}/VST3)
 
+    # namevar
     set(target again_au)
+
     set(${target}_sources
         doc.cpp
         audiounitconfig.h
@@ -22,11 +24,16 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
 
     set(outputdir ${VST3_OUTPUT_DIR}/$<CONFIG>)
 
+    # namevar
     add_dependencies(${target} again)
+
     add_custom_command(TARGET ${target} POST_BUILD 
         COMMAND /bin/mkdir "-p" ${outputdir}/${target}.component/Contents/Resources
         COMMAND /bin/rm "-f" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
+
+        # namevar
         COMMAND /bin/ln "-svfF" "${outputdir}/again.vst3" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
+
         COMMAND /bin/ln "-svfF" "${outputdir}/${target}.component" "~/Library/Audio/Plug-Ins/Components/"
     )
 

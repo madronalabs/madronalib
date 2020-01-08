@@ -35,11 +35,11 @@ BEGIN_FACTORY_DEF (stringCompanyName,
 				   "mailto:info@steinberg.de")
 
 //-----------------------------------------------------------------------------
-// -- Tracker
+// -- Again
 DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerProcessor::uid),
 			PClassInfo::kManyInstances,
 			kVstAudioEffectClass,
-			"mda Tracker",
+			"Again",
 			Vst::kDistributable,
 			Vst::PlugType::kFx,
 			kVersionString,
@@ -49,7 +49,7 @@ DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerProcessor::uid),
 DEF_CLASS2 (INLINE_UID_FROM_FUID (mda::TrackerController::uid),
 			PClassInfo::kManyInstances,
 			kVstComponentControllerClass,
-			"mda Tracker",
+			"Again",
 			Vst::kDistributable,
 			"",
 			kVersionString,
