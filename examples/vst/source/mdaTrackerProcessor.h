@@ -56,7 +56,8 @@ public:
   static FUnknown* createInstance (void*) { return (IAudioProcessor*)new TrackerProcessor; }
   static FUID uid;
   //-----------------------------------------------------------------------------
-  float wet;
+  
+  float wet{0.f};
   
   ParamValue* params{0};
   size_t numParams{0};

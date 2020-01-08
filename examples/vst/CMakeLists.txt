@@ -19,11 +19,6 @@ include(VST3_SDK.cmake)
 set(again_sources
     source/helpers.h
 
-    source/mdaBaseController.cpp
-    source/mdaBaseController.h
-    source/mdaBaseProcessor.cpp
-    source/mdaBaseProcessor.h
-
     source/mdafactory.cpp
 
     source/mdaParameter.cpp
@@ -84,7 +79,7 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH AND SMTG_ADD_VSTGUI)
         COMMAND ditto "-v" "${outputdir}/again.vst3" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
 	    COMMAND ditto "-v" "${outputdir}/${target}.component" "~/Library/Audio/Plug-Ins/Components/${target}.component"
     )
-    
+
     execute_process(COMMAND xcrun --find Rez OUTPUT_VARIABLE OSX_REZ_COMMAND OUTPUT_STRIP_TRAILING_WHITESPACE)
     add_custom_command(TARGET ${target} POST_BUILD COMMAND "${OSX_REZ_COMMAND}"
         "-d" "SystemSevenOrLater=1"

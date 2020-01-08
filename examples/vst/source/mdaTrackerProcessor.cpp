@@ -34,7 +34,7 @@ namespace Vst {
 namespace mda {
 
 //-----------------------------------------------------------------------------
-FUID TrackerProcessor::uid (0x61EA12BB, 0xC25447EA, 0xABD8D344, 0xB21B8B40);
+FUID TrackerProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21B8B40);
 
 
 //-----------------------------------------------------------------------------
@@ -115,9 +115,9 @@ bool TrackerProcessor::processParameterChanges (IParameterChanges* changes)
         int32 sampleOffset;
         ParamValue value;
         queue->getPoint (pointCount - 1, sampleOffset, value);
-        if (paramId == BaseController::kBypassParam)
+        if (paramId == TrackerController::kBypassParam)
           setBypass (value >= 0.5, sampleOffset);
-        else if (paramId == BaseController::kPresetParam)
+        else if (paramId == TrackerController::kPresetParam)
           setCurrentProgramNormalized (value);
         else
           setParameter (paramId, value, sampleOffset);
@@ -194,7 +194,7 @@ tresult PLUGIN_API TrackerProcessor::setState (IBStream* state)
   uint32 temp;
   streamer.readInt32u (temp); // numParams or Header
   
-  if (temp == BaseController::kMagicNumber)
+  if (temp == TrackerController::kMagicNumber)
   {
     // read current Program
     streamer.readInt32u (temp);
@@ -229,7 +229,7 @@ tresult PLUGIN_API TrackerProcessor::getState (IBStream* state)
   if (hasProgram ())
   {
     // save header key
-    uint32 temp = BaseController::kMagicNumber;
+    uint32 temp = TrackerController::kMagicNumber;
     streamer.writeInt32u (temp);
     
     // save program
