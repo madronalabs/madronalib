@@ -25,7 +25,9 @@ namespace Steinberg {
 namespace Vst {
 namespace ml {
 
-const TChar TrackerController::kMicroSecondsString[] = {0x00b5, 0x0073, 0x0};
+
+//-----------------------------------------------------------------------------
+FUID TrackerController::uid (0xBBF731F0, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
 
 //-----------------------------------------------------------------------------
 int32 PLUGIN_API TrackerController::getProgramListCount ()
@@ -145,23 +147,6 @@ tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** ob
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//-----------------------------------------------------------------------------
-FUID TrackerController::uid (0xBBF731F0, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
 
 //-----------------------------------------------------------------------------
 TrackerController::TrackerController () : sampleRate (44100)

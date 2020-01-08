@@ -85,9 +85,10 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH)
     )
 
 #    execute_process(COMMAND xcrun --find Rez OUTPUT_VARIABLE OSX_REZ_COMMAND OUTPUT_STRIP_TRAILING_WHITESPACE)
-    set(OSX_REZ_COMMAND "/usr/bin/Rez")
+#    set(OSX_REZ_COMMAND "/usr/bin/Rez")
 
-    add_custom_command(TARGET ${target} POST_BUILD COMMAND "${OSX_REZ_COMMAND}"
+#    add_custom_command(TARGET ${target} POST_BUILD COMMAND "${OSX_REZ_COMMAND}"
+    add_custom_command(TARGET ${target} POST_BUILD COMMAND "/usr/bin/Rez"
         "-d" "SystemSevenOrLater=1"
         "-script" "Roman"
         "-d" "i386_YES"

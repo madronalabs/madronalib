@@ -16,7 +16,9 @@
 
 #pragma once
 
-#include "mdaBaseProcessor.h"
+#include "public.sdk/source/vst/vstaudioeffect.h"
+#include "pluginterfaces/vst/ivstevents.h"
+#include "pluginterfaces/vst/ivstparameterchanges.h"
 
 namespace Steinberg {
 namespace Vst {

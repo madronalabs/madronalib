@@ -20,8 +20,8 @@
 #include "public.sdk/source/vst/vstparameters.h"
 #include "pluginterfaces/vst/ivstmidicontrollers.h"
 #include "pluginterfaces/base/ustring.h"
-#include "mdaParameter.h"
 
+#include "mdaParameter.h"
 #include "mdaTrackerProcessor.h"
 
 namespace Steinberg {
@@ -76,7 +76,7 @@ public:
     kSustainParam = 'sust',
     kAftertouchParam = 'aftt',
   };
-  static const TChar kMicroSecondsString[];
+
   
 protected:
   double getSampleRate () const { return sampleRate; }
