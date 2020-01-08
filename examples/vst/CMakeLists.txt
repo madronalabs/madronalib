@@ -12,8 +12,8 @@ set(public_sdk_SOURCE_DIR ${VST3_SDK_ROOT}/public.sdk)
 
 project(MLVSTSample)
 
-set(again_sources
-    source/mdafactory.cpp
+set(llllpluginnamellll_sources
+    source/factoryDefinition.cpp
     source/mdaParameter.cpp
     source/mdaParameter.h
     source/mdaTrackerController.cpp
@@ -23,14 +23,14 @@ set(again_sources
     source/version.h
 )
 
-set(target again)
+set(target llllpluginnamellll)
 
 SET(SMTG_ADD_VSTGUI OFF CACHE BOOL "Add VSTGUI support")
 SET(VSTGUI_TOOLS OFF CACHE BOOL "Build VSTGUI Tools")
 
 include(VST3_SDK.cmake)
 
-smtg_add_vst3plugin(${target} ${again_sources})
+smtg_add_vst3plugin(${target} ${llllpluginnamellll_sources})
 set_target_properties(${target} PROPERTIES ${SDK_IDE_PLUGIN_EXAMPLES_FOLDER})
 target_link_libraries(${target} PRIVATE base sdk)
 
@@ -42,7 +42,7 @@ endif()
 if(SMTG_MAC)
     smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
 elseif(SMTG_WIN)
-    target_sources(${target} PRIVATE resource/again.rc)
+    target_sources(${target} PRIVATE resource/llllpluginnamellll.rc)
 endif()
 
 
@@ -57,9 +57,8 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH)
 	# TODO: VST3_OUTPUT_DIR should be declared somewhere more globally.
 	set(VST3_OUTPUT_DIR ${CMAKE_BINARY_DIR}/VST3)
 
-    set(target again_au)
+    set(target llllpluginnamellll_au)
     set(${target}_sources
-        source/au/doc.cpp
         source/au/audiounitconfig.h
         source/au/Info.plist
     )
@@ -77,11 +76,11 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH)
 
     set(outputdir ${VST3_OUTPUT_DIR}/$<CONFIG>)
 
-    add_dependencies(${target} again)
+    add_dependencies(${target} llllpluginnamellll)
     add_custom_command(TARGET ${target} POST_BUILD 
         COMMAND /bin/mkdir "-p" ${outputdir}/${target}.component/Contents/Resources
         COMMAND /bin/rm "-rf" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
-        COMMAND ditto "-v" "${outputdir}/again.vst3" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
+        COMMAND ditto "-v" "${outputdir}/llllpluginnamellll.vst3" "${outputdir}/${target}.component/Contents/Resources/plugin.vst3"
 	    COMMAND ditto "-v" "${outputdir}/${target}.component" "~/Library/Audio/Plug-Ins/Components/${target}.component"
     )
 
@@ -100,7 +99,7 @@ if(SMTG_MAC AND XCODE AND SMTG_COREAUDIO_SDK_PATH)
         "-I" "${SMTG_COREAUDIO_SDK_PATH}/AudioUnits/AUPublic/AUBase"
         "-I" "${CMAKE_CURRENT_LIST_DIR}/source/au"
         "-I" "${CMAKE_CURRENT_LIST_DIR}"
-        "-o" "${outputdir}/${target}.component/Contents/Resources/again_au.rsrc"
+        "-o" "${outputdir}/${target}.component/Contents/Resources/llllpluginnamellll_au.rsrc"
         "-useDF"
          "${CMAKE_CURRENT_LIST_DIR}/source/auresource.r"
     )

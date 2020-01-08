@@ -17,7 +17,6 @@
 #include "mdaTrackerProcessor.h"
 #include "mdaTrackerController.h"
 
-//#include "helpers.h"
 #include "pluginterfaces/vst/ivstparameterchanges.h"
 #include "pluginterfaces/base/ibstream.h"
 

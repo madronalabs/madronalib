@@ -52,14 +52,14 @@
 #define FULL_VERSION_STR "1.0.0"
 #define VERSION_STR  FULL_VERSION_STR
 
-#define stringPluginName "mda"
+#define stringPluginName "llllpluginnamellll"
 #define stringOriginalFilename stringPluginName".vst3"
 
 #if SMTG_PLATFORM_64
-#define stringFileDescription	"VST3 version of MDA Plug-ins (64Bit)"
+#define stringFileDescription	"Madronalib example plugin (64Bit)"
 #else
-#define stringFileDescription	"VST3 version of MDA Plug-ins"
+#define stringFileDescription	"Madronalib example plugin"
 #endif
-#define stringCompanyName		"mda"
-#define stringLegalCopyright	"© 2019 Steinberg Media Technologies"
+#define stringCompanyName		"llllcompanyllll"
+#define stringLegalCopyright	"llllcopyrightllll"
 #define stringLegalTrademarks	"VST is a trademark of Steinberg Media Technologies GmbH"
