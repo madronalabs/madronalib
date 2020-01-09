@@ -2,7 +2,6 @@
 // (c) 2020, Madrona Labs LLC, all rights reserved
 // see LICENSE.txt for details
 
-
 #pragma once
 
 #include "public.sdk/source/vst/vstaudioeffect.h"
@@ -23,7 +22,7 @@ public:
   TrackerProcessor ();
   ~TrackerProcessor ();
 
-  // AudioEffect implementation
+  // AudioEffect interface
   tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;
   tresult PLUGIN_API terminate () SMTG_OVERRIDE;
   tresult PLUGIN_API setActive (TBool state) SMTG_OVERRIDE;
@@ -39,7 +38,6 @@ private:
   bool processParameterChanges (IParameterChanges* changes);
   void processSignals (ProcessData& data);
   
-  //-----------------------------------------------------------------------------
   float fGain{1.f};
   float fGainReduction{0.f};
   bool bBypass {false};

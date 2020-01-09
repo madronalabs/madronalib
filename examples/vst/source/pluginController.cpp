@@ -7,7 +7,7 @@
 #include "pluginterfaces/base/ibstream.h"
 #include "base/source/fstreamer.h"
 
-#include "mdaTrackerController.h"
+#include "pluginController.h"
 
 #include <cmath>
 #include <iostream>

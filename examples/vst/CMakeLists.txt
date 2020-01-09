@@ -13,10 +13,10 @@ project(MLVSTSample)
 
 set(llllpluginnamellll_sources
     source/factoryDefinition.cpp
-    source/mdaTrackerController.cpp
-    source/mdaTrackerController.h
-    source/mdaTrackerProcessor.cpp
-    source/mdaTrackerProcessor.h
+    source/pluginController.cpp
+    source/pluginController.h
+    source/pluginProcessor.cpp
+    source/pluginProcessor.h
     source/version.h
 )
 

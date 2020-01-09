@@ -2,21 +2,17 @@
 // (c) 2020, Madrona Labs LLC, all rights reserved
 // see LICENSE.txt for details
 
-
-#include "mdaTrackerProcessor.h"
-#include "mdaTrackerController.h"
+#include "pluginProcessor.h"
+#include "pluginController.h"
 
 #include "public.sdk/source/vst/vstaudioprocessoralgo.h"
-
-
 #include "pluginterfaces/vst/ivstparameterchanges.h"
 #include "pluginterfaces/vst/vstpresetkeys.h"  // for use of IStreamAttributes
 #include "pluginterfaces/base/ibstream.h"
+#include "base/source/fstreamer.h"
 
 #include <cmath>
 #include <cstdlib>
-#include "base/source/fstreamer.h"
-
 #include <math.h>
 #include <iostream>
 
