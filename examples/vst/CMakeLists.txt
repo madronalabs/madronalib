@@ -13,8 +13,6 @@ project(MLVSTSample)
 
 set(llllpluginnamellll_sources
     source/factoryDefinition.cpp
-    source/mdaParameter.cpp
-    source/mdaParameter.h
     source/mdaTrackerController.cpp
     source/mdaTrackerController.h
     source/mdaTrackerProcessor.cpp

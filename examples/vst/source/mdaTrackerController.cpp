@@ -10,6 +10,7 @@
 #include "mdaTrackerController.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace Steinberg {
 namespace Vst {
@@ -84,10 +85,8 @@ bool GainParameter::fromString (const TChar* string, ParamValue& normValue) cons
 }
 
 //-----------------------------------------------------------------------------
-TrackerController::TrackerController () : sampleRate (44100)
+TrackerController::TrackerController ()
 {
-  for (int32 i = 0; i < kCountCtrlNumber; i++)
-    midiCCParamID[i] = -1;
 }
 
 
@@ -137,18 +136,12 @@ tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
   
   gainParam->setUnitID (1);
   
-  //---VuMeter parameter---
-  int32 stepCount = 0;
-  ParamValue defaultVal = 0;
-  int32 flags = ParameterInfo::kIsReadOnly;
-  int32 tag = kVuPPMId;
-  parameters.addParameter (STR16 ("VuPPM"), nullptr, stepCount, defaultVal, flags, tag);
   
   //---Bypass parameter---
-  stepCount = 1;
-  defaultVal = 0;
-  flags = ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass;
-  tag = kBypassId;
+  int32 stepCount = 1;
+  ParamValue defaultVal = 0;
+  int32 flags = ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass;
+  int32 tag = kBypassId;
   parameters.addParameter (STR16 ("Bypass"), nullptr, stepCount, defaultVal, flags, tag);
   
   return result;
@@ -160,61 +153,10 @@ tresult PLUGIN_API TrackerController::terminate ()
 	return EditControllerEx1::terminate ();
 }
 
-//------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getParamStringByValue (ParamID tag, ParamValue valueNormalized,
-                                                           String128 string)
-{
-  /* example, but better to use a custom Parameter as seen in GainParameter
-   switch (tag)
-   {
-   case kGainId:
-   {
-   char text[32];
-   if (valueNormalized > 0.0001)
-   {
-   sprintf (text, "%.2f", 20 * log10f ((float)valueNormalized));
-   }
-   else
-   strcpy (text, "-oo");
-   
-   Steinberg::UString (string, 128).fromAscii (text);
-   
-   return kResultTrue;
-   }
-   }*/
-  return EditControllerEx1::getParamStringByValue (tag, valueNormalized, string);
-}
-
-//------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getParamValueByString (ParamID tag, TChar* string,
-                                                           ParamValue& valueNormalized)
-{
-  /* example, but better to use a custom Parameter as seen in GainParameter
-   switch (tag)
-   {
-   case kGainId:
-   {
-   Steinberg::UString wrapper ((TChar*)string, -1); // don't know buffer size here!
-   double tmp = 0.0;
-   if (wrapper.scanFloat (tmp))
-   {
-   valueNormalized = expf (logf (10.f) * (float)tmp / 20.f);
-   return kResultTrue;
-   }
-   return kResultFalse;
-   }
-   }*/
-  return EditControllerEx1::getParamValueByString (tag, string, valueNormalized);
-}
 
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API TrackerController::notify (IMessage* message)
 {
-  if (strcmp (message->getMessageID (), "activated") == 0)
-  {
-    message->getAttributes ()->getFloat ("SampleRate", sampleRate);
-    return kResultTrue;
-  }
   return EditControllerEx1::notify (message);
 }
 
@@ -248,13 +190,15 @@ tresult PLUGIN_API TrackerController::getMidiControllerAssignment (int32 busInde
                                                                    CtrlNumber midiControllerNumber,
                                                                    ParamID& tag /*out*/)
 {
-  if (busIndex == 0 && midiControllerNumber < kCountCtrlNumber && midiCCParamID[midiControllerNumber] != -1)
+  // we support for the Gain parameter all MIDI Channel but only first bus (there is only one!)
+  if (busIndex == 0 && midiControllerNumber == kCtrlVolume)
   {
-    tag = midiCCParamID[midiControllerNumber];
+    tag = kGainId;
     return kResultTrue;
   }
   return kResultFalse;
 }
+
 
 //------------------------------------------------------------------------
 tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** obj)
@@ -262,7 +206,5 @@ tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** ob
   QUERY_INTERFACE (iid, obj, IMidiMapping::iid, IMidiMapping)
   return EditControllerEx1::queryInterface (iid, obj);
 }
-
-
 
 }}} // namespaces

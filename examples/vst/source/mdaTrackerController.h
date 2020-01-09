@@ -21,7 +21,6 @@
 #include "pluginterfaces/vst/ivstmidicontrollers.h"
 #include "pluginterfaces/base/ustring.h"
 
-#include "mdaParameter.h"
 #include "mdaTrackerProcessor.h"
 
 namespace Steinberg {
@@ -35,67 +34,33 @@ public:
   // create function required for Plug-in factory,
   // it will be called to create new instances of this controller
   static FUnknown* createInstance (void*) { return (IEditController*)new TrackerController; }
-
+  static FUID uid;
+  
 	TrackerController ();
 	~TrackerController ();
 	
-  //---from IPluginBase--------
+  //-----------------------------------------------------------------------------
+  // IPluginBase interface
+
   tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;
 	tresult PLUGIN_API terminate () SMTG_OVERRIDE;
   
-  //---from EditController-----
+  //-----------------------------------------------------------------------------
+  // EditController interface
+
   tresult PLUGIN_API setComponentState (IBStream* state) SMTG_OVERRIDE;
-
-
-	tresult PLUGIN_API getParamStringByValue (ParamID tag, ParamValue valueNormalized, String128 string) SMTG_OVERRIDE;
-	tresult PLUGIN_API getParamValueByString (ParamID tag, TChar* string, ParamValue& valueNormalized) SMTG_OVERRIDE;
-
-//-----------------------------------------------------------------------------
-	static FUID uid;
-  
-  
-
   tresult PLUGIN_API notify (IMessage* message) SMTG_OVERRIDE;
-   
   tresult PLUGIN_API getMidiControllerAssignment (int32 busIndex, int16 channel, CtrlNumber midiControllerNumber, ParamID& tag/*out*/) SMTG_OVERRIDE;
-  
-  ParameterContainer& getParameters () { return EditController::parameters; }
-  
-  //-----------------------------
   DELEGATE_REFCOUNT (EditControllerEx1)
   tresult PLUGIN_API queryInterface (const char* iid, void** obj) SMTG_OVERRIDE;
-  //-----------------------------
-  
   
   //-----------------------------------------------------------------------------
   // parameter IDs
   enum
   {
     kGainId = 0,  ///< for the gain value (is automatable)
-    kVuPPMId,    ///< for the Vu value return to host (ReadOnly parameter for our UI)
     kBypassId    ///< Bypass value (we will handle the bypass process) (is automatable)
   };
-
-  /*
-  enum {
-    kMagicNumber = 9999999,
-    kBypassParam = 'bpas',
-    kPresetParam = 'prst',
-    kModWheelParam = 'modw',
-    kBreathParam = 'brth',
-    kCtrler3Param = 'ct03',
-    kExpressionParam = 'expr',
-    kPitchBendParam = 'pitb',
-    kSustainParam = 'sust',
-    kAftertouchParam = 'aftt',
-  };
-*/
-  
-protected:
-  double getSampleRate () const { return sampleRate; }
-  int32 midiCCParamID[kCountCtrlNumber];
-  double sampleRate;
-
 };
 
 }}} // namespaces
