@@ -16,16 +16,16 @@ namespace Vst {
 namespace llllpluginnamellll {
 
 //-----------------------------------------------------------------------------
-class TrackerController : public EditControllerEx1, public IMidiMapping
+class PluginController : public EditControllerEx1, public IMidiMapping
 {
 public:
   // create function required for Plug-in factory,
   // it will be called to create new instances of this controller
-  static FUnknown* createInstance (void*) { return (IEditController*)new TrackerController; }
+  static FUnknown* createInstance (void*) { return (IEditController*)new PluginController; }
   static FUID uid;
   
-	TrackerController ();
-	~TrackerController ();
+	PluginController ();
+	~PluginController ();
 	
   // IPluginBase interface
   tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;

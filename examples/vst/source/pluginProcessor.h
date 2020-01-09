@@ -20,14 +20,14 @@ constexpr int kInputChannels = 2;
 constexpr int kOutputChannels = 2;
 
 //-----------------------------------------------------------------------------
-class TrackerProcessor : public AudioEffect
+class PluginProcessor : public AudioEffect
 {
 public:
-  static FUnknown* createInstance (void*) { return (IAudioProcessor*)new TrackerProcessor; }
+  static FUnknown* createInstance (void*) { return (IAudioProcessor*)new PluginProcessor; }
   static FUID uid;
 
-  TrackerProcessor ();
-  ~TrackerProcessor ();
+  PluginProcessor ();
+  ~PluginProcessor ();
 
   // AudioEffect interface
   tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;
@@ -58,6 +58,8 @@ private:
   // set up the function parameter for processBuffer.process()
   using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
   processFnType processFn{ [&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); } };
+  
+  float _sampleRate{0.f};
   
   // sine generators.
   SineGen s1, s2;

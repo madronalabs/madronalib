@@ -20,23 +20,19 @@ namespace Steinberg {
 namespace Vst {
 namespace llllpluginnamellll {
 
-//-----------------------------------------------------------------------------
-FUID TrackerProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21A7B40);
+FUID PluginProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21A7B40);
 
-//-----------------------------------------------------------------------------
-TrackerProcessor::TrackerProcessor ()
+PluginProcessor::PluginProcessor ()
 {
   // register its editor class (the same than used in againentry.cpp)
-	setControllerClass (TrackerController::uid);
+	setControllerClass (PluginController::uid);
 }
 
-TrackerProcessor::~TrackerProcessor ()
+PluginProcessor::~PluginProcessor ()
 {
 }
 
-
-//-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerProcessor::initialize (FUnknown* context)
+tresult PLUGIN_API PluginProcessor::initialize (FUnknown* context)
 {
   //---always initialize the parent-------
   tresult result = AudioEffect::initialize (context);
@@ -54,17 +50,17 @@ tresult PLUGIN_API TrackerProcessor::initialize (FUnknown* context)
   return kResultOk;
 }
 
-tresult PLUGIN_API TrackerProcessor::terminate ()
+tresult PLUGIN_API PluginProcessor::terminate ()
 {
   return AudioEffect::terminate ();
 }
 
-tresult PLUGIN_API TrackerProcessor::setActive (TBool state)
+tresult PLUGIN_API PluginProcessor::setActive (TBool state)
 {
   return AudioEffect::setActive (state);
 }
 
-tresult PLUGIN_API TrackerProcessor::process (ProcessData& data)
+tresult PLUGIN_API PluginProcessor::process (ProcessData& data)
 {
   processParameterChanges (data.inputParameterChanges);
   
@@ -76,8 +72,7 @@ tresult PLUGIN_API TrackerProcessor::process (ProcessData& data)
   return kResultTrue;
 }
 
-
-tresult PLUGIN_API TrackerProcessor::setState (IBStream* state)
+tresult PLUGIN_API PluginProcessor::setState (IBStream* state)
 {
   // called when we load a preset, the model has to be reloaded
   
@@ -133,29 +128,27 @@ tresult PLUGIN_API TrackerProcessor::setState (IBStream* state)
   return kResultOk;
 }
 
-tresult PLUGIN_API TrackerProcessor::getState (IBStream* state)
+tresult PLUGIN_API PluginProcessor::getState (IBStream* state)
 {
   // here we need to save the model
-  
   IBStreamer streamer (state, kLittleEndian);
-  
   streamer.writeFloat (fGain);
   streamer.writeFloat (fGainReduction);
   streamer.writeInt32 (bBypass ? 1 : 0);
-  
   return kResultOk;
 }
 
-tresult PLUGIN_API TrackerProcessor::setupProcessing (ProcessSetup& newSetup)
+tresult PLUGIN_API PluginProcessor::setupProcessing (ProcessSetup& newSetup)
 {
   // called before the process call, always in a disable state (not active)
   // here we could keep a trace of the processing mode (offline,...) for example.
   // currentProcessMode = newSetup.processMode;
   
+  _sampleRate = newSetup.sampleRate;
   return AudioEffect::setupProcessing (newSetup);
 }
 
-tresult PLUGIN_API TrackerProcessor::setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts)
+tresult PLUGIN_API PluginProcessor::setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts)
 {
   if (numIns)
   {
@@ -170,7 +163,7 @@ tresult PLUGIN_API TrackerProcessor::setBusArrangements (SpeakerArrangement* inp
   return kResultTrue;
 }
 
-tresult PLUGIN_API TrackerProcessor::canProcessSampleSize (int32 symbolicSampleSize)
+tresult PLUGIN_API PluginProcessor::canProcessSampleSize (int32 symbolicSampleSize)
 {
   if (symbolicSampleSize == kSample32)
     return kResultTrue;
@@ -182,7 +175,7 @@ tresult PLUGIN_API TrackerProcessor::canProcessSampleSize (int32 symbolicSampleS
   return kResultFalse;
 }
 
-tresult PLUGIN_API TrackerProcessor::notify (IMessage* message)
+tresult PLUGIN_API PluginProcessor::notify (IMessage* message)
 {
   // we could respond to messages here
   return AudioEffect::notify (message);
@@ -191,12 +184,11 @@ tresult PLUGIN_API TrackerProcessor::notify (IMessage* message)
 // --------------------------------------------------------------------------------
 // private implementation
 
-
-bool TrackerProcessor::processParameterChanges (IParameterChanges* changes)
+bool PluginProcessor::processParameterChanges (IParameterChanges* changes)
 {
   if (changes)
   {
-    int32 numParamsChanged = changes->getParameterCount ();
+    int32 numParamsChanged = changes->getParameterCount();
     // for each parameter which are some changes in this audio block:
     for (int32 i = 0; i < numParamsChanged; i++)
     {
@@ -205,22 +197,22 @@ bool TrackerProcessor::processParameterChanges (IParameterChanges* changes)
       {
         ParamValue value;
         int32 sampleOffset;
-        int32 numPoints = paramQueue->getPointCount ();
-        switch (paramQueue->getParameterId ())
+        int32 numPoints = paramQueue->getPointCount();
+        switch (paramQueue->getParameterId())
         {
-          case TrackerController::kGainId:
+          case PluginController::kGainId:
             // we use in this example only the last point of the queue.
             // in some wanted case for specific kind of parameter it makes sense to
             // retrieve all points and process the whole audio block in small blocks.
-            if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
+            if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) ==
                 kResultTrue)
             {
               fGain = (float)value;
             }
             break;
             
-          case TrackerController::kBypassId:
-            if (paramQueue->getPoint (numPoints - 1, sampleOffset, value) ==
+          case PluginController::kBypassId:
+            if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) ==
                 kResultTrue)
             {
               bBypass = (value > 0.5f);
@@ -233,7 +225,7 @@ bool TrackerProcessor::processParameterChanges (IParameterChanges* changes)
   return false;
 }
 
-void TrackerProcessor::processSignals (ProcessData& data)
+void PluginProcessor::processSignals (ProcessData& data)
 {
   if (data.numInputs == 0 || data.numOutputs == 0)
   {
@@ -241,122 +233,39 @@ void TrackerProcessor::processSignals (ProcessData& data)
     return;
   }
   
-  // (simplification) we suppose in this example that we have the same input channel count than
-  // the output
-  int32 numChannels = data.inputs[0].numChannels;
-  
-  //---get audio buffers----------------
-  uint32 sampleFramesSize = getSampleFramesSizeInBytes (processSetup, data.numSamples);
-  uint32 frames = data.numSamples;
-  
-  void** in = getChannelBuffersPointer (processSetup, data.inputs[0]);
-  void** out = getChannelBuffersPointer (processSetup, data.outputs[0]);
-  
-  //---check if silence---------------
-  // normally we have to check each channel (simplification)
-  if (data.inputs[0].silenceFlags != 0)
-  {
-    // mark output silence too
-    data.outputs[0].silenceFlags = data.inputs[0].silenceFlags;
-    
-    // the Plug-in has to be sure that if it sets the flags silence that the output buffer are
-    // clear
-    for (int32 i = 0; i < numChannels; i++)
-    {
-      // do not need to be cleared if the buffers are the same (in this case input buffer are
-      // already cleared by the host)
-      if (in[i] != out[i])
-      {
-        memset (out[i], 0, sampleFramesSize);
-      }
-    }
-    
-    // nothing to do at this point
-    return;
-  }
-  
   // mark our outputs has not silent
   data.outputs[0].silenceFlags = 0;
   
-  /*
-  //---in bypass mode outputs should be like inputs-----
-  if (bBypass)
-  {
-    for (int32 i = 0; i < numChannels; i++)
-    {
-      // do not need to be copied if the buffers are the same
-      if (in[i] != out[i])
-      {
-        memcpy (out[i], in[i], sampleFramesSize);
-      }
-    }
-  }
-  else
-  {
-    //---apply gain factor----------
-    float gain = (fGain - fGainReduction);
+  // cast I/O pointers: necessary ugliness due to VST's use of void*
+  void** in = getChannelBuffersPointer (processSetup, data.inputs[0]);
+  void** out = getChannelBuffersPointer (processSetup, data.outputs[0]);
+  const float** inputs = const_cast<const float **>(reinterpret_cast<float**>(in));
+  float** outputs = reinterpret_cast<float**>(out);
 
-    // if the applied gain is nearly zero, we could say that the outputs are zeroed and we set
-    // the silence flags.
-    if (gain < 0.0000001)
-    {
-      for (int32 i = 0; i < numChannels; i++)
-      {
-        memset (out[i], 0, sampleFramesSize);
-      }
-      data.outputs[0].silenceFlags = (1 << numChannels) - 1; // this will set to 1 all channels
-    }
-    else
-    {
-      // in real Plug-in it would be better to do dezippering to avoid jump (click) in gain value
-      for (int32 i = 0; i < numChannels; i++)
-      {
-        float* pSrc = static_cast<float*>(in[i]);
-        float* pDest = static_cast<float*>(out[i]);
-        for(int i=0; i<frames; ++i)
-        {
-          pDest[i] = pSrc[i]*gain;
-        }
-      }
-    }
-  }
-   */
+  // run buffered processing
+  processBuffer.process(inputs, outputs, data.numSamples, processFn);
   
-  const float* pIns[kInputChannels];
-  float* pOuts[kOutputChannels];
-  for(int i=0; i < kInputChannels; ++i)
+  // test
+ // static periodicAction()
+  //doEverySecond(data.numSamples, [](){ std::cout << "tick \n";} );
+  static int c{0};
+  c += data.numSamples;
+  if(c > _sampleRate)
   {
-    pIns[i] = static_cast<float*>(in[i]);
+    c -= _sampleRate;
+    std::cout << "tick \n";
   }
-  for(int i=0; i < kOutputChannels; ++i)
-  {
-    pOuts[i] = static_cast<float*>(out[i]);
-  }
-
-  processBuffer.process(pIns, pOuts, frames, processFn);
-  
-  // TEST
-  static int count{0};
-  count += frames;
-  if(count > 44100)
-  {
-    count -= 44100;
-    std::cout << "process: " << pOuts[0][0] <<"  \n" ;
-  }
-
 }
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> TrackerProcessor::processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
+DSPVectorArray<kOutputChannels> PluginProcessor::processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
 {
-  constexpr float kSampleRate = 44100.f;
-  
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
   // The output sines are multiplied by the gain.
-  auto sineL = s1(220.f/kSampleRate)*fGain;
-  auto sineR = s2(275.f/kSampleRate)*fGain;
+  auto sineL = s1(220.f/_sampleRate)*fGain;
+  auto sineR = s2(275.f/_sampleRate)*fGain;
   
   if(bBypass)
   {
@@ -369,7 +278,7 @@ DSPVectorArray<kOutputChannels> TrackerProcessor::processVectors(const DSPVector
     return append(sineL, sineR);
   }
 }
-
+ 
 
 }}} // namespaces
 

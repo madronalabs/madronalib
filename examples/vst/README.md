@@ -1,9 +1,17 @@
 ml-vst
-============================================
-Example of a VST3 plugin made with madronalib and the VST3 SDK.
+======
 
-Built starting from vst-again-sample by pongasoft.
+Example of a VST3 / Audio Units plugin made with cmake, madronalib and the VST3 SDK. A GUI-free project, about as simple as I could make it.
 
-Licensing
+
+to build:
 ---------
-Since this project contains an exact copy of the `again` sample code provided with the VST3 SDK, the licensing is the same as the VST3 SDK: GPL version 3
+
+to create XCode project using cmake:
+
+- mkdir build
+- cd build
+- cmake -DVST3_SDK_ROOT=(your VST3 SDK location) -DCMAKE_BUILD_TYPE=Debug -GXcode ..
+
+then open the project and build all. Links to VST3 plugins will be made in ~/Library/Audio/Plug-Ins/VST3. The au component will be copied to ~/Library/Audio/Plug-Ins/Components.
+

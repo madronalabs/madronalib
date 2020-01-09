@@ -18,7 +18,7 @@ namespace llllpluginnamellll {
 
 
 //-----------------------------------------------------------------------------
-FUID TrackerController::uid (0xBBF70390, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
+FUID PluginController::uid (0xBBF70390, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
 
 
 //------------------------------------------------------------------------
@@ -85,18 +85,17 @@ bool GainParameter::fromString (const TChar* string, ParamValue& normValue) cons
 }
 
 //-----------------------------------------------------------------------------
-TrackerController::TrackerController ()
-{
-}
-
-
-//-----------------------------------------------------------------------------
-TrackerController::~TrackerController ()
+PluginController::PluginController ()
 {
 }
 
 //-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
+PluginController::~PluginController ()
+{
+}
+
+//-----------------------------------------------------------------------------
+tresult PLUGIN_API PluginController::initialize (FUnknown* context)
 {
   tresult result = EditControllerEx1::initialize (context);
   if (result != kResultOk)
@@ -136,7 +135,6 @@ tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
   
   gainParam->setUnitID (1);
   
-  
   //---Bypass parameter---
   int32 stepCount = 1;
   ParamValue defaultVal = 0;
@@ -148,20 +146,19 @@ tresult PLUGIN_API TrackerController::initialize (FUnknown* context)
 }
 
 //-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::terminate ()
+tresult PLUGIN_API PluginController::terminate ()
 {
 	return EditControllerEx1::terminate ();
 }
 
-
 //-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::notify (IMessage* message)
+tresult PLUGIN_API PluginController::notify (IMessage* message)
 {
   return EditControllerEx1::notify (message);
 }
 
 //-----------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::setComponentState (IBStream* state)
+tresult PLUGIN_API PluginController::setComponentState (IBStream* state)
 {
   // we receive the current state of the component (processor part)
   // we read only the gain and bypass value...
@@ -186,7 +183,7 @@ tresult PLUGIN_API TrackerController::setComponentState (IBStream* state)
 }
 
 //------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::getMidiControllerAssignment (int32 busIndex, int16 channel,
+tresult PLUGIN_API PluginController::getMidiControllerAssignment (int32 busIndex, int16 channel,
                                                                    CtrlNumber midiControllerNumber,
                                                                    ParamID& tag /*out*/)
 {
@@ -201,7 +198,7 @@ tresult PLUGIN_API TrackerController::getMidiControllerAssignment (int32 busInde
 
 
 //------------------------------------------------------------------------
-tresult PLUGIN_API TrackerController::queryInterface (const char* iid, void** obj)
+tresult PLUGIN_API PluginController::queryInterface (const char* iid, void** obj)
 {
   QUERY_INTERFACE (iid, obj, IMidiMapping::iid, IMidiMapping)
   return EditControllerEx1::queryInterface (iid, obj);

@@ -22,7 +22,7 @@ BEGIN_FACTORY_DEF (stringCompanyName,
 				   "llllCompanyURLllll",
 				   "lllllCompanyEmailllll")
 
-DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::TrackerProcessor::uid),
+DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::PluginProcessor::uid),
 			PClassInfo::kManyInstances,
 			kVstAudioEffectClass,
 			"llllPluginNamellll",
@@ -30,9 +30,9 @@ DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::TrackerProcessor::uid),
 			Vst::PlugType::kFx,
 			kVersionString,
 			kVstVersionString,
-			llllpluginnamellll::TrackerProcessor::createInstance)
+			llllpluginnamellll::PluginProcessor::createInstance)
 
-DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::TrackerController::uid),
+DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::PluginController::uid),
 			PClassInfo::kManyInstances,
 			kVstComponentControllerClass,
 			"llllPluginNamellll",
@@ -40,7 +40,7 @@ DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::TrackerController::uid),
 			"",
 			kVersionString,
 			kVstVersionString,
-			llllpluginnamellll::TrackerController::createInstance)
+			llllpluginnamellll::PluginController::createInstance)
 //-----------------------------------------------------------------------------
  
 END_FACTORY
