@@ -18,7 +18,7 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace ml {
+namespace llllpluginnamellll {
 
 //-----------------------------------------------------------------------------
 FUID TrackerProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21A7B40);
@@ -33,6 +33,7 @@ TrackerProcessor::TrackerProcessor ()
 TrackerProcessor::~TrackerProcessor ()
 {
 }
+
 
 //-----------------------------------------------------------------------------
 tresult PLUGIN_API TrackerProcessor::initialize (FUnknown* context)
@@ -277,7 +278,7 @@ void TrackerProcessor::processSignals (ProcessData& data)
   // mark our outputs has not silent
   data.outputs[0].silenceFlags = 0;
   
-  
+  /*
   //---in bypass mode outputs should be like inputs-----
   if (bBypass)
   {
@@ -319,7 +320,56 @@ void TrackerProcessor::processSignals (ProcessData& data)
       }
     }
   }
+   */
+  
+  const float* pIns[kInputChannels];
+  float* pOuts[kOutputChannels];
+  for(int i=0; i < kInputChannels; ++i)
+  {
+    pIns[i] = static_cast<float*>(in[i]);
+  }
+  for(int i=0; i < kOutputChannels; ++i)
+  {
+    pOuts[i] = static_cast<float*>(out[i]);
+  }
+
+  processBuffer.process(pIns, pOuts, frames, processFn);
+  
+  // TEST
+  static int count{0};
+  count += frames;
+  if(count > 44100)
+  {
+    count -= 44100;
+    std::cout << "process: " << pOuts[0][0] <<"  \n" ;
+  }
+
 }
+
+// processVectors() does all of the audio processing, in DSPVector-sized chunks.
+// It is called every time a new buffer of audio is needed.
+DSPVectorArray<kOutputChannels> TrackerProcessor::processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
+{
+  constexpr float kSampleRate = 44100.f;
+  
+  // Running the sine generators makes DSPVectors as output.
+  // The input parameter is omega: the frequency in Hz divided by the sample rate.
+  // The output sines are multiplied by the gain.
+  auto sineL = s1(220.f/kSampleRate)*fGain;
+  auto sineR = s2(275.f/kSampleRate)*fGain;
+  
+  if(bBypass)
+  {
+    // default constuctor for DSPVectorArray returns zero-initialized buffers
+    return DSPVectorArray<kOutputChannels>();
+  }
+  else
+  {
+    // appending the two DSPVectors makes a DSPVectorArray<2>: our stereo output.
+    return append(sineL, sineR);
+  }
+}
+
 
 }}} // namespaces
 

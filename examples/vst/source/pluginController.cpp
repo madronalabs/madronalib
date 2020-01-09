@@ -14,7 +14,7 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace ml {
+namespace llllpluginnamellll {
 
 
 //-----------------------------------------------------------------------------

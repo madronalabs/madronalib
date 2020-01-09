@@ -8,9 +8,16 @@
 #include "pluginterfaces/vst/ivstevents.h"
 #include "pluginterfaces/vst/ivstparameterchanges.h"
 
+#include "madronalib/mldsp.h"
+using namespace ml;
+
 namespace Steinberg {
 namespace Vst {
-namespace ml {
+namespace llllpluginnamellll {
+
+constexpr int kMaxProcessBlockFrames = 4096;
+constexpr int kInputChannels = 2;
+constexpr int kOutputChannels = 2;
 
 //-----------------------------------------------------------------------------
 class TrackerProcessor : public AudioEffect
@@ -41,6 +48,20 @@ private:
   float fGain{1.f};
   float fGainReduction{0.f};
   bool bBypass {false};
+  
+  // buffer object to call processVectors from process() calls of arbitrary frame sizes
+  VectorProcessBuffer<kInputChannels, kOutputChannels, kMaxProcessBlockFrames> processBuffer;
+
+  // declare the processVectors function that will run our DSP in vectors of size kFloatsPerDSPVector
+  DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors);
+  
+  // set up the function parameter for processBuffer.process()
+  using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
+  processFnType processFn{ [&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); } };
+  
+  // sine generators.
+  SineGen s1, s2;
+
 };
 
 }}} // namespaces

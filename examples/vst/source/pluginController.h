@@ -13,7 +13,7 @@
 
 namespace Steinberg {
 namespace Vst {
-namespace ml {
+namespace llllpluginnamellll {
 
 //-----------------------------------------------------------------------------
 class TrackerController : public EditControllerEx1, public IMidiMapping

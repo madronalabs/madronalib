@@ -45,6 +45,16 @@ endif()
 
 source_group(vstsdk REGULAR_EXPRESSION "vst3sdk+")
 
+include(GNUInstallDirs)
+
+message("madronalib should be in: " ${CMAKE_INSTALL_FULL_LIBDIR} )
+message("madronalib headers should be in: " ${CMAKE_INSTALL_FULL_INCLUDEDIR} )
+
+
+#add madronalib directory
+target_include_directories(${target} PRIVATE ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+
+target_link_libraries(${target} PRIVATE "${CMAKE_INSTALL_FULL_LIBDIR}/libmadrona.a")
 
 #---------------------------------------------------------
 # add au target using auwrapper.
