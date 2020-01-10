@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import shutil
 import sys
 import os
@@ -7,19 +9,32 @@ import setPluginInfo
 # count the arguments
 arguments = len(sys.argv) - 1
 
-if arguments != 2:
-	print("usage: clonePlugin <destination> <pluginName>")
-	quit()
 
-dest = (sys.argv[1])
-pluginName = (sys.argv[2])
+def clonePlugin(dest, pluginName):
+	pluginNameLC = str.lower(pluginName)
+	newPlugDest = dest + "/" + pluginNameLC
 
-pluginNameLC = str.lower(pluginName)
-newPlugDest = dest + "/" + pluginNameLC
+	cwd = os.getcwd()
+	print ("new project destination:", newPlugDest)
 
-cwd = os.getcwd()
-print ("dest:", newPlugDest)
+	try:
+		shutil.copytree(cwd, newPlugDest)
+	except:
+		print("error copying directory tree to ", newPlugDest)
+		return
 
-#shutil.copytree(cwd, newPlugDest)
+	os.chdir(newPlugDest)	
+	cwd = os.getcwd()
 
-print (setPluginInfo.set("a", "b"))
+	setPluginInfo.replaceAttrInFiles("name", pluginName)
+
+
+# allow running from cmd line
+if __name__ == "__main__":
+    
+	# count the arguments
+	arguments = len(sys.argv) - 1
+	if arguments != 2:
+		print("usage: clonePlugin <destination> <pluginName>")
+		quit()
+	clonePlugin(sys.argv[1], sys.argv[2])

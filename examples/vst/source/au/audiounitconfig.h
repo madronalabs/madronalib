@@ -49,13 +49,13 @@
 /* Unique ID */
 #define kAUPluginSubType 			lxxl
 /* Registered Company ID */
-#define kAUPluginManufacturer 		LLLL
+#define kAUPluginManufacturer 		LXXL
 
 // Definitions for the resource file
 #define kAudioUnitName				"llllCompanyllll: llllPluginNamellll"	// same as kAUPluginName
 #define kAudioUnitDescription		"llllPluginNamellll"	// same as kAUPluginDescription
 #define kAudioUnitType				'aufx'	//kAudioUnitType_Effect // same as kAUPluginType
 #define kAudioUnitComponentSubType	'lxxl'	// same as kAUPluginSubType
-#define kAudioUnitComponentManuf	'LLLL'	// same as kAUPluginManufacturer
+#define kAudioUnitComponentManuf	'LXXL'	// same as kAUPluginManufacturer
 
 #define kAudioUnitCarbonView		1		// if 0 no Carbon view support will be added

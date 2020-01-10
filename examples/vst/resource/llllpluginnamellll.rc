@@ -3,13 +3,6 @@
 
 #define APSTUDIO_READONLY_SYMBOLS
 
-again.uidesc            DATA  "again.uidesc"
-slider_handle.png		PNG  "slider_handle.png"
-slider_handle_2.0x.png	PNG  "slider_handle_2.0x.png"
-slider_background.png	PNG  "slider_background.png"
-vu_on.png				PNG  "vu_on.png"
-vu_off.png				PNG  "vu_off.png"
-background.png			PNG  "background.png"
 
 /////////////////////////////////////////////////////////////////////////////
 // Version
@@ -33,7 +26,7 @@ BEGIN
         BEGIN
             VALUE "FileVersion",      FULL_VERSION_STR"\0"
             VALUE "ProductVersion",   FULL_VERSION_STR"\0"
-            VALUE "OriginalFilename", "again.vst3\0"
+            VALUE "OriginalFilename", "llllpluginnamellll.vst3\0"
             VALUE "FileDescription",  stringFileDescription"\0"
             VALUE "InternalName",     stringFileDescription"\0"
             VALUE "ProductName",      stringFileDescription"\0"
