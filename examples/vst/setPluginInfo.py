@@ -49,6 +49,10 @@ def replaceAttrInFiles(attr, value):
 		searchText = 'llllCompanyURLllll'
 	elif(attr == 'email'):
 		searchText = 'lllllCompanyEmailllll'
+	elif(attr == 'uida'):
+		searchText = '0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA'
+	elif(attr == 'uidb'):
+		searchText = '0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB'
 	else:
 		validAttr = False
 

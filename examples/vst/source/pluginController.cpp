@@ -2,8 +2,6 @@
 // (c) 2020, Madrona Labs LLC, all rights reserved
 // see LICENSE.txt for details
 
-
-#include "mdaParameter.h"
 #include "pluginterfaces/base/ibstream.h"
 #include "base/source/fstreamer.h"
 
@@ -16,10 +14,7 @@ namespace Steinberg {
 namespace Vst {
 namespace llllpluginnamellll {
 
-
-//-----------------------------------------------------------------------------
-FUID PluginController::uid (0xBBF70390, 0x94A848F0, 0xAEE965F6, 0x5DA3D3BA);
-
+FUID PluginController::uid (0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA);
 
 //------------------------------------------------------------------------
 // GainParameter Declaration
@@ -85,16 +80,16 @@ bool GainParameter::fromString (const TChar* string, ParamValue& normValue) cons
 }
 
 //-----------------------------------------------------------------------------
+// PluginController implementation
+
 PluginController::PluginController ()
 {
 }
 
-//-----------------------------------------------------------------------------
 PluginController::~PluginController ()
 {
 }
 
-//-----------------------------------------------------------------------------
 tresult PLUGIN_API PluginController::initialize (FUnknown* context)
 {
   tresult result = EditControllerEx1::initialize (context);
@@ -145,19 +140,16 @@ tresult PLUGIN_API PluginController::initialize (FUnknown* context)
   return result;
 }
 
-//-----------------------------------------------------------------------------
 tresult PLUGIN_API PluginController::terminate ()
 {
 	return EditControllerEx1::terminate ();
 }
 
-//-----------------------------------------------------------------------------
 tresult PLUGIN_API PluginController::notify (IMessage* message)
 {
   return EditControllerEx1::notify (message);
 }
 
-//-----------------------------------------------------------------------------
 tresult PLUGIN_API PluginController::setComponentState (IBStream* state)
 {
   // we receive the current state of the component (processor part)
@@ -182,7 +174,6 @@ tresult PLUGIN_API PluginController::setComponentState (IBStream* state)
   return kResultOk;
 }
 
-//------------------------------------------------------------------------
 tresult PLUGIN_API PluginController::getMidiControllerAssignment (int32 busIndex, int16 channel,
                                                                    CtrlNumber midiControllerNumber,
                                                                    ParamID& tag /*out*/)
@@ -196,8 +187,6 @@ tresult PLUGIN_API PluginController::getMidiControllerAssignment (int32 busIndex
   return kResultFalse;
 }
 
-
-//------------------------------------------------------------------------
 tresult PLUGIN_API PluginController::queryInterface (const char* iid, void** obj)
 {
   QUERY_INTERFACE (iid, obj, IMidiMapping::iid, IMidiMapping)

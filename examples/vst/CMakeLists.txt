@@ -9,7 +9,7 @@ cmake_minimum_required (VERSION 3.9)
 set(VST3_SDK_ROOT "" CACHE PATH "Location of VST3 SDK")
 set(public_sdk_SOURCE_DIR ${VST3_SDK_ROOT}/public.sdk)
 
-project(MLVSTSample)
+project(llllPluginNamellll)
 
 set(llllpluginnamellll_sources
     source/factoryDefinition.cpp

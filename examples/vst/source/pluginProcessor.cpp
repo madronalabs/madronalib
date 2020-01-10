@@ -20,7 +20,7 @@ namespace Steinberg {
 namespace Vst {
 namespace llllpluginnamellll {
 
-FUID PluginProcessor::uid (0x61EA12AB, 0xC25447EA, 0xABD8D344, 0xB21A7B40);
+FUID PluginProcessor::uid (0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB);
 
 PluginProcessor::PluginProcessor ()
 {

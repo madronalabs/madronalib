@@ -253,6 +253,7 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     add_executable(${EXAMPLE_APP_NAME} ${EXAMPLE_SOURCES})
 
+    # choose driver for Rtaudio
     if(WIN32)
         target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __WINDOWS_WASAPI__)
     elseif(APPLE)
