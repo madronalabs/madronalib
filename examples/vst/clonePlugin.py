@@ -26,6 +26,11 @@ def clonePlugin(dest, pluginName):
 	os.chdir(newPlugDest)	
 	cwd = os.getcwd()
 
+	# remove build directory if one exists
+	dirpath = os.path.join(cwd, 'build')
+	if os.path.exists(dirpath) and os.path.isdir(dirpath):
+	    shutil.rmtree(dirpath)
+
 	setPluginInfo.replaceAttrInFiles("name", pluginName)
 
 

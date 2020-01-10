@@ -5,7 +5,8 @@ import sys
 import os
 import ntpath
 
-targetFiles = ["source/au/audiounitconfig.h", "source/au/Info.plist", "llllpluginnamellll.rc", "source/version.h",
+targetFiles = ["source/au/audiounitconfig.h", "source/au/Info.plist", "resource/llllpluginnamellll.rc", "source/version.h",
+	"source/pluginProcessor.cpp", "source/pluginProcessor.h", "source/pluginController.cpp", "source/pluginController.h",
 	"source/factoryDefinition.cpp", "CMakeLists.txt"]
 
 def path_leaf(path):
@@ -16,14 +17,12 @@ def replaceInFile(searchText, replaceText, filePath):
 	if os.path.exists(filePath):
 		# search and replace, creating temp file
 		input = open(filePath)
-		tempTag = "__TEMP__"
-		output = open(filePath + tempTag, 'w')
-		if input.read().count(searchText) > 0:
-			output.write(input.read().replace(searchText, replaceText))
-			input.close()
+		inputStr = input.read()
+		input.close()
+		if inputStr.count(searchText) > 0:
+			output = open(filePath, 'w')
+			output.write(inputStr.replace(searchText, replaceText))
 			output.close()
-			# copy temp file back over original
-			shutil.move(filePath + tempTag, filePath)
 			print ("    replaced", searchText, "with", replaceText, "in", path_leaf(filePath))
 	else:
 		print(filePath, " not found.")
