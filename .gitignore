@@ -14,6 +14,11 @@
 #
 #########################
 
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+
 #####
 # OS X temporary files that should never be committed
 

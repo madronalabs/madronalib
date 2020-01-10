@@ -28,6 +28,6 @@
 #else
 #define stringFileDescription	"Madronalib example plugin"
 #endif
-#define stringCompanyName		"llllcompanyllll"
+#define stringCompanyName		"llllCompanyllll"
 #define stringLegalCopyright	"llllcopyrightllll"
 #define stringLegalTrademarks	"VST is a trademark of Steinberg Media Technologies GmbH"
