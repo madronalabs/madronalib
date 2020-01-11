@@ -8,8 +8,8 @@
 #include "version.h"
 
 //-----------------------------------------------------------------------------
-bool InitModule () { return true; }
-bool DeinitModule () { return true; }
+bool InitModule() { return true; }
+bool DeinitModule() { return true; }
 
 //-----------------------------------------------------------------------------
 // llllPluginNamellll factory definition
@@ -18,11 +18,11 @@ bool DeinitModule () { return true; }
 
 using namespace Steinberg::Vst;
 
-BEGIN_FACTORY_DEF (stringCompanyName, 
+BEGIN_FACTORY_DEF(stringCompanyName,
 				   "llllCompanyURLllll",
 				   "lllllCompanyEmailllll")
 
-DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::PluginProcessor::uid),
+DEF_CLASS2(INLINE_UID_FROM_FUID(llllpluginnamellll::PluginProcessor::uid),
 			PClassInfo::kManyInstances,
 			kVstAudioEffectClass,
 			"llllPluginNamellll",
@@ -32,7 +32,7 @@ DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::PluginProcessor::uid),
 			kVstVersionString,
 			llllpluginnamellll::PluginProcessor::createInstance)
 
-DEF_CLASS2 (INLINE_UID_FROM_FUID (llllpluginnamellll::PluginController::uid),
+DEF_CLASS2(INLINE_UID_FROM_FUID(llllpluginnamellll::PluginController::uid),
 			PClassInfo::kManyInstances,
 			kVstComponentControllerClass,
 			"llllPluginNamellll",

@@ -20,73 +20,73 @@ namespace Steinberg {
 namespace Vst {
 namespace llllpluginnamellll {
 
-FUID PluginProcessor::uid (0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB);
+FUID PluginProcessor::uid(0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB);
 
-PluginProcessor::PluginProcessor ()
+PluginProcessor::PluginProcessor()
 {
-  // register its editor class (the same than used in againentry.cpp)
-	setControllerClass (PluginController::uid);
+  // register its editor class(the same than used in againentry.cpp)
+	setControllerClass(PluginController::uid);
 }
 
-PluginProcessor::~PluginProcessor ()
+PluginProcessor::~PluginProcessor()
 {
 }
 
-tresult PLUGIN_API PluginProcessor::initialize (FUnknown* context)
+tresult PLUGIN_API PluginProcessor::initialize(FUnknown* context)
 {
   //---always initialize the parent-------
-  tresult result = AudioEffect::initialize (context);
+  tresult result = AudioEffect::initialize(context);
 
-  if (result != kResultOk)
+  if(result != kResultOk)
   {
     return result;
   }
   
   //---create Audio In/Out buses------
   // we want a stereo Input and a Stereo Output
-  addAudioInput (STR16 ("Stereo In"), SpeakerArr::kStereo);
-  addAudioOutput (STR16 ("Stereo Out"), SpeakerArr::kStereo);
+  addAudioInput(STR16("Stereo In"), SpeakerArr::kStereo);
+  addAudioOutput(STR16("Stereo Out"), SpeakerArr::kStereo);
   
   return kResultOk;
 }
 
-tresult PLUGIN_API PluginProcessor::terminate ()
+tresult PLUGIN_API PluginProcessor::terminate()
 {
-  return AudioEffect::terminate ();
+  return AudioEffect::terminate();
 }
 
-tresult PLUGIN_API PluginProcessor::setActive (TBool state)
+tresult PLUGIN_API PluginProcessor::setActive(TBool state)
 {
-  return AudioEffect::setActive (state);
+  return AudioEffect::setActive(state);
 }
 
-tresult PLUGIN_API PluginProcessor::process (ProcessData& data)
+tresult PLUGIN_API PluginProcessor::process(ProcessData& data)
 {
-  processParameterChanges (data.inputParameterChanges);
+  processParameterChanges(data.inputParameterChanges);
   
   // TODO for instruments
-  // processEvents (data.inputEvents);
+  // processEvents(data.inputEvents);
   
   processSignals(data);
   
   return kResultTrue;
 }
 
-tresult PLUGIN_API PluginProcessor::setState (IBStream* state)
+tresult PLUGIN_API PluginProcessor::setState(IBStream* state)
 {
   // called when we load a preset, the model has to be reloaded
   
-  IBStreamer streamer (state, kLittleEndian);
+  IBStreamer streamer(state, kLittleEndian);
   float savedGain = 0.f;
-  if (streamer.readFloat (savedGain) == false)
+  if(streamer.readFloat(savedGain) == false)
     return kResultFalse;
   
   float savedGainReduction = 0.f;
-  if (streamer.readFloat (savedGainReduction) == false)
+  if(streamer.readFloat(savedGainReduction) == false)
     return kResultFalse;
   
   int32 savedBypass = 0;
-  if (streamer.readInt32 (savedBypass) == false)
+  if(streamer.readInt32(savedBypass) == false)
     return kResultFalse;
   
   fGain = savedGain;
@@ -94,21 +94,21 @@ tresult PLUGIN_API PluginProcessor::setState (IBStream* state)
   bBypass = savedBypass > 0;
   
   // Example of using the IStreamAttributes interface
-  FUnknownPtr<IStreamAttributes> stream (state);
-  if (stream)
+  FUnknownPtr<IStreamAttributes> stream(state);
+  if(stream)
   {
-    IAttributeList* list = stream->getAttributes ();
-    if (list)
+    IAttributeList* list = stream->getAttributes();
+    if(list)
     {
-      // get the current type (project/Default..) of this state
+      // get the current type(project/Default..) of this state
       String128 string = {0};
-      if (list->getString (PresetAttributes::kStateType, string, 128 * sizeof (TChar)) ==
+      if(list->getString(PresetAttributes::kStateType, string, 128 * sizeof(TChar)) ==
           kResultTrue)
       {
-        UString128 tmp (string);
+        UString128 tmp(string);
         char ascii[128];
-        tmp.toAscii (ascii, 128);
-        if (!strncmp (ascii, StateType::kProject, strlen (StateType::kProject)))
+        tmp.toAscii(ascii, 128);
+        if(!strncmp(ascii, StateType::kProject, strlen(StateType::kProject)))
         {
           // we are in project loading context...
         }
@@ -116,9 +116,9 @@ tresult PLUGIN_API PluginProcessor::setState (IBStream* state)
       
       // get the full file path of this state
       TChar fullPath[1024];
-      memset (fullPath, 0, 1024 * sizeof (TChar));
-      if (list->getString (PresetAttributes::kFilePathStringType, fullPath,
-                           1024 * sizeof (TChar)) == kResultTrue)
+      memset(fullPath, 0, 1024 * sizeof(TChar));
+      if(list->getString(PresetAttributes::kFilePathStringType, fullPath,
+                           1024 * sizeof(TChar)) == kResultTrue)
       {
         // here we have the full path ...
       }
@@ -128,94 +128,92 @@ tresult PLUGIN_API PluginProcessor::setState (IBStream* state)
   return kResultOk;
 }
 
-tresult PLUGIN_API PluginProcessor::getState (IBStream* state)
+tresult PLUGIN_API PluginProcessor::getState(IBStream* state)
 {
   // here we need to save the model
-  IBStreamer streamer (state, kLittleEndian);
-  streamer.writeFloat (fGain);
-  streamer.writeFloat (fGainReduction);
-  streamer.writeInt32 (bBypass ? 1 : 0);
+  IBStreamer streamer(state, kLittleEndian);
+  streamer.writeFloat(fGain);
+  streamer.writeFloat(fGainReduction);
+  streamer.writeInt32(bBypass ? 1 : 0);
   return kResultOk;
 }
 
-tresult PLUGIN_API PluginProcessor::setupProcessing (ProcessSetup& newSetup)
+tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
 {
-  // called before the process call, always in a disable state (not active)
-  // here we could keep a trace of the processing mode (offline,...) for example.
+  // called before the process call, always in a disable state(not active)
+  // here we could keep a trace of the processing mode(offline,...) for example.
   // currentProcessMode = newSetup.processMode;
   
   _sampleRate = newSetup.sampleRate;
-  return AudioEffect::setupProcessing (newSetup);
+  return AudioEffect::setupProcessing(newSetup);
 }
 
-tresult PLUGIN_API PluginProcessor::setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts)
+tresult PLUGIN_API PluginProcessor::setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts)
 {
-  if (numIns)
+  if(numIns)
   {
-    if (SpeakerArr::getChannelCount (inputs[0]) != 2)
+    if(SpeakerArr::getChannelCount(inputs[0]) != 2)
       return kResultFalse;
   }
-  if (numOuts)
+  if(numOuts)
   {
-    if (SpeakerArr::getChannelCount (outputs[0]) != 2)
+    if(SpeakerArr::getChannelCount(outputs[0]) != 2)
       return kResultFalse;
   }
   return kResultTrue;
 }
 
-tresult PLUGIN_API PluginProcessor::canProcessSampleSize (int32 symbolicSampleSize)
+tresult PLUGIN_API PluginProcessor::canProcessSampleSize(int32 symbolicSampleSize)
 {
-  if (symbolicSampleSize == kSample32)
+  if(symbolicSampleSize == kSample32)
     return kResultTrue;
   
   // we support double processing
-  if (symbolicSampleSize == kSample64)
+  if(symbolicSampleSize == kSample64)
     return kResultTrue;
   
   return kResultFalse;
 }
 
-tresult PLUGIN_API PluginProcessor::notify (IMessage* message)
+tresult PLUGIN_API PluginProcessor::notify(IMessage* message)
 {
   // we could respond to messages here
-  return AudioEffect::notify (message);
+  return AudioEffect::notify(message);
 }
 
 // --------------------------------------------------------------------------------
 // private implementation
 
-bool PluginProcessor::processParameterChanges (IParameterChanges* changes)
+bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
 {
-  if (changes)
+  if(changes)
   {
     int32 numParamsChanged = changes->getParameterCount();
     // for each parameter which are some changes in this audio block:
-    for (int32 i = 0; i < numParamsChanged; i++)
+    for(int32 i = 0; i < numParamsChanged; i++)
     {
-      IParamValueQueue* paramQueue = changes->getParameterData (i);
-      if (paramQueue)
+      IParamValueQueue* paramQueue = changes->getParameterData(i);
+      if(paramQueue)
       {
         ParamValue value;
         int32 sampleOffset;
         int32 numPoints = paramQueue->getPointCount();
-        switch (paramQueue->getParameterId())
+        switch(paramQueue->getParameterId())
         {
           case PluginController::kGainId:
             // we use in this example only the last point of the queue.
             // in some wanted case for specific kind of parameter it makes sense to
             // retrieve all points and process the whole audio block in small blocks.
-            if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) ==
-                kResultTrue)
+            if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
             {
-              fGain = (float)value;
+              fGain =(float)value;
             }
             break;
             
           case PluginController::kBypassId:
-            if (paramQueue->getPoint(numPoints - 1, sampleOffset, value) ==
-                kResultTrue)
+            if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
             {
-              bBypass = (value > 0.5f);
+              bBypass =(value > 0.5f);
             }
             break;
         }
@@ -225,9 +223,9 @@ bool PluginProcessor::processParameterChanges (IParameterChanges* changes)
   return false;
 }
 
-void PluginProcessor::processSignals (ProcessData& data)
+void PluginProcessor::processSignals(ProcessData& data)
 {
-  if (data.numInputs == 0 || data.numOutputs == 0)
+  if(data.numInputs == 0 || data.numOutputs == 0)
   {
     // nothing to do
     return;
@@ -237,8 +235,8 @@ void PluginProcessor::processSignals (ProcessData& data)
   data.outputs[0].silenceFlags = 0;
   
   // cast I/O pointers: necessary ugliness due to VST's use of void*
-  void** in = getChannelBuffersPointer (processSetup, data.inputs[0]);
-  void** out = getChannelBuffersPointer (processSetup, data.outputs[0]);
+  void** in = getChannelBuffersPointer(processSetup, data.inputs[0]);
+  void** out = getChannelBuffersPointer(processSetup, data.outputs[0]);
   const float** inputs = const_cast<const float **>(reinterpret_cast<float**>(in));
   float** outputs = reinterpret_cast<float**>(out);
 

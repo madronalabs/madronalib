@@ -23,27 +23,27 @@ constexpr int kOutputChannels = 2;
 class PluginProcessor : public AudioEffect
 {
 public:
-  static FUnknown* createInstance (void*) { return (IAudioProcessor*)new PluginProcessor; }
+  static FUnknown* createInstance(void*) { return(IAudioProcessor*)new PluginProcessor; }
   static FUID uid;
 
-  PluginProcessor ();
-  ~PluginProcessor ();
+  PluginProcessor();
+  ~PluginProcessor();
 
   // AudioEffect interface
-  tresult PLUGIN_API initialize (FUnknown* context) SMTG_OVERRIDE;
-  tresult PLUGIN_API terminate () SMTG_OVERRIDE;
-  tresult PLUGIN_API setActive (TBool state) SMTG_OVERRIDE;
-  tresult PLUGIN_API process (ProcessData& data) SMTG_OVERRIDE;
-  tresult PLUGIN_API setState (IBStream* state) SMTG_OVERRIDE;
-  tresult PLUGIN_API getState (IBStream* state) SMTG_OVERRIDE;
-  tresult PLUGIN_API setupProcessing (ProcessSetup& newSetup) SMTG_OVERRIDE;
-  tresult PLUGIN_API setBusArrangements (SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) SMTG_OVERRIDE;
-  tresult PLUGIN_API canProcessSampleSize (int32 symbolicSampleSize) SMTG_OVERRIDE;
-  tresult PLUGIN_API notify (IMessage* message) SMTG_OVERRIDE;
+  tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
+  tresult PLUGIN_API terminate() SMTG_OVERRIDE;
+  tresult PLUGIN_API setActive(TBool state) SMTG_OVERRIDE;
+  tresult PLUGIN_API process(ProcessData& data) SMTG_OVERRIDE;
+  tresult PLUGIN_API setState(IBStream* state) SMTG_OVERRIDE;
+  tresult PLUGIN_API getState(IBStream* state) SMTG_OVERRIDE;
+  tresult PLUGIN_API setupProcessing(ProcessSetup& newSetup) SMTG_OVERRIDE;
+  tresult PLUGIN_API setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) SMTG_OVERRIDE;
+  tresult PLUGIN_API canProcessSampleSize(int32 symbolicSampleSize) SMTG_OVERRIDE;
+  tresult PLUGIN_API notify(IMessage* message) SMTG_OVERRIDE;
   
 private:
-  bool processParameterChanges (IParameterChanges* changes);
-  void processSignals (ProcessData& data);
+  bool processParameterChanges(IParameterChanges* changes);
+  void processSignals(ProcessData& data);
   
   float fGain{1.f};
   float fGainReduction{0.f};
