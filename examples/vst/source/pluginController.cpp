@@ -92,43 +92,15 @@ PluginController::~PluginController ()
 
 tresult PLUGIN_API PluginController::initialize (FUnknown* context)
 {
-  tresult result = EditControllerEx1::initialize (context);
+  tresult result = EditController::initialize (context);
   if (result != kResultOk)
   {
     return result;
   }
   
-  //--- Create Units-------------
-  UnitInfo unitInfo;
-  Unit* unit;
-  
-  // create root only if you want to use the programListId
-  /*  unitInfo.id = kRootUnitId;  // always for Root Unit
-   unitInfo.parentUnitId = kNoParentUnitId;  // always for Root Unit
-   Steinberg::UString (unitInfo.name, USTRINGSIZE (unitInfo.name)).assign (USTRING ("Root"));
-   unitInfo.programListId = kNoProgramListId;
-   
-   unit = new Unit (unitInfo);
-   addUnitInfo (unit);*/
-  
-  // create a unit1 for the gain
-  unitInfo.id = 1;
-  unitInfo.parentUnitId = kRootUnitId; // attached to the root unit
-  
-  Steinberg::UString (unitInfo.name, USTRINGSIZE (unitInfo.name)).assign (USTRING ("Unit1"));
-  
-  unitInfo.programListId = kNoProgramListId;
-  
-  unit = new Unit (unitInfo);
-  addUnit (unit);
-  
-  //---Create Parameters------------
-  
   //---Gain parameter--
   auto* gainParam = new GainParameter (ParameterInfo::kCanAutomate, kGainId);
   parameters.addParameter (gainParam);
-  
-  gainParam->setUnitID (1);
   
   //---Bypass parameter---
   int32 stepCount = 1;
@@ -142,12 +114,12 @@ tresult PLUGIN_API PluginController::initialize (FUnknown* context)
 
 tresult PLUGIN_API PluginController::terminate ()
 {
-	return EditControllerEx1::terminate ();
+	return EditController::terminate ();
 }
 
 tresult PLUGIN_API PluginController::notify (IMessage* message)
 {
-  return EditControllerEx1::notify (message);
+  return EditController::notify (message);
 }
 
 tresult PLUGIN_API PluginController::setComponentState (IBStream* state)
@@ -190,7 +162,7 @@ tresult PLUGIN_API PluginController::getMidiControllerAssignment (int32 busIndex
 tresult PLUGIN_API PluginController::queryInterface (const char* iid, void** obj)
 {
   QUERY_INTERFACE (iid, obj, IMidiMapping::iid, IMidiMapping)
-  return EditControllerEx1::queryInterface (iid, obj);
+  return EditController::queryInterface (iid, obj);
 }
 
 }}} // namespaces

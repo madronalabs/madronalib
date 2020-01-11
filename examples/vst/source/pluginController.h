@@ -16,7 +16,7 @@ namespace Vst {
 namespace llllpluginnamellll {
 
 //-----------------------------------------------------------------------------
-class PluginController : public EditControllerEx1, public IMidiMapping
+class PluginController : public EditController, public IMidiMapping
 {
 public:
   // create function required for Plug-in factory,
@@ -35,7 +35,7 @@ public:
   tresult PLUGIN_API setComponentState (IBStream* state) SMTG_OVERRIDE;
   tresult PLUGIN_API notify (IMessage* message) SMTG_OVERRIDE;
   tresult PLUGIN_API getMidiControllerAssignment (int32 busIndex, int16 channel, CtrlNumber midiControllerNumber, ParamID& tag/*out*/) SMTG_OVERRIDE;
-  DELEGATE_REFCOUNT (EditControllerEx1)
+  DELEGATE_REFCOUNT (EditController)
   tresult PLUGIN_API queryInterface (const char* iid, void** obj) SMTG_OVERRIDE;
   
   // parameter IDs
