@@ -207,7 +207,9 @@ install(FILES
     ${MATRIX_HEADERS} 
     ${PROC_HEADERS} 
     ${OSC_HEADERS}
-    DESTINATION include/madronalib
+    DESTINATION 
+    # PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
+    include/madronalib
   )
 
 if(APPLE)
