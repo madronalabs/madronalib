@@ -37,10 +37,6 @@ namespace ml
       return (oldValue || newValue);
     }
   };
-
-  // Define a type for initializing a new object with a list of ValueChanges.
-  using withValues = std::initializer_list<ValueChange>;
-
 } // namespace ml
 
 inline std::ostream& operator<< (std::ostream& out, const ml::ValueChange& r)

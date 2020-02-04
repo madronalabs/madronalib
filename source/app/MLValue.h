@@ -10,6 +10,7 @@
 #include <map>
 
 #include "MLMatrix.h"
+#include "MLPath.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 
@@ -168,5 +169,20 @@ namespace ml{
   }
 
   std::ostream& operator<< (std::ostream& out, const ml::Value & r);
-  
+    
+
+  // NamedValue for initializer lists
+
+  struct NamedValue
+  {
+    ml::Path name{};
+    Value value{};
+    
+    NamedValue() = default;
+    NamedValue(ml::Path np, Value nv) : name(np), value(nv) {}
+  };
+
+  // Define a type for initializing a new object with a list of Values.
+  using WithValues = const std::initializer_list<NamedValue>;
+
 } // namespace ml
