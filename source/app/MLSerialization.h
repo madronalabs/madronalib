@@ -74,6 +74,8 @@ namespace ml{
     return Value(); // TODO
   }
 
+  // TODO endian issues
+
   inline std::unique_ptr< std::vector<uint8_t> > valueToBinary(Value v)
   {
     std::vector<unsigned char> outputVector;

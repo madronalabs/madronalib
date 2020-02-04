@@ -3,7 +3,7 @@
 
 using namespace ml;
 
-/*
+
 // definition of static constexpr data members at namespace scope is still required, until C++17
 constexpr constStr ProcMultiply::paramNames[];
 constexpr constStr ProcMultiply::inputNames[];
@@ -12,7 +12,7 @@ constexpr constStr ProcMultiply::outputNames[];
 constexpr constStrArray ProcMultiply::pn_;
 constexpr constStrArray ProcMultiply::in_;
 constexpr constStrArray ProcMultiply::on_;
-*/
+
 
 /*
 // output function that requires a compile-time constant, for testing
@@ -23,7 +23,7 @@ struct constTest
 };
 */
 
-/*
+
 void ProcMultiply::process()
 {
 
@@ -51,4 +51,3 @@ namespace
 }
 
 
-*/

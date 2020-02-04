@@ -265,8 +265,6 @@ namespace ml { namespace textUtils {
     return 0.f;
   }
 
-
-
     int findFirst(const TextFragment& frag, const CodePoint b)
     {
         int r = npos;
