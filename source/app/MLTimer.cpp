@@ -51,17 +51,21 @@ void ml::Timers::start(bool runInMainThread)
 
 void ml::Timers::stop()
 {
-  if(inMainThread && ml::Timers::pTimersRef)
+  if(inMainThread)
   {
-      CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(ml::Timers::pTimersRef);
-      CFRunLoopRemoveTimer (CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
-      ml::Timers::pTimersRef = nullptr;
+      if(ml::Timers::pTimersRef)
+      {
+        CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(ml::Timers::pTimersRef);
+        CFRunLoopRemoveTimer (CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
+        ml::Timers::pTimersRef = nullptr;
+      }
   }
   else
   {
-      runThread.join();
+    // signal thread to exit
+    running = false;
+    runThread.join();
   }
-  running = false;
 }
 
 #elif ML_WINDOWS
@@ -106,9 +110,11 @@ void ml::Timers::stop()
   }
   else
   {
+    // signal thread to exit
+    running = false;
     runThread.join();
   }
-  running = false;
+
 }
 
 #elif ML_LINUX
