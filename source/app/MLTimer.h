@@ -30,12 +30,12 @@ namespace ml
   {
   public:
     static const int kMillisecondsResolution;
-
+    static void* pTimersRef;
+    
     Timers() { }
-    ~Timers() { if(running) { running = false; runThread.join(); } }
+    ~Timers() { if(running) stop(); }
 
-    // singleton: we only want one Timers instance. The first time a Timer object is made,
-    // this object is made and the run thread is started.
+    // singleton: we only want one Timers instance.
     static Timers &theTimers()  { static Timers t; return t; }
     // delete copy and move constructors and assign operators
     Timers(Timers const&) = delete;             // Copy construct
@@ -43,6 +43,13 @@ namespace ml
     Timers& operator=(Timers const&) = delete;  // Copy assign
     Timers& operator=(Timers &&) = delete;      // Move assign
 
+    // To start it running, call start() on the single Timers
+    // instance. If runInMainThread is true, the timers will
+    // be called from the application's main thread, on operating
+    // systems that have this concept.
+    void start(bool runInMainThread = false);
+    void stop();
+    
     void insert(Timer* t)
     {
       timerPtrs.insert(t);
@@ -55,14 +62,18 @@ namespace ml
 
     void tick(void);
     void run(void);
-    inline void start() { runThread = std::thread { [&](){ run(); } }; }
+
 
     std::mutex mSetMutex;
 
   private:
     bool running { false };
+    bool inMainThread { false };
     std::set< Timer* > timerPtrs;
     std::thread runThread;
+//    void* pImpl{nullptr};
+    
+    
   }; // class Timers
 
 	class Timer
