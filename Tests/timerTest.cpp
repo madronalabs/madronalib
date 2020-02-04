@@ -20,7 +20,8 @@ using namespace std::chrono;
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
   // call this once in an application.
-  ml::Timers::theTimers().start();
+  bool deferToMainThread = false;
+  ml::Timers::theTimers().start(deferToMainThread);
 
 	int sum = 0;
 	
