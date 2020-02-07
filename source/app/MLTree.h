@@ -41,14 +41,6 @@ namespace ml{
   public:
     Tree< V, C >() = default;
     Tree< V, C >(V val) : _value(std::move(val)) { }
-    
-    Tree< V, C >(const std::initializer_list<NamedValue> p)
-    {
-      for(const auto& v : p)
-      {
-        add(v.name, v.value);
-      }
-    }
 
     void clear() { mChildren.clear(); _value = V(); }
     bool hasValue() const {  return _value != V(); }

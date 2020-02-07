@@ -258,16 +258,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // a tree converted to binary and back should result in the original value
   auto b = valueTreeToBinary(properties);
-  auto b2 = valueTreeToBinary(binaryToValueTree(b->data()));
-  REQUIRE(*(b->data()) == *(b2->data()));
-
-  // trees converted to binary should differ after adding a property to one
-  auto t2 = binaryToValueTree(b->data());
-  auto t3 = t2;
-  t3["new_property"] = 1;
-  REQUIRE(*(valueTreeToBinary(t2)->data()) != *(valueTreeToBinary(t3)->data()));
-
-
+  auto b2 = valueTreeToBinary(binaryToValueTree(b));
+  REQUIRE(b == b2);
 
   //  Empty Tree test
   Tree< Value > emptyTree;
