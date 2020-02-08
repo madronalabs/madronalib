@@ -41,7 +41,7 @@ namespace ml
 			return (start + samples) & mDistanceMask;
 		}
 		
-		inline DataRegions getDataRegions(size_t currentIdx, size_t elems)
+		inline DataRegions getDataRegions(size_t currentIdx, size_t elems) const
 		{
 			size_t startIdx = currentIdx & mDataMask;
 			if(startIdx + elems > mSize)
@@ -100,7 +100,7 @@ namespace ml
 		}
 		
 		// return the number of samples available for reading.
-		size_t getReadAvailable()
+		size_t getReadAvailable() const
 		{
 			size_t a = mReadIndex.load(std::memory_order_acquire);
 			size_t b = mWriteIndex.load(std::memory_order_relaxed);
@@ -108,7 +108,7 @@ namespace ml
 		}
 		
 		// return the samples of free space available for writing.
-		size_t getWriteAvailable()
+		size_t getWriteAvailable() const
 		{
 			return mSize - getReadAvailable();
 		}
@@ -301,7 +301,7 @@ namespace ml
 		}
 
     // write most recent samples from the buffer to the destination without updating the read index.
-    void peekMostRecent(float* pDest, int samples)
+    void peekMostRecent(float* pDest, int samples) const
     {
       int avail = getReadAvailable();
       if(avail < samples) return;
