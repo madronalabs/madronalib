@@ -169,7 +169,7 @@ namespace ml
     }
 
 		// read n samples from the buffer, advancing the read index.
-		void read(float* pDest, size_t samples)
+		size_t read(float* pDest, size_t samples)
 		{
 			size_t available = getReadAvailable();
 			samples = std::min(samples, available);
@@ -184,6 +184,7 @@ namespace ml
 			}
 			
 			mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      return samples;
 		}
 
     // read a single DSPVectorArray from the buffer, advancing the read index.
@@ -301,7 +302,7 @@ namespace ml
 		}
 
     // write most recent samples from the buffer to the destination without updating the read index.
-    void peekMostRecent(float* pDest, int samples) const
+    void peekMostRecent(float* pDest, int samples) const 
     {
       int avail = getReadAvailable();
       if(avail < samples) return;

@@ -990,7 +990,7 @@ namespace ml
     }
   };
   
-  // ----------------------------------------------------------------
+
   // Half Band Filter
   // Polyphase allpass filter used to upsample or downsample a signal by 2x.
   // Structure due to fred harris, A. G. Constantinides and Valenzuela.
@@ -1048,11 +1048,102 @@ namespace ml
     }
     
   private:
-    
     // order=4, rejection=70dB, transition band=0.1.
     Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f}, apb1{0.8344118914807379f};
     float b1{0};
   };
+  
+  
+  // Downsampler
+  // a cascade of half band filters, one for each octave.
+
+  class Downsampler
+  {
+    std::vector< HalfBandFilter > _filters;
+    std::vector< float > _buffers;
+    int _octaves;
+    int _numBuffers;
+    int _bufferSizeInFloats;
+    uint32_t _counter{0};
+    
+    float* bufferPtr(int idx, int channel) { return _buffers.data() + idx*_bufferSizeInFloats + kFloatsPerDSPVector*channel; }
+    
+  public:
+    Downsampler(int channels, int octavesDown) : _octaves(octavesDown)
+    {
+      if(_octaves)
+      {
+        // one pair of buffers for each octave plus one output buffer.
+        _numBuffers = 2*_octaves + 1;
+        
+        _bufferSizeInFloats = kFloatsPerDSPVector*channels;
+        
+        // each octave uses one filter for each channel.
+        _filters.resize(_octaves*channels);
+        
+        // get all buffers as a single contiguous array of floats.
+        _buffers.resize(_bufferSizeInFloats*_numBuffers);
+      }
+    }
+    ~Downsampler() = default;
+    
+    // write a vector of samples to the filter chain, run filters, and return
+    // true if there is a new vector of output to read (every 2^octaves writes)
+    template< int CHANNELS >
+    bool write(DSPVectorArray< CHANNELS > v)
+    {
+      if(_octaves)
+      {
+        // write input to one of first two buffers
+        const float* pSrc = v.getConstBuffer();
+        float* pDest = bufferPtr(_counter & 1, 0);
+        std::copy(pSrc, pSrc + kFloatsPerDSPVector*CHANNELS, pDest);
+        
+        // look at the bits of the counter from lowest to highest.
+        // there is one bit for each octave of downsampling.
+        // each octave is run if its bit and all lesser bits are 1.
+        uint32_t mask = 1;
+        for(int h = 0; h < _octaves; ++h)
+        {
+          bool b0 = _counter & mask;
+          if(!b0) break;
+          mask <<= 1;
+          bool b1 = _counter & mask;
+          
+          // downsample each channel of the buffer
+          for(int c=0; c < CHANNELS; ++c)
+          {
+            HalfBandFilter* f = &(_filters[h*CHANNELS + c]);
+            DSPVector vSrc1 (bufferPtr(h*2, c));
+            DSPVector vSrc2 (bufferPtr(h*2 + 1, c));
+            DSPVector vDest = f->downsample(vSrc1, vSrc2);
+            store(vDest, bufferPtr(h*2 + 2 + b1, c));
+          }
+        }
+        
+        // advance and wrap counter. If it's back to 0, we have output
+        uint32_t counterMask = (1 << _octaves) - 1;
+        _counter = (_counter + 1) & counterMask;
+        return (_counter == 0);
+      }
+      else
+      {
+        // write input to final buffer
+        const float* pSrc = v.getConstBuffer();
+        float* pDest = bufferPtr(_numBuffers - 1, 0);
+        std::copy(pSrc, pSrc + kFloatsPerDSPVector*CHANNELS, pDest);
+        return true;
+      }
+    }
+    
+    template< int CHANNELS >
+    DSPVectorArray< CHANNELS > read()
+    {
+      return DSPVectorArray< CHANNELS > (bufferPtr(_numBuffers - 1, 0));
+    }
+  };
+  
+
   
   } // namespace ml
 
