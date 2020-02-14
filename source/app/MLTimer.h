@@ -63,7 +63,6 @@ namespace ml
     void tick(void);
     void run(void);
 
-
     std::mutex mSetMutex;
 
   private:
@@ -72,8 +71,6 @@ namespace ml
     std::set< Timer* > timerPtrs;
     std::thread runThread;
 //    void* pImpl{nullptr};
-    
-    
   }; // class Timers
 
 	class Timer

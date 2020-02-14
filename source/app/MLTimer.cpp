@@ -70,8 +70,6 @@ void ml::Timers::stop()
 
 #elif ML_WINDOWS
 
-xxx untested!
-
 #include <windows.h>
 
 constexpr int kWinTimerId = 1;
@@ -88,13 +86,14 @@ void CALLBACK winTimersCallback (HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent,
 void ml::Timers::start(bool runInMainThread)
 {
   inMainThread = runInMainThread;
-  if(inMainThread)
+  if (inMainThread)
   {
-    id = SetTimer (0, kWinTimerId, ml::Timers::kMillisecondsResolution, winTimersCallback);
+    auto id = SetTimer(0, kWinTimerId, ml::Timers::kMillisecondsResolution, winTimersCallback);
     if (id)
     {
       running = true;
     }
+  }
   else
   {
     running = true;
@@ -113,8 +112,7 @@ void ml::Timers::stop()
     // signal thread to exit
     running = false;
     runThread.join();
-  }
-
+  }   
 }
 
 #elif ML_LINUX
