@@ -40,6 +40,9 @@
 
 // RtAudio: Version 4.1.1
 
+// madronalib changes:
+// - removed "register" everywhere
+
 #include "RtAudio.h"
 #include <iostream>
 #include <cstdlib>
@@ -10119,8 +10122,8 @@ void RtApi :: convertBuffer( char *outBuffer, char *inBuffer, ConvertInfo &info 
 
 void RtApi :: byteSwapBuffer( char *buffer, unsigned int samples, RtAudioFormat format )
 {
-  register char val;
-  register char *ptr;
+  char val;
+  char *ptr;
 
   ptr = buffer;
   if ( format == RTAUDIO_SINT16 ) {

@@ -13,7 +13,6 @@
 // Timers
 
 const int ml::Timers::kMillisecondsResolution = 16;
-void * ml::Timers::pTimersRef{nullptr};
   
 #if ML_MAC
 
@@ -28,42 +27,45 @@ void macTimersCallback (CFRunLoopTimerRef, void *info)
 
 void ml::Timers::start(bool runInMainThread)
 {
-  inMainThread = runInMainThread;
-  if(inMainThread)
+  _inMainThread = runInMainThread;
+  if(!_running)
   {
-    CFRunLoopTimerContext timerContext = {};
-    timerContext.info = this;
-    float intervalInSeconds = ml::Timers::kMillisecondsResolution*0.001f;
-    ml::Timers::pTimersRef = CFRunLoopTimerCreate (kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + intervalInSeconds, intervalInSeconds, 0, 0, macTimersCallback, &timerContext);
-    if (ml::Timers::pTimersRef)
+    if(_inMainThread)
     {
-      running = true;
-      CFRunLoopTimerRef pTimerRef = static_cast<CFRunLoopTimerRef>(ml::Timers::pTimersRef);
-      CFRunLoopAddTimer (CFRunLoopGetMain(), pTimerRef, kCFRunLoopCommonModes);
+      CFRunLoopTimerContext timerContext = {};
+      timerContext.info = this;
+      float intervalInSeconds = ml::Timers::kMillisecondsResolution*0.001f;
+      pTimersRef = CFRunLoopTimerCreate (kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + intervalInSeconds, intervalInSeconds, 0, 0, macTimersCallback, &timerContext);
+      if (pTimersRef)
+      {
+        _running = true;
+        CFRunLoopTimerRef pTimerRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
+        CFRunLoopAddTimer (CFRunLoopGetMain(), pTimerRef, kCFRunLoopCommonModes);
+      }
     }
-  }
-  else
-  {
-    running = true;
-    runThread = std::thread { [&](){ run(); } };
+    else
+    {
+     _running = true;
+      runThread = std::thread { [&](){ run(); } };
+    }
   }
 }
 
 void ml::Timers::stop()
 {
-  if(inMainThread)
+  if(_inMainThread)
   {
       if(ml::Timers::pTimersRef)
       {
-        CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(ml::Timers::pTimersRef);
+        CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
         CFRunLoopRemoveTimer (CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
-        ml::Timers::pTimersRef = nullptr;
+        pTimersRef = nullptr;
       }
   }
   else
   {
     // signal thread to exit
-    running = false;
+    _running = false;
     runThread.join();
   }
 }
@@ -85,32 +87,35 @@ void CALLBACK winTimersCallback (HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent,
 
 void ml::Timers::start(bool runInMainThread)
 {
-  inMainThread = runInMainThread;
-  if (inMainThread)
+  _inMainThread = runInMainThread;
+  if(!_running)
   {
-    auto id = SetTimer(0, kWinTimerId, ml::Timers::kMillisecondsResolution, winTimersCallback);
-    if (id)
+    if (_inMainThread)
     {
-      running = true;
+      auto id = SetTimer(0, kWinTimerId, ml::Timers::kMillisecondsResolution, winTimersCallback);
+      if (id)
+      {
+        _running = true;
+      }
     }
-  }
-  else
-  {
-    running = true;
-    runThread = std::thread { [&](){ run(); } };
+    else
+    {
+      _running = true;
+      runThread = std::thread { [&](){ run(); } };
+    }
   }
 }
 
 void ml::Timers::stop()
 {
-  if(inMainThread)
+  if(_inMainThread)
   {
     KillTimer(0, kWinTimerId);
   }
   else
   {
     // signal thread to exit
-    running = false;
+    _running = false;
     runThread.join();
   }   
 }
@@ -119,8 +124,11 @@ void ml::Timers::stop()
 
 void Timers::start(bool runInMainThread)
 {
-  running = true;
-  runThread = std::thread { [&](){ run(); } };
+  if(!_running)
+  {
+    _running = true;
+    runThread = std::thread { [&](){ run(); } };
+  }
 }
 
 #endif
@@ -149,7 +157,7 @@ void ml::Timers::tick(void)
 
 void ml::Timers::run(void)
 {
-  while(running)
+  while(_running)
   {
     std::this_thread::sleep_for(milliseconds(Timers::kMillisecondsResolution));
     tick();
@@ -160,24 +168,21 @@ void ml::Timers::run(void)
 
 ml::Timer::Timer() noexcept
 {
-  Timers& t{Timers::theTimers()};
-  std::unique_lock<std::mutex> lock(t.mSetMutex);
-  t.insert(this);
+  std::unique_lock<std::mutex> lock(_timers->mSetMutex);
+  _timers->insert(this);
 }
 
 ml::Timer::~Timer()
 {
-  Timers& t{Timers::theTimers()};
-  std::unique_lock<std::mutex> lock(t.mSetMutex);
-  t.erase(this);
+  std::unique_lock<std::mutex> lock(_timers->mSetMutex);
+  _timers->erase(this);
 }
 
 void ml::Timer::stop()
 {
   // More lightweight ways of handling a race on mCounter are possible, but as
-  // stopping a timer is an infrequent operation we use the mutex for laziness and brevity.
-  Timers& t{Timers::theTimers()};
-  std::unique_lock<std::mutex> lock(t.mSetMutex);
+  // stopping a timer is an infrequent operation we use the mutex for brevity.
+  std::unique_lock<std::mutex> lock(_timers->mSetMutex);
   mCounter = 0;
 }
 

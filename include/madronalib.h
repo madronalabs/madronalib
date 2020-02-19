@@ -9,6 +9,7 @@
 #include "MLPath.h"
 #include "MLPlatform.h"
 #include "MLQueue.h"
+#include "MLSharedResource.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 #include "MLTextUtils.h"

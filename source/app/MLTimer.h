@@ -14,12 +14,14 @@
 #include <thread>
 #include <set>
 
+#include "MLSharedResource.h"
+
 using namespace std::chrono;
 
 namespace ml
 {
 	// A simple, low-resolution timer for doing applicaton and UI tasks.
-	// Any callbacks are called synchronously from the main run loop so
+	// Any callbacks are called synchronously from a single thread, so
 	// callbacks should not take too much time. To trigger an action
 	// that might take longer, send a message from the callback and
 	// then receive it and do the action in a private thread.
@@ -30,19 +32,15 @@ namespace ml
   {
   public:
     static const int kMillisecondsResolution;
-    static void* pTimersRef;
-    
+
     Timers() { }
-    ~Timers() { if(running) stop(); }
+    ~Timers()
+    {
+      if(_running) stop();
+      
+    }
 
-    // singleton: we only want one Timers instance.
-    static Timers &theTimers()  { static Timers t; return t; }
-    // delete copy and move constructors and assign operators
-    Timers(Timers const&) = delete;             // Copy construct
-    Timers(Timers&&) = delete;                  // Move construct
-    Timers& operator=(Timers const&) = delete;  // Copy assign
-    Timers& operator=(Timers &&) = delete;      // Move assign
-
+    
     // To start it running, call start() on the single Timers
     // instance. If runInMainThread is true, the timers will
     // be called from the application's main thread, on operating
@@ -66,11 +64,11 @@ namespace ml
     std::mutex mSetMutex;
 
   private:
-    bool running { false };
-    bool inMainThread { false };
+    void* pTimersRef{nullptr};
+    bool _running { false };
+    bool _inMainThread { false };
     std::set< Timer* > timerPtrs;
     std::thread runThread;
-//    void* pImpl{nullptr};
   }; // class Timers
 
 	class Timer
@@ -122,6 +120,7 @@ namespace ml
 		void stop();
 		
 	private:
+    ml::SharedResourcePointer< ml::Timers > _timers ;
 		int mCounter{0};
 		std::function<void(void)> myFunc;
 		milliseconds mPeriod;

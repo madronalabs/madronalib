@@ -21,8 +21,13 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
   // call this once in an application.
   bool deferToMainThread = false;
-  ml::Timers::theTimers().start(deferToMainThread);
-
+  SharedResourcePointer< ml::Timers > t ;
+  t->start(deferToMainThread);
+  
+  // calling start again should not break anything.
+  SharedResourcePointer< ml::Timers > t2 ;
+  t2->start(deferToMainThread);
+  
 	int sum = 0;
 	
 	// test number of calls correct
