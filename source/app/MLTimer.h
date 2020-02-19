@@ -33,6 +33,7 @@ namespace ml
   public:
     static const int kMillisecondsResolution;
 
+
     Timers() { }
     ~Timers()
     {
@@ -40,7 +41,6 @@ namespace ml
       
     }
 
-    
     // To start it running, call start() on the single Timers
     // instance. If runInMainThread is true, the timers will
     // be called from the application's main thread, on operating
@@ -69,7 +69,10 @@ namespace ml
     bool _inMainThread { false };
     std::set< Timer* > timerPtrs;
     std::thread runThread;
+    int _timerID{ 0 };
   }; // class Timers
+
+
 
 	class Timer
 	{

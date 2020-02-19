@@ -46,8 +46,8 @@ namespace ml
 	template<int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 	class VectorProcessBuffer
 	{
-    DSPVectorArray<IN_CHANNELS> _inputVectors;
-    DSPVectorArray<OUT_CHANNELS> _outputVectors;
+    DSPVectorArray< IN_CHANNELS > _inputVectors;
+    DSPVectorArray< OUT_CHANNELS > _outputVectors;
 
   public:
 		VectorProcessBuffer()

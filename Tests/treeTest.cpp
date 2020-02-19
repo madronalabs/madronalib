@@ -288,7 +288,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   const float maxFloat = std::numeric_limits<float>::max();
   const float minFloat = std::numeric_limits<float>::min();
-  std::vector<float> vf {maxFloat*10.f, maxFloat, maxFloat/10.f, 10000001, 32768, 10000, 100, 10.0, 1.00001, 1, 0.1, 0.1250001, 0.125, 0.1249999, 0., 3.004e-02, 3.004e-07, minFloat};
+  std::vector<float> vf {maxFloat*10.f, maxFloat, maxFloat/10.f, 10000001, 32768, 10000, 100, 10.0f, 1.00001f, 1, 0.1f, 0.1250001f, 0.125f, 0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat};
   for(auto v : vf)
   {
    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 8) << "\n";
