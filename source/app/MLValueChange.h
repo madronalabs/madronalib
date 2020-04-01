@@ -34,7 +34,7 @@ namespace ml
 
     explicit operator bool() const
     {
-      return (oldValue || newValue);
+      return newValue ? true : false;
     }
   };
 } // namespace ml
