@@ -55,7 +55,7 @@ void ml::Timers::stop()
 {
   if(_inMainThread)
   {
-      if(ml::Timers::pTimersRef)
+      if( pTimersRef)
       {
         CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
         CFRunLoopRemoveTimer (CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
@@ -107,7 +107,7 @@ void ml::Timers::start(bool runInMainThread)
 }
 
 void ml::Timers::stop()
-{
+{ 
   if(_inMainThread)
   {
     KillTimer(0, kWinTimerId);
