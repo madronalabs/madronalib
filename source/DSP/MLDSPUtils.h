@@ -46,8 +46,8 @@ namespace ml
 	template<int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 	class VectorProcessBuffer
 	{
-    DSPVectorArray<IN_CHANNELS> _inputVectors;
-    DSPVectorArray<OUT_CHANNELS> _outputVectors;
+    DSPVectorArray< IN_CHANNELS > _inputVectors;
+    DSPVectorArray< OUT_CHANNELS > _outputVectors;
 
   public:
 		VectorProcessBuffer()
@@ -66,6 +66,7 @@ namespace ml
 		
 		void process(const float** inputs, float** outputs, int nFrames, std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)> fn)
 		{
+      if (nFrames > MAX_FRAMES) return;
       if(IN_CHANNELS > 0)
       {
         // write from inputs to inputBuffers

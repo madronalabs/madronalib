@@ -29,6 +29,8 @@
 
 #pragma once
 
+#include <atomic>
+
 namespace ml
   {
   

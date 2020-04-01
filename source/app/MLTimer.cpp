@@ -55,7 +55,7 @@ void ml::Timers::stop()
 {
   if(_inMainThread)
   {
-      if( pTimersRef)
+      if(pTimersRef)
       {
         CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
         CFRunLoopRemoveTimer (CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
@@ -74,14 +74,14 @@ void ml::Timers::stop()
 
 #include <windows.h>
 
-constexpr int kWinTimerId = 1;
+ml::Timers* pWinTimers{ nullptr };
 
 void CALLBACK winTimersCallback (HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent, DWORD /*dwTime*/)
 {
-  ml::Timers* pTimers = static_cast<ml::Timers*>(ml::Timers::pTimersRef);
-  if(pTimers)
+  //ml::Timers* pTimers = (ml::Timers*)(ml::Timers::winTimersRef);
+  if(pWinTimers)
   {
-    pTimers->tick();
+    pWinTimers->tick();
   }
 }
 
@@ -92,32 +92,40 @@ void ml::Timers::start(bool runInMainThread)
   {
     if (_inMainThread)
     {
-      auto id = SetTimer(0, kWinTimerId, ml::Timers::kMillisecondsResolution, winTimersCallback);
-      if (id)
+      _timerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution, winTimersCallback);
+      if (_timerID)
       {
         _running = true;
+        pWinTimers = this;
       }
     }
     else
     {
       _running = true;
       runThread = std::thread { [&](){ run(); } };
+      pWinTimers = this;
     }
   }
 }
 
 void ml::Timers::stop()
-{ 
-  if(_inMainThread)
+{
+  if (_running)
   {
-    KillTimer(0, kWinTimerId);
+    if (_inMainThread)
+    {
+      KillTimer(0, _timerID);
+      _running = false;
+    }
+    else
+    {
+      // signal thread to exit
+      _running = false;
+
+      // wait for exit
+      runThread.join();
+    }
   }
-  else
-  {
-    // signal thread to exit
-    _running = false;
-    runThread.join();
-  }   
 }
 
 #elif ML_LINUX
