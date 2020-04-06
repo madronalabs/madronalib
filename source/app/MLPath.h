@@ -19,7 +19,7 @@
 // also consider whether the final symbol (object name or short file name) should be a Symbol or rather just a TextFragment
 
 // Maximum path depth allows stack allocation / use in audio threads.
-// TODO move to core constants header
+
 const int kPathMaxSymbols = 15;
 
 namespace ml {
@@ -45,12 +45,8 @@ public:
   // TODO Path should be immutable—refactor this
 	void addSymbol(Symbol sym);
 
-
-	Symbol head() const;
-	Path tail() const;
-		
 	inline int getSize() const { return static_cast< int >(mSize); }
-	inline Symbol getElement(int n) const { return mpData[n]; }
+	inline Symbol getElement(int n) const { return _symbols[n]; }
 	inline int getCopy() const { return mCopy; }
 	
 	inline void setCopy(int c) { mCopy = c; } // MLTEST to remove, use ctor only?
@@ -119,16 +115,21 @@ public:
 	}
 	
 
+  friend Symbol head(Path p);
+  friend Path tail(Path p);
+  
 private:
 	void parsePathString(const char* pathStr, const char delimiter = '/');
 
-	std::array<Symbol, kPathMaxSymbols> mpData{}; 
+	std::array<Symbol, kPathMaxSymbols> _symbols{};
 	unsigned char mSize{0};
 	unsigned char mCopy{0};
 	unsigned char _dummy; 
 	unsigned char _dummy2; 
 	// sizeof(Path) = 64
 };
+
+
 
 } // namespace ml
 

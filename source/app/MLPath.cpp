@@ -77,29 +77,13 @@ namespace ml {
 	{
 		if (mSize < kPathMaxSymbols)
 		{
-			mpData[mSize++] = sym;
+			_symbols[mSize++] = sym;
 		}
 		else 
 		{
 			// TODO something!
 			// //debug() << "Path::addSymbol: max path length exceeded!\n";
 		}
-	}
-
-	ml::Symbol Path::head() const
-	{
-		return mpData[0];
-	}
-
-	Path Path::tail() const
-	{
-		Path r;
-		r.setCopy(getCopy());
-		for(int n=1; n<mSize; ++n)
-		{
-			r.addSymbol(mpData[n]);
-		}
-		return r;
 	}
 		
 	std::ostream& operator<< (std::ostream& out, const ml::Path & r)
@@ -116,6 +100,23 @@ namespace ml {
 		}
 		return out;
 	}
+      
+  Symbol head(Path p)
+  {
+      return p._symbols[0];
+  }
+  
+  Path tail(Path p)
+  {
+      Path r;
+      r.setCopy(p.getCopy());
+      for(int n=1; n<p.mSize; ++n)
+      {
+      r.addSymbol(p._symbols[n]);
+      }
+      return r;
+  }
+  
 } // namespace ml
 
 

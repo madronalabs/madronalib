@@ -34,9 +34,15 @@ namespace ml
 
     explicit operator bool() const
     {
-      return (oldValue || newValue);
+      return newValue ? true : false;
     }
   };
+
+  // note: because std::vector will allocate on the fly, this implementation of ValueChangeList
+  // is not safe for use in audio processing threads. Given the intended use in editors and
+  // controllers, this seems like a reasonable tradeoff.
+  using ValueChangeList = std::vector< ValueChange >;
+
 } // namespace ml
 
 inline std::ostream& operator<< (std::ostream& out, const ml::ValueChange& r)
