@@ -148,6 +148,7 @@ void ml::Timers::tick(void)
 
   for(auto t : timerPtrs)
   {
+    std::unique_lock<std::mutex> lock(t->_counterMutex);
     if(t->mCounter != 0)
     {
       if(now - t->mPreviousCall > t->mPeriod)
@@ -190,7 +191,7 @@ void ml::Timer::stop()
 {
   // More lightweight ways of handling a race on mCounter are possible, but as
   // stopping a timer is an infrequent operation we use the mutex for brevity.
-  std::unique_lock<std::mutex> lock(_timers->mSetMutex);
+  std::unique_lock<std::mutex> lock(_counterMutex);
   mCounter = 0;
 }
 

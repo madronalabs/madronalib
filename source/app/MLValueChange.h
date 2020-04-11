@@ -29,7 +29,7 @@ namespace ml
     bool endGesture{false};
 
     ValueChange() = default;
-    ValueChange(ml::Path np, Value nv, Value ov = Value(), bool start = false, bool end = false) :
+    ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(), bool start = false, bool end = false) :
     name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end) {}
 
     explicit operator bool() const

@@ -30,15 +30,15 @@ namespace ml
 
   class Timers
   {
+    friend class Timer;
+
   public:
     static const int kMillisecondsResolution;
-
 
     Timers() { }
     ~Timers()
     {
       if(_running) stop();
-      
     }
 
     // To start it running, call start() on the single Timers
@@ -61,9 +61,11 @@ namespace ml
     void tick(void);
     void run(void);
 
-    std::mutex mSetMutex;
-
   private:
+
+    std::mutex mSetMutex;
+    
+
     void* pTimersRef{nullptr};
     bool _running { false };
     bool _inMainThread { false };
@@ -123,6 +125,8 @@ namespace ml
 		void stop();
 		
 	private:
+    std::mutex _counterMutex;
+
     ml::SharedResourcePointer< ml::Timers > _timers ;
 		int mCounter{0};
 		std::function<void(void)> myFunc;
