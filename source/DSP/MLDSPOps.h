@@ -906,7 +906,7 @@ px2 += kFloatsPerSIMDVector;            \
 
   inline DSPVector columnIndex()
   {
-    ConstDSPVector indices(castFn);
+    DSPVector indices(castFn);
     return indices;
   }
 
