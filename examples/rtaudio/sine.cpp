@@ -4,7 +4,11 @@
 
 using namespace ml;
 
-constexpr int kInputChannels = 1; // NOTE: 0 will not compile on Windows-- TODO
+#ifdef __WIN32__
+fix this
+#endif
+constexpr int kInputChannels = 0; // NOTE: 0 will not compile on Windows-- TODO
+
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;
 constexpr float kOutputGain = 0.1f;
