@@ -7,7 +7,7 @@ using namespace ml;
 #ifdef __WIN32__
 fix this
 #endif
-constexpr int kInputChannels = 0; // NOTE: 0 will not compile on Windows-- TODO
+constexpr int kInputChannels = 2; // NOTE: 0 will not compile on Windows-- TODO
 
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;

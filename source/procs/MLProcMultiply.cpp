@@ -5,6 +5,8 @@ using namespace ml;
 
 // MLTEST: not compiling on Windows
 
+#ifndef WIN32
+
 
 // definition of static constexpr data members at namespace scope is still required, until C++17
 constexpr constStr ProcMultiply::paramNames[];
@@ -54,3 +56,4 @@ namespace
 }
 
 
+#endif
