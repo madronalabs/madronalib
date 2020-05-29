@@ -49,6 +49,7 @@ namespace ml
     static const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, -(10.f*px*px));} };
     static const Projection easeOut{ [](float x){float m = x - 1; return 1 - m*m*m*m;} };
     static const Projection easeIn{ [](float x){return x*x*x*x;} };
+    static const Projection easeOutCubic{ [](float x){return 1 - powf(1-x, 3.f);} };
 
 		// functions taking one or more parameters and returning projections
 		
