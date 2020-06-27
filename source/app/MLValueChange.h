@@ -13,35 +13,35 @@
 
 namespace ml
 {
-  struct ValueChange
+struct ValueChange
+{
+  // path referring to a value somewhere, probably in a Tree< Value >
+  ml::Path name{};
+  
+  // note: the order of the members is important for creating Values from initializer lists.
+  // value after the change
+  Value newValue{};
+  
+  // value before the change
+  Value oldValue{};
+  
+  bool startGesture{false};
+  bool endGesture{false};
+  
+  ValueChange() = default;
+  ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(), bool start = false, bool end = false) :
+  name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end) {}
+  
+  explicit operator bool() const
   {
-    // the path to a change value in a tree
-    ml::Path name{};
+    return newValue ? true : false;
+  }
+};
 
-    // note: the order of the members is important for creating Values from initializer lists.
-    // value after the change
-    Value newValue{};
-
-    // value before the change
-    Value oldValue{};
-
-    bool startGesture{false};
-    bool endGesture{false};
-
-    ValueChange() = default;
-    ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(), bool start = false, bool end = false) :
-    name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end) {}
-
-    explicit operator bool() const
-    {
-      return newValue ? true : false;
-    }
-  };
-
-  // note: because std::vector will allocate on the fly, this implementation of ValueChangeList
-  // is not safe for use in audio processing threads. Given the intended use in editors and
-  // controllers, this seems like a reasonable tradeoff.
-  using ValueChangeList = std::vector< ValueChange >;
+// note: because std::vector will allocate on the fly, this implementation of ValueChangeList
+// is not safe for use in audio processing threads. Given the intended use in editors and
+// controllers, this seems like a reasonable tradeoff.
+using ValueChangeList = std::vector< ValueChange >;
 
 } // namespace ml
 
