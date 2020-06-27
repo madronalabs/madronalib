@@ -9,9 +9,9 @@
 
 // a Path describes the address of one or more elements in a tree
 // of such elements, for example one or more MLProcs in a graph.
-// 
+//
 // the copy number lets the path refer to one specific element in a
-// multi-container if the Path ends on that container. Copies are 
+// multi-container if the Path ends on that container. Copies are
 // indexed starting at 1. If the copy number is 0, the Path refers
 // to all the elements.
 
@@ -23,112 +23,120 @@
 const int kPathMaxSymbols = 15;
 
 namespace ml {
-	
+
 class Path final
 {
-friend std::ostream& operator<< (std::ostream& out, const Path & r);
-	
+  friend std::ostream& operator<< (std::ostream& out, const Path & r);
+  
 public:
-	Path() = default;	
+  Path() = default;
   Path(const Path& b) = default;
-	Path(const char * str);
-	Path(const Symbol sym); 
+  Path(const char * str);
+  Path(const Symbol sym);
   Path(const TextFragment frag);
   Path(const TextFragment frag, const char separator);
   Path(const Path& a, const Path& b);
-
+  
   ~Path() = default;
-
-	// boolean test.
-	explicit operator bool() const { return (mSize != 0); }
-
+  
+  // boolean test.
+  explicit operator bool() const { return (mSize != 0); }
+  
   // TODO Path should be immutable—refactor this
-	void addSymbol(Symbol sym);
-
-	inline int getSize() const { return static_cast< int >(mSize); }
-	inline Symbol getElement(int n) const { return _symbols[n]; }
-	inline int getCopy() const { return mCopy; }
-	
-	inline void setCopy(int c) { mCopy = c; } // MLTEST to remove, use ctor only?
-	
-	friend class const_iterator;
-	class const_iterator : 
-		public std::iterator<
-			std::forward_iterator_tag, 
-			ml::Symbol >
-	{
-	public:
-		const_iterator(const Path* p) : mpPath(p), mIndex(0) { }		
-		const_iterator(const Path* p, int startIndex) : mpPath(p), mIndex(startIndex) { }
-		~const_iterator() {}
-		
-		bool operator==(const const_iterator& b) const 
-		{ 
-			if (mpPath != b.mpPath) return false;
-			return (mIndex == b.mIndex); 
-		}
-		
-		bool operator!=(const const_iterator& b) const 
-		{ 
-			return !(*this == b); 
-		}
-		
-		const Symbol operator*() const 
-		{ 
-			return mpPath->getElement(mIndex); 
-		}
-
-		const const_iterator& operator++()
-		{			
-			mIndex++;
-			return *this;
-		}
-		
-		const_iterator& operator++(int)
-		{
-			this->operator++();
-			return *this;
-		}
-		
-		const_iterator& operator+(int distance)
-		{
-			for(int n=0; n<distance; ++n)
-			{
-				this->operator++();
-			}
-			return *this;
-		}
-		
-	private:
-		const Path* mpPath;
-		int mIndex;
-	};	
-	
-	inline const_iterator begin() const
-	{
-		return const_iterator(this);
-	}
-	
-	inline const_iterator end() const
-	{
-		return const_iterator(this, static_cast<int> (mSize) );
-	}
-	
-
+  void addSymbol(Symbol sym);
+  
+  inline int getSize() const { return static_cast< int >(mSize); }
+  inline Symbol getElement(int n) const { return _symbols[n]; }
+  inline int getCopy() const { return mCopy; }
+  
+  inline void setCopy(int c) { mCopy = c; } // MLTEST to remove, use ctor only?
+  
+  friend class const_iterator;
+  class const_iterator :
+  public std::iterator<
+  std::forward_iterator_tag,
+  ml::Symbol >
+  {
+  public:
+    const_iterator(const Path* p) : mpPath(p), mIndex(0) { }
+    const_iterator(const Path* p, int startIndex) : mpPath(p), mIndex(startIndex) { }
+    ~const_iterator() {}
+    
+    bool operator==(const const_iterator& b) const
+    {
+      if (mpPath != b.mpPath) return false;
+      return (mIndex == b.mIndex);
+    }
+    
+    bool operator!=(const const_iterator& b) const
+    {
+      return !(*this == b);
+    }
+    
+    const Symbol operator*() const
+    {
+      return mpPath->getElement(mIndex);
+    }
+    
+    const const_iterator& operator++()
+    {
+      mIndex++;
+      return *this;
+    }
+    
+    const_iterator& operator++(int)
+    {
+      this->operator++();
+      return *this;
+    }
+    
+    const_iterator& operator+(int distance)
+    {
+      for(int n=0; n<distance; ++n)
+      {
+        this->operator++();
+      }
+      return *this;
+    }
+    
+  private:
+    const Path* mpPath;
+    int mIndex;
+  };
+  
+  inline const_iterator begin() const
+  {
+    return const_iterator(this);
+  }
+  
+  inline const_iterator end() const
+  {
+    return const_iterator(this, static_cast<int> (mSize) );
+  }
+  
   friend Symbol head(Path p);
   friend Path tail(Path p);
   
 private:
-	void parsePathString(const char* pathStr, const char delimiter = '/');
-
-	std::array<Symbol, kPathMaxSymbols> _symbols{};
-	unsigned char mSize{0};
-	unsigned char mCopy{0};
-	unsigned char _dummy; 
-	unsigned char _dummy2; 
-	// sizeof(Path) = 64
+  void parsePathString(const char* pathStr, const char delimiter = '/');
+  
+  std::array<Symbol, kPathMaxSymbols> _symbols{};
+  unsigned char mSize{0};
+  unsigned char mCopy{0};
+  unsigned char _dummy{0};
+  unsigned char _dummy2{0};
+  // sizeof(Path) = 64
 };
 
+inline bool operator==(const Path a, const Path b)
+{
+  return (memcmp(&a, &b, sizeof(Path)) == 0);
+}
+
+inline bool operator!=(Path a, Path b)
+{
+  return !(a == b);
+}
 
 
 } // namespace ml
