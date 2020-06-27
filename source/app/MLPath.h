@@ -42,7 +42,7 @@ public:
   // boolean test.
   explicit operator bool() const { return (mSize != 0); }
   
-  // TODO Path should be immutable—refactor this
+  // TODO Path should be immutable?
   void addSymbol(Symbol sym);
   
   inline int getSize() const { return static_cast< int >(mSize); }
@@ -116,6 +116,8 @@ public:
   
   friend Symbol head(Path p);
   friend Path tail(Path p);
+  friend Path butLast(Path p);
+  friend Symbol last(Path p);
   
 private:
   void parsePathString(const char* pathStr, const char delimiter = '/');

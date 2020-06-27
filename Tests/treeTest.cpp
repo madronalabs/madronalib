@@ -246,6 +246,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   melody3.fill(9.f);
   properties.add("melodies/3", melody3 );
 
+  properties.add("melodies/3/dummy", 4);
+
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
   REQUIRE(!treeNodeExists(properties, "x"));
@@ -260,6 +262,15 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   auto b = valueTreeToBinary(properties);
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
+  
+  // 
+  auto melodies = valuesAtParentPath(properties, "melodies");
+  std::cout << "melodies:\n";
+  for(auto m : melodies)
+  {
+    std::cout << "    " << *m << "\n";
+  }
+  REQUIRE(melodies.size() == 3);
 
   //  Empty Tree test
   Tree< Value > emptyTree;
