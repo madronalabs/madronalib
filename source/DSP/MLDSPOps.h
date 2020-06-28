@@ -36,6 +36,8 @@
 #include <type_traits>
 #include <functional>
 
+#include "MLScalarMath.h"
+#include "MLDSPMath.h"
 
 // A C++11 implementation of std::integer_sequence from C++14
 // Copyright Jonathan Wakely 2012-2013
@@ -138,10 +140,6 @@ constexpr auto make_array(Function f)
   return make_array_helper(f, std::ml_make_index_sequence<N>{});
 }
 
-
-#include "MLScalarMath.h"
-#include "MLDSPMath.h"
-
 #if(_WIN32 && (!_WIN64))
   #define MANUAL_ALIGN_DSPVECTOR
 #endif
@@ -232,9 +230,12 @@ namespace ml
     constexpr DSPVectorArray(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mData(a) {}
 
     // constexpr constructor taking a function(int -> float)
-    constexpr DSPVectorArray(float(*fn)(int)) : DSPVectorArray(make_array<kFloatsPerDSPVector>(fn)) {}
+    constexpr DSPVectorArray(float(*fn)(int)) : DSPVectorArray(make_array<kFloatsPerDSPVector*VECTORS>(fn)) {}
+
+    // TODO constexpr constructor taking a Projection - requires Projection rewrite without std::function
 
     // default ctor: zero
+    // TODO this seems to be taking a lot of time! investigate
     DSPVectorArray()
     {
       mData.mArrayData.fill(0.f);
