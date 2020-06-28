@@ -265,10 +265,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   
   std::vector< Value > melodies;
   
-  forAllMatchingNodePaths(properties,
-                          [&](Path p){ return butLast(p) == Path{"melodies"}; } ,
-                          [&](Tree< Value >::const_iterator it){ melodies.push_back(*it); }
-                          );
+  for(auto it = properties.begin(); it != properties.end(); ++it)
+  {
+    const Path p = it.getCurrentNodePath();
+    if (butLast(p) == "melodies"){ melodies.push_back(*it); }
+  }
+  
   for(auto m : melodies)
   {
     std::cout << "    " << m << "\n";
