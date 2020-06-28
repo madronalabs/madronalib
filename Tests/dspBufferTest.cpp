@@ -12,7 +12,6 @@ using namespace std::chrono;
 #include "mldsp.h"
 
 #include "MLDSPBuffer.h"
-#include "MLProjection.h"
 
 using namespace ml;
 
@@ -158,12 +157,17 @@ namespace dspBufferTest
 		DSPBuffer buf;
 		buf.resize(256);
 		
-		DSPVector windowVec, outputVec, outputVec2;
+		DSPVector outputVec, outputVec2;
 		int overlap = kFloatsPerDSPVector/2;
 		
-		// write overlapping triangle windows
+    // write constant window buffer
+    DSPVector windowVec;
 		makeWindow(windowVec.getBuffer(), kFloatsPerDSPVector, windows::triangle);
-		for(int i=0; i<8; ++i)
+    // TODO ConstDSPVector windowVec(windows::triangle);
+    // - would require constexpr-capable reimplementation of Projections, not using std::function
+
+    // write overlapping triangle windows
+    for(int i=0; i<8; ++i)
 		{
 			buf.writeWithOverlapAdd(windowVec.getBuffer(), kFloatsPerDSPVector, overlap);
 		}

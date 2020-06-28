@@ -24,7 +24,7 @@ namespace ml
 		IntervalProjection domainToUnity{ {0.f, size - 1.f}, {0.f, 1.f} };
 		mapIndices(pDest, size, compose(windowShape, domainToUnity));
 	}
-	
+
 	namespace windows
 	{
 		const Projection rectangle( [](float x){ return 1.f; } );
