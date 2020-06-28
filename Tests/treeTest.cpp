@@ -263,12 +263,15 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
   
-  // 
-  auto melodies = valuesAtParentPath(properties, "melodies");
-  std::cout << "melodies:\n";
+  std::vector< Value > melodies;
+  
+  forAllMatchingNodePaths(properties,
+                          [&](Path p){ return butLast(p) == Path{"melodies"}; } ,
+                          [&](Tree< Value >::const_iterator it){ melodies.push_back(*it); }
+                          );
   for(auto m : melodies)
   {
-    std::cout << "    " << *m << "\n";
+    std::cout << "    " << m << "\n";
   }
   REQUIRE(melodies.size() == 3);
 

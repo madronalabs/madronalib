@@ -45,6 +45,8 @@ Path::Path(const Path& a, const Path& b)
 
 void Path::parsePathString(const char* pathStr, const char separator)
 {
+  if(!pathStr) return;
+  
   auto it = TextFragment::Iterator(pathStr);
   
   size_t symbolSizeInBytes;

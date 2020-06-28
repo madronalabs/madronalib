@@ -315,6 +315,7 @@ bool treeNodeExists(const Tree< V, C >& t, Path path)
   return (t.getConstNode(path) != nullptr);
 }
 
+/*
 template < class V, class C = std::less<Symbol> >
 std::vector< const V* > valuesAtParentPath(const Tree< V, C >& t, Path p)
 {
@@ -329,6 +330,21 @@ std::vector< const V* > valuesAtParentPath(const Tree< V, C >& t, Path p)
   }
   return r;
 }
+*/
+
+template < class V, class C = std::less<Symbol> >
+void forAllMatchingNodePaths(const Tree< V, C >& t, std::function< bool(Path) > selectFn, std::function< void(typename Tree< V, C >::const_iterator) > doFn )
+{
+  for(auto it = t.begin(); it != t.end(); ++it)
+  {
+    if(selectFn(it.getCurrentNodePath()))
+    {
+      doFn(it);
+    }
+  }
+}
+
+
 
 } // namespace ml
 
