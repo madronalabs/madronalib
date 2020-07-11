@@ -114,6 +114,8 @@ public:
     return const_iterator(this, static_cast<int> (mSize) );
   }
   
+  friend Path concat(const Path& a, const Path& b);
+  
   friend Symbol head(Path p);
   friend Path tail(Path p);
   friend Path butLast(Path p);

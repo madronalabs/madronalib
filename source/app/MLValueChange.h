@@ -16,7 +16,7 @@ namespace ml
 struct ValueChange
 {
   // path referring to a value somewhere, probably in a Tree< Value >
-  ml::Path name{};
+  Path name{};
   
   // note: the order of the members is important for creating Values from initializer lists.
   // value after the change
@@ -27,6 +27,9 @@ struct ValueChange
   
   bool startGesture{false};
   bool endGesture{false};
+  
+  // Widget that triggered the change, if applicable
+  Path triggerWidget{};
   
   ValueChange() = default;
   ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(), bool start = false, bool end = false) :

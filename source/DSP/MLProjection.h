@@ -51,6 +51,10 @@ static const Projection easeOut{ [](float x){float m = x - 1; return 1 - m*m*m*m
 static const Projection easeIn{ [](float x){return x*x*x*x;} };
 static const Projection easeOutCubic{ [](float x){return 1 - powf(1-x, 3.f);} };
 
+static const Projection easeOut2{ [](float x){float m = x - 1; return 1 - m*m;} };
+static const Projection easeIn2{ [](float x){return x*x;} };
+
+
 // functions taking one or more parameters and returning projections
 
 // returns a projection that will be logarithmic when scaled and offset to (a, b).

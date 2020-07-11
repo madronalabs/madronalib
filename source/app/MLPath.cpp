@@ -103,6 +103,21 @@ std::ostream& operator<< (std::ostream& out, const ml::Path & r)
   return out;
 }
 
+
+Path concat(const Path& a, const Path& b)
+{
+  Path r;
+  for(Symbol s : a)
+  {
+    r.addSymbol(s);
+  }
+  for(Symbol s : b)
+  {
+    r.addSymbol(s);
+  }
+  return r;
+}
+
 Symbol head(Path p)
 {
   return p._symbols[0];

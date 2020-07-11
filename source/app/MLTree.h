@@ -106,7 +106,7 @@ public:
   
   // add a value V to the Tree such that getValue(path) will return V.
   // add any intermediate nodes necessary in order to put it there.
-  Tree< V, C >* add(ml::Path path, V val)
+  Tree< V, C >* add(Path path, V val)
   {
     auto pNode = this;
     int pathSize = path.getSize();
@@ -154,6 +154,11 @@ public:
     
     pNode = &(pNode->mChildren[lastNodeName]);
     return pNode;
+  }
+  
+  void erase(Path p)
+  {
+    // TODO
   }
   
   // NOTE this iterator does not work with STL algorithms in general, only for simple begin(), end() loops.

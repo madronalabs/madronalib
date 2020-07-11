@@ -41,6 +41,8 @@ public:
     }
   }
   
+  bool hasProperty(Path p) const { return (properties.getConstNode(p) != nullptr); }
+  
   // get the Value of the property. Will return a null Value object if no such property exists.
   Value getProperty(Path p) const { return properties[p]; }
   
