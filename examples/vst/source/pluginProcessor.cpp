@@ -223,6 +223,8 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
   return false;
 }
 
+// ProcessSignals() adapts the VST process() call with its arbitrary frame size to madronalib's
+// fixed vector size processing.
 void PluginProcessor::processSignals(ProcessData& data)
 {
   if(data.numInputs == 0 || data.numOutputs == 0)
@@ -231,7 +233,7 @@ void PluginProcessor::processSignals(ProcessData& data)
     return;
   }
   
-  // mark our outputs has not silent
+  // our outputs are not silent
   data.outputs[0].silenceFlags = 0;
   
   // cast I/O pointers: necessary ugliness due to VST's use of void*
@@ -240,22 +242,13 @@ void PluginProcessor::processSignals(ProcessData& data)
   const float** inputs = const_cast<const float **>(reinterpret_cast<float**>(in));
   float** outputs = reinterpret_cast<float**>(out);
 
-  // run buffered processing
-  processBuffer.process(inputs, outputs, data.numSamples, processFn);
+  auto exampleProcessFn{ [&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); } };
   
-  // test
- // static periodicAction()
-  //doEverySecond(data.numSamples, [](){ std::cout << "tick \n";} );
-  static int c{0};
-  c += data.numSamples;
-  if(c > _sampleRate)
-  {
-    c -= _sampleRate;
-    std::cout << "tick \n";
-  }
+  // run buffered processing using our VectorProcessBuffer object.
+  processBuffer.process(inputs, outputs, data.numSamples, exampleProcessFn);
 }
 
-// processVectors() does all of the audio processing, in DSPVector-sized chunks.
+// processVectors() does all of the audio processing in DSPVector-sized pieces.
 // It is called every time a new buffer of audio is needed.
 DSPVectorArray<kOutputChannels> PluginProcessor::processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
 {

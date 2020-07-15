@@ -43,6 +43,8 @@ public:
   
 private:
   bool processParameterChanges(IParameterChanges* changes);
+  
+  // This function does all the signal processing in the plugin.
   void processSignals(ProcessData& data);
   
   float fGain{1.f};
@@ -52,12 +54,9 @@ private:
   // buffer object to call processVectors from process() calls of arbitrary frame sizes
   VectorProcessBuffer<kInputChannels, kOutputChannels, kMaxProcessBlockFrames> processBuffer;
 
-  // declare the processVectors function that will run our DSP in vectors of size kFloatsPerDSPVector
+  // declare the processVectors function that will run our DSP in vectors (groups of samples) of
+  // fixed size kFloatsPerDSPVector
   DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors);
-  
-  // set up the function parameter for processBuffer.process()
-  using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
-  processFnType processFn{ [&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); } };
   
   float _sampleRate{0.f};
   
