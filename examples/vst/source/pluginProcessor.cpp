@@ -223,8 +223,10 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
   return false;
 }
 
+
 // ProcessSignals() adapts the VST process() call with its arbitrary frame size to madronalib's
 // fixed vector size processing.
+
 void PluginProcessor::processSignals(ProcessData& data)
 {
   if(data.numInputs == 0 || data.numOutputs == 0)
@@ -248,8 +250,10 @@ void PluginProcessor::processSignals(ProcessData& data)
   processBuffer.process(inputs, outputs, data.numSamples, exampleProcessFn);
 }
 
+
 // processVectors() does all of the audio processing in DSPVector-sized pieces.
 // It is called every time a new buffer of audio is needed.
+
 DSPVectorArray<kOutputChannels> PluginProcessor::processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
 {
   // Running the sine generators makes DSPVectors as output.
@@ -270,6 +274,5 @@ DSPVectorArray<kOutputChannels> PluginProcessor::processVectors(const DSPVectorA
   }
 }
  
-
 }}} // namespaces
 

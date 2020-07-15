@@ -7,6 +7,7 @@
 
 #include "MLSymbol.h"
 
+#include <numeric>
 // a Path describes the address of one or more elements in a tree
 // of such elements, for example one or more MLProcs in a graph.
 //
@@ -48,9 +49,8 @@ public:
   inline int getSize() const { return static_cast< int >(mSize); }
   inline Symbol getElement(int n) const { return _symbols[n]; }
   inline int getCopy() const { return mCopy; }
-  
   inline void setCopy(int c) { mCopy = c; } // MLTEST to remove, use ctor only?
-  
+
   friend class const_iterator;
   class const_iterator :
   public std::iterator<

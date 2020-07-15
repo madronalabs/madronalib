@@ -187,7 +187,7 @@ inline Value binaryToValue(const unsigned char* p)
 
 // Path
 
-inline TextFragment pathToText(Path p, const char separator)
+inline TextFragment pathToText(Path p, const char separator = '/')
 {
   auto concat = [&](Symbol a, Symbol b) { return TextFragment(a.getTextFragment(), TextFragment(separator), b.getTextFragment()); } ;
   return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
