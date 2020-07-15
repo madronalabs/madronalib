@@ -16,7 +16,7 @@
 #include <functional>
 
 #include "MLDSPMath.h"
-#include "MLScalarMath.h"
+#include "MLDSPScalarMath.h"
 #include "MLText.h"
 
 namespace ml{
@@ -32,6 +32,9 @@ typedef enum
 
 constexpr float kTimeless = -1.f;
 constexpr float kToBeCalculated = 0.f;
+
+// NOTE: Matrix used to be called Signal, so some of these comments will be confusing
+// until rewritten.
 
 // ----------------------------------------------------------------
 // A signal. A finite, discrete representation of data we will 

@@ -65,7 +65,6 @@ namespace ml
 
     std::mutex mSetMutex;
     
-
     void* pTimersRef{nullptr};
     bool _running { false };
     bool _inMainThread { false };

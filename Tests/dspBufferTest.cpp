@@ -60,7 +60,7 @@ namespace dspBufferTest
 	RandomScalarSource rr;
 	const int kMaxReadWriteSize = 16;
 	
-	IntervalProjection randToLength{ {-1, 1}, {1, kMaxReadWriteSize} };
+	auto randToLength = projections::linear( {-1, 1}, {1, kMaxReadWriteSize} );
 
 	void transmitTest()
 	{

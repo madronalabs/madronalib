@@ -8,8 +8,9 @@
 
 #include <cstring>
 
+#include "MLDSPScalarMath.h"
+
 #include "MLTextUtils.h"
-#include "MLScalarMath.h"
 #include "MLMemoryUtils.h"
 
 #include "utf.hpp"

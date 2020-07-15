@@ -1,8 +1,7 @@
-// MLDSPGens.h
-// madronalib
-//
-// Created by Randy Jones on 4/14/2016
-// 
+// madronaLib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
 // DSP generators: functor objects implementing an inline DSPVector operator()() ,
 // in order to make time-varying signals. Generators all have some state, for example
 // the frequency of an oscillator or the seed in a noise generator. Otherwise they 

@@ -13,7 +13,7 @@
 const int kInterpolationDegree = 1;
 
 #include "MLMatrix.h"
-#include "MLProjection.h"
+#include "MLDSPProjections.h"
 
 namespace ml
 {

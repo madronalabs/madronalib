@@ -1,11 +1,10 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2019 Madrona Labs LLC. http://www.madronalabs.com
+// madronaLib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
 
-#include "MLProjection.h"
+#include "MLDSPProjections.h"
 #include "MLDSPBuffer.h"
 #include <array>
 
@@ -21,7 +20,7 @@ namespace ml
 	
 	inline void makeWindow(float* pDest, size_t size, Projection windowShape)
 	{
-		IntervalProjection domainToUnity{ {0.f, size - 1.f}, {0.f, 1.f} };
+    auto domainToUnity = projections::linear( {0.f, size - 1.f}, {0.f, 1.f} );
 		mapIndices(pDest, size, compose(windowShape, domainToUnity));
 	}
 
@@ -41,11 +40,15 @@ namespace ml
 			return a0 - a1*cosf(kTwoPi*x) + a2*cosf(2.f*kTwoPi*x) - a3*cosf(3.f*kTwoPi*x) + a4*cosf(4.f*kTwoPi*x); } );
 	} 
 	
+  
 	// VectorProcessBuffer: utility class to serve a main loop with varying arbitrary chunk sizes, buffer inputs and outputs,
 	// and compute DSP in DSPVector-sized chunks
+ 
 	template<int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 	class VectorProcessBuffer
 	{
+    using VectorProcessFn = std::function< DSPVectorArray< OUT_CHANNELS >(const DSPVectorArray< IN_CHANNELS >&) >;
+
     DSPVectorArray< IN_CHANNELS > _inputVectors;
     DSPVectorArray< OUT_CHANNELS > _outputVectors;
 
@@ -64,7 +67,7 @@ namespace ml
 		
 		~VectorProcessBuffer(){}
 		
-		void process(const float** inputs, float** outputs, int nFrames, std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)> fn)
+		void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn)
 		{
       if (nFrames > MAX_FRAMES) return;
       if(IN_CHANNELS > 0)
