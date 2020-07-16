@@ -9,7 +9,9 @@ using namespace ml;
 #ifdef __WIN32__
 fix this
 #endif
-constexpr int kInputChannels = 2; // NOTE: 0 will not compile on Windows-- TODO
+
+// Mac OS note: need to ask for microphone access if this is nonzero!
+constexpr int kInputChannels = 0; // NOTE: 0 will not compile on Windows-- TODO
 
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;
@@ -35,7 +37,6 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
 int main( int argc, char *argv[] )
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
-  processFnType processFn([&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); });
-  return RunRtAudioExample(kInputChannels, kOutputChannels, kSampleRate, &callProcessVectorsBuffered<kInputChannels, kOutputChannels>, &processFn);
+  auto RtAudioCallbackFnPtr = &callProcessVectorsBuffered< kInputChannels, kOutputChannels >;
+  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, RtAudioCallbackFnPtr, &processVectors);
 }

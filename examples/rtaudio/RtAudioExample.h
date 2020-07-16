@@ -7,17 +7,20 @@ using namespace ml;
 
 constexpr int kMaxProcessBlockFrames = 4096;
 
+template<int IN_CHANS, int OUT_CHANS>
+using processFnType = DSPVectorArray< OUT_CHANS > (*) (const DSPVectorArray< IN_CHANS >&);
+
+
 // adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
 template<int IN_CHANS, int OUT_CHANS>
 int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-                               double /*streamTime*/, RtAudioStreamStatus status , void *callbackData )
+                               double /*streamTime*/, RtAudioStreamStatus status , void * callbackData )
 {
   // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
   static VectorProcessBuffer<IN_CHANS, OUT_CHANS, kMaxProcessBlockFrames> processBuffer;
 
-  // get std::function ptr from callback data
-  using processFnType = std::function<DSPVectorArray<OUT_CHANS>(const DSPVectorArray<IN_CHANS>&)>;
-  auto fp = reinterpret_cast<processFnType *>(callbackData);
+  // get function ptr from callback data
+  auto fp = reinterpret_cast< processFnType < IN_CHANS, OUT_CHANS > >(callbackData);
 
   const float *pInputBuffer = reinterpret_cast<const float *>(inputBuffer);
   float *pOutputBuffer = reinterpret_cast<float *>(outputBuffer);
@@ -41,8 +44,8 @@ int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned 
   return 0;
 }
 
-
-int RunRtAudioExample(int exampleInputChannels, int exampleOutputChannels, int sampleRate, RtAudioCallback callbackFn, void* callbackData )
+template<int IN_CHANS, int OUT_CHANS>
+int RunRtAudioExample(int sampleRate, RtAudioCallback callbackFn, processFnType< IN_CHANS, OUT_CHANS > vectorProcessFnPtr)
 {
   RtAudio adac;
   unsigned int bufferFrames = 512;
@@ -73,18 +76,20 @@ int RunRtAudioExample(int exampleInputChannels, int exampleOutputChannels, int s
   // Set up RtAudio stream params
   RtAudio::StreamParameters iParams, oParams;
   iParams.deviceId = adac.getDefaultInputDevice();
-  iParams.nChannels = exampleInputChannels;
+  iParams.nChannels = IN_CHANS;
   iParams.firstChannel = 0;
   oParams.deviceId = adac.getDefaultOutputDevice();
-  oParams.nChannels = exampleOutputChannels;
+  oParams.nChannels = OUT_CHANS;
   oParams.firstChannel = 0;
 
   RtAudio::StreamOptions options;
   options.flags |= RTAUDIO_NONINTERLEAVED;
+  
+  void* callbackData = reinterpret_cast< void * >(vectorProcessFnPtr);
 
   try
   {
-    if(exampleInputChannels > 0)
+    if(IN_CHANS > 0)
     {
       adac.openStream( &oParams, &iParams, RTAUDIO_FLOAT32, sampleRate, &bufferFrames, callbackFn, callbackData, &options );
     }

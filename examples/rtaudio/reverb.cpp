@@ -113,7 +113,6 @@ int main( int argc, char *argv[] )
   initializeReverb();
 
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  using processFnType = std::function<DSPVectorArray<kOutputChannels>(const DSPVectorArray<kInputChannels>&)>;
-  processFnType processFn([&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); });
-  return RunRtAudioExample(kInputChannels, kOutputChannels, kSampleRate, &callProcessVectorsBuffered<kInputChannels, kOutputChannels>, &processFn);
+  auto RtAudioCallbackFnPtr = &callProcessVectorsBuffered< kInputChannels, kOutputChannels >;
+  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, RtAudioCallbackFnPtr, &processVectors);
 }
