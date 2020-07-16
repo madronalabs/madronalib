@@ -36,7 +36,6 @@ public:
 			m_max = std::max(x, m_max);
 			m_min = std::min(x, m_min);
 		}
-		
 	}
 	
 	int getCount()
@@ -77,9 +76,10 @@ public:
 	T result;
 };
 
-// TODO: timing one call of func() as below does not work well, expecially on Windows.
-// first do a rough guess at the execution time and then come up with a number of iterations that
-// will roughly equal the time period that gives the most accurate results - .5ms or so, anecdotally.
+
+// Repeat running a function and timing it, throwing out outliers. This does a reasonable job for benchmarking.
+// Better would be a two-pass procedure: first roughly measure the execution time and then time the number of
+// iterations that will equal the time period that gives the most accurate results - .5ms or so, anecdotally.
 
 template <class T> inline timedResult<T> timeIterations(std::function<T(void)> func, int iters)
 {
@@ -104,7 +104,7 @@ template <class T> inline timedResult<T> timeIterations(std::function<T(void)> f
 		// add result to the return value so the call is not optimized away
 		result += fnResult;
 		
-		int dur = duration_cast<nanoseconds>(endOne - startOne).count();
+		auto dur = duration_cast<nanoseconds>(endOne - startOne).count();
 		if(dur > 0)
 		{
 			times.push_back(dur);
