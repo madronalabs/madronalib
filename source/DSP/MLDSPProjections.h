@@ -18,7 +18,7 @@ struct Interval
 
 inline bool within(float f, const Interval m) { return (f >= m.mX1)&&(f < m.mX2); }
 
-typedef std::function<float(float)> Projection;
+using Projection = std::function<float(float)>;
 
 inline Projection compose(Projection a, Projection b)
 {
@@ -38,9 +38,10 @@ static const Projection flatcenter{ [](float x){float c = (x - 0.5f); return 4*c
 static const Projection bell{ [](float x){float px = x*2 - 1; return powf(2.f, - (10.f*px*px));} };
 static const Projection easeOut{ [](float x){float m = x - 1; return 1 - m*m;} };
 static const Projection easeIn{ [](float x){return x*x;} };
+static const Projection easeInOut{ [](float x){return (x < 0.5f) ? easeIn(x*2.f)*0.5f : easeOut(x*2.f - 1.f)*0.5f + 0.5f;} };
 static const Projection easeOutCubic{ [](float x){float n = 1 - x; return 1 - n*n*n;} };
 static const Projection easeInCubic{ [](float x){return x*x*x;} };
-
+static const Projection easeInOutCubic{ [](float x){return (x < 0.5f) ? easeInCubic(x*2.f)*0.5f : easeOutCubic(x*2.f - 1.f)*0.5f + 0.5f;} };
 
 // functions taking one or more parameters and returning projections
 
@@ -73,7 +74,7 @@ inline Projection linear(const Interval a, const Interval b)
 {
   return [=](float x)
   {
-    // project interval a to interval (0,1)
+    // project interval a to interval b
     float m = (b.mX2 - b.mX1)/(a.mX2 - a.mX1);
     return m*(x - a.mX1) + b.mX1;
   };
