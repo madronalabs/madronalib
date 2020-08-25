@@ -120,12 +120,12 @@ namespace ml
 		nullTerminate();
 	}
 	
-	int TextFragment::lengthInBytes() const
+	size_t TextFragment::lengthInBytes() const
 	{
 		return mSize;
 	}
 	
-	int TextFragment::lengthInCodePoints() const
+	size_t TextFragment::lengthInCodePoints() const
 	{
 		utf::stringview<const char*> sv(mpText, mpText + mSize);
 		return static_cast<int>(sv.codepoints());

@@ -64,7 +64,7 @@ namespace ml
   // Non-constexpr version for hashing strings known only at runtime.
   inline uint32_t krHash0(const char * str, const size_t len)
   {
-    int i = len;
+    size_t i = len;
     uint32_t accum = 0;
     while(i > 0)
     {
@@ -94,7 +94,7 @@ namespace ml
     HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC) { }
     
     // this non-constexpr ctor takes a string length parameter at runtime.
-    HashedCharArray(const char* pC, int lengthBytes) : len(lengthBytes), hash(krHash0(pC, len)), pChars(pC) { }
+    HashedCharArray(const char* pC, size_t lengthBytes) : len(lengthBytes), hash(krHash0(pC, len)), pChars(pC) { }
     
     // default, null ctor
     HashedCharArray() : len(0), hash(0), pChars(nullptr) { }
@@ -103,6 +103,8 @@ namespace ml
     const uint32_t hash;
     const char* pChars;
   };
+  
+  using SymbolID = size_t;
   
   class SymbolTable
   {
@@ -121,12 +123,12 @@ namespace ml
     
     // look up a symbol by name and return its ID. Used in Symbol constructors.
     // if the symbol already exists, this routine must not allocate any heap memory.
-    int getSymbolID(const HashedCharArray& hsl);
-    int getSymbolID(const char * sym);
-    int getSymbolID(const char * sym, int lengthBytes);
+    SymbolID getSymbolID(const HashedCharArray& hsl);
+    SymbolID getSymbolID(const char * sym);
+    SymbolID getSymbolID(const char * sym, size_t lengthBytes);
     
-    const TextFragment& getSymbolTextByID(int symID);
-    int addEntry(const HashedCharArray& hsl);
+    const TextFragment& getSymbolTextByID(SymbolID symID);
+    SymbolID addEntry(const HashedCharArray& hsl);
     
   private:
     
@@ -137,7 +139,7 @@ namespace ml
     struct TableEntry
     {
       std::mutex mMutex;
-      std::vector<int> mIDVector;
+      std::vector<SymbolID> mIDVector;
     };
     
     void clearEntry(TableEntry& entry)
@@ -149,7 +151,7 @@ namespace ml
     // since the maximum hash value is known, there will be no need to resize this array.
     std::array< TableEntry, kHashTableSize > mHashTable;
     
-    int mSize;
+    size_t mSize{0};
   };
   
   inline SymbolTable& theSymbolTable()
@@ -165,7 +167,7 @@ namespace ml
   {
     // the ID equals the order in which the symbol was created.
     // 2^31 unique symbols are possible. There is no checking for overflow.
-    int id;
+    SymbolID id;
     
     friend std::ostream& operator<< (std::ostream& out, const Symbol r);
 
@@ -173,7 +175,7 @@ namespace ml
     Symbol() : id(0) {}
     Symbol(const HashedCharArray& hsl) : id( theSymbolTable().getSymbolID(hsl) ) { }
     Symbol(const char* pC) : id( theSymbolTable().getSymbolID(pC) ) { }
-    Symbol(const char* pC, int lengthBytes) : id( theSymbolTable().getSymbolID(pC, lengthBytes) ) { }
+    Symbol(const char* pC, size_t lengthBytes) : id( theSymbolTable().getSymbolID(pC, lengthBytes) ) { }
     Symbol(TextFragment frag) : id( theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()) ) { } // needed?
     
     inline bool operator< (const Symbol b) const
@@ -233,7 +235,7 @@ namespace ml
       return theSymbolTable().getSymbolTextByID(id).getText();
     }
     
-    int getID() const { return id; }
+    SymbolID getID() const { return id; }
     
     inline bool beginsWith(Symbol b) const
     {

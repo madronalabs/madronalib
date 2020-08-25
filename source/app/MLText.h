@@ -96,9 +96,9 @@ namespace ml
 		
 		explicit operator bool() const { return mSize > 0; }
 		
-		int lengthInBytes() const;
+		size_t lengthInBytes() const;
 		
-		int lengthInCodePoints() const;
+		size_t lengthInCodePoints() const;
 		
 		Iterator begin() const;
 		Iterator end() const;
@@ -107,8 +107,8 @@ namespace ml
 		
 		inline bool beginsWith(const TextFragment& fb) const
 		{
-			int lenA = lengthInBytes();
-			int lenB = fb.lengthInBytes();			
+			size_t lenA = lengthInBytes();
+			size_t lenB = fb.lengthInBytes();
 			if(lenB > lenA) return false;
 			for(int i=0; i<lenB; ++i)
 			{
@@ -122,8 +122,8 @@ namespace ml
 		
 		inline bool endsWith(const TextFragment& fb) const
 		{
-			int lenA = lengthInBytes();
-			int lenB = fb.lengthInBytes();			
+			size_t lenA = lengthInBytes();
+			size_t lenB = fb.lengthInBytes();			
 			if(lenB > lenA) return false;
 			for(int i=0; i<lenB; ++i)
 			{
@@ -156,10 +156,10 @@ namespace ml
 		char mLocalText[kShortFragmentSizeInChars];
 		
 		// size of data in bytes, without null terminator
-		int mSize;
+		size_t mSize;
 	};
 
-	inline bool compareSizedCharArrays(const char* pA, int lenA, const char* pB, int lenB)
+	inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB, size_t lenB)
 	{
 		if(lenA != lenB) return false;
 		if((lenA == 0) && (lenB == 0)) return true;

@@ -44,27 +44,27 @@ namespace ml {
 	
 	// add an entry to the table. The entry must not already exist in the table.
 	// this must be the only way of modifying the symbol table.
-	int SymbolTable::addEntry(const HashedCharArray& hsl)
+	SymbolID SymbolTable::addEntry(const HashedCharArray& hsl)
 	{		
 		mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
 		
-		int newID = mSize++;
+		size_t newID = mSize++;
 		mHashTable[hsl.hash].mIDVector.emplace_back(newID);		
 		return newID;
 	}
 	
-	int SymbolTable::getSymbolID(const HashedCharArray& hsl)
+	SymbolID SymbolTable::getSymbolID(const HashedCharArray& hsl)
 	{
-		int r = 0;
+		SymbolID r = 0;
 		
 		// get the vector of symbol IDs matching this hash. It probably has one entry but may have more. 
-		const std::vector<int>& bin = mHashTable[hsl.hash].mIDVector;
+		const std::vector<SymbolID>& bin = mHashTable[hsl.hash].mIDVector;
 		{
 			bool found = false;
 			
 			std::unique_lock<std::mutex> lock(mHashTable[hsl.hash].mMutex);			
 
-			 for(int ID : bin)
+			 for(auto ID : bin)
 			 {
 				// there should be few collisions, so probably the first ID in the hash bin
 				// will be the symbol we are looking for. Unfortunately to test for equality we may have to 
@@ -88,17 +88,17 @@ namespace ml {
 		return r;
 	}
 	
-	int SymbolTable::getSymbolID(const char * sym)
+	SymbolID SymbolTable::getSymbolID(const char * sym)
 	{
 		return getSymbolID(HashedCharArray(sym));
 	}
 	
-	int SymbolTable::getSymbolID(const char * sym, int lengthBytes)
+	SymbolID SymbolTable::getSymbolID(const char * sym, size_t lengthBytes)
 	{
 		return getSymbolID(HashedCharArray(sym, lengthBytes));
 	}
 	
-	const TextFragment& SymbolTable::getSymbolTextByID(int symID)
+	const TextFragment& SymbolTable::getSymbolTextByID(SymbolID symID)
 	{
 		return mSymbolTextsByID[symID];
 	}

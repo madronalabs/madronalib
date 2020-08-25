@@ -70,7 +70,6 @@ namespace ml
     bool _inMainThread { false };
     std::set< Timer* > timerPtrs;
     std::thread runThread;
-    int _timerID{ 0 };
   }; // class Timers
 
 

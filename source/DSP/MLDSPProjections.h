@@ -42,6 +42,9 @@ static const Projection easeInOut{ [](float x){return (x < 0.5f) ? easeIn(x*2.f)
 static const Projection easeOutCubic{ [](float x){float n = 1 - x; return 1 - n*n*n;} };
 static const Projection easeInCubic{ [](float x){return x*x*x;} };
 static const Projection easeInOutCubic{ [](float x){return (x < 0.5f) ? easeInCubic(x*2.f)*0.5f : easeOutCubic(x*2.f - 1.f)*0.5f + 0.5f;} };
+static const Projection easeOutQuartic{ [](float x){float m = x - 1; return 1 - m*m*m*m;} };
+static const Projection easeInQuartic{ [](float x){return x*x*x*x;} };
+static const Projection easeInOutQuartic{ [](float x){return (x < 0.5f) ? easeInQuartic(x*2.f)*0.5f : easeOutQuartic(x*2.f - 1.f)*0.5f + 0.5f;} };
 
 // functions taking one or more parameters and returning projections
 

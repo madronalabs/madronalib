@@ -23,6 +23,8 @@
 /* cJSON */
 /* JSON parser in C. */
 
+#pragma clang diagnostic ignored "-Wcomma"
+
 #include <string.h>
 #include <stdio.h>
 #include <math.h>
