@@ -85,8 +85,8 @@ bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInS
 	FD_SET(dns_sd_fd, &readfds);
 	
   struct timeval tv;
-  tv.tv_sec = long(floor(timeOutInSeconds));
-  tv.tv_usec = long(1000000*(timeOutInSeconds - tv.tv_sec));
+  tv.tv_sec = (floor(timeOutInSeconds));
+  tv.tv_usec = (1000000*(timeOutInSeconds - tv.tv_sec));
 	
 	int result = select(nfds,&readfds,NULL,NULL,&tv);
 	if(result>0 && FD_ISSET(dns_sd_fd, &readfds))

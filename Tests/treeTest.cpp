@@ -110,7 +110,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     int bigValueSum = 0;
     int bigValueSum2 = 0;
-    int maxDepth = 0;
+    size_t maxDepth = 0;
     const int correctSum = 4950;
     const int correctMaxDepth = 8;
 

@@ -23,7 +23,7 @@ namespace ml { namespace textUtils {
 	bool isWhitespace(CodePoint c);
 	bool isCJK(CodePoint c);
 
-	char * spaceStr( int numIndents );	
+	char * spaceStr( size_t numIndents );	
 //	int digitsToNaturalNumber(const char32_t* p);
 //	const char *naturalNumberToDigits(int value, char* pDest);
 	
@@ -49,7 +49,7 @@ namespace ml { namespace textUtils {
 	TextFragment join(const std::vector<TextFragment>& vec, CodePoint delimiter);
 	
 	// Return a new TextFragment consisting of the codepoints from indices start to (end - 1) in the input frag.
-	TextFragment subText(const TextFragment& frag, int start, int end);
+	TextFragment subText(const TextFragment& frag, size_t start, size_t end);
 	
 	// given a fragment and a mapping function on code points, return a new fragment with the
 	// function applied to each code point. 

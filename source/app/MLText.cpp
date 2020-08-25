@@ -141,35 +141,6 @@ namespace ml
 		return Iterator(getText() + lengthInBytes());
 	}
 	
-	TextFragment subText(const TextFragment& frag, int start, int end)
-	{		
-		// this impl does an unneccesary copy, to keep TextFragment very simple for now.
-		if(start >= end) return TextFragment();
-		
-		// we won't know the output fragment size in bytes until iterating the code points. 
-		int len = frag.lengthInBytes();
-		SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
-		char* buf = temp.data();
-		char* pb = buf;
-		
-		auto first = utf::codepoint_iterator<const char*>(frag.getText());		
-		auto it = first;
-		for(int i=0; i<start; ++i)
-		{
-			++it;
-		}
-		
-		for (int i=0; i<end - start; ++i) 
-		{
-			// write the codepoint as UTF-8 to the buffer
-			if(!validateCodePoint(*it)) return TextFragment();
-			pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
-			++it;
-		}	
-		
-		return TextFragment(buf, pb - buf);
-	}
-	
 	TextFragment::TextFragment(const TextFragment& a) noexcept
 	{
 		construct(a.getText(), a.lengthInBytes());

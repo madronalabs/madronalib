@@ -164,7 +164,7 @@ namespace ml
 		if(lenA != lenB) return false;
 		if((lenA == 0) && (lenB == 0)) return true;
 		
-		for(int n=0; n<lenA; ++n)
+		for(size_t n=0; n<lenA; ++n)
 		{
 			if(pA[n] != pB[n])
 			{
@@ -179,7 +179,7 @@ namespace ml
 	
 	inline bool operator==(const TextFragment a, const TextFragment b)
 	{
-		return compareSizedCharArrays(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes()); 
+    return compareSizedCharArrays(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes());
 	}
 	
 	inline bool operator!=(TextFragment a, TextFragment b)

@@ -35,11 +35,16 @@ namespace ml
 			}
 		}
 		
-		inline size_t advanceDistanceIndex(size_t start, int samples)
-		{
-			return (start + samples) & mDistanceMask;
-		}
-		
+    inline size_t advanceDistanceIndex(size_t start, size_t samples)
+    {
+      return (start + samples) & mDistanceMask;
+    }
+    
+    inline size_t rewindDistanceIndex(size_t start, size_t samples)
+    {
+      return (start - samples) & mDistanceMask;
+    }
+    
 		inline DataRegions getDataRegions(size_t currentIdx, size_t elems) const
 		{
 			size_t startIdx = currentIdx & mDataMask;
@@ -131,7 +136,7 @@ namespace ml
       if(full)
       {
         // oldest data was clobbered by write. set read index to indicate we are full
-        mReadIndex.store(advanceDistanceIndex(mWriteIndex, -mSize), std::memory_order_release);
+        mReadIndex.store(rewindDistanceIndex(mWriteIndex, mSize), std::memory_order_release);
       }
 		}
 
@@ -247,11 +252,11 @@ namespace ml
 		}
 		
 		// add n samples to the buffer and advance the write index by (samples - overlap)
-		void writeWithOverlapAdd(const float* pSrc, size_t samples, int overlap)
+		void writeWithOverlapAdd(const float* pSrc, size_t samples, size_t overlap)
 		{
 			size_t available = getWriteAvailable();
 			
-			int samplesRequired = samples*2 - overlap;
+			size_t samplesRequired = samples*2 - overlap;
 			
 			// don't write partial windows.
 			if(available < samplesRequired) return;
@@ -268,7 +273,7 @@ namespace ml
 			
 			// clear samples for next overlapped add
 			currentWriteIndex = advanceDistanceIndex(currentWriteIndex, samples);
-			int samplesToClear = samples - overlap;
+			size_t samplesToClear = samples - overlap;
 			dr = getDataRegions(currentWriteIndex, samplesToClear);
 			
 			std::fill(dr.p1, dr.p1 + dr.size1, 0.f);
@@ -283,7 +288,7 @@ namespace ml
 		}
 		
 		// read n samples from buffer then rewind read point by overlap.
-		void readWithOverlap(float* pDest, size_t samples, int overlap)
+		void readWithOverlap(float* pDest, size_t samples, size_t overlap)
 		{
 			size_t available = getReadAvailable() + overlap;
 			samples = std::min(samples, available);
@@ -301,9 +306,9 @@ namespace ml
 		}
 
     // write most recent samples from the buffer to the destination without updating the read index.
-    void peekMostRecent(float* pDest, int samples) const 
+    void peekMostRecent(float* pDest, size_t samples) const
     {
-      int avail = getReadAvailable();
+      size_t avail = getReadAvailable();
       if(avail < samples) return;
 
       const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);

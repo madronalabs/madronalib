@@ -84,14 +84,14 @@ void MLT3DHub::addListener(MLT3DHub::Listener* pL)
 
 void MLT3DHub::removeListener(MLT3DHub::Listener* pL)
 {
-  int nListeners = mpListeners.size();
-  for(int i = 0; i < nListeners; ++i)
+  size_t nListeners = mpListeners.size();
+  for(size_t i = 0; i < nListeners; ++i)
   {
     Listener* pI = mpListeners[i];
     if(pL == pI)
     {
       // erase item from middle of vector and return
-      for(int j = i; j < nListeners - 1; ++j)
+      for(size_t j = i; j < nListeners - 1; ++j)
       {
         mpListeners[j] = mpListeners[j + 1];
       }
@@ -103,8 +103,8 @@ void MLT3DHub::removeListener(MLT3DHub::Listener* pL)
 
 void MLT3DHub::notifyListeners(ml::Symbol action, const ml::Value val)
 {
-  int nListeners = mpListeners.size();
-  for(int i = 0; i < nListeners; ++i)
+  size_t nListeners = mpListeners.size();
+  for(size_t i = 0; i < nListeners; ++i)
   {
     Listener* pL = mpListeners[i];
     pL->handleHubNotification(action, val);
@@ -137,7 +137,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       // get trailing number
       // TODO don't use trailing number
       touchID = 1;
-      int len = strlen(addy);
+      size_t len = strlen(addy);
       if(len == 9)
       {
         touchID = addy[8] - 48;

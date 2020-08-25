@@ -138,7 +138,7 @@ namespace ml {
 	int SymbolTable::audit()
 	{
 		int i=0;
-		int i2 = 0;
+    SymbolID i2{0};
 		bool OK = true;
 		size_t size = mSymbolTextsByID.size();
 	 

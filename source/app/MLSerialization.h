@@ -24,8 +24,8 @@ namespace ml{
 
 struct BinaryGroupHeader
 {
-  uint32_t elements;
-  uint32_t size;
+  size_t elements;
+  size_t size;
 };
 
 struct BinaryChunkHeader
@@ -107,13 +107,13 @@ inline std::unique_ptr< std::vector<uint8_t> > valueToBinary(Value v)
     case Value::kTextValue:
     {
       auto textVal = v.getTextValue();
-      unsigned dataSize = textVal.lengthInBytes();
+      size_t dataSize = textVal.lengthInBytes();
       
       // TODO safety, limits
       
       outputVector.resize(headerSize + dataSize);
       BinaryChunkHeader* header {reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-      *header = BinaryChunkHeader{'T', dataSize};
+      *header = BinaryChunkHeader{'T', (unsigned int)dataSize};
       auto pDest{outputVector.data() + headerSize};
       auto pSrc{textVal.getText()};
       std::copy(pSrc, pSrc + dataSize, pDest);
@@ -202,7 +202,7 @@ inline std::vector<unsigned char> pathToBinary(Path p)
   outputVector.resize(headerSize + dataSize);
   BinaryChunkHeader* header {reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
   header->type = 'P';
-  header->dataBytes = dataSize;
+  header->dataBytes = (unsigned int)dataSize;
   
   auto pDest{outputVector.data() + headerSize};
   auto pSrc{t.getText()};

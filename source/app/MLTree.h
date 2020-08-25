@@ -282,7 +282,7 @@ public:
       return p;
     }
     
-    int getCurrentDepth() const { return mNodeStack.size() - 1; }
+    size_t getCurrentDepth() const { return mNodeStack.size() - 1; }
   };
   
   // start at beginning, then advance until a node with a value is reached.

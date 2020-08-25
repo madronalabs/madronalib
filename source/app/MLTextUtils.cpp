@@ -56,12 +56,12 @@ namespace ml { namespace textUtils {
         || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
     }
     
-    char * spaceStr( int numIndents )
+    char * spaceStr( size_t numIndents )
     {
         static char * pBuf = (char *)"                                                   ";
-        static int len = (int)strlen(pBuf);
-        int n = numIndents*2;
-        n = ml::clamp(n, 0, len);
+        static size_t len = strlen(pBuf);
+        size_t n = numIndents*2;
+        n = ml::clamp(n, 0UL, len);
         return &pBuf[len - n];
     }
     
@@ -336,7 +336,38 @@ namespace ml { namespace textUtils {
         }
         return r;
     }
-        
+                
+    TextFragment subText(const TextFragment& frag, size_t start, size_t end)
+    {
+      // this impl does an unneccesary copy, to keep TextFragment very simple for now.
+      if(!frag) return TextFragment();
+      if(start >= end) return TextFragment();
+      
+      // temp buffer big enough to hold whole input fragment if needed.
+      // we won't know the output fragment size in bytes until iterating the code points.
+      size_t len = frag.lengthInBytes();
+      SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
+      char* buf = temp.data();
+      char* pb = buf;
+      
+      auto first = TextFragment::Iterator(frag.getText());
+      auto it = first;
+      for(int i=0; i<start; ++i)
+      {
+        ++it;
+      }
+      
+      for (int i=0; i<end - start; ++i)
+      {
+        // write the codepoint as UTF-8 to the buffer
+        if(!validateCodePoint(*it)) return TextFragment();
+        pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
+        ++it;
+      }
+      
+      return TextFragment(buf, pb - buf);
+    }
+
     TextFragment map(const TextFragment& frag, std::function<CodePoint(CodePoint)> f)
     {
         if(!frag) return TextFragment();
@@ -348,7 +379,7 @@ namespace ml { namespace textUtils {
     TextFragment reduce(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
     {
         if(!frag) return TextFragment();
-        int len = frag.lengthInBytes();
+        size_t len = frag.lengthInBytes();
         SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
         char* buf = temp.data();
         char* pb = buf;
@@ -396,7 +427,7 @@ namespace ml { namespace textUtils {
     TextFragment join(const std::vector<TextFragment>& vec)
     {
         TextFragment sum;
-        int len = vec.size();
+        size_t len = vec.size();
         for(int i=0; i<len; ++i)
         {
             TextFragment frag = vec[i];
@@ -409,7 +440,7 @@ namespace ml { namespace textUtils {
     {
         TextFragment delimFrag(delimiter);
         TextFragment sum;
-        int len = vec.size();
+        size_t len = vec.size();
         for(int i=0; i<len; ++i)
         {
             TextFragment frag = vec[i];
@@ -422,36 +453,7 @@ namespace ml { namespace textUtils {
         return sum;
     }
     
-    TextFragment subText(const TextFragment& frag, int start, int end)
-    {
-        // this impl does an unneccesary copy, to keep TextFragment very simple for now.
-        if(!frag) return TextFragment();
-        if(start >= end) return TextFragment();
-        
-        // temp buffer big enough to hold whole input fragment if needed.
-        // we won't know the output fragment size in bytes until iterating the code points.
-        int len = frag.lengthInBytes();
-        SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
-        char* buf = temp.data();
-        char* pb = buf;
-        
-        auto first = TextFragment::Iterator(frag.getText());
-        auto it = first;
-        for(int i=0; i<start; ++i)
-        {
-            ++it;
-        }
-        
-        for (int i=0; i<end - start; ++i)
-        {
-            // write the codepoint as UTF-8 to the buffer
-            if(!validateCodePoint(*it)) return TextFragment();
-            pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
-            ++it;
-        }
-        
-        return TextFragment(buf, pb - buf);
-    }
+
     
     TextFragment stripFileExtension(const TextFragment& frag)
     {
@@ -511,7 +513,7 @@ namespace ml { namespace textUtils {
         {
             if(str[i] == c)
             {
-                r = i;
+                r = (int)i;
                 break;
             }
         }
@@ -559,7 +561,7 @@ namespace ml { namespace textUtils {
 
     std::vector<uint8_t> base64Decode(const TextFragment& frag)
     {
-        int len = frag.lengthInBytes();
+        size_t len = frag.lengthInBytes();
         if(len % 4) return std::vector<uint8_t>();
         std::vector<uint8_t> decoded;
         const char * inChars = frag.getText();
@@ -606,15 +608,15 @@ namespace ml { namespace textUtils {
         aes256_init(&ctx, key.data());
         
         const int blockSize = 16;
-        int inputSize = input.size();
-        int blocks = inputSize/blockSize + 1;
-        int paddedSize = blockSize*(blocks);
+        size_t inputSize = input.size();
+        size_t blocks = inputSize/blockSize + 1;
+        size_t paddedSize = blockSize*(blocks);
         
         // add PKCS padding
         std::vector<uint8_t> plaintext = input;
         plaintext.resize(paddedSize);
-        int padBytes = paddedSize - inputSize;
-        for(int i = inputSize; i < paddedSize; ++i)
+        size_t padBytes = paddedSize - inputSize;
+        for(size_t i = inputSize; i < paddedSize; ++i)
         {
             plaintext[i] = padBytes;
         }
@@ -623,15 +625,15 @@ namespace ml { namespace textUtils {
         uint8_t currentIV[blockSize];
         uint8_t workVector[blockSize];
                 
-        for(int i=0; i<blockSize; ++i)
+        for(size_t i=0; i<blockSize; ++i)
         {
             currentIV[i] = iv[i];
         }
         
-        for(int b=0; b<blocks; ++b)
+        for(size_t b=0; b<blocks; ++b)
         {
             // get plaintext XOR IV
-            for(int i=0; i<blockSize; ++i)
+            for(size_t i=0; i<blockSize; ++i)
             {
                 workVector[i] = plaintext[b*blockSize + i] ^ currentIV[i];
             }
@@ -639,7 +641,7 @@ namespace ml { namespace textUtils {
             aes256_encrypt_ecb(&ctx, workVector);
             
             // write to ciphertext, get new IV
-            for(int i=0; i<blockSize; ++i)
+            for(size_t i=0; i<blockSize; ++i)
             {
                 ciphertext[b*blockSize + i] = workVector[i];
                 currentIV[i] = workVector[i];
@@ -658,7 +660,7 @@ namespace ml { namespace textUtils {
         aes256_init(&ctx, key.data());
                 
         const int blockSize = 16;
-        int blocks = cipher.size() / blockSize;
+        size_t blocks = cipher.size() / blockSize;
         
         std::vector<uint8_t> plaintext(blockSize*blocks);
         
@@ -694,7 +696,7 @@ namespace ml { namespace textUtils {
         aes256_done(&ctx);
         
         // remove PKCS padding
-        int paddedSize = plaintext.size();
+        size_t paddedSize = plaintext.size();
         if(paddedSize % blockSize == 0)
         {
             int padBytes = plaintext[paddedSize - 1];
@@ -782,7 +784,7 @@ namespace ml { namespace textUtils {
     Symbol stripFinalNumber(Symbol sym)
     {
         const TextFragment& frag = sym.getTextFragment();
-        int points = frag.lengthInCodePoints();
+        size_t points = frag.lengthInCodePoints();
                 
         // TODO make more readble using random access fragment class
         
@@ -804,8 +806,8 @@ namespace ml { namespace textUtils {
         if(!textUtils::isDigit(buf[points - 1])) return sym;
         
         // read backwards until non-digit
-        int firstDigitPos = 0;
-        for(int i=points - 2; i >= 0; --i)
+        size_t firstDigitPos = 0;
+        for(size_t i = points - 2; i >= 0; --i)
         {
             char32_t c = buf[i];
             if(!textUtils::isDigit(c))
@@ -823,7 +825,7 @@ namespace ml { namespace textUtils {
     {
         // make temporary buffer of decoded code points, hopefully on stack
         const TextFragment& frag = sym.getTextFragment();
-        int points = frag.lengthInCodePoints();
+        size_t points = frag.lengthInCodePoints();
         
         // TODO make more readble using random access fragment class
         
@@ -863,7 +865,7 @@ namespace ml { namespace textUtils {
     Symbol stripFinalCharacter(Symbol sym)
     {
         TextFragment frag = sym.getTextFragment();
-        int len = frag.lengthInCodePoints();
+        size_t len = frag.lengthInCodePoints();
         return Symbol(subText(frag, 0, len - 1));
     }
     

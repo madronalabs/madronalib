@@ -17,7 +17,7 @@ namespace ml
 	class SmallStackBuffer
 	{
 	public:
-		SmallStackBuffer(int size)
+		SmallStackBuffer(size_t size)
 		{
 			if(size <= MAX_STACK_ELEMS)
 			{
