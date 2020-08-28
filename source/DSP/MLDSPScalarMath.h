@@ -14,7 +14,6 @@
 #ifdef WIN32
 #undef min
 #undef max
-  constexpr float FLT_MAX = 3.40282346638528860e+38f;
 #endif
 
 namespace ml
