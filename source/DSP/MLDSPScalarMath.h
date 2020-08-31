@@ -71,7 +71,13 @@ namespace ml
 	{
 		return(a + m*(b-a));
 	}
-	
+
+	template <class c, class d>
+	inline c lerp(const c& a, const c& b, const d& m)
+	{
+		return(a + c(m) * (b - a));
+	}
+
 	// return bool value of within half-open interval [min, max).
 	template <class c>
 	inline bool (within)(const c& x, const c& min, const c& max)
