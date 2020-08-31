@@ -325,6 +325,15 @@ namespace ml
     inline DSPVectorArray& operator*=(const DSPVectorArray& x1){*this = multiply(*this, x1); return *this;}
     inline DSPVectorArray& operator/=(const DSPVectorArray& x1){*this = divide(*this, x1); return *this;}
 
+    template <typename = typename std::enable_if<VECTORS != 1>::type>
+    inline DSPVectorArray& operator+=(const DSPVectorArray<1>& x1) { *this = add(*this, repeat<2, 1>(x1)); return *this; }
+    template <typename = typename std::enable_if<VECTORS != 1>::type>
+    inline DSPVectorArray& operator-=(const DSPVectorArray<1>& x1) { *this = subtract(*this, repeat<2, 1>(x1)); return *this; }
+    template <typename = typename std::enable_if<VECTORS != 1>::type>
+    inline DSPVectorArray& operator*=(const DSPVectorArray<1>& x1) { *this = multiply(*this, repeat<2, 1>(x1)); return *this; }
+    template <typename = typename std::enable_if<VECTORS != 1>::type>
+    inline DSPVectorArray& operator/=(const DSPVectorArray<1>& x1) { *this = divide(*this, repeat<2, 1>(x1)); return *this; }
+
     // declare as friends any templates or functions that need to use get/setRowVectorUnchecked
     // but maybe they should just use row()?
     template<int C, int V>
@@ -578,6 +587,15 @@ namespace ml
   inline DSPVectorArray<VECTORS> operator*(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return multiply(x1, x2);}
   template<int VECTORS>
   inline DSPVectorArray<VECTORS> operator/(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return divide(x1, x2);}
+
+  template<int VECTORS>
+  inline DSPVectorArray<VECTORS> operator+(DSPVectorArray<VECTORS> x1, DSPVectorArray<1> x2) { return add(x1, repeat<2, 1>(x2)); }
+  template<int VECTORS>
+  inline DSPVectorArray<VECTORS> operator-(DSPVectorArray<VECTORS> x1, DSPVectorArray<1> x2) { return subtract(x1, repeat<2, 1>(x2)); }
+  template<int VECTORS>
+  inline DSPVectorArray<VECTORS> operator*(DSPVectorArray<VECTORS> x1, DSPVectorArray<1> x2) { return multiply(x1, repeat<2, 1>(x2)); }
+  template<int VECTORS>
+  inline DSPVectorArray<VECTORS> operator/(DSPVectorArray<VECTORS> x1, DSPVectorArray<1> x2) { return divide(x1, repeat<2, 1>(x2)); }
 
   DEFINE_OP2(divideApprox, vecDivApprox(x1, x2) );
   DEFINE_OP2(pow, (vecExp(vecMul(vecLog(x1), x2))));
