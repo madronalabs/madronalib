@@ -89,6 +89,15 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
       i++;
     }
   }
+  
+  SECTION("lerp")
+  {
+    DSPVector a{columnIndex()};
+    DSPVector b{0.f};
+    auto c = lerp(a, b, 0.5f);
+    std::cout << "lerp: " << c << "\n";
+    REQUIRE(c[kFloatsPerDSPVector - 1] == (kFloatsPerDSPVector - 1)*0.5f);
+  }
 }
 
 // TODO tests into units

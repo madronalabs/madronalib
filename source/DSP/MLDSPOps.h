@@ -491,7 +491,7 @@ namespace ml
   }
 
 // ----------------------------------------------------------------
-// unary operators
+// unary vector operators
 
   #define DEFINE_OP1(opName, opComputation)          \
   template<int VECTORS>                    \
@@ -544,7 +544,7 @@ namespace ml
   DEFINE_OP1(exp2Approx, (vecExpApprox(vecMul(kLogTwoVec, x))));
 
 // ----------------------------------------------------------------
-// binary operators
+// binary vector operators
 
   #define DEFINE_OP2(opName, opComputation)          \
   template<int VECTORS>                    \
@@ -604,7 +604,7 @@ namespace ml
   DEFINE_OP2(max, (vecMax(x1, x2)));
 
   // ----------------------------------------------------------------
-  // ternary operators
+  // ternary vector operators
 
   #define DEFINE_OP3(opName, opComputation)          \
   template<int VECTORS>                    \
@@ -636,8 +636,35 @@ namespace ml
   DEFINE_OP3(clamp, vecClamp(x1, x2, x3) );          // clamp(x, minBound, maxBound)
   DEFINE_OP3(within, vecWithin(x1, x2, x3) );          // is x in the open interval [x2, x3) ?
 
+
   // ----------------------------------------------------------------
-  // unary float -> int operators
+  // lerp two vectors with float mixture
+
+  template<int VECTORS>
+  inline DSPVectorArray<VECTORS> lerp(const DSPVectorArray<VECTORS>& vx1, const DSPVectorArray<VECTORS>& vx2, float m)
+  {
+    DSPVectorArray<VECTORS> vy;
+    const float* px1 = vx1.getConstBuffer();
+    const float* px2 = vx2.getConstBuffer();
+    DSPVector vmix(m);
+    float* py1 = vy.getBuffer();
+    const SIMDVectorFloat vConstMix = vecSet1(m);
+    
+    for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+    {
+      SIMDVectorFloat x1 = vecLoad(px1);
+      SIMDVectorFloat x2 = vecLoad(px2);
+      vecStore(py1, vecAdd(x1, (vecMul(vConstMix, vecSub(x2, x1)))));
+      px1 += kFloatsPerSIMDVector;
+      px2 += kFloatsPerSIMDVector;
+      py1 += kFloatsPerSIMDVector;
+    }
+    return vy;
+  }
+
+
+  // ----------------------------------------------------------------
+  // unary float vector -> int vector operators
 
   #define DEFINE_OP1_F2I(opName, opComputation)        \
   template<int VECTORS>                    \
@@ -661,7 +688,7 @@ namespace ml
   DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
 
   // ----------------------------------------------------------------
-  // unary int -> float operators
+  // unary int vector -> float vector operators
 
   #define DEFINE_OP1_I2F(opName, opComputation)        \
   template<int VECTORS>                    \
@@ -684,7 +711,7 @@ namespace ml
   DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
 
   // ----------------------------------------------------------------
-  // binary float, float -> int operators
+  // binary float vector, float vector -> int vector operators
 
   #define DEFINE_OP2_FF2I(opName, opComputation)        \
   template<int VECTORS>                    \
@@ -716,7 +743,7 @@ px2 += kFloatsPerSIMDVector;            \
   DEFINE_OP2_FF2I(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));
 
   // ----------------------------------------------------------------
-  // ternary operators float, float int -> float
+  // ternary operators float vector, float vector, int vector -> float vector
 
   #define DEFINE_OP3_FFI2F(opName, opComputation)          \
   template<int VECTORS>                    \
