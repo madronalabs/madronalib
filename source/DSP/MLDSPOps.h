@@ -656,7 +656,7 @@ namespace ml
 
 
   // ----------------------------------------------------------------
-  // lerp two vectors with float mixture
+  // lerp two vector arrays with float mixture
 
   template<int VECTORS>
   inline DSPVectorArray<VECTORS> lerp(const DSPVectorArray<VECTORS>& vx1, const DSPVectorArray<VECTORS>& vx2, float m)
@@ -680,6 +680,31 @@ namespace ml
     return vy;
   }
 
+  // ----------------------------------------------------------------
+  // lerp two vector arrays with single vector mixture
+  
+  template<int VECTORS, typename = typename std::enable_if<VECTORS != 1>::type>
+  inline DSPVectorArray<VECTORS> lerp(const DSPVectorArray<VECTORS>& vx1, const DSPVectorArray<VECTORS>& vx2, const DSPVectorArray<1>& m)
+  {
+    DSPVectorArray<VECTORS> vy;
+    const float* px1 = vx1.getConstBuffer();
+    const float* px2 = vx2.getConstBuffer();
+    const float* pm = m.getConstBuffer();
+      
+    float* py1 = vy.getBuffer();
+    const SIMDVectorFloat vConstMix = vecLoad(pm);
+
+    for (int n = 0; n < kSIMDVectorsPerDSPVector * VECTORS; ++n)
+    {
+      SIMDVectorFloat x1 = vecLoad(px1);
+      SIMDVectorFloat x2 = vecLoad(px2);
+      vecStore(py1, vecAdd(x1, (vecMul(vConstMix, vecSub(x2, x1)))));
+      px1 += kFloatsPerSIMDVector;
+      px2 += kFloatsPerSIMDVector;
+      py1 += kFloatsPerSIMDVector;
+    }
+    return vy;
+  }
 
   // ----------------------------------------------------------------
   // unary float vector -> int vector operators
