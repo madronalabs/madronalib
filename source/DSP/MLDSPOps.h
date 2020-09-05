@@ -441,6 +441,24 @@ namespace ml
       }
       return true;
     }
+
+	// return a reference to a row of this DSPVectorArrayInt.
+	inline DSPVectorArrayInt<1>& row(int j)
+	{
+		float* py1 = getBuffer() + kIntsPerDSPVector * j;
+		DSPVectorArrayInt<1>* pRow = reinterpret_cast<DSPVectorArrayInt<1>*>(py1);
+		return *pRow;
+	}
+
+	// return a reference to a row of this DSPVectorArrayInt.
+	inline const DSPVectorArrayInt<1>& constRow(int j) const
+	{
+		const float* py1 = getConstBuffer() + kIntsPerDSPVector * j;
+		const DSPVectorArrayInt<1>* pRow = reinterpret_cast<const DSPVectorArrayInt<1>*>(py1);
+		return *pRow;
+	}
+
+
   }; // class DSPVectorArrayInt
 
   typedef DSPVectorArrayInt<1> DSPVectorInt;
