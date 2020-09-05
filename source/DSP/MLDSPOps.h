@@ -912,7 +912,8 @@ px2 += kFloatsPerSIMDVector;            \
   // ----------------------------------------------------------------
   // combining rows
 
-  // return a DSPVectorArray with each row set to the single DSPVector x1.
+  // given a DSPVectorArray with v rows and a number of copies c, return the DSPVectorArray
+  // with v*c rows made by repeating all rows of the input c times.
   template<int COPIES, int VECTORS>
   inline DSPVectorArray<COPIES*VECTORS> repeat(const DSPVectorArray<VECTORS> x1)
   {
@@ -1023,7 +1024,7 @@ px2 += kFloatsPerSIMDVector;            \
 
   // Apply a function (int)->(float) to each element of the DSPVectorArrayInt x and return the result.
   template<int VECTORS>
-  inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArrayInt<VECTORS> x)
+  inline DSPVectorArray<VECTORS> map(std::function<float(int)> f, const DSPVectorArrayInt<VECTORS> x)
   {
     DSPVectorArray<VECTORS> y;
     for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
@@ -1033,14 +1034,14 @@ px2 += kFloatsPerSIMDVector;            \
     return y;
   }
 
-  // Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
+  // Apply a function (DSPVector)->(DSPVector) to each row of the DSPVectorArray x and return the result.
   template<int VECTORS>
   inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector)> f, const DSPVectorArray<VECTORS> x)
   {
     DSPVectorArray<VECTORS> y;
     for(int j=0; j<VECTORS; ++j)
     {
-      y.row(j) = f(x.constRow(j)); // untested
+      y.row(j) = f(x.constRow(j));
     }
     return y;
   }

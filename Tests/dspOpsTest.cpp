@@ -95,8 +95,31 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     DSPVector a{columnIndex()};
     DSPVector b{0.f};
     auto c = lerp(a, b, 0.5f);
-    std::cout << "lerp: " << c << "\n";
     REQUIRE(c[kFloatsPerDSPVector - 1] == (kFloatsPerDSPVector - 1)*0.5f);
+  }
+  
+  SECTION("map")
+  {
+    constexpr int rows = 2;
+    auto a{repeat<rows>(columnIndex())};
+
+    // map void -> float
+    auto b = map([&](){return 4;}, a);
+    
+    // map float -> float
+    auto c = map([&](float x){return x*2;}, a);
+    
+    // map int -> float
+    auto d = map([&](int x){return x*2;}, a);
+    
+    // map DSPVector -> DSPVector
+    auto e = map([&](DSPVector x){return x*2;}, a);
+    
+    // map DSPVector, int row -> DSPVector
+    auto f = map([&](DSPVector x, int j){return j*2;}, a);
+    
+    REQUIRE(c == d);
+    REQUIRE(d == e);
   }
 }
 
@@ -105,7 +128,6 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 TEST_CASE("madronalib/core/projections", "[projections]")
 {
   std::cout << "\n\nPROJECTIONS\n";
-
   {
     auto pa = projections::piecewiseLinear({3, 5, 8});
     int size = 20;
