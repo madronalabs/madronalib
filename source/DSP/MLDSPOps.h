@@ -210,8 +210,7 @@ public:
     return true;
   }
   
-  // protected:
-public:
+private:
   
   // return row J from this DSPVectorArray, when J is known at compile time.
   template<int J>
@@ -335,6 +334,15 @@ public:
   // but maybe they should just use row()?
   template<int C, int V>
   friend DSPVectorArray<C> repeat(const DSPVectorArray<V>& x1);
+  
+  template<int C, int N>
+  friend DSPVectorArray<C> stretch(const DSPVectorArray<N>& x);
+
+  template<int C, int N>
+  friend DSPVectorArray<C> zeroPad(const DSPVectorArray<N>& x);
+  
+  template<int C>
+  friend DSPVectorArray<C> shiftRows(const DSPVectorArray<C>& x, int rowsToShift);
   
   template<int VA, int VB>
   friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
@@ -570,25 +578,6 @@ DEFINE_OP2(add, (vecAdd(x1, x2)));
 DEFINE_OP2(subtract, (vecSub(x1, x2)));
 DEFINE_OP2(multiply, (vecMul(x1, x2)));
 DEFINE_OP2(divide, (vecDiv(x1, x2)));
-
-
-/*
- inline DSPVector operator+(const DSPVector& x1, const DSPVector& x2){return add(x1, x2);}
- inline DSPVector operator-(const DSPVector& x1, const DSPVector& x2){return subtract(x1, x2);}
- inline DSPVector operator*(const DSPVector& x1, const DSPVector& x2){return multiply(x1, x2);}
- inline DSPVector operator/(const DSPVector& x1, const DSPVector& x2){return divide(x1, x2);}
- */
-
-/*
- template<int VECTORS>
- inline DSPVectorArray<VECTORS> operator+(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return add(x1, x2);}
- template<int VECTORS>
- inline DSPVectorArray<VECTORS> operator-(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return subtract(x1, x2);}
- template<int VECTORS>
- inline DSPVectorArray<VECTORS> operator*(const DSPVectorArray<VECTORS>& x1, const DSPVectorArray<VECTORS>& x2){return multiply(x1, x2);}
- template<int VECTORS>
- inline DSPVectorArray<VECTORS> operator/(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return divide(x1, x2);}
- */
 
 DEFINE_OP2(divideApprox, vecDivApprox(x1, x2) );
 DEFINE_OP2(pow, (vecExp(vecMul(vecLog(x1), x2))));
@@ -904,13 +893,6 @@ inline DSPVectorArray<VECTORS> zeroPad(const DSPVectorArray<N>& x)
   }
   return vy;
 }
-
-
-
-// testing
-inline int modulo(int a, int b) { return a >= 0 ? (a % b) : (b - std::abs(a % b)) % b; }
-
-
 
 template<int VECTORS>
 inline DSPVectorArray<VECTORS> shiftRows(const DSPVectorArray<VECTORS>& x, int rowsToShift)
