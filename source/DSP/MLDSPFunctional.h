@@ -169,7 +169,7 @@ namespace ml
 		inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn, const DSPVector vDelayTime)
 		{				
 			DSPVectorArray<ROWS> vFnOutput;						
-			vFnOutput = fn(vx + vy1*feedbackGain);
+			vFnOutput = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain));
 			
 			for(int j=0; j < ROWS; ++j)
 			{
@@ -206,7 +206,7 @@ namespace ml
 		{				
 			DSPVectorArray<ROWS> vFeedback;						
 			DSPVectorArray<ROWS> vOutputTap;						
-			vFeedback = fn(vx + vy1*feedbackGain, vOutputTap);
+			vFeedback = fn(vx + vy1*DSPVectorArray<ROWS>(feedbackGain), vOutputTap);
 			
 			for(int j=0; j < ROWS; ++j)
 			{

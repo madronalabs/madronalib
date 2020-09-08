@@ -145,17 +145,42 @@ namespace ml
 
     // TODO constexpr constructor taking a Projection - requires Projection rewrite without std::function
 
-    // default ctor: zero
+    // default constructor: zeroes the data.
     // TODO this seems to be taking a lot of time! investigate
     DSPVectorArray()
     {
       mData.mArrayData.fill(0.f);
     }
 
-    // This constructor is not marked explicit, and thereby allows promoting floats to DSPVectors
-    // silently. This keeps the syntax of common DSP code shorter: "va + DSPVector(1.f)" becomes
-    // just "va + 1.f". TODO create some functions like DSPVector::operator+(float) if that's a win.
+    // conversion constructor to float.  This keeps the syntax of common DSP code shorter:
+    // "va + DSPVector(1.f)" becomes just "va + 1.f".
     DSPVectorArray(float k) { operator=(k); }
+
+
+    // given a DSPVectorArray with v rows and a number of output rows c, return the DSPVectorArray
+    // with c rows made by repeating the input until c rows are filled.
+    template<int INPUT_ROWS>
+    inline DSPVectorArray<VECTORS> fillWithCopies(const DSPVectorArray<INPUT_ROWS> x1)
+    {
+
+      std::cout << "fillWithCopies: " << INPUT_ROWS << " -> " << VECTORS << "\n";
+      DSPVectorArray<VECTORS> vy;
+      int i = 0;
+      for(int j=0; j<VECTORS; ++j)
+      {
+        vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(i));
+        i++;
+        if(i == INPUT_ROWS) i = 0;
+      }
+      return vy;
+    }
+
+
+
+    // conversion constructor from another DSPVector Array.
+    template<int B>
+    DSPVectorArray<VECTORS>( DSPVectorArray<B> k) { fillWithCopies<B>(k); }
+
 
     // unaligned data * ctors
     explicit DSPVectorArray(float * pData) { load(*this, pData); }
@@ -212,7 +237,8 @@ namespace ml
       return true;
     }
 
-  private:
+ // protected:
+  public:
 
     // return row J from this DSPVectorArray, when J is known at compile time.
     template<int J>
@@ -565,11 +591,14 @@ namespace ml
   DEFINE_OP2(multiply, (vecMul(x1, x2)));
   DEFINE_OP2(divide, (vecDiv(x1, x2)));
 
+
   inline DSPVector operator+(const DSPVector& x1, const DSPVector& x2){return add(x1, x2);}
   inline DSPVector operator-(const DSPVector& x1, const DSPVector& x2){return subtract(x1, x2);}
   inline DSPVector operator*(const DSPVector& x1, const DSPVector& x2){return multiply(x1, x2);}
   inline DSPVector operator/(const DSPVector& x1, const DSPVector& x2){return divide(x1, x2);}
 
+
+/*
   template<int VECTORS>
   inline DSPVectorArray<VECTORS> operator+(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return add(x1, x2);}
   template<int VECTORS>
@@ -578,6 +607,7 @@ namespace ml
   inline DSPVectorArray<VECTORS> operator*(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return multiply(x1, x2);}
   template<int VECTORS>
   inline DSPVectorArray<VECTORS> operator/(DSPVectorArray<VECTORS> x1, DSPVectorArray<VECTORS> x2){return divide(x1, x2);}
+*/
 
   DEFINE_OP2(divideApprox, vecDivApprox(x1, x2) );
   DEFINE_OP2(pow, (vecExp(vecMul(vecLog(x1), x2))));

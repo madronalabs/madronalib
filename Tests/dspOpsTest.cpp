@@ -105,21 +105,50 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
     // map void -> float
     auto b = map([&](){return 4;}, a);
-    
+
     // map float -> float
-    auto c = map([&](float x){return x*2;}, a);
-    
+    auto c = map([&](float x){return x*2.f;}, a);
+
     // map int -> float
     auto d = map([&](int x){return x*2;}, a);
-    
+
     // map DSPVector -> DSPVector
-    auto e = map([&](DSPVector x){return x*2;}, a);
-    
+    auto e = map([&](DSPVector x){return x*2.f;}, a);
+
     // map DSPVector, int row -> DSPVector
     auto f = map([&](DSPVector x, int j){return j*2;}, a);
-    
+
     REQUIRE(c == d);
     REQUIRE(d == e);
+  }
+
+  SECTION("conversion")
+  {
+    std::cout << "\nCONVERSION\n";
+
+
+    DSPVectorArray<2> x{repeat<2>(columnIndex())};
+//    auto x2 = x*2.f;
+    std::cout << "x:" << x << "\n";
+  //  std::cout << "x2:" << x2 << "\n";
+
+    DSPVectorArray<1> y{3.f};
+    auto xy = x*y;
+
+
+    DSPVectorArray<3> a{3.f};
+    DSPVector b{columnIndex()};
+
+    DSPVector f = b*DSPVector(2.f);
+    DSPVector g = b*(2.f);
+
+    auto d = b*2.f;
+
+    // DSPVectorArray<3> c{b};
+    auto e = a*b;
+    std::cout << "a " << a  << "\n";
+    std::cout << "b " << b  << "\n";
+    std::cout << "e " << e  << "\n";
   }
 }
 
