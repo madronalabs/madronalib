@@ -48,42 +48,41 @@ namespace ml
 	#pragma mark scalar-type templates
 
 	template <class c>
-	inline c (min)(const c& a, const c& b)
+	constexpr inline c (min)(const c& a, const c& b)
 	{
 		return (a < b) ? a : b;
 	}
 	
 	template <class c>
-	inline c (max)(const c& a, const c& b)
+	constexpr inline c (max)(const c& a, const c& b)
 	{
 		return (a > b) ? a : b;
 	}
 	
 	// clamp to closed interval [min, max].
 	template <class c>
-	inline c (clamp)(const c& x, const c& min, const c& max)
+	constexpr inline c (clamp)(const c& x, const c& min, const c& max)
 	{
 		return (x < min) ? min : (x > max ? max : x);
 	}
 	
 	template <class c>
-	inline c lerp(const c& a, const c& b, const c& m)
+	constexpr inline c lerp(const c& a, const c& b, const c& m)
 	{
 		return(a + m*(b-a));
 	}
 	
 	// return bool value of within half-open interval [min, max).
 	template <class c>
-	inline bool (within)(const c& x, const c& min, const c& max)
+	constexpr inline bool (within)(const c& x, const c& min, const c& max)
 	{
 		return ((x >= min) && (x < max));
 	}
 
   template <class c>
-  inline int (sign)(const c& x)
+  constexpr inline int (sign)(const c& x)
   {
-      if (x == 0) return 0;
-      return (x > 0) ? 1 : -1;
+      return (x == 0) ? 0 : ((x > 0) ? 1 : -1);
   }
 
 	#pragma mark utility functions on scalars

@@ -19,7 +19,6 @@
 
 using namespace ml;
 
-
 TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 {
 	DSPVector a(rangeClosed(-kPi, kPi));
@@ -122,33 +121,34 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     REQUIRE(d == e);
   }
 
-  SECTION("conversion")
+  SECTION("row operations")
   {
-    std::cout << "\nCONVERSION\n";
+    std::cout << "\nROW OPERATIONS\n";
 
-
-    DSPVectorArray<2> x{repeat<2>(columnIndex())};
-//    auto x2 = x*2.f;
-    std::cout << "x:" << x << "\n";
-  //  std::cout << "x2:" << x2 << "\n";
-
-    DSPVectorArray<1> y{3.f};
-    auto xy = x*y;
-
-
-    DSPVectorArray<3> a{3.f};
+    DSPVectorArray<2> a{repeat<2>(columnIndex())};
+    auto a2 {a*2.f};
+    
     DSPVector b{columnIndex()};
+    auto b2 = b*2.f;
 
-    DSPVector f = b*DSPVector(2.f);
-    DSPVector g = b*(2.f);
+    DSPVectorArray<2> x{3.f};
+    DSPVectorArray<1> y{3.f};
+    auto xy = x*repeat<2>(y);
+    auto yx = repeat<2>(y)*x;
 
-    auto d = b*2.f;
+    auto e = a*repeat<2>(b);
+    
+    auto aa = repeat<4>(a);
 
-    // DSPVectorArray<3> c{b};
-    auto e = a*b;
-    std::cout << "a " << a  << "\n";
-    std::cout << "b " << b  << "\n";
-    std::cout << "e " << e  << "\n";
+    auto f{repeat<2>(columnIndex())};
+    auto g = map([&](DSPVector x, int j){return x*(j + 1);}, f);
+    
+    auto h = stretch<6>(g);
+    
+    auto k = zeroPad<6>(columnIndex());
+    auto m = shiftRows(k, -1);
+    
+    // TODO actual tests
   }
 }
 
