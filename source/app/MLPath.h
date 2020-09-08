@@ -134,7 +134,14 @@ private:
 
 inline bool operator==(const Path a, const Path b)
 {
-  return (memcmp(&a, &b, sizeof(Path)) == 0);
+  auto an = a.getSize();
+  auto bn = b.getSize();
+  if(an != bn) return false;
+  for(int i = 0; i < an; ++i)
+  {
+    if(a.getElement(i) != b.getElement(i)) return false;
+  }
+  return true;
 }
 
 inline bool operator!=(Path a, Path b)
