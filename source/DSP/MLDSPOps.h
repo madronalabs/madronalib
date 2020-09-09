@@ -90,21 +90,21 @@ inline int* DSPVectorAlignIntPointer(const int* p)
 #define ConstDSPVectorArray constexpr DSPVectorArray
 #endif
 
-template<int VECTORS>
+template<size_t ROWS>
 class DSPVectorArray
 {
   // union def'n
 #ifdef MANUAL_ALIGN_DSPVECTOR
   union _Data
   {
-    float asFloat[kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats];
+    float asFloat[kFloatsPerDSPVector*ROWS + kDSPVectorAlignFloats];
     
     _Data() {}
     
-    _Data(std::array<float, kFloatsPerDSPVector*VECTORS> a)
+    _Data(std::array<float, kFloatsPerDSPVector*ROWS> a)
     {
       float *py = DSPVectorAlignFloatPointer(this->asFloat);
-      for(int i=0; i<kFloatsPerDSPVector*VECTORS; ++i)
+      for(int i=0; i<kFloatsPerDSPVector*ROWS; ++i)
       {
         py[i] = a[i];
       }
@@ -113,12 +113,12 @@ class DSPVectorArray
 #else
   union _Data
   {
-    SIMDVectorFloat _align[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
-    std::array<float, kFloatsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
-    float asFloat[kFloatsPerDSPVector*VECTORS];
+    SIMDVectorFloat _align[kSIMDVectorsPerDSPVector*ROWS]; // unused except to force alignment
+    std::array<float, kFloatsPerDSPVector*ROWS> mArrayData; // for constexpr ctor
+    float asFloat[kFloatsPerDSPVector*ROWS];
     
     _Data() {}
-    constexpr _Data(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mArrayData(a) {}
+    constexpr _Data(std::array<float, kFloatsPerDSPVector*ROWS> a) : mArrayData(a) {}
   };
   
 #endif
@@ -137,10 +137,10 @@ public:
 #endif // MANUAL_ALIGN_DSPVECTOR
   
   // constexpr constructor taking a std::array. Use with make_array
-  constexpr DSPVectorArray(std::array<float, kFloatsPerDSPVector*VECTORS> a) : mData(a) {}
+  constexpr DSPVectorArray(std::array<float, kFloatsPerDSPVector*ROWS> a) : mData(a) {}
   
   // constexpr constructor taking a function(int -> float)
-  constexpr DSPVectorArray(float(*fn)(int)) : DSPVectorArray(make_array<kFloatsPerDSPVector*VECTORS>(fn)) {}
+  constexpr DSPVectorArray(float(*fn)(int)) : DSPVectorArray(make_array<kFloatsPerDSPVector*ROWS>(fn)) {}
   
   // TODO constexpr constructor taking a Projection - requires Projection rewrite without std::function
   
@@ -172,7 +172,7 @@ public:
     const SIMDVectorFloat vk = vecSet1(k);
     float* py1 = getBuffer();
     
-    for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+    for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)
     {
       vecStore(py1, vk);
       py1 += kFloatsPerSIMDVector;
@@ -203,7 +203,7 @@ public:
     const float* px1 = x1.getConstBuffer();
     const float* py1 = getConstBuffer();
     
-    for (int n = 0; n < kFloatsPerDSPVector*VECTORS; ++n)
+    for (int n = 0; n < kFloatsPerDSPVector*ROWS; ++n)
     {
       if(py1[n] != px1[n]) return false;
     }
@@ -216,7 +216,7 @@ private:
   template<int J>
   inline DSPVectorArray<1> getRowVector() const
   {
-    static_assert((J >= 0) && (J < VECTORS), "getRowVector index out of bounds");
+    static_assert((J >= 0) && (J < ROWS), "getRowVector index out of bounds");
     return getRowVectorUnchecked(J);
   }
   
@@ -224,7 +224,7 @@ private:
   template<int J>
   inline void setRowVector(const DSPVectorArray<1> x1)
   {
-    static_assert((J >= 0) && (J < VECTORS), "setRowVector index out of bounds");
+    static_assert((J >= 0) && (J < ROWS), "setRowVector index out of bounds");
     setRowVectorUnchecked(J, x1);
   }
   
@@ -332,19 +332,19 @@ public:
   
   // declare as friends any templates or functions that need to use get/setRowVectorUnchecked
   // but maybe they should just use row()?
-  template<int C, int V>
+  template<size_t C, size_t V>
   friend DSPVectorArray<C> repeat(const DSPVectorArray<V>& x1);
   
-  template<int C, int N>
+  template<size_t C, size_t N>
   friend DSPVectorArray<C> stretch(const DSPVectorArray<N>& x);
 
-  template<int C, int N>
+  template<size_t C, size_t N>
   friend DSPVectorArray<C> zeroPad(const DSPVectorArray<N>& x);
   
-  template<int C>
+  template<size_t C>
   friend DSPVectorArray<C> shiftRows(const DSPVectorArray<C>& x, int rowsToShift);
   
-  template<int VA, int VB>
+  template<size_t VA, size_t VB>
   friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 }; // class DSPVectorArray
 
@@ -353,23 +353,23 @@ typedef DSPVectorArray<1> DSPVector;
 // integer DSPVector
 constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
 
-template<int VECTORS>
+template<size_t ROWS>
 class DSPVectorArrayInt
 {
   
 #ifdef MANUAL_ALIGN_DSPVECTOR
   union _Data
   {
-    std::array<int, kIntsPerDSPVector*VECTORS + kDSPVectorAlignInts> mArrayData;
-    int32_t asInt[kIntsPerDSPVector*VECTORS + kDSPVectorAlignInts];
-    float asFloat[kFloatsPerDSPVector*VECTORS + kDSPVectorAlignFloats];
+    std::array<int, kIntsPerDSPVector*ROWS + kDSPVectorAlignInts> mArrayData;
+    int32_t asInt[kIntsPerDSPVector*ROWS + kDSPVectorAlignInts];
+    float asFloat[kFloatsPerDSPVector*ROWS + kDSPVectorAlignFloats];
     
     _Data() {}
     
-    _Data(std::array<int, kIntsPerDSPVector*VECTORS> a)
+    _Data(std::array<int, kIntsPerDSPVector*ROWS> a)
     {
       float *py = DSPVectorAlignIntPointer(this->asFloat);
-      for (int i = 0; i < kIntsPerDSPVector*VECTORS; ++i)
+      for (int i = 0; i < kIntsPerDSPVector*ROWS; ++i)
       {
         py[i] = a[i];
       }
@@ -378,13 +378,13 @@ class DSPVectorArrayInt
 #else
   union _Data
   {
-    SIMDVectorInt _align[kSIMDVectorsPerDSPVector*VECTORS]; // unused except to force alignment
-    std::array<int32_t, kIntsPerDSPVector*VECTORS> mArrayData; // for constexpr ctor
-    int32_t asInt[kIntsPerDSPVector*VECTORS];
-    float asFloat[kFloatsPerDSPVector*VECTORS];
+    SIMDVectorInt _align[kSIMDVectorsPerDSPVector*ROWS]; // unused except to force alignment
+    std::array<int32_t, kIntsPerDSPVector*ROWS> mArrayData; // for constexpr ctor
+    int32_t asInt[kIntsPerDSPVector*ROWS];
+    float asFloat[kFloatsPerDSPVector*ROWS];
     
     _Data() {}
-    constexpr _Data(std::array<int32_t, kIntsPerDSPVector*VECTORS> a) : mArrayData(a) {}
+    constexpr _Data(std::array<int32_t, kIntsPerDSPVector*ROWS> a) : mArrayData(a) {}
   };
 #endif // MANUAL_ALIGN_DSPVECTOR
   
@@ -416,7 +416,7 @@ public:
     SIMDVectorFloat vk = VecI2F(vecSetInt1(k));
     int32_t* py1 = getBufferInt();
     
-    for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+    for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)
     {
       vecStore(reinterpret_cast<float*>(py1), vk);
       py1 += kIntsPerSIMDVector;
@@ -425,7 +425,7 @@ public:
   }
   
   // constexpr constructor taking a std::array. Use with make_array
-  constexpr DSPVectorArrayInt(std::array<int32_t, kFloatsPerDSPVector*VECTORS> a) : mData(a) {}
+  constexpr DSPVectorArrayInt(std::array<int32_t, kFloatsPerDSPVector*ROWS> a) : mData(a) {}
   
   // constexpr constructor taking a function(int -> int)
   constexpr DSPVectorArrayInt(int(*fn)(int)) : DSPVectorArrayInt(make_array<kFloatsPerDSPVector>(fn)) {}
@@ -439,7 +439,7 @@ public:
     const int* px1 = x1.getConstBufferInt();
     const int* py1 = getConstBufferInt();
     
-    for (int n = 0; n < kIntsPerDSPVector*VECTORS; ++n)
+    for (int n = 0; n < kIntsPerDSPVector*ROWS; ++n)
     {
       if(py1[n] != px1[n]) return false;
     }
@@ -454,26 +454,26 @@ typedef DSPVectorArrayInt<1> DSPVectorInt;
 // load and store
 
 // some loads and stores may be unaligned, let std::copy handle this
-template<int VECTORS>
-inline void load(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
+template<size_t ROWS>
+inline void load(DSPVectorArray<ROWS>& vecDest, const float* pSrc)
 {
-  std::copy(pSrc, pSrc + kFloatsPerDSPVector*VECTORS, vecDest.getBuffer());
+  std::copy(pSrc, pSrc + kFloatsPerDSPVector*ROWS, vecDest.getBuffer());
 }
 
-template<int VECTORS>
-inline void store(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
+template<size_t ROWS>
+inline void store(const DSPVectorArray<ROWS>& vecSrc, float* pDest)
 {
-  std::copy(vecSrc.getConstBuffer(), vecSrc.getConstBuffer() + kFloatsPerDSPVector*VECTORS, pDest);
+  std::copy(vecSrc.getConstBuffer(), vecSrc.getConstBuffer() + kFloatsPerDSPVector*ROWS, pDest);
 }
 
 // if the pointers are known to be aligned, copy as SIMD vectors
-template<int VECTORS>
-inline void loadAligned(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
+template<size_t ROWS>
+inline void loadAligned(DSPVectorArray<ROWS>& vecDest, const float* pSrc)
 {
   const float* px1 = pSrc;
   float* py1 = vecDest.getBuffer();
   
-  for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+  for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)
   {
     vecStore(py1, vecLoad(px1));
     px1 += kFloatsPerSIMDVector;
@@ -481,13 +481,13 @@ inline void loadAligned(DSPVectorArray<VECTORS>& vecDest, const float* pSrc)
   }
 }
 
-template<int VECTORS>
-inline void storeAligned(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
+template<size_t ROWS>
+inline void storeAligned(const DSPVectorArray<ROWS>& vecSrc, float* pDest)
 {
   const float* px1 = vecSrc.getConstBuffer();
   float* py1 = pDest;
   
-  for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+  for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)
   {
     vecStore(py1, vecLoad(px1));
     px1 += kFloatsPerSIMDVector;
@@ -499,14 +499,14 @@ inline void storeAligned(const DSPVectorArray<VECTORS>& vecSrc, float* pDest)
 // unary vector operators
 
 #define DEFINE_OP1(opName, opComputation)          \
-template<int VECTORS>                    \
-inline DSPVectorArray<VECTORS>                \
-(opName)(const DSPVectorArray<VECTORS>& vx1)          \
+template<size_t ROWS>                    \
+inline DSPVectorArray<ROWS>                \
+(opName)(const DSPVectorArray<ROWS>& vx1)          \
 {                              \
-DSPVectorArray<VECTORS> vy;                \
+DSPVectorArray<ROWS> vy;                \
 const float* px1 = vx1.getConstBuffer();              \
 float* py1 = vy.getBuffer();              \
-for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)    \
+for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)    \
 {                            \
 SIMDVectorFloat x = vecLoad(px1);          \
 vecStore(py1, (opComputation));            \
@@ -552,17 +552,17 @@ DEFINE_OP1(exp2Approx, (vecExpApprox(vecMul(kLogTwoVec, x))));
 // binary vector operators
 
 #define DEFINE_OP2(opName, opComputation)          \
-template<int VECTORS>                    \
-inline DSPVectorArray<VECTORS>(opName)            \
-(const DSPVectorArray<VECTORS>& vx1,          \
-const DSPVectorArray<VECTORS>& vx2)            \
+template<size_t ROWS>                    \
+inline DSPVectorArray<ROWS>(opName)            \
+(const DSPVectorArray<ROWS>& vx1,          \
+const DSPVectorArray<ROWS>& vx2)            \
 {                              \
-DSPVectorArray<VECTORS> vy;                \
+DSPVectorArray<ROWS> vy;                \
 const float* px1 = vx1.getConstBuffer();        \
 const float* px2 = vx2.getConstBuffer();        \
 float* py1 = vy.getBuffer();              \
 for (int n = 0;                      \
-n < kSIMDVectorsPerDSPVector*VECTORS; ++n)      \
+n < kSIMDVectorsPerDSPVector*ROWS; ++n)      \
 {                            \
 SIMDVectorFloat x1 = vecLoad(px1);          \
 SIMDVectorFloat x2 = vecLoad(px2);          \
@@ -589,18 +589,18 @@ DEFINE_OP2(max, (vecMax(x1, x2)));
 // ternary vector operators
 
 #define DEFINE_OP3(opName, opComputation)          \
-template<int VECTORS>                    \
-inline DSPVectorArray<VECTORS>                \
-(opName)(const DSPVectorArray<VECTORS>& vx1,      \
-const DSPVectorArray<VECTORS>& vx2,            \
-const DSPVectorArray<VECTORS>& vx3)            \
+template<size_t ROWS>                    \
+inline DSPVectorArray<ROWS>                \
+(opName)(const DSPVectorArray<ROWS>& vx1,      \
+const DSPVectorArray<ROWS>& vx2,            \
+const DSPVectorArray<ROWS>& vx3)            \
 {                              \
-DSPVectorArray<VECTORS> vy;                \
+DSPVectorArray<ROWS> vy;                \
 const float* px1 = vx1.getConstBuffer();        \
 const float* px2 = vx2.getConstBuffer();        \
 const float* px3 = vx3.getConstBuffer();        \
 float* py1 = vy.getBuffer();              \
-for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)    \
+for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)    \
 {                            \
 SIMDVectorFloat x1 = vecLoad(px1);          \
 SIMDVectorFloat x2 = vecLoad(px2);          \
@@ -622,17 +622,17 @@ DEFINE_OP3(within, vecWithin(x1, x2, x3) );          // is x in the open interva
 // ----------------------------------------------------------------
 // lerp two vectors with float mixture
 
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> lerp(const DSPVectorArray<VECTORS>& vx1, const DSPVectorArray<VECTORS>& vx2, float m)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> lerp(const DSPVectorArray<ROWS>& vx1, const DSPVectorArray<ROWS>& vx2, float m)
 {
-  DSPVectorArray<VECTORS> vy;
+  DSPVectorArray<ROWS> vy;
   const float* px1 = vx1.getConstBuffer();
   const float* px2 = vx2.getConstBuffer();
   DSPVector vmix(m);
   float* py1 = vy.getBuffer();
   const SIMDVectorFloat vConstMix = vecSet1(m);
   
-  for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)
+  for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)
   {
     SIMDVectorFloat x1 = vecLoad(px1);
     SIMDVectorFloat x2 = vecLoad(px2);
@@ -649,14 +649,14 @@ inline DSPVectorArray<VECTORS> lerp(const DSPVectorArray<VECTORS>& vx1, const DS
 // unary float vector -> int vector operators
 
 #define DEFINE_OP1_F2I(opName, opComputation)        \
-template<int VECTORS>                    \
-inline DSPVectorArrayInt<VECTORS>              \
-(opName)(const DSPVectorArray<VECTORS>& vx1)      \
+template<size_t ROWS>                    \
+inline DSPVectorArrayInt<ROWS>              \
+(opName)(const DSPVectorArray<ROWS>& vx1)      \
 {                              \
-DSPVectorArrayInt<VECTORS> vy;              \
+DSPVectorArrayInt<ROWS> vy;              \
 const float* px1 = vx1.getConstBuffer();        \
 float* py1 = vy.getBuffer();              \
-for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)    \
+for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)    \
 {                            \
 SIMDVectorFloat x = vecLoad(px1);          \
 vecStore((py1), (opComputation));            \
@@ -673,14 +673,14 @@ DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
 // unary int vector -> float vector operators
 
 #define DEFINE_OP1_I2F(opName, opComputation)        \
-template<int VECTORS>                    \
-inline DSPVectorArray<VECTORS>                \
-(opName)(const DSPVectorArrayInt<VECTORS>& vx1)      \
+template<size_t ROWS>                    \
+inline DSPVectorArray<ROWS>                \
+(opName)(const DSPVectorArrayInt<ROWS>& vx1)      \
 {                              \
-DSPVectorArray<VECTORS> vy;              \
+DSPVectorArray<ROWS> vy;              \
 const float* px1 = vx1.getConstBuffer();        \
 float* py1 = vy.getBuffer();              \
-for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)    \
+for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)    \
 {                            \
 SIMDVectorInt x = VecF2I(vecLoad(px1));            \
 vecStore((py1), (opComputation));            \
@@ -696,16 +696,16 @@ DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
 // binary float vector, float vector -> int vector operators
 
 #define DEFINE_OP2_FF2I(opName, opComputation)        \
-template<int VECTORS>                    \
-inline DSPVectorArrayInt<VECTORS>              \
-(opName)(const DSPVectorArray<VECTORS>& vx1,      \
-const DSPVectorArray<VECTORS>& vx2)            \
+template<size_t ROWS>                    \
+inline DSPVectorArrayInt<ROWS>              \
+(opName)(const DSPVectorArray<ROWS>& vx1,      \
+const DSPVectorArray<ROWS>& vx2)            \
 {                              \
-DSPVectorArrayInt<VECTORS> vy;              \
+DSPVectorArrayInt<ROWS> vy;              \
 const float* px1 = vx1.getConstBuffer();        \
 const float* px2 = vx2.getConstBuffer();        \
 float* py1 = vy.getBuffer();              \
-for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)    \
+for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)    \
 {                            \
 SIMDVectorFloat x1 = vecLoad(px1);          \
 SIMDVectorFloat x2 = vecLoad(px2);          \
@@ -728,18 +728,18 @@ DEFINE_OP2_FF2I(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));
 // ternary operators float vector, float vector, int vector -> float vector
 
 #define DEFINE_OP3_FFI2F(opName, opComputation)          \
-template<int VECTORS>                    \
-inline DSPVectorArray<VECTORS>                \
-(opName)(const DSPVectorArray<VECTORS>& vx1,      \
-const DSPVectorArray<VECTORS>& vx2,            \
-const DSPVectorArrayInt<VECTORS>& vx3)            \
+template<size_t ROWS>                    \
+inline DSPVectorArray<ROWS>                \
+(opName)(const DSPVectorArray<ROWS>& vx1,      \
+const DSPVectorArray<ROWS>& vx2,            \
+const DSPVectorArrayInt<ROWS>& vx3)            \
 {                              \
-DSPVectorArray<VECTORS> vy;                \
+DSPVectorArray<ROWS> vy;                \
 const float* px1 = vx1.getConstBuffer();        \
 const float* px2 = vx2.getConstBuffer();        \
 const float* px3 = vx3.getConstBuffer();        \
 float* py1 = vy.getBuffer();              \
-for (int n = 0; n < kSIMDVectorsPerDSPVector*VECTORS; ++n)    \
+for (int n = 0; n < kSIMDVectorsPerDSPVector*ROWS; ++n)    \
 {                            \
 SIMDVectorFloat x1 = vecLoad(px1);          \
 SIMDVectorFloat x2 = vecLoad(px2);          \
@@ -837,11 +837,11 @@ inline float min(const DSPVector& x)
 // ----------------------------------------------------------------
 // rowIndex
 
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> rowIndex()
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> rowIndex()
 {
-  DSPVectorArray<VECTORS> y;
-  for(int j=0; j<VECTORS; ++j)
+  DSPVectorArray<ROWS> y;
+  for(int j=0; j<ROWS; ++j)
   {
     y.setRowVectorUnchecked(j, DSPVector(j));
   }
@@ -851,13 +851,13 @@ inline DSPVectorArray<VECTORS> rowIndex()
 // ----------------------------------------------------------------
 // row-wise operations and conversions
 
-// for the given output VECTORS and given an input DSPVectorArray with N rows,
+// for the given output ROWS and given an input DSPVectorArray with N rows,
 // repeat all the input rows enough times to fill the output DSPVectorArray.
-template<int VECTORS, int N>
-inline DSPVectorArray<VECTORS> repeat(const DSPVectorArray<N>& x1)
+template<size_t ROWS, size_t N>
+inline DSPVectorArray<ROWS> repeat(const DSPVectorArray<N>& x1)
 {
-  DSPVectorArray<VECTORS> vy;
-  for(int j=0, k=0; j < VECTORS; ++j)
+  DSPVectorArray<ROWS> vy;
+  for(int j=0, k=0; j < ROWS; ++j)
   {
     vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(k));
     if(++k >= N) k = 0;
@@ -865,28 +865,28 @@ inline DSPVectorArray<VECTORS> repeat(const DSPVectorArray<N>& x1)
   return vy;
 }
 
-// for the given VECTORS and given an input DSPVectorArray x with N rows,
-// stretch x by repeating rows as necessary to make an output DSPVectorArray with VECTORS rows.
-template<int VECTORS, int N>
-inline DSPVectorArray<VECTORS> stretch(const DSPVectorArray<N>& x)
+// for the given ROWS and given an input DSPVectorArray x with N rows,
+// stretch x by repeating rows as necessary to make an output DSPVectorArray with ROWS rows.
+template<size_t ROWS, size_t N>
+inline DSPVectorArray<ROWS> stretch(const DSPVectorArray<N>& x)
 {
-  DSPVectorArray<VECTORS> vy;
-  for(int j=0; j < VECTORS; ++j)
+  DSPVectorArray<ROWS> vy;
+  for(int j=0; j < ROWS; ++j)
   {
-    int k = roundf((j*(N - 1.f))/(VECTORS - 1.f));
+    int k = roundf((j*(N - 1.f))/(ROWS - 1.f));
     vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(k));
   }
   return vy;
 }
 
-// for the given VECTORS and given an input DSPVectorArray x with N rows,
+// for the given ROWS and given an input DSPVectorArray x with N rows,
 // fill an output array by copying rows of the input, then adding zero rows as necessary.
-template<int VECTORS, int N>
-inline DSPVectorArray<VECTORS> zeroPad(const DSPVectorArray<N>& x)
+template<size_t ROWS, size_t N>
+inline DSPVectorArray<ROWS> zeroPad(const DSPVectorArray<N>& x)
 {
   // default constructor currently zero-fills
-  DSPVectorArray<VECTORS> vy;
-  constexpr int rowsToCopy = min(VECTORS, N);
+  DSPVectorArray<ROWS> vy;
+  constexpr size_t rowsToCopy = min(ROWS, N);
   for(int j=0; j < rowsToCopy; ++j)
   {
     vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(j));
@@ -894,15 +894,15 @@ inline DSPVectorArray<VECTORS> zeroPad(const DSPVectorArray<N>& x)
   return vy;
 }
 
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> shiftRows(const DSPVectorArray<VECTORS>& x, int rowsToShift)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> shiftRows(const DSPVectorArray<ROWS>& x, int rowsToShift)
 {
-  DSPVectorArray<VECTORS> vy;
-  int k = modulo(-rowsToShift, VECTORS);
-  for(int j=0; j < VECTORS; ++j)
+  DSPVectorArray<ROWS> vy;
+  int k = modulo(-rowsToShift, ROWS);
+  for(int j=0; j < ROWS; ++j)
   {
     vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(k));
-    if(++k >= VECTORS) k = 0;
+    if(++k >= ROWS) k = 0;
   }
   return vy;
 }
@@ -910,38 +910,38 @@ inline DSPVectorArray<VECTORS> shiftRows(const DSPVectorArray<VECTORS>& x, int r
 // ----------------------------------------------------------------
 // combining by rows
 
-template<int VECTORSA, int VECTORSB>
-inline DSPVectorArray<VECTORSA + VECTORSB> append(const DSPVectorArray<VECTORSA>& x1, const DSPVectorArray<VECTORSB>& x2)
+template<size_t ROWSA, size_t ROWSB>
+inline DSPVectorArray<ROWSA + ROWSB> append(const DSPVectorArray<ROWSA>& x1, const DSPVectorArray<ROWSB>& x2)
 {
-  DSPVectorArray<VECTORSA + VECTORSB> vy;
-  for(int j=0; j<VECTORSA; ++j)
+  DSPVectorArray<ROWSA + ROWSB> vy;
+  for(int j=0; j<ROWSA; ++j)
   {
     vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j));
   }
-  for(int j=VECTORSA; j<VECTORSA + VECTORSB; ++j)
+  for(int j=ROWSA; j<ROWSA + ROWSB; ++j)
   {
-    vy.setRowVectorUnchecked(j, x2.getRowVectorUnchecked(j - VECTORSA));
+    vy.setRowVectorUnchecked(j, x2.getRowVectorUnchecked(j - ROWSA));
   }
   return vy;
 }
 
 // shuffle two DSPVectorArrays, alternating x1 to even rows of result and x2 to odd rows.
 // if the sources are different sizes, the excess rows are all appended to the destination after shuffling is done.
-template<int VECTORSA, int VECTORSB>
-inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(const DSPVectorArray<VECTORSA> x1, const DSPVectorArray<VECTORSB> x2)
+template<size_t ROWSA, size_t ROWSB>
+inline DSPVectorArray<ROWSA + ROWSB> shuffle(const DSPVectorArray<ROWSA> x1, const DSPVectorArray<ROWSB> x2)
 {
-  DSPVectorArray<VECTORSA + VECTORSB> vy;
+  DSPVectorArray<ROWSA + ROWSB> vy;
   int ja = 0;
   int jb = 0;
   int jy = 0;
-  while((ja < VECTORSA) || (jb < VECTORSB))
+  while((ja < ROWSA) || (jb < ROWSB))
   {
-    if(ja < VECTORSA)
+    if(ja < ROWSA)
     {
       vy.setRowVectorUnchecked(jy, x1.getRowVectorUnchecked(ja));
       ja++; jy++;
     }
-    if(jb < VECTORSB)
+    if(jb < ROWSB)
     {
       vy.setRowVectorUnchecked(jy, x2.getRowVectorUnchecked(jb));
       jb++; jy++;
@@ -953,22 +953,22 @@ inline DSPVectorArray<VECTORSA + VECTORSB> shuffle(const DSPVectorArray<VECTORSA
 // ----------------------------------------------------------------
 // separating rows
 
-template<int VECTORS>
-inline DSPVectorArray<(VECTORS + 1)/2> evenRows(const DSPVectorArray<VECTORS>& x1)
+template<size_t ROWS>
+inline DSPVectorArray<(ROWS + 1)/2> evenRows(const DSPVectorArray<ROWS>& x1)
 {
-  DSPVectorArray<(VECTORS + 1)/2> vy;
-  for(int j=0; j<(VECTORS + 1)/2; ++j)
+  DSPVectorArray<(ROWS + 1)/2> vy;
+  for(int j=0; j<(ROWS + 1)/2; ++j)
   {
     vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j*2));
   }
   return vy;
 }
 
-template<int VECTORS>
-inline DSPVectorArray<VECTORS/2> oddRows(const DSPVectorArray<VECTORS>& x1)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS/2> oddRows(const DSPVectorArray<ROWS>& x1)
 {
-  DSPVectorArray<VECTORS/2> vy;
-  for(int j=0; j<VECTORS/2; ++j)
+  DSPVectorArray<ROWS/2> vy;
+  for(int j=0; j<ROWS/2; ++j)
   {
     vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j*2 + 1));
   }
@@ -981,11 +981,11 @@ inline DSPVectorArray<VECTORS/2> oddRows(const DSPVectorArray<VECTORS>& x1)
 
 // Evaluate a function (void)->(float), store at each element of the DSPVectorArray and return the result.
 // x is a dummy argument just used to infer the vector size.
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArray<VECTORS> x)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<float()> f, const DSPVectorArray<ROWS> x)
 {
-  DSPVectorArray<VECTORS> y;
-  for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+  DSPVectorArray<ROWS> y;
+  for(int n=0; n<kFloatsPerDSPVector*ROWS; ++n)
   {
     y[n] = f();
   }
@@ -993,11 +993,11 @@ inline DSPVectorArray<VECTORS> map(std::function<float()> f, const DSPVectorArra
 }
 
 // Apply a function (float)->(float) to each element of the DSPVectorArray x and return the result.
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVectorArray<VECTORS> x)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<float(float)> f, const DSPVectorArray<ROWS> x)
 {
-  DSPVectorArray<VECTORS> y;
-  for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+  DSPVectorArray<ROWS> y;
+  for(int n=0; n<kFloatsPerDSPVector*ROWS; ++n)
   {
     y[n] = f(x[n]);
   }
@@ -1005,11 +1005,11 @@ inline DSPVectorArray<VECTORS> map(std::function<float(float)> f, const DSPVecto
 }
 
 // Apply a function (int)->(float) to each element of the DSPVectorArrayInt x and return the result.
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> map(std::function<float(int)> f, const DSPVectorArrayInt<VECTORS> x)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<float(int)> f, const DSPVectorArrayInt<ROWS> x)
 {
-  DSPVectorArray<VECTORS> y;
-  for(int n=0; n<kFloatsPerDSPVector*VECTORS; ++n)
+  DSPVectorArray<ROWS> y;
+  for(int n=0; n<kFloatsPerDSPVector*ROWS; ++n)
   {
     y[n] = f(x[n]);
   }
@@ -1017,11 +1017,11 @@ inline DSPVectorArray<VECTORS> map(std::function<float(int)> f, const DSPVectorA
 }
 
 // Apply a function (DSPVector)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector)> f, const DSPVectorArray<VECTORS> x)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector)> f, const DSPVectorArray<ROWS> x)
 {
-  DSPVectorArray<VECTORS> y;
-  for(int j=0; j<VECTORS; ++j)
+  DSPVectorArray<ROWS> y;
+  for(int j=0; j<ROWS; ++j)
   {
     y.row(j) = f(x.constRow(j));
   }
@@ -1029,11 +1029,11 @@ inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector)> f, 
 }
 
 // Apply a function (DSPVector, int row)->(DSPVector) to each row of the DSPVectorArray x and return the result.
-template<int VECTORS>
-inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector, int)> f, const DSPVectorArray<VECTORS> x)
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector, int)> f, const DSPVectorArray<ROWS> x)
 {
-  DSPVectorArray<VECTORS> y;
-  for(int j=0; j<VECTORS; ++j)
+  DSPVectorArray<ROWS> y;
+  for(int j=0; j<ROWS; ++j)
   {
     y.row(j) = f(x.constRow(j), j);
   }
@@ -1042,16 +1042,16 @@ inline DSPVectorArray<VECTORS> map(std::function<DSPVector(const DSPVector, int)
 // ----------------------------------------------------------------
 // for testing
 
-template<int VECTORS>
-inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS>& vecArray)
+template<size_t ROWS>
+inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<ROWS>& vecArray)
 {
   out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << " ";
   
-  //    if(VECTORS > 1) out << "[   ";
-  for(int v=0; v<VECTORS; ++v)
+  //    if(ROWS > 1) out << "[   ";
+  for(int v=0; v<ROWS; ++v)
   {
-    //  if(VECTORS > 1) if(v > 0) out << "\n    ";
-    if(VECTORS > 1) out << "\n    v" << v << ": ";
+    //  if(ROWS > 1) if(v > 0) out << "\n    ";
+    if(ROWS > 1) out << "\n    v" << v << ": ";
     out << "[";
     for(int i=0; i<kFloatsPerDSPVector; ++i)
     {
@@ -1059,19 +1059,19 @@ inline std::ostream& operator<< (std::ostream& out, const DSPVectorArray<VECTORS
     }
     out << "] ";
   }
-  //    if(VECTORS > 1) out << "]";
+  //    if(ROWS > 1) out << "]";
   return out;
 }
 
-template<int VECTORS>
-inline std::ostream& operator<< (std::ostream& out, const DSPVectorArrayInt<VECTORS>& vecArray)
+template<size_t ROWS>
+inline std::ostream& operator<< (std::ostream& out, const DSPVectorArrayInt<ROWS>& vecArray)
 {
   out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << "\n ";
-  //    if(VECTORS > 1) out << "[   ";
-  for(int v=0; v<VECTORS; ++v)
+  //    if(ROWS > 1) out << "[   ";
+  for(int v=0; v<ROWS; ++v)
   {
-    if(VECTORS > 1) if(v > 0) out << "\n    ";
-    if(VECTORS > 1) out << "v" << v << ": ";
+    if(ROWS > 1) if(v > 0) out << "\n    ";
+    if(ROWS > 1) out << "v" << v << ": ";
     out << "[";
     for(int i=0; i<kIntsPerDSPVector; ++i)
     {
@@ -1079,7 +1079,7 @@ inline std::ostream& operator<< (std::ostream& out, const DSPVectorArrayInt<VECT
     }
     out << "] ";
   }
-  //    if(VECTORS > 1) out << "]";
+  //    if(ROWS > 1) out << "]";
   return out;
 }
 
