@@ -141,7 +141,7 @@ namespace ml
 		}
 
     // write a single DSPVectorArray to the buffer, advancing the write index.
-    template<int VECTORS>
+    template<size_t VECTORS>
     void write(const DSPVectorArray<VECTORS>& srcVec)
     {
       constexpr int samples = kFloatsPerDSPVector*VECTORS;
@@ -192,7 +192,7 @@ namespace ml
 		}
 
     // read a single DSPVectorArray from the buffer, advancing the read index.
-    template<int VECTORS>
+    template<size_t VECTORS>
     void read(DSPVectorArray<VECTORS>& destVec)
     {
       constexpr int samples = kFloatsPerDSPVector*VECTORS;

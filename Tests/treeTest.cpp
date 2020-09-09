@@ -262,21 +262,19 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   auto b = valueTreeToBinary(properties);
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
-  
+    
   std::vector< Value > melodies;
-  
   for(auto it = properties.begin(); it != properties.end(); ++it)
   {
     const Path p = it.getCurrentNodePath();
-    if (butLast(p) == "melodies"){ melodies.push_back(*it); }
+    if (butLast(p) == Path("melodies")){ melodies.push_back(*it); }
   }
-  
   for(auto m : melodies)
   {
     std::cout << "    " << m << "\n";
   }
   REQUIRE(melodies.size() == 3);
-
+  
   //  Empty Tree test
   Tree< Value > emptyTree;
   int count{0};

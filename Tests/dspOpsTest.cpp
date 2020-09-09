@@ -19,7 +19,6 @@
 
 using namespace ml;
 
-
 TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 {
 	DSPVector a(rangeClosed(-kPi, kPi));
@@ -105,21 +104,53 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
     // map void -> float
     auto b = map([&](){return 4;}, a);
-    
+
     // map float -> float
-    auto c = map([&](float x){return x*2;}, a);
-    
+    auto c = map([&](float x){return x*2.f;}, a);
+
     // map int -> float
     auto d = map([&](int x){return x*2;}, a);
-    
+
     // map DSPVector -> DSPVector
-    auto e = map([&](DSPVector x){return x*2;}, a);
-    
+    auto e = map([&](DSPVector x){return x*2.f;}, a);
+
     // map DSPVector, int row -> DSPVector
     auto f = map([&](DSPVector x, int j){return j*2;}, a);
-    
+
     REQUIRE(c == d);
     REQUIRE(d == e);
+  }
+
+  SECTION("row operations")
+  {
+    std::cout << "\nROW OPERATIONS\n";
+
+    DSPVectorArray<2> a{repeat<2>(columnIndex())};
+    auto a2 {a*2.f};
+    
+    DSPVector b{columnIndex()};
+    auto b2 = b*2.f;
+
+    DSPVectorArray<2> x{3.f};
+    DSPVectorArray<1> y{3.f};
+    auto xy = x*repeat<2>(y);
+    auto yx = repeat<2>(y)*x;
+
+    auto e = a*repeat<2>(b);
+    
+    auto aa = repeat<4>(a);
+
+    auto f{repeat<2>(columnIndex())};
+    auto g = map([&](DSPVector x, int j){return x*(j + 1);}, f);
+    
+    auto h = stretch<6>(g);
+    
+    auto k = zeroPad<6>(columnIndex());
+    auto m = shiftRows(k, -1)*3.f;
+    
+    std::cout << "m:" << m << "\n";
+    // TODO actual tests
+    
   }
 }
 

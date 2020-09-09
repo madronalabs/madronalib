@@ -187,7 +187,7 @@ namespace dspBufferTest
 		DSPBuffer buf;
 		buf.resize(256);
 		
-		constexpr int kRows = 3;
+		constexpr size_t kRows = 3;
 		DSPVectorArray<kRows> inputVec, outputVec;
 
 		// make a DSPVectorArray with a unique int at each sample
