@@ -69,20 +69,13 @@ const uintptr_t kDSPVectorAlignFloats = kDSPVectorAlignBytes / sizeof(float);
 const uintptr_t kDSPVectorAlignInts = kDSPVectorAlignBytes / sizeof(int);
 const uintptr_t kDSPVectorBytesAlignMask = ~(kDSPVectorAlignBytes - 1);
 
-inline float* DSPVectorAlignFloatPointer(const float* p)
+template<type T>
+inline T* DSPVectorAlignPointer(const T* p)
 {
   uintptr_t pM = (uintptr_t)p;
   pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
   pM &= ml::kDSPVectorBytesAlignMask;
-  return reinterpret_cast<float*>(pM);
-}
-
-inline int* DSPVectorAlignIntPointer(const int* p)
-{
-  uintptr_t pM = (uintptr_t)p;
-  pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
-  pM &= ml::kDSPVectorBytesAlignMask;
-  return reinterpret_cast<int*>(pM);
+  return reinterpret_cast<T*>(pM);
 }
 
 #else
@@ -103,7 +96,7 @@ class DSPVectorArray
     
     _Data(std::array<float, kFloatsPerDSPVector*ROWS> a)
     {
-      float *py = DSPVectorAlignFloatPointer(this->asFloat);
+      float *py = DSPVectorAlignPointer< float >(this->asFloat);
       for(int i=0; i<kFloatsPerDSPVector*ROWS; ++i)
       {
         py[i] = a[i];
@@ -129,8 +122,8 @@ public:
   
   // getBuffer, getConstBuffer
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
-  inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
+  inline float* getBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
+  inline const float* getConstBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
 #else
   inline float* getBuffer() { return mData.asFloat; }
   inline const float* getConstBuffer() const { return mData.asFloat; }
@@ -315,22 +308,22 @@ public:
   
   // binary operators - defining these here inside the class as non-template functions enables the compiler
   // to call implicit conversions on either argument.
-  friend DSPVectorArray operator+(const DSPVectorArray& x1, const DSPVectorArray& x2){return add(x1, x2);}
-  friend DSPVectorArray operator-(const DSPVectorArray& x1, const DSPVectorArray& x2){return subtract(x1, x2);}
-  friend DSPVectorArray operator*(const DSPVectorArray& x1, const DSPVectorArray& x2){return multiply(x1, x2);}
-  friend DSPVectorArray operator/(const DSPVectorArray& x1, const DSPVectorArray& x2){return divide(x1, x2);}
+  friend inline DSPVectorArray operator+(const DSPVectorArray& x1, const DSPVectorArray& x2){return add(x1, x2);}
+  friend inline DSPVectorArray operator-(const DSPVectorArray& x1, const DSPVectorArray& x2){return subtract(x1, x2);}
+  friend inline DSPVectorArray operator*(const DSPVectorArray& x1, const DSPVectorArray& x2){return multiply(x1, x2);}
+  friend inline DSPVectorArray operator/(const DSPVectorArray& x1, const DSPVectorArray& x2){return divide(x1, x2);}
   
 }; // class DSPVectorArray
 
 typedef DSPVectorArray<1> DSPVector;
 
-// integer DSPVector
+
+// integer DSPVectorArrayInt class
 constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
 
 template<size_t ROWS>
 class DSPVectorArrayInt
 {
-  
 #ifdef MANUAL_ALIGN_DSPVECTOR
   union _Data
   {
@@ -342,7 +335,7 @@ class DSPVectorArrayInt
     
     _Data(std::array<int, kIntsPerDSPVector*ROWS> a)
     {
-      float *py = DSPVectorAlignIntPointer(this->asFloat);
+      int *py = DSPVectorAlignPointer< int >(this->asFloat);
       for (int i = 0; i < kIntsPerDSPVector*ROWS; ++i)
       {
         py[i] = a[i];
@@ -367,10 +360,10 @@ public:
   
   // getBuffer, getConstBuffer
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
-  inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
-  inline int32_t* getBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
-  inline const int32_t* getConstBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
+  inline float* getBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
+  inline const float* getConstBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
+  inline int32_t* getBufferInt() const { return DSPVectorAlignPointer< float >(mData.asInt); }
+  inline const int32_t* getConstBufferInt() const { return DSPVectorAlignPointer< float >(mData.asInt); }
 #else
   inline float* getBuffer() { return mData.asFloat; }
   inline const float* getConstBuffer() const { return mData.asFloat; }
@@ -746,7 +739,6 @@ return vy;                        \
 
 DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));          // bitwise select(resultIfTrue, resultIfFalse, conditionMask)
 
-
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
 
@@ -900,7 +892,7 @@ inline DSPVectorArray<ROWS> shiftRows(const DSPVectorArray<ROWS>& x, int rowsToS
     }
     else
     {
-      vy.setRowVectorUnchecked(j, DSPVectorArray<1>{0.f});
+      vy.setRowVectorUnchecked(j, 0.f);
     }
     ++k;
   }
@@ -991,7 +983,6 @@ inline DSPVectorArray<ROWS/2> oddRows(const DSPVectorArray<ROWS>& x1)
   }
   return vy;
 }
-
 
 // ----------------------------------------------------------------
 // low-level functional
