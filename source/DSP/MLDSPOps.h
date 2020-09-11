@@ -179,13 +179,7 @@ public:
     }
     return *this;
   }
-  
-  // set each element of the DSPVectorArray to 0.
-  inline DSPVectorArray zero()
-  {
-    return operator=(0.f);
-  }
-  
+   
   // default copy and = constructors.
   // TODO a move constructor might help efficiency but is quite different from the current design.
   // for moving to make sense, the data can't be on the stack. instead of the current stack-based approach
@@ -209,8 +203,6 @@ public:
     }
     return true;
   }
-  
-private:
   
   // return row J from this DSPVectorArray, when J is known at compile time.
   template<int J>
@@ -300,8 +292,6 @@ private:
     return py1;
   }
   
-public:
-  
   // return a reference to a row of this DSPVectorArray.
   inline DSPVectorArray<1>& row(int j)
   {
@@ -330,22 +320,6 @@ public:
   friend DSPVectorArray operator*(const DSPVectorArray& x1, const DSPVectorArray& x2){return multiply(x1, x2);}
   friend DSPVectorArray operator/(const DSPVectorArray& x1, const DSPVectorArray& x2){return divide(x1, x2);}
   
-  // declare as friends any templates or functions that need to use get/setRowVectorUnchecked
-  // but maybe they should just use row()?
-  template<size_t C, size_t V>
-  friend DSPVectorArray<C> repeat(const DSPVectorArray<V>& x1);
-  
-  template<size_t C, size_t N>
-  friend DSPVectorArray<C> stretch(const DSPVectorArray<N>& x);
-
-  template<size_t C, size_t N>
-  friend DSPVectorArray<C> zeroPad(const DSPVectorArray<N>& x);
-  
-  template<size_t C>
-  friend DSPVectorArray<C> shiftRows(const DSPVectorArray<C>& x, int rowsToShift);
-  
-  template<size_t VA, size_t VB>
-  friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 }; // class DSPVectorArray
 
 typedef DSPVectorArray<1> DSPVector;
@@ -911,11 +885,37 @@ inline DSPVectorArray<ROWS> zeroPad(const DSPVectorArray<N>& x)
   return vy;
 }
 
+// Shift the array down by the number of rows given in rowsToShift.
+// Any rows shifted in from outside the range [0, ROWS) are zeroed. Negative shifts are OK.
 template<size_t ROWS>
 inline DSPVectorArray<ROWS> shiftRows(const DSPVectorArray<ROWS>& x, int rowsToShift)
 {
   DSPVectorArray<ROWS> vy;
-  int k = modulo(-rowsToShift, ROWS);
+  int k = -rowsToShift;
+  for(int j=0; j < ROWS; ++j)
+  {
+    if(within(k, 0, static_cast<int>(ROWS)))
+    {
+      vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(k));
+    }
+    else
+    {
+      vy.setRowVectorUnchecked(j, DSPVectorArray<1>{0.f});
+    }
+    ++k;
+  }
+  return vy;
+}
+
+// Rotate the array down by the number of rows given in rowsToRotate.
+// Any rows rotated in from outside the range [0, ROWS) are wrapped. Negative rotations are OK.
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> rotateRows(const DSPVectorArray<ROWS>& x, int rowsToRotate)
+{
+  DSPVectorArray<ROWS> vy;
+  
+  // get start index k to which row 0 is mapped
+  int k = modulo(-rowsToRotate, ROWS);
   for(int j=0; j < ROWS; ++j)
   {
     vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(k));
