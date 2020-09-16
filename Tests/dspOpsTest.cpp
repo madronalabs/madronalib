@@ -146,9 +146,10 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     auto h = stretch<6>(g);
     
     auto k = zeroPad<6>(columnIndex());
-    auto m = shiftRows(k, -1)*3.f;
     
-    std::cout << "m:" << m << "\n";
+    auto m = rotateRows(k, -1)*3.f;
+    
+    auto n = shiftRows(k, 2);
     // TODO actual tests
     
   }

@@ -1086,7 +1086,7 @@ namespace ml
     
     // write a vector of samples to the filter chain, run filters, and return
     // true if there is a new vector of output to read (every 2^octaves writes)
-    template< int CHANNELS >
+    template< size_t CHANNELS >
     bool write(DSPVectorArray< CHANNELS > v)
     {
       if(_octaves)
@@ -1133,7 +1133,7 @@ namespace ml
       }
     }
     
-    template< int CHANNELS >
+    template< size_t CHANNELS >
     DSPVectorArray< CHANNELS > read()
     {
       return DSPVectorArray< CHANNELS > (bufferPtr(_numBuffers - 1, 0));

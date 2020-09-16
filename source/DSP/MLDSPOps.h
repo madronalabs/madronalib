@@ -69,20 +69,13 @@ const uintptr_t kDSPVectorAlignFloats = kDSPVectorAlignBytes / sizeof(float);
 const uintptr_t kDSPVectorAlignInts = kDSPVectorAlignBytes / sizeof(int);
 const uintptr_t kDSPVectorBytesAlignMask = ~(kDSPVectorAlignBytes - 1);
 
-inline float* DSPVectorAlignFloatPointer(const float* p)
+template<type T>
+inline T* DSPVectorAlignPointer(const T* p)
 {
   uintptr_t pM = (uintptr_t)p;
   pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
   pM &= ml::kDSPVectorBytesAlignMask;
-  return reinterpret_cast<float*>(pM);
-}
-
-inline int* DSPVectorAlignIntPointer(const int* p)
-{
-  uintptr_t pM = (uintptr_t)p;
-  pM += (uintptr_t)(ml::kDSPVectorAlignBytes - 1);
-  pM &= ml::kDSPVectorBytesAlignMask;
-  return reinterpret_cast<int*>(pM);
+  return reinterpret_cast<T*>(pM);
 }
 
 #else
@@ -103,7 +96,7 @@ class DSPVectorArray
     
     _Data(std::array<float, kFloatsPerDSPVector*ROWS> a)
     {
-      float *py = DSPVectorAlignFloatPointer(this->asFloat);
+      float *py = DSPVectorAlignPointer< float >(this->asFloat);
       for(int i=0; i<kFloatsPerDSPVector*ROWS; ++i)
       {
         py[i] = a[i];
@@ -129,8 +122,8 @@ public:
   
   // getBuffer, getConstBuffer
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
-  inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
+  inline float* getBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
+  inline const float* getConstBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
 #else
   inline float* getBuffer() { return mData.asFloat; }
   inline const float* getConstBuffer() const { return mData.asFloat; }
@@ -179,13 +172,7 @@ public:
     }
     return *this;
   }
-  
-  // set each element of the DSPVectorArray to 0.
-  inline DSPVectorArray zero()
-  {
-    return operator=(0.f);
-  }
-  
+   
   // default copy and = constructors.
   // TODO a move constructor might help efficiency but is quite different from the current design.
   // for moving to make sense, the data can't be on the stack. instead of the current stack-based approach
@@ -209,8 +196,6 @@ public:
     }
     return true;
   }
-  
-private:
   
   // return row J from this DSPVectorArray, when J is known at compile time.
   template<int J>
@@ -300,8 +285,6 @@ private:
     return py1;
   }
   
-public:
-  
   // return a reference to a row of this DSPVectorArray.
   inline DSPVectorArray<1>& row(int j)
   {
@@ -325,38 +308,22 @@ public:
   
   // binary operators - defining these here inside the class as non-template functions enables the compiler
   // to call implicit conversions on either argument.
-  friend DSPVectorArray operator+(const DSPVectorArray& x1, const DSPVectorArray& x2){return add(x1, x2);}
-  friend DSPVectorArray operator-(const DSPVectorArray& x1, const DSPVectorArray& x2){return subtract(x1, x2);}
-  friend DSPVectorArray operator*(const DSPVectorArray& x1, const DSPVectorArray& x2){return multiply(x1, x2);}
-  friend DSPVectorArray operator/(const DSPVectorArray& x1, const DSPVectorArray& x2){return divide(x1, x2);}
+  friend inline DSPVectorArray operator+(const DSPVectorArray& x1, const DSPVectorArray& x2){return add(x1, x2);}
+  friend inline DSPVectorArray operator-(const DSPVectorArray& x1, const DSPVectorArray& x2){return subtract(x1, x2);}
+  friend inline DSPVectorArray operator*(const DSPVectorArray& x1, const DSPVectorArray& x2){return multiply(x1, x2);}
+  friend inline DSPVectorArray operator/(const DSPVectorArray& x1, const DSPVectorArray& x2){return divide(x1, x2);}
   
-  // declare as friends any templates or functions that need to use get/setRowVectorUnchecked
-  // but maybe they should just use row()?
-  template<size_t C, size_t V>
-  friend DSPVectorArray<C> repeat(const DSPVectorArray<V>& x1);
-  
-  template<size_t C, size_t N>
-  friend DSPVectorArray<C> stretch(const DSPVectorArray<N>& x);
-
-  template<size_t C, size_t N>
-  friend DSPVectorArray<C> zeroPad(const DSPVectorArray<N>& x);
-  
-  template<size_t C>
-  friend DSPVectorArray<C> shiftRows(const DSPVectorArray<C>& x, int rowsToShift);
-  
-  template<size_t VA, size_t VB>
-  friend DSPVectorArray<VA + VB> append(const DSPVectorArray<VA>& x1, const DSPVectorArray<VB>& x2);
 }; // class DSPVectorArray
 
 typedef DSPVectorArray<1> DSPVector;
 
-// integer DSPVector
+
+// integer DSPVectorArrayInt class
 constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
 
 template<size_t ROWS>
 class DSPVectorArrayInt
 {
-  
 #ifdef MANUAL_ALIGN_DSPVECTOR
   union _Data
   {
@@ -368,7 +335,7 @@ class DSPVectorArrayInt
     
     _Data(std::array<int, kIntsPerDSPVector*ROWS> a)
     {
-      float *py = DSPVectorAlignIntPointer(this->asFloat);
+      int *py = DSPVectorAlignPointer< int >(this->asFloat);
       for (int i = 0; i < kIntsPerDSPVector*ROWS; ++i)
       {
         py[i] = a[i];
@@ -393,10 +360,10 @@ public:
   
   // getBuffer, getConstBuffer
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  inline float* getBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
-  inline const float* getConstBuffer() const { return DSPVectorAlignFloatPointer(mData.asFloat); }
-  inline int32_t* getBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
-  inline const int32_t* getConstBufferInt() const { return DSPVectorAlignIntPointer(mData.asInt); }
+  inline float* getBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
+  inline const float* getConstBuffer() const { return DSPVectorAlignPointer< float >(mData.asFloat); }
+  inline int32_t* getBufferInt() const { return DSPVectorAlignPointer< float >(mData.asInt); }
+  inline const int32_t* getConstBufferInt() const { return DSPVectorAlignPointer< float >(mData.asInt); }
 #else
   inline float* getBuffer() { return mData.asFloat; }
   inline const float* getConstBuffer() const { return mData.asFloat; }
@@ -797,7 +764,6 @@ return vy;                        \
 
 DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));          // bitwise select(resultIfTrue, resultIfFalse, conditionMask)
 
-
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
 
@@ -936,11 +902,37 @@ inline DSPVectorArray<ROWS> zeroPad(const DSPVectorArray<N>& x)
   return vy;
 }
 
+// Shift the array down by the number of rows given in rowsToShift.
+// Any rows shifted in from outside the range [0, ROWS) are zeroed. Negative shifts are OK.
 template<size_t ROWS>
 inline DSPVectorArray<ROWS> shiftRows(const DSPVectorArray<ROWS>& x, int rowsToShift)
 {
   DSPVectorArray<ROWS> vy;
-  int k = modulo(-rowsToShift, ROWS);
+  int k = -rowsToShift;
+  for(int j=0; j < ROWS; ++j)
+  {
+    if(within(k, 0, static_cast<int>(ROWS)))
+    {
+      vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(k));
+    }
+    else
+    {
+      vy.setRowVectorUnchecked(j, 0.f);
+    }
+    ++k;
+  }
+  return vy;
+}
+
+// Rotate the array down by the number of rows given in rowsToRotate.
+// Any rows rotated in from outside the range [0, ROWS) are wrapped. Negative rotations are OK.
+template<size_t ROWS>
+inline DSPVectorArray<ROWS> rotateRows(const DSPVectorArray<ROWS>& x, int rowsToRotate)
+{
+  DSPVectorArray<ROWS> vy;
+  
+  // get start index k to which row 0 is mapped
+  int k = modulo(-rowsToRotate, ROWS);
   for(int j=0; j < ROWS; ++j)
   {
     vy.setRowVectorUnchecked(j, x.getRowVectorUnchecked(k));
@@ -1016,7 +1008,6 @@ inline DSPVectorArray<ROWS/2> oddRows(const DSPVectorArray<ROWS>& x1)
   }
   return vy;
 }
-
 
 // ----------------------------------------------------------------
 // low-level functional

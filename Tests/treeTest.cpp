@@ -293,22 +293,25 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   std::cout << "\n\n";
 
   // floatNumberToText tests
+  
   NoiseGen n;
   for(int i=0; i<80; ++i)
   {
     float v = (1.0f + fabs(n.getSample())*9.f) * powf(10.f, i - 40 + 0.f) * (i&1 ? -1 : 1);
-    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 5) << "\n";
+    auto t = textUtils::floatNumberToText(v, 5);
+    std::cout << std::setprecision(10) << v << " -> " << t << "\n";
   }
 
   const float maxFloat = std::numeric_limits<float>::max();
   const float minFloat = std::numeric_limits<float>::min();
-  std::vector<float> vf {maxFloat*10.f, maxFloat, maxFloat/10.f, 10000001, 32768, 10000, 100, 10.0f, 1.00001f, 1, 0.1f, 0.1250001f, 0.125f, 0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat};
+  const float nanFloat = std::numeric_limits<float>::quiet_NaN();
+  std::vector<float> vf {nanFloat, maxFloat*10.f, maxFloat, maxFloat/10.f, 10000001, 32768, 10000, 100, 10.0f, 1.00001f, 1, 0.1f, 0.1250001f, 0.125f, 0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat};
   for(auto v : vf)
   {
    std::cout << std::setprecision(10) << v << " -> " << textUtils::floatNumberToText(v, 8) << "\n";
   }
   
-  // TODO implements textTofloatNumber and test for correct I/O without all the printing
+  // TODO implement textTofloatNumber and test for correct I/O
 }
 
 

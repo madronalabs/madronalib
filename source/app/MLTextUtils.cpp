@@ -150,6 +150,7 @@ namespace ml { namespace textUtils {
 
   TextFragment floatNumberToText(float f, int precision)
   {
+    const float maxFloat = std::numeric_limits<float>::max();
     constexpr int kMaxPrecision = 10;
     constexpr int kScientificStart = 5;
     constexpr int kMaxDigits = 32;
@@ -174,87 +175,96 @@ namespace ml { namespace textUtils {
     const int p = std::min(precision, kMaxPrecision);
     const float epsilon = std::max(fabs(f*powersOfTen[kTableZeroOffset - p]), std::numeric_limits<float>::min());
 
-    if(value < 0)
+    if(isnan(f))
     {
-      value = -value;
-      *writePtr++ = '-';
-    }
-    
-    if(value > powersOfTen[kTableZeroOffset*2])
-    {
-      *writePtr++ = 'i';
-      *writePtr++ = 'n';
-      *writePtr++ = 'f';
-    }
-    else if(value < powersOfTen[0])
-    {
-      *writePtr++ = '0';
-      *writePtr++ = '.';
+      *writePtr++ = 'N';
+      *writePtr++ = 'a';
+      *writePtr++ = 'N';
     }
     else
     {
-      // get the exponent using linear search, starting from center
-      int y = kTableZeroOffset;
-      while(value > powersOfTen[y]){y++;}
-      while(value < powersOfTen[y]){y--;}
-      int exponent = y - kTableZeroOffset;
-      int absExponent = std::abs(exponent);
-
-      if(absExponent < kScientificStart)
-      // write in decimal notation
+      if(value < 0)
       {
-        // first write any leading zeroes
-        if(exponent < -1)
+        value = -value;
+        *writePtr++ = '-';
+      }
+      
+      if(value > powersOfTen[kTableZeroOffset*2])
+      {
+        *writePtr++ = 'i';
+        *writePtr++ = 'n';
+        *writePtr++ = 'f';
+      }
+      else if(value < powersOfTen[0])
+      {
+        *writePtr++ = '0';
+        *writePtr++ = '.';
+      }
+      else
+      {
+        // get the exponent using linear search, starting from center
+        int y = kTableZeroOffset;
+        while(value > powersOfTen[y]){y++;}
+        while(value < powersOfTen[y]){y--;}
+        int exponent = y - kTableZeroOffset;
+        int absExponent = std::abs(exponent);
+
+        if(absExponent < kScientificStart)
+        // write in decimal notation
         {
-          *writePtr++ = '0';
-          *writePtr++ = '.';
-          int zeroes = -exponent - 1;
-          for(int i=0; i<zeroes; ++i)
+          // first write any leading zeroes
+          if(exponent < -1)
+          {
+            *writePtr++ = '0';
+            *writePtr++ = '.';
+            int zeroes = -exponent - 1;
+            for(int i=0; i<zeroes; ++i)
+            {
+              *writePtr++ = '0';
+            }
+          }
+          else if(exponent == -1)
           {
             *writePtr++ = '0';
           }
-        }
-        else if(exponent == -1)
-        {
-          *writePtr++ = '0';
-        }
-        
-        // then write nonzero digits
-        do
-        {
-          if(exponent == -1)
+          
+          // then write nonzero digits
+          do
           {
-            *writePtr++ = '.';
+            if(exponent == -1)
+            {
+              *writePtr++ = '.';
+            }
+            int onesInt = value * powersOfTen[kTableZeroOffset - exponent];
+            *writePtr++ = '0' + onesInt;
+            value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
+            exponent--;
           }
-          int onesInt = value * powersOfTen[kTableZeroOffset - exponent];
-          *writePtr++ = '0' + onesInt;
-          value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
-          exponent--;
+          while ((value > epsilon) || (exponent >= 0));
         }
-        while ((value > epsilon) || (exponent >= 0));
-      }
-      else
-      // write in scientific notation
-      {
-        const char exponentSign = exponent >= 0 ? '+' : '-';
-
-        // write mantissa
-        int onesInt = value*powersOfTen[kTableZeroOffset - exponent];
-        *writePtr++ = '0' + onesInt;
-        *writePtr++ = '.';
-        while(value > epsilon)
+        else
+        // write in scientific notation
         {
-          value = value - onesInt*powersOfTen[kTableZeroOffset + exponent];
-          exponent--;
-          onesInt = value*powersOfTen[kTableZeroOffset - exponent];
-          *writePtr++ = '0' + onesInt;
-        }
+          const char exponentSign = exponent >= 0 ? '+' : '-';
 
-        // write exponent
-        *writePtr++ = 'e';
-        *writePtr++ = exponentSign;
-        *writePtr++ = '0' + absExponent/10;
-        *writePtr++ = '0' + absExponent%10;
+          // write mantissa
+          int onesInt = value*powersOfTen[kTableZeroOffset - exponent];
+          *writePtr++ = '0' + onesInt;
+          *writePtr++ = '.';
+          while(value > epsilon)
+          {
+            value = value - onesInt*powersOfTen[kTableZeroOffset + exponent];
+            exponent--;
+            onesInt = value*powersOfTen[kTableZeroOffset - exponent];
+            *writePtr++ = '0' + onesInt;
+          }
+
+          // write exponent
+          *writePtr++ = 'e';
+          *writePtr++ = exponentSign;
+          *writePtr++ = '0' + absExponent/10;
+          *writePtr++ = '0' + absExponent%10;
+        }
       }
     }
     return TextFragment(buf, writePtr - buf);
@@ -319,7 +329,7 @@ namespace ml { namespace textUtils {
         return r;
     }
     
-    // TODO dumb, have to call matchFn on each code point because we have no revese iterator
+    // TODO dumb, have to call matchFn on each code point because we have no reverse iterator
     int findLast(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
     {
         int r = npos;
@@ -452,8 +462,6 @@ namespace ml { namespace textUtils {
         }
         return sum;
     }
-    
-
     
     TextFragment stripFileExtension(const TextFragment& frag)
     {
