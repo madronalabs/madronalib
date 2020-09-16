@@ -257,48 +257,48 @@ namespace ml
 	
 	class LinearGlide
 	{
-    DSPVector mCurrVec;
-    DSPVector mStepVec;
-    float mTargetValue;
-    float mDyPerVector;
-    int mVectorsPerGlide;
-    int mVectorsRemaining;
+		DSPVector mCurrVec;
+		DSPVector mStepVec;
+		float mTargetValue;
+		float mDyPerVector;
+		int mVectorsPerGlide;
+		int mVectorsRemaining;
 
 	public:
-    LinearGlide() :
-    mCurrVec(0.f),
-    mStepVec(0.f),
-    mTargetValue(0.f),
-    mVectorsPerGlide(32),
-    mVectorsRemaining(0)
-    {}
+		LinearGlide() :
+			mCurrVec(0.f),
+			mStepVec(0.f),
+			mTargetValue(0.f),
+			mVectorsPerGlide(32),
+			mVectorsRemaining(0)
+		{}
 		
 		void setGlideTimeInSamples(float t)
 		{
-      mVectorsPerGlide = t/kFloatsPerDSPVector;
-      if(mVectorsPerGlide < 1) mVectorsPerGlide = 1;
-      mDyPerVector = 1.0f/(mVectorsPerGlide + 0.f);
+			mVectorsPerGlide = t/kFloatsPerDSPVector;
+			if(mVectorsPerGlide < 1) mVectorsPerGlide = 1;
+			mDyPerVector = 1.0f/(mVectorsPerGlide + 0.f);
 		}
 
 		DSPVector operator()(float f)
 		{
-      // set target value if different from current value.
-      //const float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
-      if(f != mTargetValue)
-      {
-        mTargetValue = f;
+			// set target value if different from current value.
+			//const float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
+			if(f != mTargetValue)
+			{
+				mTargetValue = f;
 
-        // start counter
-        mVectorsRemaining = mVectorsPerGlide;
-      }
+				// start counter
+				mVectorsRemaining = mVectorsPerGlide;
+			}
 
-      // process glide
+			// process glide
 			if(mVectorsRemaining == 0)
 			{
-        // end glide: write target value to output vector
+				// end glide: write target value to output vector
 				mCurrVec = DSPVector(mTargetValue);
-        mStepVec = DSPVector(0.f);
-        mVectorsRemaining--;
+				mStepVec = DSPVector(0.f);
+				mVectorsRemaining--;
 			}
 			else if(mVectorsRemaining == mVectorsPerGlide)
 			{
