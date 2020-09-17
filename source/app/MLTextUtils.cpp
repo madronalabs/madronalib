@@ -150,7 +150,7 @@ namespace ml { namespace textUtils {
 
   TextFragment floatNumberToText(float f, int precision)
   {
-    const float maxFloat = std::numeric_limits<float>::max();
+    //const float maxFloat = std::numeric_limits<float>::max();
     constexpr int kMaxPrecision = 10;
     constexpr int kScientificStart = 5;
     constexpr int kMaxDigits = 32;
@@ -208,6 +208,7 @@ namespace ml { namespace textUtils {
         while(value < powersOfTen[y]){y--;}
         int exponent = y - kTableZeroOffset;
         int absExponent = std::abs(exponent);
+
 
         if(absExponent < kScientificStart)
         // write in decimal notation
@@ -272,8 +273,52 @@ namespace ml { namespace textUtils {
 
   float textToFloatNumber(const TextFragment& frag)
   {
-    // TODO
-    return 0.f;
+    
+    
+    // nan
+    // sign
+    // inf
+    // whole part
+    // decimal point
+    // fractional part
+    // e
+    // exponent sign
+    // exponent
+    
+    
+    
+    // TODO scientific notation, nan, inf
+    
+    auto it = frag.begin();
+        
+      float rez = 0, fact = 1;
+    uint8_t c = *it;
+      if (c == '-')
+      {
+        it++;
+        fact = -1;
+      };
+      for (int point_seen = 0; it != frag.end(); it++)
+      {
+        c = *it;
+        if (c == '.')
+        {
+          point_seen = 1;
+          continue;
+        }
+        else if (c == 'e')
+        {
+          
+          break;
+        }
+        else if (c >= '0' && c <= '9')//(d >= 0 && d <= 9)
+        {
+          int d = c - '0';
+          if (point_seen) fact /= 10.0f;
+          rez = rez * 10.0f + (float)d;
+        };
+      };
+      return rez * fact;
   }
 
     int findFirst(const TextFragment& frag, const CodePoint b)

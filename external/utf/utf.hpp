@@ -134,7 +134,7 @@ namespace utf {
                 unsigned char res[4] = {};
 
                 // loop to catch remaining
-                for (size_t i = len; i > 1; --i) {
+                for (size_t i = len; i != 1; --i) {
                     // select lower 6 bits
                     res[i-1] = (c & 0x3f) | 0x80;
                     c = c >> 6;
@@ -291,10 +291,7 @@ namespace utf {
     }
     
     template <typename It>
-    class codepoint_iterator : public std::iterator<std::input_iterator_tag
-    , const codepoint_type, ptrdiff_t
-    , const codepoint_type*
-    , const codepoint_type&> {
+    class codepoint_iterator {
         typedef typename std::iterator_traits<It>::value_type codeunit_type;
         typedef typename internal::native_encoding<codeunit_type>::type encoding;
         typedef internal::utf_traits<encoding> traits_type;
@@ -302,6 +299,12 @@ namespace utf {
         It pos;
 
     public:
+        typedef std::input_iterator_tag iterator_category;
+        typedef codepoint_type value_type;
+        typedef std::ptrdiff_t difference_type;
+        typedef std::remove_const<codepoint_type>::type pointer;
+        typedef codepoint_type& reference;
+
         explicit codepoint_iterator() : val(), pos() {}
         explicit codepoint_iterator(It pos) : val(), pos(pos) {}
         codepoint_iterator(const codepoint_iterator& it) : val(it.val), pos(it.pos) {}
@@ -315,15 +318,15 @@ namespace utf {
             It next = pos + traits_type::read_length(*pos);
             pos = next;
             return *this;
-		}
+        }
         codepoint_iterator operator++(int) {
-            codepoint_type tmp = *this;
+            codepoint_iterator tmp = *this;
             ++(*this);
             return tmp;
         }
+      
         friend bool operator != (codepoint_iterator lhs, codepoint_iterator rhs) { return lhs.pos != rhs.pos; }
         friend bool operator == (codepoint_iterator lhs, codepoint_iterator rhs) { return !(lhs != rhs); }
-
     };
 
     template <typename Iter, typename E = typename internal::native_encoding<typename std::iterator_traits<Iter>::value_type>::type>

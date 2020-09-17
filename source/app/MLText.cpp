@@ -57,12 +57,17 @@ namespace ml
 	
 	TextFragment::Iterator& TextFragment::Iterator::operator++() 
 	{ 
-		pImpl->_utf8Iter.operator++(); 
+		pImpl->_utf8Iter.operator++();
 		return *this;
 	}
 	
-	//CodePoint operator++(int i) { return _utf8Iter.operator++(i); } // needed?
-	
+	CodePoint TextFragment::Iterator::operator++(int i)
+  {
+    CodePoint preIncrementValue = pImpl->_utf8Iter.operator*();
+    pImpl->_utf8Iter.operator++(i);
+    return preIncrementValue;
+  }
+
 	
 	bool operator!= (TextFragment::Iterator lhs, TextFragment::Iterator rhs) 
 	{ 
@@ -128,7 +133,7 @@ namespace ml
 	size_t TextFragment::lengthInCodePoints() const
 	{
 		utf::stringview<const char*> sv(mpText, mpText + mSize);
-		return static_cast<int>(sv.codepoints());
+		return sv.codepoints();
 	}
 	
 	TextFragment::Iterator TextFragment::begin() const
