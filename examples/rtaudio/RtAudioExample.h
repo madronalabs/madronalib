@@ -45,11 +45,13 @@ int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned 
 }
 
 template<int IN_CHANS, int OUT_CHANS>
-int RunRtAudioExample(int sampleRate, RtAudioCallback callbackFn, processFnType< IN_CHANS, OUT_CHANS > vectorProcessFnPtr)
+int RunRtAudioExample(int sampleRate, processFnType< IN_CHANS, OUT_CHANS > vectorProcessFnPtr)
 {
   RtAudio adac;
   unsigned int bufferFrames = 512;
-
+  
+  auto callbackFn = &callProcessVectorsBuffered< IN_CHANS, OUT_CHANS >;
+  
   if ( adac.getDeviceCount() < 1 )
   {
     std::cout << "\nNo audio devices found!\n";
