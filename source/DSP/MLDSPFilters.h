@@ -876,6 +876,12 @@ class PitchbendableDelay
     mDelay2.setMaxDelayInSamples(d);
   }
 
+  inline void clear()
+  {
+    mDelay1.clear();
+    mDelay2.clear();
+  }
+
   inline DSPVector operator()(const DSPVector vInput,
                               const DSPVector vDelayInSamples)
   {
@@ -909,6 +915,12 @@ class Allpass
   inline void setMaxDelayInSamples(float d)
   {
     mDelay.setMaxDelayInSamples(d - kFloatsPerDSPVector);
+  }
+
+  inline void clear()
+  {
+    mDelay.clear();
+    vy1 = DSPVector();
   }
 
   // use with constant delay time.
