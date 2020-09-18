@@ -31,39 +31,41 @@
 
 #include <arm_neon.h>
 
-typedef float32x4_t SIMDVectorFloat;  // vector of 4 float
+typedef float32x4_t SIMDVectorFloat;       // vector of 4 float
 typedef uint32x4_t SIMDVectorUnsignedInt;  // vector of 4 uint32
-typedef int32x4_t SIMDVectorInt;  // vector of 4 uint32
+typedef int32x4_t SIMDVectorInt;           // vector of 4 uint32
 
 constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
 constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
-constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
+constexpr int kSIMDVectorsPerDSPVector =
+    kFloatsPerDSPVector / kFloatsPerSIMDVector;
 
 #define c_inv_mant_mask ~0x7f800000u
 #define c_cephes_SQRTHF 0.707106781186547524
 #define c_cephes_log_p0 7.0376836292E-2
-#define c_cephes_log_p1 - 1.1514610310E-1
+#define c_cephes_log_p1 -1.1514610310E-1
 #define c_cephes_log_p2 1.1676998740E-1
-#define c_cephes_log_p3 - 1.2420140846E-1
-#define c_cephes_log_p4 + 1.4249322787E-1
-#define c_cephes_log_p5 - 1.6668057665E-1
-#define c_cephes_log_p6 + 2.0000714765E-1
-#define c_cephes_log_p7 - 2.4999993993E-1
-#define c_cephes_log_p8 + 3.3333331174E-1
+#define c_cephes_log_p3 -1.2420140846E-1
+#define c_cephes_log_p4 +1.4249322787E-1
+#define c_cephes_log_p5 -1.6668057665E-1
+#define c_cephes_log_p6 +2.0000714765E-1
+#define c_cephes_log_p7 -2.4999993993E-1
+#define c_cephes_log_p8 +3.3333331174E-1
 #define c_cephes_log_q1 -2.12194440e-4
 #define c_cephes_log_q2 0.693359375
 
-/* natural logarithm computed for 4 simultaneous float 
+/* natural logarithm computed for 4 simultaneous float
    return NaN for x <= 0
 */
-inline SIMDVectorFloat log_ps(SIMDVectorFloat x) {
+inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
+{
   SIMDVectorFloat one = vdupq_n_f32(1);
 
   x = vmaxq_f32(x, vdupq_n_f32(0)); /* force flush to zero on denormal values */
   SIMDVectorUnsignedInt invalid_mask = vcleq_f32(x, vdupq_n_f32(0));
 
   SIMDVectorInt ux = vreinterpretq_s32_f32(x);
-  
+
   SIMDVectorInt emm0 = vshrq_n_s32(ux, 23);
 
   /* keep only the fractional part */
@@ -76,19 +78,21 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x) {
 
   e = vaddq_f32(e, one);
 
-  /* part2: 
+  /* part2:
      if( x < SQRTHF ) {
        e -= 1;
        x = x + x - 1.0;
      } else { x = x - 1.0; }
   */
   SIMDVectorUnsignedInt mask = vcltq_f32(x, vdupq_n_f32(c_cephes_SQRTHF));
-  SIMDVectorFloat tmp = vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(x), mask));
+  SIMDVectorFloat tmp =
+      vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(x), mask));
   x = vsubq_f32(x, one);
-  e = vsubq_f32(e, vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(one), mask)));
+  e = vsubq_f32(
+      e, vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(one), mask)));
   x = vaddq_f32(x, tmp);
 
-  SIMDVectorFloat z = vmulq_f32(x,x);
+  SIMDVectorFloat z = vmulq_f32(x, x);
 
   SIMDVectorFloat y = vdupq_n_f32(c_cephes_log_p0);
   y = vmulq_f32(y, x);
@@ -110,11 +114,9 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x) {
   y = vmulq_f32(y, x);
 
   y = vmulq_f32(y, z);
-  
 
   tmp = vmulq_f32(e, vdupq_n_f32(c_cephes_log_q1));
   y = vaddq_f32(y, tmp);
-
 
   tmp = vmulq_f32(z, vdupq_n_f32(0.5f));
   y = vsubq_f32(y, tmp);
@@ -122,7 +124,8 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x) {
   tmp = vmulq_f32(e, vdupq_n_f32(c_cephes_log_q2));
   x = vaddq_f32(x, y);
   x = vaddq_f32(x, tmp);
-  x = vreinterpretq_f32_u32(vorrq_u32(vreinterpretq_u32_f32(x), invalid_mask)); // negative arg will be NAN
+  x = vreinterpretq_f32_u32(vorrq_u32(
+      vreinterpretq_u32_f32(x), invalid_mask));  // negative arg will be NAN
   return x;
 }
 
@@ -141,7 +144,8 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x) {
 #define c_cephes_exp_p5 5.0000001201E-1
 
 /* exp() computed for 4 float at once */
-inline SIMDVectorFloat exp_ps(SIMDVectorFloat x) {
+inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
+{
   SIMDVectorFloat tmp, fx;
 
   SIMDVectorFloat one = vdupq_n_f32(1);
@@ -155,9 +159,8 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x) {
   tmp = vcvtq_f32_s32(vcvtq_s32_f32(fx));
 
   /* if greater, substract 1 */
-  SIMDVectorUnsignedInt mask = vcgtq_f32(tmp, fx);    
+  SIMDVectorUnsignedInt mask = vcgtq_f32(tmp, fx);
   mask = vandq_u32(mask, vreinterpretq_u32_f32(one));
-
 
   fx = vsubq_f32(tmp, vreinterpretq_f32_u32(mask));
 
@@ -166,16 +169,18 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x) {
   x = vsubq_f32(x, tmp);
   x = vsubq_f32(x, z);
 
-  static const float cephes_exp_p[6] = { c_cephes_exp_p0, c_cephes_exp_p1, c_cephes_exp_p2, c_cephes_exp_p3, c_cephes_exp_p4, c_cephes_exp_p5 };
-  SIMDVectorFloat y = vld1q_dup_f32(cephes_exp_p+0);
-  SIMDVectorFloat c1 = vld1q_dup_f32(cephes_exp_p+1); 
-  SIMDVectorFloat c2 = vld1q_dup_f32(cephes_exp_p+2); 
-  SIMDVectorFloat c3 = vld1q_dup_f32(cephes_exp_p+3); 
-  SIMDVectorFloat c4 = vld1q_dup_f32(cephes_exp_p+4); 
-  SIMDVectorFloat c5 = vld1q_dup_f32(cephes_exp_p+5);
+  static const float cephes_exp_p[6] = {c_cephes_exp_p0, c_cephes_exp_p1,
+                                        c_cephes_exp_p2, c_cephes_exp_p3,
+                                        c_cephes_exp_p4, c_cephes_exp_p5};
+  SIMDVectorFloat y = vld1q_dup_f32(cephes_exp_p + 0);
+  SIMDVectorFloat c1 = vld1q_dup_f32(cephes_exp_p + 1);
+  SIMDVectorFloat c2 = vld1q_dup_f32(cephes_exp_p + 2);
+  SIMDVectorFloat c3 = vld1q_dup_f32(cephes_exp_p + 3);
+  SIMDVectorFloat c4 = vld1q_dup_f32(cephes_exp_p + 4);
+  SIMDVectorFloat c5 = vld1q_dup_f32(cephes_exp_p + 5);
 
   y = vmulq_f32(y, x);
-  z = vmulq_f32(x,x);
+  z = vmulq_f32(x, x);
   y = vaddq_f32(y, c1);
   y = vmulq_f32(y, x);
   y = vaddq_f32(y, c2);
@@ -185,7 +190,7 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x) {
   y = vaddq_f32(y, c4);
   y = vmulq_f32(y, x);
   y = vaddq_f32(y, c5);
-  
+
   y = vmulq_f32(y, z);
   y = vaddq_f32(y, x);
   y = vaddq_f32(y, one);
@@ -205,12 +210,12 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x) {
 #define c_minus_cephes_DP2 -2.4187564849853515625e-4
 #define c_minus_cephes_DP3 -3.77489497744594108e-8
 #define c_sincof_p0 -1.9515295891E-4
-#define c_sincof_p1  8.3321608736E-3
+#define c_sincof_p1 8.3321608736E-3
 #define c_sincof_p2 -1.6666654611E-1
-#define c_coscof_p0  2.443315711809948E-005
+#define c_coscof_p0 2.443315711809948E-005
 #define c_coscof_p1 -1.388731625493765E-003
-#define c_coscof_p2  4.166664568298827E-002
-#define c_cephes_FOPI 1.27323954473516 // 4 / M_PI
+#define c_coscof_p2 4.166664568298827E-002
+#define c_cephes_FOPI 1.27323954473516  // 4 / M_PI
 
 /* evaluation of 4 sines & cosines at once.
 
@@ -227,11 +232,13 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x) {
    almost no extra price so both sin_ps and cos_ps make use of
    sincos_ps..
   */
-inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat *ycos) { // any x
+inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin,
+                      SIMDVectorFloat *ycos)
+{  // any x
   SIMDVectorFloat xmm1, xmm2, xmm3, y;
 
   SIMDVectorUnsignedInt emm2;
-  
+
   SIMDVectorUnsignedInt sign_mask_sin, sign_mask_cos;
   sign_mask_sin = vcltq_f32(x, vdupq_n_f32(0));
   x = vabsq_f32(x);
@@ -246,15 +253,15 @@ inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat 
   emm2 = vandq_u32(emm2, vdupq_n_u32(~1));
   y = vcvtq_f32_u32(emm2);
 
-  /* get the polynom selection mask 
+  /* get the polynom selection mask
      there is one polynom for 0 <= x <= Pi/4
      and another one for Pi/4<x<=Pi/2
 
      Both branches will be computed.
   */
   SIMDVectorUnsignedInt poly_mask = vtstq_u32(emm2, vdupq_n_u32(2));
-  
-  /* The magic pass: "Extended precision modular arithmetic" 
+
+  /* The magic pass: "Extended precision modular arithmetic"
      x = ((x - y * DP1) - y * DP2) - y * DP3; */
   xmm1 = vmulq_n_f32(y, c_minus_cephes_DP1);
   xmm2 = vmulq_n_f32(y, c_minus_cephes_DP2);
@@ -266,9 +273,9 @@ inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat 
   sign_mask_sin = veorq_u32(sign_mask_sin, vtstq_u32(emm2, vdupq_n_u32(4)));
   sign_mask_cos = vtstq_u32(vsubq_u32(emm2, vdupq_n_u32(2)), vdupq_n_u32(4));
 
-  /* Evaluate the first polynom  (0 <= x <= Pi/4) in y1, 
+  /* Evaluate the first polynom  (0 <= x <= Pi/4) in y1,
      and the second polynom      (Pi/4 <= x <= 0) in y2 */
-  SIMDVectorFloat z = vmulq_f32(x,x);
+  SIMDVectorFloat z = vmulq_f32(x, x);
   SIMDVectorFloat y1, y2;
 
   y1 = vmulq_n_f32(z, c_coscof_p0);
@@ -287,22 +294,24 @@ inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat 
   y2 = vaddq_f32(y2, x);
   y1 = vaddq_f32(y1, vdupq_n_f32(1));
 
-  /* select the correct result from the two polynoms */  
+  /* select the correct result from the two polynoms */
   SIMDVectorFloat ys = vbslq_f32(poly_mask, y1, y2);
   SIMDVectorFloat yc = vbslq_f32(poly_mask, y2, y1);
   *ysin = vbslq_f32(sign_mask_sin, vnegq_f32(ys), ys);
   *ycos = vbslq_f32(sign_mask_cos, yc, vnegq_f32(yc));
 }
 
-inline SIMDVectorFloat sin_ps(SIMDVectorFloat x) {
-  SIMDVectorFloat ysin, ycos; 
-  sincos_ps(x, &ysin, &ycos); 
+inline SIMDVectorFloat sin_ps(SIMDVectorFloat x)
+{
+  SIMDVectorFloat ysin, ycos;
+  sincos_ps(x, &ysin, &ycos);
   return ysin;
 }
 
-inline SIMDVectorFloat cos_ps(SIMDVectorFloat x) {
-  SIMDVectorFloat ysin, ycos; 
-  sincos_ps(x, &ysin, &ycos); 
+inline SIMDVectorFloat cos_ps(SIMDVectorFloat x)
+{
+  SIMDVectorFloat ysin, ycos;
+  sincos_ps(x, &ysin, &ycos);
   return ycos;
 }
 
@@ -311,6 +320,3 @@ inline SIMDVectorFloat sinapprox_ps(SIMDVectorFloat x) { return sin_ps(x); }
 inline SIMDVectorFloat cosapprox_ps(SIMDVectorFloat x) { return cos_ps(x); }
 inline SIMDVectorFloat logapprox_ps(SIMDVectorFloat x) { return log_ps(x); }
 inline SIMDVectorFloat expapprox_ps(SIMDVectorFloat x) { return exp_ps(x); }
-
-
-

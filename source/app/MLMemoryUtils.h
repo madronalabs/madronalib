@@ -9,40 +9,39 @@
 
 namespace ml
 {
-	// ----------------------------------------------------------------
-	// SmallStackBuffer - allocate some memory on the stack if we don't need much,
-	// otherwise use the heap.
-	
-	template< class T, int MAX_STACK_ELEMS >
-	class SmallStackBuffer
-	{
-	public:
-		SmallStackBuffer(size_t size)
-		{
-			if(size <= MAX_STACK_ELEMS)
-			{
-				mpData = mLocalData;
-				std::fill(mpData, mpData + size, T());
-			}
-			else
-			{
-				mpData = new T[size];
-			}
-		}
-		
-		~SmallStackBuffer()
-		{
-			if(mpData != mLocalData) 
-			{
-				delete[] mpData;
-			}
-		}
-		
-		T* data() { return mpData; }
-				
-	private:
-		T* mpData;
-		T mLocalData[MAX_STACK_ELEMS];
-	};
-}
+// ----------------------------------------------------------------
+// SmallStackBuffer - allocate some memory on the stack if we don't need much,
+// otherwise use the heap.
 
+template <class T, int MAX_STACK_ELEMS>
+class SmallStackBuffer
+{
+ public:
+  SmallStackBuffer(size_t size)
+  {
+    if (size <= MAX_STACK_ELEMS)
+    {
+      mpData = mLocalData;
+      std::fill(mpData, mpData + size, T());
+    }
+    else
+    {
+      mpData = new T[size];
+    }
+  }
+
+  ~SmallStackBuffer()
+  {
+    if (mpData != mLocalData)
+    {
+      delete[] mpData;
+    }
+  }
+
+  T* data() { return mpData; }
+
+ private:
+  T* mpData;
+  T mLocalData[MAX_STACK_ELEMS];
+};
+}  // namespace ml

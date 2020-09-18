@@ -37,6 +37,5 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
 int main( int argc, char *argv[] )
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  auto RtAudioCallbackFnPtr = &callProcessVectorsBuffered< kInputChannels, kOutputChannels >;
-  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, RtAudioCallbackFnPtr, &processVectors);
+  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, &processVectors);
 }

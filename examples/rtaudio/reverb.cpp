@@ -75,26 +75,29 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   DSPVector vSmoothDelay = mSmoothDelay(sizeU*2.0f);
   DSPVector vSmoothFeedback = mSmoothFeedback(feedback);
 
-  // get smoothed allpass times
+  // get the minimum possible delay in samples, which is the length of a DSPVector.
   DSPVector vMin(kFloatsPerDSPVector);
-  DSPVector vt1 = max(DSPVector(0.00476*sr*vSmoothDelay), vMin);
-  DSPVector vt2 = max(DSPVector(0.00358*sr*vSmoothDelay), vMin);
-  DSPVector vt3 = max(DSPVector(0.00973*sr*vSmoothDelay), vMin);
-  DSPVector vt4 = max(DSPVector(0.00830*sr*vSmoothDelay), vMin);
-  DSPVector vt5 = max(DSPVector(0.029*sr*vSmoothDelay), vMin);
-  DSPVector vt6 = max(DSPVector(0.021*sr*vSmoothDelay), vMin);
-  DSPVector vt7 = max(DSPVector(0.078*sr*vSmoothDelay), vMin);
-  DSPVector vt8 = max(DSPVector(0.090*sr*vSmoothDelay), vMin);
-  DSPVector vt9 = max(DSPVector(0.111*sr*vSmoothDelay), vMin);
-  DSPVector vt10 = max(DSPVector(0.096*sr*vSmoothDelay), vMin);
+
+  // get smoothed allpass times in samples
+  DSPVector delayParamInSamples = sr*vSmoothDelay;
+  DSPVector vt1 = max(0.00476*delayParamInSamples, vMin);
+  DSPVector vt2 = max(0.00358*delayParamInSamples, vMin);
+  DSPVector vt3 = max(0.00973*delayParamInSamples, vMin);
+  DSPVector vt4 = max(0.00830*delayParamInSamples, vMin);
+  DSPVector vt5 = max(0.029*delayParamInSamples, vMin);
+  DSPVector vt6 = max(0.021*delayParamInSamples, vMin);
+  DSPVector vt7 = max(0.078*delayParamInSamples, vMin);
+  DSPVector vt8 = max(0.090*delayParamInSamples, vMin);
+  DSPVector vt9 = max(0.111*delayParamInSamples, vMin);
+  DSPVector vt10 = max(0.096*delayParamInSamples, vMin);
 
   // sum stereo inputs and diffuse with four allpass filters in series
   DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
   DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
 
-  // get delay times in samples, subtracting the constant delay of one DSPVector and clamping
-  DSPVector vDelayTimeL = max(vSmoothDelay*DSPVector(0.0313*sr) - vMin, DSPVector(0.f));
-  DSPVector vDelayTimeR = max(vSmoothDelay*DSPVector(0.0371*sr) - vMin, DSPVector(0.f));
+  // get delay times in samples, subtracting the constant delay of one DSPVector and clamping to zero
+  DSPVector vDelayTimeL = max(0.0313*delayParamInSamples - vMin, DSPVector(0.f));
+  DSPVector vDelayTimeR = max(0.0371*delayParamInSamples - vMin, DSPVector(0.f));
 
   // sum diffused input with feedback, and apply late diffusion of two more allpass filters to each channel
   DSPVector vTapL = mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7);
@@ -113,6 +116,5 @@ int main( int argc, char *argv[] )
   initializeReverb();
 
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  auto RtAudioCallbackFnPtr = &callProcessVectorsBuffered< kInputChannels, kOutputChannels >;
-  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, RtAudioCallbackFnPtr, &processVectors);
+  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, &processVectors);
 }

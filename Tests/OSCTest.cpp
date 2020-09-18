@@ -6,15 +6,11 @@
 #ifdef __WIN32__
 // TODO OSC for windows
 
-
 #include "catch.hpp"
-#include "madronalib.h"
-
-#include "osc/OscOutboundPacketStream.h"
-
-#include "ip/UdpSocket.h"
 #include "ip/IpEndpointName.h"
-
+#include "ip/UdpSocket.h"
+#include "madronalib.h"
+#include "osc/OscOutboundPacketStream.h"
 
 #define IP_MTU_SIZE 1536
 
@@ -44,4 +40,4 @@ TEST_CASE("madronalib/core/OSC/send", "[OSC][send]")
 }
 #endif
 
-#endif // WIN32
+#endif  // WIN32
