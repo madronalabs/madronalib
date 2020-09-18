@@ -268,6 +268,13 @@ class LinearGlide
     if (mVectorsPerGlide < 1) mVectorsPerGlide = 1;
     mDyPerVector = 1.0f / (mVectorsPerGlide + 0.f);
   }
+  
+  // set the current value to the given value immediately, without gliding
+  void setValue(float f)
+  {
+    mTargetValue = f;
+    mVectorsRemaining = 0;
+  }
 
   DSPVector operator()(float f)
   {
