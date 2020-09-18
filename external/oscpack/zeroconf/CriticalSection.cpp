@@ -1,4 +1,5 @@
 #include "CriticalSection.h"
+
 #include <cassert>
 
 using namespace ZeroConf;
@@ -13,28 +14,28 @@ using namespace ZeroConf;
 
 CriticalSection::CriticalSection()
 {
-  assert (sizeof (CRITICAL_SECTION) <= sizeof (details));
-  InitializeCriticalSection ((CRITICAL_SECTION*)details);
+  assert(sizeof(CRITICAL_SECTION) <= sizeof(details));
+  InitializeCriticalSection((CRITICAL_SECTION*)details);
 }
 
 CriticalSection::~CriticalSection()
 {
-  DeleteCriticalSection ((CRITICAL_SECTION*) details);
+  DeleteCriticalSection((CRITICAL_SECTION*)details);
 }
 
 void CriticalSection::enter() const
 {
-  EnterCriticalSection ((CRITICAL_SECTION*) details);
+  EnterCriticalSection((CRITICAL_SECTION*)details);
 }
 
 bool CriticalSection::tryEnter() const
 {
-  return TryEnterCriticalSection ((CRITICAL_SECTION*) details) != FALSE;
+  return TryEnterCriticalSection((CRITICAL_SECTION*)details) != FALSE;
 }
 
 void CriticalSection::exit() const
 {
-  LeaveCriticalSection ((CRITICAL_SECTION*) details);
+  LeaveCriticalSection((CRITICAL_SECTION*)details);
 }
 
 #else
@@ -42,28 +43,19 @@ void CriticalSection::exit() const
 CriticalSection::CriticalSection()
 {
   pthread_mutexattr_t atts;
-  pthread_mutexattr_init (&atts);
-  pthread_mutexattr_settype (&atts, PTHREAD_MUTEX_RECURSIVE);
-  pthread_mutex_init (&details, &atts);
+  pthread_mutexattr_init(&atts);
+  pthread_mutexattr_settype(&atts, PTHREAD_MUTEX_RECURSIVE);
+  pthread_mutex_init(&details, &atts);
 }
 
-CriticalSection::~CriticalSection()
-{
-  pthread_mutex_destroy (&details);
-}
+CriticalSection::~CriticalSection() { pthread_mutex_destroy(&details); }
 
-void CriticalSection::enter() const
-{
-  pthread_mutex_lock (&details);
-}
+void CriticalSection::enter() const { pthread_mutex_lock(&details); }
 
 bool CriticalSection::tryEnter() const
 {
-  return pthread_mutex_trylock (&details) == 0;
+  return pthread_mutex_trylock(&details) == 0;
 }
 
-void CriticalSection::exit() const
-{
-  pthread_mutex_unlock (&details);
-}
+void CriticalSection::exit() const { pthread_mutex_unlock(&details); }
 #endif

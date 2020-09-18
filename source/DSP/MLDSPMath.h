@@ -4,21 +4,22 @@
 
 #pragma once
 
-// Here is the DSP vector size, an important constant. 
+// Here is the DSP vector size, an important constant.
 constexpr int kFloatsPerDSPVector = 64;
 
-// Load definitions for low-level SIMD math. 
-// These must define SIMDVectorFloat, SIMDVectorInt, their sizes, and a bunch of operations on them.
-// We are currently only using 4-element vectors on both SSE and NEON.
+// Load definitions for low-level SIMD math.
+// These must define SIMDVectorFloat, SIMDVectorInt, their sizes, and a bunch of
+// operations on them. We are currently only using 4-element vectors on both SSE
+// and NEON.
 
-#if(defined  __ARM_NEON) || (defined __ARM_NEON__)
+#if (defined __ARM_NEON) || (defined __ARM_NEON__)
 
-// NEON 
+// NEON
 
 // TODO
 #include "MLDSPMathNEON.h"
 
-#else 
+#else
 
 // SSE2
 
@@ -54,56 +55,55 @@ constexpr int kFloatsPerDSPVector = 64;
 //  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 //  DEALINGS IN THE SOFTWARE.
 
-
 /// A type that represents a parameter pack of zero or more integers.
-template<typename T, T... I>
+template <typename T, T... I>
 struct ml_integer_sequence
 {
-  static_assert( std::is_integral<T>::value, "Integral type" );
-  
+  static_assert(std::is_integral<T>::value, "Integral type");
+
   using type = T;
-  
+
   static constexpr T size = sizeof...(I);
-  
+
   /// Generate an ml_integer_sequence with an additional element.
-  template<T N>
+  template <T N>
   using append = ml_integer_sequence<T, I..., N>;
-  
+
   using next = append<size>;
 };
 
-template<typename T, T... I>
+template <typename T, T... I>
 constexpr T ml_integer_sequence<T, I...>::size;
 
-template<std::size_t... I>
+template <std::size_t... I>
 using ml_index_sequence = ml_integer_sequence<std::size_t, I...>;
 
 namespace detail
 {
-  // Metafunction that generates an ml_integer_sequence of T containing [0, N)
-  template<typename T, T Nt, std::size_t N>
-  struct iota
-  {
-    static_assert( Nt >= 0, "N cannot be negative" );
-    using type = typename iota<T, Nt-1, N-1>::type::next;
-  };
+// Metafunction that generates an ml_integer_sequence of T containing [0, N)
+template <typename T, T Nt, std::size_t N>
+struct iota
+{
+  static_assert(Nt >= 0, "N cannot be negative");
+  using type = typename iota<T, Nt - 1, N - 1>::type::next;
+};
 
-  // Terminal case of the recursive metafunction.
-  template<typename T, T Nt>
-  struct iota<T, Nt, 0ul>
-  {
-    using type = ml_integer_sequence<T>;
-  };
-}
+// Terminal case of the recursive metafunction.
+template <typename T, T Nt>
+struct iota<T, Nt, 0ul>
+{
+  using type = ml_integer_sequence<T>;
+};
+}  // namespace detail
 
-// ml_make_integer_sequence<T, N> is an alias for ml_integer_sequence<T, 0,...N-1>
-template<typename T, T N>
+// ml_make_integer_sequence<T, N> is an alias for ml_integer_sequence<T,
+// 0,...N-1>
+template <typename T, T N>
 using ml_make_integer_sequence = typename detail::iota<T, N, N>::type;
 
-template<int N>
+template <int N>
 using ml_make_index_sequence = ml_make_integer_sequence<std::size_t, N>;
 
 // ml_index_sequence_for<A, B, C> is an alias for ml_index_sequence<0, 1, 2>
-template<typename... Args>
+template <typename... Args>
 using ml_index_sequence_for = ml_make_index_sequence<sizeof...(Args)>;
-

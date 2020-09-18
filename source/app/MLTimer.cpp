@@ -5,21 +5,22 @@
 //  Created by Randy Jones on 9/10/2018
 //
 
+#include "MLTimer.h"
+
 #include <functional>
 
-#include "MLTimer.h"
 #include "MLPlatform.h"
 
 // Timers
 
 const int ml::Timers::kMillisecondsResolution = 16;
-  
+
 #if ML_MAC
 
 #include <CoreFoundation/CoreFoundation.h>
 #include <mach/mach_time.h>
 
-void macTimersCallback (CFRunLoopTimerRef, void *info)
+void macTimersCallback(CFRunLoopTimerRef, void* info)
 {
   ml::Timers* pTimers = static_cast<ml::Timers*>(info);
   pTimers->tick();
@@ -28,39 +29,42 @@ void macTimersCallback (CFRunLoopTimerRef, void *info)
 void ml::Timers::start(bool runInMainThread)
 {
   _inMainThread = runInMainThread;
-  if(!_running)
+  if (!_running)
   {
-    if(_inMainThread)
+    if (_inMainThread)
     {
       CFRunLoopTimerContext timerContext = {};
       timerContext.info = this;
-      float intervalInSeconds = ml::Timers::kMillisecondsResolution*0.001f;
-      pTimersRef = CFRunLoopTimerCreate (kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + intervalInSeconds, intervalInSeconds, 0, 0, macTimersCallback, &timerContext);
+      float intervalInSeconds = ml::Timers::kMillisecondsResolution * 0.001f;
+      pTimersRef = CFRunLoopTimerCreate(
+          kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + intervalInSeconds,
+          intervalInSeconds, 0, 0, macTimersCallback, &timerContext);
       if (pTimersRef)
       {
         _running = true;
-        CFRunLoopTimerRef pTimerRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
-        CFRunLoopAddTimer (CFRunLoopGetMain(), pTimerRef, kCFRunLoopCommonModes);
+        CFRunLoopTimerRef pTimerRef =
+            static_cast<CFRunLoopTimerRef>(pTimersRef);
+        CFRunLoopAddTimer(CFRunLoopGetMain(), pTimerRef, kCFRunLoopCommonModes);
       }
     }
     else
     {
-     _running = true;
-      runThread = std::thread { [&](){ run(); } };
+      _running = true;
+      runThread = std::thread{[&]() { run(); }};
     }
   }
 }
 
 void ml::Timers::stop()
 {
-  if(_inMainThread)
+  if (_inMainThread)
   {
-      if(pTimersRef)
-      {
-        CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
-        CFRunLoopRemoveTimer (CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
-        pTimersRef = nullptr;
-      }
+    if (pTimersRef)
+    {
+      CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
+      CFRunLoopRemoveTimer(CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
+      pTimersRef = nullptr;
+    }
   }
   else
   {
@@ -74,12 +78,13 @@ void ml::Timers::stop()
 
 #include <windows.h>
 
-ml::Timers* pWinTimers{ nullptr };
+ml::Timers* pWinTimers{nullptr};
 
-void CALLBACK winTimersCallback (HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent, DWORD /*dwTime*/)
+void CALLBACK winTimersCallback(HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent,
+                                DWORD /*dwTime*/)
 {
-  //ml::Timers* pTimers = (ml::Timers*)(ml::Timers::winTimersRef);
-  if(pWinTimers)
+  // ml::Timers* pTimers = (ml::Timers*)(ml::Timers::winTimersRef);
+  if (pWinTimers)
   {
     pWinTimers->tick();
   }
@@ -88,11 +93,12 @@ void CALLBACK winTimersCallback (HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent,
 void ml::Timers::start(bool runInMainThread)
 {
   _inMainThread = runInMainThread;
-  if(!_running)
+  if (!_running)
   {
     if (_inMainThread)
     {
-      _timerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution, winTimersCallback);
+      _timerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution,
+                          winTimersCallback);
       if (_timerID)
       {
         _running = true;
@@ -102,7 +108,7 @@ void ml::Timers::start(bool runInMainThread)
     else
     {
       _running = true;
-      runThread = std::thread { [&](){ run(); } };
+      runThread = std::thread{[&]() { run(); }};
       pWinTimers = this;
     }
   }
@@ -132,10 +138,10 @@ void ml::Timers::stop()
 
 void Timers::start(bool runInMainThread)
 {
-  if(!_running)
+  if (!_running)
   {
     _running = true;
-    runThread = std::thread { [&](){ run(); } };
+    runThread = std::thread{[&]() { run(); }};
   }
 }
 
@@ -146,15 +152,15 @@ void ml::Timers::tick(void)
   time_point<system_clock> now = system_clock::now();
   std::unique_lock<std::mutex> lock(mSetMutex);
 
-  for(auto t : timerPtrs)
+  for (auto t : timerPtrs)
   {
     std::unique_lock<std::mutex> lock(t->_counterMutex);
-    if(t->mCounter != 0)
+    if (t->mCounter != 0)
     {
-      if(now - t->mPreviousCall > t->mPeriod)
+      if (now - t->mPreviousCall > t->mPeriod)
       {
         t->myFunc();
-        if(t->mCounter > 0)
+        if (t->mCounter > 0)
         {
           t->mCounter--;
         }
@@ -166,7 +172,7 @@ void ml::Timers::tick(void)
 
 void ml::Timers::run(void)
 {
-  while(_running)
+  while (_running)
   {
     std::this_thread::sleep_for(milliseconds(Timers::kMillisecondsResolution));
     tick();
@@ -194,4 +200,3 @@ void ml::Timer::stop()
   std::unique_lock<std::mutex> lock(_counterMutex);
   mCounter = 0;
 }
-

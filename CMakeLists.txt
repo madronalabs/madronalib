@@ -65,7 +65,7 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
-# include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/app)
@@ -83,7 +83,6 @@ if(APPLE)
 else()
 endif()
 
-
 #--------------------------------------------------------------------
 # collect sources and headers
 #--------------------------------------------------------------------
@@ -100,8 +99,8 @@ file(GLOB MATRIX_HEADERS "source/matrix/*.h")
 file(GLOB PROC_SOURCES "source/procs/*.cpp")
 file(GLOB PROC_HEADERS "source/procs/*.h")
 
-set(AES_SOURCES "external/aes256/aes256.cpp")
-set(JSON_SOURCES "external/cJSON/cJSON.c")
+file(GLOB AES_SOURCES "external/aes256/*.cpp")
+file(GLOB JSON_SOURCES "external/cJSON/*.c")
 
 file(GLOB OSC_HEADERS_IP "external/oscpack/ip/*.h")
 file(GLOB OSC_HEADERS_OSC "external/oscpack/osc/*.h")
@@ -332,3 +331,37 @@ if(BUILD_TESTS)
     target_link_libraries(tests madronalib)
 
 endif()
+
+#--------------------------------------------------------------------
+# Including custom cmake rules
+#--------------------------------------------------------------------
+
+set(madronalib_SOURCES_internal
+    ${APP_SOURCES}
+    ${APP_HEADERS}
+    ${DSP_HEADERS}
+    ${MATRIX_SOURCES}
+    ${MATRIX_HEADERS}
+    ${PROC_SOURCES}
+    ${PROC_HEADERS}
+    )
+
+if(APPLE)
+  list(APPEND madronalib_SOURCES_internal ${NETWORKING_SOURCES} )
+endif()
+
+# Adding clang-format target if executable is found
+find_program(CLANG_FORMAT "clang-format")
+if(CLANG_FORMAT)
+  add_custom_target(
+    clang-format
+    COMMAND /usr/local/bin/clang-format
+    -i
+    --verbose
+    -style=file
+    ${madronalib_SOURCES_internal}
+    )
+endif()
+
+
+
