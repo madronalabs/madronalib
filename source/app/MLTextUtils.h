@@ -26,8 +26,6 @@ bool isWhitespace(CodePoint c);
 bool isCJK(CodePoint c);
 
 char* spaceStr(size_t numIndents);
-//	int digitsToNaturalNumber(const char32_t* p);
-//	const char *naturalNumberToDigits(int value, char* pDest);
 
 // ----------------------------------------------------------------
 // TextFragment utilities

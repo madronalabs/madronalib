@@ -91,32 +91,6 @@ int digitsToNaturalNumber(const char32_t* p)
   return v;
 }
 
-/*
- unsafe. unused?
-  const char* naturalNumberToDigits(int value, char* pDest)
-  {
-      const int base = 10;
-      char* ptr = pDest, *ptr1 = pDest, tmp_char;
-      int tmp_value;
-
-      if(value <= 0)
-      {
-          *pDest = '0';
-          *(++pDest) = '\0';
-          return pDest;
-      }
-      do
-      {
-          tmp_value = value;
-          value /= base;
-          *ptr++ = "0123456789abcdef"[tmp_value - value*base];
-      } while ( value > 0 );
-
-      *ptr-- = '\0';
-
-      return pDest;
-  }
-  */
 
 int textToNaturalNumber(const TextFragment& frag)
 {
@@ -272,49 +246,104 @@ TextFragment floatNumberToText(float f, int precision)
   return TextFragment(buf, writePtr - buf);
 }
 
+
+bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
+{
+  for (const CodePoint c : f)
+  {
+    if(c == cp) return true;
+  }
+  return false;
+}
+
+
 float textToFloatNumber(const TextFragment& frag)
 {
-  // nan
-  // sign
-  // inf
-  // whole part
-  // decimal point
-  // fractional part
-  // e
-  // exponent sign
-  // exponent
-
-  // TODO scientific notation, nan, inf
+  float sign = 1;
+  float wholePart = 0, fractionalPart = 0, fractionalScale = 1;
+  float exponentSign = 1, exponent = 0;
+  bool hasExp = false;
 
   auto it = frag.begin();
 
-  float rez = 0, fact = 1;
-  uint8_t c = *it;
-  if (c == '-')
+  // nan
+  while(fragmentContainsCodePoint("NaN", *it))
   {
-    it++;
-    fact = -1;
-  };
-  for (int point_seen = 0; it != frag.end(); it++)
+    wholePart = std::numeric_limits< float >::quiet_NaN();
+    ++it;
+  }
+
+  // sign
+  while(fragmentContainsCodePoint("-", *it))
   {
-    c = *it;
-    if (c == '.')
-    {
-      point_seen = 1;
-      continue;
-    }
-    else if (c == 'e')
-    {
-      break;
-    }
-    else if (c >= '0' && c <= '9')  //(d >= 0 && d <= 9)
-    {
-      int d = c - '0';
-      if (point_seen) fact /= 10.0f;
-      rez = rez * 10.0f + (float)d;
-    };
-  };
-  return rez * fact;
+    sign = -sign;
+    ++it;
+  }
+
+  // inf
+  while(fragmentContainsCodePoint("inf", *it) )
+  {
+    wholePart = std::numeric_limits< float >::infinity();
+    ++it;
+  }
+
+  // whole part
+  while(fragmentContainsCodePoint("0123456789", *it) )
+  {
+    CodePoint c = *it;
+    int d = c - '0';
+    wholePart = wholePart * 10.0f + (float)d;
+    ++it;
+  }
+
+  // decimal point
+  while(fragmentContainsCodePoint(".", *it) )
+  {
+    ++it;
+  }
+
+  // fractional part
+  while(fragmentContainsCodePoint("0123456789", *it) )
+  {
+    CodePoint c = *it;
+    int d = c - '0';
+    fractionalPart = fractionalPart * 10.0f + (float)d;
+    fractionalScale *= 0.1f;
+    ++it;
+  }
+
+  // e (scientific notation flag)
+  while(fragmentContainsCodePoint("e+", *it) )
+  {
+    hasExp = true;
+    ++it;
+  }
+
+  // exponent sign
+  while(fragmentContainsCodePoint("-", *it))
+  {
+    exponentSign = -exponentSign;
+    ++it;
+  }
+
+  // exponent
+  while(fragmentContainsCodePoint("0123456789", *it))
+  {
+    CodePoint c = *it;
+    int d = c - '0';
+    exponent = exponent * 10.0f + (float)d;
+    ++it;
+  }
+
+  float base = sign*(wholePart + fractionalPart*fractionalScale);
+  if(!hasExp)
+  {
+    return base;
+  }
+  else
+  {
+    return base*powf(10.f, exponent*exponentSign);
+  }
 }
 
 int findFirst(const TextFragment& frag, const CodePoint b)

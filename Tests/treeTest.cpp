@@ -322,7 +322,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
               (i & 1 ? -1 : 1);
     auto t = textUtils::floatNumberToText(v, 5);
     auto f = textUtils::textToFloatNumber(t);
-    std::cout << std::setprecision(10) << v << " -> " << t << " -> " << f
+    std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f
               << " \n";
   }
 
