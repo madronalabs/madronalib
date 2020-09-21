@@ -24,11 +24,11 @@
 
 namespace ml
 {
-template < class V, class C = std::less< Symbol > >
+template <class V, class C = std::less<Symbol> >
 class Tree final
 {
   // recursive definition: a Tree has a map of Symbols to Trees, and a value.
-  using mapT = std::map< Symbol, Tree< V, C >, C >;
+  using mapT = std::map<Symbol, Tree<V, C>, C>;
   mapT mChildren{};
   V _value{};
 
@@ -39,8 +39,8 @@ class Tree final
   }
 
  public:
-  Tree< V, C >() = default;
-  Tree< V, C >(V val) : _value(std::move(val)) {}
+  Tree<V, C>() = default;
+  Tree<V, C>(V val) : _value(std::move(val)) {}
 
   void clear()
   {
@@ -53,7 +53,7 @@ class Tree final
   // find a tree node at the specified path.
   // if successful, return a pointer to the node. If unsuccessful, return
   // nullptr. const version.
-  const Tree< V, C >* getConstNode(Path path) const
+  const Tree<V, C>* getConstNode(Path path) const
   {
     auto pNode = this;
     for (Symbol key : path)
@@ -74,9 +74,9 @@ class Tree final
   // find a tree node at the specified path.
   // if successful, return a pointer to the node. If unsuccessful, return
   // nullptr.
-  Tree< V, C >* getNode(Path path)
+  Tree<V, C>* getNode(Path path)
   {
-    return const_cast< Tree< V, C >* >(const_cast< const Tree< V, C >* >(this)->getConstNode(path));
+    return const_cast<Tree<V, C>*>(const_cast<const Tree<V, C>*>(this)->getConstNode(path));
   }
 
   // if the path exists, returns a reference to the value in the tree at the
@@ -111,7 +111,7 @@ class Tree final
 
   // add a value V to the Tree such that getValue(path) will return V.
   // add any intermediate nodes necessary in order to put it there.
-  Tree< V, C >* add(Path path, V val)
+  Tree<V, C>* add(Path path, V val)
   {
     auto pNode = this;
     int pathSize = path.getSize();
@@ -174,19 +174,19 @@ class Tree final
   // pre-increment form ++it.
 
   friend class const_iterator;
-  class const_iterator : public std::iterator< std::forward_iterator_tag, const V >
+  class const_iterator : public std::iterator<std::forward_iterator_tag, const V>
   {
-    std::vector< const Tree< V, C >* > mNodeStack;
-    std::vector< typename mapT::const_iterator > mIteratorStack;
+    std::vector<const Tree<V, C>*> mNodeStack;
+    std::vector<typename mapT::const_iterator> mIteratorStack;
 
    public:
-    const_iterator(const Tree< V, C >* p)
+    const_iterator(const Tree<V, C>* p)
     {
       mNodeStack.push_back(p);
       mIteratorStack.push_back(p->mChildren.begin());
     }
 
-    const_iterator(const Tree< V, C >* p, const typename mapT::const_iterator subIter)
+    const_iterator(const Tree<V, C>* p, const typename mapT::const_iterator subIter)
     {
       mNodeStack.push_back(p);
       mIteratorStack.push_back(subIter);
@@ -307,8 +307,8 @@ class Tree final
 };
 
 // utilities
-template < class V, class C = std::less< Symbol > >
-bool treeNodeExists(const Tree< V, C >& t, Path path)
+template <class V, class C = std::less<Symbol> >
+bool treeNodeExists(const Tree<V, C>& t, Path path)
 {
   return (t.getConstNode(path) != nullptr);
 }

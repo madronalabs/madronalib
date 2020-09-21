@@ -111,12 +111,12 @@ class Matrix final
   Matrix(const Matrix& b);
   explicit Matrix(int width, int height = 1, int depth = 1);
   explicit Matrix(int width, int height, int depth, const float* pData);
-  Matrix(std::initializer_list< float > values);
+  Matrix(std::initializer_list<float> values);
 
   // create a looped version of the signal argument, according to the loop type
   Matrix(Matrix src, eLoopType loopType, int loopLength);
 
-  inline Matrix(int width, std::function< float(int) > fillFn) : mDataAligned(0), mData(0)
+  inline Matrix(int width, std::function<float(int)> fillFn) : mDataAligned(0), mData(0)
   {
     setDims(width);
     for (int n = 0; n < width; ++n)
@@ -558,25 +558,22 @@ class Matrix final
    */
 
   // utilities for getting pointers to the aligned data as other types.
-  uint32_t* asUInt32Ptr(void) const { return reinterpret_cast< uint32_t* >(mDataAligned); }
+  uint32_t* asUInt32Ptr(void) const { return reinterpret_cast<uint32_t*>(mDataAligned); }
   const uint32_t* asConstUInt32Ptr(void) const
   {
-    return reinterpret_cast< const uint32_t* >(mDataAligned);
+    return reinterpret_cast<const uint32_t*>(mDataAligned);
   }
-  int32_t* asInt32Ptr(void) const { return reinterpret_cast< int32_t* >(mDataAligned); }
+  int32_t* asInt32Ptr(void) const { return reinterpret_cast<int32_t*>(mDataAligned); }
   const int32_t* asConstInt32Ptr(void) const
   {
-    return reinterpret_cast< const int32_t* >(mDataAligned);
+    return reinterpret_cast<const int32_t*>(mDataAligned);
   }
-  __m128* asM128Ptr(void) const { return reinterpret_cast< __m128* >(mDataAligned); }
-  const __m128* asConstM128Ptr(void) const
-  {
-    return reinterpret_cast< const __m128* >(mDataAligned);
-  }
-  __m128i* asM128IPtr(void) const { return reinterpret_cast< __m128i* >(mDataAligned); }
+  __m128* asM128Ptr(void) const { return reinterpret_cast<__m128*>(mDataAligned); }
+  const __m128* asConstM128Ptr(void) const { return reinterpret_cast<const __m128*>(mDataAligned); }
+  __m128i* asM128IPtr(void) const { return reinterpret_cast<__m128i*>(mDataAligned); }
   const __m128i* asConstM128IPtr(void) const
   {
-    return reinterpret_cast< const __m128i* >(mDataAligned);
+    return reinterpret_cast<const __m128i*>(mDataAligned);
   }
 
   // helper functions

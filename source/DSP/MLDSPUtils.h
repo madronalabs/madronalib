@@ -49,14 +49,14 @@ const Projection flatTop([](float x) {
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
 // DSPVector-sized chunks
 
-template < int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES >
+template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer
 {
   using VectorProcessFn =
-      std::function< DSPVectorArray< OUT_CHANNELS >(const DSPVectorArray< IN_CHANNELS >&) >;
+      std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)>;
 
-  DSPVectorArray< IN_CHANNELS > _inputVectors;
-  DSPVectorArray< OUT_CHANNELS > _outputVectors;
+  DSPVectorArray<IN_CHANNELS> _inputVectors;
+  DSPVectorArray<OUT_CHANNELS> _outputVectors;
 
  public:
   VectorProcessBuffer()
@@ -129,8 +129,8 @@ class VectorProcessBuffer
   }
 
  private:
-  std::array< ml::DSPBuffer, IN_CHANNELS > mInputBuffers;
-  std::array< ml::DSPBuffer, OUT_CHANNELS > mOutputBuffers;
+  std::array<ml::DSPBuffer, IN_CHANNELS> mInputBuffers;
+  std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
 };
 
 // horiz -> vert -> horiz adapters can go here

@@ -18,7 +18,7 @@ struct Interval
 
 inline bool within(float f, const Interval m) { return (f >= m.mX1) && (f < m.mX2); }
 
-using Projection = std::function< float(float) >;
+using Projection = std::function<float(float)>;
 
 inline Projection compose(Projection a, Projection b)
 {
@@ -116,17 +116,17 @@ inline Projection intervalMap(const Interval a, const Interval b, Projection c)
   };
 }
 
-inline Projection piecewiseLinear(std::initializer_list< float > values)
+inline Projection piecewiseLinear(std::initializer_list<float> values)
 {
-  const std::vector< float > table(values);
+  const std::vector<float> table(values);
 
   if (table.size() > 1)
   {
     return [=](float x) {
       float ni = table.size() - 1;
-      float nf = static_cast< float >(ni);
+      float nf = static_cast<float>(ni);
       float xf = nf * clamp(x, 0.f, 1.f);
-      int xi = static_cast< int >(xf);
+      int xi = static_cast<int>(xf);
       float xr = xf - xi;
 
       if (x < 1.0f)
@@ -151,21 +151,21 @@ inline Projection piecewiseLinear(std::initializer_list< float > values)
 
 // like piecewiseLinear, but with a shape for each segment for easing and such
 
-inline Projection piecewise(std::initializer_list< float > valueList,
-                            std::initializer_list< Projection > shapeList)
+inline Projection piecewise(std::initializer_list<float> valueList,
+                            std::initializer_list<Projection> shapeList)
 {
   // TODO asserts not working on Windows
   // assert(shapeList.size() == valueList.size() - 1);
-  const std::vector< float > table(valueList);
-  const std::vector< Projection > shapeTable(shapeList);
+  const std::vector<float> table(valueList);
+  const std::vector<Projection> shapeTable(shapeList);
 
   if (table.size() > 1)
   {
     return [=](float x) {
       float ni = table.size() - 1;
-      float nf = static_cast< float >(ni);
+      float nf = static_cast<float>(ni);
       float xf = nf * clamp(x, 0.f, 1.f);
-      int xi = static_cast< int >(xf);
+      int xi = static_cast<int>(xf);
       float xr = xf - xi;
 
       if (x < 1.0f)

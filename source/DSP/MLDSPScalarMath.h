@@ -53,39 +53,39 @@ inline int modulo(int a, int b) { return a >= 0 ? (a % b) : (b - abs(a % b)) % b
 // ----------------------------------------------------------------
 #pragma mark scalar-type templates
 
-template < class c >
+template <class c>
 constexpr inline c(min)(const c& a, const c& b)
 {
   return (a < b) ? a : b;
 }
 
-template < class c >
+template <class c>
 constexpr inline c(max)(const c& a, const c& b)
 {
   return (a > b) ? a : b;
 }
 
 // clamp to closed interval [min, max].
-template < class c >
+template <class c>
 constexpr inline c(clamp)(const c& x, const c& min, const c& max)
 {
   return (x < min) ? min : (x > max ? max : x);
 }
 
-template < class c >
+template <class c>
 constexpr inline c lerp(const c& a, const c& b, const c& m)
 {
   return (a + m * (b - a));
 }
 
 // return bool value of within half-open interval [min, max).
-template < class c >
+template <class c>
 constexpr inline bool(within)(const c& x, const c& min, const c& max)
 {
   return ((x >= min) && (x < max));
 }
 
-template < class c >
+template <class c>
 constexpr inline int(sign)(const c& x)
 {
   return (x == 0) ? 0 : ((x > 0) ? 1 : -1);
@@ -217,7 +217,7 @@ class RandomScalarSource
     uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
     temp &= 0x007FFFFF;
     temp |= 0x3F800000;
-    float* pf = reinterpret_cast< float* >(&temp);
+    float* pf = reinterpret_cast<float*>(&temp);
     *pf *= 2.f;
     *pf -= 3.f;
     return *pf;
@@ -370,8 +370,8 @@ constexpr double log_helper(const double x) { return log_helper2((x - 1.0) / (x 
 // n.b. log m = log (sqrt(m)^2) = 2 * log sqrt(m)
 constexpr double log(const double x)
 {
-  return x == 0 ? -std::numeric_limits< double >::infinity()
-                : x < 0 ? std::numeric_limits< double >::quiet_NaN()
+  return x == 0 ? -std::numeric_limits<double>::infinity()
+                : x < 0 ? std::numeric_limits<double>::quiet_NaN()
                         : 2.0 * log_helper(sqrt(mantissa(x))) + 2.3025851 * exponent(x);
 }
 }  // namespace const_math

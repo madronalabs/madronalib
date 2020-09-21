@@ -39,8 +39,8 @@ class Interpolator
     int frameSize = min(target.getHeight(), y.getHeight());
     int frames = y.getWidth();
 
-    Matrix requiredDims{static_cast< float >(kInterpolationDegree + 1),
-                        static_cast< float >(frameSize)};
+    Matrix requiredDims{static_cast<float>(kInterpolationDegree + 1),
+                        static_cast<float>(frameSize)};
 
     if (mHistory.getDims() != requiredDims)
     {

@@ -101,10 +101,7 @@ class Ratio
     return *this;
   }
 
-  inline float getFloat() const
-  {
-    return (static_cast< float >(top)) / (static_cast< float >(bottom));
-  }
+  inline float getFloat() const { return (static_cast<float>(top)) / (static_cast<float>(bottom)); }
   inline explicit operator bool() { return (bottom != 0); }
 };
 
@@ -159,9 +156,9 @@ class CommonRatios
                                        42, 50, 64, 100, 128, 256, 512, 1024};
 
  public:
-  std::list< Ratio > mRatios;
+  std::list<Ratio> mRatios;
 
-  CommonRatios() : mRatios(std::list< Ratio >())
+  CommonRatios() : mRatios(std::list<Ratio>())
   {
     mRatios.push_back(Ratio(0, 1));
     mRatios.push_back(Ratio(1, 1));
@@ -204,7 +201,7 @@ class CommonRatios
 
     CommonRatios& c(theCommonRatios());
 
-    for (std::list< Ratio >::const_iterator i = c.mRatios.begin(); i != c.mRatios.end(); ++i)
+    for (std::list<Ratio>::const_iterator i = c.mRatios.begin(); i != c.mRatios.end(); ++i)
     {
       Ratio b = *i;
       float fb = (b).getFloat();

@@ -63,7 +63,7 @@ Matrix::Matrix(const Matrix& other) : mDataAligned(0), mData(0), mWidth(0), mHei
   std::copy(other.mDataAligned, other.mDataAligned + mSize, mDataAligned);
 }
 
-Matrix::Matrix(std::initializer_list< float > values)
+Matrix::Matrix(std::initializer_list<float> values)
     : mDataAligned(0), mData(0), mWidth(0), mHeight(0), mDepth(0)
 {
   mRate = kToBeCalculated;
@@ -186,16 +186,16 @@ Matrix Matrix::getDims()
 {
   if (mDepth > 1)
   {
-    return Matrix{static_cast< float >(mWidth), static_cast< float >(mHeight),
-                  static_cast< float >(mDepth)};
+    return Matrix{static_cast<float>(mWidth), static_cast<float>(mHeight),
+                  static_cast<float>(mDepth)};
   }
   else if (mHeight > 1)
   {
-    return Matrix{static_cast< float >(mWidth), static_cast< float >(mHeight)};
+    return Matrix{static_cast<float>(mWidth), static_cast<float>(mHeight)};
   }
   else
   {
-    return Matrix{static_cast< float >(mWidth)};
+    return Matrix{static_cast<float>(mWidth)};
   }
 }
 
@@ -227,13 +227,13 @@ float* Matrix::setDims(const Matrix& whd)
   {
     case 1:
     default:
-      setDims(static_cast< int >(whd[0]));
+      setDims(static_cast<int>(whd[0]));
       break;
     case 2:
-      setDims(static_cast< int >(whd[0]), static_cast< int >(whd[1]));
+      setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]));
       break;
     case 3:
-      setDims(static_cast< int >(whd[0]), static_cast< int >(whd[1]), static_cast< int >(whd[2]));
+      setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]), static_cast<int>(whd[2]));
       break;
   }
   return mDataAligned;

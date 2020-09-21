@@ -50,7 +50,7 @@ void Path::parsePathString(const char* pathStr, const char separator)
     do
     {
       CodePoint cp = *it;
-      size_t codePointSize = utf::internal::utf_traits< utf::utf8 >::write_length(cp);
+      size_t codePointSize = utf::internal::utf_traits<utf::utf8>::write_length(cp);
       charIsSeparator = (codePointSize == 1) && (cp == separator);
       finishedString = (cp == '\0');
       finishedSymbol = charIsSeparator || finishedString;

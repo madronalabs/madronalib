@@ -45,7 +45,7 @@ struct ValueChange
 // ValueChangeList is not safe for use in audio processing threads. Given the
 // intended use in editors and controllers, this seems like a reasonable
 // tradeoff.
-using ValueChangeList = std::vector< ValueChange >;
+using ValueChangeList = std::vector<ValueChange>;
 
 }  // namespace ml
 

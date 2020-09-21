@@ -29,7 +29,7 @@ class TextFragment
   class Iterator
   {
     class Impl;
-    std::unique_ptr< Impl > pImpl;
+    std::unique_ptr<Impl> pImpl;
 
    public:
     Iterator(const char* pos);
@@ -200,10 +200,10 @@ typedef TextFragment Text;
 
 bool validateCodePoint(CodePoint c);
 
-std::vector< uint8_t > textToByteVector(TextFragment frag);
-TextFragment byteVectorToText(const std::vector< uint8_t >& v);
+std::vector<uint8_t> textToByteVector(TextFragment frag);
+TextFragment byteVectorToText(const std::vector<uint8_t>& v);
 
-std::vector< CodePoint > textToCodePoints(TextFragment frag);
-TextFragment codePointsToText(std::vector< CodePoint > cv);
+std::vector<CodePoint> textToCodePoints(TextFragment frag);
+TextFragment codePointsToText(std::vector<CodePoint> cv);
 
 }  // namespace ml

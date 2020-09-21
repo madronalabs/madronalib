@@ -311,9 +311,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   }
   REQUIRE(count == 1);
 
-  std::cout << "\n\n";
+}
 
-  // floatNumberToText tests
+TEST_CASE("madronalib/core/serialization", "[serialization]")
+{
+  // serialization sample code.
+  // TODO test float -> text -> float conversion
 
   NoiseGen n;
   for (int i = 0; i < 80; ++i)
@@ -322,10 +325,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
               (i & 1 ? -1 : 1);
     auto t = textUtils::floatNumberToText(v, 15);
     auto f = textUtils::textToFloatNumber(t);
-    std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f
-              << " \n";
+    //std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f << "\n";
   }
-
 
   const float maxFloat = std::numeric_limits<float>::max();
   const float minFloat = std::numeric_limits<float>::min();
@@ -335,15 +336,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat};
   for(auto v : vf)
   {
-
-
   auto t = textUtils::floatNumberToText(v, 10);
   auto f = textUtils::textToFloatNumber(t);
-  std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f
-  << " \n";
-
+  // std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f << "\n";
   }
-
-
-  // TODO implement textTofloatNumber and test for correct I/O
 }
+

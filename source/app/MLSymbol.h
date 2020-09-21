@@ -47,22 +47,22 @@ constexpr int kDefaultSymbolTableSize = 4096;
 
 // very simple hash function from Kernighan & Ritchie.
 // Constexpr version for hashing strings known at compile time.
-template < size_t N >
+template <size_t N>
 constexpr uint32_t krHash2(const char* str)
 {
-  return (N > 1) ? ((krHash2< N - 1 >(str + 1)) + *str) * 31u : 0;
+  return (N > 1) ? ((krHash2<N - 1>(str + 1)) + *str) * 31u : 0;
 }
 
 template <>
-constexpr uint32_t krHash2< size_t(0) >(const char* str)
+constexpr uint32_t krHash2<size_t(0)>(const char* str)
 {
   return 0;
 }
 
-template < size_t N >
+template <size_t N>
 constexpr uint32_t krHash1(const char* str)
 {
-  return krHash2< N >(str) & kHashTableMask;
+  return krHash2<N>(str) & kHashTableMask;
 }
 
 // non-recursive hash producing equivalent results to krHash1.
@@ -82,10 +82,10 @@ inline uint32_t krHash0(const char* str, const size_t len)
 
 inline uint32_t krHash0(const char* str) { return krHash0(str, strlen(str)); }
 
-template < size_t N >
+template <size_t N>
 constexpr uint32_t hash(const char (&sym)[N])
 {
-  return krHash1< N >(sym);
+  return krHash1<N>(sym);
 }
 
 class HashedCharArray
@@ -93,8 +93,8 @@ class HashedCharArray
  public:
   // template ctor from string literals allows hashing for code like
   // Proc::setParam("foo") to be done at compile time.
-  template < size_t N >
-  constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1< N >(sym)), pChars(sym)
+  template <size_t N>
+  constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pChars(sym)
   {
   }
 
@@ -142,31 +142,31 @@ class SymbolTable
 
  private:
   // vector of text fragments in ID/creation order
-  std::vector< TextFragment > mSymbolTextsByID;
+  std::vector<TextFragment> mSymbolTextsByID;
 
   // hash table containing indexes to strings for a given hash value.
   struct TableEntry
   {
     std::mutex mMutex;
-    std::vector< SymbolID > mIDVector;
+    std::vector<SymbolID> mIDVector;
   };
 
   void clearEntry(TableEntry& entry)
   {
-    std::unique_lock< std::mutex > lock(entry.mMutex);
+    std::unique_lock<std::mutex> lock(entry.mMutex);
     entry.mIDVector.clear();
   }
 
   // since the maximum hash value is known, there will be no need to resize this
   // array.
-  std::array< TableEntry, kHashTableSize > mHashTable;
+  std::array<TableEntry, kHashTableSize> mHashTable;
 
   size_t mSize{0};
 };
 
 inline SymbolTable& theSymbolTable()
 {
-  static const std::unique_ptr< SymbolTable > t(new SymbolTable());
+  static const std::unique_ptr<SymbolTable> t(new SymbolTable());
   return *t;
 }
 
@@ -263,7 +263,7 @@ inline Symbol operator+(Symbol f1, Symbol f2)
 namespace std
 {
 template <>
-struct hash< ml::Symbol >
+struct hash<ml::Symbol>
 {
   std::size_t operator()(const ml::Symbol& s) const { return s.getID(); }
 };

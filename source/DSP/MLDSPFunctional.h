@@ -26,14 +26,14 @@ namespace ml
 // but a compiler bug is preventing it from working on Windows.
 // TODO revisit
 
-template < int IN_ROWS >
+template <int IN_ROWS>
 class Upsample2xFunction
 {
   static constexpr int OUT_ROWS = 1;  // see above
 
-  using inputType = const DSPVectorArray< IN_ROWS >;
-  using outputType = DSPVectorArray< 1 >;  // OUT_ROWS
-  using ProcessFn = std::function< outputType(inputType) >;
+  using inputType = const DSPVectorArray<IN_ROWS>;
+  using outputType = DSPVectorArray<1>;  // OUT_ROWS
+  using ProcessFn = std::function<outputType(inputType)>;
 
  public:
   // operator() takes two arguments: a process function and an input
@@ -64,10 +64,10 @@ class Upsample2xFunction
   }
 
  private:
-  std::array< HalfBandFilter, IN_ROWS > mUppers;
-  std::array< HalfBandFilter, OUT_ROWS > mDowners;
-  DSPVectorArray< IN_ROWS > mUpsampledInput1, mUpsampledInput2;
-  DSPVectorArray< OUT_ROWS > mUpsampledOutput1, mUpsampledOutput2;
+  std::array<HalfBandFilter, IN_ROWS> mUppers;
+  std::array<HalfBandFilter, OUT_ROWS> mDowners;
+  DSPVectorArray<IN_ROWS> mUpsampledInput1, mUpsampledInput2;
+  DSPVectorArray<OUT_ROWS> mUpsampledOutput1, mUpsampledOutput2;
 };
 
 // Downsample2xFunction is a function object that given a process function f,
@@ -78,23 +78,23 @@ class Upsample2xFunction
 // interpolation (about 6 samples).
 
 // template<int IN_ROWS, int OUT_ROWS>
-template < int IN_ROWS >
+template <int IN_ROWS>
 class Downsample2xFunction
 {
   static constexpr int OUT_ROWS = 1;  // see above
 
-  using inputType = const DSPVectorArray< IN_ROWS >;
-  using outputType = DSPVectorArray< 1 >;  // OUT_ROWS
-  using ProcessFn = std::function< outputType(inputType) >;
+  using inputType = const DSPVectorArray<IN_ROWS>;
+  using outputType = DSPVectorArray<1>;  // OUT_ROWS
+  using ProcessFn = std::function<outputType(inputType)>;
 
  public:
   // operator() takes two arguments: a process function and an input
   // DSPVectorArray. The optional argument DSPVectorArray<0>() allows passing
   // only one argument in the case of a generator with 0 input rows.
-  inline DSPVectorArray< OUT_ROWS > operator()(
-      ProcessFn fn, const DSPVectorArray< IN_ROWS > vx = DSPVectorArray< 0 >())
+  inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn,
+                                             const DSPVectorArray<IN_ROWS> vx = DSPVectorArray<0>())
   {
-    DSPVectorArray< OUT_ROWS > vy;
+    DSPVectorArray<OUT_ROWS> vy;
     if (mPhase)
     {
       // downsample each row of input to 1/2x buffers
@@ -128,12 +128,12 @@ class Downsample2xFunction
   }
 
  private:
-  std::array< HalfBandFilter, IN_ROWS > mDowners;
-  std::array< HalfBandFilter, OUT_ROWS > mUppers;
-  DSPVectorArray< IN_ROWS > mInputBuffer;
-  DSPVectorArray< OUT_ROWS > mOutputBuffer;
-  DSPVectorArray< IN_ROWS > mDownsampledInput;
-  DSPVectorArray< OUT_ROWS > mDownsampledOutput;
+  std::array<HalfBandFilter, IN_ROWS> mDowners;
+  std::array<HalfBandFilter, OUT_ROWS> mUppers;
+  DSPVectorArray<IN_ROWS> mInputBuffer;
+  DSPVectorArray<OUT_ROWS> mOutputBuffer;
+  DSPVectorArray<IN_ROWS> mDownsampledInput;
+  DSPVectorArray<OUT_ROWS> mDownsampledOutput;
   bool mPhase{false};
 };
 
@@ -166,18 +166,18 @@ private:
 class FeedbackDelayFunction
 {
   static constexpr int ROWS = 1;  // see above
-  using inputType = const DSPVectorArray< ROWS >;
-  using outputType = DSPVectorArray< 1 >;  // ROWS
-  using ProcessFn = std::function< outputType(inputType) >;
+  using inputType = const DSPVectorArray<ROWS>;
+  using outputType = DSPVectorArray<1>;  // ROWS
+  using ProcessFn = std::function<outputType(inputType)>;
 
  public:
   float feedbackGain{1.f};
 
-  inline DSPVectorArray< ROWS > operator()(const DSPVectorArray< ROWS > vx, ProcessFn fn,
-                                           const DSPVector vDelayTime)
+  inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn,
+                                         const DSPVector vDelayTime)
   {
-    DSPVectorArray< ROWS > vFnOutput;
-    vFnOutput = fn(vx + vy1 * DSPVectorArray< ROWS >(feedbackGain));
+    DSPVectorArray<ROWS> vFnOutput;
+    vFnOutput = fn(vx + vy1 * DSPVectorArray<ROWS>(feedbackGain));
 
     for (int j = 0; j < ROWS; ++j)
     {
@@ -187,8 +187,8 @@ class FeedbackDelayFunction
   }
 
  private:
-  std::array< PitchbendableDelay, ROWS > mDelays;
-  DSPVectorArray< ROWS > vy1;
+  std::array<PitchbendableDelay, ROWS> mDelays;
+  DSPVectorArray<ROWS> vy1;
 };
 
 // FeedbackDelayFunctionWithTap
@@ -201,20 +201,20 @@ class FeedbackDelayFunction
 class FeedbackDelayFunctionWithTap
 {
   static constexpr int ROWS = 1;  // see above
-  using inputType = const DSPVectorArray< ROWS >;
-  using tapType = DSPVectorArray< ROWS >&;
-  using outputType = DSPVectorArray< 1 >;  // ROWS
-  using ProcessFn = std::function< outputType(inputType, tapType) >;
+  using inputType = const DSPVectorArray<ROWS>;
+  using tapType = DSPVectorArray<ROWS>&;
+  using outputType = DSPVectorArray<1>;  // ROWS
+  using ProcessFn = std::function<outputType(inputType, tapType)>;
 
  public:
   float feedbackGain{1.f};
 
-  inline DSPVectorArray< ROWS > operator()(const DSPVectorArray< ROWS > vx, ProcessFn fn,
-                                           const DSPVector vDelayTime)
+  inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn,
+                                         const DSPVector vDelayTime)
   {
-    DSPVectorArray< ROWS > vFeedback;
-    DSPVectorArray< ROWS > vOutputTap;
-    vFeedback = fn(vx + vy1 * DSPVectorArray< ROWS >(feedbackGain), vOutputTap);
+    DSPVectorArray<ROWS> vFeedback;
+    DSPVectorArray<ROWS> vOutputTap;
+    vFeedback = fn(vx + vy1 * DSPVectorArray<ROWS>(feedbackGain), vOutputTap);
 
     for (int j = 0; j < ROWS; ++j)
     {
@@ -224,8 +224,8 @@ class FeedbackDelayFunctionWithTap
   }
 
  private:
-  std::array< PitchbendableDelay, ROWS > mDelays;
-  DSPVectorArray< ROWS > vy1;
+  std::array<PitchbendableDelay, ROWS> mDelays;
+  DSPVectorArray<ROWS> vy1;
 };
 
 }  // namespace ml

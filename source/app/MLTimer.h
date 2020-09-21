@@ -61,7 +61,7 @@ class Timers
   void* pTimersRef{nullptr};
   bool _running{false};
   bool _inMainThread{false};
-  std::set< Timer* > timerPtrs;
+  std::set<Timer*> timerPtrs;
   std::thread runThread;
 };  // class Timers
 
@@ -80,7 +80,7 @@ class Timer
   Timer& operator=(Timer&&) = delete;       // Move assign
 
   // call the function once after the specified interval.
-  void callOnce(std::function< void(void) > f, const milliseconds period)
+  void callOnce(std::function<void(void)> f, const milliseconds period)
   {
     mCounter = 1;
     myFunc = f;
@@ -89,7 +89,7 @@ class Timer
   }
 
   // call the function n times, waiting the specified interval before each.
-  void callNTimes(std::function< void(void) > f, const milliseconds period, int n)
+  void callNTimes(std::function<void(void)> f, const milliseconds period, int n)
   {
     mCounter = n;
     myFunc = f;
@@ -99,7 +99,7 @@ class Timer
 
   // start calling the function periodically. the wait period happens before the
   // first call.
-  void start(std::function< void(void) > f, const milliseconds period)
+  void start(std::function<void(void)> f, const milliseconds period)
   {
     mCounter = -1;
     myFunc = f;
@@ -114,10 +114,10 @@ class Timer
  private:
   std::mutex _counterMutex;
 
-  ml::SharedResourcePointer< ml::Timers > _timers;
+  ml::SharedResourcePointer<ml::Timers> _timers;
   int mCounter{0};
-  std::function< void(void) > myFunc;
+  std::function<void(void)> myFunc;
   milliseconds mPeriod;
-  time_point< system_clock > mPreviousCall;
+  time_point<system_clock> mPreviousCall;
 };
 }  // namespace ml

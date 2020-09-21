@@ -56,54 +56,54 @@ constexpr int kFloatsPerDSPVector = 64;
 //  DEALINGS IN THE SOFTWARE.
 
 /// A type that represents a parameter pack of zero or more integers.
-template < typename T, T... I >
+template <typename T, T... I>
 struct ml_integer_sequence
 {
-  static_assert(std::is_integral< T >::value, "Integral type");
+  static_assert(std::is_integral<T>::value, "Integral type");
 
   using type = T;
 
   static constexpr T size = sizeof...(I);
 
   /// Generate an ml_integer_sequence with an additional element.
-  template < T N >
-  using append = ml_integer_sequence< T, I..., N >;
+  template <T N>
+  using append = ml_integer_sequence<T, I..., N>;
 
-  using next = append< size >;
+  using next = append<size>;
 };
 
-template < typename T, T... I >
-constexpr T ml_integer_sequence< T, I... >::size;
+template <typename T, T... I>
+constexpr T ml_integer_sequence<T, I...>::size;
 
-template < std::size_t... I >
-using ml_index_sequence = ml_integer_sequence< std::size_t, I... >;
+template <std::size_t... I>
+using ml_index_sequence = ml_integer_sequence<std::size_t, I...>;
 
 namespace detail
 {
 // Metafunction that generates an ml_integer_sequence of T containing [0, N)
-template < typename T, T Nt, std::size_t N >
+template <typename T, T Nt, std::size_t N>
 struct iota
 {
   static_assert(Nt >= 0, "N cannot be negative");
-  using type = typename iota< T, Nt - 1, N - 1 >::type::next;
+  using type = typename iota<T, Nt - 1, N - 1>::type::next;
 };
 
 // Terminal case of the recursive metafunction.
-template < typename T, T Nt >
-struct iota< T, Nt, 0ul >
+template <typename T, T Nt>
+struct iota<T, Nt, 0ul>
 {
-  using type = ml_integer_sequence< T >;
+  using type = ml_integer_sequence<T>;
 };
 }  // namespace detail
 
 // ml_make_integer_sequence<T, N> is an alias for ml_integer_sequence<T,
 // 0,...N-1>
-template < typename T, T N >
-using ml_make_integer_sequence = typename detail::iota< T, N, N >::type;
+template <typename T, T N>
+using ml_make_integer_sequence = typename detail::iota<T, N, N>::type;
 
-template < int N >
-using ml_make_index_sequence = ml_make_integer_sequence< std::size_t, N >;
+template <int N>
+using ml_make_index_sequence = ml_make_integer_sequence<std::size_t, N>;
 
 // ml_index_sequence_for<A, B, C> is an alias for ml_index_sequence<0, 1, 2>
-template < typename... Args >
-using ml_index_sequence_for = ml_make_index_sequence< sizeof...(Args) >;
+template <typename... Args>
+using ml_index_sequence_for = ml_make_index_sequence<sizeof...(Args)>;

@@ -15,7 +15,7 @@ class constStr
   const std::size_t size_;
 
  public:
-  template < std::size_t N >
+  template <std::size_t N>
   constexpr constStr(const char (&a)[N]) : p_(a), size_(N - 1)
   {
   }
@@ -55,7 +55,7 @@ class constStrArray
   const std::size_t size_;
 
  public:
-  template < std::size_t N >
+  template <std::size_t N>
   constexpr constStrArray(const constStr (&a)[N]) : p_(a), size_(N)
   {
   }
@@ -69,7 +69,7 @@ class constStrArray
 };
 
 // constexpr array count function
-template < typename T, std::size_t N >
+template <typename T, std::size_t N>
 constexpr std::size_t constCount(T const (&)[N]) noexcept
 {
   return N;
@@ -82,7 +82,7 @@ constexpr int constFindIndex(const constStr* begin, int i, int N, constStr const
 
 // returns the array length N if not found, otherwise the index of the array
 // element equal to str.
-template < std::size_t N >
+template <std::size_t N>
 constexpr int constFind(constStr const (&array)[N], constStr str)
 {
   return constFindIndex(&(array[0]), 0, N, str);

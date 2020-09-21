@@ -23,16 +23,16 @@ struct NamedValue
 };
 
 // Define a type for initializing a new PropertyTree with a list of Values.
-using WithValues = const std::initializer_list< NamedValue >;
+using WithValues = const std::initializer_list<NamedValue>;
 
 class PropertyTree
 {
-  Tree< Value > properties;
+  Tree<Value> properties;
 
  public:
   PropertyTree() = default;
-  PropertyTree(Tree< Value > vt) : properties(vt) {}
-  PropertyTree(const std::initializer_list< NamedValue > p)
+  PropertyTree(Tree<Value> vt) : properties(vt) {}
+  PropertyTree(const std::initializer_list<NamedValue> p)
   {
     for (const auto& v : p)
     {
@@ -75,8 +75,8 @@ class PropertyTree
     return properties[p].getMatrixValueWithDefault(d);
   }
 
-  std::vector< unsigned char > propertyTreeToBinary() { return valueTreeToBinary(properties); }
-  PropertyTree binaryToPropertyTree(const std::vector< unsigned char >& binaryData)
+  std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }
+  PropertyTree binaryToPropertyTree(const std::vector<unsigned char>& binaryData)
   {
     return PropertyTree(binaryToValueTree(binaryData));
   }

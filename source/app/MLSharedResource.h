@@ -88,7 +88,7 @@ namespace ml
 
  @tags{Core}
  */
-template < typename SharedObjectType >
+template <typename SharedObjectType>
 class SharedResourcePointer
 {
   struct SpinLockGuard
@@ -150,7 +150,7 @@ class SharedResourcePointer
   struct SharedObjectHolder
   {
     std::atomic_flag static_flag = ATOMIC_FLAG_INIT;
-    std::unique_ptr< SharedObjectType > sharedInstance;
+    std::unique_ptr<SharedObjectType> sharedInstance;
     int refCount;
   };
 
@@ -158,7 +158,7 @@ class SharedResourcePointer
   {
     static void* holder[(sizeof(SharedObjectHolder) + sizeof(void*) - 1) / sizeof(void*)] = {
         nullptr};
-    return *reinterpret_cast< SharedObjectHolder* >(holder);
+    return *reinterpret_cast<SharedObjectHolder*>(holder);
   }
 
   SharedObjectType* sharedObject;

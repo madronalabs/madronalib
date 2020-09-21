@@ -60,7 +60,7 @@ MLNetServiceHub::~MLNetServiceHub()
 
 void MLNetServiceHub::startBrowseThread(const char* type)
 {
-  browser = std::unique_ptr< NetServiceBrowser >(new NetServiceBrowser());
+  browser = std::unique_ptr<NetServiceBrowser>(new NetServiceBrowser());
   browser->setListener(this);
 
   mServiceNames.clear();
@@ -206,7 +206,7 @@ inline bool endsWith(std::string const& value, std::string const& ending)
   return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-const std::vector< std::string >& MLNetServiceHub::getFormattedServiceNames()
+const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
 {
   // push default service
   mServiceNames.clear();

@@ -96,7 +96,7 @@ class NoiseGen
   {
     step();
     uint32_t temp = ((mSeed >> 9) & 0x007FFFFF) | 0x3F800000;
-    return (*reinterpret_cast< float* >(&temp)) * 2.f - 3.f;
+    return (*reinterpret_cast<float*>(&temp)) * 2.f - 3.f;
   }
 
   // TODO SIMD
@@ -107,7 +107,7 @@ class NoiseGen
     {
       step();
       uint32_t temp = ((mSeed >> 9) & 0x007FFFFF) | 0x3F800000;
-      y[i] = (*reinterpret_cast< float* >(&temp)) * 2.f - 3.f;
+      y[i] = (*reinterpret_cast<float*>(&temp)) * 2.f - 3.f;
     }
     return y;
   }
@@ -237,7 +237,7 @@ class SineGen
 // Note that a onepole or other IIR filter is not used because we must reach
 // the actual value in a finite time.
 
-constexpr float unityRampFn(int i) { return (i + 1) / static_cast< float >(kFloatsPerDSPVector); }
+constexpr float unityRampFn(int i) { return (i + 1) / static_cast<float>(kFloatsPerDSPVector); }
 ConstDSPVector kUnityRampVec{unityRampFn};
 
 class LinearGlide

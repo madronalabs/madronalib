@@ -23,7 +23,7 @@ MLOSCListener::~MLOSCListener()
 
 void* MLOSCListenerStartThread(void* arg)
 {
-  MLOSCListener* pL = static_cast< MLOSCListener* >(arg);
+  MLOSCListener* pL = static_cast<MLOSCListener*>(arg);
   UdpListeningReceiveSocket* pSocket = pL->mpSocket;
 
   try

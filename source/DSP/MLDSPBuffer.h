@@ -141,8 +141,8 @@ class DSPBuffer
   }
 
   // write a single DSPVectorArray to the buffer, advancing the write index.
-  template < size_t VECTORS >
-  void write(const DSPVectorArray< VECTORS > &srcVec)
+  template <size_t VECTORS>
+  void write(const DSPVectorArray<VECTORS> &srcVec)
   {
     constexpr int samples = kFloatsPerDSPVector * VECTORS;
 
@@ -196,8 +196,8 @@ class DSPBuffer
   }
 
   // read a single DSPVectorArray from the buffer, advancing the read index.
-  template < size_t VECTORS >
-  void read(DSPVectorArray< VECTORS > &destVec)
+  template <size_t VECTORS>
+  void read(DSPVectorArray<VECTORS> &destVec)
   {
     constexpr int samples = kFloatsPerDSPVector * VECTORS;
     if (getReadAvailable() < samples) return;
@@ -357,14 +357,14 @@ class DSPBuffer
   }
 
  private:
-  std::vector< float > mData;
+  std::vector<float> mData;
   float *mDataBuffer;
   size_t mSize{0};
   size_t mDataMask{0};
   size_t mDistanceMask{0};
 
-  std::atomic< size_t > mWriteIndex{0};
-  std::atomic< size_t > mReadIndex{0};
+  std::atomic<size_t> mWriteIndex{0};
+  std::atomic<size_t> mReadIndex{0};
 };
 }  // namespace ml
 

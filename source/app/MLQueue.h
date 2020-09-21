@@ -17,7 +17,7 @@
 
 namespace ml
 {
-template < typename Element >
+template <typename Element>
 class Queue final
 {
  public:
@@ -100,8 +100,8 @@ class Queue final
  private:
   size_t increment(size_t idx) const { return (idx + 1) % (mData.size()); }
 
-  std::vector< Element > mData;
-  std::atomic< size_t > mWriteIndex{0};
-  std::atomic< size_t > mReadIndex{0};
+  std::vector<Element> mData;
+  std::atomic<size_t> mWriteIndex{0};
+  std::atomic<size_t> mReadIndex{0};
 };
 };  // namespace ml

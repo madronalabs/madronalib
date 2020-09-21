@@ -22,7 +22,7 @@ const int ml::Timers::kMillisecondsResolution = 16;
 
 void macTimersCallback(CFRunLoopTimerRef, void* info)
 {
-  ml::Timers* pTimers = static_cast< ml::Timers* >(info);
+  ml::Timers* pTimers = static_cast<ml::Timers*>(info);
   pTimers->tick();
 }
 
@@ -42,7 +42,7 @@ void ml::Timers::start(bool runInMainThread)
       if (pTimersRef)
       {
         _running = true;
-        CFRunLoopTimerRef pTimerRef = static_cast< CFRunLoopTimerRef >(pTimersRef);
+        CFRunLoopTimerRef pTimerRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
         CFRunLoopAddTimer(CFRunLoopGetMain(), pTimerRef, kCFRunLoopCommonModes);
       }
     }
@@ -60,7 +60,7 @@ void ml::Timers::stop()
   {
     if (pTimersRef)
     {
-      CFRunLoopTimerRef pLoopRef = static_cast< CFRunLoopTimerRef >(pTimersRef);
+      CFRunLoopTimerRef pLoopRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
       CFRunLoopRemoveTimer(CFRunLoopGetMain(), pLoopRef, kCFRunLoopCommonModes);
       pTimersRef = nullptr;
     }
@@ -146,12 +146,12 @@ void Timers::start(bool runInMainThread)
 
 void ml::Timers::tick(void)
 {
-  time_point< system_clock > now = system_clock::now();
-  std::unique_lock< std::mutex > lock(mSetMutex);
+  time_point<system_clock> now = system_clock::now();
+  std::unique_lock<std::mutex> lock(mSetMutex);
 
   for (auto t : timerPtrs)
   {
-    std::unique_lock< std::mutex > lock(t->_counterMutex);
+    std::unique_lock<std::mutex> lock(t->_counterMutex);
     if (t->mCounter != 0)
     {
       if (now - t->mPreviousCall > t->mPeriod)
@@ -180,13 +180,13 @@ void ml::Timers::run(void)
 
 ml::Timer::Timer() noexcept
 {
-  std::unique_lock< std::mutex > lock(_timers->mSetMutex);
+  std::unique_lock<std::mutex> lock(_timers->mSetMutex);
   _timers->insert(this);
 }
 
 ml::Timer::~Timer()
 {
-  std::unique_lock< std::mutex > lock(_timers->mSetMutex);
+  std::unique_lock<std::mutex> lock(_timers->mSetMutex);
   _timers->erase(this);
 }
 
@@ -194,6 +194,6 @@ void ml::Timer::stop()
 {
   // More lightweight ways of handling a race on mCounter are possible, but as
   // stopping a timer is an infrequent operation we use the mutex for brevity.
-  std::unique_lock< std::mutex > lock(_counterMutex);
+  std::unique_lock<std::mutex> lock(_counterMutex);
   mCounter = 0;
 }

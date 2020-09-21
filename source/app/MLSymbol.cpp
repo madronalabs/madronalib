@@ -43,7 +43,7 @@ void SymbolTable::clear()
 // this must be the only way of modifying the symbol table.
 SymbolID SymbolTable::addEntry(const HashedCharArray& hsl)
 {
-  mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast< int >(hsl.len)));
+  mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
 
   size_t newID = mSize++;
   mHashTable[hsl.hash].mIDVector.emplace_back(newID);
@@ -56,11 +56,11 @@ SymbolID SymbolTable::getSymbolID(const HashedCharArray& hsl)
 
   // get the vector of symbol IDs matching this hash. It probably has one entry
   // but may have more.
-  const std::vector< SymbolID >& bin = mHashTable[hsl.hash].mIDVector;
+  const std::vector<SymbolID>& bin = mHashTable[hsl.hash].mIDVector;
   {
     bool found = false;
 
-    std::unique_lock< std::mutex > lock(mHashTable[hsl.hash].mMutex);
+    std::unique_lock<std::mutex> lock(mHashTable[hsl.hash].mMutex);
 
     for (auto ID : bin)
     {
@@ -79,7 +79,7 @@ SymbolID SymbolTable::getSymbolID(const HashedCharArray& hsl)
 
     if (!found)
     {
-      mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast< int >(hsl.len)));
+      mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
       r = mSize++;
       mHashTable[hsl.hash].mIDVector.emplace_back(r);
     }

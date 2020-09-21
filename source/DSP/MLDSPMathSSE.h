@@ -143,7 +143,7 @@ inline SIMDVectorInt vecSetInt4(uint32_t a, uint32_t b, uint32_t c, uint32_t d)
 }
 
 static const int XI = 0xFFFFFFFF;
-static const float X = *(reinterpret_cast< const float* >(&XI));
+static const float X = *(reinterpret_cast<const float*>(&XI));
 
 const SIMDVectorFloat vecMask0 = {0, 0, 0, 0};
 const SIMDVectorFloat vecMask1 = {0, 0, 0, X};
