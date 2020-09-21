@@ -148,9 +148,9 @@ TextFragment floatNumberToText(float f, int precision)
 
   if (isnan(f))
   {
-    *writePtr++ = 'N';
+    *writePtr++ = 'n';
     *writePtr++ = 'a';
-    *writePtr++ = 'N';
+    *writePtr++ = 'n';
   }
   else
   {
@@ -212,7 +212,7 @@ TextFragment floatNumberToText(float f, int precision)
           {
             *writePtr++ = '.';
           }
-          int onesInt = value * powersOfTen[kTableZeroOffset - exponent];
+          int onesInt = truncf(value * powersOfTen[kTableZeroOffset - exponent]);
           *writePtr++ = '0' + onesInt;
           value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
           exponent--;
@@ -246,7 +246,6 @@ TextFragment floatNumberToText(float f, int precision)
   return TextFragment(buf, writePtr - buf);
 }
 
-
 bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
 {
   for (const CodePoint c : f)
@@ -256,94 +255,39 @@ bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
   return false;
 }
 
-
 float textToFloatNumber(const TextFragment& frag)
 {
   float sign = 1;
   float wholePart = 0, fractionalPart = 0, fractionalScale = 1;
   float exponentSign = 1, exponent = 0;
   bool hasExp = false;
-
   auto it = frag.begin();
-
-  // nan
-  while(fragmentContainsCodePoint("NaN", *it))
+  const TextFragment digits{"0123456789"};
+  std::vector< std::pair< TextFragment, std::function< void() > > > segments
   {
-    wholePart = std::numeric_limits< float >::quiet_NaN();
-    ++it;
-  }
+    { "NaN", [&](){ wholePart = std::numeric_limits< float >::quiet_NaN(); } },
+    { "-", [&](){ sign = -sign; } },
+    { "inf", [&](){ wholePart = std::numeric_limits< float >::infinity(); } },
+    { digits, [&](){ wholePart = wholePart * 10.0f + (float)((*it) - '0'); } },
+    { ".", [&](){  } },
+    { digits, [&](){ fractionalPart = fractionalPart * 10.0f + (float)((*it) - '0');
+                     fractionalScale *= 0.1f; } },
+    { "e+", [&](){ hasExp = true; } },
+    { "-", [&](){ exponentSign = -exponentSign; } },
+    { digits, [&](){ exponent = exponent * 10.0f + (float)((*it) - '0'); } }
+  };
 
-  // sign
-  while(fragmentContainsCodePoint("-", *it))
+  for(auto segment : segments)
   {
-    sign = -sign;
-    ++it;
-  }
-
-  // inf
-  while(fragmentContainsCodePoint("inf", *it) )
-  {
-    wholePart = std::numeric_limits< float >::infinity();
-    ++it;
-  }
-
-  // whole part
-  while(fragmentContainsCodePoint("0123456789", *it) )
-  {
-    CodePoint c = *it;
-    int d = c - '0';
-    wholePart = wholePart * 10.0f + (float)d;
-    ++it;
-  }
-
-  // decimal point
-  while(fragmentContainsCodePoint(".", *it) )
-  {
-    ++it;
-  }
-
-  // fractional part
-  while(fragmentContainsCodePoint("0123456789", *it) )
-  {
-    CodePoint c = *it;
-    int d = c - '0';
-    fractionalPart = fractionalPart * 10.0f + (float)d;
-    fractionalScale *= 0.1f;
-    ++it;
-  }
-
-  // e (scientific notation flag)
-  while(fragmentContainsCodePoint("e+", *it) )
-  {
-    hasExp = true;
-    ++it;
-  }
-
-  // exponent sign
-  while(fragmentContainsCodePoint("-", *it))
-  {
-    exponentSign = -exponentSign;
-    ++it;
-  }
-
-  // exponent
-  while(fragmentContainsCodePoint("0123456789", *it))
-  {
-    CodePoint c = *it;
-    int d = c - '0';
-    exponent = exponent * 10.0f + (float)d;
-    ++it;
+    while(fragmentContainsCodePoint(segment.first, *it))
+    {
+      segment.second();
+      ++it;
+    }
   }
 
   float base = sign*(wholePart + fractionalPart*fractionalScale);
-  if(!hasExp)
-  {
-    return base;
-  }
-  else
-  {
-    return base*powf(10.f, exponent*exponentSign);
-  }
+  return hasExp ? base*powf(10.f, exponent*exponentSign) : base;
 }
 
 int findFirst(const TextFragment& frag, const CodePoint b)

@@ -320,24 +320,30 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   {
     float v = (1.0f + fabs(n.getSample()) * 9.f) * powf(10.f, i - 40 + 0.f) *
               (i & 1 ? -1 : 1);
-    auto t = textUtils::floatNumberToText(v, 5);
+    auto t = textUtils::floatNumberToText(v, 15);
     auto f = textUtils::textToFloatNumber(t);
     std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f
               << " \n";
   }
 
-  /*
+
   const float maxFloat = std::numeric_limits<float>::max();
   const float minFloat = std::numeric_limits<float>::min();
   const float nanFloat = std::numeric_limits<float>::quiet_NaN();
   std::vector<float> vf {nanFloat, maxFloat*10.f, maxFloat, maxFloat/10.f,
-  10000001, 32768, 10000, 100, 10.0f, 1.00001f, 1, 0.1f, 0.1250001f, 0.125f,
-  0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat}; for(auto v : vf)
+  10000001, 32768, 10000, 100, 10.0f, 1.00001f, 1, 0.25f, 0.1f, 0.1250001f, 0.125f,
+  0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat};
+  for(auto v : vf)
   {
-   std::cout << std::setprecision(10) << v << " -> " <<
-  textUtils::floatNumberToText(v, 8) << "\n";
+
+
+  auto t = textUtils::floatNumberToText(v, 10);
+  auto f = textUtils::textToFloatNumber(t);
+  std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f
+  << " \n";
+
   }
-  */
+
 
   // TODO implement textTofloatNumber and test for correct I/O
 }
