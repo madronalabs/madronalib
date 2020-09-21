@@ -48,8 +48,7 @@ Matrix::Matrix(int width, int height, int depth, const float* pData)
   read(pData, 0, mSize);
 }
 
-Matrix::Matrix(const Matrix& other)
-    : mDataAligned(0), mData(0), mWidth(0), mHeight(0), mDepth(0)
+Matrix::Matrix(const Matrix& other) : mDataAligned(0), mData(0), mWidth(0), mHeight(0), mDepth(0)
 {
   mSize = other.mSize;
   mData = allocateData(mSize);
@@ -64,7 +63,7 @@ Matrix::Matrix(const Matrix& other)
   std::copy(other.mDataAligned, other.mDataAligned + mSize, mDataAligned);
 }
 
-Matrix::Matrix(std::initializer_list<float> values)
+Matrix::Matrix(std::initializer_list< float > values)
     : mDataAligned(0), mData(0), mWidth(0), mHeight(0), mDepth(0)
 {
   mRate = kToBeCalculated;
@@ -91,8 +90,7 @@ Matrix::Matrix(Matrix other, eLoopType loopType, int loopSize)
       setDims(w + loopWidth, 1, 1);
       mRate = other.mRate;
       std::copy(other.mDataAligned, other.mDataAligned + w, mDataAligned);
-      std::copy(other.mDataAligned, other.mDataAligned + loopWidth,
-                mDataAligned + w);
+      std::copy(other.mDataAligned, other.mDataAligned + loopWidth, mDataAligned + w);
     }
     break;
   }
@@ -126,8 +124,7 @@ Matrix& Matrix::operator=(const Matrix& other)
     {
       // keep existing data buffer.
       // copy other elements
-      std::copy(other.mDataAligned, other.mDataAligned + this->mSize,
-                mDataAligned);
+      std::copy(other.mDataAligned, other.mDataAligned + this->mSize, mDataAligned);
 
       // copy other info
       mWidth = other.mWidth;
@@ -189,16 +186,16 @@ Matrix Matrix::getDims()
 {
   if (mDepth > 1)
   {
-    return Matrix{static_cast<float>(mWidth), static_cast<float>(mHeight),
-                  static_cast<float>(mDepth)};
+    return Matrix{static_cast< float >(mWidth), static_cast< float >(mHeight),
+                  static_cast< float >(mDepth)};
   }
   else if (mHeight > 1)
   {
-    return Matrix{static_cast<float>(mWidth), static_cast<float>(mHeight)};
+    return Matrix{static_cast< float >(mWidth), static_cast< float >(mHeight)};
   }
   else
   {
-    return Matrix{static_cast<float>(mWidth)};
+    return Matrix{static_cast< float >(mWidth)};
   }
 }
 
@@ -230,14 +227,13 @@ float* Matrix::setDims(const Matrix& whd)
   {
     case 1:
     default:
-      setDims(static_cast<int>(whd[0]));
+      setDims(static_cast< int >(whd[0]));
       break;
     case 2:
-      setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]));
+      setDims(static_cast< int >(whd[0]), static_cast< int >(whd[1]));
       break;
     case 3:
-      setDims(static_cast<int>(whd[0]), static_cast<int>(whd[1]),
-              static_cast<int>(whd[2]));
+      setDims(static_cast< int >(whd[0]), static_cast< int >(whd[1]), static_cast< int >(whd[2]));
       break;
   }
   return mDataAligned;
@@ -486,8 +482,7 @@ void Matrix::sigLerp(const Matrix& b, const Matrix& mix)
   n = ml::min(n, mix.getSize());
   for (int i = 0; i < n; ++i)
   {
-    mDataAligned[i] =
-        ml::lerp(mDataAligned[i], b.mDataAligned[i], mix.mDataAligned[i]);
+    mDataAligned[i] = ml::lerp(mDataAligned[i], b.mDataAligned[i], mix.mDataAligned[i]);
   }
 }
 
@@ -719,8 +714,8 @@ void Matrix::convolve3x1(const float km, const float k, const float kp)
   mDataAligned[mWidth - 1] = km * pIn[mWidth - 2] + k * pIn[mWidth - 1];
 }
 
-void Matrix::convolve5x1(const float kmm, const float km, const float k,
-                         const float kp, const float kpp)
+void Matrix::convolve5x1(const float kmm, const float km, const float k, const float kp,
+                         const float kpp)
 {
   Matrix copy(*this);
   float* pIn = copy.getBuffer();
@@ -732,15 +727,14 @@ void Matrix::convolve5x1(const float kmm, const float km, const float k,
   // center
   for (int i = 2; i < mWidth - 2; ++i)
   {
-    mDataAligned[i] = kmm * pIn[i - 2] + km * pIn[i - 1] + k * pIn[i] +
-                      kp * pIn[i + 1] + kpp * pIn[i + 2];
+    mDataAligned[i] =
+        kmm * pIn[i - 2] + km * pIn[i - 1] + k * pIn[i] + kp * pIn[i + 1] + kpp * pIn[i + 2];
   }
 
   // right
-  mDataAligned[mWidth - 2] = kmm * pIn[mWidth - 4] + km * pIn[mWidth - 3] +
-                             k * pIn[mWidth - 2] + kp * pIn[mWidth - 1];
-  mDataAligned[mWidth - 1] =
-      kmm * pIn[mWidth - 4] + km * pIn[mWidth - 3] + k * pIn[mWidth - 2];
+  mDataAligned[mWidth - 2] =
+      kmm * pIn[mWidth - 4] + km * pIn[mWidth - 3] + k * pIn[mWidth - 2] + kp * pIn[mWidth - 1];
+  mDataAligned[mWidth - 1] = kmm * pIn[mWidth - 4] + km * pIn[mWidth - 3] + k * pIn[mWidth - 2];
 }
 
 // an operator for 2D signals only

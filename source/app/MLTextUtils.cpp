@@ -36,20 +36,17 @@ bool isLatin(CodePoint c)
 
 bool isWhitespace(CodePoint ch)
 {
-  return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 ||
-         ch == 0x00A0 || ch == 0x1680 || (ch >= 0x2000 && ch <= 0x200A) ||
-         ch == 0x2028 || ch == 0x2029 || ch == 0x202F || ch == 0x205F ||
-         ch == 0x3000;
+  return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 ||
+         ch == 0x1680 || (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 ||
+         ch == 0x202F || ch == 0x205F || ch == 0x3000;
 }
 
 bool isCJK(CodePoint ch)
 {
-  return (ch >= 0x4E00 && ch <= 0x9FBF)  // CJK Unified Ideographs
-         || (ch >= 0x2E80 &&
-             ch <= 0x2FDF)  // CJK Radicals Supplement & Kangxi Radicals
-         || (ch >= 0x2FF0 &&
-             ch <= 0x30FF)  // Ideographic Description Characters, CJK Symbols
-                            // and Punctuation & Japanese
+  return (ch >= 0x4E00 && ch <= 0x9FBF)      // CJK Unified Ideographs
+         || (ch >= 0x2E80 && ch <= 0x2FDF)   // CJK Radicals Supplement & Kangxi Radicals
+         || (ch >= 0x2FF0 && ch <= 0x30FF)   // Ideographic Description Characters, CJK Symbols
+                                             // and Punctuation & Japanese
          || (ch >= 0x3100 && ch <= 0x31BF)   // Korean
          || (ch >= 0xAC00 && ch <= 0xD7AF)   // Hangul Syllables
          || (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
@@ -59,8 +56,7 @@ bool isCJK(CodePoint ch)
 
 char* spaceStr(size_t numIndents)
 {
-  static char* pBuf =
-      (char*)"                                                   ";
+  static char* pBuf = (char*)"                                                   ";
   static size_t len = strlen(pBuf);
   size_t n = numIndents * 2;
   n = ml::clamp(n, 0UL, len);
@@ -91,10 +87,9 @@ int digitsToNaturalNumber(const char32_t* p)
   return v;
 }
 
-
 int textToNaturalNumber(const TextFragment& frag)
 {
-  std::vector<CodePoint> vec = textToCodePoints(frag);
+  std::vector< CodePoint > vec = textToCodePoints(frag);
   return digitsToNaturalNumber(vec.data());
 }
 
@@ -130,21 +125,19 @@ TextFragment floatNumberToText(float f, int precision)
   constexpr int kMaxDigits = 32;
   constexpr int kTableZeroOffset = 38;
   constexpr float powersOfTen[kTableZeroOffset * 2 + 1]{
-      1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29,
-      1e-28, 1e-27, 1e-26, 1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19,
-      1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-09,
-      1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00, 1e+01,
-      1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11,
-      1e+12, 1e+13, 1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21,
-      1e+22, 1e+23, 1e+24, 1e+25, 1e+26, 1e+27, 1e+28, 1e+29, 1e+30, 1e+31,
-      1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
+      1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26,
+      1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13,
+      1e-12, 1e-11, 1e-10, 1e-09, 1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00,
+      1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13,
+      1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26,
+      1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
 
   char buf[kMaxDigits];
   char* writePtr = buf;
   float value = f;
   const int p = std::min(precision, kMaxPrecision);
-  const float epsilon = std::max(fabs(f * powersOfTen[kTableZeroOffset - p]),
-                                 std::numeric_limits<float>::min());
+  const float epsilon =
+      std::max(fabs(f * powersOfTen[kTableZeroOffset - p]), std::numeric_limits< float >::min());
 
   if (isnan(f))
   {
@@ -250,7 +243,7 @@ bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
 {
   for (const CodePoint c : f)
   {
-    if(c == cp) return true;
+    if (c == cp) return true;
   }
   return false;
 }
@@ -258,36 +251,33 @@ bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
 float textToFloatNumber(const TextFragment& frag)
 {
   float sign = 1;
-  float wholePart = 0, fractionalPart = 0, fractionalScale = 1;
+  float wholePart = 0, fracPart = 0, fracPlace = 1;
   float exponentSign = 1, exponent = 0;
   bool hasExp = false;
   auto it = frag.begin();
   const TextFragment digits{"0123456789"};
-  std::vector< std::pair< TextFragment, std::function< void() > > > segments
-  {
-    { "NaN", [&](){ wholePart = std::numeric_limits< float >::quiet_NaN(); } },
-    { "-", [&](){ sign = -sign; } },
-    { "inf", [&](){ wholePart = std::numeric_limits< float >::infinity(); } },
-    { digits, [&](){ wholePart = wholePart * 10.0f + (float)((*it) - '0'); } },
-    { ".", [&](){  } },
-    { digits, [&](){ fractionalPart = fractionalPart * 10.0f + (float)((*it) - '0');
-                     fractionalScale *= 0.1f; } },
-    { "e+", [&](){ hasExp = true; } },
-    { "-", [&](){ exponentSign = -exponentSign; } },
-    { digits, [&](){ exponent = exponent * 10.0f + (float)((*it) - '0'); } }
-  };
+  std::vector< std::pair< TextFragment, std::function< void() > > > segments{
+      {"NaN", [&]() { wholePart = std::numeric_limits< float >::quiet_NaN(); }},
+      {"-", [&]() { sign = -sign; }},
+      {"inf", [&]() { wholePart = std::numeric_limits< float >::infinity(); }},
+      {digits, [&]() { wholePart = wholePart * 10.0f + ((*it) - '0'); }},
+      {".", [&]() {}},
+      {digits, [&]() { fracPart += ((*it) - '0') * (fracPlace *= 0.1f); }},
+      {"e+", [&]() { hasExp = true; }},
+      {"-", [&]() { exponentSign = -exponentSign; }},
+      {digits, [&]() { exponent = exponent * 10.0f + ((*it) - '0'); }}};
 
-  for(auto segment : segments)
+  for (auto segment : segments)
   {
-    while(fragmentContainsCodePoint(segment.first, *it))
+    while (fragmentContainsCodePoint(segment.first, *it))
     {
       segment.second();
       ++it;
     }
   }
 
-  float base = sign*(wholePart + fractionalPart*fractionalScale);
-  return hasExp ? base*powf(10.f, exponent*exponentSign) : base;
+  float base = sign * (wholePart + fracPart);
+  return hasExp ? base * powf(10.f, exponent * exponentSign) : base;
 }
 
 int findFirst(const TextFragment& frag, const CodePoint b)
@@ -325,7 +315,7 @@ int findLast(const TextFragment& frag, const CodePoint b)
   return r;
 }
 
-int findFirst(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
+int findFirst(const TextFragment& frag, std::function< bool(CodePoint) > matchFn)
 {
   int r = npos;
   if (!frag) return r;
@@ -345,7 +335,7 @@ int findFirst(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
 
 // TODO dumb, have to call matchFn on each code point because we have no reverse
 // iterator
-int findLast(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
+int findLast(const TextFragment& frag, std::function< bool(CodePoint) > matchFn)
 {
   int r = npos;
   if (!frag) return r;
@@ -373,7 +363,7 @@ TextFragment subText(const TextFragment& frag, size_t start, size_t end)
   // we won't know the output fragment size in bytes until iterating the code
   // points.
   size_t len = frag.lengthInBytes();
-  SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
+  SmallStackBuffer< char, kShortFragmentSizeInChars > temp(len);
   char* buf = temp.data();
   char* pb = buf;
 
@@ -388,28 +378,26 @@ TextFragment subText(const TextFragment& frag, size_t start, size_t end)
   {
     // write the codepoint as UTF-8 to the buffer
     if (!validateCodePoint(*it)) return TextFragment();
-    pb = utf::internal::utf_traits<utf::utf8>::encode(*it, pb);
+    pb = utf::internal::utf_traits< utf::utf8 >::encode(*it, pb);
     ++it;
   }
 
   return TextFragment(buf, pb - buf);
 }
 
-TextFragment map(const TextFragment& frag,
-                 std::function<CodePoint(CodePoint)> f)
+TextFragment map(const TextFragment& frag, std::function< CodePoint(CodePoint) > f)
 {
   if (!frag) return TextFragment();
-  std::vector<CodePoint> vec = textToCodePoints(frag);
+  std::vector< CodePoint > vec = textToCodePoints(frag);
   std::transform(vec.begin(), vec.end(), vec.begin(), f);
   return codePointsToText(vec);
 }
 
-TextFragment reduce(const TextFragment& frag,
-                    std::function<bool(CodePoint)> matchFn)
+TextFragment reduce(const TextFragment& frag, std::function< bool(CodePoint) > matchFn)
 {
   if (!frag) return TextFragment();
   size_t len = frag.lengthInBytes();
-  SmallStackBuffer<char, kShortFragmentSizeInChars> temp(len);
+  SmallStackBuffer< char, kShortFragmentSizeInChars > temp(len);
   char* buf = temp.data();
   char* pb = buf;
 
@@ -418,22 +406,22 @@ TextFragment reduce(const TextFragment& frag,
     if (!validateCodePoint(c)) return TextFragment();
     if (matchFn(c))
     {
-      pb = utf::internal::utf_traits<utf::utf8>::encode(c, pb);
+      pb = utf::internal::utf_traits< utf::utf8 >::encode(c, pb);
     }
   }
 
   return TextFragment(buf, pb - buf);
 }
 
-std::vector<TextFragment> split(TextFragment frag, CodePoint delimiter)
+std::vector< TextFragment > split(TextFragment frag, CodePoint delimiter)
 {
-  std::vector<TextFragment> output;
+  std::vector< TextFragment > output;
   int start = 0;
   int end = 0;
   int pieceLen = 0;
   for (const CodePoint c : frag)
   {
-    if (!validateCodePoint(c)) return std::vector<TextFragment>();
+    if (!validateCodePoint(c)) return std::vector< TextFragment >();
     pieceLen++;
     end++;
     if (c == delimiter)
@@ -453,7 +441,7 @@ std::vector<TextFragment> split(TextFragment frag, CodePoint delimiter)
   return output;
 }
 
-TextFragment join(const std::vector<TextFragment>& vec)
+TextFragment join(const std::vector< TextFragment >& vec)
 {
   TextFragment sum;
   size_t len = vec.size();
@@ -465,7 +453,7 @@ TextFragment join(const std::vector<TextFragment>& vec)
   return sum;
 }
 
-TextFragment join(const std::vector<TextFragment>& vec, CodePoint delimiter)
+TextFragment join(const std::vector< TextFragment >& vec, CodePoint delimiter)
 {
   TextFragment delimFrag(delimiter);
   TextFragment sum;
@@ -548,10 +536,10 @@ int indexOf(const char* str, char c)
   return r;
 }
 
-TextFragment base64Encode(const std::vector<uint8_t>& in)
+TextFragment base64Encode(const std::vector< uint8_t >& in)
 {
   size_t len = in.size();
-  std::vector<char> out;
+  std::vector< char > out;
   int b;
   for (size_t i = 0; i < len; i += 3)
   {
@@ -587,11 +575,11 @@ TextFragment base64Encode(const std::vector<uint8_t>& in)
   return TextFragment(out.data());
 }
 
-std::vector<uint8_t> base64Decode(const TextFragment& frag)
+std::vector< uint8_t > base64Decode(const TextFragment& frag)
 {
   size_t len = frag.lengthInBytes();
-  if (len % 4) return std::vector<uint8_t>();
-  std::vector<uint8_t> decoded;
+  if (len % 4) return std::vector< uint8_t >();
+  std::vector< uint8_t > decoded;
   const char* inChars = frag.getText();
   int b[4];
   for (int i = 0; i < len; i += 4)
@@ -615,8 +603,7 @@ std::vector<uint8_t> base64Decode(const TextFragment& frag)
 
 TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
 {
-  std::function<bool(CodePoint)> f(
-      [](CodePoint c) { return !isWhitespace(c); });
+  std::function< bool(CodePoint) > f([](CodePoint c) { return !isWhitespace(c); });
   int first = findFirst(frag, f);
   int last = findLast(frag, f);
   if ((first == npos) || (last == npos)) return TextFragment();
@@ -625,17 +612,16 @@ TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
 
 TextFragment stripAllWhitespace(const TextFragment& frag)
 {
-  std::function<bool(CodePoint)> f(
-      [](CodePoint c) { return !isWhitespace(c); });
+  std::function< bool(CodePoint) > f([](CodePoint c) { return !isWhitespace(c); });
   return reduce(frag, f);
 }
 
-std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& input,
-                                     const std::vector<uint8_t>& key,
-                                     const std::vector<uint8_t>& iv)
+std::vector< uint8_t > AES256CBCEncode(const std::vector< uint8_t >& input,
+                                       const std::vector< uint8_t >& key,
+                                       const std::vector< uint8_t >& iv)
 {
   if (!(input.size() > 0) || !(key.size() == 32) || !(iv.size() == 32))
-    return std::vector<uint8_t>();
+    return std::vector< uint8_t >();
 
   aes256_context ctx;
   aes256_init(&ctx, key.data());
@@ -646,7 +632,7 @@ std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& input,
   size_t paddedSize = blockSize * (blocks);
 
   // add PKCS padding
-  std::vector<uint8_t> plaintext = input;
+  std::vector< uint8_t > plaintext = input;
   plaintext.resize(paddedSize);
   size_t padBytes = paddedSize - inputSize;
   for (size_t i = inputSize; i < paddedSize; ++i)
@@ -654,7 +640,7 @@ std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& input,
     plaintext[i] = padBytes;
   }
 
-  std::vector<uint8_t> ciphertext(paddedSize);
+  std::vector< uint8_t > ciphertext(paddedSize);
   uint8_t currentIV[blockSize];
   uint8_t workVector[blockSize];
 
@@ -685,12 +671,12 @@ std::vector<uint8_t> AES256CBCEncode(const std::vector<uint8_t>& input,
   return ciphertext;
 }
 
-std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& cipher,
-                                     const std::vector<uint8_t>& key,
-                                     const std::vector<uint8_t>& iv)
+std::vector< uint8_t > AES256CBCDecode(const std::vector< uint8_t >& cipher,
+                                       const std::vector< uint8_t >& key,
+                                       const std::vector< uint8_t >& iv)
 {
   if (!(cipher.size() > 0) || (key.size() < 32) || (iv.size() < 32))
-    return std::vector<uint8_t>();
+    return std::vector< uint8_t >();
 
   aes256_context ctx;
   aes256_init(&ctx, key.data());
@@ -698,7 +684,7 @@ std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& cipher,
   const int blockSize = 16;
   size_t blocks = cipher.size() / blockSize;
 
-  std::vector<uint8_t> plaintext(blockSize * blocks);
+  std::vector< uint8_t > plaintext(blockSize * blocks);
 
   uint8_t currentIV[blockSize];
   uint8_t nextIV[blockSize];
@@ -825,7 +811,7 @@ Symbol stripFinalNumber(Symbol sym)
 
   // TODO make more readble using random access fragment class
 
-  SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> temp(points + 1);
+  SmallStackBuffer< CodePoint, kShortFragmentSizeInCodePoints > temp(points + 1);
   CodePoint* buf = temp.data();
 
   // read into char32 array for random access
@@ -868,8 +854,7 @@ int getFinalNumber(Symbol sym)
 
   // TODO make more readble using random access fragment class
 
-  SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> decodedPoints(
-      points + 1);
+  SmallStackBuffer< CodePoint, kShortFragmentSizeInCodePoints > decodedPoints(points + 1);
   CodePoint* buf = decodedPoints.data();
 
   // read into char32 array for random access
@@ -915,7 +900,7 @@ Symbol stripFinalCharacter(Symbol sym)
 // base-26 arithmetic with letters (A = 0) produces A, B, ... Z, BA, BB ...
 const TextFragment NameMaker::nextName()
 {
-  std::vector<int> digits;
+  std::vector< int > digits;
   const int base = 26;
   const char baseChar = 'A';
   int a, m, d, rem;
@@ -942,7 +927,7 @@ const TextFragment NameMaker::nextName()
     d = digits.back();
     digits.pop_back();
 
-    buf[c++] = static_cast<char>(d) + baseChar;
+    buf[c++] = static_cast< char >(d) + baseChar;
   }
 
   buf[c++] = 0;
@@ -970,10 +955,10 @@ class NoiseGen
 };
 
 static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";
-std::vector<Symbol> vectorOfNonsenseSymbols(int len)
+std::vector< Symbol > vectorOfNonsenseSymbols(int len)
 {
   NoiseGen randSource;
-  std::vector<Symbol> words;
+  std::vector< Symbol > words;
   for (int i = 0; i < len; ++i)
   {
     std::string newStr;
@@ -991,11 +976,11 @@ std::vector<Symbol> vectorOfNonsenseSymbols(int len)
   return words;
 }
 
-ml::Text formatNumber(const float number, const int digits, const int precision,
-                      const bool doSign, Symbol mode) throw()
+ml::Text formatNumber(const float number, const int digits, const int precision, const bool doSign,
+                      Symbol mode) throw()
 {
-  const std::vector<ml::Text> pitchNames{"A",  "A#", "B", "C",  "C#", "D",
-                                         "D#", "E",  "F", "F#", "G",  "G#"};
+  const std::vector< ml::Text > pitchNames{"A",  "A#", "B", "C",  "C#", "D",
+                                           "D#", "E",  "F", "F#", "G",  "G#"};
 
   const int bufLength = 16;
   char numBuf[bufLength] = {0};
@@ -1078,8 +1063,8 @@ ml::Text formatNumber(const float number, const int digits, const int precision,
     if (distFromNote < 0.01)
     {
       const int octaveFromC = (note - 3) / 12;
-      snprintf(format, bufLength, "X-0%1d.%1df\n%s%d", m, p,
-               pitchNames[note % 12].getText(), octaveFromC);
+      snprintf(format, bufLength, "X-0%1d.%1df\n%s%d", m, p, pitchNames[note % 12].getText(),
+               octaveFromC);
     }
     else
     {

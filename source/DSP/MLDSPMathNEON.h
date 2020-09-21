@@ -37,8 +37,7 @@ typedef int32x4_t SIMDVectorInt;           // vector of 4 uint32
 
 constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
 constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
-constexpr int kSIMDVectorsPerDSPVector =
-    kFloatsPerDSPVector / kFloatsPerSIMDVector;
+constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
 
 #define c_inv_mant_mask ~0x7f800000u
 #define c_cephes_SQRTHF 0.707106781186547524
@@ -85,11 +84,9 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
      } else { x = x - 1.0; }
   */
   SIMDVectorUnsignedInt mask = vcltq_f32(x, vdupq_n_f32(c_cephes_SQRTHF));
-  SIMDVectorFloat tmp =
-      vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(x), mask));
+  SIMDVectorFloat tmp = vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(x), mask));
   x = vsubq_f32(x, one);
-  e = vsubq_f32(
-      e, vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(one), mask)));
+  e = vsubq_f32(e, vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(one), mask)));
   x = vaddq_f32(x, tmp);
 
   SIMDVectorFloat z = vmulq_f32(x, x);
@@ -124,8 +121,8 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
   tmp = vmulq_f32(e, vdupq_n_f32(c_cephes_log_q2));
   x = vaddq_f32(x, y);
   x = vaddq_f32(x, tmp);
-  x = vreinterpretq_f32_u32(vorrq_u32(
-      vreinterpretq_u32_f32(x), invalid_mask));  // negative arg will be NAN
+  x = vreinterpretq_f32_u32(
+      vorrq_u32(vreinterpretq_u32_f32(x), invalid_mask));  // negative arg will be NAN
   return x;
 }
 
@@ -169,9 +166,8 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
   x = vsubq_f32(x, tmp);
   x = vsubq_f32(x, z);
 
-  static const float cephes_exp_p[6] = {c_cephes_exp_p0, c_cephes_exp_p1,
-                                        c_cephes_exp_p2, c_cephes_exp_p3,
-                                        c_cephes_exp_p4, c_cephes_exp_p5};
+  static const float cephes_exp_p[6] = {c_cephes_exp_p0, c_cephes_exp_p1, c_cephes_exp_p2,
+                                        c_cephes_exp_p3, c_cephes_exp_p4, c_cephes_exp_p5};
   SIMDVectorFloat y = vld1q_dup_f32(cephes_exp_p + 0);
   SIMDVectorFloat c1 = vld1q_dup_f32(cephes_exp_p + 1);
   SIMDVectorFloat c2 = vld1q_dup_f32(cephes_exp_p + 2);
@@ -232,8 +228,7 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
    almost no extra price so both sin_ps and cos_ps make use of
    sincos_ps..
   */
-inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin,
-                      SIMDVectorFloat *ycos)
+inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat *ycos)
 {  // any x
   SIMDVectorFloat xmm1, xmm2, xmm3, y;
 

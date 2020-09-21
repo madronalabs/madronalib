@@ -29,12 +29,11 @@ inline float dBToGain(float dB) { return powf(10.f, dB / 40.f); }
 
 // from a coefficients start array and a coefficients end array, make a
 // DSPVectorArray with each coefficient interpolated over time.
-template <size_t COEFFS_SIZE>
-DSPVectorArray<COEFFS_SIZE> interpolateCoeffsLinear(
-    const std::array<float, COEFFS_SIZE> c0,
-    const std::array<float, COEFFS_SIZE> c1)
+template < size_t COEFFS_SIZE >
+DSPVectorArray< COEFFS_SIZE > interpolateCoeffsLinear(const std::array< float, COEFFS_SIZE > c0,
+                                                      const std::array< float, COEFFS_SIZE > c1)
 {
-  DSPVectorArray<COEFFS_SIZE> vy;
+  DSPVectorArray< COEFFS_SIZE > vy;
   for (int i = 0; i < COEFFS_SIZE; ++i)
   {
     vy.row(i) = interpolateDSPVectorLinear(c0[i], c1[i]);
@@ -188,8 +187,8 @@ class LoShelf
     m2,
     COEFFS_SIZE
   };
-  typedef std::array<float, COEFFS_SIZE> _coeffs;
-  typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
+  typedef std::array< float, COEFFS_SIZE > _coeffs;
+  typedef DSPVectorArray< COEFFS_SIZE > _vcoeffs;
 
   float ic1eq{0};
   float ic2eq{0};
@@ -202,7 +201,7 @@ class LoShelf
     A,
     PARAMS_SIZE
   };
-  typedef std::array<float, PARAMS_SIZE> params;
+  typedef std::array< float, PARAMS_SIZE > params;
   _coeffs mCoeffs{};
 
   static _coeffs coeffs(params p)
@@ -268,8 +267,8 @@ class HiShelf
     m2,
     COEFFS_SIZE
   };
-  typedef std::array<float, COEFFS_SIZE> _coeffs;
-  typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
+  typedef std::array< float, COEFFS_SIZE > _coeffs;
+  typedef DSPVectorArray< COEFFS_SIZE > _vcoeffs;
 
   float ic1eq{0};
   float ic2eq{0};
@@ -282,7 +281,7 @@ class HiShelf
     A,
     PARAMS_SIZE
   };
-  typedef std::array<float, PARAMS_SIZE> params;
+  typedef std::array< float, PARAMS_SIZE > params;
   _coeffs mCoeffs{};
 
   static _coeffs coeffs(params p)
@@ -331,8 +330,7 @@ class HiShelf
       float v2 = ic2eq + vc.constRow(a2)[n] * ic1eq + vc.constRow(a3)[n] * v3;
       ic1eq = 2 * v1 - ic1eq;
       ic2eq = 2 * v2 - ic2eq;
-      vy[n] = vc.constRow(m0)[n] * v0 + vc.constRow(m1)[n] * v1 +
-              vc.constRow(m2)[n] * v2;
+      vy[n] = vc.constRow(m0)[n] * v0 + vc.constRow(m1)[n] * v1 + vc.constRow(m2)[n] * v2;
     }
     return vy;
   }
@@ -586,7 +584,7 @@ class RMS
 
 class IntegerDelay
 {
-  std::vector<float> mBuffer;
+  std::vector< float > mBuffer;
   int mIntDelayInSamples{0};
   uintptr_t mWriteIndex{0};
   uintptr_t mLengthMask{0};
@@ -624,8 +622,7 @@ class IntegerDelay
     if (writeEnd <= mLengthMask + 1)
     {
       const float* srcStart = vx.getConstBuffer();
-      std::copy(srcStart, srcStart + kFloatsPerDSPVector,
-                mBuffer.data() + mWriteIndex);
+      std::copy(srcStart, srcStart + kFloatsPerDSPVector, mBuffer.data() + mWriteIndex);
     }
     else
     {
@@ -652,8 +649,7 @@ class IntegerDelay
       uintptr_t readSplice = readStart + kFloatsPerDSPVector - excess;
       float* pDest = vy.getBuffer();
       std::copy(srcBuf + readStart, srcBuf + readSplice, pDest);
-      std::copy(srcBuf, srcBuf + excess,
-                pDest + (kFloatsPerDSPVector - excess));
+      std::copy(srcBuf, srcBuf + excess, pDest + (kFloatsPerDSPVector - excess));
     }
 
     // update index
@@ -672,7 +668,7 @@ class IntegerDelay
       mBuffer[mWriteIndex] = x[n];
 
       // read
-      mIntDelayInSamples = static_cast<int>(delay[n]);
+      mIntDelayInSamples = static_cast< int >(delay[n]);
       uintptr_t readIndex = (mWriteIndex - mIntDelayInSamples) & mLengthMask;
 
       y[n] = mBuffer[readIndex];
@@ -784,21 +780,14 @@ class FractionalDelay
     mAllpassSection.mCoeffs = Allpass1::coeffs(delayFrac);
   }
 
-  inline void setMaxDelayInSamples(float d)
-  {
-    mIntegerDelay.setMaxDelayInSamples(floorf(d));
-  }
+  inline void setMaxDelayInSamples(float d) { mIntegerDelay.setMaxDelayInSamples(floorf(d)); }
 
   // return the input signal, delayed by the constant delay time
   // mDelayInSamples.
-  inline DSPVector operator()(const DSPVector vx)
-  {
-    return mAllpassSection(mIntegerDelay(vx));
-  }
+  inline DSPVector operator()(const DSPVector vx) { return mAllpassSection(mIntegerDelay(vx)); }
 
   // return the input signal, delayed by the varying delay time vDelayInSamples.
-  inline DSPVector operator()(const DSPVector vx,
-                              const DSPVector vDelayInSamples)
+  inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
@@ -811,8 +800,7 @@ class FractionalDelay
 
   // return the input signal, delayed by the varying delay time vDelayInSamples,
   // but only allow changes to the delay time when vChangeTicks is nonzero.
-  inline DSPVector operator()(const DSPVector vx,
-                              const DSPVector vDelayInSamples,
+  inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples,
                               const DSPVectorInt vChangeTicks)
   {
     DSPVector vy;
@@ -844,9 +832,8 @@ constexpr int ticks2(int n) { return fadeRamp(n) == 0; }
 constexpr float fadeFn(int n)
 {
   // triangle from 0 to 1 to 0
-  return 2.f * ((fadeRamp(n)) > kFadePeriod / 2
-                    ? 1.0f - (fadeRamp(n)) / (kFadePeriod + 0.f)
-                    : (fadeRamp(n)) / (kFadePeriod + 0.f));
+  return 2.f * ((fadeRamp(n)) > kFadePeriod / 2 ? 1.0f - (fadeRamp(n)) / (kFadePeriod + 0.f)
+                                                : (fadeRamp(n)) / (kFadePeriod + 0.f));
 }
 
 // generate vectors of ticks indicating when delays can change
@@ -882,8 +869,7 @@ class PitchbendableDelay
     mDelay2.clear();
   }
 
-  inline DSPVector operator()(const DSPVector vInput,
-                              const DSPVector vDelayInSamples)
+  inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
   {
     using namespace PitchbendableDelayConsts;
 
@@ -896,7 +882,7 @@ class PitchbendableDelay
 // General purpose allpass filter with arbitrary delay length.
 // For efficiency, the minimum delay time is one DSPVector.
 
-template <typename DELAY_TYPE>
+template < typename DELAY_TYPE >
 class Allpass
 {
   DELAY_TYPE mDelay;
@@ -907,10 +893,7 @@ class Allpass
 
   // use setDelayInSamples to set a constant delay time with DELAY_TYPE of
   // IntegerDelay or FractionalDelay.
-  inline void setDelayInSamples(float d)
-  {
-    mDelay.setDelayInSamples(d - kFloatsPerDSPVector);
-  }
+  inline void setDelayInSamples(float d) { mDelay.setDelayInSamples(d - kFloatsPerDSPVector); }
 
   inline void setMaxDelayInSamples(float d)
   {
@@ -935,8 +918,7 @@ class Allpass
 
   // use vDelayInSamples parameter to set a varying delay time with DELAY_TYPE =
   // PitchbendableDelay.
-  inline DSPVector operator()(const DSPVector vInput,
-                              const DSPVector vDelayInSamples)
+  inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
   {
     DSPVector vGain(-mGain);
     DSPVector vDelayInput = vInput - vy1 * vGain;
@@ -951,18 +933,18 @@ class Allpass
 // matrix.
 // TODO DELAY_TYPE parameter for modulation?
 
-template <int SIZE>
+template < int SIZE >
 class FDN
 {
-  std::array<IntegerDelay, SIZE> mDelays;
-  std::array<OnePole, SIZE> mFilters;
-  std::array<DSPVector, SIZE> mDelayInputVectors{{{DSPVector(0.f)}}};
+  std::array< IntegerDelay, SIZE > mDelays;
+  std::array< OnePole, SIZE > mFilters;
+  std::array< DSPVector, SIZE > mDelayInputVectors{{{DSPVector(0.f)}}};
 
  public:
   // feedback gains array is public—just copy values to set.
-  std::array<float, SIZE> mFeedbackGains{{0}};
+  std::array< float, SIZE > mFeedbackGains{{0}};
 
-  void setDelaysInSamples(std::array<float, SIZE> times)
+  void setDelaysInSamples(std::array< float, SIZE > times)
   {
     for (int n = 0; n < SIZE; ++n)
     {
@@ -974,7 +956,7 @@ class FDN
     }
   }
 
-  void setFilterCutoffs(std::array<float, SIZE> omegas)
+  void setFilterCutoffs(std::array< float, SIZE > omegas)
   {
     for (int n = 0; n < SIZE; ++n)
     {
@@ -983,7 +965,7 @@ class FDN
   }
 
   // stereo output function
-  DSPVectorArray<2> operator()(const DSPVector x)
+  DSPVectorArray< 2 > operator()(const DSPVector x)
   {
     // run delays, getting DSPVector for each delay
     for (int n = 0; n < SIZE; ++n)
@@ -1021,8 +1003,7 @@ class FDN
     for (int n = 0; n < SIZE; ++n)
     {
       mDelayInputVectors[n] -= (sumOfDelays);
-      mDelayInputVectors[n] =
-          mFilters[n](mDelayInputVectors[n]) * DSPVector(mFeedbackGains[n]);
+      mDelayInputVectors[n] = mFilters[n](mDelayInputVectors[n]) * DSPVector(mFeedbackGains[n]);
       mDelayInputVectors[n] += x;
     }
 
@@ -1087,8 +1068,8 @@ class HalfBandFilter
 
  private:
   // order=4, rejection=70dB, transition band=0.1.
-  Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f},
-      apb0{0.28382934487410993f}, apb1{0.8344118914807379f};
+  Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f},
+      apb1{0.8344118914807379f};
   float b1{0};
 };
 
@@ -1097,8 +1078,8 @@ class HalfBandFilter
 
 class Downsampler
 {
-  std::vector<HalfBandFilter> _filters;
-  std::vector<float> _buffers;
+  std::vector< HalfBandFilter > _filters;
+  std::vector< float > _buffers;
   int _octaves;
   int _numBuffers;
   int _bufferSizeInFloats;
@@ -1106,8 +1087,7 @@ class Downsampler
 
   float* bufferPtr(int idx, int channel)
   {
-    return _buffers.data() + idx * _bufferSizeInFloats +
-           kFloatsPerDSPVector * channel;
+    return _buffers.data() + idx * _bufferSizeInFloats + kFloatsPerDSPVector * channel;
   }
 
  public:
@@ -1131,8 +1111,8 @@ class Downsampler
 
   // write a vector of samples to the filter chain, run filters, and return
   // true if there is a new vector of output to read (every 2^octaves writes)
-  template <size_t CHANNELS>
-  bool write(DSPVectorArray<CHANNELS> v)
+  template < size_t CHANNELS >
+  bool write(DSPVectorArray< CHANNELS > v)
   {
     if (_octaves)
     {
@@ -1178,10 +1158,10 @@ class Downsampler
     }
   }
 
-  template <size_t CHANNELS>
-  DSPVectorArray<CHANNELS> read()
+  template < size_t CHANNELS >
+  DSPVectorArray< CHANNELS > read()
   {
-    return DSPVectorArray<CHANNELS>(bufferPtr(_numBuffers - 1, 0));
+    return DSPVectorArray< CHANNELS >(bufferPtr(_numBuffers - 1, 0));
   }
 };
 

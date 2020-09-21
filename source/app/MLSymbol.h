@@ -47,22 +47,22 @@ constexpr int kDefaultSymbolTableSize = 4096;
 
 // very simple hash function from Kernighan & Ritchie.
 // Constexpr version for hashing strings known at compile time.
-template <size_t N>
+template < size_t N >
 constexpr uint32_t krHash2(const char* str)
 {
-  return (N > 1) ? ((krHash2<N - 1>(str + 1)) + *str) * 31u : 0;
+  return (N > 1) ? ((krHash2< N - 1 >(str + 1)) + *str) * 31u : 0;
 }
 
 template <>
-constexpr uint32_t krHash2<size_t(0)>(const char* str)
+constexpr uint32_t krHash2< size_t(0) >(const char* str)
 {
   return 0;
 }
 
-template <size_t N>
+template < size_t N >
 constexpr uint32_t krHash1(const char* str)
 {
-  return krHash2<N>(str) & kHashTableMask;
+  return krHash2< N >(str) & kHashTableMask;
 }
 
 // non-recursive hash producing equivalent results to krHash1.
@@ -82,10 +82,10 @@ inline uint32_t krHash0(const char* str, const size_t len)
 
 inline uint32_t krHash0(const char* str) { return krHash0(str, strlen(str)); }
 
-template <size_t N>
+template < size_t N >
 constexpr uint32_t hash(const char (&sym)[N])
 {
-  return krHash1<N>(sym);
+  return krHash1< N >(sym);
 }
 
 class HashedCharArray
@@ -93,17 +93,13 @@ class HashedCharArray
  public:
   // template ctor from string literals allows hashing for code like
   // Proc::setParam("foo") to be done at compile time.
-  template <size_t N>
-  constexpr HashedCharArray(const char (&sym)[N])
-      : len(N), hash(krHash1<N>(sym)), pChars(sym)
+  template < size_t N >
+  constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1< N >(sym)), pChars(sym)
   {
   }
 
   // this non-constexpr ctor counts the string length at runtime.
-  HashedCharArray(const char* pC)
-      : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC)
-  {
-  }
+  HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC) {}
 
   // this non-constexpr ctor takes a string length parameter at runtime.
   HashedCharArray(const char* pC, size_t lengthBytes)
@@ -146,31 +142,31 @@ class SymbolTable
 
  private:
   // vector of text fragments in ID/creation order
-  std::vector<TextFragment> mSymbolTextsByID;
+  std::vector< TextFragment > mSymbolTextsByID;
 
   // hash table containing indexes to strings for a given hash value.
   struct TableEntry
   {
     std::mutex mMutex;
-    std::vector<SymbolID> mIDVector;
+    std::vector< SymbolID > mIDVector;
   };
 
   void clearEntry(TableEntry& entry)
   {
-    std::unique_lock<std::mutex> lock(entry.mMutex);
+    std::unique_lock< std::mutex > lock(entry.mMutex);
     entry.mIDVector.clear();
   }
 
   // since the maximum hash value is known, there will be no need to resize this
   // array.
-  std::array<TableEntry, kHashTableSize> mHashTable;
+  std::array< TableEntry, kHashTableSize > mHashTable;
 
   size_t mSize{0};
 };
 
 inline SymbolTable& theSymbolTable()
 {
-  static const std::unique_ptr<SymbolTable> t(new SymbolTable());
+  static const std::unique_ptr< SymbolTable > t(new SymbolTable());
   return *t;
 }
 
@@ -189,12 +185,8 @@ class Symbol
   Symbol() : id(0) {}
   Symbol(const HashedCharArray& hsl) : id(theSymbolTable().getSymbolID(hsl)) {}
   Symbol(const char* pC) : id(theSymbolTable().getSymbolID(pC)) {}
-  Symbol(const char* pC, size_t lengthBytes)
-      : id(theSymbolTable().getSymbolID(pC, lengthBytes))
-  {
-  }
-  Symbol(TextFragment frag)
-      : id(theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()))
+  Symbol(const char* pC, size_t lengthBytes) : id(theSymbolTable().getSymbolID(pC, lengthBytes)) {}
+  Symbol(TextFragment frag) : id(theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()))
   {
   }  // needed?
 
@@ -242,10 +234,7 @@ class Symbol
     return theSymbolTable().getSymbolTextByID(id);
   }
 
-  inline const char* getUTF8Ptr() const
-  {
-    return theSymbolTable().getSymbolTextByID(id).getText();
-  }
+  inline const char* getUTF8Ptr() const { return theSymbolTable().getSymbolTextByID(id).getText(); }
 
   SymbolID getID() const { return id; }
 
@@ -254,10 +243,7 @@ class Symbol
     return getTextFragment().beginsWith(b.getTextFragment());
   }
 
-  inline bool endsWith(Symbol b) const
-  {
-    return getTextFragment().endsWith(b.getTextFragment());
-  }
+  inline bool endsWith(Symbol b) const { return getTextFragment().endsWith(b.getTextFragment()); }
 
   // TODO for existing client code, deprecated
   inline std::string toString() const { return std::string(getUTF8Ptr()); }
@@ -277,7 +263,7 @@ inline Symbol operator+(Symbol f1, Symbol f2)
 namespace std
 {
 template <>
-struct hash<ml::Symbol>
+struct hash< ml::Symbol >
 {
   std::size_t operator()(const ml::Symbol& s) const { return s.getID(); }
 };

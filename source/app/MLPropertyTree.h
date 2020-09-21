@@ -23,16 +23,16 @@ struct NamedValue
 };
 
 // Define a type for initializing a new PropertyTree with a list of Values.
-using WithValues = const std::initializer_list<NamedValue>;
+using WithValues = const std::initializer_list< NamedValue >;
 
 class PropertyTree
 {
-  Tree<Value> properties;
+  Tree< Value > properties;
 
  public:
   PropertyTree() = default;
-  PropertyTree(Tree<Value> vt) : properties(vt) {}
-  PropertyTree(const std::initializer_list<NamedValue> p)
+  PropertyTree(Tree< Value > vt) : properties(vt) {}
+  PropertyTree(const std::initializer_list< NamedValue > p)
   {
     for (const auto& v : p)
     {
@@ -40,10 +40,7 @@ class PropertyTree
     }
   }
 
-  bool hasProperty(Path p) const
-  {
-    return (properties.getConstNode(p) != nullptr);
-  }
+  bool hasProperty(Path p) const { return (properties.getConstNode(p) != nullptr); }
 
   // get the Value of the property. Will return a null Value object if no such
   // property exists.
@@ -55,10 +52,7 @@ class PropertyTree
   bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
   int getIntProperty(Path p) const { return properties[p].getIntValue(); }
   Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-  Matrix getMatrixProperty(Path p) const
-  {
-    return properties[p].getMatrixValue();
-  }
+  Matrix getMatrixProperty(Path p) const { return properties[p].getMatrixValue(); }
 
   float getFloatPropertyWithDefault(Path p, float d) const
   {
@@ -81,12 +75,8 @@ class PropertyTree
     return properties[p].getMatrixValueWithDefault(d);
   }
 
-  std::vector<unsigned char> propertyTreeToBinary()
-  {
-    return valueTreeToBinary(properties);
-  }
-  PropertyTree binaryToPropertyTree(
-      const std::vector<unsigned char>& binaryData)
+  std::vector< unsigned char > propertyTreeToBinary() { return valueTreeToBinary(properties); }
+  PropertyTree binaryToPropertyTree(const std::vector< unsigned char >& binaryData)
   {
     return PropertyTree(binaryToValueTree(binaryData));
   }

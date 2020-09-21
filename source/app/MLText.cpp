@@ -24,36 +24,28 @@ class TextFragment::Iterator::Impl
   friend bool operator!=(Iterator lhs, Iterator rhs);
   friend bool operator==(Iterator lhs, Iterator rhs);
 
-  utf::codepoint_iterator<const char*> _utf8Iter;
+  utf::codepoint_iterator< const char* > _utf8Iter;
 
  public:
-  Impl(const char* pos) : _utf8Iter(utf::codepoint_iterator<const char*>(pos))
-  {
-  }
-  Impl(const utf::codepoint_iterator<const char*>& utf_iter)
-      : _utf8Iter(utf_iter)
-  {
-  }
+  Impl(const char* pos) : _utf8Iter(utf::codepoint_iterator< const char* >(pos)) {}
+  Impl(const utf::codepoint_iterator< const char* >& utf_iter) : _utf8Iter(utf_iter) {}
 };
 
 // Iterator
 
 TextFragment::Iterator::Iterator(const char* pos)
 {
-  pImpl = std::unique_ptr<Impl>(new Impl(pos));
+  pImpl = std::unique_ptr< Impl >(new Impl(pos));
 }
 
 TextFragment::Iterator::Iterator(const Iterator& it)  // = default;
 {
-  pImpl = std::unique_ptr<Impl>(new Impl(it.pImpl->_utf8Iter));
+  pImpl = std::unique_ptr< Impl >(new Impl(it.pImpl->_utf8Iter));
 }
 
 TextFragment::Iterator::~Iterator() = default;
 
-CodePoint TextFragment::Iterator::operator*()
-{
-  return pImpl->_utf8Iter.operator*();
-}
+CodePoint TextFragment::Iterator::operator*() { return pImpl->_utf8Iter.operator*(); }
 
 //		CodePoint operator->() { return _utf8Iter.operator->(); }
 
@@ -120,7 +112,7 @@ TextFragment::TextFragment(CodePoint c) noexcept
     c = 0x2639;  // sad face
   }
   // all possible codepoints fit into local text
-  char* end = utf::internal::utf_traits<utf::utf8>::encode(c, mLocalText);
+  char* end = utf::internal::utf_traits< utf::utf8 >::encode(c, mLocalText);
   mSize = end - mLocalText;
   mpText = mLocalText;
   nullTerminate();
@@ -130,19 +122,13 @@ size_t TextFragment::lengthInBytes() const { return mSize; }
 
 size_t TextFragment::lengthInCodePoints() const
 {
-  utf::stringview<const char*> sv(mpText, mpText + mSize);
+  utf::stringview< const char* > sv(mpText, mpText + mSize);
   return sv.codepoints();
 }
 
-TextFragment::Iterator TextFragment::begin() const
-{
-  return TextFragment::Iterator(getText());
-}
+TextFragment::Iterator TextFragment::begin() const { return TextFragment::Iterator(getText()); }
 
-TextFragment::Iterator TextFragment::end() const
-{
-  return Iterator(getText() + lengthInBytes());
-}
+TextFragment::Iterator TextFragment::end() const { return Iterator(getText() + lengthInBytes()); }
 
 TextFragment::TextFragment(const TextFragment& a) noexcept
 {
@@ -177,8 +163,7 @@ TextFragment& TextFragment::operator=(TextFragment&& b) noexcept
 }
 
 // multiple-fragment constructors, used instead of operator+
-TextFragment::TextFragment(const TextFragment& a,
-                           const TextFragment& b) noexcept
+TextFragment::TextFragment(const TextFragment& a, const TextFragment& b) noexcept
 {
   construct(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes());
 }
@@ -186,23 +171,21 @@ TextFragment::TextFragment(const TextFragment& a,
 TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
                            const TextFragment& t3) noexcept
 {
-  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-            t3.getText(), t3.lengthInBytes());
+  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+            t3.lengthInBytes());
 }
 
-TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
-                           const TextFragment& t3,
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
                            const TextFragment& t4) noexcept
 {
-  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-            t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
+  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+            t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 }
 
 TextFragment::~TextFragment() noexcept { dispose(); }
 
-void TextFragment::construct(const char* s1, size_t len1, const char* s2,
-                             size_t len2, const char* s3, size_t len3,
-                             const char* s4, size_t len4) noexcept
+void TextFragment::construct(const char* s1, size_t len1, const char* s2, size_t len2,
+                             const char* s3, size_t len3, const char* s4, size_t len4) noexcept
 {
   create(len1 + len2 + len3 + len4);
   if (mpText)
@@ -221,7 +204,7 @@ void TextFragment::create(size_t size) noexcept
   const size_t nullTerminatedSize = size + 1;
   if (nullTerminatedSize > kShortFragmentSizeInChars)
   {
-    mpText = static_cast<char*>(malloc(nullTerminatedSize));
+    mpText = static_cast< char* >(malloc(nullTerminatedSize));
   }
   else
   {
@@ -272,30 +255,26 @@ void TextFragment::moveDataFromOther(TextFragment& b)
   b.nullTerminate();
 }
 
-bool validateCodePoint(CodePoint c)
-{
-  return utf::internal::validate_codepoint(c);
-}
+bool validateCodePoint(CodePoint c) { return utf::internal::validate_codepoint(c); }
 
 // return UTF-8 encoded vector of bytes without null terminator
-std::vector<uint8_t> textToByteVector(TextFragment frag)
+std::vector< uint8_t > textToByteVector(TextFragment frag)
 {
-  return std::vector<uint8_t>(frag.getText(),
-                              frag.getText() + frag.lengthInBytes());
+  return std::vector< uint8_t >(frag.getText(), frag.getText() + frag.lengthInBytes());
 }
 
-TextFragment byteVectorToText(const std::vector<uint8_t>& v)
+TextFragment byteVectorToText(const std::vector< uint8_t >& v)
 {
   if (!v.size()) return TextFragment();
   const uint8_t* p = v.data();
-  return TextFragment(reinterpret_cast<const char*>(p), v.size());
+  return TextFragment(reinterpret_cast< const char* >(p), v.size());
 }
 
 // TODO small stack objects here to make random access class, don't use
 // std::vector
-std::vector<CodePoint> textToCodePoints(TextFragment frag)
+std::vector< CodePoint > textToCodePoints(TextFragment frag)
 {
-  std::vector<CodePoint> r;
+  std::vector< CodePoint > r;
   for (CodePoint c : frag)
   {
     r.push_back(c);
@@ -303,11 +282,11 @@ std::vector<CodePoint> textToCodePoints(TextFragment frag)
   return r;
 }
 
-TextFragment codePointsToText(std::vector<CodePoint> cv)
+TextFragment codePointsToText(std::vector< CodePoint > cv)
 {
   auto sv = utf::make_stringview(cv.begin(), cv.end());
-  std::vector<char> outVec;
-  sv.to<utf::utf8>(std::back_inserter(outVec));
+  std::vector< char > outVec;
+  sv.to< utf::utf8 >(std::back_inserter(outVec));
   return TextFragment(outVec.data(), outVec.size());
 }
 

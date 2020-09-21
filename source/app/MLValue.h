@@ -52,7 +52,7 @@ class Value
   explicit operator bool() const { return mType != kUndefinedValue; }
 
   // matrix type constructor via initializer_list
-  Value(std::initializer_list<float> values)
+  Value(std::initializer_list< float > values)
   {
     auto size = values.size();
     if (size == 0)
@@ -78,21 +78,18 @@ class Value
     return (mType == kFloatValue) ? mFloatVal : d;
   }
 
-  inline const float getBoolValue() const
-  {
-    return static_cast<bool>(mFloatVal);
-  }
+  inline const float getBoolValue() const { return static_cast< bool >(mFloatVal); }
 
   inline const bool getBoolValueWithDefault(bool b) const
   {
-    return (mType == kFloatValue) ? static_cast<bool>(mFloatVal) : b;
+    return (mType == kFloatValue) ? static_cast< bool >(mFloatVal) : b;
   }
 
-  inline const float getIntValue() const { return static_cast<int>(mFloatVal); }
+  inline const float getIntValue() const { return static_cast< int >(mFloatVal); }
 
   inline const int getIntValueWithDefault(int d) const
   {
-    return (mType == kFloatValue) ? static_cast<int>(mFloatVal) : d;
+    return (mType == kFloatValue) ? static_cast< int >(mFloatVal) : d;
   }
 
   inline const ml::Text getTextValue() const
@@ -159,10 +156,10 @@ class Value
 // utilities
 
 // note: this implementation does not disable this overload for array types
-template <typename T, typename... Args>
-std::unique_ptr<T> make_unique(Args&&... args)
+template < typename T, typename... Args >
+std::unique_ptr< T > make_unique(Args&&... args)
 {
-  return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+  return std::unique_ptr< T >(new T(std::forward< Args >(args)...));
 }
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);

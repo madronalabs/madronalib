@@ -88,7 +88,7 @@ namespace ml
 
  @tags{Core}
  */
-template <typename SharedObjectType>
+template < typename SharedObjectType >
 class SharedResourcePointer
 {
   struct SpinLockGuard
@@ -144,24 +144,21 @@ class SharedResourcePointer
 
   /** Returns the number of SharedResourcePointers that are currently holding
    * the shared object. */
-  int getReferenceCount() const noexcept
-  {
-    return getSharedObjectHolder().refCount;
-  }
+  int getReferenceCount() const noexcept { return getSharedObjectHolder().refCount; }
 
  private:
   struct SharedObjectHolder
   {
     std::atomic_flag static_flag = ATOMIC_FLAG_INIT;
-    std::unique_ptr<SharedObjectType> sharedInstance;
+    std::unique_ptr< SharedObjectType > sharedInstance;
     int refCount;
   };
 
   static SharedObjectHolder& getSharedObjectHolder() noexcept
   {
-    static void* holder[(sizeof(SharedObjectHolder) + sizeof(void*) - 1) /
-                        sizeof(void*)] = {nullptr};
-    return *reinterpret_cast<SharedObjectHolder*>(holder);
+    static void* holder[(sizeof(SharedObjectHolder) + sizeof(void*) - 1) / sizeof(void*)] = {
+        nullptr};
+    return *reinterpret_cast< SharedObjectHolder* >(holder);
   }
 
   SharedObjectType* sharedObject;
@@ -171,8 +168,7 @@ class SharedResourcePointer
     auto& holder = getSharedObjectHolder();
     SpinLockGuard holderGuard(&holder.static_flag);
 
-    if (++(holder.refCount) == 1)
-      holder.sharedInstance.reset(new SharedObjectType());
+    if (++(holder.refCount) == 1) holder.sharedInstance.reset(new SharedObjectType());
 
     sharedObject = holder.sharedInstance.get();
   }

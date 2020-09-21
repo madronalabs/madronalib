@@ -28,15 +28,9 @@ inline void makeWindow(float* pDest, size_t size, Projection windowShape)
 namespace windows
 {
 const Projection rectangle([](float x) { return 1.f; });
-const Projection triangle([](float x) {
-  return (x > 0.5f) ? (2.f - 2.f * x) : (2.f * x);
-});
-const Projection raisedCosine([](float x) {
-  return 0.5f - 0.5f * cosf(kTwoPi * x);
-});
-const Projection hamming([](float x) {
-  return 0.54f - 0.46f * cosf(kTwoPi * x);
-});
+const Projection triangle([](float x) { return (x > 0.5f) ? (2.f - 2.f * x) : (2.f * x); });
+const Projection raisedCosine([](float x) { return 0.5f - 0.5f * cosf(kTwoPi * x); });
+const Projection hamming([](float x) { return 0.54f - 0.46f * cosf(kTwoPi * x); });
 const Projection blackman([](float x) {
   return 0.42f - 0.5f * cosf(kTwoPi * x) + 0.08f * cosf(2.f * kTwoPi * x);
 });
@@ -46,8 +40,8 @@ const Projection flatTop([](float x) {
   const float a2 = 0.277263158;
   const float a3 = 0.083578947;
   const float a4 = 0.006947368;
-  return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) -
-         a3 * cosf(3.f * kTwoPi * x) + a4 * cosf(4.f * kTwoPi * x);
+  return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) - a3 * cosf(3.f * kTwoPi * x) +
+         a4 * cosf(4.f * kTwoPi * x);
 });
 }  // namespace windows
 
@@ -55,14 +49,14 @@ const Projection flatTop([](float x) {
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
 // DSPVector-sized chunks
 
-template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
+template < int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES >
 class VectorProcessBuffer
 {
-  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(
-      const DSPVectorArray<IN_CHANNELS>&)>;
+  using VectorProcessFn =
+      std::function< DSPVectorArray< OUT_CHANNELS >(const DSPVectorArray< IN_CHANNELS >&) >;
 
-  DSPVectorArray<IN_CHANNELS> _inputVectors;
-  DSPVectorArray<OUT_CHANNELS> _outputVectors;
+  DSPVectorArray< IN_CHANNELS > _inputVectors;
+  DSPVectorArray< OUT_CHANNELS > _outputVectors;
 
  public:
   VectorProcessBuffer()
@@ -79,8 +73,7 @@ class VectorProcessBuffer
 
   ~VectorProcessBuffer() {}
 
-  void process(const float** inputs, float** outputs, int nFrames,
-               VectorProcessFn fn)
+  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn)
   {
     if (nFrames > MAX_FRAMES) return;
     if (IN_CHANNELS > 0)
@@ -136,8 +129,8 @@ class VectorProcessBuffer
   }
 
  private:
-  std::array<ml::DSPBuffer, IN_CHANNELS> mInputBuffers;
-  std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
+  std::array< ml::DSPBuffer, IN_CHANNELS > mInputBuffers;
+  std::array< ml::DSPBuffer, OUT_CHANNELS > mOutputBuffers;
 };
 
 // horiz -> vert -> horiz adapters can go here

@@ -19,8 +19,7 @@ namespace ml
 // heap if the length in bytes is below kShortFragmentSize.
 
 static constexpr int kShortFragmentSizeInCodePoints = 16;
-static constexpr int kShortFragmentSizeInChars =
-    kShortFragmentSizeInCodePoints * 4;
+static constexpr int kShortFragmentSizeInChars = kShortFragmentSizeInCodePoints * 4;
 
 using CodePoint = char32_t;
 
@@ -30,7 +29,7 @@ class TextFragment
   class Iterator
   {
     class Impl;
-    std::unique_ptr<Impl> pImpl;
+    std::unique_ptr< Impl > pImpl;
 
    public:
     Iterator(const char* pos);
@@ -92,10 +91,9 @@ class TextFragment
 
   // use these ctors instead of operator+.
   TextFragment(const TextFragment& a, const TextFragment& b) noexcept;
-  TextFragment(const TextFragment& a, const TextFragment& b,
-               const TextFragment& c) noexcept;
-  TextFragment(const TextFragment& a, const TextFragment& b,
-               const TextFragment& c, const TextFragment& d) noexcept;
+  TextFragment(const TextFragment& a, const TextFragment& b, const TextFragment& c) noexcept;
+  TextFragment(const TextFragment& a, const TextFragment& b, const TextFragment& c,
+               const TextFragment& d) noexcept;
 
   ~TextFragment() noexcept;
 
@@ -144,9 +142,9 @@ class TextFragment
   inline std::string toString() const { return std::string(mpText); }
 
  private:
-  void construct(const char* s1, size_t len1, const char* s2 = nullptr,
-                 size_t len2 = 0, const char* s3 = nullptr, size_t len3 = 0,
-                 const char* s4 = nullptr, size_t len4 = 0) noexcept;
+  void construct(const char* s1, size_t len1, const char* s2 = nullptr, size_t len2 = 0,
+                 const char* s3 = nullptr, size_t len3 = 0, const char* s4 = nullptr,
+                 size_t len4 = 0) noexcept;
 
   void create(size_t size) noexcept;
   void nullTerminate() noexcept;
@@ -161,8 +159,7 @@ class TextFragment
   size_t mSize;
 };
 
-inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB,
-                                   size_t lenB)
+inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB, size_t lenB)
 {
   if (lenA != lenB) return false;
   if ((lenA == 0) && (lenB == 0)) return true;
@@ -182,8 +179,7 @@ inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB,
 
 inline bool operator==(const TextFragment a, const TextFragment b)
 {
-  return compareSizedCharArrays(a.getText(), a.lengthInBytes(), b.getText(),
-                                b.lengthInBytes());
+  return compareSizedCharArrays(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes());
 }
 
 inline bool operator!=(TextFragment a, TextFragment b) { return !(a == b); }
@@ -204,10 +200,10 @@ typedef TextFragment Text;
 
 bool validateCodePoint(CodePoint c);
 
-std::vector<uint8_t> textToByteVector(TextFragment frag);
-TextFragment byteVectorToText(const std::vector<uint8_t>& v);
+std::vector< uint8_t > textToByteVector(TextFragment frag);
+TextFragment byteVectorToText(const std::vector< uint8_t >& v);
 
-std::vector<CodePoint> textToCodePoints(TextFragment frag);
-TextFragment codePointsToText(std::vector<CodePoint> cv);
+std::vector< CodePoint > textToCodePoints(TextFragment frag);
+TextFragment codePointsToText(std::vector< CodePoint > cv);
 
 }  // namespace ml

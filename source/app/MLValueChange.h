@@ -32,13 +32,9 @@ struct ValueChange
   Path triggerWidget{};
 
   ValueChange() = default;
-  ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(),
-              bool start = false, bool end = false)
-      : name(np),
-        newValue(nv),
-        oldValue(ov),
-        startGesture(start),
-        endGesture(end)
+  ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(), bool start = false,
+              bool end = false)
+      : name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end)
   {
   }
 
@@ -49,13 +45,12 @@ struct ValueChange
 // ValueChangeList is not safe for use in audio processing threads. Given the
 // intended use in editors and controllers, this seems like a reasonable
 // tradeoff.
-using ValueChangeList = std::vector<ValueChange>;
+using ValueChangeList = std::vector< ValueChange >;
 
 }  // namespace ml
 
 inline std::ostream& operator<<(std::ostream& out, const ml::ValueChange& r)
 {
-  std::cout << "[" << r.name << ": " << r.oldValue << " -> " << r.newValue
-            << "]";
+  std::cout << "[" << r.name << ": " << r.oldValue << " -> " << r.newValue << "]";
   return out;
 }

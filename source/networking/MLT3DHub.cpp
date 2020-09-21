@@ -68,11 +68,10 @@ void MLT3DHub::setEnabled(int e)
   }
 }
 
-void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser,
-                              NetService* pNetService, bool moreServicesComing)
+void MLT3DHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService* pNetService,
+                              bool moreServicesComing)
 {
-  MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService,
-                                  moreServicesComing);
+  MLNetServiceHub::didFindService(pNetServiceBrowser, pNetService, moreServicesComing);
 }
 
 void MLT3DHub::addListener(MLT3DHub::Listener* pL)
@@ -223,10 +222,7 @@ void MLT3DHub::startBundle(const osc::ReceivedBundle& b)
 */
 }
 
-void MLT3DHub::endBundle(const osc::ReceivedBundle& b)
-{
-  mTouchFrames.push(mLatestTouchFrame);
-}
+void MLT3DHub::endBundle(const osc::ReceivedBundle& b) { mTouchFrames.push(mLatestTouchFrame); }
 
 void MLT3DHub::timerCallback()
 {
@@ -265,14 +261,11 @@ void MLT3DHub::connect()
   {
     if (mOSCReceiver.open(kDefaultUDPPort + mUDPPortOffset))
     {
-      mOSCReceiver.setBundleStartFn(
-          [this](const osc::ReceivedBundle& b) { startBundle(b); });
+      mOSCReceiver.setBundleStartFn([this](const osc::ReceivedBundle& b) { startBundle(b); });
 
-      mOSCReceiver.setMessageFn(
-          [this](const osc::ReceivedMessage& m) { handleMessage(m); });
+      mOSCReceiver.setMessageFn([this](const osc::ReceivedMessage& m) { handleMessage(m); });
 
-      mOSCReceiver.setBundleEndFn(
-          [this](const osc::ReceivedBundle& b) { endBundle(b); });
+      mOSCReceiver.setBundleEndFn([this](const osc::ReceivedBundle& b) { endBundle(b); });
       publishUDPService();
       mConnected = true;
     }

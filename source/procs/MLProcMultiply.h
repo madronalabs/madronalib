@@ -31,35 +31,17 @@ class ProcMultiply : public Proc
   DSPVector* inputs[constCount(inputNames) + 1];
   DSPVector* outputs[constCount(outputNames) + 1];
 
-  inline Value& param(constStr str)
-  {
-    return params[constFind(paramNames, str)];
-  }
+  inline Value& param(constStr str) { return params[constFind(paramNames, str)]; }
 
-  inline DSPVector& input(constStr str)
-  {
-    return *inputs[constFind(inputNames, str)];
-  }
+  inline DSPVector& input(constStr str) { return *inputs[constFind(inputNames, str)]; }
 
-  inline DSPVector& output(constStr str)
-  {
-    return *outputs[constFind(outputNames, str)];
-  }
+  inline DSPVector& output(constStr str) { return *outputs[constFind(outputNames, str)]; }
 
   // TODO remove and make non-const versions for external use
   // MLProc implementation (more boilerplate)
-  virtual void setParam(constStr str, float v) override
-  {
-    params[constFind(paramNames, str)] = v;
-  }
-  void setInput(constStr str, DSPVector& v) override
-  {
-    inputs[constFind(inputNames, str)] = &v;
-  }
-  void setOutput(constStr str, DSPVector& v) override
-  {
-    outputs[constFind(outputNames, str)] = &v;
-  }
+  virtual void setParam(constStr str, float v) override { params[constFind(paramNames, str)] = v; }
+  void setInput(constStr str, DSPVector& v) override { inputs[constFind(inputNames, str)] = &v; }
+  void setOutput(constStr str, DSPVector& v) override { outputs[constFind(outputNames, str)] = &v; }
 
   void process() override;
 };

@@ -11,8 +11,7 @@ void ProcFactory::registerFn(const ml::Symbol className, MLProcCreateFnT fn)
   procRegistry[className] = fn;
 }
 
-Proc* ProcFactory::create(
-    const ml::Symbol className)  // MLTEST, MLDSPContext* context)
+Proc* ProcFactory::create(const ml::Symbol className)  // MLTEST, MLDSPContext* context)
 {
   MLProcCreateFnT fn;
   Proc* resultProc = nullptr;

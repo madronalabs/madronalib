@@ -13,7 +13,7 @@ namespace ml
 // SmallStackBuffer - allocate some memory on the stack if we don't need much,
 // otherwise use the heap.
 
-template <class T, int MAX_STACK_ELEMS>
+template < class T, int MAX_STACK_ELEMS >
 class SmallStackBuffer
 {
  public:

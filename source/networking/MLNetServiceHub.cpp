@@ -60,7 +60,7 @@ MLNetServiceHub::~MLNetServiceHub()
 
 void MLNetServiceHub::startBrowseThread(const char* type)
 {
-  browser = std::unique_ptr<NetServiceBrowser>(new NetServiceBrowser());
+  browser = std::unique_ptr< NetServiceBrowser >(new NetServiceBrowser());
   browser->setListener(this);
 
   mServiceNames.clear();
@@ -69,8 +69,7 @@ void MLNetServiceHub::startBrowseThread(const char* type)
   browser->searchForServicesOfType(type, kDomainLocal);
 }
 
-bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef,
-                                  double timeOutInSeconds,
+bool MLNetServiceHub::pollService(DNSServiceRef dnsServiceRef, double timeOutInSeconds,
                                   DNSServiceErrorType& err)
 {
   assert(dnsServiceRef);
@@ -115,10 +114,7 @@ void MLNetServiceHub::PollNetServices()
   }
 }
 
-void MLNetServiceHub::setName(const std::string& name)
-{
-  mName = std::string(name);
-}
+void MLNetServiceHub::setName(const std::string& name) { mName = std::string(name); }
 
 void MLNetServiceHub::setPort(int port)
 {
@@ -147,8 +143,7 @@ void MLNetServiceHub::removeUDPService()
   }
 }
 
-void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser,
-                                     NetService* pNetService,
+void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser, NetService* pNetService,
                                      bool moreServicesComing)
 {
   // MLConsole() << "FOUND service: " << pNetService->getDomain() << " " <<
@@ -177,8 +172,7 @@ void MLNetServiceHub::didFindService(NetServiceBrowser* pNetServiceBrowser,
 }
 
 void MLNetServiceHub::didRemoveService(NetServiceBrowser* pNetServiceBrowser,
-                                       NetService* pNetService,
-                                       bool moreServicesComing)
+                                       NetService* pNetService, bool moreServicesComing)
 {
   // MLConsole() << "REMOVING service: " << pNetService->getName() << "\n";
 
@@ -212,7 +206,7 @@ inline bool endsWith(std::string const& value, std::string const& ending)
   return std::equal(ending.rbegin(), ending.rend(), value.rbegin());
 }
 
-const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
+const std::vector< std::string >& MLNetServiceHub::getFormattedServiceNames()
 {
   // push default service
   mServiceNames.clear();
@@ -252,8 +246,7 @@ const std::vector<std::string>& MLNetServiceHub::getFormattedServiceNames()
   return mServiceNames;
 }
 
-std::string MLNetServiceHub::unformatServiceName(
-    const std::string& formattedServiceName)
+std::string MLNetServiceHub::unformatServiceName(const std::string& formattedServiceName)
 {
   // NOTE: lots of string <-> text conversion now is ugly. Make ml::Text based
   // UDP library someday.

@@ -21,7 +21,7 @@ class ProcFactory
   ProcFactory& operator=(ProcFactory&&) = delete;       // Move assign
 
   typedef Proc* (*MLProcCreateFnT)(void);
-  typedef std::map<ml::Symbol, MLProcCreateFnT> FnRegistryT;
+  typedef std::map< ml::Symbol, MLProcCreateFnT > FnRegistryT;
   FnRegistryT procRegistry;
 
  public:
@@ -51,7 +51,7 @@ class ProcFactory
 // This class is passed a className and links a creation function
 // for the subclass to the className in the registry.  This way the ProcFactory
 // knows how to make them.
-template <class T>
+template < class T >
 class ProcRegistryEntry
 {
  public:
