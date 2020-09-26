@@ -27,21 +27,13 @@ class TextFragment::Iterator::Impl
   utf::codepoint_iterator<const char*> _utf8Iter;
 
  public:
-  Impl(const char* pos) : _utf8Iter(utf::codepoint_iterator<const char*>(pos))
-  {
-  }
-  Impl(const utf::codepoint_iterator<const char*>& utf_iter)
-      : _utf8Iter(utf_iter)
-  {
-  }
+  Impl(const char* pos) : _utf8Iter(utf::codepoint_iterator<const char*>(pos)) {}
+  Impl(const utf::codepoint_iterator<const char*>& utf_iter) : _utf8Iter(utf_iter) {}
 };
 
 // Iterator
 
-TextFragment::Iterator::Iterator(const char* pos)
-{
-  pImpl = std::unique_ptr<Impl>(new Impl(pos));
-}
+TextFragment::Iterator::Iterator(const char* pos) { pImpl = std::unique_ptr<Impl>(new Impl(pos)); }
 
 TextFragment::Iterator::Iterator(const Iterator& it)  // = default;
 {
@@ -50,10 +42,7 @@ TextFragment::Iterator::Iterator(const Iterator& it)  // = default;
 
 TextFragment::Iterator::~Iterator() = default;
 
-CodePoint TextFragment::Iterator::operator*()
-{
-  return pImpl->_utf8Iter.operator*();
-}
+CodePoint TextFragment::Iterator::operator*() { return pImpl->_utf8Iter.operator*(); }
 
 //		CodePoint operator->() { return _utf8Iter.operator->(); }
 
@@ -134,15 +123,9 @@ size_t TextFragment::lengthInCodePoints() const
   return sv.codepoints();
 }
 
-TextFragment::Iterator TextFragment::begin() const
-{
-  return TextFragment::Iterator(getText());
-}
+TextFragment::Iterator TextFragment::begin() const { return TextFragment::Iterator(getText()); }
 
-TextFragment::Iterator TextFragment::end() const
-{
-  return Iterator(getText() + lengthInBytes());
-}
+TextFragment::Iterator TextFragment::end() const { return Iterator(getText() + lengthInBytes()); }
 
 TextFragment::TextFragment(const TextFragment& a) noexcept
 {
@@ -177,8 +160,7 @@ TextFragment& TextFragment::operator=(TextFragment&& b) noexcept
 }
 
 // multiple-fragment constructors, used instead of operator+
-TextFragment::TextFragment(const TextFragment& a,
-                           const TextFragment& b) noexcept
+TextFragment::TextFragment(const TextFragment& a, const TextFragment& b) noexcept
 {
   construct(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes());
 }
@@ -186,23 +168,21 @@ TextFragment::TextFragment(const TextFragment& a,
 TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
                            const TextFragment& t3) noexcept
 {
-  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-            t3.getText(), t3.lengthInBytes());
+  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+            t3.lengthInBytes());
 }
 
-TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
-                           const TextFragment& t3,
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
                            const TextFragment& t4) noexcept
 {
-  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-            t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
+  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+            t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 }
 
 TextFragment::~TextFragment() noexcept { dispose(); }
 
-void TextFragment::construct(const char* s1, size_t len1, const char* s2,
-                             size_t len2, const char* s3, size_t len3,
-                             const char* s4, size_t len4) noexcept
+void TextFragment::construct(const char* s1, size_t len1, const char* s2, size_t len2,
+                             const char* s3, size_t len3, const char* s4, size_t len4) noexcept
 {
   create(len1 + len2 + len3 + len4);
   if (mpText)
@@ -272,16 +252,12 @@ void TextFragment::moveDataFromOther(TextFragment& b)
   b.nullTerminate();
 }
 
-bool validateCodePoint(CodePoint c)
-{
-  return utf::internal::validate_codepoint(c);
-}
+bool validateCodePoint(CodePoint c) { return utf::internal::validate_codepoint(c); }
 
 // return UTF-8 encoded vector of bytes without null terminator
 std::vector<uint8_t> textToByteVector(TextFragment frag)
 {
-  return std::vector<uint8_t>(frag.getText(),
-                              frag.getText() + frag.lengthInBytes());
+  return std::vector<uint8_t>(frag.getText(), frag.getText() + frag.lengthInBytes());
 }
 
 TextFragment byteVectorToText(const std::vector<uint8_t>& v)

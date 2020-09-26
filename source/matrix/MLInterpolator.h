@@ -74,8 +74,7 @@ class Interpolator
     //			auto frameToUnity = ml::projections::linear{{0, (frames
     //- 1)}, {0, 1}};
 
-    Projection frameToUnity(
-        projections::linear({0., (frames - 1.f)}, {0., 1.}));
+    Projection frameToUnity(projections::linear({0., (frames - 1.f)}, {0., 1.}));
 
     // MLTEST linear mapping, ignore target frames and use current frames
     for (int j = 0; j < frameSize; ++j)
@@ -83,8 +82,8 @@ class Interpolator
       for (int i = 0; i < frames; ++i)
       {
         float mix = frameToUnity(i);
-        y(i, j) = lerp(mHistory(kInterpolationDegree - 1, j),
-                       mHistory(kInterpolationDegree, j), mix);
+        y(i, j) =
+            lerp(mHistory(kInterpolationDegree - 1, j), mHistory(kInterpolationDegree, j), mix);
       }
     }
 

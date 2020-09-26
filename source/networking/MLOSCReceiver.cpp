@@ -25,8 +25,8 @@ bool MLOSCReceiver::open(int port)
     // the new UdpListeningReceiveSocket has this as its listener, so it will
     // call our ProcessMessage() and ProcessBundle() methods to handle incoming
     // messages.
-    mpSocket = new UdpListeningReceiveSocket(
-        IpEndpointName(IpEndpointName::ANY_ADDRESS, port), this);
+    mpSocket =
+        new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, port), this);
   }
   catch (osc::Exception& e)
   {
@@ -65,8 +65,7 @@ void MLOSCReceiver::close()
   }
 }
 
-void MLOSCReceiver::ProcessMessage(const osc::ReceivedMessage& m,
-                                   const IpEndpointName&)
+void MLOSCReceiver::ProcessMessage(const osc::ReceivedMessage& m, const IpEndpointName&)
 {
   if (mMessageFn) mMessageFn(m);
 }
@@ -76,8 +75,7 @@ void MLOSCReceiver::ProcessBundle(const osc::ReceivedBundle& b,
 {
   if (mBundleStartFn) mBundleStartFn(b);
 
-  for (osc::ReceivedBundle::const_iterator i = b.ElementsBegin();
-       i != b.ElementsEnd(); ++i)
+  for (osc::ReceivedBundle::const_iterator i = b.ElementsBegin(); i != b.ElementsEnd(); ++i)
   {
     if (i->IsBundle())
       ProcessBundle(osc::ReceivedBundle(*i), remoteEndpoint);
@@ -100,7 +98,6 @@ void MLOSCReceiver::threadFunc(void)
   }
   catch (std::runtime_error& e)
   {
-    std::cout << "MLOSCReceiver caught runtime_error exception: " << e.what()
-              << "\n";
+    std::cout << "MLOSCReceiver caught runtime_error exception: " << e.what() << "\n";
   }
 }

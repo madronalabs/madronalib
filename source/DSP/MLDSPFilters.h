@@ -30,9 +30,8 @@ inline float dBToGain(float dB) { return powf(10.f, dB / 40.f); }
 // from a coefficients start array and a coefficients end array, make a
 // DSPVectorArray with each coefficient interpolated over time.
 template <size_t COEFFS_SIZE>
-DSPVectorArray<COEFFS_SIZE> interpolateCoeffsLinear(
-    const std::array<float, COEFFS_SIZE> c0,
-    const std::array<float, COEFFS_SIZE> c1)
+DSPVectorArray<COEFFS_SIZE> interpolateCoeffsLinear(const std::array<float, COEFFS_SIZE> c0,
+                                                    const std::array<float, COEFFS_SIZE> c1)
 {
   DSPVectorArray<COEFFS_SIZE> vy;
   for (int i = 0; i < COEFFS_SIZE; ++i)
@@ -331,8 +330,7 @@ class HiShelf
       float v2 = ic2eq + vc.constRow(a2)[n] * ic1eq + vc.constRow(a3)[n] * v3;
       ic1eq = 2 * v1 - ic1eq;
       ic2eq = 2 * v2 - ic2eq;
-      vy[n] = vc.constRow(m0)[n] * v0 + vc.constRow(m1)[n] * v1 +
-              vc.constRow(m2)[n] * v2;
+      vy[n] = vc.constRow(m0)[n] * v0 + vc.constRow(m1)[n] * v1 + vc.constRow(m2)[n] * v2;
     }
     return vy;
   }
@@ -624,8 +622,7 @@ class IntegerDelay
     if (writeEnd <= mLengthMask + 1)
     {
       const float* srcStart = vx.getConstBuffer();
-      std::copy(srcStart, srcStart + kFloatsPerDSPVector,
-                mBuffer.data() + mWriteIndex);
+      std::copy(srcStart, srcStart + kFloatsPerDSPVector, mBuffer.data() + mWriteIndex);
     }
     else
     {
@@ -652,8 +649,7 @@ class IntegerDelay
       uintptr_t readSplice = readStart + kFloatsPerDSPVector - excess;
       float* pDest = vy.getBuffer();
       std::copy(srcBuf + readStart, srcBuf + readSplice, pDest);
-      std::copy(srcBuf, srcBuf + excess,
-                pDest + (kFloatsPerDSPVector - excess));
+      std::copy(srcBuf, srcBuf + excess, pDest + (kFloatsPerDSPVector - excess));
     }
 
     // update index
@@ -784,21 +780,14 @@ class FractionalDelay
     mAllpassSection.mCoeffs = Allpass1::coeffs(delayFrac);
   }
 
-  inline void setMaxDelayInSamples(float d)
-  {
-    mIntegerDelay.setMaxDelayInSamples(floorf(d));
-  }
+  inline void setMaxDelayInSamples(float d) { mIntegerDelay.setMaxDelayInSamples(floorf(d)); }
 
   // return the input signal, delayed by the constant delay time
   // mDelayInSamples.
-  inline DSPVector operator()(const DSPVector vx)
-  {
-    return mAllpassSection(mIntegerDelay(vx));
-  }
+  inline DSPVector operator()(const DSPVector vx) { return mAllpassSection(mIntegerDelay(vx)); }
 
   // return the input signal, delayed by the varying delay time vDelayInSamples.
-  inline DSPVector operator()(const DSPVector vx,
-                              const DSPVector vDelayInSamples)
+  inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
@@ -811,8 +800,7 @@ class FractionalDelay
 
   // return the input signal, delayed by the varying delay time vDelayInSamples,
   // but only allow changes to the delay time when vChangeTicks is nonzero.
-  inline DSPVector operator()(const DSPVector vx,
-                              const DSPVector vDelayInSamples,
+  inline DSPVector operator()(const DSPVector vx, const DSPVector vDelayInSamples,
                               const DSPVectorInt vChangeTicks)
   {
     DSPVector vy;
@@ -844,9 +832,8 @@ constexpr int ticks2(int n) { return fadeRamp(n) == 0; }
 constexpr float fadeFn(int n)
 {
   // triangle from 0 to 1 to 0
-  return 2.f * ((fadeRamp(n)) > kFadePeriod / 2
-                    ? 1.0f - (fadeRamp(n)) / (kFadePeriod + 0.f)
-                    : (fadeRamp(n)) / (kFadePeriod + 0.f));
+  return 2.f * ((fadeRamp(n)) > kFadePeriod / 2 ? 1.0f - (fadeRamp(n)) / (kFadePeriod + 0.f)
+                                                : (fadeRamp(n)) / (kFadePeriod + 0.f));
 }
 
 // generate vectors of ticks indicating when delays can change
@@ -882,8 +869,7 @@ class PitchbendableDelay
     mDelay2.clear();
   }
 
-  inline DSPVector operator()(const DSPVector vInput,
-                              const DSPVector vDelayInSamples)
+  inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
   {
     using namespace PitchbendableDelayConsts;
 
@@ -907,10 +893,7 @@ class Allpass
 
   // use setDelayInSamples to set a constant delay time with DELAY_TYPE of
   // IntegerDelay or FractionalDelay.
-  inline void setDelayInSamples(float d)
-  {
-    mDelay.setDelayInSamples(d - kFloatsPerDSPVector);
-  }
+  inline void setDelayInSamples(float d) { mDelay.setDelayInSamples(d - kFloatsPerDSPVector); }
 
   inline void setMaxDelayInSamples(float d)
   {
@@ -935,8 +918,7 @@ class Allpass
 
   // use vDelayInSamples parameter to set a varying delay time with DELAY_TYPE =
   // PitchbendableDelay.
-  inline DSPVector operator()(const DSPVector vInput,
-                              const DSPVector vDelayInSamples)
+  inline DSPVector operator()(const DSPVector vInput, const DSPVector vDelayInSamples)
   {
     DSPVector vGain(-mGain);
     DSPVector vDelayInput = vInput - vy1 * vGain;
@@ -1021,8 +1003,7 @@ class FDN
     for (int n = 0; n < SIZE; ++n)
     {
       mDelayInputVectors[n] -= (sumOfDelays);
-      mDelayInputVectors[n] =
-          mFilters[n](mDelayInputVectors[n]) * DSPVector(mFeedbackGains[n]);
+      mDelayInputVectors[n] = mFilters[n](mDelayInputVectors[n]) * DSPVector(mFeedbackGains[n]);
       mDelayInputVectors[n] += x;
     }
 
@@ -1087,8 +1068,8 @@ class HalfBandFilter
 
  private:
   // order=4, rejection=70dB, transition band=0.1.
-  Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f},
-      apb0{0.28382934487410993f}, apb1{0.8344118914807379f};
+  Allpass1 apa0{0.07986642623635751f}, apa1{0.5453536510711322f}, apb0{0.28382934487410993f},
+      apb1{0.8344118914807379f};
   float b1{0};
 };
 
@@ -1106,8 +1087,7 @@ class Downsampler
 
   float* bufferPtr(int idx, int channel)
   {
-    return _buffers.data() + idx * _bufferSizeInFloats +
-           kFloatsPerDSPVector * channel;
+    return _buffers.data() + idx * _bufferSizeInFloats + kFloatsPerDSPVector * channel;
   }
 
  public:

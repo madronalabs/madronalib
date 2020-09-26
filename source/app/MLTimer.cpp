@@ -36,14 +36,13 @@ void ml::Timers::start(bool runInMainThread)
       CFRunLoopTimerContext timerContext = {};
       timerContext.info = this;
       float intervalInSeconds = ml::Timers::kMillisecondsResolution * 0.001f;
-      pTimersRef = CFRunLoopTimerCreate(
-          kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + intervalInSeconds,
-          intervalInSeconds, 0, 0, macTimersCallback, &timerContext);
+      pTimersRef =
+          CFRunLoopTimerCreate(kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + intervalInSeconds,
+                               intervalInSeconds, 0, 0, macTimersCallback, &timerContext);
       if (pTimersRef)
       {
         _running = true;
-        CFRunLoopTimerRef pTimerRef =
-            static_cast<CFRunLoopTimerRef>(pTimersRef);
+        CFRunLoopTimerRef pTimerRef = static_cast<CFRunLoopTimerRef>(pTimersRef);
         CFRunLoopAddTimer(CFRunLoopGetMain(), pTimerRef, kCFRunLoopCommonModes);
       }
     }
@@ -80,8 +79,7 @@ void ml::Timers::stop()
 
 ml::Timers* pWinTimers{nullptr};
 
-void CALLBACK winTimersCallback(HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent,
-                                DWORD /*dwTime*/)
+void CALLBACK winTimersCallback(HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent, DWORD /*dwTime*/)
 {
   // ml::Timers* pTimers = (ml::Timers*)(ml::Timers::winTimersRef);
   if (pWinTimers)
@@ -97,9 +95,8 @@ void ml::Timers::start(bool runInMainThread)
   {
     if (_inMainThread)
     {
-      _timerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution,
-                          winTimersCallback);
-      if (_timerID)
+      _mainTimerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution, winTimersCallback);
+      if (_mainTimerID)
       {
         _running = true;
         pWinTimers = this;
@@ -120,7 +117,7 @@ void ml::Timers::stop()
   {
     if (_inMainThread)
     {
-      KillTimer(0, _timerID);
+      KillTimer(0, _mainTimerID);
       _running = false;
     }
     else

@@ -28,8 +28,7 @@ class DSPBuffer
     size_t size2;
   };
 
-  inline void addSamples(const float *pSrcStart, const float *pSrcEnd,
-                         float *pDest)
+  inline void addSamples(const float *pSrcStart, const float *pSrcEnd, float *pDest)
   {
     for (const float *p = pSrcStart; p < pSrcEnd; ++p)
     {
@@ -54,8 +53,7 @@ class DSPBuffer
     {
       size_t firstHalf = mSize - startIdx;
       size_t secondHalf = elems - firstHalf;
-      return DataRegions{mDataBuffer + startIdx, firstHalf, mDataBuffer,
-                         secondHalf};
+      return DataRegions{mDataBuffer + startIdx, firstHalf, mDataBuffer, secondHalf};
     }
     else
     {
@@ -132,15 +130,13 @@ class DSPBuffer
       std::copy(pSrc + dr.size1, pSrc + dr.size1 + dr.size2, dr.p2);
     }
 
-    mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples),
-                      std::memory_order_release);
+    mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
 
     if (full)
     {
       // oldest data was clobbered by write. set read index to indicate we
       // are full
-      mReadIndex.store(rewindDistanceIndex(mWriteIndex, mSize),
-                       std::memory_order_release);
+      mReadIndex.store(rewindDistanceIndex(mWriteIndex, mSize), std::memory_order_release);
     }
   }
 
@@ -176,8 +172,7 @@ class DSPBuffer
     {
       // oldest data was clobbered by write. set read index to indicate we
       // are full
-      mReadIndex.store(advanceDistanceIndex(mWriteIndex, -mSize),
-                       std::memory_order_release);
+      mReadIndex.store(advanceDistanceIndex(mWriteIndex, -mSize), std::memory_order_release);
     }
   }
 
@@ -196,8 +191,7 @@ class DSPBuffer
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
     }
 
-    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples),
-                     std::memory_order_release);
+    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
     return samples;
   }
 
@@ -215,8 +209,7 @@ class DSPBuffer
     {
       // we have only one region, so we can copy a number of samples known at
       // compile time.
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples),
-                       std::memory_order_release);
+      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
       load(destVec, dr.p1);
     }
     else
@@ -224,8 +217,7 @@ class DSPBuffer
       float *pDest = destVec.getBuffer();
       std::copy(dr.p1, dr.p1 + dr.size1, pDest);
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples),
-                       std::memory_order_release);
+      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
     }
   }
 
@@ -243,8 +235,7 @@ class DSPBuffer
     {
       // we have only one region, so we can copy a number of samples known at
       // compile time.
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples),
-                       std::memory_order_release);
+      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
       load(destVec, dr.p1);
     }
     else
@@ -252,8 +243,7 @@ class DSPBuffer
       float *pDest = destVec.getBuffer();
       std::copy(dr.p1, dr.p1 + dr.size1, pDest);
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples),
-                       std::memory_order_release);
+      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
     }
     return destVec;
   }
@@ -264,8 +254,7 @@ class DSPBuffer
     size_t available = getReadAvailable();
     samples = std::min(samples, available);
     const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples),
-                     std::memory_order_release);
+    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
   }
 
   // add n samples to the buffer and advance the write index by (samples -

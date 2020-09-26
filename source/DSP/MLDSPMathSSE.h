@@ -53,8 +53,7 @@ typedef __m128i SIMDVectorInt;
 // TODO int or uintptr_t?
 constexpr int kFloatsPerSIMDVectorBits = 2;
 constexpr int kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
-constexpr int kSIMDVectorsPerDSPVector =
-    kFloatsPerDSPVector / kFloatsPerSIMDVector;
+constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
 constexpr int kBytesPerSIMDVector = kFloatsPerSIMDVector * sizeof(float);
 constexpr int kSIMDVectorMask = ~(kBytesPerSIMDVector - 1);
 
@@ -85,11 +84,9 @@ inline bool isSIMDAligned(float* p)
   (_mm_and_ps(_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)), \
               _mm_cmpneq_ps(_mm_set_ps1(-0.0f), x)))
 
-#define vecSignBit(x) \
-  (_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)))
+#define vecSignBit(x) (_mm_or_ps(_mm_and_ps(_mm_set_ps1(-0.0f), x), _mm_set_ps1(1.0f)))
 #define vecClamp(x1, x2, x3) _mm_min_ps(_mm_max_ps(x1, x2), x3)
-#define vecWithin(x1, x2, x3) \
-  _mm_and_ps(_mm_cmpge_ps(x1, x2), _mm_cmplt_ps(x1, x3))
+#define vecWithin(x1, x2, x3) _mm_and_ps(_mm_cmpge_ps(x1, x2), _mm_cmplt_ps(x1, x3))
 
 #define vecEqual _mm_cmpeq_ps
 #define vecNotEqual _mm_cmpneq_ps
@@ -206,13 +203,11 @@ inline std::ostream& operator<<(std::ostream& out, SIMDVectorInt v)
 // ----------------------------------------------------------------
 #pragma mark select
 
-inline SIMDVectorFloat vecSelect(SIMDVectorFloat a, SIMDVectorFloat b,
-                                 SIMDVectorInt conditionMask)
+inline SIMDVectorFloat vecSelect(SIMDVectorFloat a, SIMDVectorFloat b, SIMDVectorInt conditionMask)
 {
   __m128i ones = _mm_set1_epi32(-1);
-  return _mm_or_ps(
-      _mm_and_ps(VecI2F(conditionMask), a),
-      _mm_and_ps(_mm_xor_ps(VecI2F(conditionMask), VecI2F(ones)), b));
+  return _mm_or_ps(_mm_and_ps(VecI2F(conditionMask), a),
+                   _mm_and_ps(_mm_xor_ps(VecI2F(conditionMask), VecI2F(ones)), b));
 }
 
 // ----------------------------------------------------------------
@@ -240,12 +235,10 @@ inline float vecMinH(SIMDVectorFloat v)
 }
 
 /* declare some SSE constants -- why can't I figure a better way to do that? */
-#define _PS_CONST(Name, Val)                                                 \
-  static const ALIGN16_BEG float _ps_##Name[4] ALIGN16_END = {Val, Val, Val, \
-                                                              Val}
-#define _PI32_CONST(Name, Val)                                               \
-  static const ALIGN16_BEG int _pi32_##Name[4] ALIGN16_END = {Val, Val, Val, \
-                                                              Val}
+#define _PS_CONST(Name, Val) \
+  static const ALIGN16_BEG float _ps_##Name[4] ALIGN16_END = {Val, Val, Val, Val}
+#define _PI32_CONST(Name, Val) \
+  static const ALIGN16_BEG int _pi32_##Name[4] ALIGN16_END = {Val, Val, Val, Val}
 #define _PS_CONST_TYPE(Name, Type, Val) \
   static const ALIGN16_BEG Type _ps_##Name[4] ALIGN16_END = {Val, Val, Val, Val}
 
@@ -288,8 +281,7 @@ inline SIMDVectorFloat vecLog(SIMDVectorFloat x)
   SIMDVectorFloat one = *(SIMDVectorFloat*)_ps_1;
   SIMDVectorFloat invalid_mask = _mm_cmple_ps(x, _mm_setzero_ps());
 
-  x = _mm_max_ps(
-      x, *(SIMDVectorFloat*)_ps_min_norm_pos); /* cut off denormalized stuff */
+  x = _mm_max_ps(x, *(SIMDVectorFloat*)_ps_min_norm_pos); /* cut off denormalized stuff */
 
   emm0 = _mm_srli_epi32(VecF2I(x), 23);
 
@@ -707,8 +699,7 @@ inline void vecSinCos(SIMDVectorFloat x, SIMDVectorFloat* s, SIMDVectorFloat* c)
   *c = _mm_xor_ps(xmm2, sign_bit_cos);
 }
 
-#define STATIC_M128_CONST(name, val) \
-  static constexpr __m128 name = {val, val, val, val};
+#define STATIC_M128_CONST(name, val) static constexpr __m128 name = {val, val, val, val};
 
 // fast polynomial approximations
 // from scalar code by Jacques-Henri Jourdan <jourgun@gmail.com>
@@ -738,19 +729,16 @@ inline __m128 vecSinApprox(__m128 x)
 {
   __m128 x2 = _mm_mul_ps(x, x);
   return _mm_mul_ps(
-      x,
-      _mm_add_ps(
-          kSinC1Vec,
-          _mm_mul_ps(
-              x2, _mm_add_ps(
-                      kSinC2Vec,
-                      _mm_mul_ps(
-                          x2, _mm_add_ps(
-                                  kSinC3Vec,
-                                  _mm_mul_ps(
-                                      x2, _mm_add_ps(
-                                              kSinC4Vec,
-                                              _mm_mul_ps(x2, kSinC5Vec)))))))));
+      x, _mm_add_ps(
+             kSinC1Vec,
+             _mm_mul_ps(
+                 x2,
+                 _mm_add_ps(
+                     kSinC2Vec,
+                     _mm_mul_ps(
+                         x2, _mm_add_ps(kSinC3Vec,
+                                        _mm_mul_ps(x2, _mm_add_ps(kSinC4Vec,
+                                                                  _mm_mul_ps(x2, kSinC5Vec)))))))));
 }
 
 STATIC_M128_CONST(kCosC1Vec, 0.999959766864776611328125f);
@@ -768,12 +756,9 @@ inline SIMDVectorFloat vecCosApprox(SIMDVectorFloat x)
           x2,
           _mm_add_ps(
               kCosC2Vec,
-              _mm_mul_ps(
-                  x2, _mm_add_ps(
-                          kCosC3Vec,
-                          _mm_mul_ps(
-                              x2, _mm_add_ps(kCosC4Vec,
-                                             _mm_mul_ps(x2, kCosC5Vec))))))));
+              _mm_mul_ps(x2, _mm_add_ps(kCosC3Vec,
+                                        _mm_mul_ps(x2, _mm_add_ps(kCosC4Vec,
+                                                                  _mm_mul_ps(x2, kCosC5Vec))))))));
 }
 STATIC_M128_CONST(kExpC1Vec, 2139095040.f);
 STATIC_M128_CONST(kExpC2Vec, 12102203.1615614f);
@@ -796,11 +781,9 @@ inline SIMDVectorFloat vecExpApprox(SIMDVectorFloat x)
   val4 = _mm_max_ps(val3, kZeroVec);
   val4i = _mm_cvttps_epi32(val4);
 
-  SIMDVectorFloat xu =
-      _mm_and_ps(VecI2F(val4i), VecI2F(_mm_set1_epi32(0x7F800000)));
-  SIMDVectorFloat b =
-      _mm_or_ps(_mm_and_ps(VecI2F(val4i), VecI2F(_mm_set1_epi32(0x7FFFFF))),
-                VecI2F(_mm_set1_epi32(0x3F800000)));
+  SIMDVectorFloat xu = _mm_and_ps(VecI2F(val4i), VecI2F(_mm_set1_epi32(0x7F800000)));
+  SIMDVectorFloat b = _mm_or_ps(_mm_and_ps(VecI2F(val4i), VecI2F(_mm_set1_epi32(0x7FFFFF))),
+                                VecI2F(_mm_set1_epi32(0x3F800000)));
 
   return _mm_mul_ps(
       xu,
@@ -810,12 +793,9 @@ inline SIMDVectorFloat vecExpApprox(SIMDVectorFloat x)
               b, _mm_add_ps(
                      kExpC5Vec,
                      _mm_mul_ps(
-                         b, _mm_add_ps(
-                                kExpC6Vec,
-                                _mm_mul_ps(
-                                    b, _mm_add_ps(
-                                           kExpC7Vec,
-                                           _mm_mul_ps(b, kExpC8Vec))))))))));
+                         b, _mm_add_ps(kExpC6Vec,
+                                       _mm_mul_ps(b, _mm_add_ps(kExpC7Vec,
+                                                                _mm_mul_ps(b, kExpC8Vec))))))))));
 }
 
 STATIC_M128_CONST(kLogC1Vec, -89.970756366f);
@@ -831,30 +811,25 @@ inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val)
   SIMDVectorInt vZero = _mm_setzero_si128();
   SIMDVectorInt valAsInt = VecF2I(val);
   SIMDVectorInt expi = _mm_srli_epi32(valAsInt, 23);
-  SIMDVectorFloat addcst = vecSelect(kLogC1Vec, _mm_set1_ps(FLT_MIN),
-                                     VecF2I(_mm_cmpgt_ps(val, VecI2F(vZero))));
-  SIMDVectorInt valAsIntMasked = VecF2I(
-      _mm_or_ps(_mm_and_ps(VecI2F(valAsInt), VecI2F(_mm_set1_epi32(0x7FFFFF))),
-                VecI2F(_mm_set1_epi32(0x3F800000))));
+  SIMDVectorFloat addcst =
+      vecSelect(kLogC1Vec, _mm_set1_ps(FLT_MIN), VecF2I(_mm_cmpgt_ps(val, VecI2F(vZero))));
+  SIMDVectorInt valAsIntMasked =
+      VecF2I(_mm_or_ps(_mm_and_ps(VecI2F(valAsInt), VecI2F(_mm_set1_epi32(0x7FFFFF))),
+                       VecI2F(_mm_set1_epi32(0x3F800000))));
   SIMDVectorFloat x = VecI2F(valAsIntMasked);
 
   SIMDVectorFloat poly = _mm_mul_ps(
-      x,
-      _mm_add_ps(
-          kLogC2Vec,
-          _mm_mul_ps(
-              x,
-              _mm_add_ps(
-                  kLogC3Vec,
-                  _mm_mul_ps(
-                      x, _mm_add_ps(
-                             kLogC4Vec,
-                             _mm_mul_ps(
-                                 x, _mm_add_ps(kLogC5Vec,
-                                               _mm_mul_ps(x, kLogC6Vec)))))))));
+      x, _mm_add_ps(
+             kLogC2Vec,
+             _mm_mul_ps(
+                 x, _mm_add_ps(
+                        kLogC3Vec,
+                        _mm_mul_ps(
+                            x, _mm_add_ps(kLogC4Vec,
+                                          _mm_mul_ps(x, _mm_add_ps(kLogC5Vec,
+                                                                   _mm_mul_ps(x, kLogC6Vec)))))))));
 
-  SIMDVectorFloat addCstResult =
-      _mm_add_ps(addcst, _mm_mul_ps(kLogC7Vec, _mm_cvtepi32_ps(expi)));
+  SIMDVectorFloat addCstResult = _mm_add_ps(addcst, _mm_mul_ps(kLogC7Vec, _mm_cvtepi32_ps(expi)));
   return _mm_add_ps(poly, addCstResult);
 }
 

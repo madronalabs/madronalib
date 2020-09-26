@@ -11,8 +11,7 @@
 
 #include "MLOSCListener.h"
 
-MLOSCListener::MLOSCListener()
-    : mListening(false), mpSocket(0), mPort(0), mListenerThread(nullptr)
+MLOSCListener::MLOSCListener() : mListening(false), mpSocket(0), mPort(0), mListenerThread(nullptr)
 {
 }
 
@@ -63,8 +62,8 @@ int MLOSCListener::listenToOSC(int port)
     {
       // // MLConsole() << "MLOSCListener: trying listen on port " << port <<
       // "...\n";
-      mpSocket = new UdpListeningReceiveSocket(
-          IpEndpointName(IpEndpointName::ANY_ADDRESS, port), this);
+      mpSocket =
+          new UdpListeningReceiveSocket(IpEndpointName(IpEndpointName::ANY_ADDRESS, port), this);
     }
     catch (osc::Exception& e)
     {
@@ -94,8 +93,7 @@ int MLOSCListener::listenToOSC(int port)
       if (!err)
       {
         // MLConsole() << "creating listener thread...\n";
-        err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread,
-                             (void*)this);
+        err = pthread_create(&mListenerThread, &attr, &MLOSCListenerStartThread, (void*)this);
 
         if (!err)
         {

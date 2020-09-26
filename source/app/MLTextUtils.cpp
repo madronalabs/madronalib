@@ -36,20 +36,17 @@ bool isLatin(CodePoint c)
 
 bool isWhitespace(CodePoint ch)
 {
-  return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 ||
-         ch == 0x00A0 || ch == 0x1680 || (ch >= 0x2000 && ch <= 0x200A) ||
-         ch == 0x2028 || ch == 0x2029 || ch == 0x202F || ch == 0x205F ||
-         ch == 0x3000;
+  return (ch >= 0x0009 && ch <= 0x000D) || ch == 0x0020 || ch == 0x0085 || ch == 0x00A0 ||
+         ch == 0x1680 || (ch >= 0x2000 && ch <= 0x200A) || ch == 0x2028 || ch == 0x2029 ||
+         ch == 0x202F || ch == 0x205F || ch == 0x3000;
 }
 
 bool isCJK(CodePoint ch)
 {
-  return (ch >= 0x4E00 && ch <= 0x9FBF)  // CJK Unified Ideographs
-         || (ch >= 0x2E80 &&
-             ch <= 0x2FDF)  // CJK Radicals Supplement & Kangxi Radicals
-         || (ch >= 0x2FF0 &&
-             ch <= 0x30FF)  // Ideographic Description Characters, CJK Symbols
-                            // and Punctuation & Japanese
+  return (ch >= 0x4E00 && ch <= 0x9FBF)      // CJK Unified Ideographs
+         || (ch >= 0x2E80 && ch <= 0x2FDF)   // CJK Radicals Supplement & Kangxi Radicals
+         || (ch >= 0x2FF0 && ch <= 0x30FF)   // Ideographic Description Characters, CJK Symbols
+                                             // and Punctuation & Japanese
          || (ch >= 0x3100 && ch <= 0x31BF)   // Korean
          || (ch >= 0xAC00 && ch <= 0xD7AF)   // Hangul Syllables
          || (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
@@ -59,11 +56,10 @@ bool isCJK(CodePoint ch)
 
 char* spaceStr(size_t numIndents)
 {
-  static char* pBuf =
-      (char*)"                                                   ";
+  static char* pBuf = (char*)"                                                   ";
   static size_t len = strlen(pBuf);
   size_t n = numIndents * 2;
-  n = ml::clamp(n, 0UL, len);
+  n = ml::clamp(n, (size_t)0, len);
   return &pBuf[len - n];
 }
 
@@ -90,33 +86,6 @@ int digitsToNaturalNumber(const char32_t* p)
   }
   return v;
 }
-
-/*
- unsafe. unused?
-  const char* naturalNumberToDigits(int value, char* pDest)
-  {
-      const int base = 10;
-      char* ptr = pDest, *ptr1 = pDest, tmp_char;
-      int tmp_value;
-
-      if(value <= 0)
-      {
-          *pDest = '0';
-          *(++pDest) = '\0';
-          return pDest;
-      }
-      do
-      {
-          tmp_value = value;
-          value /= base;
-          *ptr++ = "0123456789abcdef"[tmp_value - value*base];
-      } while ( value > 0 );
-
-      *ptr-- = '\0';
-
-      return pDest;
-  }
-  */
 
 int textToNaturalNumber(const TextFragment& frag)
 {
@@ -156,27 +125,25 @@ TextFragment floatNumberToText(float f, int precision)
   constexpr int kMaxDigits = 32;
   constexpr int kTableZeroOffset = 38;
   constexpr float powersOfTen[kTableZeroOffset * 2 + 1]{
-      1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29,
-      1e-28, 1e-27, 1e-26, 1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19,
-      1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13, 1e-12, 1e-11, 1e-10, 1e-09,
-      1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00, 1e+01,
-      1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11,
-      1e+12, 1e+13, 1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21,
-      1e+22, 1e+23, 1e+24, 1e+25, 1e+26, 1e+27, 1e+28, 1e+29, 1e+30, 1e+31,
-      1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
+      1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26,
+      1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13,
+      1e-12, 1e-11, 1e-10, 1e-09, 1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00,
+      1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13,
+      1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26,
+      1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
 
   char buf[kMaxDigits];
   char* writePtr = buf;
   float value = f;
   const int p = std::min(precision, kMaxPrecision);
-  const float epsilon = std::max(fabs(f * powersOfTen[kTableZeroOffset - p]),
-                                 std::numeric_limits<float>::min());
+  const float epsilon =
+      std::max(fabs(f * powersOfTen[kTableZeroOffset - p]), std::numeric_limits<float>::min());
 
   if (isnan(f))
   {
-    *writePtr++ = 'N';
+    *writePtr++ = 'n';
     *writePtr++ = 'a';
-    *writePtr++ = 'N';
+    *writePtr++ = 'n';
   }
   else
   {
@@ -238,7 +205,7 @@ TextFragment floatNumberToText(float f, int precision)
           {
             *writePtr++ = '.';
           }
-          int onesInt = value * powersOfTen[kTableZeroOffset - exponent];
+          int onesInt = truncf(value * powersOfTen[kTableZeroOffset - exponent]);
           *writePtr++ = '0' + onesInt;
           value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
           exponent--;
@@ -272,49 +239,45 @@ TextFragment floatNumberToText(float f, int precision)
   return TextFragment(buf, writePtr - buf);
 }
 
+bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
+{
+  for (const CodePoint c : f)
+  {
+    if (c == cp) return true;
+  }
+  return false;
+}
+
 float textToFloatNumber(const TextFragment& frag)
 {
-  // nan
-  // sign
-  // inf
-  // whole part
-  // decimal point
-  // fractional part
-  // e
-  // exponent sign
-  // exponent
-
-  // TODO scientific notation, nan, inf
-
+  float sign = 1;
+  float wholePart = 0, fracPart = 0, fracPlace = 1;
+  float exponentSign = 1, exponent = 0;
+  bool hasExp = false;
   auto it = frag.begin();
+  const TextFragment digits{"0123456789"};
+  std::vector<std::pair<TextFragment, std::function<void()> > > segments{
+      {"NaN", [&]() { wholePart = std::numeric_limits<float>::quiet_NaN(); }},
+      {"-", [&]() { sign = -sign; }},
+      {"inf", [&]() { wholePart = std::numeric_limits<float>::infinity(); }},
+      {digits, [&]() { wholePart = wholePart * 10.0f + ((*it) - '0'); }},
+      {".", [&]() {}},
+      {digits, [&]() { fracPart += ((*it) - '0') * (fracPlace *= 0.1f); }},
+      {"e+", [&]() { hasExp = true; }},
+      {"-", [&]() { exponentSign = -exponentSign; }},
+      {digits, [&]() { exponent = exponent * 10.0f + ((*it) - '0'); }}};
 
-  float rez = 0, fact = 1;
-  uint8_t c = *it;
-  if (c == '-')
+  for (auto segment : segments)
   {
-    it++;
-    fact = -1;
-  };
-  for (int point_seen = 0; it != frag.end(); it++)
-  {
-    c = *it;
-    if (c == '.')
+    while (fragmentContainsCodePoint(segment.first, *it))
     {
-      point_seen = 1;
-      continue;
+      segment.second();
+      ++it;
     }
-    else if (c == 'e')
-    {
-      break;
-    }
-    else if (c >= '0' && c <= '9')  //(d >= 0 && d <= 9)
-    {
-      int d = c - '0';
-      if (point_seen) fact /= 10.0f;
-      rez = rez * 10.0f + (float)d;
-    };
-  };
-  return rez * fact;
+  }
+
+  float base = sign * (wholePart + fracPart);
+  return hasExp ? base * powf(10.f, exponent * exponentSign) : base;
 }
 
 int findFirst(const TextFragment& frag, const CodePoint b)
@@ -422,8 +385,7 @@ TextFragment subText(const TextFragment& frag, size_t start, size_t end)
   return TextFragment(buf, pb - buf);
 }
 
-TextFragment map(const TextFragment& frag,
-                 std::function<CodePoint(CodePoint)> f)
+TextFragment map(const TextFragment& frag, std::function<CodePoint(CodePoint)> f)
 {
   if (!frag) return TextFragment();
   std::vector<CodePoint> vec = textToCodePoints(frag);
@@ -431,8 +393,7 @@ TextFragment map(const TextFragment& frag,
   return codePointsToText(vec);
 }
 
-TextFragment reduce(const TextFragment& frag,
-                    std::function<bool(CodePoint)> matchFn)
+TextFragment reduce(const TextFragment& frag, std::function<bool(CodePoint)> matchFn)
 {
   if (!frag) return TextFragment();
   size_t len = frag.lengthInBytes();
@@ -642,8 +603,7 @@ std::vector<uint8_t> base64Decode(const TextFragment& frag)
 
 TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
 {
-  std::function<bool(CodePoint)> f(
-      [](CodePoint c) { return !isWhitespace(c); });
+  std::function<bool(CodePoint)> f([](CodePoint c) { return !isWhitespace(c); });
   int first = findFirst(frag, f);
   int last = findLast(frag, f);
   if ((first == npos) || (last == npos)) return TextFragment();
@@ -652,8 +612,7 @@ TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
 
 TextFragment stripAllWhitespace(const TextFragment& frag)
 {
-  std::function<bool(CodePoint)> f(
-      [](CodePoint c) { return !isWhitespace(c); });
+  std::function<bool(CodePoint)> f([](CodePoint c) { return !isWhitespace(c); });
   return reduce(frag, f);
 }
 
@@ -716,8 +675,7 @@ std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& cipher,
                                      const std::vector<uint8_t>& key,
                                      const std::vector<uint8_t>& iv)
 {
-  if (!(cipher.size() > 0) || (key.size() < 32) || (iv.size() < 32))
-    return std::vector<uint8_t>();
+  if (!(cipher.size() > 0) || (key.size() < 32) || (iv.size() < 32)) return std::vector<uint8_t>();
 
   aes256_context ctx;
   aes256_init(&ctx, key.data());
@@ -895,8 +853,7 @@ int getFinalNumber(Symbol sym)
 
   // TODO make more readble using random access fragment class
 
-  SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> decodedPoints(
-      points + 1);
+  SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
   CodePoint* buf = decodedPoints.data();
 
   // read into char32 array for random access
@@ -1018,8 +975,8 @@ std::vector<Symbol> vectorOfNonsenseSymbols(int len)
   return words;
 }
 
-ml::Text formatNumber(const float number, const int digits, const int precision,
-                      const bool doSign, Symbol mode) throw()
+ml::Text formatNumber(const float number, const int digits, const int precision, const bool doSign,
+                      Symbol mode) throw()
 {
   const std::vector<ml::Text> pitchNames{"A",  "A#", "B", "C",  "C#", "D",
                                          "D#", "E",  "F", "F#", "G",  "G#"};
@@ -1105,8 +1062,8 @@ ml::Text formatNumber(const float number, const int digits, const int precision,
     if (distFromNote < 0.01)
     {
       const int octaveFromC = (note - 3) / 12;
-      snprintf(format, bufLength, "X-0%1d.%1df\n%s%d", m, p,
-               pitchNames[note % 12].getText(), octaveFromC);
+      snprintf(format, bufLength, "X-0%1d.%1df\n%s%d", m, p, pitchNames[note % 12].getText(),
+               octaveFromC);
     }
     else
     {

@@ -53,15 +53,11 @@ class Path final
   inline void setCopy(int c) { mCopy = c; }  // MLTEST to remove, use ctor only?
 
   friend class const_iterator;
-  class const_iterator
-      : public std::iterator<std::forward_iterator_tag, ml::Symbol>
+  class const_iterator : public std::iterator<std::forward_iterator_tag, ml::Symbol>
   {
    public:
     const_iterator(const Path* p) : mpPath(p), mIndex(0) {}
-    const_iterator(const Path* p, int startIndex)
-        : mpPath(p), mIndex(startIndex)
-    {
-    }
+    const_iterator(const Path* p, int startIndex) : mpPath(p), mIndex(startIndex) {}
     ~const_iterator() {}
 
     bool operator==(const const_iterator& b) const
@@ -102,10 +98,7 @@ class Path final
 
   inline const_iterator begin() const { return const_iterator(this); }
 
-  inline const_iterator end() const
-  {
-    return const_iterator(this, static_cast<int>(mSize));
-  }
+  inline const_iterator end() const { return const_iterator(this, static_cast<int>(mSize)); }
 
   friend Path concat(const Path& a, const Path& b);
 

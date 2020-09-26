@@ -39,13 +39,11 @@ Time samplesAtRateToTime(int samples, int rate)
 Clock::TimeOffset::TimeOffset()
 {
   auto sysNow = std::chrono::system_clock::now();
-  auto sysMicros =
-      std::chrono::time_point_cast<std::chrono::microseconds>(sysNow);
+  auto sysMicros = std::chrono::time_point_cast<std::chrono::microseconds>(sysNow);
   uint64_t sysOffset = sysMicros.time_since_epoch().count();
 
   auto steadyNow = std::chrono::steady_clock::now();
-  auto steadyMicros =
-      std::chrono::time_point_cast<std::chrono::microseconds>(steadyNow);
+  auto steadyMicros = std::chrono::time_point_cast<std::chrono::microseconds>(steadyNow);
   uint64_t steadyOffset = steadyMicros.time_since_epoch().count();
 
   mOffset = sysOffset - steadyOffset;
@@ -67,16 +65,13 @@ uint64_t Clock::now()
   {
     static const double kLo32Scale = pow(2, 32) * 0.000001;
     auto steadyNow = std::chrono::steady_clock::now();
-    auto steadyMicros =
-        std::chrono::time_point_cast<std::chrono::microseconds>(steadyNow);
+    auto steadyMicros = std::chrono::time_point_cast<std::chrono::microseconds>(steadyNow);
     uint64_t steadyOffset = steadyMicros.time_since_epoch().count();
     uint64_t steadyTimeInMicros = mOffset + steadyOffset;
     uint64_t steadyTimeInSeconds = steadyTimeInMicros * 0.000001;
-    double fractionalSecondInMicros =
-        (steadyTimeInMicros - steadyTimeInSeconds * 1000000);
+    double fractionalSecondInMicros = (steadyTimeInMicros - steadyTimeInSeconds * 1000000);
     uint64_t hi32 = steadyTimeInSeconds;
-    uint64_t lo32 =
-        static_cast<uint32_t>(fractionalSecondInMicros * kLo32Scale);
+    uint64_t lo32 = static_cast<uint32_t>(fractionalSecondInMicros * kLo32Scale);
     return ((hi32 << 32) | lo32);
   }
   else

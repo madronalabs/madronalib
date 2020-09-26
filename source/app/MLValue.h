@@ -78,10 +78,7 @@ class Value
     return (mType == kFloatValue) ? mFloatVal : d;
   }
 
-  inline const float getBoolValue() const
-  {
-    return static_cast<bool>(mFloatVal);
-  }
+  inline const float getBoolValue() const { return static_cast<bool>(mFloatVal); }
 
   inline const bool getBoolValueWithDefault(bool b) const
   {

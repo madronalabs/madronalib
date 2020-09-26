@@ -144,10 +144,7 @@ class SharedResourcePointer
 
   /** Returns the number of SharedResourcePointers that are currently holding
    * the shared object. */
-  int getReferenceCount() const noexcept
-  {
-    return getSharedObjectHolder().refCount;
-  }
+  int getReferenceCount() const noexcept { return getSharedObjectHolder().refCount; }
 
  private:
   struct SharedObjectHolder
@@ -159,8 +156,8 @@ class SharedResourcePointer
 
   static SharedObjectHolder& getSharedObjectHolder() noexcept
   {
-    static void* holder[(sizeof(SharedObjectHolder) + sizeof(void*) - 1) /
-                        sizeof(void*)] = {nullptr};
+    static void* holder[(sizeof(SharedObjectHolder) + sizeof(void*) - 1) / sizeof(void*)] = {
+        nullptr};
     return *reinterpret_cast<SharedObjectHolder*>(holder);
   }
 
@@ -171,8 +168,7 @@ class SharedResourcePointer
     auto& holder = getSharedObjectHolder();
     SpinLockGuard holderGuard(&holder.static_flag);
 
-    if (++(holder.refCount) == 1)
-      holder.sharedInstance.reset(new SharedObjectType());
+    if (++(holder.refCount) == 1) holder.sharedInstance.reset(new SharedObjectType());
 
     sharedObject = holder.sharedInstance.get();
   }

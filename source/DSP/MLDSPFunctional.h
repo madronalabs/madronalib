@@ -57,8 +57,8 @@ class Upsample2xFunction
     outputType vy;
     for (int j = 0; j < OUT_ROWS; ++j)
     {
-      vy.row(j) = mDowners[j].downsample(mUpsampledOutput1.constRow(j),
-                                         mUpsampledOutput2.constRow(j));
+      vy.row(j) =
+          mDowners[j].downsample(mUpsampledOutput1.constRow(j), mUpsampledOutput2.constRow(j));
     }
     return vy;
   }
@@ -91,8 +91,8 @@ class Downsample2xFunction
   // operator() takes two arguments: a process function and an input
   // DSPVectorArray. The optional argument DSPVectorArray<0>() allows passing
   // only one argument in the case of a generator with 0 input rows.
-  inline DSPVectorArray<OUT_ROWS> operator()(
-      ProcessFn fn, const DSPVectorArray<IN_ROWS> vx = DSPVectorArray<0>())
+  inline DSPVectorArray<OUT_ROWS> operator()(ProcessFn fn,
+                                             const DSPVectorArray<IN_ROWS> vx = DSPVectorArray<0>())
   {
     DSPVectorArray<OUT_ROWS> vy;
     if (mPhase)
@@ -100,8 +100,7 @@ class Downsample2xFunction
       // downsample each row of input to 1/2x buffers
       for (int j = 0; j < IN_ROWS; ++j)
       {
-        mDownsampledInput.row(j) =
-            mDowners[j].downsample(mInputBuffer.constRow(j), vx.constRow(j));
+        mDownsampledInput.row(j) = mDowners[j].downsample(mInputBuffer.constRow(j), vx.constRow(j));
       }
 
       // process downsampled input
@@ -111,12 +110,10 @@ class Downsample2xFunction
       for (int j = 0; j < OUT_ROWS; ++j)
       {
         // first half is returned
-        vy.row(j) =
-            mUppers[j].upsampleFirstHalf(mDownsampledOutput.constRow(j));
+        vy.row(j) = mUppers[j].upsampleFirstHalf(mDownsampledOutput.constRow(j));
 
         // second half is buffered
-        mOutputBuffer.row(j) =
-            mUppers[j].upsampleSecondHalf(mDownsampledOutput.constRow(j));
+        mOutputBuffer.row(j) = mUppers[j].upsampleSecondHalf(mDownsampledOutput.constRow(j));
       }
     }
     else
@@ -176,8 +173,7 @@ class FeedbackDelayFunction
  public:
   float feedbackGain{1.f};
 
-  inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx,
-                                         ProcessFn fn,
+  inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn,
                                          const DSPVector vDelayTime)
   {
     DSPVectorArray<ROWS> vFnOutput;
@@ -185,8 +181,7 @@ class FeedbackDelayFunction
 
     for (int j = 0; j < ROWS; ++j)
     {
-      vy1.row(j) = mDelays[j](vFnOutput.row(j),
-                              vDelayTime - DSPVector(kFloatsPerDSPVector));
+      vy1.row(j) = mDelays[j](vFnOutput.row(j), vDelayTime - DSPVector(kFloatsPerDSPVector));
     }
     return vFnOutput;
   }
@@ -214,8 +209,7 @@ class FeedbackDelayFunctionWithTap
  public:
   float feedbackGain{1.f};
 
-  inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx,
-                                         ProcessFn fn,
+  inline DSPVectorArray<ROWS> operator()(const DSPVectorArray<ROWS> vx, ProcessFn fn,
                                          const DSPVector vDelayTime)
   {
     DSPVectorArray<ROWS> vFeedback;
@@ -224,8 +218,7 @@ class FeedbackDelayFunctionWithTap
 
     for (int j = 0; j < ROWS; ++j)
     {
-      vy1.row(j) = mDelays[j](vFeedback.row(j),
-                              vDelayTime - DSPVector(kFloatsPerDSPVector));
+      vy1.row(j) = mDelays[j](vFeedback.row(j), vDelayTime - DSPVector(kFloatsPerDSPVector));
     }
     return vOutputTap;
   }

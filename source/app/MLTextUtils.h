@@ -26,8 +26,6 @@ bool isWhitespace(CodePoint c);
 bool isCJK(CodePoint c);
 
 char* spaceStr(size_t numIndents);
-//	int digitsToNaturalNumber(const char32_t* p);
-//	const char *naturalNumberToDigits(int value, char* pDest);
 
 // ----------------------------------------------------------------
 // TextFragment utilities
@@ -57,8 +55,7 @@ TextFragment subText(const TextFragment& frag, size_t start, size_t end);
 
 // given a fragment and a mapping function on code points, return a new fragment
 // with the function applied to each code point.
-TextFragment map(const TextFragment& frag,
-                 std::function<CodePoint(CodePoint)> f);
+TextFragment map(const TextFragment& frag, std::function<CodePoint(CodePoint)> f);
 
 // given a fragment and a reducing function on code points, return a new
 // fragment with only the code points for which the function returns true.
@@ -150,8 +147,8 @@ T getElementChecked(const std::vector<T> vec, int index) noexcept
 // ----------------------------------------------------------------
 // number formatter
 
-ml::Text formatNumber(const float number, const int digits, const int precision,
-                      const bool doSign, Symbol mode = "default") throw();
+ml::Text formatNumber(const float number, const int digits, const int precision, const bool doSign,
+                      Symbol mode = "default") throw();
 
 }  // namespace textUtils
 }  // namespace ml

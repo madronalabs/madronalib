@@ -34,8 +34,7 @@ class constStr
 
 constexpr bool constStringsEqual(char const* a, char const* b)
 {
-  return (*a && *b) ? (*a == *b && constStringsEqual(a + 1, b + 1))
-                    : (!*a && !*b);
+  return (*a && *b) ? (*a == *b && constStringsEqual(a + 1, b + 1)) : (!*a && !*b);
 }
 
 constexpr bool operator==(const constStr& a, const constStr& b)
@@ -76,12 +75,9 @@ constexpr std::size_t constCount(T const (&)[N]) noexcept
   return N;
 }
 
-constexpr int constFindIndex(const constStr* begin, int i, int N,
-                             constStr const& value)
+constexpr int constFindIndex(const constStr* begin, int i, int N, constStr const& value)
 {
-  return (!((i != N) && !(*begin == value)))
-             ? (i)
-             : constFindIndex(begin + 1, i + 1, N, value);
+  return (!((i != N) && !(*begin == value))) ? (i) : constFindIndex(begin + 1, i + 1, N, value);
 }
 
 // returns the array length N if not found, otherwise the index of the array

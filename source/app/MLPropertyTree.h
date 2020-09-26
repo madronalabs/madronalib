@@ -40,10 +40,7 @@ class PropertyTree
     }
   }
 
-  bool hasProperty(Path p) const
-  {
-    return (properties.getConstNode(p) != nullptr);
-  }
+  bool hasProperty(Path p) const { return (properties.getConstNode(p) != nullptr); }
 
   // get the Value of the property. Will return a null Value object if no such
   // property exists.
@@ -55,10 +52,7 @@ class PropertyTree
   bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
   int getIntProperty(Path p) const { return properties[p].getIntValue(); }
   Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-  Matrix getMatrixProperty(Path p) const
-  {
-    return properties[p].getMatrixValue();
-  }
+  Matrix getMatrixProperty(Path p) const { return properties[p].getMatrixValue(); }
 
   float getFloatPropertyWithDefault(Path p, float d) const
   {
@@ -81,12 +75,8 @@ class PropertyTree
     return properties[p].getMatrixValueWithDefault(d);
   }
 
-  std::vector<unsigned char> propertyTreeToBinary()
-  {
-    return valueTreeToBinary(properties);
-  }
-  PropertyTree binaryToPropertyTree(
-      const std::vector<unsigned char>& binaryData)
+  std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }
+  PropertyTree binaryToPropertyTree(const std::vector<unsigned char>& binaryData)
   {
     return PropertyTree(binaryToValueTree(binaryData));
   }

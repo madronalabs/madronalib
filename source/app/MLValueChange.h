@@ -32,13 +32,9 @@ struct ValueChange
   Path triggerWidget{};
 
   ValueChange() = default;
-  ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(),
-              bool start = false, bool end = false)
-      : name(np),
-        newValue(nv),
-        oldValue(ov),
-        startGesture(start),
-        endGesture(end)
+  ValueChange(ml::Path np, Value nv = Value(), Value ov = Value(), bool start = false,
+              bool end = false)
+      : name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end)
   {
   }
 
@@ -55,7 +51,6 @@ using ValueChangeList = std::vector<ValueChange>;
 
 inline std::ostream& operator<<(std::ostream& out, const ml::ValueChange& r)
 {
-  std::cout << "[" << r.name << ": " << r.oldValue << " -> " << r.newValue
-            << "]";
+  std::cout << "[" << r.name << ": " << r.oldValue << " -> " << r.newValue << "]";
   return out;
 }

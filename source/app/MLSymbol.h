@@ -94,16 +94,12 @@ class HashedCharArray
   // template ctor from string literals allows hashing for code like
   // Proc::setParam("foo") to be done at compile time.
   template <size_t N>
-  constexpr HashedCharArray(const char (&sym)[N])
-      : len(N), hash(krHash1<N>(sym)), pChars(sym)
+  constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pChars(sym)
   {
   }
 
   // this non-constexpr ctor counts the string length at runtime.
-  HashedCharArray(const char* pC)
-      : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC)
-  {
-  }
+  HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC) {}
 
   // this non-constexpr ctor takes a string length parameter at runtime.
   HashedCharArray(const char* pC, size_t lengthBytes)
@@ -189,12 +185,8 @@ class Symbol
   Symbol() : id(0) {}
   Symbol(const HashedCharArray& hsl) : id(theSymbolTable().getSymbolID(hsl)) {}
   Symbol(const char* pC) : id(theSymbolTable().getSymbolID(pC)) {}
-  Symbol(const char* pC, size_t lengthBytes)
-      : id(theSymbolTable().getSymbolID(pC, lengthBytes))
-  {
-  }
-  Symbol(TextFragment frag)
-      : id(theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()))
+  Symbol(const char* pC, size_t lengthBytes) : id(theSymbolTable().getSymbolID(pC, lengthBytes)) {}
+  Symbol(TextFragment frag) : id(theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()))
   {
   }  // needed?
 
@@ -242,10 +234,7 @@ class Symbol
     return theSymbolTable().getSymbolTextByID(id);
   }
 
-  inline const char* getUTF8Ptr() const
-  {
-    return theSymbolTable().getSymbolTextByID(id).getText();
-  }
+  inline const char* getUTF8Ptr() const { return theSymbolTable().getSymbolTextByID(id).getText(); }
 
   SymbolID getID() const { return id; }
 
@@ -254,10 +243,7 @@ class Symbol
     return getTextFragment().beginsWith(b.getTextFragment());
   }
 
-  inline bool endsWith(Symbol b) const
-  {
-    return getTextFragment().endsWith(b.getTextFragment());
-  }
+  inline bool endsWith(Symbol b) const { return getTextFragment().endsWith(b.getTextFragment()); }
 
   // TODO for existing client code, deprecated
   inline std::string toString() const { return std::string(getUTF8Ptr()); }

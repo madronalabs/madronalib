@@ -116,8 +116,7 @@ class Matrix final
   // create a looped version of the signal argument, according to the loop type
   Matrix(Matrix src, eLoopType loopType, int loopLength);
 
-  inline Matrix(int width, std::function<float(int)> fillFn)
-      : mDataAligned(0), mData(0)
+  inline Matrix(int width, std::function<float(int)> fillFn) : mDataAligned(0), mData(0)
   {
     setDims(width);
     for (int n = 0; n < width; ++n)
@@ -335,8 +334,7 @@ class Matrix final
     p33 = mDataAligned[row(y3) + x3];
 
     return cubic(cubic(p00, p01, p02, p03, ri), cubic(p10, p11, p12, p13, ri),
-                 cubic(p20, p21, p22, p23, ri), cubic(p30, p31, p32, p33, ri),
-                 rj);
+                 cubic(p20, p21, p22, p23, ri), cubic(p30, p31, p32, p33, ri), rj);
   }
 
   void addDeinterpolatedLinear(float px, float py, float v)
@@ -373,16 +371,14 @@ class Matrix final
   inline float& operator()(const int i, const int j, const int k)
   {
     assert((k << mWidthBits << mHeightBits) + (j << mWidthBits) + i < mSize);
-    return mDataAligned[(k << mWidthBits << mHeightBits) + (j << mWidthBits) +
-                        i];
+    return mDataAligned[(k << mWidthBits << mHeightBits) + (j << mWidthBits) + i];
   }
 
   // inspector, return sample by value
   inline const float operator()(const int i, const int j, const int k) const
   {
     assert((k << mWidthBits << mHeightBits) + (j << mWidthBits) + i < mSize);
-    return mDataAligned[(k << mWidthBits << mHeightBits) + (j << mWidthBits) +
-                        i];
+    return mDataAligned[(k << mWidthBits << mHeightBits) + (j << mWidthBits) + i];
   }
 
   // getFrame() - return const 2D signal made from data in place.
@@ -412,10 +408,7 @@ class Matrix final
 
   int getXStride() const { return (int)sizeof(float); }
   int getYStride() const { return (int)sizeof(float) << mWidthBits; }
-  int getZStride() const
-  {
-    return (int)sizeof(float) << mWidthBits << mHeightBits;
-  }
+  int getZStride() const { return (int)sizeof(float) << mWidthBits << mHeightBits; }
   int getFrames() const;
 
   // rate
@@ -463,8 +456,7 @@ class Matrix final
 
   // 1D convolution
   void convolve3x1(const float km, const float k, const float kp);
-  void convolve5x1(const float kmm, const float km, const float k,
-                   const float kp, const float kpp);
+  void convolve5x1(const float kmm, const float km, const float k, const float kp, const float kpp);
 
   // Convolve the 2D matrix with a radially symmetric 3x3 matrix defined by
   // coefficients kc (center), ke (edge), and kk (corner).
@@ -521,18 +513,9 @@ class Matrix final
   //	void dump(std::ostream& s, const MLRect& b) const;
   void dumpASCII(std::ostream& s) const;
 
-  inline bool is1D() const
-  {
-    return ((mWidth > 1) && (mHeight == 1) && (mDepth == 1));
-  }
-  inline bool is2D() const
-  {
-    return ((mWidth > 1) && (mHeight > 1) && (mDepth == 1));
-  }
-  inline bool is3D() const
-  {
-    return ((mWidth > 1) && (mHeight > 1) && (mDepth > 1));
-  }
+  inline bool is1D() const { return ((mWidth > 1) && (mHeight == 1) && (mDepth == 1)); }
+  inline bool is2D() const { return ((mWidth > 1) && (mHeight > 1) && (mDepth == 1)); }
+  inline bool is3D() const { return ((mWidth > 1) && (mHeight > 1) && (mDepth > 1)); }
 
   // handy shorthand for row and plane access
   // TODO looking at actual use, would look better to return dataAligned + row,
@@ -575,34 +558,19 @@ class Matrix final
    */
 
   // utilities for getting pointers to the aligned data as other types.
-  uint32_t* asUInt32Ptr(void) const
-  {
-    return reinterpret_cast<uint32_t*>(mDataAligned);
-  }
+  uint32_t* asUInt32Ptr(void) const { return reinterpret_cast<uint32_t*>(mDataAligned); }
   const uint32_t* asConstUInt32Ptr(void) const
   {
     return reinterpret_cast<const uint32_t*>(mDataAligned);
   }
-  int32_t* asInt32Ptr(void) const
-  {
-    return reinterpret_cast<int32_t*>(mDataAligned);
-  }
+  int32_t* asInt32Ptr(void) const { return reinterpret_cast<int32_t*>(mDataAligned); }
   const int32_t* asConstInt32Ptr(void) const
   {
     return reinterpret_cast<const int32_t*>(mDataAligned);
   }
-  __m128* asM128Ptr(void) const
-  {
-    return reinterpret_cast<__m128*>(mDataAligned);
-  }
-  const __m128* asConstM128Ptr(void) const
-  {
-    return reinterpret_cast<const __m128*>(mDataAligned);
-  }
-  __m128i* asM128IPtr(void) const
-  {
-    return reinterpret_cast<__m128i*>(mDataAligned);
-  }
+  __m128* asM128Ptr(void) const { return reinterpret_cast<__m128*>(mDataAligned); }
+  const __m128* asConstM128Ptr(void) const { return reinterpret_cast<const __m128*>(mDataAligned); }
+  __m128i* asM128IPtr(void) const { return reinterpret_cast<__m128i*>(mDataAligned); }
   const __m128i* asConstM128IPtr(void) const
   {
     return reinterpret_cast<const __m128i*>(mDataAligned);

@@ -16,10 +16,7 @@ struct Interval
   float mX1, mX2;
 };
 
-inline bool within(float f, const Interval m)
-{
-  return (f >= m.mX1) && (f < m.mX2);
-}
+inline bool within(float f, const Interval m) { return (f >= m.mX1) && (f < m.mX2); }
 
 using Projection = std::function<float(float)>;
 
@@ -36,8 +33,7 @@ static const Projection unity{[](float x) { return x; }};
 static const Projection squared{[](float x) { return x * x; }};
 static const Projection flip{[](float x) { return 1 - x; }};
 static const Projection clip{[](float x) { return ml::clamp(x, 0.f, 1.f); }};
-static const Projection smoothstep{
-    [](float x) { return 3 * x * x - 2 * x * x * x; }};
+static const Projection smoothstep{[](float x) { return 3 * x * x - 2 * x * x * x; }};
 static const Projection flatcenter{[](float x) {
   float c = (x - 0.5f);
   return 4 * c * c * c + 0.5f;
@@ -52,8 +48,7 @@ static const Projection easeOut{[](float x) {
 }};
 static const Projection easeIn{[](float x) { return x * x; }};
 static const Projection easeInOut{[](float x) {
-  return (x < 0.5f) ? easeIn(x * 2.f) * 0.5f
-                    : easeOut(x * 2.f - 1.f) * 0.5f + 0.5f;
+  return (x < 0.5f) ? easeIn(x * 2.f) * 0.5f : easeOut(x * 2.f - 1.f) * 0.5f + 0.5f;
 }};
 static const Projection easeOutCubic{[](float x) {
   float n = 1 - x;
@@ -61,8 +56,7 @@ static const Projection easeOutCubic{[](float x) {
 }};
 static const Projection easeInCubic{[](float x) { return x * x * x; }};
 static const Projection easeInOutCubic{[](float x) {
-  return (x < 0.5f) ? easeInCubic(x * 2.f) * 0.5f
-                    : easeOutCubic(x * 2.f - 1.f) * 0.5f + 0.5f;
+  return (x < 0.5f) ? easeInCubic(x * 2.f) * 0.5f : easeOutCubic(x * 2.f - 1.f) * 0.5f + 0.5f;
 }};
 static const Projection easeOutQuartic{[](float x) {
   float m = x - 1;
@@ -70,8 +64,7 @@ static const Projection easeOutQuartic{[](float x) {
 }};
 static const Projection easeInQuartic{[](float x) { return x * x * x * x; }};
 static const Projection easeInOutQuartic{[](float x) {
-  return (x < 0.5f) ? easeInQuartic(x * 2.f) * 0.5f
-                    : easeOutQuartic(x * 2.f - 1.f) * 0.5f + 0.5f;
+  return (x < 0.5f) ? easeInQuartic(x * 2.f) * 0.5f : easeOutQuartic(x * 2.f - 1.f) * 0.5f + 0.5f;
 }};
 
 // functions taking one or more parameters and returning projections
