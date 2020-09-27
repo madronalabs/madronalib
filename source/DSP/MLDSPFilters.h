@@ -711,6 +711,13 @@ class Allpass1
   Allpass1(float a) : mCoeffs(a) {}
   ~Allpass1() {}
 
+  inline void clear()
+  {
+    x1 = 0.f;
+    y1 = 0.f;
+    mCoeffs = 0.f;
+  }
+
   // get allpass coefficient from a delay fraction d.
   // to minimize modulation noise, d should be in the range [0.618 - 1.618].
   static float coeffs(float d)
@@ -761,7 +768,11 @@ class FractionalDelay
   }
   ~FractionalDelay() = default;
 
-  inline void clear() { mIntegerDelay.clear(); }
+  inline void clear()
+  {
+    mIntegerDelay.clear();
+    mAllpassSection.clear();
+  }
 
   inline void setDelayInSamples(float d)
   {
