@@ -116,5 +116,6 @@ int main( int argc, char *argv[] )
   initializeReverb();
 
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, &processVectors);
+  RtAudioExample< kInputChannels, kOutputChannels > reverbExample(kSampleRate, &processVectors);
+  return reverbExample.run();
 }
