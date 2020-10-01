@@ -59,7 +59,7 @@ char* spaceStr(size_t numIndents)
   static char* pBuf = (char*)"                                                   ";
   static size_t len = strlen(pBuf);
   size_t n = numIndents * 2;
-  n = ml::clamp(n, 0UL, len);
+  n = ml::clamp(n, (size_t)0, len);
   return &pBuf[len - n];
 }
 

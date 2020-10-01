@@ -95,8 +95,8 @@ void ml::Timers::start(bool runInMainThread)
   {
     if (_inMainThread)
     {
-      _timerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution, winTimersCallback);
-      if (_timerID)
+      _mainTimerID = SetTimer(0, 1, ml::Timers::kMillisecondsResolution, winTimersCallback);
+      if (_mainTimerID)
       {
         _running = true;
         pWinTimers = this;
@@ -117,7 +117,7 @@ void ml::Timers::stop()
   {
     if (_inMainThread)
     {
-      KillTimer(0, _timerID);
+      KillTimer(0, _mainTimerID);
       _running = false;
     }
     else

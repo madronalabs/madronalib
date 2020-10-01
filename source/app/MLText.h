@@ -11,6 +11,7 @@
 
 #include <memory>
 #include <string>  // to remove
+#include <vector>
 
 namespace ml
 {

@@ -16,7 +16,6 @@
 #ifdef WIN32
 #undef min
 #undef max
-constexpr float FLT_MAX = 3.40282346638528860e+38f;
 #endif
 
 namespace ml
@@ -122,38 +121,22 @@ inline int ilog2(int x)
 
 inline int isNaN(float x)
 {
-#ifdef _WIN32
-  return (x != x);
-#else
   return isnan(x);
-#endif
 }
 
 inline int isNaN(double x)
 {
-#ifdef _WIN32
-  return (x != x);
-#else
   return isnan(x);
-#endif
 }
 
 inline int isInfinite(float x)
 {
-#ifdef _WIN32
-  return ((x > FLT_MAX) || (x < -FLT_MAX));
-#else
   return isinf(x);
-#endif
 }
 
 inline int isInfinite(double x)
 {
-#ifdef _WIN32
-  return ((x > DBL_MAX) || (x < -DBL_MAX));
-#else
   return isinf(x);
-#endif
 }
 
 inline float smoothstep(float a, float b, float x)
