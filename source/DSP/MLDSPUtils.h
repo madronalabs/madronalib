@@ -133,6 +133,56 @@ class VectorProcessBuffer
   std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
 };
 
+// This is a partial template specialization for a VectorProcessBuffer with
+// no inputs, such as a synth.
+
+template <int OUT_CHANNELS, int MAX_FRAMES>
+class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
+{
+  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(void)>;
+
+  DSPVectorArray<OUT_CHANNELS> _outputVectors;
+
+ public:
+  VectorProcessBuffer()
+  {
+    for (int i = 0; i < OUT_CHANNELS; ++i)
+    {
+      mOutputBuffers[i].resize(MAX_FRAMES);
+    }
+  }
+
+  ~VectorProcessBuffer() {}
+
+  void process(const float** , float** outputs, int nFrames, VectorProcessFn fn)
+  {
+    if (nFrames > MAX_FRAMES) return;
+    
+    // no inputs, process until we have nFrames of output
+    while (mOutputBuffers[0].getReadAvailable() < nFrames)
+    {
+      _outputVectors = fn();
+
+      for (int c = 0; c < OUT_CHANNELS; c++)
+      {
+        mOutputBuffers[c].write(_outputVectors.row(c));
+      }
+    }
+
+    // read from outputBuffers to outputs
+    for (int c = 0; c < OUT_CHANNELS; c++)
+    {
+      if (outputs[c])
+      {
+        mOutputBuffers[c].read(outputs[c], nFrames);
+      }
+    }
+  }
+
+ private:
+  std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
+};
+
 // horiz -> vert -> horiz adapters can go here
 
 }  // namespace ml

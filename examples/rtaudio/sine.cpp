@@ -11,7 +11,7 @@ fix this
 #endif
 
 // Mac OS note: need to ask for microphone access if this is nonzero!
-constexpr int kInputChannels = 0; // NOTE: 0 will not compile on Windows-- TODO
+constexpr int kInputChannels = 0;
 
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;
@@ -22,7 +22,7 @@ SineGen s1, s2;
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
+DSPVectorArray<kOutputChannels> processVectors()
 {
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
@@ -37,5 +37,6 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
 int main( int argc, char *argv[] )
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  return RunRtAudioExample< kInputChannels, kOutputChannels >(kSampleRate, &processVectors);
+  RtAudioExample< kInputChannels, kOutputChannels > sineExample(kSampleRate, &processVectors);
+  return sineExample.run();
 }

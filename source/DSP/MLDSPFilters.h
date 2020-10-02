@@ -710,6 +710,12 @@ class Allpass1
   Allpass1() : mCoeffs(0.f) {}
   Allpass1(float a) : mCoeffs(a) {}
   ~Allpass1() {}
+  
+  inline void clear()
+  {
+    x1 = 0.f;
+    y1 = 0.f;
+  }
 
   inline void clear()
   {
