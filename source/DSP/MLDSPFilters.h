@@ -717,13 +717,6 @@ class Allpass1
     y1 = 0.f;
   }
 
-  inline void clear()
-  {
-    x1 = 0.f;
-    y1 = 0.f;
-    mCoeffs = 0.f;
-  }
-
   // get allpass coefficient from a delay fraction d.
   // to minimize modulation noise, d should be in the range [0.618 - 1.618].
   static float coeffs(float d)
