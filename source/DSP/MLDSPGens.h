@@ -1,9 +1,9 @@
-// madronaLib: a C++ framework for DSP applications.
+// madronalib: a C++ framework for DSP applications.
 // Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// DSP generators: functor objects implementing an inline DSPVector operator()()
-// , in order to make time-varying signals. Generators all have some state, for
+// DSP generators: functor objects implementing an inline DSPVector operator()
+// in order to make time-varying signals. Generators all have some state, for
 // example the frequency of an oscillator or the seed in a noise generator.
 // Otherwise they would be DSPOps.
 //
@@ -40,35 +40,6 @@ class TickGen
         fy = 1;
       }
       vy[i] = fy;
-    }
-    return vy;
-  }
-  int mCounter;
-  int mPeriod;
-};
-
-// generate an integer ramp repeating every n samples.
-
-class RampGen
-{
- public:
-  RampGen(int p) : mCounter(p), mPeriod(p) {}
-  ~RampGen() {}
-
-  inline void setPeriod(int p) { mPeriod = p; }
-
-  inline DSPVectorInt operator()()
-  {
-    DSPVectorInt vy;
-    for (int i = 0; i < kFloatsPerDSPVector; ++i)
-    {
-      float fy = 0;
-      if (++mCounter >= mPeriod)
-      {
-        mCounter = 0;
-        fy = 1;
-      }
-      vy[i] = mCounter;
     }
     return vy;
   }
@@ -174,58 +145,163 @@ class TestSineGen
   }
 };
 
-// SineGen approximates a sine using Taylor series. There is distortion in odd
+// PhasorGen is a naive (not antialiased) sawtooth generator.
+// These can be useful for a few things, like controlling wavetable playback.
+// it takes one input vector: the radial frequency in cycles per sample (f/sr).
+// it outputs a phasor with range from 0--1.
+class PhasorGen
+{
+  int32_t mOmega32{0};
+
+ public:
+  void clear(int32_t omega = 0) { mOmega32 = omega; }
+
+  DSPVector operator()(const DSPVector cyclesPerSample)
+  {
+    constexpr float range(1.0f);
+    constexpr float offset(0.5f);
+    constexpr float stepsPerCycle(const_math::pow(2., 32.));
+    DSPVector outputScaleV(range / stepsPerCycle);
+    
+    // calculate int steps per sample
+    DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
+    DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
+
+    // accumulate 32-bit phase with wrap
+    DSPVectorInt omega32V;
+    for (int n = 0; n < kIntsPerDSPVector; ++n)
+    {
+      mOmega32 += intStepsPerSampleV[n];
+      omega32V[n] = mOmega32;
+    }
+
+    // convert counter to float output range
+    DSPVector omegaV = intToFloat(omega32V)*outputScaleV + DSPVector(offset);
+    return omegaV;
+  }
+};
+
+// bandlimited step function for reducing aliasing.
+static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
+{
+  DSPVector blep;
+   
+  for (int n = 0; n < kFloatsPerDSPVector; ++n)
+  {
+   // could possibly differentiate to get dt instead of passing it in.
+   // but that would require state.
+   float t = phase[n];
+   float dt = freq[n];
+
+   // TODO try SIMD optimization
+   float c{0.f};
+   if(t < dt)
+   {
+     t = t/dt;
+     c = t + t - t*t - 1.0f;
+   }
+   else if(t > 1.0f - dt)
+   {
+     t = (t - 1.0)/dt;
+     c = t*t + t + t + 1.0f;
+   }
+   
+   blep[n] = c;
+  }
+  return blep;
+}
+
+// input: phasor on (0, 1)
+// output: sine aproximation using Taylor series on range(-1, 1). There is distortion in odd
 // harmonics only, with the 3rd harmonic at about -40dB.
+inline DSPVector phasorToSine(DSPVector phasorV)
+{
+  constexpr float sqrt2(const_math::sqrt(2.0f));
+  constexpr float domain(sqrt2 * 4.f);
+  DSPVector domainScaleV(domain);
+  DSPVector domainOffsetV(-sqrt2);
+  constexpr float range(sqrt2 - sqrt2 * sqrt2 * sqrt2 / 6.f);
+  DSPVector scaleV(1.0f / range);
+  DSPVector flipOffsetV(sqrt2 * 2.f);
+  DSPVector zeroV(0.f);
+  DSPVector oneV(1.f);
+  DSPVector oneSixthV(1.0f / 6.f);
+  
+  // scale and offset input phasor on (0, 1) to sine approx domain (-sqrt(2), 3*sqrt(2))
+  DSPVector omegaV = phasorV * (domainScaleV) + (domainOffsetV);
+
+  // reverse upper half of phasor to get triangle
+  // equivalent to: if (phasor > 0) x = flipOffset - fOmega; else x = fOmega;
+  DSPVector triangleV = select(flipOffsetV - omegaV, omegaV, greaterThan(omegaV, DSPVector(sqrt2)));
+
+  // convert triangle to sine approx.
+  return scaleV * triangleV * (oneV - triangleV * triangleV * oneSixthV);
+}
+
+// input: phasor on (0, 1), normalized freq, pulse width
+// output: antialiased pulse
+inline DSPVector phasorToPulse(DSPVector omegaV, DSPVector freqV, DSPVector pulseWidthV)
+{
+    // get pulse selector mask
+    DSPVectorInt maskV = greaterThan(omegaV, pulseWidthV);
+    
+    // select -1 or 1 (could be a multiply instead?)
+    DSPVector pulseV = select(DSPVector(-1.f), DSPVector(1.f), maskV);
+
+    // add blep for up-going transition
+    pulseV += polyBLEP(omegaV, freqV);
+
+    // subtract blep for down-going transition
+    DSPVector omegaVDown = fractionalPart(omegaV - pulseWidthV + DSPVector(1.0f));
+    pulseV -= polyBLEP(omegaVDown, freqV);
+          
+    return pulseV;
+}
+
+// input: phasor on (0, 1), normalized freq
+// output: antialiased saw on (-1, 1)
+inline DSPVector phasorToSaw(DSPVector omegaV, DSPVector freqV)
+{
+  // scale phasor to saw range (-1, 1)
+  DSPVector sawV = omegaV*DSPVector(2.f) - DSPVector(1.f);
+
+  // subtract BLEP from saw to smooth down-going transition
+  return sawV - polyBLEP(omegaV, freqV);
+}
+
+// these antialiased waveform generators use a PhasorGen and the functions above.
 
 class SineGen
 {
   static constexpr int32_t kZeroPhase = -(2 << 29);
-
-  int32_t mOmega32{kZeroPhase};
-
- public:
-  void clear() { mOmega32 = kZeroPhase; }
-
-  // this sine generator makes a looping counter by letting a 32 bit word
-  // overflow.
+  PhasorGen _phasor;
+public:
+  void clear() { _phasor.clear(kZeroPhase); }
   DSPVector operator()(const DSPVector freq)
   {
-    constexpr float sqrt2(const_math::sqrt(2.0f));
-    constexpr float range(sqrt2 - sqrt2 * sqrt2 * sqrt2 / 6.f);
-    constexpr float domain(sqrt2 * 4.f);
-    constexpr float intDomain(const_math::pow(2., 32.));
+    return phasorToSine(_phasor(freq));
+  }
+};
 
-    // TODO verify compile time creation
-    DSPVector domainScaleV(domain / intDomain);
-    DSPVector domainOffsetV(sqrt2);
-    DSPVector flipOffsetV(sqrt2 * 2.f);
-    DSPVector oneSixthV(1.0f / 6.f);
-    DSPVector scaleV(1.0f / range);
-    DSPVector zeroV(0.f);
-    DSPVector oneV(1.f);
+class PulseGen
+{
+  PhasorGen _phasor;
+public:
+  void clear() { _phasor.clear(0); }
+  DSPVector operator()(const DSPVector freq, const DSPVector width)
+  {
+    return phasorToPulse(_phasor(freq), freq, width);
+  }
+};
 
-    DSPVector srDomainFreq = freq * DSPVector(intDomain);
-    DSPVectorInt step32V = roundFloatToInt(srDomainFreq);
-    DSPVectorInt omega32V;
-
-    // accumulate 32-bit phase with wrap
-    for (int n = 0; n < kIntsPerDSPVector; ++n)
-    {
-      mOmega32 += step32V[n];
-      omega32V[n] = mOmega32;
-    }
-
-    DSPVector phaseV = intToFloat(omega32V);
-    DSPVector omegaV = phaseV * (domainScaleV) + (domainOffsetV);
-
-    // reverse upper half of phasor to get triangle
-    // equivalent to: if (mOmega32 > 0) x = flipOffset - fOmega; else x =
-    // fOmega;
-    DSPVectorInt maskV = greaterThan(phaseV, zeroV);
-    omegaV = select((flipOffsetV)-omegaV, omegaV, maskV);
-
-    // convert triangle to sine approx.
-    return scaleV * omegaV * (oneV - omegaV * omegaV * oneSixthV);
+class SawGen
+{
+  PhasorGen _phasor;
+public:
+  void clear() { _phasor.clear(0); }
+  DSPVector operator()(const DSPVector freq)
+  {
+    return phasorToSaw(_phasor(freq), freq);
   }
 };
 
@@ -242,19 +318,14 @@ ConstDSPVector kUnityRampVec{unityRampFn};
 
 class LinearGlide
 {
-  DSPVector mCurrVec;
-  DSPVector mStepVec;
-  float mTargetValue;
-  float mDyPerVector;
-  int mVectorsPerGlide;
-  int mVectorsRemaining;
+  DSPVector mCurrVec{0.f};
+  DSPVector mStepVec{0.f};
+  float mTargetValue{0};
+  float mDyPerVector{1.f/32};
+  int mVectorsPerGlide{32};
+  int mVectorsRemaining{0};
 
  public:
-  LinearGlide()
-      : mCurrVec(0.f), mStepVec(0.f), mTargetValue(0.f), mVectorsPerGlide(32), mVectorsRemaining(0)
-  {
-  }
-
   void setGlideTimeInSamples(float t)
   {
     mVectorsPerGlide = t / kFloatsPerDSPVector;
@@ -324,9 +395,7 @@ class LinearGlide
 ----
 sinebank
 noisebank
- oscbank
-
-
+oscbank
 
  template<int VECTORS>
  class SineBank

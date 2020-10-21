@@ -1,4 +1,4 @@
-// madronaLib: a C++ framework for DSP applications.
+// madronalib: a C++ framework for DSP applications.
 // Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
@@ -47,7 +47,8 @@ const Projection flatTop([](float x) {
 
 // VectorProcessBuffer: utility class to serve a main loop with varying
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
-// DSPVector-sized chunks
+// DSPVector-sized chunks.
+
 
 template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer

@@ -34,6 +34,7 @@ DSPVectorArray<kOutputChannels> processVectors()
   return append(sineL, sineR);
 }
 
+
 int main( int argc, char *argv[] )
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
