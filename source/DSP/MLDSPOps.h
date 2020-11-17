@@ -793,9 +793,9 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
 
-constexpr float castFn(int i) { return i; }
+constexpr float intToFloatCastFn(int i) { return i; }
 
-inline ConstDSPVector columnIndex() { return (make_array<kFloatsPerDSPVector>(castFn)); }
+inline ConstDSPVector columnIndex() { return (make_array<kFloatsPerDSPVector>(intToFloatCastFn)); }
 
 // return a linear sequence from start to end, where end will fall on the first
 // index of the next vector.
@@ -864,21 +864,6 @@ inline float min(const DSPVector& x)
     px1 += kFloatsPerSIMDVector;
   }
   return fmin;
-}
-
-// ----------------------------------------------------------------
-// rowIndex - returns a DSPVector of j rows, each row filled
-// with the index of its row
-
-template <size_t ROWS>
-inline DSPVectorArray<ROWS> rowIndex()
-{
-  DSPVectorArray<ROWS> y;
-  for (int j = 0; j < ROWS; ++j)
-  {
-    y.setRowVectorUnchecked(j, DSPVector(j));
-  }
-  return y;
 }
 
 // ----------------------------------------------------------------
@@ -1112,6 +1097,32 @@ inline DSPVectorArray<B - A> separateRows(const DSPVectorArray<ROWS>& x)
 }
 
 // TODO variadic splitRows(bundleSIg, outputRow1, outputRow2, ... )
+
+
+// ----------------------------------------------------------------
+// rowIndex - returns a DSPVector of j rows, each row filled
+// with the index of its row
+
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> rowIndex()
+{
+  DSPVectorArray<ROWS> y;
+  for (int j = 0; j < ROWS; ++j)
+  {
+    y.setRowVectorUnchecked(j, DSPVector(j));
+  }
+  return y;
+}
+
+// ----------------------------------------------------------------
+// columnIndex<n> - shorthand for repeatRows<n>(columnIndex())
+
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> columnIndex()
+{
+  return repeatRows<ROWS>(DSPVector(make_array<kFloatsPerDSPVector>(intToFloatCastFn)));
+}
+
 
 // ----------------------------------------------------------------
 // for testing

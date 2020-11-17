@@ -79,7 +79,7 @@ DSPVectorArray<ROWS> mix(DSPVectorArray<INPUTS> gains, DSPVectorArray<ROWS> firs
 
 
 // multiplex. selector is a signal that controls what mix of the inputs to send to the output.
-// the selector range [0--1) is mapped to cover the range of inputs.
+// the selector range [0--1) is mapped to cover the range of inputs equally.
 
 template <size_t ROWS, typename... Args>
 DSPVectorArray<ROWS> multiplex(DSPVector selector, DSPVectorArray<ROWS> first, Args ... args)
@@ -95,50 +95,152 @@ DSPVectorArray<ROWS> multiplex(DSPVector selector, DSPVectorArray<ROWS> first, A
     // TODO SIMD
     int selectorIdx = i%kFloatsPerDSPVector;
     float s = selector[selectorIdx];
-    float inputU = s - truncf(s);
-    size_t inputSafe = (inputU * nInputs);
     
-    // TODO mix
-
+    // get input index from 0 - nInputs-1
+    float inputU = s - truncf(s);
+    size_t inputSafe = inputU * nInputs;
+    
+    // read input sample to output
     y[i] = inputs[inputSafe][i];
   }
   return y;
 }
 
- 
- /*
-template <size_t ROWS, size_t INPUTS, typename ... Args>
-DSPVectorArray<ROWS> multiplex(DSPVector selector, DSPVectorArray<ROWS> first, Args... args)
+
+// multiplex as above but with linear interpolation between inputs 
+// the selector range [0--1) is mapped so that 1.0 = the last input.
+
+template <size_t ROWS, typename... Args>
+DSPVectorArray<ROWS> multiplexLinear(DSPVector selector, DSPVectorArray<ROWS> first, Args ... args)
 {
-  // TODO make some reasonable assumptions about how fast the selector signal may be
-  // changing, and optimize
+  DSPVectorArray<ROWS> inputs[] {first, args...};
+  constexpr int nInputs = sizeof...(Args) + 1;
   
   DSPVectorArray<ROWS> y;
   
   // iterate on each sample of input selector
+  for (int i = 0; i < kFloatsPerDSPVector*ROWS; ++i)
+  {
+    // TODO SIMD
+    int selectorIdx = i%kFloatsPerDSPVector;
+    float s = selector[selectorIdx];
+    
+    // get input index from 0 - nInputs-1
+    float inputU = s - truncf(s);
+    float inputReal = inputU * nInputs;
+    float inputInt = truncf(inputReal);
+    float inputFrac = inputReal - inputInt;
+    size_t input1Safe = inputInt;
+    size_t input2Safe = (input1Safe + 1) % nInputs;
+
+    // read input samples and interpolate to output
+    y[i] = lerp(inputs[input1Safe][i], inputs[input2Safe][i], inputFrac);
+  }
+  return y;
+}
+
+// demultiplex the input to the outputs based on the value of the selector at each sample.
+
+template <size_t ROWS, typename... Args>
+void demultiplex(DSPVector selector, DSPVectorArray<ROWS> input, DSPVectorArray<ROWS>* firstOutput, Args ... args)
+{
+  DSPVectorArray<ROWS>* outputs[] {firstOutput, args...};
+  constexpr int nOutputs = sizeof...(Args) + 1;
+  
+  DSPVector outputIntSafe;
+
+  // for each sample, get the output index from the selector
   for (int i = 0; i < kFloatsPerDSPVector; ++i)
   {
+    // TODO SIMD
     float s = selector[i];
-    size_t input = truncf(s);
-    size_t input1Safe = (input % INPUTS);
-    size_t input2Safe = (input + 1) % INPUTS;
-    float inputFrac = s - inputInt;
     
-    
-    // iterate on each sample of inputs
-    for (int j = 0; j < kFloatsPerDSPVector * ROWS; ++j)
-    {
-      y[j] = lerp(input1Safe, input2Safe, inputFrac);
-    }
-
+    // get input index from 0 - nInputs-1
+    float outputU = s - truncf(s);
+    size_t outputInt = outputU * nOutputs;
+    outputIntSafe[i] = outputInt;
   }
-
-  return mix_n(0, gains, first, args...);
+  
+  // for each output, for each sample, if the selected output index at the
+  // sample equals the output, write the input that that output. Else write 0.
+  for(int j = 0; j < nOutputs; ++j)
+  {
+    DSPVectorArray<ROWS>* pOutput = outputs[j];
+    for (int i = 0; i < kFloatsPerDSPVector*ROWS; ++i)
+    {
+      int selectorIdx = i%kFloatsPerDSPVector;
+      size_t outputInt = outputIntSafe[selectorIdx];
+      (*pOutput)[i] = (outputInt == j) ? input[i] : 0;
+    }
+  }
 }
-*/
+
+
+// demultiplex the input to the outputs based on the value of the selector at each sample.
+// deinterpolate linearly to neighboring outputs.
+
+template <size_t ROWS, typename... Args>
+void demultiplexLinear(DSPVector selector, DSPVectorArray<ROWS> input, DSPVectorArray<ROWS>* firstOutput, Args ... args)
+{
+  DSPVectorArray<ROWS>* outputs[] {firstOutput, args...};
+  constexpr int nOutputs = sizeof...(Args) + 1;
+  
+  DSPVector outputInt1Safe;
+  DSPVector outputInt2Safe;
+  DSPVector outputMix;
+
+  // for each sample, get the two output indexes and mix amount from the selector
+  for (int i = 0; i < kFloatsPerDSPVector; ++i)
+  {
+    // TODO SIMD
+    float s = selector[i];
+    
+    // get input index from 0 - nInputs-1
+    float outputU = s - truncf(s);
+    float outputReal = outputU * nOutputs;
+    float outputIntPart = truncf(outputReal);
+    size_t outputInt = outputIntPart;
+    outputMix[i] = outputReal - outputIntPart;
+    outputInt1Safe[i] = outputInt;
+    outputInt2Safe[i] = (outputInt + 1) % nOutputs;
+  }
+  
+  // for each output, for each sample, if the selected output index at the
+  // sample equals the output, write the input that that output. Else write 0.
+  for(int j = 0; j < nOutputs; ++j)
+  {
+    DSPVectorArray<ROWS>* pOutput = outputs[j];
+    for (int i = 0; i < kFloatsPerDSPVector*ROWS; ++i)
+    {
+      int selectorIdx = i%kFloatsPerDSPVector;
+      size_t outputInt1 = outputInt1Safe[selectorIdx];
+      size_t outputInt2 = outputInt2Safe[selectorIdx];
+      float m = outputMix[selectorIdx];
+
+      if(j == outputInt1)
+      {
+        // deinterpolate a
+        (*pOutput)[i] = input[i]*(1.f - m);
+      }
+      else if(j == outputInt2)
+      {
+        // deinterpolate b
+        (*pOutput)[i] = input[i]*m;
+      }
+      else
+      {
+        (*pOutput)[i] = 0;
+      }
+      
+      
+      
+      
+    }
+  }
+}
+
 
 // should multiplex be on multiple inputs, rows of one input, different flavors for both?? 
-
 
 // demultiplex(outputSelector, signalInput ) -> DSPVectorArray<inputs> ;
 

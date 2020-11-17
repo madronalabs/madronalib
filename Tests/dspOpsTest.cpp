@@ -201,48 +201,52 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     DSPVectorArray<2> c{1};
 
     auto sum = add(a, b, c);
-    std::cout << " sum result: " <<  sum << "\n";
     
     DSPVectorArray<3> gains = concatRows(DSPVector{0.300f}, DSPVector{0.030f}, DSPVector{0.003f});
 
     auto mixResult = mix(gains, c, c, c);
-    std::cout << " mix result: " << mixResult << "\n";
     
     DSPVectorArray<6> gg = repeatRows<2>(gains);
-    
-    std::cout << " repeatRows result: " << gg << "\n";
-
 
     DSPVectorArray<2> h = separateRows<4, 6>(gg);
     
-    std::cout << " range result: " << h << "\n";
-    
-
+    // TODO tests
   }
   
   SECTION("multiplex")
   {
     std::cout << "\nMULTIPLEX\n";
     
-    // TODO columnIndex<2>
-    DSPVectorArray<2> a{repeatRows<2>(columnIndex()) + rowIndex<2>()};
-    DSPVectorArray<2> b{7};
-    DSPVectorArray<2> c{11};
-    DSPVectorArray<2> d{13};
-    DSPVectorArray<2> e{17};
-    DSPVector selector {rangeOpen(0, 2)};
+    DSPVectorArray<2> input{columnIndex<2>() + rowIndex<2>()};
+    DSPVectorArray<2> a{7};
+    DSPVectorArray<2> b{11};
+    DSPVectorArray<2> c{13};
+    DSPVectorArray<2> d{17};
+    DSPVectorArray<2> e{19};
+
+    // rangeOpen(0-1): equal amounts of a, b, c, d, e
+    auto dv = multiplex(rangeOpen(0, 1), a, b, c, d, e);
+    REQUIRE(dv[kFloatsPerDSPVector - 1] == e[kFloatsPerDSPVector - 1]);
     
-    auto dv = multiplex(selector, a, b, c, d, e);
-    std::cout << "dv multiplex : " << dv << "\n";
+    // rangeClosed(0, 4.f/5.f): last element should be e
+    auto dw = multiplexLinear(rangeClosed(0, 4.f/5.f), a, b, c, d, e);
+    REQUIRE(dv[kFloatsPerDSPVector - 1] == e[kFloatsPerDSPVector - 1]);
+
+    // the sum of the linear demultiplexer's outputs should equal the input
+    auto demuxInput2 = repeatRows<2>(DSPVector{1});
+    demultiplexLinear(rangeClosed(0, 3.f/4.f), demuxInput2, &a, &b, &c, &d);
+    auto sumOfDemuxOutputs2 = add(a, b, c, d);
+    REQUIRE(demuxInput2 == sumOfDemuxOutputs2);
+    REQUIRE(sumOfDemuxOutputs2[kFloatsPerDSPVector - 1] == 1);
     
-    
-    // demultiplex(signalInput, outputSelector, a, b, c, d);
-    
-    
-    
+    // demultiplex to multiple outputs, then multiplex wtih same selector
+    // should equal the input
+    auto selectorSignal = rangeOpen(0, 1);
+    auto demuxInput3 = columnIndex<2>();
+    demultiplex(selectorSignal, demuxInput3, &a, &b, &c, &d);
+    auto demuxThenMux = multiplex(selectorSignal, a, b, c, d);
+    REQUIRE(demuxInput3 == demuxThenMux);
   }
-  
-  
 }
 
 
