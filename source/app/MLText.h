@@ -187,7 +187,7 @@ inline bool operator!=(TextFragment a, TextFragment b) { return !(a == b); }
 
 inline std::ostream& operator<<(std::ostream& out, const TextFragment& r)
 {
-  const char * c = r.getText();
+  const char* c = r.getText();
   out << c;
   return out;
 }

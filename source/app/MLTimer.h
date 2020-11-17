@@ -14,8 +14,8 @@
 #include <thread>
 #include <vector>
 
-#include "MLSharedResource.h"
 #include "MLPlatform.h"
+#include "MLSharedResource.h"
 
 using namespace std::chrono;
 
@@ -66,7 +66,7 @@ class Timers
   std::thread runThread;
 
 #if ML_WINDOWS
-  int _mainTimerID{ 0 };
+  int _mainTimerID{0};
 #endif
 };  // class Timers
 

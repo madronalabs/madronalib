@@ -162,7 +162,7 @@ class PhasorGen
     constexpr float offset(0.5f);
     constexpr float stepsPerCycle(const_math::pow(2., 32.));
     DSPVector outputScaleV(range / stepsPerCycle);
-    
+
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
     DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
@@ -176,7 +176,7 @@ class PhasorGen
     }
 
     // convert counter to float output range
-    DSPVector omegaV = intToFloat(omega32V)*outputScaleV + DSPVector(offset);
+    DSPVector omegaV = intToFloat(omega32V) * outputScaleV + DSPVector(offset);
     return omegaV;
   }
 };
@@ -185,28 +185,28 @@ class PhasorGen
 static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
 {
   DSPVector blep;
-   
+
   for (int n = 0; n < kFloatsPerDSPVector; ++n)
   {
-   // could possibly differentiate to get dt instead of passing it in.
-   // but that would require state.
-   float t = phase[n];
-   float dt = freq[n];
+    // could possibly differentiate to get dt instead of passing it in.
+    // but that would require state.
+    float t = phase[n];
+    float dt = freq[n];
 
-   // TODO try SIMD optimization
-   float c{0.f};
-   if(t < dt)
-   {
-     t = t/dt;
-     c = t + t - t*t - 1.0f;
-   }
-   else if(t > 1.0f - dt)
-   {
-     t = (t - 1.0)/dt;
-     c = t*t + t + t + 1.0f;
-   }
-   
-   blep[n] = c;
+    // TODO try SIMD optimization
+    float c{0.f};
+    if (t < dt)
+    {
+      t = t / dt;
+      c = t + t - t * t - 1.0f;
+    }
+    else if (t > 1.0f - dt)
+    {
+      t = (t - 1.0) / dt;
+      c = t * t + t + t + 1.0f;
+    }
+
+    blep[n] = c;
   }
   return blep;
 }
@@ -226,7 +226,7 @@ inline DSPVector phasorToSine(DSPVector phasorV)
   DSPVector zeroV(0.f);
   DSPVector oneV(1.f);
   DSPVector oneSixthV(1.0f / 6.f);
-  
+
   // scale and offset input phasor on (0, 1) to sine approx domain (-sqrt(2), 3*sqrt(2))
   DSPVector omegaV = phasorV * (domainScaleV) + (domainOffsetV);
 
@@ -242,20 +242,20 @@ inline DSPVector phasorToSine(DSPVector phasorV)
 // output: antialiased pulse
 inline DSPVector phasorToPulse(DSPVector omegaV, DSPVector freqV, DSPVector pulseWidthV)
 {
-    // get pulse selector mask
-    DSPVectorInt maskV = greaterThan(omegaV, pulseWidthV);
-    
-    // select -1 or 1 (could be a multiply instead?)
-    DSPVector pulseV = select(DSPVector(-1.f), DSPVector(1.f), maskV);
+  // get pulse selector mask
+  DSPVectorInt maskV = greaterThan(omegaV, pulseWidthV);
 
-    // add blep for up-going transition
-    pulseV += polyBLEP(omegaV, freqV);
+  // select -1 or 1 (could be a multiply instead?)
+  DSPVector pulseV = select(DSPVector(-1.f), DSPVector(1.f), maskV);
 
-    // subtract blep for down-going transition
-    DSPVector omegaVDown = fractionalPart(omegaV - pulseWidthV + DSPVector(1.0f));
-    pulseV -= polyBLEP(omegaVDown, freqV);
-          
-    return pulseV;
+  // add blep for up-going transition
+  pulseV += polyBLEP(omegaV, freqV);
+
+  // subtract blep for down-going transition
+  DSPVector omegaVDown = fractionalPart(omegaV - pulseWidthV + DSPVector(1.0f));
+  pulseV -= polyBLEP(omegaVDown, freqV);
+
+  return pulseV;
 }
 
 // input: phasor on (0, 1), normalized freq
@@ -263,7 +263,7 @@ inline DSPVector phasorToPulse(DSPVector omegaV, DSPVector freqV, DSPVector puls
 inline DSPVector phasorToSaw(DSPVector omegaV, DSPVector freqV)
 {
   // scale phasor to saw range (-1, 1)
-  DSPVector sawV = omegaV*DSPVector(2.f) - DSPVector(1.f);
+  DSPVector sawV = omegaV * DSPVector(2.f) - DSPVector(1.f);
 
   // subtract BLEP from saw to smooth down-going transition
   return sawV - polyBLEP(omegaV, freqV);
@@ -275,18 +275,17 @@ class SineGen
 {
   static constexpr int32_t kZeroPhase = -(2 << 29);
   PhasorGen _phasor;
-public:
+
+ public:
   void clear() { _phasor.clear(kZeroPhase); }
-  DSPVector operator()(const DSPVector freq)
-  {
-    return phasorToSine(_phasor(freq));
-  }
+  DSPVector operator()(const DSPVector freq) { return phasorToSine(_phasor(freq)); }
 };
 
 class PulseGen
 {
   PhasorGen _phasor;
-public:
+
+ public:
   void clear() { _phasor.clear(0); }
   DSPVector operator()(const DSPVector freq, const DSPVector width)
   {
@@ -297,12 +296,10 @@ public:
 class SawGen
 {
   PhasorGen _phasor;
-public:
+
+ public:
   void clear() { _phasor.clear(0); }
-  DSPVector operator()(const DSPVector freq)
-  {
-    return phasorToSaw(_phasor(freq), freq);
-  }
+  DSPVector operator()(const DSPVector freq) { return phasorToSaw(_phasor(freq), freq); }
 };
 
 // ----------------------------------------------------------------
@@ -321,7 +318,7 @@ class LinearGlide
   DSPVector mCurrVec{0.f};
   DSPVector mStepVec{0.f};
   float mTargetValue{0};
-  float mDyPerVector{1.f/32};
+  float mDyPerVector{1.f / 32};
   int mVectorsPerGlide{32};
   int mVectorsRemaining{0};
 

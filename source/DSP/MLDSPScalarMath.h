@@ -119,25 +119,13 @@ inline int ilog2(int x)
   return b;
 }
 
-inline int isNaN(float x)
-{
-  return isnan(x);
-}
+inline int isNaN(float x) { return isnan(x); }
 
-inline int isNaN(double x)
-{
-  return isnan(x);
-}
+inline int isNaN(double x) { return isnan(x); }
 
-inline int isInfinite(float x)
-{
-  return isinf(x);
-}
+inline int isInfinite(float x) { return isinf(x); }
 
-inline int isInfinite(double x)
-{
-  return isinf(x);
-}
+inline int isInfinite(double x) { return isinf(x); }
 
 inline float smoothstep(float a, float b, float x)
 {

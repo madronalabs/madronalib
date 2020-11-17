@@ -49,7 +49,6 @@ const Projection flatTop([](float x) {
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
 // DSPVector-sized chunks.
 
-
 template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer
 {
@@ -155,10 +154,10 @@ class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
 
   ~VectorProcessBuffer() {}
 
-  void process(const float** , float** outputs, int nFrames, VectorProcessFn fn)
+  void process(const float**, float** outputs, int nFrames, VectorProcessFn fn)
   {
     if (nFrames > MAX_FRAMES) return;
-    
+
     // no inputs, process until we have nFrames of output
     while (mOutputBuffers[0].getReadAvailable() < nFrames)
     {

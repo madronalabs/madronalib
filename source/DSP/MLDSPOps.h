@@ -27,7 +27,7 @@
 #define snprintf _snprintf
 #endif
 
-#include <array> 
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <iostream>
@@ -426,11 +426,11 @@ class DSPVectorArrayInt
   }
 
   // constexpr constructor taking a std::array. Use with make_array
-  constexpr DSPVectorArrayInt(std::array<int32_t, kFloatsPerDSPVector*ROWS> a) : mData(a) {}
+  constexpr DSPVectorArrayInt(std::array<int32_t, kFloatsPerDSPVector * ROWS> a) : mData(a) {}
 
   // constexpr constructor taking a function(int -> int)
   constexpr DSPVectorArrayInt(int (*fn)(int))
-      : DSPVectorArrayInt(make_array<kFloatsPerDSPVector*ROWS>(fn))
+      : DSPVectorArrayInt(make_array<kFloatsPerDSPVector * ROWS>(fn))
   {
   }
 
@@ -783,7 +783,7 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> a)
   return a;
 }
 
-template <size_t ROWS, typename ... Args>
+template <size_t ROWS, typename... Args>
 DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
 {
   // the outer add here is the operator defined using vecAdd() above
@@ -872,10 +872,10 @@ inline float min(const DSPVector& x)
 // for the given output ROWS and given an input DSPVectorArray with N rows,
 // repeat all the input rows enough times to fill the output DSPVectorArray.
 template <size_t ROWS, size_t N>
-inline DSPVectorArray<ROWS*N> repeatRows(const DSPVectorArray<N>& x1)
+inline DSPVectorArray<ROWS * N> repeatRows(const DSPVectorArray<N>& x1)
 {
-  DSPVectorArray<ROWS*N> vy;
-  for (int j = 0, k = 0; j < ROWS*N; ++j)
+  DSPVectorArray<ROWS * N> vy;
+  for (int j = 0, k = 0; j < ROWS * N; ++j)
   {
     vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(k));
     if (++k >= N) k = 0;
@@ -961,7 +961,7 @@ inline DSPVectorArray<ROWS> rotateRows(const DSPVectorArray<ROWS>& x, int rowsTo
 // concatRows with two arguments: append one DSPVectorArray after another.
 template <size_t ROWSA, size_t ROWSB>
 inline DSPVectorArray<ROWSA + ROWSB> concatRows(const DSPVectorArray<ROWSA>& x1,
-                                            const DSPVectorArray<ROWSB>& x2)
+                                                const DSPVectorArray<ROWSB>& x2)
 {
   DSPVectorArray<ROWSA + ROWSB> vy;
   for (int j = 0; j < ROWSA; ++j)
@@ -974,39 +974,40 @@ inline DSPVectorArray<ROWSA + ROWSB> concatRows(const DSPVectorArray<ROWSA>& x1,
   }
   return vy;
 }
- 
- // concatRows with three arguments.
- template <size_t ROWSA, size_t ROWSB, size_t ROWSC>
- inline DSPVectorArray<ROWSA + ROWSB + ROWSC> concatRows(const DSPVectorArray<ROWSA>& x1,
-                                             const DSPVectorArray<ROWSB>& x2,
-                                             const DSPVectorArray<ROWSC>& x3)
- {
-   DSPVectorArray<ROWSA + ROWSB + ROWSC> vy;
-   for (int j = 0; j < ROWSA; ++j)
-   {
-     vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j));
-   }
-   for (int j = 0; j < ROWSB; ++j)
-   {
-     vy.setRowVectorUnchecked(j + ROWSA, x2.getRowVectorUnchecked(j));
-   }
-   for (int j = 0; j < ROWSC; ++j)
-   {
-     vy.setRowVectorUnchecked(j + ROWSA + ROWSB, x3.getRowVectorUnchecked(j));
-   }
-   return vy;
- }
-  
+
+// concatRows with three arguments.
+template <size_t ROWSA, size_t ROWSB, size_t ROWSC>
+inline DSPVectorArray<ROWSA + ROWSB + ROWSC> concatRows(const DSPVectorArray<ROWSA>& x1,
+                                                        const DSPVectorArray<ROWSB>& x2,
+                                                        const DSPVectorArray<ROWSC>& x3)
+{
+  DSPVectorArray<ROWSA + ROWSB + ROWSC> vy;
+  for (int j = 0; j < ROWSA; ++j)
+  {
+    vy.setRowVectorUnchecked(j, x1.getRowVectorUnchecked(j));
+  }
+  for (int j = 0; j < ROWSB; ++j)
+  {
+    vy.setRowVectorUnchecked(j + ROWSA, x2.getRowVectorUnchecked(j));
+  }
+  for (int j = 0; j < ROWSC; ++j)
+  {
+    vy.setRowVectorUnchecked(j + ROWSA + ROWSB, x3.getRowVectorUnchecked(j));
+  }
+  return vy;
+}
+
 // NOTE: of course all this repeated code looks bad, but
 // i'm not sure there is a reasonable way to generalize this in C++11. The problem is determining
-// the number of rows in the output type. It should be possible with return type deduction (auto) in C++14.
+// the number of rows in the output type. It should be possible with return type deduction (auto) in
+// C++14.
 
 // concatRows with four arguments.
 template <size_t ROWSA, size_t ROWSB, size_t ROWSC, size_t ROWSD>
 inline DSPVectorArray<ROWSA + ROWSB + ROWSC + ROWSD> concatRows(const DSPVectorArray<ROWSA>& x1,
-                                            const DSPVectorArray<ROWSB>& x2,
-                                            const DSPVectorArray<ROWSC>& x3,
-                                            const DSPVectorArray<ROWSD>& x4)
+                                                                const DSPVectorArray<ROWSB>& x2,
+                                                                const DSPVectorArray<ROWSC>& x3,
+                                                                const DSPVectorArray<ROWSD>& x4)
 {
   DSPVectorArray<ROWSA + ROWSB + ROWSC + ROWSD> vy;
   for (int j = 0; j < ROWSA; ++j)
@@ -1027,13 +1028,13 @@ inline DSPVectorArray<ROWSA + ROWSB + ROWSC + ROWSD> concatRows(const DSPVectorA
   }
   return vy;
 }
- 
+
 // shuffle two DSPVectorArrays, alternating x1 to even rows of result and x2 to
 // odd rows. if the sources are different sizes, the excess rows are all
 // appended to the destination after shuffling is done.
 template <size_t ROWSA, size_t ROWSB>
 inline DSPVectorArray<ROWSA + ROWSB> shuffleRows(const DSPVectorArray<ROWSA> x1,
-                                             const DSPVectorArray<ROWSB> x2)
+                                                 const DSPVectorArray<ROWSB> x2)
 {
   DSPVectorArray<ROWSA + ROWSB> vy;
   int ja = 0;
@@ -1098,7 +1099,6 @@ inline DSPVectorArray<B - A> separateRows(const DSPVectorArray<ROWS>& x)
 
 // TODO variadic splitRows(bundleSIg, outputRow1, outputRow2, ... )
 
-
 // ----------------------------------------------------------------
 // rowIndex - returns a DSPVector of j rows, each row filled
 // with the index of its row
@@ -1122,7 +1122,6 @@ inline DSPVectorArray<ROWS> columnIndex()
 {
   return repeatRows<ROWS>(DSPVector(make_array<kFloatsPerDSPVector>(intToFloatCastFn)));
 }
-
 
 // ----------------------------------------------------------------
 // for testing

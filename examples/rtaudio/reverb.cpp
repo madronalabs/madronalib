@@ -108,7 +108,7 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   mvFeedbackL = mAp10(vTapR, vt10)*vSmoothFeedback;
 
   // append the left and right taps and return the stereo output
-  return append(vTapL, vTapR);
+  return concatRows(vTapL, vTapR);
 }
 
 int main( int argc, char *argv[] )
