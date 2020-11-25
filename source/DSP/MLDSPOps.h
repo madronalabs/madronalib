@@ -857,7 +857,6 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
   // the outer add here is the operator defined using vecAdd() above
   return first + add(args...);
 }
-                                                     // resultIfFalse, conditionMask)
 
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
