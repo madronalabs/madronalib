@@ -1,4 +1,4 @@
-// madronaLib: a C++ framework for DSP applications.
+// madronalib: a C++ framework for DSP applications.
 // Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
@@ -6,7 +6,7 @@
 // operator() and apply the function in a different context, such as upsampled,
 // overlap-added or in the frequency domain.
 
-// TODO in DSPOps improve pack / unpack of rows for sending multiple sources to
+// TODO in DSPOps ( routing) improve pack / unpack of rows for sending multiple sources to
 // functions
 
 #pragma once
@@ -17,6 +17,80 @@
 
 namespace ml
 {
+// ----------------------------------------------------------------
+// basic higher-order functions
+
+// Evaluate a function (void)->(float), store at each element of the
+// DSPVectorArray and return the result. x is a dummy argument just used to
+// infer the vector size.
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<float()> f, const DSPVectorArray<ROWS> x)
+{
+  DSPVectorArray<ROWS> y;
+  for (int n = 0; n < kFloatsPerDSPVector * ROWS; ++n)
+  {
+    y[n] = f();
+  }
+  return y;
+}
+
+// Apply a function (float)->(float) to each element of the DSPVectorArray x and
+// return the result.
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<float(float)> f, const DSPVectorArray<ROWS> x)
+{
+  DSPVectorArray<ROWS> y;
+  for (int n = 0; n < kFloatsPerDSPVector * ROWS; ++n)
+  {
+    y[n] = f(x[n]);
+  }
+  return y;
+}
+
+// Apply a function (int)->(float) to each element of the DSPVectorArrayInt x
+// and return the result.
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<float(int)> f, const DSPVectorArrayInt<ROWS> x)
+{
+  DSPVectorArray<ROWS> y;
+  for (int n = 0; n < kFloatsPerDSPVector * ROWS; ++n)
+  {
+    y[n] = f(x[n]);
+  }
+  return y;
+}
+
+// Apply a function (DSPVector)->(DSPVector) to each row of the DSPVectorArray x
+// and return the result.
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector)> f,
+                                const DSPVectorArray<ROWS> x)
+{
+  DSPVectorArray<ROWS> y;
+  for (int j = 0; j < ROWS; ++j)
+  {
+    y.row(j) = f(x.constRow(j));
+  }
+  return y;
+}
+
+// Apply a function (DSPVector, int row)->(DSPVector) to each row of the
+// DSPVectorArray x and return the result.
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector, int)> f,
+                                const DSPVectorArray<ROWS> x)
+{
+  DSPVectorArray<ROWS> y;
+  for (int j = 0; j < ROWS; ++j)
+  {
+    y.row(j) = f(x.constRow(j), j);
+  }
+  return y;
+}
+
+// ----------------------------------------------------------------
+// higher-order functions with DSP
+
 // Upsample2xFunction is a function object that given a process function f,
 // upsamples the input x by 2, applies f, downsamples and returns the result.
 // the total delay from the resampling filters used is about 3 samples.

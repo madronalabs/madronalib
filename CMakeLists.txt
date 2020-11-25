@@ -42,8 +42,10 @@ endif()
 # Compiler flags
 #--------------------------------------------------------------------
 
+set(CMAKE_CXX_FLAGS_0 ${CMAKE_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
+
 
 #--------------------------------------------------------------------
 # Choose library output name
@@ -239,7 +241,7 @@ else(APPLE)
 endif()
 
 #--------------------------------------------------------------------
-# build examples
+# build RtAudio examples
 #--------------------------------------------------------------------
 
 set(ML_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -307,6 +309,10 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     )
 endfunction()
 
+
+#--------------------------------------------------------------------
+# build all examples
+#--------------------------------------------------------------------
 
 if(BUILD_EXAMPLES)
     make_example(ReverbExample reverb.cpp)

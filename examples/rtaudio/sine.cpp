@@ -30,9 +30,10 @@ DSPVectorArray<kOutputChannels> processVectors()
   auto sineL = s1(220.f/kSampleRate)*kOutputGain;
   auto sineR = s2(275.f/kSampleRate)*kOutputGain;
 
-  // appending the two DSPVectors makes a DSPVectorArray<2>: our stereo output.
-  return append(sineL, sineR);
+  // concatenating the two DSPVectors makes a DSPVectorArray<2>: our stereo output.
+  return concatRows(sineL, sineR);
 }
+
 
 int main( int argc, char *argv[] )
 {

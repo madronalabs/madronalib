@@ -12,6 +12,7 @@
 #include "MLDSPUtils.h"
 #include "MLDSPProjections.h"
 #include "MLDSPRatio.h"
+#include "MLDSPRouting.h"
 
 // TODO replace when loading code is updated #include "DSP/MLScale.h"
 

@@ -196,7 +196,7 @@ TEST_CASE("madronalib/core/dspbuffer/vectors", "[dspbuffer][vectors]")
   inputVec =
       map([](DSPVector v,
              int row) { return v + DSPVector(kFloatsPerDSPVector * row); },
-          repeat<kRows>(columnIndex()));
+          repeatRows<kRows>(columnIndex()));
 
   // write long enough that we will wrap
   for (int i = 0; i < 4; ++i)

@@ -139,7 +139,7 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   SECTION("map")
   {
     constexpr int rows = 2;
-    auto a{repeat<rows>(columnIndex())};
+    auto a{repeatRows<rows>(columnIndex())};
 
     // map void -> float
     auto b = map([&]() { return 4; }, a);
@@ -164,7 +164,7 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   {
     std::cout << "\nROW OPERATIONS\n";
 
-    DSPVectorArray<2> a{repeat<2>(columnIndex())};
+    DSPVectorArray<2> a{repeatRows<2>(columnIndex())};
     auto a2{a * 2.f};
 
     DSPVector b{columnIndex()};
@@ -172,28 +172,83 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
     DSPVectorArray<2> x{3.f};
     DSPVectorArray<1> y{3.f};
-    auto xy = x * repeat<2>(y);
-    auto yx = repeat<2>(y) * x;
+    auto xy = x * repeatRows<2>(y);
+    auto yx = repeatRows<2>(y) * x;
 
-    auto e = a * repeat<2>(b);
+    auto e = a * repeatRows<2>(b);
 
-    auto aa = repeat<4>(a);
+    auto aa = repeatRows<4>(a);
 
-    auto f{repeat<2>(columnIndex())};
+    auto f{repeatRows<2>(columnIndex())};
     auto g = map([&](DSPVector x, int j) { return x * (j + 1); }, f);
 
-    auto h = stretch<6>(g);
+    auto h = stretchRows<6>(g);
 
-    auto k = zeroPad<6>(columnIndex());
+    auto k = zeroPadRows<6>(columnIndex());
 
     auto m = rotateRows(k, -1) * 3.f;
 
     auto n = shiftRows(k, 2);
     // TODO actual tests
   }
+  
+  SECTION("combining")
+  {
+    std::cout << "\nCOMBINING\n";
+    
+    DSPVectorArray<2> a{repeatRows<2>(columnIndex())};
+    DSPVectorArray<2> b{rowIndex<2>() + 1};
+    DSPVectorArray<2> c{1};
+
+    auto sum = add(a, b, c);
+    
+    DSPVectorArray<3> gains = concatRows(DSPVector{0.300f}, DSPVector{0.030f}, DSPVector{0.003f});
+
+    auto mixResult = mix(gains, c, c, c);
+    
+    DSPVectorArray<6> gg = repeatRows<2>(gains);
+
+    DSPVectorArray<2> h = separateRows<4, 6>(gg);
+    
+    // TODO tests
+  }
+  
+  SECTION("multiplex")
+  {
+    std::cout << "\nMULTIPLEX\n";
+    
+    DSPVectorArray<2> input{columnIndex<2>() + rowIndex<2>()};
+    DSPVectorArray<2> a{7};
+    DSPVectorArray<2> b{11};
+    DSPVectorArray<2> c{13};
+    DSPVectorArray<2> d{17};
+    DSPVectorArray<2> e{19};
+
+    // rangeOpen(0-1): equal amounts of a, b, c, d, e
+    auto dv = multiplex(rangeOpen(0, 1), a, b, c, d, e);
+    REQUIRE(dv[kFloatsPerDSPVector - 1] == e[kFloatsPerDSPVector - 1]);
+    
+    // rangeClosed(0, 4.f/5.f): last element should be e
+    auto dw = multiplexLinear(rangeClosed(0, 4.f/5.f), a, b, c, d, e);
+    REQUIRE(dv[kFloatsPerDSPVector - 1] == e[kFloatsPerDSPVector - 1]);
+
+    // the sum of the linear demultiplexer's outputs should equal the input
+    auto demuxInput2 = repeatRows<2>(DSPVector{1});
+    demultiplexLinear(rangeClosed(0, 3.f/4.f), demuxInput2, &a, &b, &c, &d);
+    auto sumOfDemuxOutputs2 = add(a, b, c, d);
+    REQUIRE(demuxInput2 == sumOfDemuxOutputs2);
+    REQUIRE(sumOfDemuxOutputs2[kFloatsPerDSPVector - 1] == 1);
+    
+    // demultiplex to multiple outputs, then multiplex wtih same selector
+    // should equal the input
+    auto selectorSignal = rangeOpen(0, 1);
+    auto demuxInput3 = columnIndex<2>();
+    demultiplex(selectorSignal, demuxInput3, &a, &b, &c, &d);
+    auto demuxThenMux = multiplex(selectorSignal, a, b, c, d);
+    REQUIRE(demuxInput3 == demuxThenMux);
+  }
 }
 
-// TODO tests into units
 
 TEST_CASE("madronalib/core/projections", "[projections]")
 {
@@ -219,3 +274,4 @@ TEST_CASE("madronalib/core/projections", "[projections]")
     }
   }
 }
+
