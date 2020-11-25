@@ -839,6 +839,8 @@ DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue
 
 DEFINE_OP3_III2I(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue,
                                                   // resultIfFalse, conditionMask)
+    
+// ----------------------------------------------------------------                                              
 // n-ary operators
 
 // add (a, b, c, ...)
@@ -855,6 +857,7 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
   // the outer add here is the operator defined using vecAdd() above
   return first + add(args...);
 }
+                                                     // resultIfFalse, conditionMask)
 
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
