@@ -247,8 +247,30 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     auto demuxThenMux = multiplex(selectorSignal, a, b, c, d);
     REQUIRE(demuxInput3 == demuxThenMux);
   }
+  
+  SECTION("bank")
+  {
+    std::cout << "\nBANK\n";
+    constexpr size_t n = 5;
+    
+    // process with two arguments
+    Bank<PulseGen, n> pulses;
+    auto freqs = rowIndex<n>()*0.01 + 0.1;
+    auto widths = rowIndex<n>()*0.01 + 0.5;
+    auto pulseOuts = pulses(freqs, widths);
+    
+    // process with one argument
+    Bank<SineGen, n> sines;
+    auto sineOuts = sines(freqs);
+    
+    // process with no arguments
+    Bank<NoiseGen, n> noises;
+    auto noiseOuts = noises();
+    
+    // access one processor directly
+    noises[2].step();
+  }
 }
-
 
 TEST_CASE("madronalib/core/projections", "[projections]")
 {
