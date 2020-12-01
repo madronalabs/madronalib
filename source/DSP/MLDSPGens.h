@@ -205,7 +205,6 @@ static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
       t = (t - 1.0) / dt;
       c = t * t + t + t + 1.0f;
     }
-
     blep[n] = c;
   }
   return blep;
@@ -243,7 +242,7 @@ inline DSPVector phasorToSine(DSPVector phasorV)
 inline DSPVector phasorToPulse(DSPVector omegaV, DSPVector freqV, DSPVector pulseWidthV)
 {
   // get pulse selector mask
-  DSPVectorInt maskV = greaterThan(omegaV, pulseWidthV);
+  DSPVectorInt maskV = greaterThanOrEqual(omegaV, pulseWidthV);
 
   // select -1 or 1 (could be a multiply instead?)
   DSPVector pulseV = select(DSPVector(-1.f), DSPVector(1.f), maskV);

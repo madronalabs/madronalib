@@ -199,6 +199,9 @@ class DSPVectorArray
     return true;
   }
 
+  // TODO compare the performance of getting rid of everything between here and row(), and
+  // just using row() and constRow() for reading and writing
+
   // return row J from this DSPVectorArray, when J is known at compile time.
   template <int J>
   inline DSPVectorArray<1> getRowVector() const
@@ -296,7 +299,7 @@ class DSPVectorArray
     return *pRow;
   }
 
-  // return a reference to a row of this DSPVectorArray.
+  // return a const reference to a row of this DSPVectorArray.
   inline const DSPVectorArray<1>& constRow(int j) const
   {
     const float* py1 = getConstBuffer() + kFloatsPerDSPVector * j;
@@ -344,7 +347,6 @@ class DSPVectorArray
   {
     return divide(x1, x2);
   }
-
 };  // class DSPVectorArray
 
 typedef DSPVectorArray<1> DSPVector;
@@ -856,6 +858,13 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> a)
   return a;
 }
 
+template <size_t ROWS, typename... Args>
+DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
+{
+  // the + here is the operator defined using vecAdd() above
+  return first + add(args...);
+}
+
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
 
@@ -1067,6 +1076,8 @@ inline DSPVectorArray<ROWSA + ROWSB + ROWSC> concatRows(const DSPVectorArray<ROW
 // i'm not sure there is a reasonable way to generalize this in C++11. The problem is determining
 // the number of rows in the output type. It should be possible with return type deduction (auto) in
 // C++14.
+// TODO variadic templates can expand into a template argument list, so maybe this IS possible
+// by wrapping the concatRows template in another template - give it a try.
 
 // concatRows with four arguments.
 template <size_t ROWSA, size_t ROWSB, size_t ROWSC, size_t ROWSD>
@@ -1163,7 +1174,20 @@ inline DSPVectorArray<B - A> separateRows(const DSPVectorArray<ROWS>& x)
   return vy;
 }
 
-// TODO variadic splitRows(bundleSIg, outputRow1, outputRow2, ... )
+// ----------------------------------------------------------------
+// add rows to get row-wise sum
+
+template <size_t ROWS>
+inline DSPVector addRows(const DSPVectorArray<ROWS>& x)
+{
+  DSPVector vy{0.f};
+
+  for (int j = 0; j < ROWS; ++j)
+  {
+    vy = add(vy, x.getRowVectorUnchecked(j));
+  }
+  return vy;
+}
 
 // ----------------------------------------------------------------
 // rowIndex - returns a DSPVector of j rows, each row filled
@@ -1188,6 +1212,8 @@ inline DSPVectorArray<ROWS> columnIndex()
 {
   return repeatRows<ROWS>(DSPVector(make_array<kFloatsPerDSPVector>(intToFloatCastFn)));
 }
+
+// TODO variadic splitRows(bundleSIg, outputRow1, outputRow2, ... )
 
 // ----------------------------------------------------------------
 // for testing
