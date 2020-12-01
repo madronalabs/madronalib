@@ -121,6 +121,7 @@ inline bool isSIMDAligned(float* p)
 #define vecIntToFloat _mm_cvtepi32_ps
 
 #define vecAddInt _mm_add_epi32
+#define vecSubInt _mm_sub_epi32
 #define vecSet1Int _mm_set1_epi32
 
 typedef union
@@ -208,6 +209,13 @@ inline SIMDVectorFloat vecSelect(SIMDVectorFloat a, SIMDVectorFloat b, SIMDVecto
   __m128i ones = _mm_set1_epi32(-1);
   return _mm_or_ps(_mm_and_ps(VecI2F(conditionMask), a),
                    _mm_and_ps(_mm_xor_ps(VecI2F(conditionMask), VecI2F(ones)), b));
+}
+
+inline SIMDVectorInt vecSelect(SIMDVectorInt a, SIMDVectorInt b, SIMDVectorInt conditionMask)
+{
+  __m128i ones = _mm_set1_epi32(-1);
+  return _mm_or_si128(_mm_and_si128(conditionMask, a),
+                      _mm_and_si128(_mm_xor_si128(conditionMask, ones), b));
 }
 
 // ----------------------------------------------------------------
