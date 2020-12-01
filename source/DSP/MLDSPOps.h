@@ -811,12 +811,6 @@ DEFINE_OP2_FF2I(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));
 DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue,
                                                   // resultIfFalse, conditionMask)
 
-template <size_t ROWS, typename... Args>
-DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
-{
-  // the outer add here is the operator defined using vecAdd() above
-  return first + add(args...);
-}
 // ternary operators int vector, int vector, int vector -> int vector
 
 #define DEFINE_OP3_III2I(opName, opComputation)                             \
