@@ -8,10 +8,10 @@ using namespace ml;
 constexpr int kMaxProcessBlockFrames = 4096;
 
 template<int IN_CHANS, int OUT_CHANS>
-using processFnType = DSPVectorArray< OUT_CHANS > (*) (const DSPVectorArray< IN_CHANS >&);
+using processFnType = DSPVectorArray< OUT_CHANS > (*) (const DSPVectorArray< IN_CHANS >&, void *);
 
 template<int OUT_CHANS>
-using processFnTypeNoInputs = DSPVectorArray< OUT_CHANS > (*) ();
+using processFnTypeNoInputs = DSPVectorArray< OUT_CHANS > (*) (void *);
 
 using rtAudioCallbackType = int (*) (void*, void*, unsigned int, double, RtAudioStreamStatus, void*);
 

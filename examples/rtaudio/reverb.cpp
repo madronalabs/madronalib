@@ -57,7 +57,7 @@ void initializeReverb()
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors)
+DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors, void*)
 {
   const float sr = kSampleRate;
   const float RT60const = 0.001f;

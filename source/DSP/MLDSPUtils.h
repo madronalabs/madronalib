@@ -53,7 +53,7 @@ template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer
 {
   using VectorProcessFn =
-      std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&)>;
+      std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&, void* stateData)>;
 
   DSPVectorArray<IN_CHANNELS> _inputVectors;
   DSPVectorArray<OUT_CHANNELS> _outputVectors;
@@ -73,48 +73,33 @@ class VectorProcessBuffer
 
   ~VectorProcessBuffer() {}
 
-  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn)
+  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn, void* stateData = nullptr)
   {
     if (nFrames > MAX_FRAMES) return;
-    if (IN_CHANNELS > 0)
+
+    // write from inputs to inputBuffers
+    for (int c = 0; c < IN_CHANNELS; c++)
     {
-      // write from inputs to inputBuffers
-      for (int c = 0; c < IN_CHANNELS; c++)
+      if (inputs[c])
       {
-        if (inputs[c])
-        {
-          mInputBuffers[c].write(inputs[c], nFrames);
-        }
-      }
-
-      // process
-      while (mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
-      {
-        // buffers to process input
-        for (int c = 0; c < IN_CHANNELS; c++)
-        {
-          _inputVectors.row(c) = mInputBuffers[c].read();
-        }
-
-        _outputVectors = fn(_inputVectors);
-
-        for (int c = 0; c < OUT_CHANNELS; c++)
-        {
-          mOutputBuffers[c].write(_outputVectors.row(c));
-        }
+        mInputBuffers[c].write(inputs[c], nFrames);
       }
     }
-    else
-    {
-      // no inputs, process until we have nFrames of output
-      while (mOutputBuffers[0].getReadAvailable() < nFrames)
-      {
-        _outputVectors = fn(_inputVectors);
 
-        for (int c = 0; c < OUT_CHANNELS; c++)
-        {
-          mOutputBuffers[c].write(_outputVectors.row(c));
-        }
+    // process
+    while (mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
+    {
+      // buffers to process input
+      for (int c = 0; c < IN_CHANNELS; c++)
+      {
+        _inputVectors.row(c) = mInputBuffers[c].read();
+      }
+
+      _outputVectors = fn(_inputVectors, stateData);
+
+      for (int c = 0; c < OUT_CHANNELS; c++)
+      { 
+        mOutputBuffers[c].write(_outputVectors.row(c));
       }
     }
 
@@ -139,7 +124,7 @@ class VectorProcessBuffer
 template <int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
 {
-  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(void)>;
+  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(void * stateData)>;
 
   DSPVectorArray<OUT_CHANNELS> _outputVectors;
 
@@ -154,14 +139,14 @@ class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
 
   ~VectorProcessBuffer() {}
 
-  void process(const float**, float** outputs, int nFrames, VectorProcessFn fn)
+  void process(const float**, float** outputs, int nFrames, VectorProcessFn fn, void* stateData = nullptr)
   {
     if (nFrames > MAX_FRAMES) return;
 
     // no inputs, process until we have nFrames of output
     while (mOutputBuffers[0].getReadAvailable() < nFrames)
     {
-      _outputVectors = fn();
+      _outputVectors = fn(stateData);
 
       for (int c = 0; c < OUT_CHANNELS; c++)
       {

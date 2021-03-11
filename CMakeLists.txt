@@ -251,6 +251,7 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     set(
         EXAMPLE_SOURCES
         ${ML_ROOT}/examples/rtaudio/${EXAMPLE_SOURCE_FILE}
+        ${ML_ROOT}/examples/rtaudio/RtAudioExample.h
         ${ML_ROOT}/external/rtaudio/RtAudio.cpp
     )
 
@@ -314,9 +315,13 @@ endfunction()
 # build all examples
 #--------------------------------------------------------------------
 
+# TODO- examples would be better in a single examples folder and
+# without Resources dirs and CMakelists.txt for each one in the project.
+
 if(BUILD_EXAMPLES)
     make_example(ReverbExample reverb.cpp)
     make_example(SineExample sine.cpp)
+    make_example(FDTDExample FDTD.cpp)
 
 endif()
 
