@@ -54,15 +54,6 @@ bool isCJK(CodePoint ch)
          || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
 }
 
-char* spaceStr(size_t numIndents)
-{
-  static char* pBuf = (char*)"                                                   ";
-  static size_t len = strlen(pBuf);
-  size_t n = numIndents * 2;
-  n = ml::clamp(n, (size_t)0, len);
-  return &pBuf[len - n];
-}
-
 int digitsToNaturalNumber(const char32_t* p)
 {
   constexpr int kMaxDigits = 16;

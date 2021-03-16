@@ -25,8 +25,6 @@ bool isLatin(CodePoint c);
 bool isWhitespace(CodePoint c);
 bool isCJK(CodePoint c);
 
-char* spaceStr(size_t numIndents);
-
 // ----------------------------------------------------------------
 // TextFragment utilities
 
