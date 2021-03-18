@@ -9,7 +9,7 @@
 
 namespace ml
 {
-const Matrix Value::nullSignal;
+const Matrix Value::nullMatrix{};
 
 Value::Value() : mType(kUndefinedValue), mFloatVal(0) {}
 

@@ -468,12 +468,14 @@ class DSPVectorArrayInt
     return *pRow;
   }
 
-  friend inline DSPVectorArrayInt operator+(const DSPVectorArrayInt& x1, const DSPVectorArrayInt& x2)
+  friend inline DSPVectorArrayInt operator+(const DSPVectorArrayInt& x1,
+                                            const DSPVectorArrayInt& x2)
   {
     return addInt32(x1, x2);
   }
 
-  friend inline DSPVectorArrayInt operator-(const DSPVectorArrayInt& x1, const DSPVectorArrayInt& x2)
+  friend inline DSPVectorArrayInt operator-(const DSPVectorArrayInt& x1,
+                                            const DSPVectorArrayInt& x2)
   {
     return subtractInt32(x1, x2);
   }
@@ -813,29 +815,29 @@ DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue
 
 // ternary operators int vector, int vector, int vector -> int vector
 
-#define DEFINE_OP3_III2I(opName, opComputation)                             \
-  template <size_t ROWS>                                                    \
-  inline DSPVectorArrayInt<ROWS>(opName)(const DSPVectorArrayInt<ROWS>& vx1,\
-                                      const DSPVectorArrayInt<ROWS>& vx2,   \
-                                      const DSPVectorArrayInt<ROWS>& vx3)   \
-  {                                                                         \
-    DSPVectorArrayInt<ROWS> vy;                                             \
-    const float* px1 = vx1.getConstBuffer();                                \
-    const float* px2 = vx2.getConstBuffer();                                \
-    const float* px3 = vx3.getConstBuffer();                                \
-    float* py1 = vy.getBuffer();                                            \
-    for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)               \
-    {                                                                       \
-      SIMDVectorInt x1 = VecF2I(vecLoad(px1));                              \
-      SIMDVectorInt x2 = VecF2I(vecLoad(px2));                              \
-      SIMDVectorInt x3 = VecF2I(vecLoad(px3));                              \
-      vecStore(py1, VecI2F(opComputation));                                 \
-      px1 += kIntsPerSIMDVector;                                            \
-      px2 += kIntsPerSIMDVector;                                            \
-      px3 += kIntsPerSIMDVector;                                            \
-      py1 += kIntsPerSIMDVector;                                            \
-    }                                                                       \
-    return vy;                                                              \
+#define DEFINE_OP3_III2I(opName, opComputation)                              \
+  template <size_t ROWS>                                                     \
+  inline DSPVectorArrayInt<ROWS>(opName)(const DSPVectorArrayInt<ROWS>& vx1, \
+                                         const DSPVectorArrayInt<ROWS>& vx2, \
+                                         const DSPVectorArrayInt<ROWS>& vx3) \
+  {                                                                          \
+    DSPVectorArrayInt<ROWS> vy;                                              \
+    const float* px1 = vx1.getConstBuffer();                                 \
+    const float* px2 = vx2.getConstBuffer();                                 \
+    const float* px3 = vx3.getConstBuffer();                                 \
+    float* py1 = vy.getBuffer();                                             \
+    for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)                \
+    {                                                                        \
+      SIMDVectorInt x1 = VecF2I(vecLoad(px1));                               \
+      SIMDVectorInt x2 = VecF2I(vecLoad(px2));                               \
+      SIMDVectorInt x3 = VecF2I(vecLoad(px3));                               \
+      vecStore(py1, VecI2F(opComputation));                                  \
+      px1 += kIntsPerSIMDVector;                                             \
+      px2 += kIntsPerSIMDVector;                                             \
+      px3 += kIntsPerSIMDVector;                                             \
+      py1 += kIntsPerSIMDVector;                                             \
+    }                                                                        \
+    return vy;                                                               \
   }
 
 DEFINE_OP3_III2I(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue,

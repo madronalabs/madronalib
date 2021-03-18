@@ -27,8 +27,6 @@ namespace ml
 class Value
 {
  public:
-  static const Matrix nullSignal;
-
   enum Type
   {
     kUndefinedValue = 0,
@@ -36,6 +34,8 @@ class Value
     kTextValue = 2,
     kMatrixValue = 3
   };
+
+  static const Matrix nullMatrix;
 
   Value();
   Value(const Value& other);
@@ -104,7 +104,7 @@ class Value
 
   inline const Matrix& getMatrixValue() const
   {
-    return (mType == kMatrixValue) ? (mMatrixVal) : nullSignal;
+    return (mType == kMatrixValue) ? (mMatrixVal) : nullMatrix;
   }
 
   inline const Matrix getMatrixValueWithDefault(Matrix d) const

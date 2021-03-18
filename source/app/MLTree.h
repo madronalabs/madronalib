@@ -301,7 +301,10 @@ class Tree final
     for (auto it = begin(); it != end(); ++it)
     {
       int d = it.getCurrentDepth();
-      for(int i=0; i<d; ++i) { std::cout << "    "; }
+      for (int i = 0; i < d; ++i)
+      {
+        std::cout << "    ";
+      }
       std::cout << it.getCurrentNodeName() << " [" << *it << "]\n";
     }
   }
@@ -313,7 +316,5 @@ bool treeNodeExists(const Tree<V, C>& t, Path path)
 {
   return (t.getConstNode(path) != nullptr);
 }
-
-
 
 }  // namespace ml
