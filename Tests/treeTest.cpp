@@ -105,7 +105,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
 
     // using a const reference will prevent the Tree from being modified.
-    const auto& constNumberMap(numberMap);
+    const Tree<int>& constNumberMap(numberMap);
     // *** constNumberMap["foo"] = 2;
 
     for (int i = 1; i < mapSize; ++i)
@@ -202,8 +202,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // Tree example using unique_ptr to manage heavyweight objects.
 
   {
-    // note that we are compiling for C++11—our own make_unique() is defined in
-    // MLValue.h
+    // note that we want to stay compatible with C++11, which lacks
+    // make_unique(), so our own ml::make_unique() is defined in MLValue.h
 
     Tree<std::unique_ptr<TestResource> > heavies;
 
