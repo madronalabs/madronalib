@@ -41,11 +41,9 @@ struct ValueChange
   explicit operator bool() const { return newValue ? true : false; }
 };
 
-// note: because std::vector will allocate on the fly, this implementation of
-// ValueChangeList is not safe for use in audio processing threads. Given the
-// intended use in editors and controllers, this seems like a reasonable
-// tradeoff.
-using ValueChangeList = std::vector<ValueChange>;
+
+// ValueChange could have a time. Useful for automation as well as undo.
+
 
 }  // namespace ml
 
