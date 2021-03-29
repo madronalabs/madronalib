@@ -413,7 +413,8 @@ class OnePole
 };
 
 // A one-pole, one-zero filter to attenuate DC.
-// Works well, but beware of its effects on bass sounds. An omega of 0.05 is a
+// Works well, but beware of its effects on bass sounds.
+// A "cutoff" of around 2kHz (omega = 0.045 at sr=44100) is a
 // good starting point. see https://ccrma.stanford.edu/~jos/fp/DC_Blocker.html
 // for more.
 
@@ -434,7 +435,7 @@ class DCBlocker
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       const float x0 = vx[n];
-      const float y0 = x0 - x1 + mCoeffs * y1;
+      const float y0 = x0 - x1 + mCoeffs*y1;
       y1 = y0;
       x1 = x0;
       vy[n] = y0;
