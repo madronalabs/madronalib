@@ -1,9 +1,6 @@
-//
-//  MLTree.h
-//  madronaib
-//
-//  Created by Randy Jones on 9/22/15.
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
 

@@ -1,6 +1,6 @@
 // madronalib: a C++ framework for DSP applications.
-// (c) 2020, Madrona Labs LLC, all rights reserved
-// see LICENSE.txt for details
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
 

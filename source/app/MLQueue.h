@@ -1,12 +1,10 @@
-//
-// MLQueue.h
-// madronalib
-//
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
 // A very simple SPSC Queue.
 // based on
 // https://kjellkod.wordpress.com/2012/11/28/c-debt-paid-in-full-wait-free-lock-free-queue/
-//
 
 #pragma once
 
