@@ -593,7 +593,7 @@ class IntegerDelay
   IntegerDelay() = default;
   IntegerDelay(int d)
   {
-    setMaxDelayInSamples(d);
+    setMaxDelayInSamples(float(d));
     setDelayInSamples(d);
   }
   ~IntegerDelay() = default;
@@ -605,7 +605,7 @@ class IntegerDelay
 
   void setMaxDelayInSamples(float d)
   {
-    int dMax = floorf(d);
+    int dMax = int(floorf(d));
     int newSize = 1 << bitsToContain(dMax + kFloatsPerDSPVector);
     mBuffer.resize(newSize);
     mLengthMask = newSize - 1;
@@ -777,7 +777,7 @@ class FractionalDelay
   {
     mDelayInSamples = d;
     float fDelayInt = floorf(d);
-    int delayInt = fDelayInt;
+    int delayInt = int(fDelayInt);
     float delayFrac = d - fDelayInt;
 
     // constrain D to [0.618 - 1.618] if possible
