@@ -20,7 +20,8 @@
 
 #include <vector>
 
-#include "MLDSPGens.h"
+#include "MLDSPScalarMath.h"
+#include "MLDSPOps.h"
 
 namespace ml
 {
