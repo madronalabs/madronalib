@@ -938,6 +938,21 @@ inline float min(const DSPVector& x)
 }
 
 // ----------------------------------------------------------------
+// normalize
+
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> normalize(const DSPVectorArray<ROWS>& x1)
+{
+  DSPVectorArray<ROWS> vy;
+  for (int j = 0; j < ROWS; ++j)
+  {
+    auto inputRow = x1.getRowVectorUnchecked(j);
+    vy.setRowVectorUnchecked(j, inputRow/sum(inputRow));
+  }
+  return vy;
+}
+
+// ----------------------------------------------------------------
 // row-wise operations and conversions
 
 // for the given output ROWS and given an input DSPVectorArray with N rows,
