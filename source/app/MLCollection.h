@@ -13,21 +13,33 @@ namespace ml{
 struct Collectable
 {
   // bool conversion: is this object non-null? the default is yes.
-  virtual explicit operator bool() const {return true; }
+  virtual operator bool() const { return true; }
 
   // Collectable objects must be able to receive messages.
   virtual void recv(Message m) = 0;
+  
+  virtual Collectable& operator=(const Collectable&)
+  {
+    std::cout << "non-null copy!\n";
+    return *this;
+  };// = default;
 };
 
 // A concrete null object for any Collectable type.
 template< typename T >
 struct NullCollectableForClass final : public T
 {
-  // Casting this object to bool will return false.
-  explicit operator bool() const override { return false; }
+  // converting this object to bool will return false.
+  operator bool() const override { return false; }
   
-  // Sending this object a message will do nothing.
+  // Sending a null object a message must do nothing.
   void recv(Message m) override {}
+
+  Collectable& operator=(const Collectable&) override
+  {
+    std::cout << "null copy!\n"; 
+    return *this;
+  }
 };
 
 template< typename T >
@@ -56,22 +68,18 @@ public:
   
   ~Collection() = default;
   
-  T& operator[](Path p)
+  /*
+  ObjectPointerType& operator[](Path p)
   {
-    static NullCollectableForClass< T > nullObject{};
-    TreeType* n = _tree.getNode(p);
-    if(n && n->hasValue())
-    {
-      return *(n->getValue().get());
-    }
-    else
-    {
-      auto newNode = _tree.add(p, ml::make_unique< NullCollectableForClass< T > >(nullObject));
-      return *(newNode->getValue().get());
-    }
+    return _tree.operator[](p);
+  }
+  */
+  const ObjectPointerType& operator[](Path p) const
+  {
+    return _tree.operator[](p);
   }
 
-  const T& find(Path p) const
+  const ObjectPointerType& find(Path p) const
   {
     static NullCollectableForClass< T > nullObject{};
     const TreeType* n = _tree.getConstNode(p);
@@ -84,21 +92,18 @@ public:
       return nullObject;
     }
   }
-   
-  const T& operator[](Path p) const
-  {
-    return find(p);
-  }
 
+  // add the object referred to by newVal to the collection.
   void add(Path p, T& newVal)
   {
     _tree.add(p, std::move(newVal));
   }
   
-  template< typename OBJ >
-  void add_unique(Path p, const WithValues& values)
+  // create a new object in the collection, constructed with the given parameters.
+  template< typename TT, typename... Targs >
+  void add_unique(Path p, Targs... Fargs)
   {
-    _tree.add(p, std::move(ml::make_unique< OBJ >(values)));
+    _tree.add(p, std::move(ml::make_unique< TT >(Fargs...)));
   }
   
   inline typename TreeType::const_iterator begin() const { return _tree.begin(); }
@@ -169,6 +174,18 @@ template< typename T >
 inline void forEach( Collection< T >& coll, std::function< void(T&) > f)
 {
   coll.forEach(f);
+}
+
+template< typename T >
+inline void forEachConst( Collection< T >& coll, std::function< void(const T&) > f)
+{
+  coll.forEach(f);
+}
+
+template< typename T >
+inline void forEachPath( Collection< T >& coll, std::function< void(Path) > f)
+{
+  coll.forEachPath(f);
 }
 
 // send a message directly to a Collectable object.
