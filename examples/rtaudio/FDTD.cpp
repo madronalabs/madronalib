@@ -84,6 +84,11 @@ DSPVectorArray<kOutputChannels> processFDTDModel(DSPVector inputVec, DSPVector f
     // equal energy criterion: 4kk + 4ke + kc = 2.0.
     // the simulation is valid up to T^2 = 3/5, at which
     // the speed of wave travel is one mesh unit per time step.
+    //
+    // values outside the valid range WILL lead to blowups,
+    // from which this demo makes no attempt to protect your
+    // precious ears or speakers. please use caution.
+    //
     float kk = T*T * (1.f / 6.f);
     float ke = T*T * (2.f / 3.f);
     float kc = 2.f - 4.f*(kk + ke);
