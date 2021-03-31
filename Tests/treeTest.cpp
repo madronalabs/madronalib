@@ -1,10 +1,8 @@
-//
-//  treeTest.cpp
-//  madronalib
-//
-//  Created by Randy Jones on 9/23/15.
-//
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+// a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
 #include <iostream>
 #include <limits>
@@ -221,8 +219,13 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     heavies["x"] = make_unique<TestResource>(10);
     REQUIRE(treeNodeExists(heavies, "x"));
 
-    // REQUIRE(heavies["x"]); // shorthand courtesy of unique_ptr operator bool
-
+    // shorthand courtesy of unique_ptr operator bool
+    REQUIRE(heavies["x"]);
+    
+    // an empty unique_ptr is added here, but not the heavy object
+    // it would contain
+    REQUIRE(!heavies["y"]);
+ 
     // when overwriting nodes, unique_ptr handles deletion
     heavies.add("duplicate/nodes/in/path", make_unique<TestResource>(4));
     heavies.add("duplicate/nodes/in/path", make_unique<TestResource>(6));
@@ -239,7 +242,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(failedLookup.get() == nullptr);
     REQUIRE(!failedLookup);  // shorthand courtesy of unique_ptr operator bool
 
-    // overwrite data
+    // overwrite dataheavies["x"]
     heavies["x"]->data[10] = 100;
 
     // dump() works because we have declared operator<< (std::ostream& out,
