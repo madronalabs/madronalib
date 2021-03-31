@@ -17,12 +17,6 @@ struct Collectable
 
   // Collectable objects must be able to receive messages.
   virtual void recv(Message m) = 0;
-  
-  virtual Collectable& operator=(const Collectable&)
-  {
-    std::cout << "non-null copy!\n";
-    return *this;
-  };// = default;
 };
 
 // A concrete null object for any Collectable type.
@@ -34,12 +28,6 @@ struct NullCollectableForClass final : public T
   
   // Sending a null object a message must do nothing.
   void recv(Message m) override {}
-
-  Collectable& operator=(const Collectable&) override
-  {
-    std::cout << "null copy!\n"; 
-    return *this;
-  }
 };
 
 template< typename T >
@@ -68,12 +56,6 @@ public:
   
   ~Collection() = default;
   
-  /*
-  ObjectPointerType& operator[](Path p)
-  {
-    return _tree.operator[](p);
-  }
-  */
   const ObjectPointerType& operator[](Path p) const
   {
     return _tree.operator[](p);

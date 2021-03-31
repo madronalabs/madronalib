@@ -66,19 +66,24 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   int b7 = (subInts["b/c"]->value);
   REQUIRE(subInts["b/c"]->value == 5);// node exists - return value
 
-  bool b8 (subInts["b/c"]);
-  REQUIRE(b8);// node exists - return true
 
+  // set a value using the subcollecion
+  REQUIRE(subInts["b/c"]);
+  subInts["b/c"]->value = 44;
+  REQUIRE(ints["a/b/c"]->value == 44);
+  
+  // add a new object using subcollection
+  subInts.add_unique< FancyCollectableInt >("b/the/new/guy", 99);
+  REQUIRE(ints["a/b/the/new/guy"]);
+  REQUIRE(ints["a/b/the/new/guy"]->value == 99);
+
+  
+  
   // TODO a const subcollection that does not let us modify the held
   // values would be handy - revisit
-  subInts["b/c"]->value = 44;
   
-  // TODO subcollection by test
+  // TODO create subcollection by test
   //  auto subInts3 = getSubCollection([](const CollectableInt& i){return i.value > 3;});
-  
-  // modify main collection using subcollection
-  subInts.add_unique< FancyCollectableInt >("b/d", 99);
-  int test99 = ints["a/b/d"]->value;
-  REQUIRE(test99 == 99);
+
 }
 
