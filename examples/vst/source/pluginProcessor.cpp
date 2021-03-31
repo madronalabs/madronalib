@@ -244,10 +244,10 @@ void PluginProcessor::processSignals(ProcessData& data)
   const float** inputs = const_cast<const float **>(reinterpret_cast<float**>(in));
   float** outputs = reinterpret_cast<float**>(out);
 
-  auto exampleProcessFn{ [&](const DSPVectorArray<kInputChannels> inputVectors) { return processVectors(inputVectors); } };
+  auto exampleProcessFn{ [&](const DSPVectorArray<kInputChannels> inputVectors, void* stateData) { return processVectors(inputVectors); } };
   
   // run buffered processing using our VectorProcessBuffer object.
-  processBuffer.process(inputs, outputs, data.numSamples, exampleProcessFn);
+  processBuffer.process(inputs, outputs, data.numSamples, exampleProcessFn, nullptr);
 }
 
 
@@ -270,7 +270,7 @@ DSPVectorArray<kOutputChannels> PluginProcessor::processVectors(const DSPVectorA
   else
   {
     // appending the two DSPVectors makes a DSPVectorArray<2>: our stereo output.
-    return append(sineL, sineR);
+    return concatRows(sineL, sineR);
   }
 }
  
