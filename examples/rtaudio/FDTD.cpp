@@ -1,121 +1,158 @@
 // example of RtAudio wrapping low-level madronalib DSP code.
-// The reverb in this example is the Aaltoverb algorithm (madronalabs.com/products/Aaltoverb) without the tone control and some filtering.
+
+#include "MLDSPFunctional.h"
 
 #include "RtAudioExample.h"
 
 using namespace ml;
 
-constexpr int kInputChannels = 2;
+// Mac OS note: need to ask for microphone access if this is nonzero!
+constexpr int kInputChannels = 0;
+
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;
+constexpr float kOutputGain = 0.1f;
 
-// log projection for decay parameter
-constexpr float kDecayLo = 0.8, kDecayHi = 20;
-Projection unityToDecay(projections::intervalMap({0, 1}, {kDecayLo, kDecayHi}, projections::log({kDecayLo, kDecayHi})));
+ImpulseGen impulse1;
+SineGen sine1;
 
-// parameter smoothers
-LinearGlide mSmoothFeedback;
-LinearGlide mSmoothDelay;
+const int kWidth = 8;
+const int kHeight = 8;
+const int kPadding = 1;
+const int kRowStride = kWidth + kPadding*2;
+const int kTotalHeight = kHeight + kPadding*2;
+const float kSize = sqrtf((kWidth*kWidth + 0.f) + (kHeight*kHeight + 0.f));
+const float kInputGain = kWidth*kHeight/64;
 
-// reverb machinery
-Allpass<PitchbendableDelay> mAp1, mAp2, mAp3, mAp4;
-Allpass<PitchbendableDelay> mAp5, mAp6, mAp7, mAp8, mAp9, mAp10;
-PitchbendableDelay mDelayL, mDelayR;
+using Surface = float[kRowStride*kTotalHeight];
+Surface u0, u1, u2;
+Surface* mpU0 = &u0;
+Surface* mpU1 = &u1;
+Surface* mpU2 = &u2;
 
-// feedback storage
-DSPVector mvFeedbackL, mvFeedbackR;
-
-void initializeReverb()
+void doFDTDStep2D(Surface* uIn1, Surface* uIn2, Surface* uOut, float kc, float ke, float kk, float kc2, float ke2)
 {
-  // set fixed parameters for reverb
-  mSmoothFeedback.setGlideTimeInSamples(0.1f*kSampleRate);
-  mSmoothDelay.setGlideTimeInSamples(0.1f*kSampleRate);
-
-  // set allpass filter coefficients
-  mAp1.mGain = 0.75f;
-  mAp2.mGain = 0.70f;
-  mAp3.mGain = 0.625f;
-  mAp4.mGain = 0.625f;
-  mAp5.mGain = mAp6.mGain = 0.7f;
-  mAp7.mGain = mAp8.mGain = 0.6f;
-  mAp9.mGain = mAp10.mGain = 0.5f;
-
-  // allocate delay memory
-  mAp1.setMaxDelayInSamples(500.f);
-  mAp2.setMaxDelayInSamples(500.f);
-  mAp3.setMaxDelayInSamples(1000.f);
-  mAp4.setMaxDelayInSamples(1000.f);
-  mAp5.setMaxDelayInSamples(2600.f);
-  mAp6.setMaxDelayInSamples(2600.f);
-  mAp7.setMaxDelayInSamples(8000.f);
-  mAp8.setMaxDelayInSamples(8000.f);
-  mAp9.setMaxDelayInSamples(10000.f);
-  mAp10.setMaxDelayInSamples(10000.f);
-  mDelayL.setMaxDelayInSamples(3500.f);
-  mDelayR.setMaxDelayInSamples(3500.f);
+  // get row pointers with padding
+  float* pU = *uOut + kRowStride + kPadding;
+  float* pU1 = *uIn1 + kRowStride + kPadding;
+  float* pU2 = *uIn2 + kRowStride + kPadding;
+  const float* pIn11, * pIn12, * pIn13, * pIn21, * pIn22, * pIn23;
+  float* pOut;
+  
+  for(int j = 0; j < kHeight; ++j)
+  {
+    // U*z^-1 row pointers
+    pIn11 = (pU1 + kRowStride*(j - 1));
+    pIn12 = (pU1 + kRowStride*(j));
+    pIn13 = (pU1 + kRowStride*(j + 1));
+    // U*z^-2 row pointers
+    pIn21 = (pU2 + kRowStride*(j - 1));
+    pIn22 = (pU2 + kRowStride*(j));
+    pIn23 = (pU2 + kRowStride*(j + 1));
+    // output pointer
+    pOut = (pU + kRowStride*(j));
+    
+    for(int i = 0; i < kWidth; i++)
+    {
+      float f = kc * pIn12[i]; // center z^-1
+      f += ke * (pIn12[i-1] + pIn11[i] + pIn12[i+1] + pIn13[i]); // edges z^-1
+      f += kk * (pIn11[i-1] + pIn11[i+1] + pIn13[i-1] + pIn13[i+1]); // corners z^-1
+      f += kc2 * pIn22[i]; // center z^-2
+      f += ke2 * (pIn22[i-1] + pIn21[i] + pIn22[i+1] + pIn23[i]); // edges z^-2
+      pOut[i] = f;
+    }
+  }
 }
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors, void* statePtr)
+DSPVectorArray<kOutputChannels> processFDTDModel(DSPVector inputVec, DSPVector freq)
 {
-  const float sr = kSampleRate;
-  const float RT60const = 0.001f;
+  const float isr = 1.0f/kSampleRate;
+  DSPVector outLVec, outRVec;
 
-  // size and decay parameters from 0-1. It will be more interesting to change these over time in some way.
-  float sizeU = 0.5f;
-  float decayU = 0.5f;
+  for(int i=0; i<kFloatsPerDSPVector; ++i)
+  {
+    // get frequency in cycles/sample
+    float Fs = freq[i];
+    
+    // get approximate tension for fundamental freq. Fs
+    float c = kSize*Fs;
+    float T = 3.0f/5.0f*c;
 
-  // generate delay and feedback scalars
-  float decayTime = unityToDecay(decayU);
-  float decayIterations = decayTime/(sizeU*0.5);
-  float feedback = (decayU < 1.0f) ? powf(RT60const, 1.0f/decayIterations) : 1.0f;
+    // set kernel values using
+    // equal energy criterion: 4kk + 4ke + kc = 2.0.
+    // the simulation is valid up to T^2 = 3/5, at which
+    // the speed of wave travel is one mesh unit per time step.
+    float kk = T*T * (1.f / 6.f);
+    float ke = T*T * (2.f / 3.f);
+    float kc = 2.f - 4.f*(kk + ke);
+    
+    // get s0, freq. independent damping (approx range 1000 – 0)
+    float s0 = 1.0f;
+    
+    // get s1, freq. dependent damping (approx range 1000 – 0)
+    float s1 = 1.0f;
 
-  // generate smoothed delay time and feedback gain vectors
-  DSPVector vSmoothDelay = mSmoothDelay(sizeU*2.0f);
-  DSPVector vSmoothFeedback = mSmoothFeedback(feedback);
+    // adjust kernel for freq. dependent damping constant
+    float ks1 = s1*T*isr;
+    ke += ks1;
+    kc += -4.0f*ks1;
+    float ke2 = -1.0f*ks1;
+    float kc2 = s0*isr + 4.0f*ks1 - 1.0f;
+    
+    // premultiply entire kernel by independent damping constant SK
+    float SK = 1.0f/(1.0f + isr*s0);
+    kc *= SK;
+    ke *= SK;
+    kk *= SK;
+    kc2 *= SK;
+    ke2 *= SK;
+    
+    // excite surface with input at top center
+    int exciteRow = 2;
+    float* pU1 = *mpU1 + kRowStride + kPadding;
+    float* exciter = pU1 + kRowStride*exciteRow + (kWidth/2);
+    *exciter += inputVec[i]*kInputGain;
+    
+    // run the FDTD model for one sample
+    doFDTDStep2D(mpU1, mpU2, mpU0, kc, ke, kk, kc2, ke2);
+    
+    // set float pickups at middle left and right
+    int pickupRow = kHeight/2 + 1;
+    float* pU0 = *mpU0 + kRowStride + kPadding;
+    float* pickupL = pU0 + kRowStride*pickupRow + 1;
+    float* pickupR = pU0 + kRowStride*pickupRow + kWidth - 1;
 
-  // get the minimum possible delay in samples, which is the length of a DSPVector.
-  DSPVector vMin(kFloatsPerDSPVector);
+    // write sample from pickups to main outputs
+    outLVec[i] = *pickupL;
+    outRVec[i] = *pickupR;
+    
+    // finally, rotate buffer pointers
+    auto temp = mpU2;
+    mpU2 = mpU1;
+    mpU1 = mpU0;
+    mpU0 = temp;
+  }
+  
+  // concatenating the two pickups makes a DSPVectorArray<2>: our stereo output.
+  return concatRows(outLVec, outRVec);
+}
 
-  // get smoothed allpass times in samples
-  DSPVector delayParamInSamples = sr*vSmoothDelay;
-  DSPVector vt1 = max(0.00476*delayParamInSamples, vMin);
-  DSPVector vt2 = max(0.00358*delayParamInSamples, vMin);
-  DSPVector vt3 = max(0.00973*delayParamInSamples, vMin);
-  DSPVector vt4 = max(0.00830*delayParamInSamples, vMin);
-  DSPVector vt5 = max(0.029*delayParamInSamples, vMin);
-  DSPVector vt6 = max(0.021*delayParamInSamples, vMin);
-  DSPVector vt7 = max(0.078*delayParamInSamples, vMin);
-  DSPVector vt8 = max(0.090*delayParamInSamples, vMin);
-  DSPVector vt9 = max(0.111*delayParamInSamples, vMin);
-  DSPVector vt10 = max(0.096*delayParamInSamples, vMin);
-
-  // sum stereo inputs and diffuse with four allpass filters in series
-  DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
-  DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
-
-  // get delay times in samples, subtracting the constant delay of one DSPVector and clamping to zero
-  DSPVector vDelayTimeL = max(0.0313*delayParamInSamples - vMin, DSPVector(0.f));
-  DSPVector vDelayTimeR = max(0.0371*delayParamInSamples - vMin, DSPVector(0.f));
-
-  // sum diffused input with feedback, and apply late diffusion of two more allpass filters to each channel
-  DSPVector vTapL = mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7);
-  DSPVector vTapR = mAp8(mAp6(diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR), vt6), vt8);
-
-  // apply final allpass filter and gain, and store the feedback
-  mvFeedbackR = mAp9(vTapL, vt9)*vSmoothFeedback;
-  mvFeedbackL = mAp10(vTapR, vt10)*vSmoothFeedback;
-
-  // append the left and right taps and return the stereo output
-  return concatRows(vTapL, vTapR);
+// processVectors() does all of the audio processing, in DSPVector-sized chunks.
+// It is called every time a new buffer of audio is needed.
+DSPVectorArray<kOutputChannels> processVectors(void* stateData)
+{
+  auto modOscSignal = sine1(0.15f/kSampleRate);
+  auto freq = 220.f + modOscSignal*20.f;
+  auto ticks = impulse1(2.0f/kSampleRate)*kOutputGain;
+  return processFDTDModel(ticks, freq/kSampleRate);
 }
 
 int main( int argc, char *argv[] )
 {
-  initializeReverb();
-
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample< kInputChannels, kOutputChannels > reverbExample(kSampleRate, &processVectors);
-  return reverbExample.run();
+  RtAudioExample< kInputChannels, kOutputChannels > FDTDExample(kSampleRate, &processVectors);
+  return FDTDExample.run();
 }
+
