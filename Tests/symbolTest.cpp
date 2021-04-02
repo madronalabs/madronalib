@@ -404,12 +404,19 @@ TEST_CASE("madronalib/core/symbol/path", "[symbol][path]")
 {
   Path p("hello/world/a/b/c/d/e/f/g");
 
-  auto concat = [](Symbol a, Symbol b) {
+  auto accumTest = [](Symbol a, Symbol b) {
     return TextFragment(a.getTextFragment(), TextFragment("+"),
                         b.getTextFragment());
   };
   TextFragment pa = std::accumulate(++p.begin(), p.end(),
-                                    (*p.begin()).getTextFragment(), concat);
+                                    (*p.begin()).getTextFragment(), accumTest);
 
-  std::cout << "pa: " << pa << "\n";
+  std::cout << "accumulated: " << pa << "\n";
+  
+  Path a{"a"};
+  Path b{"b"};
+  Path d{"d"};
+  Path p4 (a, b, "c", d);
+  Path p5 (p4, "george", p4);
+  REQUIRE(p5.getSize() == 9);
 }
