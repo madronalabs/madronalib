@@ -57,13 +57,10 @@ constexpr auto make_array(Function f)
 #define MANUAL_ALIGN_DSPVECTOR
 #endif
 
-namespace ml
-{
+// ----------------------------------------------------------------
+// alignment definitions
+
 #ifdef MANUAL_ALIGN_DSPVECTOR
-// it seems unlikely that the constexpr ctors can be made to compile with manual
-// alignment, so we give up on constexpr for 32-bit Windows.
-#define ConstDSPVector static DSPVector
-#define ConstDSPVectorArray static DSPVectorArray
 
 const uintptr_t kDSPVectorAlignBytes = 16;
 const uintptr_t kDSPVectorAlignFloats = kDSPVectorAlignBytes / sizeof(float);
@@ -79,10 +76,13 @@ inline T* DSPVectorAlignPointer(const T* p)
   return reinterpret_cast<T*>(pM);
 }
 
-#else
-#define ConstDSPVector constexpr DSPVector
-#define ConstDSPVectorArray constexpr DSPVectorArray
 #endif
+
+// ----------------------------------------------------------------
+// DSPVectorArray
+
+namespace ml
+{
 
 template <size_t ROWS>
 class DSPVectorArray
@@ -352,7 +352,10 @@ class DSPVectorArray
 typedef DSPVectorArray<1> DSPVector;
 
 // integer DSPVectorArrayInt class
-constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
+constexpr size_t kIntsPerDSPVector = kFloatsPerDSPVector;
+
+// ----------------------------------------------------------------
+// DSPVectorArrayInt
 
 template <size_t ROWS>
 class DSPVectorArrayInt
@@ -862,11 +865,34 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
 }
 
 // ----------------------------------------------------------------
+// constexpr definitions
+
+#ifdef MANUAL_ALIGN_DSPVECTOR
+
+// it seems unlikely that the constexpr ctors can be made to compile with manual
+// alignment, so we give up on constexpr for 32-bit Windows.
+#define ConstDSPVector static DSPVector
+#define ConstDSPVectorArray static DSPVectorArray
+#define ConstDSPVectorInt static DSPVectorInt
+#define ConstDSPVectorArrayInt static DSPVectorArrayInt
+
+#else
+
+#define ConstDSPVector constexpr DSPVector
+#define ConstDSPVectorArray constexpr DSPVectorArray
+#define ConstDSPVectorInt constexpr DSPVectorInt
+#define ConstDSPVectorArrayInt constexpr DSPVectorArrayInt
+
+#endif
+
+// ----------------------------------------------------------------
 // single-vector index and sequence generators
 
 constexpr float intToFloatCastFn(int i) { return i; }
+constexpr int indexFn(int i) { return i; }
 
 inline ConstDSPVector columnIndex() { return (make_array<kFloatsPerDSPVector>(intToFloatCastFn)); }
+inline ConstDSPVectorInt columnIndexInt() { return (make_array<kIntsPerDSPVector>(indexFn)); }
 
 // return a linear sequence from start to end, where end will fall on the first
 // index of the next vector.

@@ -68,16 +68,8 @@ class ImpulseGen
     DSPVector windowVec;
     makeWindow(windowVec.getBuffer(), kTableSize, windows::blackman);
     const float omega = 0.25f;
-
-    auto sincFn{[&](float fi) {
-      int i = static_cast<int>(fi);
-
-      float pi_x = ml::kTwoPi * omega * i;
-
-      return (i == 0) ? 1.f : sinf(pi_x) / pi_x;
-    }};
-
-    DSPVector sincVec = map(sincFn, columnIndex() - (kTableSize - 1)/2);
+    auto sincFn {[&](int i){ float pi_x = ml::kTwoPi*omega*i; return (i == 0) ? 1.f : sinf(pi_x)/pi_x; }};
+    DSPVector sincVec = map(sincFn, columnIndexInt() - DSPVectorInt((kTableSize - 1)/2));
     _table = normalize(sincVec*windowVec);
   }
   ~ImpulseGen() {}
