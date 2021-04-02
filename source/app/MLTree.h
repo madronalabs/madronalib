@@ -1,9 +1,6 @@
-//
-//  MLTree.h
-//  madronaib
-//
-//  Created by Randy Jones on 9/22/15.
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
 
@@ -32,12 +29,6 @@ class Tree final
   mapT mChildren{};
   V _value{};
 
-  const V& getNullValue() const
-  {
-    static V nullValue{};
-    return nullValue;
-  }
-
  public:
   Tree<V, C>() = default;
   Tree<V, C>(V val) : _value(std::move(val)) {}
@@ -48,6 +39,7 @@ class Tree final
     _value = V();
   }
   bool hasValue() const { return _value != V(); }
+  const V& getValue() const { return _value; }
   bool isLeaf() const { return mChildren.size() == 0; }
 
   // find a tree node at the specified path.
@@ -95,9 +87,10 @@ class Tree final
   }
 
   // if the path exists, returns a const reference to the value in the tree at
-  // the path. Otherwise, a null value is returned.
+  // the path. Otherwise, reference to a null valued object is returned.
   const V& operator[](Path p) const
   {
+    static V nullValue{};
     auto pNode = getConstNode(p);
     if (pNode)
     {
@@ -105,7 +98,7 @@ class Tree final
     }
     else
     {
-      return getNullValue();
+      return nullValue;
     }
   }
 
@@ -300,8 +293,12 @@ class Tree final
   {
     for (auto it = begin(); it != end(); ++it)
     {
-      std::cout << ml::textUtils::spaceStr(it.getCurrentDepth()) << it.getCurrentNodeName() << " ["
-                << *it << "]\n";
+      int d = it.getCurrentDepth();
+      for (int i = 0; i < d; ++i)
+      {
+        std::cout << "    ";
+      }
+      std::cout << it.getCurrentNodeName() << " [" << *it << "]\n";
     }
   }
 };

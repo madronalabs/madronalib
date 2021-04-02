@@ -27,7 +27,7 @@ inline void makeWindow(float* pDest, size_t size, Projection windowShape)
 
 namespace windows
 {
-const Projection rectangle([](float x) { return 1.f; });
+const Projection rectangle([](float x) { return (x > 0.75f) ? 0.f : ((x < 0.25f) ? 0.f : 1.f);  });
 const Projection triangle([](float x) { return (x > 0.5f) ? (2.f - 2.f * x) : (2.f * x); });
 const Projection raisedCosine([](float x) { return 0.5f - 0.5f * cosf(kTwoPi * x); });
 const Projection hamming([](float x) { return 0.54f - 0.46f * cosf(kTwoPi * x); });
@@ -52,8 +52,8 @@ const Projection flatTop([](float x) {
 template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer
 {
-  using VectorProcessFn =
-      std::function<DSPVectorArray<OUT_CHANNELS>(const DSPVectorArray<IN_CHANNELS>&, void* stateData)>;
+  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(
+      const DSPVectorArray<IN_CHANNELS>&, void* stateData)>;
 
   DSPVectorArray<IN_CHANNELS> _inputVectors;
   DSPVectorArray<OUT_CHANNELS> _outputVectors;
@@ -73,7 +73,8 @@ class VectorProcessBuffer
 
   ~VectorProcessBuffer() {}
 
-  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn, void* stateData = nullptr)
+  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn,
+               void* stateData = nullptr)
   {
     if (nFrames > MAX_FRAMES) return;
 
@@ -98,7 +99,7 @@ class VectorProcessBuffer
       _outputVectors = fn(_inputVectors, stateData);
 
       for (int c = 0; c < OUT_CHANNELS; c++)
-      { 
+      {
         mOutputBuffers[c].write(_outputVectors.row(c));
       }
     }
@@ -124,7 +125,7 @@ class VectorProcessBuffer
 template <int OUT_CHANNELS, int MAX_FRAMES>
 class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
 {
-  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(void * stateData)>;
+  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(void* stateData)>;
 
   DSPVectorArray<OUT_CHANNELS> _outputVectors;
 
@@ -139,7 +140,8 @@ class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
 
   ~VectorProcessBuffer() {}
 
-  void process(const float**, float** outputs, int nFrames, VectorProcessFn fn, void* stateData = nullptr)
+  void process(const float**, float** outputs, int nFrames, VectorProcessFn fn,
+               void* stateData = nullptr)
   {
     if (nFrames > MAX_FRAMES) return;
 

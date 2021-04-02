@@ -1,6 +1,5 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -11,19 +10,6 @@
 
 namespace ml
 {
-// NamedValue for initializer lists
-
-struct NamedValue
-{
-  ml::Path name{};
-  Value value{};
-
-  NamedValue() = default;
-  NamedValue(ml::Path np, Value nv) : name(np), value(nv) {}
-};
-
-// Define a type for initializing a new PropertyTree with a list of Values.
-using WithValues = const std::initializer_list<NamedValue>;
 
 class PropertyTree
 {
@@ -90,6 +76,16 @@ class PropertyTree
   }
 
   void dump() { properties.dump(); }
+  
+  inline Tree<Value>::const_iterator begin() const
+  {
+    return properties.begin();
+  }
+
+  inline Tree<Value>::const_iterator end() const
+  {
+    return properties.end();
+  }
 };
 
 }  // namespace ml

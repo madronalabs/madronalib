@@ -1,10 +1,6 @@
-//
-//  MLTextUtils.cpp
-//  madronalib
-//
-//  Created by Randy Jones on 12/3/14.
-//
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLTextUtils.h"
 
@@ -52,15 +48,6 @@ bool isCJK(CodePoint ch)
          || (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
          || (ch >= 0xFE30 && ch <= 0xFE4F)   // CJK Compatibility Forms
          || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
-}
-
-char* spaceStr(size_t numIndents)
-{
-  static char* pBuf = (char*)"                                                   ";
-  static size_t len = strlen(pBuf);
-  size_t n = numIndents * 2;
-  n = ml::clamp(n, (size_t)0, len);
-  return &pBuf[len - n];
 }
 
 int digitsToNaturalNumber(const char32_t* p)

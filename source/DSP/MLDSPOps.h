@@ -57,13 +57,10 @@ constexpr auto make_array(Function f)
 #define MANUAL_ALIGN_DSPVECTOR
 #endif
 
-namespace ml
-{
+// ----------------------------------------------------------------
+// alignment definitions
+
 #ifdef MANUAL_ALIGN_DSPVECTOR
-// it seems unlikely that the constexpr ctors can be made to compile with manual
-// alignment, so we give up on constexpr for 32-bit Windows.
-#define ConstDSPVector static DSPVector
-#define ConstDSPVectorArray static DSPVectorArray
 
 const uintptr_t kDSPVectorAlignBytes = 16;
 const uintptr_t kDSPVectorAlignFloats = kDSPVectorAlignBytes / sizeof(float);
@@ -79,10 +76,13 @@ inline T* DSPVectorAlignPointer(const T* p)
   return reinterpret_cast<T*>(pM);
 }
 
-#else
-#define ConstDSPVector constexpr DSPVector
-#define ConstDSPVectorArray constexpr DSPVectorArray
 #endif
+
+// ----------------------------------------------------------------
+// DSPVectorArray
+
+namespace ml
+{
 
 template <size_t ROWS>
 class DSPVectorArray
@@ -352,7 +352,10 @@ class DSPVectorArray
 typedef DSPVectorArray<1> DSPVector;
 
 // integer DSPVectorArrayInt class
-constexpr int kIntsPerDSPVector = kFloatsPerDSPVector;
+constexpr size_t kIntsPerDSPVector = kFloatsPerDSPVector;
+
+// ----------------------------------------------------------------
+// DSPVectorArrayInt
 
 template <size_t ROWS>
 class DSPVectorArrayInt
@@ -468,12 +471,14 @@ class DSPVectorArrayInt
     return *pRow;
   }
 
-  friend inline DSPVectorArrayInt operator+(const DSPVectorArrayInt& x1, const DSPVectorArrayInt& x2)
+  friend inline DSPVectorArrayInt operator+(const DSPVectorArrayInt& x1,
+                                            const DSPVectorArrayInt& x2)
   {
     return addInt32(x1, x2);
   }
 
-  friend inline DSPVectorArrayInt operator-(const DSPVectorArrayInt& x1, const DSPVectorArrayInt& x2)
+  friend inline DSPVectorArrayInt operator-(const DSPVectorArrayInt& x1,
+                                            const DSPVectorArrayInt& x2)
   {
     return subtractInt32(x1, x2);
   }
@@ -813,29 +818,29 @@ DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue
 
 // ternary operators int vector, int vector, int vector -> int vector
 
-#define DEFINE_OP3_III2I(opName, opComputation)                             \
-  template <size_t ROWS>                                                    \
-  inline DSPVectorArrayInt<ROWS>(opName)(const DSPVectorArrayInt<ROWS>& vx1,\
-                                      const DSPVectorArrayInt<ROWS>& vx2,   \
-                                      const DSPVectorArrayInt<ROWS>& vx3)   \
-  {                                                                         \
-    DSPVectorArrayInt<ROWS> vy;                                             \
-    const float* px1 = vx1.getConstBuffer();                                \
-    const float* px2 = vx2.getConstBuffer();                                \
-    const float* px3 = vx3.getConstBuffer();                                \
-    float* py1 = vy.getBuffer();                                            \
-    for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)               \
-    {                                                                       \
-      SIMDVectorInt x1 = VecF2I(vecLoad(px1));                              \
-      SIMDVectorInt x2 = VecF2I(vecLoad(px2));                              \
-      SIMDVectorInt x3 = VecF2I(vecLoad(px3));                              \
-      vecStore(py1, VecI2F(opComputation));                                 \
-      px1 += kIntsPerSIMDVector;                                            \
-      px2 += kIntsPerSIMDVector;                                            \
-      px3 += kIntsPerSIMDVector;                                            \
-      py1 += kIntsPerSIMDVector;                                            \
-    }                                                                       \
-    return vy;                                                              \
+#define DEFINE_OP3_III2I(opName, opComputation)                              \
+  template <size_t ROWS>                                                     \
+  inline DSPVectorArrayInt<ROWS>(opName)(const DSPVectorArrayInt<ROWS>& vx1, \
+                                         const DSPVectorArrayInt<ROWS>& vx2, \
+                                         const DSPVectorArrayInt<ROWS>& vx3) \
+  {                                                                          \
+    DSPVectorArrayInt<ROWS> vy;                                              \
+    const float* px1 = vx1.getConstBuffer();                                 \
+    const float* px2 = vx2.getConstBuffer();                                 \
+    const float* px3 = vx3.getConstBuffer();                                 \
+    float* py1 = vy.getBuffer();                                             \
+    for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)                \
+    {                                                                        \
+      SIMDVectorInt x1 = VecF2I(vecLoad(px1));                               \
+      SIMDVectorInt x2 = VecF2I(vecLoad(px2));                               \
+      SIMDVectorInt x3 = VecF2I(vecLoad(px3));                               \
+      vecStore(py1, VecI2F(opComputation));                                  \
+      px1 += kIntsPerSIMDVector;                                             \
+      px2 += kIntsPerSIMDVector;                                             \
+      px3 += kIntsPerSIMDVector;                                             \
+      py1 += kIntsPerSIMDVector;                                             \
+    }                                                                        \
+    return vy;                                                               \
   }
 
 DEFINE_OP3_III2I(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue,
@@ -860,11 +865,34 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
 }
 
 // ----------------------------------------------------------------
+// constexpr definitions
+
+#ifdef MANUAL_ALIGN_DSPVECTOR
+
+// it seems unlikely that the constexpr ctors can be made to compile with manual
+// alignment, so we give up on constexpr for 32-bit Windows.
+#define ConstDSPVector static DSPVector
+#define ConstDSPVectorArray static DSPVectorArray
+#define ConstDSPVectorInt static DSPVectorInt
+#define ConstDSPVectorArrayInt static DSPVectorArrayInt
+
+#else
+
+#define ConstDSPVector constexpr DSPVector
+#define ConstDSPVectorArray constexpr DSPVectorArray
+#define ConstDSPVectorInt constexpr DSPVectorInt
+#define ConstDSPVectorArrayInt constexpr DSPVectorArrayInt
+
+#endif
+
+// ----------------------------------------------------------------
 // single-vector index and sequence generators
 
 constexpr float intToFloatCastFn(int i) { return i; }
+constexpr int indexFn(int i) { return i; }
 
 inline ConstDSPVector columnIndex() { return (make_array<kFloatsPerDSPVector>(intToFloatCastFn)); }
+inline ConstDSPVectorInt columnIndexInt() { return (make_array<kIntsPerDSPVector>(indexFn)); }
 
 // return a linear sequence from start to end, where end will fall on the first
 // index of the next vector.
@@ -933,6 +961,21 @@ inline float min(const DSPVector& x)
     px1 += kFloatsPerSIMDVector;
   }
   return fmin;
+}
+
+// ----------------------------------------------------------------
+// normalize
+
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> normalize(const DSPVectorArray<ROWS>& x1)
+{
+  DSPVectorArray<ROWS> vy;
+  for (int j = 0; j < ROWS; ++j)
+  {
+    auto inputRow = x1.getRowVectorUnchecked(j);
+    vy.setRowVectorUnchecked(j, inputRow/sum(inputRow));
+  }
+  return vy;
 }
 
 // ----------------------------------------------------------------

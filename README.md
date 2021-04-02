@@ -25,13 +25,15 @@ The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/tr
 Status
 ------------
 
-(as of June 2019)
+(as of March 2021)
 
 The files in /source/DSP are a useful header-only DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations.  An SSE version is complete, NEON support is a work in progress. Shipping products at Madrona Labs are relying on these headers and breaking changes have, for the most part, stopped. 
 
-The code in /source/app is also relied upon by shipping products, though it may still change more often. 
+There are three examples built using RtAudio that play and process audio signals. 
 
-Good examples await doing. A starting point for this would be showing how to use madronalib with JUCE or IPlug to make cross-platform plugins.
+/examples/vst holds a simple VST3 plugin example. This plugin plays a couple of sine waves, and has no GUI. A script to clone  plugin projects is included so you can make more interesting plugins. 
+
+The code in /source/app is also relied upon by shipping products, though it may still change more often. 
 
 Tests exist for most modules. Someone should set up continuous integration.
 
@@ -73,15 +75,15 @@ Contents
   
 	/source:
   
-		/app: utilities for low-level application support: symbols,
-			timers, queues, data structures, models, etc. these modules shall 
-			only depend on other code in /app.
-      
 		/DSP: header-only library for SIMD DSP.
 			These modules shall only depend on code in /DSP, 
 			with the exception of the externals/ffft library. Include 
 			mldsp.h to include all DSP files. NEON code is work 
 			in progress.
+      
+		/app: utilities for low-level application support: symbols,
+			timers, queues, data structures, models, etc. these modules shall 
+			only depend on other code in /app.
       
 		/matrix: matrix and vector data and functions. Depends only on 
 			/DSP, for SIMD math.

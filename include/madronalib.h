@@ -8,6 +8,7 @@
 #include "MLMemoryUtils.h"
 #include "MLPath.h"
 #include "MLPlatform.h"
+#include "MLPropertyTree.h"
 #include "MLQueue.h"
 #include "MLSharedResource.h"
 #include "MLSymbol.h"
