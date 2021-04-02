@@ -160,7 +160,7 @@ class PhasorGen
   {
     constexpr float range(1.0f);
     constexpr float offset(0.5f);
-    constexpr float stepsPerCycle(const_math::pow(2., 32.));
+    constexpr float stepsPerCycle(static_cast<float>(const_math::pow(2., 32)));
     DSPVector outputScaleV(range / stepsPerCycle);
 
     // calculate int steps per sample
@@ -202,7 +202,7 @@ static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
     }
     else if (t > 1.0f - dt)
     {
-      t = (t - 1.0) / dt;
+      t = (t - 1.0f) / dt;
       c = t * t + t + t + 1.0f;
     }
     blep[n] = c;
@@ -215,7 +215,7 @@ static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
 // harmonics only, with the 3rd harmonic at about -40dB.
 inline DSPVector phasorToSine(DSPVector phasorV)
 {
-  constexpr float sqrt2(const_math::sqrt(2.0f));
+  constexpr float sqrt2(static_cast<float>(const_math::sqrt(2.0f)));
   constexpr float domain(sqrt2 * 4.f);
   DSPVector domainScaleV(domain);
   DSPVector domainOffsetV(-sqrt2);
@@ -324,7 +324,7 @@ class LinearGlide
  public:
   void setGlideTimeInSamples(float t)
   {
-    mVectorsPerGlide = t / kFloatsPerDSPVector;
+    mVectorsPerGlide = static_cast<int>(t / kFloatsPerDSPVector);
     if (mVectorsPerGlide < 1) mVectorsPerGlide = 1;
     mDyPerVector = 1.0f / (mVectorsPerGlide + 0.f);
   }
