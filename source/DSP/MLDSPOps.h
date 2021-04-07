@@ -674,9 +674,12 @@ DEFINE_OP2_INT32(addInt32, (vecAddInt(x1, x2)));
     return vy;                                                         \
   }
 
-DEFINE_OP3(lerp, vecAdd(x1, (vecMul(x3, vecSub(x2, x1)))));  // lerp(a, b, mix).
-DEFINE_OP3(clamp, vecClamp(x1, x2, x3));                     // clamp(x, minBound, maxBound)
-DEFINE_OP3(within, vecWithin(x1, x2, x3));                   // is x in the open interval [x2, x3) ?
+
+DEFINE_OP3(lerp, vecAdd(x1, (vecMul(x3, vecSub(x2, x1)))));      // x = lerp(a, b, mix)
+DEFINE_OP3(inverseLerp, vecDiv(vecSub(x3, x1), vecSub(x2, x1))); // mix = inverseLerp(a, b, x)
+
+DEFINE_OP3(clamp, vecClamp(x1, x2, x3));                         // clamp(x, minBound, maxBound)
+DEFINE_OP3(within, vecWithin(x1, x2, x3));                       // is x in the open interval [x2, x3) ?
 
 // ----------------------------------------------------------------
 // lerp two vectors with float mixture
