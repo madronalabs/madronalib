@@ -300,14 +300,16 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
         "${CMAKE_CURRENT_SOURCE_DIR}/build/bin/$<CONFIG>/${EXAMPLE_APP_NAME}.app/Contents"
         )    
 
-    # add missing keys to plist
-    set(ADD_PLIST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/add-plist-value.sh")
-    set(RATIONALE "This app requires microphone access.")
-    add_custom_command(
-        TARGET ${EXAMPLE_APP_NAME} POST_BUILD
-        COMMAND ${ADD_PLIST_SCRIPT} NSMicrophoneUsageDescription "This app requires microphone access." "${PACKAGE_DIR}/Info.plist"
-        VERBATIM
-    )
+    # add missing keys to plist for Mac OS
+    if(APPLE)
+        set(ADD_PLIST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/add-plist-value.sh")
+        set(RATIONALE "This app requires microphone access.")
+        add_custom_command(
+            TARGET ${EXAMPLE_APP_NAME} POST_BUILD
+            COMMAND ${ADD_PLIST_SCRIPT} NSMicrophoneUsageDescription "This app requires microphone access." "${PACKAGE_DIR}/Info.plist"
+            VERBATIM
+        )
+    endif()
 endfunction()
 
 
