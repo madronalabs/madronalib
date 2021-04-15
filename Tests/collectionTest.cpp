@@ -24,7 +24,7 @@ struct CollectableInt : public Collectable
   CollectableInt(int v) : value(v){};
   virtual ~CollectableInt() = default;
   operator int() const { return value; }
-  virtual void recv(Message m) { std::cout << " " << value << " "; }
+  virtual Value respond(Message m) { std::cout << " " << value << " "; return false; }
   int value;
 };
 
@@ -32,7 +32,7 @@ struct FancyCollectableInt : public CollectableInt
 {
   FancyCollectableInt() : CollectableInt() {}
   FancyCollectableInt(int v) : CollectableInt(v) {}
-  void recv(Message m) override { std::cout << " ***" << value << "*** "; }
+  Value respond(Message m) override { std::cout << " ***" << value << "*** "; return false; }
 };
 
 TEST_CASE("madronalib/core/collection", "[collection]")
@@ -77,8 +77,17 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   REQUIRE(ints["a/b/the/new/guy"]);
   REQUIRE(ints["a/b/the/new/guy"]->value == 99);
 
+  REQUIRE(!ints.find("a/b/xxx"));
+  REQUIRE(ints.find("a/b/the/new/guy"));
+
+  auto& newGuyPtr{ints.find("a/b/the/new/guy")};
+  if(newGuyPtr)
+  {
+    REQUIRE(newGuyPtr->value == 99);
+    
+  }
   
-  
+
   // TODO a const subcollection that does not let us modify the held
   // values would be handy - revisit
   

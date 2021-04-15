@@ -14,13 +14,21 @@ namespace ml{
 
 class Actor : public Collectable
 {
-  static constexpr size_t kMessageQueueSize = 16;
+  static constexpr size_t kMessageQueueSize = 128;
   Queue< Message > _messageQueue{ kMessageQueueSize };
   Timer _queueTimer;
   
 protected:
   size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
   
+  inline void handleMessageList(const MessageList& ml)
+  {
+    for(auto m : ml)
+    {
+      handleMessage(m);
+    }
+  }
+
 public:
   // We can think of an Actor, mainly, as a message handler.
   virtual void handleMessage(Message m) = 0;
@@ -30,7 +38,7 @@ public:
   
   void start()
   {
-    _queueTimer.start([=](){ handleMessages(); }, milliseconds(1000/60));
+    _queueTimer.start([=](){ handleMessagesInQueue(); }, milliseconds(1000/60));
   }
   
   void stop()
@@ -39,13 +47,13 @@ public:
   }
 
   // Collectable
-  inline void recv(Message m)
+  inline Value respond(Message m)
   {
-    // TEMP todo error check
-    auto ok = _messageQueue.push(m);
+    // return true, unless queue was full.
+    return(_messageQueue.push(m));
   }
   
-  inline void handleMessages()
+  inline void handleMessagesInQueue()
   {
     Message m;
     while(auto notEmpty = _messageQueue.pop(m))

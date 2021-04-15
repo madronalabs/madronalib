@@ -4,8 +4,6 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "MLDSPFunctional.h"
-
 #include "RtAudioExample.h"
 
 using namespace ml;

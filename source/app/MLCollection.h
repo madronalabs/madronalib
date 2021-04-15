@@ -16,7 +16,7 @@ struct Collectable
   virtual operator bool() const { return true; }
 
   // Collectable objects must be able to receive messages.
-  virtual void recv(Message m) = 0;
+  virtual Value respond(Message m) = 0;
 };
 
 // A concrete null object for any Collectable type.
@@ -27,7 +27,7 @@ struct NullCollectableForClass final : public T
   operator bool() const override { return false; }
   
   // Sending a null object a message must do nothing.
-  void recv(Message m) override {}
+  Value respond(Message m) override { return false; }
 };
 
 template< typename T >
@@ -61,17 +61,19 @@ public:
     return _tree.operator[](p);
   }
 
+  // if an object exists at the path, return a unique_ptr to it.
+  // otherwise, return a unique_ptr to null.
   const ObjectPointerType& find(Path p) const
   {
-    static NullCollectableForClass< T > nullObject{};
+    static std::unique_ptr< T > nullPtr{};
     const TreeType* n = _tree.getConstNode(p);
     if(n && n->hasValue())
     {
-      return *(n->getValue().get());
+      return n->getValue();
     }
     else
     {
-      return nullObject;
+      return nullPtr;
     }
   }
 
@@ -91,7 +93,7 @@ public:
   inline typename TreeType::const_iterator begin() const { return _tree.begin(); }
   inline typename TreeType::const_iterator end() const { return _tree.end(); }
   
-  friend inline Collection< T > getSubCollection(const Collection< T >& coll, Path addr)
+  friend inline Collection< T > getSubCollection(Collection< T >& coll, Path addr)
   {
     return Collection< T >(coll.getSubTree(addr));
   }
@@ -170,10 +172,16 @@ inline void forEachPath( Collection< T >& coll, std::function< void(Path) > f)
   coll.forEachPath(f);
 }
 
+template< typename T >
+inline void forEachPathAndObject( Collection< T >& coll, std::function< void(Path, T&) > f)
+{
+  coll.forEachPathAndObject(f);
+}
+
 // send a message directly to a Collectable object.
 inline void sendMessage(Collectable& obj, Message m)
 {
-  obj.recv(m);
+  obj.respond(m);
 }
 
 // send a message list directly to a Collectable object.
@@ -181,7 +189,7 @@ inline void sendMessages(Collectable& obj, MessageList msgList)
 {
   for(auto& m : msgList)
   {
-    obj.recv(m);
+    obj.respond(m);
   }
 }
 
@@ -191,7 +199,7 @@ inline void sendMessage( Collection< T >& coll, Path p, Message m)
 {
   if(auto& obj = coll.find(p))
   {
-    obj.recv(m);
+    obj->respond(m);
   }
 }
 
@@ -203,7 +211,7 @@ inline void sendMessages( Collection< T >& coll, Path p, MessageList msgList)
   {
     for(auto& m : msgList)
     {
-      obj.recv(m);
+      obj->respond(m);
     }
   }
 }
@@ -211,7 +219,7 @@ inline void sendMessages( Collection< T >& coll, Path p, MessageList msgList)
 template< typename T >
 inline void broadcastMessage(const Collection< T >& coll, Message m)
 {
-  coll.forEach([&](T& obj){obj.recv(m);});
+  coll.forEach([&](T& obj){obj.respond(m);});
 }
 
 } // namespace ml

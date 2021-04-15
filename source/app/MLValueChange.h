@@ -37,7 +37,6 @@ struct ValueChange
   {
   }
 
-  explicit operator bool() const { return newValue ? true : false; }
 };
 
 

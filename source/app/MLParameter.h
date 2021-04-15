@@ -37,5 +37,12 @@ inline ParameterProjection createParameterProjection(ParameterDescription p)
   return b;
 }
 
+struct Parameter
+{
+  ml::Value _value;
+  ParameterDescription _description;
+  ParameterProjection _projection;
+};
+
 } // namespaces
 

@@ -48,8 +48,6 @@ class Value
   Value(const char* t);
   Value(const ml::Matrix& s);
 
-  explicit operator bool() const { return mType != kUndefinedValue; }
-
   // matrix type constructor via initializer_list
   Value(std::initializer_list<float> values)
   {
@@ -126,6 +124,27 @@ class Value
   void setValue(const ml::Text& v);
   void setValue(const char* const v);
   void setValue(const Matrix& v);
+  
+  explicit operator bool() const
+  {
+    switch(mType)
+    {
+      case kUndefinedValue:
+      default:
+        return false;
+        break;
+      case kFloatValue:
+        return static_cast< bool >(mFloatVal);
+        break;
+      case kTextValue:
+        return static_cast< bool >(mTextVal);
+        break;
+      case kMatrixValue:
+        // matrix is going away, so this is arbitrary for now
+        return false;
+        break;
+    }
+  }
 
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
