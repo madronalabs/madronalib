@@ -7,17 +7,16 @@
 #include "MLPath.h"
 #include "MLValue.h"
 
-namespace ml{
-
+namespace ml
+{
 struct Message final
 {
-  Path head{};
+  Path address{};
   Value value{};
   uint32_t flags{0};
-  
-  Message(Path h = Path(), Value v = Value(), uint32_t f = 0) : head(h), value(v), flags(f) {}
-};
 
+  Message(Path h = Path(), Value v = Value(), uint32_t f = 0) : address(h), value(v), flags(f) {}
+};
 
 enum flags
 {
@@ -30,12 +29,12 @@ enum flags
 // intended use in editors and controllers, this seems like a reasonable
 // tradeoff.
 
-using MessageList = std::vector< Message >;
+using MessageList = std::vector<Message>;
 
-} // namespace ml
+}  // namespace ml
 
 inline std::ostream& operator<<(std::ostream& out, const ml::Message& r)
 {
-  std::cout << "{" << r.head << ": " << r.value << "}";
+  std::cout << "{" << r.address << ": " << r.value << "}";
   return out;
 }
