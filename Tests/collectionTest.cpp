@@ -24,7 +24,7 @@ struct CollectableInt : public Collectable
   CollectableInt(int v) : value(v){};
   virtual ~CollectableInt() = default;
   operator int() const { return value; }
-  virtual Value respond(Message m) { std::cout << " " << value << " "; return false; }
+  virtual Value respond(Message m) { std::cout << " " << value << " \n"; return false; }
   int value;
 };
 
@@ -32,19 +32,47 @@ struct FancyCollectableInt : public CollectableInt
 {
   FancyCollectableInt() : CollectableInt() {}
   FancyCollectableInt(int v) : CollectableInt(v) {}
-  Value respond(Message m) override { std::cout << " ***" << value << "*** "; return false; }
+
+  Value respond(Message m) override { std::cout << " ***" << value << "*** \n"; return false; }
+};
+
+
+// CollectableInt with access to the collection it is in, from the root node
+// where it it added. This lets objects manage objects in the collection under
+// them.
+struct CollectableIntWithCollection : public CollectableInt
+{
+  CollectableIntWithCollection(ml::Collection< CollectableInt > t, int v) : CollectableInt(v), _subCollection(t) {}
+
+  ml::Collection< CollectableInt > _subCollection;
+  
+  Value respond(Message m) override
+  {
+    // respond self
+    std::cout << "     ---" << value << "--- \n";
+    
+    // respond children
+    forEach< CollectableInt >(_subCollection, [&](CollectableInt& i)
+    {
+      std::cout << "    ";
+      sendMessage(i, Message{});
+    });
+    return false;
+  }
 };
 
 TEST_CASE("madronalib/core/collection", "[collection]")
 {
   CollectionRoot< CollectableInt > ints;
   
-  ints.add_unique< CollectableInt >("a", 4);
-  ints.add_unique< FancyCollectableInt >("a/b/c", 5);
-  ints.add_unique< CollectableInt >("a/b/d", 6);
+  ints.add_unique< CollectableInt >("a", 3);
+  ints.add_unique< CollectableInt >("j", 4);
+  ints.add_unique< FancyCollectableInt >("a/b/c/d", 5);
+  ints.add_unique< CollectableInt >("a/b/c/f", 6);
   
-  REQUIRE(ints["a/b/c"]->value == 5);
-  REQUIRE(ints["a/b/d"]->value == 6);
+  ints.add_unique_with_collection< CollectableIntWithCollection >("a/b/c", 42);
+
+  REQUIRE(ints["a/b/c/d"]->value == 5);
   
   std::cout << "messages: ";
   forEach< CollectableInt >(ints, [&](CollectableInt& i){ sendMessage(i, {"ack"}); });
@@ -62,9 +90,9 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   
   REQUIRE(!subInts["a"]); // no node - can't access value
   REQUIRE(!subInts["b"]); // node but no value at node
-  REQUIRE(subInts["b/c"]);
-  int b7 = (subInts["b/c"]->value);
-  REQUIRE(subInts["b/c"]->value == 5);// node exists - return value
+  REQUIRE(subInts["b/c/d"]);
+  int b7 = (subInts["b/c/d"]->value);
+  REQUIRE(subInts["b/c/d"]->value == 5);// node exists - return value
 
 
   // set a value using the subcollecion
@@ -72,7 +100,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   subInts["b/c"]->value = 44;
   REQUIRE(ints["a/b/c"]->value == 44);
   
-  // add a new object using subcollection
+  // add a new object using add_unique
   subInts.add_unique< FancyCollectableInt >("b/the/new/guy", 99);
   REQUIRE(ints["a/b/the/new/guy"]);
   REQUIRE(ints["a/b/the/new/guy"]->value == 99);
@@ -84,9 +112,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   if(newGuyPtr)
   {
     REQUIRE(newGuyPtr->value == 99);
-    
   }
-  
 
   // TODO a const subcollection that does not let us modify the held
   // values would be handy - revisit
