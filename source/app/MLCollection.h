@@ -83,11 +83,22 @@ public:
     _tree.add(p, std::move(newVal));
   }
   
-  // create a new object in the collection, constructed with the given parameters.
+  // create a new object in the collection at the given path, constructed with the remaining arguments.
   template< typename TT, typename... Targs >
   void add_unique(Path p, Targs... Fargs)
   {
     _tree.add(p, std::move(ml::make_unique< TT >(Fargs...)));
+  }
+  
+  // like add_unique but also passes an initial argument of the collection
+  // at its own new location. This lets objects add to existing collections
+  // in their constructors.
+  template< typename TT, typename... Targs >
+  void addUniqueWithSubCollection(Path p, Targs... Fargs)
+  {
+    _tree.add(p, ObjectPointerType());
+    auto subColl = getSubCollection(*this, p);
+    _tree[p] = std::move(ml::make_unique< TT >(subColl, Fargs...));
   }
   
   inline typename TreeType::const_iterator begin() const { return _tree.begin(); }
@@ -195,7 +206,7 @@ inline void sendMessages(Collectable& obj, MessageList msgList)
 
 // send a message to a Collectable object through a Collection.
 template< typename T >
-inline void sendMessage( Collection< T >& coll, Path p, Message m)
+inline void sendMessage(Collection< T >& coll, Path p, Message m)
 {
   if(auto& obj = coll.find(p))
   {
@@ -205,7 +216,7 @@ inline void sendMessage( Collection< T >& coll, Path p, Message m)
 
 // send a list of messages to an object through a Collection.
 template< typename T >
-inline void sendMessages( Collection< T >& coll, Path p, MessageList msgList)
+inline void sendMessages(Collection< T >& coll, Path p, MessageList msgList)
 {
   if(auto& obj = coll.find(p))
   {
@@ -217,7 +228,7 @@ inline void sendMessages( Collection< T >& coll, Path p, MessageList msgList)
 }
 
 template< typename T >
-inline void broadcastMessage(const Collection< T >& coll, Message m)
+inline void broadcastMessage(Collection< T >& coll, Message m)
 {
   coll.forEach([&](T& obj){obj.respond(m);});
 }
