@@ -4,11 +4,11 @@
 
 #pragma once
 
-#include "mldsp.h"
 #include "madronalib.h"
+#include "mldsp.h"
 
-namespace ml {
-
+namespace ml
+{
 using ParameterDescription = PropertyTree;
 
 struct ParameterProjection
@@ -23,11 +23,13 @@ inline ParameterProjection createParameterProjection(ParameterDescription p)
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
   Interval fullRange{range[0], range[1]};
-  
-  if(bLog)
+
+  if (bLog)
   {
-    b.normalizedToReal = ml::projections::intervalMap({0, 1}, fullRange, ml::projections::log(fullRange));
-    b.realToNormalized = ml::projections::intervalMap(fullRange, {0, 1}, ml::projections::exp(fullRange));
+    b.normalizedToReal =
+        ml::projections::intervalMap({0, 1}, fullRange, ml::projections::log(fullRange));
+    b.realToNormalized =
+        ml::projections::intervalMap(fullRange, {0, 1}, ml::projections::exp(fullRange));
   }
   else
   {
@@ -44,5 +46,4 @@ struct Parameter
   ParameterProjection _projection;
 };
 
-} // namespaces
-
+}  // namespace ml

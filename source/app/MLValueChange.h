@@ -36,12 +36,9 @@ struct ValueChange
       : name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end)
   {
   }
-
 };
 
-
 // ValueChange could have a time. Useful for automation as well as undo.
-
 
 }  // namespace ml
 

@@ -14,18 +14,17 @@
 
 #pragma once
 
+#include "MLDSPFunctional.h"
 #include "MLDSPOps.h"
 #include "MLDSPUtils.h"
-#include "MLDSPFunctional.h"
 
 namespace ml
 {
-
 // generate a single-sample tick, repeating at a frequency given by the input.
 class TickGen
 {
   float mOmega{0};
-  
+
  public:
   inline DSPVector operator()(const DSPVector cyclesPerSample)
   {
@@ -37,7 +36,7 @@ class TickGen
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       mOmega += stepsPerSampleV[n];
-      if(mOmega > 1.0f)
+      if (mOmega > 1.0f)
       {
         mOmega -= 1.0f;
         vy[n] = 1.0f;
@@ -56,11 +55,12 @@ class ImpulseGen
   // pick odd table size to get sample-centered sinc and window
   static constexpr int kTableSize{17};
   DSPVector _table;
-  static_assert(kTableSize < kFloatsPerDSPVector, "ImpulseGen: table size must be < the DSP vector size.");
-  
+  static_assert(kTableSize < kFloatsPerDSPVector,
+                "ImpulseGen: table size must be < the DSP vector size.");
+
   int _outputCounter;
   float _omega{0.f};
-  
+
  public:
   ImpulseGen()
   {
@@ -68,9 +68,12 @@ class ImpulseGen
     DSPVector windowVec;
     makeWindow(windowVec.getBuffer(), kTableSize, windows::blackman);
     const float omega = 0.25f;
-    auto sincFn {[&](int i){ float pi_x = ml::kTwoPi*omega*i; return (i == 0) ? 1.f : sinf(pi_x)/pi_x; }};
-    DSPVector sincVec = map(sincFn, columnIndexInt() - DSPVectorInt((kTableSize - 1)/2));
-    _table = normalize(sincVec*windowVec);
+    auto sincFn{[&](int i) {
+      float pi_x = ml::kTwoPi * omega * i;
+      return (i == 0) ? 1.f : sinf(pi_x) / pi_x;
+    }};
+    DSPVector sincVec = map(sincFn, columnIndexInt() - DSPVectorInt((kTableSize - 1) / 2));
+    _table = normalize(sincVec * windowVec);
   }
   ~ImpulseGen() {}
 
@@ -81,15 +84,15 @@ class ImpulseGen
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       _omega += cyclesPerSample[n];
-      if(_omega > 1.0f)
+      if (_omega > 1.0f)
       {
         _omega -= 1.0f;
-        
+
         // start an output impulse
         _outputCounter = 0;
       }
-      
-      if(_outputCounter < kTableSize)
+
+      if (_outputCounter < kTableSize)
       {
         vy[n] = _table[_outputCounter];
         _outputCounter++;
@@ -180,8 +183,8 @@ class PhasorGen
     constexpr float range(1.0f);
     constexpr float offset(0.5f);
     constexpr float stepsPerCycle(static_cast<float>(const_math::pow(2., 32)));
-    constexpr float cyclesPerStep(1.f/stepsPerCycle);
-    DSPVector outputScaleV(range*cyclesPerStep);
+    constexpr float cyclesPerStep(1.f / stepsPerCycle);
+    DSPVector outputScaleV(range * cyclesPerStep);
 
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);

@@ -20,8 +20,8 @@
 
 #include <vector>
 
-#include "MLDSPScalarMath.h"
 #include "MLDSPOps.h"
+#include "MLDSPScalarMath.h"
 
 namespace ml
 {
@@ -436,7 +436,7 @@ class DCBlocker
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       const float x0 = vx[n];
-      const float y0 = x0 - x1 + mCoeffs*y1;
+      const float y0 = x0 - x1 + mCoeffs * y1;
       y1 = y0;
       x1 = x0;
       vy[n] = y0;

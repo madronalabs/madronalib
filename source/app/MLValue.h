@@ -124,20 +124,20 @@ class Value
   void setValue(const ml::Text& v);
   void setValue(const char* const v);
   void setValue(const Matrix& v);
-  
+
   explicit operator bool() const
   {
-    switch(mType)
+    switch (mType)
     {
       case kUndefinedValue:
       default:
         return false;
         break;
       case kFloatValue:
-        return static_cast< bool >(mFloatVal);
+        return static_cast<bool>(mFloatVal);
         break;
       case kTextValue:
-        return static_cast< bool >(mTextVal);
+        return static_cast<bool>(mTextVal);
         break;
       case kMatrixValue:
         // matrix is going away, so this is arbitrary for now
@@ -183,7 +183,6 @@ struct NamedValue
 
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list<NamedValue>;
-
 
 // utilities
 

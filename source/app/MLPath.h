@@ -37,15 +37,15 @@ class Path final
   Path(const TextFragment frag);
   Path(const TextFragment frag, const char separator);
   Path(const Path& a, const Path& b);
-  
+
   template <typename T, typename... Rest>
-  Path (const T& first, const Rest&... rest)
+  Path(const T& first, const Rest&... rest)
   {
     *this = Path(Path(first), Path(rest...));
   }
 
   ~Path() = default;
-  
+
   // boolean test.
   explicit operator bool() const { return (mSize != 0); }
 

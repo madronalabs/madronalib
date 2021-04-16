@@ -27,7 +27,7 @@ inline void makeWindow(float* pDest, size_t size, Projection windowShape)
 
 namespace windows
 {
-const Projection rectangle([](float x) { return (x > 0.75f) ? 0.f : ((x < 0.25f) ? 0.f : 1.f);  });
+const Projection rectangle([](float x) { return (x > 0.75f) ? 0.f : ((x < 0.25f) ? 0.f : 1.f); });
 const Projection triangle([](float x) { return (x > 0.5f) ? (2.f - 2.f * x) : (2.f * x); });
 const Projection raisedCosine([](float x) { return 0.5f - 0.5f * cosf(kTwoPi * x); });
 const Projection hamming([](float x) { return 0.54f - 0.46f * cosf(kTwoPi * x); });

@@ -10,7 +10,6 @@
 
 namespace ml
 {
-
 class PropertyTree
 {
   Tree<Value> properties;
@@ -76,16 +75,10 @@ class PropertyTree
   }
 
   void dump() { properties.dump(); }
-  
-  inline Tree<Value>::const_iterator begin() const
-  {
-    return properties.begin();
-  }
 
-  inline Tree<Value>::const_iterator end() const
-  {
-    return properties.end();
-  }
+  inline Tree<Value>::const_iterator begin() const { return properties.begin(); }
+
+  inline Tree<Value>::const_iterator end() const { return properties.end(); }
 };
 
 }  // namespace ml
