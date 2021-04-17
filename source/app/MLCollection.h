@@ -108,6 +108,21 @@ class Collection
       f(*obj);
     }
   }
+  
+  // do something for each child of the collection's root node.
+  void forEachChild(std::function<void(T&)> f)
+  {
+    // Tree currently offers only depth-first iterators so
+    // we have to iterate the entire tree.
+    for (auto it = _tree.begin(); it != _tree.end(); ++it)
+    {
+      if(it.getCurrentDepth() == 0)
+      {
+        const ObjectPointerType& obj = *it;
+        f(*obj);
+      }
+    }
+  }
   void forEachPath(std::function<void(Path)> f)
   {
     for (auto it = _tree.begin(); it != _tree.end(); ++it)
@@ -166,6 +181,12 @@ template <typename T>
 inline void forEachConst(Collection<T>& coll, std::function<void(const T&)> f)
 {
   coll.forEach(f);
+}
+
+template <typename T>
+inline void forEachChild(Collection<T>& coll, std::function<void(T&)> f)
+{
+  coll.forEachChild(f);
 }
 
 template <typename T>

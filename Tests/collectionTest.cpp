@@ -69,7 +69,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   ints.add_unique< CollectableInt >("j", 4);
   ints.add_unique< FancyCollectableInt >("a/b/c/d", 5);
   ints.add_unique< CollectableInt >("a/b/c/f", 6);
-  
+  ints.add_unique< CollectableInt >("k", 7);
   ints.add_unique_with_collection< CollectableIntWithCollection >("a/b/c", 42);
 
   REQUIRE(ints["a/b/c/d"]->value == 5);
@@ -82,12 +82,16 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   forEachConst< CollectableInt >(ints, [&](const CollectableInt& i){ total += i.value; });
   std::cout << "total: " << total << "\n";
 
+  int rootTotal{0};
+  forEachChild< CollectableInt >(ints, [&](const CollectableInt& i){ rootTotal += i.value; });
+  std::cout << "rootTotal: " << rootTotal << "\n";
+  REQUIRE(rootTotal == 14);
+  
   REQUIRE(!ints["a/b/xxx"]);
   // int thisWouldCrash = (ints["a/b/xxx"]->value);
-
+  
   // make a subcollection and do some stuff
   auto subInts = getSubCollection(ints, "a");
-  
   REQUIRE(!subInts["a"]); // no node - can't access value
   REQUIRE(!subInts["b"]); // node but no value at node
   REQUIRE(subInts["b/c/d"]);
@@ -117,7 +121,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   // TODO a const subcollection that does not let us modify the held
   // values would be handy - revisit
   
-  // TODO create subcollection by test
+  // TODO create subcollection by filter
   //  auto subInts3 = getSubCollection([](const CollectableInt& i){return i.value > 3;});
 
 }
