@@ -19,67 +19,89 @@ struct Collectable
   virtual Value respond(Message m) = 0;
 };
 
-// A concrete null object for any Collectable type.
-template <typename T>
-struct NullCollectableForClass final : public T
-{
-  // converting this object to bool will return false.
-  operator bool() const override { return false; }
-
-  // Sending a null object a message must do nothing.
-  Value respond(Message m) override { return false; }
-};
-
 template <typename T>
 class Collection
 {
- protected:
-  using ValueType = T&;
+protected:
   using ObjectPointerType = std::unique_ptr<T>;
   using TreeType = Tree<ObjectPointerType>;
-  TreeType& _tree;
 
-  TreeType& getSubTree(Path addr) const { return *_tree.getNode(addr); }
-
- public:
-  // The constructor needs to be passed a reference to a Tree holding the actual collection.
-  // This allows a collection to refer to a sub-path of another collection. To create
+private:
+  TreeType* _tree{nullptr};
+  
+public:
+  // The non-null constructor needs to be passed a reference to a Tree
+  // that holds the actual collection. This allows a collection to refer
+  // to a sub-path of another collection. To create
   // the root collection and the tree of objects, use CollectionRoot below.
-  Collection(TreeType& t) : _tree(t)
+  Collection(TreeType& t) : _tree(&t)
   {
+    //_isNull = false;
     static_assert(std::is_base_of<Collectable, T>::value,
                   "Collection: object type is not collectable!");
   }
 
+  Collection() = default;
   ~Collection() = default;
+  
+  // Is the collection null?
+  explicit operator bool() {return _tree != nullptr;}
+  
+  // If a collection might be null (not merely empty but having
+  // no Tree), we need to check that before we can use these iterators!
+  inline typename TreeType::const_iterator begin() const { return _tree->begin(); }
+  inline typename TreeType::const_iterator end() const { return _tree->end(); }
 
-  const ObjectPointerType& operator[](Path p) const { return _tree.operator[](p); }
+  // the other methods of access following are OK to use with a
+  // null Collection.
+  const ObjectPointerType& operator[](Path p) const
+  {
+    static std::unique_ptr<T> _nullObjPtr;
+    if(!_tree)
+    {
+      return _nullObjPtr;
+    }
+    else
+    {
+      return _tree->operator[](p);
+    }
+  }
 
   // if an object exists at the path, return a unique_ptr to it.
   // otherwise, return a unique_ptr to null.
   const ObjectPointerType& find(Path p) const
   {
-    static std::unique_ptr<T> nullPtr{};
-    const TreeType* n = _tree.getConstNode(p);
+    static std::unique_ptr<T> _nullObjPtr;
+    if(!_tree)
+    {
+      return _nullObjPtr;
+    }
+
+    const TreeType* n = _tree->getConstNode(p);
     if (n && n->hasValue())
     {
       return n->getValue();
     }
     else
     {
-      return nullPtr;
+      return _nullObjPtr;
     }
   }
 
   // add the object referred to by newVal to the collection.
-  void add(Path p, T& newVal) { _tree.add(p, std::move(newVal)); }
+  void add(Path p, T& newVal)
+  {
+    if(!_tree) return;
+    _tree->add(p, std::move(newVal));
+  }
 
   // create a new object in the collection at the given path, constructed with the remaining
   // arguments.
   template <typename TT, typename... Targs>
   void add_unique(Path p, Targs... Fargs)
   {
-    _tree.add(p, std::move(ml::make_unique<TT>(Fargs...)));
+    if(!_tree) return;
+    _tree->add(p, std::move(ml::make_unique<TT>(Fargs...)));
   }
 
   // like add_unique but also passes an initial argument of the collection
@@ -88,33 +110,45 @@ class Collection
   template <typename TT, typename... Targs>
   void add_unique_with_collection(Path p, Targs... Fargs)
   {
-    _tree.add(p, ObjectPointerType());
-    auto subColl = getSubCollection(*this, p);
-    _tree[p] = std::move(ml::make_unique<TT>(subColl, Fargs...));
+    if(!_tree) return;
+    _tree->add(p, ObjectPointerType());
+    auto subColl = getSubCollection(p);
+    _tree->operator[](p) = std::move(ml::make_unique<TT>(subColl, Fargs...));
+  }
+  
+  inline Collection getSubCollection(Path addr)
+  {
+    if(!_tree) return Collection<T>();
+
+    typename Collection<T>::TreeType* subTree = _tree->getNode(addr);
+    if(subTree)
+    {
+      // return a new Collection referring to the given subTree.
+      return Collection<T>(*subTree);
+    }
+    else
+    {
+      // if no Tree is found for the Path, the null collection is returned.
+      return Collection<T>();
+    }
   }
 
-  inline typename TreeType::const_iterator begin() const { return _tree.begin(); }
-  inline typename TreeType::const_iterator end() const { return _tree.end(); }
-
-  friend inline Collection<T> getSubCollection(Collection<T>& coll, Path addr)
+  void forEach(std::function<void(T&)> f) const
   {
-    return Collection<T>(coll.getSubTree(addr));
-  }
-
-  void forEach(std::function<void(T&)> f)
-  {
-    for (auto& obj : _tree)
+    if(!_tree) return;
+    for (auto& obj : *_tree)
     {
       f(*obj);
     }
   }
   
-  // do something for each child of the collection's root node.
-  void forEachChild(std::function<void(T&)> f)
+  // do something for each direct child of the collection's root node.
+  void forEachChild(std::function<void(T&)> f) const
   {
+    if(!_tree) return;
     // Tree currently offers only depth-first iterators so
     // we have to iterate the entire tree.
-    for (auto it = _tree.begin(); it != _tree.end(); ++it)
+    for (auto it = _tree->begin(); it != _tree->end(); ++it)
     {
       if(it.getCurrentDepth() == 0)
       {
@@ -123,82 +157,72 @@ class Collection
       }
     }
   }
-  void forEachPath(std::function<void(Path)> f)
+  
+  void forEachWithPath(std::function<void(T&, Path)> f) const
   {
-    for (auto it = _tree.begin(); it != _tree.end(); ++it)
-    {
-      f(it.getCurrentNodePath());
-    }
-  }
-  void forEachPathAndObject(std::function<void(Path, T&)> f)
-  {
-    for (auto it = _tree.begin(); it != _tree.end(); ++it)
+    if(!_tree) return;
+    for (auto it = _tree->begin(); it != _tree->end(); ++it)
     {
       const ObjectPointerType& p = *it;
-      f(it.getCurrentNodePath(), *p);
+      f(*p, it.getCurrentNodePath());
     }
   }
-};
-
-template <typename T>
-class CollectionRoot : public Collection<T>
-{
-  typename Collection<T>::TreeType _rootObjects;
-
- public:
-  // no collection, create one
-  CollectionRoot() : Collection<T>(_rootObjects){};
-  ~CollectionRoot() = default;
-};
-
-/* untested
-template< typename T >
-Collection< T > getSubCollection(const Collection< T >& coll, std::function< bool(Path) > pathFn)
-{
-  CollectionRoot< T > newColl{};
-
-  for(auto it = coll._tree.begin(); it != coll._tree.end(); ++it)
+  
+  void forEachChildWithPath(std::function<void(T&, Path)> f) const
   {
-    if(*it->hasValue())
+    if(!_tree) return;
+    for (auto it = _tree->begin(); it != _tree->end(); ++it)
     {
-      const Path p = it.getCurrentNodePath();
-      if(pathFn(p))
+      if(it.getCurrentDepth() == 0)
       {
-        newColl.add(p, *it->getValue());
+        const ObjectPointerType& p = *it;
+        f(*p, it.getCurrentNodePath());
       }
     }
   }
+  
+};
+
+// CollectionRoot: a handy subclass to combine a Collection with its Tree
+template< typename T >
+class CollectionRoot : public Collection<T>
+{
+  typename Collection<T>::TreeType _localTree;
+  
+public:
+  // return collection referring to our internal tree
+  CollectionRoot() : Collection<T>(_localTree){};
+  ~CollectionRoot() = default;
+};
+
+template< typename T >
+inline Collection< T > getSubCollection(Collection< T > coll, Path addr)
+{
+  return coll.getSubCollection(addr);
 }
-*/
 
 template <typename T>
-inline void forEach(Collection<T>& coll, std::function<void(T&)> f)
+inline void forEach(Collection<T> coll, std::function<void(T&)> f)
 {
   coll.forEach(f);
 }
 
 template <typename T>
-inline void forEachConst(Collection<T>& coll, std::function<void(const T&)> f)
-{
-  coll.forEach(f);
-}
-
-template <typename T>
-inline void forEachChild(Collection<T>& coll, std::function<void(T&)> f)
+inline void forEachChild(Collection<T> coll, std::function<void(T&)> f)
 {
   coll.forEachChild(f);
 }
 
 template <typename T>
-inline void forEachPath(Collection<T>& coll, std::function<void(Path)> f)
+inline void forEachWithPath(Collection<T> coll, std::function<void(T&, Path)> f)
 {
-  coll.forEachPath(f);
+  coll.forEachWithPath(f);
 }
 
 template <typename T>
-inline void forEachPathAndObject(Collection<T>& coll, std::function<void(Path, T&)> f)
+inline void forEachChildWithPath(Collection<T> coll, std::function<void(T&, Path)> f)
 {
-  coll.forEachPathAndObject(f);
+  coll.forEachChildWithPath(f);
 }
 
 // send a message directly to a Collectable object.
@@ -215,7 +239,7 @@ inline void sendMessages(Collectable& obj, MessageList msgList)
 
 // send a message to a Collectable object through a Collection.
 template <typename T>
-inline void sendMessage(Collection<T>& coll, Path p, Message m)
+inline void sendMessage(Collection<T> coll, Path p, Message m)
 {
   if (auto& obj = coll.find(p))
   {
@@ -225,7 +249,7 @@ inline void sendMessage(Collection<T>& coll, Path p, Message m)
 
 // send a list of messages to an object through a Collection.
 template <typename T>
-inline void sendMessages(Collection<T>& coll, Path p, MessageList msgList)
+inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
 {
   if (auto& obj = coll.find(p))
   {
@@ -237,7 +261,13 @@ inline void sendMessages(Collection<T>& coll, Path p, MessageList msgList)
 }
 
 template <typename T>
-inline void broadcastMessage(Collection<T>& coll, Message m)
+inline void sendMessageToChildren(Collection<T> coll, Message m)
+{
+  coll.forEachChild([&](T& obj) { obj.respond(m); });
+}
+
+template <typename T>
+inline void sendMessageToDescendants(Collection<T> coll, Message m)
 {
   coll.forEach([&](T& obj) { obj.respond(m); });
 }

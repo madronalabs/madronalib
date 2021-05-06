@@ -113,6 +113,13 @@ Path butLast(Path p)
   return r;
 }
 
-Symbol last(Path p) { return p._symbols[p.getSize() - 1]; }
+Symbol last(Path p)
+{
+  if(p.getSize() > 0)
+  {
+    return p._symbols[p.getSize() - 1];
+  }
+  return Symbol();
+}
 
 }  // namespace ml

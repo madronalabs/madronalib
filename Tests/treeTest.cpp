@@ -195,10 +195,21 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(leafSum == correctLeafSum);
 
     REQUIRE(std::accumulate(a.begin(), a.end(), 0) == correctLeafSum);
+    
+    // Example using Tree with unique_ptr< int >.
+    //
+    Tree< std::unique_ptr< int > > intPtrTree;
+    intPtrTree["harry"] = ml::make_unique< int >(3);
+    intPtrTree["mark"] = ml::make_unique< int >(0);
+
+    REQUIRE(intPtrTree["mark"]);
+    REQUIRE(*intPtrTree["mark"] == 0);
+    
+    REQUIRE(!intPtrTree["john"]);
+    // *** REQUIRE(*intPtrTree["john"] == 0); // no value, so this will crash
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.
-
   {
     // note that we want to stay compatible with C++11, which lacks
     // make_unique(), so our own ml::make_unique() is defined in MLValue.h

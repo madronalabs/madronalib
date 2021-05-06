@@ -65,6 +65,9 @@ TEST_CASE("madronalib/core/collection", "[collection]")
 {
   CollectionRoot< CollectableInt > ints;
   
+  // doing things with an empty collection should not crash
+  sendMessageToDescendants(ints, {"hello?"});
+
   ints.add_unique< CollectableInt >("a", 3);
   ints.add_unique< CollectableInt >("j", 4);
   ints.add_unique< FancyCollectableInt >("a/b/c/d", 5);
@@ -79,7 +82,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   std::cout << "\n";
 
   int total{0};
-  forEachConst< CollectableInt >(ints, [&](const CollectableInt& i){ total += i.value; });
+  forEach< CollectableInt >(ints, [&](const CollectableInt& i){ total += i.value; });
   std::cout << "total: " << total << "\n";
 
   int rootTotal{0};
@@ -97,7 +100,6 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   REQUIRE(subInts["b/c/d"]);
   int b7 = (subInts["b/c/d"]->value);
   REQUIRE(subInts["b/c/d"]->value == 5);// node exists - return value
-
 
   // set a value using the subcollecion
   REQUIRE(subInts["b/c"]);
@@ -117,9 +119,19 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   {
     REQUIRE(newGuyPtr->value == 99);
   }
-
-  // TODO a const subcollection that does not let us modify the held
-  // values would be handy - revisit
+  
+  // doing most things with a null collection should not crash
+  auto nullColl = getSubCollection(ints, "nowhere");
+  
+  // however: if a collection might be null (not merely empty but having
+  // no Tree), we need to check that before we can use any iterators!
+  if(nullColl)
+  {
+    for(auto& i : nullColl)
+    {
+      std::cout << i->value << "\n";
+    }
+  }
   
   // TODO create subcollection by filter
   //  auto subInts3 = getSubCollection([](const CollectableInt& i){return i.value > 3;});

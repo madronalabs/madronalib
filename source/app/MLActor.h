@@ -5,7 +5,8 @@
 #pragma once
 
 #include "MLCollection.h"
-#include "MLParameter.h"
+#include "MLQueue.h"
+#include "MLTimer.h"
 
 namespace ml
 {
@@ -14,7 +15,7 @@ namespace ml
 class Actor : public Collectable
 {
   static constexpr size_t kMessageQueueSize = 128;
-  Queue<Message> _messageQueue{kMessageQueueSize};
+  Queue< Message > _messageQueue{kMessageQueueSize};
   Timer _queueTimer;
 
  protected:

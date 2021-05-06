@@ -17,6 +17,7 @@ class PropertyTree
  public:
   PropertyTree() = default;
   PropertyTree(Tree<Value> vt) : properties(vt) {}
+  PropertyTree(const PropertyTree& other) : properties(other.properties) {}
   PropertyTree(const std::initializer_list<NamedValue> p)
   {
     for (const auto& v : p)

@@ -22,7 +22,7 @@
 namespace ml
 {
 template <class V, class C = std::less<Symbol> >
-class Tree final
+class Tree
 {
   // recursive definition: a Tree has a map of Symbols to Trees, and a value.
   using mapT = std::map<Symbol, Tree<V, C>, C>;
