@@ -89,7 +89,14 @@ class Timer
     mPeriod = period;
     mPreviousCall = system_clock::now();
   }
-
+  
+  // extend the timeout of the current period for the given number of
+  // milliseconds after the next tick.
+  void postpone(const milliseconds timeToAdd)
+  {
+    mAdditionalTime = timeToAdd;
+  }
+  
   // call the function n times, waiting the specified interval before each.
   void callNTimes(std::function<void(void)> f, const milliseconds period, int n)
   {
@@ -120,6 +127,7 @@ class Timer
   int mCounter{0};
   std::function<void(void)> myFunc;
   milliseconds mPeriod;
+  milliseconds mAdditionalTime;
   time_point<system_clock> mPreviousCall;
 };
 }  // namespace ml

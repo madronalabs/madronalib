@@ -151,7 +151,12 @@ void ml::Timers::tick(void)
     std::unique_lock<std::mutex> lock(t->_counterMutex);
     if (t->mCounter != 0)
     {
-      if (now - t->mPreviousCall > t->mPeriod)
+      if(t->mAdditionalTime > milliseconds(0))
+      {
+        t->mPreviousCall = now + t->mAdditionalTime - t->mPeriod;
+        t->mAdditionalTime = milliseconds(0);
+      }
+      else if (now - t->mPreviousCall >= t->mPeriod)
       {
         t->myFunc();
         if (t->mCounter > 0)
