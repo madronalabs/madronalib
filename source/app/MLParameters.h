@@ -9,6 +9,7 @@
 
 namespace ml
 {
+
 using ParameterDescription = PropertyTree;
 
 struct ParameterProjection
@@ -39,24 +40,26 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   return b;
 }
 
+
 // A list of Parameter descriptions.
 using ParameterDescriptionList = std::vector< std::unique_ptr< ParameterDescription > >;
 
-// An annotated Tree of parameter values.
-struct ParameterTree : public Tree< Value >
+
+// An annotated Tree of parameters stored as normalized values.
+struct ParameterTreeNormalized : public Tree< Value >
 {
   Tree< std::unique_ptr< ParameterDescription > > descriptions;
-  Tree< std::unique_ptr< ParameterProjection > > projections;
+  Tree< ParameterProjection > projections;
 };
 
-inline void addParameterToTree(const ParameterDescription& paramDesc, ParameterTree& paramTree)
+inline void addParameterToTree(const ParameterDescription& paramDesc, ParameterTreeNormalized& paramTree)
 {
   auto paramName = paramDesc.getTextProperty("name");
-  paramTree.projections[paramName] = ml::make_unique< ParameterProjection >(createParameterProjection(paramDesc));
+  paramTree.projections[paramName] = createParameterProjection(paramDesc);
   paramTree.descriptions[paramName] = ml::make_unique< ParameterDescription >(paramDesc);
 }
 
-inline void buildParameterTree(const ParameterDescriptionList& paramList, ParameterTree& paramTree)
+inline void buildParameterTree(const ParameterDescriptionList& paramList, ParameterTreeNormalized& paramTree)
 {
   for(const auto& paramDesc : paramList)
   {
@@ -64,7 +67,7 @@ inline void buildParameterTree(const ParameterDescriptionList& paramList, Parame
   }
 }
 
-inline void setDefaultsNormalized(ParameterTree& p)
+inline void setDefaults(ParameterTreeNormalized& p)
 {
   for(auto& paramDesc : p.descriptions)
   {
@@ -77,7 +80,41 @@ inline void setDefaultsNormalized(ParameterTree& p)
   }
 }
 
-inline void setDefaultsReal(ParameterTree& p)
+inline float getRealValue(ParameterTreeNormalized& p, Path pname)
+{
+  return p.projections[pname].normalizedToReal(p[pname].getFloatValue());
+}
+
+inline float getNormalizedValue(ParameterTreeNormalized& p, Path pname)
+{
+  return p[pname].getFloatValue();
+}
+
+
+// An annotated Tree of parameters stored as real values.
+
+struct ParameterTreeReal : public Tree< Value >
+{
+  Tree< std::unique_ptr< ParameterDescription > > descriptions;
+  Tree< ParameterProjection > projections;
+};
+
+inline void addParameterToTree(const ParameterDescription& paramDesc, ParameterTreeReal& paramTree)
+{
+  auto paramName = paramDesc.getTextProperty("name");
+  paramTree.projections[paramName] = createParameterProjection(paramDesc);
+  paramTree.descriptions[paramName] = ml::make_unique< ParameterDescription >(paramDesc);
+}
+
+inline void buildParameterTree(const ParameterDescriptionList& paramList, ParameterTreeReal& paramTree)
+{
+  for(const auto& paramDesc : paramList)
+  {
+    addParameterToTree(*paramDesc, paramTree);
+  }
+}
+
+inline void setDefaults(ParameterTreeReal& p)
 {
   for(auto& paramDesc : p.descriptions)
   {
@@ -85,9 +122,20 @@ inline void setDefaultsReal(ParameterTree& p)
     if(paramName)
     {
       float defaultVal = paramDesc->getFloatPropertyWithDefault("default", 0.5f);
-      p[paramName] = p.projections[paramName]->normalizedToReal(defaultVal);
+      p[paramName] = p.projections[paramName].normalizedToReal(defaultVal);
     }
   }
 }
+
+inline float getRealValue(ParameterTreeReal& p, Path pname)
+{
+  return p[pname].getFloatValue();
+}
+
+inline float getNormalizedValue(ParameterTreeReal& p, Path pname)
+{
+  return p.projections[pname].realToNormalized(p[pname].getFloatValue());
+}
+
 
 }  // namespace ml
