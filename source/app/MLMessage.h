@@ -21,7 +21,9 @@ struct Message final
 enum flags
 {
   kMsgSequenceStart = 1 << 0,
-  kMsgSequenceEnd = 1 << 1
+  kMsgSequenceEnd = 1 << 1,
+  kMsgFromController = 1 << 2,
+  kMsgFromUI = 1 << 3
 };
 
 // note: because std::vector will allocate on the fly, this implementation of
