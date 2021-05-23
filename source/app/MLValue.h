@@ -127,23 +127,7 @@ class Value
 
   explicit operator bool() const
   {
-    switch (mType)
-    {
-      case kUndefinedValue:
-      default:
-        return false;
-        break;
-      case kFloatValue:
-        return static_cast<bool>(mFloatVal);
-        break;
-      case kTextValue:
-        return static_cast<bool>(mTextVal);
-        break;
-      case kMatrixValue:
-        // matrix is going away, so this is arbitrary for now
-        return false;
-        break;
-    }
+    return (mType != kUndefinedValue);
   }
 
   bool operator==(const Value& b) const;

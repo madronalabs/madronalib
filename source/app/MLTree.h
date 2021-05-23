@@ -29,7 +29,7 @@ class Tree
   mapT mChildren{};
   V _value{};
 
- public:
+public:
   Tree<V, C>() = default;
   Tree<V, C>(V val) : _value(std::move(val)) {}
 
@@ -265,7 +265,7 @@ class Tree
       Path p;
       for (auto currentIterator : mIteratorStack)
       {
-        p.addSymbol((*currentIterator).first);
+        p = Path{p, (*currentIterator).first};
       }
       return p;
     }

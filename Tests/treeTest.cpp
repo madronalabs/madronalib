@@ -76,7 +76,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // 8 possible symbols per level
       int symbolIdx =
           (((randSource.getUInt32() >> 16) & 0x07) + 8 * p) % numTestWords;
-      testPath.addSymbol(testWords[symbolIdx]);
+      testPath = Path{testPath, testWords[symbolIdx]};
     }
 
     for (int j = 0; j < leaves; ++j)
@@ -86,7 +86,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
           testWords[(randSource.getUInt32() >> 16) % numTestWords] +
           endNamer.nextName();
       Path newPath = testPath;
-      newPath.addSymbol(leafName);
+      newPath = Path{newPath, leafName};
       pathsVector.push_back(newPath);
     }
   }
@@ -104,7 +104,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     // using a const reference will prevent the Tree from being modified.
     const Tree<int>& constNumberMap(numberMap);
-    // *** constNumberMap["foo"] = 2;
+    // *** constNumberMap["foo"] = 2; // should not compile.
 
     for (int i = 1; i < mapSize; ++i)
     {
@@ -324,6 +324,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     count++;
   }
   REQUIRE(count == 1);
+  
+  // Tree of bare floats test
+  Tree< float > floatTree;
+  REQUIRE(floatTree["purple"] == 0.f);
+  floatTree["pink"] = 1.f;
+  REQUIRE(floatTree["pink"] == 1.f);
 
 }
 

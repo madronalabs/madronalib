@@ -24,7 +24,7 @@ struct CollectableInt : public Collectable
   CollectableInt(int v) : value(v){};
   virtual ~CollectableInt() = default;
   operator int() const { return value; }
-  virtual Value respond(Message m) { std::cout << " " << value << " \n"; return false; }
+  virtual void receiveMessage(Message m) { std::cout << " " << value << " \n"; return false; }
   int value;
 };
 
@@ -33,7 +33,7 @@ struct FancyCollectableInt : public CollectableInt
   FancyCollectableInt() : CollectableInt() {}
   FancyCollectableInt(int v) : CollectableInt(v) {}
 
-  Value respond(Message m) override { std::cout << " ***" << value << "*** \n"; return false; }
+  void receiveMessage(Message m) override { std::cout << " ***" << value << "*** \n"; return false; }
 };
 
 
@@ -46,7 +46,7 @@ struct CollectableIntWithCollection : public CollectableInt
 
   ml::Collection< CollectableInt > _subCollection;
   
-  Value respond(Message m) override
+  void receiveMessage(Message m) override
   {
     // respond self
     std::cout << "     ---" << value << "--- \n";

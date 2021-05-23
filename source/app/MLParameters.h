@@ -101,7 +101,7 @@ struct ParameterTreePlain : public ParameterTree
 
 // functions on ParameterTrees.
 
-inline void addParameterToTree(const ParameterDescription& paramDesc, ParameterTree& paramTree)
+inline void setParameterInfo(const ParameterDescription& paramDesc, ParameterTree& paramTree)
 {
   auto paramName = paramDesc.getTextProperty("name");
   paramTree.projections[paramName] = createParameterProjection(paramDesc);
@@ -112,7 +112,7 @@ inline void buildParameterTree(const ParameterDescriptionList& paramList, Parame
 {
   for(const auto& paramDesc : paramList)
   {
-    addParameterToTree(*paramDesc, paramTree);
+    setParameterInfo(*paramDesc, paramTree);
   }
 }
 

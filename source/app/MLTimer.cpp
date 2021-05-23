@@ -28,9 +28,6 @@ void macTimersCallback(CFRunLoopTimerRef, void* info)
 
 void ml::Timers::start(bool runInMainThread)
 {
-  // MLTEST
-  std::cout << "timers: START\n";
-  
   _inMainThread = runInMainThread;
   if (!_running)
   {
@@ -59,9 +56,6 @@ void ml::Timers::start(bool runInMainThread)
 
 void ml::Timers::stop()
 {
-  // MLTEST
-  std::cout << "timers: STOP\n";
-  
   if (_inMainThread)
   {
     if (pTimersRef)
@@ -185,14 +179,12 @@ void ml::Timers::tick(void)
   std::unique_lock<std::mutex> lock(mSetMutex);
 
   // MLTEST
-  bool doDebug{false};
+#ifdef DEBUG_TIMERS
   if(now - previousStatsTime > milliseconds(1000))
   {
     // dump stats
     std::cout << "timers: " << _timerPtrs.size() << " timers. \n ";
     previousStatsTime = now;
-
-
     
     // dump timer info
     for (auto t : _timerPtrs)
@@ -207,7 +199,8 @@ void ml::Timers::tick(void)
       std::cout << "    t" << n << ": age=" << age << " per=" << per << " cur=" << cur << "\n";
     }
   }
-
+#endif
+  
   for (auto t : _timerPtrs)
   {
     std::unique_lock<std::mutex> lock(t->_counterMutex);
@@ -220,11 +213,6 @@ void ml::Timers::tick(void)
       }
       else if (now - t->_previousCall >= t->_period)
       {
-        
-        // MLTEST
-        if(0)
-        std::cout << "Timers:     firing timer # " << t->_testID << "\n";
-        
         t->_func();
         if (t->_counter > 0)
         {
@@ -243,9 +231,7 @@ ml::Timer::Timer() noexcept
   std::unique_lock<std::mutex> lock(_timers->mSetMutex);
   _previousCall = _creationTime = system_clock::now();
   
-  // MLTEST
-  _testID = _timers->getSize();
-  std::cout << "made timer # " << _testID << "\n";
+  _testID = _timers->getSize(); // MLTEST
   
   _timers->insert(this);
 }

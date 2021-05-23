@@ -49,9 +49,6 @@ class Path final
   // boolean test.
   explicit operator bool() const { return (mSize != 0); }
 
-  // TODO Path should be immutable?
-  void addSymbol(Symbol sym);
-
   inline int getSize() const { return static_cast<int>(mSize); }
   inline Symbol getElement(int n) const { return _symbols[n]; }
   inline int getCopy() const { return mCopy; }
@@ -109,7 +106,25 @@ class Path final
   friend Path butLast(Path p);
   friend Symbol last(Path p);
 
+  friend Path substitute(Symbol from, Symbol to, Path p);
+  friend Path expand(Symbol from, Path to, Path p);
+
  private:
+  
+  // TODO should Path be immutable?
+  inline void addSymbol(ml::Symbol sym)
+  {
+    if (mSize < kPathMaxSymbols)
+    {
+      _symbols[mSize++] = sym;
+    }
+    else
+    {
+      // TODO something!
+      // //debug() << "Path::addSymbol: max path length exceeded!\n";
+    }
+  }
+  
   void parsePathString(const char* pathStr, const char delimiter = '/');
 
   std::array<Symbol, kPathMaxSymbols> _symbols{};

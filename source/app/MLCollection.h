@@ -15,8 +15,8 @@ struct Collectable
   // bool conversion: is this object non-null? the default is yes.
   virtual operator bool() const { return true; }
 
-  // Collectable objects must be able to receive messages.
-  virtual Value respond(Message m) = 0;
+  // Collectable objects must receive messages.
+  virtual void receiveMessage(Message m) = 0;
 };
 
 template <typename T>
@@ -180,7 +180,6 @@ public:
       }
     }
   }
-  
 };
 
 // CollectionRoot: a handy subclass to combine a Collection with its Tree
@@ -226,14 +225,14 @@ inline void forEachChildWithPath(Collection<T> coll, std::function<void(T&, Path
 }
 
 // send a message directly to a Collectable object.
-inline void sendMessage(Collectable& obj, Message m) { obj.respond(m); }
+inline void sendMessage(Collectable& obj, Message m) { obj.receiveMessage(m); }
 
 // send a message list directly to a Collectable object.
 inline void sendMessages(Collectable& obj, MessageList msgList)
 {
   for (auto& m : msgList)
   {
-    obj.respond(m);
+    obj.receiveMessage(m);
   }
 }
 
@@ -243,7 +242,7 @@ inline void sendMessage(Collection<T> coll, Path p, Message m)
 {
   if (auto& obj = coll.find(p))
   {
-    obj->respond(m);
+    obj->receiveMessage(m);
   }
 }
 
@@ -255,7 +254,7 @@ inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
   {
     for (auto& m : msgList)
     {
-      obj->respond(m);
+      obj->receiveMessage(m);
     }
   }
 }
@@ -263,13 +262,13 @@ inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
 template <typename T>
 inline void sendMessageToChildren(Collection<T> coll, Message m)
 {
-  coll.forEachChild([&](T& obj) { obj.respond(m); });
+  coll.forEachChild([&](T& obj) { obj.receiveMessage(m); });
 }
 
 template <typename T>
 inline void sendMessageToDescendants(Collection<T> coll, Message m)
 {
-  coll.forEach([&](T& obj) { obj.respond(m); });
+  coll.forEach([&](T& obj) { obj.receiveMessage(m); });
 }
 
 }  // namespace ml

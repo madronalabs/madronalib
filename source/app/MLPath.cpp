@@ -62,19 +62,6 @@ void Path::parsePathString(const char* pathStr, const char separator)
   } while (!finishedString);
 }
 
-void Path::addSymbol(ml::Symbol sym)
-{
-  if (mSize < kPathMaxSymbols)
-  {
-    _symbols[mSize++] = sym;
-  }
-  else
-  {
-    // TODO something!
-    // //debug() << "Path::addSymbol: max path length exceeded!\n";
-  }
-}
-
 std::ostream& operator<<(std::ostream& out, const ml::Path& r)
 {
   for (auto sym : r)
@@ -121,5 +108,38 @@ Symbol last(Path p)
   }
   return Symbol();
 }
+
+Path substitute(Symbol from, Symbol to, Path p)
+{
+  Path r{p};
+  for (int n = 0; n < p.mSize; ++n)
+  {
+    if(p._symbols[n] == from)
+    {
+      r._symbols[n] = to;
+    }
+  }
+  return r;
+}
+
+// expand matching symbol into path
+Path expand(Symbol from, Path toPath, Path p)
+{
+  Path r;
+  for (int n = 0; n < p.mSize; ++n)
+  {
+    Symbol next = p._symbols[n];
+    if(next == from)
+    {
+      r = Path{r, toPath};
+    }
+    else
+    {
+      r = Path{r, next};
+    }
+  }
+  return r;
+}
+
 
 }  // namespace ml

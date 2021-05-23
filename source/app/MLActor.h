@@ -8,17 +8,25 @@
 #include "MLQueue.h"
 #include "MLTimer.h"
 
+// An Actor is a Collectable object that handles incoming messages
+// using its own queue and timer. Combining Actors is a simple and scalable way
+// to make distributed systems.
+
 namespace ml
 {
-// actor can have state machine functions using PropertyTree as storage.
+// TODO actor can have state machine functions using PropertyTree as storage.
 
 class Actor : public Collectable
 {
-  static constexpr size_t kMessageQueueSize = 128;
+  static constexpr size_t kMessageQueueSize{128};
+  static constexpr size_t kDefaultMessageInterval{1000/60};
+  
   Queue< Message > _messageQueue{kMessageQueueSize};
   Timer _queueTimer;
-
+  
  protected:
+  size_t _maxQueueSize{0};
+  size_t _msgCounter{0};
   size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
 
   inline void handleMessageList(const MessageList& ml)
@@ -28,26 +36,30 @@ class Actor : public Collectable
       handleMessage(m);
     }
   }
+  
+  virtual void handleFullQueue(){}
 
  public:
-  // We can think of an Actor, mainly, as a message handler.
   virtual void handleMessage(Message m) = 0;
 
   Actor() {}
   virtual ~Actor() = default;
 
-  void start()
+  void start(size_t interval = kDefaultMessageInterval)
   {
-    _queueTimer.start([=]() { handleMessagesInQueue(); }, milliseconds(1000 / 60));
+    _queueTimer.start([=]() { handleMessagesInQueue(); }, milliseconds(interval));
   }
 
   void stop() { _queueTimer.stop(); }
 
-  // Collectable
-  inline Value respond(Message m)
+  // Collectable implementation
+  inline void receiveMessage(Message m)
   {
-    // return true, unless queue was full.
-    return (_messageQueue.push(m));
+    // queue returns true unless full.
+    if(!(_messageQueue.push(m))) handleFullQueue();
+    
+    // DEBUG
+    _maxQueueSize = std::max(_maxQueueSize, getMessagesAvailable());
   }
 
   inline void handleMessagesInQueue()
@@ -56,6 +68,7 @@ class Actor : public Collectable
     while (auto notEmpty = _messageQueue.pop(m))
     {
       handleMessage(m);
+      _msgCounter++;
     }
   }
 };
