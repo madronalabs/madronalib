@@ -31,7 +31,14 @@ enum flags
 // intended use in editors and controllers, this seems like a reasonable
 // tradeoff.
 
-using MessageList = std::vector<Message>;
+using MessageList = std::vector< Message >;
+
+inline MessageList append(MessageList a, MessageList b)
+{
+  MessageList r{a};
+  r.insert( r.end(), b.begin(), b.end() );
+  return r;
+}
 
 }  // namespace ml
 

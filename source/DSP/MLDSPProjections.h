@@ -6,6 +6,7 @@
 
 #include <functional>
 #include <vector>
+#include <iostream>
 
 #include "MLDSPScalarMath.h"
 
@@ -190,4 +191,13 @@ inline Projection piecewise(std::initializer_list<float> valueList,
   }
 }
 }  // namespace projections
+
+
+inline std::ostream& operator<<(std::ostream& out, const ml::Interval& m)
+{
+  std::cout << "[" << m.mX1 << "–" << m.mX2 << "]";
+  return out;
+}
+
+
 }  // namespace ml

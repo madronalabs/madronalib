@@ -295,5 +295,8 @@ TEST_CASE("madronalib/core/projections", "[projections]")
       std::cout << fx << " -> " << pa(fx) << "\n";
     }
   }
+  
+  Interval testInterval{0, 2};
+  std::cout << testInterval << "\n";
 }
 

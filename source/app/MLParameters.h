@@ -21,21 +21,45 @@ struct ParameterProjection
 inline ParameterProjection createParameterProjection(const ParameterDescription& p)
 {
   ParameterProjection b;
+  auto units = Symbol(p.getProperty("units").getTextValue());
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
-  Interval fullRange{range[0], range[1]};
+  
+  Interval normalRange{0., 1.};
+  Interval plainRange{range[0], range[1]};
+
+  // make ranges for list parameters
+  if(units == "list")
+  {
+    if(p.hasProperty("listitems"))
+    {
+      // read and count list items
+      // list params don't need a range property
+      auto listItems = textUtils::split(p.getTextProperty("listitems"), '/');
+      plainRange = Interval{0, listItems.size() - 1.f};
+      
+      // normal range: e.g. 0.25 -- 0.75 for 2 items, to center norm value in item
+      float halfItem = 0.5f/(listItems.size());
+      normalRange = Interval{halfItem, 1.0f - halfItem};
+    }
+    else
+    {
+      //TODO error handling
+      std::cout << "parameter description " << p.getProperty("name") << ": no list items!\n";
+    }
+  }
 
   if (bLog)
   {
     b.normalizedToPlain =
-        ml::projections::intervalMap({0, 1}, fullRange, ml::projections::log(fullRange));
+        ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
     b.plainToNormalized =
-        ml::projections::intervalMap(fullRange, {0, 1}, ml::projections::exp(fullRange));
+        ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
   }
   else
   {
-    b.normalizedToPlain = projections::linear({0, 1}, fullRange);
-    b.plainToNormalized = projections::linear(fullRange, {0, 1});
+    b.normalizedToPlain = projections::linear(normalRange, plainRange);
+    b.plainToNormalized = projections::linear(plainRange, normalRange);
   }
   return b;
 }
@@ -101,9 +125,9 @@ struct ParameterTreePlain : public ParameterTree
 
 // functions on ParameterTrees.
 
-inline void setParameterInfo(const ParameterDescription& paramDesc, ParameterTree& paramTree)
+// set the description of the parameter paramName in the tree paramTree to paramDesc.
+inline void setParameterInfo(ParameterTree& paramTree, Path paramName, const ParameterDescription& paramDesc)
 {
-  auto paramName = paramDesc.getTextProperty("name");
   paramTree.projections[paramName] = createParameterProjection(paramDesc);
   paramTree.descriptions[paramName] = ml::make_unique< ParameterDescription >(paramDesc);
 }
@@ -112,7 +136,7 @@ inline void buildParameterTree(const ParameterDescriptionList& paramList, Parame
 {
   for(const auto& paramDesc : paramList)
   {
-    setParameterInfo(*paramDesc, paramTree);
+    setParameterInfo(paramTree, paramDesc->getTextProperty("name"), *paramDesc);
   }
 }
 
@@ -121,10 +145,18 @@ inline void setDefaults(ParameterTree& p)
   for(auto& paramDesc : p.descriptions)
   {
     Path pname = paramDesc->getTextProperty("name");
-    if(pname)
+    
+    if(paramDesc->hasProperty("default"))
     {
-      float defaultVal = paramDesc->getFloatPropertyWithDefault("default", 0.5f);
-      p.setParamFromNormalizedValue(pname, defaultVal);
+      p.setParamFromNormalizedValue(pname, paramDesc->getFloatProperty("default"));
+    }
+    else if(paramDesc->hasProperty("plaindefault"))
+    {
+      p.setParamFromPlainValue(pname, paramDesc->getFloatProperty("plaindefault"));
+    }
+    else
+    {
+      p.setParamFromNormalizedValue(pname, 0.5f);
     }
   }
 }
