@@ -79,9 +79,16 @@ constexpr inline c lerp(const c& a, const c& b, const c& m)
 
 // return bool value of within half-open interval [min, max).
 template <class c>
-constexpr inline bool(within)(const c& x, const c& min, const c& max)
+constexpr inline bool within(const c& x, const c& min, const c& max)
 {
   return ((x >= min) && (x < max));
+}
+
+// return bool value of within closed interval [min, max].
+template <class c>
+constexpr inline bool withinClosedInterval(const c& x, const c& min, const c& max)
+{
+  return ((x >= min) && (x <= max));
 }
 
 template <class c>

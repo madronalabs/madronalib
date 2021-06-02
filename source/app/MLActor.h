@@ -14,6 +14,46 @@
 
 namespace ml
 {
+
+class Actor;
+class ActorRegistry
+{
+  Tree< Actor* > _actors;
+  std::mutex _listMutex;
+  
+public:
+  ActorRegistry() = default;
+  ~ActorRegistry() = default;
+  
+  Actor* getActor(Path actorName)
+  {
+    return _actors[actorName];
+  }
+  
+  void doRegister(Path actorName, Actor* a)
+  {
+    _actors[actorName] = a;
+  }
+  
+  void doRemove(Actor* actorToRemove)
+  {
+    // get exclusive access to the Tree
+    std::unique_lock<std::mutex> lock(_listMutex);
+    
+    // remove the Actor
+    for (auto it = _actors.begin(); it != _actors.end(); ++it)
+    {
+      Actor* pa = *it;
+      if(pa == actorToRemove)
+      {
+        const Path p = it.getCurrentNodePath();
+        _actors[p] = nullptr;
+      }
+    }
+  }
+};
+
+
 // TODO actor can have state machine functions using PropertyTree as storage.
 
 class Actor : public Collectable
@@ -50,7 +90,10 @@ class Actor : public Collectable
     _queueTimer.start([=]() { handleMessagesInQueue(); }, milliseconds(interval));
   }
 
-  void stop() { _queueTimer.stop(); }
+  void stop()
+  {
+    _queueTimer.stop();
+  }
 
   // Collectable implementation
   inline void receiveMessage(Message m)
@@ -72,5 +115,26 @@ class Actor : public Collectable
     }
   }
 };
+
+inline void registerActor(Path actorName, Actor* actorToRegister)
+{
+  SharedResourcePointer< ActorRegistry > registry;
+  registry->doRegister(actorName, actorToRegister);
+}
+
+inline void removeActor(Actor* actorToRemove)
+{
+  SharedResourcePointer< ActorRegistry > registry;
+  registry->doRemove(actorToRemove);
+}
+
+inline void sendMessage(Path actorName, Message m)
+{
+  SharedResourcePointer< ActorRegistry > registry;
+  if(Actor* pActor = registry->getActor(actorName))
+  {
+    sendMessage(*pActor, m);
+  }
+}
 
 }  // namespace ml
