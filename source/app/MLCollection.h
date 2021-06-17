@@ -180,6 +180,12 @@ public:
       }
     }
   }
+  
+
+  inline void dump() const
+  {
+    _tree->dump();
+  }
 };
 
 // CollectionRoot: a handy subclass to combine a Collection with its Tree

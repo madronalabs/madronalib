@@ -449,20 +449,20 @@ class DCBlocker
 
 class Differentiator
 {
-  float x1{0};
+  float _x1{0};
 
  public:
   inline DSPVector operator()(const DSPVector vx)
   {
     DSPVector vy;
-    vy[0] = x1 - vx[0];
+    vy[0] = vx[0] - _x1;
 
     // TODO SIMD
     for (int n = 1; n < kFloatsPerDSPVector; ++n)
     {
-      vy[n] = vx[n - 1] - vx[n];
+      vy[n] = vx[n] - vx[n - 1];
     }
-    x1 = vx[kFloatsPerDSPVector];
+    _x1 = vx[kFloatsPerDSPVector - 1];
     return vy;
   }
 };

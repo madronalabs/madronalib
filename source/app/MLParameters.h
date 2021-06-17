@@ -36,30 +36,34 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
       // read and count list items
       // list params don't need a range property
       auto listItems = textUtils::split(p.getTextProperty("listitems"), '/');
-      plainRange = Interval{0, listItems.size() - 1.f};
+      plainRange = Interval{-0.5f, listItems.size() - 0.5f};
       
       // normal range: e.g. 0.25 -- 0.75 for 2 items, to center norm value in item
-      float halfItem = 0.5f/(listItems.size());
-      normalRange = Interval{halfItem, 1.0f - halfItem};
+      // float halfItem = 0.5f/(listItems.size());
+      normalRange = Interval{0.f, 1.f};
     }
     else
     {
       //TODO error handling
       std::cout << "parameter description " << p.getProperty("name") << ": no list items!\n";
     }
-  }
-
-  if (bLog)
-  {
-    b.normalizedToPlain =
-        ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
-    b.plainToNormalized =
-        ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
+    b.normalizedToPlain = projections::linear(normalRange, plainRange);
+    b.plainToNormalized = projections::linear(plainRange, normalRange);
   }
   else
   {
-    b.normalizedToPlain = projections::linear(normalRange, plainRange);
-    b.plainToNormalized = projections::linear(plainRange, normalRange);
+    if (bLog)
+    {
+      b.normalizedToPlain =
+          ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
+      b.plainToNormalized =
+          ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
+    }
+    else
+    {
+      b.normalizedToPlain = projections::linear(normalRange, plainRange);
+      b.plainToNormalized = projections::linear(plainRange, normalRange);
+    }
   }
   return b;
 }
