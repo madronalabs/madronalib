@@ -89,37 +89,6 @@ class NoiseGen
   uint32_t mSeed = 0;
 };
 
-// if up at MLProc level, all outputs have fixed sizes, procs like sine16,
-// sine64, sine256, sine1024 can be used this is probably not the worst thing
-// what is penalty of dynamic sizing?
-//
-// proc can have a "size" switch on it that creates different gens internally.
-// but, resizing graph dynamically is complex. outputs auto-sum to smaller
-// inputs?
-
-/*
-
- 0 operands (generators):
- sineOsc
- TriOsc
- PhaseOsc
-
- ramp generator
- quadratic generator
-
- banks:
- ----
- sinebank
- phasebank
- SVFbank
- biquadbank
- delaybank
- hooooold on...
-
- a bank of raised cos generators can be for a granulator or shepard tone
- generator
-
-*/
 
 // super slow + accurate sine generator for testing
 
@@ -384,39 +353,4 @@ class LinearGlide
   }
 };
 
-// GenBanks can go here
-
-/*
- banks:
-----
-sinebank
-noisebank
-oscbank
-
- template<int VECTORS>
- class SineBank
- {
- // float will be promoted to Matrix of size 1 for single argument
- SineBank<VECTORS>(Matrix f) { setFrequency(f); clear(); }
- ~SineBank<VECTORS>() {}
-
- inline DSPVectorArray<VECTORS> operator()()
- {
- DSPVectorArray<VECTORS> y;
- for(int j=0; j<VECTORS; ++j)
- {
-
- }
- return y;
- }
-
- private:
- int32_t mOmega32, mStep32;
- float mInvSrDomain;
- };
-
- typedef SineBank<1> Sine;
- */
-
-//
 }  // namespace ml
