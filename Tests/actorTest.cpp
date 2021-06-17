@@ -33,12 +33,12 @@ public:
     
   }
 
-}
+};
 
 TEST_CASE("madronalib/core/actors", "[actors]")
 {
-
-  Actor a;
+  // TODO
+  MyActor a;
   
 }
 
