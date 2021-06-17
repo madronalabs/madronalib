@@ -2,6 +2,7 @@
 // Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+
 /* NEON implementation of sin, cos, exp and log
 
    Inspired by Intel Approximate Math library, and based on the
@@ -31,13 +32,12 @@
 
 #include <arm_neon.h>
 
-typedef float32x4_t SIMDVectorFloat;       // vector of 4 float
-typedef uint32x4_t SIMDVectorUnsignedInt;  // vector of 4 uint32
-typedef int32x4_t SIMDVectorInt;           // vector of 4 uint32
 
-constexpr uintptr_t kFloatsPerSIMDVectorBits = 2;
-constexpr uintptr_t kFloatsPerSIMDVector = 1 << kFloatsPerSIMDVectorBits;
-constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVector;
+typedef float32x4_t NEONVectorFloat;       // vector of 4 float
+typedef uint32x4_t NEONVectorUnsignedInt;  // vector of 4 uint32
+typedef int32x4_t NEONVectorInt;           // vector of 4 uint32
+
+
 
 #define c_inv_mant_mask ~0x7f800000u
 #define c_cephes_SQRTHF 0.707106781186547524
@@ -56,16 +56,16 @@ constexpr int kSIMDVectorsPerDSPVector = kFloatsPerDSPVector / kFloatsPerSIMDVec
 /* natural logarithm computed for 4 simultaneous float
    return NaN for x <= 0
 */
-inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
+inline NEONVectorFloat log_ps(NEONVectorFloat x)
 {
-  SIMDVectorFloat one = vdupq_n_f32(1);
+  NEONVectorFloat one = vdupq_n_f32(1);
 
   x = vmaxq_f32(x, vdupq_n_f32(0)); /* force flush to zero on denormal values */
-  SIMDVectorUnsignedInt invalid_mask = vcleq_f32(x, vdupq_n_f32(0));
+  NEONVectorUnsignedInt invalid_mask = vcleq_f32(x, vdupq_n_f32(0));
 
-  SIMDVectorInt ux = vreinterpretq_s32_f32(x);
+  NEONVectorInt ux = vreinterpretq_s32_f32(x);
 
-  SIMDVectorInt emm0 = vshrq_n_s32(ux, 23);
+  NEONVectorInt emm0 = vshrq_n_s32(ux, 23);
 
   /* keep only the fractional part */
   ux = vandq_s32(ux, vdupq_n_s32(c_inv_mant_mask));
@@ -73,7 +73,7 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
   x = vreinterpretq_f32_s32(ux);
 
   emm0 = vsubq_s32(emm0, vdupq_n_s32(0x7f));
-  SIMDVectorFloat e = vcvtq_f32_s32(emm0);
+  NEONVectorFloat e = vcvtq_f32_s32(emm0);
 
   e = vaddq_f32(e, one);
 
@@ -83,15 +83,15 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
        x = x + x - 1.0;
      } else { x = x - 1.0; }
   */
-  SIMDVectorUnsignedInt mask = vcltq_f32(x, vdupq_n_f32(c_cephes_SQRTHF));
-  SIMDVectorFloat tmp = vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(x), mask));
+  NEONVectorUnsignedInt mask = vcltq_f32(x, vdupq_n_f32(c_cephes_SQRTHF));
+  NEONVectorFloat tmp = vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(x), mask));
   x = vsubq_f32(x, one);
   e = vsubq_f32(e, vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(one), mask)));
   x = vaddq_f32(x, tmp);
 
-  SIMDVectorFloat z = vmulq_f32(x, x);
+  NEONVectorFloat z = vmulq_f32(x, x);
 
-  SIMDVectorFloat y = vdupq_n_f32(c_cephes_log_p0);
+  NEONVectorFloat y = vdupq_n_f32(c_cephes_log_p0);
   y = vmulq_f32(y, x);
   y = vaddq_f32(y, vdupq_n_f32(c_cephes_log_p1));
   y = vmulq_f32(y, x);
@@ -141,11 +141,11 @@ inline SIMDVectorFloat log_ps(SIMDVectorFloat x)
 #define c_cephes_exp_p5 5.0000001201E-1
 
 /* exp() computed for 4 float at once */
-inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
+inline NEONVectorFloat exp_ps(NEONVectorFloat x)
 {
-  SIMDVectorFloat tmp, fx;
+  NEONVectorFloat tmp, fx;
 
-  SIMDVectorFloat one = vdupq_n_f32(1);
+  NEONVectorFloat one = vdupq_n_f32(1);
   x = vminq_f32(x, vdupq_n_f32(c_exp_hi));
   x = vmaxq_f32(x, vdupq_n_f32(c_exp_lo));
 
@@ -156,24 +156,24 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
   tmp = vcvtq_f32_s32(vcvtq_s32_f32(fx));
 
   /* if greater, substract 1 */
-  SIMDVectorUnsignedInt mask = vcgtq_f32(tmp, fx);
+  NEONVectorUnsignedInt mask = vcgtq_f32(tmp, fx);
   mask = vandq_u32(mask, vreinterpretq_u32_f32(one));
 
   fx = vsubq_f32(tmp, vreinterpretq_f32_u32(mask));
 
   tmp = vmulq_f32(fx, vdupq_n_f32(c_cephes_exp_C1));
-  SIMDVectorFloat z = vmulq_f32(fx, vdupq_n_f32(c_cephes_exp_C2));
+  NEONVectorFloat z = vmulq_f32(fx, vdupq_n_f32(c_cephes_exp_C2));
   x = vsubq_f32(x, tmp);
   x = vsubq_f32(x, z);
 
   static const float cephes_exp_p[6] = {c_cephes_exp_p0, c_cephes_exp_p1, c_cephes_exp_p2,
                                         c_cephes_exp_p3, c_cephes_exp_p4, c_cephes_exp_p5};
-  SIMDVectorFloat y = vld1q_dup_f32(cephes_exp_p + 0);
-  SIMDVectorFloat c1 = vld1q_dup_f32(cephes_exp_p + 1);
-  SIMDVectorFloat c2 = vld1q_dup_f32(cephes_exp_p + 2);
-  SIMDVectorFloat c3 = vld1q_dup_f32(cephes_exp_p + 3);
-  SIMDVectorFloat c4 = vld1q_dup_f32(cephes_exp_p + 4);
-  SIMDVectorFloat c5 = vld1q_dup_f32(cephes_exp_p + 5);
+  NEONVectorFloat y = vld1q_dup_f32(cephes_exp_p + 0);
+  NEONVectorFloat c1 = vld1q_dup_f32(cephes_exp_p + 1);
+  NEONVectorFloat c2 = vld1q_dup_f32(cephes_exp_p + 2);
+  NEONVectorFloat c3 = vld1q_dup_f32(cephes_exp_p + 3);
+  NEONVectorFloat c4 = vld1q_dup_f32(cephes_exp_p + 4);
+  NEONVectorFloat c5 = vld1q_dup_f32(cephes_exp_p + 5);
 
   y = vmulq_f32(y, x);
   z = vmulq_f32(x, x);
@@ -196,7 +196,7 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
   mm = vcvtq_s32_f32(fx);
   mm = vaddq_s32(mm, vdupq_n_s32(0x7f));
   mm = vshlq_n_s32(mm, 23);
-  SIMDVectorFloat pow2n = vreinterpretq_f32_s32(mm);
+  NEONVectorFloat pow2n = vreinterpretq_f32_s32(mm);
 
   y = vmulq_f32(y, pow2n);
   return y;
@@ -228,13 +228,13 @@ inline SIMDVectorFloat exp_ps(SIMDVectorFloat x)
    almost no extra price so both sin_ps and cos_ps make use of
    sincos_ps..
   */
-inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat *ycos)
+inline void sincos_ps(NEONVectorFloat x, NEONVectorFloat *ysin, NEONVectorFloat *ycos)
 {  // any x
-  SIMDVectorFloat xmm1, xmm2, xmm3, y;
+  NEONVectorFloat xmm1, xmm2, xmm3, y;
 
-  SIMDVectorUnsignedInt emm2;
+  NEONVectorUnsignedInt emm2;
 
-  SIMDVectorUnsignedInt sign_mask_sin, sign_mask_cos;
+  NEONVectorUnsignedInt sign_mask_sin, sign_mask_cos;
   sign_mask_sin = vcltq_f32(x, vdupq_n_f32(0));
   x = vabsq_f32(x);
 
@@ -254,7 +254,7 @@ inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat 
 
      Both branches will be computed.
   */
-  SIMDVectorUnsignedInt poly_mask = vtstq_u32(emm2, vdupq_n_u32(2));
+  NEONVectorUnsignedInt poly_mask = vtstq_u32(emm2, vdupq_n_u32(2));
 
   /* The magic pass: "Extended precision modular arithmetic"
      x = ((x - y * DP1) - y * DP2) - y * DP3; */
@@ -270,8 +270,8 @@ inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat 
 
   /* Evaluate the first polynom  (0 <= x <= Pi/4) in y1,
      and the second polynom      (Pi/4 <= x <= 0) in y2 */
-  SIMDVectorFloat z = vmulq_f32(x, x);
-  SIMDVectorFloat y1, y2;
+  NEONVectorFloat z = vmulq_f32(x, x);
+  NEONVectorFloat y1, y2;
 
   y1 = vmulq_n_f32(z, c_coscof_p0);
   y2 = vmulq_n_f32(z, c_sincof_p0);
@@ -290,28 +290,33 @@ inline void sincos_ps(SIMDVectorFloat x, SIMDVectorFloat *ysin, SIMDVectorFloat 
   y1 = vaddq_f32(y1, vdupq_n_f32(1));
 
   /* select the correct result from the two polynoms */
-  SIMDVectorFloat ys = vbslq_f32(poly_mask, y1, y2);
-  SIMDVectorFloat yc = vbslq_f32(poly_mask, y2, y1);
+  NEONVectorFloat ys = vbslq_f32(poly_mask, y1, y2);
+  NEONVectorFloat yc = vbslq_f32(poly_mask, y2, y1);
   *ysin = vbslq_f32(sign_mask_sin, vnegq_f32(ys), ys);
   *ycos = vbslq_f32(sign_mask_cos, yc, vnegq_f32(yc));
 }
 
-inline SIMDVectorFloat sin_ps(SIMDVectorFloat x)
+inline NEONVectorFloat sin_ps(NEONVectorFloat x)
 {
-  SIMDVectorFloat ysin, ycos;
+  NEONVectorFloat ysin, ycos;
   sincos_ps(x, &ysin, &ycos);
   return ysin;
 }
 
-inline SIMDVectorFloat cos_ps(SIMDVectorFloat x)
+inline NEONVectorFloat cos_ps(NEONVectorFloat x)
 {
-  SIMDVectorFloat ysin, ycos;
+  NEONVectorFloat ysin, ycos;
   sincos_ps(x, &ysin, &ycos);
   return ycos;
 }
 
 // TODO NEON approximations unimplemented!
-inline SIMDVectorFloat sinapprox_ps(SIMDVectorFloat x) { return sin_ps(x); }
-inline SIMDVectorFloat cosapprox_ps(SIMDVectorFloat x) { return cos_ps(x); }
-inline SIMDVectorFloat logapprox_ps(SIMDVectorFloat x) { return log_ps(x); }
-inline SIMDVectorFloat expapprox_ps(SIMDVectorFloat x) { return exp_ps(x); }
+inline NEONVectorFloat sinapprox_ps(NEONVectorFloat x) { return sin_ps(x); }
+inline NEONVectorFloat cosapprox_ps(NEONVectorFloat x) { return cos_ps(x); }
+inline NEONVectorFloat logapprox_ps(NEONVectorFloat x) { return log_ps(x); }
+inline NEONVectorFloat expapprox_ps(NEONVectorFloat x) { return exp_ps(x); }
+
+
+#include "sse2neon.h"
+#include "MLDSPMathSSE.h"
+

@@ -94,7 +94,7 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
       float approxMaxDiff = max(abs(native - approx));
 
       std::cout << fnVec.first << " native: " << nativeMaxDiff
-                << ", precis: " << preciseMaxDiff
+                << ", precise: " << preciseMaxDiff
                 << ", approx: " << approxMaxDiff << " \n";
 
       // these differences are to accommodate the exp functions, the other ones
@@ -109,22 +109,35 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     // test speed of precise functions relative to native ones.
     // test speed of approximate functions relative to precise ones.
     // approximate ones should be faster!
-    int iters = 1000;
+    std::cout << "nanoseconds per iteration:\n";
 
-    std::cout << "nanoseconds for " << iters << " iterations:\n";
     int i = 0;
     for (auto fnVec : functionVectors)
     {
-      timedResult<DSPVector> fnTimeNative =
-          timeIterations<DSPVector>(fnVec.second[0], iters);
-      timedResult<DSPVector> fnTimePrecise =
-          timeIterations<DSPVector>(fnVec.second[1], iters);
-      timedResult<DSPVector> fnTimeApprox =
-          timeIterations<DSPVector>(fnVec.second[2], iters);
-      std::cout << fnVec.first << " native: " << fnTimeNative.ns
-                << ", precise: " << fnTimePrecise.ns
-                << ", approx: " << fnTimeApprox.ns << " \n";
-      i++;
+        
+        // temporarily we have a separate timing function for Apple Silicon, which
+        // tries to runs the test on a performance core.
+        
+#if (defined __ARM_NEON) || (defined __ARM_NEON__)
+        TimedResult<DSPVector> fnTimeNative =
+        timeIterationsInThread<DSPVector>(fnVec.second[0]);
+        TimedResult<DSPVector> fnTimePrecise =
+        timeIterationsInThread<DSPVector>(fnVec.second[1]);
+        TimedResult<DSPVector> fnTimeApprox =
+        timeIterationsInThread<DSPVector>(fnVec.second[2]);
+#else
+        TimedResult<DSPVector> fnTimeNative =
+        timeIterations<DSPVector>(fnVec.second[0]);
+        TimedResult<DSPVector> fnTimePrecise =
+        timeIterations<DSPVector>(fnVec.second[1]);
+        TimedResult<DSPVector> fnTimeApprox =
+        timeIterations<DSPVector>(fnVec.second[2]);
+#endif
+        
+        std::cout << fnVec.first << " native: " << fnTimeNative.ns
+                  << ", precise: " << fnTimePrecise.ns
+                  << ", approx: " << fnTimeApprox.ns << " \n";
+        i++;
     }
   }
 
