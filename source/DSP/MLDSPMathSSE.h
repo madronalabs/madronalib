@@ -29,7 +29,10 @@
  (this is the zlib license)
  */
 
+#ifndef ML_SSE_TO_NEON
 #include <emmintrin.h>
+#endif
+
 #include <float.h>
 
 #pragma once

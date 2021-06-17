@@ -16,7 +16,7 @@ constexpr int kFloatsPerDSPVector = 64;
 
 // NEON
 
-// TODO
+#define ML_SSE_TO_NEON
 #include "MLDSPMathNEON.h"
 
 #else

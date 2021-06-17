@@ -25,9 +25,9 @@ The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/tr
 Status
 ------------
 
-(as of March 2021)
+(as of June 2021)
 
-The files in /source/DSP are a useful header-only DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations.  An SSE version is complete, NEON support is a work in progress. Shipping products at Madrona Labs are relying on these headers and breaking changes have, for the most part, stopped. 
+The files in /source/DSP are a useful header-only DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations. Both SSE (for Intel chips) and NEON (for Apple Silicon) are supported. Shipping products at Madrona Labs are relying on these headers and breaking changes have, for the most part, stopped. 
 
 There are three examples built using RtAudio that play and process audio signals. 
 
@@ -78,8 +78,7 @@ Contents
 		/DSP: header-only library for SIMD DSP.
 			These modules shall only depend on code in /DSP, 
 			with the exception of the externals/ffft library. Include 
-			mldsp.h to include all DSP files. NEON code is work 
-			in progress.
+			mldsp.h to include all DSP files. 
       
 		/app: utilities for low-level application support: symbols,
 			timers, queues, data structures, models, etc. these modules shall 
