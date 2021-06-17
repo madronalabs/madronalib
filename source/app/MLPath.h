@@ -1,6 +1,5 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -38,6 +37,12 @@ class Path final
   Path(const TextFragment frag);
   Path(const TextFragment frag, const char separator);
   Path(const Path& a, const Path& b);
+
+  template <typename T, typename... Rest>
+  Path(const T& first, const Rest&... rest)
+  {
+    *this = Path(Path(first), Path(rest...));
+  }
 
   ~Path() = default;
 
@@ -97,10 +102,7 @@ class Path final
   };
 
   inline const_iterator begin() const { return const_iterator(this); }
-
   inline const_iterator end() const { return const_iterator(this, static_cast<int>(mSize)); }
-
-  friend Path concat(const Path& a, const Path& b);
 
   friend Symbol head(Path p);
   friend Path tail(Path p);

@@ -1,14 +1,12 @@
-// example of RtAudio wrapping low-level madronalib DSP code.
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#include "MLDSPFunctional.h"
+// example of RtAudio wrapping low-level madronalib DSP code.
 
 #include "RtAudioExample.h"
 
 using namespace ml;
-
-#ifdef __WIN32__
-fix this
-#endif
 
 // Mac OS note: need to ask for microphone access if this is nonzero!
 constexpr int kInputChannels = 0;
@@ -22,7 +20,7 @@ SineGen s1, s2;
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors()
+DSPVectorArray<kOutputChannels> processVectors(void* stateData)
 {
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
@@ -33,7 +31,6 @@ DSPVectorArray<kOutputChannels> processVectors()
   // concatenating the two DSPVectors makes a DSPVectorArray<2>: our stereo output.
   return concatRows(sineL, sineR);
 }
-
 
 int main( int argc, char *argv[] )
 {

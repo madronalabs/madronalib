@@ -252,6 +252,7 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     set(
         EXAMPLE_SOURCES
         ${ML_ROOT}/examples/rtaudio/${EXAMPLE_SOURCE_FILE}
+        ${ML_ROOT}/examples/rtaudio/RtAudioExample.h
         ${ML_ROOT}/external/rtaudio/RtAudio.cpp
     )
 
@@ -300,14 +301,16 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
         "${CMAKE_CURRENT_SOURCE_DIR}/build/bin/$<CONFIG>/${EXAMPLE_APP_NAME}.app/Contents"
         )    
 
-    # add missing keys to plist
-    set(ADD_PLIST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/add-plist-value.sh")
-    set(RATIONALE "This app requires microphone access.")
-    add_custom_command(
-        TARGET ${EXAMPLE_APP_NAME} POST_BUILD
-        COMMAND ${ADD_PLIST_SCRIPT} NSMicrophoneUsageDescription "This app requires microphone access." "${PACKAGE_DIR}/Info.plist"
-        VERBATIM
-    )
+    # add missing keys to plist for Mac OS
+    if(APPLE)
+        set(ADD_PLIST_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/cmake/scripts/add-plist-value.sh")
+        set(RATIONALE "This app requires microphone access.")
+        add_custom_command(
+            TARGET ${EXAMPLE_APP_NAME} POST_BUILD
+            COMMAND ${ADD_PLIST_SCRIPT} NSMicrophoneUsageDescription "This app requires microphone access." "${PACKAGE_DIR}/Info.plist"
+            VERBATIM
+        )
+    endif()
 endfunction()
 
 
@@ -315,9 +318,13 @@ endfunction()
 # build all examples
 #--------------------------------------------------------------------
 
+# TODO- examples would be better in a single examples folder and
+# without Resources dirs and CMakelists.txt for each one in the project.
+
 if(BUILD_EXAMPLES)
     make_example(ReverbExample reverb.cpp)
     make_example(SineExample sine.cpp)
+    make_example(FDTDExample FDTD.cpp)
 
 endif()
 

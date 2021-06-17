@@ -1,6 +1,5 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPath.h"
@@ -91,20 +90,6 @@ std::ostream& operator<<(std::ostream& out, const ml::Path& r)
   return out;
 }
 
-Path concat(const Path& a, const Path& b)
-{
-  Path r;
-  for (Symbol s : a)
-  {
-    r.addSymbol(s);
-  }
-  for (Symbol s : b)
-  {
-    r.addSymbol(s);
-  }
-  return r;
-}
-
 Symbol head(Path p) { return p._symbols[0]; }
 
 Path tail(Path p)
@@ -128,6 +113,13 @@ Path butLast(Path p)
   return r;
 }
 
-Symbol last(Path p) { return p._symbols[p.getSize() - 1]; }
+Symbol last(Path p)
+{
+  if(p.getSize() > 0)
+  {
+    return p._symbols[p.getSize() - 1];
+  }
+  return Symbol();
+}
 
 }  // namespace ml

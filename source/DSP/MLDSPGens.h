@@ -14,41 +14,96 @@
 
 #pragma once
 
+#include "MLDSPFunctional.h"
 #include "MLDSPOps.h"
+#include "MLDSPUtils.h"
 
 namespace ml
 {
-// generate a single-sample tick every n samples.
-
+// generate a single-sample tick, repeating at a frequency given by the input.
 class TickGen
 {
+  float mOmega{0};
+
  public:
-  TickGen(int p) : mCounter(p), mPeriod(p) {}
-  ~TickGen() {}
-
-  inline void setPeriod(int p) { mPeriod = p; }
-
-  inline DSPVector operator()()
+  inline DSPVector operator()(const DSPVector cyclesPerSample)
   {
-    DSPVector vy;
-    for (int i = 0; i < kFloatsPerDSPVector; ++i)
+    // calculate counter delta per sample
+    DSPVector stepsPerSampleV = cyclesPerSample;
+
+    // accumulate phase and wrap to generate ticks
+    DSPVector vy{0.f};
+    for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
-      float fy = 0;
-      if (++mCounter >= mPeriod)
+      mOmega += stepsPerSampleV[n];
+      if (mOmega > 1.0f)
       {
-        mCounter = 0;
-        fy = 1;
+        mOmega -= 1.0f;
+        vy[n] = 1.0f;
       }
-      vy[i] = fy;
     }
     return vy;
   }
-  int mCounter;
-  int mPeriod;
 };
 
-// antialiased ImpulseGen TODO
+// generate an antialiased impulse, repeating at a frequency given by the input.
+// limitations to fix:
+//     frequency can't be higher than sr / table size.
+//     table output is only positioned to the nearest sample.
+class ImpulseGen
+{
+  // pick odd table size to get sample-centered sinc and window
+  static constexpr int kTableSize{17};
+  DSPVector _table;
+  static_assert(kTableSize < kFloatsPerDSPVector,
+                "ImpulseGen: table size must be < the DSP vector size.");
 
+  int _outputCounter;
+  float _omega{0.f};
+
+ public:
+  ImpulseGen()
+  {
+    // make windowed sinc table
+    DSPVector windowVec;
+    makeWindow(windowVec.getBuffer(), kTableSize, windows::blackman);
+    const float omega = 0.25f;
+    auto sincFn{[&](int i) {
+      float pi_x = ml::kTwoPi * omega * i;
+      return (i == 0) ? 1.f : sinf(pi_x) / pi_x;
+    }};
+    DSPVector sincVec = map(sincFn, columnIndexInt() - DSPVectorInt((kTableSize - 1) / 2));
+    _table = normalize(sincVec * windowVec);
+  }
+  ~ImpulseGen() {}
+
+  inline DSPVector operator()(const DSPVector cyclesPerSample)
+  {
+    // accumulate phase and wrap to generate ticks
+    DSPVector vy{0.f};
+    for (int n = 0; n < kFloatsPerDSPVector; ++n)
+    {
+      _omega += cyclesPerSample[n];
+      if (_omega > 1.0f)
+      {
+        _omega -= 1.0f;
+
+        // start an output impulse
+        _outputCounter = 0;
+      }
+
+      if (_outputCounter < kTableSize)
+      {
+        vy[n] = _table[_outputCounter];
+        _outputCounter++;
+      }
+    }
+    return vy;
+  }
+};
+
+// generate a random number from -1 to 1 every sample.
+// NOTE: this will create more energy at higher sample rates!
 class NoiseGen
 {
  public:
@@ -89,9 +144,7 @@ class NoiseGen
   uint32_t mSeed = 0;
 };
 
-
 // super slow + accurate sine generator for testing
-
 class TestSineGen
 {
   float mOmega{0};
@@ -129,8 +182,9 @@ class PhasorGen
   {
     constexpr float range(1.0f);
     constexpr float offset(0.5f);
-    constexpr float stepsPerCycle(const_math::pow(2., 32.));
-    DSPVector outputScaleV(range / stepsPerCycle);
+    constexpr float stepsPerCycle(static_cast<float>(const_math::pow(2., 32)));
+    constexpr float cyclesPerStep(1.f / stepsPerCycle);
+    DSPVector outputScaleV(range * cyclesPerStep);
 
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
@@ -171,7 +225,7 @@ static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
     }
     else if (t > 1.0f - dt)
     {
-      t = (t - 1.0) / dt;
+      t = (t - 1.0f) / dt;
       c = t * t + t + t + 1.0f;
     }
     blep[n] = c;
@@ -184,7 +238,7 @@ static DSPVector polyBLEP(const DSPVector phase, const DSPVector freq)
 // harmonics only, with the 3rd harmonic at about -40dB.
 inline DSPVector phasorToSine(DSPVector phasorV)
 {
-  constexpr float sqrt2(const_math::sqrt(2.0f));
+  constexpr float sqrt2(static_cast<float>(const_math::sqrt(2.0f)));
   constexpr float domain(sqrt2 * 4.f);
   DSPVector domainScaleV(domain);
   DSPVector domainOffsetV(-sqrt2);
@@ -293,7 +347,7 @@ class LinearGlide
  public:
   void setGlideTimeInSamples(float t)
   {
-    mVectorsPerGlide = t / kFloatsPerDSPVector;
+    mVectorsPerGlide = static_cast<int>(t / kFloatsPerDSPVector);
     if (mVectorsPerGlide < 1) mVectorsPerGlide = 1;
     mDyPerVector = 1.0f / (mVectorsPerGlide + 0.f);
   }

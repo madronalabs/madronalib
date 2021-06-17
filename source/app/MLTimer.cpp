@@ -1,15 +1,15 @@
-//
-//  MLTimer.cpp
-//  madronalib
-//
-//  Created by Randy Jones on 9/10/2018
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLTimer.h"
 
 #include <functional>
 
 #include "MLPlatform.h"
+
+#include <chrono>
+using namespace std::chrono;
 
 // Timers
 
@@ -28,6 +28,9 @@ void macTimersCallback(CFRunLoopTimerRef, void* info)
 
 void ml::Timers::start(bool runInMainThread)
 {
+  // MLTEST
+  std::cout << "timers: START\n";
+  
   _inMainThread = runInMainThread;
   if (!_running)
   {
@@ -56,6 +59,9 @@ void ml::Timers::start(bool runInMainThread)
 
 void ml::Timers::stop()
 {
+  // MLTEST
+  std::cout << "timers: STOP\n";
+  
   if (_inMainThread)
   {
     if (pTimersRef)
@@ -70,6 +76,15 @@ void ml::Timers::stop()
     // signal thread to exit
     _running = false;
     runThread.join();
+  }
+}
+
+void ml::Timers::run(void)
+{
+  while (_running)
+  {
+    std::this_thread::sleep_for(milliseconds(Timers::kMillisecondsResolution));
+    tick();
   }
 }
 
@@ -131,6 +146,15 @@ void ml::Timers::stop()
   }
 }
 
+void ml::Timers::run(void)
+{
+  while (_running)
+  {
+    std::this_thread::sleep_for(milliseconds(Timers::kMillisecondsResolution));
+    tick();
+  }
+}
+
 #elif ML_LINUX
 
 void Timers::start(bool runInMainThread)
@@ -139,31 +163,6 @@ void Timers::start(bool runInMainThread)
   {
     _running = true;
     runThread = std::thread{[&]() { run(); }};
-  }
-}
-
-#endif
-
-void ml::Timers::tick(void)
-{
-  time_point<system_clock> now = system_clock::now();
-  std::unique_lock<std::mutex> lock(mSetMutex);
-
-  for (auto t : timerPtrs)
-  {
-    std::unique_lock<std::mutex> lock(t->_counterMutex);
-    if (t->mCounter != 0)
-    {
-      if (now - t->mPreviousCall > t->mPeriod)
-      {
-        t->myFunc();
-        if (t->mCounter > 0)
-        {
-          t->mCounter--;
-        }
-        t->mPreviousCall = now;
-      }
-    }
   }
 }
 
@@ -176,11 +175,78 @@ void ml::Timers::run(void)
   }
 }
 
+#endif
+
+void ml::Timers::tick(void)
+{
+  static time_point<system_clock> previousStatsTime = system_clock::now();
+  time_point<system_clock> now = system_clock::now();
+
+  std::unique_lock<std::mutex> lock(mSetMutex);
+
+  // MLTEST
+  bool doDebug{false};
+  if(now - previousStatsTime > milliseconds(1000))
+  {
+    // dump stats
+    std::cout << "timers: " << _timerPtrs.size() << " timers. \n ";
+    previousStatsTime = now;
+
+
+    
+    // dump timer info
+    for (auto t : _timerPtrs)
+    {
+      size_t n = t->_testID;
+      auto age = duration_cast<milliseconds>(now - t->_creationTime).count();
+      auto per = t->_period.count();
+      
+      // current period exipred
+      auto cur = duration_cast<milliseconds>(now - t->_previousCall).count();
+      
+      std::cout << "    t" << n << ": age=" << age << " per=" << per << " cur=" << cur << "\n";
+    }
+  }
+
+  for (auto t : _timerPtrs)
+  {
+    std::unique_lock<std::mutex> lock(t->_counterMutex);
+    if (t->_counter != 0)
+    {
+      if(t->_additionalTime > milliseconds(0))
+      {
+        t->_previousCall = now + t->_additionalTime - t->_period;
+        t->_additionalTime = milliseconds(0);
+      }
+      else if (now - t->_previousCall >= t->_period)
+      {
+        
+        // MLTEST
+        if(0)
+        std::cout << "Timers:     firing timer # " << t->_testID << "\n";
+        
+        t->_func();
+        if (t->_counter > 0)
+        {
+          t->_counter--;
+        }
+        t->_previousCall = now;
+      }
+    }
+  }
+}
+
 // Timer
 
 ml::Timer::Timer() noexcept
 {
   std::unique_lock<std::mutex> lock(_timers->mSetMutex);
+  _previousCall = _creationTime = system_clock::now();
+  
+  // MLTEST
+  _testID = _timers->getSize();
+  std::cout << "made timer # " << _testID << "\n";
+  
   _timers->insert(this);
 }
 
@@ -192,8 +258,8 @@ ml::Timer::~Timer()
 
 void ml::Timer::stop()
 {
-  // More lightweight ways of handling a race on mCounter are possible, but as
+  // More lightweight ways of handling a race on _counter are possible, but as
   // stopping a timer is an infrequent operation we use the mutex for brevity.
   std::unique_lock<std::mutex> lock(_counterMutex);
-  mCounter = 0;
+  _counter = 0;
 }

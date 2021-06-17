@@ -1,9 +1,6 @@
-//
-//  MLTimer.h
-//  madronalib
-//
-//  Created by Randy Jones on 9/10/2018
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
 
@@ -49,12 +46,14 @@ class Timers
   void start(bool runInMainThread = false);
   void stop();
 
-  void insert(Timer* t) { timerPtrs.insert(t); }
-
-  void erase(Timer* t) { timerPtrs.erase(t); }
+  void insert(Timer* t) { _timerPtrs.insert(t); }
+  void erase(Timer* t) { _timerPtrs.erase(t); }
 
   void tick(void);
   void run(void);
+  
+  // MLTEST
+  size_t getSize() { return _timerPtrs.size(); }
 
  private:
   std::mutex mSetMutex;
@@ -62,7 +61,7 @@ class Timers
   void* pTimersRef{nullptr};
   bool _running{false};
   bool _inMainThread{false};
-  std::set<Timer*> timerPtrs;
+  std::set<Timer*> _timerPtrs;
   std::thread runThread;
 
 #if ML_WINDOWS
@@ -87,42 +86,53 @@ class Timer
   // call the function once after the specified interval.
   void callOnce(std::function<void(void)> f, const milliseconds period)
   {
-    mCounter = 1;
-    myFunc = f;
-    mPeriod = period;
-    mPreviousCall = system_clock::now();
+    _counter = 1;
+    _func = f;
+    _period = period;
+    _previousCall = system_clock::now();
   }
-
+  
+  // extend the timeout of the current period for the given number of
+  // milliseconds after the next tick.
+  void postpone(const milliseconds timeToAdd)
+  {
+    _additionalTime = timeToAdd;
+  }
+  
   // call the function n times, waiting the specified interval before each.
   void callNTimes(std::function<void(void)> f, const milliseconds period, int n)
   {
-    mCounter = n;
-    myFunc = f;
-    mPeriod = period;
-    mPreviousCall = system_clock::now();
+    _counter = n;
+    _func = f;
+    _period = period;
+    _previousCall = system_clock::now();
   }
 
   // start calling the function periodically. the wait period happens before the
   // first call.
   void start(std::function<void(void)> f, const milliseconds period)
   {
-    mCounter = -1;
-    myFunc = f;
-    mPeriod = period;
-    mPreviousCall = system_clock::now();
+    _counter = -1;
+    _func = f;
+    _period = period;
+    _previousCall = system_clock::now();
   }
 
-  bool isActive() { return mCounter != 0; }
+  bool isActive() { return _counter != 0; }
 
   void stop();
+  
+  int _testID{}; // MLTEST
 
  private:
   std::mutex _counterMutex;
 
   ml::SharedResourcePointer<ml::Timers> _timers;
-  int mCounter{0};
-  std::function<void(void)> myFunc;
-  milliseconds mPeriod;
-  time_point<system_clock> mPreviousCall;
+  int _counter{0};
+  std::function<void(void)> _func;
+  milliseconds _period{};
+  milliseconds _additionalTime{};
+  time_point<system_clock> _previousCall{};
+  time_point<system_clock> _creationTime{};
 };
 }  // namespace ml

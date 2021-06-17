@@ -1,20 +1,8 @@
 // 
 // VST3 example code for madronalib
-// (c) 2020, Madrona Labs LLC, All Rights Reserved
-// -----------------------------------------------------------------------------
-// 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details: www.gnu.org/licenses/gpl-3.0.html
-//-----------------------------------------------------------------------------
-
-
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 
 // portions of VST3 SDK

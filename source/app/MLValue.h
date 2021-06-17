@@ -1,6 +1,5 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -27,8 +26,6 @@ namespace ml
 class Value
 {
  public:
-  static const Matrix nullSignal;
-
   enum Type
   {
     kUndefinedValue = 0,
@@ -36,6 +33,8 @@ class Value
     kTextValue = 2,
     kMatrixValue = 3
   };
+
+  static const Matrix nullMatrix;
 
   Value();
   Value(const Value& other);
@@ -48,8 +47,6 @@ class Value
   Value(const ml::Text& t);
   Value(const char* t);
   Value(const ml::Matrix& s);
-
-  explicit operator bool() const { return mType != kUndefinedValue; }
 
   // matrix type constructor via initializer_list
   Value(std::initializer_list<float> values)
@@ -104,7 +101,7 @@ class Value
 
   inline const Matrix& getMatrixValue() const
   {
-    return (mType == kMatrixValue) ? (mMatrixVal) : nullSignal;
+    return (mType == kMatrixValue) ? (mMatrixVal) : nullMatrix;
   }
 
   inline const Matrix getMatrixValueWithDefault(Matrix d) const
@@ -127,6 +124,27 @@ class Value
   void setValue(const ml::Text& v);
   void setValue(const char* const v);
   void setValue(const Matrix& v);
+
+  explicit operator bool() const
+  {
+    switch (mType)
+    {
+      case kUndefinedValue:
+      default:
+        return false;
+        break;
+      case kFloatValue:
+        return static_cast<bool>(mFloatVal);
+        break;
+      case kTextValue:
+        return static_cast<bool>(mTextVal);
+        break;
+      case kMatrixValue:
+        // matrix is going away, so this is arbitrary for now
+        return false;
+        break;
+    }
+  }
 
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
@@ -152,6 +170,19 @@ class Value
   ml::Text mTextVal{};
   Matrix mMatrixVal{};
 };
+
+// NamedValue for initializer lists
+struct NamedValue
+{
+  ml::Path name{};
+  Value value{};
+
+  NamedValue() = default;
+  NamedValue(ml::Path np, Value nv) : name(np), value(nv) {}
+};
+
+// Define a type for initializing a new object with a list of Values.
+using WithValues = const std::initializer_list<NamedValue>;
 
 // utilities
 

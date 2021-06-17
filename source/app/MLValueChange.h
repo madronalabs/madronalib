@@ -1,6 +1,5 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -37,15 +36,9 @@ struct ValueChange
       : name(np), newValue(nv), oldValue(ov), startGesture(start), endGesture(end)
   {
   }
-
-  explicit operator bool() const { return newValue ? true : false; }
 };
 
-// note: because std::vector will allocate on the fly, this implementation of
-// ValueChangeList is not safe for use in audio processing threads. Given the
-// intended use in editors and controllers, this seems like a reasonable
-// tradeoff.
-using ValueChangeList = std::vector<ValueChange>;
+// ValueChange could have a time. Useful for automation as well as undo.
 
 }  // namespace ml
 
