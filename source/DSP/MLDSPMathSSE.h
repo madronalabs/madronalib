@@ -856,3 +856,17 @@ inline SIMDVectorFloat vecFracPart(SIMDVectorFloat val)
   SIMDVectorFloat intPart = _mm_cvtepi32_ps(vi);
   return _mm_sub_ps(val, intPart);
 }
+
+// Given vectors [ ?, ?, ?, 3 ], [ 4, 5, 6, 7 ]
+// Returns [ 3, 4, 5, 6 ]
+inline SIMDVectorFloat vecShuffleRight(SIMDVectorFloat v1, SIMDVectorFloat v2)
+{
+  return _mm_shuffle_ps(_mm_shuffle_ps(v2, v1, SHUFFLE(3, 3, 0, 0)), v2, SHUFFLE(2, 1, 0, 3));
+}
+
+// Given vectors [ 0, 1, 2, 3 ], [ 4, ?, ?, ? ]
+// Returns [ 1, 2, 3, 4 ]
+inline SIMDVectorFloat vecShuffleLeft(SIMDVectorFloat v1, SIMDVectorFloat v2)
+{
+  return _mm_shuffle_ps(v1, _mm_shuffle_ps(v1, v2, SHUFFLE(0, 0, 3, 3)), SHUFFLE(3, 0, 2, 1));
+}
