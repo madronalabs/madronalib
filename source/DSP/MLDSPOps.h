@@ -1181,23 +1181,26 @@ inline ml::DSPVectorArray<ROWS> rotateRight(const ml::DSPVectorArray<ROWS>& x)
 {
   ml::DSPVectorArray<ROWS> vy;
 
-  const float* px1 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
-  const float* px2 = px1 + kFloatsPerSIMDVector;
-  float* py1 = vy.getBuffer() + (row * kFloatsPerDSPVector) + kFloatsPerSIMDVector;
-
-  for (int n = 0; n < kSIMDVectorsPerDSPVector - 1; ++n)
+  for (size_t row = 0; row < ROWS; row++)
   {
+    const float* px1 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
+    const float* px2 = px1 + kFloatsPerSIMDVector;
+    float* py1 = vy.getBuffer() + (row * kFloatsPerDSPVector) + kFloatsPerSIMDVector;
+
+    for (int n = 0; n < kSIMDVectorsPerDSPVector - 1; ++n)
+    {
+      vecStore(py1, vecShuffleRight(vecLoad(px1), vecLoad(px2)));
+
+      px1 += kFloatsPerSIMDVector;
+      px2 += kFloatsPerSIMDVector;
+      py1 += kFloatsPerSIMDVector;
+    }
+
+    px2 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
+    py1 = vy.getBuffer() + (row * kFloatsPerDSPVector);
+
     vecStore(py1, vecShuffleRight(vecLoad(px1), vecLoad(px2)));
-
-    px1 += kFloatsPerSIMDVector;
-    px2 += kFloatsPerSIMDVector;
-    py1 += kFloatsPerSIMDVector;
   }
-
-  px2 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
-  py1 = vy.getBuffer() + (row * kFloatsPerDSPVector);
-
-  vecStore(py1, vecShuffleRight(vecLoad(px1), vecLoad(px2)));
 
   return vy;
 }
