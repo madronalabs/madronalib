@@ -47,7 +47,7 @@ bool isCJK(CodePoint ch)
          || (ch >= 0xAC00 && ch <= 0xD7AF)   // Hangul Syllables
          || (ch >= 0xF900 && ch <= 0xFAFF)   // CJK Compatibility Ideographs
          || (ch >= 0xFE30 && ch <= 0xFE4F)   // CJK Compatibility Forms
-         || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other exiensions
+         || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other extensions
 }
 
 int digitsToNaturalNumber(const char32_t* p)
@@ -398,6 +398,23 @@ TextFragment reduce(const TextFragment& frag, std::function<bool(CodePoint)> mat
   }
 
   return TextFragment(buf, pb - buf);
+}
+
+TextFragment replace(const TextFragment& frag, CodePoint toFind, CodePoint toReplace)
+{
+  TextFragment r{};
+  for (const CodePoint c : frag)
+  {
+    if(c == toFind)
+    {
+      r = TextFragment(r, toReplace);
+    }
+    else
+    {
+      r = TextFragment(r, c);
+    }
+  }
+  return r;
 }
 
 std::vector<TextFragment> split(TextFragment frag, CodePoint delimiter)

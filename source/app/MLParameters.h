@@ -27,7 +27,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   
   Interval normalRange{0., 1.};
   Interval plainRange{range[0], range[1]};
-
+  
   // make ranges for list parameters
   if(units == "list")
   {
@@ -36,11 +36,8 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
       // read and count list items
       // list params don't need a range property
       auto listItems = textUtils::split(p.getTextProperty("listitems"), '/');
-      plainRange = Interval{-0.5f, listItems.size() - 0.5f};
-      
-      // normal range: e.g. 0.25 -- 0.75 for 2 items, to center norm value in item
-      // float halfItem = 0.5f/(listItems.size());
-      normalRange = Interval{0.f, 1.f};
+      size_t maxItem = std::max(listItems.size(), 1UL);
+      plainRange = Interval{-0.5f, maxItem - 0.5f};
     }
     else
     {
@@ -55,9 +52,9 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     if (bLog)
     {
       b.normalizedToPlain =
-          ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
+      ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
       b.plainToNormalized =
-          ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
+      ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
     }
     else
     {
@@ -80,8 +77,8 @@ struct ParameterTree : public Tree< Value >
   
   virtual void setParamFromNormalizedValue(Path pname, float val) = 0;
   virtual void setParamFromPlainValue(Path pname, float val) = 0;
-  virtual float getNormalizedValue(Path pname) = 0;
-  virtual float getPlainValue(Path pname) = 0;
+  virtual float getNormalizedValue(Path pname) const = 0;
+  virtual float getPlainValue(Path pname) const = 0;
 };
 
 // An annotated Tree of parameters stored as normalized values.
@@ -95,11 +92,11 @@ struct ParameterTreeNormalized : public ParameterTree
   {
     (*this)[pname] = projections[pname].plainToNormalized(val);
   }
-  inline float getNormalizedValue(Path pname) override
+  inline float getNormalizedValue(Path pname) const override
   {
     return (*this)[pname].getFloatValue();
   }
-  inline float getPlainValue(Path pname) override
+  inline float getPlainValue(Path pname) const override
   {
     return projections[pname].normalizedToPlain((*this)[pname].getFloatValue());
   }
@@ -116,11 +113,11 @@ struct ParameterTreePlain : public ParameterTree
   {
     (*this)[pname] = val;
   }
-  inline float getNormalizedValue(Path pname) override
+  inline float getNormalizedValue(Path pname) const override
   {
     return projections[pname].plainToNormalized((*this)[pname].getFloatValue());
   }
-  inline float getPlainValue(Path pname) override
+  inline float getPlainValue(Path pname) const override
   {
     return (*this)[pname].getFloatValue();
   }
@@ -165,12 +162,12 @@ inline void setDefaults(ParameterTree& p)
   }
 }
 
-inline float getPlainValue(ParameterTree& p, Path pname)
+inline float getPlainValue(const ParameterTree& p, Path pname)
 {
   return p.getPlainValue(pname);
 }
 
-inline float getNormalizedValue(ParameterTree& p, Path pname)
+inline float getNormalizedValue(const ParameterTree& p, Path pname)
 {
   return p.getNormalizedValue(pname);
 }

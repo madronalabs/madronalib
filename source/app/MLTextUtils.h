@@ -55,6 +55,9 @@ TextFragment map(const TextFragment& frag, std::function<CodePoint(CodePoint)> f
 // fragment with only the code points for which the function returns true.
 TextFragment reduce(const TextFragment& frag, std::function<bool(CodePoint)> f);
 
+// return a TextFragment with all instances of toFind in frag replaced by toReplace.
+TextFragment replace(const TextFragment& frag, CodePoint toFind, CodePoint toReplace);
+
 // given a fragment and a delimiter, return a std::vector of fragments
 // containing the texts between instances of the delimiter. If no delimiters are
 // found the original fragment is returned.
