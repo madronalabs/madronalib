@@ -157,7 +157,7 @@ void ml::Timers::run(void)
 
 #elif ML_LINUX
 
-void Timers::start(bool runInMainThread)
+void ml::Timers::start(bool runInMainThread)
 {
   if (!_running)
   {
