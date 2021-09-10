@@ -1144,6 +1144,67 @@ inline DSPVectorArray<ROWSA + ROWSB + ROWSC + ROWSD> concatRows(const DSPVectorA
   return vy;
 }
 
+// Rotate the elements of each row of a DSPVectorArray by one element left.
+// The first element of each row is moved to the end
+template <size_t ROWS>
+inline ml::DSPVectorArray<ROWS> rotateLeft(const ml::DSPVectorArray<ROWS>& x)
+{
+  ml::DSPVectorArray<ROWS> vy;
+
+  for (size_t row = 0; row < ROWS; row++)
+  {
+    const float* px1 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
+    const float* px2 = px1 + kFloatsPerSIMDVector;
+    float* py1 = vy.getBuffer() + (row * kFloatsPerDSPVector);
+
+    for (int n = 0; n < kSIMDVectorsPerDSPVector - 1; ++n)
+    {
+      vecStore(py1, vecShuffleLeft(vecLoad(px1), vecLoad(px2)));
+
+      px1 += kFloatsPerSIMDVector;
+      px2 += kFloatsPerSIMDVector;
+      py1 += kFloatsPerSIMDVector;
+    }
+
+    px2 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
+
+    vecStore(py1, vecShuffleLeft(vecLoad(px1), vecLoad(px2)));
+  }
+
+  return vy;
+}
+
+// Rotate the elements of each row of a DSPVectorArray by one element right.
+// The last element of each row is moved to the start
+template <size_t ROWS>
+inline ml::DSPVectorArray<ROWS> rotateRight(const ml::DSPVectorArray<ROWS>& x)
+{
+  ml::DSPVectorArray<ROWS> vy;
+
+  for (size_t row = 0; row < ROWS; row++)
+  {
+    const float* px1 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
+    const float* px2 = px1 + kFloatsPerSIMDVector;
+    float* py1 = vy.getBuffer() + (row * kFloatsPerDSPVector) + kFloatsPerSIMDVector;
+
+    for (int n = 0; n < kSIMDVectorsPerDSPVector - 1; ++n)
+    {
+      vecStore(py1, vecShuffleRight(vecLoad(px1), vecLoad(px2)));
+
+      px1 += kFloatsPerSIMDVector;
+      px2 += kFloatsPerSIMDVector;
+      py1 += kFloatsPerSIMDVector;
+    }
+
+    px2 = x.getConstBuffer() + (row * kFloatsPerDSPVector);
+    py1 = vy.getBuffer() + (row * kFloatsPerDSPVector);
+
+    vecStore(py1, vecShuffleRight(vecLoad(px1), vecLoad(px2)));
+  }
+
+  return vy;
+}
+
 // shuffle two DSPVectorArrays, alternating x1 to even rows of result and x2 to
 // odd rows. if the sources are different sizes, the excess rows are all
 // appended to the destination after shuffling is done.
