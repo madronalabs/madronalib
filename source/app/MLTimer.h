@@ -5,6 +5,7 @@
 #pragma once
 
 #include <chrono>
+#include <functional>
 #include <iostream>
 #include <mutex>
 #include <set>
