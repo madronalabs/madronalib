@@ -169,6 +169,15 @@ void ml::Timers::run(void)
   }
 }
 
+void ml::Timers::stop(void)
+{
+  if (_running)
+  {
+    _running = false;
+    runThread.join();
+  }
+}
+
 #endif
 
 void ml::Timers::tick(void)
