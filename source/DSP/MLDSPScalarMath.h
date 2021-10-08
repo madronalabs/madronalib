@@ -49,6 +49,9 @@ inline int chunkSizeToContain(int chunkSizeExponent, int x)
 // modulo for positive and negative integers
 inline int modulo(int a, int b) { return a >= 0 ? (a % b) : (b - abs(a % b)) % b; }
 
+// modulo for floats
+inline float modulo(float a, float b) { return a - b*floor(a/b); }
+
 // ----------------------------------------------------------------
 #pragma mark scalar-type templates
 
