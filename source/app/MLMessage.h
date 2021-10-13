@@ -6,6 +6,7 @@
 
 #include "MLPath.h"
 #include "MLValue.h"
+#include "MLCollection.h"
 
 namespace ml
 {
@@ -38,6 +39,60 @@ inline MessageList append(MessageList a, MessageList b)
   MessageList r{a};
   r.insert( r.end(), b.begin(), b.end() );
   return r;
+}
+
+struct MessageReceiver
+{
+  virtual void receiveMessage(Message m) = 0;
+};
+
+// send a message directly to a MessageReceiver.
+inline void sendMessage(MessageReceiver& obj, Message m) { obj.receiveMessage(m); }
+
+// send a message list directly to a MessageReceiver.
+inline void sendMessages(MessageReceiver& obj, MessageList msgList)
+{
+  for(auto& m : msgList)
+  {
+    obj.receiveMessage(m);
+  }
+}
+
+// send a message to a MessageReceiver object through a Collection.
+template <typename T>
+inline void sendMessage(Collection<T> coll, Path p, Message m)
+{
+  if(auto& obj = coll.find(p))
+  {
+    obj->receiveMessage(m);
+  }
+}
+
+// send a list of messages to a MessageReceiver object through a Collection.
+template <typename T>
+inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
+{
+  if (auto& obj = coll.find(p))
+  {
+    for(auto& m : msgList)
+    {
+      obj->receiveMessage(m);
+    }
+  }
+}
+
+// send a message to each direct child of the collection's root node.
+template <typename T>
+inline void sendMessageToChildren(Collection<T> coll, Message m)
+{
+  coll.forEachChild([&](T& obj) { obj.receiveMessage(m); });
+}
+
+// send a message to all MessageReceivers in the collection.
+template <typename T>
+inline void sendMessageToDescendants(Collection<T> coll, Message m)
+{
+  forEach< T >(coll, [&](T& obj) { obj.receiveMessage(m); });
 }
 
 }  // namespace ml

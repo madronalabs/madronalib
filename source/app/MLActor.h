@@ -5,10 +5,11 @@
 #pragma once
 
 #include "MLCollection.h"
+#include "MLMessage.h"
 #include "MLQueue.h"
 #include "MLTimer.h"
 
-// An Actor is a Collectable object that handles incoming messages
+// An Actor is a MessageReceiver that handles incoming messages
 // using its own queue and timer. Combining Actors is a simple and scalable way
 // to make distributed systems.
 
@@ -56,7 +57,7 @@ public:
 
 // TODO actor can have state machine functions using PropertyTree as storage.
 
-class Actor : public Collectable
+class Actor : public MessageReceiver
 {
   static constexpr size_t kMessageQueueSize{128};
   static constexpr size_t kDefaultMessageInterval{1000/60};
@@ -114,6 +115,24 @@ class Actor : public Collectable
       _msgCounter++;
     }
   }
+  
+  // TODO handle situations where sender is not able to use a pointer
+  // to the receiver, as when it is on a different computer on the network.
+  // to start we will need a "main" host with the registry.
+  // - if receiver is on same host?
+  //    then send directly as below.
+  // -- else
+  //      serialize the message
+  //      transmit serialized message to the receiver's host (UDP)
+  
+  inline void sendMessageToActor(Path actorName, Message m)
+  {
+    SharedResourcePointer< ActorRegistry > registry;
+    if(Actor* pActor = registry->getActor(actorName))
+    {
+      sendMessage(*pActor, m);
+    }
+  }
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
@@ -128,13 +147,5 @@ inline void removeActor(Actor* actorToRemove)
   registry->doRemove(actorToRemove);
 }
 
-inline void sendMessage(Path actorName, Message m)
-{
-  SharedResourcePointer< ActorRegistry > registry;
-  if(Actor* pActor = registry->getActor(actorName))
-  {
-    sendMessage(*pActor, m);
-  }
-}
 
 }  // namespace ml

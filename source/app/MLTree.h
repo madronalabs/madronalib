@@ -173,6 +173,9 @@ public:
     std::vector<typename mapT::const_iterator> mIteratorStack;
 
    public:
+    // null iterator that can be returned so begin() = end() when there is no container
+    const_iterator() {}
+    
     const_iterator(const Tree<V, C>* p)
     {
       mNodeStack.push_back(p);
@@ -191,9 +194,13 @@ public:
     {
       // bail out here if possible.
       if (mNodeStack.size() != b.mNodeStack.size()) return false;
-      if (mNodeStack.back() != b.mNodeStack.back()) return false;
+      
+      // check for empty iterators
+      if (mNodeStack.empty() && b.mNodeStack.empty()) return true;
 
+ 
       // if the containers are the same, we may compare the iterators.
+      if (mNodeStack.back() != b.mNodeStack.back()) return false;
       return (mIteratorStack.back() == b.mIteratorStack.back());
     }
 

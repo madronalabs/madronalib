@@ -18,13 +18,12 @@
 
 using namespace ml;
 
-struct CollectableInt : public Collectable
+struct CollectableInt //: public Collectable
 {
   CollectableInt() : value(0){};
   CollectableInt(int v) : value(v){};
   virtual ~CollectableInt() = default;
   operator int() const { return value; }
-  virtual void receiveMessage(Message m) { std::cout << " " << value << " \n"; return false; }
   int value;
 };
 
@@ -32,42 +31,25 @@ struct FancyCollectableInt : public CollectableInt
 {
   FancyCollectableInt() : CollectableInt() {}
   FancyCollectableInt(int v) : CollectableInt(v) {}
-
-  void receiveMessage(Message m) override { std::cout << " ***" << value << "*** \n"; return false; }
 };
 
 
 // CollectableInt with access to the collection it is in, from the root node
 // where it it added. This lets objects manage objects in the collection under
 // them.
+//
+// what's this good for? one example is a View class that wants to draw and manipulate
+// part of an object hierarchy, but does not own the object data itself.
 struct CollectableIntWithCollection : public CollectableInt
 {
   CollectableIntWithCollection(ml::Collection< CollectableInt > t, int v) : CollectableInt(v), _subCollection(t) {}
-
   ml::Collection< CollectableInt > _subCollection;
-  
-  void receiveMessage(Message m) override
-  {
-    // respond self
-    std::cout << "     ---" << value << "--- \n";
-    
-    // respond children
-    forEach< CollectableInt >(_subCollection, [&](CollectableInt& i)
-    {
-      std::cout << "    ";
-      sendMessage(i, Message{});
-    });
-    return false;
-  }
 };
 
 TEST_CASE("madronalib/core/collection", "[collection]")
 {
   CollectionRoot< CollectableInt > ints;
-  
-  // doing things with an empty collection should not crash
-  sendMessageToDescendants(ints, {"hello?"});
-
+ 
   ints.add_unique< CollectableInt >("a", 3);
   ints.add_unique< CollectableInt >("j", 4);
   ints.add_unique< FancyCollectableInt >("a/b/c/d", 5);
@@ -77,13 +59,37 @@ TEST_CASE("madronalib/core/collection", "[collection]")
 
   REQUIRE(ints["a/b/c/d"]->value == 5);
   
-  std::cout << "messages: ";
-  forEach< CollectableInt >(ints, [&](CollectableInt& i){ sendMessage(i, {"ack"}); });
-  std::cout << "\n";
-
   int total{0};
   forEach< CollectableInt >(ints, [&](const CollectableInt& i){ total += i.value; });
   std::cout << "total: " << total << "\n";
+  
+  // get total under "a"
+  int totala{0};
+  auto subIntsA = getSubCollection(ints, "a");
+  forEach< CollectableInt >(subIntsA, [&](const CollectableInt& i){ totala += i.value; });
+  
+  // same thing using inSubCollection
+  int totalb{0};
+  forEach< CollectableInt >(inSubCollection(ints, "a"), [&](const CollectableInt& i){ totalb += i.value; });
+  
+  REQUIRE(totala == totalb);
+  
+  // dump the collection, getting the current path with each call.
+  // this forEach() syntax with the optional Path* argument is weird, but concise.
+  std::cout << "collection with paths:\n";
+  Path currentPath;
+  forEach< CollectableInt >(ints, [&](const CollectableInt& i)
+                    {
+    // indent
+    int pathLen = currentPath.getSize();
+    for(int i=0; i< pathLen; ++i)
+    {
+      std::cout << "    ";
+    }
+    
+    std::cout << currentPath << ": ";
+    std::cout << i.value << "\n";
+  }, &currentPath);
 
   int rootTotal{0};
   forEachChild< CollectableInt >(ints, [&](const CollectableInt& i){ rootTotal += i.value; });
@@ -120,18 +126,18 @@ TEST_CASE("madronalib/core/collection", "[collection]")
     REQUIRE(newGuyPtr->value == 99);
   }
   
-  // doing most things with a null collection should not crash
+  // doing things with a null collection should not crash
   auto nullColl = getSubCollection(ints, "nowhere");
-  
-  // however: if a collection might be null (not merely empty but having
-  // no Tree), we need to check that before we can use any iterators!
-  if(nullColl)
+  int nullCount {0};
+  for(auto& obj : nullColl)
   {
-    for(auto& i : nullColl)
-    {
-      std::cout << i->value << "\n";
-    }
+    nullCount++;
   }
+  for(auto& obj : inSubCollection(ints, "nowhere"))
+  {
+    nullCount++;
+  }
+  REQUIRE(!nullCount);
   
   // TODO create subcollection by filter
   //  auto subInts3 = getSubCollection([](const CollectableInt& i){return i.value > 3;});

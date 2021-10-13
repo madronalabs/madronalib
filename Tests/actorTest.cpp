@@ -37,7 +37,7 @@ public:
 
 TEST_CASE("madronalib/core/actors", "[actors]")
 {
-  // TODO
+  // nothing here yet
   MyActor a;
   
 }
