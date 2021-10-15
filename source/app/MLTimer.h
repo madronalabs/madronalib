@@ -10,7 +10,6 @@
 #include <mutex>
 #include <set>
 #include <thread>
-#include <vector>
 
 #include "MLPlatform.h"
 #include "MLSharedResource.h"
