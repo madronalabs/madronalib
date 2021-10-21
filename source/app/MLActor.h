@@ -95,7 +95,7 @@ class Actor : public MessageReceiver
     _queueTimer.stop();
   }
 
-  // Collectable implementation
+  // MessageReceiver implementation
   inline void receiveMessage(Message m)
   {
     // queue returns true unless full.

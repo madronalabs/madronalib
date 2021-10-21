@@ -47,28 +47,31 @@ struct MessageReceiver
 };
 
 // send a message directly to a MessageReceiver.
-inline void sendMessage(MessageReceiver& obj, Message m) { obj.receiveMessage(m); }
+inline void sendMessage(MessageReceiver& obj, Message m)
+{
+  obj.receiveMessage(m);
+}
 
 // send a message list directly to a MessageReceiver.
 inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 {
   for(auto& m : msgList)
   {
-    obj.receiveMessage(m);
+    sendMessage(obj, m);
   }
 }
 
-// send a message to a MessageReceiver object through a Collection.
+// send a message to a single MessageReceiver in a Collection.
 template <typename T>
 inline void sendMessage(Collection<T> coll, Path p, Message m)
 {
   if(auto& obj = coll.find(p))
   {
-    obj->receiveMessage(m);
+    sendMessage(obj, m);
   }
 }
 
-// send a list of messages to a MessageReceiver object through a Collection.
+// send a list of messages to a MessageReceiver in a Collection.
 template <typename T>
 inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
 {
@@ -76,23 +79,39 @@ inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
   {
     for(auto& m : msgList)
     {
-      obj->receiveMessage(m);
+      sendMessage(obj, m);
     }
   }
 }
 
 // send a message to each direct child of the collection's root node.
 template <typename T>
-inline void sendMessageToChildren(Collection<T> coll, Message m)
+inline void sendMessageToEachChild(Collection<T> coll, Message m)
 {
-  coll.forEachChild([&](T& obj) { obj.receiveMessage(m); });
+  coll.forEachChild([&](T& obj) { sendMessage(obj, m); });
 }
 
-// send a message to all MessageReceivers in the collection.
+// send a message to each MessageReceiver in the referenced collection.
 template <typename T>
-inline void sendMessageToDescendants(Collection<T> coll, Message m)
+inline void sendMessageToEachChild(typename Collection<T>::TreeType& collRef, Message m)
 {
-  forEach< T >(coll, [&](T& obj) { obj.receiveMessage(m); });
+  Collection< T > subCollection(collRef);
+  forEachChild< T >(subCollection, [&](T& obj) { sendMessage(obj, m); });
+}
+
+// send a message to each MessageReceiver in the collection.
+template <typename T>
+inline void sendMessageToEach(Collection<T> coll, Message m)
+{
+  forEach< T >(coll, [&](T& obj) { sendMessage(obj, m); });
+}
+
+// send a message to each MessageReceiver in the referenced collection.
+template <typename T>
+inline void sendMessageToEach(typename Collection<T>::TreeType& collRef, Message m)
+{
+  Collection< T > subCollection(collRef);
+  forEach< T >(subCollection, [&](T& obj) { sendMessage(obj, m); });
 }
 
 }  // namespace ml

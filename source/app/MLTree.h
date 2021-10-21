@@ -308,6 +308,17 @@ public:
       std::cout << it.getCurrentNodeName() << " [" << *it << "]\n";
     }
   }
+  
+  inline size_t size() const
+  {
+    size_t sum{0}; // me
+    if(hasValue()) sum++;
+    for(auto & c : mChildren)
+    {
+      sum += c.second.size();
+    }
+    return sum;
+  }
 };
 
 // utilities

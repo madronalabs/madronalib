@@ -94,16 +94,18 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // Test a pretty big tree of int values
 
   {
-    Tree<int> numberMap;
+    Tree<int> numberTree;
 
     bool problem = false;
     for (int i = 1; i < mapSize; ++i)
     {
-      numberMap.add(pathsVector[i], i);
+      numberTree.add(pathsVector[i], i);
     }
 
+    REQUIRE(numberTree.size() == mapSize - 1);
+    
     // using a const reference will prevent the Tree from being modified.
-    const Tree<int>& constNumberMap(numberMap);
+    const Tree<int>& constNumberMap(numberTree);
     // *** constNumberMap["foo"] = 2; // should not compile.
 
     for (int i = 1; i < mapSize; ++i)
@@ -126,7 +128,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     const int correctMaxDepth = 8;
 
     // use iterator explicitly to keep track of depth and add up values.
-    for (auto it = numberMap.begin(); it != numberMap.end(); ++it)
+    for (auto it = numberTree.begin(); it != numberTree.end(); ++it)
     {
       bigValueSum += *it;
       if (it.getCurrentDepth() > maxDepth)
@@ -136,7 +138,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
 
     // use range-based for to add up values
-    for (auto val : numberMap)
+    for (auto val : numberTree)
     {
       bigValueSum2 += val;
     }
@@ -187,6 +189,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     const int correctLeafSum = 74;
 
     a.dump();
+    std::cout << "size: " << a.size() << "\n";
 
     for (auto val : a)
     {

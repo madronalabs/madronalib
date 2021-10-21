@@ -183,6 +183,11 @@ public:
       }
     }
   }
+  
+  inline size_t size() const
+  {
+    return _tree ? _tree->size() : 0;
+  }
 };
 
 // CollectionRoot: a handy subclass to combine a Collection with its Tree
@@ -203,6 +208,9 @@ inline Collection<T> getSubCollection(Collection< T > coll, Path addr)
   return coll.getSubCollection(addr);
 }
 
+// return a reference to the Tree in the Collection. Used for sending a subcollection to
+// the forEach and forEachChild functions, for example:
+// forEach< Widget >(inSubCollection(widgets, "mySubView"), [&](const Widget& w){ /* do something */ });
 template< typename T >
 inline typename Collection<T>::TreeType& inSubCollection(Collection< T > coll, Path addr)
 {

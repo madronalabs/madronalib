@@ -74,23 +74,6 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   
   REQUIRE(totala == totalb);
   
-  // dump the collection, getting the current path with each call.
-  // this forEach() syntax with the optional Path* argument is weird, but concise.
-  std::cout << "collection with paths:\n";
-  Path currentPath;
-  forEach< CollectableInt >(ints, [&](const CollectableInt& i)
-                    {
-    // indent
-    int pathLen = currentPath.getSize();
-    for(int i=0; i< pathLen; ++i)
-    {
-      std::cout << "    ";
-    }
-    
-    std::cout << currentPath << ": ";
-    std::cout << i.value << "\n";
-  }, &currentPath);
-
   int rootTotal{0};
   forEachChild< CollectableInt >(ints, [&](const CollectableInt& i){ rootTotal += i.value; });
   std::cout << "rootTotal: " << rootTotal << "\n";
@@ -126,6 +109,18 @@ TEST_CASE("madronalib/core/collection", "[collection]")
     REQUIRE(newGuyPtr->value == 99);
   }
   
+  // dump the collection, getting the current path with each call.
+  // this forEach() syntax with the optional Path* argument is weird, but concise.
+  std::cout << "collection with paths:\n";
+  Path currentPath;
+  forEach< CollectableInt >(ints, [&](const CollectableInt& i)
+                            {
+    std::cout << currentPath << ": ";
+    std::cout << i.value << "\n";
+  }, &currentPath);
+
+  REQUIRE(ints.size() == 7);
+  
   // doing things with a null collection should not crash
   auto nullColl = getSubCollection(ints, "nowhere");
   int nullCount {0};
@@ -140,7 +135,10 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   REQUIRE(!nullCount);
   
   // TODO create subcollection by filter
-  //  auto subInts3 = getSubCollection([](const CollectableInt& i){return i.value > 3;});
+  //  auto subInts3 = getSubCollection(ints, [](const CollectableInt& i){return i.value > 3;});
+  //
+  //  auto valueFilter = [&](const CollectableInt& i){return i.value > 3;};
+  //  forEach< CollectableInt >(inSubCollection(ints, valueFilter), /* do something */);
 
 }
 
