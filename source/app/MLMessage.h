@@ -61,17 +61,18 @@ inline void sendMessages(MessageReceiver& obj, MessageList msgList)
   }
 }
 
-// send a message to a single MessageReceiver in a Collection.
+
+// send a message to a MessageReceiver object through a Collection.
 template <typename T>
 inline void sendMessage(Collection<T> coll, Path p, Message m)
 {
   if(auto& obj = coll.find(p))
   {
-    sendMessage(obj, m);
+    obj->receiveMessage(m);
   }
 }
 
-// send a list of messages to a MessageReceiver in a Collection.
+// send a list of messages to a MessageReceiver object through a Collection.
 template <typename T>
 inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
 {
@@ -79,10 +80,11 @@ inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
   {
     for(auto& m : msgList)
     {
-      sendMessage(obj, m);
+      obj->receiveMessage(m);
     }
   }
 }
+
 
 // send a message to each direct child of the collection's root node.
 template <typename T>
@@ -91,7 +93,7 @@ inline void sendMessageToEachChild(Collection<T> coll, Message m)
   coll.forEachChild([&](T& obj) { sendMessage(obj, m); });
 }
 
-// send a message to each MessageReceiver in the referenced collection.
+// send a message to each direct child of the referenced collection's root node.
 template <typename T>
 inline void sendMessageToEachChild(typename Collection<T>::TreeType& collRef, Message m)
 {

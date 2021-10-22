@@ -12,11 +12,10 @@ namespace ml
 template <typename T>
 class Collection
 {
-protected:
-  using ObjectPointerType = std::unique_ptr<T>;
 public:
-  // TODO this should be protected, but then it becomes hard to write something
+  // TODO these types should be protected, but then it becomes hard to write something
   // like inSubCollection() below. revisit
+  using ObjectPointerType = std::unique_ptr<T>;
   using TreeType = Tree<ObjectPointerType>;
 protected:
   TreeType* _tree{nullptr};
@@ -108,6 +107,9 @@ public:
     _tree->operator[](p) = std::move(ml::make_unique<TT>(sc, Fargs...));
   }
 
+  // return the Collection under the given node. Note that this does not
+  // include the given node as a member, just as whole Collection does
+  // not include a "/" or null-named node.
   inline Collection getSubCollection(Path addr)
   {
     if(!_tree) return Collection<T>();
@@ -125,6 +127,7 @@ public:
     }
   }
   
+  // return a reference to the Tree under the given node. 
   // TODO see if we can make this return const TreeType&
   inline TreeType& subCollReference(Path addr)
   {

@@ -31,6 +31,7 @@ struct FancyCollectableInt : public CollectableInt
 {
   FancyCollectableInt() : CollectableInt() {}
   FancyCollectableInt(int v) : CollectableInt(v) {}
+  ~FancyCollectableInt() = default;
 };
 
 
@@ -43,6 +44,7 @@ struct FancyCollectableInt : public CollectableInt
 struct CollectableIntWithCollection : public CollectableInt
 {
   CollectableIntWithCollection(ml::Collection< CollectableInt > t, int v) : CollectableInt(v), _subCollection(t) {}
+  ~CollectableIntWithCollection() = default;
   ml::Collection< CollectableInt > _subCollection;
 };
 
