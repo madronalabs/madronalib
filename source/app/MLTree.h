@@ -311,14 +311,14 @@ public:
   
   inline size_t size() const
   {
-    size_t sum{0}; // me
-    if(hasValue()) sum++;
+    size_t sum{hasValue()}; // me
     for(auto & c : mChildren)
     {
       sum += c.second.size();
     }
     return sum;
   }
+  
 };
 
 // utilities

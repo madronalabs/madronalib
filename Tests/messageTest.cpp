@@ -70,7 +70,10 @@ TEST_CASE("madronalib/core/message", "[message]")
   
   // TODO real tests
   
-//  sendMessage(myColl, "a/b/c/f", {"hello"});
+  sendMessage(myColl["a/b/c/f"], {"hello"});
+  
+  // sending to a null object should not crash
+  sendMessage(myColl["nonexistent"], {"hello"});
   
 //  sendMessageToEach< Receiver >(myColl, {"hello"});
   

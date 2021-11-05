@@ -56,7 +56,7 @@ public:
 
 // TODO actor can have state machine functions using PropertyTree as storage.
 
-class Actor : public MessageReceiver
+class Actor
 {
   static constexpr size_t kMessageQueueSize{128};
   static constexpr size_t kDefaultMessageInterval{1000/60};
@@ -66,27 +66,32 @@ class Actor : public MessageReceiver
   
  protected:
   size_t _maxQueueSize{0};
-  size_t _msgCounter{0};
   size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
 
-  inline void handleMessageList(const MessageList& ml)
+  // handle all the messages in the queue immediately.
+  inline void handleMessagesInQueue()
   {
-    for (auto m : ml)
+    Message m;
+    while (_messageQueue.pop(m))
     {
       handleMessage(m);
     }
   }
   
-  virtual void handleFullQueue(){}
+  virtual void handleFullQueue() {}
 
  public:
   virtual void handleMessage(Message m) = 0;
 
   Actor() {}
   virtual ~Actor() = default;
+  Actor (const Actor&) = delete;
+  Actor& operator= (const Actor&) = delete;
 
   void start(size_t interval = kDefaultMessageInterval)
   {
+    // we currently attempt to handle all the messages in the queue.
+    // in the future we may want to do just a few at a time instead.
     _queueTimer.start([=]() { handleMessagesInQueue(); }, milliseconds(interval));
   }
 
@@ -95,8 +100,8 @@ class Actor : public MessageReceiver
     _queueTimer.stop();
   }
 
-  // MessageReceiver implementation
-  inline void receiveMessage(Message m)
+  // enqueueMessage just pushes the message onto the queue.
+  inline void enqueueMessage(Message m)
   {
     // queue returns true unless full.
     if(!(_messageQueue.push(m))) handleFullQueue();
@@ -104,17 +109,17 @@ class Actor : public MessageReceiver
     // DEBUG
     _maxQueueSize = std::max(_maxQueueSize, getMessagesAvailable());
   }
-
-  inline void handleMessagesInQueue()
+  
+  inline void enqueueMessageList(const MessageList& ml)
   {
-    Message m;
-    while (auto notEmpty = _messageQueue.pop(m))
+    for (auto m : ml)
     {
-      handleMessage(m);
-      _msgCounter++;
+      enqueueMessage(m);
     }
   }
   
+  // send message to another Actor.
+  //
   // TODO handle situations where sender is not able to use a pointer
   // to the receiver, as when it is on a different computer on the network.
   // to start we will need a "main" host with the registry.
@@ -123,16 +128,16 @@ class Actor : public MessageReceiver
   // -- else
   //      serialize the message
   //      transmit serialized message to the receiver's host (UDP)
-  
   inline void sendMessageToActor(Path actorName, Message m)
   {
     SharedResourcePointer< ActorRegistry > registry;
     if(Actor* pActor = registry->getActor(actorName))
     {
-      sendMessage(*pActor, m);
+      pActor->enqueueMessage(m);
     }
   }
 };
+
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
 {

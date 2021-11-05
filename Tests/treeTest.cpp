@@ -170,6 +170,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     a.add("this/was/an/test", 10);
     a.add("this/was/another/test", 10);
     a.add("this/is/a/test/jam", 5);
+    a.add("this/is/a/super/duper/cosmic/jam", 5);
 
     // duplicate addresses are overwritten
     a.add("this/was/happy", 100);
@@ -190,7 +191,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     a.dump();
     std::cout << "size: " << a.size() << "\n";
-
+    
+//    std::cout << "nodes: " << a.countNodes() << "\n";
+    
     for (auto val : a)
     {
       leafSum += val;

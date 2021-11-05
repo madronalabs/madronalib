@@ -46,6 +46,9 @@ struct MessageReceiver
   virtual void receiveMessage(Message m) = 0;
 };
 
+
+// sending messages to MessageReceivers
+
 // send a message directly to a MessageReceiver.
 inline void sendMessage(MessageReceiver& obj, Message m)
 {
@@ -61,30 +64,30 @@ inline void sendMessages(MessageReceiver& obj, MessageList msgList)
   }
 }
 
-
-// send a message to a MessageReceiver object through a Collection.
+// send a message to a MessageReceiver object through a unique_ptr &,
+// like we obtain from a Collection.
 template <typename T>
-inline void sendMessage(Collection<T> coll, Path p, Message m)
+inline void sendMessage(const std::unique_ptr< T > & pObj, Message m)
 {
-  if(auto& obj = coll.find(p))
-  {
-    obj->receiveMessage(m);
-  }
+  if(pObj)
+    pObj->receiveMessage(m);
 }
 
 // send a list of messages to a MessageReceiver object through a Collection.
 template <typename T>
-inline void sendMessages(Collection<T> coll, Path p, MessageList msgList)
+inline void sendMessages(const std::unique_ptr< T > & pObj, MessageList msgList)
 {
-  if (auto& obj = coll.find(p))
+  if(pObj)
   {
     for(auto& m : msgList)
     {
-      obj->receiveMessage(m);
+      pObj->receiveMessage(m);
     }
   }
 }
 
+
+// sending messages to MessageReceivers via Collections
 
 // send a message to each direct child of the collection's root node.
 template <typename T>
