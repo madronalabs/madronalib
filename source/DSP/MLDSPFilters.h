@@ -541,7 +541,10 @@ class Peak
     {
       peakHoldCounter -= kFloatsPerDSPVector;
     }
-    return sqrt(vy);
+    
+    // use sqrt approximation. Return 0 for inputs near 0.
+    return select(sqrtApprox(vy), DSPVector{0.f}, greaterThan(vy, DSPVector{1e-20}));
+
   }
 };
 
@@ -578,7 +581,8 @@ class RMS
       vy[n] = y1;
     }
 
-    return sqrt(vy);
+    // use sqrt approximation. Return 0 for inputs near 0.
+    return select(sqrtApprox(vy), DSPVector{0.f}, greaterThan(vy, DSPVector{1e-20}));
   }
 };
 
