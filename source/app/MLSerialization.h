@@ -47,8 +47,6 @@ struct BinaryMatrixHeader
 
 inline TextFragment valueToText(const Value v)
 {
-  // TODO
-
   TextFragment t;
   switch (v.getType())
   {
@@ -63,6 +61,7 @@ inline TextFragment valueToText(const Value v)
       return TextFragment{"T", v.getTextValue()};
       break;
     case Value::kMatrixValue:
+      // unimplemented
       return TextFragment{};  // {"M", matrixToText(v.getMatrixValue())};
       break;
   }

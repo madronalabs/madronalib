@@ -104,27 +104,97 @@ TextFragment naturalNumberToText(int i)
 
 // numeric
 
+char* carryDecimalChars(char* writePtr, char* buf)
+{
+  // round up.
+  char* roundPtr{writePtr};
+  while(1)
+  {
+    roundPtr--;
+    if(*roundPtr == '.') roundPtr--; // skip decimal
+    if(roundPtr < buf)
+    {
+      // past the beginning! all digits were 9 and now are all 0.
+      // shift entire number and add initial 1
+      for(char* shiftPtr = writePtr; shiftPtr > buf; shiftPtr--)
+      {
+        *shiftPtr = *(shiftPtr - 1);
+      }
+      *buf = '1';
+      return writePtr + 1;
+      break ;
+    }
+    else
+    {
+      unsigned char d = *roundPtr;
+      if(d < '9')
+      {
+        *roundPtr = (d + 1);
+        break;
+      }
+      else
+      {
+        // carry
+        *roundPtr = '0';
+      }
+    }
+  }
+  return writePtr;
+}
+
+constexpr int kTableZeroOffset{38};
+
+constexpr float powersOfTen[kTableZeroOffset * 2 + 1]{
+  1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26,
+  1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13,
+  1e-12, 1e-11, 1e-10, 1e-09, 1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00,
+  1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13,
+  1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26,
+  1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
+
+
+// private for floatNumberToText. note side effects!
+char* writeMantissa(float& value, char* startWritePtr, int& exponent, int decimalExponent, int digitsAfterDecimal)
+{
+  int onesInt;
+  char* writePtr = startWritePtr;
+  int digitsWritten = 0;
+  
+  while(1)
+  {
+    if (exponent == decimalExponent)
+    {
+      *writePtr++ = '.';
+    }
+    onesInt = truncf(value * powersOfTen[kTableZeroOffset - exponent]);
+    *writePtr++ = '0' + onesInt;
+
+    value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
+    exponent--;
+    if(decimalExponent - exponent >= digitsAfterDecimal) break;
+  }
+
+  return writePtr;
+}
+
+
+// converts the given float f to a TextFragment representing a decimal number.
+// precision specifies the number of digits after the decimal point.
+//
 TextFragment floatNumberToText(float f, int precision)
 {
-  // const float maxFloat = std::numeric_limits<float>::max();
   constexpr int kMaxPrecision = 10;
-  constexpr int kScientificStart = 5;
-  constexpr int kMaxDigits = 32;
-  constexpr int kTableZeroOffset = 38;
-  constexpr float powersOfTen[kTableZeroOffset * 2 + 1]{
-      1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26,
-      1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13,
-      1e-12, 1e-11, 1e-10, 1e-09, 1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00,
-      1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13,
-      1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26,
-      1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
+  
+  // absolute value of exponent above/below which we print in scientific notation.
+  // this should not be changed without making sure all possible output
+  // will fit in the buffer!
+  constexpr int kScientificNotationStartExp = 5;
 
+  constexpr int kMaxDigits = 32;
   char buf[kMaxDigits];
   char* writePtr = buf;
   float value = f;
-  const int p = std::min(precision, kMaxPrecision);
-  const float epsilon =
-      std::max(fabs(f * powersOfTen[kTableZeroOffset - p]), std::numeric_limits<float>::min());
+  const int digitsAfterDecimal{std::min(precision, kMaxPrecision)};
 
   if (isnan(f))
   {
@@ -139,7 +209,6 @@ TextFragment floatNumberToText(float f, int precision)
       value = -value;
       *writePtr++ = '-';
     }
-
     if (value > powersOfTen[kTableZeroOffset * 2])
     {
       *writePtr++ = 'i';
@@ -163,19 +232,30 @@ TextFragment floatNumberToText(float f, int precision)
       {
         y--;
       }
+      
       int exponent = y - kTableZeroOffset;
+      int sciExponent = exponent;
       int absExponent = std::abs(exponent);
-
-      if (absExponent < kScientificStart)
-      // write in decimal notation
+      bool doScientific = (absExponent >= kScientificNotationStartExp);
+      
+      // get location of decimal point as exponent
+      int decimalExponent;
+      if (doScientific)
       {
-        // first write any leading zeroes
+        // exponent is after one decimal place.
+        decimalExponent = exponent - 1;
+      }
+      else
+      {
+        // exponent is always between 10^0 and 10^-1.
+        decimalExponent = -1;
+        
+        // decimal notation: write any leading zeroes
         if (exponent < -1)
         {
           *writePtr++ = '0';
           *writePtr++ = '.';
-          int zeroes = -exponent - 1;
-          for (int i = 0; i < zeroes; ++i)
+          for (int i = 0; i < -exponent - 1; ++i)
           {
             *writePtr++ = '0';
           }
@@ -184,40 +264,23 @@ TextFragment floatNumberToText(float f, int precision)
         {
           *writePtr++ = '0';
         }
-
-        // then write nonzero digits
-        do
-        {
-          if (exponent == -1)
-          {
-            *writePtr++ = '.';
-          }
-          int onesInt = truncf(value * powersOfTen[kTableZeroOffset - exponent]);
-          *writePtr++ = '0' + onesInt;
-          value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
-          exponent--;
-        } while ((value > epsilon) || (exponent >= 0));
       }
-      else
-      // write in scientific notation
+      
+      // write mantissa
+      writePtr = writeMantissa(value, writePtr, exponent, decimalExponent, digitsAfterDecimal);
+
+      // round and carry leftover value
+      int onesInt = truncf(value * powersOfTen[kTableZeroOffset - exponent]);
+      if(onesInt >= 5)
       {
-        const char exponentSign = exponent >= 0 ? '+' : '-';
-
-        // write mantissa
-        int onesInt = value * powersOfTen[kTableZeroOffset - exponent];
-        *writePtr++ = '0' + onesInt;
-        *writePtr++ = '.';
-        while (value > epsilon)
-        {
-          value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
-          exponent--;
-          onesInt = value * powersOfTen[kTableZeroOffset - exponent];
-          *writePtr++ = '0' + onesInt;
-        }
-
-        // write exponent
+        writePtr = carryDecimalChars(writePtr, buf);
+      }
+      
+      if (doScientific)
+      {
+        // finish by writing exponent
         *writePtr++ = 'e';
-        *writePtr++ = exponentSign;
+        *writePtr++ = sciExponent >= 0 ? '+' : '-';
         *writePtr++ = '0' + absExponent / 10;
         *writePtr++ = '0' + absExponent % 10;
       }
@@ -239,20 +302,20 @@ float textToFloatNumber(const TextFragment& frag)
 {
   float sign = 1;
   float wholePart = 0, fracPart = 0, fracPlace = 1;
-  float exponentSign = 1, exponent = 0;
+  float expSign = 1, exp = 0;
   bool hasExp = false;
   auto it = frag.begin();
   const TextFragment digits{"0123456789"};
   std::vector<std::pair<TextFragment, std::function<void()> > > segments{
-      {"NaN", [&]() { wholePart = std::numeric_limits<float>::quiet_NaN(); }},
+      {"nan", [&]() { wholePart = std::numeric_limits<float>::quiet_NaN(); }},
       {"-", [&]() { sign = -sign; }},
       {"inf", [&]() { wholePart = std::numeric_limits<float>::infinity(); }},
       {digits, [&]() { wholePart = wholePart * 10.0f + ((*it) - '0'); }},
       {".", [&]() {}},
       {digits, [&]() { fracPart += ((*it) - '0') * (fracPlace *= 0.1f); }},
       {"e+", [&]() { hasExp = true; }},
-      {"-", [&]() { exponentSign = -exponentSign; }},
-      {digits, [&]() { exponent = exponent * 10.0f + ((*it) - '0'); }}};
+      {"-", [&]() { expSign = -expSign; }},
+      {digits, [&]() { exp = exp * 10.0f + ((*it) - '0'); }}};
 
   for (auto segment : segments)
   {
@@ -264,7 +327,7 @@ float textToFloatNumber(const TextFragment& frag)
   }
 
   float base = sign * (wholePart + fracPart);
-  return hasExp ? base * powf(10.f, exponent * exponentSign) : base;
+  return hasExp ? base * powf(10.f, exp * expSign) : base;
 }
 
 int findFirst(const TextFragment& frag, const CodePoint b)

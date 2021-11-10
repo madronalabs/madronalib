@@ -300,12 +300,7 @@ public:
   {
     for (auto it = begin(); it != end(); ++it)
     {
-      int d = it.getCurrentDepth();
-      for (int i = 0; i < d; ++i)
-      {
-        std::cout << "    ";
-      }
-      std::cout << it.getCurrentNodeName() << " [" << *it << "]\n";
+      std::cout << it.getCurrentNodePath() << " [" << *it << "]\n";
     }
   }
   

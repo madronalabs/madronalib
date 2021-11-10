@@ -167,9 +167,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     // note that non-leaf nodes may have values
     a.add("this/is/a/test", 5);
+    a.add("this/is/a/test/jam", 5);
     a.add("this/was/an/test", 10);
     a.add("this/was/another/test", 10);
-    a.add("this/is/a/test/jam", 5);
     a.add("this/is/a/super/duper/cosmic/jam", 5);
 
     // duplicate addresses are overwritten
@@ -187,12 +187,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
               << "\n";
 
     int leafSum = 0;
-    const int correctLeafSum = 74;
+    const int correctLeafSum = 79;
 
     a.dump();
     std::cout << "size: " << a.size() << "\n";
     
-//    std::cout << "nodes: " << a.countNodes() << "\n";
+    //std::cout << "nodes: " << a.countNodes() << "\n";
     
     for (auto val : a)
     {
@@ -341,30 +341,49 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
 TEST_CASE("madronalib/core/serialization", "[serialization]")
 {
-  // serialization sample code.
-  // TODO test float -> text -> float conversion
-
   NoiseGen n;
-  for (int i = 0; i < 80; ++i)
+  constexpr int precision = 5;
+  
+  // Within the range of exponents (10^-34 -- 10^34) the maximum error of
+  // float -> text -> float conversion should be as tested below. outside
+  // the range the errors get bigger.
+  
+  // Test a bunch of random numbers covering the range.
+  int errors{0};
+  for (int i = 7; i < 75; ++i)
   {
-    float v = (1.0f + fabs(n.getSample()) * 9.f) * powf(10.f, i - 40 + 0.f) *
-              (i & 1 ? -1 : 1);
-    auto t = textUtils::floatNumberToText(v, 15);
+    float v = (1.0f + fabs(n.getSample())*9.f) * powf(10.f, i - 40)*(i&1 ? -1 : 1);
+    auto t = textUtils::floatNumberToText(v, precision);
     auto f = textUtils::textToFloatNumber(t);
-    //std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f << "\n";
+    float error = fabs(f - v);
+    
+    bool isExpNotation = textUtils::findFirst(t, 'e') >= 0;
+    float maxError = isExpNotation ? fabs(v*powf(10.f, -precision)) : powf(10.f, -4.f);
+    
+    if(error > maxError) errors++;
   }
-
-  const float maxFloat = std::numeric_limits<float>::max();
-  const float minFloat = std::numeric_limits<float>::min();
+  REQUIRE(!errors);
+  
+  // test some edge cases.
+  
+  const float infFloat = std::numeric_limits<float>::infinity();
   const float nanFloat = std::numeric_limits<float>::quiet_NaN();
-  std::vector<float> vf {nanFloat, maxFloat*10.f, maxFloat, maxFloat/10.f,
-  10000001, 32768, 10000, 100, 10.0f, 1.00001f, 1, 0.25f, 0.1f, 0.1250001f, 0.125f,
-  0.1249999f, 0.f, 3.004e-02f, 3.004e-07f, minFloat};
+  std::vector< float > vf {infFloat, nanFloat, 10000001, 32768, 10000, 100, 99.99999f, 10.0f,
+    9.99999f, 9.99995f, 1.00001f, 1, 0.25f, 0.1f, 9.999999e-9f, 1.11111e-10f};
   for(auto v : vf)
   {
-  auto t = textUtils::floatNumberToText(v, 10);
-  auto f = textUtils::textToFloatNumber(t);
-  // std::cout << std::setprecision(10) << v << " -> \"" << t << "\" -> " << f << "\n";
+    auto t = textUtils::floatNumberToText(v, precision);
+    auto f = textUtils::textToFloatNumber(t);
+    float error = fabs(f - v);
+    
+    bool isExpNotation = textUtils::findFirst(t, 'e') >= 0;
+    float maxError = isExpNotation ? fabs(v*powf(10.f, -precision)) : powf(10.f, -4.f);
+    
+    std::cout << v << " " << t << " " << f << " \n";
+    if(error > maxError) errors++;
   }
+  REQUIRE(!errors);
+
+  
 }
 
