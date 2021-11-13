@@ -43,7 +43,7 @@ endif()
 #--------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS_0 ${CMAKE_CXX_FLAGS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 
 
@@ -202,6 +202,8 @@ install(FILES include/madronalib.h DESTINATION include/madronalib)
 install(FILES include/mldsp.h DESTINATION include/madronalib)
 
 install(FILES external/cJSON/cJSON.h DESTINATION include/madronalib)
+
+install(FILES external/sse2neon/sse2neon.h DESTINATION include/madronalib)
 
 install(FILES 
     ${APP_HEADERS}     
