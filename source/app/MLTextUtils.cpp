@@ -289,35 +289,39 @@ TextFragment floatNumberToText(float f, int precision)
   return TextFragment(buf, writePtr - buf);
 }
 
-float textToFloatNumber(const TextFragment& frag)
+float textToFloatNumber(const char* input)
 {
-  float sign = 1;
-  float wholePart = 0, fracPart = 0, fracPlace = 1;
-  float expSign = 1, exp = 0;
+  float sign{1}, intPart{0}, fracPart{0}, fracPlace{1}, expSign{1}, exp{0};
   bool hasExp = false;
-  auto it = frag.begin();
+  auto it = input;
   constexpr char digits[]{"0123456789"};
   std::vector< std::pair< const char *, std::function< void() > > > segments{
-      {"nan", [&]() { wholePart = std::numeric_limits<float>::quiet_NaN(); }},
-      {"-", [&]() { sign = -sign; }},
-      {"inf", [&]() { wholePart = std::numeric_limits<float>::infinity(); }},
-      {digits, [&]() { wholePart = wholePart * 10.0f + ((*it) - '0'); }},
-      {".", [&]() {}},
-      {digits, [&]() { fracPart += ((*it) - '0')*(fracPlace *= 0.1f); }},
-      {"e+", [&]() { hasExp = true; }},
-      {"-", [&]() { expSign = -expSign; }},
-      {digits, [&]() { exp = exp * 10.0f + ((*it) - '0'); }}};
+    {"nan", [&](){intPart = std::numeric_limits<float>::quiet_NaN();}},
+    {"-", [&](){sign = -sign;}},
+    {"inf", [&](){intPart = std::numeric_limits<float>::infinity();}},
+    {digits, [&](){intPart = intPart*10.f + (*it - '0');}},
+    {".", [&](){}},
+    {digits, [&](){fracPart += (*it - '0')*(fracPlace *= 0.1f);}},
+    {"e+", [&](){hasExp = true;}},
+    {"-", [&](){expSign = -expSign;}},
+    {digits, [&](){exp = exp*10.f + (*it - '0');}}};
   for (auto segment : segments)
   {
-    const char* segEnd = segment.first + strlen(segment.first);
-    while(std::find(segment.first, segEnd, *it) != segEnd)
+    const char* cBegin = segment.first;
+    const char* cEnd = cBegin + strlen(cBegin);
+    while(std::find(cBegin, cEnd, *it) != cEnd)
     {
       segment.second();
       ++it;
     }
   }
-  float base = sign * (wholePart + fracPart);
-  return hasExp ? base * powf(10.f, exp * expSign) : base;
+  float base = sign*(intPart + fracPart);
+  return hasExp ? base*powf(10.f, exp*expSign) : base;
+}
+
+float textToFloatNumber(const TextFragment& frag)
+{
+  return textToFloatNumber(frag.getText());
 }
 
 int findFirst(const TextFragment& frag, const CodePoint b)
