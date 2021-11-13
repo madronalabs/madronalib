@@ -32,14 +32,13 @@ enum flags
 // intended use in editors and controllers, this seems like a reasonable
 // tradeoff.
 
-using MessageList = std::vector< Message >;
-
-inline MessageList append(MessageList a, MessageList b)
+struct MessageList : public std::vector< Message >
 {
-  MessageList r{a};
-  r.insert( r.end(), b.begin(), b.end() );
-  return r;
-}
+  void append(const MessageList& b)
+  {
+    insert(end(), b.begin(), b.end());
+  }
+};
 
 struct MessageReceiver
 {

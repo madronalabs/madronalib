@@ -86,4 +86,14 @@ TEST_CASE("madronalib/core/message", "[message]")
   
   sendMessageToEach< Receiver >(myColl, {"hello"});
   std::cout << "\n\n";
+  
+  MessageList mla;
+  mla.push_back({"foo"});
+  
+  MessageList mlb;
+  mlb.push_back({"bar"});
+  
+  mla.append(mlb);
+  
+
 }

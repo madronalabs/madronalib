@@ -313,7 +313,17 @@ public:
     }
     return sum;
   }
-  
+
+  void combine(const Tree<V, C>& b)
+  {
+    for (auto it = b.begin(); it != b.end(); ++it)
+    {
+      Path p = it.getCurrentNodePath();
+      Value v = (*it);
+      add(p, v);
+    }
+  }
+
 };
 
 // utilities
@@ -322,5 +332,6 @@ bool treeNodeExists(const Tree<V, C>& t, Path path)
 {
   return (t.getConstNode(path) != nullptr);
 }
+
 
 }  // namespace ml

@@ -356,16 +356,13 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
     auto t = textUtils::floatNumberToText(v, precision);
     auto f = textUtils::textToFloatNumber(t);
     float error = fabs(f - v);
-    
     bool isExpNotation = textUtils::findFirst(t, 'e') >= 0;
     float maxError = isExpNotation ? fabs(v*powf(10.f, -precision)) : powf(10.f, -4.f);
-    
     if(error > maxError) errors++;
   }
   REQUIRE(!errors);
   
   // test some edge cases.
-  
   const float infFloat = std::numeric_limits<float>::infinity();
   const float nanFloat = std::numeric_limits<float>::quiet_NaN();
   std::vector< float > vf {infFloat, nanFloat, 10000001, 32768, 10000, 100, 99.99999f, 10.0f,
@@ -375,15 +372,10 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
     auto t = textUtils::floatNumberToText(v, precision);
     auto f = textUtils::textToFloatNumber(t);
     float error = fabs(f - v);
-    
     bool isExpNotation = textUtils::findFirst(t, 'e') >= 0;
     float maxError = isExpNotation ? fabs(v*powf(10.f, -precision)) : powf(10.f, -4.f);
-    
-    std::cout << v << " " << t << " " << f << " \n";
     if(error > maxError) errors++;
   }
   REQUIRE(!errors);
-
-  
 }
 

@@ -289,15 +289,6 @@ TextFragment floatNumberToText(float f, int precision)
   return TextFragment(buf, writePtr - buf);
 }
 
-bool fragmentContainsCodePoint(TextFragment f, CodePoint cp)
-{
-  for (const CodePoint c : f)
-  {
-    if (c == cp) return true;
-  }
-  return false;
-}
-
 float textToFloatNumber(const TextFragment& frag)
 {
   float sign = 1;
@@ -305,27 +296,26 @@ float textToFloatNumber(const TextFragment& frag)
   float expSign = 1, exp = 0;
   bool hasExp = false;
   auto it = frag.begin();
-  const TextFragment digits{"0123456789"};
-  std::vector<std::pair<TextFragment, std::function<void()> > > segments{
+  constexpr char digits[]{"0123456789"};
+  std::vector< std::pair< const char *, std::function< void() > > > segments{
       {"nan", [&]() { wholePart = std::numeric_limits<float>::quiet_NaN(); }},
       {"-", [&]() { sign = -sign; }},
       {"inf", [&]() { wholePart = std::numeric_limits<float>::infinity(); }},
       {digits, [&]() { wholePart = wholePart * 10.0f + ((*it) - '0'); }},
       {".", [&]() {}},
-      {digits, [&]() { fracPart += ((*it) - '0') * (fracPlace *= 0.1f); }},
+      {digits, [&]() { fracPart += ((*it) - '0')*(fracPlace *= 0.1f); }},
       {"e+", [&]() { hasExp = true; }},
       {"-", [&]() { expSign = -expSign; }},
       {digits, [&]() { exp = exp * 10.0f + ((*it) - '0'); }}};
-
   for (auto segment : segments)
   {
-    while (fragmentContainsCodePoint(segment.first, *it))
+    const char* segEnd = segment.first + strlen(segment.first);
+    while(std::find(segment.first, segEnd, *it) != segEnd)
     {
       segment.second();
       ++it;
     }
   }
-
   float base = sign * (wholePart + fracPart);
   return hasExp ? base * powf(10.f, exp * expSign) : base;
 }
@@ -586,86 +576,50 @@ Symbol bestScriptForTextFragment(const TextFragment& frag)
   return "latin";
 }
 
-static const char base64table[] =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-int indexOf(const char* str, char c)
-{
-  int r = -1;
-  size_t len = strlen(str);
-  for (size_t i = 0; i < len; ++i)
-  {
-    if (str[i] == c)
-    {
-      r = (int)i;
-      break;
-    }
-  }
-  return r;
-}
+static constexpr char base64table[] {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="};
 
-TextFragment base64Encode(const std::vector<uint8_t>& in)
+TextFragment base64Encode(const std::vector<uint8_t> &in)
 {
-  size_t len = in.size();
   std::vector<char> out;
-  int b;
-  for (size_t i = 0; i < len; i += 3)
+  
+  int val = 0, valb = -6;
+  for (uint8_t c : in)
   {
-    b = (in[i] & 0xFC) >> 2;
-    out.push_back(base64table[b]);
-    b = (in[i] & 0x03) << 4;
-    if (i + 1 < len)
+    val = (val << 8) + c;
+    valb += 8;
+    while (valb >= 0)
     {
-      b |= (in[i + 1] & 0xF0) >> 4;
-      out.push_back(base64table[b]);
-      b = (in[i + 1] & 0x0F) << 2;
-      if (i + 2 < len)
-      {
-        b |= (in[i + 2] & 0xC0) >> 6;
-        out.push_back(base64table[b]);
-        b = in[i + 2] & 0x3F;
-        out.push_back(base64table[b]);
-      }
-      else
-      {
-        out.push_back(base64table[b]);
-        out.push_back('=');
-      }
-    }
-    else
-    {
-      out.push_back(base64table[b]);
-      out.push_back('=');
-      out.push_back('=');
+      out.push_back(base64table[(val>>valb)&0x3F]);
+      valb -= 6;
     }
   }
+  if (valb>-6) out.push_back(base64table[((val<<8)>>(valb+8))&0x3F]);
+  while (out.size()%4) out.push_back('=');
   out.push_back(0);
   return TextFragment(out.data());
 }
 
-std::vector<uint8_t> base64Decode(const TextFragment& frag)
+std::vector<uint8_t> base64Decode(const TextFragment& in)
 {
-  size_t len = frag.lengthInBytes();
-  if (len % 4) return std::vector<uint8_t>();
-  std::vector<uint8_t> decoded;
-  const char* inChars = frag.getText();
-  int b[4];
-  for (int i = 0; i < len; i += 4)
+  // in every call we build a reverse lookup table.
+  // TODO this could probably be made once in a constexpr
+  std::vector<int> T(256, -1);
+  for (int i=0; i<64; i++) T[base64table[i]] = i;
+  
+  std::vector<uint8_t> out;
+  int val=0, valb=-8;
+  for (uint8_t c : in)
   {
-    for (int j = 0; j < 4; ++j)
+    if (T[c] == -1) break;
+    val = (val << 6) + T[c];
+    valb += 6;
+    if (valb >= 0)
     {
-      b[j] = indexOf(base64table, inChars[i + j]);
-    }
-    decoded.push_back((b[0] << 2) | (b[1] >> 4));
-    if (b[2] < 64)
-    {
-      decoded.push_back((b[1] << 4) | (b[2] >> 2));
-      if (b[3] < 64)
-      {
-        decoded.push_back((b[2] << 6) | b[3]);
-      }
+      out.push_back(char((val>>valb)&0xFF));
+      valb -= 8;
     }
   }
-  return decoded;
+  return out;
 }
 
 TextFragment stripWhitespaceAtEnds(const TextFragment& frag)
