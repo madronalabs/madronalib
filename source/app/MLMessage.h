@@ -17,6 +17,8 @@ struct Message final
   uint32_t flags{0};
 
   Message(Path h = Path(), Value v = Value(), uint32_t f = 0) : address(h), value(v), flags(f) {}
+  
+  explicit operator bool() const { return(address != Path()); }
 };
 
 enum flags
@@ -42,16 +44,36 @@ struct MessageList : public std::vector< Message >
 
 struct MessageReceiver
 {
-  virtual void receiveMessage(Message m) = 0;
+  // receive a message.
+protected:
+  virtual void handleMessage(Message m, Message* replyPtr) = 0;
+  
+public:
+  void doSendMessage(Message m)
+  {
+    handleMessage(m, nullptr);
+  }
+  
+  void doSendRequest(Message m, Message* replyPtr)
+  {
+    handleMessage(m, replyPtr);
+  }
 };
-
 
 // sending messages to MessageReceivers
 
 // send a message directly to a MessageReceiver.
+// If the sender wants a reply, it can specify a replyPtr.
 inline void sendMessage(MessageReceiver& obj, Message m)
 {
-  obj.receiveMessage(m);
+  obj.doSendMessage(m);
+}
+
+// send a message directly to a MessageReceiver.
+// If the sender wants a reply, it can specify a replyPtr.
+inline void sendRequest(MessageReceiver& obj, Message m, Message* replyPtr)
+{
+  obj.doSendRequest(m, replyPtr);
 }
 
 // send a message list directly to a MessageReceiver.
@@ -69,18 +91,18 @@ template <typename T>
 inline void sendMessage(const std::unique_ptr< T > & pObj, Message m)
 {
   if(pObj)
-    pObj->receiveMessage(m);
+    pObj->doSendMessage(m);
 }
 
 // send a list of messages to a MessageReceiver object through a Collection.
 template <typename T>
-inline void sendMessages(const std::unique_ptr< T > & pObj, MessageList msgList)
+inline void sendMessageList(const std::unique_ptr< T > & pObj, MessageList msgList)
 {
   if(pObj)
   {
     for(auto& m : msgList)
     {
-      pObj->receiveMessage(m);
+      pObj->doSendMessage(m);
     }
   }
 }

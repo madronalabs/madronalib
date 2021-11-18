@@ -202,6 +202,10 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     REQUIRE(std::accumulate(a.begin(), a.end(), 0) == correctLeafSum);
     
+    // copy by value
+    auto b = a;
+    REQUIRE(std::accumulate(b.begin(), b.end(), 0) == correctLeafSum);
+
     // Example using Tree with unique_ptr< int >.
     //
     Tree< std::unique_ptr< int > > intPtrTree;

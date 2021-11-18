@@ -27,7 +27,7 @@ struct Receiver : public MessageReceiver
   operator int() const { return value; }
   int value;
   
-  void receiveMessage(Message m) { std::cout << "normal: " << value << "\n"; }
+  void handleMessage(Message m, Message*) { std::cout << "normal: " << value << "\n"; }
 };
 
 struct FancyReceiver : public Receiver
@@ -36,7 +36,7 @@ struct FancyReceiver : public Receiver
   FancyReceiver(int v) : Receiver(v) {}
   ~FancyReceiver() = default;
   
-  void receiveMessage(Message m) { std::cout << "fancy!! " << value << "\n"; }
+  void handleMessage(Message m, Message*) { std::cout << "fancy!! " << value << "\n"; }
 };
 
 
@@ -56,6 +56,14 @@ struct ReceiverWithCollection : public Receiver
 
 TEST_CASE("madronalib/core/message", "[message]")
 {
+  // a null path
+  Path p;
+  REQUIRE(!p);
+
+  // a null message
+  Message nullMessage;
+  REQUIRE(!nullMessage);
+  
   CollectionRoot< Receiver > myColl;
  
   myColl.add_unique< Receiver >("a", 3);
