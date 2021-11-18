@@ -33,11 +33,26 @@ public:
   Tree<V, C>() = default;
   Tree<V, C>(V val) : _value(std::move(val)) {}
 
+  Tree<V, C>& operator= (const Tree<V, C>& b)
+  {
+    clear();
+    combine(b);
+  }
+  
   void clear()
   {
     mChildren.clear();
     _value = V();
   }
+  
+  void combine(const Tree<V, C>& b)
+  {
+    for (auto it = b.begin(); it != b.end(); ++it)
+    {
+      add(it.getCurrentNodePath(), *it);
+    }
+  }
+
   bool hasValue() const { return _value != V(); }
   const V& getValue() const { return _value; }
   bool isLeaf() const { return mChildren.size() == 0; }
@@ -314,15 +329,6 @@ public:
     return sum;
   }
 
-  void combine(const Tree<V, C>& b)
-  {
-    for (auto it = b.begin(); it != b.end(); ++it)
-    {
-      Path p = it.getCurrentNodePath();
-      Value v = (*it);
-      add(p, v);
-    }
-  }
 
 };
 
