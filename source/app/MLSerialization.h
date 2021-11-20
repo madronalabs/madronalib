@@ -20,6 +20,8 @@
 #include "MLTree.h"
 #include "MLValue.h"
 
+#include "cJSON.h"
+
 namespace ml
 {
 struct BinaryGroupHeader
@@ -352,5 +354,94 @@ inline Tree<Value> binaryToValueTree(const std::vector<unsigned char>& binaryDat
   }
   return outputTree;
 }
+
+// return a JSON object representing the value tree. The caller is responsible
+// for freeing the object.
+//
+inline cJSON* valueTreeToJSON(const Tree<Value>& t)
+{
+  cJSON* root = cJSON_CreateObject();
+
+  for (auto it = t.begin(); it != t.end(); ++it)
+  {
+    Path p = it.getCurrentNodePath();
+    TextFragment pathAsText(pathToText(p));
+    Value v = (*it);
+    
+    const char* keyStr = pathAsText.getText();
+    
+    switch(v.getType())
+    {
+      case Value::kUndefinedValue:
+        break;
+      case Value::kFloatValue:
+        cJSON_AddNumberToObject(root, keyStr, v.getFloatValue());
+        break;
+      case Value::kTextValue:
+        cJSON_AddStringToObject(root, keyStr, v.getTextValue().getText());
+        break;
+      case Value::kMatrixValue:
+      {
+        /* TODO
+        cJSON* signalObj = cJSON_CreateObject();
+        const MLSignal& sig = state.mValue.getSignalValue();
+        cJSON_AddStringToObject(signalObj, "type", "signal");
+        cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
+        cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
+        cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
+        int size = sig.getSize();
+        float* pSignalData = sig.getBuffer();
+        cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
+        cJSON_AddItemToObject(signalObj, "data", data);
+        
+        // add signal object to state JSON
+        cJSON_AddItemToObject(root, keyStr, signalObj);
+         */
+      }
+        break;
+      default:
+        //debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
+        break;
+    }
+  }
+  
+  return root;
+}
+
+
+inline Tree< Value > JSONToValueTree(cJSON* pRoot)
+{
+  Tree< Value > r;
+  if(!pRoot) return r;
+  
+  cJSON *child = pRoot->child;
+  while(child)
+  {
+    Path key(child->string);
+  
+    switch(child->type & 255)
+    {
+      case cJSON_Number:
+        //debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
+        r.add(key, (float)child->valuedouble);
+        break;
+      case cJSON_String:
+        //debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
+        
+        r.add(key, TextFragment(child->valuestring));
+        break;
+      case cJSON_Object:
+        // TODO look for blob object and refactor matrix values into it
+      case cJSON_Array:
+      default:
+        break;
+    
+    }
+    child = child->next;
+  }
+  
+  return r;
+}
+
 
 }  // namespace ml

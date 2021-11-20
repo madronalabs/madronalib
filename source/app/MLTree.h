@@ -33,12 +33,6 @@ public:
   Tree<V, C>() = default;
   Tree<V, C>(V val) : _value(std::move(val)) {}
 
-  Tree<V, C>& operator= (const Tree<V, C>& b)
-  {
-    clear();
-    combine(b);
-  }
-  
   void clear()
   {
     mChildren.clear();
