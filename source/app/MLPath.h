@@ -33,13 +33,13 @@ class Path final
   explicit Path() = default;
   
   Path(const char* str);
-  explicit Path(const Symbol sym);
-  explicit Path(const TextFragment frag);
+  Path(const Symbol sym);
+  Path(const TextFragment frag);
+  
   explicit Path(const TextFragment frag, const char separator);
   explicit Path(const Path& a, const Path& b);
   explicit Path(const Path& a, const Path& b, const Path& c);
   explicit Path(const Path& a, const Path& b, const Path& c, const Path& d);
-  explicit Path(const Path& a, const Symbol& b);
 
   ~Path() = default;
 
