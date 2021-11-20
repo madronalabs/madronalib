@@ -23,14 +23,32 @@ Path::Path(const ml::TextFragment frag, const char separator)
 
 Path::Path(const Path& a, const Path& b)
 {
+  for (Symbol s : a){addSymbol(s);}
+  for (Symbol s : b){addSymbol(s);}
+}
+
+Path::Path(const Path& a, const Path& b, const Path& c)
+{
+  for (Symbol s : a){addSymbol(s);}
+  for (Symbol s : b){addSymbol(s);}
+  for (Symbol s : c){addSymbol(s);}
+}
+
+Path::Path(const Path& a, const Path& b, const Path& c, const Path& d)
+{
+  for (Symbol s : a){addSymbol(s);}
+  for (Symbol s : b){addSymbol(s);}
+  for (Symbol s : c){addSymbol(s);}
+  for (Symbol s : d){addSymbol(s);}
+}
+
+Path::Path(const Path& a, const Symbol& b)
+{
   for (Symbol s : a)
   {
     addSymbol(s);
   }
-  for (Symbol s : b)
-  {
-    addSymbol(s);
-  }
+  addSymbol(b);
 }
 
 void Path::parsePathString(const char* pathStr, const char separator)
@@ -135,7 +153,7 @@ Path expand(Symbol from, Path toPath, Path p)
     }
     else
     {
-      r = Path{r, next};
+      r = Path{r, Path(next)};
     }
   }
   return r;

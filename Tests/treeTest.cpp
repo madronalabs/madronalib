@@ -157,7 +157,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // to get lexicographical or other sorting.
 
     theSymbolTable().clear();
-    Tree<int> a;
+    Tree< int > a;
 
     // note that the root node (case) has no value.
     a.add("case/sensitive/a", 1);
@@ -203,8 +203,10 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(std::accumulate(a.begin(), a.end(), 0) == correctLeafSum);
     
     // copy by value
-    auto b = a;
-    REQUIRE(std::accumulate(b.begin(), b.end(), 0) == correctLeafSum);
+    auto a2 = a;
+    REQUIRE(std::accumulate(a2.begin(), a2.end(), 0) == correctLeafSum);
+    REQUIRE(&a != &a2);
+    
 
     // Example using Tree with unique_ptr< int >.
     //
@@ -217,6 +219,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     
     REQUIRE(!intPtrTree["john"]);
     // *** REQUIRE(*intPtrTree["john"] == 0); // no value, so this will crash
+    
+    // copy by value will not compile with unique_ptr values
+    // *** auto intPtrTreeB = intPtrTree;
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.
@@ -381,5 +386,26 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
     if(error > maxError) errors++;
   }
   REQUIRE(!errors);
+  
+  
+  Tree< Value > v;
+  v["a"] = 0.4f;
+  v["b"] = "hello";
+  v["a/b/c"] = "hello again";
+  auto vJSON = valueTreeToJSON(v);
+  char* stateText = cJSON_Print(vJSON);
+  cJSON_Delete(vJSON);
+  
+  std::cout << stateText << "\n";
+  
+  cJSON* root = cJSON_Parse(stateText);
+  Tree< Value > v2 = JSONToValueTree(root);
+  
+  v2.dump();
+  
+ // bool eq = (v == v2);
+  
+  free(stateText);
+  
 }
 

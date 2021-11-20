@@ -30,19 +30,16 @@ class Path final
   friend std::ostream& operator<<(std::ostream& out, const Path& r);
 
  public:
-  Path() = default;
-  Path(const Path& b) = default;
+  explicit Path() = default;
+  
   Path(const char* str);
-  Path(const Symbol sym);
-  Path(const TextFragment frag);
-  Path(const TextFragment frag, const char separator);
-  Path(const Path& a, const Path& b);
-
-  template <typename T, typename... Rest>
-  Path(const T& first, const Rest&... rest)
-  {
-    *this = Path(Path(first), Path(rest...));
-  }
+  explicit Path(const Symbol sym);
+  explicit Path(const TextFragment frag);
+  explicit Path(const TextFragment frag, const char separator);
+  explicit Path(const Path& a, const Path& b);
+  explicit Path(const Path& a, const Path& b, const Path& c);
+  explicit Path(const Path& a, const Path& b, const Path& c, const Path& d);
+  explicit Path(const Path& a, const Symbol& b);
 
   ~Path() = default;
 
@@ -135,7 +132,7 @@ class Path final
   // sizeof(Path) = 64
 };
 
-inline bool operator==(const Path a, const Path b)
+inline bool operator==(const Path& a, const Path& b)
 {
   auto an = a.getSize();
   auto bn = b.getSize();
@@ -147,6 +144,6 @@ inline bool operator==(const Path a, const Path b)
   return true;
 }
 
-inline bool operator!=(Path a, Path b) { return !(a == b); }
+inline bool operator!=(const Path a, const Path b) { return !(a == b); }
 
 }  // namespace ml
