@@ -118,7 +118,7 @@ Symbol last(Path p)
   return Symbol();
 }
 
-Path substitute(Symbol from, Symbol to, Path p)
+Path substitute(Path p, Symbol from, Symbol to)
 {
   Path r{p};
   for (int n = 0; n < p.mSize; ++n)
@@ -132,7 +132,7 @@ Path substitute(Symbol from, Symbol to, Path p)
 }
 
 // expand matching symbol into path
-Path expand(Symbol from, Path toPath, Path p)
+Path substitute(Path p, Symbol from, Path toPath)
 {
   Path r;
   for (int n = 0; n < p.mSize; ++n)

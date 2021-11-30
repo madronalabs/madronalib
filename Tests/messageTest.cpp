@@ -36,7 +36,7 @@ struct FancyReceiver : public Receiver
   FancyReceiver(int v) : Receiver(v) {}
   ~FancyReceiver() = default;
   
-  void handleMessage(Message m, Message*) { std::cout << "fancy!! " << value << "\n"; }
+  void handleMessage(Message m, Message*) { std::cout << "fancy!! " << value << " " << m << "\n"; }
 };
 
 

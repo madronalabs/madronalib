@@ -12,6 +12,8 @@ namespace ml
 {
 struct Message final
 {
+  friend std::ostream& operator<<(std::ostream& out, const Message& r);
+
   Path address{};
   Value value{};
   uint32_t flags{0};
@@ -140,10 +142,11 @@ inline void sendMessageToEach(typename Collection<T>::TreeType& collRef, Message
   forEach< T >(subCollection, [&](T& obj) { sendMessage(obj, m); });
 }
 
-}  // namespace ml
-
-inline std::ostream& operator<<(std::ostream& out, const ml::Message& r)
+inline std::ostream& operator<<(std::ostream& out, const Message& r)
 {
-  std::cout << "{" << r.address << ": " << r.value << "}";
+  std::cout << "[" << r.address << ": " << r.value << "]";
   return out;
 }
+
+
+}  // namespace ml

@@ -103,8 +103,8 @@ class Path final
   friend Path butLast(Path p);
   friend Symbol last(Path p);
 
-  friend Path substitute(Symbol from, Symbol to, Path p);
-  friend Path expand(Symbol from, Path to, Path p);
+  friend Path substitute(Path p, Symbol from, Symbol to);
+  friend Path substitute(Path p, Symbol from, Path to);
 
  private:
   
@@ -145,5 +145,19 @@ inline bool operator==(const Path& a, const Path& b)
 }
 
 inline bool operator!=(const Path a, const Path b) { return !(a == b); }
+
+
+inline TextFragment pathToText(Path p, const char separator = '/')
+{
+  auto concat = [&](Symbol a, Symbol b) {
+    return TextFragment(a.getTextFragment(), TextFragment(separator), b.getTextFragment());
+  };
+  return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
+}
+
+inline Path textToPath(TextFragment t, const char separator = '/')
+{
+  return Path(t, separator);
+}
 
 }  // namespace ml
