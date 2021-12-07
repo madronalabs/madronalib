@@ -172,4 +172,56 @@ class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
 
 // horiz -> vert -> horiz adapters can go here
 
+// turn off denormal math so that (for example) IIR filters don't consume
+// many more CPU cycles when they decay.
+// thanks to: Dan Gillespie, Chris Santoro
+struct FlushToZeroHandler
+{
+#if defined(__SSE__)
+  uint32_t MXCRState = 0;
+  
+  void SetDenormalsAreZeroAndFlushToZeroOnCPU()
+  {
+    // Set the DAZ (denormals are zero) and FZ (flush to zero) in the Intel MXCSR register
+    MXCRState = _mm_getcsr(); // read the old MXCSR setting
+    int newMXCSR = MXCRState | 0x8040; // set DAZ and FZ bits
+    _mm_setcsr(newMXCSR); // write the new MXCSR setting to the MXCSR
+  }
+  
+  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU()
+  {
+    _mm_setcsr(MXCRState);
+  }
+#elif defined(__aarch64__)
+  uint64_t MXCRState = 0;
+  
+  void SetDenormalsAreZeroAndFlushToZeroOnCPU()
+  {
+    // read and store floating point control register (FPCR)
+    uint64_t FPCR_prev = 0;
+    asm volatile ("MRS %0, FPCR " : "=r" ( FPCR_prev));
+    MXCRState = FPCR_prev;
+    
+    // set flush to zero bit and write FPCR
+    uint64_t FPCR = FPCR_prev | (1ULL << 24);
+    asm volatile ("MSR FPCR, %0 " : : "r" ( FPCR));
+  }
+  
+  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU()
+  {
+    asm volatile ("MSR FPCR, %0 " : : "r" (MXCRState));
+  }
+#else
+  void SetDenormalsAreZeroAndFlushToZeroOnCPU()
+  {
+    return;
+  }
+  
+  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU()
+  {
+    return;
+  }
+#endif
+};
+
 }  // namespace ml
