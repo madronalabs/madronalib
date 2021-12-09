@@ -11,23 +11,23 @@ endif()
 
 list(APPEND CMAKE_MODULE_PATH "${VST3_SDK_ROOT}/cmake/modules")
 
-include(Global)
-include(AddVST3Library)
-include(Bundle)
-include(ExportedSymbols)
-include(PrefixHeader)
-include(PlatformIOS)
-include(PlatformToolset)
-include(CoreAudioSupport)
-include(VstGuiSupport)
-include(UniversalBinary)
-include(AddVST3Options)
+include(SMTG_Global)
+include(SMTG_AddVST3Library)
+include(SMTG_Bundle)
+include(SMTG_ExportedSymbols)
+include(SMTG_PrefixHeader)
+include(SMTG_PlatformIOS)
+include(SMTG_PlatformToolset)
+include(SMTG_CoreAudioSupport)
+include(SMTG_VstGuiSupport)
+include(SMTG_UniversalBinary)
+include(SMTG_AddVST3Options)
 
 
 #-------------------------------------------------------------------------------
 # SDK Project
 #-------------------------------------------------------------------------------
-setupPlatformToolset()
+smtg_setup_platform_toolset()
 
 set(ROOT "${VST3_SDK_ROOT}")
 
