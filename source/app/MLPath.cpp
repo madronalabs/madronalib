@@ -3,7 +3,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPath.h"
-
+#include "MLTextUtils.h"
 #include "utf.hpp"
 
 namespace ml
@@ -42,42 +42,62 @@ Path::Path(const Path& a, const Path& b, const Path& c, const Path& d)
   for (Symbol s : d){addSymbol(s);}
 }
 
+inline size_t codepointSize(utf::codepoint_type c)
+{
+  return utf::internal::utf_traits<utf::utf8>::write_length(c);
+}
+
 void Path::parsePathString(const char* pathStr, const char separator)
 {
   if (!pathStr) return;
 
   auto it = TextFragment::Iterator(pathStr);
-
-  size_t symbolSizeInBytes;
   const char* symbolStartPtr = pathStr;
 
-  bool finishedString, charIsSeparator, finishedSymbol;
   do
   {
-    symbolSizeInBytes = 0;
-    do
-    {
-      CodePoint cp = *it;
-      size_t codePointSize = utf::internal::utf_traits<utf::utf8>::write_length(cp);
-      charIsSeparator = (codePointSize == 1) && (cp == separator);
-      finishedString = (cp == '\0');
-      finishedSymbol = charIsSeparator || finishedString;
-      ++it;
-      if (!finishedSymbol) symbolSizeInBytes += codePointSize;
-    } while (!finishedSymbol);
+    // read one symbol
+    size_t codepointSizeInBytes = 0;
+    size_t symbolSizeInBytes = 0;
 
-    addSymbol(Symbol(symbolStartPtr, symbolSizeInBytes));
-    symbolStartPtr += symbolSizeInBytes + 1;
-  } while (!finishedString);
+    // skip zero or more separators (which must have codepoint size = 1)
+    while(*it == separator)
+    {
+      symbolStartPtr++;
+      ++it;
+    }
+      
+    // advance by code points to end of symbol
+    while((*it != separator) && (*it != '\0'))
+    {
+      // codepointSize(0) is 0, so this is OK
+      symbolSizeInBytes += codepointSize(*it);
+      ++it;
+    }
+    
+    // create and add the new symbol
+    if(symbolSizeInBytes > 0)
+    {
+      addSymbol(Symbol(symbolStartPtr, symbolSizeInBytes));
+      symbolStartPtr += symbolSizeInBytes;
+    }
+  }
+  while (*it != '\0');
+
+  /*
+   // TODO benchmark this probably slower implementation out of curiosity
+  auto segments = textUtils::split(TextFragment(pathStr), separator);
+  for(auto & seg : segments)
+  {
+    addSymbol(Symbol(seg.getText()));
+  }
+  */
+
 }
 
 std::ostream& operator<<(std::ostream& out, const ml::Path& r)
 {
-  for (auto sym : r)
-  {
-    out << "/";
-    out << sym;
-  }
+  out << pathToText(r);
   unsigned copy = r.getCopy();
   if (copy)
   {
