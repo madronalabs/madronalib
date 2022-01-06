@@ -54,6 +54,10 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
     for (int i = 0; i < test2Size; ++i)
     {
       v2.emplace_back(std::unique_ptr<Timer>(new Timer));
+      
+      // rare crash?
+      // terminating with uncaught exception of type std::__1::bad_function_call: std::exception
+      // in timer::run()
       v2[i]->start([=]() { std::cout << i << " "; }, milliseconds(10 * i));
     }
     std::this_thread::sleep_for(milliseconds(500));

@@ -259,6 +259,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // note, this intentionally generates a compile-time error when using
     // unique_ptrs
     // *** auto failedLookup = heavies["nowhere/in/path"];
+    
+    // copying unique_ptr is not allowed.
+    // *** auto heaviesB = heavies;
 
     // instead, a reference must be used.
     // if no value is found, a new node with default value is added and
@@ -292,7 +295,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   Matrix melody3(4, 5, 2);
   melody3.fill(9.f);
   properties.add("melodies/3", melody3);
-
   properties.add("melodies/3/dummy", 4);
 
   // when a property does not exist, operator[] adds a default object
@@ -304,6 +306,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // failed lookup returns a null Value
   auto failedLookup = properties["nowhere/in/path"];
   REQUIRE(failedLookup == Value());
+  
+  // we have lightweight objects, so deep copy is OK
+  auto propertiesB = properties;
+  REQUIRE (propertiesB == properties);
+  propertiesB["x"] = 25;
+  REQUIRE (propertiesB != properties);
 
   // a tree converted to binary and back should result in the original value
   auto b = valueTreeToBinary(properties);
@@ -345,6 +353,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(floatTree["purple"] == 0.f);
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);
+  
+  
 
 }
 

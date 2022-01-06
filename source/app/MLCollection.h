@@ -15,8 +15,9 @@ class Collection
 public:
   // TODO these types should be protected, but then it becomes hard to write something
   // like inSubCollection() below. revisit
-  using ObjectPointerType = std::unique_ptr<T>;
-  using TreeType = Tree<ObjectPointerType>;
+  using ObjectPointerType = std::unique_ptr< T >;
+  using TreeType = Tree< ObjectPointerType >;
+  
 protected:
   TreeType* _tree{nullptr};
 
