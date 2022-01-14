@@ -22,21 +22,42 @@ class Queue final
   Queue(size_t size) { resize(size); }
 
   ~Queue() {}
-
-  void resize(size_t size)
+  
+  // return the exponent of the smallest power of 2 that is >= x.
+  inline size_t bitsToContain(int x)
   {
-    mData.resize(size + 1);
-    clear();
+    int exp;
+    for (exp = 0; (1 << exp) < x; exp++)
+    ;
+    return (exp);
   }
 
+  void resize(size_t capacity)
+  {
+    // when _readIndex = _writeIndex the queue is considered empty. So
+    // a queue of size 1 can't store any elements: we have to add
+    // 1 to the requested capacity. Then, find the power of two size that
+    // will contain that many elements.
+    size_t powerOfTwoSize = 1 << bitsToContain(capacity + 1);
+    
+    _data.resize(powerOfTwoSize);
+    _sizeMask = powerOfTwoSize - 1;
+    clear();
+  }
+  
+  size_t size()
+  {
+    return _data.size();
+  }
+  
   bool push(const Element& item)
   {
-    const auto currentWriteIndex = mWriteIndex.load(std::memory_order_relaxed);
+    const auto currentWriteIndex = _writeIndex.load(std::memory_order_relaxed);
     const auto nextWriteIndex = increment(currentWriteIndex);
-    if (nextWriteIndex != mReadIndex.load(std::memory_order_acquire))
+    if (nextWriteIndex != _readIndex.load(std::memory_order_acquire))
     {
-      mData[currentWriteIndex] = item;
-      mWriteIndex.store(nextWriteIndex, std::memory_order_release);
+      _data[currentWriteIndex] = item;
+      _writeIndex.store(nextWriteIndex, std::memory_order_release);
       return true;
     }
     return false;
@@ -44,25 +65,25 @@ class Queue final
 
   bool pop(Element& item)
   {
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);
-    if (currentReadIndex == mWriteIndex.load(std::memory_order_acquire))
+    const auto currentReadIndex = _readIndex.load(std::memory_order_relaxed);
+    if (currentReadIndex == _writeIndex.load(std::memory_order_acquire))
     {
       return false;  // empty queue
     }
-    item = mData[currentReadIndex];
-    mReadIndex.store(increment(currentReadIndex), std::memory_order_release);
+    item = _data[currentReadIndex];
+    _readIndex.store(increment(currentReadIndex), std::memory_order_release);
     return true;
   }
 
   Element pop()
   {
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);
-    if (currentReadIndex == mWriteIndex.load(std::memory_order_acquire))
+    const auto currentReadIndex = _readIndex.load(std::memory_order_relaxed);
+    if (currentReadIndex == _writeIndex.load(std::memory_order_acquire))
     {
       return Element();  // empty queue, return null object
     }
-    Element r = mData[currentReadIndex];
-    mReadIndex.store(increment(currentReadIndex), std::memory_order_release);
+    Element r = _data[currentReadIndex];
+    _readIndex.store(increment(currentReadIndex), std::memory_order_release);
     return r;
   }
 
@@ -74,32 +95,31 @@ class Queue final
 
   size_t elementsAvailable() const
   {
-    return (mWriteIndex.load(std::memory_order_acquire) -
-            mReadIndex.load(std::memory_order_relaxed)) %
-           mData.size();
+    return (_writeIndex.load(std::memory_order_acquire) - _readIndex.load(std::memory_order_relaxed)) & _sizeMask;
   }
 
   // useful for reading elements while a criterion is met. Can be used like
   // while queue.elementsAvailable() && q.peek().mTime < 100 { q.pop(elem) ... }
   const Element& peek() const
   {
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_relaxed);
-    return mData[currentReadIndex];
+    const auto currentReadIndex = _readIndex.load(std::memory_order_relaxed);
+    return _data[currentReadIndex];
   }
 
-  bool wasEmpty() const { return (mWriteIndex.load() == mReadIndex.load()); }
+  bool wasEmpty() const { return (_writeIndex.load() == _readIndex.load()); }
 
   bool wasFull() const
   {
-    const auto nextWriteIndex = increment(mWriteIndex.load());
-    return (nextWriteIndex == mReadIndex.load());
+    const auto nextWriteIndex = increment(_writeIndex.load());
+    return (nextWriteIndex == _readIndex.load());
   }
 
  private:
-  size_t increment(size_t idx) const { return (idx + 1) % (mData.size()); }
+  size_t increment(size_t idx) const { return (idx + 1) & _sizeMask; }
 
-  std::vector<Element> mData;
-  std::atomic<size_t> mWriteIndex{0};
-  std::atomic<size_t> mReadIndex{0};
+  std::vector<Element> _data;
+  size_t _sizeMask;
+  std::atomic<size_t> _writeIndex{0};
+  std::atomic<size_t> _readIndex{0};
 };
 };  // namespace ml
