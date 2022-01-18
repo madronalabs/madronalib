@@ -252,7 +252,10 @@ class Symbol
   inline std::string toString() const { return std::string(getUTF8Ptr()); }
 };
 
-inline uint32_t hash(Symbol f) { return krHash0(f.getUTF8Ptr()); }
+inline uint32_t hash(Symbol f)
+{
+  return krHash0(f.getUTF8Ptr());
+}
 
 inline Symbol operator+(Symbol f1, Symbol f2)
 {

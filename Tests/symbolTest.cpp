@@ -125,6 +125,10 @@ TEST_CASE("madronalib/core/hashes", "[hashes]")
 
   REQUIRE(a1 == b1);
   REQUIRE(a2 == b2);
+  
+  
+  auto h = hash(Symbol());
+  std::cout << "hash of null symbol: " << h << "\n";
 }
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";

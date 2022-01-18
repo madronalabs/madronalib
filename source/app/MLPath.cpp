@@ -106,7 +106,17 @@ std::ostream& operator<<(std::ostream& out, const ml::Path& r)
   return out;
 }
 
-Symbol head(Path p) { return p._symbols[0]; }
+Symbol head(Path p)
+{
+  if(p.getSize() > 0)
+  {
+    return p._symbols[0];
+  }
+  else
+  {
+    return Symbol();
+  }
+}
 
 Path tail(Path p)
 {
