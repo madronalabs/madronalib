@@ -188,6 +188,14 @@ public:
     }
   }
   
+  inline void dump() const
+  {
+    for (auto it = _tree->begin(); it != _tree->end(); ++it)
+    {
+      std::cout << it.getCurrentNodePath() << " [" << *it << "] \n";
+    }
+  }
+  
   inline size_t size() const
   {
     return _tree ? _tree->size() : 0;
