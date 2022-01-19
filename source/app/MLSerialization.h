@@ -66,6 +66,9 @@ inline TextFragment valueToText(const Value v)
       // unimplemented
       return TextFragment{};  // {"M", matrixToText(v.getMatrixValue())};
       break;
+    case Value::kUnsignedLongValue:
+      return TextFragment{"L", textUtils::naturalNumberToText(v.getUnsignedLongValue())};
+      break;
   }
   return t;
 }
@@ -139,6 +142,17 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
       matrixVal.writeToPackedData(pDest);
       break;
     }
+    case Value::kUnsignedLongValue:
+    {
+      float f = v.getUnsignedLongValue();
+      unsigned dataSize = sizeof(uint32_t);
+      outputVector.resize(headerSize + dataSize);
+      BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
+      *header = BinaryChunkHeader{'L', dataSize};
+      uint32_t* pDest{reinterpret_cast<uint32_t*>(outputVector.data() + headerSize)};
+      *pDest = f;
+      break;
+    }
   }
   return ml::make_unique<std::vector<unsigned char> >(outputVector);
 }
@@ -178,6 +192,14 @@ inline Value binaryToValue(const unsigned char* p)
       m.readFromPackedData(pFloatData);
       returnValue = Value{m};
 
+      break;
+    }
+    case 'L':
+    {
+      const unsigned char* pData = p + sizeof(BinaryChunkHeader);
+      auto* pLongData{reinterpret_cast<const uint32_t*>(pData)};
+      uint32_t ul = *pLongData;
+      returnValue = Value(ul);
       break;
     }
   }
@@ -390,6 +412,9 @@ inline cJSON* valueTreeToJSON(const Tree<Value>& t)
         cJSON_AddItemToObject(root, keyStr, signalObj);
          */
       }
+        break;
+      case Value::kUnsignedLongValue:
+        cJSON_AddNumberToObject(root, keyStr, v.getUnsignedLongValue());
         break;
       default:
         //debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";

@@ -25,6 +25,9 @@ Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
     case Value::kMatrixValue:
       mMatrixVal = other.getMatrixValue();
       break;
+    case Value::kUnsignedLongValue:
+      mUnsignedLongVal = other.getUnsignedLongValue();
+      break;
     default:
       break;
   }
@@ -45,6 +48,9 @@ Value& Value::operator=(const Value& other)
       // Matrix handles copy-in-place when possible
       mMatrixVal = other.getMatrixValue();
       break;
+    case Value::kUnsignedLongValue:
+      mUnsignedLongVal = other.getUnsignedLongValue();
+      break;
     default:
       break;
   }
@@ -57,6 +63,8 @@ Value::Value(float v) : mType(kFloatValue) { mFloatVal = v; }
 Value::Value(int v) : mType(kFloatValue) { mFloatVal = v; }
 
 Value::Value(bool v) : mType(kFloatValue) { mFloatVal = v; }
+
+Value::Value(uint32_t v) : mType(kUnsignedLongValue) { mUnsignedLongVal = v; }
 
 Value::Value(long v) : mType(kFloatValue) { mFloatVal = v; }
 
@@ -86,6 +94,12 @@ void Value::setValue(const bool& v)
 {
   mType = kFloatValue;
   mFloatVal = v;
+}
+
+void Value::setValue(const uint32_t& v)
+{
+  mType = kUnsignedLongValue;
+  mUnsignedLongVal = v;
 }
 
 void Value::setValue(const long& v)
@@ -139,6 +153,9 @@ bool Value::operator==(const Value& b) const
       case kMatrixValue:
         r = (getMatrixValue() == b.getMatrixValue());
         break;
+      case kUnsignedLongValue:
+        r = (getUnsignedLongValue() == b.getUnsignedLongValue());
+        break;
     }
   }
   return r;
@@ -164,6 +181,9 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
       break;
     case Value::kMatrixValue:
       out << r.getMatrixValue();
+      break;
+    case Value::kUnsignedLongValue:
+      out << r.getUnsignedLongValue();
       break;
   }
   return out;

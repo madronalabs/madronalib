@@ -31,7 +31,8 @@ class Value
     kUndefinedValue = 0,
     kFloatValue = 1,
     kTextValue = 2,
-    kMatrixValue = 3
+    kMatrixValue = 3,
+    kUnsignedLongValue = 4
   };
 
   static const Matrix nullMatrix;
@@ -43,6 +44,7 @@ class Value
   Value(int v);
   Value(bool v);
   Value(long v);
+  Value(uint32_t v);
   Value(double v);
   Value(const ml::Text& t);
   Value(const char* t);
@@ -83,12 +85,19 @@ class Value
   }
 
   inline const float getIntValue() const { return static_cast<int>(mFloatVal); }
-
+  
   inline const int getIntValueWithDefault(int d) const
   {
     return (mType == kFloatValue) ? static_cast<int>(mFloatVal) : d;
   }
-
+  
+  inline const float getUnsignedLongValue() const { return mUnsignedLongVal; }
+  
+  inline const int getUnsignedLongValueWithDefault(uint32_t d) const
+  {
+    return (mType == kUnsignedLongValue) ? mUnsignedLongVal : d;
+  }
+  
   inline const ml::Text getTextValue() const
   {
     return (mType == kTextValue) ? (mTextVal) : ml::Text();
@@ -119,6 +128,7 @@ class Value
   void setValue(const float& v);
   void setValue(const int& v);
   void setValue(const bool& v);
+  void setValue(const uint32_t& v);
   void setValue(const long& v);
   void setValue(const double& v);
   void setValue(const ml::Text& v);
@@ -153,6 +163,7 @@ class Value
   float mFloatVal{};
   ml::Text mTextVal{};
   Matrix mMatrixVal{};
+  uint32_t mUnsignedLongVal{};
 };
 
 // NamedValue for initializer lists
