@@ -30,6 +30,7 @@ namespace projections
 {
 // useful projections with no parameters defined on (0, 1)
 
+static const Projection zero{[](float x) { return 0; }};
 static const Projection unity{[](float x) { return x; }};
 static const Projection squared{[](float x) { return x * x; }};
 static const Projection flip{[](float x) { return 1 - x; }};
@@ -69,6 +70,14 @@ static const Projection easeInOutQuartic{[](float x) {
 }};
 
 // functions taking one or more parameters and returning projections
+
+// return a constant, occasionally useful
+inline Projection constant(const float k)
+{
+  return [=](float x) {
+    return k;
+  };
+}
 
 // ml::projections::log returns a projection from [0, 1] to a logarithmic curve
 // on [a, b]. works for positive a, b with a < b only.
