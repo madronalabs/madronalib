@@ -39,6 +39,7 @@ class PropertyTree
   int getIntProperty(Path p) const { return properties[p].getIntValue(); }
   Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
   Matrix getMatrixProperty(Path p) const { return properties[p].getMatrixValue(); }
+  uint32_t getUnsignedLongProperty(Path p) const { return properties[p].getUnsignedLongValue(); }
 
   float getFloatPropertyWithDefault(Path p, float d) const
   {
@@ -59,6 +60,10 @@ class PropertyTree
   Matrix getMatrixPropertyWithDefault(Path p, Matrix d) const
   {
     return properties[p].getMatrixValueWithDefault(d);
+  }
+  uint32_t getUnsignedLongPropertyWithDefault(Path p, uint32_t d) const
+  {
+    return properties[p].getUnsignedLongValueWithDefault(d);
   }
 
   std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }

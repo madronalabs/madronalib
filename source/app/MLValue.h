@@ -91,9 +91,9 @@ class Value
     return (mType == kFloatValue) ? static_cast<int>(mFloatVal) : d;
   }
   
-  inline const float getUnsignedLongValue() const { return mUnsignedLongVal; }
+  inline const uint32_t getUnsignedLongValue() const { return mUnsignedLongVal; }
   
-  inline const int getUnsignedLongValueWithDefault(uint32_t d) const
+  inline const uint32_t getUnsignedLongValueWithDefault(uint32_t d) const
   {
     return (mType == kUnsignedLongValue) ? mUnsignedLongVal : d;
   }
