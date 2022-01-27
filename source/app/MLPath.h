@@ -102,6 +102,7 @@ class Path final
   friend Path tail(Path p);
   friend Path butLast(Path p);
   friend Symbol last(Path p);
+  friend Path lastN(Path p, size_t n);
 
   friend Path substitute(Path p, Symbol from, Symbol to);
   friend Path substitute(Path p, Symbol from, Path to);

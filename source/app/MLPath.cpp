@@ -141,11 +141,22 @@ Path butLast(Path p)
 
 Symbol last(Path p)
 {
-  if(p.getSize() > 0)
+  auto len = p.getSize();
+  if(len > 0)
   {
-    return p._symbols[p.getSize() - 1];
+    return p._symbols[len - 1];
   }
   return Symbol();
+}
+
+Path lastN(Path p, size_t n)
+{
+  auto len = p.getSize();
+  if(len > 1)
+  {
+    return Path(p._symbols[len - 2], p._symbols[len - 1]);
+  }
+  return Path();
 }
 
 Path substitute(Path p, Symbol from, Symbol to)
