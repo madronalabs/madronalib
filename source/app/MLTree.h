@@ -140,8 +140,9 @@ public:
     return !(operator==(b));
   }
   
-  // add a value V to the Tree such that getValue(path) will return V.
+  // write a value V to the Tree such that getValue(path) will return V.
   // add any intermediate nodes necessary in order to put it there.
+  // a pointer to the existing or new tree node is returned.
   Tree< V, C >* add(Path path, V val)
   {
     auto pNode = this;
@@ -361,5 +362,19 @@ bool treeNodeExists(const Tree< V, C >& t, Path path)
   return (t.getConstNode(path) != nullptr);
 }
 
+template <class V, class C = std::less<Symbol> >
+const Tree< V, C > keepNodesInList(const Tree< V, C >& t, std::vector< Path > pList)
+{
+  Tree< V, C > filteredTree;
+  for (auto it = t.begin(); it != t.end(); ++it)
+  {
+    auto p = it.getCurrentNodePath();
+    if(std::find(pList.begin(), pList.end(), p) != pList.end())
+    {
+      filteredTree[p] = (*it);
+    }
+  }
+  return filteredTree;
+}
 
 }  // namespace ml

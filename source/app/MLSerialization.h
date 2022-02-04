@@ -369,13 +369,40 @@ inline Tree<Value> binaryToValueTree(const std::vector<unsigned char>& binaryDat
   return outputTree;
 }
 
+// make the cJSON interface usable with RAII style.
+class JSONHolder
+{
+  cJSON _data;
+  
+public:
+  JSONHolder()
+  {
+    memset(&_data, 0, sizeof(cJSON));
+    _data.type=cJSON_Object;
+  }
+  
+  JSONHolder(const JSONHolder& b)
+  {
+    _data = b._data;
+  }
+
+  JSONHolder(cJSON b) : _data(b) {}
+  ~JSONHolder()
+  {
+    cJSON_Delete(_data.next);
+  }
+  
+  cJSON* data() { return &_data; }
+};
+
+
 // return a JSON object representing the value tree. The caller is responsible
 // for freeing the object.
 //
-inline cJSON* valueTreeToJSON(const Tree<Value>& t)
+inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
 {
-  cJSON* root = cJSON_CreateObject();
-
+  JSONHolder root;
+  
   for (auto it = t.begin(); it != t.end(); ++it)
   {
     Path p = it.getCurrentNodePath();
@@ -389,49 +416,48 @@ inline cJSON* valueTreeToJSON(const Tree<Value>& t)
       case Value::kUndefinedValue:
         break;
       case Value::kFloatValue:
-        cJSON_AddNumberToObject(root, keyStr, v.getFloatValue());
+        cJSON_AddNumberToObject(root.data(), keyStr, v.getFloatValue());
         break;
       case Value::kTextValue:
-        cJSON_AddStringToObject(root, keyStr, v.getTextValue().getText());
+        cJSON_AddStringToObject(root.data(), keyStr, v.getTextValue().getText());
         break;
       case Value::kMatrixValue:
       {
         /* TODO
-        cJSON* signalObj = cJSON_CreateObject();
-        const MLSignal& sig = state.mValue.getSignalValue();
-        cJSON_AddStringToObject(signalObj, "type", "signal");
-        cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
-        cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
-        cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
-        int size = sig.getSize();
-        float* pSignalData = sig.getBuffer();
-        cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
-        cJSON_AddItemToObject(signalObj, "data", data);
-        
-        // add signal object to state JSON
-        cJSON_AddItemToObject(root, keyStr, signalObj);
+         cJSON* signalObj = cJSON_CreateObject();
+         const MLSignal& sig = state.mValue.getSignalValue();
+         cJSON_AddStringToObject(signalObj, "type", "signal");
+         cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
+         cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
+         cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
+         int size = sig.getSize();
+         float* pSignalData = sig.getBuffer();
+         cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
+         cJSON_AddItemToObject(signalObj, "data", data);
+         
+         // add signal object to state JSON
+         cJSON_AddItemToObject(root, keyStr, signalObj);
          */
       }
         break;
       case Value::kUnsignedLongValue:
-        cJSON_AddNumberToObject(root, keyStr, v.getUnsignedLongValue());
+        cJSON_AddNumberToObject(root.data(), keyStr, v.getUnsignedLongValue());
         break;
       default:
         //debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
         break;
     }
   }
-  
   return root;
 }
 
-
-inline Tree< Value > JSONToValueTree(cJSON* pRoot)
+inline Tree< Value > JSONToValueTree(JSONHolder root)
 {
   Tree< Value > r;
-  if(!pRoot) return r;
   
-  cJSON *child = pRoot->child;
+  if(!root.data()) return r;
+
+  cJSON *child = (root.data()->child);
   while(child)
   {
     Path key(child->string);
@@ -452,7 +478,6 @@ inline Tree< Value > JSONToValueTree(cJSON* pRoot)
       case cJSON_Array:
       default:
         break;
-    
     }
     child = child->next;
   }
@@ -460,5 +485,15 @@ inline Tree< Value > JSONToValueTree(cJSON* pRoot)
   return r;
 }
 
+inline TextFragment JSONToText(JSONHolder root)
+{
+  return TextFragment(cJSON_Print(root.data()));
+}
+
+inline JSONHolder textToJSON(TextFragment t)
+{
+  cJSON* root = cJSON_Parse(t.getText());
+  return JSONHolder(*root);
+}
 
 }  // namespace ml

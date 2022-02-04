@@ -397,26 +397,19 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   }
   REQUIRE(!errors);
   
-  
-  // Value tree to JSON to value tree. TODO actual tests
+  // Value tree to JSON to value tree.
   Tree< Value > v;
   v["a"] = 0.4f;
   v["b"] = "hello";
   v["a/b/c"] = "hello again";
-  auto vJSON = valueTreeToJSON(v);
-  char* stateText = cJSON_Print(vJSON);
-  cJSON_Delete(vJSON);
   
-  std::cout << stateText << "\n";
-  
-  cJSON* root = cJSON_Parse(stateText);
-  Tree< Value > v2 = JSONToValueTree(root);
-  
-  v2.dump();
-  
- // bool eq = (v == v2);
-  
-  free(stateText);
-  
+  auto j0 = valueTreeToJSON(v);
+  Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
+  REQUIRE(v == v2);
+
+  // Value tree to JSON to text to JSON to value tree.
+  auto t1 = JSONToText(valueTreeToJSON(v));
+  auto v3 = JSONToValueTree(textToJSON(t1));
+  REQUIRE(v == v3);
 }
 
