@@ -172,14 +172,15 @@ Path substitute(Path p, Symbol from, Symbol to)
   return r;
 }
 
-// expand matching symbol into path
-Path substitute(Path p, Symbol from, Path toPath)
+// return a new Path created by substituting every symbol in p matching fromSymbol
+// with the Path toPath
+Path substitute(Path p, Symbol fromSymbol, Path toPath)
 {
   Path r;
   for (int n = 0; n < p.mSize; ++n)
   {
     Symbol next = p._symbols[n];
-    if(next == from)
+    if(next == fromSymbol)
     {
       r = Path{r, toPath};
     }

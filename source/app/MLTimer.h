@@ -127,7 +127,7 @@ class Timer
  private:
   std::mutex _counterMutex;
 
-  ml::SharedResourcePointer<ml::Timers> _timers;
+  SharedResourcePointer< Timers > _timers;
   int _counter{0};
   std::function<void(void)> _func;
   milliseconds _period{};

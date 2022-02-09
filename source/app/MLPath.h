@@ -94,7 +94,7 @@ class Path final
     const Path* mpPath;
     int mIndex;
   };
-
+  
   inline const_iterator begin() const { return const_iterator(this); }
   inline const_iterator end() const { return const_iterator(this, static_cast<int>(mSize)); }
 
