@@ -30,6 +30,7 @@
 #pragma once
 
 #include <atomic>
+#include <memory>
 
 namespace ml
 {
