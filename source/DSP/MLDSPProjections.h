@@ -30,7 +30,7 @@ namespace projections
 {
 // useful projections with no parameters defined on (0, 1)
 
-static const Projection zero{[](float x) { return 0; }};
+static const Projection zero{[](float x) { return 0.f; }};
 static const Projection unity{[](float x) { return x; }};
 static const Projection squared{[](float x) { return x * x; }};
 static const Projection flip{[](float x) { return 1 - x; }};
