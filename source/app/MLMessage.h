@@ -46,9 +46,25 @@ struct MessageList : public std::vector< Message >
 
 struct MessageReceiver
 {
-  // receive a message.
 protected:
   virtual void handleMessage(Message m, Message* replyPtr) = 0;
+  
+  MessageList processMessageList(MessageList msgList)
+  {
+    MessageList retList;
+    Message resultMsg;
+    
+    for(auto msg : msgList)
+    {
+      resultMsg = Message();
+      handleMessage(msg, &resultMsg);
+      if(resultMsg)
+      {
+        retList.push_back(resultMsg);
+      }
+    }
+    return retList;
+  }
   
 public:
   void doSendMessage(Message m)
