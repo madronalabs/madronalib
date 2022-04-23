@@ -48,9 +48,8 @@ endif()
 #--------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS_0 ${CMAKE_CXX_FLAGS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fvisibility=hidden -fvisibility-inlines-hidden -std=c++14")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
-
 
 #--------------------------------------------------------------------
 # Choose library output name
@@ -185,6 +184,11 @@ set_target_properties(madronalib PROPERTIES
                       SOVERSION ${madronalib_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
                       FOLDER "madronalib")
+
+if(APPLE)
+    set_target_properties(madronalib PROPERTIES 
+        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+endif()
 
 include(GNUInstallDirs)
 
