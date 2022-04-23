@@ -7,7 +7,7 @@
 #pragma once
 
 #include "madronalib.h"
-#include "MLDSPOps.h"
+#include "mldsp.h"
 
 namespace ml
 {

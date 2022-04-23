@@ -13,26 +13,40 @@
 #include "MLSymbol.h"
 #include "MLText.h"
 
-// Value: a modifiable property. Properties have four types: undefined, float,
-// text, and matrix.
+// Value: a small unit of typed data designed for being constructed on the stack and
+// transferred in messages. Values have the following types: undefined, float,
+// text, blob, untisnged longm, and matrix. (Matrix soon to be deprecated)
 
 // TODO: instead of using Matrix directly here as a type, make a blob type
-// and utilities (in Matrix) for conversion. This lets the current "model" code
-// go into "app" because it doesn't depend on DSP math anymore, and increases
-// reusability.
+// and utilities (in Matrix) for conversion.
 
 namespace ml
 {
+
+// non-owning pointer type used to construct binary Values.
+struct BlobPtr
+{
+  const uint8_t* _data;
+  size_t _sizeInBytes;
+  
+  BlobPtr() : _data(nullptr), _sizeInBytes(0) {}
+  BlobPtr(const void* p, size_t n) : _data(static_cast<const uint8_t*>(p)), _sizeInBytes(n) {}
+  ~BlobPtr() {}
+};
+
 class Value
 {
+  static constexpr size_t kBlobSizeBytes{512};
+  
  public:
   enum Type
   {
     kUndefinedValue = 0,
-    kFloatValue = 1,
-    kTextValue = 2,
-    kMatrixValue = 3,
-    kUnsignedLongValue = 4
+    kFloatValue,
+    kTextValue,
+    kBlobValue,
+    kMatrixValue,
+    kUnsignedLongValue
   };
 
   static const Matrix nullMatrix;
@@ -49,7 +63,9 @@ class Value
   Value(const ml::Text& t);
   Value(const char* t);
   Value(const ml::Matrix& s);
-
+  
+  explicit Value(BlobPtr b);
+  
   // matrix type constructor via initializer_list
   Value(std::initializer_list<float> values)
   {
@@ -118,6 +134,19 @@ class Value
     return (mType == kMatrixValue) ? (mMatrixVal) : d;
   }
 
+  inline const BlobPtr getBlobValue() const
+  {
+    if(mType == kBlobValue)
+    {
+      return BlobPtr(static_cast<const void*>(&(_data[0])), _sizeInBytes);
+    }
+    else
+    {
+      return BlobPtr();
+    }
+  }
+  
+  
   // For each type of property, a setValue method must exist
   // to set the value of the property to that of the argument.
   //
@@ -157,8 +186,12 @@ class Value
   bool operator<<(const Value& b) const;
 
  private:
+  uint8_t _data[kBlobSizeBytes];
+  size_t _sizeInBytes;
+
   // TODO reduce storage requirements and reduce copying!
-  // -- this is a minimal-code start
+  // this is a minimal-code start.
+  // everything will share space.
   Type mType{kUndefinedValue};
   float mFloatVal{};
   ml::Text mTextVal{};

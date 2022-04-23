@@ -16,42 +16,51 @@ Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
 {
   switch (mType)
   {
-    case Value::kFloatValue:
+    case kUndefinedValue:
+      break;
+    case kFloatValue:
       mFloatVal = other.getFloatValue();
       break;
-    case Value::kTextValue:
+    case kTextValue:
       mTextVal = other.getTextValue();
       break;
-    case Value::kMatrixValue:
+    case kBlobValue:
+      _sizeInBytes = other._sizeInBytes;
+      std::copy(other._data, other._data + _sizeInBytes, _data);
+      break;
+    case kMatrixValue:
       mMatrixVal = other.getMatrixValue();
       break;
-    case Value::kUnsignedLongValue:
+    case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
       break;
-    default:
-      break;
+
   }
 }
 
 Value& Value::operator=(const Value& other)
 {
   mType = other.getType();
-  switch (mType)
+  switch(mType)
   {
-    case Value::kFloatValue:
+    case kUndefinedValue:
+      break;
+    case kFloatValue:
       mFloatVal = other.getFloatValue();
       break;
-    case Value::kTextValue:
+    case kTextValue:
       mTextVal = other.getTextValue();
       break;
-    case Value::kMatrixValue:
+    case kBlobValue:
+      _sizeInBytes = other._sizeInBytes;
+      std::copy(other._data, other._data + _sizeInBytes, _data);
+      break;
+    case kMatrixValue:
       // Matrix handles copy-in-place when possible
       mMatrixVal = other.getMatrixValue();
       break;
-    case Value::kUnsignedLongValue:
+    case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
-      break;
-    default:
       break;
   }
 
@@ -76,7 +85,24 @@ Value::Value(const char* t) : mType(kTextValue) { mTextVal = ml::Text(t); }
 
 Value::Value(const ml::Matrix& s) : mType(kMatrixValue) { mMatrixVal = s; }
 
-Value::~Value() {}
+Value::Value(BlobPtr b) : mType(kBlobValue)
+{
+  _sizeInBytes = b._sizeInBytes;
+  
+  if(_sizeInBytes <= kBlobSizeBytes)
+  {
+    std::copy(b._data, b._data + _sizeInBytes, _data);
+  }
+  else
+  {
+    // TODO throw?
+  }
+}
+
+Value::~Value()
+{
+  // delete any external data?
+}
 
 void Value::setValue(const float& v)
 {
@@ -156,6 +182,9 @@ bool Value::operator==(const Value& b) const
       case kUnsignedLongValue:
         r = (getUnsignedLongValue() == b.getUnsignedLongValue());
         break;
+      case kBlobValue:
+        r = false;
+        break;
     }
   }
   return r;
@@ -184,6 +213,9 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
       break;
     case Value::kUnsignedLongValue:
       out << r.getUnsignedLongValue();
+      break;
+    case Value::kBlobValue:
+      out << "[blob]";
       break;
   }
   return out;
