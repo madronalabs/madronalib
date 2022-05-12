@@ -7,13 +7,11 @@
 #pragma once
 
 #include <memory>
-#include <string>  // to remove
 #include <vector>
 
 namespace ml
 {
-// ----------------------------------------------------------------
-// TextFragment - a minimal, immutable string class. Guaranteed not to allocate
+// TextFragment: a minimal, immutable string class. Guaranteed not to allocate
 // heap if the length in bytes is below kShortFragmentSize.
 
 static constexpr int kShortFragmentSizeInCodePoints = 16;
@@ -34,13 +32,11 @@ class TextFragment
 
     ~Iterator();  // defined in the implementation file, where impl is a
                   // complete type
-    //	Iterator(Iterator&&) = default;
+
     Iterator(const Iterator&);
-    //	Iterator& operator=(Iterator&&); // defined in the implementation file
     Iterator& operator=(const Iterator&) = delete;
 
     CodePoint operator*();
-    //		CodePoint operator->() { return _utf8Iter.operator->(); }
     Iterator& operator++();
     CodePoint operator++(int i);
 
@@ -51,20 +47,19 @@ class TextFragment
   TextFragment() noexcept;
 
   /*
-   this could be a good idea but the (const char*) ctor is taking precedence,
-  revisit template<size_t N> TextFragment(const char(&p)[N]) noexcept : mSize(N)
-  {
-          std::cout << "?";
-          create();
-          if(mpText)
-          {
-                  std::copy(p, p + mSize, mpText);
-                  nullTerminate();
-          }
-  }
+   this could be a good idea but the (const char*) ctor is taking precedence, revisit
+   template<size_t N> TextFragment(const char(&p)[N]) noexcept : _size(N)
+   {
+     std::cout << "?";
+     _allocate();
+     if(_pText)
+     {
+     std::copy(p, p + _size, _pText);
+     _nullTerminate();
+     }
+   }
    */
 
-  //
   TextFragment(const char* pChars) noexcept;
 
   // this ctor can be used to save the work of counting the length of the input
@@ -77,8 +72,7 @@ class TextFragment
   // copy ctor
   TextFragment(const TextFragment& a) noexcept;
 
-  // copy assignment operator: TextFragment is assignable but otherwise
-  // immutable.
+  // copy assignment operator: TextFragment is assignable but otherwise immutable.
   TextFragment& operator=(const TextFragment& b) noexcept;
 
   // move ctor
@@ -95,7 +89,7 @@ class TextFragment
 
   ~TextFragment() noexcept;
 
-  explicit operator bool() const { return mSize > 0; }
+  explicit operator bool() const { return _size > 0; }
 
   size_t lengthInBytes() const;
 
@@ -104,7 +98,7 @@ class TextFragment
   Iterator begin() const;
   Iterator end() const;
 
-  inline const char* getText() const { return mpText; }
+  inline const char* getText() const { return _pText; }
 
   inline bool beginsWith(const TextFragment& fb) const
   {
@@ -113,7 +107,7 @@ class TextFragment
     if (lenB > lenA) return false;
     for (int i = 0; i < lenB; ++i)
     {
-      if (mpText[i] != fb.mpText[i])
+      if (_pText[i] != fb._pText[i])
       {
         return false;
       }
@@ -128,7 +122,7 @@ class TextFragment
     if (lenB > lenA) return false;
     for (int i = 0; i < lenB; ++i)
     {
-      if (mpText[lenA - lenB + i] != fb.mpText[i])
+      if (_pText[lenA - lenB + i] != fb._pText[i])
       {
         return false;
       }
@@ -136,32 +130,36 @@ class TextFragment
     return true;
   }
 
-  // deprecated! MLTEST
-  inline std::string toString() const { return std::string(mpText); }
-
  private:
-  void construct(const char* s1, size_t len1, const char* s2 = nullptr, size_t len2 = 0,
+  void _allocate(size_t size) noexcept;
+  void _construct(const char* s1, size_t len1, const char* s2 = nullptr, size_t len2 = 0,
                  const char* s3 = nullptr, size_t len3 = 0, const char* s4 = nullptr,
                  size_t len4 = 0) noexcept;
-
-  void create(size_t size) noexcept;
-  void nullTerminate() noexcept;
-  void dispose() noexcept;
-  void moveDataFromOther(TextFragment& b);
+  void _nullTerminate() noexcept;
+  void _dispose() noexcept;
+  void _moveDataFromOther(TextFragment& b);
 
   // TODO these things could share space, as in SmallStackBuffer
-  char* mpText;
-  char mLocalText[kShortFragmentSizeInChars];
+  char _localText[kShortFragmentSizeInChars];
+  char* _pText{_localText};
 
   // size of data in bytes, without null terminator
-  size_t mSize;
+  size_t _size{0};
 };
+
+// ----------------------------------------------------------------
+// Text - a placeholder for more features later like localization
+
+typedef TextFragment Text;
+
+// ----------------------------------------------------------------
+// helper functions
 
 inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB, size_t lenB)
 {
   if (lenA != lenB) return false;
   if ((lenA == 0) && (lenB == 0)) return true;
-
+  
   for (size_t n = 0; n < lenA; ++n)
   {
     if (pA[n] != pB[n])
@@ -169,11 +167,9 @@ inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB, 
       return false;
     }
   }
-
+  
   return true;
 }
-
-// TODO made operator== a free function-	do likewise for other classes
 
 inline bool operator==(const TextFragment a, const TextFragment b)
 {
@@ -188,14 +184,6 @@ inline std::ostream& operator<<(std::ostream& out, const TextFragment& r)
   out << c;
   return out;
 }
-
-// ----------------------------------------------------------------
-// Text - a placeholder for more features later like localization
-
-typedef TextFragment Text;
-
-// ----------------------------------------------------------------
-// functions
 
 bool validateCodePoint(CodePoint c);
 
