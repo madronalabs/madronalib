@@ -261,7 +261,7 @@ std::string MLNetServiceHub::unformatServiceName(const std::string& formattedSer
       nameTxt = ml::textUtils::subText(nameTxt, 0, pIdx - 1);
     }
   }
-  return nameTxt.toString();
+  return std::string(nameTxt.getText());
 }
 
 std::string MLNetServiceHub::getHostName(const std::string& serviceName)

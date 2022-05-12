@@ -41,8 +41,6 @@ TextFragment::Iterator::~Iterator() = default;
 
 CodePoint TextFragment::Iterator::operator*() { return pImpl->_utf8Iter.operator*(); }
 
-//		CodePoint operator->() { return _utf8Iter.operator->(); }
-
 TextFragment::Iterator& TextFragment::Iterator::operator++()
 {
   pImpl->_utf8Iter.operator++();
@@ -70,20 +68,28 @@ bool operator==(TextFragment::Iterator lhs, TextFragment::Iterator rhs)
 
 TextFragment::TextFragment() noexcept
 {
-  mSize = 0;
-  mpText = mLocalText;
-  nullTerminate();
+  _size = 0;
+  _pText = _localText;
+  _nullTerminate();
 }
 
 TextFragment::TextFragment(const char* pChars) noexcept
 {
-  create(strlen(pChars));
-  // a bad alloc will result in this being a null object.
-  // copy the input string into local storage
-  if (mpText)
+  if(pChars)
   {
-    std::copy(pChars, pChars + mSize, mpText);
-    nullTerminate();
+    _allocate(strlen(pChars));
+    // a bad alloc will result in this being a null object.
+    // copy the input string into local storage
+    if (_pText)
+    {
+      std::copy(pChars, pChars + _size, _pText);
+      _nullTerminate();
+    }
+  }
+  else
+  {
+    // null input ptr will produce a null fragment.
+    _nullTerminate();
   }
 }
 
@@ -91,11 +97,11 @@ TextFragment::TextFragment(const char* pChars) noexcept
 // length already, as with static HashedCharArrays.
 TextFragment::TextFragment(const char* pChars, size_t len) noexcept
 {
-  create(len);
-  if (mpText)
+  _allocate(len);
+  if (_pText)
   {
-    std::copy(pChars, pChars + mSize, mpText);
-    nullTerminate();
+    std::copy(pChars, pChars + _size, _pText);
+    _nullTerminate();
   }
 }
 
@@ -106,17 +112,17 @@ TextFragment::TextFragment(CodePoint c) noexcept
     c = 0x2639;  // sad face
   }
   // all possible codepoints fit into local text
-  char* end = utf::internal::utf_traits<utf::utf8>::encode(c, mLocalText);
-  mSize = end - mLocalText;
-  mpText = mLocalText;
-  nullTerminate();
+  char* end = utf::internal::utf_traits<utf::utf8>::encode(c, _localText);
+  _size = end - _localText;
+  _pText = _localText;
+  _nullTerminate();
 }
 
-size_t TextFragment::lengthInBytes() const { return mSize; }
+size_t TextFragment::lengthInBytes() const { return _size; }
 
 size_t TextFragment::lengthInCodePoints() const
 {
-  utf::stringview<const char*> sv(mpText, mpText + mSize);
+  utf::stringview<const char*> sv(_pText, _pText + _size);
   return sv.codepoints();
 }
 
@@ -126,7 +132,7 @@ TextFragment::Iterator TextFragment::end() const { return Iterator(getText() + l
 
 TextFragment::TextFragment(const TextFragment& a) noexcept
 {
-  construct(a.getText(), a.lengthInBytes());
+  _construct(a.getText(), a.lengthInBytes());
 }
 
 // just copy the data. If we want to optimize and use reference-counted strings
@@ -135,101 +141,101 @@ TextFragment& TextFragment::operator=(const TextFragment& b) noexcept
 {
   if (this != &b)
   {
-    dispose();
-    create(b.mSize);
-    if (mpText)
+    _dispose();
+    _allocate(b._size);
+    if (_pText)
     {
-      const char* bText = b.mpText;
-      std::copy(bText, bText + mSize, mpText);
-      nullTerminate();
+      const char* bText = b._pText;
+      std::copy(bText, bText + _size, _pText);
+      _nullTerminate();
     }
   }
   return *this;
 }
 
-TextFragment::TextFragment(TextFragment&& b) noexcept { moveDataFromOther(b); }
+TextFragment::TextFragment(TextFragment&& b) noexcept { _moveDataFromOther(b); }
 
 TextFragment& TextFragment::operator=(TextFragment&& b) noexcept
 {
-  dispose();
-  moveDataFromOther(b);
+  _dispose();
+  _moveDataFromOther(b);
   return *this;
 }
 
 // multiple-fragment constructors, used instead of operator+
 TextFragment::TextFragment(const TextFragment& a, const TextFragment& b) noexcept
 {
-  construct(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes());
+  _construct(a.getText(), a.lengthInBytes(), b.getText(), b.lengthInBytes());
 }
 
 TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
                            const TextFragment& t3) noexcept
 {
-  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+  _construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
             t3.lengthInBytes());
 }
 
 TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
                            const TextFragment& t4) noexcept
 {
-  construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+  _construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
             t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 }
 
-TextFragment::~TextFragment() noexcept { dispose(); }
+TextFragment::~TextFragment() noexcept { _dispose(); }
 
-void TextFragment::construct(const char* s1, size_t len1, const char* s2, size_t len2,
+void TextFragment::_construct(const char* s1, size_t len1, const char* s2, size_t len2,
                              const char* s3, size_t len3, const char* s4, size_t len4) noexcept
 {
-  create(len1 + len2 + len3 + len4);
-  if (mpText)
+  _allocate(len1 + len2 + len3 + len4);
+  if (_pText)
   {
-    if (len1) std::copy(s1, s1 + len1, mpText);
-    if (len2) std::copy(s2, s2 + len2, mpText + len1);
-    if (len3) std::copy(s3, s3 + len3, mpText + len1 + len2);
-    if (len4) std::copy(s4, s4 + len4, mpText + len1 + len2 + len3);
-    nullTerminate();
+    if (len1) std::copy(s1, s1 + len1, _pText);
+    if (len2) std::copy(s2, s2 + len2, _pText + len1);
+    if (len3) std::copy(s3, s3 + len3, _pText + len1 + len2);
+    if (len4) std::copy(s4, s4 + len4, _pText + len1 + len2 + len3);
+    _nullTerminate();
   }
 }
 
-void TextFragment::create(size_t size) noexcept
+void TextFragment::_allocate(size_t size) noexcept
 {
-  mSize = size;
+  _size = size;
   const size_t nullTerminatedSize = size + 1;
   if (nullTerminatedSize > kShortFragmentSizeInChars)
   {
-    mpText = static_cast<char*>(malloc(nullTerminatedSize));
+    _pText = static_cast<char*>(malloc(nullTerminatedSize));
   }
   else
   {
-    mpText = mLocalText;
+    _pText = _localText;
   }
 }
 
-void TextFragment::nullTerminate() noexcept { mpText[mSize] = 0; }
+void TextFragment::_nullTerminate() noexcept { _pText[_size] = 0; }
 
-void TextFragment::dispose() noexcept
+void TextFragment::_dispose() noexcept
 {
-  if (mpText)
+  if (_pText)
   {
-    assert(mpText[mSize] == 0);
-    if (mpText != mLocalText)
+    assert(_pText[_size] == 0);
+    if (_pText != _localText)
     {
       // free an external text. If the alloc has failed the ptr might be 0,
       // which is OK
-      free(mpText);
+      free(_pText);
     }
-    mpText = 0;
+    _pText = 0;
   }
 }
 
-void TextFragment::moveDataFromOther(TextFragment& b)
+void TextFragment::_moveDataFromOther(TextFragment& b)
 {
-  mSize = b.mSize;
-  if (mSize >= kShortFragmentSizeInChars)
+  _size = b._size;
+  if (_size >= kShortFragmentSizeInChars)
   {
     // move the data
-    mpText = b.mpText;
+    _pText = b._pText;
   }
   else
   {
@@ -238,15 +244,15 @@ void TextFragment::moveDataFromOther(TextFragment& b)
      */
 
     // point to local storage and copy data
-    mpText = mLocalText;
-    std::copy(b.mLocalText, b.mLocalText + mSize, mLocalText);
-    nullTerminate();
+    _pText = _localText;
+    std::copy(b._localText, b._localText + _size, _localText);
+    _nullTerminate();
   }
 
   // mark b as empty, nothing to dispose
-  b.mpText = b.mLocalText;
-  b.mSize = 0;
-  b.nullTerminate();
+  b._pText = b._localText;
+  b._size = 0;
+  b._nullTerminate();
 }
 
 bool validateCodePoint(CodePoint c) { return utf::internal::validate_codepoint(c); }
