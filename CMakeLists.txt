@@ -55,7 +55,8 @@ set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 # Choose library output name
 #--------------------------------------------------------------------
 
-set(madronalib_NAME madrona)
+# creates the library madrona-debug in debug configuration
+set(madronalib_NAME madrona$<$<CONFIG:Debug>:-debug>)
 
 #--------------------------------------------------------------------
 # Enforce out of source build
