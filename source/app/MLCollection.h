@@ -212,6 +212,11 @@ public:
   // return collection referring to our internal tree
   CollectionRoot() : Collection<T>(_localTree){};
   ~CollectionRoot() = default;
+  
+  inline void clear()
+  {
+    _localTree.clear();
+  }
 };
 
 template< typename T >
