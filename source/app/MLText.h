@@ -11,13 +11,13 @@
 
 namespace ml
 {
-// TextFragment: a minimal, immutable string class. Guaranteed not to allocate
-// heap if the length in bytes is below kShortFragmentSize.
-
 static constexpr int kShortFragmentSizeInCodePoints = 16;
 static constexpr int kShortFragmentSizeInChars = kShortFragmentSizeInCodePoints * 4;
 
 using CodePoint = char32_t;
+
+// TextFragment: a string class designed to avoid using the heap. Guaranteed not to allocate
+// heap if the length in bytes is below kShortFragmentSize.
 
 class TextFragment
 {

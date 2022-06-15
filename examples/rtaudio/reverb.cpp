@@ -9,6 +9,7 @@
 
 using namespace ml;
 
+// Mac OS note: need to ask for microphone access if kInputChannels is nonzero!
 constexpr int kInputChannels = 2;
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 44100;
