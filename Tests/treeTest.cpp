@@ -403,7 +403,6 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["b"] = "hello";
   v["a/b/c"] = "hello again";
   
-  auto j0 = valueTreeToJSON(v);
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
 
@@ -411,5 +410,50 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto t1 = JSONToText(valueTreeToJSON(v));
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
+  
+  // JSON to value tree to JSON
+  // This time, containing arrays.
+  TextFragment arraysText = R"({
+    "file_info": {
+        "kind": "utu-partial-data",
+        "version": 1
+    },
+    "source": {
+        "location": "/some/path/on/disk.aiff"
+    },
+    "parameters": ["time", "frequency", "amplitude", "bandwidth", "phase"],
+    "partials": [
+        {
+            "label": "component-1",
+            "parameters": {
+                "time": [0, 440, 0.3, 0.2, 0],
+                "frequency": [0.2, 440, 0.3, 0.2, 0],
+                "amplitude": [0.5, 440, 0.3, 0.2, 0],
+                "bandwith": [1.5, 440, 0.3, 0.2, 0],
+                "phase": [3.0, 440, 0.3, 0.2, 0]
+            }
+        },
+        {
+            "parameters": {
+                "time": [0.3, 440, 0.3, 0.2, 0],
+                "frequency": [3.0, 440, 0.3, 0.2, 0],
+                "amplitude": [4.2, 440, 0.3, 0.2, 0]
+            }
+        }
+    ]
+  })";
+  
+  std::cout << "*********\n" << arraysText << "\n";
+  
+  
+  auto arraysJSON = textToJSON(arraysText);
+  
+  auto av2 = JSONToValueTree(arraysJSON);
+  
+  std::cout << "=========\n" ;
+  av2.dump();
+  
+  theSymbolTable().dump();
+  
 }
 

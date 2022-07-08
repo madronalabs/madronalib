@@ -451,37 +451,69 @@ inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
   return root;
 }
 
-inline Tree< Value > JSONToValueTree(JSONHolder root)
+inline Tree< Value > readJSONToValueTree(cJSON * obj, Tree< Value >& r, Path currentPath, int depth, bool isArray)
 {
-  Tree< Value > r;
-  
-  if(!root.data()) return r;
-
-  cJSON *child = (root.data()->child);
-  while(child)
+  size_t objIndex{0};
+  while(obj)
   {
-    Path key(child->string);
-  
-    switch(child->type & 255)
+    
+    Path newObjectPath;
+    if(!isArray)
+    {
+      newObjectPath = Path(currentPath, Path(obj->string));
+    }
+    else
+    {
+      // it's not clear what to do about arrays. Right now we add a path for each array item to
+      // mirror the JSON. this has issues:
+      // - it creates a bunch of symbols for natural numbers (which may not sort as expected!)
+      // - should numerical symbols even be possible? (no)
+      // - what we really want from an array, usually, is a blob of float data
+      // - but we have to inspect all the array elements to know if that is a possible representation for the JSON
+      
+      newObjectPath = Path(currentPath, Path(textUtils::naturalNumberToText(objIndex)));
+    }
+    
+    switch(obj->type & 255)
     {
       case cJSON_Number:
-        //debug() << " depth " << depth << " loading float param " << child->string << " : " << child->valuedouble << "\n";
-        r.add(key, (float)child->valuedouble);
+      {
+        r.add(newObjectPath, (float)obj->valuedouble);
         break;
+      }
       case cJSON_String:
-        //debug() << " depth " << depth << " loading string param " << child->string << " : " << child->valuestring << "\n";
-        
-        r.add(key, TextFragment(child->valuestring));
+      {
+        r.add(newObjectPath, TextFragment(obj->valuestring));
         break;
+      }
       case cJSON_Object:
-        // TODO look for blob object and refactor matrix values into it
+      {
+        readJSONToValueTree(obj->child, r, newObjectPath, depth, false);
+        break;
+      }
       case cJSON_Array:
+      {
+        readJSONToValueTree(obj->child, r, newObjectPath, depth, true);
+        break;
+      }
       default:
         break;
     }
-    child = child->next;
+    obj = obj->next;
+    objIndex++;
   }
   
+  return r;
+}
+
+inline Tree< Value > JSONToValueTree(JSONHolder root)
+{
+  Tree< Value > r;
+  if(root.data())
+  {
+    cJSON * obj = root.data()->child;
+    return readJSONToValueTree(obj, r, "", 0, false);
+  }
   return r;
 }
 

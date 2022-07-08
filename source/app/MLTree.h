@@ -21,11 +21,11 @@
 
 namespace ml
 {
-template <class V, class C = std::less<Symbol> >
+template < class V, class C = std::less< Symbol > >
 class Tree
 {
   // recursive definition: a Tree has a map of Symbols to Trees, and a value.
-  using mapT = std::map<Symbol, Tree< V, C >, C>;
+  using mapT = std::map< Symbol, Tree< V, C >, C >;
   mapT mChildren{};
   V _value{};
 
@@ -237,7 +237,6 @@ public:
       // check for empty iterators
       if (mNodeStack.empty() && b.mNodeStack.empty()) return true;
 
- 
       // if the containers are the same, we may compare the iterators.
       if (mNodeStack.back() != b.mNodeStack.back()) return false;
       return (mIteratorStack.back() == b.mIteratorStack.back());
