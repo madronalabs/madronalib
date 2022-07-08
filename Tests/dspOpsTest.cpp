@@ -79,8 +79,10 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
   SECTION("precision")
   {
-    // test precision of sin, cos, log, exp and approximations
-    // use native math as reference
+    // test precision of sin, cos, log, exp and approximations.
+    // use native math as reference.
+    // NOTE this does not measure the maximum error accurately! It uses equally-spaced
+    // samples over the entire input range of the functions, just to provide a reference.
     std::cout << "max differences from reference:\n";
 
     for (auto fnVec : functionVectors)
@@ -311,5 +313,10 @@ TEST_CASE("madronalib/core/projections", "[projections]")
   
   Interval testInterval{0, 2};
   std::cout << testInterval << "\n";
+  
+  Interval unityDomain{0., 1.};
+  Interval freqDomain{20., 20000.};
+  Projection proj = projections::intervalMap(unityDomain, freqDomain, projections::log(freqDomain));
+  projections::printTable(proj, "logProjectionTest", unityDomain, 5);
 }
 

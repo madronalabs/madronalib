@@ -80,7 +80,7 @@ inline Projection constant(const float k)
 }
 
 // ml::projections::log returns a projection from [0, 1] to a logarithmic curve
-// on [a, b]. works for positive a, b with a < b only.
+// on [a, b] scaled back to [0, 1]. works for positive a, b with a < b only.
 inline Projection log(Interval m)
 {
   return [=](float x) {
@@ -199,6 +199,20 @@ inline Projection piecewise(std::initializer_list<float> valueList,
     return [=](float x) { return 0.f; };
   }
 }
+
+inline void printTable(const Projection& p, std::string pName, Interval domain, size_t points)
+{
+  Projection pointToX = projections::linear(Interval{0.f, points - 1.f}, domain);
+  std::cout << "\n----------------\n";
+  std::cout << pName << ": \n";
+  for(int i=0; i<points; ++i)
+  {
+    float x = pointToX(i);
+    float y = p(x);
+    std::cout << i << ": (" << x << ", " << y << ")\n";
+  }
+}
+
 }  // namespace projections
 
 
