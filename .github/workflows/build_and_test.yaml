@@ -1,0 +1,20 @@
+name: 'build / test'
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: 'configure cmake'
+        run: cmake -B ./build
+      - name: 'build'
+        run: cmake --build ./build -- tests FDTDExample ReverbExample SineExample'
+      - name: 'run tests'
+        run: ./build/bin/tests
+
