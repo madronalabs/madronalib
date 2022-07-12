@@ -17,15 +17,13 @@ With the advent of C++11, new features became available as part of the standard 
 
 To get reliable audio performance in a multiprocessing system, careful attention must be paid to memory allocation, shared object access, and any use of OS calls. (see: http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing) Madronalib encapsulates these concerns and provides a simple API to the writers of audio applications.
 
-Adding new DSP modules is straightforward. The syntax of the signal library encourages code to "read like the math." There are no weird macros to learn.
-
-The Google C++ style guidelines (https://google-styleguide.googlecode.com/svn/trunk/cppguide.html) are followed, for the most part. 
+Adding new DSP modules is straightforward, and the syntax of the signal library encourages code to "read like the math." 
 
 
 Status
 ------------
 
-(as of June 2021)
+(as of June 2022)
 
 The files in /source/DSP are a useful header-only DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations. Both SSE (for Intel chips) and NEON (for Apple Silicon) are supported. Shipping products at Madrona Labs are relying on these headers and breaking changes have, for the most part, stopped. 
 
