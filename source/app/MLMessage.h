@@ -28,7 +28,8 @@ enum flags
   kMsgSequenceStart = 1 << 0,
   kMsgSequenceEnd = 1 << 1,
   kMsgFromController = 1 << 2,
-  kMsgFromUI = 1 << 3
+  kMsgFromUI = 1 << 3,
+  kMsgForceUpdate = 1 << 4
 };
 
 // note: because std::vector will allocate on the fly, this implementation of
