@@ -13,7 +13,7 @@ C++ for audio: the good parts
 
 C++ is an excellent tool for writing audio software. Unfortunately it's difficult to get started with, and provides a mine field of bad ways to do things. Madronalib provides one clear path to writing maintainable audio code without sacrificing performance. It enables efficient audio DSP on SIMD processors with readable, brief code.
 
-With the advent of C++11, new features became available as part of the standard library, and new syntax provided clearer ways to express abstractions with no overhead. Madronalib leans on C++11 to reduce its code footprint and increase clarity.
+With the advent of C++11, new features became available as part of the standard library, and new syntax provided clearer ways to express abstractions with no overhead. Madronalib leans on modern C++ to reduce its code footprint and increase clarity.
 
 To get reliable audio performance in a multiprocessing system, careful attention must be paid to memory allocation, shared object access, and any use of OS calls. (see: http://www.rossbencina.com/code/real-time-audio-programming-101-time-waits-for-nothing) Madronalib encapsulates these concerns and provides a simple API to the writers of audio applications.
 
