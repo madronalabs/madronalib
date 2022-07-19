@@ -277,4 +277,5 @@ template <class T> inline TimedResult<T> timeIterationsInThread(std::function<T(
     return wData.result;
 }
 
+
 #endif

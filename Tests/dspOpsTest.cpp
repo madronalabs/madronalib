@@ -145,12 +145,23 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
   SECTION("lerp")
   {
+    // lerp with constant mix value
     DSPVector a{columnIndex()};
     DSPVector b{0.f};
     auto c = lerp(a, b, 0.5f);
     REQUIRE(c[kFloatsPerDSPVector - 1] == (kFloatsPerDSPVector - 1) * 0.5f);
   }
-
+  
+  SECTION("convert")
+  {
+    constexpr float x{1.25f};
+    DSPVector a{x};
+    DSPVector b{-x};
+    auto fa = fractionalPart(a);
+    auto fb = fractionalPart(b);
+    REQUIRE(fa[kFloatsPerDSPVector - 1] == -fb[kFloatsPerDSPVector - 1]);
+  }
+    
   SECTION("map")
   {
     constexpr int rows = 2;
@@ -177,8 +188,6 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
   SECTION("row operations")
   {
-    std::cout << "\nROW OPERATIONS\n";
-
     DSPVectorArray<2> a{repeatRows<2>(columnIndex())};
     auto a2{a * 2.f};
 
@@ -209,8 +218,6 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   
   SECTION("combining")
   {
-    std::cout << "\nCOMBINING\n";
-    
     DSPVectorArray<2> a{repeatRows<2>(columnIndex())};
     DSPVectorArray<2> b{rowIndex<2>() + 1};
     DSPVectorArray<2> c{1};
@@ -230,8 +237,6 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   
   SECTION("multiplex")
   {
-    std::cout << "\nMULTIPLEX\n";
-    
     DSPVectorArray<2> input{columnIndex<2>() + rowIndex<2>()};
     DSPVectorArray<2> a{7};
     DSPVectorArray<2> b{11};
@@ -265,7 +270,6 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   
   SECTION("bank")
   {
-    std::cout << "\nBANK\n";
     constexpr size_t n = 5;
     
     // process with two arguments
@@ -289,26 +293,24 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 
 TEST_CASE("madronalib/core/projections", "[projections]")
 {
-  std::cout << "\n\nPROJECTIONS\n";
   {
     auto pa = projections::piecewiseLinear({3, 5, 8});
-    int size = 20;
-    for (int i = 0; i <= size; ++i)
-    {
-      float fx = i / (size + 0.f);
-      std::cout << fx << " -> " << pa(fx) << "\n";
-    }
+    REQUIRE(pa(0) == 3);
+    REQUIRE(pa(0.5) == 5);
+    REQUIRE(pa(1.0) == 8);
   }
 
   {
     auto pa = projections::piecewise(
         {1, 2, 3}, {projections::easeIn, projections::easeOut});
-    int size = 20;
-    for (int i = 0; i <= size; ++i)
-    {
-      float fx = i / (size + 0.f);
-      std::cout << fx << " -> " << pa(fx) << "\n";
-    }
+    
+    // the first interval m of the easeIn should be symmetrical with the last interval m of the easeOut.
+    float m{0.0625};
+    float a = pa(0.f);
+    float b = pa(m);
+    float c = pa(1.f - m);
+    float d = pa(1.f);
+    REQUIRE(b - a == d - c);
   }
   
   Interval testInterval{0, 2};

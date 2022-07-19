@@ -80,6 +80,13 @@ inline T* DSPVectorAlignPointer(const T* p)
 
 // ----------------------------------------------------------------
 // DSPVectorArray
+//
+// An array of DSPVectors. Each DSPVector holds kFloatsPerDSPVector float32 samples.
+// A DSPVectorArray< ROWS > holds kFloatsPerDSPVector*ROWS samples.
+// Knowing the array size at compile time helps efficiency by allowing the compiler to
+// unroll loops.
+//
+// Note that "Vector" is used in the mathematical sense of an n-tuple of real values.
 
 namespace ml
 {
@@ -174,13 +181,6 @@ class DSPVectorArray
   }
 
   // default copy and = constructors.
-  // TODO a move constructor might help efficiency but is quite different from
-  // the current design. for moving to make sense, the data can't be on the
-  // stack. instead of the current stack-based approach there could be a memory
-  // pool for all DSPVector data. some kind of allocator would be needed, which
-  // would be a pain but then it would be possible to write e.g. DSPVector c = a
-  // + b without having to copy the temporary (a + b) as we do now. a move ctor
-  // should be marked noexcept.
 
   DSPVectorArray(const DSPVectorArray& x1) noexcept = default;
   DSPVectorArray& operator=(const DSPVectorArray& x1) noexcept = default;
@@ -218,6 +218,7 @@ class DSPVectorArray
   }
 
 #ifdef MANUAL_ALIGN_DSPVECTOR
+  
   // get a row vector j when j is not known at compile time.
   inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
   {
@@ -244,6 +245,7 @@ class DSPVectorArray
     }
   }
 #else
+  
   // get a row vector j when j is not known at compile time.
   inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
   {
@@ -330,6 +332,7 @@ class DSPVectorArray
   // binary operators - defining these here inside the class as non-template
   // functions enables the compiler to call implicit conversions on either
   // argument.
+  
   friend inline DSPVectorArray operator+(const DSPVectorArray& x1, const DSPVectorArray& x2)
   {
     return add(x1, x2);
@@ -348,13 +351,22 @@ class DSPVectorArray
   }
 };  // class DSPVectorArray
 
+
+// ----------------------------------------------------------------
+// DSPVector
+//
+// Special case of the DSPVectorArray with one row.
+// The most common data type in a typical DSP function.
+
 typedef DSPVectorArray<1> DSPVector;
 
-// integer DSPVectorArrayInt class
-constexpr size_t kIntsPerDSPVector = kFloatsPerDSPVector;
 
 // ----------------------------------------------------------------
 // DSPVectorArrayInt
+//
+// DSP Vector holding int32 values.
+
+constexpr size_t kIntsPerDSPVector = kFloatsPerDSPVector;
 
 template <size_t ROWS>
 class DSPVectorArrayInt
@@ -532,7 +544,7 @@ inline void storeAligned(const DSPVectorArray<ROWS>& vecSrc, float* pDest)
 }
 
 // ----------------------------------------------------------------
-// unary vector operators
+// unary vector operators (float) -> float
 
 #define DEFINE_OP1(opName, opComputation)                              \
   template <size_t ROWS>                                               \
@@ -584,7 +596,7 @@ DEFINE_OP1(log2Approx, (vecMul(vecLogApprox(x), kLogTwoRVec)));
 DEFINE_OP1(exp2Approx, (vecExpApprox(vecMul(kLogTwoVec, x))));
 
 // ----------------------------------------------------------------
-// binary vector operators (float)
+// binary vector operators (float, float) -> float
 
 #define DEFINE_OP2(opName, opComputation)                              \
   template <size_t ROWS>                                               \
@@ -619,7 +631,7 @@ DEFINE_OP2(min, (vecMin(x1, x2)));
 DEFINE_OP2(max, (vecMax(x1, x2)));
 
 // ----------------------------------------------------------------
-// binary vector operators (int32)
+// binary vector operators (int32, int32) -> int32
 
 #define DEFINE_OP2_INT32(opName, opComputation)                              \
   template <size_t ROWS>                                                     \
@@ -646,7 +658,7 @@ DEFINE_OP2_INT32(subtractInt32, (vecSubInt(x1, x2)));
 DEFINE_OP2_INT32(addInt32, (vecAddInt(x1, x2)));
 
 // ----------------------------------------------------------------
-// ternary vector operators
+// ternary vector operators (float, float, float) -> float
 
 #define DEFINE_OP3(opName, opComputation)                              \
   template <size_t ROWS>                                               \
@@ -680,7 +692,7 @@ DEFINE_OP3(clamp, vecClamp(x1, x2, x3));    // clamp(x, minBound, maxBound)
 DEFINE_OP3(within, vecWithin(x1, x2, x3));  // is x in the open interval [x2, x3) ?
 
 // ----------------------------------------------------------------
-// lerp two vectors with float mixture
+// lerp two vectors with scalar float mixture (constant over each vector)
 
 template <size_t ROWS>
 inline DSPVectorArray<ROWS> lerp(const DSPVectorArray<ROWS>& vx1, const DSPVectorArray<ROWS>& vx2,
@@ -706,7 +718,7 @@ inline DSPVectorArray<ROWS> lerp(const DSPVectorArray<ROWS>& vx1, const DSPVecto
 }
 
 // ----------------------------------------------------------------
-// unary float vector -> int vector operators
+// vector operators (float) -> int
 
 #define DEFINE_OP1_F2I(opName, opComputation)                             \
   template <size_t ROWS>                                                  \
@@ -729,7 +741,7 @@ DEFINE_OP1_F2I(roundFloatToInt, (VecI2F(vecFloatToIntRound(x))));
 DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
 
 // ----------------------------------------------------------------
-// unary int vector -> float vector operators
+// vector operators (int) -> float
 
 #define DEFINE_OP1_I2F(opName, opComputation)                             \
   template <size_t ROWS>                                                  \
@@ -817,6 +829,7 @@ DEFINE_OP2_FF2I(lessThanOrEqual, (vecLessThanOrEqual(x1, x2)));
 DEFINE_OP3_FFI2F(select, vecSelect(x1, x2, x3));  // bitwise select(resultIfTrue,
                                                   // resultIfFalse, conditionMask)
 
+// ----------------------------------------------------------------
 // ternary operators int vector, int vector, int vector -> int vector
 
 #define DEFINE_OP3_III2I(opName, opComputation)                              \
