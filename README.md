@@ -33,7 +33,7 @@ There are three examples built using RtAudio that play and process audio signals
 
 The code in /source/app is also relied upon by shipping products, though it may still change more often. 
 
-Tests exist for most modules. Someone should set up continuous integration.
+Tests exist for most modules. Very basic continuous integration exists using GitHub actions, but only tests on MacOS at present.
 
 OSC (Open Sound control) networking still awaits porting to Windows / Linux.
 
