@@ -84,7 +84,7 @@ class DSPBuffer
     catch (const std::bad_alloc &e)
     {
       mSize = mDataMask = mDistanceMask = 0;
-      return 0;
+      return;
     }
     
     mDataBuffer = mData.data();
