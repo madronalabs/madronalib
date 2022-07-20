@@ -63,7 +63,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   
   int total{0};
   forEach< CollectableInt >(ints, [&](const CollectableInt& i){ total += i.value; });
-  std::cout << "total: " << total << "\n";
+  // std::cout << "total: " << total << "\n";
   
   // get total under "a"
   int totala{0};
@@ -78,7 +78,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   
   int rootTotal{0};
   forEachChild< CollectableInt >(ints, [&](const CollectableInt& i){ rootTotal += i.value; });
-  std::cout << "rootTotal: " << rootTotal << "\n";
+  // std::cout << "rootTotal: " << rootTotal << "\n";
   REQUIRE(rootTotal == 14);
   
   REQUIRE(!ints["a/b/xxx"]);
@@ -113,14 +113,16 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   
   // dump the collection, getting the current path with each call.
   // this forEach() syntax with the optional Path* argument is weird, but concise.
-  std::cout << "collection with paths:\n";
+  // std::cout << "collection with paths:\n";
+  /*
   Path currentPath;
   forEach< CollectableInt >(ints, [&](const CollectableInt& i)
                             {
     std::cout << currentPath << ": ";
     std::cout << i.value << "\n";
   }, &currentPath);
-
+*/
+  
   REQUIRE(ints.size() == 7);
   
   // doing things with a null collection should not crash

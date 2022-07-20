@@ -19,8 +19,6 @@ namespace dspBufferTest
 {
 TEST_CASE("madronalib/core/dspbuffer", "[dspbuffer]")
 {
-  std::cout << "\nDSPBUFFER\n";
-
   // buffer should be next larger power-of-two size
   DSPBuffer buf;
   buf.resize(197);
@@ -38,7 +36,7 @@ TEST_CASE("madronalib/core/dspbuffer", "[dspbuffer]")
   buf.write(v1.getConstBuffer(), kFloatsPerDSPVector);
   DSPVector v2{};
   buf.read(v2.getBuffer(), kFloatsPerDSPVector);
-  std::cout << v2 << "\n";
+  // std::cout << v2 << "\n";
   REQUIRE(buf.getReadAvailable() == 0);
   REQUIRE(v2 == v1);
 }
@@ -79,7 +77,7 @@ void transmitTest()
     }
 
     testBuf.write(data, writeLen);
-    std::cout << "+";  // show write
+    // std::cout << "+";  // show write
     samplesTransmitted += writeLen;
 
     std::this_thread::sleep_for(milliseconds(2));
@@ -106,7 +104,8 @@ void receiveTest()
       size_t readLen = randToLength(rr.getFloat());
       readLen = std::min(readLen, k);
       testBuf.read(data, std::min(readLen, k));
-      std::cout << "-";  // show read
+      
+      // std::cout << "-";  // show read
 
       for (int i = 0; i < readLen; ++i)
       {
@@ -125,7 +124,7 @@ void receiveTest()
     }
     else
     {
-      std::cout << ".";  // show wait
+      //std::cout << ".";  // show wait
     }
     std::this_thread::sleep_for(milliseconds(1));
   }
@@ -141,13 +140,15 @@ TEST_CASE("madronalib/core/dspbuffer/threads", "[dspbuffer][threads]")
   transmit.join();
   receive.join();
 
+  /*
   std::cout << "\ntransmit sum: " << transmitSum
             << "\nreceive sum: " << receiveSum << "\n";
   std::cout << "total samples transmitted: " << samplesTransmitted << "\n";
   std::cout << "total samples received: " << samplesReceived << "\n";
   std::cout << "buffer size: " << kTestBufferSize << "\n";
   std::cout << "max samples in buffer: " << maxSamplesInBuffer << "\n";
-
+*/
+  
   REQUIRE(testBuf.getReadAvailable() == 0);
   REQUIRE(transmitSum == receiveSum);
   REQUIRE(samplesTransmitted == samplesReceived);
