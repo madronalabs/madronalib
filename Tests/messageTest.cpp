@@ -27,7 +27,7 @@ struct Receiver : public MessageReceiver
   operator int() const { return value; }
   int value;
   
-  void handleMessage(Message m, Message*) { std::cout << "normal: " << value << "\n"; }
+  void handleMessage(Message m, Message*) { /* std::cout << "normal: " << value << "\n";*/ }
 };
 
 struct FancyReceiver : public Receiver
@@ -36,7 +36,7 @@ struct FancyReceiver : public Receiver
   FancyReceiver(int v) : Receiver(v) {}
   ~FancyReceiver() = default;
   
-  void handleMessage(Message m, Message*) { std::cout << "fancy!! " << value << " " << m << "\n"; }
+  void handleMessage(Message m, Message*) { /*std::cout << "fancy!! " << value << " " << m << "\n";*/ }
 };
 
 
@@ -77,14 +77,14 @@ TEST_CASE("madronalib/core/message", "[message]")
   myColl.add_unique< Receiver >("a/b/c/f", 7);
   
   // TODO real tests
-  
+  /*
   sendMessage(myColl["a/b/c/f"], {"hello"});
   
   // sending to a null object should not crash
   sendMessage(myColl["nonexistent"], {"hello"});
   
-//  sendMessageToEach< Receiver >(myColl, {"hello"});
   
+
   Collection< Receiver >abcColl = getSubCollection(myColl, "a/b/c");
   sendMessageToEach< Receiver >(abcColl, {"hello"});
   std::cout << "\n\n";
@@ -102,6 +102,6 @@ TEST_CASE("madronalib/core/message", "[message]")
   mlb.push_back({"bar"});
   
   mla.append(mlb);
-  
+  */
 
 }

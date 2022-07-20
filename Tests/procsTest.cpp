@@ -12,12 +12,10 @@ using namespace ml;
 
 TEST_CASE("madronalib/core/procs", "[procs]")
 {
-  std::cout << "\nPROCS:\n";
-
   // factory gets a name, only for testing
   auto& factory(ProcFactory::theFactory());
 
-  std::cout << factory.registeredClasses() << " proc classes registered.\n";
+  // std::cout << factory.registeredClasses() << " proc classes registered.\n";
 
   // real work in progress / sketch stuff. should a DSP context be required to
   // create a Proc? Probably.
@@ -40,5 +38,4 @@ TEST_CASE("madronalib/core/procs", "[procs]")
 
   REQUIRE(vc == multiply(va, vb));
 
-  std::cout << "output: " << vc << "\n";
 }

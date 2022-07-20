@@ -9,8 +9,6 @@
 
 void ProcFactory::registerFn(const ml::Symbol className, MLProcCreateFnT fn)
 {
-  // MLTEST
-  std::cout << "registering class " << className << "\n";
   procRegistry[className] = fn;
 }
 

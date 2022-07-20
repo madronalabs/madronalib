@@ -28,10 +28,6 @@ struct constTest
 
 void ProcMultiply::process()
 {
-  // test params
-  auto q = param("a").getFloatValue();
-  std::cout << "q: " << q << "\n";
-
   output("baz") = multiply(input("foo"), input("bar"));
 
   //	constTest< constFind(paramNames, "c") >();
@@ -47,7 +43,7 @@ void ProcMultiply::process()
 
 namespace
 {
-static ProcRegistryEntry<ProcMultiply> classReg("multiply");
+  static ProcRegistryEntry<ProcMultiply> classReg("multiply");
 }
 
 #endif

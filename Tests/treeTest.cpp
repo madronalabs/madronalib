@@ -29,13 +29,11 @@ struct TestResource
   TestResource(float val)
   {
     instances++;
-    std::cout << " NEW TestResource (" << val << ")\n";
     data[10] = val;
   }
   ~TestResource()
   {
     instances--;
-    std::cout << " DELETE TestResource (" << data[10] << ")\n";
   }
 
   std::array<float, 1000> data{};
@@ -113,8 +111,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       int v = constNumberMap[pathsVector[i]];
       if (v != i)
       {
-        std::cout << "problem at " << pathsVector[i] << ": expected " << i
-                  << ", found " << v << "\n";
+        // std::cout << "problem at " << pathsVector[i] << ": expected " << i << ", found " << v << "\n";
         problem = true;
         break;
       }
@@ -180,17 +177,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     a.add("you/are/carl's/sunshine", 10);
     a.add("you/are/carl's/jr/jam", 10);
 
-    // looking up a nonexistent node should return a reference to the default
-    // value
-    std::cout << "sunshine:" << a["you/are/my/sunshine"] << "\n";
-    std::cout << "nonexistent:" << a["you/are/here/just/to/return/a/reference"]
-              << "\n";
-
+    // looking up a nonexistent node should return a reference to the default value
+    REQUIRE(a["you/are/my/sunshine"] == 10);
+    REQUIRE(a["this/path/is/not/in/the/tree"] == 0);
+    
     int leafSum = 0;
     const int correctLeafSum = 79;
-
-    a.dump();
-    std::cout << "size: " << a.size() << "\n";
     
     //std::cout << "nodes: " << a.countNodes() << "\n";
     
@@ -276,7 +268,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     // dump() works because we have declared operator<< (std::ostream& out,
     // const std::unique_ptr< TestResource >& p) above
-    heavies.dump();
+    // heavies.dump();
   }
   REQUIRE(TestResource::instances == 0);
 
@@ -318,7 +310,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
 
-  std::vector<Value> melodies;
+  std::vector< Value > melodies;
   for (auto it = properties.begin(); it != properties.end(); ++it)
   {
     const Path p = it.getCurrentNodePath();
@@ -327,14 +319,11 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       melodies.push_back(*it);
     }
   }
-  for (auto m : melodies)
-  {
-    std::cout << "    " << m << "\n";
-  }
+
   REQUIRE(melodies.size() == 3);
 
   //  Empty Tree test
-  Tree<Value> emptyTree;
+  Tree< Value > emptyTree;
   int count{0};
   for (auto it = emptyTree.begin(); it != emptyTree.end(); ++it)
   {
@@ -354,8 +343,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);
   
-  
-
 }
 
 TEST_CASE("madronalib/core/serialization", "[serialization]")
@@ -411,7 +398,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
   
-  // JSON to value tree to JSON
+  // text to JSON to value tree
   // This time, containing arrays.
   TextFragment arraysText = R"({
     "file_info": {
@@ -442,18 +429,9 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
         }
     ]
   })";
-  
-  std::cout << "*********\n" << arraysText << "\n";
-  
-  
+
   auto arraysJSON = textToJSON(arraysText);
-  
   auto av2 = JSONToValueTree(arraysJSON);
-  
-  std::cout << "=========\n" ;
-  av2.dump();
-  
-  theSymbolTable().dump();
-  
+  REQUIRE(av2["file_info/version"] == 1);
 }
 

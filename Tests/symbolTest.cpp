@@ -47,18 +47,6 @@ TEST_CASE("madronalib/core/symbol/simple", "[symbol][simple]")
   Symbol c("hello");
 
   REQUIRE(a.getID() == c.getID());
-
-  if (a.getID() != c.getID())
-  {
-    std::cout << "WTF\n";
-  }
-
-  else
-  {
-    std::cout << a << ", " << b << "!\n";
-  }
-
-  theSymbolTable().dump();
 }
 
 TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
@@ -86,7 +74,7 @@ TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 
   end = now();
   elapsed = end - start;
-  std::cout << "multithreaded test, elapsed time: " << elapsed.count() << "s\n";
+  // std::cout << "multithreaded test, elapsed time: " << elapsed.count() << "s\n";
 
   REQUIRE(theSymbolTable().audit());
   REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
@@ -128,7 +116,7 @@ TEST_CASE("madronalib/core/hashes", "[hashes]")
   
   
   auto h = hash(Symbol());
-  std::cout << "hash of null symbol: " << h << "\n";
+  //std::cout << "hash of null symbol: " << h << "\n";
 }
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
@@ -210,7 +198,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
+    // std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
 
     // lookup from existing MLSymbols
     start = now();
@@ -221,7 +209,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing symbols, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -234,8 +221,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing strings, unordered, elapsed time: "
-              << elapsed.count() << "s\n";
 
     // lookup from existing MLSymbols
     start = now();
@@ -246,8 +231,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing symbols, unordered, elapsed time: "
-              << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -263,8 +246,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "constructing strings, elapsed time: " << elapsed.count()
-              << "s\n";
 
     // lookup from new MLSymbols made from char *
     start = now();
@@ -275,8 +256,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "constructing symbols, elapsed time: " << elapsed.count()
-              << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -289,9 +268,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "constructing strings, unordered, elapsed time: "
-              << elapsed.count() << "s\n";
-
+ 
     // unordered lookup from new MLSymbols made from char *
     start = now();
     symbolSum = 0.f;
@@ -301,8 +278,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "constructing symbols, unordered, elapsed time: "
-              << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -316,8 +291,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "pre-hashed symbols, elapsed time: " << elapsed.count()
-              << "s\n";
 
     // unordered lookup using literal (hashed at compile time)
     start = now();
@@ -328,8 +301,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "pre-hashed symbols, unordered, elapsed time: "
-              << elapsed.count() << "s\n";
 
     REQUIRE(theSymbolTable().audit());
 
@@ -415,8 +386,6 @@ TEST_CASE("madronalib/core/symbol/path", "[symbol][path]")
   TextFragment pa = std::accumulate(++p.begin(), p.end(),
                                     (*p.begin()).getTextFragment(), accumTest);
 
-  std::cout << "accumulated: " << pa << "\n";
-  
   Path a{"a"};
   Path b{"b"};
   Path d{"d"};
@@ -440,7 +409,6 @@ TEST_CASE("madronalib/core/symbol/textutils", "[symbol][textutils]")
 
   std::vector< TextFragment > tv{t0, t1, t2, t3, t4, t5};
   
-  std::cout << "\ntextUtils:\n";
   int i{0};
   for(auto tf : tv)
   {

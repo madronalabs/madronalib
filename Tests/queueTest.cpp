@@ -23,36 +23,6 @@ const int kTestBufferSize = 100;
 
 namespace queueTest
 {
-TEST_CASE("madronalib/core/queue", "[queue]")
-{
-  std::cout << "\n\nQUEUE\n";
-  // setup event queue
-  Queue<TestEvent> eventQueue(kTestBufferSize);
-
-  // write and read some events to get near the end of the physical buffer
-  int padding = kTestBufferSize - 10;
-  for (int i = 0; i < padding; ++i)
-  {
-    eventQueue.push(TestEvent{i, i + 23.0f});
-  }
-
-  // show usage for peek
-  while (eventQueue.elementsAvailable() && (eventQueue.peek().mValue1 < 46))
-  {
-    TestEvent g;
-    eventQueue.pop(g);
-    std::cout << g.mValue1 << " ";
-  }
-  std::cout << "\n";
-
-  TestEvent f;
-  while (eventQueue.pop(f))
-  {
-    std::cout << f.mValue1 << " ";
-  }
-
-  std::cout << "\n";
-}
 
 const size_t kTestSize = 200;
 const size_t kTestCount = 500;
@@ -70,7 +40,7 @@ void transmitTest()
     transmitSum += r;
     testQueue.push(TestEvent{r, 1.f});
 
-    std::cout << "+";
+    //std::cout << "+";
     std::this_thread::sleep_for(milliseconds(1));
   }
 }
@@ -88,10 +58,9 @@ void receiveTest()
     }
     receiveSum += ev.mTime;
 
-    std::cout << "-";
+    //std::cout << "-";
     std::this_thread::sleep_for(milliseconds(1));
   }
-  std::cout << "\n max queue size: " << maxQueueSize << "\n";
 }
 
 TEST_CASE("madronalib/core/queue/threads", "[queue][threads]")
@@ -106,8 +75,7 @@ TEST_CASE("madronalib/core/queue/threads", "[queue][threads]")
   transmit.join();
   receive.join();
   
-  std::cout << "\ntransmit sum: " << transmitSum
-  << ", receive sum: " << receiveSum << "\n";
+  //std::cout << "\ntransmit sum: " << transmitSum << ", receive sum: " << receiveSum << "\n";
   
   /*
    commented out for now- failing on GitHub actions

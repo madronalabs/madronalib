@@ -83,7 +83,7 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     // use native math as reference.
     // NOTE this does not measure the maximum error accurately! It uses equally-spaced
     // samples over the entire input range of the functions, just to provide a reference.
-    std::cout << "max differences from reference:\n";
+    // std::cout << "max differences from reference:\n";
 
     for (auto fnVec : functionVectors)
     {
@@ -95,10 +95,12 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
       float preciseMaxDiff = max(abs(native - precise));
       float approxMaxDiff = max(abs(native - approx));
 
+      /*
       std::cout << fnVec.first << " native: " << nativeMaxDiff
                 << ", precise: " << preciseMaxDiff
                 << ", approx: " << approxMaxDiff << " \n";
-
+*/
+      
       // these differences are to accommodate the exp functions, the other ones
       // are a lot more precise.
       REQUIRE(preciseMaxDiff < 2e-6f);
@@ -110,8 +112,9 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   {
     // test speed of precise functions relative to native ones.
     // test speed of approximate functions relative to precise ones.
-    // approximate ones should be faster!
-    std::cout << "nanoseconds per iteration:\n";
+    // if we are optimizing the compiled code, approximate ones should be faster.
+    // in debug builds, not necessarily.
+    // std::cout << "nanoseconds per iteration:\n";
 
     int i = 0;
     for (auto fnVec : functionVectors)
@@ -136,9 +139,11 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
         timeIterations<DSPVector>(fnVec.second[2]);
 #endif
         
+      /*
         std::cout << fnVec.first << " native: " << fnTimeNative.ns
                   << ", precise: " << fnTimePrecise.ns
                   << ", approx: " << fnTimeApprox.ns << " \n";
+       */
         i++;
     }
   }
@@ -312,13 +317,6 @@ TEST_CASE("madronalib/core/projections", "[projections]")
     float d = pa(1.f);
     REQUIRE(b - a == d - c);
   }
-  
-  Interval testInterval{0, 2};
-  std::cout << testInterval << "\n";
-  
-  Interval unityDomain{0., 1.};
-  Interval freqDomain{20., 20000.};
-  Projection proj = projections::intervalMap(unityDomain, freqDomain, projections::log(freqDomain));
-  projections::printTable(proj, "logProjectionTest", unityDomain, 5);
+
 }
 
