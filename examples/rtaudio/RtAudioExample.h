@@ -1,84 +1,61 @@
-// plumbing to make examples using RtAudio more concise
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+// RTAudioExample: plumbing to make examples using RtAudio more concise
 
 #include "mldsp.h"
 #include "RtAudio.h"
 
 using namespace ml;
 
+// the maximum amount of input frames that can be proceesed at once. This determines the
+// maximum signal vector size of the plugin host or enclosing app.
 constexpr int kMaxProcessBlockFrames = 4096;
 
-template<int IN_CHANS, int OUT_CHANS>
-using processFnType = DSPVectorArray< OUT_CHANS > (*) (const DSPVectorArray< IN_CHANS >&, void *);
-
-template<int OUT_CHANS>
-using processFnTypeNoInputs = DSPVectorArray< OUT_CHANS > (*) (void *);
-
-using rtAudioCallbackType = int (*) (void*, void*, unsigned int, double, RtAudioStreamStatus, void*);
-
+struct ProcessData
+{
+  VectorProcessBuffer* pProcessBuffer;
+  VectorProcessFnType processFn;
+  void* processState;
+  size_t inputs;
+  size_t outputs;
+  int sampleRate;
+};
 
 // adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
-template<int IN_CHANS, int OUT_CHANS>
-int callProcessVectorsBuffered( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+
+int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
                                double /*streamTime*/, RtAudioStreamStatus status , void * callbackData )
 {
-  // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
-  static VectorProcessBuffer<IN_CHANS, OUT_CHANS, kMaxProcessBlockFrames> processBuffer;
-
-  // get function ptr from callback data
-  auto fp = reinterpret_cast< processFnType < IN_CHANS, OUT_CHANS > >(callbackData);
+  // get process data from callback data
+  auto pData = reinterpret_cast< ProcessData* >(callbackData);
 
   const float *pInputBuffer = reinterpret_cast<const float *>(inputBuffer);
   float *pOutputBuffer = reinterpret_cast<float *>(outputBuffer);
 
   if ( status ) std::cout << "Stream over/underflow detected." << std::endl;
 
-  // get pointers to uninterlaced input and output frames for each channel.
-  const float* inputs[IN_CHANS]{};
-  float* outputs[OUT_CHANS]{};
-  for (int i = 0; i<IN_CHANS; ++i)
+  // make pointers to uninterlaced input and output frames for each channel.
+  const float* inputs[pData->inputs];
+  float* outputs[pData->outputs];
+  
+  // setup input and output pointers
+  for (int i = 0; i<pData->inputs; ++i)
   {
     inputs[i] = pInputBuffer + i*nBufferFrames;
   }
-  for (int i = 0; i<OUT_CHANS; ++i)
+  for (int i = 0; i<pData->outputs; ++i)
   {
     outputs[i] = pOutputBuffer + i*nBufferFrames;
   }
 
   // do the buffered processing.
-  processBuffer.process(inputs, outputs, nBufferFrames, *fp);
+  pData->pProcessBuffer->process(inputs, outputs, nBufferFrames, pData->processFn, pData->processState);
   return 0;
 }
 
-
-// adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
-template<int OUT_CHANS>
-int callProcessVectorsBufferedNoInputs( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
-                               double /*streamTime*/, RtAudioStreamStatus status , void * callbackData )
-{
-  // the VectorProcessBuffer buffers input from the RtAudio process routine and calls our process function.
-  static VectorProcessBuffer<0, OUT_CHANS, kMaxProcessBlockFrames> processBuffer;
-
-  // get function ptr from callback data
-  auto fp = reinterpret_cast< processFnTypeNoInputs < OUT_CHANS > >(callbackData);
-
-  float *pOutputBuffer = reinterpret_cast<float *>(outputBuffer);
-
-  if ( status ) std::cout << "Stream over/underflow detected." << std::endl;
-
-  // get pointers to uninterlaced output frames for each channel.
-  float* outputs[OUT_CHANS]{};
-  for (int i = 0; i<OUT_CHANS; ++i)
-  {
-    outputs[i] = pOutputBuffer + i*nBufferFrames;
-  }
-
-  // do the buffered processing.
-  processBuffer.process(nullptr, outputs, nBufferFrames, *fp);
-  return 0;
-}
-
-
-int runRtAudioExample(int inputs, int outputs, int sampleRate, rtAudioCallbackType callbackFn, void* callbackData)
+int runRtAudioExample(ProcessData* pData)
 {
     RtAudio adac;
     unsigned int bufferFrames = 512;
@@ -102,25 +79,27 @@ int runRtAudioExample(int inputs, int outputs, int sampleRate, rtAudioCallbackTy
       }
       std::cout << std::endl;
     }
-
+    
     // Let RtAudio print messages to stderr.
-    adac.showWarnings( true );
+    adac.showWarnings(true);
 
     // Set up RtAudio stream params
     RtAudio::StreamParameters iParams, oParams;
     iParams.deviceId = adac.getDefaultInputDevice();
-    iParams.nChannels = inputs;
+    iParams.nChannels = pData->inputs;
     iParams.firstChannel = 0;
     oParams.deviceId = adac.getDefaultOutputDevice();
-    oParams.nChannels = outputs;
+    oParams.nChannels = pData->outputs;
     oParams.firstChannel = 0;
 
     RtAudio::StreamOptions options;
     options.flags |= RTAUDIO_NONINTERLEAVED;
+  
+    auto pInputParams = (pData->inputs ? &iParams : nullptr);
 
     try
     {
-      adac.openStream( &oParams, (inputs ? &iParams : nullptr), RTAUDIO_FLOAT32, sampleRate, &bufferFrames, callbackFn, callbackData, &options );
+      adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32, pData->sampleRate, &bufferFrames, &RtAudioCallbackFn, pData, &options);
     }
     catch ( RtAudioError& e )
     {
@@ -134,7 +113,8 @@ int runRtAudioExample(int inputs, int outputs, int sampleRate, rtAudioCallbackTy
 
     // Test RtAudio functionality for reporting latency.
     std::cout << "\nStream latency = " << adac.getStreamLatency() << " frames" << std::endl;
-
+    std::cout << "sample rate: " << pData->sampleRate << "\n";
+  
     try
     {
       adac.startStream();
@@ -157,46 +137,33 @@ int runRtAudioExample(int inputs, int outputs, int sampleRate, rtAudioCallbackTy
     return 0;
 }
 
-template<int IN_CHANS, int OUT_CHANS>
+
 class RtAudioExample
 {
-  int _sampleRate;
-  processFnType< IN_CHANS, OUT_CHANS > _vectorProcessFnPtr;
+  // buffer object that splits up processing into DSPVectors
+  VectorProcessBuffer processBuffer;
+  
+  // all the info about the DSP task to be done
+  ProcessData _data;
   
 public:
-  RtAudioExample(int sampleRate, processFnType< IN_CHANS, OUT_CHANS > vectorProcessFnPtr)
+  
+  // processState points to any persistent state that needs to be sent to the DSP graph. This can be unused if
+  // no state is needed, or if the state is global.
+  
+  RtAudioExample(size_t inputs, size_t outputs, int sampleRate, VectorProcessFnType processFn, void* processState = nullptr) :
+    processBuffer(inputs, outputs, kMaxProcessBlockFrames)
   {
-    _sampleRate = sampleRate;
-    _vectorProcessFnPtr = vectorProcessFnPtr;
+    _data.pProcessBuffer = &processBuffer;
+    _data.processFn = processFn;
+    _data.processState = processState;
+    _data.inputs = inputs;
+    _data.outputs = outputs;
+    _data.sampleRate = sampleRate;
   }
   
   int run()
   {
-    auto callbackFn = &callProcessVectorsBuffered< IN_CHANS, OUT_CHANS >;
-    void* callbackData = reinterpret_cast< void * >(_vectorProcessFnPtr);
-    return runRtAudioExample(IN_CHANS, OUT_CHANS, _sampleRate, callbackFn, callbackData);
+    return runRtAudioExample(&_data);
   }
 };
-
-
-template<int OUT_CHANS>
-class RtAudioExample<0, OUT_CHANS>
-{
-  int _sampleRate;
-  processFnTypeNoInputs< OUT_CHANS > _vectorProcessFnPtr;
-  
-public:
-  RtAudioExample(int sampleRate, processFnTypeNoInputs< OUT_CHANS > vectorProcessFnPtr)
-  {
-    _sampleRate = sampleRate;
-    _vectorProcessFnPtr = vectorProcessFnPtr;
-  }
-  
-  int run()
-  {
-    auto callbackFn = &callProcessVectorsBufferedNoInputs< OUT_CHANS >;
-    void* callbackData = reinterpret_cast< void * >(_vectorProcessFnPtr);
-    return runRtAudioExample(0, OUT_CHANS, _sampleRate, callbackFn, callbackData);
-  }
-};
-

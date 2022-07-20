@@ -241,4 +241,14 @@ TEST_CASE("madronalib/core/dspbuffer/peek", "[dspbuffer][peek]")
   REQUIRE(floatVec[0] == 109);
   REQUIRE(floatVec[19] == 128);
 }
+
+TEST_CASE("madronalib/core/dspbuffer/vector", "[dspbuffer][peek]")
+{
+
+  std::vector< DSPVector > v;
+  v.resize(4);
+  
+  DSPVectorDynamic dv;
+}
+
 }  // namespace dspBufferTest

@@ -8,18 +8,17 @@
 
 using namespace ml;
 
-// Mac OS note: need to ask for microphone access if this is nonzero!
 constexpr int kInputChannels = 0;
-
 constexpr int kOutputChannels = 2;
-constexpr int kSampleRate = 44100;
+constexpr int kSampleRate = 48000;
 constexpr float kOutputGain = 0.1f;
 
 ImpulseGen impulse1;
 SineGen sine1;
+SineGen s1, s2;
 
-const int kWidth = 8;
-const int kHeight = 8;
+const int kWidth = 16;
+const int kHeight = 16;
 const int kPadding = 1;
 const int kRowStride = kWidth + kPadding*2;
 const int kTotalHeight = kHeight + kPadding*2;
@@ -66,9 +65,11 @@ void doFDTDStep2D(Surface* uIn1, Surface* uIn2, Surface* uOut, float kc, float k
   }
 }
 
-// processVectors() does all of the audio processing, in DSPVector-sized chunks.
-// It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processFDTDModel(DSPVector inputVec, DSPVector freq)
+
+// run the FDTD model with the given input and fundamental frequency.
+// the frequency is updated every sample.
+
+DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq)
 {
   const float isr = 1.0f/kSampleRate;
   DSPVector outLVec, outRVec;
@@ -123,6 +124,7 @@ DSPVectorArray<kOutputChannels> processFDTDModel(DSPVector inputVec, DSPVector f
     *exciter += inputVec[i]*kInputGain;
     
     // run the FDTD model for one sample
+    // the model uses the state of the surface at the two previous time steps.
     doFDTDStep2D(mpU1, mpU2, mpU0, kc, ke, kk, kc2, ke2);
     
     // set float pickups at middle left and right
@@ -146,20 +148,31 @@ DSPVectorArray<kOutputChannels> processFDTDModel(DSPVector inputVec, DSPVector f
   return concatRows(outLVec, outRVec);
 }
 
+
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors(void* stateData)
+
+void processVectors(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 {
+  // generate ticks twice per second
+  auto ticks = impulse1(0.5f/kSampleRate)*kOutputGain;
+  
+  auto sine220 = s1(220.f/kSampleRate)*kOutputGain;
+
+  // run ticks through the FDTD model, modulating the pitch
   auto modOscSignal = sine1(0.15f/kSampleRate);
-  auto freq = 220.f + modOscSignal*20.f;
-  auto ticks = impulse1(2.0f/kSampleRate)*kOutputGain;
-  return processFDTDModel(ticks, freq/kSampleRate);
+  auto freq = 220.f + modOscSignal*40.f;
+  auto FDTDOutput = processFDTDModel(ticks, freq/kSampleRate);
+  
+  // write the main outputs
+  outputs[0] = FDTDOutput.row(0);
+  outputs[1] = FDTDOutput.row(1);
 }
 
-int main( int argc, char *argv[] )
+int main()
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample< kInputChannels, kOutputChannels > FDTDExample(kSampleRate, &processVectors);
+  RtAudioExample FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &processVectors);
   return FDTDExample.run();
 }
 

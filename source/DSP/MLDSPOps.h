@@ -33,6 +33,7 @@
 #include <iostream>
 #include <iterator>
 #include <type_traits>
+#include <vector>
 
 #include "MLDSPMath.h"
 #include "MLDSPScalarMath.h"
@@ -497,6 +498,40 @@ class DSPVectorArrayInt
 };  // class DSPVectorArrayInt
 
 typedef DSPVectorArrayInt<1> DSPVectorInt;
+
+
+// ----------------------------------------------------------------
+// DSPVectorDynamic: for holding a number of DSPVectors only known at runtime.
+
+class DSPVectorDynamic final
+{
+public:
+  DSPVectorDynamic() = default;
+  ~DSPVectorDynamic() = default;
+  
+  DSPVectorDynamic(size_t rows)
+  {
+    _data.resize(rows);
+  }
+  
+  void resize(size_t rows) { _data.resize(rows); }
+  
+  size_t size() const { return _data.size(); }
+  
+  DSPVector& operator[](int j)
+  {
+    return _data[j];
+  }
+  
+  const DSPVector& operator[](int j) const
+  {
+    return _data[j];
+  }
+  
+private:
+  std::vector< DSPVector > _data;
+};
+
 
 // ----------------------------------------------------------------
 // load and store

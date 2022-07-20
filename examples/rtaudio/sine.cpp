@@ -8,11 +8,9 @@
 
 using namespace ml;
 
-// Mac OS note: need to ask for microphone access if this is nonzero!
 constexpr int kInputChannels = 0;
-
 constexpr int kOutputChannels = 2;
-constexpr int kSampleRate = 44100;
+constexpr int kSampleRate = 48000;
 constexpr float kOutputGain = 0.1f;
 
 // sine generators.
@@ -20,21 +18,18 @@ SineGen s1, s2;
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors(void* stateData)
+void processVectors(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 {
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
   // The output sines are multiplied by the gain.
-  auto sineL = s1(220.f/kSampleRate)*kOutputGain;
-  auto sineR = s2(275.f/kSampleRate)*kOutputGain;
-
-  // concatenating the two DSPVectors makes a DSPVectorArray<2>: our stereo output.
-  return concatRows(sineL, sineR);
+  outputs[0] = s1(220.f/kSampleRate)*kOutputGain;
+  outputs[1] = s2(275.f/kSampleRate)*kOutputGain;
 }
 
-int main( int argc, char *argv[] )
+int main()
 {
-  // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample< kInputChannels, kOutputChannels > sineExample(kSampleRate, &processVectors);
+  // The RtAudioExample object adapts the RtAudio loop to our buffered processing and runs the example.
+  RtAudioExample sineExample(kInputChannels, kOutputChannels, kSampleRate, &processVectors);
   return sineExample.run();
 }

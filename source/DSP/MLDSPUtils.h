@@ -45,132 +45,88 @@ const Projection flatTop([](float x) {
 });
 }  // namespace windows
 
+
 // VectorProcessBuffer: utility class to serve a main loop with varying
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
 // DSPVector-sized chunks.
 
-template <int IN_CHANNELS, int OUT_CHANNELS, int MAX_FRAMES>
+using MainInputs = const DSPVectorDynamic&;
+using MainOutputs = DSPVectorDynamic&;
+using VectorProcessFnType = void (*) (MainInputs, MainOutputs, void *);
+
 class VectorProcessBuffer
 {
-  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(
-      const DSPVectorArray<IN_CHANNELS>&, void* stateData)>;
-
-  DSPVectorArray<IN_CHANNELS> _inputVectors;
-  DSPVectorArray<OUT_CHANNELS> _outputVectors;
+  DSPVectorDynamic _inputVectors;
+  DSPVectorDynamic _outputVectors;
+  std::vector< ml::DSPBuffer > _inputBuffers;
+  std::vector< ml::DSPBuffer > _outputBuffers;
+  size_t _maxFrames;
 
  public:
-  VectorProcessBuffer()
+  VectorProcessBuffer(size_t inputs, size_t outputs, size_t maxFrames) :
+    _inputVectors(inputs),
+    _outputVectors(outputs),
+    _maxFrames(maxFrames)
   {
-    for (int i = 0; i < IN_CHANNELS; ++i)
+    _inputBuffers.resize(inputs);
+    for (int i = 0; i < inputs; ++i)
     {
-      mInputBuffers[i].resize(MAX_FRAMES);
+      _inputBuffers[i].resize(_maxFrames);
     }
-    for (int i = 0; i < OUT_CHANNELS; ++i)
+    
+    _outputBuffers.resize(outputs);
+    for (int i = 0; i < outputs; ++i)
     {
-      mOutputBuffers[i].resize(MAX_FRAMES);
+      _outputBuffers[i].resize(_maxFrames);
     }
   }
 
   ~VectorProcessBuffer() {}
 
-  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFn fn,
+  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFnType fn,
                void* stateData = nullptr)
   {
-    if (nFrames > MAX_FRAMES) return;
+    size_t nInputs = _inputVectors.size();
+    size_t nOutputs = _outputVectors.size();
+    if (nOutputs < 1) return;
+    if (nFrames > _maxFrames) return;
 
-    // write from inputs to inputBuffers
-    for (int c = 0; c < IN_CHANNELS; c++)
+    
+    // write vectors from inputs (if any) to inputBuffers
+    for (int c = 0; c < nInputs; c++)
     {
       if (inputs[c])
       {
-        mInputBuffers[c].write(inputs[c], nFrames);
+        _inputBuffers[c].write(inputs[c], nFrames);
       }
     }
-
-    // process
-    while (mInputBuffers[0].getReadAvailable() >= kFloatsPerDSPVector)
+    
+    // process until we have nFrames of output
+    while (_outputBuffers[0].getReadAvailable() < nFrames)
     {
-      // buffers to process input
-      for (int c = 0; c < IN_CHANNELS; c++)
+      for (int c = 0; c < nInputs; c++)
       {
-        _inputVectors.row(c) = mInputBuffers[c].read();
+        _inputVectors[c] = _inputBuffers[c].read();
       }
 
-      _outputVectors = fn(_inputVectors, stateData);
+      fn(_inputVectors, _outputVectors, stateData);
 
-      for (int c = 0; c < OUT_CHANNELS; c++)
+      for (int c = 0; c < nOutputs; c++)
       {
-        mOutputBuffers[c].write(_outputVectors.row(c));
+        _outputBuffers[c].write(_outputVectors[c]);
       }
     }
 
     // read from outputBuffers to outputs
-    for (int c = 0; c < OUT_CHANNELS; c++)
+    for (int c = 0; c < nOutputs; c++)
     {
       if (outputs[c])
       {
-        mOutputBuffers[c].read(outputs[c], nFrames);
+        _outputBuffers[c].read(outputs[c], nFrames);
       }
     }
   }
-
- private:
-  std::array<ml::DSPBuffer, IN_CHANNELS> mInputBuffers;
-  std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
 };
-
-// This is a partial template specialization for a VectorProcessBuffer with
-// no inputs, such as a synth.
-
-template <int OUT_CHANNELS, int MAX_FRAMES>
-class VectorProcessBuffer<0, OUT_CHANNELS, MAX_FRAMES>
-{
-  using VectorProcessFn = std::function<DSPVectorArray<OUT_CHANNELS>(void* stateData)>;
-
-  DSPVectorArray<OUT_CHANNELS> _outputVectors;
-
- public:
-  VectorProcessBuffer()
-  {
-    for (int i = 0; i < OUT_CHANNELS; ++i)
-    {
-      mOutputBuffers[i].resize(MAX_FRAMES);
-    }
-  }
-
-  ~VectorProcessBuffer() {}
-
-  void process(const float**, float** outputs, int nFrames, VectorProcessFn fn,
-               void* stateData = nullptr)
-  {
-    if (nFrames > MAX_FRAMES) return;
-
-    // no inputs, process until we have nFrames of output
-    while (mOutputBuffers[0].getReadAvailable() < nFrames)
-    {
-      _outputVectors = fn(stateData);
-
-      for (int c = 0; c < OUT_CHANNELS; c++)
-      {
-        mOutputBuffers[c].write(_outputVectors.row(c));
-      }
-    }
-
-    // read from outputBuffers to outputs
-    for (int c = 0; c < OUT_CHANNELS; c++)
-    {
-      if (outputs[c])
-      {
-        mOutputBuffers[c].read(outputs[c], nFrames);
-      }
-    }
-  }
-
- private:
-  std::array<ml::DSPBuffer, OUT_CHANNELS> mOutputBuffers;
-};
-
-// horiz -> vert -> horiz adapters can go here
 
 // turn off denormal math so that (for example) IIR filters don't consume
 // many more CPU cycles when they decay.

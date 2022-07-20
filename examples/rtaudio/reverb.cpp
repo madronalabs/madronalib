@@ -12,58 +12,63 @@ using namespace ml;
 // Mac OS note: need to ask for microphone access if kInputChannels is nonzero!
 constexpr int kInputChannels = 2;
 constexpr int kOutputChannels = 2;
-constexpr int kSampleRate = 44100;
+constexpr int kSampleRate = 48000;
 
 // log projection for decay parameter
 constexpr float kDecayLo = 0.8, kDecayHi = 20;
 Projection unityToDecay(projections::intervalMap({0, 1}, {kDecayLo, kDecayHi}, projections::log({kDecayLo, kDecayHi})));
 
-// parameter smoothers
-LinearGlide mSmoothFeedback;
-LinearGlide mSmoothDelay;
+struct AaltoverbState
+{
+  // parameter smoothers
+  LinearGlide mSmoothFeedback;
+  LinearGlide mSmoothDelay;
 
-// reverb machinery
-Allpass<PitchbendableDelay> mAp1, mAp2, mAp3, mAp4;
-Allpass<PitchbendableDelay> mAp5, mAp6, mAp7, mAp8, mAp9, mAp10;
-PitchbendableDelay mDelayL, mDelayR;
+  // reverb machinery
+  Allpass< PitchbendableDelay > mAp1, mAp2, mAp3, mAp4;
+  Allpass< PitchbendableDelay > mAp5, mAp6, mAp7, mAp8, mAp9, mAp10;
+  PitchbendableDelay mDelayL, mDelayR;
 
-// feedback storage
-DSPVector mvFeedbackL, mvFeedbackR;
+  // feedback storage
+  DSPVector mvFeedbackL, mvFeedbackR;
+};
 
-void initializeReverb()
+void initializeReverb(AaltoverbState& r)
 {
   // set fixed parameters for reverb
-  mSmoothFeedback.setGlideTimeInSamples(0.1f*kSampleRate);
-  mSmoothDelay.setGlideTimeInSamples(0.1f*kSampleRate);
+  r.mSmoothFeedback.setGlideTimeInSamples(0.1f*kSampleRate);
+  r.mSmoothDelay.setGlideTimeInSamples(0.1f*kSampleRate);
 
   // set allpass filter coefficients
-  mAp1.mGain = 0.75f;
-  mAp2.mGain = 0.70f;
-  mAp3.mGain = 0.625f;
-  mAp4.mGain = 0.625f;
-  mAp5.mGain = mAp6.mGain = 0.7f;
-  mAp7.mGain = mAp8.mGain = 0.6f;
-  mAp9.mGain = mAp10.mGain = 0.5f;
+  r.mAp1.mGain = 0.75f;
+  r.mAp2.mGain = 0.70f;
+  r.mAp3.mGain = 0.625f;
+  r.mAp4.mGain = 0.625f;
+  r.mAp5.mGain = r.mAp6.mGain = 0.7f;
+  r.mAp7.mGain = r.mAp8.mGain = 0.6f;
+  r.mAp9.mGain = r.mAp10.mGain = 0.5f;
 
   // allocate delay memory
-  mAp1.setMaxDelayInSamples(500.f);
-  mAp2.setMaxDelayInSamples(500.f);
-  mAp3.setMaxDelayInSamples(1000.f);
-  mAp4.setMaxDelayInSamples(1000.f);
-  mAp5.setMaxDelayInSamples(2600.f);
-  mAp6.setMaxDelayInSamples(2600.f);
-  mAp7.setMaxDelayInSamples(8000.f);
-  mAp8.setMaxDelayInSamples(8000.f);
-  mAp9.setMaxDelayInSamples(10000.f);
-  mAp10.setMaxDelayInSamples(10000.f);
-  mDelayL.setMaxDelayInSamples(3500.f);
-  mDelayR.setMaxDelayInSamples(3500.f);
+  r.mAp1.setMaxDelayInSamples(500.f);
+  r.mAp2.setMaxDelayInSamples(500.f);
+  r.mAp3.setMaxDelayInSamples(1000.f);
+  r.mAp4.setMaxDelayInSamples(1000.f);
+  r.mAp5.setMaxDelayInSamples(2600.f);
+  r.mAp6.setMaxDelayInSamples(2600.f);
+  r.mAp7.setMaxDelayInSamples(8000.f);
+  r.mAp8.setMaxDelayInSamples(8000.f);
+  r.mAp9.setMaxDelayInSamples(10000.f);
+  r.mAp10.setMaxDelayInSamples(10000.f);
+  r.mDelayL.setMaxDelayInSamples(3500.f);
+  r.mDelayR.setMaxDelayInSamples(3500.f);
 }
 
 // processVectors() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChannels>& inputVectors, void*)
+void processVectors(MainInputs inputs, MainOutputs outputs, void *stateData)
 {
+  AaltoverbState* r = static_cast< AaltoverbState* >(stateData);
+
   const float sr = kSampleRate;
   const float RT60const = 0.001f;
 
@@ -77,8 +82,8 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   float feedback = (decayU < 1.0f) ? powf(RT60const, 1.0f/decayIterations) : 1.0f;
 
   // generate smoothed delay time and feedback gain vectors
-  DSPVector vSmoothDelay = mSmoothDelay(sizeU*2.0f);
-  DSPVector vSmoothFeedback = mSmoothFeedback(feedback);
+  DSPVector vSmoothDelay = r->mSmoothDelay(sizeU*2.0f);
+  DSPVector vSmoothFeedback = r->mSmoothFeedback(feedback);
 
   // get the minimum possible delay in samples, which is the length of a DSPVector.
   DSPVector vMin(kFloatsPerDSPVector);
@@ -97,30 +102,33 @@ DSPVectorArray<kOutputChannels> processVectors(const DSPVectorArray<kInputChanne
   DSPVector vt10 = max(0.096*delayParamInSamples, vMin);
 
   // sum stereo inputs and diffuse with four allpass filters in series
-  DSPVector monoInput = (inputVectors.constRow(0) + inputVectors.constRow(1));
-  DSPVector diffusedInput = mAp4(mAp3(mAp2(mAp1(monoInput, vt1), vt2), vt3), vt4);
+  DSPVector monoInput = (inputs[0] + inputs[1]);
+  DSPVector diffusedInput = r->mAp4(r->mAp3(r->mAp2(r->mAp1(monoInput, vt1), vt2), vt3), vt4);
 
   // get delay times in samples, subtracting the constant delay of one DSPVector and clamping to zero
   DSPVector vDelayTimeL = max(0.0313*delayParamInSamples - vMin, DSPVector(0.f));
   DSPVector vDelayTimeR = max(0.0371*delayParamInSamples - vMin, DSPVector(0.f));
 
   // sum diffused input with feedback, and apply late diffusion of two more allpass filters to each channel
-  DSPVector vTapL = mAp7(mAp5(diffusedInput + mDelayL(mvFeedbackL, vDelayTimeL), vt5), vt7);
-  DSPVector vTapR = mAp8(mAp6(diffusedInput + mDelayR(mvFeedbackR, vDelayTimeR), vt6), vt8);
+  DSPVector vTapL = r->mAp7(r->mAp5(diffusedInput + r->mDelayL(r->mvFeedbackL, vDelayTimeL), vt5), vt7);
+  DSPVector vTapR = r->mAp8(r->mAp6(diffusedInput + r->mDelayR(r->mvFeedbackR, vDelayTimeR), vt6), vt8);
 
   // apply final allpass filter and gain, and store the feedback
-  mvFeedbackR = mAp9(vTapL, vt9)*vSmoothFeedback;
-  mvFeedbackL = mAp10(vTapR, vt10)*vSmoothFeedback;
+  r->mvFeedbackR = r->mAp9(vTapL, vt9)*vSmoothFeedback;
+  r->mvFeedbackL = r->mAp10(vTapR, vt10)*vSmoothFeedback;
 
-  // append the left and right taps and return the stereo output
-  return concatRows(vTapL, vTapR);
+  // write the stereo outputs
+  outputs[0] = vTapL;
+  outputs[1] = vTapR;
 }
 
-int main( int argc, char *argv[] )
+int main()
 {
-  initializeReverb();
+  // create and initialize the reverb state.
+  AaltoverbState r;
+  initializeReverb(r);
 
-  // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample< kInputChannels, kOutputChannels > reverbExample(kSampleRate, &processVectors);
+  // The RtAudioExample object adapts the RtAudio loop to our buffered processing and runs the example.
+  RtAudioExample reverbExample(kInputChannels, kOutputChannels, kSampleRate, &processVectors, &r);
   return reverbExample.run();
 }
