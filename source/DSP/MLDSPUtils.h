@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -43,7 +43,7 @@ const Projection flatTop([](float x) {
   return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) - a3 * cosf(3.f * kTwoPi * x) +
          a4 * cosf(4.f * kTwoPi * x);
 });
-}  // namespace windows
+}
 
 
 // VectorProcessBuffer: utility class to serve a main loop with varying
@@ -128,9 +128,11 @@ class VectorProcessBuffer
   }
 };
 
-// turn off denormal math so that (for example) IIR filters don't consume
+
+// FlushToZeroHandler: turn off denormal math so that (for example) IIR filters don't consume
 // many more CPU cycles when they decay.
 // thanks to: Dan Gillespie, Chris Santoro
+
 struct FlushToZeroHandler
 {
 #if defined(__SSE__)

@@ -1,7 +1,43 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+// various operations on matrices
+
+// NOTE: old and messy code that really doesn't belong in madronalib.
+// Plans are to make alternatives for any uses currently in madronalib,
+// then deprecate this stuff.
+
+// NOTE: Matrix used to be called Signal, so some of these comments will be
+// confusing until rewritten.
+
+// ----------------------------------------------------------------
+// A signal. A finite, discrete representation of data we will
+// generate, modify, look at listen to, etc.
+//
+// Signals can have multiple dimensions.  If a signal is marked
+// as a time series, the first (most-significant) dimension
+// is an index into multiple samples.  Otherwise, the signal has
+// the given number of dimensions and no temporal extent.
+//
+// 1D matrix: either
+// time is dim 1, signal is dimensionless (typical audio signal)
+// or
+// no time, signal is 1D on dim[1]
+//
+// 2D matrix: either
+// time is dim 2, signal is 1D on dims[1] (audio signal in freq. domain)
+// or
+// no time, signal is 2D on dims[2, 1] (image)
+//
+//
+// A signal always allocates storage in power of 2 sizes.  For signals of
+// dimension > 1, bitmasks are used to force accesses to be within bounds.
+
+// Signals greater than three dimensions are used so little, it seems to make
+// sense for objects that would need those signals to implement them
+// as vectors of 3D signals or some such thing.
+
 
 #pragma once
 
@@ -34,36 +70,6 @@ typedef enum
 
 constexpr float kTimeless = -1.f;
 constexpr float kToBeCalculated = 0.f;
-
-// NOTE: Matrix used to be called Signal, so some of these comments will be
-// confusing until rewritten.
-
-// ----------------------------------------------------------------
-// A signal. A finite, discrete representation of data we will
-// generate, modify, look at listen to, etc.
-//
-// Signals can have multiple dimensions.  If a signal is marked
-// as a time series, the first (most-significant) dimension
-// is an index into multiple samples.  Otherwise, the signal has
-// the given number of dimensions and no temporal extent.
-//
-// 1D matrix: either
-// time is dim 1, signal is dimensionless (typical audio signal)
-// or
-// no time, signal is 1D on dim[1]
-//
-// 2D matrix: either
-// time is dim 2, signal is 1D on dims[1] (audio signal in freq. domain)
-// or
-// no time, signal is 2D on dims[2, 1] (image)
-//
-//
-// A signal always allocates storage in power of 2 sizes.  For signals of
-// dimension > 1, bitmasks are used to force accesses to be within bounds.
-
-// Signals greater than three dimensions are used so little, it seems to make
-// sense for objects that would need those signals to implement them
-// as vectors of 3D signals or some such thing.
 
 class Matrix final
 {

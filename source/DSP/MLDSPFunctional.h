@@ -1,13 +1,10 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 // Here are some function objects that take DSP functions as parameters to
 // operator() and apply the function in a different context, such as upsampled,
 // overlap-added or in the frequency domain.
-
-// TODO in DSPOps ( routing) improve pack / unpack of rows for sending multiple sources to
-// functions
 
 #pragma once
 

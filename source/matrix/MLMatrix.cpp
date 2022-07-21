@@ -1,10 +1,7 @@
-
-// MadronaLib: a C++ framework for DSP applications.
-// Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// various operations on signals
-// TODO organize
 
 #include "MLMatrix.h"
 
@@ -18,14 +15,6 @@ namespace ml
 Matrix Matrix::nullSignal;
 
 // no length argument: make a null object.
-
-// TODO fast ctors for default size chunks seems a lot more imporant than a null
-// object pattern. Look at where we are using the latter and do it some other
-// way.
-
-// DSPutils can operate on the assumption of default size signals: 16 x 1 or
-// whatever. these can coexist with slower matrix-like Matrix methods that
-// actually do range checking.
 
 Matrix::Matrix() : mDataAligned(0), mData(0), mWidth(0), mHeight(0), mDepth(0)
 {
@@ -77,6 +66,7 @@ Matrix::Matrix(std::initializer_list<float> values)
 
 // constructor for making loops. only one type for now. we could loop in
 // different directions and dimensions.
+
 Matrix::Matrix(Matrix other, eLoopType loopType, int loopSize)
     : mDataAligned(0), mData(0), mWidth(0), mHeight(0), mDepth(0)
 {

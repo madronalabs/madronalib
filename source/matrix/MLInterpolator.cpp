@@ -1,10 +1,6 @@
-//
-//  MLInterpolator.cpp
-//  madronalib
-//
-//  Created by Randy Jones on 12/27/15.
-//
-//
+// madronalib: a C++ framework for DSP applications.
+// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLInterpolator.h"
 

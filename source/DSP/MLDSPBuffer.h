@@ -1,6 +1,11 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
+
+// DSPBuffer is a single producer, single consumer, lock-free ring buffer for
+// audio. Some nice implementation details are borrowed from Portaudio's
+// pa_ringbuffer by Phil Burk and others. C++11 atomics are used to implement
+// the lockfree algorithm.
 
 #pragma once
 
@@ -12,11 +17,6 @@
 
 namespace ml
 {
-// DSPBuffer is a single producer, single consumer, lock-free ring buffer for
-// audio. Some nice implementation details are borrowed from Portaudio's
-// pa_ringbuffer by Phil Burk and others. C++11 atomics are used to implement
-// the lockfree algorithm.
-
 class DSPBuffer
 {
  private:
@@ -284,8 +284,7 @@ class DSPBuffer
     mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
   }
 
-  // add n samples to the buffer and advance the write index by (samples -
-  // overlap)
+  // add n samples to the buffer and advance the write index by (samples - overlap)
   void writeWithOverlapAdd(const float *pSrc, size_t samples, size_t overlap)
   {
     size_t available = getWriteAvailable();
@@ -384,5 +383,3 @@ class DSPBuffer
   }
 };
 }  // namespace ml
-
-// TODO try small-local-storage optimization in a production-sized project
