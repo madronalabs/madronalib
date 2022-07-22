@@ -16,9 +16,9 @@ constexpr float kOutputGain = 0.1f;
 // sine generators.
 SineGen s1, s2;
 
-// processVectors() does all of the audio processing, in DSPVector-sized chunks.
+// processVector() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-void processVectors(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
+void processVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 {
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
@@ -30,6 +30,6 @@ void processVectors(MainInputs unused, MainOutputs outputs, void *stateDataUnuse
 int main()
 {
   // The RtAudioExample object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample sineExample(kInputChannels, kOutputChannels, kSampleRate, &processVectors);
+  RtAudioExample sineExample(kInputChannels, kOutputChannels, kSampleRate, processVector);
   return sineExample.run();
 }

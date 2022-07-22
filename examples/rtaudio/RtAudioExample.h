@@ -9,14 +9,10 @@
 
 using namespace ml;
 
-// the maximum amount of input frames that can be proceesed at once. This determines the
-// maximum signal vector size of the plugin host or enclosing app.
-constexpr int kMaxProcessBlockFrames = 4096;
-
 struct ProcessData
 {
   VectorProcessBuffer* pProcessBuffer;
-  VectorProcessFnType processFn;
+  ProcessVectorFn processFn;
   void* processState;
   size_t inputs;
   size_t outputs;
@@ -140,6 +136,10 @@ int runRtAudioExample(ProcessData* pData)
 
 class RtAudioExample
 {
+  // the maximum amount of input frames that can be proceesed at once. This determines the
+  // maximum signal vector size of the plugin host or enclosing app.
+  static constexpr int kMaxProcessBlockFrames {4096};
+  
   // buffer object that splits up processing into DSPVectors
   VectorProcessBuffer processBuffer;
   
@@ -148,17 +148,18 @@ class RtAudioExample
   
 public:
   
-  // processState points to any persistent state that needs to be sent to the DSP graph. This can be unused if
+  // the RtAudioExample constructor just fills in the data struct with everything needed to run the DSP graph.
+  // processState points to any persistent state that needs to be sent to the graph. This can be unused if
   // no state is needed, or if the state is global.
   
-  RtAudioExample(size_t inputs, size_t outputs, int sampleRate, VectorProcessFnType processFn, void* processState = nullptr) :
-    processBuffer(inputs, outputs, kMaxProcessBlockFrames)
+  RtAudioExample(size_t nInputs, size_t nOutputs, int sampleRate, ProcessVectorFn processFn, void* processState = nullptr) :
+    processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames)
   {
     _data.pProcessBuffer = &processBuffer;
     _data.processFn = processFn;
     _data.processState = processState;
-    _data.inputs = inputs;
-    _data.outputs = outputs;
+    _data.inputs = nInputs;
+    _data.outputs = nOutputs;
     _data.sampleRate = sampleRate;
   }
   

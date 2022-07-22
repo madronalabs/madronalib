@@ -63,9 +63,9 @@ void initializeReverb(AaltoverbState& r)
   r.mDelayR.setMaxDelayInSamples(3500.f);
 }
 
-// processVectors() does all of the audio processing, in DSPVector-sized chunks.
+// processVector() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-void processVectors(MainInputs inputs, MainOutputs outputs, void *stateData)
+void processVector(MainInputs inputs, MainOutputs outputs, void *stateData)
 {
   AaltoverbState* r = static_cast< AaltoverbState* >(stateData);
 
@@ -129,6 +129,6 @@ int main()
   initializeReverb(r);
 
   // The RtAudioExample object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample reverbExample(kInputChannels, kOutputChannels, kSampleRate, &processVectors, &r);
+  RtAudioExample reverbExample(kInputChannels, kOutputChannels, kSampleRate, &processVector, &r);
   return reverbExample.run();
 }

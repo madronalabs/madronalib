@@ -15,7 +15,6 @@ constexpr size_t kPublishedSignalReadFrames = 128;
 
 namespace ml {
 
-
 // SignalProcessor is the top level object in a DSP graph. The app or plugin calls it to generate
 // audio as needed. It has facilities for sending audio data to outside the graph, and
 // keeping in sync with a host's time.
@@ -204,13 +203,22 @@ public:
     double _secondsPhaseCounter{0};
   };
   
-  SignalProcessor(size_t inChans, size_t outChans) {};
+  SignalProcessor(size_t nInputs, size_t nOutputs) :
+    processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames) {};
+  
   ~SignalProcessor() {};
   
-  virtual DspVectorDynamic processVector(const DspVectorDynamic& inputs) = 0;
-  
+  virtual void processVector(MainInputs inputs, MainOutputs outputs, void *stateData) = 0;
+
 protected:
   
+  // the maximum amount of input frames that can be proceesed at once. This determines the
+  // maximum signal vector size of the plugin host or enclosing app.
+  static constexpr int kMaxProcessBlockFrames {4096};
+
+  // buffer object to call processVector() from process() calls of arbitrary frame sizes
+  VectorProcessBuffer processBuffer;
+
   // the plain parameter values are stored here.
   ParameterTreePlain _params;
   std::vector< ml::Path > _paramNamesByID; // needed?

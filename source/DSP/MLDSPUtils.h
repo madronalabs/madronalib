@@ -52,7 +52,7 @@ const Projection flatTop([](float x) {
 
 using MainInputs = const DSPVectorDynamic&;
 using MainOutputs = DSPVectorDynamic&;
-using VectorProcessFnType = void (*) (MainInputs, MainOutputs, void *);
+using ProcessVectorFn = std::function< void(MainInputs, MainOutputs, void *) >;
 
 class VectorProcessBuffer
 {
@@ -83,7 +83,7 @@ class VectorProcessBuffer
 
   ~VectorProcessBuffer() {}
 
-  void process(const float** inputs, float** outputs, int nFrames, VectorProcessFnType fn,
+  void process(const float** inputs, float** outputs, int nFrames, ProcessVectorFn processFn,
                void* stateData = nullptr)
   {
     size_t nInputs = _inputVectors.size();
@@ -91,7 +91,6 @@ class VectorProcessBuffer
     if (nOutputs < 1) return;
     if (nFrames > _maxFrames) return;
 
-    
     // write vectors from inputs (if any) to inputBuffers
     for (int c = 0; c < nInputs; c++)
     {
@@ -109,7 +108,7 @@ class VectorProcessBuffer
         _inputVectors[c] = _inputBuffers[c].read();
       }
 
-      fn(_inputVectors, _outputVectors, stateData);
+      processFn(_inputVectors, _outputVectors, stateData);
 
       for (int c = 0; c < nOutputs; c++)
       {
