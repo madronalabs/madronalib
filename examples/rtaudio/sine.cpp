@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "RtAudioExample.h"
+#include "MLRtAudioProcessor.h"
 
 using namespace ml;
 
@@ -18,7 +18,7 @@ SineGen s1, s2;
 
 // processVector() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-void processVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
+void processSineExampleVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 {
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
@@ -29,7 +29,7 @@ void processVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused
 
 int main()
 {
-  // The RtAudioExample object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample sineExample(kInputChannels, kOutputChannels, kSampleRate, processVector);
+  // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
+  RtAudioProcessor sineExample(kInputChannels, kOutputChannels, kSampleRate, processSineExampleVector);
   return sineExample.run();
 }

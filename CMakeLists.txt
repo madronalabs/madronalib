@@ -118,6 +118,9 @@ file(GLOB OSC_SOURCES_IP "external/oscpack/ip/*.cpp")
 file(GLOB OSC_SOURCES_OSC "external/oscpack/osc/*.cpp")
 file(GLOB OSC_SOURCES_ZEROCONF "external/oscpack/zeroconf/*.cpp")
 
+file(GLOB RTAUDIO_SOURCES "external/rtaudio/*.cpp")
+file(GLOB RTAUDIO_HEADERS "external/rtaudio/*.h")
+
 if(APPLE)
     file(GLOB OSC_SOURCES_NATIVE "external/oscpack/ip/posix/*.cpp")
 else()
@@ -140,6 +143,8 @@ set(OSC_HEADERS
 set(madronalib_SOURCES
     ${APP_SOURCES}
     ${APP_HEADERS}
+    ${RTAUDIO_SOURCES}
+    ${RTAUDIO_HEADERS}
     ${DSP_HEADERS}
     ${MATRIX_SOURCES}
     ${MATRIX_HEADERS}
@@ -177,24 +182,47 @@ source_group(procs REGULAR_EXPRESSION "procs/.*")
 # create and install library
 #--------------------------------------------------------------------
 
+set(target madronalib)
 
-add_library(madronalib STATIC ${madronalib_SOURCES})
-set_target_properties(madronalib PROPERTIES
+add_library(${target} STATIC ${madronalib_SOURCES})
+
+set_target_properties(${target} PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
                       VERSION ${madronalib_VERSION}
                       SOVERSION ${madronalib_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
                       FOLDER "madronalib")
+                      
+target_include_directories(${target} PRIVATE ${RTAUDIO_HEADERS})
+
+                      
+# choose driver for Rtaudio
+if(WIN32)
+    target_compile_definitions(${target} PRIVATE __WINDOWS_WASAPI__)
+elseif(APPLE)
+    target_compile_definitions(${target} PRIVATE __MACOSX_CORE__)
+elseif(LINUX_JACK)
+    target_compile_definitions(${target} PRIVATE __UNIX_JACK__)
+    target_link_libraries(${target} PRIVATE jack pthread)
+elseif(LINUX_PULSE)
+    target_compile_definitions(${target} PRIVATE __LINUX_PULSE__)
+    target_link_libraries(${target} PRIVATE pulse pthread)
+elseif(LINUX_ASOUND)
+    target_compile_definitions(${target} PRIVATE __LINUX_ALSA__)
+    target_link_libraries(${target} PRIVATE asound pthread)
+else()
+    message(FATAL, "On Linux, one of LINUX_JACK, LINUX_PULSE, or LINUX_ASOUND must be set.")
+endif()
 
 if(APPLE)
-    set_target_properties(madronalib PROPERTIES 
+    set_target_properties(${target} PROPERTIES 
         XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 endif()
 
 include(GNUInstallDirs)
 
 install(
-    TARGETS madronalib
+    TARGETS ${target}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -214,6 +242,8 @@ install(FILES include/mldsp.h DESTINATION include/madronalib)
 install(FILES external/cJSON/cJSON.h DESTINATION include/madronalib)
 
 install(FILES external/sse2neon/sse2neon.h DESTINATION include/madronalib)
+
+install(FILES external/rtaudio/RtAudio.h DESTINATION include/madronalib)
 
 install(FILES 
     ${APP_HEADERS}     
@@ -264,34 +294,16 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     set(
         EXAMPLE_SOURCES
         ${ML_ROOT}/examples/rtaudio/${EXAMPLE_SOURCE_FILE}
-        ${ML_ROOT}/examples/rtaudio/RtAudioExample.h
-        ${ML_ROOT}/external/rtaudio/RtAudio.cpp
     )
 
     add_executable(${EXAMPLE_APP_NAME} ${EXAMPLE_SOURCES})
 
-    # choose driver for Rtaudio
-    if(WIN32)
-        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __WINDOWS_WASAPI__)
-    elseif(APPLE)
-        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __MACOSX_CORE__)
-    elseif(LINUX_JACK)
-        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __UNIX_JACK__)
-        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE jack pthread)
-    elseif(LINUX_PULSE)
-        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __LINUX_PULSE__)
-        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE pulse pthread)
-    elseif(LINUX_ASOUND)
-        target_compile_definitions(${EXAMPLE_APP_NAME} PRIVATE __LINUX_ALSA__)
-        target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE asound pthread)
-    else()
-        message(FATAL, "On Linux, one of LINUX_JACK, LINUX_PULSE, or LINUX_ASOUND must be set.")
-    endif()
-
     target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
-        ${ML_ROOT}/examples/rtaudio
+        ${ML_ROOT}/external
         ${ML_ROOT}/external/rtaudio
-    )
+        )
+    
+    # rtaudio source is now in madronalib
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)
 
     set_target_properties(${EXAMPLE_APP_NAME}

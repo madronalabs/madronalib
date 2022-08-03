@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "RtAudioExample.h"
+#include "MLRtAudioProcessor.h"
 
 using namespace ml;
 
@@ -172,7 +172,7 @@ void processVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused
 int main()
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &processVector);
+  RtAudioProcessor FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &processVector);
   return FDTDExample.run();
 }
 

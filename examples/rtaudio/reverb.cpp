@@ -5,7 +5,7 @@
 // example of RtAudio wrapping low-level madronalib DSP code.
 // The reverb in this example is the Aaltoverb algorithm (madronalabs.com/products/Aaltoverb) without the tone control and some filtering.
 
-#include "RtAudioExample.h"
+#include "MLRtAudioProcessor.h"
 
 using namespace ml;
 
@@ -128,7 +128,7 @@ int main()
   AaltoverbState r;
   initializeReverb(r);
 
-  // The RtAudioExample object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioExample reverbExample(kInputChannels, kOutputChannels, kSampleRate, &processVector, &r);
+  // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
+  RtAudioProcessor reverbExample(kInputChannels, kOutputChannels, kSampleRate, &processVector, &r);
   return reverbExample.run();
 }

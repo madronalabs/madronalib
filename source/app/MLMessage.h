@@ -73,7 +73,7 @@ public:
     handleMessage(m, nullptr);
   }
   
-  void doSendRequest(Message m, Message* replyPtr)
+  void doSendMessageWithReply(Message m, Message* replyPtr)
   {
     handleMessage(m, replyPtr);
   }
@@ -81,18 +81,16 @@ public:
 
 // sending messages to MessageReceivers
 
-// send a message directly to a MessageReceiver.
-// If the sender wants a reply, it can specify a replyPtr.
+// send a message directly to a MessageReceiver when no reply is needed.
 inline void sendMessage(MessageReceiver& obj, Message m)
 {
   obj.doSendMessage(m);
 }
 
-// send a message directly to a MessageReceiver.
-// If the sender wants a reply, it can specify a replyPtr.
+// send a message directly to a MessageReceiver when a reply is needed.
 inline void sendRequest(MessageReceiver& obj, Message m, Message* replyPtr)
 {
-  obj.doSendRequest(m, replyPtr);
+  obj.doSendMessageWithReply(m, replyPtr);
 }
 
 // send a message list directly to a MessageReceiver.

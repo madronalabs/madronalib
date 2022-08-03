@@ -9,6 +9,7 @@
 #include "MLPlatform.h"
 #include "MLParameters.h"
 #include "MLDSPUtils.h"
+#include "MLActor.h"
 
 constexpr size_t kPublishedSignalMaxChannels = 2;
 constexpr size_t kPublishedSignalReadFrames = 128;
@@ -17,7 +18,7 @@ namespace ml {
 
 // SignalProcessor is the top level object in a DSP graph. The app or plugin calls it to generate
 // audio as needed. It has facilities for sending audio data to outside the graph, and
-// keeping in sync with a host's time.
+// keeping a plugin in sync with a host's time.
 
 class SignalProcessor
 {
@@ -25,7 +26,6 @@ public:
   
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
-  
   class PublishedSignal
   {
     Downsampler _downsampler;
@@ -33,13 +33,7 @@ public:
     size_t _channels{0};
     
   public:
-    PublishedSignal(int channels, int octavesDown) :
-    _downsampler(channels, octavesDown),
-    _channels(channels)
-    {
-      _buffer.resize(kPublishedSignalReadFrames*_channels);
-    }
-    
+    PublishedSignal(int channels, int octavesDown);
     ~PublishedSignal() = default;
     
     inline size_t getNumChannels() const { return _channels; }
@@ -58,21 +52,10 @@ public:
     }
     
     // read the latest n frames of data, where each frame is a DSPVectorArray< CHANNELS >.
-    inline size_t readLatest(float* pDest, size_t framesRequested)
-    {
-      size_t available = getAvailableFrames();
-      if(available > framesRequested)
-      {
-        _buffer.discard((available - framesRequested)*_channels);
-      }
-      auto readResult = _buffer.read(pDest, framesRequested*_channels);
-      return readResult;
-    }
+    size_t readLatest(float* pDest, size_t framesRequested);
     
-    inline size_t read(float* pDest, size_t framesRequested)
-    {
-      return _buffer.read(pDest, framesRequested*_channels);
-    }
+    // read the next n frames of data.
+    size_t read(float* pDest, size_t framesRequested);
   };
   
   // SignalProcessor::ProcessTime maintains the current time in a DSP process and can track
@@ -85,110 +68,19 @@ public:
     ~ProcessTime() = default;
     
     // Set the time and bpm. The time refers to the start of the current engine processing block.
-    inline void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying, double sampleRate)
-    {
-      // working around a bug I can't reproduce, so I'm covering all the bases.
-      if ( ((ml::isNaN(ppqPos)) || (ml::isInfinite(ppqPos)))
-          || ((ml::isNaN(bpm)) || (ml::isInfinite(bpm)))
-          || ((ml::isNaN(secs)) || (ml::isInfinite(secs))) )
-      {
-        //debug << "PluginProcessor::ProcessTime::setTimeAndRate: bad input! \n";
-        return;
-      }
-      
-      bool active = (_ppqPos1 != ppqPos) && isPlaying;
-      bool justStarted = isPlaying && !_playing1;
-      
-      double ppqPhase = 0.;
-      
-      if (active)
-      {
-        if(ppqPos > 0.f)
-        {
-          ppqPhase = ppqPos - floor(ppqPos);
-        }
-        else
-        {
-          ppqPhase = ppqPos;
-        }
-        
-        _omega = ppqPhase;
-        
-        if(justStarted)
-        {
-          // just start at 0 and don't attempt to match the playhead position.
-          // this works well when we start at any 1/4 note.
-          // there is still some weirdness when we try to lock onto other 16ths.
-          _omega = 0.;
-          // std::cout << "phasor START: " << mOmega << "\n";
-          _dpdt = 0.;
-          _dsdt = 0.;
-        }
-        else
-        {
-          double dPhase = ppqPhase - _ppqPhase1;
-          if(dPhase < 0.)
-          {
-            dPhase += 1.;
-          }
-          _dpdt = ml::clamp(dPhase/static_cast<double>(_samplesSincePreviousTime), 0., 1.);
-          _dsdt = static_cast<float>(1./sampleRate);
-        }
-        
-        _secondsCounter = secs;
-        _secondsPhaseCounter = fmodl(secs, 1.0);
-      }
-      else
-      {
-        _omega = -1.f;
-        _dpdt = 0.;
-        _secondsCounter = -1.;
-        _dsdt = 0.;
-        _secondsPhaseCounter = -1.;
-      }
-      
-      _ppqPos1 = ppqPos;
-      _ppqPhase1 = ppqPhase;
-      _active1 = active;
-      _playing1 = isPlaying;
-      _samplesSincePreviousTime = 0;
-    }
+    void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying, double sampleRate);
     
-    inline void clear(void)
-    {
-      _dpdt = 0.;
-      _dsdt = 0.;
-      _active1 = false;
-      _playing1 = false;
-    }
-    
+    // clear state
+    void clear();
+
     // generate phasors from the input parameters
-    inline void process()
-    {
-      for (int n=0; n<kFloatsPerDSPVector; ++n)
-      {
-        _quarterNotesPhase[n] = _omega;
-        _omega += _dpdt;
-        if(_omega > 1.f)
-        {
-          _omega -= 1.f;
-        }
-      }
-      for (int n=0; n<kFloatsPerDSPVector; ++n)
-      {
-        _seconds[n] = _secondsCounter;
-        _secondsCounter += _dsdt;
-        _secondsPhase[n] = _secondsPhaseCounter;
-        _secondsPhaseCounter += _dsdt;
-      }
-      _samplesSincePreviousTime += kFloatsPerDSPVector;
-    }
-    
+    void process();
+     
     // signals containing time from score start
     DSPVector _quarterNotesPhase;
     DSPVector _seconds;
     DSPVector _secondsPhase;
-    
+
   private:
     float _omega{0};
     bool _playing1{false};
@@ -202,19 +94,44 @@ public:
     double _secondsCounter{0};
     double _secondsPhaseCounter{0};
   };
+    
+  // class used for assigning each instance of our SignalProcessor a unique ID
+  // TODO refactor w/ ProcessorRegistry etc.
+  class ProcessorRegistry
+  {
+    std::mutex _IDMutex;
+    size_t _IDCounter{0};
+  public:
+    size_t getUniqueID()
+    {
+      std::unique_lock<std::mutex> lock(_IDMutex);
+      return ++_IDCounter;
+    }
+  };
   
   SignalProcessor(size_t nInputs, size_t nOutputs) :
     processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames) {};
   
-  ~SignalProcessor() {};
+  virtual ~SignalProcessor(){}
   
-  virtual void processVector(MainInputs inputs, MainOutputs outputs, void *stateData) = 0;
+  virtual void processVector(MainInputs inputs, MainOutputs outputs, void *stateData) {}
+  
+  // set up the function parameter for processBuffer.process()
+  using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
+  processFnType processFn{ [&](MainInputs ins, MainOutputs outs, void* state) { return processVector(ins, outs, state); } };
 
+  
 protected:
   
   // the maximum amount of input frames that can be proceesed at once. This determines the
   // maximum signal vector size of the plugin host or enclosing app.
   static constexpr int kMaxProcessBlockFrames {4096};
+    
+  SharedResourcePointer< ProcessorRegistry > _registry ;
+  size_t _uniqueID;
+    
+  float _sampleRate{0.f};
+  ProcessTime _currentTime;
 
   // buffer object to call processVector() from process() calls of arbitrary frame sizes
   VectorProcessBuffer processBuffer;
@@ -242,7 +159,7 @@ protected:
   // we need a buffer for each published signal here in the Processor because we can't communicate with
   // the Controller in the audio thread.
   
-  template<size_t CHANNELS>
+  template< size_t CHANNELS >
   inline void storePublishedSignal(Path signalName, DSPVectorArray< CHANNELS > v)
   {
     PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
@@ -252,6 +169,41 @@ protected:
     }
   }
 };
+
+
+class SignalProcessorActor :
+  public SignalProcessor,
+  public Actor
+{
+  // Actor implementation
+  inline void onMessage(Message msg) override
+  {
+    std::cout << "SignalProcessorActor: " << msg.address << " -> " << msg.value << "\n";
+    
+    switch(hash(head(msg.address)))
+    {
+      case(hash("set_param")):
+      {
+        _params[tail(msg.address)] = msg.value;
+        break;
+      }
+      case(hash("set_prop")):
+      {
+        break;
+      }
+      case(hash("do")):
+      {
+        break;
+      }
+      default:
+      {
+        std::cout << " SignalProcessorActor: uncaught message " << msg << "! \n";
+        break;
+      }
+    }
+  }
+};
+
 
 } // namespaces
 
