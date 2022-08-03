@@ -112,15 +112,15 @@ public:
   SignalProcessor(size_t nInputs, size_t nOutputs) :
     processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames) {};
   
-  virtual ~SignalProcessor(){}
+  virtual ~SignalProcessor() {}
   
-  virtual void processVector(MainInputs inputs, MainOutputs outputs, void *stateData) {}
+  virtual void processVector(MainInputs inputs, MainOutputs outputs, void *stateData = nullptr) {}
   
-  // set up the function parameter for processBuffer.process()
-  using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
-  processFnType processFn{ [&](MainInputs ins, MainOutputs outs, void* state) { return processVector(ins, outs, state); } };
+  void setParam(Path pname, float val)
+  {
+    _params.setParamFromNormalizedValue(pname, val);
+  }
 
-  
 protected:
   
   // the maximum amount of input frames that can be proceesed at once. This determines the
@@ -170,11 +170,22 @@ protected:
   }
 };
 
-
 class SignalProcessorActor :
   public SignalProcessor,
   public Actor
 {
+public:
+  SignalProcessorActor(size_t nInputs, size_t nOutputs) :
+    SignalProcessor(nInputs, nOutputs) {};
+  
+  virtual ~SignalProcessorActor() = default;
+  
+  inline void buildParams(const ParameterDescriptionList& paramList)
+  {
+    buildParameterTree(paramList, _params);
+  };
+
+  
   // Actor implementation
   inline void onMessage(Message msg) override
   {

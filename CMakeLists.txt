@@ -349,7 +349,7 @@ if(BUILD_EXAMPLES)
     make_example(ReverbExample reverb.cpp)
     make_example(SineExample sine.cpp)
     make_example(FDTDExample FDTD.cpp)
-
+    make_example(ParamsExample params.cpp)
 endif()
 
 #--------------------------------------------------------------------

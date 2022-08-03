@@ -54,8 +54,19 @@ int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBuff
   return 0;
 }
 
+
+// a free function that will be called when there is no function argument to a new RtAudioProcessor.
+// In that case SignalProcessor::processVector will be called to do the processing.
+using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
+void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
+{
+  SignalProcessor* pProc = static_cast< SignalProcessor* >(state);
+  return pProc->processVector(ins, outs);
+} ;
+
+
 class RtAudioProcessor :
-  public SignalProcessor
+  public SignalProcessorActor
 {
   // all the info about the DSP task to be done
   RtAudioProcessData _data;
@@ -69,12 +80,22 @@ public:
   // processFn points to a function that will be called by the VectorProcessBuffer.
   // processState points to any persistent state that needs to be sent to the function. This can be unused if
   // no state is needed, or if the state is global.
-  RtAudioProcessor(size_t nInputs, size_t nOutputs, int sampleRate, ProcessVectorFn processFn, void* processState = nullptr) :
-    SignalProcessor(nInputs, nOutputs)
+  RtAudioProcessor(size_t nInputs, size_t nOutputs, int sampleRate, ProcessVectorFn processFn = nullptr, void* state = nullptr) :
+    SignalProcessorActor(nInputs, nOutputs)
   {
     _data.pProcessBuffer = &processBuffer;
-    _data.processFn = processFn;
-    _data.processState = processState;
+    
+    if(processFn)
+    {
+      _data.processFn = processFn;
+      _data.processState = state;
+    }
+    else
+    {
+      _data.processFn = SignalProcessorProcessVectorFn;
+      _data.processState = this;
+    }
+    
     _data.inputs = nInputs;
     _data.outputs = nOutputs;
     _data.sampleRate = sampleRate;
@@ -82,14 +103,7 @@ public:
   
   ~RtAudioProcessor() = default;
   
-  // SignalProcessor implementation
-  // declare the processVector function that will run our DSP in vectors of size kFloatsPerDSPVector
-  void processVector(MainInputs inputs, MainOutputs outputs, void *stateData) override
-  {
-    processFn(inputs, outputs, stateData);
-  }
-  
-  int startAudio()
+  inline int startAudio()
   {
     if ( _adac.getDeviceCount() < 1 )
     {
@@ -151,7 +165,7 @@ public:
     return 1;
   }
   
-  void waitForEnterKey()
+  inline void waitForEnterKey()
   {
     char input;
     
@@ -164,7 +178,7 @@ public:
     std::cin.get(input);
   }
   
-  void stopAudio()
+  inline void stopAudio()
   {
     try
     {
@@ -178,7 +192,7 @@ public:
     if ( _adac.isStreamOpen() ) _adac.closeStream();
   }
   
-  int run()
+  inline int run()
   {
     if(startAudio())
     {

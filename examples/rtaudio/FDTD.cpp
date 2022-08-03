@@ -152,7 +152,7 @@ DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq)
 // processVector() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
 
-void processVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
+void FDTD(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 {
   // generate ticks twice per second
   auto ticks = impulse1(0.5f/kSampleRate)*kOutputGain;
@@ -172,7 +172,7 @@ void processVector(MainInputs unused, MainOutputs outputs, void *stateDataUnused
 int main()
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioProcessor FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &processVector);
+  RtAudioProcessor FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &FDTD);
   return FDTDExample.run();
 }
 
