@@ -16,8 +16,8 @@ struct RtAudioProcessData
   VectorProcessBuffer* pProcessBuffer;
   ProcessVectorFn processFn;
   void* processState;
-  size_t inputs;
-  size_t outputs;
+  size_t nInputs;
+  size_t nOutputs;
   int sampleRate;
   unsigned int bufferFrames{512};
 };
@@ -27,6 +27,8 @@ struct RtAudioProcessData
 int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
                                double /*streamTime*/, RtAudioStreamStatus status , void * callbackData )
 {
+  constexpr size_t kMaxIOChannels{64};
+  
   // get process data from callback data
   auto pData = reinterpret_cast< RtAudioProcessData* >(callbackData);
 
@@ -36,15 +38,17 @@ int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBuff
   if ( status ) std::cout << "Stream over/underflow detected." << std::endl;
 
   // make pointers to uninterlaced input and output frames for each channel.
-  const float* inputs[pData->inputs];
-  float* outputs[pData->outputs];
+  const float* inputs[kMaxIOChannels];
+  float* outputs[kMaxIOChannels];
   
   // setup input and output pointers
-  for (int i = 0; i<pData->inputs; ++i)
+  size_t nIns = std::min(kMaxIOChannels, pData->nInputs);
+  size_t nOuts = std::min(kMaxIOChannels, pData->nOutputs);
+  for (int i = 0; i<nIns; ++i)
   {
     inputs[i] = pInputBuffer + i*nBufferFrames;
   }
-  for (int i = 0; i<pData->outputs; ++i)
+  for (int i = 0; i<nOuts; ++i)
   {
     outputs[i] = pOutputBuffer + i*nBufferFrames;
   }
@@ -96,8 +100,8 @@ public:
       _data.processState = this;
     }
     
-    _data.inputs = nInputs;
-    _data.outputs = nOutputs;
+    _data.nInputs = nInputs;
+    _data.nOutputs = nOutputs;
     _data.sampleRate = sampleRate;
   }
   
@@ -131,16 +135,16 @@ public:
     // Set up RtAudio stream params
     RtAudio::StreamParameters iParams, oParams;
     iParams.deviceId = _adac.getDefaultInputDevice();
-    iParams.nChannels = _data.inputs;
+    iParams.nChannels = _data.nInputs;
     iParams.firstChannel = 0;
     oParams.deviceId = _adac.getDefaultOutputDevice();
-    oParams.nChannels = _data.outputs;
+    oParams.nChannels = _data.nOutputs;
     oParams.firstChannel = 0;
     
     RtAudio::StreamOptions options;
     options.flags |= RTAUDIO_NONINTERLEAVED;
     
-    auto pInputParams = (_data.inputs ? &iParams : nullptr);
+    auto pInputParams = (_data.nInputs ? &iParams : nullptr);
     
     try
     {
