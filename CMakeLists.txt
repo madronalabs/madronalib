@@ -48,7 +48,7 @@ endif()
 #--------------------------------------------------------------------
 
 set(CMAKE_CXX_FLAGS_0 ${CMAKE_CXX_FLAGS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -fvisibility=hidden -fvisibility-inlines-hidden -std=c++14")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++14")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 
 #--------------------------------------------------------------------

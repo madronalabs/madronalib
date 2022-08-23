@@ -110,7 +110,8 @@ public:
   };
   
   SignalProcessor(size_t nInputs, size_t nOutputs) :
-    processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames) {};
+    processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames)
+  {}
   
   virtual ~SignalProcessor() {}
   
@@ -121,12 +122,26 @@ public:
     _params.setParamFromNormalizedValue(pname, val);
   }
 
+  inline void buildParams(const ParameterDescriptionList& paramList)
+  {
+    buildParameterTree(paramList, _params);
+  };
+  
+  inline void dumpParams()
+  {
+    _params.dump();
+  };
+  
+
 protected:
   
   // the maximum amount of input frames that can be proceesed at once. This determines the
   // maximum signal vector size of the plugin host or enclosing app.
   static constexpr int kMaxProcessBlockFrames {4096};
-    
+  
+  // the plain parameter values are stored here.
+  ParameterTreePlain _params;  
+
   SharedResourcePointer< ProcessorRegistry > _registry ;
   size_t _uniqueID;
     
@@ -136,14 +151,14 @@ protected:
   // buffer object to call processVector() from process() calls of arbitrary frame sizes
   VectorProcessBuffer processBuffer;
 
-  // the plain parameter values are stored here.
-  ParameterTreePlain _params;
+
   std::vector< ml::Path > _paramNamesByID; // needed?
   Tree< size_t > _paramIDsByName;
   
   // single buffer for reading from signals
   std::vector< float > _readBuffer;
   
+
   // brief way to access params:
   inline float getParamNormalized(Path pname) { return getNormalizedValue(_params, pname); }
   inline float getParam(Path pname) { return getPlainValue(_params, pname); }
@@ -180,22 +195,16 @@ public:
   
   virtual ~SignalProcessorActor() = default;
   
-  inline void buildParams(const ParameterDescriptionList& paramList)
-  {
-    buildParameterTree(paramList, _params);
-  };
-
-  
   // Actor implementation
   inline void onMessage(Message msg) override
   {
-    std::cout << "SignalProcessorActor: " << msg.address << " -> " << msg.value << "\n";
+    //std::cout << "SignalProcessorActor: " << msg.address << " -> " << msg.value << "\n";
     
     switch(hash(head(msg.address)))
     {
       case(hash("set_param")):
       {
-        _params[tail(msg.address)] = msg.value;
+        setParam(tail(msg.address), msg.value.getFloatValue());
         break;
       }
       case(hash("set_prop")):

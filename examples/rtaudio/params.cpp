@@ -57,8 +57,6 @@ public:
     float f1 = getParam("freq1");
     float f2 = getParam("freq2");
     
-    std::cout << "f1: " << f1 << " f2: " << f2 << "\n";
-
 
     // Running the sine generators makes DSPVectors as output.
     // The input parameter is omega: the frequency in Hz divided by the sample rate.
@@ -71,7 +69,7 @@ public:
 int main()
 {
   // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
-  ParamsExampleProcessor paramsExample(kInputChannels, kOutputChannels, kSampleRate);
+  ParamsExampleProcessor exampleProc(kInputChannels, kOutputChannels, kSampleRate);
   
   // the processor can use a temporary ParameterDescriptionList here.
   ParameterDescriptionList pdl;
@@ -79,13 +77,16 @@ int main()
   // read parameter descriptions into list
   readParameterDescriptions(pdl);
   
-  // build the stored parameter tree, creating projections
-  paramsExample.buildParams(pdl);
+  // build the stored parameter tree, creating descriptions and projections
+  exampleProc.buildParams(pdl);
   
-  // set some parameters of the processor.
-  paramsExample.setParam("freq1", 0.5);
-  paramsExample.setParam("freq2", 0.6);
+  // set a parameter of the processor as a normalized value.
+  // if not set, parameters begin at their default values.
+  exampleProc.setParam("freq2", 0.6);
+  
+  // display plain parameter values
+  exampleProc.dumpParams();
 
-  return paramsExample.run();
+  return exampleProc.run();
 }
 

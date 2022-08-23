@@ -64,9 +64,6 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
       ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
       b.plainToNormalized =
       ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
-      
-     // std::cout << "plainToNormalized: " << 
-      
     }
     else
     {
@@ -88,11 +85,10 @@ struct ParameterTree : public Tree< Value >
   
   virtual void setParamFromNormalizedValue(Path pname, Value val) = 0;
   virtual void setParamFromPlainValue(Path pname, Value val) = 0;
-
   
   virtual float getNormalizedValue(Path pname) const = 0;
   virtual float getPlainValue(Path pname) const = 0;
-
+  
   inline void setFromPlainValues(const Tree< Value >& t)
   {
     for(auto it = t.begin(); it != t.end(); ++it)
@@ -134,7 +130,7 @@ struct ParameterTreeNormalized : public ParameterTree
       (*this)[pname] = (val);
     }
   }
-
+  
   inline float getNormalizedValue(Path pname) const override
   {
     return (*this)[pname].getFloatValue();
@@ -238,11 +234,31 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName, const Par
   paramTree.descriptions[paramName] = ml::make_unique< ParameterDescription >(paramDesc);
 }
 
+inline void setDefault(ParameterTree& p, Path pname)
+{
+  const auto& paramDesc = p.descriptions[pname];
+  
+  if(paramDesc->hasProperty("default"))
+  {
+    p.setParamFromNormalizedValue(pname, paramDesc->getProperty("default"));
+  }
+  else if(paramDesc->hasProperty("plaindefault"))
+  {
+    p.setParamFromPlainValue(pname, paramDesc->getProperty("plaindefault"));
+  }
+  else
+  {
+    p.setParamFromNormalizedValue(pname, 0.5f);
+  }
+}
+
 inline void buildParameterTree(const ParameterDescriptionList& paramList, ParameterTree& paramTree)
 {
   for(const auto& paramDesc : paramList)
   {
-    setParameterInfo(paramTree, paramDesc->getTextProperty("name"), *paramDesc);
+    auto pname = paramDesc->getTextProperty("name");
+    setParameterInfo(paramTree, pname, *paramDesc);
+    setDefault(paramTree, pname);
   }
 }
 
@@ -251,19 +267,7 @@ inline void setDefaults(ParameterTree& p)
   for(auto& paramDesc : p.descriptions)
   {
     Path pname = paramDesc->getTextProperty("name");
-    
-    if(paramDesc->hasProperty("default"))
-    {
-      p.setParamFromNormalizedValue(pname, paramDesc->getProperty("default"));
-    }
-    else if(paramDesc->hasProperty("plaindefault"))
-    {
-      p.setParamFromPlainValue(pname, paramDesc->getProperty("plaindefault"));
-    }
-    else
-    {
-      p.setParamFromNormalizedValue(pname, 0.5f);
-    }
+    setDefault(p, pname);
   }
 }
 
