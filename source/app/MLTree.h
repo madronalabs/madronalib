@@ -362,7 +362,7 @@ bool treeNodeExists(const Tree< V, C >& t, Path path)
 }
 
 template <class V, class C = std::less<Symbol> >
-const Tree< V, C > keepNodesInList(const Tree< V, C >& t, std::vector< Path > pList)
+const Tree< V, C > filterByPathList(const Tree< V, C >& t, std::vector< Path > pList)
 {
   Tree< V, C > filteredTree;
   for (auto it = t.begin(); it != t.end(); ++it)
