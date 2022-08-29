@@ -23,6 +23,8 @@ ENDIF(APPLE)
 # project and version
 #--------------------------------------------------------------------
 
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE) 
+
 project(madronalib) 
 
 set(madronalib_VERSION_MAJOR "0")
@@ -49,7 +51,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS_0 ${CMAKE_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++14")
-set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
+# set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
 
 #--------------------------------------------------------------------
 # Choose library output name
