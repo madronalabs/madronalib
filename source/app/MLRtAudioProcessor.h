@@ -24,7 +24,7 @@ struct RtAudioProcessData
 
 // adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
 
-int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
+inline int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
                                double /*streamTime*/, RtAudioStreamStatus status , void * callbackData )
 {
   constexpr size_t kMaxIOChannels{64};
@@ -62,7 +62,7 @@ int RtAudioCallbackFn( void *outputBuffer, void *inputBuffer, unsigned int nBuff
 // a free function that will be called when there is no function argument to a new RtAudioProcessor.
 // In that case SignalProcessor::processVector will be called to do the processing.
 using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
-void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
+inline void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
 {
   SignalProcessor* pProc = static_cast< SignalProcessor* >(state);
   return pProc->processVector(ins, outs);
