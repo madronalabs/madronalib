@@ -12,7 +12,7 @@
 #include <vector>
 #include <iostream>
 
-#include "MLDSPScalarMath.h"
+#include "./MLDSPScalarMath.h"
 
 namespace ml
 {

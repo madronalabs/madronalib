@@ -51,7 +51,6 @@ MLFileCollection::MLFileCollection(ml::Symbol name, const File startDir, ml::Tex
 	//mRunThread = std::thread(&MLFileCollection::runThread, this);
 }
 
-
 void MLFileCollection::runThread()
 {
 }
