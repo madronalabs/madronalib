@@ -33,7 +33,9 @@ using namespace ml;
 #define MAXFLOAT FLT_MAX
 #endif
 
+#ifndef ML_SSE_TO_NEON
 #include <emmintrin.h>
+#endif
 
 #ifndef DEBUG
 #define force_inline  inline __attribute__((always_inline))

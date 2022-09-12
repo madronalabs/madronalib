@@ -47,7 +47,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	mpHostPhasorProc = 0;
 	clear();
 	
-	juce::ScopedPointer<juce::XmlElement> pRootElem (pDoc->getDocumentElement());
+	std::unique_ptr<juce::XmlElement> pRootElem (pDoc->getDocumentElement());
 	
 	if (pRootElem)
 	{	
@@ -66,13 +66,13 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	if (makeMidiInput)
  	{
 		// make XML node describing MIDI to signal processor.
-		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
+    std::unique_ptr<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "midi_to_signals");
 		pElem->setAttribute("name", juce::String(juce::CharPointer_UTF8(kMLInputToSignalProcName)));
 		pElem->setAttribute("voices", getMaxVoices());			
 		
 		// build processor object.
-		MLProc::err bpe = buildProc(pElem);
+		MLProc::err bpe = buildProc(pElem.get());
 				
 		// save a pointer to it.
 		if (bpe == OK)
@@ -87,12 +87,12 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 
 	// make host sync phasor
 	{
-		juce::ScopedPointer<juce::XmlElement> pElem (new juce::XmlElement("proc"));
+    std::unique_ptr<juce::XmlElement> pElem (new juce::XmlElement("proc"));
 		pElem->setAttribute("class", "host_phasor");
 		pElem->setAttribute("name", kMLHostPhasorProcName);
 		
 		// build processor object.
-		MLProc::err bpe = buildProc(pElem);
+		MLProc::err bpe = buildProc(pElem.get());
 				
 		// save a pointer to it.
 		if (bpe == OK)
@@ -108,7 +108,7 @@ MLProc::err MLDSPEngine::buildGraphAndInputs(juce::XmlDocument* pDoc, bool makeS
 	// make rest of graph
 	if (pRootElem)
 	{	
-		buildGraph(pRootElem);
+		buildGraph(pRootElem.get());
         
         // make any published signal outputs at top level only
         forEachXmlChildElement(*pRootElem, child)
@@ -175,12 +175,14 @@ MLProc::err MLDSPEngine::prepareEngine(double sr, int bufSize, int chunkSize)
 	////debug() << " MLDSPEngine::prepareEngine: DSPEngine " << std::hex << (void *)this << std::dec << "\n";
 	err e = OK;
     
+#ifndef __aarch64__
 	// set denormal state
 	int oldMXCSR = _mm_getcsr(); //read the old MXCSR setting
 	int newMXCSR = oldMXCSR | 0x8040; // set DAZ and FZ bits
 	_mm_setcsr( newMXCSR ); //write the new MXCSR setting to the MXCSR
 	// _mm_setcsr( oldMXCSR ); // restore MXCSR state (needed?)
-    
+#endif
+  
 	if ((mGraphStatus == OK) && (mCompileStatus))
 	{
 		// set self as context to get size and rate chain started.

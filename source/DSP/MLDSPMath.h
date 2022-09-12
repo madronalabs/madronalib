@@ -17,12 +17,12 @@ constexpr int kFloatsPerDSPVector = 64;
 
 #if(defined  __ARM_NEON) || (defined __ARM_NEON__)
 
-// NEON 
+// NEON
 
-// TODO
+#define ML_SSE_TO_NEON
 #include "MLDSPMathNEON.h"
 
-#else 
+#else
 
 // SSE2
 
@@ -83,7 +83,7 @@ constexpr T ml_integer_sequence<T, I...>::size;
 template<std::size_t... I>
 using ml_index_sequence = ml_integer_sequence<std::size_t, I...>;
 
-namespace detail
+namespace ml_detail
 {
 // Metafunction that generates an ml_integer_sequence of T containing [0, N)
 template<typename T, T Nt, std::size_t N>
@@ -103,7 +103,7 @@ struct iota<T, Nt, 0ul>
 
 // ml_make_integer_sequence<T, N> is an alias for ml_integer_sequence<T, 0,...N-1>
 template<typename T, T N>
-using ml_make_integer_sequence = typename detail::iota<T, N, N>::type;
+using ml_make_integer_sequence = typename ml_detail::iota<T, N, N>::type;
 
 template<int N>
 using ml_make_index_sequence = ml_make_integer_sequence<std::size_t, N>;

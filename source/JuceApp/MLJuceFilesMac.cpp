@@ -5,7 +5,6 @@
 
 #include "MLJuceFilesMac.h"
 
-#if JUCE_MAC
 
 juce::XmlElement* loadPropertyFileToXML(const juce::File& f) 
 {
@@ -119,6 +118,3 @@ void writeXMLToPropertyFile(XmlElement* xml, File& f)
 
 */
 
-
-
-#endif // JUCE_MAC

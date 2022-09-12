@@ -813,11 +813,11 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 		{
 			MLPublishedInputPtr input = mPublishedInputs[idx-1];
 			MLProcPtr proc = input->mProc;
-			const int procIdx = input->mProcInputIndex;		
+			const int procIdx = input->mProcInputIndex;
 			
 			if(!idx)
 			{
-				//debug() << "input name: " << input->mName << "    " << proc->getName() << " \n"; 
+				//debug() << "input name: " << input->mName << "    " << proc->getName() << " \n";
 			}
 			
 			e = proc->setInput(procIdx, sig);
@@ -1165,10 +1165,10 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	if (e != OK)
 	{
 		printErr(e);
-        //debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-        //debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-        //debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-        //debug() << "\n\n";
+        debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
+        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+        debug() << "\n\n";
 	}
 #endif
     
@@ -1672,10 +1672,10 @@ ml::Path stringToPath(const juce::String& str)
 
 void MLProcContainer::scanDoc(juce::XmlDocument* pDoc, int* numParameters)
 {
-	juce::ScopedPointer<juce::XmlElement> pElem(pDoc->getDocumentElement());
+	std::unique_ptr<juce::XmlElement> pElem(pDoc->getDocumentElement());
 	if (pElem)
 	{
-		*numParameters = countPublishedParamsInDoc(pElem);
+		*numParameters = countPublishedParamsInDoc(pElem.get());
 		
 		/*
 		/// TEST dump parsed XML
