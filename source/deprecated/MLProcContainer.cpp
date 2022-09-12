@@ -809,7 +809,7 @@ MLProc::err MLProcContainer::setInput(const int idx, const MLSignal& sig)
 		// leading to possible crash. 
 		int ins = mPublishedInputs.size();  
 		
-		if (idx <= ins)
+		if ((idx <= ins) && (idx > 0))
 		{
 			MLPublishedInputPtr input = mPublishedInputs[idx-1];
 			MLProcPtr proc = input->mProc;
@@ -1161,16 +1161,6 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 		goto bail;
 	}	
 	
-#if DEBUG
-	if (e != OK)
-	{
-		printErr(e);
-        debug() << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
-        debug() << " ("  << (void *)&a->getOutput(ai) << ")";
-        debug() << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
-        debug() << "\n\n";
-	}
-#endif
     
 	// construct input pointer if needed
 	b->createInput(bi);
@@ -1178,8 +1168,20 @@ MLProc::err MLProcContainer::connectProcs(MLProcPtr a, int ai, MLProcPtr b, int 
 	// TODO fix crashing on ill-formed graphs
 	
 	e = b->setInput(bi, a->getOutput(ai));
-    
-bail:	
+  
+bail:
+#if DEBUG
+  //if (e != MLProc::OK)
+  {
+    // printErr(e);
+    std::cout << getName() << ": CONNECTING " <<  a->getName() << " (" << (void *)&(*a) << ") " << "[" << ai <<  "]" ;
+    std::cout << " ("  << (void *)&a->getOutput(ai) << ")";
+    std::cout << " to " << b->getName() << " (" << (void *)&(*b) << ") " << "[" << bi << "] ";
+    std::cout << "\n";
+  }
+#endif
+  
+
 	return e;
 }
 
