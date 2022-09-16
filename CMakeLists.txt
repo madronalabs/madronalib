@@ -57,7 +57,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++14")
 # Choose library output name
 #--------------------------------------------------------------------
 
-# creates the library madrona-debug in debug configuration
+# creates the library madronalib-debug in debug configuration
 set(madronalib_NAME madrona$<$<CONFIG:Debug>:-debug>)
 
 #--------------------------------------------------------------------

@@ -108,14 +108,37 @@ std::ostream& operator<<(std::ostream& out, const ml::Path& r)
 
 Symbol head(Path p)
 {
-  if(p.getSize() > 0)
-  {
-    return p._symbols[0];
-  }
-  else
-  {
-    return Symbol();
-  }
+  return (p.getSize() > 0) ? p._symbols[0] : Symbol();
+}
+
+Symbol first(Path p)
+{
+  return head(p);
+}
+
+Symbol second(Path p)
+{
+  return (p.getSize() > 1) ? p._symbols[1] : Symbol();
+}
+
+Symbol third(Path p)
+{
+  return (p.getSize() > 2) ? p._symbols[2] : Symbol();
+}
+
+Symbol fourth(Path p)
+{
+  return (p.getSize() > 3) ? p._symbols[3] : Symbol();
+}
+
+Symbol fifth(Path p)
+{
+  return (p.getSize() > 4) ? p._symbols[4] : Symbol();
+}
+
+Symbol nth(Path p, size_t n)
+{
+  return (p.getSize() > n - 1) ? p._symbols[n] : Symbol();
 }
 
 Path tail(Path p)

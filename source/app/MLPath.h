@@ -99,11 +99,17 @@ class Path final
   inline const_iterator end() const { return const_iterator(this, static_cast<int>(mSize)); }
 
   friend Symbol head(Path p);
+  friend Symbol first(Path p);
+  friend Symbol second(Path p);
+  friend Symbol third(Path p);
+  friend Symbol fourth(Path p);
+  friend Symbol fifth(Path p);
+  friend Symbol nth(Path p, size_t n);
   friend Path tail(Path p);
   friend Path butLast(Path p);
   friend Symbol last(Path p);
   friend Path lastN(Path p, size_t n);
-
+  
   friend Path substitute(Path p, Symbol from, Symbol to);
   friend Path substitute(Path p, Symbol from, Path to);
 

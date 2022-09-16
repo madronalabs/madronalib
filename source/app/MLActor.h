@@ -46,7 +46,7 @@ protected:
   size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
 
   // handle all the messages in the queue immediately.
-  inline void handleMessagesInQueue()
+  void handleMessagesInQueue()
   {
     while(Message m = _messageQueue.pop())
     {
@@ -85,7 +85,7 @@ protected:
   }
 
   // enqueueMessage just pushes the message onto the queue.
-  inline void enqueueMessage(Message m)
+  void enqueueMessage(Message m)
   {
     // queue returns true unless full.
     if(!(_messageQueue.push(m)))
@@ -94,7 +94,7 @@ protected:
     }
   }
   
-  inline void enqueueMessageList(const MessageList& ml)
+  void enqueueMessageList(const MessageList& ml)
   {
     for (auto m : ml)
     {
@@ -113,6 +113,7 @@ protected:
   // -- else
   //      serialize the message
   //      transmit serialized message to the receiver's process or host (UDP)
+  /*
   inline void sendMessageToActor(Path actorName, Message m)
   {
     SharedResourcePointer< ActorRegistry > registry;
@@ -121,6 +122,7 @@ protected:
       pActor->enqueueMessage(m);
     }
   }
+   */
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
@@ -135,5 +137,13 @@ inline void removeActor(Actor* actorToRemove)
   registry->doRemove(actorToRemove);
 }
 
+inline void sendMessageToActor(Path actorName, Message m)
+{
+  SharedResourcePointer< ActorRegistry > registry;
+  if(Actor* pActor = registry->getActor(actorName))
+  {
+    pActor->enqueueMessage(m);
+  }
+}
 
 }  // namespace ml

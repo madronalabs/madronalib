@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "MLActor.h"
 #include "MLClock.h"
 #include "MLMemoryUtils.h"
 #include "MLPath.h"
