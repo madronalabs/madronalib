@@ -234,22 +234,38 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName, const Par
   paramTree.descriptions[paramName] = ml::make_unique< ParameterDescription >(paramDesc);
 }
 
-inline void setDefault(ParameterTree& p, Path pname)
+// get default parameter value in normalized units.
+inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
   const auto& paramDesc = p.descriptions[pname];
   
   if(paramDesc->hasProperty("default"))
   {
-    p.setParamFromNormalizedValue(pname, paramDesc->getProperty("default"));
+    return paramDesc->getProperty("default");
   }
   else if(paramDesc->hasProperty("plaindefault"))
   {
-    p.setParamFromPlainValue(pname, paramDesc->getProperty("plaindefault"));
+    // convert plain default to normalized and return
+    Value defaultVal = paramDesc->getProperty("plaindefault");
+    return p.projections[pname].plainToNormalized(defaultVal.getFloatValue());
+  }
+  else if(paramDesc->hasProperty("range"))
+  {
+    // if the param has a range, we assume it's a float param and return 0.5.
+    return Value(0.5f);
   }
   else
   {
-    p.setParamFromNormalizedValue(pname, 0.5f);
+    // since there's no param value yet, we really don't know anything about
+    // the default.
+    return Value();
   }
+}
+
+inline void setDefault(ParameterTree& p, Path pname)
+{
+  Value v = getNormalizedDefaultValue(p, pname);
+  p.setParamFromNormalizedValue(pname, v);
 }
 
 inline void buildParameterTree(const ParameterDescriptionList& paramList, ParameterTree& paramTree)
