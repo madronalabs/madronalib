@@ -392,6 +392,14 @@ TEST_CASE("madronalib/core/symbol/path", "[symbol][path]")
   Path p4 (a, b, "c", d);
   Path p5 (p4, "george", p4);
   REQUIRE(p5.getSize() == 9);
+  
+  REQUIRE(p.beginsWith("hello/world"));
+  REQUIRE(!p.beginsWith("hello/world/b"));
+  REQUIRE(p.beginsWith(p));
+  
+  Path q(p, "and/more");
+  REQUIRE(!p.beginsWith(q));
+  
 }
 
 // TODO move

@@ -95,6 +95,19 @@ void Path::parsePathString(const char* pathStr, const char separator)
 
 }
 
+bool Path::beginsWith(const Path b)
+{
+  if(b.getSize() > getSize()) return false;
+  for(int i=0; i<b.getSize(); ++i)
+  {
+    if(nth(b, i) != nth(*this, i))
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
 std::ostream& operator<<(std::ostream& out, const ml::Path& r)
 {
   out << pathToText(r);
