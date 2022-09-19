@@ -274,7 +274,6 @@ inline void buildParameterTree(const ParameterDescriptionList& paramList, Parame
   {
     auto pname = paramDesc->getTextProperty("name");
     setParameterInfo(paramTree, pname, *paramDesc);
-    setDefault(paramTree, pname);
   }
 }
 
