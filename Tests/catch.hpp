@@ -6626,9 +6626,13 @@ class TestRegistry : public ITestCaseRegistry
         break;
       case RunTests::InRandomOrder:
       {
+        // MLPATCH for C++17
+        /*
         RandomNumberGenerator rng;
         std::random_shuffle(matchingTestCases.begin(), matchingTestCases.end(),
                             rng);
+         */
+        
       }
       break;
       case RunTests::InDeclarationOrder:

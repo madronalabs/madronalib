@@ -55,9 +55,15 @@ class Path final
 
 
   friend class const_iterator;
-  class const_iterator : public std::iterator<std::forward_iterator_tag, ml::Symbol>
+  class const_iterator
   {
    public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = Symbol;
+    using difference_type = int;
+    using pointer = Symbol*;
+    using reference = Symbol&;
+    
     const_iterator(const Path* p) : mpPath(p), mIndex(0) {}
     const_iterator(const Path* p, int startIndex) : mpPath(p), mIndex(startIndex) {}
     ~const_iterator() {}

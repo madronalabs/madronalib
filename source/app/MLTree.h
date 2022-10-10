@@ -206,12 +206,18 @@ public:
   // pre-increment form ++it.
 
   friend class const_iterator;
-  class const_iterator : public std::iterator<std::forward_iterator_tag, const V>
+  class const_iterator //: public std::iterator<std::forward_iterator_tag, const V>
   {
     std::vector<const Tree< V, C >*> mNodeStack;
     std::vector<typename mapT::const_iterator> mIteratorStack;
 
    public:
+    using iterator_category = std::forward_iterator_tag;
+    using value_type = const V;
+    using difference_type = int;
+    using pointer = const V*;
+    using reference = const V&;
+    
     // null iterator that can be returned so begin() = end() when there is no container
     const_iterator() {}
     

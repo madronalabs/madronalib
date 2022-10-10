@@ -30,6 +30,8 @@ public:
   Actor* getActor(Path actorName);
   void doRegister(Path actorName, Actor* a);
   void doRemove(Actor* actorToRemove);
+  
+  void dump();
 };
 
 class Actor

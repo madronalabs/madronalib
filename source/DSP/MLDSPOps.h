@@ -42,14 +42,14 @@
 
 template <class Function, std::size_t... Indices>
 constexpr auto make_array_helper(Function f, ml_index_sequence<Indices...>)
-    -> std::array<typename std::result_of<Function(std::size_t)>::type, sizeof...(Indices)>
+    -> std::array<typename std::invoke_result<Function, std::size_t>::type, sizeof...(Indices)>
 {
   return {{f(Indices)...}};
 }
 
 template <int N, class Function>
 constexpr auto make_array(Function f)
-    -> std::array<typename std::result_of<Function(std::size_t)>::type, N>
+    -> std::array<typename std::invoke_result<Function, std::size_t>::type, N>
 {
   return make_array_helper(f, ml_make_index_sequence<N>{});
 }
