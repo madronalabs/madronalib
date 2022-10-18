@@ -185,45 +185,6 @@ protected:
   }
 };
 
-class SignalProcessorActor :
-  public SignalProcessor,
-  public Actor
-{
-public:
-  SignalProcessorActor(size_t nInputs, size_t nOutputs) :
-    SignalProcessor(nInputs, nOutputs) {};
-  
-  virtual ~SignalProcessorActor() = default;
-  
-  // Actor implementation
-  inline void onMessage(Message msg) override
-  {
-    //std::cout << "SignalProcessorActor: " << msg.address << " -> " << msg.value << "\n";
-    
-    switch(hash(head(msg.address)))
-    {
-      case(hash("set_param")):
-      {
-        setParam(tail(msg.address), msg.value.getFloatValue());
-        break;
-      }
-      case(hash("set_prop")):
-      {
-        break;
-      }
-      case(hash("do")):
-      {
-        break;
-      }
-      default:
-      {
-        std::cout << " SignalProcessorActor: uncaught message " << msg << "! \n";
-        break;
-      }
-    }
-  }
-};
-
 
 } // namespaces
 

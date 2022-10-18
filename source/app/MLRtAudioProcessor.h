@@ -70,7 +70,8 @@ inline void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, voi
 
 
 class RtAudioProcessor :
-  public SignalProcessorActor
+  public SignalProcessor,
+  public Actor
 {
   // all the info about the DSP task to be done
   RtAudioProcessData _data;
@@ -85,7 +86,7 @@ public:
   // processState points to any persistent state that needs to be sent to the function. This can be unused if
   // no state is needed, or if the state is global.
   RtAudioProcessor(size_t nInputs, size_t nOutputs, int sampleRate, ProcessVectorFn processFn = nullptr, void* state = nullptr) :
-    SignalProcessorActor(nInputs, nOutputs)
+    SignalProcessor(nInputs, nOutputs)
   {
     _data.pProcessBuffer = &processBuffer;
     
@@ -209,4 +210,36 @@ public:
 #endif
     return 0;
   }
+  
+  // Actor implementation
+  inline void onMessage(Message msg) override
+  {
+    //std::cout << "RtAudioProcessor: " << msg.address << " -> " << msg.value << "\n";
+    
+    switch(hash(head(msg.address)))
+    {
+      case(hash("set_param")):
+      {
+        setParam(tail(msg.address), msg.value.getFloatValue());
+        break;
+      }
+      case(hash("set_prop")):
+      {
+        break;
+      }
+      case(hash("do")):
+      {
+        break;
+      }
+      default:
+      {
+        std::cout << " RtAudioProcessor: uncaught message " << msg << "! \n";
+        break;
+      }
+    }
+  }
 };
+
+
+
+
