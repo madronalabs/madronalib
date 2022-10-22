@@ -1,6 +1,8 @@
 Madronalib
 ----------
 
+[![test](https://github.com/madronalabs/madronalib/actions/workflows/test.yaml/badge.svg)](https://github.com/madronalabs/madronalib/actions/workflows/test.yaml)
+
 A C++ framework for DSP applications.
 
 Copyright (c) 2019–2022 Madrona Labs LLC. http://www.madronalabs.com
