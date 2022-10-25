@@ -23,20 +23,9 @@
 namespace ml
 {
 
-// non-owning pointer type used to construct binary Values.
-struct BlobPtr
-{
-  const uint8_t* _data;
-  size_t _sizeInBytes;
-  
-  BlobPtr() : _data(nullptr), _sizeInBytes(0) {}
-  BlobPtr(const void* p, size_t n) : _data(static_cast<const uint8_t*>(p)), _sizeInBytes(n) {}
-  ~BlobPtr() {}
-};
-
 class Value
 {
-  static constexpr size_t kBlobSizeBytes{512};
+  static constexpr size_t kBlobSizeBytes{256};
   
  public:
   enum Type
@@ -64,8 +53,9 @@ class Value
   Value(const char* t);
   Value(const ml::Matrix& s);
   
-  explicit Value(BlobPtr b);
-  
+  // binary blob constructor - copies data up to kBlobSizeBytes.
+  explicit Value(const void* pData, size_t n);
+
   // matrix type constructor via initializer_list
   Value(std::initializer_list<float> values)
   {
@@ -134,19 +124,31 @@ class Value
     return (mType == kMatrixValue) ? (mMatrixVal) : d;
   }
 
-  inline const BlobPtr getBlobValue() const
+  inline const void* getBlobValue() const
   {
     if(mType == kBlobValue)
     {
-      return BlobPtr(static_cast<const void*>(&(_data[0])), _sizeInBytes);
+      return static_cast<const void*>(_data);
     }
     else
     {
-      return BlobPtr();
+      return nullptr;
     }
   }
   
+  inline size_t getBlobSize() const
+  {
+    if(mType == kBlobValue)
+    {
+      return _sizeInBytes;
+    }
+    else
+    {
+      return 0;
+    }
+  }
   
+
   // For each type of property, a setValue method must exist
   // to set the value of the property to that of the argument.
   //

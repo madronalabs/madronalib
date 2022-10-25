@@ -85,17 +85,18 @@ Value::Value(const char* t) : mType(kTextValue) { mTextVal = ml::Text(t); }
 
 Value::Value(const ml::Matrix& s) : mType(kMatrixValue) { mMatrixVal = s; }
 
-Value::Value(BlobPtr b) : mType(kBlobValue)
+Value::Value(const void* pData, size_t n) : mType(kBlobValue)
 {
-  _sizeInBytes = b._sizeInBytes;
+  _sizeInBytes = n;
   
   if(_sizeInBytes <= kBlobSizeBytes)
   {
-    std::copy(b._data, b._data + _sizeInBytes, _data);
+    auto pB = static_cast< const uint8_t* >(pData);
+    std::copy(pB, pB + _sizeInBytes, _data);
   }
   else
   {
-    // TODO throw?
+    _sizeInBytes = 0;
   }
 }
 

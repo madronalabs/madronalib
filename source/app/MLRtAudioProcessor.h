@@ -211,11 +211,9 @@ public:
     return 0;
   }
   
-  // Actor implementation
+  // default Actor implementation
   inline void onMessage(Message msg) override
   {
-    //std::cout << "RtAudioProcessor: " << msg.address << " -> " << msg.value << "\n";
-    
     switch(hash(head(msg.address)))
     {
       case(hash("set_param")):
@@ -233,7 +231,6 @@ public:
       }
       default:
       {
-        std::cout << " RtAudioProcessor: uncaught message " << msg << "! \n";
         break;
       }
     }
