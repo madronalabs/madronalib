@@ -124,11 +124,11 @@ class Value
     return (mType == kMatrixValue) ? (mMatrixVal) : d;
   }
 
-  inline const void* getBlobValue() const
+  inline void* getBlobValue() const
   {
     if(mType == kBlobValue)
     {
-      return static_cast<const void*>(_data);
+      return (void *)(_data);
     }
     else
     {
