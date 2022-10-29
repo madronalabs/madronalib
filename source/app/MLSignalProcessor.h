@@ -132,7 +132,6 @@ public:
     _params.dump();
   };
   
-
 protected:
   
   // the maximum amount of input frames that can be proceesed at once. This determines the
@@ -151,13 +150,11 @@ protected:
   // buffer object to call processVector() from process() calls of arbitrary frame sizes
   VectorProcessBuffer processBuffer;
 
-
   std::vector< ml::Path > _paramNamesByID; // needed?
   Tree< size_t > _paramIDsByName;
   
   // single buffer for reading from signals
   std::vector< float > _readBuffer;
-  
 
   // brief way to access params:
   inline float getParamNormalized(Path pname) { return getNormalizedValue(_params, pname); }
@@ -184,7 +181,6 @@ protected:
     }
   }
 };
-
 
 } // namespaces
 

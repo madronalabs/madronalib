@@ -49,9 +49,15 @@ endif()
 # Compiler flags
 #--------------------------------------------------------------------
 
-set(CMAKE_CXX_FLAGS_0 ${CMAKE_CXX_FLAGS})
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17")
-# set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -O3")
+if(APPLE)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17")
+
+  # For now, explicitly disable C++17 alignment feature 
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-aligned-new")
+elseif(WIN32)
+  #untested
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:alignedNew-")
+endif()
 
 #--------------------------------------------------------------------
 # Choose library output name
