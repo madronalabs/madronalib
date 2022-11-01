@@ -4,5 +4,6 @@
 
 #include <arm_neon.h>
 
-#include "MLDSPMathSSE.h"
 #include "sse2neon.h"
+
+#include "MLDSPMathSSE.h"
