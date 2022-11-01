@@ -50,7 +50,7 @@ inline int chunkSizeToContain(int chunkSizeExponent, int x)
 inline int modulo(int a, int b) { return a >= 0 ? (a % b) : (b - abs(a % b)) % b; }
 
 // modulo for floats
-inline float modulo(float a, float b) { return a - b*floor(a/b); }
+inline float modulo(float a, float b) { return a - b * floor(a / b); }
 
 // ----------------------------------------------------------------
 #pragma mark scalar-type templates
@@ -262,8 +262,10 @@ constexpr double cosh(const double x) { return sqrt(1.0 + square(sinh(x))); }
 
 constexpr double pow(double base, int exponent)
 {
-  return exponent < 0 ? 1.0 / pow(base, -exponent)
-                      : exponent == 0 ? 1. : exponent == 1 ? base : base * pow(base, exponent - 1);
+  return exponent < 0    ? 1.0 / pow(base, -exponent)
+         : exponent == 0 ? 1.
+         : exponent == 1 ? base
+                         : base * pow(base, exponent - 1);
 }
 
 // atan formulae from http://mathonweb.com/algebra_e-book.htm
@@ -297,13 +299,12 @@ constexpr double atan(const double x) { return (x >= 0) ? atan_cmplmntry(x) : -a
 
 constexpr double atan2(const double y, const double x)
 {
-  return x > 0 ? atan(y / x)
-               : y >= 0 && x < 0
-                     ? atan(y / x) + kPi
-                     : y < 0 && x < 0
-                           ? atan(y / x) - kPi
-                           : y > 0 && x == 0 ? kTwoPi
-                                             : y < 0 && x == 0 ? -kTwoPi : 0;  // 0 == undefined
+  return x > 0             ? atan(y / x)
+         : y >= 0 && x < 0 ? atan(y / x) + kPi
+         : y < 0 && x < 0  ? atan(y / x) - kPi
+         : y > 0 && x == 0 ? kTwoPi
+         : y < 0 && x == 0 ? -kTwoPi
+                           : 0;  // 0 == undefined
 }
 
 constexpr double nearest(double x) { return (x - 0.5) > (int)x ? (int)(x + 0.5) : (int)x; }
@@ -333,7 +334,8 @@ constexpr double mantissa(const double x)
 constexpr int exponent_helper(const double x, const int e)
 {
   return x >= 10.0 ? exponent_helper(x * 0.1, e + 1)
-                   : x < 1.0 ? exponent_helper(x * 10.0, e - 1) : e;
+         : x < 1.0 ? exponent_helper(x * 10.0, e - 1)
+                   : e;
 }
 
 constexpr int exponent(const double x) { return exponent_helper(x, 0); }
@@ -351,9 +353,9 @@ constexpr double log_helper(const double x) { return log_helper2((x - 1.0) / (x 
 // n.b. log m = log (sqrt(m)^2) = 2 * log sqrt(m)
 constexpr double log(const double x)
 {
-  return x == 0 ? -std::numeric_limits<double>::infinity()
-                : x < 0 ? std::numeric_limits<double>::quiet_NaN()
-                        : 2.0 * log_helper(sqrt(mantissa(x))) + 2.3025851 * exponent(x);
+  return x == 0  ? -std::numeric_limits<double>::infinity()
+         : x < 0 ? std::numeric_limits<double>::quiet_NaN()
+                 : 2.0 * log_helper(sqrt(mantissa(x))) + 2.3025851 * exponent(x);
 }
 }  // namespace const_math
 }  // namespace ml

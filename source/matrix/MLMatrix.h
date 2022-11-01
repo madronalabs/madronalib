@@ -38,7 +38,6 @@
 // sense for objects that would need those signals to implement them
 // as vectors of 3D signals or some such thing.
 
-
 #pragma once
 
 #include <stdint.h>

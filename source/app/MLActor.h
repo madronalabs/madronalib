@@ -2,7 +2,6 @@
 // Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-
 #pragma once
 
 #include "MLMessage.h"
@@ -20,17 +19,17 @@ namespace ml
 class Actor;
 class ActorRegistry
 {
-  Tree< Actor* > _actors;
+  Tree<Actor*> _actors;
   std::mutex _listMutex;
-  
-public:
+
+ public:
   ActorRegistry() = default;
   ~ActorRegistry() = default;
-  
+
   Actor* getActor(Path actorName);
   void doRegister(Path actorName, Actor* a);
   void doRemove(Actor* actorToRemove);
-  
+
   void dump();
 };
 
@@ -39,31 +38,31 @@ class Actor
   friend ActorRegistry;
 
   static constexpr size_t kMessageQueueSize{128};
-  static constexpr size_t kDefaultMessageInterval{1000/60};
-  
-  Queue< Message > _messageQueue{kMessageQueueSize};
+  static constexpr size_t kDefaultMessageInterval{1000 / 60};
+
+  Queue<Message> _messageQueue{kMessageQueueSize};
   Timer _queueTimer;
 
-protected:
+ protected:
   size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
 
   // handle all the messages in the queue immediately.
   void handleMessagesInQueue()
   {
-    while(Message m = _messageQueue.pop())
+    while (Message m = _messageQueue.pop())
     {
       onMessage(m);
     }
   }
-  
+
  public:
   Actor() = default;
   virtual ~Actor() = default;
-  
+
   // Actors can override onFullQueue to specify what action to take when
   // the message queue is full.
   virtual void onFullQueue() {}
-  
+
   // To make it clear that Actor is not a subclass of MessageReceiver, the virtual
   // handler method has a different name.
   virtual void onMessage(Message m) = 0;
@@ -81,21 +80,18 @@ protected:
     _queueTimer.start([=]() { handleMessagesInQueue(); }, milliseconds(interval));
   }
 
-  void stop()
-  {
-    _queueTimer.stop();
-  }
+  void stop() { _queueTimer.stop(); }
 
   // enqueueMessage just pushes the message onto the queue.
   void enqueueMessage(Message m)
   {
     // queue returns true unless full.
-    if(!(_messageQueue.push(m)))
+    if (!(_messageQueue.push(m)))
     {
       onFullQueue();
     }
   }
-  
+
   void enqueueMessageList(const MessageList& ml)
   {
     for (auto m : ml)
@@ -103,7 +99,7 @@ protected:
       enqueueMessage(m);
     }
   }
-  
+
   // send message to an Actor.
   // if the named Actor exists, its onMessage method will be called.
   //
@@ -129,20 +125,20 @@ protected:
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
 {
-  SharedResourcePointer< ActorRegistry > registry;
+  SharedResourcePointer<ActorRegistry> registry;
   registry->doRegister(actorName, actorToRegister);
 }
 
 inline void removeActor(Actor* actorToRemove)
 {
-  SharedResourcePointer< ActorRegistry > registry;
+  SharedResourcePointer<ActorRegistry> registry;
   registry->doRemove(actorToRemove);
 }
 
 inline void sendMessageToActor(Path actorName, Message m)
 {
-  SharedResourcePointer< ActorRegistry > registry;
-  if(Actor* pActor = registry->getActor(actorName))
+  SharedResourcePointer<ActorRegistry> registry;
+  if (Actor* pActor = registry->getActor(actorName))
   {
     pActor->enqueueMessage(m);
   }

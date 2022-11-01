@@ -541,10 +541,9 @@ class Peak
     {
       peakHoldCounter -= kFloatsPerDSPVector;
     }
-    
+
     // use sqrt approximation. Return 0 for inputs near 0.
     return select(sqrtApprox(vy), DSPVector{0.f}, greaterThan(vy, DSPVector{float(1e-20)}));
-
   }
 };
 

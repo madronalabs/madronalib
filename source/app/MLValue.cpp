@@ -34,14 +34,13 @@ Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
     case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
       break;
-
   }
 }
 
 Value& Value::operator=(const Value& other)
 {
   mType = other.getType();
-  switch(mType)
+  switch (mType)
   {
     case kUndefinedValue:
       break;
@@ -88,10 +87,10 @@ Value::Value(const ml::Matrix& s) : mType(kMatrixValue) { mMatrixVal = s; }
 Value::Value(const void* pData, size_t n) : mType(kBlobValue)
 {
   _sizeInBytes = n;
-  
-  if(_sizeInBytes <= kBlobSizeBytes)
+
+  if (_sizeInBytes <= kBlobSizeBytes)
   {
-    auto pB = static_cast< const uint8_t* >(pData);
+    auto pB = static_cast<const uint8_t*>(pData);
     std::copy(pB, pB + _sizeInBytes, _data);
   }
   else

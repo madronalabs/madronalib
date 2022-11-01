@@ -31,20 +31,20 @@ const Projection rectangle([](float x) { return (x > 0.75f) ? 0.f : ((x < 0.25f)
 const Projection triangle([](float x) { return (x > 0.5f) ? (2.f - 2.f * x) : (2.f * x); });
 const Projection raisedCosine([](float x) { return 0.5f - 0.5f * cosf(kTwoPi * x); });
 const Projection hamming([](float x) { return 0.54f - 0.46f * cosf(kTwoPi * x); });
-const Projection blackman([](float x) {
-  return 0.42f - 0.5f * cosf(kTwoPi * x) + 0.08f * cosf(2.f * kTwoPi * x);
-});
-const Projection flatTop([](float x) {
-  const float a0 = 0.21557895;
-  const float a1 = 0.41663158;
-  const float a2 = 0.277263158;
-  const float a3 = 0.083578947;
-  const float a4 = 0.006947368;
-  return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) - a3 * cosf(3.f * kTwoPi * x) +
-         a4 * cosf(4.f * kTwoPi * x);
-});
-}
-
+const Projection blackman(
+    [](float x) { return 0.42f - 0.5f * cosf(kTwoPi * x) + 0.08f * cosf(2.f * kTwoPi * x); });
+const Projection flatTop(
+    [](float x)
+    {
+      const float a0 = 0.21557895;
+      const float a1 = 0.41663158;
+      const float a2 = 0.277263158;
+      const float a3 = 0.083578947;
+      const float a4 = 0.006947368;
+      return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) -
+             a3 * cosf(3.f * kTwoPi * x) + a4 * cosf(4.f * kTwoPi * x);
+    });
+}  // namespace windows
 
 // VectorProcessBuffer: utility class to serve a main loop with varying
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
@@ -52,28 +52,26 @@ const Projection flatTop([](float x) {
 
 using MainInputs = const DSPVectorDynamic&;
 using MainOutputs = DSPVectorDynamic&;
-using ProcessVectorFn = std::function< void(MainInputs, MainOutputs, void *) >;
+using ProcessVectorFn = std::function<void(MainInputs, MainOutputs, void*)>;
 
 class VectorProcessBuffer
 {
   DSPVectorDynamic _inputVectors;
   DSPVectorDynamic _outputVectors;
-  std::vector< ml::DSPBuffer > _inputBuffers;
-  std::vector< ml::DSPBuffer > _outputBuffers;
+  std::vector<ml::DSPBuffer> _inputBuffers;
+  std::vector<ml::DSPBuffer> _outputBuffers;
   size_t _maxFrames;
 
  public:
-  VectorProcessBuffer(size_t inputs, size_t outputs, size_t maxFrames) :
-    _inputVectors(inputs),
-    _outputVectors(outputs),
-    _maxFrames(maxFrames)
+  VectorProcessBuffer(size_t inputs, size_t outputs, size_t maxFrames)
+      : _inputVectors(inputs), _outputVectors(outputs), _maxFrames(maxFrames)
   {
     _inputBuffers.resize(inputs);
     for (int i = 0; i < inputs; ++i)
     {
       _inputBuffers[i].resize(_maxFrames);
     }
-    
+
     _outputBuffers.resize(outputs);
     for (int i = 0; i < outputs; ++i)
     {
@@ -99,7 +97,7 @@ class VectorProcessBuffer
         _inputBuffers[c].write(inputs[c], nFrames);
       }
     }
-    
+
     // process until we have nFrames of output
     while (_outputBuffers[0].getReadAvailable() < nFrames)
     {
@@ -127,7 +125,6 @@ class VectorProcessBuffer
   }
 };
 
-
 // FlushToZeroHandler: turn off denormal math so that (for example) IIR filters don't consume
 // many more CPU cycles when they decay.
 // thanks to: Dan Gillespie, Chris Santoro
@@ -136,48 +133,39 @@ struct FlushToZeroHandler
 {
 #if defined(__SSE__)
   uint32_t MXCRState = 0;
-  
+
   void SetDenormalsAreZeroAndFlushToZeroOnCPU()
   {
     // Set the DAZ (denormals are zero) and FZ (flush to zero) in the Intel MXCSR register
-    MXCRState = _mm_getcsr(); // read the old MXCSR setting
-    int newMXCSR = MXCRState | 0x8040; // set DAZ and FZ bits
-    _mm_setcsr(newMXCSR); // write the new MXCSR setting to the MXCSR
+    MXCRState = _mm_getcsr();           // read the old MXCSR setting
+    int newMXCSR = MXCRState | 0x8040;  // set DAZ and FZ bits
+    _mm_setcsr(newMXCSR);               // write the new MXCSR setting to the MXCSR
   }
-  
-  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU()
-  {
-    _mm_setcsr(MXCRState);
-  }
+
+  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU() { _mm_setcsr(MXCRState); }
 #elif defined(__aarch64__)
   uint64_t MXCRState = 0;
-  
+
   void SetDenormalsAreZeroAndFlushToZeroOnCPU()
   {
     // read and store floating point control register (FPCR)
     uint64_t FPCR_prev = 0;
-    asm volatile ("MRS %0, FPCR " : "=r" ( FPCR_prev));
+    asm volatile("MRS %0, FPCR " : "=r"(FPCR_prev));
     MXCRState = FPCR_prev;
-    
+
     // set flush to zero bit and write FPCR
     uint64_t FPCR = FPCR_prev | (1ULL << 24);
-    asm volatile ("MSR FPCR, %0 " : : "r" ( FPCR));
+    asm volatile("MSR FPCR, %0 " : : "r"(FPCR));
   }
-  
+
   void UnsetDenormalsAreZeroAndFlushToZeroOnCPU()
   {
-    asm volatile ("MSR FPCR, %0 " : : "r" (MXCRState));
+    asm volatile("MSR FPCR, %0 " : : "r"(MXCRState));
   }
 #else
-  void SetDenormalsAreZeroAndFlushToZeroOnCPU()
-  {
-    return;
-  }
-  
-  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU()
-  {
-    return;
-  }
+  void SetDenormalsAreZeroAndFlushToZeroOnCPU() { return; }
+
+  void UnsetDenormalsAreZeroAndFlushToZeroOnCPU() { return; }
 #endif
 };
 

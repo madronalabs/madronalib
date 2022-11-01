@@ -51,7 +51,7 @@ class Timers
 
   void tick(void);
   void run(void);
-  
+
   // MLTEST
   size_t getSize() { return _timerPtrs.size(); }
 
@@ -91,14 +91,11 @@ class Timer
     _period = period;
     _previousCall = system_clock::now();
   }
-  
+
   // extend the timeout of the current period for the given number of
   // milliseconds after the next tick.
-  void postpone(const milliseconds timeToAdd)
-  {
-    _additionalTime = timeToAdd;
-  }
-  
+  void postpone(const milliseconds timeToAdd) { _additionalTime = timeToAdd; }
+
   // call the function n times, waiting the specified interval before each.
   void callNTimes(std::function<void(void)> f, const milliseconds period, int n)
   {
@@ -121,13 +118,13 @@ class Timer
   bool isActive() { return _counter != 0; }
 
   void stop();
-  
-  int _testID{}; // MLTEST
+
+  int _testID{};  // MLTEST
 
  private:
   std::mutex _counterMutex;
 
-  SharedResourcePointer< Timers > _timers;
+  SharedResourcePointer<Timers> _timers;
   int _counter{0};
   std::function<void(void)> _func;
   milliseconds _period{};

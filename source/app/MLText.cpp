@@ -75,7 +75,7 @@ TextFragment::TextFragment() noexcept
 
 TextFragment::TextFragment(const char* pChars) noexcept
 {
-  if(pChars)
+  if (pChars)
   {
     _allocate(strlen(pChars));
     // a bad alloc will result in this being a null object.
@@ -172,20 +172,20 @@ TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
                            const TextFragment& t3) noexcept
 {
   _construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
-            t3.lengthInBytes());
+             t3.lengthInBytes());
 }
 
 TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
                            const TextFragment& t4) noexcept
 {
   _construct(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
-            t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
+             t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 }
 
 TextFragment::~TextFragment() noexcept { _dispose(); }
 
 void TextFragment::_construct(const char* s1, size_t len1, const char* s2, size_t len2,
-                             const char* s3, size_t len3, const char* s4, size_t len4) noexcept
+                              const char* s3, size_t len3, const char* s4, size_t len4) noexcept
 {
   _allocate(len1 + len2 + len3 + len4);
   if (_pText)

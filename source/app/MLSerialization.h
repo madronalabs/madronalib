@@ -19,7 +19,6 @@
 #include "MLTextUtils.h"
 #include "MLTree.h"
 #include "MLValue.h"
-
 #include "cJSON.h"
 
 namespace ml
@@ -373,28 +372,21 @@ inline Tree<Value> binaryToValueTree(const std::vector<unsigned char>& binaryDat
 class JSONHolder
 {
   cJSON _data;
-  
-public:
+
+ public:
   JSONHolder()
   {
     memset(&_data, 0, sizeof(cJSON));
-    _data.type=cJSON_Object;
+    _data.type = cJSON_Object;
   }
-  
-  JSONHolder(const JSONHolder& b)
-  {
-    _data = b._data;
-  }
+
+  JSONHolder(const JSONHolder& b) { _data = b._data; }
 
   JSONHolder(cJSON b) : _data(b) {}
-  ~JSONHolder()
-  {
-    cJSON_Delete(_data.next);
-  }
-  
+  ~JSONHolder() { cJSON_Delete(_data.next); }
+
   cJSON* data() { return &_data; }
 };
-
 
 // return a JSON object representing the value tree. The caller is responsible
 // for freeing the object.
@@ -402,16 +394,16 @@ public:
 inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
 {
   JSONHolder root;
-  
+
   for (auto it = t.begin(); it != t.end(); ++it)
   {
     Path p = it.getCurrentNodePath();
     TextFragment pathAsText(pathToText(p));
     Value v = (*it);
-    
+
     const char* keyStr = pathAsText.getText();
-    
-    switch(v.getType())
+
+    switch (v.getType())
     {
       case Value::kUndefinedValue:
         break;
@@ -434,31 +426,31 @@ inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
          float* pSignalData = sig.getBuffer();
          cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
          cJSON_AddItemToObject(signalObj, "data", data);
-         
+
          // add signal object to state JSON
          cJSON_AddItemToObject(root, keyStr, signalObj);
          */
       }
-        break;
+      break;
       case Value::kUnsignedLongValue:
         cJSON_AddNumberToObject(root.data(), keyStr, v.getUnsignedLongValue());
         break;
       default:
-        //debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
+        // debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
         break;
     }
   }
   return root;
 }
 
-inline Tree< Value > readJSONToValueTree(cJSON * obj, Tree< Value >& r, Path currentPath, int depth, bool isArray)
+inline Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentPath, int depth,
+                                       bool isArray)
 {
   size_t objIndex{0};
-  while(obj)
+  while (obj)
   {
-    
     Path newObjectPath;
-    if(!isArray)
+    if (!isArray)
     {
       newObjectPath = Path(currentPath, Path(obj->string));
     }
@@ -469,12 +461,13 @@ inline Tree< Value > readJSONToValueTree(cJSON * obj, Tree< Value >& r, Path cur
       // - it creates a bunch of symbols for natural numbers (which may not sort as expected!)
       // - should numerical symbols even be possible? (no)
       // - what we really want from an array, usually, is a blob of float data
-      // - but we have to inspect all the array elements to know if that is a possible representation for the JSON
-      
+      // - but we have to inspect all the array elements to know if that is a possible
+      // representation for the JSON
+
       newObjectPath = Path(currentPath, Path(textUtils::naturalNumberToText(objIndex)));
     }
-    
-    switch(obj->type & 255)
+
+    switch (obj->type & 255)
     {
       case cJSON_Number:
       {
@@ -502,25 +495,22 @@ inline Tree< Value > readJSONToValueTree(cJSON * obj, Tree< Value >& r, Path cur
     obj = obj->next;
     objIndex++;
   }
-  
+
   return r;
 }
 
-inline Tree< Value > JSONToValueTree(JSONHolder root)
+inline Tree<Value> JSONToValueTree(JSONHolder root)
 {
-  Tree< Value > r;
-  if(root.data())
+  Tree<Value> r;
+  if (root.data())
   {
-    cJSON * obj = root.data()->child;
+    cJSON* obj = root.data()->child;
     return readJSONToValueTree(obj, r, "", 0, false);
   }
   return r;
 }
 
-inline TextFragment JSONToText(JSONHolder root)
-{
-  return TextFragment(cJSON_Print(root.data()));
-}
+inline TextFragment JSONToText(JSONHolder root) { return TextFragment(cJSON_Print(root.data())); }
 
 inline JSONHolder textToJSON(TextFragment t)
 {

@@ -3,6 +3,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLPath.h"
+
 #include "MLTextUtils.h"
 #include "utf.hpp"
 
@@ -23,23 +24,50 @@ Path::Path(const ml::TextFragment frag, const char separator)
 
 Path::Path(const Path& a, const Path& b)
 {
-  for (Symbol s : a){addSymbol(s);}
-  for (Symbol s : b){addSymbol(s);}
+  for (Symbol s : a)
+  {
+    addSymbol(s);
+  }
+  for (Symbol s : b)
+  {
+    addSymbol(s);
+  }
 }
 
 Path::Path(const Path& a, const Path& b, const Path& c)
 {
-  for (Symbol s : a){addSymbol(s);}
-  for (Symbol s : b){addSymbol(s);}
-  for (Symbol s : c){addSymbol(s);}
+  for (Symbol s : a)
+  {
+    addSymbol(s);
+  }
+  for (Symbol s : b)
+  {
+    addSymbol(s);
+  }
+  for (Symbol s : c)
+  {
+    addSymbol(s);
+  }
 }
 
 Path::Path(const Path& a, const Path& b, const Path& c, const Path& d)
 {
-  for (Symbol s : a){addSymbol(s);}
-  for (Symbol s : b){addSymbol(s);}
-  for (Symbol s : c){addSymbol(s);}
-  for (Symbol s : d){addSymbol(s);}
+  for (Symbol s : a)
+  {
+    addSymbol(s);
+  }
+  for (Symbol s : b)
+  {
+    addSymbol(s);
+  }
+  for (Symbol s : c)
+  {
+    addSymbol(s);
+  }
+  for (Symbol s : d)
+  {
+    addSymbol(s);
+  }
 }
 
 inline size_t codepointSize(utf::codepoint_type c)
@@ -61,28 +89,27 @@ void Path::parsePathString(const char* pathStr, const char separator)
     size_t symbolSizeInBytes = 0;
 
     // skip zero or more separators (which must have codepoint size = 1)
-    while(*it == separator)
+    while (*it == separator)
     {
       symbolStartPtr++;
       ++it;
     }
-      
+
     // advance by code points to end of symbol
-    while((*it != separator) && (*it != '\0'))
+    while ((*it != separator) && (*it != '\0'))
     {
       // codepointSize(0) is 0, so this is OK
       symbolSizeInBytes += codepointSize(*it);
       ++it;
     }
-    
+
     // create and add the new symbol
-    if(symbolSizeInBytes > 0)
+    if (symbolSizeInBytes > 0)
     {
       addSymbol(Symbol(symbolStartPtr, symbolSizeInBytes));
       symbolStartPtr += symbolSizeInBytes;
     }
-  }
-  while (*it != '\0');
+  } while (*it != '\0');
 
   /*
    // TODO benchmark this probably slower implementation out of curiosity
@@ -92,15 +119,14 @@ void Path::parsePathString(const char* pathStr, const char separator)
     addSymbol(Symbol(seg.getText()));
   }
   */
-
 }
 
 bool Path::beginsWith(const Path b)
 {
-  if(b.getSize() > getSize()) return false;
-  for(int i=0; i<b.getSize(); ++i)
+  if (b.getSize() > getSize()) return false;
+  for (int i = 0; i < b.getSize(); ++i)
   {
-    if(nth(b, i) != nth(*this, i))
+    if (nth(b, i) != nth(*this, i))
     {
       return false;
     }
@@ -119,40 +145,19 @@ std::ostream& operator<<(std::ostream& out, const ml::Path& r)
   return out;
 }
 
-Symbol head(Path p)
-{
-  return (p.getSize() > 0) ? p._symbols[0] : Symbol();
-}
+Symbol head(Path p) { return (p.getSize() > 0) ? p._symbols[0] : Symbol(); }
 
-Symbol first(Path p)
-{
-  return head(p);
-}
+Symbol first(Path p) { return head(p); }
 
-Symbol second(Path p)
-{
-  return (p.getSize() > 1) ? p._symbols[1] : Symbol();
-}
+Symbol second(Path p) { return (p.getSize() > 1) ? p._symbols[1] : Symbol(); }
 
-Symbol third(Path p)
-{
-  return (p.getSize() > 2) ? p._symbols[2] : Symbol();
-}
+Symbol third(Path p) { return (p.getSize() > 2) ? p._symbols[2] : Symbol(); }
 
-Symbol fourth(Path p)
-{
-  return (p.getSize() > 3) ? p._symbols[3] : Symbol();
-}
+Symbol fourth(Path p) { return (p.getSize() > 3) ? p._symbols[3] : Symbol(); }
 
-Symbol fifth(Path p)
-{
-  return (p.getSize() > 4) ? p._symbols[4] : Symbol();
-}
+Symbol fifth(Path p) { return (p.getSize() > 4) ? p._symbols[4] : Symbol(); }
 
-Symbol nth(Path p, size_t n)
-{
-  return (p.getSize() > n - 1) ? p._symbols[n] : Symbol();
-}
+Symbol nth(Path p, size_t n) { return (p.getSize() > n - 1) ? p._symbols[n] : Symbol(); }
 
 Path tail(Path p)
 {
@@ -178,7 +183,7 @@ Path butLast(Path p)
 Symbol last(Path p)
 {
   auto len = p.getSize();
-  if(len > 0)
+  if (len > 0)
   {
     return p._symbols[len - 1];
   }
@@ -188,7 +193,7 @@ Symbol last(Path p)
 Path lastN(Path p, size_t n)
 {
   auto len = p.getSize();
-  if(len > 1)
+  if (len > 1)
   {
     return Path(p._symbols[len - 2], p._symbols[len - 1]);
   }
@@ -200,7 +205,7 @@ Path substitute(Path p, Symbol from, Symbol to)
   Path r{p};
   for (int n = 0; n < p.mSize; ++n)
   {
-    if(p._symbols[n] == from)
+    if (p._symbols[n] == from)
     {
       r._symbols[n] = to;
     }
@@ -216,7 +221,7 @@ Path substitute(Path p, Symbol fromSymbol, Path toPath)
   for (int n = 0; n < p.mSize; ++n)
   {
     Symbol next = p._symbols[n];
-    if(next == fromSymbol)
+    if (next == fromSymbol)
     {
       r = Path{r, toPath};
     }
@@ -227,6 +232,5 @@ Path substitute(Path p, Symbol fromSymbol, Path toPath)
   }
   return r;
 }
-
 
 }  // namespace ml

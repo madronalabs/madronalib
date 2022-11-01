@@ -22,13 +22,13 @@ class Queue final
   Queue(size_t size) { resize(size); }
 
   ~Queue() {}
-  
+
   // return the exponent of the smallest power of 2 that is >= x.
   inline size_t bitsToContain(int x)
   {
     int exp;
     for (exp = 0; (1 << exp) < x; exp++)
-    ;
+      ;
     return (exp);
   }
 
@@ -39,17 +39,14 @@ class Queue final
     // 1 to the requested capacity. Then, find the power of two size that
     // will contain that many elements.
     size_t powerOfTwoSize = 1 << bitsToContain(capacity + 1);
-    
+
     _data.resize(powerOfTwoSize);
     _sizeMask = powerOfTwoSize - 1;
     clear();
   }
-  
-  size_t size()
-  {
-    return _data.size();
-  }
-  
+
+  size_t size() { return _data.size(); }
+
   bool push(const Element& item)
   {
     const auto currentWriteIndex = _writeIndex.load(std::memory_order_relaxed);
@@ -95,7 +92,9 @@ class Queue final
 
   size_t elementsAvailable() const
   {
-    return (_writeIndex.load(std::memory_order_acquire) - _readIndex.load(std::memory_order_relaxed)) & _sizeMask;
+    return (_writeIndex.load(std::memory_order_acquire) -
+            _readIndex.load(std::memory_order_relaxed)) &
+           _sizeMask;
   }
 
   // useful for reading elements while a criterion is met. Can be used like

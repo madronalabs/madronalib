@@ -133,8 +133,8 @@ class TextFragment
  private:
   void _allocate(size_t size) noexcept;
   void _construct(const char* s1, size_t len1, const char* s2 = nullptr, size_t len2 = 0,
-                 const char* s3 = nullptr, size_t len3 = 0, const char* s4 = nullptr,
-                 size_t len4 = 0) noexcept;
+                  const char* s3 = nullptr, size_t len3 = 0, const char* s4 = nullptr,
+                  size_t len4 = 0) noexcept;
   void _nullTerminate() noexcept;
   void _dispose() noexcept;
   void _moveDataFromOther(TextFragment& b);
@@ -159,7 +159,7 @@ inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB, 
 {
   if (lenA != lenB) return false;
   if ((lenA == 0) && (lenB == 0)) return true;
-  
+
   for (size_t n = 0; n < lenA; ++n)
   {
     if (pA[n] != pB[n])
@@ -167,7 +167,7 @@ inline bool compareSizedCharArrays(const char* pA, size_t lenA, const char* pB, 
       return false;
     }
   }
-  
+
   return true;
 }
 

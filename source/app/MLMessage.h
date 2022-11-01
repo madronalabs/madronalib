@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "MLCollection.h"
 #include "MLPath.h"
 #include "MLValue.h"
-#include "MLCollection.h"
 
 namespace ml
 {
@@ -19,8 +19,8 @@ struct Message final
   uint32_t flags{0};
 
   Message(Path h = Path(), Value v = Value(), uint32_t f = 0) : address(h), value(v), flags(f) {}
-  
-  explicit operator bool() const { return(address != Path()); }
+
+  explicit operator bool() const { return (address != Path()); }
 };
 
 enum flags
@@ -37,55 +37,43 @@ enum flags
 // intended use in editors and controllers, this seems like a reasonable
 // tradeoff.
 
-struct MessageList : public std::vector< Message >
+struct MessageList : public std::vector<Message>
 {
-  void append(const MessageList& b)
-  {
-    insert(end(), b.begin(), b.end());
-  }
+  void append(const MessageList& b) { insert(end(), b.begin(), b.end()); }
 };
 
 struct MessageReceiver
 {
-protected:
+ protected:
   virtual void handleMessage(Message m, Message* replyPtr) = 0;
-  
+
   MessageList processMessageList(MessageList msgList)
   {
     MessageList retList;
     Message resultMsg;
-    
-    for(auto msg : msgList)
+
+    for (auto msg : msgList)
     {
       resultMsg = Message();
       handleMessage(msg, &resultMsg);
-      if(resultMsg)
+      if (resultMsg)
       {
         retList.push_back(resultMsg);
       }
     }
     return retList;
   }
-  
-public:
-  void doSendMessage(Message m)
-  {
-    handleMessage(m, nullptr);
-  }
-  
-  void doSendMessageWithReply(Message m, Message* replyPtr)
-  {
-    handleMessage(m, replyPtr);
-  }
+
+ public:
+  void doSendMessage(Message m) { handleMessage(m, nullptr); }
+
+  void doSendMessageWithReply(Message m, Message* replyPtr) { handleMessage(m, replyPtr); }
 };
 
 // sending messages to MessageReceivers
 
 // send a message directly to a MessageReceiver when no reply is needed.
-inline void sendMessage(MessageReceiver& obj, Message m)
-{
-  obj.doSendMessage(m);
-}
+inline void sendMessage(MessageReceiver& obj, Message m) { obj.doSendMessage(m); }
 
 // send a message directly to a MessageReceiver when a reply is needed.
 inline void sendRequest(MessageReceiver& obj, Message m, Message* replyPtr)
@@ -96,7 +84,7 @@ inline void sendRequest(MessageReceiver& obj, Message m, Message* replyPtr)
 // send a message list directly to a MessageReceiver.
 inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 {
-  for(auto& m : msgList)
+  for (auto& m : msgList)
   {
     sendMessage(obj, m);
   }
@@ -105,25 +93,23 @@ inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 // send a message to a MessageReceiver object through a unique_ptr &,
 // like we obtain from a Collection.
 template <typename T>
-inline void sendMessage(const std::unique_ptr< T > & pObj, Message m)
+inline void sendMessage(const std::unique_ptr<T>& pObj, Message m)
 {
-  if(pObj)
-    pObj->doSendMessage(m);
+  if (pObj) pObj->doSendMessage(m);
 }
 
 // send a list of messages to a MessageReceiver object through a Collection.
 template <typename T>
-inline void sendMessageList(const std::unique_ptr< T > & pObj, MessageList msgList)
+inline void sendMessageList(const std::unique_ptr<T>& pObj, MessageList msgList)
 {
-  if(pObj)
+  if (pObj)
   {
-    for(auto& m : msgList)
+    for (auto& m : msgList)
     {
       pObj->doSendMessage(m);
     }
   }
 }
-
 
 // sending messages to MessageReceivers via Collections
 
@@ -138,23 +124,23 @@ inline void sendMessageToEachChild(Collection<T> coll, Message m)
 template <typename T>
 inline void sendMessageToEachChild(typename Collection<T>::TreeType& collRef, Message m)
 {
-  Collection< T > subCollection(collRef);
-  forEachChild< T >(subCollection, [&](T& obj) { sendMessage(obj, m); });
+  Collection<T> subCollection(collRef);
+  forEachChild<T>(subCollection, [&](T& obj) { sendMessage(obj, m); });
 }
 
 // send a message to each MessageReceiver in the collection.
 template <typename T>
 inline void sendMessageToEach(Collection<T> coll, Message m)
 {
-  forEach< T >(coll, [&](T& obj) { sendMessage(obj, m); });
+  forEach<T>(coll, [&](T& obj) { sendMessage(obj, m); });
 }
 
 // send a message to each MessageReceiver in the referenced collection.
 template <typename T>
 inline void sendMessageToEach(typename Collection<T>::TreeType& collRef, Message m)
 {
-  Collection< T > subCollection(collRef);
-  forEach< T >(subCollection, [&](T& obj) { sendMessage(obj, m); });
+  Collection<T> subCollection(collRef);
+  forEach<T>(subCollection, [&](T& obj) { sendMessage(obj, m); });
 }
 
 inline std::ostream& operator<<(std::ostream& out, const Message& r)
@@ -162,6 +148,5 @@ inline std::ostream& operator<<(std::ostream& out, const Message& r)
   std::cout << "[" << r.address << ": " << r.value << "]";
   return out;
 }
-
 
 }  // namespace ml

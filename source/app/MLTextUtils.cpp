@@ -108,26 +108,26 @@ char* carryDecimalChars(char* writePtr, char* buf)
 {
   // round up.
   char* roundPtr{writePtr};
-  while(1)
+  while (1)
   {
     roundPtr--;
-    if(*roundPtr == '.') roundPtr--; // skip decimal
-    if(roundPtr < buf)
+    if (*roundPtr == '.') roundPtr--;  // skip decimal
+    if (roundPtr < buf)
     {
       // past the beginning! all digits were 9 and now are all 0.
       // shift entire number and add initial 1
-      for(char* shiftPtr = writePtr; shiftPtr > buf; shiftPtr--)
+      for (char* shiftPtr = writePtr; shiftPtr > buf; shiftPtr--)
       {
         *shiftPtr = *(shiftPtr - 1);
       }
       *buf = '1';
       return writePtr + 1;
-      break ;
+      break;
     }
     else
     {
       unsigned char d = *roundPtr;
-      if(d < '9')
+      if (d < '9')
       {
         *roundPtr = (d + 1);
         break;
@@ -145,22 +145,22 @@ char* carryDecimalChars(char* writePtr, char* buf)
 constexpr int kTableZeroOffset{38};
 
 constexpr float powersOfTen[kTableZeroOffset * 2 + 1]{
-  1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26,
-  1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13,
-  1e-12, 1e-11, 1e-10, 1e-09, 1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00,
-  1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13,
-  1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26,
-  1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
-
+    1e-38, 1e-37, 1e-36, 1e-35, 1e-34, 1e-33, 1e-32, 1e-31, 1e-30, 1e-29, 1e-28, 1e-27, 1e-26,
+    1e-25, 1e-24, 1e-23, 1e-22, 1e-21, 1e-20, 1e-19, 1e-18, 1e-17, 1e-16, 1e-15, 1e-14, 1e-13,
+    1e-12, 1e-11, 1e-10, 1e-09, 1e-08, 1e-07, 1e-06, 1e-05, 1e-04, 1e-03, 1e-02, 1e-01, 1e+00,
+    1e+01, 1e+02, 1e+03, 1e+04, 1e+05, 1e+06, 1e+07, 1e+08, 1e+09, 1e+10, 1e+11, 1e+12, 1e+13,
+    1e+14, 1e+15, 1e+16, 1e+17, 1e+18, 1e+19, 1e+20, 1e+21, 1e+22, 1e+23, 1e+24, 1e+25, 1e+26,
+    1e+27, 1e+28, 1e+29, 1e+30, 1e+31, 1e+32, 1e+33, 1e+34, 1e+35, 1e+36, 1e+37, 1e+38};
 
 // private for floatNumberToText. note side effects!
-char* writeMantissa(float& value, char* startWritePtr, int& exponent, int decimalExponent, int digitsAfterDecimal)
+char* writeMantissa(float& value, char* startWritePtr, int& exponent, int decimalExponent,
+                    int digitsAfterDecimal)
 {
   int onesInt;
   char* writePtr = startWritePtr;
   int digitsWritten = 0;
-  
-  while(1)
+
+  while (1)
   {
     if (exponent == decimalExponent)
     {
@@ -171,12 +171,11 @@ char* writeMantissa(float& value, char* startWritePtr, int& exponent, int decima
 
     value = value - onesInt * powersOfTen[kTableZeroOffset + exponent];
     exponent--;
-    if(decimalExponent - exponent >= digitsAfterDecimal) break;
+    if (decimalExponent - exponent >= digitsAfterDecimal) break;
   }
 
   return writePtr;
 }
-
 
 // converts the given float f to a TextFragment representing a decimal number.
 // precision specifies the number of digits after the decimal point.
@@ -184,7 +183,7 @@ char* writeMantissa(float& value, char* startWritePtr, int& exponent, int decima
 TextFragment floatNumberToText(float f, int precision)
 {
   constexpr int kMaxPrecision = 10;
-  
+
   // absolute value of exponent above/below which we print in scientific notation.
   // this should not be changed without making sure all possible output
   // will fit in the buffer!
@@ -232,12 +231,12 @@ TextFragment floatNumberToText(float f, int precision)
       {
         y--;
       }
-      
+
       int exponent = y - kTableZeroOffset;
       int sciExponent = exponent;
       int absExponent = std::abs(exponent);
       bool doScientific = (absExponent >= kScientificNotationStartExp);
-      
+
       // get location of decimal point as exponent
       int decimalExponent;
       if (doScientific)
@@ -249,7 +248,7 @@ TextFragment floatNumberToText(float f, int precision)
       {
         // exponent is always between 10^0 and 10^-1.
         decimalExponent = -1;
-        
+
         // decimal notation: write any leading zeroes
         if (exponent < -1)
         {
@@ -265,17 +264,17 @@ TextFragment floatNumberToText(float f, int precision)
           *writePtr++ = '0';
         }
       }
-      
+
       // write mantissa
       writePtr = writeMantissa(value, writePtr, exponent, decimalExponent, digitsAfterDecimal);
 
       // round and carry leftover value
       int onesInt = truncf(value * powersOfTen[kTableZeroOffset - exponent]);
-      if(onesInt >= 5)
+      if (onesInt >= 5)
       {
         writePtr = carryDecimalChars(writePtr, buf);
       }
-      
+
       if (doScientific)
       {
         // finish by writing exponent
@@ -295,34 +294,31 @@ float textToFloatNumber(const char* input)
   bool hasExp = false;
   auto it = input;
   constexpr char digits[]{"0123456789"};
-  std::vector< std::pair< const char *, std::function< void() > > > segments{
-    {"nan", [&](){intPart = std::numeric_limits<float>::quiet_NaN();}},
-    {"-", [&](){sign = -sign;}},
-    {"inf", [&](){intPart = std::numeric_limits<float>::infinity();}},
-    {digits, [&](){intPart = intPart*10.f + (*it - '0');}},
-    {".", [&](){}},
-    {digits, [&](){fracPart += (*it - '0')*(fracPlace *= 0.1f);}},
-    {"e+", [&](){hasExp = true;}},
-    {"-", [&](){expSign = -expSign;}},
-    {digits, [&](){exp = exp*10.f + (*it - '0');}}};
+  std::vector<std::pair<const char*, std::function<void()> > > segments{
+      {"nan", [&]() { intPart = std::numeric_limits<float>::quiet_NaN(); }},
+      {"-", [&]() { sign = -sign; }},
+      {"inf", [&]() { intPart = std::numeric_limits<float>::infinity(); }},
+      {digits, [&]() { intPart = intPart * 10.f + (*it - '0'); }},
+      {".", [&]() {}},
+      {digits, [&]() { fracPart += (*it - '0') * (fracPlace *= 0.1f); }},
+      {"e+", [&]() { hasExp = true; }},
+      {"-", [&]() { expSign = -expSign; }},
+      {digits, [&]() { exp = exp * 10.f + (*it - '0'); }}};
   for (auto segment : segments)
   {
     const char* cBegin = segment.first;
     const char* cEnd = cBegin + strlen(cBegin);
-    while(std::find(cBegin, cEnd, *it) != cEnd)
+    while (std::find(cBegin, cEnd, *it) != cEnd)
     {
       segment.second();
       ++it;
     }
   }
-  float base = sign*(intPart + fracPart);
-  return hasExp ? base*powf(10.f, exp*expSign) : base;
+  float base = sign * (intPart + fracPart);
+  return hasExp ? base * powf(10.f, exp * expSign) : base;
 }
 
-float textToFloatNumber(const TextFragment& frag)
-{
-  return textToFloatNumber(frag.getText());
-}
+float textToFloatNumber(const TextFragment& frag) { return textToFloatNumber(frag.getText()); }
 
 int findFirst(const TextFragment& frag, const CodePoint b)
 {
@@ -462,7 +458,7 @@ TextFragment replace(const TextFragment& frag, CodePoint toFind, CodePoint toRep
   TextFragment r{};
   for (const CodePoint c : frag)
   {
-    if(c == toFind)
+    if (c == toFind)
     {
       r = TextFragment(r, toReplace);
     }
@@ -580,12 +576,13 @@ Symbol bestScriptForTextFragment(const TextFragment& frag)
   return "latin";
 }
 
-static constexpr char base64table[] {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="};
+static constexpr char base64table[]{
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="};
 
-TextFragment base64Encode(const std::vector<uint8_t> &in)
+TextFragment base64Encode(const std::vector<uint8_t>& in)
 {
   std::vector<char> out;
-  
+
   int val = 0, valb = -6;
   for (uint8_t c : in)
   {
@@ -593,12 +590,12 @@ TextFragment base64Encode(const std::vector<uint8_t> &in)
     valb += 8;
     while (valb >= 0)
     {
-      out.push_back(base64table[(val>>valb)&0x3F]);
+      out.push_back(base64table[(val >> valb) & 0x3F]);
       valb -= 6;
     }
   }
-  if (valb>-6) out.push_back(base64table[((val<<8)>>(valb+8))&0x3F]);
-  while (out.size()%4) out.push_back('=');
+  if (valb > -6) out.push_back(base64table[((val << 8) >> (valb + 8)) & 0x3F]);
+  while (out.size() % 4) out.push_back('=');
   out.push_back(0);
   return TextFragment(out.data());
 }
@@ -608,10 +605,10 @@ std::vector<uint8_t> base64Decode(const TextFragment& in)
   // in every call we build a reverse lookup table.
   // TODO this could probably be made once in a constexpr
   std::vector<int> T(256, -1);
-  for (int i=0; i<64; i++) T[base64table[i]] = i;
-  
+  for (int i = 0; i < 64; i++) T[base64table[i]] = i;
+
   std::vector<uint8_t> out;
-  int val=0, valb=-8;
+  int val = 0, valb = -8;
   for (uint8_t c : in)
   {
     if (T[c] == -1) break;
@@ -619,7 +616,7 @@ std::vector<uint8_t> base64Decode(const TextFragment& in)
     valb += 6;
     if (valb >= 0)
     {
-      out.push_back(char((val>>valb)&0xFF));
+      out.push_back(char((val >> valb) & 0xFF));
       valb -= 8;
     }
   }

@@ -219,7 +219,7 @@ class DSPVectorArray
   }
 
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  
+
   // get a row vector j when j is not known at compile time.
   inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
   {
@@ -246,7 +246,7 @@ class DSPVectorArray
     }
   }
 #else
-  
+
   // get a row vector j when j is not known at compile time.
   inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
   {
@@ -333,7 +333,7 @@ class DSPVectorArray
   // binary operators - defining these here inside the class as non-template
   // functions enables the compiler to call implicit conversions on either
   // argument.
-  
+
   friend inline DSPVectorArray operator+(const DSPVectorArray& x1, const DSPVectorArray& x2)
   {
     return add(x1, x2);
@@ -352,7 +352,6 @@ class DSPVectorArray
   }
 };  // class DSPVectorArray
 
-
 // ----------------------------------------------------------------
 // DSPVector
 //
@@ -360,7 +359,6 @@ class DSPVectorArray
 // The most common data type in a typical DSP function.
 
 typedef DSPVectorArray<1> DSPVector;
-
 
 // ----------------------------------------------------------------
 // DSPVectorArrayInt
@@ -499,39 +497,28 @@ class DSPVectorArrayInt
 
 typedef DSPVectorArrayInt<1> DSPVectorInt;
 
-
 // ----------------------------------------------------------------
 // DSPVectorDynamic: for holding a number of DSPVectors only known at runtime.
 
 class DSPVectorDynamic final
 {
-public:
+ public:
   DSPVectorDynamic() = default;
   ~DSPVectorDynamic() = default;
-  
-  DSPVectorDynamic(size_t rows)
-  {
-    _data.resize(rows);
-  }
-  
-  void resize(size_t rows) { _data.resize(rows); }
-  
-  size_t size() const { return _data.size(); }
-  
-  DSPVector& operator[](int j)
-  {
-    return _data[j];
-  }
-  
-  const DSPVector& operator[](int j) const
-  {
-    return _data[j];
-  }
-  
-private:
-  std::vector< DSPVector > _data;
-};
 
+  DSPVectorDynamic(size_t rows) { _data.resize(rows); }
+
+  void resize(size_t rows) { _data.resize(rows); }
+
+  size_t size() const { return _data.size(); }
+
+  DSPVector& operator[](int j) { return _data[j]; }
+
+  const DSPVector& operator[](int j) const { return _data[j]; }
+
+ private:
+  std::vector<DSPVector> _data;
+};
 
 // ----------------------------------------------------------------
 // load and store

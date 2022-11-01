@@ -31,11 +31,11 @@ class Path final
 
  public:
   explicit Path() = default;
-  
+
   Path(const char* str);
   Path(const Symbol sym);
   Path(const TextFragment frag);
-  
+
   explicit Path(const TextFragment frag, const char separator);
   explicit Path(const Path& a, const Path& b);
   explicit Path(const Path& a, const Path& b, const Path& c);
@@ -50,9 +50,8 @@ class Path final
   inline Symbol getElement(int n) const { return _symbols[n]; }
   inline int getCopy() const { return mCopy; }
   inline void setCopy(int c) { mCopy = c; }  // MLTEST to remove, use ctor only?
-    
-  bool beginsWith(Path b);
 
+  bool beginsWith(Path b);
 
   friend class const_iterator;
   class const_iterator
@@ -63,7 +62,7 @@ class Path final
     using difference_type = int;
     using pointer = Symbol*;
     using reference = Symbol&;
-    
+
     const_iterator(const Path* p) : mpPath(p), mIndex(0) {}
     const_iterator(const Path* p, int startIndex) : mpPath(p), mIndex(startIndex) {}
     ~const_iterator() {}
@@ -103,7 +102,7 @@ class Path final
     const Path* mpPath;
     int mIndex;
   };
-  
+
   inline const_iterator begin() const { return const_iterator(this); }
   inline const_iterator end() const { return const_iterator(this, static_cast<int>(mSize)); }
 
@@ -118,12 +117,11 @@ class Path final
   friend Path butLast(Path p);
   friend Symbol last(Path p);
   friend Path lastN(Path p, size_t n);
-  
+
   friend Path substitute(Path p, Symbol from, Symbol to);
   friend Path substitute(Path p, Symbol from, Path to);
 
  private:
-  
   // TODO should Path be immutable?
   inline void addSymbol(ml::Symbol sym)
   {
@@ -137,7 +135,7 @@ class Path final
       // //debug() << "Path::addSymbol: max path length exceeded!\n";
     }
   }
-  
+
   void parsePathString(const char* pathStr, const char delimiter = '/');
 
   std::array<Symbol, kPathMaxSymbols> _symbols{};
@@ -162,7 +160,6 @@ inline bool operator==(const Path& a, const Path& b)
 
 inline bool operator!=(const Path a, const Path b) { return !(a == b); }
 
-
 inline TextFragment pathToText(Path p, const char separator = '/')
 {
   /*
@@ -171,12 +168,12 @@ inline TextFragment pathToText(Path p, const char separator = '/')
   };
   return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
   */
-  
+
   TextFragment r;
   auto n = p.getSize();
-  if(n < 1) return r;
+  if (n < 1) return r;
   r = p.getElement(0).getTextFragment();
-  for(int i=1; i<n; ++i)
+  for (int i = 1; i < n; ++i)
   {
     r = TextFragment(r, separator);
     r = TextFragment(r, p.getElement(i).getTextFragment());
@@ -184,9 +181,6 @@ inline TextFragment pathToText(Path p, const char separator = '/')
   return r;
 }
 
-inline Path textToPath(TextFragment t, const char separator = '/')
-{
-  return Path(t, separator);
-}
+inline Path textToPath(TextFragment t, const char separator = '/') { return Path(t, separator); }
 
 }  // namespace ml

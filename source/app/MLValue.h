@@ -26,7 +26,7 @@ namespace ml
 class Value
 {
   static constexpr size_t kBlobSizeBytes{256};
-  
+
  public:
   enum Type
   {
@@ -52,7 +52,7 @@ class Value
   Value(const ml::Text& t);
   Value(const char* t);
   Value(const ml::Matrix& s);
-  
+
   // binary blob constructor - copies data up to kBlobSizeBytes.
   explicit Value(const void* pData, size_t n);
 
@@ -91,19 +91,19 @@ class Value
   }
 
   inline const float getIntValue() const { return static_cast<int>(mFloatVal); }
-  
+
   inline const int getIntValueWithDefault(int d) const
   {
     return (mType == kFloatValue) ? static_cast<int>(mFloatVal) : d;
   }
-  
+
   inline const uint32_t getUnsignedLongValue() const { return mUnsignedLongVal; }
-  
+
   inline const uint32_t getUnsignedLongValueWithDefault(uint32_t d) const
   {
     return (mType == kUnsignedLongValue) ? mUnsignedLongVal : d;
   }
-  
+
   inline const ml::Text getTextValue() const
   {
     return (mType == kTextValue) ? (mTextVal) : ml::Text();
@@ -126,19 +126,19 @@ class Value
 
   inline void* getBlobValue() const
   {
-    if(mType == kBlobValue)
+    if (mType == kBlobValue)
     {
-      return (void *)(_data);
+      return (void*)(_data);
     }
     else
     {
       return nullptr;
     }
   }
-  
+
   inline size_t getBlobSize() const
   {
-    if(mType == kBlobValue)
+    if (mType == kBlobValue)
     {
       return _sizeInBytes;
     }
@@ -147,7 +147,6 @@ class Value
       return 0;
     }
   }
-  
 
   // For each type of property, a setValue method must exist
   // to set the value of the property to that of the argument.
@@ -166,10 +165,7 @@ class Value
   void setValue(const char* const v);
   void setValue(const Matrix& v);
 
-  explicit operator bool() const
-  {
-    return (mType != kUndefinedValue);
-  }
+  explicit operator bool() const { return (mType != kUndefinedValue); }
 
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;

@@ -3,6 +3,6 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include <arm_neon.h>
-#include "sse2neon.h"
-#include "MLDSPMathSSE.h"
 
+#include "MLDSPMathSSE.h"
+#include "sse2neon.h"

@@ -12,7 +12,7 @@ namespace ml
 {
 class PropertyTree
 {
-  Tree< Value > properties;
+  Tree<Value> properties;
 
  public:
   PropertyTree() = default;

@@ -71,7 +71,7 @@ set(madronalib_NAME madrona$<$<CONFIG:Debug>:-debug>)
 #--------------------------------------------------------------------
 
 if(CMAKE_BINARY_DIR EQUAL CMAKE_SOURCE_DIR)
-  message(FATAL_ERROR "Madronalib requires an out of source build")
+  message(FATAL_ERROR "Madronalib requires an out of source build.")
 endif()
 
 #--------------------------------------------------------------------
@@ -401,7 +401,7 @@ find_program(CLANG_FORMAT "clang-format")
 if(CLANG_FORMAT)
   add_custom_target(
     clang-format
-    COMMAND /usr/local/bin/clang-format
+    COMMAND /opt/homebrew/bin/clang-format
     -i
     --verbose
     -style=file

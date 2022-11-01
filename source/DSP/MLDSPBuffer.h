@@ -20,14 +20,14 @@ namespace ml
 class DSPBuffer
 {
  private:
-  std::vector< float > mData;
+  std::vector<float> mData;
   float *mDataBuffer;
   size_t mSize{0};
   size_t mDataMask{0};
   size_t mDistanceMask{0};
-  
-  std::atomic< size_t > mWriteIndex{0};
-  std::atomic< size_t > mReadIndex{0};
+
+  std::atomic<size_t> mWriteIndex{0};
+  std::atomic<size_t> mReadIndex{0};
   struct DataRegions
   {
     float *p1;
@@ -73,10 +73,10 @@ class DSPBuffer
   DSPBuffer() {}
   ~DSPBuffer() {}
 
-  DSPBuffer(const DSPBuffer& b)
+  DSPBuffer(const DSPBuffer &b)
   {
     mSize = b.mSize;
-    
+
     try
     {
       mData = b.mData;
@@ -86,12 +86,12 @@ class DSPBuffer
       mSize = mDataMask = mDistanceMask = 0;
       return;
     }
-    
+
     mDataBuffer = mData.data();
     mDataMask = mSize - 1;
     mDistanceMask = mSize * 2 - 1;
   }
-  
+
   // clear the buffer.
   void clear()
   {

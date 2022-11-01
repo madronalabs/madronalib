@@ -4,17 +4,18 @@
 
 #pragma once
 
-#include "mldsp.h"
-#include "madronalib.h"
-#include "MLPlatform.h"
-#include "MLParameters.h"
-#include "MLDSPUtils.h"
 #include "MLActor.h"
+#include "MLDSPUtils.h"
+#include "MLParameters.h"
+#include "MLPlatform.h"
+#include "madronalib.h"
+#include "mldsp.h"
 
 constexpr size_t kPublishedSignalMaxChannels = 2;
 constexpr size_t kPublishedSignalReadFrames = 128;
 
-namespace ml {
+namespace ml
+{
 
 // SignalProcessor is the top level object in a DSP graph. The app or plugin calls it to generate
 // audio as needed. It has facilities for sending audio data to outside the graph, and
@@ -22,8 +23,7 @@ namespace ml {
 
 class SignalProcessor
 {
-public:
-  
+ public:
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
   class PublishedSignal
@@ -31,60 +31,61 @@ public:
     Downsampler _downsampler;
     DSPBuffer _buffer;
     size_t _channels{0};
-    
-  public:
+
+   public:
     PublishedSignal(int channels, int octavesDown);
     ~PublishedSignal() = default;
-    
+
     inline size_t getNumChannels() const { return _channels; }
-    inline int getAvailableFrames() const { return _buffer.getReadAvailable()/_channels; }
-    
+    inline int getAvailableFrames() const { return _buffer.getReadAvailable() / _channels; }
+
     // write a single DSPVectorArray< CHANNELS > of data.
-    template< size_t CHANNELS >
-    inline void write(DSPVectorArray< CHANNELS > v)
+    template <size_t CHANNELS>
+    inline void write(DSPVectorArray<CHANNELS> v)
     {
       // write to downsampler, which returns true if there is a new output vector
-      if(_downsampler.write(v))
+      if (_downsampler.write(v))
       {
         // write output vector array to the buffer
-        _buffer.write(_downsampler.read< CHANNELS >());
+        _buffer.write(_downsampler.read<CHANNELS>());
       }
     }
-    
+
     // read the latest n frames of data, where each frame is a DSPVectorArray< CHANNELS >.
     size_t readLatest(float* pDest, size_t framesRequested);
-    
+
     // read the next n frames of data.
     size_t read(float* pDest, size_t framesRequested);
   };
-  
+
   // SignalProcessor::ProcessTime maintains the current time in a DSP process and can track
   // the time in the host application if there is one.
-  
+
   class ProcessTime
   {
-  public:
+   public:
     ProcessTime() = default;
     ~ProcessTime() = default;
-    
+
     // Set the time and bpm. The time refers to the start of the current engine processing block.
-    void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying, double sampleRate);
-    
+    void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying,
+                        double sampleRate);
+
     // clear state
     void clear();
 
     // generate phasors from the input parameters
     void process();
-     
+
     // signals containing time from score start
     DSPVector _quarterNotesPhase;
     DSPVector _seconds;
     DSPVector _secondsPhase;
 
-  private:
+   private:
     float _omega{0};
     bool _playing1{false};
-    bool _active1 {false};
+    bool _active1{false};
     double _dpdt{0};
     double _dsdt{0};
     double _phase1{0};
@@ -94,94 +95,87 @@ public:
     double _secondsCounter{0};
     double _secondsPhaseCounter{0};
   };
-    
+
   // class used for assigning each instance of our SignalProcessor a unique ID
   // TODO refactor w/ ProcessorRegistry etc.
   class ProcessorRegistry
   {
     std::mutex _IDMutex;
     size_t _IDCounter{0};
-  public:
+
+   public:
     size_t getUniqueID()
     {
       std::unique_lock<std::mutex> lock(_IDMutex);
       return ++_IDCounter;
     }
   };
-  
-  SignalProcessor(size_t nInputs, size_t nOutputs) :
-    processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames)
-  {}
-  
-  virtual ~SignalProcessor() {}
-  
-  virtual void processVector(MainInputs inputs, MainOutputs outputs, void *stateData = nullptr) {}
-  
-  void setParam(Path pname, float val)
+
+  SignalProcessor(size_t nInputs, size_t nOutputs)
+      : processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames)
   {
-    _params.setParamFromNormalizedValue(pname, val);
   }
+
+  virtual ~SignalProcessor() {}
+
+  virtual void processVector(MainInputs inputs, MainOutputs outputs, void* stateData = nullptr) {}
+
+  void setParam(Path pname, float val) { _params.setParamFromNormalizedValue(pname, val); }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
     buildParameterTree(paramList, _params);
   };
-  
-  inline void dumpParams()
-  {
-    _params.dump();
-  };
-  
-protected:
-  
+
+  inline void dumpParams() { _params.dump(); };
+
+ protected:
   // the maximum amount of input frames that can be proceesed at once. This determines the
   // maximum signal vector size of the plugin host or enclosing app.
-  static constexpr int kMaxProcessBlockFrames {4096};
-  
-  // the plain parameter values are stored here.
-  ParameterTreePlain _params;  
+  static constexpr int kMaxProcessBlockFrames{4096};
 
-  SharedResourcePointer< ProcessorRegistry > _registry ;
+  // the plain parameter values are stored here.
+  ParameterTreePlain _params;
+
+  SharedResourcePointer<ProcessorRegistry> _registry;
   size_t _uniqueID;
-    
+
   float _sampleRate{0.f};
   ProcessTime _currentTime;
 
   // buffer object to call processVector() from process() calls of arbitrary frame sizes
   VectorProcessBuffer processBuffer;
 
-  std::vector< ml::Path > _paramNamesByID; // needed?
-  Tree< size_t > _paramIDsByName;
-  
+  std::vector<ml::Path> _paramNamesByID;  // needed?
+  Tree<size_t> _paramIDsByName;
+
   // single buffer for reading from signals
-  std::vector< float > _readBuffer;
+  std::vector<float> _readBuffer;
 
   // brief way to access params:
   inline float getParamNormalized(Path pname) { return getNormalizedValue(_params, pname); }
   inline float getParam(Path pname) { return getPlainValue(_params, pname); }
-  
-  Tree< std::unique_ptr< PublishedSignal > > _publishedSignals;
-  
+
+  Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
+
   inline void publishSignal(Path signalName, int channels, int octavesDown)
   {
-    _publishedSignals[signalName] = ml::make_unique< PublishedSignal >(channels, octavesDown);
+    _publishedSignals[signalName] = ml::make_unique<PublishedSignal>(channels, octavesDown);
   }
-  
+
   // store a DSPVectorArray to the named signal buffer.
-  // we need a buffer for each published signal here in the Processor because we can't communicate with
-  // the Controller in the audio thread.
-  
-  template< size_t CHANNELS >
-  inline void storePublishedSignal(Path signalName, DSPVectorArray< CHANNELS > v)
+  // we need a buffer for each published signal here in the Processor because we can't communicate
+  // with the Controller in the audio thread.
+
+  template <size_t CHANNELS>
+  inline void storePublishedSignal(Path signalName, DSPVectorArray<CHANNELS> v)
   {
     PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
-    if(publishedSignal)
+    if (publishedSignal)
     {
       publishedSignal->write(v);
     }
   }
 };
 
-} // namespaces
-
-
+}  // namespace ml

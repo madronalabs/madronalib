@@ -43,7 +43,7 @@ void ProcMultiply::process()
 
 namespace
 {
-  static ProcRegistryEntry<ProcMultiply> classReg("multiply");
+static ProcRegistryEntry<ProcMultiply> classReg("multiply");
 }
 
 #endif
