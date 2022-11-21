@@ -71,7 +71,7 @@ inline void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, voi
 class RtAudioProcessor : public SignalProcessor, public Actor
 {
   // all the info about the DSP task to be done
-  RtAudioProcessData _data;
+  RtAudioProcessData _processData;
 
   // the RtAudio controller
   RtAudio _adac;
@@ -85,22 +85,22 @@ class RtAudioProcessor : public SignalProcessor, public Actor
                    ProcessVectorFn processFn = nullptr, void* state = nullptr)
       : SignalProcessor(nInputs, nOutputs)
   {
-    _data.pProcessBuffer = &processBuffer;
+    _processData.pProcessBuffer = &processBuffer;
 
     if (processFn)
     {
-      _data.processFn = processFn;
-      _data.processState = state;
+      _processData.processFn = processFn;
+      _processData.processState = state;
     }
     else
     {
-      _data.processFn = SignalProcessorProcessVectorFn;
-      _data.processState = this;
+      _processData.processFn = SignalProcessorProcessVectorFn;
+      _processData.processState = this;
     }
 
-    _data.nInputs = nInputs;
-    _data.nOutputs = nOutputs;
-    _data.sampleRate = sampleRate;
+    _processData.nInputs = nInputs;
+    _processData.nOutputs = nOutputs;
+    _processData.sampleRate = sampleRate;
   }
 
   ~RtAudioProcessor() = default;
@@ -133,21 +133,21 @@ class RtAudioProcessor : public SignalProcessor, public Actor
     // Set up RtAudio stream params
     RtAudio::StreamParameters iParams, oParams;
     iParams.deviceId = _adac.getDefaultInputDevice();
-    iParams.nChannels = _data.nInputs;
+    iParams.nChannels = _processData.nInputs;
     iParams.firstChannel = 0;
     oParams.deviceId = _adac.getDefaultOutputDevice();
-    oParams.nChannels = _data.nOutputs;
+    oParams.nChannels = _processData.nOutputs;
     oParams.firstChannel = 0;
 
     RtAudio::StreamOptions options;
     options.flags |= RTAUDIO_NONINTERLEAVED;
 
-    auto pInputParams = (_data.nInputs ? &iParams : nullptr);
+    auto pInputParams = (_processData.nInputs ? &iParams : nullptr);
 
     try
     {
-      _adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32, _data.sampleRate,
-                       &_data.bufferFrames, &RtAudioCallbackFn, &_data, &options);
+      _adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32, _processData.sampleRate,
+                       &_processData.bufferFrames, &RtAudioCallbackFn, &_processData, &options);
     }
     catch (RtAudioError& e)
     {
@@ -174,10 +174,10 @@ class RtAudioProcessor : public SignalProcessor, public Actor
 
     // Test RtAudio functionality for reporting latency.
     std::cout << "\nStream latency = " << _adac.getStreamLatency() << " frames" << std::endl;
-    std::cout << "sample rate: " << _data.sampleRate << "\n";
+    std::cout << "sample rate: " << _processData.sampleRate << "\n";
 
     // wait for enter key.
-    std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << _data.bufferFrames
+    std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << _processData.bufferFrames
               << ").\n";
     std::cin.get(input);
   }
