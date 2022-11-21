@@ -68,7 +68,7 @@ inline void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, voi
   return pProc->processVector(ins, outs);
 };
 
-class RtAudioProcessor : public SignalProcessor, public Actor
+struct RtAudioProcessor : public SignalProcessor, public Actor
 {
   // all the info about the DSP task to be done
   RtAudioProcessData _processData;
@@ -76,7 +76,6 @@ class RtAudioProcessor : public SignalProcessor, public Actor
   // the RtAudio controller
   RtAudio _adac;
 
- public:
   // the RtAudioProcessor constructor just fills in the data struct with everything needed to run
   // the DSP graph. processFn points to a function that will be called by the VectorProcessBuffer.
   // processState points to any persistent state that needs to be sent to the function. This can be
