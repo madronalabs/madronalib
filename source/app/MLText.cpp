@@ -182,6 +182,45 @@ TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const
              t3.lengthInBytes(), t4.getText(), t4.lengthInBytes());
 }
 
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
+                           const TextFragment& t4, const TextFragment& t5) noexcept
+{
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
+             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
+             t5.getText(), t5.lengthInBytes());
+}
+
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
+                           const TextFragment& t3, const TextFragment& t4,
+                           const TextFragment& t5, const TextFragment& t6) noexcept
+{
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
+             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
+             t5.getText(), t5.lengthInBytes(), t6.getText(), t6.lengthInBytes());
+}
+
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
+                           const TextFragment& t3, const TextFragment& t4,
+                           const TextFragment& t5, const TextFragment& t6,
+                           const TextFragment& t7) noexcept
+{
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
+             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
+             t5.getText(), t5.lengthInBytes(), t6.getText(), t6.lengthInBytes(),
+             t7.getText(), t7.lengthInBytes());
+}
+
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
+                           const TextFragment& t3, const TextFragment& t4,
+                           const TextFragment& t5, const TextFragment& t6,
+                           const TextFragment& t7, const TextFragment& t8) noexcept
+{
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
+             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
+             t5.getText(), t5.lengthInBytes(), t6.getText(), t6.lengthInBytes(),
+             t7.getText(), t7.lengthInBytes(), t8.getText(), t8.lengthInBytes());
+}
+
 TextFragment::~TextFragment() noexcept { _dispose(); }
 
 void TextFragment::_construct(const char* s1, size_t len1, const char* s2, size_t len2,
@@ -194,6 +233,28 @@ void TextFragment::_construct(const char* s1, size_t len1, const char* s2, size_
     if (len2) std::copy(s2, s2 + len2, _pText + len1);
     if (len3) std::copy(s3, s3 + len3, _pText + len1 + len2);
     if (len4) std::copy(s4, s4 + len4, _pText + len1 + len2 + len3);
+    _nullTerminate();
+  }
+}
+
+void TextFragment::_construct2(const char* s1, size_t len1, const char* s2, size_t len2,
+                               const char* s3, size_t len3, const char* s4, size_t len4,
+                               const char* s5, size_t len5, const char* s6, size_t len6,
+                               const char* s7, size_t len7, const char* s8, size_t len8
+                               
+                               ) noexcept
+{
+  _allocate(len1 + len2 + len3 + len4 + len5 + len6 + len7 + len8);
+  if (_pText)
+  {
+    if (len1) std::copy(s1, s1 + len1, _pText);
+    if (len2) std::copy(s2, s2 + len2, _pText + len1);
+    if (len3) std::copy(s3, s3 + len3, _pText + len1 + len2);
+    if (len4) std::copy(s4, s4 + len4, _pText + len1 + len2 + len3);
+    if (len5) std::copy(s5, s5 + len5, _pText + len1 + len2 + len3 + len4);
+    if (len6) std::copy(s6, s6 + len6, _pText + len1 + len2 + len3 + len4 + len5);
+    if (len7) std::copy(s7, s7 + len7, _pText + len1 + len2 + len3 + len4 + len5 + len6);
+    if (len8) std::copy(s8, s8 + len8, _pText + len1 + len2 + len3 + len4 + len5 + len6 + len7);
     _nullTerminate();
   }
 }
