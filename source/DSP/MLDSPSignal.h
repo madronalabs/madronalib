@@ -16,7 +16,7 @@ struct Signal
 {
   size_t channels{0};
   size_t sampleRate{0};
-  std::vector< float > data;
+  std::vector<float> data;
 };
 
 inline float findMaximumSample(const Signal& x)
@@ -27,16 +27,12 @@ inline float findMaximumSample(const Signal& x)
 inline void normalize(Signal& x)
 {
   float ratio = 1.0f / findMaximumSample(x);
-  for(int i=0; i<x.data.size(); ++i)
+  for (int i = 0; i < x.data.size(); ++i)
   {
     x.data[i] *= ratio;
   }
 }
 
-inline void clear(Signal& x)
-{
-  x.data.clear();
-}
-
+inline void clear(Signal& x) { x.data.clear(); }
 
 }  // namespace ml

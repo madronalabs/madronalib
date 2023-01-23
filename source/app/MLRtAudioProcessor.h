@@ -176,8 +176,8 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
     std::cout << "sample rate: " << _processData.sampleRate << "\n";
 
     // wait for enter key.
-    std::cout << "\nRunning ... press <enter> to quit (buffer frames = " << _processData.bufferFrames
-              << ").\n";
+    std::cout << "\nRunning ... press <enter> to quit (buffer frames = "
+              << _processData.bufferFrames << ").\n";
     std::cin.get(input);
   }
 

@@ -185,40 +185,38 @@ TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const
 TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
                            const TextFragment& t4, const TextFragment& t5) noexcept
 {
-  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
-             t5.getText(), t5.lengthInBytes());
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+              t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(), t5.getText(),
+              t5.lengthInBytes());
 }
 
-TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
-                           const TextFragment& t3, const TextFragment& t4,
-                           const TextFragment& t5, const TextFragment& t6) noexcept
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
+                           const TextFragment& t4, const TextFragment& t5,
+                           const TextFragment& t6) noexcept
 {
-  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
-             t5.getText(), t5.lengthInBytes(), t6.getText(), t6.lengthInBytes());
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+              t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(), t5.getText(),
+              t5.lengthInBytes(), t6.getText(), t6.lengthInBytes());
 }
 
-TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
-                           const TextFragment& t3, const TextFragment& t4,
-                           const TextFragment& t5, const TextFragment& t6,
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
+                           const TextFragment& t4, const TextFragment& t5, const TextFragment& t6,
                            const TextFragment& t7) noexcept
 {
-  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
-             t5.getText(), t5.lengthInBytes(), t6.getText(), t6.lengthInBytes(),
-             t7.getText(), t7.lengthInBytes());
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+              t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(), t5.getText(),
+              t5.lengthInBytes(), t6.getText(), t6.lengthInBytes(), t7.getText(),
+              t7.lengthInBytes());
 }
 
-TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2,
-                           const TextFragment& t3, const TextFragment& t4,
-                           const TextFragment& t5, const TextFragment& t6,
+TextFragment::TextFragment(const TextFragment& t1, const TextFragment& t2, const TextFragment& t3,
+                           const TextFragment& t4, const TextFragment& t5, const TextFragment& t6,
                            const TextFragment& t7, const TextFragment& t8) noexcept
 {
-  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(),
-             t3.getText(), t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(),
-             t5.getText(), t5.lengthInBytes(), t6.getText(), t6.lengthInBytes(),
-             t7.getText(), t7.lengthInBytes(), t8.getText(), t8.lengthInBytes());
+  _construct2(t1.getText(), t1.lengthInBytes(), t2.getText(), t2.lengthInBytes(), t3.getText(),
+              t3.lengthInBytes(), t4.getText(), t4.lengthInBytes(), t5.getText(),
+              t5.lengthInBytes(), t6.getText(), t6.lengthInBytes(), t7.getText(),
+              t7.lengthInBytes(), t8.getText(), t8.lengthInBytes());
 }
 
 TextFragment::~TextFragment() noexcept { _dispose(); }
@@ -241,7 +239,7 @@ void TextFragment::_construct2(const char* s1, size_t len1, const char* s2, size
                                const char* s3, size_t len3, const char* s4, size_t len4,
                                const char* s5, size_t len5, const char* s6, size_t len6,
                                const char* s7, size_t len7, const char* s8, size_t len8
-                               
+
                                ) noexcept
 {
   _allocate(len1 + len2 + len3 + len4 + len5 + len6 + len7 + len8);

@@ -142,19 +142,14 @@ class TextFragment
 
  private:
   void _allocate(size_t size) noexcept;
-  void _construct(const char* s1, size_t len1,
-                  const char* s2 = nullptr, size_t len2 = 0,
-                  const char* s3 = nullptr, size_t len3 = 0,
-                  const char* s4 = nullptr, size_t len4 = 0) noexcept;
-  void _construct2(const char* s1, size_t len1,
-                   const char* s2 = nullptr, size_t len2 = 0,
-                   const char* s3 = nullptr, size_t len3 = 0,
-                   const char* s4 = nullptr, size_t len4 = 0,
-                   const char* s5 = nullptr, size_t len5 = 0,
-                   const char* s6 = nullptr, size_t len6 = 0,
-                   const char* s7 = nullptr, size_t len7 = 0,
-                   const char* s8 = nullptr, size_t len8 = 0
-                   ) noexcept;
+  void _construct(const char* s1, size_t len1, const char* s2 = nullptr, size_t len2 = 0,
+                  const char* s3 = nullptr, size_t len3 = 0, const char* s4 = nullptr,
+                  size_t len4 = 0) noexcept;
+  void _construct2(const char* s1, size_t len1, const char* s2 = nullptr, size_t len2 = 0,
+                   const char* s3 = nullptr, size_t len3 = 0, const char* s4 = nullptr,
+                   size_t len4 = 0, const char* s5 = nullptr, size_t len5 = 0,
+                   const char* s6 = nullptr, size_t len6 = 0, const char* s7 = nullptr,
+                   size_t len7 = 0, const char* s8 = nullptr, size_t len8 = 0) noexcept;
   void _nullTerminate() noexcept;
   void _dispose() noexcept;
   void _moveDataFromOther(TextFragment& b);
