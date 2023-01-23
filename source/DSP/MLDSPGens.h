@@ -112,6 +112,7 @@ class NoiseGen
   ~NoiseGen() {}
 
   inline void step() { mSeed = mSeed * 0x0019660D + 0x3C6EF35F; }
+  inline void setSeed(uint32_t x) { mSeed = x; }
 
   inline uint32_t getIntSample()
   {
