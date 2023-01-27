@@ -172,7 +172,6 @@ else()
   #TODO OSC for windows
 endif()
 
-
 # send binary output to the current build/bin
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
@@ -349,9 +348,6 @@ endfunction()
 #--------------------------------------------------------------------
 # build all examples
 #--------------------------------------------------------------------
-
-# TODO- examples would be better in a single examples folder and
-# without Resources dirs and CMakelists.txt for each one in the project.
 
 if(BUILD_EXAMPLES)
     make_example(ReverbExample reverb.cpp)
