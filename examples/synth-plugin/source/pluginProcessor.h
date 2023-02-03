@@ -12,6 +12,7 @@
 #include "madronalib/madronalib.h"
 #include "madronalib/MLPlatform.h"
 #include "madronalib/MLSignalProcessor.h"
+#include "madronalib/MLSynthInput.h"
 
 using namespace ml;
 
