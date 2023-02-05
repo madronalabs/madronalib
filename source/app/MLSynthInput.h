@@ -20,13 +20,14 @@ class SynthInput final
 public:
   
   static constexpr int kMaxVoices{16};
+  static constexpr int kMaxEvents{1024};
   static constexpr int kMPEInputChannels{16};
 
   // rows per voice output signal.
   enum VoiceOutputSignals
   {
-    kPitch = 0,
-    kVelocity,
+    kVelocity = 0,
+    kPitch,
     kVoice,
     kAftertouch,
     kMod,
@@ -61,18 +62,19 @@ public:
       kSustainPedal
     };
     
+    Event() = default;
+    ~Event() = default;
+
     Type type{kNull};
     int channel;
     int creatorID; // the MIDI key or touch number that created the event.
-    uint64_t time; // time in samples since DSP engine restart.
+    int time; // time in samples from start of current process buffer
     float value1{0};
     float value2{0};
     float value3{0};
     float value4{0};
     
     explicit operator bool() const { return type != kNull; }
-    
-    void clear();
   };
   
   #pragma mark -
@@ -89,27 +91,39 @@ public:
       kSustain
     };
     
-    Voice();
+    Voice() = default;
     ~Voice() = default;
 
     void setSampleRate(float sr);
-    void clear();
+
+    void reset();
+
+    // send to start processing a new buffer.
+    void beginProcess();
     
     // send a note on, off or sustain event to the voice.
     void addNoteEvent(const Event& e, const Scale& Scale);
     void stealNoteEvent(const Event& e, const Scale& Scale, bool retrig);
+
+    // write all current info to the end of the current buffer.
+    void endProcess();
+
     
     int state{kOff};
+    size_t nextTime{0};
+    float velocity{0};
+    float pitch{0};
     int creatorID{0}; // for matching event sources, could be MIDI key, or touch number.
-    int note{0};
     int age{0};  // time active, measured to the end of the current process buffer
-    int channel{0}; // channel that activated this voice -- for MPE
+
+    
 
     LinearGlide pitchGlide;
     LinearGlide aftertouchGlide;
     LinearGlide modGlide;
     LinearGlide xGlide;
     LinearGlide yGlide;
+    
     
     // todo drift
     
@@ -127,15 +141,14 @@ public:
   // clear all voices and reset state.
   void reset();
 
+  // clear all events in queue.
+  void clearEvents();
+
   // add an event to the queue.
   void addEvent(const Event& e);
   
-  // process all events in queue starting from time t and generate output signals.
-  void processEvents(uint64_t startTime);
-  
-  // process VST3 event input
-  // void processEvents(Steinberg::Vst::IEventList* events);
-  // no, do externally! A VST synth can use this but madronalib does not have to include VST3.
+  // process all events in queue and generate output signals.
+  void processEvents();
   
 private:
   
@@ -170,8 +183,7 @@ private:
   Scale _scale;
   Protocol _protocol;
   
-  std::deque< Event > _eventsPlaying;
-  std::deque< Event > _eventsToProcess;
+  Queue< Event > _eventQueue;
   
   // a special voice for the MPE "Main Channel"
   // stores main pitch bend and controller inputs, which are added to other voices.
@@ -234,7 +246,7 @@ inline bool isFree(const SynthInput::Event& e)
 
 
 
-int findFreeEvent(const std::deque< SynthInput::Event >& events)
+inline int findFreeEvent(const std::deque< SynthInput::Event >& events)
 {
   
   /*

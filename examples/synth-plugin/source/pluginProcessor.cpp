@@ -62,8 +62,10 @@ tresult PLUGIN_API PluginProcessor::setActive(TBool state)
 
 tresult PLUGIN_API PluginProcessor::process(ProcessData& data)
 {
+  // process parameter changes and events, generating input signals.
   processParameterChanges(data.inputParameterChanges);
   processEvents(data.inputEvents);
+  
   processSignals(data);
   return kResultTrue;
 }
@@ -141,6 +143,9 @@ tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
   // currentProcessMode = newSetup.processMode;
   
   _sampleRate = newSetup.sampleRate;
+  
+  _synthInput = make_unique< SynthInput >(_sampleRate);
+  
   return AudioEffect::setupProcessing(newSetup);
 }
 
@@ -216,42 +221,47 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
       }
     }
   }
-  return false;
+  return false; 
 }
-
 
 void PluginProcessor::processEvents (IEventList* events)
 {
+  if(!_synthInput.get()) return;
+  
+  // send all VST events to our SynthInput
   if (events)
   {
     int32 npos=0;
     int32 count = events->getEventCount ();
     for (int32 i = 0; i < count; i++)
     {
-      Event e;
-      events->getEvent (i, e);
+      Steinberg::Vst::Event e;
+      events->getEvent(i, e);
+      
+      int channel{1};
+      int creatorID{e.noteOn.pitch};
+      int time{e.sampleOffset};
+      float pitch{e.noteOn.pitch + 0.f};
+      
       switch (e.type)
       {
         case Event::kNoteOnEvent:
         {
+      //    std::cout << "note on! " << e.sampleOffset << " " << e.noteOn.pitch << " " << e.noteOn.velocity << "\n";
           
-          std::cout << "note on! " << e.noteOn.pitch << " " << e.noteOn.velocity << "\n";
-          /*
-           notes[npos++] = e.sampleOffset;
-           notes[npos++] = e.noteOn.pitch;
-           notes[npos++] = e.noteOn.velocity * 127;
-           */
+          _synthInput->addEvent(ml::SynthInput::Event{ml::SynthInput::Event::kNoteOn, channel, creatorID, time,
+            pitch, e.noteOn.velocity});
           
           break;
         }
         case Event::kNoteOffEvent:
         {
-          /*
-           notes[npos++] = e.sampleOffset;
-           notes[npos++] = e.noteOff.pitch;
-           notes[npos++] = 0;
-           */
+     //     std::cout << "note off! " << e.sampleOffset << " " << e.noteOn.pitch << " " << e.noteOn.velocity << "\n";
           
+          _synthInput->addEvent(ml::SynthInput::Event{ml::SynthInput::Event::kNoteOff, channel, creatorID, time,
+            pitch, 0});
+          
+
           break;
         }
         default:
@@ -294,11 +304,20 @@ void PluginProcessor::processSignals(ProcessData& data)
   
   // run buffered processing
   processBuffer.process(nullptr, outputs, data.numSamples, PluginProcessorProcessVectorFn, this);
-  
 }
 
+// the main process routine! does everything.
+//
 void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
 {
+
+  // turn them into signals
+  if(_synthInput)
+  {
+    _synthInput->processEvents();
+  }
+  
+  
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
   // The output sines are multiplied by the gain.

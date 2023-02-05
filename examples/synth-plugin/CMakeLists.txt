@@ -2,14 +2,12 @@
 # to run, set VST3_SDK_ROOT to inform CMake where the VST3 SDK is, for example:
 # mkdir build
 # cd build
-# cmake -DVST3_SDK_ROOT=/Users/randy/dev/vst3sdk -DCMAKE_BUILD_TYPE=Debug -GXcode ..
+# cmake -DVST3_SDK_ROOT=/Users/randy/dev/VST3_SDK -DCMAKE_BUILD_TYPE=Debug -GXcode ..
 
 cmake_minimum_required (VERSION 3.9)
 
 set(VST3_SDK_ROOT "" CACHE PATH "Location of VST3 SDK")
 set(public_sdk_SOURCE_DIR ${VST3_SDK_ROOT}/public.sdk)
-
-
 
  IF(APPLE)
   SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
@@ -59,6 +57,27 @@ set(llllpluginnamellll_sources
 )
  
  #--------------------------------------------------------------------
+ # find madronalib
+ #--------------------------------------------------------------------
+ 
+ if(APPLE)
+     include(GNUInstallDirs)
+     set (MADRONALIB_INCLUDE_DIR ${CMAKE_INSTALL_FULL_INCLUDEDIR})
+     set (MADRONALIB_LIBRARY_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+ elseif(WIN32)
+     set (MADRONALIB_INCLUDE_DIR "C:/Program Files/madronalib/include")
+     set (MADRONALIB_LIBRARY_DIR "C:/Program Files/madronalib/lib")
+ else()
+ endif()
+ 
+ # add -debug suffix to link debug madronalib for debug builds
+ set(madronalib_NAME madrona$<$<CONFIG:Debug>:-debug>)
+ 
+ message("madronalib headers should be in: " ${MADRONALIB_INCLUDE_DIR} )
+ message("madronalib library should be at: " ${MADRONALIB_LIBRARY_DIR}/${madronalib_NAME} )
+ 
+ 
+ #--------------------------------------------------------------------
  # VST target
  #--------------------------------------------------------------------
 
@@ -93,11 +112,13 @@ include(GNUInstallDirs)
 message("madronalib should be in: " ${CMAKE_INSTALL_FULL_LIBDIR} )
 message("madronalib headers should be in: " ${CMAKE_INSTALL_FULL_INCLUDEDIR} )
 
-
-#add madronalib directory
 target_include_directories(${target} PRIVATE ${CMAKE_INSTALL_FULL_INCLUDEDIR})
 
-target_link_libraries(${target} PRIVATE "${CMAKE_INSTALL_FULL_LIBDIR}/libmadrona.a")
+if(APPLE)
+     target_link_libraries(${target} PRIVATE "${MADRONALIB_LIBRARY_DIR}/lib${madronalib_NAME}.a")   
+elseif(WIN32)
+    target_link_libraries(${target} PRIVATE "${MADRONALIB_LIBRARY_DIR}/${madronalib_NAME}.lib")
+endif()
 
 #---------------------------------------------------------
 # add au target using auwrapper.

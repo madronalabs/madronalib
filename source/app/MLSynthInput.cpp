@@ -6,7 +6,7 @@
 
 #include "MLSynthInput.h"
 
-using namespace ml;
+namespace ml {
 
 const ml::Symbol voicesSym("voices");
 const ml::Symbol data_rateSym("data_rate");
@@ -54,10 +54,6 @@ const float SynthInput::kDriftRandomAmount = 0.002f;
 static const float kDriftIntervalSeconds{0.5f};
 static const float kGlideTimeSeconds{0.5f};
 
-SynthInput::Voice::Voice()
-{
-  clear();
-}
 
 void SynthInput::Voice::setSampleRate(float sr)
 {
@@ -68,37 +64,62 @@ void SynthInput::Voice::setSampleRate(float sr)
   yGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
 }
 
-void SynthInput::Voice::clear()
+
+// done when DSP is reset.
+void SynthInput::Voice::reset()
 {
   state = kOff;
-  creatorID = 0;
-  note = 0.;
+  nextTime = 0;
   age = 0;
-  channel = 0;
+  velocity = 0;
+  pitch = 0;
+  creatorID = 0;
 }
 
-void SynthInput::Voice::addNoteEvent(const Event& e, const Scale& Scale)
+void SynthInput::Voice::beginProcess()
+{
+  nextTime = 0;
+}
+
+
+// TODO retrig if needed
+
+// write current pitch and vel to next note time
+
+
+// set new note pitch, vel, creatorID
+
+
+// start new note, setting note and velocity from OSC or MIDI
+
+void SynthInput::Voice::addNoteEvent(const Event& e, const Scale& scale)
 {
   auto time = e.time;
   
   switch(e.type)
   {
     case Event::kNoteOn:
-      // start new note, setting note and velocity from OSC or MIDI
+    {
       state = kOn;
-      note = e.value1;
-      
-      // std::cout << "add note event ON : inst: " << e.creatorID << " pitch " << mNote << " vel " << e.value2 << "\n";
-      //mdPitch.addChange(scale.noteToLogPitch(mNote), time);
-      //mdGate.addChange(1.f, time);
-      //mdVel.addChange(e.value2, time);
-      
-
       age = 0;
-      creatorID = e.creatorID;
-      channel = e.channel;
+      size_t destTime = e.time;
+      destTime = clamp(destTime, 0UL, (size_t)kFloatsPerDSPVector);
+
+      // write current pitch and vel up to note start
+      for(size_t t = nextTime; t < destTime; ++t)
+      {
+        outputs[kVelocity] = velocity;
+        
+        // TODO sample accurate glide
+        outputs[kPitch] = pitch;
+      }
+       
+      // set new values
+      pitch = scale.noteToLogPitch(e.value1);
+      velocity = e.value2; // TODO union
+
       break;
-      
+    }
     case Event::kNoteUpdate:
       // update note, z, x, y from OSC
       
@@ -120,18 +141,38 @@ void SynthInput::Voice::addNoteEvent(const Event& e, const Scale& Scale)
       state = kSustain;
       break;
     case Event::kNoteOff:
+    {
+      state = kOff;
+
+      size_t destTime = e.time;
+      destTime = clamp(destTime, 0UL, (size_t)kFloatsPerDSPVector);
+      
+      // write current values up to change
+      for(size_t t = nextTime; t < destTime; ++t)
+      {
+        outputs[kVelocity] = velocity;
+        
+        // TODO sample accurate glide
+        outputs[kPitch] = pitch;
+      }
+      
+      // set new values
+      velocity = 0.;
+      
+      break;
+    }
     default:
       state = kOff;
       
       //  std::cout << "add note event OFF: inst: " << e.creatorID << " pitch " << mNote << "\n";
-     // mdGate.addChange(0.f, time);
-    //  mdAmp.addChange(0.f, time);
-    //  mdVel.addChange(0.f, time);
-   //   mdNotePressure.addChange(0.f, time);
+      // mdGate.addChange(0.f, time);
+      //  mdAmp.addChange(0.f, time);
+      //  mdVel.addChange(0.f, time);
+      //   mdNotePressure.addChange(0.f, time);
       
       // for MPE mode when controlling envelopes with aftertouch: ensure
       // notes are not sending pressure when off
-    //  mdChannelPressure.addChange(0.f, time);
+      //  mdChannelPressure.addChange(0.f, time);
       age = 0;
       
       // we leave channel alone so that pitch bends will retain their values when the note ends
@@ -153,26 +194,40 @@ void SynthInput::Voice::stealNoteEvent(const Event& e, const Scale& Scale, bool 
   if (time == 0) time++; // in case where time = 0, make room for retrigger.
   
   state = kOn;
-  creatorID = e.creatorID;
+//  creatorID = e.creatorID;
   note = note;
   age = 0;
- // mdPitch.addChange(scale.noteToLogPitch(note), time);
+  // mdPitch.addChange(scale.noteToLogPitch(note), time);
   
   if (retrig)
   {
- //   mdGate.addChange(0.f, time - 1);
- //   mdNotePressure.addChange(0.f, time - 1);
-
+    //   mdGate.addChange(0.f, time - 1);
+    //   mdNotePressure.addChange(0.f, time - 1);
+    
   }
   
-//  mdGate.addChange(1, time);
-//  mdAmp.addChange(vel, time);
-//  mdVel.addChange(vel, time);
+  //  mdGate.addChange(1, time);
+  //  mdAmp.addChange(vel, time);
+  //  mdVel.addChange(vel, time);
   
   currentUnisonNoteEvent = e;
   
 }
 
+
+void SynthInput::Voice::endProcess()
+{
+  
+  for(size_t t = nextTime; t < kFloatsPerDSPVector; ++t)
+  {
+    outputs[kVelocity] = velocity;
+    
+    // write pitch to end of buffer.
+    // TODO sample accurate glide
+    outputs[kPitch] = pitch;
+
+  }
+}
 
 
 #pragma mark -
@@ -180,16 +235,16 @@ void SynthInput::Voice::stealNoteEvent(const Event& e, const Scale& Scale, bool 
 // registry section
 
 /*
-namespace
-{
-MLProcRegistryEntry<SynthInput> classReg("midi_to_signals");
-ML_UNUSED MLProcParam<SynthInput> params[12] = { "bufsize", "voices", "bend", "bend_mpe", "mod", "mod_mpe_x", "unison", "glide", "protocol", "data_rate" , "scale", "master_tune"};
-// no input signals.
-ML_UNUSED MLProcOutput<SynthInput> outputs[] = {"*"};  // variable outputs
-}
-*/
+ namespace
+ {
+ MLProcRegistryEntry<SynthInput> classReg("midi_to_signals");
+ ML_UNUSED MLProcParam<SynthInput> params[12] = { "bufsize", "voices", "bend", "bend_mpe", "mod", "mod_mpe_x", "unison", "glide", "protocol", "data_rate" , "scale", "master_tune"};
+ // no input signals.
+ ML_UNUSED MLProcOutput<SynthInput> outputs[] = {"*"};  // variable outputs
+ }
+ */
 
-SynthInput::SynthInput(int sr)
+SynthInput::SynthInput(int sr) : _eventQueue(kMaxEvents)
 {
   _voices.resize(kMaxVoices);
   
@@ -197,9 +252,6 @@ SynthInput::SynthInput(int sr)
   {
     _voices[i].setSampleRate(sr);
   }
-  
-  _eventsPlaying.resize(kMaxEvents);
-  _eventsToProcess.resize(kMaxEvents);
 }
 
 SynthInput::~SynthInput()
@@ -213,224 +265,223 @@ size_t SynthInput::setPolyphony(int n)
 }
 
 /*
-// set up output buffers
-MLProc::err SynthInput::resize()
-{
-  float sr = getContextSampleRate();
-  static const ml::Symbol bufsizeSym("bufsize");
-  
-  MLProc::err re = OK;
-  
-  // resize voices
-  //
-  int bufSize = (int)getParam(bufsizeSym);
-  int vecSize = getContextVectorSize();
-  
-  int kMaxVoices = getContext()->getRootContext()->getMaxVoices();
-  _voices.resize(kMaxVoices);
-  
-  MLProc::err r;
-  for(int i=0; i<kMaxVoices; ++i)
-  {
-    _voices[i].setSampleRate(sr);
-    _voices[i].resize(bufSize);
-  }
-  _MPEMainVoice.resize(bufSize);
-  
-  // make signals that apply to all voices
-  mTempSignal.setDims(vecSize);
-  mMainPitchSignal.setDims(vecSize);
-  mMainChannelPressureSignal.setDims(vecSize);
-  mMainModSignal.setDims(vecSize);
-  mMainMod2Signal.setDims(vecSize);
-  mMainMod3Signal.setDims(vecSize);
-  
-  // make outputs
-  //
-  for(int i=1; i <= kMaxVoices * kNumVoiceSignals; ++i)
-  {
-    if (!outputIsValid(i))
-    {
-      setOutput(i, getContext()->getNullOutput());
-    }
-  }
-  
-  // do voice params
-  //
-  for(int i=0; i<kMaxVoices; ++i)
-  {
-    if((i*kNumVoiceSignals + 1) < getNumOutputs())
-    {
-      // set initial pitch to 0.
-      _voices[i].mdPitch.addChange(0.f, 0);
-      MLSignal& out = getOutput(i*kNumVoiceSignals + 1);
-      _voices[i].mdPitch.writeToSignal(out, vecSize);
-      _voices[i].mdPitchBend.addChange(0.f, 0);
-      _voices[i].mdDrift.setGlideTime(kDriftInterval);
-    }
-  }
-  
-  for(auto& c : mPitchBendChangesByChannel)
-  {
-    c.setSampleRate(sr);
-    c.setDims(vecSize);
-  }
-  for(auto& c : mPitchBendSignals)
-  {
-    c.setDims(vecSize);
-  }
-  
-  clearChangeLists();
-  return re;
-}
-*/
+ // set up output buffers
+ MLProc::err SynthInput::resize()
+ {
+ float sr = getContextSampleRate();
+ static const ml::Symbol bufsizeSym("bufsize");
+ 
+ MLProc::err re = OK;
+ 
+ // resize voices
+ //
+ int bufSize = (int)getParam(bufsizeSym);
+ int vecSize = getContextVectorSize();
+ 
+ int kMaxVoices = getContext()->getRootContext()->getMaxVoices();
+ _voices.resize(kMaxVoices);
+ 
+ MLProc::err r;
+ for(int i=0; i<kMaxVoices; ++i)
+ {
+ _voices[i].setSampleRate(sr);
+ _voices[i].resize(bufSize);
+ }
+ _MPEMainVoice.resize(bufSize);
+ 
+ // make signals that apply to all voices
+ mTempSignal.setDims(vecSize);
+ mMainPitchSignal.setDims(vecSize);
+ mMainChannelPressureSignal.setDims(vecSize);
+ mMainModSignal.setDims(vecSize);
+ mMainMod2Signal.setDims(vecSize);
+ mMainMod3Signal.setDims(vecSize);
+ 
+ // make outputs
+ //
+ for(int i=1; i <= kMaxVoices * kNumVoiceSignals; ++i)
+ {
+ if (!outputIsValid(i))
+ {
+ setOutput(i, getContext()->getNullOutput());
+ }
+ }
+ 
+ // do voice params
+ //
+ for(int i=0; i<kMaxVoices; ++i)
+ {
+ if((i*kNumVoiceSignals + 1) < getNumOutputs())
+ {
+ // set initial pitch to 0.
+ _voices[i].mdPitch.addChange(0.f, 0);
+ MLSignal& out = getOutput(i*kNumVoiceSignals + 1);
+ _voices[i].mdPitch.writeToSignal(out, vecSize);
+ _voices[i].mdPitchBend.addChange(0.f, 0);
+ _voices[i].mdDrift.setGlideTime(kDriftInterval);
+ }
+ }
+ 
+ for(auto& c : mPitchBendChangesByChannel)
+ {
+ c.setSampleRate(sr);
+ c.setDims(vecSize);
+ }
+ for(auto& c : mPitchBendSignals)
+ {
+ c.setDims(vecSize);
+ }
+ 
+ clearChangeLists();
+ return re;
+ }
+ */
 
 /*
-
-void SynthInput::doParams()
-{
-  int kMaxVoices = getContext()->getRootContext()->getMaxVoices();
-  int newVoices = (int)getParam(voicesSym);
-  newVoices = ml::clamp(newVoices, 0, 15);
-  
-  // TODO enable / disable voice containers here
-  mOSCDataRate = (int)getParam(data_rateSym);
-  
-  const ml::Text& scaleName = getTextParam(scaleSym);
-  _scale.loadFromRelativePath(scaleName);
-  
-  mMasterTune = getParam("master_tune");
-  if(within(mMasterTune, 220.f, 880.f))
-  {
-    mMasterPitchOffset = log2f(mMasterTune/440.f);
-  }
-  
-  const int newProtocol = (int)getParam(protocolSym);
-  _protocol = newProtocol;
-  
-  mGlide = getParam(glideSym);
-  for (int v=0; v<kMaxVoices; ++v)
-  {
-    _voices[v].mdPitch.setGlideTime(mGlide);
-    _voices[v].mdPitchBend.setGlideTime(mGlide);
-  }
-  _MPEMainVoice.mdPitchBend.setGlideTime(mGlide);
-  
-  float oscGlide = (1.f / std::max(100.f, (float)mOSCDataRate));
-  
-  switch(_protocol)
-  {
-    case kInputProtocolOSC:
-      for(int i=0; i<kMaxVoices; ++i)
-      {
-        _voices[i].mdGate.setGlideTime(0.0f);
-        _voices[i].mdAmp.setGlideTime(oscGlide);
-        _voices[i].mdVel.setGlideTime(0.0f);
-        _voices[i].mdNotePressure.setGlideTime(oscGlide);
-        _voices[i].mdChannelPressure.setGlideTime(oscGlide);
-        _voices[i].mdMod.setGlideTime(oscGlide);
-        _voices[i].mdMod2.setGlideTime(oscGlide);
-        _voices[i].mdMod3.setGlideTime(oscGlide);
-      }
-      break;
-    case kInputProtocolMIDI:
-    case kInputProtocolMIDI_MPE:
-      for(int i=0; i<kMaxVoices; ++i)
-      {
-        _voices[i].mdGate.setGlideTime(0.f);
-        _voices[i].mdAmp.setGlideTime(0.001f);
-        _voices[i].mdVel.setGlideTime(0.f);
-        _voices[i].mdNotePressure.setGlideTime(0.001f);
-        _voices[i].mdChannelPressure.setGlideTime(0.001f);
-        _voices[i].mdMod.setGlideTime(0.001f);
-        _voices[i].mdMod2.setGlideTime(0.001f);
-        _voices[i].mdMod3.setGlideTime(0.001f);
-      }
-      break;
-  }
-  
-  if (newVoices != _polyphony)
-  {
-    _polyphony = newVoices;
-    clear();
-  }
-  
-  // pitch wheel mult
-  _pitchWheelSemitones = getParam(bendSym);
-  
-  // pitch wheel mult
-  _pitchWheelSemitonesMPE = getParam(bendMPESym);
-  
-  // std::cout << "SynthInput: master bend " << _pitchWheelSemitones << ", MPE bend " << _pitchWheelSemitonesMPE << "\n";
-  
-  // listen to controller number mods
-  _controllerNumber = (int)getParam(modSym);
-  _controllerMPEXNumber = (int)getParam(modMPEXSym);
-  
-  int unison = (int)getParam(unisonSym);
-  if (mUnisonMode != unison)
-  {
-    mUnisonMode = unison;
-    clear();
-  }
-  
-  mParamsChanged = false;
-  //dumpParams();  // DEBUG
-}
-*/
+ 
+ void SynthInput::doParams()
+ {
+ int kMaxVoices = getContext()->getRootContext()->getMaxVoices();
+ int newVoices = (int)getParam(voicesSym);
+ newVoices = ml::clamp(newVoices, 0, 15);
+ 
+ // TODO enable / disable voice containers here
+ mOSCDataRate = (int)getParam(data_rateSym);
+ 
+ const ml::Text& scaleName = getTextParam(scaleSym);
+ _scale.loadFromRelativePath(scaleName);
+ 
+ mMasterTune = getParam("master_tune");
+ if(within(mMasterTune, 220.f, 880.f))
+ {
+ mMasterPitchOffset = log2f(mMasterTune/440.f);
+ }
+ 
+ const int newProtocol = (int)getParam(protocolSym);
+ _protocol = newProtocol;
+ 
+ mGlide = getParam(glideSym);
+ for (int v=0; v<kMaxVoices; ++v)
+ {
+ _voices[v].mdPitch.setGlideTime(mGlide);
+ _voices[v].mdPitchBend.setGlideTime(mGlide);
+ }
+ _MPEMainVoice.mdPitchBend.setGlideTime(mGlide);
+ 
+ float oscGlide = (1.f / std::max(100.f, (float)mOSCDataRate));
+ 
+ switch(_protocol)
+ {
+ case kInputProtocolOSC:
+ for(int i=0; i<kMaxVoices; ++i)
+ {
+ _voices[i].mdGate.setGlideTime(0.0f);
+ _voices[i].mdAmp.setGlideTime(oscGlide);
+ _voices[i].mdVel.setGlideTime(0.0f);
+ _voices[i].mdNotePressure.setGlideTime(oscGlide);
+ _voices[i].mdChannelPressure.setGlideTime(oscGlide);
+ _voices[i].mdMod.setGlideTime(oscGlide);
+ _voices[i].mdMod2.setGlideTime(oscGlide);
+ _voices[i].mdMod3.setGlideTime(oscGlide);
+ }
+ break;
+ case kInputProtocolMIDI:
+ case kInputProtocolMIDI_MPE:
+ for(int i=0; i<kMaxVoices; ++i)
+ {
+ _voices[i].mdGate.setGlideTime(0.f);
+ _voices[i].mdAmp.setGlideTime(0.001f);
+ _voices[i].mdVel.setGlideTime(0.f);
+ _voices[i].mdNotePressure.setGlideTime(0.001f);
+ _voices[i].mdChannelPressure.setGlideTime(0.001f);
+ _voices[i].mdMod.setGlideTime(0.001f);
+ _voices[i].mdMod2.setGlideTime(0.001f);
+ _voices[i].mdMod3.setGlideTime(0.001f);
+ }
+ break;
+ }
+ 
+ if (newVoices != _polyphony)
+ {
+ _polyphony = newVoices;
+ clear();
+ }
+ 
+ // pitch wheel mult
+ _pitchWheelSemitones = getParam(bendSym);
+ 
+ // pitch wheel mult
+ _pitchWheelSemitonesMPE = getParam(bendMPESym);
+ 
+ // std::cout << "SynthInput: master bend " << _pitchWheelSemitones << ", MPE bend " << _pitchWheelSemitonesMPE << "\n";
+ 
+ // listen to controller number mods
+ _controllerNumber = (int)getParam(modSym);
+ _controllerMPEXNumber = (int)getParam(modMPEXSym);
+ 
+ int unison = (int)getParam(unisonSym);
+ if (mUnisonMode != unison)
+ {
+ mUnisonMode = unison;
+ clear();
+ }
+ 
+ mParamsChanged = false;
+ //dumpParams();  // DEBUG
+ }
+ */
 
 void SynthInput::reset()
 {
-  _eventsPlaying.clear();
-  _eventsToProcess.clear();
+  _eventQueue.clear();
   
   for(auto& v : _voices)
   {
-    v.clear();
+    v.reset();
   }
   
   // clear glides in progress
   
   // set all other signal generators to defaults
   
-/*
-    for (int v=0; v<kMaxVoices; ++v)
-    {
-      _voices[v].clearState();
-      _voices[v].clearChanges();
-      //      _voices[v].zeroExceptPitch();
-      _voices[v].zeroPressure();
-      
-      MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
-      MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
-      MLSignal& velSig = getOutput(v*kNumVoiceSignals + 3);
-      MLSignal& voiceSig = getOutput(v*kNumVoiceSignals + 4);
-      MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
-      MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
-      MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
-      MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
-      
-      _voices[v].mdPitch.writeToSignal(pitch, vecSize);
-      _voices[v].mdGate.writeToSignal(gate, vecSize);
-      _voices[v].mdVel.writeToSignal(velSig, vecSize);
-      voiceSig.setToConstant(v);
-      
-      _voices[v].mdNotePressure.writeToSignal(after, vecSize);
-      _voices[v].mdChannelPressure.writeToSignal(after, vecSize);
-      _voices[v].mdAmp.writeToSignal(after, vecSize);
-      
-      _voices[v].mdMod.writeToSignal(mod, vecSize);
-      _voices[v].mdMod2.writeToSignal(mod2, vecSize);
-      _voices[v].mdMod3.writeToSignal(mod3, vecSize);
-    }
-  */
+  /*
+   for (int v=0; v<kMaxVoices; ++v)
+   {
+   _voices[v].clearState();
+   _voices[v].clearChanges();
+   //      _voices[v].zeroExceptPitch();
+   _voices[v].zeroPressure();
+   
+   MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
+   MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
+   MLSignal& velSig = getOutput(v*kNumVoiceSignals + 3);
+   MLSignal& voiceSig = getOutput(v*kNumVoiceSignals + 4);
+   MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
+   MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
+   MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
+   MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
+   
+   _voices[v].mdPitch.writeToSignal(pitch, vecSize);
+   _voices[v].mdGate.writeToSignal(gate, vecSize);
+   _voices[v].mdVel.writeToSignal(velSig, vecSize);
+   voiceSig.setToConstant(v);
+   
+   _voices[v].mdNotePressure.writeToSignal(after, vecSize);
+   _voices[v].mdChannelPressure.writeToSignal(after, vecSize);
+   _voices[v].mdAmp.writeToSignal(after, vecSize);
+   
+   _voices[v].mdMod.writeToSignal(mod, vecSize);
+   _voices[v].mdMod2.writeToSignal(mod2, vecSize);
+   _voices[v].mdMod3.writeToSignal(mod3, vecSize);
+   }
+   */
   
   /*
-    _MPEMainVoice.clearState();
-    _MPEMainVoice.clearChanges();
-    //    _MPEMainVoice.zeroExceptPitch();
-    _MPEMainVoice.zeroPressure();
-  */
+   _MPEMainVoice.clearState();
+   _MPEMainVoice.clearChanges();
+   //    _MPEMainVoice.zeroExceptPitch();
+   _MPEMainVoice.zeroPressure();
+   */
   
   _eventCounter = 0;
 }
@@ -449,76 +500,75 @@ void SynthInput::reset()
 // display OSC: pitch gate vel(constant during hold) voice(touch) after(z) dx dy x y
 
 /*
-void SynthInput::process()
-{
-  if (mParamsChanged) doParams();
-  int sr = getContextSampleRate();
-  clearChangeLists();
-  
-#if INPUT_DRIFT
-  // update drift change list for each voice
-  if ((mDriftCounter < 0) || (mDriftCounter > sr*kDriftInterval))
-  {
-    for (int v=0; v<_polyphony; ++v)
-    {
-      float drift = (kDriftConstants[v] * kDriftConstantsAmount) + (mRand.getSample()*kDriftRandomAmount);
-      _voices[v].mdDrift.addChange(drift, 1);
-    }
-    mDriftCounter = 0;
-  }
-  mDriftCounter += kFloatsPerDSPVector;
-#endif
-  
-  // update age for each voice
-  for (int v=0; v<_polyphony; ++v)
-  {
-    if(_voices[v].mAge >= 0)
-    {
-      _voices[v].mAge += kFloatsPerDSPVector;
-    }
-  }
-  
-  // generate change lists from events
-  
-  
-  processEvents();
-
-  
-  // generate output signals from change lists
-  writeOutputSignals(kFloatsPerDSPVector);
-  
-  mFrameCounter += kFloatsPerDSPVector;
-  if(mFrameCounter > sr)
-  {
-    //dumpEvents();
-    //dumpVoices();
-    //dumpSignals();
-    //dumpTouchFrame();
-    mFrameCounter -= sr;
-  }
-}*/
+ void SynthInput::process()
+ {
+ if (mParamsChanged) doParams();
+ int sr = getContextSampleRate();
+ clearChangeLists();
+ 
+ #if INPUT_DRIFT
+ // update drift change list for each voice
+ if ((mDriftCounter < 0) || (mDriftCounter > sr*kDriftInterval))
+ {
+ for (int v=0; v<_polyphony; ++v)
+ {
+ float drift = (kDriftConstants[v] * kDriftConstantsAmount) + (mRand.getSample()*kDriftRandomAmount);
+ _voices[v].mdDrift.addChange(drift, 1);
+ }
+ mDriftCounter = 0;
+ }
+ mDriftCounter += kFloatsPerDSPVector;
+ #endif
+ 
+ // update age for each voice
+ for (int v=0; v<_polyphony; ++v)
+ {
+ if(_voices[v].mAge >= 0)
+ {
+ _voices[v].mAge += kFloatsPerDSPVector;
+ }
+ }
+ 
+ // generate change lists from events
+ 
+ 
+ processEvents();
+ 
+ 
+ // generate output signals from change lists
+ writeOutputSignals(kFloatsPerDSPVector);
+ 
+ mFrameCounter += kFloatsPerDSPVector;
+ if(mFrameCounter > sr)
+ {
+ //dumpEvents();
+ //dumpVoices();
+ //dumpSignals();
+ //dumpTouchFrame();
+ mFrameCounter -= sr;
+ }
+ }*/
 
 void SynthInput::addEvent(const Event& e)
 {
-  _eventsToProcess.push_back(e);
+  _eventQueue.push(e);
 }
 
-
-void SynthInput::processEvents(uint64_t startTime)
+void SynthInput::processEvents()
 {
- 
-  for(auto e : _eventsToProcess)
+  for(auto& v : _voices)
   {
-    // convert event time to current buffer and process
-    e.time -= startTime;
+    v.beginProcess();
+  }
+  while(Event e = _eventQueue.pop())
+  {
     processEvent(e);
   }
   
-  _eventsToProcess.clear();
-
-  // TODO possibly bail if events are in the future
-  
-  writeOutputSignals();
+  for(auto& v : _voices)
+  {
+    v.endProcess();
+  }
 }
 
 
@@ -564,39 +614,38 @@ void SynthInput::processEvent(const Event &eventParam)
   }
 }
 
-void SynthInput::doNoteOn(const Event& event)
+void SynthInput::doNoteOn(const Event& e)
 {
-  // find free event or bail
-  int freeEventIdx = findFreeEvent(_eventsPlaying);
-  if(freeEventIdx < 0) return;
   
-  _eventsPlaying[freeEventIdx] = event;
+  std::cout << " SynthInput::doNoteOn " << e.time << " " << e.value1 << " " << e.value2 << "\n";
+  return;
   
   /*
-  if(mUnisonMode)
-  {
-    // push any event previously occupying voices to pending stack
-    // assuming all voices are playing the same event.
-    if (_voices[0].state == Voice::kOn)
-    {
-      const Event& prevEvent = _voices[0].mCurrentUnisonNoteEvent;
-      mNoteEventsPending.push(prevEvent);
-      mNoteEventsPlaying.clearEventsMatchingID(prevEvent.creatorID);
-    }
-    for (int v = 0; v < _polyphony; ++v)
-    {
-      _voices[v].addNoteEvent(event, _scale);
-    }
-  }
+   if(mUnisonMode)
+   {
+   // push any event previously occupying voices to pending stack
+   // assuming all voices are playing the same event.
+   if (_voices[0].state == Voice::kOn)
+   {
+   const Event& prevEvent = _voices[0].mCurrentUnisonNoteEvent;
+   mNoteEventsPending.push(prevEvent);
+   mNoteEventsPlaying.clearEventsMatchingID(prevEvent.creatorID);
+   }
+   for (int v = 0; v < _polyphony; ++v)
+   {
+   _voices[v].addNoteEvent(event, _scale);
+   }
+   }
    
-  else
+   else
    */
   
   {
     auto v = findFreeVoice(0, _polyphony);
     if(v >= 0)
     {
-      _voices[v].addNoteEvent(event, _scale);
+      _voiceRotateOffset++;
+      _voices[v].addNoteEvent(e, _scale);
     }
     else
     {
@@ -606,64 +655,68 @@ void SynthInput::doNoteOn(const Event& event)
       // or failing that, the voice with the nearest note
       if(v < 0)
       {
-        int note = event.value1;
+        int note = e.value1;
         v = findNearestVoice(note);
       }
       
       // steal it with retrigger
-      _voices[v].stealNoteEvent(event, _scale, true);
+      _voices[v].stealNoteEvent(e, _scale, true);
     }
   }
 }
 
-void SynthInput::doNoteOff(const Event& event)
+void SynthInput::doNoteOff(const Event& e)
 {
+  
+  std::cout << " SynthInput::doNoteOff " << e.time << " " << e.value1 << " " << e.value2 << "\n";
+  return;
+  
   // clear all events matching creatoe
-  int creator = event.creatorID;
-  int chan = event.channel;
+  int creator = e.creatorID;
+  int chan = e.channel;
   for (int i=0; i<kMaxEvents; ++i)
   {
-    if(_eventsPlaying[i].creatorID == creator)
+    //if(_eventsPlaying[i].creatorID == creator)
     {
-      _eventsPlaying[i].clear();
+      //_eventsPlaying[i].clear();
     }
   }
   
   /*
-  if(_unisonMode)
-  {
-    // if note off is the sounding event,
-    // play the most recent note from pending stack, or release or sustain last note.
-    // else delete the note from events and pending stack.
-    if(_voices[0].creatorID == creator)
-    {
-      if(!mNoteEventsPending.isEmpty())
-      {
-        Event pendingEvent = mNoteEventsPending.pop();
-        for (int v = 0; v < _polyphony; ++v)
-        {
-          _voices[v].stealNoteEvent(pendingEvent, _scale, mGlissando);
-        }
-      }
-      else
-      {
-        // release or sustain
-        Event::EventType newEventType = _sustainPedalActive ? Event::kNoteSustain : Event::kNoteOff;
-        for(int v=0; v<_polyphony; ++v)
-        {
-          Voice& voice = _voices[v];
-          Event eventToSend = event;
-          eventToSend.type = newEventType;
-          voice.addNoteEvent(eventToSend, _scale);
-        }
-      }
-    }
-    else
-    {
-      mNoteEventsPending.clearEventsMatchingID(creatoe);
-    }
-  }
-  else
+   if(_unisonMode)
+   {
+   // if note off is the sounding event,
+   // play the most recent note from pending stack, or release or sustain last note.
+   // else delete the note from events and pending stack.
+   if(_voices[0].creatorID == creator)
+   {
+   if(!mNoteEventsPending.isEmpty())
+   {
+   Event pendingEvent = mNoteEventsPending.pop();
+   for (int v = 0; v < _polyphony; ++v)
+   {
+   _voices[v].stealNoteEvent(pendingEvent, _scale, mGlissando);
+   }
+   }
+   else
+   {
+   // release or sustain
+   Event::EventType newEventType = _sustainPedalActive ? Event::kNoteSustain : Event::kNoteOff;
+   for(int v=0; v<_polyphony; ++v)
+   {
+   Voice& voice = _voices[v];
+   Event eventToSend = event;
+   eventToSend.type = newEventType;
+   voice.addNoteEvent(eventToSend, _scale);
+   }
+   }
+   }
+   else
+   {
+   mNoteEventsPending.clearEventsMatchingID(creatoe);
+   }
+   }
+   else
    */
   
   {
@@ -675,7 +728,7 @@ void SynthInput::doNoteOff(const Event& event)
       Voice& voice = _voices[v];
       if((voice.creatorID == creator) && (voice.state == Voice::kOn))
       {
-        Event eventToSend = event;
+        Event eventToSend = e;
         eventToSend.type = newEventType;
         voice.addNoteEvent(eventToSend, _scale);
       }
@@ -744,11 +797,11 @@ void SynthInput::doController(const Event& event)
         for (int i=0; i<_polyphony; ++i)
         {/*
           if(ctrl == _controllerNumber)
-            _voices[i].mdMod.addChange(val, time);
+          _voices[i].mdMod.addChange(val, time);
           else if (ctrl == _controllerNumber + 1)
-            _voices[i].mdMod2.addChange(val, time);
+          _voices[i].mdMod2.addChange(val, time);
           else if (ctrl == _controllerNumber + 2)
-            _voices[i].mdMod3.addChange(val, time);
+          _voices[i].mdMod3.addChange(val, time);
           */
         }
       }
@@ -786,15 +839,15 @@ void SynthInput::doController(const Event& event)
         else
         {
           /*
-          // TODO add parameter for x cc
-          if (ctrl == _controllerMPEXNumber) // x for MPE input, default 73
-            _MPEMainVoice.mdMod2.addChange(val, time);
-          else if (ctrl == 74) // y always 74
-            _MPEMainVoice.mdMod3.addChange(val, time);
-          else if(ctrl == _controllerNumber)
-          {
-            _MPEMainVoice.mdMod.addChange(val, time);
-          }*/
+           // TODO add parameter for x cc
+           if (ctrl == _controllerMPEXNumber) // x for MPE input, default 73
+           _MPEMainVoice.mdMod2.addChange(val, time);
+           else if (ctrl == 74) // y always 74
+           _MPEMainVoice.mdMod3.addChange(val, time);
+           else if(ctrl == _controllerNumber)
+           {
+           _MPEMainVoice.mdMod.addChange(val, time);
+           }*/
           
         }
       }
@@ -803,15 +856,15 @@ void SynthInput::doController(const Event& event)
         for(int v=0; v<_polyphony; ++v)
         {
           Voice& voice = _voices[v];
-          if((voice.creatorID == creatoe) && (voice.state == Voice::kOn))
+        //  if((voice.creatorID == creatoe) && (voice.state == Voice::kOn))
           {
             /*
-            if (ctrl == _controllerMPEXNumber) // x for MPE input, default 73
-              _voices[v].mdMod2.addChange(val, time);
-            else if (ctrl == 74) // y always 74
-              _voices[v].mdMod3.addChange(val, time);
-            else if(ctrl == _controllerNumber)
-              _voices[v].mdMod.addChange(val, time);
+             if (ctrl == _controllerMPEXNumber) // x for MPE input, default 73
+             _voices[v].mdMod2.addChange(val, time);
+             else if (ctrl == 74) // y always 74
+             _voices[v].mdMod3.addChange(val, time);
+             else if(ctrl == _controllerNumber)
+             _voices[v].mdMod.addChange(val, time);
              */
           }
         }
@@ -852,7 +905,7 @@ void SynthInput::doPitchWheel(const Event& event)
         // write to MPE voice channel
         if(within(chan, 2, kMPEInputChannels + 1))
         {
-         // mPitchBendChangesByChannel[chan].addChange(bendAmount*mpeBendScale, event.time);
+          // mPitchBendChangesByChannel[chan].addChange(bendAmount*mpeBendScale, event.time);
         }
       }
       break;
@@ -907,7 +960,7 @@ void SynthInput::doChannelPressure(const Event& event)
         {
           if ((_voices[v].creatorID == event.creatorID) && (_voices[v].state == Voice::kOn))
           {
-         //   _voices[v].mdChannelPressure.addChange(event.value1, event.time);
+            //   _voices[v].mdChannelPressure.addChange(event.value1, event.time);
           }
         }
       }
@@ -941,149 +994,149 @@ void SynthInput::doSustain(const Event& event)
 void SynthInput::writeOutputSignals()
 {
   /*
-  // get main channel signals for MPE
-  if(_protocol == kInputProtocolMIDI_MPE)
-  {
-    _MPEMainVoice.mdPitchBend.writeToSignal(mMainPitchSignal, frames);
-    _MPEMainVoice.mdChannelPressure.writeToSignal(mMainChannelPressureSignal, frames);
-    _MPEMainVoice.mdMod.writeToSignal(mMainModSignal, frames);
-    _MPEMainVoice.mdMod2.writeToSignal(mMainMod2Signal, frames);
-    _MPEMainVoice.mdMod3.writeToSignal(mMainMod3Signal, frames);
-  }
-  
-  // get pitch bend input channel signals for MPE
-  if(_protocol == kInputProtocolMIDI_MPE)
-  {
-    for(int i=2; i < kMPEInputChannels + 1; ++i)
-    {
-      auto& c = mPitchBendChangesByChannel[i];
-      c.writeToSignal(mPitchBendSignals[i], frames);
-    }
-  }
-  
-  int kMaxVoices = getContext()->getRootContext()->getMaxVoices();
-  for (int v=0; v<kMaxVoices; ++v)
-  {
-    // changes per voice
-    MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
-    MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
-    MLSignal& velSig = getOutput(v*kNumVoiceSignals + 3);
-    MLSignal& voiceSig = getOutput(v*kNumVoiceSignals + 4);
-    MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
-    MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
-    MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
-    MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
-    
-    // write signals
-    if (v < _polyphony)
-    {
-      // write pitch
-      _voices[v].mdPitch.writeToSignal(pitch, frames);
-      
-      // add pitch bend
-      if(_protocol == kInputProtocolMIDI)
-      {
-        // add voice pitch bend in semitones to pitch
-        _voices[v].mdPitchBend.writeToSignal(mTempSignal, frames);
-        pitch.add(mTempSignal);
-      }
-      
-      else if(_protocol == kInputProtocolMIDI_MPE)
-      {
-        // add pitch from MPE main voice
-        pitch.add(mMainPitchSignal);
-        
-        if(within(_voices[v].channel, 2, kMPEInputChannels + 1))
-        {
-          pitch.add(mPitchBendSignals[_voices[v].channel]);
-        }
-      }
-#if INPUT_DRIFT
-      // write to common temp drift signal, we add one change manually so read offset is 0
-      _voices[v].mdDrift.writeToSignal(mTempSignal, frames);
-      pitch.add(mTempSignal);
-#endif
-      
-      // write master_tune param offset
-      mTempSignal.fill(mMasterPitchOffset);
-      pitch.add(mTempSignal);
-      
-      _voices[v].mdGate.writeToSignal(gate, frames);
-      
-      // initial velocity output
-      _voices[v].mdVel.writeToSignal(velSig, frames);
-      
-      // voice constant output
-      voiceSig.setToConstant(v);
-      
-      // aftertouch / z output
-      switch(_protocol)
-      {
-        case kInputProtocolMIDI:
-          // add channel aftertouch + poly aftertouch.
-          _voices[v].mdNotePressure.writeToSignal(after, frames);
-          _voices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
-          after.add(mTempSignal);
-          break;
-        case kInputProtocolMIDI_MPE:
-          // MPE ignores poly aftertouch.
-          _voices[v].mdChannelPressure.writeToSignal(after, frames);
-          //after.add(mMainChannelPressureSignal);
-          break;
-        case kInputProtocolOSC:
-          // write amplitude to aftertouch signal
-          _voices[v].mdAmp.writeToSignal(after, frames);
-          break;
-      }
-      
-      _voices[v].mdMod.writeToSignal(mod, frames);
-      _voices[v].mdMod2.writeToSignal(mod2, frames);
-      _voices[v].mdMod3.writeToSignal(mod3, frames);
-      
-      if(_protocol == kInputProtocolMIDI_MPE)
-      {
-        mod.add(mMainModSignal);
-        mod2.add(mMainMod2Signal);
-        mod3.add(mMainMod3Signal);
-        
-        // over MPE, we can make bipolar x and y signals to match the OSC usage.
-        // only center the x controller if the controller number being used is the default.
-        if(_controllerMPEXNumber == 73)
-        {
-          mod2.scale(2.0f);
-          mod2.add(-1.0f);
-        }
-        mod3.scale(2.0f);
-        mod3.add(-1.0f);
-      }
-      
-      // clear change lists
-      _voices[v].mdPitch.clearChanges();
-      _voices[v].mdPitchBend.clearChanges();
-      _voices[v].mdGate.clearChanges();
-      _voices[v].mdAmp.clearChanges();
-      _voices[v].mdVel.clearChanges();
-      _voices[v].mdNotePressure.clearChanges();
-      _voices[v].mdChannelPressure.clearChanges();
-      _voices[v].mdMod.clearChanges();
-      _voices[v].mdMod2.clearChanges();
-      _voices[v].mdMod3.clearChanges();
-#if INPUT_DRIFT
-      _voices[v].mdDrift.clearChanges();
-#endif
-    }
-    else
-    {
-      pitch.setToConstant(0.f);
-      gate.setToConstant(0.f);
-      velSig.setToConstant(0.f);
-      voiceSig.setToConstant(0.f);
-      after.setToConstant(0.f);
-      mod.setToConstant(0.f);
-      mod2.setToConstant(0.f);
-      mod3.setToConstant(0.f);
-    }
-  }*/
+   // get main channel signals for MPE
+   if(_protocol == kInputProtocolMIDI_MPE)
+   {
+   _MPEMainVoice.mdPitchBend.writeToSignal(mMainPitchSignal, frames);
+   _MPEMainVoice.mdChannelPressure.writeToSignal(mMainChannelPressureSignal, frames);
+   _MPEMainVoice.mdMod.writeToSignal(mMainModSignal, frames);
+   _MPEMainVoice.mdMod2.writeToSignal(mMainMod2Signal, frames);
+   _MPEMainVoice.mdMod3.writeToSignal(mMainMod3Signal, frames);
+   }
+   
+   // get pitch bend input channel signals for MPE
+   if(_protocol == kInputProtocolMIDI_MPE)
+   {
+   for(int i=2; i < kMPEInputChannels + 1; ++i)
+   {
+   auto& c = mPitchBendChangesByChannel[i];
+   c.writeToSignal(mPitchBendSignals[i], frames);
+   }
+   }
+   
+   int kMaxVoices = getContext()->getRootContext()->getMaxVoices();
+   for (int v=0; v<kMaxVoices; ++v)
+   {
+   // changes per voice
+   MLSignal& pitch = getOutput(v*kNumVoiceSignals + 1);
+   MLSignal& gate = getOutput(v*kNumVoiceSignals + 2);
+   MLSignal& velSig = getOutput(v*kNumVoiceSignals + 3);
+   MLSignal& voiceSig = getOutput(v*kNumVoiceSignals + 4);
+   MLSignal& after = getOutput(v*kNumVoiceSignals + 5);
+   MLSignal& mod = getOutput(v*kNumVoiceSignals + 6);
+   MLSignal& mod2 = getOutput(v*kNumVoiceSignals + 7);
+   MLSignal& mod3 = getOutput(v*kNumVoiceSignals + 8);
+   
+   // write signals
+   if (v < _polyphony)
+   {
+   // write pitch
+   _voices[v].mdPitch.writeToSignal(pitch, frames);
+   
+   // add pitch bend
+   if(_protocol == kInputProtocolMIDI)
+   {
+   // add voice pitch bend in semitones to pitch
+   _voices[v].mdPitchBend.writeToSignal(mTempSignal, frames);
+   pitch.add(mTempSignal);
+   }
+   
+   else if(_protocol == kInputProtocolMIDI_MPE)
+   {
+   // add pitch from MPE main voice
+   pitch.add(mMainPitchSignal);
+   
+   if(within(_voices[v].channel, 2, kMPEInputChannels + 1))
+   {
+   pitch.add(mPitchBendSignals[_voices[v].channel]);
+   }
+   }
+   #if INPUT_DRIFT
+   // write to common temp drift signal, we add one change manually so read offset is 0
+   _voices[v].mdDrift.writeToSignal(mTempSignal, frames);
+   pitch.add(mTempSignal);
+   #endif
+   
+   // write master_tune param offset
+   mTempSignal.fill(mMasterPitchOffset);
+   pitch.add(mTempSignal);
+   
+   _voices[v].mdGate.writeToSignal(gate, frames);
+   
+   // initial velocity output
+   _voices[v].mdVel.writeToSignal(velSig, frames);
+   
+   // voice constant output
+   voiceSig.setToConstant(v);
+   
+   // aftertouch / z output
+   switch(_protocol)
+   {
+   case kInputProtocolMIDI:
+   // add channel aftertouch + poly aftertouch.
+   _voices[v].mdNotePressure.writeToSignal(after, frames);
+   _voices[v].mdChannelPressure.writeToSignal(mTempSignal, frames);
+   after.add(mTempSignal);
+   break;
+   case kInputProtocolMIDI_MPE:
+   // MPE ignores poly aftertouch.
+   _voices[v].mdChannelPressure.writeToSignal(after, frames);
+   //after.add(mMainChannelPressureSignal);
+   break;
+   case kInputProtocolOSC:
+   // write amplitude to aftertouch signal
+   _voices[v].mdAmp.writeToSignal(after, frames);
+   break;
+   }
+   
+   _voices[v].mdMod.writeToSignal(mod, frames);
+   _voices[v].mdMod2.writeToSignal(mod2, frames);
+   _voices[v].mdMod3.writeToSignal(mod3, frames);
+   
+   if(_protocol == kInputProtocolMIDI_MPE)
+   {
+   mod.add(mMainModSignal);
+   mod2.add(mMainMod2Signal);
+   mod3.add(mMainMod3Signal);
+   
+   // over MPE, we can make bipolar x and y signals to match the OSC usage.
+   // only center the x controller if the controller number being used is the default.
+   if(_controllerMPEXNumber == 73)
+   {
+   mod2.scale(2.0f);
+   mod2.add(-1.0f);
+   }
+   mod3.scale(2.0f);
+   mod3.add(-1.0f);
+   }
+   
+   // clear change lists
+   _voices[v].mdPitch.clearChanges();
+   _voices[v].mdPitchBend.clearChanges();
+   _voices[v].mdGate.clearChanges();
+   _voices[v].mdAmp.clearChanges();
+   _voices[v].mdVel.clearChanges();
+   _voices[v].mdNotePressure.clearChanges();
+   _voices[v].mdChannelPressure.clearChanges();
+   _voices[v].mdMod.clearChanges();
+   _voices[v].mdMod2.clearChanges();
+   _voices[v].mdMod3.clearChanges();
+   #if INPUT_DRIFT
+   _voices[v].mdDrift.clearChanges();
+   #endif
+   }
+   else
+   {
+   pitch.setToConstant(0.f);
+   gate.setToConstant(0.f);
+   velSig.setToConstant(0.f);
+   voiceSig.setToConstant(0.f);
+   after.setToConstant(0.f);
+   mod.setToConstant(0.f);
+   mod2.setToConstant(0.f);
+   mod3.setToConstant(0.f);
+   }
+   }*/
   
 }
 
@@ -1105,7 +1158,6 @@ int SynthInput::findFreeVoice(size_t start, size_t len)
     if (_voices[vr].state == Voice::kOff)
     {
       r = static_cast<int>(vr);
-      _voiceRotateOffset++;
       break;
     }
   }
@@ -1146,6 +1198,7 @@ int SynthInput::findNearestVoice(int note)
 {
   int r = 0;
   int minDist = 128;
+  /*
   for (int v=0; v<_polyphony; ++v)
   {
     int vNote = _voices[v].note;
@@ -1155,41 +1208,10 @@ int SynthInput::findNearestVoice(int note)
       minDist = noteDist;
       r = v;
     }
-  }
+  }*/
   return r;
 }
 
-void SynthInput::dumpEvents()
-{
-  for (int i=0; i<kMaxEvents; ++i)
-  {
-    Event& event = _eventsPlaying[i];
-    int type = event.type;
-    switch(type)
-    {
-      case Event::kNull:
-        //std::cout << "-";
-        break;
-      case Event::kNoteOn:
-        //std::cout  << "N";
-        break;
-      default:
-        //std::cout  << "?";
-        break;
-    }
-  }
-  //std::cout  << "\n";
-  int pendingSize = _eventsToProcess.size();
-  //std::cout <<() << pendingSize << " events pending: ";
-  if(pendingSize > 0)
-  {
-    for(int i = 0; i < pendingSize; ++i)
-    {
-      //std::cout  << mNoteEventsPending[i].creatorID << " ";
-    }
-  }
-  //std::cout  << "\n";
-}
 
 void SynthInput::dumpVoices()
 {
@@ -1229,23 +1251,24 @@ void SynthInput::dumpSignals()
     std::cout  << "    " << i << ": ";
     
     /*
-    // changes per voice
-    MLSignal& pitch = getOutput(i*kNumVoiceSignals + 1);
-    MLSignal& gate = getOutput(i*kNumVoiceSignals + 2);
-    MLSignal& vel = getOutput(i*kNumVoiceSignals + 3);
-    MLSignal& voice = getOutput(i*kNumVoiceSignals + 4);
-    MLSignal& after = getOutput(i*kNumVoiceSignals + 5);
-    
-    std::cout << "[pitch: " << pitch[0] << "] ";
-    std::cout << "[gate : " << gate[0] << "] ";
-    //std::cout << "[vel  : " << vel[0] << "] ";
-    //std::cout << "[voice: " << voice[0] << "] ";
-    std::cout << "[after: " << after[0] << "] ";
-    //std::cout << "\n";
-    std::cout << "\n";
-    */
+     // changes per voice
+     MLSignal& pitch = getOutput(i*kNumVoiceSignals + 1);
+     MLSignal& gate = getOutput(i*kNumVoiceSignals + 2);
+     MLSignal& vel = getOutput(i*kNumVoiceSignals + 3);
+     MLSignal& voice = getOutput(i*kNumVoiceSignals + 4);
+     MLSignal& after = getOutput(i*kNumVoiceSignals + 5);
+     
+     std::cout << "[pitch: " << pitch[0] << "] ";
+     std::cout << "[gate : " << gate[0] << "] ";
+     //std::cout << "[vel  : " << vel[0] << "] ";
+     //std::cout << "[voice: " << voice[0] << "] ";
+     std::cout << "[after: " << after[0] << "] ";
+     //std::cout << "\n";
+     std::cout << "\n";
+     */
     
   }
   
 }
 
+}

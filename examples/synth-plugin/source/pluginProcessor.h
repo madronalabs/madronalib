@@ -57,11 +57,15 @@ private:
   // process VST parameter changes.
   bool processParameterChanges(IParameterChanges* changes);
   
-  // process MIDI events.
+  // send all MIDI events to the SynthInput object.
   void processEvents (IEventList* events);
  
   // This function does all the signal processing in the plugin.
   void processSignals(ProcessData& data);
+  
+  
+  
+  std::unique_ptr< SynthInput > _synthInput;
   
   float fGain{1.f};
   float fGainReduction{0.f};
