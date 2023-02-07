@@ -26,7 +26,7 @@ inline float findMaximumValue(const Sample& x)
 
 inline void normalize(Sample& x)
 {
-  float ratio = 1.0f / findMaximumSample(x);
+  float ratio = 1.0f / findMaximumValue(x);
   for (int i = 0; i < x.data.size(); ++i)
   {
     x.data[i] *= ratio;
