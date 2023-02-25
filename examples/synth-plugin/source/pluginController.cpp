@@ -84,6 +84,7 @@ bool GainParameter::fromString(const TChar* string, ParamValue& normValue) const
 
 PluginController::PluginController()
 {
+  std::cout << "PluginController()\n";
 }
 
 PluginController::~PluginController()
@@ -97,19 +98,76 @@ tresult PLUGIN_API PluginController::initialize(FUnknown* context)
   {
     return result;
   }
-  
-  //---Gain parameter--
-  auto* gainParam = new GainParameter(ParameterInfo::kCanAutomate, kGainId);
-  parameters.addParameter(gainParam);
-  
-  //---Bypass parameter---
-  int32 stepCount = 1;
+
+  int32 paramFlags;
   ParamValue defaultVal = 0;
-  int32 flags = ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass;
-  int32 tag = kBypassId;
-  parameters.addParameter(STR16("Bypass"), nullptr, stepCount, defaultVal, flags, tag);
+  int32 stepCount = 1;
+
+  // add a bypass parameter
+  paramFlags = ParameterInfo::kCanAutomate | ParameterInfo::kIsBypass;
+  parameters.addParameter(STR16("Bypass"), nullptr, stepCount, defaultVal, paramFlags, kBypassId);
+  
+  // add our plugin-specific parameters
+  //
+  //
+  stepCount = 0;
+  paramFlags = ParameterInfo::kCanAutomate;
+  parameters.addParameter(STR16("cutoff"), nullptr, stepCount, defaultVal, paramFlags, kCutoffId);
+  
+
+  /*
+  unitInfo.id = unitID = pEditController->getUnitCount() + 1;
+  unitInfo.parentUnitId = Steinberg::Vst::kRootUnitId;
+  unitInfo.programListId = Steinberg::Vst::kNoProgramListId;
+  unitNameSetter.fromAscii(VST3_CC_UNITNAME);
+  pEditController->addUnit(new Steinberg::Vst::Unit(unitInfo));
+  */
+  
+  
+  // start making new units after any existing ones
+  Steinberg::Vst::UnitInfo unitInfo;
+  const int kMIDIParamsUnitIDStart{getUnitCount() + 1};
+  Steinberg::UString unitNameSetter(unitInfo.name, 128);
+
+  
+  for (int chan = 0; chan < kVST3MIDIChannels; chan++)
+  {
+    int newUnitID = kMIDIParamsUnitIDStart + chan;
+    int newParamID{0};
+    TextFragment unitNameText("channel", ml::textUtils::naturalNumberToText(chan + 1));
+    unitInfo.parentUnitId = newUnitID;
+    unitInfo.programListId = Steinberg::Vst::kNoProgramListId;
+    unitNameSetter.fromAscii(unitNameText.getText());
+    addUnit(new Steinberg::Vst::Unit(unitInfo));
+    
+    // add 128 MIDI CCs
+    Steinberg::Vst::String128 paramName;
+    for (int i = 0; i < kVST3MIDICCParams; i++)
+    {
+      TextFragment ccStr("cc", ml::textUtils::naturalNumberToText(i + 1));
+      Steinberg::UString(paramName, str16BufferSize(Steinberg::Vst::String128)).assign(ccStr.getText());
+      newParamID = kMIDIParamsStart + chan*kVST3MIDIParamsPerChannel + i;
+      parameters.addParameter(paramName, STR16(""), 0, 0, 0, newParamID, newUnitID);
+    }
+    
+    // add special params
+    newParamID = kMIDIParamsStart + chan*kVST3MIDIParamsPerChannel + kVST3MIDICCParams;
+    parameters.addParameter(STR16("Channel Aftertouch"), STR16(""), 0, 0, 0, newParamID, newUnitID);
+    newParamID = kMIDIParamsStart + chan*kVST3MIDIParamsPerChannel + kVST3MIDICCParams + 1;
+    parameters.addParameter(STR16("Pitch Bend"), STR16(""), 0, 0.5, 0, newParamID, newUnitID);
+  }
   
   return result;
+}
+
+tresult PLUGIN_API PluginController::getMidiControllerAssignment (int32 busIndex, int16 midiChannel, CtrlNumber midiControllerNumber, ParamID& tag)
+{
+  if(busIndex != 0) { return false; }
+  if(!within((int)midiChannel, 0, kVST3MIDIChannels)) { return false; }
+  if(!within((int)midiControllerNumber, 0, (int)kCountCtrlNumber)) { return false; }
+
+  tag = kMIDIParamsStart + (midiChannel * kCountCtrlNumber) + midiControllerNumber;
+  return kResultTrue;
 }
 
 tresult PLUGIN_API PluginController::terminate()
@@ -124,25 +182,25 @@ tresult PLUGIN_API PluginController::notify(IMessage* message)
 
 tresult PLUGIN_API PluginController::setComponentState(IBStream* state)
 {
-  // we receive the current state of the component(processor part)
-  // we read only the gain and bypass value...
   if(!state)
     return kResultFalse;
   
   IBStreamer streamer(state, kLittleEndian);
-  float savedGain = 0.f;
-  if(streamer.readFloat(savedGain) == false)
-    return kResultFalse;
-  setParamNormalized(kGainId, savedGain);
   
-  // jump the GainReduction
-  streamer.seek(sizeof(float), kSeekCurrent);
-  
-  int32 bypassState = 0;
+  // bypass
+  int32 bypassState{0};
   if(streamer.readInt32(bypassState) == false)
     return kResultFalse;
   setParamNormalized(kBypassId, bypassState ? 1 : 0);
   
+  
+  // cutoff
+  float cutoff{0.f};
+  if(streamer.readFloat(cutoff) == false)
+    return kResultFalse;
+  setParamNormalized(kCutoffId, cutoff);
+  
+
   return kResultOk;
 }
 

@@ -407,6 +407,7 @@ class LinearGlide
 
     return mCurrVec;
   }
+  
 };
 
 }  // namespace ml

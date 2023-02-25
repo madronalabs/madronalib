@@ -27,7 +27,7 @@ DEF_CLASS2(INLINE_UID_FROM_FUID(llllpluginnamellll::PluginProcessor::uid),
 			kVstAudioEffectClass,
 			"llllPluginNamellll",
 			Vst::kDistributable,
-			Vst::PlugType::kFx,
+			Vst::PlugType::kInstrumentSynth,
 			kVersionString,
 			kVstVersionString,
 			llllpluginnamellll::PluginProcessor::createInstance)

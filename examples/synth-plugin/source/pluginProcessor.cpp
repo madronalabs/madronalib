@@ -75,21 +75,17 @@ tresult PLUGIN_API PluginProcessor::setState(IBStream* state)
   // called when we load a preset, the model has to be reloaded
   
   IBStreamer streamer(state, kLittleEndian);
-  float savedGain = 0.f;
-  if(streamer.readFloat(savedGain) == false)
-    return kResultFalse;
-  
-  float savedGainReduction = 0.f;
-  if(streamer.readFloat(savedGainReduction) == false)
-    return kResultFalse;
   
   int32 savedBypass = 0;
   if(streamer.readInt32(savedBypass) == false)
     return kResultFalse;
   
-  fGain = savedGain;
-  fGainReduction = savedGainReduction;
+  float savedCutoff = 0.f;
+  if(streamer.readFloat(savedCutoff) == false)
+    return kResultFalse;
+  
   bBypass = savedBypass > 0;
+  fCutoff = savedCutoff;
   
   // Example of using the IStreamAttributes interface
   FUnknownPtr<IStreamAttributes> stream(state);
@@ -130,21 +126,26 @@ tresult PLUGIN_API PluginProcessor::getState(IBStream* state)
 {
   // here we need to save the model
   IBStreamer streamer(state, kLittleEndian);
-  streamer.writeFloat(fGain);
-  streamer.writeFloat(fGainReduction);
   streamer.writeInt32(bBypass ? 1 : 0);
+  streamer.writeFloat(fCutoff);
   return kResultOk;
 }
 
 tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
 {
-  // called before the process call, always in a disable state(not active)
+  // called before the process call, always in a disabled state(not active)
   // here we could keep a trace of the processing mode(offline,...) for example.
   // currentProcessMode = newSetup.processMode;
   
   _sampleRate = newSetup.sampleRate;
   
-  _synthInput = make_unique< SynthInput >(_sampleRate);
+  // setup synth inputs
+  _synthInput = make_unique< EventsToSignals >(_sampleRate);
+  _synthInput->setPolyphony(kMaxVoices);
+  
+  float glideTimeInSeconds{0.01f};
+  _cutoffGlide.setGlideTimeInSamples(_sampleRate*glideTimeInSeconds);
+  _cutoffGlide.setValue(0.5f);
   
   return AudioEffect::setupProcessing(newSetup);
 }
@@ -190,33 +191,86 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
   if(changes)
   {
     int32 numParamsChanged = changes->getParameterCount();
-    // for each parameter which are some changes in this audio block:
-    for(int32 i = 0; i < numParamsChanged; i++)
+    
+    // for each parameter that changes in this audio block:
+    for(int32 i = 0; i < numParamsChanged; ++i)
     {
-      IParamValueQueue* paramQueue = changes->getParameterData(i);
-      if(paramQueue)
+      if(auto* paramQueue = changes->getParameterData(i))
       {
         ParamValue value;
-        int32 sampleOffset;
-        int32 numPoints = paramQueue->getPointCount();
-        switch(paramQueue->getParameterId())
+        int sampleOffset;
+        int numPoints = paramQueue->getPointCount();
+        int id = paramQueue->getParameterId();
+        
+        // std::cout << "param ID " << id << " : \n";
+        
+        if(id < (int)kNumPluginParameters)
         {
-          case PluginController::kGainId:
-            // we use in this example only the last point of the queue.
-            // in some wanted case for specific kind of parameter it makes sense to
-            // retrieve all points and process the whole audio block in small blocks.
-            if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+          // handle plugin parameters
+          switch(id)
+          {
+            case kBypassId:
             {
-              fGain =(float)value;
+              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+              {
+                bBypass = (value > 0.5f);
+              }
+              break;
             }
-            break;
-            
-          case PluginController::kBypassId:
-            if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+            case kCutoffId:
             {
-              bBypass = (value > 0.5f);
+              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+              {
+                std::cout << "    cutoff " << " = " << value << "\n";
+                fCutoff = (float)value;
+              }
+              break;
             }
-            break;
+          }
+        }
+        else if(id < kVST3MIDITotalParams)
+        {
+          int midiID = id - kNumPluginParameters;
+          int channel = midiID/kVST3MIDIParamsPerChannel;
+          int paramIdx = midiID - channel*kVST3MIDIParamsPerChannel;
+          
+          //std::cout << "channel: " << channel << ", index: " << paramIdx << "\n";
+          switch(paramIdx)
+          {
+            // special params: aftertouch, pitch bend
+            case Steinberg::Vst::kAfterTouch:
+            {
+              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+              {
+                _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNotePressure, channel, 0, sampleOffset,
+                  float(value), 0, 0, 0});
+              }
+              
+              break;
+            }
+            case Steinberg::Vst::kPitchBend:
+            {
+              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+              {
+                float bendValue = (value - 0.5f)*2.0f;
+                _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kPitchWheel, channel, 0, sampleOffset,
+                  bendValue, 0, 0, 0});
+              }
+              break;
+            }
+              
+            // other params: send Controller # in event
+            default:
+            {
+              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+              {
+                  _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kController, channel, 0, sampleOffset,
+                    float(value), float(paramIdx), 0, 0});
+              }
+              break;
+              break;
+            }
+          }
         }
       }
     }
@@ -228,7 +282,7 @@ void PluginProcessor::processEvents (IEventList* events)
 {
   if(!_synthInput.get()) return;
   
-  // send all VST events to our SynthInput
+  // send all VST events to our EventsToSignals
   if (events)
   {
     int32 npos=0;
@@ -247,21 +301,14 @@ void PluginProcessor::processEvents (IEventList* events)
       {
         case Event::kNoteOnEvent:
         {
-      //    std::cout << "note on! " << e.sampleOffset << " " << e.noteOn.pitch << " " << e.noteOn.velocity << "\n";
-          
-          _synthInput->addEvent(ml::SynthInput::Event{ml::SynthInput::Event::kNoteOn, channel, creatorID, time,
+          _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNoteOn, channel, creatorID, time,
             pitch, e.noteOn.velocity});
-          
           break;
         }
         case Event::kNoteOffEvent:
         {
-     //     std::cout << "note off! " << e.sampleOffset << " " << e.noteOn.pitch << " " << e.noteOn.velocity << "\n";
-          
-          _synthInput->addEvent(ml::SynthInput::Event{ml::SynthInput::Event::kNoteOff, channel, creatorID, time,
+          _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNoteOff, channel, creatorID, time,
             pitch, 0});
-          
-
           break;
         }
         default:
@@ -270,6 +317,10 @@ void PluginProcessor::processEvents (IEventList* events)
     }
   }
 }
+
+void setParameter (ParamID index, ParamValue newValue, int32 sampleOffset) {
+}
+
 
 using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
 void PluginProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
@@ -310,29 +361,94 @@ void PluginProcessor::processSignals(ProcessData& data)
 //
 void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
 {
-
-  // turn them into signals
   if(_synthInput)
   {
-    _synthInput->processEvents();
+    _synthInput->process();
   }
   
-  
-  // Running the sine generators makes DSPVectors as output.
-  // The input parameter is omega: the frequency in Hz divided by the sample rate.
-  // The output sines are multiplied by the gain.
-  auto sineL = s1(220.f/_sampleRate)*fGain;
-  auto sineR = s2(275.f/_sampleRate)*fGain;
-  
-  if(bBypass)
+  // clear outs
+  outputs[0] = 0.f;
+  outputs[1] = 0.f;
+
+  if(!bBypass)
   {
-    outputs[0] = 0.f;
-    outputs[1] = 0.f;
+    auto cutoffSig = _cutoffGlide(fCutoff);
+    
+    // sum voices to outputs
+    for(int v=0; v < _synthInput->getPolyphony(); ++v)
+    {
+      auto& allocatorVoice = (_synthInput->voices)[v];
+      auto& pitchSignal = allocatorVoice.outputs.row(EventsToSignals::kPitch);
+      auto& pitchBendSignal = allocatorVoice.outputs.row(EventsToSignals::kPitchBend);
+      auto& velSignal = allocatorVoice.outputs.row(EventsToSignals::kVelocity);
+      
+      auto voiceOutput = _voices[v].processVector(pitchSignal, velSignal, pitchBendSignal, _sampleRate);
+      
+      outputs[0] += voiceOutput.row(0);
+      outputs[1] += voiceOutput.row(1);
+      
+      
+      // TEMP
+      // std::cout << "c" << cutoffSig[0] << " \n";
+    }
   }
-  else
+  
+  _debugCounter += kFloatsPerDSPVector;
+  if(_debugCounter > _sampleRate)
   {
-    outputs[0] = sineL;
-    outputs[1] = sineR;
+    _debugCounter -= _sampleRate;
+    debugStuff();
+  }
+}
+
+DSPVectorArray< 2 > PluginProcessor::Voice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, float sr)
+{
+  // convert 1/oct pitch to frequency
+  constexpr float kFundamentalPitch = 440.f;
+  
+  constexpr float kBendSemitones = 7;
+  constexpr float kBendRange = 1.0f*kBendSemitones/12;
+  
+  // it's up to the Process how to combine pitch with pitch bend.
+  DSPVector fundamental(kFundamentalPitch);
+  DSPVector freq = exp2Approx(pitch + pitchBend*kBendRange)*fundamental;
+  DSPVector invSampleRate(1.0f / sr);
+  
+  auto oscOut = osc1(freq*invSampleRate)*vel;
+  return concatRows(oscOut, oscOut);
+}
+
+void PluginProcessor::debugStuff()
+{
+  size_t p = _synthInput->getPolyphony();
+  for(int v = 0; v < p; ++v )
+  {
+    auto& voice = (_synthInput->voices)[v];
+    DSPVector vVel = voice.outputs.row(EventsToSignals::kVelocity);
+    DSPVector vPitch = voice.outputs.row(EventsToSignals::kPitch);
+    DSPVector vPitchBend = voice.outputs.row(EventsToSignals::kPitchBend);
+    DSPVector vVoice = voice.outputs.row(EventsToSignals::kVoice);
+    DSPVector vMod = voice.outputs.row(EventsToSignals::kMod);
+    DSPVector vX = voice.outputs.row(EventsToSignals::kX);
+    DSPVector vY = voice.outputs.row(EventsToSignals::kY);
+    DSPVector vZ = voice.outputs.row(EventsToSignals::kZ);
+    DSPVector vTime = voice.outputs.row(EventsToSignals::kElapsedTime);
+    float vel = vVel[0];
+    float pitch = vPitch[0];
+    float bend = vPitchBend[0];
+    float vox = vVoice[0];
+    float mod = vMod[0];
+    float x = vX[0];
+    float y = vY[0];
+    float z = vZ[0];
+    float time = vTime[0];
+
+    
+    if(vel > 0)
+    {
+      std::cout << "voice " << v << " : [" << vel << ", " << pitch << ", " << bend << ", " << vox << ", " << mod << ", " << mod << "]\n";
+      std::cout << "          [" << x << ", " << y << ", " << z << ", " << time << "]\n";
+    }
   }
 }
  

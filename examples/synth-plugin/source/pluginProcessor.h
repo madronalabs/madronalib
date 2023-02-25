@@ -12,7 +12,7 @@
 #include "madronalib/madronalib.h"
 #include "madronalib/MLPlatform.h"
 #include "madronalib/MLSignalProcessor.h"
-#include "madronalib/MLSynthInput.h"
+#include "madronalib/MLEventsToSignals.h"
 
 using namespace ml;
 
@@ -23,6 +23,22 @@ namespace llllpluginnamellll {
 constexpr int kMaxProcessBlockFrames = 4096;
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
+constexpr int kMaxVoices = 2;
+
+// plugin-specific parameter IDs
+enum
+{
+  kBypassId,
+  kCutoffId,
+  kNumPluginParameters
+};
+
+static constexpr int kMIDIParamsStart{kNumPluginParameters};
+static constexpr int kVST3MIDIChannels{16};
+static constexpr int kVST3MIDICCParams{128};
+static constexpr int kVST3MIDISpecialParams{2};
+static constexpr int kVST3MIDIParamsPerChannel{kVST3MIDICCParams + kVST3MIDISpecialParams};
+static constexpr int kVST3MIDITotalParams = kVST3MIDIChannels*kVST3MIDIParamsPerChannel;
 
 //-----------------------------------------------------------------------------
 class PluginProcessor : public AudioEffect, public SignalProcessor
@@ -57,24 +73,51 @@ private:
   // process VST parameter changes.
   bool processParameterChanges(IParameterChanges* changes);
   
-  // send all MIDI events to the SynthInput object.
+  // send all MIDI events to the EventsToSignals object.
   void processEvents (IEventList* events);
+
+  void setParameter (ParamID index, ParamValue newValue, int32 sampleOffset);
+
  
   // This function does all the signal processing in the plugin.
   void processSignals(ProcessData& data);
   
+  void debugStuff();
   
+  // the EventsToSignals processes incoming MIDI events and allocates synth voices.
+  std::unique_ptr< EventsToSignals > _synthInput;
+
   
-  std::unique_ptr< SynthInput > _synthInput;
-  
+  bool bBypass {false};
   float fGain{1.f};
   float fGainReduction{0.f};
-  bool bBypass {false};
+  float fCutoff{1.f};
     
   float _sampleRate{0.f};
+  int _debugCounter{0};
   
-  // sine generators.
-  SineGen s1, s2;
+  class Voice
+  {
+  public:
+    
+    // process pitch and amp signals and return stereo output
+    DSPVectorArray< 2 > processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, float sr);
+    
+  private:
+    
+    // oscillator
+    SawGen osc1;
+    
+    // filter
+    
+    // envelope
+    
+  };
+  
+  LinearGlide _cutoffGlide;
+  
+  std::array< Voice, kMaxVoices > _voices;
+
 };
 
 }}} // namespaces

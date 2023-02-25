@@ -16,7 +16,7 @@ namespace Vst {
 namespace llllpluginnamellll {
 
 //-----------------------------------------------------------------------------
-class PluginController : public EditController
+class PluginController : public EditControllerEx1, public IMidiMapping
 {
 public:
   // create function required for Plug-in factory,
@@ -35,14 +35,15 @@ public:
   tresult PLUGIN_API setComponentState(IBStream* state) SMTG_OVERRIDE;
   tresult PLUGIN_API notify(IMessage* message) SMTG_OVERRIDE;
 
-  DELEGATE_REFCOUNT(EditController)
+  // IMidiMapping interface
+  tresult PLUGIN_API getMidiControllerAssignment (int32 busIndex, int16 channel, CtrlNumber midiControllerNumber, ParamID& id) SMTG_OVERRIDE;
   
-  // parameter IDs
-  enum
-  {
-    kGainId = 0,  ///< for the gain value (is automatable)
-    kBypassId    ///< Bypass value (we will handle the bypass process) (is automatable)
-  };
+  OBJ_METHODS(PluginController, EditControllerEx1)
+  DEFINE_INTERFACES
+  DEF_INTERFACE(IMidiMapping)
+  END_DEFINE_INTERFACES(EditControllerEx1)
+  REFCOUNT_METHODS(EditControllerEx1)
+  
 };
 
 }}} // namespaces
