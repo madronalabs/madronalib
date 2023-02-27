@@ -134,19 +134,18 @@ tresult PLUGIN_API PluginProcessor::getState(IBStream* state)
 tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
 {
   // called before the process call, always in a disabled state(not active)
-  // here we could keep a trace of the processing mode(offline,...) for example.
-  // currentProcessMode = newSetup.processMode;
-  
   _sampleRate = newSetup.sampleRate;
   
   // setup synth inputs
   _synthInput = make_unique< EventsToSignals >(_sampleRate);
   _synthInput->setPolyphony(kMaxVoices);
   
+  // setup glides
   float glideTimeInSeconds{0.01f};
   _cutoffGlide.setGlideTimeInSamples(_sampleRate*glideTimeInSeconds);
   _cutoffGlide.setValue(0.5f);
   
+  // setup VST class
   return AudioEffect::setupProcessing(newSetup);
 }
 
@@ -237,7 +236,7 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
           //std::cout << "channel: " << channel << ", index: " << paramIdx << "\n";
           switch(paramIdx)
           {
-            // special params: aftertouch, pitch bend
+            // special param: aftertouch
             case Steinberg::Vst::kAfterTouch:
             {
               if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
@@ -248,6 +247,7 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
               
               break;
             }
+            // special param: pitch bend
             case Steinberg::Vst::kPitchBend:
             {
               if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
@@ -258,7 +258,16 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
               }
               break;
             }
-              
+            // special param: sustain
+            case Steinberg::Vst::kCtrlSustainOnOff:
+            {
+              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
+              {
+                _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kSustainPedal, channel, 0, sampleOffset,
+                  float(value), 0, 0, 0});
+              }
+              break;
+            }
             // other params: send Controller # in event
             default:
             {
@@ -387,7 +396,6 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
       outputs[0] += voiceOutput.row(0);
       outputs[1] += voiceOutput.row(1);
       
-      
       // TEMP
       // std::cout << "c" << cutoffSig[0] << " \n";
     }
@@ -401,7 +409,9 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
   }
 }
 
-DSPVectorArray< 2 > PluginProcessor::Voice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, float sr)
+// processVector() is where all our DSP code lives.
+
+DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, float sr)
 {
   // convert 1/oct pitch to frequency
   constexpr float kFundamentalPitch = 440.f;
@@ -409,7 +419,7 @@ DSPVectorArray< 2 > PluginProcessor::Voice::processVector(DSPVector pitch, DSPVe
   constexpr float kBendSemitones = 7;
   constexpr float kBendRange = 1.0f*kBendSemitones/12;
   
-  // it's up to the Process how to combine pitch with pitch bend.
+  // it's up to the Processor how to combine pitch with pitch bend.
   DSPVector fundamental(kFundamentalPitch);
   DSPVector freq = exp2Approx(pitch + pitchBend*kBendRange)*fundamental;
   DSPVector invSampleRate(1.0f / sr);

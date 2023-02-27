@@ -23,7 +23,7 @@ namespace llllpluginnamellll {
 constexpr int kMaxProcessBlockFrames = 4096;
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
-constexpr int kMaxVoices = 2;
+constexpr int kMaxVoices = 4;
 
 // plugin-specific parameter IDs
 enum
@@ -96,7 +96,7 @@ private:
   float _sampleRate{0.f};
   int _debugCounter{0};
   
-  class Voice
+  class SynthVoice
   {
   public:
     
@@ -116,7 +116,7 @@ private:
   
   LinearGlide _cutoffGlide;
   
-  std::array< Voice, kMaxVoices > _voices;
+  std::array< SynthVoice, kMaxVoices > _voices;
 
 };
 

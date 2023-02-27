@@ -49,14 +49,13 @@ public:
       kNull = 0,
       kNoteOn,
       kNoteRetrig,
+      kNoteSustain,
       kNoteOff,
-      kNoteUpdate, // OSC messages can update all controllers at once
-      kNoteSustain, // when sustain pedal is held, key releases generate sustain events
+      kSustainPedal, // when sustain pedal is held, key releases generate kNoteSustain events
       kController,
       kPitchWheel,
       kNotePressure,
-      kProgramChange,
-      kSustainPedal
+      kProgramChange
     };
     
     Event() = default;

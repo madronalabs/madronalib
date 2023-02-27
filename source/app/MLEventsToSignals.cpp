@@ -2,18 +2,11 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-
-
 #include "MLEventsToSignals.h"
 
 namespace ml {
 
-
-const int kMaxEvents = 1 << 4;//1 << 8; // max events per signal vector
-static const int kNumVoiceSignals = 8;
-
-#pragma mark -
-// Voice
+// EventsToSignals::Voice
 //
 
 void EventsToSignals::Voice::setSampleRate(float sr)
@@ -29,7 +22,6 @@ void EventsToSignals::Voice::setSampleRate(float sr)
   yGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
   zGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
 }
-
 
 // done when DSP is reset.
 void EventsToSignals::Voice::reset()
@@ -138,24 +130,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
 
       break;
     }
-    case Event::kNoteUpdate:
-      // update note, z, x, y from OSC
-      
-      // update note and z
-      //mdPitch.addChange(scale.noteToLogPitch(e.value1), time);
-      //mdAmp.addChange(e.value2, time);
-      
-      // KEY outputs: dy, x, y
-      // TODO add UI / settings for relative or absolute options
-      //mdMod.addChange(e.mValue4 - mStartY, time);
-      
-      //mdMod2.addChange(e.value3*2.f - 1.f, time);
-      //mdMod3.addChange(e.mValue4*2.f - 1.f, time);
-      break;
-      
+     
     case Event::kNoteSustain:
-      // sent when note is released iwth sustain pedal on
-      // no signal changes, but changes state to sustain
       state = kSustain;
       break;
       
@@ -186,24 +162,10 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
     }
     default:
       state = kOff;
-      
-      //  std::cout << "add note event OFF: inst: " << e.creatorID << " pitch " << mNote << "\n";
-      // mdGate.addChange(0.f, time);
-      //  mdAmp.addChange(0.f, time);
-      //  mdVel.addChange(0.f, time);
-      //   mdNotePressure.addChange(0.f, time);
-      
-      // for MPE mode when controlling envelopes with aftertouch: ensure
-      // notes are not sending pressure when off
-      //  mdChannelPressure.addChange(0.f, time);
       ageInSamples = 0;
-      
-      // we leave channel alone so that pitch bends will retain their values when the note ends
-      
       break;
   }
 }
-
 
 void EventsToSignals::Voice::endProcess()
 {
@@ -229,8 +191,9 @@ void EventsToSignals::Voice::endProcess()
 }
 
 #pragma mark -
-
-// registry section
+//
+// EventsToSignals
+//
 
 EventsToSignals::EventsToSignals(int sr) : _eventQueue(kMaxEventsPerVector)
 {
@@ -307,9 +270,6 @@ void EventsToSignals::processEvent(const Event &eventParam)
     case Event::kNoteOff:
       processNoteOffEvent(event);
       break;
-    case Event::kNoteUpdate:
-      processNoteUpdateEvent(event);
-      break;
     case Event::kController:
       processControllerEvent(event);
       break;
@@ -361,20 +321,6 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
       Event eventToSend = e;
       eventToSend.type = newEventType;
       voice.writeNoteEvent(eventToSend, _scale);
-    }
-  }
-}
-
-// update multiple axes of control for a held note event.
-void EventsToSignals::processNoteUpdateEvent(const Event& event)
-{
-  int creator = event.creatorID;
-  for(int v = 0; v < _polyphony; ++v)
-  {
-    Voice& voice = voices[v];
-    if((voice.creatorID == creator) && (voice.state == Voice::kOn))
-    {
-      voices[v].writeNoteEvent(event, _scale);
     }
   }
 }
@@ -450,7 +396,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
 
 void EventsToSignals::processSustainEvent(const Event& event)
 {
-  _sustainPedalActive = (int)event.value1;
+  _sustainPedalActive = (event.value1 > 0.5f) ? 1 : 0;
   if(!_sustainPedalActive)
   {
     // clear any sustaining voices
@@ -494,34 +440,8 @@ int EventsToSignals::findFreeVoice(size_t start, size_t len)
 
 int EventsToSignals::findVoiceToSteal(Event e)
 {
-  // just steal the voice with the nearest note
+  // just steal the voice with the nearest note.
   return findNearestVoice(e.creatorID);
-  
-  /*
-  int r = -1;
-  std::list<int> sustainedVoices;
-  for (int i=0; i<_polyphony; ++i)
-  {
-    Voice& v = voices[i];
-    if(v.state == Voice::kSustain)
-    {
-      sustainedVoices.push_back(i);
-    }
-  }
-  
-  int maxAge = -1;
-  for(std::list<int>::const_iterator it = sustainedVoices.begin();
-      it != sustainedVoices.end(); it++)
-  {
-    int voiceIdx = *it;
-    int ageInSamples = voices[voiceIdx].ageInSamples;
-    if (ageInSamples > maxAge)
-    {
-      maxAge = ageInSamples;
-      r = voiceIdx;
-    }
-  }
-  return r;*/
 }
 
 // return the index of the voice with the note nearest to the note n.
@@ -571,8 +491,8 @@ void EventsToSignals::dumpVoices()
         break;
     }
     std::cout  << "\n";
-    
   }
 }
 
 }
+ 
