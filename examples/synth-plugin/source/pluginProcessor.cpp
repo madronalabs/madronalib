@@ -76,49 +76,23 @@ tresult PLUGIN_API PluginProcessor::setState(IBStream* state)
   
   IBStreamer streamer(state, kLittleEndian);
   
-  int32 savedBypass = 0;
-  if(streamer.readInt32(savedBypass) == false)
-    return kResultFalse;
-  
-  float savedCutoff = 0.f;
-  if(streamer.readFloat(savedCutoff) == false)
-    return kResultFalse;
-  
-  bBypass = savedBypass > 0;
-  fCutoff = savedCutoff;
-  
-  // Example of using the IStreamAttributes interface
-  FUnknownPtr<IStreamAttributes> stream(state);
-  if(stream)
-  {
-    IAttributeList* list = stream->getAttributes();
-    if(list)
-    {
-      // get the current type(project/Default..) of this state
-      String128 string = {0};
-      if(list->getString(PresetAttributes::kStateType, string, 128 * sizeof(TChar)) ==
-          kResultTrue)
-      {
-        UString128 tmp(string);
-        char ascii[128];
-        tmp.toAscii(ascii, 128);
-        if(!strncmp(ascii, StateType::kProject, strlen(StateType::kProject)))
-        {
-          // we are in project loading context...
-        }
-      }
-      
-      // get the full file path of this state
-      TChar fullPath[1024];
-      memset(fullPath, 0, 1024 * sizeof(TChar));
-      if(list->getString(PresetAttributes::kFilePathStringType, fullPath,
-                           1024 * sizeof(TChar)) == kResultTrue)
-      {
-        // here we have the full path ...
-      }
-    }
-  }
-  
+  int32 bypass;
+  float cutoff, a, d, s, r;
+
+  if(streamer.readInt32(bypass) == false) return kResultFalse;
+  if(streamer.readFloat(cutoff) == false) return kResultFalse;
+  if(streamer.readFloat(a) == false) return kResultFalse;
+  if(streamer.readFloat(d) == false) return kResultFalse;
+  if(streamer.readFloat(s) == false) return kResultFalse;
+  if(streamer.readFloat(r) == false) return kResultFalse;
+
+  bBypass = bypass > 0;
+  fCutoff = cutoff;
+  fAttack = a;
+  fDecay = d;
+  fSustain = s;
+  fRelease = r;
+
   return kResultOk;
 }
 
@@ -128,6 +102,10 @@ tresult PLUGIN_API PluginProcessor::getState(IBStream* state)
   IBStreamer streamer(state, kLittleEndian);
   streamer.writeInt32(bBypass ? 1 : 0);
   streamer.writeFloat(fCutoff);
+  streamer.writeFloat(fAttack);
+  streamer.writeFloat(fDecay);
+  streamer.writeFloat(fSustain);
+  streamer.writeFloat(fRelease);
   return kResultOk;
 }
 
@@ -144,6 +122,13 @@ tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
   float glideTimeInSeconds{0.01f};
   _cutoffGlide.setGlideTimeInSamples(_sampleRate*glideTimeInSeconds);
   _cutoffGlide.setValue(0.5f);
+  
+  // reset voices
+  for(auto& voice : _voices)
+  {
+    voice.clear();
+    //voice.setEnvParams(fAttack, fDecay, fSustain, fRelease, _sampleRate);
+  }
   
   // setup VST class
   return AudioEffect::setupProcessing(newSetup);
@@ -194,91 +179,97 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
     // for each parameter that changes in this audio block:
     for(int32 i = 0; i < numParamsChanged; ++i)
     {
-      if(auto* paramQueue = changes->getParameterData(i))
+      IParamValueQueue* paramQueue{nullptr};
+      if(!(paramQueue = changes->getParameterData(i))) continue;
+    
+      ParamValue value;
+      int sampleOffset;
+      int numPoints = paramQueue->getPointCount();
+      if(!(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)) continue;
+
+      int id = paramQueue->getParameterId();
+    
+      // std::cout << "param ID " << id << ", val " << value << " \n";
+ 
+      if(id < (int)kNumPluginParameters)
       {
-        ParamValue value;
-        int sampleOffset;
-        int numPoints = paramQueue->getPointCount();
-        int id = paramQueue->getParameterId();
-        
-        // std::cout << "param ID " << id << " : \n";
-        
-        if(id < (int)kNumPluginParameters)
+        // handle plugin parameters and convert from normalized values.
+        // a real plugin framework would use a more general Parameter object here.
+        switch(id)
         {
-          // handle plugin parameters
-          switch(id)
+          case kBypassId:
           {
-            case kBypassId:
-            {
-              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
-              {
-                bBypass = (value > 0.5f);
-              }
-              break;
-            }
-            case kCutoffId:
-            {
-              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
-              {
-                std::cout << "    cutoff " << " = " << value << "\n";
-                fCutoff = (float)value;
-              }
-              break;
-            }
+            bBypass = (value > 0.5f);
+            break;
+          }
+          case kCutoffId:
+          {
+            fCutoff = (float)value;
+            break;
+          }
+          case kAttackId:
+          {
+            fAttack = (float)value;
+            newEnvParams = true;
+            break;
+          }
+          case kDecayId:
+          {
+            fDecay = (float)value;
+            newEnvParams = true;
+            break;
+          }
+          case kSustainId:
+          {
+            fSustain = (float)value;
+            newEnvParams = true;
+            break;
+          }
+          case kReleaseId:
+          {
+            fRelease = (float)value;
+            newEnvParams = true;
+            break;
           }
         }
-        else if(id < kVST3MIDITotalParams)
+      }
+      else if(id < kVST3MIDITotalParams)
+      {
+        int midiID = id - kNumPluginParameters;
+        int channel = midiID/kVST3MIDIParamsPerChannel;
+        int paramIdx = midiID - channel*kVST3MIDIParamsPerChannel;
+        
+        //std::cout << "channel: " << channel << ", index: " << paramIdx << "\n";
+        switch(paramIdx)
         {
-          int midiID = id - kNumPluginParameters;
-          int channel = midiID/kVST3MIDIParamsPerChannel;
-          int paramIdx = midiID - channel*kVST3MIDIParamsPerChannel;
-          
-          //std::cout << "channel: " << channel << ", index: " << paramIdx << "\n";
-          switch(paramIdx)
+          // special param: aftertouch
+          case Steinberg::Vst::kAfterTouch:
           {
-            // special param: aftertouch
-            case Steinberg::Vst::kAfterTouch:
-            {
-              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
-              {
-                _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNotePressure, channel, 0, sampleOffset,
-                  float(value), 0, 0, 0});
-              }
-              
-              break;
-            }
-            // special param: pitch bend
-            case Steinberg::Vst::kPitchBend:
-            {
-              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
-              {
-                float bendValue = (value - 0.5f)*2.0f;
-                _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kPitchWheel, channel, 0, sampleOffset,
-                  bendValue, 0, 0, 0});
-              }
-              break;
-            }
-            // special param: sustain
-            case Steinberg::Vst::kCtrlSustainOnOff:
-            {
-              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
-              {
-                _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kSustainPedal, channel, 0, sampleOffset,
-                  float(value), 0, 0, 0});
-              }
-              break;
-            }
-            // other params: send Controller # in event
-            default:
-            {
-              if(paramQueue->getPoint(numPoints - 1, sampleOffset, value) == kResultTrue)
-              {
-                  _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kController, channel, 0, sampleOffset,
-                    float(value), float(paramIdx), 0, 0});
-              }
-              break;
-              break;
-            }
+            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNotePressure, channel, 0, sampleOffset,
+              float(value), 0, 0, 0});
+            break;
+          }
+          // special param: pitch bend
+          case Steinberg::Vst::kPitchBend:
+          {
+            float bendValue = (value - 0.5f)*2.0f;
+            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kPitchWheel, channel, 0, sampleOffset,
+              bendValue, 0, 0, 0});
+            break;
+          }
+          // special param: sustain
+          case Steinberg::Vst::kCtrlSustainOnOff:
+          {
+            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kSustainPedal, channel, 0, sampleOffset,
+              float(value), 0, 0, 0});
+            break;
+          }
+          // other params: send Controller # in event
+          default:
+          {
+            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kController, channel, 0, sampleOffset,
+              float(value), float(paramIdx), 0, 0});
+            break;
           }
         }
       }
@@ -370,18 +361,37 @@ void PluginProcessor::processSignals(ProcessData& data)
 //
 void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
 {
+  bool debugFlag{false};
+  _debugCounter += kFloatsPerDSPVector;
+  if(_debugCounter > _sampleRate)
+  {
+    _debugCounter -= _sampleRate;
+    debugStuff();
+    debugFlag = true;
+  }
+  
   if(_synthInput)
   {
     _synthInput->process();
   }
   
+  if(newEnvParams)
+  {
+    for(auto& v : _voices)
+    {
+      v.setEnvParams(fAttack*1.f, fDecay*1.f, fSustain, fRelease*8.f, _sampleRate);
+    }
+    newEnvParams = false;
+  }
+  
   // clear outs
-  outputs[0] = 0.f;
-  outputs[1] = 0.f;
+  outputs[0] = DSPVector{0.f};
+  outputs[1] = DSPVector{0.f};
 
   if(!bBypass)
   {
-    auto cutoffSig = _cutoffGlide(fCutoff);
+    // smooth parameter to get cutoff vector
+    auto c1 = _cutoffGlide(fCutoff);
     
     // sum voices to outputs
     for(int v=0; v < _synthInput->getPolyphony(); ++v)
@@ -391,7 +401,7 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
       auto& pitchBendSignal = allocatorVoice.outputs.row(EventsToSignals::kPitchBend);
       auto& velSignal = allocatorVoice.outputs.row(EventsToSignals::kVelocity);
       
-      auto voiceOutput = _voices[v].processVector(pitchSignal, velSignal, pitchBendSignal, _sampleRate);
+      auto voiceOutput = _voices[v].processVector(pitchSignal, velSignal, pitchBendSignal, c1, _sampleRate, debugFlag);
       
       outputs[0] += voiceOutput.row(0);
       outputs[1] += voiceOutput.row(1);
@@ -400,32 +410,39 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
       // std::cout << "c" << cutoffSig[0] << " \n";
     }
   }
-  
-  _debugCounter += kFloatsPerDSPVector;
-  if(_debugCounter > _sampleRate)
-  {
-    _debugCounter -= _sampleRate;
-    debugStuff();
-  }
+}
+
+void PluginProcessor::SynthVoice::setEnvParams(float a, float d, float s, float r, float sr)
+{
+  env1.coeffs = ADSR::calcCoeffs(a, d, s, r, sr);
 }
 
 // processVector() is where all our DSP code lives.
 
-DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, float sr)
+DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, DSPVector cutoff, float sr, bool debug)
 {
   // convert 1/oct pitch to frequency
   constexpr float kFundamentalPitch = 440.f;
-  
+    
+  // combine pitch with pitch bend
   constexpr float kBendSemitones = 7;
   constexpr float kBendRange = 1.0f*kBendSemitones/12;
-  
-  // it's up to the Processor how to combine pitch with pitch bend.
   DSPVector fundamental(kFundamentalPitch);
   DSPVector freq = exp2Approx(pitch + pitchBend*kBendRange)*fundamental;
-  DSPVector invSampleRate(1.0f / sr);
+  DSPVector invSr(1.0f/sr);
   
-  auto oscOut = osc1(freq*invSampleRate)*vel;
-  return concatRows(oscOut, oscOut);
+  auto env = env1(vel);
+  
+  auto oscOut = osc1(freq*invSr);
+  DSPVector k(0.5f); // constant res for now.
+  
+  // add fixed amount of env to cutoff
+  DSPVector cutoffFreq = freq*cutoff*(DSPVector(1.0f) + DSPVector(8.0f)*env);
+  
+  auto filterOut = filt1(oscOut, cutoffFreq*invSr, k);
+  
+  auto monoOut = filterOut*env;
+  return concatRows(monoOut, monoOut);
 }
 
 void PluginProcessor::debugStuff()
@@ -452,9 +469,8 @@ void PluginProcessor::debugStuff()
     float y = vY[0];
     float z = vZ[0];
     float time = vTime[0];
-
     
-    if(vel > 0)
+    if(0)
     {
       std::cout << "voice " << v << " : [" << vel << ", " << pitch << ", " << bend << ", " << vox << ", " << mod << ", " << mod << "]\n";
       std::cout << "          [" << x << ", " << y << ", " << z << ", " << time << "]\n";

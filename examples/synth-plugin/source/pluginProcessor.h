@@ -13,6 +13,7 @@
 #include "madronalib/MLPlatform.h"
 #include "madronalib/MLSignalProcessor.h"
 #include "madronalib/MLEventsToSignals.h"
+#include "madronalib/MLDSPFilters.h"
 
 using namespace ml;
 
@@ -30,6 +31,10 @@ enum
 {
   kBypassId,
   kCutoffId,
+  kAttackId,
+  kDecayId,
+  kSustainId,
+  kReleaseId,
   kNumPluginParameters
 };
 
@@ -87,13 +92,17 @@ private:
   // the EventsToSignals processes incoming MIDI events and allocates synth voices.
   std::unique_ptr< EventsToSignals > _synthInput;
 
-  
+  // parameters
+  // to keep this example very simple we use parameters in their default range of 0-1
   bool bBypass {false};
-  float fGain{1.f};
-  float fGainReduction{0.f};
-  float fCutoff{1.f};
-    
-  float _sampleRate{0.f};
+  float fCutoff{0.5f};
+  float fAttack{0.5f};
+  float fDecay{0.5f};
+  float fSustain{0.5f};
+  float fRelease{0.5f};
+  bool newEnvParams{true};
+
+  float _sampleRate{0.f}; // in Hz, not reciprocal
   int _debugCounter{0};
   
   class SynthVoice
@@ -101,16 +110,25 @@ private:
   public:
     
     // process pitch and amp signals and return stereo output
-    DSPVectorArray< 2 > processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, float sr);
+    DSPVectorArray< 2 > processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, DSPVector cutoff, float sr, bool debug);
     
-  private:
+    void setEnvParams(float a, float d, float s, float r, float sr);
+    
+    void clear()
+    {
+      osc1.clear();
+      filt1.clear();
+      
+    }
     
     // oscillator
     SawGen osc1;
     
     // filter
+    Lopass filt1;
     
     // envelope
+    ADSR env1;
     
   };
   

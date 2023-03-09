@@ -16,68 +16,6 @@ namespace llllpluginnamellll {
 
 FUID PluginController::uid(0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA, 0xAAAAAAAA);
 
-//------------------------------------------------------------------------
-// GainParameter Declaration
-// example of custom parameter(overwriting to and fromString)
-
-class GainParameter : public Parameter
-{
-public:
-  GainParameter(int32 flags, int32 id);
-  
-  void toString(ParamValue normValue, String128 string) const SMTG_OVERRIDE;
-  bool fromString(const TChar* string, ParamValue& normValue) const SMTG_OVERRIDE;
-};
-
-//------------------------------------------------------------------------
-// GainParameter Implementation
-
-GainParameter::GainParameter(int32 flags, int32 id)
-{
-  Steinberg::UString(info.title, USTRINGSIZE(info.title)).assign(USTRING("Gain"));
-  Steinberg::UString(info.units, USTRINGSIZE(info.units)).assign(USTRING("dB"));
-  
-  info.flags = flags;
-  info.id = id;
-  info.stepCount = 0;
-  info.defaultNormalizedValue = 0.5f;
-  info.unitId = kRootUnitId;
-  
-  setNormalized(1.f);
-}
-
-void GainParameter::toString(ParamValue normValue, String128 string) const
-{
-  char text[32];
-  if(normValue > 0.0001)
-  {
-    sprintf(text, "%.2f", 20 * log10f((float)normValue));
-  }
-  else
-  {
-    strcpy(text, "-oo");
-  }
-  
-  Steinberg::UString(string, 128).fromAscii(text);
-}
-
-bool GainParameter::fromString(const TChar* string, ParamValue& normValue) const
-{
-  String wrapper((TChar*)string); // don't know buffer size here!
-  double tmp = 0.0;
-  if(wrapper.scanFloat(tmp))
-  {
-    // allow only values between -oo and 0dB
-    if(tmp > 0.0)
-    {
-      tmp = -tmp;
-    }
-    
-    normValue = expf(logf(10.f) *(float)tmp / 20.f);
-    return true;
-  }
-  return false;
-}
 
 //-----------------------------------------------------------------------------
 // PluginController implementation
@@ -108,22 +46,14 @@ tresult PLUGIN_API PluginController::initialize(FUnknown* context)
   parameters.addParameter(STR16("Bypass"), nullptr, stepCount, defaultVal, paramFlags, kBypassId);
   
   // add our plugin-specific parameters
-  //
-  //
   stepCount = 0;
   paramFlags = ParameterInfo::kCanAutomate;
-  parameters.addParameter(STR16("cutoff"), nullptr, stepCount, defaultVal, paramFlags, kCutoffId);
-  
+  parameters.addParameter(STR16("cutoff"), nullptr, stepCount, 0.5, paramFlags, kCutoffId);
+  parameters.addParameter(STR16("attack"), nullptr, stepCount, 0.5, paramFlags, kAttackId);
+  parameters.addParameter(STR16("decay"), nullptr, stepCount, 0.5, paramFlags, kDecayId);
+  parameters.addParameter(STR16("sustain"), nullptr, stepCount, 0.5, paramFlags, kSustainId);
+  parameters.addParameter(STR16("release"), nullptr, stepCount, 0.5, paramFlags, kReleaseId);
 
-  /*
-  unitInfo.id = unitID = pEditController->getUnitCount() + 1;
-  unitInfo.parentUnitId = Steinberg::Vst::kRootUnitId;
-  unitInfo.programListId = Steinberg::Vst::kNoProgramListId;
-  unitNameSetter.fromAscii(VST3_CC_UNITNAME);
-  pEditController->addUnit(new Steinberg::Vst::Unit(unitInfo));
-  */
-  
-  
   // start making new units after any existing ones
   Steinberg::Vst::UnitInfo unitInfo;
   const int kMIDIParamsUnitIDStart{getUnitCount() + 1};
@@ -140,6 +70,9 @@ tresult PLUGIN_API PluginController::initialize(FUnknown* context)
     unitNameSetter.fromAscii(unitNameText.getText());
     addUnit(new Steinberg::Vst::Unit(unitInfo));
     
+    // because VST3 tries to insulate the plugin from MIDI, we do this horrible hack
+    // of creating and mapping many parameters to get MIDI CC and Channel from the Param ID.
+
     // add 128 MIDI CCs
     Steinberg::Vst::String128 paramName;
     for (int i = 0; i < kVST3MIDICCParams; i++)
@@ -193,13 +126,21 @@ tresult PLUGIN_API PluginController::setComponentState(IBStream* state)
     return kResultFalse;
   setParamNormalized(kBypassId, bypassState ? 1 : 0);
   
-  
-  // cutoff
-  float cutoff{0.f};
-  if(streamer.readFloat(cutoff) == false)
-    return kResultFalse;
-  setParamNormalized(kCutoffId, cutoff);
-  
+  // other params
+  // float cutoff, attack, decay, sustain, release;
+
+  float paramVal;
+  for(int idx=kCutoffId; idx < kNumPluginParameters; ++idx)
+  {
+    if(streamer.readFloat(paramVal) != false)
+    {
+      setParamNormalized(idx, paramVal);
+    }
+    else
+    {
+      return kResultFalse;
+    }
+  }
 
   return kResultOk;
 }
