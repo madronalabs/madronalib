@@ -175,18 +175,12 @@ private:
   void dumpVoices();
   
   // data
-  
   Scale _scale;
   Queue< Event > _eventQueue;
-
   int _polyphony{0};
-
   int _voiceRotateOffset{0};
-
   bool _sustainPedalActive{false};
-
   float _sampleRate;
-
 };
 
 

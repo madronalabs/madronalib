@@ -55,7 +55,7 @@ public:
   static FUID uid;
 
   PluginProcessor();
-  ~PluginProcessor();
+  ~PluginProcessor() = default;
 
   // from ComponentBase
   tresult PLUGIN_API notify(IMessage* message) SMTG_OVERRIDE;
@@ -81,9 +81,6 @@ private:
   // send all MIDI events to the EventsToSignals object.
   void processEvents (IEventList* events);
 
-  void setParameter (ParamID index, ParamValue newValue, int32 sampleOffset);
-
- 
   // This function does all the signal processing in the plugin.
   void processSignals(ProcessData& data);
   

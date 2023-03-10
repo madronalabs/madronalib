@@ -298,10 +298,11 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
   }
   else
   {
-    // find a sustained voice to steal
     v = findVoiceToSteal(e);
     
     // steal it with retrigger
+    // TODO: this may make some clicks when the previous notes
+    // are cut off. add more graceful stealing
     Event f = e;
     f.type = Event::kNoteRetrig;
     voices[v].writeNoteEvent(f, _scale);

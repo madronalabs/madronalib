@@ -5,7 +5,7 @@ Madronalib
 
 A C++ framework for DSP applications.
 
-Copyright (c) 2019–2022 Madrona Labs LLC. http://www.madronalabs.com
+Copyright (c) 2019–2023 Madrona Labs LLC. http://www.madronalabs.com
 
 Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
@@ -25,20 +25,21 @@ Adding new DSP modules is straightforward, and the syntax of the signal library 
 Status
 ------------
 
-(as of June 2022)
+(as of March 2023)
 
 The files in /source/DSP are a useful header-only DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations. Both SSE (for Intel chips) and NEON (for Apple Silicon) are supported. Shipping products at Madrona Labs are relying on these headers and breaking changes have, for the most part, stopped. 
 
 There are three examples built using RtAudio that play and process audio signals. 
 
-/examples/vst holds a simple VST3 plugin example. This plugin plays a couple of sine waves, and has no GUI. A script to clone  plugin projects is included so you can make more interesting plugins. 
+/examples/effect-plugin holds a simple VST3 effect plugin example. This plugin plays a couple of sine waves, and has no GUI. A script to clone plugin projects is included so you can make more interesting plugins. 
+
+/examples/synth-plugin contains a VST3 synthesizer plugin example. 
+
+Unlike the rest of madronalib, both the above examples require downloading the VST3 framework from Steinberg. They are not built as part of the main cmake build. Instructions for building these examples are in the individual directories.
 
 The code in /source/app is also relied upon by shipping products, though it may still change more often. 
 
 Tests exist for most modules. Very basic continuous integration exists using GitHub actions, but only tests on MacOS at present.
-
-OSC (Open Sound control) networking still awaits porting to Windows / Linux.
-
 
 Building
 ----------

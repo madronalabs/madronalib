@@ -1,5 +1,5 @@
-// VST3 example code for madronalib
-// (c) 2020, Madrona Labs LLC, all rights reserved
+// VST3 instrument example code for madronalib
+// (c) 2023, Madrona Labs LLC, all rights reserved
 // see LICENSE.txt for details
 
 #include "pluginProcessor.h"
@@ -20,6 +20,8 @@ namespace Steinberg {
 namespace Vst {
 namespace llllpluginnamellll {
 
+// VST3 implementation
+
 FUID PluginProcessor::uid(0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB);
 
 PluginProcessor::PluginProcessor()
@@ -27,10 +29,6 @@ PluginProcessor::PluginProcessor()
 {
   // register its editor class(the same than used in againentry.cpp)
 	setControllerClass(PluginController::uid);
-}
-
-PluginProcessor::~PluginProcessor()
-{
 }
 
 tresult PLUGIN_API PluginProcessor::initialize(FUnknown* context)
@@ -44,9 +42,7 @@ tresult PLUGIN_API PluginProcessor::initialize(FUnknown* context)
   }
   
   addEventInput (STR16 ("Events In"), 1);
-  
   addAudioOutput(STR16("Stereo Out"), SpeakerArr::kStereo);
-  
   return kResultOk;
 }
 
@@ -73,7 +69,6 @@ tresult PLUGIN_API PluginProcessor::process(ProcessData& data)
 tresult PLUGIN_API PluginProcessor::setState(IBStream* state)
 {
   // called when we load a preset, the model has to be reloaded
-  
   IBStreamer streamer(state, kLittleEndian);
   
   int32 bypass;
@@ -127,7 +122,6 @@ tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
   for(auto& voice : _voices)
   {
     voice.clear();
-    //voice.setEnvParams(fAttack, fDecay, fSustain, fRelease, _sampleRate);
   }
   
   // setup VST class
@@ -167,7 +161,7 @@ tresult PLUGIN_API PluginProcessor::notify(IMessage* message)
   return AudioEffect::notify(message);
 }
 
-// --------------------------------------------------------------------------------
+#pragma mark -
 // private implementation
 
 bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
@@ -194,7 +188,8 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
       if(id < (int)kNumPluginParameters)
       {
         // handle plugin parameters and convert from normalized values.
-        // a real plugin framework would use a more general Parameter object here.
+        // this is just a short example: a complete plugin framework would use a more
+        // general Parameter object here.
         switch(id)
         {
           case kBypassId:
@@ -209,13 +204,13 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
           }
           case kAttackId:
           {
-            fAttack = (float)value;
+            fAttack = (float)value*2.f;
             newEnvParams = true;
             break;
           }
           case kDecayId:
           {
-            fDecay = (float)value;
+            fDecay = (float)value*2.f;
             newEnvParams = true;
             break;
           }
@@ -227,7 +222,7 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
           }
           case kReleaseId:
           {
-            fRelease = (float)value;
+            fRelease = (float)value*8.f;
             newEnvParams = true;
             break;
           }
@@ -257,7 +252,7 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
               bendValue, 0, 0, 0});
             break;
           }
-          // special param: sustain
+          // special param: sustain pedal
           case Steinberg::Vst::kCtrlSustainOnOff:
           {
             _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kSustainPedal, channel, 0, sampleOffset,
@@ -318,21 +313,17 @@ void PluginProcessor::processEvents (IEventList* events)
   }
 }
 
-void setParameter (ParamID index, ParamValue newValue, int32 sampleOffset) {
-}
-
-
-using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
+// just an adapter so the VectorProcessBuffer utility can call our main process routine.
+//
 void PluginProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
 {
   PluginProcessor* pProc = static_cast< PluginProcessor* >(state);
   return pProc->synthProcessVector(ins, outs);
 } ;
 
-
 // ProcessSignals() adapts the VST process() call with its arbitrary frame size to madronalib's
 // fixed vector size processing.
-
+//
 void PluginProcessor::processSignals(ProcessData& data)
 {
   if(data.numOutputs == 0)
@@ -350,9 +341,6 @@ void PluginProcessor::processSignals(ProcessData& data)
 
   assert(processSetup.symbolicSampleSize == kSample32);
   
-  // mark our outputs has not silent
-  data.outputs[0].silenceFlags = 0;
-  
   // run buffered processing
   processBuffer.process(nullptr, outputs, data.numSamples, PluginProcessorProcessVectorFn, this);
 }
@@ -361,15 +349,17 @@ void PluginProcessor::processSignals(ProcessData& data)
 //
 void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
 {
+  // for console debugging when we need it
   bool debugFlag{false};
   _debugCounter += kFloatsPerDSPVector;
   if(_debugCounter > _sampleRate)
   {
     _debugCounter -= _sampleRate;
-    debugStuff();
+    //debugStuff();
     debugFlag = true;
   }
   
+  // generate voice control signals from control events.
   if(_synthInput)
   {
     _synthInput->process();
@@ -379,21 +369,21 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
   {
     for(auto& v : _voices)
     {
-      v.setEnvParams(fAttack*1.f, fDecay*1.f, fSustain, fRelease*8.f, _sampleRate);
+      v.setEnvParams(fAttack, fDecay, fSustain, fRelease, _sampleRate);
     }
     newEnvParams = false;
   }
   
-  // clear outs
+  // clear outputs
   outputs[0] = DSPVector{0.f};
   outputs[1] = DSPVector{0.f};
 
   if(!bBypass)
   {
-    // smooth parameter to get cutoff vector
+    // smooth float cutoff parameter to get cutoff signal
     auto c1 = _cutoffGlide(fCutoff);
     
-    // sum voices to outputs
+    // process voices and sum to outputs
     for(int v=0; v < _synthInput->getPolyphony(); ++v)
     {
       auto& allocatorVoice = (_synthInput->voices)[v];
@@ -401,24 +391,25 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
       auto& pitchBendSignal = allocatorVoice.outputs.row(EventsToSignals::kPitchBend);
       auto& velSignal = allocatorVoice.outputs.row(EventsToSignals::kVelocity);
       
+      // generate stereo voice output
       auto voiceOutput = _voices[v].processVector(pitchSignal, velSignal, pitchBendSignal, c1, _sampleRate, debugFlag);
       
       outputs[0] += voiceOutput.row(0);
       outputs[1] += voiceOutput.row(1);
-      
-      // TEMP
-      // std::cout << "c" << cutoffSig[0] << " \n";
     }
   }
 }
+
+// SynthVoice
+#pragma mark -
 
 void PluginProcessor::SynthVoice::setEnvParams(float a, float d, float s, float r, float sr)
 {
   env1.coeffs = ADSR::calcCoeffs(a, d, s, r, sr);
 }
 
-// processVector() is where all our DSP code lives.
-
+// SynthVoice::processVector() is where an individual voice makes sound.
+//
 DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, DSPVector cutoff, float sr, bool debug)
 {
   // convert 1/oct pitch to frequency
@@ -439,8 +430,10 @@ DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, 
   // add fixed amount of env to cutoff
   DSPVector cutoffFreq = freq*cutoff*(DSPVector(1.0f) + DSPVector(8.0f)*env);
   
+  // filter oscillator output
   auto filterOut = filt1(oscOut, cutoffFreq*invSr, k);
   
+  // multiply by envelope and duplicate to get stereo output
   auto monoOut = filterOut*env;
   return concatRows(monoOut, monoOut);
 }
