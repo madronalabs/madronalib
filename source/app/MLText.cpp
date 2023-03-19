@@ -338,6 +338,7 @@ std::vector<CodePoint> textToCodePoints(TextFragment frag)
   {
     r.push_back(c);
   }
+
   return r;
 }
 

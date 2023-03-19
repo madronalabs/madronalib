@@ -215,6 +215,7 @@ EventsToSignals::~EventsToSignals()
 
 size_t EventsToSignals::setPolyphony(int n)
 {
+  reset();
   _polyphony = std::min(n, kMaxVoices);
   return _polyphony;
 }

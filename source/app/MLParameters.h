@@ -10,6 +10,13 @@
 namespace ml
 {
 
+
+// TODO: refactor to store normalized and plain values. We get values (from Widgets)
+// a lot more often than we set them! so optimize for getting.
+// this simplifies the code: just one kind of tree.
+
+
+
 using ParameterDescription = PropertyTree;
 
 struct ParameterProjection
@@ -24,10 +31,10 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   auto units = Symbol(p.getProperty("units").getTextValue());
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
-
+  
   Interval normalRange{0., 1.};
   Interval plainRange{range[0], range[1]};
-
+  
   // make ranges for list parameters
   if (units == "list")
   {
@@ -43,7 +50,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     {
       nItems = p.getFloatProperty("num_items");
     }
-
+    
     if (nItems <= 1)
     {
       b.normalizedToPlain = projections::zero;
@@ -61,9 +68,9 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     if (bLog)
     {
       b.normalizedToPlain =
-          ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
+      ml::projections::intervalMap(normalRange, plainRange, ml::projections::log(plainRange));
       b.plainToNormalized =
-          ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
+      ml::projections::intervalMap(plainRange, normalRange, ml::projections::exp(plainRange));
     }
     else
     {
@@ -82,13 +89,13 @@ struct ParameterTree : public Tree<Value>
 {
   Tree<std::unique_ptr<ParameterDescription> > descriptions;
   Tree<ParameterProjection> projections;
-
+  
   virtual void setParamFromNormalizedValue(Path pname, Value val) = 0;
   virtual void setParamFromPlainValue(Path pname, Value val) = 0;
-
+  
   virtual float getNormalizedValue(Path pname) const = 0;
   virtual float getPlainValue(Path pname) const = 0;
-
+  
   inline void setFromPlainValues(const Tree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
@@ -97,7 +104,7 @@ struct ParameterTree : public Tree<Value>
       setParamFromPlainValue(valName, *it);
     }
   }
-
+  
   inline void setFromNormalizedValues(const Tree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
@@ -106,16 +113,44 @@ struct ParameterTree : public Tree<Value>
       setParamFromNormalizedValue(valName, *it);
     }
   }
-
+  
   virtual Tree<Value> getNormalizedValues() const = 0;
   virtual Tree<Value> getPlainValues() const = 0;
 };
+
+
+
+inline Value convertNormalizedToPlainValue(const ParameterTree& params, Path pname, Value val)
+{
+  if (val.isFloatType())
+  {
+    float newNormValue = val.getFloatValue();
+    float newRealValue{0};
+    auto& pdesc = params.descriptions[pname];
+    bool useListValues = pdesc->getProperty("use_list_values_as_int").getBoolValue();
+    if(useListValues)
+    {
+      auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
+      size_t itemIndex = params.projections[pname].normalizedToPlain(newNormValue);
+      newRealValue = textUtils::textToNaturalNumber(listItems[itemIndex]);
+    }
+    else
+    {
+      newRealValue = params.projections[pname].normalizedToPlain(newNormValue);
+    }
+    return Value(newRealValue);
+  }
+  else
+  {
+    return val;
+  }
+}
 
 // An annotated Tree of parameters stored as normalized values.
 struct ParameterTreeNormalized : public ParameterTree
 {
   inline void setParamFromNormalizedValue(Path pname, Value val) override { (*this)[pname] = val; }
-
+  
   inline void setParamFromPlainValue(Path pname, Value val) override
   {
     if (val.isFloatType())
@@ -127,20 +162,22 @@ struct ParameterTreeNormalized : public ParameterTree
       (*this)[pname] = (val);
     }
   }
-
+  
   inline float getNormalizedValue(Path pname) const override
   {
     return (*this)[pname].getFloatValue();
   }
-
+  
   // TODO this returns float, not Value, which makes other code messy. refactor
+  // also see above: refactor to store both normalized + plain!
+  //
   inline float getPlainValue(Path pname) const override
   {
-    return projections[pname].normalizedToPlain((*this)[pname].getFloatValue());
+    return convertNormalizedToPlainValue(*this, pname, (*this)[pname]).getFloatValue();
   }
-
+  
   Tree<Value> getNormalizedValues() const override { return (*this); }
-
+  
   Tree<Value> getPlainValues() const override
   {
     Tree<Value> ret;
@@ -167,25 +204,42 @@ struct ParameterTreePlain : public ParameterTree
 {
   inline void setParamFromNormalizedValue(Path pname, Value val) override
   {
-    if (val.isFloatType())
-    {
-      (*this)[pname] = projections[pname].normalizedToPlain(val.getFloatValue());
-    }
-    else
-    {
-      (*this)[pname] = (val);
-    }
+    /*
+     if (val.isFloatType())
+     {
+     float newNormValue = val.getFloatValue();
+     float newRealValue{0};
+     auto& pdesc = descriptions[pname];
+     bool useListValues = pdesc->getProperty("use_list_values_as_int").getBoolValue();
+     if(useListValues)
+     {
+     auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
+     size_t itemIndex = projections[pname].normalizedToPlain(newNormValue);
+     newRealValue = textUtils::textToNaturalNumber(listItems[itemIndex]);
+     }
+     else
+     {
+     newRealValue = projections[pname].normalizedToPlain(newNormValue);
+     }
+     (*this)[pname] = newRealValue;
+     }
+     else
+     {
+     (*this)[pname] = (val);
+     }*/
+    (*this)[pname] = convertNormalizedToPlainValue(*this, pname, val);
+    
   }
-
+  
   inline void setParamFromPlainValue(Path pname, Value val) override { (*this)[pname] = val; }
-
+  
   inline float getNormalizedValue(Path pname) const override
   {
     return projections[pname].plainToNormalized((*this)[pname].getFloatValue());
   }
-
+  
   inline float getPlainValue(Path pname) const override { return (*this)[pname].getFloatValue(); }
-
+  
   Tree<Value> getNormalizedValues() const override
   {
     Tree<Value> ret;
@@ -205,7 +259,7 @@ struct ParameterTreePlain : public ParameterTree
     }
     return ret;
   }
-
+  
   Tree<Value> getPlainValues() const override { return (*this); }
 };
 
@@ -223,7 +277,7 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName,
 inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
   const auto& paramDesc = p.descriptions[pname];
-
+  
   if (paramDesc->hasProperty("default"))
   {
     return paramDesc->getProperty("default");

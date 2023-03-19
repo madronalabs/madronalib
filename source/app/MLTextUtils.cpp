@@ -80,6 +80,7 @@ int textToNaturalNumber(const TextFragment& frag)
   return digitsToNaturalNumber(vec.data());
 }
 
+
 TextFragment naturalNumberToText(int i)
 {
   constexpr int kMaxDigits = 16;
