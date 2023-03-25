@@ -690,6 +690,11 @@ struct ADSR
   float amp{0};
   int segment{off};
   
+  void clear()
+  {
+    segment = off;
+  }
+  
   inline float processSample(float x)
   {
     if((segment == off) && (x == 0.f)) return 0.f;

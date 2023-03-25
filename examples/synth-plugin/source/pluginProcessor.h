@@ -115,7 +115,7 @@ private:
     {
       osc1.clear();
       filt1.clear();
-      
+      env1.clear();
     }
     
     // oscillator
@@ -126,13 +126,11 @@ private:
     
     // envelope
     ADSR env1;
-    
   };
   
   LinearGlide _cutoffGlide;
   
   std::array< SynthVoice, kMaxVoices > _voices;
-
 };
 
 }}} // namespaces

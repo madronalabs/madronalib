@@ -515,7 +515,14 @@ inline TextFragment JSONToText(JSONHolder root) { return TextFragment(cJSON_Prin
 inline JSONHolder textToJSON(TextFragment t)
 {
   cJSON* root = cJSON_Parse(t.getText());
-  return JSONHolder(*root);
+  if(root)
+  {
+    return JSONHolder(*root);
+  }
+  else
+  {
+    return JSONHolder();
+  }
 }
 
 }  // namespace ml

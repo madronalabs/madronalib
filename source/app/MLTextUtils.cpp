@@ -50,26 +50,24 @@ bool isCJK(CodePoint ch)
          || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other extensions
 }
 
-int digitsToNaturalNumber(const char32_t* p)
+int digitsToNaturalNumber(const char32_t* p, size_t n)
 {
   constexpr int kMaxDigits = 16;
-
+  if (n >= kMaxDigits) return -1;
+  
   if (!p) return 0;
   int v = 0;
-  int l = 0;
   int d;
   char c;
 
-  while (p[l])
+  for(int i=0; i<n; ++i)
   {
-    c = p[l];
+    c = p[i];
     if (c >= '0' && c <= '9')
       d = (c - '0');
     else
       break;
     v = (v * 10) + d;
-    l++;
-    if (l >= kMaxDigits) return -1;
   }
   return v;
 }
@@ -77,8 +75,9 @@ int digitsToNaturalNumber(const char32_t* p)
 int textToNaturalNumber(const TextFragment& frag)
 {
   std::vector<CodePoint> vec = textToCodePoints(frag);
-  return digitsToNaturalNumber(vec.data());
+  return digitsToNaturalNumber(vec.data(), vec.size());
 }
+
 
 TextFragment naturalNumberToText(int i)
 {
@@ -865,48 +864,37 @@ Symbol stripFinalNumber(Symbol sym)
   return subFrag.getText();
 }
 
-// if the symbol's text ends in a positive integer, return that number.
+// if the symbol's text ends in an integer, return that number.
 // Otherwise return 0.
+
 int getFinalNumber(Symbol sym)
 {
-  // make temporary buffer of decoded code points, hopefully on stack
   const TextFragment& frag = sym.getTextFragment();
-  size_t points = frag.lengthInCodePoints();
-
-  // TODO make more readble using random access fragment class
-
-  SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> decodedPoints(points + 1);
-  CodePoint* buf = decodedPoints.data();
-
-  // read into char32 array for random access
-  int i = 0;
-  for (CodePoint c : frag)
+  auto it = frag.begin();
+  
+  for(;it != frag.end(); it++)
   {
-    if (!validateCodePoint(c)) return 0;
-    buf[i++] = c;
-  }
-
-  // null terminate char32_t string
-  buf[i] = 0;
-
-  // no final number? return
-  if (!textUtils::isDigit(buf[i - 1])) return 0;
-
-  // read backwards until non-digit
-  int firstDigitPos = 0;
-  for (i--; i >= 0; --i)
-  {
-    char32_t c = buf[i];
-    if (!textUtils::isDigit(c))
+    if(textUtils::isDigit(*it))
     {
-      firstDigitPos = i + 1;
       break;
     }
   }
 
-  // note, null terminated char32_t string needed
-  int r = digitsToNaturalNumber(buf + firstDigitPos);
-  return r;
+  int v = 0;
+  int d;
+  char c;
+  
+  for(;it != frag.end(); it++)
+  {
+    char c = *it;
+    if (c >= '0' && c <= '9')
+      d = (c - '0');
+    else
+      break;
+    v = (v * 10) + d;
+  }
+
+  return v;
 }
 
 Symbol stripFinalCharacter(Symbol sym)

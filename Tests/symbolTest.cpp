@@ -313,13 +313,15 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
   textUtils::NameMaker namer;
   for (int i = 0; i < 10; ++i)
   {
+    int num = i*39620;
     Symbol testSym = namer.nextName();
-    Symbol testSymWithNum = textUtils::addFinalNumber(testSym, i);
+    
+    Symbol testSymWithNum = textUtils::addFinalNumber(testSym, num);
     Symbol testSymWithoutNum = textUtils::stripFinalNumber(testSym);
-    int j = textUtils::getFinalNumber(testSymWithNum);
+    int finalNumber = textUtils::getFinalNumber(testSymWithNum);
 
     REQUIRE(testSym == testSymWithoutNum);
-    REQUIRE(i == j);
+    REQUIRE(num == finalNumber);
   }
   REQUIRE(theSymbolTable().audit());
 }
