@@ -401,33 +401,3 @@ TEST_CASE("madronalib/core/symbol/path", "[symbol][path]")
   REQUIRE(!p.beginsWith(q));
   
 }
-
-// TODO move
-#include "MLTextUtils.h"
-TEST_CASE("madronalib/core/symbol/textutils", "[symbol][textutils]")
-{
-  const char* kobayashi("\xE5\xB0\x8F\xE6\x9E\x97\x20\xE5\xB0\x8A");
-
-  TextFragment t0("/////");
-  TextFragment t1("a/");
-  TextFragment t2("////a/b");
-  TextFragment t3("a/b/c/////");
-  TextFragment t4("hello/world/get//segments");
-  TextFragment t5("///hello/world/get///", kobayashi, "/segments");
-
-  std::vector< TextFragment > tv{t0, t1, t2, t3, t4, t5};
-  
-  int i{0};
-  for(auto tf : tv)
-  {
-    auto segs = textUtils::split(tf, '/');
-    REQUIRE(segs.size() == i++);
-    
-    Path p = textToPath(tf);
-    TextFragment tf2 = pathToText(p);
-    Path p2 = textToPath(tf2);
-    
-    REQUIRE(p == p2);
-  }
-}
-
