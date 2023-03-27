@@ -54,10 +54,9 @@ public:
   void processVector(MainInputs inputs, MainOutputs outputs, void *stateDataUnused) override
   {
     // get params from the SignalProcessor.
-    float f1 = getParam("freq1");
-    float f2 = getParam("freq2");
+    float f1 = getRealFloatParam("freq1");
+    float f2 = getRealFloatParam("freq2");
     
-
     // Running the sine generators makes DSPVectors as output.
     // The input parameter is omega: the frequency in Hz divided by the sample rate.
     // The output sines are multiplied by the gain.
@@ -80,9 +79,11 @@ int main()
   // build the stored parameter tree, creating descriptions and projections
   exampleProc.buildParams(pdl);
   
+  exampleProc.setDefaultParams();
+  
   // set a parameter of the processor as a normalized value.
   // if not set, parameters begin at their default values.
-  exampleProc.setParam("freq2", 0.6);
+  exampleProc.setParamFromNormalizedValue("freq2", 0.6);
 
   return exampleProc.run();
 }

@@ -120,20 +120,30 @@ class SignalProcessor
 
   virtual void processVector(MainInputs inputs, MainOutputs outputs, void* stateData = nullptr) {}
 
-  void setParam(Path pname, float val) { _params.setFromNormalizedValue(pname, val); }
+
+  void setParamFromNormalizedValue(Path pname, float val)
+  {
+    params_.setFromNormalizedValue(pname, val);
+  }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
-    buildParameterTree(paramList, _params);
+    buildParameterTree(paramList, params_);
   };
+  
+  inline void setDefaultParams()
+  {
+    setDefaults(params_);
+  };
+  
 
  protected:
   // the maximum amount of input frames that can be proceesed at once. This determines the
   // maximum signal vector size of the plugin host or enclosing app.
   static constexpr int kMaxProcessBlockFrames{4096};
 
-  // the plain parameter values are stored here.
-  ParameterTreePlain _params;
+  // the parameter values are stored here.
+  ParameterTree params_;
 
   SharedResourcePointer<ProcessorRegistry> _registry;
   size_t _uniqueID;
@@ -150,17 +160,19 @@ class SignalProcessor
   // single buffer for reading from signals
   std::vector<float> _readBuffer;
 
-  // brief way to access params:
-  inline float getParamNormalized(Path pname)
+
+  // param access
+  inline float getRealFloatParam(Path pname)
   {
-    return getNormalizedValue(_params, pname).getFloatValue();
+    return params_.getRealFloatValue(pname);
   }
   
-  inline float getParam(Path pname)
+  inline float getNormalizedFloatParam(Path pname)
   {
-    return getPlainValue(_params, pname).getFloatValue();
+    return params_.getNormalizedFloatValue(pname);
   }
 
+  
   Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
 
   inline void publishSignal(Path signalName, int channels, int octavesDown)

@@ -216,7 +216,7 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
     {
       case (hash("set_param")):
       {
-        setParam(tail(msg.address), msg.value.getFloatValue());
+        setParamFromNormalizedValue(tail(msg.address), msg.value.getFloatValue());
         break;
       }
       case (hash("set_prop")):
