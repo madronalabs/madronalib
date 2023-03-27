@@ -83,9 +83,6 @@ int main()
   // set a parameter of the processor as a normalized value.
   // if not set, parameters begin at their default values.
   exampleProc.setParam("freq2", 0.6);
-  
-  // display plain parameter values
-  exampleProc.dumpParams();
 
   return exampleProc.run();
 }

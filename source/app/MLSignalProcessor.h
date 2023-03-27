@@ -120,14 +120,12 @@ class SignalProcessor
 
   virtual void processVector(MainInputs inputs, MainOutputs outputs, void* stateData = nullptr) {}
 
-  void setParam(Path pname, float val) { _params.setParamFromNormalizedValue(pname, val); }
+  void setParam(Path pname, float val) { _params.setFromNormalizedValue(pname, val); }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
     buildParameterTree(paramList, _params);
   };
-
-  inline void dumpParams() { _params.dump(); };
 
  protected:
   // the maximum amount of input frames that can be proceesed at once. This determines the
@@ -153,8 +151,15 @@ class SignalProcessor
   std::vector<float> _readBuffer;
 
   // brief way to access params:
-  inline float getParamNormalized(Path pname) { return getNormalizedValue(_params, pname); }
-  inline float getParam(Path pname) { return getPlainValue(_params, pname); }
+  inline float getParamNormalized(Path pname)
+  {
+    return getNormalizedValue(_params, pname).getFloatValue();
+  }
+  
+  inline float getParam(Path pname)
+  {
+    return getPlainValue(_params, pname).getFloatValue();
+  }
 
   Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
 
