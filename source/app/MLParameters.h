@@ -158,9 +158,16 @@ public:
   }
   
   // set a parameter's real value without conversion. For params that don't have normal values.
+  // both normal and real params are set for ease of getting all normalized + non-normalizable values.
   void setRealValue(Path pname, Value val)
   {
+    paramsNorm_[pname] = val;
     paramsReal_[pname] = val;
+  }
+  
+  Value::Type getValueType(Path pname) const
+  {
+    return paramsReal_[pname].getType();
   }
   
   Value getRealValue(Path pname) const
