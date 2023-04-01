@@ -8,21 +8,22 @@ using namespace ml;
 
 // SignalProcessor::PublishedSignal
 
-SignalProcessor::PublishedSignal::PublishedSignal(int channels, int octavesDown)
+SignalProcessor::PublishedSignal::PublishedSignal(int channels, int frames, int octavesDown)
     : _downsampler(channels, octavesDown), _channels(channels)
 {
-  _buffer.resize(kPublishedSignalReadFrames * _channels);
+  _buffer.resize(frames * _channels);
 }
 
 size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesRequested)
 {
+  size_t result{0};
   size_t available = getAvailableFrames();
   if (available > framesRequested)
   {
     _buffer.discard((available - framesRequested) * _channels);
   }
-  auto readResult = _buffer.read(pDest, framesRequested * _channels);
-  return readResult;
+
+  return _buffer.read(pDest, framesRequested * _channels);
 }
 
 size_t SignalProcessor::PublishedSignal::read(float* pDest, size_t framesRequested)

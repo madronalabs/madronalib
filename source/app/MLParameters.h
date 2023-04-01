@@ -90,7 +90,9 @@ public:
     float newNormValue = val.getFloatValue();
     float newRealValue{0};
     auto& pdesc = descriptions[pname];
-    bool useListValues = pdesc->getProperty("use_list_values_as_int").getBoolValue();
+    if(!pdesc) return 0;
+    
+    bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
     if(useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
@@ -106,11 +108,12 @@ public:
 
   float convertRealToNormalizedFloatValue(Path pname, Value val) const
   {
+    float newNormValue{0};
     float newRealValue = val.getFloatValue();
-    
-    float newNormalizedValue{0};
     auto& pdesc = descriptions[pname];
-    bool useListValues = pdesc->getProperty("use_list_values_as_int").getBoolValue();
+    if(!pdesc) return 0;
+
+    bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
     if(useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
@@ -121,16 +124,16 @@ public:
         int intItem = textUtils::textToNaturalNumber(listItems[i]);
         if(newRealValue == intItem)
         {
-          newNormalizedValue = projections[pname].realToNormalized(i);
+          newNormValue = projections[pname].realToNormalized(i);
           break;
         }
       }
     }
     else
     {
-      newNormalizedValue = projections[pname].realToNormalized(newRealValue);
+      newNormValue = projections[pname].realToNormalized(newRealValue);
     }
-    return newNormalizedValue;
+    return newNormValue;
   }
   
   inline Value convertNormalizedToRealValue(Path pname, Value val) const
@@ -198,20 +201,20 @@ public:
 #ifdef DEBUG
     if(pname == watchParameter)
     {
-      std::cout << "[paramTree set from norm " << pname << " -> " << val << "]\n";
+      std::cout << "[paramTree set from norm " << pname << " -> " << val << "/" << paramsReal_[pname] << "]\n";
     }
 #endif
   }
   
   inline void setFromRealValue(Path pname, Value val)
   {
-    paramsReal_[pname] = val;
     paramsNorm_[pname] = convertRealToNormalizedValue(pname, val);
+    paramsReal_[pname] = val;
     
 #ifdef DEBUG
     if(pname == watchParameter)
     {
-      std::cout << "[paramTree set from real " << pname << " -> " << val << "]\n";
+      std::cout << "[paramTree set from real " << pname << " -> " << paramsNorm_[pname] << " / " << val << "]\n";
     }
 #endif
   }
@@ -242,6 +245,20 @@ public:
   const Tree<Value>& getRealValues() const
   {
     return paramsReal_;
+  }
+  
+  void dump()
+  {
+    std::cout << "\n----------------------------\n";
+    for (auto it = descriptions.begin(); it != descriptions.end(); ++it)
+    {
+      const auto& paramDesc = *it;
+      auto pname = paramDesc->getTextProperty("name");
+      auto normVal = paramsNorm_[pname];
+      auto realVal = paramsReal_[pname];
+      std::cout << pname << ": " << normVal << " / " << realVal << "\n";
+    }
+    std::cout << "----------------------------\n\n";
   }
 
   void setWatchParameter(Path pname) {watchParameter = pname;}

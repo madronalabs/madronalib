@@ -11,9 +11,6 @@
 #include "madronalib.h"
 #include "mldsp.h"
 
-constexpr size_t kPublishedSignalMaxChannels = 2;
-constexpr size_t kPublishedSignalReadFrames = 128;
-
 namespace ml
 {
 
@@ -33,7 +30,7 @@ class SignalProcessor
     size_t _channels{0};
 
    public:
-    PublishedSignal(int channels, int octavesDown);
+    PublishedSignal(int channels, int frames, int octavesDown);
     ~PublishedSignal() = default;
 
     inline size_t getNumChannels() const { return _channels; }
@@ -123,17 +120,17 @@ class SignalProcessor
 
   void setParamFromNormalizedValue(Path pname, float val)
   {
-    params_.setFromNormalizedValue(pname, val);
+    _params.setFromNormalizedValue(pname, val);
   }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
-    buildParameterTree(paramList, params_);
+    buildParameterTree(paramList, _params);
   };
   
   inline void setDefaultParams()
   {
-    setDefaults(params_);
+    setDefaults(_params);
   };
   
 
@@ -143,7 +140,7 @@ class SignalProcessor
   static constexpr int kMaxProcessBlockFrames{4096};
 
   // the parameter values are stored here.
-  ParameterTree params_;
+  ParameterTree _params;
 
   SharedResourcePointer<ProcessorRegistry> _registry;
   size_t _uniqueID;
@@ -164,20 +161,20 @@ class SignalProcessor
   // param access
   inline float getRealFloatParam(Path pname)
   {
-    return params_.getRealFloatValue(pname);
+    return _params.getRealFloatValue(pname);
   }
   
   inline float getNormalizedFloatParam(Path pname)
   {
-    return params_.getNormalizedFloatValue(pname);
+    return _params.getNormalizedFloatValue(pname);
   }
 
   
   Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
 
-  inline void publishSignal(Path signalName, int channels, int octavesDown)
+  inline void publishSignal(Path signalName, int channels, int frames, int octavesDown)
   {
-    _publishedSignals[signalName] = ml::make_unique<PublishedSignal>(channels, octavesDown);
+    _publishedSignals[signalName] = ml::make_unique<PublishedSignal>(channels, frames, octavesDown);
   }
 
   // store a DSPVectorArray to the named signal buffer.
