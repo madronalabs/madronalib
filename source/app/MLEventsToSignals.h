@@ -168,7 +168,7 @@ private:
 
   // find a free voice in the range of voice indices (startVoice, startVoice + len).
   // if no free voice is found return -1.
-  int findFreeVoice(size_t startVoice, size_t len);
+  int findFreeVoice(size_t len);
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
   

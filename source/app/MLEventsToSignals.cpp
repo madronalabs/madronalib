@@ -291,10 +291,10 @@ void EventsToSignals::processEvent(const Event &eventParam)
 
 void EventsToSignals::processNoteOnEvent(const Event& e)
 {
-  auto v = findFreeVoice(0, _polyphony);
+  auto v = findFreeVoice(_polyphony);
+
   if(v >= 0)
   {
-    _voiceRotateOffset++;
     voices[v].writeNoteEvent(e, _scale);
   }
   else
@@ -415,28 +415,31 @@ void EventsToSignals::processSustainEvent(const Event& event)
   }
 }
 
-
 #pragma mark -
 
 // return index of free voice or -1 for none.
 // increments mVoiceRotateOffset.
 //
-int EventsToSignals::findFreeVoice(size_t start, size_t len)
+int EventsToSignals::findFreeVoice(size_t len)
 {
   int r = -1;
-  for (auto v = start; v < start + len; ++v)
+  
+  for (auto v = _voiceRotateOffset; v < _voiceRotateOffset + len; ++v)
   {
-    auto vr = v;
-
     // rotate voices
-    vr = (vr + _voiceRotateOffset) % len;
+    auto vr = v % len;
 
     if (voices[vr].state == Voice::kOff)
     {
       r = static_cast<int>(vr);
       break;
     }
+    else
+    {
+      _voiceRotateOffset++;
+    }
   }
+  _voiceRotateOffset++;
   return r;
 }
 
