@@ -426,9 +426,7 @@ int EventsToSignals::findFreeVoice(size_t len)
   
   for (auto v = _voiceRotateOffset; v < _voiceRotateOffset + len; ++v)
   {
-    // rotate voices
     auto vr = v % len;
-
     if (voices[vr].state == Voice::kOff)
     {
       r = static_cast<int>(vr);
