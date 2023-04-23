@@ -17,6 +17,7 @@ struct Interval
   float mX1, mX2;
 };
 
+inline float midpoint(Interval m) { return (m.mX1 + m.mX2)*0.5f; }
 inline bool within(float f, const Interval m) { return (f >= m.mX1) && (f < m.mX2); }
 
 using Projection = std::function<float(float)>;
