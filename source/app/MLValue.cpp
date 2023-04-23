@@ -72,6 +72,8 @@ Value::Value(int v) : mType(kFloatValue) { mFloatVal = v; }
 
 Value::Value(bool v) : mType(kFloatValue) { mFloatVal = v; }
 
+Value::Value(unsigned long v) : mType(kUnsignedLongValue) { mUnsignedLongVal = v; }
+
 Value::Value(uint32_t v) : mType(kUnsignedLongValue) { mUnsignedLongVal = v; }
 
 Value::Value(long v) : mType(kFloatValue) { mFloatVal = v; }

@@ -25,9 +25,10 @@ namespace ml
 
 class Value
 {
-  static constexpr size_t kBlobSizeBytes{256};
-
  public:
+
+  static constexpr size_t kBlobSizeBytes{256};
+  
   enum Type
   {
     kUndefinedValue = 0,
@@ -47,6 +48,7 @@ class Value
   Value(int v);
   Value(bool v);
   Value(long v);
+  Value(unsigned long v);
   Value(uint32_t v);
   Value(double v);
   Value(const ml::Text& t);
