@@ -208,6 +208,15 @@ public:
   
   inline void setFromRealValue(Path pname, Value val)
   {
+    
+#ifdef DEBUG
+    if(pname == watchParameter)
+    {
+      std::cout << ">>> setting from real value: " << pname << " = " <<  val << "\n";
+    }
+#endif
+    
+    
     paramsNorm_[pname] = convertRealToNormalizedValue(pname, val);
     paramsReal_[pname] = val;
     
@@ -286,13 +295,34 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
   
   if (paramDesc->hasProperty("default"))
   {
-    return paramDesc->getProperty("default");
+    Value defaultVal = paramDesc->getProperty("default");
+    if(defaultVal.getType() == Value::kTextValue)
+    {
+      // descriptions must have the default string "blob" in them to be
+      // set up propery as a blob type.
+      if(defaultVal == "blob")
+      {
+        // setup default blob
+        uint32_t blobData{'test'};
+        Value blobDefault(&blobData, 4);
+        return blobDefault;
+      }
+      else
+      {
+        // set default text for other text parameters
+        return defaultVal;
+      }
+    }
+    else
+    {
+      return defaultVal;
+    }
   }
   else if (paramDesc->hasProperty("plaindefault"))
   {
     // convert plain default to normalized and return
     Value defaultVal = paramDesc->getProperty("plaindefault");
-    return p.projections[pname].realToNormalized(defaultVal.getFloatValue());
+    return p.convertRealToNormalizedFloatValue(pname, defaultVal.getFloatValue());
   }
   else if (paramDesc->hasProperty("range"))
   {

@@ -280,7 +280,7 @@ void MLT3DHub::disconnect()
     if (mReceivingT3d)
     {
       mReceivingT3d = false;
-      notifyListeners("receiving", 0);
+      notifyListeners("receiving", 0UL);
     }
     removeUDPService();
     mConnected = false;
