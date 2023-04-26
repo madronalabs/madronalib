@@ -79,7 +79,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       // write current pitch and velocity up to note start
       for(size_t t = nextFrameToProcess; t < destTime; ++t)
       {
-        outputs.row(kVelocity)[t] = currentVelocity;
+        outputs.row(kGate)[t] = currentVelocity;
 
         // TODO sample accurate pitch glide
         outputs.row(kPitch)[t] = currentPitch;
@@ -110,7 +110,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       // write current pitch and velocity up to retrigger
       for(size_t t = nextFrameToProcess; t < destTime - 1; ++t)
       {
-        outputs.row(kVelocity)[t] = currentVelocity;
+        outputs.row(kGate)[t] = currentVelocity;
         
         // TODO sample accurate glide
         outputs.row(kPitch)[t] = currentPitch;
@@ -119,7 +119,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       }
       
       // write retrigger frame
-      outputs.row(kVelocity)[destTime - 1] = 0;
+      outputs.row(kGate)[destTime - 1] = 0;
       outputs.row(kPitch)[destTime - 1] = currentPitch;
       
       // set new values
@@ -146,7 +146,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       // write current values up to change TODO DRY
       for(size_t t = nextFrameToProcess; t < destTime; ++t)
       {
-        outputs.row(kVelocity)[t] = currentVelocity;
+        outputs.row(kGate)[t] = currentVelocity;
         
         // TODO sample accurate glide
         outputs.row(kPitch)[t] = currentPitch;
@@ -157,22 +157,20 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       // set new values
       currentVelocity = 0.;
       nextFrameToProcess = destTime;
-      ageInSamples = 0;
       break;
     }
     default:
       state = kOff;
-      ageInSamples = 0;
       break;
   }
 }
 
-void EventsToSignals::Voice::endProcess()
+void EventsToSignals::Voice::endProcess(float pitchBend)
 {
   for(size_t t = nextFrameToProcess; t < kFloatsPerDSPVector; ++t)
   {
     // write velocity to end of buffer.
-    outputs.row(kVelocity)[t] = currentVelocity;
+    outputs.row(kGate)[t] = currentVelocity;
     
     // write pitch to end of buffer.
     // TODO sample accurate glide
@@ -183,11 +181,14 @@ void EventsToSignals::Voice::endProcess()
   }
   
   // process glides, accurate to the DSP vector
-  outputs.row(kPitchBend) = pitchBendGlide(currentPitchBend);
+  auto bendGlide = pitchBendGlide(currentPitchBend);
   outputs.row(kMod) = modGlide(currentMod);
   outputs.row(kX) = xGlide(currentX);
   outputs.row(kY) = yGlide(currentY);
   outputs.row(kZ) = zGlide(currentZ);
+  
+  // add pitch bend to pitch output
+  outputs.row(kPitch) += bendGlide*pitchBend;
 }
 
 #pragma mark -
@@ -254,7 +255,7 @@ void EventsToSignals::process()
   }
   for(auto& v : voices)
   {
-    v.endProcess();
+    v.endProcess(kPitchBendSemitones);
   }
 }
 
@@ -413,6 +414,11 @@ void EventsToSignals::processSustainEvent(const Event& event)
       }
     }
   }
+}
+
+void EventsToSignals::setPitchBendInSemitones(float f)
+{
+  kPitchBendSemitones = f;
 }
 
 #pragma mark -

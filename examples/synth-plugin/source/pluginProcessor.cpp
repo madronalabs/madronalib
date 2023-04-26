@@ -388,11 +388,10 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
     {
       auto& allocatorVoice = (_synthInput->voices)[v];
       auto& pitchSignal = allocatorVoice.outputs.row(EventsToSignals::kPitch);
-      auto& pitchBendSignal = allocatorVoice.outputs.row(EventsToSignals::kPitchBend);
-      auto& velSignal = allocatorVoice.outputs.row(EventsToSignals::kVelocity);
+      auto& gateSignal = allocatorVoice.outputs.row(EventsToSignals::kGate);
       
       // generate stereo voice output
-      auto voiceOutput = _voices[v].processVector(pitchSignal, velSignal, pitchBendSignal, c1, _sampleRate, debugFlag);
+      auto voiceOutput = _voices[v].processVector(pitchSignal, gateSignal, c1, _sampleRate, debugFlag);
       
       outputs[0] += voiceOutput.row(0);
       outputs[1] += voiceOutput.row(1);
@@ -410,7 +409,7 @@ void PluginProcessor::SynthVoice::setEnvParams(float a, float d, float s, float 
 
 // SynthVoice::processVector() is where an individual voice makes sound.
 //
-DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, DSPVector cutoff, float sr, bool debug)
+DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, DSPVector vel, DSPVector cutoff, float sr, bool debug)
 {
   // convert 1/oct pitch to frequency
   constexpr float kFundamentalPitch = 440.f;
@@ -419,7 +418,7 @@ DSPVectorArray< 2 > PluginProcessor::SynthVoice::processVector(DSPVector pitch, 
   constexpr float kBendSemitones = 7;
   constexpr float kBendRange = 1.0f*kBendSemitones/12;
   DSPVector fundamental(kFundamentalPitch);
-  DSPVector freq = exp2Approx(pitch + pitchBend*kBendRange)*fundamental;
+  DSPVector freq = exp2Approx(pitch)*fundamental;
   DSPVector invSr(1.0f/sr);
   
   auto env = env1(vel);
@@ -444,9 +443,8 @@ void PluginProcessor::debugStuff()
   for(int v = 0; v < p; ++v )
   {
     auto& voice = (_synthInput->voices)[v];
-    DSPVector vVel = voice.outputs.row(EventsToSignals::kVelocity);
     DSPVector vPitch = voice.outputs.row(EventsToSignals::kPitch);
-    DSPVector vPitchBend = voice.outputs.row(EventsToSignals::kPitchBend);
+    DSPVector vVel = voice.outputs.row(EventsToSignals::kGate);
     DSPVector vVoice = voice.outputs.row(EventsToSignals::kVoice);
     DSPVector vMod = voice.outputs.row(EventsToSignals::kMod);
     DSPVector vX = voice.outputs.row(EventsToSignals::kX);
@@ -455,7 +453,6 @@ void PluginProcessor::debugStuff()
     DSPVector vTime = voice.outputs.row(EventsToSignals::kElapsedTime);
     float vel = vVel[0];
     float pitch = vPitch[0];
-    float bend = vPitchBend[0];
     float vox = vVoice[0];
     float mod = vMod[0];
     float x = vX[0];
@@ -465,7 +462,7 @@ void PluginProcessor::debugStuff()
     
     if(0)
     {
-      std::cout << "voice " << v << " : [" << vel << ", " << pitch << ", " << bend << ", " << vox << ", " << mod << ", " << mod << "]\n";
+      std::cout << "voice " << v << " : [" << vel << ", " << pitch << ", " << vox << ", " << mod << ", " << mod << "]\n";
       std::cout << "          [" << x << ", " << y << ", " << z << ", " << time << "]\n";
     }
   }

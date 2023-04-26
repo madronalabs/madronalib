@@ -107,7 +107,7 @@ private:
   public:
     
     // process pitch and amp signals and return stereo output
-    DSPVectorArray< 2 > processVector(DSPVector pitch, DSPVector vel, DSPVector pitchBend, DSPVector cutoff, float sr, bool debug);
+    DSPVectorArray< 2 > processVector(DSPVector pitch, DSPVector vel, DSPVector cutoff, float sr, bool debug);
     
     void setEnvParams(float a, float d, float s, float r, float sr);
     

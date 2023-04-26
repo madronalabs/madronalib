@@ -28,14 +28,13 @@ public:
   // rows per voice output signal.
   enum VoiceOutputSignals
   {
-    kVelocity = 0,
-    kPitch,
-    kPitchBend,
+    kPitch = 0,
+    kGate,
     kVoice,
-    kMod,
     kX,
     kY,
     kZ,
+    kMod,
     kElapsedTime,
     kNumVoiceOutputRows
   };
@@ -102,7 +101,8 @@ public:
     void writeNoteEvent(const Event& e, const Scale& Scale);
 
     // write all current info to the end of the current buffer.
-    void endProcess();
+    // add pitchBend to pitch.
+    void endProcess(float pitchBend);
     
     int state{kOff};
     size_t nextFrameToProcess{0};
@@ -150,6 +150,8 @@ public:
   
   // process all events in queue and generate output signals.
   void process();
+  
+  void setPitchBendInSemitones(float f);
 
   // voices, containing signals for clients to read directly.
   std::vector< Voice > voices;
@@ -181,6 +183,7 @@ private:
   int _voiceRotateOffset{0};
   bool _sustainPedalActive{false};
   float _sampleRate;
+  float kPitchBendSemitones{7.f};
 };
 
 
