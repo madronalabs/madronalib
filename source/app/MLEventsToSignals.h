@@ -117,7 +117,8 @@ public:
     float currentZ{0};
 
     int creatorID{0}; // for matching event sources, could be MIDI key, or touch number.
-    uint32_t ageInSamples{0}; 
+    uint32_t ageInSamples{0};
+    uint32_t ageStep{0};
 
     LinearGlide pitchGlide;
     LinearGlide pitchBendGlide;

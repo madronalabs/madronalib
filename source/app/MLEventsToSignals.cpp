@@ -29,6 +29,7 @@ void EventsToSignals::Voice::reset()
   state = kOff;
   nextFrameToProcess = 0;
   ageInSamples = 0;
+  ageStep = 0;
 
   currentVelocity = 0;
   currentPitch = 0;
@@ -73,6 +74,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       state = kOn;
       creatorID = e.creatorID;
       ageInSamples = 0;
+      ageStep = 1;
       size_t destTime = e.time;
       destTime = clamp(destTime, 0UL, (size_t)kFloatsPerDSPVector);
       
@@ -83,8 +85,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
 
         // TODO sample accurate pitch glide
         outputs.row(kPitch)[t] = currentPitch;
-        
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples++, _sampleRate);
+        ageInSamples += ageStep;
+        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
       }
       
       // set new values
@@ -114,8 +116,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
         
         // TODO sample accurate glide
         outputs.row(kPitch)[t] = currentPitch;
-        
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples++, _sampleRate);
+        ageInSamples += ageStep;
+        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
       }
       
       // write retrigger frame
@@ -150,8 +152,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
         
         // TODO sample accurate glide
         outputs.row(kPitch)[t] = currentPitch;
-        
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples++, _sampleRate);
+        ageInSamples += ageStep;
+        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
       }
       
       // set new values
@@ -177,7 +179,8 @@ void EventsToSignals::Voice::endProcess(float pitchBend)
     outputs.row(kPitch)[t] = currentPitch;
     
     // keep increasing age
-    outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples++, _sampleRate);
+    ageInSamples += ageStep;
+    outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
   }
   
   // process glides, accurate to the DSP vector
