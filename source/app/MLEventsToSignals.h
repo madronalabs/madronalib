@@ -5,6 +5,7 @@
 #pragma once
 
 #include <deque>
+#include <iostream> // TEMP
 
 #include "madronalib.h"
 #include "mldsp.h"
@@ -71,6 +72,7 @@ public:
     
     explicit operator bool() const { return type != kNull; }
   };
+  
   
   #pragma mark -
   
@@ -169,9 +171,9 @@ private:
   void processChannelPressureEvent(const Event& event);
   void processSustainEvent(const Event& event);
 
-  // find a free voice in the range of voice indices (startVoice, startVoice + len).
-  // if no free voice is found return -1.
-  int findFreeVoice(size_t len);
+  // find a free voice index. if no free voice is found return -1.
+  int findFreeVoice();
+  
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
   
@@ -186,6 +188,13 @@ private:
   float _sampleRate;
   float kPitchBendSemitones{7.f};
 };
+
+
+inline std::ostream& operator<<(std::ostream& out, const EventsToSignals::Event& e)
+{
+  std::cout << "[" << e.type << "/" << e.channel << "/" << e.creatorID << "/" << e.time << "]";
+  return out;
+}
 
 
 }  // namespace ml

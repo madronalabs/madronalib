@@ -85,6 +85,22 @@ inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector, int)> f
   return y;
 }
 
+
+// Apply a function (DSPVector, int row)->(DSPVector) to each row of the
+// DSPVectorArray x and return the result.
+template <size_t ROWS>
+inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector, const DSPVector)> f,
+                                const DSPVectorArray<ROWS> x)
+{
+  DSPVectorArray<ROWS> y;
+  for (int j = 0; j < ROWS; ++j)
+  {
+    y.row(j) = f(x.constRow(j), j);
+  }
+  return y;
+}
+
+
 // ----------------------------------------------------------------
 // higher-order functions with DSP
 

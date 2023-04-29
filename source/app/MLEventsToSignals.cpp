@@ -295,7 +295,8 @@ void EventsToSignals::processEvent(const Event &eventParam)
 
 void EventsToSignals::processNoteOnEvent(const Event& e)
 {
-  auto v = findFreeVoice(_polyphony);
+  // std::cout << "processNoteOnEvent: " << e << "\n";
+  auto v = findFreeVoice();
 
   if(v >= 0)
   {
@@ -429,13 +430,13 @@ void EventsToSignals::setPitchBendInSemitones(float f)
 // return index of free voice or -1 for none.
 // increments mVoiceRotateOffset.
 //
-int EventsToSignals::findFreeVoice(size_t len)
+int EventsToSignals::findFreeVoice()
 {
+  uint32_t len = _polyphony;
   int r = -1;
-  
-  for (auto v = _voiceRotateOffset; v < _voiceRotateOffset + len; ++v)
+  for (auto v = 0; v < len; ++v)
   {
-    auto vr = v % len;
+    auto vr = (v + _voiceRotateOffset) % len;
     if (voices[vr].state == Voice::kOff)
     {
       r = static_cast<int>(vr);
