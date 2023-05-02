@@ -183,7 +183,7 @@ private:
   Scale _scale;
   Queue< Event > _eventQueue;
   int _polyphony{0};
-  int _voiceRotateOffset{0};
+  int _lastFreeVoiceFound{-1};
   bool _sustainPedalActive{false};
   float _sampleRate;
   float kPitchBendSemitones{7.f};

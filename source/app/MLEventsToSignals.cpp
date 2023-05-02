@@ -238,7 +238,7 @@ void EventsToSignals::reset()
     v.reset();
   }
   
-  _voiceRotateOffset = 0;
+  _lastFreeVoiceFound = -1;
 }
 
 void EventsToSignals::addEvent(const Event& e)
@@ -295,7 +295,6 @@ void EventsToSignals::processEvent(const Event &eventParam)
 
 void EventsToSignals::processNoteOnEvent(const Event& e)
 {
-  // std::cout << "processNoteOnEvent: " << e << "\n";
   auto v = findFreeVoice();
 
   if(v >= 0)
@@ -434,20 +433,20 @@ int EventsToSignals::findFreeVoice()
 {
   uint32_t len = _polyphony;
   int r = -1;
-  for (auto v = 0; v < len; ++v)
+  int t = _lastFreeVoiceFound;
+  for (int i = 0; i < len; ++i)
   {
-    auto vr = (v + _voiceRotateOffset) % len;
-    if (voices[vr].state == Voice::kOff)
+    t++;
+    if(t >= len) t = 0;
+    
+    if (voices[t].state == Voice::kOff)
     {
-      r = static_cast<int>(vr);
+      r = t;
+      _lastFreeVoiceFound = t;
       break;
     }
-    else
-    {
-      _voiceRotateOffset++;
-    }
   }
-  _voiceRotateOffset++;
+
   return r;
 }
 
