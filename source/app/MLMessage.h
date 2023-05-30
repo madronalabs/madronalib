@@ -44,47 +44,28 @@ struct MessageList : public std::vector<Message>
 
 struct MessageReceiver
 {
- protected:
-  virtual void handleMessage(Message m, Message* replyPtr) = 0;
-
-  MessageList processMessageList(MessageList msgList)
-  {
-    MessageList retList;
-    Message resultMsg;
-
-    for (auto msg : msgList)
-    {
-      resultMsg = Message();
-      handleMessage(msg, &resultMsg);
-      if (resultMsg)
-      {
-        retList.push_back(resultMsg);
-      }
-    }
-    return retList;
-  }
-
- public:
-  void doSendMessage(Message m) { handleMessage(m, nullptr); }
-
-  void doSendMessageWithReply(Message m, Message* replyPtr) { handleMessage(m, replyPtr); }
+  // Handle a message and optionally reply. Many senders do not expect a reply and
+  // send nullptr for replyPtr. So the receiver must verify that replyPtr is non-null
+  // before attempting to reply!
+  virtual void handleMessage(Message m, MessageList* replyPtr) = 0;
 };
 
-// sending messages to MessageReceivers
-
 // send a message directly to a MessageReceiver when no reply is needed.
-inline void sendMessage(MessageReceiver& obj, Message m) { obj.doSendMessage(m); }
-
-// send a message directly to a MessageReceiver when a reply is needed.
-inline void sendRequest(MessageReceiver& obj, Message m, Message* replyPtr)
+inline void sendMessage(MessageReceiver& obj, Message m)
 {
-  obj.doSendMessageWithReply(m, replyPtr);
+  obj.handleMessage(m, nullptr);
+}
+
+// send a message directly to a MessageReceiver when a reply is expected.
+inline void sendMessageExpectingReply(MessageReceiver& obj, Message m, MessageList* replyPtr)
+{
+  obj.handleMessage(m, replyPtr);
 }
 
 // send a message list directly to a MessageReceiver.
 inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 {
-  for (auto& m : msgList)
+  for(auto& m : msgList)
   {
     sendMessage(obj, m);
   }
@@ -95,18 +76,18 @@ inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 template <typename T>
 inline void sendMessage(const std::unique_ptr<T>& pObj, Message m)
 {
-  if (pObj) pObj->doSendMessage(m);
+  if(pObj) pObj->handleMessage(m, nullptr);
 }
 
 // send a list of messages to a MessageReceiver object through a Collection.
 template <typename T>
 inline void sendMessageList(const std::unique_ptr<T>& pObj, MessageList msgList)
 {
-  if (pObj)
+  if(pObj)
   {
-    for (auto& m : msgList)
+    for(auto& m : msgList)
     {
-      pObj->doSendMessage(m);
+      pObj->handleMessage(m, nullptr);
     }
   }
 }

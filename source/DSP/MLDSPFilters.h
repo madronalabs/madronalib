@@ -475,6 +475,12 @@ class OnePole
     }
     return vy;
   }
+  
+  // jump to the new output value f without slewing there.
+  void reset(float f)
+  {
+    y1 = f;
+  }
 };
 
 // A one-pole, one-zero filter to attenuate DC.

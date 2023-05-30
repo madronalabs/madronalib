@@ -27,7 +27,7 @@ struct Receiver : public MessageReceiver
   operator int() const { return value; }
   int value;
   
-  void handleMessage(Message m, Message*) { /* std::cout << "normal: " << value << "\n";*/ }
+  void handleMessage(Message m, MessageList*) { /* std::cout << "normal: " << value << "\n";*/ }
 };
 
 struct FancyReceiver : public Receiver
@@ -36,7 +36,7 @@ struct FancyReceiver : public Receiver
   FancyReceiver(int v) : Receiver(v) {}
   ~FancyReceiver() = default;
   
-  void handleMessage(Message m, Message*) { /*std::cout << "fancy!! " << value << " " << m << "\n";*/ }
+  void handleMessage(Message m, MessageList*) { /*std::cout << "fancy!! " << value << " " << m << "\n";*/ }
 };
 
 

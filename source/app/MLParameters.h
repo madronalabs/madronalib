@@ -361,26 +361,20 @@ inline void setDefaults(ParameterTree& p)
   }
 }
 
-/*
-inline Value getPlainValue(const ParameterTree& p, Path pname)
+// get time parameter description in list
+inline ParameterDescription* findNamedParameter(const ParameterDescriptionList& paramList, Path pname)
 {
-  return p.getPlainValue(pname);
+  ParameterDescription* pParam{nullptr};
+  for(int i = 0; i<paramList.size(); ++i)
+  {
+    auto& pDesc = paramList[i];
+    if(pDesc->getTextProperty("name") == pname)
+    {
+      pParam = pDesc.get();
+      break;
+    }
+  }
+  return pParam;
 }
-
-inline Value getNormalizedValue(const ParameterTree& p, Path pname)
-{
-  return p.getNormalizedValue(pname);
-}
-
-inline Tree<Value> getPlainValues(const ParameterTree& p)
-{
-  return p.getPlainValues();
-}
-
-inline Tree<Value> getNormalizedValues(const ParameterTree& p)
-{
-  return p.getNormalizedValues();
-}
-*/
 
 }  // namespace ml
