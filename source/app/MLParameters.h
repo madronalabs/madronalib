@@ -361,7 +361,7 @@ inline void setDefaults(ParameterTree& p)
   }
 }
 
-// get time parameter description in list
+// returns pointer to parameter description in list matching name
 inline ParameterDescription* findNamedParameter(const ParameterDescriptionList& paramList, Path pname)
 {
   ParameterDescription* pParam{nullptr};
