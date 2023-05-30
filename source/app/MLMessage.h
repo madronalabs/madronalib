@@ -48,6 +48,18 @@ struct MessageReceiver
   // send nullptr for replyPtr. So the receiver must verify that replyPtr is non-null
   // before attempting to reply!
   virtual void handleMessage(Message m, MessageList* replyPtr) = 0;
+  
+  MessageList processMessageList(MessageList inputList)
+  {
+    MessageList outputList;
+    Message resultMsg;
+    
+    for(auto msg : inputList)
+    {
+      handleMessage(msg, &outputList);
+    }
+    return outputList;
+  }
 };
 
 // send a message directly to a MessageReceiver when no reply is needed.
