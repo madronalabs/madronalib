@@ -51,9 +51,7 @@ struct MessageReceiver
   
   MessageList processMessageList(MessageList inputList)
   {
-    MessageList outputList;
-    Message resultMsg;
-    
+    MessageList outputList;    
     for(auto msg : inputList)
     {
       handleMessage(msg, &outputList);
