@@ -259,6 +259,18 @@ inline Symbol operator+(Symbol f1, Symbol f2)
   return Symbol(TextFragment(f1.getTextFragment(), f2.getTextFragment()));
 }
 
+inline Symbol stripExtension(Symbol t)
+{
+  TextFragment tFrag = t.getTextFragment();
+  return Symbol(stripExtension(tFrag));
+}
+
+inline Symbol getExtension(Symbol t)
+{
+  TextFragment tFrag = t.getTextFragment();
+  return Symbol(getExtension(tFrag));
+}
+
 }  // namespace ml
 
 // hashing function for ml::Symbol use in unordered STL containers. simply

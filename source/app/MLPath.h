@@ -181,6 +181,28 @@ inline TextFragment pathToText(Path p, const char separator = '/')
   return r;
 }
 
-inline Path textToPath(TextFragment t, const char separator = '/') { return Path(t, separator); }
+inline Path textToPath(TextFragment t, const char separator = '/')
+{
+  return Path(t, separator);
+}
+
+inline Symbol getExtensionFromPath(Path p)
+{
+  return getExtension(last(p));
+}
+
+inline Path removeExtensionFromPath(Path p)
+{
+  auto nameWithoutExtension = stripExtension(last(p));
+  return Path(butLast(p), Path(nameWithoutExtension));
+}
+
+inline Path addExtensionToPath(Path p, TextFragment ext)
+{
+  auto nameWithoutExtension = last(p).getTextFragment();
+  auto nameWithExtension = TextFragment(nameWithoutExtension, ".", ext);
+  return Path(butLast(p), Path(nameWithExtension));
+}
+
 
 }  // namespace ml

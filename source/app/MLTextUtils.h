@@ -65,7 +65,10 @@ std::vector<TextFragment> split(TextFragment frag, CodePoint delimiter = '\n');
 
 // Return the prefix of the input frag as a new TextFragment, stripping the last
 // dot and any codepoints after it.
-TextFragment stripFileExtension(const TextFragment& frag);
+TextFragment stripExtension(const TextFragment& frag);
+
+// Return any codepoints after a final dot.
+TextFragment getExtension(const TextFragment& frag);
 
 // If the input fragment contains a slash, return a new TextFragment containing
 // any characters after the final slash. Else return the input.

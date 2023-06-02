@@ -526,7 +526,7 @@ TextFragment join(const std::vector<TextFragment>& vec, CodePoint delimiter)
   return sum;
 }
 
-TextFragment stripFileExtension(const TextFragment& frag)
+TextFragment stripExtension(const TextFragment& frag)
 {
   int dotLoc = findLast(frag, '.');
   if (dotLoc >= 0)
@@ -535,6 +535,18 @@ TextFragment stripFileExtension(const TextFragment& frag)
   }
   return frag;
 }
+
+TextFragment getExtension(const TextFragment& frag)
+{
+  int dotLoc = findLast(frag, '.');
+  if (dotLoc >= 0)
+  {
+    size_t len = frag.lengthInCodePoints();
+    return subText(frag, dotLoc + 1, len);
+  }
+  return frag;
+}
+
 
 TextFragment getShortFileName(const TextFragment& frag)
 {

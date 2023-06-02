@@ -62,5 +62,9 @@ TEST_CASE("madronalib/core/text", "[text]")
     auto eq = (t == t2);
     REQUIRE(t == t2);
   }
+  
+  TextFragment footxt = "foo.txt";
+  REQUIRE(textUtils::stripExtension(footxt) == "foo");
+  REQUIRE(textUtils::getExtension(footxt) == "txt");
 }
 
