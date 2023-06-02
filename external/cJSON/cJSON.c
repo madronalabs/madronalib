@@ -144,25 +144,27 @@ static const char *parse_number(cJSON *item, const char *num)
 /* Render the number nicely from the given item into a string. */
 static char *print_number(cJSON *item)
 {
+  size_t kMaxChars = 64;
+  size_t kMaxCharsSmall = 21;
   char *str;
   double d = item->valuedouble;
   if (fabs(((double)item->valueint) - d) <= DBL_EPSILON && d <= INT_MAX &&
       d >= INT_MIN)
   {
-    str = (char *)malloc(21); /* 2^64+1 can be represented in 21 chars. */
-    if (str) sprintf(str, "%d", item->valueint);
+    str = (char *)malloc(kMaxCharsSmall); /* 2^64+1 can be represented in 21 chars. */
+    if (str) snprintf(str, kMaxCharsSmall, "%d", item->valueint);
   }
   else
   {
-    str = (char *)malloc(64); /* This is a nice tradeoff. */
+    str = (char *)malloc(kMaxChars); /* This is a nice tradeoff. */
     if (str)
     {
       if (fabs(floor(d) - d) <= DBL_EPSILON)
-        sprintf(str, "%.0f", d);
+        snprintf(str, kMaxChars, "%.0f", d);
       else if (fabs(d) < 1.0e-6 || fabs(d) > 1.0e9)
-        sprintf(str, "%e", d);
+        snprintf(str, kMaxChars, "%e", d);
       else
-        sprintf(str, "%f", d);
+        snprintf(str, kMaxChars, "%f", d);
     }
   }
   return str;
