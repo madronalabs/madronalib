@@ -435,3 +435,28 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   REQUIRE(av2["file_info/version"] == 1);
 }
 
+
+TEST_CASE("madronalib/core/floatvectors", "[floatvectors]")
+{
+  const int kTestSize{100};
+  
+  float sum1{0}, sum2{0};
+  
+  std::vector<float> vec;
+  for(int i=0; i<kTestSize; ++i)
+  {
+    float f = i*13.90811f;
+    vec.push_back(f);
+    sum1 += f;
+  }
+  
+  auto vb = floatVectorToBinary(vec);
+  auto bv = binaryToFloatVector(vb->data());
+  
+  for(int i=0; i<kTestSize; ++i)
+  {
+    sum2 += (*bv)[i];
+  }
+  
+  REQUIRE(sum1 == sum2);
+}

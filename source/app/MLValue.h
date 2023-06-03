@@ -27,7 +27,7 @@ class Value
 {
  public:
 
-  static constexpr size_t kBlobSizeBytes{256};
+  static constexpr size_t kLocalDataBytes{256};
   
   enum Type
   {
@@ -55,7 +55,8 @@ class Value
   Value(const char* t);
   Value(const ml::Matrix& s);
 
-  // binary blob constructor - copies data up to kBlobSizeBytes.
+  // binary blob constructor.
+  // if data size > kBlobSizeBytes, this will allocate heap.
   explicit Value(const void* pData, size_t n);
 
   // matrix type constructor via initializer_list
@@ -130,7 +131,7 @@ class Value
   {
     if (mType == kBlobValue)
     {
-      return (void*)(_data);
+      return (void*)(pBlobData);
     }
     else
     {
@@ -142,7 +143,7 @@ class Value
   {
     if (mType == kBlobValue)
     {
-      return _sizeInBytes;
+      return _blobSizeInBytes;
     }
     else
     {
@@ -186,8 +187,11 @@ class Value
   bool operator<<(const Value& b) const;
 
  private:
-  uint8_t _data[kBlobSizeBytes];
-  size_t _sizeInBytes;
+  void copyBlob(const void* inputData, size_t size);
+
+  uint8_t _localBlobData[kLocalDataBytes];
+  size_t _blobSizeInBytes;
+  uint8_t *pBlobData{_localBlobData};
 
   // TODO reduce storage requirements and reduce copying!
   // this is a minimal-code start.

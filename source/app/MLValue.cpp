@@ -12,6 +12,38 @@ const Matrix Value::nullMatrix{};
 
 Value::Value() : mType(kUndefinedValue), mFloatVal(0) {}
 
+void Value::copyBlob(const void* inputData, size_t size)
+{
+  // if we have external data, free it
+  if(pBlobData != _localBlobData)
+  {
+    free(pBlobData);
+    pBlobData = _localBlobData;
+  }
+
+  if (size <= kLocalDataBytes)
+  {
+    auto pCharData = (uint8_t*)inputData;
+    std::copy(pCharData, pCharData + size, _localBlobData);
+    _blobSizeInBytes = size;
+  }
+  else
+  {
+    pBlobData = (uint8_t*)malloc(size);
+    if(pBlobData)
+    {
+      auto pCharData = (uint8_t*)(inputData);
+      std::copy(pCharData, pCharData + size, pBlobData);
+      _blobSizeInBytes = size;
+    }
+    else
+    {
+      // TODO throw?
+      _blobSizeInBytes = 0;
+    }
+  }
+}
+
 Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
 {
   switch (mType)
@@ -25,8 +57,7 @@ Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
       mTextVal = other.getTextValue();
       break;
     case kBlobValue:
-      _sizeInBytes = other._sizeInBytes;
-      std::copy(other._data, other._data + _sizeInBytes, _data);
+      copyBlob(other.pBlobData, other._blobSizeInBytes);
       break;
     case kMatrixValue:
       mMatrixVal = other.getMatrixValue();
@@ -51,8 +82,7 @@ Value& Value::operator=(const Value& other)
       mTextVal = other.getTextValue();
       break;
     case kBlobValue:
-      _sizeInBytes = other._sizeInBytes;
-      std::copy(other._data, other._data + _sizeInBytes, _data);
+      copyBlob(other.pBlobData, other._blobSizeInBytes);
       break;
     case kMatrixValue:
       // Matrix handles copy-in-place when possible
@@ -88,22 +118,16 @@ Value::Value(const ml::Matrix& s) : mType(kMatrixValue) { mMatrixVal = s; }
 
 Value::Value(const void* pData, size_t n) : mType(kBlobValue)
 {
-  _sizeInBytes = n;
-
-  if (_sizeInBytes <= kBlobSizeBytes)
-  {
-    auto pB = static_cast<const uint8_t*>(pData);
-    std::copy(pB, pB + _sizeInBytes, _data);
-  }
-  else
-  {
-    _sizeInBytes = 0;
-  }
+  copyBlob(pData, n);
 }
 
 Value::~Value()
 {
-  // delete any external data?
+  // if we have external data, free it
+  if(pBlobData != _localBlobData)
+  {
+    free(pBlobData);
+  }
 }
 
 void Value::setValue(const float& v)
