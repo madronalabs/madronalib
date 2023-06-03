@@ -7,6 +7,7 @@
 #include <numeric>
 
 #include "MLSymbol.h"
+#include "MLTextUtils.h"
 // a Path describes the address of one or more elements in a tree
 // of such elements, for example one or more MLProcs in a graph.
 //
@@ -188,12 +189,12 @@ inline Path textToPath(TextFragment t, const char separator = '/')
 
 inline Symbol getExtensionFromPath(Path p)
 {
-  return getExtension(last(p));
+  return Symbol(textUtils::getExtension(last(p).getTextFragment()));
 }
 
 inline Path removeExtensionFromPath(Path p)
 {
-  auto nameWithoutExtension = stripExtension(last(p));
+  auto nameWithoutExtension = textUtils::stripExtension(last(p).getTextFragment());
   return Path(butLast(p), Path(nameWithoutExtension));
 }
 
