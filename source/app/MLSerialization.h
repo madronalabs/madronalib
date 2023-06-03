@@ -77,7 +77,7 @@ inline Value textToValue(const Text v)
   return Value();  // TODO
 }
 
-// TODO endian issues
+// TODO endian issues ?
 
 inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
 {
@@ -161,7 +161,7 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
       *header = BinaryChunkHeader{'B', blobSize};
       auto pDest{outputVector.data() + headerSize};
       auto pSrc{blobData};
-      std::copy(pSrc, pSrc + blobSize, pDest);      
+      std::copy(pSrc, pSrc + blobSize, pDest);
       break;
     }
   }
@@ -222,6 +222,41 @@ inline Value binaryToValue(const unsigned char* p)
     }
   }
   return returnValue;
+}
+
+// float vector
+
+inline std::unique_ptr< std::vector<uint8_t> > floatVectorToBinary(const std::vector<float>& inputVector)
+{
+  std::vector<uint8_t> outputVector;
+  auto headerSize = sizeof(BinaryChunkHeader);
+  auto matrixHeaderSize = sizeof(BinaryMatrixHeader);
+  
+  unsigned arrayDataSize = inputVector.size()*sizeof(float);
+  outputVector.resize(headerSize + arrayDataSize);
+  BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
+  *header = BinaryChunkHeader{'V', arrayDataSize};
+  uint8_t* pDest{outputVector.data() + headerSize};
+  const uint8_t* pSrc = reinterpret_cast<const uint8_t*>(inputVector.data());
+  std::copy(pSrc, pSrc + arrayDataSize, pDest);
+
+  return ml::make_unique<std::vector<unsigned char> >(outputVector);
+}
+
+
+inline std::unique_ptr< std::vector<float> > binaryToFloatVector(const unsigned char* p)
+{
+  auto header{reinterpret_cast<const BinaryChunkHeader*>(p)};
+  if (header->type == 'V')
+  {
+    const unsigned char* pData = p + sizeof(BinaryChunkHeader);
+    const float* pVectorData{reinterpret_cast<const float*>(pData)};
+    size_t vectorSize = header->dataBytes/sizeof(float);
+    return ml::make_unique<std::vector<float> >(pVectorData, pVectorData+vectorSize);
+  }
+    
+  // on wrong type return empty vector
+  return ml::make_unique< std::vector<float> >();
 }
 
 // Path
