@@ -222,9 +222,22 @@ else()
 endif()
 
 if(APPLE)
-    set_target_properties(${target} PROPERTIES 
-        XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+    set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 endif()
+
+# set symbol visibility settings
+if(APPLE)
+    set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN[variant=Debug] "NO")
+    set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN[variant=Release] "YES")
+endif()
+
+# set inline method visibility settings
+if(APPLE)
+    set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN[variant=Debug] "NO")
+    set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN[variant=Release] "YES")
+endif()
+
+
 
 include(GNUInstallDirs)
 
