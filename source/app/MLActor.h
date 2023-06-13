@@ -99,28 +99,6 @@ class Actor
       enqueueMessage(m);
     }
   }
-
-  // send message to an Actor.
-  // if the named Actor exists, its onMessage method will be called.
-  //
-  // TODO handle situations where getActor() can't return a pointer
-  // to the receiver, as when it is in a different process or on a different computer.
-  // to start we will need a "main" host with the registry.
-  // - if receiver is in same process?
-  //    then send directly as below.
-  // -- else
-  //      serialize the message
-  //      transmit serialized message to the receiver's process or host (UDP)
-  /*
-  inline void sendMessageToActor(Path actorName, Message m)
-  {
-    SharedResourcePointer< ActorRegistry > registry;
-    if(Actor* pActor = registry->getActor(actorName))
-    {
-      pActor->enqueueMessage(m);
-    }
-  }
-   */
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
@@ -135,6 +113,17 @@ inline void removeActor(Actor* actorToRemove)
   registry->doRemove(actorToRemove);
 }
 
+// send message to an Actor.
+// if the named Actor exists, its onMessage method will be called.
+//
+// TODO handle situations where getActor() can't return a pointer
+// to the receiver, as when it is in a different process or on a different computer.
+// to start we will need a "main" host with the registry.
+// - if receiver is in same process?
+//    then send directly as below.
+// -- else
+//      serialize the message
+//      transmit serialized message to the receiver's process or host (UDP)
 inline void sendMessageToActor(Path actorName, Message m)
 {
   SharedResourcePointer<ActorRegistry> registry;
