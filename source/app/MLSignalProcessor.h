@@ -23,31 +23,62 @@ class SignalProcessor
  public:
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
-  class PublishedSignal
+  struct PublishedSignal
   {
-    Downsampler _downsampler;
+    std::vector<float> voiceRotateBuffer;
     DSPBuffer _buffer;
+    size_t maxFrames_{0};
     size_t _channels{0};
+    size_t voicesPerFrame_{0};
+    int octavesDown_{0};
+    int downsampleCtr_{0};
 
-   public:
-    PublishedSignal(int channels, int frames, int octavesDown);
+    PublishedSignal(int frames, int maxVoices, int channels, int octavesDown);
     ~PublishedSignal() = default;
 
     inline size_t getNumChannels() const { return _channels; }
-    inline int getAvailableFrames() const { return _buffer.getReadAvailable() / _channels; }
+    inline int getAvailableFrames() const { return _buffer.getReadAvailable() / (voicesPerFrame_*_channels); }
 
-    // write a single DSPVectorArray< CHANNELS > of data.
+    
+    // write frames from a DSPVectorArray< CHANNELS > of data into a published signal.
+    // this data is for one voice of the signal.
+    // don't use block size downsampler and get output samples as soon as they are available.
+    //
+    // frames are stored in buffer one by one, with a sample for each channel (frame major order), not in signal vectors!
+    // When multiple voices are being sent, each voice is sent as one frame and the voices rotate:
+    // frame0: [ voice0 [ chan0, chan1, chan2 ... chanN ] voice1 [ chan0, chan1, chan2 ... chanN ] ... ]
+    // frame1: [ voice0 [ chan0, chan1, chan2 ... chanN ] voice1 [ chan0, chan1, chan2 ... chanN ] ... ]
+    //
+    // nothing here enforces the voice order- processors are responsible for calling
+    // storePublishedSignal() for each voice in rotation.
+    //
+    // the voice param is not used currently but we can transmit the voice number in the future if needed.
+    //
     template <size_t CHANNELS>
-    inline void write(DSPVectorArray<CHANNELS> v)
+    inline void writeQuick(DSPVectorArray<CHANNELS> inputVector, size_t frames, size_t voice)
     {
-      // write to downsampler, which returns true if there is a new output vector
-      if (_downsampler.write(v))
+      int framesToWrite = min(frames, maxFrames_);
+      
+      // on every (1<<octavesDown_)th frame, rotate and write to DSPBuffer
+      int framesWritten = 0;
+      for(int f=0; f<frames; ++f)
       {
-        // write output vector array to the buffer
-        _buffer.write(_downsampler.read<CHANNELS>());
+        downsampleCtr_++;
+        if(downsampleCtr_ >= (1 << octavesDown_))
+        {
+          // write accumulated frame.
+          for(int j=0; j<CHANNELS; ++j)
+          {
+            voiceRotateBuffer[framesWritten*CHANNELS + j] = inputVector.row(j)[f];
+          }
+          framesWritten++;
+          downsampleCtr_ = 0;
+        }
       }
+      
+      _buffer.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
     }
-
+    
     // read the latest n frames of data, where each frame is a DSPVectorArray< CHANNELS >.
     size_t readLatest(float* pDest, size_t framesRequested);
 
@@ -157,7 +188,6 @@ class SignalProcessor
   // single buffer for reading from signals
   std::vector<float> _readBuffer;
 
-
   // param access
   inline float getRealFloatParam(Path pname)
   {
@@ -168,26 +198,24 @@ class SignalProcessor
   {
     return _params.getNormalizedFloatValue(pname);
   }
-
   
   Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
 
-  inline void publishSignal(Path signalName, int channels, int frames, int octavesDown)
+  inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
-    _publishedSignals[signalName] = ml::make_unique<PublishedSignal>(channels, frames, octavesDown);
+    _publishedSignals[signalName] = ml::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
   }
 
   // store a DSPVectorArray to the named signal buffer.
-  // we need a buffer for each published signal here in the Processor because we can't communicate
-  // with the Controller in the audio thread.
-
+  // we need a buffer for each published signal here to move signals safely from the Processor
+  // to the audio thread.
   template <size_t CHANNELS>
-  inline void storePublishedSignal(Path signalName, DSPVectorArray<CHANNELS> v)
+  inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec, int frames, int voice)
   {
     PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
-    if (publishedSignal)
+    if(publishedSignal)
     {
-      publishedSignal->write(v);
+      publishedSignal->writeQuick(inputVec, frames, voice);
     }
   }
 };

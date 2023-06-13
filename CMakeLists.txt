@@ -237,8 +237,6 @@ if(APPLE)
     set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN[variant=Release] "YES")
 endif()
 
-
-
 include(GNUInstallDirs)
 
 install(

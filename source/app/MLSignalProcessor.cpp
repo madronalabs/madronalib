@@ -8,10 +8,11 @@ using namespace ml;
 
 // SignalProcessor::PublishedSignal
 
-SignalProcessor::PublishedSignal::PublishedSignal(int channels, int frames, int octavesDown)
-    : _downsampler(channels, octavesDown), _channels(channels)
+SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int v, int channels, int od)
+  : _channels(channels), maxFrames_(maxFrames), voicesPerFrame_(v), octavesDown_(od)
 {
-  _buffer.resize(frames * _channels);
+  voiceRotateBuffer.resize(maxFrames * channels);
+  _buffer.resize(maxFrames * v * channels);
 }
 
 size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesRequested)
@@ -20,15 +21,15 @@ size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesR
   size_t available = getAvailableFrames();
   if (available > framesRequested)
   {
-    _buffer.discard((available - framesRequested) * _channels);
+    _buffer.discard((available - framesRequested) * voicesPerFrame_*_channels);
   }
 
-  return _buffer.read(pDest, framesRequested * _channels);
+  return _buffer.read(pDest, framesRequested * voicesPerFrame_*_channels);
 }
-
+ 
 size_t SignalProcessor::PublishedSignal::read(float* pDest, size_t framesRequested)
 {
-  return _buffer.read(pDest, framesRequested * _channels);
+  return _buffer.read(pDest, framesRequested * voicesPerFrame_*_channels);
 }
 
 // SignalProcessor::ProcessTime
