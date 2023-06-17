@@ -68,7 +68,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
       b.realToNormalized =
       projections::intervalMap(plainRange, normalRange, projections::exp(plainRange));
     }
-    if(bisquare)
+    else if(bisquare)
     {
       b.normalizedToReal = compose(projections::bisquared, projections::linear(normalRange, plainRange));
       b.realToNormalized = compose(projections::linear(plainRange, normalRange), projections::invBisquared);
