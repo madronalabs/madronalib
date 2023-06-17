@@ -77,6 +77,18 @@ static const Projection easeInOutQuartic{
                         : easeOutQuartic(x * 2.f - 1.f) * 0.5f + 0.5f;
     }};
 
+// bisquared projection: x^2, but inverted for x < 0.
+static const Projection bisquared{[](float x)
+{
+  return fabs(x)*x;
+}};
+
+// inverse of bisquared projection
+static const Projection invBisquared{[](float x)
+{
+  return sqrtf(fabs(x))*sign(x);
+}};
+
 // functions taking one or more parameters and returning projections
 
 // return a constant, occasionally useful
@@ -85,7 +97,7 @@ inline Projection constant(const float k)
   return [=](float x) { return k; };
 }
 
-// ml::projections::log returns a projection from [0, 1] to a logarithmic curve
+// projections::log returns a projection from [0, 1] to a logarithmic curve
 // on [a, b] scaled back to [0, 1]. works for positive a, b with a < b only.
 inline Projection log(Interval m)
 {

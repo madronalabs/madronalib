@@ -296,6 +296,13 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   }
 }
 
+bool nearlyEqual(float a, float b)
+{
+  float d = fabs(a - b);
+  float eps = 1e-6f;
+  return d < eps;
+}
+
 TEST_CASE("madronalib/core/projections", "[projections]")
 {
   {
@@ -317,6 +324,16 @@ TEST_CASE("madronalib/core/projections", "[projections]")
     float d = pa(1.f);
     REQUIRE(b - a == d - c);
   }
-
+  
+  {
+    auto p0 = projections::bisquared;
+    auto p1 = projections::invBisquared;
+    
+    for(int i=-5; i<5; ++i)
+    {
+      float x = i/5.f;
+      REQUIRE(nearlyEqual(p0(p1(x)), x));
+    }
+  }
 }
 

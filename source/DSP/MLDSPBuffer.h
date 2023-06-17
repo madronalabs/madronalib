@@ -21,7 +21,7 @@ class DSPBuffer
 {
  private:
   std::vector<float> mData;
-  float *mDataBuffer;
+  float *mDataBuffer{nullptr};
   size_t mSize{0};
   size_t mDataMask{0};
   size_t mDistanceMask{0};
