@@ -16,23 +16,87 @@ struct Sample
 {
   size_t channels{0};
   size_t sampleRate{0};
-  std::vector<float> data;
+  std::vector<float> sampleData;
+  
+  float operator[](size_t i) const
+  {
+    return sampleData[i];
+  }
+  float& operator[](size_t i)
+  {
+    return sampleData[i];
+  }
 };
+
+
+inline size_t getSize(const Sample& s)
+{
+  return s.sampleData.size();
+}
+
+inline size_t getFrames(const Sample& s)
+{
+  return s.sampleData.size() / s.channels;
+}
+
+inline const float* getConstFramePtr(const Sample& s, size_t frameIdx = 0)
+{
+  return s.sampleData.data() + frameIdx*s.channels;
+}
+
+inline float* getFramePtr(Sample& s, size_t frameIdx = 0)
+{
+  return s.sampleData.data() + frameIdx*s.channels;
+}
+
+inline float getRate(const Sample& s)
+{
+  return s.sampleRate;
+}
+
+inline float getDuration(const Sample& s)
+{
+  return getFrames(s) / (float)(s.sampleRate);
+}
+
+inline bool usable(const Sample* pSample)
+{
+  if(!pSample) return false;
+  return pSample->sampleData.size() > 0;
+}
+
+inline float* resizeSampleData(Sample& s, size_t frames, size_t newChans)
+{
+  float* r{nullptr};
+  try
+  {
+    s.sampleData.resize(frames*newChans);
+  }
+  catch(...)
+  {
+    return nullptr;
+  }
+  s.channels = newChans;
+  return s.sampleData.data();
+}
 
 inline float findMaximumValue(const Sample& x)
 {
-  return *std::max_element(x.data.begin(), x.data.end());
+  return *std::max_element(x.sampleData.begin(), x.sampleData.end());
 }
 
 inline void normalize(Sample& x)
 {
   float ratio = 1.0f / findMaximumValue(x);
-  for (int i = 0; i < x.data.size(); ++i)
+  for (int i = 0; i < x.sampleData.size(); ++i)
   {
-    x.data[i] *= ratio;
+    x.sampleData[i] *= ratio;
   }
 }
 
-inline void clear(Sample& x) { x.data.clear(); }
+inline void clear(Sample& x)
+{
+  x.sampleData.clear();
+}
 
 }  // namespace ml

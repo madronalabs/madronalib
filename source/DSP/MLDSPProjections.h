@@ -15,6 +15,24 @@ namespace ml
 struct Interval
 {
   float mX1, mX2;
+  inline bool operator==(const Interval& b) const
+  {
+    return (mX1 == b.mX1) && (mX2 == b.mX2);
+  }
+  inline bool operator!=(const Interval& b) const
+  {
+    return !(operator==(b));
+  }
+  inline const Interval operator*(const float b) const
+  {
+    return Interval{mX1*b, mX2*b};
+  }
+  inline const Interval operator*=(const float b)
+  {
+    mX1*=b;
+    mX2*=b;
+    return *this;
+  }
 };
 
 inline float midpoint(Interval m) { return (m.mX1 + m.mX2)*0.5f; }

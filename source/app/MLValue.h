@@ -12,6 +12,7 @@
 #include "MLPath.h"
 #include "MLSymbol.h"
 #include "MLText.h"
+#include "MLDSPProjections.h"
 
 // Value: a small unit of typed data designed for being constructed on the stack and
 // transferred in messages. Values have the following types: undefined, float,
@@ -36,7 +37,8 @@ class Value
     kTextValue,
     kBlobValue,
     kMatrixValue,
-    kUnsignedLongValue
+    kUnsignedLongValue,
+    kIntervalValue
   };
 
   static const Matrix nullMatrix;
@@ -54,6 +56,7 @@ class Value
   Value(const ml::Text& t);
   Value(const char* t);
   Value(const ml::Matrix& s);
+  Value(Interval i);
 
   // binary blob constructor.
   // if data size > kBlobSizeBytes, this will allocate heap.
@@ -127,6 +130,16 @@ class Value
     return (mType == kMatrixValue) ? (mMatrixVal) : d;
   }
 
+  inline const Interval getIntervalValue() const
+  {
+    return (mType == kIntervalValue) ? (mIntervalVal) : Interval();
+  }
+  
+  inline const Interval getIntervalValueWithDefault(Interval d) const
+  {
+    return (mType == kIntervalValue) ? (mIntervalVal) : d;
+  }
+  
   inline void* getBlobValue() const
   {
     if (mType == kBlobValue)
@@ -167,6 +180,7 @@ class Value
   void setValue(const ml::Text& v);
   void setValue(const char* const v);
   void setValue(const Matrix& v);
+  void setValue(const Interval v);
 
   explicit operator bool() const { return (mType != kUndefinedValue); }
 
@@ -201,6 +215,7 @@ class Value
   ml::Text mTextVal{};
   Matrix mMatrixVal{};
   uint32_t mUnsignedLongVal{};
+  Interval mIntervalVal{};
 };
 
 // NamedValue for initializer lists

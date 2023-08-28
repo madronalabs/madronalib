@@ -222,7 +222,6 @@ public:
     }
 #endif
     
-    
     paramsNorm_[pname] = convertRealToNormalizedValue(pname, val);
     paramsReal_[pname] = val;
     

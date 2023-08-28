@@ -65,6 +65,9 @@ Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
     case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
       break;
+    case kIntervalValue:
+      mIntervalVal = other.getIntervalValue();
+      break;
   }
 }
 
@@ -91,6 +94,9 @@ Value& Value::operator=(const Value& other)
     case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
       break;
+    case kIntervalValue:
+      mIntervalVal = other.getIntervalValue();
+      break;
   }
 
   return *this;
@@ -115,6 +121,8 @@ Value::Value(const ml::Text& t) : mType(kTextValue) { mTextVal = t; }
 Value::Value(const char* t) : mType(kTextValue) { mTextVal = ml::Text(t); }
 
 Value::Value(const ml::Matrix& s) : mType(kMatrixValue) { mMatrixVal = s; }
+
+Value::Value(Interval i) : mType(kIntervalValue) { mIntervalVal = i; }
 
 Value::Value(const void* pData, size_t n) : mType(kBlobValue)
 {
@@ -184,6 +192,12 @@ void Value::setValue(const Matrix& v)
   mMatrixVal = v;
 }
 
+void Value::setValue(const Interval v)
+{
+  mType = kIntervalValue;
+  mIntervalVal = v;
+}
+
 void Value::setValue(const Value& v) { *this = v; }
 
 bool Value::operator==(const Value& b) const
@@ -210,6 +224,9 @@ bool Value::operator==(const Value& b) const
         break;
       case kBlobValue:
         r = false;
+        break;
+      case kIntervalValue:
+        r = (getIntervalValue() == b.getIntervalValue());
         break;
     }
   }
@@ -242,6 +259,9 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
       break;
     case Value::kBlobValue:
       out << "[blob]";
+      break;
+    case Value::kIntervalValue:
+      out << r.getIntervalValue();
       break;
   }
   return out;
