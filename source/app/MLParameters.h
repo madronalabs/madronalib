@@ -166,14 +166,6 @@ public:
     }
   }
   
-  // set a parameter's real value without conversion. For params that don't have normal values.
-  // both normal and real params are set for ease of getting all normalized + non-normalizable values.
-  void setRealValue(Path pname, Value val)
-  {
-    paramsNorm_[pname] = val;
-    paramsReal_[pname] = val;
-  }
-  
   Value::Type getValueType(Path pname) const
   {
     return paramsReal_[pname].getType();
@@ -198,7 +190,15 @@ public:
   {
     return paramsNorm_[pname].getFloatValue();
   }
-
+  
+  // set a parameter's value without conversion. For params that don't have normalizable values.
+  // both normal and real params are set for ease of getting all normalized + non-normalizable values.
+  void setValue(Path pname, Value val)
+  {
+    paramsNorm_[pname] = val;
+    paramsReal_[pname] = val;
+  }
+  
   inline void setFromNormalizedValue(Path pname, Value val)
   {
     paramsNorm_[pname] = val;
@@ -280,7 +280,6 @@ public:
 protected:
   Path watchParameter{};
 };
-
 
 
 // functions on ParameterTrees.
