@@ -105,6 +105,7 @@ class ImpulseGen
 
 // generate a random number from -1 to 1 every sample.
 // NOTE: this will create more energy at higher sample rates!
+// TODO make proper pink noise, white noise gens
 class NoiseGen
 {
  public:
@@ -202,6 +203,52 @@ class PhasorGen
 
     // convert counter to float output range
     DSPVector omegaV = intToFloat(omega32V) * outputScaleV + DSPVector(offset);
+    return omegaV;
+  }
+};
+
+
+// OneShotGen, when triggered, makes a single ramp from 0-1 then resets to 0. The speed
+// of the ramp is a signal input, giving a ramp with the same speed as PhasorGen.
+class OneShotGen
+{
+  static constexpr int32_t start = std::numeric_limits<int32_t>::min();
+  int32_t mOmega32{start};
+  int32_t mGate{0};
+  int32_t mOmegaPrev{start};
+  
+public:
+  void trigger() { mOmega32 = mOmegaPrev = start; mGate = 1; }
+  
+  DSPVector operator()(const DSPVector cyclesPerSample)
+  {
+    constexpr float range(1.0f);
+    constexpr float offset(0.5f);
+    constexpr float stepsPerCycle(static_cast<float>(const_math::pow(2., 32)));
+    constexpr float cyclesPerStep(1.f / stepsPerCycle);
+    DSPVector outputScaleV(range * cyclesPerStep);
+    
+    // calculate int steps per sample
+    DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
+    DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
+    
+    // accumulate 32-bit phase with wrap
+    // we test for wrap at every sample to get a clean ending
+    DSPVectorInt omega32V;
+    for (int n = 0; n < kIntsPerDSPVector; ++n)
+    {
+      mOmega32 += intStepsPerSampleV[n]*mGate;
+      if(mOmega32 < mOmegaPrev)
+      {
+        mGate = 0;
+        mOmega32 = start;
+      }
+      omega32V[n] = mOmegaPrev = mOmega32;
+    }
+    
+    // convert counter to float output range
+    DSPVector omegaV = intToFloat(omega32V) * outputScaleV + DSPVector(offset);
+    
     return omegaV;
   }
 };

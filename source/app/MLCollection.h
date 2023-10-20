@@ -173,17 +173,26 @@ class Collection
   {
     if (!_tree) return;
     // Tree currently offers only depth-first iterators so
-    // we have to iterate the entire tree.
-    for (auto it = _tree->begin(); it != _tree->end(); ++it)
+    // we have to iterate the entire tree even though we only want children
+    // of the root node.
+    for(auto it = _tree->begin(); it != _tree->end(); ++it)
     {
-      if (it.getCurrentDepth() == 0)
+      if((it.getCurrentDepth() == 0) && (it.currentNodeHasValue()))
       {
-        if (currentPathPtr)
+        if(currentPathPtr)
         {
           *currentPathPtr = it.getCurrentNodePath();
         }
-        const ObjectPointerType& obj = *it;
-        f(*obj);
+        if(*it)
+        {
+          const ObjectPointerType& obj = *it;
+          f(*obj);
+        }
+        else
+        {
+          // TEMP
+          std::cout << "forEachChild: null object! /n";
+        }
       }
     }
   }

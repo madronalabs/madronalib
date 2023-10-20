@@ -317,6 +317,8 @@ class FeedbackDelayFunctionWithTap
 
 // Bank: a bank of processors. The processor type T must have a process() method
 // that outputs a single DSPVector and has only DSPVectors as arguments.
+// Each input is a DSPVectorArray with arguments for processor i on row i.
+// The output is a DSPVectorArray with output from processor i on row i.
 
 template <typename T, int ROWS>
 class Bank
@@ -324,6 +326,8 @@ class Bank
   std::array<T, ROWS> _processors;
 
  public:
+  
+  // Bank(): each processor gets arguments on its own row of each input DSPVectorArray<ROWS>.
   template <typename... Args>
   inline DSPVectorArray<ROWS> operator()(Args... args)
   {
@@ -334,7 +338,7 @@ class Bank
     }
     return output;
   }
-
+  
   inline void clear()
   {
     for (int i = 0; i < ROWS; ++i)

@@ -29,7 +29,6 @@ class SignalProcessor
     DSPBuffer _buffer;
     size_t maxFrames_{0};
     size_t _channels{0};
-    size_t voicesPerFrame_{0};
     int octavesDown_{0};
     int downsampleCtr_{0};
 
@@ -37,7 +36,8 @@ class SignalProcessor
     ~PublishedSignal() = default;
 
     inline size_t getNumChannels() const { return _channels; }
-    inline int getAvailableFrames() const { return _buffer.getReadAvailable() / (voicesPerFrame_*_channels); }
+    inline int getAvailableFrames() const { return _buffer.getReadAvailable() / _channels; }
+    inline int getReadAvailable() const { return _buffer.getReadAvailable(); }
 
     
     // write frames from a DSPVectorArray< CHANNELS > of data into a published signal.
@@ -75,7 +75,7 @@ class SignalProcessor
           downsampleCtr_ = 0;
         }
       }
-      
+
       _buffer.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
     }
     
@@ -84,6 +84,9 @@ class SignalProcessor
 
     // read the next n frames of data.
     size_t read(float* pDest, size_t framesRequested);
+    
+    void peekLatest(float* pDest, size_t framesRequested);
+
   };
 
   // SignalProcessor::ProcessTime maintains the current time in a DSP process and can track

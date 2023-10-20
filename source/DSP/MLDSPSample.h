@@ -65,12 +65,12 @@ inline bool usable(const Sample* pSample)
   return pSample->sampleData.size() > 0;
 }
 
-inline float* resizeSampleData(Sample& s, size_t frames, size_t newChans)
+inline float* resize(Sample& s, size_t newFrames, size_t newChans = 1)
 {
   float* r{nullptr};
   try
   {
-    s.sampleData.resize(frames*newChans);
+    s.sampleData.resize(newFrames*newChans);
   }
   catch(...)
   {

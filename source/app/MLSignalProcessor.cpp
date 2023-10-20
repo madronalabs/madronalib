@@ -8,28 +8,32 @@ using namespace ml;
 
 // SignalProcessor::PublishedSignal
 
-SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int v, int channels, int od)
-  : _channels(channels), maxFrames_(maxFrames), voicesPerFrame_(v), octavesDown_(od)
+SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int maxVoices, int channels, int octavesDown)
+  : _channels(channels), maxFrames_(maxFrames), octavesDown_(octavesDown)
 {
   voiceRotateBuffer.resize(maxFrames * channels);
-  _buffer.resize(maxFrames * v * channels);
+  _buffer.resize(maxFrames * channels * maxVoices); // TEMP slop
 }
 
 size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesRequested)
 {
-  size_t result{0};
-  size_t available = getAvailableFrames();
-  if (available > framesRequested)
+  size_t floatsAvailable = getReadAvailable();
+  if (floatsAvailable > framesRequested*_channels)
   {
-    _buffer.discard((available - framesRequested) * voicesPerFrame_*_channels);
+    _buffer.discard(floatsAvailable - framesRequested*_channels);
   }
-
-  return _buffer.read(pDest, framesRequested * voicesPerFrame_*_channels);
+  
+  return _buffer.read(pDest, framesRequested*_channels);
 }
- 
+
+void SignalProcessor::PublishedSignal::peekLatest(float* pDest, size_t framesRequested)
+{
+  _buffer.peekMostRecent(pDest, framesRequested * _channels);
+}
+
 size_t SignalProcessor::PublishedSignal::read(float* pDest, size_t framesRequested)
 {
-  return _buffer.read(pDest, framesRequested * voicesPerFrame_*_channels);
+  return _buffer.read(pDest, framesRequested * _channels);
 }
 
 // SignalProcessor::ProcessTime

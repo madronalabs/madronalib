@@ -1306,51 +1306,47 @@ class HalfBandFilter
 
 // Downsampler
 // a cascade of half band filters, one for each octave.
-
+// TODO this is complicated. replace with single-channel version then use Bank<Downsampler> for multiple channels?
 class Downsampler
 {
   std::vector<HalfBandFilter> _filters;
   std::vector<float> _buffers;
   int _octaves;
   int _numBuffers;
-  int _bufferSizeInFloats;
   uint32_t _counter{0};
 
-  float* bufferPtr(int idx, int channel)
+  float* bufferPtr(int idx)
   {
-    return _buffers.data() + idx * _bufferSizeInFloats + kFloatsPerDSPVector * channel;
+    return _buffers.data() + idx * kFloatsPerDSPVector;
   }
 
  public:
-  Downsampler(int channels, int octavesDown) : _octaves(octavesDown)
+  Downsampler(int octavesDown) : _octaves(octavesDown)
   {
     if (_octaves)
     {
       // one pair of buffers for each octave plus one output buffer.
       _numBuffers = 2 * _octaves + 1;
 
-      _bufferSizeInFloats = kFloatsPerDSPVector * channels;
-
-      // each octave uses one filter for each channel.
-      _filters.resize(_octaves * channels);
+      // each octave uses one filter.
+      _filters.resize(_octaves);
 
       // get all buffers as a single contiguous array of floats.
-      _buffers.resize(_bufferSizeInFloats * _numBuffers);
+      _buffers.resize(kFloatsPerDSPVector * _numBuffers);
     }
   }
   ~Downsampler() = default;
 
   // write a vector of samples to the filter chain, run filters, and return
   // true if there is a new vector of output to read (every 2^octaves writes)
-  template <size_t CHANNELS>
-  bool write(DSPVectorArray<CHANNELS> v)
+  bool write(DSPVector v)
   {
     if (_octaves)
     {
       // write input to one of first two buffers
       const float* pSrc = v.getConstBuffer();
-      float* pDest = bufferPtr(_counter & 1, 0);
-      std::copy(pSrc, pSrc + kFloatsPerDSPVector * CHANNELS, pDest);
+      float* pDest = bufferPtr(_counter & 1);
+      std::copy(pSrc, pSrc + kFloatsPerDSPVector, pDest);
 
       // look at the bits of the counter from lowest to highest.
       // there is one bit for each octave of downsampling.
@@ -1363,15 +1359,12 @@ class Downsampler
         mask <<= 1;
         bool b1 = _counter & mask;
 
-        // downsample each channel of the buffer
-        for (int c = 0; c < CHANNELS; ++c)
-        {
-          HalfBandFilter* f = &(_filters[h * CHANNELS + c]);
-          DSPVector vSrc1(bufferPtr(h * 2, c));
-          DSPVector vSrc2(bufferPtr(h * 2 + 1, c));
-          DSPVector vDest = f->downsample(vSrc1, vSrc2);
-          store(vDest, bufferPtr(h * 2 + 2 + b1, c));
-        }
+        // run filter
+        HalfBandFilter* f = &(_filters[h]);
+        DSPVector vSrc1(bufferPtr(h * 2));
+        DSPVector vSrc2(bufferPtr(h * 2 + 1));
+        DSPVector vDest = f->downsample(vSrc1, vSrc2);
+        store(vDest, bufferPtr(h * 2 + 2 + b1));
       }
 
       // advance and wrap counter. If it's back to 0, we have output
@@ -1383,18 +1376,83 @@ class Downsampler
     {
       // write input to final buffer
       const float* pSrc = v.getConstBuffer();
-      float* pDest = bufferPtr(_numBuffers - 1, 0);
-      std::copy(pSrc, pSrc + kFloatsPerDSPVector * CHANNELS, pDest);
+      float* pDest = bufferPtr(_numBuffers - 1);
+      std::copy(pSrc, pSrc + kFloatsPerDSPVector, pDest);
       return true;
     }
   }
 
-  template <size_t CHANNELS>
-  DSPVectorArray<CHANNELS> read()
+  DSPVector read()
   {
-    return DSPVectorArray<CHANNELS>(bufferPtr(_numBuffers - 1, 0));
+    return DSPVector(bufferPtr(_numBuffers - 1));
   }
 };
+
+
+struct Upsampler
+{
+  std::vector<HalfBandFilter> _filters;
+  std::vector<float> _buffers;
+  int _octaves;
+  int _numBuffers;
+  int readIdx_{0};
+
+  float* bufferPtr(int idx)
+  {
+    return _buffers.data() + idx * kFloatsPerDSPVector;
+  }
+
+  Upsampler(int octavesUp) : _octaves(octavesUp)
+  {
+    if (_octaves)
+    {
+      _numBuffers = 1 << _octaves;
+      
+      size_t numFilters = _octaves;//(1 << _octaves) - 1;
+      _filters.resize(numFilters);
+      
+      // get all buffers as a single contiguous array of floats.
+      _buffers.resize(kFloatsPerDSPVector * _numBuffers);
+    }
+  }
+  ~Upsampler() = default;
+
+  void write(DSPVector x)
+  {
+    // write to last vector in buffer
+    store(x, bufferPtr(_numBuffers - 1));
+    
+    // for each octave of upsampling, upsample blocks to twice as many, in place, ending at buffers end
+    for (int j = 0; j < _octaves; ++j)
+    {
+      int sourceBufs = 1 << j;
+      int destBufs = sourceBufs << 1;
+      int srcStart = _numBuffers - sourceBufs;
+      int destStart = _numBuffers - destBufs;
+
+      for(int i=0; i < sourceBufs; ++i)
+      {
+        DSPVector src, dest1, dest2;
+        load(src, bufferPtr(srcStart + i));
+        dest1 = _filters[j].upsampleFirstHalf(src);
+        dest2 = _filters[j].upsampleSecondHalf(src);
+        store(dest1, bufferPtr(destStart + (i*2)));
+        store(dest2, bufferPtr(destStart + (i*2) + 1));
+      }
+    }
+    readIdx_ = 0;
+  }
+  
+  // after a write, 1 << octaves reads are available.
+  DSPVector read()
+  {
+    DSPVector result;
+    load(result, bufferPtr(readIdx_++));
+    return result;
+  }
+};
+
+
 
 // PLL: Phase Locked Loop for synching an output phasor to an input phasor at some ratio.
 
