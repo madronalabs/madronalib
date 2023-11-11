@@ -240,7 +240,7 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
           // special param: aftertouch
           case Steinberg::Vst::kAfterTouch:
           {
-            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNotePressure, channel, 0, sampleOffset,
+            _synthInput->addEvent({kNotePressure, channel, 0, sampleOffset,
               float(value), 0, 0, 0});
             break;
           }
@@ -248,21 +248,21 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
           case Steinberg::Vst::kPitchBend:
           {
             float bendValue = (value - 0.5f)*2.0f;
-            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kPitchWheel, channel, 0, sampleOffset,
+            _synthInput->addEvent({kPitchWheel, channel, 0, sampleOffset,
               bendValue, 0, 0, 0});
             break;
           }
           // special param: sustain pedal
           case Steinberg::Vst::kCtrlSustainOnOff:
           {
-            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kSustainPedal, channel, 0, sampleOffset,
+            _synthInput->addEvent({kSustainPedal, channel, 0, sampleOffset,
               float(value), 0, 0, 0});
             break;
           }
           // other params: send Controller # in event
           default:
           {
-            _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kController, channel, 0, sampleOffset,
+            _synthInput->addEvent({kController, channel, 0, sampleOffset,
               float(value), float(paramIdx), 0, 0});
             break;
           }
@@ -296,14 +296,12 @@ void PluginProcessor::processEvents (IEventList* events)
       {
         case Event::kNoteOnEvent:
         {
-          _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNoteOn, channel, creatorID, time,
-            pitch, e.noteOn.velocity});
+          _synthInput->addEvent({kNoteOn, channel, creatorID, time, pitch, e.noteOn.velocity});
           break;
         }
         case Event::kNoteOffEvent:
         {
-          _synthInput->addEvent(ml::EventsToSignals::Event{ml::EventsToSignals::Event::kNoteOff, channel, creatorID, time,
-            pitch, 0});
+          _synthInput->addEvent({kNoteOff, channel, creatorID, time, pitch, 0});
           break;
         }
         default:
@@ -387,8 +385,8 @@ void PluginProcessor::synthProcessVector(MainInputs inputs, MainOutputs outputs)
     for(int v=0; v < _synthInput->getPolyphony(); ++v)
     {
       auto& allocatorVoice = (_synthInput->voices)[v];
-      auto& pitchSignal = allocatorVoice.outputs.row(EventsToSignals::kPitch);
-      auto& gateSignal = allocatorVoice.outputs.row(EventsToSignals::kGate);
+      auto& pitchSignal = allocatorVoice.outputs.row(kPitch);
+      auto& gateSignal = allocatorVoice.outputs.row(kGate);
       
       // generate stereo voice output
       auto voiceOutput = _voices[v].processVector(pitchSignal, gateSignal, c1, _sampleRate, debugFlag);
@@ -443,14 +441,14 @@ void PluginProcessor::debugStuff()
   for(int v = 0; v < p; ++v )
   {
     auto& voice = (_synthInput->voices)[v];
-    DSPVector vPitch = voice.outputs.row(EventsToSignals::kPitch);
-    DSPVector vVel = voice.outputs.row(EventsToSignals::kGate);
-    DSPVector vVoice = voice.outputs.row(EventsToSignals::kVoice);
-    DSPVector vMod = voice.outputs.row(EventsToSignals::kMod);
-    DSPVector vX = voice.outputs.row(EventsToSignals::kX);
-    DSPVector vY = voice.outputs.row(EventsToSignals::kY);
-    DSPVector vZ = voice.outputs.row(EventsToSignals::kZ);
-    DSPVector vTime = voice.outputs.row(EventsToSignals::kElapsedTime);
+    DSPVector vPitch = voice.outputs.row(kPitch);
+    DSPVector vVel = voice.outputs.row(kGate);
+    DSPVector vVoice = voice.outputs.row(kVoice);
+    DSPVector vMod = voice.outputs.row(kMod);
+    DSPVector vX = voice.outputs.row(kX);
+    DSPVector vY = voice.outputs.row(kY);
+    DSPVector vZ = voice.outputs.row(kZ);
+    DSPVector vTime = voice.outputs.row(kElapsedTime);
     float vel = vVel[0];
     float pitch = vPitch[0];
     float vox = vVoice[0];
