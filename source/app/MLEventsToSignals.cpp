@@ -191,7 +191,7 @@ void EventsToSignals::Voice::endProcess(float pitchBend)
   outputs.row(kZ) = zGlide(currentZ);
   
   // add pitch bend in semitones to pitch output
-  outputs.row(kPitch) += bendGlide*pitchBend*kTwelfthRootOfTwo;
+  outputs.row(kPitch) += bendGlide*pitchBend*(1.f/12);
 }
 
 #pragma mark -
