@@ -13,6 +13,34 @@
 namespace ml
 {
 
+// rows per voice output signal.
+enum VoiceOutputSignals
+{
+  kPitch = 0,
+  kGate,
+  kVoice,
+  kX,
+  kY,
+  kZ,
+  kMod,
+  kElapsedTime,
+  kNumVoiceOutputRows
+};
+
+enum EventType
+{
+  kNull = 0,
+  kNoteOn,
+  kNoteRetrig,
+  kNoteSustain,
+  kNoteOff,
+  kSustainPedal, // when sustain pedal is held, key releases generate kNoteSustain events
+  kController,
+  kPitchWheel,
+  kNotePressure,
+  kProgramChange
+};
+
 // EventsToSignals processes different types of events and generates bundles of signals to
 // control synthesizers.
 //
@@ -25,43 +53,15 @@ public:
   
   static constexpr float kPitchGlideTimeSeconds{0.f};
   static constexpr float kGlideTimeSeconds{0.02f};
-  
-  // rows per voice output signal.
-  enum VoiceOutputSignals
-  {
-    kPitch = 0,
-    kGate,
-    kVoice,
-    kX,
-    kY,
-    kZ,
-    kMod,
-    kElapsedTime,
-    kNumVoiceOutputRows
-  };
-  
+
   // Event: something that happens.
   //
   struct Event
   {
-    enum Type
-    {
-      kNull = 0,
-      kNoteOn,
-      kNoteRetrig,
-      kNoteSustain,
-      kNoteOff,
-      kSustainPedal, // when sustain pedal is held, key releases generate kNoteSustain events
-      kController,
-      kPitchWheel,
-      kNotePressure,
-      kProgramChange
-    };
-    
     Event() = default;
     ~Event() = default;
 
-    Type type{kNull};
+    EventType type{kNull};
     int channel;  
     int creatorID; // the MIDI key or touch number that created the event.
     int time; // time in samples from start of current process buffer

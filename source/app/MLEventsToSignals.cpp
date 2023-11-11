@@ -68,7 +68,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
   
   switch(e.type)
   {
-    case Event::kNoteOn:
+    case kNoteOn:
     {
       //     std::cout << "write note: " << pitchj
       state = kOn;
@@ -96,7 +96,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       
       break;
     }
-    case Event::kNoteRetrig:
+    case kNoteRetrig:
     {
       state = kOn;
       creatorID = e.creatorID;
@@ -133,11 +133,11 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       break;
     }
      
-    case Event::kNoteSustain:
+    case kNoteSustain:
       state = kSustain;
       break;
       
-    case Event::kNoteOff:
+    case kNoteOff:
     {
       state = kOff;
       creatorID = 0;
@@ -269,25 +269,25 @@ void EventsToSignals::processEvent(const Event &eventParam)
   
   switch(event.type)
   {
-    case Event::kNoteOn:
+    case kNoteOn:
       processNoteOnEvent(event);
       break;
-    case Event::kNoteOff:
+    case kNoteOff:
       processNoteOffEvent(event);
       break;
-    case Event::kController:
+    case kController:
       processControllerEvent(event);
       break;
-    case Event::kPitchWheel:
+    case kPitchWheel:
       processPitchWheelEvent(event);
       break;
-    case Event::kNotePressure:
+    case kNotePressure:
       processNotePressureEvent(event);
       break;
-    case Event::kSustainPedal:
+    case kSustainPedal:
       processSustainEvent(event);
       break;
-    case Event::kNull:
+    case kNull:
     default:
       break;
   }
@@ -309,7 +309,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     // TODO: this may make some clicks when the previous notes
     // are cut off. add more graceful stealing
     Event f = e;
-    f.type = Event::kNoteRetrig;
+    f.type = kNoteRetrig;
     voices[v].writeNoteEvent(f, _scale);
   }
 }
@@ -317,7 +317,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
 void EventsToSignals::processNoteOffEvent(const Event& e)
 {
   // send either off or sustain event to voices matching creator
-  Event::Type newEventType = _sustainPedalActive ? Event::kNoteSustain : Event::kNoteOff;
+  EventType newEventType = _sustainPedalActive ? kNoteSustain : kNoteOff;
   
   for(int v = 0; v < _polyphony; ++v)
   {
@@ -373,7 +373,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
         if(voice.state != Voice::kOff)
         {
           Event eventToSend = event;
-          eventToSend.type = Event::kNoteOff;
+          eventToSend.type = kNoteOff;
           voice.writeNoteEvent(eventToSend, _scale);
         }
       }
@@ -412,7 +412,7 @@ void EventsToSignals::processSustainEvent(const Event& event)
       if(v.state == Voice::kSustain)
       {
         Event newEvent;
-        newEvent.type = Event::kNoteOff;
+        newEvent.type = kNoteOff;
         v.writeNoteEvent(newEvent, _scale);
       }
     }

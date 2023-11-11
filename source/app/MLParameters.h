@@ -146,7 +146,17 @@ public:
   {
     if (val.isFloatType())
     {
-      return Value(convertNormalizedToRealFloatValue(pname, val));
+      auto& pdesc = descriptions[pname];
+      bool integerValues = pdesc->getBoolPropertyWithDefault("integer_values", false);
+      float fVal = convertNormalizedToRealFloatValue(pname, val);
+      if(integerValues)
+      {
+        return Value(static_cast<int>(fVal));
+      }
+      else
+      {
+        return Value(fVal);
+      }
     }
     else
     {
