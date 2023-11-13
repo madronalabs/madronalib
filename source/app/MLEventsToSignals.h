@@ -51,7 +51,7 @@ public:
   static constexpr int kMaxVoices{16};
   static constexpr int kMaxEventsPerVector{128};
   
-  static constexpr float kPitchGlideTimeSeconds{0.f};
+  // glide time for all params except pitch
   static constexpr float kGlideTimeSeconds{0.02f};
 
   // Event: something that happens.
@@ -92,7 +92,7 @@ public:
     Voice() = default;
     ~Voice() = default;
 
-    void setSampleRate(float sr);
+    void setParams(float pitchGlideInSeconds, float sr);
 
     void reset();
 
@@ -100,11 +100,11 @@ public:
     void beginProcess();
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, const Scale& Scale);
+    void writeNoteEvent(const Event& e, const Scale& Scale, float sr);
 
     // write all current info to the end of the current buffer.
     // add pitchBend to pitch.
-    void endProcess(float pitchBend);
+    void endProcess(float pitchBend, float sr);
     
     int state{kOff};
     size_t nextFrameToProcess{0};
@@ -122,7 +122,7 @@ public:
     uint32_t ageInSamples{0};
     uint32_t ageStep{0};
 
-    LinearGlide pitchGlide;
+    SampleAccurateLinearGlide pitchGlide;
     LinearGlide pitchBendGlide;
     LinearGlide modGlide;
     LinearGlide xGlide;
@@ -131,8 +131,6 @@ public:
     
     // output signals (velocity, pitch, voice... )
     DSPVectorArray< kNumVoiceOutputRows > outputs;
-    
-    float _sampleRate;
   };
   
   #pragma mark -
@@ -155,6 +153,7 @@ public:
   void process();
   
   void setPitchBendInSemitones(float f);
+  void setGlideTimeInSeconds(float f);
 
   // voices, containing signals for clients to read directly.
   std::vector< Voice > voices;
@@ -187,6 +186,7 @@ private:
   bool _sustainPedalActive{false};
   float _sampleRate;
   float kPitchBendSemitones{7.f};
+  float _pitchGlideTimeInSeconds{0.f};
 };
 
 

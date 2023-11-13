@@ -392,22 +392,22 @@ class LinearGlide
   float mDyPerVector{1.f / 32};
   int mVectorsPerGlide{32};
   int mVectorsRemaining{0};
-
- public:
+  
+public:
   void setGlideTimeInSamples(float t)
   {
     mVectorsPerGlide = static_cast<int>(t / kFloatsPerDSPVector);
     if (mVectorsPerGlide < 1) mVectorsPerGlide = 1;
     mDyPerVector = 1.0f / (mVectorsPerGlide + 0.f);
   }
-
+  
   // set the current value to the given value immediately, without gliding
   void setValue(float f)
   {
     mTargetValue = f;
     mVectorsRemaining = 0;
   }
-
+  
   DSPVector operator()(float f)
   {
     // set target value if different from current value.
@@ -415,11 +415,11 @@ class LinearGlide
     if (f != mTargetValue)
     {
       mTargetValue = f;
-
+      
       // start counter
       mVectorsRemaining = mVectorsPerGlide;
     }
-
+    
     // process glide
     if (mVectorsRemaining == 0)
     {
@@ -433,13 +433,13 @@ class LinearGlide
       // start glide: get change in output value per vector
       float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
       float dydv = (mTargetValue - currentValue) * mDyPerVector;
-
+      
       // get constant step vector
       mStepVec = DSPVector(dydv);
-
+      
       // setup current vector with first interpolation ramp.
       mCurrVec = DSPVector(currentValue) + kUnityRampVec * DSPVector(dydv);
-
+      
       mVectorsRemaining--;
     }
     else
@@ -451,10 +451,74 @@ class LinearGlide
       mCurrVec += mStepVec;
       mVectorsRemaining--;
     }
-
+    
     return mCurrVec;
   }
+};
+
+class SampleAccurateLinearGlide
+{
+  float mCurrValue{0.f};
+  float mStepValue{0.f};
+  float mTargetValue{0.f};
+  int mSamplesPerGlide{32};
+  float mDyPerSample{1.f/32};
+  int mSamplesRemaining{0};
   
+public:
+  void setGlideTimeInSamples(float t)
+  {
+    mSamplesPerGlide = static_cast<int>(t);
+    if (mSamplesPerGlide < 1) mSamplesPerGlide = 1;
+    mDyPerSample = 1.0f / mSamplesPerGlide;
+  }
+  
+  // set the current value to the given value immediately, without gliding
+  void setValue(float f)
+  {
+    mTargetValue = f;
+    mSamplesRemaining = 0;
+  }
+  
+  float nextSample(float f)
+  {
+    // set target value if different from current value.
+    // const float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
+    if (f != mTargetValue)
+    {
+      mTargetValue = f;
+      
+      // start counter
+      mSamplesRemaining = mSamplesPerGlide;
+    }
+    
+    // process glide
+    if (mSamplesRemaining == 0)
+    {
+      // end glide: write target value to output vector
+      mCurrValue = (mTargetValue);
+      mStepValue = (0.f);
+      mSamplesRemaining--;
+    }
+    else if (mSamplesRemaining == mSamplesPerGlide)
+    {
+      // start glide: get change in output value per sample
+      mStepValue = (mTargetValue - mCurrValue) * mDyPerSample;
+      
+      mSamplesRemaining--;
+    }
+    else
+    {
+      // continue glide
+      // Note that repeated adding will create some error in target value.
+      // Because we return the target value explicity when we are done, this
+      // won't be a problem in reasonably short glides.
+      mCurrValue += mStepValue;
+      mSamplesRemaining--;
+    }
+    
+    return mCurrValue;
+  }
 };
 
 }  // namespace ml

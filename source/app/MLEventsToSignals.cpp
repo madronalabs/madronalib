@@ -9,12 +9,11 @@ namespace ml {
 // EventsToSignals::Voice
 //
 
-void EventsToSignals::Voice::setSampleRate(float sr)
+
+void EventsToSignals::Voice::setParams(float pitchGlideInSeconds, float sr)
 {
-  _sampleRate = sr;
-  
   // separate glide time for note pitch
-  pitchGlide.setGlideTimeInSamples(sr*kPitchGlideTimeSeconds);
+  pitchGlide.setGlideTimeInSamples(sr*pitchGlideInSeconds);
   
   pitchBendGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
   modGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
@@ -62,7 +61,7 @@ float getAgeInSeconds(uint32_t age, float sr)
   return fSeconds;
 }
 
-void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
+void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, float sampleRate)
 {
   auto time = e.time;
   
@@ -82,11 +81,9 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       for(size_t t = nextFrameToProcess; t < destTime; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
-
-        // TODO sample accurate pitch glide
-        outputs.row(kPitch)[t] = currentPitch;
+        outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
         ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
+        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
       }
       
       // set new values
@@ -113,16 +110,14 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       for(size_t t = nextFrameToProcess; t < destTime - 1; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
-        
-        // TODO sample accurate glide
-        outputs.row(kPitch)[t] = currentPitch;
+        outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
         ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
+        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
       }
       
       // write retrigger frame
       outputs.row(kGate)[destTime - 1] = 0;
-      outputs.row(kPitch)[destTime - 1] = currentPitch;
+      outputs.row(kPitch)[destTime - 1] = pitchGlide.nextSample(currentPitch);
       
       // set new values
       currentPitch = scale.noteToLogPitch(e.value1);
@@ -149,11 +144,9 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
       for(size_t t = nextFrameToProcess; t < destTime; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
-        
-        // TODO sample accurate glide
-        outputs.row(kPitch)[t] = currentPitch;
+        outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
         ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
+        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
       }
       
       // set new values
@@ -167,7 +160,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale)
   }
 }
 
-void EventsToSignals::Voice::endProcess(float pitchBend)
+void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
 {
   for(size_t t = nextFrameToProcess; t < kFloatsPerDSPVector; ++t)
   {
@@ -175,12 +168,11 @@ void EventsToSignals::Voice::endProcess(float pitchBend)
     outputs.row(kGate)[t] = currentVelocity;
     
     // write pitch to end of buffer.
-    // TODO sample accurate glide
-    outputs.row(kPitch)[t] = currentPitch;
+    outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
     
     // keep increasing age
     ageInSamples += ageStep;
-    outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, _sampleRate);
+    outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
   }
   
   // process glides, accurate to the DSP vector
@@ -207,7 +199,7 @@ EventsToSignals::EventsToSignals(int sr) : _eventQueue(kMaxEventsPerVector)
   
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setSampleRate(sr);
+    voices[i].setParams(_pitchGlideTimeInSeconds, sr);
     voices[i].reset();
     voices[i].outputs.row(kVoice) = DSPVector(i);
   }
@@ -258,7 +250,7 @@ void EventsToSignals::process()
   }
   for(auto& v : voices)
   {
-    v.endProcess(kPitchBendSemitones);
+    v.endProcess(kPitchBendSemitones, _sampleRate);
   }
 }
 
@@ -299,7 +291,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
 
   if(v >= 0)
   {
-    voices[v].writeNoteEvent(e, _scale);
+    voices[v].writeNoteEvent(e, _scale, _sampleRate);
   }
   else
   {
@@ -310,7 +302,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     // are cut off. add more graceful stealing
     Event f = e;
     f.type = kNoteRetrig;
-    voices[v].writeNoteEvent(f, _scale);
+    voices[v].writeNoteEvent(f, _scale, _sampleRate);
   }
 }
 
@@ -326,7 +318,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     {
       Event eventToSend = e;
       eventToSend.type = newEventType;
-      voice.writeNoteEvent(eventToSend, _scale);
+      voice.writeNoteEvent(eventToSend, _scale, _sampleRate);
     }
   }
 }
@@ -374,7 +366,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
         {
           Event eventToSend = event;
           eventToSend.type = kNoteOff;
-          voice.writeNoteEvent(eventToSend, _scale);
+          voice.writeNoteEvent(eventToSend, _scale, _sampleRate);
         }
       }
     }
@@ -413,7 +405,7 @@ void EventsToSignals::processSustainEvent(const Event& event)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
-        v.writeNoteEvent(newEvent, _scale);
+        v.writeNoteEvent(newEvent, _scale, _sampleRate);
       }
     }
   }
@@ -422,6 +414,15 @@ void EventsToSignals::processSustainEvent(const Event& event)
 void EventsToSignals::setPitchBendInSemitones(float f)
 {
   kPitchBendSemitones = f;
+}
+
+void EventsToSignals::setGlideTimeInSeconds(float f)
+{
+  _pitchGlideTimeInSeconds = f;
+  for(int i=0; i<kMaxVoices; ++i)
+  {
+    voices[i].setParams(_pitchGlideTimeInSeconds, _sampleRate);
+  }
 }
 
 #pragma mark -
