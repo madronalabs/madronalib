@@ -821,6 +821,7 @@ DEFINE_OP1_F2I(truncateFloatToInt, (VecI2F(vecFloatToIntTruncate(x))));
   }
 
 DEFINE_OP1_I2F(intToFloat, (vecIntToFloat(x)));
+DEFINE_OP1_I2F(unsignedIntToFloat, (vecUnsignedIntToFloat(x)));
 
 // ----------------------------------------------------------------
 // using the conversions above, define fractionalPart

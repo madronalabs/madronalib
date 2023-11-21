@@ -176,23 +176,20 @@ class TestSineGen
 // it outputs a phasor with range from 0--1.
 class PhasorGen
 {
-  int32_t mOmega32{0};
-
- public:
+  uint32_t mOmega32{0};
+  
+public:
   void clear(int32_t omega = 0) { mOmega32 = omega; }
-
+  
+  static constexpr float stepsPerCycle{static_cast<float>(const_math::pow(2., 32))};
+  static constexpr float cyclesPerStep{1.f / stepsPerCycle};
+  
   DSPVector operator()(const DSPVector cyclesPerSample)
   {
-    constexpr float range(1.0f);
-    constexpr float offset(0.5f);
-    constexpr float stepsPerCycle(static_cast<float>(const_math::pow(2., 32)));
-    constexpr float cyclesPerStep(1.f / stepsPerCycle);
-    DSPVector outputScaleV(range * cyclesPerStep);
-
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
     DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
-
+    
     // accumulate 32-bit phase with wrap
     DSPVectorInt omega32V;
     for (int n = 0; n < kIntsPerDSPVector; ++n)
@@ -200,34 +197,29 @@ class PhasorGen
       mOmega32 += intStepsPerSampleV[n];
       omega32V[n] = mOmega32;
     }
-
+    
     // convert counter to float output range
-    DSPVector omegaV = intToFloat(omega32V) * outputScaleV + DSPVector(offset);
-    return omegaV;
+    return unsignedIntToFloat(omega32V) * DSPVector(cyclesPerStep);
   }
 };
-
 
 // OneShotGen, when triggered, makes a single ramp from 0-1 then resets to 0. The speed
 // of the ramp is a signal input, giving a ramp with the same speed as PhasorGen.
 class OneShotGen
 {
-  static constexpr int32_t start = std::numeric_limits<int32_t>::min();
-  int32_t mOmega32{start};
-  int32_t mGate{0};
-  int32_t mOmegaPrev{start};
+  static constexpr uint32_t start = 0;
+  uint32_t mOmega32{start};
+  uint32_t mGate{0};
+  uint32_t mOmegaPrev{start};
   
 public:
   void trigger() { mOmega32 = mOmegaPrev = start; mGate = 1; }
   
+  static constexpr float stepsPerCycle{static_cast<float>(const_math::pow(2., 32))};
+  static constexpr float cyclesPerStep{1.f / stepsPerCycle};
+
   DSPVector operator()(const DSPVector cyclesPerSample)
   {
-    constexpr float range(1.0f);
-    constexpr float offset(0.5f);
-    constexpr float stepsPerCycle(static_cast<float>(const_math::pow(2., 32)));
-    constexpr float cyclesPerStep(1.f / stepsPerCycle);
-    DSPVector outputScaleV(range * cyclesPerStep);
-    
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
     DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
@@ -245,11 +237,8 @@ public:
       }
       omega32V[n] = mOmegaPrev = mOmega32;
     }
-    
     // convert counter to float output range
-    DSPVector omegaV = intToFloat(omega32V) * outputScaleV + DSPVector(offset);
-    
-    return omegaV;
+    return unsignedIntToFloat(omega32V) * DSPVector(cyclesPerStep);
   }
 };
 
@@ -346,8 +335,8 @@ class SineGen
 {
   static constexpr int32_t kZeroPhase = -(2 << 29);
   PhasorGen _phasor;
-
- public:
+  
+public:
   void clear() { _phasor.clear(kZeroPhase); }
   DSPVector operator()(const DSPVector freq) { return phasorToSine(_phasor(freq)); }
 };

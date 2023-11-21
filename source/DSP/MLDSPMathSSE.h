@@ -123,6 +123,16 @@ inline bool isSIMDAligned(float* p)
 #define vecFloatToIntTruncate _mm_cvttps_epi32
 #define vecIntToFloat _mm_cvtepi32_ps
 
+// _mm_cvtepi32_ps approximation for unsigned int data
+// this loses a bit of precision
+inline SIMDVectorFloat vecUnsignedIntToFloat(SIMDVectorInt v)
+{
+  __m128i v_hi = _mm_srli_epi32(v, 1);
+  __m128 v_hi_flt = _mm_cvtepi32_ps(v_hi);
+  return _mm_add_ps(v_hi_flt, v_hi_flt);
+}
+
+
 #define vecAddInt _mm_add_epi32
 #define vecSubInt _mm_sub_epi32
 #define vecSet1Int _mm_set1_epi32

@@ -30,7 +30,7 @@ constexpr float kMinGain = 0.00001f;  // 10e-5 = -120dB
 typedef float MLSample;
 
 // return the exponent of the smallest power of 2 that is >= x.
-inline int bitsToContain(int x)
+inline size_t bitsToContain(int x)
 {
   int exp;
   for (exp = 0; (1 << exp) < x; exp++)
