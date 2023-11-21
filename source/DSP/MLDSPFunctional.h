@@ -339,6 +339,18 @@ class Bank
     return output;
   }
   
+  // process: each processor gets arguments by calling the subscript operator on the input args.
+  template <typename... Args>
+  inline DSPVectorArray<ROWS> processArrays(Args... args)
+  {
+    DSPVectorArray<ROWS> output;
+    for (int i = 0; i < ROWS; ++i)
+    {
+      output.row(i) = _processors[i](args[i]...);
+    }
+    return output;
+  }
+  
   inline void clear()
   {
     for (int i = 0; i < ROWS; ++i)

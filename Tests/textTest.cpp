@@ -67,4 +67,3 @@ TEST_CASE("madronalib/core/text", "[text]")
   REQUIRE(textUtils::stripExtension(footxt) == "foo");
   REQUIRE(textUtils::getExtension(footxt) == "txt");
 }
-
