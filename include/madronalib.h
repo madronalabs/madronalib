@@ -6,6 +6,7 @@
 
 #include "MLActor.h"
 #include "MLClock.h"
+#include "MLEventsToSignals.h"
 #include "MLMemoryUtils.h"
 #include "MLPath.h"
 #include "MLPlatform.h"
