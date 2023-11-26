@@ -147,6 +147,8 @@ public:
     if (val.isFloatType())
     {
       auto& pdesc = descriptions[pname];
+      if(!pdesc) return 0;
+      
       bool integerValues = pdesc->getBoolPropertyWithDefault("integer_values", false);
       float fVal = convertNormalizedToRealFloatValue(pname, val);
       if(integerValues)

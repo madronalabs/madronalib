@@ -179,7 +179,7 @@ class PhasorGen
   uint32_t mOmega32{0};
   
 public:
-  void clear(int32_t omega = 0) { mOmega32 = omega; }
+  void clear(uint32_t omega = 0) { mOmega32 = omega; }
   
   static constexpr float stepsPerCycle{static_cast<float>(const_math::pow(2., 32))};
   static constexpr float cyclesPerStep{1.f / stepsPerCycle};
