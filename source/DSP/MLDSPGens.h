@@ -201,6 +201,19 @@ public:
     // convert counter to float output range
     return unsignedIntToFloat(omega32V) * DSPVector(cyclesPerStep);
   }
+  
+  float nextSample(const float cyclesPerSample)
+  {
+    // calculate int steps per sample
+    float stepsPerSample = cyclesPerSample * stepsPerCycle;
+    uint32_t intStepsPerSample = roundf(stepsPerSample);
+    
+    // accumulate 32-bit phase with wrap
+    mOmega32 += intStepsPerSample;
+
+    // convert counter to float output range
+    return mOmega32*cyclesPerStep;
+  }
 };
 
 // OneShotGen, when triggered, makes a single ramp from 0-1 then resets to 0. The speed
@@ -239,6 +252,28 @@ public:
     }
     // convert counter to float output range
     return unsignedIntToFloat(omega32V) * DSPVector(cyclesPerStep);
+  }
+  
+  float nextSample(const float cyclesPerSample)
+  {
+    // calculate int steps per sample
+    float stepsPerSample = cyclesPerSample * stepsPerCycle;
+    uint32_t intStepsPerSample = roundf(stepsPerSample);
+    
+    // accumulate 32-bit phase with wrap
+    // we test for wrap at every sample to get a clean ending
+    DSPVectorInt omega32V;
+  
+    mOmega32 += intStepsPerSample*mGate;
+    if(mOmega32 < mOmegaPrev)
+    {
+      mGate = 0;
+      mOmega32 = start;
+    }
+    mOmegaPrev = mOmega32;
+    
+    // convert counter to float output range
+    return mOmega32*cyclesPerStep;
   }
 };
 

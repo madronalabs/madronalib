@@ -445,9 +445,9 @@ class Bell
 
 // A one pole filter. see https://ccrma.stanford.edu/~jos/fp/One_Pole.html
 
-class OnePole
+struct OnePole
 {
-  struct _coeffs
+  struct _coeffs // FIX
   {
     float a0, b1;
   };
@@ -1474,7 +1474,7 @@ class PLL
   DSPVector operator()(DSPVector x, DSPVector dydx, DSPVector feedback)
   {
     DSPVector y;
-
+    
     // if input phasor is inactive, reset and bail.
     // (inactive / active switch is only done every vector)
     if (x[0] < 0.f)
@@ -1489,14 +1489,14 @@ class PLL
       {
         // estimate previous input sample
         _x1 = x[0] - (x[1] - x[0]);
-
+        
         _omega = fmod(x[0] * dydx[0], 1.0f);
       }
-
+      
       DSPVector dxdy = divideApprox(DSPVector(1.0f), dydx);
-
+      
       // run the PLL, correcting the output phasor to the input phasor and ratio.
-
+      
       for (int n = 0; n < kFloatsPerDSPVector; ++n)
       {
         // TODO try using SIMD for differentiator object
@@ -1504,9 +1504,9 @@ class PLL
         float dxdt = px - _x1;
         if (dxdt < 0.f) dxdt += 1.f;
         _x1 = px;
-
+        
         float dydt = dxdt * dydx[n];
-
+        
         // get error term at each sample by comparing output to scaled input
         // or scaled input to output depending on ratio.
         float error;
@@ -1518,22 +1518,84 @@ class PLL
         {
           error = fmod(_omega * dxdy[n], 1.0f) - px;
         }
-
+        
         // send error towards closest sync
         error = roundf(error) - error;
-
+        
         // feedback = negative error * time constant
         dydt += feedback[n] * error;
-
+        
         // don't ever run clock backwards.
         dydt = ml::max(dydt, 0.f);
-
+        
         // wrap phasor
         // TODO try using SIMD for fmod(x, 1.0), test
         _omega = fmod(_omega + dydt, 1.0f);
-
+        
         y[n] = _omega;
       }
+    }
+    return y;
+  }
+  
+  float nextSample(float x, float dydx, float feedback)
+  {
+    float y;
+    
+    if (x < 0.f)
+    {
+      clear();
+      y = -1.f;
+    }
+    else
+    {
+      // startup: if active but phase is unknown, jump to current phase.
+      if (_omega == -1.f)
+      {
+        // estimate previous input sample
+        _x1 = x - dydx;
+        
+        _omega = fmod(x * dydx, 1.0f);
+      }
+      
+      float dxdy = 1.f/dydx;
+      
+      // run the PLL, correcting the output phasor to the input phasor and ratio.
+
+      float px = x;
+      float dxdt = px - _x1;
+      if (dxdt < 0.f) dxdt += 1.f;
+      _x1 = px;
+      
+      float dydt = dxdt * dydx;
+      
+      // get error term at each sample by comparing output to scaled input
+      // or scaled input to output depending on ratio.
+      float error;
+      if (dydx >= 1.f)
+      {
+        error = _omega - fmod(px * dydx, 1.0f);
+      }
+      else
+      {
+        error = fmod(_omega * dxdy, 1.0f) - px;
+      }
+      
+      // send error towards closest sync
+      error = roundf(error) - error;
+      
+      // feedback = negative error * time constant
+      dydt += feedback * error;
+      
+      // don't ever run clock backwards.
+      dydt = ml::max(dydt, 0.f);
+      
+      // wrap phasor
+      // TODO try using SIMD for fmod(x, 1.0), test
+      _omega = fmod(_omega + dydt, 1.0f);
+      
+      y = _omega;
+      
     }
     return y;
   }

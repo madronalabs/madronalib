@@ -75,8 +75,24 @@ class SignalProcessor
           downsampleCtr_ = 0;
         }
       }
-
-      _buffer.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
+      
+      if(framesWritten)
+      {
+        _buffer.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
+      }
+    }
+    
+    // write a single frame of signal with multiple contiguous channels
+    inline void writeQuickVert(const float* inputVector, size_t channels, size_t voice)
+    {
+      // on every (1<<octavesDown_)th frame, rotate and write to DSPBuffer
+      
+      downsampleCtr_++;
+      if(downsampleCtr_ >= (1 << octavesDown_))
+      {
+        _buffer.write(inputVector, channels);
+        downsampleCtr_ = 0;
+      }
     }
     
     // read the latest n frames of data, where each frame is a DSPVectorArray< CHANNELS >.
@@ -219,6 +235,15 @@ class SignalProcessor
     if(publishedSignal)
     {
       publishedSignal->writeQuick(inputVec, frames, voice);
+    }
+  }
+  
+  inline void storePublishedSignalVert(Path signalName, const float* pInput, int channels, int voice)
+  {
+    PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
+    if(publishedSignal)
+    {
+      publishedSignal->writeQuickVert(pInput, channels, voice);
     }
   }
 };
