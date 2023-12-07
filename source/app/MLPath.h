@@ -52,7 +52,7 @@ class Path final
   inline int getCopy() const { return mCopy; }
   inline void setCopy(int c) { mCopy = c; }  // MLTEST to remove, use ctor only?
 
-  bool beginsWith(Path b);
+  bool beginsWith(Path b) const;
 
   friend class const_iterator;
   class const_iterator
@@ -163,18 +163,23 @@ inline bool operator!=(const Path a, const Path b) { return !(a == b); }
 
 inline TextFragment pathToText(Path p, const char separator = '/')
 {
-  /*
-  auto concat = [&](Symbol a, Symbol b) {
-    return TextFragment(a.getTextFragment(), TextFragment(separator), b.getTextFragment());
-  };
-  return std::accumulate(++p.begin(), p.end(), (*p.begin()).getTextFragment(), concat);
-  */
-
   TextFragment r;
   auto n = p.getSize();
   if (n < 1) return r;
   r = p.getElement(0).getTextFragment();
   for (int i = 1; i < n; ++i)
+  {
+    r = TextFragment(r, separator);
+    r = TextFragment(r, p.getElement(i).getTextFragment());
+  }
+  return r;
+}
+
+inline TextFragment rootPathToText(Path p, const char separator = '/')
+{
+  TextFragment r;
+  auto n = p.getSize();
+  for (int i = 0; i < n; ++i)
   {
     r = TextFragment(r, separator);
     r = TextFragment(r, p.getElement(i).getTextFragment());

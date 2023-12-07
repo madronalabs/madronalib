@@ -121,7 +121,7 @@ void Path::parsePathString(const char* pathStr, const char separator)
   */
 }
 
-bool Path::beginsWith(const Path b)
+bool Path::beginsWith(Path b) const
 {
   if (b.getSize() > getSize()) return false;
   for (int i = 0; i < b.getSize(); ++i)
@@ -193,9 +193,14 @@ Symbol last(Path p)
 Path lastN(Path p, size_t n)
 {
   auto len = p.getSize();
-  if (len > 1)
+  if (len >= n)
   {
-    return Path(p._symbols[len - 2], p._symbols[len - 1]);
+    Path r;
+    for(int i = len - n; i < len; ++i)
+    {
+      r = Path(r, nth(p, i));
+    }
+    return r;
   }
   return Path();
 }

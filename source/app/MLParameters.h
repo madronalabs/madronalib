@@ -27,7 +27,8 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   bool bisquare = p.getProperty("bisquare").getBoolValueWithDefault(false);
   Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
-  
+  float offset = p.getProperty("offset").getFloatValueWithDefault(0.f);
+
   Interval normalRange{0., 1.};
   Interval plainRange{range[0], range[1]};
   
@@ -64,9 +65,10 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     if(bLog)
     {
       b.normalizedToReal =
-      projections::intervalMap(normalRange, plainRange, projections::log(plainRange));
+      compose(projections::add(offset), projections::intervalMap(normalRange, plainRange, projections::log(plainRange)));
+      
       b.realToNormalized =
-      projections::intervalMap(plainRange, normalRange, projections::exp(plainRange));
+      compose(projections::intervalMap(plainRange, normalRange, projections::exp(plainRange)), projections::add(-offset));
     }
     else if(bisquare)
     {

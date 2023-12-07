@@ -123,7 +123,7 @@ inline Projection log(Interval m)
   {
     float a = m.mX1;
     float b = m.mX2;
-    return a * (powf((b / a), x) - 1) / (b - a);
+    return a*(powf((b/a), x) - 1)/(b - a);
   };
 }
 
@@ -135,7 +135,7 @@ inline Projection exp(Interval m)
   {
     float a = m.mX1;
     float b = m.mX2;
-    return logf((x * (b - a) + a) / a) / logf(b / a);
+    return logf((x*(b - a) + a)/a) / logf(b/a);
   };
 }
 
@@ -147,6 +147,15 @@ inline Projection linear(const Interval a, const Interval b)
     // project interval a to interval b
     float m = (b.mX2 - b.mX1) / (a.mX2 - a.mX1);
     return m * (x - a.mX1) + b.mX1;
+  };
+}
+
+// linear projection mapping an interval to another interval
+inline Projection add(float f)
+{
+  return [=](float x)
+  {
+    return x + f;
   };
 }
 
