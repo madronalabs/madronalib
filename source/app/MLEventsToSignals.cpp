@@ -9,8 +9,7 @@ namespace ml {
 // EventsToSignals::Voice
 //
 
-
-void EventsToSignals::Voice::setParams(float pitchGlideInSeconds, float sr)
+void EventsToSignals::Voice::setParams(float pitchGlideInSeconds, float drift, float sr)
 {
   // separate glide time for note pitch
   pitchGlide.setGlideTimeInSamples(sr*pitchGlideInSeconds);
@@ -20,11 +19,16 @@ void EventsToSignals::Voice::setParams(float pitchGlideInSeconds, float sr)
   xGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
   yGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
   zGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+  
+  pitchDriftGlide.setGlideTimeInSamples(sr*kDriftTimeSeconds);
+  driftAmount = drift;
 }
 
 // done when DSP is reset.
-void EventsToSignals::Voice::reset()
+void EventsToSignals::Voice::reset(int i)
 {
+  driftSource.mSeed = i*232;
+  
   state = kOff;
   nextFrameToProcess = 0;
   ageInSamples = 0;
@@ -47,9 +51,20 @@ void EventsToSignals::Voice::reset()
   zGlide.setValue(0.f);
 }
 
-void EventsToSignals::Voice::beginProcess()
+void EventsToSignals::Voice::beginProcess(float sr)
 {
   nextFrameToProcess = 0;
+  driftCounter += kFloatsPerDSPVector;
+  
+  int driftIntervalSamples = sr*kDriftTimeSeconds;
+  if(driftCounter >= nextDriftTimeInSamples)
+  {
+    float d = driftSource.getFloat();
+    float nextTimeMul = 1.0f + fabs(driftSource.getFloat());
+    currentDriftValue = d;
+    driftCounter = 0;
+    nextDriftTimeInSamples = sr*nextTimeMul*kDriftTimeSeconds;
+  }
 }
 
 float getAgeInSeconds(uint32_t age, float sr)
@@ -177,6 +192,7 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
   
   // process glides, accurate to the DSP vector
   auto bendGlide = pitchBendGlide(currentPitchBend);
+  auto driftSig = pitchDriftGlide(currentDriftValue);
   outputs.row(kMod) = modGlide(currentMod);
   outputs.row(kX) = xGlide(currentX);
   outputs.row(kY) = yGlide(currentY);
@@ -184,6 +200,9 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
   
   // add pitch bend in semitones to pitch output
   outputs.row(kPitch) += bendGlide*pitchBend*(1.f/12);
+  
+  // add drift to pitch output
+  outputs.row(kPitch) += driftSig*driftAmount*kDriftScale;
 }
 
 #pragma mark -
@@ -199,8 +218,8 @@ EventsToSignals::EventsToSignals(int sr) : _eventQueue(kMaxEventsPerVector)
   
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setParams(_pitchGlideTimeInSeconds, sr);
-    voices[i].reset();
+    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, sr);
+    voices[i].reset(i);
     voices[i].outputs.row(kVoice) = DSPVector(i);
   }
 }
@@ -225,9 +244,10 @@ void EventsToSignals::reset()
 {
   _eventQueue.clear();
   
+  int i(0);
   for(auto& v : voices)
   {
-    v.reset();
+    v.reset(i++);
   }
   
   _lastFreeVoiceFound = -1;
@@ -242,7 +262,7 @@ void EventsToSignals::process()
 {
   for(auto& v : voices)
   {
-    v.beginProcess();
+    v.beginProcess(_sampleRate);
   }
   while(Event e = _eventQueue.pop())
   {
@@ -421,7 +441,16 @@ void EventsToSignals::setGlideTimeInSeconds(float f)
   _pitchGlideTimeInSeconds = f;
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setParams(_pitchGlideTimeInSeconds, _sampleRate);
+    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, _sampleRate);
+  }
+}
+
+void EventsToSignals::setDriftAmount(float f)
+{
+  _pitchDriftAmount = f;
+  for(int i=0; i<kMaxVoices; ++i)
+  {
+    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, _sampleRate);
   }
 }
 

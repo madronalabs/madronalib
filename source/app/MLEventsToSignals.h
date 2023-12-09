@@ -51,8 +51,9 @@ public:
   static constexpr int kMaxVoices{16};
   static constexpr int kMaxEventsPerVector{128};
   
-  // glide time for all params except pitch
   static constexpr float kGlideTimeSeconds{0.02f};
+  static constexpr float kDriftTimeSeconds{8.0f};
+  static constexpr float kDriftScale{0.01f};
 
   // Event: something that happens.
   //
@@ -92,12 +93,12 @@ public:
     Voice() = default;
     ~Voice() = default;
 
-    void setParams(float pitchGlideInSeconds, float sr);
+    void setParams(float pitchGlideInSeconds, float drift, float sr);
 
-    void reset();
+    void reset(int voiceIdx);
 
     // send to start processing a new buffer.
-    void beginProcess();
+    void beginProcess(float sr);
     
     // send a note on, off update or sustain event to the voice.
     void writeNoteEvent(const Event& e, const Scale& Scale, float sr);
@@ -129,6 +130,15 @@ public:
     LinearGlide yGlide;
     LinearGlide zGlide;
     
+    // drift generates a wandering signal on [0, 1] then is scaled and added to pitch
+    // TODO encapsulate this as DrunkenWalkGen
+    RandomScalarSource driftSource;
+    LinearGlide pitchDriftGlide;
+    int driftCounter{0};
+    float currentDriftValue{0};
+    float driftAmount{0};
+    int nextDriftTimeInSamples{0};
+    
     // output signals (velocity, pitch, voice... )
     DSPVectorArray< kNumVoiceOutputRows > outputs;
   };
@@ -154,6 +164,7 @@ public:
   
   void setPitchBendInSemitones(float f);
   void setGlideTimeInSeconds(float f);
+  void setDriftAmount(float f);
 
   // voices, containing signals for clients to read directly.
   std::vector< Voice > voices;
@@ -187,6 +198,7 @@ private:
   float _sampleRate;
   float kPitchBendSemitones{7.f};
   float _pitchGlideTimeInSeconds{0.f};
+  float _pitchDriftAmount{0.f};
 };
 
 
