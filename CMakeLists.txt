@@ -8,7 +8,7 @@
 # set min version and deployment target -- before project
 #--------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5)
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version")
 
@@ -18,6 +18,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 IF(APPLE)
   SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
 ENDIF(APPLE)
+
 
 #--------------------------------------------------------------------
 # project and version
@@ -49,15 +50,28 @@ endif()
 # Compiler flags
 #--------------------------------------------------------------------
 
-if(APPLE)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti -std=c++17")
 
-  # For now, explicitly disable C++17 alignment feature 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-aligned-new")
-elseif(WIN32)
+ set(CMAKE_CXX_STANDARD 17)
+ set(CMAKE_CXX_STANDARD_REQUIRED True)
+ 
+ if(APPLE)
+   # For now, explicitly disable C++17 alignment feature
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-aligned-new")
+ elseif(WIN32)
+   # no unknown pragma warning
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4068")
+   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:alignedNew-")
+ endif()
 
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:alignedNew-")
+if(MSVC)
+    # arcane thing about setting runtime library flags
+    cmake_policy(SET CMP0091 NEW)
+
+    add_compile_options(
+        $<$<CONFIG:>:/MT>
+        $<$<CONFIG:Debug>:/MTd>
+        $<$<CONFIG:Release>:/MT>
+    )
 endif()
 
 #--------------------------------------------------------------------
@@ -194,6 +208,9 @@ set(target madronalib)
 
 add_library(${target} STATIC ${madronalib_SOURCES})
 
+# set_property(TARGET ${target} PROPERTY
+ #            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+
 set_target_properties(${target} PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
                       VERSION ${madronalib_VERSION}
@@ -240,6 +257,15 @@ endif()
 
 include(GNUInstallDirs)
 
+if(WIN32)
+    set(CMAKE_INSTALL_LIBDIR "C:/Program Files/madronalib/lib")
+        
+    if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+      set(CMAKE_INSTALL_PREFIX "C:/Program Files/madronalib" CACHE PATH "..." FORCE)
+    endif()
+endif()
+
+
 install(
     TARGETS ${target}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -254,15 +280,15 @@ message("madronalib destination: " ${CMAKE_INSTALL_LIBDIR} )
 #--------------------------------------------------------------------
 
 
-install(FILES include/madronalib.h DESTINATION include/madronalib)
+install(FILES include/madronalib.h DESTINATION include)
 
-install(FILES include/mldsp.h DESTINATION include/madronalib)
+install(FILES include/mldsp.h DESTINATION include)
 
-install(FILES external/cJSON/cJSON.h DESTINATION include/madronalib)
+install(FILES external/cJSON/cJSON.h DESTINATION include)
 
-install(FILES external/sse2neon/sse2neon.h DESTINATION include/madronalib)
+install(FILES external/sse2neon/sse2neon.h DESTINATION include)
 
-install(FILES external/rtaudio/RtAudio.h DESTINATION include/madronalib)
+install(FILES external/rtaudio/RtAudio.h DESTINATION include)
 
 install(FILES 
     ${APP_HEADERS}     
@@ -272,18 +298,18 @@ install(FILES
     ${OSC_HEADERS}
     DESTINATION 
     # PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
-    include/madronalib
+    include 
   )
 
 if(APPLE)
-    install(FILES ${NETWORKING_HEADERS} DESTINATION include/madronalib)
+    install(FILES ${NETWORKING_HEADERS} DESTINATION include)
 else()
     #TODO OSC For win / Linux
 endif()
 
 
 #--------------------------------------------------------------------
-# Add libraries
+# Add platform libraries
 #--------------------------------------------------------------------
 
 # note: ffft and utf are header-only
