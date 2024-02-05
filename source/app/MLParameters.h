@@ -303,7 +303,7 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName,
                              const ParameterDescription& paramDesc)
 {
   paramTree.projections[paramName] = createParameterProjection(paramDesc);
-  paramTree.descriptions[paramName] = ml::make_unique<ParameterDescription>(paramDesc);
+  paramTree.descriptions[paramName] = std::make_unique<ParameterDescription>(paramDesc);
 }
 
 // get default parameter value in normalized units.

@@ -165,7 +165,7 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
       break;
     }
   }
-  return ml::make_unique<std::vector<unsigned char> >(outputVector);
+  return std::make_unique<std::vector<unsigned char> >(outputVector);
 }
 
 inline Value binaryToValue(const unsigned char* p)
@@ -240,7 +240,7 @@ inline std::unique_ptr< std::vector<uint8_t> > floatVectorToBinary(const std::ve
   const uint8_t* pSrc = reinterpret_cast<const uint8_t*>(inputVector.data());
   std::copy(pSrc, pSrc + arrayDataSize, pDest);
 
-  return ml::make_unique<std::vector<unsigned char> >(outputVector);
+  return std::make_unique<std::vector<unsigned char> >(outputVector);
 }
 
 
@@ -252,11 +252,11 @@ inline std::unique_ptr< std::vector<float> > binaryToFloatVector(const unsigned 
     const unsigned char* pData = p + sizeof(BinaryChunkHeader);
     const float* pVectorData{reinterpret_cast<const float*>(pData)};
     size_t vectorSize = header->dataBytes/sizeof(float);
-    return ml::make_unique<std::vector<float> >(pVectorData, pVectorData+vectorSize);
+    return std::make_unique<std::vector<float> >(pVectorData, pVectorData+vectorSize);
   }
     
   // on wrong type return empty vector
-  return ml::make_unique< std::vector<float> >();
+  return std::make_unique< std::vector<float> >();
 }
 
 // Path

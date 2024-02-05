@@ -208,9 +208,6 @@ set(target madronalib)
 
 add_library(${target} STATIC ${madronalib_SOURCES})
 
-# set_property(TARGET ${target} PROPERTY
- #            MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-
 set_target_properties(${target} PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
                       VERSION ${madronalib_VERSION}
@@ -259,7 +256,6 @@ include(GNUInstallDirs)
 
 if(WIN32)
     set(CMAKE_INSTALL_LIBDIR "C:/Program Files/madronalib/lib")
-        
     if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
       set(CMAKE_INSTALL_PREFIX "C:/Program Files/madronalib" CACHE PATH "..." FORCE)
     endif()
