@@ -119,35 +119,69 @@ inline Projection constant(const float k)
 // on [a, b] scaled back to [0, 1]. works for positive a, b with a < b only.
 inline Projection log(Interval m)
 {
-  return [=](float x)
+  float a = m.mX1;
+  float b = m.mX2;
+  if(b - a == 0.f)
   {
-    float a = m.mX1;
-    float b = m.mX2;
-    return a*(powf((b/a), x) - 1)/(b - a);
-  };
+    return [=](float x){return a;};
+  }
+  else if(a == 0.f)
+  {
+    return [=](float x){return 0.f;};
+  }
+  else
+  {
+    return [=](float x)
+    {
+      return a*(powf((b/a), x) - 1)/(b - a);
+    };
+  }
 }
 
 // the inverse of the log projection.
 // works for positive a, b with a < b only.
 inline Projection exp(Interval m)
 {
-  return [=](float x)
+  float a = m.mX1;
+  float b = m.mX2;
+  if(b - a == 0.f)
   {
-    float a = m.mX1;
-    float b = m.mX2;
-    return logf((x*(b - a) + a)/a) / logf(b/a);
-  };
+    return [=](float x){return a;};
+  }
+  else if(a == 0.f)
+  {
+    return [=](float x){return 0.f;};
+  }
+  else
+  {
+    return [=](float x)
+    {
+      return logf((x*(b - a) + a)/a) / logf(b/a);
+    };
+  }
 }
 
 // linear projection mapping an interval to another interval
 inline Projection linear(const Interval a, const Interval b)
 {
-  return [=](float x)
+  float a1 = a.mX1;
+  float a2 = a.mX2;
+  float b1 = b.mX1;
+  float b2 = b.mX2;
+  
+  if(a1 - a2 == 0.f)
   {
-    // project interval a to interval b
-    float m = (b.mX2 - b.mX1) / (a.mX2 - a.mX1);
-    return m * (x - a.mX1) + b.mX1;
-  };
+    return [=](float x){return b1;};
+  }
+  else
+  {
+    return [=](float x)
+    {
+      // project interval a to interval b
+      float m = (b2 - b1) / (a2 - a1);
+      return m * (x - a1) + b1;
+    };
+  }
 }
 
 // linear projection mapping an interval to another interval

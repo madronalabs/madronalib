@@ -504,60 +504,6 @@ void Matrix::copyFast(const Matrix& b)
   std::copy(b.mDataAligned, b.mDataAligned + mSize, mDataAligned);
 }
 
-/*
- // add the entire signal b to this signal, at the integer destination offset.
- //
- void Matrix::add2D(const Matrix& b, int destX, int destY)
- {
-        Matrix& a = *this;
-        MLRect srcRect(0, 0, b.getWidth(), b.getHeight());
-        MLRect destRect = srcRect.translated(Vec2(destX,
- destY)).intersect(getBoundsRect());
-
-        for(int j=destRect.top(); j<destRect.bottom(); ++j)
-        {
- for(int i=destRect.left(); i<destRect.right(); ++i)
- {
- a(i, j) += b(i - destX, j - destY);
- }
-        }
- }
-
- // add the entire signal b to this signal, at the subpixel destination offset.
- //
- void Matrix::add2D(const Matrix& b, const Vec2& destOffset)
- {
-        Matrix& a = *this;
-
-        Vec2 iDestOffset, fDestOffset;
-        destOffset.getIntAndFracParts(iDestOffset, fDestOffset);
-
-        int destX = iDestOffset[0];
-        int destY = iDestOffset[1];
-        float srcPosFX = fDestOffset[0];
-        float srcPosFY = fDestOffset[1];
-
-        MLRect srcRect(0, 0, b.getWidth() + 1, b.getHeight() + 1); // add (1, 1)
- for interpolation MLRect destRect =
- srcRect.translated(iDestOffset).intersect(getBoundsRect());
-
-        for(int j=destRect.top(); j<destRect.bottom(); ++j)
-        {
- for(int i=destRect.left(); i<destRect.right(); ++i)
- {
- a(i, j) += b.getInterpolatedLinear(i - destX - srcPosFX, j - destY - srcPosFY);
- }
-        }
- }
- */
-
-/*
- // TEMP
- const float Matrix::operator() (const float i, const float j) const
- {
- return getInterpolatedLinear(i, j);
-
- }*/
 
 // TODO SSE
 void Matrix::add(const Matrix& b)

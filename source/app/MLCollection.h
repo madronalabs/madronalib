@@ -188,11 +188,6 @@ class Collection
           const ObjectPointerType& obj = *it;
           f(*obj);
         }
-        else
-        {
-          // TEMP
-          std::cout << "forEachChild: null object! /n";
-        }
       }
     }
   }

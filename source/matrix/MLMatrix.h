@@ -155,18 +155,6 @@ class Matrix final
 
   inline void setToConstant(float k)
   {
-    /*
-     int c = mSize >> kFloatsPerSIMDVectorBits;
-     const __m128 vk = _mm_set1_ps(k);
-     float* py1 = mDataAligned;
-
-     for (int n = 0; n < c; ++n)
-     {
-            _mm_store_ps(py1, vk);
-            py1 += kFloatsPerSIMDVector;
-     }*/
-
-    // TEMP
     int frames = getSize();
     for (int n = 0; n < frames; ++n)
     {

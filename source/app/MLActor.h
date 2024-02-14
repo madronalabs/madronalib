@@ -49,9 +49,6 @@ class Actor
   // handle all the messages in the queue immediately.
   void handleMessagesInQueue()
   {
-    // TEMP this was called by tick, and then (this) was null!
-    // trying to call PluginController::onMessage
-
     while (Message m = _messageQueue.pop())
     {
       onMessage(m);

@@ -12,7 +12,7 @@ SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int maxVoices, 
   : _channels(channels), maxFrames_(maxFrames), octavesDown_(octavesDown)
 {
   voiceRotateBuffer.resize(maxFrames * channels);
-  _buffer.resize(maxFrames * channels * maxVoices); // TEMP slop
+  _buffer.resize(maxFrames * channels * maxVoices);
 }
 
 size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesRequested)

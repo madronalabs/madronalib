@@ -5,7 +5,7 @@
 #pragma once
 
 #include <deque>
-#include <iostream> // TEMP
+#include <iostream>
 
 #include "madronalib.h"
 #include "mldsp.h"
