@@ -203,8 +203,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // Example using Tree with unique_ptr< int >.
     //
     Tree< std::unique_ptr< int > > intPtrTree;
-    intPtrTree["harry"] = ml::make_unique< int >(3);
-    intPtrTree["mark"] = ml::make_unique< int >(0);
+    intPtrTree["harry"] = std::make_unique< int >(3);
+    intPtrTree["mark"] = std::make_unique< int >(0);
 
     REQUIRE(intPtrTree["mark"]);
     REQUIRE(*intPtrTree["mark"] == 0);
@@ -218,14 +218,11 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // Tree example using unique_ptr to manage heavyweight objects.
   {
-    // note that we want to stay compatible with C++11, which lacks
-    // make_unique(), so our own ml::make_unique() is defined in MLValue.h
-
     Tree<std::unique_ptr<TestResource> > heavies;
 
     // an existing unique_ptr cannot be assigned because its copy assignment
     // operator is implicitly deleted
-    const auto r = make_unique<TestResource>(2);
+    const auto r = std::make_unique<TestResource>(2);
     // *** heavies["x"] = r;
     // *** heavies.add("nodes/in/path",  r);
 
@@ -233,8 +230,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(!treeNodeExists(heavies, "x"));
 
     // either add() or operator[] can be used to assign a new unique_ptr
-    heavies.add("x", make_unique<TestResource>(8));
-    heavies["x"] = make_unique<TestResource>(10);
+    heavies.add("x", std::make_unique<TestResource>(8));
+    heavies["x"] = std::make_unique<TestResource>(10);
     REQUIRE(treeNodeExists(heavies, "x"));
 
     // shorthand courtesy of unique_ptr operator bool
@@ -245,8 +242,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(!heavies["y"]);
  
     // when overwriting nodes, unique_ptr handles deletion
-    heavies.add("duplicate/nodes/in/path", make_unique<TestResource>(4));
-    heavies.add("duplicate/nodes/in/path", make_unique<TestResource>(6));
+    heavies.add("duplicate/nodes/in/path", std::make_unique<TestResource>(4));
+    heavies.add("duplicate/nodes/in/path", std::make_unique<TestResource>(6));
 
     // note, this intentionally generates a compile-time error when using
     // unique_ptrs

@@ -222,7 +222,7 @@ class SignalProcessor
 
   inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
-    _publishedSignals[signalName] = ml::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
+    _publishedSignals[signalName] = std::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
   }
 
   // store a DSPVectorArray to the named signal buffer.

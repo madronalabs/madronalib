@@ -90,7 +90,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       ageInSamples = 0;
       ageStep = 1;
       size_t destTime = e.time;
-      destTime = clamp(destTime, 0UL, (size_t)kFloatsPerDSPVector);
+      destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
       
       // write current pitch and velocity up to note start
       for(size_t t = nextFrameToProcess; t < destTime; ++t)
@@ -113,7 +113,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       state = kOn;
       creatorID = e.creatorID;
       size_t destTime = e.time;
-      destTime = clamp(destTime, 0UL, (size_t)kFloatsPerDSPVector);
+      destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
       
       // if the retrigger falls on frame 0, make room for retrigger
       if(destTime == 0)
@@ -153,7 +153,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       creatorID = 0;
       
       size_t destTime = e.time;
-      destTime = clamp(destTime, 0UL, (size_t)kFloatsPerDSPVector);
+      destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
       
       // write current values up to change TODO DRY
       for(size_t t = nextFrameToProcess; t < destTime; ++t)

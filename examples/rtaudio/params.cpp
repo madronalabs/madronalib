@@ -17,21 +17,21 @@ constexpr float kFreqLo = 40, kFreqHi = 4000;
 inline void readParameterDescriptions(ParameterDescriptionList& params)
 {
   // Processor parameters
-  params.push_back( ml::make_unique< ParameterDescription >(WithValues{
+  params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "freq1" },
     { "range", { kFreqLo, kFreqHi } },
     { "log", true },
     { "units", "Hz" }
   } ) );
   
-  params.push_back( ml::make_unique< ParameterDescription >(WithValues{
+  params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "freq2" },
     { "range", { kFreqLo, kFreqHi } },
     { "log", true },
     { "units", "Hz" }
   } ) );
   
-  params.push_back( ml::make_unique< ParameterDescription >(WithValues{
+  params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "gain" },
     { "range", {0, kOutputGain} }
   } ) );

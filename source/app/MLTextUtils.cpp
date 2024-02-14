@@ -5,6 +5,7 @@
 #include "MLTextUtils.h"
 
 #include <cstring>
+#include <cmath>
 
 #include "MLDSPScalarMath.h"
 #include "MLMemoryUtils.h"
@@ -194,7 +195,7 @@ TextFragment floatNumberToText(float f, int precision)
   float value = f;
   const int digitsAfterDecimal{std::min(precision, kMaxPrecision)};
 
-  if (isnan(f))
+  if (std::isnan(f))
   {
     *writePtr++ = 'n';
     *writePtr++ = 'a';

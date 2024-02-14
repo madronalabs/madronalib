@@ -93,7 +93,7 @@ class Collection
   void add_unique(Path p, Targs... Fargs)
   {
     if (!_tree) return;
-    _tree->add(p, std::move(ml::make_unique<TT>(Fargs...)));
+    _tree->add(p, std::move(std::make_unique<TT>(Fargs...)));
   }
 
   // like add_unique but also passes an initial argument of the collection
@@ -105,7 +105,7 @@ class Collection
     if (!_tree) return;
     _tree->add(p, ObjectPointerType());
     auto sc = getSubCollection(p);
-    _tree->operator[](p) = std::move(ml::make_unique<TT>(sc, Fargs...));
+    _tree->operator[](p) = std::move(std::make_unique<TT>(sc, Fargs...));
   }
 
   // return the Collection under the given node. Note that this does not

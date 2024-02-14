@@ -106,7 +106,7 @@ class DSPBuffer
     mReadIndex = mWriteIndex = 0;
 
     size_t sizeBits = ml::bitsToContain(sizeInSamples);
-    mSize = std::max(1UL << sizeBits, kFloatsPerDSPVector);
+    mSize = std::max(size_t(1UL << sizeBits), kFloatsPerDSPVector);
 
     try
     {
