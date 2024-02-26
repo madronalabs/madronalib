@@ -261,7 +261,6 @@ if(WIN32)
     endif()
 endif()
 
-
 install(
     TARGETS ${target}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
@@ -275,16 +274,22 @@ message("madronalib destination: " ${CMAKE_INSTALL_LIBDIR} )
 # install headers
 #--------------------------------------------------------------------
 
+if(APPLE)
+    set(HEADERS_INCLUDE_DIR "include/madronalib")
+elseif(WIN32)
+    set(HEADERS_INCLUDE_DIR "include")
+endif()
 
-install(FILES include/madronalib.h DESTINATION include)
 
-install(FILES include/mldsp.h DESTINATION include)
+install(FILES include/madronalib.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
-install(FILES external/cJSON/cJSON.h DESTINATION include)
+install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
-install(FILES external/sse2neon/sse2neon.h DESTINATION include)
+install(FILES external/cJSON/cJSON.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
-install(FILES external/rtaudio/RtAudio.h DESTINATION include)
+install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
+
+install(FILES external/rtaudio/RtAudio.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
 install(FILES 
     ${APP_HEADERS}     
@@ -294,11 +299,11 @@ install(FILES
     ${OSC_HEADERS}
     DESTINATION 
     # PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
-    include 
+    ${HEADERS_INCLUDE_DIR}
   )
 
 if(APPLE)
-    install(FILES ${NETWORKING_HEADERS} DESTINATION include)
+    install(FILES ${NETWORKING_HEADERS} DESTINATION ${HEADERS_INCLUDE_DIR})
 else()
     #TODO OSC For win / Linux
 endif()
