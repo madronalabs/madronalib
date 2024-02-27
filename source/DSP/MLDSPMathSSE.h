@@ -894,31 +894,31 @@ inline SIMDVectorFloat vecShuffleLeft(SIMDVectorFloat v1, SIMDVectorFloat v2)
 #ifndef ML_SSE_TO_NEON
 #ifdef WIN32
 
-inline SIMDVectorFloat& operator*(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
+inline SIMDVectorFloat operator*(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
 {
   return vecMul(a, b);
 }
 
-inline SIMDVectorFloat& operator+(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
+inline SIMDVectorFloat operator+(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
 {
   return vecAdd(a, b);
 }
 
-inline SIMDVectorFloat& operator-(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
+inline SIMDVectorFloat operator-(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
 {
   return vecSub(a, b);
 }
 
-inline SIMDVectorFloat& operator/(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
+inline SIMDVectorFloat operator/(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
 {
   return vecDiv(a, b);
 }
 
-inline SIMDVectorInt& operator|(const SIMDVectorInt& a, const SIMDVectorInt& b)
+inline SIMDVectorInt operator|(const SIMDVectorInt& a, const SIMDVectorInt& b)
 {
   return _mm_or_si128(a, b);
 }
-inline SIMDVectorInt& operator&(const SIMDVectorInt& a, const SIMDVectorInt& b)
+inline SIMDVectorInt operator&(const SIMDVectorInt& a, const SIMDVectorInt& b)
 {
   return _mm_and_si128(a, b);
 }
