@@ -963,7 +963,7 @@ DSPVectorArray<ROWS> add(DSPVectorArray<ROWS> first, Args... args)
 // ----------------------------------------------------------------
 // single-vector index and sequence generators
 
-constexpr float intToFloatCastFn(int i) { return i; }
+constexpr float intToFloatCastFn(int i) { return (float)i; }
 constexpr int indexFn(int i) { return i; }
 
 inline ConstDSPVector columnIndex() { return (make_array<kFloatsPerDSPVector>(intToFloatCastFn)); }
@@ -1394,8 +1394,6 @@ inline DSPVectorArray<ROWS> columnIndex()
 template <size_t ROWS>
 inline std::ostream& operator<<(std::ostream& out, const DSPVectorArray<ROWS>& vecArray)
 {
-  out << "@" << std::hex << reinterpret_cast<unsigned long>(&vecArray) << std::dec << " ";
-
   //    if(ROWS > 1) out << "[   ";
   for (int v = 0; v < ROWS; ++v)
   {

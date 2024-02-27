@@ -132,13 +132,13 @@ public:
     if(ml::isNaN(note)) return 0.f;
     
     float fn = ml::clamp(note, 0.f, (float)(kMLNumNotes - 1));
-    int i = fn;
-    float intPart = i;
-    float fracPart = fn - intPart;
+    int i = (int)fn;
+    double intPart = (double)i;
+    double fracPart = fn - intPart;
     
-    float m = 1.f;
-    float r0 = mRatios[i];
-    float r1 = mRatios[i + 1];
+    double m = 1.f;
+    double r0 = mRatios[i];
+    double r1 = mRatios[i + 1];
     
     if((r0 > 0.) && (r1 > 0.))
     {
@@ -148,7 +148,7 @@ public:
     {
       m = r0;
     }
-    return log2f(m);
+    return log2f((float)m);
   }
   
   // return log pitch of the note of the current scale just below the input.
@@ -157,7 +157,7 @@ public:
     float r = 0.f;
     for (int i = kMLNumNotes - 1; i > 0; i--)
     {
-      float p = mPitches[i];
+      float p = (float)mPitches[i];
       if(p <= a)
       {
         r = p;
@@ -175,13 +175,13 @@ public:
     int lowerIdx{0};
     for (int i = kMLNumNotes - 1; i > 0; i--)
     {
-      float p = mPitches[i];
+      float p = (float)mPitches[i];
       if(p <= a)
       {
         fLower = p;
         if(i < kMLNumNotes - 1)
         {
-          fHigher = mPitches[i + 1];
+          fHigher = (float)mPitches[i + 1];
         }
         lowerIdx = i;
         break;
@@ -194,7 +194,7 @@ public:
     }
     else if(lowerIdx <= 0)
     {
-      return mPitches[0];
+      return (float)mPitches[0];
     }
     
     float d1 = (a - fLower);

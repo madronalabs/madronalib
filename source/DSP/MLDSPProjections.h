@@ -217,7 +217,7 @@ inline Projection piecewiseLinear(std::initializer_list<float> values)
   {
     return [=](float x)
     {
-      float ni = table.size() - 1;
+      int ni = (int)table.size() - 1;
       float nf = static_cast<float>(ni);
       float xf = nf * clamp(x, 0.f, 1.f);
       int xi = static_cast<int>(xf);
@@ -257,7 +257,7 @@ inline Projection piecewise(std::initializer_list<float> valueList,
   {
     return [=](float x)
     {
-      float ni = table.size() - 1;
+      int ni = (int)table.size() - 1;
       float nf = static_cast<float>(ni);
       float xf = nf * clamp(x, 0.f, 1.f);
       int xi = static_cast<int>(xf);
@@ -292,7 +292,7 @@ inline void printTable(const Projection& p, std::string pName, Interval domain, 
   std::cout << pName << ": \n";
   for (int i = 0; i < points; ++i)
   {
-    float x = pointToX(i);
+    float x = pointToX((float)i);
     float y = p(x);
     std::cout << i << ": (" << x << ", " << y << ")\n";
   }

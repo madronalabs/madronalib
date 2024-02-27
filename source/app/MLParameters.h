@@ -45,7 +45,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     }
     else if (p.hasProperty("num_items"))
     {
-      nItems = p.getFloatProperty("num_items");
+      nItems = (size_t)p.getFloatProperty("num_items");
     }
     
     if (nItems <= 1)
@@ -56,7 +56,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     else
     {
       size_t stepCount = nItems - 1;
-      b.normalizedToReal = [=](float x) { return (floorf(fmin(stepCount, x * nItems))); };
+      b.normalizedToReal = [=](float x) { return (floorf(fmin((float)stepCount, (float)(x * nItems)))); };
       b.realToNormalized = [=](float x) { return (x / stepCount); };
     }
   }
@@ -104,12 +104,12 @@ public:
     if(useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
-      size_t itemIndex = projections[pname].normalizedToReal(newNormValue);
-      newRealValue = textUtils::textToNaturalNumber(listItems[itemIndex]);
+      int itemIndex = (int)(projections[pname].normalizedToReal(newNormValue));
+      newRealValue = (float)textUtils::textToNaturalNumber(listItems[itemIndex]);
     }
     else
     {
-      newRealValue = projections[pname].normalizedToReal(newNormValue);
+      newRealValue = (float)projections[pname].normalizedToReal(newNormValue);
     }
     return newRealValue;
   }
@@ -132,7 +132,7 @@ public:
         int intItem = textUtils::textToNaturalNumber(listItems[i]);
         if(newRealValue == intItem)
         {
-          newNormValue = projections[pname].realToNormalized(i);
+          newNormValue = projections[pname].realToNormalized((float)i);
           break;
         }
       }

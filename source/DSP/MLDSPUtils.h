@@ -15,7 +15,7 @@ inline void mapIndices(float* pDest, size_t size, Projection p)
 {
   for (int i = 0; i < size; ++i)
   {
-    pDest[i] = p(i);
+    pDest[i] = p((float)i);
   }
 }
 
@@ -36,11 +36,11 @@ const Projection blackman(
 const Projection flatTop(
     [](float x)
     {
-      const float a0 = 0.21557895;
-      const float a1 = 0.41663158;
-      const float a2 = 0.277263158;
-      const float a3 = 0.083578947;
-      const float a4 = 0.006947368;
+      const float a0 = 0.21557895f;
+      const float a1 = 0.41663158f;
+      const float a2 = 0.277263158f;
+      const float a3 = 0.083578947f;
+      const float a4 = 0.006947368f;
       return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) -
              a3 * cosf(3.f * kTwoPi * x) + a4 * cosf(4.f * kTwoPi * x);
     });
@@ -69,13 +69,13 @@ class VectorProcessBuffer
     _inputBuffers.resize(inputs);
     for (int i = 0; i < inputs; ++i)
     {
-      _inputBuffers[i].resize(_maxFrames);
+      _inputBuffers[i].resize((int)_maxFrames);
     }
 
     _outputBuffers.resize(outputs);
     for (int i = 0; i < outputs; ++i)
     {
-      _outputBuffers[i].resize(_maxFrames);
+      _outputBuffers[i].resize((int)_maxFrames);
     }
   }
 
@@ -87,7 +87,7 @@ class VectorProcessBuffer
     size_t nInputs = _inputVectors.size();
     size_t nOutputs = _outputVectors.size();
     if (nOutputs < 1) return;
-    if (nFrames > _maxFrames) return;
+    if (nFrames > (int)_maxFrames) return;
 
     // write vectors from inputs (if any) to inputBuffers
     for (int c = 0; c < nInputs; c++)

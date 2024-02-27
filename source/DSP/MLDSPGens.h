@@ -206,7 +206,7 @@ public:
   {
     // calculate int steps per sample
     float stepsPerSample = cyclesPerSample * stepsPerCycle;
-    uint32_t intStepsPerSample = roundf(stepsPerSample);
+    uint32_t intStepsPerSample = (uint32_t)roundf(stepsPerSample);
     
     // accumulate 32-bit phase with wrap
     mOmega32 += intStepsPerSample;
@@ -258,7 +258,7 @@ public:
   {
     // calculate int steps per sample
     float stepsPerSample = cyclesPerSample * stepsPerCycle;
-    uint32_t intStepsPerSample = roundf(stepsPerSample);
+    uint32_t intStepsPerSample = (uint32_t)roundf(stepsPerSample);
     
     // accumulate 32-bit phase with wrap
     // we test for wrap at every sample to get a clean ending

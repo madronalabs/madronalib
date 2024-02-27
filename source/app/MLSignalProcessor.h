@@ -35,9 +35,9 @@ class SignalProcessor
     PublishedSignal(int frames, int maxVoices, int channels, int octavesDown);
     ~PublishedSignal() = default;
 
-    inline size_t getNumChannels() const { return _channels; }
-    inline int getAvailableFrames() const { return _buffer.getReadAvailable() / _channels; }
-    inline int getReadAvailable() const { return _buffer.getReadAvailable(); }
+    inline size_t getNumChannels() const { return (size_t)_channels; }
+    inline int getAvailableFrames() const { return (int)(_channels ? (_buffer.getReadAvailable() / _channels) : 0); }
+    inline int getReadAvailable() const { return (int)_buffer.getReadAvailable(); }
 
     
     // write frames from a DSPVectorArray< CHANNELS > of data into a published signal.
@@ -130,7 +130,7 @@ class SignalProcessor
     DSPVector _secondsPhase;
 
    private:
-    float _omega{0};
+    double _omega{0};
     bool _playing1{false};
     bool _active1{false};
     double _dpdt{0};

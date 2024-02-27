@@ -496,7 +496,7 @@ class DCBlocker
   float y1{0};
 
  public:
-  _coeffs mCoeffs{0.045};
+  _coeffs mCoeffs{0.045f};
 
   static _coeffs coeffs(float omega) { return cosf(omega); }
 

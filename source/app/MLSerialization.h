@@ -143,7 +143,7 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
     }
     case Value::kUnsignedLongValue:
     {
-      float f = v.getUnsignedLongValue();
+      auto f = v.getUnsignedLongValue();
       unsigned dataSize = sizeof(uint32_t);
       outputVector.resize(headerSize + dataSize);
       BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
@@ -155,7 +155,7 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
     case Value::kBlobValue:
     {
       char* blobData = static_cast<char*>(v.getBlobValue());
-      unsigned blobSize = v.getBlobSize();
+      unsigned int blobSize = (unsigned int)v.getBlobSize();
       outputVector.resize(headerSize + blobSize);
       BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
       *header = BinaryChunkHeader{'B', blobSize};
@@ -232,7 +232,7 @@ inline std::unique_ptr< std::vector<uint8_t> > floatVectorToBinary(const std::ve
   auto headerSize = sizeof(BinaryChunkHeader);
   auto matrixHeaderSize = sizeof(BinaryMatrixHeader);
   
-  unsigned arrayDataSize = inputVector.size()*sizeof(float);
+  unsigned arrayDataSize = (unsigned)inputVector.size()*sizeof(float);
   outputVector.resize(headerSize + arrayDataSize);
   BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
   *header = BinaryChunkHeader{'V', arrayDataSize};
@@ -500,7 +500,7 @@ inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
 inline Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentPath, int depth,
                                        bool isArray)
 {
-  size_t objIndex{0};
+  int objIndex{0};
   while (obj)
   {
     Path newObjectPath;

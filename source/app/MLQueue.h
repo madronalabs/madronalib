@@ -38,7 +38,7 @@ class Queue final
     // a queue of size 1 can't store any elements: we have to add
     // 1 to the requested capacity. Then, find the power of two size that
     // will contain that many elements.
-    size_t powerOfTwoSize = 1 << bitsToContain(capacity + 1);
+    size_t powerOfTwoSize = 1ULL << bitsToContain((int)capacity + 1);
 
     _data.resize(powerOfTwoSize);
     _sizeMask = powerOfTwoSize - 1;

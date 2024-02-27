@@ -337,3 +337,10 @@ TEST_CASE("madronalib/core/projections", "[projections]")
   }
 }
 
+TEST_CASE("madronalib/core/sse-ops", "[sse-ops]") { 
+  SIMDVectorFloat f1 = vecSet1(2.0f);
+  SIMDVectorFloat f2 = vecSet1(3.0f);
+
+  auto v3 = (f1 * f2);
+  std::cout << v3 << std::endl;
+}

@@ -110,6 +110,9 @@ Value::Value(bool v) : mType(kFloatValue) { mFloatVal = v; }
 
 Value::Value(unsigned long v) : mType(kUnsignedLongValue) { mUnsignedLongVal = v; }
 
+// truncate to unsigned long for now. 
+Value::Value(size_t v) : mType(kUnsignedLongValue) { mUnsignedLongVal = static_cast<unsigned long>(v); }
+
 Value::Value(uint32_t v) : mType(kUnsignedLongValue) { mUnsignedLongVal = v; }
 
 Value::Value(long v) : mType(kFloatValue) { mFloatVal = v; }

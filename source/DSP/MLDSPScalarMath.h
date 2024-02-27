@@ -322,7 +322,7 @@ constexpr double exp_helper(const double r)
 
 // exp(x) = e^n . e^r (where n is an integer, and -0.5 > r < 0.5
 // exp(r) = e^r = 1 + r + r^2/2 + r^3/6 + r^4/24 + r^5/120
-constexpr double exp(const double x) { return pow(kE, nearest(x)) * exp_helper(fraction(x)); }
+constexpr double exp(const double x) { return pow(kE, (int)nearest(x)) * exp_helper(fraction(x)); }
 
 constexpr double mantissa(const double x)
 {

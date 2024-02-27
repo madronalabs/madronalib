@@ -16,7 +16,7 @@
 
 // Value: a small unit of typed data designed for being constructed on the stack and
 // transferred in messages. Values have the following types: undefined, float,
-// text, blob, untisnged longm, and matrix. (Matrix soon to be deprecated)
+// text, blob, unsigned long, and matrix. (Matrix soon to be deprecated)
 
 // TODO: instead of using Matrix directly here as a type, make a blob type
 // and utilities (in Matrix) for conversion.
@@ -51,6 +51,7 @@ class Value
   Value(bool v);
   Value(long v);
   Value(unsigned long v);
+  Value(size_t v);
   Value(uint32_t v);
   Value(double v);
   Value(const ml::Text& t);
@@ -96,7 +97,7 @@ class Value
     return (mType == kFloatValue) ? static_cast<bool>(mFloatVal) : b;
   }
 
-  inline const float getIntValue() const { return static_cast<int>(mFloatVal); }
+  inline const int getIntValue() const { return static_cast<int>(mFloatVal); }
 
   inline const int getIntValueWithDefault(int d) const
   {

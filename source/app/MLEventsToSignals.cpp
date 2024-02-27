@@ -56,14 +56,14 @@ void EventsToSignals::Voice::beginProcess(float sr)
   nextFrameToProcess = 0;
   driftCounter += kFloatsPerDSPVector;
   
-  int driftIntervalSamples = sr*kDriftTimeSeconds;
+  int driftIntervalSamples = (int)(sr*kDriftTimeSeconds);
   if(driftCounter >= nextDriftTimeInSamples)
   {
     float d = driftSource.getFloat();
     float nextTimeMul = 1.0f + fabs(driftSource.getFloat());
     currentDriftValue = d;
     driftCounter = 0;
-    nextDriftTimeInSamples = sr*nextTimeMul*kDriftTimeSeconds;
+    nextDriftTimeInSamples = (int)(sr * nextTimeMul * kDriftTimeSeconds);
   }
 }
 
@@ -72,8 +72,7 @@ float getAgeInSeconds(uint32_t age, float sr)
   double dAge(age);
   double dSr(sr);
   double dSeconds = dAge / dSr;
-  float fSeconds(dSeconds);
-  return fSeconds;
+  return (float)dSeconds;
 }
 
 void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, float sampleRate)
@@ -89,11 +88,11 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       creatorID = e.creatorID;
       ageInSamples = 0;
       ageStep = 1;
-      size_t destTime = e.time;
-      destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
+      int destTime = e.time;
+      destTime = clamp(destTime, (0), (int)kFloatsPerDSPVector);
       
       // write current pitch and velocity up to note start
-      for(size_t t = nextFrameToProcess; t < destTime; ++t)
+      for(int t = (int)nextFrameToProcess; t < destTime; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
         outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
@@ -112,8 +111,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
     {
       state = kOn;
       creatorID = e.creatorID;
-      size_t destTime = e.time;
-      destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
+      int destTime = e.time;
+      destTime = clamp(destTime, (0), (int)kFloatsPerDSPVector);
       
       // if the retrigger falls on frame 0, make room for retrigger
       if(destTime == 0)
@@ -122,7 +121,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       }
       
       // write current pitch and velocity up to retrigger
-      for(size_t t = nextFrameToProcess; t < destTime - 1; ++t)
+      for(int t = (int)nextFrameToProcess; t < destTime - 1; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
         outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
@@ -156,7 +155,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
       
       // write current values up to change TODO DRY
-      for(size_t t = nextFrameToProcess; t < destTime; ++t)
+      for(int t = (int)nextFrameToProcess; t < destTime; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
         outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
@@ -177,7 +176,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
 
 void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
 {
-  for(size_t t = nextFrameToProcess; t < kFloatsPerDSPVector; ++t)
+  for(int t = (int)nextFrameToProcess; t < kFloatsPerDSPVector; ++t)
   {
     // write velocity to end of buffer.
     outputs.row(kGate)[t] = currentVelocity;
@@ -212,15 +211,15 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
 
 EventsToSignals::EventsToSignals(int sr) : _eventQueue(kMaxEventsPerVector)
 {
-  _sampleRate = sr;
+  _sampleRate = (float)sr;
   
   voices.resize(kMaxVoices);
   
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, sr);
+    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, (float)sr);
     voices[i].reset(i);
-    voices[i].outputs.row(kVoice) = DSPVector(i);
+    voices[i].outputs.row(kVoice) = DSPVector((float)i);
   }
 }
 
@@ -364,7 +363,7 @@ void EventsToSignals::processPitchWheelEvent(const Event& event)
 void EventsToSignals::processControllerEvent(const Event& event)
 {
   float val = event.value1;
-  int ctrl = event.value2;
+  int ctrl = (int)event.value2;
   
   if(ctrl == 120)
   {
@@ -461,7 +460,7 @@ void EventsToSignals::setDriftAmount(float f)
 //
 int EventsToSignals::findFreeVoice()
 {
-  uint32_t len = _polyphony;
+  int len = _polyphony;
   int r = -1;
   int t = _lastFreeVoiceFound;
   for (int i = 0; i < len; ++i)

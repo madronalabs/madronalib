@@ -95,7 +95,7 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
   }
   else
   {
-    _omega = -1.f;
+    _omega = -1.;
     _dpdt = 0.;
     _secondsCounter = -1.;
     _dsdt = 0.;
@@ -120,20 +120,21 @@ void SignalProcessor::ProcessTime::clear(void)
 // generate phasors from the input parameters
 void SignalProcessor::ProcessTime::process()
 {
+  auto _fomega = (double)_omega;
   for (int n = 0; n < kFloatsPerDSPVector; ++n)
   {
-    _quarterNotesPhase[n] = _omega;
-    _omega += _dpdt;
-    if (_omega > 1.f)
+    _quarterNotesPhase[n] = (float)_fomega;
+    _fomega += _dpdt;
+    if (_fomega > 1.f)
     {
-      _omega -= 1.f;
+      _fomega -= 1.f;
     }
   }
   for (int n = 0; n < kFloatsPerDSPVector; ++n)
   {
-    _seconds[n] = _secondsCounter;
+    _seconds[n] = (float)_secondsCounter;
     _secondsCounter += _dsdt;
-    _secondsPhase[n] = _secondsPhaseCounter;
+    _secondsPhase[n] = (float)_secondsPhaseCounter;
     _secondsPhaseCounter += _dsdt;
   }
   _samplesSincePreviousTime += kFloatsPerDSPVector;

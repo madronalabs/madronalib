@@ -81,7 +81,7 @@ class DSPBuffer
     {
       mData = b.mData;
     }
-    catch (const std::bad_alloc &e)
+    catch (const std::bad_alloc &)
     {
       mSize = mDataMask = mDistanceMask = 0;
       return;
@@ -105,14 +105,14 @@ class DSPBuffer
   {
     mReadIndex = mWriteIndex = 0;
 
-    size_t sizeBits = ml::bitsToContain(sizeInSamples);
-    mSize = std::max(size_t(1UL << sizeBits), kFloatsPerDSPVector);
+    int sizeBits = (int)ml::bitsToContain(sizeInSamples);
+    mSize = std::max((1ULL << sizeBits), kFloatsPerDSPVector);
 
     try
     {
       mData.resize(mSize);
     }
-    catch (const std::bad_alloc &e)
+    catch (const std::bad_alloc &)
     {
       mSize = mDataMask = mDistanceMask = 0;
       return 0;
@@ -199,7 +199,7 @@ class DSPBuffer
     {
       // oldest data was clobbered by write. set read index to indicate we
       // are full
-      mReadIndex.store(advanceDistanceIndex(mWriteIndex, -mSize), std::memory_order_release);
+      mReadIndex.store(rewindDistanceIndex(mWriteIndex, mSize), std::memory_order_release);
     }
   }
 
@@ -315,7 +315,7 @@ class DSPBuffer
       std::fill(dr.p2, dr.p2 + dr.size2, 0.f);
     }
 
-    currentWriteIndex = advanceDistanceIndex(currentWriteIndex, -overlap);
+    currentWriteIndex = rewindDistanceIndex(currentWriteIndex, overlap);
 
     mWriteIndex.store(currentWriteIndex, std::memory_order_release);
   }

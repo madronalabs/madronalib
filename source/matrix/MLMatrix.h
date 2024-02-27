@@ -622,21 +622,6 @@ class Matrix final
 
 float rmsDifference2D(const Matrix& a, const Matrix& b);
 
-#pragma mark new business
-
-inline Matrix add(const Matrix& a, const Matrix& b)
-{
-  Matrix r(a);
-  r.add(b);
-  return r;
-}
-
-inline Matrix clampSignal(const Matrix& x, float a, float b)
-{
-  Matrix r(a);
-  r.sigClamp(a, b);
-  return r;
-}
 
 // return the matrix transpose of a 1D or 2D signal.
 inline Matrix transpose(const Matrix& x)
