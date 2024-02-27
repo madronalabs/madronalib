@@ -51,7 +51,7 @@ class Value
   Value(bool v);
   Value(long v);
   Value(unsigned long v);
-  Value(size_t v);
+  Value(unsigned long long v);
   Value(uint32_t v);
   Value(double v);
   Value(const ml::Text& t);
