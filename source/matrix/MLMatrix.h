@@ -631,12 +631,6 @@ inline Matrix add(const Matrix& a, const Matrix& b)
   return r;
 }
 
-inline Matrix clampSignal(const Matrix& x, float a, float b)
-{
-  Matrix r(a);
-  r.sigClamp(a, b);
-  return r;
-}
 
 // return the matrix transpose of a 1D or 2D signal.
 inline Matrix transpose(const Matrix& x)
