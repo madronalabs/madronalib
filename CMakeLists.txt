@@ -52,6 +52,8 @@ endif()
 
  set(CMAKE_CXX_STANDARD 17)
  set(CMAKE_CXX_STANDARD_REQUIRED True)
+ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+ set(CMAKE_VISIBILITY_INLINES_HIDDEN OFF)
  
  if(APPLE)
    # For now, explicitly disable C++17 alignment feature
