@@ -892,7 +892,7 @@ inline SIMDVectorFloat vecShuffleLeft(SIMDVectorFloat v1, SIMDVectorFloat v2)
 
 // define infix operators for native SSE / MSVC.
 #ifndef ML_SSE_TO_NEON
-#ifdef WIN_32
+#ifdef WIN32
 
 inline SIMDVectorFloat& operator*(const SIMDVectorFloat& a, const SIMDVectorFloat& b)
 {
