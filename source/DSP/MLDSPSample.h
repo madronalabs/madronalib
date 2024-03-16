@@ -36,6 +36,7 @@ inline size_t getSize(const Sample& s)
 
 inline size_t getFrames(const Sample& s)
 {
+  if (s.channels == 0) return 0;
   return s.sampleData.size() / s.channels;
 }
 
@@ -56,6 +57,7 @@ inline float getRate(const Sample& s)
 
 inline float getDuration(const Sample& s)
 {
+  if (s.sampleRate == 0) return 0.f;
   return getFrames(s) / (float)(s.sampleRate);
 }
 
@@ -87,6 +89,7 @@ inline float findMaximumValue(const Sample& x)
 
 inline void normalize(Sample& x)
 {
+  if (x.sampleData.size() == 0) return;
   float ratio = 1.0f / findMaximumValue(x);
   for (int i = 0; i < x.sampleData.size(); ++i)
   {

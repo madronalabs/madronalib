@@ -335,6 +335,11 @@ TEST_CASE("madronalib/core/projections", "[projections]")
       REQUIRE(nearlyEqual(p0(p1(x)), x));
     }
   }
+
+  // print interval
+  Interval v1{0.123, 5.567};
+
+  std::cout << "interval: " << v1 << "\n";
 }
 
 TEST_CASE("madronalib/core/sse-ops", "[sse-ops]") { 

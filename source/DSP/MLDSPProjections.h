@@ -302,7 +302,7 @@ inline void printTable(const Projection& p, std::string pName, Interval domain, 
 
 inline std::ostream& operator<<(std::ostream& out, const ml::Interval& m)
 {
-  std::cout << "[" << m.mX1 << "–" << m.mX2 << "]";
+  std::cout << "[" << m.mX1 << " - " << m.mX2 << "]";
   return out;
 }
 

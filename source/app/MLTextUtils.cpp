@@ -545,7 +545,7 @@ TextFragment getExtension(const TextFragment& frag)
     size_t len = frag.lengthInCodePoints();
     return subText(frag, dotLoc + 1, len);
   }
-  return frag;
+  return TextFragment();
 }
 
 
@@ -566,7 +566,7 @@ TextFragment getPath(const TextFragment& frag)
   {
     return subText(frag, 0, slashLoc);
   }
-  return frag;
+  return TextFragment();
 }
 
 // TODO extend to recognize Cyrillic and other scripts
