@@ -68,6 +68,8 @@ inline TextFragment valueToText(const Value v)
     case Value::kUnsignedLongValue:
       return TextFragment{"L", textUtils::naturalNumberToText(v.getUnsignedLongValue())};
       break;
+
+    // TODO blob!
   }
   return t;
 }
@@ -445,6 +447,8 @@ public:
 // return a JSON object representing the value tree. The caller is responsible
 // for freeing the object.
 //
+// NOTE: this does not make the JSON tree, rather a flat structure with the
+// path name for each object name! TODO fix
 inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
 {
   JSONHolder root;
@@ -510,14 +514,7 @@ inline Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentP
     }
     else
     {
-      // it's not clear what to do about arrays. Right now we add a path for each array item to
-      // mirror the JSON. this has issues:
-      // - it creates a bunch of symbols for natural numbers (which may not sort as expected!)
-      // - should numerical symbols even be possible? (no)
-      // - what we really want from an array, usually, is a blob of float data
-      // - but we have to inspect all the array elements to know if that is a possible
-      // representation for the JSON
-      
+      // TODO add array node markers so we can get back to the JSON original
       newObjectPath = Path(currentPath, Path(textUtils::naturalNumberToText(objIndex)));
     }
     

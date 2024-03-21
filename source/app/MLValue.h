@@ -232,8 +232,7 @@ struct NamedValue
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list<NamedValue>;
 
-
-
-std::ostream& operator<<(std::ostream& out, const ml::Value& r);
+    std::string getTypeDebugStr(const ml::Value& r);
+  std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
 }  // namespace ml

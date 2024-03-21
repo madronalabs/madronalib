@@ -346,6 +346,14 @@ class Tree
     }
   }
 
+  inline void dumpWithTypes() const
+  {
+    for (auto it = begin(); it != end(); ++it)
+    {
+      std::cout << it.getCurrentNodePath() << getTypeDebugStr(*it) << " [" << *it << "] \n";
+    }
+  }
+
   inline size_t size() const
   {
     size_t sum{hasValue()};  // me

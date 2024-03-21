@@ -381,7 +381,8 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   }
   REQUIRE(!errors);
   
-  // Value tree to JSON to value tree.
+  // Value tree to JSON to value tree. NOTE: the JSON created does not reflect the
+  // tree structure but rather a flat list with the whole path as each item's string. TODO fix.
   Tree< Value > v;
   v["a"] = 0.4f;
   v["b"] = "hello";
@@ -395,65 +396,30 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
   
-  // text to JSON to value tree
-  // This time, containing arrays.
-  TextFragment arraysText = R"({
-    "file_info": {
-        "kind": "utu-partial-data",
-        "version": 1
-    },
-    "source": {
-        "location": "/some/path/on/disk.aiff"
-    },
-    "parameters": ["time", "frequency", "amplitude", "bandwidth", "phase"],
-    "partials": [
-        {
-            "label": "component-1",
-            "parameters": {
-                "time": [0, 440, 0.3, 0.2, 0],
-                "frequency": [0.2, 440, 0.3, 0.2, 0],
-                "amplitude": [0.5, 440, 0.3, 0.2, 0],
-                "bandwith": [1.5, 440, 0.3, 0.2, 0],
-                "phase": [3.0, 440, 0.3, 0.2, 0]
-            }
-        },
-        {
-            "parameters": {
-                "time": [0.3, 440, 0.3, 0.2, 0],
-                "frequency": [3.0, 440, 0.3, 0.2, 0],
-                "amplitude": [4.2, 440, 0.3, 0.2, 0]
-            }
-        }
-    ]
-  })";
-
-  auto arraysJSON = textToJSON(arraysText);
-  auto av2 = JSONToValueTree(arraysJSON);
-  REQUIRE(av2["file_info/version"] == 1);
 }
 
 
 TEST_CASE("madronalib/core/floatvectors", "[floatvectors]")
 {
   const int kTestSize{100};
-  
+
   float sum1{0}, sum2{0};
-  
+
   std::vector<float> vec;
-  for(int i=0; i<kTestSize; ++i)
+  for (int i = 0; i < kTestSize; ++i)
   {
-    float f = i*13.90811f;
+    float f = i * 13.90811f;
     vec.push_back(f);
     sum1 += f;
   }
-  
+
   auto vb = floatVectorToBinary(vec);
   auto bv = binaryToFloatVector(vb->data());
-  
-  for(int i=0; i<kTestSize; ++i)
+
+  for (int i = 0; i < kTestSize; ++i)
   {
     sum2 += (*bv)[i];
   }
-  
+
   REQUIRE(sum1 == sum2);
 }

@@ -566,7 +566,7 @@ TextFragment getPath(const TextFragment& frag)
   {
     return subText(frag, 0, slashLoc);
   }
-  return TextFragment();
+  return frag;
 }
 
 // TODO extend to recognize Cyrillic and other scripts

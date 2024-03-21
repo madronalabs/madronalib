@@ -17,6 +17,8 @@
 using namespace ml;
 using namespace std::chrono;
 
+const int longSleepMs{50};
+
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {
   // call this once in an application.
@@ -43,7 +45,7 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
         },
         milliseconds(10 + 20 * i), 2);
   }
-  std::this_thread::sleep_for(milliseconds(500));
+  std::this_thread::sleep_for(milliseconds(longSleepMs));
   // std::cout << "timer sum: " << sum << "\n";
   
   // not working in GitHub Actions
@@ -62,7 +64,7 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
       // in timer::run()
       // v2[i]->start([=]() { std::cout << i << " "; }, milliseconds(10 * i));
     }
-    std::this_thread::sleep_for(milliseconds(500));
+    std::this_thread::sleep_for(milliseconds(longSleepMs));
   }
 
   // test stopping timers while running

@@ -35,9 +35,9 @@ set(madronalib_VERSION "${madronalib_VERSION_MAJOR}.${madronalib_VERSION_MINOR}"
 set(madronalib_VERSION_FULL "${madronalib_VERSION}.${madronalib_VERSION_PATCH}${madronalib_VERSION_EXTRA}")
 
 option(BUILD_EXAMPLES "Build the examples" ON)
-option(BUILD_TESTS "Build the ML test programs" ON)
+option(BUILD_TESTS "Build the tests" ON)
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(ML_BUILD_DOCS "Build the ML documentation" OFF)
+option(ML_BUILD_DOCS "Build the documentation" OFF)
 option(ML_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 
 if (ML_BUILD_DOCS)
@@ -402,8 +402,9 @@ endif()
 
 if(BUILD_TESTS)
 
-    # madronalib procs need to be included in projects as source.
+    # NOTE: madronalib procs need to be included in projects as source.
     file(GLOB PROC_SOURCES "source/procs/*.*")
+
     file(GLOB TEST_SOURCES "tests/*.*")
 
     add_executable(tests ${PROC_SOURCES} ${TEST_SOURCES})

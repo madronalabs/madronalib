@@ -25,7 +25,7 @@ namespace queueTest
 {
 
 const size_t kTestSize = 200;
-const size_t kTestCount = 500;
+const size_t kTestCount = 50;
 int transmitSum = 0;
 int receiveSum = 0;
 

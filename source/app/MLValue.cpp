@@ -240,6 +240,36 @@ bool Value::operator!=(const Value& b) const { return !operator==(b); }
 
 #pragma mark Value utilities
 
+std::string getTypeDebugStr(const Value& r) {
+  std::string out;
+  switch (r.getType())
+  {
+    default:
+    case Value::kUndefinedValue:
+      out = "(?)";
+      break;
+    case Value::kFloatValue:
+      out = "(F)";
+      break;
+    case Value::kTextValue:
+      out = "(T)";
+      break;
+    case Value::kMatrixValue:
+      out = "(M)";
+      break;
+    case Value::kUnsignedLongValue:
+      out = "(UL)";
+      break;
+    case Value::kBlobValue:
+      out = "(B)";
+      break;
+    case Value::kIntervalValue:
+      out = "(INT)";
+      break;
+  }
+  return out;
+}
+
 std::ostream& operator<<(std::ostream& out, const Value& r)
 {
   switch (r.getType())
