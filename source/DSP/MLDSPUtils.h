@@ -84,15 +84,14 @@ class VectorProcessBuffer
   void process(const float** inputs, float** outputs, int nFrames, ProcessVectorFn processFn,
                void* stateData = nullptr)
   {
-    if(!inputs) return;
-    if(!outputs) return;
     size_t nInputs = _inputVectors.size();
     size_t nOutputs = _outputVectors.size();
     if (nOutputs < 1) return;
+    if(!outputs) return;
     if (nFrames > (int)_maxFrames) return;
 
     // write vectors from inputs (if any) to inputBuffers
-    for (int c = 0; c < nInputs; c++)
+    for(int c = 0; c < nInputs; c++)
     {
       if(inputs[c])
       {
