@@ -84,6 +84,8 @@ class VectorProcessBuffer
   void process(const float** inputs, float** outputs, int nFrames, ProcessVectorFn processFn,
                void* stateData = nullptr)
   {
+    if(!inputs) return;
+    if(!outputs) return;
     size_t nInputs = _inputVectors.size();
     size_t nOutputs = _outputVectors.size();
     if (nOutputs < 1) return;
@@ -92,32 +94,32 @@ class VectorProcessBuffer
     // write vectors from inputs (if any) to inputBuffers
     for (int c = 0; c < nInputs; c++)
     {
-      if (inputs[c])
+      if(inputs[c])
       {
         _inputBuffers[c].write(inputs[c], nFrames);
       }
     }
 
     // process until we have nFrames of output
-    while (_outputBuffers[0].getReadAvailable() < nFrames)
+    while(_outputBuffers[0].getReadAvailable() < nFrames)
     {
-      for (int c = 0; c < nInputs; c++)
+      for(int c = 0; c < nInputs; c++)
       {
         _inputVectors[c] = _inputBuffers[c].read();
       }
 
       processFn(_inputVectors, _outputVectors, stateData);
 
-      for (int c = 0; c < nOutputs; c++)
+      for(int c = 0; c < nOutputs; c++)
       {
         _outputBuffers[c].write(_outputVectors[c]);
       }
     }
 
     // read from outputBuffers to outputs
-    for (int c = 0; c < nOutputs; c++)
+    for(int c = 0; c < nOutputs; c++)
     {
-      if (outputs[c])
+      if(outputs[c])
       {
         _outputBuffers[c].read(outputs[c], nFrames);
       }
