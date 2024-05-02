@@ -96,9 +96,8 @@ class Collection
     _tree->add(p, std::move(std::make_unique<TT>(Fargs...)));
   }
 
-  // like add_unique but also passes an initial argument of the collection
-  // at its own new location. This lets objects add to existing collections
-  // in their constructors.
+  // like add_unique but also passes the new object an initial argument: the Collection
+  // at its own new location. For constructing objects that refer to groups of other objects.
   template <typename TT, typename... Targs>
   void add_unique_with_collection(Path p, Targs... Fargs)
   {

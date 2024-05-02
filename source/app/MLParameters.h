@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "madronalib.h"
-#include "mldsp.h"
+#include "MLPropertyTree.h"
+//#include "madronalib.h"
+//#include "mldsp.h"
 
 namespace ml
 {

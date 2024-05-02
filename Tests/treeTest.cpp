@@ -167,6 +167,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     a.add("this/is/a/test/jam", 5);
     a.add("this/was/an/test", 10);
     a.add("this/was/another/test", 10);
+    a.add("this/is/a/super/duper/test", 1);
     a.add("this/is/a/super/duper/cosmic/jam", 5);
 
     // duplicate addresses are overwritten
@@ -179,10 +180,10 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     // looking up a nonexistent node should return a reference to the default value
     REQUIRE(a["you/are/my/sunshine"] == 10);
-    REQUIRE(a["this/path/is/not/in/the/tree"] == 0);
+    REQUIRE(a["this/path/does/not/have/a/value"] == 0);
     
     int leafSum = 0;
-    const int correctLeafSum = 79;
+    const int correctLeafSum = 80;
     
     //std::cout << "nodes: " << a.countNodes() << "\n";
     
@@ -214,6 +215,14 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     
     // copy by value will not compile with unique_ptr values
     // *** auto intPtrTreeB = intPtrTree;
+    
+    
+    // TEMP
+    std::cout << "\n\ntree:\n";
+    a.dump();
+    
+    std::cout << "\n\nall nodes:\n";
+    a.dumpAllNodes();
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.

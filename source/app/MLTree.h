@@ -251,57 +251,65 @@ class Tree
 
     bool atEndOfMap() { return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end()); }
 
-    // advance to the next leaf that has a value
-    const const_iterator& operator++()
+    // advance to the next node. If at end of entire tree, return 0, else return 1.
+    bool nextNode()
     {
-      do
+      auto& currentIterator = mIteratorStack.back();
+      if (!atEndOfMap())
       {
-        auto& currentIterator = mIteratorStack.back();
-        // bool atEndOfMap = (currentIterator ==
-        // (mNodeStack.back())->mChildren.end());
-        if (!atEndOfMap())
+        auto currentChildNodePtr = &((*currentIterator).second);
+        if (!currentChildNodePtr->isLeaf())
         {
-          auto currentChildNodePtr = &((*currentIterator).second);
-          if (!currentChildNodePtr->isLeaf())
-          {
-            // down
-            mNodeStack.push_back(currentChildNodePtr);
-            mIteratorStack.push_back(currentChildNodePtr->mChildren.begin());
-          }
-          else
-          {
-            // across
-            currentIterator++;
-          }
+          // down
+          mNodeStack.push_back(currentChildNodePtr);
+          mIteratorStack.push_back(currentChildNodePtr->mChildren.begin());
         }
         else
         {
-          if (mNodeStack.size() > 1)
-          {
-            // up
-            mNodeStack.pop_back();
-            mIteratorStack.pop_back();
-            mIteratorStack.back()++;
-          }
-          else
-          {
-            break;
-          }
+          // across
+          currentIterator++;
         }
-      } while (!currentNodeHasValue());
+      }
+      else
+      {
+        if (mNodeStack.size() > 1)
+        {
+          // up
+          mNodeStack.pop_back();
+          mIteratorStack.pop_back();
+          mIteratorStack.back()++;
+        }
+        else
+        {
+          // end
+          return 0;
+        }
+      }
 
-      return *this;
+      return 1;
     }
 
     bool currentNodeHasValue() const
     {
       auto parentNode = mNodeStack.back();
       auto& currentIterator = mIteratorStack.back();
-
+      
       // no value (and currentIterator not dereferenceable!) if at end()
       if (currentIterator == parentNode->mChildren.end()) return false;
-
+      
       return (((*currentIterator).second).hasValue());
+    }
+    
+    // advance to the next leaf that has a value
+    const const_iterator& operator++()
+    {
+      while(1)
+      {
+        if(!nextNode()) break;
+        if(currentNodeHasValue()) break;
+      }
+      
+      return *this;
     }
 
     // return the last symbol of the current node path.
@@ -332,12 +340,16 @@ class Tree
     }
     return it;
   }
+  
+  inline const_iterator beginUnchecked() const
+  {
+    auto it = const_iterator(this);
+    return it;
+  }
 
   inline const_iterator end() const { return const_iterator(this, mChildren.end()); }
 
-  // using an iterator, dump only the nodes with values.
-  // to visualize intermediate nodes without values another interface would need
-  // to be added, because the iterator only stops on nodes with values.
+  // visit all nodes and dump only the nodes with values.
   inline void dump() const
   {
     for (auto it = begin(); it != end(); ++it)
@@ -346,6 +358,7 @@ class Tree
     }
   }
 
+  // visit all nodes and dump only the nodes with values, showing types.
   inline void dumpWithTypes() const
   {
     for (auto it = begin(); it != end(); ++it)
@@ -353,6 +366,24 @@ class Tree
       std::cout << it.getCurrentNodePath() << getTypeDebugStr(*it) << " [" << *it << "] \n";
     }
   }
+  
+  // visit and dump each node once, including non-leaf nodes.
+  inline void dumpAllNodes() const
+  {
+    for (auto it = beginUnchecked(); it != end(); it.nextNode())
+    {
+      if(!it.atEndOfMap())
+      {
+        std::cout << it.getCurrentNodePath();
+        if(it.currentNodeHasValue())
+        {
+          std::cout << " [" << *it << "] ";
+        }
+        std::cout << "\n";
+      }
+    }
+  }
+  
 
   inline size_t size() const
   {

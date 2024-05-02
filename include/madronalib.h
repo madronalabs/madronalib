@@ -8,6 +8,7 @@
 #include "MLClock.h"
 #include "MLEventsToSignals.h"
 #include "MLMemoryUtils.h"
+#include "MLParameters.h"
 #include "MLPath.h"
 #include "MLPlatform.h"
 #include "MLPropertyTree.h"
