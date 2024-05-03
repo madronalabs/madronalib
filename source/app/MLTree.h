@@ -43,7 +43,7 @@ class Tree
   {
     for (auto it = b.begin(); it != b.end(); ++it)
     {
-      add(it.getCurrentNodePath(), *it);
+      add(it.getCurrentPath(), *it);
     }
   }
 
@@ -52,8 +52,7 @@ class Tree
   bool isLeaf() const { return mChildren.size() == 0; }
 
   // find a tree node at the specified path.
-  // if successful, return a pointer to the node. If unsuccessful, return
-  // nullptr. const version.
+  // if successful, return a const pointer to the node. If unsuccessful, return nullptr.
   const Tree<V, C>* getConstNode(Path path) const
   {
     auto pNode = this;
@@ -73,8 +72,7 @@ class Tree
   }
 
   // find a tree node at the specified path.
-  // if successful, return a pointer to the node. If unsuccessful, return
-  // nullptr.
+  // if successful, return a pointer to the node. If unsuccessful, return nullptr.
   Tree<V, C>* getNode(Path path) const
   {
     return const_cast<Tree<V, C>*>(const_cast<const Tree<V, C>*>(this)->getConstNode(path));
@@ -85,7 +83,7 @@ class Tree
   V& operator[](Path p)
   {
     auto pNode = getNode(p);
-    if (pNode)
+    if(pNode)
     {
       return pNode->_value;
     }
@@ -203,7 +201,7 @@ class Tree
   // pre-increment form ++it.
 
   friend class const_iterator;
-  class const_iterator  //: public std::iterator<std::forward_iterator_tag, const V>
+  class const_iterator
   {
     std::vector<const Tree<V, C>*> mNodeStack;
     std::vector<typename mapT::const_iterator> mIteratorStack;
@@ -223,13 +221,14 @@ class Tree
       mNodeStack.push_back(p);
       mIteratorStack.push_back(p->mChildren.begin());
     }
-
+    
     const_iterator(const Tree<V, C>* p, const typename mapT::const_iterator subIter)
     {
       mNodeStack.push_back(p);
       mIteratorStack.push_back(subIter);
     }
 
+    
     ~const_iterator() {}
 
     bool operator==(const const_iterator& b) const
@@ -248,10 +247,23 @@ class Tree
     bool operator!=(const const_iterator& b) const { return !(*this == b); }
 
     const V& operator*() const { return ((*mIteratorStack.back()).second)._value; }
-
+    
+    void push(const Tree<V, C>* childNodePtr)
+    {
+      mNodeStack.push_back(childNodePtr);
+      mIteratorStack.push_back(childNodePtr->mChildren.begin());
+    }
+    
+    void pop()
+    {
+      mNodeStack.pop_back();
+      mIteratorStack.pop_back();
+    }
+    
+    // return true if at the end of the current submap.
     bool atEndOfMap() { return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end()); }
 
-    // advance to the next node. If at end of entire tree, return 0, else return 1.
+    // advance to the next node. Return false if at end of entire tree.
     bool nextNode()
     {
       auto& currentIterator = mIteratorStack.back();
@@ -260,35 +272,62 @@ class Tree
         auto currentChildNodePtr = &((*currentIterator).second);
         if (!currentChildNodePtr->isLeaf())
         {
-          // down
-          mNodeStack.push_back(currentChildNodePtr);
-          mIteratorStack.push_back(currentChildNodePtr->mChildren.begin());
+          push(currentChildNodePtr);
         }
         else
         {
-          // across
           currentIterator++;
         }
       }
       else
       {
-        if (mNodeStack.size() > 1)
+        if(mNodeStack.size() > 1)
         {
-          // up
-          mNodeStack.pop_back();
-          mIteratorStack.pop_back();
+          pop();
           mIteratorStack.back()++;
         }
         else
         {
-          // end
           return 0;
         }
       }
-
       return 1;
     }
-
+    
+    // advance to the first child of the current parent node.
+    void firstChild()
+    {
+      auto& currentIterator = mIteratorStack.back();
+      if (!atEndOfMap())
+      {
+        auto currentChildNodePtr = &((*currentIterator).second);
+        if (!currentChildNodePtr->isLeaf())
+        {
+          push(currentChildNodePtr);
+        }
+        else
+        {
+          // this node has no children! go to end so that hasMoreChildren() will return false.
+          while(!atEndOfMap())
+          {
+            currentIterator++;
+          }
+        }
+      }
+    }
+    
+    // will nextChild() iterate to more children?
+    bool hasMoreChildren()
+    {
+      return ( !atEndOfMap() );
+    }
+    
+    // advance to the next child of the current parent node.
+    void nextChild()
+    {
+      mIteratorStack.back()++;
+    }
+    
     bool currentNodeHasValue() const
     {
       auto parentNode = mNodeStack.back();
@@ -317,7 +356,7 @@ class Tree
 
     // return entire path to the current node. If any iterator is not
     // referenceable this will fail.
-    Path getCurrentNodePath() const
+    Path getCurrentPath() const
     {
       Path p;
       for (auto& currentIterator : mIteratorStack)
@@ -326,7 +365,39 @@ class Tree
       }
       return p;
     }
+    
+    void setCurrentPathToRoot()
+    {
+      const Tree<V, C>* root = mNodeStack[0];
+      mNodeStack.resize(1);
+      mIteratorStack.clear();
+      mIteratorStack.push_back(root->mChildren.begin());
+    }
 
+    // Try to set current node to the path p. Return true if successful.
+    // If unsuccessful the current path is set to root.
+    bool setCurrentPath(Path p) {
+      const Tree<V, C>* nextNode = mNodeStack[0];
+      mNodeStack.clear();
+      mIteratorStack.clear();
+      for(Symbol key : p)
+      {
+        auto it = nextNode->mChildren.find(key);
+        if (it != nextNode->mChildren.end())
+        {
+          mNodeStack.push_back(nextNode);
+          mIteratorStack.push_back(it);
+          nextNode = &(it->second);
+        }
+        else
+        {
+          setCurrentPathToRoot();
+          return false;
+        }
+      }
+      return true;
+    }
+    
     size_t getCurrentDepth() const { return mNodeStack.size() - 1; }
   };
 
@@ -341,7 +412,7 @@ class Tree
     return it;
   }
   
-  inline const_iterator beginUnchecked() const
+  inline const_iterator beginAtRoot() const
   {
     auto it = const_iterator(this);
     return it;
@@ -354,7 +425,7 @@ class Tree
   {
     for (auto it = begin(); it != end(); ++it)
     {
-      std::cout << it.getCurrentNodePath() << " [" << *it << "] \n";
+      std::cout << it.getCurrentPath() << " [" << *it << "] \n";
     }
   }
 
@@ -363,18 +434,18 @@ class Tree
   {
     for (auto it = begin(); it != end(); ++it)
     {
-      std::cout << it.getCurrentNodePath() << getTypeDebugStr(*it) << " [" << *it << "] \n";
+      std::cout << it.getCurrentPath() << getTypeDebugStr(*it) << " [" << *it << "] \n";
     }
   }
   
   // visit and dump each node once, including non-leaf nodes.
   inline void dumpAllNodes() const
   {
-    for (auto it = beginUnchecked(); it != end(); it.nextNode())
+    for (auto it = beginAtRoot(); it != end(); it.nextNode())
     {
       if(!it.atEndOfMap())
       {
-        std::cout << it.getCurrentNodePath();
+        std::cout << it.getCurrentPath();
         if(it.currentNodeHasValue())
         {
           std::cout << " [" << *it << "] ";
@@ -409,7 +480,7 @@ const Tree<V, C> filterByPathList(const Tree<V, C>& t, std::vector<Path> pList)
   Tree<V, C> filteredTree;
   for (auto it = t.begin(); it != t.end(); ++it)
   {
-    auto p = it.getCurrentNodePath();
+    auto p = it.getCurrentPath();
     if (std::find(pList.begin(), pList.end(), p) != pList.end())
     {
       filteredTree[p] = (*it);

@@ -252,7 +252,7 @@ public:
   {
     for (auto it = t.begin(); it != t.end(); ++it)
     {
-      Path valName = it.getCurrentNodePath();
+      Path valName = it.getCurrentPath();
       setFromNormalizedValue(valName, *it);
     }
   }
@@ -261,7 +261,7 @@ public:
   {
     for (auto it = t.begin(); it != t.end(); ++it)
     {
-      Path valName = it.getCurrentNodePath();
+      Path valName = it.getCurrentPath();
       setFromRealValue(valName, *it);
     }
   }

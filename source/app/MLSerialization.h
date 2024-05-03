@@ -319,10 +319,10 @@ inline std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
   size_t elements{0};
   for (auto it = t.begin(); it != t.end(); ++it)
   {
-    // std::cout << it.getCurrentNodePath() << " = (" << (*it).getTypeAsSymbol()
+    // std::cout << it.getCurrentPath() << " = (" << (*it).getTypeAsSymbol()
     // << ") " << *it << "\n";
     
-    Path p = it.getCurrentNodePath();
+    Path p = it.getCurrentPath();
     Value v = (*it);
     
     // add path header
@@ -455,7 +455,7 @@ inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
   
   for (auto it = t.begin(); it != t.end(); ++it)
   {
-    Path p = it.getCurrentNodePath();
+    Path p = it.getCurrentPath();
     TextFragment pathAsText(pathToText(p));
     Value v = (*it);
     

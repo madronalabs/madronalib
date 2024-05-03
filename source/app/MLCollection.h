@@ -157,7 +157,7 @@ class Collection
     {
       if (currentPathPtr)
       {
-        *currentPathPtr = it.getCurrentNodePath();
+        *currentPathPtr = it.getCurrentPath();
       }
       const ObjectPointerType& p = *it;
       f(*p);
@@ -180,7 +180,7 @@ class Collection
       {
         if(currentPathPtr)
         {
-          *currentPathPtr = it.getCurrentNodePath();
+          *currentPathPtr = it.getCurrentPath();
         }
         if(*it)
         {
@@ -195,7 +195,7 @@ class Collection
   {
     for (auto it = _tree->begin(); it != _tree->end(); ++it)
     {
-      std::cout << it.getCurrentNodePath() << " [" << *it << "] \n";
+      std::cout << it.getCurrentPath() << " [" << *it << "] \n";
     }
   }
 

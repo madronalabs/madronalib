@@ -76,7 +76,7 @@ class PropertyTree
   {
     for (auto it = other.properties.begin(); it != other.properties.end(); ++it)
     {
-      setProperty(it.getCurrentNodePath(), *it);
+      setProperty(it.getCurrentPath(), *it);
     }
   }
 

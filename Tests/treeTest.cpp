@@ -180,6 +180,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
     // looking up a nonexistent node should return a reference to the default value
     REQUIRE(a["you/are/my/sunshine"] == 10);
+    
+    // note: this creates a new node with the default value!
     REQUIRE(a["this/path/does/not/have/a/value"] == 0);
     
     int leafSum = 0;
@@ -223,6 +225,18 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     
     std::cout << "\n\nall nodes:\n";
     a.dumpAllNodes();
+    
+    auto iterator = a.beginAtRoot();
+    std::cout << "new iterator: " << iterator.getCurrentPath() << "\n";
+    
+    std::cout << "test1: " << iterator.setCurrentPath("this/path/does/not/have/a") << "\n";
+    std::cout << "currentPath: " << iterator.getCurrentPath() << "\n";
+    
+    
+    for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
+    {
+      std::cout << "child: " << iterator.getCurrentPath() << " value? " << iterator.currentNodeHasValue()  << " \n";
+    }
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.
@@ -319,7 +333,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   std::vector< Value > melodies;
   for (auto it = properties.begin(); it != properties.end(); ++it)
   {
-    const Path p = it.getCurrentNodePath();
+    const Path p = it.getCurrentPath();
     if (butLast(p) == Path("melodies"))
     {
       melodies.push_back(*it);
