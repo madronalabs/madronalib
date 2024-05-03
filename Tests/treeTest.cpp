@@ -220,23 +220,48 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     
     
     // TEMP
-    std::cout << "\n\ntree:\n";
-    a.dump();
+    //a.dump();
+    //a.dumpAllNodes();
     
-    std::cout << "\n\nall nodes:\n";
-    a.dumpAllNodes();
     
+    // iterate just over children. is node has no chlidren, nothing should be called.
+    int sumOfChildren;
+    sumOfChildren = 0;
     auto iterator = a.beginAtRoot();
-    std::cout << "new iterator: " << iterator.getCurrentPath() << "\n";
-    
-    std::cout << "test1: " << iterator.setCurrentPath("this/path/does/not/have/a") << "\n";
-    std::cout << "currentPath: " << iterator.getCurrentPath() << "\n";
-    
-    
+    iterator.setCurrentPath("case/sensitive");
     for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
     {
-      std::cout << "child: " << iterator.getCurrentPath() << " value? " << iterator.currentNodeHasValue()  << " \n";
+      if(iterator.currentNodeHasValue())
+      {
+        sumOfChildren += *iterator;
+      }
     }
+    REQUIRE(sumOfChildren == 4);
+    
+    sumOfChildren = 0;
+    iterator = a.beginAtRoot();
+    iterator.setCurrentPath("this/is/a/test");
+    for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
+    {
+      if(iterator.currentNodeHasValue())
+      {
+        sumOfChildren += *iterator;
+      }
+    }
+    REQUIRE(sumOfChildren == 5);
+    
+    sumOfChildren = 0;
+    iterator = a.beginAtRoot();
+    iterator.setCurrentPath("this/is");
+    for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
+    {
+      if(iterator.currentNodeHasValue())
+      {
+        sumOfChildren += *iterator;
+      }
+    }
+    REQUIRE(sumOfChildren == 0);
+    
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.
