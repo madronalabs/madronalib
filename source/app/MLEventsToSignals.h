@@ -149,6 +149,8 @@ public:
   
   size_t setPolyphony(int n);
   size_t getPolyphony();
+  
+  int getNewestVoice() { return newestVoice; }
 
   // clear all voices and reset state.
   void reset();
@@ -194,6 +196,7 @@ private:
   Queue< Event > _eventQueue;
   int _polyphony{0};
   int _lastFreeVoiceFound{-1};
+  int newestVoice{-1};
   bool _sustainPedalActive{false};
   float _sampleRate;
   float kPitchBendSemitones{7.f};

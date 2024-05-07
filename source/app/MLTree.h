@@ -216,11 +216,13 @@ class Tree
     // null iterator that can be returned so begin() = end() when there is no container
     const_iterator() {}
 
+    /*
     const_iterator(const Tree<V, C>* p)
     {
       mNodeStack.push_back(p);
-      mIteratorStack.push_back(p->mChildren.begin());
+      // mIteratorStack.push_back(p->mChildren.begin());
     }
+    */
     
     const_iterator(const Tree<V, C>* p, const typename mapT::const_iterator subIter)
     {
@@ -228,11 +230,11 @@ class Tree
       mIteratorStack.push_back(subIter);
     }
 
-    
     ~const_iterator() {}
 
     bool operator==(const const_iterator& b) const
     {
+
       // bail out here if possible.
       if (mNodeStack.size() != b.mNodeStack.size()) return false;
 
@@ -246,7 +248,11 @@ class Tree
 
     bool operator!=(const const_iterator& b) const { return !(*this == b); }
 
-    const V& operator*() const { return ((*mIteratorStack.back()).second)._value; }
+    const V& operator*() const
+    {
+      return ((*mIteratorStack.back()).second)._value;
+      
+    }
     
     void push(const Tree<V, C>* childNodePtr)
     {
@@ -256,16 +262,38 @@ class Tree
     
     void pop()
     {
-      mNodeStack.pop_back();
       mIteratorStack.pop_back();
+      if(mNodeStack.size() > 1)
+      {
+        mNodeStack.pop_back();
+      }
     }
     
+    
+    /*
+    // return true if at root.
+    bool atRoot() const
+    {
+      return (mIteratorStack.size() == 1)
+      
+    }
+*/
+    
     // return true if at the end of the current submap.
-    bool atEndOfMap() { return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end()); }
+    bool atEndOfMap() const {
+      return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end());
+    }
 
     // advance to the next node. Return false if at end of entire tree.
     bool nextNode()
     {
+/*
+      if(atRoot())
+      {
+        mIteratorStack.push_back(mNodeStack[0]->mChildren.begin());
+        return 1;
+      }
+*/
       auto& currentIterator = mIteratorStack.back();
       if (!atEndOfMap())
       {
@@ -294,7 +322,9 @@ class Tree
       return 1;
     }
     
-    // advance to the first child of the current parent node.
+    // go to the first child of the current parent node, or if at end of map,
+    // reset to beginning. The reset clause is weird but makes starting from
+    // root work properly.
     void firstChild()
     {
       auto& currentIterator = mIteratorStack.back();
@@ -313,6 +343,10 @@ class Tree
             currentIterator++;
           }
         }
+      }
+      else
+      {
+        currentIterator = mNodeStack.back()->mChildren.begin();
       }
     }
     
@@ -350,36 +384,56 @@ class Tree
       
       return *this;
     }
-
+    
+    size_t getCurrentDepth() const {
+      return mNodeStack.size() - 1;
+    }
+    
+    Symbol getCurrentNodeNameAtDepth(int i) const
+    {
+      auto& node = mNodeStack[i];
+      auto& iter = mIteratorStack[i];
+      if(iter != node->mChildren.end())
+      {
+        return (*iter).first;
+      }
+      return Symbol();
+    }
+    
     // return the last symbol of the current node path.
-    Symbol getCurrentNodeName() const { return (*(mIteratorStack.back())).first; }
+    Symbol getCurrentNodeName() const
+    {
+      int lastIdx = mNodeStack.size() - 1;
+      return getCurrentNodeNameAtDepth(lastIdx);
+    }
 
     // return entire path to the current node. If any iterator is not
     // referenceable this will fail.
     Path getCurrentPath() const
     {
       Path p;
-      for (auto& currentIterator : mIteratorStack)
+      for(int i = 0; i < mNodeStack.size(); ++i)
       {
-        p = Path{p, (*currentIterator).first};
+        p = Path{p, (getCurrentNodeNameAtDepth(i))};
       }
       return p;
     }
     
     void setCurrentPathToRoot()
     {
-      const Tree<V, C>* root = mNodeStack[0];
       mNodeStack.resize(1);
       mIteratorStack.clear();
-      mIteratorStack.push_back(root->mChildren.begin());
+      mIteratorStack.push_back(mNodeStack[0]->mChildren.end());
     }
 
     // Try to set current node to the path p. Return true if successful.
     // If unsuccessful the current path is set to root.
     bool setCurrentPath(Path p) {
+      setCurrentPathToRoot();
+
       const Tree<V, C>* nextNode = mNodeStack[0];
-      mNodeStack.clear();
-      mIteratorStack.clear();
+
+
       for(Symbol key : p)
       {
         auto it = nextNode->mChildren.find(key);
@@ -398,13 +452,13 @@ class Tree
       return true;
     }
     
-    size_t getCurrentDepth() const { return mNodeStack.size() - 1; }
+
   };
 
   // start at beginning, then advance until a node with a value is reached.
   inline const_iterator begin() const
   {
-    auto it = const_iterator(this);
+    auto it = const_iterator(this, mChildren.begin());
     while (!it.currentNodeHasValue() && !it.atEndOfMap())
     {
       ++it;
@@ -414,11 +468,13 @@ class Tree
   
   inline const_iterator beginAtRoot() const
   {
-    auto it = const_iterator(this);
-    return it;
+    return const_iterator(this, mChildren.end());
   }
 
-  inline const_iterator end() const { return const_iterator(this, mChildren.end()); }
+  inline const_iterator end() const
+  {
+    return const_iterator(this, mChildren.end());
+  }
 
   // visit all nodes and dump only the nodes with values.
   inline void dump() const

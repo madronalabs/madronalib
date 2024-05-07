@@ -323,6 +323,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     f.type = kNoteRetrig;
     voices[v].writeNoteEvent(f, _scale, _sampleRate);
   }
+  newestVoice = v;
 }
 
 void EventsToSignals::processNoteOffEvent(const Event& e)
