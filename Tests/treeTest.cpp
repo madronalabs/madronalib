@@ -156,6 +156,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     theSymbolTable().clear();
     Tree< int > a;
 
+
     // note that the root node (case) has no value.
     a.add("case/sensitive/a", 1);
     a.add("case/sensitive/b", 1);
@@ -227,7 +228,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // iterate just over children. is node has no chlidren, nothing should be called.
     int sumOfChildren;
     sumOfChildren = 0;
-    auto iterator = a.beginAtRoot();
+    auto iterator = a.begin();
     iterator.setCurrentPath("case/sensitive");
     for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
     {
@@ -239,7 +240,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(sumOfChildren == 4);
     
     sumOfChildren = 0;
-    iterator = a.beginAtRoot();
     iterator.setCurrentPath("this/is/a/test");
     for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
     {
@@ -251,7 +251,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(sumOfChildren == 5);
     
     sumOfChildren = 0;
-    iterator = a.beginAtRoot();
     iterator.setCurrentPath("this/is");
     for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
     {
@@ -262,6 +261,22 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
     REQUIRE(sumOfChildren == 0);
     
+
+    // try adding children at root
+    a.add("peter", 1);
+    a.add("paul", 1);
+    a.add("mary", 1);
+    sumOfChildren = 0;
+    iterator.setCurrentPath(Path());
+    for(iterator.firstChild(); iterator.hasMoreChildren(); iterator.nextChild())
+    {
+      if(iterator.currentNodeHasValue())
+      {
+        sumOfChildren += *iterator;
+      }
+    }
+    REQUIRE(sumOfChildren == 3);
+ 
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.
