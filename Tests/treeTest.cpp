@@ -276,7 +276,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       }
     }
     REQUIRE(sumOfChildren == 3);
- 
   }
 
   // Tree example using unique_ptr to manage heavyweight objects.

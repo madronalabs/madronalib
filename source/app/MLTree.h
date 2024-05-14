@@ -226,6 +226,7 @@ class Tree
 
     bool operator==(const const_iterator& b) const
     {
+
       // bail out here if possible.
       if (mNodeStack.size() != b.mNodeStack.size()) return false;
 
@@ -253,9 +254,22 @@ class Tree
     
     void pop()
     {
-      mIteratorStack.pop_back();
-      mNodeStack.pop_back();
+      if(mNodeStack.size() > 1)
+      {
+        mNodeStack.pop_back();
+        mIteratorStack.pop_back();
+      }
     }
+    
+    
+    /*
+    // return true if at root.
+    bool atRoot() const
+    {
+      return (mIteratorStack.size() == 1)
+      
+    }
+*/
     
     // return true if at the end of the current submap.
     bool atEndOfMap() const {
@@ -265,6 +279,13 @@ class Tree
     // advance to the next node. Return false if at end of entire tree.
     bool nextNode()
     {
+/*
+      if(atRoot())
+      {
+        mIteratorStack.push_back(mNodeStack[0]->mChildren.begin());
+        return 1;
+      }
+*/
       auto& currentIterator = mIteratorStack.back();
       if (!atEndOfMap())
       {
@@ -421,7 +442,7 @@ class Tree
       }
       return true;
     }
-    
+
   };
 
   // start at beginning, then advance until a node with a value is reached.
