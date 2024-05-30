@@ -21,11 +21,13 @@ To get reliable audio performance in a multiprocessing system, careful attention
 
 Adding new DSP modules is straightforward, and the syntax of the signal library encourages code to "read like the math." 
 
+Madronalib comes with examples including VST3 synth and effect plugins (more formats to come). If you're wondering what these plugins look like, the answer is that they look like whatever generic interface your plugin host provides. The standalone examples look like console apps. Madronalib does not provide any kind of graphics capability. This helps enforce strict separation of concerns and enables what I like to call *audio-first development.*
+
 
 Status
 ------------
 
-(as of March 2023)
+(as of June 2024)
 
 The files in /source/DSP are a useful header-only DSP library and can be included without other dependencies:  `#include mldsp.h`. These provide a bunch of utilities for writing efficient and readable DSP code in a functional style. SIMD operations for sin, cos, log and exp provide a big speed gain over native math libraries and come in both precise and approximate variations. Both SSE (for Intel chips) and NEON (for Apple Silicon) are supported. Shipping products at Madrona Labs are relying on these headers and breaking changes have, for the most part, stopped. 
 
