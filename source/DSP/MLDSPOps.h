@@ -1017,7 +1017,7 @@ inline float mean(const DSPVector& x)
 inline float max(const DSPVector& x)
 {
   const float* px1 = x.getConstBuffer();
-  float fmax = FLT_MIN;
+  float fmax = std::numeric_limits<float>::lowest();
   for (int n = 0; n < kSIMDVectorsPerDSPVector; ++n)
   {
     fmax = ml::max(fmax, vecMaxH(vecLoad(px1)));
