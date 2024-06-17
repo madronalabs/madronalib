@@ -29,7 +29,7 @@
  (this is the zlib license)
  */
 
-#include <MLPlatform.h>
+#include "MLPlatform.h"
 
 #ifndef ML_SSE_TO_NEON
 #include <emmintrin.h>
