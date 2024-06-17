@@ -85,6 +85,7 @@ set(target llllpluginnamellll)
 
 SET(SMTG_ADD_VSTGUI OFF CACHE BOOL "Add VSTGUI support")
 SET(VSTGUI_TOOLS OFF CACHE BOOL "Build VSTGUI Tools")
+SET(SMTG_CREATE_MODULE_INFO OFF CACHE BOOL "Disable Module Info Generation")
 
 include(VST3_SDK.cmake)
 
@@ -98,7 +99,7 @@ if(SMTG_ADD_VSTGUI)
 endif()
 
 if(SMTG_MAC)
-    smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
+    smtg_target_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
     target_link_libraries(${target} PRIVATE "-framework CoreAudio" )
 elseif(SMTG_WIN)
     target_sources(${target} PRIVATE resource/llllpluginnamellll.rc)
