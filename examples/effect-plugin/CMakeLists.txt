@@ -12,7 +12,7 @@ set(public_sdk_SOURCE_DIR ${VST3_SDK_ROOT}/public.sdk)
 
  IF(APPLE)
   SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version")
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
  ENDIF(APPLE)
 
 #--------------------------------------------------------------------
