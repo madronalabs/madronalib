@@ -110,7 +110,7 @@ tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
   _sampleRate = newSetup.sampleRate;
   
   // setup synth inputs
-  _synthInput = make_unique< EventsToSignals >(_sampleRate);
+  _synthInput = std::make_unique< EventsToSignals >(_sampleRate);
   _synthInput->setPolyphony(kMaxVoices);
   
   // setup glides
