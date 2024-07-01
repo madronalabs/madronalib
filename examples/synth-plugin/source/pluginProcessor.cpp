@@ -110,7 +110,7 @@ tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
   _sampleRate = newSetup.sampleRate;
   
   // setup synth inputs
-  _synthInput = make_unique< EventsToSignals >(_sampleRate);
+  _synthInput = std::make_unique< EventsToSignals >(_sampleRate);
   _synthInput->setPolyphony(kMaxVoices);
   
   // setup glides
@@ -146,10 +146,6 @@ tresult PLUGIN_API PluginProcessor::setBusArrangements(SpeakerArrangement* input
 tresult PLUGIN_API PluginProcessor::canProcessSampleSize(int32 symbolicSampleSize)
 {
   if(symbolicSampleSize == kSample32)
-    return kResultTrue;
-  
-  // we support double processing
-  if(symbolicSampleSize == kSample64)
     return kResultTrue;
   
   return kResultFalse;

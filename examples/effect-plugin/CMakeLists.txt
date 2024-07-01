@@ -12,7 +12,7 @@ set(public_sdk_SOURCE_DIR ${VST3_SDK_ROOT}/public.sdk)
 
  IF(APPLE)
   SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
-  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.10" CACHE STRING "Minimum OS X deployment version")
+  SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Minimum OS X deployment version")
  ENDIF(APPLE)
 
 #--------------------------------------------------------------------
@@ -26,7 +26,7 @@ project(llllPluginNamellll)
 set(VERSION_MAJOR "0")
 set(VERSION_MINOR "1")
 set(VERSION_PATCH "0")
-set(VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
+set(PROJECT_VERSION "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}")
 
  #--------------------------------------------------------------------
  # Compiler flags
@@ -65,6 +65,7 @@ set(target llllpluginnamellll)
 
 SET(SMTG_ADD_VSTGUI OFF CACHE BOOL "Add VSTGUI support")
 SET(VSTGUI_TOOLS OFF CACHE BOOL "Build VSTGUI Tools")
+SET(SMTG_CREATE_MODULE_INFO OFF CACHE BOOL "Disable Module Info Generation")
 
 include(VST3_SDK.cmake)
 
@@ -78,7 +79,7 @@ if(SMTG_ADD_VSTGUI)
 endif()
 
 if(SMTG_MAC)
-    smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
+    smtg_target_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
     target_link_libraries(${target} PRIVATE "-framework CoreAudio" )
 
 elseif(SMTG_WIN)

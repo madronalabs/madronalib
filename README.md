@@ -54,6 +54,16 @@ Madronalib can be built with the default settings as follows:
 	make
     
 This will create a command-line build of all the new code.
+
+To build and install with debug symbols enabled for use with the example plugin projects:
+
+	mkdir build
+	cd build
+	cmake -DCMAKE_BUILD_TYPE=Debug ..
+	make
+	# Installation may require administrator account / sudo
+	make install
+
 To build an XCode project with JUCE support, run something like
 
 	mkdir build-xcode

@@ -164,10 +164,6 @@ tresult PLUGIN_API PluginProcessor::canProcessSampleSize(int32 symbolicSampleSiz
   if(symbolicSampleSize == kSample32)
     return kResultTrue;
   
-  // we support double processing
-  if(symbolicSampleSize == kSample64)
-    return kResultTrue;
-  
   return kResultFalse;
 }
 

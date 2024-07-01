@@ -7,7 +7,7 @@ Example of a VST3 / Audio Units plugin made with cmake, madronalib and the VST3 
 to build:
 ---------
 
-First, build and install madronalib as a static library using the instructions in the madronalib project.
+First, build and install madronalib as a **debug** static library using the instructions in the madronalib project.
 
 Download the VST3 SDK from Steinberg.
 
@@ -19,7 +19,7 @@ To make the VST and AU plugins, first create an XCode project for MacOS using cm
 
 - mkdir build
 - cd build
-- cmake -DVST3_SDK_ROOT=(your VST3 SDK location) -DCMAKE_BUILD_TYPE=Debug -GXcode ..
+- cmake -DVST3_SDK_ROOT=(your VST3 SDK location) -DSMTG_RUN_VST_VALIDATOR=OFF -DCMAKE_BUILD_TYPE=Debug -GXcode ..
 
 Cmake will create a project with obvious placeholders (llllCompanyllll, llllPluginNamellll) for the company and plugin names. 
 
