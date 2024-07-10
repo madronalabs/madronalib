@@ -132,6 +132,12 @@ Value::Value(const void* pData, size_t n) : mType(kBlobValue)
   copyBlob(pData, n);
 }
 
+Value::Value(const std::vector<uint8_t>& dataVec) : mType(kBlobValue)
+{
+  copyBlob(dataVec.data(), dataVec.size());
+}
+
+
 Value::~Value()
 {
   // if we have external data, free it

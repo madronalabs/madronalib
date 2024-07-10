@@ -62,6 +62,7 @@ class Value
   // Blob constructors.
   // if data size > kBlobSizeBytes, blob values will allocate heap.
   explicit Value(const void* pData, size_t n);
+  Value(const std::vector<uint8_t>& dataVec);
   // TODO make array-like ctor using gsl::span
 
   // matrix type constructor via initializer_list
@@ -163,6 +164,18 @@ class Value
     else
     {
       return 0;
+    }
+  }
+  
+  inline std::vector<uint8_t> getBlobValue() const
+  {
+    if (mType == kBlobValue)
+    {
+      return std::vector<uint8_t>(pBlobData, pBlobData + _blobSizeInBytes);
+    }
+    else
+    {
+      return std::vector<uint8_t>();
     }
   }
 

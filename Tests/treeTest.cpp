@@ -449,10 +449,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["a"] = 0.4f;
   v["b"] = "hello";
   v["a/b/c"] = "hello again";
-  
-  std::array<uint8_t, 5> testArray{1, 3, 5, 7, 9};
-  auto testBytes = testArray.size() * sizeof(uint8_t);
-  v["blobtest"] = Value(testArray.data(), testBytes);
+  v["blobtest"] = std::vector<uint8_t> {1, 3, 5, 7, 9};
   
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   
