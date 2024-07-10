@@ -156,7 +156,7 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
     }
     case Value::kBlobValue:
     {
-      uint8_t* blobData = v.getBlobData();
+      uint8_t* blobData = static_cast<uint8_t*>(v.getBlobData());
       unsigned int blobSize = (unsigned int)v.getBlobSize();
       outputVector.resize(headerSize + blobSize);
       BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
@@ -477,7 +477,7 @@ inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
         break;
       case Value::kBlobValue:
       {
-        uint8_t* blobData = v.getBlobData();
+        uint8_t* blobData = static_cast<uint8_t*>(v.getBlobData());
         size_t blobSize = v.getBlobSize();
         std::vector<uint8_t> blobVec(blobData, blobData + blobSize);
         TextFragment blobText(kBlobHeader, textUtils::base64Encode(blobVec));

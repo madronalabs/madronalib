@@ -319,11 +319,12 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
     {
       // descriptions must have the default string "blob" in them to be
       // set up propery as a blob type.
+      // TODO this seems bad, revisit
       if(defaultVal == "blob")
       {
         // setup default blob
-        uint32_t blobData{'test'};
-        Value blobDefault(&blobData, 4);
+        uint32_t blobData{0};
+        Value blobDefault(&blobData, sizeof(uint32_t));
         return blobDefault;
       }
       else

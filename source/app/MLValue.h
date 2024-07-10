@@ -143,11 +143,11 @@ class Value
     return (mType == kIntervalValue) ? (mIntervalVal) : d;
   }
   
-  inline uint8_t* getBlobData() const
+  inline void* getBlobData() const
   {
     if (mType == kBlobValue)
     {
-      return pBlobData;
+      return (void*)pBlobData;
     }
     else
     {
