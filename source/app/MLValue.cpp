@@ -226,7 +226,8 @@ bool Value::operator==(const Value& b) const
         r = (getUnsignedLongValue() == b.getUnsignedLongValue());
         break;
       case kBlobValue:
-        r = false;
+        // compare blobs by value
+        r = !std::memcmp(getBlobData(), b.getBlobData(), getBlobSize());
         break;
       case kIntervalValue:
         r = (getIntervalValue() == b.getIntervalValue());
@@ -291,7 +292,7 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
       out << r.getUnsignedLongValue();
       break;
     case Value::kBlobValue:
-      out << "[blob]";
+      out << "[blob, " << r.getBlobSize() << " bytes]";
       break;
     case Value::kIntervalValue:
       out << r.getIntervalValue();

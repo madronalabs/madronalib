@@ -59,9 +59,10 @@ class Value
   Value(const ml::Matrix& s);
   Value(Interval i);
 
-  // binary blob constructor.
-  // if data size > kBlobSizeBytes, this will allocate heap.
+  // Blob constructors.
+  // if data size > kBlobSizeBytes, blob values will allocate heap.
   explicit Value(const void* pData, size_t n);
+  // TODO make array-like ctor using gsl::span
 
   // matrix type constructor via initializer_list
   Value(std::initializer_list<float> values)
@@ -141,11 +142,11 @@ class Value
     return (mType == kIntervalValue) ? (mIntervalVal) : d;
   }
   
-  inline void* getBlobValue() const
+  inline uint8_t* getBlobData() const
   {
     if (mType == kBlobValue)
     {
-      return (void*)(pBlobData);
+      return pBlobData;
     }
     else
     {

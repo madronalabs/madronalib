@@ -156,14 +156,13 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
     }
     case Value::kBlobValue:
     {
-      char* blobData = static_cast<char*>(v.getBlobValue());
+      uint8_t* blobData = v.getBlobData();
       unsigned int blobSize = (unsigned int)v.getBlobSize();
       outputVector.resize(headerSize + blobSize);
       BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
       *header = BinaryChunkHeader{'B', blobSize};
       auto pDest{outputVector.data() + headerSize};
-      auto pSrc{blobData};
-      std::copy(pSrc, pSrc + blobSize, pDest);
+      std::copy(blobData, blobData + blobSize, pDest);
       break;
     }
   }
@@ -444,6 +443,8 @@ public:
   cJSON* data() { return &_data; }
 };
 
+static TextFragment kBlobHeader("!BLOB!");
+
 // return a JSON object representing the value tree. The caller is responsible
 // for freeing the object.
 //
@@ -471,28 +472,18 @@ inline JSONHolder valueTreeToJSON(const Tree<Value>& t)
       case Value::kTextValue:
         cJSON_AddStringToObject(root.data(), keyStr, v.getTextValue().getText());
         break;
-      case Value::kMatrixValue:
-      {
-        /* TODO
-         cJSON* signalObj = cJSON_CreateObject();
-         const MLSignal& sig = state.mValue.getSignalValue();
-         cJSON_AddStringToObject(signalObj, "type", "signal");
-         cJSON_AddNumberToObject(signalObj, "width", sig.getWidth());
-         cJSON_AddNumberToObject(signalObj, "height", sig.getHeight());
-         cJSON_AddNumberToObject(signalObj, "depth", sig.getDepth());
-         int size = sig.getSize();
-         float* pSignalData = sig.getBuffer();
-         cJSON* data = cJSON_CreateFloatArray(pSignalData, size);
-         cJSON_AddItemToObject(signalObj, "data", data);
-         
-         // add signal object to state JSON
-         cJSON_AddItemToObject(root, keyStr, signalObj);
-         */
-      }
-        break;
       case Value::kUnsignedLongValue:
         cJSON_AddNumberToObject(root.data(), keyStr, v.getUnsignedLongValue());
         break;
+      case Value::kBlobValue:
+      {
+        uint8_t* blobData = v.getBlobData();
+        size_t blobSize = v.getBlobSize();
+        std::vector<uint8_t> blobVec(blobData, blobData + blobSize);
+        TextFragment blobText(kBlobHeader, textUtils::base64Encode(blobVec));
+        cJSON_AddStringToObject(root.data(), keyStr, blobText.getText());
+        break;
+      }
       default:
         // debug() << "MLAppState::saveStateToStateFile(): undefined param type! \n";
         break;
@@ -527,7 +518,22 @@ inline Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentP
       }
       case cJSON_String:
       {
-        r.add(newObjectPath, TextFragment(obj->valuestring));
+        TextFragment valueText(obj->valuestring);
+        if(valueText.beginsWith(kBlobHeader)) // not wonderful
+        {
+          auto headerLen = kBlobHeader.lengthInCodePoints();
+          auto textLen = valueText.lengthInCodePoints();
+          auto body = textUtils::subText(valueText, headerLen, textLen);
+          
+          auto blobDataVec = textUtils::base64Decode(body.getText());
+          auto* pBlobData{reinterpret_cast<const void*>(blobDataVec.data())};
+          auto blobValue = Value{pBlobData, blobDataVec.size()};
+          r.add(newObjectPath, blobValue);
+        }
+        else
+        {
+          r.add(newObjectPath, valueText);
+        }
         break;
       }
       case cJSON_Object:
