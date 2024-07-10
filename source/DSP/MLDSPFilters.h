@@ -481,6 +481,11 @@ struct OnePole
   {
     y1 = f;
   }
+
+  void clear()
+  {
+    y1 = 0.f;
+  }
 };
 
 // A one-pole, one-zero filter to attenuate DC.
@@ -1296,6 +1301,15 @@ class HalfBandFilter
     }
     return vy;
   }
+  
+  void clear()
+  {
+    apa0.clear();
+    apa1.clear();
+    apb0.clear();
+    apb1.clear();
+    b1 = 0;
+  }
 
  private:
   // order=4, rejection=70dB, transition band=0.1.
@@ -1386,6 +1400,16 @@ class Downsampler
   {
     return DSPVector(bufferPtr(_numBuffers - 1));
   }
+  
+  void clear()
+  {
+    for(auto& f : _filters)
+    {
+      f.clear();
+    }
+    _buffers.clear();
+    _counter = 0;
+  }
 };
 
 
@@ -1449,6 +1473,16 @@ struct Upsampler
     DSPVector result;
     load(result, bufferPtr(readIdx_++));
     return result;
+  }
+  
+  void clear()
+  {
+    for(auto& f : _filters)
+    {
+      f.clear();
+    }
+    _buffers.clear();
+    readIdx_ = 0;
   }
 };
 

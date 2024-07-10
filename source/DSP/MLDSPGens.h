@@ -398,15 +398,33 @@ class SawGen
 };
 
 // ----------------------------------------------------------------
+// Interpolator1
+
+// linear interpolate over signal length to next value.
+
+constexpr float unityRampFn(int i) { return (i + 1) / static_cast<float>(kFloatsPerDSPVector); }
+ConstDSPVector kUnityRampVec{unityRampFn};
+
+struct Interpolator1
+{
+  float currentValue{0};
+  
+  DSPVector operator()(float f)
+  {
+    float dydt = f - currentValue;
+    DSPVector outputVec = DSPVector(currentValue) + kUnityRampVec*dydt;
+    currentValue = f;
+    return outputVec;
+  }
+};
+
+// TODO needs test
+
+// ----------------------------------------------------------------
 // LinearGlide
 
 // convert a scalar float input into a DSPVector with linear slew.
 // to allow optimization, glide time is quantized to DSPVectors.
-// Note that a onepole or other IIR filter is not used because we must reach
-// the actual value in a finite time.
-
-constexpr float unityRampFn(int i) { return (i + 1) / static_cast<float>(kFloatsPerDSPVector); }
-ConstDSPVector kUnityRampVec{unityRampFn};
 
 class LinearGlide
 {
@@ -415,7 +433,7 @@ class LinearGlide
   float mTargetValue{0};
   float mDyPerVector{1.f / 32};
   int mVectorsPerGlide{32};
-  int mVectorsRemaining{0};
+  int mVectorsRemaining{-1};
   
 public:
   void setGlideTimeInSamples(float t)
@@ -445,7 +463,11 @@ public:
     }
     
     // process glide
-    if (mVectorsRemaining == 0)
+    if (mVectorsRemaining < 0)
+    {
+      // do nothing
+    }
+    else if (mVectorsRemaining == 0)
     {
       // end glide: write target value to output vector
       mCurrVec = DSPVector(mTargetValue);
@@ -462,7 +484,7 @@ public:
       mStepVec = DSPVector(dydv);
       
       // setup current vector with first interpolation ramp.
-      mCurrVec = DSPVector(currentValue) + kUnityRampVec * DSPVector(dydv);
+      mCurrVec = DSPVector(currentValue) + kUnityRampVec * mStepVec;
       
       mVectorsRemaining--;
     }
@@ -478,6 +500,14 @@ public:
     
     return mCurrVec;
   }
+  
+  void clear()
+  {
+    mCurrVec = 0.f;
+    mStepVec = 0.f;
+    mTargetValue = 0.f;
+    mVectorsRemaining = -1;
+  }
 };
 
 class SampleAccurateLinearGlide
@@ -487,7 +517,7 @@ class SampleAccurateLinearGlide
   float mTargetValue{0.f};
   int mSamplesPerGlide{32};
   float mDyPerSample{1.f/32};
-  int mSamplesRemaining{0};
+  int mSamplesRemaining{-1};
   
 public:
   void setGlideTimeInSamples(float t)
@@ -517,7 +547,11 @@ public:
     }
     
     // process glide
-    if (mSamplesRemaining == 0)
+    if (mSamplesRemaining < 0)
+    {
+      // do nothing
+    }
+    else if (mSamplesRemaining == 0)
     {
       // end glide: write target value to output vector
       mCurrValue = (mTargetValue);
@@ -528,7 +562,6 @@ public:
     {
       // start glide: get change in output value per sample
       mStepValue = (mTargetValue - mCurrValue) * mDyPerSample;
-      
       mSamplesRemaining--;
     }
     else
@@ -542,6 +575,13 @@ public:
     }
     
     return mCurrValue;
+  }
+  void clear()
+  {
+    mCurrValue = 0.f;
+    mStepValue = 0.f;
+    mTargetValue = 0.f;
+    mSamplesRemaining = -1;
   }
 };
 
