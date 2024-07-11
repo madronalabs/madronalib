@@ -307,6 +307,7 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName,
   paramTree.descriptions[paramName] = std::make_unique<ParameterDescription>(paramDesc);
 }
 
+
 // get default parameter value in normalized units.
 inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
@@ -317,15 +318,27 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
     Value defaultVal = paramDesc->getProperty("default");
     if(defaultVal.getType() == Value::kTextValue)
     {
-      // descriptions must have the default string "blob" in them to be
-      // set up propery as a blob type.
-      // TODO this seems bad, revisit
       if(defaultVal == "blob")
       {
-        // setup default blob
+        // setup default empty blob
         uint32_t blobData{0};
         Value blobDefault(&blobData, sizeof(uint32_t));
         return blobDefault;
+      }
+      else if(defaultVal.getTextValue().beginsWith(kBlobHeader))
+      {
+        // get blob data from text
+       // todo don't repeat this = see MLSerialization
+        auto valueText = defaultVal.getTextValue();
+ 
+        auto headerLen = kBlobHeader.lengthInCodePoints();
+        auto textLen = valueText.lengthInCodePoints();
+        auto body = textUtils::subText(valueText, headerLen, textLen);
+        
+        auto blobDataVec = textUtils::base64Decode(body.getText());
+        auto* pBlobData{reinterpret_cast<const void*>(blobDataVec.data())};
+        auto blobValue = Value{pBlobData, blobDataVec.size()};
+        return blobValue;
       }
       else
       {

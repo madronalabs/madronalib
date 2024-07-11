@@ -24,6 +24,8 @@
 namespace ml
 {
 
+static TextFragment kBlobHeader("!BLOB!");
+
 class Value
 {
  public:

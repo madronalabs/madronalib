@@ -443,7 +443,6 @@ public:
   cJSON* data() { return &_data; }
 };
 
-static TextFragment kBlobHeader("!BLOB!");
 
 // return a JSON object representing the value tree. The caller is responsible
 // for freeing the object.
