@@ -1347,6 +1347,8 @@ class Downsampler
 
       // get all buffers as a single contiguous array of floats.
       _buffers.resize(kFloatsPerDSPVector * _numBuffers);
+      
+      clear();
     }
   }
   ~Downsampler() = default;
@@ -1407,7 +1409,7 @@ class Downsampler
     {
       f.clear();
     }
-    _buffers.clear();
+    std::fill(_buffers.begin(), _buffers.end(), 0.f);
     _counter = 0;
   }
 };
@@ -1431,12 +1433,13 @@ struct Upsampler
     if (_octaves)
     {
       _numBuffers = 1 << _octaves;
-      
-      size_t numFilters = _octaves;//(1 << _octaves) - 1;
+      size_t numFilters = _octaves;
       _filters.resize(numFilters);
       
       // get all buffers as a single contiguous array of floats.
       _buffers.resize(kFloatsPerDSPVector * _numBuffers);
+      
+      clear();
     }
   }
   ~Upsampler() = default;
@@ -1481,11 +1484,10 @@ struct Upsampler
     {
       f.clear();
     }
-    _buffers.clear();
+    std::fill(_buffers.begin(), _buffers.end(), 0.f);
     readIdx_ = 0;
   }
 };
-
 
 
 // PLL: Phase Locked Loop for synching an output phasor to an input phasor at some ratio.
