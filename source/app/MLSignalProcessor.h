@@ -57,8 +57,6 @@ class SignalProcessor
     template <size_t CHANNELS>
     inline void writeQuick(DSPVectorArray<CHANNELS> inputVector, size_t frames, size_t voice)
     {
-      int framesToWrite = min(frames, maxFrames_);
-      
       // on every (1<<octavesDown_)th frame, rotate and write to DSPBuffer
       int framesWritten = 0;
       for(int f=0; f<frames; ++f)

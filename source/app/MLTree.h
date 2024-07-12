@@ -381,7 +381,7 @@ class Tree
       return mNodeStack.size() - 1;
     }
     
-    Symbol getCurrentNodeNameAtDepth(int i) const
+    Symbol getCurrentNodeNameAtDepth(size_t i) const
     {
       auto& node = mNodeStack[i];
       auto& iter = mIteratorStack[i];
@@ -395,8 +395,9 @@ class Tree
     // return the last symbol of the current node path.
     Symbol getCurrentNodeName() const
     {
-      int lastIdx = mNodeStack.size() - 1;
-      return getCurrentNodeNameAtDepth(lastIdx);
+      const size_t stackSize = mNodeStack.size();
+      if(stackSize < 1) return Symbol();
+      return getCurrentNodeNameAtDepth(stackSize - 1);
     }
 
     // return entire path to the current node. If any iterator is not

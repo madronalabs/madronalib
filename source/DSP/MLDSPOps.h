@@ -221,7 +221,7 @@ class DSPVectorArray
 #ifdef MANUAL_ALIGN_DSPVECTOR
 
   // get a row vector j when j is not known at compile time.
-  inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
+  inline DSPVectorArray<1> getRowVectorUnchecked(size_t j) const
   {
     DSPVectorArray<1> vy;
     const float* px1 = getConstBuffer() + kFloatsPerDSPVector * j;
@@ -235,7 +235,7 @@ class DSPVectorArray
   }
 
   // set a row vector j when j is not known at compile time.
-  inline void setRowVectorUnchecked(int j, const DSPVectorArray<1> x1)
+  inline void setRowVectorUnchecked(size_t j, const DSPVectorArray<1> x1)
   {
     const float* px1 = x1.getConstBuffer();
     float* py1 = getBuffer() + kFloatsPerDSPVector * j;
@@ -248,7 +248,7 @@ class DSPVectorArray
 #else
 
   // get a row vector j when j is not known at compile time.
-  inline DSPVectorArray<1> getRowVectorUnchecked(int j) const
+  inline DSPVectorArray<1> getRowVectorUnchecked(size_t j) const
   {
     DSPVectorArray<1> vy;
     const float* px1 = getConstBuffer() + kFloatsPerDSPVector * j;
@@ -264,7 +264,7 @@ class DSPVectorArray
   }
 
   // set a row vector j when j is not known at compile time.
-  inline void setRowVectorUnchecked(int j, const DSPVectorArray<1> x1)
+  inline void setRowVectorUnchecked(size_t j, const DSPVectorArray<1> x1)
   {
     const float* px1 = x1.getConstBuffer();
     float* py1 = getBuffer() + kFloatsPerDSPVector * j;

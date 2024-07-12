@@ -163,9 +163,9 @@ Matrix::Matrix(const Matrix* other, int slice) : mDataAligned(0), mData(0)
     // signal to take slice of must be 2d or 3d!
     assert(false);
   }
-  mWidthBits = ml::bitsToContain(mWidth);
-  mHeightBits = ml::bitsToContain(mHeight);
-  mDepthBits = ml::bitsToContain(mDepth);
+  mWidthBits = static_cast<int>(ml::bitsToContain(mWidth));
+  mHeightBits = static_cast<int>(ml::bitsToContain(mHeight));
+  mDepthBits = static_cast<int>(ml::bitsToContain(mDepth));
   mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
 }
 
@@ -200,9 +200,9 @@ float* Matrix::setDims(int width, int height, int depth)
   mWidth = width;
   mHeight = height;
   mDepth = depth;
-  mWidthBits = ml::bitsToContain(width);
-  mHeightBits = ml::bitsToContain(height);
-  mDepthBits = ml::bitsToContain(depth);
+  mWidthBits = static_cast<int>(ml::bitsToContain(mWidth));
+  mHeightBits = static_cast<int>(ml::bitsToContain(mHeight));
+  mDepthBits = static_cast<int>(ml::bitsToContain(mDepth));
   mSize = 1 << mWidthBits << mHeightBits << mDepthBits;
 
   mData = allocateData(mSize);

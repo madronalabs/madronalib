@@ -119,8 +119,6 @@ class Timer
 
   void stop();
 
-  int _testID{};  // MLTEST
-
  private:
   std::mutex _counterMutex;
 

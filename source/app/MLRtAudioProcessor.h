@@ -132,10 +132,10 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
     // Set up RtAudio stream params
     RtAudio::StreamParameters iParams, oParams;
     iParams.deviceId = _adac.getDefaultInputDevice();
-    iParams.nChannels = _processData.nInputs;
+    iParams.nChannels = static_cast<unsigned int>(_processData.nInputs);
     iParams.firstChannel = 0;
     oParams.deviceId = _adac.getDefaultOutputDevice();
-    oParams.nChannels = _processData.nOutputs;
+    oParams.nChannels = static_cast<unsigned int>(_processData.nOutputs);
     oParams.firstChannel = 0;
 
     RtAudio::StreamOptions options;

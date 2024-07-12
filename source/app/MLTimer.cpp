@@ -185,30 +185,6 @@ void ml::Timers::tick(void)
   time_point<system_clock> now = system_clock::now();
 
   std::unique_lock<std::mutex> lock(mSetMutex);
-
-  // MLTEST
-#ifdef DEBUG_TIMERS
-  if (now - previousStatsTime > milliseconds(1000))
-  {
-    // dump stats
-    std::cout << "timers: " << _timerPtrs.size() << " timers. \n ";
-    previousStatsTime = now;
-
-    // dump timer info
-    for (auto t : _timerPtrs)
-    {
-      size_t n = t->_testID;
-      auto age = duration_cast<milliseconds>(now - t->_creationTime).count();
-      auto per = t->_period.count();
-
-      // current period exipred
-      auto cur = duration_cast<milliseconds>(now - t->_previousCall).count();
-
-      std::cout << "    t" << n << ": age=" << age << " per=" << per << " cur=" << cur << "\n";
-    }
-  }
-#endif
-
   for (auto t : _timerPtrs)
   {
     std::unique_lock<std::mutex> lock(t->_counterMutex);
@@ -238,9 +214,6 @@ ml::Timer::Timer() noexcept
 {
   std::unique_lock<std::mutex> lock(_timers->mSetMutex);
   _previousCall = _creationTime = system_clock::now();
-
-  _testID = _timers->getSize();  // MLTEST
-
   _timers->insert(this);
 }
 

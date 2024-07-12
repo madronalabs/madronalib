@@ -196,7 +196,7 @@ Path lastN(Path p, size_t n)
   if (len >= n)
   {
     Path r;
-    for(int i = len - n; i < len; ++i)
+    for(size_t i = len - n; i < len; ++i)
     {
       r = Path(r, nth(p, i));
     }
