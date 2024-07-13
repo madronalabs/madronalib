@@ -96,7 +96,9 @@ public:
     void setParams(float pitchGlideInSeconds, float drift, float sr);
 
     void reset(int voiceIdx);
-
+    
+    void resetTime(int voiceIdx);
+    
     // send to start processing a new buffer.
     void beginProcess(float sr);
     
@@ -152,12 +154,12 @@ public:
   
   int getNewestVoice() { return newestVoice; }
 
-  // clear all voices and reset state.
+  // clear all voices and queued events and reset state.
   void reset();
-
-  // clear all events in queue.
-  void clearEvents();
-
+  
+  // just reset time outputs
+  void resetTimes();
+  
   // add an event to the queue.
   void addEvent(const Event& e);
   

@@ -148,9 +148,8 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
       _adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32, _processData.sampleRate,
                        &_processData.bufferFrames, &RtAudioCallbackFn, &_processData, &options);
     }
-    catch (RtAudioError& e)
+    catch (RtAudioErrorType& e)
     {
-      std::cout << '\n' << e.getMessage() << '\n' << std::endl;
       return 0;
     }
 
@@ -158,9 +157,8 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
     {
       _adac.startStream();
     }
-    catch (RtAudioError& e)
+    catch (RtAudioErrorType& e)
     {
-      std::cout << '\n' << e.getMessage() << '\n' << std::endl;
       return 0;
     }
 
@@ -187,9 +185,8 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
     {
       _adac.stopStream();
     }
-    catch (RtAudioError& e)
+    catch (RtAudioErrorType& e)
     {
-      std::cout << '\n' << e.getMessage() << '\n' << std::endl;
     }
 
     if (_adac.isStreamOpen()) _adac.closeStream();
