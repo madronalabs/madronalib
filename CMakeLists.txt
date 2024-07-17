@@ -384,11 +384,10 @@ endif()
 if(BUILD_TESTS)
 
     # NOTE: madronalib procs need to be included in projects as source.
-    file(GLOB PROC_SOURCES "source/procs/*.*")
 
     file(GLOB TEST_SOURCES "tests/*.*")
 
-    add_executable(tests ${PROC_SOURCES} ${TEST_SOURCES})
+    add_executable(tests ${TEST_SOURCES})
     set_target_properties(tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
     add_dependencies(tests madronalib)
 
