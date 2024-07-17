@@ -111,19 +111,17 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
       std::cout << "\nNo audio devices found!\n";
       return 0;
     }
-    else
+    
+
+    RtAudio::DeviceInfo info;
+    uint32_t devices = _adac.getDeviceCount();
+    auto ids = _adac.getDeviceIds();
+    std::cout << "[RtAudioProcessor] Found: " << devices << " device(s)\n";
+    for (uint32_t i = 0; i < devices; ++i)
     {
-      RtAudio::DeviceInfo info;
-      uint32_t devices = _adac.getDeviceCount();
-
-      std::cout << "[rtaudio] Found: " << devices << " device(s)\n";
-
-      for (uint32_t i = 0; i < devices; ++i)
-      {
-        info = _adac.getDeviceInfo(i);
-        std::cout << "\tDevice: " << i << " - " << info.name << std::endl;
-      }
-      std::cout << std::endl;
+      info = _adac.getDeviceInfo(ids[i]);
+      std::cout << "\tDevice " << i << ": " << info.name << std::endl;
+      std::cout << "\t\tinputs: " << info.inputChannels << " outputs: " << info.outputChannels << std::endl;
     }
 
     // Let RtAudio print messages to stderr.
@@ -143,24 +141,18 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
 
     auto pInputParams = (_processData.nInputs ? &iParams : nullptr);
 
-    try
-    {
+    if (RTAUDIO_NO_ERROR !=
       _adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32, _processData.sampleRate,
-                       &_processData.bufferFrames, &RtAudioCallbackFn, &_processData, &options);
-    }
-    catch (RtAudioError& e)
+                       &_processData.bufferFrames, &RtAudioCallbackFn, &_processData, &options))
     {
-      std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+      std::cout << _adac.getErrorText() << std::endl;
       return 0;
     }
 
-    try
+    if (RTAUDIO_NO_ERROR !=
+      _adac.startStream())
     {
-      _adac.startStream();
-    }
-    catch (RtAudioError& e)
-    {
-      std::cout << '\n' << e.getMessage() << '\n' << std::endl;
+      std::cout << _adac.getErrorText() << std::endl;
       return 0;
     }
 
@@ -183,15 +175,12 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
 
   inline void stopAudio()
   {
-    try
+    if (RTAUDIO_NO_ERROR !=
+        _adac.stopStream())
     {
-      _adac.stopStream();
+      std::cout << _adac.getErrorText() << std::endl;
     }
-    catch (RtAudioError& e)
-    {
-      std::cout << '\n' << e.getMessage() << '\n' << std::endl;
-    }
-
+    
     if (_adac.isStreamOpen()) _adac.closeStream();
   }
 

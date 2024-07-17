@@ -104,7 +104,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/app)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/matrix)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/networking)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/procs)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
@@ -127,9 +126,6 @@ file(GLOB DSP_HEADERS "source/DSP/*.h")
 
 file(GLOB MATRIX_SOURCES "source/matrix/*.cpp")
 file(GLOB MATRIX_HEADERS "source/matrix/*.h")
-
-file(GLOB PROC_SOURCES "source/procs/*.cpp")
-file(GLOB PROC_HEADERS "source/procs/*.h")
 
 file(GLOB AES_SOURCES "external/aes256/*.cpp")
 file(GLOB JSON_SOURCES "external/cJSON/*.c")
@@ -172,8 +168,6 @@ set(madronalib_SOURCES
     ${DSP_HEADERS}
     ${MATRIX_SOURCES}
     ${MATRIX_HEADERS}
-    ${PROC_SOURCES}
-    ${PROC_HEADERS}
     ${JSON_SOURCES}
     ${AES_SOURCES}
     )
@@ -199,7 +193,7 @@ source_group(dsp REGULAR_EXPRESSION "DSP/.*")
 source_group(app REGULAR_EXPRESSION "app/.*")
 source_group(matrix REGULAR_EXPRESSION "matrix/.*")
 source_group(networking REGULAR_EXPRESSION "networking/.*")
-source_group(procs REGULAR_EXPRESSION "procs/.*")
+source_group(external REGULAR_EXPRESSION "external/.*")
 
 #--------------------------------------------------------------------
 # create and install library
@@ -240,18 +234,6 @@ endif()
 if(APPLE)
     set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
 endif()
-
-# set symbol visibility settings
-# if(APPLE)
-#     set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN[variant=Debug] "NO")
-#     set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN[variant=Release] "YES")
-# endif()
-
-# set inline method visibility settings
-# if(APPLE)
-#     set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN[variant=Debug] "NO")
-#     set_target_properties(${target} PROPERTIES XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN[variant=Release] "YES")
-# endif()
 
 include(GNUInstallDirs)
 
@@ -296,7 +278,6 @@ install(FILES
     ${APP_HEADERS}     
     ${DSP_HEADERS}
     ${MATRIX_HEADERS} 
-    ${PROC_HEADERS} 
     ${OSC_HEADERS}
     DESTINATION 
     # PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
@@ -425,8 +406,6 @@ set(madronalib_SOURCES_internal
     ${DSP_HEADERS}
     ${MATRIX_SOURCES}
     ${MATRIX_HEADERS}
-    ${PROC_SOURCES}
-    ${PROC_HEADERS}
     )
 
 if(APPLE)
