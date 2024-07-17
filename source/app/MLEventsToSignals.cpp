@@ -33,7 +33,7 @@ void EventsToSignals::Voice::reset(int i)
   nextFrameToProcess = 0;
   ageInSamples = 0;
   ageStep = 0;
-
+  
   currentVelocity = 0;
   currentPitch = 0;
   currentPitchBend = 0;
@@ -41,7 +41,7 @@ void EventsToSignals::Voice::reset(int i)
   currentX = 0;
   currentY = 0;
   currentZ = 0;
-
+  
   creatorID = 0;
   
   pitchBendGlide.setValue(0.f);
@@ -49,6 +49,12 @@ void EventsToSignals::Voice::reset(int i)
   xGlide.setValue(0.f);
   yGlide.setValue(0.f);
   zGlide.setValue(0.f);
+}
+
+// just reset the time.
+void EventsToSignals::Voice::resetTime(int i)
+{
+  ageInSamples = 0;
 }
 
 void EventsToSignals::Voice::beginProcess(float sr)
@@ -243,10 +249,21 @@ void EventsToSignals::reset()
 {
   _eventQueue.clear();
   
-  int i(0);
-  for(auto& v : voices)
+  for(int i=0; i<kMaxVoices; ++i)
   {
-    v.reset(i++);
+    voices[i].reset(i);
+  }
+  
+  _lastFreeVoiceFound = -1;
+}
+
+void EventsToSignals::resetTimes()
+{
+  _eventQueue.clear();
+  
+  for(int i=0; i<kMaxVoices; ++i)
+  {
+    voices[i].resetTime(i);
   }
   
   _lastFreeVoiceFound = -1;
