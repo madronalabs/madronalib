@@ -24,8 +24,8 @@ bool isCJK(CodePoint c);
 // ----------------------------------------------------------------
 // TextFragment utilities
 
-TextFragment naturalNumberToText(int i);
-int textToNaturalNumber(const TextFragment& frag);
+TextFragment naturalNumberToText(size_t i);
+size_t textToNaturalNumber(const TextFragment& frag);
 
 TextFragment floatNumberToText(float f, int precision = 5);
 float textToFloatNumber(const TextFragment& frag);

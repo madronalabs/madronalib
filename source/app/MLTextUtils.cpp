@@ -51,14 +51,14 @@ bool isCJK(CodePoint ch)
          || (ch >= 0x31C0 && ch <= 0x4DFF);  // Other extensions
 }
 
-int digitsToNaturalNumber(const char32_t* p, size_t n)
+size_t digitsToNaturalNumber(const char32_t* p, size_t n)
 {
   constexpr int kMaxDigits = 16;
   if (n >= kMaxDigits) return -1;
   
   if (!p) return 0;
-  int v = 0;
-  int d;
+  size_t v = 0;
+  size_t d;
   char c;
 
   for(int i=0; i<n; ++i)
@@ -73,16 +73,15 @@ int digitsToNaturalNumber(const char32_t* p, size_t n)
   return v;
 }
 
-int textToNaturalNumber(const TextFragment& frag)
+size_t textToNaturalNumber(const TextFragment& frag)
 {
   std::vector<CodePoint> vec = textToCodePoints(frag);
   return digitsToNaturalNumber(vec.data(), vec.size());
 }
 
-
-TextFragment naturalNumberToText(int i)
+TextFragment naturalNumberToText(size_t i)
 {
-  constexpr int kMaxDigits = 16;
+  constexpr size_t kMaxDigits = 16;
 
   char buf[kMaxDigits]{};
   char* p = buf + kMaxDigits - 1;
@@ -96,8 +95,10 @@ TextFragment naturalNumberToText(int i)
   {
     p--;
     if (p < buf) return "overflow";
-    *p = '0' + (i % 10);
-    i /= 10;
+    size_t iOver10 = i / 10;
+    char digit = '0' + (i - iOver10*10);
+    *p = digit;
+    i = iOver10;
   } while (i != 0);
   return (TextFragment(p, end - p));
 }

@@ -130,8 +130,8 @@ public:
       // get item matching plain value
       for(int i=0; i<listItems.size(); ++i)
       {
-        int intItem = textUtils::textToNaturalNumber(listItems[i]);
-        if(newRealValue == intItem)
+        size_t itemIdx = textUtils::textToNaturalNumber(listItems[i]);
+        if(newRealValue == itemIdx)
         {
           newNormValue = projections[pname].realToNormalized((float)i);
           break;
