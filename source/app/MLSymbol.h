@@ -32,6 +32,7 @@
 #include <iostream>
 #include <mutex>
 #include <vector>
+#include <unordered_map>
 
 #include "MLText.h"
 
