@@ -13,5 +13,6 @@
 #include "MLDSPProjections.h"
 #include "MLDSPRatio.h"
 #include "MLDSPRouting.h"
+#include "MLDSPSample.h"
 #include "MLDSPScale.h"
 

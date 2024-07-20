@@ -187,7 +187,7 @@ class DSPVectorArray
   DSPVectorArray& operator=(const DSPVectorArray& x1) noexcept = default;
 
   // equality by value
-  bool operator==(const DSPVectorArray& x1)
+  bool operator==(const DSPVectorArray& x1) const
   {
     const float* px1 = x1.getConstBuffer();
     const float* py1 = getConstBuffer();

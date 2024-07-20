@@ -4,13 +4,9 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <chrono>
-using namespace std::chrono;
-
-#include <thread>
-
 #include "catch.hpp"
 #include "madronalib.h"
+#include "testUtils.h"
 
 struct TestEvent
 {

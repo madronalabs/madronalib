@@ -4,18 +4,10 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <chrono>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <numeric>
-#include <thread>
-#include <unordered_map>
-#include <vector>
-
-#include "MLTextUtils.h"
 #include "catch.hpp"
 #include "madronalib.h"
+#include "testUtils.h"
+
 
 #if _WIN32
 #define HAVE_U8_LITERALS 0

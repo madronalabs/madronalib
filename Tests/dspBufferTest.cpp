@@ -4,14 +4,11 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <chrono>
-using namespace std::chrono;
-
-#include <thread>
-
-#include "MLDSPBuffer.h"
 #include "catch.hpp"
-#include "mldsp.h"
+#include "testUtils.h"
+#include "MLDSPBuffer.h"
+#include "MLDSPUtils.h"
+#include "MLDSPFunctional.h"
 
 using namespace ml;
 
@@ -58,7 +55,7 @@ float kEndFlag = 99;
 RandomScalarSource rr;
 const int kMaxReadWriteSize = 16;
 
-auto randToLength = projections::linear({-1, 1}, {1, kMaxReadWriteSize});
+auto randToLength = ml::projections::linear({-1, 1}, {1, kMaxReadWriteSize});
 
 void transmitTest()
 {
@@ -164,8 +161,8 @@ TEST_CASE("madronalib/core/dspbuffer/overlap", "[dspbuffer][overlap]")
 
   // write constant window buffer
   DSPVector windowVec;
-  makeWindow(windowVec.getBuffer(), kFloatsPerDSPVector, windows::triangle);
-  // TODO ConstDSPVector windowVec(windows::triangle);
+  makeWindow(windowVec.getBuffer(), kFloatsPerDSPVector, dspwindows::triangle);
+  // TODO ConstDSPVector windowVec(dspwindows::triangle);
   // - would require constexpr-capable reimplementation of Projections, not
   // using std::function
 

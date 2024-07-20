@@ -66,7 +66,7 @@ class ImpulseGen
   {
     // make windowed sinc table
     DSPVector windowVec;
-    makeWindow(windowVec.getBuffer(), kTableSize, windows::blackman);
+    makeWindow(windowVec.getBuffer(), kTableSize, dspwindows::blackman);
     const float omega = 0.25f;
     auto sincFn{[&](int i)
                 {

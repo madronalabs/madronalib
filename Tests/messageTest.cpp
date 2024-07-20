@@ -4,18 +4,8 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <iostream>
-#include <limits>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <thread>
-#include <unordered_map>
-#include <vector>
-
-#include "MLCollection.h"
-#include "MLMessage.h"
 #include "catch.hpp"
+#include "madronalib.h"
 
 using namespace ml;
 

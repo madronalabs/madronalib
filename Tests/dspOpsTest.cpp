@@ -4,17 +4,13 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <chrono>
-#include <iostream>
-#include <map>
-#include <thread>
-#include <unordered_map>
-#include <vector>
-
 #include "catch.hpp"
-#include "madronalib.h"
-#include "mldsp.h"
-#include "tests.h"
+#include "testUtils.h"
+#include "MLDSPOps.h"
+#include "MLDSPFunctional.h"
+#include "MLDSPUtils.h"
+#include "MLDSPRouting.h"
+#include "MLDSPGens.h"
 
 using namespace ml;
 

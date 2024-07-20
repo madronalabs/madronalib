@@ -25,7 +25,7 @@ inline void makeWindow(float* pDest, size_t size, Projection windowShape)
   mapIndices(pDest, size, compose(windowShape, domainToUnity));
 }
 
-namespace windows
+namespace dspwindows
 {
 const Projection rectangle([](float x) { return (x > 0.75f) ? 0.f : ((x < 0.25f) ? 0.f : 1.f); });
 const Projection triangle([](float x) { return (x > 0.5f) ? (2.f - 2.f * x) : (2.f * x); });
@@ -44,7 +44,7 @@ const Projection flatTop(
       return a0 - a1 * cosf(kTwoPi * x) + a2 * cosf(2.f * kTwoPi * x) -
              a3 * cosf(3.f * kTwoPi * x) + a4 * cosf(4.f * kTwoPi * x);
     });
-}  // namespace windows
+}  // namespace dspwindows
 
 // VectorProcessBuffer: utility class to serve a main loop with varying
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in

@@ -3,16 +3,16 @@
 
 #include <chrono>
 #include <deque>
-#include "mldsp.h"
+#include <thread>
+#include <iostream>
 
-using namespace ml;
+#include "MLDSPProjections.h"
+
 using namespace std::chrono;
-
 
 #if (__APPLE__)
   #include <pthread.h>
 #endif
-
 
 // TODO this could be its own module with tests
 template <class T> struct Stats
@@ -156,7 +156,7 @@ template <class T> inline TimedResult<T> timeIterations(std::function<T(void)> f
     double roughRunTimeInSecs = 1e-1;
     double roughSecsPerIteration = roughNanosPerIteration*1e-9;
     int itersToTime = roughRunTimeInSecs / roughSecsPerIteration;
-    itersToTime = clamp(itersToTime, itersChunkSize, 1000000);
+    itersToTime = std::clamp(itersToTime, itersChunkSize, 1000000);
 	for(int i=0; i<itersToTime/itersChunkSize; ++i)
 	{
 		T fnResult{};
@@ -214,7 +214,7 @@ template <class T> inline void* workerFn(void* dataPtr)
     double roughRunTimeInSecs = 1e-1;
     double roughSecsPerIteration = roughNanosPerIteration*1e-9;
     double itersToTime = roughRunTimeInSecs / roughSecsPerIteration;
-    itersToTime = clamp(itersToTime, itersChunkSize + 0., 1e9);
+    itersToTime = std::clamp(itersToTime, itersChunkSize + 0., 1e9);
     
     auto startAll = high_resolution_clock::now();
     for(int i=0; i<itersToTime/itersChunkSize; ++i)

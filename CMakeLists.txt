@@ -382,9 +382,7 @@ endif()
 #--------------------------------------------------------------------
 
 if(BUILD_TESTS)
-
-    # NOTE: madronalib procs need to be included in projects as source.
-
+    set(target tests)
     file(GLOB TEST_SOURCES "tests/*.*")
 
     add_executable(tests ${TEST_SOURCES})

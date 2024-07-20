@@ -4,20 +4,13 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <chrono>
-#include <iostream>
-#include <map>
-#include <thread>
-#include <unordered_map>
-#include <vector>
-
 #include "catch.hpp"
 #include "madronalib.h"
-
-using namespace ml;
-using namespace std::chrono;
+#include "testUtils.h"
 
 const int longSleepMs{50};
+
+using namespace ml;
 
 TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 {

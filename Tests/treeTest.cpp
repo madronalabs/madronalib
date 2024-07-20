@@ -4,24 +4,11 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-#include <iostream>
-#include <limits>
-#include <map>
-#include <memory>
-#include <numeric>
-#include <thread>
-#include <unordered_map>
-#include <vector>
-
-#include "MLSerialization.h"
-#include "MLTextUtils.h"
-#include "MLTree.h"
-#include "MLValue.h"
 #include "catch.hpp"
 #include "madronalib.h"
-#include "mldsp.h"
 
 using namespace ml;
+
 
 struct TestResource
 {
