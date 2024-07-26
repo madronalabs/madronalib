@@ -7,6 +7,8 @@
 #ifdef _WINDOWS
 
 #define CATCH_CONFIG_RUNNER
+#include "testUtils.h"
+#include "catch.hpp"
 
 // Windows hack to pause console output so we can read it.
 #include <conio.h>
@@ -20,8 +22,9 @@ int main(int argc, char** argv)
 #else
 
 #define CATCH_CONFIG_MAIN
+#include "testUtils.h"
+#include "catch.hpp"
 
 #endif
 
-#include "testUtils.h"
-#include "catch.hpp"
+
