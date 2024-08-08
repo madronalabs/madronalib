@@ -37,27 +37,20 @@ class Actor
 {
   friend ActorRegistry;
 
-  static constexpr size_t kMessageQueueSize{128};
+  static constexpr size_t kDefaultMessageQueueSize{128};
   static constexpr size_t kDefaultMessageInterval{1000 / 60};
 
-  Queue<Message> _messageQueue{kMessageQueueSize};
+  Queue< Message > _messageQueue{kDefaultMessageQueueSize};
   Timer _queueTimer;
 
  protected:
   size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
 
-  // handle all the messages in the queue immediately.
-  void handleMessagesInQueue()
-  {
-    while (Message m = _messageQueue.pop())
-    {
-      onMessage(m);
-    }
-  }
-
  public:
   Actor() = default;
   virtual ~Actor() = default;
+  
+  void resizeQueue(size_t n) {_messageQueue.resize(n);}
 
   // Actors can override onFullQueue to specify what action to take when
   // the message queue is full.
@@ -99,6 +92,16 @@ class Actor
       enqueueMessage(m);
     }
   }
+
+  // handle all the messages in the queue immediately.
+  void handleMessagesInQueue()
+  {
+    while (Message m = _messageQueue.pop())
+    {
+      onMessage(m);
+    }
+  }
+
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
