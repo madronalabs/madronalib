@@ -65,7 +65,8 @@ tresult PLUGIN_API PluginController::initialize(FUnknown* context)
     int newUnitID = kMIDIParamsUnitIDStart + chan;
     int newParamID{0};
     TextFragment unitNameText("channel", ml::textUtils::naturalNumberToText(chan + 1));
-    unitInfo.parentUnitId = newUnitID;
+    unitInfo.id = newUnitID;
+    unitInfo.parentUnitId = kRootUnitId;
     unitInfo.programListId = Steinberg::Vst::kNoProgramListId;
     unitNameSetter.fromAscii(unitNameText.getText());
     addUnit(new Steinberg::Vst::Unit(unitInfo));
