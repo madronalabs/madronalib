@@ -930,10 +930,9 @@ class Allpass1
   float x1{0}, y1{0};
 
  public:
-  float mCoeffs;
+  float mCoeff{0.f};
 
-  Allpass1() : mCoeffs(0.f) {}
-  Allpass1(float a) : mCoeffs(a) {}
+  Allpass1(float a) : mCoeff(a) {}
   ~Allpass1() {}
 
   inline void clear()
@@ -955,7 +954,7 @@ class Allpass1
   {
     // one-multiply form. see
     // https://ccrma.stanford.edu/~jos/pasp/One_Multiply_Scattering_Junctions.html
-    float y = x1 + (x - y1) * mCoeffs;
+    float y = x1 + (x - y1) * mCoeff;
     x1 = x;
     y1 = y;
     return y;
@@ -980,7 +979,7 @@ class Allpass1
 class FractionalDelay
 {
   IntegerDelay mIntegerDelay;
-  Allpass1 mAllpassSection;
+  Allpass1 mAllpassSection{0.f};
   float mDelayInSamples{};
 
  public:
@@ -1012,7 +1011,7 @@ class FractionalDelay
       delayInt -= 1;
     }
     mIntegerDelay.setDelayInSamples(delayInt);
-    mAllpassSection.mCoeffs = Allpass1::coeffs(delayFrac);
+    mAllpassSection.mCoeff = Allpass1::coeffs(delayFrac);
   }
 
   inline void setMaxDelayInSamples(float d) { mIntegerDelay.setMaxDelayInSamples(floorf(d)); }
@@ -1475,6 +1474,13 @@ struct Upsampler
   {
     DSPVector result;
     load(result, bufferPtr(readIdx_++));
+    
+    // TEMP
+    if(!validate(result))
+    {
+      std::cout << "bad!\n";
+      
+    }
     return result;
   }
   

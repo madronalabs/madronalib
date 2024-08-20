@@ -101,7 +101,12 @@ class Actor
       onMessage(m);
     }
   }
-
+  
+  void clearMessageQueue()
+  {
+    _messageQueue.clear();
+  }
+  
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)
