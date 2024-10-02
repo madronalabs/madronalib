@@ -85,6 +85,8 @@ class PropertyTree
   inline Tree<Value>::const_iterator begin() const { return properties.begin(); }
 
   inline Tree<Value>::const_iterator end() const { return properties.end(); }
+  
+  // TODO why does PropertyTree not provide a [] operator?
 };
 
 }  // namespace ml

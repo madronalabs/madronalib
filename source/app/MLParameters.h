@@ -5,8 +5,6 @@
 #pragma once
 
 #include "MLPropertyTree.h"
-//#include "madronalib.h"
-//#include "mldsp.h"
 
 namespace ml
 {
@@ -21,6 +19,9 @@ struct ParameterProjection
   Projection realToNormalized{projections::unity};
 };
 
+// create a pair of functions that transform a parameter from normalized to real and back.
+// the two functions should be the inverses of each other.
+//
 inline ParameterProjection createParameterProjection(const ParameterDescription& p)
 {
   ParameterProjection b;
@@ -44,11 +45,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
       auto listItems = textUtils::split(p.getTextProperty("listitems"), '/');
       nItems = listItems.size();
     }
-    else if (p.hasProperty("num_items"))
-    {
-      nItems = (size_t)p.getFloatProperty("num_items");
-    }
-    
+
     if (nItems <= 1)
     {
       b.normalizedToReal = projections::zero;
@@ -56,9 +53,12 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     }
     else
     {
-      size_t stepCount = nItems - 1;
-      b.normalizedToReal = [=](float x) { return (floorf(fmin((float)stepCount, (float)(x * nItems)))); };
-      b.realToNormalized = [=](float x) { return (x / stepCount); };
+      // because the functions need to be mutually invertible, we don't convert to an integer here-
+      // instead that must be done by users of the parameter. The epsilon is so that these same
+      // users do not need to clamp the real value to the number of items.
+      float itemsScale = nItems - 0.00001f;
+      b.normalizedToReal = [=](float x) { return (x * itemsScale); };
+      b.realToNormalized = [=](float x) { return (x / itemsScale); };
     }
   }
   else
@@ -89,6 +89,11 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
 class ParameterTree
 {
 public:
+  
+  // TODO why is there not a Parameter object that contains (description, projection, valueNorm, valueReal)?
+  // That seems like the sane way to do it. Look carefully to see if there's a good reason we didn't do that and
+  // if not, make this more sane.
+  
   Tree< std::unique_ptr< ParameterDescription > > descriptions;
   Tree< ParameterProjection > projections;
   Tree< Value > paramsNorm_;

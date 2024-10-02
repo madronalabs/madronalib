@@ -13,6 +13,7 @@
 #include "MLDSPGens.h"
 
 using namespace ml;
+using namespace testUtils;
 
 TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
 {
@@ -292,13 +293,6 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
   }
 }
 
-bool nearlyEqual(float a, float b)
-{
-  float d = fabs(a - b);
-  float eps = 1e-6f;
-  return d < eps;
-}
-
 TEST_CASE("madronalib/core/projections", "[projections]")
 {
   {
@@ -328,7 +322,7 @@ TEST_CASE("madronalib/core/projections", "[projections]")
     for(int i=-5; i<5; ++i)
     {
       float x = i/5.f;
-      REQUIRE(nearlyEqual(p0(p1(x)), x));
+      REQUIRE(testUtils::nearlyEqual(p0(p1(x)), x));
     }
   }
 }
