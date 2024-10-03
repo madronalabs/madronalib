@@ -58,10 +58,10 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
   for(auto & pname : paramNames)
   {
     // TODO fix this weird access with a Parameter class (see MLParameters TODO)
+    // this should allow us to forget about the name list (though that is sometimes useful)
+    // and just write for(auto& param : params).
     ParameterDescription& pdesc = *params.descriptions[pname];
     ParameterProjection& pproj = params.projections[pname];
-
-    //std::cout << "\nname: " << pname << "\n";
     
     int nSteps{10};
     for(int i=0; i<=nSteps; ++i)
@@ -69,8 +69,6 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
       float fNorm = i/float(nSteps);
       float fReal = pproj.normalizedToReal(fNorm);
       float fNorm2 = pproj.realToNormalized(fReal);
-      
-      //std::cout << fNorm << " -> " << fReal << " -> " << fNorm2 << "\n";
       
       REQUIRE(testUtils::nearlyEqual(fNorm, fNorm2));
     }
