@@ -54,9 +54,10 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     else
     {
       // because the functions need to be mutually invertible, we don't convert to an integer here-
-      // instead that must be done by users of the parameter. The epsilon is so that these same
-      // users do not need to clamp the real value to the number of items.
-      float itemsScale = nItems - 0.00001f;
+      // instead that must be done by users of the parameter by rounding. For example, with 2 items,
+      // itemsScale is 1, and everything below 0.5 should round to item 0, while 0.5 and above
+      // rounds to item 1.
+      float itemsScale = nItems - 1.f;
       b.normalizedToReal = [=](float x) { return (x * itemsScale); };
       b.realToNormalized = [=](float x) { return (x / itemsScale); };
     }
