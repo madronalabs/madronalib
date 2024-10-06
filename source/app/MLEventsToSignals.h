@@ -13,6 +13,7 @@
 namespace ml
 {
 
+
 // rows per voice output signal.
 enum VoiceOutputSignals
 {
@@ -41,6 +42,13 @@ enum EventType
   kProgramChange
 };
 
+enum KeyState
+{
+  kOff,
+  kOn,
+  kSustain
+};
+
 // EventsToSignals processes different types of events and generates bundles of signals to
 // control synthesizers.
 //
@@ -48,8 +56,9 @@ class EventsToSignals final
 {
 public:
 
-  static constexpr int kMaxVoices{16};
-  static constexpr int kMaxEventsPerVector{128};
+  static constexpr size_t kMaxVoices{16};
+  static constexpr size_t kMaxEventsPerVector{128};
+  static constexpr size_t kMaxPhysicalKeys{128};
   
   static constexpr float kGlideTimeSeconds{0.02f};
   static constexpr float kDriftTimeSeconds{8.0f};
@@ -63,9 +72,9 @@ public:
     ~Event() = default;
 
     EventType type{kNull};
-    int channel;  
-    int creatorID; // the MIDI key or touch number that created the event.
-    int time; // time in samples from start of current process buffer
+    int channel;
+    int keyNumber;  // The unique key or touch number that created the event.
+    int time; // Onset time in samples from start of current process buffer.
     float value1{0};
     float value2{0};
     float value3{0};
@@ -82,13 +91,6 @@ public:
   struct Voice
   {
   public:
-    
-    enum State
-    {
-      kOff,
-      kOn,
-      kSustain
-    };
     
     Voice() = default;
     ~Voice() = default;
@@ -109,7 +111,6 @@ public:
     // add pitchBend to pitch.
     void endProcess(float pitchBend, float sr);
     
-    int state{kOff};
     size_t nextFrameToProcess{0};
 
     // instantaneous values, written during event processing
@@ -121,7 +122,7 @@ public:
     float currentY{0};
     float currentZ{0};
 
-    int creatorID{0}; // for matching event sources, could be MIDI key, or touch number.
+    size_t creatorKeyNumber{0}; // physical key or touch # of creator. 0 = undefined.
     uint32_t ageInSamples{0};
     uint32_t ageStep{0};
 
@@ -149,7 +150,7 @@ public:
   EventsToSignals(int sr);
   ~EventsToSignals();
   
-  size_t setPolyphony(int n);
+  size_t setPolyphony(size_t n);
   size_t getPolyphony();
   
   int getNewestVoice() { return newestVoice; }
@@ -169,11 +170,15 @@ public:
   void setPitchBendInSemitones(float f);
   void setGlideTimeInSeconds(float f);
   void setDriftAmount(float f);
+  void setUnison(bool b);
 
   // voices, containing signals for clients to read directly.
   std::vector< Voice > voices;
   
 private:
+  
+  void addHeldKey(size_t keyIndex);
+  void removeHeldKey(size_t keyIndex);
   
   void processEvent(const Event &eventParam);
   void processNoteOnEvent(const Event& event);
@@ -187,13 +192,27 @@ private:
 
   // find a free voice index. if no free voice is found return -1.
   int findFreeVoice();
-  
+  int countBusyVoices();
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
   
   void dumpVoices();
   
   // data
+  // TODO rename things
+  std::array<KeyState, kMaxPhysicalKeys> keyStates {kOff};
+  
+  // array of held keys in order played. In other words, if the notes C3, G3, E3 are played, the first
+  // three elements of the array will be 60, 67, 64. Then if the E is released the first 3 elements will
+  // be: 60, 0, 64.
+  std::array<size_t, kMaxPhysicalKeys> heldKeys {0};
+  int maxHeldKeyIndex{-1};
+  
+//  add in key-down-index
+//  to find most recent
+//  held keys in order structure: array adding key #s in order. on key off, clear key off # to 0.
+  
+  int heldNotes{0};
   Scale _scale;
   Queue< Event > _eventQueue;
   int _polyphony{0};
@@ -204,12 +223,15 @@ private:
   float kPitchBendSemitones{7.f};
   float _pitchGlideTimeInSeconds{0.f};
   float _pitchDriftAmount{0.f};
+  bool unison_{false};
+  
+  int testCounter{0};
 };
 
 
 inline std::ostream& operator<<(std::ostream& out, const EventsToSignals::Event& e)
 {
-  std::cout << "[" << e.type << "/" << e.channel << "/" << e.creatorID << "/" << e.time << "]";
+  std::cout << "[" << e.type << "/" << e.channel << "/" << e.keyNumber << "/" << e.time << "]";
   return out;
 }
 
