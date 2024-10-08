@@ -207,15 +207,15 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
 // EventsToSignals
 //
 
-EventsToSignals::EventsToSignals(int sr) : _eventQueue(kMaxEventsPerVector)
+EventsToSignals::EventsToSignals(int sr) : eventQueue_(kMaxEventsPerVector)
 {
-  _sampleRate = (float)sr;
+  sampleRate_ = (float)sr;
   
   voices.resize(kMaxVoices);
   
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, (float)sr);
+    voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, (float)sr);
     voices[i].reset(i);
     voices[i].outputs.row(kVoice) = DSPVector((float)i);
   }
@@ -228,65 +228,65 @@ EventsToSignals::~EventsToSignals()
 size_t EventsToSignals::setPolyphony(size_t n)
 {
   reset();
-  _polyphony = std::min(n, kMaxVoices);
-  return _polyphony;
+  polyphony_ = std::min(n, kMaxVoices);
+  return polyphony_;
 }
 
 size_t EventsToSignals::getPolyphony()
 {
-  return _polyphony;
+  return polyphony_;
 }
 
 void EventsToSignals::reset()
 {
-  _eventQueue.clear();
+  eventQueue_.clear();
   
   for(int i=0; i<kMaxVoices; ++i)
   {
     voices[i].reset(i);
   }
   
-  _lastFreeVoiceFound = -1;
+  lastFreeVoiceFound_ = -1;
 }
 
 void EventsToSignals::resetTimes()
 {
-  _eventQueue.clear();
+  eventQueue_.clear();
   
   for(int i=0; i<kMaxVoices; ++i)
   {
     voices[i].resetTime(i);
   }
   
-  _lastFreeVoiceFound = -1;
+  lastFreeVoiceFound_ = -1;
 }
 
 void EventsToSignals::addEvent(const Event& e)
 {
-  _eventQueue.push(e);
+  eventQueue_.push(e);
 }
 
 void EventsToSignals::process()
 {
   for(auto& v : voices)
   {
-    v.beginProcess(_sampleRate);
+    v.beginProcess(sampleRate_);
   }
-  while(Event e = _eventQueue.pop())
+  while(Event e = eventQueue_.pop())
   {
     processEvent(e);
   }
   for(auto& v : voices)
   {
-    v.endProcess(kPitchBendSemitones, _sampleRate);
+    v.endProcess(pitchBendRangeInSemitones_, sampleRate_);
   }
   
   // TEMP
   testCounter += kFloatsPerDSPVector;
-  if(testCounter > _sampleRate)
+  if(testCounter > sampleRate_)
   {
  //   dumpVoices();
-    testCounter -= _sampleRate;
+    testCounter -= sampleRate_;
   }
 }
 
@@ -324,15 +324,15 @@ void EventsToSignals::processEvent(const Event &eventParam)
 
 void EventsToSignals::processNoteOnEvent(const Event& e)
 {
-  keyStates[e.keyNumber].state = KeyState::kOn;
-  keyStates[e.keyNumber].noteOnIndex = currentNoteOnIndex++;
-  keyStates[e.keyNumber].pitch = e.value1;
+  keyStates_[e.keyNumber].state = KeyState::kOn;
+  keyStates_[e.keyNumber].noteOnIndex = currentNoteOnIndex++;
+  keyStates_[e.keyNumber].pitch = e.value1;
     
   if(unison_)
   {
-    for(int v=0; v<_polyphony; ++v)
+    for(int v=0; v<polyphony_; ++v)
     {
-      voices[v].writeNoteEvent(e, _scale, _sampleRate);
+      voices[v].writeNoteEvent(e, scale_, sampleRate_);
     }
   }
   else
@@ -341,7 +341,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     
     if(v >= 0)
     {
-      voices[v].writeNoteEvent(e, _scale, _sampleRate);
+      voices[v].writeNoteEvent(e, scale_, sampleRate_);
     }
     else
     {
@@ -352,21 +352,21 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
       // are cut off. add more graceful stealing
       Event f = e;
       f.type = kNoteRetrig;
-      voices[v].writeNoteEvent(f, _scale, _sampleRate);
+      voices[v].writeNoteEvent(f, scale_, sampleRate_);
     }
-    newestVoice = v;
+    newestVoice_ = v;
   }
 }
 
 void EventsToSignals::processNoteOffEvent(const Event& e)
 {
-  if(_sustainPedalActive)
+  if(sustainPedalActive_)
   {
-    keyStates[e.keyNumber].state = KeyState::kSustain;
+    keyStates_[e.keyNumber].state = KeyState::kSustain;
   }
   else
   {
-    keyStates[e.keyNumber].state = KeyState::kOff;
+    keyStates_[e.keyNumber].state = KeyState::kOff;
   }
 
   if(unison_)
@@ -376,16 +376,16 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     size_t heldNotes{0};
     for(int i=0; i<kMaxPhysicalKeys; ++i)
     {
-      const auto ks = keyStates[i];
+      const auto ks = keyStates_[i];
       if(ks.state == KeyState::kOn) heldNotes++;
     }
     
     // if the last note was released, turn off all voices.
     if(heldNotes == 0)
     {
-      for(int v=0; v<_polyphony; ++v)
+      for(int v=0; v<polyphony_; ++v)
       {
-        voices[v].writeNoteEvent(e, _scale, _sampleRate);
+        voices[v].writeNoteEvent(e, scale_, sampleRate_);
       }
     }
     else
@@ -406,7 +406,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
         uint32_t mostRecentHeldKey{0};
         for(int i=0; i<kMaxPhysicalKeys; ++i)
         {
-          const auto ks = keyStates[i];
+          const auto ks = keyStates_[i];
           if((ks.state == KeyState::kOn) && (ks.noteOnIndex > maxNoteOnIndex))
           {
             maxNoteOnIndex = ks.noteOnIndex;
@@ -416,24 +416,24 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
         
         // send key number and pitch of most recent held note
         eventToSend.keyNumber = mostRecentHeldKey;
-        eventToSend.value1 = keyStates[mostRecentHeldKey].pitch;
+        eventToSend.value1 = keyStates_[mostRecentHeldKey].pitch;
        
-        for(int v=0; v<_polyphony; ++v)
+        for(int v=0; v<polyphony_; ++v)
         {
-          voices[v].writeNoteEvent(eventToSend, _scale, _sampleRate);
+          voices[v].writeNoteEvent(eventToSend, scale_, sampleRate_);
         }
       }
     }
   }
   else
   {
-    if(!_sustainPedalActive)
+    if(!sustainPedalActive_)
     {
-      for(int v = 0; v < _polyphony; ++v)
+      for(int v = 0; v < polyphony_; ++v)
       {
         if(voices[v].creatorKeyNumber == e.keyNumber)
         {
-          voices[v].writeNoteEvent(e, _scale, _sampleRate);
+          voices[v].writeNoteEvent(e, scale_, sampleRate_);
         }
       }
     }
@@ -443,7 +443,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
 
 void EventsToSignals::processNotePressureEvent(const Event& event)
 {
-  for (int v=0; v<_polyphony; ++v)
+  for (int v=0; v<polyphony_; ++v)
   {
     voices[v].currentZ = event.value1;
   }
@@ -451,7 +451,7 @@ void EventsToSignals::processNotePressureEvent(const Event& event)
 
 void EventsToSignals::processPitchWheelEvent(const Event& event)
 {
-  for (int v=0; v<_polyphony; ++v)
+  for (int v=0; v<polyphony_; ++v)
   {
     // write pitch bend
     voices[v].currentPitchBend = event.value1;
@@ -477,19 +477,19 @@ void EventsToSignals::processControllerEvent(const Event& event)
     if(val == 0)
     {
       // all notes off
-      for(int v=0; v<_polyphony; ++v)
+      for(int v=0; v<polyphony_; ++v)
       {
         Voice& voice = voices[v];
         Event eventToSend = event;
         eventToSend.type = kNoteOff;
-        voice.writeNoteEvent(eventToSend, _scale, _sampleRate);
+        voice.writeNoteEvent(eventToSend, scale_, sampleRate_);
       }
     }
   }
   else
   {
     // modulate all voices.
-    for (int v=0; v<_polyphony; ++v)
+    for (int v=0; v<polyphony_; ++v)
     {
       if(ctrl == 1)
       {
@@ -509,18 +509,18 @@ void EventsToSignals::processControllerEvent(const Event& event)
 
 void EventsToSignals::processSustainEvent(const Event& event)
 {
-  _sustainPedalActive = (event.value1 > 0.5f) ? 1 : 0;
-  if(!_sustainPedalActive)
+  sustainPedalActive_ = (event.value1 > 0.5f) ? 1 : 0;
+  if(!sustainPedalActive_)
   {
     // clear any sustaining voices
-    for(int i=0; i<_polyphony; ++i)
+    for(int i=0; i<polyphony_; ++i)
     {
       Voice& v = voices[i];
-      if(keyStates[v.creatorKeyNumber].state == KeyState::kSustain)
+      if(keyStates_[v.creatorKeyNumber].state == KeyState::kSustain)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
-        v.writeNoteEvent(newEvent, _scale, _sampleRate);
+        v.writeNoteEvent(newEvent, scale_, sampleRate_);
       }
     }
   }
@@ -528,24 +528,24 @@ void EventsToSignals::processSustainEvent(const Event& event)
 
 void EventsToSignals::setPitchBendInSemitones(float f)
 {
-  kPitchBendSemitones = f;
+  pitchBendRangeInSemitones_ = f;
 }
 
 void EventsToSignals::setGlideTimeInSeconds(float f)
 {
-  _pitchGlideTimeInSeconds = f;
+  pitchGlideTimeInSeconds_ = f;
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, _sampleRate);
+    voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
   }
 }
 
 void EventsToSignals::setDriftAmount(float f)
 {
-  _pitchDriftAmount = f;
+  pitchDriftAmount_ = f;
   for(int i=0; i<kMaxVoices; ++i)
   {
-    voices[i].setParams(_pitchGlideTimeInSeconds, _pitchDriftAmount, _sampleRate);
+    voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
   }
 }
 
@@ -557,13 +557,13 @@ void EventsToSignals::setUnison(bool b)
 #pragma mark -
 
 // return index of free voice or -1 for none.
-// increments mVoiceRotateOffset.
+// if a free voice is found, increments lastFreeVoiceFound_.
 //
 int EventsToSignals::findFreeVoice()
 {
-  int len = _polyphony;
+  int len = polyphony_;
   int r = -1;
-  int t = _lastFreeVoiceFound;
+  int t = lastFreeVoiceFound_;
   for (int i = 0; i < len; ++i)
   {
     t++;
@@ -572,26 +572,12 @@ int EventsToSignals::findFreeVoice()
     if (voices[t].creatorKeyNumber == 0)
     {
       r = t;
-      _lastFreeVoiceFound = t;
+      lastFreeVoiceFound_ = t;
       break;
     }
   }
   
   return r;
-}
-
-int EventsToSignals::countBusyVoices()
-{
-  int c{0};
-  for (int i = 0; i < _polyphony; ++i)
-  {
-    if(voices[i].creatorKeyNumber != 0)
-    {
-      c++;
-    }
-  }
-  
-  return c;
 }
 
 int EventsToSignals::findVoiceToSteal(Event e)
@@ -607,7 +593,7 @@ int EventsToSignals::findNearestVoice(int note)
   int r = 0;
   int minDist = 128;
   
-  for (int v=0; v<_polyphony; ++v)
+  for (int v=0; v<polyphony_; ++v)
   {
     int vNote = voices[v].creatorKeyNumber;
     int noteDist = std::abs(note - vNote);
@@ -624,7 +610,7 @@ int EventsToSignals::findNearestVoice(int note)
 void EventsToSignals::dumpVoices()
 {
   std::cout << "voices:\n";
-  for (int i=0; i<_polyphony; ++i)
+  for (int i=0; i<polyphony_; ++i)
   {
     std::cout << "    " << i << ": ";
     
@@ -632,7 +618,7 @@ void EventsToSignals::dumpVoices()
     int vKey = voice.creatorKeyNumber;
     std::cout << "[i: " << vKey << "]";
     
-    switch(keyStates[vKey].state)
+    switch(keyStates_[vKey].state)
     {
       case KeyState::kOff:
         std::cout  << "off";

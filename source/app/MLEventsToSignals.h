@@ -68,7 +68,7 @@ public:
   
   static constexpr float kGlideTimeSeconds{0.02f};
   static constexpr float kDriftTimeSeconds{8.0f};
-  static constexpr float kDriftScale{0.01f};
+  static constexpr float kDriftScale{0.02f};
 
   // Event: something that happens.
   //
@@ -81,6 +81,8 @@ public:
     int channel;
     int keyNumber;  // The unique key or touch number that created the event.
     int time; // Onset time in samples from start of current process buffer.
+    
+    // float values that have different meanings for different event types.
     float value1{0};
     float value2{0};
     float value3{0};
@@ -88,7 +90,6 @@ public:
     
     explicit operator bool() const { return type != kNull; }
   };
-  
   
   #pragma mark -
   
@@ -159,7 +160,7 @@ public:
   size_t setPolyphony(size_t n);
   size_t getPolyphony();
   
-  int getNewestVoice() { return newestVoice; }
+  int getNewestVoice() { return newestVoice_; }
 
   // clear all voices and queued events and reset state.
   void reset();
@@ -192,31 +193,25 @@ private:
   void processNotePressureEvent(const Event& event);
   void processChannelPressureEvent(const Event& event);
   void processSustainEvent(const Event& event);
-
-  // find a free voice index. if no free voice is found return -1.
   int findFreeVoice();
-  int countBusyVoices();
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
   
-  void dumpVoices();
-  
-  // data
-  // TODO rename things
-  std::array<KeyState, kMaxPhysicalKeys> keyStates;
-  Queue< Event > _eventQueue;
-  Scale _scale;
-  int _polyphony{0};
-  int _lastFreeVoiceFound{-1};
-  int newestVoice{-1};
-  bool _sustainPedalActive{false};
-  float _sampleRate;
-  float kPitchBendSemitones{7.f};
-  float _pitchGlideTimeInSeconds{0.f};
-  float _pitchDriftAmount{0.f};
+  std::array< KeyState, kMaxPhysicalKeys > keyStates_;
+  Queue< Event > eventQueue_;
+  Scale scale_;
+  int polyphony_{0};
+  int lastFreeVoiceFound_{-1};
+  int newestVoice_{-1};
+  bool sustainPedalActive_{false};
+  float sampleRate_;
+  float pitchBendRangeInSemitones_{7.f};
+  float pitchGlideTimeInSeconds_{0.f};
+  float pitchDriftAmount_{0.f};
   bool unison_{false};
   uint32_t currentNoteOnIndex{0};
   
+  void dumpVoices();
   int testCounter{0};
 };
 
