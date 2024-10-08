@@ -42,11 +42,17 @@ enum EventType
   kProgramChange
 };
 
-enum KeyState
+struct KeyState
 {
-  kOff,
-  kOn,
-  kSustain
+  enum PlayingState
+  {
+    kOff,
+    kOn,
+    kSustain
+  };
+  PlayingState state{kOff};
+  float pitch{0.f};
+  uint32_t noteOnIndex{0};
 };
 
 // EventsToSignals processes different types of events and generates bundles of signals to
@@ -176,10 +182,7 @@ public:
   std::vector< Voice > voices;
   
 private:
-  
-  void addHeldKey(size_t keyIndex);
-  void removeHeldKey(size_t keyIndex);
-  
+
   void processEvent(const Event &eventParam);
   void processNoteOnEvent(const Event& event);
   void processNoteOffEvent(const Event& event);
@@ -200,21 +203,9 @@ private:
   
   // data
   // TODO rename things
-  std::array<KeyState, kMaxPhysicalKeys> keyStates {kOff};
-  
-  // array of held keys in order played. In other words, if the notes C3, G3, E3 are played, the first
-  // three elements of the array will be 60, 67, 64. Then if the E is released the first 3 elements will
-  // be: 60, 0, 64.
-  std::array<size_t, kMaxPhysicalKeys> heldKeys {0};
-  int maxHeldKeyIndex{-1};
-  
-//  add in key-down-index
-//  to find most recent
-//  held keys in order structure: array adding key #s in order. on key off, clear key off # to 0.
-  
-  int heldNotes{0};
-  Scale _scale;
+  std::array<KeyState, kMaxPhysicalKeys> keyStates;
   Queue< Event > _eventQueue;
+  Scale _scale;
   int _polyphony{0};
   int _lastFreeVoiceFound{-1};
   int newestVoice{-1};
@@ -224,6 +215,7 @@ private:
   float _pitchGlideTimeInSeconds{0.f};
   float _pitchDriftAmount{0.f};
   bool unison_{false};
+  uint32_t currentNoteOnIndex{0};
   
   int testCounter{0};
 };

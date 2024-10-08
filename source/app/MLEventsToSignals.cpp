@@ -288,7 +288,6 @@ void EventsToSignals::process()
  //   dumpVoices();
     testCounter -= _sampleRate;
   }
-  
 }
 
 // process one incoming event by making the appropriate changes in state and change lists.
@@ -322,44 +321,13 @@ void EventsToSignals::processEvent(const Event &eventParam)
   }
 }
 
-void EventsToSignals::addHeldKey(size_t keyIndex)
-{
-  heldKeys[++maxHeldKeyIndex] = keyIndex;
-}
-
-void EventsToSignals::removeHeldKey(size_t keyIndex)
-{
-  if(heldKeys[maxHeldKeyIndex] == keyIndex)
-  {
-    // most recent key removed:
-    // remove latest held key and decrement index until reaching a nonzero one
-    heldKeys[maxHeldKeyIndex] = 0;
-    for(; maxHeldKeyIndex >= 0; maxHeldKeyIndex--)
-    {
-      if(heldKeys[maxHeldKeyIndex] != 0) break;
-    }
-  }
-  else
-  {
-    // less recent key removed:
-    // set that key index to 0
-    for(int i = maxHeldKeyIndex; i >= 0; i--)
-    {
-      if(heldKeys[i] == keyIndex)
-      {
-        heldKeys[i] = 0;
-        break;
-      }
-    }
-  }
-}
 
 void EventsToSignals::processNoteOnEvent(const Event& e)
 {
-  addHeldKey(e.keyNumber);
-  keyStates[e.keyNumber] = kOn;
-  heldNotes++;
-  
+  keyStates[e.keyNumber].state = KeyState::kOn;
+  keyStates[e.keyNumber].noteOnIndex = currentNoteOnIndex++;
+  keyStates[e.keyNumber].pitch = e.value1;
+    
   if(unison_)
   {
     for(int v=0; v<_polyphony; ++v)
@@ -392,19 +360,26 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
 
 void EventsToSignals::processNoteOffEvent(const Event& e)
 {
-  removeHeldKey(e.keyNumber);
   if(_sustainPedalActive)
   {
-    keyStates[e.keyNumber] = kSustain;
+    keyStates[e.keyNumber].state = KeyState::kSustain;
   }
   else
   {
-    keyStates[e.keyNumber] = kOff;
-    heldNotes--;
+    keyStates[e.keyNumber].state = KeyState::kOff;
   }
 
   if(unison_)
   {
+    // count held notes. It might seem like we could just keep a counter, but
+    // redundant note offs, which breaks that approach, are common.
+    size_t heldNotes{0};
+    for(int i=0; i<kMaxPhysicalKeys; ++i)
+    {
+      const auto ks = keyStates[i];
+      if(ks.state == KeyState::kOn) heldNotes++;
+    }
+    
     // if the last note was released, turn off all voices.
     if(heldNotes == 0)
     {
@@ -417,45 +392,38 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     {
       // if the note released is the currently playing one, change all voices
       // to the most recently played held note.
-      
-      auto currentlyPlayingKey = voices[0].creatorKeyNumber;
-      std::cout << "off key: " << e.keyNumber << " / " << currentlyPlayingKey << "\n";
-      
-      if (e.keyNumber == currentlyPlayingKey)
+      if (e.keyNumber == voices[0].creatorKeyNumber)
       {
-        
-        auto mostRecentHeldKey = heldKeys[maxHeldKeyIndex];
-        
-        std::cout << "switching to held key: " << mostRecentHeldKey << "\n";
-
-        
-        
-        
         // send kNoteOn event to change note without retriggering envelope
         Event eventToSend = e;
         eventToSend.type = kNoteOn;
-        eventToSend.keyNumber = mostRecentHeldKey;
         
-        // keep current velocity
+        // keep current velocity for all voices
         eventToSend.value2 = voices[0].currentVelocity;
         
-        std::cout << "keystate of " << eventToSend.keyNumber << ": " << keyStates[eventToSend.keyNumber] << "\n";
+        // get most recently played held key
+        uint32_t maxNoteOnIndex{0};
+        uint32_t mostRecentHeldKey{0};
+        for(int i=0; i<kMaxPhysicalKeys; ++i)
+        {
+          const auto ks = keyStates[i];
+          if((ks.state == KeyState::kOn) && (ks.noteOnIndex > maxNoteOnIndex))
+          {
+            maxNoteOnIndex = ks.noteOnIndex;
+            mostRecentHeldKey = i;
+          }
+        }
         
+        // send key number and pitch of most recent held note
+        eventToSend.keyNumber = mostRecentHeldKey;
+        eventToSend.value1 = keyStates[mostRecentHeldKey].pitch;
+       
         for(int v=0; v<_polyphony; ++v)
         {
           voices[v].writeNoteEvent(eventToSend, _scale, _sampleRate);
         }
       }
     }
-    
-    
-    // TEMP
-    for(int i=0; i<16; ++i)
-    {
-      std::cout << heldKeys[i] << " ";
-    }
-    std::cout << "\n";
-    
   }
   else
   {
@@ -544,13 +512,11 @@ void EventsToSignals::processSustainEvent(const Event& event)
   _sustainPedalActive = (event.value1 > 0.5f) ? 1 : 0;
   if(!_sustainPedalActive)
   {
-    heldNotes = 0;
-    
     // clear any sustaining voices
     for(int i=0; i<_polyphony; ++i)
     {
       Voice& v = voices[i];
-      if(keyStates[v.creatorKeyNumber] == kSustain)
+      if(keyStates[v.creatorKeyNumber].state == KeyState::kSustain)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
@@ -666,15 +632,15 @@ void EventsToSignals::dumpVoices()
     int vKey = voice.creatorKeyNumber;
     std::cout << "[i: " << vKey << "]";
     
-    switch(keyStates[vKey])
+    switch(keyStates[vKey].state)
     {
-      case kOff:
+      case KeyState::kOff:
         std::cout  << "off";
         break;
-      case kOn:
+      case KeyState::kOn:
         std::cout  << " on";
         break;
-      case kSustain:
+      case KeyState::kSustain:
         std::cout  << "sus";
         break;
       default:
