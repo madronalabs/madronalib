@@ -4,15 +4,11 @@
 
 #pragma once
 
-#include <deque>
-#include <iostream>
-
 #include "madronalib.h"
 #include "mldsp.h"
 
 namespace ml
 {
-
 
 // rows per voice output signal.
 enum VoiceOutputSignals
@@ -112,7 +108,7 @@ public:
     void beginProcess(float sr);
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, const Scale& Scale, float sr);
+    void writeNoteEvent(const Event& e, const Scale& Scale, float sr, bool doGlide = true);
 
     // write all current info to the end of the current buffer.
     // add pitchBend to pitch.
@@ -139,7 +135,9 @@ public:
     LinearGlide xGlide;
     LinearGlide yGlide;
     LinearGlide zGlide;
-    
+    int pitchGlideTimeInSamples{0};
+    bool inhibitPitchGlide{0};
+
     // drift generates a wandering signal on [0, 1] then is scaled and added to pitch
     // TODO encapsulate this as DrunkenWalkGen
     RandomScalarSource driftSource;
@@ -184,6 +182,7 @@ public:
   
 private:
 
+  size_t countHeldNotes();
   void processEvent(const Event &eventParam);
   void processNoteOnEvent(const Event& event);
   void processNoteOffEvent(const Event& event);

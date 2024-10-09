@@ -11,8 +11,13 @@ namespace ml {
 
 void EventsToSignals::Voice::setParams(float pitchGlideInSeconds, float drift, float sr)
 {
-  // separate glide time for note pitch
-  pitchGlide.setGlideTimeInSamples(sr*pitchGlideInSeconds);
+  // store separate glide time for note pitch
+  pitchGlideTimeInSamples = sr*pitchGlideInSeconds;
+  
+  if(!inhibitPitchGlide)
+  {
+    pitchGlide.setGlideTimeInSamples(pitchGlideTimeInSamples);
+  }
   
   pitchBendGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
   modGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
@@ -80,7 +85,7 @@ float getAgeInSeconds(uint32_t age, float sr)
   return (float)dSeconds;
 }
 
-void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, float sampleRate)
+void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, float sampleRate, bool doGlide)
 {
   auto time = e.time;
   
@@ -88,12 +93,21 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
   {
     case kNoteOn:
     {
-      //     std::cout << "write note: " << pitchj
       creatorKeyNumber = e.keyNumber;
       ageInSamples = 0;
       ageStep = 1;
       int destTime = e.time;
       destTime = clamp(destTime, (0), (int)kFloatsPerDSPVector);
+      
+      inhibitPitchGlide = !doGlide;
+      if(!inhibitPitchGlide)
+      {
+        pitchGlide.setGlideTimeInSamples(pitchGlideTimeInSamples);
+      }
+      else
+      {
+        pitchGlide.setGlideTimeInSamples(0);
+      }
       
       // write current pitch and velocity up to note start
       for(int t = (int)nextFrameToProcess; t < destTime; ++t)
@@ -106,7 +120,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       
       // set new values
       currentPitch = scale.noteToLogPitch(e.value1);
-      currentVelocity = e.value2; // TODO union
+      currentVelocity = e.value2;
       nextFrameToProcess = destTime;
       
       break;
@@ -290,6 +304,19 @@ void EventsToSignals::process()
   }
 }
 
+size_t EventsToSignals::countHeldNotes()
+{
+  // count held notes. It might seem like we could just keep a counter, but
+  // redundant note offs, which break that approach, are common.
+  size_t heldNotes{0};
+  for(int i=0; i<kMaxPhysicalKeys; ++i)
+  {
+    const auto ks = keyStates_[i];
+    if(ks.state == KeyState::kOn) heldNotes++;
+  }
+  return heldNotes;
+}
+
 // process one incoming event by making the appropriate changes in state and change lists.
 void EventsToSignals::processEvent(const Event &eventParam)
 {
@@ -330,9 +357,12 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     
   if(unison_)
   {
+    // don't glide to first note played in unison mode.
+    bool glideToNextNote = (countHeldNotes() > 1);
+    
     for(int v=0; v<polyphony_; ++v)
     {
-      voices[v].writeNoteEvent(e, scale_, sampleRate_);
+      voices[v].writeNoteEvent(e, scale_, sampleRate_, glideToNextNote);
     }
   }
   else
@@ -371,17 +401,8 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
 
   if(unison_)
   {
-    // count held notes. It might seem like we could just keep a counter, but
-    // redundant note offs, which breaks that approach, are common.
-    size_t heldNotes{0};
-    for(int i=0; i<kMaxPhysicalKeys; ++i)
-    {
-      const auto ks = keyStates_[i];
-      if(ks.state == KeyState::kOn) heldNotes++;
-    }
-    
     // if the last note was released, turn off all voices.
-    if(heldNotes == 0)
+    if(countHeldNotes() == 0)
     {
       for(int v=0; v<polyphony_; ++v)
       {
