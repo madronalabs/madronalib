@@ -24,7 +24,7 @@ namespace llllpluginnamellll {
 constexpr int kMaxProcessBlockFrames = 4096;
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
-constexpr int kMaxVoices = 4;
+constexpr size_t kMaxVoices = 4;
 
 // plugin-specific parameter IDs
 enum
@@ -129,7 +129,7 @@ private:
   };
   
   LinearGlide _cutoffGlide;
-  
+  Scale defaultScale;
   std::array< SynthVoice, kMaxVoices > _voices;
 };
 

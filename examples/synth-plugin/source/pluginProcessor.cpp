@@ -286,7 +286,7 @@ void PluginProcessor::processEvents (IEventList* events)
       int channel{1};
       int creatorID{e.noteOn.pitch};
       int time{e.sampleOffset};
-      float pitch{e.noteOn.pitch + 0.f};
+      float pitch = defaultScale.noteToLogPitch(e.noteOn.pitch);
       
       switch (e.type)
       {

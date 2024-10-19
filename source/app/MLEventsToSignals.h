@@ -108,7 +108,7 @@ public:
     void beginProcess(float sr);
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, const Scale& Scale, float sr, bool doGlide = true);
+    void writeNoteEvent(const Event& e, float sr, bool doGlide = true);
 
     // write all current info to the end of the current buffer.
     // add pitchBend to pitch.
@@ -198,7 +198,6 @@ private:
   
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
   Queue< Event > eventQueue_;
-  Scale scale_;
   int polyphony_{0};
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};

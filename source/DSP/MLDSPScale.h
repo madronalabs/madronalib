@@ -3,8 +3,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-#ifndef _ML_SCALE_H
-#define _ML_SCALE_H
+#pragma once
 
 #include <vector>
 #include <iomanip>
@@ -17,7 +16,6 @@
 #include <locale>
 
 #include "MLDSPScalarMath.h"
-
 
 namespace ml
 {
@@ -509,5 +507,3 @@ private:
 };
 
 }
-
-#endif // _ML_SCALE_H

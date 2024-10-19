@@ -85,7 +85,7 @@ float getAgeInSeconds(uint32_t age, float sr)
   return (float)dSeconds;
 }
 
-void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, float sampleRate, bool doGlide)
+void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bool doGlide)
 {
   auto time = e.time;
   
@@ -119,7 +119,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       }
       
       // set new values
-      currentPitch = scale.noteToLogPitch(e.value1);
+      currentPitch = e.value1;
       currentVelocity = e.value2;
       nextFrameToProcess = destTime;
       
@@ -151,8 +151,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, const Scale& scale, 
       outputs.row(kPitch)[destTime - 1] = pitchGlide.nextSample(currentPitch);
       
       // set new values
-      currentPitch = scale.noteToLogPitch(e.value1);
-      currentVelocity = e.value2; // TODO union
+      currentPitch = e.value1;
+      currentVelocity = e.value2;
       nextFrameToProcess = destTime;
       ageInSamples = 0;
 
@@ -362,7 +362,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     
     for(int v=0; v<polyphony_; ++v)
     {
-      voices[v].writeNoteEvent(e, scale_, sampleRate_, glideToNextNote);
+      voices[v].writeNoteEvent(e, sampleRate_, glideToNextNote);
     }
   }
   else
@@ -371,7 +371,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     
     if(v >= 0)
     {
-      voices[v].writeNoteEvent(e, scale_, sampleRate_);
+      voices[v].writeNoteEvent(e, sampleRate_);
     }
     else
     {
@@ -382,7 +382,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
       // are cut off. add more graceful stealing
       Event f = e;
       f.type = kNoteRetrig;
-      voices[v].writeNoteEvent(f, scale_, sampleRate_);
+      voices[v].writeNoteEvent(f, sampleRate_);
     }
     newestVoice_ = v;
   }
@@ -406,7 +406,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     {
       for(int v=0; v<polyphony_; ++v)
       {
-        voices[v].writeNoteEvent(e, scale_, sampleRate_);
+        voices[v].writeNoteEvent(e, sampleRate_);
       }
     }
     else
@@ -441,7 +441,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
        
         for(int v=0; v<polyphony_; ++v)
         {
-          voices[v].writeNoteEvent(eventToSend, scale_, sampleRate_);
+          voices[v].writeNoteEvent(eventToSend, sampleRate_);
         }
       }
     }
@@ -454,7 +454,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
       {
         if(voices[v].creatorKeyNumber == e.keyNumber)
         {
-          voices[v].writeNoteEvent(e, scale_, sampleRate_);
+          voices[v].writeNoteEvent(e, sampleRate_);
         }
       }
     }
@@ -503,7 +503,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
         Voice& voice = voices[v];
         Event eventToSend = event;
         eventToSend.type = kNoteOff;
-        voice.writeNoteEvent(eventToSend, scale_, sampleRate_);
+        voice.writeNoteEvent(eventToSend, sampleRate_);
       }
     }
   }
@@ -541,7 +541,7 @@ void EventsToSignals::processSustainEvent(const Event& event)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
-        v.writeNoteEvent(newEvent, scale_, sampleRate_);
+        v.writeNoteEvent(newEvent, sampleRate_);
       }
     }
   }
