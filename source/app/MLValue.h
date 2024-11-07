@@ -251,4 +251,16 @@ using WithValues = const std::initializer_list<NamedValue>;
     std::string getTypeDebugStr(const ml::Value& r);
   std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
+// template function for doing things when Values (or any other types) change
+template<typename T>
+inline bool valueChanged(T newValue, T& prevValue)
+{
+  if(newValue != prevValue)
+  {
+    prevValue = newValue;
+    return true;
+  }
+  return false;
+}
+
 }  // namespace ml
