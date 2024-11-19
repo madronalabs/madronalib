@@ -28,6 +28,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   auto units = Symbol(p.getProperty("units").getTextValue());
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   bool bisquare = p.getProperty("bisquare").getBoolValueWithDefault(false);
+  
   Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
   float offset = p.getProperty("offset").getFloatValueWithDefault(0.f);
 
@@ -318,6 +319,7 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName,
 inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
   const auto& paramDesc = p.descriptions[pname];
+  if(!paramDesc) return Value();
   
   if (paramDesc->hasProperty("default"))
   {

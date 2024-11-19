@@ -18,14 +18,15 @@ class PropertyTree
   PropertyTree() = default;
   PropertyTree(Tree<Value> vt) : properties(vt) {}
   PropertyTree(const PropertyTree& other) : properties(other.properties) {}
-  PropertyTree(const std::initializer_list<NamedValue> p)
+  
+  PropertyTree(const std::initializer_list< NamedValue >& p)
   {
     for (const auto& v : p)
     {
       properties.add(v.name, v.value);
     }
   }
-
+  
   bool hasProperty(Path p) const { return (properties.getConstNode(p) != nullptr); }
 
   // get the Value of the property. Will return a null Value object if no such
