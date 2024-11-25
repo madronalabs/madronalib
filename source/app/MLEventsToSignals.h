@@ -125,7 +125,7 @@ public:
     float currentY{0};
     float currentZ{0};
 
-    size_t creatorKeyNumber{0}; // physical key or touch # of creator. 0 = undefined.
+    int creatorKeyNumber{0}; // physical key or touch # of creator. 0 = undefined.
     uint32_t ageInSamples{0};
     uint32_t ageStep{0};
 
@@ -198,7 +198,7 @@ private:
   
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
   Queue< Event > eventQueue_;
-  int polyphony_{0};
+  size_t polyphony_{0};
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};
   bool sustainPedalActive_{false};

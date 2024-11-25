@@ -582,7 +582,7 @@ void EventsToSignals::setUnison(bool b)
 //
 int EventsToSignals::findFreeVoice()
 {
-  int len = polyphony_;
+  int len = (int)polyphony_;
   int r = -1;
   int t = lastFreeVoiceFound_;
   for (int i = 0; i < len; ++i)
