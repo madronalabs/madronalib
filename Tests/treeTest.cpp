@@ -329,12 +329,14 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties.add("melodies/1", {1, 2, 3, 4, 5, 6, 7});
   properties.add("melodies/2", {8, 7, 6, 5, 4, 3, 2});
 
+  /* TEMP
   // add a 3D matrix
   Matrix melody3(4, 5, 2);
   melody3.fill(9.f);
   properties.add("melodies/3", melody3);
   properties.add("melodies/3/dummy", 4);
-
+*/
+  
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
   REQUIRE(!treeNodeExists(properties, "x"));

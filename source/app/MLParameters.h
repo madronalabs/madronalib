@@ -29,11 +29,17 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   bool bisquare = p.getProperty("bisquare").getBoolValueWithDefault(false);
   
-  Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
-  float offset = p.getProperty("offset").getFloatValueWithDefault(0.f);
-
   Interval normalRange{0., 1.};
-  Interval plainRange{range[0], range[1]};
+  Value rv = p.getProperty("range");
+    
+  // TEMP
+  Interval plainRange(normalRange);// = rv.getIntervalValueWithDefault({0, 1});
+  float offset = p.getProperty("offset").getFloatValueWithDefault(0.f);
+  
+  std::cout << "RANGE: " << plainRange << "\n";
+
+ // Interval normalRange{0., 1.};
+ // Interval plainRange{range[0], range[1]};
   
   // make ranges for list parameters
   if (units == "list")

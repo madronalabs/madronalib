@@ -13,6 +13,8 @@ namespace ml
 class PropertyTree
 {
   Tree<Value> properties;
+  
+  // Properties can provide converters to other types commonly used in Widgets
 
  public:
   PropertyTree() = default;
@@ -39,7 +41,6 @@ class PropertyTree
   bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
   int getIntProperty(Path p) const { return properties[p].getIntValue(); }
   Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-  Matrix getMatrixProperty(Path p) const { return properties[p].getMatrixValue(); }
   uint32_t getUnsignedLongProperty(Path p) const { return properties[p].getUnsignedLongValue(); }
 
   float getFloatPropertyWithDefault(Path p, float d) const
@@ -58,14 +59,22 @@ class PropertyTree
   {
     return properties[p].getTextValueWithDefault(d);
   }
-  Matrix getMatrixPropertyWithDefault(Path p, Matrix d) const
-  {
-    return properties[p].getMatrixValueWithDefault(d);
-  }
   uint32_t getUnsignedLongPropertyWithDefault(Path p, uint32_t d) const
   {
     return properties[p].getUnsignedLongValueWithDefault(d);
   }
+  
+  
+  float getIntervalProperty(Path p) const
+  {
+    return properties[p].getFloatValueWithDefault(d);
+  }
+  float getIntervalPropertyWithDefault(Path p, float d) const
+  {
+    return properties[p].getFloatValueWithDefault(d);
+  }
+
+
 
   std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }
   PropertyTree binaryToPropertyTree(const std::vector<unsigned char>& binaryData)

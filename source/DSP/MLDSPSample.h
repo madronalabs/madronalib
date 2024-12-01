@@ -2,7 +2,7 @@
 // Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// just a starting point! An audio sample class. Some of the old Matrix code might be useful here.
+// just a starting point! An audio sample class. 
 
 #pragma once
 

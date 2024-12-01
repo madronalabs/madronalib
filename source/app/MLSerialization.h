@@ -61,10 +61,6 @@ inline TextFragment valueToText(const Value v)
     case Value::kTextValue:
       return TextFragment{"T", v.getTextValue()};
       break;
-    case Value::kMatrixValue:
-      // unimplemented
-      return TextFragment{};  // {"M", matrixToText(v.getMatrixValue())};
-      break;
     case Value::kUnsignedLongValue:
       return TextFragment{"L", textUtils::naturalNumberToText(v.getUnsignedLongValue())};
       break;
@@ -81,8 +77,12 @@ inline Value textToValue(const Text v)
 
 // TODO endian issues ?
 
+
 inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
 {
+  
+  // TEMP TODO  just write the bytes in the Value Union!!
+  
   std::vector<unsigned char> outputVector;
   auto headerSize = sizeof(BinaryChunkHeader);
   auto matrixHeaderSize = sizeof(BinaryMatrixHeader);
@@ -123,26 +123,7 @@ inline std::unique_ptr<std::vector<uint8_t> > valueToBinary(Value v)
       std::copy(pSrc, pSrc + dataSize, pDest);
       break;
     }
-    case Value::kMatrixValue:
-    {
-      auto matrixVal = v.getMatrixValue();
-      
-      uint32_t width = matrixVal.getWidth();
-      uint32_t height = matrixVal.getHeight();
-      uint32_t depth = matrixVal.getDepth();
-      
-      unsigned dataSize = width * height * depth * sizeof(float);
-      
-      // TODO safety, limits
-      
-      outputVector.resize(matrixHeaderSize + dataSize);
-      BinaryMatrixHeader* header{reinterpret_cast<BinaryMatrixHeader*>(outputVector.data())};
-      *header = BinaryMatrixHeader{'M', dataSize, width, height, depth};
-      float* pDest{reinterpret_cast<float*>(outputVector.data() + matrixHeaderSize)};
-      
-      matrixVal.writeToPackedData(pDest);
-      break;
-    }
+
     case Value::kUnsignedLongValue:
     {
       auto f = v.getUnsignedLongValue();
@@ -193,17 +174,6 @@ inline Value binaryToValue(const unsigned char* p)
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* p{reinterpret_cast<const char*>(pData)};
       returnValue = Value{Text(p, header->dataBytes)};
-      break;
-    }
-    case 'M': // matrix
-    {
-      BinaryMatrixHeader header{*reinterpret_cast<const BinaryMatrixHeader*>(p)};
-      const unsigned char* pData = p + sizeof(BinaryMatrixHeader);
-      auto* pFloatData{reinterpret_cast<const float*>(pData)};
-      Matrix m(header.width, header.height, header.depth);
-      m.readFromPackedData(pFloatData);
-      returnValue = Value{m};
-      
       break;
     }
     case 'L': // long

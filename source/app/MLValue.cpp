@@ -8,8 +8,6 @@
 
 namespace ml
 {
-const Matrix Value::nullMatrix{};
-
 Value::Value() : mType(kUndefinedValue), mFloatVal(0) {}
 
 void Value::copyBlob(const void* inputData, size_t size)
@@ -46,6 +44,8 @@ void Value::copyBlob(const void* inputData, size_t size)
 
 Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
 {
+  // TEMP just copy the bytes!!
+  
   switch (mType)
   {
     case kUndefinedValue:
@@ -59,20 +59,18 @@ Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
     case kBlobValue:
       copyBlob(other.pBlobData, other._blobSizeInBytes);
       break;
-    case kMatrixValue:
-      mMatrixVal = other.getMatrixValue();
-      break;
     case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
-      break;
-    case kIntervalValue:
-      mIntervalVal = other.getIntervalValue();
       break;
   }
 }
 
 Value& Value::operator=(const Value& other)
 {
+  
+  // TODO everything is in data, no switch, just copy bytes
+  
+  
   mType = other.getType();
   switch (mType)
   {
@@ -87,15 +85,8 @@ Value& Value::operator=(const Value& other)
     case kBlobValue:
       copyBlob(other.pBlobData, other._blobSizeInBytes);
       break;
-    case kMatrixValue:
-      // Matrix handles copy-in-place when possible
-      mMatrixVal = other.getMatrixValue();
-      break;
     case kUnsignedLongValue:
       mUnsignedLongVal = other.getUnsignedLongValue();
-      break;
-    case kIntervalValue:
-      mIntervalVal = other.getIntervalValue();
       break;
   }
 
@@ -122,10 +113,6 @@ Value::Value(double v) : mType(kFloatValue) { mFloatVal = v; }
 Value::Value(const ml::Text& t) : mType(kTextValue) { mTextVal = t; }
 
 Value::Value(const char* t) : mType(kTextValue) { mTextVal = ml::Text(t); }
-
-Value::Value(const ml::Matrix& s) : mType(kMatrixValue) { mMatrixVal = s; }
-
-Value::Value(Interval i) : mType(kIntervalValue) { mIntervalVal = i; }
 
 Value::Value(const void* pData, size_t n) : mType(kBlobValue)
 {
@@ -195,22 +182,12 @@ void Value::setValue(const char* const v)
   mTextVal = v;
 }
 
-void Value::setValue(const Matrix& v)
-{
-  mType = kMatrixValue;
-  mMatrixVal = v;
-}
-
-void Value::setValue(const Interval v)
-{
-  mType = kIntervalValue;
-  mIntervalVal = v;
-}
-
 void Value::setValue(const Value& v) { *this = v; }
 
 bool Value::operator==(const Value& b) const
 {
+  // TODO just check type, size, bytes
+  
   bool r = false;
   if (mType == b.getType())
   {
@@ -225,18 +202,12 @@ bool Value::operator==(const Value& b) const
       case kTextValue:
         r = (getTextValue() == b.getTextValue());
         break;
-      case kMatrixValue:
-        r = (getMatrixValue() == b.getMatrixValue());
-        break;
       case kUnsignedLongValue:
         r = (getUnsignedLongValue() == b.getUnsignedLongValue());
         break;
       case kBlobValue:
         // compare blobs by value
         r = !std::memcmp(getBlobData(), b.getBlobData(), getBlobSize());
-        break;
-      case kIntervalValue:
-        r = (getIntervalValue() == b.getIntervalValue());
         break;
     }
   }
@@ -261,17 +232,11 @@ std::string getTypeDebugStr(const Value& r) {
     case Value::kTextValue:
       out = "(T)";
       break;
-    case Value::kMatrixValue:
-      out = "(M)";
-      break;
     case Value::kUnsignedLongValue:
       out = "(UL)";
       break;
     case Value::kBlobValue:
       out = "(B)";
-      break;
-    case Value::kIntervalValue:
-      out = "(INT)";
       break;
   }
   return out;
@@ -291,17 +256,11 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
     case Value::kTextValue:
       out << r.getTextValue();
       break;
-    case Value::kMatrixValue:
-      out << r.getMatrixValue();
-      break;
     case Value::kUnsignedLongValue:
       out << r.getUnsignedLongValue();
       break;
     case Value::kBlobValue:
       out << "[blob, " << r.getBlobSize() << " bytes]";
-      break;
-    case Value::kIntervalValue:
-      out << r.getIntervalValue();
       break;
   }
   return out;

@@ -21,6 +21,13 @@
 // TODO: instead of using Matrix directly here as a type, make a blob type
 // and utilities (in Matrix) for conversion.
 
+
+// functions needed for each convertible type:
+// Value(type t);
+// t get[Type]Value();
+// explicit setValue(t);
+
+
 namespace ml
 {
 
@@ -36,14 +43,11 @@ class Value
   {
     kUndefinedValue = 0,
     kFloatValue,
+    kFloatArrayValue,
     kTextValue,
     kBlobValue,
-    kMatrixValue,
-    kUnsignedLongValue,
-    kIntervalValue
+    kUnsignedLongValue
   };
-
-  static const Matrix nullMatrix;
 
   Value();
   Value(const Value& other);
@@ -58,8 +62,7 @@ class Value
   Value(double v);
   Value(const ml::Text& t);
   Value(const char* t);
-  Value(const ml::Matrix& s);
-  Value(Interval i);
+  Value(const float* i);
 
   // Blob constructors.
   // if data size > kBlobSizeBytes, blob values will allocate heap.
@@ -70,28 +73,46 @@ class Value
   // matrix type constructor via initializer_list
   Value(std::initializer_list<float> values)
   {
-    auto size = values.size();
-    if (size == 0)
+    auto listSize = values.size();
+    if (listSize == 0)
     {
       *this = Value();
     }
-    else if (size == 1)
+    else if (listSize == 1)
     {
       *this = Value(*values.begin());
     }
     else
     {
-      *this = Value(Matrix(values));
+      constexpr size_t maxFloats = kLocalDataBytes / sizeof(float);
+      size_t nFloats = std::min(maxFloats, listSize);
+      mType = kFloatArrayValue;
+      _blobSizeInBytes = nFloats*sizeof(float);
+      float* pDest = reinterpret_cast<float*>(_localBlobData);
+      for(const float& value : values)
+      {
+        pDest[0] = value;
+        pDest++;
+      }
     }
   }
 
   ~Value();
 
   inline const float getFloatValue() const { return mFloatVal; }
-
   inline const float getFloatValueWithDefault(float d) const
   {
     return (mType == kFloatValue) ? mFloatVal : d;
+  }
+  
+  inline const float* getFloatArrayValue() const
+  {
+    if(mType == kFloatArrayValue)
+    {
+      float* pDest = reinterpret_cast<float*>(_localBlobData);
+      return pDest;
+    }
+    return nullptr;
   }
 
   inline const float getBoolValue() const { return static_cast<bool>(mFloatVal); }
@@ -123,26 +144,6 @@ class Value
   inline const ml::Text getTextValueWithDefault(Text d) const
   {
     return (mType == kTextValue) ? (mTextVal) : d;
-  }
-
-  inline const Matrix& getMatrixValue() const
-  {
-    return (mType == kMatrixValue) ? (mMatrixVal) : nullMatrix;
-  }
-
-  inline const Matrix getMatrixValueWithDefault(Matrix d) const
-  {
-    return (mType == kMatrixValue) ? (mMatrixVal) : d;
-  }
-
-  inline const Interval getIntervalValue() const
-  {
-    return (mType == kIntervalValue) ? (mIntervalVal) : Interval();
-  }
-  
-  inline const Interval getIntervalValueWithDefault(Interval d) const
-  {
-    return (mType == kIntervalValue) ? (mIntervalVal) : d;
   }
   
   inline void* getBlobData() const
@@ -196,7 +197,6 @@ class Value
   void setValue(const double& v);
   void setValue(const ml::Text& v);
   void setValue(const char* const v);
-  void setValue(const Matrix& v);
   void setValue(const Interval v);
 
   explicit operator bool() const { return (mType != kUndefinedValue); }
@@ -213,7 +213,6 @@ class Value
   bool isUndefinedType() { return mType == kUndefinedValue; }
   bool isFloatType() { return mType == kFloatValue; }
   bool isTextType() { return mType == kTextValue; }
-  bool isMatrixType() { return mType == kMatrixValue; }
 
   bool operator<<(const Value& b) const;
 
@@ -230,7 +229,6 @@ class Value
   Type mType{kUndefinedValue};
   float mFloatVal{};
   ml::Text mTextVal{};
-  Matrix mMatrixVal{};
   uint32_t mUnsignedLongVal{};
   Interval mIntervalVal{};
 };

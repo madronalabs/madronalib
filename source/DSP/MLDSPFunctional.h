@@ -239,7 +239,7 @@ DSPVectorArray<IN_ROWS> vx)
         }
 
 private:
-        //Matrix mHistory;
+        //Signal mHistory;
         const DSPVector& mWindow;
 };
 */

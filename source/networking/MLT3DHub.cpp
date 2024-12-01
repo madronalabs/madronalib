@@ -179,6 +179,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       notifyListeners("volume", v);
     }
 
+    /* TEMP pending Matrix replacement
     // seq message for supporting sequencer pattern changes
     else if (strcmp(addy, "/seq") == 0)
     {
@@ -196,6 +197,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
 
       notifyListeners("sequence", sequence);
     }
+     */
   }
   catch (osc::Exception& e)
   {
