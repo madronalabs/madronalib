@@ -29,7 +29,7 @@ struct Blob
   size_t size{0};
 };
 
-class alignas(16) Value
+class Value
 {
 public:
   
@@ -39,26 +39,30 @@ public:
     kFloat,
     kDouble,
     kBool,
-    kInt32,
-    kInt64,
-    kUInt32,
-    kUInt64,
+    kInt,
     kFloatArray,
     kDoubleArray,
     kText,
     kBlob
   };
-    
+  
+  // for serializing
+  struct BinaryHeader
+  {
+    unsigned int type : 4;
+    unsigned int size : 28;
+  };
+  
 private:
   
-  static constexpr size_t kStructSizeInBytes{256};
-  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - sizeof(size_t) - sizeof(uint8_t *) - sizeof(Type);
+  static constexpr size_t kDesiredStructSizeInBytes{64};
+  static constexpr size_t kLocalDataBytes = kDesiredStructSizeInBytes - 16;
   
   // data
   
-  Type _type{kUndefined};
-  size_t _sizeInBytes;
-  uint8_t * _dataPtr{_localData};
+  uint8_t* _dataPtr{_localData};
+  uint32_t _type{kUndefined};
+  uint32_t _sizeInBytes{0};
   uint8_t _localData[kLocalDataBytes];
   
   // utilities
@@ -91,12 +95,6 @@ private:
   Value(bool v);
   Value(int v);
   
-  /*
-  explicit Value(int64_t v);
-  explicit Value(uint32_t v);
-  explicit Value(uint64_t v);
-*/
-  
   // Constructors with variable-size data.
 
   Value(std::initializer_list<float> values);
@@ -104,17 +102,15 @@ private:
   explicit Value(const ml::Text& v);
   explicit Value(const ml::Blob& v);
   Value(std::vector<uint8_t> dataVec); // alternate Blob
+  Value(const BinaryHeader& header, const uint8_t* readPtr); // for reading binary data
   
   // getters for fixed-size data
   
   float getFloatValue() const;
   double getDoubleValue() const;
   bool getBoolValue() const;
-  int32_t getInt32Value() const;
-  int64_t getInt64Value() const;
-  uint32_t getUInt32Value() const;
-  uint64_t getUInt64Value() const;
-  
+  int getIntValue() const;
+
   // getters for variable-size data.
   
   float* getFloatArrayPtr() const;
@@ -132,10 +128,26 @@ private:
   explicit operator bool() const;
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
-  Type getType() const;
+  uint32_t getType() const;
+  uint32_t size() const;
+  uint8_t* data() const;
 };
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
+
+// serialization
+
+// return size of the binary representation of the Value (incl. type and size)
+size_t getBinarySize(const Value& v);
+
+namespace ValueUtils
+{
+  // write the binary representation of the Value and increment the write pointer.
+  void writeBinaryRepresentation(const Value& v, uint8_t*& writePtr);
+
+  // read the binary representation of the Value and increment the read pointer.
+  Value readBinaryRepresentation(const uint8_t*& readPtr);
+}
 
 // NamedValue for initializer lists
 struct NamedValue

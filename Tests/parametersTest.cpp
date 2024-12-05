@@ -10,9 +10,6 @@
 
 using namespace ml;
 
-// TEMP
-#if(0)
-
 // Create some parameters.
 // TODO read from JSON
 void readParameterDescriptions(ParameterDescriptionList& params)
@@ -66,26 +63,14 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
     ParameterDescription& pdesc = *params.descriptions[pname];
     ParameterProjection& pproj = params.projections[pname];
     
-    std::cout << "name: " << pname << "\n";
-    
     int nSteps{10};
     for(int i=0; i<=nSteps; ++i)
     {
       float fNorm = i/float(nSteps);
-      
-      // TEMP
-      auto nrFn = pproj.normalizedToReal;
-      float fReal = nrFn(fNorm);
-      
-      //float fReal = pproj.normalizedToReal(fNorm);
+      float fReal = pproj.normalizedToReal(fNorm);
       float fNorm2 = pproj.realToNormalized(fReal);
-      
-      std::cout << "norm: " << fNorm << " -> real " << fReal << " -> norm: " << fNorm2 << "\n";
-      
       REQUIRE(testUtils::nearlyEqual(fNorm, fNorm2));
     }
   }
 }
-
-#endif
 

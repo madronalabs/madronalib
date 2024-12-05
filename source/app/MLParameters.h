@@ -33,11 +33,6 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   Interval plainRange = p.getIntervalPropertyWithDefault("range", {0, 1});
   float offset = p.getFloatPropertyWithDefault("offset", 0.f);
   
-  std::cout << "RANGE: " << plainRange << "\n";
-
- // Interval normalRange{0., 1.};
- // Interval plainRange{range[0], range[1]};
-  
   // make ranges for list parameters
   if (units == "list")
   {
@@ -191,7 +186,7 @@ public:
     }
   }
   
-  Value::Type getValueType(Path pname) const
+  uint32_t getValueType(Path pname) const
   {
     return paramsReal_[pname].getType();
   }

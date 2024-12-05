@@ -143,7 +143,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     theSymbolTable().clear();
     Tree< int > a;
 
-
     // note that the root node (case) has no value.
     a.add("case/sensitive/a", 1);
     a.add("case/sensitive/b", 1);
@@ -247,7 +246,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       }
     }
     REQUIRE(sumOfChildren == 0);
-    
 
     // try adding children at root
     a.add("peter", 1);
@@ -328,6 +326,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   
   Value vb(va);
   std::cout << "vb: " << vb << "\n";
+  
+  std::cout << "value size: " << sizeof(Value) << "\n";
 
   
   
@@ -353,7 +353,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties["x"] = 24;
   REQUIRE(treeNodeExists(properties, "x"));
   
-  
+  // TEMP
   properties.dump();
 
   // failed lookup returns a null Value
@@ -366,15 +366,20 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   propertiesB["x"] = 25;
   REQUIRE (propertiesB != properties);
   
+  std::cout << "----------------------------------\n";
   
-  propertiesB.dump();
-
+  properties.dump();
   
-  /* TEMP
-
   // a tree converted to binary and back should result in the original value
   auto b = valueTreeToBinary(properties);
-  auto b2 = valueTreeToBinary(binaryToValueTree(b));
+  auto vt2 = binaryToValueTree(b);
+  std::cout << "----------------------------------\n";
+  
+  vt2.dump();
+
+  std::cout << "----------------------------------\n";
+  
+  auto b2 = valueTreeToBinary(vt2);
   REQUIRE(b == b2);
 
   std::vector< Value > melodies;
@@ -410,8 +415,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);
    
-   */
-  
   
 }
 
@@ -462,13 +465,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["a/b/c"] = "hello again";
   v["blobtest"] = std::vector<uint8_t> {1, 3, 5, 7, 9};
   
-  
-  std::cout << "hi -------- \n ";
-  v.dump();
-  
-  
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
-  
   REQUIRE(v == v2);
 
   // Value tree to JSON to text to JSON to value tree.

@@ -1474,13 +1474,6 @@ struct Upsampler
   {
     DSPVector result;
     load(result, bufferPtr(readIdx_++));
-    
-    // TEMP
-    if(!validate(result))
-    {
-      std::cout << "bad!\n";
-      
-    }
     return result;
   }
   

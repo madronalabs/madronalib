@@ -40,9 +40,8 @@ class PropertyTree
 
   float getFloatProperty(Path p) const { return properties[p].getFloatValue(); }
   bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
-  int getIntProperty(Path p) const { return properties[p].getInt32Value(); }
+  int getIntProperty(Path p) const { return properties[p].getIntValue(); }
   Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-  uint32_t getUnsignedLongProperty(Path p) const { return properties[p].getUInt32Value(); }
 
   float getFloatPropertyWithDefault(Path p, float d) const
   {
@@ -59,7 +58,7 @@ class PropertyTree
   int32_t getIntPropertyWithDefault(Path p, int32_t d) const
   {
     auto treeNode = properties.getConstNode(p);
-    return treeNode ? treeNode->getValue().getInt32Value() : d;
+    return treeNode ? treeNode->getValue().getIntValue() : d;
   }
   
   Text getTextPropertyWithDefault(Path p, Text d) const
@@ -68,12 +67,6 @@ class PropertyTree
     return treeNode ? treeNode->getValue().getTextValue() : d;
   }
   
-  uint32_t getUnsignedLongPropertyWithDefault(Path p, uint32_t d) const
-  {
-    auto treeNode = properties.getConstNode(p);
-    return treeNode ? treeNode->getValue().getUInt32Value() : d;
-  }
-
   
   Interval getIntervalProperty(Path p) const
   {

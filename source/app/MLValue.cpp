@@ -140,38 +140,11 @@ Value::Value(bool v) : _type(kBool), _sizeInBytes(sizeof(bool)), _dataPtr(_local
   pVal[0] = v;
 }
 
-// int -> uint32
-Value::Value(int v) : _type(kUInt32), _sizeInBytes(sizeof(uint32_t)), _dataPtr(_localData)
+Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(int)), _dataPtr(_localData)
 {
-  uint32_t* pVal = reinterpret_cast<uint32_t*>(_localData);
+  int* pVal = reinterpret_cast<int*>(_localData);
   pVal[0] = v;
 }
-
-/*
-Value::Value(int32_t v) : _type(kInt32), _sizeInBytes(sizeof(int32_t)), _dataPtr(_localData)
-{
-  int32_t* pVal = reinterpret_cast<int32_t*>(_localData);
-  pVal[0] = v;
-}
-
-Value::Value(int64_t v) : _type(kInt64), _sizeInBytes(sizeof(int64_t)), _dataPtr(_localData)
-{
-  int64_t* pVal = reinterpret_cast<int64_t*>(_localData);
-  pVal[0] = v;
-}
-
-Value::Value(uint32_t v) : _type(kUInt32), _sizeInBytes(sizeof(uint32_t)), _dataPtr(_localData)
-{
-  uint32_t* pVal = reinterpret_cast<uint32_t*>(_localData);
-  pVal[0] = v;
-}
-
-Value::Value(uint64_t v) : _type(kUInt64), _sizeInBytes(sizeof(uint64_t)), _dataPtr(_localData)
-{
-  uint64_t* pVal = reinterpret_cast<uint64_t*>(_localData);
-  pVal[0] = v;
-}
-*/
 
 // Constructors with variable-size data.
 // if data size > kLocalDataBytes, these will allocate heap memory.
@@ -328,6 +301,34 @@ Value::Value(std::vector<uint8_t> v)
   }
 }
 
+Value::Value(const Value::BinaryHeader& header, const uint8_t* readPtr)
+{
+  _type = header.type;
+  _sizeInBytes = header.size;
+
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, readPtr, _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, readPtr, _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
 
 // fixed-size getters
 
@@ -346,25 +347,11 @@ bool Value::getBoolValue() const
   return (_type == kBool) ? toFixedSizeType<bool>() : false;
 }
 
-int32_t Value::getInt32Value() const
+int Value::getIntValue() const
 {
-  return (_type == kInt32) ? toFixedSizeType<int32_t>() : 0;
+  return (_type == kInt) ? toFixedSizeType<int>() : 0;
 }
 
-int64_t Value::getInt64Value() const
-{
-  return (_type == kInt64) ? toFixedSizeType<int64_t>() : 0;
-}
-
-uint32_t Value::getUInt32Value() const
-{
-  return (_type == kUInt32) ? toFixedSizeType<uint32_t>() : 0;
-}
-
-uint64_t Value::getUInt64Value() const
-{
-  return (_type == kUInt64) ? toFixedSizeType<uint64_t>() : 0;
-}
 
 // variable-size getters
 
@@ -443,9 +430,19 @@ bool Value::operator!=(const Value& b) const
   return !operator==(b);
 }
 
-Value::Type Value::getType() const
+uint32_t Value::getType() const
 {
   return _type;
+}
+
+uint32_t Value::size() const
+{
+  return _sizeInBytes;
+}
+
+uint8_t* Value::data() const
+{
+  return _dataPtr;
 }
 
 std::ostream& operator<<(std::ostream& out, const Value& r)
@@ -465,17 +462,8 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
     case Value::kBool:
       out << r.getBoolValue();
       break;
-    case Value::kInt32:
-      out << r.getInt32Value();
-      break;
-    case Value::kInt64:
-      out << r.getInt64Value();
-      break;
-    case Value::kUInt32:
-      out << r.getUInt32Value();
-      break;
-    case Value::kUInt64:
-      out << r.getUInt64Value();
+    case Value::kInt:
+      out << r.getIntValue();
       break;
     case Value::kFloatArray:
       out << "[float array, size " << r.getFloatArraySize() << "]";
@@ -493,5 +481,40 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
   }
   return out;
 }
+
+// return size of the binary representation of the Value (incl. type and size)
+size_t getBinarySize(const Value& v)
+{
+  return v.size() + sizeof(Value::BinaryHeader);
+}
+
+// write the binary representation of the Value and increment the destination pointer.
+void ValueUtils::writeBinaryRepresentation(const Value& v, uint8_t*& writePtr)
+{
+  // header
+  auto sizeInBytes = v.size();
+  Value::BinaryHeader header{v.getType(), sizeInBytes};
+  memcpy(writePtr, &header, sizeof(Value::BinaryHeader));
+  writePtr += sizeof(Value::BinaryHeader);
+  
+  // data
+  memcpy(writePtr, v.data(), sizeInBytes);
+  writePtr += sizeInBytes;
+}
+
+Value ValueUtils::readBinaryRepresentation(const uint8_t*& readPtr)
+{
+  auto headerSize = sizeof(Value::BinaryHeader);
+  
+  // header
+  Value::BinaryHeader header;
+  memcpy(&header, readPtr, headerSize);
+  
+  const uint8_t* dataPtr = readPtr + headerSize;
+  readPtr += header.size + headerSize;
+  
+  return Value(header, dataPtr);
+}
+
 
 }  // namespace ml
