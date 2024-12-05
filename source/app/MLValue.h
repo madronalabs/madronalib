@@ -79,21 +79,24 @@ private:
   
   Value(const Value& other);
   Value& operator=(const Value& other);
-//  Value (Value&& other) noexcept;
- // Value& operator=(Value&& other) noexcept;
+  Value (Value&& other) noexcept;
+  Value& operator=(Value&& other) noexcept;
   ~Value();
   
   // Constructors with fixed-size data.
   
-  explicit Value();
-  explicit Value(float v); 
-  explicit Value(double v);
-  explicit Value(bool v);
-  Value(int32_t v);
+  Value();
+  Value(float v);
+  Value(double v);
+  Value(bool v);
+  Value(int v);
+  
+  /*
   explicit Value(int64_t v);
   explicit Value(uint32_t v);
   explicit Value(uint64_t v);
-
+*/
+  
   // Constructors with variable-size data.
 
   Value(std::initializer_list<float> values);

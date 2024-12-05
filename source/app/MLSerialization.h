@@ -76,7 +76,7 @@ inline Value binaryToValue(const uint8_t* p)
     {
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* pLongData{reinterpret_cast<const uint32_t*>(pData)};
-      uint32_t ul = *pLongData;
+      int ul = *pLongData;
       returnValue = Value(ul);
       break;
     }

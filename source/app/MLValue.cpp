@@ -74,8 +74,8 @@ Value& Value::operator=(const Value& other)
   return *this;
 }
 
-/*
-Value::Value (Value&& other) noexcept
+
+Value::Value(Value&& other) noexcept
 {
   if(other.isStoredLocally())
   {
@@ -83,27 +83,33 @@ Value::Value (Value&& other) noexcept
   }
   else
   {
+    _type = other._type;
     _dataPtr = other._dataPtr;
-    other._dataPtr = nullptr;
+    _sizeInBytes = other._sizeInBytes;
+    other._dataPtr = other._localData;
   }
 }
 
 Value& Value::operator=(Value&& other) noexcept
 {
-  if(this == &other) return *this;
-  
-  if(other.isStoredLocally())
-  {
-    copyLocalData(other);
+  if(this != &other)
+  {    
+    if(other.isStoredLocally())
+    {
+      copyLocalData(other);
+    }
+    else
+    {
+      if(!isStoredLocally()) free(_dataPtr);
+      _type = other._type;
+      _dataPtr = other._dataPtr;
+      _sizeInBytes = other._sizeInBytes;
+      other._dataPtr = other._localData;
+    }
   }
-  else
-  {
-    free(_dataPtr);
-    _dataPtr = other._dataPtr;
-    other._dataPtr = nullptr;
-  }
+  return *this;
 }
-*/
+
 Value::~Value()
 {
   if(!isStoredLocally())
@@ -134,6 +140,14 @@ Value::Value(bool v) : _type(kBool), _sizeInBytes(sizeof(bool)), _dataPtr(_local
   pVal[0] = v;
 }
 
+// int -> uint32
+Value::Value(int v) : _type(kUInt32), _sizeInBytes(sizeof(uint32_t)), _dataPtr(_localData)
+{
+  uint32_t* pVal = reinterpret_cast<uint32_t*>(_localData);
+  pVal[0] = v;
+}
+
+/*
 Value::Value(int32_t v) : _type(kInt32), _sizeInBytes(sizeof(int32_t)), _dataPtr(_localData)
 {
   int32_t* pVal = reinterpret_cast<int32_t*>(_localData);
@@ -157,6 +171,7 @@ Value::Value(uint64_t v) : _type(kUInt64), _sizeInBytes(sizeof(uint64_t)), _data
   uint64_t* pVal = reinterpret_cast<uint64_t*>(_localData);
   pVal[0] = v;
 }
+*/
 
 // Constructors with variable-size data.
 // if data size > kLocalDataBytes, these will allocate heap memory.

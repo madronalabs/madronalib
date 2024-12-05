@@ -462,6 +462,11 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["a/b/c"] = "hello again";
   v["blobtest"] = std::vector<uint8_t> {1, 3, 5, 7, 9};
   
+  
+  std::cout << "hi -------- \n ";
+  v.dump();
+  
+  
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   
   REQUIRE(v == v2);
