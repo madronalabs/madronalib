@@ -75,7 +75,7 @@ TextFragment::TextFragment() noexcept
 
 TextFragment::TextFragment(const char* pChars) noexcept
 {
-  if (pChars)
+  if(pChars)
   {
     _allocate(strlen(pChars));
     // a bad alloc will result in this being a null object.
@@ -264,6 +264,7 @@ void TextFragment::_allocate(size_t size) noexcept
   if (nullTerminatedSize > kShortFragmentSizeInChars)
   {
     _pText = static_cast<char*>(malloc(nullTerminatedSize));
+    // TODO on fail! 
   }
   else
   {

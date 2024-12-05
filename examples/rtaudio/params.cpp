@@ -12,7 +12,7 @@ constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 48000;
 constexpr float kOutputGain = 0.1f;
-constexpr float kFreqLo = 40, kFreqHi = 4000;
+constexpr float kFreqLo = 40.f, kFreqHi = 4000.f;
 
 inline void readParameterDescriptions(ParameterDescriptionList& params)
 {

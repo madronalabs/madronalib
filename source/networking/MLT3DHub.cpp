@@ -157,7 +157,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       osc::int32 r;
       args >> r;
       mDataRate = r;
-      notifyListeners("data_rate", r);
+      notifyListeners("data_rate", Value(int32_t(r)));
 
       mT3DWaitTime = 0;
       mReceivingT3d = true;
@@ -168,7 +168,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       args >> pgm;
 
       // //debug() << "PGM " << mUDPPortOffset << ": " << pgm << "\n";
-      notifyListeners("program", pgm);
+      notifyListeners("program", Value(int32_t(pgm)));
     }
     else if (strcmp(addy, "/vol") == 0)
     {
@@ -176,7 +176,7 @@ void MLT3DHub::handleMessage(const osc::ReceivedMessage& msg)
       args >> v;
 
       // //debug() << "VOL " << mUDPPortOffset << ": " << v << "\n";
-      notifyListeners("volume", v);
+      notifyListeners("volume", Value(v));
     }
 
     /* TEMP pending Matrix replacement
@@ -253,7 +253,7 @@ void MLT3DHub::timerCallback()
     {
       mReceivingT3d = false;
     }
-    notifyListeners("receiving", mReceivingT3d);
+    notifyListeners("receiving", Value(mReceivingT3d));
   }
 }
 
@@ -282,7 +282,7 @@ void MLT3DHub::disconnect()
     if (mReceivingT3d)
     {
       mReceivingT3d = false;
-      notifyListeners("receiving", 0UL);
+      notifyListeners("receiving", Value(false));
     }
     removeUDPService();
     mConnected = false;

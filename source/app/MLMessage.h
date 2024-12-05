@@ -15,7 +15,7 @@ struct Message final
   friend std::ostream& operator<<(std::ostream& out, const Message& r);
 
   Path address{};
-  Value value{};
+  Value value;
   uint32_t flags{0};
 
   Message(Path h = Path(), Value v = Value(), uint32_t f = 0) : address(h), value(v), flags(f) {}

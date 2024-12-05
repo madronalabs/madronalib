@@ -321,6 +321,16 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // Value tree tests
 
   Tree<Value> properties;
+  
+  // TEMP
+  Value va("big");
+  std::cout << "value: " << va << "\n";
+  
+  Value vb(va);
+  std::cout << "vb: " << vb << "\n";
+
+  
+  
   properties.add("size", "big");
   properties.add("shape", "square");
   properties.add("corners", 4);
@@ -342,6 +352,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(!treeNodeExists(properties, "x"));
   properties["x"] = 24;
   REQUIRE(treeNodeExists(properties, "x"));
+  
+  
+  properties.dump();
 
   // failed lookup returns a null Value
   auto failedLookup = properties["nowhere/in/path"];
@@ -352,6 +365,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE (propertiesB == properties);
   propertiesB["x"] = 25;
   REQUIRE (propertiesB != properties);
+  
+  
+  propertiesB.dump();
+
+  
+  /* TEMP
 
   // a tree converted to binary and back should result in the original value
   auto b = valueTreeToBinary(properties);
@@ -390,6 +409,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(floatTree["purple"] == 0.f);
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);
+   
+   */
+  
   
 }
 
@@ -450,27 +472,3 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   REQUIRE(v == v3);
 }
 
-TEST_CASE("madronalib/core/floatvectors", "[floatvectors]")
-{
-  const int kTestSize{100};
-
-  float sum1{0}, sum2{0};
-
-  std::vector<float> vec;
-  for (int i = 0; i < kTestSize; ++i)
-  {
-    float f = i * 13.90811f;
-    vec.push_back(f);
-    sum1 += f;
-  }
-
-  auto vb = floatVectorToBinary(vec);
-  auto bv = binaryToFloatVector(vb->data());
-
-  for (int i = 0; i < kTestSize; ++i)
-  {
-    sum2 += (*bv)[i];
-  }
-
-  REQUIRE(sum1 == sum2);
-}

@@ -15,239 +15,139 @@
 #include "MLDSPProjections.h"
 
 // Value: a small unit of typed data designed for being constructed on the stack and
-// transferred in messages. Values have the following types: undefined, float,
-// text, blob, unsigned long, and matrix. (Matrix soon to be deprecated)
-
-// TODO: instead of using Matrix directly here as a type, make a blob type
-// and utilities (in Matrix) for conversion.
-
-
-// functions needed for each convertible type:
-// Value(type t);
-// t get[Type]Value();
-// explicit setValue(t);
-
+// transferred in messages.
 
 namespace ml
 {
 
-static TextFragment kBlobHeader("!BLOB!");
-
-class Value
+// a Blob is a reference to some bytes of a given size somewhere. It doesn't own data.
+struct Blob
 {
- public:
+  Blob() = default;
+  explicit Blob( const uint8_t* data_, size_t size_ ) : data(data_), size(size_) {}
+  const uint8_t* data{nullptr};
+  size_t size{0};
+};
 
-  static constexpr size_t kLocalDataBytes{256};
+class alignas(16) Value
+{
+public:
   
   enum Type
   {
-    kUndefinedValue = 0,
-    kFloatValue,
-    kFloatArrayValue,
-    kTextValue,
-    kBlobValue,
-    kUnsignedLongValue
+    kUndefined = 0,
+    kFloat,
+    kDouble,
+    kBool,
+    kInt32,
+    kInt64,
+    kUInt32,
+    kUInt64,
+    kFloatArray,
+    kDoubleArray,
+    kText,
+    kBlob
   };
+    
+private:
+  
+  static constexpr size_t kStructSizeInBytes{256};
+  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - sizeof(size_t) - sizeof(uint8_t *) - sizeof(Type);
+  
+  // data
+  
+  Type _type{kUndefined};
+  size_t _sizeInBytes;
+  uint8_t * _dataPtr{_localData};
+  uint8_t _localData[kLocalDataBytes];
+  
+  // utilities
+  
+  bool isStoredLocally() const;
+  void copyLocalData(const Value& other);
+  void reallocateAndCopy(const Value& other);
+  
+  template<typename T> T toFixedSizeType() const
+  {
+    T* scalarTypePtr = reinterpret_cast<T*>(_dataPtr);
+    return *scalarTypePtr;
+  }
 
-  Value();
+ public:
+
+  // copy and assign constructors and destructor
+  
   Value(const Value& other);
   Value& operator=(const Value& other);
-  Value(float v);
-  Value(int v);
-  Value(bool v);
-  Value(long v);
-  Value(unsigned long v);
-  Value(unsigned long long v);
-  Value(uint32_t v);
-  Value(double v);
-  Value(const ml::Text& t);
-  Value(const char* t);
-  Value(const float* i);
-
-  // Blob constructors.
-  // if data size > kBlobSizeBytes, blob values will allocate heap.
-  explicit Value(const void* pData, size_t n);
-  Value(const std::vector<uint8_t>& dataVec);
-  // TODO make array-like ctor using gsl::span
-
-  // matrix type constructor via initializer_list
-  Value(std::initializer_list<float> values)
-  {
-    auto listSize = values.size();
-    if (listSize == 0)
-    {
-      *this = Value();
-    }
-    else if (listSize == 1)
-    {
-      *this = Value(*values.begin());
-    }
-    else
-    {
-      constexpr size_t maxFloats = kLocalDataBytes / sizeof(float);
-      size_t nFloats = std::min(maxFloats, listSize);
-      mType = kFloatArrayValue;
-      _blobSizeInBytes = nFloats*sizeof(float);
-      float* pDest = reinterpret_cast<float*>(_localBlobData);
-      for(const float& value : values)
-      {
-        pDest[0] = value;
-        pDest++;
-      }
-    }
-  }
-
+//  Value (Value&& other) noexcept;
+ // Value& operator=(Value&& other) noexcept;
   ~Value();
-
-  inline const float getFloatValue() const { return mFloatVal; }
-  inline const float getFloatValueWithDefault(float d) const
-  {
-    return (mType == kFloatValue) ? mFloatVal : d;
-  }
   
-  inline const float* getFloatArrayValue() const
-  {
-    if(mType == kFloatArrayValue)
-    {
-      float* pDest = reinterpret_cast<float*>(_localBlobData);
-      return pDest;
-    }
-    return nullptr;
-  }
-
-  inline const float getBoolValue() const { return static_cast<bool>(mFloatVal); }
-
-  inline const bool getBoolValueWithDefault(bool b) const
-  {
-    return (mType == kFloatValue) ? static_cast<bool>(mFloatVal) : b;
-  }
-
-  inline const int getIntValue() const { return static_cast<int>(mFloatVal); }
-
-  inline const int getIntValueWithDefault(int d) const
-  {
-    return (mType == kFloatValue) ? static_cast<int>(mFloatVal) : d;
-  }
-
-  inline const uint32_t getUnsignedLongValue() const { return mUnsignedLongVal; }
-
-  inline const uint32_t getUnsignedLongValueWithDefault(uint32_t d) const
-  {
-    return (mType == kUnsignedLongValue) ? mUnsignedLongVal : d;
-  }
-
-  inline const ml::Text getTextValue() const
-  {
-    return (mType == kTextValue) ? (mTextVal) : ml::Text();
-  }
-
-  inline const ml::Text getTextValueWithDefault(Text d) const
-  {
-    return (mType == kTextValue) ? (mTextVal) : d;
-  }
+  // Constructors with fixed-size data.
   
-  inline void* getBlobData() const
-  {
-    if (mType == kBlobValue)
-    {
-      return (void*)pBlobData;
-    }
-    else
-    {
-      return nullptr;
-    }
-  }
+  explicit Value();
+  explicit Value(float v); 
+  explicit Value(double v);
+  explicit Value(bool v);
+  Value(int32_t v);
+  explicit Value(int64_t v);
+  explicit Value(uint32_t v);
+  explicit Value(uint64_t v);
 
-  inline size_t getBlobSize() const
-  {
-    if (mType == kBlobValue)
-    {
-      return _blobSizeInBytes;
-    }
-    else
-    {
-      return 0;
-    }
-  }
+  // Constructors with variable-size data.
+
+  Value(std::initializer_list<float> values);
+  Value(const char* v);
+  explicit Value(const ml::Text& v);
+  explicit Value(const ml::Blob& v);
+  Value(std::vector<uint8_t> dataVec); // alternate Blob
   
-  inline std::vector<uint8_t> getBlobValue() const
-  {
-    if (mType == kBlobValue)
-    {
-      return std::vector<uint8_t>(pBlobData, pBlobData + _blobSizeInBytes);
-    }
-    else
-    {
-      return std::vector<uint8_t>();
-    }
-  }
+  // getters for fixed-size data
+  
+  float getFloatValue() const;
+  double getDoubleValue() const;
+  bool getBoolValue() const;
+  int32_t getInt32Value() const;
+  int64_t getInt64Value() const;
+  uint32_t getUInt32Value() const;
+  uint64_t getUInt64Value() const;
+  
+  // getters for variable-size data.
+  
+  float* getFloatArrayPtr() const;
+  size_t getFloatArraySize() const;
+  std::vector<float> getFloatVector() const;
+  double* getDoubleArrayPtr() const;
+  size_t getDoubleArraySize() const;
+  std::vector<double> getDoubleVector() const;
+  ml::TextFragment getTextValue() const;
+  ml::Blob getBlobValue() const;
+  std::vector<uint8_t> getBlobVector() const;
 
-  // For each type of property, a setValue method must exist
-  // to set the value of the property to that of the argument.
-  //
-  // For each type of property, if the size of the argument is equal to the
-  // size of the current value, the value must be modified in place.
-  // This guarantee keeps DSP graphs from allocating memory as they run.
-  void setValue(const Value& v);
-  void setValue(const float& v);
-  void setValue(const int& v);
-  void setValue(const bool& v);
-  void setValue(const uint32_t& v);
-  void setValue(const long& v);
-  void setValue(const double& v);
-  void setValue(const ml::Text& v);
-  void setValue(const char* const v);
-  void setValue(const Interval v);
-
-  explicit operator bool() const { return (mType != kUndefinedValue); }
-
+  // public utils
+  
+  explicit operator bool() const;
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
-
-  Type getType() const { return mType; }
-  Symbol getTypeAsSymbol() const
-  {
-    static Symbol kTypesAsSymbols[4]{"undefined", "float", "text", "matrix"};
-    return kTypesAsSymbols[mType];
-  }
-  bool isUndefinedType() { return mType == kUndefinedValue; }
-  bool isFloatType() { return mType == kFloatValue; }
-  bool isTextType() { return mType == kTextValue; }
-
-  bool operator<<(const Value& b) const;
-
- private:
-  void copyBlob(const void* inputData, size_t size);
-
-  uint8_t _localBlobData[kLocalDataBytes];
-  size_t _blobSizeInBytes;
-  uint8_t *pBlobData{_localBlobData};
-
-  // TODO reduce storage requirements and reduce copying!
-  // this is a minimal-code start.
-  // everything will share space.
-  Type mType{kUndefinedValue};
-  float mFloatVal{};
-  ml::Text mTextVal{};
-  uint32_t mUnsignedLongVal{};
-  Interval mIntervalVal{};
+  Type getType() const;
 };
+
+std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
 // NamedValue for initializer lists
 struct NamedValue
 {
-  ml::Path name{};
-  Value value{};
+  ml::Path name;
+  Value value;
 
-  NamedValue() = default;
-  NamedValue(ml::Path np, Value nv) : name(np), value(nv) {}
+  template<typename T>
+  NamedValue(ml::Path np, T nv) : name(np), value(Value(nv)) {}
+  
+  NamedValue(ml::Path np, std::initializer_list<float> values) : name(np), value(Value(values)) {}
 };
 
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list< NamedValue >;
-
-std::string getTypeDebugStr(const ml::Value& r);
-std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
 // template function for doing things when Values (or any other types) change
 template<typename T>

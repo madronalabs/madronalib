@@ -8,238 +8,429 @@
 
 namespace ml
 {
-Value::Value() : mType(kUndefinedValue), mFloatVal(0) {}
 
-void Value::copyBlob(const void* inputData, size_t size)
+// private utilities
+
+bool Value::isStoredLocally() const
 {
-  // if we have external data, free it
-  if(pBlobData != _localBlobData)
-  {
-    free(pBlobData);
-    pBlobData = _localBlobData;
-  }
+  return (_dataPtr == _localData);
+}
 
-  if (size <= kLocalDataBytes)
+void Value::copyLocalData(const Value& other)
+{
+  _type = other._type;
+  _sizeInBytes = other._sizeInBytes;
+  _dataPtr = _localData;
+  memcpy(_localData, other._localData, _sizeInBytes);
+}
+
+// note _localData is unused when data is external. This is only a good tradeoff
+// because we expect data to be local nearly all of the time.
+void Value::reallocateAndCopy(const Value& other)
+{
+  free(_dataPtr);
+  _dataPtr = (uint8_t*)malloc(other._sizeInBytes);
+  if(_dataPtr)
   {
-    auto pCharData = (uint8_t*)inputData;
-    std::copy(pCharData, pCharData + size, _localBlobData);
-    _blobSizeInBytes = size;
+    std::copy(other._dataPtr, other._dataPtr + other._sizeInBytes, _dataPtr);
+    _sizeInBytes = other._sizeInBytes;
+    _type = other._type;
   }
   else
   {
-    pBlobData = (uint8_t*)malloc(size);
-    if(pBlobData)
-    {
-      auto pCharData = (uint8_t*)(inputData);
-      std::copy(pCharData, pCharData + size, pBlobData);
-      _blobSizeInBytes = size;
-    }
-    else
-    {
-      // TODO throw?
-      _blobSizeInBytes = 0;
-    }
+    _dataPtr = _localData;
+    _sizeInBytes = 0;
+    _type = kUndefined;
   }
 }
 
-Value::Value(const Value& other) : mType(other.getType()), mFloatVal(0)
+// copy and assign constructors and destructor and movers (rule of five stuff)
+
+Value::Value(const Value& other)
 {
-  // TEMP just copy the bytes!!
-  
-  switch (mType)
+  if(other.isStoredLocally())
   {
-    case kUndefinedValue:
-      break;
-    case kFloatValue:
-      mFloatVal = other.getFloatValue();
-      break;
-    case kTextValue:
-      mTextVal = other.getTextValue();
-      break;
-    case kBlobValue:
-      copyBlob(other.pBlobData, other._blobSizeInBytes);
-      break;
-    case kUnsignedLongValue:
-      mUnsignedLongVal = other.getUnsignedLongValue();
-      break;
+    copyLocalData(other);
+  }
+  else
+  {
+    reallocateAndCopy(other);
   }
 }
 
 Value& Value::operator=(const Value& other)
 {
-  
-  // TODO everything is in data, no switch, just copy bytes
-  
-  
-  mType = other.getType();
-  switch (mType)
+  if(this == &other) return *this;
+
+  if(other.isStoredLocally())
   {
-    case kUndefinedValue:
-      break;
-    case kFloatValue:
-      mFloatVal = other.getFloatValue();
-      break;
-    case kTextValue:
-      mTextVal = other.getTextValue();
-      break;
-    case kBlobValue:
-      copyBlob(other.pBlobData, other._blobSizeInBytes);
-      break;
-    case kUnsignedLongValue:
-      mUnsignedLongVal = other.getUnsignedLongValue();
-      break;
+    copyLocalData(other);
+  }
+  else
+  {
+    reallocateAndCopy(other);
   }
 
   return *this;
 }
 
-Value::Value(float v) : mType(kFloatValue) { mFloatVal = v; }
-
-Value::Value(int v) : mType(kFloatValue) { mFloatVal = v; }
-
-Value::Value(bool v) : mType(kFloatValue) { mFloatVal = v; }
-
-Value::Value(unsigned long v) : mType(kUnsignedLongValue) { mUnsignedLongVal = static_cast<uint32_t>(v); }
-
-// truncate to unsigned long for now. 
-Value::Value(unsigned long long v) : mType(kUnsignedLongValue) { mUnsignedLongVal = static_cast<uint32_t>(v); }
-
-Value::Value(uint32_t v) : mType(kUnsignedLongValue) { mUnsignedLongVal = v; }
-
-Value::Value(long v) : mType(kFloatValue) { mFloatVal = v; }
-
-Value::Value(double v) : mType(kFloatValue) { mFloatVal = v; }
-
-Value::Value(const ml::Text& t) : mType(kTextValue) { mTextVal = t; }
-
-Value::Value(const char* t) : mType(kTextValue) { mTextVal = ml::Text(t); }
-
-Value::Value(const void* pData, size_t n) : mType(kBlobValue)
+/*
+Value::Value (Value&& other) noexcept
 {
-  copyBlob(pData, n);
-}
-
-Value::Value(const std::vector<uint8_t>& dataVec) : mType(kBlobValue)
-{
-  copyBlob(dataVec.data(), dataVec.size());
-}
-
-
-Value::~Value()
-{
-  // if we have external data, free it
-  if(pBlobData != _localBlobData)
+  if(other.isStoredLocally())
   {
-    free(pBlobData);
+    copyLocalData(other);
+  }
+  else
+  {
+    _dataPtr = other._dataPtr;
+    other._dataPtr = nullptr;
   }
 }
 
-void Value::setValue(const float& v)
+Value& Value::operator=(Value&& other) noexcept
 {
-  mType = kFloatValue;
-  mFloatVal = v;
+  if(this == &other) return *this;
+  
+  if(other.isStoredLocally())
+  {
+    copyLocalData(other);
+  }
+  else
+  {
+    free(_dataPtr);
+    _dataPtr = other._dataPtr;
+    other._dataPtr = nullptr;
+  }
+}
+*/
+Value::~Value()
+{
+  if(!isStoredLocally())
+  {
+    free(_dataPtr);
+  }
 }
 
-void Value::setValue(const int& v)
+// Constructors with fixed-size data.
+
+Value::Value() : _type(kUndefined), _sizeInBytes(0), _dataPtr(_localData) {}
+
+Value::Value(float v) : _type(kFloat), _sizeInBytes(sizeof(float)), _dataPtr(_localData)
 {
-  mType = kFloatValue;
-  mFloatVal = v;
+  float* pVal = reinterpret_cast<float*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const bool& v)
+Value::Value(double v) : _type(kDouble), _sizeInBytes(sizeof(double)), _dataPtr(_localData)
 {
-  mType = kFloatValue;
-  mFloatVal = v;
+  double* pVal = reinterpret_cast<double*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const uint32_t& v)
+Value::Value(bool v) : _type(kBool), _sizeInBytes(sizeof(bool)), _dataPtr(_localData)
 {
-  mType = kUnsignedLongValue;
-  mUnsignedLongVal = v;
+  bool* pVal = reinterpret_cast<bool*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const long& v)
+Value::Value(int32_t v) : _type(kInt32), _sizeInBytes(sizeof(int32_t)), _dataPtr(_localData)
 {
-  mType = kFloatValue;
-  mFloatVal = v;
+  int32_t* pVal = reinterpret_cast<int32_t*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const double& v)
+Value::Value(int64_t v) : _type(kInt64), _sizeInBytes(sizeof(int64_t)), _dataPtr(_localData)
 {
-  mType = kFloatValue;
-  mFloatVal = v;
+  int64_t* pVal = reinterpret_cast<int64_t*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const ml::Text& v)
+Value::Value(uint32_t v) : _type(kUInt32), _sizeInBytes(sizeof(uint32_t)), _dataPtr(_localData)
 {
-  mType = kTextValue;
-  mTextVal = v;
+  uint32_t* pVal = reinterpret_cast<uint32_t*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const char* const v)
+Value::Value(uint64_t v) : _type(kUInt64), _sizeInBytes(sizeof(uint64_t)), _dataPtr(_localData)
 {
-  mType = kTextValue;
-  mTextVal = v;
+  uint64_t* pVal = reinterpret_cast<uint64_t*>(_localData);
+  pVal[0] = v;
 }
 
-void Value::setValue(const Value& v) { *this = v; }
+// Constructors with variable-size data.
+// if data size > kLocalDataBytes, these will allocate heap memory.
+
+Value::Value(std::initializer_list<float> values)
+{
+  _type = kFloatArray;
+  auto listSize = values.size();
+  _sizeInBytes = listSize*sizeof(float);
+
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+
+    float* pDest = reinterpret_cast<float*>(_dataPtr);
+    for(const float& value : values)
+    {
+      pDest[0] = value;
+      pDest++;
+    }
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      float* pDest = reinterpret_cast<float*>(_dataPtr);
+      for(const float& value : values)
+      {
+        pDest[0] = value;
+        pDest++;
+      }
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
+Value::Value(const ml::Text& t)
+{
+  _type = kText;
+  _sizeInBytes = t.lengthInBytes();
+
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, t.getText(), _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, t.getText(), _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
+Value::Value(const char* v)
+{
+  _type = kText;
+  _sizeInBytes = strlen(v);
+  
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, v, _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, v, _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
+Value::Value(const ml::Blob& v)
+{
+  _type = kBlob;
+  _sizeInBytes = v.size;
+
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, v.data, _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, v.data, _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
+Value::Value(std::vector<uint8_t> v)
+{
+  _type = kBlob;
+  _sizeInBytes = v.size();
+  
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, v.data(), _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, v.data(), _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
+
+// fixed-size getters
+
+float Value::getFloatValue() const
+{
+  return (_type == kFloat) ? toFixedSizeType<float>() : 0.0f;
+}
+
+double Value::getDoubleValue() const
+{
+  return (_type == kDouble) ? toFixedSizeType<double>() : 0.0;
+}
+
+bool Value::getBoolValue() const
+{
+  return (_type == kBool) ? toFixedSizeType<bool>() : false;
+}
+
+int32_t Value::getInt32Value() const
+{
+  return (_type == kInt32) ? toFixedSizeType<int32_t>() : 0;
+}
+
+int64_t Value::getInt64Value() const
+{
+  return (_type == kInt64) ? toFixedSizeType<int64_t>() : 0;
+}
+
+uint32_t Value::getUInt32Value() const
+{
+  return (_type == kUInt32) ? toFixedSizeType<uint32_t>() : 0;
+}
+
+uint64_t Value::getUInt64Value() const
+{
+  return (_type == kUInt64) ? toFixedSizeType<uint64_t>() : 0;
+}
+
+// variable-size getters
+
+float* Value::getFloatArrayPtr() const
+{
+  return (_type == kFloatArray) ? reinterpret_cast<float*>(_dataPtr) : nullptr;
+}
+
+size_t Value::getFloatArraySize() const
+{
+  return (_type == kFloatArray) ? _sizeInBytes/sizeof(float) : 0;
+}
+
+std::vector<float> Value::getFloatVector() const
+{
+  if(_type != kFloatArray) return std::vector<float>();
+  auto floatData = reinterpret_cast<float*>(_dataPtr);
+  return std::vector<float>(floatData, floatData + _sizeInBytes/sizeof(float));
+}
+
+double* Value::getDoubleArrayPtr() const
+{
+  return (_type == kDoubleArray) ? reinterpret_cast<double*>(_dataPtr) : nullptr;
+}
+
+size_t Value::getDoubleArraySize() const
+{
+  return (_type == kDoubleArray) ? _sizeInBytes/sizeof(double) : 0;
+}
+
+std::vector<double> Value::getDoubleVector() const
+{
+  if(_type != kDoubleArray) return std::vector<double>();
+  auto doubleData = reinterpret_cast<double*>(_dataPtr);
+  return std::vector<double>(doubleData, doubleData + _sizeInBytes/sizeof(double));
+}
+
+TextFragment Value::getTextValue() const
+{
+  if(_type != kText) return TextFragment();
+  return TextFragment(reinterpret_cast<char *>(_dataPtr), _sizeInBytes);
+}
+
+ml::Blob Value::getBlobValue() const
+{
+  if(_type != kBlob) return Blob();
+  return Blob(_dataPtr, _sizeInBytes);
+}
+
+std::vector<uint8_t> Value::getBlobVector() const
+{
+  if(_type != kBlob) return std::vector<uint8_t>();
+  return std::vector<uint8_t>(_dataPtr, _dataPtr + _sizeInBytes);
+}
+
+
+
+
+// public utils
+
+// distinct from the bool value type, used to support code like if(doThingWithReturnValue())
+Value::operator bool() const
+{
+  return (_type != kUndefined);
+}
 
 bool Value::operator==(const Value& b) const
 {
-  // TODO just check type, size, bytes
-  
-  bool r = false;
-  if (mType == b.getType())
-  {
-    switch (mType)
-    {
-      case kUndefinedValue:
-        r = true;
-        break;
-      case kFloatValue:
-        r = (getFloatValue() == b.getFloatValue());
-        break;
-      case kTextValue:
-        r = (getTextValue() == b.getTextValue());
-        break;
-      case kUnsignedLongValue:
-        r = (getUnsignedLongValue() == b.getUnsignedLongValue());
-        break;
-      case kBlobValue:
-        // compare blobs by value
-        r = !std::memcmp(getBlobData(), b.getBlobData(), getBlobSize());
-        break;
-    }
-  }
-  return r;
+  if(_type != b._type) return false;
+  if(_sizeInBytes != b._sizeInBytes) return false;
+  return !std::memcmp(_dataPtr, b._dataPtr, _sizeInBytes);
 }
 
-bool Value::operator!=(const Value& b) const { return !operator==(b); }
+bool Value::operator!=(const Value& b) const
+{
+  return !operator==(b);
+}
 
-#pragma mark Value utilities
-
-std::string getTypeDebugStr(const Value& r) {
-  std::string out;
-  switch (r.getType())
-  {
-    default:
-    case Value::kUndefinedValue:
-      out = "(?)";
-      break;
-    case Value::kFloatValue:
-      out = "(F)";
-      break;
-    case Value::kTextValue:
-      out = "(T)";
-      break;
-    case Value::kUnsignedLongValue:
-      out = "(UL)";
-      break;
-    case Value::kBlobValue:
-      out = "(B)";
-      break;
-  }
-  return out;
+Value::Type Value::getType() const
+{
+  return _type;
 }
 
 std::ostream& operator<<(std::ostream& out, const Value& r)
@@ -247,20 +438,42 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
   switch (r.getType())
   {
     default:
-    case Value::kUndefinedValue:
+    case Value::kUndefined:
       out << "[undefined]";
       break;
-    case Value::kFloatValue:
+    case Value::kFloat:
       out << r.getFloatValue();
       break;
-    case Value::kTextValue:
+    case Value::kDouble:
+      out << r.getDoubleValue();
+      break;
+    case Value::kBool:
+      out << r.getBoolValue();
+      break;
+    case Value::kInt32:
+      out << r.getInt32Value();
+      break;
+    case Value::kInt64:
+      out << r.getInt64Value();
+      break;
+    case Value::kUInt32:
+      out << r.getUInt32Value();
+      break;
+    case Value::kUInt64:
+      out << r.getUInt64Value();
+      break;
+    case Value::kFloatArray:
+      out << "[float array, size " << r.getFloatArraySize() << "]";
+      break;
+    case Value::kDoubleArray:
+      out << "[double array, size " << r.getDoubleArraySize() << "]";
+      break;
+    case Value::kText:
       out << r.getTextValue();
       break;
-    case Value::kUnsignedLongValue:
-      out << r.getUnsignedLongValue();
-      break;
-    case Value::kBlobValue:
-      out << "[blob, " << r.getBlobSize() << " bytes]";
+    case Value::kBlob:
+      Blob b = r.getBlobValue();
+      out << "[blob, " << b.size << " bytes]";
       break;
   }
   return out;

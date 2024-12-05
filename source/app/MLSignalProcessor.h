@@ -168,7 +168,7 @@ class SignalProcessor
 
   void setParamFromNormalizedValue(Path pname, float val)
   {
-    _params.setFromNormalizedValue(pname, val);
+    _params.setFromNormalizedValue(pname, Value(val));
   }
 
   inline void buildParams(const ParameterDescriptionList& paramList)

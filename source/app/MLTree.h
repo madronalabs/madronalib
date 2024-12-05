@@ -475,15 +475,6 @@ class Tree
       std::cout << it.getCurrentPath() << " [" << *it << "] \n";
     }
   }
-
-  // visit all nodes and dump only the nodes with values, showing types.
-  inline void dumpWithTypes() const
-  {
-    for (auto it = begin(); it != end(); ++it)
-    {
-      std::cout << it.getCurrentPath() << getTypeDebugStr(*it) << " [" << *it << "] \n";
-    }
-  }
   
   // visit and dump each node once, including non-leaf nodes.
   inline void dumpAllNodes() const

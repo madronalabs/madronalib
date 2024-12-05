@@ -34,44 +34,66 @@ class PropertyTree
   // get the Value of the property. Will return a null Value object if no such
   // property exists.
   Value getProperty(Path p) const { return properties[p]; }
-
   void setProperty(Path p, Value v) { properties[p] = v; }
+  
+  // getters for basic parameter value types
 
   float getFloatProperty(Path p) const { return properties[p].getFloatValue(); }
   bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
-  int getIntProperty(Path p) const { return properties[p].getIntValue(); }
+  int getIntProperty(Path p) const { return properties[p].getInt32Value(); }
   Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-  uint32_t getUnsignedLongProperty(Path p) const { return properties[p].getUnsignedLongValue(); }
+  uint32_t getUnsignedLongProperty(Path p) const { return properties[p].getUInt32Value(); }
 
   float getFloatPropertyWithDefault(Path p, float d) const
   {
-    return properties[p].getFloatValueWithDefault(d);
+    auto treeNode = properties.getConstNode(p);
+    return treeNode ? treeNode->getValue().getFloatValue() : d;
   }
+  
   bool getBoolPropertyWithDefault(Path p, bool d) const
   {
-    return properties[p].getBoolValueWithDefault(d);
+    auto treeNode = properties.getConstNode(p);
+    return treeNode ? treeNode->getValue().getBoolValue() : d;
   }
-  int getIntPropertyWithDefault(Path p, int d) const
+
+  int32_t getIntPropertyWithDefault(Path p, int32_t d) const
   {
-    return properties[p].getIntValueWithDefault(d);
+    auto treeNode = properties.getConstNode(p);
+    return treeNode ? treeNode->getValue().getInt32Value() : d;
   }
+  
   Text getTextPropertyWithDefault(Path p, Text d) const
   {
-    return properties[p].getTextValueWithDefault(d);
+    auto treeNode = properties.getConstNode(p);
+    return treeNode ? treeNode->getValue().getTextValue() : d;
   }
+  
   uint32_t getUnsignedLongPropertyWithDefault(Path p, uint32_t d) const
   {
-    return properties[p].getUnsignedLongValueWithDefault(d);
+    auto treeNode = properties.getConstNode(p);
+    return treeNode ? treeNode->getValue().getUInt32Value() : d;
   }
+
   
-  
-  float getIntervalProperty(Path p) const
+  Interval getIntervalProperty(Path p) const
   {
-    return properties[p].getFloatValueWithDefault(d);
+    auto floatPtr = properties[p].getFloatArrayPtr();
+    return Interval{floatPtr[0], floatPtr[1]};
   }
-  float getIntervalPropertyWithDefault(Path p, float d) const
+  Interval getIntervalPropertyWithDefault(Path p, Interval d) const
   {
-    return properties[p].getFloatValueWithDefault(d);
+    Interval r;
+    auto treeNode = properties.getConstNode(p);
+    if(treeNode)
+    {
+      auto floatPtr = treeNode->getValue().getFloatArrayPtr();
+      r = Interval{floatPtr[0], floatPtr[1]};
+    }
+    else
+    {
+      r = d;
+    }
+    return r;
   }
 
 

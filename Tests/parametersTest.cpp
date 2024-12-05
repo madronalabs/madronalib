@@ -10,25 +10,28 @@
 
 using namespace ml;
 
+// TEMP
+#if(0)
+
 // Create some parameters.
 // TODO read from JSON
 void readParameterDescriptions(ParameterDescriptionList& params)
 {
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "param/linear" },
-//    { "range", {0, 1} }
+    { "range", {0, 1} }
   } ) );
 
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "param/log1" },
-//    { "range", {0.001, 1} },
+    { "range", {0.001, 1} },
     { "log", true },
     { "plaindefault", 0.05 }
   } ) );
   
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "param/log-with-offset" },
-//    { "range", {1, 6} },
+    { "range", {1, 6} },
     { "log", true },
     { "offset", -1.f },
     { "plaindefault", 0.0 }
@@ -83,3 +86,6 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
     }
   }
 }
+
+#endif
+
