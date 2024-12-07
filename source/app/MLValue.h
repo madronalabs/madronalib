@@ -8,7 +8,6 @@
 #include <map>
 #include <string>
 
-#include "MLMatrix.h"
 #include "MLPath.h"
 #include "MLSymbol.h"
 #include "MLText.h"
@@ -98,6 +97,7 @@ private:
   // Constructors with variable-size data.
 
   Value(std::initializer_list<float> values);
+  Value(const std::vector<float>& values);
   Value(const char* v);
   explicit Value(const ml::Text& v);
   explicit Value(const ml::Blob& v);
@@ -131,6 +131,49 @@ private:
   uint32_t getType() const;
   uint32_t size() const;
   uint8_t* data() const;
+  
+  // constructor and getter for fixed-size float arrays
+  
+  template<size_t N>
+  Value(std::array<float, N> values)
+  {
+    _type = kFloatArray;
+    auto listSize = N;
+    _sizeInBytes = listSize*sizeof(float);
+    
+    if(_sizeInBytes <= kLocalDataBytes)
+    {
+      // store locally
+      _dataPtr = _localData;
+      memcpy(_dataPtr, values.data(), _sizeInBytes);
+    }
+    else
+    {
+      // allocate heap
+      _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+      if(_dataPtr)
+      {
+        memcpy(_dataPtr, values.data(), _sizeInBytes);
+      }
+      else
+      {
+        _dataPtr = _localData;
+        _sizeInBytes = 0;
+        _type = kUndefined;
+      }
+    }
+  }
+  
+  template<size_t N>
+  std::array<float, N> getFloatArray() const
+  {
+    std::array<float, N> r;
+    if(_type == kFloatArray)
+    {
+      memcpy(r.data(), _dataPtr, _sizeInBytes);
+    }
+    return r;
+  }
 };
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
@@ -139,6 +182,23 @@ std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
 // return size of the binary representation of the Value (incl. type and size)
 size_t getBinarySize(const Value& v);
+
+// handy anything-converters.
+
+template<typename T>
+inline Value valueFromType(T obj)
+{
+  return Value(Blob(reinterpret_cast<const uint8_t*>(&obj), sizeof(T)));
+}
+
+template<typename T>
+inline T valueToType(Value val)
+{
+  T r;
+  auto blob = val.getBlobValue();
+  memcpy(&r, blob.data, blob.size);
+  return r;
+}
 
 namespace ValueUtils
 {

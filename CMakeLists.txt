@@ -101,7 +101,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/sse2neon)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/app)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/DSP)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/matrix)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/source/networking)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
@@ -122,9 +121,6 @@ file(GLOB APP_HEADERS "source/app/*.h")
 
 # DSP code is headers-only
 file(GLOB DSP_HEADERS "source/DSP/*.h")
-
-file(GLOB MATRIX_SOURCES "source/matrix/*.cpp")
-file(GLOB MATRIX_HEADERS "source/matrix/*.h")
 
 file(GLOB AES_SOURCES "external/aes256/*.cpp")
 file(GLOB JSON_SOURCES "external/cJSON/*.c")
@@ -165,8 +161,6 @@ set(madronalib_SOURCES
     ${RTAUDIO_SOURCES}
     ${RTAUDIO_HEADERS}
     ${DSP_HEADERS}
-    ${MATRIX_SOURCES}
-    ${MATRIX_HEADERS}
     ${JSON_SOURCES}
     ${AES_SOURCES}
     )
@@ -400,8 +394,6 @@ set(madronalib_SOURCES_internal
     ${APP_SOURCES}
     ${APP_HEADERS}
     ${DSP_HEADERS}
-    ${MATRIX_SOURCES}
-    ${MATRIX_HEADERS}
     )
 
 if(APPLE)

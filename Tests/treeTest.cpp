@@ -205,13 +205,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // copy by value will not compile with unique_ptr values
     // *** auto intPtrTreeB = intPtrTree;
     
-    
-    // TEMP
-    //a.dump();
-    //a.dumpAllNodes();
-    
-    
-    // iterate just over children. is node has no chlidren, nothing should be called.
+     // iterate just over children. is node has no chlidren, nothing should be called.
     int sumOfChildren;
     sumOfChildren = 0;
     auto iterator = a.begin();
@@ -319,18 +313,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // Value tree tests
 
   Tree<Value> properties;
-  
-  // TEMP
-  Value va("big");
-  std::cout << "value: " << va << "\n";
-  
-  Value vb(va);
-  std::cout << "vb: " << vb << "\n";
-  
-  std::cout << "value size: " << sizeof(Value) << "\n";
-
-  
-  
   properties.add("size", "big");
   properties.add("shape", "square");
   properties.add("corners", 4);
@@ -339,22 +321,11 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties.add("melodies/1", {1, 2, 3, 4, 5, 6, 7});
   properties.add("melodies/2", {8, 7, 6, 5, 4, 3, 2});
 
-  /* TEMP
-  // add a 3D matrix
-  Matrix melody3(4, 5, 2);
-  melody3.fill(9.f);
-  properties.add("melodies/3", melody3);
-  properties.add("melodies/3/dummy", 4);
-*/
-  
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
   REQUIRE(!treeNodeExists(properties, "x"));
   properties["x"] = 24;
   REQUIRE(treeNodeExists(properties, "x"));
-  
-  // TEMP
-  properties.dump();
 
   // failed lookup returns a null Value
   auto failedLookup = properties["nowhere/in/path"];
@@ -366,19 +337,11 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   propertiesB["x"] = 25;
   REQUIRE (propertiesB != properties);
   
-  std::cout << "----------------------------------\n";
-  
-  properties.dump();
-  
   // a tree converted to binary and back should result in the original value
   auto b = valueTreeToBinary(properties);
   auto vt2 = binaryToValueTree(b);
-  std::cout << "----------------------------------\n";
-  
-  vt2.dump();
+  REQUIRE(properties == vt2);
 
-  std::cout << "----------------------------------\n";
-  
   auto b2 = valueTreeToBinary(vt2);
   REQUIRE(b == b2);
 
@@ -392,7 +355,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
   }
 
-  REQUIRE(melodies.size() == 3);
+  REQUIRE(melodies.size() == 2);
 
   //  Empty Tree test
   Tree< Value > emptyTree;
@@ -414,8 +377,18 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(floatTree["purple"] == 0.f);
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);
-   
-  
+}
+
+struct testType
+{
+  float a;
+  int b;
+  double c;
+};
+
+bool operator==(testType l, testType r)
+{
+  return (l.a == r.a) && (l.b == r.b) && (l.c == r.c);
 }
 
 TEST_CASE("madronalib/core/serialization", "[serialization]")
@@ -472,5 +445,17 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto t1 = JSONToText(valueTreeToJSON(v));
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
+  
+  // Value blob converters
+  testType tv1{3, 4, 5};
+  auto tv1Val = valueFromType<testType>(tv1);
+  testType tv2 = valueToType<testType>(tv1Val);
+  REQUIRE(tv1 == tv2);
+  
+  // std::array<float> converters
+  std::array<float, 5> far1{2, 4, 3, 2, 9};
+  Value far1Val (far1);
+  auto far2 = far1Val.getFloatArray<5>();
+  REQUIRE(far1 == far2);
 }
 

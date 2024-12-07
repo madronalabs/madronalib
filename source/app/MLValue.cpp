@@ -189,6 +189,37 @@ Value::Value(std::initializer_list<float> values)
   }
 }
 
+Value::Value(const std::vector<float>& values)
+{
+  _type = kFloatArray;
+  auto listSize = values.size();
+  _sizeInBytes = listSize*sizeof(float);
+  
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, values.data(), _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, values.data(), _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
+
+
 Value::Value(const ml::Text& t)
 {
   _type = kText;
@@ -397,18 +428,13 @@ TextFragment Value::getTextValue() const
 
 ml::Blob Value::getBlobValue() const
 {
-  if(_type != kBlob) return Blob();
   return Blob(_dataPtr, _sizeInBytes);
 }
 
 std::vector<uint8_t> Value::getBlobVector() const
 {
-  if(_type != kBlob) return std::vector<uint8_t>();
   return std::vector<uint8_t>(_dataPtr, _dataPtr + _sizeInBytes);
 }
-
-
-
 
 // public utils
 

@@ -14,8 +14,6 @@ class PropertyTree
 {
   Tree<Value> properties;
   
-  // Properties can provide converters to other types commonly used in Widgets
-
  public:
   PropertyTree() = default;
   PropertyTree(Tree<Value> vt) : properties(vt) {}
@@ -29,7 +27,7 @@ class PropertyTree
     }
   }
   
-  bool hasProperty(Path p) const { return (properties.getConstNode(p) != nullptr); }
+  bool hasProperty(Path p) const { return(properties.getConstNode(p) != nullptr); }
 
   // get the Value of the property. Will return a null Value object if no such
   // property exists.
@@ -39,34 +37,48 @@ class PropertyTree
   // getters for basic parameter value types
 
   float getFloatProperty(Path p) const { return properties[p].getFloatValue(); }
-  bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
-  int getIntProperty(Path p) const { return properties[p].getIntValue(); }
-  Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-
   float getFloatPropertyWithDefault(Path p, float d) const
   {
     auto treeNode = properties.getConstNode(p);
     return treeNode ? treeNode->getValue().getFloatValue() : d;
   }
   
+  double getDoubleProperty(Path p) const { return properties[p].getDoubleValue(); }
+  double getDoublePropertyWithDefault(Path p, double d) const
+  {
+    auto treeNode = properties.getConstNode(p);
+    return treeNode ? treeNode->getValue().getDoubleValue() : d;
+  }
+  
+  bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
   bool getBoolPropertyWithDefault(Path p, bool d) const
   {
     auto treeNode = properties.getConstNode(p);
     return treeNode ? treeNode->getValue().getBoolValue() : d;
   }
 
+  int getIntProperty(Path p) const { return properties[p].getIntValue(); }
   int32_t getIntPropertyWithDefault(Path p, int32_t d) const
   {
     auto treeNode = properties.getConstNode(p);
     return treeNode ? treeNode->getValue().getIntValue() : d;
   }
   
+  Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
   Text getTextPropertyWithDefault(Path p, Text d) const
   {
     auto treeNode = properties.getConstNode(p);
     return treeNode ? treeNode->getValue().getTextValue() : d;
   }
   
+  // pointer getters
+  float* getFloatArrayPropertyPtr(Path p) const { return properties[p].getFloatArrayPtr(); }
+  size_t getFloatArrayPropertySize(Path p) const { return properties[p].getFloatArraySize(); }
+  double* getDoubleArrayPropertyPtr(Path p) const { return properties[p].getDoubleArrayPtr(); }
+  size_t getDoubleArrayPropertySize(Path p) const { return properties[p].getDoubleArraySize(); }
+
+  
+  // utility getters for other types
   
   Interval getIntervalProperty(Path p) const
   {
@@ -75,18 +87,8 @@ class PropertyTree
   }
   Interval getIntervalPropertyWithDefault(Path p, Interval d) const
   {
-    Interval r;
     auto treeNode = properties.getConstNode(p);
-    if(treeNode)
-    {
-      auto floatPtr = treeNode->getValue().getFloatArrayPtr();
-      r = Interval{floatPtr[0], floatPtr[1]};
-    }
-    else
-    {
-      r = d;
-    }
-    return r;
+    return (treeNode) ? getIntervalProperty(p) : d;
   }
 
 

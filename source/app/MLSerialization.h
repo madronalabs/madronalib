@@ -13,8 +13,6 @@
 #include <map>
 #include <numeric>
 
-#include "MLMatrix.h"
-#include "MLSymbol.h"
 #include "MLText.h"
 #include "MLTextUtils.h"
 #include "MLTree.h"
@@ -40,11 +38,152 @@ inline bool operator==(const BinaryGroupHeader& a, const BinaryGroupHeader& b)
 // with 0 elements, size can never be > 0, so this header will not be in any previous binaries.
 static constexpr BinaryGroupHeader kBinaryGroupHeaderV2{0, 1};
 
+constexpr unsigned int kPathType{'P'};
+
 struct BinaryChunkHeader
 {
   unsigned int type : 8;
   unsigned int dataBytes : 24;
 };
+
+// Path
+
+inline size_t getBinarySize(Path p)
+{
+  auto t = pathToText(p, '/');
+  auto headerSize = sizeof(BinaryChunkHeader);
+  auto dataSize = t.lengthInBytes();
+  return headerSize + dataSize;
+}
+
+inline Path readPathFromBinary(const uint8_t*& readPtr)
+{
+  Path r;
+  auto headerSize = sizeof(BinaryChunkHeader);
+  size_t pathSize;
+  BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(readPtr)};
+
+  auto pathType = pathHeader.type;
+  if (pathType == 'P')
+  {
+    pathSize = pathHeader.dataBytes;
+    const char* pChars = reinterpret_cast<const char*>(readPtr + headerSize);
+    r = Path(TextFragment(pChars, pathSize));
+  }
+  readPtr += (headerSize + pathSize);
+  return r;
+}
+
+// write the binary representation of the Path and increment the destination pointer.
+inline void writeBinaryRepresentation(const Path& p, uint8_t*& writePtr)
+{
+  auto t = pathToText(p, '/');
+  auto headerSize = sizeof(BinaryChunkHeader);
+  unsigned int dataSize = t.lengthInBytes();
+  
+  // write header
+  BinaryChunkHeader header{kPathType, dataSize};
+  memcpy(writePtr, &header, headerSize);
+  writePtr += headerSize;
+  
+  // data
+  const uint8_t* textData = (uint8_t *)t.getText();
+  memcpy(writePtr, textData, dataSize);
+  writePtr += dataSize;
+}
+
+// Tree< Value >
+
+inline std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
+{
+  std::vector<uint8_t> returnVector;
+  constexpr size_t headerSize = sizeof(BinaryGroupHeader);
+  
+  // calculate size
+  size_t totalSize{sizeof(BinaryGroupHeader)};
+  for (auto it = t.begin(); it != t.end(); ++it)
+  {
+    totalSize += getBinarySize(it.getCurrentPath());
+    totalSize += getBinarySize(*it);
+  }
+  totalSize += headerSize*2;
+  returnVector.resize(totalSize);
+  
+  // advance past two headers, which we will fill in later
+  uint8_t* writePtr = returnVector.data() + headerSize*2;
+  
+  // use iterator to serialize tree
+  size_t elements{0};
+  for (auto it = t.begin(); it != t.end(); ++it)
+  {
+    // add path
+    writeBinaryRepresentation(it.getCurrentPath(), writePtr);
+    
+    // add value
+    ValueUtils::writeBinaryRepresentation((*it), writePtr);
+        
+    elements++;
+  }
+  
+  // write version header
+  writePtr = returnVector.data();
+  BinaryGroupHeader* versionHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
+  *versionHeader = kBinaryGroupHeaderV2;
+  writePtr += headerSize;
+
+  // write main header
+  BinaryGroupHeader* mainHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
+  mainHeader->elements = elements;
+  mainHeader->size = returnVector.size();
+
+  return returnVector;
+}
+
+inline Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
+{
+  Tree<Value> outputTree;
+  size_t inputSize;
+  constexpr size_t headerSize = sizeof(BinaryGroupHeader);
+
+  if(inputSize > headerSize*2)
+  {
+    const uint8_t* readPtr = binaryData.data();
+    readPtr += headerSize;
+    auto mainHeader{reinterpret_cast<const BinaryGroupHeader*>(readPtr)};
+    auto elements = mainHeader->elements;
+    auto totalSize = mainHeader->size;
+    
+    if(binaryData.size() >= totalSize)
+    {
+      readPtr += headerSize;
+      for (int i = 0; i < elements; ++i)
+      {
+        auto path = readPathFromBinary(readPtr);
+        outputTree[path] = ValueUtils::readBinaryRepresentation(readPtr);
+      }
+    }
+  }
+  return outputTree;
+}
+
+// deprecated code maintained for now to read older binaries of patches etc.
+
+inline Path binaryToPathOld(const uint8_t* p)
+{
+  BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(p)};
+  auto headerSize = sizeof(BinaryChunkHeader);
+  auto pathType = pathHeader.type;
+  if (pathType == 'P')
+  {
+    auto pathSizeInBytes = pathHeader.dataBytes;
+    const char* pChars = reinterpret_cast<const char*>(p + headerSize);
+    return Path(TextFragment(pChars, pathSizeInBytes));
+  }
+  else
+  {
+    return Path();
+  }
+}
 
 inline Value binaryToValueOld(const uint8_t* p)
 {
@@ -90,155 +229,6 @@ inline Value binaryToValueOld(const uint8_t* p)
   return returnValue;
 }
 
-// Path
-
-inline std::vector<unsigned char> pathToBinary(Path p)
-{
-  std::vector<unsigned char> outputVector;
-  auto t = pathToText(p, '/');
-  auto headerSize = sizeof(BinaryChunkHeader);
-  auto dataSize = t.lengthInBytes();
-  outputVector.resize(headerSize + dataSize);
-  BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-  header->type = 'P';
-  header->dataBytes = (unsigned int)dataSize;
-  auto pDest{outputVector.data() + headerSize};
-  auto pSrc{t.getText()};
-  std::copy(pSrc, pSrc + dataSize, pDest);
-  return outputVector;
-}
-
-inline Path binaryToPath(const uint8_t* p)
-{
-  BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(p)};
-  auto headerSize = sizeof(BinaryChunkHeader);
-  auto pathType = pathHeader.type;
-  if (pathType == 'P')
-  {
-    auto pathSizeInBytes = pathHeader.dataBytes;
-    const char* pChars = reinterpret_cast<const char*>(p + headerSize);
-    return Path(TextFragment(pChars, pathSizeInBytes));
-  }
-  else
-  {
-    return Path();
-  }
-}
-
-inline Path binaryToPath(const std::vector<unsigned char>& p) { return binaryToPath(p.data()); }
-
-// Tree< Value >
-
-inline std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
-{
-  constexpr size_t headerSize = sizeof(BinaryGroupHeader);
-  std::vector<uint8_t> returnVector;
-  
-  // calculate size
-  size_t totalSize{sizeof(BinaryGroupHeader)};
-  for (auto it = t.begin(); it != t.end(); ++it)
-  {
-    Path p = it.getCurrentPath();
-    Value v = (*it);
-    
-    // TEMP add size-only function
-    auto pathAsBinary = pathToBinary(p);
-    auto pathBinarySize = pathAsBinary.size();
-    
-    totalSize += getBinarySize(v);
-    totalSize += pathBinarySize;
-  }
-  
-  totalSize += headerSize*2;
-  returnVector.resize(totalSize);
-  
-  // advance past two headers, which we will fill in later
-  uint8_t* writePtr = returnVector.data() + headerSize*2;
-
-  // use iterator to serialize tree
-  size_t elements{0};
-  for (auto it = t.begin(); it != t.end(); ++it)
-  {
-    Path p = it.getCurrentPath();
-    Value v = (*it);
-    
-    // add path
-    
-    // TEMP make Path::writeBinaryRepresentation
-    auto pathAsBinary = pathToBinary(p);
-    auto pathBinarySize = pathAsBinary.size();
-    uint8_t* pathData = pathAsBinary.data();
-    memcpy(writePtr, pathData, pathBinarySize);
-    writePtr += pathBinarySize;
-    
-    // add value
-    ValueUtils::writeBinaryRepresentation(v, writePtr);
-    
-    elements++;
-  }
-  
-  // write version header
-  writePtr = returnVector.data();
-  BinaryGroupHeader* versionHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
-  *versionHeader = kBinaryGroupHeaderV2;
-  writePtr += headerSize;
-
-  // write main header
-  BinaryGroupHeader* mainHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
-  mainHeader->elements = elements;
-  mainHeader->size = returnVector.size();
-
-  std::cout << "elements: " << elements << " total size: " << totalSize << "\n";
-
-  return returnVector;
-}
-
-inline Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
-{
-  Tree<Value> outputTree;
-  size_t inputSize;
-  constexpr size_t headerSize = sizeof(BinaryGroupHeader);
-
-  if(inputSize > headerSize*2)
-  {
-    std::cout << "NEW! \n";
-    
-    const uint8_t* readPtr = binaryData.data();
-    readPtr += headerSize;
-    auto mainHeader{reinterpret_cast<const BinaryGroupHeader*>(readPtr)};
-    auto elements = mainHeader->elements;
-    auto totalSize = mainHeader->size;
-    
-    if (binaryData.size() >= totalSize)
-    {
-      readPtr += headerSize;
-      for (int i = 0; i < elements; ++i)
-      {
-        // get path
-        BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(readPtr)};
-        auto pathSize = pathHeader.dataBytes;
-        auto pathHeaderSize = sizeof(BinaryChunkHeader);
-        auto path = binaryToPath(readPtr);
-        readPtr += pathSize + pathHeaderSize;
-        
-        // get value
-        auto val = ValueUtils::readBinaryRepresentation(readPtr);
-        
-        std::cout << "rad value: " << val << "\n";
-        
-        
-        // write to tree
-        outputTree[path] = val;
-      }
-    }
-    
-    std::cout << "read elements: " << elements << " total size: " << totalSize << "\n";
-    
-  }
-  return outputTree;
-}
-
-// deprecated code maintained to read older binaries of patches etc.
 inline Tree<Value> binaryToValueTreeOld(const std::vector<uint8_t>& binaryData)
 {
   Tree<Value> outputTree;
@@ -257,7 +247,7 @@ inline Tree<Value> binaryToValueTreeOld(const std::vector<uint8_t>& binaryData)
         BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(pData + idx)};
         auto pathSize = pathHeader.dataBytes;
         auto pathHeaderSize = sizeof(BinaryChunkHeader);
-        auto path = binaryToPath(pData + idx);
+        auto path = binaryToPathOld(pData + idx);
         idx += pathSize + pathHeaderSize;
         
         // get value
