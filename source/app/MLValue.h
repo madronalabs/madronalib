@@ -52,10 +52,10 @@ public:
     unsigned int size : 28;
   };
   
+  static constexpr size_t kStructSizeInBytes{64};
+  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - 16;
+
 private:
-  
-  static constexpr size_t kDesiredStructSizeInBytes{64};
-  static constexpr size_t kLocalDataBytes = kDesiredStructSizeInBytes - 16;
   
   // data
   
@@ -183,17 +183,19 @@ std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 // return size of the binary representation of the Value (incl. type and size)
 size_t getBinarySize(const Value& v);
 
-// handy anything-converters.
+// handy anything-converters to and from small POD types.
 
 template<typename T>
-inline Value valueFromType(T obj)
+inline Value valueFromPODType(T obj)
 {
+  static_assert(sizeof(T) <= Value::kLocalDataBytes);
   return Value(Blob(reinterpret_cast<const uint8_t*>(&obj), sizeof(T)));
 }
 
 template<typename T>
-inline T valueToType(Value val)
+inline T valueToPODType(Value val)
 {
+  static_assert(sizeof(T) <= Value::kLocalDataBytes);
   T r;
   auto blob = val.getBlobValue();
   memcpy(&r, blob.data, blob.size);

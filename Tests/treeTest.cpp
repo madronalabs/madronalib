@@ -384,6 +384,7 @@ struct testType
   float a;
   int b;
   double c;
+  std::array<float, 3> d;
 };
 
 bool operator==(testType l, testType r)
@@ -447,9 +448,9 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   REQUIRE(v == v3);
   
   // Value blob converters
-  testType tv1{3, 4, 5};
-  auto tv1Val = valueFromType<testType>(tv1);
-  testType tv2 = valueToType<testType>(tv1Val);
+  testType tv1{3, 4, 5, {34, 35, 36}};
+  auto tv1Val = valueFromPODType<testType>(tv1);
+  testType tv2 = valueToPODType<testType>(tv1Val);
   REQUIRE(tv1 == tv2);
   
   // std::array<float> converters
