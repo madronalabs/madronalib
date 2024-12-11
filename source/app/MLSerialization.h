@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2025 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 // converters to/from binary and text formats for various objects.
@@ -120,7 +120,7 @@ inline std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
     writeBinaryRepresentation(it.getCurrentPath(), writePtr);
     
     // add value
-    ValueUtils::writeBinaryRepresentation((*it), writePtr);
+    Value::writeBinaryRepresentation((*it), writePtr);
         
     elements++;
   }
@@ -159,7 +159,7 @@ inline Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
       for (int i = 0; i < elements; ++i)
       {
         auto path = readPathFromBinary(readPtr);
-        outputTree[path] = ValueUtils::readBinaryRepresentation(readPtr);
+        outputTree[path] = Value::readBinaryRepresentation(readPtr);
       }
     }
   }

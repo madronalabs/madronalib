@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2025 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLValue.h"
@@ -16,31 +16,56 @@ bool Value::isStoredLocally() const
   return (_dataPtr == _localData);
 }
 
-void Value::copyLocalData(const Value& other)
+void Value::copyOrAllocate(uint32_t newType, const uint8_t* pSrc, size_t bytes)
 {
-  _type = other._type;
-  _sizeInBytes = other._sizeInBytes;
-  _dataPtr = _localData;
-  memcpy(_localData, other._localData, _sizeInBytes);
-}
-
-// note _localData is unused when data is external. This is only a good tradeoff
-// because we expect data to be local nearly all of the time.
-void Value::reallocateAndCopy(const Value& other)
-{
-  free(_dataPtr);
-  _dataPtr = (uint8_t*)malloc(other._sizeInBytes);
-  if(_dataPtr)
+  _type = newType;
+  if(bytes == _sizeInBytes)
   {
-    std::copy(other._dataPtr, other._dataPtr + other._sizeInBytes, _dataPtr);
-    _sizeInBytes = other._sizeInBytes;
-    _type = other._type;
+    // same as existing size, copy to wherever data is currently stored
+    memcpy(_dataPtr, pSrc, bytes);
   }
   else
   {
+    if(_dataPtr != _localData) free(_dataPtr);
+      
+    if(bytes <= kLocalDataBytes)
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = bytes;
+      memcpy(_dataPtr, pSrc, _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = (uint8_t*)malloc(bytes);
+      if(_dataPtr)
+      {
+        _sizeInBytes = bytes;
+        memcpy(_dataPtr, pSrc, _sizeInBytes);
+      }
+      else
+      {
+        _dataPtr = _localData;
+        _sizeInBytes = 0;
+        _type = kUndefined;
+      }
+    }
+  }
+}
+
+void Value::copyOrMove(uint32_t newType, uint8_t* pSrc, size_t bytes)
+{
+  _type = newType;
+  if(bytes <= kLocalDataBytes)
+  {
+    _sizeInBytes = bytes;
     _dataPtr = _localData;
-    _sizeInBytes = 0;
-    _type = kUndefined;
+    memcpy(_dataPtr, pSrc, _sizeInBytes);
+  }
+  else
+  {
+    if(!isStoredLocally()) free(_dataPtr);
+    _dataPtr = pSrc;
+    _sizeInBytes = bytes;
   }
 }
 
@@ -48,65 +73,27 @@ void Value::reallocateAndCopy(const Value& other)
 
 Value::Value(const Value& other)
 {
-  if(other.isStoredLocally())
-  {
-    copyLocalData(other);
-  }
-  else
-  {
-    reallocateAndCopy(other);
-  }
+  copyOrAllocate(other._type, other._dataPtr, other._sizeInBytes);
 }
 
 Value& Value::operator=(const Value& other)
 {
   if(this == &other) return *this;
-
-  if(other.isStoredLocally())
-  {
-    copyLocalData(other);
-  }
-  else
-  {
-    reallocateAndCopy(other);
-  }
-
+  copyOrAllocate(other._type, other._dataPtr, other._sizeInBytes);
   return *this;
 }
 
-
 Value::Value(Value&& other) noexcept
 {
-  if(other.isStoredLocally())
-  {
-    copyLocalData(other);
-  }
-  else
-  {
-    _type = other._type;
-    _dataPtr = other._dataPtr;
-    _sizeInBytes = other._sizeInBytes;
-    other._dataPtr = other._localData;
-  }
+  copyOrMove(other._type, other._dataPtr, other._sizeInBytes);
+  other._dataPtr = other._localData;
 }
 
 Value& Value::operator=(Value&& other) noexcept
 {
-  if(this != &other)
-  {    
-    if(other.isStoredLocally())
-    {
-      copyLocalData(other);
-    }
-    else
-    {
-      if(!isStoredLocally()) free(_dataPtr);
-      _type = other._type;
-      _dataPtr = other._dataPtr;
-      _sizeInBytes = other._sizeInBytes;
-      other._dataPtr = other._localData;
-    }
-  }
+  if(this == &other) return *this;
+  copyOrMove(other._type, other._dataPtr, other._sizeInBytes);
+  other._dataPtr = other._localData;
   return *this;
 }
 
@@ -119,6 +106,8 @@ Value::~Value()
 }
 
 // Constructors with fixed-size data.
+
+static Value testValue();
 
 Value::Value() : _type(kUndefined), _sizeInBytes(0), _dataPtr(_localData) {}
 
@@ -147,219 +136,46 @@ Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(int)), _dataPtr(_localDat
 }
 
 // Constructors with variable-size data.
-// if data size > kLocalDataBytes, these will allocate heap memory.
 
 Value::Value(std::initializer_list<float> values)
 {
-  _type = kFloatArray;
-  auto listSize = values.size();
-  _sizeInBytes = listSize*sizeof(float);
-
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-
-    float* pDest = reinterpret_cast<float*>(_dataPtr);
-    for(const float& value : values)
-    {
-      pDest[0] = value;
-      pDest++;
-    }
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      float* pDest = reinterpret_cast<float*>(_dataPtr);
-      for(const float& value : values)
-      {
-        pDest[0] = value;
-        pDest++;
-      }
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
+  const float* pFloatSrc = &*values.begin();
+  auto pSrc = reinterpret_cast<const uint8_t*>(pFloatSrc);
+  copyOrAllocate(kFloatArray, pSrc, values.size()*sizeof(float));
 }
 
 Value::Value(const std::vector<float>& values)
 {
-  _type = kFloatArray;
-  auto listSize = values.size();
-  _sizeInBytes = listSize*sizeof(float);
-  
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-    memcpy(_dataPtr, values.data(), _sizeInBytes);
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      memcpy(_dataPtr, values.data(), _sizeInBytes);
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
+  const float* pFloatSrc = values.data();
+  auto pSrc = reinterpret_cast<const uint8_t*>(pFloatSrc);
+  copyOrAllocate(kFloatArray, pSrc, values.size()*sizeof(float));
 }
-
-
 
 Value::Value(const ml::Text& t)
 {
-  _type = kText;
-  _sizeInBytes = t.lengthInBytes();
-
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-    memcpy(_dataPtr, t.getText(), _sizeInBytes);
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      memcpy(_dataPtr, t.getText(), _sizeInBytes);
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
+  auto pSrc = reinterpret_cast<const uint8_t*>(t.getText());
+  copyOrAllocate(kText, pSrc, t.lengthInBytes());
 }
 
 Value::Value(const char* v)
 {
-  _type = kText;
-  _sizeInBytes = strlen(v);
-  
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-    memcpy(_dataPtr, v, _sizeInBytes);
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      memcpy(_dataPtr, v, _sizeInBytes);
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
+  auto pSrc = reinterpret_cast<const uint8_t*>(v);
+  size_t len = strlen(v);
+  len = std::min(len, kMaxDataBytes);
+  copyOrAllocate(kText, pSrc, len);
 }
 
 Value::Value(const ml::Blob& v)
 {
-  _type = kBlob;
-  _sizeInBytes = v.size;
-
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-    memcpy(_dataPtr, v.data, _sizeInBytes);
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      memcpy(_dataPtr, v.data, _sizeInBytes);
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
+  copyOrAllocate(kBlob, v.data, v.size);
 }
 
-Value::Value(std::vector<uint8_t> v)
+Value::Value(const std::vector<uint8_t>& v)
 {
-  _type = kBlob;
-  _sizeInBytes = v.size();
-  
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-    memcpy(_dataPtr, v.data(), _sizeInBytes);
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      memcpy(_dataPtr, v.data(), _sizeInBytes);
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
+  size_t len = v.size();
+  len = std::min(len, kMaxDataBytes);
+  copyOrAllocate(kBlob, v.data(), len);
 }
-
-Value::Value(const Value::BinaryHeader& header, const uint8_t* readPtr)
-{
-  _type = header.type;
-  _sizeInBytes = header.size;
-
-  if(_sizeInBytes <= kLocalDataBytes)
-  {
-    // store locally
-    _dataPtr = _localData;
-    memcpy(_dataPtr, readPtr, _sizeInBytes);
-  }
-  else
-  {
-    // allocate heap
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if(_dataPtr)
-    {
-      memcpy(_dataPtr, readPtr, _sizeInBytes);
-    }
-    else
-    {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
-    }
-  }
-}
-
 
 // fixed-size getters
 
@@ -382,7 +198,6 @@ int Value::getIntValue() const
 {
   return (_type == kInt) ? toFixedSizeType<int>() : 0;
 }
-
 
 // variable-size getters
 
@@ -514,8 +329,36 @@ size_t getBinarySize(const Value& v)
   return v.size() + sizeof(Value::BinaryHeader);
 }
 
+Value::Value(const Value::BinaryHeader& header, const uint8_t* readPtr)
+{
+  _type = header.type;
+  _sizeInBytes = header.size;
+  
+  if(_sizeInBytes <= kLocalDataBytes)
+  {
+    // store locally
+    _dataPtr = _localData;
+    memcpy(_dataPtr, readPtr, _sizeInBytes);
+  }
+  else
+  {
+    // allocate heap
+    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
+    if(_dataPtr)
+    {
+      memcpy(_dataPtr, readPtr, _sizeInBytes);
+    }
+    else
+    {
+      _dataPtr = _localData;
+      _sizeInBytes = 0;
+      _type = kUndefined;
+    }
+  }
+}
+
 // write the binary representation of the Value and increment the destination pointer.
-void ValueUtils::writeBinaryRepresentation(const Value& v, uint8_t*& writePtr)
+void Value::writeBinaryRepresentation(const Value& v, uint8_t*& writePtr)
 {
   // header
   auto sizeInBytes = v.size();
@@ -528,7 +371,7 @@ void ValueUtils::writeBinaryRepresentation(const Value& v, uint8_t*& writePtr)
   writePtr += sizeInBytes;
 }
 
-Value ValueUtils::readBinaryRepresentation(const uint8_t*& readPtr)
+Value Value::readBinaryRepresentation(const uint8_t*& readPtr)
 {
   auto headerSize = sizeof(Value::BinaryHeader);
   
@@ -544,3 +387,5 @@ Value ValueUtils::readBinaryRepresentation(const uint8_t*& readPtr)
 
 
 }  // namespace ml
+
+

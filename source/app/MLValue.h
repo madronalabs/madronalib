@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2025 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -14,7 +14,10 @@
 #include "MLDSPProjections.h"
 
 // Value: a small unit of typed data designed for being constructed on the stack and
-// transferred in messages.
+// transferred in messages. If the value to be constructed is below a certain size,
+// no heap will be allocated. Copying a new value into one of the same size must not
+// reallocate. Together these guarantees make Value useful for creating DSP applications
+// that don't allocate memory when processing signals.
 
 namespace ml
 {
@@ -45,37 +48,47 @@ public:
     kBlob
   };
   
+  static constexpr size_t kMaxDataSizeBits{28};
+  static constexpr size_t kMaxDataBytes = 1 << (kMaxDataSizeBits - 1);
+  static constexpr size_t getLocalDataMaxBytes() { return kLocalDataBytes; }
+  static constexpr size_t getHeaderBytes() { return kHeaderBytes; }
+
   // for serializing
   struct BinaryHeader
   {
     unsigned int type : 4;
-    unsigned int size : 28;
+    unsigned int size : kMaxDataSizeBits;
   };
   
-  static constexpr size_t kStructSizeInBytes{64};
-  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - 16;
-
 private:
-  
+
   // data
+  
+  // kHeaderBytes should be the size of everything except the local data. This is verified in valueTest.cpp.
+  static constexpr size_t kStructSizeInBytes{64};
+  static constexpr size_t kHeaderBytes{16};
+  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - kHeaderBytes;
   
   uint8_t* _dataPtr{_localData};
   uint32_t _type{kUndefined};
   uint32_t _sizeInBytes{0};
   uint8_t _localData[kLocalDataBytes];
-  
+
   // utilities
   
-  bool isStoredLocally() const;
-  void copyLocalData(const Value& other);
-  void reallocateAndCopy(const Value& other);
-  
+  void copyOrAllocate(uint32_t type, const uint8_t* pSrc, size_t bytes);
+  void copyOrMove(uint32_t newType, uint8_t* pSrc, size_t bytes);
+
   template<typename T> T toFixedSizeType() const
   {
     T* scalarTypePtr = reinterpret_cast<T*>(_dataPtr);
     return *scalarTypePtr;
   }
-
+  
+  // private constructor for serialization
+  
+  Value(const BinaryHeader& header, const uint8_t* readPtr);
+  
  public:
 
   // copy and assign constructors and destructor
@@ -101,8 +114,7 @@ private:
   Value(const char* v);
   explicit Value(const ml::Text& v);
   explicit Value(const ml::Blob& v);
-  Value(std::vector<uint8_t> dataVec); // alternate Blob
-  Value(const BinaryHeader& header, const uint8_t* readPtr); // for reading binary data
+  Value(const std::vector<uint8_t>& dataVec); // alternate Blob
   
   // getters for fixed-size data
   
@@ -125,6 +137,7 @@ private:
 
   // public utils
   
+  bool isStoredLocally() const;
   explicit operator bool() const;
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
@@ -174,11 +187,17 @@ private:
     }
     return r;
   }
+  
+  // serialization
+  
+  // write the binary representation of the Value and increment the write pointer.
+  static void writeBinaryRepresentation(const Value& v, uint8_t*& writePtr);
+  
+  // read the binary representation of the Value and increment the read pointer.
+  static Value readBinaryRepresentation(const uint8_t*& readPtr);
 };
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
-
-// serialization
 
 // return size of the binary representation of the Value (incl. type and size)
 size_t getBinarySize(const Value& v);
@@ -188,30 +207,22 @@ size_t getBinarySize(const Value& v);
 template<typename T>
 inline Value valueFromPODType(T obj)
 {
-  static_assert(sizeof(T) <= Value::kLocalDataBytes);
+  static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
   return Value(Blob(reinterpret_cast<const uint8_t*>(&obj), sizeof(T)));
 }
 
 template<typename T>
 inline T valueToPODType(Value val)
 {
-  static_assert(sizeof(T) <= Value::kLocalDataBytes);
+  static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
   T r;
   auto blob = val.getBlobValue();
   memcpy(&r, blob.data, blob.size);
   return r;
 }
 
-namespace ValueUtils
-{
-  // write the binary representation of the Value and increment the write pointer.
-  void writeBinaryRepresentation(const Value& v, uint8_t*& writePtr);
-
-  // read the binary representation of the Value and increment the read pointer.
-  Value readBinaryRepresentation(const uint8_t*& readPtr);
-}
-
 // NamedValue for initializer lists
+
 struct NamedValue
 {
   ml::Path name;

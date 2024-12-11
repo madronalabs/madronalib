@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2025 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
@@ -316,8 +316,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties.add("size", "big");
   properties.add("shape", "square");
   properties.add("corners", 4);
-
-  // add 1D matrices
   properties.add("melodies/1", {1, 2, 3, 4, 5, 6, 7});
   properties.add("melodies/2", {8, 7, 6, 5, 4, 3, 2});
 
@@ -379,18 +377,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(floatTree["pink"] == 1.f);
 }
 
-struct testType
-{
-  float a;
-  int b;
-  double c;
-  std::array<float, 3> d;
-};
-
-bool operator==(testType l, testType r)
-{
-  return (l.a == r.a) && (l.b == r.b) && (l.c == r.c);
-}
 
 TEST_CASE("madronalib/core/serialization", "[serialization]")
 {
@@ -447,16 +433,5 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
   
-  // Value blob converters
-  testType tv1{3, 4, 5, {34, 35, 36}};
-  auto tv1Val = valueFromPODType<testType>(tv1);
-  testType tv2 = valueToPODType<testType>(tv1Val);
-  REQUIRE(tv1 == tv2);
-  
-  // std::array<float> converters
-  std::array<float, 5> far1{2, 4, 3, 2, 9};
-  Value far1Val (far1);
-  auto far2 = far1Val.getFloatArray<5>();
-  REQUIRE(far1 == far2);
 }
 

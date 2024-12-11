@@ -377,13 +377,10 @@ endif()
 if(BUILD_TESTS)
     set(target tests)
     file(GLOB TEST_SOURCES "tests/*.*")
-
     add_executable(tests ${TEST_SOURCES})
     set_target_properties(tests PROPERTIES EXCLUDE_FROM_ALL TRUE)
     add_dependencies(tests madronalib)
-
     target_link_libraries(tests madronalib)
-
 endif()
 
 #--------------------------------------------------------------------

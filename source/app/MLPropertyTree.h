@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2025 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -27,12 +27,11 @@ class PropertyTree
     }
   }
   
+  // basics
+  
   bool hasProperty(Path p) const { return(properties.getConstNode(p) != nullptr); }
-
-  // get the Value of the property. Will return a null Value object if no such
-  // property exists.
-  Value getProperty(Path p) const { return properties[p]; }
   void setProperty(Path p, Value v) { properties[p] = v; }
+  Value getProperty(Path p) const { return properties[p]; }
   
   // getters for basic parameter value types
 
@@ -71,28 +70,14 @@ class PropertyTree
     return treeNode ? treeNode->getValue().getTextValue() : d;
   }
   
-  // pointer getters
-  float* getFloatArrayPropertyPtr(Path p) const { return properties[p].getFloatArrayPtr(); }
-  size_t getFloatArrayPropertySize(Path p) const { return properties[p].getFloatArraySize(); }
-  double* getDoubleArrayPropertyPtr(Path p) const { return properties[p].getDoubleArrayPtr(); }
-  size_t getDoubleArrayPropertySize(Path p) const { return properties[p].getDoubleArraySize(); }
-
-  
   // utility getters for other types
   
-  Interval getIntervalProperty(Path p) const
-  {
-    auto floatPtr = properties[p].getFloatArrayPtr();
-    return Interval{floatPtr[0], floatPtr[1]};
-  }
-  Interval getIntervalPropertyWithDefault(Path p, Interval d) const
-  {
-    auto treeNode = properties.getConstNode(p);
-    return (treeNode) ? getIntervalProperty(p) : d;
-  }
+  Interval getIntervalProperty(Path p) const { return valueToPODType<Interval>(getProperty(p)); }
+  Interval getIntervalPropertyWithDefault(Path p, Interval d) const { return hasProperty(p) ? getIntervalProperty(p) : d; }
+  inline void setIntervalProperty(Path p, Interval v) { setProperty(p, valueFromPODType<Interval>(v)); }
 
-
-
+  // serialization
+  
   std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }
   PropertyTree binaryToPropertyTree(const std::vector<unsigned char>& binaryData)
   {
@@ -108,12 +93,11 @@ class PropertyTree
   }
 
   void dump() { properties.dump(); }
+  
+  // iterators
 
   inline Tree<Value>::const_iterator begin() const { return properties.begin(); }
-
   inline Tree<Value>::const_iterator end() const { return properties.end(); }
-  
-  // TODO why does PropertyTree not provide a [] operator?
 };
 
 }  // namespace ml
