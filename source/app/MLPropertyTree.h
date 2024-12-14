@@ -75,7 +75,13 @@ class PropertyTree
   Interval getIntervalProperty(Path p) const { return valueToPODType<Interval>(getProperty(p)); }
   Interval getIntervalPropertyWithDefault(Path p, Interval d) const { return hasProperty(p) ? getIntervalProperty(p) : d; }
   inline void setIntervalProperty(Path p, Interval v) { setProperty(p, valueFromPODType<Interval>(v)); }
+  
+  // variable-size getters, handy but will allocate heap
+  
+  std::vector<float> getFloatVectorProperty(Path p) const { return properties[p].getFloatVector(); }
+  std::vector<float> getFloatVectorPropertyWithDefault(Path p, std::vector<float> d) const { return hasProperty(p) ? getFloatVectorProperty(p) : d; }
 
+  
   // serialization
   
   std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }
@@ -86,6 +92,7 @@ class PropertyTree
 
   void overwrite(const PropertyTree& other)
   {
+    
     for (auto it = other.properties.begin(); it != other.properties.end(); ++it)
     {
       setProperty(it.getCurrentPath(), *it);
