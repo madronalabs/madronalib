@@ -152,7 +152,7 @@ private:
   {
     _type = kFloatArray;
     auto listSize = N;
-    _sizeInBytes = listSize*sizeof(float);
+    _sizeInBytes = static_cast<uint32_t>(listSize*sizeof(float));
     
     if(_sizeInBytes <= kLocalDataBytes)
     {

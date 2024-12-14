@@ -44,6 +44,11 @@ struct BinaryChunkHeader
 {
   unsigned int type : 8;
   unsigned int dataBytes : 24;
+  BinaryChunkHeader(int t, size_t bytes)
+  {
+    type = t;
+    dataBytes = static_cast<unsigned int>(bytes)&0x00FFFFFF;
+  }
 };
 
 // Path
@@ -79,10 +84,10 @@ inline void writeBinaryRepresentation(const Path& p, uint8_t*& writePtr)
 {
   auto t = pathToText(p, '/');
   auto headerSize = sizeof(BinaryChunkHeader);
-  unsigned int dataSize = t.lengthInBytes();
+  auto dataSize = t.lengthInBytes();
   
   // write header
-  BinaryChunkHeader header{kPathType, dataSize};
+  BinaryChunkHeader header{kPathType, (unsigned int)dataSize};
   memcpy(writePtr, &header, headerSize);
   writePtr += headerSize;
   

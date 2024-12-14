@@ -56,5 +56,6 @@ TEST_CASE("madronalib/core/values", "[values]")
   REQUIRE(v1.isStoredLocally());
   REQUIRE(v2.isStoredLocally());
   REQUIRE(!v3.isStoredLocally());
+  
 }
 

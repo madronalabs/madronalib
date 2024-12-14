@@ -31,7 +31,7 @@ void Value::copyOrAllocate(uint32_t newType, const uint8_t* pSrc, size_t bytes)
     if(bytes <= kLocalDataBytes)
     {
       _dataPtr = _localData;
-      _sizeInBytes = bytes;
+      _sizeInBytes = static_cast<uint32_t>(bytes);
       memcpy(_dataPtr, pSrc, _sizeInBytes);
     }
     else
@@ -39,7 +39,7 @@ void Value::copyOrAllocate(uint32_t newType, const uint8_t* pSrc, size_t bytes)
       _dataPtr = (uint8_t*)malloc(bytes);
       if(_dataPtr)
       {
-        _sizeInBytes = bytes;
+        _sizeInBytes = static_cast<uint32_t>(bytes);
         memcpy(_dataPtr, pSrc, _sizeInBytes);
       }
       else
@@ -57,7 +57,7 @@ void Value::copyOrMove(uint32_t newType, uint8_t* pSrc, size_t bytes)
   _type = newType;
   if(bytes <= kLocalDataBytes)
   {
-    _sizeInBytes = bytes;
+    _sizeInBytes = static_cast<uint32_t>(bytes);
     _dataPtr = _localData;
     memcpy(_dataPtr, pSrc, _sizeInBytes);
   }
@@ -65,7 +65,7 @@ void Value::copyOrMove(uint32_t newType, uint8_t* pSrc, size_t bytes)
   {
     if(!isStoredLocally()) free(_dataPtr);
     _dataPtr = pSrc;
-    _sizeInBytes = bytes;
+    _sizeInBytes = static_cast<uint32_t>(bytes);
   }
 }
 
@@ -177,26 +177,99 @@ Value::Value(const std::vector<uint8_t>& v)
   copyOrAllocate(kBlob, v.data(), len);
 }
 
-// fixed-size getters
+// fixed-size getters cast simple types to whatever simple type is requested.
+// other types we can't convert return a default value.
 
 float Value::getFloatValue() const
 {
-  return (_type == kFloat) ? toFixedSizeType<float>() : 0.0f;
+  float r = 0.f;
+  switch(_type)
+  {
+    case kFloat:
+      r = toFixedSizeType<float>();
+      break;
+    case kDouble:
+      r = toFixedSizeType<double>();
+      break;
+    case kBool:
+      r = toFixedSizeType<bool>();
+      break;
+    case kInt:
+      r = toFixedSizeType<int>();
+      break;
+    default:
+      break;
+  }
+  return r;
 }
 
 double Value::getDoubleValue() const
 {
-  return (_type == kDouble) ? toFixedSizeType<double>() : 0.0;
+  double r = 0.;
+  switch(_type)
+  {
+    case kFloat:
+      r = toFixedSizeType<float>();
+      break;
+    case kDouble:
+      r = toFixedSizeType<double>();
+      break;
+    case kBool:
+      r = toFixedSizeType<bool>();
+      break;
+    case kInt:
+      r = toFixedSizeType<int>();
+      break;
+    default:
+      break;
+  }
+  return r;
 }
 
 bool Value::getBoolValue() const
 {
-  return (_type == kBool) ? toFixedSizeType<bool>() : false;
+  bool r = 0;
+  switch(_type)
+  {
+    case kFloat:
+      r = toFixedSizeType<float>();
+      break;
+    case kDouble:
+      r = toFixedSizeType<double>();
+      break;
+    case kBool:
+      r = toFixedSizeType<bool>();
+      break;
+    case kInt:
+      r = toFixedSizeType<int>();
+      break;
+    default:
+      break;
+  }
+  return r;
 }
 
 int Value::getIntValue() const
 {
-  return (_type == kInt) ? toFixedSizeType<int>() : 0;
+  int r = 0.f;
+  switch(_type)
+  {
+    case kFloat:
+      r = toFixedSizeType<float>();
+      break;
+    case kDouble:
+      r = toFixedSizeType<double>();
+      break;
+    case kBool:
+      r = toFixedSizeType<bool>();
+      break;
+    case kInt:
+      r = toFixedSizeType<int>();
+      break;
+    default:
+      break;
+  }
+  return r;
 }
 
 // variable-size getters
