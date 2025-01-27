@@ -56,7 +56,7 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
 
   double ppqPhase = 0.;
 
-  if (active)
+  if(active)
   {
     if (ppqPos > 0.f)
     {
@@ -75,7 +75,6 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
       // this works well when we start at any 1/4 note.
       // there is still some weirdness when we try to lock onto other 16ths.
       _omega = 0.;
-      // std::cout << "phasor START: " << mOmega << "\n";
       _dpdt = 0.;
       _dsdt = 0.;
     }
@@ -120,14 +119,13 @@ void SignalProcessor::ProcessTime::clear(void)
 // generate phasors from the input parameters
 void SignalProcessor::ProcessTime::process()
 {
-  auto _fomega = (double)_omega;
   for (int n = 0; n < kFloatsPerDSPVector; ++n)
   {
-    _quarterNotesPhase[n] = (float)_fomega;
-    _fomega += _dpdt;
-    if (_fomega > 1.f)
+    _quarterNotesPhase[n] = _omega;
+    _omega += _dpdt;
+    if (_omega > 1.f)
     {
-      _fomega -= 1.f;
+      _omega -= 1.f;
     }
   }
   for (int n = 0; n < kFloatsPerDSPVector; ++n)

@@ -1501,7 +1501,7 @@ struct Upsampler
 class PLL
 {
   // phasor on [0. - 1.), changes at rate of input phasor * input ratio
-  float _omega{0};
+  float _omega{-1.f};
   float _x1{0};
 
  public:
@@ -1552,7 +1552,7 @@ class PLL
         // get error term at each sample by comparing output to scaled input
         // or scaled input to output depending on ratio.
         float error;
-        if (dydx[n] >= 1.f)
+        if(dydx[n] >= 1.f)
         {
           error = _omega - fmod(px * dydx[n], 1.0f);
         }

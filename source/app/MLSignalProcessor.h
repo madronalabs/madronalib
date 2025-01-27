@@ -128,7 +128,7 @@ class SignalProcessor
     DSPVector _secondsPhase;
 
    private:
-    double _omega{0};
+    float _omega{0};
     bool _playing1{false};
     bool _active1{false};
     double _dpdt{0};
