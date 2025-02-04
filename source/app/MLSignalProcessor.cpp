@@ -68,15 +68,16 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
     }
 
     _omega = ppqPhase;
-
+    _dsdt = static_cast<float>(1. / sampleRate);
+    
     if (justStarted)
     {
       // just start at 0 and don't attempt to match the playhead position.
       // this works well when we start at any 1/4 note.
       // there is still some weirdness when we try to lock onto other 16ths.
       _omega = 0.;
-      _dpdt = 0.;
-      _dsdt = 0.;
+      float minutesPerSample = _dsdt/60.f;
+      _dpdt = bpm*minutesPerSample;
     }
     else
     {
@@ -86,7 +87,7 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
         dPhase += 1.;
       }
       _dpdt = ml::clamp(dPhase / static_cast<double>(_samplesSincePreviousTime), 0., 1.);
-      _dsdt = static_cast<float>(1. / sampleRate);
+
     }
 
     _secondsCounter = secs;
