@@ -382,4 +382,5 @@ class DSPBuffer
     }
   }
 };
+
 }  // namespace ml

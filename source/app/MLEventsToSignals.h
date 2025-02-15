@@ -57,7 +57,6 @@ struct KeyState
 class EventsToSignals final
 {
 public:
-
   static constexpr size_t kMaxVoices{16};
   static constexpr size_t kMaxEventsPerVector{128};
   static constexpr size_t kMaxPhysicalKeys{128};
@@ -93,8 +92,6 @@ public:
   //
   struct Voice
   {
-  public:
-    
     Voice() = default;
     ~Voice() = default;
 

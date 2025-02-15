@@ -140,6 +140,9 @@ file(GLOB OSC_SOURCES_ZEROCONF "external/oscpack/zeroconf/*.cpp")
 file(GLOB RTAUDIO_SOURCES "external/rtaudio/*.cpp")
 file(GLOB RTAUDIO_HEADERS "external/rtaudio/*.h")
 
+file(GLOB RTMIDI_SOURCES "external/rtmidi/*.cpp")
+file(GLOB RTMIDI_HEADERS "external/rtmidi/*.h")
+
 if(APPLE)
     file(GLOB OSC_SOURCES_NATIVE "external/oscpack/ip/posix/*.cpp")
 else()
@@ -164,6 +167,8 @@ set(madronalib_SOURCES
     ${APP_HEADERS}
     ${RTAUDIO_SOURCES}
     ${RTAUDIO_HEADERS}
+    ${RTMIDI_SOURCES}
+    ${RTMIDI_HEADERS}
     ${DSP_HEADERS}
     ${MATRIX_SOURCES}
     ${MATRIX_HEADERS}
@@ -300,6 +305,7 @@ endif()
 if(APPLE)
   target_link_libraries(madronalib "-framework Carbon")
   target_link_libraries(madronalib "-framework CoreServices")
+  target_link_libraries(madronalib "-framework CoreMIDI")
   target_link_libraries(madronalib "-framework AudioToolbox")
   target_link_libraries(madronalib "-framework AudioUnit")
   target_link_libraries(madronalib "-framework CoreAudio")
@@ -308,6 +314,7 @@ if(APPLE)
   target_link_libraries(madronalib "-framework GLUT")
 else(APPLE)
   # target_link_libraries(madronalib ${DNSSD_LIBRARIES})
+  target_link_libraries(madronalib winmm.lib)
 endif()
 
 #--------------------------------------------------------------------
@@ -316,7 +323,7 @@ endif()
 
 set(ML_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
-function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
+function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     set(
         EXAMPLE_SOURCES
@@ -330,7 +337,6 @@ function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
         ${ML_ROOT}/external/rtaudio
         )
     
-    # rtaudio source is now in madronalib
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)
 
     set_target_properties(${EXAMPLE_APP_NAME}
@@ -374,6 +380,7 @@ if(BUILD_EXAMPLES)
     make_example(SineExample sine.cpp)
     make_example(FDTDExample FDTD.cpp)
     make_example(ParamsExample params.cpp)
+    make_example(MIDIExample MIDI.cpp)
 endif()
 
 #--------------------------------------------------------------------
