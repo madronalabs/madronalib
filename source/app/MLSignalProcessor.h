@@ -105,7 +105,6 @@ class SignalProcessor
 
   // SignalProcessor::ProcessTime maintains the current time in a DSP process and can track
   // the time in the host application if there is one.
-
   class ProcessTime
   {
    public:
@@ -113,7 +112,7 @@ class SignalProcessor
     ~ProcessTime() = default;
 
     // Set the time and bpm. The time refers to the start of the current engine processing block.
-    void setTimeAndRate(const double ppqPos, const double bpm, bool isPlaying, double sampleRate);
+    void setTimeAndRate(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
 
     // clear state
     void clear();
@@ -121,8 +120,12 @@ class SignalProcessor
     // generate phasors from the input parameters
     void process();
 
-    // phase signal to read
+    // phase signal to read TODO rename
     DSPVector _quarterNotesPhase;
+
+    double bpm{0};
+    double sampleRate{0};
+    uint64_t samplesSinceStart{0};
 
    private:
     float _omega{0};
@@ -130,7 +133,7 @@ class SignalProcessor
     bool _active1{false};
     double _dpdt{0};
     size_t _samplesSincePreviousTime{0};
-    double _ppqPos1{0};
+    double _ppqPos1{-1.};
     double _ppqPhase1{0};
   };
 
@@ -173,7 +176,9 @@ class SignalProcessor
   {
     setDefaults(_params);
   };
-  
+
+  // TODO fix name and API
+  ProcessTime _currentTime;
 
  protected:
   // the maximum amount of input frames that can be proceesed at once. This determines the
@@ -187,7 +192,7 @@ class SignalProcessor
   size_t _uniqueID;
 
   float _sampleRate{0.f};
-  ProcessTime _currentTime;
+
 
   // buffer object to call processVector() from process() calls of arbitrary frame sizes
   VectorProcessBuffer processBuffer;

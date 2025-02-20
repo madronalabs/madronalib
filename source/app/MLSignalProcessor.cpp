@@ -38,24 +38,25 @@ size_t SignalProcessor::PublishedSignal::read(float* pDest, size_t framesRequest
 
 // SignalProcessor::ProcessTime
 
-// Set the time and bpm. The time refers to the start of the current engine processing block.
-void SignalProcessor::ProcessTime::setTimeAndRate(const double ppqPos,
-                                                  const double bpm, bool isPlaying,
-                                                  double sampleRate)
+// Set the time and bpm. The time refers to the start of the current host processing block.
+// This should be called every host processing block with the latest info.
+void SignalProcessor::ProcessTime::setTimeAndRate(const double ppqPos, const double bpmIn,
+  bool isPlaying, double sampleRateIn)
 {
   // working around a bug I can't reproduce, so I'm covering all the bases.
   if (((ml::isNaN(ppqPos)) || (ml::isInfinite(ppqPos))) ||
-      ((ml::isNaN(bpm)) || (ml::isInfinite(bpm))) )
+      ((ml::isNaN(bpmIn)) || (ml::isInfinite(bpmIn))) )
   {
     // debug << "PluginProcessor::ProcessTime::setTimeAndRate: bad input! \n";
     return;
   }
 
+  sampleRate = sampleRateIn;
+  bpm = bpmIn;
   bool active = (_ppqPos1 != ppqPos) && isPlaying;
   bool justStarted = isPlaying && !_playing1;
 
   double ppqPhase = 0.;
-
   if(active)
   {
     if (ppqPos > 0.f)
@@ -74,6 +75,7 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double ppqPos,
       // just start at 0 and don't attempt to match the playhead position.
       // this works well when we start at any 1/4 note.
       // there is still some weirdness when we try to lock onto other 16ths.
+      samplesSinceStart = 0;
       _omega = 0.;
       double dsdt = (1. / sampleRate);
       double minutesPerSample = dsdt/60.;
@@ -122,4 +124,5 @@ void SignalProcessor::ProcessTime::process()
     }
   }
   _samplesSincePreviousTime += kFloatsPerDSPVector;
+  samplesSinceStart += kFloatsPerDSPVector;
 }
