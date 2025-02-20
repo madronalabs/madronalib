@@ -111,7 +111,6 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
       std::cout << "\nNo audio devices found!\n";
       return 0;
     }
-    
 
     RtAudio::DeviceInfo info;
     uint32_t devices = _adac.getDeviceCount();

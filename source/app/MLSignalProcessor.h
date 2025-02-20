@@ -113,8 +113,7 @@ class SignalProcessor
     ~ProcessTime() = default;
 
     // Set the time and bpm. The time refers to the start of the current engine processing block.
-    void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying,
-                        double sampleRate);
+    void setTimeAndRate(const double ppqPos, const double bpm, bool isPlaying, double sampleRate);
 
     // clear state
     void clear();
@@ -122,23 +121,17 @@ class SignalProcessor
     // generate phasors from the input parameters
     void process();
 
-    // signals containing time from score start
+    // phase signal to read
     DSPVector _quarterNotesPhase;
-    DSPVector _seconds;
-    DSPVector _secondsPhase;
 
    private:
     float _omega{0};
     bool _playing1{false};
     bool _active1{false};
     double _dpdt{0};
-    double _dsdt{0};
-    double _phase1{0};
     size_t _samplesSincePreviousTime{0};
     double _ppqPos1{0};
     double _ppqPhase1{0};
-    double _secondsCounter{0};
-    double _secondsPhaseCounter{0};
   };
 
   // class used for assigning each instance of our SignalProcessor a unique ID

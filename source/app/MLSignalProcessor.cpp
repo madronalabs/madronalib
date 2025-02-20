@@ -39,13 +39,13 @@ size_t SignalProcessor::PublishedSignal::read(float* pDest, size_t framesRequest
 // SignalProcessor::ProcessTime
 
 // Set the time and bpm. The time refers to the start of the current engine processing block.
-void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const double ppqPos,
+void SignalProcessor::ProcessTime::setTimeAndRate(const double ppqPos,
                                                   const double bpm, bool isPlaying,
                                                   double sampleRate)
 {
   // working around a bug I can't reproduce, so I'm covering all the bases.
   if (((ml::isNaN(ppqPos)) || (ml::isInfinite(ppqPos))) ||
-      ((ml::isNaN(bpm)) || (ml::isInfinite(bpm))) || ((ml::isNaN(secs)) || (ml::isInfinite(secs))))
+      ((ml::isNaN(bpm)) || (ml::isInfinite(bpm))) )
   {
     // debug << "PluginProcessor::ProcessTime::setTimeAndRate: bad input! \n";
     return;
@@ -68,15 +68,15 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
     }
 
     _omega = ppqPhase;
-    _dsdt = static_cast<float>(1. / sampleRate);
-    
+
     if (justStarted)
     {
       // just start at 0 and don't attempt to match the playhead position.
       // this works well when we start at any 1/4 note.
       // there is still some weirdness when we try to lock onto other 16ths.
       _omega = 0.;
-      float minutesPerSample = _dsdt/60.f;
+      double dsdt = (1. / sampleRate);
+      double minutesPerSample = dsdt/60.;
       _dpdt = bpm*minutesPerSample;
     }
     else
@@ -87,19 +87,12 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
         dPhase += 1.;
       }
       _dpdt = ml::clamp(dPhase / static_cast<double>(_samplesSincePreviousTime), 0., 1.);
-
     }
-
-    _secondsCounter = secs;
-    _secondsPhaseCounter = fmodl(secs, 1.0);
   }
   else
   {
     _omega = -1.;
     _dpdt = 0.;
-    _secondsCounter = -1.;
-    _dsdt = 0.;
-    _secondsPhaseCounter = -1.;
   }
 
   _ppqPos1 = ppqPos;
@@ -112,7 +105,6 @@ void SignalProcessor::ProcessTime::setTimeAndRate(const double secs, const doubl
 void SignalProcessor::ProcessTime::clear(void)
 {
   _dpdt = 0.;
-  _dsdt = 0.;
   _active1 = false;
   _playing1 = false;
 }
@@ -128,13 +120,6 @@ void SignalProcessor::ProcessTime::process()
     {
       _omega -= 1.f;
     }
-  }
-  for (int n = 0; n < kFloatsPerDSPVector; ++n)
-  {
-    _seconds[n] = (float)_secondsCounter;
-    _secondsCounter += _dsdt;
-    _secondsPhase[n] = (float)_secondsPhaseCounter;
-    _secondsPhaseCounter += _dsdt;
   }
   _samplesSincePreviousTime += kFloatsPerDSPVector;
 }
