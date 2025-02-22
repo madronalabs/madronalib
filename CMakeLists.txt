@@ -177,7 +177,7 @@ set(madronalib_SOURCES
     ${AES_SOURCES}
         source/app/MLMIDI.h
         source/app/MLMIDI.cpp
-        source/app/MLRtAudioProcessor.cpp
+        source/app/MLAudioProcessor.cpp
 )
     
     message("RTMIDI_SOURCES: " ${RTMIDI_SOURCES} )

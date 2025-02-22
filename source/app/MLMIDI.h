@@ -12,6 +12,8 @@ namespace ml
 // composition not inheritance!
 
 class MIDIInput {
+
+public:
   static constexpr size_t kQueueSize{1024};
 
   MIDIInput();
@@ -20,6 +22,8 @@ class MIDIInput {
   bool init();
   void start();
   void read();
+  std::string getAPIDisplayName();
+  std::string getPortName();
 
 private:
   struct Impl;

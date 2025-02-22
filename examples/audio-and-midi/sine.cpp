@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "MLRtAudioProcessor.h"
+#include "MLAudioProcessor.h"
 
 using namespace ml;
 
@@ -29,7 +29,7 @@ void sineProcess(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 
 int main()
 {
-  // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioProcessor sineExample(kInputChannels, kOutputChannels, kSampleRate, sineProcess);
+  // The AudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
+  AudioProcessor sineExample(kInputChannels, kOutputChannels, kSampleRate, sineProcess);
   return sineExample.run();
 }

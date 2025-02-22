@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "MLRtAudioProcessor.h"
+#include "MLAudioProcessor.h"
 
 using namespace ml;
 
@@ -152,7 +152,7 @@ DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq)
 // processVector() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
 
-void FDTD(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
+void processFDTD(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 {
   // generate ticks twice per second
   auto ticks = impulse1(0.5f/kSampleRate)*kOutputGain;
@@ -172,7 +172,7 @@ void FDTD(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
 int main()
 {
   // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioProcessor FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &FDTD);
+  AudioProcessor FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &processFDTD);
   return FDTDExample.run();
 }
 

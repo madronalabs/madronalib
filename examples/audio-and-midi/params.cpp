@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "MLRtAudioProcessor.h"
+#include "MLAudioProcessor.h"
 
 using namespace ml;
 
@@ -38,19 +38,19 @@ inline void readParameterDescriptions(ParameterDescriptionList& params)
 }
 
 class ParamsExampleProcessor :
-  public RtAudioProcessor
+  public AudioProcessor
 {
   // sine generators.
   SineGen s1, s2;
   
 public:
   ParamsExampleProcessor(size_t nInputs, size_t nOutputs, int sampleRate) :
-    RtAudioProcessor(nInputs, nOutputs, sampleRate) {}
+    AudioProcessor(nInputs, nOutputs, sampleRate) {}
   
   // SignalProcessor implementation
   
   // declare the processVector function that will run our DSP in vectors of size kFloatsPerDSPVector
-  // with the nullptr constructor argument above, RtAudioProcessor
+  // with the nullptr constructor argument above, AudioProcessor
   void processVector(MainInputs inputs, MainOutputs outputs, void *stateDataUnused) override
   {
     // get params from the SignalProcessor.
@@ -67,7 +67,7 @@ public:
 
 int main()
 {
-  // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
+  // The AudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
   ParamsExampleProcessor exampleProc(kInputChannels, kOutputChannels, kSampleRate);
   
   // the processor can use a temporary ParameterDescriptionList here.

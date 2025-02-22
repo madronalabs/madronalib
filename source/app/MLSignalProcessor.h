@@ -161,7 +161,6 @@ class SignalProcessor
 
   virtual void processVector(MainInputs inputs, MainOutputs outputs, void* stateData = nullptr) {}
 
-
   void setParamFromNormalizedValue(Path pname, float val)
   {
     _params.setFromNormalizedValue(pname, val);
@@ -192,7 +191,6 @@ class SignalProcessor
   size_t _uniqueID;
 
   float _sampleRate{0.f};
-
 
   // buffer object to call processVector() from process() calls of arbitrary frame sizes
   VectorProcessBuffer processBuffer;
