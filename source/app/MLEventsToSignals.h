@@ -60,7 +60,8 @@ public:
   static constexpr size_t kMaxVoices{16};
   static constexpr size_t kMaxEventsPerVector{128};
   static constexpr size_t kMaxPhysicalKeys{128};
-  
+  static constexpr size_t kNumControllers{128};
+
   static constexpr float kGlideTimeSeconds{0.02f};
   static constexpr float kDriftTimeSeconds{8.0f};
   static constexpr float kDriftScale{0.02f};
@@ -147,6 +148,15 @@ public:
     // output signals (velocity, pitch, voice... )
     DSPVectorArray< kNumVoiceOutputRows > outputs;
   };
+
+  struct SmoothedController
+  {
+    LinearGlide glide;
+    DSPVector output;
+    float rawValue;
+
+    void process();
+  };
   
   #pragma mark -
   EventsToSignals(int sr);
@@ -176,6 +186,9 @@ public:
 
   // voices, containing signals for clients to read directly.
   std::vector< Voice > voices;
+
+  // output values for continuous controllers.
+  std::vector< SmoothedController > controllers;
   
 private:
 

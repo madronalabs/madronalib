@@ -93,6 +93,7 @@ endif()
 # Add include directories
 #--------------------------------------------------------------------
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
@@ -174,7 +175,10 @@ set(madronalib_SOURCES
     ${MATRIX_HEADERS}
     ${JSON_SOURCES}
     ${AES_SOURCES}
-    )
+        source/app/MLMIDI.h
+        source/app/MLMIDI.cpp
+        source/app/MLRtAudioProcessor.cpp
+)
     
     message("RTMIDI_SOURCES: " ${RTMIDI_SOURCES} )
 
@@ -330,14 +334,14 @@ function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     set(
         EXAMPLE_SOURCES
-        ${ML_ROOT}/examples/rtaudio/${EXAMPLE_SOURCE_FILE}
+        ${ML_ROOT}/examples/audio-and-midi/${EXAMPLE_SOURCE_FILE}
     )
 
     add_executable(${EXAMPLE_APP_NAME} ${EXAMPLE_SOURCES})
 
     target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
         ${ML_ROOT}/external
-        ${ML_ROOT}/external/rtaudio
+        ${ML_ROOT}/external/audio-and-midi
         )
     
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)

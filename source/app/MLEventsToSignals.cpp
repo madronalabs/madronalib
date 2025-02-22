@@ -216,6 +216,12 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
   outputs.row(kPitch) += driftSig*driftAmount*kDriftScale;
 }
 
+void EventsToSignals::SmoothedController::process()
+{
+  output = glide(rawValue);
+}
+
+
 #pragma mark -
 //
 // EventsToSignals
@@ -226,12 +232,17 @@ EventsToSignals::EventsToSignals(int sr) : eventQueue_(kMaxEventsPerVector)
   sampleRate_ = (float)sr;
   
   voices.resize(kMaxVoices);
-  
   for(int i=0; i<kMaxVoices; ++i)
   {
     voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, (float)sr);
     voices[i].reset(i);
     voices[i].outputs.row(kVoice) = DSPVector((float)i);
+  }
+
+  controllers.resize(kNumControllers);
+  for (int i=0; i<kNumControllers; ++i)
+  {
+    controllers[i].glide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
   }
 }
 
@@ -293,6 +304,11 @@ void EventsToSignals::process()
   for(auto& v : voices)
   {
     v.endProcess(pitchBendRangeInSemitones_, sampleRate_);
+  }
+
+  for (auto& c : controllers)
+  {
+    c.process();
   }
   
   // TEMP
@@ -484,7 +500,12 @@ void EventsToSignals::processControllerEvent(const Event& event)
 {
   float val = event.value1;
   int ctrl = (int)event.value2;
-  
+
+  // store values directly into array so they can be read by clients
+  size_t cctrl = clamp(size_t(ctrl), 0UL, kNumControllers - 1);
+  controllers[cctrl].rawValue = val;
+
+  // then handle special meanings for some MIDI controllers
   if(ctrl == 120)
   {
     if(val == 0)

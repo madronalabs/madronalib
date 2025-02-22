@@ -6,10 +6,15 @@
 
 #pragma once
 #include "MLSignalProcessor.h"
-#include "RtAudio.h"
+#include "rtaudio/RtAudio.h"
 #include "mldsp.h"
 
-using namespace ml;
+namespace ml
+{
+
+// adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
+int RtAudioCallbackFn(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
+                             double /*streamTime*/, RtAudioStreamStatus status, void* callbackData);
 
 struct RtAudioProcessData
 {
@@ -22,42 +27,6 @@ struct RtAudioProcessData
   unsigned int bufferFrames{512};
 };
 
-// adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
-
-inline int RtAudioCallbackFn(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
-                             double /*streamTime*/, RtAudioStreamStatus status, void* callbackData)
-{
-  constexpr size_t kMaxIOChannels{64};
-
-  // get process data from callback data
-  auto pData = reinterpret_cast<RtAudioProcessData*>(callbackData);
-
-  const float* pInputBuffer = reinterpret_cast<const float*>(inputBuffer);
-  float* pOutputBuffer = reinterpret_cast<float*>(outputBuffer);
-
-  if (status) std::cout << "Stream over/underflow detected." << std::endl;
-
-  // make pointers to uninterlaced input and output frames for each channel.
-  const float* inputs[kMaxIOChannels];
-  float* outputs[kMaxIOChannels];
-
-  // setup input and output pointers
-  size_t nIns = std::min(kMaxIOChannels, pData->nInputs);
-  size_t nOuts = std::min(kMaxIOChannels, pData->nOutputs);
-  for (int i = 0; i < nIns; ++i)
-  {
-    inputs[i] = pInputBuffer + i * nBufferFrames;
-  }
-  for (int i = 0; i < nOuts; ++i)
-  {
-    outputs[i] = pOutputBuffer + i * nBufferFrames;
-  }
-
-  // do the buffered processing.
-  pData->pProcessBuffer->process(inputs, outputs, nBufferFrames, pData->processFn,
-                                 pData->processState);
-  return 0;
-}
 
 // a free function that will be called when there is no function argument to a new RtAudioProcessor.
 // In that case SignalProcessor::processVector will be called to do the processing.
@@ -68,41 +37,20 @@ inline void SignalProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, voi
   return pProc->processVector(ins, outs);
 };
 
-struct RtAudioProcessor : public SignalProcessor, public Actor
+class RtAudioProcessor : public SignalProcessor, public Actor
 {
+
   // all the info about the DSP task to be done
   RtAudioProcessData _processData;
 
   // the RtAudio controller
   RtAudio _adac;
 
-  // the RtAudioProcessor constructor just fills in the data struct with everything needed to run
-  // the DSP graph. processFn points to a function that will be called by the VectorProcessBuffer.
-  // processState points to any persistent state that needs to be sent to the function. This can be
-  // unused if no state is needed, or if the state is global.
+public:
   RtAudioProcessor(size_t nInputs, size_t nOutputs, int sampleRate,
-                   ProcessVectorFn processFn = nullptr, void* state = nullptr)
-      : SignalProcessor(nInputs, nOutputs)
-  {
-    _processData.pProcessBuffer = &processBuffer;
+                   ProcessVectorFn processFn = nullptr, void* state = nullptr);
 
-    if (processFn)
-    {
-      _processData.processFn = processFn;
-      _processData.processState = state;
-    }
-    else
-    {
-      _processData.processFn = SignalProcessorProcessVectorFn;
-      _processData.processState = this;
-    }
-
-    _processData.nInputs = nInputs;
-    _processData.nOutputs = nOutputs;
-    _processData.sampleRate = sampleRate;
-  }
-
-  ~RtAudioProcessor() = default;
+  ~RtAudioProcessor();
 
   inline int startAudio()
   {
@@ -221,4 +169,10 @@ struct RtAudioProcessor : public SignalProcessor, public Actor
       }
     }
   }
+
+private:
+  struct Impl;
+  std::unique_ptr< Impl > pImpl;
+
 };
+} // namespace ml
