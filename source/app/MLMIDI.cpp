@@ -24,7 +24,10 @@ struct MIDIInput::Impl
 
 MIDIInput::MIDIInput() : pImpl(std::make_unique<Impl>()) {}
 
-bool MIDIInput::init() {
+bool MIDIInput::start(MIDIMessageHandler handler)
+{
+  constexpr int kTimerInterval{10};
+
   int OK{true};
   try {
     pImpl->midiIn = std::make_unique< RtMidiIn >();
@@ -47,28 +50,29 @@ bool MIDIInput::init() {
   // Don't ignore sysex, timing, or active sensing messages.
   pImpl->midiIn->ignoreTypes( false, false, false );
 
-  pImpl->messages = std::make_unique< Queue< uint8_t > >( kQueueSize );
+  if (OK)
+  {
+    pImpl->inputTimer.start([&](){readNewMessages(handler);}, milliseconds(kTimerInterval));
+  }
+
   return OK;
 }
 
-void MIDIInput::start() {
-  int kTimerInterval{1000};
-  pImpl->inputTimer.start([&](){read();}, milliseconds(10));
-}
-
-void MIDIInput::read() {
+// read any new messages from RtMidi and handle them.
+void MIDIInput::readNewMessages(MIDIMessageHandler handler) {
   double timeStamp;
   int nBytes{0};
   int counter{0};
+
   do{
+    // when there are no new messages, getMessage() returns a message with size 0.
     timeStamp = pImpl->midiIn->getMessage( &pImpl->inputMessage );
     nBytes = pImpl->inputMessage.size();
 
-    // TEMP
-    for ( int i=0; i<nBytes; i++ )
-      std::cout << "Byte " << i << " = " << (int)pImpl->inputMessage[i] << ", ";
     if ( nBytes > 0 )
-      std::cout << "stamp = " << timeStamp << std::endl;
+    {
+      handler(pImpl->inputMessage);
+    }
 
   } while (nBytes > 0);
 }

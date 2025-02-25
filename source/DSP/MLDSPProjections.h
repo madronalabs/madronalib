@@ -209,6 +209,10 @@ inline Projection intervalMap(const Interval a, const Interval b, Projection c)
   };
 }
 
+// a piecewiseLinear Projection is specifed with n output values-
+// these are equally distributed over [0, 1]. So with 3 output
+// values (a, b, c) we get a two-line function going from (0, a) to
+// (0.5, b) to (1, c).
 inline Projection piecewiseLinear(std::initializer_list<float> values)
 {
   const std::vector<float> table(values);

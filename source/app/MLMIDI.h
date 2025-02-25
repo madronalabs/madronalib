@@ -6,28 +6,28 @@
 
 namespace ml
 {
-// TODO MIDI input generates events
-// EventsToSignals makes note and controller signals.
-// OSC could also generate events for EventsToSignals
-// composition not inheritance!
+using MIDIMessage = std::vector< unsigned char >;
+
+using MIDIMessageHandler = std::function< void(const MIDIMessage&) >;
 
 class MIDIInput {
 
 public:
-  static constexpr size_t kQueueSize{1024};
 
   MIDIInput();
   ~MIDIInput();
 
-  bool init();
-  void start();
-  void read();
+  bool start(MIDIMessageHandler handler);
+  void stop();
+
   std::string getAPIDisplayName();
   std::string getPortName();
 
 private:
   struct Impl;
   std::unique_ptr< Impl > pImpl;
+
+  void readNewMessages(MIDIMessageHandler handler);
 };
 }
 
