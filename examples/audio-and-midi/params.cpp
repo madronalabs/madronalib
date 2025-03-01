@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "MLAudioProcessor.h"
+#include "MLAudioTask.h"
 
 using namespace ml;
 
@@ -38,14 +38,14 @@ inline void readParameterDescriptions(ParameterDescriptionList& params)
 }
 
 class ParamsExampleProcessor :
-  public AudioProcessor
+  public AudioTask
 {
   // sine generators.
   SineGen s1, s2;
   
 public:
   ParamsExampleProcessor(size_t nInputs, size_t nOutputs, int sampleRate) :
-    AudioProcessor(nInputs, nOutputs, sampleRate) {}
+    AudioTask(nInputs, nOutputs, sampleRate) {}
   
   // SignalProcessor implementation
   

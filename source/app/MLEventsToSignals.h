@@ -4,8 +4,10 @@
 
 #pragma once
 
-#include "madronalib.h"
+//#include "madronalib.h"
 #include "mldsp.h"
+#include "MLEvent.h"
+#include "MLQueue.h"
 
 namespace ml
 {
@@ -24,20 +26,6 @@ enum VoiceOutputSignals
   kNumVoiceOutputRows
 };
 
-enum EventType
-{
-  kNull = 0,
-  kNoteOn,
-  kNoteRetrig,
-  kNoteSustain,
-  kNoteOff,
-  kSustainPedal, // when sustain pedal is held, key releases generate kNoteSustain events
-  kController,
-  kPitchWheel,
-  kNotePressure,
-  kProgramChange
-};
-
 struct KeyState
 {
   enum PlayingState
@@ -53,7 +41,7 @@ struct KeyState
 
 // EventsToSignals processes different types of events and generates bundles of signals to
 // control synthesizers.
-//
+
 class EventsToSignals final
 {
 public:
@@ -63,30 +51,35 @@ public:
   static constexpr size_t kNumControllers{128};
 
   static constexpr float kGlideTimeSeconds{0.02f};
+  static constexpr float kControllerGlideTimeSeconds{0.1f};
   static constexpr float kDriftTimeSeconds{8.0f};
   static constexpr float kDriftScale{0.02f};
 
-  // Event: something that happens.
-  //
-  struct Event
-  {
-    Event() = default;
-    ~Event() = default;
+  explicit EventsToSignals(int sr);
+  ~EventsToSignals();
 
-    EventType type{kNull};
-    int channel;
-    int keyNumber;  // The unique key or touch number that created the event.
-    int time; // Onset time in samples from start of current process buffer.
-    
-    // float values that have different meanings for different event types.
-    float value1{0};
-    float value2{0};
-    float value3{0};
-    float value4{0};
-    
-    explicit operator bool() const { return type != kNull; }
-  };
-  
+  size_t setPolyphony(size_t n);
+  size_t getPolyphony();
+
+  int getNewestVoice() const { return newestVoice_; }
+
+  // clear all voices and queued events and reset state.
+  void reset();
+
+  // just reset time outputs
+  void resetTimes();
+
+  // add an event to the queue.
+  void addEvent(const Event& e);
+
+  // process all events in queue and generate output signals.
+  void process();
+
+  void setPitchBendInSemitones(float f);
+  void setGlideTimeInSeconds(float f);
+  void setDriftAmount(float f);
+  void setUnison(bool b);
+
   #pragma mark -
   
   // Voice: a voice that can play.
@@ -157,32 +150,6 @@ public:
 
     void process();
   };
-  
-  #pragma mark -
-  EventsToSignals(int sr);
-  ~EventsToSignals();
-  
-  size_t setPolyphony(size_t n);
-  size_t getPolyphony();
-  
-  int getNewestVoice() { return newestVoice_; }
-
-  // clear all voices and queued events and reset state.
-  void reset();
-  
-  // just reset time outputs
-  void resetTimes();
-  
-  // add an event to the queue.
-  void addEvent(const Event& e);
-  
-  // process all events in queue and generate output signals.
-  void process();
-  
-  void setPitchBendInSemitones(float f);
-  void setGlideTimeInSeconds(float f);
-  void setDriftAmount(float f);
-  void setUnison(bool b);
 
   // voices, containing signals for clients to read directly.
   std::vector< Voice > voices;
@@ -218,13 +185,14 @@ private:
   float pitchDriftAmount_{0.f};
   bool unison_{false};
   uint32_t currentNoteOnIndex{0};
-  
+  bool awake_{false};
+
   void dumpVoices();
   int testCounter{0};
 };
 
 
-inline std::ostream& operator<<(std::ostream& out, const EventsToSignals::Event& e)
+inline std::ostream& operator<<(std::ostream& out, const Event& e)
 {
   std::cout << "[" << e.type << "/" << e.channel << "/" << e.keyNumber << "/" << e.time << "]";
   return out;

@@ -177,7 +177,13 @@ set(madronalib_SOURCES
     ${AES_SOURCES}
         source/app/MLMIDI.h
         source/app/MLMIDI.cpp
-        source/app/MLAudioProcessor.cpp
+        source/app/MLAudioTask.cpp
+        source/app/MLEvent.cpp
+        source/app/MLEvent.h
+        source/app/MLAudioContext.cpp
+        source/app/MLAudioContext.h
+        source/app/MLSignalProcessBuffer.h
+        source/app/MLSignalProcessBuffer.cpp
 )
     
     message("RTMIDI_SOURCES: " ${RTMIDI_SOURCES} )
@@ -325,7 +331,7 @@ else(APPLE)
 endif()
 
 #--------------------------------------------------------------------
-# build RtAudio / RtMidi examples
+# function to build RtAudio / RtMidi example
 #--------------------------------------------------------------------
 
 set(ML_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
@@ -341,7 +347,6 @@ function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
         ${ML_ROOT}/external
-        ${ML_ROOT}/external/audio-and-midi
         )
     
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)
@@ -383,11 +388,13 @@ endfunction()
 #--------------------------------------------------------------------
 
 if(BUILD_EXAMPLES)
-    make_example(ReverbExample reverb.cpp)
+  # make_example(ReverbExample reverb.cpp)
+
+  # make_example(FDTDExample fdtd.cpp)
+  # make_example(ParamsExample params.cpp)
+  # make_example(MIDIExample midi.cpp)
+  # make_example(ControllersToAudioExample controllers-to-audio.cpp)
     make_example(SineExample sine.cpp)
-    make_example(FDTDExample FDTD.cpp)
-    make_example(ParamsExample params.cpp)
-    make_example(MIDIExample MIDI.cpp)
 endif()
 
 #--------------------------------------------------------------------

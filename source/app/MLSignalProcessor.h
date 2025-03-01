@@ -103,40 +103,6 @@ class SignalProcessor
 
   };
 
-  // SignalProcessor::ProcessTime maintains the current time in a DSP process and can track
-  // the time in the host application if there is one.
-  class ProcessTime
-  {
-   public:
-    ProcessTime() = default;
-    ~ProcessTime() = default;
-
-    // Set the time and bpm. The time refers to the start of the current engine processing block.
-    void setTimeAndRate(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
-
-    // clear state
-    void clear();
-
-    // generate phasors from the input parameters
-    void process();
-
-    // phase signal to read TODO rename
-    DSPVector _quarterNotesPhase;
-
-    double bpm{0};
-    double sampleRate{0};
-    uint64_t samplesSinceStart{0};
-
-   private:
-    float _omega{0};
-    bool _playing1{false};
-    bool _active1{false};
-    double _dpdt{0};
-    size_t _samplesSincePreviousTime{0};
-    double _ppqPos1{-1.};
-    double _ppqPhase1{0};
-  };
-
   // class used for assigning each instance of our SignalProcessor a unique ID
   // TODO refactor w/ ProcessorRegistry etc.
   class ProcessorRegistry
@@ -152,14 +118,10 @@ class SignalProcessor
     }
   };
 
-  SignalProcessor(size_t nInputs, size_t nOutputs)
-      : processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames)
-  {
-  }
-
+  SignalProcessor() {}
   virtual ~SignalProcessor() {}
 
-  virtual void processVector(MainInputs inputs, MainOutputs outputs, void* stateData = nullptr) {}
+  virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic outputs, void* stateData = nullptr) {}
 
   void setParamFromNormalizedValue(Path pname, float val)
   {
@@ -176,13 +138,7 @@ class SignalProcessor
     setDefaults(_params);
   };
 
-  // TODO fix name and API
-  ProcessTime _currentTime;
-
  protected:
-  // the maximum amount of input frames that can be proceesed at once. This determines the
-  // maximum signal vector size of the plugin host or enclosing app.
-  static constexpr int kMaxProcessBlockFrames{4096};
 
   // the parameter values are stored here.
   ParameterTree _params;
@@ -192,8 +148,6 @@ class SignalProcessor
 
   float _sampleRate{0.f};
 
-  // buffer object to call processVector() from process() calls of arbitrary frame sizes
-  VectorProcessBuffer processBuffer;
 
   std::vector<ml::Path> _paramNamesByID;  // needed?
   Tree<size_t> _paramIDsByName;

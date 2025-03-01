@@ -4,8 +4,21 @@
 
 #pragma once
 
+#include "MLEvent.h"
+
 namespace ml
 {
+enum MIDIMessageType
+{
+  kMIDINoteOff = 0,
+  kMIDINoteOn = 1,
+  kMIDIPolyPressure = 2,
+  kMIDIControlChange = 3,
+  kMIDIProgramChange = 4,
+  kMIDIChannelPressure = 5,
+  kMIDIPitchBend = 6
+};
+
 using MIDIMessage = std::vector< unsigned char >;
 
 using MIDIMessageHandler = std::function< void(const MIDIMessage&) >;
@@ -27,7 +40,10 @@ private:
   struct Impl;
   std::unique_ptr< Impl > pImpl;
 
-  void readNewMessages(MIDIMessageHandler handler);
+  void readNewMessages(const MIDIMessageHandler& handler);
 };
-}
+
+Event MIDIMessageToEvent(const MIDIMessage& message);
+
+} // namespace ml
 

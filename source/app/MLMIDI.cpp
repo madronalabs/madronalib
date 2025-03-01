@@ -11,12 +11,13 @@
 #include "MLTimer.h"
 #include "rtmidi/RtMidi.h"
 
-using namespace ml;
+namespace ml
+{
+// MIDIInput
 
 struct MIDIInput::Impl
 {
   std::unique_ptr< RtMidiIn > midiIn;
-  std::unique_ptr< Queue< uint8_t > > messages;
   std::vector< unsigned char > inputMessage;
   Timer inputTimer;
   uint32_t midiPort{0};
@@ -29,37 +30,55 @@ bool MIDIInput::start(MIDIMessageHandler handler)
   constexpr int kTimerInterval{10};
 
   int OK{true};
-  try {
-    pImpl->midiIn = std::make_unique< RtMidiIn >();
+  try
+  {
+    pImpl->midiIn = std::make_unique<RtMidiIn>();
   }
-  catch ( RtMidiError &error ) {
+  catch (RtMidiError& error)
+  {
     error.printMessage();
     OK = false;
   }
 
-  if (OK) {
-    try {
-      pImpl->midiIn->openPort( pImpl->midiPort ); // just use first port - TEMP
+  if (OK)
+  {
+    try
+    {
+      pImpl->midiIn->openPort(pImpl->midiPort);  // just use first port - TEMP
     }
-    catch ( RtMidiError &error ) {
+    catch (RtMidiError& error)
+    {
       error.printMessage();
       OK = false;
     }
   }
 
   // Don't ignore sysex, timing, or active sensing messages.
-  pImpl->midiIn->ignoreTypes( false, false, false );
+  pImpl->midiIn->ignoreTypes(false, false, false);
 
   if (OK)
   {
-    pImpl->inputTimer.start([&](){readNewMessages(handler);}, milliseconds(kTimerInterval));
+    pImpl->inputTimer.start([&]() { readNewMessages(handler); }, milliseconds(kTimerInterval));
+  }
+  else
+  {
+    pImpl->midiIn = nullptr;
   }
 
   return OK;
 }
 
+void MIDIInput::stop()
+{
+  pImpl->inputTimer.stop();
+  if (pImpl->midiIn.get())
+  {
+    pImpl->midiIn->closePort();
+  }
+}
+
 // read any new messages from RtMidi and handle them.
-void MIDIInput::readNewMessages(MIDIMessageHandler handler) {
+void MIDIInput::readNewMessages(const MIDIMessageHandler& handler) {
   double timeStamp;
   int nBytes{0};
   int counter{0};
@@ -91,5 +110,86 @@ std::string MIDIInput::getPortName()
 }
 
 MIDIInput::~MIDIInput() {
-  pImpl->inputTimer.stop();
+  stop();
 }
+
+// free functions
+
+int messageStatus(const MIDIMessage& m) { return (m[0] & 0x70) >> 4; }
+int messageChannel(const MIDIMessage& m) { return (m[0] & 0x0f) + 1; }
+int messageByte2(const MIDIMessage& m) { return m[1] & 0x7f; }
+int messageByte3(const MIDIMessage& m) { return m[2] & 0x7f; }
+float toValue(int messageData) { return messageData / 127.0f; }
+float messagePitchBendValue(const MIDIMessage& m)
+{
+  constexpr int offset = 0x2000;
+  constexpr float scale = 1.f / float(0x3FFF);
+  int loByte =  m[1] & 0x7f;
+  int hiByte = m[2] & 0x7f;
+  int bothBytes = (hiByte << 7) & loByte;
+  return float(bothBytes - offset) * scale;
+}
+
+Event MIDIMessageToEvent(const MIDIMessage& m)
+{
+  Event e;
+  e.channel = messageChannel(m);
+  int status = messageStatus(m);
+  switch (status)
+  {
+    case kMIDINoteOff:
+    {
+      e.type = kNoteOff;
+      e.keyNumber = messageByte2(m);
+      e.value1 = toValue(messageByte3(m));
+      break;
+    }
+    case kMIDINoteOn:
+    {
+      e.type = kNoteOn;
+      e.keyNumber = messageByte2(m);
+      e.value1 = toValue(messageByte3(m));
+      break;
+    }
+    case kMIDIPolyPressure:
+    {
+      e.type = kNotePressure;
+      e.keyNumber = messageByte2(m);
+      e.value1 = toValue(messageByte3(m));
+      break;
+    }
+    case kMIDIControlChange:
+    {
+      e.type = kController;
+      e.keyNumber = messageByte2(m);
+      e.value1 = toValue(messageByte3(m));
+      e.value2 = e.keyNumber;
+      break;
+    }
+    case kMIDIProgramChange:
+    {
+      e.type = kProgramChange;
+      e.keyNumber = messageByte2(m);
+      break;
+    }
+    case kMIDIChannelPressure:
+    {
+      e.type = kChannelPressure;
+      e.value1 = toValue(messageByte2(m));
+      break;
+    }
+    case kMIDIPitchBend:
+    {
+      e.type = kPitchBend;
+      e.value1 = messagePitchBendValue(m);
+      break;
+    }
+    default:
+    {
+      e.type = kNull;
+      break;
+    }
+  }
+  return e;
+}
+} // ml

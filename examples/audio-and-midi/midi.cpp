@@ -16,7 +16,7 @@ int main( int argc, char *argv[] )
   };
 
   MIDIInput midiInput;
-  if (midiInput.start(handleMsg))
+  if(midiInput.start(handleMsg))
   {
     // start the Timers. call this once in an application.
     bool deferToMainThread = false;
@@ -26,7 +26,7 @@ int main( int argc, char *argv[] )
     std::cout << "Reading MIDI from API " << midiInput.getAPIDisplayName() << ", port " << midiInput.getPortName() << " ...\n";
 
     while(true) {
-      std::this_thread::sleep_for(milliseconds(2000));
+      std::this_thread::sleep_for(milliseconds(1000));
     }
   }
   else

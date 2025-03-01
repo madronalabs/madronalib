@@ -240,9 +240,10 @@ EventsToSignals::EventsToSignals(int sr) : eventQueue_(kMaxEventsPerVector)
   }
 
   controllers.resize(kNumControllers);
+  int glideTimeInSamples = sr*kControllerGlideTimeSeconds;
   for (int i=0; i<kNumControllers; ++i)
   {
-    controllers[i].glide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+    controllers[i].glide.setGlideTimeInSamples(glideTimeInSamples);
   }
 }
 
@@ -288,11 +289,14 @@ void EventsToSignals::resetTimes()
 
 void EventsToSignals::addEvent(const Event& e)
 {
+  awake_ = true;
   eventQueue_.push(e);
 }
 
 void EventsToSignals::process()
 {
+  if (!awake_) return;
+
   for(auto& v : voices)
   {
     v.beginProcess(sampleRate_);
@@ -313,10 +317,10 @@ void EventsToSignals::process()
   
   // TEMP
   testCounter += kFloatsPerDSPVector;
-  if(testCounter > sampleRate_)
+  if(testCounter > sampleRate_/4)
   {
- //   dumpVoices();
-    testCounter -= sampleRate_;
+    dumpVoices();
+    testCounter -= sampleRate_/4;
   }
 }
 
@@ -349,7 +353,7 @@ void EventsToSignals::processEvent(const Event &eventParam)
     case kController:
       processControllerEvent(event);
       break;
-    case kPitchWheel:
+    case kPitchBend:
       processPitchWheelEvent(event);
       break;
     case kNotePressure:
@@ -406,7 +410,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
 
 void EventsToSignals::processNoteOffEvent(const Event& e)
 {
-  if(sustainPedalActive_)
+  if (sustainPedalActive_)
   {
     keyStates_[e.keyNumber].state = KeyState::kSustain;
   }
@@ -415,12 +419,12 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     keyStates_[e.keyNumber].state = KeyState::kOff;
   }
 
-  if(unison_)
+  if (unison_)
   {
     // if the last note was released, turn off all voices.
-    if(countHeldNotes() == 0)
+    if (countHeldNotes() == 0)
     {
-      for(int v=0; v<polyphony_; ++v)
+      for (int v = 0; v < polyphony_; ++v)
       {
         voices[v].writeNoteEvent(e, sampleRate_);
       }
@@ -434,28 +438,28 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
         // send kNoteOn event to change note without retriggering envelope
         Event eventToSend = e;
         eventToSend.type = kNoteOn;
-        
+
         // keep current velocity for all voices
         eventToSend.value2 = voices[0].currentVelocity;
-        
+
         // get most recently played held key
         uint32_t maxNoteOnIndex{0};
         uint32_t mostRecentHeldKey{0};
-        for(int i=0; i<kMaxPhysicalKeys; ++i)
+        for (int i = 0; i < kMaxPhysicalKeys; ++i)
         {
           const auto ks = keyStates_[i];
-          if((ks.state == KeyState::kOn) && (ks.noteOnIndex > maxNoteOnIndex))
+          if ((ks.state == KeyState::kOn) && (ks.noteOnIndex > maxNoteOnIndex))
           {
             maxNoteOnIndex = ks.noteOnIndex;
             mostRecentHeldKey = i;
           }
         }
-        
+
         // send key number and pitch of most recent held note
         eventToSend.keyNumber = mostRecentHeldKey;
         eventToSend.value1 = keyStates_[mostRecentHeldKey].pitch;
-       
-        for(int v=0; v<polyphony_; ++v)
+
+        for (int v = 0; v < polyphony_; ++v)
         {
           voices[v].writeNoteEvent(eventToSend, sampleRate_);
         }
@@ -464,11 +468,11 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
   }
   else
   {
-    if(!sustainPedalActive_)
+    if (!sustainPedalActive_)
     {
-      for(int v = 0; v < polyphony_; ++v)
+      for (int v = 0; v < polyphony_; ++v)
       {
-        if(voices[v].creatorKeyNumber == e.keyNumber)
+        if (voices[v].creatorKeyNumber == e.keyNumber)
         {
           voices[v].writeNoteEvent(e, sampleRate_);
         }
@@ -476,7 +480,8 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     }
   }
 }
-
+void EventsToSignals::processNoteUpdateEvent(const Event& event) {}
+void EventsToSignals::processChannelPressureEvent(const Event& event) {}
 
 void EventsToSignals::processNotePressureEvent(const Event& event)
 {
@@ -677,6 +682,13 @@ void EventsToSignals::dumpVoices()
     }
     std::cout  << "\n";
   }
+  // TEMP: only one channel
+  std::cout << "controllers: \n";
+  for (auto& c : controllers)
+  {
+    std::cout << " " << c.output[0];
+  }
+  std::cout << "\n";
 }
 
 }
