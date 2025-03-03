@@ -314,14 +314,6 @@ void EventsToSignals::process()
   {
     c.process();
   }
-  
-  // TEMP
-  testCounter += kFloatsPerDSPVector;
-  if(testCounter > sampleRate_/4)
-  {
-    dumpVoices();
-    testCounter -= sampleRate_/4;
-  }
 }
 
 size_t EventsToSignals::countHeldNotes()

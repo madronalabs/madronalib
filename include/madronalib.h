@@ -5,6 +5,7 @@
 #pragma once
 
 #include "MLActor.h"
+#include "MLAudioTask.h"
 #include "MLClock.h"
 #include "MLEventsToSignals.h"
 #include "MLMemoryUtils.h"

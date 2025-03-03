@@ -31,7 +31,7 @@ int main( int argc, char *argv[] )
   }
   else
   {
-    std::cout << "MIDI input not started\n";
+    std::cout << "MIDI input not started.\n";
   }
   return 0;
 }

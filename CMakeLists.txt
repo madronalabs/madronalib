@@ -388,13 +388,12 @@ endfunction()
 #--------------------------------------------------------------------
 
 if(BUILD_EXAMPLES)
-  # make_example(ReverbExample reverb.cpp)
-
-  # make_example(FDTDExample fdtd.cpp)
-  # make_example(ParamsExample params.cpp)
-  # make_example(MIDIExample midi.cpp)
-  # make_example(ControllersToAudioExample controllers-to-audio.cpp)
-    make_example(SineExample sine.cpp)
+  make_example(ReverbExample reverb.cpp)
+  make_example(FDTDExample fdtd.cpp)
+  make_example(ParamsExample params.cpp)
+  make_example(MIDIExample midi.cpp)
+  make_example(ControllersToAudioExample controllers-to-audio.cpp)
+  make_example(SineExample sine.cpp)
 endif()
 
 #--------------------------------------------------------------------

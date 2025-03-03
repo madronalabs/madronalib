@@ -5,55 +5,65 @@
 // example running MIDI and generating audio from controllers.
 
 #include "madronalib.h"
-#include "MLAudioTask.h"
 
 using namespace ml;
 
-// TEMP
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 48000;
-constexpr float kOutputGain = 0.1f;
+constexpr float kOutputGain = 0.5f;
 
-// TODO EventsToSignals goes into some new SignalProcessingContext type object
-struct ExampleCallbackData {
-  AudioTask* rtProc{nullptr};
+struct ExampleState {
+  // This example will listen to these MIDI controllers on any channel.
+  // These are the default mappings of my Akai MIDIMix hardware. Pick any numbers you like.
+  std::vector< int > sineControllers {19, 23, 27, 31, 49, 53, 57, 61};
+  const int volumeControl{62};
   std::vector< SineGen > sineGens;
 };
 
 // processAudio() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-void processAudio(MainInputs inputs, MainOutputs outputs, void *pData)
+void processAudio(AudioContext* ctx, void *untypedState)
 {
-  ExampleCallbackData* cdata = reinterpret_cast<ExampleCallbackData*>(pData);
-
+  ExampleState* state = reinterpret_cast<ExampleState*>(untypedState);
 
   // now do fun example stuff
+  float sr = ctx->sampleRate;
+  DSPVector accum;
+  auto ctrlToFreq = projections::unityToLogParam({110.f, 440.f});
 
+  // accumulate sine oscillators
+  int nSines = state->sineControllers.size();
+  for (int i = 0; i < nSines; ++i)
+  {
+    int ctrlNum = state->sineControllers[i];
+    DSPVector ctrlSig = ctx->eventsToSignals.controllers[ctrlNum].output;
+    float freqInHz = ctrlToFreq(ctrlSig[0]);
+    DSPVector sineSig = state->sineGens[i](freqInHz/sr);
+    accum += sineSig;
+  }
+
+  // scale total volume and write context output
+  DSPVector volumeSig = ctx->eventsToSignals.controllers[state->volumeControl].output;
+  accum *= volumeSig*kOutputGain/nSines;
+  ctx->outputs[0] = accum;
+  ctx->outputs[1] = accum;
 }
 
 int main( int argc, char *argv[] )
 {
-  // fill a struct with the data the callback will need to create a context.
-  ExampleCallbackData vcData{nullptr};
+  ExampleState state;
+  AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
+  AudioTask exampleTask(&ctx, processAudio, &state);
 
-  // The AudioProcessor object adapts the RtAudio loop to our buffered processing and runs the audio stream.
-  AudioTask vmExampleProc(kInputChannels, kOutputChannels, kSampleRate, processAudio, &vcData);
+  // set up the state:
+  // make a sine generator for each contrller number we listen to
+  state.sineGens.resize(state.sineControllers.size());
 
-  // TODO unfuck this
-  vcData.rtProc = &vmExampleProc;
-
+  // define the MIDI handling callback.
   const auto& handleMIDI = [&](MIDIMessage m)->void
   {
-    std::cout << "handleMsg got " << m.size() << "bytes: ";
-    for ( int i=0; i<m.size(); i++ )
-      std::cout << std::hex<< (int)m[i] << std::dec << " ";
-    std::cout << "\n";
-
-
-    auto* audioProcessor = &vmExampleProc;
-    vmExampleProc.eventsToSignals.addEvent(MIDIMessageToEvent(m));
-
+    ctx.eventsToSignals.addEvent(MIDIMessageToEvent(m));
   };
 
   // start the MIDI Input.
@@ -68,17 +78,6 @@ int main( int argc, char *argv[] )
   SharedResourcePointer<ml::Timers> t;
   t->start(deferToMainThread);
 
-
-  // TODO don't require setting sample rate twice
-  vmExampleProc._currentTime.setTimeAndRate(0, 120.0, true, kSampleRate);
-  vmExampleProc.startAudio();
-
-  while(true) {
-    std::this_thread::sleep_for(milliseconds(2000));
-    std::cout << "samplesSinceStart: " << vmExampleProc._currentTime.samplesSinceStart << "\n";
-  }
-
-
-
-  return 0;
+  // run the audio task
+  return exampleTask.run();
 }

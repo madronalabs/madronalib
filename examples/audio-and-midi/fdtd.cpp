@@ -8,30 +8,36 @@
 
 using namespace ml;
 
+// context constants
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 48000;
 constexpr float kOutputGain = 0.1f;
 
-ImpulseGen impulse1;
-SineGen sine1;
-SineGen s1, s2;
-
-const int kWidth = 16;
-const int kHeight = 16;
-const int kPadding = 1;
-const int kRowStride = kWidth + kPadding*2;
-const int kTotalHeight = kHeight + kPadding*2;
+// FDTD constants
+constexpr int kWidth = 16;
+constexpr int kHeight = 16;
+constexpr int kPadding = 1;
+constexpr int kRowStride = kWidth + kPadding*2;
+constexpr int kTotalHeight = kHeight + kPadding*2;
 const float kSize = sqrtf((kWidth*kWidth + 0.f) + (kHeight*kHeight + 0.f));
 const float kInputGain = kWidth*kHeight/64;
 
-using Surface = float[kRowStride*kTotalHeight];
-Surface u0, u1, u2;
-Surface* mpU0 = &u0;
-Surface* mpU1 = &u1;
-Surface* mpU2 = &u2;
+using FDTDSurface = float[kRowStride*kTotalHeight];
 
-void doFDTDStep2D(Surface* uIn1, Surface* uIn2, Surface* uOut, float kc, float ke, float kk, float kc2, float ke2)
+struct FDTDState
+{
+  ImpulseGen impulse1;
+  SineGen sine1;
+  FDTDSurface u0{0};
+  FDTDSurface u1{0};
+  FDTDSurface u2{0};
+  FDTDSurface* mpU0 = &u0;
+  FDTDSurface* mpU1 = &u1;
+  FDTDSurface* mpU2 = &u2;
+};
+
+void doFDTDStep2D(FDTDSurface* uIn1, FDTDSurface* uIn2, FDTDSurface* uOut, float kc, float ke, float kk, float kc2, float ke2)
 {
   // get row pointers with padding
   float* pU = *uOut + kRowStride + kPadding;
@@ -69,7 +75,7 @@ void doFDTDStep2D(Surface* uIn1, Surface* uIn2, Surface* uOut, float kc, float k
 // run the FDTD model with the given input and fundamental frequency.
 // the frequency is updated every sample.
 
-DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq)
+DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq, FDTDState* state)
 {
   const float isr = 1.0f/kSampleRate;
   DSPVector outLVec, outRVec;
@@ -119,17 +125,17 @@ DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq)
     
     // excite surface with input at top center
     int exciteRow = 2;
-    float* pU1 = *mpU1 + kRowStride + kPadding;
+    float* pU1 = *state->mpU1 + kRowStride + kPadding;
     float* exciter = pU1 + kRowStride*exciteRow + (kWidth/2);
     *exciter += inputVec[i]*kInputGain;
     
     // run the FDTD model for one sample
     // the model uses the state of the surface at the two previous time steps.
-    doFDTDStep2D(mpU1, mpU2, mpU0, kc, ke, kk, kc2, ke2);
+    doFDTDStep2D(state->mpU1, state->mpU2, state->mpU0, kc, ke, kk, kc2, ke2);
     
     // set float pickups at middle left and right
     int pickupRow = kHeight/2 + 1;
-    float* pU0 = *mpU0 + kRowStride + kPadding;
+    float* pU0 = *state->mpU0 + kRowStride + kPadding;
     float* pickupL = pU0 + kRowStride*pickupRow + 1;
     float* pickupR = pU0 + kRowStride*pickupRow + kWidth - 1;
 
@@ -138,41 +144,40 @@ DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq)
     outRVec[i] = *pickupR;
     
     // finally, rotate buffer pointers
-    auto temp = mpU2;
-    mpU2 = mpU1;
-    mpU1 = mpU0;
-    mpU0 = temp;
+    auto temp = state->mpU2;
+    state->mpU2 = state->mpU1;
+    state->mpU1 = state->mpU0;
+    state->mpU0 = temp;
   }
   
   // concatenating the two pickups makes a DSPVectorArray<2>: our stereo output.
   return concatRows(outLVec, outRVec);
 }
 
-
-// processVector() does all of the audio processing, in DSPVector-sized chunks.
+// processFDTD() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
 
-void processFDTD(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
+void processFDTD(AudioContext* ctx, void *untypedState)
 {
+  auto state = static_cast<FDTDState*>(untypedState);
+
   // generate ticks twice per second
-  auto ticks = impulse1(0.5f/kSampleRate)*kOutputGain;
-  
-  auto sine220 = s1(220.f/kSampleRate)*kOutputGain;
+  auto ticks = state->impulse1(2.0f/kSampleRate)*kOutputGain;
 
   // run ticks through the FDTD model, modulating the pitch
-  auto modOscSignal = sine1(0.15f/kSampleRate);
+  auto modOscSignal = state->sine1(0.15f/kSampleRate);
   auto freq = 220.f + modOscSignal*40.f;
-  auto FDTDOutput = processFDTDModel(ticks, freq/kSampleRate);
-  
+  auto FDTDOutput = processFDTDModel(ticks, freq/kSampleRate, state);
+
   // write the main outputs
-  outputs[0] = FDTDOutput.row(0);
-  outputs[1] = FDTDOutput.row(1);
+  ctx->outputs[0] = FDTDOutput.row(0);
+  ctx->outputs[1] = FDTDOutput.row(1);
 }
 
 int main()
 {
-  // This code adapts the RtAudio loop to our buffered processing and runs the example.
-  AudioTask FDTDExample(kInputChannels, kOutputChannels, kSampleRate, &processFDTD);
+  FDTDState state;
+  AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
+  AudioTask FDTDExample(&ctx, processFDTD, &state);
   return FDTDExample.run();
 }
-

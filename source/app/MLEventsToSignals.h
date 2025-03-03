@@ -51,7 +51,7 @@ public:
   static constexpr size_t kNumControllers{128};
 
   static constexpr float kGlideTimeSeconds{0.02f};
-  static constexpr float kControllerGlideTimeSeconds{0.1f};
+  static constexpr float kControllerGlideTimeSeconds{0.02f};
   static constexpr float kDriftTimeSeconds{8.0f};
   static constexpr float kDriftScale{0.02f};
 

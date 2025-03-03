@@ -209,6 +209,17 @@ inline Projection intervalMap(const Interval a, const Interval b, Projection c)
   };
 }
 
+// commonly used pair of Projections to go from [0, 1] to a log parameter and back.
+inline Projection unityToLogParam(Interval paramInterval)
+{
+  return projections::intervalMap({0, 1}, paramInterval, projections::log(paramInterval));
+}
+
+inline Projection logParamToUnity(Interval paramInterval)
+{
+  return projections::intervalMap(paramInterval, {0, 1}, projections::exp(paramInterval));
+}
+
 // a piecewiseLinear Projection is specifed with n output values-
 // these are equally distributed over [0, 1]. So with 3 output
 // values (a, b, c) we get a two-line function going from (0, a) to
@@ -288,6 +299,7 @@ inline Projection piecewise(std::initializer_list<float> valueList,
     return [=](float x) { return 0.f; };
   }
 }
+
 
 inline void printTable(const Projection& p, std::string pName, Interval domain, size_t points)
 {

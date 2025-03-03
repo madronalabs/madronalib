@@ -250,7 +250,6 @@ void PluginProcessor::processSignals(ProcessData& data)
   
   // run buffered processing
   processBuffer.process(inputs, outputs, data.numSamples, PluginProcessorProcessVectorFn, this);
-  
 }
 
 void PluginProcessor::effectProcessVector(MainInputs inputs, MainOutputs outputs)
