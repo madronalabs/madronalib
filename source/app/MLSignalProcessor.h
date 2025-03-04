@@ -138,6 +138,16 @@ class SignalProcessor
     setDefaults(_params);
   };
 
+  inline float getRealFloatParam(Path pname)
+  {
+    return _params.getRealFloatValue(pname);
+  }
+  
+  inline float getNormalizedFloatParam(Path pname)
+  {
+    return _params.getNormalizedFloatValue(pname);
+  }
+  
  protected:
 
   // the parameter values are stored here.
@@ -155,16 +165,6 @@ class SignalProcessor
   // single buffer for reading from signals
   std::vector<float> _readBuffer;
 
-  // param access
-  inline float getRealFloatParam(Path pname)
-  {
-    return _params.getRealFloatValue(pname);
-  }
-  
-  inline float getNormalizedFloatParam(Path pname)
-  {
-    return _params.getNormalizedFloatValue(pname);
-  }
   
   Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
 
@@ -175,7 +175,7 @@ class SignalProcessor
 
   // store a DSPVectorArray to the named signal buffer.
   // we need a buffer for each published signal here to move signals safely from the Processor
-  // to the audio thread.
+  // to the main thread.
   template <size_t CHANNELS>
   inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec, int frames, int voice)
   {

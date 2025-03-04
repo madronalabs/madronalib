@@ -37,38 +37,34 @@ inline void readParameterDescriptions(ParameterDescriptionList& params)
   } ) );
 }
 
-class ParamsExampleProcessor :
-  public AudioTask
+// here we inherit from SignalProcessor, which gives us Parameters we can set and get.
+class ExampleProcessor : public SignalProcessor
 {
+public:
   // sine generators.
   SineGen s1, s2;
-  
-public:
-  ParamsExampleProcessor(size_t nInputs, size_t nOutputs, int sampleRate) :
-    AudioTask(nInputs, nOutputs, sampleRate) {}
-  
-  // SignalProcessor implementation
-  
-  // declare the processVector function that will run our DSP in vectors of size kFloatsPerDSPVector
-  // with the nullptr constructor argument above, AudioProcessor
-  void processVector(MainInputs inputs, MainOutputs outputs, void *stateDataUnused) override
-  {
-    // get params from the SignalProcessor.
-    float f1 = getRealFloatParam("freq1");
-    float f2 = getRealFloatParam("freq2");
+};
+
+void processParamsExample(AudioContext* ctx, void *untypedState)
+{
+  auto state = static_cast< ExampleProcessor* >(untypedState);
+
+  // get params from the SignalProcessor.
+  float f1 = state->getRealFloatParam("freq1");
+  float f2 = state->getRealFloatParam("freq2");
     
-    // Running the sine generators makes DSPVectors as output.
-    // The input parameter is omega: the frequency in Hz divided by the sample rate.
-    // The output sines are multiplied by the gain.
-    outputs[0] = s1(f1/kSampleRate)*kOutputGain;
-    outputs[1] = s2(f2/kSampleRate)*kOutputGain;
-  }
+  // Running the sine generators makes DSPVectors as output.
+  // The input parameter is omega: the frequency in Hz divided by the sample rate.
+  // The output sines are multiplied by the gain.
+  ctx->outputs[0] = state->s1(f1/kSampleRate)*kOutputGain;
+  ctx->outputs[1] = state->s2(f2/kSampleRate)*kOutputGain;
 };
 
 int main()
 {
-  // The AudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
-  ParamsExampleProcessor exampleProc(kInputChannels, kOutputChannels, kSampleRate);
+  ExampleProcessor state;
+  AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
+  AudioTask exampleTask(&ctx, processParamsExample, &state);
   
   // the processor can use a temporary ParameterDescriptionList here.
   ParameterDescriptionList pdl;
@@ -77,14 +73,14 @@ int main()
   readParameterDescriptions(pdl);
   
   // build the stored parameter tree, creating descriptions and projections
-  exampleProc.buildParams(pdl);
-  
-  exampleProc.setDefaultParams();
+  state.buildParams(pdl);
+  state.setDefaultParams();
   
   // set a parameter of the processor as a normalized value.
   // if not set, parameters begin at their default values.
-  exampleProc.setParamFromNormalizedValue("freq2", 0.6);
+  state.setParamFromNormalizedValue("freq2", 0.6);
 
-  return exampleProc.run();
+  return exampleTask.run();
 }
+
 
