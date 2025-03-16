@@ -21,6 +21,9 @@ namespace ml
 class SignalProcessor
 {
  public:
+  SignalProcessor() {}
+  virtual ~SignalProcessor() {}
+  
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
   struct PublishedSignal
@@ -118,8 +121,6 @@ class SignalProcessor
     }
   };
 
-  SignalProcessor() {}
-  virtual ~SignalProcessor() {}
 
   virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic outputs, void* stateData = nullptr) {}
 

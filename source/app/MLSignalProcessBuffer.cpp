@@ -60,10 +60,13 @@ void SignalProcessBuffer::process(const float** externalInputs, float** external
       context->inputs[c] = _inputBuffers[c].read();
     }
 
+    // process one vector of the context, generating event / controller signals
     context->processVector();
+    
+    // run the signal processing function
     processFn(context, state);
 
-    // write one chunk to each output buffer
+    // write one vector to each output buffer
     for(int c = 0; c < nOutputs; c++)
     {
       _outputBuffers[c].write(context->outputs[c]);

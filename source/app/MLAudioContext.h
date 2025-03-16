@@ -36,7 +36,7 @@ public:
 
     // Set the time and bpm. The time refers to the start of the current engine processing block.
     void setTimeAndRate(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
-
+           
     // clear state
     void clear();
 
