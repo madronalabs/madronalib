@@ -25,7 +25,6 @@ using MainOutputs = DSPVectorDynamic&;
 
 class AudioContext final {
 public:
-
   // AudioContext::ProcessTime maintains the current time in a DSP process and can track
   // the time in the host application if there is one.
   class ProcessTime

@@ -295,21 +295,29 @@ void EventsToSignals::addEvent(const Event& e)
 
 void EventsToSignals::process()
 {
+  // if we have never received an event, do nothing
   if (!awake_) return;
 
+  // start processing each voice's vector of audio data
   for(auto& v : voices)
   {
     v.beginProcess(sampleRate_);
   }
+  
+  // process all events in the queue, sending changes to
+  // voices and controller smoothers
   while(Event e = eventQueue_.pop())
   {
     processEvent(e);
   }
+  
+  // end voice processing, making complete outgoing signals
   for(auto& v : voices)
   {
     v.endProcess(pitchBendRangeInSemitones_, sampleRate_);
   }
 
+  // make smoothed controller signals
   for (auto& c : controllers)
   {
     c.process();

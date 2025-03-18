@@ -24,12 +24,14 @@ using MIDIMessage = std::vector< unsigned char >;
 using MIDIMessageHandler = std::function< void(const MIDIMessage&) >;
 
 class MIDIInput {
-
 public:
-
   MIDIInput();
   ~MIDIInput();
+  
+  // TODO add methods for inspecting ports before start. start() will take
+  // an additional port argument.
 
+  // start processing messages from the input with the given handler function.
   bool start(MIDIMessageHandler handler);
   void stop();
 
@@ -39,10 +41,9 @@ public:
 private:
   struct Impl;
   std::unique_ptr< Impl > pImpl;
-
-  void readNewMessages(const MIDIMessageHandler& handler);
 };
 
+// convert a MIDI message into an Event for use with EventsToSignals.
 Event MIDIMessageToEvent(const MIDIMessage& message);
 
 } // namespace ml

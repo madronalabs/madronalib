@@ -21,9 +21,29 @@ struct MIDIInput::Impl
   std::vector< unsigned char > inputMessage;
   Timer inputTimer;
   uint32_t midiPort{0};
+  
+  // read any new messages from RtMidi and handle them with the handler function.
+  void readNewMessages(const MIDIMessageHandler& handler) {
+    double timeStamp;
+    int nBytes{0};
+    int counter{0};
+    
+    do{
+      // when there are no new messages, RtMidiIn::getMessage() returns a message with size 0.
+      timeStamp = midiIn->getMessage( &inputMessage );
+      nBytes = inputMessage.size();
+      
+      if( nBytes > 0 ) { handler(inputMessage); }
+    } while (nBytes > 0);
+  }
 };
 
+
 MIDIInput::MIDIInput() : pImpl(std::make_unique<Impl>()) {}
+
+MIDIInput::~MIDIInput() {
+  stop();
+}
 
 bool MIDIInput::start(MIDIMessageHandler handler)
 {
@@ -58,7 +78,7 @@ bool MIDIInput::start(MIDIMessageHandler handler)
 
   if (OK)
   {
-    pImpl->inputTimer.start([&]() { readNewMessages(handler); }, milliseconds(kTimerInterval));
+    pImpl->inputTimer.start([&]() { pImpl->readNewMessages(handler); }, milliseconds(kTimerInterval));
   }
   else
   {
@@ -77,25 +97,6 @@ void MIDIInput::stop()
   }
 }
 
-// read any new messages from RtMidi and handle them.
-void MIDIInput::readNewMessages(const MIDIMessageHandler& handler) {
-  double timeStamp;
-  int nBytes{0};
-  int counter{0};
-
-  do{
-    // when there are no new messages, getMessage() returns a message with size 0.
-    timeStamp = pImpl->midiIn->getMessage( &pImpl->inputMessage );
-    nBytes = pImpl->inputMessage.size();
-
-    if ( nBytes > 0 )
-    {
-      handler(pImpl->inputMessage);
-    }
-
-  } while (nBytes > 0);
-}
-
 std::string MIDIInput::getAPIDisplayName()
 {
   auto& midiin = pImpl->midiIn;
@@ -109,9 +110,6 @@ std::string MIDIInput::getPortName()
   return midiin->getPortName(portNum);
 }
 
-MIDIInput::~MIDIInput() {
-  stop();
-}
 
 // free functions
 
