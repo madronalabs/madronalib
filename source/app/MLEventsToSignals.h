@@ -64,7 +64,7 @@ public:
   int getNewestVoice() const { return newestVoice_; }
 
   // clear all voices and queued events and reset state.
-  void reset();
+  void clear();
 
   // just reset time outputs
   void resetTimes();
@@ -72,8 +72,11 @@ public:
   // add an event to the queue.
   void addEvent(const Event& e);
 
-  // process all events in queue and generate output signals.
-  void process();
+  // process incoming events in queue and generate output signals.
+  // events in the queue in the time range [startOffset, startOffset + kFloatsPerDSPVector) will
+  // be processed. it is assumed that all events in the queue are sorted by start time. Any
+  // events outside the time range will be ignored.
+  void processVector(int startOffset);
 
   void setPitchBendInSemitones(float f);
   void setGlideTimeInSeconds(float f);
@@ -190,13 +193,5 @@ private:
   void dumpVoices();
   int testCounter{0};
 };
-
-
-inline std::ostream& operator<<(std::ostream& out, const Event& e)
-{
-  std::cout << "[" << e.type << "/" << e.channel << "/" << e.keyNumber << "/" << e.time << "]";
-  return out;
-}
-
 
 }  // namespace ml

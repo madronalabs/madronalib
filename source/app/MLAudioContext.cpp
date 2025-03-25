@@ -84,7 +84,7 @@ void AudioContext::ProcessTime::clear(void)
 }
 
 // generate phasors from the input parameters
-void AudioContext::ProcessTime::process()
+void AudioContext::ProcessTime::processVector(int startOffset)
 {
   for (int n = 0; n < kFloatsPerDSPVector; ++n)
   {
@@ -103,10 +103,31 @@ AudioContext::AudioContext(size_t nInputs, size_t nOutputs, int sr) :
   inputs(nInputs), outputs(nOutputs), eventsToSignals(sr), sampleRate(sr)
 {}
 
-void AudioContext::processVector()
+void AudioContext::clear()
 {
-  currentTime.process();
-  eventsToSignals.process();
+  currentTime.clear();
+  eventsToSignals.clear();
+}
+
+void AudioContext::processVector(int startOffset)
+{
+  currentTime.processVector(startOffset);
+  eventsToSignals.processVector(startOffset);
+}
+
+DSPVector AudioContext::getInputController(size_t n) const
+{
+  return eventsToSignals.controllers[n].output;
+}
+
+void AudioContext::addInputEvent(const Event& e)
+{
+  eventsToSignals.addEvent(e);
+}
+
+void AudioContext::updateTime(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn)
+{
+  currentTime.setTimeAndRate(ppqPos, bpmIn, isPlaying, sampleRateIn);
 }
 
 } // ml

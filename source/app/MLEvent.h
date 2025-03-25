@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iostream>
 
 namespace ml {
 
@@ -19,7 +20,8 @@ enum EventType
   kPitchBend,
   kNotePressure,
   kChannelPressure,
-  kProgramChange
+  kProgramChange,
+  kNumEventTypes
 };
 
 // Event: something that happens in a performance.
@@ -29,18 +31,26 @@ struct Event
   Event() = default;
   ~Event() = default;
 
-  EventType type{kNull};
-  int channel;
-  int keyNumber;  // The unique key or touch number that created the event.
-  int time; // Onset time in samples from start of current process buffer.
+  uint8_t type{kNull};
+  uint8_t channel{0};
+  uint16_t keyNumber{0};  // The unique key or touch or controller that created the event.
+  int time{0}; // Onset time in samples from start of current top-level buffer.
 
   // float values that have different meanings for different event types.
   float value1{0};
   float value2{0};
-  float value3{0};
-  float value4{0};
 
   explicit operator bool() const { return type != kNull; }
+  
+  static const char* typeNames[kNumEventTypes]; 
 };
+
+
+inline std::ostream& operator<<(std::ostream& out, const Event& e)
+{
+  std::cout << "[" << Event::typeNames[e.type] << " " << (int)e.channel << "/" << (int)e.keyNumber << "/" << (int)e.time << " " << e.value1 << ", " << e.value2 << "]";
+  return out;
+}
+
 
 } // ml

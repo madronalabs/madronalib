@@ -87,8 +87,9 @@ float getAgeInSeconds(uint32_t age, float sr)
 
 void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bool doGlide)
 {
-  auto time = e.time;
-  
+  // incoming time in the event e is the sample offset into the DSPVector.
+  size_t destTime = clamp((size_t)e.time, 0UL, (size_t)kFloatsPerDSPVector);
+
   switch(e.type)
   {
     case kNoteOn:
@@ -96,8 +97,6 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
       creatorKeyNumber = e.keyNumber;
       ageInSamples = 0;
       ageStep = 1;
-      int destTime = e.time;
-      destTime = clamp(destTime, (0), (int)kFloatsPerDSPVector);
       
       inhibitPitchGlide = !doGlide;
       if(!inhibitPitchGlide)
@@ -128,8 +127,6 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
     case kNoteRetrig:
     {
       creatorKeyNumber = e.keyNumber;
-      int destTime = e.time;
-      destTime = clamp(destTime, (0), (int)kFloatsPerDSPVector);
       
       // if the retrigger falls on frame 0, make room for retrigger
       if(destTime == 0)
@@ -158,14 +155,9 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
 
       break;
     }
-     
-
     case kNoteOff:
     {
       creatorKeyNumber = 0;
-      
-      size_t destTime = e.time;
-      destTime = clamp(destTime, size_t(0), (size_t)kFloatsPerDSPVector);
       
       // write current values up to change TODO DRY
       for(int t = (int)nextFrameToProcess; t < destTime; ++t)
@@ -253,7 +245,7 @@ EventsToSignals::~EventsToSignals()
 
 size_t EventsToSignals::setPolyphony(size_t n)
 {
-  reset();
+  clear();
   polyphony_ = std::min(n, kMaxVoices);
   return polyphony_;
 }
@@ -263,7 +255,7 @@ size_t EventsToSignals::getPolyphony()
   return polyphony_;
 }
 
-void EventsToSignals::reset()
+void EventsToSignals::clear()
 {
   eventQueue_.clear();
   
@@ -293,7 +285,7 @@ void EventsToSignals::addEvent(const Event& e)
   eventQueue_.push(e);
 }
 
-void EventsToSignals::process()
+void EventsToSignals::processVector(int startOffset)
 {
   // if we have never received an event, do nothing
   if (!awake_) return;
@@ -306,9 +298,15 @@ void EventsToSignals::process()
   
   // process all events in the queue, sending changes to
   // voices and controller smoothers
-  while(Event e = eventQueue_.pop())
+  int endTime = startOffset + kFloatsPerDSPVector;
+  while(eventQueue_.elementsAvailable() && (eventQueue_.peek().time < endTime))
   {
-    processEvent(e);
+    auto e = eventQueue_.pop();
+    if(e.time >= startOffset)
+    {
+      e.time -= startOffset;
+      processEvent(e);
+    }
   }
   
   // end voice processing, making complete outgoing signals
@@ -341,6 +339,9 @@ size_t EventsToSignals::countHeldNotes()
 void EventsToSignals::processEvent(const Event &eventParam)
 {
   Event event = eventParam;
+  
+  // TEMP
+  std::cout << "EventsToSignals::processEvent: " << event << "\n";
   
   switch(event.type)
   {
@@ -516,7 +517,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
     if(val == 0)
     {
       // all sound off
-      reset();
+      clear();
     }
   }
   else if(ctrl == 123)

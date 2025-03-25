@@ -37,14 +37,14 @@ void processAudio(AudioContext* ctx, void *untypedState)
   for (int i = 0; i < nSines; ++i)
   {
     int ctrlNum = state->sineControllers[i];
-    DSPVector ctrlSig = ctx->eventsToSignals.controllers[ctrlNum].output;
+    DSPVector ctrlSig = ctx->getInputController(ctrlNum);
     float freqInHz = ctrlToFreq(ctrlSig[0]);
     DSPVector sineSig = state->sineGens[i](freqInHz/sr);
     accum += sineSig;
   }
 
   // scale total volume and write context output
-  DSPVector volumeSig = ctx->eventsToSignals.controllers[state->volumeControl].output;
+  DSPVector volumeSig = ctx->getInputController(state->volumeControl);
   accum *= volumeSig*kOutputGain/nSines;
   ctx->outputs[0] = accum;
   ctx->outputs[1] = accum;
@@ -63,7 +63,7 @@ int main( int argc, char *argv[] )
   // define the MIDI handling callback.
   const auto& handleMIDI = [&](MIDIMessage m)->void
   {
-    ctx.eventsToSignals.addEvent(MIDIMessageToEvent(m));
+    ctx.addInputEvent(MIDIMessageToEvent(m));
   };
 
   // start the MIDI Input.

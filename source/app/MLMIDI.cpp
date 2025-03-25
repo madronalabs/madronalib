@@ -47,8 +47,6 @@ MIDIInput::~MIDIInput() {
 
 bool MIDIInput::start(MIDIMessageHandler handler)
 {
-  constexpr int kTimerInterval{10};
-
   int OK{true};
   try
   {
@@ -76,7 +74,10 @@ bool MIDIInput::start(MIDIMessageHandler handler)
   // Don't ignore sysex, timing, or active sensing messages.
   pImpl->midiIn->ignoreTypes(false, false, false);
 
-  if (OK)
+  // TODO this makes an OK demo but we need to do more work to get messages
+  // with accurate timestamps from MIDI to the audio thread
+  constexpr int kTimerInterval{1};
+  if(OK)
   {
     pImpl->inputTimer.start([&]() { pImpl->readNewMessages(handler); }, milliseconds(kTimerInterval));
   }

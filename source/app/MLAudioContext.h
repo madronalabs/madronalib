@@ -40,7 +40,7 @@ public:
     void clear();
 
     // generate phasors from the input parameters
-    void process();
+    void processVector(int startOffset);
 
     // phase signal to read TODO rename
     DSPVector _quarterNotesPhase;
@@ -61,16 +61,39 @@ public:
 
   AudioContext(size_t nInputs, size_t nOutputs, int sr);
   ~AudioContext() = default;
+  
+  void clear();
 
   // update everything needed to create a new vector of context signals.
-  void processVector();
+  // startOffset is the start frame of the vector in the host buffer.
+  void processVector(int startOffset);
+  
+  void updateTime(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
+  DSPVector getBeatPhase() { return currentTime._quarterNotesPhase; }
 
-  ProcessTime currentTime;
-  ml::EventsToSignals eventsToSignals;
-
+  void addInputEvent(const Event& e);
+  void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
+  int getInputPolyphony() { return eventsToSignals.getPolyphony(); }
+  void setInputPitchBend(float p) { eventsToSignals.setPitchBendInSemitones(p); }
+  void setInputGlideTimeInSeconds(float s) { eventsToSignals.setGlideTimeInSeconds(s); }
+  void setInputDriftAmount(float d) { eventsToSignals.setDriftAmount(d); }
+  void setInputUnison(bool u) { eventsToSignals.setUnison(u); }
+  
+  // by giving clients only a const Voice&, we are letting them inspect anything about Voices, but
+  // not modify them. This seems like a useful pattern for any object owning output-containing structs.
+  const EventsToSignals::Voice& getInputVoice(int n) { return eventsToSignals.voices[n]; }
+  
+  int getNewestInputVoice() { return eventsToSignals.getNewestVoice(); }
+  DSPVector getInputController(size_t n) const;
+  
+  // clients can access these directly to do processing
   DSPVectorDynamic inputs;
   DSPVectorDynamic outputs;
   int sampleRate{0};
+  
+private:
+  ProcessTime currentTime;
+  ml::EventsToSignals eventsToSignals;
 };
 
 
