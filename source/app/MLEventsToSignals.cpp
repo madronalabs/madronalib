@@ -6,6 +6,39 @@
 
 namespace ml {
 
+
+float samplesToSeconds(uint32_t samples, float sr)
+{
+  double ns(samples);
+  double samplesPerSecond(sr);
+  double seconds = ns / samplesPerSecond;
+  return (float)seconds;
+}
+
+int getKeyIndex(const Event& e, Symbol protocol)
+{
+  int instigator{0};
+  switch(hash(protocol))
+  {
+    case(hash("MIDI")):
+    {
+      instigator = e.sourceIdx;
+      break;
+    }
+    case(hash("MPE")):
+    {
+      instigator = e.channel;
+      break;
+    }
+    default:
+    {
+      
+    }
+  }
+  return instigator;
+}
+
+
 // EventsToSignals::Voice
 //
 
@@ -46,7 +79,7 @@ void EventsToSignals::Voice::reset(int i)
   currentY = 0;
   currentZ = 0;
   
-  creatorKeyNumber = 0;
+  creatorKeyIdx_ = 0;
   
   pitchBendGlide.setValue(0.f);
   modGlide.setValue(0.f);
@@ -56,7 +89,7 @@ void EventsToSignals::Voice::reset(int i)
 }
 
 // just reset the time.
-void EventsToSignals::Voice::resetTime(int i)
+void EventsToSignals::Voice::resetTime()
 {
   ageInSamples = 0;
 }
@@ -77,24 +110,16 @@ void EventsToSignals::Voice::beginProcess(float sr)
   }
 }
 
-float getAgeInSeconds(uint32_t age, float sr)
-{
-  double dAge(age);
-  double dSr(sr);
-  double dSeconds = dAge / dSr;
-  return (float)dSeconds;
-}
-
-void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bool doGlide)
+void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doGlide, float sr)
 {
   // incoming time in the event e is the sample offset into the DSPVector.
   size_t destTime = clamp((size_t)e.time, 0UL, (size_t)kFloatsPerDSPVector);
-
+  
   switch(e.type)
   {
     case kNoteOn:
     {
-      creatorKeyNumber = e.keyNumber;
+      creatorKeyIdx_ = keyIdx;
       ageInSamples = 0;
       ageStep = 1;
       
@@ -108,13 +133,13 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
         pitchGlide.setGlideTimeInSamples(0);
       }
       
-      // write current pitch and velocity up to note start
+      // write current pitch, velocity and elapsed time up to note start
       for(int t = (int)nextFrameToProcess; t < destTime; ++t)
       {
         outputs.row(kGate)[t] = currentVelocity;
         outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
         ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
+        outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
       }
       
       // set new values
@@ -126,7 +151,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
     }
     case kNoteRetrig:
     {
-      creatorKeyNumber = e.keyNumber;
+      creatorKeyIdx_ = keyIdx;
       
       // if the retrigger falls on frame 0, make room for retrigger
       if(destTime == 0)
@@ -140,7 +165,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
         outputs.row(kGate)[t] = currentVelocity;
         outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
         ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
+        outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
       }
       
       // write retrigger frame
@@ -157,7 +182,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
     }
     case kNoteOff:
     {
-      creatorKeyNumber = 0;
+      creatorKeyIdx_ = 0;
       
       // write current values up to change TODO DRY
       for(int t = (int)nextFrameToProcess; t < destTime; ++t)
@@ -165,7 +190,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, float sampleRate, bo
         outputs.row(kGate)[t] = currentVelocity;
         outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
         ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
+        outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
       }
       
       // set new values
@@ -190,7 +215,7 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
     
     // keep increasing age
     ageInSamples += ageStep;
-    outputs.row(kElapsedTime)[t] = getAgeInSeconds(ageInSamples, sampleRate);
+    outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sampleRate);
   }
   
   // process glides, accurate to the DSP vector
@@ -208,11 +233,11 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
   outputs.row(kPitch) += driftSig*driftAmount*kDriftScale;
 }
 
+
 void EventsToSignals::SmoothedController::process()
 {
   output = glide(rawValue);
 }
-
 
 #pragma mark -
 //
@@ -223,14 +248,16 @@ EventsToSignals::EventsToSignals(int sr) : eventQueue_(kMaxEventsPerVector)
 {
   sampleRate_ = (float)sr;
   
-  voices.resize(kMaxVoices);
-  for(int i=0; i<kMaxVoices; ++i)
+  voices.resize(kMaxVoices + 1);
+  for(int i=0; i<voices.size(); ++i)
   {
     voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, (float)sr);
     voices[i].reset(i);
-    voices[i].outputs.row(kVoice) = DSPVector((float)i);
+    
+    // set vox output signal
+    voices[i].outputs.row(kVoice) = DSPVector((float)i - 1);
   }
-
+  
   controllers.resize(kNumControllers);
   int glideTimeInSamples = sr*kControllerGlideTimeSeconds;
   for (int i=0; i<kNumControllers; ++i)
@@ -259,24 +286,25 @@ void EventsToSignals::clear()
 {
   eventQueue_.clear();
   
-  for(int i=0; i<kMaxVoices; ++i)
+  int i{0};
+  for(auto& v : voices)
   {
-    voices[i].reset(i);
+    v.reset(i++);
   }
   
-  lastFreeVoiceFound_ = -1;
+  lastFreeVoiceFound_ = 0;
 }
 
 void EventsToSignals::resetTimes()
 {
   eventQueue_.clear();
   
-  for(int i=0; i<kMaxVoices; ++i)
+  for(auto& v : voices)
   {
-    voices[i].resetTime(i);
+    v.resetTime();
   }
   
-  lastFreeVoiceFound_ = -1;
+  lastFreeVoiceFound_ = 0;
 }
 
 void EventsToSignals::addEvent(const Event& e)
@@ -310,15 +338,63 @@ void EventsToSignals::processVector(int startOffset)
   }
   
   // end voice processing, making complete outgoing signals
-  for(auto& v : voices)
+  
+  // MPE main voice uses MIDI pitch bend setting
+  voices[0].endProcess(pitchBendRangeInSemitones_, sampleRate_);
+  
+  
+  float voicesPitchBend = (protocol_ == "MPE") ?
+    mpePitchBendRangeInSemitones_ : pitchBendRangeInSemitones_;
+  
+  for(int v=1; v<polyphony_ + 1; ++v)
   {
-    v.endProcess(pitchBendRangeInSemitones_, sampleRate_);
+    voices[v].endProcess(voicesPitchBend, sampleRate_);
   }
 
   // make smoothed controller signals
-  for (auto& c : controllers)
+  for(auto& c : controllers)
   {
     c.process();
+  }
+  
+  // in MIDI mode, add smoothed Channel Pressure to z output
+  // in MPE mode, add main voice signals to other voices
+  switch(hash(protocol_))
+  {
+    case(hash("MIDI")):
+    {
+      for(int v=1; v<polyphony_ + 1; ++v)
+      {
+        voices[v].outputs.row(kZ) += controllers[kChannelPressureControllerIdx].output;
+      }
+      break;
+    }
+    case(hash("MPE")):
+    {
+      for(int v=1; v<polyphony_ + 1; ++v)
+      {
+        voices[v].outputs.row(kPitch) += voices[0].outputs.row(kPitch);
+        voices[v].outputs.row(kX) += voices[0].outputs.row(kX);
+        voices[v].outputs.row(kY) += voices[0].outputs.row(kY);
+        voices[v].outputs.row(kZ) += voices[0].outputs.row(kZ);
+        voices[v].outputs.row(kMod) += voices[0].outputs.row(kMod);
+      }
+      break;
+    }
+    default:
+    {
+      break;
+    }
+  }
+  
+
+  // TEMP
+  testCounter += kFloatsPerDSPVector;
+  const int samples = 24000;
+  if(testCounter > samples)
+  {
+    //dumpVoices();
+    testCounter -= samples;
   }
 }
 
@@ -341,7 +417,7 @@ void EventsToSignals::processEvent(const Event &eventParam)
   Event event = eventParam;
   
   // TEMP
-  std::cout << "EventsToSignals::processEvent: " << event << "\n";
+  // std::cout << "EventsToSignals::processEvent: " << event << "\n";
   
   switch(event.type)
   {
@@ -360,8 +436,11 @@ void EventsToSignals::processEvent(const Event &eventParam)
     case kNotePressure:
       processNotePressureEvent(event);
       break;
+    case kChannelPressure:
+      processChannelPressureEvent(event);
+      break;
     case kSustainPedal:
-      processSustainEvent(event);
+      processSustainPedalEvent(event);
       break;
     case kNull:
     default:
@@ -369,30 +448,33 @@ void EventsToSignals::processEvent(const Event &eventParam)
   }
 }
 
-
+// a note on event tells use that the given key (channel, key#) wants to start
+// a note with the given pitch and velocity.
 void EventsToSignals::processNoteOnEvent(const Event& e)
 {
-  keyStates_[e.keyNumber].state = KeyState::kOn;
-  keyStates_[e.keyNumber].noteOnIndex = currentNoteOnIndex++;
-  keyStates_[e.keyNumber].pitch = e.value1;
+  int keyIdx = getKeyIndex(e, protocol_);
+  keyStates_[keyIdx].state = KeyState::kOn;
+  keyStates_[keyIdx].noteOnIndex = currentNoteOnIndex++;
+  keyStates_[keyIdx].pitch = e.value1;
     
   if(unison_)
   {
     // don't glide to first note played in unison mode.
     bool glideToNextNote = (countHeldNotes() > 1);
     
-    for(int v=0; v<polyphony_; ++v)
+    // start after MPE main voice
+    for(int v=1; v<polyphony_ + 1; ++v)
     {
-      voices[v].writeNoteEvent(e, sampleRate_, glideToNextNote);
+      voices[v].writeNoteEvent(e, keyIdx, glideToNextNote, sampleRate_);
     }
   }
   else
   {
     auto v = findFreeVoice();
     
-    if(v >= 0)
+    if(v >= 1)
     {
-      voices[v].writeNoteEvent(e, sampleRate_);
+      voices[v].writeNoteEvent(e, keyIdx, true, sampleRate_);
     }
     else
     {
@@ -403,7 +485,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
       // are cut off. add more graceful stealing
       Event f = e;
       f.type = kNoteRetrig;
-      voices[v].writeNoteEvent(f, sampleRate_);
+      voices[v].writeNoteEvent(f, keyIdx, true, sampleRate_);
     }
     newestVoice_ = v;
   }
@@ -411,13 +493,14 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
 
 void EventsToSignals::processNoteOffEvent(const Event& e)
 {
+  int keyIdx = getKeyIndex(e, protocol_);
   if (sustainPedalActive_)
   {
-    keyStates_[e.keyNumber].state = KeyState::kSustain;
+    keyStates_[keyIdx].state = KeyState::kSustained;
   }
   else
   {
-    keyStates_[e.keyNumber].state = KeyState::kOff;
+    keyStates_[keyIdx].state = KeyState::kOff;
   }
 
   if (unison_)
@@ -425,30 +508,30 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     // if the last note was released, turn off all voices.
     if (countHeldNotes() == 0)
     {
-      for (int v = 0; v < polyphony_; ++v)
+      for(int v = 1; v < polyphony_ + 1; ++v)
       {
-        voices[v].writeNoteEvent(e, sampleRate_);
+        voices[v].writeNoteEvent(e, 0, true, sampleRate_);
       }
     }
     else
     {
       // if the note released is the currently playing one, change all voices
       // to the most recently played held note.
-      if (e.keyNumber == voices[0].creatorKeyNumber)
+      if (keyIdx == voices[1].creatorKeyIdx_)
       {
         // send kNoteOn event to change note without retriggering envelope
         Event eventToSend = e;
         eventToSend.type = kNoteOn;
 
         // keep current velocity for all voices
-        eventToSend.value2 = voices[0].currentVelocity;
+        eventToSend.value2 = voices[1].currentVelocity;
 
         // get most recently played held key
         uint32_t maxNoteOnIndex{0};
         uint32_t mostRecentHeldKey{0};
         for (int i = 0; i < kMaxPhysicalKeys; ++i)
         {
-          const auto ks = keyStates_[i];
+          const auto& ks = keyStates_[i];
           if ((ks.state == KeyState::kOn) && (ks.noteOnIndex > maxNoteOnIndex))
           {
             maxNoteOnIndex = ks.noteOnIndex;
@@ -457,61 +540,139 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
         }
 
         // send key number and pitch of most recent held note
-        eventToSend.keyNumber = mostRecentHeldKey;
         eventToSend.value1 = keyStates_[mostRecentHeldKey].pitch;
-
-        for (int v = 0; v < polyphony_; ++v)
+        for (int v = 1; v < polyphony_ + 1; ++v)
         {
-          voices[v].writeNoteEvent(eventToSend, sampleRate_);
+          voices[v].writeNoteEvent(eventToSend, mostRecentHeldKey, true, sampleRate_);
         }
       }
     }
   }
   else
   {
+    Event eventToSend = e;
+    eventToSend.type = sustainPedalActive_ ? kNoteSustain : kNoteOff;
     if (!sustainPedalActive_)
     {
-      for (int v = 0; v < polyphony_; ++v)
+      for (int v = 1; v < polyphony_ + 1; ++v)
       {
-        if (voices[v].creatorKeyNumber == e.keyNumber)
+        if(voices[v].creatorKeyIdx_ == keyIdx)
         {
-          voices[v].writeNoteEvent(e, sampleRate_);
+          voices[v].writeNoteEvent(eventToSend, keyIdx, true, sampleRate_);
         }
       }
     }
   }
 }
+
+// ?
 void EventsToSignals::processNoteUpdateEvent(const Event& event) {}
-void EventsToSignals::processChannelPressureEvent(const Event& event) {}
+
+void EventsToSignals::processChannelPressureEvent(const Event& event)
+{
+  switch(hash(protocol_))
+  {
+    case(hash("MIDI")):
+    {
+      float val = event.value1;
+      controllers[kChannelPressureControllerIdx].rawValue = val;
+      break;
+    }
+    case(hash("MPE")):
+    {
+      if(event.channel == 1)
+      {
+        // write main MPE channel
+        voices[0].currentZ = event.value1;
+      }
+      else if(event.channel != 0)
+      {
+        // write any voice matching channel
+        for (int v=1; v<polyphony_ + 1; ++v)
+        {
+          if(voices[v].creatorKeyIdx_ == event.channel)
+          {
+            voices[v].currentZ = event.value1;
+          }
+        }
+      }
+      
+      break;
+    }
+  }
+}
 
 void EventsToSignals::processNotePressureEvent(const Event& event)
 {
-  for (int v=0; v<polyphony_; ++v)
+  switch(hash(protocol_))
   {
-    voices[v].currentZ = event.value1;
+    case(hash("MIDI")):
+    {
+      // write any voice matching key
+      for (int v=1; v<polyphony_ + 1; ++v)
+      {
+        if(voices[v].creatorKeyIdx_ == event.sourceIdx)
+        {
+          voices[v].currentZ = event.value1;
+        }
+      }
+      break;
+    }
+    case(hash("MPE")):
+    {
+      // note pressure is ignored in MPE mode as per the spec.
+      break;
+    }
   }
 }
 
 void EventsToSignals::processPitchWheelEvent(const Event& event)
 {
-  for (int v=0; v<polyphony_; ++v)
+  switch(hash(protocol_))
   {
-    // write pitch bend
-    voices[v].currentPitchBend = event.value1;
+    case(hash("MIDI")):
+    {
+      for (int v=1; v<polyphony_ + 1; ++v)
+      {
+        voices[v].currentPitchBend = event.value1;
+      }
+      break;
+    }
+    case(hash("MPE")):
+    {
+      if(event.channel == 1)
+      {
+        // write main MPE voice
+        voices[0].currentPitchBend = event.value1;
+      }
+      else if(event.channel != 0)
+      {
+        // write any voice matching channel
+        for (int v=1; v<polyphony_ + 1; ++v)
+        {
+          if(voices[v].creatorKeyIdx_ == event.channel)
+          {
+            voices[v].currentPitchBend = event.value1;
+          }
+        }
+      }
+      
+      break;
+    }
   }
 }
 
 // this handles all controller numbers
 void EventsToSignals::processControllerEvent(const Event& event)
 {
+  int chan = event.channel;
   float val = event.value1;
-  int ctrl = (int)event.value2;
 
   // store values directly into array so they can be read by clients
-  size_t cctrl = clamp(size_t(ctrl), 0UL, kNumControllers - 1);
-  controllers[cctrl].rawValue = val;
-
-  // then handle special meanings for some MIDI controllers
+  size_t ctrl = clamp(size_t(event.sourceIdx), 0UL, kNumControllers - 1);
+  controllers[ctrl].rawValue = val;
+  
+  // handle special meanings for some MIDI controllers
   if(ctrl == 120)
   {
     if(val == 0)
@@ -525,50 +686,85 @@ void EventsToSignals::processControllerEvent(const Event& event)
     if(val == 0)
     {
       // all notes off
-      for(int v=0; v<polyphony_; ++v)
+      for(auto& v : voices)
       {
-        Voice& voice = voices[v];
         Event eventToSend = event;
         eventToSend.type = kNoteOff;
-        voice.writeNoteEvent(eventToSend, sampleRate_);
+        v.writeNoteEvent(eventToSend, 0, false, sampleRate_);
       }
     }
   }
   else
   {
-    // modulate all voices.
-    for (int v=0; v<polyphony_; ++v)
+    
+    
+    switch(hash(protocol_))
     {
-      if(ctrl == 1)
+      case(hash("MIDI")):
       {
-        voices[v].currentMod = val;
+        // modulate all voices.
+        std::cout << "ctrl: " << ctrl << " modCC: " << voiceModCC_ << "\n"; // TEMP
+        
+        
+        for (int v=1; v<polyphony_ + 1; ++v)
+        {
+          if(ctrl == voiceModCC_)
+          {
+            voices[v].currentMod = val;
+          }
+          if(ctrl == 73)
+          {
+            voices[v].currentX = val;
+          }
+          else if(ctrl == 74)
+          {
+            voices[v].currentY = val;
+          }
+        }
+        break;
       }
-      if(ctrl == 73)
+      case(hash("MPE")):
       {
-        voices[v].currentX = val;
-      }
-      else if(ctrl == 74)
-      {
-        voices[v].currentY = val;
+        // modulate voices matching event channel.
+        // TODO refactor once working properly
+        for (int v=1; v<polyphony_ + 1; ++v)
+        {
+          if(voices[v].creatorKeyIdx_ == event.channel)
+          {
+            if(ctrl == voiceModCC_)
+            {
+              voices[v].currentMod = val;
+            }
+            if(ctrl == 73)
+            {
+              voices[v].currentX = val;
+            }
+            else if(ctrl == 74)
+            {
+              voices[v].currentY = val;
+            }
+          }
+        }
+        break;
       }
     }
   }
 }
 
-void EventsToSignals::processSustainEvent(const Event& event)
+void EventsToSignals::processSustainPedalEvent(const Event& event)
 {
   sustainPedalActive_ = (event.value1 > 0.5f) ? 1 : 0;
   if(!sustainPedalActive_)
   {
-    // clear any sustaining voices
-    for(int i=0; i<polyphony_; ++i)
+    // on release, clear any sustaining voices
+    for(int i=1; i<polyphony_ + 1; ++i)
     {
       Voice& v = voices[i];
-      if(keyStates_[v.creatorKeyNumber].state == KeyState::kSustain)
+      if(keyStates_[v.creatorKeyIdx_].state == KeyState::kSustained)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
-        v.writeNoteEvent(newEvent, sampleRate_);
+        v.writeNoteEvent(newEvent, 0, true, sampleRate_);
       }
     }
   }
@@ -579,21 +775,26 @@ void EventsToSignals::setPitchBendInSemitones(float f)
   pitchBendRangeInSemitones_ = f;
 }
 
+void EventsToSignals::setMPEPitchBendInSemitones(float f)
+{
+  mpePitchBendRangeInSemitones_ = f;
+}
+
 void EventsToSignals::setGlideTimeInSeconds(float f)
 {
   pitchGlideTimeInSeconds_ = f;
-  for(int i=0; i<kMaxVoices; ++i)
+  for(auto& v : voices)
   {
-    voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
+    v.setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
   }
 }
 
 void EventsToSignals::setDriftAmount(float f)
 {
   pitchDriftAmount_ = f;
-  for(int i=0; i<kMaxVoices; ++i)
+  for(auto& v : voices)
   {
-    voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
+    v.setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
   }
 }
 
@@ -609,15 +810,15 @@ void EventsToSignals::setUnison(bool b)
 //
 int EventsToSignals::findFreeVoice()
 {
-  int len = polyphony_;
+  int highestVoiceIdx = polyphony_ + 1;
   int r = -1;
   int t = lastFreeVoiceFound_;
-  for (int i = 0; i < len; ++i)
+  for (int i = 1; i < polyphony_ + 1; ++i)
   {
     t++;
-    if(t >= len) t = 0;
+    if(t >= highestVoiceIdx) t = 1;
     
-    if (voices[t].creatorKeyNumber == 0)
+    if(voices[t].creatorKeyIdx_ == 0)
     {
       r = t;
       lastFreeVoiceFound_ = t;
@@ -631,7 +832,7 @@ int EventsToSignals::findFreeVoice()
 int EventsToSignals::findVoiceToSteal(Event e)
 {
   // just steal the voice with the nearest note.
-  return findNearestVoice(e.keyNumber);
+  return findNearestVoice(e.sourceIdx);
 }
 
 // return the index of the voice with the note nearest to the note n.
@@ -641,9 +842,9 @@ int EventsToSignals::findNearestVoice(int note)
   int r = 0;
   int minDist = 128;
   
-  for (int v=0; v<polyphony_; ++v)
+  for (int v=1; v<polyphony_ + 1; ++v)
   {
-    int vNote = voices[v].creatorKeyNumber;
+    int vNote = voices[v].creatorKeyIdx_;
     int noteDist = std::abs(note - vNote);
     if (noteDist < minDist)
     {
@@ -657,14 +858,12 @@ int EventsToSignals::findNearestVoice(int note)
 
 void EventsToSignals::dumpVoices()
 {
-  std::cout << "voices:\n";
-  for (int i=0; i<polyphony_; ++i)
-  {
+  auto dumpVoice = [&](int i){
     std::cout << "    " << i << ": ";
     
     Voice& voice = voices[i];
-    int vKey = voice.creatorKeyNumber;
-    std::cout << "[i: " << vKey << "]";
+    int vKey = voice.creatorKeyIdx_;
+    std::cout << "[key: " << vKey << "] ";
     
     switch(keyStates_[vKey].state)
     {
@@ -674,21 +873,46 @@ void EventsToSignals::dumpVoices()
       case KeyState::kOn:
         std::cout  << " on";
         break;
-      case KeyState::kSustain:
+      case KeyState::kSustained:
         std::cout  << "sus";
         break;
       default:
         std::cout  << " ? ";
         break;
     }
+    
+    std::cout << " x:" << voice.outputs.row(kX)[0];
+    std::cout << " y:" << voice.outputs.row(kY)[0];
+    std::cout << " z:" << voice.outputs.row(kZ)[0];
+    std::cout << " pitch:" << voice.outputs.row(kPitch)[0];
+    std::cout << " mod:" << voice.outputs.row(kMod)[0];
+
     std::cout  << "\n";
+  };
+  
+  std::cout << "\n\npolyphony: " << polyphony_ << "\n";
+  
+  if(protocol_ == "MPE")
+  {
+    std::cout << "MPE main voice:\n";
+    
+    dumpVoice(0);
   }
+  
+  std::cout << "channel voices:\n";
+  for (int i=1; i<polyphony_ + 1; ++i)
+  {
+    dumpVoice(i);
+  }
+  
+  /*
   // TEMP: only one channel
   std::cout << "controllers: \n";
   for (auto& c : controllers)
   {
     std::cout << " " << c.output[0];
   }
+   */
   std::cout << "\n";
 }
 

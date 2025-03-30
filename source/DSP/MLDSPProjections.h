@@ -95,6 +95,9 @@ static const Projection easeInOutQuartic{
                         : easeOutQuartic(x * 2.f - 1.f) * 0.5f + 0.5f;
     }};
 
+static const Projection overshoot{[](float x) { return 3*x - 2*x*x; }};
+
+
 // bisquared projection: x^2, but inverted for x < 0.
 static const Projection bisquared{[](float x)
 {

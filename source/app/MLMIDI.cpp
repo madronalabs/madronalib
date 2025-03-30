@@ -139,36 +139,35 @@ Event MIDIMessageToEvent(const MIDIMessage& m)
     case kMIDINoteOff:
     {
       e.type = kNoteOff;
-      e.keyNumber = messageByte2(m);
+      e.sourceIdx = messageByte2(m);
       e.value1 = toValue(messageByte3(m));
       break;
     }
     case kMIDINoteOn:
     {
       e.type = kNoteOn;
-      e.keyNumber = messageByte2(m);
-      e.value1 = toValue(messageByte3(m));
+      e.sourceIdx = messageByte2(m);
+      e.value1 = toValue(messageByte3(m)); // velocity
       break;
     }
     case kMIDIPolyPressure:
     {
       e.type = kNotePressure;
-      e.keyNumber = messageByte2(m);
+      e.sourceIdx = messageByte2(m);
       e.value1 = toValue(messageByte3(m));
       break;
     }
     case kMIDIControlChange:
     {
       e.type = kController;
-      e.keyNumber = messageByte2(m);
+      e.sourceIdx = messageByte2(m);
       e.value1 = toValue(messageByte3(m));
-      e.value2 = e.keyNumber;
       break;
     }
     case kMIDIProgramChange:
     {
       e.type = kProgramChange;
-      e.keyNumber = messageByte2(m);
+      e.sourceIdx = messageByte2(m);
       break;
     }
     case kMIDIChannelPressure:

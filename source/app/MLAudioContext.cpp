@@ -117,7 +117,7 @@ void AudioContext::processVector(int startOffset)
 
 DSPVector AudioContext::getInputController(size_t n) const
 {
-  return eventsToSignals.controllers[n].output;
+  return eventsToSignals.getController(n).output;
 }
 
 void AudioContext::addInputEvent(const Event& e)

@@ -24,6 +24,7 @@ enum EventType
   kNumEventTypes
 };
 
+
 // Event: something that happens in a performance.
 //
 struct Event
@@ -33,8 +34,12 @@ struct Event
 
   uint8_t type{kNull};
   uint8_t channel{0};
-  uint16_t keyNumber{0};  // The unique key or touch or controller that created the event.
-  int time{0}; // Onset time in samples from start of current top-level buffer.
+  
+  // which of multiple things (keys, controls) originated the event?
+  uint16_t sourceIdx{0};
+  
+  // Onset time in samples from start of current top-level buffer.
+  int time{0};
 
   // float values that have different meanings for different event types.
   float value1{0};
@@ -48,7 +53,7 @@ struct Event
 
 inline std::ostream& operator<<(std::ostream& out, const Event& e)
 {
-  std::cout << "[" << Event::typeNames[e.type] << " " << (int)e.channel << "/" << (int)e.keyNumber << "/" << (int)e.time << " " << e.value1 << ", " << e.value2 << "]";
+  std::cout << "[" << Event::typeNames[e.type] << " " << (int)e.channel << "/" << (int)e.sourceIdx << "/" << (int)e.time << " " << e.value1 << ", " << e.value2 << "]";
   return out;
 }
 

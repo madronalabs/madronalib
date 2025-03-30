@@ -75,13 +75,16 @@ public:
   void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
   int getInputPolyphony() { return eventsToSignals.getPolyphony(); }
   void setInputPitchBend(float p) { eventsToSignals.setPitchBendInSemitones(p); }
+  void setInputMPEPitchBend(float p) { eventsToSignals.setMPEPitchBendInSemitones(p); }
   void setInputGlideTimeInSeconds(float s) { eventsToSignals.setGlideTimeInSeconds(s); }
   void setInputDriftAmount(float d) { eventsToSignals.setDriftAmount(d); }
   void setInputUnison(bool u) { eventsToSignals.setUnison(u); }
-  
+  void setInputProtocol(Symbol p) { eventsToSignals.setProtocol(p); }
+  void setInputModCC(int p) { eventsToSignals.setModCC(p); }
+
   // by giving clients only a const Voice&, we are letting them inspect anything about Voices, but
   // not modify them. This seems like a useful pattern for any object owning output-containing structs.
-  const EventsToSignals::Voice& getInputVoice(int n) { return eventsToSignals.voices[n]; }
+  const EventsToSignals::Voice& getInputVoice(int n) { return eventsToSignals.getVoice(n); }
   
   int getNewestInputVoice() { return eventsToSignals.getNewestVoice(); }
   DSPVector getInputController(size_t n) const;

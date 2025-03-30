@@ -6,6 +6,7 @@
 
 //#include "madronalib.h"
 #include "mldsp.h"
+#include "MLSymbol.h"
 #include "MLEvent.h"
 #include "MLQueue.h"
 
@@ -18,9 +19,9 @@ enum VoiceOutputSignals
   kPitch = 0,
   kGate,
   kVoice,
+  kZ,
   kX,
   kY,
-  kZ,
   kMod,
   kElapsedTime,
   kNumVoiceOutputRows
@@ -32,7 +33,7 @@ struct KeyState
   {
     kOff,
     kOn,
-    kSustain
+    kSustained
   };
   PlayingState state{kOff};
   float pitch{0.f};
@@ -48,7 +49,8 @@ public:
   static constexpr size_t kMaxVoices{16};
   static constexpr size_t kMaxEventsPerVector{128};
   static constexpr size_t kMaxPhysicalKeys{128};
-  static constexpr size_t kNumControllers{128};
+  static constexpr size_t kNumControllers{129};
+  static constexpr int kChannelPressureControllerIdx{128};
 
   static constexpr float kGlideTimeSeconds{0.02f};
   static constexpr float kControllerGlideTimeSeconds{0.02f};
@@ -79,9 +81,12 @@ public:
   void processVector(int startOffset);
 
   void setPitchBendInSemitones(float f);
+  void setMPEPitchBendInSemitones(float f);
   void setGlideTimeInSeconds(float f);
   void setDriftAmount(float f);
   void setUnison(bool b);
+  void setProtocol(Symbol p) { protocol_ = p; clear(); }
+  void setModCC(int c) { voiceModCC_ = c; }
 
   #pragma mark -
   
@@ -96,16 +101,15 @@ public:
 
     void reset(int voiceIdx);
     
-    void resetTime(int voiceIdx);
+    void resetTime();
     
     // send to start processing a new buffer.
     void beginProcess(float sr);
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, float sr, bool doGlide = true);
+    void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, float sr);
 
-    // write all current info to the end of the current buffer.
-    // add pitchBend to pitch.
+    // write all current info to the end of the current buffer, scaling pitch bend
     void endProcess(float pitchBend, float sr);
     
     size_t nextFrameToProcess{0};
@@ -119,7 +123,8 @@ public:
     float currentY{0};
     float currentZ{0};
 
-    size_t creatorKeyNumber{0}; // physical key or touch # of creator. 0 = undefined.
+    // physical key or touch # of creator. 0 = undefined.
+    size_t creatorKeyIdx_{0};
     uint32_t ageInSamples{0};
     uint32_t ageStep{0};
 
@@ -150,15 +155,14 @@ public:
     LinearGlide glide;
     DSPVector output;
     float rawValue;
-
     void process();
   };
+  
+  // get a const reference to a Voice for reading its output.
+  const Voice& getVoice(int n) const { return voices[n + 1]; }
+  
+  const SmoothedController& getController(int n) const { return controllers[n]; }
 
-  // voices, containing signals for clients to read directly.
-  std::vector< Voice > voices;
-
-  // output values for continuous controllers.
-  std::vector< SmoothedController > controllers;
   
 private:
 
@@ -171,10 +175,23 @@ private:
   void processPitchWheelEvent(const Event& event);
   void processNotePressureEvent(const Event& event);
   void processChannelPressureEvent(const Event& event);
-  void processSustainEvent(const Event& event);
+  void processSustainPedalEvent(const Event& event);
   int findFreeVoice();
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
+  
+  
+  // voices, containing signals for clients to read directly.
+  // voices[0] is the "main voice" used for MPE.
+  std::vector< Voice > voices;
+  
+  // output values for continuous controllers.
+  std::vector< SmoothedController > controllers;
+  
+  Symbol protocol_{"MIDI"};
+  
+  // set a special modulation # to send out in each voice
+  int voiceModCC_{16};
   
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
   Queue< Event > eventQueue_;
@@ -184,6 +201,7 @@ private:
   bool sustainPedalActive_{false};
   float sampleRate_;
   float pitchBendRangeInSemitones_{7.f};
+  float mpePitchBendRangeInSemitones_{24.f};
   float pitchGlideTimeInSeconds_{0.f};
   float pitchDriftAmount_{0.f};
   bool unison_{false};
