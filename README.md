@@ -72,7 +72,7 @@ To build an XCode project with JUCE support, run something like
 
 To build a VS2015 project for a 64-bit Windows app I'm currently using the command 
 
-	cmake .. -G "Visual Studio 14 2015 Win64"
+	cmake .. -G "Visual Studio 17 2022"
 
 
 Contents
