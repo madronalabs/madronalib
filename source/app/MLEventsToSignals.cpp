@@ -32,7 +32,8 @@ int getKeyIndex(const Event& e, Symbol protocol)
     }
     default:
     {
-      
+      assert(false);
+      break;
     }
   }
   return instigator;
@@ -110,8 +111,21 @@ void EventsToSignals::Voice::beginProcess(float sr)
   }
 }
 
-void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doGlide, float sr)
+void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset, float sr)
 {
+  
+  auto writeOutputFrames = [&](int endFrame){
+    // write current pitch, velocity and elapsed time up to destTime
+    for(int t = (int)nextFrameToProcess; t < endFrame; ++t)
+    {
+      outputs.row(kGate)[t] = currentVelocity;
+      outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
+      ageInSamples += ageStep;
+      outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
+    }
+    nextFrameToProcess = endFrame;
+  };
+  
   // incoming time in the event e is the sample offset into the DSPVector.
   size_t destTime = clamp((size_t)e.time, 0UL, (size_t)kFloatsPerDSPVector);
   
@@ -120,11 +134,15 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
     case kNoteOn:
     {
       creatorKeyIdx_ = keyIdx;
-      ageInSamples = 0;
+      
+      if(doReset)
+      {
+        ageInSamples = 0;
+      }
       ageStep = 1;
       
       inhibitPitchGlide = !doGlide;
-      if(!inhibitPitchGlide)
+      if(doGlide)
       {
         pitchGlide.setGlideTimeInSamples(pitchGlideTimeInSamples);
       }
@@ -133,19 +151,11 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
         pitchGlide.setGlideTimeInSamples(0);
       }
       
-      // write current pitch, velocity and elapsed time up to note start
-      for(int t = (int)nextFrameToProcess; t < destTime; ++t)
-      {
-        outputs.row(kGate)[t] = currentVelocity;
-        outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
-        ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
-      }
+      writeOutputFrames(destTime);
       
       // set new values
       currentPitch = e.value1;
       currentVelocity = e.value2;
-      nextFrameToProcess = destTime;
       
       break;
     }
@@ -153,30 +163,30 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
     {
       creatorKeyIdx_ = keyIdx;
       
+      if(doReset)
+      {
+        ageInSamples = 0;
+      }
+      ageStep = 1;
+
       // if the retrigger falls on frame 0, make room for retrigger
       if(destTime == 0)
       {
         destTime++;
       }
       
-      // write current pitch and velocity up to retrigger
-      for(int t = (int)nextFrameToProcess; t < destTime - 1; ++t)
-      {
-        outputs.row(kGate)[t] = currentVelocity;
-        outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
-        ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
-      }
+      writeOutputFrames(destTime - 1);
       
       // write retrigger frame
       outputs.row(kGate)[destTime - 1] = 0;
       outputs.row(kPitch)[destTime - 1] = pitchGlide.nextSample(currentPitch);
-      
+      ageInSamples += ageStep;
+      outputs.row(kElapsedTime)[destTime - 1] = samplesToSeconds(ageInSamples, sr);
+
       // set new values
       currentPitch = e.value1;
       currentVelocity = e.value2;
       nextFrameToProcess = destTime;
-      ageInSamples = 0;
 
       break;
     }
@@ -184,18 +194,11 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
     {
       creatorKeyIdx_ = 0;
       
-      // write current values up to change TODO DRY
-      for(int t = (int)nextFrameToProcess; t < destTime; ++t)
-      {
-        outputs.row(kGate)[t] = currentVelocity;
-        outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
-        ageInSamples += ageStep;
-        outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
-      }
+      writeOutputFrames(destTime);
       
       // set new values
       currentVelocity = 0.;
-      nextFrameToProcess = destTime;
+
       break;
     }
     default:
@@ -244,9 +247,10 @@ void EventsToSignals::SmoothedController::process()
 // EventsToSignals
 //
 
-EventsToSignals::EventsToSignals(int sr) : eventQueue_(kMaxEventsPerVector)
+EventsToSignals::EventsToSignals(int sr)
 {
   sampleRate_ = (float)sr;
+  eventBuffer_.reserve(kMaxEventsPerProcessBuffer);
   
   voices.resize(kMaxVoices + 1);
   for(int i=0; i<voices.size(); ++i)
@@ -284,7 +288,7 @@ size_t EventsToSignals::getPolyphony()
 
 void EventsToSignals::clear()
 {
-  eventQueue_.clear();
+  eventBuffer_.clear();
   
   int i{0};
   for(auto& v : voices)
@@ -297,7 +301,7 @@ void EventsToSignals::clear()
 
 void EventsToSignals::resetTimes()
 {
-  eventQueue_.clear();
+  eventBuffer_.clear();
   
   for(auto& v : voices)
   {
@@ -307,16 +311,36 @@ void EventsToSignals::resetTimes()
   lastFreeVoiceFound_ = 0;
 }
 
+
+
+// sort by time for buffer insertion.
+bool soonerThan(const Event &a, const Event &b)
+{
+  return a.time < b.time;
+}
+
+
+// events should usually arrive in order, but not all hosts will ensure this
+// so we need to insert events by time on arrival.
 void EventsToSignals::addEvent(const Event& e)
 {
   awake_ = true;
-  eventQueue_.push(e);
+  auto it = std::lower_bound(eventBuffer_.begin(), eventBuffer_.end(), e, soonerThan);
+  eventBuffer_.insert(it, e);
 }
 
-void EventsToSignals::processVector(int startOffset)
+void EventsToSignals::clearEvents()
+{
+  eventBuffer_.clear();
+}
+
+// assuming the buffer is in sorted order, process all the events within
+// the vector starting at startOffset.
+void EventsToSignals::processVector(int startTime)
 {
   // if we have never received an event, do nothing
   if (!awake_) return;
+  
 
   // start processing each voice's vector of audio data
   for(auto& v : voices)
@@ -324,28 +348,38 @@ void EventsToSignals::processVector(int startOffset)
     v.beginProcess(sampleRate_);
   }
   
-  // process all events in the queue, sending changes to
-  // voices and controller smoothers
-  int endTime = startOffset + kFloatsPerDSPVector;
-  while(eventQueue_.elementsAvailable() && (eventQueue_.peek().time < endTime))
+  if(eventBuffer_.size() > 0)
   {
-    auto e = eventQueue_.pop();
-    if(e.time >= startOffset)
+   //std::cout << "---------------- startTime: " << startTime << "\n";
+  }
+  
+  int nProc = 0;
+  
+  // process any events in the buffer that are within this vector,
+  // sending changes to voices and controller smoothers
+  int endTime = startTime + kFloatsPerDSPVector;
+  for(const auto& e : eventBuffer_)
+  {
+  //  const Event& e = eventBuffer_[i];
+    if(within(e.time, startTime, endTime))
     {
-      e.time -= startOffset;
-      processEvent(e);
+      Event eventInThisVector = e;
+      eventInThisVector.time -= startTime;
+      processEvent(eventInThisVector);
+      
+      nProc++;
     }
   }
   
-  // end voice processing, making complete outgoing signals
   
+  //if(nProc > 0)
+  //std::cout << "processVector: " << nProc << " events \n";
+  
+  // end voice processing, making complete outgoing signals
   // MPE main voice uses MIDI pitch bend setting
   voices[0].endProcess(pitchBendRangeInSemitones_, sampleRate_);
-  
-  
   float voicesPitchBend = (protocol_ == "MPE") ?
     mpePitchBendRangeInSemitones_ : pitchBendRangeInSemitones_;
-  
   for(int v=1; v<polyphony_ + 1; ++v)
   {
     voices[v].endProcess(voicesPitchBend, sampleRate_);
@@ -387,13 +421,12 @@ void EventsToSignals::processVector(int startOffset)
     }
   }
   
-
   // TEMP
   testCounter += kFloatsPerDSPVector;
-  const int samples = 24000;
+  const int samples = 96000;
   if(testCounter > samples)
   {
-    //dumpVoices();
+    dumpVoices();
     testCounter -= samples;
   }
 }
@@ -417,7 +450,7 @@ void EventsToSignals::processEvent(const Event &eventParam)
   Event event = eventParam;
   
   // TEMP
-  // std::cout << "EventsToSignals::processEvent: " << event << "\n";
+  // std::cout << "        " << event << "\n";
   
   switch(event.type)
   {
@@ -460,21 +493,25 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
   if(unison_)
   {
     // don't glide to first note played in unison mode.
-    bool glideToNextNote = (countHeldNotes() > 1);
+    bool firstNote = (countHeldNotes() == 1);
     
     // start after MPE main voice
     for(int v=1; v<polyphony_ + 1; ++v)
     {
-      voices[v].writeNoteEvent(e, keyIdx, glideToNextNote, sampleRate_);
+      voices[v].writeNoteEvent(e, keyIdx, !firstNote, firstNote, sampleRate_);
     }
   }
   else
   {
+    std::cout << "TRYING NOTE ON: key idx " << keyIdx << "\n";
+
+    
+    
     auto v = findFreeVoice();
     
     if(v >= 1)
     {
-      voices[v].writeNoteEvent(e, keyIdx, true, sampleRate_);
+      voices[v].writeNoteEvent(e, keyIdx, true, true, sampleRate_);
     }
     else
     {
@@ -485,7 +522,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
       // are cut off. add more graceful stealing
       Event f = e;
       f.type = kNoteRetrig;
-      voices[v].writeNoteEvent(f, keyIdx, true, sampleRate_);
+      voices[v].writeNoteEvent(f, keyIdx, true, true, sampleRate_);
     }
     newestVoice_ = v;
   }
@@ -503,14 +540,14 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     keyStates_[keyIdx].state = KeyState::kOff;
   }
 
-  if (unison_)
+  if(unison_)
   {
     // if the last note was released, turn off all voices.
     if (countHeldNotes() == 0)
     {
       for(int v = 1; v < polyphony_ + 1; ++v)
       {
-        voices[v].writeNoteEvent(e, 0, true, sampleRate_);
+        voices[v].writeNoteEvent(e, 0, true, true, sampleRate_);
       }
     }
     else
@@ -543,7 +580,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
         eventToSend.value1 = keyStates_[mostRecentHeldKey].pitch;
         for (int v = 1; v < polyphony_ + 1; ++v)
         {
-          voices[v].writeNoteEvent(eventToSend, mostRecentHeldKey, true, sampleRate_);
+          voices[v].writeNoteEvent(eventToSend, mostRecentHeldKey, true, true, sampleRate_);
         }
       }
     }
@@ -556,14 +593,18 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     {
       for (int v = 1; v < polyphony_ + 1; ++v)
       {
+        std::cout << "TRYING NOTE OFF: voice idx " << voices[v].creatorKeyIdx_ << " , key idx " << keyIdx << "\n";
+        
         if(voices[v].creatorKeyIdx_ == keyIdx)
         {
-          voices[v].writeNoteEvent(eventToSend, keyIdx, true, sampleRate_);
+          std::cout << "       OK. \n";
+          voices[v].writeNoteEvent(eventToSend, keyIdx, true, true, sampleRate_);
         }
       }
     }
   }
 }
+
 
 // ?
 void EventsToSignals::processNoteUpdateEvent(const Event& event) {}
@@ -656,7 +697,6 @@ void EventsToSignals::processPitchWheelEvent(const Event& event)
           }
         }
       }
-      
       break;
     }
   }
@@ -690,22 +730,17 @@ void EventsToSignals::processControllerEvent(const Event& event)
       {
         Event eventToSend = event;
         eventToSend.type = kNoteOff;
-        v.writeNoteEvent(eventToSend, 0, false, sampleRate_);
+        v.writeNoteEvent(eventToSend, 0, false, true, sampleRate_);
       }
     }
   }
   else
   {
-    
-    
     switch(hash(protocol_))
     {
       case(hash("MIDI")):
       {
         // modulate all voices.
-        std::cout << "ctrl: " << ctrl << " modCC: " << voiceModCC_ << "\n"; // TEMP
-        
-        
         for (int v=1; v<polyphony_ + 1; ++v)
         {
           if(ctrl == voiceModCC_)
@@ -764,7 +799,7 @@ void EventsToSignals::processSustainPedalEvent(const Event& event)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
-        v.writeNoteEvent(newEvent, 0, true, sampleRate_);
+        v.writeNoteEvent(newEvent, 0, true, true, sampleRate_);
       }
     }
   }

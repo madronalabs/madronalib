@@ -19,7 +19,6 @@ namespace ml
 // AudioContext: where our signal processors meet the rest of the world.
 // an AudioContext defines the sample rate and provides audio and event I/O.
 
-
 using MainInputs = const DSPVectorDynamic&;
 using MainOutputs = DSPVectorDynamic&;
 
@@ -68,12 +67,15 @@ public:
   // startOffset is the start frame of the vector in the host buffer.
   void processVector(int startOffset);
   
+  void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
+  int getInputPolyphony() { return eventsToSignals.getPolyphony(); }
+
   void updateTime(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
   DSPVector getBeatPhase() { return currentTime._quarterNotesPhase; }
 
   void addInputEvent(const Event& e);
-  void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
-  int getInputPolyphony() { return eventsToSignals.getPolyphony(); }
+  void clearInputEvents() { eventsToSignals.clearEvents(); }
+
   void setInputPitchBend(float p) { eventsToSignals.setPitchBendInSemitones(p); }
   void setInputMPEPitchBend(float p) { eventsToSignals.setMPEPitchBendInSemitones(p); }
   void setInputGlideTimeInSeconds(float s) { eventsToSignals.setGlideTimeInSeconds(s); }
@@ -81,7 +83,7 @@ public:
   void setInputUnison(bool u) { eventsToSignals.setUnison(u); }
   void setInputProtocol(Symbol p) { eventsToSignals.setProtocol(p); }
   void setInputModCC(int p) { eventsToSignals.setModCC(p); }
-
+  
   // by giving clients only a const Voice&, we are letting them inspect anything about Voices, but
   // not modify them. This seems like a useful pattern for any object owning output-containing structs.
   const EventsToSignals::Voice& getInputVoice(int n) { return eventsToSignals.getVoice(n); }

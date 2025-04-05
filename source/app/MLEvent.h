@@ -47,7 +47,7 @@ struct Event
 
   explicit operator bool() const { return type != kNull; }
   
-  static const char* typeNames[kNumEventTypes]; 
+  static const char* typeNames[kNumEventTypes];
 };
 
 

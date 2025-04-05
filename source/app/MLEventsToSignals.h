@@ -8,7 +8,7 @@
 #include "mldsp.h"
 #include "MLSymbol.h"
 #include "MLEvent.h"
-#include "MLQueue.h"
+
 
 namespace ml
 {
@@ -47,7 +47,7 @@ class EventsToSignals final
 {
 public:
   static constexpr size_t kMaxVoices{16};
-  static constexpr size_t kMaxEventsPerVector{128};
+  static constexpr size_t kMaxEventsPerProcessBuffer{128};
   static constexpr size_t kMaxPhysicalKeys{128};
   static constexpr size_t kNumControllers{129};
   static constexpr int kChannelPressureControllerIdx{128};
@@ -63,7 +63,6 @@ public:
   size_t setPolyphony(size_t n);
   size_t getPolyphony();
 
-  int getNewestVoice() const { return newestVoice_; }
 
   // clear all voices and queued events and reset state.
   void clear();
@@ -71,10 +70,12 @@ public:
   // just reset time outputs
   void resetTimes();
 
-  // add an event to the queue.
+  // inserts an event to the buffer sorted by time.
   void addEvent(const Event& e);
+  
+  void clearEvents();
 
-  // process incoming events in queue and generate output signals.
+  // process incoming events in buffer and generate output signals.
   // events in the queue in the time range [startOffset, startOffset + kFloatsPerDSPVector) will
   // be processed. it is assumed that all events in the queue are sorted by start time. Any
   // events outside the time range will be ignored.
@@ -107,11 +108,11 @@ public:
     void beginProcess(float sr);
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, float sr);
-
+    void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset, float sr);
+    
     // write all current info to the end of the current buffer, scaling pitch bend
     void endProcess(float pitchBend, float sr);
-    
+
     size_t nextFrameToProcess{0};
 
     // instantaneous values, written during event processing
@@ -160,7 +161,8 @@ public:
   
   // get a const reference to a Voice for reading its output.
   const Voice& getVoice(int n) const { return voices[n + 1]; }
-  
+  int getNewestVoice() const { return newestVoice_ - 1; }
+
   const SmoothedController& getController(int n) const { return controllers[n]; }
 
   
@@ -194,7 +196,10 @@ private:
   int voiceModCC_{16};
   
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
-  Queue< Event > eventQueue_;
+  
+  std::vector< Event > eventBuffer_;
+  // Queue< Event > eventQueue_;
+  
   int polyphony_{0};
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};

@@ -50,7 +50,7 @@ void SignalProcessBuffer::process(const float** externalInputs, float** external
       _inputBuffers[c].write(externalInputs[c], externalFrames);
     }
   }
-
+  
   // run vector-size process until we have externalFrames of output
   int startOffset{0};
   while(_outputBuffers[0].getReadAvailable() < externalFrames)
@@ -84,6 +84,8 @@ void SignalProcessBuffer::process(const float** externalInputs, float** external
       _outputBuffers[c].read(externalOutputs[c], externalFrames);
     }
   }
+  
+  context->clearInputEvents();
 }
 
 } // ml
