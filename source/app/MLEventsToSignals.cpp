@@ -227,6 +227,8 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
   outputs.row(kMod) = modGlide(currentMod);
   outputs.row(kX) = xGlide(currentX);
   outputs.row(kY) = yGlide(currentY);
+  
+  if(currentVelocity == 0.f) { currentZ = 0.f; }
   outputs.row(kZ) = zGlide(currentZ);
   
   // add pitch bend in semitones to pitch output
@@ -316,7 +318,16 @@ void EventsToSignals::resetTimes()
 // sort by time for buffer insertion.
 bool soonerThan(const Event &a, const Event &b)
 {
-  return a.time < b.time;
+  if(a.time != b.time)
+  {
+    return a.time < b.time;
+  }
+  else
+  {
+    // types should be in enum in temporal order. The only crucial
+    // order is that a kOff must come after a kOn at the same time.
+    return a.type < b.type;
+  }
 }
 
 
@@ -426,7 +437,7 @@ void EventsToSignals::processVector(int startTime)
   const int samples = 96000;
   if(testCounter > samples)
   {
-    dumpVoices();
+    // dumpVoices();
     testCounter -= samples;
   }
 }
@@ -503,10 +514,6 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
   }
   else
   {
-    std::cout << "TRYING NOTE ON: key idx " << keyIdx << "\n";
-
-    
-    
     auto v = findFreeVoice();
     
     if(v >= 1)
@@ -593,18 +600,14 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     {
       for (int v = 1; v < polyphony_ + 1; ++v)
       {
-        std::cout << "TRYING NOTE OFF: voice idx " << voices[v].creatorKeyIdx_ << " , key idx " << keyIdx << "\n";
-        
         if(voices[v].creatorKeyIdx_ == keyIdx)
         {
-          std::cout << "       OK. \n";
           voices[v].writeNoteEvent(eventToSend, keyIdx, true, true, sampleRate_);
         }
       }
     }
   }
 }
-
 
 // ?
 void EventsToSignals::processNoteUpdateEvent(const Event& event) {}

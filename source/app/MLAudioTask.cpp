@@ -73,7 +73,7 @@ int RtAudioCallbackFn(void* outputBuffer, void* inputBuffer, unsigned int nBuffe
 }
 
 
-// the AudioProcessor constructor fills in the processData struct with everything needed to run audio.
+// the AudioTask constructor fills in the processData struct with everything needed to run audio.
 // the DSP function. processFn points to a function that will be called by the SignalProcessBuffer.
 // state points to any persistent state that needs to be sent to the function.
 
@@ -99,7 +99,7 @@ int AudioTask::startAudio()
   RtAudio::DeviceInfo info;
   uint32_t devices = pImpl->adac.getDeviceCount();
   auto ids = pImpl->adac.getDeviceIds();
-  std::cout << "[AudioProcessor] Found: " << devices << " device(s)\n";
+  std::cout << "[AudioTask] Found: " << devices << " device(s)\n";
   for (uint32_t i = 0; i < devices; ++i)
   {
     info = pImpl->adac.getDeviceInfo(ids[i]);
