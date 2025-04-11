@@ -79,7 +79,7 @@ if(SMTG_ADD_VSTGUI)
 endif()
 
 if(SMTG_MAC)
-    smtg_target_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
+    smtg_set_bundle(${target} INFOPLIST "${CMAKE_CURRENT_LIST_DIR}/mac/Info.plist" PREPROCESS)
     target_link_libraries(${target} PRIVATE "-framework CoreAudio" )
 
 elseif(SMTG_WIN)

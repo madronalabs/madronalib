@@ -23,7 +23,6 @@ namespace llllpluginnamellll {
 FUID PluginProcessor::uid(0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB, 0xBBBBBBBB);
 
 PluginProcessor::PluginProcessor()
-  : SignalProcessor(kInputChannels, kOutputChannels)
 {
   // register its editor class(the same than used in againentry.cpp)
 	setControllerClass(PluginController::uid);
@@ -31,6 +30,16 @@ PluginProcessor::PluginProcessor()
 
 PluginProcessor::~PluginProcessor()
 {
+}
+
+tresult PLUGIN_API PluginProcessor::setProcessing (TBool state)
+{
+  //debug << "setProcessing: " << (state > 0 ? "true" : "false") << "\n";
+  if(state == true)
+  {
+    audioContext->clear();
+  }
+  return kResultOk;
 }
 
 tresult PLUGIN_API PluginProcessor::initialize(FUnknown* context)
@@ -141,6 +150,10 @@ tresult PLUGIN_API PluginProcessor::setupProcessing(ProcessSetup& newSetup)
   // currentProcessMode = newSetup.processMode;
   
   _sampleRate = newSetup.sampleRate;
+  
+  audioContext = std::make_unique< AudioContext >(kInputChannels, kOutputChannels, _sampleRate);
+  processBuffer = std::make_unique< SignalProcessBuffer >(kInputChannels, kOutputChannels, kMaxHostBlockSize);
+  
   return AudioEffect::setupProcessing(newSetup);
 }
 
@@ -215,12 +228,32 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
   return false;
 }
 
-using processFnType = std::function< void(MainInputs, MainOutputs, void *) >;
-void PluginProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
+
+void PluginProcessor::effectExampleProcessVector(MainInputs inputs, MainOutputs outputs)
 {
-  PluginProcessor* pProc = static_cast< PluginProcessor* >(state);
-  return pProc->effectProcessVector(ins, outs);
-} ;
+  // Running the sine generators makes DSPVectors as output.
+  // The input parameter is omega: the frequency in Hz divided by the sample rate.
+  // The output sines are multiplied by the gain.
+  auto sineL = s1(220.f/_sampleRate)*fGain;
+  auto sineR = s2(275.f/_sampleRate)*fGain;
+  
+  if(bBypass)
+  {
+    outputs[0] = 0.f;
+    outputs[1] = 0.f;
+  }
+  else
+  {
+    outputs[0] = sineL;
+    outputs[1] = sineR;
+  }
+}
+
+void effectExampleProcessVectorFn(AudioContext* ctx, void* untypedState)
+{
+  PluginProcessor* pProc = static_cast< PluginProcessor* >(untypedState);
+  return pProc->effectExampleProcessVector(ctx->inputs, ctx->outputs);
+};
 
 
 // ProcessSignals() adapts the VST process() call with its arbitrary frame size to madronalib's
@@ -249,28 +282,9 @@ void PluginProcessor::processSignals(ProcessData& data)
   data.outputs[0].silenceFlags = 0;
   
   // run buffered processing
-  processBuffer.process(inputs, outputs, data.numSamples, PluginProcessorProcessVectorFn, this);
+  processBuffer->process(inputs, outputs, data.numSamples, audioContext.get(), effectExampleProcessVectorFn, this);
 }
 
-void PluginProcessor::effectProcessVector(MainInputs inputs, MainOutputs outputs)
-{
-  // Running the sine generators makes DSPVectors as output.
-  // The input parameter is omega: the frequency in Hz divided by the sample rate.
-  // The output sines are multiplied by the gain.
-  auto sineL = s1(220.f/_sampleRate)*fGain;
-  auto sineR = s2(275.f/_sampleRate)*fGain;
-  
-  if(bBypass)
-  {
-    outputs[0] = 0.f;
-    outputs[1] = 0.f;
-  }
-  else
-  {
-    outputs[0] = sineL;
-    outputs[1] = sineR;
-  }
-}
 
 }}} // namespaces
 
