@@ -4,7 +4,7 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
-#include "MLRtAudioProcessor.h"
+#include "madronalib.h"
 
 using namespace ml;
 
@@ -13,23 +13,31 @@ constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 48000;
 constexpr float kOutputGain = 0.1f;
 
-// sine generators.
-SineGen s1, s2;
+struct SineExampleState
+{
+  SineGen s1, s2;
+};
 
 // sineProcess() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-void sineProcess(MainInputs unused, MainOutputs outputs, void *stateDataUnused)
+void sineProcess(AudioContext* ctx, void *state)
 {
+  // at the beginning of the main process function we need to cast the void* to
+  // the type of our state. Making AudioTask a template would have been an alternative
+  // to this but would have added a lot of template code behind the scenes.
+  auto procState = static_cast<SineExampleState*>(state);
+
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
   // The output sines are multiplied by the gain.
-  outputs[0] = s1(220.f/kSampleRate)*kOutputGain;
-  outputs[1] = s2(275.f/kSampleRate)*kOutputGain;
+  ctx->outputs[0] = procState->s1(220.f/kSampleRate)*kOutputGain;
+  ctx->outputs[1] = procState->s2(275.f/kSampleRate)*kOutputGain;
 }
 
 int main()
 {
-  // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioProcessor sineExample(kInputChannels, kOutputChannels, kSampleRate, sineProcess);
+  SineExampleState state;
+  AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
+  AudioTask sineExample(&ctx, sineProcess, &state);
   return sineExample.run();
 }

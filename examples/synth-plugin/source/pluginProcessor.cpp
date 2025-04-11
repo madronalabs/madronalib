@@ -244,7 +244,7 @@ bool PluginProcessor::processParameterChanges(IParameterChanges* changes)
           case Steinberg::Vst::kPitchBend:
           {
             float bendValue = (value - 0.5f)*2.0f;
-            _synthInput->addEvent({kPitchWheel, channel, 0, sampleOffset,
+            _synthInput->addEvent({kPitchBend, channel, 0, sampleOffset,
               bendValue, 0, 0, 0});
             break;
           }
@@ -307,7 +307,7 @@ void PluginProcessor::processEvents (IEventList* events)
   }
 }
 
-// just an adapter so the VectorProcessBuffer utility can call our main process routine.
+// just an adapter so the SignalProcessBuffer utility can call our main process routine.
 //
 void PluginProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state)
 {

@@ -115,7 +115,7 @@ struct Lopass
   }
   
   // filter the input vector vx with the stored coefficients.
-  inline DSPVector operator()(const DSPVector vx)
+  DSPVector operator()(const DSPVector vx)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
@@ -133,7 +133,7 @@ struct Lopass
   }
   
   // filter the input vector vx with the coefficients generated from parameters omega and k.
-  inline DSPVector operator()(const DSPVector vx, const DSPVector omega, const DSPVector k)
+  DSPVector operator()(const DSPVector vx, const DSPVector omega, const DSPVector k)
   {
     DSPVector vy;
     auto vc = makeCoeffsVec(omega, k);

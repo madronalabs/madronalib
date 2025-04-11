@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "MLActor.h"
 #include "MLDSPUtils.h"
 #include "MLParameters.h"
 #include "MLPlatform.h"
@@ -21,6 +20,9 @@ namespace ml
 class SignalProcessor
 {
  public:
+  SignalProcessor() {}
+  virtual ~SignalProcessor() {}
+  
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
   struct PublishedSignal
@@ -103,44 +105,6 @@ class SignalProcessor
 
   };
 
-  // SignalProcessor::ProcessTime maintains the current time in a DSP process and can track
-  // the time in the host application if there is one.
-
-  class ProcessTime
-  {
-   public:
-    ProcessTime() = default;
-    ~ProcessTime() = default;
-
-    // Set the time and bpm. The time refers to the start of the current engine processing block.
-    void setTimeAndRate(const double secs, const double ppqPos, const double bpm, bool isPlaying,
-                        double sampleRate);
-
-    // clear state
-    void clear();
-
-    // generate phasors from the input parameters
-    void process();
-
-    // signals containing time from score start
-    DSPVector _quarterNotesPhase;
-    DSPVector _seconds;
-    DSPVector _secondsPhase;
-
-   private:
-    float _omega{0};
-    bool _playing1{false};
-    bool _active1{false};
-    double _dpdt{0};
-    double _dsdt{0};
-    double _phase1{0};
-    size_t _samplesSincePreviousTime{0};
-    double _ppqPos1{0};
-    double _ppqPhase1{0};
-    double _secondsCounter{0};
-    double _secondsPhaseCounter{0};
-  };
-
   // class used for assigning each instance of our SignalProcessor a unique ID
   // TODO refactor w/ ProcessorRegistry etc.
   class ProcessorRegistry
@@ -156,15 +120,8 @@ class SignalProcessor
     }
   };
 
-  SignalProcessor(size_t nInputs, size_t nOutputs)
-      : processBuffer(nInputs, nOutputs, kMaxProcessBlockFrames)
-  {
-  }
 
-  virtual ~SignalProcessor() {}
-
-  virtual void processVector(MainInputs inputs, MainOutputs outputs, void* stateData = nullptr) {}
-
+  virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic outputs, void* stateData = nullptr) {}
 
   void setParamFromNormalizedValue(Path pname, float val)
   {
@@ -180,32 +137,7 @@ class SignalProcessor
   {
     setDefaults(_params);
   };
-  
 
- protected:
-  // the maximum amount of input frames that can be proceesed at once. This determines the
-  // maximum signal vector size of the plugin host or enclosing app.
-  static constexpr int kMaxProcessBlockFrames{4096};
-
-  // the parameter values are stored here.
-  ParameterTree _params;
-
-  SharedResourcePointer<ProcessorRegistry> _registry;
-  size_t _uniqueID;
-
-  float _sampleRate{0.f};
-  ProcessTime _currentTime;
-
-  // buffer object to call processVector() from process() calls of arbitrary frame sizes
-  VectorProcessBuffer processBuffer;
-
-  std::vector<ml::Path> _paramNamesByID;  // needed?
-  Tree<size_t> _paramIDsByName;
-
-  // single buffer for reading from signals
-  std::vector<float> _readBuffer;
-
-  // param access
   inline float getRealFloatParam(Path pname)
   {
     return _params.getRealFloatValue(pname);
@@ -216,7 +148,20 @@ class SignalProcessor
     return _params.getNormalizedFloatValue(pname);
   }
   
-  Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
+ protected:
+
+  ParameterTree _params;
+
+  SharedResourcePointer<ProcessorRegistry> _registry;
+  size_t _uniqueID;
+
+  float _sampleRate{0.f};
+
+
+  std::vector< ml::Path > _paramNamesByID;  // needed?
+  Tree< size_t > _paramIDsByName;
+
+  Tree< std::unique_ptr< PublishedSignal > > _publishedSignals;
 
   inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
@@ -225,7 +170,7 @@ class SignalProcessor
 
   // store a DSPVectorArray to the named signal buffer.
   // we need a buffer for each published signal here to move signals safely from the Processor
-  // to the audio thread.
+  // to the main thread.
   template <size_t CHANNELS>
   inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec, int frames, int voice)
   {

@@ -95,6 +95,9 @@ static const Projection easeInOutQuartic{
                         : easeOutQuartic(x * 2.f - 1.f) * 0.5f + 0.5f;
     }};
 
+static const Projection overshoot{[](float x) { return 3*x - 2*x*x; }};
+
+
 // bisquared projection: x^2, but inverted for x < 0.
 static const Projection bisquared{[](float x)
 {
@@ -209,6 +212,21 @@ inline Projection intervalMap(const Interval a, const Interval b, Projection c)
   };
 }
 
+// commonly used pair of Projections to go from [0, 1] to a log parameter and back.
+inline Projection unityToLogParam(Interval paramInterval)
+{
+  return projections::intervalMap({0, 1}, paramInterval, projections::log(paramInterval));
+}
+
+inline Projection logParamToUnity(Interval paramInterval)
+{
+  return projections::intervalMap(paramInterval, {0, 1}, projections::exp(paramInterval));
+}
+
+// a piecewiseLinear Projection is specifed with n output values-
+// these are equally distributed over [0, 1]. So with 3 output
+// values (a, b, c) we get a two-line function going from (0, a) to
+// (0.5, b) to (1, c).
 inline Projection piecewiseLinear(std::initializer_list<float> values)
 {
   const std::vector<float> table(values);
@@ -284,6 +302,7 @@ inline Projection piecewise(std::initializer_list<float> valueList,
     return [=](float x) { return 0.f; };
   }
 }
+
 
 inline void printTable(const Projection& p, std::string pName, Interval domain, size_t points)
 {

@@ -93,6 +93,7 @@ endif()
 # Add include directories
 #--------------------------------------------------------------------
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
@@ -140,6 +141,9 @@ file(GLOB OSC_SOURCES_ZEROCONF "external/oscpack/zeroconf/*.cpp")
 file(GLOB RTAUDIO_SOURCES "external/rtaudio/*.cpp")
 file(GLOB RTAUDIO_HEADERS "external/rtaudio/*.h")
 
+file(GLOB RTMIDI_SOURCES "external/rtmidi/*.cpp")
+file(GLOB RTMIDI_HEADERS "external/rtmidi/*.h")
+
 if(APPLE)
     file(GLOB OSC_SOURCES_NATIVE "external/oscpack/ip/posix/*.cpp")
 else()
@@ -164,12 +168,25 @@ set(madronalib_SOURCES
     ${APP_HEADERS}
     ${RTAUDIO_SOURCES}
     ${RTAUDIO_HEADERS}
+    ${RTMIDI_SOURCES}
+    ${RTMIDI_HEADERS}
     ${DSP_HEADERS}
     ${MATRIX_SOURCES}
     ${MATRIX_HEADERS}
     ${JSON_SOURCES}
     ${AES_SOURCES}
-    )
+        source/app/MLMIDI.h
+        source/app/MLMIDI.cpp
+        source/app/MLAudioTask.cpp
+        source/app/MLEvent.cpp
+        source/app/MLEvent.h
+        source/app/MLAudioContext.cpp
+        source/app/MLAudioContext.h
+        source/app/MLSignalProcessBuffer.h
+        source/app/MLSignalProcessBuffer.cpp
+)
+    
+    message("RTMIDI_SOURCES: " ${RTMIDI_SOURCES} )
 
 if(APPLE)
   list(APPEND madronalib_SOURCES ${NETWORKING_SOURCES} )
@@ -262,16 +279,17 @@ elseif(WIN32)
     set(HEADERS_INCLUDE_DIR "include")
 endif()
 
-
 install(FILES include/madronalib.h DESTINATION ${HEADERS_INCLUDE_DIR})
-
 install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
+# NOTE - use of these external libs is a work in progress. Right now we are just
+# installing the entire headers of the libs into .../madronalib/include. In the
+# future we want to make a smaller API that uses these libraries.
+
 install(FILES external/cJSON/cJSON.h DESTINATION ${HEADERS_INCLUDE_DIR})
-
 install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
-
 install(FILES external/rtaudio/RtAudio.h DESTINATION ${HEADERS_INCLUDE_DIR})
+install(FILES external/rtmidi/RtMidi.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
 install(FILES 
     ${APP_HEADERS}     
@@ -300,6 +318,7 @@ endif()
 if(APPLE)
   target_link_libraries(madronalib "-framework Carbon")
   target_link_libraries(madronalib "-framework CoreServices")
+  target_link_libraries(madronalib "-framework CoreMIDI")
   target_link_libraries(madronalib "-framework AudioToolbox")
   target_link_libraries(madronalib "-framework AudioUnit")
   target_link_libraries(madronalib "-framework CoreAudio")
@@ -308,29 +327,28 @@ if(APPLE)
   target_link_libraries(madronalib "-framework GLUT")
 else(APPLE)
   # target_link_libraries(madronalib ${DNSSD_LIBRARIES})
+  target_link_libraries(madronalib winmm.lib)
 endif()
 
 #--------------------------------------------------------------------
-# build RtAudio examples
+# function to build RtAudio / RtMidi example
 #--------------------------------------------------------------------
 
 set(ML_ROOT "${CMAKE_CURRENT_SOURCE_DIR}")
 
-function(MAKE_EXAMPLE EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
+function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     set(
         EXAMPLE_SOURCES
-        ${ML_ROOT}/examples/rtaudio/${EXAMPLE_SOURCE_FILE}
+        ${ML_ROOT}/examples/audio-and-midi/${EXAMPLE_SOURCE_FILE}
     )
 
     add_executable(${EXAMPLE_APP_NAME} ${EXAMPLE_SOURCES})
 
     target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
         ${ML_ROOT}/external
-        ${ML_ROOT}/external/rtaudio
         )
     
-    # rtaudio source is now in madronalib
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)
 
     set_target_properties(${EXAMPLE_APP_NAME}
@@ -370,10 +388,12 @@ endfunction()
 #--------------------------------------------------------------------
 
 if(BUILD_EXAMPLES)
-    make_example(ReverbExample reverb.cpp)
-    make_example(SineExample sine.cpp)
-    make_example(FDTDExample FDTD.cpp)
-    make_example(ParamsExample params.cpp)
+  make_example(ReverbExample reverb.cpp)
+  make_example(FDTDExample fdtd.cpp)
+  make_example(ParamsExample params.cpp)
+  make_example(MIDIExample midi.cpp)
+  make_example(ControllersToAudioExample controllers-to-audio.cpp)
+  make_example(SineExample sine.cpp)
 endif()
 
 #--------------------------------------------------------------------

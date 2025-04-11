@@ -5,7 +5,7 @@
 // example of RtAudio wrapping low-level madronalib DSP code.
 // The reverb in this example is the Aaltoverb algorithm (madronalabs.com/products/Aaltoverb) without the tone control and some filtering.
 
-#include "MLRtAudioProcessor.h"
+#include "MLAudioTask.h"
 
 using namespace ml;
 
@@ -16,7 +16,7 @@ constexpr int kSampleRate = 48000;
 
 // log projection for decay parameter
 constexpr float kDecayLo = 0.8, kDecayHi = 20;
-Projection unityToDecay(projections::intervalMap({0, 1}, {kDecayLo, kDecayHi}, projections::log({kDecayLo, kDecayHi})));
+Projection unityToDecay(projections::unityToLogParam({kDecayLo, kDecayHi}));
 
 struct AaltoverbState
 {
@@ -65,7 +65,7 @@ void initializeReverb(AaltoverbState& r)
 
 // processVector() does all of the audio processing, in DSPVector-sized chunks.
 // It is called every time a new buffer of audio is needed.
-void processVector(MainInputs inputs, MainOutputs outputs, void *stateData)
+void processVector(AudioContext* ctx, void *stateData)
 {
   AaltoverbState* r = static_cast< AaltoverbState* >(stateData);
 
@@ -102,7 +102,7 @@ void processVector(MainInputs inputs, MainOutputs outputs, void *stateData)
   DSPVector vt10 = max(0.096*delayParamInSamples, vMin);
 
   // sum stereo inputs and diffuse with four allpass filters in series
-  DSPVector monoInput = (inputs[0] + inputs[1]);
+  DSPVector monoInput = (ctx->inputs[0] + ctx->inputs[1]);
   DSPVector diffusedInput = r->mAp4(r->mAp3(r->mAp2(r->mAp1(monoInput, vt1), vt2), vt3), vt4);
 
   // get delay times in samples, subtracting the constant delay of one DSPVector and clamping to zero
@@ -118,8 +118,8 @@ void processVector(MainInputs inputs, MainOutputs outputs, void *stateData)
   r->mvFeedbackL = r->mAp10(vTapR, vt10)*vSmoothFeedback;
 
   // write the stereo outputs
-  outputs[0] = vTapL;
-  outputs[1] = vTapR;
+  ctx->outputs[0] = vTapL;
+  ctx->outputs[1] = vTapR;
 }
 
 int main()
@@ -128,7 +128,8 @@ int main()
   AaltoverbState r;
   initializeReverb(r);
 
-  // The RtAudioProcessor object adapts the RtAudio loop to our buffered processing and runs the example.
-  RtAudioProcessor reverbExample(kInputChannels, kOutputChannels, kSampleRate, &processVector, &r);
+  // make a context and run the audio task.
+  AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
+  AudioTask reverbExample(&ctx, processVector, &r);
   return reverbExample.run();
 }
