@@ -32,13 +32,11 @@ int getKeyIndex(const Event& e, Symbol protocol)
     }
     default:
     {
-      assert(false);
       break;
     }
   }
   return instigator;
 }
-
 
 // EventsToSignals::Voice
 //
