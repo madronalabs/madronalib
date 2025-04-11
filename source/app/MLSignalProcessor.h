@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "MLActor.h"
 #include "MLDSPUtils.h"
 #include "MLParameters.h"
 #include "MLPlatform.h"
@@ -151,7 +150,6 @@ class SignalProcessor
   
  protected:
 
-  // the parameter values are stored here.
   ParameterTree _params;
 
   SharedResourcePointer<ProcessorRegistry> _registry;
@@ -160,14 +158,10 @@ class SignalProcessor
   float _sampleRate{0.f};
 
 
-  std::vector<ml::Path> _paramNamesByID;  // needed?
-  Tree<size_t> _paramIDsByName;
+  std::vector< ml::Path > _paramNamesByID;  // needed?
+  Tree< size_t > _paramIDsByName;
 
-  // single buffer for reading from signals
-  std::vector<float> _readBuffer;
-
-  
-  Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
+  Tree< std::unique_ptr< PublishedSignal > > _publishedSignals;
 
   inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
