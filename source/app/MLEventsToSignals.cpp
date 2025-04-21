@@ -125,7 +125,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
   };
   
   // incoming time in the event e is the sample offset into the DSPVector.
-  size_t destTime = clamp((size_t)e.time, 0UL, (size_t)kFloatsPerDSPVector);
+  size_t destTime = clamp((size_t)e.time, (size_t)0, (size_t)kFloatsPerDSPVector);
   
   switch(e.type)
   {
@@ -710,7 +710,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
   float val = event.value1;
 
   // store values directly into array so they can be read by clients
-  size_t ctrl = clamp(size_t(event.sourceIdx), 0UL, kNumControllers - 1);
+  size_t ctrl = clamp(size_t(event.sourceIdx), (size_t)0, kNumControllers - 1);
   controllers[ctrl].rawValue = val;
   
   // handle special meanings for some MIDI controllers

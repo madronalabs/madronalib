@@ -71,7 +71,6 @@ void doFDTDStep2D(FDTDSurface* uIn1, FDTDSurface* uIn2, FDTDSurface* uOut, float
   }
 }
 
-
 // run the FDTD model with the given input and fundamental frequency.
 // the frequency is updated every sample.
 
