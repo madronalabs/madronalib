@@ -71,7 +71,6 @@ void waitForConsoleKeyPress()
       if (_kbhit())
       {
         int ch = _getch();  // Read the key press
-        std::cout << "You pressed: " << static_cast<char>(ch) << std::endl;
         break;
       }
       std::this_thread::sleep_for(10ms);
