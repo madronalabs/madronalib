@@ -38,13 +38,8 @@ void waitForConsoleKeyPress()
 
   tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
   fcntl(STDIN_FILENO, F_SETFL, oldf);
-
-  if (ch != EOF)
-  {
-    ungetc(ch, stdin);
-    return 1;
-  }
 }
+
 #endif // ML_MAC
 #ifdef ML_WINDOWS
 #include <conio.h>

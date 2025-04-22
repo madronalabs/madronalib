@@ -43,11 +43,7 @@ int main()
   SineExampleState state;
   AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
   AudioTask sineExample(&ctx, sineProcess, &state);
-
-  sineExample.startAudio();
-
-  sineExample.stopAudio();
-
   return sineExample.runConsoleApp();
 }
 
+ 
