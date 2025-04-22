@@ -80,7 +80,7 @@ int main()
   // if not set, parameters begin at their default values.
   state.setParamFromNormalizedValue("freq2", 0.6);
 
-  return exampleTask.run();
+  return exampleTask.runConsoleApp();
 }
 
 

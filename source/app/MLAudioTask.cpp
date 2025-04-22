@@ -2,6 +2,7 @@
 // Created by Randy Jones on 2/21/25.
 //
 
+#include "MLPlatform.h"
 #include "MLAudioContext.h"
 #include "MLAudioTask.h"
 #include "MLSignalProcessBuffer.h"
@@ -10,6 +11,85 @@
 
 namespace ml
 {
+
+#ifdef ML_MAC
+#include <unistd.h>
+#include <termios.h>
+#include <fcntl.h>
+
+void waitForConsoleKeyPress()
+{
+  char ch{EOF};
+  struct termios oldt, newt;
+  int oldf;
+
+  tcgetattr(STDIN_FILENO, &oldt);
+  newt = oldt;
+  newt.c_lflag &= ~(ICANON | ECHO);
+  tcsetattr(STDIN_FILENO, TCSANOW, &newt);
+  oldf = fcntl(STDIN_FILENO, F_GETFL, 0);
+  fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK);
+
+  while (ch == EOF)
+  {
+    ch = getchar();
+    std::this_thread::sleep_for(10ms);
+  }
+
+  tcsetattr(STDIN_FILENO, TCSANOW, &oldt);
+  fcntl(STDIN_FILENO, F_SETFL, oldf);
+
+  if (ch != EOF)
+  {
+    ungetc(ch, stdin);
+    return 1;
+  }
+}
+#endif // ML_MAC
+#ifdef ML_WINDOWS
+#include <conio.h>
+
+char keyPressedAsync()
+{
+  for (int i = 0x07; i < 256; ++i)
+  {
+    if (GetAsyncKeyState(i) & 0x8000)
+    {
+      return i;
+    }
+  }
+  return false;
+}
+
+void waitForConsoleKeyPress()
+{
+    // Hide the console cursor
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_CURSOR_INFO cursorInfo;
+    GetConsoleCursorInfo(hConsole, &cursorInfo);
+    cursorInfo.bVisible = false;  // Set the cursor visibility
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
+
+    // Wait for a key press
+    while (true)
+    {
+      if (_kbhit())
+      {
+        int ch = _getch();  // Read the key press
+        std::cout << "You pressed: " << static_cast<char>(ch) << std::endl;
+        break;
+      }
+      std::this_thread::sleep_for(10ms);
+    }
+
+    // Restore the console cursor
+    cursorInfo.bVisible = true;
+    SetConsoleCursorInfo(hConsole, &cursorInfo);
+}
+   
+#endif // ML_WINDOWS
+
+
 
 constexpr int kRtAudioCallbackFrames{512};
 
@@ -39,7 +119,7 @@ struct AudioTask::Impl
 
 // adapt the RtAudio process routine to a madronalib function operating on DSPBuffers.
 int RtAudioCallbackFn(void* outputBuffer, void* inputBuffer, unsigned int nBufferFrames,
-                             double /*streamTime*/, RtAudioStreamStatus status, void* callbackData)
+                      double /*streamTime*/, RtAudioStreamStatus status, void* callbackData)
 {
   constexpr size_t kMaxIOChannels{64};
 
@@ -66,12 +146,12 @@ int RtAudioCallbackFn(void* outputBuffer, void* inputBuffer, unsigned int nBuffe
     outputs[i] = pOutputBuffer + i * nBufferFrames;
   }
 
-  // Buffer the data to and from the outside world and run the process in DSPVector-sized chunks within the context.
-  pData->buffer->process(inputs, outputs, nBufferFrames,
-    pData->processContext, pData->processFn, pData->processState);
+  // Buffer the data to and from the outside world and run the process in DSPVector-sized chunks
+  // within the context.
+  pData->buffer->process(inputs, outputs, nBufferFrames, pData->processContext, pData->processFn,
+                         pData->processState);
   return 0;
 }
-
 
 // the AudioTask constructor fills in the processData struct with everything needed to run audio.
 // the DSP function. processFn points to a function that will be called by the SignalProcessBuffer.
@@ -86,7 +166,6 @@ AudioTask::AudioTask(AudioContext* ctx, SignalProcessFn processFn, void* state)
   pImpl->processData.processFn = processFn;
   pImpl->processData.processState = state;
 }
-
 
 int AudioTask::startAudio()
 {
@@ -104,7 +183,8 @@ int AudioTask::startAudio()
   {
     info = pImpl->adac.getDeviceInfo(ids[i]);
     std::cout << "\tDevice " << i << ": " << info.name << std::endl;
-    std::cout << "\t\tinputs: " << info.inputChannels << " outputs: " << info.outputChannels << std::endl;
+    std::cout << "\t\tinputs: " << info.inputChannels << " outputs: " << info.outputChannels
+              << std::endl;
   }
 
   // Let RtAudio print messages to stderr.
@@ -129,16 +209,15 @@ int AudioTask::startAudio()
 
   auto pInputParams = (nInputs ? &iParams : nullptr);
 
-  if (RTAUDIO_NO_ERROR !=
-    pImpl->adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32, sampleRate,
-                     &bufferFrames, &RtAudioCallbackFn, &pImpl->processData, &options))
+  if (RTAUDIO_NO_ERROR != pImpl->adac.openStream(&oParams, pInputParams, RTAUDIO_FLOAT32,
+                                                 sampleRate, &bufferFrames, &RtAudioCallbackFn,
+                                                 &pImpl->processData, &options))
   {
     std::cout << pImpl->adac.getErrorText() << std::endl;
     return 0;
   }
 
-  if (RTAUDIO_NO_ERROR !=
-    pImpl->adac.startStream())
+  if (RTAUDIO_NO_ERROR != pImpl->adac.startStream())
   {
     std::cout << pImpl->adac.getErrorText() << std::endl;
     return 0;
@@ -147,24 +226,9 @@ int AudioTask::startAudio()
   return 1;
 }
 
-
-void AudioTask::waitForEnterKey()
-{
-  char input;
-
-  // Test RtAudio functionality for reporting latency.
-  std::cout << "\nStream latency = " << pImpl->adac.getStreamLatency() << " frames" << std::endl;
-  std::cout << "sample rate: " << pImpl->processData.processContext->sampleRate << "\n";
-
-  // wait for enter key.
-  std::cout << "\nRunning ... press <enter> to quit.\n";
-  std::cin.get(input);
-}
-
 void AudioTask::stopAudio()
 {
-  if (RTAUDIO_NO_ERROR !=
-      pImpl->adac.stopStream())
+  if (RTAUDIO_NO_ERROR != pImpl->adac.stopStream())
   {
     std::cout << pImpl->adac.getErrorText() << std::endl;
   }
@@ -172,20 +236,25 @@ void AudioTask::stopAudio()
   if (pImpl->adac.isStreamOpen()) pImpl->adac.closeStream();
 }
 
-int AudioTask::run()
+int AudioTask::runConsoleApp()
 {
   if (startAudio())
   {
-    waitForEnterKey();
+    // Test RtAudio functionality for reporting latency.
+    std::cout << "\nStream latency = " << pImpl->adac.getStreamLatency() << " frames" << std::endl;
+    std::cout << "sample rate: " << pImpl->processData.processContext->sampleRate << "\n";
+
+    // wait for enter key.
+    std::cout << "\nRunning ... press any key to quit.\n";
+    waitForConsoleKeyPress();
+
     stopAudio();
   }
 
-#ifdef _WINDOWS
-  system("pause");
-#endif
   return 0;
 }
 
+
 AudioTask::~AudioTask() = default;
 
-}
+}  // namespace ml 

@@ -131,5 +131,5 @@ int main()
   // make a context and run the audio task.
   AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
   AudioTask reverbExample(&ctx, processVector, &r);
-  return reverbExample.run();
+  return reverbExample.runConsoleApp();
 }

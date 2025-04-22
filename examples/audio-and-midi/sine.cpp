@@ -4,6 +4,10 @@
 
 // example of RtAudio wrapping low-level madronalib DSP code.
 
+#include <chrono>
+#include <iostream>
+#include <thread>
+
 #include "madronalib.h"
 
 using namespace ml;
@@ -39,5 +43,11 @@ int main()
   SineExampleState state;
   AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
   AudioTask sineExample(&ctx, sineProcess, &state);
-  return sineExample.run();
+
+  sineExample.startAudio();
+
+  sineExample.stopAudio();
+
+  return sineExample.runConsoleApp();
 }
+

@@ -31,14 +31,12 @@ public:
   ~AudioTask();
 
   int startAudio();
-  int run();
-  void waitForEnterKey();
   void stopAudio();
+  int runConsoleApp();
 
 private:
   struct Impl;
   std::unique_ptr< Impl > pImpl;
-
 
 };
 
