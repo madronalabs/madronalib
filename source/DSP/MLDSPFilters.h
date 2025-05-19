@@ -115,7 +115,7 @@ struct Lopass
   }
   
   // filter the input vector vx with the stored coefficients.
-  inline DSPVector operator()(const DSPVector vx)
+  DSPVector operator()(const DSPVector vx)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
@@ -133,7 +133,7 @@ struct Lopass
   }
   
   // filter the input vector vx with the coefficients generated from parameters omega and k.
-  inline DSPVector operator()(const DSPVector vx, const DSPVector omega, const DSPVector k)
+  DSPVector operator()(const DSPVector vx, const DSPVector omega, const DSPVector k)
   {
     DSPVector vy;
     auto vc = makeCoeffsVec(omega, k);
@@ -1496,151 +1496,112 @@ struct Upsampler
 };
 
 
-// PLL: Phase Locked Loop for synching an output phasor to an input phasor at some ratio.
-
-class PLL
+// From an input clock phasor and an output/input frequency ratio,
+// produce an output clock at the given ratio that is phase-synched with the input.
+//
+class TempoLock
 {
   // phasor on [0. - 1.), changes at rate of input phasor * input ratio
-  float _omega{0};
-  float _x1{0};
-
- public:
-  // negative phase signals unknown offset.
-  void clear() { _omega = -1.f; }
-
+  float _omega{-1.f}; // current output phase
+  float _x1v{0}; // input one vector ago
+  
+public:
+  
+  // phase of -1 means we are stopped.
+  void clear() { _omega = -1.0f; }
+  
   // function call takes 3 inputs:
   // x: the input phasor to follow
   // dydx: the ratio to the input at which to lock the output phasor
-  // feedback: amount of feedback to apply in PLL loop.
-  // 1.0/sampleRate is a good amount of feedback to start with.
-  DSPVector operator()(DSPVector x, DSPVector dydx, DSPVector feedback)
+  // isr: inverse of sample rate
+  DSPVector operator()(DSPVector x, float dydx, float isr)
   {
     DSPVector y;
+    float x0 = x[0];
+    float dxdt{0.f};
+    float dydt{0.f};
     
-    // if input phasor is inactive, reset and bail.
-    // (inactive / active switch is only done every vector)
-    if (x[0] < 0.f)
+    // if input phasor is inactive, reset and output 0.
+    // we check against -1 because a running input phasor may be slightly
+    // less than zero.
+    if(x0 == -1.0f)
     {
       clear();
-      y = DSPVector(-1.f);
+      y = DSPVector(0.f);
     }
     else
     {
-      // startup: if active but phase is unknown, jump to current phase.
-      if (_omega == -1.f)
+      // get dxdt and dydt from input and ratio
+      if(_omega > -1.f)
       {
-        // estimate previous input sample
-        _x1 = x[0] - (x[1] - x[0]);
-        
-        _omega = fmod(x[0] * dydx[0], 1.0f);
-      }
-      
-      DSPVector dxdy = divideApprox(DSPVector(1.0f), dydx);
-      
-      // run the PLL, correcting the output phasor to the input phasor and ratio.
-      
-      for (int n = 0; n < kFloatsPerDSPVector; ++n)
-      {
-        // TODO try using SIMD for differentiator object
-        float px = x[n];
-        float dxdt = px - _x1;
-        if (dxdt < 0.f) dxdt += 1.f;
-        _x1 = px;
-        
-        float dydt = dxdt * dydx[n];
-        
-        // get error term at each sample by comparing output to scaled input
-        // or scaled input to output depending on ratio.
-        float error;
-        if (dydx[n] >= 1.f)
-        {
-          error = _omega - fmod(px * dydx[n], 1.0f);
-        }
-        else
-        {
-          error = fmod(_omega * dxdy[n], 1.0f) - px;
-        }
-        
-        // send error towards closest sync
-        error = roundf(error) - error;
-        
-        // feedback = negative error * time constant
-        dydt += feedback[n] * error;
-        
-        // don't ever run clock backwards.
-        dydt = ml::max(dydt, 0.f);
-        
-        // wrap phasor
-        // TODO try using SIMD for fmod(x, 1.0), test
-        _omega = fmod(_omega + dydt, 1.0f);
-        
-        y[n] = _omega;
-      }
-    }
-    return y;
-  }
-  
-  float nextSample(float x, float dydx, float feedback)
-  {
-    float y;
-    
-    if (x < 0.f)
-    {
-      clear();
-      y = -1.f;
-    }
-    else
-    {
-      // startup: if active but phase is unknown, jump to current phase.
-      if (_omega == -1.f)
-      {
-        // estimate previous input sample
-        _x1 = x - dydx;
-        
-        _omega = fmod(x * dydx, 1.0f);
-      }
-      
-      float dxdy = 1.f/dydx;
-      
-      // run the PLL, correcting the output phasor to the input phasor and ratio.
-
-      float px = x;
-      float dxdt = px - _x1;
-      if (dxdt < 0.f) dxdt += 1.f;
-      _x1 = px;
-      
-      float dydt = dxdt * dydx;
-      
-      // get error term at each sample by comparing output to scaled input
-      // or scaled input to output depending on ratio.
-      float error;
-      if (dydx >= 1.f)
-      {
-        error = _omega - fmod(px * dydx, 1.0f);
+        // if we are already running: get average input slope every vector
+        float dx = x0 - _x1v;
+        if(dx < 0.f) dx += 1.f;
+        dxdt = dx/kFloatsPerDSPVector;
+        dydt = dxdt*dydx;
+        _x1v = x0;
       }
       else
       {
-        error = fmod(_omega * dxdy, 1.0f) - px;
+        // on startup: we are active but phase is unknown, so jump to
+        // current phase based on input.
+        dxdt = x[1] - x0;
+        dydt = dxdt*dydx;
+        _x1v = x0 - dxdt*kFloatsPerDSPVector;
+        _omega = fmod(x0 * dydx, 1.0f);
       }
       
-      // send error towards closest sync
-      error = roundf(error) - error;
+      // if the ratio of its reciprocal is close to an integer, lock to input phase
+      bool lock{false};
+      constexpr float lockDist = 0.001f;
+      if(fabs(dydx - roundf(dydx)) < lockDist) lock = true;
+      float rdydx = 1.0f / dydx;
+      if(fabs(rdydx - roundf(rdydx)) < lockDist) lock = true;
       
-      // feedback = negative error * time constant
-      dydt += feedback * error;
+      if(lock)
+      {
+        // get error term at each vector by comparing output to scaled input
+        // or scaled input to output depending on ratio.
+        float ref, refWrap, error;
+        if(dydx >= 1.f)
+        {
+          ref = x0*dydx;
+          refWrap = ref - floorf(ref);
+          error = _omega - refWrap;
+        }
+        else
+        {
+          ref = _omega/dydx;
+          refWrap = ref - floorf(ref);
+          error = refWrap - x0;
+        }
+        
+        // get error difference from closest sync target
+        float errorDiff = roundf(error) - error;
+        
+        // add error correction term to dydt. Note that this is only added to the current vector.
+        // this is different from a traditional PLL, which would need a filter in the feedback loop.
+        //
+        // this addition tweaks the slope to reach the target value in 1/4 second. However as
+        // the target gets closer the slope is less, resulting in an exponentially slowing approach.
+        float correction = errorDiff*isr*4.0f;
+        
+        // don't allow going under 0.5x or over 2x speed
+        correction = clamp(correction, -dydt*0.5f, dydt*1.0f);
+        dydt += correction;
+      }
       
-      // don't ever run clock backwards.
-      dydt = ml::max(dydt, 0.f);
-      
-      // wrap phasor
-      // TODO try using SIMD for fmod(x, 1.0), test
-      _omega = fmod(_omega + dydt, 1.0f);
-      
-      y = _omega;
-      
+      // make output vector with sample-accurate wrap
+      for(int i=0; i<kFloatsPerDSPVector; ++i)
+      {
+        y[i] = _omega;
+        _omega += dydt;
+        if(_omega > 1.0f) _omega -= 1.0f;
+      }
     }
     return y;
   }
 };
+
 
 }  // namespace ml

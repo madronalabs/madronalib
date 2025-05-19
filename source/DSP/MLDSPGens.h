@@ -58,7 +58,7 @@ class ImpulseGen
   static_assert(kTableSize < kFloatsPerDSPVector,
                 "ImpulseGen: table size must be < the DSP vector size.");
 
-  int _outputCounter;
+  int _outputCounter{0};
   float _omega{0.f};
 
  public:

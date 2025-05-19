@@ -4,8 +4,11 @@
 
 #pragma once
 
-#include "madronalib.h"
+//#include "madronalib.h"
 #include "mldsp.h"
+#include "MLSymbol.h"
+#include "MLEvent.h"
+
 
 namespace ml
 {
@@ -16,26 +19,12 @@ enum VoiceOutputSignals
   kPitch = 0,
   kGate,
   kVoice,
+  kZ,
   kX,
   kY,
-  kZ,
   kMod,
   kElapsedTime,
   kNumVoiceOutputRows
-};
-
-enum EventType
-{
-  kNull = 0,
-  kNoteOn,
-  kNoteRetrig,
-  kNoteSustain,
-  kNoteOff,
-  kSustainPedal, // when sustain pedal is held, key releases generate kNoteSustain events
-  kController,
-  kPitchWheel,
-  kNotePressure,
-  kProgramChange
 };
 
 struct KeyState
@@ -44,7 +33,7 @@ struct KeyState
   {
     kOff,
     kOn,
-    kSustain
+    kSustained
   };
   PlayingState state{kOff};
   float pitch{0.f};
@@ -53,48 +42,59 @@ struct KeyState
 
 // EventsToSignals processes different types of events and generates bundles of signals to
 // control synthesizers.
-//
+
 class EventsToSignals final
 {
 public:
-
   static constexpr size_t kMaxVoices{16};
-  static constexpr size_t kMaxEventsPerVector{128};
+  static constexpr size_t kMaxEventsPerProcessBuffer{128};
   static constexpr size_t kMaxPhysicalKeys{128};
-  
+  static constexpr size_t kNumControllers{129};
+  static constexpr int kChannelPressureControllerIdx{128};
+
   static constexpr float kGlideTimeSeconds{0.02f};
+  static constexpr float kControllerGlideTimeSeconds{0.02f};
   static constexpr float kDriftTimeSeconds{8.0f};
   static constexpr float kDriftScale{0.02f};
 
-  // Event: something that happens.
-  //
-  struct Event
-  {
-    Event() = default;
-    ~Event() = default;
+  explicit EventsToSignals(int sr);
+  ~EventsToSignals();
 
-    EventType type{kNull};
-    int channel;
-    int keyNumber;  // The unique key or touch number that created the event.
-    int time; // Onset time in samples from start of current process buffer.
-    
-    // float values that have different meanings for different event types.
-    float value1{0};
-    float value2{0};
-    float value3{0};
-    float value4{0};
-    
-    explicit operator bool() const { return type != kNull; }
-  };
+  size_t setPolyphony(size_t n);
+  size_t getPolyphony();
+
+
+  // clear all voices and queued events and reset state.
+  void clear();
+
+  // just reset time outputs
+  void resetTimes();
+
+  // inserts an event to the buffer sorted by time.
+  void addEvent(const Event& e);
   
+  void clearEvents();
+
+  // process incoming events in buffer and generate output signals.
+  // events in the queue in the time range [startOffset, startOffset + kFloatsPerDSPVector) will
+  // be processed. it is assumed that all events in the queue are sorted by start time. Any
+  // events outside the time range will be ignored.
+  void processVector(int startOffset);
+
+  void setPitchBendInSemitones(float f);
+  void setMPEPitchBendInSemitones(float f);
+  void setGlideTimeInSeconds(float f);
+  void setDriftAmount(float f);
+  void setUnison(bool b);
+  void setProtocol(Symbol p) { protocol_ = p; clear(); }
+  void setModCC(int c) { voiceModCC_ = c; }
+
   #pragma mark -
   
   // Voice: a voice that can play.
   //
   struct Voice
   {
-  public:
-    
     Voice() = default;
     ~Voice() = default;
 
@@ -102,18 +102,17 @@ public:
 
     void reset(int voiceIdx);
     
-    void resetTime(int voiceIdx);
+    void resetTime();
     
     // send to start processing a new buffer.
     void beginProcess(float sr);
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, float sr, bool doGlide = true);
-
-    // write all current info to the end of the current buffer.
-    // add pitchBend to pitch.
-    void endProcess(float pitchBend, float sr);
+    void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset, float sr);
     
+    // write all current info to the end of the current buffer, scaling pitch bend
+    void endProcess(float pitchBend, float sr);
+
     size_t nextFrameToProcess{0};
 
     // instantaneous values, written during event processing
@@ -125,7 +124,8 @@ public:
     float currentY{0};
     float currentZ{0};
 
-    int creatorKeyNumber{0}; // physical key or touch # of creator. 0 = undefined.
+    // physical key or touch # of creator. 0 = undefined.
+    size_t creatorKeyIdx_{0};
     uint32_t ageInSamples{0};
     uint32_t ageStep{0};
 
@@ -150,35 +150,21 @@ public:
     // output signals (velocity, pitch, voice... )
     DSPVectorArray< kNumVoiceOutputRows > outputs;
   };
-  
-  #pragma mark -
-  EventsToSignals(int sr);
-  ~EventsToSignals();
-  
-  size_t setPolyphony(size_t n);
-  size_t getPolyphony();
-  
-  int getNewestVoice() { return newestVoice_; }
 
-  // clear all voices and queued events and reset state.
-  void reset();
+  struct SmoothedController
+  {
+    LinearGlide glide;
+    DSPVector output;
+    float rawValue;
+    void process();
+  };
   
-  // just reset time outputs
-  void resetTimes();
-  
-  // add an event to the queue.
-  void addEvent(const Event& e);
-  
-  // process all events in queue and generate output signals.
-  void process();
-  
-  void setPitchBendInSemitones(float f);
-  void setGlideTimeInSeconds(float f);
-  void setDriftAmount(float f);
-  void setUnison(bool b);
+  // get a const reference to a Voice for reading its output.
+  const Voice& getVoice(int n) const { return voices[n + 1]; }
+  int getNewestVoice() const { return newestVoice_ - 1; }
 
-  // voices, containing signals for clients to read directly.
-  std::vector< Voice > voices;
+  const SmoothedController& getController(int n) const { return controllers[n]; }
+
   
 private:
 
@@ -191,34 +177,44 @@ private:
   void processPitchWheelEvent(const Event& event);
   void processNotePressureEvent(const Event& event);
   void processChannelPressureEvent(const Event& event);
-  void processSustainEvent(const Event& event);
+  void processSustainPedalEvent(const Event& event);
   int findFreeVoice();
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
   
+  
+  // voices, containing signals for clients to read directly.
+  // voices[0] is the "main voice" used for MPE.
+  std::vector< Voice > voices;
+  
+  // output values for continuous controllers.
+  std::vector< SmoothedController > controllers;
+  
+  Symbol protocol_{"MIDI"};
+  
+  // set a special modulation # to send out in each voice
+  int voiceModCC_{16};
+  
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
-  Queue< Event > eventQueue_;
-  size_t polyphony_{0};
+  
+  std::vector< Event > eventBuffer_;
+  // Queue< Event > eventQueue_;
+  
+  int polyphony_{0};
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};
   bool sustainPedalActive_{false};
   float sampleRate_;
   float pitchBendRangeInSemitones_{7.f};
+  float mpePitchBendRangeInSemitones_{24.f};
   float pitchGlideTimeInSeconds_{0.f};
   float pitchDriftAmount_{0.f};
   bool unison_{false};
   uint32_t currentNoteOnIndex{0};
-  
+  bool awake_{false};
+
   void dumpVoices();
   int testCounter{0};
 };
-
-
-inline std::ostream& operator<<(std::ostream& out, const EventsToSignals::Event& e)
-{
-  std::cout << "[" << e.type << "/" << e.channel << "/" << e.keyNumber << "/" << e.time << "]";
-  return out;
-}
-
 
 }  // namespace ml

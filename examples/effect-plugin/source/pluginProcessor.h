@@ -19,14 +19,13 @@ namespace Steinberg {
 namespace Vst {
 namespace llllpluginnamellll {
 
-constexpr int kMaxProcessBlockFrames = 4096;
+constexpr int kMaxHostBlockSize{16384};
 constexpr int kInputChannels = 2;
 constexpr int kOutputChannels = 2;
 
 //-----------------------------------------------------------------------------
 class PluginProcessor : public AudioEffect, public SignalProcessor
 {
-  friend void PluginProcessorProcessVectorFn(MainInputs ins, MainOutputs outs, void* state);
 
 public:
   static FUnknown* createInstance(void*) { return(IAudioProcessor*)new PluginProcessor; }
@@ -39,6 +38,7 @@ public:
   tresult PLUGIN_API notify(IMessage* message) SMTG_OVERRIDE;
 
   // AudioEffect interface
+  tresult PLUGIN_API setProcessing (TBool state) SMTG_OVERRIDE;
   tresult PLUGIN_API initialize(FUnknown* context) SMTG_OVERRIDE;
   tresult PLUGIN_API terminate() SMTG_OVERRIDE;
   tresult PLUGIN_API setActive(TBool state) SMTG_OVERRIDE;
@@ -48,10 +48,17 @@ public:
   tresult PLUGIN_API setupProcessing(ProcessSetup& newSetup) SMTG_OVERRIDE;
   tresult PLUGIN_API setBusArrangements(SpeakerArrangement* inputs, int32 numIns, SpeakerArrangement* outputs, int32 numOuts) SMTG_OVERRIDE;
   tresult PLUGIN_API canProcessSampleSize(int32 symbolicSampleSize) SMTG_OVERRIDE;
+
   
+  // declare the processVector function that will run our DSP in vectors of size kFloatsPerDSPVector
+  void effectExampleProcessVector(MainInputs inputs, MainOutputs outputs);
+
 private:
   
-  void effectProcessVector(MainInputs inputs, MainOutputs outputs);
+  // unlike the madronalib examples, we don't use an AudioTask. So we need our own buffer
+  // and AudioContext.
+  std::unique_ptr<SignalProcessBuffer> processBuffer;
+  std::unique_ptr<AudioContext> audioContext;
   
   // process VST parameter changes.
   bool processParameterChanges(IParameterChanges* changes);

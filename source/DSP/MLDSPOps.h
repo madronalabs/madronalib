@@ -506,18 +506,14 @@ class DSPVectorDynamic final
   DSPVectorDynamic() = default;
   ~DSPVectorDynamic() = default;
 
-  DSPVectorDynamic(size_t rows) { _data.resize(rows); }
-
+  explicit DSPVectorDynamic(size_t rows) { _data.resize(rows); }
   void resize(size_t rows) { _data.resize(rows); }
-
   size_t size() const { return _data.size(); }
-
   DSPVector& operator[](int j) { return _data[j]; }
-
   const DSPVector& operator[](int j) const { return _data[j]; }
 
  private:
-  std::vector<DSPVector> _data;
+  std::vector< DSPVector > _data;
 };
 
 // ----------------------------------------------------------------

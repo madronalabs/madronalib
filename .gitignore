@@ -208,3 +208,9 @@ packages/
 
 #Test files
 *.testsettings
+
+# CLion builds
+cmake-build-*
+.idea
+
+
