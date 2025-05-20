@@ -3,6 +3,7 @@
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #include "MLEventsToSignals.h"
+#include <cassert>
 
 namespace ml {
 

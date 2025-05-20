@@ -367,7 +367,7 @@ function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
 
     # get directory of .app package Contents
     set(PACKAGE_DIR
-        "${CMAKE_CURRENT_SOURCE_DIR}/build/bin/$<CONFIG>/${EXAMPLE_APP_NAME}.app/Contents"
+        "${CMAKE_BINARY_DIR}/bin/${EXAMPLE_APP_NAME}.app/Contents"
         )    
 
     # add missing keys to plist for Mac OS

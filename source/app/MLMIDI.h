@@ -5,6 +5,7 @@
 #pragma once
 
 #include "MLEvent.h"
+#include <functional>
 
 namespace ml
 {
