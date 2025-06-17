@@ -15,7 +15,7 @@ namespace ml
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
 // DSPVector-sized chunks.
 
-using SignalProcessFn = std::function<void (AudioContext*, void*) >;
+using SignalProcessFn = void(*)(AudioContext*, void*);
 
 class SignalProcessBuffer final
 {
