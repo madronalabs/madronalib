@@ -99,9 +99,21 @@ void AudioContext::ProcessTime::processVector(int startOffset)
   samplesSinceStart += kFloatsPerDSPVector;
 }
 
-AudioContext::AudioContext(size_t nInputs, size_t nOutputs, int sr) :
-  inputs(nInputs), outputs(nOutputs), eventsToSignals(sr), sampleRate(sr)
+AudioContext::AudioContext(size_t nInputs, size_t nOutputs) :
+inputs(nInputs), outputs(nOutputs)
 {}
+
+AudioContext::AudioContext(size_t nInputs, size_t nOutputs, int rate) :
+inputs(nInputs), outputs(nOutputs)
+{
+  setSampleRate(rate);
+}
+
+void AudioContext::setSampleRate(int r)
+{
+  sampleRate = r;
+  eventsToSignals.setSampleRate(r);
+}
 
 void AudioContext::clear()
 {
