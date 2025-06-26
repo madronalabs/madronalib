@@ -29,6 +29,7 @@ struct Blob
   explicit Blob( const uint8_t* data_, size_t size_ ) : data(data_), size(size_) {}
   const uint8_t* data{nullptr};
   size_t size{0};
+  void dump() const;
 };
 
 class Value
