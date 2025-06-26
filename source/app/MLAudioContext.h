@@ -4,10 +4,8 @@
 
 #pragma once
 
-
 #include "MLDSPOps.h"
 #include "MLEventsToSignals.h"
-
 
 #include <cstdlib>
 #include <functional>
@@ -57,8 +55,9 @@ public:
     double _ppqPos1{-1.};
     double _ppqPhase1{0};
   };
-
-  AudioContext(size_t nInputs, size_t nOutputs, int sr);
+  
+  AudioContext(size_t nInputs, size_t nOutputs);
+  AudioContext(size_t nInputs, size_t nOutputs, int rate);
   ~AudioContext() = default;
   
   void clear();
@@ -66,6 +65,8 @@ public:
   // update everything needed to create a new vector of context signals.
   // startOffset is the start frame of the vector in the host buffer.
   void processVector(int startOffset);
+  
+  void setSampleRate(int r);
   
   void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
   int getInputPolyphony() { return eventsToSignals.getPolyphony(); }
@@ -78,7 +79,7 @@ public:
 
   void setInputPitchBend(float p) { eventsToSignals.setPitchBendInSemitones(p); }
   void setInputMPEPitchBend(float p) { eventsToSignals.setMPEPitchBendInSemitones(p); }
-  void setInputGlideTimeInSeconds(float s) { eventsToSignals.setGlideTimeInSeconds(s); }
+  void setInputGlideTimeInSeconds(float s) { eventsToSignals.setPitchGlideInSeconds(s); }
   void setInputDriftAmount(float d) { eventsToSignals.setDriftAmount(d); }
   void setInputUnison(bool u) { eventsToSignals.setUnison(u); }
   void setInputProtocol(Symbol p) { eventsToSignals.setProtocol(p); }

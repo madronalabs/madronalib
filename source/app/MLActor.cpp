@@ -28,3 +28,4 @@ void ActorRegistry::doRemove(Actor* actorToRemove)
 }
 
 void ActorRegistry::dump() { _actors.dump(); }
+

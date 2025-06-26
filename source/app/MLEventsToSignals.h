@@ -4,7 +4,6 @@
 
 #pragma once
 
-//#include "madronalib.h"
 #include "mldsp.h"
 #include "MLSymbol.h"
 #include "MLEvent.h"
@@ -57,8 +56,10 @@ public:
   static constexpr float kDriftTimeSeconds{8.0f};
   static constexpr float kDriftScale{0.02f};
 
-  explicit EventsToSignals(int sr);
+  explicit EventsToSignals();
   ~EventsToSignals();
+  
+  void setSampleRate(double r);
 
   size_t setPolyphony(size_t n);
   size_t getPolyphony();
@@ -83,7 +84,7 @@ public:
 
   void setPitchBendInSemitones(float f);
   void setMPEPitchBendInSemitones(float f);
-  void setGlideTimeInSeconds(float f);
+  void setPitchGlideInSeconds(float f);
   void setDriftAmount(float f);
   void setUnison(bool b);
   void setProtocol(Symbol p) { protocol_ = p; clear(); }
@@ -91,27 +92,35 @@ public:
 
   #pragma mark -
   
+  
   // Voice: a voice that can play.
   //
   struct Voice
   {
     Voice() = default;
     ~Voice() = default;
+    
+    void setSampleRate(double r);
+    void setPitchGlideInSeconds(float g);
+    void setDriftAmount(float d);
 
-    void setParams(float pitchGlideInSeconds, float drift, float sr);
-
-    void reset(int voiceIdx);
+    void reset();
     
     void resetTime();
     
     // send to start processing a new buffer.
-    void beginProcess(float sr);
+    void beginProcess();
     
     // send a note on, off update or sustain event to the voice.
-    void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset, float sr);
+    void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset);
     
     // write all current info to the end of the current buffer, scaling pitch bend
-    void endProcess(float pitchBend, float sr);
+    void endProcess(float pitchBend);
+    
+    // data
+    
+    // output signals (velocity, pitch, voice... )
+    DSPVectorArray< kNumVoiceOutputRows > outputs;
 
     size_t nextFrameToProcess{0};
 
@@ -126,15 +135,19 @@ public:
 
     // physical key or touch # of creator. 0 = undefined.
     size_t creatorKeyIdx_{0};
-    uint32_t ageInSamples{0};
-    uint32_t ageStep{0};
+    uint32_t eventAgeInSamples{0};
+    
+    // amount to increase event age each sample—either 0 or 1
+    uint32_t eventAgeStep{0};
 
+    // pitch glide
     SampleAccurateLinearGlide pitchGlide;
     LinearGlide pitchBendGlide;
     LinearGlide modGlide;
     LinearGlide xGlide;
     LinearGlide yGlide;
     LinearGlide zGlide;
+    float pitchGlideTimeInSeconds{0};
     int pitchGlideTimeInSamples{0};
     bool inhibitPitchGlide{0};
 
@@ -147,16 +160,22 @@ public:
     float driftAmount{0};
     int nextDriftTimeInSamples{0};
     
-    // output signals (velocity, pitch, voice... )
-    DSPVectorArray< kNumVoiceOutputRows > outputs;
+    double sr{0};
+    double isr{0};
+    int voiceIndex{0};
+    bool recalcNeeded{false};
   };
 
   struct SmoothedController
   {
-    LinearGlide glide;
-    DSPVector output;
-    float rawValue;
+    void setSampleRate(double r);
     void process();
+
+    LinearGlide glide;
+    DSPVector output{0.f};
+    float inputValue{0.f};
+    double sr{0};
+    bool recalcNeeded{false};
   };
   
   // get a const reference to a Voice for reading its output.
@@ -182,7 +201,6 @@ private:
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
   
-  
   // voices, containing signals for clients to read directly.
   // voices[0] is the "main voice" used for MPE.
   std::vector< Voice > voices;
@@ -204,11 +222,9 @@ private:
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};
   bool sustainPedalActive_{false};
-  float sampleRate_;
+  double sr{0};
   float pitchBendRangeInSemitones_{7.f};
   float mpePitchBendRangeInSemitones_{24.f};
-  float pitchGlideTimeInSeconds_{0.f};
-  float pitchDriftAmount_{0.f};
   bool unison_{false};
   uint32_t currentNoteOnIndex{0};
   bool awake_{false};

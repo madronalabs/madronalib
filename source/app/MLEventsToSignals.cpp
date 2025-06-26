@@ -39,37 +39,36 @@ int getKeyIndex(const Event& e, Symbol protocol)
   return instigator;
 }
 
+
+#pragma mark -
 // EventsToSignals::Voice
 //
 
-void EventsToSignals::Voice::setParams(float pitchGlideInSeconds, float drift, float sr)
+void EventsToSignals::Voice::setSampleRate(double r)
 {
-  // store separate glide time for note pitch
-  pitchGlideTimeInSamples = sr*pitchGlideInSeconds;
-  
-  if(!inhibitPitchGlide)
-  {
-    pitchGlide.setGlideTimeInSamples(pitchGlideTimeInSamples);
-  }
-  
-  pitchBendGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
-  modGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
-  xGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
-  yGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
-  zGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
-  
-  pitchDriftGlide.setGlideTimeInSamples(sr*kDriftTimeSeconds);
-  driftAmount = drift;
+  sr = r;
+  recalcNeeded = true;
+}
+
+void EventsToSignals::Voice::setPitchGlideInSeconds(float g)
+{
+  pitchGlideTimeInSeconds = g;
+  recalcNeeded = true;
+}
+
+void EventsToSignals::Voice::setDriftAmount(float d)
+{
+  driftAmount = d;
 }
 
 // done when DSP is reset.
-void EventsToSignals::Voice::reset(int i)
+void EventsToSignals::Voice::reset()
 {
-  driftSource.mSeed = i*232;
+  driftSource.mSeed = voiceIndex*232;
   
   nextFrameToProcess = 0;
-  ageInSamples = 0;
-  ageStep = 0;
+  eventAgeInSamples = 0;
+  eventAgeStep = 0;
   
   currentVelocity = 0;
   currentPitch = 0;
@@ -91,11 +90,34 @@ void EventsToSignals::Voice::reset(int i)
 // just reset the time.
 void EventsToSignals::Voice::resetTime()
 {
-  ageInSamples = 0;
+  eventAgeInSamples = 0;
 }
 
-void EventsToSignals::Voice::beginProcess(float sr)
+void EventsToSignals::Voice::beginProcess()
 {
+  if(recalcNeeded)
+  {
+    isr = 1.0/sr;
+    
+    // store separate glide time for note pitch
+    pitchGlideTimeInSamples = sr*pitchGlideTimeInSeconds;
+    
+    if(!inhibitPitchGlide)
+    {
+      pitchGlide.setGlideTimeInSamples(pitchGlideTimeInSamples);
+    }
+    
+    pitchBendGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+    modGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+    xGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+    yGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+    zGlide.setGlideTimeInSamples(sr*kGlideTimeSeconds);
+    
+    pitchDriftGlide.setGlideTimeInSamples(sr*kDriftTimeSeconds);
+    
+    recalcNeeded = false;
+  }
+  
   nextFrameToProcess = 0;
   driftCounter += kFloatsPerDSPVector;
   
@@ -110,17 +132,16 @@ void EventsToSignals::Voice::beginProcess(float sr)
   }
 }
 
-void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset, float sr)
+void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset)
 {
-  
   auto writeOutputFrames = [&](int endFrame){
     // write current pitch, velocity and elapsed time up to destTime
     for(int t = (int)nextFrameToProcess; t < endFrame; ++t)
     {
       outputs.row(kGate)[t] = currentVelocity;
       outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
-      ageInSamples += ageStep;
-      outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sr);
+      eventAgeInSamples += eventAgeStep;
+      outputs.row(kElapsedTime)[t] = samplesToSeconds(eventAgeInSamples, sr);
     }
     nextFrameToProcess = endFrame;
   };
@@ -136,9 +157,9 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
       
       if(doReset)
       {
-        ageInSamples = 0;
+        eventAgeInSamples = 0;
       }
-      ageStep = 1;
+      eventAgeStep = 1;
       
       inhibitPitchGlide = !doGlide;
       if(doGlide)
@@ -164,9 +185,9 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
       
       if(doReset)
       {
-        ageInSamples = 0;
+        eventAgeInSamples = 0;
       }
-      ageStep = 1;
+      eventAgeStep = 1;
 
       // if the retrigger falls on frame 0, make room for retrigger
       if(destTime == 0)
@@ -179,8 +200,8 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
       // write retrigger frame
       outputs.row(kGate)[destTime - 1] = 0;
       outputs.row(kPitch)[destTime - 1] = pitchGlide.nextSample(currentPitch);
-      ageInSamples += ageStep;
-      outputs.row(kElapsedTime)[destTime - 1] = samplesToSeconds(ageInSamples, sr);
+      eventAgeInSamples += eventAgeStep;
+      outputs.row(kElapsedTime)[destTime - 1] = samplesToSeconds(eventAgeInSamples, sr);
 
       // set new values
       currentPitch = e.value1;
@@ -205,7 +226,7 @@ void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doG
   }
 }
 
-void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
+void EventsToSignals::Voice::endProcess(float pitchBend)
 {
   for(int t = (int)nextFrameToProcess; t < kFloatsPerDSPVector; ++t)
   {
@@ -216,8 +237,8 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
     outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
     
     // keep increasing age
-    ageInSamples += ageStep;
-    outputs.row(kElapsedTime)[t] = samplesToSeconds(ageInSamples, sampleRate);
+    eventAgeInSamples += eventAgeStep;
+    outputs.row(kElapsedTime)[t] = samplesToSeconds(eventAgeInSamples, sr);
   }
   
   // process glides, accurate to the DSP vector
@@ -238,41 +259,70 @@ void EventsToSignals::Voice::endProcess(float pitchBend, float sampleRate)
 }
 
 
+#pragma mark -
+//
+// SmoothedController
+//
+
+void EventsToSignals::SmoothedController::setSampleRate(double r)
+{
+  sr = r;
+  recalcNeeded = true;
+}
+
 void EventsToSignals::SmoothedController::process()
 {
-  output = glide(rawValue);
+  if(recalcNeeded)
+  {
+    // send sample rate to controller glides.
+    int glideTimeInSamples = sr*kControllerGlideTimeSeconds;
+    glide.setGlideTimeInSamples(glideTimeInSamples);
+    recalcNeeded = false;
+  }
+    
+  output = glide(inputValue);
 }
+
 
 #pragma mark -
 //
 // EventsToSignals
 //
 
-EventsToSignals::EventsToSignals(int sr)
+EventsToSignals::EventsToSignals()
 {
-  sampleRate_ = (float)sr;
   eventBuffer_.reserve(kMaxEventsPerProcessBuffer);
   
   voices.resize(kMaxVoices + 1);
   for(int i=0; i<voices.size(); ++i)
   {
-    voices[i].setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, (float)sr);
-    voices[i].reset(i);
+    voices[i].voiceIndex = i;
+    voices[i].reset();
     
     // set vox output signal
     voices[i].outputs.row(kVoice) = DSPVector((float)i - 1);
   }
   
   controllers.resize(kNumControllers);
-  int glideTimeInSamples = sr*kControllerGlideTimeSeconds;
-  for (int i=0; i<kNumControllers; ++i)
-  {
-    controllers[i].glide.setGlideTimeInSamples(glideTimeInSamples);
-  }
 }
 
 EventsToSignals::~EventsToSignals()
 {
+}
+
+void EventsToSignals::setSampleRate(double r)
+{
+  sr = r;
+  
+  for(auto & v : voices)
+  {
+    v.setSampleRate(r);
+  }
+  
+  for(auto & c : controllers)
+  {
+    c.setSampleRate(r);
+  }
 }
 
 size_t EventsToSignals::setPolyphony(size_t n)
@@ -291,10 +341,9 @@ void EventsToSignals::clear()
 {
   eventBuffer_.clear();
   
-  int i{0};
   for(auto& v : voices)
   {
-    v.reset(i++);
+    v.reset();
   }
   
   lastFreeVoiceFound_ = 0;
@@ -312,8 +361,6 @@ void EventsToSignals::resetTimes()
   lastFreeVoiceFound_ = 0;
 }
 
-
-
 // sort by time for buffer insertion.
 bool soonerThan(const Event &a, const Event &b)
 {
@@ -328,7 +375,6 @@ bool soonerThan(const Event &a, const Event &b)
     return a.type < b.type;
   }
 }
-
 
 // events should usually arrive in order, but not all hosts will ensure this
 // so we need to insert events by time on arrival.
@@ -351,11 +397,13 @@ void EventsToSignals::processVector(int startTime)
   // if we have never received an event, do nothing
   if (!awake_) return;
   
-
+  // if we have never received a sample rate, do nothing
+  if (sr == 0.f) return;
+  
   // start processing each voice's vector of audio data
   for(auto& v : voices)
   {
-    v.beginProcess(sampleRate_);
+    v.beginProcess();
   }
   
   if(eventBuffer_.size() > 0)
@@ -381,18 +429,17 @@ void EventsToSignals::processVector(int startTime)
     }
   }
   
-  
   //if(nProc > 0)
   //std::cout << "processVector: " << nProc << " events \n";
   
   // end voice processing, making complete outgoing signals
-  // MPE main voice uses MIDI pitch bend setting
-  voices[0].endProcess(pitchBendRangeInSemitones_, sampleRate_);
+  // MPE main voice (index 0) uses MIDI pitch bend setting
+  voices[0].endProcess(pitchBendRangeInSemitones_);
   float voicesPitchBend = (protocol_ == "MPE") ?
     mpePitchBendRangeInSemitones_ : pitchBendRangeInSemitones_;
   for(int v=1; v<polyphony_ + 1; ++v)
   {
-    voices[v].endProcess(voicesPitchBend, sampleRate_);
+    voices[v].endProcess(voicesPitchBend);
   }
 
   // make smoothed controller signals
@@ -508,7 +555,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     // start after MPE main voice
     for(int v=1; v<polyphony_ + 1; ++v)
     {
-      voices[v].writeNoteEvent(e, keyIdx, !firstNote, firstNote, sampleRate_);
+      voices[v].writeNoteEvent(e, keyIdx, !firstNote, firstNote);
     }
   }
   else
@@ -517,7 +564,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
     
     if(v >= 1)
     {
-      voices[v].writeNoteEvent(e, keyIdx, true, true, sampleRate_);
+      voices[v].writeNoteEvent(e, keyIdx, true, true);
     }
     else
     {
@@ -528,7 +575,7 @@ void EventsToSignals::processNoteOnEvent(const Event& e)
       // are cut off. add more graceful stealing
       Event f = e;
       f.type = kNoteRetrig;
-      voices[v].writeNoteEvent(f, keyIdx, true, true, sampleRate_);
+      voices[v].writeNoteEvent(f, keyIdx, true, true);
     }
     newestVoice_ = v;
   }
@@ -553,7 +600,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
     {
       for(int v = 1; v < polyphony_ + 1; ++v)
       {
-        voices[v].writeNoteEvent(e, 0, true, true, sampleRate_);
+        voices[v].writeNoteEvent(e, 0, true, true);
       }
     }
     else
@@ -586,7 +633,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
         eventToSend.value1 = keyStates_[mostRecentHeldKey].pitch;
         for (int v = 1; v < polyphony_ + 1; ++v)
         {
-          voices[v].writeNoteEvent(eventToSend, mostRecentHeldKey, true, true, sampleRate_);
+          voices[v].writeNoteEvent(eventToSend, mostRecentHeldKey, true, true);
         }
       }
     }
@@ -601,7 +648,7 @@ void EventsToSignals::processNoteOffEvent(const Event& e)
       {
         if(voices[v].creatorKeyIdx_ == keyIdx)
         {
-          voices[v].writeNoteEvent(eventToSend, keyIdx, true, true, sampleRate_);
+          voices[v].writeNoteEvent(eventToSend, keyIdx, true, true);
         }
       }
     }
@@ -618,7 +665,7 @@ void EventsToSignals::processChannelPressureEvent(const Event& event)
     case(hash("MIDI")):
     {
       float val = event.value1;
-      controllers[kChannelPressureControllerIdx].rawValue = val;
+      controllers[kChannelPressureControllerIdx].inputValue = val;
       break;
     }
     case(hash("MPE")):
@@ -712,7 +759,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
 
   // store values directly into array so they can be read by clients
   size_t ctrl = clamp(size_t(event.sourceIdx), (size_t)0, kNumControllers - 1);
-  controllers[ctrl].rawValue = val;
+  controllers[ctrl].inputValue = val;
   
   // handle special meanings for some MIDI controllers
   if(ctrl == 120)
@@ -732,7 +779,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
       {
         Event eventToSend = event;
         eventToSend.type = kNoteOff;
-        v.writeNoteEvent(eventToSend, 0, false, true, sampleRate_);
+        v.writeNoteEvent(eventToSend, 0, false, true);
       }
     }
   }
@@ -801,7 +848,7 @@ void EventsToSignals::processSustainPedalEvent(const Event& event)
       {
         Event newEvent;
         newEvent.type = kNoteOff;
-        v.writeNoteEvent(newEvent, 0, true, true, sampleRate_);
+        v.writeNoteEvent(newEvent, 0, true, true);
       }
     }
   }
@@ -817,21 +864,19 @@ void EventsToSignals::setMPEPitchBendInSemitones(float f)
   mpePitchBendRangeInSemitones_ = f;
 }
 
-void EventsToSignals::setGlideTimeInSeconds(float f)
+void EventsToSignals::setPitchGlideInSeconds(float f)
 {
-  pitchGlideTimeInSeconds_ = f;
   for(auto& v : voices)
   {
-    v.setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
+    v.setPitchGlideInSeconds(f);
   }
 }
 
 void EventsToSignals::setDriftAmount(float f)
 {
-  pitchDriftAmount_ = f;
   for(auto& v : voices)
   {
-    v.setParams(pitchGlideTimeInSeconds_, pitchDriftAmount_, sampleRate_);
+    v.driftAmount = f;
   }
 }
 
