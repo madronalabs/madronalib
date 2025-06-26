@@ -147,7 +147,7 @@ inline std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
 inline Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
 {
   Tree<Value> outputTree;
-  size_t inputSize;
+  const size_t inputSize = binaryData.size();
   constexpr size_t headerSize = sizeof(BinaryGroupHeader);
 
   if(inputSize > headerSize*2)
@@ -157,8 +157,8 @@ inline Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
     auto mainHeader{reinterpret_cast<const BinaryGroupHeader*>(readPtr)};
     auto elements = mainHeader->elements;
     auto totalSize = mainHeader->size;
-    
-    if(binaryData.size() >= totalSize)
+
+    if(inputSize >= totalSize)
     {
       readPtr += headerSize;
       for (int i = 0; i < elements; ++i)
