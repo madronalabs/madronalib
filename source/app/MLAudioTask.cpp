@@ -186,7 +186,7 @@ int AudioTask::startAudio()
 
   int nInputs = pImpl->processData.processContext->inputs.size();
   int nOutputs = pImpl->processData.processContext->outputs.size();
-  int sampleRate = pImpl->processData.processContext->sampleRate;
+  int sampleRate = pImpl->processData.processContext->getSampleRate();
   unsigned int bufferFrames = kRtAudioCallbackFrames;
 
   // Set up RtAudio stream params
@@ -236,7 +236,7 @@ int AudioTask::runConsoleApp()
   {
     // Test RtAudio functionality for reporting latency.
     std::cout << "\nStream latency = " << pImpl->adac.getStreamLatency() << " frames" << std::endl;
-    std::cout << "sample rate: " << pImpl->processData.processContext->sampleRate << "\n";
+    std::cout << "sample rate: " << pImpl->processData.processContext->getSampleRate() << "\n";
 
     // wait for enter key.
     std::cout << "\nRunning ... press any key to quit.\n";

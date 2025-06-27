@@ -39,9 +39,8 @@ public:
     // generate phasors from the input parameters
     void processVector(int startOffset);
 
-    // phase signal to read TODO rename
+    // externally readable values updated by processVector()
     DSPVector _quarterNotesPhase;
-
     double bpm{0};
     double sampleRate{0};
     uint64_t samplesSinceStart{0};
@@ -84,18 +83,17 @@ public:
   void setInputUnison(bool u) { eventsToSignals.setUnison(u); }
   void setInputProtocol(Symbol p) { eventsToSignals.setProtocol(p); }
   void setInputModCC(int p) { eventsToSignals.setModCC(p); }
-  
-  // by giving clients only a const Voice&, we are letting them inspect anything about Voices, but
-  // not modify them. This seems like a useful pattern for any object owning output-containing structs.
   const EventsToSignals::Voice& getInputVoice(int n) { return eventsToSignals.getVoice(n); }
   
   int getNewestInputVoice() { return eventsToSignals.getNewestVoice(); }
   DSPVector getInputController(size_t n) const;
   
+  double getSampleRate() { return currentTime.sampleRate; }
+  const ProcessTime& getTimeInfo() { return currentTime; }
+  
   // clients can access these directly to do processing
   DSPVectorDynamic inputs;
   DSPVectorDynamic outputs;
-  int sampleRate{0};
   
 private:
   ProcessTime currentTime;
