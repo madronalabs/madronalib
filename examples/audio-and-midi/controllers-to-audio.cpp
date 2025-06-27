@@ -28,7 +28,7 @@ void processAudio(AudioContext* ctx, void *untypedState)
   ExampleState* state = reinterpret_cast<ExampleState*>(untypedState);
 
   // now do fun example stuff
-  float sr = ctx->sampleRate;
+  float sr = ctx->getSampleRate() ;
   DSPVector accum;
   auto ctrlToFreq = projections::unityToLogParam({110.f, 440.f});
 

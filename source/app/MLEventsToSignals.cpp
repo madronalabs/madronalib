@@ -375,7 +375,7 @@ bool soonerThan(const Event &a, const Event &b)
   }
 }
 
-// events should usually arrive in order, but not all hosts will ensure this
+// events should usually arrive in order, but unfortunately not all hosts will ensure this.
 // so we need to insert events by time on arrival.
 void EventsToSignals::addEvent(const Event& e)
 {
@@ -417,13 +417,11 @@ void EventsToSignals::processVector(int startTime)
   int endTime = startTime + kFloatsPerDSPVector;
   for(const auto& e : eventBuffer_)
   {
-  //  const Event& e = eventBuffer_[i];
     if(within(e.time, startTime, endTime))
     {
       Event eventInThisVector = e;
       eventInThisVector.time -= startTime;
       processEvent(eventInThisVector);
-      
       nProc++;
     }
   }

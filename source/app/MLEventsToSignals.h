@@ -179,11 +179,13 @@ public:
   };
   
   // get a const reference to a Voice for reading its output.
+  // Lifetime management is an issue though: don't hang onto this reference!
   const Voice& getVoice(int n) const { return voices[n + 1]; }
+  
+  // get voice which had a note on event most recently, if any
   int getNewestVoice() const { return newestVoice_ - 1; }
 
   const SmoothedController& getController(int n) const { return controllers[n]; }
-
   
 private:
 
@@ -214,9 +216,7 @@ private:
   int voiceModCC_{16};
   
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
-  
   std::vector< Event > eventBuffer_;
-  // Queue< Event > eventQueue_;
   
   int polyphony_{0};
   int lastFreeVoiceFound_{-1};

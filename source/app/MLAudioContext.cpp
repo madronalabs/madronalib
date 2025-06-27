@@ -10,7 +10,8 @@ namespace ml
 // AudioContext::ProcessTime
 
 // Set the time and bpm. The time refers to the start of the current processing block.
-// This should be called every task processing block with the latest info.
+// In a plugin, this should be called before each processing block with the latest info from the host.
+// In an app, this can be called only when there are time / rate changes.
 
 void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double bpmIn,
   bool isPlaying, double sampleRateIn)
@@ -111,7 +112,7 @@ inputs(nInputs), outputs(nOutputs)
 
 void AudioContext::setSampleRate(int r)
 {
-  sampleRate = r;
+  currentTime.sampleRate = r;
   eventsToSignals.setSampleRate(r);
 }
 
