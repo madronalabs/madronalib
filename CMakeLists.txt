@@ -282,15 +282,6 @@ endif()
 install(FILES include/madronalib.h DESTINATION ${HEADERS_INCLUDE_DIR})
 install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
-# NOTE - use of these external libs is a work in progress. Right now we are just
-# installing the entire headers of the libs into .../madronalib/include. In the
-# future we want to make a smaller API that uses these libraries.
-
-install(FILES external/cJSON/cJSON.h DESTINATION ${HEADERS_INCLUDE_DIR})
-install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
-install(FILES external/rtaudio/RtAudio.h DESTINATION ${HEADERS_INCLUDE_DIR})
-install(FILES external/rtmidi/RtMidi.h DESTINATION ${HEADERS_INCLUDE_DIR})
-
 install(FILES 
     ${APP_HEADERS}     
     ${DSP_HEADERS}
