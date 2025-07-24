@@ -23,9 +23,9 @@ ENDIF(APPLE)
 # project and version
 #--------------------------------------------------------------------
 
-set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE) 
+set(CMAKE_CONFIGURATION_TYPES "Debug;Release" CACHE STRING "" FORCE)
 
-project(madronalib) 
+project(madronalib)
 
 set(madronalib_VERSION_MAJOR "0")
 set(madronalib_VERSION_MINOR "1")
@@ -53,7 +53,7 @@ endif()
  set(CMAKE_CXX_STANDARD_REQUIRED True)
  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
  set(CMAKE_VISIBILITY_INLINES_HIDDEN OFF)
- 
+
  if(APPLE)
    # For now, explicitly disable C++17 alignment feature
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-aligned-new")
@@ -95,6 +95,7 @@ endif()
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/aes256)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/clap)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/cJSON)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/ffft)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/external/utf)
@@ -160,7 +161,7 @@ set(OSC_HEADERS
     ${OSC_HEADERS_ZEROCONF}
 )
 
-# set the sources - we include the headers only to make them 
+# set the sources - we include the headers only to make them
 # navigable within IDEs
 
 set(madronalib_SOURCES
@@ -185,7 +186,7 @@ set(madronalib_SOURCES
         source/app/MLSignalProcessBuffer.h
         source/app/MLSignalProcessBuffer.cpp
 )
-    
+
     message("RTMIDI_SOURCES: " ${RTMIDI_SOURCES} )
 
 if(APPLE)
@@ -225,10 +226,10 @@ set_target_properties(${target} PROPERTIES
                       SOVERSION ${madronalib_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
                       FOLDER "madronalib")
-                      
+
 target_include_directories(${target} PRIVATE ${RTAUDIO_HEADERS})
 
-                      
+
 # choose driver for Rtaudio
 if(WIN32)
     target_compile_definitions(${target} PRIVATE __WINDOWS_WASAPI__)
@@ -282,12 +283,12 @@ endif()
 install(FILES include/madronalib.h DESTINATION ${HEADERS_INCLUDE_DIR})
 install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
-install(FILES 
-    ${APP_HEADERS}     
+install(FILES
+    ${APP_HEADERS}
     ${DSP_HEADERS}
-    ${MATRIX_HEADERS} 
+    ${MATRIX_HEADERS}
     ${OSC_HEADERS}
-    DESTINATION 
+    DESTINATION
     # PERMISSIONS OWNER_READ GROUP_READ WORLD_READ
     ${HEADERS_INCLUDE_DIR}
   )
@@ -339,15 +340,15 @@ function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     target_include_directories(${EXAMPLE_APP_NAME} PRIVATE
         ${ML_ROOT}/external
         )
-    
+
     target_link_libraries(${EXAMPLE_APP_NAME} PRIVATE madronalib)
 
     set_target_properties(${EXAMPLE_APP_NAME}
         PROPERTIES
         MACOSX_BUNDLE TRUE
 
-        # not working, see below for workaround adding to plist 
-        # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in 
+        # not working, see below for workaround adding to plist
+        # MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/cmake/MacOSXBundleInfo.plist.in
 
         MACOSX_BUNDLE_BUNDLE_NAME ${EXAMPLE_APP_NAME}
         MACOSX_BUNDLE_BUNDLE_VERSION "0.9.0"
@@ -359,7 +360,7 @@ function(make_example EXAMPLE_APP_NAME EXAMPLE_SOURCE_FILE)
     # get directory of .app package Contents
     set(PACKAGE_DIR
         "${CMAKE_BINARY_DIR}/bin/${EXAMPLE_APP_NAME}.app/Contents"
-        )    
+        )
 
     # add missing keys to plist for Mac OS
     if(APPLE)
@@ -431,6 +432,3 @@ if(CLANG_FORMAT)
     ${madronalib_SOURCES_internal}
     )
 endif()
-
-
-
