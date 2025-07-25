@@ -3,8 +3,15 @@
 #include "MLSignalProcessor.h"
 #include "MLAudioContext.h"
 #include <clap/clap.h>
+#include <clap/ext/audio-ports.h>
+#include <clap/ext/note-ports.h>
+#include <clap/ext/params.h>
 #include <algorithm>
 #include <memory>
+#include <cstring>
+#include <cstdio>
+#include <cstdlib>
+#include <string>
 
 namespace ml {
 
@@ -52,7 +59,8 @@ public:
       return wrapper->processAudio(process);
     };
     this->get_extension = [](const clap_plugin* plugin, const char* id) -> const void* {
-      return nullptr;  // Simplified for now
+      auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+      return wrapper->getExtension(id);
     };
     this->on_main_thread = [](const clap_plugin* plugin) {};
   }
@@ -96,6 +104,98 @@ public:
 
     return processor->hasActiveVoices() ? CLAP_PROCESS_CONTINUE : CLAP_PROCESS_SLEEP;
   }
+
+  // Extension implementation
+  const void* getExtension(const char* id) {
+    if (strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &audioPortsExt;
+    if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
+    if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
+    return nullptr;
+  }
+
+  // Audio Ports Extension - Essential for audio I/O
+  static uint32_t audioPortsCount(const clap_plugin* plugin, bool is_input) {
+    return 1; // One stereo input, one stereo output
+  }
+  
+  static bool audioPortsGet(const clap_plugin* plugin, uint32_t index, bool is_input, clap_audio_port_info* info) {
+    if (index != 0) return false;
+    
+    info->id = 0;
+    snprintf(info->name, sizeof(info->name), "%s", is_input ? "Audio Input" : "Audio Output");
+    info->channel_count = 2;
+    info->flags = CLAP_AUDIO_PORT_IS_MAIN;
+    info->port_type = CLAP_PORT_STEREO;
+    info->in_place_pair = is_input ? 0 : CLAP_INVALID_ID;
+    return true;
+  }
+  
+  static const clap_plugin_audio_ports audioPortsExt;
+
+  // Note Ports Extension - Essential for MIDI input
+  static uint32_t notePortsCount(const clap_plugin* plugin, bool is_input) {
+    return is_input ? 1 : 0; // One MIDI input, no MIDI output
+  }
+  
+  static bool notePortsGet(const clap_plugin* plugin, uint32_t index, bool is_input, clap_note_port_info* info) {
+    if (!is_input || index != 0) return false;
+    
+    info->id = 0;
+    snprintf(info->name, sizeof(info->name), "MIDI Input");
+    info->supported_dialects = CLAP_NOTE_DIALECT_CLAP | CLAP_NOTE_DIALECT_MIDI;
+    info->preferred_dialect = CLAP_NOTE_DIALECT_CLAP;
+    return true;
+  }
+  
+  static const clap_plugin_note_ports notePortsExt;
+
+  // Params Extension - For plugin parameters
+  static uint32_t paramsCount(const clap_plugin* plugin) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    return wrapper->processor ? wrapper->processor->getParamCount() : 0;
+  }
+  
+  static bool paramsInfo(const clap_plugin* plugin, uint32_t index, clap_param_info* info) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper->processor || index >= wrapper->processor->getParamCount()) return false;
+    
+    // Get parameter name from madronalib
+    std::string paramName = wrapper->processor->getParamName(index);
+    info->id = index;
+    snprintf(info->name, sizeof(info->name), "%s", paramName.c_str());
+    snprintf(info->module, sizeof(info->module), "");
+    info->min_value = 0.0;
+    info->max_value = 1.0;
+    info->default_value = wrapper->processor->getNormalizedFloatParam(paramName.c_str());
+    info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+    return true;
+  }
+  
+  static bool paramsValue(const clap_plugin* plugin, clap_id param_id, double* value) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper->processor || param_id >= wrapper->processor->getParamCount()) return false;
+    
+    std::string paramName = wrapper->processor->getParamName(param_id);
+    *value = wrapper->processor->getNormalizedFloatParam(paramName.c_str());
+    return true;
+  }
+  
+  static bool paramsValueToText(const clap_plugin* plugin, clap_id param_id, double value, char* out_buffer, uint32_t out_buffer_capacity) {
+    snprintf(out_buffer, out_buffer_capacity, "%.2f", value);
+    return true;
+  }
+  
+  static bool paramsTextToValue(const clap_plugin* plugin, clap_id param_id, const char* param_value_text, double* value) {
+    *value = atof(param_value_text);
+    return true;
+  }
+  
+  static void paramsFlush(const clap_plugin* plugin, const clap_input_events* in, const clap_output_events* out) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    wrapper->convertCLAPEventsToAudioContext(in);
+  }
+  
+  static const clap_plugin_params paramsExt;
 
 private:
   void convertCLAPEventsToAudioContext(const clap_input_events* events) {
@@ -200,5 +300,28 @@ private:
       } \
     }; \
   }
+
+// Static extension structure definitions
+template<typename PluginClass>
+const clap_plugin_audio_ports CLAPPluginWrapper<PluginClass>::audioPortsExt = {
+  CLAPPluginWrapper<PluginClass>::audioPortsCount,
+  CLAPPluginWrapper<PluginClass>::audioPortsGet
+};
+
+template<typename PluginClass>
+const clap_plugin_note_ports CLAPPluginWrapper<PluginClass>::notePortsExt = {
+  CLAPPluginWrapper<PluginClass>::notePortsCount,
+  CLAPPluginWrapper<PluginClass>::notePortsGet
+};
+
+template<typename PluginClass>
+const clap_plugin_params CLAPPluginWrapper<PluginClass>::paramsExt = {
+  CLAPPluginWrapper<PluginClass>::paramsCount,
+  CLAPPluginWrapper<PluginClass>::paramsInfo,
+  CLAPPluginWrapper<PluginClass>::paramsValue,
+  CLAPPluginWrapper<PluginClass>::paramsValueToText,
+  CLAPPluginWrapper<PluginClass>::paramsTextToValue,
+  CLAPPluginWrapper<PluginClass>::paramsFlush
+};
 
 } // namespace ml
