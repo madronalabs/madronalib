@@ -5,7 +5,7 @@
 #include <clap/clap.h>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
-#include <clap/ext/params.h>
+// #include <clap/ext/params.h>  // TODO: Add back when implementing params extension
 #include <algorithm>
 #include <memory>
 #include <cstring>
@@ -66,26 +66,53 @@ public:
   }
 
   clap_process_status processAudio(const clap_process* process) {
-    // Ultra-simple: AudioContext handles chunking, events, everything!
+    // Safety checks to prevent crashes
+    if (!process || !audioContext || !processor) {
+      return CLAP_PROCESS_CONTINUE;
+    }
+    
+    if (process->audio_inputs_count == 0 || process->audio_outputs_count == 0) {
+      return CLAP_PROCESS_CONTINUE;
+    }
 
     // Convert CLAP events to ml::Events - AudioContext handles them
-    convertCLAPEventsToAudioContext(process->in_events);
+    if (process->in_events) {
+      convertCLAPEventsToAudioContext(process->in_events);
+    }
 
-    // Cast I/O pointers
-    const float** inputs = const_cast<const float**>(
-      reinterpret_cast<float**>(process->audio_inputs[0].data32));
-    float** outputs = reinterpret_cast<float**>(process->audio_outputs[0].data32);
+    // Cast I/O pointers with safety checks
+    const float** inputs = nullptr;
+    float** outputs = nullptr;
+    
+    if (process->audio_inputs && process->audio_inputs[0].data32) {
+      inputs = const_cast<const float**>(
+        reinterpret_cast<float**>(process->audio_inputs[0].data32));
+    }
+    
+    if (process->audio_outputs && process->audio_outputs[0].data32) {
+      outputs = reinterpret_cast<float**>(process->audio_outputs[0].data32);
+    }
+
+    if (!outputs) {
+      return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
+    }
 
     // Ultra-simple processing loop - AudioContext handles chunking
     for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
       int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
 
-      // Copy inputs to AudioContext
-      if (process->audio_inputs[0].channel_count > 0) {
+      // Copy inputs to AudioContext (if available)
+      if (inputs && process->audio_inputs[0].channel_count > 0) {
         for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = inputs[0][i + j];
-          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
-                                      inputs[1][i + j] : inputs[0][i + j];
+          audioContext->inputs[0][j] = inputs[0] ? inputs[0][i + j] : 0.0f;
+          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1 && inputs[1]) ?
+                                      inputs[1][i + j] : (inputs[0] ? inputs[0][i + j] : 0.0f);
+        }
+      } else {
+        // Clear inputs if no input available
+        for (int j = 0; j < samplesThisChunk; ++j) {
+          audioContext->inputs[0][j] = 0.0f;
+          audioContext->inputs[1][j] = 0.0f;
         }
       }
 
@@ -97,8 +124,8 @@ public:
 
       // Copy outputs from AudioContext
       for (int j = 0; j < samplesThisChunk; ++j) {
-        outputs[0][i + j] = audioContext->outputs[0][j];
-        outputs[1][i + j] = audioContext->outputs[1][j];
+        if (outputs[0]) outputs[0][i + j] = audioContext->outputs[0][j];
+        if (outputs[1]) outputs[1][i + j] = audioContext->outputs[1][j];
       }
     }
 
@@ -109,7 +136,8 @@ public:
   const void* getExtension(const char* id) {
     if (strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &audioPortsExt;
     if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
-    if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
+    // For now, don't expose params extension until madronalib parameter enumeration is available
+    // if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
     return nullptr;
   }
 
@@ -126,7 +154,7 @@ public:
     info->channel_count = 2;
     info->flags = CLAP_AUDIO_PORT_IS_MAIN;
     info->port_type = CLAP_PORT_STEREO;
-    info->in_place_pair = is_input ? 0 : CLAP_INVALID_ID;
+    info->in_place_pair = 0; // Both input and output point to each other (stereo in-place processing)
     return true;
   }
   
@@ -149,53 +177,8 @@ public:
   
   static const clap_plugin_note_ports notePortsExt;
 
-  // Params Extension - For plugin parameters
-  static uint32_t paramsCount(const clap_plugin* plugin) {
-    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    return wrapper->processor ? wrapper->processor->getParamCount() : 0;
-  }
-  
-  static bool paramsInfo(const clap_plugin* plugin, uint32_t index, clap_param_info* info) {
-    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    if (!wrapper->processor || index >= wrapper->processor->getParamCount()) return false;
-    
-    // Get parameter name from madronalib
-    std::string paramName = wrapper->processor->getParamName(index);
-    info->id = index;
-    snprintf(info->name, sizeof(info->name), "%s", paramName.c_str());
-    snprintf(info->module, sizeof(info->module), "");
-    info->min_value = 0.0;
-    info->max_value = 1.0;
-    info->default_value = wrapper->processor->getNormalizedFloatParam(paramName.c_str());
-    info->flags = CLAP_PARAM_IS_AUTOMATABLE;
-    return true;
-  }
-  
-  static bool paramsValue(const clap_plugin* plugin, clap_id param_id, double* value) {
-    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    if (!wrapper->processor || param_id >= wrapper->processor->getParamCount()) return false;
-    
-    std::string paramName = wrapper->processor->getParamName(param_id);
-    *value = wrapper->processor->getNormalizedFloatParam(paramName.c_str());
-    return true;
-  }
-  
-  static bool paramsValueToText(const clap_plugin* plugin, clap_id param_id, double value, char* out_buffer, uint32_t out_buffer_capacity) {
-    snprintf(out_buffer, out_buffer_capacity, "%.2f", value);
-    return true;
-  }
-  
-  static bool paramsTextToValue(const clap_plugin* plugin, clap_id param_id, const char* param_value_text, double* value) {
-    *value = atof(param_value_text);
-    return true;
-  }
-  
-  static void paramsFlush(const clap_plugin* plugin, const clap_input_events* in, const clap_output_events* out) {
-    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    wrapper->convertCLAPEventsToAudioContext(in);
-  }
-  
-  static const clap_plugin_params paramsExt;
+  // TODO: Params Extension - For plugin parameters (implement in next commit)
+  // Will implement proper ParameterTree integration with madronalib parameter system
 
 private:
   void convertCLAPEventsToAudioContext(const clap_input_events* events) {
@@ -314,14 +297,8 @@ const clap_plugin_note_ports CLAPPluginWrapper<PluginClass>::notePortsExt = {
   CLAPPluginWrapper<PluginClass>::notePortsGet
 };
 
-template<typename PluginClass>
-const clap_plugin_params CLAPPluginWrapper<PluginClass>::paramsExt = {
-  CLAPPluginWrapper<PluginClass>::paramsCount,
-  CLAPPluginWrapper<PluginClass>::paramsInfo,
-  CLAPPluginWrapper<PluginClass>::paramsValue,
-  CLAPPluginWrapper<PluginClass>::paramsValueToText,
-  CLAPPluginWrapper<PluginClass>::paramsTextToValue,
-  CLAPPluginWrapper<PluginClass>::paramsFlush
-};
+// TODO: Implement params extension in next commit
+// template<typename PluginClass>
+// const clap_plugin_params CLAPPluginWrapper<PluginClass>::paramsExt = { ... };
 
 } // namespace ml
