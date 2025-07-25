@@ -3,6 +3,8 @@
 #include "MLSignalProcessor.h"
 #include "MLAudioContext.h"
 #include <clap/clap.h>
+#include <algorithm>
+#include <memory>
 
 namespace ml {
 
@@ -67,8 +69,8 @@ public:
     float** outputs = reinterpret_cast<float**>(process->audio_outputs[0].data32);
 
     // Ultra-simple processing loop - AudioContext handles chunking
-    for (int i = 0; i < process->frames_count; i += ml::kFloatsPerDSPVector) {
-      int samplesThisChunk = std::min(ml::kFloatsPerDSPVector, process->frames_count - i);
+    for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
+      int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
 
       // Copy inputs to AudioContext
       if (process->audio_inputs[0].channel_count > 0) {
@@ -150,6 +152,12 @@ private:
 // Usage: MADRONALIB_EXPORT_CLAP_PLUGIN(ClapSawDemo, "Clap Saw Demo", "Madrona Labs")
 #define MADRONALIB_EXPORT_CLAP_PLUGIN(ClassName, PluginName, VendorName) \
   extern "C" { \
+    static const char* const features[] = { \
+      CLAP_PLUGIN_FEATURE_INSTRUMENT, \
+      CLAP_PLUGIN_FEATURE_SYNTHESIZER, \
+      nullptr \
+    }; \
+    \
     static const clap_plugin_descriptor desc = { \
       CLAP_VERSION_INIT, \
       PluginName "-id", \
@@ -160,16 +168,24 @@ private:
       "", \
       "1.0.0", \
       "Synthesizer", \
-      nullptr \
+      features \
     }; \
     \
-    static const clap_plugin* plugin_create(const clap_host* host) { \
+    static const clap_plugin* plugin_create(const clap_plugin_factory* factory, const clap_host* host, const char* plugin_id) { \
+      if (!clap_version_is_compatible(host->clap_version)) { \
+        return nullptr; \
+      } \
+      if (!plugin_id || strcmp(plugin_id, desc.id) != 0) { \
+        return nullptr; \
+      } \
       return new ml::CLAPPluginWrapper<ClassName>(host, &desc); \
     } \
     \
     static const clap_plugin_factory plugin_factory = { \
-      1, \
-      [](uint32_t index) -> const clap_plugin_descriptor* { \
+      [](const clap_plugin_factory* factory) -> uint32_t { \
+        return 1; \
+      }, \
+      [](const clap_plugin_factory* factory, uint32_t index) -> const clap_plugin_descriptor* { \
         return index == 0 ? &desc : nullptr; \
       }, \
       plugin_create \
