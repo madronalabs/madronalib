@@ -36,7 +36,12 @@ public:
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       wrapper->processor = std::make_unique<PluginClass>();
       // AudioContext handles everything - no complex setup needed!
-      wrapper->audioContext = std::make_unique<AudioContext>(0, 2, 48000.0);
+      // Create with 2 inputs and 2 outputs for stereo processing
+      // TODO: generalize input/output channels
+      wrapper->audioContext = std::make_unique<AudioContext>(2, 2, 48000.0);
+      // Need to set polyphony for EventsToSignals
+      // TODO: generalize polyphony. Does effect vs instrument matter here?
+      wrapper->audioContext->setInputPolyphony(16);
       wrapper->processor->setAudioContext(wrapper->audioContext.get());
       return true;
     };
@@ -70,7 +75,7 @@ public:
     if (!process || !audioContext || !processor) {
       return CLAP_PROCESS_CONTINUE;
     }
-    
+
     if (process->audio_inputs_count == 0 || process->audio_outputs_count == 0) {
       return CLAP_PROCESS_CONTINUE;
     }
@@ -80,33 +85,32 @@ public:
       convertCLAPEventsToAudioContext(process->in_events);
     }
 
-    // Cast I/O pointers with safety checks
+    // Get I/O pointers with safety checks (data32 is already float**)
     const float** inputs = nullptr;
     float** outputs = nullptr;
-    
+
     if (process->audio_inputs && process->audio_inputs[0].data32) {
-      inputs = const_cast<const float**>(
-        reinterpret_cast<float**>(process->audio_inputs[0].data32));
+      inputs = const_cast<const float**>(process->audio_inputs[0].data32);
     }
-    
+
     if (process->audio_outputs && process->audio_outputs[0].data32) {
-      outputs = reinterpret_cast<float**>(process->audio_outputs[0].data32);
+      outputs = process->audio_outputs[0].data32;
     }
 
     if (!outputs) {
       return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
     }
 
-    // Ultra-simple processing loop - AudioContext handles chunking
+    // AudioContext handles chunking
     for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
       int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
 
       // Copy inputs to AudioContext (if available)
       if (inputs && process->audio_inputs[0].channel_count > 0) {
         for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = inputs[0] ? inputs[0][i + j] : 0.0f;
-          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1 && inputs[1]) ?
-                                      inputs[1][i + j] : (inputs[0] ? inputs[0][i + j] : 0.0f);
+          audioContext->inputs[0][j] = inputs[0][i + j];
+          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
+                                      inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
         }
       } else {
         // Clear inputs if no input available
@@ -122,10 +126,14 @@ public:
       // User processor just does DSP on processed context
       processor->processAudioContext();
 
-      // Copy outputs from AudioContext
-      for (int j = 0; j < samplesThisChunk; ++j) {
-        if (outputs[0]) outputs[0][i + j] = audioContext->outputs[0][j];
-        if (outputs[1]) outputs[1][i + j] = audioContext->outputs[1][j];
+      // Copy outputs from AudioContext to CLAP buffers
+      if (process->audio_outputs[0].channel_count >= 1) {
+        for (int j = 0; j < samplesThisChunk; ++j) {
+          outputs[0][i + j] = audioContext->outputs[0][j];
+          if (process->audio_outputs[0].channel_count >= 2) {
+            outputs[1][i + j] = audioContext->outputs[1][j];
+          }
+        }
       }
     }
 
@@ -145,10 +153,10 @@ public:
   static uint32_t audioPortsCount(const clap_plugin* plugin, bool is_input) {
     return 1; // One stereo input, one stereo output
   }
-  
+
   static bool audioPortsGet(const clap_plugin* plugin, uint32_t index, bool is_input, clap_audio_port_info* info) {
     if (index != 0) return false;
-    
+
     info->id = 0;
     snprintf(info->name, sizeof(info->name), "%s", is_input ? "Audio Input" : "Audio Output");
     info->channel_count = 2;
@@ -157,24 +165,24 @@ public:
     info->in_place_pair = 0; // Both input and output point to each other (stereo in-place processing)
     return true;
   }
-  
+
   static const clap_plugin_audio_ports audioPortsExt;
 
   // Note Ports Extension - Essential for MIDI input
   static uint32_t notePortsCount(const clap_plugin* plugin, bool is_input) {
     return is_input ? 1 : 0; // One MIDI input, no MIDI output
   }
-  
+
   static bool notePortsGet(const clap_plugin* plugin, uint32_t index, bool is_input, clap_note_port_info* info) {
     if (!is_input || index != 0) return false;
-    
+
     info->id = 0;
     snprintf(info->name, sizeof(info->name), "MIDI Input");
     info->supported_dialects = CLAP_NOTE_DIALECT_CLAP | CLAP_NOTE_DIALECT_MIDI;
     info->preferred_dialect = CLAP_NOTE_DIALECT_CLAP;
     return true;
   }
-  
+
   static const clap_plugin_note_ports notePortsExt;
 
   // TODO: Params Extension - For plugin parameters (implement in next commit)
@@ -197,8 +205,8 @@ private:
           mlEvent.type = ml::kNoteOn;
           mlEvent.channel = noteEvent->channel;
           mlEvent.sourceIdx = noteEvent->key;
-          mlEvent.value1 = noteEvent->velocity;
-          mlEvent.value2 = noteEvent->note_id;
+          mlEvent.value1 = noteEvent->key;        // MIDI note number
+          mlEvent.value2 = noteEvent->velocity;   // MIDI velocity
           break;
         }
         case CLAP_EVENT_NOTE_OFF: {
@@ -206,8 +214,8 @@ private:
           mlEvent.type = ml::kNoteOff;
           mlEvent.channel = noteEvent->channel;
           mlEvent.sourceIdx = noteEvent->key;
-          mlEvent.value1 = noteEvent->velocity;
-          mlEvent.value2 = noteEvent->note_id;
+          mlEvent.value1 = noteEvent->key;
+          mlEvent.value2 = noteEvent->velocity;
           break;
         }
         case CLAP_EVENT_PARAM_VALUE: {
@@ -241,6 +249,7 @@ private:
       nullptr \
     }; \
     \
+    // TODO: make this pretty
     static const clap_plugin_descriptor desc = { \
       CLAP_VERSION_INIT, \
       PluginName "-id", \
