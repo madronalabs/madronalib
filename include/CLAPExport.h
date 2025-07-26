@@ -3,6 +3,7 @@
 #include "MLSignalProcessor.h"
 #include "MLAudioContext.h"
 #include <clap/clap.h>
+#include <sstream>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
 // #include <clap/ext/params.h>  // TODO: Add back when implementing params extension
@@ -21,6 +22,7 @@ template<typename PluginClass>
 class CLAPPluginWrapper : public clap_plugin {
 private:
   const clap_host* host;
+  const clap_host_log* hostLog;
   std::unique_ptr<PluginClass> processor;
   std::unique_ptr<AudioContext> audioContext;
   const clap_plugin_descriptor* descriptor;
@@ -29,26 +31,42 @@ public:
   CLAPPluginWrapper(const clap_host* h, const clap_plugin_descriptor* desc)
     : host(h), descriptor(desc) {
 
-    // Initialize CLAP plugin structure with ultra-simple processing
+    // Initialize CLAP logging extension
+    hostLog = nullptr;
+    if (host && host->get_extension) {
+      hostLog = static_cast<const clap_host_log*>(host->get_extension(host, CLAP_EXT_LOG));
+      fprintf(stderr, "[CLAP WRAPPER] Host log extension: %p\n", hostLog);
+      fflush(stderr);
+    }
+
     this->desc = descriptor;
     this->plugin_data = this;
+
+    // Initialize CLAP plugin structure with simple processing
     this->init = [](const clap_plugin* plugin) -> bool {
+
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       wrapper->processor = std::make_unique<PluginClass>();
+
       // AudioContext handles everything - no complex setup needed!
       // Create with 2 inputs and 2 outputs for stereo processing
       // TODO: generalize input/output channels
       wrapper->audioContext = std::make_unique<AudioContext>(2, 2, 48000.0);
+
       // Need to set polyphony for EventsToSignals
       // TODO: generalize polyphony. Does effect vs instrument matter here?
       wrapper->audioContext->setInputPolyphony(16);
+
       wrapper->processor->setAudioContext(wrapper->audioContext.get());
       return true;
+
     };
+
     this->destroy = [](const clap_plugin* plugin) {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       delete wrapper;
     };
+
     this->activate = [](const clap_plugin* plugin, double sr, uint32_t min, uint32_t max) -> bool {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       wrapper->audioContext->setSampleRate(sr);
@@ -56,19 +74,48 @@ public:
       return true;
     };
     this->deactivate = [](const clap_plugin* plugin) {};
+
     this->start_processing = [](const clap_plugin* plugin) -> bool { return true; };
     this->stop_processing = [](const clap_plugin* plugin) {};
+
     this->reset = [](const clap_plugin* plugin) {};
+
     this->process = [](const clap_plugin* plugin, const clap_process* process) -> clap_process_status {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       return wrapper->processAudio(process);
     };
+
     this->get_extension = [](const clap_plugin* plugin, const char* id) -> const void* {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       return wrapper->getExtension(id);
     };
+
     this->on_main_thread = [](const clap_plugin* plugin) {};
   }
+
+  // CLAP Logging (thread-safe(?) logging to host console)
+  void log(clap_log_severity severity, const std::string& message) const {
+    if (hostLog && hostLog->log) {
+      hostLog->log(host, severity, message.c_str());
+    } else {
+      // Fallback to standard output if host doesn't support logging
+      const char* severityStr = "";
+      switch (severity) {
+        case CLAP_LOG_DEBUG: severityStr = "DEBUG"; break;
+        case CLAP_LOG_INFO: severityStr = "INFO"; break;
+        case CLAP_LOG_WARNING: severityStr = "WARNING"; break;
+        case CLAP_LOG_ERROR: severityStr = "ERROR"; break;
+        default: severityStr = "LOG"; break;
+      }
+      printf("[CLAP %s] %s\n", severityStr, message.c_str());
+    }
+  }
+
+  // logging helpers
+  void logDebug(const std::string& message) const { log(CLAP_LOG_DEBUG, message); }
+  void logInfo(const std::string& message) const { log(CLAP_LOG_INFO, message); }
+  void logWarning(const std::string& message) const { log(CLAP_LOG_WARNING, message); }
+  void logError(const std::string& message) const { log(CLAP_LOG_ERROR, message); }
 
   clap_process_status processAudio(const clap_process* process) {
     // Safety checks to prevent crashes
