@@ -16,7 +16,6 @@
 
 namespace ml {
 
-// Ultra-simple wrapper - AudioContext handles everything!
 // Template parameter: PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
 template<typename PluginClass>
 class CLAPPluginWrapper : public clap_plugin {
@@ -135,15 +134,12 @@ public:
     // Get I/O pointers with safety checks (data32 is already float**)
     const float** inputs = nullptr;
     float** outputs = nullptr;
-
     if (process->audio_inputs && process->audio_inputs[0].data32) {
       inputs = const_cast<const float**>(process->audio_inputs[0].data32);
     }
-
     if (process->audio_outputs && process->audio_outputs[0].data32) {
       outputs = process->audio_outputs[0].data32;
     }
-
     if (!outputs) {
       return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
     }
@@ -191,8 +187,8 @@ public:
   const void* getExtension(const char* id) {
     if (strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &audioPortsExt;
     if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
-    // For now, don't expose params extension until madronalib parameter enumeration is available
-    // if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
+    if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
+    if (strcmp(id, CLAP_EXT_STATE) == 0) return &stateExt;
     return nullptr;
   }
 
@@ -209,7 +205,11 @@ public:
     info->channel_count = 2;
     info->flags = CLAP_AUDIO_PORT_IS_MAIN;
     info->port_type = CLAP_PORT_STEREO;
-    info->in_place_pair = 0; // Both input and output point to each other (stereo in-place processing)
+
+    // in-place processing: allow the host to use the same buffer for input and output
+    // if supported set the pair port id.
+    // if not supported set to CLAP_INVALID_ID
+    info->in_place_pair = 0;
     return true;
   }
 
@@ -232,8 +232,210 @@ public:
 
   static const clap_plugin_note_ports notePortsExt;
 
-  // TODO: Params Extension - For plugin parameters (implement in next commit)
-  // Will implement proper ParameterTree integration with madronalib parameter system
+  // Params Extension - integrate with ParameterTree
+
+  static uint32_t paramsCount(const clap_plugin* plugin) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !wrapper->processor) return 0;
+    return wrapper->processor->getParameterCount();
+  }
+
+  static bool paramsInfo(const clap_plugin* plugin, uint32_t index, clap_param_info* info) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !wrapper->processor || !info) return false;
+
+    const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
+    uint32_t currentIndex = 0;
+
+    for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+      if (currentIndex == index) {
+        const auto& paramDesc = *it;
+        if (!paramDesc) return false;
+
+        auto paramName = paramDesc->getTextProperty("name");
+        auto range = paramDesc->getMatrixPropertyWithDefault("range", ml::Matrix{0.0f, 1.0f});
+        auto defaultVal = paramDesc->getFloatPropertyWithDefault("default", 0.5f);
+
+        info->id = index;
+        strncpy(info->name, paramName.getText(), CLAP_NAME_SIZE - 1);
+        info->name[CLAP_NAME_SIZE - 1] = '\0';
+        info->min_value = range[0];
+        info->max_value = range[1];
+        info->default_value = ml::clamp(defaultVal, (float)info->min_value, (float)info->max_value);
+        info->flags = CLAP_PARAM_IS_AUTOMATABLE;
+        info->module[0] = '\0';
+
+        return true;
+      }
+      currentIndex++;
+    }
+
+    return false;
+  }
+
+  static bool paramsValue(const clap_plugin* plugin, clap_id param_id, double* value) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !wrapper->processor || !value) return false;
+
+    const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
+    uint32_t currentIndex = 0;
+
+    for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+      if (currentIndex == param_id) {
+        const auto& paramDesc = *it;
+        if (paramDesc) {
+          auto paramName = paramDesc->getTextProperty("name");
+          *value = wrapper->processor->getNormalizedFloatParam(paramName);
+          return true;
+        }
+      }
+      currentIndex++;
+    }
+
+    return false;
+  }
+
+  static bool paramsValueToText(const clap_plugin* plugin, clap_id param_id, double value,
+                               char* out_buffer, uint32_t out_buffer_capacity) {
+    if (!out_buffer) return false;
+    snprintf(out_buffer, out_buffer_capacity, "%.3f", value);
+    return true;
+  }
+
+  static bool paramsTextToValue(const clap_plugin* plugin, clap_id param_id,
+                               const char* param_value_text, double* out_value) {
+    if (!param_value_text || !out_value) return false;
+    try {
+      *out_value = std::stod(param_value_text);
+      return true;
+    } catch (const std::exception&) {
+      return false;
+    }
+  }
+
+  static void paramsFlush(const clap_plugin* plugin, const clap_input_events* in,
+                         const clap_output_events* out) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !wrapper->processor || !in) return;
+
+    uint32_t eventCount = in->size(in);
+    if (eventCount > 0) {
+      std::ostringstream logMsg;
+      logMsg << "paramsFlush: Processing " << eventCount << " parameter events";
+      wrapper->logInfo(logMsg.str());
+    }
+
+    for (uint32_t i = 0; i < eventCount; ++i) {
+      const clap_event_header* header = in->get(in, i);
+      if (!header) continue;
+
+      if (header->type == CLAP_EVENT_PARAM_VALUE) {
+        const auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
+
+        const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
+        uint32_t currentIndex = 0;
+
+        for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+          if (currentIndex == paramEvent->param_id) {
+            const auto& paramDesc = *it;
+            if (paramDesc) {
+              auto paramName = paramDesc->getTextProperty("name");
+              wrapper->processor->setParamFromNormalizedValue(paramName, paramEvent->value);
+              break;
+            }
+          }
+          currentIndex++;
+        }
+      }
+    }
+  }
+
+  static const clap_plugin_params paramsExt;
+
+  // State Extension - Save/load plugin state
+
+  static bool stateSave(const clap_plugin* plugin, const clap_ostream* stream) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !wrapper->processor || !stream) return false;
+
+    try {
+      // Get normalized parameter values from ParameterTree
+      const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
+
+      // Simple JSON serialization - more robust than binary for now
+      std::string jsonData = "{";
+      bool first = true;
+
+      for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
+        if (!first) jsonData += ",";
+        first = false;
+
+        ml::Path paramPath = it.getCurrentPath();
+        ml::Value paramValue = *it;
+
+                 jsonData += "\"" + std::string(pathToText(paramPath).getText()) + "\":" + std::to_string(paramValue.getFloatValue());
+      }
+      jsonData += "}";
+
+      // Write to CLAP stream
+      int64_t bytesWritten = stream->write(stream, jsonData.c_str(), jsonData.length());
+      return bytesWritten == static_cast<int64_t>(jsonData.length());
+
+    } catch (const std::exception&) {
+      return false;
+    }
+  }
+
+  static bool stateLoad(const clap_plugin* plugin, const clap_istream* stream) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !wrapper->processor || !stream) return false;
+
+    try {
+      // Read all available data from stream
+      std::string jsonData;
+      char buffer[4096];
+
+      int64_t bytesRead;
+      while ((bytesRead = stream->read(stream, buffer, sizeof(buffer))) > 0) {
+        jsonData.append(buffer, bytesRead);
+      }
+
+      if (jsonData.empty()) return false;
+
+      // Simple JSON parsing - just look for "param":value patterns
+      // This is a minimal implementation that handles our simple JSON format
+      size_t pos = 0;
+      while ((pos = jsonData.find("\"", pos)) != std::string::npos) {
+        size_t nameStart = pos + 1;
+        size_t nameEnd = jsonData.find("\"", nameStart);
+        if (nameEnd == std::string::npos) break;
+
+        std::string paramName = jsonData.substr(nameStart, nameEnd - nameStart);
+
+        size_t colonPos = jsonData.find(":", nameEnd);
+        if (colonPos == std::string::npos) break;
+
+        size_t valueStart = colonPos + 1;
+        size_t valueEnd = jsonData.find_first_of(",}", valueStart);
+        if (valueEnd == std::string::npos) break;
+
+        std::string valueStr = jsonData.substr(valueStart, valueEnd - valueStart);
+        float value = std::stof(valueStr);
+
+                 // Set the parameter value
+         wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+
+        pos = valueEnd;
+      }
+
+      return true;
+
+    } catch (const std::exception&) {
+      return false;
+    }
+  }
+
+  static const clap_plugin_state stateExt;
 
 private:
   void convertCLAPEventsToAudioContext(const clap_input_events* events) {
@@ -242,6 +444,10 @@ private:
 
     for (uint32_t i = 0; i < events->size(events); ++i) {
       const clap_event_header* header = events->get(events, i);
+
+      // std::ostringstream logMsg;
+      // logMsg << "(" << header->time << ")" << " processing event type: " << header->type;
+      // logDebug(logMsg.str());
 
       ml::Event mlEvent;
       mlEvent.time = header->time;
@@ -282,7 +488,9 @@ private:
   }
 };
 
-// Export macro - generates complete CLAP plugin from ultra-simple SignalProcessor
+// Export macro - generates complete CLAP plugin from a SignalProcessor
+  // TODO: generalize CLAP_PLUGN_FEATURE_*
+  // TODO: read features and descriptors from yml or json; anything to take from `python clone_plugin.py`?
 // Parameters:
 //   ClassName = your SignalProcessor-derived class (e.g., ClapSawDemo)
 //   PluginName = display name for DAW (e.g., "Clap Saw Demo")
@@ -310,10 +518,16 @@ extern "C" { \
   }; \
   \
   static const clap_plugin* plugin_create(const clap_plugin_factory* factory, const clap_host* host, const char* plugin_id) { \
+    if (!host) { \
+      return nullptr; \
+    } \
     if (!clap_version_is_compatible(host->clap_version)) { \
       return nullptr; \
     } \
-    if (!plugin_id || strcmp(plugin_id, desc.id) != 0) { \
+    if (!plugin_id) { \
+      return nullptr; \
+    } \
+    if (strcmp(plugin_id, desc.id) != 0) { \
       return nullptr; \
     } \
     return new ml::CLAPPluginWrapper<ClassName>(host, &desc); \
@@ -352,8 +566,20 @@ const clap_plugin_note_ports CLAPPluginWrapper<PluginClass>::notePortsExt = {
   CLAPPluginWrapper<PluginClass>::notePortsGet
 };
 
-// TODO: Implement params extension in next commit
-// template<typename PluginClass>
-// const clap_plugin_params CLAPPluginWrapper<PluginClass>::paramsExt = { ... };
+template<typename PluginClass>
+const clap_plugin_params CLAPPluginWrapper<PluginClass>::paramsExt = {
+  CLAPPluginWrapper<PluginClass>::paramsCount,
+  CLAPPluginWrapper<PluginClass>::paramsInfo,
+  CLAPPluginWrapper<PluginClass>::paramsValue,
+  CLAPPluginWrapper<PluginClass>::paramsValueToText,
+  CLAPPluginWrapper<PluginClass>::paramsTextToValue,
+  CLAPPluginWrapper<PluginClass>::paramsFlush
+};
+
+template<typename PluginClass>
+const clap_plugin_state CLAPPluginWrapper<PluginClass>::stateExt = {
+  CLAPPluginWrapper<PluginClass>::stateSave,
+  CLAPPluginWrapper<PluginClass>::stateLoad
+};
 
 } // namespace ml
