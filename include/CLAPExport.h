@@ -6,7 +6,8 @@
 #include <sstream>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
-// #include <clap/ext/params.h>  // TODO: Add back when implementing params extension
+#include <clap/ext/params.h>
+#include <clap/ext/state.h>
 #include <algorithm>
 #include <memory>
 #include <cstring>
@@ -119,10 +120,12 @@ public:
   clap_process_status processAudio(const clap_process* process) {
     // Safety checks to prevent crashes
     if (!process || !audioContext || !processor) {
+      logWarning("processAudio: Missing required components");
       return CLAP_PROCESS_CONTINUE;
     }
 
     if (process->audio_inputs_count == 0 || process->audio_outputs_count == 0) {
+      logWarning("processAudio: No audio I/O available");
       return CLAP_PROCESS_CONTINUE;
     }
 
@@ -145,36 +148,49 @@ public:
     }
 
     // AudioContext handles chunking
-    for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
-      int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
+    try {
+      for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
+        int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
 
-      // Copy inputs to AudioContext (if available)
-      if (inputs && process->audio_inputs[0].channel_count > 0) {
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = inputs[0][i + j];
-          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
-                                      inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
+        // Copy inputs to AudioContext (if available)
+        if (inputs && process->audio_inputs[0].channel_count > 0) {
+          for (int j = 0; j < samplesThisChunk; ++j) {
+            audioContext->inputs[0][j] = inputs[0][i + j];
+            audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
+                                        inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
+          }
+        } else {
+          // Clear inputs if no input available
+          for (int j = 0; j < samplesThisChunk; ++j) {
+            audioContext->inputs[0][j] = 0.0f;
+            audioContext->inputs[1][j] = 0.0f;
+          }
         }
-      } else {
-        // Clear inputs if no input available
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = 0.0f;
-          audioContext->inputs[1][j] = 0.0f;
+
+        // AudioContext processes everything (events, voices, timing)
+        audioContext->processVector(i);
+
+        // User processor just does DSP on processed context
+        processor->processAudioContext();
+
+        // Copy outputs from AudioContext to CLAP buffers
+        if (process->audio_outputs[0].channel_count >= 1) {
+          for (int j = 0; j < samplesThisChunk; ++j) {
+            outputs[0][i + j] = audioContext->outputs[0][j];
+            if (process->audio_outputs[0].channel_count >= 2) {
+              outputs[1][i + j] = audioContext->outputs[1][j];
+            }
+          }
         }
       }
-
-      // AudioContext processes everything (events, voices, timing)
-      audioContext->processVector(i);
-
-      // User processor just does DSP on processed context
-      processor->processAudioContext();
-
-      // Copy outputs from AudioContext to CLAP buffers
-      if (process->audio_outputs[0].channel_count >= 1) {
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          outputs[0][i + j] = audioContext->outputs[0][j];
+    } catch (const std::exception& e) {
+      logError("processAudio: Exception in processing loop: " + std::string(e.what()));
+      // Fill output with silence on error
+      for (int i = 0; i < process->frames_count; ++i) {
+        if (process->audio_outputs[0].channel_count >= 1) {
+          outputs[0][i] = 0.0f;
           if (process->audio_outputs[0].channel_count >= 2) {
-            outputs[1][i + j] = audioContext->outputs[1][j];
+            outputs[1][i] = 0.0f;
           }
         }
       }
@@ -285,7 +301,7 @@ public:
         const auto& paramDesc = *it;
         if (paramDesc) {
           auto paramName = paramDesc->getTextProperty("name");
-          *value = wrapper->processor->getNormalizedFloatParam(paramName);
+          *value = wrapper->processor->getRealFloatParam(paramName);
           return true;
         }
       }
@@ -305,10 +321,44 @@ public:
   static bool paramsTextToValue(const clap_plugin* plugin, clap_id param_id,
                                const char* param_value_text, double* out_value) {
     if (!param_value_text || !out_value) return false;
+
+    // auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    // if (wrapper) {
+    //   std::ostringstream logMsg;
+    //   logMsg << "paramsTextToValue: param_id=" << param_id << " text='" << param_value_text << "'";
+    //   wrapper->logInfo(logMsg.str());
+    // }
+
     try {
       *out_value = std::stod(param_value_text);
+      // if (wrapper) {
+      //   std::ostringstream logMsg2;
+      //   logMsg2 << "paramsTextToValue: converted to value=" << *out_value;
+      //   wrapper->logInfo(logMsg2.str());
+      // }
+
+      // If Bitwig is using this method, we need to actually set the parameter. This isn't clear to me.
+      if (wrapper && wrapper->processor) {
+        const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
+        uint32_t currentIndex = 0;
+
+        for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+          if (currentIndex == param_id) {
+            const auto& paramDesc = *it;
+            if (paramDesc) {
+              auto paramName = paramDesc->getTextProperty("name");
+              // wrapper->logInfo("paramsTextToValue: Setting parameter " + std::string(paramName.getText()) + " to " + std::to_string(*out_value));
+              wrapper->processor->setParamFromNormalizedValue(paramName, *out_value);
+              break;
+            }
+          }
+          currentIndex++;
+        }
+      }
+
       return true;
     } catch (const std::exception&) {
+      if (wrapper) wrapper->logError("paramsTextToValue: Failed to convert text to value");
       return false;
     }
   }
@@ -319,11 +369,14 @@ public:
     if (!wrapper || !wrapper->processor || !in) return;
 
     uint32_t eventCount = in->size(in);
-    if (eventCount > 0) {
-      std::ostringstream logMsg;
-      logMsg << "paramsFlush: Processing " << eventCount << " parameter events";
-      wrapper->logInfo(logMsg.str());
-    }
+
+    // if (eventCount > 0) {
+    //   std::ostringstream eventLog;
+    //   eventLog << "paramsFlush: Processing " << eventCount << " parameter events";
+    //   wrapper->logInfo(eventLog.str());
+    // } else {
+    //   wrapper->logInfo("paramsFlush: No events to process");
+    // }
 
     for (uint32_t i = 0; i < eventCount; ++i) {
       const clap_event_header* header = in->get(in, i);
@@ -340,6 +393,17 @@ public:
             const auto& paramDesc = *it;
             if (paramDesc) {
               auto paramName = paramDesc->getTextProperty("name");
+
+              // // DEBUG: Log parameter updates
+              // std::ostringstream updateLog;
+              // updateLog << "paramsFlush: Setting " << paramName
+              //          << " to " << paramEvent->value;
+              // wrapper->logInfo(updateLog.str());
+
+              // // DEBUG: Also log to stderr for immediate visibility
+              // fprintf(stderr, "[CLAP DEBUG] Setting parameter %s to %f\n", paramName.getText(), paramEvent->value);
+              // fflush(stderr);
+
               wrapper->processor->setParamFromNormalizedValue(paramName, paramEvent->value);
               break;
             }
@@ -379,6 +443,9 @@ public:
 
       // Write to CLAP stream
       int64_t bytesWritten = stream->write(stream, jsonData.c_str(), jsonData.length());
+
+      // wrapper->logInfo("stateSave: Wrote JSON data: " + jsonData);
+
       return bytesWritten == static_cast<int64_t>(jsonData.length());
 
     } catch (const std::exception&) {
@@ -402,6 +469,8 @@ public:
 
       if (jsonData.empty()) return false;
 
+      // wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
+
       // Simple JSON parsing - just look for "param":value patterns
       // This is a minimal implementation that handles our simple JSON format
       size_t pos = 0;
@@ -422,8 +491,10 @@ public:
         std::string valueStr = jsonData.substr(valueStart, valueEnd - valueStart);
         float value = std::stof(valueStr);
 
-                 // Set the parameter value
-         wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+        // wrapper->logInfo("stateLoad: Setting parameter " + paramName + " = " + valueStr);
+
+        // Set the parameter value
+        wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
 
         pos = valueEnd;
       }
@@ -455,6 +526,8 @@ private:
       switch (header->type) {
         case CLAP_EVENT_NOTE_ON: {
           auto* noteEvent = reinterpret_cast<const clap_event_note*>(header);
+          // fprintf(stderr, "[CLAP DEBUG] NOTE ON: key=%d velocity=%f\n", noteEvent->key, noteEvent->velocity);
+          // fflush(stderr);
           mlEvent.type = ml::kNoteOn;
           mlEvent.channel = noteEvent->channel;
           mlEvent.sourceIdx = noteEvent->key;
@@ -464,6 +537,8 @@ private:
         }
         case CLAP_EVENT_NOTE_OFF: {
           auto* noteEvent = reinterpret_cast<const clap_event_note*>(header);
+          // fprintf(stderr, "[CLAP DEBUG] NOTE OFF: key=%d velocity=%f\n", noteEvent->key, noteEvent->velocity);
+          // fflush(stderr);
           mlEvent.type = ml::kNoteOff;
           mlEvent.channel = noteEvent->channel;
           mlEvent.sourceIdx = noteEvent->key;
@@ -473,12 +548,79 @@ private:
         }
         case CLAP_EVENT_PARAM_VALUE: {
           auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
+
+          // // DEBUG: Log parameter events
+          // std::ostringstream paramLog;
+          // paramLog << "PARAM EVENT: ID=" << paramEvent->param_id
+          //          << " Value=" << paramEvent->value;
+          // logInfo(paramLog.str());
+
+          // // DEBUG: Also log to stderr for immediate visibility
+          // fprintf(stderr, "[CLAP DEBUG] PARAM EVENT: ID=%d Value=%f\n", paramEvent->param_id, paramEvent->value);
+          // fflush(stderr);
+
+          // Directly update the ParameterTree
+          const auto& descriptions = processor->getParameterTree().descriptions;
+          uint32_t currentIndex = 0;
+
+          for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+            if (currentIndex == paramEvent->param_id) {
+              const auto& paramDesc = *it;
+              if (paramDesc) {
+                auto paramName = paramDesc->getTextProperty("name");
+
+                fprintf(stderr, "[CLAP DEBUG] Directly setting parameter %s to %f\n", paramName.getText(), paramEvent->value);
+                fflush(stderr);
+
+                // DEBUG: Log specific parameter details
+                if (strcmp(paramName.getText(), "f0") == 0) {
+                  fprintf(stderr, "[CLAP DEBUG] f0 parameter - raw value: %f, should be frequency\n", paramEvent->value);
+                  fflush(stderr);
+                } else if (strcmp(paramName.getText(), "Q") == 0) {
+                  fprintf(stderr, "[CLAP DEBUG] Q parameter - raw value: %f, should be Q factor\n", paramEvent->value);
+                  fflush(stderr);
+                }
+
+                // Convert raw values to normalized values
+                float convertedValue = paramEvent->value;
+                if (strcmp(paramName.getText(), "f0") == 0) {
+                  // Convert frequency (10-10000 Hz) to normalized (0-1)
+                  convertedValue = (paramEvent->value - 10.0f) / (10000.0f - 10.0f);
+                  convertedValue = std::max(0.0f, std::min(1.0f, convertedValue));
+                  fprintf(stderr, "[CLAP DEBUG] f0 normalized: %f -> %f\n", paramEvent->value, convertedValue);
+                  fflush(stderr);
+                } else if (strcmp(paramName.getText(), "Q") == 0) {
+                  // Convert Q (0.01-10) to normalized (0-1)
+                  convertedValue = (paramEvent->value - 0.01f) / (10.0f - 0.01f);
+                  convertedValue = std::max(0.0f, std::min(1.0f, convertedValue));
+                  fprintf(stderr, "[CLAP DEBUG] Q normalized: %f -> %f\n", paramEvent->value, convertedValue);
+                  fflush(stderr);
+                }
+                // gain is already 0-1, no conversion needed
+
+                processor->setParamFromNormalizedValue(paramName, convertedValue);
+
+                // DEBUG: Verify the parameter was set correctly
+                float normalizedValue = processor->getNormalizedFloatParam(paramName);
+                float realValue = processor->getRealFloatParam(paramName);
+                fprintf(stderr, "[CLAP DEBUG] After setting - normalized: %.3f, real: %.3f\n",
+                        normalizedValue, realValue);
+                fflush(stderr);
+                break;
+              }
+            }
+            currentIndex++;
+          }
+
+          // Also send as controller event for compatibility
           mlEvent.type = ml::kController;
           mlEvent.sourceIdx = paramEvent->param_id;
           mlEvent.value1 = paramEvent->value;
           break;
         }
         default:
+          fprintf(stderr, "[CLAP DEBUG] UNKNOWN EVENT TYPE: %d\n", header->type);
+          fflush(stderr);
           continue;  // Skip unknown events
       }
 
