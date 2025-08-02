@@ -2,17 +2,20 @@
 
 #include "MLSignalProcessor.h"
 #include "MLAudioContext.h"
+
 #include <clap/clap.h>
-#include <sstream>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
 #include <clap/ext/params.h>
 #include <clap/ext/state.h>
+#include <clap/ext/gui.h>
+
 #include <algorithm>
 #include <memory>
 #include <cstring>
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 #include <string>
 
 namespace ml {
@@ -27,6 +30,14 @@ private:
   std::unique_ptr<AudioContext> audioContext;
   const clap_plugin_descriptor* descriptor;
 
+#ifdef HAS_GUI
+  void* pluginGUI = nullptr;
+  void* platformWindow = nullptr;
+  uint32_t guiWidth = 400;
+  uint32_t guiHeight = 300;
+  bool guiCreated = false;
+#endif
+
 public:
   CLAPPluginWrapper(const clap_host* h, const clap_plugin_descriptor* desc)
     : host(h), descriptor(desc) {
@@ -35,8 +46,6 @@ public:
     hostLog = nullptr;
     if (host && host->get_extension) {
       hostLog = static_cast<const clap_host_log*>(host->get_extension(host, CLAP_EXT_LOG));
-      fprintf(stderr, "[CLAP WRAPPER] Host log extension: %p\n", hostLog);
-      fflush(stderr);
     }
 
     this->desc = descriptor;
@@ -205,6 +214,7 @@ public:
     if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
     if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
     if (strcmp(id, CLAP_EXT_STATE) == 0) return &stateExt;
+    if (strcmp(id, CLAP_EXT_GUI) == 0) return &guiExt;
     return nullptr;
   }
 
@@ -338,6 +348,7 @@ public:
       // }
 
       // If Bitwig is using this method, we need to actually set the parameter. This isn't clear to me.
+      auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       if (wrapper && wrapper->processor) {
         const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
         uint32_t currentIndex = 0;
@@ -358,6 +369,7 @@ public:
 
       return true;
     } catch (const std::exception&) {
+      auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       if (wrapper) wrapper->logError("paramsTextToValue: Failed to convert text to value");
       return false;
     }
@@ -400,10 +412,6 @@ public:
               //          << " to " << paramEvent->value;
               // wrapper->logInfo(updateLog.str());
 
-              // // DEBUG: Also log to stderr for immediate visibility
-              // fprintf(stderr, "[CLAP DEBUG] Setting parameter %s to %f\n", paramName.getText(), paramEvent->value);
-              // fflush(stderr);
-
               wrapper->processor->setParamFromNormalizedValue(paramName, paramEvent->value);
               break;
             }
@@ -426,7 +434,7 @@ public:
       // Get normalized parameter values from ParameterTree
       const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
 
-      // Simple JSON serialization - more robust than binary for now
+      // Simple JSON serialization - more stable than binary for now
       std::string jsonData = "{";
       bool first = true;
 
@@ -437,7 +445,7 @@ public:
         ml::Path paramPath = it.getCurrentPath();
         ml::Value paramValue = *it;
 
-                 jsonData += "\"" + std::string(pathToText(paramPath).getText()) + "\":" + std::to_string(paramValue.getFloatValue());
+        jsonData += "\"" + std::string(pathToText(paramPath).getText()) + "\":" + std::to_string(paramValue.getFloatValue());
       }
       jsonData += "}";
 
@@ -508,9 +516,189 @@ public:
 
   static const clap_plugin_state stateExt;
 
+  // GUI Extension - Simple GUI support
+  static bool guiIsApiSupported(const clap_plugin* plugin, const char* api, bool is_floating) {
+    // For now, support all APIs - can be customized per plugin
+    return true;
+  }
+
+  static bool guiGetPreferredApi(const clap_plugin* plugin, const char** api, bool* is_floating) {
+    // Default to cocoa on macOS, win32 on Windows, x11 on Linux
+    #ifdef __APPLE__
+    *api = CLAP_WINDOW_API_COCOA;
+    #elif defined(WIN32)
+    *api = CLAP_WINDOW_API_WIN32;
+    #else
+    *api = CLAP_WINDOW_API_X11;
+    #endif
+    *is_floating = false;
+    return true;
+  }
+
+  static bool guiCreate(const clap_plugin* plugin, const char* api, bool is_floating) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper) return false;
+    
+    wrapper->logInfo("GUI: Creating GUI with API: " + std::string(api ? api : "null"));
+    
+#ifdef HAS_GUI
+    try {
+      // Call createGUI on the processor - will only compile if the method exists
+      wrapper->pluginGUI = wrapper->processor->createGUI(400, 300);
+      if (wrapper->pluginGUI) {
+        wrapper->guiCreated = true;
+        wrapper->logInfo("GUI: Successfully created GUI");
+        return true;
+      } else {
+        wrapper->logError("GUI: createGUI returned null");
+        return false;
+      }
+    } catch (const std::exception& e) {
+      wrapper->logError("GUI: Failed to create GUI: " + std::string(e.what()));
+      return false;
+    }
+#else
+    wrapper->logInfo("GUI: GUI support disabled at compile time");
+    return false;
+#endif
+  }
+
+  static void guiDestroy(const clap_plugin* plugin) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (wrapper) {
+      wrapper->logInfo("GUI: Destroying GUI");
+#ifdef HAS_GUI
+      if (wrapper->pluginGUI && wrapper->processor) {
+        wrapper->processor->destroyGUI(wrapper->pluginGUI);
+      }
+      wrapper->pluginGUI = nullptr;
+      wrapper->guiCreated = false;
+      wrapper->platformWindow = nullptr;
+#endif
+    }
+  }
+
+  static bool guiSetScale(const clap_plugin* plugin, double scale) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper) return false;
+    
+    wrapper->logInfo("GUI: Setting scale to " + std::to_string(scale));
+    return true;
+  }
+
+  static bool guiGetSize(const clap_plugin* plugin, uint32_t* width, uint32_t* height) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !width || !height) return false;
+    
+#ifdef HAS_GUI
+    *width = wrapper->guiWidth;
+    *height = wrapper->guiHeight;
+#else
+    *width = 400;
+    *height = 300;
+#endif
+    return true;
+  }
+
+  static bool guiCanResize(const clap_plugin* plugin) {
+    return true;
+  }
+
+  static bool guiGetResizeHints(const clap_plugin* plugin, clap_gui_resize_hints* hints) {
+    if (!hints) return false;
+    hints->can_resize_horizontally = true;
+    hints->can_resize_vertically = true;
+    hints->preserve_aspect_ratio = false;
+    return true;
+  }
+
+  static bool guiAdjustSize(const clap_plugin* plugin, uint32_t* width, uint32_t* height) {
+    if (!width || !height) return false;
+    // For now, just accept the requested size
+    return true;
+  }
+
+  static bool guiSetSize(const clap_plugin* plugin, uint32_t width, uint32_t height) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper) return false;
+    
+    wrapper->logInfo("GUI: Setting size to " + std::to_string(width) + "x" + std::to_string(height));
+    return true;
+  }
+
+  static bool guiSetParent(const clap_plugin* plugin, const clap_window* window) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !window) return false;
+    
+    wrapper->logInfo("GUI: Setting parent window with API: " + std::string(window->api));
+    
+#ifdef HAS_GUI
+    // Store platform window handle
+    if (strcmp(window->api, CLAP_WINDOW_API_COCOA) == 0) {
+      wrapper->platformWindow = window->cocoa;
+    } else if (strcmp(window->api, CLAP_WINDOW_API_X11) == 0) {
+      wrapper->platformWindow = reinterpret_cast<void*>(window->x11);
+    } else if (strcmp(window->api, CLAP_WINDOW_API_WIN32) == 0) {
+      wrapper->platformWindow = window->win32;
+    }
+    
+    // Call processor's setGUIParent method
+    if (wrapper->pluginGUI && wrapper->processor) {
+      wrapper->processor->setGUIParent(wrapper->pluginGUI, wrapper->platformWindow);
+    }
+    wrapper->logInfo("GUI: Platform window set");
+#endif
+    
+    return true;
+  }
+
+  static bool guiSetTransient(const clap_plugin* plugin, const clap_window* window) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper || !window) return false;
+    
+    wrapper->logInfo("GUI: Setting transient window");
+    return true;
+  }
+
+  static void guiSuggestTitle(const clap_plugin* plugin, const char* title) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (wrapper && title) {
+      wrapper->logInfo("GUI: Suggesting title: " + std::string(title));
+    }
+  }
+
+  static bool guiShow(const clap_plugin* plugin) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (wrapper) {
+      wrapper->logInfo("GUI: Showing GUI");
+#ifdef HAS_GUI
+      if (wrapper->pluginGUI && wrapper->processor) {
+        wrapper->processor->showGUI(wrapper->pluginGUI);
+      }
+#endif
+    }
+    return true;
+  }
+
+  static bool guiHide(const clap_plugin* plugin) {
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (wrapper) {
+      wrapper->logInfo("GUI: Hiding GUI");
+#ifdef HAS_GUI
+      if (wrapper->pluginGUI && wrapper->processor) {
+        wrapper->processor->hideGUI(wrapper->pluginGUI);
+      }
+#endif
+    }
+    return true;
+  }
+
+
+
+  static const clap_plugin_gui guiExt;
+
 private:
   void convertCLAPEventsToAudioContext(const clap_input_events* events) {
-    // Ultra-simple: AudioContext handles all event complexity
     audioContext->clearInputEvents();
 
     for (uint32_t i = 0; i < events->size(events); ++i) {
@@ -526,8 +714,6 @@ private:
       switch (header->type) {
         case CLAP_EVENT_NOTE_ON: {
           auto* noteEvent = reinterpret_cast<const clap_event_note*>(header);
-          // fprintf(stderr, "[CLAP DEBUG] NOTE ON: key=%d velocity=%f\n", noteEvent->key, noteEvent->velocity);
-          // fflush(stderr);
           mlEvent.type = ml::kNoteOn;
           mlEvent.channel = noteEvent->channel;
           mlEvent.sourceIdx = noteEvent->key;
@@ -537,8 +723,6 @@ private:
         }
         case CLAP_EVENT_NOTE_OFF: {
           auto* noteEvent = reinterpret_cast<const clap_event_note*>(header);
-          // fprintf(stderr, "[CLAP DEBUG] NOTE OFF: key=%d velocity=%f\n", noteEvent->key, noteEvent->velocity);
-          // fflush(stderr);
           mlEvent.type = ml::kNoteOff;
           mlEvent.channel = noteEvent->channel;
           mlEvent.sourceIdx = noteEvent->key;
@@ -549,15 +733,10 @@ private:
         case CLAP_EVENT_PARAM_VALUE: {
           auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
-          // // DEBUG: Log parameter events
           // std::ostringstream paramLog;
           // paramLog << "PARAM EVENT: ID=" << paramEvent->param_id
           //          << " Value=" << paramEvent->value;
           // logInfo(paramLog.str());
-
-          // // DEBUG: Also log to stderr for immediate visibility
-          // fprintf(stderr, "[CLAP DEBUG] PARAM EVENT: ID=%d Value=%f\n", paramEvent->param_id, paramEvent->value);
-          // fflush(stderr);
 
           // Directly update the ParameterTree
           const auto& descriptions = processor->getParameterTree().descriptions;
@@ -569,43 +748,13 @@ private:
               if (paramDesc) {
                 auto paramName = paramDesc->getTextProperty("name");
 
-                fprintf(stderr, "[CLAP DEBUG] Directly setting parameter %s to %f\n", paramName.getText(), paramEvent->value);
-                fflush(stderr);
-
-                // DEBUG: Log specific parameter details
-                if (strcmp(paramName.getText(), "f0") == 0) {
-                  fprintf(stderr, "[CLAP DEBUG] f0 parameter - raw value: %f, should be frequency\n", paramEvent->value);
-                  fflush(stderr);
-                } else if (strcmp(paramName.getText(), "Q") == 0) {
-                  fprintf(stderr, "[CLAP DEBUG] Q parameter - raw value: %f, should be Q factor\n", paramEvent->value);
-                  fflush(stderr);
-                }
-
-                // Convert raw values to normalized values
-                float convertedValue = paramEvent->value;
-                if (strcmp(paramName.getText(), "f0") == 0) {
-                  // Convert frequency (10-10000 Hz) to normalized (0-1)
-                  convertedValue = (paramEvent->value - 10.0f) / (10000.0f - 10.0f);
-                  convertedValue = std::max(0.0f, std::min(1.0f, convertedValue));
-                  fprintf(stderr, "[CLAP DEBUG] f0 normalized: %f -> %f\n", paramEvent->value, convertedValue);
-                  fflush(stderr);
-                } else if (strcmp(paramName.getText(), "Q") == 0) {
-                  // Convert Q (0.01-10) to normalized (0-1)
-                  convertedValue = (paramEvent->value - 0.01f) / (10.0f - 0.01f);
-                  convertedValue = std::max(0.0f, std::min(1.0f, convertedValue));
-                  fprintf(stderr, "[CLAP DEBUG] Q normalized: %f -> %f\n", paramEvent->value, convertedValue);
-                  fflush(stderr);
-                }
-                // gain is already 0-1, no conversion needed
-
-                processor->setParamFromNormalizedValue(paramName, convertedValue);
+                // CLAP sends parameter values in their real ranges, 
+                // madronalib handles the conversion internally
+                processor->setParamFromRealValue(paramName, paramEvent->value);
 
                 // DEBUG: Verify the parameter was set correctly
                 float normalizedValue = processor->getNormalizedFloatParam(paramName);
                 float realValue = processor->getRealFloatParam(paramName);
-                fprintf(stderr, "[CLAP DEBUG] After setting - normalized: %.3f, real: %.3f\n",
-                        normalizedValue, realValue);
-                fflush(stderr);
                 break;
               }
             }
@@ -619,8 +768,6 @@ private:
           break;
         }
         default:
-          fprintf(stderr, "[CLAP DEBUG] UNKNOWN EVENT TYPE: %d\n", header->type);
-          fflush(stderr);
           continue;  // Skip unknown events
       }
 
@@ -722,6 +869,25 @@ template<typename PluginClass>
 const clap_plugin_state CLAPPluginWrapper<PluginClass>::stateExt = {
   CLAPPluginWrapper<PluginClass>::stateSave,
   CLAPPluginWrapper<PluginClass>::stateLoad
+};
+
+template<typename PluginClass>
+const clap_plugin_gui CLAPPluginWrapper<PluginClass>::guiExt = {
+  CLAPPluginWrapper<PluginClass>::guiIsApiSupported,
+  CLAPPluginWrapper<PluginClass>::guiGetPreferredApi,
+  CLAPPluginWrapper<PluginClass>::guiCreate,
+  CLAPPluginWrapper<PluginClass>::guiDestroy,
+  CLAPPluginWrapper<PluginClass>::guiSetScale,
+  CLAPPluginWrapper<PluginClass>::guiGetSize,
+  CLAPPluginWrapper<PluginClass>::guiCanResize,
+  CLAPPluginWrapper<PluginClass>::guiGetResizeHints,
+  CLAPPluginWrapper<PluginClass>::guiAdjustSize,
+  CLAPPluginWrapper<PluginClass>::guiSetSize,
+  CLAPPluginWrapper<PluginClass>::guiSetParent,
+  CLAPPluginWrapper<PluginClass>::guiSetTransient,
+  CLAPPluginWrapper<PluginClass>::guiSuggestTitle,
+  CLAPPluginWrapper<PluginClass>::guiShow,
+  CLAPPluginWrapper<PluginClass>::guiHide
 };
 
 } // namespace ml
