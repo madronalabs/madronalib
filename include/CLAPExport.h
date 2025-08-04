@@ -10,6 +10,11 @@
 #include <clap/ext/state.h>
 #include <clap/ext/gui.h>
 
+#ifdef HAS_GUI
+#include "MLPlatformView.h"
+#include "MLAppView.h"
+#endif
+
 #include <algorithm>
 #include <memory>
 #include <cstring>
@@ -20,8 +25,10 @@
 
 namespace ml {
 
-// Template parameter: PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
-template<typename PluginClass>
+// Template parameters: 
+// PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
+// GUIClass = your AppView-derived class (e.g., ClapSawDemoGUI) - use void for no GUI
+template<typename PluginClass, typename GUIClass = void>
 class CLAPPluginWrapper : public clap_plugin {
 private:
   const clap_host* host;
@@ -31,8 +38,8 @@ private:
   const clap_plugin_descriptor* descriptor;
 
 #ifdef HAS_GUI
-  void* pluginGUI = nullptr;
-  void* platformWindow = nullptr;
+  std::unique_ptr<GUIClass> guiInstance;
+  std::unique_ptr<PlatformView> platformView;
   uint32_t guiWidth = 400;
   uint32_t guiHeight = 300;
   bool guiCreated = false;
@@ -67,6 +74,14 @@ public:
       wrapper->audioContext->setInputPolyphony(16);
 
       wrapper->processor->setAudioContext(wrapper->audioContext.get());
+      
+#ifdef HAS_GUI
+      // Set up logging callback for GUI debugging
+      wrapper->processor->setHostLogCallback([wrapper](int severity, const char* message) {
+        wrapper->log(static_cast<clap_log_severity>(severity), std::string(message));
+      });
+#endif
+      
       return true;
 
     };
@@ -311,7 +326,7 @@ public:
         const auto& paramDesc = *it;
         if (paramDesc) {
           auto paramName = paramDesc->getTextProperty("name");
-          *value = wrapper->processor->getRealFloatParam(paramName);
+          *value = wrapper->processor->getNormalizedFloatParam(paramName);
           return true;
         }
       }
@@ -405,12 +420,6 @@ public:
             const auto& paramDesc = *it;
             if (paramDesc) {
               auto paramName = paramDesc->getTextProperty("name");
-
-              // // DEBUG: Log parameter updates
-              // std::ostringstream updateLog;
-              // updateLog << "paramsFlush: Setting " << paramName
-              //          << " to " << paramEvent->value;
-              // wrapper->logInfo(updateLog.str());
 
               wrapper->processor->setParamFromNormalizedValue(paramName, paramEvent->value);
               break;
@@ -542,19 +551,19 @@ public:
     wrapper->logInfo("GUI: Creating GUI with API: " + std::string(api ? api : "null"));
     
 #ifdef HAS_GUI
-    try {
-      // Call createGUI on the processor - will only compile if the method exists
-      wrapper->pluginGUI = wrapper->processor->createGUI(400, 300);
-      if (wrapper->pluginGUI) {
+    if constexpr (!std::is_void_v<GUIClass>) {
+      try {
+        // Create GUI instance directly - no need for processor to handle it
+        wrapper->guiInstance = std::make_unique<GUIClass>(wrapper->processor.get());
         wrapper->guiCreated = true;
-        wrapper->logInfo("GUI: Successfully created GUI");
+        wrapper->logInfo("GUI: Successfully created GUI instance");
         return true;
-      } else {
-        wrapper->logError("GUI: createGUI returned null");
+      } catch (const std::exception& e) {
+        wrapper->logError("GUI: Failed to create GUI: " + std::string(e.what()));
         return false;
       }
-    } catch (const std::exception& e) {
-      wrapper->logError("GUI: Failed to create GUI: " + std::string(e.what()));
+    } else {
+      wrapper->logInfo("GUI: No GUI class specified");
       return false;
     }
 #else
@@ -568,12 +577,24 @@ public:
     if (wrapper) {
       wrapper->logInfo("GUI: Destroying GUI");
 #ifdef HAS_GUI
-      if (wrapper->pluginGUI && wrapper->processor) {
-        wrapper->processor->destroyGUI(wrapper->pluginGUI);
+      if constexpr (!std::is_void_v<GUIClass>) {
+        if (wrapper->guiInstance) {
+          wrapper->guiInstance->stopTimersAndActor();
+          wrapper->logInfo("GUI: Stopped AppView timers");
+          
+          wrapper->guiInstance->clearResources();
+          wrapper->logInfo("GUI: Cleared AppView resources");
+        }
+        
+        // Explicitly destroy PlatformView first, then the GUI instance
+        wrapper->platformView.reset();
+        wrapper->logInfo("GUI: PlatformView reset");
+        
+        wrapper->guiInstance.reset();
+        wrapper->logInfo("GUI: GUI instance reset");
+
+        wrapper->guiCreated = false;
       }
-      wrapper->pluginGUI = nullptr;
-      wrapper->guiCreated = false;
-      wrapper->platformWindow = nullptr;
 #endif
     }
   }
@@ -591,6 +612,20 @@ public:
     if (!wrapper || !width || !height) return false;
     
 #ifdef HAS_GUI
+    if constexpr (!std::is_void_v<GUIClass>) {
+      if (wrapper->guiInstance) {
+        // Get size from MLVG's grid system using getDefaultDims()
+        auto defaultDims = wrapper->guiInstance->getDefaultDims();
+        
+        *width = static_cast<uint32_t>(defaultDims.x());
+        *height = static_cast<uint32_t>(defaultDims.y());
+        
+        wrapper->logInfo("GUI: Reporting size from MLVG: " + std::to_string(*width) + "x" + std::to_string(*height));
+        return true;
+      }
+    }
+    
+    // Fallback to default size if no GUI instance
     *width = wrapper->guiWidth;
     *height = wrapper->guiHeight;
 #else
@@ -633,23 +668,65 @@ public:
     wrapper->logInfo("GUI: Setting parent window with API: " + std::string(window->api));
     
 #ifdef HAS_GUI
-    // Store platform window handle
-    if (strcmp(window->api, CLAP_WINDOW_API_COCOA) == 0) {
-      wrapper->platformWindow = window->cocoa;
-    } else if (strcmp(window->api, CLAP_WINDOW_API_X11) == 0) {
-      wrapper->platformWindow = reinterpret_cast<void*>(window->x11);
-    } else if (strcmp(window->api, CLAP_WINDOW_API_WIN32) == 0) {
-      wrapper->platformWindow = window->win32;
+    if constexpr (!std::is_void_v<GUIClass>) {
+      if (!wrapper->guiInstance) {
+        wrapper->logError("GUI: No GUI instance to attach");
+        return false;
+      }
+      
+      // Extract platform window handle
+      void* nativeWindow = nullptr;
+      if (strcmp(window->api, CLAP_WINDOW_API_COCOA) == 0) {
+        nativeWindow = window->cocoa;
+      } else if (strcmp(window->api, CLAP_WINDOW_API_X11) == 0) {
+        nativeWindow = reinterpret_cast<void*>(window->x11);
+      } else if (strcmp(window->api, CLAP_WINDOW_API_WIN32) == 0) {
+        nativeWindow = window->win32;
+      }
+      
+      if (!nativeWindow) {
+        wrapper->logError("GUI: Unsupported platform window API");
+        return false;
+      }
+      
+      try {
+        // Debug: Log the native window pointer and AppView pointer
+        wrapper->logInfo("GUI: Creating PlatformView with window: " + 
+                        std::to_string(reinterpret_cast<uintptr_t>(nativeWindow)));
+        wrapper->logInfo("GUI: Creating PlatformView with AppView: " + 
+                        std::to_string(reinterpret_cast<uintptr_t>(wrapper->guiInstance.get())));
+        
+        // Create PlatformView internally - plugin never sees it!
+        wrapper->platformView = std::make_unique<PlatformView>(
+          wrapper->descriptor->name, nativeWindow, wrapper->guiInstance.get(), nullptr, 0, 60
+        );
+        
+        // Initialize resources but don't attach yet - move to guiShow
+        wrapper->guiInstance->initializeResources(wrapper->platformView->getNativeDrawContext());
+        
+        // Inform AppView of its initial size to set up coordinate system
+        uint32_t width, height;
+        guiGetSize(plugin, &width, &height);
+        wrapper->logInfo("GUI: Informing AppView of initial size: " + std::to_string(width) + "x" + std::to_string(height));
+        float displayScale = PlatformView::getDeviceScaleForWindow(nativeWindow);
+        wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, displayScale);
+        
+        // Don't create widgets or attach here - move to guiShow
+        
+        wrapper->logInfo("GUI: Platform view created successfully, parent set");
+        return true;
+      } catch (const std::exception& e) {
+        wrapper->logError("GUI: Failed to create platform view: " + std::string(e.what()));
+        return false;
+      }
+    } else {
+      wrapper->logInfo("GUI: No GUI class specified");
+      return false;
     }
-    
-    // Call processor's setGUIParent method
-    if (wrapper->pluginGUI && wrapper->processor) {
-      wrapper->processor->setGUIParent(wrapper->pluginGUI, wrapper->platformWindow);
-    }
-    wrapper->logInfo("GUI: Platform window set");
+#else
+    wrapper->logInfo("GUI: GUI support disabled at compile time");
+    return false;
 #endif
-    
-    return true;
   }
 
   static bool guiSetTransient(const clap_plugin* plugin, const clap_window* window) {
@@ -672,8 +749,36 @@ public:
     if (wrapper) {
       wrapper->logInfo("GUI: Showing GUI");
 #ifdef HAS_GUI
-      if (wrapper->pluginGUI && wrapper->processor) {
-        wrapper->processor->showGUI(wrapper->pluginGUI);
+      if constexpr (!std::is_void_v<GUIClass>) {
+        if (wrapper->platformView && wrapper->guiInstance) {
+          // Try creating widgets here - after everything is fully initialized
+          static bool widgetsCreated = false;
+          if (!widgetsCreated) {
+            try {
+              wrapper->logInfo("GUI: Creating widgets in guiShow");
+              wrapper->guiInstance->makeWidgets();
+              
+              // Connect widgets to parameters automatically
+              wrapper->guiInstance->connectParameters();
+              wrapper->logInfo("GUI: Connected widgets to parameters");
+              
+              // CRITICAL: Follow Sumu pattern - attach BEFORE starting timers
+              wrapper->platformView->attachViewToParent();
+              wrapper->logInfo("GUI: Platform view attached in guiShow");
+              
+              // CRITICAL: Start AppView timers AFTER attachment (Sumu pattern)
+              wrapper->guiInstance->startTimersAndActor();
+              wrapper->logInfo("GUI: Started AppView timers for event processing");
+              
+              widgetsCreated = true;
+              wrapper->logInfo("GUI: Widgets created successfully");
+            } catch (const std::exception& e) {
+              wrapper->logError("GUI: Failed to create widgets: " + std::string(e.what()));
+            }
+          }
+          
+          wrapper->logInfo("GUI: Platform view already visible");
+        }
       }
 #endif
     }
@@ -685,8 +790,11 @@ public:
     if (wrapper) {
       wrapper->logInfo("GUI: Hiding GUI");
 #ifdef HAS_GUI
-      if (wrapper->pluginGUI && wrapper->processor) {
-        wrapper->processor->hideGUI(wrapper->pluginGUI);
+      if constexpr (!std::is_void_v<GUIClass>) {
+        if (wrapper->platformView) {
+          // PlatformView handles hiding automatically when detached
+          wrapper->logInfo("GUI: Platform view hidden");
+        }
       }
 #endif
     }
@@ -778,8 +886,6 @@ private:
 };
 
 // Export macro - generates complete CLAP plugin from a SignalProcessor
-  // TODO: generalize CLAP_PLUGN_FEATURE_*
-  // TODO: read features and descriptors from yml or json; anything to take from `python clone_plugin.py`?
 // Parameters:
 //   ClassName = your SignalProcessor-derived class (e.g., ClapSawDemo)
 //   PluginName = display name for DAW (e.g., "Clap Saw Demo")
@@ -842,52 +948,116 @@ extern "C" { \
   }; \
 }
 
+// Export macro for plugins with GUI
+// Parameters:
+//   ClassName = your SignalProcessor-derived class (e.g., ClapSawDemo)
+//   GUIClass = your AppView-derived class (e.g., ClapSawDemoGUI)
+//   PluginName = display name for DAW (e.g., "Clap Saw Demo")
+//   VendorName = company name (e.g., "Madrona Labs")
+// Usage: MADRONALIB_EXPORT_CLAP_PLUGIN_WITH_GUI(ClapSawDemo, ClapSawDemoGUI, "Clap Saw Demo", "Madrona Labs")
+#define MADRONALIB_EXPORT_CLAP_PLUGIN_WITH_GUI(ClassName, GUIClass, PluginName, VendorName) \
+extern "C" { \
+  static const char* const features[] = { \
+    CLAP_PLUGIN_FEATURE_INSTRUMENT, \
+    CLAP_PLUGIN_FEATURE_SYNTHESIZER, \
+    nullptr \
+  }; \
+  \
+  static const clap_plugin_descriptor desc = { \
+    CLAP_VERSION_INIT, \
+    PluginName "-id", \
+    PluginName, \
+    VendorName, \
+    "https://madronalabs.com", \
+    "", \
+    "", \
+    "1.0.0", \
+    "Synthesizer", \
+    features \
+  }; \
+  \
+  static const clap_plugin* plugin_create(const clap_plugin_factory* factory, const clap_host* host, const char* plugin_id) { \
+    if (!host) { \
+      return nullptr; \
+    } \
+    if (!clap_version_is_compatible(host->clap_version)) { \
+      return nullptr; \
+    } \
+    if (!plugin_id) { \
+      return nullptr; \
+    } \
+    if (strcmp(plugin_id, desc.id) != 0) { \
+      return nullptr; \
+    } \
+    return new ml::CLAPPluginWrapper<ClassName, GUIClass>(host, &desc); \
+  } \
+  \
+  static const clap_plugin_factory plugin_factory = { \
+    [](const clap_plugin_factory* factory) -> uint32_t { \
+      return 1; \
+    }, \
+    [](const clap_plugin_factory* factory, uint32_t index) -> const clap_plugin_descriptor* { \
+      return index == 0 ? &desc : nullptr; \
+    }, \
+    plugin_create \
+  }; \
+  \
+  const CLAP_EXPORT clap_plugin_entry clap_entry = { \
+    CLAP_VERSION_INIT, \
+    [](const char* path) -> bool { return true; }, \
+    []() {}, \
+    [](const char* factory_id) -> const void* { \
+      return strcmp(factory_id, CLAP_PLUGIN_FACTORY_ID) == 0 ? &plugin_factory : nullptr; \
+    } \
+  }; \
+}
+
 // Static extension structure definitions
-template<typename PluginClass>
-const clap_plugin_audio_ports CLAPPluginWrapper<PluginClass>::audioPortsExt = {
-  CLAPPluginWrapper<PluginClass>::audioPortsCount,
-  CLAPPluginWrapper<PluginClass>::audioPortsGet
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_audio_ports CLAPPluginWrapper<PluginClass, GUIClass>::audioPortsExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::audioPortsCount,
+  CLAPPluginWrapper<PluginClass, GUIClass>::audioPortsGet
 };
 
-template<typename PluginClass>
-const clap_plugin_note_ports CLAPPluginWrapper<PluginClass>::notePortsExt = {
-  CLAPPluginWrapper<PluginClass>::notePortsCount,
-  CLAPPluginWrapper<PluginClass>::notePortsGet
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_note_ports CLAPPluginWrapper<PluginClass, GUIClass>::notePortsExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::notePortsCount,
+  CLAPPluginWrapper<PluginClass, GUIClass>::notePortsGet
 };
 
-template<typename PluginClass>
-const clap_plugin_params CLAPPluginWrapper<PluginClass>::paramsExt = {
-  CLAPPluginWrapper<PluginClass>::paramsCount,
-  CLAPPluginWrapper<PluginClass>::paramsInfo,
-  CLAPPluginWrapper<PluginClass>::paramsValue,
-  CLAPPluginWrapper<PluginClass>::paramsValueToText,
-  CLAPPluginWrapper<PluginClass>::paramsTextToValue,
-  CLAPPluginWrapper<PluginClass>::paramsFlush
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_params CLAPPluginWrapper<PluginClass, GUIClass>::paramsExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::paramsCount,
+  CLAPPluginWrapper<PluginClass, GUIClass>::paramsInfo,
+  CLAPPluginWrapper<PluginClass, GUIClass>::paramsValue,
+  CLAPPluginWrapper<PluginClass, GUIClass>::paramsValueToText,
+  CLAPPluginWrapper<PluginClass, GUIClass>::paramsTextToValue,
+  CLAPPluginWrapper<PluginClass, GUIClass>::paramsFlush
 };
 
-template<typename PluginClass>
-const clap_plugin_state CLAPPluginWrapper<PluginClass>::stateExt = {
-  CLAPPluginWrapper<PluginClass>::stateSave,
-  CLAPPluginWrapper<PluginClass>::stateLoad
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_state CLAPPluginWrapper<PluginClass, GUIClass>::stateExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::stateSave,
+  CLAPPluginWrapper<PluginClass, GUIClass>::stateLoad
 };
 
-template<typename PluginClass>
-const clap_plugin_gui CLAPPluginWrapper<PluginClass>::guiExt = {
-  CLAPPluginWrapper<PluginClass>::guiIsApiSupported,
-  CLAPPluginWrapper<PluginClass>::guiGetPreferredApi,
-  CLAPPluginWrapper<PluginClass>::guiCreate,
-  CLAPPluginWrapper<PluginClass>::guiDestroy,
-  CLAPPluginWrapper<PluginClass>::guiSetScale,
-  CLAPPluginWrapper<PluginClass>::guiGetSize,
-  CLAPPluginWrapper<PluginClass>::guiCanResize,
-  CLAPPluginWrapper<PluginClass>::guiGetResizeHints,
-  CLAPPluginWrapper<PluginClass>::guiAdjustSize,
-  CLAPPluginWrapper<PluginClass>::guiSetSize,
-  CLAPPluginWrapper<PluginClass>::guiSetParent,
-  CLAPPluginWrapper<PluginClass>::guiSetTransient,
-  CLAPPluginWrapper<PluginClass>::guiSuggestTitle,
-  CLAPPluginWrapper<PluginClass>::guiShow,
-  CLAPPluginWrapper<PluginClass>::guiHide
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_gui CLAPPluginWrapper<PluginClass, GUIClass>::guiExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiIsApiSupported,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiGetPreferredApi,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiCreate,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiDestroy,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiSetScale,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiGetSize,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiCanResize,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiGetResizeHints,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiAdjustSize,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiSetSize,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiSetParent,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiSetTransient,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiSuggestTitle,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiShow,
+  CLAPPluginWrapper<PluginClass, GUIClass>::guiHide
 };
 
 } // namespace ml
