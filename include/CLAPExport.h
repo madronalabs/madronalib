@@ -4,6 +4,7 @@
 #include "MLAudioContext.h"
 
 #include <clap/clap.h>
+#include <clap/ext/log.h>
 #include <clap/ext/audio-ports.h>
 #include <clap/ext/note-ports.h>
 #include <clap/ext/params.h>
@@ -13,6 +14,10 @@
 #ifdef HAS_GUI
 #include "MLPlatformView.h"
 #include "MLAppView.h"
+#include "MLDialBasic.h"
+#include "MLTextLabelBasic.h"
+#include "MLWidget.h"
+#include "MLDrawContext.h"
 #endif
 
 #include <algorithm>
@@ -25,6 +30,208 @@
 #include <mutex>
 
 namespace ml {
+
+// Generic base class for CLAP SignalProcessors - handles all CLAP-specific boilerplate
+template <typename BaseProcessorClass = ml::SignalProcessor>
+class CLAPSignalProcessor : public BaseProcessorClass {
+protected:
+  // CLAP callback storage
+  std::function<void(int, const char*)> hostLogCallback;
+  std::function<void()> hostParameterFlushCallback;
+  std::function<void(int32_t, double)> parameterChangedCallback;
+
+public:
+  template<typename... Args>
+  CLAPSignalProcessor(Args&&... args) : BaseProcessorClass(std::forward<Args>(args)...) {}
+  virtual ~CLAPSignalProcessor() = default;
+
+  // Generic CLAP interface methods (no plugin-specific code)
+  uint32_t getParameterCount() const { return this->_params.descriptions.size(); }
+  
+  // CLAP logging interface
+  void setHostLogCallback(std::function<void(int, const char*)> callback) {
+    hostLogCallback = callback;
+    if (hostLogCallback) {
+      logToHost(CLAP_LOG_INFO, "CLAPSignalProcessor: Host logging callback initialized successfully");
+    }
+  }
+  
+  void logToHost(int severity, const char* message) {
+    if (hostLogCallback) {
+      hostLogCallback(severity, message);
+    }
+  }
+
+  // CLAP parameter flush interface
+  void setHostParameterFlushCallback(std::function<void()> callback) {
+    hostParameterFlushCallback = callback;
+    logToHost(CLAP_LOG_INFO, "Host parameter flush callback set");
+  }
+  
+  void requestHostParameterFlush() {
+    if (hostParameterFlushCallback) {
+      logToHost(CLAP_LOG_INFO, "Calling host parameter flush callback");
+      hostParameterFlushCallback();
+    } else {
+      logToHost(CLAP_LOG_WARNING, "No host parameter flush callback available");
+    }
+  }
+
+  // Generic parameter ID lookup by name
+  int32_t getParameterIdByName(const std::string& name) const {
+    const auto& descriptions = this->_params.descriptions;
+    int32_t currentIndex = 0;
+
+    for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+      const auto& paramDesc = *it;
+      if (paramDesc) {
+        std::string paramName = std::string(paramDesc->getTextProperty("name").getText());
+        if (paramName == name) {
+          return currentIndex;
+        }
+      }
+      currentIndex++;
+    }
+    return -1; // Not found
+  }
+
+  // CLAP parameter change tracking
+  void setParameterChangedCallback(std::function<void(int32_t, double)> callback) {
+    parameterChangedCallback = callback;
+    logToHost(CLAP_LOG_INFO, "Parameter changed callback set");
+  }
+  
+  void notifyParameterChanged(const std::string& name, double realValue) {
+    int32_t paramId = getParameterIdByName(name);
+    if (paramId >= 0 && parameterChangedCallback) {
+      std::string logMsg = "Notifying wrapper: param " + name + " (id=" + std::to_string(paramId) +
+                          ") changed to " + std::to_string(realValue);
+      logToHost(CLAP_LOG_INFO, logMsg.c_str());
+      parameterChangedCallback(paramId, realValue);
+    }
+  }
+  
+  // Default voice activity - plugins can override
+  virtual bool hasActiveVoices() const { return false; }
+};
+
+#ifdef HAS_GUI
+// Generic base class for CLAP AppViews - handles all common functionality
+template <typename ProcessorClass>
+class CLAPAppView : public ml::AppView {
+protected:
+  ProcessorClass* processor;
+  
+public:
+  CLAPAppView(const std::string& name, ProcessorClass* proc) 
+    : ml::AppView(name.c_str(), 1), processor(proc) {
+    
+    // Set up default grid system
+    setGridSizeDefault(60);
+    setGridSizeLimits(30, 120);
+    setFixedAspectRatio({10, 4});  // Default 10x4 layout
+  }
+  
+  virtual ~CLAPAppView() = default;
+  
+  // Plugin-specific methods that subclasses MUST implement
+  virtual void makeWidgets() = 0;
+  virtual void initializeResources(NativeDrawContext* nvg) override = 0;
+  
+  // Generic parameter connection (handles all the boilerplate)
+  void connectParameters() {
+    if (!processor) return;
+    
+    // Convert ParameterTree to ParameterDescriptionList for _setupWidgets
+    ml::ParameterDescriptionList pdl;
+    for (const auto& paramDesc : processor->getParameterTree().descriptions) {
+      pdl.push_back(std::make_unique<ml::ParameterDescription>(*paramDesc));
+    }
+    
+    // Set all widgets visible
+    ml::forEach<ml::Widget>(_view->_widgets, [&](ml::Widget& w) {
+      w.setProperty("visible", true);
+    });
+    
+    // Connect widgets to parameters
+    _setupWidgets(pdl);
+    
+    // Initial sync: Update widgets with current processor values
+    for (const auto& paramDesc : processor->getParameterTree().descriptions) {
+      std::string paramName = std::string(paramDesc->getTextProperty("name").getText());
+      float normalizedValue = processor->getNormalizedFloatParam(ml::Path(paramName.c_str()));
+      
+      ml::Path msgPath = ml::Path("set_param", paramName.c_str());
+      ml::Message msg{msgPath, normalizedValue};
+      msg.flags |= ml::kMsgFromController;  // Prevent echo back
+      enqueueMessage(msg);
+    }
+  }
+  
+  // Generic parameter message handling
+  void onMessage(Message msg) override {
+    if (processor && msg.address) {
+      ml::Path addr = msg.address;
+      
+      // Handle parameter changes from widgets
+      if (addr.getSize() > 2 && second(addr) == "set_param") {
+        ml::Path paramName = tail(tail(addr));
+        float normalizedValue = msg.value.getFloatValue();
+        std::string paramNameStr = std::string(pathToText(paramName).getText());
+        
+        // Update processor parameter
+        processor->setParamFromNormalizedValue(paramNameStr.c_str(), normalizedValue);
+        
+        // Get real value for host notification
+        float realValue = processor->getRealFloatParam(ml::Path(paramNameStr.c_str()));
+        
+        // Notify wrapper about parameter change (for GUI→Host sync)
+        processor->notifyParameterChanged(paramNameStr, realValue);
+        
+        // Request host parameter flush
+        processor->requestHostParameterFlush();
+      }
+    }
+    
+    AppView::onMessage(msg);
+  }
+  
+  // Force event processing for CLAP plugins
+  void animate(NativeDrawContext* nvg) override {
+    // CRITICAL: Force event processing for CLAP plugins
+    _handleGUIEvents();
+    
+    AppView::animate(nvg);
+  }
+  
+  // Generic widget layout
+  void layoutView(DrawContext dc) override {
+    ml::forEach<ml::Widget>(_view->_widgets, [&](ml::Widget& w) {
+      w.resize(dc);
+    });
+  }
+  
+  // Default render - subclasses can override if needed
+  void render(NativeDrawContext* nvg) override {
+    AppView::render(nvg);
+  }
+  
+  // Default clear resources - subclasses can override if needed
+  void clearResources() override {
+    // Default implementation does nothing
+  }
+  
+  // Default GUI event handling - subclasses can override if needed
+  void onGUIEvent(const GUIEvent& event) override {
+    // Default implementation does nothing
+  }
+  
+  // Default resize handling - subclasses can override if needed  
+  void onResize(Vec2 newSize) override {
+    // Default implementation does nothing
+  }
+};
+#endif
 
 // Template parameters: 
 // PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
