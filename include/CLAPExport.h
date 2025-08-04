@@ -22,6 +22,7 @@
 #include <cstdlib>
 #include <sstream>
 #include <string>
+#include <mutex>
 
 namespace ml {
 
@@ -90,6 +91,11 @@ public:
         wrapper->requestHostParameterFlush();
       });
       
+      // Set up parameter changed callback for GUI->Host sync
+      wrapper->processor->setParameterChangedCallback([wrapper](int32_t paramId, double realValue) {
+        wrapper->markParameterChanged(paramId, realValue);
+      });
+      
       return true;
 
     };
@@ -149,7 +155,7 @@ public:
   void logWarning(const std::string& message) const { log(CLAP_LOG_WARNING, message); }
   void logError(const std::string& message) const { log(CLAP_LOG_ERROR, message); }
 
-  // Parameter synchronization methods
+    // Parameter synchronization methods
   void notifyGUIParameterChange(const Path& paramName, float normalizedValue) {
 #ifdef HAS_GUI
     if constexpr (!std::is_void_v<GUIClass>) {
@@ -163,11 +169,35 @@ public:
     }
 #endif
   }
-
+  
   void requestHostParameterFlush() {
     if (hostParams && hostParams->request_flush) {
+      logInfo("Requesting host parameter flush");
       hostParams->request_flush(host);
+    } else {
+      logWarning("Host parameter extension not available for flush request");
     }
+  }
+  
+  // Track parameter changes for GUI->Host sync
+  struct ChangedParam {
+    clap_id id;
+    double value;
+  };
+  std::vector<ChangedParam> changedParams;
+  std::mutex changedParamsMutex;
+  
+  void markParameterChanged(clap_id paramId, double realValue) {
+    std::lock_guard<std::mutex> lock(changedParamsMutex);
+    // Check if already in list
+    for (auto& cp : changedParams) {
+      if (cp.id == paramId) {
+        cp.value = realValue;
+        return;
+      }
+    }
+    // Add new changed parameter
+    changedParams.push_back({paramId, realValue});
   }
 
   clap_process_status processAudio(const clap_process* process) {
@@ -248,6 +278,42 @@ public:
         }
       }
     }
+    
+    // Send any pending parameter changes from GUI to host
+    if (process->out_events) {
+      std::lock_guard<std::mutex> lock(changedParamsMutex);
+      if (!changedParams.empty()) {
+        logInfo("process: Sending " + std::to_string(changedParams.size()) + " parameter changes");
+        
+        for (const auto& cp : changedParams) {
+          // Create parameter value event
+          clap_event_param_value event;
+          event.header.size = sizeof(clap_event_param_value);
+          event.header.time = 0;  // Beginning of this process block
+          event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+          event.header.type = CLAP_EVENT_PARAM_VALUE;
+          event.header.flags = 0;
+          
+          event.param_id = cp.id;
+          event.cookie = nullptr;
+          event.note_id = -1;  // Global parameter change
+          event.port_index = -1;
+          event.channel = -1;
+          event.key = -1;
+          event.value = cp.value;  // Real value matching reported range
+          
+          // Try to push the event
+          if (!process->out_events->try_push(process->out_events, &event.header)) {
+            logWarning("process: Failed to push parameter change event for param " + std::to_string(cp.id));
+          } else {
+            logInfo("process: Sent parameter change: id=" + std::to_string(cp.id) + 
+                    " value=" + std::to_string(cp.value));
+          }
+        }
+        // Clear the changed parameters list
+        changedParams.clear();
+      }
+    }
 
     return processor->hasActiveVoices() ? CLAP_PROCESS_CONTINUE : CLAP_PROCESS_SLEEP;
   }
@@ -324,14 +390,22 @@ public:
 
         auto paramName = paramDesc->getTextProperty("name");
         auto range = paramDesc->getMatrixPropertyWithDefault("range", ml::Matrix{0.0f, 1.0f});
-        auto defaultVal = paramDesc->getFloatPropertyWithDefault("default", 0.5f);
+        
+        // Get default value - try plaindefault first (real value), then default
+        float realDefaultVal = 0.5f * (range[0] + range[1]); // middle of range as fallback
+        if (paramDesc->hasProperty("plaindefault")) {
+          realDefaultVal = paramDesc->getFloatProperty("plaindefault");
+        } else if (paramDesc->hasProperty("default")) {
+          // Legacy: if using "default", treat as real value
+          realDefaultVal = paramDesc->getFloatProperty("default");
+        }
 
         info->id = index;
         strncpy(info->name, paramName.getText(), CLAP_NAME_SIZE - 1);
         info->name[CLAP_NAME_SIZE - 1] = '\0';
         info->min_value = range[0];
         info->max_value = range[1];
-        info->default_value = ml::clamp(defaultVal, (float)info->min_value, (float)info->max_value);
+        info->default_value = ml::clamp(realDefaultVal, (float)info->min_value, (float)info->max_value);
         info->flags = CLAP_PARAM_IS_AUTOMATABLE;
         info->module[0] = '\0';
 
@@ -355,7 +429,8 @@ public:
         const auto& paramDesc = *it;
         if (paramDesc) {
           auto paramName = paramDesc->getTextProperty("name");
-          *value = wrapper->processor->getNormalizedFloatParam(paramName);
+          // CLAP expects real values matching the min/max range we reported
+          *value = wrapper->processor->getRealFloatParam(paramName);
           return true;
         }
       }
@@ -422,7 +497,44 @@ public:
   static void paramsFlush(const clap_plugin* plugin, const clap_input_events* in,
                          const clap_output_events* out) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    if (!wrapper || !wrapper->processor || !in) return;
+    if (!wrapper || !wrapper->processor || !in) {
+      if (wrapper) wrapper->logWarning("paramsFlush called with null components");
+      return;
+    }
+    
+    wrapper->logInfo("paramsFlush called, pending changes: " + std::to_string(wrapper->changedParams.size()));
+    
+    // Send any pending parameter changes from GUI to host
+    if (out) {
+      std::lock_guard<std::mutex> lock(wrapper->changedParamsMutex);
+      for (const auto& cp : wrapper->changedParams) {
+        // Create parameter value event
+        clap_event_param_value event;
+        event.header.size = sizeof(clap_event_param_value);
+        event.header.time = 0;
+        event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
+        event.header.type = CLAP_EVENT_PARAM_VALUE;
+        event.header.flags = 0;
+        
+        event.param_id = cp.id;
+        event.cookie = nullptr;
+        event.note_id = -1;  // Global parameter change
+        event.port_index = -1;
+        event.channel = -1;
+        event.key = -1;
+        event.value = cp.value;  // Real value matching reported range
+        
+        // Try to push the event
+        if (!out->try_push(out, &event.header)) {
+          wrapper->logWarning("Failed to push parameter change event for param " + std::to_string(cp.id));
+        } else {
+          wrapper->logInfo("Sent parameter change: id=" + std::to_string(cp.id) + 
+                          " value=" + std::to_string(cp.value));
+        }
+      }
+      // Clear the changed parameters list
+      wrapper->changedParams.clear();
+    }
 
     uint32_t eventCount = in->size(in);
 
@@ -450,10 +562,14 @@ public:
             if (paramDesc) {
               auto paramName = paramDesc->getTextProperty("name");
 
-              wrapper->processor->setParamFromNormalizedValue(paramName, paramEvent->value);
+              // CLAP sends real values matching the reported range
+              wrapper->processor->setParamFromRealValue(paramName, paramEvent->value);
+              
+              // Get normalized value for GUI notification
+              float normalizedValue = wrapper->processor->getNormalizedFloatParam(paramName);
               
               // Notify GUI of parameter change (Host->GUI sync)
-              wrapper->notifyGUIParameterChange(paramName, paramEvent->value);
+              wrapper->notifyGUIParameterChange(paramName, normalizedValue);
               break;
             }
           }

@@ -28,13 +28,13 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   auto units = Symbol(p.getProperty("units").getTextValue());
   bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
   bool bisquare = p.getProperty("bisquare").getBoolValueWithDefault(false);
-  
+
   Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
   float offset = p.getProperty("offset").getFloatValueWithDefault(0.f);
 
   Interval normalRange{0., 1.};
   Interval plainRange{range[0], range[1]};
-  
+
   // make ranges for list parameters
   if (units == "list")
   {
@@ -69,7 +69,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
     {
       b.normalizedToReal =
       compose(projections::add(offset), projections::intervalMap(normalRange, plainRange, projections::log(plainRange)));
-      
+
       b.realToNormalized =
       compose(projections::intervalMap(plainRange, normalRange, projections::exp(plainRange)), projections::add(-offset));
     }
@@ -91,23 +91,23 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
 class ParameterTree
 {
 public:
-  
+
   // TODO why is there not a Parameter object that contains (description, projection, valueNorm, valueReal)?
   // That seems like the sane way to do it. Look carefully to see if there's a good reason we didn't do that and
   // if not, make this more sane.
-  
+
   Tree< std::unique_ptr< ParameterDescription > > descriptions;
   Tree< ParameterProjection > projections;
   Tree< Value > paramsNorm_;
   Tree< Value > paramsReal_;
-  
+
   float convertNormalizedToRealFloatValue(Path pname, Value val) const
   {
     float newNormValue = val.getFloatValue();
     float newRealValue{0};
     auto& pdesc = descriptions[pname];
     if(!pdesc) return 0;
-    
+
     bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
     if(useListValues)
     {
@@ -133,7 +133,7 @@ public:
     if(useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
-      
+
       // get item matching plain value
       for(int i=0; i<listItems.size(); ++i)
       {
@@ -151,14 +151,14 @@ public:
     }
     return newNormValue;
   }
-  
+
   inline Value convertNormalizedToRealValue(Path pname, Value val) const
   {
     if (val.isFloatType())
     {
       auto& pdesc = descriptions[pname];
       if(!pdesc) return 0;
-      
+
       bool integerValues = pdesc->getBoolPropertyWithDefault("integer_values", false);
       float fVal = convertNormalizedToRealFloatValue(pname, val);
       if(integerValues)
@@ -175,7 +175,7 @@ public:
       return val;
     }
   }
-  
+
   inline Value convertRealToNormalizedValue(Path pname, Value val) const
   {
     if (val.isFloatType())
@@ -187,32 +187,32 @@ public:
       return val;
     }
   }
-  
+
   Value::Type getValueType(Path pname) const
   {
     return paramsReal_[pname].getType();
   }
-  
+
   Value getRealValue(Path pname) const
   {
     return paramsReal_[pname];
   }
-  
+
   Value getNormalizedValue(Path pname) const
   {
     return paramsNorm_[pname];
   }
-  
+
   float getRealFloatValue(Path pname) const
   {
     return paramsReal_[pname].getFloatValue();
   }
-  
+
   float getNormalizedFloatValue(Path pname) const
   {
     return paramsNorm_[pname].getFloatValue();
   }
-  
+
   // set a parameter's value without conversion. For params that don't have normalizable values.
   // both normal and real params are set for ease of getting all normalized + non-normalizable values.
   void setValue(Path pname, Value val)
@@ -220,7 +220,7 @@ public:
     paramsNorm_[pname] = val;
     paramsReal_[pname] = val;
   }
-  
+
   inline void setFromNormalizedValue(Path pname, Value val)
   {
     paramsNorm_[pname] = val;
@@ -233,20 +233,20 @@ public:
     }
 #endif
   }
-  
+
   inline void setFromRealValue(Path pname, Value val)
   {
-    
+
 #ifdef DEBUG
     if(pname == watchParameter)
     {
       std::cout << ">>> setting from real value: " << pname << " = " <<  val << "\n";
     }
 #endif
-    
+
     paramsNorm_[pname] = convertRealToNormalizedValue(pname, val);
     paramsReal_[pname] = val;
-    
+
 #ifdef DEBUG
     if(pname == watchParameter)
     {
@@ -254,7 +254,7 @@ public:
     }
 #endif
   }
-  
+
   inline void setFromNormalizedValues(const Tree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
@@ -272,17 +272,17 @@ public:
       setFromRealValue(valName, *it);
     }
   }
-  
+
   const Tree<Value>& getNormalizedValues() const
   {
     return paramsNorm_;
   }
-  
+
   const Tree<Value>& getRealValues() const
   {
     return paramsReal_;
   }
-  
+
   void dump()
   {
     std::cout << "\n----------------------------\n";
@@ -298,7 +298,7 @@ public:
   }
 
   void setWatchParameter(Path pname) {watchParameter = pname;}
-  
+
 protected:
   Path watchParameter{};
 };
@@ -320,7 +320,7 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
   const auto& paramDesc = p.descriptions[pname];
   if(!paramDesc) return Value();
-  
+
   if (paramDesc->hasProperty("default"))
   {
     Value defaultVal = paramDesc->getProperty("default");
@@ -338,11 +338,11 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
         // get blob data from text
        // todo don't repeat this = see MLSerialization
         auto valueText = defaultVal.getTextValue();
- 
+
         auto headerLen = kBlobHeader.lengthInCodePoints();
         auto textLen = valueText.lengthInCodePoints();
         auto body = textUtils::subText(valueText, headerLen, textLen);
-        
+
         auto blobDataVec = textUtils::base64Decode(body.getText());
         auto* pBlobData{reinterpret_cast<const void*>(blobDataVec.data())};
         auto blobValue = Value{pBlobData, blobDataVec.size()};
@@ -356,7 +356,8 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
     }
     else
     {
-      return defaultVal;
+      // Convert real default to normalized value. TODO: clear this with Randy
+      return p.convertRealToNormalizedFloatValue(pname, defaultVal.getFloatValue());
     }
   }
   else if (paramDesc->hasProperty("plaindefault"))
