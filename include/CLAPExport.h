@@ -33,6 +33,7 @@ class CLAPPluginWrapper : public clap_plugin {
 private:
   const clap_host* host;
   const clap_host_log* hostLog;
+  const clap_host_params* hostParams;  // For GUI->Host parameter notifications
   std::unique_ptr<PluginClass> processor;
   std::unique_ptr<AudioContext> audioContext;
   const clap_plugin_descriptor* descriptor;
@@ -49,10 +50,12 @@ public:
   CLAPPluginWrapper(const clap_host* h, const clap_plugin_descriptor* desc)
     : host(h), descriptor(desc) {
 
-    // Initialize CLAP logging extension
+    // Initialize CLAP extensions
     hostLog = nullptr;
+    hostParams = nullptr;
     if (host && host->get_extension) {
       hostLog = static_cast<const clap_host_log*>(host->get_extension(host, CLAP_EXT_LOG));
+      hostParams = static_cast<const clap_host_params*>(host->get_extension(host, CLAP_EXT_PARAMS));
     }
 
     this->desc = descriptor;
@@ -81,6 +84,11 @@ public:
         wrapper->log(static_cast<clap_log_severity>(severity), std::string(message));
       });
 #endif
+
+      // Set up parameter flush callback for GUI->Host sync
+      wrapper->processor->setHostParameterFlushCallback([wrapper]() {
+        wrapper->requestHostParameterFlush();
+      });
       
       return true;
 
@@ -140,6 +148,27 @@ public:
   void logInfo(const std::string& message) const { log(CLAP_LOG_INFO, message); }
   void logWarning(const std::string& message) const { log(CLAP_LOG_WARNING, message); }
   void logError(const std::string& message) const { log(CLAP_LOG_ERROR, message); }
+
+  // Parameter synchronization methods
+  void notifyGUIParameterChange(const Path& paramName, float normalizedValue) {
+#ifdef HAS_GUI
+    if constexpr (!std::is_void_v<GUIClass>) {
+      if (guiInstance) {
+        // Send message to GUI using mlvg messaging system
+        ml::Path msgPath = ml::Path("set_param", paramName);
+        ml::Message msg{msgPath, normalizedValue};
+        msg.flags |= ml::kMsgFromController;  // Prevent echo back to processor
+        guiInstance->enqueueMessage(msg);
+      }
+    }
+#endif
+  }
+
+  void requestHostParameterFlush() {
+    if (hostParams && hostParams->request_flush) {
+      hostParams->request_flush(host);
+    }
+  }
 
   clap_process_status processAudio(const clap_process* process) {
     // Safety checks to prevent crashes
@@ -422,6 +451,9 @@ public:
               auto paramName = paramDesc->getTextProperty("name");
 
               wrapper->processor->setParamFromNormalizedValue(paramName, paramEvent->value);
+              
+              // Notify GUI of parameter change (Host->GUI sync)
+              wrapper->notifyGUIParameterChange(paramName, paramEvent->value);
               break;
             }
           }
@@ -860,9 +892,11 @@ private:
                 // madronalib handles the conversion internally
                 processor->setParamFromRealValue(paramName, paramEvent->value);
 
-                // DEBUG: Verify the parameter was set correctly
+                // Get normalized value for GUI notification
                 float normalizedValue = processor->getNormalizedFloatParam(paramName);
-                float realValue = processor->getRealFloatParam(paramName);
+                
+                // Notify GUI of parameter change (Host->GUI sync)
+                notifyGUIParameterChange(paramName, normalizedValue);
                 break;
               }
             }
