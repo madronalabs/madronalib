@@ -284,7 +284,6 @@ install(FILES include/madronalib.h DESTINATION ${HEADERS_INCLUDE_DIR})
 install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
 install(FILES include/CLAPExport.h DESTINATION ${HEADERS_INCLUDE_DIR})
-install(FILES
 install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
     ${APP_HEADERS}
     ${DSP_HEADERS}
