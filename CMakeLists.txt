@@ -284,7 +284,6 @@ install(FILES include/madronalib.h DESTINATION ${HEADERS_INCLUDE_DIR})
 install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
 install(FILES include/CLAPExport.h DESTINATION ${HEADERS_INCLUDE_DIR})
-install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
     ${APP_HEADERS}
     ${DSP_HEADERS}
     ${MATRIX_HEADERS}
@@ -298,9 +297,8 @@ if(APPLE)
     install(FILES ${NETWORKING_HEADERS} DESTINATION ${HEADERS_INCLUDE_DIR})
 else()
     #TODO OSC For win / Linux
-endif()
 
-
+install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
 #--------------------------------------------------------------------
 # Add platform libraries
 #--------------------------------------------------------------------
