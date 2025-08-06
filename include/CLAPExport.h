@@ -18,6 +18,7 @@
 #include "MLTextLabelBasic.h"
 #include "MLWidget.h"
 #include "MLDrawContext.h"
+#include "MLResizer.h"
 #endif
 
 #include <algorithm>
@@ -47,7 +48,7 @@ public:
 
   // Generic CLAP interface methods (no plugin-specific code)
   uint32_t getParameterCount() const { return this->_params.descriptions.size(); }
-  
+
   // CLAP logging interface
   void setHostLogCallback(std::function<void(int, const char*)> callback) {
     hostLogCallback = callback;
@@ -55,7 +56,7 @@ public:
       logToHost(CLAP_LOG_INFO, "CLAPSignalProcessor: Host logging callback initialized successfully");
     }
   }
-  
+
   void logToHost(int severity, const char* message) {
     if (hostLogCallback) {
       hostLogCallback(severity, message);
@@ -67,7 +68,7 @@ public:
     hostParameterFlushCallback = callback;
     logToHost(CLAP_LOG_INFO, "Host parameter flush callback set");
   }
-  
+
   void requestHostParameterFlush() {
     if (hostParameterFlushCallback) {
       logToHost(CLAP_LOG_INFO, "Calling host parameter flush callback");
@@ -100,7 +101,7 @@ public:
     parameterChangedCallback = callback;
     logToHost(CLAP_LOG_INFO, "Parameter changed callback set");
   }
-  
+
   void notifyParameterChanged(const std::string& name, double realValue) {
     int32_t paramId = getParameterIdByName(name);
     if (paramId >= 0 && parameterChangedCallback) {
@@ -110,7 +111,7 @@ public:
       parameterChangedCallback(paramId, realValue);
     }
   }
-  
+
   // Default voice activity - plugins can override
   virtual bool hasActiveVoices() const { return false; }
 };
@@ -121,119 +122,122 @@ template <typename ProcessorClass>
 class CLAPAppView : public ml::AppView {
 protected:
   ProcessorClass* processor;
-  
+
 public:
-  CLAPAppView(const std::string& name, ProcessorClass* proc) 
+  CLAPAppView(const std::string& name, ProcessorClass* proc)
     : ml::AppView(name.c_str(), 1), processor(proc) {
-    
+
     // Set up default grid system
     setGridSizeDefault(60);
     setGridSizeLimits(30, 120);
     setFixedAspectRatio({10, 4});  // Default 10x4 layout
   }
-  
+
   virtual ~CLAPAppView() = default;
-  
+
   // Plugin-specific methods that subclasses MUST implement
   virtual void makeWidgets() = 0;
   virtual void initializeResources(NativeDrawContext* nvg) override = 0;
-  
+
   // Generic parameter connection (handles all the boilerplate)
   void connectParameters() {
     if (!processor) return;
-    
+
     // Convert ParameterTree to ParameterDescriptionList for _setupWidgets
     ml::ParameterDescriptionList pdl;
     for (const auto& paramDesc : processor->getParameterTree().descriptions) {
       pdl.push_back(std::make_unique<ml::ParameterDescription>(*paramDesc));
     }
-    
+
     // Set all widgets visible
     ml::forEach<ml::Widget>(_view->_widgets, [&](ml::Widget& w) {
       w.setProperty("visible", true);
     });
-    
+
     // Connect widgets to parameters
     _setupWidgets(pdl);
-    
+
     // Initial sync: Update widgets with current processor values
     for (const auto& paramDesc : processor->getParameterTree().descriptions) {
       std::string paramName = std::string(paramDesc->getTextProperty("name").getText());
       float normalizedValue = processor->getNormalizedFloatParam(ml::Path(paramName.c_str()));
-      
+
       ml::Path msgPath = ml::Path("set_param", paramName.c_str());
       ml::Message msg{msgPath, normalizedValue};
       msg.flags |= ml::kMsgFromController;  // Prevent echo back
       enqueueMessage(msg);
     }
   }
-  
+
   // Generic parameter message handling
   void onMessage(Message msg) override {
     if (processor && msg.address) {
       ml::Path addr = msg.address;
-      
+
       // Handle parameter changes from widgets
       if (addr.getSize() > 2 && second(addr) == "set_param") {
         ml::Path paramName = tail(tail(addr));
         float normalizedValue = msg.value.getFloatValue();
         std::string paramNameStr = std::string(pathToText(paramName).getText());
-        
+
         // Update processor parameter
         processor->setParamFromNormalizedValue(paramNameStr.c_str(), normalizedValue);
-        
+
         // Get real value for host notification
         float realValue = processor->getRealFloatParam(ml::Path(paramNameStr.c_str()));
-        
+
         // Notify wrapper about parameter change (for GUI→Host sync)
         processor->notifyParameterChanged(paramNameStr, realValue);
-        
+
         // Request host parameter flush
         processor->requestHostParameterFlush();
       }
     }
-    
+
     AppView::onMessage(msg);
   }
-  
+
   // Force event processing for CLAP plugins
   void animate(NativeDrawContext* nvg) override {
     // CRITICAL: Force event processing for CLAP plugins
     _handleGUIEvents();
-    
+
     AppView::animate(nvg);
   }
-  
+
   // Generic widget layout
   void layoutView(DrawContext dc) override {
     ml::forEach<ml::Widget>(_view->_widgets, [&](ml::Widget& w) {
       w.resize(dc);
     });
   }
-  
+
   // Default render - subclasses can override if needed
   void render(NativeDrawContext* nvg) override {
     AppView::render(nvg);
   }
-  
+
   // Default clear resources - subclasses can override if needed
   void clearResources() override {
     // Default implementation does nothing
   }
-  
+
   // Default GUI event handling - subclasses can override if needed
   void onGUIEvent(const GUIEvent& event) override {
     // Default implementation does nothing
   }
-  
-  // Default resize handling - subclasses can override if needed  
+
+
+
+  // Default resize handling - subclasses can override if needed
   void onResize(Vec2 newSize) override {
-    // Default implementation does nothing
+    // Trigger a redraw when resized
+    setDirty(true);
   }
 };
 #endif
 
-// Template parameters: 
+// Template parameters:
 // PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
 // GUIClass = your AppView-derived class (e.g., ClapSawDemoGUI) - use void for no GUI
 template<typename PluginClass, typename GUIClass = void>
@@ -285,7 +289,7 @@ public:
       wrapper->audioContext->setInputPolyphony(16);
 
       wrapper->processor->setAudioContext(wrapper->audioContext.get());
-      
+
 #ifdef HAS_GUI
       // Set up logging callback for GUI debugging
       wrapper->processor->setHostLogCallback([wrapper](int severity, const char* message) {
@@ -297,12 +301,12 @@ public:
       wrapper->processor->setHostParameterFlushCallback([wrapper]() {
         wrapper->requestHostParameterFlush();
       });
-      
+
       // Set up parameter changed callback for GUI->Host sync
       wrapper->processor->setParameterChangedCallback([wrapper](int32_t paramId, double realValue) {
         wrapper->markParameterChanged(paramId, realValue);
       });
-      
+
       return true;
 
     };
@@ -338,21 +342,10 @@ public:
     this->on_main_thread = [](const clap_plugin* plugin) {};
   }
 
-  // CLAP Logging (thread-safe(?) logging to host console)
+  // CLAP logging (thread-safe?) to host console
   void log(clap_log_severity severity, const std::string& message) const {
     if (hostLog && hostLog->log) {
       hostLog->log(host, severity, message.c_str());
-    } else {
-      // Fallback to standard output if host doesn't support logging
-      const char* severityStr = "";
-      switch (severity) {
-        case CLAP_LOG_DEBUG: severityStr = "DEBUG"; break;
-        case CLAP_LOG_INFO: severityStr = "INFO"; break;
-        case CLAP_LOG_WARNING: severityStr = "WARNING"; break;
-        case CLAP_LOG_ERROR: severityStr = "ERROR"; break;
-        default: severityStr = "LOG"; break;
-      }
-      printf("[CLAP %s] %s\n", severityStr, message.c_str());
     }
   }
 
@@ -376,7 +369,7 @@ public:
     }
 #endif
   }
-  
+
   void requestHostParameterFlush() {
     if (hostParams && hostParams->request_flush) {
       logInfo("Requesting host parameter flush");
@@ -385,7 +378,7 @@ public:
       logWarning("Host parameter extension not available for flush request");
     }
   }
-  
+
   // Track parameter changes for GUI->Host sync
   struct ChangedParam {
     clap_id id;
@@ -393,7 +386,7 @@ public:
   };
   std::vector<ChangedParam> changedParams;
   std::mutex changedParamsMutex;
-  
+
   void markParameterChanged(clap_id paramId, double realValue) {
     std::lock_guard<std::mutex> lock(changedParamsMutex);
     // Check if already in list
@@ -485,13 +478,13 @@ public:
         }
       }
     }
-    
+
     // Send any pending parameter changes from GUI to host
     if (process->out_events) {
       std::lock_guard<std::mutex> lock(changedParamsMutex);
       if (!changedParams.empty()) {
         logInfo("process: Sending " + std::to_string(changedParams.size()) + " parameter changes");
-        
+
         for (const auto& cp : changedParams) {
           // Create parameter value event
           clap_event_param_value event;
@@ -500,7 +493,7 @@ public:
           event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
           event.header.type = CLAP_EVENT_PARAM_VALUE;
           event.header.flags = 0;
-          
+
           event.param_id = cp.id;
           event.cookie = nullptr;
           event.note_id = -1;  // Global parameter change
@@ -508,12 +501,12 @@ public:
           event.channel = -1;
           event.key = -1;
           event.value = cp.value;  // Real value matching reported range
-          
+
           // Try to push the event
           if (!process->out_events->try_push(process->out_events, &event.header)) {
             logWarning("process: Failed to push parameter change event for param " + std::to_string(cp.id));
           } else {
-            logInfo("process: Sent parameter change: id=" + std::to_string(cp.id) + 
+            logInfo("process: Sent parameter change: id=" + std::to_string(cp.id) +
                     " value=" + std::to_string(cp.value));
           }
         }
@@ -597,7 +590,7 @@ public:
 
         auto paramName = paramDesc->getTextProperty("name");
         auto range = paramDesc->getMatrixPropertyWithDefault("range", ml::Matrix{0.0f, 1.0f});
-        
+
         // Get default value - try plaindefault first (real value), then default
         float realDefaultVal = 0.5f * (range[0] + range[1]); // middle of range as fallback
         if (paramDesc->hasProperty("plaindefault")) {
@@ -708,9 +701,9 @@ public:
       if (wrapper) wrapper->logWarning("paramsFlush called with null components");
       return;
     }
-    
+
     wrapper->logInfo("paramsFlush called, pending changes: " + std::to_string(wrapper->changedParams.size()));
-    
+
     // Send any pending parameter changes from GUI to host
     if (out) {
       std::lock_guard<std::mutex> lock(wrapper->changedParamsMutex);
@@ -722,7 +715,7 @@ public:
         event.header.space_id = CLAP_CORE_EVENT_SPACE_ID;
         event.header.type = CLAP_EVENT_PARAM_VALUE;
         event.header.flags = 0;
-        
+
         event.param_id = cp.id;
         event.cookie = nullptr;
         event.note_id = -1;  // Global parameter change
@@ -730,12 +723,12 @@ public:
         event.channel = -1;
         event.key = -1;
         event.value = cp.value;  // Real value matching reported range
-        
+
         // Try to push the event
         if (!out->try_push(out, &event.header)) {
           wrapper->logWarning("Failed to push parameter change event for param " + std::to_string(cp.id));
         } else {
-          wrapper->logInfo("Sent parameter change: id=" + std::to_string(cp.id) + 
+          wrapper->logInfo("Sent parameter change: id=" + std::to_string(cp.id) +
                           " value=" + std::to_string(cp.value));
         }
       }
@@ -771,10 +764,10 @@ public:
 
               // CLAP sends real values matching the reported range
               wrapper->processor->setParamFromRealValue(paramName, paramEvent->value);
-              
+
               // Get normalized value for GUI notification
               float normalizedValue = wrapper->processor->getNormalizedFloatParam(paramName);
-              
+
               // Notify GUI of parameter change (Host->GUI sync)
               wrapper->notifyGUIParameterChange(paramName, normalizedValue);
               break;
@@ -902,9 +895,9 @@ public:
   static bool guiCreate(const clap_plugin* plugin, const char* api, bool is_floating) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper) return false;
-    
+
     wrapper->logInfo("GUI: Creating GUI with API: " + std::string(api ? api : "null"));
-    
+
 #ifdef HAS_GUI
     if constexpr (!std::is_void_v<GUIClass>) {
       try {
@@ -936,15 +929,15 @@ public:
         if (wrapper->guiInstance) {
           wrapper->guiInstance->stopTimersAndActor();
           wrapper->logInfo("GUI: Stopped AppView timers");
-          
+
           wrapper->guiInstance->clearResources();
           wrapper->logInfo("GUI: Cleared AppView resources");
         }
-        
+
         // Explicitly destroy PlatformView first, then the GUI instance
         wrapper->platformView.reset();
         wrapper->logInfo("GUI: PlatformView reset");
-        
+
         wrapper->guiInstance.reset();
         wrapper->logInfo("GUI: GUI instance reset");
 
@@ -957,7 +950,7 @@ public:
   static bool guiSetScale(const clap_plugin* plugin, double scale) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper) return false;
-    
+
     wrapper->logInfo("GUI: Setting scale to " + std::to_string(scale));
     return true;
   }
@@ -965,21 +958,21 @@ public:
   static bool guiGetSize(const clap_plugin* plugin, uint32_t* width, uint32_t* height) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper || !width || !height) return false;
-    
+
 #ifdef HAS_GUI
     if constexpr (!std::is_void_v<GUIClass>) {
       if (wrapper->guiInstance) {
         // Get size from MLVG's grid system using getDefaultDims()
         auto defaultDims = wrapper->guiInstance->getDefaultDims();
-        
+
         *width = static_cast<uint32_t>(defaultDims.x());
         *height = static_cast<uint32_t>(defaultDims.y());
-        
+
         wrapper->logInfo("GUI: Reporting size from MLVG: " + std::to_string(*width) + "x" + std::to_string(*height));
         return true;
       }
     }
-    
+
     // Fallback to default size if no GUI instance
     *width = wrapper->guiWidth;
     *height = wrapper->guiHeight;
@@ -991,44 +984,88 @@ public:
   }
 
   static bool guiCanResize(const clap_plugin* plugin) {
+    // Allow resizing but we'll enforce aspect ratio constraints
     return true;
   }
 
   static bool guiGetResizeHints(const clap_plugin* plugin, clap_gui_resize_hints* hints) {
     if (!hints) return false;
+    // Allow both horizontal and vertical resizing, but preserve aspect ratio
     hints->can_resize_horizontally = true;
     hints->can_resize_vertically = true;
-    hints->preserve_aspect_ratio = false;
+    hints->preserve_aspect_ratio = true;
     return true;
   }
 
   static bool guiAdjustSize(const clap_plugin* plugin, uint32_t* width, uint32_t* height) {
     if (!width || !height) return false;
-    // For now, just accept the requested size
+
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (!wrapper) return false;
+
+#ifdef HAS_GUI
+    if constexpr (!std::is_void_v<GUIClass>) {
+      if (wrapper->guiInstance) {
+        // Get the fixed aspect ratio from the GUI instance
+        auto fixedRatio = wrapper->guiInstance->getFixedAspectRatio();
+        if (fixedRatio.x() > 0 && fixedRatio.y() > 0) {
+          float targetRatio = fixedRatio.x() / fixedRatio.y();
+          float currentRatio = static_cast<float>(*width) / static_cast<float>(*height);
+
+          // Apply aspect ratio constraint
+          if (currentRatio < targetRatio) {
+            // Too narrow - adjust width to match height
+            *width = static_cast<uint32_t>(*height * targetRatio);
+          } else {
+            // Too wide - adjust height to match width
+            *height = static_cast<uint32_t>(*width / targetRatio);
+          }
+
+          wrapper->logInfo("GUI: Adjusted size to " + std::to_string(*width) + "x" + std::to_string(*height) + " (ratio: " + std::to_string(targetRatio) + ")");
+        }
+      }
+    }
+#endif
+
     return true;
   }
 
   static bool guiSetSize(const clap_plugin* plugin, uint32_t width, uint32_t height) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper) return false;
-    
+
     wrapper->logInfo("GUI: Setting size to " + std::to_string(width) + "x" + std::to_string(height));
+
+#ifdef HAS_GUI
+    if constexpr (!std::is_void_v<GUIClass>) {
+      if (wrapper->guiInstance && wrapper->platformView) {
+        // Update the platform view size to match the new dimensions
+        wrapper->platformView->setPlatformViewSize(width, height);
+
+        // Notify the GUI instance of the resize
+        wrapper->guiInstance->onResize(ml::Vec2(width, height));
+
+        wrapper->logInfo("GUI: Platform view and GUI instance updated with new size");
+      }
+    }
+#endif
+
     return true;
   }
 
   static bool guiSetParent(const clap_plugin* plugin, const clap_window* window) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper || !window) return false;
-    
+
     wrapper->logInfo("GUI: Setting parent window with API: " + std::string(window->api));
-    
+
 #ifdef HAS_GUI
     if constexpr (!std::is_void_v<GUIClass>) {
       if (!wrapper->guiInstance) {
         wrapper->logError("GUI: No GUI instance to attach");
         return false;
       }
-      
+
       // Extract platform window handle
       void* nativeWindow = nullptr;
       if (strcmp(window->api, CLAP_WINDOW_API_COCOA) == 0) {
@@ -1038,36 +1075,36 @@ public:
       } else if (strcmp(window->api, CLAP_WINDOW_API_WIN32) == 0) {
         nativeWindow = window->win32;
       }
-      
+
       if (!nativeWindow) {
         wrapper->logError("GUI: Unsupported platform window API");
         return false;
       }
-      
+
       try {
         // Debug: Log the native window pointer and AppView pointer
-        wrapper->logInfo("GUI: Creating PlatformView with window: " + 
+        wrapper->logInfo("GUI: Creating PlatformView with window: " +
                         std::to_string(reinterpret_cast<uintptr_t>(nativeWindow)));
-        wrapper->logInfo("GUI: Creating PlatformView with AppView: " + 
+        wrapper->logInfo("GUI: Creating PlatformView with AppView: " +
                         std::to_string(reinterpret_cast<uintptr_t>(wrapper->guiInstance.get())));
-        
+
         // Create PlatformView internally - plugin never sees it!
         wrapper->platformView = std::make_unique<PlatformView>(
           wrapper->descriptor->name, nativeWindow, wrapper->guiInstance.get(), nullptr, 0, 60
         );
-        
+
         // Initialize resources but don't attach yet - move to guiShow
         wrapper->guiInstance->initializeResources(wrapper->platformView->getNativeDrawContext());
-        
+
         // Inform AppView of its initial size to set up coordinate system
         uint32_t width, height;
         guiGetSize(plugin, &width, &height);
         wrapper->logInfo("GUI: Informing AppView of initial size: " + std::to_string(width) + "x" + std::to_string(height));
         float displayScale = PlatformView::getDeviceScaleForWindow(nativeWindow);
         wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, displayScale);
-        
+
         // Don't create widgets or attach here - move to guiShow
-        
+
         wrapper->logInfo("GUI: Platform view created successfully, parent set");
         return true;
       } catch (const std::exception& e) {
@@ -1087,7 +1124,7 @@ public:
   static bool guiSetTransient(const clap_plugin* plugin, const clap_window* window) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper || !window) return false;
-    
+
     wrapper->logInfo("GUI: Setting transient window");
     return true;
   }
@@ -1112,26 +1149,26 @@ public:
             try {
               wrapper->logInfo("GUI: Creating widgets in guiShow");
               wrapper->guiInstance->makeWidgets();
-              
+
               // Connect widgets to parameters automatically
               wrapper->guiInstance->connectParameters();
               wrapper->logInfo("GUI: Connected widgets to parameters");
-              
+
               // CRITICAL: Follow Sumu pattern - attach BEFORE starting timers
               wrapper->platformView->attachViewToParent();
               wrapper->logInfo("GUI: Platform view attached in guiShow");
-              
+
               // CRITICAL: Start AppView timers AFTER attachment (Sumu pattern)
               wrapper->guiInstance->startTimersAndActor();
               wrapper->logInfo("GUI: Started AppView timers for event processing");
-              
+
               widgetsCreated = true;
               wrapper->logInfo("GUI: Widgets created successfully");
             } catch (const std::exception& e) {
               wrapper->logError("GUI: Failed to create widgets: " + std::string(e.what()));
             }
           }
-          
+
           wrapper->logInfo("GUI: Platform view already visible");
         }
       }
@@ -1211,13 +1248,13 @@ private:
               if (paramDesc) {
                 auto paramName = paramDesc->getTextProperty("name");
 
-                // CLAP sends parameter values in their real ranges, 
+                // CLAP sends parameter values in their real ranges,
                 // madronalib handles the conversion internally
                 processor->setParamFromRealValue(paramName, paramEvent->value);
 
                 // Get normalized value for GUI notification
                 float normalizedValue = processor->getNormalizedFloatParam(paramName);
-                
+
                 // Notify GUI of parameter change (Host->GUI sync)
                 notifyGUIParameterChange(paramName, normalizedValue);
                 break;
