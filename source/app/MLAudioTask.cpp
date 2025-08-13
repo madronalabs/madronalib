@@ -90,7 +90,7 @@ constexpr int kRtAudioCallbackFrames{512};
 struct AudioProcessData
 {
   // buffered processing
-  std::unique_ptr<SignalProcessBuffer> buffer;
+  std::unique_ptr< SignalProcessBuffer > buffer;
 
   // context, function and state for the process.
   AudioContext* processContext{nullptr};
@@ -107,7 +107,7 @@ struct AudioTask::Impl
 
   Impl(size_t nInputs, size_t nOutputs, size_t kMaxBlockSize)
   {
-    processData.buffer = std::make_unique<SignalProcessBuffer>(nInputs, nOutputs, kMaxBlockSize);
+    processData.buffer = std::make_unique< SignalProcessBuffer >(nInputs, nOutputs, kMaxBlockSize);
   }
 };
 

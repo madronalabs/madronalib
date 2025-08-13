@@ -102,7 +102,6 @@ class SignalProcessor
     size_t read(float* pDest, size_t framesRequested);
     
     void peekLatest(float* pDest, size_t framesRequested);
-
   };
 
   // class used for assigning each instance of our SignalProcessor a unique ID
@@ -119,7 +118,6 @@ class SignalProcessor
       return ++_IDCounter;
     }
   };
-
 
   virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic outputs, void* stateData = nullptr) {}
 
