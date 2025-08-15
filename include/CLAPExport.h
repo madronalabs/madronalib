@@ -430,50 +430,37 @@ public:
       return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
     }
 
-    // AudioContext handles chunking
-    try {
-      for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
-        int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
+    // AudioContext handles chunking - exception-safe processing
+    for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
+      int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
 
-        // Copy inputs to AudioContext (if available)
-        if (inputs && process->audio_inputs[0].channel_count > 0) {
-          for (int j = 0; j < samplesThisChunk; ++j) {
-            audioContext->inputs[0][j] = inputs[0][i + j];
-            audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
-                                        inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
-          }
-        } else {
-          // Clear inputs if no input available
-          for (int j = 0; j < samplesThisChunk; ++j) {
-            audioContext->inputs[0][j] = 0.0f;
-            audioContext->inputs[1][j] = 0.0f;
-          }
+      // Copy inputs to AudioContext (if available)
+      if (inputs && process->audio_inputs[0].channel_count > 0) {
+        for (int j = 0; j < samplesThisChunk; ++j) {
+          audioContext->inputs[0][j] = inputs[0][i + j];
+          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
+                                      inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
         }
-
-        // AudioContext processes everything (events, voices, timing)
-        audioContext->processVector(i);
-
-        // User processor just does DSP on processed context
-        processor->processAudioContext();
-
-        // Copy outputs from AudioContext to CLAP buffers
-        if (process->audio_outputs[0].channel_count >= 1) {
-          for (int j = 0; j < samplesThisChunk; ++j) {
-            outputs[0][i + j] = audioContext->outputs[0][j];
-            if (process->audio_outputs[0].channel_count >= 2) {
-              outputs[1][i + j] = audioContext->outputs[1][j];
-            }
-          }
+      } else {
+        // Clear inputs if no input available
+        for (int j = 0; j < samplesThisChunk; ++j) {
+          audioContext->inputs[0][j] = 0.0f;
+          audioContext->inputs[1][j] = 0.0f;
         }
       }
-    } catch (const std::exception& e) {
-      logError("processAudio: Exception in processing loop: " + std::string(e.what()));
-      // Fill output with silence on error
-      for (int i = 0; i < process->frames_count; ++i) {
-        if (process->audio_outputs[0].channel_count >= 1) {
-          outputs[0][i] = 0.0f;
+
+      // AudioContext processes everything (events, voices, timing)
+      audioContext->processVector(i);
+
+      // User processor just does DSP on processed context
+      processor->processAudioContext();
+
+      // Copy outputs from AudioContext to CLAP buffers
+      if (process->audio_outputs[0].channel_count >= 1) {
+        for (int j = 0; j < samplesThisChunk; ++j) {
+          outputs[0][i + j] = audioContext->outputs[0][j];
           if (process->audio_outputs[0].channel_count >= 2) {
-            outputs[1][i] = 0.0f;
+            outputs[1][i + j] = audioContext->outputs[1][j];
           }
         }
       }
@@ -658,40 +645,38 @@ public:
     //   wrapper->logInfo(logMsg.str());
     // }
 
-    try {
-      *out_value = std::stod(param_value_text);
-      // if (wrapper) {
-      //   std::ostringstream logMsg2;
-      //   logMsg2 << "paramsTextToValue: converted to value=" << *out_value;
-      //   wrapper->logInfo(logMsg2.str());
-      // }
-
-      // If Bitwig is using this method, we need to actually set the parameter. This isn't clear to me.
-      auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-      if (wrapper && wrapper->processor) {
-        const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
-        uint32_t currentIndex = 0;
-
-        for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
-          if (currentIndex == param_id) {
-            const auto& paramDesc = *it;
-            if (paramDesc) {
-              auto paramName = paramDesc->getTextProperty("name");
-              // wrapper->logInfo("paramsTextToValue: Setting parameter " + std::string(paramName.getText()) + " to " + std::to_string(*out_value));
-              wrapper->processor->setParamFromNormalizedValue(paramName, *out_value);
-              break;
-            }
-          }
-          currentIndex++;
-        }
-      }
-
-      return true;
-    } catch (const std::exception&) {
+    // Safe string to double conversion without exceptions
+    char* endptr = nullptr;
+    *out_value = std::strtod(param_value_text, &endptr);
+    
+    // Check for conversion errors
+    if (endptr == param_value_text || *endptr != '\0') {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
       if (wrapper) wrapper->logError("paramsTextToValue: Failed to convert text to value");
       return false;
     }
+
+    // If Bitwig is using this method, we need to actually set the parameter. This isn't clear to me.
+    auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
+    if (wrapper && wrapper->processor) {
+      const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
+      uint32_t currentIndex = 0;
+
+      for (auto it = descriptions.begin(); it != descriptions.end(); ++it) {
+        if (currentIndex == param_id) {
+          const auto& paramDesc = *it;
+          if (paramDesc) {
+            auto paramName = paramDesc->getTextProperty("name");
+            // wrapper->logInfo("paramsTextToValue: Setting parameter " + std::string(paramName.getText()) + " to " + std::to_string(*out_value));
+            wrapper->processor->setParamFromNormalizedValue(paramName, *out_value);
+            break;
+          }
+        }
+        currentIndex++;
+      }
+    }
+
+    return true;
   }
 
   static void paramsFlush(const clap_plugin* plugin, const clap_input_events* in,
@@ -787,88 +772,88 @@ public:
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper || !wrapper->processor || !stream) return false;
 
-    try {
-      // Get normalized parameter values from ParameterTree
-      const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
+    // Get normalized parameter values from ParameterTree
+    const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
 
-      // Simple JSON serialization - more stable than binary for now
-      std::string jsonData = "{";
-      bool first = true;
+    // Simple JSON serialization - more stable than binary for now
+    std::string jsonData = "{";
+    bool first = true;
 
-      for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
-        if (!first) jsonData += ",";
-        first = false;
+    for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
+      if (!first) jsonData += ",";
+      first = false;
 
-        ml::Path paramPath = it.getCurrentPath();
-        ml::Value paramValue = *it;
+      ml::Path paramPath = it.getCurrentPath();
+      ml::Value paramValue = *it;
 
-        jsonData += "\"" + std::string(pathToText(paramPath).getText()) + "\":" + std::to_string(paramValue.getFloatValue());
-      }
-      jsonData += "}";
-
-      // Write to CLAP stream
-      int64_t bytesWritten = stream->write(stream, jsonData.c_str(), jsonData.length());
-
-      // wrapper->logInfo("stateSave: Wrote JSON data: " + jsonData);
-
-      return bytesWritten == static_cast<int64_t>(jsonData.length());
-
-    } catch (const std::exception&) {
-      return false;
+      jsonData += "\"" + std::string(pathToText(paramPath).getText()) + "\":" + std::to_string(paramValue.getFloatValue());
     }
+    jsonData += "}";
+
+    // Write to CLAP stream
+    int64_t bytesWritten = stream->write(stream, jsonData.c_str(), jsonData.length());
+
+    // wrapper->logInfo("stateSave: Wrote JSON data: " + jsonData);
+
+    return bytesWritten == static_cast<int64_t>(jsonData.length());
   }
 
   static bool stateLoad(const clap_plugin* plugin, const clap_istream* stream) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
     if (!wrapper || !wrapper->processor || !stream) return false;
 
-    try {
-      // Read all available data from stream
-      std::string jsonData;
-      char buffer[4096];
+    // Read all available data from stream
+    std::string jsonData;
+    char buffer[4096];
 
-      int64_t bytesRead;
-      while ((bytesRead = stream->read(stream, buffer, sizeof(buffer))) > 0) {
-        jsonData.append(buffer, bytesRead);
-      }
-
-      if (jsonData.empty()) return false;
-
-      // wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
-
-      // Simple JSON parsing - just look for "param":value patterns
-      // This is a minimal implementation that handles our simple JSON format
-      size_t pos = 0;
-      while ((pos = jsonData.find("\"", pos)) != std::string::npos) {
-        size_t nameStart = pos + 1;
-        size_t nameEnd = jsonData.find("\"", nameStart);
-        if (nameEnd == std::string::npos) break;
-
-        std::string paramName = jsonData.substr(nameStart, nameEnd - nameStart);
-
-        size_t colonPos = jsonData.find(":", nameEnd);
-        if (colonPos == std::string::npos) break;
-
-        size_t valueStart = colonPos + 1;
-        size_t valueEnd = jsonData.find_first_of(",}", valueStart);
-        if (valueEnd == std::string::npos) break;
-
-        std::string valueStr = jsonData.substr(valueStart, valueEnd - valueStart);
-        float value = std::stof(valueStr);
-
-        // wrapper->logInfo("stateLoad: Setting parameter " + paramName + " = " + valueStr);
-
-        // Set the parameter value
-        wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
-
-        pos = valueEnd;
-      }
-
-      return true;
-
-    } catch (const std::exception&) {
-      return false;
+    int64_t bytesRead;
+    while ((bytesRead = stream->read(stream, buffer, sizeof(buffer))) > 0) {
+      jsonData.append(buffer, bytesRead);
     }
+
+    if (jsonData.empty()) return false;
+
+    // wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
+
+    // Simple JSON parsing - just look for "param":value patterns
+    // This is a minimal implementation that handles our simple JSON format
+    size_t pos = 0;
+    while ((pos = jsonData.find("\"", pos)) != std::string::npos) {
+      size_t nameStart = pos + 1;
+      size_t nameEnd = jsonData.find("\"", nameStart);
+      if (nameEnd == std::string::npos) break;
+
+      std::string paramName = jsonData.substr(nameStart, nameEnd - nameStart);
+
+      size_t colonPos = jsonData.find(":", nameEnd);
+      if (colonPos == std::string::npos) break;
+
+      size_t valueStart = colonPos + 1;
+      size_t valueEnd = jsonData.find_first_of(",}", valueStart);
+      if (valueEnd == std::string::npos) break;
+
+      std::string valueStr = jsonData.substr(valueStart, valueEnd - valueStart);
+      
+      // Safe string to float conversion without exceptions
+      char* endptr = nullptr;
+      float value = std::strtof(valueStr.c_str(), &endptr);
+      
+      // Check for conversion errors
+      if (endptr == valueStr.c_str() || *endptr != '\0') {
+        // Skip this parameter if conversion fails
+        pos = valueEnd;
+        continue;
+      }
+
+      // wrapper->logInfo("stateLoad: Setting parameter " + paramName + " = " + valueStr);
+
+      // Set the parameter value
+      wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+
+      pos = valueEnd;
+    }
+
+    return true;
   }
 
   static const clap_plugin_state stateExt;
@@ -900,16 +885,11 @@ public:
 
 #ifdef HAS_GUI
     if constexpr (!std::is_void_v<GUIClass>) {
-      try {
-        // Create GUI instance directly - no need for processor to handle it
-        wrapper->guiInstance = std::make_unique<GUIClass>(wrapper->processor.get());
-        wrapper->guiCreated = true;
-        wrapper->logInfo("GUI: Successfully created GUI instance");
-        return true;
-      } catch (const std::exception& e) {
-        wrapper->logError("GUI: Failed to create GUI: " + std::string(e.what()));
-        return false;
-      }
+      // Create GUI instance directly - no need for processor to handle it
+      wrapper->guiInstance = std::make_unique<GUIClass>(wrapper->processor.get());
+      wrapper->guiCreated = true;
+      wrapper->logInfo("GUI: Successfully created GUI instance");
+      return true;
     } else {
       wrapper->logInfo("GUI: No GUI class specified");
       return false;
@@ -1081,36 +1061,31 @@ public:
         return false;
       }
 
-      try {
-        // Debug: Log the native window pointer and AppView pointer
-        wrapper->logInfo("GUI: Creating PlatformView with window: " +
-                        std::to_string(reinterpret_cast<uintptr_t>(nativeWindow)));
-        wrapper->logInfo("GUI: Creating PlatformView with AppView: " +
-                        std::to_string(reinterpret_cast<uintptr_t>(wrapper->guiInstance.get())));
+      // Debug: Log the native window pointer and AppView pointer
+      wrapper->logInfo("GUI: Creating PlatformView with window: " +
+                      std::to_string(reinterpret_cast<uintptr_t>(nativeWindow)));
+      wrapper->logInfo("GUI: Creating PlatformView with AppView: " +
+                      std::to_string(reinterpret_cast<uintptr_t>(wrapper->guiInstance.get())));
 
-        // Create PlatformView internally - plugin never sees it!
-        wrapper->platformView = std::make_unique<PlatformView>(
-          wrapper->descriptor->name, nativeWindow, wrapper->guiInstance.get(), nullptr, 0, 60
-        );
+      // Create PlatformView internally - plugin never sees it!
+      wrapper->platformView = std::make_unique<PlatformView>(
+        wrapper->descriptor->name, nativeWindow, wrapper->guiInstance.get(), nullptr, 0, 60
+      );
 
-        // Initialize resources but don't attach yet - move to guiShow
-        wrapper->guiInstance->initializeResources(wrapper->platformView->getNativeDrawContext());
+      // Initialize resources but don't attach yet - move to guiShow
+      wrapper->guiInstance->initializeResources(wrapper->platformView->getNativeDrawContext());
 
-        // Inform AppView of its initial size to set up coordinate system
-        uint32_t width, height;
-        guiGetSize(plugin, &width, &height);
-        wrapper->logInfo("GUI: Informing AppView of initial size: " + std::to_string(width) + "x" + std::to_string(height));
-        float displayScale = PlatformView::getDeviceScaleForWindow(nativeWindow);
-        wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, displayScale);
+      // Inform AppView of its initial size to set up coordinate system
+      uint32_t width, height;
+      guiGetSize(plugin, &width, &height);
+      wrapper->logInfo("GUI: Informing AppView of initial size: " + std::to_string(width) + "x" + std::to_string(height));
+      float displayScale = PlatformView::getDeviceScaleForWindow(nativeWindow);
+      wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, displayScale);
 
-        // Don't create widgets or attach here - move to guiShow
+      // Don't create widgets or attach here - move to guiShow
 
-        wrapper->logInfo("GUI: Platform view created successfully, parent set");
-        return true;
-      } catch (const std::exception& e) {
-        wrapper->logError("GUI: Failed to create platform view: " + std::string(e.what()));
-        return false;
-      }
+      wrapper->logInfo("GUI: Platform view created successfully, parent set");
+      return true;
     } else {
       wrapper->logInfo("GUI: No GUI class specified");
       return false;
@@ -1146,27 +1121,23 @@ public:
           // Try creating widgets here - after everything is fully initialized
           static bool widgetsCreated = false;
           if (!widgetsCreated) {
-            try {
-              wrapper->logInfo("GUI: Creating widgets in guiShow");
-              wrapper->guiInstance->makeWidgets();
+            wrapper->logInfo("GUI: Creating widgets in guiShow");
+            wrapper->guiInstance->makeWidgets();
 
-              // Connect widgets to parameters automatically
-              wrapper->guiInstance->connectParameters();
-              wrapper->logInfo("GUI: Connected widgets to parameters");
+            // Connect widgets to parameters automatically
+            wrapper->guiInstance->connectParameters();
+            wrapper->logInfo("GUI: Connected widgets to parameters");
 
-              // CRITICAL: Follow Sumu pattern - attach BEFORE starting timers
-              wrapper->platformView->attachViewToParent();
-              wrapper->logInfo("GUI: Platform view attached in guiShow");
+            // Attach before starting timers
+            wrapper->platformView->attachViewToParent();
+            wrapper->logInfo("GUI: Platform view attached in guiShow");
 
-              // CRITICAL: Start AppView timers AFTER attachment (Sumu pattern)
-              wrapper->guiInstance->startTimersAndActor();
-              wrapper->logInfo("GUI: Started AppView timers for event processing");
+            // Start AppView timers AFTER attachment
+            wrapper->guiInstance->startTimersAndActor();
+            wrapper->logInfo("GUI: Started AppView timers for event processing");
 
-              widgetsCreated = true;
-              wrapper->logInfo("GUI: Widgets created successfully");
-            } catch (const std::exception& e) {
-              wrapper->logError("GUI: Failed to create widgets: " + std::string(e.what()));
-            }
+            widgetsCreated = true;
+            wrapper->logInfo("GUI: Widgets created successfully");
           }
 
           wrapper->logInfo("GUI: Platform view already visible");
