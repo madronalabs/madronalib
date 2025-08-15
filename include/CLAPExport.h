@@ -10,6 +10,7 @@
 #include <clap/ext/params.h>
 #include <clap/ext/state.h>
 #include <clap/ext/gui.h>
+#include "../external/cJSON/cJSON.h"
 
 #ifdef HAS_GUI
 #include "MLPlatformView.h"
@@ -297,6 +298,10 @@ public:
       });
 #endif
 
+      wrapper->logInfo("CLAPPluginWrapper: Plugin initialized successfully");
+      wrapper->logInfo("CLAPPluginWrapper: State extension available: " + std::string(wrapper->getExtension(CLAP_EXT_STATE) ? "YES" : "NO"));
+      wrapper->logInfo("CLAPPluginWrapper: Parameters extension available: " + std::string(wrapper->getExtension(CLAP_EXT_PARAMS) ? "YES" : "NO"));
+
       // Set up parameter flush callback for GUI->Host sync
       wrapper->processor->setHostParameterFlushCallback([wrapper]() {
         wrapper->requestHostParameterFlush();
@@ -507,11 +512,18 @@ public:
 
   // Extension implementation
   const void* getExtension(const char* id) {
+    logInfo("getExtension: Requested extension: " + std::string(id ? id : "null"));
+    
     if (strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &audioPortsExt;
     if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
     if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
-    if (strcmp(id, CLAP_EXT_STATE) == 0) return &stateExt;
+    if (strcmp(id, CLAP_EXT_STATE) == 0) {
+      logInfo("getExtension: Returning state extension");
+      return &stateExt;
+    }
     if (strcmp(id, CLAP_EXT_GUI) == 0) return &guiExt;
+    
+    logInfo("getExtension: Extension not found: " + std::string(id ? id : "null"));
     return nullptr;
   }
 
@@ -770,89 +782,128 @@ public:
 
   static bool stateSave(const clap_plugin* plugin, const clap_ostream* stream) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    if (!wrapper || !wrapper->processor || !stream) return false;
+    if (!wrapper || !wrapper->processor || !stream) {
+      if (wrapper) wrapper->logError("stateSave: Missing required components");
+      return false;
+    }
+
+    wrapper->logInfo("stateSave: Starting state save operation");
+
+    // Create JSON object using cJSON
+    cJSON* jsonRoot = cJSON_CreateObject();
+    if (!jsonRoot) {
+      wrapper->logError("stateSave: Failed to create JSON root object");
+      return false;
+    }
 
     // Get normalized parameter values from ParameterTree
     const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
+    wrapper->logInfo("stateSave: Found " + std::to_string(paramValues.size()) + " parameters to save");
 
-    // Simple JSON serialization - more stable than binary for now
-    std::string jsonData = "{";
-    bool first = true;
-
+    // Add each parameter to the JSON object
+    int paramCount = 0;
     for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
-      if (!first) jsonData += ",";
-      first = false;
-
       ml::Path paramPath = it.getCurrentPath();
       ml::Value paramValue = *it;
-
-      jsonData += "\"" + std::string(pathToText(paramPath).getText()) + "\":" + std::to_string(paramValue.getFloatValue());
+      
+      std::string paramName = std::string(pathToText(paramPath).getText());
+      float value = paramValue.getFloatValue();
+      
+      cJSON_AddNumberToObject(jsonRoot, paramName.c_str(), value);
+      paramCount++;
     }
-    jsonData += "}";
+    wrapper->logInfo("stateSave: Added " + std::to_string(paramCount) + " parameters to JSON");
+
+    // Convert JSON to string
+    char* jsonString = cJSON_PrintUnformatted(jsonRoot);
+    if (!jsonString) {
+      cJSON_Delete(jsonRoot);
+      return false;
+    }
 
     // Write to CLAP stream
-    int64_t bytesWritten = stream->write(stream, jsonData.c_str(), jsonData.length());
+    size_t jsonLength = strlen(jsonString);
+    int64_t bytesWritten = stream->write(stream, jsonString, jsonLength);
 
-    // wrapper->logInfo("stateSave: Wrote JSON data: " + jsonData);
+    // Log the JSON data before cleanup for debugging
+    wrapper->logInfo("stateSave: Saving JSON data: " + std::string(jsonString));
+    wrapper->logInfo("stateSave: Expected to write " + std::to_string(jsonLength) + " bytes, actually wrote " + std::to_string(bytesWritten) + " bytes");
 
-    return bytesWritten == static_cast<int64_t>(jsonData.length());
+    // Clean up
+    free(jsonString);
+    cJSON_Delete(jsonRoot);
+
+    bool success = (bytesWritten == static_cast<int64_t>(jsonLength));
+    wrapper->logInfo("stateSave: " + (success ? std::string("SUCCESS") : std::string("FAILED")));
+    return success;
   }
 
   static bool stateLoad(const clap_plugin* plugin, const clap_istream* stream) {
     auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
-    if (!wrapper || !wrapper->processor || !stream) return false;
+    if (!wrapper || !wrapper->processor || !stream) {
+      if (wrapper) wrapper->logError("stateLoad: Missing required components");
+      return false;
+    }
+
+    wrapper->logInfo("stateLoad: Starting state load operation");
 
     // Read all available data from stream
     std::string jsonData;
     char buffer[4096];
 
     int64_t bytesRead;
+    int totalBytesRead = 0;
     while ((bytesRead = stream->read(stream, buffer, sizeof(buffer))) > 0) {
       jsonData.append(buffer, bytesRead);
+      totalBytesRead += bytesRead;
     }
 
-    if (jsonData.empty()) return false;
+    wrapper->logInfo("stateLoad: Read " + std::to_string(totalBytesRead) + " bytes from stream");
 
-    // wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
+    if (jsonData.empty()) {
+      wrapper->logError("stateLoad: No data received from stream");
+      return false;
+    }
 
-    // Simple JSON parsing - just look for "param":value patterns
-    // This is a minimal implementation that handles our simple JSON format
-    size_t pos = 0;
-    while ((pos = jsonData.find("\"", pos)) != std::string::npos) {
-      size_t nameStart = pos + 1;
-      size_t nameEnd = jsonData.find("\"", nameStart);
-      if (nameEnd == std::string::npos) break;
+    wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
 
-      std::string paramName = jsonData.substr(nameStart, nameEnd - nameStart);
+    // Parse JSON using cJSON
+    cJSON* jsonRoot = cJSON_Parse(jsonData.c_str());
+    if (!jsonRoot) {
+      wrapper->logError("stateLoad: Failed to parse JSON data");
+      return false;
+    }
 
-      size_t colonPos = jsonData.find(":", nameEnd);
-      if (colonPos == std::string::npos) break;
+    // Check if root is an object
+    if (jsonRoot->type != cJSON_Object) {
+      cJSON_Delete(jsonRoot);
+      wrapper->logError("stateLoad: JSON root is not an object");
+      return false;
+    }
 
-      size_t valueStart = colonPos + 1;
-      size_t valueEnd = jsonData.find_first_of(",}", valueStart);
-      if (valueEnd == std::string::npos) break;
+    // Iterate through all parameters in the JSON object
+    cJSON* paramItem = jsonRoot->child;
+    int paramCount = 0;
+    while (paramItem) {
+      if (paramItem->type == cJSON_Number && paramItem->string) {
+        std::string paramName = std::string(paramItem->string);
+        float value = static_cast<float>(paramItem->valuedouble);
 
-      std::string valueStr = jsonData.substr(valueStart, valueEnd - valueStart);
-      
-      // Safe string to float conversion without exceptions
-      char* endptr = nullptr;
-      float value = std::strtof(valueStr.c_str(), &endptr);
-      
-      // Check for conversion errors
-      if (endptr == valueStr.c_str() || *endptr != '\0') {
-        // Skip this parameter if conversion fails
-        pos = valueEnd;
-        continue;
+        wrapper->logInfo("stateLoad: Setting parameter '" + paramName + "' = " + std::to_string(value));
+
+        // Set the parameter value
+        wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+        paramCount++;
       }
-
-      // wrapper->logInfo("stateLoad: Setting parameter " + paramName + " = " + valueStr);
-
-      // Set the parameter value
-      wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
-
-      pos = valueEnd;
+      paramItem = paramItem->next;
     }
 
+    wrapper->logInfo("stateLoad: Successfully restored " + std::to_string(paramCount) + " parameters");
+
+    // Clean up
+    cJSON_Delete(jsonRoot);
+
+    wrapper->logInfo("stateLoad: SUCCESS");
     return true;
   }
 
