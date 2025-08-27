@@ -356,8 +356,7 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
     }
     else
     {
-      // Convert real default to normalized value. TODO: clear this with Randy
-      return p.convertRealToNormalizedFloatValue(pname, defaultVal.getFloatValue());
+      return defaultVal;
     }
   }
   else if (paramDesc->hasProperty("plaindefault"))
