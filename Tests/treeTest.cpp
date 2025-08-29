@@ -467,5 +467,16 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   }
   REQUIRE(sum1 == sum2);
   REQUIRE(bv == vec);
+  
+  // create some JSON directly using our minimal API
+  auto j5 = JSONHolder();
+  j5.addNumber("foo", 23.0);
+  auto j6 = JSONHolder();
+  j6.addNumber("bar", 24.0);
+  
+  // addJSON() transfers the ownership of the data in j6 to j5
+  j5.addJSON("j-obj", j6);
+  REQUIRE(JSONToValueTree(j5).size() == 2);
+  REQUIRE(JSONToValueTree(j6).size() == 0);
 
 }
