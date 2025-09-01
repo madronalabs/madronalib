@@ -9,7 +9,6 @@
 
 using namespace ml;
 
-
 struct TestResource
 {
   static int instances;
@@ -246,7 +245,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
     REQUIRE(sumOfChildren == 0);
     
-
     // try adding children at root
     a.add("peter", 1);
     a.add("paul", 1);
@@ -349,11 +347,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   propertiesB["x"] = 25;
   REQUIRE (propertiesB != properties);
 
-  // a tree converted to binary and back should result in the original value
-  auto b = valueTreeToBinary(properties);
-  auto b2 = valueTreeToBinary(binaryToValueTree(b));
-  REQUIRE(b == b2);
-
   std::vector< Value > melodies;
   for (auto it = properties.begin(); it != properties.end(); ++it)
   {
@@ -389,7 +382,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   
 }
 
-TEST_CASE("madronalib/core/serialization", "[serialization]")
+
+TEST_CASE("madronalib/core/textutils", "[textutils]")
 {
   NoiseGen n;
   constexpr int precision = 5;
@@ -427,7 +421,10 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
     if(error > maxError) errors++;
   }
   REQUIRE(!errors);
-  
+}
+
+TEST_CASE("madronalib/core/serialization", "[serialization]")
+{
   // Value tree to JSON to value tree. NOTE: the JSON created does not reflect the
   // tree structure but rather a flat list with the whole path as each item's string. TODO fix.
   Tree< Value > v;
@@ -436,22 +433,23 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["a/b/c"] = "hello again";
   v["blobtest"] = std::vector<uint8_t> {1, 3, 5, 7, 9};
   
+  // Value tree to JSON to value tree.
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
-  
   REQUIRE(v == v2);
-
+  
   // Value tree to JSON to text to JSON to value tree.
   auto t1 = JSONToText(valueTreeToJSON(v));
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
-}
-
-TEST_CASE("madronalib/core/floatvectors", "[floatvectors]")
-{
+  
+  // a tree converted to binary and back should result in the original value
+  auto b = valueTreeToBinary(v);
+  auto b2 = valueTreeToBinary(binaryToValueTree(b));
+  REQUIRE(b == b2);
+  
+  // float vector to binary to float vector.
   const int kTestSize{100};
-
   float sum1{0}, sum2{0};
-
   std::vector<float> vec;
   for (int i = 0; i < kTestSize; ++i)
   {
@@ -459,14 +457,24 @@ TEST_CASE("madronalib/core/floatvectors", "[floatvectors]")
     vec.push_back(f);
     sum1 += f;
   }
-
   auto vb = floatVectorToBinary(vec);
-  auto bv = binaryToFloatVector(vb->data());
-
+  auto bv = binaryToFloatVector(vb.data());
   for (int i = 0; i < kTestSize; ++i)
   {
-    sum2 += (*bv)[i];
+    sum2 += (bv)[i];
   }
-
   REQUIRE(sum1 == sum2);
+  REQUIRE(bv == vec);
+  
+  // create some JSON directly using our minimal API
+  auto j5 = JSONHolder();
+  j5.addNumber("foo", 23.0);
+  auto j6 = JSONHolder();
+  j6.addNumber("bar", 24.0);
+  
+  // addJSON() transfers the ownership of the data in j6 to j5
+  j5.addJSON("j-obj", j6);
+  REQUIRE(JSONToValueTree(j5).size() == 2);
+  REQUIRE(JSONToValueTree(j6).size() == 0);
+
 }

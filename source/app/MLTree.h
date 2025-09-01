@@ -443,7 +443,6 @@ class Tree
       }
       return true;
     }
-
   };
 
   // start at beginning, then advance until a node with a value is reached.
@@ -502,7 +501,7 @@ class Tree
     }
   }
   
-
+  // walk the tree recursively and count the number of nodes with values.
   inline size_t size() const
   {
     size_t sum{hasValue()};  // me

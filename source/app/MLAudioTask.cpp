@@ -83,7 +83,14 @@ void waitForConsoleKeyPress()
    
 #endif // ML_WINDOWS
 
-
+#if !defined(ML_MAC) && !defined(ML_WINDOWS)
+// Fallback implementation for other platforms (Linux, etc.)
+void waitForConsoleKeyPress()
+{
+  std::cout << "Press Enter to continue...";
+  std::cin.get();
+}
+#endif
 
 constexpr int kRtAudioCallbackFrames{512};
 
