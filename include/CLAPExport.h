@@ -257,6 +257,7 @@ private:
   uint32_t guiWidth = 400;
   uint32_t guiHeight = 300;
   bool guiCreated = false;
+  bool widgetsCreated = false;  // Per-instance widget creation flag
 #endif
 
 public:
@@ -973,6 +974,7 @@ public:
         wrapper->logInfo("GUI: GUI instance reset");
 
         wrapper->guiCreated = false;
+        wrapper->widgetsCreated = false;  // Reset widget creation flag for next creation
       }
 #endif
     }
@@ -1170,14 +1172,21 @@ public:
       if constexpr (!std::is_void_v<GUIClass>) {
         if (wrapper->platformView && wrapper->guiInstance) {
           // Try creating widgets here - after everything is fully initialized
-          static bool widgetsCreated = false;
-          if (!widgetsCreated) {
+          if (!wrapper->widgetsCreated) {
             wrapper->logInfo("GUI: Creating widgets in guiShow");
             wrapper->guiInstance->makeWidgets();
 
             // Connect widgets to parameters automatically
             wrapper->guiInstance->connectParameters();
             wrapper->logInfo("GUI: Connected widgets to parameters");
+
+            // Ensure view size is properly set before starting render loop
+            uint32_t width, height;
+            guiGetSize(plugin, &width, &height);
+            if (width > 0 && height > 0) {
+              wrapper->logInfo("GUI: Ensuring view size is set: " + std::to_string(width) + "x" + std::to_string(height));
+              wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, 1.0f);
+            }
 
             // Attach before starting timers
             wrapper->platformView->attachViewToParent();
@@ -1187,8 +1196,10 @@ public:
             wrapper->guiInstance->startTimersAndActor();
             wrapper->logInfo("GUI: Started AppView timers for event processing");
 
-            widgetsCreated = true;
+            wrapper->widgetsCreated = true;
             wrapper->logInfo("GUI: Widgets created successfully");
+          } else {
+            wrapper->logInfo("GUI: Widgets already created for this instance");
           }
 
           wrapper->logInfo("GUI: Platform view already visible");
