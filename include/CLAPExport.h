@@ -436,7 +436,7 @@ public:
       return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
     }
 
-    // AudioContext handles chunking - exception-safe processing
+    // AudioContext handles chunking
     for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
       int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
 
@@ -658,7 +658,7 @@ public:
     //   wrapper->logInfo(logMsg.str());
     // }
 
-    // Safe string to double conversion without exceptions
+    // string to double conversion
     char* endptr = nullptr;
     *out_value = std::strtod(param_value_text, &endptr);
     
@@ -1125,7 +1125,7 @@ public:
         wrapper->descriptor->name, nativeWindow, wrapper->guiInstance.get(), nullptr, 0, 60
       );
 
-      // Initialize resources but don't attach yet - move to guiShow
+      // Initialize resources
       wrapper->guiInstance->initializeResources(wrapper->platformView->getNativeDrawContext());
 
       // Inform AppView of its initial size to set up coordinate system
@@ -1135,7 +1135,26 @@ public:
       float displayScale = PlatformView::getDeviceScaleForWindow(nativeWindow);
       wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, displayScale);
 
-      // Don't create widgets or attach here - move to guiShow
+      // Create widgets immediately—AUv2 doesn't call guiShow
+      if (!wrapper->widgetsCreated) {
+        wrapper->logInfo("GUI: Creating widgets in guiSetParent (for AUv2 compatibility)");
+        wrapper->guiInstance->makeWidgets();
+
+        // Connect widgets to parameters automatically
+        wrapper->guiInstance->connectParameters();
+        wrapper->logInfo("GUI: Connected widgets to parameters");
+
+        // Attach before starting timers
+        wrapper->platformView->attachViewToParent();
+        wrapper->logInfo("GUI: Platform view attached in guiSetParent");
+
+        // Start AppView timers AFTER attachment
+        wrapper->guiInstance->startTimersAndActor();
+        wrapper->logInfo("GUI: Started AppView timers for event processing");
+
+        wrapper->widgetsCreated = true;
+        wrapper->logInfo("GUI: Widgets created successfully in guiSetParent");
+      }
 
       wrapper->logInfo("GUI: Platform view created successfully, parent set");
       return true;
@@ -1171,7 +1190,7 @@ public:
 #ifdef HAS_GUI
       if constexpr (!std::is_void_v<GUIClass>) {
         if (wrapper->platformView && wrapper->guiInstance) {
-          // Try creating widgets here - after everything is fully initialized
+          // Widgets are created in guiSetParent for AUv2
           if (!wrapper->widgetsCreated) {
             wrapper->logInfo("GUI: Creating widgets in guiShow");
             wrapper->guiInstance->makeWidgets();
@@ -1199,10 +1218,10 @@ public:
             wrapper->widgetsCreated = true;
             wrapper->logInfo("GUI: Widgets created successfully");
           } else {
-            wrapper->logInfo("GUI: Widgets already created for this instance");
+            wrapper->logInfo("GUI: Widgets already created in guiSetParent - GUI ready");
           }
 
-          wrapper->logInfo("GUI: Platform view already visible");
+          wrapper->logInfo("GUI: Platform view visible");
         }
       }
 #endif
