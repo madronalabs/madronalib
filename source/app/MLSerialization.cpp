@@ -529,23 +529,13 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
   return root;
 }
 
-Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentPath, int depth,
-                                       bool isArray)
+void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int depth)
 {
   int objIndex{0};
+
   while (obj)
   {
-    Path newObjectPath;
-    if (!isArray)
-    {
-      newObjectPath = Path(currentPath, Path(obj->string));
-    }
-    else
-    {
-      // TODO add array node markers so we can get back to the JSON original
-      newObjectPath = Path(currentPath, Path(textUtils::naturalNumberToText(objIndex)));
-    }
-    
+    Path newObjectPath(currentPath, Path(obj->string));
     switch (obj->type & 255)
     {
       case cJSON_Number:
@@ -556,8 +546,10 @@ Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentPath, in
       case cJSON_String:
       {
         TextFragment valueText(obj->valuestring);
-        if(valueText.beginsWith(kBlobHeader)) // not wonderful
+
+        if(valueText.beginsWith(kBlobHeader))
         {
+          // convert strings starting with the header into Blobs
           auto headerLen = kBlobHeader.lengthInCodePoints();
           auto textLen = valueText.lengthInCodePoints();
           auto body = textUtils::subText(valueText, headerLen, textLen);
@@ -569,37 +561,48 @@ Tree<Value> readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentPath, in
         }
         else
         {
+          // convert ordinary strings into text
           r.add(newObjectPath, valueText);
         }
         break;
       }
       case cJSON_Object:
       {
-        readJSONToValueTree(obj->child, r, newObjectPath, depth, false);
+        readJSONToValueTree(obj->child, r, newObjectPath, depth);
         break;
       }
       case cJSON_Array:
       {
-        readJSONToValueTree(obj->child, r, newObjectPath, depth, true);
+        // read array at obj->child to blob
+        std::vector< float > arrayElems;
+        cJSON* array = obj->child;
+        while(array->next)
+        {
+          // std::cout << ".";
+          arrayElems.push_back((float)array->valuedouble);
+          array = array->next;
+        }
+        Value arrayVal(arrayElems.data(), arrayElems.size()*sizeof(float));
+        r.add(newObjectPath, arrayVal);
         break;
       }
       default:
+      {
         break;
+      }
     }
     obj = obj->next;
     objIndex++;
   }
-  
-  return r;
 }
 
 Tree<Value> JSONToValueTree(const JSONHolder& root)
 {
-  Tree<Value> r;
+  Tree< Value > r;
   if (getData(root))
   {
     cJSON* obj = getData(root)->child;
-    return readJSONToValueTree(obj, r, "", 0, false);
+    readJSONToValueTree(obj, r, "", 0);
   }
   return r;
 }
