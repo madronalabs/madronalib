@@ -49,6 +49,7 @@ class Path final
 
   inline int getSize() const { return static_cast<int>(mSize); }
   inline Symbol getElement(int n) const { return _symbols[n]; }
+  inline void setElementUnchecked(size_t n, Symbol sym) { _symbols[n] = sym; if(n >= mSize) mSize = n + 1;}
   inline int getCopy() const { return mCopy; }
   inline void setCopy(int c) { mCopy = c; }  // MLTEST to remove, use ctor only?
 
@@ -113,7 +114,7 @@ class Path final
   friend Symbol third(Path p);
   friend Symbol fourth(Path p);
   friend Symbol fifth(Path p);
-  friend Symbol nth(Path p, size_t n);
+  friend Symbol nth(Path p, size_t n); // starting from 0th = head
   friend Path tail(Path p);
   friend Path butLast(Path p);
   friend Symbol last(Path p);
