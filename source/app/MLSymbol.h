@@ -146,7 +146,7 @@ class SymbolTable
 
  private:
   // vector of text fragments in ID/creation order
-  std::vector<TextFragment> mSymbolTextsByID;
+  std::vector< TextFragment > mSymbolTextsByID;
 
   // hash table containing indexes to strings for a given hash value.
   struct TableEntry

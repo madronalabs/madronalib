@@ -40,7 +40,7 @@ void SymbolTable::clear()
 // this must be the only way of modifying the symbol table.
 SymbolID SymbolTable::addEntry(const HashedCharArray& hsl)
 {
-  mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
+  mSymbolTextsByID.emplace_back(hsl.pChars, static_cast<int>(hsl.len));
 
   size_t newID = mSize++;
   mHashTable[hsl.hash].mIDVector.emplace_back(newID);
@@ -76,7 +76,7 @@ SymbolID SymbolTable::getSymbolID(const HashedCharArray& hsl)
 
     if (!found)
     {
-      mSymbolTextsByID.emplace_back(TextFragment(hsl.pChars, static_cast<int>(hsl.len)));
+      mSymbolTextsByID.emplace_back(hsl.pChars, static_cast<int>(hsl.len));
       r = mSize++;
       mHashTable[hsl.hash].mIDVector.emplace_back(r);
     }
