@@ -749,6 +749,11 @@ public:
       if (!header) continue;
 
       if (header->type == CLAP_EVENT_PARAM_VALUE) {
+        // Validate namespace ID - only process events from core event space
+        if (header->space_id != CLAP_CORE_EVENT_SPACE_ID) {
+          continue; // Skip events with wrong namespace ID
+        }
+        
         const auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
         const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
@@ -790,19 +795,23 @@ public:
 
     wrapper->logInfo("stateSave: Starting state save operation");
 
-    // Create JSON object using cJSON
-    cJSON* jsonRoot = cJSON_CreateObject();
-    if (!jsonRoot) {
-      wrapper->logError("stateSave: Failed to create JSON root object");
-      return false;
-    }
-
     // Get normalized parameter values from ParameterTree
     const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
     wrapper->logInfo("stateSave: Found " + std::to_string(paramValues.size()) + " parameters to save");
 
-    // Add each parameter to the JSON object
-    int paramCount = 0;
+    // Write parameter count first
+    uint32_t paramCount = 0;
+    for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
+      paramCount++;
+    }
+    
+    int64_t bytesWritten = stream->write(stream, &paramCount, sizeof(paramCount));
+    if (bytesWritten != sizeof(paramCount)) {
+      wrapper->logError("stateSave: Failed to write parameter count");
+      return false;
+    }
+
+    // Write each parameter as binary data (name length, name, value)
     for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
       ml::Path paramPath = it.getCurrentPath();
       ml::Value paramValue = *it;
@@ -810,33 +819,31 @@ public:
       std::string paramName = std::string(pathToText(paramPath).getText());
       float value = paramValue.getFloatValue();
       
-      cJSON_AddNumberToObject(jsonRoot, paramName.c_str(), value);
-      paramCount++;
+      // Write name length
+      uint32_t nameLength = static_cast<uint32_t>(paramName.length());
+      bytesWritten = stream->write(stream, &nameLength, sizeof(nameLength));
+      if (bytesWritten != sizeof(nameLength)) {
+        wrapper->logError("stateSave: Failed to write parameter name length");
+        return false;
+      }
+      
+      // Write name
+      bytesWritten = stream->write(stream, paramName.c_str(), nameLength);
+      if (bytesWritten != static_cast<int64_t>(nameLength)) {
+        wrapper->logError("stateSave: Failed to write parameter name");
+        return false;
+      }
+      
+      // Write value
+      bytesWritten = stream->write(stream, &value, sizeof(value));
+      if (bytesWritten != sizeof(value)) {
+        wrapper->logError("stateSave: Failed to write parameter value");
+        return false;
+      }
     }
-    wrapper->logInfo("stateSave: Added " + std::to_string(paramCount) + " parameters to JSON");
 
-    // Convert JSON to string
-    char* jsonString = cJSON_PrintUnformatted(jsonRoot);
-    if (!jsonString) {
-      cJSON_Delete(jsonRoot);
-      return false;
-    }
-
-    // Write to CLAP stream
-    size_t jsonLength = strlen(jsonString);
-    int64_t bytesWritten = stream->write(stream, jsonString, jsonLength);
-
-    // Log the JSON data before cleanup for debugging
-    wrapper->logInfo("stateSave: Saving JSON data: " + std::string(jsonString));
-    wrapper->logInfo("stateSave: Expected to write " + std::to_string(jsonLength) + " bytes, actually wrote " + std::to_string(bytesWritten) + " bytes");
-
-    // Clean up
-    free(jsonString);
-    cJSON_Delete(jsonRoot);
-
-    bool success = (bytesWritten == static_cast<int64_t>(jsonLength));
-    wrapper->logInfo("stateSave: " + (success ? std::string("SUCCESS") : std::string("FAILED")));
-    return success;
+    wrapper->logInfo("stateSave: SUCCESS - wrote " + std::to_string(paramCount) + " parameters");
+    return true;
   }
 
   static bool stateLoad(const clap_plugin* plugin, const clap_istream* stream) {
@@ -848,62 +855,51 @@ public:
 
     wrapper->logInfo("stateLoad: Starting state load operation");
 
-    // Read all available data from stream
-    std::string jsonData;
-    char buffer[4096];
-
-    int64_t bytesRead;
-    int totalBytesRead = 0;
-    while ((bytesRead = stream->read(stream, buffer, sizeof(buffer))) > 0) {
-      jsonData.append(buffer, bytesRead);
-      totalBytesRead += bytesRead;
-    }
-
-    wrapper->logInfo("stateLoad: Read " + std::to_string(totalBytesRead) + " bytes from stream");
-
-    if (jsonData.empty()) {
-      wrapper->logError("stateLoad: No data received from stream");
+    // Read parameter count
+    uint32_t paramCount;
+    int64_t bytesRead = stream->read(stream, &paramCount, sizeof(paramCount));
+    if (bytesRead != sizeof(paramCount)) {
+      wrapper->logError("stateLoad: Failed to read parameter count");
       return false;
     }
 
-    wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
+    wrapper->logInfo("stateLoad: Reading " + std::to_string(paramCount) + " parameters");
 
-    // Parse JSON using cJSON
-    cJSON* jsonRoot = cJSON_Parse(jsonData.c_str());
-    if (!jsonRoot) {
-      wrapper->logError("stateLoad: Failed to parse JSON data");
-      return false;
-    }
-
-    // Check if root is an object
-    if (jsonRoot->type != cJSON_Object) {
-      cJSON_Delete(jsonRoot);
-      wrapper->logError("stateLoad: JSON root is not an object");
-      return false;
-    }
-
-    // Iterate through all parameters in the JSON object
-    cJSON* paramItem = jsonRoot->child;
-    int paramCount = 0;
-    while (paramItem) {
-      if (paramItem->type == cJSON_Number && paramItem->string) {
-        std::string paramName = std::string(paramItem->string);
-        float value = static_cast<float>(paramItem->valuedouble);
-
-        wrapper->logInfo("stateLoad: Setting parameter '" + paramName + "' = " + std::to_string(value));
-
-        // Set the parameter value
-        wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
-        paramCount++;
+    // Read each parameter
+    int restoredCount = 0;
+    for (uint32_t i = 0; i < paramCount; ++i) {
+      // Read name length
+      uint32_t nameLength;
+      bytesRead = stream->read(stream, &nameLength, sizeof(nameLength));
+      if (bytesRead != sizeof(nameLength)) {
+        wrapper->logError("stateLoad: Failed to read parameter name length");
+        return false;
       }
-      paramItem = paramItem->next;
+      
+      // Read name
+      std::string paramName(nameLength, '\0');
+      bytesRead = stream->read(stream, &paramName[0], nameLength);
+      if (bytesRead != static_cast<int64_t>(nameLength)) {
+        wrapper->logError("stateLoad: Failed to read parameter name");
+        return false;
+      }
+      
+      // Read value
+      float value;
+      bytesRead = stream->read(stream, &value, sizeof(value));
+      if (bytesRead != sizeof(value)) {
+        wrapper->logError("stateLoad: Failed to read parameter value");
+        return false;
+      }
+
+      wrapper->logInfo("stateLoad: Setting parameter '" + paramName + "' = " + std::to_string(value));
+
+      // Set the parameter value
+      wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+      restoredCount++;
     }
 
-    wrapper->logInfo("stateLoad: Successfully restored " + std::to_string(paramCount) + " parameters");
-
-    // Clean up
-    cJSON_Delete(jsonRoot);
-
+    wrapper->logInfo("stateLoad: Successfully restored " + std::to_string(restoredCount) + " parameters");
     wrapper->logInfo("stateLoad: SUCCESS");
     return true;
   }
@@ -1283,6 +1279,11 @@ private:
           break;
         }
         case CLAP_EVENT_PARAM_VALUE: {
+          // Validate namespace ID - only process events from core event space
+          if (header->space_id != CLAP_CORE_EVENT_SPACE_ID) {
+            continue; // Skip events with wrong namespace ID
+          }
+          
           auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
           // std::ostringstream paramLog;
