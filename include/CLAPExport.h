@@ -113,6 +113,9 @@ public:
     }
   }
 
+  // CLAP lifecycle methods
+  virtual void setSampleRate(double sr) {}
+  
   // Default voice activity - plugins can override
   virtual bool hasActiveVoices() const { return false; }
 };
