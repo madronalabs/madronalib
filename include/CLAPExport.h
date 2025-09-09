@@ -798,8 +798,8 @@ public:
 
     wrapper->logInfo("stateSave: Starting state save operation");
 
-    // Get normalized parameter values from ParameterTree
-    const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
+    // Get real parameter values from ParameterTree
+    const auto& paramValues = wrapper->processor->getParameterTree().getRealValues();
     wrapper->logInfo("stateSave: Found " + std::to_string(paramValues.size()) + " parameters to save");
 
     // Write parameter count first
@@ -897,8 +897,8 @@ public:
 
       wrapper->logInfo("stateLoad: Setting parameter '" + paramName + "' = " + std::to_string(value));
 
-      // Set the parameter value
-      wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+      // Set the parameter value using real value
+      wrapper->processor->setParamFromRealValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
       restoredCount++;
     }
 
