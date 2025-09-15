@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MLSignalProcessor.h"
+#include "MLSignalProcessBuffer.h"
 #include "MLAudioContext.h"
 
 #include <clap/clap.h>
@@ -115,7 +116,7 @@ public:
 
   // CLAP lifecycle methods
   virtual void setSampleRate(double sr) {}
-  
+
   // Default voice activity - plugins can override
   virtual bool hasActiveVoices() const { return false; }
 };
@@ -241,6 +242,13 @@ public:
 };
 #endif
 
+// Template function for type safety - converts AudioContext* to processVector call
+template<typename PluginClass>
+void CLAPProcessVectorFn(AudioContext* ctx, void* state) {
+  auto* processor = static_cast<PluginClass*>(state);
+  processor->processVector(ctx->inputs, ctx->outputs);
+}
+
 // Template parameters:
 // PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
 // GUIClass = your AppView-derived class (e.g., ClapSawDemoGUI) - use void for no GUI
@@ -252,6 +260,7 @@ private:
   const clap_host_params* hostParams;  // For GUI->Host parameter notifications
   std::unique_ptr<PluginClass> processor;
   std::unique_ptr<AudioContext> audioContext;
+  std::unique_ptr<SignalProcessBuffer> processBuffer;
   const clap_plugin_descriptor* descriptor;
 
 #ifdef HAS_GUI
@@ -293,7 +302,8 @@ public:
       // TODO: generalize polyphony. Does effect vs instrument matter here?
       wrapper->audioContext->setInputPolyphony(16);
 
-      wrapper->processor->setAudioContext(wrapper->audioContext.get());
+      // Create SignalProcessBuffer      // TODO: generalize input/output channels and max frames
+      wrapper->processBuffer = std::make_unique<SignalProcessBuffer>(2, 2, 4096);
 
 #ifdef HAS_GUI
       // Set up logging callback for GUI debugging
@@ -410,14 +420,11 @@ public:
   }
 
   clap_process_status processAudio(const clap_process* process) {
-    // Safety checks to prevent crashes
     if (!process || !audioContext || !processor) {
-      logWarning("processAudio: Missing required components");
       return CLAP_PROCESS_CONTINUE;
     }
 
     if (process->audio_inputs_count == 0 || process->audio_outputs_count == 0) {
-      logWarning("processAudio: No audio I/O available");
       return CLAP_PROCESS_CONTINUE;
     }
 
@@ -439,47 +446,18 @@ public:
       return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
     }
 
-    // AudioContext handles chunking
-    for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
-      int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
-
-      // Copy inputs to AudioContext (if available)
-      if (inputs && process->audio_inputs[0].channel_count > 0) {
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = inputs[0][i + j];
-          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
-                                      inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
-        }
-      } else {
-        // Clear inputs if no input available
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = 0.0f;
-          audioContext->inputs[1][j] = 0.0f;
-        }
-      }
-
-      // AudioContext processes everything (events, voices, timing)
-      audioContext->processVector(i);
-
-      // User processor just does DSP on processed context
-      processor->processAudioContext();
-
-      // Copy outputs from AudioContext to CLAP buffers
-      if (process->audio_outputs[0].channel_count >= 1) {
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          outputs[0][i + j] = audioContext->outputs[0][j];
-          if (process->audio_outputs[0].channel_count >= 2) {
-            outputs[1][i + j] = audioContext->outputs[1][j];
-          }
-        }
-      }
-    }
+    // delegate to SignalProcessBuffer
+    processBuffer->process(
+      inputs, outputs, process->frames_count,
+      audioContext.get(),
+      CLAPProcessVectorFn<PluginClass>,
+      processor.get()
+    );
 
     // Send any pending parameter changes from GUI to host
     if (process->out_events) {
       std::lock_guard<std::mutex> lock(changedParamsMutex);
       if (!changedParams.empty()) {
-        logInfo("process: Sending " + std::to_string(changedParams.size()) + " parameter changes");
 
         for (const auto& cp : changedParams) {
           // Create parameter value event
@@ -499,12 +477,7 @@ public:
           event.value = cp.value;  // Real value matching reported range
 
           // Try to push the event
-          if (!process->out_events->try_push(process->out_events, &event.header)) {
-            logWarning("process: Failed to push parameter change event for param " + std::to_string(cp.id));
-          } else {
-            logInfo("process: Sent parameter change: id=" + std::to_string(cp.id) +
-                    " value=" + std::to_string(cp.value));
-          }
+          process->out_events->try_push(process->out_events, &event.header);
         }
         // Clear the changed parameters list
         changedParams.clear();
@@ -517,7 +490,7 @@ public:
   // Extension implementation
   const void* getExtension(const char* id) {
     logInfo("getExtension: Requested extension: " + std::string(id ? id : "null"));
-    
+
     if (strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &audioPortsExt;
     if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
     if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
@@ -526,7 +499,7 @@ public:
       return &stateExt;
     }
     if (strcmp(id, CLAP_EXT_GUI) == 0) return &guiExt;
-    
+
     logInfo("getExtension: Extension not found: " + std::string(id ? id : "null"));
     return nullptr;
   }
@@ -664,7 +637,7 @@ public:
     // string to double conversion
     char* endptr = nullptr;
     *out_value = std::strtod(param_value_text, &endptr);
-    
+
     // Check for conversion errors
     if (endptr == param_value_text || *endptr != '\0') {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
@@ -726,12 +699,7 @@ public:
         event.value = cp.value;  // Real value matching reported range
 
         // Try to push the event
-        if (!out->try_push(out, &event.header)) {
-          wrapper->logWarning("Failed to push parameter change event for param " + std::to_string(cp.id));
-        } else {
-          wrapper->logInfo("Sent parameter change: id=" + std::to_string(cp.id) +
-                          " value=" + std::to_string(cp.value));
-        }
+        out->try_push(out, &event.header);
       }
       // Clear the changed parameters list
       wrapper->changedParams.clear();
@@ -756,7 +724,7 @@ public:
         if (header->space_id != CLAP_CORE_EVENT_SPACE_ID) {
           continue; // Skip events with wrong namespace ID
         }
-        
+
         const auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
         const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
@@ -807,7 +775,7 @@ public:
     for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
       paramCount++;
     }
-    
+
     int64_t bytesWritten = stream->write(stream, &paramCount, sizeof(paramCount));
     if (bytesWritten != sizeof(paramCount)) {
       wrapper->logError("stateSave: Failed to write parameter count");
@@ -818,10 +786,10 @@ public:
     for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
       ml::Path paramPath = it.getCurrentPath();
       ml::Value paramValue = *it;
-      
+
       std::string paramName = std::string(pathToText(paramPath).getText());
       float value = paramValue.getFloatValue();
-      
+
       // Write name length
       uint32_t nameLength = static_cast<uint32_t>(paramName.length());
       bytesWritten = stream->write(stream, &nameLength, sizeof(nameLength));
@@ -829,14 +797,14 @@ public:
         wrapper->logError("stateSave: Failed to write parameter name length");
         return false;
       }
-      
+
       // Write name
       bytesWritten = stream->write(stream, paramName.c_str(), nameLength);
       if (bytesWritten != static_cast<int64_t>(nameLength)) {
         wrapper->logError("stateSave: Failed to write parameter name");
         return false;
       }
-      
+
       // Write value
       bytesWritten = stream->write(stream, &value, sizeof(value));
       if (bytesWritten != sizeof(value)) {
@@ -878,7 +846,7 @@ public:
         wrapper->logError("stateLoad: Failed to read parameter name length");
         return false;
       }
-      
+
       // Read name
       std::string paramName(nameLength, '\0');
       bytesRead = stream->read(stream, &paramName[0], nameLength);
@@ -886,7 +854,7 @@ public:
         wrapper->logError("stateLoad: Failed to read parameter name");
         return false;
       }
-      
+
       // Read value
       float value;
       bytesRead = stream->read(stream, &value, sizeof(value));
@@ -1286,7 +1254,7 @@ private:
           if (header->space_id != CLAP_CORE_EVENT_SPACE_ID) {
             continue; // Skip events with wrong namespace ID
           }
-          
+
           auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
           // std::ostringstream paramLog;
@@ -1340,8 +1308,8 @@ private:
 //   ClassName = your SignalProcessor-derived class (e.g., ClapSawDemo)
 //   PluginName = display name for DAW (e.g., "Clap Saw Demo")
 //   VendorName = company name (e.g., "Madrona Labs")
-// Usage: MADRONALIB_EXPORT_CLAP_PLUGIN(ClapSawDemo, "Clap Saw Demo", "Madrona Labs")
-#define MADRONALIB_EXPORT_CLAP_PLUGIN(ClassName, PluginName, VendorName) \
+// Usage: MADRONALIB_EXPORT_CLAP_PLUGIN(MyPlugin, "My Plugin", "My Company", "https://mysite.com", "1.0.0", "Audio Effect")
+#define MADRONALIB_EXPORT_CLAP_PLUGIN(ClassName, PluginName, VendorName, VendorURL, PluginVersion, PluginDescription) \
 extern "C" { \
   static const char* const features[] = { \
     CLAP_PLUGIN_FEATURE_INSTRUMENT, \
@@ -1354,11 +1322,11 @@ extern "C" { \
     PluginName "-id", \
     PluginName, \
     VendorName, \
-    "https://madronalabs.com", \
+    VendorURL, \
     "", \
     "", \
-    "1.0.0", \
-    "Synthesizer", \
+    PluginVersion, \
+    PluginDescription, \
     features \
   }; \
   \
@@ -1418,11 +1386,11 @@ extern "C" { \
     PluginName "-id", \
     PluginName, \
     VendorName, \
-    "https://madronalabs.com", \
+    VendorURL, \
     "", \
     "", \
-    "1.0.0", \
-    "Synthesizer", \
+    PluginVersion, \
+    PluginDescription, \
     features \
   }; \
   \
