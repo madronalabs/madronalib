@@ -246,7 +246,7 @@ public:
 template<typename PluginClass>
 void CLAPProcessVectorFn(AudioContext* ctx, void* state) {
   auto* processor = static_cast<PluginClass*>(state);
-  processor->processVector(ctx->inputs, ctx->outputs);
+  processor->processVector(ctx->inputs, ctx->outputs, ctx);
 }
 
 // Template parameters:
