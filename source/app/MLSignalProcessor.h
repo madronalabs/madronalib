@@ -119,7 +119,7 @@ class SignalProcessor
     }
   };
 
-  virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic outputs, void* stateData = nullptr) {}
+  virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic& outputs, void* stateData = nullptr) {}
 
   void setParamFromNormalizedValue(Path pname, float val)
   {
