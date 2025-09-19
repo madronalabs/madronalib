@@ -11,6 +11,7 @@
 #include <clap/ext/params.h>
 #include <clap/ext/state.h>
 #include <clap/ext/gui.h>
+#include <clap/ext/voice-info.h>
 #include "../external/cJSON/cJSON.h"
 
 #ifdef HAS_GUI
@@ -296,11 +297,17 @@ public:
       // AudioContext handles everything - no complex setup needed!
       // Create with 2 inputs and 2 outputs for stereo processing
       // TODO: generalize input/output channels
+      // TODO: sample rate should never be hardcoded
       wrapper->audioContext = std::make_unique<AudioContext>(2, 2, 48000.0);
 
-      // Need to set polyphony for EventsToSignals
-      // TODO: generalize polyphony. Does effect vs instrument matter here?
-      wrapper->audioContext->setInputPolyphony(16);
+      // Set polyphony for EventsToSignals based on plugin's voice count
+      // For plugins that define kNumVoices, use that value, otherwise default to 4
+      size_t polyphony = 4; // Default fallback
+      // SFINAE check for kNumVoices (C++17 compatible)
+      if constexpr (std::is_same_v<decltype(PluginClass::kNumVoices), const int>) {
+        polyphony = PluginClass::kNumVoices;
+      }
+      wrapper->audioContext->setInputPolyphony(polyphony);
 
       // Create SignalProcessBuffer      // TODO: generalize input/output channels and max frames
       wrapper->processBuffer = std::make_unique<SignalProcessBuffer>(2, 2, 4096);
@@ -499,6 +506,7 @@ public:
       return &stateExt;
     }
     if (strcmp(id, CLAP_EXT_GUI) == 0) return &guiExt;
+    if (strcmp(id, CLAP_EXT_VOICE_INFO) == 0) return &voiceInfoExt;
 
     logInfo("getExtension: Extension not found: " + std::string(id ? id : "null"));
     return nullptr;
@@ -543,6 +551,24 @@ public:
   }
 
   static const clap_plugin_note_ports notePortsExt;
+
+  // Voice Info Extension - Report plugin's polyphony capability
+  static bool voiceInfoGet(const clap_plugin* plugin, clap_voice_info* info) {
+    // Get polyphony based on plugin's voice count
+    size_t polyphony = 4; // Default fallback
+    // SFINAE check for kNumVoices (C++17 compatible)
+    if constexpr (std::is_same_v<decltype(PluginClass::kNumVoices), const int>) {
+      polyphony = PluginClass::kNumVoices;
+    }
+    
+    info->voice_count = polyphony;
+    info->voice_capacity = polyphony;
+    info->flags = 0;
+    
+    return true;
+  }
+
+  static const clap_plugin_voice_info voiceInfoExt;
 
   // Params Extension - integrate with ParameterTree
 
@@ -1441,6 +1467,11 @@ template<typename PluginClass, typename GUIClass>
 const clap_plugin_note_ports CLAPPluginWrapper<PluginClass, GUIClass>::notePortsExt = {
   CLAPPluginWrapper<PluginClass, GUIClass>::notePortsCount,
   CLAPPluginWrapper<PluginClass, GUIClass>::notePortsGet
+};
+
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_voice_info CLAPPluginWrapper<PluginClass, GUIClass>::voiceInfoExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::voiceInfoGet
 };
 
 template<typename PluginClass, typename GUIClass>
