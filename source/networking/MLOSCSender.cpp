@@ -1,6 +1,6 @@
 //
 //  MLOSCSender.cpp
-//  Aalto
+//  madronalib
 //
 //  Created by Randy Jones on 10/30/15.
 //
