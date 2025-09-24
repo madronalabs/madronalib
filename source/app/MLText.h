@@ -64,7 +64,7 @@ class TextFragment
 
   // this ctor can be used to save the work of counting the length of the input
   // if we know it already, as with static HashedCharArrays.
-  TextFragment(const char* pChars, size_t len) noexcept;
+  explicit TextFragment(const char* pChars, size_t len) noexcept;
 
   // single code point ctor
   TextFragment(CodePoint c) noexcept;

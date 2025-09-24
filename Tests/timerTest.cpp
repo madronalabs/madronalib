@@ -27,10 +27,10 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
 
   // test number of calls correct
   const int testSize = 10;
-  std::vector<std::unique_ptr<Timer> > v;
+  std::vector< std::unique_ptr<Timer> > v;
   for (int i = 0; i < testSize; ++i)
   {
-    v.emplace_back(std::unique_ptr<Timer>(new Timer));
+    v.emplace_back(new Timer);
     v[i]->callNTimes(
         [&sum]() {
           sum += 1;
@@ -50,7 +50,7 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
     std::vector<std::unique_ptr<Timer> > v2;
     for (int i = 0; i < test2Size; ++i)
     {
-      v2.emplace_back(std::unique_ptr<Timer>(new Timer));
+      v2.emplace_back(new Timer);
       
       // rare crash?
       // terminating with uncaught exception of type std::__1::bad_function_call: std::exception
@@ -68,7 +68,7 @@ TEST_CASE("madronalib/core/timer/basic", "[timer][basic]")
     std::vector<std::unique_ptr<Timer> > v3;
     for (int i = 0; i < test3Size; ++i)
     {
-      v3.emplace_back(std::unique_ptr<Timer>(new Timer));
+      v3.emplace_back(new Timer);
       v3[i]->start(
           [&sum, i]() {
             sum++;
