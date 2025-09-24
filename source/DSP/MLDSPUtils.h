@@ -68,6 +68,27 @@ struct UsingFlushDenormalsToZero
     _mm_setcsr(MXCRState);
   }
   
+#elif defined(__aarch64__)
+  uint64_t MXCRState = 0;
+  
+  UsingFlushDenormalsToZero()
+  {
+    // read and store floating point control register (FPCR)
+    uint64_t FPCR_prev = 0;
+    asm volatile("MRS %0, FPCR " : "=r"(FPCR_prev));
+    MXCRState = FPCR_prev;
+    
+    // set flush to zero bit and write FPCR
+    uint64_t FPCR = FPCR_prev | (1ULL << 24);
+    asm volatile("MSR FPCR, %0 " : : "r"(FPCR));
+  }
+  
+  ~UsingFlushDenormalsToZero()
+  {
+    // restore the old MXCSR setting
+    asm volatile("MSR FPCR, %0 " : : "r"(MXCRState));
+  }
+
 #else
   UsingFlushDenormalsToZero() = default;
   ~UsingFlushDenormalsToZero() = default;

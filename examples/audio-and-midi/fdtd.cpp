@@ -158,6 +158,7 @@ DSPVectorArray< 2 > processFDTDModel(DSPVector inputVec, DSPVector freq, FDTDSta
 
 void processFDTD(AudioContext* ctx, void *untypedState)
 {
+  UsingFlushDenormalsToZero f;
   auto state = static_cast<FDTDState*>(untypedState);
 
   // generate ticks twice per second
