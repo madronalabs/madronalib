@@ -18,6 +18,10 @@
 // Tree<int> weird to use, because 0 indicates a null value. However, we are
 // typically interested in more complex value types like Values or Widgets.
 // Heavyweight objects in a Tree should be held by unique_ptrs.
+//
+// Once made, nodes cannot be erased. Typically, the Tree will be made once
+// from a parameter list, or rescanned periodically to mirror a file hierarchy.
+// Partial deletion would add complexity without a clear benefit.
 
 namespace ml
 {
@@ -28,7 +32,7 @@ class Tree
   using mapT = std::map<Symbol, Tree<V, C>, C>;
   mapT mChildren{};
   V _value{};
-
+  
  public:
   Tree<V, C>() = default;
   Tree<V, C>(V val) : _value(std::move(val)) {}
@@ -53,7 +57,7 @@ class Tree
 
   // find a tree node at the specified path.
   // if successful, return a const pointer to the node. If unsuccessful, return nullptr.
-  const Tree<V, C>* getConstNode(Path path) const
+  const Tree<V, C>* getNode(Path path) const
   {
     auto pNode = this;
     for (Symbol key : path)
@@ -73,16 +77,29 @@ class Tree
 
   // find a tree node at the specified path.
   // if successful, return a pointer to the node. If unsuccessful, return nullptr.
-  Tree<V, C>* getNode(Path path) const
+  Tree<V, C>* getMutableNode(Path path)
   {
-    return const_cast<Tree<V, C>*>(const_cast<const Tree<V, C>*>(this)->getConstNode(path));
+    auto pNode = this;
+    for (Symbol key : path)
+    {
+      auto it = pNode->mChildren.find(key);
+      if (it != pNode->mChildren.end())
+      {
+        pNode = &(it->second);
+      }
+      else
+      {
+        return nullptr;
+      }
+    }
+    return pNode;
   }
 
   // if the path exists, returns a reference to the value in the tree at the
   // path. else, add a new default object of our value type V.
   V& operator[](Path p)
   {
-    auto pNode = getNode(p);
+    auto pNode = getMutableNode(p);
     if(pNode)
     {
       return pNode->_value;
@@ -97,8 +114,8 @@ class Tree
   // the path. Otherwise, reference to a null valued object is returned.
   const V& operator[](Path p) const
   {
-    static V nullValue{};
-    auto pNode = getConstNode(p);
+    static const V nullValue{};
+    auto pNode = getNode(p);
     if (pNode)
     {
       return pNode->_value;
@@ -142,57 +159,33 @@ class Tree
   {
     auto pNode = this;
     int pathSize = path.getSize();
-    int pathDepthFound = 0;
 
-    // walk the tree up to, but not including, the last node, as long as
-    // branches matching the path are found
-    for (Symbol key : path)
+    // Navigate to parent of last node
+    for (int i = 0; i < pathSize - 1; ++i)
     {
-      // break if at last node
-      if (pathDepthFound >= pathSize - 1) break;
-
-      if (pNode->mChildren.find(key) != pNode->mChildren.end())
-      {
-        pNode = &(pNode->mChildren[key]);
-        pathDepthFound++;
-      }
-      else
-      {
-        // break if not found
-        break;
-      }
+      // [] operator creates the new node if it does not exist
+      // TODO handle possible throw by operator[]
+      pNode = &(pNode->mChildren[path.getElement(i)]);
     }
-
-    // add the remainder of the path to the map, again up to, but not including,
-    // the last node
-    for (int i = pathDepthFound; i < pathSize - 1; ++i)
-    {
-      // [] operator creates the new node
-      auto newNodeName = path.getElement(i);
-      pNode = &(pNode->mChildren[newNodeName]);
-    }
-
-    // search for last node
+    
+    // create or overwrite last node
     auto lastNodeName = path.getElement(pathSize - 1);
-    if (pNode->mChildren.find(lastNodeName) == pNode->mChildren.end())
+    auto it = pNode->mChildren.find(lastNodeName);
+    if(it != pNode->mChildren.end())
     {
-      // if last node does not exist, emplace new value
-      pNode->mChildren.emplace(lastNodeName, std::move(val));
+      // Node exists, update value
+      it->second._value = std::move(val);
+      pNode = &(it->second);
     }
     else
     {
-      // overwrite existing value using std::move
-      // this allows the value to be some unique_ptr<stuff> .
-      pNode->mChildren[lastNodeName]._value = std::move(val);
+      // Node doesn't exist, create it with the value
+      // TODO handle possible throw by emplace
+      auto [newIt, inserted] = pNode->mChildren.emplace(lastNodeName, std::move(val));
+      pNode = &(newIt->second);
     }
 
-    pNode = &(pNode->mChildren[lastNodeName]);
     return pNode;
-  }
-
-  void erase(Path p)
-  {
-    // TODO
   }
 
   // NOTE this iterator does not work with STL algorithms in general, only for
@@ -226,7 +219,6 @@ class Tree
 
     bool operator==(const const_iterator& b) const
     {
-
       // bail out here if possible.
       if (mNodeStack.size() != b.mNodeStack.size()) return false;
 
@@ -243,7 +235,6 @@ class Tree
     const V& operator*() const
     {
       return ((*mIteratorStack.back()).second)._value;
-      
     }
     
     void push(const Tree<V, C>* childNodePtr)
@@ -260,17 +251,7 @@ class Tree
         mIteratorStack.pop_back();
       }
     }
-    
-    
-    /*
-    // return true if at root.
-    bool atRoot() const
-    {
-      return (mIteratorStack.size() == 1)
-      
-    }
-*/
-    
+
     // return true if at the end of the current submap.
     bool atEndOfMap() const {
       return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end());
@@ -279,13 +260,6 @@ class Tree
     // advance to the next node. Return false if at end of entire tree.
     bool nextNode()
     {
-/*
-      if(atRoot())
-      {
-        mIteratorStack.push_back(mNodeStack[0]->mChildren.begin());
-        return 1;
-      }
-*/
       auto& currentIterator = mIteratorStack.back();
       if (!atEndOfMap())
       {
@@ -469,10 +443,18 @@ class Tree
   // visit all nodes and dump only the nodes with values.
   inline void dump() const
   {
+    size_t maxDepth{0};
     for (auto it = begin(); it != end(); ++it)
     {
+      size_t indent = it.getCurrentDepth();
+      maxDepth = std::max(maxDepth, indent);
+      for(int i=0; i<indent; ++i)
+      {
+        std::cout << " ";
+      }
       std::cout << it.getCurrentPath() << " [" << *it << "] \n";
     }
+    std::cout << "max depth: " << maxDepth << "\n";
   }
 
   // visit all nodes and dump only the nodes with values, showing types.
@@ -517,7 +499,7 @@ class Tree
 template <class V, class C = std::less<Symbol> >
 bool treeNodeExists(const Tree<V, C>& t, Path path)
 {
-  return (t.getConstNode(path) != nullptr);
+  return (t.getNode(path) != nullptr);
 }
 
 template <class V, class C = std::less<Symbol> >

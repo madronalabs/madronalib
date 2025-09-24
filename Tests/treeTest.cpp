@@ -188,7 +188,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     auto a2 = a;
     REQUIRE(std::accumulate(a2.begin(), a2.end(), 0) == correctLeafSum);
     REQUIRE(&a != &a2);
-    
 
     // Example using Tree with unique_ptr< int >.
     //

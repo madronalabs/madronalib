@@ -69,7 +69,7 @@ class Collection
       return _nullObjPtr;
     }
 
-    const TreeType* n = _tree->getConstNode(p);
+    const TreeType* n = _tree->getNode(p);
     if (n && n->hasValue())
     {
       return n->getValue();
@@ -114,7 +114,7 @@ class Collection
   {
     if (!_tree) return Collection<T>();
 
-    TreeType* subTree = _tree->getNode(addr);
+    TreeType* subTree = _tree->getMutableNode(addr);
     if (subTree)
     {
       // return a new Collection referring to the given subTree.
@@ -134,7 +134,7 @@ class Collection
     static TreeType nullTree{};
     if (!_tree) return nullTree;
 
-    TreeType* subTree = _tree->getNode(addr);
+    TreeType* subTree = _tree->getMutableNode(addr);
     if (subTree)
     {
       // return a reference to the subTree.
