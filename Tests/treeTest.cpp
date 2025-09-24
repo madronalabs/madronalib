@@ -426,13 +426,12 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
 {
   // Value tree to JSON to value tree. NOTE: the JSON created does not reflect the
   // tree structure but rather a flat list with the whole path as each item's string. TODO fix.
-  Tree< Value > v;
+  Tree<Value> v;
   v["a"] = 0.4f;
   v["b"] = "hello";
   v["a/b/c"] = "hello again";
-  v["blobtest"] = std::vector<uint8_t> {1, 3, 5, 7, 9};
-  
-  // Value tree to JSON to value tree.
+  v["blobtest"] = std::vector<uint8_t>{1, 3, 5, 7, 9};
+
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
   

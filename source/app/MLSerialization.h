@@ -52,8 +52,8 @@ public:
   JSONHolder& operator=(const JSONHolder&) = delete;
   
   // Allow move operations.
-  JSONHolder(JSONHolder&&) = default;
-  JSONHolder& operator=(JSONHolder&&) = default;
+  JSONHolder(JSONHolder&&) noexcept;
+  JSONHolder& operator=(JSONHolder&&) noexcept;
 
   struct Impl;
   Impl* pImpl{nullptr};

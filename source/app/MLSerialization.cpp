@@ -430,59 +430,88 @@ Tree<Value> binaryToValueTree(const std::vector<unsigned char>& binaryData)
 
 struct JSONHolder::Impl
 {
-  cJSON data;
+  cJSON* data;
 };
 
 JSONHolder::JSONHolder()
 {
   pImpl = new Impl;
-  memset(&(pImpl->data), 0, sizeof(cJSON));
-  pImpl->data.type = cJSON_Object;
+  pImpl->data = (cJSON*)malloc(sizeof(cJSON));  // Use malloc for cJSON compatibility
+  memset(pImpl->data, 0, sizeof(cJSON));
+  pImpl->data->type = cJSON_Object;
 }
 
 JSONHolder::~JSONHolder()
 {
-  //std::cout << "freeing cJSON @ " << (uint64_t)(&pImpl->data) << ", child = " << (uint64_t)pImpl->data.child << "\n";
-  cJSON_Delete(&pImpl->data);
+  if (pImpl)
+  {
+    if (pImpl->data)
+    {
+      cJSON_Delete(pImpl->data);
+    }
+    delete pImpl;
+    pImpl = nullptr;
+  }
+}
+
+JSONHolder::JSONHolder(JSONHolder&& other) noexcept : pImpl(other.pImpl)
+{
+  other.pImpl = nullptr;
+}
+
+JSONHolder& JSONHolder::operator=(JSONHolder&& other) noexcept
+{
+  if (this != &other)
+  {
+    // Clean up our current data
+    if (pImpl)
+    {
+        if (pImpl->data)
+        {
+            cJSON_Delete(pImpl->data);
+        }
+        delete pImpl;  
+    }
+
+    // Transfer ownership
+    pImpl = other.pImpl;
+    other.pImpl = nullptr; 
+  }
+  return *this;
 }
 
 void JSONHolder::addNumber(TextFragment key, double number)
 {
-  cJSON_AddNumberToObject(&(pImpl->data), key.getText(), number);
+  cJSON_AddNumberToObject(pImpl->data, key.getText(), number);
 }
 
 void JSONHolder::addString(TextFragment key, const char* str)
 {
-  cJSON_AddStringToObject(&(pImpl->data), key.getText(), str);
+  cJSON_AddStringToObject(pImpl->data, key.getText(), str);
 }
 
 void JSONHolder::addFloatVector(TextFragment key, std::vector<float>& v)
 {
-  cJSON_AddItemToObject(&(pImpl->data), key.getText(), cJSON_CreateFloatArray(v.data(), v.size()));
+  cJSON_AddItemToObject(pImpl->data, key.getText(), cJSON_CreateFloatArray(v.data(), v.size()));
 }
 
 void JSONHolder::addJSON(TextFragment key, JSONHolder& j)
 {
-  // allocate cJSON struct and copy data
-  cJSON* newNode = cJSON_CreateObject();
-  *newNode = j.pImpl->data;
-  
-  // add to this JSON holder
-  cJSON_AddItemToObject(&(pImpl->data), key.getText(), newNode);
-  
-  // modify j to release data and become an empty object
-  memset(&(j.pImpl->data), 0, sizeof(cJSON));
-  j.pImpl->data.type = cJSON_Object;
+  // Transfer the entire cJSON tree to this object
+  cJSON_AddItemToObject(pImpl->data, key.getText(), j.pImpl->data);
+
+  // j no longer owns its data - set to nullptr so destructor won't try to delete
+  j.pImpl->data = nullptr;
 }
 
 cJSON* getData(const JSONHolder& cj)
 {
-  return &(cj.pImpl->data);
+  return cj.pImpl->data;
 }
 
 void setData(JSONHolder& cj, cJSON* pData)
 {
-  cj.pImpl->data = *pData;
+  cj.pImpl->data = pData;
 }
 
 // NOTE: this does not make the JSON tree, rather a flat structure with the
@@ -614,7 +643,8 @@ JSONHolder textToJSON(TextFragment t)
 
   if(cjp)
   {
-    setData(root, cjp);
+    cJSON_Delete(root.pImpl->data);
+    root.pImpl->data = cjp;
   }
   
   return root;
@@ -622,7 +652,10 @@ JSONHolder textToJSON(TextFragment t)
 
 TextFragment JSONToText(const JSONHolder& root)
 {
-  return TextFragment(cJSON_Print(getData(root)));
+  char* jsonString = cJSON_Print(getData(root));
+  TextFragment result(jsonString);
+  free(jsonString);  // Free the malloc'd string
+  return result;
 }
 
 
