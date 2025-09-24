@@ -83,8 +83,6 @@ void ml::Timers::run(void)
 
 #elif ML_WINDOWS
 
-#include <windows.h>
-
 ml::Timers* pWinTimers{nullptr};
 
 void CALLBACK winTimersCallback(HWND /*hwnd*/, UINT /*uMsg*/, UINT_PTR idEvent, DWORD /*dwTime*/)
