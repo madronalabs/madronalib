@@ -1,6 +1,7 @@
 #pragma once
 
 #include "MLSignalProcessor.h"
+#include "MLSignalProcessBuffer.h"
 #include "MLAudioContext.h"
 
 #include <clap/clap.h>
@@ -10,6 +11,7 @@
 #include <clap/ext/params.h>
 #include <clap/ext/state.h>
 #include <clap/ext/gui.h>
+#include <clap/ext/voice-info.h>
 #include "../external/cJSON/cJSON.h"
 
 #ifdef HAS_GUI
@@ -112,6 +114,9 @@ public:
       parameterChangedCallback(paramId, realValue);
     }
   }
+
+  // CLAP lifecycle methods
+  virtual void setSampleRate(double sr) {}
 
   // Default voice activity - plugins can override
   virtual bool hasActiveVoices() const { return false; }
@@ -238,6 +243,13 @@ public:
 };
 #endif
 
+// Template function for type safety - converts AudioContext* to processVector call
+template<typename PluginClass>
+void CLAPProcessVectorFn(AudioContext* ctx, void* state) {
+  auto* processor = static_cast<PluginClass*>(state);
+  processor->processVector(ctx->inputs, ctx->outputs, ctx);
+}
+
 // Template parameters:
 // PluginClass = your SignalProcessor-derived class (e.g., ClapSawDemo)
 // GUIClass = your AppView-derived class (e.g., ClapSawDemoGUI) - use void for no GUI
@@ -249,6 +261,7 @@ private:
   const clap_host_params* hostParams;  // For GUI->Host parameter notifications
   std::unique_ptr<PluginClass> processor;
   std::unique_ptr<AudioContext> audioContext;
+  std::unique_ptr<SignalProcessBuffer> processBuffer;
   const clap_plugin_descriptor* descriptor;
 
 #ifdef HAS_GUI
@@ -257,6 +270,7 @@ private:
   uint32_t guiWidth = 400;
   uint32_t guiHeight = 300;
   bool guiCreated = false;
+  bool widgetsCreated = false;  // Per-instance widget creation flag
 #endif
 
 public:
@@ -283,13 +297,20 @@ public:
       // AudioContext handles everything - no complex setup needed!
       // Create with 2 inputs and 2 outputs for stereo processing
       // TODO: generalize input/output channels
+      // TODO: sample rate should never be hardcoded
       wrapper->audioContext = std::make_unique<AudioContext>(2, 2, 48000.0);
 
-      // Need to set polyphony for EventsToSignals
-      // TODO: generalize polyphony. Does effect vs instrument matter here?
-      wrapper->audioContext->setInputPolyphony(16);
+      // Set polyphony for EventsToSignals based on plugin's voice count
+      // For plugins that define kNumVoices, use that value, otherwise default to 4
+      size_t polyphony = 4; // Default fallback
+      // SFINAE check for kNumVoices (C++17 compatible)
+      if constexpr (std::is_same_v<decltype(PluginClass::kNumVoices), const int>) {
+        polyphony = PluginClass::kNumVoices;
+      }
+      wrapper->audioContext->setInputPolyphony(polyphony);
 
-      wrapper->processor->setAudioContext(wrapper->audioContext.get());
+      // Create SignalProcessBuffer      // TODO: generalize input/output channels and max frames
+      wrapper->processBuffer = std::make_unique<SignalProcessBuffer>(2, 2, 4096);
 
 #ifdef HAS_GUI
       // Set up logging callback for GUI debugging
@@ -406,14 +427,11 @@ public:
   }
 
   clap_process_status processAudio(const clap_process* process) {
-    // Safety checks to prevent crashes
     if (!process || !audioContext || !processor) {
-      logWarning("processAudio: Missing required components");
       return CLAP_PROCESS_CONTINUE;
     }
 
     if (process->audio_inputs_count == 0 || process->audio_outputs_count == 0) {
-      logWarning("processAudio: No audio I/O available");
       return CLAP_PROCESS_CONTINUE;
     }
 
@@ -435,47 +453,18 @@ public:
       return CLAP_PROCESS_CONTINUE; // Can't process without output buffers
     }
 
-    // AudioContext handles chunking - exception-safe processing
-    for (int i = 0; i < process->frames_count; i += kFloatsPerDSPVector) {
-      int samplesThisChunk = std::min(static_cast<int>(kFloatsPerDSPVector), static_cast<int>(process->frames_count - i));
-
-      // Copy inputs to AudioContext (if available)
-      if (inputs && process->audio_inputs[0].channel_count > 0) {
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = inputs[0][i + j];
-          audioContext->inputs[1][j] = (process->audio_inputs[0].channel_count > 1) ?
-                                      inputs[1][i + j] : inputs[0][i + j];  // Mono to stereo
-        }
-      } else {
-        // Clear inputs if no input available
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          audioContext->inputs[0][j] = 0.0f;
-          audioContext->inputs[1][j] = 0.0f;
-        }
-      }
-
-      // AudioContext processes everything (events, voices, timing)
-      audioContext->processVector(i);
-
-      // User processor just does DSP on processed context
-      processor->processAudioContext();
-
-      // Copy outputs from AudioContext to CLAP buffers
-      if (process->audio_outputs[0].channel_count >= 1) {
-        for (int j = 0; j < samplesThisChunk; ++j) {
-          outputs[0][i + j] = audioContext->outputs[0][j];
-          if (process->audio_outputs[0].channel_count >= 2) {
-            outputs[1][i + j] = audioContext->outputs[1][j];
-          }
-        }
-      }
-    }
+    // delegate to SignalProcessBuffer
+    processBuffer->process(
+      inputs, outputs, process->frames_count,
+      audioContext.get(),
+      CLAPProcessVectorFn<PluginClass>,
+      processor.get()
+    );
 
     // Send any pending parameter changes from GUI to host
     if (process->out_events) {
       std::lock_guard<std::mutex> lock(changedParamsMutex);
       if (!changedParams.empty()) {
-        logInfo("process: Sending " + std::to_string(changedParams.size()) + " parameter changes");
 
         for (const auto& cp : changedParams) {
           // Create parameter value event
@@ -495,12 +484,7 @@ public:
           event.value = cp.value;  // Real value matching reported range
 
           // Try to push the event
-          if (!process->out_events->try_push(process->out_events, &event.header)) {
-            logWarning("process: Failed to push parameter change event for param " + std::to_string(cp.id));
-          } else {
-            logInfo("process: Sent parameter change: id=" + std::to_string(cp.id) +
-                    " value=" + std::to_string(cp.value));
-          }
+          process->out_events->try_push(process->out_events, &event.header);
         }
         // Clear the changed parameters list
         changedParams.clear();
@@ -513,7 +497,7 @@ public:
   // Extension implementation
   const void* getExtension(const char* id) {
     logInfo("getExtension: Requested extension: " + std::string(id ? id : "null"));
-    
+
     if (strcmp(id, CLAP_EXT_AUDIO_PORTS) == 0) return &audioPortsExt;
     if (strcmp(id, CLAP_EXT_NOTE_PORTS) == 0) return &notePortsExt;
     if (strcmp(id, CLAP_EXT_PARAMS) == 0) return &paramsExt;
@@ -522,7 +506,8 @@ public:
       return &stateExt;
     }
     if (strcmp(id, CLAP_EXT_GUI) == 0) return &guiExt;
-    
+    if (strcmp(id, CLAP_EXT_VOICE_INFO) == 0) return &voiceInfoExt;
+
     logInfo("getExtension: Extension not found: " + std::string(id ? id : "null"));
     return nullptr;
   }
@@ -566,6 +551,24 @@ public:
   }
 
   static const clap_plugin_note_ports notePortsExt;
+
+  // Voice Info Extension - Report plugin's polyphony capability
+  static bool voiceInfoGet(const clap_plugin* plugin, clap_voice_info* info) {
+    // Get polyphony based on plugin's voice count
+    size_t polyphony = 4; // Default fallback
+    // SFINAE check for kNumVoices (C++17 compatible)
+    if constexpr (std::is_same_v<decltype(PluginClass::kNumVoices), const int>) {
+      polyphony = PluginClass::kNumVoices;
+    }
+    
+    info->voice_count = polyphony;
+    info->voice_capacity = polyphony;
+    info->flags = 0;
+    
+    return true;
+  }
+
+  static const clap_plugin_voice_info voiceInfoExt;
 
   // Params Extension - integrate with ParameterTree
 
@@ -657,10 +660,10 @@ public:
     //   wrapper->logInfo(logMsg.str());
     // }
 
-    // Safe string to double conversion without exceptions
+    // string to double conversion
     char* endptr = nullptr;
     *out_value = std::strtod(param_value_text, &endptr);
-    
+
     // Check for conversion errors
     if (endptr == param_value_text || *endptr != '\0') {
       auto* wrapper = static_cast<CLAPPluginWrapper*>(plugin->plugin_data);
@@ -722,12 +725,7 @@ public:
         event.value = cp.value;  // Real value matching reported range
 
         // Try to push the event
-        if (!out->try_push(out, &event.header)) {
-          wrapper->logWarning("Failed to push parameter change event for param " + std::to_string(cp.id));
-        } else {
-          wrapper->logInfo("Sent parameter change: id=" + std::to_string(cp.id) +
-                          " value=" + std::to_string(cp.value));
-        }
+        out->try_push(out, &event.header);
       }
       // Clear the changed parameters list
       wrapper->changedParams.clear();
@@ -748,6 +746,11 @@ public:
       if (!header) continue;
 
       if (header->type == CLAP_EVENT_PARAM_VALUE) {
+        // Validate namespace ID - only process events from core event space
+        if (header->space_id != CLAP_CORE_EVENT_SPACE_ID) {
+          continue; // Skip events with wrong namespace ID
+        }
+
         const auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
         const auto& descriptions = wrapper->processor->getParameterTree().descriptions;
@@ -789,53 +792,55 @@ public:
 
     wrapper->logInfo("stateSave: Starting state save operation");
 
-    // Create JSON object using cJSON
-    cJSON* jsonRoot = cJSON_CreateObject();
-    if (!jsonRoot) {
-      wrapper->logError("stateSave: Failed to create JSON root object");
+    // Get real parameter values from ParameterTree
+    const auto& paramValues = wrapper->processor->getParameterTree().getRealValues();
+    wrapper->logInfo("stateSave: Found " + std::to_string(paramValues.size()) + " parameters to save");
+
+    // Write parameter count first
+    uint32_t paramCount = 0;
+    for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
+      paramCount++;
+    }
+
+    int64_t bytesWritten = stream->write(stream, &paramCount, sizeof(paramCount));
+    if (bytesWritten != sizeof(paramCount)) {
+      wrapper->logError("stateSave: Failed to write parameter count");
       return false;
     }
 
-    // Get normalized parameter values from ParameterTree
-    const auto& paramValues = wrapper->processor->getParameterTree().getNormalizedValues();
-    wrapper->logInfo("stateSave: Found " + std::to_string(paramValues.size()) + " parameters to save");
-
-    // Add each parameter to the JSON object
-    int paramCount = 0;
+    // Write each parameter as binary data (name length, name, value)
     for (auto it = paramValues.begin(); it != paramValues.end(); ++it) {
       ml::Path paramPath = it.getCurrentPath();
       ml::Value paramValue = *it;
-      
+
       std::string paramName = std::string(pathToText(paramPath).getText());
       float value = paramValue.getFloatValue();
-      
-      cJSON_AddNumberToObject(jsonRoot, paramName.c_str(), value);
-      paramCount++;
+
+      // Write name length
+      uint32_t nameLength = static_cast<uint32_t>(paramName.length());
+      bytesWritten = stream->write(stream, &nameLength, sizeof(nameLength));
+      if (bytesWritten != sizeof(nameLength)) {
+        wrapper->logError("stateSave: Failed to write parameter name length");
+        return false;
+      }
+
+      // Write name
+      bytesWritten = stream->write(stream, paramName.c_str(), nameLength);
+      if (bytesWritten != static_cast<int64_t>(nameLength)) {
+        wrapper->logError("stateSave: Failed to write parameter name");
+        return false;
+      }
+
+      // Write value
+      bytesWritten = stream->write(stream, &value, sizeof(value));
+      if (bytesWritten != sizeof(value)) {
+        wrapper->logError("stateSave: Failed to write parameter value");
+        return false;
+      }
     }
-    wrapper->logInfo("stateSave: Added " + std::to_string(paramCount) + " parameters to JSON");
 
-    // Convert JSON to string
-    char* jsonString = cJSON_PrintUnformatted(jsonRoot);
-    if (!jsonString) {
-      cJSON_Delete(jsonRoot);
-      return false;
-    }
-
-    // Write to CLAP stream
-    size_t jsonLength = strlen(jsonString);
-    int64_t bytesWritten = stream->write(stream, jsonString, jsonLength);
-
-    // Log the JSON data before cleanup for debugging
-    wrapper->logInfo("stateSave: Saving JSON data: " + std::string(jsonString));
-    wrapper->logInfo("stateSave: Expected to write " + std::to_string(jsonLength) + " bytes, actually wrote " + std::to_string(bytesWritten) + " bytes");
-
-    // Clean up
-    free(jsonString);
-    cJSON_Delete(jsonRoot);
-
-    bool success = (bytesWritten == static_cast<int64_t>(jsonLength));
-    wrapper->logInfo("stateSave: " + (success ? std::string("SUCCESS") : std::string("FAILED")));
-    return success;
+    wrapper->logInfo("stateSave: SUCCESS - wrote " + std::to_string(paramCount) + " parameters");
+    return true;
   }
 
   static bool stateLoad(const clap_plugin* plugin, const clap_istream* stream) {
@@ -847,62 +852,51 @@ public:
 
     wrapper->logInfo("stateLoad: Starting state load operation");
 
-    // Read all available data from stream
-    std::string jsonData;
-    char buffer[4096];
-
-    int64_t bytesRead;
-    int totalBytesRead = 0;
-    while ((bytesRead = stream->read(stream, buffer, sizeof(buffer))) > 0) {
-      jsonData.append(buffer, bytesRead);
-      totalBytesRead += bytesRead;
-    }
-
-    wrapper->logInfo("stateLoad: Read " + std::to_string(totalBytesRead) + " bytes from stream");
-
-    if (jsonData.empty()) {
-      wrapper->logError("stateLoad: No data received from stream");
+    // Read parameter count
+    uint32_t paramCount;
+    int64_t bytesRead = stream->read(stream, &paramCount, sizeof(paramCount));
+    if (bytesRead != sizeof(paramCount)) {
+      wrapper->logError("stateLoad: Failed to read parameter count");
       return false;
     }
 
-    wrapper->logInfo("stateLoad: Received JSON data: " + jsonData);
+    wrapper->logInfo("stateLoad: Reading " + std::to_string(paramCount) + " parameters");
 
-    // Parse JSON using cJSON
-    cJSON* jsonRoot = cJSON_Parse(jsonData.c_str());
-    if (!jsonRoot) {
-      wrapper->logError("stateLoad: Failed to parse JSON data");
-      return false;
-    }
-
-    // Check if root is an object
-    if (jsonRoot->type != cJSON_Object) {
-      cJSON_Delete(jsonRoot);
-      wrapper->logError("stateLoad: JSON root is not an object");
-      return false;
-    }
-
-    // Iterate through all parameters in the JSON object
-    cJSON* paramItem = jsonRoot->child;
-    int paramCount = 0;
-    while (paramItem) {
-      if (paramItem->type == cJSON_Number && paramItem->string) {
-        std::string paramName = std::string(paramItem->string);
-        float value = static_cast<float>(paramItem->valuedouble);
-
-        wrapper->logInfo("stateLoad: Setting parameter '" + paramName + "' = " + std::to_string(value));
-
-        // Set the parameter value
-        wrapper->processor->setParamFromNormalizedValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
-        paramCount++;
+    // Read each parameter
+    int restoredCount = 0;
+    for (uint32_t i = 0; i < paramCount; ++i) {
+      // Read name length
+      uint32_t nameLength;
+      bytesRead = stream->read(stream, &nameLength, sizeof(nameLength));
+      if (bytesRead != sizeof(nameLength)) {
+        wrapper->logError("stateLoad: Failed to read parameter name length");
+        return false;
       }
-      paramItem = paramItem->next;
+
+      // Read name
+      std::string paramName(nameLength, '\0');
+      bytesRead = stream->read(stream, &paramName[0], nameLength);
+      if (bytesRead != static_cast<int64_t>(nameLength)) {
+        wrapper->logError("stateLoad: Failed to read parameter name");
+        return false;
+      }
+
+      // Read value
+      float value;
+      bytesRead = stream->read(stream, &value, sizeof(value));
+      if (bytesRead != sizeof(value)) {
+        wrapper->logError("stateLoad: Failed to read parameter value");
+        return false;
+      }
+
+      wrapper->logInfo("stateLoad: Setting parameter '" + paramName + "' = " + std::to_string(value));
+
+      // Set the parameter value using real value
+      wrapper->processor->setParamFromRealValue(ml::Path(ml::TextFragment(paramName.c_str())), value);
+      restoredCount++;
     }
 
-    wrapper->logInfo("stateLoad: Successfully restored " + std::to_string(paramCount) + " parameters");
-
-    // Clean up
-    cJSON_Delete(jsonRoot);
-
+    wrapper->logInfo("stateLoad: Successfully restored " + std::to_string(restoredCount) + " parameters");
     wrapper->logInfo("stateLoad: SUCCESS");
     return true;
   }
@@ -973,6 +967,7 @@ public:
         wrapper->logInfo("GUI: GUI instance reset");
 
         wrapper->guiCreated = false;
+        wrapper->widgetsCreated = false;  // Reset widget creation flag for next creation
       }
 #endif
     }
@@ -1123,7 +1118,7 @@ public:
         wrapper->descriptor->name, nativeWindow, wrapper->guiInstance.get(), nullptr, 0, 60
       );
 
-      // Initialize resources but don't attach yet - move to guiShow
+      // Initialize resources
       wrapper->guiInstance->initializeResources(wrapper->platformView->getNativeDrawContext());
 
       // Inform AppView of its initial size to set up coordinate system
@@ -1133,7 +1128,26 @@ public:
       float displayScale = PlatformView::getDeviceScaleForWindow(nativeWindow);
       wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, displayScale);
 
-      // Don't create widgets or attach here - move to guiShow
+      // Create widgets immediately—AUv2 doesn't call guiShow
+      if (!wrapper->widgetsCreated) {
+        wrapper->logInfo("GUI: Creating widgets in guiSetParent (for AUv2 compatibility)");
+        wrapper->guiInstance->makeWidgets();
+
+        // Connect widgets to parameters automatically
+        wrapper->guiInstance->connectParameters();
+        wrapper->logInfo("GUI: Connected widgets to parameters");
+
+        // Attach before starting timers
+        wrapper->platformView->attachViewToParent();
+        wrapper->logInfo("GUI: Platform view attached in guiSetParent");
+
+        // Start AppView timers AFTER attachment
+        wrapper->guiInstance->startTimersAndActor();
+        wrapper->logInfo("GUI: Started AppView timers for event processing");
+
+        wrapper->widgetsCreated = true;
+        wrapper->logInfo("GUI: Widgets created successfully in guiSetParent");
+      }
 
       wrapper->logInfo("GUI: Platform view created successfully, parent set");
       return true;
@@ -1169,15 +1183,22 @@ public:
 #ifdef HAS_GUI
       if constexpr (!std::is_void_v<GUIClass>) {
         if (wrapper->platformView && wrapper->guiInstance) {
-          // Try creating widgets here - after everything is fully initialized
-          static bool widgetsCreated = false;
-          if (!widgetsCreated) {
+          // Widgets are created in guiSetParent for AUv2
+          if (!wrapper->widgetsCreated) {
             wrapper->logInfo("GUI: Creating widgets in guiShow");
             wrapper->guiInstance->makeWidgets();
 
             // Connect widgets to parameters automatically
             wrapper->guiInstance->connectParameters();
             wrapper->logInfo("GUI: Connected widgets to parameters");
+
+            // Ensure view size is properly set before starting render loop
+            uint32_t width, height;
+            guiGetSize(plugin, &width, &height);
+            if (width > 0 && height > 0) {
+              wrapper->logInfo("GUI: Ensuring view size is set: " + std::to_string(width) + "x" + std::to_string(height));
+              wrapper->guiInstance->viewResized(wrapper->platformView->getNativeDrawContext(), {(float)width, (float)height}, 1.0f);
+            }
 
             // Attach before starting timers
             wrapper->platformView->attachViewToParent();
@@ -1187,11 +1208,13 @@ public:
             wrapper->guiInstance->startTimersAndActor();
             wrapper->logInfo("GUI: Started AppView timers for event processing");
 
-            widgetsCreated = true;
+            wrapper->widgetsCreated = true;
             wrapper->logInfo("GUI: Widgets created successfully");
+          } else {
+            wrapper->logInfo("GUI: Widgets already created in guiSetParent - GUI ready");
           }
 
-          wrapper->logInfo("GUI: Platform view already visible");
+          wrapper->logInfo("GUI: Platform view visible");
         }
       }
 #endif
@@ -1253,6 +1276,11 @@ private:
           break;
         }
         case CLAP_EVENT_PARAM_VALUE: {
+          // Validate namespace ID - only process events from core event space
+          if (header->space_id != CLAP_CORE_EVENT_SPACE_ID) {
+            continue; // Skip events with wrong namespace ID
+          }
+
           auto* paramEvent = reinterpret_cast<const clap_event_param_value*>(header);
 
           // std::ostringstream paramLog;
@@ -1306,8 +1334,8 @@ private:
 //   ClassName = your SignalProcessor-derived class (e.g., ClapSawDemo)
 //   PluginName = display name for DAW (e.g., "Clap Saw Demo")
 //   VendorName = company name (e.g., "Madrona Labs")
-// Usage: MADRONALIB_EXPORT_CLAP_PLUGIN(ClapSawDemo, "Clap Saw Demo", "Madrona Labs")
-#define MADRONALIB_EXPORT_CLAP_PLUGIN(ClassName, PluginName, VendorName) \
+// Usage: MADRONALIB_EXPORT_CLAP_PLUGIN(MyPlugin, "My Plugin", "My Company", "https://mysite.com", "1.0.0", "Audio Effect")
+#define MADRONALIB_EXPORT_CLAP_PLUGIN(ClassName, PluginName, VendorName, VendorURL, PluginVersion, PluginDescription) \
 extern "C" { \
   static const char* const features[] = { \
     CLAP_PLUGIN_FEATURE_INSTRUMENT, \
@@ -1320,11 +1348,11 @@ extern "C" { \
     PluginName "-id", \
     PluginName, \
     VendorName, \
-    "https://madronalabs.com", \
+    VendorURL, \
     "", \
     "", \
-    "1.0.0", \
-    "Synthesizer", \
+    PluginVersion, \
+    PluginDescription, \
     features \
   }; \
   \
@@ -1384,11 +1412,11 @@ extern "C" { \
     PluginName "-id", \
     PluginName, \
     VendorName, \
-    "https://madronalabs.com", \
+    VendorURL, \
     "", \
     "", \
-    "1.0.0", \
-    "Synthesizer", \
+    PluginVersion, \
+    PluginDescription, \
     features \
   }; \
   \
@@ -1439,6 +1467,11 @@ template<typename PluginClass, typename GUIClass>
 const clap_plugin_note_ports CLAPPluginWrapper<PluginClass, GUIClass>::notePortsExt = {
   CLAPPluginWrapper<PluginClass, GUIClass>::notePortsCount,
   CLAPPluginWrapper<PluginClass, GUIClass>::notePortsGet
+};
+
+template<typename PluginClass, typename GUIClass>
+const clap_plugin_voice_info CLAPPluginWrapper<PluginClass, GUIClass>::voiceInfoExt = {
+  CLAPPluginWrapper<PluginClass, GUIClass>::voiceInfoGet
 };
 
 template<typename PluginClass, typename GUIClass>
