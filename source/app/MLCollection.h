@@ -6,6 +6,10 @@
 
 #include "MLTree.h"
 
+// Collection is a specialized object manager based on Tree. By holding specifically
+// unique_ptrs to objects, it offers cleaner object creation and useful object handling
+// and messaging syntax.
+
 namespace ml
 {
 

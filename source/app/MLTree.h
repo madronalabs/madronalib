@@ -192,6 +192,11 @@ class Tree
   // simple begin(), end() loops. This is enough to support the range-based for
   // syntax. post-increment(operator++(int)) is not defined. Instead use
   // pre-increment form ++it.
+  //
+  // TODO this is cheesy, fix for STL-compliance and visit every node as a generic
+  // container should. Use Visitor pattern and Range objects (ValueOnlyRange)
+  // to iterate over values.
+  // ValueOnlyRange<V, C> values() const {return ValueOnlyRange<V, C>(this);}
 
   friend class const_iterator;
   class const_iterator
