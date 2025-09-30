@@ -291,7 +291,6 @@ install(FILES include/mldsp.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
 # TODO: ideally we don't install these?
 install(FILES external/sse2neon/sse2neon.h DESTINATION ${HEADERS_INCLUDE_DIR})
-install(FILES include/CLAPExport.h DESTINATION ${HEADERS_INCLUDE_DIR})
 
 install(FILES
     ${APP_HEADERS}
