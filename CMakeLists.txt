@@ -220,6 +220,12 @@ set(target madronalib)
 
 add_library(${target} STATIC ${madronalib_SOURCES})
 
+target_compile_options(${target} PRIVATE
+    -O3
+    -g
+    -fno-omit-frame-pointer
+)
+
 set_target_properties(${target} PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"
                       VERSION ${madronalib_VERSION}
