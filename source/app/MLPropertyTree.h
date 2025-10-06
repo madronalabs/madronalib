@@ -1,5 +1,5 @@
 // madronalib: a C++ framework for DSP applications.
-// Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
+// Copyright (c) 2020-2025 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
 #pragma once
@@ -12,9 +12,9 @@ namespace ml
 {
 class PropertyTree
 {
-  Tree<Value> properties;
-
- public:
+  Tree< Value > properties;
+  
+public:
   PropertyTree() = default;
   PropertyTree(Tree<Value> vt) : properties(vt) {}
   PropertyTree(const PropertyTree& other) : properties(other.properties) {}
@@ -27,67 +27,84 @@ class PropertyTree
     }
   }
   
-  bool hasProperty(Path p) const { return (properties.getNode(p) != nullptr); }
-
-  // get the Value of the property. Will return a null Value object if no such
-  // property exists.
-  Value getProperty(Path p) const { return properties[p]; }
-
+  // basics
+  
+  bool hasProperty(Path p) const { return(properties.getNode(p) != nullptr); }
   void setProperty(Path p, Value v) { properties[p] = v; }
-
+  Value getProperty(Path p) const { return properties[p]; }
+  
+  // getters for basic parameter value types
+  
   float getFloatProperty(Path p) const { return properties[p].getFloatValue(); }
-  bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
-  int getIntProperty(Path p) const { return properties[p].getIntValue(); }
-  Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
-  Matrix getMatrixProperty(Path p) const { return properties[p].getMatrixValue(); }
-  uint32_t getUnsignedLongProperty(Path p) const { return properties[p].getUnsignedLongValue(); }
-
   float getFloatPropertyWithDefault(Path p, float d) const
   {
-    return properties[p].getFloatValueWithDefault(d);
+    auto treeNode = properties.getNode(p);
+    return treeNode ? treeNode->getValue().getFloatValue() : d;
   }
+  
+  double getDoubleProperty(Path p) const { return properties[p].getDoubleValue(); }
+  double getDoublePropertyWithDefault(Path p, double d) const
+  {
+    auto treeNode = properties.getNode(p);
+    return treeNode ? treeNode->getValue().getDoubleValue() : d;
+  }
+  
+  bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
   bool getBoolPropertyWithDefault(Path p, bool d) const
   {
-    return properties[p].getBoolValueWithDefault(d);
+    auto treeNode = properties.getNode(p);
+    return treeNode ? treeNode->getValue().getBoolValue() : d;
   }
-  int getIntPropertyWithDefault(Path p, int d) const
+  
+  int getIntProperty(Path p) const { return properties[p].getIntValue(); }
+  int32_t getIntPropertyWithDefault(Path p, int32_t d) const
   {
-    return properties[p].getIntValueWithDefault(d);
+    auto treeNode = properties.getNode(p);
+    return treeNode ? treeNode->getValue().getIntValue() : d;
   }
+  
+  Text getTextProperty(Path p) const { return properties[p].getTextValue(); }
   Text getTextPropertyWithDefault(Path p, Text d) const
   {
-    return properties[p].getTextValueWithDefault(d);
+    auto treeNode = properties.getNode(p);
+    return treeNode ? treeNode->getValue().getTextValue() : d;
   }
-  Matrix getMatrixPropertyWithDefault(Path p, Matrix d) const
-  {
-    return properties[p].getMatrixValueWithDefault(d);
-  }
-  uint32_t getUnsignedLongPropertyWithDefault(Path p, uint32_t d) const
-  {
-    return properties[p].getUnsignedLongValueWithDefault(d);
-  }
-
+  
+  // utility getters for other types
+  
+  Interval getIntervalProperty(Path p) const { return valueToPODType<Interval>(getProperty(p)); }
+  Interval getIntervalPropertyWithDefault(Path p, Interval d) const { return hasProperty(p) ? getIntervalProperty(p) : d; }
+  inline void setIntervalProperty(Path p, Interval v) { setProperty(p, valueFromPODType<Interval>(v)); }
+  
+  // variable-size getters, handy but will allocate heap
+  
+  std::vector<float> getFloatVectorProperty(Path p) const { return properties[p].getFloatVector(); }
+  std::vector<float> getFloatVectorPropertyWithDefault(Path p, std::vector<float> d) const { return hasProperty(p) ? getFloatVectorProperty(p) : d; }
+  
+  
+  // serialization
+  
   std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }
   PropertyTree binaryToPropertyTree(const std::vector<unsigned char>& binaryData)
   {
     return PropertyTree(binaryToValueTree(binaryData));
   }
-
+  
   void overwrite(const PropertyTree& other)
   {
+    
     for (auto it = other.properties.begin(); it != other.properties.end(); ++it)
     {
       setProperty(it.getCurrentPath(), *it);
     }
   }
-
-  void dump() { properties.dump(); }
-
-  inline Tree<Value>::const_iterator begin() const { return properties.begin(); }
-
-  inline Tree<Value>::const_iterator end() const { return properties.end(); }
   
-  // TODO why does PropertyTree not provide a [] operator?
+  void dump() { properties.dump(); }
+  
+  // iterators
+  
+  inline Tree<Value>::const_iterator begin() const { return properties.begin(); }
+  inline Tree<Value>::const_iterator end() const { return properties.end(); }
 };
 
 }  // namespace ml

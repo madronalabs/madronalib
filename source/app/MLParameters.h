@@ -26,14 +26,12 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
 {
   ParameterProjection b;
   auto units = Symbol(p.getProperty("units").getTextValue());
-  bool bLog = p.getProperty("log").getBoolValueWithDefault(false);
-  bool bisquare = p.getProperty("bisquare").getBoolValueWithDefault(false);
-
-  Matrix range = p.getProperty("range").getMatrixValueWithDefault({0, 1});
-  float offset = p.getProperty("offset").getFloatValueWithDefault(0.f);
-
+  bool bLog = p.getBoolPropertyWithDefault("log", false);
+  bool bisquare = p.getBoolPropertyWithDefault("bisquare", false);
+  
   Interval normalRange{0., 1.};
-  Interval plainRange{range[0], range[1]};
+  Interval plainRange = p.getIntervalPropertyWithDefault("range", {0, 1});
+  float offset = p.getFloatPropertyWithDefault("offset", 0.f);
 
   // make ranges for list parameters
   if (units == "list")
@@ -154,7 +152,7 @@ public:
 
   inline Value convertNormalizedToRealValue(Path pname, Value val) const
   {
-    if (val.isFloatType())
+    if(val.getType() == Value::kFloat)
     {
       auto& pdesc = descriptions[pname];
       if(!pdesc) return 0;
@@ -178,7 +176,7 @@ public:
 
   inline Value convertRealToNormalizedValue(Path pname, Value val) const
   {
-    if (val.isFloatType())
+    if(val.getType() == Value::kFloat)
     {
       return Value(convertRealToNormalizedFloatValue(pname, val));
     }
@@ -314,39 +312,28 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName,
   paramTree.descriptions[paramName] = std::make_unique<ParameterDescription>(paramDesc);
 }
 
-
 // get default parameter value in normalized units.
 inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
   const auto& paramDesc = p.descriptions[pname];
   if(!paramDesc) return Value();
-
+  
   if (paramDesc->hasProperty("default"))
   {
     Value defaultVal = paramDesc->getProperty("default");
-    if(defaultVal.getType() == Value::kTextValue)
+    if(defaultVal.getType() == Value::kText)
     {
-      if(defaultVal == "blob")
-      {
-        // setup default empty blob
-        uint32_t blobData{0};
-        Value blobDefault(&blobData, sizeof(uint32_t));
-        return blobDefault;
-      }
-      else if(defaultVal.getTextValue().beginsWith(kBlobHeader))
+      if(defaultVal.getTextValue().beginsWith(kBlobHeader))
       {
         // get blob data from text
-       // todo don't repeat this = see MLSerialization
+        // todo don't repeat this = see MLSerialization
         auto valueText = defaultVal.getTextValue();
-
+        
         auto headerLen = kBlobHeader.lengthInCodePoints();
         auto textLen = valueText.lengthInCodePoints();
         auto body = textUtils::subText(valueText, headerLen, textLen);
-
-        auto blobDataVec = textUtils::base64Decode(body.getText());
-        auto* pBlobData{reinterpret_cast<const void*>(blobDataVec.data())};
-        auto blobValue = Value{pBlobData, blobDataVec.size()};
-        return blobValue;
+        
+        return Value(textUtils::base64Decode(body.getText()));
       }
       else
       {
@@ -361,9 +348,8 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
   }
   else if (paramDesc->hasProperty("plaindefault"))
   {
-    // convert plain default to normalized and return
-    Value defaultVal = paramDesc->getProperty("plaindefault");
-    return p.convertRealToNormalizedFloatValue(pname, defaultVal.getFloatValue());
+    Value defaultVal = paramDesc->getProperty("default");
+    return Value(p.convertRealToNormalizedFloatValue(pname, defaultVal)); // TODO clean up API
   }
   else if (paramDesc->hasProperty("range"))
   {
@@ -377,6 +363,7 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
     return Value();
   }
 }
+
 
 inline void setDefault(ParameterTree& p, Path pname)
 {

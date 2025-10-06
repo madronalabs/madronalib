@@ -19,8 +19,6 @@
 #include "OscOutboundPacketStream.h"
 #include "UdpSocket.h"
 
-#include "MLMatrix.h"
-
 namespace ml {
 	
 class OSCSender 
@@ -54,7 +52,7 @@ private:
 
 }	// namespace ml
 
-osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const ml::Matrix& sig);
+//osc::OutboundPacketStream& operator<< (osc::OutboundPacketStream& stream, const ml::Matrix& sig);
 
 
 #endif /* defined(__Aalto__MLOscSender__) */

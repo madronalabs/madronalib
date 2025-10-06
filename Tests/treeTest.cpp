@@ -324,12 +324,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   properties.add("melodies/1", {1, 2, 3, 4, 5, 6, 7});
   properties.add("melodies/2", {8, 7, 6, 5, 4, 3, 2});
 
-  // add a 3D matrix
-  Matrix melody3(4, 5, 2);
-  melody3.fill(9.f);
-  properties.add("melodies/3", melody3);
-  properties.add("melodies/3/dummy", 4);
-
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
   REQUIRE(!treeNodeExists(properties, "x"));
@@ -356,7 +350,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
   }
 
-  REQUIRE(melodies.size() == 3);
 
   //  Empty Tree test
   Tree< Value > emptyTree;
@@ -445,25 +438,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
   
-  // float vector to binary to float vector.
-  const int kTestSize{100};
-  float sum1{0}, sum2{0};
-  std::vector<float> vec;
-  for (int i = 0; i < kTestSize; ++i)
-  {
-    float f = i * 13.90811f;
-    vec.push_back(f);
-    sum1 += f;
-  }
-  auto vb = floatVectorToBinary(vec);
-  auto bv = binaryToFloatVector(vb.data());
-  for (int i = 0; i < kTestSize; ++i)
-  {
-    sum2 += (bv)[i];
-  }
-  REQUIRE(sum1 == sum2);
-  REQUIRE(bv == vec);
-  
+
   // create some JSON directly using our minimal API
   auto j5 = JSONHolder();
   j5.addNumber("foo", 23.0);

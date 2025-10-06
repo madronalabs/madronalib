@@ -13,7 +13,6 @@
 #include <map>
 #include <numeric>
 
-#include "MLMatrix.h"
 #include "MLSymbol.h"
 #include "MLText.h"
 #include "MLTextUtils.h"
@@ -24,14 +23,13 @@
 namespace ml
 {
 
+static TextFragment kBlobHeader("!BLOB!");
+
 TextFragment valueToText(const Value v);
 Value textToValue(const Text v);
 
 std::vector< uint8_t > valueToBinary(Value v);
 Value binaryToValue(const unsigned char* p);
-
-std::vector<uint8_t> floatVectorToBinary(const std::vector<float>& inputVector);
-std::vector<float> binaryToFloatVector(const unsigned char* p);
 
 std::vector<unsigned char> pathToBinary(Path p);
 Path binaryDataToPath(const unsigned char* p);

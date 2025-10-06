@@ -11,8 +11,6 @@
 #include <map>
 #include <numeric>
 
-#include "MLMatrix.h"
-#include "MLSymbol.h"
 #include "MLText.h"
 #include "MLTextUtils.h"
 #include "MLTree.h"
@@ -22,152 +20,176 @@
 
 namespace ml
 {
+
 struct BinaryGroupHeader
 {
   size_t elements;
   size_t size;
 };
 
+bool operator==(const BinaryGroupHeader& a, const BinaryGroupHeader& b)
+{
+  return ((a.elements == b.elements) && (a.size == b.size));
+}
+
+// with 0 elements, size can never be > 0, so this header will not be in any previous binaries.
+static constexpr BinaryGroupHeader kBinaryGroupHeaderV2{0, 1};
+
+constexpr unsigned int kPathType{'P'};
+
 struct BinaryChunkHeader
 {
   unsigned int type : 8;
   unsigned int dataBytes : 24;
-};
-
-struct BinaryMatrixHeader
-{
-  unsigned int type : 8;
-  unsigned int dataBytes : 24;
-  uint32_t width;
-  uint32_t height;
-  uint32_t depth;
-};
-
-// Text
-
-TextFragment valueToText(const Value v)
-{
-  TextFragment t;
-  switch (v.getType())
+  BinaryChunkHeader(int t, size_t bytes)
   {
-    default:
-    case Value::kUndefinedValue:
-      return TextFragment{"U"};
-      break;
-    case Value::kFloatValue:
-      return TextFragment{"F", textUtils::floatNumberToText(v.getFloatValue())};
-      break;
-    case Value::kTextValue:
-      return TextFragment{"T", v.getTextValue()};
-      break;
-    case Value::kMatrixValue:
-      // unimplemented
-      return TextFragment{};  // {"M", matrixToText(v.getMatrixValue())};
-      break;
-    case Value::kUnsignedLongValue:
-      return TextFragment{"L", textUtils::naturalNumberToText(v.getUnsignedLongValue())};
-      break;
-
-    // TODO blob!
+    type = t;
+    dataBytes = static_cast<unsigned int>(bytes)&0x00FFFFFF;
   }
-  return t;
-}
+};
 
-Value textToValue(const Text v)
+// Path
+
+size_t getBinarySize(Path p)
 {
-  return Value();  // TODO
-}
-
-
-std::vector< uint8_t > valueToBinary(Value v)
-{
-  std::vector< uint8_t > outputVector;
+  auto t = pathToText(p, '/');
   auto headerSize = sizeof(BinaryChunkHeader);
-  auto matrixHeaderSize = sizeof(BinaryMatrixHeader);
-  
-  switch (v.getType())
-  {
-    default:
-    case Value::kUndefinedValue:
-    {
-      outputVector.resize(sizeof(BinaryChunkHeader));
-      BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-      *header = BinaryChunkHeader{'U', 0};
-      break;
-    }
-    case Value::kFloatValue:
-    {
-      float f = v.getFloatValue();
-      unsigned dataSize = sizeof(float);
-      outputVector.resize(headerSize + dataSize);
-      BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-      *header = BinaryChunkHeader{'F', dataSize};
-      float* pDest{reinterpret_cast<float*>(outputVector.data() + headerSize)};
-      *pDest = f;
-      break;
-    }
-    case Value::kTextValue:
-    {
-      auto textVal = v.getTextValue();
-      size_t dataSize = textVal.lengthInBytes();
-      
-      // TODO safety, limits
-      
-      outputVector.resize(headerSize + dataSize);
-      BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-      *header = BinaryChunkHeader{'T', (unsigned int)dataSize};
-      auto pDest{outputVector.data() + headerSize};
-      auto pSrc{textVal.getText()};
-      std::copy(pSrc, pSrc + dataSize, pDest);
-      break;
-    }
-    case Value::kMatrixValue:
-    {
-      auto matrixVal = v.getMatrixValue();
-      
-      uint32_t width = matrixVal.getWidth();
-      uint32_t height = matrixVal.getHeight();
-      uint32_t depth = matrixVal.getDepth();
-      
-      unsigned dataSize = width * height * depth * sizeof(float);
-      
-      // TODO safety, limits
-      
-      outputVector.resize(matrixHeaderSize + dataSize);
-      BinaryMatrixHeader* header{reinterpret_cast<BinaryMatrixHeader*>(outputVector.data())};
-      *header = BinaryMatrixHeader{'M', dataSize, width, height, depth};
-      float* pDest{reinterpret_cast<float*>(outputVector.data() + matrixHeaderSize)};
-      
-      matrixVal.writeToPackedData(pDest);
-      break;
-    }
-    case Value::kUnsignedLongValue:
-    {
-      auto f = v.getUnsignedLongValue();
-      unsigned dataSize = sizeof(uint32_t);
-      outputVector.resize(headerSize + dataSize);
-      BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-      *header = BinaryChunkHeader{'L', dataSize};
-      uint32_t* pDest{reinterpret_cast<uint32_t*>(outputVector.data() + headerSize)};
-      *pDest = f;
-      break;
-    }
-    case Value::kBlobValue:
-    {
-      uint8_t* blobData = static_cast<uint8_t*>(v.getBlobData());
-      unsigned int blobSize = (unsigned int)v.getBlobSize();
-      outputVector.resize(headerSize + blobSize);
-      BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-      *header = BinaryChunkHeader{'B', blobSize};
-      auto pDest{outputVector.data() + headerSize};
-      std::copy(blobData, blobData + blobSize, pDest);
-      break;
-    }
-  }
-  return outputVector;
+  auto dataSize = t.lengthInBytes();
+  return headerSize + dataSize;
 }
 
-Value binaryToValue(const unsigned char* p)
+Path readPathFromBinary(const uint8_t*& readPtr)
+{
+  Path r;
+  auto headerSize = sizeof(BinaryChunkHeader);
+  size_t pathSize;
+  BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(readPtr)};
+  
+  auto pathType = pathHeader.type;
+  if (pathType == 'P')
+  {
+    pathSize = pathHeader.dataBytes;
+    const char* pChars = reinterpret_cast<const char*>(readPtr + headerSize);
+    r = Path(TextFragment(pChars, pathSize));
+  }
+  readPtr += (headerSize + pathSize);
+  return r;
+}
+
+// write the binary representation of the Path and increment the destination pointer.
+void writeBinaryRepresentation(const Path& p, uint8_t*& writePtr)
+{
+  auto t = pathToText(p, '/');
+  auto headerSize = sizeof(BinaryChunkHeader);
+  auto dataSize = t.lengthInBytes();
+  
+  // write header
+  BinaryChunkHeader header{kPathType, (unsigned int)dataSize};
+  memcpy(writePtr, &header, headerSize);
+  writePtr += headerSize;
+  
+  // data
+  const uint8_t* textData = (uint8_t *)t.getText();
+  memcpy(writePtr, textData, dataSize);
+  writePtr += dataSize;
+}
+
+// Tree< Value >
+
+std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
+{
+  std::vector<uint8_t> returnVector;
+  constexpr size_t headerSize = sizeof(BinaryGroupHeader);
+  
+  // calculate size
+  size_t totalSize{sizeof(BinaryGroupHeader)};
+  for (auto it = t.begin(); it != t.end(); ++it)
+  {
+    totalSize += getBinarySize(it.getCurrentPath());
+    totalSize += getBinarySize(*it);
+  }
+  totalSize += headerSize*2;
+  returnVector.resize(totalSize);
+  
+  // advance past two headers, which we will fill in later
+  uint8_t* writePtr = returnVector.data() + headerSize*2;
+  
+  // use iterator to serialize tree
+  size_t elements{0};
+  for (auto it = t.begin(); it != t.end(); ++it)
+  {
+    // add path
+    writeBinaryRepresentation(it.getCurrentPath(), writePtr);
+    
+    // add value
+    Value::writeBinaryRepresentation((*it), writePtr);
+    
+    elements++;
+  }
+  
+  // write version header
+  writePtr = returnVector.data();
+  BinaryGroupHeader* versionHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
+  *versionHeader = kBinaryGroupHeaderV2;
+  writePtr += headerSize;
+  
+  // write main header
+  BinaryGroupHeader* mainHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
+  mainHeader->elements = elements;
+  mainHeader->size = returnVector.size();
+  
+  return returnVector;
+}
+
+
+Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
+{
+  Tree<Value> outputTree;
+  const size_t inputSize = binaryData.size();
+  constexpr size_t headerSize = sizeof(BinaryGroupHeader);
+  
+  if(inputSize > headerSize*2)
+  {
+    const uint8_t* readPtr = binaryData.data();
+    readPtr += headerSize;
+    auto mainHeader{reinterpret_cast<const BinaryGroupHeader*>(readPtr)};
+    auto elements = mainHeader->elements;
+    auto totalSize = mainHeader->size;
+    
+    if(inputSize >= totalSize)
+    {
+      readPtr += headerSize;
+      for (int i = 0; i < elements; ++i)
+      {
+        auto path = readPathFromBinary(readPtr);
+        outputTree[path] = Value::readBinaryRepresentation(readPtr);
+      }
+    }
+  }
+  return outputTree;
+}
+
+
+// deprecated code maintained for now to read older binaries of patches etc.
+
+Path binaryToPathOld(const uint8_t* p)
+{
+  BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(p)};
+  auto headerSize = sizeof(BinaryChunkHeader);
+  auto pathType = pathHeader.type;
+  if (pathType == 'P')
+  {
+    auto pathSizeInBytes = pathHeader.dataBytes;
+    const char* pChars = reinterpret_cast<const char*>(p + headerSize);
+    return Path(TextFragment(pChars, pathSizeInBytes));
+  }
+  else
+  {
+    return Path();
+  }
+}
+
+Value binaryToValueOld(const uint8_t* p)
 {
   Value returnValue{};
   auto header{reinterpret_cast<const BinaryChunkHeader*>(p)};
@@ -193,237 +215,81 @@ Value binaryToValue(const unsigned char* p)
       returnValue = Value{Text(p, header->dataBytes)};
       break;
     }
-    case 'M': // matrix
-    {
-      BinaryMatrixHeader header{*reinterpret_cast<const BinaryMatrixHeader*>(p)};
-      const unsigned char* pData = p + sizeof(BinaryMatrixHeader);
-      auto* pFloatData{reinterpret_cast<const float*>(pData)};
-      Matrix m(header.width, header.height, header.depth);
-      m.readFromPackedData(pFloatData);
-      returnValue = Value{m};
-      
-      break;
-    }
     case 'L': // long
     {
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* pLongData{reinterpret_cast<const uint32_t*>(pData)};
-      uint32_t ul = *pLongData;
+      int ul = *pLongData;
       returnValue = Value(ul);
       break;
     }
     case 'B': // blob
     {
-      const unsigned char* pData = p + sizeof(BinaryChunkHeader);
-      auto* pBlobData{reinterpret_cast<const void*>(pData)};
-      returnValue = Value{pBlobData, header->dataBytes};
+      const uint8_t* pData = p + sizeof(BinaryChunkHeader);
+      returnValue = Value(Blob(pData, header->dataBytes));
       break;
     }
   }
   return returnValue;
 }
 
-// float vector
-
-std::vector< uint8_t > floatVectorToBinary(const std::vector<float>& inputVector)
-{
-  std::vector< uint8_t > outputVector;
-  auto headerSize = sizeof(BinaryChunkHeader);
-  auto matrixHeaderSize = sizeof(BinaryMatrixHeader);
-  
-  unsigned arrayDataSize = (unsigned)inputVector.size()*sizeof(float);
-  outputVector.resize(headerSize + arrayDataSize);
-  BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-  *header = BinaryChunkHeader{'V', arrayDataSize};
-  uint8_t* pDest{outputVector.data() + headerSize};
-  const uint8_t* pSrc = reinterpret_cast<const uint8_t*>(inputVector.data());
-  std::copy(pSrc, pSrc + arrayDataSize, pDest);
-
-  return outputVector;
-}
-
-
-std::vector< float > binaryToFloatVector(const unsigned char* p)
-{
-  auto header{reinterpret_cast<const BinaryChunkHeader*>(p)};
-  if (header->type == 'V')
-  {
-    const unsigned char* pData = p + sizeof(BinaryChunkHeader);
-    const float* pVectorData{reinterpret_cast<const float*>(pData)};
-    size_t vectorSize = header->dataBytes/sizeof(float);
-    return std::vector< float >(pVectorData, pVectorData+vectorSize);
-  }
-    
-  // on wrong type return empty vector
-  return std::vector< float >();
-}
-
-// Path
-
-std::vector<unsigned char> pathToBinary(Path p)
-{
-  std::vector<unsigned char> outputVector;
-  auto t = pathToText(p, '/');
-  auto headerSize = sizeof(BinaryChunkHeader);
-  auto dataSize = t.lengthInBytes();
-  outputVector.resize(headerSize + dataSize);
-  BinaryChunkHeader* header{reinterpret_cast<BinaryChunkHeader*>(outputVector.data())};
-  header->type = 'P';
-  header->dataBytes = (unsigned int)dataSize;
-  
-  auto pDest{outputVector.data() + headerSize};
-  auto pSrc{t.getText()};
-  std::copy(pSrc, pSrc + dataSize, pDest);
-  
-  return outputVector;
-}
-
-Path binaryDataToPath(const unsigned char* p)
-{
-  BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(p)};
-  auto headerSize = sizeof(BinaryChunkHeader);
-  auto pathType = pathHeader.type;
-  if (pathType == 'P')
-  {
-    auto pathSizeInBytes = pathHeader.dataBytes;
-    const char* pChars = reinterpret_cast<const char*>(p + headerSize);
-    
-    return Path(TextFragment(pChars, pathSizeInBytes));
-  }
-  else
-  {
-    return Path();
-  }
-}
-
-Path binaryToPath(const std::vector<unsigned char>& p)
-{
-  return binaryDataToPath(p.data());
-}
-
-// Tree< Value >
-
-std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
-{
-  std::vector<unsigned char> returnVector;
-  
-  // allocate group header
-  returnVector.resize(sizeof(BinaryGroupHeader));
-  
-  // use iterator to serialize tree
-  
-  // NOTE: this resizes returnVector for each path/item, which is not ideal.
-  // TODO each serializable object could have a getBinarySize() method so we can
-  // get the total size needed quickly and only allocate once.
-  
-  size_t elements{0};
-  for (auto it = t.begin(); it != t.end(); ++it)
-  {
-    // std::cout << it.getCurrentPath() << " = (" << (*it).getTypeAsSymbol()
-    // << ") " << *it << "\n";
-    
-    Path p = it.getCurrentPath();
-    Value v = (*it);
-    
-    // add path header
-    
-    auto binaryPath = pathToBinary(p);
-    uint8_t* pathData = binaryPath.data();
-    BinaryChunkHeader pathHeader{*reinterpret_cast<BinaryChunkHeader*>(pathData)};
-    auto headerSize1 = sizeof(BinaryChunkHeader);
-    uint8_t* pSrc1Start = pathData;
-    auto dataSize1 = pathHeader.dataBytes;
-    auto sizeToAdd = headerSize1 + dataSize1;
-    uint8_t* pSrc1End = pathData + sizeToAdd;
-    auto prevSize = returnVector.size();
-    returnVector.resize(prevSize + sizeToAdd);
-    uint8_t* pDest1 = returnVector.data() + prevSize;
-    std::copy(pSrc1Start, pSrc1End, pDest1);
-    
-    // std::cout << " path @ "  << prevSize << ":" << (unsigned
-    // char)pathHeader.type << " " << pathHeader.dataBytes << " = " << p <<
-    // "\n";
-    
-    // add value
-    
-    auto binaryValue = valueToBinary(v);
-    uint8_t* valueData = binaryValue.data();
-    BinaryChunkHeader testHeader{*reinterpret_cast< BinaryChunkHeader* >(valueData)};
-    size_t headerSize2 =
-    (testHeader.type == 'M') ? sizeof(BinaryMatrixHeader) : sizeof(BinaryChunkHeader);
-    
-    uint8_t* pSrc2Start = valueData;
-    auto dataSize2 = testHeader.dataBytes;
-    auto sizeToAdd2 = headerSize2 + dataSize2;
-    uint8_t* pSrc2End = valueData + sizeToAdd2;
-    auto prevSize2 = returnVector.size();
-    returnVector.resize(prevSize2 + sizeToAdd2);
-    uint8_t* pDest2 = returnVector.data() + prevSize2;
-    std::copy(pSrc2Start, pSrc2End, pDest2);
-    
-    // std::cout << "value @ " << prevSize2 << ":" << (unsigned
-    // char)testHeader.type << " " << testHeader.dataBytes << " = " << v <<
-    // "\n\n";
-    
-    elements++;
-  }
-  
-  // write group header
-  BinaryGroupHeader* pathHeader{reinterpret_cast<BinaryGroupHeader*>(returnVector.data())};
-  pathHeader->elements = elements;
-  pathHeader->size = returnVector.size();
-  
-  // std::cout << "elements: " << elements << " total size: " <<
-  // returnVector.size() << "\n";
-  
-  return returnVector;
-}
-
-Tree<Value> binaryToValueTree(const std::vector<unsigned char>& binaryData)
+Tree<Value> binaryToValueTreeOld(const std::vector<uint8_t>& binaryData)
 {
   Tree<Value> outputTree;
   const uint8_t* pData{binaryData.data()};
-  
   if (binaryData.size() > sizeof(BinaryGroupHeader))
   {
-    // read group header
-    BinaryGroupHeader pathHeader{*reinterpret_cast<const BinaryGroupHeader*>(pData)};
-    size_t elements = pathHeader.elements;
-    size_t size = pathHeader.size;
-    // std::cout << "elements: " << elements << " total size: " << size << "\n";
-    
+    BinaryGroupHeader groupHeader{*reinterpret_cast<const BinaryGroupHeader*>(pData)};
+    size_t elements = groupHeader.elements;
+    size_t size = groupHeader.size;
     if (binaryData.size() >= size)
     {
       size_t idx{sizeof(BinaryGroupHeader)};
       for (int i = 0; i < elements; ++i)
       {
-        // read path chunk
+        // get path
         BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(pData + idx)};
-        // auto pathType = pathHeader.type;
         auto pathSize = pathHeader.dataBytes;
         auto pathHeaderSize = sizeof(BinaryChunkHeader);
-        auto path = binaryDataToPath(pData + idx);
-        // std::cout << " path @ "  << idx << ":" << (unsigned char)pathType <<
-        // " " << pathSize << " = " << binaryToPath(pData + idx) << "\n";
+        auto path = binaryToPathOld(pData + idx);
         idx += pathSize + pathHeaderSize;
         
-        // read value chunk
+        // get value
         BinaryChunkHeader valueHeader{*reinterpret_cast<const BinaryChunkHeader*>(pData + idx)};
         auto valueType = valueHeader.type;
         auto valueSize = valueHeader.dataBytes;
-        auto valueHeaderSize =
-        (valueType == 'M') ? sizeof(BinaryMatrixHeader) : sizeof(BinaryChunkHeader);
-        auto val = binaryToValue(pData + idx);
-        outputTree[path] = val;
-        // std::cout << "value @ " << idx << ":" << (unsigned char)valueType <<
-        // " " << valueSize << " = " << binaryToValue(pData + idx) << "\n\n";
+        auto valueHeaderSize = sizeof(BinaryChunkHeader);
+        auto val = binaryToValueOld(pData + idx);
         idx += valueSize + valueHeaderSize;
+        
+        // write to tree
+        outputTree[path] = val;
       }
     }
   }
   return outputTree;
 }
 
+Tree<Value> binaryToValueTree(const std::vector<uint8_t>& binaryData)
+{
+  Tree<Value> outputTree;
+  const uint8_t* pData{binaryData.data()};
+  size_t inputBytes = binaryData.size();
+  
+  if(inputBytes > sizeof(BinaryGroupHeader))
+  {
+    BinaryGroupHeader groupHeader{*reinterpret_cast<const BinaryGroupHeader*>(pData)};
+    if(groupHeader == kBinaryGroupHeaderV2)
+    {
+      outputTree = binaryToValueTreeNew(binaryData);
+    }
+    else
+    {
+      outputTree = binaryToValueTreeOld(binaryData);
+    }
+  }
+  return outputTree;
+}
 
 
 // JSONHolder
@@ -514,6 +380,9 @@ void setData(JSONHolder& cj, cJSON* pData)
   cj.pImpl->data = pData;
 }
 
+// return a JSON object representing the value tree. The caller is responsible
+// for freeing the object.
+//
 // NOTE: this does not make the JSON tree, rather a flat structure with the
 // path name for each object name! TODO fix
 JSONHolder valueTreeToJSON(const Tree<Value>& t)
@@ -530,22 +399,21 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
     
     switch (v.getType())
     {
-      case Value::kUndefinedValue:
+      case Value::kUndefined:
         break;
-      case Value::kFloatValue:
+      case Value::kFloat:
         cJSON_AddNumberToObject(getData(root), keyStr, v.getFloatValue());
         break;
-      case Value::kTextValue:
+      case Value::kText:
         cJSON_AddStringToObject(getData(root), keyStr, v.getTextValue().getText());
         break;
-      case Value::kUnsignedLongValue:
-        cJSON_AddNumberToObject(getData(root), keyStr, v.getUnsignedLongValue());
+      case Value::kInt:
+        cJSON_AddNumberToObject(getData(root), keyStr, v.getIntValue());
         break;
-      case Value::kBlobValue:
+      case Value::kBlob:
       {
-        uint8_t* blobData = static_cast<uint8_t*>(v.getBlobData());
-        size_t blobSize = v.getBlobSize();
-        std::vector<uint8_t> blobVec(blobData, blobData + blobSize);
+        auto blob = v.getBlobValue();
+        std::vector<uint8_t> blobVec(blob.data, blob.data + blob.size);
         TextFragment blobText(kBlobHeader, textUtils::base64Encode(blobVec));
         cJSON_AddStringToObject(getData(root), keyStr, blobText.getText());
         break;
@@ -584,19 +452,18 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
           auto body = textUtils::subText(valueText, headerLen, textLen);
           
           auto blobDataVec = textUtils::base64Decode(body.getText());
-          auto* pBlobData{reinterpret_cast<const void*>(blobDataVec.data())};
-          auto blobValue = Value{pBlobData, blobDataVec.size()};
-          r.add(newObjectPath, blobValue);
+          r.add(newObjectPath, Value(blobDataVec));
         }
         else
         {
           // convert ordinary strings into text
-          r.add(newObjectPath, valueText);
+          r.add(newObjectPath, Value(valueText));
         }
         break;
       }
       case cJSON_Object:
       {
+        // we only recurse for entire objects.
         readJSONToValueTree(obj->child, r, newObjectPath, depth);
         break;
       }
@@ -611,8 +478,7 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
           arrayElems.push_back((float)array->valuedouble);
           array = array->next;
         }
-        Value arrayVal(arrayElems.data(), arrayElems.size()*sizeof(float));
-        r.add(newObjectPath, arrayVal);
+        r.add(newObjectPath, Value(arrayElems));
         break;
       }
       default:
