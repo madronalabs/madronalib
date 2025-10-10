@@ -41,7 +41,6 @@ public:
     kUndefined = 0,
     kFloat,
     kDouble,
-    kBool,
     kInt,
     kFloatArray,
     kText,
@@ -66,7 +65,6 @@ public:
   
   Value();
   Value(float v);
-  Value(bool v);
   Value(int v);
   
   // mostly we deal with floats, so set this explicit to avoid silent float->double conversions.

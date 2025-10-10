@@ -126,12 +126,6 @@ Value::Value(double v) : _type(kDouble), _sizeInBytes(sizeof(double)), _dataPtr(
   pVal[0] = v;
 }
 
-Value::Value(bool v) : _type(kBool), _sizeInBytes(sizeof(bool)), _dataPtr(_localData)
-{
-  bool* pVal = reinterpret_cast<bool*>(_localData);
-  pVal[0] = v;
-}
-
 Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(int)), _dataPtr(_localData)
 {
   int* pVal = reinterpret_cast<int*>(_localData);
@@ -248,14 +242,6 @@ int Value::getIntValue() const
   return toFixedSizeType<int>();
 }
 
-bool Value::getBoolValue() const
-{
-  if(!canConvertTo(kBool)) return false;
-  
-  // We know _type == kBool at this point
-  return toFixedSizeType<bool>();
-}
-
 // variable-size getters
 
 float* Value::getFloatArrayPtr() const
@@ -345,9 +331,6 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
       break;
     case Value::kDouble:
       out << r.getDoubleValue();
-      break;
-    case Value::kBool:
-      out << r.getBoolValue();
       break;
     case Value::kInt:
       out << r.getIntValue();

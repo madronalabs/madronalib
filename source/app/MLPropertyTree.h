@@ -49,11 +49,11 @@ public:
     return treeNode ? treeNode->getValue().getDoubleValue() : d;
   }
   
-  bool getBoolProperty(Path p) const { return properties[p].getBoolValue(); }
+  bool getBoolProperty(Path p) const { return properties[p].getIntValue() != 0; }
   bool getBoolPropertyWithDefault(Path p, bool d) const
   {
     auto treeNode = properties.getNode(p);
-    return treeNode ? treeNode->getValue().getBoolValue() : d;
+    return treeNode ? (treeNode->getValue().getIntValue() != 0) : d;
   }
   
   int getIntProperty(Path p) const { return properties[p].getIntValue(); }

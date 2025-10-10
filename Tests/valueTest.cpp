@@ -171,9 +171,6 @@ TEST_CASE("madronalib/core/values/type_conversions", "[values]")
     
     Value doubleVal(3.14);
     REQUIRE(doubleVal.getFloatValue() == Approx(3.14f));
-    
-    Value boolVal(true);
-    REQUIRE(boolVal.getBoolValue() == true);
   }
   
   SECTION("getFloatValue returns 0 for incompatible types")

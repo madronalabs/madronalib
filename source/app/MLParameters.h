@@ -348,7 +348,7 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
   }
   else if (paramDesc->hasProperty("plaindefault"))
   {
-    Value defaultVal = paramDesc->getProperty("default");
+    Value defaultVal = paramDesc->getProperty("plaindefault");
     return Value(p.convertRealToNormalizedFloatValue(pname, defaultVal)); // TODO clean up API
   }
   else if (paramDesc->hasProperty("range"))
@@ -358,8 +358,7 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
   }
   else
   {
-    // since there's no param value yet, we really don't know anything about
-    // the default.
+    // since there's no param value yet, we really don't know anything about the default.
     return Value();
   }
 }
