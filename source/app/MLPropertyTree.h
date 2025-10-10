@@ -74,12 +74,20 @@ public:
   
   Interval getIntervalProperty(Path p) const { return valueToPODType<Interval>(getProperty(p)); }
   Interval getIntervalPropertyWithDefault(Path p, Interval d) const { return hasProperty(p) ? getIntervalProperty(p) : d; }
-  inline void setIntervalProperty(Path p, Interval v) { setProperty(p, valueFromPODType<Interval>(v)); }
+  inline void setIntervalProperty(Path p, Interval v) { setProperty(p, podTypeToValue<Interval>(v)); }
   
-  // variable-size getters, handy but will allocate heap
+
+  template< size_t N >
+  std::array< float, N > getFloatArrayProperty(Path p) const
+  {
+    return properties[p].getFloatArray< N >();
+  }
   
-  std::vector<float> getFloatVectorProperty(Path p) const { return properties[p].getFloatVector(); }
-  std::vector<float> getFloatVectorPropertyWithDefault(Path p, std::vector<float> d) const { return hasProperty(p) ? getFloatVectorProperty(p) : d; }
+  template< size_t N >
+  std::array< float, N > getFloatArrayPropertyWithDefault(Path p, std::array< float, N > d) const
+  {
+    return hasProperty(p) ? getFloatArrayProperty< N >(p) : d;
+  }
   
   
   // serialization
@@ -92,7 +100,6 @@ public:
   
   void overwrite(const PropertyTree& other)
   {
-    
     for (auto it = other.properties.begin(); it != other.properties.end(); ++it)
     {
       setProperty(it.getCurrentPath(), *it);

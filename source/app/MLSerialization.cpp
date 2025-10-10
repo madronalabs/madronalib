@@ -48,7 +48,53 @@ struct BinaryChunkHeader
   }
 };
 
-// Path
+
+// Values
+
+struct ValueBinaryHeader
+{
+  static constexpr int kTypeBits{4};
+  unsigned int type : kTypeBits;
+  unsigned int size : Value::kMaxDataSizeBits;
+};
+
+static_assert((2 << ValueBinaryHeader::kTypeBits) >= Value::kNumTypes);
+
+size_t getBinarySize(const Value& v)
+{
+  return v.size() + sizeof(ValueBinaryHeader);
+}
+
+void writeValueToBinary(const Value& v, uint8_t*& writePtr)
+{
+  // header
+  auto sizeInBytes = v.size();
+  ValueBinaryHeader header{v.getType(), sizeInBytes};
+  memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
+  writePtr += sizeof(ValueBinaryHeader);
+  
+  // data
+  memcpy(writePtr, v.data(), sizeInBytes);
+  writePtr += sizeInBytes;
+}
+
+Value readBinaryToValue(const uint8_t*& readPtr)
+{
+  auto headerSize = sizeof(ValueBinaryHeader);
+  
+  // header
+  ValueBinaryHeader header;
+  memcpy(&header, readPtr, headerSize);
+  
+  const uint8_t* dataPtr = readPtr + headerSize;
+  readPtr += header.size + headerSize;
+  
+  // Use the private constructor via friend access
+  return Value(header.type, header.size, dataPtr);
+}
+
+
+// Paths
 
 size_t getBinarySize(Path p)
 {
@@ -94,6 +140,7 @@ void writeBinaryRepresentation(const Path& p, uint8_t*& writePtr)
   writePtr += dataSize;
 }
 
+
 // Tree< Value >
 
 std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
@@ -122,7 +169,7 @@ std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
     writeBinaryRepresentation(it.getCurrentPath(), writePtr);
     
     // add value
-    Value::writeBinaryRepresentation((*it), writePtr);
+    writeValueToBinary((*it), writePtr);
     
     elements++;
   }
@@ -140,7 +187,6 @@ std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
   
   return returnVector;
 }
-
 
 Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
 {
@@ -162,7 +208,7 @@ Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
       for (int i = 0; i < elements; ++i)
       {
         auto path = readPathFromBinary(readPtr);
-        outputTree[path] = Value::readBinaryRepresentation(readPtr);
+        outputTree[path] = readBinaryToValue(readPtr);
       }
     }
   }

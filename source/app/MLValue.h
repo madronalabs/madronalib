@@ -44,7 +44,6 @@ public:
     kBool,
     kInt,
     kFloatArray,
-    kDoubleArray,
     kText,
     kBlob,
     kNumTypes
@@ -54,47 +53,6 @@ public:
   static constexpr size_t kMaxDataBytes = 1 << (kMaxDataSizeBits - 1);
   static constexpr size_t getLocalDataMaxBytes() { return kLocalDataBytes; }
   static constexpr size_t getHeaderBytes() { return kHeaderBytes; }
-  
-  static constexpr int kBinaryHeaderTypeBits{4};
-  static_assert((2 << kBinaryHeaderTypeBits) >= kNumTypes);
-  
-  // for serializing
-  struct BinaryHeader
-  {
-    unsigned int type : kBinaryHeaderTypeBits;
-    unsigned int size : kMaxDataSizeBits;
-  };
-  
-private:
-  
-  // data
-  
-  // kHeaderBytes should be the size of everything except the local data. This is verified in valueTest.cpp.
-  static constexpr size_t kStructSizeInBytes{64};
-  static constexpr size_t kHeaderBytes{16};
-  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - kHeaderBytes;
-  
-  uint8_t* _dataPtr{_localData};
-  Type _type{kUndefined};
-  uint32_t _sizeInBytes{0};
-  uint8_t _localData[kLocalDataBytes];
-  
-  // utilities
-  
-  void copyOrAllocate(Type type, const uint8_t* pSrc, size_t bytes);
-  void copyOrMove(Type newType, uint8_t* pSrc, size_t bytes);
-  
-  template<typename T> T toFixedSizeType() const
-  {
-    T* scalarTypePtr = reinterpret_cast<T*>(_dataPtr);
-    return *scalarTypePtr;
-  }
-  
-  // private constructor for serialization
-  
-  Value(const BinaryHeader& header, const uint8_t* readPtr);
-  
-public:
   
   // copy and assign constructors and destructor
   
@@ -108,52 +66,15 @@ public:
   
   Value();
   Value(float v);
-  Value(double v);
   Value(bool v);
   Value(int v);
   
-  // Constructors with variable-size data.
+  // mostly we deal with floats, so set this explicit to avoid silent float->double conversions.
+  explicit Value(double v);
   
-  Value(std::initializer_list<float> values);
-  Value(const std::vector<float>& values);
-  Value(const char* v);
-  explicit Value(const ml::Text& v);
-  explicit Value(const ml::Blob& v);
-  Value(const std::vector<uint8_t>& dataVec); // alternate Blob
-  
-  // getters for fixed-size data
-  
-  float getFloatValue() const;
-  double getDoubleValue() const;
-  bool getBoolValue() const;
-  int getIntValue() const;
-  
-  // getters for variable-size data.
-  
-  float* getFloatArrayPtr() const;
-  size_t getFloatArraySize() const;
-  std::vector<float> getFloatVector() const;
-  double* getDoubleArrayPtr() const;
-  size_t getDoubleArraySize() const;
-  std::vector<double> getDoubleVector() const;
-  ml::TextFragment getTextValue() const;
-  ml::Blob getBlobValue() const;
-  std::vector<uint8_t> getBlobVector() const;
-  
-  // public utils
-  
-  bool isStoredLocally() const;
-  explicit operator bool() const;
-  bool operator==(const Value& b) const;
-  bool operator!=(const Value& b) const;
-  Type getType() const;
-  uint32_t size() const;
-  uint8_t* data() const;
-  
-  // constructor and getter for fixed-size float arrays
-  
+  // fixed-size float arrays
   template<size_t N>
-  Value(std::array<float, N> values)
+  explicit Value(std::array<float, N> values)
   {
     _type = kFloatArray;
     auto listSize = N;
@@ -182,6 +103,22 @@ public:
     }
   }
   
+  // Constructors with variable-size data.
+  
+  Value(std::initializer_list<float> values);
+  Value(const std::vector<float>& values);
+  Value(const char* v);
+  explicit Value(const ml::Text& v);
+  explicit Value(const ml::Blob& v);
+  explicit Value(const std::vector<uint8_t>& dataVec); // alternate Blob
+  
+  // getters for fixed-size data
+  
+  float getFloatValue() const;
+  double getDoubleValue() const;
+  bool getBoolValue() const;
+  int getIntValue() const;
+  
   template<size_t N>
   std::array<float, N> getFloatArray() const
   {
@@ -193,24 +130,66 @@ public:
     return r;
   }
   
-  // serialization
+  // getters for variable-size data.
   
-  // write the binary representation of the Value and increment the write pointer.
-  static void writeBinaryRepresentation(const Value& v, uint8_t*& writePtr);
+  float* getFloatArrayPtr() const;
+  size_t getFloatArraySize() const;
+  std::vector<float> getFloatVector() const;
+  double* getDoubleArrayPtr() const;
+  size_t getDoubleArraySize() const;
+  std::vector<double> getDoubleVector() const;
+  ml::TextFragment getTextValue() const;
+  ml::Blob getBlobValue() const;
+  std::vector<uint8_t> getBlobVector() const;
   
-  // read the binary representation of the Value and increment the read pointer.
-  static Value readBinaryRepresentation(const uint8_t*& readPtr);
+  // public utils
+  
+  bool isStoredLocally() const;
+  explicit operator bool() const;
+  bool operator==(const Value& b) const;
+  bool operator!=(const Value& b) const;
+  Type getType() const;
+  uint32_t size() const;
+  uint8_t* data() const;
+
+private:
+  
+  // data
+  
+  // kHeaderBytes should be the size of everything except the local data. This is verified in valueTest.cpp.
+  static constexpr size_t kStructSizeInBytes{64};
+  static constexpr size_t kHeaderBytes{16};
+  static constexpr size_t kLocalDataBytes = kStructSizeInBytes - kHeaderBytes;
+  
+  uint8_t* _dataPtr{_localData};
+  Type _type{kUndefined};
+  uint32_t _sizeInBytes{0};
+  uint8_t _localData[kLocalDataBytes];
+  
+  // utilities
+  
+  void copyOrAllocate(Type type, const uint8_t* pSrc, size_t bytes);
+  void copyOrMove(Type newType, uint8_t* pSrc, size_t bytes);
+  
+  template<typename T> T toFixedSizeType() const
+  {
+    T* scalarTypePtr = reinterpret_cast<T*>(_dataPtr);
+    return *scalarTypePtr;
+  }
+  
+  // private constructor for deserialization
+  Value(unsigned int type, unsigned int sizeInBytes, const uint8_t* dataPtr);
+  
+  // friend in MLSerialization
+  friend Value readBinaryToValue(const uint8_t*& readPtr);
 };
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
-// return size of the binary representation of the Value (incl. type and size)
-size_t getBinarySize(const Value& v);
-
 // handy anything-converters to and from small POD types.
 
 template<typename T>
-inline Value valueFromPODType(T obj)
+inline Value podTypeToValue(T obj)
 {
   static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
   return Value(Blob(reinterpret_cast<const uint8_t*>(&obj), sizeof(T)));
@@ -241,18 +220,6 @@ struct NamedValue
 
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list< NamedValue >;
-
-// template function for doing things when Values (or any other types) change
-template<typename T>
-inline bool valueChanged(T newValue, T& prevValue)
-{
-  if(newValue != prevValue)
-  {
-    prevValue = newValue;
-    return true;
-  }
-  return false;
-}
 
 }  // namespace ml
 

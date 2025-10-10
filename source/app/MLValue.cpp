@@ -55,6 +55,7 @@ void Value::copyOrAllocate(Type newType, const uint8_t* pSrc, size_t bytes)
 void Value::copyOrMove(Type newType, uint8_t* pSrc, size_t bytes)
 {
   _type = newType;
+  if(!isStoredLocally()) free(_dataPtr);
   if(bytes <= kLocalDataBytes)
   {
     _sizeInBytes = static_cast<uint32_t>(bytes);
@@ -63,7 +64,6 @@ void Value::copyOrMove(Type newType, uint8_t* pSrc, size_t bytes)
   }
   else
   {
-    if(!isStoredLocally()) free(_dataPtr);
     _dataPtr = pSrc;
     _sizeInBytes = static_cast<uint32_t>(bytes);
   }
@@ -86,14 +86,23 @@ Value& Value::operator=(const Value& other)
 Value::Value(Value&& other) noexcept
 {
   copyOrMove(other._type, other._dataPtr, other._sizeInBytes);
+
+  // Reset other to a valid empty state
   other._dataPtr = other._localData;
+  other._type = kUndefined;
+  other._sizeInBytes = 0;
 }
 
 Value& Value::operator=(Value&& other) noexcept
 {
   if(this == &other) return *this;
   copyOrMove(other._type, other._dataPtr, other._sizeInBytes);
+  
+  // Reset other to a valid empty state
   other._dataPtr = other._localData;
+  other._type = kUndefined;
+  other._sizeInBytes = 0;
+  
   return *this;
 }
 
@@ -106,8 +115,6 @@ Value::~Value()
 }
 
 // Constructors with fixed-size data.
-
-static Value testValue();
 
 Value::Value() : _type(kUndefined), _sizeInBytes(0), _dataPtr(_localData) {}
 
@@ -291,23 +298,6 @@ std::vector<float> Value::getFloatVector() const
   return std::vector<float>(floatData, floatData + _sizeInBytes/sizeof(float));
 }
 
-double* Value::getDoubleArrayPtr() const
-{
-  return (_type == kDoubleArray) ? reinterpret_cast<double*>(_dataPtr) : nullptr;
-}
-
-size_t Value::getDoubleArraySize() const
-{
-  return (_type == kDoubleArray) ? _sizeInBytes/sizeof(double) : 0;
-}
-
-std::vector<double> Value::getDoubleVector() const
-{
-  if(_type != kDoubleArray) return std::vector<double>();
-  auto doubleData = reinterpret_cast<double*>(_dataPtr);
-  return std::vector<double>(doubleData, doubleData + _sizeInBytes/sizeof(double));
-}
-
 TextFragment Value::getTextValue() const
 {
   if(_type != kText) return TextFragment();
@@ -382,9 +372,6 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
     case Value::kFloatArray:
       out << "[float array, size " << r.getFloatArraySize() << "]";
       break;
-    case Value::kDoubleArray:
-      out << "[double array, size " << r.getDoubleArraySize() << "]";
-      break;
     case Value::kText:
       out << r.getTextValue();
       break;
@@ -396,31 +383,22 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
   return out;
 }
 
-// return size of the binary representation of the Value (incl. type and size)
-size_t getBinarySize(const Value& v)
+Value::Value(unsigned int type, unsigned int sizeInBytes, const uint8_t* dataPtr)
 {
-  return v.size() + sizeof(Value::BinaryHeader);
-}
-
-Value::Value(const Value::BinaryHeader& header, const uint8_t* readPtr)
-{
-  uint32_t t = header.type;
-  _type = static_cast< Value::Type >(t);
-  _sizeInBytes = header.size;
+  _type = static_cast<Value::Type>(type);
+  _sizeInBytes = sizeInBytes;
   
   if(_sizeInBytes <= kLocalDataBytes)
   {
-    // store locally
     _dataPtr = _localData;
-    memcpy(_dataPtr, readPtr, _sizeInBytes);
+    memcpy(_dataPtr, dataPtr, _sizeInBytes);
   }
   else
   {
-    // allocate heap
     _dataPtr = (uint8_t*)malloc(_sizeInBytes);
     if(_dataPtr)
     {
-      memcpy(_dataPtr, readPtr, _sizeInBytes);
+      memcpy(_dataPtr, dataPtr, _sizeInBytes);
     }
     else
     {
@@ -430,35 +408,6 @@ Value::Value(const Value::BinaryHeader& header, const uint8_t* readPtr)
     }
   }
 }
-
-// write the binary representation of the Value and increment the destination pointer.
-void Value::writeBinaryRepresentation(const Value& v, uint8_t*& writePtr)
-{
-  // header
-  auto sizeInBytes = v.size();
-  Value::BinaryHeader header{v.getType(), sizeInBytes};
-  memcpy(writePtr, &header, sizeof(Value::BinaryHeader));
-  writePtr += sizeof(Value::BinaryHeader);
-  
-  // data
-  memcpy(writePtr, v.data(), sizeInBytes);
-  writePtr += sizeInBytes;
-}
-
-Value Value::readBinaryRepresentation(const uint8_t*& readPtr)
-{
-  auto headerSize = sizeof(Value::BinaryHeader);
-  
-  // header
-  Value::BinaryHeader header;
-  memcpy(&header, readPtr, headerSize);
-  
-  const uint8_t* dataPtr = readPtr + headerSize;
-  readPtr += header.size + headerSize;
-  
-  return Value(header, dataPtr);
-}
-
 
 std::string toHex(int value, int width) {
   const char* digits = "0123456789abcdef";

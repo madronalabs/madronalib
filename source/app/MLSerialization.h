@@ -25,20 +25,34 @@ namespace ml
 
 static TextFragment kBlobHeader("!BLOB!");
 
-TextFragment valueToText(const Value v);
-Value textToValue(const Text v);
 
-std::vector< uint8_t > valueToBinary(Value v);
-Value binaryToValue(const unsigned char* p);
+// Values
+
+// Return size of the binary representation of the Value (including header)
+size_t getBinarySize(const Value& v);
+
+// Write the binary representation of the Value and increment the write pointer.
+void writeValueToBinary(const Value& v, uint8_t*& writePtr);
+
+// Read the binary representation of the Value and increment the read pointer.
+Value readBinaryToValue(const uint8_t*& readPtr);
+
+
+// Paths
 
 std::vector<unsigned char> pathToBinary(Path p);
 Path binaryDataToPath(const unsigned char* p);
 Path binaryToPath(const std::vector<unsigned char>& p);
 
+
+// Value Trees
+
 std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t);
 Tree<Value> binaryToValueTree(const std::vector<unsigned char>& binaryData);
 
-// make the cJSON interface usable with RAII style.
+
+// JSON
+// utility class to make the cJSON interface usable with RAII style.
 class JSONHolder
 {
 public:
