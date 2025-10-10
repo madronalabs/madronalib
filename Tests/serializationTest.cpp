@@ -48,7 +48,6 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
   
-
   // create some JSON directly using our minimal API
   auto j5 = JSONHolder();
   j5.addNumber("foo", 23.0);
@@ -61,9 +60,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   REQUIRE(JSONToValueTree(j6).size() == 0);
   
   REQUIRE(theSymbolTable().audit());
-
 }
-
 
 TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
 {

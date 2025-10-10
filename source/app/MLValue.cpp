@@ -11,10 +11,6 @@ namespace ml
 
 // private utilities
 
-bool Value::isStoredLocally() const
-{
-  return (_dataPtr == _localData);
-}
 
 void Value::copyOrAllocate(Type newType, const uint8_t* pSrc, size_t bytes)
 {
@@ -184,99 +180,80 @@ Value::Value(const std::vector<uint8_t>& v)
   copyOrAllocate(kBlob, v.data(), len);
 }
 
-// fixed-size getters cast simple types to whatever simple type is requested.
+// fixed-size getters convert simple types where sensible.
 // other types we can't convert return a default value.
+
+bool Value::canConvertTo(Type targetType) const
+{
+  // Same type always works
+  if(_type == targetType) return true;
+  
+  // widening conversions, safe
+  if(targetType == kDouble)
+  {
+    return (_type == kFloat || _type == kInt);
+  }
+  
+  // allow int -> float and double -> float, losing precision
+  if(targetType == kFloat)
+  {
+    return (_type == kDouble || _type == kInt);
+  }
+  
+  // no other conversions are allowed
+  return false;
+}
 
 float Value::getFloatValue() const
 {
-  float r = 0.f;
+  if(!canConvertTo(kFloat)) return 0.f;
+  
   switch(_type)
   {
-    case kFloat:
-      r = toFixedSizeType<float>();
-      break;
     case kDouble:
-      r = toFixedSizeType<double>();
-      break;
-    case kBool:
-      r = toFixedSizeType<bool>();
-      break;
+      return static_cast<float>(toFixedSizeType<double>());
+    case kFloat:
+      return toFixedSizeType<float>();
     case kInt:
-      r = toFixedSizeType<int>();
-      break;
+      return static_cast<float>(toFixedSizeType<int>());
     default:
-      break;
+      // Should never reach here if canConvertTo is correct
+      return 0.0;
   }
-  return r;
 }
 
 double Value::getDoubleValue() const
 {
-  double r = 0.;
+  if(!canConvertTo(kDouble)) return 0.0;
+  
   switch(_type)
   {
-    case kFloat:
-      r = toFixedSizeType<float>();
-      break;
     case kDouble:
-      r = toFixedSizeType<double>();
-      break;
-    case kBool:
-      r = toFixedSizeType<bool>();
-      break;
-    case kInt:
-      r = toFixedSizeType<int>();
-      break;
-    default:
-      break;
-  }
-  return r;
-}
-
-bool Value::getBoolValue() const
-{
-  bool r = 0;
-  switch(_type)
-  {
+      return toFixedSizeType<double>();
     case kFloat:
-      r = toFixedSizeType<float>();
-      break;
-    case kDouble:
-      r = toFixedSizeType<double>();
-      break;
-    case kBool:
-      r = toFixedSizeType<bool>();
-      break;
+      return static_cast<double>(toFixedSizeType<float>());
     case kInt:
-      r = toFixedSizeType<int>();
-      break;
+      return static_cast<double>(toFixedSizeType<int>());
     default:
-      break;
+      // Should never reach here if canConvertTo is correct
+      return 0.0;
   }
-  return r;
 }
 
 int Value::getIntValue() const
 {
-  int r = 0.f;
-  switch(_type)
-  {
-    case kFloat:
-      r = toFixedSizeType<float>();
-      break;
-    case kDouble:
-      r = toFixedSizeType<double>();
-      break;
-    case kBool:
-      r = toFixedSizeType<bool>();
-      break;
-    case kInt:
-      r = toFixedSizeType<int>();
-      break;
-    default:
-      break;
-  }
-  return r;
+  if(!canConvertTo(kInt)) return 0;
+  
+  // We know _type == kInt at this point
+  return toFixedSizeType<int>();
+}
+
+bool Value::getBoolValue() const
+{
+  if(!canConvertTo(kBool)) return false;
+  
+  // We know _type == kBool at this point
+  return toFixedSizeType<bool>();
 }
 
 // variable-size getters
@@ -316,6 +293,11 @@ std::vector<uint8_t> Value::getBlobVector() const
 
 // public utils
 
+bool Value::isStoredLocally() const
+{
+  return (_dataPtr == _localData);
+}
+
 // distinct from the bool value type, used to support code like if(doThingWithReturnValue())
 Value::operator bool() const
 {
@@ -348,6 +330,7 @@ uint8_t* Value::data() const
 {
   return _dataPtr;
 }
+
 
 std::ostream& operator<<(std::ostream& out, const Value& r)
 {

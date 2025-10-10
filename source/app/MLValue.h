@@ -151,7 +151,10 @@ public:
   Type getType() const;
   uint32_t size() const;
   uint8_t* data() const;
-
+  
+  // can the Value be converted to the output Type without precision loss?
+  bool canConvertTo(Type targetType) const;
+  
 private:
   
   // data
@@ -167,7 +170,6 @@ private:
   uint8_t _localData[kLocalDataBytes];
   
   // utilities
-  
   void copyOrAllocate(Type type, const uint8_t* pSrc, size_t bytes);
   void copyOrMove(Type newType, uint8_t* pSrc, size_t bytes);
   
