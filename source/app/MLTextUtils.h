@@ -21,7 +21,7 @@ bool isLatin(CodePoint c);
 bool isWhitespace(CodePoint c);
 bool isCJK(CodePoint c);
 
-// ----------------------------------------------------------------
+
 // TextFragment utilities
 
 TextFragment naturalNumberToText(size_t i);
@@ -96,7 +96,7 @@ std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& ciphertext,
 // TODO collate other languages better using miniutf library.
 bool collate(const TextFragment& a, const TextFragment& b);
 
-// ----------------------------------------------------------------
+
 // Symbol utilities
 
 Symbol addFinalNumber(Symbol sym, int n);
@@ -114,10 +114,9 @@ struct SymbolCollator
   }
 };
 
-// ----------------------------------------------------------------
+
 // NameMaker
-// a utility to make many short, unique, human-readable names when they are
-// needed.
+// a utility to make many short, unique, human-readable names.
 
 class NameMaker
 {
@@ -135,7 +134,7 @@ class NameMaker
   char buf[maxLen];
 };
 
-// ----------------------------------------------------------------
+
 // std library helpers
 
 template <typename T>
@@ -144,11 +143,15 @@ T getElementChecked(const std::vector<T> vec, int index) noexcept
   return (vec.size() > index ? vec[index] : T());
 }
 
-// ----------------------------------------------------------------
+
 // number formatter
 
 ml::Text formatNumber(const float number, const int digits, const int precision, const bool doSign,
                       Symbol mode = "default") throw();
+
+// hex dumper
+
+void hexDump(uint8_t* blobData, size_t blobSize);
 
 }  // namespace textUtils
 }  // namespace ml

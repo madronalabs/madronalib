@@ -18,7 +18,6 @@ public:
   PropertyTree() = default;
   PropertyTree(Tree<Value> vt) : properties(vt) {}
   PropertyTree(const PropertyTree& other) : properties(other.properties) {}
-  
   PropertyTree(const std::initializer_list< NamedValue >& p)
   {
     for (const auto& v : p)
@@ -32,6 +31,7 @@ public:
   bool hasProperty(Path p) const { return(properties.getNode(p) != nullptr); }
   void setProperty(Path p, Value v) { properties[p] = v; }
   Value getProperty(Path p) const { return properties[p]; }
+  
   
   // getters for basic parameter value types
   
@@ -70,14 +70,6 @@ public:
     return treeNode ? treeNode->getValue().getTextValue() : d;
   }
   
-  // utility getters for other types
-  
-  template< typename T > T getPropertyOfType(Path p) const { return valueToSmallType<T>(getProperty(p)); }
-  
-  template< typename T > T getPropertyOfTypeWithDefault(Path p, T d) const { return hasProperty(p) ? valueToSmallType<T>(getProperty(p)) : d; }
-  
-  template< typename T > void setPropertyOfType(Path p, T v) { setProperty(p, smallTypeToValue< T >(v)); }
-  
   template< size_t N >
   std::array< float, N > getFloatArrayProperty(Path p) const
   {
@@ -89,7 +81,27 @@ public:
   {
     return hasProperty(p) ? getFloatArrayProperty< N >(p) : d;
   }
+
+  std::vector<float> getFloatVectorProperty(Path p) const
+  {
+    return properties[p].getFloatVector();
+  }
   
+  
+  // getters for other types.
+  
+  Interval getIntervalProperty(Path p) const
+  {
+    auto a = properties[p].getFloatArray< 2 >();
+    return Interval{a[0], a[1]};
+  }
+  Interval getIntervalPropertyWithDefault(Path p, Interval d) const
+  {
+    auto treeNode = properties.getNode(p);
+    return treeNode ? getIntervalProperty(p) : d;
+  }
+
+
   // serialization
   
   std::vector<unsigned char> propertyTreeToBinary() { return valueTreeToBinary(properties); }

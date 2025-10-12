@@ -95,7 +95,7 @@ public:
   
   Value(std::initializer_list<float> values);
   Value(const std::vector<float>& values);
-  explicit Value(const ml::Text& v);
+  Value(const ml::Text& v);
   Value(const char* v);
   explicit Value(const uint8_t* data, size_t size);
 
@@ -116,15 +116,12 @@ public:
     }
     return r;
   }
-  
+
   // getters for variable-size data.
   
   float* getFloatArrayPtr() const;
   size_t getFloatArraySize() const;
   std::vector<float> getFloatVector() const;
-  double* getDoubleArrayPtr() const;
-  size_t getDoubleArraySize() const;
-  std::vector<double> getDoubleVector() const;
   ml::TextFragment getTextValue() const;
   
   // public utils
@@ -173,27 +170,9 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
-// Handy anything-converters to and from small POD types. These never allocate.
-// There is no runtime type checking, so use carefully!
-
-template<typename T>
-inline Value smallTypeToValue(T obj)
-{
-  // create local Blob
-  static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
-  return Value(reinterpret_cast<const uint8_t*>(&obj), sizeof(T));
-}
-
-template<typename T>
-inline T valueToSmallType(Value val)
-{
-  static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
-  T r;
-  memcpy(&r, val.data(), val.size());
-  return r;
-}
-
-// NamedValue for initializer lists
+// NamedValue is meant for initializing a list of Values from some data, whether in code
+// or read in from a config file. Because we want to get data from outside the "typed universe,"
+// we only allow initialization from fundamental Value types and not for example smallTypeToValue< Rect >.
 
 struct NamedValue
 {
@@ -201,9 +180,9 @@ struct NamedValue
   Value value;
   
   template<typename T>
-  NamedValue(ml::Path np, T nv) : name(np), value(Value(nv)) {}
+  NamedValue(ml::Path np, T nv) : name(np), value(nv) {}
   
-  NamedValue(ml::Path np, std::initializer_list<float> list) : name(np), value(Value(list)) {}
+  NamedValue(ml::Path np, std::initializer_list<float> list) : name(np), value(list) {}
 };
 
 // Define a type for initializing a new object with a list of Values.

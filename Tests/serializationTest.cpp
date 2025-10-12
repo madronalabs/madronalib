@@ -312,25 +312,7 @@ TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
     REQUIRE(writePtr3 - buffer3.data() == getBinarySize(arrayVal));
   }
   
-  SECTION("POD type round-trip via serialization")
-  {
-    testType t1{3.14f, 42, 2.718, {1.0f, 2.0f, 3.0f}};
-    Value v1 = smallTypeToValue<testType>(t1);
-    
-    size_t binarySize = getBinarySize(v1);
-    std::vector<uint8_t> buffer(binarySize);
-    uint8_t* writePtr = buffer.data();
-    
-    writeValueToBinary(v1, writePtr);
-    
-    const uint8_t* readPtr = buffer.data();
-    Value v2 = readBinaryToValue(readPtr);
-    
-    testType t2 = valueToSmallType<testType>(v2);
-    
-    REQUIRE(t1 == t2);
-  }
-  
+
   SECTION("write pointer advances correctly")
   {
     Value v1(42.5f);

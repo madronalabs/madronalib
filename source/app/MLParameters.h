@@ -11,7 +11,7 @@ namespace ml
 
 using ParameterDescription = PropertyTree;
 
-using ParameterDescriptionList = std::vector< std::unique_ptr< ParameterDescription> >;
+using ParameterDescriptionList = std::vector< std::unique_ptr< ParameterDescription > >;
 
 struct ParameterProjection
 {
@@ -30,7 +30,7 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   bool bisquare = p.getBoolPropertyWithDefault("bisquare", false);
   
   Interval normalRange{0., 1.};
-  Interval plainRange = p.getPropertyOfTypeWithDefault< Interval >("range", {0, 1});
+  Interval plainRange = p.getIntervalPropertyWithDefault("range", {0, 1});
   float offset = p.getFloatPropertyWithDefault("offset", 0.f);
 
   // make ranges for list parameters

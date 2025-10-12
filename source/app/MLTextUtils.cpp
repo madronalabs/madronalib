@@ -1113,5 +1113,69 @@ ml::Text formatNumber(const float number, const int digits, const int precision,
   return Text(numBuf);
 }
 
+
+std::string toHex(int value, int width)
+{
+  const char* digits = "0123456789abcdef";
+  std::string hex;
+  
+  if (value == 0) {
+    hex = "0";
+  } else {
+    int temp = value;
+    while (temp > 0) {
+      hex = digits[temp % 16] + hex;
+      temp /= 16;
+    }
+  }
+  
+  // Pad with zeros
+  while (hex.length() < static_cast<size_t>(width)) {
+    hex = "0" + hex;
+  }
+  
+  return hex;
+}
+
+
+void hexDump(uint8_t* blobData, size_t blobSize)
+{
+  const int bytesPerRow = 16;
+  
+  for (size_t i = 0; i < blobSize; i += bytesPerRow) {
+    // Print offset
+    std::cout << toHex(static_cast<int>(i), 8) << "  ";
+    
+    // Print hex values
+    for (int j = 0; j < bytesPerRow; ++j) {
+      if (i + j < blobSize) {
+        std::cout << toHex(blobData[i + j], 2) << " ";
+      } else {
+        std::cout << "   "; // 3 spaces for missing bytes
+      }
+      
+      // Add extra space after 8 bytes for readability
+      if (j == 7) {
+        std::cout << " ";
+      }
+    }
+    
+    std::cout << " |";
+    
+    // Print ASCII representation
+    for (int j = 0; j < bytesPerRow && i + j < blobSize; ++j) {
+      uint8_t byte = blobData[i + j];
+      if (std::isprint(byte) && byte >= 32 && byte <= 126) {
+        std::cout << static_cast<char>(byte);
+      } else {
+        std::cout << ".";
+      }
+    }
+    
+    std::cout << "|" << std::endl;
+  }
+}
+
+
 }  // namespace textUtils
 }  // namespace ml

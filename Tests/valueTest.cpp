@@ -34,12 +34,6 @@ TEST_CASE("madronalib/core/values/core", "[values]")
   size_t dataOffsetBytes = valueDataPtr - valueHeaderPtr;
   REQUIRE(dataOffsetBytes == Value::getHeaderBytes());
   
-  // Value converters to and from small types (no type checking!)
-  testType tv1{3, 4, 5, {3.4, 3.5, 3.6}};
-  auto tv1Val = smallTypeToValue<testType>(tv1);
-  testType tv2 = valueToSmallType<testType>(tv1Val);
-  REQUIRE(tv1 == tv2);
-  
   // std::array<float> converters
   std::array<float, 5> far1{2, 4, 3, 2, 9};
   Value far1Val (far1);
