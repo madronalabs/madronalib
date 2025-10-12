@@ -315,7 +315,7 @@ TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
   SECTION("POD type round-trip via serialization")
   {
     testType t1{3.14f, 42, 2.718, {1.0f, 2.0f, 3.0f}};
-    Value v1 = podTypeToValue<testType>(t1);
+    Value v1 = smallTypeToValue<testType>(t1);
     
     size_t binarySize = getBinarySize(v1);
     std::vector<uint8_t> buffer(binarySize);
@@ -326,7 +326,7 @@ TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
     const uint8_t* readPtr = buffer.data();
     Value v2 = readBinaryToValue(readPtr);
     
-    testType t2 = valueToPODType<testType>(v2);
+    testType t2 = valueToSmallType<testType>(v2);
     
     REQUIRE(t1 == t2);
   }

@@ -72,11 +72,12 @@ public:
   
   // utility getters for other types
   
-  Interval getIntervalProperty(Path p) const { return valueToPODType<Interval>(getProperty(p)); }
-  Interval getIntervalPropertyWithDefault(Path p, Interval d) const { return hasProperty(p) ? getIntervalProperty(p) : d; }
-  inline void setIntervalProperty(Path p, Interval v) { setProperty(p, podTypeToValue<Interval>(v)); }
+  template< typename T > T getPropertyOfType(Path p) const { return valueToSmallType<T>(getProperty(p)); }
   
-
+  template< typename T > T getPropertyOfTypeWithDefault(Path p, T d) const { return hasProperty(p) ? valueToSmallType<T>(getProperty(p)) : d; }
+  
+  template< typename T > void setPropertyOfType(Path p, T v) { setProperty(p, smallTypeToValue< T >(v)); }
+  
   template< size_t N >
   std::array< float, N > getFloatArrayProperty(Path p) const
   {
@@ -88,7 +89,6 @@ public:
   {
     return hasProperty(p) ? getFloatArrayProperty< N >(p) : d;
   }
-  
   
   // serialization
   

@@ -173,11 +173,11 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
-// Handy anything-converters to and from small POD types.
-// These never allocate.
+// Handy anything-converters to and from small POD types. These never allocate.
+// There is no runtime type checking, so use carefully!
 
 template<typename T>
-inline Value podTypeToValue(T obj)
+inline Value smallTypeToValue(T obj)
 {
   // create local Blob
   static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
@@ -185,7 +185,7 @@ inline Value podTypeToValue(T obj)
 }
 
 template<typename T>
-inline T valueToPODType(Value val)
+inline T valueToSmallType(Value val)
 {
   static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
   T r;
@@ -203,7 +203,7 @@ struct NamedValue
   template<typename T>
   NamedValue(ml::Path np, T nv) : name(np), value(Value(nv)) {}
   
-  NamedValue(ml::Path np, std::initializer_list<float> values) : name(np), value(Value(values)) {}
+  NamedValue(ml::Path np, std::initializer_list<float> list) : name(np), value(Value(list)) {}
 };
 
 // Define a type for initializing a new object with a list of Values.
