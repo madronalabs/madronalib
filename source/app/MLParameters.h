@@ -332,8 +332,8 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
         auto headerLen = kBlobHeader.lengthInCodePoints();
         auto textLen = valueText.lengthInCodePoints();
         auto body = textUtils::subText(valueText, headerLen, textLen);
-        
-        return Value(textUtils::base64Decode(body.getText()));
+        auto base64Vec = textUtils::base64Decode(body.getText());
+        return Value(base64Vec.data(), base64Vec.size());
       }
       else
       {

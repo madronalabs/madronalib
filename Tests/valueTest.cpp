@@ -30,7 +30,7 @@ TEST_CASE("madronalib/core/values/core", "[values]")
   // Memory layout
   Value v;
   auto valueHeaderPtr = reinterpret_cast<char*>(&v);
-  auto valueDataPtr = reinterpret_cast<char*>(v.data());
+  auto valueDataPtr = reinterpret_cast<const char*>(v.data());
   size_t dataOffsetBytes = valueDataPtr - valueHeaderPtr;
   REQUIRE(dataOffsetBytes == Value::getHeaderBytes());
   
@@ -270,25 +270,13 @@ TEST_CASE("madronalib/core/values/text_and_blobs", "[values]")
     REQUIRE(v.getType() == Value::kText);
   }
   
-  SECTION("Blob constructor")
-  {
-    uint8_t data[] = {1, 2, 3, 4, 5};
-    ml::Blob blob(data, 5);
-    Value v(blob);
-    
-    REQUIRE(v.getType() == Value::kBlob);
-    auto retrieved = v.getBlobValue();
-    REQUIRE(retrieved.size == 5);
-    REQUIRE(std::memcmp(retrieved.data, data, 5) == 0);
-  }
-  
   SECTION("vector<uint8_t> constructor")
   {
     std::vector<uint8_t> vec{10, 20, 30, 40};
-    Value v(vec);
+    Value v(vec.data(), vec.size());
     
     REQUIRE(v.getType() == Value::kBlob);
-    auto retrieved = v.getBlobVector();
+    std::vector<uint8_t> retrieved (v.data(), v.data() + v.size());
     REQUIRE(retrieved == vec);
   }
 }

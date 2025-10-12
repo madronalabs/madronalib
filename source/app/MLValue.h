@@ -22,16 +22,6 @@
 namespace ml
 {
 
-// a Blob is a reference to some bytes of a given size somewhere. It doesn't own data.
-struct Blob
-{
-  Blob() = default;
-  explicit Blob( const uint8_t* data_, size_t size_ ) : data(data_), size(size_) {}
-  const uint8_t* data{nullptr};
-  size_t size{0};
-  void dump() const;
-};
-
 class Value
 {
 public:
@@ -67,7 +57,7 @@ public:
   Value(float v);
   Value(int v);
   
-  // mostly we deal with floats, so set this explicit to avoid silent float->double conversions.
+  // mostly we deal with floats, so set this explicit to avoid silent double->float conversions.
   explicit Value(double v);
   
   // fixed-size float arrays
@@ -105,11 +95,10 @@ public:
   
   Value(std::initializer_list<float> values);
   Value(const std::vector<float>& values);
-  Value(const char* v);
   explicit Value(const ml::Text& v);
-  explicit Value(const ml::Blob& v);
-  explicit Value(const std::vector<uint8_t>& dataVec); // alternate Blob
-  
+  Value(const char* v);
+  explicit Value(const uint8_t* data, size_t size);
+
   // getters for fixed-size data
   
   float getFloatValue() const;
@@ -137,8 +126,6 @@ public:
   size_t getDoubleArraySize() const;
   std::vector<double> getDoubleVector() const;
   ml::TextFragment getTextValue() const;
-  ml::Blob getBlobValue() const;
-  std::vector<uint8_t> getBlobVector() const;
   
   // public utils
   
@@ -147,8 +134,8 @@ public:
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
   Type getType() const;
+  const uint8_t* data() const;
   uint32_t size() const;
-  uint8_t* data() const;
   
   // can the Value be converted to the output Type without precision loss?
   bool canConvertTo(Type targetType) const;
@@ -186,13 +173,15 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
-// handy anything-converters to and from small POD types.
+// Handy anything-converters to and from small POD types.
+// These never allocate.
 
 template<typename T>
 inline Value podTypeToValue(T obj)
 {
+  // create local Blob
   static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
-  return Value(Blob(reinterpret_cast<const uint8_t*>(&obj), sizeof(T)));
+  return Value(reinterpret_cast<const uint8_t*>(&obj), sizeof(T));
 }
 
 template<typename T>
@@ -200,8 +189,7 @@ inline T valueToPODType(Value val)
 {
   static_assert(sizeof(T) <= Value::getLocalDataMaxBytes());
   T r;
-  auto blob = val.getBlobValue();
-  memcpy(&r, blob.data, blob.size);
+  memcpy(&r, val.data(), val.size());
   return r;
 }
 

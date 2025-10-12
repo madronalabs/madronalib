@@ -272,7 +272,7 @@ Value binaryToValueOld(const uint8_t* p)
     case 'B': // blob
     {
       const uint8_t* pData = p + sizeof(BinaryChunkHeader);
-      returnValue = Value(Blob(pData, header->dataBytes));
+      returnValue = Value(pData, header->dataBytes);
       break;
     }
   }
@@ -458,8 +458,7 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
         break;
       case Value::kBlob:
       {
-        auto blob = v.getBlobValue();
-        std::vector<uint8_t> blobVec(blob.data, blob.data + blob.size);
+        std::vector<uint8_t> blobVec(v.data(), v.data() + v.size());
         TextFragment blobText(kBlobHeader, textUtils::base64Encode(blobVec));
         cJSON_AddStringToObject(getData(root), keyStr, blobText.getText());
         break;
@@ -498,7 +497,7 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
           auto body = textUtils::subText(valueText, headerLen, textLen);
           
           auto blobDataVec = textUtils::base64Decode(body.getText());
-          r.add(newObjectPath, Value(blobDataVec));
+          r.add(newObjectPath, Value(blobDataVec.data(), blobDataVec.size()));
         }
         else
         {

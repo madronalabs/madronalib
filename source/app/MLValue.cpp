@@ -162,17 +162,12 @@ Value::Value(const char* v)
   copyOrAllocate(kText, pSrc, len);
 }
 
-Value::Value(const ml::Blob& v)
+Value::Value(const uint8_t* data, size_t size)
 {
-  copyOrAllocate(kBlob, v.data, v.size);
+  size_t len = std::min(size, kMaxDataBytes);
+  copyOrAllocate(kBlob, data, len);
 }
 
-Value::Value(const std::vector<uint8_t>& v)
-{
-  size_t len = v.size();
-  len = std::min(len, kMaxDataBytes);
-  copyOrAllocate(kBlob, v.data(), len);
-}
 
 // fixed-size getters convert simple types where sensible.
 // other types we can't convert return a default value.
@@ -267,16 +262,6 @@ TextFragment Value::getTextValue() const
   return TextFragment(reinterpret_cast<char *>(_dataPtr), _sizeInBytes);
 }
 
-ml::Blob Value::getBlobValue() const
-{
-  return Blob(_dataPtr, _sizeInBytes);
-}
-
-std::vector<uint8_t> Value::getBlobVector() const
-{
-  return std::vector<uint8_t>(_dataPtr, _dataPtr + _sizeInBytes);
-}
-
 // public utils
 
 bool Value::isStoredLocally() const
@@ -307,16 +292,15 @@ Value::Type Value::getType() const
   return _type;
 }
 
-uint32_t Value::size() const
-{
-  return _sizeInBytes;
-}
-
-uint8_t* Value::data() const
+const uint8_t* Value::data() const
 {
   return _dataPtr;
 }
 
+uint32_t Value::size() const
+{
+  return _sizeInBytes;
+}
 
 std::ostream& operator<<(std::ostream& out, const Value& r)
 {
@@ -342,8 +326,7 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
       out << r.getTextValue();
       break;
     case Value::kBlob:
-      Blob b = r.getBlobValue();
-      out << "[blob, " << b.size << " bytes]";
+      out << "[blob, " << r.size() << " bytes]";
       break;
   }
   return out;
@@ -397,7 +380,7 @@ std::string toHex(int value, int width) {
   return hex;
 }
 
-
+/*
 void Blob::dump() const
 {
   auto blobData = data;
@@ -443,7 +426,7 @@ void Blob::dump() const
     std::cout << "|" << std::endl;
   }
 }
-
+*/
 
 }  // namespace ml
 

@@ -33,7 +33,8 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["a"] = 0.4f;
   v["b"] = "hello";
   v["a/b/c"] = "hello again";
-  v["blobtest"] = Value(std::vector<uint8_t>{1, 3, 5, 7, 9});
+  std::vector<uint8_t> someData{1, 3, 5, 7, 9};
+  v["blobtest"] = Value(someData.data(), someData.size());
 
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
@@ -157,7 +158,7 @@ TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
   SECTION("round-trip blob")
   {
     std::vector<uint8_t> data{0xDE, 0xAD, 0xBE, 0xEF, 0xCA, 0xFE};
-    Value v1(data);
+    Value v1(data.data(), data.size());
     
     size_t binarySize = getBinarySize(v1);
     std::vector<uint8_t> buffer(binarySize);
@@ -169,9 +170,10 @@ TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
     Value v2 = readBinaryToValue(readPtr);
     
     REQUIRE(v2.getType() == Value::kBlob);
-    auto blob = v2.getBlobValue();
-    REQUIRE(blob.size == 6);
-    REQUIRE(std::memcmp(blob.data, data.data(), 6) == 0);
+    
+    std::vector<uint8_t> data2(v2.data(), v2.data() + v2.size());
+    REQUIRE(data2.size() == 6);
+    REQUIRE(std::memcmp(data2.data(), data.data(), 6) == 0);
     REQUIRE(v1 == v2);
   }
   
@@ -407,6 +409,7 @@ TEST_CASE("madronalib/core/value_serialization/stress", "[serialization][values]
   
   SECTION("mixed types in sequence")
   {
+    std::vector<uint8_t> blob1{0xAA, 0xBB};
     std::vector<Value> values{
       Value(1.5f),
       Value(42),
@@ -414,7 +417,7 @@ TEST_CASE("madronalib/core/value_serialization/stress", "[serialization][values]
       Value({1.0f, 2.0f}),
       Value(true),
       Value(3.14159),
-      Value(std::vector<uint8_t>{0xAA, 0xBB}),
+      Value(blob1.data(), blob1.size()),
       Value()  // undefined
     };
     
