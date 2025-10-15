@@ -15,6 +15,7 @@
 #include "MLPlatform.h"
 #include "MLPropertyTree.h"
 #include "MLQueue.h"
+#include "MLSerialization.h"
 #include "MLSharedResource.h"
 #include "MLSymbol.h"
 #include "MLText.h"
