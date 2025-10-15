@@ -15,9 +15,9 @@
 
 // Value: a small unit of typed data designed for being constructed on the stack and
 // transferred in messages. If the value to be constructed is below a certain size,
-// no heap will be allocated. Copying a new value into one of the same size must not
-// reallocate. Together these guarantees make Value useful for creating DSP applications
-// that don't allocate memory when processing signals.
+// no heap will be allocated. Whether on the stack or the heap, assigning a new value to
+// one of the same size must not reallocate. Together these guarantees make Value
+// useful for creating DSP applications that don't allocate memory when processing signals.
 
 namespace ml
 {
@@ -187,6 +187,18 @@ struct NamedValue
 
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list< NamedValue >;
+
+// function for doing things when Values (or any other types) change
+template<typename T>
+inline bool valueChanged(T newValue, T& prevValue)
+{
+  if(newValue != prevValue)
+  {
+    prevValue = newValue;
+    return true;
+  }
+  return false;
+}
 
 }  // namespace ml
 

@@ -65,15 +65,33 @@ size_t getBinarySize(const Value& v)
   return v.size() + sizeof(ValueBinaryHeader);
 }
 
-void writeValueToBinary(const Value& v, uint8_t*& writePtr)
+std::vector<uint8_t> valueToBinary(Value v)
 {
-  // header
+  // allocate vector and setup pointer
+  auto sizeInBytes = v.size();
+  std::vector<uint8_t> result;
+  result.resize(sizeof(ValueBinaryHeader) + sizeInBytes);
+  uint8_t* writePtr = result.data();
+  
+  // write header
+  ValueBinaryHeader header{v.getType(), sizeInBytes};
+  memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
+  writePtr += sizeof(ValueBinaryHeader);
+  
+  // write data
+  memcpy(writePtr, v.data(), sizeInBytes);
+  return result;
+}
+
+void writeValueToBinary(Value v, uint8_t*& writePtr)
+{
+  // write header
   auto sizeInBytes = v.size();
   ValueBinaryHeader header{v.getType(), sizeInBytes};
   memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
   writePtr += sizeof(ValueBinaryHeader);
   
-  // data
+  // write data
   memcpy(writePtr, v.data(), sizeInBytes);
   writePtr += sizeInBytes;
 }
@@ -82,7 +100,7 @@ Value readBinaryToValue(const uint8_t*& readPtr)
 {
   auto headerSize = sizeof(ValueBinaryHeader);
   
-  // header
+  // read header
   ValueBinaryHeader header;
   memcpy(&header, readPtr, headerSize);
   
@@ -91,6 +109,15 @@ Value readBinaryToValue(const uint8_t*& readPtr)
   
   // Use the private constructor via friend access
   return Value(header.type, header.size, dataPtr);
+}
+
+Value binaryToValue(const std::vector<uint8_t>& dataVec)
+{
+  auto headerSize = sizeof(ValueBinaryHeader);
+  const uint8_t* readPtr = dataVec.data();
+  
+  // Use the private constructor via friend access
+  return readBinaryToValue(readPtr);
 }
 
 
@@ -450,6 +477,15 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
       case Value::kFloat:
         cJSON_AddNumberToObject(getData(root), keyStr, v.getFloatValue());
         break;
+      case Value::kFloatArray:
+      {
+        auto a = cJSON_CreateFloatArray(v.getFloatArrayPtr(), v.getFloatArraySize());
+        if(a)
+        {
+          cJSON_AddItemToObject(getData(root), keyStr, a);
+        }
+        break;
+      }
       case Value::kText:
         cJSON_AddStringToObject(getData(root), keyStr, v.getTextValue().getText());
         break;
@@ -514,14 +550,12 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
       }
       case cJSON_Array:
       {
-        // read array at obj->child to blob
         std::vector< float > arrayElems;
-        cJSON* array = obj->child;
-        while(array->next)
+        cJSON *c = obj->child;
+        while(c)
         {
-          // std::cout << ".";
-          arrayElems.push_back((float)array->valuedouble);
-          array = array->next;
+          arrayElems.push_back((float)c->valuedouble);
+          c = c->next;
         }
         r.add(newObjectPath, Value(arrayElems));
         break;

@@ -32,10 +32,32 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   Tree<Value> v;
   v["a"] = 0.4f;
   v["b"] = "hello";
+
+  std::array<float, 5> arr1{1.2, 3.4, 5.5, 23.4, -0.000000001};
+  v["floatarr"] = Value(arr1);
+
   v["a/b/c"] = "hello again";
   std::vector<uint8_t> someData{1, 3, 5, 7, 9};
   v["blobtest"] = Value(someData.data(), someData.size());
+  
+  
+  
+  auto varr1 = Value(arr1);
+  std::cout << "varr1: " << varr1 << "\n";
 
+  
+  for(auto treeVal : v)
+  {
+    auto b = valueToBinary(treeVal);
+    auto treeVal2 = binaryToValue(b);
+    REQUIRE(treeVal == treeVal2);
+    std::cout << treeVal << "\n";
+  }
+  
+  auto jv = valueTreeToJSON(v);
+  auto jvt = JSONToText(jv);
+  std::cout << jvt << "\n";
+  
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
   
@@ -48,6 +70,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto b = valueTreeToBinary(v);
   auto b2 = valueTreeToBinary(binaryToValueTree(b));
   REQUIRE(b == b2);
+
   
   // create some JSON directly using our minimal API
   auto j5 = JSONHolder();

@@ -31,8 +31,14 @@ static TextFragment kBlobHeader("!BLOB!");
 // Return size of the binary representation of the Value (including header)
 size_t getBinarySize(const Value& v);
 
+// Return the binary representation of the Value.
+std::vector<uint8_t> valueToBinary(Value v);
+
+// Return the Value represented by the vector of bytes.
+Value binaryToValue(const std::vector<uint8_t>& v);
+
 // Write the binary representation of the Value and increment the write pointer.
-void writeValueToBinary(const Value& v, uint8_t*& writePtr);
+void writeValueToBinary(Value v, uint8_t*& writePtr);
 
 // Read the binary representation of the Value and increment the read pointer.
 Value readBinaryToValue(const uint8_t*& readPtr);

@@ -11,7 +11,6 @@ namespace ml
 
 // private utilities
 
-
 void Value::copyOrAllocate(Type newType, const uint8_t* pSrc, size_t bytes)
 {
   _type = newType;
@@ -158,14 +157,12 @@ Value::Value(const char* v)
 {
   auto pSrc = reinterpret_cast<const uint8_t*>(v);
   size_t len = strlen(v);
-  len = std::min(len, kMaxDataBytes);
   copyOrAllocate(kText, pSrc, len);
 }
 
 Value::Value(const uint8_t* data, size_t size)
 {
-  size_t len = std::min(size, kMaxDataBytes);
-  copyOrAllocate(kBlob, data, len);
+  copyOrAllocate(kBlob, data, size);
 }
 
 
