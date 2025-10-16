@@ -306,3 +306,22 @@ TEST_CASE("madronalib/core/values/edge_cases", "[values]")
     REQUIRE(intVal.getFloatArraySize() == 0);
   }
 }
+
+TEST_CASE("madronalib/core/values/with_values", "[values]")
+{
+  SECTION("type conversions")
+  {
+    auto tree1 = std::make_unique< PropertyTree >(WithValues {
+      { "name", "freq1" }, // char * -> text
+      { "numbers", { 12.3, 12000, 3.f } }, // any numbers -> floatarray
+      { "to-int", true }, // bool -> int
+      { "to-float", 5.5 }, // double -> float
+    } );
+    
+    REQUIRE(tree1->getProperty("name").getType() == Value::kText);
+    REQUIRE(tree1->getProperty("numbers").getType() == Value::kFloatArray);
+    REQUIRE(tree1->getProperty("to-int").getType() == Value::kInt);
+    REQUIRE(tree1->getProperty("to-float").getType() == Value::kFloat);
+  }
+}
+

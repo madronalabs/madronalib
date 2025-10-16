@@ -12,13 +12,14 @@ namespace ml
 {
 class PropertyTree
 {
+protected:
   Tree< Value > properties;
   
 public:
   PropertyTree() = default;
   PropertyTree(Tree<Value> vt) : properties(vt) {}
   PropertyTree(const PropertyTree& other) : properties(other.properties) {}
-  PropertyTree(const std::initializer_list< NamedValue >& p)
+  PropertyTree(const WithValues& p)
   {
     for (const auto& v : p)
     {
@@ -40,13 +41,6 @@ public:
   {
     auto treeNode = properties.getNode(p);
     return treeNode ? treeNode->getValue().getFloatValue() : d;
-  }
-  
-  double getDoubleProperty(Path p) const { return properties[p].getDoubleValue(); }
-  double getDoublePropertyWithDefault(Path p, double d) const
-  {
-    auto treeNode = properties.getNode(p);
-    return treeNode ? treeNode->getValue().getDoubleValue() : d;
   }
   
   bool getBoolProperty(Path p) const { return properties[p].getIntValue() != 0; }
@@ -119,7 +113,8 @@ public:
   }
   
   void dump() { properties.dump(); }
-  
+  void dumpWithTypes() { properties.dumpWithTypes(); }
+
   // iterators
   
   inline Tree<Value>::const_iterator begin() const { return properties.begin(); }

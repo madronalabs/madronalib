@@ -204,10 +204,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // copy by value will not compile with unique_ptr values
     // *** auto intPtrTreeB = intPtrTree;
     
-    // TEMP
-    //a.dump();
-    //a.dumpAllNodes();
-    
     // iterate just over children. is node has no chlidren, nothing should be called.
     int sumOfChildren;
     sumOfChildren = 0;

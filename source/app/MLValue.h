@@ -30,7 +30,6 @@ public:
   {
     kUndefined = 0,
     kFloat,
-    kDouble,
     kInt,
     kFloatArray,
     kText,
@@ -55,10 +54,8 @@ public:
   
   Value();
   Value(float v);
+  Value(double v); // converts to float! 
   Value(int v);
-  
-  // mostly we deal with floats, so set this explicit to avoid silent double->float conversions.
-  explicit Value(double v);
   
   // fixed-size float arrays
   template<size_t N>
@@ -102,10 +99,9 @@ public:
   // getters for fixed-size data
   
   float getFloatValue() const;
-  double getDoubleValue() const;
-  bool getBoolValue() const;
   int getIntValue() const;
-  
+  bool getBoolValue() const;
+
   template<size_t N>
   std::array<float, N> getFloatArray() const
   {
@@ -170,20 +166,43 @@ private:
 
 std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 
+
+
 // NamedValue is meant for initializing a list of Values from some data, whether in code
-// or read in from a config file. Because we want to get data from outside the "typed universe,"
-// we only allow initialization from fundamental Value types and not for example smallTypeToValue< Rect >.
+// or read in from a config file. Each incoming type must have only one way of being converted to a value.
+// Floats and doubles are converted to floats. Bools and ints are converted to ints. Initializer lists
+// full of various numeric types are converted to float arrays.
+
+
+// toValue template - must be specialized for each supported type
+template<typename T>
+Value toValue(const T& val) {
+  static_assert(sizeof(T) == 0, "No toValue specialization exists for this type. ");
+  return Value();
+}
+
+// Specializations for basic types
+template<> inline Value toValue<float>(const float& v) { return Value(v); }
+template<> inline Value toValue<double>(const double& v) { return Value(v); }
+template<> inline Value toValue<int>(const int& v) { return Value(v); }
+template<> inline Value toValue<bool>(const bool& v) { return Value(v); }
+template<> inline Value toValue<const char*>(const char* const& v) { return Value(v); }
+template<> inline Value toValue<TextFragment>(const TextFragment& v) { return Value(v); }
 
 struct NamedValue
 {
   ml::Path name;
   Value value;
-  
+
+  NamedValue(ml::Path np, Value nv) : name(np), value(nv) {}
+
   template<typename T>
-  NamedValue(ml::Path np, T nv) : name(np), value(nv) {}
+  NamedValue(ml::Path np, T nv) : name(np), value(toValue(nv)) {}
   
+  // Microsoft's compiler didn't allow using std::initializer_list in the template, so we have this additional constructor
   NamedValue(ml::Path np, std::initializer_list<float> list) : name(np), value(list) {}
 };
+
 
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list< NamedValue >;
@@ -198,6 +217,12 @@ inline bool valueChanged(T newValue, T& prevValue)
     return true;
   }
   return false;
+}
+
+inline Text getTypeStr(Value v)
+{
+  const std::vector< Text > kTypeTexts = {"undefined", "float", "int", "floatarray", "text", "blob"};
+  return kTypeTexts[v.getType()];
 }
 
 }  // namespace ml

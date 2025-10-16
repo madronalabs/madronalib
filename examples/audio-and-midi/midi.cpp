@@ -19,9 +19,6 @@ int main( int argc, char *argv[] )
     for ( int i=0; i<m.size(); i++ )
       std::cout << (int)m[i] << " ";
     std::cout << "\n";
-    
-    // TEMP
-    std::cout << MIDIMessageToEvent(m) << "\n\n";
   };
 
   // make a MIDI input and start handling incoming messages with our function.

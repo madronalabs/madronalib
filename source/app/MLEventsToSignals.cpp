@@ -984,15 +984,7 @@ void EventsToSignals::dumpVoices()
   {
     dumpVoice(i);
   }
-  
-  /*
-  // TEMP: only one channel
-  std::cout << "controllers: \n";
-  for (auto& c : controllers)
-  {
-    std::cout << " " << c.output[0];
-  }
-   */
+
   std::cout << "\n";
 }
 

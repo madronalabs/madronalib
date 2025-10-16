@@ -110,23 +110,7 @@ TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")
     REQUIRE(v2.getIntValue() == 12345);
     REQUIRE(v1 == v2);
   }
-  
-  SECTION("round-trip double")
-  {
-    Value v1(3.141592653589793);
-    
-    size_t binarySize = getBinarySize(v1);
-    std::vector<uint8_t> buffer(binarySize);
-    uint8_t* writePtr = buffer.data();
-    
-    writeValueToBinary(v1, writePtr);
-    
-    const uint8_t* readPtr = buffer.data();
-    Value v2 = readBinaryToValue(readPtr);
-    
-    REQUIRE(v2.getType() == Value::kDouble);
-    REQUIRE(v2.getDoubleValue() == 3.141592653589793);
-  }
+
   
   SECTION("round-trip text")
   {

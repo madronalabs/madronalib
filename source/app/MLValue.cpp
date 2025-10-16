@@ -119,10 +119,10 @@ Value::Value(float v) : _type(kFloat), _sizeInBytes(sizeof(float)), _dataPtr(_lo
   pVal[0] = v;
 }
 
-Value::Value(double v) : _type(kDouble), _sizeInBytes(sizeof(double)), _dataPtr(_localData)
+Value::Value(double v) : _type(kFloat), _sizeInBytes(sizeof(float)), _dataPtr(_localData)
 {
-  double* pVal = reinterpret_cast<double*>(_localData);
-  pVal[0] = v;
+  float* pVal = reinterpret_cast<float*>(_localData);
+  pVal[0] = static_cast< float >(v);
 }
 
 Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(int)), _dataPtr(_localData)
@@ -166,24 +166,18 @@ Value::Value(const uint8_t* data, size_t size)
 }
 
 
-// fixed-size getters convert simple types where sensible.
-// other types we can't convert return a default value.
+// fixed-size getters convert Value to simple types where sensible.
+// Types we can't convert return a default value.
 
 bool Value::canConvertTo(Type targetType) const
 {
   // Same type always works
   if(_type == targetType) return true;
-  
-  // widening conversions, safe
-  if(targetType == kDouble)
-  {
-    return (_type == kFloat || _type == kInt);
-  }
-  
-  // allow int -> float and double -> float, losing precision
+
+  // allow int -> float, losing precision
   if(targetType == kFloat)
   {
-    return (_type == kDouble || _type == kInt);
+    return (_type == kInt);
   }
   
   // no other conversions are allowed
@@ -196,30 +190,10 @@ float Value::getFloatValue() const
   
   switch(_type)
   {
-    case kDouble:
-      return static_cast<float>(toFixedSizeType<double>());
     case kFloat:
       return toFixedSizeType<float>();
     case kInt:
       return static_cast<float>(toFixedSizeType<int>());
-    default:
-      // Should never reach here if canConvertTo is correct
-      return 0.0;
-  }
-}
-
-double Value::getDoubleValue() const
-{
-  if(!canConvertTo(kDouble)) return 0.0;
-  
-  switch(_type)
-  {
-    case kDouble:
-      return toFixedSizeType<double>();
-    case kFloat:
-      return static_cast<double>(toFixedSizeType<float>());
-    case kInt:
-      return static_cast<double>(toFixedSizeType<int>());
     default:
       // Should never reach here if canConvertTo is correct
       return 0.0;
@@ -232,6 +206,14 @@ int Value::getIntValue() const
   
   // We know _type == kInt at this point
   return toFixedSizeType<int>();
+}
+
+bool Value::getBoolValue() const
+{
+  if(!canConvertTo(kInt)) return 0;
+  
+  // We know _type == kInt at this point
+  return (toFixedSizeType<int>() != 0);
 }
 
 // variable-size getters
@@ -310,15 +292,33 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
     case Value::kFloat:
       out << r.getFloatValue();
       break;
-    case Value::kDouble:
-      out << r.getDoubleValue();
-      break;
     case Value::kInt:
       out << r.getIntValue();
       break;
     case Value::kFloatArray:
-      out << "[float array, size " << r.getFloatArraySize() << "]";
+    {
+      auto data = r.getFloatArrayPtr();
+      auto size = r.getFloatArraySize();
+      if(size > 8)
+      {
+        out << "[float array, size " << r.getFloatArraySize() << "]";
+      }
+      else if(size > 0)
+      {
+        out << "[";
+        for(int i=0; i<size - 1; ++i)
+        {
+          out << data[i] << ", ";
+        }
+        out << data[size - 1];
+        out << "]";
+      }
+      else
+      {
+        out << "[float array, SIZE 0!!!]\n";
+      }
       break;
+    }
     case Value::kText:
       out << r.getTextValue();
       break;

@@ -459,16 +459,24 @@ class Tree
       }
       std::cout << it.getCurrentPath() << " [" << *it << "] \n";
     }
-    std::cout << "max depth: " << maxDepth << "\n";
+    std::cout << "(max depth: " << maxDepth << ")\n";
   }
-
-  // visit all nodes and dump only the nodes with values, showing types.
+  
+  // visit all nodes and dump only the nodes with values.
   inline void dumpWithTypes() const
   {
+    size_t maxDepth{0};
     for (auto it = begin(); it != end(); ++it)
     {
-      std::cout << it.getCurrentPath() << getTypeDebugStr(*it) << " [" << *it << "] \n";
+      size_t indent = it.getCurrentDepth();
+      maxDepth = std::max(maxDepth, indent);
+      for(int i=0; i<indent; ++i)
+      {
+        std::cout << " ";
+      }
+      std::cout << it.getCurrentPath() << " [" << *it << "] (" << getTypeStr(*it) << ") \n";
     }
+    std::cout << "(max depth: " << maxDepth << ")\n";
   }
   
   // visit and dump each node once, including non-leaf nodes.
