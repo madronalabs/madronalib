@@ -279,14 +279,14 @@ Value binaryToValueOld(const uint8_t* p)
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* pFloatData{reinterpret_cast<const float*>(pData)};
       float f = *pFloatData;
-      returnValue = Value{f};
+      returnValue = Value(f);
       break;
     }
     case 'T': // text
     {
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* p{reinterpret_cast<const char*>(pData)};
-      returnValue = Value{Text(p, header->dataBytes)};
+      returnValue = Value(Text(p, header->dataBytes));
       break;
     }
     case 'L': // long
@@ -327,7 +327,7 @@ Tree<Value> binaryToValueTreeOld(const std::vector<uint8_t>& binaryData)
         auto pathHeaderSize = sizeof(BinaryChunkHeader);
         auto path = binaryToPathOld(pData + idx);
         idx += pathSize + pathHeaderSize;
-        
+                
         // get value
         BinaryChunkHeader valueHeader{*reinterpret_cast<const BinaryChunkHeader*>(pData + idx)};
         auto valueType = valueHeader.type;
@@ -335,7 +335,6 @@ Tree<Value> binaryToValueTreeOld(const std::vector<uint8_t>& binaryData)
         auto valueHeaderSize = sizeof(BinaryChunkHeader);
         auto val = binaryToValueOld(pData + idx);
         idx += valueSize + valueHeaderSize;
-        
         // write to tree
         outputTree[path] = val;
       }
