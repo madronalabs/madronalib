@@ -54,7 +54,11 @@ struct BinaryChunkHeader
 struct ValueBinaryHeader
 {
   static constexpr int kTypeBits{4};
+  
+  // type of value
   unsigned int type : kTypeBits;
+  
+  // size of data, not including header
   unsigned int size : Value::kMaxDataSizeBits;
 };
 
@@ -62,50 +66,48 @@ static_assert((2 << ValueBinaryHeader::kTypeBits) >= Value::kNumTypes);
 
 size_t getBinarySize(const Value& v)
 {
-  return v.size() + sizeof(ValueBinaryHeader);
+  return sizeof(ValueBinaryHeader) + v.size();
 }
 
 std::vector<uint8_t> valueToBinary(Value v)
 {
   // allocate vector and setup pointer
-  auto sizeInBytes = v.size();
   std::vector<uint8_t> result;
-  result.resize(sizeof(ValueBinaryHeader) + sizeInBytes);
+  result.resize(getBinarySize(v));
   uint8_t* writePtr = result.data();
   
   // write header
-  ValueBinaryHeader header{v.getType(), sizeInBytes};
+  ValueBinaryHeader header{v.getType(), v.size()};
   memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
   writePtr += sizeof(ValueBinaryHeader);
   
   // write data
-  memcpy(writePtr, v.data(), sizeInBytes);
+  memcpy(writePtr, v.data(), v.size());
   return result;
 }
 
 void writeValueToBinary(Value v, uint8_t*& writePtr)
 {
   // write header
-  auto sizeInBytes = v.size();
-  ValueBinaryHeader header{v.getType(), sizeInBytes};
+  ValueBinaryHeader header{v.getType(), v.size()};
   memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
   writePtr += sizeof(ValueBinaryHeader);
   
   // write data
-  memcpy(writePtr, v.data(), sizeInBytes);
-  writePtr += sizeInBytes;
+  memcpy(writePtr, v.data(), v.size());
+  writePtr += v.size();
 }
 
 Value readBinaryToValue(const uint8_t*& readPtr)
 {
-  auto headerSize = sizeof(ValueBinaryHeader);
-  
   // read header
   ValueBinaryHeader header;
-  memcpy(&header, readPtr, headerSize);
+  memcpy(&header, readPtr, sizeof(ValueBinaryHeader));
+  readPtr += sizeof(ValueBinaryHeader);
   
-  const uint8_t* dataPtr = readPtr + headerSize;
-  readPtr += header.size + headerSize;
+  // copy readPtr at start of data, advance parameter ptr
+  const uint8_t* dataPtr = readPtr;
+  readPtr += header.size;
   
   // Use the private constructor via friend access
   return Value(header.type, header.size, dataPtr);
@@ -113,7 +115,6 @@ Value readBinaryToValue(const uint8_t*& readPtr)
 
 Value binaryToValue(const std::vector<uint8_t>& dataVec)
 {
-  auto headerSize = sizeof(ValueBinaryHeader);
   const uint8_t* readPtr = dataVec.data();
   
   // Use the private constructor via friend access
