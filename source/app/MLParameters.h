@@ -93,6 +93,9 @@ public:
   // TODO why is there not a Parameter object that contains (description, projection, valueNorm, valueReal)?
   // That seems like the sane way to do it. Look carefully to see if there's a good reason we didn't do that and
   // if not, make this more sane.
+  //
+  // TODO Look at the features we needed to add that are hacks now (use_list_values_as_int, integer_values) and
+  // redesign to make more robust implementation of them.
 
   Tree< std::unique_ptr< ParameterDescription > > descriptions;
   Tree< ParameterProjection > projections;
@@ -176,13 +179,23 @@ public:
 
   inline Value convertRealToNormalizedValue(Path pname, Value val) const
   {
-    if(val.getType() == Value::kFloat)
+    switch(val.getType())
     {
-      return Value(convertRealToNormalizedFloatValue(pname, val));
-    }
-    else
-    {
-      return val;
+      case Value::kUndefined:
+        return Value();
+        break;
+      // float and int get converted
+      case Value::kFloat:
+      case Value::kInt:
+        return Value(convertRealToNormalizedFloatValue(pname, val));
+        break;
+      // other types do not get converted
+      case Value::kFloatArray:
+      case Value::kText:
+      case Value::kBlob:
+      default:
+        return val;
+        break;
     }
   }
 
@@ -213,6 +226,11 @@ public:
 
   // set a parameter's value without conversion. For params that don't have normalizable values.
   // both normal and real params are set for ease of getting all normalized + non-normalizable values.
+  //
+  // TODO this design is insane! to redesign, create one source of truth. Probably real values.
+  // I must have done this to reduce the number of conversions but, the added complexity to save
+  // that tiny amount of computation is not a good tradeoff.
+
   void setValue(Path pname, Value val)
   {
     paramsNorm_[pname] = val;
