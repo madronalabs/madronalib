@@ -322,6 +322,7 @@ TEST_CASE("madronalib/core/values/with_values", "[values]")
     REQUIRE(tree1->getProperty("numbers").getType() == Value::kFloatArray);
     REQUIRE(tree1->getProperty("to-int").getType() == Value::kInt);
     REQUIRE(tree1->getProperty("to-float").getType() == Value::kFloat);
+    
   }
 }
 

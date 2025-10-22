@@ -476,7 +476,6 @@ void EventsToSignals::processVector(int startTime)
     }
   }
   
-  // TEMP
   testCounter += kFloatsPerDSPVector;
   const int samples = 96000;
   if(testCounter > samples)
@@ -503,9 +502,6 @@ size_t EventsToSignals::countHeldNotes()
 void EventsToSignals::processEvent(const Event &eventParam)
 {
   Event event = eventParam;
-  
-  // TEMP
-  // std::cout << "        " << event << "\n";
   
   switch(event.type)
   {

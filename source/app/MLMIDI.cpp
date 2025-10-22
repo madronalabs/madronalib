@@ -62,7 +62,7 @@ bool MIDIInput::start(MIDIMessageHandler handler)
   {
     try
     {
-      pImpl->midiIn->openPort(pImpl->midiPort);  // just use first port - TEMP
+      pImpl->midiIn->openPort(pImpl->midiPort);  // just use first port for now - TODO select ports
     }
     catch (RtMidiError& error)
     {

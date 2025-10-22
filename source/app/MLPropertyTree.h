@@ -51,7 +51,7 @@ public:
   }
   
   int getIntProperty(Path p) const { return properties[p].getIntValue(); }
-  int32_t getIntPropertyWithDefault(Path p, int32_t d) const
+  int getIntPropertyWithDefault(Path p, int d) const
   {
     auto treeNode = properties.getNode(p);
     return treeNode ? treeNode->getValue().getIntValue() : d;

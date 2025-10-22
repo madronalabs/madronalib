@@ -96,12 +96,15 @@ public:
   Value(const char* v);
   explicit Value(const uint8_t* data, size_t size);
 
-  // getters for fixed-size data
-  
+  // Getters for scalar data. These convert scalar numeric types,
+  // and return 0 where conversions don't make sense. That can lead to ambiguity, but
+  // generally we know the types of Values we are using. Bool conversion is sometimes
+  // handy even though bool is not an actual type we store.
   float getFloatValue() const;
   int getIntValue() const;
   bool getBoolValue() const;
 
+  // Returns the float array if of type kFloatArray, otherwise an empty array.
   template<size_t N>
   std::array<float, N> getFloatArray() const
   {
@@ -114,14 +117,12 @@ public:
   }
 
   // getters for variable-size data.
-  
   float* getFloatArrayPtr() const;
   size_t getFloatArraySize() const;
   std::vector<float> getFloatVector() const;
   ml::TextFragment getTextValue() const;
   
   // public utils
-  
   bool isStoredLocally() const;
   explicit operator bool() const;
   bool operator==(const Value& b) const;
@@ -129,9 +130,6 @@ public:
   Type getType() const;
   const uint8_t* data() const;
   uint32_t size() const;
-  
-  // can the Value be converted to the output Type without precision loss?
-  bool canConvertTo(Type targetType) const;
   
 private:
   

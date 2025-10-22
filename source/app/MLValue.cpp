@@ -166,54 +166,60 @@ Value::Value(const uint8_t* data, size_t size)
 }
 
 
-// fixed-size getters convert Value to simple types where sensible.
-// Types we can't convert return a default value.
-
-bool Value::canConvertTo(Type targetType) const
-{
-  // Same type always works
-  if(_type == targetType) return true;
-
-  // allow int -> float, losing precision
-  if(targetType == kFloat)
-  {
-    return (_type == kInt);
-  }
-  
-  // no other conversions are allowed
-  return false;
-}
+// Getters for scalar data. 
 
 float Value::getFloatValue() const
 {
-  if(!canConvertTo(kFloat)) return 0.f;
-  
   switch(_type)
   {
     case kFloat:
       return toFixedSizeType<float>();
+      break;
     case kInt:
       return static_cast<float>(toFixedSizeType<int>());
+      break;
+      
+    // not convertible
     default:
-      // Should never reach here if canConvertTo is correct
-      return 0.0;
+      return 0.f;
+      break;
   }
 }
 
 int Value::getIntValue() const
 {
-  if(!canConvertTo(kInt)) return 0;
-  
-  // We know _type == kInt at this point
-  return toFixedSizeType<int>();
+  switch(_type)
+  {
+    case kFloat:
+      return static_cast<int>(toFixedSizeType<float>());
+      break;
+    case kInt:
+      return toFixedSizeType<int>();
+      break;
+      
+    // not convertible
+    default:
+      return 0;
+      break;
+  }
 }
 
 bool Value::getBoolValue() const
 {
-  if(!canConvertTo(kInt)) return 0;
-  
-  // We know _type == kInt at this point
-  return (toFixedSizeType<int>() != 0);
+  switch(_type)
+  {
+    case kFloat:
+      return (toFixedSizeType<float>() != 0.0f);
+      break;
+    case kInt:
+      return toFixedSizeType<int>() != 0;
+      break;
+      
+    // not convertible
+    default:
+      return false;
+      break;
+  }
 }
 
 // variable-size getters
