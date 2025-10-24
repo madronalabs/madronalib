@@ -30,10 +30,10 @@ public:
   {
     kUndefined = 0,
     kFloat,
-    kInt,
-    kFloatArray,
     kText,
     kBlob,
+    kFloatArray,
+    kInt,
     kNumTypes
   };
   
@@ -54,9 +54,9 @@ public:
   
   Value();
   Value(float v);
-  Value(double v); // converts to float! 
-  Value(int v);
-  
+  Value(double v); // converts to float
+  Value(int v); 
+
   // fixed-size float arrays
   template<size_t N>
   explicit Value(std::array<float, N> values)

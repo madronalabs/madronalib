@@ -125,9 +125,9 @@ Value::Value(double v) : _type(kFloat), _sizeInBytes(sizeof(float)), _dataPtr(_l
   pVal[0] = static_cast< float >(v);
 }
 
-Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(int)), _dataPtr(_localData)
+Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(uint32_t)), _dataPtr(_localData)
 {
-  int* pVal = reinterpret_cast<int*>(_localData);
+  auto pVal = reinterpret_cast<int*>(_localData);
   pVal[0] = v;
 }
 
@@ -176,7 +176,7 @@ float Value::getFloatValue() const
       return toFixedSizeType<float>();
       break;
     case kInt:
-      return static_cast<float>(toFixedSizeType<int>());
+      return static_cast<float>(toFixedSizeType< uint32_t >());
       break;
       
     // not convertible
@@ -191,10 +191,10 @@ int Value::getIntValue() const
   switch(_type)
   {
     case kFloat:
-      return static_cast<int>(toFixedSizeType<float>());
+      return static_cast<int>(toFixedSizeType< float >());
       break;
     case kInt:
-      return toFixedSizeType<int>();
+      return toFixedSizeType< uint32_t >();
       break;
       
     // not convertible
@@ -212,7 +212,7 @@ bool Value::getBoolValue() const
       return (toFixedSizeType<float>() != 0.0f);
       break;
     case kInt:
-      return toFixedSizeType<int>() != 0;
+      return toFixedSizeType<uint32_t>() != 0;
       break;
       
     // not convertible

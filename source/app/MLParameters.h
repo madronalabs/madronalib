@@ -158,13 +158,13 @@ public:
     if(val.getType() == Value::kFloat)
     {
       auto& pdesc = descriptions[pname];
-      if(!pdesc) return 0;
+      if(!pdesc) return Value();
 
       bool integerValues = pdesc->getBoolPropertyWithDefault("integer_values", false);
       float fVal = convertNormalizedToRealFloatValue(pname, val);
       if(integerValues)
       {
-        return Value(static_cast<int>(fVal));
+        return Value(static_cast< int >(fVal));
       }
       else
       {
