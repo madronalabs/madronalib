@@ -59,7 +59,6 @@ TEST_CASE("madronalib/core/values/core", "[values]")
   
   Value floatArrayVal {27.5, 55., 110., 220., 440., 880., 1760.};
   REQUIRE(floatArrayVal.getType() == Value::kFloatArray);
-  
 }
 
 TEST_CASE("madronalib/core/values/rule_of_five", "[values]")
