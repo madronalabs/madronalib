@@ -17,6 +17,7 @@
 #include "MLValue.h"
 #include "cJSON.h"
 #include "MLSerialization.h"
+#include "MLMemoryUtils.h"
 
 namespace ml
 {
@@ -431,7 +432,7 @@ void JSONHolder::addString(TextFragment key, const char* str)
 
 void JSONHolder::addFloatVector(TextFragment key, std::vector<float>& v)
 {
-  cJSON_AddItemToObject(pImpl->data, key.getText(), cJSON_CreateFloatArray(v.data(), v.size()));
+  cJSON_AddItemToObject(pImpl->data, key.getText(), cJSON_CreateFloatArray(v.data(), sizeToInt(v.size())));
 }
 
 void JSONHolder::addJSON(TextFragment key, JSONHolder& j)
@@ -479,7 +480,7 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
         break;
       case Value::kFloatArray:
       {
-        auto a = cJSON_CreateFloatArray(v.getFloatArrayPtr(), v.getFloatArraySize());
+        auto a = cJSON_CreateFloatArray(v.getFloatArrayPtr(), sizeToInt(v.getFloatArraySize()));
         if(a)
         {
           cJSON_AddItemToObject(getData(root), keyStr, a);

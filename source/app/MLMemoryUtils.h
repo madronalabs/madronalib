@@ -5,10 +5,11 @@
 #pragma once
 
 #include <algorithm>
+#include <assert.h>
 
 namespace ml
 {
-// ----------------------------------------------------------------
+
 // SmallStackBuffer - allocate some memory on the stack if we don't need much,
 // otherwise use the heap.
 
@@ -43,4 +44,13 @@ class SmallStackBuffer
   T* mpData;
   T mLocalData[MAX_STACK_ELEMS];
 };
+
+
+inline int sizeToInt(size_t size)
+{
+  assert(size <= static_cast<size_t>(std::numeric_limits<int>::max()) &&
+         "size_t value too large for int");
+  return static_cast<int>(size);
+}
+
 }  // namespace ml

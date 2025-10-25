@@ -25,7 +25,7 @@ struct MIDIInput::Impl
   // read any new messages from RtMidi and handle them with the handler function.
   void readNewMessages(const MIDIMessageHandler& handler) {
     double timeStamp;
-    int nBytes{0};
+    size_t nBytes{0};
     int counter{0};
     
     do{

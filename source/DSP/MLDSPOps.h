@@ -164,8 +164,8 @@ class DSPVectorArray
   explicit DSPVectorArray(DSPVectorArray* pData) { loadAligned(*this, pData); }
   explicit DSPVectorArray(const DSPVectorArray* pData) { loadAligned(*this, pData); }
 
-  inline float& operator[](int i) { return getBuffer()[i]; }
-  inline const float operator[](int i) const { return getConstBuffer()[i]; }
+  inline float& operator[](size_t i) { return getBuffer()[i]; }
+  inline const float operator[](size_t i) const { return getConstBuffer()[i]; }
 
   // = float: set each element of the DSPVectorArray to the float value k.
   inline DSPVectorArray operator=(float k)

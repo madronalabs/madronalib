@@ -185,7 +185,7 @@ public:
   // get voice which had a note on event most recently, if any
   int getNewestVoice() const { return newestVoice_ - 1; }
 
-  const SmoothedController& getController(int n) const { return controllers[n]; }
+  const SmoothedController& getController(size_t n) const { return controllers[n]; }
   
 private:
 
@@ -218,7 +218,7 @@ private:
   std::array< KeyState, kMaxPhysicalKeys > keyStates_;
   std::vector< Event > eventBuffer_;
   
-  int polyphony_{0};
+  size_t polyphony_{0};
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};
   bool sustainPedalActive_{false};

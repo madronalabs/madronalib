@@ -191,8 +191,8 @@ int AudioTask::startAudio()
   // Let RtAudio print messages to stderr.
   pImpl->adac.showWarnings(true);
 
-  int nInputs = pImpl->processData.processContext->inputs.size();
-  int nOutputs = pImpl->processData.processContext->outputs.size();
+  auto nInputs = pImpl->processData.processContext->inputs.size();
+  auto nOutputs = pImpl->processData.processContext->outputs.size();
   int sampleRate = pImpl->processData.processContext->getSampleRate();
   unsigned int bufferFrames = kRtAudioCallbackFrames;
 

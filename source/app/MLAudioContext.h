@@ -68,7 +68,7 @@ public:
   void setSampleRate(int r);
   
   void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
-  int getInputPolyphony() { return eventsToSignals.getPolyphony(); }
+  size_t getInputPolyphony() { return eventsToSignals.getPolyphony(); }
 
   void updateTime(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
   DSPVector getBeatPhase() { return currentTime._quarterNotesPhase; }

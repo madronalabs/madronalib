@@ -134,9 +134,9 @@ void EventsToSignals::Voice::beginProcess()
 
 void EventsToSignals::Voice::writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset)
 {
-  auto writeOutputFrames = [&](int endFrame){
+  auto writeOutputFrames = [&](size_t endFrame){
     // write current pitch, velocity and elapsed time up to destTime
-    for(int t = (int)nextFrameToProcess; t < endFrame; ++t)
+    for(int t = static_cast<int>(nextFrameToProcess); t < endFrame; ++t)
     {
       outputs.row(kGate)[t] = currentVelocity;
       outputs.row(kPitch)[t] = pitchGlide.nextSample(currentPitch);
@@ -886,7 +886,7 @@ void EventsToSignals::setUnison(bool b)
 //
 int EventsToSignals::findFreeVoice()
 {
-  int highestVoiceIdx = polyphony_ + 1;
+  auto highestVoiceIdx = polyphony_ + 1;
   int r = -1;
   int t = lastFreeVoiceFound_;
   for (int i = 1; i < polyphony_ + 1; ++i)
@@ -916,12 +916,12 @@ int EventsToSignals::findVoiceToSteal(Event e)
 int EventsToSignals::findNearestVoice(int note)
 {
   int r = 0;
-  int minDist = 128;
+  size_t minDist = 128;
   
   for (int v=1; v<polyphony_ + 1; ++v)
   {
-    int vNote = voices[v].creatorKeyIdx_;
-    int noteDist = std::abs(note - vNote);
+    size_t vNote = voices[v].creatorKeyIdx_;
+    size_t noteDist = std::abs(note - static_cast<int>(vNote));
     if (noteDist < minDist)
     {
       minDist = noteDist;
@@ -938,7 +938,7 @@ void EventsToSignals::dumpVoices()
     std::cout << "    " << i << ": ";
     
     Voice& voice = voices[i];
-    int vKey = voice.creatorKeyIdx_;
+    size_t vKey = voice.creatorKeyIdx_;
     std::cout << "[key: " << vKey << "] ";
     
     switch(keyStates_[vKey].state)
