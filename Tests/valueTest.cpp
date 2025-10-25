@@ -59,6 +59,20 @@ TEST_CASE("madronalib/core/values/core", "[values]")
   
   Value floatArrayVal {27.5, 55., 110., 220., 440., 880., 1760.};
   REQUIRE(floatArrayVal.getType() == Value::kFloatArray);
+  
+  // order of types
+  Value t1;
+  Value t2(2.3f);
+  Value t3("hello");
+  std::array<uint8_t, 24> testBlob;
+  Value t4(testBlob.data(), testBlob.size());
+  Value t5{2.3, 2.4, 2.5};
+  Value t6(1);
+  std::array<Value, 6> values{t1, t2, t3, t4, t5, t6};
+  for(int i=0; i < 6; ++i)
+  {
+    REQUIRE(values[i].getType() == i);
+  }
 }
 
 TEST_CASE("madronalib/core/values/rule_of_five", "[values]")

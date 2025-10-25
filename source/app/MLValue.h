@@ -13,8 +13,8 @@
 #include "MLText.h"
 #include "MLDSPProjections.h"
 
-// Value: a small unit of typed data designed for being constructed on the stack and
-// transferred in messages. If the value to be constructed is below a certain size,
+// Value is a tagged variant type for efficiently passing typed data (float, int, text, arrays, blobs)
+// in DSP applications with minimal heap allocation. If the value to be constructed is below a certain size,
 // no heap will be allocated. Whether on the stack or the heap, assigning a new value to
 // one of the same size must not reallocate. Together these guarantees make Value
 // useful for creating DSP applications that don't allocate memory when processing signals.
@@ -37,13 +37,7 @@ public:
     kNumTypes
   };
   
-  static constexpr size_t kMaxDataSizeBits{28};
-  static constexpr size_t kMaxDataBytes = 1 << (kMaxDataSizeBits - 1);
-  static constexpr size_t getLocalDataMaxBytes() { return kLocalDataBytes; }
-  static constexpr size_t getHeaderBytes() { return kHeaderBytes; }
-  
   // copy and assign constructors and destructor
-  
   Value(const Value& other);
   Value& operator=(const Value& other);
   Value (Value&& other) noexcept;
@@ -51,13 +45,11 @@ public:
   ~Value();
   
   // Constructors with fixed-size data.
-  
   Value();
   Value(float v);
   Value(double v); // converts to float
   Value(int v); 
 
-  // fixed-size float arrays
   template<size_t N>
   explicit Value(std::array<float, N> values)
   {
@@ -89,14 +81,13 @@ public:
   }
   
   // Constructors with variable-size data.
-  
   Value(std::initializer_list<float> values);
   Value(const std::vector<float>& values);
   Value(const ml::Text& v);
   Value(const char* v);
   explicit Value(const uint8_t* data, size_t size);
 
-  // Getters for scalar data. These convert scalar numeric types,
+  // Getters for fixed-size data. These convert scalar numeric types,
   // and return 0 where conversions don't make sense. That can lead to ambiguity, but
   // generally we know the types of Values we are using. Bool conversion is sometimes
   // handy even though bool is not an actual type we store.
@@ -116,24 +107,30 @@ public:
     return r;
   }
 
-  // getters for variable-size data.
+  // Getters for variable-size data.
   float* getFloatArrayPtr() const;
   size_t getFloatArraySize() const;
   std::vector<float> getFloatVector() const;
   ml::TextFragment getTextValue() const;
   
-  // public utils
-  bool isStoredLocally() const;
+  // Null object check
   explicit operator bool() const;
+  
+  // Public utils
+  bool isStoredLocally() const;
   bool operator==(const Value& b) const;
   bool operator!=(const Value& b) const;
   Type getType() const;
   const uint8_t* data() const;
   uint32_t size() const;
   
+  // Static utils (for tests)
+  static constexpr size_t kMaxDataSizeBits{28};
+  static constexpr size_t kMaxDataBytes = 1 << (kMaxDataSizeBits - 1);
+  static constexpr size_t getLocalDataMaxBytes() { return kLocalDataBytes; }
+  static constexpr size_t getHeaderBytes() { return kHeaderBytes; }
+
 private:
-  
-  // data
   
   // kHeaderBytes should be the size of everything except the local data. This is verified in valueTest.cpp.
   static constexpr size_t kStructSizeInBytes{64};
@@ -145,7 +142,7 @@ private:
   uint32_t _sizeInBytes{0};
   uint8_t _localData[kLocalDataBytes];
   
-  // utilities
+  // private utilities
   void copyOrAllocate(Type type, const uint8_t* pSrc, size_t bytes);
   void copyOrMove(Type newType, uint8_t* pSrc, size_t bytes);
   
@@ -171,7 +168,6 @@ std::ostream& operator<<(std::ostream& out, const ml::Value& r);
 // Floats and doubles are converted to floats. Bools and ints are converted to ints. Initializer lists
 // full of various numeric types are converted to float arrays.
 
-
 // toValue template - must be specialized for each supported type
 template<typename T>
 Value toValue(const T& val) {
@@ -179,7 +175,9 @@ Value toValue(const T& val) {
   return Value();
 }
 
-// Specializations for basic types
+// Specializations for basic types. Using template specializations allows NamedValue to be extended
+// to other types by code in other modules.
+
 template<> inline Value toValue<float>(const float& v) { return Value(v); }
 template<> inline Value toValue<double>(const double& v) { return Value(v); }
 template<> inline Value toValue<int>(const int& v) { return Value(v); }
@@ -201,7 +199,6 @@ struct NamedValue
   NamedValue(ml::Path np, std::initializer_list<float> list) : name(np), value(list) {}
 };
 
-
 // Define a type for initializing a new object with a list of Values.
 using WithValues = const std::initializer_list< NamedValue >;
 
@@ -215,12 +212,6 @@ inline bool valueChanged(T newValue, T& prevValue)
     return true;
   }
   return false;
-}
-
-inline Text getTypeStr(Value v)
-{
-  const std::vector< Text > kTypeTexts = {"undefined", "float", "int", "floatarray", "text", "blob"};
-  return kTypeTexts[v.getType()];
 }
 
 }  // namespace ml

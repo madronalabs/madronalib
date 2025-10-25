@@ -465,6 +465,8 @@ class Tree
   // visit all nodes and dump only the nodes with values.
   inline void dumpWithTypes() const
   {
+    static const std::vector< Text > kTypeStrs = {"undefined", "float", "text", "blob", "floatarray", "int"};
+
     size_t maxDepth{0};
     for (auto it = begin(); it != end(); ++it)
     {
@@ -474,7 +476,7 @@ class Tree
       {
         std::cout << " ";
       }
-      std::cout << it.getCurrentPath() << " [" << *it << "] (" << getTypeStr(*it) << ") \n";
+      std::cout << it.getCurrentPath() << " [" << *it << "] (" << kTypeStrs[(*it).getType()] << ") \n";
     }
     std::cout << "(max depth: " << maxDepth << ")\n";
   }
