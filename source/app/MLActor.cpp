@@ -21,7 +21,7 @@ void ActorRegistry::doRemove(Actor* actorToRemove)
     Actor* pa = *it;
     if (pa == actorToRemove)
     {
-      const Path p = it.getCurrentPath();
+      auto p = it.getCurrentPath();
       _actors[p] = nullptr; 
     }
   }

@@ -24,6 +24,7 @@ TEST_CASE("madronalib/core/text", "[text]")
 
   std::vector< TextFragment > tv{t0, t1, t2, t3, t4, t5};
   
+  /*
   int i{0};
   for(auto tf : tv)
   {
@@ -35,7 +36,8 @@ TEST_CASE("madronalib/core/text", "[text]")
     Path p2 = textToPath(tf2);
     
     REQUIRE(p == p2);
-  }
+  }*/
+  
 
   for(int i=0; i<100; ++i)
   {

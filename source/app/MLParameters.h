@@ -97,10 +97,10 @@ public:
   // TODO Look at the features we needed to add that are hacks now (use_list_values_as_int, integer_values) and
   // redesign to make more robust implementation of them.
 
-  Tree< std::unique_ptr< ParameterDescription > > descriptions;
-  Tree< ParameterProjection > projections;
-  Tree< Value > paramsNorm_;
-  Tree< Value > paramsReal_;
+  SymbolTree< std::unique_ptr< ParameterDescription > > descriptions;
+  SymbolTree< ParameterProjection > projections;
+  SymbolTree< Value > paramsNorm_;
+  SymbolTree< Value > paramsReal_;
 
   float convertNormalizedToRealFloatValue(Path pname, Value val) const
   {
@@ -271,11 +271,11 @@ public:
 #endif
   }
 
-  inline void setFromNormalizedValues(const Tree<Value>& t)
+  inline void setFromNormalizedValues(const SymbolTree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
     {
-      Path valName = it.getCurrentPath();
+      auto valName = it.getCurrentPath();
       setFromNormalizedValue(valName, *it);
     }
   }
@@ -305,7 +305,9 @@ public:
     for (auto it = descriptions.begin(); it != descriptions.end(); ++it)
     {
       const auto& paramDesc = *it;
-      auto pname = paramDesc->getTextProperty("name");
+      Path pname = paramDesc->getTextProperty("name");
+      
+      // arg pname should be GenericPath<k>
       auto normVal = paramsNorm_[pname];
       auto realVal = paramsReal_[pname];
       std::cout << pname << ": " << normVal << " / " << realVal << "\n";

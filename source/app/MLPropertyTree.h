@@ -13,7 +13,7 @@ namespace ml
 class PropertyTree
 {
 protected:
-  Tree< Value > properties;
+  SymbolTree< Value > properties;
   
 public:
   PropertyTree() = default;
@@ -113,7 +113,7 @@ public:
   }
   
   void dump() { properties.dump(); }
-  void dumpWithTypes() { properties.dumpWithTypes(); }
+  // TEMP void dumpWithTypes() { properties.dumpWithTypes(); }
 
   // iterators
   

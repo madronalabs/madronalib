@@ -9,6 +9,10 @@
 
 namespace ml
 {
+
+
+
+/*
 // parse an input string into our representation: an array of ml::Symbols.
 Path::Path(const char* str) { parsePathString(str); }
 
@@ -111,14 +115,7 @@ void Path::parsePathString(const char* pathStr, const char separator)
     }
   } while (*it != '\0');
 
-  /*
-   // TODO benchmark this probably slower implementation out of curiosity
-  auto segments = textUtils::split(TextFragment(pathStr), separator);
-  for(auto & seg : segments)
-  {
-    addSymbol(Symbol(seg.getText()));
-  }
-  */
+
 }
 
 bool Path::beginsWith(Path b) const
@@ -237,5 +234,8 @@ Path substitute(Path p, Symbol fromSymbol, Path toPath)
   }
   return r;
 }
+ 
+ */
+
 
 }  // namespace ml

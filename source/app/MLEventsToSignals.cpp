@@ -2,6 +2,7 @@
 // Copyright (c) 2013 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+#include "MLSymbol.h"
 #include "MLEventsToSignals.h"
 #include <cassert>
 

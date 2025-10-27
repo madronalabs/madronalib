@@ -38,237 +38,178 @@
 
 namespace ml
 {
-constexpr int kHashTableBits = 12;
-constexpr int kHashTableSize = (1 << kHashTableBits);
-constexpr int kHashTableMask = kHashTableSize - 1;
 
-// initial capacity of symbol table. if this number of symbols is exceeded, the
-// capacity of the table will have to be increased, which may result in a glitch
-// if called from the audio thread.
-// TODO these constants that tune different parts of madronalib for space use
-// etc. should all be in one header.
-constexpr int kDefaultSymbolTableSize = 4096;
+// hashing: 64-bit FNV-1a
 
-// very simple hash function from Kernighan & Ritchie.
-// Constexpr version for hashing strings known at compile time.
-template <size_t N>
-constexpr uint32_t krHash2(const char* str)
+namespace detail
 {
-  return (N > 1) ? ((krHash2<N - 1>(str + 1)) + *str) * 31u : 0;
+constexpr uint64_t fnv1a(uint64_t h, const char* s)
+{
+  return (*s == 0) ? h :
+  fnv1a((h ^ static_cast<uint64_t>(*s)) * 1099511628211ull, s + 1);
 }
 
-template <>
-constexpr uint32_t krHash2<size_t(0)>(const char* str)
+constexpr uint64_t fnv1aSubstring(uint64_t h, const char* s, size_t len)
 {
-  return 0;
+  return (len == 0) ? h :
+  fnv1aSubstring((h ^ static_cast<uint64_t>(*s)) * 1099511628211ull, s + 1, len - 1);
+}
 }
 
-template <size_t N>
-constexpr uint32_t krHash1(const char* str)
+// FNV-1a hash for null-terminated strings
+constexpr uint64_t fnv1a(const char* s)
 {
-  return krHash2<N>(str) & kHashTableMask;
+  return detail::fnv1a(14695981039346656037ull, s);
 }
 
-// non-recursive hash producing equivalent results to krHash1.
-// Non-constexpr version for hashing strings known only at runtime.
-inline uint32_t krHash0(const char* str, const size_t len)
+// FNV-1a hash for substrings (with length)
+constexpr uint64_t fnv1aSubstring(const char* s, size_t len)
 {
-  size_t i = len;
-  uint32_t accum = 0;
-  while (i > 0)
+  return detail::fnv1aSubstring(14695981039346656037ull, s, len);
+}
+
+// Runtime version for dynamic strings
+inline uint64_t fnv1aRuntime(const char* str, size_t len)
+{
+  uint64_t hash = 14695981039346656037ull;
+  for (size_t i = 0; i < len; ++i)
   {
-    i--;
-    accum += str[i];
-    accum *= 31u;
+    hash = (hash ^ static_cast<uint64_t>(str[i])) * 1099511628211ull;
   }
-  return accum & kHashTableMask;
+  return hash;
 }
 
-inline uint32_t krHash0(const char* str) { return krHash0(str, strlen(str)); }
+inline uint64_t fnv1aRuntime(const char* str)
+{
+  return fnv1aRuntime(str, strlen(str));
+}
 
 template <size_t N>
-constexpr uint32_t hash(const char (&sym)[N])
+constexpr uint64_t hash(const char (&sym)[N])
 {
-  return krHash1<N>(sym);
+  return fnv1a(sym);
 }
 
-class HashedCharArray
-{
- public:
-  // template ctor from string literals allows hashing for code like
-  // Proc::setParam("foo") to be done at compile time.
-  template <size_t N>
-  constexpr HashedCharArray(const char (&sym)[N]) : len(N), hash(krHash1<N>(sym)), pChars(sym)
-  {
-  }
-
-  // this non-constexpr ctor counts the string length at runtime.
-  HashedCharArray(const char* pC) : len(strlen(pC)), hash(krHash0(pC, len)), pChars(pC) {}
-
-  // this non-constexpr ctor takes a string length parameter at runtime.
-  HashedCharArray(const char* pC, size_t lengthBytes)
-      : len(lengthBytes), hash(krHash0(pC, len)), pChars(pC)
-  {
-  }
-
-  // default, null ctor
-  HashedCharArray() : len(0), hash(0), pChars(nullptr) {}
-
-  const size_t len;
-  const uint32_t hash;
-  const char* pChars;
-};
-
-using SymbolID = size_t;
 
 class SymbolTable
 {
-  friend class Symbol;
-
- public:
-  SymbolTable();
-  ~SymbolTable();
+public:
+  SymbolTable() = default;
+  ~SymbolTable() = default;
+  
   void clear();
-  size_t getSize() { return mSymbolTextsByID.size(); }
-  void dump(void);
-  int audit(void);
-
- protected:
-  // look up a symbol by name and return its ID. Used in Symbol constructors.
-  // if the symbol already exists, this routine must not allocate any heap
-  // memory.
-  SymbolID getSymbolID(const HashedCharArray& hsl);
-  SymbolID getSymbolID(const char* sym);
-  SymbolID getSymbolID(const char* sym, size_t lengthBytes);
-
-  const TextFragment& getSymbolTextByID(SymbolID symID);
-  SymbolID addEntry(const HashedCharArray& hsl);
-
- private:
-  // vector of text fragments in ID/creation order
-  std::vector< TextFragment > mSymbolTextsByID;
-
-  // hash table containing indexes to strings for a given hash value.
-  struct TableEntry
+  size_t getSize() const { return mSymbols.size(); }
+  void dump();
+  
+  uint64_t registerSymbol(const char* text, size_t len)
   {
-    std::mutex mMutex;
-    std::vector<SymbolID> mIDVector;
-  };
-
-  void clearEntry(TableEntry& entry)
-  {
-    std::unique_lock<std::mutex> lock(entry.mMutex);
-    entry.mIDVector.clear();
+    uint64_t hash = fnv1aRuntime(text, len);
+    
+    std::lock_guard<std::mutex> lock(mMutex);
+    
+    auto it = mSymbols.find(hash);
+    if (it != mSymbols.end())
+    {
+      // Hash exists - check for collision
+      const TextFragment& existing = it->second;
+      if (existing.lengthInBytes() != len ||
+          !compareSizedCharArrays(existing.getText(), existing.lengthInBytes(), text, len))
+      {
+        // COLLISION DETECTED!
+        throw std::runtime_error("Symbol hash collision detected!");
+      }
+      // Same string, return existing hash
+      return hash;
+    }
+    
+    // New symbol - register it
+    mSymbols.emplace(hash, TextFragment(text, static_cast<int>(len)));
+    return hash;
   }
-
-  // since the maximum hash value is known, there will be no need to resize this
-  // array.
-  std::array<TableEntry, kHashTableSize> mHashTable;
-
-  size_t mSize{0};
+  const TextFragment& getTextForHash(uint64_t hash) const;
+  bool hasHash(uint64_t hash) const;
+  
+private:
+  std::unordered_map<uint64_t, TextFragment> mSymbols;
+  mutable std::mutex mMutex;
+  static const TextFragment emptyFragment;
 };
 
 inline SymbolTable& theSymbolTable()
 {
-  static const std::unique_ptr<SymbolTable> t(new SymbolTable());
+  static std::unique_ptr<SymbolTable> t(new SymbolTable());
   return *t;
 }
+
 
 // ----------------------------------------------------------------
 #pragma mark Symbol
 
 class Symbol
 {
-  // the ID equals the order in which the symbol was created.
-  // 2^31 unique symbols are possible. There is no checking for overflow.
-  SymbolID id;
-
+  uint64_t mHash;
   friend std::ostream& operator<<(std::ostream& out, const Symbol r);
-
- public:
-  Symbol() : id(0) {}
-  Symbol(const HashedCharArray& hsl) : id(theSymbolTable().getSymbolID(hsl)) {}
-  Symbol(const char* pC) : id(theSymbolTable().getSymbolID(pC)) {}
-  Symbol(const char* pC, size_t lengthBytes) : id(theSymbolTable().getSymbolID(pC, lengthBytes)) {}
-  Symbol(TextFragment frag) : id(theSymbolTable().getSymbolID(frag.getText(), frag.lengthInBytes()))
+  
+public:
+  constexpr Symbol() : mHash(0) {}
+  
+  // Constexpr: compute hash only
+  template <size_t N>
+  constexpr Symbol(const char (&sym)[N]) : mHash(fnv1a(sym)) {}
+  
+  // Runtime: compute hash AND register
+  Symbol(const char* pC)
+  : mHash(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
+  
+  Symbol(const char* pC, size_t lengthBytes)
+  : mHash(theSymbolTable().registerSymbol(pC, lengthBytes)) {}
+  
+  Symbol(TextFragment frag)
+  : mHash(theSymbolTable().registerSymbol(frag.getText(), frag.lengthInBytes())) {}
+  
+  static constexpr Symbol fromHash(uint64_t hash)
   {
-  }  // needed?
-
-  inline bool operator<(const Symbol b) const { return (id < b.id); }
-
-  inline bool operator==(const Symbol b) const { return (id == b.id); }
-
-  inline bool operator!=(const Symbol b) const { return (id != b.id); }
-
-  explicit operator bool() const { return id != 0; }
-
-  friend uint32_t hash(Symbol s);
-
-  // search hash table for our id to find our hash.
-  // for testing only!
-  inline int getHashFromTable() const
-  {
-    int hash = 0;
-
-    for (auto& entry : theSymbolTable().mHashTable)
-    {
-      auto idVec = entry.mIDVector;
-      size_t idVecLen = idVec.size();
-      if (idVecLen > 0)
-      {
-        for (auto vid : idVec)
-        {
-          if (vid == id)
-          {
-            return hash;
-          }
-        }
-      }
-      hash++;
-    }
-    return 0;
+    Symbol s;
+    s.mHash = hash;
+    return s;
   }
-
-  // return the symbol's TextFragment in the table.
-  // in order to show the strings in XCode's debugger, instead of the unhelpful
-  // id, edit the summary format for Symbol within XCode to
-  // {$VAR.getTextFragment().text}:s
-  inline const TextFragment& getTextFragment() const
-  {
-    return theSymbolTable().getSymbolTextByID(id);
-  }
-
-  inline const char* getUTF8Ptr() const { return theSymbolTable().getSymbolTextByID(id).getText(); }
-
-  SymbolID getID() const { return id; }
-
-  inline bool beginsWith(Symbol b) const
-  {
-    return getTextFragment().beginsWith(b.getTextFragment());
-  }
-
-  inline bool endsWith(Symbol b) const { return getTextFragment().endsWith(b.getTextFragment()); }
-
-  // TODO for existing client code, deprecated
-  inline std::string toString() const { return std::string(getUTF8Ptr()); }
+  
+  bool operator<(const Symbol b) const { return mHash < b.mHash; }
+  bool operator==(const Symbol b) const { return mHash == b.mHash; }
+  bool operator!=(const Symbol b) const { return mHash != b.mHash; }
+  explicit operator bool() const { return mHash != 0; }
+  
+  friend uint64_t hash(Symbol s);
+  
+  uint64_t getHash() const { return mHash; }
+  const TextFragment& getTextFragment() const { return theSymbolTable().getTextForHash(mHash); }
+  const char* getUTF8Ptr() const { return getTextFragment().getText(); }
+  
+  bool beginsWith(Symbol b) const { return getTextFragment().beginsWith(b.getTextFragment()); }
+  bool endsWith(Symbol b) const { return getTextFragment().endsWith(b.getTextFragment()); }
+  std::string toString() const { return std::string(getUTF8Ptr()); }
 };
-
-inline uint32_t hash(Symbol f) { return krHash0(f.getUTF8Ptr()); }
 
 inline Symbol operator+(Symbol f1, Symbol f2)
 {
   return Symbol(TextFragment(f1.getTextFragment(), f2.getTextFragment()));
 }
 
+inline uint64_t hash(Symbol s) { return s.getHash(); }
+
+
 }  // namespace ml
 
-// hashing function for ml::Symbol use in unordered STL containers. simply
-// return the ID, which gives each Symbol a unique hash.
+
+// hashing function for ml::Symbol use in unordered STL containers. 
 namespace std
 {
 template <>
 struct hash<ml::Symbol>
 {
-  std::size_t operator()(const ml::Symbol& s) const { return s.getID(); }
+  uint64_t operator()(const ml::Symbol& s) const { return s.getHash(); }
 };
 }  // namespace std
+
+
+

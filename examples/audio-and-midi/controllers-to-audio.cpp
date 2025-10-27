@@ -33,7 +33,7 @@ void processAudio(AudioContext* ctx, void *untypedState)
   auto ctrlToFreq = projections::unityToLogParam({110.f, 440.f});
 
   // accumulate sine oscillators
-  int nSines = state->sineControllers.size();
+  auto nSines = state->sineControllers.size();
   for (int i = 0; i < nSines; ++i)
   {
     int ctrlNum = state->sineControllers[i];

@@ -125,9 +125,10 @@ Value binaryToValue(const std::vector<uint8_t>& dataVec)
 
 // Paths
 
-size_t getBinarySize(Path p)
+template <class K>
+size_t getBinarySize(GenericPath<K> p)
 {
-  auto t = pathToText(p, '/');
+  auto t = p.toText('/');
   auto headerSize = sizeof(BinaryChunkHeader);
   auto dataSize = t.lengthInBytes();
   return headerSize + dataSize;
@@ -152,9 +153,10 @@ Path readPathFromBinary(const uint8_t*& readPtr)
 }
 
 // write the binary representation of the Path and increment the destination pointer.
-void writeBinaryRepresentation(const Path& p, uint8_t*& writePtr)
+template <class K>
+void writeBinaryRepresentation(const GenericPath<K>& p, uint8_t*& writePtr)
 {
-  auto t = pathToText(p, '/');
+  auto t = p.toText('/');
   auto headerSize = sizeof(BinaryChunkHeader);
   auto dataSize = t.lengthInBytes();
   
@@ -168,7 +170,6 @@ void writeBinaryRepresentation(const Path& p, uint8_t*& writePtr)
   memcpy(writePtr, textData, dataSize);
   writePtr += dataSize;
 }
-
 
 // Tree< Value >
 
@@ -459,14 +460,14 @@ void setData(JSONHolder& cj, cJSON* pData)
 //
 // NOTE: this does not make the JSON tree, rather a flat structure with the
 // path name for each object name! TODO fix
-JSONHolder valueTreeToJSON(const Tree<Value>& t)
+JSONHolder valueTreeToJSON(const SymbolTree<Value>& t)
 {
   JSONHolder root;
   
   for (auto it = t.begin(); it != t.end(); ++it)
   {
-    Path p = it.getCurrentPath();
-    TextFragment pathAsText(pathToText(p));
+    auto p = it.getCurrentPath();
+    TextFragment pathAsText(p.toText());
     Value v = (*it);
     
     const char* keyStr = pathAsText.getText();
