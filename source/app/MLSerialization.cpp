@@ -515,7 +515,13 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
 
   while (obj)
   {
-    Path newObjectPath(currentPath, Path(obj->string));
+    
+    
+    Path newObjectPath; // TEMP (currentPath, Path(obj->string));
+    
+    
+    
+    
     switch (obj->type & 255)
     {
       case cJSON_Number:

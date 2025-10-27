@@ -53,6 +53,9 @@ endif()
  set(CMAKE_CXX_STANDARD_REQUIRED True)
  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
  set(CMAKE_VISIBILITY_INLINES_HIDDEN OFF)
+ 
+ set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+ set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
  if(APPLE)
    # For now, explicitly disable C++17 alignment feature
@@ -220,11 +223,12 @@ set(target madronalib)
 
 add_library(${target} STATIC ${madronalib_SOURCES})
 
-target_compile_options(${target} PRIVATE
-    -O3
-    -g
-    -fno-omit-frame-pointer
-)
+# target_compile_options(${target} PRIVATE
+#     -O3
+#     -g
+#     -fno-omit-frame-pointer
+# )
+# 
 
 set_target_properties(${target} PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"

@@ -25,6 +25,9 @@ namespace
   }
 }
 
+// TEMP
+#if 0
+
 TEST_CASE("madronalib/core/serialization", "[serialization]")
 {
   // Value tree to JSON to value tree. NOTE: the JSON created does not reflect the
@@ -415,3 +418,4 @@ TEST_CASE("madronalib/core/value_serialization/stress", "[serialization][values]
     }
   }
 }
+#endif

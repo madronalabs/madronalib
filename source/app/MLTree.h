@@ -26,11 +26,13 @@
 namespace ml
 {
 
+// ============================================================================
+// Tree - templated on Key type
+// ============================================================================
 
 template <class V, class K = Symbol, class C = std::less<K>>
 class Tree
 {
-  // Key change: map now uses K (Symbol or TextFragment) instead of hardcoded Symbol
   using mapT = std::map<K, Tree<V, K, C>, C>;
   mapT mChildren{};
   V _value{};
@@ -57,12 +59,10 @@ public:
   const V& getValue() const { return _value; }
   bool isLeaf() const { return mChildren.size() == 0; }
   
-  // find a tree node at the specified path.
-  // Note: now accepts GenericPath<K> instead of hardcoded Path
   const Tree<V, K, C>* getNode(GenericPath<K> path) const
   {
     auto pNode = this;
-    for (K key : path)  // Changed from: for (Symbol key : path)
+    for (K key : path)
     {
       auto it = pNode->mChildren.find(key);
       if (it != pNode->mChildren.end())
@@ -80,7 +80,7 @@ public:
   Tree<V, K, C>* getMutableNode(GenericPath<K> path)
   {
     auto pNode = this;
-    for (K key : path)  // Changed from: for (Symbol key : path)
+    for (K key : path)
     {
       auto it = pNode->mChildren.find(key);
       if (it != pNode->mChildren.end())
@@ -95,7 +95,6 @@ public:
     return pNode;
   }
   
-  // operator[] now accepts GenericPath<K>
   V& operator[](GenericPath<K> p)
   {
     auto pNode = getMutableNode(p);
@@ -169,7 +168,6 @@ public:
     return pNode;
   }
   
-  // Iterator - updated to use K instead of Symbol
   friend class const_iterator;
   class const_iterator
   {
@@ -316,7 +314,6 @@ public:
       return mNodeStack.size() - 1;
     }
     
-    // Changed return type from Symbol to K
     K getCurrentNodeNameAtDepth(size_t i) const
     {
       auto& node = mNodeStack[i];
@@ -335,7 +332,6 @@ public:
       return getCurrentNodeNameAtDepth(stackSize - 1);
     }
     
-    // Return type changed from Path to GenericPath<K>
     GenericPath<K> getCurrentPath() const
     {
       GenericPath<K> p;
@@ -357,7 +353,7 @@ public:
     bool setCurrentPath(GenericPath<K> p) {
       setCurrentPathToRoot();
       const Tree<V, K, C>* nextNode = mNodeStack[0];
-      for(K key : p)  // Changed from: for(Symbol key : p)
+      for(K key : p)
       {
         auto it = nextNode->mChildren.find(key);
         if (it != nextNode->mChildren.end())
@@ -439,525 +435,23 @@ public:
   }
 };
 
-// Utility functions - now templated on key type
+// Utility functions
 template <class V, class K = Symbol, class C = std::less<K>>
 bool treeNodeExists(const Tree<V, K, C>& t, GenericPath<K> path)
 {
   return (t.getNode(path) != nullptr);
 }
 
-// ============================================================================
-// Type aliases for common usage
-// ============================================================================
-
-// Compile-time tree with Symbol keys and Path
-template <class V>
-using SymbolTree = Tree<V, Symbol>;
-
-// Runtime tree with TextFragment keys and DynamicPath
-template <class V>
-using DynamicTree = Tree<V, TextFragment>;
-
-} // namespace ml
-
-
-/*
-template <class V, class C = std::less<Symbol> >
-class Tree
+template <class V, class K = Symbol, class C = std::less<K>>
+bool treeNodeExists(const Tree<V, K, C>& t, const char* pathStr)
 {
-  // recursive definition: a Tree has a map of Symbols to Trees, and a value.
-  using mapT = std::map<Symbol, Tree<V, C>, C>;
-  mapT mChildren{};
-  V _value{};
-  
- public:
-  Tree<V, C>() = default;
-  Tree<V, C>(V val) : _value(std::move(val)) {}
-
-  void clear()
-  {
-    mChildren.clear();
-    _value = V();
-  }
-
-  void combine(const Tree<V, C>& b)
-  {
-    for (auto it = b.begin(); it != b.end(); ++it)
-    {
-      add(it.getCurrentPath(), *it);
-    }
-  }
-
-  bool hasValue() const { return _value != V(); }
-  const V& getValue() const { return _value; }
-  bool isLeaf() const { return mChildren.size() == 0; }
-
-  // find a tree node at the specified path.
-  // if successful, return a const pointer to the node. If unsuccessful, return nullptr.
-  const Tree<V, C>* getNode(Path path) const
-  {
-    auto pNode = this;
-    for (Symbol key : path)
-    {
-      auto it = pNode->mChildren.find(key);
-      if (it != pNode->mChildren.end())
-      {
-        pNode = &(it->second);
-      }
-      else
-      {
-        return nullptr;
-      }
-    }
-    return pNode;
-  }
-
-  // find a tree node at the specified path.
-  // if successful, return a pointer to the node. If unsuccessful, return nullptr.
-  Tree<V, C>* getMutableNode(Path path)
-  {
-    auto pNode = this;
-    for (Symbol key : path)
-    {
-      auto it = pNode->mChildren.find(key);
-      if (it != pNode->mChildren.end())
-      {
-        pNode = &(it->second);
-      }
-      else
-      {
-        return nullptr;
-      }
-    }
-    return pNode;
-  }
-
-  // if the path exists, returns a reference to the value in the tree at the
-  // path. else, add a new default object of our value type V.
-  V& operator[](Path p)
-  {
-    auto pNode = getMutableNode(p);
-    if(pNode)
-    {
-      return pNode->_value;
-    }
-    else
-    {
-      return add(p, V())->_value;
-    }
-  }
-
-  // if the path exists, returns a const reference to the value in the tree at
-  // the path. Otherwise, reference to a null valued object is returned.
-  const V& operator[](Path p) const
-  {
-    static const V nullValue{};
-    auto pNode = getNode(p);
-    if (pNode)
-    {
-      return pNode->_value;
-    }
-    else
-    {
-      return nullValue;
-    }
-  }
-
-  // compare two Trees by value.
-  inline bool operator==(const Tree<V, C>& b) const
-  {
-    auto itA = begin();
-    auto itB = b.begin();
-    for (; (itA != end()) && (itB != b.end()); ++itA, ++itB)
-    {
-      // compare node names
-      if (itA.getCurrentNodeName() != itB.getCurrentNodeName())
-      {
-        return false;
-      }
-
-      // compare values
-      if (*itA != *itB)
-      {
-        return false;
-      }
-    }
-
-    // cover the case where one iterator bailed out early
-    return (itA == end()) && (itB == b.end());
-  }
-
-  inline bool operator!=(const Tree<V, C>& b) const { return !(operator==(b)); }
-
-  // write a value V to the Tree such that getValue(path) will return V.
-  // add any intermediate nodes necessary in order to put it there.
-  // a pointer to the existing or new tree node is returned.
-  Tree<V, C>* add(Path path, V val)
-  {
-    auto pNode = this;
-    int pathSize = path.getSize();
-
-    // Navigate to parent of last node
-    for (int i = 0; i < pathSize - 1; ++i)
-    {
-      // [] operator creates the new node if it does not exist
-      // TODO handle possible throw by operator[]
-      pNode = &(pNode->mChildren[path.getElement(i)]);
-    }
-    
-    // create or overwrite last node
-    auto lastNodeName = path.getElement(pathSize - 1);
-    auto it = pNode->mChildren.find(lastNodeName);
-    if(it != pNode->mChildren.end())
-    {
-      // Node exists, update value
-      it->second._value = std::move(val);
-      pNode = &(it->second);
-    }
-    else
-    {
-      // Node doesn't exist, create it with the value
-      // TODO handle possible throw by emplace
-      auto [newIt, inserted] = pNode->mChildren.emplace(lastNodeName, std::move(val));
-      pNode = &(newIt->second);
-    }
-
-    return pNode;
-  }
-
-  // NOTE this iterator does not work with STL algorithms in general, only for
-  // simple begin(), end() loops. This is enough to support the range-based for
-  // syntax. post-increment(operator++(int)) is not defined. Instead use
-  // pre-increment form ++it.
-  //
-  // TODO this is cheesy, fix for STL-compliance and visit every node as a generic
-  // container should. Use Visitor pattern and Range objects (ValueOnlyRange)
-  // to iterate over values.
-  // ValueOnlyRange<V, C> values() const {return ValueOnlyRange<V, C>(this);}
-
-  friend class const_iterator;
-  class const_iterator
-  {
-    std::vector<const Tree<V, C>*> mNodeStack;
-    std::vector<typename mapT::const_iterator> mIteratorStack;
-
-   public:
-    using iterator_category = std::forward_iterator_tag;
-    using value_type = const V;
-    using difference_type = int;
-    using pointer = const V*;
-    using reference = const V&;
-
-    // null iterator that can be returned so begin() = end() when there is no container
-    const_iterator() {}
-    
-    const_iterator(const Tree<V, C>* p, const typename mapT::const_iterator subIter)
-    {
-      mNodeStack.push_back(p);
-      mIteratorStack.push_back(subIter);
-    }
-
-    ~const_iterator() {}
-
-    bool operator==(const const_iterator& b) const
-    {
-      // bail out here if possible.
-      if (mNodeStack.size() != b.mNodeStack.size()) return false;
-
-      // check for empty iterators
-      if (mNodeStack.empty() && b.mNodeStack.empty()) return true;
-
-      // if the containers are the same, we may compare the iterators.
-      if (mNodeStack.back() != b.mNodeStack.back()) return false;
-      return (mIteratorStack.back() == b.mIteratorStack.back());
-    }
-
-    bool operator!=(const const_iterator& b) const { return !(*this == b); }
-
-    const V& operator*() const
-    {
-      return ((*mIteratorStack.back()).second)._value;
-    }
-    
-    void push(const Tree<V, C>* childNodePtr)
-    {
-      mNodeStack.push_back(childNodePtr);
-      mIteratorStack.push_back(childNodePtr->mChildren.begin());
-    }
-    
-    void pop()
-    {
-      if(mNodeStack.size() > 1)
-      {
-        mNodeStack.pop_back();
-        mIteratorStack.pop_back();
-      }
-    }
-
-    // return true if at the end of the current submap.
-    bool atEndOfMap() const {
-      return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end());
-    }
-
-    // advance to the next node. Return false if at end of entire tree.
-    bool nextNode()
-    {
-      auto& currentIterator = mIteratorStack.back();
-      if (!atEndOfMap())
-      {
-        auto currentChildNodePtr = &((*currentIterator).second);
-        if (!currentChildNodePtr->isLeaf())
-        {
-          push(currentChildNodePtr);
-        }
-        else
-        {
-          currentIterator++;
-        }
-      }
-      else
-      {
-        if(mNodeStack.size() > 1)
-        {
-          pop();
-          mIteratorStack.back()++;
-        }
-        else
-        {
-          return 0;
-        }
-      }
-      return 1;
-    }
-    
-    // go to the first child of the current parent node, or if at end of map,
-    // reset to beginning. The reset clause is weird but makes starting from
-    // root work properly.
-    void firstChild()
-    {
-      auto& currentIterator = mIteratorStack.back();
-      if (!atEndOfMap())
-      {
-        auto currentChildNodePtr = &((*currentIterator).second);
-        if (!currentChildNodePtr->isLeaf())
-        {
-          push(currentChildNodePtr);
-        }
-        else
-        {
-          // this node has no children! go to end so that hasMoreChildren() will return false.
-          while(!atEndOfMap())
-          {
-            currentIterator++;
-          }
-        }
-      }
-      else
-      {
-        currentIterator = mNodeStack.back()->mChildren.begin();
-      }
-    }
-    
-    // will nextChild() iterate to more children?
-    bool hasMoreChildren()
-    {
-      return ( !atEndOfMap() );
-    }
-    
-    // advance to the next child of the current parent node.
-    void nextChild()
-    {
-      mIteratorStack.back()++;
-    }
-    
-    bool currentNodeHasValue() const
-    {
-      auto parentNode = mNodeStack.back();
-      auto& currentIterator = mIteratorStack.back();
-      
-      // no value (and currentIterator not dereferenceable!) if at end()
-      if (currentIterator == parentNode->mChildren.end()) return false;
-      
-      return (((*currentIterator).second).hasValue());
-    }
-    
-    // advance to the next leaf that has a value
-    const const_iterator& operator++()
-    {
-      while(1)
-      {
-        if(!nextNode()) break;
-        if(currentNodeHasValue()) break;
-      }
-      
-      return *this;
-    }
-    
-    size_t getCurrentDepth() const {
-      return mNodeStack.size() - 1;
-    }
-    
-    Symbol getCurrentNodeNameAtDepth(size_t i) const
-    {
-      auto& node = mNodeStack[i];
-      auto& iter = mIteratorStack[i];
-      if(iter != node->mChildren.end())
-      {
-        return (*iter).first;
-      }
-      return Symbol();
-    }
-    
-    // return the last symbol of the current node path.
-    Symbol getCurrentNodeName() const
-    {
-      const size_t stackSize = mNodeStack.size();
-      if(stackSize < 1) return Symbol();
-      return getCurrentNodeNameAtDepth(stackSize - 1);
-    }
-
-    // return entire path to the current node. If any iterator is not
-    // referenceable this will fail.
-    Path getCurrentPath() const
-    {
-      Path p;
-      for(int i = 0; i < mNodeStack.size(); ++i)
-      {
-        p = Path{p, (getCurrentNodeNameAtDepth(i))};
-      }
-      return p;
-    }
-    
-    // sets path to root, after which firstChild() will go to the first node in the map.
-    // NOTE: from root, nextNode() will not work. TODO fix.
-    void setCurrentPathToRoot()
-    {
-      mNodeStack.resize(1);
-      mIteratorStack.clear();
-      mIteratorStack.push_back(mNodeStack[0]->mChildren.end());
-    }
-    
-    // Try to set current node to the path p. Return true if successful.
-    // If unsuccessful the current path is set to root.
-    bool setCurrentPath(Path p) {
-      setCurrentPathToRoot();
-      const Tree<V, C>* nextNode = mNodeStack[0];
-      for(Symbol key : p)
-      {
-        auto it = nextNode->mChildren.find(key);
-        if (it != nextNode->mChildren.end())
-        {
-          mNodeStack.push_back(nextNode);
-          mIteratorStack.push_back(it);
-          nextNode = &(it->second);
-        }
-        else
-        {
-          setCurrentPathToRoot();
-          return false;
-        }
-      }
-      return true;
-    }
-  };
-
-  // start at beginning, then advance until a node with a value is reached.
-  inline const_iterator begin() const
-  {
-    auto it = const_iterator(this, mChildren.begin());
-    while (!it.currentNodeHasValue() && !it.atEndOfMap())
-    {
-      ++it;
-    }
-    return it;
-  }
-  
-  inline const_iterator beginAtRoot() const
-  {
-    return const_iterator(this, mChildren.end());
-  }
-
-  inline const_iterator end() const
-  {
-    return const_iterator(this, mChildren.end());
-  }
-
-  // visit all nodes and dump only the nodes with values.
-  inline void dump() const
-  {
-    size_t maxDepth{0};
-    for (auto it = begin(); it != end(); ++it)
-    {
-      size_t indent = it.getCurrentDepth();
-      maxDepth = std::max(maxDepth, indent);
-      for(int i=0; i<indent; ++i)
-      {
-        std::cout << " ";
-      }
-      std::cout << it.getCurrentPath() << " [" << *it << "] \n";
-    }
-    std::cout << "(max depth: " << maxDepth << ")\n";
-  }
-  
-  // visit all nodes and dump only the nodes with values.
-  inline void dumpWithTypes() const
-  {
-    static const std::vector< Text > kTypeStrs = {"undefined", "float", "text", "blob", "floatarray", "int"};
-
-    size_t maxDepth{0};
-    for (auto it = begin(); it != end(); ++it)
-    {
-      size_t indent = it.getCurrentDepth();
-      maxDepth = std::max(maxDepth, indent);
-      for(int i=0; i<indent; ++i)
-      {
-        std::cout << " ";
-      }
-      std::cout << it.getCurrentPath() << " [" << *it << "] (" << kTypeStrs[(*it).getType()] << ") \n";
-    }
-    std::cout << "(max depth: " << maxDepth << ")\n";
-  }
-  
-  // visit and dump each node once, including non-leaf nodes.
-  inline void dumpAllNodes() const
-  {
-    for (auto it = beginAtRoot(); it != end(); it.nextNode())
-    {
-      if(!it.atEndOfMap())
-      {
-        std::cout << it.getCurrentPath();
-        if(it.currentNodeHasValue())
-        {
-          std::cout << " [" << *it << "] ";
-        }
-        std::cout << "\n";
-      }
-    }
-  }
-  
-  // walk the tree recursively and count the number of nodes with values.
-  inline size_t size() const
-  {
-    size_t sum{hasValue()};  // me
-    for (auto& c : mChildren)
-    {
-      sum += c.second.size();
-    }
-    return sum;
-  }
-};
-
-// utilities
-template <class V, class C = std::less<Symbol> >
-bool treeNodeExists(const Tree<V, C>& t, Path path)
-{
-  return (t.getNode(path) != nullptr);
+  return (t.getNode(Path(pathStr)) != nullptr);
 }
 
-template <class V, class C = std::less<Symbol> >
-const Tree<V, C> filterByPathList(const Tree<V, C>& t, std::vector<Path> pList)
+template <class V, class K = Symbol, class C = std::less<K>>
+const Tree<V, K, C> filterByPathList(const Tree<V, K, C>& t, std::vector<GenericPath<K>> pList)
 {
-  Tree<V, C> filteredTree;
+  Tree<V, K, C> filteredTree;
   for (auto it = t.begin(); it != t.end(); ++it)
   {
     auto p = it.getCurrentPath();
@@ -968,7 +462,15 @@ const Tree<V, C> filterByPathList(const Tree<V, C>& t, std::vector<Path> pList)
   }
   return filteredTree;
 }
-*/
 
+// ============================================================================
+// Type aliases for common usage
+// ============================================================================
 
-//}  // namespace ml
+template <class V>
+using SymbolTree = Tree<V, Symbol>;
+
+template <class V>
+using DynamicTree = Tree<V, TextFragment>;
+
+} // namespace ml

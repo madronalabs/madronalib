@@ -310,7 +310,7 @@ public:
       // arg pname should be GenericPath<k>
       auto normVal = paramsNorm_[pname];
       auto realVal = paramsReal_[pname];
-      std::cout << pname << ": " << normVal << " / " << realVal << "\n";
+ // TEMP     std::cout << pname << ": " << normVal << " / " << realVal << "\n";
     }
     std::cout << "----------------------------\n\n";
   }
@@ -415,7 +415,7 @@ inline ParameterDescription* findNamedParameter(const ParameterDescriptionList& 
   for(int i = 0; i<paramList.size(); ++i)
   {
     auto& pDesc = paramList[i];
-    if(pDesc->getTextProperty("name") == pname)
+    if(Path(pDesc->getTextProperty("name")) == pname)
     {
       pParam = pDesc.get();
       break;
