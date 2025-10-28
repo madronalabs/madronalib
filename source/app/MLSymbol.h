@@ -90,7 +90,7 @@ constexpr uint64_t hash(const char (&sym)[N])
   return fnv1a(sym);
 }
 
-
+  
 class SymbolTable
 {
 public:
@@ -141,9 +141,6 @@ inline SymbolTable& theSymbolTable()
   return *t;
 }
 
-
-// ----------------------------------------------------------------
-#pragma mark Symbol
 
 class Symbol
 {
