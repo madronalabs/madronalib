@@ -23,7 +23,7 @@ const int kPathMaxSymbols = 15;
 
 template <class K>
 class GenericPath
-{
+
 public:
   GenericPath() = default;
   

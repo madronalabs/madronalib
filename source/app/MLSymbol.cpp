@@ -7,16 +7,17 @@
 namespace ml
 {
 
+const TextFragment SymbolTable::kNullText;
+
 const TextFragment& SymbolTable::getTextForHash(uint64_t hash) const
 {
   auto it = mSymbols.find(hash);
   
   // if not found, return null object
-  if (it == mSymbols.end()) return TextFragment();
+  if (it == mSymbols.end()) return SymbolTable::kNullText;
   
   return it->second;
 }
-
 
 std::ostream& operator<< (std::ostream& out, const Symbol r)
 {

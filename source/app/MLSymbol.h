@@ -94,6 +94,8 @@ constexpr uint64_t hash(const char (&sym)[N])
 class SymbolTable
 {
 public:
+  static const TextFragment kNullText;
+  
   SymbolTable() = default;
   ~SymbolTable() = default;
   
