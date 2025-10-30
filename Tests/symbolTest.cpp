@@ -16,24 +16,27 @@
 #define HAVE_U8_LITERALS 1
 #endif
 
-static const int kThreadTestSize = 1024;
-
 using namespace ml;
 
-typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
-myTimePoint now() { return std::chrono::high_resolution_clock::now(); }
 
-/*
-void threadTest(int threadID)
+
+TEST_CASE("madronalib/core/symbol/hash", "[symbol]")
 {
-  textUtils::NameMaker namer;
-  for (int i = 0; i < kThreadTestSize; ++i)
-  {
-    Symbol sym(namer.nextName());
-    std::this_thread::yield();
-  }
+  // the compile time and runtime hashes need to be equivalent.
+  
+  // constexpr
+  auto a1 = hash("hello");
+  auto a2 = hash(u8"محمد بن سعيد");
+  
+  // runtime
+  const char* str1("hello");
+  const char* str2(u8"محمد بن سعيد");
+  auto b1 = fnv1aRuntime(str1);
+  auto b2 = fnv1aRuntime(str2);
+  
+  REQUIRE(a1 == b1);
+  REQUIRE(a2 == b2);
 }
-
 
 TEST_CASE("madronalib/core/symbol/simple", "[symbol][simple]")
 {
@@ -41,83 +44,60 @@ TEST_CASE("madronalib/core/symbol/simple", "[symbol][simple]")
   Symbol b("world");
   Symbol c("hello");
 
-  REQUIRE(a.getID() == c.getID());
+  REQUIRE(a.getHash() == c.getHash());
+  REQUIRE(a.getHash() != b.getHash());
+  REQUIRE(a == c);
+}
+
+typedef std::chrono::time_point<std::chrono::high_resolution_clock> myTimePoint;
+myTimePoint now() { return std::chrono::high_resolution_clock::now(); }
+
+void threadTest(TextFragment prefix, int n)
+{
+  textUtils::NameMaker namer;
+  for (int i = 0; i < n; ++i)
+  {
+    TextFragment t(TextFragment(prefix), namer.nextName());
+    Symbol sym(t);
+    std::this_thread::yield();
+  }
 }
 
 TEST_CASE("madronalib/core/symbol/threads", "[symbol][threads]")
 {
-  // multithreaded test. multiple nameMakers will try to make duplicate names at
+  // multithreaded test. multiple threadTests will try to make duplicate names at
   // about the same time, which will almost certainly lead to problems unless
   // the symbol code is properly thread-safe.
 
-  // start timing
-  myTimePoint start, end;
-  std::chrono::duration<double> elapsed;
-  start = now();
-
-  theSymbolTable().clear();
   int nThreads = 16;
+  int nSymbolsPerThread = 100;
+
+  // no duplicate symbols
+  theSymbolTable().clear();
   std::vector<std::thread> threads;
   for (int i = 0; i < nThreads; ++i)
   {
-    threads.push_back(std::thread(threadTest, i));
+    threads.push_back(std::thread(threadTest, TextFragment('A' + i), 100));
   }
   for (int i = 0; i < nThreads; ++i)
   {
     threads[i].join();
   }
-
-  end = now();
-  elapsed = end - start;
-  // std::cout << "multithreaded test, elapsed time: " << elapsed.count() << "s\n";
-
-  REQUIRE(theSymbolTable().audit());
-  REQUIRE(theSymbolTable().getSize() == kThreadTestSize + 1);
-}
-
-TEST_CASE("madronalib/core/collision", "[collision]")
-{
-  // nothing is checked here - these are two pairs of colliding symbols for
-  // reference with 12-bit hash:
-  Symbol a("KP");
-  Symbol aa("BAZ");
-  Symbol b("KL");
-  Symbol bb("mse");
-  // 16-bit hash:
-  Symbol c("FB");
-  Symbol cc("hombfbmohqqhombf");
-}
-
-template <size_t N>
-constexpr int hashTest1(const char (&sym)[N])
-{
-  return krHash1<N>(sym);
-}
-
-TEST_CASE("madronalib/core/hashes", "[hashes]")
-{
-  // the compile time and runtime hashes need to be equivalent.
-  const char* str1("hello");
-  const char* str2(u8"محمد بن سعيد");
-
-  constexpr int a1 = hashTest1("hello");
-  constexpr int a2 = hashTest1(u8"محمد بن سعيد");
-
-  int b1 = krHash0(str1, strlen(str1));
-  int b2 = krHash0(str2, strlen(str2));
-
-  REQUIRE(a1 == b1);
-  REQUIRE(a2 == b2);
+  REQUIRE(theSymbolTable().getSize() == nThreads*nSymbolsPerThread);
   
-  
-  auto h = hash(Symbol());
-  //std::cout << "hash of null symbol: " << h << "\n";
+  // all duplicate symbols
+  theSymbolTable().clear();
+  threads.clear();
+  for (int i = 0; i < nThreads; ++i)
+  {
+    threads.push_back(std::thread(threadTest, TextFragment('A'), 100));
+  }
+  for (int i = 0; i < nThreads; ++i)
+  {
+    threads[i].join();
+  }
+  REQUIRE(theSymbolTable().getSize() == nSymbolsPerThread);
 }
- 
- 
- 
- 
- */
 
 
 const char letters[24] = "abcdefghjklmnopqrstuvw";
@@ -199,7 +179,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    // std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
+    //std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
 
     // lookup from existing MLSymbols
     start = now();
@@ -303,7 +283,6 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     end = now();
     elapsed = end - start;
 
-   // REQUIRE(theSymbolTable().audit());
 
     // theSymbolTable().dump();
   }
@@ -324,7 +303,6 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
     REQUIRE(testSym == testSymWithoutNum);
     REQUIRE(num == finalNumber);
   }
-//  REQUIRE(theSymbolTable().audit());
 }
 
 TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
@@ -335,6 +313,7 @@ TEST_CASE("madronalib/core/symbol/identity", "[symbol][identity]")
   Symbol b("xxx");
   REQUIRE(a != b);
 }
+
 
 // hex char printing
 struct HexCharStruct
@@ -352,7 +331,6 @@ inline HexCharStruct hexchar(unsigned char _c) { return HexCharStruct(_c); }
 
 TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
 {
-  //theSymbolTable().clear();
   std::map<Symbol, int> sortedMap;
   const int sortTestSize = 10;
   int p = 0;
@@ -375,34 +353,4 @@ TEST_CASE("madronalib/core/symbol/UTF8", "[symbol][UTF8]")
   }
 
   REQUIRE(totalPoints == 21);
-}
-
-// TODO move
-TEST_CASE("madronalib/core/symbol/path", "[symbol][path]")
-{
-  Path p("hello/world/a/b/c/d/e/f/g");
-
-  auto accumTest = [](Symbol a, Symbol b) {
-    return TextFragment(a.getTextFragment(), TextFragment("+"),
-                        b.getTextFragment());
-  };
-  TextFragment pa = std::accumulate(++p.begin(), p.end(),
-                                    (*p.begin()).getTextFragment(), accumTest);
-
-  /* TEMP
-  Path a{"a"};
-  Path b{"b"};
-  Path d{"d"};
-  Path p4 (a, b, "c", d);
-  Path p5 (p4, "george", p4);
-  REQUIRE(p5.getSize() == 9);
-  
-  REQUIRE(p.beginsWith("hello/world"));
-  REQUIRE(!p.beginsWith("hello/world/b"));
-  REQUIRE(p.beginsWith(p));
-  
-  Path q(p, "and/more");
-  REQUIRE(!p.beginsWith(q));
-  */
-  
 }

@@ -72,8 +72,6 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   j5.addJSON("j-obj", j6);
   REQUIRE(JSONToValueTree(j5).size() == 2);
   REQUIRE(JSONToValueTree(j6).size() == 0);
-  
- // REQUIRE(theSymbolTable().audit());
 }
 
 TEST_CASE("madronalib/core/value_serialization", "[serialization][values]")

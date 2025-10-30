@@ -12,23 +12,60 @@
 #include "MLPath.h"
 #include "MLValue.h"
 
-// A recursive map from Paths to values using Symbol keys, a value class V, and
-// optional comparator class C. The value class must have a default constructor
-// V() returning a safe null object. Note that this makes (for example)
-// Tree<int> weird to use, because 0 indicates a null value. However, we are
-// typically interested in more complex value types like Values or Widgets.
-// Heavyweight objects in a Tree should be held by unique_ptrs.
+// Tree
+// --------
 //
-// Once made, nodes cannot be erased. Typically, the Tree will be made once
-// from a parameter list, or rescanned periodically to mirror a file hierarchy.
-// Partial deletion would add complexity without a clear benefit.
+// Uses:
+//
+// Tree is a recursive map from Paths to values, used for hierarchical data
+// structures like parameter lists, state trees, and file system representations.
+// The tree maps GenericPath<K> keys to values of type V.
+//
+// Type aliases:
+//   SymbolTree<V> = Tree<V, Symbol>           // For compile-time structures
+//   DynamicTree<V> = Tree<V, TextFragment>    // For runtime structures
+//
+// Static use case (SymbolTree):
+// Synth parameters, DSP graph configurations, and other compile-time-known
+// structures benefit from hash-based Symbol keys. Paths can be defined as
+// constexpr, and lookups are extremely fast (hash comparison only). No heap
+// allocation occurs during lookup if all Symbols are pre-registered.
+//
+// Dynamic use case (DynamicTree):
+// File system hierarchies, user-generated content, and runtime-discovered
+// structures use TextFragment keys. No symbol table overhead, no registration
+// cost. Suitable for transient data that doesn't benefit from hash optimization.
+//
+// Heavyweight objects in a Tree are moved, not copied, thanks to move semantics.
+// So it's OK to use most objects as Values.
+// Use unique_ptr when you need:
+// - Polymorphism (base class pointers to derived objects)
+// - Optional ownership (nullptr = no value)
+// - Non-copyable resources (file handles, etc.)
+//
+// Requirements:
+//
+// Once created, nodes cannot be deleted. The Tree can be cleared entirely, or
+// nodes can have their values updated, but partial deletion is not supported.
+// This simplifies memory management and thread safety for real-time use.
+//
+// The value type V must have a default constructor V() that returns a safe
+// null object. This allows operator[] to return references even for non-existent
+// paths without heap allocation.
+//
+// Trees can be combined, compared for equality, and iterated over. The iterator
+// visits only nodes with values, skipping intermediate nodes.
+// NOTE: In the future let's aim for STL-compliance and visit every node as a generic
+// container should. Use Visitor pattern and Range objects (ValueOnlyRange)
+// to iterate over values. Something like
+// ValueOnlyRange<V, C> values() const {return ValueOnlyRange<V, C>(this);}
+//
+// see also: Path, DynamicPath, GenericPath, Value
 
 namespace ml
 {
 
-// ============================================================================
 // Tree - templated on Key type
-// ============================================================================
 
 template <class V, class K = Symbol, class C = std::less<K>>
 class Tree
@@ -436,17 +473,6 @@ public:
 };
 
 // Utility functions
-template <class V, class K = Symbol, class C = std::less<K>>
-bool treeNodeExists(const Tree<V, K, C>& t, GenericPath<K> path)
-{
-  return (t.getNode(path) != nullptr);
-}
-
-template <class V, class K = Symbol, class C = std::less<K>>
-bool treeNodeExists(const Tree<V, K, C>& t, const char* pathStr)
-{
-  return (t.getNode(Path(pathStr)) != nullptr);
-}
 
 template <class V, class K = Symbol, class C = std::less<K>>
 const Tree<V, K, C> filterByPathList(const Tree<V, K, C>& t, std::vector<GenericPath<K>> pList)
@@ -463,9 +489,7 @@ const Tree<V, K, C> filterByPathList(const Tree<V, K, C>& t, std::vector<Generic
   return filteredTree;
 }
 
-// ============================================================================
 // Type aliases for common usage
-// ============================================================================
 
 template <class V>
 using SymbolTree = Tree<V, Symbol>;

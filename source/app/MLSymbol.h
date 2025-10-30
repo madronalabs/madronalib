@@ -2,28 +2,28 @@
 // Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
-// ml::Symbol.h
-// ----------
-
-// ml::Symbol is designed to be an efficient key in STL containers such as map
+// Symbol
+// --------
+//
+// Uses:
+//
+// Symbol is designed to be an efficient key in STL containers such as map
 // and unordered_map, that is quick to convert to and from a unique UTF-8
 // string.
 //
-// requirements
-// ---------
+// Requirements:
 //
 // Symbols are immutable.
-// The value of a Symbol must remain valid even after more ml::Symbols are
-// created. This allows ml::Symbols to function as keys in any kind of data
-// structure.
-//
-// Accessing a Symbol must not cause any heap to be allocated if the symbol
-// already exists. This allows use in DSP code, assuming that the signal graph
-// or whatever has already been parsed.
 //
 // Symbols must not ever require any heap as long as they are smaller than a
 // certain size. Currently this relies on the "small string optimization"
 // implementation of TextFragment. Currently the size is 16 bytes.
+//
+// Accessing a Symbol, no matter the size, must not cause any heap to be allocated
+// if the symbol already exists. This allows use in DSP code, assuming that any
+// code that sets up signal-keyed structures has already been parsed.
+//
+// see also: TextFragment, Path, Tree
 
 #pragma once
 
@@ -68,6 +68,12 @@ constexpr uint64_t fnv1aSubstring(const char* s, size_t len)
   return detail::fnv1aSubstring(14695981039346656037ull, s, len);
 }
 
+template <size_t N>
+constexpr uint64_t hash(const char (&sym)[N])
+{
+  return fnv1a(sym);
+}
+
 // Runtime version for dynamic strings
 inline uint64_t fnv1aRuntime(const char* str, size_t len)
 {
@@ -84,57 +90,30 @@ inline uint64_t fnv1aRuntime(const char* str)
   return fnv1aRuntime(str, strlen(str));
 }
 
-template <size_t N>
-constexpr uint64_t hash(const char (&sym)[N])
-{
-  return fnv1a(sym);
-}
+// SymbolTable: stores symbol texts by their hashes.
 
-  
 class SymbolTable
 {
 public:
-  static const TextFragment kNullText;
-  
+
   SymbolTable() = default;
   ~SymbolTable() = default;
   
+  // modifiers
+  uint64_t registerSymbol(const char* text, size_t len);
   void clear();
-  size_t getSize() const { return mSymbols.size(); }
-  void dump();
   
-  uint64_t registerSymbol(const char* text, size_t len)
-  {
-    uint64_t hash = fnv1aRuntime(text, len);
-    
-    std::lock_guard<std::mutex> lock(mMutex);
-    
-    auto it = mSymbols.find(hash);
-    if (it != mSymbols.end())
-    {
-      // Hash exists - check for collision
-      const TextFragment& existing = it->second;
-      if (existing.lengthInBytes() != len ||
-          !compareSizedCharArrays(existing.getText(), existing.lengthInBytes(), text, len))
-      {
-        // COLLISION DETECTED!
-        throw std::runtime_error("Symbol hash collision detected!");
-      }
-      // Same string, return existing hash
-      return hash;
-    }
-    
-    // New symbol - register it
-    mSymbols.emplace(hash, TextFragment(text, static_cast<int>(len)));
-    return hash;
-  }
+  // accessors
   const TextFragment& getTextForHash(uint64_t hash) const;
-  bool hasHash(uint64_t hash) const;
+  size_t getSize() const { return mSymbols.size(); }
+
+  // utilities
+  void dump();
   
 private:
   std::unordered_map<uint64_t, TextFragment> mSymbols;
   mutable std::mutex mMutex;
-  static const TextFragment emptyFragment;
+  static const TextFragment kNullText;
 };
 
 inline SymbolTable& theSymbolTable()
@@ -143,6 +122,8 @@ inline SymbolTable& theSymbolTable()
   return *t;
 }
 
+
+// Symbol itself
 
 class Symbol
 {
@@ -195,7 +176,6 @@ inline Symbol operator+(Symbol f1, Symbol f2)
 }
 
 inline uint64_t hash(Symbol s) { return s.getHash(); }
-
 
 }  // namespace ml
 

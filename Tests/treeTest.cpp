@@ -34,9 +34,6 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
-//TEMP
-#if 0
-
 TEST_CASE("madronalib/core/tree", "[tree]")
 {
   textUtils::NameMaker namer;
@@ -50,8 +47,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   RandomScalarSource randSource;
 
-  // TEMP
-  
   // make vector of test paths with mostly leaf nodes, somewhat mirroring
   // typical use
   for (int i = 0; i < mapSize; ++i)
@@ -65,7 +60,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // 8 possible symbols per level
       int symbolIdx =
           (((randSource.getUInt32() >> 16) & 0x07) + 8 * p) % numTestWords;
-      testPath = Path{testPath, testWords[symbolIdx]};
+      testPath = Path{testPath, Path(testWords[symbolIdx])};
     }
 
     for (int j = 0; j < leaves; ++j)
@@ -145,9 +140,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // their hash order.  Pass a different sorting functor than the default
     // to get lexicographical or other sorting.
 
-//    theSymbolTable().clear();
     SymbolTree< int > a;
-
 
     // note that the root node (case) has no value.
     a.add(Path("case/sensitive/a"), 1);
@@ -273,12 +266,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     // *** heavies.add("nodes/in/path",  r);
 
     // we can check to see if an object exists without making one
-    REQUIRE(!treeNodeExists(heavies, "x"));
+    REQUIRE(!heavies.getNode("x"));
+
 
     // either add() or operator[] can be used to assign a new unique_ptr
     heavies.add("x", std::make_unique<TestResource>(8));
     heavies["x"] = std::make_unique<TestResource>(10);
-    REQUIRE(treeNodeExists(heavies, "x"));
 
     // shorthand courtesy of unique_ptr operator bool
     REQUIRE(heavies["x"]);
@@ -328,9 +321,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // when a property does not exist, operator[] adds a default object
   // and the reference it returns can be assigned a value
-  REQUIRE(!treeNodeExists(properties, Path("x"))); // TEMP
+  REQUIRE(!properties.getNode("x"));
   properties["x"] = 24;
-  REQUIRE(treeNodeExists(properties, "x"));
+  REQUIRE(properties.getNode("x"));
 
   // failed lookup returns a null Value
   auto failedLookup = properties["nowhere/in/path"];
@@ -352,7 +345,6 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
   }
 
-
   //  Empty SymbolTree test
   SymbolTree< Value > emptyTree;
   int count{0};
@@ -373,9 +365,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   REQUIRE(floatTree["purple"] == 0.f);
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);
-  
 }
-
 
 TEST_CASE("madronalib/core/textutils", "[textutils]")
 {
@@ -416,5 +406,3 @@ TEST_CASE("madronalib/core/textutils", "[textutils]")
   }
   REQUIRE(!errors);
 }
-
-#endif

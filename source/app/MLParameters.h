@@ -305,12 +305,12 @@ public:
     for (auto it = descriptions.begin(); it != descriptions.end(); ++it)
     {
       const auto& paramDesc = *it;
-      Path pname = paramDesc->getTextProperty("name");
+      Path pname(paramDesc->getTextProperty("name"));
       
       // arg pname should be GenericPath<k>
       auto normVal = paramsNorm_[pname];
       auto realVal = paramsReal_[pname];
- // TEMP     std::cout << pname << ": " << normVal << " / " << realVal << "\n";
+      std::cout << pname << ": " << normVal << " / " << realVal << "\n";
     }
     std::cout << "----------------------------\n\n";
   }
@@ -395,7 +395,7 @@ inline void buildParameterTree(const ParameterDescriptionList& paramList, Parame
   for (const auto& paramDesc : paramList)
   {
     auto pname = paramDesc->getTextProperty("name");
-    setParameterInfo(paramTree, pname, *paramDesc);
+    setParameterInfo(paramTree, Path(pname), *paramDesc);
   }
 }
 
@@ -403,7 +403,7 @@ inline void setDefaults(ParameterTree& p)
 {
   for (auto& paramDesc : p.descriptions)
   {
-    Path pname = paramDesc->getTextProperty("name");
+    Path pname (paramDesc->getTextProperty("name"));
     setDefault(p, pname);
   }
 }

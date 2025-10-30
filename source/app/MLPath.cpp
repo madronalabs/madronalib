@@ -11,231 +11,74 @@ namespace ml
 {
 
 
-
-/*
-// parse an input string into our representation: an array of ml::Symbols.
-Path::Path(const char* str) { parsePathString(str); }
-
-// allocate a path with one symbol.
-Path::Path(const ml::Symbol sym) { addSymbol(sym); }
-
-Path::Path(const ml::TextFragment frag) { parsePathString(frag.getText()); }
-
-Path::Path(const ml::TextFragment frag, const char separator)
-{
-  parsePathString(frag.getText(), separator);
-}
-
-Path::Path(const Path& a, const Path& b)
-{
-  for (Symbol s : a)
-  {
-    addSymbol(s);
-  }
-  for (Symbol s : b)
-  {
-    addSymbol(s);
-  }
-}
-
-Path::Path(const Path& a, const Path& b, const Path& c)
-{
-  for (Symbol s : a)
-  {
-    addSymbol(s);
-  }
-  for (Symbol s : b)
-  {
-    addSymbol(s);
-  }
-  for (Symbol s : c)
-  {
-    addSymbol(s);
-  }
-}
-
-Path::Path(const Path& a, const Path& b, const Path& c, const Path& d)
-{
-  for (Symbol s : a)
-  {
-    addSymbol(s);
-  }
-  for (Symbol s : b)
-  {
-    addSymbol(s);
-  }
-  for (Symbol s : c)
-  {
-    addSymbol(s);
-  }
-  for (Symbol s : d)
-  {
-    addSymbol(s);
-  }
-}
-
-inline size_t codepointSize(utf::codepoint_type c)
-{
-  return utf::internal::utf_traits<utf::utf8>::write_length(c);
-}
-
-void Path::parsePathString(const char* pathStr, const char separator)
+void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr, const char delimiter)
 {
   if (!pathStr) return;
-
+  
   auto it = TextFragment::Iterator(pathStr);
   const char* symbolStartPtr = pathStr;
-
+  
   do
   {
-    // read one symbol
-    size_t codepointSizeInBytes = 0;
     size_t symbolSizeInBytes = 0;
-
-    // skip zero or more separators (which must have codepoint size = 1)
-    while (*it == separator)
+    
+    // Skip separators
+    while (*it == delimiter)
     {
       symbolStartPtr++;
       ++it;
     }
-
-    // advance by code points to end of symbol
-    while ((*it != separator) && (*it != '\0'))
+    
+    // Advance to end of symbol
+    while ((*it != delimiter) && (*it != '\0'))
     {
-      // codepointSize(0) is 0, so this is OK
-      symbolSizeInBytes += codepointSize(*it);
+      symbolSizeInBytes += utf::internal::utf_traits<utf::utf8>::write_length(*it);
       ++it;
     }
-
-    // create and add the new symbol
+    
+    // Create and add the symbol
     if (symbolSizeInBytes > 0)
     {
-      addSymbol(Symbol(symbolStartPtr, symbolSizeInBytes));
+      path.addElement(Symbol(symbolStartPtr, symbolSizeInBytes));
       symbolStartPtr += symbolSizeInBytes;
     }
   } while (*it != '\0');
-
-
 }
 
-bool Path::beginsWith(Path b) const
+
+void parsePathStringIntoTextFragments(GenericPath<TextFragment>& path, const char* pathStr, const char delimiter)
 {
-  if (b.getSize() > getSize()) return false;
-  for (int i = 0; i < b.getSize(); ++i)
+  if (!pathStr) return;
+  
+  auto it = TextFragment::Iterator(pathStr);
+  const char* symbolStartPtr = pathStr;
+  
+  do
   {
-    if (nth(b, i) != nth(*this, i))
+    size_t symbolSizeInBytes = 0;
+    
+    // Skip separators
+    while (*it == delimiter)
     {
-      return false;
+      symbolStartPtr++;
+      ++it;
     }
-  }
-  return true;
-}
-
-std::ostream& operator<<(std::ostream& out, const ml::Path& r)
-{
-  out << pathToText(r);
-  unsigned copy = r.getCopy();
-  if (copy)
-  {
-    out << "(#" << copy << ")";
-  }
-  return out;
-}
-
-Symbol head(Path p) { return (p.getSize() > 0) ? p._symbols[0] : Symbol(); }
-
-Symbol first(Path p) { return head(p); }
-
-Symbol second(Path p) { return (p.getSize() > 1) ? p._symbols[1] : Symbol(); }
-
-Symbol third(Path p) { return (p.getSize() > 2) ? p._symbols[2] : Symbol(); }
-
-Symbol fourth(Path p) { return (p.getSize() > 3) ? p._symbols[3] : Symbol(); }
-
-Symbol fifth(Path p) { return (p.getSize() > 4) ? p._symbols[4] : Symbol(); }
-
-Symbol nth(Path p, size_t n) { return (p.getSize() > n) ? p._symbols[n] : Symbol(); }
-
-Path tail(Path p)
-{
-  Path r;
-  r.setCopy(p.getCopy());  // to remove
-  for (int n = 1; n < p.mSize; ++n)
-  {
-    r.addSymbol(p._symbols[n]);
-  }
-  return r;
-}
-
-Path butLast(Path p)
-{
-  Path r;
-  for (int n = 0; n < p.mSize - 1; ++n)
-  {
-    r.addSymbol(p._symbols[n]);
-  }
-  return r;
-}
-
-Symbol last(Path p)
-{
-  auto len = p.getSize();
-  if (len > 0)
-  {
-    return p._symbols[len - 1];
-  }
-  return Symbol();
-}
-
-Path lastN(Path p, size_t n)
-{
-  auto len = p.getSize();
-  if (len >= n)
-  {
-    Path r;
-    for(size_t i = len - n; i < len; ++i)
+    
+    // Advance to end of symbol
+    while ((*it != delimiter) && (*it != '\0'))
     {
-      r = Path(r, nth(p, i));
+      symbolSizeInBytes += utf::internal::utf_traits<utf::utf8>::write_length(*it);
+      ++it;
     }
-    return r;
-  }
-  return Path();
-}
-
-Path substitute(Path p, Symbol from, Symbol to)
-{
-  Path r{p};
-  for (int n = 0; n < p.mSize; ++n)
-  {
-    if (p._symbols[n] == from)
+    
+    // Create and add the TextFragment
+    if (symbolSizeInBytes > 0)
     {
-      r._symbols[n] = to;
+      path.addElement(TextFragment(symbolStartPtr, static_cast<int>(symbolSizeInBytes)));
+      symbolStartPtr += symbolSizeInBytes;
     }
-  }
-  return r;
+  } while (*it != '\0');
 }
-
-// return a new Path created by substituting every symbol in p matching fromSymbol
-// with the Path toPath
-Path substitute(Path p, Symbol fromSymbol, Path toPath)
-{
-  Path r;
-  for (int n = 0; n < p.mSize; ++n)
-  {
-    Symbol next = p._symbols[n];
-    if (next == fromSymbol)
-    {
-      r = Path{r, toPath};
-    }
-    else
-    {
-      r = Path{r, Path(next)};
-    }
-  }
-  return r;
-}
- 
- */
 
 
 }  // namespace ml

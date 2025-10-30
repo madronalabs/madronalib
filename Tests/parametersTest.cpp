@@ -52,7 +52,7 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
   for(size_t i=0; i < pdl.size(); ++i)
   {
     ParameterDescription& pd = *pdl[i];
-    paramNames.push_back(pd.getTextProperty("name"));
+    paramNames.push_back(Path(pd.getTextProperty("name")));
   }
   
   for(auto & pname : paramNames)

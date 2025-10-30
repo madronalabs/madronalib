@@ -2,6 +2,38 @@
 // Copyright (c) 2020-2022 Madrona Labs LLC. http://www.madronalabs.com
 // Distributed under the MIT license: http://madrona-labs.mit-license.org/
 
+
+// GenericPath
+// --------
+//
+// Uses:
+//
+// GenericPath is a template class representing a hierarchical path with
+// elements of type K. It is the base implementation for both Symbol-based
+// paths (compile-time friendly, hash-based) and TextFragment-based paths
+// (runtime-only, no symbol table overhead).
+//
+// Type aliases:
+//   Path = GenericPath<Symbol>           // For compile-time trees
+//   DynamicPath = GenericPath<TextFragment>  // For runtime trees
+//
+// Requirements:
+//
+// Paths are immutable after construction.
+//
+// The maximum path depth is fixed at compile time (kPathMaxSymbols = 15),
+// allowing stack allocation and use in real-time audio threads.
+//
+// GenericPath provides a common interface for all path types via template
+// specialization. Type-specific behavior (construction from strings, text
+// conversion, compile-time hashing) is implemented through specialization
+// rather than inheritance.
+//
+// Path elements can be accessed by index, iterated over, and converted to
+// text representation. Comparison and equality operations are supported.
+//
+// see also: Symbol, TextFragment, Path, DynamicPath, Tree
+
 #pragma once
 
 #include <numeric>
@@ -10,31 +42,53 @@
 #include "MLTextUtils.h"
 #include "MLMemoryUtils.h"
 
-#include "utf.hpp"
-
 namespace ml
 {
 
 const int kPathMaxSymbols = 15;
 
-// ============================================================================
+
 // GenericPath - templated on key type
-// ============================================================================
 
 template <class K>
 class GenericPath
-
+{
 public:
   GenericPath() = default;
   
   // Specialized constructors declared here, defined below via specialization
   GenericPath(const char* str);
-  GenericPath(const TextFragment frag);
   GenericPath(const TextFragment frag, const char separator);
   
   // Constexpr constructor from string literal - only meaningful for Symbol specialization
   template <size_t N>
   constexpr GenericPath(const char (&str)[N], char separator = '/');
+  
+  GenericPath(const K elem)
+  {
+    addElement(elem);
+  }
+  
+  GenericPath(const GenericPath p1, const GenericPath p2)
+  {
+    for (K elem : p1) addElement(elem);
+    for (K elem : p2) addElement(elem);
+  }
+  
+  GenericPath(const GenericPath p1, const GenericPath p2, const GenericPath p3)
+  {
+    for (K elem : p1) addElement(elem);
+    for (K elem : p2) addElement(elem);
+    for (K elem : p3) addElement(elem);
+  }
+  
+  GenericPath(const GenericPath p1, const GenericPath p2, const GenericPath p3, const GenericPath p4)
+  {
+    for (K elem : p1) addElement(elem);
+    for (K elem : p2) addElement(elem);
+    for (K elem : p3) addElement(elem);
+    for (K elem : p4) addElement(elem);
+  }
   
   explicit operator bool() const { return mSize != 0; }
   
@@ -49,9 +103,6 @@ public:
       if (n >= mSize) mSize = n + 1;
     }
   }
-  
-  int getCopy() const { return mCopy; }
-  void setCopy(int c) { mCopy = c; }
   
   bool beginsWith(GenericPath<K> b) const
   {
@@ -135,73 +186,128 @@ inline bool operator!=(const GenericPath<K>& a, const GenericPath<K>& b)
   return !(a == b);
 }
 
-// ============================================================================
-// Type aliases - Path and DynamicPath are just specialized GenericPaths
-// ============================================================================
+// Generic helper functions that work for any GenericPath<K>
+template <class K>
+inline K head(GenericPath<K> p) { return p.getSize() > 0 ? p.getElement(0) : K(); }
 
-using Path = GenericPath<Symbol>;
-using DynamicPath = GenericPath<TextFragment>;
+template <class K>
+inline K first(GenericPath<K> p) { return head(p); }
 
-// ============================================================================
-// Specialized constructors for Path (GenericPath<Symbol>)
-// ============================================================================
+template <class K>
+inline K second(GenericPath<K> p) { return p.getSize() > 1 ? p.getElement(1) : K(); }
 
-// Helper function for parsing path strings into Symbols
-inline void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr, const char delimiter = '/')
+template <class K>
+inline K third(GenericPath<K> p) { return p.getSize() > 2 ? p.getElement(2) : K(); }
+
+template <class K>
+inline K fourth(GenericPath<K> p) { return p.getSize() > 3 ? p.getElement(3) : K(); }
+
+template <class K>
+inline K fifth(GenericPath<K> p) { return p.getSize() > 4 ? p.getElement(4) : K(); }
+
+template <class K>
+inline K nth(GenericPath<K> p, size_t n) { return p.getSize() > n ? p.getElement(n) : K(); }
+
+template <class K>
+inline GenericPath<K> tail(GenericPath<K> p)
 {
-  if (!pathStr) return;
-  
-  auto it = TextFragment::Iterator(pathStr);
-  const char* symbolStartPtr = pathStr;
-  
-  do
+  GenericPath<K> r;
+  for (int n = 1; n < p.getSize(); ++n)
   {
-    size_t symbolSizeInBytes = 0;
-    
-    // Skip separators
-    while (*it == delimiter)
-    {
-      symbolStartPtr++;
-      ++it;
-    }
-    
-    // Advance to end of symbol
-    while ((*it != delimiter) && (*it != '\0'))
-    {
-      symbolSizeInBytes += utf::internal::utf_traits<utf::utf8>::write_length(*it);
-      ++it;
-    }
-    
-    // Create and add the symbol
-    if (symbolSizeInBytes > 0)
-    {
-      path.addElement(Symbol(symbolStartPtr, symbolSizeInBytes));
-      symbolStartPtr += symbolSizeInBytes;
-    }
-  } while (*it != '\0');
+    r.addElement(p.getElement(n));
+  }
+  return r;
 }
 
+template <class K>
+inline GenericPath<K> butLast(GenericPath<K> p)
+{
+  GenericPath<K> r;
+  for (int n = 0; n < p.getSize() - 1; ++n)
+  {
+    r.addElement(p.getElement(n));
+  }
+  return r;
+}
+
+template <class K>
+inline K last(GenericPath<K> p)
+{
+  return p.getSize() > 0 ? p.getElement(p.getSize() - 1) : K();
+}
+
+template <class K>
+inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
+{
+  auto len = p.getSize();
+  if (len >= n)
+  {
+    GenericPath<K> r;
+    for(size_t i = len - n; i < len; ++i)
+    {
+      r = GenericPath<K>(r, nth(p, i));
+    }
+    return r;
+  }
+  return GenericPath<K>();
+}
+
+
+// Path
+// --------
+//
+// Uses:
+//
+// Path represents a hierarchical address in a tree structure, such as
+// "/audio/oscillator/frequency". Paths are used as keys in Tree containers
+// and for addressing elements in nested data structures.
+//
+// Path is a type alias for GenericPath<Symbol>, making it hash-based and
+// compile-time friendly. For runtime-constructed paths (like file systems),
+// use DynamicPath (GenericPath<TextFragment>).
+//
+// Requirements:
+//
+// Paths are immutable after construction.
+//
+// Paths constructed from string literals at compile time (constexpr) have
+// zero runtime initialization cost. The path segments are hashed at compile
+// time using FNV-1a, and no symbol table modification occurs until the first
+// string access.
+//
+// Accessing a Path created at runtime causes no heap allocation if all its
+// constituent Symbols already exist in the symbol table. This allows use in
+// DSP code, assuming the signal graph has already been parsed.
+//
+// Path comparison is extremely fast, using hash comparison rather than string
+// comparison.
+//
+// Maximum path depth is 15 segments (kPathMaxSymbols).
+//
+// see also: Symbol, GenericPath, DynamicPath, Tree
+
+using Path = GenericPath<Symbol>;
+
+// Specialized constructors for Path (GenericPath<Symbol>)
+
+// Helper function for parsing path strings into Symbols using UTF library
+void parsePathStringIntoSymbols(Path& path, const char* pathStr, const char delimiter = '/');
+
 template <>
-inline GenericPath<Symbol>::GenericPath(const char* str)
+inline Path::GenericPath(const char* str)
 {
   parsePathStringIntoSymbols(*this, str, '/');
 }
 
 template <>
-inline GenericPath<Symbol>::GenericPath(const TextFragment frag)
-{
-  parsePathStringIntoSymbols(*this, frag.getText(), '/');
-}
-
-template <>
-inline GenericPath<Symbol>::GenericPath(const TextFragment frag, const char separator)
+inline Path::GenericPath(const TextFragment frag, const char separator)
 {
   parsePathStringIntoSymbols(*this, frag.getText(), separator);
 }
 
 template <>
 template <size_t N>
-constexpr GenericPath<Symbol>::GenericPath(const char (&str)[N], char separator)
+constexpr Path::GenericPath(const char (&str)[N], char separator)
 : mSize(0), mCopy(0)
 {
   size_t pos = 0;
@@ -230,135 +336,15 @@ constexpr GenericPath<Symbol>::GenericPath(const char (&str)[N], char separator)
   }
 }
 
-/*
-// Additional constructors for combining paths
-template <>
-inline GenericPath<Symbol>::GenericPath(const Path& a, const Path& b)
-{
-  for (Symbol s : a) addElement(s);
-  for (Symbol s : b) addElement(s);
-}
-
-template <>
-inline GenericPath<Symbol>::GenericPath(const Path& a, const Path& b, const Path& c)
-{
-  for (Symbol s : a) addElement(s);
-  for (Symbol s : b) addElement(s);
-  for (Symbol s : c) addElement(s);
-}
-
-template <>
-inline GenericPath<Symbol>::GenericPath(const Path& a, const Path& b, const Path& c, const Path& d)
-{
-  for (Symbol s : a) addElement(s);
-  for (Symbol s : b) addElement(s);
-  for (Symbol s : c) addElement(s);
-  for (Symbol s : d) addElement(s);
-}
-
-// Single-symbol constructor
-template <>
-inline GenericPath<Symbol>::GenericPath(const Symbol sym)
-{
-  addElement(sym);
-}
-*/
-
-// ============================================================================
-// Specialized constructors for DynamicPath (GenericPath<TextFragment>)
-// ============================================================================
-
-inline void parsePathStringIntoTextFragments(GenericPath<TextFragment>& path, const char* pathStr, const char delimiter = '/')
-{
-  if (!pathStr) return;
-  
-  auto it = TextFragment::Iterator(pathStr);
-  const char* symbolStartPtr = pathStr;
-  
-  do
-  {
-    size_t symbolSizeInBytes = 0;
-    
-    // Skip separators
-    while (*it == delimiter)
-    {
-      symbolStartPtr++;
-      ++it;
-    }
-    
-    // Advance to end of symbol
-    while ((*it != delimiter) && (*it != '\0'))
-    {
-      symbolSizeInBytes += utf::internal::utf_traits<utf::utf8>::write_length(*it);
-      ++it;
-    }
-    
-    // Create and add the TextFragment
-    if (symbolSizeInBytes > 0)
-    {
-      path.addElement(TextFragment(symbolStartPtr, static_cast<int>(symbolSizeInBytes)));
-      symbolStartPtr += symbolSizeInBytes;
-    }
-  } while (*it != '\0');
-}
-
-template <>
-inline GenericPath<TextFragment>::GenericPath(const char* str)
-{
-  parsePathStringIntoTextFragments(*this, str, '/');
-}
-
-template <>
-inline GenericPath<TextFragment>::GenericPath(const TextFragment frag)
-{
-  parsePathStringIntoTextFragments(*this, frag.getText(), '/');
-}
-
-template <>
-inline GenericPath<TextFragment>::GenericPath(const TextFragment frag, const char separator)
-{
-  parsePathStringIntoTextFragments(*this, frag.getText(), separator);
-}
-
-/*
-template <>
-inline GenericPath<TextFragment>::GenericPath(const DynamicPath& a, const DynamicPath& b)
-{
-  for (TextFragment f : a) addElement(f);
-  for (TextFragment f : b) addElement(f);
-}
-*/
-
-// ============================================================================
-// Path-specific methods (Symbol specialization)
-// ============================================================================
-
-// Add getHash() method for Symbol paths only
-namespace detail
-{
-template <class K>
-struct PathHashAccessor
-{
-  // No getHash for generic paths
-};
-
-template <>
-struct PathHashAccessor<Symbol>
-{
-  static uint64_t getHash(const GenericPath<Symbol>& p, int n)
-  {
-    return p.getElement(n).getHash();
-  }
-};
-}
-
 // Extension method for Symbol paths
+
 inline uint64_t getHash(const Path& p, int n)
 {
   return p.getElement(n).getHash();
 }
 
 // Fast hash-based equality for Symbol paths
+
 template <>
 inline bool operator==(const Path& a, const Path& b)
 {
@@ -370,12 +356,79 @@ inline bool operator==(const Path& a, const Path& b)
   return true;
 }
 
-// ============================================================================
-// Template specializations for toText()
-// ============================================================================
+
+// DynamicPath
+// --------
+//
+// Uses:
+//
+// DynamicPath is a type alias for GenericPath<TextFragment>, designed for
+// runtime-constructed hierarchical paths where the structure is not known at
+// compile time. Typical uses include file system paths, user input, and
+// dynamically generated content.
+//
+// Unlike Path (GenericPath<Symbol>), DynamicPath stores TextFragments directly
+// rather than hash references, avoiding symbol table overhead and registration
+// cost for transient or one-time-use paths.
+//
+// Requirements:
+//
+// DynamicPaths are immutable after construction.
+//
+// DynamicPaths do not interact with the symbol table at all - no registration,
+// no hash computation, no collision detection. This makes them suitable for
+// temporary paths that don't need the performance benefits of Symbol hashing.
+//
+// Memory allocation depends on TextFragment's small string optimization. Paths
+// with segments under 16 bytes require no heap allocation.
+//
+// see also: Path, GenericPath, TextFragment, Tree, DynamicTree
+
+using DynamicPath = GenericPath<TextFragment>;
+
+
+// Helper function for parsing path strings into TextFragments using UTF library
+void parsePathStringIntoTextFragments(DynamicPath& path, const char* pathStr, const char delimiter = '/');
 
 template <>
-inline TextFragment GenericPath<Symbol>::toText(const char separator) const
+inline GenericPath<TextFragment>::GenericPath(const char* str)
+{
+  parsePathStringIntoTextFragments(*this, str, '/');
+}
+
+template <>
+inline GenericPath<TextFragment>::GenericPath(const TextFragment frag, const char separator)
+{
+  parsePathStringIntoTextFragments(*this, frag.getText(), separator);
+}
+
+
+// Path-specific methods (Symbol specialization)
+
+// Add getHash() method for Symbol paths only
+
+namespace detail
+{
+template <class K>
+struct PathHashAccessor
+{
+  // No getHash for generic paths
+};
+
+template <>
+struct PathHashAccessor<Symbol>
+{
+  static uint64_t getHash(const Path& p, int n)
+  {
+    return p.getElement(n).getHash();
+  }
+};
+}
+
+// Template specializations for toText()
+
+template <>
+inline TextFragment Path::toText(const char separator) const
 {
   TextFragment r;
   auto n = getSize();
@@ -406,65 +459,9 @@ inline TextFragment GenericPath<TextFragment>::toText(const char separator) cons
   return r;
 }
 
-} // namespace ml
 
-// ============================================================================
-// operator<< in global namespace for ADL
-// ============================================================================
-
-template <class K>
-inline std::ostream& operator<<(std::ostream& out, const ml::GenericPath<K>& r)
-{
-  out << r.toText();
-  unsigned copy = r.getCopy();
-  if (copy)
-  {
-    out << "(#" << copy << ")";
-  }
-  return out;
-}
-
-namespace ml
-{
-
-// ============================================================================
-// Helper functions for Path
-// ============================================================================
-
-inline Symbol head(Path p) { return p.getSize() > 0 ? p.getElement(0) : Symbol(); }
-inline Symbol first(Path p) { return head(p); }
-inline Symbol second(Path p) { return p.getSize() > 1 ? p.getElement(1) : Symbol(); }
-inline Symbol third(Path p) { return p.getSize() > 2 ? p.getElement(2) : Symbol(); }
-inline Symbol fourth(Path p) { return p.getSize() > 3 ? p.getElement(3) : Symbol(); }
-inline Symbol fifth(Path p) { return p.getSize() > 4 ? p.getElement(4) : Symbol(); }
-inline Symbol nth(Path p, size_t n) { return p.getSize() > n ? p.getElement(n) : Symbol(); }
-
-inline Path tail(Path p)
-{
-  Path r;
-  r.setCopy(p.getCopy());
-  for (int n = 1; n < p.getSize(); ++n)
-  {
-    r.addElement(p.getElement(n));
-  }
-  return r;
-}
-
-inline Path butLast(Path p)
-{
-  Path r;
-  for (int n = 0; n < p.getSize() - 1; ++n)
-  {
-    r.addElement(p.getElement(n));
-  }
-  return r;
-}
-
-inline Symbol last(Path p)
-{
-  return p.getSize() > 0 ? p.getElement(p.getSize() - 1) : Symbol();
-}
-
+// TEMP this should go away
+// only needed for File stuff, do it there
 inline TextFragment rootPathToText(Path p, const char separator = '/')
 {
   TextFragment r;
@@ -490,7 +487,6 @@ inline Path substitute(Path p, Symbol from, Symbol to)
   return r;
 }
 
-/*
 inline Path substitute(Path p, Symbol fromSymbol, Path toPath)
 {
   Path r;
@@ -503,16 +499,27 @@ inline Path substitute(Path p, Symbol fromSymbol, Path toPath)
     }
     else
     {
-      r = Path{r, Path(next)};
+      r = Path{r, Path(next.getTextFragment())};
     }
   }
   return r;
 }
-*/
 
-// Helper functions for DynamicPath
-inline TextFragment head(DynamicPath p) { return p.getSize() > 0 ? p.getElement(0) : TextFragment(); }
-inline TextFragment last(DynamicPath p) { return p.getSize() > 0 ? p.getElement(p.getSize() - 1) : TextFragment(); }
+ 
+// operator<<
+
+inline std::ostream& operator<<(std::ostream& out, const ml::Path & r)
+{
+  out << r.toText();
+  return out;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const ml::DynamicPath & r)
+{
+  out << r.toText();
+  return out;
+}
+
+
 
 }  // namespace ml
- 
