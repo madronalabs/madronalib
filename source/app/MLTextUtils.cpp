@@ -978,7 +978,7 @@ class NoiseGen
 };
 
 static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";
-std::vector<Symbol> vectorOfNonsenseSymbols(int len)
+std::vector<Symbol> makeVectorOfNonsenseSymbols(int len)
 {
   NoiseGen randSource;
   std::vector<Symbol> words;

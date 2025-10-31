@@ -14,12 +14,12 @@
 // (runtime-only, no symbol table overhead).
 //
 // Type aliases:
-//   Path = GenericPath<Symbol>           // For compile-time trees
-//   DynamicPath = GenericPath<TextFragment>  // For runtime trees
+//   Path = GenericPath<Symbol>               // For compile-time trees
+//   TextPath = GenericPath<TextFragment>   // For runtime trees
 //
 // Requirements:
 //
-// Paths are immutable after construction.
+// GenericPath are immutable after construction.
 //
 // The maximum path depth is fixed at compile time (kPathMaxSymbols = 15),
 // allowing stack allocation and use in real-time audio threads.
@@ -32,7 +32,7 @@
 // Path elements can be accessed by index, iterated over, and converted to
 // text representation. Comparison and equality operations are supported.
 //
-// see also: Symbol, TextFragment, Path, DynamicPath, Tree
+// see also: Symbol, TextFragment, Path, TextPath, Tree
 
 #pragma once
 
@@ -46,7 +46,6 @@ namespace ml
 {
 
 const int kPathMaxSymbols = 15;
-
 
 // GenericPath - templated on key type
 
@@ -264,7 +263,7 @@ inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
 //
 // Path is a type alias for GenericPath<Symbol>, making it hash-based and
 // compile-time friendly. For runtime-constructed paths (like file systems),
-// use DynamicPath (GenericPath<TextFragment>).
+// use TextPath (GenericPath<TextFragment>).
 //
 // Requirements:
 //
@@ -284,7 +283,7 @@ inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
 //
 // Maximum path depth is 15 segments (kPathMaxSymbols).
 //
-// see also: Symbol, GenericPath, DynamicPath, Tree
+// see also: Symbol, GenericPath, TextPath, Tree
 
 using Path = GenericPath<Symbol>;
 
@@ -357,17 +356,17 @@ inline bool operator==(const Path& a, const Path& b)
 }
 
 
-// DynamicPath
+// TextPath
 // --------
 //
 // Uses:
 //
-// DynamicPath is a type alias for GenericPath<TextFragment>, designed for
+// TextPath is a type alias for GenericPath<TextFragment>, designed for
 // runtime-constructed hierarchical paths where the structure is not known at
 // compile time. Typical uses include file system paths, user input, and
 // dynamically generated content.
 //
-// Unlike Path (GenericPath<Symbol>), DynamicPath stores TextFragments directly
+// Unlike SymbolPath, TextPath stores TextFragments directly
 // rather than hash references, avoiding symbol table overhead and registration
 // cost for transient or one-time-use paths.
 //
@@ -382,13 +381,13 @@ inline bool operator==(const Path& a, const Path& b)
 // Memory allocation depends on TextFragment's small string optimization. Paths
 // with segments under 16 bytes require no heap allocation.
 //
-// see also: Path, GenericPath, TextFragment, Tree, DynamicTree
+// see also: Path, GenericPath, TextFragment, Tree, TextTree
 
-using DynamicPath = GenericPath<TextFragment>;
+using TextPath = GenericPath<TextFragment>;
 
 
 // Helper function for parsing path strings into TextFragments using UTF library
-void parsePathStringIntoTextFragments(DynamicPath& path, const char* pathStr, const char delimiter = '/');
+void parsePathStringIntoTextFragments(TextPath& path, const char* pathStr, const char delimiter = '/');
 
 template <>
 inline GenericPath<TextFragment>::GenericPath(const char* str)
@@ -459,21 +458,6 @@ inline TextFragment GenericPath<TextFragment>::toText(const char separator) cons
   return r;
 }
 
-
-// TEMP this should go away
-// only needed for File stuff, do it there
-inline TextFragment rootPathToText(Path p, const char separator = '/')
-{
-  TextFragment r;
-  auto n = p.getSize();
-  for (int i = 0; i < n; ++i)
-  {
-    r = TextFragment(r, separator);
-    r = TextFragment(r, p.getElement(i).getTextFragment());
-  }
-  return r;
-}
-
 inline Path substitute(Path p, Symbol from, Symbol to)
 {
   Path r{p};
@@ -514,7 +498,7 @@ inline std::ostream& operator<<(std::ostream& out, const ml::Path & r)
   return out;
 }
 
-inline std::ostream& operator<<(std::ostream& out, const ml::DynamicPath & r)
+inline std::ostream& operator<<(std::ostream& out, const ml::TextPath & r)
 {
   out << r.toText();
   return out;

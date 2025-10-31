@@ -43,16 +43,13 @@ TEST_CASE("madronalib/core/path/symbolic", "[path]")
   
   Path q(p, "and/more");
   REQUIRE(!p.beginsWith(q));
-  
-  
-  std::cout << "static: " << p << "\n";
 }
 
 TEST_CASE("madronalib/core/path/dynamic", "[path]")
 {
-  DynamicPath oneElementPath(TextFragment("foo"));
+  TextPath oneElementPath(TextFragment("foo"));
   
-  DynamicPath p("hello/world/a/b/c/d/e/f/g");
+  TextPath p("hello/world/a/b/c/d/e/f/g");
   auto initialSize = theSymbolTable().getSize();
   
   auto accumTest = [](TextFragment a, TextFragment b) {
@@ -62,24 +59,22 @@ TEST_CASE("madronalib/core/path/dynamic", "[path]")
                                     *p.begin(), accumTest);
   REQUIRE(TextFragment("hello+world+a+b+c+d+e+f+g") == accumTextResult);
 
-  DynamicPath a{"a"};
-  DynamicPath b{"b"};
-  DynamicPath d{"d"};
-  DynamicPath p4 (a, b, "c", d);
-  DynamicPath p5 (p4, "george", p4);
+  TextPath a{"a"};
+  TextPath b{"b"};
+  TextPath d{"d"};
+  TextPath p4 (a, b, "c", d);
+  TextPath p5 (p4, "george", p4);
   
   REQUIRE(p5.getSize() == 9);
   REQUIRE(p.beginsWith("hello/world"));
   REQUIRE(!p.beginsWith("hello/world/b"));
   REQUIRE(p.beginsWith(p));
   
-  DynamicPath q(p, "and/more");
+  TextPath q(p, "and/more");
   REQUIRE(!p.beginsWith(q));
   
   // DynamicPaths don't affect the Symbol Table
   REQUIRE(theSymbolTable().getSize() == initialSize);
-  
-  std::cout << "dynamic: " << p << "\n";
 }
 
 

@@ -23,7 +23,7 @@
 //
 // Type aliases:
 //   SymbolTree<V> = Tree<V, Symbol>           // For compile-time structures
-//   DynamicTree<V> = Tree<V, TextFragment>    // For runtime structures
+//   TextTree<V> = Tree<V, TextFragment>    // For runtime structures
 //
 // Static use case (SymbolTree):
 // Synth parameters, DSP graph configurations, and other compile-time-known
@@ -31,7 +31,7 @@
 // constexpr, and lookups are extremely fast (hash comparison only). No heap
 // allocation occurs during lookup if all Symbols are pre-registered.
 //
-// Dynamic use case (DynamicTree):
+// Dynamic use case (TextTree):
 // File system hierarchies, user-generated content, and runtime-discovered
 // structures use TextFragment keys. No symbol table overhead, no registration
 // cost. Suitable for transient data that doesn't benefit from hash optimization.
@@ -60,7 +60,7 @@
 // to iterate over values. Something like
 // ValueOnlyRange<V, C> values() const {return ValueOnlyRange<V, C>(this);}
 //
-// see also: Path, DynamicPath, GenericPath, Value
+// see also: Path, TextPath, GenericPath, Value
 
 namespace ml
 {
@@ -495,6 +495,6 @@ template <class V>
 using SymbolTree = Tree<V, Symbol>;
 
 template <class V>
-using DynamicTree = Tree<V, TextFragment>;
+using TextTree = Tree<V, TextFragment, textUtils::Collator>;
 
 } // namespace ml

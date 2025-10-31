@@ -41,7 +41,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   const int mapSize = 100;
 
   // make random paths out of nonsense symbols
-  auto testWords = ml::textUtils::vectorOfNonsenseSymbols(numTestWords);
+  auto testWords = ml::textUtils::makeVectorOfNonsenseSymbols(numTestWords);
   std::vector<Path> pathsVector;
   ml::textUtils::NameMaker endNamer;
 

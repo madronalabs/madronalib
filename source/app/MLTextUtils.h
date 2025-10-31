@@ -96,6 +96,15 @@ std::vector<uint8_t> AES256CBCDecode(const std::vector<uint8_t>& ciphertext,
 // TODO collate other languages better using miniutf library.
 bool collate(const TextFragment& a, const TextFragment& b);
 
+struct Collator
+{
+  bool operator()(const TextFragment& a, const TextFragment& b) const
+  {
+    return collate(a, b);
+  }
+};
+
+
 
 // Symbol utilities
 
@@ -104,16 +113,7 @@ Symbol stripFinalNumber(Symbol sym);
 int getFinalNumber(Symbol sym);
 Symbol stripFinalCharacter(Symbol sym);
 
-std::vector<Symbol> vectorOfNonsenseSymbols(int len);
-
-struct SymbolCollator
-{
-  bool operator()(const Symbol& a, const Symbol& b) const
-  {
-    return collate(a.getTextFragment(), b.getTextFragment());
-  }
-};
-
+std::vector<Symbol> makeVectorOfNonsenseSymbols(int len);
 
 // NameMaker
 // a utility to make many short, unique, human-readable names.
