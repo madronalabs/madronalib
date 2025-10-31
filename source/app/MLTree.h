@@ -21,11 +21,11 @@
 // structures like parameter lists, state trees, and file system representations.
 // The tree maps GenericPath<K> keys to values of type V.
 //
-// Type aliases:
-//   SymbolTree<V> = Tree<V, Symbol>           // For compile-time structures
+// Types in use:
+//   Tree<V, Symbol>                            // (default) For compile-time structures
 //   TextTree<V> = Tree<V, TextFragment>    // For runtime structures
 //
-// Static use case (SymbolTree):
+// Static use case (Tree):
 // Synth parameters, DSP graph configurations, and other compile-time-known
 // structures benefit from hash-based Symbol keys. Paths can be defined as
 // constexpr, and lookups are extremely fast (hash comparison only). No heap
@@ -490,9 +490,6 @@ const Tree<V, K, C> filterByPathList(const Tree<V, K, C>& t, std::vector<Generic
 }
 
 // Type aliases for common usage
-
-template <class V>
-using SymbolTree = Tree<V, Symbol>;
 
 template <class V>
 using TextTree = Tree<V, TextFragment, textUtils::Collator>;

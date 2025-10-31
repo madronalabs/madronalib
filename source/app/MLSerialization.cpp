@@ -460,7 +460,7 @@ void setData(JSONHolder& cj, cJSON* pData)
 //
 // NOTE: this does not make the JSON tree, rather a flat structure with the
 // path name for each object name! TODO fix
-JSONHolder valueTreeToJSON(const SymbolTree<Value>& t)
+JSONHolder valueTreeToJSON(const Tree<Value>& t)
 {
   JSONHolder root;
   

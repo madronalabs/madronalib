@@ -79,7 +79,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // Test a pretty big tree of int values
 
   {
-    SymbolTree<int> numberTree;
+    Tree<int> numberTree;
 
     bool problem = false;
     for (int i = 1; i < mapSize; ++i)
@@ -90,7 +90,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(numberTree.size() == mapSize - 1);
     
     // using a const reference will prevent the Tree from being modified.
-    const SymbolTree<int>& constNumberMap(numberTree);
+    const Tree<int>& constNumberMap(numberTree);
     // *** constNumberMap["foo"] = 2; // should not compile.
 
     for (int i = 1; i < mapSize; ++i)
@@ -135,12 +135,12 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   // Misc examples
 
   {
-    // with a SymbolTree< int, std::less<Symbol> > , (default sorting class), the
+    // with a Tree< int, std::less<Symbol> > , (default sorting class), the
     // order of map keys depends on the sorted order of symbols, which is just
     // their hash order.  Pass a different sorting functor than the default
     // to get lexicographical or other sorting.
 
-    SymbolTree< int > a;
+    Tree< int > a;
 
     // note that the root node (case) has no value.
     a.add(Path("case/sensitive/a"), 1);
@@ -188,9 +188,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(std::accumulate(a2.begin(), a2.end(), 0) == correctLeafSum);
     REQUIRE(&a != &a2);
 
-    // Example using SymbolTree with unique_ptr< int >.
+    // Example using Tree with unique_ptr< int >.
     //
-    SymbolTree< std::unique_ptr< int > > intPtrTree;
+    Tree< std::unique_ptr< int > > intPtrTree;
     intPtrTree["harry"] = std::make_unique< int >(3);
     intPtrTree["mark"] = std::make_unique< int >(0);
 
@@ -255,9 +255,9 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(sumOfChildren == 3);
   }
 
-  // SymbolTree example using unique_ptr to manage heavyweight objects.
+  // Tree example using unique_ptr to manage heavyweight objects.
   {
-    SymbolTree<std::unique_ptr<TestResource> > heavies;
+    Tree<std::unique_ptr<TestResource> > heavies;
 
     // an existing unique_ptr cannot be assigned because its copy assignment
     // operator is implicitly deleted
@@ -310,7 +310,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
 
   // Value tree tests
 
-  SymbolTree<Value> properties;
+  Tree<Value> properties;
   properties.add("size", "big");
   properties.add("shape", "square");
   properties.add("corners", 4);
@@ -345,8 +345,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
   }
 
-  //  Empty SymbolTree test
-  SymbolTree< Value > emptyTree;
+  //  Empty Tree test
+  Tree< Value > emptyTree;
   int count{0};
   for (auto it = emptyTree.begin(); it != emptyTree.end(); ++it)
   {
@@ -360,8 +360,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
   }
   REQUIRE(count == 1);
   
-  // SymbolTree of bare floats test
-  SymbolTree< float > floatTree;
+  // Tree of bare floats test
+  Tree< float > floatTree;
   REQUIRE(floatTree["purple"] == 0.f);
   floatTree["pink"] = 1.f;
   REQUIRE(floatTree["pink"] == 1.f);

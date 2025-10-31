@@ -97,10 +97,10 @@ public:
   // TODO Look at the features we needed to add that are hacks now (use_list_values_as_int, integer_values) and
   // redesign to make more robust implementation of them.
 
-  SymbolTree< std::unique_ptr< ParameterDescription > > descriptions;
-  SymbolTree< ParameterProjection > projections;
-  SymbolTree< Value > paramsNorm_;
-  SymbolTree< Value > paramsReal_;
+  Tree< std::unique_ptr< ParameterDescription > > descriptions;
+  Tree< ParameterProjection > projections;
+  Tree< Value > paramsNorm_;
+  Tree< Value > paramsReal_;
 
   float convertNormalizedToRealFloatValue(Path pname, Value val) const
   {
@@ -271,7 +271,7 @@ public:
 #endif
   }
 
-  inline void setFromNormalizedValues(const SymbolTree<Value>& t)
+  inline void setFromNormalizedValues(const Tree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
     {

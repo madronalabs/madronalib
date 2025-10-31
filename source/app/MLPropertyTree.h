@@ -13,7 +13,7 @@ namespace ml
 class PropertyTree
 {
 protected:
-  SymbolTree< Value > properties;
+  Tree< Value > properties;
   
 public:
   PropertyTree() = default;
