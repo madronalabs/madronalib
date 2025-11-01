@@ -65,6 +65,14 @@ endif()
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /wd4068")
    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:alignedNew-")
  endif()
+ 
+if(MSVC)
+    # For Visual Studio
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Zi")
+else()
+    # For GCC/Clang and other compilers
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+endif()
 
 if(MSVC)
     # arcane thing about setting runtime library flags

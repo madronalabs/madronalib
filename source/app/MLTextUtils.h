@@ -147,7 +147,6 @@ T getElementChecked(const std::vector<T> vec, int index) noexcept
   return (vec.size() > index ? vec[index] : T());
 }
 
-
 // number formatter
 
 ml::Text formatNumber(const float number, const int digits, const int precision, const bool doSign,

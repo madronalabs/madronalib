@@ -183,6 +183,7 @@ public:
   {
     auto pNode = this;
     int pathSize = path.getSize();
+    if(!pathSize) return pNode;
     
     for (int i = 0; i < pathSize - 1; ++i)
     {
