@@ -208,4 +208,10 @@ TextFragment byteVectorToText(const std::vector<uint8_t>& v);
 std::vector<CodePoint> textToCodePoints(TextFragment frag);
 TextFragment codePointsToText(std::vector<CodePoint> cv);
 
+inline bool operator==(const TextFragment& a, const char* b) { return a == TextFragment(b); }
+inline bool operator==(const char* a, const TextFragment& b) { return TextFragment(a) == b; }
+inline bool operator!=(const TextFragment& a, const char* b) { return !(a == b); }
+inline bool operator!=(const char* a, const TextFragment& b) { return !(a == b); }
+
+
 }  // namespace ml

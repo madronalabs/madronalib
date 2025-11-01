@@ -57,16 +57,13 @@ public:
   
   // Specialized constructors declared here, defined below via specialization
   GenericPath(const char* str);
+  GenericPath(const Symbol frag);
+  GenericPath(const TextFragment frag);
   GenericPath(const TextFragment frag, const char separator);
-  
+ 
   // Constexpr constructor from string literal - only meaningful for Symbol specialization
   template <size_t N>
-  constexpr GenericPath(const char (&str)[N], char separator = '/');
-  
-  GenericPath(const K elem)
-  {
-    addElement(elem);
-  }
+  constexpr GenericPath(const char (&str)[N]);
   
   GenericPath(const GenericPath p1, const GenericPath p2)
   {
@@ -89,6 +86,18 @@ public:
     for (K elem : p4) addElement(elem);
   }
   
+  // ? bool operator<(const GenericPath b) const { return mHash < b.mHash; }
+  bool operator==(const GenericPath b) const
+  {
+    if (getSize() != b.getSize()) return false;
+    for (int i = 0; i < getSize(); ++i)
+    {
+      if (getElement(i) != b.getElement(i)) return false;
+    }
+    return true;
+  }
+  
+  bool operator!=(const GenericPath b) const { return !(operator==(b)); }
   explicit operator bool() const { return mSize != 0; }
   
   int getSize() const { return static_cast<int>(mSize); }
@@ -167,6 +176,7 @@ protected:
   unsigned char mCopy{0};
 };
 
+/*
 // Generic equality
 template <class K>
 inline bool operator==(const GenericPath<K>& a, const GenericPath<K>& b)
@@ -184,6 +194,7 @@ inline bool operator!=(const GenericPath<K>& a, const GenericPath<K>& b)
 {
   return !(a == b);
 }
+*/
 
 // Generic helper functions that work for any GenericPath<K>
 template <class K>
@@ -299,6 +310,18 @@ inline Path::GenericPath(const char* str)
 }
 
 template <>
+inline Path::GenericPath(const Symbol sym)
+{
+  parsePathStringIntoSymbols(*this, sym.getUTF8Ptr(), '/');
+}
+
+template <>
+inline Path::GenericPath(const TextFragment frag)
+{
+  parsePathStringIntoSymbols(*this, frag.getText(), '/');
+}
+
+template <>
 inline Path::GenericPath(const TextFragment frag, const char separator)
 {
   parsePathStringIntoSymbols(*this, frag.getText(), separator);
@@ -306,9 +329,10 @@ inline Path::GenericPath(const TextFragment frag, const char separator)
 
 template <>
 template <size_t N>
-constexpr Path::GenericPath(const char (&str)[N], char separator)
+constexpr Path::GenericPath(const char (&str)[N])
 : mSize(0), mCopy(0)
 {
+  const char separator = '/';
   size_t pos = 0;
   while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
   {
@@ -344,6 +368,7 @@ inline uint64_t getHash(const Path& p, int n)
 
 // Fast hash-based equality for Symbol paths
 
+/*
 template <>
 inline bool operator==(const Path& a, const Path& b)
 {
@@ -354,7 +379,7 @@ inline bool operator==(const Path& a, const Path& b)
   }
   return true;
 }
-
+*/
 
 // TextPath
 // --------
@@ -390,17 +415,28 @@ using TextPath = GenericPath<TextFragment>;
 void parsePathStringIntoTextFragments(TextPath& path, const char* pathStr, const char delimiter = '/');
 
 template <>
-inline GenericPath<TextFragment>::GenericPath(const char* str)
+inline TextPath::GenericPath(const char* str)
 {
   parsePathStringIntoTextFragments(*this, str, '/');
 }
 
 template <>
-inline GenericPath<TextFragment>::GenericPath(const TextFragment frag, const char separator)
+inline TextPath::GenericPath(const Symbol sym)
+{
+  parsePathStringIntoTextFragments(*this, sym.getUTF8Ptr(), '/');
+}
+
+template <>
+inline TextPath::GenericPath(const TextFragment frag)
+{
+  parsePathStringIntoTextFragments(*this, frag.getText(), '/');
+}
+
+template <>
+inline TextPath::GenericPath(const TextFragment frag, const char separator)
 {
   parsePathStringIntoTextFragments(*this, frag.getText(), separator);
 }
-
 
 // Path-specific methods (Symbol specialization)
 
@@ -471,7 +507,7 @@ inline Path substitute(Path p, Symbol from, Symbol to)
   return r;
 }
 
-inline Path substitute(Path p, Symbol fromSymbol, Path toPath)
+inline Path substitute(Path p, Symbol fromSymbol, Path to)
 {
   Path r;
   for (int n = 0; n < p.getSize(); ++n)
@@ -479,7 +515,7 @@ inline Path substitute(Path p, Symbol fromSymbol, Path toPath)
     Symbol next = p.getElement(n);
     if (next == fromSymbol)
     {
-      r = Path{r, toPath};
+      r = Path{r, to};
     }
     else
     {
@@ -505,5 +541,15 @@ inline std::ostream& operator<<(std::ostream& out, const ml::TextPath & r)
 }
 
 
+inline Path textToPath(const TextFragment& t) { return Path(t); }
+inline TextFragment pathToText(const Path& p) { return (p.toText()); }
+inline TextFragment pathToText(const TextPath& p) { return (p.toText()); }
+
+/*
+inline bool operator==(const Path& a, const char* b) { return a == Path(b); }
+inline bool operator==(const char* a, const Path& b) { return Path(a) == b; }
+inline bool operator!=(const Path& a, const char* b) { return !(a == b); }
+inline bool operator!=(const char* a, const Path& b) { return !(a == b); }
+*/
 
 }  // namespace ml

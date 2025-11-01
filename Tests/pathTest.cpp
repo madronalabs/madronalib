@@ -23,12 +23,12 @@ TEST_CASE("madronalib/core/path/symbolic", "[path]")
   TextFragment pTest("hello+world+a+b+c+d+e+f+g");
   
   auto accumTest = [](Symbol a, Symbol b) {
-    return TextFragment(a.getTextFragment(), TextFragment("+"),
-                        b.getTextFragment());
+    Symbol sum(a + Symbol("+") + b);
+    return sum;
   };
-  TextFragment accumTextResult = std::accumulate(++p.begin(), p.end(),
-                                    (*p.begin()).getTextFragment(), accumTest);
-  REQUIRE(TextFragment("hello+world+a+b+c+d+e+f+g") == accumTextResult);
+  Symbol accumTextResult = std::accumulate(++p.begin(), p.end(),
+                                    *p.begin(), accumTest);
+  REQUIRE(TextFragment("hello+world+a+b+c+d+e+f+g") == accumTextResult.getTextFragment());
   
   Path a{"a"};
   Path b{"b"};
@@ -78,3 +78,18 @@ TEST_CASE("madronalib/core/path/dynamic", "[path]")
 }
 
 
+
+TEST_CASE("madronalib/core/symbol/equality", "[symbol]")
+{
+  Symbol p("hello/world");
+  REQUIRE(p == "hello/world");
+  REQUIRE(p != "hello/worl");
+}
+
+
+TEST_CASE("madronalib/core/path/equality", "[path]")
+{
+  Path p("hello/world");
+  REQUIRE(p == "hello/world");
+  REQUIRE(p != "hello/worl");
+}

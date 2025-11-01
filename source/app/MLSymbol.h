@@ -144,7 +144,7 @@ public:
   Symbol(const char* pC, size_t lengthBytes)
   : mHash(theSymbolTable().registerSymbol(pC, lengthBytes)) {}
   
-  Symbol(TextFragment frag)
+  explicit Symbol(TextFragment frag)
   : mHash(theSymbolTable().registerSymbol(frag.getText(), frag.lengthInBytes())) {}
   
   static constexpr Symbol fromHash(uint64_t hash)
@@ -177,6 +177,13 @@ inline Symbol operator+(Symbol f1, Symbol f2)
 
 inline uint64_t hash(Symbol s) { return s.getHash(); }
 
+/*
+inline bool operator==(const Symbol& a, const char* b) { return a == Symbol(b); }
+inline bool operator==(const char* a, const Symbol& b) { return Symbol(a) == b; }
+inline bool operator!=(const Symbol& a, const char* b) { return !(a == b); }
+inline bool operator!=(const char* a, const Symbol& b) { return !(a == b); }
+*/
+
 }  // namespace ml
 
 
@@ -188,6 +195,7 @@ struct hash<ml::Symbol>
 {
   uint64_t operator()(const ml::Symbol& s) const { return s.getHash(); }
 };
+
 }  // namespace std
 
 

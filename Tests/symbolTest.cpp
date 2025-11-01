@@ -294,7 +294,7 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
   for (int i = 0; i < 10; ++i)
   {
     int num = i*39620;
-    Symbol testSym = namer.nextName();
+    Symbol testSym(namer.nextName());
     
     Symbol testSymWithNum = textUtils::addFinalNumber(testSym, num);
     Symbol testSymWithoutNum = textUtils::stripFinalNumber(testSym);

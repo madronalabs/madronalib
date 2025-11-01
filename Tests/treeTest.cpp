@@ -60,7 +60,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // 8 possible symbols per level
       int symbolIdx =
           (((randSource.getUInt32() >> 16) & 0x07) + 8 * p) % numTestWords;
-      testPath = Path{testPath, Path(testWords[symbolIdx])};
+      testPath = Path{testPath, testWords[symbolIdx]};
     }
 
     for (int j = 0; j < leaves; ++j)
@@ -68,11 +68,24 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // make resource path with unique end so paths are never duplicates
       Symbol leafName =
           testWords[(randSource.getUInt32() >> 16) % numTestWords] +
-          endNamer.nextName();
+          Symbol(endNamer.nextName());
       Path newPath = testPath;
-      newPath = Path{newPath, leafName};
+      newPath = Path{newPath, Path(leafName)};
       pathsVector.push_back(newPath);
     }
+  }
+  
+  // conversions
+  {
+    Tree < int > t;
+    t["hello/world"] = 4;
+    const char* pathStr{"hello/world"};
+    
+    std::cout << t[Path(pathStr)];
+    
+    // we do want TextFragments to be parsed the same as char *s when making a path! 
+    TextFragment pathFrag{"hello/world"};
+    std::cout << t[Path(pathFrag)];
   }
 
   

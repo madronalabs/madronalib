@@ -30,6 +30,10 @@ size_t textToNaturalNumber(const TextFragment& frag);
 TextFragment floatNumberToText(float f, int precision = 5);
 float textToFloatNumber(const TextFragment& frag);
 
+TextFragment addFinalNumber(TextFragment t, int n);
+TextFragment stripFinalNumber(TextFragment t);
+int getFinalNumber(TextFragment sym);
+
 int findFirst(const TextFragment& frag, const CodePoint c);
 int findLast(const TextFragment& frag, const CodePoint c);
 
@@ -105,12 +109,12 @@ struct Collator
 };
 
 
-
 // Symbol utilities
 
 Symbol addFinalNumber(Symbol sym, int n);
 Symbol stripFinalNumber(Symbol sym);
 int getFinalNumber(Symbol sym);
+
 Symbol stripFinalCharacter(Symbol sym);
 
 std::vector<Symbol> makeVectorOfNonsenseSymbols(int len);
@@ -154,4 +158,8 @@ ml::Text formatNumber(const float number, const int digits, const int precision,
 void hexDump(uint8_t* blobData, size_t blobSize);
 
 }  // namespace textUtils
+
+
+inline uint64_t hash(TextFragment frag) { return fnv1aRuntime(frag.getText()); }
+
 }  // namespace ml

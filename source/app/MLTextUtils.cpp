@@ -321,6 +321,81 @@ float textToFloatNumber(const char* input)
 
 float textToFloatNumber(const TextFragment& frag) { return textToFloatNumber(frag.getText()); }
 
+
+TextFragment addFinalNumber(TextFragment t, int n)
+{
+  return TextFragment(t, textUtils::naturalNumberToText(n));
+}
+
+TextFragment stripFinalNumber(TextFragment frag)
+{
+  size_t points = frag.lengthInCodePoints();
+  
+  // TODO make more readble using random access fragment class
+  
+  SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> temp(points + 1);
+  CodePoint* buf = temp.data();
+  
+  // read into char32 array for random access
+  int i = 0;
+  for (CodePoint c : frag)
+  {
+    if (!validateCodePoint(c)) return TextFragment();
+    buf[i++] = c;
+  }
+  
+  // null terminate
+  buf[points] = 0;
+  
+  // no final number? return
+  if (!textUtils::isDigit(buf[points - 1])) return frag;
+  
+  // read backwards until non-digit
+  size_t firstDigitPos = 0;
+  for (size_t i = points - 2; i >= 0; --i)
+  {
+    char32_t c = buf[i];
+    if (!textUtils::isDigit(c))
+    {
+      firstDigitPos = i + 1;
+      break;
+    }
+  }
+  
+  ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
+  return subFrag;
+}
+
+int getFinalNumber(TextFragment frag)
+{
+  auto it = frag.begin();
+  
+  for(;it != frag.end(); it++)
+  {
+    if(textUtils::isDigit(*it))
+    {
+      break;
+    }
+  }
+  
+  int v = 0;
+  int d;
+  char c;
+  
+  for(;it != frag.end(); it++)
+  {
+    char c = *it;
+    if (c >= '0' && c <= '9')
+      d = (c - '0');
+    else
+      break;
+    v = (v * 10) + d;
+  }
+  
+  return v;
+}
+
+
 int findFirst(const TextFragment& frag, const CodePoint b)
 {
   int r = npos;
@@ -875,7 +950,7 @@ Symbol stripFinalNumber(Symbol sym)
   }
 
   ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
-  return subFrag.getText();
+  return Symbol(subFrag.getText());
 }
 
 // if the symbol's text ends in an integer, return that number.
