@@ -56,15 +56,18 @@ public:
   GenericPath() = default;
   
   // Specialized constructors declared here, defined below via specialization
+  
+  // Constexpr constructor from string literals
+  template <size_t N>
+  constexpr GenericPath(const char (&str)[N]);
+
+  // "explicit" here is needed to make constexpr constructor the default
   explicit GenericPath(const char* str);
+  
   GenericPath(const Symbol frag);
   GenericPath(const TextFragment frag);
   GenericPath(const TextFragment frag, const char separator);
- 
-  // Constexpr constructor from string literal - only meaningful for Symbol specialization
-  template <size_t N>
-  constexpr GenericPath(const char (&str)[N]);
-  
+
   GenericPath(const GenericPath p1, const GenericPath p2)
   {
     for (K elem : p1) addElement(elem);
@@ -279,41 +282,15 @@ inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
 
 using Path = GenericPath<Symbol>;
 
-// Specialized constructors for Path (GenericPath<Symbol>)
-
 // Helper function for parsing path strings into Symbols using UTF library
 void parsePathStringIntoSymbols(Path& path, const char* pathStr, const char delimiter = '/');
 
-
-template <>
-inline Path::GenericPath(const char* str)
-{
-  parsePathStringIntoSymbols(*this, str, '/');
-}
-
-
-template <>
-inline Path::GenericPath(const Symbol sym)
-{
-  parsePathStringIntoSymbols(*this, sym.getUTF8Ptr(), '/');
-}
-
-template <>
-inline Path::GenericPath(const TextFragment frag)
-{
-  parsePathStringIntoSymbols(*this, frag.getText(), '/');
-}
-
-template <>
-inline Path::GenericPath(const TextFragment frag, const char separator)
-{
-  parsePathStringIntoSymbols(*this, frag.getText(), separator);
-}
+// Specialized constructors for Path (GenericPath<Symbol>)
 
 template <>
 template <size_t N>
 constexpr Path::GenericPath(const char (&str)[N])
-: mSize(0), mCopy(0)
+: _elements{}, mSize(0), mCopy(0)
 {
   const char separator = '/';
   size_t pos = 0;
@@ -335,11 +312,36 @@ constexpr Path::GenericPath(const char (&str)[N])
       
       if (len > 0)
       {
-        uint64_t hash = fnv1aSubstring(&str[start], len);
+        const char* segStart = &str[start];
+        uint64_t hash = fnv1a_hash_chars< 3 >(&str[start]); // TEMP
         _elements[mSize++] = Symbol::fromHash(hash);
       }
     }
   }
+}
+
+template <>
+inline Path::GenericPath(const char* str)
+{
+  parsePathStringIntoSymbols(*this, str, '/');
+}
+
+template <>
+inline Path::GenericPath(const Symbol sym)
+{
+  parsePathStringIntoSymbols(*this, sym.getUTF8Ptr(), '/');
+}
+
+template <>
+inline Path::GenericPath(const TextFragment frag)
+{
+  parsePathStringIntoSymbols(*this, frag.getText(), '/');
+}
+
+template <>
+inline Path::GenericPath(const TextFragment frag, const char separator)
+{
+  parsePathStringIntoSymbols(*this, frag.getText(), separator);
 }
 
 // Extension method for Symbol paths
@@ -349,6 +351,29 @@ inline uint64_t getHash(const Path& p, int n)
   return p.getElement(n).getHash();
 }
 
+// Path-specific methods (Symbol specialization)
+
+// Add getHash() method for Symbol paths only
+
+/*
+namespace detail
+{
+template <class K>
+struct PathHashAccessor
+{
+  // No getHash for generic paths
+};
+
+template <>
+struct PathHashAccessor<Symbol>
+{
+  static uint64_t getHash(const Path& p, int n)
+  {
+    return p.getElement(n).getHash();
+  }
+};
+} // namespace detail
+*/
 
 // TextPath
 // --------
@@ -379,36 +404,10 @@ inline uint64_t getHash(const Path& p, int n)
 
 using TextPath = GenericPath<TextFragment>;
 
-
 // Helper function for parsing path strings into TextFragments using UTF library
 void parsePathStringIntoTextFragments(TextPath& path, const char* pathStr, const char delimiter = '/');
 
-
-template <>
-inline TextPath::GenericPath(const char* str)
-{
-  parsePathStringIntoTextFragments(*this, str, '/');
-}
-
-template <>
-inline TextPath::GenericPath(const Symbol sym)
-{
-  parsePathStringIntoTextFragments(*this, sym.getUTF8Ptr(), '/');
-}
-
-template <>
-inline TextPath::GenericPath(const TextFragment frag)
-{
-  parsePathStringIntoTextFragments(*this, frag.getText(), '/');
-}
-
-template <>
-inline TextPath::GenericPath(const TextFragment frag, const char separator)
-{
-  parsePathStringIntoTextFragments(*this, frag.getText(), separator);
-}
-
-
+// not as crucial as constexpr GenericPath<Symbol>, but still useful
 template <>
 template <size_t N>
 constexpr TextPath::GenericPath(const char (&str)[N])
@@ -440,27 +439,28 @@ constexpr TextPath::GenericPath(const char (&str)[N])
   }
 }
 
-
-// Path-specific methods (Symbol specialization)
-
-// Add getHash() method for Symbol paths only
-
-namespace detail
+template <>
+inline TextPath::GenericPath(const char* str)
 {
-template <class K>
-struct PathHashAccessor
-{
-  // No getHash for generic paths
-};
+  parsePathStringIntoTextFragments(*this, str, '/');
+}
 
 template <>
-struct PathHashAccessor<Symbol>
+inline TextPath::GenericPath(const Symbol sym)
 {
-  static uint64_t getHash(const Path& p, int n)
-  {
-    return p.getElement(n).getHash();
-  }
-};
+  parsePathStringIntoTextFragments(*this, sym.getUTF8Ptr(), '/');
+}
+
+template <>
+inline TextPath::GenericPath(const TextFragment frag)
+{
+  parsePathStringIntoTextFragments(*this, frag.getText(), '/');
+}
+
+template <>
+inline TextPath::GenericPath(const TextFragment frag, const char separator)
+{
+  parsePathStringIntoTextFragments(*this, frag.getText(), separator);
 }
 
 // Template specializations for toText()

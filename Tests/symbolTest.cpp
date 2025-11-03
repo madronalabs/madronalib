@@ -233,7 +233,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
     {
-      symbolSum += testMapOrderedSym[charDict[testIndexes[i]]];
+      symbolSum += testMapOrderedSym[Symbol(charDict[testIndexes[i]])];
     }
     end = now();
     elapsed = end - start;
@@ -255,7 +255,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
     {
-      symbolSum += testMapUnorderedSym[charDict[testIndexes[i]]];
+      symbolSum += testMapUnorderedSym[Symbol(charDict[testIndexes[i]])];
     }
     end = now();
     elapsed = end - start;

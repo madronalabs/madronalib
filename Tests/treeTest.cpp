@@ -75,22 +75,8 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     }
   }
   
-  // conversions
-  {
-    Tree < int > t;
-    t["hello/world"] = 4;
-    const char* pathStr{"hello/world"};
-    
-    std::cout << t[Path(pathStr)];
-    
-    // we do want TextFragments to be parsed the same as char *s when making a path! 
-    TextFragment pathFrag{"hello/world"};
-    std::cout << t[Path(pathFrag)];
-  }
 
-  
   // Test a pretty big tree of int values
-
   {
     Tree<int> numberTree;
 

@@ -28,24 +28,43 @@ namespace
 
 TEST_CASE("madronalib/core/serialization", "[serialization]")
 {
+  theSymbolTable().clear();
+  
+
+
   // Value tree to JSON to value tree. NOTE: the JSON created does not reflect the
   // tree structure but rather a flat list with the whole path as each item's string. TODO fix.
   Tree<Value> v;
   v["a"] = 0.4f;
   v["b"] = "hello";
+  v["c"] = "hello";
+  v["a/a"] = "hello";
+  v["a/b"] = "hello";
   v["floatarr"] = Value(std::array<float, 5>{1.2, 3.4, 5.5, 23.4, -0.000000001});
 
   v["a/b/c"] = "hello again";
   v["b/q"] = "goodbye";
+  v["q/q"] = "goodbye";
+  v["q"] = 0.3;
+  v["quizzle"] = 0.4;
+  v["shizzle"] = 0.5;
+  v["bizzle"] = 0.6;
   std::vector<uint8_t> someData{1, 3, 5, 7, 9};
   v["blobtest"] = Value(someData.data(), someData.size());
     
+  // test each value in the tree separately
   for(auto treeVal : v)
   {
     auto b = valueToBinary(treeVal);
     auto treeVal2 = binaryToValue(b);
     REQUIRE(treeVal == treeVal2);
   }
+  
+  v.dump();
+  
+  std::cout << "-----------------------\n";
+  
+  theSymbolTable().dump();
   
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
@@ -56,7 +75,7 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   REQUIRE(v == v3);
   
   // a tree converted to binary and back should result in the original value
-  v.dump();
+
   auto b = valueTreeToBinary(v);
   auto vv = binaryToValueTree(b);
   

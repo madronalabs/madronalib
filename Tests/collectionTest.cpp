@@ -41,6 +41,49 @@ struct CollectableIntWithCollection : public CollectableInt
 
 TEST_CASE("madronalib/core/collection", "[collection]")
 {
+  
+  
+  
+  
+  
+  // TEMP
+  constexpr Symbol s = Symbol::fromHash(12345);
+  
+  // Test 1: Direct hash computation
+  //constexpr *uint64_t h1 = hash("test");
+  //std::cout << "hash " << h1 << "\n";
+  
+  
+  // Test 2: Symbol from hash (bypasses string constructor)
+  constexpr Symbol s2 = Symbol::fromHash(12345);  // Does this work?
+  
+  // Test 3: Symbol from string literal
+  /* constexpr TEMP */  Symbol s3("abc");
+  
+  std::cout << "s3 hash: " << s3.getHash() << "\n";
+  
+  // Symbol from char * (not constexpr)
+  std::string testStr;
+  testStr = "abc";
+  Symbol s4(testStr.c_str());
+  
+  std::cout << "s4 hash: " << s4.getHash() << "\n";
+  
+  
+
+  // Test 4: Check if the issue is the array reference
+  //constexpr const char* str = "abc";
+  //constexpr Symbol s4(str);  // Does this work? (probably not - different overload)
+  
+  
+  /*
+   constexpr Symbol s1("abc");
+   constexpr Symbol s2("a");
+   */
+  
+  
+  
+  
   CollectionRoot< CollectableInt > ints;
  
   ints.add_unique< CollectableInt >("a", 3);

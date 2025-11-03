@@ -159,6 +159,6 @@ void hexDump(uint8_t* blobData, size_t blobSize);
 }  // namespace textUtils
 
 
-inline uint64_t hash(TextFragment frag) { return fnv1aRuntime(frag.getText()); }
+// TEMPinline uint64_t hash(TextFragment frag) { return fnv1aRuntime(frag.getText()); }
 
 }  // namespace ml

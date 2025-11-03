@@ -11,7 +11,7 @@ const TextFragment SymbolTable::kNullText;
 
 uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
 {
-  uint64_t hash = fnv1aRuntime(text, len);
+  uint64_t hash = fnv1aRuntime(len, text);
   
   std::lock_guard<std::mutex> lock(mMutex);
   
