@@ -129,6 +129,11 @@ TEST_CASE("madronalib/core/tree", "[tree]")
     REQUIRE(bigValueSum == correctSum);
     REQUIRE(maxDepth == correctMaxDepth);
     REQUIRE(bigValueSum2 == correctSum);
+    
+    
+    // TEMP
+    numberTree["wuzzle"] = 23.323f;
+    std::cout << "WUZZLE: " << numberTree["wuzzle"] << "\n";
   }
 
   // Misc examples

@@ -15,19 +15,19 @@ using namespace ml;
 void readParameterDescriptions(ParameterDescriptionList& params)
 {
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
-    { "name", "param/linear" },
+    { "name", "linear-param" },
     { "range", {0, 1} }
   } ) );
 
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
-    { "name", "param/log1" },
+    { "name", "log-param" },
     { "range", {0.001, 1} },
     { "log", true },
     { "plaindefault", 0.05 }
   } ) );
   
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
-    { "name", "param/log-with-offset" },
+    { "name", "log-param-with-offset" },
     { "range", {1, 6} },
     { "log", true },
     { "offset", -1.f },
@@ -46,6 +46,14 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
   
   // build the parameter tree, creating projections
   buildParameterTree(pdl, params);
+  
+  params.setValue("linear-param", 0.88f);
+  auto v1 = params.getRealFloatValue("linear-param");
+  
+  std::cout << "value: " << v1 << "\n";
+  
+  params.paramsNorm_["foo"] = 12.f;
+  
   
   // build name index
   std::vector< Path > paramNames;

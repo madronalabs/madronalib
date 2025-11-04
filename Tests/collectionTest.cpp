@@ -42,11 +42,7 @@ struct CollectableIntWithCollection : public CollectableInt
 TEST_CASE("madronalib/core/collection", "[collection]")
 {
   
-  
-  
-  
-  
-  // TEMP
+    // TEMP
   constexpr Symbol s = Symbol::fromHash(12345);
   
   // Test 1: Direct hash computation
@@ -58,7 +54,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   constexpr Symbol s2 = Symbol::fromHash(12345);  // Does this work?
   
   // Test 3: Symbol from string literal
-  /* constexpr TEMP */  Symbol s3("abc");
+  constexpr Symbol s3("abc");
   
   std::cout << "s3 hash: " << s3.getHash() << "\n";
   
@@ -69,8 +65,9 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   
   std::cout << "s4 hash: " << s4.getHash() << "\n";
   
+  Path p1("this/is/a/path");
   
-
+  std::cout << p1 << "\n";
   // Test 4: Check if the issue is the array reference
   //constexpr const char* str = "abc";
   //constexpr Symbol s4(str);  // Does this work? (probably not - different overload)
@@ -81,8 +78,9 @@ TEST_CASE("madronalib/core/collection", "[collection]")
    constexpr Symbol s2("a");
    */
   
-  
-  
+  const char * c5("abc");
+  auto h5 = fnv1aSubstring(c5, strlen(c5));
+  std::cout << "s5 hash: " << h5 << "\n";
   
   CollectionRoot< CollectableInt > ints;
  

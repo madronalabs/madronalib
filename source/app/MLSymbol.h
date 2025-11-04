@@ -39,171 +39,84 @@
 namespace ml
 {
 
-
-/*
-namespace detail
-{
-constexpr uint64_t fnv1a(uint64_t h, const char* s)
-{
-  return (*s == 0) ? h :
-  fnv1a((h ^ static_cast<uint64_t>(*s)) * 1099511628211ull, s + 1);
-}
-
-constexpr uint64_t fnv1aSubstring(uint64_t h, const char* s, size_t len)
-{
-  return (len == 0) ? h :
-  fnv1aSubstring((h ^ static_cast<uint64_t>(*s)) * 1099511628211ull, s + 1, len - 1);
-}
-}
-*/
-
-/*
-// FNV-1a hash for substrings (with length)
-constexpr uint64_t fnv1aSubstring(const char* s, size_t len)
-{
-  return detail::fnv1aSubstring(14695981039346656037ull, s, len);
-}
-
-template <size_t N>
-constexpr uint64_t fnv1a(const char (&s)[N])
-{
-  return detail::fnv1a(14695981039346656037ull, s);
-}
-*/
-
-
-// hashing: 64-bit FNV-1a for compile-time recursion
+// hashing: 64-bit FNV-1a
 
 namespace fnvConsts
 {
-//constexpr uint64_t k1{14695981039346656037ull};
-//constexpr uint64_t k2{1099511628211ull};
-constexpr uint64_t k1{3ull};
-constexpr uint64_t k2{2ull};
+constexpr uint64_t k1{14695981039346656037ull};
+constexpr uint64_t k2{1099511628211ull};
 }
 
+// compile-time version
 
-/*constexpr*/inline  uint64_t fnv1a_calc(uint64_t hash, const char* str)
+namespace detail
 {
-  std::cout << "     calc:" << hash << " ^ " << static_cast<uint64_t>(*str) << " * " << fnvConsts::k2 << " = " << (hash ^ static_cast<uint64_t>(*str)) * fnvConsts::k2 << "\n";
-  return (hash ^ static_cast<uint64_t>(*str)) * fnvConsts::k2;
+constexpr uint64_t fnv1aSubstring(uint64_t h, const char* s, size_t len)
+{
+  return (len == 0) ? h :
+  fnv1aSubstring((h ^ static_cast<uint64_t>(*s)) * fnvConsts::k2, s + 1, len - 1);
+}
 }
 
-
-
-
-
+constexpr uint64_t fnv1aSubstring(const char* s, size_t len)
+{
+  return detail::fnv1aSubstring(fnvConsts::k1, s, len);
+}
 
 // Runtime version for dynamic strings
-inline uint64_t fnv1aRuntime(size_t n, const char* str)
+
+inline uint64_t fnv1aRuntime(const char* str, size_t n)
 {
   uint64_t hash = fnvConsts::k1;
-  
-  std::cout << "\nruntime " << str << "\n";
-  for (size_t i = n + 1; i > 0; --i)
+  for (size_t i = 0; i < n; ++i)
   {
-    const char* nextCharPtr = str + i - 1;
-    hash = fnv1a_calc(hash, nextCharPtr);
-    std::cout << "N:" << i << " " << *nextCharPtr << "\n";
-    std::cout << "    hash: " << hash << "\n";
+    hash = (hash ^ static_cast<uint64_t>(str[i])) * fnvConsts::k2;
   }
   return hash;
 }
 
 inline uint64_t fnv1aRuntime(const char* str)
 {
-  return fnv1aRuntime(strlen(str), str);
+  return fnv1aRuntime(str, strlen(str));
 }
 
 
+/*
+ for (size_t i = n; i > 0; --i)
+ {
+ const char* nextCharPtr = str + i - 1;
+ hash = fnv1a_calc(hash, nextCharPtr);
+ }*/
 
 
-
-
-// ----- NEW
-
-template <size_t N>
-inline /*constexpr*/ uint64_t fnv1a_hash_chars(const char* str)
-{
-  auto hash = fnv1a_calc(fnv1a_hash_chars< N - 1 >(str + 1), str);
-  
-  std::cout << "N:" << N << " " << *str << "\n";
-  std::cout << "    hash: " << hash << "\n";
-  return (N > 0) ? hash : 0;
-}
-
-template <>
-inline /*constexpr*/ uint64_t fnv1a_hash_chars<size_t(0)>(const char* str)
-{
-  std::cout << "end " << *str << " .\n";
-  return fnvConsts::k1;
-}
+// compile-time version
 
 /*
 template <size_t N>
-constexpr uint64_t hash(const char (&sym)[N])
+constexpr inline uint64_t fnv1a_hash_chars(const char* str)
 {
-  return 32; // TEMP fnv1a_hash_chars< N >(sym);
+  const char* nextCharPtr = str;
+  auto hash = fnv1a_calc(fnv1a_hash_chars< N - 1 >(str + 1), nextCharPtr);
+  
+  // the template specialization, not this expression, should end the recursion. But compilers
+  // may need the base case here also to figure out that the recursion ends.
+  return (N > 1) ? hash : 0;
+}
+
+template <>
+constexpr inline uint64_t fnv1a_hash_chars<size_t(1)>(const char* str)
+{
+  return fnvConsts::k1;
 }
 */
 
 
-
-
-
-
-// TEMP
-constexpr int kHashTableBits = 12;
-constexpr int kHashTableSize = (1 << kHashTableBits);
-constexpr int kHashTableMask = kHashTableSize - 1;
-
-// very simple hash function from Kernighan & Ritchie.
-// Constexpr version for hashing strings known at compile time.
-template <size_t N>
-constexpr uint32_t krHash2(const char* str)
-{
-  return (N > 1) ? ((krHash2<N - 1>(str + 1)) + *str) * 31u : 0;
-}
-
-template <>
-constexpr uint32_t krHash2<size_t(0)>(const char* str)
-{
-  return 0;
-}
-
-template <size_t N>
-constexpr uint32_t krHash1(const char* str)
-{
-  return krHash2<N>(str) & kHashTableMask;
-}
-
-// non-recursive hash producing equivalent results to krHash1.
-// Non-constexpr version for hashing strings known only at runtime.
-inline uint32_t krHash0(const char* str, const size_t len)
-{
-  size_t i = len;
-  uint32_t accum = 0;
-  while (i > 0)
-  {
-    i--;
-    accum += str[i];
-    accum *= 31u;
-  }
-  return accum & kHashTableMask;
-}
-
-inline uint32_t krHash0(const char* str) { return krHash0(str, strlen(str)); }
-
-template <size_t N>
-constexpr uint32_t hash(const char (&sym)[N])
-{
-  return krHash1<N>(sym);
-}
-
-
-
-
-
+ template <size_t N>
+ constexpr uint64_t hash(const char (&sym)[N])
+ {
+ return fnv1aSubstring(sym, N - 1);
+ }
+ 
 // SymbolTable: stores symbol texts by their hashes.
 
 class SymbolTable
@@ -249,8 +162,8 @@ public:
   
   // Constexpr: compute hash only
   template <size_t N>
-  inline constexpr Symbol(const char (&sym)[N]) : mHash(fnv1a_hash_chars<N>(sym)) {}
-  
+  inline constexpr Symbol(const char (&sym)[N]) : mHash(fnv1aSubstring(sym, N - 1)) {}
+
   // Runtime: compute hash AND register
   /*
   explicit Symbol(const char* pC)

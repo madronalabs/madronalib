@@ -99,6 +99,8 @@ public:
 
   Tree< std::unique_ptr< ParameterDescription > > descriptions;
   Tree< ParameterProjection > projections;
+  
+  // should not be public! 
   Tree< Value > paramsNorm_;
   Tree< Value > paramsReal_;
 
@@ -216,6 +218,14 @@ public:
 
   float getRealFloatValue(Path pname) const
   {
+    return paramsReal_[pname].getFloatValue();
+  }
+  
+  // TEMP new!
+  template <size_t N>
+  float getRealFloatValue(const char (&pathStr)[N]) const
+  {
+    Path pname(pathStr);
     return paramsReal_[pname].getFloatValue();
   }
 

@@ -145,6 +145,22 @@ public:
     }
   }
   
+  template <size_t N>
+  V& operator[](const char (&pathStr)[N])
+  {
+    GenericPath<K> pname(pathStr);
+    
+    auto pNode = getMutableNode(pname);
+    if(pNode)
+    {
+      return pNode->_value;
+    }
+    else
+    {
+      return add(pname, V())->_value;
+    }
+  }
+  
   const V& operator[](GenericPath<K> p) const
   {
     static const V nullValue{};

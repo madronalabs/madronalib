@@ -286,7 +286,6 @@ using Path = GenericPath<Symbol>;
 void parsePathStringIntoSymbols(Path& path, const char* pathStr, const char delimiter = '/');
 
 // Specialized constructors for Path (GenericPath<Symbol>)
-
 template <>
 template <size_t N>
 constexpr Path::GenericPath(const char (&str)[N])
@@ -312,8 +311,7 @@ constexpr Path::GenericPath(const char (&str)[N])
       
       if (len > 0)
       {
-        const char* segStart = &str[start];
-        uint64_t hash = fnv1a_hash_chars< 3 >(&str[start]); // TEMP
+        uint64_t hash =  fnv1aSubstring(&str[start], len);
         _elements[mSize++] = Symbol::fromHash(hash);
       }
     }
