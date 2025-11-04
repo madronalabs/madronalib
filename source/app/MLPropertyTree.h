@@ -44,6 +44,10 @@ public:
   }
   
   bool getBoolProperty(Path p) const { return properties[p].getIntValue() != 0; }
+  template <size_t N>
+  bool getBoolProperty(const char (&pathStr)[N]) const { Path p(pathStr); return getBoolProperty(p); }
+
+  
   bool getBoolPropertyWithDefault(Path p, bool d) const
   {
     auto treeNode = properties.getNode(p);

@@ -34,89 +34,12 @@
 #include <vector>
 #include <unordered_map>
 
+#include "MLHash.h"
 #include "MLText.h"
 
 namespace ml
 {
 
-// hashing: 64-bit FNV-1a
-
-namespace fnvConsts
-{
-constexpr uint64_t k1{14695981039346656037ull};
-constexpr uint64_t k2{1099511628211ull};
-}
-
-// compile-time version
-
-namespace detail
-{
-constexpr uint64_t fnv1aSubstring(uint64_t h, const char* s, size_t len)
-{
-  return (len == 0) ? h :
-  fnv1aSubstring((h ^ static_cast<uint64_t>(*s)) * fnvConsts::k2, s + 1, len - 1);
-}
-}
-
-constexpr uint64_t fnv1aSubstring(const char* s, size_t len)
-{
-  return detail::fnv1aSubstring(fnvConsts::k1, s, len);
-}
-
-// Runtime version for dynamic strings
-
-inline uint64_t fnv1aRuntime(const char* str, size_t n)
-{
-  uint64_t hash = fnvConsts::k1;
-  for (size_t i = 0; i < n; ++i)
-  {
-    hash = (hash ^ static_cast<uint64_t>(str[i])) * fnvConsts::k2;
-  }
-  return hash;
-}
-
-inline uint64_t fnv1aRuntime(const char* str)
-{
-  return fnv1aRuntime(str, strlen(str));
-}
-
-
-/*
- for (size_t i = n; i > 0; --i)
- {
- const char* nextCharPtr = str + i - 1;
- hash = fnv1a_calc(hash, nextCharPtr);
- }*/
-
-
-// compile-time version
-
-/*
-template <size_t N>
-constexpr inline uint64_t fnv1a_hash_chars(const char* str)
-{
-  const char* nextCharPtr = str;
-  auto hash = fnv1a_calc(fnv1a_hash_chars< N - 1 >(str + 1), nextCharPtr);
-  
-  // the template specialization, not this expression, should end the recursion. But compilers
-  // may need the base case here also to figure out that the recursion ends.
-  return (N > 1) ? hash : 0;
-}
-
-template <>
-constexpr inline uint64_t fnv1a_hash_chars<size_t(1)>(const char* str)
-{
-  return fnvConsts::k1;
-}
-*/
-
-
- template <size_t N>
- constexpr uint64_t hash(const char (&sym)[N])
- {
- return fnv1aSubstring(sym, N - 1);
- }
- 
 // SymbolTable: stores symbol texts by their hashes.
 
 class SymbolTable
@@ -160,15 +83,13 @@ class Symbol
 public:
   constexpr Symbol() : mHash(0) {}
   
-  // Constexpr: compute hash only
+  // Constexpr when possible: compute hash only
   template <size_t N>
-  inline constexpr Symbol(const char (&sym)[N]) : mHash(fnv1aSubstring(sym, N - 1)) {}
+  inline constexpr Symbol(const char (&sym)[N]) : mHash(fnv1aSubstring(sym, N - 1)) { }
 
   // Runtime: compute hash AND register
-  /*
-  explicit Symbol(const char* pC)
+  Symbol(const char* pC)
   : mHash(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
-  */
   
   Symbol(const char* pC, size_t lengthBytes)
   : mHash(theSymbolTable().registerSymbol(pC, lengthBytes)) {}
@@ -204,9 +125,7 @@ inline Symbol operator+(Symbol f1, Symbol f2)
   return Symbol(TextFragment(f1.getTextFragment(), f2.getTextFragment()));
 }
 
-// inline uint64_t hash(Symbol s) { return s.getHash(); }
-
-//inline uint64_t hash(const char* c) { return krHash0(c); }
+inline uint64_t hash(Symbol sym) { return sym.getHash(); }
 
 }  // namespace ml
 

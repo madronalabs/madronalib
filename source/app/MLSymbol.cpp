@@ -7,7 +7,7 @@
 namespace ml
 {
 
-const TextFragment SymbolTable::kNullText;
+const TextFragment SymbolTable::kNullText{"?"};
 
 uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
 {

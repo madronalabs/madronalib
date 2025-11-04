@@ -141,10 +141,20 @@ class SignalProcessor
     setDefaults(_params);
   };
 
-  inline float getRealFloatParam(Path pname)
+  
+  
+  inline float getRealFloatParam(const Path& pname)
   {
     return _params.getRealFloatValue(pname);
   }
+  template <size_t N>
+  inline float getRealFloatParamX(const char (&pathStr)[N]) const
+  {
+    Path pname(pathStr);
+    return _params.getRealFloatValue(pname);
+  }
+  
+  
   
   inline float getNormalizedFloatParam(Path pname)
   {

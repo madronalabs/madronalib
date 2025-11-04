@@ -29,8 +29,6 @@ namespace
 TEST_CASE("madronalib/core/serialization", "[serialization]")
 {
   theSymbolTable().clear();
-  
-
 
   // Value tree to JSON to value tree. NOTE: the JSON created does not reflect the
   // tree structure but rather a flat list with the whole path as each item's string. TODO fix.
@@ -62,10 +60,6 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   
   v.dump();
   
-  std::cout << "-----------------------\n";
-  
-  theSymbolTable().dump();
-  
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
   
@@ -74,20 +68,17 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   auto v3 = JSONToValueTree(textToJSON(t1));
   REQUIRE(v == v3);
   
-  // a tree converted to binary and back should result in the original value
-
+  // a tree converted to binary and back
   auto b = valueTreeToBinary(v);
   auto vv = binaryToValueTree(b);
+  REQUIRE(v == vv);
   
+  // binary to value tree and back
   std::cout << "vv\n";
   vv.dump();
   auto b2 = valueTreeToBinary(vv);
-  
-  // TEMP
-  // TODO fix with real Tree keys
-//  REQUIRE(b == b2);
+  REQUIRE(b == b2);
 
-  
   // create some JSON directly using our minimal API
   auto j5 = JSONHolder();
   j5.addNumber("foo", 23.0);

@@ -38,6 +38,7 @@
 
 #include <numeric>
 
+#include "MLHash.h"
 #include "MLSymbol.h"
 #include "MLTextUtils.h"
 #include "MLMemoryUtils.h"
@@ -62,11 +63,11 @@ public:
   constexpr GenericPath(const char (&str)[N]);
 
   // "explicit" here is needed to make constexpr constructor the default
-  explicit GenericPath(const char* str);
+  //explicit GenericPath(const char* str);
   
-  GenericPath(const Symbol frag);
-  GenericPath(const TextFragment frag);
-  GenericPath(const TextFragment frag, const char separator);
+  //GenericPath(const Symbol frag);
+  //GenericPath(const TextFragment frag);
+  //GenericPath(const TextFragment frag, const char separator);
 
   GenericPath(const GenericPath p1, const GenericPath p2)
   {
@@ -318,29 +319,42 @@ constexpr Path::GenericPath(const char (&str)[N])
   }
 }
 
-template <>
-inline Path::GenericPath(const char* str)
+inline Path runtimePath(const char* str)
 {
-  parsePathStringIntoSymbols(*this, str, '/');
+  Path p;
+  parsePathStringIntoSymbols(p, str, '/');
+  return p;
 }
 
+inline Path runtimePath(const TextFragment& str)
+{
+  Path p;
+  parsePathStringIntoSymbols(p, str.getText(), '/');
+  return p;
+}
+
+/*
 template <>
 inline Path::GenericPath(const Symbol sym)
 {
   parsePathStringIntoSymbols(*this, sym.getUTF8Ptr(), '/');
 }
+*/
 
+/*
 template <>
 inline Path::GenericPath(const TextFragment frag)
 {
   parsePathStringIntoSymbols(*this, frag.getText(), '/');
 }
-
+*/
+/*
 template <>
 inline Path::GenericPath(const TextFragment frag, const char separator)
 {
   parsePathStringIntoSymbols(*this, frag.getText(), separator);
 }
+*/
 
 // Extension method for Symbol paths
 
@@ -437,12 +451,14 @@ constexpr TextPath::GenericPath(const char (&str)[N])
   }
 }
 
+/*
 template <>
 inline TextPath::GenericPath(const char* str)
 {
   parsePathStringIntoTextFragments(*this, str, '/');
-}
+}*/
 
+/*
 template <>
 inline TextPath::GenericPath(const Symbol sym)
 {
@@ -460,6 +476,7 @@ inline TextPath::GenericPath(const TextFragment frag, const char separator)
 {
   parsePathStringIntoTextFragments(*this, frag.getText(), separator);
 }
+*/
 
 // Template specializations for toText()
 
@@ -520,7 +537,7 @@ inline Path substitute(Path p, Symbol fromSymbol, Path to)
     }
     else
     {
-      r = Path{r, Path(next.getTextFragment())};
+      r = Path{r, runtimePath(next.getUTF8Ptr())};
     }
   }
   return r;
@@ -542,7 +559,7 @@ inline std::ostream& operator<<(std::ostream& out, const ml::TextPath & r)
 }
 
 
-inline Path textToPath(const TextFragment& t) { return Path(t); }
+inline Path textToPath(const TextFragment& t) { return runtimePath(t.getText()); }
 inline TextFragment pathToText(const Path& p) { return (p.toText()); }
 inline TextFragment pathToText(const TextPath& p) { return (p.toText()); }
 
@@ -552,5 +569,31 @@ inline bool operator==(const char* a, const Path& b) { return Path(a) == b; }
 inline bool operator!=(const Path& a, const char* b) { return !(a == b); }
 inline bool operator!=(const char* a, const Path& b) { return !(a == b); }
 */
+
+/* TEMP
+class PathList
+{
+public:
+  PathList(std::initializer_list<const char*> paths)
+  {
+    _paths.reserve(paths.size());
+    for (const char* p : paths)
+    {
+      _paths.emplace_back(p);  // Runtime construction, registers symbols
+    }
+  }
+  
+  // Iterator support for range-based for
+  auto begin() const { return _paths.begin(); }
+  auto end() const { return _paths.end(); }
+  
+  size_t size() const { return _paths.size(); }
+  const Path& operator[](size_t i) const { return _paths[i]; }
+  
+private:
+  std::vector<Path> _paths;
+};
+*/
+
 
 }  // namespace ml

@@ -10,7 +10,6 @@
 namespace ml
 {
 
-
 void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr, const char delimiter)
 {
   if (!pathStr) return;
@@ -44,7 +43,6 @@ void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr, 
     }
   } while (*it != '\0');
 }
-
 
 void parsePathStringIntoTextFragments(GenericPath<TextFragment>& path, const char* pathStr, const char delimiter)
 {

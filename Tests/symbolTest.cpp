@@ -4,11 +4,9 @@
 
 // a unit test made using the Catch framework in catch.hpp / tests.cpp.
 
-
 #include "catch.hpp"
 #include "madronalib.h"
 #include "testUtils.h"
-
 
 #if _WIN32
 #define HAVE_U8_LITERALS 0
@@ -17,8 +15,6 @@
 #endif
 
 using namespace ml;
-
-
 
 TEST_CASE("madronalib/core/symbol/hash", "[symbol]")
 {
@@ -179,9 +175,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    //std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
+    std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
 
-    // lookup from existing MLSymbols
+    // lookup from existing Symbols
     start = now();
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
@@ -190,6 +186,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "existing Symbols, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -202,8 +199,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "existing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
 
-    // lookup from existing MLSymbols
+    // lookup from existing Symbols
     start = now();
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
@@ -212,6 +210,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "existing Symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -227,8 +226,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "new strings, elapsed time: " << elapsed.count() << "s\n";
 
-    // lookup from new MLSymbols made from char *
+    // lookup from new Symbols made from char *
     start = now();
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
@@ -237,6 +237,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "new Symbols, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -249,8 +250,9 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
- 
-    // unordered lookup from new MLSymbols made from char *
+    std::cout << "new strings, unordered, elapsed time: " << elapsed.count() << "s\n";
+
+    // unordered lookup from new Symbols made from char *
     start = now();
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
@@ -259,6 +261,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "new Symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -272,6 +275,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "literals, elapsed time: " << elapsed.count() << "s\n";
 
     // unordered lookup using literal (hashed at compile time)
     start = now();
@@ -282,6 +286,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
+    std::cout << "literals, unordered, elapsed time: " << elapsed.count() << "s\n";
 
 
     // theSymbolTable().dump();

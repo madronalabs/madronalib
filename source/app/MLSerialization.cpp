@@ -146,7 +146,7 @@ Path readPathFromBinary(const uint8_t*& readPtr)
   {
     pathSize = pathHeader.dataBytes;
     const char* pChars = reinterpret_cast<const char*>(readPtr + headerSize);
-    r = Path(TextFragment(pChars, pathSize));
+    r = runtimePath(TextFragment(pChars, pathSize));
   }
   readPtr += (headerSize + pathSize);
   return r;
@@ -257,7 +257,7 @@ Path binaryToPathOld(const uint8_t* p)
   {
     auto pathSizeInBytes = pathHeader.dataBytes;
     const char* pChars = reinterpret_cast<const char*>(p + headerSize);
-    return Path(TextFragment(pChars, pathSizeInBytes));
+    return runtimePath(TextFragment(pChars, pathSizeInBytes));
   }
   else
   {
@@ -515,7 +515,7 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
 
   while (obj)
   {
-    Path newObjectPath(currentPath, Path(obj->string));
+    Path newObjectPath(currentPath, runtimePath(obj->string));
     
     switch (obj->type & 255)
     {

@@ -9,6 +9,8 @@
 #include <memory>
 #include <vector>
 
+#include "MLHash.h"
+
 namespace ml
 {
 static constexpr int kShortFragmentSizeInCodePoints = 16;
@@ -213,5 +215,10 @@ inline bool operator==(const char* a, const TextFragment& b) { return TextFragme
 inline bool operator!=(const TextFragment& a, const char* b) { return !(a == b); }
 inline bool operator!=(const char* a, const TextFragment& b) { return !(a == b); }
 
+inline uint64_t hash(const TextFragment& a)
+{
+  const char* c = a.getText();
+  return fnv1aSubstring(c, strlen(c));
+}
 
 }  // namespace ml

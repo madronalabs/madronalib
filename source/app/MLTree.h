@@ -145,24 +145,43 @@ public:
     }
   }
   
+  // string literal version for speed
   template <size_t N>
   V& operator[](const char (&pathStr)[N])
   {
-    GenericPath<K> pname(pathStr);
+    GenericPath<K> p(pathStr);
     
-    auto pNode = getMutableNode(pname);
+    auto pNode = getMutableNode(p);
     if(pNode)
     {
       return pNode->_value;
     }
     else
     {
-      return add(pname, V())->_value;
+      return add(p, V())->_value;
     }
   }
   
   const V& operator[](GenericPath<K> p) const
   {
+    static const V nullValue{};
+    auto pNode = getNode(p);
+    if (pNode)
+    {
+      return pNode->_value;
+    }
+    else
+    {
+      return nullValue;
+    }
+  }
+  
+  // const string literal version for speed
+  template <size_t N>
+  const V& operator[](const char (&pathStr)[N]) const
+  {
+    GenericPath<K> p(pathStr);
+    
     static const V nullValue{};
     auto pNode = getNode(p);
     if (pNode)

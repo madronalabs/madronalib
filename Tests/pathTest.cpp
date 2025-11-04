@@ -19,8 +19,24 @@ using namespace ml;
 
 TEST_CASE("madronalib/core/path/symbolic", "[path]")
 {
+  
+  theSymbolTable().clear();
+  
   Path p("hello/world/a/b/c/d/e/f/g");
   TextFragment pTest("hello+world+a+b+c+d+e+f+g");
+  
+
+  Symbol xa("foo");
+  Symbol xb("bar");
+
+  std::cout << "xb: " << xb << "\n";
+
+
+  Symbol xc(xa + "+" + xb);
+  std::cout << "xeird: " << xc << "\n";
+  
+  Symbol xd(xb + "+" + xa);
+  std::cout << "xxxeird: " << xd << "\n";
   
   auto accumTest = [](Symbol a, Symbol b) {
     Symbol sum(a + Symbol("+") + b);
@@ -92,4 +108,14 @@ TEST_CASE("madronalib/core/path/equality", "[path]")
   Path p("hello/world");
   REQUIRE(p == "hello/world");
   REQUIRE(p != "hello/worl");
+}
+
+TEST_CASE("madronalib/core/path/init-list", "[path]")
+{
+  Path sum;
+  for(Path p : PathList{"menu/lfo/rate", "menu/lfo/ratio", "menu/lfo/amount", "menu/learn/amount"})
+  {
+    sum = Path(sum, p);
+  }
+  REQUIRE(sum.getSize() == 12);
 }

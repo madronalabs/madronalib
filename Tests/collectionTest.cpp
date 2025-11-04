@@ -54,7 +54,7 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   constexpr Symbol s2 = Symbol::fromHash(12345);  // Does this work?
   
   // Test 3: Symbol from string literal
-  constexpr Symbol s3("abc");
+  Symbol s3("abc");
   
   std::cout << "s3 hash: " << s3.getHash() << "\n";
   
@@ -66,8 +66,14 @@ TEST_CASE("madronalib/core/collection", "[collection]")
   std::cout << "s4 hash: " << s4.getHash() << "\n";
   
   Path p1("this/is/a/path");
-  
   std::cout << p1 << "\n";
+  
+  std::string str2("this/is/another/path");
+  Path p2(str2.c_str());
+  std::cout << p2 << "\n";
+  
+  
+  
   // Test 4: Check if the issue is the array reference
   //constexpr const char* str = "abc";
   //constexpr Symbol s4(str);  // Does this work? (probably not - different overload)

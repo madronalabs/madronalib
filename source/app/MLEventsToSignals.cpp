@@ -20,7 +20,7 @@ float samplesToSeconds(uint32_t samples, float sr)
 int getKeyIndex(const Event& e, Symbol protocol)
 {
   int instigator{0};
-  switch(hash(protocol))
+  switch(protocol.getHash())
   {
     case(hash("MIDI")):
     {
@@ -449,7 +449,7 @@ void EventsToSignals::processVector(int startTime)
   
   // in MIDI mode, add smoothed Channel Pressure to z output
   // in MPE mode, add main voice signals to other voices
-  switch(hash(protocol_))
+  switch(protocol_.getHash())
   {
     case(hash("MIDI")):
     {
@@ -655,7 +655,7 @@ void EventsToSignals::processNoteUpdateEvent(const Event& event) {}
 
 void EventsToSignals::processChannelPressureEvent(const Event& event)
 {
-  switch(hash(protocol_))
+  switch(protocol_.getHash())
   {
     case(hash("MIDI")):
     {
@@ -689,7 +689,7 @@ void EventsToSignals::processChannelPressureEvent(const Event& event)
 
 void EventsToSignals::processNotePressureEvent(const Event& event)
 {
-  switch(hash(protocol_))
+  switch(protocol_.getHash())
   {
     case(hash("MIDI")):
     {
@@ -713,7 +713,7 @@ void EventsToSignals::processNotePressureEvent(const Event& event)
 
 void EventsToSignals::processPitchWheelEvent(const Event& event)
 {
-  switch(hash(protocol_))
+  switch(protocol_.getHash())
   {
     case(hash("MIDI")):
     {
@@ -780,7 +780,7 @@ void EventsToSignals::processControllerEvent(const Event& event)
   }
   else
   {
-    switch(hash(protocol_))
+    switch(protocol_.getHash())
     {
       case(hash("MIDI")):
       {

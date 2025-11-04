@@ -216,19 +216,23 @@ public:
     return paramsNorm_[pname];
   }
 
+  
+  
   float getRealFloatValue(Path pname) const
   {
     return paramsReal_[pname].getFloatValue();
   }
-  
   // TEMP new!
   template <size_t N>
-  float getRealFloatValue(const char (&pathStr)[N]) const
+  inline float getRealFloatValueX(const char (&pathStr)[N]) const
   {
-    Path pname(pathStr);
+    constexpr Path pname(pathStr);
     return paramsReal_[pname].getFloatValue();
   }
 
+  
+  
+  
   float getNormalizedFloatValue(Path pname) const
   {
     return paramsNorm_[pname].getFloatValue();
@@ -315,7 +319,7 @@ public:
     for (auto it = descriptions.begin(); it != descriptions.end(); ++it)
     {
       const auto& paramDesc = *it;
-      Path pname(paramDesc->getTextProperty("name"));
+      Path pname = runtimePath(paramDesc->getTextProperty("name"));
       
       // arg pname should be GenericPath<k>
       auto normVal = paramsNorm_[pname];
@@ -405,7 +409,7 @@ inline void buildParameterTree(const ParameterDescriptionList& paramList, Parame
   for (const auto& paramDesc : paramList)
   {
     auto pname = paramDesc->getTextProperty("name");
-    setParameterInfo(paramTree, Path(pname), *paramDesc);
+    setParameterInfo(paramTree, runtimePath(pname), *paramDesc);
   }
 }
 
@@ -413,7 +417,7 @@ inline void setDefaults(ParameterTree& p)
 {
   for (auto& paramDesc : p.descriptions)
   {
-    Path pname (paramDesc->getTextProperty("name"));
+    auto pname = runtimePath(paramDesc->getTextProperty("name"));
     setDefault(p, pname);
   }
 }
@@ -425,7 +429,7 @@ inline ParameterDescription* findNamedParameter(const ParameterDescriptionList& 
   for(int i = 0; i<paramList.size(); ++i)
   {
     auto& pDesc = paramList[i];
-    if(Path(pDesc->getTextProperty("name")) == pname)
+    if(runtimePath(pDesc->getTextProperty("name")) == pname)
     {
       pParam = pDesc.get();
       break;

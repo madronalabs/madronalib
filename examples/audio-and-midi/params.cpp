@@ -50,8 +50,8 @@ void processParamsExample(AudioContext* ctx, void *untypedState)
   auto state = static_cast< ExampleProcessor* >(untypedState);
 
   // get params from the SignalProcessor.
-  float f1 = state->getRealFloatParam("freq1");
-  float f2 = state->getRealFloatParam("freq2");
+  float f1 = state->getRealFloatParamX("freq1");
+  float f2 = state->getRealFloatParamX("freq2");
     
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
