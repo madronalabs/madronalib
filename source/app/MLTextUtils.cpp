@@ -910,7 +910,7 @@ bool collate(const TextFragment& a, const TextFragment& b)
 Symbol addFinalNumber(Symbol sym, int n)
 {
   TextFragment t(sym.getTextFragment(), textUtils::naturalNumberToText(n));
-  return Symbol(t.getText());
+  return runtimeSymbol(t.getText());
 }
 
 Symbol stripFinalNumber(Symbol sym)
@@ -950,7 +950,7 @@ Symbol stripFinalNumber(Symbol sym)
   }
 
   ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
-  return Symbol(subFrag.getText());
+  return runtimeSymbol(subFrag.getText());
 }
 
 // if the symbol's text ends in an integer, return that number.
@@ -990,7 +990,7 @@ Symbol stripFinalCharacter(Symbol sym)
 {
   TextFragment frag = sym.getTextFragment();
   size_t len = frag.lengthInCodePoints();
-  return Symbol(subText(frag, 0, len - 1));
+  return runtimeSymbol(subText(frag, 0, len - 1));
 }
 
 #pragma mark NameMaker
@@ -1069,7 +1069,7 @@ std::vector<Symbol> makeVectorOfNonsenseSymbols(int len)
       int idx = (r32 & 31);
       newStr += (kLetters[idx]);
     }
-    words.push_back(Symbol(newStr.c_str()));
+    words.push_back(runtimeSymbol(newStr.c_str()));
   }
   return words;
 }

@@ -54,7 +54,7 @@ void threadTest(TextFragment prefix, int n)
   for (int i = 0; i < n; ++i)
   {
     TextFragment t(TextFragment(prefix), namer.nextName());
-    Symbol sym(t);
+    Symbol sym = runtimeSymbol(t);
     std::this_thread::yield();
   }
 }
@@ -131,7 +131,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     stringDict.push_back(newString);
 
     // add it to symbol table
-    Symbol newSym(newString.c_str());
+    Symbol newSym = runtimeSymbol(newString.c_str());
     symbolDict.push_back(newSym);
 
     // add an entry to each map
@@ -233,7 +233,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
     {
-      symbolSum += testMapOrderedSym[Symbol(charDict[testIndexes[i]])];
+      symbolSum += testMapOrderedSym[runtimeSymbol(charDict[testIndexes[i]])];
     }
     end = now();
     elapsed = end - start;
@@ -257,7 +257,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
     {
-      symbolSum += testMapUnorderedSym[Symbol(charDict[testIndexes[i]])];
+      symbolSum += testMapUnorderedSym[runtimeSymbol(charDict[testIndexes[i]])];
     }
     end = now();
     elapsed = end - start;
@@ -299,7 +299,7 @@ TEST_CASE("madronalib/core/symbol/numbers", "[symbol]")
   for (int i = 0; i < 10; ++i)
   {
     int num = i*39620;
-    Symbol testSym(namer.nextName());
+    Symbol testSym = runtimeSymbol(namer.nextName());
     
     Symbol testSymWithNum = textUtils::addFinalNumber(testSym, num);
     Symbol testSymWithoutNum = textUtils::stripFinalNumber(testSym);

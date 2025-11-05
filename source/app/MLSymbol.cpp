@@ -13,6 +13,10 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
 {
   uint64_t hash = fnv1aRuntime(text, len);
   
+  std::cout << "registering " ;
+  for(int i=0; i<len; ++i) { std::cout << text[i]; }
+  std::cout << "\n";
+  
   std::lock_guard<std::mutex> lock(mMutex);
   
   auto it = mSymbols.find(hash);

@@ -66,7 +66,7 @@ public:
   //explicit GenericPath(const char* str);
   
   //GenericPath(const Symbol frag);
-  //GenericPath(const TextFragment frag);
+  GenericPath(const TextFragment frag);
   //GenericPath(const TextFragment frag, const char separator);
 
   GenericPath(const GenericPath p1, const GenericPath p2)
@@ -284,9 +284,10 @@ inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
 using Path = GenericPath<Symbol>;
 
 // Helper function for parsing path strings into Symbols using UTF library
-void parsePathStringIntoSymbols(Path& path, const char* pathStr, const char delimiter = '/');
+void parsePathStringIntoSymbols(Path& path, const char* pathStr);
 
 // Specialized constructors for Path (GenericPath<Symbol>)
+// creates an array of Symbols at compile-time without registering the Symbols
 template <>
 template <size_t N>
 constexpr Path::GenericPath(const char (&str)[N])
@@ -313,25 +314,33 @@ constexpr Path::GenericPath(const char (&str)[N])
       if (len > 0)
       {
         uint64_t hash =  fnv1aSubstring(&str[start], len);
-        _elements[mSize++] = Symbol::fromHash(hash);
+        _elements[mSize++] = Symbol(hash);
       }
     }
   }
 }
 
+template <>
+inline Path::GenericPath(const TextFragment frag)
+{
+  parsePathStringIntoSymbols(*this, frag.getText());
+}
+
 inline Path runtimePath(const char* str)
 {
   Path p;
-  parsePathStringIntoSymbols(p, str, '/');
+  parsePathStringIntoSymbols(p, str);
   return p;
 }
+
 
 inline Path runtimePath(const TextFragment& str)
 {
   Path p;
-  parsePathStringIntoSymbols(p, str.getText(), '/');
+  parsePathStringIntoSymbols(p, str.getText());
   return p;
 }
+
 
 /*
 template <>
@@ -450,6 +459,14 @@ constexpr TextPath::GenericPath(const char (&str)[N])
     }
   }
 }
+
+
+template <>
+inline TextPath::GenericPath(const TextFragment frag)
+{
+  parsePathStringIntoTextFragments(*this, frag.getText(), '/');
+}
+
 
 /*
 template <>

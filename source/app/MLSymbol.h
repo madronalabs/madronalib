@@ -82,11 +82,16 @@ class Symbol
   
 public:
   constexpr Symbol() : mHash(0) {}
-  
+  explicit constexpr Symbol(uint64_t hash) : mHash(hash) {}
+
   // Constexpr when possible: compute hash only
   template <size_t N>
   inline constexpr Symbol(const char (&sym)[N]) : mHash(fnv1aSubstring(sym, N - 1)) { }
 
+  //explicit Symbol(const char* pChars, size_t len) noexcept;
+
+  
+  /*
   // Runtime: compute hash AND register
   Symbol(const char* pC)
   : mHash(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
@@ -103,6 +108,7 @@ public:
     s.mHash = hash;
     return s;
   }
+  */
   
   bool operator<(const Symbol b) const { return mHash < b.mHash; }
   bool operator==(const Symbol b) const { return mHash == b.mHash; }
@@ -120,9 +126,26 @@ public:
   std::string toString() const { return std::string(getUTF8Ptr()); }
 };
 
+inline Symbol runtimeSymbol(const char* str)
+{
+  return Symbol(theSymbolTable().registerSymbol(str, strlen(str)));
+}
+
+inline Symbol runtimeSymbol(const char* str, size_t len)
+{
+  return Symbol(theSymbolTable().registerSymbol(str, len));
+}
+
+inline Symbol runtimeSymbol(const TextFragment& frag)
+{
+  const char* str = frag.getText();
+  return Symbol(theSymbolTable().registerSymbol(str, strlen(str)));
+}
+
 inline Symbol operator+(Symbol f1, Symbol f2)
 {
-  return Symbol(TextFragment(f1.getTextFragment(), f2.getTextFragment()));
+  TextFragment sum(f1.getTextFragment(), f2.getTextFragment());
+  return runtimeSymbol(sum.getText());
 }
 
 inline uint64_t hash(Symbol sym) { return sym.getHash(); }

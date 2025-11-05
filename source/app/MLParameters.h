@@ -25,7 +25,7 @@ struct ParameterProjection
 inline ParameterProjection createParameterProjection(const ParameterDescription& p)
 {
   ParameterProjection b;
-  auto units = Symbol(p.getProperty("units").getTextValue());
+  auto units = runtimeSymbol(p.getProperty("units").getTextValue());
   bool bLog = p.getBoolPropertyWithDefault("log", false);
   bool bisquare = p.getBoolPropertyWithDefault("bisquare", false);
   

@@ -43,36 +43,61 @@ TEST_CASE("madronalib/core/collection", "[collection]")
 {
   
     // TEMP
-  constexpr Symbol s = Symbol::fromHash(12345);
+  constexpr Symbol s (12345);
   
   // Test 1: Direct hash computation
   //constexpr *uint64_t h1 = hash("test");
   //std::cout << "hash " << h1 << "\n";
-  
-  
-  // Test 2: Symbol from hash (bypasses string constructor)
-  constexpr Symbol s2 = Symbol::fromHash(12345);  // Does this work?
+
   
   // Test 3: Symbol from string literal
-  Symbol s3("abc");
-  
-  std::cout << "s3 hash: " << s3.getHash() << "\n";
+  Symbol s3("this");
+  std::cout << "this hash: " << s3.getHash() << "\n";
+  std::cout << "this: " << s3 << "\n";
+
+  std::cout << "path hash: " << Symbol("path").getHash() << "\n";
   
   // Symbol from char * (not constexpr)
   std::string testStr;
   testStr = "abc";
-  Symbol s4(testStr.c_str());
+  Symbol s4 = runtimeSymbol(testStr.c_str());
   
   std::cout << "s4 hash: " << s4.getHash() << "\n";
   
-  Path p1("this/is/a/path");
+  Path p1("this/is/abc/path");
   std::cout << p1 << "\n";
   
+  Symbol thisSym = p1.getElement(0);
+  std::cout << "this hash: " << thisSym.getHash() << "\n";
+  Symbol pathSym = p1.getElement(3);
+  std::cout << "path hash: " << pathSym.getHash() << "\n";
+
+  
+  
   std::string str2("this/is/another/path");
-  Path p2(str2.c_str());
+  auto p2 = runtimePath(str2.c_str());
   std::cout << p2 << "\n";
   
   
+  
+  Symbol foo("foo");
+  Symbol bar("bar");
+  
+  std::cout << "foo: " << foo << "\n";
+  std::cout << "bar: " << bar << "\n";
+
+  
+  Symbol fooPlusBarSym(foo + bar);
+  std::cout << "foo + bar: " << fooPlusBarSym << "\n";
+  std::cout << "foo + bar hash: " << fooPlusBarSym.getHash() << "\n";
+  
+  Symbol foobarSym("foobar");
+  std::cout << "foobar: " << foobarSym << "\n";
+  std::cout << "foobar hash: " << foobarSym.getHash() << "\n";
+
+  
+
+            
   
   // Test 4: Check if the issue is the array reference
   //constexpr const char* str = "abc";

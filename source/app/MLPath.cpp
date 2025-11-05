@@ -10,8 +10,9 @@
 namespace ml
 {
 
-void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr, const char delimiter)
+void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr)
 {
+  constexpr char delimiter{'/'};
   if (!pathStr) return;
   
   auto it = TextFragment::Iterator(pathStr);
@@ -38,7 +39,7 @@ void parsePathStringIntoSymbols(GenericPath<Symbol>& path, const char* pathStr, 
     // Create and add the symbol
     if (symbolSizeInBytes > 0)
     {
-      path.addElement(Symbol(symbolStartPtr, symbolSizeInBytes));
+      path.addElement(runtimeSymbol(symbolStartPtr, symbolSizeInBytes));
       symbolStartPtr += symbolSizeInBytes;
     }
   } while (*it != '\0');

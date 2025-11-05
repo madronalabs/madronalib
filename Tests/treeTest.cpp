@@ -60,7 +60,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // 8 possible symbols per level
       int symbolIdx =
           (((randSource.getUInt32() >> 16) & 0x07) + 8 * p) % numTestWords;
-      testPath = Path{testPath, testWords[symbolIdx]};
+      testPath = Path{testPath, runtimePath(testWords[symbolIdx].getUTF8Ptr())};
     }
 
     for (int j = 0; j < leaves; ++j)
@@ -68,14 +68,13 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // make resource path with unique end so paths are never duplicates
       Symbol leafName =
           testWords[(randSource.getUInt32() >> 16) % numTestWords] +
-          Symbol(endNamer.nextName());
+        runtimeSymbol(endNamer.nextName());
       Path newPath = testPath;
-      newPath = Path{newPath, Path(leafName)};
+      newPath = Path{newPath, runtimePath(leafName.getUTF8Ptr())};
       pathsVector.push_back(newPath);
     }
   }
   
-
   // Test a pretty big tree of int values
   {
     Tree<int> numberTree;

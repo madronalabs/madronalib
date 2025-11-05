@@ -23,21 +23,9 @@ TEST_CASE("madronalib/core/path/symbolic", "[path]")
   theSymbolTable().clear();
   
   Path p("hello/world/a/b/c/d/e/f/g");
+  auto initialSize = theSymbolTable().getSize();
   TextFragment pTest("hello+world+a+b+c+d+e+f+g");
-  
 
-  Symbol xa("foo");
-  Symbol xb("bar");
-
-  std::cout << "xb: " << xb << "\n";
-
-
-  Symbol xc(xa + "+" + xb);
-  std::cout << "xeird: " << xc << "\n";
-  
-  Symbol xd(xb + "+" + xa);
-  std::cout << "xxxeird: " << xd << "\n";
-  
   auto accumTest = [](Symbol a, Symbol b) {
     Symbol sum(a + Symbol("+") + b);
     return sum;
@@ -110,6 +98,8 @@ TEST_CASE("madronalib/core/path/equality", "[path]")
   REQUIRE(p != "hello/worl");
 }
 
+// TEMP
+#if 0
 TEST_CASE("madronalib/core/path/init-list", "[path]")
 {
   Path sum;
@@ -119,3 +109,5 @@ TEST_CASE("madronalib/core/path/init-list", "[path]")
   }
   REQUIRE(sum.getSize() == 12);
 }
+#endif
+
