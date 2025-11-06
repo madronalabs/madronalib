@@ -40,7 +40,7 @@ void waitForConsoleKeyPress()
   fcntl(STDIN_FILENO, F_SETFL, oldf);
 }
 
-#endif // ML_MAC
+#endif  // ML_MAC
 #ifdef ML_WINDOWS
 #include <conio.h>
 
@@ -58,30 +58,30 @@ char keyPressedAsync()
 
 void waitForConsoleKeyPress()
 {
-    // Hide the console cursor
-    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-    CONSOLE_CURSOR_INFO cursorInfo;
-    GetConsoleCursorInfo(hConsole, &cursorInfo);
-    cursorInfo.bVisible = false;  // Set the cursor visibility
-    SetConsoleCursorInfo(hConsole, &cursorInfo);
+  // Hide the console cursor
+  HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+  CONSOLE_CURSOR_INFO cursorInfo;
+  GetConsoleCursorInfo(hConsole, &cursorInfo);
+  cursorInfo.bVisible = false;  // Set the cursor visibility
+  SetConsoleCursorInfo(hConsole, &cursorInfo);
 
-    // Wait for a key press
-    while (true)
+  // Wait for a key press
+  while (true)
+  {
+    if (_kbhit())
     {
-      if (_kbhit())
-      {
-        int ch = _getch();  // Read the key press
-        break;
-      }
-      std::this_thread::sleep_for(10ms);
+      int ch = _getch();  // Read the key press
+      break;
     }
+    std::this_thread::sleep_for(10ms);
+  }
 
-    // Restore the console cursor
-    cursorInfo.bVisible = true;
-    SetConsoleCursorInfo(hConsole, &cursorInfo);
+  // Restore the console cursor
+  cursorInfo.bVisible = true;
+  SetConsoleCursorInfo(hConsole, &cursorInfo);
 }
-   
-#endif // ML_WINDOWS
+
+#endif  // ML_WINDOWS
 
 #if !defined(ML_MAC) && !defined(ML_WINDOWS)
 // Fallback implementation for other platforms (Linux, etc.)
@@ -97,7 +97,7 @@ constexpr int kRtAudioCallbackFrames{512};
 struct AudioProcessData
 {
   // buffered processing
-  std::unique_ptr< SignalProcessBuffer > buffer;
+  std::unique_ptr<SignalProcessBuffer> buffer;
 
   // context, function and state for the process.
   AudioContext* processContext{nullptr};
@@ -114,7 +114,7 @@ struct AudioTask::Impl
 
   Impl(size_t nInputs, size_t nOutputs, size_t kMaxBlockSize)
   {
-    processData.buffer = std::make_unique< SignalProcessBuffer >(nInputs, nOutputs, kMaxBlockSize);
+    processData.buffer = std::make_unique<SignalProcessBuffer>(nInputs, nOutputs, kMaxBlockSize);
   }
 };
 
@@ -255,7 +255,6 @@ int AudioTask::runConsoleApp()
   return 0;
 }
 
-
 AudioTask::~AudioTask() = default;
 
-}  // namespace ml 
+}  // namespace ml

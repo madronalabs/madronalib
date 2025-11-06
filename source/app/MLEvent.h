@@ -6,7 +6,8 @@
 
 #include <iostream>
 
-namespace ml {
+namespace ml
+{
 
 enum EventType
 {
@@ -15,7 +16,7 @@ enum EventType
   kNoteRetrig,
   kNoteSustain,
   kNoteOff,
-  kSustainPedal, // when sustain pedal is held, key releases generate kNoteSustain events
+  kSustainPedal,  // when sustain pedal is held, key releases generate kNoteSustain events
   kController,
   kPitchBend,
   kNotePressure,
@@ -23,7 +24,6 @@ enum EventType
   kProgramChange,
   kNumEventTypes
 };
-
 
 // Event: something that happens in a performance.
 //
@@ -34,10 +34,10 @@ struct Event
 
   uint8_t type{kNull};
   uint8_t channel{0};
-  
+
   // which of multiple things (keys, controls) originated the event?
   uint16_t sourceIdx{0};
-  
+
   // Onset time in samples from start of current top-level buffer.
   int time{0};
 
@@ -46,16 +46,15 @@ struct Event
   float value2{0};
 
   explicit operator bool() const { return type != kNull; }
-  
+
   static const char* typeNames[kNumEventTypes];
 };
 
-
 inline std::ostream& operator<<(std::ostream& out, const Event& e)
 {
-  std::cout << "[" << Event::typeNames[e.type] << " " << (int)e.channel << "/" << (int)e.sourceIdx << "/" << (int)e.time << " " << e.value1 << ", " << e.value2 << "]";
+  std::cout << "[" << Event::typeNames[e.type] << " " << (int)e.channel << "/" << (int)e.sourceIdx
+            << "/" << (int)e.time << " " << e.value1 << ", " << e.value2 << "]";
   return out;
 }
 
-
-} // ml
+}  // namespace ml

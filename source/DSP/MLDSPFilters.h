@@ -57,27 +57,28 @@ struct Lopass
     g2,
     nCoeffs
   };
-  
+
   typedef std::array<float, nCoeffs> coeffs;
   typedef DSPVectorArray<nCoeffs> coeffsVec;
   float ic1eq{0};
   float ic2eq{0};
-  
-  inline void clear() {
+
+  inline void clear()
+  {
     ic1eq = 0;
     ic2eq = 0;
   }
-  
+
   enum paramNames
   {
     omega,
     k,
     nParams
   };
-  
+
   typedef std::array<float, nParams> params;
   coeffs _coeffs{};
-  
+
   // get internal coefficients for a given omega and k.
   // omega: the frequency divided by the sample rate.
   // k: 1/Q, where k=0 is maximum resonance.
@@ -92,15 +93,14 @@ struct Lopass
     float g2 = (2.0f * s1 * s1) * nrm;
     return {g0, g1, g2};
   }
-  
+
   static coeffsVec makeCoeffsVec(DSPVector omega, DSPVector k)
   {
     coeffsVec vy;
     // TODO SIMD
     omega = min(omega, DSPVector(0.5f));
     k = max(k, DSPVector(0.01f));
-    
-    
+
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       float piOmega = kPi * omega[n];
@@ -113,7 +113,7 @@ struct Lopass
     }
     return vy;
   }
-  
+
   // filter the input vector vx with the stored coefficients.
   DSPVector operator()(const DSPVector vx)
   {
@@ -131,7 +131,7 @@ struct Lopass
     }
     return vy;
   }
-  
+
   // filter the input vector vx with the coefficients generated from parameters omega and k.
   DSPVector operator()(const DSPVector vx, const DSPVector omega, const DSPVector k)
   {
@@ -151,8 +151,6 @@ struct Lopass
     return vy;
   }
 };
-
-
 
 class Hipass
 {
@@ -447,7 +445,7 @@ class Bell
 
 struct OnePole
 {
-  struct _coeffs // FIX
+  struct _coeffs  // FIX
   {
     float a0, b1;
   };
@@ -475,17 +473,11 @@ struct OnePole
     }
     return vy;
   }
-  
-  // jump to the new output value f without slewing there.
-  void reset(float f)
-  {
-    y1 = f;
-  }
 
-  void clear()
-  {
-    y1 = 0.f;
-  }
+  // jump to the new output value f without slewing there.
+  void reset(float f) { y1 = f; }
+
+  void clear() { y1 = 0.f; }
 };
 
 // A one-pole, one-zero filter to attenuate DC.
@@ -666,7 +658,7 @@ struct ADSR
 {
   static constexpr float bias = 0.1f;
   static constexpr float minSegmentTime = 0.0002f;
-  
+
   struct _coeffs
   {
     float ka, kd, s, kr;
@@ -680,60 +672,60 @@ struct ADSR
     R = 3,
     off = 4
   };
-    
+
   static _coeffs calcCoeffs(float a, float d, float s, float r, float sr)
   {
-    const float invSr = 1.0f/sr;
+    const float invSr = 1.0f / sr;
     const float ka = kTwoPi * invSr / ml::max(a, minSegmentTime);
     const float kd = kTwoPi * invSr / ml::max(d, minSegmentTime);
     const float kr = kTwoPi * invSr / ml::max(r, minSegmentTime);
     return {ka, kd, s, kr};
   }
-  
+
   _coeffs coeffs{0};
 
-  float y{0}; // current output
-  float y1{0}; // previous output
-  float x1{0}; // previous input
-  float threshold{0}; // actual value to stop on
-  float target{0}; // input to filter: value with bias added so we end in a finite time
-  float k{0}; // IIR filter coefficient
+  float y{0};          // current output
+  float y1{0};         // previous output
+  float x1{0};         // previous input
+  float threshold{0};  // actual value to stop on
+  float target{0};     // input to filter: value with bias added so we end in a finite time
+  float k{0};          // IIR filter coefficient
   float amp{0};
   int segment{off};
-  
-  void clear()
-  {
-    segment = off;
-  }
-  
+
+  void clear() { segment = off; }
+
   inline float processSample(float x)
   {
-    if((segment == off) && (x == 0.f)) return 0.f;
-    
+    if ((segment == off) && (x == 0.f)) return 0.f;
+
     bool crossedThresh = ((y1 > threshold) != (y > threshold));
     bool recalc{false};
-    
+
     // crossing threshold advances to next envelope segment
-    if(crossedThresh && (segment < off))
+    if (crossedThresh && (segment < off))
     {
-      segment++; // << ?
+      segment++;  // << ?
       recalc = true;
     }
-    
+
     bool trigOn = (x1 == 0.f) && (x > 0.f);
     bool trigOff = (x1 > 0.f) && (x == 0.f);
-    
+
     // TODO use some bit twiddling
-    if(trigOn) {
+    if (trigOn)
+    {
       segment = A;
       amp = x;
       recalc = true;
-    } else if(trigOff) {
+    }
+    else if (trigOff)
+    {
       segment = R;
       recalc = true;
     }
-    
-    if(recalc)
+
+    if (recalc)
     {
       float startEnv, endEnv;
       switch (segment)
@@ -778,32 +770,31 @@ struct ADSR
           break;
         }
       }
-      
-      float segmentBias = (endEnv - startEnv)*bias;
+
+      float segmentBias = (endEnv - startEnv) * bias;
       threshold = endEnv;
       target = endEnv + segmentBias;
     }
-     
+
     // history and IIR filter
     x1 = x;
     y1 = y;
-    y = y + k*(target - y);
-    
+    y = y + k * (target - y);
+
     // scale by amp
-    return y*amp;
+    return y * amp;
   }
-  
+
   inline DSPVector operator()(const DSPVector vx)
   {
     DSPVector r;
-    for(int i=0; i<kFloatsPerDSPVector; ++i)
+    for (int i = 0; i < kFloatsPerDSPVector; ++i)
     {
       r[i] = processSample(vx[i]);
     }
     return r;
   }
 };
-
 
 // IntegerDelay delays a signal a whole number of samples.
 
@@ -1300,7 +1291,7 @@ class HalfBandFilter
     }
     return vy;
   }
-  
+
   void clear()
   {
     apa0.clear();
@@ -1319,7 +1310,8 @@ class HalfBandFilter
 
 // Downsampler
 // a cascade of half band filters, one for each octave.
-// TODO this is complicated. replace with single-channel version then use Bank<Downsampler> for multiple channels?
+// TODO this is complicated. replace with single-channel version then use Bank<Downsampler> for
+// multiple channels?
 class Downsampler
 {
   std::vector<HalfBandFilter> _filters;
@@ -1328,10 +1320,7 @@ class Downsampler
   int _numBuffers;
   uint32_t _counter{0};
 
-  float* bufferPtr(int idx)
-  {
-    return _buffers.data() + idx * kFloatsPerDSPVector;
-  }
+  float* bufferPtr(int idx) { return _buffers.data() + idx * kFloatsPerDSPVector; }
 
  public:
   Downsampler(int octavesDown) : _octaves(octavesDown)
@@ -1346,7 +1335,7 @@ class Downsampler
 
       // get all buffers as a single contiguous array of floats.
       _buffers.resize(kFloatsPerDSPVector * _numBuffers);
-      
+
       clear();
     }
   }
@@ -1397,14 +1386,11 @@ class Downsampler
     }
   }
 
-  DSPVector read()
-  {
-    return DSPVector(bufferPtr(_numBuffers - 1));
-  }
-  
+  DSPVector read() { return DSPVector(bufferPtr(_numBuffers - 1)); }
+
   void clear()
   {
-    for(auto& f : _filters)
+    for (auto& f : _filters)
     {
       f.clear();
     }
@@ -1412,7 +1398,6 @@ class Downsampler
     _counter = 0;
   }
 };
-
 
 struct Upsampler
 {
@@ -1422,10 +1407,7 @@ struct Upsampler
   int _numBuffers;
   int readIdx_{0};
 
-  float* bufferPtr(int idx)
-  {
-    return _buffers.data() + idx * kFloatsPerDSPVector;
-  }
+  float* bufferPtr(int idx) { return _buffers.data() + idx * kFloatsPerDSPVector; }
 
   Upsampler(int octavesUp) : _octaves(octavesUp)
   {
@@ -1434,10 +1416,10 @@ struct Upsampler
       _numBuffers = 1 << _octaves;
       size_t numFilters = _octaves;
       _filters.resize(numFilters);
-      
+
       // get all buffers as a single contiguous array of floats.
       _buffers.resize(kFloatsPerDSPVector * _numBuffers);
-      
+
       clear();
     }
   }
@@ -1447,8 +1429,9 @@ struct Upsampler
   {
     // write to last vector in buffer
     store(x, bufferPtr(_numBuffers - 1));
-    
-    // for each octave of upsampling, upsample blocks to twice as many, in place, ending at buffers end
+
+    // for each octave of upsampling, upsample blocks to twice as many, in place, ending at buffers
+    // end
     for (int j = 0; j < _octaves; ++j)
     {
       int sourceBufs = 1 << j;
@@ -1456,19 +1439,19 @@ struct Upsampler
       int srcStart = _numBuffers - sourceBufs;
       int destStart = _numBuffers - destBufs;
 
-      for(int i=0; i < sourceBufs; ++i)
+      for (int i = 0; i < sourceBufs; ++i)
       {
         DSPVector src, dest1, dest2;
         load(src, bufferPtr(srcStart + i));
         dest1 = _filters[j].upsampleFirstHalf(src);
         dest2 = _filters[j].upsampleSecondHalf(src);
-        store(dest1, bufferPtr(destStart + (i*2)));
-        store(dest2, bufferPtr(destStart + (i*2) + 1));
+        store(dest1, bufferPtr(destStart + (i * 2)));
+        store(dest2, bufferPtr(destStart + (i * 2) + 1));
       }
     }
     readIdx_ = 0;
   }
-  
+
   // after a write, 1 << octaves reads are available.
   DSPVector read()
   {
@@ -1476,10 +1459,10 @@ struct Upsampler
     load(result, bufferPtr(readIdx_++));
     return result;
   }
-  
+
   void clear()
   {
-    for(auto& f : _filters)
+    for (auto& f : _filters)
     {
       f.clear();
     }
@@ -1488,21 +1471,19 @@ struct Upsampler
   }
 };
 
-
 // From an input clock phasor and an output/input frequency ratio,
 // produce an output clock at the given ratio that is phase-synched with the input.
 //
 class TempoLock
 {
   // phasor on [0. - 1.), changes at rate of input phasor * input ratio
-  float _omega{-1.f}; // current output phase
-  float _x1v{0}; // input one vector ago
-  
-public:
-  
+  float _omega{-1.f};  // current output phase
+  float _x1v{0};       // input one vector ago
+
+ public:
   // phase of -1 means we are stopped.
   void clear() { _omega = -1.0f; }
-  
+
   // function call takes 3 inputs:
   // x: the input phasor to follow
   // dydx: the ratio to the input at which to lock the output phasor
@@ -1513,11 +1494,11 @@ public:
     float x0 = x[0];
     float dxdt{0.f};
     float dydt{0.f};
-    
+
     // if input phasor is inactive, reset and output 0.
     // we check against -1 because a running input phasor may be slightly
     // less than zero.
-    if(x0 == -1.0f)
+    if (x0 == -1.0f)
     {
       clear();
       y = DSPVector(0.f);
@@ -1525,13 +1506,13 @@ public:
     else
     {
       // get dxdt and dydt from input and ratio
-      if(_omega > -1.f)
+      if (_omega > -1.f)
       {
         // if we are already running: get average input slope every vector
         float dx = x0 - _x1v;
-        if(dx < 0.f) dx += 1.f;
-        dxdt = dx/kFloatsPerDSPVector;
-        dydt = dxdt*dydx;
+        if (dx < 0.f) dx += 1.f;
+        dxdt = dx / kFloatsPerDSPVector;
+        dydt = dxdt * dydx;
         _x1v = x0;
       }
       else
@@ -1539,62 +1520,61 @@ public:
         // on startup: we are active but phase is unknown, so jump to
         // current phase based on input.
         dxdt = x[1] - x0;
-        dydt = dxdt*dydx;
-        _x1v = x0 - dxdt*kFloatsPerDSPVector;
+        dydt = dxdt * dydx;
+        _x1v = x0 - dxdt * kFloatsPerDSPVector;
         _omega = fmod(x0 * dydx, 1.0f);
       }
-      
+
       // if the ratio of its reciprocal is close to an integer, lock to input phase
       bool lock{false};
       constexpr float lockDist = 0.001f;
-      if(fabs(dydx - roundf(dydx)) < lockDist) lock = true;
+      if (fabs(dydx - roundf(dydx)) < lockDist) lock = true;
       float rdydx = 1.0f / dydx;
-      if(fabs(rdydx - roundf(rdydx)) < lockDist) lock = true;
-      
-      if(lock)
+      if (fabs(rdydx - roundf(rdydx)) < lockDist) lock = true;
+
+      if (lock)
       {
         // get error term at each vector by comparing output to scaled input
         // or scaled input to output depending on ratio.
         float ref, refWrap, error;
-        if(dydx >= 1.f)
+        if (dydx >= 1.f)
         {
-          ref = x0*dydx;
+          ref = x0 * dydx;
           refWrap = ref - floorf(ref);
           error = _omega - refWrap;
         }
         else
         {
-          ref = _omega/dydx;
+          ref = _omega / dydx;
           refWrap = ref - floorf(ref);
           error = refWrap - x0;
         }
-        
+
         // get error difference from closest sync target
         float errorDiff = roundf(error) - error;
-        
+
         // add error correction term to dydt. Note that this is only added to the current vector.
         // this is different from a traditional PLL, which would need a filter in the feedback loop.
         //
         // this addition tweaks the slope to reach the target value in 1/4 second. However as
         // the target gets closer the slope is less, resulting in an exponentially slowing approach.
-        float correction = errorDiff*isr*4.0f;
-        
+        float correction = errorDiff * isr * 4.0f;
+
         // don't allow going under 0.5x or over 2x speed
-        correction = clamp(correction, -dydt*0.5f, dydt*1.0f);
+        correction = clamp(correction, -dydt * 0.5f, dydt * 1.0f);
         dydt += correction;
       }
-      
+
       // make output vector with sample-accurate wrap
-      for(int i=0; i<kFloatsPerDSPVector; ++i)
+      for (int i = 0; i < kFloatsPerDSPVector; ++i)
       {
         y[i] = _omega;
         _omega += dydt;
-        if(_omega > 1.0f) _omega -= 1.0f;
+        if (_omega > 1.0f) _omega -= 1.0f;
       }
     }
     return y;
   }
 };
-
 
 }  // namespace ml

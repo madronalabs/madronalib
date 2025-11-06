@@ -23,15 +23,16 @@
 // if the symbol already exists. This allows use in DSP code, assuming that any
 // code that sets up signal-keyed structures has already been parsed.
 //
+// Symbol stores only a 64-bit hash. All Symbol construction registers the text
+// in the SymbolTable. Path uses compile-time hashing for performance without
+// requiring Symbol registration.
+//
 // see also: TextFragment, Path, Tree
 
 #pragma once
 
-#include <array>
 #include <cstring>
 #include <iostream>
-#include <mutex>
-#include <vector>
 #include <unordered_map>
 
 #include "MLHash.h"
@@ -44,23 +45,22 @@ namespace ml
 
 class SymbolTable
 {
-public:
-
+ public:
   SymbolTable() = default;
   ~SymbolTable() = default;
-  
+
   // modifiers
   uint64_t registerSymbol(const char* text, size_t len);
   void clear();
-  
+
   // accessors
   const TextFragment& getTextForHash(uint64_t hash) const;
   size_t getSize() const { return mSymbols.size(); }
 
   // utilities
   void dump();
-  
-private:
+
+ private:
   std::unordered_map<uint64_t, TextFragment> mSymbols;
   mutable std::mutex mMutex;
   static const TextFragment kNullText;
@@ -72,88 +72,64 @@ inline SymbolTable& theSymbolTable()
   return *t;
 }
 
-
-// Symbol itself
+// Symbol - stores a 64-bit hash, text looked up in SymbolTable
+// All constructors register the symbol in the table
 
 class Symbol
 {
   uint64_t mHash;
   friend std::ostream& operator<<(std::ostream& out, const Symbol r);
-  
-public:
+
+ public:
+  // Default constructor - null symbol
   constexpr Symbol() : mHash(0) {}
-  explicit constexpr Symbol(uint64_t hash) : mHash(hash) {}
 
-  // Constexpr when possible: compute hash only
-  template <size_t N>
-  inline constexpr Symbol(const char (&sym)[N]) : mHash(fnv1aSubstring(sym, N - 1)) { }
+  Symbol(const char* pC) : mHash(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
 
-  //explicit Symbol(const char* pChars, size_t len) noexcept;
-
-  
-  /*
-  // Runtime: compute hash AND register
-  Symbol(const char* pC)
-  : mHash(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
-  
   Symbol(const char* pC, size_t lengthBytes)
-  : mHash(theSymbolTable().registerSymbol(pC, lengthBytes)) {}
-  
-  explicit Symbol(TextFragment frag)
-  : mHash(theSymbolTable().registerSymbol(frag.getText(), frag.lengthInBytes())) {}
-  
-  static constexpr Symbol fromHash(uint64_t hash)
+      : mHash(theSymbolTable().registerSymbol(pC, lengthBytes))
   {
-    Symbol s;
-    s.mHash = hash;
-    return s;
   }
-  */
-  
+
+  explicit Symbol(const TextFragment& frag)
+      : mHash(theSymbolTable().registerSymbol(frag.getText(), frag.lengthInBytes()))
+  {
+  }
+
+  // Comparison
   bool operator<(const Symbol b) const { return mHash < b.mHash; }
   bool operator==(const Symbol b) const { return mHash == b.mHash; }
   bool operator!=(const Symbol b) const { return mHash != b.mHash; }
   explicit operator bool() const { return mHash != 0; }
-  
-  friend uint64_t hash(Symbol s);
-  
+
+  // Accessors
   uint64_t getHash() const { return mHash; }
+
+  // Text access - returns "?" if symbol not registered
   const TextFragment& getTextFragment() const { return theSymbolTable().getTextForHash(mHash); }
   const char* getUTF8Ptr() const { return getTextFragment().getText(); }
-  
+
+  // Text operations
   bool beginsWith(Symbol b) const { return getTextFragment().beginsWith(b.getTextFragment()); }
   bool endsWith(Symbol b) const { return getTextFragment().endsWith(b.getTextFragment()); }
   std::string toString() const { return std::string(getUTF8Ptr()); }
+
+  // creates an unregistered Symbol - for use by constexpr Paths only
+  explicit constexpr Symbol(uint64_t hash) : mHash(hash) {}
 };
 
-inline Symbol runtimeSymbol(const char* str)
-{
-  return Symbol(theSymbolTable().registerSymbol(str, strlen(str)));
-}
-
-inline Symbol runtimeSymbol(const char* str, size_t len)
-{
-  return Symbol(theSymbolTable().registerSymbol(str, len));
-}
-
-inline Symbol runtimeSymbol(const TextFragment& frag)
-{
-  const char* str = frag.getText();
-  return Symbol(theSymbolTable().registerSymbol(str, strlen(str)));
-}
-
+// Concatenate two symbols - registers the result
 inline Symbol operator+(Symbol f1, Symbol f2)
 {
   TextFragment sum(f1.getTextFragment(), f2.getTextFragment());
-  return runtimeSymbol(sum.getText());
+  return Symbol(sum);
 }
 
 inline uint64_t hash(Symbol sym) { return sym.getHash(); }
 
 }  // namespace ml
 
-
-// hashing function for ml::Symbol use in unordered STL containers. 
+// hashing function for ml::Symbol use in unordered STL containers
 namespace std
 {
 template <>
@@ -161,8 +137,4 @@ struct hash<ml::Symbol>
 {
   uint64_t operator()(const ml::Symbol& s) const { return s.getHash(); }
 };
-
 }  // namespace std
-
-
-

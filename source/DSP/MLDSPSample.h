@@ -17,22 +17,12 @@ struct Sample
   size_t channels{0};
   size_t sampleRate{0};
   std::vector<float> sampleData;
-  
-  float operator[](size_t i) const
-  {
-    return sampleData[i];
-  }
-  float& operator[](size_t i)
-  {
-    return sampleData[i];
-  }
+
+  float operator[](size_t i) const { return sampleData[i]; }
+  float& operator[](size_t i) { return sampleData[i]; }
 };
 
-
-inline size_t getSize(const Sample& s)
-{
-  return s.sampleData.size();
-}
+inline size_t getSize(const Sample& s) { return s.sampleData.size(); }
 
 inline size_t getFrames(const Sample& s)
 {
@@ -42,18 +32,15 @@ inline size_t getFrames(const Sample& s)
 
 inline const float* getConstFramePtr(const Sample& s, size_t frameIdx = 0)
 {
-  return s.sampleData.data() + frameIdx*s.channels;
+  return s.sampleData.data() + frameIdx * s.channels;
 }
 
 inline float* getFramePtr(Sample& s, size_t frameIdx = 0)
 {
-  return s.sampleData.data() + frameIdx*s.channels;
+  return s.sampleData.data() + frameIdx * s.channels;
 }
 
-inline float getRate(const Sample& s)
-{
-  return s.sampleRate;
-}
+inline float getRate(const Sample& s) { return s.sampleRate; }
 
 inline float getDuration(const Sample& s)
 {
@@ -63,7 +50,7 @@ inline float getDuration(const Sample& s)
 
 inline bool usable(const Sample* pSample)
 {
-  if(!pSample) return false;
+  if (!pSample) return false;
   return pSample->sampleData.size() > 0;
 }
 
@@ -72,9 +59,9 @@ inline float* resize(Sample& s, size_t newFrames, size_t newChans = 1)
   float* r{nullptr};
   try
   {
-    s.sampleData.resize(newFrames*newChans);
+    s.sampleData.resize(newFrames * newChans);
   }
-  catch(...)
+  catch (...)
   {
     return nullptr;
   }
@@ -97,9 +84,6 @@ inline void normalize(Sample& x)
   }
 }
 
-inline void clear(Sample& x)
-{
-  x.sampleData.clear();
-}
+inline void clear(Sample& x) { x.sampleData.clear(); }
 
 }  // namespace ml

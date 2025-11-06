@@ -20,19 +20,21 @@ namespace ml
 using MainInputs = const DSPVectorDynamic&;
 using MainOutputs = DSPVectorDynamic&;
 
-class AudioContext final {
-public:
+class AudioContext final
+{
+ public:
   // AudioContext::ProcessTime maintains the current time in a DSP process and can track
   // the time in the host application if there is one.
   class ProcessTime
   {
-  public:
+   public:
     ProcessTime() = default;
     ~ProcessTime() = default;
 
     // Set the time and bpm. The time refers to the start of the current engine processing block.
-    void setTimeAndRate(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
-           
+    void setTimeAndRate(const double ppqPos, const double bpmIn, bool isPlaying,
+                        double sampleRateIn);
+
     // clear state
     void clear();
 
@@ -45,7 +47,7 @@ public:
     double sampleRate{0};
     uint64_t samplesSinceStart{0};
 
-  private:
+   private:
     float _omega{0};
     bool _playing1{false};
     bool _active1{false};
@@ -54,19 +56,19 @@ public:
     double _ppqPos1{-1.};
     double _ppqPhase1{0};
   };
-  
+
   AudioContext(size_t nInputs, size_t nOutputs);
   AudioContext(size_t nInputs, size_t nOutputs, int rate);
   ~AudioContext() = default;
-  
+
   void clear();
 
   // update everything needed to create a new vector of context signals.
   // startOffset is the start frame of the vector in the host buffer.
   void processVector(int startOffset);
-  
+
   void setSampleRate(int r);
-  
+
   void setInputPolyphony(int voices) { eventsToSignals.setPolyphony(voices); }
   size_t getInputPolyphony() { return eventsToSignals.getPolyphony(); }
 
@@ -84,21 +86,20 @@ public:
   void setInputProtocol(Symbol p) { eventsToSignals.setProtocol(p); }
   void setInputModCC(int p) { eventsToSignals.setModCC(p); }
   const EventsToSignals::Voice& getInputVoice(int n) { return eventsToSignals.getVoice(n); }
-  
+
   int getNewestInputVoice() { return eventsToSignals.getNewestVoice(); }
   DSPVector getInputController(size_t n) const;
-  
+
   double getSampleRate() { return currentTime.sampleRate; }
   const ProcessTime& getTimeInfo() { return currentTime; }
-  
+
   // clients can access these directly to do processing
   DSPVectorDynamic inputs;
   DSPVectorDynamic outputs;
-  
-private:
+
+ private:
   ProcessTime currentTime;
   ml::EventsToSignals eventsToSignals;
 };
 
-
-} // ml
+}  // namespace ml

@@ -40,7 +40,7 @@ class Actor
   static constexpr size_t kDefaultMessageQueueSize{128};
   static constexpr size_t kDefaultMessageInterval{1000 / 60};
 
-  Queue< Message > _messageQueue{kDefaultMessageQueueSize};
+  Queue<Message> _messageQueue{kDefaultMessageQueueSize};
   Timer _queueTimer;
 
  protected:
@@ -49,8 +49,8 @@ class Actor
  public:
   Actor() = default;
   virtual ~Actor() = default;
-  
-  void resizeQueue(size_t n) {_messageQueue.resize(n);}
+
+  void resizeQueue(size_t n) { _messageQueue.resize(n); }
 
   // Actors can override onFullQueue to specify what action to take when
   // the message queue is full.
@@ -101,12 +101,8 @@ class Actor
       onMessage(m);
     }
   }
-  
-  void clearMessageQueue()
-  {
-    _messageQueue.clear();
-  }
-  
+
+  void clearMessageQueue() { _messageQueue.clear(); }
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)

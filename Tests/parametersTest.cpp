@@ -38,6 +38,8 @@ void readParameterDescriptions(ParameterDescriptionList& params)
 // Test to confirm that the projections are invertible
 TEST_CASE("madronalib/core/parameters", "[parameters]")
 {
+  theSymbolTable().clear();
+  
   ParameterTree params;
   ParameterDescriptionList pdl;
 
@@ -51,9 +53,6 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
   auto v1 = params.getRealFloatValue("linear-param");
   
   std::cout << "value: " << v1 << "\n";
-  
-  params.paramsNorm_["foo"] = 12.f;
-  
   
   // build name index
   std::vector< Path > paramNames;

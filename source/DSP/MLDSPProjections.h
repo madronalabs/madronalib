@@ -15,27 +15,18 @@ namespace ml
 struct Interval
 {
   float mX1, mX2;
-  inline bool operator==(const Interval& b) const
-  {
-    return (mX1 == b.mX1) && (mX2 == b.mX2);
-  }
-  inline bool operator!=(const Interval& b) const
-  {
-    return !(operator==(b));
-  }
-  inline const Interval operator*(const float b) const
-  {
-    return Interval{mX1*b, mX2*b};
-  }
+  inline bool operator==(const Interval& b) const { return (mX1 == b.mX1) && (mX2 == b.mX2); }
+  inline bool operator!=(const Interval& b) const { return !(operator==(b)); }
+  inline const Interval operator*(const float b) const { return Interval{mX1 * b, mX2 * b}; }
   inline const Interval operator*=(const float b)
   {
-    mX1*=b;
-    mX2*=b;
+    mX1 *= b;
+    mX2 *= b;
     return *this;
   }
 };
 
-inline float midpoint(Interval m) { return (m.mX1 + m.mX2)*0.5f; }
+inline float midpoint(Interval m) { return (m.mX1 + m.mX2) * 0.5f; }
 inline bool within(float f, const Interval m) { return (f >= m.mX1) && (f < m.mX2); }
 
 using Projection = std::function<float(float)>;
@@ -95,20 +86,13 @@ static const Projection easeInOutQuartic{
                         : easeOutQuartic(x * 2.f - 1.f) * 0.5f + 0.5f;
     }};
 
-static const Projection overshoot{[](float x) { return 3*x - 2*x*x; }};
-
+static const Projection overshoot{[](float x) { return 3 * x - 2 * x * x; }};
 
 // bisquared projection: x^2, but inverted for x < 0.
-static const Projection bisquared{[](float x)
-{
-  return fabs(x)*x;
-}};
+static const Projection bisquared{[](float x) { return fabs(x) * x; }};
 
 // inverse of bisquared projection
-static const Projection invBisquared{[](float x)
-{
-  return sqrtf(fabs(x))*sign(x);
-}};
+static const Projection invBisquared{[](float x) { return sqrtf(fabs(x)) * sign(x); }};
 
 // functions taking one or more parameters and returning projections
 
@@ -124,20 +108,17 @@ inline Projection log(Interval m)
 {
   float a = m.mX1;
   float b = m.mX2;
-  if(b - a == 0.f)
+  if (b - a == 0.f)
   {
-    return [=](float x){return a;};
+    return [=](float x) { return a; };
   }
-  else if(a == 0.f)
+  else if (a == 0.f)
   {
-    return [=](float x){return 0.f;};
+    return [=](float x) { return 0.f; };
   }
   else
   {
-    return [=](float x)
-    {
-      return a*(powf((b/a), x) - 1)/(b - a);
-    };
+    return [=](float x) { return a * (powf((b / a), x) - 1) / (b - a); };
   }
 }
 
@@ -147,20 +128,17 @@ inline Projection exp(Interval m)
 {
   float a = m.mX1;
   float b = m.mX2;
-  if(b - a == 0.f)
+  if (b - a == 0.f)
   {
-    return [=](float x){return a;};
+    return [=](float x) { return a; };
   }
-  else if(a == 0.f)
+  else if (a == 0.f)
   {
-    return [=](float x){return 0.f;};
+    return [=](float x) { return 0.f; };
   }
   else
   {
-    return [=](float x)
-    {
-      return logf((x*(b - a) + a)/a) / logf(b/a);
-    };
+    return [=](float x) { return logf((x * (b - a) + a) / a) / logf(b / a); };
   }
 }
 
@@ -171,10 +149,10 @@ inline Projection linear(const Interval a, const Interval b)
   float a2 = a.mX2;
   float b1 = b.mX1;
   float b2 = b.mX2;
-  
-  if(a1 - a2 == 0.f)
+
+  if (a1 - a2 == 0.f)
   {
-    return [=](float x){return b1;};
+    return [=](float x) { return b1; };
   }
   else
   {
@@ -190,10 +168,7 @@ inline Projection linear(const Interval a, const Interval b)
 // linear projection mapping an interval to another interval
 inline Projection add(float f)
 {
-  return [=](float x)
-  {
-    return x + f;
-  };
+  return [=](float x) { return x + f; };
 }
 
 // a projection mapping an interval to another interval with an intermediate
@@ -302,7 +277,6 @@ inline Projection piecewise(std::initializer_list<float> valueList,
     return [=](float x) { return 0.f; };
   }
 }
-
 
 inline void printTable(const Projection& p, std::string pName, Interval domain, size_t points)
 {

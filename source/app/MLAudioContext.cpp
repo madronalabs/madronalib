@@ -10,15 +10,15 @@ namespace ml
 // AudioContext::ProcessTime
 
 // Set the time and bpm. The time refers to the start of the current processing block.
-// In a plugin, this should be called before each processing block with the latest info from the host.
-// In an app, this can be called only when there are time / rate changes.
+// In a plugin, this should be called before each processing block with the latest info from the
+// host. In an app, this can be called only when there are time / rate changes.
 
 void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double bpmIn,
-  bool isPlaying, double sampleRateIn)
+                                               bool isPlaying, double sampleRateIn)
 {
   // working around a bug I can't reproduce, so I'm covering all the bases.
   if (((ml::isNaN(ppqPos)) || (ml::isInfinite(ppqPos))) ||
-      ((ml::isNaN(bpmIn)) || (ml::isInfinite(bpmIn))) )
+      ((ml::isNaN(bpmIn)) || (ml::isInfinite(bpmIn))))
   {
     // debug << "PluginProcessor::ProcessTime::setTimeAndRate: bad input! \n";
     return;
@@ -30,7 +30,7 @@ void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double
   bool justStarted = isPlaying && !_playing1;
 
   double ppqPhase = 0.;
-  if(active)
+  if (active)
   {
     if (ppqPos > 0.f)
     {
@@ -51,8 +51,8 @@ void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double
       samplesSinceStart = 0;
       _omega = 0.;
       double dsdt = (1. / sampleRate);
-      double minutesPerSample = dsdt/60.;
-      _dpdt = bpm*minutesPerSample;
+      double minutesPerSample = dsdt / 60.;
+      _dpdt = bpm * minutesPerSample;
     }
     else
     {
@@ -100,12 +100,10 @@ void AudioContext::ProcessTime::processVector(int startOffset)
   samplesSinceStart += kFloatsPerDSPVector;
 }
 
-AudioContext::AudioContext(size_t nInputs, size_t nOutputs) :
-inputs(nInputs), outputs(nOutputs)
-{}
+AudioContext::AudioContext(size_t nInputs, size_t nOutputs) : inputs(nInputs), outputs(nOutputs) {}
 
-AudioContext::AudioContext(size_t nInputs, size_t nOutputs, int rate) :
-inputs(nInputs), outputs(nOutputs)
+AudioContext::AudioContext(size_t nInputs, size_t nOutputs, int rate)
+    : inputs(nInputs), outputs(nOutputs)
 {
   setSampleRate(rate);
 }
@@ -133,14 +131,12 @@ DSPVector AudioContext::getInputController(size_t n) const
   return eventsToSignals.getController(n).output;
 }
 
-void AudioContext::addInputEvent(const Event& e)
-{
-  eventsToSignals.addEvent(e);
-}
+void AudioContext::addInputEvent(const Event& e) { eventsToSignals.addEvent(e); }
 
-void AudioContext::updateTime(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn)
+void AudioContext::updateTime(const double ppqPos, const double bpmIn, bool isPlaying,
+                              double sampleRateIn)
 {
   currentTime.setTimeAndRate(ppqPos, bpmIn, isPlaying, sampleRateIn);
 }
 
-} // ml
+}  // namespace ml

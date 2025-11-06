@@ -45,7 +45,6 @@ class SmallStackBuffer
   T mLocalData[MAX_STACK_ELEMS];
 };
 
-
 inline int sizeToInt(size_t size)
 {
   assert(size <= static_cast<size_t>(std::numeric_limits<int>::max()) &&

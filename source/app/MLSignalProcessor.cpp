@@ -8,8 +8,9 @@ using namespace ml;
 
 // SignalProcessor::PublishedSignal
 
-SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int maxVoices, int channels, int octavesDown)
-  : _channels(channels), maxFrames_(maxFrames), octavesDown_(octavesDown)
+SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int maxVoices, int channels,
+                                                  int octavesDown)
+    : _channels(channels), maxFrames_(maxFrames), octavesDown_(octavesDown)
 {
   voiceRotateBuffer.resize(maxFrames * channels);
   _buffer.resize(maxFrames * channels * maxVoices);
@@ -18,12 +19,12 @@ SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int maxVoices, 
 size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesRequested)
 {
   size_t floatsAvailable = getReadAvailable();
-  if (floatsAvailable > framesRequested*_channels)
+  if (floatsAvailable > framesRequested * _channels)
   {
-    _buffer.discard(floatsAvailable - framesRequested*_channels);
+    _buffer.discard(floatsAvailable - framesRequested * _channels);
   }
-  
-  return _buffer.read(pDest, framesRequested*_channels);
+
+  return _buffer.read(pDest, framesRequested * _channels);
 }
 
 void SignalProcessor::PublishedSignal::peekLatest(float* pDest, size_t framesRequested)

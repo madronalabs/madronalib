@@ -177,19 +177,19 @@ class TestSineGen
 class PhasorGen
 {
   uint32_t mOmega32{0};
-  
-public:
+
+ public:
   void clear(uint32_t omega = 0) { mOmega32 = omega; }
-  
+
   static constexpr float stepsPerCycle{static_cast<float>(const_math::pow(2., 32))};
   static constexpr float cyclesPerStep{1.f / stepsPerCycle};
-  
+
   DSPVector operator()(const DSPVector cyclesPerSample)
   {
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
     DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
-    
+
     // accumulate 32-bit phase with wrap
     DSPVectorInt omega32V;
     for (int n = 0; n < kIntsPerDSPVector; ++n)
@@ -197,22 +197,22 @@ public:
       mOmega32 += intStepsPerSampleV[n];
       omega32V[n] = mOmega32;
     }
-    
+
     // convert counter to float output range
     return unsignedIntToFloat(omega32V) * DSPVector(cyclesPerStep);
   }
-  
+
   float nextSample(const float cyclesPerSample)
   {
     // calculate int steps per sample
     float stepsPerSample = cyclesPerSample * stepsPerCycle;
     uint32_t intStepsPerSample = (uint32_t)roundf(stepsPerSample);
-    
+
     // accumulate 32-bit phase with wrap
     mOmega32 += intStepsPerSample;
 
     // convert counter to float output range
-    return mOmega32*cyclesPerStep;
+    return mOmega32 * cyclesPerStep;
   }
 };
 
@@ -224,10 +224,14 @@ class OneShotGen
   uint32_t mOmega32{start};
   uint32_t mGate{0};
   uint32_t mOmegaPrev{start};
-  
-public:
-  void trigger() { mOmega32 = mOmegaPrev = start; mGate = 1; }
-  
+
+ public:
+  void trigger()
+  {
+    mOmega32 = mOmegaPrev = start;
+    mGate = 1;
+  }
+
   static constexpr float stepsPerCycle{static_cast<float>(const_math::pow(2., 32))};
   static constexpr float cyclesPerStep{1.f / stepsPerCycle};
 
@@ -236,14 +240,14 @@ public:
     // calculate int steps per sample
     DSPVector stepsPerSampleV = cyclesPerSample * DSPVector(stepsPerCycle);
     DSPVectorInt intStepsPerSampleV = roundFloatToInt(stepsPerSampleV);
-    
+
     // accumulate 32-bit phase with wrap
     // we test for wrap at every sample to get a clean ending
     DSPVectorInt omega32V;
     for (int n = 0; n < kIntsPerDSPVector; ++n)
     {
-      mOmega32 += intStepsPerSampleV[n]*mGate;
-      if(mOmega32 < mOmegaPrev)
+      mOmega32 += intStepsPerSampleV[n] * mGate;
+      if (mOmega32 < mOmegaPrev)
       {
         mGate = 0;
         mOmega32 = start;
@@ -253,27 +257,27 @@ public:
     // convert counter to float output range
     return unsignedIntToFloat(omega32V) * DSPVector(cyclesPerStep);
   }
-  
+
   float nextSample(const float cyclesPerSample)
   {
     // calculate int steps per sample
     float stepsPerSample = cyclesPerSample * stepsPerCycle;
     uint32_t intStepsPerSample = (uint32_t)roundf(stepsPerSample);
-    
+
     // accumulate 32-bit phase with wrap
     // we test for wrap at every sample to get a clean ending
     DSPVectorInt omega32V;
-  
-    mOmega32 += intStepsPerSample*mGate;
-    if(mOmega32 < mOmegaPrev)
+
+    mOmega32 += intStepsPerSample * mGate;
+    if (mOmega32 < mOmegaPrev)
     {
       mGate = 0;
       mOmega32 = start;
     }
     mOmegaPrev = mOmega32;
-    
+
     // convert counter to float output range
-    return mOmega32*cyclesPerStep;
+    return mOmega32 * cyclesPerStep;
   }
 };
 
@@ -370,8 +374,8 @@ class SineGen
 {
   static constexpr int32_t kZeroPhase = -(2 << 29);
   PhasorGen _phasor;
-  
-public:
+
+ public:
   void clear() { _phasor.clear(kZeroPhase); }
   DSPVector operator()(const DSPVector freq) { return phasorToSine(_phasor(freq)); }
 };
@@ -408,11 +412,11 @@ ConstDSPVector kUnityRampVec{unityRampFn};
 struct Interpolator1
 {
   float currentValue{0};
-  
+
   DSPVector operator()(float f)
   {
     float dydt = f - currentValue;
-    DSPVector outputVec = DSPVector(currentValue) + kUnityRampVec*dydt;
+    DSPVector outputVec = DSPVector(currentValue) + kUnityRampVec * dydt;
     currentValue = f;
     return outputVec;
   }
@@ -434,22 +438,22 @@ class LinearGlide
   float mDyPerVector{1.f / 32};
   int mVectorsPerGlide{32};
   int mVectorsRemaining{-1};
-  
-public:
+
+ public:
   void setGlideTimeInSamples(float t)
   {
     mVectorsPerGlide = static_cast<int>(t / kFloatsPerDSPVector);
     if (mVectorsPerGlide < 1) mVectorsPerGlide = 1;
     mDyPerVector = 1.0f / (mVectorsPerGlide + 0.f);
   }
-  
+
   // set the current value to the given value immediately, without gliding
   void setValue(float f)
   {
     mTargetValue = f;
     mVectorsRemaining = 0;
   }
-  
+
   DSPVector operator()(float f)
   {
     // set target value if different from current value.
@@ -457,11 +461,11 @@ public:
     if (f != mTargetValue)
     {
       mTargetValue = f;
-      
+
       // start counter
       mVectorsRemaining = mVectorsPerGlide;
     }
-    
+
     // process glide
     if (mVectorsRemaining < 0)
     {
@@ -479,13 +483,13 @@ public:
       // start glide: get change in output value per vector
       float currentValue = mCurrVec[kFloatsPerDSPVector - 1];
       float dydv = (mTargetValue - currentValue) * mDyPerVector;
-      
+
       // get constant step vector
       mStepVec = DSPVector(dydv);
-      
+
       // setup current vector with first interpolation ramp.
       mCurrVec = DSPVector(currentValue) + kUnityRampVec * mStepVec;
-      
+
       mVectorsRemaining--;
     }
     else
@@ -497,10 +501,10 @@ public:
       mCurrVec += mStepVec;
       mVectorsRemaining--;
     }
-    
+
     return mCurrVec;
   }
-  
+
   void clear()
   {
     mCurrVec = 0.f;
@@ -516,24 +520,24 @@ class SampleAccurateLinearGlide
   float mStepValue{0.f};
   float mTargetValue{0.f};
   int mSamplesPerGlide{32};
-  float mDyPerSample{1.f/32};
+  float mDyPerSample{1.f / 32};
   int mSamplesRemaining{-1};
-  
-public:
+
+ public:
   void setGlideTimeInSamples(float t)
   {
     mSamplesPerGlide = static_cast<int>(t);
     if (mSamplesPerGlide < 1) mSamplesPerGlide = 1;
     mDyPerSample = 1.0f / mSamplesPerGlide;
   }
-  
+
   // set the current value to the given value immediately, without gliding
   void setValue(float f)
   {
     mTargetValue = f;
     mSamplesRemaining = 0;
   }
-  
+
   float nextSample(float f)
   {
     // set target value if different from current value.
@@ -541,11 +545,11 @@ public:
     if (f != mTargetValue)
     {
       mTargetValue = f;
-      
+
       // start counter
       mSamplesRemaining = mSamplesPerGlide;
     }
-    
+
     // process glide
     if (mSamplesRemaining < 0)
     {
@@ -573,7 +577,7 @@ public:
       mCurrValue += mStepValue;
       mSamplesRemaining--;
     }
-    
+
     return mCurrValue;
   }
   void clear()

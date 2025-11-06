@@ -48,11 +48,11 @@ struct MessageReceiver
   // send nullptr for replyPtr. So the receiver must verify that replyPtr is non-null
   // before attempting to reply!
   virtual void handleMessage(Message m, MessageList* replyPtr) = 0;
-  
+
   MessageList processMessageList(MessageList inputList)
   {
-    MessageList outputList;    
-    for(auto msg : inputList)
+    MessageList outputList;
+    for (auto msg : inputList)
     {
       handleMessage(msg, &outputList);
     }
@@ -61,10 +61,7 @@ struct MessageReceiver
 };
 
 // send a message directly to a MessageReceiver when no reply is needed.
-inline void sendMessage(MessageReceiver& obj, Message m)
-{
-  obj.handleMessage(m, nullptr);
-}
+inline void sendMessage(MessageReceiver& obj, Message m) { obj.handleMessage(m, nullptr); }
 
 // send a message directly to a MessageReceiver when a reply is expected.
 inline void sendMessageExpectingReply(MessageReceiver& obj, Message m, MessageList* replyPtr)
@@ -75,7 +72,7 @@ inline void sendMessageExpectingReply(MessageReceiver& obj, Message m, MessageLi
 // send a message list directly to a MessageReceiver.
 inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 {
-  for(auto& m : msgList)
+  for (auto& m : msgList)
   {
     sendMessage(obj, m);
   }
@@ -86,16 +83,16 @@ inline void sendMessages(MessageReceiver& obj, MessageList msgList)
 template <typename T>
 inline void sendMessage(const std::unique_ptr<T>& pObj, Message m)
 {
-  if(pObj) pObj->handleMessage(m, nullptr);
+  if (pObj) pObj->handleMessage(m, nullptr);
 }
 
 // send a list of messages to a MessageReceiver object through a Collection.
 template <typename T>
 inline void sendMessageList(const std::unique_ptr<T>& pObj, MessageList msgList)
 {
-  if(pObj)
+  if (pObj)
   {
-    for(auto& m : msgList)
+    for (auto& m : msgList)
     {
       pObj->handleMessage(m, nullptr);
     }

@@ -11,7 +11,7 @@ namespace ml
 
 using ParameterDescription = PropertyTree;
 
-using ParameterDescriptionList = std::vector< std::unique_ptr< ParameterDescription > >;
+using ParameterDescriptionList = std::vector<std::unique_ptr<ParameterDescription> >;
 
 struct ParameterProjection
 {
@@ -25,10 +25,10 @@ struct ParameterProjection
 inline ParameterProjection createParameterProjection(const ParameterDescription& p)
 {
   ParameterProjection b;
-  auto units = runtimeSymbol(p.getProperty("units").getTextValue());
+  Symbol units(p.getProperty("units").getTextValue());
   bool bLog = p.getBoolPropertyWithDefault("log", false);
   bool bisquare = p.getBoolPropertyWithDefault("bisquare", false);
-  
+
   Interval normalRange{0., 1.};
   Interval plainRange = p.getIntervalPropertyWithDefault("range", {0, 1});
   float offset = p.getFloatPropertyWithDefault("offset", 0.f);
@@ -63,18 +63,22 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
   }
   else
   {
-    if(bLog)
+    if (bLog)
     {
       b.normalizedToReal =
-      compose(projections::add(offset), projections::intervalMap(normalRange, plainRange, projections::log(plainRange)));
+          compose(projections::add(offset),
+                  projections::intervalMap(normalRange, plainRange, projections::log(plainRange)));
 
       b.realToNormalized =
-      compose(projections::intervalMap(plainRange, normalRange, projections::exp(plainRange)), projections::add(-offset));
+          compose(projections::intervalMap(plainRange, normalRange, projections::exp(plainRange)),
+                  projections::add(-offset));
     }
-    else if(bisquare)
+    else if (bisquare)
     {
-      b.normalizedToReal = compose(projections::bisquared, projections::linear(normalRange, plainRange));
-      b.realToNormalized = compose(projections::linear(plainRange, normalRange), projections::invBisquared);
+      b.normalizedToReal =
+          compose(projections::bisquared, projections::linear(normalRange, plainRange));
+      b.realToNormalized =
+          compose(projections::linear(plainRange, normalRange), projections::invBisquared);
     }
     else
     {
@@ -88,31 +92,30 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
 // An annotated Tree of parameters.
 class ParameterTree
 {
-public:
-
-  // TODO why is there not a Parameter object that contains (description, projection, valueNorm, valueReal)?
-  // That seems like the sane way to do it. Look carefully to see if there's a good reason we didn't do that and
-  // if not, make this more sane.
+ public:
+  // TODO why is there not a Parameter object that contains (description, projection, valueNorm,
+  // valueReal)? That seems like the sane way to do it. Look carefully to see if there's a good
+  // reason we didn't do that and if not, make this more sane.
   //
-  // TODO Look at the features we needed to add that are hacks now (use_list_values_as_int, integer_values) and
-  // redesign to make more robust implementation of them.
+  // TODO Look at the features we needed to add that are hacks now (use_list_values_as_int,
+  // integer_values) and redesign to make more robust implementation of them.
 
-  Tree< std::unique_ptr< ParameterDescription > > descriptions;
-  Tree< ParameterProjection > projections;
-  
-  // should not be public! 
-  Tree< Value > paramsNorm_;
-  Tree< Value > paramsReal_;
+  Tree<std::unique_ptr<ParameterDescription> > descriptions;
+  Tree<ParameterProjection> projections;
+
+  // should not be public!
+  Tree<Value> paramsNorm_;
+  Tree<Value> paramsReal_;
 
   float convertNormalizedToRealFloatValue(Path pname, Value val) const
   {
     float newNormValue = val.getFloatValue();
     float newRealValue{0};
     auto& pdesc = descriptions[pname];
-    if(!pdesc) return 0;
+    if (!pdesc) return 0;
 
     bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
-    if(useListValues)
+    if (useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
       int itemIndex = (int)(projections[pname].normalizedToReal(newNormValue));
@@ -130,18 +133,18 @@ public:
     float newNormValue{0};
     float newRealValue = val.getFloatValue();
     auto& pdesc = descriptions[pname];
-    if(!pdesc) return 0;
+    if (!pdesc) return 0;
 
     bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
-    if(useListValues)
+    if (useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
 
       // get item matching plain value
-      for(int i=0; i<listItems.size(); ++i)
+      for (int i = 0; i < listItems.size(); ++i)
       {
         size_t itemIdx = textUtils::textToNaturalNumber(listItems[i]);
-        if(newRealValue == itemIdx)
+        if (newRealValue == itemIdx)
         {
           newNormValue = projections[pname].realToNormalized((float)i);
           break;
@@ -157,16 +160,16 @@ public:
 
   inline Value convertNormalizedToRealValue(Path pname, Value val) const
   {
-    if(val.getType() == Value::kFloat)
+    if (val.getType() == Value::kFloat)
     {
       auto& pdesc = descriptions[pname];
-      if(!pdesc) return Value();
+      if (!pdesc) return Value();
 
       bool integerValues = pdesc->getBoolPropertyWithDefault("integer_values", false);
       float fVal = convertNormalizedToRealFloatValue(pname, val);
-      if(integerValues)
+      if (integerValues)
       {
-        return Value(static_cast< int >(fVal));
+        return Value(static_cast<int>(fVal));
       }
       else
       {
@@ -181,7 +184,7 @@ public:
 
   inline Value convertRealToNormalizedValue(Path pname, Value val) const
   {
-    switch(val.getType())
+    switch (val.getType())
     {
       case Value::kUndefined:
         return Value();
@@ -201,45 +204,22 @@ public:
     }
   }
 
-  Value::Type getValueType(Path pname) const
-  {
-    return paramsReal_[pname].getType();
-  }
+  Value::Type getValueType(Path pname) const { return paramsReal_.getValue(pname).getType(); }
 
-  Value getRealValue(Path pname) const
-  {
-    return paramsReal_[pname];
-  }
+  Value getRealValue(Path pname) const { return paramsReal_.getValue(pname); }
 
-  Value getNormalizedValue(Path pname) const
-  {
-    return paramsNorm_[pname];
-  }
+  Value getNormalizedValue(Path pname) const { return paramsNorm_.getValue(pname); }
 
-  
-  
-  float getRealFloatValue(Path pname) const
-  {
-    return paramsReal_[pname].getFloatValue();
-  }
-  // TEMP new!
-  template <size_t N>
-  inline float getRealFloatValueX(const char (&pathStr)[N]) const
-  {
-    constexpr Path pname(pathStr);
-    return paramsReal_[pname].getFloatValue();
-  }
+  float getRealFloatValue(Path pname) const { return paramsReal_.getValue(pname).getFloatValue(); }
 
-  
-  
-  
   float getNormalizedFloatValue(Path pname) const
   {
-    return paramsNorm_[pname].getFloatValue();
+    return paramsNorm_.getValue(pname).getFloatValue();
   }
 
   // set a parameter's value without conversion. For params that don't have normalizable values.
-  // both normal and real params are set for ease of getting all normalized + non-normalizable values.
+  // both normal and real params are set for ease of getting all normalized + non-normalizable
+  // values.
   //
   // TODO this design is insane! to redesign, create one source of truth. Probably real values.
   // I must have done this to reduce the number of conversions but, the added complexity to save
@@ -257,20 +237,20 @@ public:
     paramsReal_[pname] = convertNormalizedToRealValue(pname, val);
 
 #ifdef DEBUG
-    if(pname == watchParameter)
+    if (pname == watchParameter)
     {
-      std::cout << "[paramTree set from norm " << pname << " -> " << val << "/" << paramsReal_[pname] << "]\n";
+      std::cout << "[paramTree set from norm " << pname << " -> " << val << "/"
+                << paramsReal_[pname] << "]\n";
     }
 #endif
   }
 
   inline void setFromRealValue(Path pname, Value val)
   {
-
 #ifdef DEBUG
-    if(pname == watchParameter)
+    if (pname == watchParameter)
     {
-      std::cout << ">>> setting from real value: " << pname << " = " <<  val << "\n";
+      std::cout << ">>> setting from real value: " << pname << " = " << val << "\n";
     }
 #endif
 
@@ -278,9 +258,10 @@ public:
     paramsReal_[pname] = val;
 
 #ifdef DEBUG
-    if(pname == watchParameter)
+    if (pname == watchParameter)
     {
-      std::cout << "[paramTree set from real " << pname << " -> " << paramsNorm_[pname] << " / " << val << "]\n";
+      std::cout << "[paramTree set from real " << pname << " -> " << paramsNorm_[pname] << " / "
+                << val << "]\n";
     }
 #endif
   }
@@ -303,15 +284,9 @@ public:
     }
   }
 
-  const Tree<Value>& getNormalizedValues() const
-  {
-    return paramsNorm_;
-  }
+  const Tree<Value>& getNormalizedValues() const { return paramsNorm_; }
 
-  const Tree<Value>& getRealValues() const
-  {
-    return paramsReal_;
-  }
+  const Tree<Value>& getRealValues() const { return paramsReal_; }
 
   void dump()
   {
@@ -320,7 +295,7 @@ public:
     {
       const auto& paramDesc = *it;
       Path pname = runtimePath(paramDesc->getTextProperty("name"));
-      
+
       // arg pname should be GenericPath<k>
       auto normVal = paramsNorm_[pname];
       auto realVal = paramsReal_[pname];
@@ -329,12 +304,11 @@ public:
     std::cout << "----------------------------\n\n";
   }
 
-  void setWatchParameter(Path pname) {watchParameter = pname;}
+  void setWatchParameter(Path pname) { watchParameter = pname; }
 
-protected:
+ protected:
   Path watchParameter{};
 };
-
 
 // functions on ParameterTrees.
 
@@ -350,19 +324,19 @@ inline void setParameterInfo(ParameterTree& paramTree, Path paramName,
 inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
 {
   const auto& paramDesc = p.descriptions[pname];
-  if(!paramDesc) return Value();
-  
+  if (!paramDesc) return Value();
+
   if (paramDesc->hasProperty("default"))
   {
     Value defaultVal = paramDesc->getProperty("default");
-    if(defaultVal.getType() == Value::kText)
+    if (defaultVal.getType() == Value::kText)
     {
-      if(defaultVal.getTextValue().beginsWith(kBlobHeader))
+      if (defaultVal.getTextValue().beginsWith(kBlobHeader))
       {
         // get blob data from text
         // todo don't repeat this = see MLSerialization
         auto valueText = defaultVal.getTextValue();
-        
+
         auto headerLen = kBlobHeader.lengthInCodePoints();
         auto textLen = valueText.lengthInCodePoints();
         auto body = textUtils::subText(valueText, headerLen, textLen);
@@ -383,7 +357,7 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
   else if (paramDesc->hasProperty("plaindefault"))
   {
     Value defaultVal = paramDesc->getProperty("plaindefault");
-    return Value(p.convertRealToNormalizedFloatValue(pname, defaultVal)); // TODO clean up API
+    return Value(p.convertRealToNormalizedFloatValue(pname, defaultVal));  // TODO clean up API
   }
   else if (paramDesc->hasProperty("range"))
   {
@@ -396,7 +370,6 @@ inline Value getNormalizedDefaultValue(ParameterTree& p, Path pname)
     return Value();
   }
 }
-
 
 inline void setDefault(ParameterTree& p, Path pname)
 {
@@ -423,13 +396,14 @@ inline void setDefaults(ParameterTree& p)
 }
 
 // returns pointer to parameter description in list matching name
-inline ParameterDescription* findNamedParameter(const ParameterDescriptionList& paramList, Path pname)
+inline ParameterDescription* findNamedParameter(const ParameterDescriptionList& paramList,
+                                                Path pname)
 {
   ParameterDescription* pParam{nullptr};
-  for(int i = 0; i<paramList.size(); ++i)
+  for (int i = 0; i < paramList.size(); ++i)
   {
     auto& pDesc = paramList[i];
-    if(runtimePath(pDesc->getTextProperty("name")) == pname)
+    if (runtimePath(pDesc->getTextProperty("name")) == pname)
     {
       pParam = pDesc.get();
       break;

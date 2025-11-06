@@ -178,15 +178,15 @@ class Collection
     // Tree currently offers only depth-first iterators so
     // we have to iterate the entire tree even though we only want children
     // of the root node.
-    for(auto it = _tree->begin(); it != _tree->end(); ++it)
+    for (auto it = _tree->begin(); it != _tree->end(); ++it)
     {
-      if((it.getCurrentDepth() == 0) && (it.currentNodeHasValue()))
+      if ((it.getCurrentDepth() == 0) && (it.currentNodeHasValue()))
       {
-        if(currentPathPtr)
+        if (currentPathPtr)
         {
           *currentPathPtr = it.getCurrentPath();
         }
-        if(*it)
+        if (*it)
         {
           const ObjectPointerType& obj = *it;
           f(*obj);
@@ -214,7 +214,7 @@ class CollectionRoot : public Collection<T>
 
  public:
   // return collection referring to our internal tree
-  CollectionRoot() : Collection<T>(_localTree){};
+  CollectionRoot() : Collection<T>(_localTree) {};
   ~CollectionRoot() = default;
 
   inline void clear() { _localTree.clear(); }

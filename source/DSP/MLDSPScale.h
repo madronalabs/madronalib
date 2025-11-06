@@ -28,38 +28,37 @@ const int kMLUnmappedNote = kMLNumNotes + 1;
 
 class Scale
 {
-public:
-  
+ public:
   Scale()
   {
     setDefaultScale();
     setDefaultMapping();
     recalcRatiosAndPitches();
   }
-  
+
   ~Scale() = default;
-  
-  void operator= (const Scale& b)
+
+  void operator=(const Scale& b)
   {
     mScaleRatios = b.mScaleRatios;
     mPitches = b.mPitches;
   }
-  
+
   // load a scale from an input string along with an optional mapping.
   void loadScaleFromString(const std::string& scaleStr, const std::string& mapStr = "")
   {
     int contentLines = 0;
-    
+
     std::stringstream fileInputStream(scaleStr);
     std::string inputLine;
     while (std::getline(fileInputStream, inputLine))
     {
       std::stringstream lineInputStream(inputLine);
       const char* descStr = inputLine.c_str();
-      if (inputLine[0] != '!') // skip comments
+      if (inputLine[0] != '!')  // skip comments
       {
         contentLines++;
-        switch(contentLines)
+        switch (contentLines)
         {
           case 1:
             //  setDescription(descStr);
@@ -68,7 +67,7 @@ public:
             // notes line, unused
             clear();
             break;
-          default: // after 2nd line, add ratios.
+          default:  // after 2nd line, add ratios.
             if (inputLine.find(".") != std::string::npos)
             {
               // input is a decimal ratio
@@ -101,15 +100,15 @@ public:
         }
       }
     }
-    
+
     if (mScaleSize > 1)
     {
       int notes = 0;
-      if(!mapStr.empty())
+      if (!mapStr.empty())
       {
         notes = loadMappingFromString(mapStr);
       }
-      if(!ml::within(notes, 1, 127))
+      if (!ml::within(notes, 1, 127))
       {
         setDefaultMapping();
       }
@@ -120,35 +119,34 @@ public:
       setDefaultScale();
     }
   }
-  
-  
+
   // return pitch of the given note in log pitch (1.0 per octave) space with 440.0Hz = 0.
   // return the pitch of the given fractional note as log2(p/k), where k = 440Hz.
   //
   float noteToLogPitch(float note) const
   {
-    if(ml::isNaN(note)) return 0.f;
-    
+    if (ml::isNaN(note)) return 0.f;
+
     float fn = ml::clamp(note, 0.f, (float)(kMLNumNotes - 1));
     int i = (int)fn;
     double intPart = (double)i;
     double fracPart = fn - intPart;
-    
+
     double m = 1.f;
     double r0 = mRatios[i];
     double r1 = mRatios[i + 1];
-    
-    if((r0 > 0.) && (r1 > 0.))
+
+    if ((r0 > 0.) && (r1 > 0.))
     {
       m = ml::lerp(r0, r1, fracPart);
     }
-    else if(r0 > 0.)
+    else if (r0 > 0.)
     {
       m = r0;
     }
     return log2f((float)m);
   }
-  
+
   // return log pitch of the note of the current scale just below the input.
   float quantizePitch(float a) const
   {
@@ -156,7 +154,7 @@ public:
     for (int i = kMLNumNotes - 1; i > 0; i--)
     {
       float p = (float)mPitches[i];
-      if(p <= a)
+      if (p <= a)
       {
         r = p;
         break;
@@ -164,7 +162,7 @@ public:
     }
     return r;
   }
-  
+
   // return log pitch of the note of the current scale closest to the input.
   float quantizePitchNearest(float a) const
   {
@@ -174,10 +172,10 @@ public:
     for (int i = kMLNumNotes - 1; i > 0; i--)
     {
       float p = (float)mPitches[i];
-      if(p <= a)
+      if (p <= a)
       {
         fLower = p;
-        if(i < kMLNumNotes - 1)
+        if (i < kMLNumNotes - 1)
         {
           fHigher = (float)mPitches[i + 1];
         }
@@ -185,19 +183,19 @@ public:
         break;
       }
     }
-    
-    if(lowerIdx == kMLNumNotes - 1)
+
+    if (lowerIdx == kMLNumNotes - 1)
     {
       return fLower;
     }
-    else if(lowerIdx <= 0)
+    else if (lowerIdx <= 0)
     {
       return (float)mPitches[0];
     }
-    
+
     float d1 = (a - fLower);
     float d2 = (fHigher - a);
-    if(d1 < d2)
+    if (d1 < d2)
     {
       return fLower;
     }
@@ -206,17 +204,10 @@ public:
       return fHigher;
     }
   }
-  
-  void setName(const std::string& nameStr)
-  {
-    mName = nameStr;
-  }
-  
-  void setDescription(const std::string& descStr)
-  {
-    mDescription = descStr;
-  }
-  
+
+  void setName(const std::string& nameStr) { mName = nameStr; }
+
+  void setDescription(const std::string& descStr) { mDescription = descStr; }
 
   /*
    #include <iostream>
@@ -237,26 +228,19 @@ public:
     debug() << "ratios:\n";
     for(int i = 0; i<kMLNumNotes; ++i)
     {
-      debug() << "    " << i << " : " << mRatios[i] << " / " << mPitches[i] << " (" << mRatios[i]*440. << ") \n";
+      debug() << "    " << i << " : " << mRatios[i] << " / " << mPitches[i] << " (" <<
+  mRatios[i]*440. << ") \n";
     }
   }
    */
 
-  
-private:
-  
+ private:
   float noteToPitch(float note) const;
-  
-  void addRatioAsFraction(int n, int d)
-  {
-    addRatio((double)n / (double)d);
-  }
-  
-  void addRatioAsCents(double cents)
-  {
-    addRatio(std::pow(2., cents / 1200.));
-  }
-  
+
+  void addRatioAsFraction(int n, int d) { addRatio((double)n / (double)d); }
+
+  void addRatioAsCents(double cents) { addRatio(std::pow(2., cents / 1200.)); }
+
   // get the given note frequency as a fraction of the middle note 1/1.
   //
   double middleNoteRatio(int n)
@@ -264,7 +248,7 @@ private:
     int notesInOctave = static_cast<int>(mKeyMap.mSize - 1);
     int octaveDegree = ml::clamp(mKeyMap.mOctaveScaleDegree, 0, mScaleSize);
     double octaveRatio = mScaleRatios[octaveDegree];
-    
+
     // get note map index and octave from map.
     int octave, mapIndex;
     int middleRelativeRefNote = n - mKeyMap.mMiddleNote;
@@ -278,60 +262,56 @@ private:
       octave = ((middleRelativeRefNote + 1) / notesInOctave) - 1;
       mapIndex = notesInOctave - 1 + ((middleRelativeRefNote + 1) % notesInOctave);
     }
-    
+
     // get middle-note relative ratio
     int noteDegree = ml::clamp(mKeyMap.mNoteDegrees[mapIndex], 0, mScaleSize);
     double noteScaleRatio = mScaleRatios[noteDegree];
     double noteOctaveRatio = std::pow(octaveRatio, octave);
-    
-    return noteScaleRatio*noteOctaveRatio;
+
+    return noteScaleRatio * noteOctaveRatio;
   }
-  
-  
+
   // calculate a ratio for each note. key map size, start and end are ignored.
   void recalcRatiosAndPitches()
   {
     // get ratio of reference note to middle note
     double refKeyRatio = middleNoteRatio(mKeyMap.mReferenceNote);
-    double refFreqRatio = mKeyMap.mReferenceFreq/(refKeyRatio*440.0);
-    
+    double refFreqRatio = mKeyMap.mReferenceFreq / (refKeyRatio * 440.0);
+
     for (int i = 0; i < kMLNumNotes; ++i)
     {
       double r = middleNoteRatio(i);
-      mRatios[i] = (r*refFreqRatio);
+      mRatios[i] = (r * refFreqRatio);
       mPitches[i] = std::log2(mRatios[i]);
     }
   }
-  
 
-  
   // trim from start (in place)
-  static inline void ltrim(std::string &s) {
-    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) {
-      return !std::isspace(ch);
-    }));
+  static inline void ltrim(std::string& s)
+  {
+    s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](int ch) { return !std::isspace(ch); }));
   }
-  
+
   // trim from end (in place)
-  static inline void rtrim(std::string &s) {
-    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) {
-      return !std::isspace(ch);
-    }).base(), s.end());
+  static inline void rtrim(std::string& s)
+  {
+    s.erase(std::find_if(s.rbegin(), s.rend(), [](int ch) { return !std::isspace(ch); }).base(),
+            s.end());
   }
-  
+
   // trim from both ends (in place)
-  static inline void trim(std::string &s) {
+  static inline void trim(std::string& s)
+  {
     ltrim(s);
     rtrim(s);
   }
-  
-  std::string toLower(std::string s) {
-    std::transform(s.begin(), s.end(), s.begin(),
-                   [](unsigned char c){ return std::tolower(c); }
-                   );
+
+  std::string toLower(std::string s)
+  {
+    std::transform(s.begin(), s.end(), s.begin(), [](unsigned char c) { return std::tolower(c); });
     return s;
   }
-  
+
   // loads .kbm note mapping, as specified at http://www.huygens-fokker.org/scala/help.htm#mappings
   // returns the number of notes in the resulting key map.
   //
@@ -339,34 +319,34 @@ private:
   {
     int contentLines = 0;
     int notes = 0;
-    
+
     clearKeyMap(mKeyMap);
     std::stringstream fileInputStream(mapStr);
     std::string inputLine;
     std::string trimmedLine;
     std::string whitespace(" \t");
-    
+
     while (std::getline(fileInputStream, inputLine))
     {
       trimmedLine = (inputLine);
       trim(trimmedLine);
-      
-      if (trimmedLine[0] != '!') // skip comments
+
+      if (trimmedLine[0] != '!')  // skip comments
       {
         contentLines++;
         std::stringstream lineInputStream(trimmedLine);
-        
+
         int unused;
-        switch(contentLines)
+        switch (contentLines)
         {
           case 1:
-            lineInputStream >> unused; // size of map
+            lineInputStream >> unused;  // size of map
             break;
           case 2:
-            lineInputStream >> unused; // start note
+            lineInputStream >> unused;  // start note
             break;
           case 3:
-            lineInputStream >> unused; // end note
+            lineInputStream >> unused;  // end note
             break;
           case 4:
             lineInputStream >> mKeyMap.mMiddleNote;
@@ -380,10 +360,10 @@ private:
           case 7:
             lineInputStream >> mKeyMap.mOctaveScaleDegree;
             break;
-          default: // after 7th content line, add ratios.
+          default:  // after 7th content line, add ratios.
           {
             int note = 0;
-            if(toLower(trimmedLine) == "x")
+            if (toLower(trimmedLine) == "x")
             {
               note = kMLUnmappedNote;
             }
@@ -391,119 +371,118 @@ private:
             {
               lineInputStream >> note;
             }
-            
+
             addNoteToKeyMap(mKeyMap, note);
             notes++;
           }
-            break;
+          break;
         }
       }
     }
-    
+
     // add octave degree at end of map
     addNoteToKeyMap(mKeyMap, mKeyMap.mOctaveScaleDegree);
-    
+
     return notes;
   }
-  
+
   void clear()
   {
     mScaleSize = 0;
     mScaleRatios = {0.};
-    
+
     // index 0 of a scale is always 1/1
     addRatioAsFraction(1, 1);
   }
-  
+
   void setDefaultScale()
   {
     clear();
     setName("12-equal");
     setDescription("The chromatic equal-tempered scale.");
     // make 12-ET scale
-    for(int i=1; i<=12; ++i)
+    for (int i = 1; i <= 12; ++i)
     {
       addRatioAsCents(100.0 * i);
     }
   }
-  
+
   void setDefaultMapping()
   {
     clearKeyMap(mKeyMap);
-    
-    mKeyMap.mMiddleNote = 69;  // arbitrary in equal-tempered scale
-    mKeyMap.mReferenceNote = 69; // A3
+
+    mKeyMap.mMiddleNote = 69;     // arbitrary in equal-tempered scale
+    mKeyMap.mReferenceNote = 69;  // A3
     mKeyMap.mReferenceFreq = 440.0f;
     mKeyMap.mOctaveScaleDegree = mScaleSize - 1;
-    
-    for(int i = 0; i < mScaleSize; ++i)
+
+    for (int i = 0; i < mScaleSize; ++i)
     {
       addNoteToKeyMap(mKeyMap, i);
     }
   }
-  
+
   // key map structure and utility functions
-  
+
   struct keyMap
   {
     int mSize;
-    
+
     // Middle note where the first entry of the mapping is placed
     int mMiddleNote;
-    
+
     // note that is defined to be the reference frequency
     int mReferenceNote;
-    
+
     // reference frequency
     float mReferenceFreq;
-    
+
     // Scale degree to consider as formal octave
     int mOctaveScaleDegree;
-    
+
     // scale degree for each note
     std::array<int, kMLNumNotes> mNoteDegrees;
   };
-  
+
   inline void clearKeyMap(keyMap& map)
   {
     map.mNoteDegrees.fill(-1);
     map.mSize = 0;
   }
-  
+
   inline void addNoteToKeyMap(keyMap& map, int newIdx)
   {
-    if(map.mSize < kMLNumNotes)
+    if (map.mSize < kMLNumNotes)
     {
       map.mNoteDegrees[map.mSize++] = newIdx;
     }
   }
-  
+
   keyMap mKeyMap;
-  
+
   std::string mName;
   std::string mDescription;
-  
+
   // list of ratios forming a scale.  The first entry is always 1.0, or 0 cents.
   // The last entry is the ratio of an octave, typically but not always 2.
-  
+
   // TODO use Ratios
   std::array<double, kMLNumNotes> mScaleRatios;
-  
+
   int mScaleSize;
   inline void addRatio(double newRatio)
   {
-    if(mScaleSize < kMLNumNotes)
+    if (mScaleSize < kMLNumNotes)
     {
       mScaleRatios[mScaleSize++] = newRatio;
     }
   }
-  
+
   // pitch for each integer note number stored in as a ratio p/k where k = 440.0 Hz
   std::array<double, kMLNumNotes> mRatios;
-  
+
   // pitch for each integer note number stored in linear octave space. pitch = log2(ratio).
   std::array<double, kMLNumNotes> mPitches;
-  
 };
 
-}
+}  // namespace ml

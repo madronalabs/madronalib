@@ -15,24 +15,23 @@ namespace ml
 // arbitrary chunk sizes, buffer inputs and outputs, and compute DSP in
 // DSPVector-sized chunks.
 
-using SignalProcessFn = void(*)(AudioContext*, void*);
+using SignalProcessFn = void (*)(AudioContext*, void*);
 
 class SignalProcessBuffer final
 {
   // buffers containing audio to / from outside world, in bigger chunks
-  std::vector< ml::DSPBuffer > _inputBuffers;
-  std::vector< ml::DSPBuffer > _outputBuffers;
+  std::vector<ml::DSPBuffer> _inputBuffers;
+  std::vector<ml::DSPBuffer> _outputBuffers;
 
   // max chunk size for outside I/O
   size_t _maxFrames;
 
-public:
+ public:
   SignalProcessBuffer(size_t inputs, size_t outputs, size_t maxFrames);
   ~SignalProcessBuffer();
 
-  void process(const float** inputs, float** outputs, int nFrames,
-    AudioContext* ctx, SignalProcessFn processFn, void* pState);
+  void process(const float** inputs, float** outputs, int nFrames, AudioContext* ctx,
+               SignalProcessFn processFn, void* pState);
 };
 
-} // ml
-
+}  // namespace ml

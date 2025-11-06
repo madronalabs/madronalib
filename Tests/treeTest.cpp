@@ -68,7 +68,7 @@ TEST_CASE("madronalib/core/tree", "[tree]")
       // make resource path with unique end so paths are never duplicates
       Symbol leafName =
           testWords[(randSource.getUInt32() >> 16) % numTestWords] +
-        runtimeSymbol(endNamer.nextName());
+        Symbol(endNamer.nextName());
       Path newPath = testPath;
       newPath = Path{newPath, runtimePath(leafName.getUTF8Ptr())};
       pathsVector.push_back(newPath);

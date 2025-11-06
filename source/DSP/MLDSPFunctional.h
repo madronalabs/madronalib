@@ -85,7 +85,6 @@ inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector, int)> f
   return y;
 }
 
-
 // Apply a function (DSPVector, int row)->(DSPVector) to each row of the
 // DSPVectorArray x and return the result.
 template <size_t ROWS>
@@ -99,7 +98,6 @@ inline DSPVectorArray<ROWS> map(std::function<DSPVector(const DSPVector, const D
   }
   return y;
 }
-
 
 // ----------------------------------------------------------------
 // higher-order functions with DSP
@@ -326,7 +324,6 @@ class Bank
   std::array<T, ROWS> _processors;
 
  public:
-  
   // Bank(): each processor gets arguments on its own row of each input DSPVectorArray<ROWS>.
   template <typename... Args>
   inline DSPVectorArray<ROWS> operator()(Args... args)
@@ -338,7 +335,7 @@ class Bank
     }
     return output;
   }
-  
+
   // process: each processor gets arguments by calling the subscript operator on the input args.
   template <typename... Args>
   inline DSPVectorArray<ROWS> processArrays(Args... args)
@@ -350,7 +347,7 @@ class Bank
     }
     return output;
   }
-  
+
   inline void clear()
   {
     for (int i = 0; i < ROWS; ++i)

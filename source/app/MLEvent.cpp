@@ -4,20 +4,10 @@
 
 #include "MLEvent.h"
 
-namespace ml {
+namespace ml
+{
 
-const char* Event::typeNames[kNumEventTypes] = {
-  "NUL",
-  "ON ",
-  "RET",
-  "SUS",
-  "OFF",
-  "PED",
-  "CC ",
-  "BND",
-  "NPR",
-  "CPR",
-  "PGM"
-};
+const char* Event::typeNames[kNumEventTypes] = {"NUL", "ON ", "RET", "SUS", "OFF", "PED",
+                                                "CC ", "BND", "NPR", "CPR", "PGM"};
 
-} // ml
+}  // namespace ml

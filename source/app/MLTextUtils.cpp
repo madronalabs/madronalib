@@ -55,13 +55,13 @@ size_t digitsToNaturalNumber(const char32_t* p, size_t n)
 {
   constexpr int kMaxDigits = 16;
   if (n >= kMaxDigits) return -1;
-  
+
   if (!p) return 0;
   size_t v = 0;
   size_t d;
   char c;
 
-  for(int i=0; i<n; ++i)
+  for (int i = 0; i < n; ++i)
   {
     c = p[i];
     if (c >= '0' && c <= '9')
@@ -96,7 +96,7 @@ TextFragment naturalNumberToText(size_t i)
     p--;
     if (p < buf) return "overflow";
     size_t iOver10 = i / 10;
-    char digit = '0' + (i - iOver10*10);
+    char digit = '0' + (i - iOver10 * 10);
     *p = digit;
     i = iOver10;
   } while (i != 0);
@@ -321,7 +321,6 @@ float textToFloatNumber(const char* input)
 
 float textToFloatNumber(const TextFragment& frag) { return textToFloatNumber(frag.getText()); }
 
-
 TextFragment addFinalNumber(TextFragment t, int n)
 {
   return TextFragment(t, textUtils::naturalNumberToText(n));
@@ -330,12 +329,12 @@ TextFragment addFinalNumber(TextFragment t, int n)
 TextFragment stripFinalNumber(TextFragment frag)
 {
   size_t points = frag.lengthInCodePoints();
-  
+
   // TODO make more readble using random access fragment class
-  
+
   SmallStackBuffer<CodePoint, kShortFragmentSizeInCodePoints> temp(points + 1);
   CodePoint* buf = temp.data();
-  
+
   // read into char32 array for random access
   int i = 0;
   for (CodePoint c : frag)
@@ -343,13 +342,13 @@ TextFragment stripFinalNumber(TextFragment frag)
     if (!validateCodePoint(c)) return TextFragment();
     buf[i++] = c;
   }
-  
+
   // null terminate
   buf[points] = 0;
-  
+
   // no final number? return
   if (!textUtils::isDigit(buf[points - 1])) return frag;
-  
+
   // read backwards until non-digit
   size_t firstDigitPos = 0;
   for (size_t i = points - 2; i >= 0; --i)
@@ -361,7 +360,7 @@ TextFragment stripFinalNumber(TextFragment frag)
       break;
     }
   }
-  
+
   ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
   return subFrag;
 }
@@ -369,20 +368,20 @@ TextFragment stripFinalNumber(TextFragment frag)
 int getFinalNumber(TextFragment frag)
 {
   auto it = frag.begin();
-  
-  for(;it != frag.end(); it++)
+
+  for (; it != frag.end(); it++)
   {
-    if(textUtils::isDigit(*it))
+    if (textUtils::isDigit(*it))
     {
       break;
     }
   }
-  
+
   int v = 0;
   int d;
   char c;
-  
-  for(;it != frag.end(); it++)
+
+  for (; it != frag.end(); it++)
   {
     char c = *it;
     if (c >= '0' && c <= '9')
@@ -391,10 +390,9 @@ int getFinalNumber(TextFragment frag)
       break;
     v = (v * 10) + d;
   }
-  
+
   return v;
 }
-
 
 int findFirst(const TextFragment& frag, const CodePoint b)
 {
@@ -623,7 +621,6 @@ TextFragment getExtension(const TextFragment& frag)
   }
   return TextFragment();
 }
-
 
 TextFragment getShortFileName(const TextFragment& frag)
 {
@@ -910,7 +907,7 @@ bool collate(const TextFragment& a, const TextFragment& b)
 Symbol addFinalNumber(Symbol sym, int n)
 {
   TextFragment t(sym.getTextFragment(), textUtils::naturalNumberToText(n));
-  return runtimeSymbol(t.getText());
+  return Symbol(t.getText());
 }
 
 Symbol stripFinalNumber(Symbol sym)
@@ -950,7 +947,7 @@ Symbol stripFinalNumber(Symbol sym)
   }
 
   ml::TextFragment subFrag(textUtils::subText(frag, 0, firstDigitPos));
-  return runtimeSymbol(subFrag.getText());
+  return Symbol(subFrag.getText());
 }
 
 // if the symbol's text ends in an integer, return that number.
@@ -960,10 +957,10 @@ int getFinalNumber(Symbol sym)
 {
   const TextFragment& frag = sym.getTextFragment();
   auto it = frag.begin();
-  
-  for(;it != frag.end(); it++)
+
+  for (; it != frag.end(); it++)
   {
-    if(textUtils::isDigit(*it))
+    if (textUtils::isDigit(*it))
     {
       break;
     }
@@ -972,8 +969,8 @@ int getFinalNumber(Symbol sym)
   int v = 0;
   int d;
   char c;
-  
-  for(;it != frag.end(); it++)
+
+  for (; it != frag.end(); it++)
   {
     char c = *it;
     if (c >= '0' && c <= '9')
@@ -990,7 +987,7 @@ Symbol stripFinalCharacter(Symbol sym)
 {
   TextFragment frag = sym.getTextFragment();
   size_t len = frag.lengthInCodePoints();
-  return runtimeSymbol(subText(frag, 0, len - 1));
+  return Symbol(subText(frag, 0, len - 1));
 }
 
 #pragma mark NameMaker
@@ -1069,7 +1066,7 @@ std::vector<Symbol> makeVectorOfNonsenseSymbols(int len)
       int idx = (r32 & 31);
       newStr += (kLetters[idx]);
     }
-    words.push_back(runtimeSymbol(newStr.c_str()));
+    words.push_back(Symbol(newStr.c_str()));
   }
   return words;
 }
@@ -1188,69 +1185,81 @@ ml::Text formatNumber(const float number, const int digits, const int precision,
   return Text(numBuf);
 }
 
-
 std::string toHex(int value, int width)
 {
   const char* digits = "0123456789abcdef";
   std::string hex;
-  
-  if (value == 0) {
+
+  if (value == 0)
+  {
     hex = "0";
-  } else {
+  }
+  else
+  {
     int temp = value;
-    while (temp > 0) {
+    while (temp > 0)
+    {
       hex = digits[temp % 16] + hex;
       temp /= 16;
     }
   }
-  
+
   // Pad with zeros
-  while (hex.length() < static_cast<size_t>(width)) {
+  while (hex.length() < static_cast<size_t>(width))
+  {
     hex = "0" + hex;
   }
-  
+
   return hex;
 }
-
 
 void hexDump(uint8_t* blobData, size_t blobSize)
 {
   const int bytesPerRow = 16;
-  
-  for (size_t i = 0; i < blobSize; i += bytesPerRow) {
+
+  for (size_t i = 0; i < blobSize; i += bytesPerRow)
+  {
     // Print offset
     std::cout << toHex(static_cast<int>(i), 8) << "  ";
-    
+
     // Print hex values
-    for (int j = 0; j < bytesPerRow; ++j) {
-      if (i + j < blobSize) {
+    for (int j = 0; j < bytesPerRow; ++j)
+    {
+      if (i + j < blobSize)
+      {
         std::cout << toHex(blobData[i + j], 2) << " ";
-      } else {
-        std::cout << "   "; // 3 spaces for missing bytes
       }
-      
+      else
+      {
+        std::cout << "   ";  // 3 spaces for missing bytes
+      }
+
       // Add extra space after 8 bytes for readability
-      if (j == 7) {
+      if (j == 7)
+      {
         std::cout << " ";
       }
     }
-    
+
     std::cout << " |";
-    
+
     // Print ASCII representation
-    for (int j = 0; j < bytesPerRow && i + j < blobSize; ++j) {
+    for (int j = 0; j < bytesPerRow && i + j < blobSize; ++j)
+    {
       uint8_t byte = blobData[i + j];
-      if (std::isprint(byte) && byte >= 32 && byte <= 126) {
+      if (std::isprint(byte) && byte >= 32 && byte <= 126)
+      {
         std::cout << static_cast<char>(byte);
-      } else {
+      }
+      else
+      {
         std::cout << ".";
       }
     }
-    
+
     std::cout << "|" << std::endl;
   }
 }
-
 
 }  // namespace textUtils
 }  // namespace ml

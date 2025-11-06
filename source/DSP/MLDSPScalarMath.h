@@ -33,8 +33,7 @@ typedef float MLSample;
 inline size_t bitsToContain(int x)
 {
   int exp;
-  for (exp = 0; (1 << exp) < x; exp++)
-    ;
+  for (exp = 0; (1 << exp) < x; exp++);
   return (exp);
 }
 

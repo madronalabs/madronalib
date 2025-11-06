@@ -6,7 +6,6 @@
 
 #pragma once
 
-
 #include "MLSignalProcessBuffer.h"
 #include "MLSignalProcessor.h"
 #include "MLAudioContext.h"
@@ -25,7 +24,7 @@ class AudioTask
   // maximum signal vector size of the plugin host or enclosing app.
   static constexpr int kMaxBlockSize{4096};
 
-public:
+ public:
   AudioTask(AudioContext* ctx, SignalProcessFn procFn, void* procState);
 
   ~AudioTask();
@@ -34,10 +33,9 @@ public:
   void stopAudio();
   int runConsoleApp();
 
-private:
+ private:
   struct Impl;
-  std::unique_ptr< Impl > pImpl;
-
+  std::unique_ptr<Impl> pImpl;
 };
 
-} // namespace ml
+}  // namespace ml

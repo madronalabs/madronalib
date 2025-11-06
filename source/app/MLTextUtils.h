@@ -21,7 +21,6 @@ bool isLatin(CodePoint c);
 bool isWhitespace(CodePoint c);
 bool isCJK(CodePoint c);
 
-
 // TextFragment utilities
 
 TextFragment naturalNumberToText(size_t i);
@@ -102,12 +101,8 @@ bool collate(const TextFragment& a, const TextFragment& b);
 
 struct Collator
 {
-  bool operator()(const TextFragment& a, const TextFragment& b) const
-  {
-    return collate(a, b);
-  }
+  bool operator()(const TextFragment& a, const TextFragment& b) const { return collate(a, b); }
 };
-
 
 // Symbol utilities
 
@@ -127,8 +122,8 @@ class NameMaker
   static const int maxLen = 64;
 
  public:
-  NameMaker() : index(0){};
-  ~NameMaker(){};
+  NameMaker() : index(0) {};
+  ~NameMaker() {};
 
   // return the next name as a symbol, having added it to the symbol table.
   const TextFragment nextName();
@@ -137,7 +132,6 @@ class NameMaker
   int index;
   char buf[maxLen];
 };
-
 
 // std library helpers
 
@@ -157,7 +151,6 @@ ml::Text formatNumber(const float number, const int digits, const int precision,
 void hexDump(uint8_t* blobData, size_t blobSize);
 
 }  // namespace textUtils
-
 
 // TEMPinline uint64_t hash(TextFragment frag) { return fnv1aRuntime(frag.getText()); }
 

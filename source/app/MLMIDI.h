@@ -21,15 +21,16 @@ enum MIDIMessageType
   kMIDIPitchBend = 6
 };
 
-using MIDIMessage = std::vector< unsigned char >;
+using MIDIMessage = std::vector<unsigned char>;
 
-using MIDIMessageHandler = std::function< void(const MIDIMessage&) >;
+using MIDIMessageHandler = std::function<void(const MIDIMessage&)>;
 
-class MIDIInput {
-public:
+class MIDIInput
+{
+ public:
   MIDIInput();
   ~MIDIInput();
-  
+
   // TODO add methods for inspecting ports before start. start() will take
   // an additional port argument.
 
@@ -40,13 +41,12 @@ public:
   std::string getAPIDisplayName();
   std::string getPortName();
 
-private:
+ private:
   struct Impl;
-  std::unique_ptr< Impl > pImpl;
+  std::unique_ptr<Impl> pImpl;
 };
 
 // convert a MIDI message into an Event for use with EventsToSignals.
 Event MIDIMessageToEvent(const MIDIMessage& message);
 
-} // namespace ml
-
+}  // namespace ml

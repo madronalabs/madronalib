@@ -15,6 +15,11 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
 IF(APPLE)
   SET(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for Mac OS X" FORCE)
+  
+  # Also set for the C and C++ compilers specifically
+  set(CMAKE_C_OSX_ARCHITECTURES "x86_64;arm64")
+  set(CMAKE_CXX_OSX_ARCHITECTURES "x86_64;arm64")
+  
   SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 ENDIF(APPLE)
 
@@ -54,8 +59,8 @@ endif()
  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
  set(CMAKE_VISIBILITY_INLINES_HIDDEN OFF)
  
- set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
- set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
+ #set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
+ #set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG")
 
  if(APPLE)
    # For now, explicitly disable C++17 alignment feature
@@ -231,12 +236,13 @@ set(target madronalib)
 
 add_library(${target} STATIC ${madronalib_SOURCES})
 
-# target_compile_options(${target} PRIVATE
-#     -O3
-#     -g
-#     -fno-omit-frame-pointer
-# )
-# 
+# Force Xcode to respect the architectures
+set_target_properties(${target} PROPERTIES
+    XCODE_ATTRIBUTE_ARCHS "x86_64 arm64"
+    XCODE_ATTRIBUTE_ONLY_ACTIVE_ARCH "NO"
+    XCODE_ATTRIBUTE_VALID_ARCHS "x86_64 arm64"
+    OSX_ARCHITECTURES "x86_64;arm64" 
+)
 
 set_target_properties(${target} PROPERTIES
                       OUTPUT_NAME "${madronalib_NAME}"

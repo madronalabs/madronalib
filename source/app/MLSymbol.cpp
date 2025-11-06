@@ -4,6 +4,8 @@
 
 #include "MLSymbol.h"
 
+#include <mutex>
+
 namespace ml
 {
 
@@ -12,12 +14,18 @@ const TextFragment SymbolTable::kNullText{"?"};
 uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
 {
   uint64_t hash = fnv1aRuntime(text, len);
-  
-  std::cout << "registering " ;
-  for(int i=0; i<len; ++i) { std::cout << text[i]; }
-  std::cout << "\n";
-  
+
   std::lock_guard<std::mutex> lock(mMutex);
+
+  // TEMP
+  /*
+  std::cout << "making ";
+  for (int i = 0; i < len; ++i)
+  {
+    std::cout << text[i];
+  }
+  std::cout << "\n";
+*/
   
   auto it = mSymbols.find(hash);
   if (it != mSymbols.end())
@@ -33,42 +41,38 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
     // Same string, return existing hash
     return hash;
   }
-  
+
   // New symbol - register it
   mSymbols.emplace(hash, TextFragment(text, static_cast<int>(len)));
   return hash;
 }
 
-void SymbolTable::clear()
-{
-  mSymbols.clear();
-}
+void SymbolTable::clear() { mSymbols.clear(); }
 
 const TextFragment& SymbolTable::getTextForHash(uint64_t hash) const
 {
   auto it = mSymbols.find(hash);
-  
+
   // if not found, return null object
   if (it == mSymbols.end()) return SymbolTable::kNullText;
-  
+
   return it->second;
 }
 
 void SymbolTable::dump()
 {
   std::cout << mSymbols.size() << " symbols:\n";
-  
+
   for (const auto& [hash, text] : mSymbols)
   {
     std::cout << "0x" << std::hex << hash << std::dec << " = \"" << text << "\"\n";
   }
 }
 
-std::ostream& operator<< (std::ostream& out, const Symbol r)
+std::ostream& operator<<(std::ostream& out, const Symbol r)
 {
   out << r.getTextFragment();
   return out;
 }
-
 
 }  // namespace ml

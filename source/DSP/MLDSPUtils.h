@@ -46,7 +46,6 @@ const Projection flatTop(
     });
 }  // namespace dspwindows
 
-
 // UsingFlushDenormalsToZero: turn off denormal math so that (for example) IIR filters don't consume
 // many more CPU cycles when they decay. Only needed for Intel processors.
 struct UsingFlushDenormalsToZero
@@ -61,28 +60,28 @@ struct UsingFlushDenormalsToZero
     int newMXCSR = MXCRState | 0x8040;  // set DAZ and FZ bits
     _mm_setcsr(newMXCSR);               // write the new MXCSR setting to the MXCSR
   }
-  
+
   ~UsingFlushDenormalsToZero()
   {
     // restore the old MXCSR setting
     _mm_setcsr(MXCRState);
   }
-  
+
 #elif defined(__aarch64__)
   uint64_t MXCRState = 0;
-  
+
   UsingFlushDenormalsToZero()
   {
     // read and store floating point control register (FPCR)
     uint64_t FPCR_prev = 0;
     asm volatile("MRS %0, FPCR " : "=r"(FPCR_prev));
     MXCRState = FPCR_prev;
-    
+
     // set flush to zero bit and write FPCR
     uint64_t FPCR = FPCR_prev | (1ULL << 24);
     asm volatile("MSR FPCR, %0 " : : "r"(FPCR));
   }
-  
+
   ~UsingFlushDenormalsToZero()
   {
     // restore the old MXCSR setting

@@ -8,7 +8,6 @@
 #include "MLSymbol.h"
 #include "MLEvent.h"
 
-
 namespace ml
 {
 
@@ -44,7 +43,7 @@ struct KeyState
 
 class EventsToSignals final
 {
-public:
+ public:
   static constexpr size_t kMaxVoices{16};
   static constexpr size_t kMaxEventsPerProcessBuffer{128};
   static constexpr size_t kMaxPhysicalKeys{128};
@@ -58,12 +57,11 @@ public:
 
   explicit EventsToSignals();
   ~EventsToSignals();
-  
+
   void setSampleRate(double r);
 
   size_t setPolyphony(size_t n);
   size_t getPolyphony();
-
 
   // clear all voices and queued events and reset state.
   void clear();
@@ -73,7 +71,7 @@ public:
 
   // inserts an event to the buffer sorted by time.
   void addEvent(const Event& e);
-  
+
   void clearEvents();
 
   // process incoming events in buffer and generate output signals.
@@ -87,40 +85,43 @@ public:
   void setPitchGlideInSeconds(float f);
   void setDriftAmount(float f);
   void setUnison(bool b);
-  void setProtocol(Symbol p) { protocol_ = p; clear(); }
+  void setProtocol(Symbol p)
+  {
+    protocol_ = p;
+    clear();
+  }
   void setModCC(int c) { voiceModCC_ = c; }
 
-  #pragma mark -
-  
-  
+#pragma mark -
+
   // Voice: a voice that can play.
   //
   struct Voice
   {
     Voice() = default;
     ~Voice() = default;
-    
+
     void setSampleRate(double r);
     void setPitchGlideInSeconds(float g);
     void setDriftAmount(float d);
 
     void reset();
-    
+
     void resetTime();
-    
+
     // send to start processing a new buffer.
     void beginProcess();
-    
+
     // send a note on, off update or sustain event to the voice.
     void writeNoteEvent(const Event& e, int keyIdx, bool doGlide, bool doReset);
-    
+
     // write all current info to the end of the current buffer, scaling pitch bend
     void endProcess(float pitchBend);
-    
+
     // data
-    
+
     // output signals (velocity, pitch, voice... )
-    DSPVectorArray< kNumVoiceOutputRows > outputs;
+    DSPVectorArray<kNumVoiceOutputRows> outputs;
 
     size_t nextFrameToProcess{0};
 
@@ -136,7 +137,7 @@ public:
     // physical key or touch # of creator. 0 = undefined.
     size_t creatorKeyIdx_{0};
     uint32_t eventAgeInSamples{0};
-    
+
     // amount to increase event age each sample—either 0 or 1
     uint32_t eventAgeStep{0};
 
@@ -159,7 +160,7 @@ public:
     float currentDriftValue{0};
     float driftAmount{0};
     int nextDriftTimeInSamples{0};
-    
+
     double sr{0};
     double isr{0};
     int voiceIndex{0};
@@ -177,20 +178,19 @@ public:
     double sr{0};
     bool recalcNeeded{false};
   };
-  
+
   // get a const reference to a Voice for reading its output.
   // Lifetime management is an issue though: don't hang onto this reference!
   const Voice& getVoice(int n) const { return voices[n + 1]; }
-  
+
   // get voice which had a note on event most recently, if any
   int getNewestVoice() const { return newestVoice_ - 1; }
 
   const SmoothedController& getController(size_t n) const { return controllers[n]; }
-  
-private:
 
+ private:
   size_t countHeldNotes();
-  void processEvent(const Event &eventParam);
+  void processEvent(const Event& eventParam);
   void processNoteOnEvent(const Event& event);
   void processNoteOffEvent(const Event& event);
   void processNoteUpdateEvent(const Event& event);
@@ -202,22 +202,22 @@ private:
   int findFreeVoice();
   int findVoiceToSteal(Event e);
   int findNearestVoice(int note);
-  
+
   // voices, containing signals for clients to read directly.
   // voices[0] is the "main voice" used for MPE.
-  std::vector< Voice > voices;
-  
+  std::vector<Voice> voices;
+
   // output values for continuous controllers.
-  std::vector< SmoothedController > controllers;
-  
+  std::vector<SmoothedController> controllers;
+
   Symbol protocol_{"MIDI"};
-  
+
   // set a special modulation # to send out in each voice
   int voiceModCC_{16};
-  
-  std::array< KeyState, kMaxPhysicalKeys > keyStates_;
-  std::vector< Event > eventBuffer_;
-  
+
+  std::array<KeyState, kMaxPhysicalKeys> keyStates_;
+  std::vector<Event> eventBuffer_;
+
   size_t polyphony_{0};
   int lastFreeVoiceFound_{-1};
   int newestVoice_{-1};

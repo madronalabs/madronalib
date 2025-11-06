@@ -22,10 +22,9 @@ void ActorRegistry::doRemove(Actor* actorToRemove)
     if (pa == actorToRemove)
     {
       auto p = it.getCurrentPath();
-      _actors[p] = nullptr; 
+      _actors[p] = nullptr;
     }
   }
 }
 
 void ActorRegistry::dump() { _actors.dump(); }
-

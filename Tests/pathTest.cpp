@@ -17,22 +17,10 @@
 
 using namespace ml;
 
+
 TEST_CASE("madronalib/core/path/symbolic", "[path]")
 {
-  
-  theSymbolTable().clear();
-  
   Path p("hello/world/a/b/c/d/e/f/g");
-  auto initialSize = theSymbolTable().getSize();
-  TextFragment pTest("hello+world+a+b+c+d+e+f+g");
-
-  auto accumTest = [](Symbol a, Symbol b) {
-    Symbol sum(a + Symbol("+") + b);
-    return sum;
-  };
-  Symbol accumTextResult = std::accumulate(++p.begin(), p.end(),
-                                    *p.begin(), accumTest);
-  REQUIRE(TextFragment("hello+world+a+b+c+d+e+f+g") == accumTextResult.getTextFragment());
   
   Path a{"a"};
   Path b{"b"};
@@ -47,11 +35,21 @@ TEST_CASE("madronalib/core/path/symbolic", "[path]")
   
   Path q(p, "and/more");
   REQUIRE(!p.beginsWith(q));
+  
+  auto f1 = butLast(p);
+  auto f2 = lastN(p, 2);
+  
+  auto prop = Text("param");
+  Path pname(prop);
+  std::cout << "param: " << pname << "\n";
+  
+  // makes a path containing two unregistered Symbols.
+  constexpr Path spaceThetaPath("space/theta");
 }
 
 TEST_CASE("madronalib/core/path/dynamic", "[path]")
 {
-  TextPath oneElementPath(TextFragment("foo"));
+  TextPath oneElementPath(TextFragment("foo").getText());
   
   TextPath p("hello/world/a/b/c/d/e/f/g");
   auto initialSize = theSymbolTable().getSize();
@@ -81,15 +79,12 @@ TEST_CASE("madronalib/core/path/dynamic", "[path]")
   REQUIRE(theSymbolTable().getSize() == initialSize);
 }
 
-
-
 TEST_CASE("madronalib/core/symbol/equality", "[symbol]")
 {
   Symbol p("hello/world");
   REQUIRE(p == "hello/world");
   REQUIRE(p != "hello/worl");
 }
-
 
 TEST_CASE("madronalib/core/path/equality", "[path]")
 {
@@ -98,8 +93,7 @@ TEST_CASE("madronalib/core/path/equality", "[path]")
   REQUIRE(p != "hello/worl");
 }
 
-// TEMP
-#if 0
+
 TEST_CASE("madronalib/core/path/init-list", "[path]")
 {
   Path sum;
@@ -109,5 +103,4 @@ TEST_CASE("madronalib/core/path/init-list", "[path]")
   }
   REQUIRE(sum.getSize() == 12);
 }
-#endif
 

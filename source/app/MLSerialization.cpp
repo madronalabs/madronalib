@@ -45,30 +45,26 @@ struct BinaryChunkHeader
   BinaryChunkHeader(int t, size_t bytes)
   {
     type = t;
-    dataBytes = static_cast<unsigned int>(bytes)&0x00FFFFFF;
+    dataBytes = static_cast<unsigned int>(bytes) & 0x00FFFFFF;
   }
 };
-
 
 // Values
 
 struct ValueBinaryHeader
 {
   static constexpr int kTypeBits{4};
-  
+
   // type of value
   unsigned int type : kTypeBits;
-  
+
   // size of data, not including header
   unsigned int size : Value::kMaxDataSizeBits;
 };
 
 static_assert((2 << ValueBinaryHeader::kTypeBits) >= Value::kNumTypes);
 
-size_t getBinarySize(const Value& v)
-{
-  return sizeof(ValueBinaryHeader) + v.size();
-}
+size_t getBinarySize(const Value& v) { return sizeof(ValueBinaryHeader) + v.size(); }
 
 std::vector<uint8_t> valueToBinary(Value v)
 {
@@ -76,12 +72,12 @@ std::vector<uint8_t> valueToBinary(Value v)
   std::vector<uint8_t> result;
   result.resize(getBinarySize(v));
   uint8_t* writePtr = result.data();
-  
+
   // write header
   ValueBinaryHeader header{v.getType(), v.size()};
   memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
   writePtr += sizeof(ValueBinaryHeader);
-  
+
   // write data
   memcpy(writePtr, v.data(), v.size());
   return result;
@@ -93,7 +89,7 @@ void writeValueToBinary(Value v, uint8_t*& writePtr)
   ValueBinaryHeader header{v.getType(), v.size()};
   memcpy(writePtr, &header, sizeof(ValueBinaryHeader));
   writePtr += sizeof(ValueBinaryHeader);
-  
+
   // write data
   memcpy(writePtr, v.data(), v.size());
   writePtr += v.size();
@@ -105,11 +101,11 @@ Value readBinaryToValue(const uint8_t*& readPtr)
   ValueBinaryHeader header;
   memcpy(&header, readPtr, sizeof(ValueBinaryHeader));
   readPtr += sizeof(ValueBinaryHeader);
-  
+
   // copy readPtr at start of data, advance parameter ptr
   const uint8_t* dataPtr = readPtr;
   readPtr += header.size;
-  
+
   // Use the private constructor via friend access
   return Value(header.type, header.size, dataPtr);
 }
@@ -117,11 +113,10 @@ Value readBinaryToValue(const uint8_t*& readPtr)
 Value binaryToValue(const std::vector<uint8_t>& dataVec)
 {
   const uint8_t* readPtr = dataVec.data();
-  
+
   // Use the private constructor via friend access
   return readBinaryToValue(readPtr);
 }
-
 
 // Paths
 
@@ -140,7 +135,7 @@ Path readPathFromBinary(const uint8_t*& readPtr)
   auto headerSize = sizeof(BinaryChunkHeader);
   size_t pathSize;
   BinaryChunkHeader pathHeader{*reinterpret_cast<const BinaryChunkHeader*>(readPtr)};
-  
+
   auto pathType = pathHeader.type;
   if (pathType == 'P')
   {
@@ -159,14 +154,14 @@ void writeBinaryRepresentation(const GenericPath<K>& p, uint8_t*& writePtr)
   auto t = p.toText('/');
   auto headerSize = sizeof(BinaryChunkHeader);
   auto dataSize = t.lengthInBytes();
-  
+
   // write header
   BinaryChunkHeader header{kPathType, (unsigned int)dataSize};
   memcpy(writePtr, &header, headerSize);
   writePtr += headerSize;
-  
+
   // data
-  const uint8_t* textData = (uint8_t *)t.getText();
+  const uint8_t* textData = (uint8_t*)t.getText();
   memcpy(writePtr, textData, dataSize);
   writePtr += dataSize;
 }
@@ -177,7 +172,7 @@ std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
 {
   std::vector<uint8_t> returnVector;
   constexpr size_t headerSize = sizeof(BinaryGroupHeader);
-  
+
   // calculate size
   size_t totalSize{sizeof(BinaryGroupHeader)};
   for (auto it = t.begin(); it != t.end(); ++it)
@@ -185,36 +180,36 @@ std::vector<unsigned char> valueTreeToBinary(const Tree<Value>& t)
     totalSize += getBinarySize(it.getCurrentPath());
     totalSize += getBinarySize(*it);
   }
-  totalSize += headerSize*2;
+  totalSize += headerSize * 2;
   returnVector.resize(totalSize);
-  
+
   // advance past two headers, which we will fill in later
-  uint8_t* writePtr = returnVector.data() + headerSize*2;
-  
+  uint8_t* writePtr = returnVector.data() + headerSize * 2;
+
   // use iterator to serialize tree
   size_t elements{0};
   for (auto it = t.begin(); it != t.end(); ++it)
   {
     // add path
     writeBinaryRepresentation(it.getCurrentPath(), writePtr);
-    
+
     // add value
     writeValueToBinary((*it), writePtr);
-    
+
     elements++;
   }
-  
+
   // write version header
   writePtr = returnVector.data();
   BinaryGroupHeader* versionHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
   *versionHeader = kBinaryGroupHeaderV2;
   writePtr += headerSize;
-  
+
   // write main header
   BinaryGroupHeader* mainHeader{reinterpret_cast<BinaryGroupHeader*>(writePtr)};
   mainHeader->elements = elements;
   mainHeader->size = returnVector.size();
-  
+
   return returnVector;
 }
 
@@ -223,16 +218,16 @@ Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
   Tree<Value> outputTree;
   const size_t inputSize = binaryData.size();
   constexpr size_t headerSize = sizeof(BinaryGroupHeader);
-  
-  if(inputSize > headerSize*2)
+
+  if (inputSize > headerSize * 2)
   {
     const uint8_t* readPtr = binaryData.data();
     readPtr += headerSize;
     auto mainHeader{reinterpret_cast<const BinaryGroupHeader*>(readPtr)};
     auto elements = mainHeader->elements;
     auto totalSize = mainHeader->size;
-    
-    if(inputSize >= totalSize)
+
+    if (inputSize >= totalSize)
     {
       readPtr += headerSize;
       for (int i = 0; i < elements; ++i)
@@ -244,7 +239,6 @@ Tree<Value> binaryToValueTreeNew(const std::vector<uint8_t>& binaryData)
   }
   return outputTree;
 }
-
 
 // deprecated code maintained for now to read older binaries of patches etc.
 
@@ -272,11 +266,11 @@ Value binaryToValueOld(const uint8_t* p)
   switch (header->type)
   {
     default:
-    case 'U': // undefined
+    case 'U':  // undefined
     {
       break;
     }
-    case 'F': // float
+    case 'F':  // float
     {
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* pFloatData{reinterpret_cast<const float*>(pData)};
@@ -284,14 +278,14 @@ Value binaryToValueOld(const uint8_t* p)
       returnValue = Value(f);
       break;
     }
-    case 'T': // text
+    case 'T':  // text
     {
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* p{reinterpret_cast<const char*>(pData)};
       returnValue = Value(Text(p, header->dataBytes));
       break;
     }
-    case 'L': // long
+    case 'L':  // long
     {
       const unsigned char* pData = p + sizeof(BinaryChunkHeader);
       auto* pLongData{reinterpret_cast<const uint32_t*>(pData)};
@@ -299,7 +293,7 @@ Value binaryToValueOld(const uint8_t* p)
       returnValue = Value(ul);
       break;
     }
-    case 'B': // blob
+    case 'B':  // blob
     {
       const uint8_t* pData = p + sizeof(BinaryChunkHeader);
       returnValue = Value(pData, header->dataBytes);
@@ -329,7 +323,7 @@ Tree<Value> binaryToValueTreeOld(const std::vector<uint8_t>& binaryData)
         auto pathHeaderSize = sizeof(BinaryChunkHeader);
         auto path = binaryToPathOld(pData + idx);
         idx += pathSize + pathHeaderSize;
-                
+
         // get value
         BinaryChunkHeader valueHeader{*reinterpret_cast<const BinaryChunkHeader*>(pData + idx)};
         auto valueType = valueHeader.type;
@@ -350,11 +344,11 @@ Tree<Value> binaryToValueTree(const std::vector<uint8_t>& binaryData)
   Tree<Value> outputTree;
   const uint8_t* pData{binaryData.data()};
   size_t inputBytes = binaryData.size();
-  
-  if(inputBytes > sizeof(BinaryGroupHeader))
+
+  if (inputBytes > sizeof(BinaryGroupHeader))
   {
     BinaryGroupHeader groupHeader{*reinterpret_cast<const BinaryGroupHeader*>(pData)};
-    if(groupHeader == kBinaryGroupHeaderV2)
+    if (groupHeader == kBinaryGroupHeaderV2)
     {
       outputTree = binaryToValueTreeNew(binaryData);
     }
@@ -365,7 +359,6 @@ Tree<Value> binaryToValueTree(const std::vector<uint8_t>& binaryData)
   }
   return outputTree;
 }
-
 
 // JSONHolder
 
@@ -395,10 +388,7 @@ JSONHolder::~JSONHolder()
   }
 }
 
-JSONHolder::JSONHolder(JSONHolder&& other) noexcept : pImpl(other.pImpl)
-{
-  other.pImpl = nullptr;
-}
+JSONHolder::JSONHolder(JSONHolder&& other) noexcept : pImpl(other.pImpl) { other.pImpl = nullptr; }
 
 JSONHolder& JSONHolder::operator=(JSONHolder&& other) noexcept
 {
@@ -407,16 +397,16 @@ JSONHolder& JSONHolder::operator=(JSONHolder&& other) noexcept
     // Clean up our current data
     if (pImpl)
     {
-        if (pImpl->data)
-        {
-            cJSON_Delete(pImpl->data);
-        }
-        delete pImpl;  
+      if (pImpl->data)
+      {
+        cJSON_Delete(pImpl->data);
+      }
+      delete pImpl;
     }
 
     // Transfer ownership
     pImpl = other.pImpl;
-    other.pImpl = nullptr; 
+    other.pImpl = nullptr;
   }
   return *this;
 }
@@ -433,7 +423,8 @@ void JSONHolder::addString(TextFragment key, const char* str)
 
 void JSONHolder::addFloatVector(TextFragment key, std::vector<float>& v)
 {
-  cJSON_AddItemToObject(pImpl->data, key.getText(), cJSON_CreateFloatArray(v.data(), sizeToInt(v.size())));
+  cJSON_AddItemToObject(pImpl->data, key.getText(),
+                        cJSON_CreateFloatArray(v.data(), sizeToInt(v.size())));
 }
 
 void JSONHolder::addJSON(TextFragment key, JSONHolder& j)
@@ -445,15 +436,9 @@ void JSONHolder::addJSON(TextFragment key, JSONHolder& j)
   j.pImpl->data = nullptr;
 }
 
-cJSON* getData(const JSONHolder& cj)
-{
-  return cj.pImpl->data;
-}
+cJSON* getData(const JSONHolder& cj) { return cj.pImpl->data; }
 
-void setData(JSONHolder& cj, cJSON* pData)
-{
-  cj.pImpl->data = pData;
-}
+void setData(JSONHolder& cj, cJSON* pData) { cj.pImpl->data = pData; }
 
 // return a JSON object representing the value tree. The caller is responsible
 // for freeing the object.
@@ -463,15 +448,15 @@ void setData(JSONHolder& cj, cJSON* pData)
 JSONHolder valueTreeToJSON(const Tree<Value>& t)
 {
   JSONHolder root;
-  
+
   for (auto it = t.begin(); it != t.end(); ++it)
   {
     auto p = it.getCurrentPath();
     TextFragment pathAsText(p.toText());
     Value v = (*it);
-    
+
     const char* keyStr = pathAsText.getText();
-    
+
     switch (v.getType())
     {
       case Value::kUndefined:
@@ -482,7 +467,7 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
       case Value::kFloatArray:
       {
         auto a = cJSON_CreateFloatArray(v.getFloatArrayPtr(), sizeToInt(v.getFloatArraySize()));
-        if(a)
+        if (a)
         {
           cJSON_AddItemToObject(getData(root), keyStr, a);
         }
@@ -509,14 +494,14 @@ JSONHolder valueTreeToJSON(const Tree<Value>& t)
   return root;
 }
 
-void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int depth)
+void readJSONToValueTree(cJSON* obj, Tree<Value>& r, Path currentPath, int depth)
 {
   int objIndex{0};
 
   while (obj)
   {
     Path newObjectPath(currentPath, runtimePath(obj->string));
-    
+
     switch (obj->type & 255)
     {
       case cJSON_Number:
@@ -528,13 +513,13 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
       {
         TextFragment valueText(obj->valuestring);
 
-        if(valueText.beginsWith(kBlobHeader))
+        if (valueText.beginsWith(kBlobHeader))
         {
           // convert strings starting with the header into Blobs
           auto headerLen = kBlobHeader.lengthInCodePoints();
           auto textLen = valueText.lengthInCodePoints();
           auto body = textUtils::subText(valueText, headerLen, textLen);
-          
+
           auto blobDataVec = textUtils::base64Decode(body.getText());
           r.add(newObjectPath, Value(blobDataVec.data(), blobDataVec.size()));
         }
@@ -553,9 +538,9 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
       }
       case cJSON_Array:
       {
-        std::vector< float > arrayElems;
-        cJSON *c = obj->child;
-        while(c)
+        std::vector<float> arrayElems;
+        cJSON* c = obj->child;
+        while (c)
         {
           arrayElems.push_back((float)c->valuedouble);
           c = c->next;
@@ -575,7 +560,7 @@ void readJSONToValueTree(cJSON* obj, Tree< Value >& r, Path currentPath, int dep
 
 Tree<Value> JSONToValueTree(const JSONHolder& root)
 {
-  Tree< Value > r;
+  Tree<Value> r;
   if (getData(root))
   {
     cJSON* obj = getData(root)->child;
@@ -589,12 +574,12 @@ JSONHolder textToJSON(TextFragment t)
   JSONHolder root;
   cJSON* cjp = cJSON_Parse(t.getText());
 
-  if(cjp)
+  if (cjp)
   {
     cJSON_Delete(root.pImpl->data);
     root.pImpl->data = cjp;
   }
-  
+
   return root;
 }
 
@@ -605,6 +590,5 @@ TextFragment JSONToText(const JSONHolder& root)
   free(jsonString);  // Free the malloc'd string
   return result;
 }
-
 
 }  // namespace ml

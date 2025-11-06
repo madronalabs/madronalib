@@ -16,7 +16,7 @@
 #ifdef _WIN32
 #include <memory>
 #else
-//#include <tr1/memory>
+// #include <tr1/memory>
 #endif
 
 #ifdef __INTEL_COMPILER
@@ -513,7 +513,7 @@ class DSPVectorDynamic final
   const DSPVector& operator[](int j) const { return _data[j]; }
 
  private:
-  std::vector< DSPVector > _data;
+  std::vector<DSPVector> _data;
 };
 
 // ----------------------------------------------------------------
@@ -617,25 +617,25 @@ DEFINE_OP1(exp2Approx, (vecExpApprox(vecMul(kLogTwoVec, x))));
 // binary vector operators (float, float) -> float
 
 #define DEFINE_OP2(opName, opComputation)                              \
-template <size_t ROWS>                                               \
-inline DSPVectorArray<ROWS>(opName)(const DSPVectorArray<ROWS>& vx1, \
-const DSPVectorArray<ROWS>& vx2) \
-{                                                                    \
-DSPVectorArray<ROWS> vy;                                           \
-const float* px1 = vx1.getConstBuffer();                           \
-const float* px2 = vx2.getConstBuffer();                           \
-float* py1 = vy.getBuffer();                                       \
-for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)          \
-{                                                                  \
-SIMDVectorFloat x1 = vecLoad(px1);                               \
-SIMDVectorFloat x2 = vecLoad(px2);                               \
-vecStore(py1, (opComputation));                                  \
-px1 += kFloatsPerSIMDVector;                                     \
-px2 += kFloatsPerSIMDVector;                                     \
-py1 += kFloatsPerSIMDVector;                                     \
-}                                                                  \
-return vy;                                                         \
-}
+  template <size_t ROWS>                                               \
+  inline DSPVectorArray<ROWS>(opName)(const DSPVectorArray<ROWS>& vx1, \
+                                      const DSPVectorArray<ROWS>& vx2) \
+  {                                                                    \
+    DSPVectorArray<ROWS> vy;                                           \
+    const float* px1 = vx1.getConstBuffer();                           \
+    const float* px2 = vx2.getConstBuffer();                           \
+    float* py1 = vy.getBuffer();                                       \
+    for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)          \
+    {                                                                  \
+      SIMDVectorFloat x1 = vecLoad(px1);                               \
+      SIMDVectorFloat x2 = vecLoad(px2);                               \
+      vecStore(py1, (opComputation));                                  \
+      px1 += kFloatsPerSIMDVector;                                     \
+      px2 += kFloatsPerSIMDVector;                                     \
+      py1 += kFloatsPerSIMDVector;                                     \
+    }                                                                  \
+    return vy;                                                         \
+  }
 
 DEFINE_OP2(add, (vecAdd(x1, x2)));
 DEFINE_OP2(subtract, (vecSub(x1, x2)));
@@ -652,28 +652,28 @@ DEFINE_OP2(max, (vecMax(x1, x2)));
 // binary vector operators (float, float) -> float
 // from multiple-row and single-row operands
 
-#define DEFINE_OP2_MS(opName, opComputation)\
-template <size_t ROWS>\
-inline DSPVectorArray<ROWS>(opName)(const DSPVectorArray<ROWS>& vx1,\
-const DSPVectorArray<1>& vx2)\
-{\
-DSPVectorArray<ROWS> vy;\
-const float* px1 = vx1.getConstBuffer();\
-const float* px2 = vx2.getConstBuffer();\
-float* py1 = vy.getBuffer();\
-size_t px2Offset = 0;\
-for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)\
-{\
-SIMDVectorFloat x1 = vecLoad(px1);\
-SIMDVectorFloat x2 = vecLoad(px2 + px2Offset);\
-vecStore(py1, (opComputation));\
-px1 += kFloatsPerSIMDVector;\
-px2Offset += kFloatsPerSIMDVector;\
-px2Offset &= kFloatsPerDSPVector - 1;\
-py1 += kFloatsPerSIMDVector;\
-}\
-return vy;\
-}
+#define DEFINE_OP2_MS(opName, opComputation)                           \
+  template <size_t ROWS>                                               \
+  inline DSPVectorArray<ROWS>(opName)(const DSPVectorArray<ROWS>& vx1, \
+                                      const DSPVectorArray<1>& vx2)    \
+  {                                                                    \
+    DSPVectorArray<ROWS> vy;                                           \
+    const float* px1 = vx1.getConstBuffer();                           \
+    const float* px2 = vx2.getConstBuffer();                           \
+    float* py1 = vy.getBuffer();                                       \
+    size_t px2Offset = 0;                                              \
+    for (int n = 0; n < kSIMDVectorsPerDSPVector * ROWS; ++n)          \
+    {                                                                  \
+      SIMDVectorFloat x1 = vecLoad(px1);                               \
+      SIMDVectorFloat x2 = vecLoad(px2 + px2Offset);                   \
+      vecStore(py1, (opComputation));                                  \
+      px1 += kFloatsPerSIMDVector;                                     \
+      px2Offset += kFloatsPerSIMDVector;                               \
+      px2Offset &= kFloatsPerDSPVector - 1;                            \
+      py1 += kFloatsPerSIMDVector;                                     \
+    }                                                                  \
+    return vy;                                                         \
+  }
 
 DEFINE_OP2_MS(add1, (vecAdd(x1, x2)));
 DEFINE_OP2_MS(subtract1, (vecSub(x1, x2)));
