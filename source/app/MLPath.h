@@ -60,12 +60,15 @@ template <class K>
 class GenericPath
 {
  public:
-  GenericPath() = default;
+  constexpr GenericPath() = default;
 
+  /*
   // Specialized constructors declared here, defined below via specialization
   template <size_t N>
   constexpr GenericPath(const char (&str)[N]);
-
+*/
+  
+  GenericPath(const char* str);
   GenericPath(const TextFragment& frag);
 
   // Combining paths
@@ -317,6 +320,7 @@ inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
 
 using Path = GenericPath<Symbol>;
 
+/*
 // Constexpr constructor for Path - computes hashes at compile-time, no Symbol registration
 template <>
 template <size_t N>
@@ -347,12 +351,19 @@ constexpr Path::GenericPath(const char (&str)[N]) : _elements{}, mSize(0), mCopy
     }
   }
 }
+*/
 
 // Runtime path creation with symbol registration
 // Use this when you need symbols to be registered (for printing, debugging, etc.)
 Path runtimePath(const char* str);
 Path runtimePath(const Symbol& sym);
 Path runtimePath(const TextFragment& frag);
+
+template <>
+inline Path::GenericPath(const char* str)
+{
+  *this = runtimePath(str);
+}
 
 template <>
 inline Path::GenericPath(const TextFragment& frag)
@@ -425,6 +436,7 @@ inline Path substitute(Path p, Symbol fromSym, Path toPath)
 
 using TextPath = GenericPath<TextFragment>;
 
+/*
 // Constexpr constructor for TextPath
 template <>
 template <size_t N>
@@ -455,6 +467,7 @@ constexpr TextPath::GenericPath(const char (&str)[N]) : _elements{}, mSize(0), m
     }
   }
 }
+*/
 
 // Runtime constructor for TextPath from TextFragment
 // Runtime path creation with symbol registration
@@ -467,6 +480,12 @@ template <>
 inline TextPath::GenericPath(const TextFragment& frag)
 {
   *this = runtimeTextPath(frag.getText());
+}
+
+template <>
+inline TextPath::GenericPath(const char* str)
+{
+  *this = runtimeTextPath(str);
 }
 
 

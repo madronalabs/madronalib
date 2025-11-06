@@ -17,7 +17,6 @@
 
 using namespace ml;
 
-
 TEST_CASE("madronalib/core/path/symbolic", "[path]")
 {
   Path p("hello/world/a/b/c/d/e/f/g");
@@ -44,7 +43,8 @@ TEST_CASE("madronalib/core/path/symbolic", "[path]")
   std::cout << "param: " << pname << "\n";
   
   // makes a path containing two unregistered Symbols.
-  constexpr Path spaceThetaPath("space/theta");
+  // TEMP constexpr Path spaceThetaPath("space/theta");
+  // std::cout << "spaceThetaPath: " << spaceThetaPath << "\n";
 }
 
 TEST_CASE("madronalib/core/path/dynamic", "[path]")
@@ -92,7 +92,6 @@ TEST_CASE("madronalib/core/path/equality", "[path]")
   REQUIRE(p == "hello/world");
   REQUIRE(p != "hello/worl");
 }
-
 
 TEST_CASE("madronalib/core/path/init-list", "[path]")
 {
