@@ -161,15 +161,25 @@ class Tree
       return nullValue;
     }
   }
-
-  // getValue() - fast lookup, no registration, no node creation
-  // Returns reference to value if found, or null value if not found
-  const V& getValue(GenericPath<K> p) const
+  
+  
+  // TEMP
+  OK, Trees know about HashedPaths
+  getNode(HashedPath) will create a Symbol from each hash element. Can be used in any Tree with element convertible from Hash -- Symbol(elem)
+  const V& getValueFromHash(HashedPath p) const
   {
     static const V nullValue{};
     auto pNode = getNode(p);
-    return pNode ? pNode->_value : nullValue;
+    if (pNode)
+    {
+      return pNode->_value;
+    }
+    else
+    {
+      return nullValue;
+    }
   }
+  
 
   inline bool operator==(const Tree<V, K, C>& b) const
   {

@@ -53,6 +53,43 @@ const int kPathMaxSymbols = 15;
 using SymbolHash = uint64_t;
 
 
+class HashedPath
+{
+public:
+  template <size_t N>
+  inline constexpr HashedPath(const char (&str)[N]) : _elements{}, mSize(0)
+  {
+    const char separator = '/';
+    size_t pos = 0;
+    while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
+    {
+      // Skip separators
+      while (pos < N - 1 && str[pos] == separator) ++pos;
+      
+      // Hash segment
+      if (pos < N - 1 && str[pos] != '\0')
+      {
+        size_t start = pos;
+        size_t len = 0;
+        while (pos < N - 1 && str[pos] != separator && str[pos] != '\0')
+        {
+          ++len;
+          ++pos;
+        }
+        
+        if (len > 0)
+        {
+          _elements[mSize++] = fnv1aSubstring(&str[start], len);
+        }
+      }
+    }
+  }
+  
+  std::array<SymbolHash, kPathMaxSymbols> _elements{};
+  unsigned char mSize{0};
+};
+
+
 // GenericPath - templated on key type
 
 
@@ -182,7 +219,7 @@ class GenericPath
     }
   }
 
- protected:
+ //protected:
   std::array<K, kPathMaxSymbols> _elements{};
   unsigned char mSize{0};
   unsigned char mCopy{0};

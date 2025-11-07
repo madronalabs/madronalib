@@ -43,8 +43,14 @@ TEST_CASE("madronalib/core/path/symbolic", "[path]")
   std::cout << "param: " << pname << "\n";
   
   // makes a path containing two unregistered Symbols.
-  // TEMP constexpr Path spaceThetaPath("space/theta");
-  // std::cout << "spaceThetaPath: " << spaceThetaPath << "\n";
+  constexpr auto spaceThetaPath = HashedPath("space/theta");
+  
+  TODO a HashedPath is a specialization of GenericPath with hashes as keys
+  REQUIRE(pathToText(spaceThetaPath) == "?/?");
+  
+  // making a non-constexpr Path registers the symbols.
+  Path registersTheSymbols{"space/theta"};
+  REQUIRE(pathToText(spaceThetaPath) == "space/theta");
 }
 
 TEST_CASE("madronalib/core/path/dynamic", "[path]")

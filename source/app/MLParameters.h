@@ -204,17 +204,28 @@ class ParameterTree
     }
   }
 
-  Value::Type getValueType(Path pname) const { return paramsReal_.getValue(pname).getType(); }
+  Value::Type getValueType(Path pname) const { return paramsReal_[pname].getType(); }
 
-  Value getRealValue(Path pname) const { return paramsReal_.getValue(pname); }
+  Value getRealValue(Path pname) const { return paramsReal_[pname]; }
 
-  Value getNormalizedValue(Path pname) const { return paramsNorm_.getValue(pname); }
+  Value getNormalizedValue(Path pname) const { return paramsNorm_[pname]; }
 
-  float getRealFloatValue(Path pname) const { return paramsReal_.getValue(pname).getFloatValue(); }
-
+  float getRealFloatValue(Path pname) const { return paramsReal_[pname].getFloatValue(); }
+  
+  float getRealFloatValue(HashedPath pname) const { return paramsReal_.getValueFromHash(pname).getFloatValue(); }
+  
+  /*
+  template <size_t N>
+  float getRealFloatValue(const char (&str)[N]) const
+  {
+    constexpr auto p = hashedPath(str);
+    return paramsReal_[p].getFloatValue();
+  }
+*/
+  
   float getNormalizedFloatValue(Path pname) const
   {
-    return paramsNorm_.getValue(pname).getFloatValue();
+    return paramsNorm_[pname].getFloatValue();
   }
 
   // set a parameter's value without conversion. For params that don't have normalizable values.

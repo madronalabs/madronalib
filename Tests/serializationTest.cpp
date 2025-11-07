@@ -62,9 +62,9 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   }
   
   
-
-  auto bizzle = v.getValue("bizzle");
-  auto quxx = v.getValue("quxx");
+  constexpr auto bizzPath = hashedPath("bizzle");
+  auto bizzle = v[bizzPath];
+  auto quxx = v[hashedPath("quxx")];
   
   std::cout << "bizzle: " << bizzle << " quxx: " << quxx << "\n";
   
