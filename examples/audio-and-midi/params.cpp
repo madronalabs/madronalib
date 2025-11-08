@@ -11,7 +11,7 @@ using namespace ml;
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 48000;
-constexpr float kOutputGain = 0.1f;
+constexpr float kOutputGainMax = 0.1f;
 constexpr float kFreqLo = 40, kFreqHi = 4000;
 
 inline void readParameterDescriptions(ParameterDescriptionList& params)
@@ -33,7 +33,8 @@ inline void readParameterDescriptions(ParameterDescriptionList& params)
   
   params.push_back( std::make_unique< ParameterDescription >(WithValues{
     { "name", "gain" },
-    { "range", {0, kOutputGain} }
+    { "default", 0.1f },
+    { "range", {0, kOutputGainMax} }
   } ) );
 }
 
@@ -45,26 +46,41 @@ public:
   SineGen s1, s2;
 };
 
-void processParamsExample(AudioContext* ctx, void *untypedState)
+void processParamsExample(AudioContext* ctx, void *untypedProcState)
 {
-  auto state = static_cast< ExampleProcessor* >(untypedState);
-
+  auto proc = static_cast< ExampleProcessor* >(untypedProcState);
+  
+  // TEMP
+  std::string runtimePathStr("freq1");
+  Path freqPath(runtimePathStr.c_str());
+  float f1 = proc->params.getRealFloatValue(("freq1"));
+  
   // get params from the SignalProcessor.
-  float f1 = state->getRealFloatParamX("freq1");
-  float f2 = state->getRealFloatParamX("freq2");
-    
+  // TEMP
+  //  is this really working at compile time?
+  float f2 = proc->params.getRealFloatValue("freq2");
+  float gain = proc->params.getRealFloatValue("gain");
+
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
   // The output sines are multiplied by the gain.
-  ctx->outputs[0] = state->s1(f1/kSampleRate)*kOutputGain;
-  ctx->outputs[1] = state->s2(f2/kSampleRate)*kOutputGain;
+  ctx->outputs[0] = proc->s1(f1/kSampleRate)*gain;
+  ctx->outputs[1] = proc->s2(f2/kSampleRate)*gain;
+  
+  static int testCtr{0};
+  testCtr += kFloatsPerDSPVector;
+  if(testCtr > ctx->getSampleRate())
+  {
+    testCtr = 0;
+    std::cout << "gain: " << gain << "\n";
+  }
 };
 
 int main()
 {
-  ExampleProcessor state;
+  ExampleProcessor proc;
   AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
-  AudioTask exampleTask(&ctx, processParamsExample, &state);
+  AudioTask exampleTask(&ctx, processParamsExample, &proc);
   
   // the processor can use a temporary ParameterDescriptionList here.
   ParameterDescriptionList pdl;
@@ -73,14 +89,31 @@ int main()
   readParameterDescriptions(pdl);
   
   // build the stored parameter tree, creating descriptions and projections
-  state.buildParams(pdl);
-  state.setDefaultParams();
+  proc.buildParams(pdl);
+  proc.setDefaultParams();
   
   // set a parameter of the processor as a normalized value.
   // if not set, parameters begin at their default values.
-  state.setParamFromNormalizedValue("freq2", 0.6);
+  proc.params.setFromNormalizedValue("freq2", 0.6);
 
   return exampleTask.runConsoleApp();
 }
 
+#if 0
+void setParamFromNormalizedValue(Path pname, float val)
+{
+  _params.setFromNormalizedValue(pname, val);
+}
 
+void setParamFromRealValue(Path pname, float val) { _params.setFromRealValue(pname, val); }
+
+
+inline float getRealFloatParam(const Path& pname) { return _params.getRealFloatValue(pname); }
+
+
+inline float getNormalizedFloatParam(Path pname)
+{
+  return _params.getNormalizedFloatValue(pname);
+}
+
+#endif

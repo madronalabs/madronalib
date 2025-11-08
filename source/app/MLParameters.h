@@ -210,18 +210,15 @@ class ParameterTree
 
   Value getNormalizedValue(Path pname) const { return paramsNorm_[pname]; }
 
-  float getRealFloatValue(Path pname) const { return paramsReal_[pname].getFloatValue(); }
   
-  float getRealFloatValue(HashedPath pname) const { return paramsReal_.getValueFromHash(pname).getFloatValue(); }
-  
-  /*
   template <size_t N>
   float getRealFloatValue(const char (&str)[N]) const
   {
-    constexpr auto p = hashedPath(str);
-    return paramsReal_[p].getFloatValue();
+    HashPath path(str);
+    paramsReal_.getValueFromHash(path).getFloatValue();
   }
-*/
+  
+  //float getRealFloatValue(HashPath ph) const { return paramsReal_.getValueFromHash(ph).getFloatValue(); }
   
   float getNormalizedFloatValue(Path pname) const
   {

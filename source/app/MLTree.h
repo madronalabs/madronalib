@@ -113,7 +113,8 @@ class Tree
     }
     return pNode;
   }
-
+  
+  
   Tree<V, K, C>* getMutableNode(GenericPath<K> path)
   {
     auto pNode = this;
@@ -162,24 +163,28 @@ class Tree
     }
   }
   
-  
-  // TEMP
-  OK, Trees know about HashedPaths
-  getNode(HashedPath) will create a Symbol from each hash element. Can be used in any Tree with element convertible from Hash -- Symbol(elem)
-  const V& getValueFromHash(HashedPath p) const
+  const V& getValueFromHash(HashPath path) const
   {
     static const V nullValue{};
-    auto pNode = getNode(p);
-    if (pNode)
+    auto pNode = this;
+    for(int i=0; i<path.mSize; ++i)
     {
-      return pNode->_value;
+      // use Symbol ctor from hash
+      Symbol key(path._elements[i]);
+      
+      auto it = pNode->mChildren.find(key);
+      if (it != pNode->mChildren.end())
+      {
+        pNode = &(it->second);
+      }
+      else
+      {
+        return nullValue;
+      }
     }
-    else
-    {
-      return nullValue;
-    }
+    return pNode->_value;
   }
-  
+
 
   inline bool operator==(const Tree<V, K, C>& b) const
   {

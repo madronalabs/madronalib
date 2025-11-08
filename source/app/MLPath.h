@@ -53,43 +53,6 @@ const int kPathMaxSymbols = 15;
 using SymbolHash = uint64_t;
 
 
-class HashedPath
-{
-public:
-  template <size_t N>
-  inline constexpr HashedPath(const char (&str)[N]) : _elements{}, mSize(0)
-  {
-    const char separator = '/';
-    size_t pos = 0;
-    while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
-    {
-      // Skip separators
-      while (pos < N - 1 && str[pos] == separator) ++pos;
-      
-      // Hash segment
-      if (pos < N - 1 && str[pos] != '\0')
-      {
-        size_t start = pos;
-        size_t len = 0;
-        while (pos < N - 1 && str[pos] != separator && str[pos] != '\0')
-        {
-          ++len;
-          ++pos;
-        }
-        
-        if (len > 0)
-        {
-          _elements[mSize++] = fnv1aSubstring(&str[start], len);
-        }
-      }
-    }
-  }
-  
-  std::array<SymbolHash, kPathMaxSymbols> _elements{};
-  unsigned char mSize{0};
-};
-
-
 // GenericPath - templated on key type
 
 
@@ -98,13 +61,6 @@ class GenericPath
 {
  public:
   constexpr GenericPath() = default;
-
-  /*
-  // Specialized constructors declared here, defined below via specialization
-  template <size_t N>
-  constexpr GenericPath(const char (&str)[N]);
-*/
-  
   GenericPath(const char* str);
   GenericPath(const TextFragment& frag);
 
@@ -563,6 +519,64 @@ inline TextFragment TextPath::toText(const char separator) const
     r = TextFragment(r, getElement(i));
   }
   return r;
+}
+
+class HashPath
+{
+public:
+  // this is the fast path for accessing parameters from compile-time string literals
+  template <size_t N>
+  inline constexpr HashPath(const char (&str)[N]) : _elements{}, mSize(0)
+  {
+    //std::cout << "making constexpr " << str << " \n";
+    
+    const char separator = '/';
+    size_t pos = 0;
+    while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
+    {
+      // Skip separators
+      while (pos < N - 1 && str[pos] == separator) ++pos;
+      
+      // Hash segment
+      if (pos < N - 1 && str[pos] != '\0')
+      {
+        size_t start = pos;
+        size_t len = 0;
+        while (pos < N - 1 && str[pos] != separator && str[pos] != '\0')
+        {
+          ++len;
+          ++pos;
+        }
+        
+        if (len > 0)
+        {
+          _elements[mSize++] = fnv1aSubstring(&str[start], len);
+        }
+      }
+    }
+  }
+  
+  /*
+  // HashPaths can also be made from regular Symbol paths at runtime.
+  HashPath(GenericPath<Symbol> symPath) : _elements{}, mSize(symPath.mSize)
+  {
+    for(int i=0; i<mSize; ++i)
+    {
+      _elements[i] = symPath.getElement(i).getHash();
+    }
+  }
+  */
+  
+  std::array<SymbolHash, kPathMaxSymbols> _elements{};
+  size_t mSize{0};
+};
+
+template <size_t N>
+inline constexpr size_t getHashPathSize(const char (&str)[N])
+{
+  //std::cout << "ih";
+  HashPath path(str);
+  return path.mSize;
 }
 
 

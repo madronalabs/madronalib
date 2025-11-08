@@ -128,35 +128,16 @@ class SignalProcessor
   {
   }
 
-  void setParamFromNormalizedValue(Path pname, float val)
-  {
-    _params.setFromNormalizedValue(pname, val);
-  }
-
-  void setParamFromRealValue(Path pname, float val) { _params.setFromRealValue(pname, val); }
-
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
-    buildParameterTree(paramList, _params);
+    buildParameterTree(paramList, params);
   };
 
-  inline void setDefaultParams() { setDefaults(_params); };
+  inline void setDefaultParams() { setDefaults(params); };
 
-  inline float getRealFloatParam(const Path& pname) { return _params.getRealFloatValue(pname); }
-  template <size_t N>
-  inline float getRealFloatParamX(const char (&pathStr)[N]) const
-  {
-    Path pname(pathStr);
-    return _params.getRealFloatValue(pname);
-  }
-
-  inline float getNormalizedFloatParam(Path pname)
-  {
-    return _params.getNormalizedFloatValue(pname);
-  }
+  ParameterTree params;
 
  protected:
-  ParameterTree _params;
 
   SharedResourcePointer<ProcessorRegistry> _registry;
   size_t _uniqueID;

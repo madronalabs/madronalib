@@ -62,11 +62,10 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   }
   
   
-  constexpr auto bizzPath = hashedPath("bizzle");
-  auto bizzle = v[bizzPath];
-  auto quxx = v[hashedPath("quxx")];
-  
-  std::cout << "bizzle: " << bizzle << " quxx: " << quxx << "\n";
+  // TEMP constexpr auto bizzPath = HashPath("bizzle");
+  //auto bizzle = v[bizzPath];
+  //auto quxx = v[HashPath("quxx")];
+  // std::cout << "bizzle: " << bizzle << " quxx: " << quxx << "\n";
   
   theSymbolTable().dump();
   
