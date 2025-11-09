@@ -50,14 +50,12 @@ void processParamsExample(AudioContext* ctx, void *untypedProcState)
 {
   auto proc = static_cast< ExampleProcessor* >(untypedProcState);
   
-  // TEMP
+  // get params from the SignalProcessor using runtime path.
   std::string runtimePathStr("freq1");
   Path freqPath(runtimePathStr.c_str());
-  float f1 = proc->params.getRealFloatValue(("freq1"));
+  float f1 = proc->params.getRealFloatValueAtPath(freqPath);
   
-  // get params from the SignalProcessor.
-  // TEMP
-  //  is this really working at compile time?
+  // get params from the SignalProcessor using compile-time hashed paths.
   float f2 = proc->params.getRealFloatValue("freq2");
   float gain = proc->params.getRealFloatValue("gain");
 
@@ -67,6 +65,7 @@ void processParamsExample(AudioContext* ctx, void *untypedProcState)
   ctx->outputs[0] = proc->s1(f1/kSampleRate)*gain;
   ctx->outputs[1] = proc->s2(f2/kSampleRate)*gain;
   
+  // print debug stuff every second
   static int testCtr{0};
   testCtr += kFloatsPerDSPVector;
   if(testCtr > ctx->getSampleRate())

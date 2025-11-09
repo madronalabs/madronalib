@@ -92,28 +92,28 @@ inline ParameterProjection createParameterProjection(const ParameterDescription&
 // An annotated Tree of parameters.
 class ParameterTree
 {
- public:
+public:
   // TODO why is there not a Parameter object that contains (description, projection, valueNorm,
   // valueReal)? That seems like the sane way to do it. Look carefully to see if there's a good
   // reason we didn't do that and if not, make this more sane.
   //
   // TODO Look at the features we needed to add that are hacks now (use_list_values_as_int,
   // integer_values) and redesign to make more robust implementation of them.
-
+  
   Tree<std::unique_ptr<ParameterDescription> > descriptions;
   Tree<ParameterProjection> projections;
-
+  
   // should not be public!
   Tree<Value> paramsNorm_;
   Tree<Value> paramsReal_;
-
+  
   float convertNormalizedToRealFloatValue(Path pname, Value val) const
   {
     float newNormValue = val.getFloatValue();
     float newRealValue{0};
     auto& pdesc = descriptions[pname];
     if (!pdesc) return 0;
-
+    
     bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
     if (useListValues)
     {
@@ -127,19 +127,19 @@ class ParameterTree
     }
     return newRealValue;
   }
-
+  
   float convertRealToNormalizedFloatValue(Path pname, Value val) const
   {
     float newNormValue{0};
     float newRealValue = val.getFloatValue();
     auto& pdesc = descriptions[pname];
     if (!pdesc) return 0;
-
+    
     bool useListValues = pdesc->getBoolPropertyWithDefault("use_list_values_as_int", false);
     if (useListValues)
     {
       auto listItems = textUtils::split(pdesc->getTextProperty("listitems"), '/');
-
+      
       // get item matching plain value
       for (int i = 0; i < listItems.size(); ++i)
       {
@@ -157,14 +157,14 @@ class ParameterTree
     }
     return newNormValue;
   }
-
+  
   inline Value convertNormalizedToRealValue(Path pname, Value val) const
   {
     if (val.getType() == Value::kFloat)
     {
       auto& pdesc = descriptions[pname];
       if (!pdesc) return Value();
-
+      
       bool integerValues = pdesc->getBoolPropertyWithDefault("integer_values", false);
       float fVal = convertNormalizedToRealFloatValue(pname, val);
       if (integerValues)
@@ -181,7 +181,7 @@ class ParameterTree
       return val;
     }
   }
-
+  
   inline Value convertRealToNormalizedValue(Path pname, Value val) const
   {
     switch (val.getType())
@@ -189,12 +189,12 @@ class ParameterTree
       case Value::kUndefined:
         return Value();
         break;
-      // float and int get converted
+        // float and int get converted
       case Value::kFloat:
       case Value::kInt:
         return Value(convertRealToNormalizedFloatValue(pname, val));
         break;
-      // other types do not get converted
+        // other types do not get converted
       case Value::kFloatArray:
       case Value::kText:
       case Value::kBlob:
@@ -203,28 +203,19 @@ class ParameterTree
         break;
     }
   }
-
+  
   Value::Type getValueType(Path pname) const { return paramsReal_[pname].getType(); }
-
+  
   Value getRealValue(Path pname) const { return paramsReal_[pname]; }
-
+  
   Value getNormalizedValue(Path pname) const { return paramsNorm_[pname]; }
-
-  
-  template <size_t N>
-  float getRealFloatValue(const char (&str)[N]) const
-  {
-    HashPath path(str);
-    paramsReal_.getValueFromHash(path).getFloatValue();
-  }
-  
-  //float getRealFloatValue(HashPath ph) const { return paramsReal_.getValueFromHash(ph).getFloatValue(); }
   
   float getNormalizedFloatValue(Path pname) const
   {
     return paramsNorm_[pname].getFloatValue();
   }
-
+  
+  // these macros
   // set a parameter's value without conversion. For params that don't have normalizable values.
   // both normal and real params are set for ease of getting all normalized + non-normalizable
   // values.
@@ -232,27 +223,27 @@ class ParameterTree
   // TODO this design is insane! to redesign, create one source of truth. Probably real values.
   // I must have done this to reduce the number of conversions but, the added complexity to save
   // that tiny amount of computation is not a good tradeoff.
-
+  
   void setValue(Path pname, Value val)
   {
     paramsNorm_[pname] = val;
     paramsReal_[pname] = val;
   }
-
+  
   inline void setFromNormalizedValue(Path pname, Value val)
   {
     paramsNorm_[pname] = val;
     paramsReal_[pname] = convertNormalizedToRealValue(pname, val);
-
+    
 #ifdef DEBUG
     if (pname == watchParameter)
     {
       std::cout << "[paramTree set from norm " << pname << " -> " << val << "/"
-                << paramsReal_[pname] << "]\n";
+      << paramsReal_[pname] << "]\n";
     }
 #endif
   }
-
+  
   inline void setFromRealValue(Path pname, Value val)
   {
 #ifdef DEBUG
@@ -261,19 +252,19 @@ class ParameterTree
       std::cout << ">>> setting from real value: " << pname << " = " << val << "\n";
     }
 #endif
-
+    
     paramsNorm_[pname] = convertRealToNormalizedValue(pname, val);
     paramsReal_[pname] = val;
-
+    
 #ifdef DEBUG
     if (pname == watchParameter)
     {
       std::cout << "[paramTree set from real " << pname << " -> " << paramsNorm_[pname] << " / "
-                << val << "]\n";
+      << val << "]\n";
     }
 #endif
   }
-
+  
   inline void setFromNormalizedValues(const Tree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
@@ -282,7 +273,7 @@ class ParameterTree
       setFromNormalizedValue(valName, *it);
     }
   }
-
+  
   inline void setFromRealValues(const Tree<Value>& t)
   {
     for (auto it = t.begin(); it != t.end(); ++it)
@@ -291,11 +282,11 @@ class ParameterTree
       setFromRealValue(valName, *it);
     }
   }
-
+  
   const Tree<Value>& getNormalizedValues() const { return paramsNorm_; }
-
+  
   const Tree<Value>& getRealValues() const { return paramsReal_; }
-
+  
   void dump()
   {
     std::cout << "\n----------------------------\n";
@@ -303,7 +294,7 @@ class ParameterTree
     {
       const auto& paramDesc = *it;
       Path pname = runtimePath(paramDesc->getTextProperty("name"));
-
+      
       // arg pname should be GenericPath<k>
       auto normVal = paramsNorm_[pname];
       auto realVal = paramsReal_[pname];
@@ -311,12 +302,33 @@ class ParameterTree
     }
     std::cout << "----------------------------\n\n";
   }
-
+  
   void setWatchParameter(Path pname) { watchParameter = pname; }
-
- protected:
+  
+protected:
   Path watchParameter{};
+  
+public:
+
+  float getRealFloatValueAtPath(Path path) const
+  {
+    return paramsReal_[path].getFloatValue();
+  }
+  
+  float getRealFloatValueFromHash(const HashPath& hp) const {
+    return paramsReal_.getValueFromHash(hp).getFloatValue();
+  }
+
 };
+
+// macros for guaranteed constexpr param access via HashPaths
+
+#define getRealFloatValue(str) \
+  getRealFloatValueFromHash([&]() { \
+  static constexpr HashPath path(str); \
+  return path; }())
+
+
 
 // functions on ParameterTrees.
 

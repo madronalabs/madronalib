@@ -528,8 +528,6 @@ public:
   template <size_t N>
   inline constexpr HashPath(const char (&str)[N]) : _elements{}, mSize(0)
   {
-    //std::cout << "making constexpr " << str << " \n";
-    
     const char separator = '/';
     size_t pos = 0;
     while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
@@ -555,29 +553,10 @@ public:
       }
     }
   }
-  
-  /*
-  // HashPaths can also be made from regular Symbol paths at runtime.
-  HashPath(GenericPath<Symbol> symPath) : _elements{}, mSize(symPath.mSize)
-  {
-    for(int i=0; i<mSize; ++i)
-    {
-      _elements[i] = symPath.getElement(i).getHash();
-    }
-  }
-  */
-  
+
   std::array<SymbolHash, kPathMaxSymbols> _elements{};
   size_t mSize{0};
 };
-
-template <size_t N>
-inline constexpr size_t getHashPathSize(const char (&str)[N])
-{
-  //std::cout << "ih";
-  HashPath path(str);
-  return path.mSize;
-}
 
 
 // Stream operators
@@ -611,7 +590,7 @@ class PathList
     _paths.reserve(paths.size());
     for (const char* p : paths)
     {
-      _paths.emplace_back(p);  // Runtime construction, registers symbols
+      _paths.emplace_back(p);
     }
   }
 

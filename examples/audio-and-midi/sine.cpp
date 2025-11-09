@@ -8,8 +8,6 @@
 
 using namespace ml;
 
-// TEMP
-/*
 constexpr int kInputChannels = 0;
 constexpr int kOutputChannels = 2;
 constexpr int kSampleRate = 48000;
@@ -35,47 +33,11 @@ void sineProcess(AudioContext* ctx, void *state)
   ctx->outputs[0] = procState->s1(220.f/kSampleRate)*kOutputGain;
   ctx->outputs[1] = procState->s2(275.f/kSampleRate)*kOutputGain;
 }
-*/
 
 int main()
 {
-  // TEMP
-  /*
   SineExampleState state;
   AudioContext ctx(kInputChannels, kOutputChannels, kSampleRate);
   AudioTask sineExample(&ctx, sineProcess, &state);
   return sineExample.runConsoleApp();
-   */
-  
-  
-  ParameterTree params;
-  constexpr HashPath path("hello/world");
-  params.setValue("hello/world", 1.f);
-  
-//  static_assert(params.getRealFloatValue("hello/world") == 1.f);
-  
-  
-  static_assert(getHashPathSize("hello/world") == 2);
-  
-  
-
-//  constexpr HashPath p("hello/world");
-//  std::cout << p.mSize << " elems\n";
-
-  
-  
-  std::cout << "hi!\n";
 }
-
- 
-/*
- template <size_t N>
- constexpr size_t getHashPathSize(const char (&str)[N])
- {
- HashPath path(str);
- return path.mSize;
- }
- 
- // This ONLY compiles if the function is evaluated at compile-time
- static_assert(getHashPathSize("hello/world") == 2, "Should have 2 segments");
- */

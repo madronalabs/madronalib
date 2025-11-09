@@ -55,6 +55,7 @@
 //
 // Trees can be combined, compared for equality, and iterated over. The iterator
 // visits only nodes with values, skipping intermediate nodes.
+//
 // NOTE: In the future let's aim for STL-compliance and visit every node as a generic
 // container should. Use Visitor pattern and Range objects (ValueOnlyRange)
 // to iterate over values. Something like
@@ -163,6 +164,11 @@ class Tree
     }
   }
   
+  const V& operator[](HashPath path) const
+  {
+    return getValueFromHash(path);
+  }
+  
   const V& getValueFromHash(HashPath path) const
   {
     static const V nullValue{};
@@ -184,7 +190,6 @@ class Tree
     }
     return pNode->_value;
   }
-
 
   inline bool operator==(const Tree<V, K, C>& b) const
   {

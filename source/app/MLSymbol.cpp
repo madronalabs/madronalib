@@ -18,14 +18,15 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
   std::lock_guard<std::mutex> lock(mMutex);
 
   // TEMP
-  
+  /*
   std::cout << "making ";
   for (int i = 0; i < len; ++i)
   {
     std::cout << text[i];
   }
   std::cout << "\n";
-
+*/
+  
   
   auto it = mSymbols.find(hash);
   if (it != mSymbols.end())
@@ -35,7 +36,6 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
     if (existing.lengthInBytes() != len ||
         !compareSizedCharArrays(existing.getText(), existing.lengthInBytes(), text, len))
     {
-      // COLLISION DETECTED!
       throw std::runtime_error("Symbol hash collision detected!");
     }
     // Same string, return existing hash

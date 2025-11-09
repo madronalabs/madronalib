@@ -73,7 +73,7 @@ inline SymbolTable& theSymbolTable()
 }
 
 // Symbol - stores a 64-bit hash, text looked up in SymbolTable
-// All constructors register the symbol in the table
+// All constructors aside from the default ensure the symbol is registered in the table
 
 class Symbol
 {
