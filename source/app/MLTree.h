@@ -164,11 +164,6 @@ class Tree
     }
   }
   
-  const V& operator[](HashPath path) const
-  {
-    return getValueFromHash(path);
-  }
-  
   const V& getValueFromHash(HashPath path) const
   {
     static const V nullValue{};

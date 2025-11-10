@@ -51,11 +51,13 @@ void processParamsExample(AudioContext* ctx, void *untypedProcState)
   auto proc = static_cast< ExampleProcessor* >(untypedProcState);
   
   // get params from the SignalProcessor using runtime path.
+  // it will not allocate, so is audio-thread safe, but will take a bit of time
+  // to parse the path.
   std::string runtimePathStr("freq1");
   Path freqPath(runtimePathStr.c_str());
   float f1 = proc->params.getRealFloatValueAtPath(freqPath);
   
-  // get params from the SignalProcessor using compile-time hashed paths.
+  // get params from the SignalProcessor using fast compile-time hashed paths.
   float f2 = proc->params.getRealFloatValue("freq2");
   float gain = proc->params.getRealFloatValue("gain");
 
@@ -97,22 +99,3 @@ int main()
 
   return exampleTask.runConsoleApp();
 }
-
-#if 0
-void setParamFromNormalizedValue(Path pname, float val)
-{
-  _params.setFromNormalizedValue(pname, val);
-}
-
-void setParamFromRealValue(Path pname, float val) { _params.setFromRealValue(pname, val); }
-
-
-inline float getRealFloatParam(const Path& pname) { return _params.getRealFloatValue(pname); }
-
-
-inline float getNormalizedFloatParam(Path pname)
-{
-  return _params.getNormalizedFloatValue(pname);
-}
-
-#endif

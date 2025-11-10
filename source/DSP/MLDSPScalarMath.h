@@ -348,13 +348,27 @@ constexpr double log_helper2(const double y)
 // log in the range 1-sqrt(10)
 constexpr double log_helper(const double x) { return log_helper2((x - 1.0) / (x + 1.0)); }
 
+inline constexpr double bit_cast_to_double(uint64_t bits) {
+  union { uint64_t u; double d; } converter = {bits};
+  return converter.d;
+}
+
 // n.b. log 10 is 2.3025851
 // n.b. log m = log (sqrt(m)^2) = 2 * log sqrt(m)
 constexpr double log(const double x)
 {
-  return x == 0  ? -std::numeric_limits<double>::infinity()
-         : x < 0 ? std::numeric_limits<double>::quiet_NaN()
-                 : 2.0 * log_helper(sqrt(mantissa(x))) + 2.3025851 * exponent(x);
+  if (x == 0) {
+    // Create -infinity through bit pattern
+    constexpr uint64_t neg_inf_bits = 0xFFF0000000000000ULL;
+    return bit_cast_to_double(neg_inf_bits);
+  }
+  if (x < 0) {
+    // Create quiet NaN through bit pattern
+    constexpr uint64_t qnan_bits = 0x7FF8000000000000ULL;
+    return bit_cast_to_double(qnan_bits);
+  }
+  return 2.0 * log_helper(sqrt(mantissa(x))) + 2.3025851 * exponent(x);
 }
+
 }  // namespace const_math
 }  // namespace ml

@@ -203,19 +203,7 @@ public:
         break;
     }
   }
-  
-  Value::Type getValueType(Path pname) const { return paramsReal_[pname].getType(); }
-  
-  Value getRealValue(Path pname) const { return paramsReal_[pname]; }
-  
-  Value getNormalizedValue(Path pname) const { return paramsNorm_[pname]; }
-  
-  float getNormalizedFloatValue(Path pname) const
-  {
-    return paramsNorm_[pname].getFloatValue();
-  }
-  
-  // these macros
+
   // set a parameter's value without conversion. For params that don't have normalizable values.
   // both normal and real params are set for ease of getting all normalized + non-normalizable
   // values.
@@ -310,24 +298,56 @@ protected:
   
 public:
 
-  float getRealFloatValueAtPath(Path path) const
-  {
-    return paramsReal_[path].getFloatValue();
-  }
+  // Value getters
   
+  Value::Type getValueType(Path pname) const { return paramsReal_[pname].getType(); }
+  
+  // from Paths
+  
+  Value getRealValueAtPath(Path pname) const { return paramsReal_[pname]; }
+  float getRealFloatValueAtPath(Path path) const { return paramsReal_[path].getFloatValue(); }
+  Value getNormalizedValueAtPath(Path pname) const { return paramsNorm_[pname]; }
+  float getNormalizedFloatValueAtPath(Path pname) const { return paramsNorm_[pname].getFloatValue(); }
+  
+  // from HashPaths
+  
+  const Value& getRealValueFromHash(const HashPath& hp) const {
+    return paramsReal_.getValueFromHash(hp);
+  }
   float getRealFloatValueFromHash(const HashPath& hp) const {
-    return paramsReal_.getValueFromHash(hp).getFloatValue();
+    Value v (paramsReal_.getValueFromHash(hp));
+      return v.getFloatValue();
+  }
+  const Value& getNormalizedValueFromHash(const HashPath& hp) const {
+    return paramsNorm_.getValueFromHash(hp);
+  }
+  float getNormalizedFloatValueFromHash(const HashPath& hp) const {
+    return paramsNorm_.getValueFromHash(hp).getFloatValue();
   }
 
 };
 
 // macros for guaranteed constexpr param access via HashPaths
 
-#define getRealFloatValue(str) \
-  getRealFloatValueFromHash([&]() { \
-  static constexpr HashPath path(str); \
-  return path; }())
+#define getRealValue(str) \
+getRealValueFromHash([&]() { \
+static constexpr HashPath path(str); \
+return path; }())
 
+#define getRealFloatValue(str) \
+getRealValueFromHash([&]() { \
+static constexpr HashPath path(str); \
+return path; }()).getFloatValue()
+
+#define getNormalizedValue(str) \
+getNormalizedValueFromHash([&]() { \
+static constexpr HashPath path(str); \
+return path; }())
+
+#define getNormalizedFloatValue(str) \
+getNormalizedValueFromHash([&]() { \
+static constexpr HashPath path(str); \
+return path; }()).getFloatValue()
 
 
 // functions on ParameterTrees.
