@@ -165,6 +165,8 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
 
     // ----------------------------------------------------------------
     // existing symbols / strings
+    
+    const bool printTimes{true};//{false};
 
     // lookup from existing std::strings
     start = now();
@@ -175,7 +177,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "existing strings, elapsed time: " << elapsed.count() << "s\n";
 
     // lookup from existing Symbols
     start = now();
@@ -186,7 +188,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing Symbols, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "existing Symbols, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -199,7 +201,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "existing strings, unordered, elapsed time: " << elapsed.count() << "s\n";
 
     // lookup from existing Symbols
     start = now();
@@ -210,7 +212,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "existing Symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "existing Symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -226,7 +228,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "new strings, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "new strings, elapsed time: " << elapsed.count() << "s\n";
 
     // lookup from new Symbols made from char *
     start = now();
@@ -237,7 +239,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "new Symbols, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "new Symbols, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -250,7 +252,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "new strings, unordered, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "new strings, unordered, elapsed time: " << elapsed.count() << "s\n";
 
     // unordered lookup from new Symbols made from char *
     start = now();
@@ -261,7 +263,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     }
     end = now();
     elapsed = end - start;
-    std::cout << "new Symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "new Symbols, unordered, elapsed time: " << elapsed.count() << "s\n";
 
     REQUIRE(stringSum == symbolSum);
 
@@ -271,22 +273,26 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
     {
-      symbolSum += testMapOrderedSym["fkjcouvrhqtrk"];
+      constexpr uint64_t symHash = hash("fkjcouvrhqtrk");
+      constexpr Symbol key(symHash);
+      symbolSum += testMapOrderedSym[key];
     }
     end = now();
     elapsed = end - start;
-    std::cout << "literals, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "hashed literals, elapsed time: " << elapsed.count() << "s\n";
 
     // unordered lookup using literal (hashed at compile time)
     start = now();
     symbolSum = 0.f;
     for (int i = 0; i < kTestLength; ++i)
     {
-      symbolSum += testMapUnorderedSym["fkjcouvrhqtrk"];
+      constexpr uint64_t symHash = hash("fkjcouvrhqtrk");
+      constexpr Symbol key(symHash);
+      symbolSum += testMapUnorderedSym[key];
     }
     end = now();
     elapsed = end - start;
-    std::cout << "literals, unordered, elapsed time: " << elapsed.count() << "s\n";
+    if(printTimes) std::cout << "hashed literals, unordered, elapsed time: " << elapsed.count() << "s\n";
 
 
     // theSymbolTable().dump();

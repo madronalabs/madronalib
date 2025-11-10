@@ -49,9 +49,6 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   v["bizzle"] = 0.6;
   std::vector<uint8_t> someData{1, 3, 5, 7, 9};
   v["blobtest"] = Value(someData.data(), someData.size());
-  
-  auto goodbye = v["b/q"];
-  std::cout << "goodbye: " << goodbye << "\n";
     
   // test each value in the tree separately
   for(auto treeVal : v)
@@ -61,20 +58,8 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
     REQUIRE(treeVal == treeVal2);
   }
   
-  
-  // TEMP constexpr auto bizzPath = HashPath("bizzle");
-  //auto bizzle = v[bizzPath];
-  //auto quxx = v[HashPath("quxx")];
-  // std::cout << "bizzle: " << bizzle << " quxx: " << quxx << "\n";
-  
-  theSymbolTable().dump();
-  
-  
-  v.dump();
-  
   auto vJSON = valueTreeToJSON(v);
-  std::cout << "\n\n";
-  std::cout << JSONToText(vJSON);
+
                   
   Tree< Value > v2 = JSONToValueTree(valueTreeToJSON(v));
   REQUIRE(v == v2);
@@ -90,8 +75,6 @@ TEST_CASE("madronalib/core/serialization", "[serialization]")
   REQUIRE(v == vv);
   
   // binary to value tree and back
-  std::cout << "vv\n";
-  vv.dump();
   auto b2 = valueTreeToBinary(vv);
   REQUIRE(b == b2);
 

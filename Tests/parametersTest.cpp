@@ -52,8 +52,6 @@ TEST_CASE("madronalib/core/parameters", "[parameters]")
   params.setValue("linear-param", 0.88f);
   auto v1 = params.getRealFloatValue("linear-param");
   
-  std::cout << "value: " << v1 << "\n";
-  
   // build name index
   std::vector< Path > paramNames;
   for(size_t i=0; i < pdl.size(); ++i)
