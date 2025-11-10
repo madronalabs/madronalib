@@ -55,11 +55,11 @@ void processParamsExample(AudioContext* ctx, void *untypedProcState)
   // to parse the path.
   std::string runtimePathStr("freq1");
   Path freqPath(runtimePathStr.c_str());
-  float f1 = proc->params.getRealFloatValueAtPath(freqPath);
-  
+  float f1 = proc->getParameterTree().getRealFloatValueAtPath(freqPath);
+
   // get params from the SignalProcessor using fast compile-time hashed paths.
-  float f2 = proc->params.getRealFloatValue("freq2");
-  float gain = proc->params.getRealFloatValue("gain");
+  float f2 = proc->getParameterTree().getRealFloatValue("freq2");
+  float gain = proc->getParameterTree().getRealFloatValue("gain");
 
   // Running the sine generators makes DSPVectors as output.
   // The input parameter is omega: the frequency in Hz divided by the sample rate.
@@ -95,7 +95,7 @@ int main()
   
   // set a parameter of the processor as a normalized value.
   // if not set, parameters begin at their default values.
-  proc.params.setFromNormalizedValue("freq2", 0.6);
+  proc.setParamFromNormalizedValue(runtimePath("freq2"), 0.6);
 
   return exampleTask.runConsoleApp();
 }
