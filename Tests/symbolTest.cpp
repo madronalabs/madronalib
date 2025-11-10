@@ -166,7 +166,7 @@ TEST_CASE("madronalib/core/symbol/maps", "[symbol]")
     // ----------------------------------------------------------------
     // existing symbols / strings
     
-    const bool printTimes{true};//{false};
+    const bool printTimes{false};
 
     // lookup from existing std::strings
     start = now();
