@@ -22,6 +22,8 @@ class SignalProcessor
  public:
   SignalProcessor() {}
   virtual ~SignalProcessor() {}
+  
+  ParameterTree _params; // TODO should this be protected?
 
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
@@ -38,73 +40,69 @@ class SignalProcessor
     ~PublishedSignal() = default;
 
     inline size_t getNumChannels() const { return (size_t)_channels; }
-    inline int getAvailableFrames() const
-    {
-      return (int)(_channels ? (_buffer.getReadAvailable() / _channels) : 0);
-    }
+    inline int getAvailableFrames() const { return (int)(_channels ? (_buffer.getReadAvailable() / _channels) : 0); }
     inline int getReadAvailable() const { return (int)_buffer.getReadAvailable(); }
 
+    
     // write frames from a DSPVectorArray< CHANNELS > of data into a published signal.
     // this data is for one voice of the signal.
     // don't use block size downsampler and get output samples as soon as they are available.
     //
-    // frames are stored in buffer one by one, with a sample for each channel (frame major order),
-    // not in signal vectors! When multiple voices are being sent, each voice is sent as one frame
-    // and the voices rotate: frame0: [ voice0 [ chan0, chan1, chan2 ... chanN ] voice1 [ chan0,
-    // chan1, chan2 ... chanN ] ... ] frame1: [ voice0 [ chan0, chan1, chan2 ... chanN ] voice1 [
-    // chan0, chan1, chan2 ... chanN ] ... ]
+    // frames are stored in buffer one by one, with a sample for each channel (frame major order), not in signal vectors!
+    // When multiple voices are being sent, each voice is sent as one frame and the voices rotate:
+    // frame0: [ voice0 [ chan0, chan1, chan2 ... chanN ] voice1 [ chan0, chan1, chan2 ... chanN ] ... ]
+    // frame1: [ voice0 [ chan0, chan1, chan2 ... chanN ] voice1 [ chan0, chan1, chan2 ... chanN ] ... ]
     //
     // nothing here enforces the voice order- processors are responsible for calling
     // storePublishedSignal() for each voice in rotation.
     //
-    // the voice param is not used currently but we can transmit the voice number in the future if
-    // needed.
+    // the voice param is not used currently but we can transmit the voice number in the future if needed.
     //
     template <size_t CHANNELS>
     inline void writeQuick(DSPVectorArray<CHANNELS> inputVector, size_t frames, size_t voice)
     {
       // on every (1<<octavesDown_)th frame, rotate and write to DSPBuffer
       int framesWritten = 0;
-      for (int f = 0; f < frames; ++f)
+      for(int f=0; f<frames; ++f)
       {
         downsampleCtr_++;
-        if (downsampleCtr_ >= (1 << octavesDown_))
+        if(downsampleCtr_ >= (1 << octavesDown_))
         {
           // write accumulated frame.
-          for (int j = 0; j < CHANNELS; ++j)
+          for(int j=0; j<CHANNELS; ++j)
           {
-            voiceRotateBuffer[framesWritten * CHANNELS + j] = inputVector.row(j)[f];
+            voiceRotateBuffer[framesWritten*CHANNELS + j] = inputVector.row(j)[f];
           }
           framesWritten++;
           downsampleCtr_ = 0;
         }
       }
-
-      if (framesWritten)
+      
+      if(framesWritten)
       {
-        _buffer.write(voiceRotateBuffer.data(), framesWritten * CHANNELS);
+        _buffer.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
       }
     }
-
+    
     // write a single frame of signal with multiple contiguous channels
     inline void writeQuickVert(const float* inputVector, size_t channels, size_t voice)
     {
       // on every (1<<octavesDown_)th frame, rotate and write to DSPBuffer
-
+      
       downsampleCtr_++;
-      if (downsampleCtr_ >= (1 << octavesDown_))
+      if(downsampleCtr_ >= (1 << octavesDown_))
       {
         _buffer.write(inputVector, channels);
         downsampleCtr_ = 0;
       }
     }
-
+    
     // read the latest n frames of data, where each frame is a DSPVectorArray< CHANNELS >.
     size_t readLatest(float* pDest, size_t framesRequested);
 
     // read the next n frames of data.
     size_t read(float* pDest, size_t framesRequested);
-
+    
     void peekLatest(float* pDest, size_t framesRequested);
   };
 
@@ -123,20 +121,57 @@ class SignalProcessor
     }
   };
 
-  virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic& outputs,
-                             void* stateData = nullptr)
+  virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic& outputs, void* stateData = nullptr) {}
+
+  // Sample rate access (needed by all adapters)
+  virtual void setSampleRate(double sr) { _sampleRate = sr; }
+  double getSampleRate() const { return _sampleRate; }
+
+  // Parameter tree access (needed for adapter initialization)
+  ParameterTree& getParameterTree() { return _params; }
+  const ParameterTree& getParameterTree() const { return _params; }
+
+  // Convenience method for parameter count
+  uint32_t getParameterCount() const { return _params.descriptions.size(); }
+
+  // Public accessor for adapters to read published signals
+  Tree<std::unique_ptr<PublishedSignal>>& getPublishedSignals() {
+    return _publishedSignals;
+  }
+  const Tree<std::unique_ptr<PublishedSignal>>& getPublishedSignals() const {
+    return _publishedSignals;
+  }
+
+  void setParamFromNormalizedValue(Path pname, float val)
   {
+    _params.setFromNormalizedValue(pname, val);
+  }
+
+  void setParamFromRealValue(Path pname, float val)
+  {
+    _params.setFromRealValue(pname, val);
   }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
-    buildParameterTree(paramList, params);
+    buildParameterTree(paramList, _params);
+  };
+  
+  inline void setDefaultParams()
+  {
+    setDefaults(_params);
   };
 
-  inline void setDefaultParams() { setDefaults(params); };
+  inline float getRealFloatParam(Path pname)
+  {
+    return _params.getRealFloatValueAtPath(pname);
+  }
 
-  ParameterTree params;
-
+  inline float getNormalizedFloatParam(Path pname)
+  {
+    return _params.getNormalizedFloatValueAtPath(pname);
+  }
+  
  protected:
 
   SharedResourcePointer<ProcessorRegistry> _registry;
@@ -144,37 +179,34 @@ class SignalProcessor
 
   float _sampleRate{0.f};
 
-  std::vector<ml::Path> _paramNamesByID;  // needed?
-  Tree<size_t> _paramIDsByName;
 
-  Tree<std::unique_ptr<PublishedSignal> > _publishedSignals;
+  std::vector< ml::Path > _paramNamesByID;  // needed?
+  Tree< size_t > _paramIDsByName;
 
-  inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels,
-                            int octavesDown)
+  Tree< std::unique_ptr< PublishedSignal > > _publishedSignals;
+
+  inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
-    _publishedSignals[signalName] =
-        std::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
+    _publishedSignals[signalName] = std::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
   }
 
   // store a DSPVectorArray to the named signal buffer.
   // we need a buffer for each published signal here to move signals safely from the Processor
   // to the main thread.
   template <size_t CHANNELS>
-  inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec,
-                                   int frames, int voice)
+  inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec, int frames, int voice)
   {
     PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
-    if (publishedSignal)
+    if(publishedSignal)
     {
       publishedSignal->writeQuick(inputVec, frames, voice);
     }
   }
-
-  inline void storePublishedSignalVert(Path signalName, const float* pInput, int channels,
-                                       int voice)
+  
+  inline void storePublishedSignalVert(Path signalName, const float* pInput, int channels, int voice)
   {
     PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
-    if (publishedSignal)
+    if(publishedSignal)
     {
       publishedSignal->writeQuickVert(pInput, channels, voice);
     }
