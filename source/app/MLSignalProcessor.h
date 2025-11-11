@@ -23,14 +23,12 @@ class SignalProcessor
   SignalProcessor() {}
   virtual ~SignalProcessor() {}
   
-  ParameterTree _params; // TODO should this be protected?
-
   // SignalProcessor::PublishedSignal sends a signal from within a DSP
   // calculation to outside code like displays.
   struct PublishedSignal
   {
     std::vector<float> voiceRotateBuffer;
-    DSPBuffer _buffer;
+    DSPBuffer buffer_;
     size_t maxFrames_{0};
     size_t _channels{0};
     int octavesDown_{0};
@@ -40,8 +38,8 @@ class SignalProcessor
     ~PublishedSignal() = default;
 
     inline size_t getNumChannels() const { return (size_t)_channels; }
-    inline int getAvailableFrames() const { return (int)(_channels ? (_buffer.getReadAvailable() / _channels) : 0); }
-    inline int getReadAvailable() const { return (int)_buffer.getReadAvailable(); }
+    inline int getAvailableFrames() const { return (int)(_channels ? (buffer_.getReadAvailable() / _channels) : 0); }
+    inline int getReadAvailable() const { return (int)buffer_.getReadAvailable(); }
 
     
     // write frames from a DSPVectorArray< CHANNELS > of data into a published signal.
@@ -80,7 +78,7 @@ class SignalProcessor
       
       if(framesWritten)
       {
-        _buffer.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
+        buffer_.write(voiceRotateBuffer.data(), framesWritten*CHANNELS);
       }
     }
     
@@ -92,7 +90,7 @@ class SignalProcessor
       downsampleCtr_++;
       if(downsampleCtr_ >= (1 << octavesDown_))
       {
-        _buffer.write(inputVector, channels);
+        buffer_.write(inputVector, channels);
         downsampleCtr_ = 0;
       }
     }
@@ -107,7 +105,6 @@ class SignalProcessor
   };
 
   // class used for assigning each instance of our SignalProcessor a unique ID
-  // TODO refactor w/ ProcessorRegistry etc.
   class ProcessorRegistry
   {
     std::mutex _IDMutex;
@@ -124,70 +121,64 @@ class SignalProcessor
   virtual void processVector(const DSPVectorDynamic& inputs, DSPVectorDynamic& outputs, void* stateData = nullptr) {}
 
   // Sample rate access (needed by all adapters)
-  virtual void setSampleRate(double sr) { _sampleRate = sr; }
-  double getSampleRate() const { return _sampleRate; }
+  virtual void setSampleRate(double sr) { sampleRate_ = sr; }
+  double getSampleRate() const { return sampleRate_; }
 
   // Parameter tree access (needed for adapter initialization)
-  ParameterTree& getParameterTree() { return _params; }
-  const ParameterTree& getParameterTree() const { return _params; }
+  ParameterTree& getParameterTree() { return params_; }
+  const ParameterTree& getParameterTree() const { return params_; }
 
   // Convenience method for parameter count
-  uint32_t getParameterCount() const { return _params.descriptions.size(); }
+  size_t getParameterCount() const { return params_.descriptions.size(); }
 
   // Public accessor for adapters to read published signals
   Tree<std::unique_ptr<PublishedSignal>>& getPublishedSignals() {
-    return _publishedSignals;
+    return publishedSignals_;
   }
   const Tree<std::unique_ptr<PublishedSignal>>& getPublishedSignals() const {
-    return _publishedSignals;
+    return publishedSignals_;
   }
 
   void setParamFromNormalizedValue(Path pname, float val)
   {
-    _params.setFromNormalizedValue(pname, val);
+    params_.setFromNormalizedValue(pname, val);
   }
 
   void setParamFromRealValue(Path pname, float val)
   {
-    _params.setFromRealValue(pname, val);
+    params_.setFromRealValue(pname, val);
   }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
-    buildParameterTree(paramList, _params);
+    buildParameterTree(paramList, params_);
   };
   
   inline void setDefaultParams()
   {
-    setDefaults(_params);
+    setDefaults(params_);
   };
 
   inline float getRealFloatParam(Path pname)
   {
-    return _params.getRealFloatValueAtPath(pname);
+    return params_.getRealFloatValueAtPath(pname);
   }
 
   inline float getNormalizedFloatParam(Path pname)
   {
-    return _params.getNormalizedFloatValueAtPath(pname);
+    return params_.getNormalizedFloatValueAtPath(pname);
   }
   
  protected:
 
-  SharedResourcePointer<ProcessorRegistry> _registry;
-  size_t _uniqueID;
-
-  float _sampleRate{0.f};
-
-
-  std::vector< ml::Path > _paramNamesByID;  // needed?
-  Tree< size_t > _paramIDsByName;
-
-  Tree< std::unique_ptr< PublishedSignal > > _publishedSignals;
-
+  ParameterTree params_;
+  Tree< std::unique_ptr<PublishedSignal> > publishedSignals_;
+  SharedResourcePointer<ProcessorRegistry> registry_;
+  float sampleRate_{0.f};
+  
   inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
-    _publishedSignals[signalName] = std::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
+    publishedSignals_[signalName] = std::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
   }
 
   // store a DSPVectorArray to the named signal buffer.
@@ -196,7 +187,7 @@ class SignalProcessor
   template <size_t CHANNELS>
   inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec, int frames, int voice)
   {
-    PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
+    PublishedSignal* publishedSignal = publishedSignals_[signalName].get();
     if(publishedSignal)
     {
       publishedSignal->writeQuick(inputVec, frames, voice);
@@ -205,7 +196,7 @@ class SignalProcessor
   
   inline void storePublishedSignalVert(Path signalName, const float* pInput, int channels, int voice)
   {
-    PublishedSignal* publishedSignal = _publishedSignals[signalName].get();
+    PublishedSignal* publishedSignal = publishedSignals_[signalName].get();
     if(publishedSignal)
     {
       publishedSignal->writeQuickVert(pInput, channels, voice);

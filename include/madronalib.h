@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "MLMemoryUtils.h"
 #include "MLValue.h"
 #include "MLValueChange.h"
 #include "MLTree.h"

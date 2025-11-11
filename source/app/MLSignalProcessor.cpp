@@ -13,7 +13,7 @@ SignalProcessor::PublishedSignal::PublishedSignal(int maxFrames, int maxVoices, 
     : _channels(channels), maxFrames_(maxFrames), octavesDown_(octavesDown)
 {
   voiceRotateBuffer.resize(maxFrames * channels);
-  _buffer.resize(maxFrames * channels * maxVoices);
+  buffer_.resize(maxFrames * channels * maxVoices);
 }
 
 size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesRequested)
@@ -21,18 +21,18 @@ size_t SignalProcessor::PublishedSignal::readLatest(float* pDest, size_t framesR
   size_t floatsAvailable = getReadAvailable();
   if (floatsAvailable > framesRequested * _channels)
   {
-    _buffer.discard(floatsAvailable - framesRequested * _channels);
+    buffer_.discard(floatsAvailable - framesRequested * _channels);
   }
 
-  return _buffer.read(pDest, framesRequested * _channels);
+  return buffer_.read(pDest, framesRequested * _channels);
 }
 
 void SignalProcessor::PublishedSignal::peekLatest(float* pDest, size_t framesRequested)
 {
-  _buffer.peekMostRecent(pDest, framesRequested * _channels);
+  buffer_.peekMostRecent(pDest, framesRequested * _channels);
 }
 
 size_t SignalProcessor::PublishedSignal::read(float* pDest, size_t framesRequested)
 {
-  return _buffer.read(pDest, framesRequested * _channels);
+  return buffer_.read(pDest, framesRequested * _channels);
 }
