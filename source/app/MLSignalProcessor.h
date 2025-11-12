@@ -176,6 +176,11 @@ class SignalProcessor
   SharedResourcePointer<ProcessorRegistry> registry_;
   float sampleRate_{0.f};
   
+  // used by clients currently, don't delete! And TODO move relevant client code into this class.
+  size_t uniqueID_;
+  std::vector< ml::Path > paramNamesByID_;
+  Tree<size_t> paramIDsByName_;
+  
   inline void publishSignal(Path signalName, int maxFrames, int maxVoices, int channels, int octavesDown)
   {
     publishedSignals_[signalName] = std::make_unique<PublishedSignal>(maxFrames, maxVoices, channels, octavesDown);
