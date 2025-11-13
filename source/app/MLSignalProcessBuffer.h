@@ -20,11 +20,11 @@ using SignalProcessFn = void (*)(AudioContext*, void*);
 class SignalProcessBuffer final
 {
   // buffers containing audio to / from outside world, in bigger chunks
-  std::vector<ml::DSPBuffer> _inputBuffers;
-  std::vector<ml::DSPBuffer> _outputBuffers;
+  std::vector<ml::DSPBuffer> inputBuffers_;
+  std::vector<ml::DSPBuffer> outputBuffers_;
 
   // max chunk size for outside I/O
-  size_t _maxFrames;
+  size_t maxFrames_;
 
  public:
   SignalProcessBuffer(size_t inputs, size_t outputs, size_t maxFrames);

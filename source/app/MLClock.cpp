@@ -42,7 +42,7 @@ Clock::TimeOffset::TimeOffset()
   auto steadyMicros = std::chrono::time_point_cast<std::chrono::microseconds>(steadyNow);
   uint64_t steadyOffset = steadyMicros.time_since_epoch().count();
 
-  mOffset = sysOffset - steadyOffset;
+  offset_ = sysOffset - steadyOffset;
 }
 
 Clock::TimeOffset::~TimeOffset() {}
@@ -50,20 +50,20 @@ Clock::TimeOffset::~TimeOffset() {}
 Clock::Clock()
 {
   // make local offset, and insure that the system time offset has been created
-  mOffset = ml::Clock::theSystemTimeOffset();
+  offset_ = ml::Clock::theSystemTimeOffset();
 }
 
 Clock::~Clock() {}
 
 uint64_t Clock::now()
 {
-  if (mRunning)
+  if (running_)
   {
     static const double kLo32Scale = pow(2, 32) * 0.000001;
     auto steadyNow = std::chrono::steady_clock::now();
     auto steadyMicros = std::chrono::time_point_cast<std::chrono::microseconds>(steadyNow);
     uint64_t steadyOffset = steadyMicros.time_since_epoch().count();
-    uint64_t steadyTimeInMicros = mOffset + steadyOffset;
+    uint64_t steadyTimeInMicros = offset_ + steadyOffset;
     uint64_t steadyTimeInSeconds = steadyTimeInMicros * 0.000001;
     double fractionalSecondInMicros = (steadyTimeInMicros - steadyTimeInSeconds * 1000000);
     uint64_t hi32 = steadyTimeInSeconds;
@@ -72,22 +72,22 @@ uint64_t Clock::now()
   }
   else
   {
-    return mOffset;
+    return offset_;
   }
 }
 
 void Clock::stop()
 {
   // is this good enough?
-  if (mRunning)
+  if (running_)
   {
-    mOffset = now();
+    offset_ = now();
   }
-  mRunning = false;
+  running_ = false;
 }
 
-void Clock::start() { mRunning = true; }
+void Clock::start() { running_ = true; }
 
-void Clock::advance(Time t) { mOffset += t; }
+void Clock::advance(Time t) { offset_ += t; }
 
 }  // namespace ml

@@ -15,7 +15,7 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
 {
   uint64_t hash = fnv1aRuntime(text, len);
 
-  std::lock_guard<std::mutex> lock(mMutex);
+  std::lock_guard<std::mutex> lock(mutex_);
 
   // TEMP
   /*
@@ -26,10 +26,10 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
   }
   std::cout << "\n";
 */
-  
-  
-  auto it = mSymbols.find(hash);
-  if (it != mSymbols.end())
+
+
+  auto it = symbols_.find(hash);
+  if (it != symbols_.end())
   {
     // Hash exists - check for collision
     const TextFragment& existing = it->second;
@@ -43,27 +43,27 @@ uint64_t SymbolTable::registerSymbol(const char* text, size_t len)
   }
 
   // New symbol - register it
-  mSymbols.emplace(hash, TextFragment(text, static_cast<int>(len)));
+  symbols_.emplace(hash, TextFragment(text, static_cast<int>(len)));
   return hash;
 }
 
-void SymbolTable::clear() { mSymbols.clear(); }
+void SymbolTable::clear() { symbols_.clear(); }
 
 const TextFragment& SymbolTable::getTextForHash(uint64_t hash) const
 {
-  auto it = mSymbols.find(hash);
+  auto it = symbols_.find(hash);
 
   // if not found, return null object
-  if (it == mSymbols.end()) return SymbolTable::kNullText;
+  if (it == symbols_.end()) return SymbolTable::kNullText;
 
   return it->second;
 }
 
 void SymbolTable::dump()
 {
-  std::cout << mSymbols.size() << " symbols:\n";
+  std::cout << symbols_.size() << " symbols:\n";
 
-  for (const auto& [hash, text] : mSymbols)
+  for (const auto& [hash, text] : symbols_)
   {
     std::cout << "0x" << std::hex << hash << std::dec << " = \"" << text << "\"\n";
   }

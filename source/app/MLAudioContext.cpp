@@ -26,8 +26,8 @@ void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double
 
   sampleRate = sampleRateIn;
   bpm = bpmIn;
-  bool active = (_ppqPos1 != ppqPos) && isPlaying;
-  bool justStarted = isPlaying && !_playing1;
+  bool active = (ppqPos1_ != ppqPos) && isPlaying;
+  bool justStarted = isPlaying && !playing1_;
 
   double ppqPhase = 0.;
   if (active)
@@ -41,7 +41,7 @@ void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double
       ppqPhase = ppqPos;
     }
 
-    _omega = ppqPhase;
+    omega_ = ppqPhase;
 
     if (justStarted)
     {
@@ -49,39 +49,39 @@ void AudioContext::ProcessTime::setTimeAndRate(const double ppqPos, const double
       // this works well when we start at any 1/4 note.
       // there is still some weirdness when we try to lock onto other 16ths.
       samplesSinceStart = 0;
-      _omega = 0.;
+      omega_ = 0.;
       double dsdt = (1. / sampleRate);
       double minutesPerSample = dsdt / 60.;
-      _dpdt = bpm * minutesPerSample;
+      dpdt_ = bpm * minutesPerSample;
     }
     else
     {
-      double dPhase = ppqPhase - _ppqPhase1;
+      double dPhase = ppqPhase - ppqPhase1_;
       if (dPhase < 0.)
       {
         dPhase += 1.;
       }
-      _dpdt = ml::clamp(dPhase / static_cast<double>(_samplesSincePreviousTime), 0., 1.);
+      dpdt_ = ml::clamp(dPhase / static_cast<double>(samplesSincePreviousTime_), 0., 1.);
     }
   }
   else
   {
-    _omega = -1.;
-    _dpdt = 0.;
+    omega_ = -1.;
+    dpdt_ = 0.;
   }
 
-  _ppqPos1 = ppqPos;
-  _ppqPhase1 = ppqPhase;
-  _active1 = active;
-  _playing1 = isPlaying;
-  _samplesSincePreviousTime = 0;
+  ppqPos1_ = ppqPos;
+  ppqPhase1_ = ppqPhase;
+  active1_ = active;
+  playing1_ = isPlaying;
+  samplesSincePreviousTime_ = 0;
 }
 
 void AudioContext::ProcessTime::clear(void)
 {
-  _dpdt = 0.;
-  _active1 = false;
-  _playing1 = false;
+  dpdt_ = 0.;
+  active1_ = false;
+  playing1_ = false;
 }
 
 // generate phasors from the input parameters
@@ -89,14 +89,14 @@ void AudioContext::ProcessTime::processVector(int startOffset)
 {
   for (int n = 0; n < kFloatsPerDSPVector; ++n)
   {
-    _quarterNotesPhase[n] = _omega;
-    _omega += _dpdt;
-    if (_omega > 1.f)
+    quarterNotesPhase_[n] = omega_;
+    omega_ += dpdt_;
+    if (omega_ > 1.f)
     {
-      _omega -= 1.f;
+      omega_ -= 1.f;
     }
   }
-  _samplesSincePreviousTime += kFloatsPerDSPVector;
+  samplesSincePreviousTime_ += kFloatsPerDSPVector;
   samplesSinceStart += kFloatsPerDSPVector;
 }
 

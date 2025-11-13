@@ -49,12 +49,10 @@ namespace ml
 
 const int kPathMaxSymbols = 15;
 
-// Type alias for hash-based paths - allows future extensibility
+// Type alias for hash-based paths
 using SymbolHash = uint64_t;
 
-
 // GenericPath - templated on key type
-
 
 template <class K>
 class GenericPath
@@ -99,18 +97,18 @@ class GenericPath
   }
 
   bool operator!=(const GenericPath b) const { return !(operator==(b)); }
-  explicit operator bool() const { return mSize != 0; }
+  explicit operator bool() const { return size_ != 0; }
 
   // Accessors
-  int getSize() const { return static_cast<int>(mSize); }
-  K getElement(size_t n) const { return _elements[n]; }
+  int getSize() const { return static_cast<int>(size_); }
+  K getElement(size_t n) const { return elements_[n]; }
 
   void setElement(size_t n, K elem)
   {
     if (n < kPathMaxSymbols)
     {
-      _elements[n] = elem;
-      if (n >= mSize) mSize = n + 1;
+      elements_[n] = elem;
+      if (n >= size_) size_ = n + 1;
     }
   }
 
@@ -119,7 +117,7 @@ class GenericPath
     if (b.getSize() > getSize()) return false;
     for (int i = 0; i < b.getSize(); ++i)
     {
-      if (_elements[i] != b._elements[i]) return false;
+      if (elements_[i] != b.elements_[i]) return false;
     }
     return true;
   }
@@ -165,20 +163,20 @@ class GenericPath
   };
 
   const_iterator begin() const { return const_iterator(this); }
-  const_iterator end() const { return const_iterator(this, static_cast<int>(mSize)); }
+  const_iterator end() const { return const_iterator(this, static_cast<int>(size_)); }
 
   void addElement(K elem)
   {
-    if (mSize < kPathMaxSymbols)
+    if (size_ < kPathMaxSymbols)
     {
-      _elements[mSize++] = elem;
+      elements_[size_++] = elem;
     }
   }
 
- //protected:
-  std::array<K, kPathMaxSymbols> _elements{};
-  unsigned char mSize{0};
-  unsigned char mCopy{0};
+protected:
+  std::array<K, kPathMaxSymbols> elements_{};
+  unsigned char size_{0};
+  unsigned char copy_{0};
 };
 
 
@@ -313,38 +311,6 @@ inline GenericPath<K> lastN(GenericPath<K> p, size_t n)
 
 using Path = GenericPath<Symbol>;
 
-/*
-// Constexpr constructor for Path - computes hashes at compile-time, no Symbol registration
-template <>
-template <size_t N>
-constexpr Path::GenericPath(const char (&str)[N]) : _elements{}, mSize(0), mCopy(0)
-{
-  const char separator = '/';
-  size_t pos = 0;
-  while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
-  {
-    // Skip separators
-    while (pos < N - 1 && str[pos] == separator) ++pos;
-
-    // Hash segment
-    if (pos < N - 1 && str[pos] != '\0')
-    {
-      size_t start = pos;
-      size_t len = 0;
-      while (pos < N - 1 && str[pos] != separator && str[pos] != '\0')
-      {
-        ++len;
-        ++pos;
-      }
-
-      if (len > 0)
-      {
-        _elements[mSize++] = Symbol(fnv1aSubstring(&str[start], len));
-      }
-    }
-  }
-}
-*/
 
 // Runtime path creation with symbol registration
 // Use this when you need symbols to be registered (for printing, debugging, etc.)
@@ -429,39 +395,6 @@ inline Path substitute(Path p, Symbol fromSym, Path toPath)
 
 using TextPath = GenericPath<TextFragment>;
 
-/*
-// Constexpr constructor for TextPath
-template <>
-template <size_t N>
-constexpr TextPath::GenericPath(const char (&str)[N]) : _elements{}, mSize(0), mCopy(0)
-{
-  const char separator = '/';
-  size_t pos = 0;
-  while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
-  {
-    // Skip separators
-    while (pos < N - 1 && str[pos] == separator) ++pos;
-
-    // Add segment as TextFragment
-    if (pos < N - 1 && str[pos] != '\0')
-    {
-      size_t start = pos;
-      size_t len = 0;
-      while (pos < N - 1 && str[pos] != separator && str[pos] != '\0')
-      {
-        ++len;
-        ++pos;
-      }
-
-      if (len > 0)
-      {
-        _elements[mSize++] = TextFragment(&str[start], len);
-      }
-    }
-  }
-}
-*/
-
 // Runtime constructor for TextPath from TextFragment
 // Runtime path creation with symbol registration
 // Use this when you need symbols to be registered (for printing, debugging, etc.)
@@ -483,7 +416,6 @@ inline TextPath::GenericPath(const char* str)
 
 
 // Template specializations for toText()
-
 
 template <>
 inline TextFragment Path::toText(const char separator) const
@@ -526,15 +458,15 @@ class HashPath
 public:
   // this is the fast path for accessing parameters from compile-time string literals
   template <size_t N>
-  inline constexpr HashPath(const char (&str)[N]) : _elements{}, mSize(0)
+  inline constexpr HashPath(const char (&str)[N]) : elements_{}, size_(0)
   {
     const char separator = '/';
     size_t pos = 0;
-    while (pos < N - 1 && str[pos] != '\0' && mSize < kPathMaxSymbols)
+    while (pos < N - 1 && str[pos] != '\0' && size_ < kPathMaxSymbols)
     {
       // Skip separators
       while (pos < N - 1 && str[pos] == separator) ++pos;
-      
+
       // Hash segment
       if (pos < N - 1 && str[pos] != '\0')
       {
@@ -545,22 +477,21 @@ public:
           ++len;
           ++pos;
         }
-        
+
         if (len > 0)
         {
-          _elements[mSize++] = fnv1aSubstring(&str[start], len);
+          elements_[size_++] = fnv1aSubstring(&str[start], len);
         }
       }
     }
   }
 
-  std::array<SymbolHash, kPathMaxSymbols> _elements{};
-  size_t mSize{0};
+  std::array<SymbolHash, kPathMaxSymbols> elements_{};
+  size_t size_{0};
 };
 
 
 // Stream operators
-
 
 inline std::ostream& operator<<(std::ostream& out, const Path& r)
 {
@@ -577,7 +508,6 @@ inline std::ostream& operator<<(std::ostream& out, const TextPath& r)
 
 // Convenience functions
 
-
 inline Path textToPath(const TextFragment& t) { return runtimePath(t); }
 inline TextFragment pathToText(const Path& p) { return p.toText(); }
 inline TextFragment pathToText(const TextPath& p) { return p.toText(); }
@@ -587,22 +517,22 @@ class PathList
  public:
   PathList(std::initializer_list<const char*> paths)
   {
-    _paths.reserve(paths.size());
+    paths_.reserve(paths.size());
     for (const char* p : paths)
     {
-      _paths.emplace_back(p);
+      paths_.emplace_back(p);
     }
   }
 
   // Iterator support for range-based for
-  auto begin() const { return _paths.begin(); }
-  auto end() const { return _paths.end(); }
+  auto begin() const { return paths_.begin(); }
+  auto end() const { return paths_.end(); }
 
-  size_t size() const { return _paths.size(); }
-  const Path& operator[](size_t i) const { return _paths[i]; }
+  size_t size() const { return paths_.size(); }
+  const Path& operator[](size_t i) const { return paths_[i]; }
 
  private:
-  std::vector<Path> _paths;
+  std::vector<Path> paths_;
 };
 
 }  // namespace ml

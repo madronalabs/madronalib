@@ -52,29 +52,29 @@ class Value
   template <size_t N>
   explicit Value(std::array<float, N> values)
   {
-    _type = kFloatArray;
+    type_ = kFloatArray;
     auto listSize = N;
-    _sizeInBytes = static_cast<uint32_t>(listSize * sizeof(float));
+    sizeInBytes_ = static_cast<uint32_t>(listSize * sizeof(float));
 
-    if (_sizeInBytes <= kLocalDataBytes)
+    if (sizeInBytes_ <= kLocalDataBytes)
     {
       // store locally
-      _dataPtr = _localData;
-      memcpy(_dataPtr, values.data(), _sizeInBytes);
+      dataPtr_ = localData_;
+      memcpy(dataPtr_, values.data(), sizeInBytes_);
     }
     else
     {
       // allocate heap
-      _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-      if (_dataPtr)
+      dataPtr_ = (uint8_t*)malloc(sizeInBytes_);
+      if (dataPtr_)
       {
-        memcpy(_dataPtr, values.data(), _sizeInBytes);
+        memcpy(dataPtr_, values.data(), sizeInBytes_);
       }
       else
       {
-        _dataPtr = _localData;
-        _sizeInBytes = 0;
-        _type = kUndefined;
+        dataPtr_ = localData_;
+        sizeInBytes_ = 0;
+        type_ = kUndefined;
       }
     }
   }
@@ -99,9 +99,9 @@ class Value
   std::array<float, N> getFloatArray() const
   {
     std::array<float, N> r;
-    if (_type == kFloatArray)
+    if (type_ == kFloatArray)
     {
-      memcpy(r.data(), _dataPtr, _sizeInBytes);
+      memcpy(r.data(), dataPtr_, sizeInBytes_);
     }
     return r;
   }
@@ -136,10 +136,10 @@ class Value
   static constexpr size_t kHeaderBytes{16};
   static constexpr size_t kLocalDataBytes = kStructSizeInBytes - kHeaderBytes;
 
-  uint8_t* _dataPtr{_localData};
-  Type _type{kUndefined};
-  uint32_t _sizeInBytes{0};
-  uint8_t _localData[kLocalDataBytes];
+  uint8_t* dataPtr_{localData_};
+  Type type_{kUndefined};
+  uint32_t sizeInBytes_{0};
+  uint8_t localData_[kLocalDataBytes];
 
   // private utilities
   void copyOrAllocate(Type type, const uint8_t* pSrc, size_t bytes);
@@ -148,7 +148,7 @@ class Value
   template <typename T>
   T toFixedSizeType() const
   {
-    T* scalarTypePtr = reinterpret_cast<T*>(_dataPtr);
+    T* scalarTypePtr = reinterpret_cast<T*>(dataPtr_);
     return *scalarTypePtr;
   }
 

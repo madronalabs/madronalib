@@ -29,7 +29,7 @@ public:
   static constexpr int kNumVoices = 8;  // For adapter configuration (can be overridden by subclasses)
 
   Synth(int numVoices = kDefaultNumVoices)
-    : _numVoices(numVoices) {}
+    : numVoices_(numVoices) {}
   virtual ~Synth() = default;
 
   // Default implementation of processVector - handles voice iteration
@@ -46,7 +46,7 @@ public:
 
     // Process each voice and mix
     int activeCount = 0;
-    for (int v = 0; v < _numVoices; ++v) {
+    for (int v = 0; v < numVoices_; ++v) {
       const auto& voice = audioContext->getInputVoice(v);
 
       // Check if voice is active (let subclass decide)
@@ -56,7 +56,7 @@ public:
       }
     }
 
-    _activeVoiceCount = activeCount;
+    activeVoiceCount_ = activeCount;
   }
 
   // Subclasses implement voice processing
@@ -81,15 +81,15 @@ public:
   }
 
   // Query active voice count (for CLAP sleep/continue)
-  int getActiveVoiceCount() const { return _activeVoiceCount; }
-  int getNumVoices() const { return _numVoices; }
+  int getActiveVoiceCount() const { return activeVoiceCount_; }
+  int getNumVoices() const { return numVoices_; }
 
   // Check if any voices are active (for adapter sleep/continue logic)
-  virtual bool hasActiveVoices() const { return _activeVoiceCount > 0; }
+  virtual bool hasActiveVoices() const { return activeVoiceCount_ > 0; }
 
 protected:
-  int _numVoices;
-  int _activeVoiceCount = 0;
+  int numVoices_;
+  int activeVoiceCount_ = 0;
 };
 
 } // namespace ml

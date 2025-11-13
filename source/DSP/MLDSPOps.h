@@ -96,13 +96,13 @@ class DSPVectorArray
 {
   // union def'n
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  union _Data
+  union Data
   {
     float asFloat[kFloatsPerDSPVector * ROWS + kDSPVectorAlignFloats];
 
-    _Data() {}
+    Data() {}
 
-    _Data(std::array<float, kFloatsPerDSPVector * ROWS> a)
+    Data(std::array<float, kFloatsPerDSPVector * ROWS> a)
     {
       float* py = DSPVectorAlignPointer<float>(this->asFloat);
       for (int i = 0; i < kFloatsPerDSPVector * ROWS; ++i)
@@ -112,32 +112,32 @@ class DSPVectorArray
     }
   };
 #else
-  union _Data
+  union Data
   {
     SIMDVectorFloat _align[kSIMDVectorsPerDSPVector * ROWS];   // unused except to force alignment
-    std::array<float, kFloatsPerDSPVector * ROWS> mArrayData;  // for constexpr ctor
+    std::array<float, kFloatsPerDSPVector * ROWS> arrayData_;  // for constexpr ctor
     float asFloat[kFloatsPerDSPVector * ROWS];
 
-    _Data() {}
-    constexpr _Data(std::array<float, kFloatsPerDSPVector * ROWS> a) : mArrayData(a) {}
+    Data() {}
+    constexpr Data(std::array<float, kFloatsPerDSPVector * ROWS> a) : arrayData_(a) {}
   };
 
 #endif
 
-  _Data mData;
+  Data data_;
 
  public:
   // getBuffer, getConstBuffer
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  inline float* getBuffer() const { return DSPVectorAlignPointer<float>(mData.asFloat); }
-  inline const float* getConstBuffer() const { return DSPVectorAlignPointer<float>(mData.asFloat); }
+  inline float* getBuffer() const { return DSPVectorAlignPointer<float>(data_.asFloat); }
+  inline const float* getConstBuffer() const { return DSPVectorAlignPointer<float>(data_.asFloat); }
 #else
-  inline float* getBuffer() { return mData.asFloat; }
-  inline const float* getConstBuffer() const { return mData.asFloat; }
+  inline float* getBuffer() { return data_.asFloat; }
+  inline const float* getConstBuffer() const { return data_.asFloat; }
 #endif  // MANUAL_ALIGN_DSPVECTOR
 
   // constexpr constructor taking a std::array. Use with make_array
-  constexpr DSPVectorArray(std::array<float, kFloatsPerDSPVector * ROWS> a) : mData(a) {}
+  constexpr DSPVectorArray(std::array<float, kFloatsPerDSPVector * ROWS> a) : data_(a) {}
 
   // constexpr constructor taking a function(int -> float)
   constexpr DSPVectorArray(float (*fn)(int))
@@ -150,7 +150,7 @@ class DSPVectorArray
 
   // default constructor: zeroes the data.
   // TODO this seems to be taking a lot of time! investigate
-  DSPVectorArray() { mData.mArrayData.fill(0.f); }
+  DSPVectorArray() { data_.arrayData_.fill(0.f); }
 
   // conversion constructor to float.  This keeps the syntax of common DSP code
   // shorter: "va + DSPVector(1.f)" becomes just "va + 1.f".
@@ -371,15 +371,15 @@ template <size_t ROWS>
 class DSPVectorArrayInt
 {
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  union _Data
+  union Data
   {
     std::array<int, kIntsPerDSPVector * ROWS + kDSPVectorAlignInts> mArrayData;
     int32_t asInt[kIntsPerDSPVector * ROWS + kDSPVectorAlignInts];
     float asFloat[kFloatsPerDSPVector * ROWS + kDSPVectorAlignFloats];
 
-    _Data() {}
+    Data() {}
 
-    _Data(std::array<int, kIntsPerDSPVector * ROWS> a)
+    Data(std::array<int, kIntsPerDSPVector * ROWS> a)
     {
       int* py = DSPVectorAlignPointer<int>(this->asFloat);
       for (int i = 0; i < kIntsPerDSPVector * ROWS; ++i)
@@ -389,35 +389,35 @@ class DSPVectorArrayInt
     }
   };
 #else
-  union _Data
+  union Data
   {
     SIMDVectorInt _align[kSIMDVectorsPerDSPVector * ROWS];     // unused except to force alignment
-    std::array<int32_t, kIntsPerDSPVector * ROWS> mArrayData;  // for constexpr ctor
+    std::array<int32_t, kIntsPerDSPVector * ROWS> arrayData_;  // for constexpr ctor
     int32_t asInt[kIntsPerDSPVector * ROWS];
     float asFloat[kFloatsPerDSPVector * ROWS];
 
-    _Data() {}
-    constexpr _Data(std::array<int32_t, kIntsPerDSPVector * ROWS> a) : mArrayData(a) {}
+    Data() {}
+    constexpr Data(std::array<int32_t, kIntsPerDSPVector * ROWS> a) : arrayData_(a) {}
   };
 #endif  // MANUAL_ALIGN_DSPVECTOR
 
  public:
-  _Data mData;
+  Data data_;
 
   // getBuffer, getConstBuffer
 #ifdef MANUAL_ALIGN_DSPVECTOR
-  inline float* getBuffer() const { return DSPVectorAlignPointer<float>(mData.asFloat); }
-  inline const float* getConstBuffer() const { return DSPVectorAlignPointer<float>(mData.asFloat); }
-  inline int32_t* getBufferInt() const { return DSPVectorAlignPointer<float>(mData.asInt); }
+  inline float* getBuffer() const { return DSPVectorAlignPointer<float>(data_.asFloat); }
+  inline const float* getConstBuffer() const { return DSPVectorAlignPointer<float>(data_.asFloat); }
+  inline int32_t* getBufferInt() const { return DSPVectorAlignPointer<float>(data_.asInt); }
   inline const int32_t* getConstBufferInt() const
   {
-    return DSPVectorAlignPointer<float>(mData.asInt);
+    return DSPVectorAlignPointer<float>(data_.asInt);
   }
 #else
-  inline float* getBuffer() { return mData.asFloat; }
-  inline const float* getConstBuffer() const { return mData.asFloat; }
-  inline int32_t* getBufferInt() { return mData.asInt; }
-  inline const int32_t* getConstBufferInt() const { return mData.asInt; }
+  inline float* getBuffer() { return data_.asFloat; }
+  inline const float* getConstBuffer() const { return data_.asFloat; }
+  inline int32_t* getBufferInt() { return data_.asInt; }
+  inline const int32_t* getConstBufferInt() const { return data_.asInt; }
 #endif  // MANUAL_ALIGN_DSPVECTOR
 
   explicit DSPVectorArrayInt() { operator=(0); }
@@ -441,7 +441,7 @@ class DSPVectorArrayInt
   }
 
   // constexpr constructor taking a std::array. Use with make_array
-  constexpr DSPVectorArrayInt(std::array<int32_t, kFloatsPerDSPVector * ROWS> a) : mData(a) {}
+  constexpr DSPVectorArrayInt(std::array<int32_t, kFloatsPerDSPVector * ROWS> a) : data_(a) {}
 
   // constexpr constructor taking a function(int -> int)
   constexpr DSPVectorArrayInt(int (*fn)(int))
@@ -506,14 +506,14 @@ class DSPVectorDynamic final
   DSPVectorDynamic() = default;
   ~DSPVectorDynamic() = default;
 
-  explicit DSPVectorDynamic(size_t rows) { _data.resize(rows); }
-  void resize(size_t rows) { _data.resize(rows); }
-  size_t size() const { return _data.size(); }
-  DSPVector& operator[](int j) { return _data[j]; }
-  const DSPVector& operator[](int j) const { return _data[j]; }
+  explicit DSPVectorDynamic(size_t rows) { data_.resize(rows); }
+  void resize(size_t rows) { data_.resize(rows); }
+  size_t size() const { return data_.size(); }
+  DSPVector& operator[](int j) { return data_[j]; }
+  const DSPVector& operator[](int j) const { return data_[j]; }
 
  private:
-  std::vector<DSPVector> _data;
+  std::vector<DSPVector> data_;
 };
 
 // ----------------------------------------------------------------

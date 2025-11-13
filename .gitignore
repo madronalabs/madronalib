@@ -213,4 +213,6 @@ packages/
 cmake-build-*
 .idea
 
+# Claude
+claude/
 

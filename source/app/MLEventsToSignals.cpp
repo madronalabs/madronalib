@@ -61,7 +61,7 @@ void EventsToSignals::Voice::setDriftAmount(float d) { driftAmount = d; }
 // done when DSP is reset.
 void EventsToSignals::Voice::reset()
 {
-  driftSource.mSeed = voiceIndex * 232;
+  driftSource.seed_ = voiceIndex * 232;
 
   nextFrameToProcess = 0;
   eventAgeInSamples = 0;

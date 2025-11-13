@@ -6,25 +6,25 @@
 
 using namespace ml;
 
-Actor* ActorRegistry::getActor(Path actorName) { return _actors[actorName]; }
+Actor* ActorRegistry::getActor(Path actorName) { return actors_[actorName]; }
 
-void ActorRegistry::doRegister(Path actorName, Actor* a) { _actors[actorName] = a; }
+void ActorRegistry::doRegister(Path actorName, Actor* a) { actors_[actorName] = a; }
 
 void ActorRegistry::doRemove(Actor* actorToRemove)
 {
   // get exclusive access to the Tree
-  std::unique_lock<std::mutex> lock(_listMutex);
+  std::unique_lock<std::mutex> lock(listMutex_);
 
   // remove the Actor
-  for (auto it = _actors.begin(); it != _actors.end(); ++it)
+  for (auto it = actors_.begin(); it != actors_.end(); ++it)
   {
     Actor* pa = *it;
     if (pa == actorToRemove)
     {
       auto p = it.getCurrentPath();
-      _actors[p] = nullptr;
+      actors_[p] = nullptr;
     }
   }
 }
 
-void ActorRegistry::dump() { _actors.dump(); }
+void ActorRegistry::dump() { actors_.dump(); }

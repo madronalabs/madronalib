@@ -36,7 +36,7 @@ class Timers
   Timers() {}
   ~Timers()
   {
-    if (_running) stop();
+    if (running_) stop();
   }
 
   // To start it running, call start() on the single Timers
@@ -46,26 +46,26 @@ class Timers
   void start(bool runInMainThread = false);
   void stop();
 
-  void insert(Timer* t) { _timerPtrs.insert(t); }
-  void erase(Timer* t) { _timerPtrs.erase(t); }
+  void insert(Timer* t) { timerPtrs_.insert(t); }
+  void erase(Timer* t) { timerPtrs_.erase(t); }
 
   void tick(void);
   void run(void);
 
   // MLTEST
-  size_t getSize() { return _timerPtrs.size(); }
+  size_t getSize() { return timerPtrs_.size(); }
 
  private:
-  std::mutex mSetMutex;
+  std::mutex setMutex_;
 
   void* pTimersRef{nullptr};
-  bool _running{false};
-  bool _inMainThread{false};
-  std::set<Timer*> _timerPtrs;
+  bool running_{false};
+  bool inMainThread_{false};
+  std::set<Timer*> timerPtrs_;
   std::thread runThread;
 
 #if ML_WINDOWS
-  int _mainTimerID{0};
+  int mainTimerID_{0};
 #endif
 };  // class Timers
 
@@ -86,48 +86,48 @@ class Timer
   // call the function once after the specified interval.
   void callOnce(std::function<void(void)> f, const milliseconds period)
   {
-    _counter = 1;
-    _func = f;
-    _period = period;
-    _previousCall = system_clock::now();
+    counter_ = 1;
+    func_ = f;
+    period_ = period;
+    previousCall_ = system_clock::now();
   }
 
   // extend the timeout of the current period for the given number of
   // milliseconds after the next tick.
-  void postpone(const milliseconds timeToAdd) { _additionalTime = timeToAdd; }
+  void postpone(const milliseconds timeToAdd) { additionalTime_ = timeToAdd; }
 
   // call the function n times, waiting the specified interval before each.
   void callNTimes(std::function<void(void)> f, const milliseconds period, int n)
   {
-    _counter = n;
-    _func = f;
-    _period = period;
-    _previousCall = system_clock::now();
+    counter_ = n;
+    func_ = f;
+    period_ = period;
+    previousCall_ = system_clock::now();
   }
 
   // start calling the function periodically. the wait period happens before the
   // first call.
   void start(std::function<void(void)> f, const milliseconds period)
   {
-    _counter = -1;
-    _func = f;
-    _period = period;
-    _previousCall = system_clock::now();
+    counter_ = -1;
+    func_ = f;
+    period_ = period;
+    previousCall_ = system_clock::now();
   }
 
-  bool isActive() { return _counter != 0; }
+  bool isActive() { return counter_ != 0; }
 
   void stop();
 
  private:
-  std::mutex _counterMutex;
+  std::mutex counterMutex_;
 
-  SharedResourcePointer<Timers> _timers;
-  int _counter{0};
-  std::function<void(void)> _func;
-  milliseconds _period{};
-  milliseconds _additionalTime{};
-  time_point<system_clock> _previousCall{};
-  time_point<system_clock> _creationTime{};
+  SharedResourcePointer<Timers> timers_;
+  int counter_{0};
+  std::function<void(void)> func_;
+  milliseconds period_{};
+  milliseconds additionalTime_{};
+  time_point<system_clock> previousCall_{};
+  time_point<system_clock> creationTime_{};
 };
 }  // namespace ml

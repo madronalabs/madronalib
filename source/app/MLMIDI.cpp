@@ -17,10 +17,10 @@ namespace ml
 
 struct MIDIInput::Impl
 {
-  std::unique_ptr<RtMidiIn> midiIn;
-  std::vector<unsigned char> inputMessage;
-  Timer inputTimer;
-  uint32_t midiPort{0};
+  std::unique_ptr<RtMidiIn> midiIn_;
+  std::vector<unsigned char> inputMessage_;
+  Timer inputTimer_;
+  uint32_t midiPort_{0};
 
   // read any new messages from RtMidi and handle them with the handler function.
   void readNewMessages(const MIDIMessageHandler& handler)
@@ -32,12 +32,12 @@ struct MIDIInput::Impl
     do
     {
       // when there are no new messages, RtMidiIn::getMessage() returns a message with size 0.
-      timeStamp = midiIn->getMessage(&inputMessage);
-      nBytes = inputMessage.size();
+      timeStamp = midiIn_->getMessage(&inputMessage_);
+      nBytes = inputMessage_.size();
 
       if (nBytes > 0)
       {
-        handler(inputMessage);
+        handler(inputMessage_);
       }
     } while (nBytes > 0);
   }
@@ -52,7 +52,7 @@ bool MIDIInput::start(MIDIMessageHandler handler)
   int OK{true};
   try
   {
-    pImpl->midiIn = std::make_unique<RtMidiIn>();
+    pImpl->midiIn_ = std::make_unique<RtMidiIn>();
   }
   catch (RtMidiError& error)
   {
@@ -64,7 +64,7 @@ bool MIDIInput::start(MIDIMessageHandler handler)
   {
     try
     {
-      pImpl->midiIn->openPort(pImpl->midiPort);  // just use first port for now - TODO select ports
+      pImpl->midiIn_->openPort(pImpl->midiPort_);  // just use first port for now - TODO select ports
     }
     catch (RtMidiError& error)
     {
@@ -74,19 +74,19 @@ bool MIDIInput::start(MIDIMessageHandler handler)
   }
 
   // Don't ignore sysex, timing, or active sensing messages.
-  pImpl->midiIn->ignoreTypes(false, false, false);
+  pImpl->midiIn_->ignoreTypes(false, false, false);
 
   // TODO this makes an OK demo but we need to do more work to get messages
   // with accurate timestamps from MIDI to the audio thread
   constexpr int kTimerInterval{1};
   if (OK)
   {
-    pImpl->inputTimer.start([&]() { pImpl->readNewMessages(handler); },
+    pImpl->inputTimer_.start([&]() { pImpl->readNewMessages(handler); },
                             milliseconds(kTimerInterval));
   }
   else
   {
-    pImpl->midiIn = nullptr;
+    pImpl->midiIn_ = nullptr;
   }
 
   return OK;
@@ -94,23 +94,23 @@ bool MIDIInput::start(MIDIMessageHandler handler)
 
 void MIDIInput::stop()
 {
-  pImpl->inputTimer.stop();
-  if (pImpl->midiIn.get())
+  pImpl->inputTimer_.stop();
+  if (pImpl->midiIn_.get())
   {
-    pImpl->midiIn->closePort();
+    pImpl->midiIn_->closePort();
   }
 }
 
 std::string MIDIInput::getAPIDisplayName()
 {
-  auto& midiin = pImpl->midiIn;
+  auto& midiin = pImpl->midiIn_;
   return midiin->getApiDisplayName(midiin->getCurrentApi());
 }
 
 std::string MIDIInput::getPortName()
 {
-  auto& midiin = pImpl->midiIn;
-  auto portNum = pImpl->midiPort;
+  auto& midiin = pImpl->midiIn_;
+  auto portNum = pImpl->midiPort_;
   return midiin->getPortName(portNum);
 }
 

@@ -19,8 +19,8 @@ namespace ml
 class Actor;
 class ActorRegistry
 {
-  Tree<Actor*> _actors;
-  std::mutex _listMutex;
+  Tree<Actor*> actors_;
+  std::mutex listMutex_;
 
  public:
   ActorRegistry() = default;
@@ -40,17 +40,17 @@ class Actor
   static constexpr size_t kDefaultMessageQueueSize{128};
   static constexpr size_t kDefaultMessageInterval{1000 / 60};
 
-  Queue<Message> _messageQueue{kDefaultMessageQueueSize};
-  Timer _queueTimer;
+  Queue<Message> messageQueue_{kDefaultMessageQueueSize};
+  Timer queueTimer_;
 
  protected:
-  size_t getMessagesAvailable() { return _messageQueue.elementsAvailable(); }
+  size_t getMessagesAvailable() { return messageQueue_.elementsAvailable(); }
 
  public:
   Actor() = default;
   virtual ~Actor() = default;
 
-  void resizeQueue(size_t n) { _messageQueue.resize(n); }
+  void resizeQueue(size_t n) { messageQueue_.resize(n); }
 
   // Actors can override onFullQueue to specify what action to take when
   // the message queue is full.
@@ -70,16 +70,16 @@ class Actor
   {
     // we currently attempt to handle all the messages in the queue.
     // in the future we may want to do just a few at a time instead.
-    _queueTimer.start([=]() { handleMessagesInQueue(); }, milliseconds(interval));
+    queueTimer_.start([=]() { handleMessagesInQueue(); }, milliseconds(interval));
   }
 
-  void stop() { _queueTimer.stop(); }
+  void stop() { queueTimer_.stop(); }
 
   // enqueueMessage just pushes the message onto the queue.
   void enqueueMessage(Message m)
   {
     // queue returns true unless full.
-    if (!(_messageQueue.push(m)))
+    if (!(messageQueue_.push(m)))
     {
       onFullQueue();
     }
@@ -96,13 +96,13 @@ class Actor
   // handle all the messages in the queue immediately.
   void handleMessagesInQueue()
   {
-    while (Message m = _messageQueue.pop())
+    while (Message m = messageQueue_.pop())
     {
       onMessage(m);
     }
   }
 
-  void clearMessageQueue() { _messageQueue.clear(); }
+  void clearMessageQueue() { messageQueue_.clear(); }
 };
 
 inline void registerActor(Path actorName, Actor* actorToRegister)

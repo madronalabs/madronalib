@@ -21,11 +21,11 @@ class TextFragment::Iterator::Impl
   friend bool operator!=(Iterator lhs, Iterator rhs);
   friend bool operator==(Iterator lhs, Iterator rhs);
 
-  utf::codepoint_iterator<const char*> _utf8Iter;
+  utf::codepoint_iterator<const char*> utf8Iter_;
 
  public:
-  Impl(const char* pos) : _utf8Iter(utf::codepoint_iterator<const char*>(pos)) {}
-  Impl(const utf::codepoint_iterator<const char*>& utf_iter) : _utf8Iter(utf_iter) {}
+  Impl(const char* pos) : utf8Iter_(utf::codepoint_iterator<const char*>(pos)) {}
+  Impl(const utf::codepoint_iterator<const char*>& utf_iter) : utf8Iter_(utf_iter) {}
 };
 
 // Iterator
@@ -34,42 +34,42 @@ TextFragment::Iterator::Iterator(const char* pos) { pImpl = std::unique_ptr<Impl
 
 TextFragment::Iterator::Iterator(const Iterator& it)  // = default;
 {
-  pImpl = std::unique_ptr<Impl>(new Impl(it.pImpl->_utf8Iter));
+  pImpl = std::unique_ptr<Impl>(new Impl(it.pImpl->utf8Iter_));
 }
 
 TextFragment::Iterator::~Iterator() = default;
 
-CodePoint TextFragment::Iterator::operator*() { return pImpl->_utf8Iter.operator*(); }
+CodePoint TextFragment::Iterator::operator*() { return pImpl->utf8Iter_.operator*(); }
 
 TextFragment::Iterator& TextFragment::Iterator::operator++()
 {
-  pImpl->_utf8Iter.operator++();
+  pImpl->utf8Iter_.operator++();
   return *this;
 }
 
 CodePoint TextFragment::Iterator::operator++(int i)
 {
-  CodePoint preIncrementValue = pImpl->_utf8Iter.operator*();
-  pImpl->_utf8Iter.operator++(i);
+  CodePoint preIncrementValue = pImpl->utf8Iter_.operator*();
+  pImpl->utf8Iter_.operator++(i);
   return preIncrementValue;
 }
 
 bool operator!=(TextFragment::Iterator lhs, TextFragment::Iterator rhs)
 {
-  return lhs.pImpl->_utf8Iter != rhs.pImpl->_utf8Iter;
+  return lhs.pImpl->utf8Iter_ != rhs.pImpl->utf8Iter_;
 }
 
 bool operator==(TextFragment::Iterator lhs, TextFragment::Iterator rhs)
 {
-  return !(lhs.pImpl->_utf8Iter != rhs.pImpl->_utf8Iter);
+  return !(lhs.pImpl->utf8Iter_ != rhs.pImpl->utf8Iter_);
 }
 
 // TextFragment
 
 TextFragment::TextFragment() noexcept
 {
-  _size = 0;
-  _pText = _localText;
+  size_ = 0;
+  pText_ = localText_;
   _nullTerminate();
 }
 
@@ -80,9 +80,9 @@ TextFragment::TextFragment(const char* pChars) noexcept
     _allocate(strlen(pChars));
     // a bad alloc will result in this being a null object.
     // copy the input string into local storage
-    if (_pText)
+    if (pText_)
     {
-      std::copy(pChars, pChars + _size, _pText);
+      std::copy(pChars, pChars + size_, pText_);
       _nullTerminate();
     }
   }
@@ -98,9 +98,9 @@ TextFragment::TextFragment(const char* pChars) noexcept
 TextFragment::TextFragment(const char* pChars, size_t len) noexcept
 {
   _allocate(len);
-  if (_pText)
+  if (pText_)
   {
-    std::copy(pChars, pChars + _size, _pText);
+    std::copy(pChars, pChars + size_, pText_);
     _nullTerminate();
   }
 }
@@ -112,17 +112,17 @@ TextFragment::TextFragment(CodePoint c) noexcept
     c = 0x2639;  // sad face
   }
   // all possible codepoints fit into local text
-  char* end = utf::internal::utf_traits<utf::utf8>::encode(c, _localText);
-  _size = end - _localText;
-  _pText = _localText;
+  char* end = utf::internal::utf_traits<utf::utf8>::encode(c, localText_);
+  size_ = end - localText_;
+  pText_ = localText_;
   _nullTerminate();
 }
 
-size_t TextFragment::lengthInBytes() const { return _size; }
+size_t TextFragment::lengthInBytes() const { return size_; }
 
 size_t TextFragment::lengthInCodePoints() const
 {
-  utf::stringview<const char*> sv(_pText, _pText + _size);
+  utf::stringview<const char*> sv(pText_, pText_ + size_);
   return sv.codepoints();
 }
 
@@ -142,11 +142,11 @@ TextFragment& TextFragment::operator=(const TextFragment& b) noexcept
   if (this != &b)
   {
     _dispose();
-    _allocate(b._size);
-    if (_pText)
+    _allocate(b.size_);
+    if (pText_)
     {
-      const char* bText = b._pText;
-      std::copy(bText, bText + _size, _pText);
+      const char* bText = b.pText_;
+      std::copy(bText, bText + size_, pText_);
       _nullTerminate();
     }
   }
@@ -225,12 +225,12 @@ void TextFragment::_construct(const char* s1, size_t len1, const char* s2, size_
                               const char* s3, size_t len3, const char* s4, size_t len4) noexcept
 {
   _allocate(len1 + len2 + len3 + len4);
-  if (_pText)
+  if (pText_)
   {
-    if (len1) std::copy(s1, s1 + len1, _pText);
-    if (len2) std::copy(s2, s2 + len2, _pText + len1);
-    if (len3) std::copy(s3, s3 + len3, _pText + len1 + len2);
-    if (len4) std::copy(s4, s4 + len4, _pText + len1 + len2 + len3);
+    if (len1) std::copy(s1, s1 + len1, pText_);
+    if (len2) std::copy(s2, s2 + len2, pText_ + len1);
+    if (len3) std::copy(s3, s3 + len3, pText_ + len1 + len2);
+    if (len4) std::copy(s4, s4 + len4, pText_ + len1 + len2 + len3);
     _nullTerminate();
   }
 }
@@ -243,58 +243,58 @@ void TextFragment::_construct2(const char* s1, size_t len1, const char* s2, size
                                ) noexcept
 {
   _allocate(len1 + len2 + len3 + len4 + len5 + len6 + len7 + len8);
-  if (_pText)
+  if (pText_)
   {
-    if (len1) std::copy(s1, s1 + len1, _pText);
-    if (len2) std::copy(s2, s2 + len2, _pText + len1);
-    if (len3) std::copy(s3, s3 + len3, _pText + len1 + len2);
-    if (len4) std::copy(s4, s4 + len4, _pText + len1 + len2 + len3);
-    if (len5) std::copy(s5, s5 + len5, _pText + len1 + len2 + len3 + len4);
-    if (len6) std::copy(s6, s6 + len6, _pText + len1 + len2 + len3 + len4 + len5);
-    if (len7) std::copy(s7, s7 + len7, _pText + len1 + len2 + len3 + len4 + len5 + len6);
-    if (len8) std::copy(s8, s8 + len8, _pText + len1 + len2 + len3 + len4 + len5 + len6 + len7);
+    if (len1) std::copy(s1, s1 + len1, pText_);
+    if (len2) std::copy(s2, s2 + len2, pText_ + len1);
+    if (len3) std::copy(s3, s3 + len3, pText_ + len1 + len2);
+    if (len4) std::copy(s4, s4 + len4, pText_ + len1 + len2 + len3);
+    if (len5) std::copy(s5, s5 + len5, pText_ + len1 + len2 + len3 + len4);
+    if (len6) std::copy(s6, s6 + len6, pText_ + len1 + len2 + len3 + len4 + len5);
+    if (len7) std::copy(s7, s7 + len7, pText_ + len1 + len2 + len3 + len4 + len5 + len6);
+    if (len8) std::copy(s8, s8 + len8, pText_ + len1 + len2 + len3 + len4 + len5 + len6 + len7);
     _nullTerminate();
   }
 }
 
 void TextFragment::_allocate(size_t size) noexcept
 {
-  _size = size;
+  size_ = size;
   const size_t nullTerminatedSize = size + 1;
   if (nullTerminatedSize > kShortFragmentSizeInChars)
   {
-    _pText = static_cast<char*>(malloc(nullTerminatedSize));
+    pText_ = static_cast<char*>(malloc(nullTerminatedSize));
   }
   else
   {
-    _pText = _localText;
+    pText_ = localText_;
   }
 }
 
-void TextFragment::_nullTerminate() noexcept { _pText[_size] = 0; }
+void TextFragment::_nullTerminate() noexcept { pText_[size_] = 0; }
 
 void TextFragment::_dispose() noexcept
 {
-  if (_pText)
+  if (pText_)
   {
-    assert(_pText[_size] == 0);
-    if (_pText != _localText)
+    assert(pText_[size_] == 0);
+    if (pText_ != localText_)
     {
       // free an external text. If the alloc has failed the ptr might be 0,
       // which is OK
-      free(_pText);
+      free(pText_);
     }
-    _pText = 0;
+    pText_ = 0;
   }
 }
 
 void TextFragment::_moveDataFromOther(TextFragment& b)
 {
-  _size = b._size;
-  if (_size >= kShortFragmentSizeInChars)
+  size_ = b.size_;
+  if (size_ >= kShortFragmentSizeInChars)
   {
     // move the data
-    _pText = b._pText;
+    pText_ = b.pText_;
   }
   else
   {
@@ -303,14 +303,14 @@ void TextFragment::_moveDataFromOther(TextFragment& b)
      */
 
     // point to local storage and copy data
-    _pText = _localText;
-    std::copy(b._localText, b._localText + _size, _localText);
+    pText_ = localText_;
+    std::copy(b.localText_, b.localText_ + size_, localText_);
     _nullTerminate();
   }
 
   // mark b as empty, nothing to dispose
-  b._pText = b._localText;
-  b._size = 0;
+  b.pText_ = b.localText_;
+  b.size_ = 0;
   b._nullTerminate();
 }
 

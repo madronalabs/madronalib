@@ -28,7 +28,7 @@ class Clock
   static Time &theSystemTimeOffset()
   {
     static TimeOffset t;
-    return t.mOffset;
+    return t.offset_;
   }
 
   Clock();
@@ -50,11 +50,11 @@ class Clock
     TimeOffset();
     ~TimeOffset();
     // offset from system time clock to steady clock, as measured on creation
-    Time mOffset;
+    Time offset_;
   };
 
-  Time mOffset;
-  bool mRunning;
+  Time offset_;
+  bool running_;
 };
 
 }  // namespace ml

@@ -21,28 +21,28 @@ class SmallStackBuffer
   {
     if (size <= MAX_STACK_ELEMS)
     {
-      mpData = mLocalData;
-      std::fill(mpData, mpData + size, T());
+      data_ = localData_;
+      std::fill(data_, data_ + size, T());
     }
     else
     {
-      mpData = new T[size];
+      data_ = new T[size];
     }
   }
 
   ~SmallStackBuffer()
   {
-    if (mpData != mLocalData)
+    if (data_ != localData_)
     {
-      delete[] mpData;
+      delete[] data_;
     }
   }
 
-  T* data() { return mpData; }
+  T* data() { return data_; }
 
  private:
-  T* mpData;
-  T mLocalData[MAX_STACK_ELEMS];
+  T* data_;
+  T localData_[MAX_STACK_ELEMS];
 };
 
 inline int sizeToInt(size_t size)

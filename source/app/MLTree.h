@@ -72,17 +72,17 @@ template <class V, class K = Symbol, class C = std::less<K>>
 class Tree
 {
   using mapT = std::map<K, Tree<V, K, C>, C>;
-  mapT mChildren{};
-  V _value{};
+  mapT children_{};
+  V value_{};
 
  public:
   Tree<V, K, C>() = default;
-  Tree<V, K, C>(V val) : _value(std::move(val)) {}
+  Tree<V, K, C>(V val) : value_(std::move(val)) {}
 
   void clear()
   {
-    mChildren.clear();
-    _value = V();
+    children_.clear();
+    value_ = V();
   }
 
   void combine(const Tree<V, K, C>& b)
@@ -93,17 +93,17 @@ class Tree
     }
   }
 
-  bool hasValue() const { return _value != V(); }
-  const V& getValue() const { return _value; }
-  bool isLeaf() const { return mChildren.size() == 0; }
+  bool hasValue() const { return value_ != V(); }
+  const V& getValue() const { return value_; }
+  bool isLeaf() const { return children_.size() == 0; }
 
   const Tree<V, K, C>* getNode(GenericPath<K> path) const
   {
     auto pNode = this;
     for (K key : path)
     {
-      auto it = pNode->mChildren.find(key);
-      if (it != pNode->mChildren.end())
+      auto it = pNode->children_.find(key);
+      if (it != pNode->children_.end())
       {
         pNode = &(it->second);
       }
@@ -114,15 +114,15 @@ class Tree
     }
     return pNode;
   }
-  
-  
+
+
   Tree<V, K, C>* getMutableNode(GenericPath<K> path)
   {
     auto pNode = this;
     for (K key : path)
     {
-      auto it = pNode->mChildren.find(key);
-      if (it != pNode->mChildren.end())
+      auto it = pNode->children_.find(key);
+      if (it != pNode->children_.end())
       {
         pNode = &(it->second);
       }
@@ -142,11 +142,11 @@ class Tree
     auto pNode = getMutableNode(p);
     if (pNode)
     {
-      return pNode->_value;
+      return pNode->value_;
     }
     else
     {
-      return add(p, V())->_value;
+      return add(p, V())->value_;
     }
   }
 
@@ -156,7 +156,7 @@ class Tree
     auto pNode = getNode(p);
     if (pNode)
     {
-      return pNode->_value;
+      return pNode->value_;
     }
     else
     {
@@ -168,13 +168,13 @@ class Tree
   {
     static const V nullValue{};
     auto pNode = this;
-    for(int i=0; i<path.mSize; ++i)
+    for(int i=0; i<path.size_; ++i)
     {
       // use Symbol ctor from hash
-      Symbol key(path._elements[i]);
-      
-      auto it = pNode->mChildren.find(key);
-      if (it != pNode->mChildren.end())
+      Symbol key(path.elements_[i]);
+
+      auto it = pNode->children_.find(key);
+      if (it != pNode->children_.end())
       {
         pNode = &(it->second);
       }
@@ -183,7 +183,7 @@ class Tree
         return nullValue;
       }
     }
-    return pNode->_value;
+    return pNode->value_;
   }
 
   inline bool operator==(const Tree<V, K, C>& b) const
@@ -214,19 +214,19 @@ class Tree
 
     for (int i = 0; i < pathSize - 1; ++i)
     {
-      pNode = &(pNode->mChildren[path.getElement(i)]);
+      pNode = &(pNode->children_[path.getElement(i)]);
     }
 
     auto lastNodeName = path.getElement(pathSize - 1);
-    auto it = pNode->mChildren.find(lastNodeName);
-    if (it != pNode->mChildren.end())
+    auto it = pNode->children_.find(lastNodeName);
+    if (it != pNode->children_.end())
     {
-      it->second._value = std::move(val);
+      it->second.value_ = std::move(val);
       pNode = &(it->second);
     }
     else
     {
-      auto [newIt, inserted] = pNode->mChildren.emplace(lastNodeName, std::move(val));
+      auto [newIt, inserted] = pNode->children_.emplace(lastNodeName, std::move(val));
       pNode = &(newIt->second);
     }
 
@@ -236,8 +236,8 @@ class Tree
   friend class const_iterator;
   class const_iterator
   {
-    std::vector<const Tree<V, K, C>*> mNodeStack;
-    std::vector<typename mapT::const_iterator> mIteratorStack;
+    std::vector<const Tree<V, K, C>*> nodeStack_;
+    std::vector<typename mapT::const_iterator> iteratorStack_;
 
    public:
     using iterator_category = std::forward_iterator_tag;
@@ -250,47 +250,47 @@ class Tree
 
     const_iterator(const Tree<V, K, C>* p, const typename mapT::const_iterator subIter)
     {
-      mNodeStack.push_back(p);
-      mIteratorStack.push_back(subIter);
+      nodeStack_.push_back(p);
+      iteratorStack_.push_back(subIter);
     }
 
     ~const_iterator() {}
 
     bool operator==(const const_iterator& b) const
     {
-      if (mNodeStack.size() != b.mNodeStack.size()) return false;
-      if (mNodeStack.empty() && b.mNodeStack.empty()) return true;
-      if (mNodeStack.back() != b.mNodeStack.back()) return false;
-      return (mIteratorStack.back() == b.mIteratorStack.back());
+      if (nodeStack_.size() != b.nodeStack_.size()) return false;
+      if (nodeStack_.empty() && b.nodeStack_.empty()) return true;
+      if (nodeStack_.back() != b.nodeStack_.back()) return false;
+      return (iteratorStack_.back() == b.iteratorStack_.back());
     }
 
     bool operator!=(const const_iterator& b) const { return !(*this == b); }
 
-    const V& operator*() const { return ((*mIteratorStack.back()).second)._value; }
+    const V& operator*() const { return ((*iteratorStack_.back()).second).value_; }
 
     void push(const Tree<V, K, C>* childNodePtr)
     {
-      mNodeStack.push_back(childNodePtr);
-      mIteratorStack.push_back(childNodePtr->mChildren.begin());
+      nodeStack_.push_back(childNodePtr);
+      iteratorStack_.push_back(childNodePtr->children_.begin());
     }
 
     void pop()
     {
-      if (mNodeStack.size() > 1)
+      if (nodeStack_.size() > 1)
       {
-        mNodeStack.pop_back();
-        mIteratorStack.pop_back();
+        nodeStack_.pop_back();
+        iteratorStack_.pop_back();
       }
     }
 
     bool atEndOfMap() const
     {
-      return (mIteratorStack.back() == (mNodeStack.back())->mChildren.end());
+      return (iteratorStack_.back() == (nodeStack_.back())->children_.end());
     }
 
     bool nextNode()
     {
-      auto& currentIterator = mIteratorStack.back();
+      auto& currentIterator = iteratorStack_.back();
       if (!atEndOfMap())
       {
         auto currentChildNodePtr = &((*currentIterator).second);
@@ -305,10 +305,10 @@ class Tree
       }
       else
       {
-        if (mNodeStack.size() > 1)
+        if (nodeStack_.size() > 1)
         {
           pop();
-          mIteratorStack.back()++;
+          iteratorStack_.back()++;
         }
         else
         {
@@ -320,7 +320,7 @@ class Tree
 
     void firstChild()
     {
-      auto& currentIterator = mIteratorStack.back();
+      auto& currentIterator = iteratorStack_.back();
       if (!atEndOfMap())
       {
         auto currentChildNodePtr = &((*currentIterator).second);
@@ -338,20 +338,20 @@ class Tree
       }
       else
       {
-        currentIterator = mNodeStack.back()->mChildren.begin();
+        currentIterator = nodeStack_.back()->children_.begin();
       }
     }
 
     bool hasMoreChildren() { return (!atEndOfMap()); }
 
-    void nextChild() { mIteratorStack.back()++; }
+    void nextChild() { iteratorStack_.back()++; }
 
     bool currentNodeHasValue() const
     {
-      auto parentNode = mNodeStack.back();
-      auto& currentIterator = mIteratorStack.back();
+      auto parentNode = nodeStack_.back();
+      auto& currentIterator = iteratorStack_.back();
 
-      if (currentIterator == parentNode->mChildren.end()) return false;
+      if (currentIterator == parentNode->children_.end()) return false;
 
       return (((*currentIterator).second).hasValue());
     }
@@ -367,13 +367,13 @@ class Tree
       return *this;
     }
 
-    size_t getCurrentDepth() const { return mNodeStack.size() - 1; }
+    size_t getCurrentDepth() const { return nodeStack_.size() - 1; }
 
     K getCurrentNodeNameAtDepth(size_t i) const
     {
-      auto& node = mNodeStack[i];
-      auto& iter = mIteratorStack[i];
-      if (iter != node->mChildren.end())
+      auto& node = nodeStack_[i];
+      auto& iter = iteratorStack_[i];
+      if (iter != node->children_.end())
       {
         return (*iter).first;
       }
@@ -382,7 +382,7 @@ class Tree
 
     K getCurrentNodeName() const
     {
-      const size_t stackSize = mNodeStack.size();
+      const size_t stackSize = nodeStack_.size();
       if (stackSize < 1) return K();
       return getCurrentNodeNameAtDepth(stackSize - 1);
     }
@@ -390,7 +390,7 @@ class Tree
     GenericPath<K> getCurrentPath() const
     {
       GenericPath<K> p;
-      for (int i = 0; i < mNodeStack.size(); ++i)
+      for (int i = 0; i < nodeStack_.size(); ++i)
       {
         K key = getCurrentNodeNameAtDepth(i);
         p.setElement(i, key);
@@ -400,22 +400,22 @@ class Tree
 
     void setCurrentPathToRoot()
     {
-      mNodeStack.resize(1);
-      mIteratorStack.clear();
-      mIteratorStack.push_back(mNodeStack[0]->mChildren.end());
+      nodeStack_.resize(1);
+      iteratorStack_.clear();
+      iteratorStack_.push_back(nodeStack_[0]->children_.end());
     }
 
     bool setCurrentPath(GenericPath<K> p)
     {
       setCurrentPathToRoot();
-      const Tree<V, K, C>* nextNode = mNodeStack[0];
+      const Tree<V, K, C>* nextNode = nodeStack_[0];
       for (K key : p)
       {
-        auto it = nextNode->mChildren.find(key);
-        if (it != nextNode->mChildren.end())
+        auto it = nextNode->children_.find(key);
+        if (it != nextNode->children_.end())
         {
-          mNodeStack.push_back(nextNode);
-          mIteratorStack.push_back(it);
+          nodeStack_.push_back(nextNode);
+          iteratorStack_.push_back(it);
           nextNode = &(it->second);
         }
         else
@@ -430,7 +430,7 @@ class Tree
 
   inline const_iterator begin() const
   {
-    auto it = const_iterator(this, mChildren.begin());
+    auto it = const_iterator(this, children_.begin());
     while (!it.currentNodeHasValue() && !it.atEndOfMap())
     {
       ++it;
@@ -438,9 +438,9 @@ class Tree
     return it;
   }
 
-  inline const_iterator beginAtRoot() const { return const_iterator(this, mChildren.end()); }
+  inline const_iterator beginAtRoot() const { return const_iterator(this, children_.end()); }
 
-  inline const_iterator end() const { return const_iterator(this, mChildren.end()); }
+  inline const_iterator end() const { return const_iterator(this, children_.end()); }
 
   inline void dump() const
   {
@@ -477,7 +477,7 @@ class Tree
   inline size_t size() const
   {
     size_t sum{hasValue()};
-    for (auto& c : mChildren)
+    for (auto& c : children_)
     {
       sum += c.second.size();
     }
