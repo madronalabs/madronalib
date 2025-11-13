@@ -20,14 +20,14 @@ namespace ml
 class DSPBuffer
 {
  private:
-  std::vector<float> mData;
-  float *mDataBuffer{nullptr};
-  size_t mSize{0};
-  size_t mDataMask{0};
-  size_t mDistanceMask{0};
+  std::vector<float> data_;
+  float *dataBuffer_{nullptr};
+  size_t size_{0};
+  size_t dataMask_{0};
+  size_t distanceMask_{0};
 
-  std::atomic<size_t> mWriteIndex{0};
-  std::atomic<size_t> mReadIndex{0};
+  std::atomic<size_t> writeIndex_{0};
+  std::atomic<size_t> readIndex_{0};
   struct DataRegions
   {
     float *p1;
@@ -46,26 +46,26 @@ class DSPBuffer
 
   inline size_t advanceDistanceIndex(size_t start, size_t samples)
   {
-    return (start + samples) & mDistanceMask;
+    return (start + samples) & distanceMask_;
   }
 
   inline size_t rewindDistanceIndex(size_t start, size_t samples)
   {
-    return (start - samples) & mDistanceMask;
+    return (start - samples) & distanceMask_;
   }
 
   inline DataRegions getDataRegions(size_t currentIdx, size_t elems) const
   {
-    size_t startIdx = currentIdx & mDataMask;
-    if (startIdx + elems > mSize)
+    size_t startIdx = currentIdx & dataMask_;
+    if (startIdx + elems > size_)
     {
-      size_t firstHalf = mSize - startIdx;
+      size_t firstHalf = size_ - startIdx;
       size_t secondHalf = elems - firstHalf;
-      return DataRegions{mDataBuffer + startIdx, firstHalf, mDataBuffer, secondHalf};
+      return DataRegions{dataBuffer_ + startIdx, firstHalf, dataBuffer_, secondHalf};
     }
     else
     {
-      return DataRegions{mDataBuffer + startIdx, elems, nullptr, 0};
+      return DataRegions{dataBuffer_ + startIdx, elems, nullptr, 0};
     }
   }
 
@@ -75,51 +75,51 @@ class DSPBuffer
 
   DSPBuffer(const DSPBuffer &b)
   {
-    mSize = b.mSize;
+    size_ = b.size_;
 
     try
     {
-      mData = b.mData;
+      data_ = b.data_;
     }
     catch (const std::bad_alloc &)
     {
-      mSize = mDataMask = mDistanceMask = 0;
+      size_ = dataMask_ = distanceMask_ = 0;
       return;
     }
 
-    mDataBuffer = mData.data();
-    mDataMask = mSize - 1;
-    mDistanceMask = mSize * 2 - 1;
+    dataBuffer_ = data_.data();
+    dataMask_ = size_ - 1;
+    distanceMask_ = size_ * 2 - 1;
   }
 
   // clear the buffer.
   void clear()
   {
-    const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
-    mReadIndex.store(currentWriteIndex, std::memory_order_release);
+    const auto currentWriteIndex = writeIndex_.load(std::memory_order_acquire);
+    readIndex_.store(currentWriteIndex, std::memory_order_release);
   }
 
   // resize the buffer, allocating 2^n samples sufficient to contain the
   // requested length.
   size_t resize(int sizeInSamples)
   {
-    mReadIndex = mWriteIndex = 0;
+    readIndex_ = writeIndex_ = 0;
 
     int sizeBits = (int)ml::bitsToContain(sizeInSamples);
-    mSize = std::max((1 << sizeBits), (int)kFloatsPerDSPVector);
+    size_ = std::max((1 << sizeBits), (int)kFloatsPerDSPVector);
 
     try
     {
-      mData.resize(mSize);
+      data_.resize(size_);
     }
     catch (const std::bad_alloc &)
     {
-      mSize = mDataMask = mDistanceMask = 0;
+      size_ = dataMask_ = distanceMask_ = 0;
       return 0;
     }
 
-    mDataBuffer = mData.data();
-    mDataMask = mSize - 1;
+    dataBuffer_ = data_.data();
+    dataMask_ = size_ - 1;
 
     // The distance mask idea is based on code from PortAudio's ringbuffer by
     // Phil Burk. By keeping the read and write indices constrained to size*2
@@ -127,28 +127,28 @@ class DSPBuffer
     // distinguished from the empty state (write - read = 0).
     // getDataRegions() is always used to generate the raw data pointers for
     // reading / writing.
-    mDistanceMask = mSize * 2 - 1;
+    distanceMask_ = size_ * 2 - 1;
 
-    return mSize;
+    return size_;
   }
 
   // return the number of samples available for reading.
   size_t getReadAvailable() const
   {
-    size_t a = mReadIndex.load(std::memory_order_acquire);
-    size_t b = mWriteIndex.load(std::memory_order_relaxed);
-    return (b - a) & mDistanceMask;
+    size_t a = readIndex_.load(std::memory_order_acquire);
+    size_t b = writeIndex_.load(std::memory_order_relaxed);
+    return (b - a) & distanceMask_;
   }
 
   // return the samples of free space available for writing.
-  size_t getWriteAvailable() const { return mSize - getReadAvailable(); }
+  size_t getWriteAvailable() const { return size_ - getReadAvailable(); }
 
   // write n samples to the buffer, advancing the write index.
   void write(const float *pSrc, size_t samples)
   {
     bool full = (getWriteAvailable() < samples);
 
-    const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
+    const auto currentWriteIndex = writeIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentWriteIndex, samples);
 
     std::copy(pSrc, pSrc + dr.size1, dr.p1);
@@ -157,13 +157,13 @@ class DSPBuffer
       std::copy(pSrc + dr.size1, pSrc + dr.size1 + dr.size2, dr.p2);
     }
 
-    mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
+    writeIndex_.store(advanceDistanceIndex(currentWriteIndex, samples), std::memory_order_release);
 
     if (full)
     {
       // oldest data was clobbered by write. set read index to indicate we
       // are full
-      mReadIndex.store(rewindDistanceIndex(mWriteIndex, mSize), std::memory_order_release);
+      readIndex_.store(rewindDistanceIndex(writeIndex_, size_), std::memory_order_release);
     }
   }
 
@@ -175,14 +175,14 @@ class DSPBuffer
 
     bool full = (getWriteAvailable() < samples);
 
-    const auto currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
+    const auto currentWriteIndex = writeIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentWriteIndex, samples);
 
     if (!dr.p2)
     {
       // we have only one region, so we can copy a number of samples known at
       // compile time.
-      mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples),
+      writeIndex_.store(advanceDistanceIndex(currentWriteIndex, samples),
                         std::memory_order_release);
       store(srcVec, dr.p1);
     }
@@ -191,7 +191,7 @@ class DSPBuffer
       const float *pSrc = srcVec.getConstBuffer();
       std::copy(pSrc, pSrc + dr.size1, dr.p1);
       std::copy(pSrc + dr.size1, pSrc + dr.size1 + dr.size2, dr.p2);
-      mWriteIndex.store(advanceDistanceIndex(currentWriteIndex, samples),
+      writeIndex_.store(advanceDistanceIndex(currentWriteIndex, samples),
                         std::memory_order_release);
     }
 
@@ -199,7 +199,7 @@ class DSPBuffer
     {
       // oldest data was clobbered by write. set read index to indicate we
       // are full
-      mReadIndex.store(rewindDistanceIndex(mWriteIndex, mSize), std::memory_order_release);
+      readIndex_.store(rewindDistanceIndex(writeIndex_, size_), std::memory_order_release);
     }
   }
 
@@ -209,7 +209,7 @@ class DSPBuffer
     size_t available = getReadAvailable();
     samples = std::min(samples, available);
 
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+    const auto currentReadIndex = readIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentReadIndex, samples);
 
     std::copy(dr.p1, dr.p1 + dr.size1, pDest);
@@ -218,7 +218,7 @@ class DSPBuffer
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
     }
 
-    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+    readIndex_.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
     return samples;
   }
 
@@ -229,14 +229,14 @@ class DSPBuffer
     constexpr int samples = kFloatsPerDSPVector * VECTORS;
     if (getReadAvailable() < samples) return;
 
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+    const auto currentReadIndex = readIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentReadIndex, samples);
 
     if (!dr.p2)
     {
       // we have only one region, so we can copy a number of samples known at
       // compile time.
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      readIndex_.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
       load(destVec, dr.p1);
     }
     else
@@ -244,7 +244,7 @@ class DSPBuffer
       float *pDest = destVec.getBuffer();
       std::copy(dr.p1, dr.p1 + dr.size1, pDest);
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      readIndex_.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
     }
   }
 
@@ -255,14 +255,14 @@ class DSPBuffer
     constexpr int samples = kFloatsPerDSPVector;
     if (getReadAvailable() < samples) return DSPVector{};
 
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+    const auto currentReadIndex = readIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentReadIndex, samples);
 
     if (!dr.p2)
     {
       // we have only one region, so we can copy a number of samples known at
       // compile time.
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      readIndex_.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
       load(destVec, dr.p1);
     }
     else
@@ -270,7 +270,7 @@ class DSPBuffer
       float *pDest = destVec.getBuffer();
       std::copy(dr.p1, dr.p1 + dr.size1, pDest);
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
-      mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+      readIndex_.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
     }
     return destVec;
   }
@@ -280,8 +280,8 @@ class DSPBuffer
   {
     size_t available = getReadAvailable();
     samples = std::min(samples, available);
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
-    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
+    const auto currentReadIndex = readIndex_.load(std::memory_order_acquire);
+    readIndex_.store(advanceDistanceIndex(currentReadIndex, samples), std::memory_order_release);
   }
 
   // add n samples to the buffer and advance the write index by (samples - overlap)
@@ -294,7 +294,7 @@ class DSPBuffer
     // don't write partial windows.
     if (available < samplesRequired) return;
 
-    size_t currentWriteIndex = mWriteIndex.load(std::memory_order_acquire);
+    size_t currentWriteIndex = writeIndex_.load(std::memory_order_acquire);
 
     // add samples to data in buffer
     DataRegions dr = getDataRegions(currentWriteIndex, samples);
@@ -317,7 +317,7 @@ class DSPBuffer
 
     currentWriteIndex = rewindDistanceIndex(currentWriteIndex, overlap);
 
-    mWriteIndex.store(currentWriteIndex, std::memory_order_release);
+    writeIndex_.store(currentWriteIndex, std::memory_order_release);
   }
 
   // read n samples from buffer then rewind read point by overlap.
@@ -326,7 +326,7 @@ class DSPBuffer
     size_t available = getReadAvailable() + overlap;
     samples = std::min(samples, available);
 
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+    const auto currentReadIndex = readIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentReadIndex, samples);
 
     std::copy(dr.p1, dr.p1 + dr.size1, pDest);
@@ -335,7 +335,7 @@ class DSPBuffer
       std::copy(dr.p2, dr.p2 + dr.size2, pDest + dr.size1);
     }
 
-    mReadIndex.store(advanceDistanceIndex(currentReadIndex, samples - overlap),
+    readIndex_.store(advanceDistanceIndex(currentReadIndex, samples - overlap),
                      std::memory_order_release);
   }
 
@@ -346,7 +346,7 @@ class DSPBuffer
     size_t avail = getReadAvailable();
     if (avail < samples) return;
 
-    const auto currentReadIndex = mReadIndex.load(std::memory_order_acquire);
+    const auto currentReadIndex = readIndex_.load(std::memory_order_acquire);
     DataRegions dr = getDataRegions(currentReadIndex, avail);
 
     if (!dr.p2)

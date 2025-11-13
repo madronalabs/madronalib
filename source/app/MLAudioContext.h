@@ -42,19 +42,19 @@ class AudioContext final
     void processVector(int startOffset);
 
     // externally readable values updated by processVector()
-    DSPVector _quarterNotesPhase;
+    DSPVector quarterNotesPhase_;
     double bpm{0};
     double sampleRate{0};
     uint64_t samplesSinceStart{0};
 
    private:
-    float _omega{0};
-    bool _playing1{false};
-    bool _active1{false};
-    double _dpdt{0};
-    size_t _samplesSincePreviousTime{0};
-    double _ppqPos1{-1.};
-    double _ppqPhase1{0};
+    float omega_{0};
+    bool playing1_{false};
+    bool active1_{false};
+    double dpdt_{0};
+    size_t samplesSincePreviousTime_{0};
+    double ppqPos1_{-1.};
+    double ppqPhase1_{0};
   };
 
   AudioContext(size_t nInputs, size_t nOutputs);
@@ -73,7 +73,7 @@ class AudioContext final
   size_t getInputPolyphony() { return eventsToSignals.getPolyphony(); }
 
   void updateTime(const double ppqPos, const double bpmIn, bool isPlaying, double sampleRateIn);
-  DSPVector getBeatPhase() { return currentTime._quarterNotesPhase; }
+  DSPVector getBeatPhase() { return currentTime.quarterNotesPhase_; }
 
   void addInputEvent(const Event& e);
   void clearInputEvents() { eventsToSignals.clearEvents(); }

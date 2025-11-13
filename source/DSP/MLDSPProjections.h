@@ -14,20 +14,21 @@ namespace ml
 {
 struct Interval
 {
-  float mX1, mX2;
-  inline bool operator==(const Interval& b) const { return (mX1 == b.mX1) && (mX2 == b.mX2); }
+  float x1;
+  float x2;
+  inline bool operator==(const Interval& b) const { return (x1 == b.x1) && (x2 == b.x2); }
   inline bool operator!=(const Interval& b) const { return !(operator==(b)); }
-  inline const Interval operator*(const float b) const { return Interval{mX1 * b, mX2 * b}; }
+  inline const Interval operator*(const float b) const { return Interval{x1 * b, x2 * b}; }
   inline const Interval operator*=(const float b)
   {
-    mX1 *= b;
-    mX2 *= b;
+    x1 *= b;
+    x2 *= b;
     return *this;
   }
 };
 
-inline float midpoint(Interval m) { return (m.mX1 + m.mX2) * 0.5f; }
-inline bool within(float f, const Interval m) { return (f >= m.mX1) && (f < m.mX2); }
+inline float midpoint(Interval m) { return (m.x1 + m.x2) * 0.5f; }
+inline bool within(float f, const Interval m) { return (f >= m.x1) && (f < m.x2); }
 
 using Projection = std::function<float(float)>;
 
@@ -106,8 +107,8 @@ inline Projection constant(const float k)
 // on [a, b] scaled back to [0, 1]. works for positive a, b with a < b only.
 inline Projection log(Interval m)
 {
-  float a = m.mX1;
-  float b = m.mX2;
+  float a = m.x1;
+  float b = m.x2;
   if (b - a == 0.f)
   {
     return [=](float x) { return a; };
@@ -126,8 +127,8 @@ inline Projection log(Interval m)
 // works for positive a, b with a < b only.
 inline Projection exp(Interval m)
 {
-  float a = m.mX1;
-  float b = m.mX2;
+  float a = m.x1;
+  float b = m.x2;
   if (b - a == 0.f)
   {
     return [=](float x) { return a; };
@@ -145,10 +146,10 @@ inline Projection exp(Interval m)
 // linear projection mapping an interval to another interval
 inline Projection linear(const Interval a, const Interval b)
 {
-  float a1 = a.mX1;
-  float a2 = a.mX2;
-  float b1 = b.mX1;
-  float b2 = b.mX2;
+  float a1 = a.x1;
+  float a2 = a.x2;
+  float b1 = b.x1;
+  float b2 = b.x2;
 
   if (a1 - a2 == 0.f)
   {
@@ -178,11 +179,11 @@ inline Projection intervalMap(const Interval a, const Interval b, Projection c)
   return [=](float x)
   {
     // project interval a to interval (0,1)
-    const float scaleA = 1 / (a.mX2 - a.mX1);
-    const float offsetA = (-a.mX1) / (a.mX2 - a.mX1);
+    const float scaleA = 1 / (a.x2 - a.x1);
+    const float offsetA = (-a.x1) / (a.x2 - a.x1);
     // project interval (0, 1) to interval b
-    const float scaleB = (b.mX2 - b.mX1);
-    const float offsetB = b.mX1;
+    const float scaleB = (b.x2 - b.x1);
+    const float offsetB = b.x1;
     return c(x * scaleA + offsetA) * scaleB + offsetB;
   };
 }
@@ -295,7 +296,7 @@ inline void printTable(const Projection& p, std::string pName, Interval domain, 
 
 inline std::ostream& operator<<(std::ostream& out, const ml::Interval& m)
 {
-  std::cout << "[" << m.mX1 << " - " << m.mX2 << "]";
+  std::cout << "[" << m.x1 << " - " << m.x2 << "]";
   return out;
 }
 

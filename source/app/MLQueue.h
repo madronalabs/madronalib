@@ -33,27 +33,27 @@ class Queue final
 
   void resize(size_t capacity)
   {
-    // when _readIndex = _writeIndex the queue is considered empty. So
+    // when readIndex_ = writeIndex_ the queue is considered empty. So
     // a queue of size 1 can't store any elements: we have to add
     // 1 to the requested capacity. Then, find the power of two size that
     // will contain that many elements.
     size_t powerOfTwoSize = 1ULL << bitsToContain((int)capacity + 1);
 
-    _data.resize(powerOfTwoSize);
-    _sizeMask = powerOfTwoSize - 1;
+    data_.resize(powerOfTwoSize);
+    sizeMask_ = powerOfTwoSize - 1;
     clear();
   }
 
-  size_t size() { return _data.size(); }
+  size_t size() { return data_.size(); }
 
   bool push(const Element& item)
   {
-    const auto currentWriteIndex = _writeIndex.load(std::memory_order_relaxed);
+    const auto currentWriteIndex = writeIndex_.load(std::memory_order_relaxed);
     const auto nextWriteIndex = increment(currentWriteIndex);
-    if (nextWriteIndex != _readIndex.load(std::memory_order_acquire))
+    if (nextWriteIndex != readIndex_.load(std::memory_order_acquire))
     {
-      _data[currentWriteIndex] = item;
-      _writeIndex.store(nextWriteIndex, std::memory_order_release);
+      data_[currentWriteIndex] = item;
+      writeIndex_.store(nextWriteIndex, std::memory_order_release);
       return true;
     }
     return false;
@@ -61,25 +61,25 @@ class Queue final
 
   bool pop(Element& item)
   {
-    const auto currentReadIndex = _readIndex.load(std::memory_order_relaxed);
-    if (currentReadIndex == _writeIndex.load(std::memory_order_acquire))
+    const auto currentReadIndex = readIndex_.load(std::memory_order_relaxed);
+    if (currentReadIndex == writeIndex_.load(std::memory_order_acquire))
     {
       return false;  // empty queue
     }
-    item = _data[currentReadIndex];
-    _readIndex.store(increment(currentReadIndex), std::memory_order_release);
+    item = data_[currentReadIndex];
+    readIndex_.store(increment(currentReadIndex), std::memory_order_release);
     return true;
   }
 
   Element pop()
   {
-    const auto currentReadIndex = _readIndex.load(std::memory_order_relaxed);
-    if (currentReadIndex == _writeIndex.load(std::memory_order_acquire))
+    const auto currentReadIndex = readIndex_.load(std::memory_order_relaxed);
+    if (currentReadIndex == writeIndex_.load(std::memory_order_acquire))
     {
       return Element();  // empty queue, return null object
     }
-    Element r = _data[currentReadIndex];
-    _readIndex.store(increment(currentReadIndex), std::memory_order_release);
+    Element r = data_[currentReadIndex];
+    readIndex_.store(increment(currentReadIndex), std::memory_order_release);
     return r;
   }
 
@@ -91,33 +91,33 @@ class Queue final
 
   size_t elementsAvailable() const
   {
-    return (_writeIndex.load(std::memory_order_acquire) -
-            _readIndex.load(std::memory_order_relaxed)) &
-           _sizeMask;
+    return (writeIndex_.load(std::memory_order_acquire) -
+            readIndex_.load(std::memory_order_relaxed)) &
+           sizeMask_;
   }
 
   // useful for reading elements while a criterion is met. Can be used like
   // while queue.elementsAvailable() && q.peek().mTime < 100 { q.pop(elem) ... }
   const Element& peek() const
   {
-    const auto currentReadIndex = _readIndex.load(std::memory_order_relaxed);
-    return _data[currentReadIndex];
+    const auto currentReadIndex = readIndex_.load(std::memory_order_relaxed);
+    return data_[currentReadIndex];
   }
 
-  bool wasEmpty() const { return (_writeIndex.load() == _readIndex.load()); }
+  bool wasEmpty() const { return (writeIndex_.load() == readIndex_.load()); }
 
   bool wasFull() const
   {
-    const auto nextWriteIndex = increment(_writeIndex.load());
-    return (nextWriteIndex == _readIndex.load());
+    const auto nextWriteIndex = increment(writeIndex_.load());
+    return (nextWriteIndex == readIndex_.load());
   }
 
  private:
-  size_t increment(size_t idx) const { return (idx + 1) & _sizeMask; }
+  size_t increment(size_t idx) const { return (idx + 1) & sizeMask_; }
 
-  std::vector<Element> _data;
-  size_t _sizeMask;
-  std::atomic<size_t> _writeIndex{0};
-  std::atomic<size_t> _readIndex{0};
+  std::vector<Element> data_;
+  size_t sizeMask_;
+  std::atomic<size_t> writeIndex_{0};
+  std::atomic<size_t> readIndex_{0};
 };
 };  // namespace ml

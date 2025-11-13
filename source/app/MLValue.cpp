@@ -13,35 +13,35 @@ namespace ml
 
 void Value::copyOrAllocate(Type newType, const uint8_t* pSrc, size_t bytes)
 {
-  _type = newType;
-  if (bytes == _sizeInBytes)
+  type_ = newType;
+  if (bytes == sizeInBytes_)
   {
     // same as existing size, copy to wherever data is currently stored
-    memcpy(_dataPtr, pSrc, bytes);
+    memcpy(dataPtr_, pSrc, bytes);
   }
   else
   {
-    if (_dataPtr != _localData) free(_dataPtr);
+    if (dataPtr_ != localData_) free(dataPtr_);
 
     if (bytes <= kLocalDataBytes)
     {
-      _dataPtr = _localData;
-      _sizeInBytes = static_cast<uint32_t>(bytes);
-      memcpy(_dataPtr, pSrc, _sizeInBytes);
+      dataPtr_ = localData_;
+      sizeInBytes_ = static_cast<uint32_t>(bytes);
+      memcpy(dataPtr_, pSrc, sizeInBytes_);
     }
     else
     {
-      _dataPtr = (uint8_t*)malloc(bytes);
-      if (_dataPtr)
+      dataPtr_ = (uint8_t*)malloc(bytes);
+      if (dataPtr_)
       {
-        _sizeInBytes = static_cast<uint32_t>(bytes);
-        memcpy(_dataPtr, pSrc, _sizeInBytes);
+        sizeInBytes_ = static_cast<uint32_t>(bytes);
+        memcpy(dataPtr_, pSrc, sizeInBytes_);
       }
       else
       {
-        _dataPtr = _localData;
-        _sizeInBytes = 0;
-        _type = kUndefined;
+        dataPtr_ = localData_;
+        sizeInBytes_ = 0;
+        type_ = kUndefined;
       }
     }
   }
@@ -49,18 +49,18 @@ void Value::copyOrAllocate(Type newType, const uint8_t* pSrc, size_t bytes)
 
 void Value::copyOrMove(Type newType, uint8_t* pSrc, size_t bytes)
 {
-  _type = newType;
-  if (!isStoredLocally()) free(_dataPtr);
+  type_ = newType;
+  if (!isStoredLocally()) free(dataPtr_);
   if (bytes <= kLocalDataBytes)
   {
-    _sizeInBytes = static_cast<uint32_t>(bytes);
-    _dataPtr = _localData;
-    memcpy(_dataPtr, pSrc, _sizeInBytes);
+    sizeInBytes_ = static_cast<uint32_t>(bytes);
+    dataPtr_ = localData_;
+    memcpy(dataPtr_, pSrc, sizeInBytes_);
   }
   else
   {
-    _dataPtr = pSrc;
-    _sizeInBytes = static_cast<uint32_t>(bytes);
+    dataPtr_ = pSrc;
+    sizeInBytes_ = static_cast<uint32_t>(bytes);
   }
 }
 
@@ -68,35 +68,35 @@ void Value::copyOrMove(Type newType, uint8_t* pSrc, size_t bytes)
 
 Value::Value(const Value& other)
 {
-  copyOrAllocate(other._type, other._dataPtr, other._sizeInBytes);
+  copyOrAllocate(other.type_, other.dataPtr_, other.sizeInBytes_);
 }
 
 Value& Value::operator=(const Value& other)
 {
   if (this == &other) return *this;
-  copyOrAllocate(other._type, other._dataPtr, other._sizeInBytes);
+  copyOrAllocate(other.type_, other.dataPtr_, other.sizeInBytes_);
   return *this;
 }
 
 Value::Value(Value&& other) noexcept
 {
-  copyOrMove(other._type, other._dataPtr, other._sizeInBytes);
+  copyOrMove(other.type_, other.dataPtr_, other.sizeInBytes_);
 
   // Reset other to a valid empty state
-  other._dataPtr = other._localData;
-  other._type = kUndefined;
-  other._sizeInBytes = 0;
+  other.dataPtr_ = other.localData_;
+  other.type_ = kUndefined;
+  other.sizeInBytes_ = 0;
 }
 
 Value& Value::operator=(Value&& other) noexcept
 {
   if (this == &other) return *this;
-  copyOrMove(other._type, other._dataPtr, other._sizeInBytes);
+  copyOrMove(other.type_, other.dataPtr_, other.sizeInBytes_);
 
   // Reset other to a valid empty state
-  other._dataPtr = other._localData;
-  other._type = kUndefined;
-  other._sizeInBytes = 0;
+  other.dataPtr_ = other.localData_;
+  other.type_ = kUndefined;
+  other.sizeInBytes_ = 0;
 
   return *this;
 }
@@ -105,29 +105,29 @@ Value::~Value()
 {
   if (!isStoredLocally())
   {
-    free(_dataPtr);
+    free(dataPtr_);
   }
 }
 
 // Constructors with fixed-size data.
 
-Value::Value() : _type(kUndefined), _sizeInBytes(0), _dataPtr(_localData) {}
+Value::Value() : type_(kUndefined), sizeInBytes_(0), dataPtr_(localData_) {}
 
-Value::Value(float v) : _type(kFloat), _sizeInBytes(sizeof(float)), _dataPtr(_localData)
+Value::Value(float v) : type_(kFloat), sizeInBytes_(sizeof(float)), dataPtr_(localData_)
 {
-  float* pVal = reinterpret_cast<float*>(_localData);
+  float* pVal = reinterpret_cast<float*>(localData_);
   pVal[0] = v;
 }
 
-Value::Value(double v) : _type(kFloat), _sizeInBytes(sizeof(float)), _dataPtr(_localData)
+Value::Value(double v) : type_(kFloat), sizeInBytes_(sizeof(float)), dataPtr_(localData_)
 {
-  float* pVal = reinterpret_cast<float*>(_localData);
+  float* pVal = reinterpret_cast<float*>(localData_);
   pVal[0] = static_cast<float>(v);
 }
 
-Value::Value(int v) : _type(kInt), _sizeInBytes(sizeof(int)), _dataPtr(_localData)
+Value::Value(int v) : type_(kInt), sizeInBytes_(sizeof(int)), dataPtr_(localData_)
 {
-  auto pVal = reinterpret_cast<int*>(_localData);
+  auto pVal = reinterpret_cast<int*>(localData_);
   pVal[0] = v;
 }
 
@@ -166,7 +166,7 @@ Value::Value(const uint8_t* data, size_t size) { copyOrAllocate(kBlob, data, siz
 
 float Value::getFloatValue() const
 {
-  switch (_type)
+  switch (type_)
   {
     case kFloat:
       return toFixedSizeType<float>();
@@ -184,7 +184,7 @@ float Value::getFloatValue() const
 
 int Value::getIntValue() const
 {
-  switch (_type)
+  switch (type_)
   {
     case kFloat:
       return static_cast<int>(toFixedSizeType<float>());
@@ -202,7 +202,7 @@ int Value::getIntValue() const
 
 bool Value::getBoolValue() const
 {
-  switch (_type)
+  switch (type_)
   {
     case kFloat:
       return (toFixedSizeType<float>() != 0.0f);
@@ -222,48 +222,48 @@ bool Value::getBoolValue() const
 
 float* Value::getFloatArrayPtr() const
 {
-  return (_type == kFloatArray) ? reinterpret_cast<float*>(_dataPtr) : nullptr;
+  return (type_ == kFloatArray) ? reinterpret_cast<float*>(dataPtr_) : nullptr;
 }
 
 size_t Value::getFloatArraySize() const
 {
-  return (_type == kFloatArray) ? _sizeInBytes / sizeof(float) : 0;
+  return (type_ == kFloatArray) ? sizeInBytes_ / sizeof(float) : 0;
 }
 
 std::vector<float> Value::getFloatVector() const
 {
-  if (_type != kFloatArray) return std::vector<float>();
-  auto floatData = reinterpret_cast<float*>(_dataPtr);
-  return std::vector<float>(floatData, floatData + _sizeInBytes / sizeof(float));
+  if (type_ != kFloatArray) return std::vector<float>();
+  auto floatData = reinterpret_cast<float*>(dataPtr_);
+  return std::vector<float>(floatData, floatData + sizeInBytes_ / sizeof(float));
 }
 
 TextFragment Value::getTextValue() const
 {
-  if (_type != kText) return TextFragment();
-  return TextFragment(reinterpret_cast<char*>(_dataPtr), _sizeInBytes);
+  if (type_ != kText) return TextFragment();
+  return TextFragment(reinterpret_cast<char*>(dataPtr_), sizeInBytes_);
 }
 
 // public utils
 
-bool Value::isStoredLocally() const { return (_dataPtr == _localData); }
+bool Value::isStoredLocally() const { return (dataPtr_ == localData_); }
 
 // distinct from the bool value type, used to support code like if(doThingWithReturnValue())
-Value::operator bool() const { return (_type != kUndefined); }
+Value::operator bool() const { return (type_ != kUndefined); }
 
 bool Value::operator==(const Value& b) const
 {
-  if (_type != b._type) return false;
-  if (_sizeInBytes != b._sizeInBytes) return false;
-  return !std::memcmp(_dataPtr, b._dataPtr, _sizeInBytes);
+  if (type_ != b.type_) return false;
+  if (sizeInBytes_ != b.sizeInBytes_) return false;
+  return !std::memcmp(dataPtr_, b.dataPtr_, sizeInBytes_);
 }
 
 bool Value::operator!=(const Value& b) const { return !operator==(b); }
 
-Value::Type Value::getType() const { return _type; }
+Value::Type Value::getType() const { return type_; }
 
-const uint8_t* Value::data() const { return _dataPtr; }
+const uint8_t* Value::data() const { return dataPtr_; }
 
-uint32_t Value::size() const { return _sizeInBytes; }
+uint32_t Value::size() const { return sizeInBytes_; }
 
 std::ostream& operator<<(std::ostream& out, const Value& r)
 {
@@ -315,26 +315,26 @@ std::ostream& operator<<(std::ostream& out, const Value& r)
 
 Value::Value(unsigned int type, unsigned int sizeInBytes, const uint8_t* dataPtr)
 {
-  _type = static_cast<Value::Type>(type);
-  _sizeInBytes = sizeInBytes;
+  type_ = static_cast<Value::Type>(type);
+  sizeInBytes_ = sizeInBytes;
 
-  if (_sizeInBytes <= kLocalDataBytes)
+  if (sizeInBytes_ <= kLocalDataBytes)
   {
-    _dataPtr = _localData;
-    memcpy(_dataPtr, dataPtr, _sizeInBytes);
+    dataPtr_ = localData_;
+    memcpy(dataPtr_, dataPtr, sizeInBytes_);
   }
   else
   {
-    _dataPtr = (uint8_t*)malloc(_sizeInBytes);
-    if (_dataPtr)
+    dataPtr_ = (uint8_t*)malloc(sizeInBytes_);
+    if (dataPtr_)
     {
-      memcpy(_dataPtr, dataPtr, _sizeInBytes);
+      memcpy(dataPtr_, dataPtr, sizeInBytes_);
     }
     else
     {
-      _dataPtr = _localData;
-      _sizeInBytes = 0;
-      _type = kUndefined;
+      dataPtr_ = localData_;
+      sizeInBytes_ = 0;
+      type_ = kUndefined;
     }
   }
 }

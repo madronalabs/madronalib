@@ -99,7 +99,7 @@ class TextFragment
 
   ~TextFragment() noexcept;
 
-  explicit operator bool() const { return _size > 0; }
+  explicit operator bool() const { return size_ > 0; }
 
   size_t lengthInBytes() const;
 
@@ -108,7 +108,7 @@ class TextFragment
   Iterator begin() const;
   Iterator end() const;
 
-  inline const char* getText() const { return _pText; }
+  inline const char* getText() const { return pText_; }
 
   inline bool beginsWith(const TextFragment& fb) const
   {
@@ -117,7 +117,7 @@ class TextFragment
     if (lenB > lenA) return false;
     for (int i = 0; i < lenB; ++i)
     {
-      if (_pText[i] != fb._pText[i])
+      if (pText_[i] != fb.pText_[i])
       {
         return false;
       }
@@ -132,7 +132,7 @@ class TextFragment
     if (lenB > lenA) return false;
     for (int i = 0; i < lenB; ++i)
     {
-      if (_pText[lenA - lenB + i] != fb._pText[i])
+      if (pText_[lenA - lenB + i] != fb.pText_[i])
       {
         return false;
       }
@@ -155,11 +155,11 @@ class TextFragment
   void _moveDataFromOther(TextFragment& b);
 
   // TODO these things could share space, as in SmallStackBuffer
-  char _localText[kShortFragmentSizeInChars];
-  char* _pText{_localText};
+  char localText_[kShortFragmentSizeInChars];
+  char* pText_{localText_};
 
   // size of data in bytes, without null terminator
-  size_t _size{0};
+  size_t size_{0};
 };
 
 // ----------------------------------------------------------------

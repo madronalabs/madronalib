@@ -93,15 +93,15 @@ class SharedResourcePointer
 {
   struct SpinLockGuard
   {
-    std::atomic_flag* _flag;
-    SpinLockGuard(std::atomic_flag* f) : _flag(f)
+    std::atomic_flag* flag_;
+    SpinLockGuard(std::atomic_flag* f) : flag_(f)
     {
-      while (_flag->test_and_set(std::memory_order_acquire))  // acquire lock
+      while (flag_->test_and_set(std::memory_order_acquire))  // acquire lock
         ;                                                     // spin
     }
     ~SpinLockGuard()
     {
-      _flag->clear(std::memory_order_release);  // release lock
+      flag_->clear(std::memory_order_release);  // release lock
     }
   };
 

@@ -55,14 +55,14 @@ class SymbolTable
 
   // accessors
   const TextFragment& getTextForHash(uint64_t hash) const;
-  size_t getSize() const { return mSymbols.size(); }
+  size_t getSize() const { return symbols_.size(); }
 
   // utilities
   void dump();
 
  private:
-  std::unordered_map<uint64_t, TextFragment> mSymbols;
-  mutable std::mutex mMutex;
+  std::unordered_map<uint64_t, TextFragment> symbols_;
+  mutable std::mutex mutex_;
   static const TextFragment kNullText;
 };
 
@@ -77,36 +77,36 @@ inline SymbolTable& theSymbolTable()
 
 class Symbol
 {
-  uint64_t mHash;
+  uint64_t hash_;
   friend std::ostream& operator<<(std::ostream& out, const Symbol r);
 
  public:
   // Default constructor - null symbol
-  constexpr Symbol() : mHash(0) {}
+  constexpr Symbol() : hash_(0) {}
 
-  Symbol(const char* pC) : mHash(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
+  Symbol(const char* pC) : hash_(theSymbolTable().registerSymbol(pC, strlen(pC))) {}
 
   Symbol(const char* pC, size_t lengthBytes)
-      : mHash(theSymbolTable().registerSymbol(pC, lengthBytes))
+      : hash_(theSymbolTable().registerSymbol(pC, lengthBytes))
   {
   }
 
   explicit Symbol(const TextFragment& frag)
-      : mHash(theSymbolTable().registerSymbol(frag.getText(), frag.lengthInBytes()))
+      : hash_(theSymbolTable().registerSymbol(frag.getText(), frag.lengthInBytes()))
   {
   }
 
   // Comparison
-  bool operator<(const Symbol b) const { return mHash < b.mHash; }
-  bool operator==(const Symbol b) const { return mHash == b.mHash; }
-  bool operator!=(const Symbol b) const { return mHash != b.mHash; }
-  explicit operator bool() const { return mHash != 0; }
+  bool operator<(const Symbol b) const { return hash_ < b.hash_; }
+  bool operator==(const Symbol b) const { return hash_ == b.hash_; }
+  bool operator!=(const Symbol b) const { return hash_ != b.hash_; }
+  explicit operator bool() const { return hash_ != 0; }
 
   // Accessors
-  uint64_t getHash() const { return mHash; }
+  uint64_t getHash() const { return hash_; }
 
   // Text access - returns "?" if symbol not registered
-  const TextFragment& getTextFragment() const { return theSymbolTable().getTextForHash(mHash); }
+  const TextFragment& getTextFragment() const { return theSymbolTable().getTextForHash(hash_); }
   const char* getUTF8Ptr() const { return getTextFragment().getText(); }
 
   // Text operations
@@ -115,7 +115,7 @@ class Symbol
   std::string toString() const { return std::string(getUTF8Ptr()); }
 
   // creates an unregistered Symbol - for use by constexpr Paths only
-  explicit constexpr Symbol(uint64_t hash) : mHash(hash) {}
+  explicit constexpr Symbol(uint64_t hash) : hash_(hash) {}
 };
 
 // Concatenate two symbols - registers the result

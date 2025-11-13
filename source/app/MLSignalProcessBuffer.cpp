@@ -14,18 +14,18 @@ namespace ml
 // DSPVector-sized chunks.
 
 SignalProcessBuffer::SignalProcessBuffer(size_t inputs, size_t outputs, size_t maxFrames)
-    : _maxFrames(maxFrames)
+    : maxFrames_(maxFrames)
 {
-  _inputBuffers.resize(inputs);
+  inputBuffers_.resize(inputs);
   for (int i = 0; i < inputs; ++i)
   {
-    _inputBuffers[i].resize((int)_maxFrames);
+    inputBuffers_[i].resize((int)maxFrames_);
   }
 
-  _outputBuffers.resize(outputs);
+  outputBuffers_.resize(outputs);
   for (int i = 0; i < outputs; ++i)
   {
-    _outputBuffers[i].resize((int)_maxFrames);
+    outputBuffers_[i].resize((int)maxFrames_);
   }
 }
 
@@ -37,30 +37,30 @@ void SignalProcessBuffer::process(const float** externalInputs, float** external
                                   int externalFrames, AudioContext* context,
                                   SignalProcessFn processFn, void* state)
 {
-  size_t nInputs = _inputBuffers.size();
-  size_t nOutputs = _outputBuffers.size();
+  size_t nInputs = inputBuffers_.size();
+  size_t nOutputs = outputBuffers_.size();
   if (nOutputs < 1) return;
   if (!externalOutputs) return;
-  if (externalFrames > (int)_maxFrames) return;
+  if (externalFrames > (int)maxFrames_) return;
 
   // write vectors from external inputs (if any) to inputBuffers
   for (int c = 0; c < nInputs; c++)
   {
     if (externalInputs[c])
     {
-      _inputBuffers[c].write(externalInputs[c], externalFrames);
+      inputBuffers_[c].write(externalInputs[c], externalFrames);
     }
   }
 
   // run vector-size process until we have externalFrames of output
   int startOffset{0};
-  while (_outputBuffers[0].getReadAvailable() < externalFrames)
+  while (outputBuffers_[0].getReadAvailable() < externalFrames)
   {
     // read one chunk from each input buffer
     for (int c = 0; c < nInputs; c++)
     {
       // read one DSPVector from the input buffer.
-      context->inputs[c] = _inputBuffers[c].read();
+      context->inputs[c] = inputBuffers_[c].read();
     }
 
     // process one vector of the context, generating event / controller signals
@@ -73,7 +73,7 @@ void SignalProcessBuffer::process(const float** externalInputs, float** external
     // write one vector to each output buffer
     for (int c = 0; c < nOutputs; c++)
     {
-      _outputBuffers[c].write(context->outputs[c]);
+      outputBuffers_[c].write(context->outputs[c]);
     }
   }
 
@@ -82,7 +82,7 @@ void SignalProcessBuffer::process(const float** externalInputs, float** external
   {
     if (externalOutputs[c])
     {
-      _outputBuffers[c].read(externalOutputs[c], externalFrames);
+      outputBuffers_[c].read(externalOutputs[c], externalFrames);
     }
   }
 

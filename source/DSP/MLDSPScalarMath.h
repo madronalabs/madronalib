@@ -27,8 +27,6 @@ constexpr float kE = 2.718281828459045f;
 constexpr float kTwelfthRootOfTwo = 1.05946309436f;
 constexpr float kMinGain = 0.00001f;  // 10e-5 = -120dB
 
-typedef float MLSample;
-
 // return the exponent of the smallest power of 2 that is >= x.
 inline size_t bitsToContain(int x)
 {
@@ -186,15 +184,15 @@ inline float dBToAmp(float dB) { return powf(10.f, dB / 20.f); }
 class RandomScalarSource
 {
  public:
-  RandomScalarSource() : mSeed(0) {}
+  RandomScalarSource() : seed_(0) {}
   ~RandomScalarSource() {}
-  inline void step() { mSeed = mSeed * 0x0019660D + 0x3C6EF35F; }
+  inline void step() { seed_ = seed_ * 0x0019660D + 0x3C6EF35F; }
 
   // return single-precision floating point number on [-1, 1]
   float getFloat()
   {
     step();
-    uint32_t temp = (mSeed >> 9) & 0x007FFFFF;
+    uint32_t temp = (seed_ >> 9) & 0x007FFFFF;
     temp &= 0x007FFFFF;
     temp |= 0x3F800000;
     float* pf = reinterpret_cast<float*>(&temp);
@@ -207,9 +205,9 @@ class RandomScalarSource
   uint32_t getUInt32()
   {
     step();
-    return mSeed;
+    return seed_;
   }
-  uint32_t mSeed;
+  uint32_t seed_;
 };
 
 // constexpr math functions

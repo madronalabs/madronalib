@@ -1032,21 +1032,21 @@ const TextFragment NameMaker::nextName()
 class NoiseGen
 {
  public:
-  NoiseGen() : mSeed(0) {}
+  NoiseGen() : seed_(0) {}
   ~NoiseGen() {}
 
-  inline void step() { mSeed = mSeed * 0x0019660D + 0x3C6EF35F; }
+  inline void step() { seed_ = seed_ * 0x0019660D + 0x3C6EF35F; }
 
   inline uint32_t getIntSample()
   {
     step();
-    return mSeed;
+    return seed_;
   }
 
-  void reset() { mSeed = 0; }
+  void reset() { seed_ = 0; }
 
  private:
-  uint32_t mSeed = 0;
+  uint32_t seed_ = 0;
 };
 
 static const char kLetters[33] = "aabcdeefghijklmnnoopqrssttuvwxyz";

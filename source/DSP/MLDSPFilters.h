@@ -58,7 +58,7 @@ struct Lopass
     nCoeffs
   };
 
-  typedef std::array<float, nCoeffs> coeffs;
+  typedef std::array<float, nCoeffs> Coeffs;
   typedef DSPVectorArray<nCoeffs> coeffsVec;
   float ic1eq{0};
   float ic2eq{0};
@@ -77,12 +77,12 @@ struct Lopass
   };
 
   typedef std::array<float, nParams> params;
-  coeffs _coeffs{};
+  Coeffs coeffs{};
 
   // get internal coefficients for a given omega and k.
   // omega: the frequency divided by the sample rate.
   // k: 1/Q, where k=0 is maximum resonance.
-  static coeffs makeCoeffs(float omega, float k)
+  static Coeffs makeCoeffs(float omega, float k)
   {
     float piOmega = kPi * omega;
     float s1 = sinf(piOmega);
@@ -122,8 +122,8 @@ struct Lopass
     {
       float v0 = vx[n];
       float t0 = v0 - ic2eq;
-      float t1 = _coeffs[g0] * t0 + _coeffs[g1] * ic1eq;
-      float t2 = _coeffs[g2] * t0 + _coeffs[g0] * ic1eq;
+      float t1 = coeffs[g0] * t0 + coeffs[g1] * ic1eq;
+      float t2 = coeffs[g2] * t0 + coeffs[g0] * ic1eq;
       float v2 = t2 + ic2eq;
       ic1eq += 2.0f * t1;
       ic2eq += 2.0f * t2;
@@ -154,7 +154,7 @@ struct Lopass
 
 class Hipass
 {
-  struct _coeffs
+  struct Coeffs
   {
     float g0, g1, g2, k;
   };
@@ -163,9 +163,9 @@ class Hipass
   float ic2eq{0};
 
  public:
-  _coeffs mCoeffs{0};
+  Coeffs coeffs{0};
 
-  static _coeffs coeffs(float omega, float k)
+  static Coeffs makeCoeffs(float omega, float k)
   {
     float piOmega = kPi * omega;
     float s1 = sinf(piOmega);
@@ -184,13 +184,13 @@ class Hipass
     {
       float v0 = vx[n];
       float t0 = v0 - ic2eq;
-      float t1 = mCoeffs.g0 * t0 + mCoeffs.g1 * ic1eq;
-      float t2 = mCoeffs.g2 * t0 + mCoeffs.g0 * ic1eq;
+      float t1 = coeffs.g0 * t0 + coeffs.g1 * ic1eq;
+      float t2 = coeffs.g2 * t0 + coeffs.g0 * ic1eq;
       float v1 = t1 + ic1eq;
       float v2 = t2 + ic2eq;
       ic1eq += 2.0f * t1;
       ic2eq += 2.0f * t2;
-      vy[n] = v0 - mCoeffs.k * v1 - v2;
+      vy[n] = v0 - coeffs.k * v1 - v2;
     }
     return vy;
   }
@@ -198,7 +198,7 @@ class Hipass
 
 class Bandpass
 {
-  struct _coeffs
+  struct Coeffs
   {
     float g0, g1, g2;
   };
@@ -207,9 +207,9 @@ class Bandpass
   float ic2eq{0};
 
  public:
-  _coeffs mCoeffs{0};
+  Coeffs coeffs{0};
 
-  static _coeffs coeffs(float omega, float k)
+  static Coeffs makeCoeffs(float omega, float k)
   {
     float piOmega = kPi * omega;
     float s1 = sinf(piOmega);
@@ -228,8 +228,8 @@ class Bandpass
     {
       float v0 = vx[n];
       float t0 = v0 - ic2eq;
-      float t1 = mCoeffs.g0 * t0 + mCoeffs.g1 * ic1eq;
-      float t2 = mCoeffs.g2 * t0 + mCoeffs.g0 * ic1eq;
+      float t1 = coeffs.g0 * t0 + coeffs.g1 * ic1eq;
+      float t2 = coeffs.g2 * t0 + coeffs.g0 * ic1eq;
       float v1 = t1 + ic1eq;
       ic1eq += 2.0f * t1;
       ic2eq += 2.0f * t2;
@@ -250,7 +250,7 @@ class LoShelf
     m2,
     COEFFS_SIZE
   };
-  typedef std::array<float, COEFFS_SIZE> _coeffs;
+  typedef std::array<float, COEFFS_SIZE> Coeffs;
   typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
 
   float ic1eq{0};
@@ -265,11 +265,11 @@ class LoShelf
     PARAMS_SIZE
   };
   typedef std::array<float, PARAMS_SIZE> params;
-  _coeffs mCoeffs{};
+  Coeffs coeffs{};
 
-  static _coeffs coeffs(params p)
+  static Coeffs makeCoeffs(params p)
   {
-    _coeffs r;
+    Coeffs r;
     float piOmega = kPi * p[omega];
     float g = tanf(piOmega) / sqrtf(p[A]);
     r[a1] = 1.f / (1.f + g * (g + p[k]));
@@ -282,7 +282,7 @@ class LoShelf
 
   static _vcoeffs vcoeffs(const params p0, const params p1)
   {
-    return interpolateCoeffsLinear(coeffs(p0), coeffs(p1));
+    return interpolateCoeffsLinear(makeCoeffs(p0), makeCoeffs(p1));
   }
 
   inline DSPVector operator()(const DSPVector vx)
@@ -292,11 +292,11 @@ class LoShelf
     {
       float v0 = vx[n];
       float v3 = v0 - ic2eq;
-      float v1 = mCoeffs[a1] * ic1eq + mCoeffs[a2] * v3;
-      float v2 = ic2eq + mCoeffs[a2] * ic1eq + mCoeffs[a3] * v3;
+      float v1 = coeffs[a1] * ic1eq + coeffs[a2] * v3;
+      float v2 = ic2eq + coeffs[a2] * ic1eq + coeffs[a3] * v3;
       ic1eq = 2 * v1 - ic1eq;
       ic2eq = 2 * v2 - ic2eq;
-      vy[n] = v0 + mCoeffs[m1] * v1 + mCoeffs[m2] * v2;
+      vy[n] = v0 + coeffs[m1] * v1 + coeffs[m2] * v2;
     }
     return vy;
   }
@@ -330,7 +330,7 @@ class HiShelf
     m2,
     COEFFS_SIZE
   };
-  typedef std::array<float, COEFFS_SIZE> _coeffs;
+  typedef std::array<float, COEFFS_SIZE> Coeffs;
   typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
 
   float ic1eq{0};
@@ -345,11 +345,11 @@ class HiShelf
     PARAMS_SIZE
   };
   typedef std::array<float, PARAMS_SIZE> params;
-  _coeffs mCoeffs{};
+  Coeffs coeffs{};
 
-  static _coeffs coeffs(params p)
+  static Coeffs makeCoeffs(params p)
   {
-    _coeffs r;
+    Coeffs r;
     float piOmega = kPi * p[omega];
     float g = tanf(piOmega) * sqrtf(p[A]);
     r[a1] = 1.f / (1.f + g * (g + p[k]));
@@ -363,7 +363,7 @@ class HiShelf
 
   static _vcoeffs vcoeffs(const params p0, const params p1)
   {
-    return interpolateCoeffsLinear(coeffs(p0), coeffs(p1));
+    return interpolateCoeffsLinear(makeCoeffs(p0), makeCoeffs(p1));
   }
 
   inline DSPVector operator()(const DSPVector vx)
@@ -373,11 +373,11 @@ class HiShelf
     {
       float v0 = vx[n];
       float v3 = v0 - ic2eq;
-      float v1 = mCoeffs[a1] * ic1eq + mCoeffs[a2] * v3;
-      float v2 = ic2eq + mCoeffs[a2] * ic1eq + mCoeffs[a3] * v3;
+      float v1 = coeffs[a1] * ic1eq + coeffs[a2] * v3;
+      float v2 = ic2eq + coeffs[a2] * ic1eq + coeffs[a3] * v3;
       ic1eq = 2 * v1 - ic1eq;
       ic2eq = 2 * v2 - ic2eq;
-      vy[n] = mCoeffs[m0] * v0 + mCoeffs[m1] * v1 + mCoeffs[m2] * v2;
+      vy[n] = coeffs[m0] * v0 + coeffs[m1] * v1 + coeffs[m2] * v2;
     }
     return vy;
   }
@@ -401,7 +401,7 @@ class HiShelf
 
 class Bell
 {
-  struct _coeffs
+  struct Coeffs
   {
     float a1, a2, a3, m1;
   };
@@ -410,9 +410,9 @@ class Bell
   float ic2eq{0};
 
  public:
-  _coeffs mCoeffs{0};
+  Coeffs coeffs{0};
 
-  static _coeffs coeffs(float omega, float k, float A)
+  static Coeffs makeCoeffs(float omega, float k, float A)
   {
     float kc = k / A;  // correct k
     float piOmega = kPi * omega;
@@ -431,11 +431,11 @@ class Bell
     {
       float v0 = vx[n];
       float v3 = v0 - ic2eq;
-      float v1 = mCoeffs.a1 * ic1eq + mCoeffs.a2 * v3;
-      float v2 = ic2eq + mCoeffs.a2 * ic1eq + mCoeffs.a3 * v3;
+      float v1 = coeffs.a1 * ic1eq + coeffs.a2 * v3;
+      float v2 = ic2eq + coeffs.a2 * ic1eq + coeffs.a3 * v3;
       ic1eq = 2 * v1 - ic1eq;
       ic2eq = 2 * v2 - ic2eq;
-      vy[n] = v0 + mCoeffs.m1 * v1;
+      vy[n] = v0 + coeffs.m1 * v1;
     }
     return vy;
   }
@@ -445,7 +445,7 @@ class Bell
 
 struct OnePole
 {
-  struct _coeffs  // FIX
+  struct Coeffs
   {
     float a0, b1;
   };
@@ -453,22 +453,22 @@ struct OnePole
   float y1{0};
 
  public:
-  _coeffs mCoeffs{0};
+  Coeffs coeffs{0};
 
-  static _coeffs coeffs(float omega)
+  static Coeffs makeCoeffs(float omega)
   {
     float x = expf(-omega * kTwoPi);
     return {1.f - x, x};
   }
 
-  static _coeffs passthru() { return {1.f, 0.f}; }
+  static Coeffs passthru() { return {1.f, 0.f}; }
 
   inline DSPVector operator()(const DSPVector vx)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
-      y1 = mCoeffs.a0 * vx[n] + mCoeffs.b1 * y1;
+      y1 = coeffs.a0 * vx[n] + coeffs.b1 * y1;
       vy[n] = y1;
     }
     return vy;
@@ -488,14 +488,14 @@ struct OnePole
 
 class DCBlocker
 {
-  typedef float _coeffs;
+  typedef float Coeffs;
   float x1{0};
   float y1{0};
 
  public:
-  _coeffs mCoeffs{0.045f};
+  Coeffs coeffs{0.045f};
 
-  static _coeffs coeffs(float omega) { return cosf(omega); }
+  static Coeffs makeCoeffs(float omega) { return cosf(omega); }
 
   inline DSPVector operator()(const DSPVector vx)
   {
@@ -503,7 +503,7 @@ class DCBlocker
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       const float x0 = vx[n];
-      const float y0 = x0 - x1 + mCoeffs * y1;
+      const float y0 = x0 - x1 + coeffs * y1;
       y1 = y0;
       x1 = x0;
       vy[n] = y0;
@@ -561,7 +561,7 @@ class Integrator
 
 class Peak
 {
-  struct _coeffs
+  struct Coeffs
   {
     float a0, b1;
   };
@@ -570,16 +570,16 @@ class Peak
   int peakHoldCounter{0};
 
  public:
-  _coeffs mCoeffs{0};
+  Coeffs coeffs{0};
   int peakHoldSamples{44100};
 
-  static _coeffs coeffs(float omega)
+  static Coeffs makeCoeffs(float omega)
   {
     float x = expf(-omega * kTwoPi);
     return {1.f - x, x};
   }
 
-  static _coeffs passthru() { return {1.f, 0.f}; }
+  static Coeffs passthru() { return {1.f, 0.f}; }
 
   inline DSPVector operator()(const DSPVector vx)
   {
@@ -598,7 +598,7 @@ class Peak
         // decay
         if (peakHoldCounter <= 0)
         {
-          y1 = mCoeffs.a0 * vxSquared[n] + mCoeffs.b1 * y1;
+          y1 = coeffs.a0 * vxSquared[n] + coeffs.b1 * y1;
         }
       }
       vy[n] = y1;
@@ -618,7 +618,7 @@ class Peak
 
 class RMS
 {
-  struct _coeffs
+  struct Coeffs
   {
     float a0, b1;
   };
@@ -626,15 +626,15 @@ class RMS
   float y1{0};
 
  public:
-  _coeffs mCoeffs{0};
+  Coeffs coeffs{0};
 
-  static _coeffs coeffs(float omega)
+  static Coeffs makeCoeffs(float omega)
   {
     float x = expf(-omega * kTwoPi);
     return {1.f - x, x};
   }
 
-  static _coeffs passthru() { return {1.f, 0.f}; }
+  static Coeffs passthru() { return {1.f, 0.f}; }
 
   inline DSPVector operator()(const DSPVector vx)
   {
@@ -643,7 +643,7 @@ class RMS
 
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
-      y1 = mCoeffs.a0 * vxSquared[n] + mCoeffs.b1 * y1;
+      y1 = coeffs.a0 * vxSquared[n] + coeffs.b1 * y1;
       vy[n] = y1;
     }
 
@@ -659,7 +659,7 @@ struct ADSR
   static constexpr float bias = 0.1f;
   static constexpr float minSegmentTime = 0.0002f;
 
-  struct _coeffs
+  struct Coeffs
   {
     float ka, kd, s, kr;
   };
@@ -673,7 +673,7 @@ struct ADSR
     off = 4
   };
 
-  static _coeffs calcCoeffs(float a, float d, float s, float r, float sr)
+  static Coeffs calcCoeffs(float a, float d, float s, float r, float sr)
   {
     const float invSr = 1.0f / sr;
     const float ka = kTwoPi * invSr / ml::max(a, minSegmentTime);
@@ -682,7 +682,7 @@ struct ADSR
     return {ka, kd, s, kr};
   }
 
-  _coeffs coeffs{0};
+  Coeffs coeffs{0};
 
   float y{0};          // current output
   float y1{0};         // previous output
@@ -921,9 +921,10 @@ class Allpass1
   float x1{0}, y1{0};
 
  public:
-  float mCoeff{0.f};
+  typedef float Coeffs;
+  Coeffs coeffs{0.f};
 
-  Allpass1(float a) : mCoeff(a) {}
+  Allpass1(float a) : coeffs(a) {}
   ~Allpass1() {}
 
   inline void clear()
@@ -934,7 +935,7 @@ class Allpass1
 
   // get allpass coefficient from a delay fraction d.
   // to minimize modulation noise, d should be in the range [0.618 - 1.618].
-  static float coeffs(float d)
+  static float makeCoeffs(float d)
   {
     // return 2nd order approx around 1 to (1.f - d) / (1.f + d)
     float xm1 = (d - 1.f);
@@ -945,7 +946,7 @@ class Allpass1
   {
     // one-multiply form. see
     // https://ccrma.stanford.edu/~jos/pasp/One_Multiply_Scattering_Junctions.html
-    float y = x1 + (x - y1) * mCoeff;
+    float y = x1 + (x - y1) * coeffs;
     x1 = x;
     y1 = y;
     return y;
@@ -1002,7 +1003,7 @@ class FractionalDelay
       delayInt -= 1;
     }
     mIntegerDelay.setDelayInSamples(delayInt);
-    mAllpassSection.mCoeff = Allpass1::coeffs(delayFrac);
+    mAllpassSection.coeffs = Allpass1::makeCoeffs(delayFrac);
   }
 
   inline void setMaxDelayInSamples(float d) { mIntegerDelay.setMaxDelayInSamples(floorf(d)); }
@@ -1185,7 +1186,7 @@ class FDN
   {
     for (int n = 0; n < SIZE; ++n)
     {
-      mFilters[n].mCoeffs = ml::OnePole::coeffs(omegas[n]);
+      mFilters[n].coeffs = ml::OnePole::makeCoeffs(omegas[n]);
     }
   }
 

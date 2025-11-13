@@ -30,15 +30,15 @@ class SignalProcessor
     std::vector<float> voiceRotateBuffer;
     DSPBuffer buffer_;
     size_t maxFrames_{0};
-    size_t _channels{0};
+    size_t channels_{0};
     int octavesDown_{0};
     int downsampleCtr_{0};
 
     PublishedSignal(int frames, int maxVoices, int channels, int octavesDown);
     ~PublishedSignal() = default;
 
-    inline size_t getNumChannels() const { return (size_t)_channels; }
-    inline int getAvailableFrames() const { return (int)(_channels ? (buffer_.getReadAvailable() / _channels) : 0); }
+    inline size_t getNumChannels() const { return (size_t)channels_; }
+    inline int getAvailableFrames() const { return (int)(channels_ ? (buffer_.getReadAvailable() / channels_) : 0); }
     inline int getReadAvailable() const { return (int)buffer_.getReadAvailable(); }
 
     
@@ -107,14 +107,14 @@ class SignalProcessor
   // class used for assigning each instance of our SignalProcessor a unique ID
   class ProcessorRegistry
   {
-    std::mutex _IDMutex;
-    size_t _IDCounter{0};
+    std::mutex idMutex_;
+    size_t idCounter_{0};
 
    public:
     size_t getUniqueID()
     {
-      std::unique_lock<std::mutex> lock(_IDMutex);
-      return ++_IDCounter;
+      std::unique_lock<std::mutex> lock(idMutex_);
+      return ++idCounter_;
     }
   };
 

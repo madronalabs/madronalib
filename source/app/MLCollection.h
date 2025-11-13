@@ -23,14 +23,14 @@ class Collection
   using TreeType = Tree<ObjectPointerType>;
 
  protected:
-  TreeType* _tree{nullptr};
+  TreeType* tree_{nullptr};
 
  public:
   // The non-null constructor needs to be passed a reference to a Tree
   // that holds the actual collection. This allows a collection to refer
   // to a sub-path of another collection. To create
   // the root collection and the tree of objects, use CollectionRoot below.
-  Collection(TreeType& t) : _tree(&t) {}
+  Collection(TreeType& t) : tree_(&t) {}
 
   Collection() = default;
   ~Collection() = default;
@@ -41,25 +41,25 @@ class Collection
   inline typename TreeType::const_iterator begin() const
   {
     const static typename TreeType::const_iterator nullIterator{};
-    return _tree ? _tree->begin() : nullIterator;
+    return tree_ ? tree_->begin() : nullIterator;
   }
 
   inline typename TreeType::const_iterator end() const
   {
     const static typename TreeType::const_iterator nullIterator{};
-    return _tree ? _tree->end() : nullIterator;
+    return tree_ ? tree_->end() : nullIterator;
   }
 
   const ObjectPointerType& operator[](Path p) const
   {
-    static std::unique_ptr<T> _nullObjPtr;
-    if (!_tree)
+    static std::unique_ptr<T> nullObjPtr_;
+    if (!tree_)
     {
-      return _nullObjPtr;
+      return nullObjPtr_;
     }
     else
     {
-      return _tree->operator[](p);
+      return tree_->operator[](p);
     }
   }
 
@@ -67,28 +67,28 @@ class Collection
   // otherwise, return a unique_ptr to null.
   const ObjectPointerType& find(Path p) const
   {
-    static std::unique_ptr<T> _nullObjPtr;
-    if (!_tree)
+    static std::unique_ptr<T> nullObjPtr_;
+    if (!tree_)
     {
-      return _nullObjPtr;
+      return nullObjPtr_;
     }
 
-    const TreeType* n = _tree->getNode(p);
+    const TreeType* n = tree_->getNode(p);
     if (n && n->hasValue())
     {
       return n->getValue();
     }
     else
     {
-      return _nullObjPtr;
+      return nullObjPtr_;
     }
   }
 
   // add the object referred to by newVal to the collection.
   void add(Path p, T& newVal)
   {
-    if (!_tree) return;
-    _tree->add(p, std::move(newVal));
+    if (!tree_) return;
+    tree_->add(p, std::move(newVal));
   }
 
   // create a new object in the collection at the given path, constructed with the remaining
@@ -96,8 +96,8 @@ class Collection
   template <typename TT, typename... Targs>
   void add_unique(Path p, Targs... Fargs)
   {
-    if (!_tree) return;
-    _tree->add(p, std::move(std::make_unique<TT>(Fargs...)));
+    if (!tree_) return;
+    tree_->add(p, std::move(std::make_unique<TT>(Fargs...)));
   }
 
   // like add_unique but also passes the new object an initial argument: the Collection
@@ -105,10 +105,10 @@ class Collection
   template <typename TT, typename... Targs>
   void add_unique_with_collection(Path p, Targs... Fargs)
   {
-    if (!_tree) return;
-    _tree->add(p, ObjectPointerType());
+    if (!tree_) return;
+    tree_->add(p, ObjectPointerType());
     auto sc = getSubCollection(p);
-    _tree->operator[](p) = std::move(std::make_unique<TT>(sc, Fargs...));
+    tree_->operator[](p) = std::move(std::make_unique<TT>(sc, Fargs...));
   }
 
   // return the Collection under the given node. Note that this does not
@@ -116,9 +116,9 @@ class Collection
   // not include a "/" or null-named node.
   inline Collection getSubCollection(Path addr)
   {
-    if (!_tree) return Collection<T>();
+    if (!tree_) return Collection<T>();
 
-    TreeType* subTree = _tree->getMutableNode(addr);
+    TreeType* subTree = tree_->getMutableNode(addr);
     if (subTree)
     {
       // return a new Collection referring to the given subTree.
@@ -136,9 +136,9 @@ class Collection
   inline TreeType& subCollReference(Path addr)
   {
     static TreeType nullTree{};
-    if (!_tree) return nullTree;
+    if (!tree_) return nullTree;
 
-    TreeType* subTree = _tree->getMutableNode(addr);
+    TreeType* subTree = tree_->getMutableNode(addr);
     if (subTree)
     {
       // return a reference to the subTree.
@@ -156,8 +156,8 @@ class Collection
   template <typename CALLABLE>
   void forEach(CALLABLE f, Path* currentPathPtr = nullptr)
   {
-    if (!_tree) return;
-    for (auto it = _tree->begin(); it != _tree->end(); ++it)
+    if (!tree_) return;
+    for (auto it = tree_->begin(); it != tree_->end(); ++it)
     {
       if (currentPathPtr)
       {
@@ -174,11 +174,11 @@ class Collection
   template <typename CALLABLE>
   void forEachChild(CALLABLE f, Path* currentPathPtr = nullptr)
   {
-    if (!_tree) return;
+    if (!tree_) return;
     // Tree currently offers only depth-first iterators so
     // we have to iterate the entire tree even though we only want children
     // of the root node.
-    for (auto it = _tree->begin(); it != _tree->end(); ++it)
+    for (auto it = tree_->begin(); it != tree_->end(); ++it)
     {
       if ((it.getCurrentDepth() == 0) && (it.currentNodeHasValue()))
       {
@@ -197,27 +197,27 @@ class Collection
 
   inline void dump() const
   {
-    for (auto it = _tree->begin(); it != _tree->end(); ++it)
+    for (auto it = tree_->begin(); it != tree_->end(); ++it)
     {
       std::cout << it.getCurrentPath() << " [" << *it << "] \n";
     }
   }
 
-  inline size_t size() const { return _tree ? _tree->size() : 0; }
+  inline size_t size() const { return tree_ ? tree_->size() : 0; }
 };
 
 // CollectionRoot: a handy subclass to combine a Collection with its Tree
 template <typename T>
 class CollectionRoot : public Collection<T>
 {
-  typename Collection<T>::TreeType _localTree;
+  typename Collection<T>::TreeType localTree_;
 
  public:
   // return collection referring to our internal tree
-  CollectionRoot() : Collection<T>(_localTree) {};
+  CollectionRoot() : Collection<T>(localTree_) {};
   ~CollectionRoot() = default;
 
-  inline void clear() { _localTree.clear(); }
+  inline void clear() { localTree_.clear(); }
 };
 
 template <typename T>
