@@ -338,6 +338,11 @@ class DSPVectorArray
   {
     return add(x1, x2);
   }
+  friend inline DSPVectorArray operator-(const DSPVectorArray& x1)
+  {
+    constexpr DSPVectorArray zero(0.f);
+    return subtract(zero, x1);
+  }
   friend inline DSPVectorArray operator-(const DSPVectorArray& x1, const DSPVectorArray& x2)
   {
     return subtract(x1, x2);
@@ -487,12 +492,18 @@ class DSPVectorArrayInt
     return addInt32(x1, x2);
   }
 
+  friend inline DSPVectorArrayInt operator-(const DSPVectorArrayInt& x1)
+  {
+    DSPVectorArrayInt zero(0);
+    return subtractInt32(zero, x1);
+  }
+  
   friend inline DSPVectorArrayInt operator-(const DSPVectorArrayInt& x1,
                                             const DSPVectorArrayInt& x2)
   {
     return subtractInt32(x1, x2);
   }
-
+  
 };  // class DSPVectorArrayInt
 
 typedef DSPVectorArrayInt<1> DSPVectorInt;

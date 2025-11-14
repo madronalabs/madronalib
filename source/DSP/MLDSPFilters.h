@@ -45,21 +45,15 @@ DSPVectorArray<COEFFS_SIZE> interpolateCoeffsLinear(const std::array<float, COEF
 
 // --------------------------------------------------------------------------------
 // utility filters implemented as SVF variations
-// Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the
-// years.
+// Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the years.
 
 struct Lopass
 {
-  enum coeffNames
-  {
-    g0,
-    g1,
-    g2,
-    nCoeffs
-  };
+  enum coeffNames {g0, g1, g2, nCoeffs};
+  enum paramNames {omega, k, nParams};
 
   typedef std::array<float, nCoeffs> Coeffs;
-  typedef DSPVectorArray<nCoeffs> coeffsVec;
+  typedef DSPVectorArray<nCoeffs> CoeffsVec;
   float ic1eq{0};
   float ic2eq{0};
 
@@ -68,13 +62,6 @@ struct Lopass
     ic1eq = 0;
     ic2eq = 0;
   }
-
-  enum paramNames
-  {
-    omega,
-    k,
-    nParams
-  };
 
   typedef std::array<float, nParams> params;
   Coeffs coeffs{};
@@ -94,9 +81,9 @@ struct Lopass
     return {g0, g1, g2};
   }
 
-  static coeffsVec makeCoeffsVec(DSPVector omega, DSPVector k)
+  static CoeffsVec makeCoeffsVec(DSPVector omega, DSPVector k)
   {
-    coeffsVec vy;
+    CoeffsVec vy;
     // TODO SIMD
     omega = min(omega, DSPVector(0.5f));
     k = max(k, DSPVector(0.01f));
@@ -248,10 +235,10 @@ class LoShelf
     a3,
     m1,
     m2,
-    COEFFS_SIZE
+    nCoeffs
   };
-  typedef std::array<float, COEFFS_SIZE> Coeffs;
-  typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
+  typedef std::array<float, nCoeffs> Coeffs;
+  typedef DSPVectorArray<nCoeffs> VCoeffs;
 
   float ic1eq{0};
   float ic2eq{0};
@@ -280,7 +267,7 @@ class LoShelf
     return r;
   }
 
-  static _vcoeffs vcoeffs(const params p0, const params p1)
+  static VCoeffs vcoeffs(const params p0, const params p1)
   {
     return interpolateCoeffsLinear(makeCoeffs(p0), makeCoeffs(p1));
   }
@@ -301,7 +288,7 @@ class LoShelf
     return vy;
   }
 
-  inline DSPVector operator()(const DSPVector vx, const _vcoeffs vc)
+  inline DSPVector operator()(const DSPVector vx, const VCoeffs vc)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
@@ -320,7 +307,7 @@ class LoShelf
 
 class HiShelf
 {
-  enum coeffnames
+  enum coeffNames
   {
     a1,
     a2,
@@ -328,10 +315,10 @@ class HiShelf
     m0,
     m1,
     m2,
-    COEFFS_SIZE
+    nCoeffs
   };
-  typedef std::array<float, COEFFS_SIZE> Coeffs;
-  typedef DSPVectorArray<COEFFS_SIZE> _vcoeffs;
+  typedef std::array<float, nCoeffs> Coeffs;
+  typedef DSPVectorArray<nCoeffs> VCoeffs;
 
   float ic1eq{0};
   float ic2eq{0};
@@ -361,7 +348,7 @@ class HiShelf
     return r;
   }
 
-  static _vcoeffs vcoeffs(const params p0, const params p1)
+  static VCoeffs vcoeffs(const params p0, const params p1)
   {
     return interpolateCoeffsLinear(makeCoeffs(p0), makeCoeffs(p1));
   }
@@ -382,7 +369,7 @@ class HiShelf
     return vy;
   }
 
-  inline DSPVector operator()(const DSPVector vx, const _vcoeffs vc)
+  inline DSPVector operator()(const DSPVector vx, const VCoeffs vc)
   {
     DSPVector vy;
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
