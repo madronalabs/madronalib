@@ -40,7 +40,6 @@ class SignalProcessor
     inline size_t getNumChannels() const { return (size_t)channels_; }
     inline int getAvailableFrames() const { return (int)(channels_ ? (buffer_.getReadAvailable() / channels_) : 0); }
     inline int getReadAvailable() const { return (int)buffer_.getReadAvailable(); }
-
     
     // write frames from a DSPVectorArray< CHANNELS > of data into a published signal.
     // this data is for one voice of the signal.
@@ -138,16 +137,8 @@ class SignalProcessor
   const Tree<std::unique_ptr<PublishedSignal>>& getPublishedSignals() const {
     return publishedSignals_;
   }
-
-  void setParamFromNormalizedValue(Path pname, float val)
-  {
-    params_.setFromNormalizedValue(pname, val);
-  }
-
-  void setParamFromRealValue(Path pname, float val)
-  {
-    params_.setFromRealValue(pname, val);
-  }
+  
+  void setPublishedSignalsActive(bool b) { publishedSignalsAreActive_ = b; }
 
   inline void buildParams(const ParameterDescriptionList& paramList)
   {
@@ -158,6 +149,16 @@ class SignalProcessor
   {
     setDefaults(params_);
   };
+
+  void setParamFromNormalizedValue(Path pname, float val)
+  {
+    params_.setFromNormalizedValue(pname, val);
+  }
+
+  void setParamFromRealValue(Path pname, float val)
+  {
+    params_.setFromRealValue(pname, val);
+  }
 
   inline float getRealFloatParam(Path pname)
   {
@@ -175,6 +176,7 @@ class SignalProcessor
   Tree< std::unique_ptr<PublishedSignal> > publishedSignals_;
   SharedResourcePointer<ProcessorRegistry> registry_;
   float sampleRate_{0.f};
+  bool publishedSignalsAreActive_{false};
   
   // used by clients currently, don't delete! And TODO move relevant client code into this class.
   size_t uniqueID_;
@@ -192,6 +194,7 @@ class SignalProcessor
   template <size_t CHANNELS>
   inline void storePublishedSignal(Path signalName, const DSPVectorArray<CHANNELS>& inputVec, int frames, int voice)
   {
+    if(!publishedSignalsAreActive_) return;
     PublishedSignal* publishedSignal = publishedSignals_[signalName].get();
     if(publishedSignal)
     {
@@ -201,6 +204,7 @@ class SignalProcessor
   
   inline void storePublishedSignalVert(Path signalName, const float* pInput, int channels, int voice)
   {
+    if(!publishedSignalsAreActive_) return;
     PublishedSignal* publishedSignal = publishedSignals_[signalName].get();
     if(publishedSignal)
     {

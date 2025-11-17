@@ -150,11 +150,11 @@ class DSPVectorArray
 
   // default constructor: zeroes the data.
   // TODO this seems to be taking a lot of time! investigate
-  DSPVectorArray() { data_.arrayData_.fill(0.f); }
+  constexpr DSPVectorArray() { data_.arrayData_.fill(0.f); }
 
   // conversion constructor to float.  This keeps the syntax of common DSP code
   // shorter: "va + DSPVector(1.f)" becomes just "va + 1.f".
-  DSPVectorArray(float k) { operator=(k); }
+  constexpr DSPVectorArray(float k) { operator=(k); }
 
   // unaligned data * ctors
   explicit DSPVectorArray(float* pData) { load(*this, pData); }
@@ -340,7 +340,9 @@ class DSPVectorArray
   }
   friend inline DSPVectorArray operator-(const DSPVectorArray& x1)
   {
-    constexpr DSPVectorArray zero(0.f);
+    // TODO should be able to declare this constexpr!
+    DSPVectorArray zero(0.f);
+    
     return subtract(zero, x1);
   }
   friend inline DSPVectorArray operator-(const DSPVectorArray& x1, const DSPVectorArray& x2)

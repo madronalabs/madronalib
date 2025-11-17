@@ -43,6 +43,46 @@ DSPVectorArray<COEFFS_SIZE> interpolateCoeffsLinear(const std::array<float, COEF
   return vy;
 }
 
+
+// TEMP
+
+// Primary template declaration
+template<typename T>
+T divApprox(T a, T b);
+
+// Specialization for float - uses regular division
+template<>
+inline float divApprox<float>(float a, float b) {
+  return a / b;
+}
+
+// Specialization for __m128 - uses reciprocal approximation
+template<>
+inline __m128 divApprox<__m128>(__m128 a, __m128 b) {
+  // return _mm_mul_ps(a, _mm_rcp_ps(b));  // a * (1/b) ≈ a/b
+
+  __m128 rcp = _mm_rcp_ps(b);
+  // Newton-Raphson refinement
+  rcp = _mm_mul_ps(rcp, _mm_sub_ps(_mm_set1_ps(2.0f), _mm_mul_ps(b, rcp)));
+  return _mm_mul_ps(a, rcp);
+}
+
+
+
+// tanhApprox - simple stateless example of x4 template
+
+
+
+template <typename T>
+T tanhApproxCalc(T x)
+{
+  T x2 = x * x;
+  return x * (27.0f + x2) / (27.0f + 9.0f * x2);
+}
+
+
+
+
 // --------------------------------------------------------------------------------
 // utility filters implemented as SVF variations
 // Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the years.
@@ -51,21 +91,18 @@ struct Lopass
 {
   enum coeffNames {g0, g1, g2, nCoeffs};
   enum paramNames {omega, k, nParams};
-
+  enum stateNames {ic1eq, ic2eq, nStateVars};
+  
   typedef std::array<float, nCoeffs> Coeffs;
   typedef DSPVectorArray<nCoeffs> CoeffsVec;
-  float ic1eq{0};
-  float ic2eq{0};
-
-  inline void clear()
-  {
-    ic1eq = 0;
-    ic2eq = 0;
-  }
-
-  typedef std::array<float, nParams> params;
+  typedef std::array<float, nParams> Params;
+  typedef std::array<float, nStateVars> State;
+  
   Coeffs coeffs{};
+  State state{};
 
+  inline void clear() { state.fill(0.f); }
+  
   // get internal coefficients for a given omega and k.
   // omega: the frequency divided by the sample rate.
   // k: 1/Q, where k=0 is maximum resonance.
@@ -81,6 +118,7 @@ struct Lopass
     return {g0, g1, g2};
   }
 
+  // TODO const DSPVectorArray< nParams > params
   static CoeffsVec makeCoeffsVec(DSPVector omega, DSPVector k)
   {
     CoeffsVec vy;
@@ -108,18 +146,19 @@ struct Lopass
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       float v0 = vx[n];
-      float t0 = v0 - ic2eq;
-      float t1 = coeffs[g0] * t0 + coeffs[g1] * ic1eq;
-      float t2 = coeffs[g2] * t0 + coeffs[g0] * ic1eq;
-      float v2 = t2 + ic2eq;
-      ic1eq += 2.0f * t1;
-      ic2eq += 2.0f * t2;
+      float t0 = v0 - state[ic2eq];
+      float t1 = coeffs[g0] * t0 + coeffs[g1] * state[ic1eq];
+      float t2 = coeffs[g2] * t0 + coeffs[g0] * state[ic1eq];
+      float v2 = t2 + state[ic2eq];
+      state[ic1eq] += 2.0f * t1;
+      state[ic2eq] += 2.0f * t2;
       vy[n] = v2;
     }
     return vy;
   }
 
   // filter the input vector vx with the coefficients generated from parameters omega and k.
+  // TODO const DSPVectorArray< nCoeffs >
   DSPVector operator()(const DSPVector vx, const DSPVector omega, const DSPVector k)
   {
     DSPVector vy;
@@ -127,12 +166,12 @@ struct Lopass
     for (int n = 0; n < kFloatsPerDSPVector; ++n)
     {
       float v0 = vx[n];
-      float t0 = v0 - ic2eq;
-      float t1 = vc.constRow(g0)[n] * t0 + vc.constRow(g1)[n] * ic1eq;
-      float t2 = vc.constRow(g2)[n] * t0 + vc.constRow(g0)[n] * ic1eq;
-      float v2 = t2 + ic2eq;
-      ic1eq += 2.0f * t1;
-      ic2eq += 2.0f * t2;
+      float t0 = v0 - state[ic2eq];
+      float t1 = vc.constRow(g0)[n] * t0 + vc.constRow(g1)[n] * state[ic1eq];
+      float t2 = vc.constRow(g2)[n] * t0 + vc.constRow(g0)[n] * state[ic1eq];
+      float v2 = t2 + state[ic2eq];
+      state[ic1eq] += 2.0f * t1;
+      state[ic2eq] += 2.0f * t2;
       vy[n] = v2;
     }
     return vy;

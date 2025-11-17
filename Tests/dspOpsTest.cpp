@@ -291,6 +291,13 @@ TEST_CASE("madronalib/core/dsp_ops", "[dsp_ops]")
     // access one processor directly
     noises[2].step();
   }
+  
+  SECTION("misc")
+  {
+    DSPVector n(2.f);
+    DSPVector m(-n);
+    REQUIRE(m[0] == -2.f);
+  }
 }
 
 TEST_CASE("madronalib/core/projections", "[projections]")
