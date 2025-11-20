@@ -76,13 +76,13 @@ inline bool isSIMDAligned(float* p)
 #define vecSub _mm_sub_ps
 #define vecMul _mm_mul_ps
 #define vecDiv _mm_div_ps
+#define vecRecipApprox _mm_rcp_ps
 #define vecDivApprox(x1, x2) (_mm_mul_ps(x1, _mm_rcp_ps(x2)))
 #define vecMin _mm_min_ps
 #define vecMax _mm_max_ps
-
 #define vecSqrt _mm_sqrt_ps
-#define vecSqrtApprox(x) (vecMul(x, vecRSqrt(x)))
 #define vecRSqrt _mm_rsqrt_ps
+#define vecSqrtApprox(x) (vecMul(x, vecRSqrt(x)))
 #define vecAbs(x) (_mm_andnot_ps(_mm_set_ps1(-0.0f), x))
 
 #define vecSign(x)                                                             \
@@ -863,6 +863,25 @@ inline SIMDVectorFloat vecLogApprox(SIMDVectorFloat val)
   return _mm_add_ps(poly, addCstResult);
 }
 
+// rough cubic tanh approx, valid in [-4, 4]
+
+STATIC_M128_CONST(k9Vec, 9.0f);
+STATIC_M128_CONST(k27Vec, 27.0f);
+
+inline SIMDVectorFloat vecTanhApprox(SIMDVectorFloat x)
+{
+  SIMDVectorFloat x2 = _mm_mul_ps(x, x);
+  SIMDVectorFloat denom = _mm_add_ps(k27Vec, _mm_mul_ps(k9Vec, x2));
+  SIMDVectorFloat frac = _mm_div_ps(_mm_add_ps(k27Vec, x2), (denom));
+  
+  // try me!
+//  SIMDVectorFloat frac = _mm_mul_ps(_mm_add_ps(k27Vec, x2), _mm_rcp_ps(denom));
+
+  return _mm_mul_ps(x, frac);
+}
+
+// conversions
+
 inline SIMDVectorFloat vecIntPart(SIMDVectorFloat val)
 {
   SIMDVectorInt vi = _mm_cvttps_epi32(val);  // convert with truncate
@@ -875,6 +894,8 @@ inline SIMDVectorFloat vecFracPart(SIMDVectorFloat val)
   SIMDVectorFloat intPart = _mm_cvtepi32_ps(vi);
   return _mm_sub_ps(val, intPart);
 }
+
+// shuffles
 
 // Given vectors [ ?, ?, ?, 3 ], [ 4, 5, 6, 7 ]
 // Returns [ 3, 4, 5, 6 ]

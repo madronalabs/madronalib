@@ -12,6 +12,9 @@
 #include "MLDSPRouting.h"
 #include "MLDSPGens.h"
 
+#include <iostream>
+#include <iomanip> // Required for setprecision
+
 using namespace ml;
 using namespace testUtils;
 
@@ -332,4 +335,47 @@ TEST_CASE("madronalib/core/projections", "[projections]")
       REQUIRE(testUtils::nearlyEqual(p0(p1(x)), x));
     }
   }
+}
+
+TEST_CASE("madronalib/core/tanh", "[tanh]")
+{
+  DSPVector v1 ([](int i) -> float { return (i) / static_cast<float>(kFloatsPerDSPVector - 1); });
+  DSPVector v2(v1*2.0f - 1.0f);
+  auto v3 = tanhApprox(v2);
+  
+  // WIP code to characterize behavior of _mm_rcp_ss
+  
+  if(0)
+  {
+    std::cout << "tanhApprox: " << v3 << "\n";
+    
+    // Test monotonicity empirically
+    // note that on ARM _mm_rcp_ss is implemented via sse2neon and vrecpeq_f32 !
+    int bad{0};
+    int count{0};
+    for (uint32_t i = 0x3f800000; i < 0x40000000; i++) { // 1.0 to 2.0
+      float f = *(float*)&i;
+      float f_next = *(float*)&(++i);
+      
+      __m128 v = _mm_set1_ps(f);
+      __m128 v_next = _mm_set1_ps(f_next);
+      
+      float result = _mm_cvtss_f32(_mm_rcp_ss(v));
+      float result_next = _mm_cvtss_f32(_mm_rcp_ss(v_next));
+      
+      if (result <= result_next) { // Should be decreasing
+        printf("Non-monotonic at %x\n", i);
+        
+        std::cout << std::setprecision(10);
+        
+        std::cout << "in : " << f << " -> " << f_next << "\n";
+        std::cout << "out: " << result << " -> " << result_next << "\n";
+        
+        bad++;
+      }
+      count++;
+      if(bad > 64) break;
+    }
+  }
+
 }

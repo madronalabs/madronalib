@@ -79,6 +79,19 @@ inline T* DSPVectorAlignPointer(const T* p)
 
 #endif
 
+
+
+
+
+// TODO
+/*
+remove MANUAL_ALIGN_DSPVECTOR
+make FloatArray type
+use DSPChunk<ROWS> = FLoatArray somehow
+make templates that create Banks with vertical output (<COLS, ROWS> ? ) using 4x SIMD ops
+*/
+
+
 // ----------------------------------------------------------------
 // DSPVectorArray
 //
@@ -594,6 +607,7 @@ inline void storeAligned(const DSPVectorArray<ROWS>& vecSrc, float* pDest)
     return vy;                                                         \
   }
 
+DEFINE_OP1(recipApprox, (vecRecipApprox(x)));
 DEFINE_OP1(sqrt, (vecSqrt(x)));
 DEFINE_OP1(sqrtApprox, vecSqrtApprox(x));
 DEFINE_OP1(abs, vecAbs(x));
@@ -625,6 +639,9 @@ DEFINE_OP1(logApprox, (vecLogApprox(x)));
 // lazy log2 and exp2 approximations from log / exp approximations
 DEFINE_OP1(log2Approx, (vecMul(vecLogApprox(x), kLogTwoRVec)));
 DEFINE_OP1(exp2Approx, (vecExpApprox(vecMul(kLogTwoVec, x))));
+
+// cubic tanh approx
+DEFINE_OP1(tanhApprox, (vecTanhApprox(x)));
 
 // ----------------------------------------------------------------
 // binary vector operators (float, float) -> float

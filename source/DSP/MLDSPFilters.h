@@ -44,45 +44,6 @@ DSPVectorArray<COEFFS_SIZE> interpolateCoeffsLinear(const std::array<float, COEF
 }
 
 
-// TEMP
-
-// Primary template declaration
-template<typename T>
-T divApprox(T a, T b);
-
-// Specialization for float - uses regular division
-template<>
-inline float divApprox<float>(float a, float b) {
-  return a / b;
-}
-
-// Specialization for __m128 - uses reciprocal approximation
-template<>
-inline __m128 divApprox<__m128>(__m128 a, __m128 b) {
-  // return _mm_mul_ps(a, _mm_rcp_ps(b));  // a * (1/b) ≈ a/b
-
-  __m128 rcp = _mm_rcp_ps(b);
-  // Newton-Raphson refinement
-  rcp = _mm_mul_ps(rcp, _mm_sub_ps(_mm_set1_ps(2.0f), _mm_mul_ps(b, rcp)));
-  return _mm_mul_ps(a, rcp);
-}
-
-
-
-// tanhApprox - simple stateless example of x4 template
-
-
-
-template <typename T>
-T tanhApproxCalc(T x)
-{
-  T x2 = x * x;
-  return x * (27.0f + x2) / (27.0f + 9.0f * x2);
-}
-
-
-
-
 // --------------------------------------------------------------------------------
 // utility filters implemented as SVF variations
 // Thanks to Andrew Simper [www.cytomic.com] for sharing his work over the years.
@@ -102,6 +63,12 @@ struct Lopass
   State state{};
 
   inline void clear() { state.fill(0.f); }
+  
+  WIP
+  // WIP
+  // template<typename T> T lopassCalc(T x)
+  // this will do x1 (float) and x4 (SIMD) versions
+  // further templates will use x4 version to create Banks of COLS, ROWS
   
   // get internal coefficients for a given omega and k.
   // omega: the frequency divided by the sample rate.
