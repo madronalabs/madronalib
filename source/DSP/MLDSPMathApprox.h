@@ -413,18 +413,21 @@ constexpr float kTanhD = 9.0f;
 // ----------------------------------------------------------------
 // Pure polynomial approximations — template directly
 
+// sin(x) for x in [-pi, pi]: max error about 6e-6. Diverges quickly outside that range, so wrap first.
 template<typename T>
 inline T sinApprox(T x) {
   T x2 = x * x;
   return x * (T{kSinC1} + (x2 * (T{kSinC2} + (x2 * (T{kSinC3} + (x2 * (T{kSinC4} + (x2 * T{kSinC5}))))))));
 }
 
+// cos(x) for x in [-pi, pi]: max error about 4e-5. Diverges quickly outside that range, so wrap first.
 template<typename T>
 inline T cosApprox(T x) {
   T x2 = x * x;
   return T{kCosC1} + (x2 * (T{kCosC2} + (x2 * (T{kCosC3} + (x2 * (T{kCosC4} + (x2 * T{kCosC5})))))));
 }
 
+// tanh(x) for x in [-3, 3]: max error about 0.025, reaching exactly +/-1 at +/-3. Unbounded beyond, so clamp first.
 template<typename T>
 inline T tanhApprox(T x) {
   T x2 = x * x;
