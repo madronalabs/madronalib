@@ -8,7 +8,7 @@ MADRONALIB_ROOT="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # build uses a stale file list.
 cmake -S "$MADRONALIB_ROOT" -B "$MADRONALIB_ROOT/build" -GXcode \
     -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64" \
-    -DCMAKE_OSX_DEPLOYMENT_TARGET="10.14"
+    -DCMAKE_OSX_DEPLOYMENT_TARGET="10.15"
 
 # Clean installed files
 sudo rm -rf /usr/local/include/madronalib
