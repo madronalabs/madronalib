@@ -64,7 +64,10 @@ void EventsToSignals::Voice::setPitchGlideInSeconds(float g)
 
 void EventsToSignals::Voice::setDriftAmount(float d) { driftAmount = d; }
 
-// done when DSP is reset.
+// done when DSP is reset: a polyphony or protocol change, a host reset, or
+// all sound off. The note ends and bend, mod and touch go to zero, but the voice
+// keeps its pitch, as a hardware pitch CV stays where it was. A voice that has
+// never had a note stays at 0.
 void EventsToSignals::Voice::reset()
 {
   driftSource.seed_ = voiceIndex * 232;
@@ -74,7 +77,6 @@ void EventsToSignals::Voice::reset()
   eventAgeStep = 0;
 
   currentVelocity = 0;
-  currentPitch = 0;
   currentPitchBend = 0;
   currentMod = 0;
   currentX = 0;

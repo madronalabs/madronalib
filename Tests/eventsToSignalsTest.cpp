@@ -419,6 +419,37 @@ TEST_CASE("madronalib/core/events/voice_keeps_creator_channel", "[events]")
   REQUIRE(t.ctx.getInputVoice(0).creatorChannel_ == 5);
 }
 
+// ---- pitch across a reset ----
+// A reset (polyphony or protocol change, host reset, all sound off) ends the
+// note but keeps the voice's pitch, as Aalto 1's input proc did. A synth that
+// reads pitch while the gate is closed then sees the last note, not note 0.
+
+TEST_CASE("madronalib/core/events/voice_keeps_pitch_across_reset", "[events]")
+{
+  TestFixture t;
+  t.ctx.setInputPolyphony(1);
+
+  t.callback(kFramesPerBlock, {makeNoteOn(60, 60.f, 0.8f)});
+  t.callback(kFramesPerBlock, {makeNoteOff(60, 60.f)});
+  REQUIRE(t.gateEnd(0) == 0.f);
+  REQUIRE(t.pitchAt(0, kFramesPerBlock - 1) == 60.f);
+
+  // a polyphony change resets every voice
+  t.ctx.setInputPolyphony(2);
+  t.callback(kFramesPerBlock);
+  REQUIRE(t.gateEnd(0) == 0.f);
+  REQUIRE(t.pitchAt(0, kFramesPerBlock - 1) == 60.f);
+
+  // so does all sound off
+  t.callback(kFramesPerBlock, {makeController(120, 0.f, 0)});
+  t.callback(kFramesPerBlock);
+  REQUIRE(t.pitchAt(0, kFramesPerBlock - 1) == 60.f);
+
+  // the next note moves it as usual
+  t.callback(kFramesPerBlock, {makeNoteOn(62, 62.f, 0.8f)});
+  REQUIRE(t.pitchAt(0, kFramesPerBlock - 1) == 62.f);
+}
+
 // helper: make a pitch bend event, value in [-1, 1]
 static Event makePitchBend(int channel, float value, int time = 0)
 {
