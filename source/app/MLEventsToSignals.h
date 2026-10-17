@@ -110,6 +110,7 @@ class EventsToSignals final
     void setPitchGlideInSeconds(float g);
     void setDriftAmount(float d);
 
+    // end the note and zero everything but the pitch, which the voice keeps
     void reset();
 
     void resetTime();
